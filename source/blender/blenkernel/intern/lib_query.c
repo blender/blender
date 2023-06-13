@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -85,12 +86,12 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   }
 
   const int callback_return = data->callback(
-      &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
-                                          .bmain = data->bmain,
-                                          .id_owner = data->owner_id,
-                                          .id_self = data->self_id,
-                                          .id_pointer = id_pp,
-                                          .cb_flag = cb_flag});
+      &(LibraryIDLinkCallbackData){.user_data = data->user_data,
+                                   .bmain = data->bmain,
+                                   .owner_id = data->owner_id,
+                                   .self_id = data->self_id,
+                                   .id_pointer = id_pp,
+                                   .cb_flag = cb_flag});
   if (flag & IDWALK_READONLY) {
     BLI_assert(*(id_pp) == old_id);
   }
@@ -126,7 +127,7 @@ int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData 
 }
 
 static bool library_foreach_ID_link(Main *bmain,
-                                    ID *id_owner,
+                                    ID *owner_id,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
@@ -174,7 +175,8 @@ void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
   }
   else {
     if (!library_foreach_ID_link(
-            data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data)) {
+            data->bmain, data->owner_id, id, data->callback, data->user_data, data->flag, data))
+    {
       data->status |= IDWALK_STOP;
       return;
     }
@@ -191,7 +193,7 @@ static void library_foreach_ID_data_cleanup(LibraryForeachIDData *data)
 
 /** \return false in case iteration over ID pointers must be stopped, true otherwise. */
 static bool library_foreach_ID_link(Main *bmain,
-                                    ID *id_owner,
+                                    ID *owner_id,
                                     ID *id,
                                     LibraryIDLinkCallback callback,
                                     void *user_data,
@@ -201,6 +203,12 @@ static bool library_foreach_ID_link(Main *bmain,
   LibraryForeachIDData data = {.bmain = bmain};
 
   BLI_assert(inherit_data == NULL || data.bmain == inherit_data->bmain);
+  /* `IDWALK_NO_ORIG_POINTERS_ACCESS` is mutually exclusive with both `IDWALK_READONLY` and
+   * `IDWALK_RECURSE`. */
+  BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY)) !=
+             (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_READONLY));
+  BLI_assert((flag & (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE)) !=
+             (IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_RECURSE));
 
   if (flag & IDWALK_RECURSE) {
     /* For now, recursion implies read-only, and no internal pointers. */
@@ -252,7 +260,7 @@ static bool library_foreach_ID_link(Main *bmain,
      * knowledge of the owner ID then.
      * While not great, and that should be probably sanitized at some point, we cal live with it
      * for now. */
-    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && id_owner != NULL) ? id_owner :
+    data.owner_id = ((id->flag & LIB_EMBEDDED_DATA) != 0 && owner_id != NULL) ? owner_id :
                                                                                 data.self_id;
 
     /* inherit_data is non-NULL when this function is called for some sub-data ID
@@ -272,9 +280,10 @@ static bool library_foreach_ID_link(Main *bmain,
     }
 
     if (bmain != NULL && bmain->relations != NULL && (flag & IDWALK_READONLY) &&
-        (flag & IDWALK_DO_INTERNAL_RUNTIME_POINTERS) == 0 &&
+        (flag & (IDWALK_DO_INTERNAL_RUNTIME_POINTERS | IDWALK_DO_LIBRARY_POINTER)) == 0 &&
         (((bmain->relations->flag & MAINIDRELATIONS_INCLUDE_UI) == 0) ==
-         ((data.flag & IDWALK_INCLUDE_UI) == 0))) {
+         ((data.flag & IDWALK_INCLUDE_UI) == 0)))
+    {
       /* Note that this is minor optimization, even in worst cases (like id being an object with
        * lots of drivers and constraints and modifiers, or material etc. with huge node tree),
        * but we might as well use it (Main->relations is always assumed valid,
@@ -283,7 +292,8 @@ static bool library_foreach_ID_link(Main *bmain,
       MainIDRelationsEntry *entry = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
                                                      id);
       for (MainIDRelationsEntryItem *to_id_entry = entry->to_ids; to_id_entry != NULL;
-           to_id_entry = to_id_entry->next) {
+           to_id_entry = to_id_entry->next)
+      {
         BKE_lib_query_foreachid_process(
             &data, to_id_entry->id_pointer.to, to_id_entry->usage_flag);
         if (BKE_lib_query_foreachid_iter_stop(&data)) {
@@ -365,28 +375,38 @@ void BKE_library_update_ID_link_user(ID *id_dst, ID *id_src, const int cb_flag)
   }
 }
 
-uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
+uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include_ui)
 {
   /* any type of ID can be used in custom props. */
-  if (id_owner->properties) {
+  if (owner_id->properties) {
     return FILTER_ID_ALL;
   }
-  const short id_type_owner = GS(id_owner->name);
+  const short id_type_owner = GS(owner_id->name);
 
   /* IDProps of armature bones and nodes, and bNode->id can use virtually any type of ID. */
   if (ELEM(id_type_owner, ID_NT, ID_AR)) {
     return FILTER_ID_ALL;
   }
 
-  /* Casting to non const.
-   * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
-   * interested in the result. */
-  if (ntreeFromID((ID *)id_owner)) {
+  /* Screen UI IDs can also link to virtually any ID (through e.g. the Outliner). */
+  if (include_ui && id_type_owner == ID_SCR) {
     return FILTER_ID_ALL;
   }
 
-  if (BKE_animdata_from_id(id_owner)) {
+  /* Casting to non const.
+   * TODO(jbakker): We should introduce a ntree_id_has_tree function as we are actually not
+   * interested in the result. */
+  if (ntreeFromID((ID *)owner_id)) {
+    return FILTER_ID_ALL;
+  }
+
+  if (BKE_animdata_from_id(owner_id)) {
     /* AnimationData can use virtually any kind of data-blocks, through drivers especially. */
+    return FILTER_ID_ALL;
+  }
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(owner_id)) {
+    /* LibOverride data 'hierarchy root' can virtually point back to any type of ID. */
     return FILTER_ID_ALL;
   }
 
@@ -396,7 +416,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_SCE:
       return FILTER_ID_OB | FILTER_ID_WO | FILTER_ID_SCE | FILTER_ID_MC | FILTER_ID_MA |
              FILTER_ID_GR | FILTER_ID_TXT | FILTER_ID_LS | FILTER_ID_MSK | FILTER_ID_SO |
-             FILTER_ID_GD | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
+             FILTER_ID_GD_LEGACY | FILTER_ID_BR | FILTER_ID_PAL | FILTER_ID_IM | FILTER_ID_NT;
     case ID_OB:
       /* Could be more specific, but simpler to just always say 'yes' here. */
       return FILTER_ID_ALL;
@@ -435,7 +455,7 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
     case ID_PA:
       return FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE;
     case ID_MC:
-      return FILTER_ID_GD | FILTER_ID_IM;
+      return FILTER_ID_GD_LEGACY | FILTER_ID_IM;
     case ID_MSK:
       /* WARNING! mask->parent.id, not typed. */
       return FILTER_ID_MC;
@@ -443,8 +463,10 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
       return FILTER_ID_TE | FILTER_ID_OB;
     case ID_LP:
       return FILTER_ID_IM;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return FILTER_ID_MA;
+    case ID_GP:
+      return FILTER_ID_GP | FILTER_ID_MA;
     case ID_WS:
       return FILTER_ID_SCE;
     case ID_CV:
@@ -477,14 +499,14 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *id_owner)
   return 0;
 }
 
-bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
+bool BKE_library_id_can_use_idtype(ID *owner_id, const short id_type_used)
 {
   /* any type of ID can be used in custom props. */
-  if (id_owner->properties) {
+  if (owner_id->properties) {
     return true;
   }
 
-  const short id_type_owner = GS(id_owner->name);
+  const short id_type_owner = GS(owner_id->name);
   /* Exception for ID_LI as they don't exist as a filter. */
   if (id_type_used == ID_LI) {
     return id_type_owner == ID_LI;
@@ -501,7 +523,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
   }
 
   const uint64_t filter_id_type_used = BKE_idtype_idcode_to_idfilter(id_type_used);
-  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(id_owner);
+  const uint64_t can_be_used = BKE_library_id_can_use_filter_id(owner_id, false);
   return (can_be_used & filter_id_type_used) != 0;
 }
 
@@ -648,7 +670,10 @@ void BKE_library_ID_test_usages(Main *bmain, void *idv, bool *is_used_local, boo
 }
 
 /* ***** IDs usages.checking/tagging. ***** */
-static void lib_query_unused_ids_tag_recurse(Main *bmain,
+
+/* Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
+ */
+static bool lib_query_unused_ids_tag_recurse(Main *bmain,
                                              const int tag,
                                              const bool do_local_ids,
                                              const bool do_linked_ids,
@@ -658,31 +683,40 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
   /* We should never deal with embedded, not-in-main IDs here. */
   BLI_assert((id->flag & LIB_EMBEDDED_DATA) == 0);
 
-  if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
-    return;
-  }
-
   MainIDRelationsEntry *id_relations = BLI_ghash_lookup(bmain->relations->relations_from_pointers,
                                                         id);
+
   if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0) {
-    return;
+    return false;
   }
-  id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+  else if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) != 0) {
+    /* This ID has not yet been fully processed. If this condition is reached, it means this is a
+     * dependency loop case. */
+    return true;
+  }
+
+  if ((!do_linked_ids && ID_IS_LINKED(id)) || (!do_local_ids && !ID_IS_LINKED(id))) {
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+    return false;
+  }
 
   if ((id->tag & tag) != 0) {
-    return;
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+    return false;
   }
 
   if ((id->flag & LIB_FAKEUSER) != 0) {
     /* This ID is forcefully kept around, and therefore never unused, no need to check it further.
      */
-    return;
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+    return false;
   }
 
   if (ELEM(GS(id->name), ID_WM, ID_WS, ID_SCE, ID_SCR, ID_LI)) {
     /* Some 'root' ID types are never unused (even though they may not have actual users), unless
      * their actual user-count is set to 0. */
-    return;
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+    return false;
   }
 
   if (ELEM(GS(id->name), ID_IM)) {
@@ -690,13 +724,15 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
      * orphaned/unused data. */
     Image *image = (Image *)id;
     if (image->source == IMA_SRC_VIEWER) {
-      return;
+      id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+      return false;
     }
   }
 
   /* An ID user is 'valid' (i.e. may affect the 'used'/'not used' status of the ID it uses) if it
    * does not match `ignored_usages`, and does match `required_usages`. */
-  const int ignored_usages = (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED);
+  const int ignored_usages = (IDWALK_CB_LOOPBACK | IDWALK_CB_EMBEDDED |
+                              IDWALK_CB_EMBEDDED_NOT_OWNING);
   const int required_usages = (IDWALK_CB_USER | IDWALK_CB_USER_ONE);
 
   /* This ID may be tagged as unused if none of its users are 'valid', as defined above.
@@ -704,16 +740,14 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
    * First recursively check all its valid users, if all of them can be tagged as
    * unused, then we can tag this ID as such too. */
   bool has_valid_from_users = false;
-  /* Preemptively consider this ID as unused. That way if there is a loop of dependency leading
-   * back to it, it won't create a fake 'valid user' detection.
-   * NOTE: there are some cases (like when fake user is set, or some ID types) which are never
-   * 'indirectly unused'. However, these have already been checked and early-returned above, so any
-   * ID reaching this point of the function can be tagged. */
-  id->tag |= tag;
+  bool is_part_of_dependency_loop = false;
+  id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
   for (MainIDRelationsEntryItem *id_from_item = id_relations->from_ids; id_from_item != NULL;
-       id_from_item = id_from_item->next) {
+       id_from_item = id_from_item->next)
+  {
     if ((id_from_item->usage_flag & ignored_usages) != 0 ||
-        (id_from_item->usage_flag & required_usages) == 0) {
+        (id_from_item->usage_flag & required_usages) == 0)
+    {
       continue;
     }
 
@@ -724,24 +758,42 @@ static void lib_query_unused_ids_tag_recurse(Main *bmain,
       BLI_assert(id_from != NULL);
     }
 
-    lib_query_unused_ids_tag_recurse(
-        bmain, tag, do_local_ids, do_linked_ids, id_from, r_num_tagged);
+    if (lib_query_unused_ids_tag_recurse(
+            bmain, tag, do_local_ids, do_linked_ids, id_from, r_num_tagged))
+    {
+      /* Dependency loop case, ignore the `id_from` tag value here (as it should not be considered
+       * as valid yet), and presume that this is a 'valid user' case for now. . */
+      is_part_of_dependency_loop = true;
+      continue;
+    }
     if ((id_from->tag & tag) == 0) {
       has_valid_from_users = true;
       break;
     }
   }
-  if (has_valid_from_users) {
-    /* This ID has 'valid' users, clear the 'tag as unused' preemptively set above. */
-    id->tag &= ~tag;
-  }
-  else {
-    /* This ID has no 'valid' users, its 'unused' tag preemptively set above can be kept. */
+  if (!has_valid_from_users && !is_part_of_dependency_loop) {
+    /* Tag the ID as unused, only in case it is not part of a dependency loop. */
+    id->tag |= tag;
     if (r_num_tagged != NULL) {
       r_num_tagged[INDEX_ID_NULL]++;
       r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
     }
   }
+
+  /* This ID is not being processed anymore.
+   *
+   * However, we can only tag is as successfully processed if either it was detected as part of a
+   * valid usage hierarchy, or, if detected as unused, if it was not part of a dependency loop.
+   *
+   * Otherwise, this is an undecided state, it will be resolved at the entry point of this
+   * recursive process for the root id (see below in  #BKE_lib_query_unused_ids_tag calling code).
+   */
+  id_relations->tags &= ~MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS;
+  if (has_valid_from_users || !is_part_of_dependency_loop) {
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+  }
+
+  return is_part_of_dependency_loop;
 }
 
 void BKE_lib_query_unused_ids_tag(Main *bmain,
@@ -777,7 +829,39 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
 
   BKE_main_relations_create(bmain, 0);
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    lib_query_unused_ids_tag_recurse(bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged);
+    if (lib_query_unused_ids_tag_recurse(
+            bmain, tag, do_local_ids, do_linked_ids, id, r_num_tagged)) {
+      /* This root processed ID is part of one or more dependency loops.
+       *
+       * If it was not tagged, and its matching relations entry is not marked as processed, it
+       * means that it's the first encountered entry point of an 'unused archipelago' (i.e. the
+       * entry point to a set of IDs with relationships to each other, but no 'valid usage'
+       * relations to the current Blender file (like being part of a scene, etc.).
+       *
+       * So the entry can be tagged as processed, and the ID tagged as unused. */
+      if ((id->tag & tag) == 0) {
+        MainIDRelationsEntry *id_relations = BLI_ghash_lookup(
+            bmain->relations->relations_from_pointers, id);
+        if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0) {
+          id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+          id->tag |= tag;
+          if (r_num_tagged != NULL) {
+            r_num_tagged[INDEX_ID_NULL]++;
+            r_num_tagged[BKE_idtype_idcode_to_index(GS(id->name))]++;
+          }
+        }
+      }
+    }
+
+#ifndef NDEBUG
+    /* Relation entry for the root processed ID should always be marked as processed now. */
+    MainIDRelationsEntry *id_relations = BLI_ghash_lookup(
+        bmain->relations->relations_from_pointers, id);
+    if ((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) == 0) {
+      BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_PROCESSED) != 0);
+    }
+    BLI_assert((id_relations->tags & MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS) == 0);
+#endif
   }
   FOREACH_MAIN_ID_END;
   BKE_main_relations_free(bmain);
@@ -785,7 +869,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain,
 
 static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)
 {
-  ID *self_id = cb_data->id_self;
+  ID *self_id = cb_data->self_id;
   ID **id_p = cb_data->id_pointer;
   const int cb_flag = cb_data->cb_flag;
   bool *is_changed = cb_data->user_data;

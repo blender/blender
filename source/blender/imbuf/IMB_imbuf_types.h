@@ -1,9 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include "BLI_implicit_sharing.h"
+
 #include "DNA_vec_types.h" /* for rcti */
+
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,7 +22,7 @@ extern "C" {
  * Types needed for using the image buffer.
  *
  * Imbuf is external code, slightly adapted to live in the Blender
- * context. It requires an external jpeg module, and the avi-module
+ * context. It requires an external JPEG module, and the AVI-module
  * (also external code) in order to function correctly.
  *
  * This file contains types and some constants that go with them. Most
@@ -26,7 +31,7 @@ extern "C" {
  */
 
 #define IMB_MIPMAP_LEVELS 20
-#define IMB_FILENAME_SIZE 1024
+#define IMB_FILEPATH_SIZE 1024
 
 typedef struct DDSData {
   /** DDS fourcc info */
@@ -59,26 +64,18 @@ enum eImbFileType {
   IMB_FTYPE_BMP = 4,
   IMB_FTYPE_OPENEXR = 5,
   IMB_FTYPE_IMAGIC = 6,
-#ifdef WITH_OPENIMAGEIO
   IMB_FTYPE_PSD = 7,
-#endif
 #ifdef WITH_OPENJPEG
   IMB_FTYPE_JP2 = 8,
 #endif
-#ifdef WITH_HDR
   IMB_FTYPE_RADHDR = 9,
-#endif
-#ifdef WITH_TIFF
   IMB_FTYPE_TIF = 10,
-#endif
 #ifdef WITH_CINEON
   IMB_FTYPE_CINEON = 11,
   IMB_FTYPE_DPX = 12,
 #endif
 
-#ifdef WITH_DDS
   IMB_FTYPE_DDS = 13,
-#endif
 #ifdef WITH_WEBP
   IMB_FTYPE_WEBP = 14,
 #endif
@@ -87,9 +84,10 @@ enum eImbFileType {
 /* Only for readability. */
 #define IMB_FTYPE_NONE 0
 
-/* ibuf->foptions flag, type specific options.
- * Some formats include compression rations on some bits */
-
+/**
+ * #ImBuf::foptions.flag, type specific options.
+ * Some formats include compression rations on some bits.
+ */
 #define OPENEXR_HALF (1 << 8)
 /* careful changing this, it's used in DNA as well */
 #define OPENEXR_COMPRESS (15)
@@ -115,13 +113,11 @@ enum eImbFileType {
 
 #define RAWTGA 1
 
-#ifdef WITH_TIFF
-#  define TIF_16BIT (1 << 8)
-#  define TIF_COMPRESS_NONE (1 << 7)
-#  define TIF_COMPRESS_DEFLATE (1 << 6)
-#  define TIF_COMPRESS_LZW (1 << 5)
-#  define TIF_COMPRESS_PACKBITS (1 << 4)
-#endif
+#define TIF_16BIT (1 << 8)
+#define TIF_COMPRESS_NONE (1 << 7)
+#define TIF_COMPRESS_DEFLATE (1 << 6)
+#define TIF_COMPRESS_LZW (1 << 5)
+#define TIF_COMPRESS_PACKBITS (1 << 4)
 
 typedef struct ImbFormatOptions {
   short flag;
@@ -161,6 +157,51 @@ typedef enum eImBufFlags {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Imbuf buffer storage
+ * \{ */
+
+/* Specialization of an ownership whenever a bare pointer is provided to the ImBuf buffers
+ * assignment API. */
+typedef enum ImBufOwnership {
+  /* The ImBuf simply shares pointer with data owned by someone else, and will not perform any
+   * memory management when the ImBuf frees the buffer. */
+  IB_DO_NOT_TAKE_OWNERSHIP = 0,
+
+  /* The ImBuf takes ownership of the buffer data, and will use MEM_freeN() to free this memory
+   * when the ImBuf needs to free the data. */
+  IB_TAKE_OWNERSHIP = 1,
+} ImBufOwnership;
+
+/* Different storage specialization.
+ *
+ * Note on the implicit sharing
+ * ----------------------------
+ *
+ * The buffer allows implicitly sharing data with other users of such data. In this case the
+ * ownership is set to IB_DO_NOT_TAKE_OWNERSHIP. */
+/* TODO(sergey): Once everything is C++ replace with a template. */
+
+typedef struct ImBufIntBuffer {
+  int *data;
+  ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
+} ImBufIntBuffer;
+
+typedef struct ImBufByteBuffer {
+  uint8_t *data;
+  ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
+} ImBufByteBuffer;
+
+typedef struct ImBufFloatBuffer {
+  float *data;
+  ImBufOwnership ownership;
+  const ImplicitSharingInfoHandle *implicit_sharing;
+} ImBufFloatBuffer;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Image Buffer
  * \{ */
 
@@ -180,32 +221,33 @@ typedef struct ImBuf {
   /* flags */
   /** Controls which components should exist. */
   int flags;
-  /** what is malloced internal, and can be freed */
-  int mall;
 
   /* pixels */
 
-  /** Image pixel buffer (8bit representation):
+  /**
+   * Image pixel buffer (8bit representation):
    * - color space defaults to `sRGB`.
    * - alpha defaults to 'straight'.
    */
-  unsigned int *rect;
-  /** Image pixel buffer (float representation):
+  ImBufByteBuffer byte_buffer;
+
+  /**
+   * Image pixel buffer (float representation):
    * - color space defaults to 'linear' (`rec709`).
    * - alpha defaults to 'premul'.
    * \note May need gamma correction to `sRGB` when generating 8bit representations.
    * \note Formats that support higher more than 8 but channels load as floats.
    */
-  float *rect_float;
+  ImBufFloatBuffer float_buffer;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];
 
   /* zbuffer */
   /** z buffer data, original zbuffer */
-  int *zbuf;
+  ImBufIntBuffer z_buffer;
   /** z buffer data, camera coordinates */
-  float *zbuf_float;
+  ImBufFloatBuffer float_z_buffer;
 
   /* parameters used by conversion between byte and float */
   /** random dither value, for conversion from float -> byte rect */
@@ -231,22 +273,20 @@ typedef struct ImBuf {
   enum eImbFileType ftype;
   /** file format specific flags */
   ImbFormatOptions foptions;
-  /** filename associated with this image */
-  char name[IMB_FILENAME_SIZE];
+  /** The absolute file path associated with this image. */
+  char filepath[IMB_FILEPATH_SIZE];
 
   /* memory cache limiter */
-  /** handle for cache limiter */
-  struct MEM_CacheLimiterHandle_s *c_handle;
   /** reference counter for multiple users */
   int refcounter;
 
   /* some parameters to pass along for packing images */
   /** Compressed image only used with PNG and EXR currently. */
-  unsigned char *encodedbuffer;
-  /** Size of data written to `encodedbuffer`. */
-  unsigned int encodedsize;
-  /** Size of `encodedbuffer` */
-  unsigned int encodedbuffersize;
+  ImBufByteBuffer encoded_buffer;
+  /** Size of data written to `encoded_buffer`. */
+  unsigned int encoded_size;
+  /** Size of `encoded_buffer` */
+  unsigned int encoded_buffer_size;
 
   /* color management */
   /** color space of byte buffer */
@@ -297,31 +337,27 @@ enum {
 /** \} */
 
 /* dds */
-#ifdef WITH_DDS
-#  ifndef DDS_MAKEFOURCC
-#    define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
-      ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
-       ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
-#  endif /* DDS_MAKEFOURCC */
+#ifndef DDS_MAKEFOURCC
+#  define DDS_MAKEFOURCC(ch0, ch1, ch2, ch3) \
+    ((unsigned long)(unsigned char)(ch0) | ((unsigned long)(unsigned char)(ch1) << 8) | \
+     ((unsigned long)(unsigned char)(ch2) << 16) | ((unsigned long)(unsigned char)(ch3) << 24))
+#endif /* DDS_MAKEFOURCC */
 
 /*
  * FOURCC codes for DX compressed-texture pixel formats.
  */
 
-#  define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
-#  define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
-#  define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
-#  define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
-#  define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
-#  define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
+#define FOURCC_DDS (DDS_MAKEFOURCC('D', 'D', 'S', ' '))
+#define FOURCC_DX10 (DDS_MAKEFOURCC('D', 'X', '1', '0'))
+#define FOURCC_DXT1 (DDS_MAKEFOURCC('D', 'X', 'T', '1'))
+#define FOURCC_DXT2 (DDS_MAKEFOURCC('D', 'X', 'T', '2'))
+#define FOURCC_DXT3 (DDS_MAKEFOURCC('D', 'X', 'T', '3'))
+#define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
+#define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
 
-#endif /* DDS */
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];
-
-/** Image formats that can only be loaded via filepath. */
-extern const char *imb_ext_image_filepath_only[];
 
 /* -------------------------------------------------------------------- */
 /** \name Imbuf Color Management Flag

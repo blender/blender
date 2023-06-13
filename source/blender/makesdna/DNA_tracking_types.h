@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -121,13 +122,13 @@ typedef struct MovieTrackingTrack {
    * relative to marker->pos)
    * moved to marker's corners since planar tracking implementation
    */
-  float pat_min[2] DNA_DEPRECATED, pat_max[2] DNA_DEPRECATED;
+  float pat_min_legacy[2], pat_max_legacy[2];
 
   /* positions of left-bottom and right-top corners of search area (in unified 0..1 units,
    * relative to marker->pos
    * moved to marker since affine tracking implementation
    */
-  float search_min[2] DNA_DEPRECATED, search_max[2] DNA_DEPRECATED;
+  float search_min_legacy[2], search_max_legacy[2];
 
   /** Offset to "parenting" point. */
   float offset[2];
@@ -281,8 +282,8 @@ typedef struct MovieTrackingSettings {
   /* two keyframes for reconstruction initialization
    * were moved to per-tracking object settings
    */
-  int keyframe1 DNA_DEPRECATED;
-  int keyframe2 DNA_DEPRECATED;
+  int keyframe1_legacy;
+  int keyframe2_legacy;
 
   int reconstruction_flag;
 
@@ -315,7 +316,7 @@ typedef struct MovieTrackingStabilization {
   /** Max auto-scale factor. */
   float maxscale;
   /** Use TRACK_USE_2D_STAB_ROT on individual tracks instead. */
-  MovieTrackingTrack *rot_track DNA_DEPRECATED;
+  MovieTrackingTrack *rot_track_legacy;
 
   /** Reference point to anchor stabilization offset. */
   int anchor_frame;
@@ -332,10 +333,7 @@ typedef struct MovieTrackingStabilization {
   /** Filter used for pixel interpolation. */
   int filter;
 
-  /* initialization and run-time data */
-  /** Without effect now, we initialize on every frame.
-   * Formerly used for caching of init values. */
-  int ok DNA_DEPRECATED;
+  int _pad;
 } MovieTrackingStabilization;
 
 typedef struct MovieTrackingReconstruction {
@@ -524,7 +522,7 @@ enum {
 /** #MovieTrackingTrack.pattern_match */
 typedef enum eTrackFrameMatch {
   TRACK_MATCH_KEYFRAME = 0,
-  TRACK_MATCH_PREVIOS_FRAME = 1,
+  TRACK_MATCH_PREVIOUS_FRAME = 1,
 } eTrackFrameMatch;
 
 /** #MovieTrackingSettings.motion_flag */

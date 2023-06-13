@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -34,15 +35,17 @@ typedef struct BoxPack {
  * There is no limit to the space boxes may take, only that they will be packed
  * tightly into the lower left hand corner (0,0)
  *
- * \param boxarray: a pre-allocated array of boxes.
+ * \param box_array: a pre-allocated array of boxes.
  *      only the 'box->x' and 'box->y' are set, 'box->w' and 'box->h' are used,
  *      'box->index' is not used at all, the only reason its there
  *          is that the box array is sorted by area and programs need to be able
  *          to have some way of writing the boxes back to the original data.
  * \param len: the number of boxes in the array.
+ * \param sort_boxes: Sort `box_array` before packing.
  * \param r_tot_x, r_tot_y: set so you can normalize the data.
  */
-void BLI_box_pack_2d(BoxPack *boxarray, unsigned int len, float *r_tot_x, float *r_tot_y);
+void BLI_box_pack_2d(
+    BoxPack *box_array, unsigned int len, bool sort_boxes, float *r_tot_x, float *r_tot_y);
 
 typedef struct FixedSizeBoxPack {
   struct FixedSizeBoxPack *next, *prev;

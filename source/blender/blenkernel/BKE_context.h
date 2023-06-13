@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -247,6 +248,7 @@ void CTX_wm_operator_poll_msg_clear(struct bContext *C);
 enum {
   CTX_DATA_TYPE_POINTER = 0,
   CTX_DATA_TYPE_COLLECTION,
+  CTX_DATA_TYPE_PROPERTY,
 };
 
 PointerRNA CTX_data_pointer_get(const bContext *C, const char *member);
@@ -263,8 +265,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member);
  */
 ListBase CTX_data_dir_get_ex(const bContext *C, bool use_store, bool use_rna, bool use_all);
 ListBase CTX_data_dir_get(const bContext *C);
-int /*eContextResult*/ CTX_data_get(
-    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type);
+int /*eContextResult*/ CTX_data_get(const bContext *C,
+                                    const char *member,
+                                    PointerRNA *r_ptr,
+                                    ListBase *r_lb,
+                                    PropertyRNA **r_prop,
+                                    int *r_index,
+                                    short *r_type);
 
 void CTX_data_id_pointer_set(bContextDataResult *result, struct ID *id);
 void CTX_data_pointer_set_ptr(bContextDataResult *result, const PointerRNA *ptr);
@@ -273,6 +280,15 @@ void CTX_data_pointer_set(bContextDataResult *result, struct ID *id, StructRNA *
 void CTX_data_id_list_add(bContextDataResult *result, struct ID *id);
 void CTX_data_list_add_ptr(bContextDataResult *result, const PointerRNA *ptr);
 void CTX_data_list_add(bContextDataResult *result, struct ID *id, StructRNA *type, void *data);
+
+/**
+ * Stores a property in a result. Make sure to also call
+ * `CTX_data_type_set(result, CTX_DATA_TYPE_PROPERTY)`.
+ * \param result: The result to store the property in.
+ * \param prop: The property to store.
+ * \param index: The particular index in the property to store.
+ */
+void CTX_data_prop_set(bContextDataResult *result, PropertyRNA *prop, int index);
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir);
 
@@ -383,6 +399,8 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
+
+struct AssetRepresentation *CTX_wm_asset(const bContext *C);
 
 bool CTX_wm_interface_locked(const bContext *C);
 

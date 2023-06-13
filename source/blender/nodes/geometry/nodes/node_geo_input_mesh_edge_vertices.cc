@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -11,18 +13,18 @@ namespace blender::nodes::node_geo_input_mesh_edge_vertices_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>(N_("Vertex Index 1"))
+  b.add_output<decl::Int>("Vertex Index 1")
       .field_source()
-      .description(N_("The index of the first vertex in the edge"));
-  b.add_output<decl::Int>(N_("Vertex Index 2"))
+      .description("The index of the first vertex in the edge");
+  b.add_output<decl::Int>("Vertex Index 2")
       .field_source()
-      .description(N_("The index of the second vertex in the edge"));
-  b.add_output<decl::Vector>(N_("Position 1"))
+      .description("The index of the second vertex in the edge");
+  b.add_output<decl::Vector>("Position 1")
       .field_source()
-      .description(N_("The position of the first vertex in the edge"));
-  b.add_output<decl::Vector>(N_("Position 2"))
+      .description("The position of the first vertex in the edge");
+  b.add_output<decl::Vector>("Position 2")
       .field_source()
-      .description(N_("The position of the second vertex in the edge"));
+      .description("The position of the second vertex in the edge");
 }
 
 enum class VertNumber { V1, V2 };
@@ -31,13 +33,12 @@ static VArray<int> construct_edge_verts_gvarray(const Mesh &mesh,
                                                 const VertNumber vertex,
                                                 const eAttrDomain domain)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   if (domain == ATTR_DOMAIN_EDGE) {
     if (vertex == VertNumber::V1) {
-      return VArray<int>::ForFunc(edges.size(),
-                                  [edges](const int i) -> int { return edges[i].v1; });
+      return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][0]; });
     }
-    return VArray<int>::ForFunc(edges.size(), [edges](const int i) -> int { return edges[i].v2; });
+    return VArray<int>::ForFunc(edges.size(), [edges](const int i) { return edges[i][1]; });
   }
   return {};
 }
@@ -55,7 +56,7 @@ class EdgeVertsInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_edge_verts_gvarray(mesh, vertex_, domain);
   }
@@ -84,18 +85,18 @@ static VArray<float3> construct_edge_positions_gvarray(const Mesh &mesh,
                                                        const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
 
   if (vertex == VertNumber::V1) {
     return mesh.attributes().adapt_domain<float3>(
         VArray<float3>::ForFunc(
-            edges.size(), [positions, edges](const int i) { return positions[edges[i].v1]; }),
+            edges.size(), [positions, edges](const int i) { return positions[edges[i][0]]; }),
         ATTR_DOMAIN_EDGE,
         domain);
   }
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForFunc(edges.size(),
-                              [positions, edges](const int i) { return positions[edges[i].v2]; }),
+                              [positions, edges](const int i) { return positions[edges[i][1]]; }),
       ATTR_DOMAIN_EDGE,
       domain);
 }
@@ -113,7 +114,7 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_edge_positions_gvarray(mesh, vertex_, domain);
   }
@@ -126,7 +127,8 @@ class EdgePositionFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const EdgePositionFieldInput *other_field = dynamic_cast<const EdgePositionFieldInput *>(
-            &other)) {
+            &other))
+    {
       return vertex_ == other_field->vertex_;
     }
     return false;

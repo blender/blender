@@ -51,9 +51,7 @@ HdCyclesCamera::HdCyclesCamera(const SdfPath &sprimId) : HdCamera(sprimId)
 #endif
 }
 
-HdCyclesCamera::~HdCyclesCamera()
-{
-}
+HdCyclesCamera::~HdCyclesCamera() {}
 
 HdDirtyBits HdCyclesCamera::GetInitialDirtyBitsMask() const
 {

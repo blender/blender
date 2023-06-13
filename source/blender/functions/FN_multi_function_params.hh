@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -27,21 +29,20 @@ class ParamsBuilder {
  private:
   std::unique_ptr<ResourceScope> scope_;
   const Signature *signature_;
-  IndexMask mask_;
+  const IndexMask &mask_;
   int64_t min_array_size_;
   Vector<std::variant<GVArray, GMutableSpan, const GVVectorArray *, GVectorArray *>>
       actual_params_;
 
   friend class Params;
 
-  ParamsBuilder(const Signature &signature, const IndexMask mask)
+  ParamsBuilder(const Signature &signature, const IndexMask &mask)
       : signature_(&signature), mask_(mask), min_array_size_(mask.min_array_size())
   {
     actual_params_.reserve(signature.params.size());
   }
 
  public:
-  ParamsBuilder(const class MultiFunction &fn, int64_t size);
   /**
    * The indices referenced by the #mask has to live longer than the params builder. This is
    * because the it might have to destruct elements for all masked indices in the end.
@@ -125,7 +126,8 @@ class ParamsBuilder {
     const int param_index = this->current_param_index();
     const ParamType &param_type = signature_->params[param_index].type;
     BLI_assert(param_type.category() == ParamCategory::SingleOutput);
-    const CPPType &type = param_type.data_type().single_type();
+    const DataType data_type = param_type.data_type();
+    const CPPType &type = data_type.single_type();
 
     if (bool(signature_->params[param_index].flag & ParamFlag::SupportsUnusedOutput)) {
       /* An empty span indicates that this is ignored. */
@@ -227,9 +229,7 @@ class Params {
   ParamsBuilder *builder_;
 
  public:
-  Params(ParamsBuilder &builder) : builder_(&builder)
-  {
-  }
+  Params(ParamsBuilder &builder) : builder_(&builder) {}
 
   template<typename T> VArray<T> readonly_single_input(int param_index, StringRef name = "")
   {

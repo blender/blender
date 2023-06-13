@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -10,7 +12,7 @@
 
 #ifdef __GNUC__
 /* NOTE(@ideasman42): CLANG behaves slightly differently to GCC,
- * these can be enabled but do so carefully as they can introduce build-errors.  */
+ * these can be enabled but do so carefully as they can introduce build-errors. */
 #  if !defined(__clang__)
 #    pragma GCC diagnostic error "-Wsign-compare"
 #    pragma GCC diagnostic error "-Wconversion"

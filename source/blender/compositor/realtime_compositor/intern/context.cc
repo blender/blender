@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_rect.h"
 
@@ -11,9 +13,7 @@
 
 namespace blender::realtime_compositor {
 
-Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool)
-{
-}
+Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 
 int2 Context::get_compositing_region_size() const
 {
@@ -21,15 +21,21 @@ int2 Context::get_compositing_region_size() const
   return int2(BLI_rcti_size_x(&compositing_region), BLI_rcti_size_y(&compositing_region));
 }
 
+float Context::get_render_percentage() const
+{
+  return get_render_data().size / 100.0f;
+}
+
 int Context::get_frame_number() const
 {
-  return get_scene()->r.cfra;
+  return get_render_data().cfra;
 }
 
 float Context::get_time() const
 {
   const float frame_number = float(get_frame_number());
-  const float frame_rate = float(get_scene()->r.frs_sec) / float(get_scene()->r.frs_sec_base);
+  const float frame_rate = float(get_render_data().frs_sec) /
+                           float(get_render_data().frs_sec_base);
   return frame_number / frame_rate;
 }
 

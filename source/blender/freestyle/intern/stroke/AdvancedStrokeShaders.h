@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -34,9 +36,7 @@ class CalligraphicShader : public StrokeShader {
                      bool clamp);
 
   /** Destructor. */
-  virtual ~CalligraphicShader()
-  {
-  }
+  virtual ~CalligraphicShader() {}
 
   /** The shading method */
   virtual int shade(Stroke &ioStroke) const;
@@ -70,9 +70,7 @@ class SpatialNoiseShader : public StrokeShader {
   SpatialNoiseShader(float iAmount, float ixScale, int nbOctave, bool smooth, bool pureRandom);
 
   /** Destructor. */
-  virtual ~SpatialNoiseShader()
-  {
-  }
+  virtual ~SpatialNoiseShader() {}
 
   /** The shading method. */
   virtual int shade(Stroke &ioStroke) const;
@@ -122,9 +120,7 @@ class SmoothingShader : public StrokeShader {
                   real icarricatureFactor);
 
   /** Destructor. */
-  virtual ~SmoothingShader()
-  {
-  }
+  virtual ~SmoothingShader() {}
 
   /** The shading method. */
   virtual int shade(Stroke &ioStroke) const;
@@ -184,9 +180,7 @@ class Omitter : public Smoother {
  public:
   Omitter(Stroke &ioStroke);
 
-  virtual ~Omitter()
-  {
-  }
+  virtual ~Omitter() {}
 
   void omit(real sizeWindow, real thrVari, real thrFlat, real lFlat);
 
@@ -203,9 +197,7 @@ class Omitter : public Smoother {
 class OmissionShader : public StrokeShader {
  public:
   OmissionShader(real sizeWindow, real thrVari, real thrFlat, real lFlat);
-  virtual ~OmissionShader()
-  {
-  }
+  virtual ~OmissionShader() {}
 
   virtual int shade(Stroke &ioStroke) const;
 

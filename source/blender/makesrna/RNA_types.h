@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -9,6 +11,7 @@
 #define __RNA_TYPES_H__
 
 #include "../blenlib/BLI_sys_types.h"
+#include "../blenlib/BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,6 +84,7 @@ typedef enum PropertyUnit {
   PROP_UNIT_POWER = (11 << 16),        /* W */
   PROP_UNIT_TEMPERATURE = (12 << 16),  /* C */
 } PropertyUnit;
+ENUM_OPERATORS(PropertyUnit, PROP_UNIT_TEMPERATURE)
 
 /**
  * Use values besides #PROP_SCALE_LINEAR
@@ -286,11 +290,11 @@ typedef enum PropertyFlag {
 
   /** This is an IDProperty, not a DNA one. */
   PROP_IDPROPERTY = (1 << 10),
-  /** For dynamic arrays, and retvals of type string. */
+  /** For dynamic arrays & return values of type string. */
   PROP_DYNAMIC = (1 << 17),
   /** For enum that shouldn't be contextual */
   PROP_ENUM_NO_CONTEXT = (1 << 24),
-  /** For enums not to be translated (e.g. viewlayers' names in nodes). */
+  /** For enums not to be translated (e.g. view-layers' names in nodes). */
   PROP_ENUM_NO_TRANSLATE = (1 << 29),
 
   /**
@@ -306,6 +310,7 @@ typedef enum PropertyFlag {
    **/
   PROP_PATH_OUTPUT = (1 << 2),
 } PropertyFlag;
+ENUM_OPERATORS(PropertyFlag, PROP_NO_DEG_UPDATE)
 
 /**
  * Flags related to comparing and overriding RNA properties.
@@ -342,13 +347,15 @@ typedef enum PropertyOverrideFlag {
   /** The property supports insertion (collections only). */
   PROPOVERRIDE_LIBRARY_INSERTION = (1 << 10),
 
-  /** Only use indices to compare items in the property, never names (collections only).
+  /**
+   * Only use indices to compare items in the property, never names (collections only).
    *
    * Useful when nameprop of the items is generated from other data
    * (e.g. name of material slots is actually name of assigned material).
    */
   PROPOVERRIDE_NO_PROP_NAME = (1 << 11),
 } PropertyOverrideFlag;
+ENUM_OPERATORS(PropertyOverrideFlag, PROPOVERRIDE_NO_PROP_NAME);
 
 /**
  * Function parameters flags.
@@ -367,6 +374,7 @@ typedef enum ParameterFlag {
    */
   PARM_PYFUNC_OPTIONAL = (1 << 3),
 } ParameterFlag;
+ENUM_OPERATORS(ParameterFlag, PARM_PYFUNC_OPTIONAL)
 
 struct CollectionPropertyIterator;
 struct Link;
@@ -735,7 +743,7 @@ typedef enum StructFlag {
   STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID = (1 << 11),
 } StructFlag;
 
-typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, int *have_function);
+typedef int (*StructValidateFunc)(struct PointerRNA *ptr, void *data, bool *have_function);
 typedef int (*StructCallbackFunc)(struct bContext *C,
                                   struct PointerRNA *ptr,
                                   struct FunctionRNA *func,
@@ -748,8 +756,8 @@ typedef struct StructRNA *(*StructRegisterFunc)(struct Main *bmain,
                                                 StructValidateFunc validate,
                                                 StructCallbackFunc call,
                                                 StructFreeFunc free);
-
-typedef void (*StructUnregisterFunc)(struct Main *bmain, struct StructRNA *type);
+/** Return true when `type` was successfully unregistered & freed. */
+typedef bool (*StructUnregisterFunc)(struct Main *bmain, struct StructRNA *type);
 typedef void **(*StructInstanceFunc)(PointerRNA *ptr);
 
 typedef struct StructRNA StructRNA;
@@ -773,6 +781,24 @@ typedef struct ExtensionRNA {
   StructCallbackFunc call;
   StructFreeFunc free;
 } ExtensionRNA;
+
+/* Primitive types. */
+
+typedef struct PrimitiveStringRNA {
+  const char *value;
+} PrimitiveStringRNA;
+
+typedef struct PrimitiveIntRNA {
+  int value;
+} PrimitiveIntRNA;
+
+typedef struct PrimitiveFloatRNA {
+  float value;
+} PrimitiveFloatRNA;
+
+typedef struct PrimitiveBooleanRNA {
+  bool value;
+} PrimitiveBooleanRNA;
 
 #ifdef __cplusplus
 }

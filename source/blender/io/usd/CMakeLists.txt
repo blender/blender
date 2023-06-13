@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation. All rights reserved.
 
 # This suppresses the warning "This file includes at least one deprecated or antiquated
 # header which may be removed without further notice at a future date", which is caused
@@ -35,12 +36,20 @@ if(USD_IMAGING_HEADERS)
   add_definitions(-DUSD_HAS_IMAGING)
 endif()
 
+if(WIN32)
+  # Some USD library headers trigger the "unreferenced formal parameter"
+  # warning alert.
+  # Silence them by restore warn C4100 back to w4
+  remove_cc_flag(/w34100)
+endif()
+
 set(INC
   .
   ../common
   ../../blenkernel
   ../../blenlib
   ../../blenloader
+  ../../blentranslation
   ../../bmesh
   ../../depsgraph
   ../../editors/include
@@ -63,10 +72,10 @@ set(SRC
   intern/usd_asset_utils.cc
   intern/usd_capi_export.cc
   intern/usd_capi_import.cc
-  intern/usd_common.cc
   intern/usd_hierarchy_iterator.cc
   intern/usd_writer_abstract.cc
   intern/usd_writer_camera.cc
+  intern/usd_writer_curves.cc
   intern/usd_writer_hair.cc
   intern/usd_writer_light.cc
   intern/usd_writer_material.cc
@@ -91,11 +100,11 @@ set(SRC
   usd.h
 
   intern/usd_asset_utils.h
-  intern/usd_common.h
   intern/usd_exporter_context.h
   intern/usd_hierarchy_iterator.h
   intern/usd_writer_abstract.h
   intern/usd_writer_camera.h
+  intern/usd_writer_curves.h
   intern/usd_writer_hair.h
   intern/usd_writer_light.h
   intern/usd_writer_material.h
@@ -147,11 +156,10 @@ blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 if(WITH_GTESTS)
   set(TEST_SRC
+    tests/usd_curves_test.cc
     tests/usd_export_test.cc
     tests/usd_stage_creation_test.cc
-    tests/usd_tests_common.cc
-    tests/usd_tests_common.h
-
+    tests/usd_usdz_export_test.cc
     intern/usd_writer_material.h
   )
   if(USD_IMAGING_HEADERS)

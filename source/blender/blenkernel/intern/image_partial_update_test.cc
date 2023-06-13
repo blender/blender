@@ -1,10 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
 #include "CLG_log.h"
 
 #include "BKE_appdir.h"
+#include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_image.h"
 #include "BKE_image_partial_update.hh"
@@ -24,6 +26,7 @@ constexpr float black_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 class ImagePartialUpdateTest : public testing::Test {
  protected:
   Main *bmain;
+  Main *prev_bmain;
   Image *image;
   ImageTile *image_tile;
   ImageUser image_user = {nullptr};
@@ -55,6 +58,9 @@ class ImagePartialUpdateTest : public testing::Test {
     IMB_init();
 
     bmain = BKE_main_new();
+    /* Required by usage of #ID_BLEND_PATH_FROM_GLOBAL in #add_ibuf_for_tile. */
+    prev_bmain = G_MAIN;
+    G_MAIN = bmain;
     /* Creating an image generates a memory-leak during tests. */
     image = create_test_image(1024, 1024);
     image_tile = BKE_image_get_tile(image, 0);
@@ -67,6 +73,9 @@ class ImagePartialUpdateTest : public testing::Test {
   {
     BKE_image_release_ibuf(image, image_buffer, nullptr);
     BKE_image_partial_update_free(partial_update_user);
+
+    /* Restore original main in G_MAIN. */
+    G_MAIN = prev_bmain;
     BKE_main_free(bmain);
 
     IMB_moviecache_destruct();
@@ -340,7 +349,8 @@ TEST_F(ImagePartialUpdateTest, mark_multiple_chunks)
   PartialUpdateRegion changed_region;
   int num_chunks_found = 0;
   while (BKE_image_partial_update_get_next_change(partial_update_user, &changed_region) ==
-         ePartialUpdateIterResult::ChangeAvailable) {
+         ePartialUpdateIterResult::ChangeAvailable)
+  {
     BLI_rcti_isect(&changed_region.region, &region, nullptr);
     num_chunks_found++;
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -201,6 +203,17 @@ static PointerRNA rna_ViewLayer_depsgraph_get(PointerRNA *ptr)
   return PointerRNA_NULL;
 }
 
+static void rna_ViewLayer_remove_aov(struct ViewLayer *view_layer,
+                                     ReportList *reports,
+                                     struct ViewLayerAOV *aov)
+{
+  if (BLI_findindex(&view_layer->aovs, aov) == -1) {
+    BKE_reportf(reports, RPT_ERROR, "AOV not found in view-layer '%s'", view_layer->name);
+    return;
+  }
+  BKE_view_layer_remove_aov(view_layer, aov);
+}
+
 static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   ViewLayer *view_layer = (ViewLayer *)ptr->data;
@@ -261,7 +274,7 @@ static void rna_ObjectBase_hide_viewport_update(bContext *C, PointerRNA *UNUSED(
 static void rna_LayerCollection_name_get(struct PointerRNA *ptr, char *value)
 {
   ID *id = (ID *)((LayerCollection *)ptr->data)->collection;
-  BLI_strncpy(value, id->name + 2, sizeof(id->name) - 2);
+  strcpy(value, id->name + 2);
 }
 
 int rna_LayerCollection_name_length(PointerRNA *ptr)

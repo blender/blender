@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
  */
 
 #include "BKE_image.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
 #include "BLI_map.hh"
@@ -140,7 +142,7 @@ static std::string get_image_filepath(const bNode *tex_node)
 
   if (BKE_image_has_packedfile(tex_image)) {
     /* Put image in the same directory as the .MTL file. */
-    const char *filename = BLI_path_slash_rfind(tex_image->filepath) + 1;
+    const char *filename = BLI_path_basename(tex_image->filepath);
     fprintf(stderr,
             "Packed image found:'%s'. Unpack and place the image in the same "
             "directory as the .MTL file.\n",
@@ -148,18 +150,18 @@ static std::string get_image_filepath(const bNode *tex_node)
     return filename;
   }
 
-  char path[FILE_MAX];
-  BLI_strncpy(path, tex_image->filepath, FILE_MAX);
+  char filepath[FILE_MAX];
+  STRNCPY(filepath, tex_image->filepath);
 
   if (tex_image->source == IMA_SRC_SEQUENCE) {
     char head[FILE_MAX], tail[FILE_MAX];
     ushort numlen;
     int framenr = static_cast<NodeTexImage *>(tex_node->storage)->iuser.framenr;
-    BLI_path_sequence_decode(path, head, tail, &numlen);
-    BLI_path_sequence_encode(path, head, tail, numlen, framenr);
+    BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &numlen);
+    BLI_path_sequence_encode(filepath, sizeof(filepath), head, tail, numlen, framenr);
   }
 
-  return path;
+  return filepath;
 }
 
 /**

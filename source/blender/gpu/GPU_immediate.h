@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -105,7 +106,7 @@ void immUniformArray4fv(const char *bare_name, const float *data, int count);
 void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
 void immBindTexture(const char *name, GPUTexture *tex);
-void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state);
+void immBindTextureSampler(const char *name, GPUTexture *tex, GPUSamplerState state);
 void immBindUniformBuf(const char *name, GPUUniformBuf *ubo);
 
 /* Convenience functions for setting "uniform vec4 color". */

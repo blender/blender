@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_sort_paths">
+    <description>Path sort selection, taking into account path depth.</description>
+    <displayname>Sort (Path Depths)</displayname>
+    <category>Formatting</category>
+    <executable output="replaceselection" error="showinpane" modifiesdocument="no">
+        <path>qtc_sort_paths.py</path>
+        <input>%{CurrentDocument:Selection}</input>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -126,7 +127,8 @@ static int add_primitive_plane_exec(bContext *C, wmOperator *op)
           0,
           RNA_float_get(op->ptr, "size") / 2.0f,
           creation_data.mat,
-          calc_uvs)) {
+          calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -188,7 +190,8 @@ static int add_primitive_cube_exec(bContext *C, wmOperator *op)
                                 "create_cube matrix=%m4 size=%f calc_uvs=%b",
                                 creation_data.mat,
                                 RNA_float_get(op->ptr, "size"),
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -266,7 +269,8 @@ static int add_primitive_circle_exec(bContext *C, wmOperator *op)
           cap_end,
           cap_tri,
           creation_data.mat,
-          calc_uvs)) {
+          calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -340,7 +344,8 @@ static int add_primitive_cylinder_exec(bContext *C, wmOperator *op)
                                 cap_tri,
                                 RNA_float_get(op->ptr, "depth"),
                                 creation_data.mat,
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -416,7 +421,8 @@ static int add_primitive_cone_exec(bContext *C, wmOperator *op)
                                 cap_tri,
                                 RNA_float_get(op->ptr, "depth"),
                                 creation_data.mat,
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -489,7 +495,8 @@ static int add_primitive_grid_exec(bContext *C, wmOperator *op)
           RNA_int_get(op->ptr, "y_subdivisions"),
           RNA_float_get(op->ptr, "size") / 2.0f,
           creation_data.mat,
-          calc_uvs)) {
+          calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -562,7 +569,8 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
                                 false,
                                 "create_monkey matrix=%m4 calc_uvs=%b",
                                 creation_data.mat,
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -627,7 +635,8 @@ static int add_primitive_uvsphere_exec(bContext *C, wmOperator *op)
           RNA_int_get(op->ptr, "ring_count"),
           RNA_float_get(op->ptr, "radius"),
           creation_data.mat,
-          calc_uvs)) {
+          calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 
@@ -694,7 +703,8 @@ static int add_primitive_icosphere_exec(bContext *C, wmOperator *op)
           RNA_int_get(op->ptr, "subdivisions"),
           RNA_float_get(op->ptr, "radius"),
           creation_data.mat,
-          calc_uvs)) {
+          calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 

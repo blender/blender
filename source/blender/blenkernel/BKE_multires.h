@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -24,7 +25,7 @@ struct Object;
 struct Scene;
 struct SubdivCCG;
 
-struct MPoly;
+struct MLoopTri;
 
 /**
  * Delete mesh mdisps and grid paint masks.
@@ -153,8 +154,7 @@ void old_mdisps_bilinear(float out[3], float (*disps)[3], int st, float u, float
 /**
  * Find per-corner coordinate with given per-face UV coord.
  */
-int mdisp_rot_face_to_crn(
-    struct MPoly *mpoly, int face_side, float u, float v, float *x, float *y);
+int mdisp_rot_face_to_crn(int face_size, int face_side, float u, float v, float *x, float *y);
 
 /* Reshaping, define in multires_reshape.cc */
 

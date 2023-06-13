@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -15,7 +16,7 @@
 
 #include "BKE_fluid.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
 #include "BKE_volume_render.h"
@@ -70,12 +71,12 @@ static void drw_volume_globals_init()
 {
   const float zero[4] = {0.0f, 0.0f, 0.0f, 0.0f};
   const float one[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  g_data.dummy_zero = GPU_texture_create_3d_ex(
-      "dummy_zero", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, GPU_TEXTURE_USAGE_SHADER_READ, zero);
-  g_data.dummy_one = GPU_texture_create_3d_ex(
-      "dummy_one", 1, 1, 1, 1, GPU_RGBA8, GPU_DATA_FLOAT, GPU_TEXTURE_USAGE_SHADER_READ, one);
-  GPU_texture_wrap_mode(g_data.dummy_zero, true, true);
-  GPU_texture_wrap_mode(g_data.dummy_one, true, true);
+  g_data.dummy_zero = GPU_texture_create_3d(
+      "dummy_zero", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, zero);
+  g_data.dummy_one = GPU_texture_create_3d(
+      "dummy_one", 1, 1, 1, 1, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, one);
+  GPU_texture_extend_mode(g_data.dummy_zero, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+  GPU_texture_extend_mode(g_data.dummy_one, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
   memset(g_data.dummy_grid_mat, 0, sizeof(g_data.dummy_grid_mat));
 }
@@ -184,7 +185,8 @@ static DRWShadingGroup *drw_volume_object_mesh_init(Scene *scene,
   /* Smoke Simulation */
   if ((md = BKE_modifiers_findby_type(ob, eModifierType_Fluid)) &&
       BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime) &&
-      ((FluidModifierData *)md)->domain != nullptr) {
+      ((FluidModifierData *)md)->domain != nullptr)
+  {
     FluidModifierData *fmd = (FluidModifierData *)md;
     FluidDomainSettings *fds = fmd->domain;
 

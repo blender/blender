@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -359,8 +361,8 @@ static void rna_EditBone_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(ebone->name)], newname[sizeof(ebone->name)];
 
   /* need to be on the stack */
-  BLI_strncpy_utf8(newname, value, sizeof(ebone->name));
-  BLI_strncpy(oldname, ebone->name, sizeof(ebone->name));
+  STRNCPY_UTF8(newname, value);
+  STRNCPY(oldname, ebone->name);
 
   BLI_assert(BKE_id_is_in_global_main(&arm->id));
   ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
@@ -373,8 +375,8 @@ static void rna_Bone_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(bone->name)], newname[sizeof(bone->name)];
 
   /* need to be on the stack */
-  BLI_strncpy_utf8(newname, value, sizeof(bone->name));
-  BLI_strncpy(oldname, bone->name, sizeof(bone->name));
+  STRNCPY_UTF8(newname, value);
+  STRNCPY(oldname, bone->name);
 
   BLI_assert(BKE_id_is_in_global_main(&arm->id));
   ED_armature_bone_rename(G_MAIN, arm, oldname, newname);
@@ -651,6 +653,30 @@ static bool rna_Armature_is_editmode_get(PointerRNA *ptr)
 static void rna_Armature_transform(bArmature *arm, float mat[16])
 {
   ED_armature_transform(arm, (const float(*)[4])mat, true);
+}
+
+static int rna_Armature_relation_line_position_get(PointerRNA *ptr)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+  /* Translate the bitflag to an EnumPropertyItem prop_relation_lines_items item ID. */
+  return (arm->flag & ARM_DRAW_RELATION_FROM_HEAD) ? 1 : 0;
+}
+
+static void rna_Armature_relation_line_position_set(PointerRNA *ptr, const int value)
+{
+  bArmature *arm = (bArmature *)ptr->data;
+
+  /* Translate the EnumPropertyItem prop_relation_lines_items item ID to a bitflag */
+  switch (value) {
+    case 0:
+      arm->flag &= ~ARM_DRAW_RELATION_FROM_HEAD;
+      break;
+    case 1:
+      arm->flag |= ARM_DRAW_RELATION_FROM_HEAD;
+      break;
+    default:
+      return;
+  }
 }
 
 #else
@@ -1460,6 +1486,11 @@ static void rna_def_armature(BlenderRNA *brna)
        "Show Armature in binding pose state (no posing possible)"},
       {0, NULL, 0, NULL, NULL},
   };
+  static const EnumPropertyItem prop_relation_lines_items[] = {
+      {0, "TAIL", 0, "Tail", "Draw the relationship line from the parent tail to the child head"},
+      {1, "HEAD", 0, "Head", "Draw the relationship line from the parent head to the child head"},
+      {0, NULL, 0, NULL, NULL},
+  };
 
   srna = RNA_def_struct(brna, "Armature", "ID");
   RNA_def_struct_ui_text(
@@ -1532,9 +1563,9 @@ static void rna_def_armature(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "layer_protected", 1);
   RNA_def_property_array(prop, 32);
   RNA_def_property_ui_text(prop,
-                           "Layer Proxy Protection",
-                           "Protected layers in Proxy Instances are restored to Proxy settings "
-                           "on file reload and undo");
+                           "Layer Override Protection",
+                           "Protected layers in overridden instances are restored to "
+                           "their original settings on file reload and undo");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 
   /* flag */
@@ -1553,6 +1584,20 @@ static void rna_def_armature(BlenderRNA *brna)
                            "The position for the axes on the bone. Increasing the value moves it "
                            "closer to the tip; decreasing moves it closer to the root");
   RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+
+  RNA_define_verify_sdna(false); /* This property does not live in DNA. */
+  prop = RNA_def_property(srna, "relation_line_position", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, prop_relation_lines_items);
+  RNA_def_property_ui_text(prop,
+                           "Relation Line Position",
+                           "The start position of the relation lines from parent to child bones");
+  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_enum_funcs(prop,
+                              "rna_Armature_relation_line_position_get",
+                              "rna_Armature_relation_line_position_set",
+                              /*item function*/ NULL);
+  RNA_define_verify_sdna(true); /* Restore default. */
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", ARM_DRAWNAMES);

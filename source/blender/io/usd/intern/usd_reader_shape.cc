@@ -1,8 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Nvidia. All rights reserved. */
+/* SPDX-FileCopyrightText: 2023 Nvidia. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 
@@ -45,9 +46,10 @@ void USDShapeReader::create_object(Main *bmain, double /*motionSampleTime*/)
 
 void USDShapeReader::read_object_data(Main *bmain, double motionSampleTime)
 {
+  const USDMeshReadParams params = create_mesh_read_params(motionSampleTime,
+                                                           import_params_.mesh_read_flag);
   Mesh *mesh = (Mesh *)object_->data;
-  Mesh *read_mesh = this->read_mesh(
-      mesh, motionSampleTime, import_params_.mesh_read_flag, nullptr);
+  Mesh *read_mesh = this->read_mesh(mesh, params, nullptr);
 
   if (read_mesh != mesh) {
     BKE_mesh_nomain_to_mesh(read_mesh, mesh, object_);
@@ -124,8 +126,7 @@ bool USDShapeReader::read_mesh_values(double motionSampleTime,
 }
 
 Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
-                                double motionSampleTime,
-                                int /*read_flag*/,
+                                const USDMeshReadParams params,
                                 const char ** /*err_str*/)
 {
   pxr::VtIntArray face_indices;
@@ -136,30 +137,24 @@ Mesh *USDShapeReader::read_mesh(struct Mesh *existing_mesh,
   }
 
   /* Should have a good set of data by this point-- copy over. */
-  Mesh *active_mesh = mesh_from_prim(existing_mesh, motionSampleTime, face_indices, face_counts);
+  Mesh *active_mesh = mesh_from_prim(
+      existing_mesh, params.motion_sample_time, face_indices, face_counts);
   if (active_mesh == existing_mesh) {
     return existing_mesh;
   }
 
-  MutableSpan<MPoly> polys = active_mesh->polys_for_write();
-  MutableSpan<MLoop> loops = active_mesh->loops_for_write();
+  MutableSpan<int> poly_offsets = active_mesh->poly_offsets_for_write();
+  for (const int i : IndexRange(active_mesh->totpoly)) {
+    poly_offsets[i] = face_counts[i];
+  }
+  offset_indices::accumulate_counts_to_offsets(poly_offsets);
 
-  const char should_smooth = prim_.IsA<pxr::UsdGeomCube>() ? 0 : ME_SMOOTH;
+  /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
+  BKE_mesh_smooth_flag_set(active_mesh, !prim_.IsA<pxr::UsdGeomCube>());
 
-  int loop_index = 0;
-  for (int i = 0; i < face_counts.size(); i++) {
-    const int face_size = face_counts[i];
-
-    MPoly &poly = polys[i];
-    poly.loopstart = loop_index;
-    poly.totloop = face_size;
-
-    /* Don't smooth-shade cubes; we're not worrying about sharpness for Gprims. */
-    poly.flag |= should_smooth;
-
-    for (int f = 0; f < face_size; ++f, ++loop_index) {
-      loops[loop_index].v = face_indices[loop_index];
-    }
+  MutableSpan<int> corner_verts = active_mesh->corner_verts_for_write();
+  for (const int i : corner_verts.index_range()) {
+    corner_verts[i] = face_indices[i];
   }
 
   BKE_mesh_calc_edges(active_mesh, false, false);
@@ -185,7 +180,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
   Mesh *active_mesh = nullptr;
   if (!position_counts_match || !poly_counts_match) {
     active_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions.size(), 0, 0, face_indices.size(), face_counts.size());
+        existing_mesh, positions.size(), 0, face_counts.size(), face_indices.size());
   }
   else {
     active_mesh = existing_mesh;

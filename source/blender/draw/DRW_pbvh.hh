@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -10,6 +11,8 @@
 /* Needed for BKE_ccg.h. */
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"
+#include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 
 #include "BKE_ccg.h"
 
@@ -23,8 +26,6 @@ struct DMFlagMat;
 struct Mesh;
 struct MLoopTri;
 struct CustomData;
-struct MLoop;
-struct MPoly;
 struct SubdivCCG;
 struct BMesh;
 
@@ -34,8 +35,9 @@ struct PBVH_GPU_Args {
   BMesh *bm;
   const Mesh *me;
   const float (*vert_positions)[3];
-  const MLoop *mloop;
-  const MPoly *mpoly;
+  blender::OffsetIndices<int> polys;
+  blender::Span<int> corner_verts;
+  blender::Span<int> corner_edges;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
   CustomData *vdata, *ldata, *pdata;
   const float (*vert_normals)[3];
@@ -62,6 +64,7 @@ struct PBVH_GPU_Args {
   int node_verts_num;
 
   const MLoopTri *mlooptri;
+  const int *looptri_polys;
   PBVHNode *node;
 
   /* BMesh. */

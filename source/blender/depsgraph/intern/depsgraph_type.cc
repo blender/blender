@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -31,9 +32,7 @@ void DEG_register_node_types()
   deg::deg_register_operation_depsnodes();
 }
 
-void DEG_free_node_types()
-{
-}
+void DEG_free_node_types() {}
 
 deg::DEGCustomDataMeshMasks::DEGCustomDataMeshMasks(const CustomData_MeshMasks *other)
     : vert_mask(other->vmask),

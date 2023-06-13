@@ -314,7 +314,8 @@ void window_main_loop(const char *title,
       }
       else if (event.type == SDL_WINDOWEVENT) {
         if (event.window.event == SDL_WINDOWEVENT_RESIZED ||
-            event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
+            event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+        {
           window_reshape(event.window.data1, event.window.data2);
         }
       }

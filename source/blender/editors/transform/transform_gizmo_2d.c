@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -42,7 +44,8 @@
 #include "SEQ_time.h"
 #include "SEQ_transform.h"
 
-#include "transform.h" /* own include */
+#include "transform.h"
+#include "transform_gizmo.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Shared Callback's
@@ -98,7 +101,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
   return true;
 }
 
-static void gizmo2d_pivot_point_message_subscribe(struct wmGizmoGroup *gzgroup,
+static void gizmo2d_pivot_point_message_subscribe(wmGizmoGroup *gzgroup,
                                                   struct wmMsgBus *mbus,
                                                   /* Additional args. */
                                                   bScreen *screen,
@@ -748,8 +751,8 @@ static void gizmo2d_xform_setup_no_cage(const bContext *C, wmGizmoGroup *gzgroup
   ggd->no_cage = true;
 }
 
-static void gizmo2d_xform_no_cage_message_subscribe(const struct bContext *C,
-                                                    struct wmGizmoGroup *gzgroup,
+static void gizmo2d_xform_no_cage_message_subscribe(const bContext *C,
+                                                    wmGizmoGroup *gzgroup,
                                                     struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);
@@ -908,8 +911,8 @@ static void gizmo2d_resize_invoke_prepare(const bContext *C,
   RNA_enum_set(&gzop->ptr, "orient_type", orient_type);
 }
 
-static void gizmo2d_resize_message_subscribe(const struct bContext *C,
-                                             struct wmGizmoGroup *gzgroup,
+static void gizmo2d_resize_message_subscribe(const bContext *C,
+                                             wmGizmoGroup *gzgroup,
                                              struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);
@@ -1019,8 +1022,8 @@ static void gizmo2d_rotate_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgrou
   }
 }
 
-static void gizmo2d_rotate_message_subscribe(const struct bContext *C,
-                                             struct wmGizmoGroup *gzgroup,
+static void gizmo2d_rotate_message_subscribe(const bContext *C,
+                                             wmGizmoGroup *gzgroup,
                                              struct wmMsgBus *mbus)
 {
   bScreen *screen = CTX_wm_screen(C);

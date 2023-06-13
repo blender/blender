@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -74,6 +75,12 @@ class View {
 
   /** Disable a range in the multi-view array. Disabled view will not produce any instances. */
   void disable(IndexRange range);
+
+  /** Enable or disable every visibility test (frustum culling, HiZ culling). */
+  void visibility_test(bool enable)
+  {
+    do_visibility_ = enable;
+  }
 
   /**
    * Update culling data using a compute shader.

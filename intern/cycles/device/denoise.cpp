@@ -70,8 +70,6 @@ NODE_DEFINE(DenoiseParams)
   return type;
 }
 
-DenoiseParams::DenoiseParams() : Node(get_node_type())
-{
-}
+DenoiseParams::DenoiseParams() : Node(get_node_type()) {}
 
 CCL_NAMESPACE_END

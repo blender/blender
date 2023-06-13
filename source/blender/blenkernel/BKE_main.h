@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -38,14 +39,16 @@ struct Library;
 struct MainLock;
 struct UniqueName_Map;
 
-/* Blender thumbnail, as written on file (width, height, and data as char RGBA). */
-/* We pack pixel data after that struct. */
+/**
+ * Blender thumbnail, as written to the `.blend` file (width, height, and data as char RGBA).
+ */
 typedef struct BlendThumbnail {
   int width, height;
+  /** Pixel data, RGBA (repeated): `sizeof(char[4]) * width * height`. */
   char rect[0];
 } BlendThumbnail;
 
-/* Structs caching relations between data-blocks in a given Main. */
+/** Structs caching relations between data-blocks in a given Main. */
 typedef struct MainIDRelationsEntryItem {
   struct MainIDRelationsEntryItem *next;
 
@@ -79,15 +82,26 @@ typedef enum eMainIDRelationsEntryTags {
   /* Generic tag marking the entry as to be processed. */
   MAINIDRELATIONS_ENTRY_TAGS_DOIT = 1 << 0,
 
-  /* Generic tag marking the entry as processed in the `to` direction (i.e. we processed the IDs
-   * used by this item). */
-  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO = 1 << 1,
-  /* Generic tag marking the entry as processed in the `from` direction (i.e. we processed the IDs
-   * using by this item). */
-  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM = 1 << 2,
+  /* Generic tag marking the entry as processed in the `to` direction (i.e. the IDs used by this
+   * item have been processed). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO = 1 << 4,
+  /* Generic tag marking the entry as processed in the `from` direction (i.e. the IDs using this
+   * item have been processed). */
+  MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM = 1 << 5,
   /* Generic tag marking the entry as processed. */
   MAINIDRELATIONS_ENTRY_TAGS_PROCESSED = MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_TO |
                                          MAINIDRELATIONS_ENTRY_TAGS_PROCESSED_FROM,
+
+  /* Generic tag marking the entry as being processed in the `to` direction (i.e. the IDs used by
+   * this item are being processed). Useful for dependency loops detection and handling. */
+  MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_TO = 1 << 8,
+  /* Generic tag marking the entry as being processed in the `from` direction (i.e. the IDs using
+   * this item are being processed). Useful for dependency loops detection and handling. */
+  MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_FROM = 1 << 9,
+  /* Generic tag marking the entry as being processed. Useful for dependency loops detection and
+   * handling. */
+  MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS = MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_TO |
+                                          MAINIDRELATIONS_ENTRY_TAGS_INPROGRESS_FROM,
 } eMainIDRelationsEntryTags;
 
 typedef struct MainIDRelations {
@@ -109,7 +123,18 @@ enum {
 
 typedef struct Main {
   struct Main *next, *prev;
-  /** The file-path of this blend file, an empty string indicates an unsaved file. */
+  /**
+   * The file-path of this blend file, an empty string indicates an unsaved file.
+   *
+   * \note For the current loaded blend file this path must be absolute & normalized.
+   * This prevents redundant leading slashes or current-working-directory relative paths
+   * from causing problems with absolute/relative conversion which relies on this `filepath`
+   * being absolute. See #BLI_path_canonicalize_native.
+   *
+   * This rule is not strictly enforced as in some cases loading a #Main is performed
+   * to read data temporarily (preferences & startup) for e.g.
+   * where the `filepath` is not persistent or used as a basis for other paths.
+   */
   char filepath[1024];               /* 1024 = FILE_MAX */
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
@@ -137,6 +162,13 @@ typedef struct Main {
    * Make sure we don't do this by accident, see #76738.
    */
   bool is_locked_for_linking;
+
+  /**
+   * When set, indicates that an unrecoverable error/data corruption was detected.
+   * Should only be set by readfile code, and used by upper-level code (typically #setup_app_data)
+   * to cancel a file reading operation.
+   */
+  bool is_read_invalid;
 
   /**
    * True if this main is the 'GMAIN' of current Blender.
@@ -178,8 +210,9 @@ typedef struct Main {
   ListBase particles;
   ListBase palettes;
   ListBase paintcurves;
-  ListBase wm; /* Singleton (exception). */
-  ListBase gpencils;
+  ListBase wm;       /* Singleton (exception). */
+  ListBase gpencils; /* Legacy Grease Pencil. */
+  ListBase grease_pencils;
   ListBase movieclips;
   ListBase masks;
   ListBase linestyles;
@@ -201,10 +234,10 @@ typedef struct Main {
    */
   struct MainIDRelations *relations;
 
-  /* IDMap of IDs. Currently used when reading (expanding) libraries. */
+  /** IDMap of IDs. Currently used when reading (expanding) libraries. */
   struct IDNameLib_Map *id_map;
 
-  /* Used for efficient calculations of unique names. */
+  /** Used for efficient calculations of unique names. */
   struct UniqueName_Map *name_map;
 
   struct MainLock *lock;

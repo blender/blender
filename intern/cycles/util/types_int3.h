@@ -50,4 +50,43 @@ ccl_device_inline int3 make_int3(int x, int y, int z);
 ccl_device_inline int3 make_int3(int i);
 ccl_device_inline void print_int3(ccl_private const char *label, const int3 a);
 
+#if defined(__KERNEL_METAL__)
+/* Metal has native packed_int3. */
+#elif defined(__KERNEL_CUDA__)
+/* CUDA int3 is already packed. */
+typedef int3 packed_int3;
+#else
+/* HIP int3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
+struct packed_int3 {
+  int x, y, z;
+
+  ccl_device_inline_method packed_int3(){};
+
+  ccl_device_inline_method packed_int3(const int px, const int py, const int pz)
+      : x(px), y(py), z(pz){};
+
+  ccl_device_inline_method packed_int3(const int3 &a) : x(a.x), y(a.y), z(a.z) {}
+
+  ccl_device_inline_method operator int3() const
+  {
+    return make_int3(x, y, z);
+  }
+
+  ccl_device_inline_method packed_int3 &operator=(const int3 &a)
+  {
+    x = a.x;
+    y = a.y;
+    z = a.z;
+    return *this;
+  }
+
+#  ifndef __KERNEL_GPU__
+  __forceinline int operator[](int i) const;
+  __forceinline int &operator[](int i);
+#  endif
+};
+
+static_assert(sizeof(packed_int3) == 12, "packed_int3 expected to be exactly 12 bytes");
+#endif
+
 CCL_NAMESPACE_END

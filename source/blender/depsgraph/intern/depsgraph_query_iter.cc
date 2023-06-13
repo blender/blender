@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -16,7 +17,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 
 #include "BLI_math.h"
@@ -271,7 +272,8 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
 
     if (ob_visibility & OB_VISIBLE_INSTANCES) {
       if ((data->flag & DEG_ITER_OBJECT_FLAG_DUPLI) &&
-          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr)) {
+          ((object->transflag & OB_DUPLI) || object->runtime.geometry_set_eval != nullptr))
+      {
         ListBase *duplis = object_duplilist(data->graph, data->scene, object);
         deg_iterator_duplis_init(data, object, duplis);
       }
@@ -435,6 +437,4 @@ void DEG_iterator_ids_next(BLI_Iterator *iter)
   } while (iter->skip);
 }
 
-void DEG_iterator_ids_end(BLI_Iterator * /*iter*/)
-{
-}
+void DEG_iterator_ids_end(BLI_Iterator * /*iter*/) {}

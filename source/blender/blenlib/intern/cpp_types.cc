@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_color.hh"
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
 namespace blender {
@@ -52,6 +55,7 @@ BLI_CPP_TYPE_MAKE(blender::float4x4, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int8_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int16_t, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int32_t, CPPTypeFlags::BasicType)
+BLI_CPP_TYPE_MAKE(blender::int2, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(int64_t, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(uint8_t, CPPTypeFlags::BasicType)
@@ -61,6 +65,8 @@ BLI_CPP_TYPE_MAKE(uint64_t, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(blender::ColorGeometry4f, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(blender::ColorGeometry4b, CPPTypeFlags::BasicType)
+
+BLI_CPP_TYPE_MAKE(blender::math::Quaternion, CPPTypeFlags::BasicType)
 
 BLI_CPP_TYPE_MAKE(std::string, CPPTypeFlags::BasicType)
 
@@ -80,6 +86,7 @@ void register_cpp_types()
   BLI_CPP_TYPE_REGISTER(int8_t);
   BLI_CPP_TYPE_REGISTER(int16_t);
   BLI_CPP_TYPE_REGISTER(int32_t);
+  BLI_CPP_TYPE_REGISTER(blender::int2);
   BLI_CPP_TYPE_REGISTER(int64_t);
 
   BLI_CPP_TYPE_REGISTER(uint8_t);
@@ -89,6 +96,8 @@ void register_cpp_types()
 
   BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4f);
   BLI_CPP_TYPE_REGISTER(blender::ColorGeometry4b);
+
+  BLI_CPP_TYPE_REGISTER(math::Quaternion);
 
   BLI_CPP_TYPE_REGISTER(std::string);
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -29,7 +30,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -63,7 +64,7 @@
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve_driver.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
@@ -71,7 +72,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -120,7 +121,8 @@ namespace {
 bool driver_target_depends_on_time(const DriverTarget *target)
 {
   if (target->idtype == ID_SCE &&
-      (target->rna_path != nullptr && STREQ(target->rna_path, "frame_current"))) {
+      (target->rna_path != nullptr && STREQ(target->rna_path, "frame_current")))
+  {
     return true;
   }
   return false;
@@ -224,8 +226,14 @@ OperationCode bone_target_opcode(ID *target,
 
 bool object_have_geometry_component(const Object *object)
 {
-  return ELEM(
-      object->type, OB_MESH, OB_CURVES_LEGACY, OB_FONT, OB_SURF, OB_MBALL, OB_LATTICE, OB_GPENCIL);
+  return ELEM(object->type,
+              OB_MESH,
+              OB_CURVES_LEGACY,
+              OB_FONT,
+              OB_SURF,
+              OB_MBALL,
+              OB_LATTICE,
+              OB_GPENCIL_LEGACY);
 }
 
 }  // namespace
@@ -275,6 +283,15 @@ Node *DepsgraphRelationBuilder::get_node(const RNAPathKey &key)
   return rna_node_query_.find_node(&key.ptr, key.prop, key.source);
 }
 
+ComponentNode *DepsgraphRelationBuilder::find_node(const ComponentKey &key) const
+{
+  IDNode *id_node = graph_->find_id_node(key.id);
+  if (!id_node) {
+    return nullptr;
+  }
+  return id_node->find_component(key.type, key.name);
+}
+
 OperationNode *DepsgraphRelationBuilder::find_node(const OperationKey &key) const
 {
   IDNode *id_node = graph_->find_id_node(key.id);
@@ -293,6 +310,11 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
   return find_node(key) != nullptr;
 }
 
+bool DepsgraphRelationBuilder::has_node(const ComponentKey &key) const
+{
+  return find_node(key) != nullptr;
+}
+
 void DepsgraphRelationBuilder::add_depends_on_transform_relation(const DepsNodeHandle *handle,
                                                                  const char *description)
 {
@@ -307,8 +329,8 @@ void DepsgraphRelationBuilder::add_depends_on_transform_relation(const DepsNodeH
 void DepsgraphRelationBuilder::add_customdata_mask(Object *object,
                                                    const DEGCustomDataMeshMasks &customdata_masks)
 {
-  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr &&
-      object->type == OB_MESH) {
+  if (customdata_masks != DEGCustomDataMeshMasks() && object != nullptr && object->type == OB_MESH)
+  {
     IDNode *id_node = graph_->find_id_node(&object->id);
 
     if (id_node == nullptr) {
@@ -422,14 +444,16 @@ void DepsgraphRelationBuilder::add_particle_forcefield_relations(const Operation
       add_relation(eff_key, key, name);
 
       if (ELEM(relation->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-          relation->pd->forcefield == PFIELD_GUIDE) {
+          relation->pd->forcefield == PFIELD_GUIDE)
+      {
         ComponentKey mod_key(&relation->ob->id, NodeType::GEOMETRY);
         add_relation(mod_key, key, name);
       }
 
       /* Force field Texture. */
       if ((relation->pd != nullptr) && (relation->pd->forcefield == PFIELD_TEXTURE) &&
-          (relation->pd->tex != nullptr)) {
+          (relation->pd->tex != nullptr))
+      {
         ComponentKey tex_key(&relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
         add_relation(tex_key, key, "Force field Texture");
       }
@@ -475,9 +499,7 @@ Depsgraph *DepsgraphRelationBuilder::getGraph()
 
 /* **** Functions to build relations between entities  **** */
 
-void DepsgraphRelationBuilder::begin_build()
-{
-}
+void DepsgraphRelationBuilder::begin_build() {}
 
 void DepsgraphRelationBuilder::build_id(ID *id)
 {
@@ -497,7 +519,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       build_camera((Camera *)id);
       break;
     case ID_GR:
-      build_collection(nullptr, nullptr, (Collection *)id);
+      build_collection(nullptr, (Collection *)id);
       break;
     case ID_OB:
       build_object((Object *)id);
@@ -542,7 +564,8 @@ void DepsgraphRelationBuilder::build_id(ID *id)
     case ID_CV:
     case ID_PT:
     case ID_VO:
-    case ID_GD:
+    case ID_GD_LEGACY:
+    case ID_GP:
       build_object_data_geometry_datablock(id);
       break;
     case ID_SPK:
@@ -608,76 +631,85 @@ void DepsgraphRelationBuilder::build_idproperties(IDProperty *id_property)
 }
 
 void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_collection,
-                                                Object *object,
                                                 Collection *collection)
 {
+  const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+
   if (from_layer_collection != nullptr) {
-    /* If we came from layer collection we don't go deeper, view layer
-     * builder takes care of going deeper.
+    /* If we came from layer collection we don't go deeper, view layer builder takes care of going
+     * deeper.
      *
-     * NOTE: Do early output before tagging build as done, so possible
-     * subsequent builds from outside of the layer collection properly
-     * recurses into all the nested objects and collections. */
+     * NOTE: Do early output before tagging build as done, so possible subsequent builds from
+     * outside of the layer collection properly recurses into all the nested objects and
+     * collections. */
+
+    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+      Object *object = cob->ob;
+
+      /* Ensure that the hierarchy relations always exists, even for the layer collection.
+       *
+       * Note that the view layer builder can skip bases if they are constantly excluded from the
+       * collections. In order to avoid noisy output check that the target node exists before
+       * adding the relation. */
+      const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
+      if (has_node(object_hierarchy_key)) {
+        add_relation(collection_hierarchy_key,
+                     object_hierarchy_key,
+                     "Collection -> Object hierarchy",
+                     RELATION_CHECK_BEFORE_ADD);
+      }
+    }
     return;
   }
 
+  if (built_map_.checkIsBuiltAndTag(collection)) {
+    return;
+  }
+
+  build_idproperties(collection->id.properties);
+  build_parameters(&collection->id);
+
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(collection->id);
 
-  const bool group_done = built_map_.checkIsBuiltAndTag(collection);
-  OperationKey object_transform_final_key(object != nullptr ? &object->id : nullptr,
-                                          NodeType::TRANSFORM,
-                                          OperationCode::TRANSFORM_FINAL);
-  ComponentKey duplicator_key(object != nullptr ? &object->id : nullptr, NodeType::DUPLI);
-  if (!group_done) {
-    build_idproperties(collection->id.properties);
-    OperationKey collection_geometry_key{
-        &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-      build_object(cob->ob);
+  const OperationKey collection_geometry_key{
+      &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
 
-      /* The geometry of a collection depends on the positions of the elements in it. */
-      OperationKey object_transform_key{
-          &cob->ob->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
-      add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    Object *object = cob->ob;
 
-      /* Only create geometry relations to child objects, if they have a geometry component. */
-      OperationKey object_geometry_key{
-          &cob->ob->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
-      if (find_node(object_geometry_key) != nullptr) {
-        add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
-      }
+    build_object(object);
 
-      /* An instance is part of the geometry of the collection. */
-      if (cob->ob->type == OB_EMPTY) {
-        Collection *collection_instance = cob->ob->instance_collection;
-        if (collection_instance != nullptr) {
-          OperationKey collection_instance_key{
-              &collection_instance->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-          add_relation(collection_instance_key, collection_geometry_key, "Collection Geometry");
-        }
-      }
+    const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
+    add_relation(collection_hierarchy_key, object_hierarchy_key, "Collection -> Object hierarchy");
+
+    /* The geometry of a collection depends on the positions of the elements in it. */
+    const OperationKey object_transform_key{
+        &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL};
+    add_relation(object_transform_key, collection_geometry_key, "Collection Geometry");
+
+    /* Only create geometry relations to child objects, if they have a geometry component. */
+    const OperationKey object_geometry_key{
+        &object->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL};
+    if (find_node(object_geometry_key) != nullptr) {
+      add_relation(object_geometry_key, collection_geometry_key, "Collection Geometry");
     }
-    LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-      build_collection(nullptr, nullptr, child->collection);
-      OperationKey child_collection_geometry_key{
-          &child->collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
-      add_relation(child_collection_geometry_key, collection_geometry_key, "Collection Geometry");
+
+    /* An instance is part of the geometry of the collection. */
+    if (object->type == OB_EMPTY) {
+      Collection *collection_instance = cob->ob->instance_collection;
+      if (collection_instance != nullptr) {
+        const OperationKey collection_instance_key{
+            &collection_instance->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
+        add_relation(collection_instance_key, collection_geometry_key, "Collection Geometry");
+      }
     }
   }
-  if (object != nullptr) {
-    FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (collection, ob, graph_->mode) {
-      ComponentKey dupli_transform_key(&ob->id, NodeType::TRANSFORM);
-      add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
-      /* Hook to special component, to ensure proper visibility/evaluation
-       * optimizations. */
-      add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
-      const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
-      if (dupli_geometry_component_type != NodeType::UNDEFINED) {
-        ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
-        add_relation(dupli_geometry_component_key, duplicator_key, "Dupligroup");
-      }
-    }
-    FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
+
+  LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+    build_collection(nullptr, child->collection);
+    const OperationKey child_collection_geometry_key{
+        &child->collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
+    add_relation(child_collection_geometry_key, collection_geometry_key, "Collection Geometry");
   }
 }
 
@@ -784,17 +816,14 @@ void DepsgraphRelationBuilder::build_object(Object *object)
 
   /* Force field Texture. */
   if ((object->pd != nullptr) && (object->pd->forcefield == PFIELD_TEXTURE) &&
-      (object->pd->tex != nullptr)) {
+      (object->pd->tex != nullptr))
+  {
     build_texture(object->pd->tex);
   }
 
-  /* Object dupligroup. */
-  if (object->instance_collection != nullptr) {
-    build_collection(nullptr, object, object->instance_collection);
-  }
-
-  /* Point caches. */
+  build_object_instance_collection(object);
   build_object_pointcache(object);
+  build_object_light_linking(object);
 
   /* Synchronization back to original object. */
   OperationKey synchronize_key(
@@ -942,10 +971,11 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
     case OB_SURF:
     case OB_MBALL:
     case OB_LATTICE:
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
     case OB_CURVES:
     case OB_POINTCLOUD:
-    case OB_VOLUME: {
+    case OB_VOLUME:
+    case OB_GREASE_PENCIL: {
       build_object_data_geometry(object);
       /* TODO(sergey): Only for until we support granular
        * update of curves. */
@@ -1158,13 +1188,19 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
       OperationKey transform_key(
           &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_SIMULATION_INIT);
       add_relation(point_cache_key, transform_key, "Point Cache -> Rigid Body");
-      /* Manual changes to effectors need to invalidate simulation. */
-      OperationKey rigidbody_rebuild_key(
-          &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
-      add_relation(rigidbody_rebuild_key,
-                   point_cache_key,
-                   "Rigid Body Rebuild -> Point Cache Reset",
-                   RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+      /* Manual changes to effectors need to invalidate simulation.
+       *
+       * Don't add this relation for the render pipeline dependency graph as it does not contain
+       * rigid body simulation. Good thing is that there are no user edits in such dependency
+       * graph, so the relation is not really needed in it. */
+      if (!graph_->is_render_pipeline_depsgraph) {
+        OperationKey rigidbody_rebuild_key(
+            &scene_->id, NodeType::TRANSFORM, OperationCode::RIGIDBODY_REBUILD);
+        add_relation(rigidbody_rebuild_key,
+                     point_cache_key,
+                     "Rigid Body Rebuild -> Point Cache Reset",
+                     RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
+      }
     }
     else {
       flag = FLAG_GEOMETRY;
@@ -1194,6 +1230,104 @@ void DepsgraphRelationBuilder::build_object_pointcache(Object *object)
                  RELATION_FLAG_FLUSH_USER_EDIT_ONLY);
   }
   BLI_freelistN(&ptcache_id_list);
+}
+
+void DepsgraphRelationBuilder::build_object_instance_collection(Object *object)
+{
+  if (object->instance_collection == nullptr) {
+    return;
+  }
+
+  Collection *instance_collection = object->instance_collection;
+
+  build_collection(nullptr, instance_collection);
+
+  const OperationKey object_transform_final_key(
+      &object->id, NodeType::TRANSFORM, OperationCode::TRANSFORM_FINAL);
+  const ComponentKey duplicator_key(&object->id, NodeType::DUPLI);
+
+  FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (instance_collection, ob, graph_->mode) {
+    const ComponentKey dupli_transform_key(&ob->id, NodeType::TRANSFORM);
+    add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
+
+    /* Hook to special component, to ensure proper visibility/evaluation optimizations. */
+    add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
+    const NodeType dupli_geometry_component_type = geometry_tag_to_component(&ob->id);
+    if (dupli_geometry_component_type != NodeType::UNDEFINED) {
+      ComponentKey dupli_geometry_component_key(&ob->id, dupli_geometry_component_type);
+      add_relation(dupli_geometry_component_key, duplicator_key, "Dupligroup");
+    }
+  }
+  FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
+}
+
+void DepsgraphRelationBuilder::build_object_light_linking(Object *emitter)
+{
+  const ComponentKey hierarchy_key(&emitter->id, NodeType::HIERARCHY);
+
+  const OperationKey light_linking_key(
+      &emitter->id, NodeType::SHADING, OperationCode::LIGHT_LINKING_UPDATE);
+
+  add_relation(hierarchy_key, light_linking_key, "Light Linking From Layer");
+
+  if (emitter->light_linking) {
+    LightLinking &light_linking = *emitter->light_linking;
+
+    build_light_linking_collection(emitter, light_linking.receiver_collection);
+    build_light_linking_collection(emitter, light_linking.blocker_collection);
+  }
+}
+
+void DepsgraphRelationBuilder::build_light_linking_collection(Object *emitter,
+                                                              Collection *collection)
+{
+  if (collection == nullptr) {
+    return;
+  }
+
+  build_collection(nullptr, collection);
+
+  /* TODO(sergey): Avoid duplicate dependencies if multiple emitters are using the same collection.
+   */
+
+  const OperationKey emitter_light_linking_key(
+      &emitter->id, NodeType::SHADING, OperationCode::LIGHT_LINKING_UPDATE);
+
+  const OperationKey collection_parameters_entry_key(
+      &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_ENTRY);
+  const OperationKey collection_parameters_exit_key(
+      &collection->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
+  const OperationKey collection_hierarchy_key(
+      &collection->id, NodeType::HIERARCHY, OperationCode::HIERARCHY);
+
+  const OperationKey collection_light_linking_key(
+      &collection->id, NodeType::PARAMETERS, OperationCode::LIGHT_LINKING_UPDATE);
+
+  /* Order of parameters evaluation within the receiver collection. */
+  /* TODO(sergey): Can optimize this out by explicitly separating the different built tags. This
+   * needs to be done in all places where the collection is built (is not something that can be
+   * easily solved from just adding the light linking functionality). */
+  add_relation(collection_parameters_entry_key,
+               collection_light_linking_key,
+               "Entry -> Collection Light Linking",
+               RELATION_CHECK_BEFORE_ADD);
+  add_relation(collection_light_linking_key,
+               collection_parameters_exit_key,
+               "Collection Light Linking -> Exit",
+               RELATION_CHECK_BEFORE_ADD);
+
+  add_relation(collection_hierarchy_key,
+               collection_light_linking_key,
+               "Collection Hierarchy -> Light Linking",
+               RELATION_CHECK_BEFORE_ADD);
+
+  /* Order to ensure the emitter's light linking is only evaluated after the receiver collection.
+   * This is because light linking runtime data is "cached" om the emitter object for the
+   * simplicity of access, but the mask is allocated per collection bases (so that if two emitters
+   * share the same receiving collection they share the same runtime data). */
+  add_relation(collection_light_linking_key,
+               emitter_light_linking_key,
+               "Collection -> Object Light Linking");
 }
 
 void DepsgraphRelationBuilder::build_constraints(ID *id,
@@ -1226,7 +1360,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
     if (ELEM(cti->type,
              CONSTRAINT_TYPE_FOLLOWTRACK,
              CONSTRAINT_TYPE_CAMERASOLVER,
-             CONSTRAINT_TYPE_OBJECTSOLVER)) {
+             CONSTRAINT_TYPE_OBJECTSOLVER))
+    {
       bool depends_on_camera = false;
       if (cti->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
         bFollowTrackConstraint *data = (bFollowTrackConstraint *)con->data;
@@ -1290,7 +1425,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
           }
           /* if needs bbone shape, reference the segment computation */
           if (BKE_constraint_target_uses_bbone(con, ct) &&
-              check_pchan_has_bbone_segments(ct->tar, ct->subtarget)) {
+              check_pchan_has_bbone_segments(ct->tar, ct->subtarget))
+          {
             opcode = OperationCode::BONE_SEGMENTS;
           }
           OperationKey target_key(&ct->tar->id, NodeType::BONE, ct->subtarget, opcode);
@@ -1319,8 +1455,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
             bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
             if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
               add_customdata_mask(ct->tar,
-                                  DEGCustomDataMeshMasks::MaskVert(CD_MASK_NORMAL) |
-                                      DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
+                                  DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
             }
             if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
               add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
@@ -1367,7 +1502,8 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
                  CONSTRAINT_TYPE_ROTLIKE,
                  CONSTRAINT_TYPE_SIZELIKE,
                  CONSTRAINT_TYPE_LOCLIKE,
-                 CONSTRAINT_TYPE_TRANSLIKE)) {
+                 CONSTRAINT_TYPE_TRANSLIKE))
+        {
           /* TODO(sergey): Add used space check. */
           ComponentKey target_transform_key(&ct->tar->id, NodeType::TRANSFORM);
           add_relation(target_transform_key, constraint_op_key, cti->name);
@@ -1531,8 +1667,8 @@ void DepsgraphRelationBuilder::build_animation_images(ID *id)
   bool has_image_animation = false;
   if (ELEM(GS(id->name), ID_MA, ID_WO)) {
     bNodeTree *ntree = *BKE_ntree_ptr_from_id(id);
-    if (ntree != nullptr &&
-        ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION) {
+    if (ntree != nullptr && ntree->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION)
+    {
       has_image_animation = true;
     }
   }
@@ -1743,23 +1879,38 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
                           fcu->rna_path ? fcu->rna_path : "",
                           fcu->array_index);
   const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
+
   const RNAPathKey self_key(id, rna_path, RNAPointerSource::ENTRY);
+
+  DriverTargetContext driver_target_context;
+  driver_target_context.scene = graph_->scene;
+  driver_target_context.view_layer = graph_->view_layer;
+
   LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
     /* Only used targets. */
     DRIVER_TARGETS_USED_LOOPER_BEGIN (dvar) {
-      ID *target_id = dtar->id;
-      if (target_id == nullptr) {
+      PointerRNA target_prop;
+      if (!driver_get_target_property(&driver_target_context, dvar, dtar, &target_prop)) {
         continue;
       }
+
+      /* Property is always expected to be resolved to a non-null RNA property, which is always
+       * relative to some ID. */
+      BLI_assert(target_prop.owner_id);
+
+      ID *target_id = target_prop.owner_id;
+
       build_id(target_id);
-      build_driver_id_property(target_id, dtar->rna_path);
+      build_driver_id_property(target_prop, dtar->rna_path);
+
       Object *object = nullptr;
       if (GS(target_id->name) == ID_OB) {
         object = (Object *)target_id;
       }
       /* Special handling for directly-named bones. */
       if ((dtar->flag & DTAR_FLAG_STRUCT_REF) && (object && object->type == OB_ARMATURE) &&
-          (dtar->pchan_name[0])) {
+          (dtar->pchan_name[0]))
+      {
         bPoseChannel *target_pchan = BKE_pose_channel_find_name(object->pose, dtar->pchan_name);
         if (target_pchan == nullptr) {
           continue;
@@ -1783,12 +1934,13 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
         add_relation(target_key, driver_key, "Target -> Driver");
       }
       else if (dtar->rna_path != nullptr && dtar->rna_path[0] != '\0') {
-        RNAPathKey variable_exit_key(target_id, dtar->rna_path, RNAPointerSource::EXIT);
+        RNAPathKey variable_exit_key(target_prop, dtar->rna_path, RNAPointerSource::EXIT);
         if (RNA_pointer_is_null(&variable_exit_key.ptr)) {
           continue;
         }
         if (is_same_bone_dependency(variable_exit_key, self_key) ||
-            is_same_nodetree_node_dependency(variable_exit_key, self_key)) {
+            is_same_nodetree_node_dependency(variable_exit_key, self_key))
+        {
           continue;
         }
         add_relation(variable_exit_key, driver_key, "RNA Target -> Driver");
@@ -1816,8 +1968,14 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
          * - Modifications of evaluated IDs from a Python handler.
          *   Such modifications are not fully integrated in the dependency graph evaluation as it
          *   has issues with copy-on-write tagging and the fact that relations are defined by the
-         *   original main database status. */
-        if (target_id != variable_exit_key.ptr.owner_id) {
+         *   original main database status.
+         *
+         * The original report for this is #98618.
+         *
+         * The not-so-obvious part is that we don't do such relation for the context properties.
+         * They are resolved at the graph build time and do not change at runtime (#107081).
+         */
+        if (target_id != variable_exit_key.ptr.owner_id && dvar->type != DVAR_TYPE_CONTEXT_PROP) {
           if (deg_copy_on_write_is_needed(GS(target_id->name))) {
             ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
             add_relation(target_id_key, driver_key, "Target ID -> Driver");
@@ -1849,16 +2007,17 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
   }
 }
 
-void DepsgraphRelationBuilder::build_driver_id_property(ID *id, const char *rna_path)
+void DepsgraphRelationBuilder::build_driver_id_property(const PointerRNA &target_prop,
+                                                        const char *rna_path_from_target_prop)
 {
-  if (id == nullptr || rna_path == nullptr) {
+  if (rna_path_from_target_prop == nullptr || rna_path_from_target_prop[0] == '\0') {
     return;
   }
-  PointerRNA id_ptr, ptr;
+
+  PointerRNA ptr;
   PropertyRNA *prop;
   int index;
-  RNA_id_pointer_create(id, &id_ptr);
-  if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, &index)) {
+  if (!RNA_path_resolve_full(&target_prop, rna_path_from_target_prop, &ptr, &prop, &index)) {
     return;
   }
   if (prop == nullptr) {
@@ -1964,7 +2123,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
         add_relation(effector_geometry_key, rb_init_key, "RigidBody Field");
       }
       if ((effector_relation->pd->forcefield == PFIELD_TEXTURE) &&
-          (effector_relation->pd->tex != nullptr)) {
+          (effector_relation->pd->tex != nullptr))
+      {
         ComponentKey tex_key(&effector_relation->pd->tex->id, NodeType::GENERIC_DATABLOCK);
         add_relation(tex_key, rb_init_key, "Force field Texture");
       }
@@ -1972,7 +2132,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
   }
   /* Objects. */
   if (rbw->group != nullptr) {
-    build_collection(nullptr, nullptr, rbw->group);
+    build_collection(nullptr, rbw->group);
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
       if (object->type != OB_MESH) {
         continue;
@@ -1982,7 +2142,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
       }
 
       if (object->parent != nullptr && object->parent->rigidbody_object != nullptr &&
-          object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND) {
+          object->parent->rigidbody_object->shape == RB_SHAPE_COMPOUND)
+      {
         /* If we are a child of a compound shape object, the transforms and sim evaluation will be
          * handled by the parent compound shape object. Do not add any evaluation triggers
          * for the child objects.
@@ -2029,6 +2190,9 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
                      object_transform_final_key,
                      "Rigidbody Sync -> Transform Final");
       }
+
+      /* Relations between colliders and force fields, needed for force field absorption. */
+      build_collision_relations(graph_, nullptr, eModifierType_Collision);
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
   }
@@ -2072,7 +2236,8 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
           psys_key, object, part->collision_group, "Particle Collision");
     }
     else if ((psys->flag & PSYS_HAIR_DYNAMICS) && psys->clmd != nullptr &&
-             psys->clmd->coll_parms != nullptr) {
+             psys->clmd->coll_parms != nullptr)
+    {
       add_particle_collision_relations(
           psys_key, object, psys->clmd->coll_parms->group, "Hair Collision");
     }
@@ -2123,7 +2288,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
         break;
       case PART_DRAW_GR:
         if (part->instance_collection != nullptr) {
-          build_collection(nullptr, nullptr, part->instance_collection);
+          build_collection(nullptr, part->instance_collection);
           LISTBASE_FOREACH (CollectionObject *, go, &part->instance_collection->gobject) {
             build_particle_system_visualization_object(object, psys, go->ob);
           }
@@ -2420,7 +2585,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
     }
     case ID_LT:
       break;
-    case ID_GD: /* Grease Pencil */
+    case ID_GD_LEGACY: /* Grease Pencil */
     {
       bGPdata *gpd = (bGPdata *)obdata;
 
@@ -2485,6 +2650,8 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
       }
       break;
     }
+    case ID_GP:
+      break;
     default:
       BLI_assert_msg(0, "Should not happen");
       break;
@@ -2587,7 +2754,7 @@ void DepsgraphRelationBuilder::build_nodetree_socket(bNodeSocket *socket)
   else if (socket->type == SOCK_COLLECTION) {
     Collection *collection = ((bNodeSocketValueCollection *)socket->default_value)->value;
     if (collection != nullptr) {
-      build_collection(nullptr, nullptr, collection);
+      build_collection(nullptr, collection);
     }
   }
   else if (socket->type == SOCK_TEXTURE) {
@@ -3179,7 +3346,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
     }
     int rel_flag = (RELATION_FLAG_NO_FLUSH | RELATION_FLAG_GODMODE);
     if ((ELEM(id_type, ID_ME, ID_CV, ID_PT, ID_VO) && comp_node->type == NodeType::GEOMETRY) ||
-        (id_type == ID_CF && comp_node->type == NodeType::CACHE)) {
+        (id_type == ID_CF && comp_node->type == NodeType::CACHE))
+    {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
     /* TODO(sergey): Needs better solution for this. */
@@ -3200,6 +3368,11 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
      *   we allow flush to layer collections component which will ensure
      *   that cached array of bases exists and is up-to-date. */
     if (ELEM(comp_node->type, NodeType::PARAMETERS, NodeType::LAYER_COLLECTIONS)) {
+      rel_flag &= ~RELATION_FLAG_NO_FLUSH;
+    }
+    /* Compatibility with the legacy tagging: groups are only tagged for Copy-on-Write when their
+     * hierarchy changes, and it needs to be flushed downstream. */
+    if (id_type == ID_GR && comp_node->type == NodeType::HIERARCHY) {
       rel_flag &= ~RELATION_FLAG_NO_FLUSH;
     }
     /* All entry operations of each component should wait for a proper
@@ -3286,8 +3459,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 /* **** ID traversal callbacks functions **** */
 
 void DepsgraphRelationBuilder::modifier_walk(void *user_data,
-                                             struct Object * /*object*/,
-                                             struct ID **idpoin,
+                                             Object * /*object*/,
+                                             ID **idpoin,
                                              int /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;

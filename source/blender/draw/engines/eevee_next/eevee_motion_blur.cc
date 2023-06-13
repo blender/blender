@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -54,7 +55,7 @@ void MotionBlurModule::init()
   }
 
   /* Without this there is the possibility of the curve table not being allocated. */
-  BKE_curvemapping_changed((struct CurveMapping *)&scene->r.mblur_shutter_curve, false);
+  BKE_curvemapping_changed((CurveMapping *)&scene->r.mblur_shutter_curve, false);
 
   Vector<float> cdf(CM_TABLE);
   Sampling::cdf_from_curvemapping(scene->r.mblur_shutter_curve, cdf);
@@ -132,7 +133,7 @@ void MotionBlurModule::sync()
     return;
   }
 
-  eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState no_filter = GPUSamplerState::default_sampler();
   RenderBuffers &render_buffers = inst_.render_buffers;
 
   motion_blur_ps_.init();
@@ -233,7 +234,7 @@ void MotionBlurModule::render(View &view, GPUTexture **input_tx, GPUTexture **ou
 
   tiles_tx_.acquire(tiles_extent, GPU_RGBA16F);
 
-  GPU_storagebuf_clear_to_zero(tile_indirection_buf_);
+  tile_indirection_buf_.clear_to_zero();
 
   inst_.manager->submit(motion_blur_ps_, view);
 

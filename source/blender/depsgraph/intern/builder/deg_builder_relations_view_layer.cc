@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -26,7 +27,7 @@
 
 #include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -43,26 +44,55 @@
 
 namespace blender::deg {
 
-void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
+bool DepsgraphRelationBuilder::build_layer_collection(LayerCollection *layer_collection)
 {
-  const int visibility_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_HIDE_VIEWPORT :
-                                                                    COLLECTION_HIDE_RENDER;
+  const int hide_flag = (graph_->mode == DAG_EVAL_VIEWPORT) ? COLLECTION_HIDE_VIEWPORT :
+                                                              COLLECTION_HIDE_RENDER;
 
-  for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
-    if (lc->collection->flag & visibility_flag) {
-      continue;
+  Collection *collection = layer_collection->collection;
+
+  const bool is_collection_hidden = collection->flag & hide_flag;
+  const bool is_layer_collection_excluded = layer_collection->flag & LAYER_COLLECTION_EXCLUDE;
+
+  if (is_collection_hidden || is_layer_collection_excluded) {
+    return false;
+  }
+
+  build_collection(layer_collection, collection);
+
+  const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+
+  LISTBASE_FOREACH (
+      LayerCollection *, child_layer_collection, &layer_collection->layer_collections) {
+    if (build_layer_collection(child_layer_collection)) {
+      Collection *child_collection = child_layer_collection->collection;
+      const ComponentKey child_collection_hierarchy_key{&child_collection->id,
+                                                        NodeType::HIERARCHY};
+      add_relation(
+          collection_hierarchy_key, child_collection_hierarchy_key, "Collection hierarchy");
     }
-    if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-      build_collection(lc, nullptr, lc->collection);
+  }
+
+  return true;
+}
+
+void DepsgraphRelationBuilder::build_view_layer_collections(ViewLayer *view_layer)
+{
+  const ComponentKey scene_hierarchy_key{&scene_->id, NodeType::HIERARCHY};
+
+  LISTBASE_FOREACH (LayerCollection *, layer_collection, &view_layer->layer_collections) {
+    if (build_layer_collection(layer_collection)) {
+      Collection *collection = layer_collection->collection;
+      const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+      add_relation(scene_hierarchy_key, collection_hierarchy_key, "Scene -> Collection hierarchy");
     }
-    build_layer_collections(&lc->layer_collections);
   }
 }
 
 void DepsgraphRelationBuilder::build_freestyle_lineset(FreestyleLineSet *fls)
 {
   if (fls->group != nullptr) {
-    build_collection(nullptr, nullptr, fls->group);
+    build_collection(nullptr, fls->group);
   }
   if (fls->linestyle != nullptr) {
     build_freestyle_linestyle(fls->linestyle);
@@ -86,7 +116,7 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene,
     }
   }
 
-  build_layer_collections(&view_layer->layer_collections);
+  build_view_layer_collections(view_layer);
 
   if (scene->camera != nullptr) {
     build_object(scene->camera);

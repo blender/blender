@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -225,7 +227,8 @@ static int edbm_polybuild_delete_at_cursor_invoke(bContext *C,
                          "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
                          BM_ELEM_TAG,
                          false,
-                         false)) {
+                         false))
+      {
         return OPERATOR_CANCELLED;
       }
       changed = true;
@@ -345,7 +348,8 @@ static int edbm_polybuild_face_at_cursor_invoke(bContext *C, wmOperator *op, con
         BMEdge *e_iter = v_act->e;
         do {
           if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
-              (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter))) {
+              (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
+          {
             if (i == 2) {
               e_pair[0] = e_pair[1] = NULL;
               break;
@@ -579,7 +583,8 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(bContext *C,
                          "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
                          BM_ELEM_TAG,
                          false,
-                         false)) {
+                         false))
+      {
         return OPERATOR_CANCELLED;
       }
     }

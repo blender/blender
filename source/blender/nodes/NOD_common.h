@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -20,8 +21,6 @@ struct bNodeSocket *node_group_find_output_socket(struct bNode *groupnode, const
 
 struct bNodeSocket *node_group_input_find_socket(struct bNode *node, const char *identifier);
 struct bNodeSocket *node_group_output_find_socket(struct bNode *node, const char *identifier);
-
-void node_internal_links_create(struct bNodeTree *ntree, struct bNode *node);
 
 #ifdef __cplusplus
 }

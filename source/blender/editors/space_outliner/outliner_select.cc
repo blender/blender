@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -11,8 +12,8 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -28,8 +29,8 @@
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
@@ -194,7 +195,8 @@ void outliner_item_mode_toggle(bContext *C,
 
     /* Hidden objects can be removed from the mode. */
     if (!base || (!(base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) &&
-                  (ob->mode != tvc->obact->mode))) {
+                  (ob->mode != tvc->obact->mode)))
+    {
       return;
     }
 
@@ -219,7 +221,7 @@ void outliner_item_mode_toggle(bContext *C,
 static void tree_element_viewlayer_activate(bContext *C, TreeElement *te)
 {
   /* paranoia check */
-  if (te->idcode != ID_SCE) {
+  if (te->store_elem->type != TSE_R_LAYER) {
     return;
   }
 
@@ -245,7 +247,8 @@ static void do_outliner_object_select_recursive(const Scene *scene,
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     Object *ob = base->object;
     if (((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) != 0) &&
-        BKE_object_is_child_recursive(ob_parent, ob)) {
+        BKE_object_is_child_recursive(ob_parent, ob))
+    {
       ED_object_base_select(base, select ? BA_SELECT : BA_DESELECT);
     }
   }
@@ -330,7 +333,7 @@ static void tree_element_object_activate(bContext *C,
       const eObjectMode object_mode = obact ? (eObjectMode)obact->mode : OB_MODE_OBJECT;
       if (base && !BKE_object_is_mode_compat(base->object, object_mode)) {
         if (object_mode == OB_MODE_OBJECT) {
-          struct Main *bmain = CTX_data_main(C);
+          Main *bmain = CTX_data_main(C);
           Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
           ED_object_mode_generic_exit(bmain, depsgraph, scene, base->object);
         }
@@ -366,7 +369,8 @@ static void tree_element_object_activate(bContext *C,
        * see #55246. */
       if ((scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
               (ob->mode == OB_MODE_OBJECT) :
-              true) {
+              true)
+      {
         BKE_view_layer_base_deselect_all(scene, view_layer);
       }
       ED_object_base_select(base, BA_SELECT);
@@ -564,7 +568,8 @@ static void tree_element_bone_activate(bContext *C,
       if (set != OL_SETSEL_EXTEND) {
         /* single select forces all other bones to get unselected */
         for (Bone *bone_iter = static_cast<Bone *>(arm->bonebase.first); bone_iter != nullptr;
-             bone_iter = bone_iter->next) {
+             bone_iter = bone_iter->next)
+        {
           bone_iter->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
           do_outliner_bone_select_recursive(arm, bone_iter, false);
         }
@@ -722,13 +727,13 @@ static void tree_element_sequence_dup_activate(Scene *scene, TreeElement * /*te*
 #endif
   Sequence *p = static_cast<Sequence *>(ed->seqbasep->first);
   while (p) {
-    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
+    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->filename[0] == '\0')) {
       p = p->next;
       continue;
     }
 
 #if 0
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
       select_single_seq(p, 0);
     }
 #endif
@@ -1220,7 +1225,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
       case ID_KE:
       case ID_SPK:
       case ID_AR:
-      case ID_GD:
+      case ID_GD_LEGACY:
       case ID_LP:
       case ID_CV:
       case ID_PT:
@@ -1270,7 +1275,7 @@ static void outliner_set_properties_tab(bContext *C, TreeElement *te, TreeStoreE
         if (tselem->type != TSE_MODIFIER_BASE) {
           Object *ob = (Object *)tselem->id;
 
-          if (ob->type == OB_GPENCIL) {
+          if (ob->type == OB_GPENCIL_LEGACY) {
             BKE_gpencil_modifier_panel_expand(static_cast<GpencilModifierData *>(te->directdata));
           }
           else {
@@ -1400,7 +1405,8 @@ static void do_outliner_item_activate_tree_element(bContext *C,
            TSE_SEQ_STRIP,
            TSE_SEQUENCE_DUP,
            TSE_EBONE,
-           TSE_LAYER_COLLECTION)) {
+           TSE_LAYER_COLLECTION))
+  {
     /* Note about TSE_EBONE: In case of a same ID_AR datablock shared among several
      * objects, we do not want to switch out of edit mode (see #48328 for details). */
   }
@@ -1641,7 +1647,8 @@ static int outliner_item_do_activate_from_cursor(bContext *C,
   }
   /* Don't allow toggle on scene collection */
   else if ((TREESTORE(te)->type != TSE_VIEW_COLLECTION_BASE) &&
-           outliner_item_is_co_within_close_toggle(te, view_mval[0])) {
+           outliner_item_is_co_within_close_toggle(te, view_mval[0]))
+  {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
   else {

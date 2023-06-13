@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -23,12 +24,12 @@ typedef struct vec2f {
   float x, y;
 } vec2f;
 
-/* not used at the moment */
-/*
 typedef struct vec2i {
   int x, y;
 } vec2i;
 
+/* not used at the moment */
+/*
 typedef struct vec2d {
   double x, y;
 } vec2d;
@@ -48,11 +49,11 @@ typedef struct vec3d {
 typedef struct vec4i {
   int x, y, z, w;
 } vec4i;
-
+*/
 typedef struct vec4f {
   float x, y, z, w;
 } vec4f;
-
+/*
 typedef struct vec4d {
   double x, y, z, w;
 } vec4d;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_modifier_types.h"
 
@@ -9,39 +11,9 @@
 
 #include "NOD_geometry_exec.hh"
 
-#include "BLI_hash_md5.h"
-
 #include "node_geometry_util.hh"
 
 namespace blender::nodes {
-
-NodeAnonymousAttributeID::NodeAnonymousAttributeID(const Object &object,
-                                                   const ComputeContext &compute_context,
-                                                   const bNode &bnode,
-                                                   const StringRef identifier,
-                                                   const StringRef name)
-    : socket_name_(name)
-{
-  const ComputeContextHash &hash = compute_context.hash();
-  {
-    std::stringstream ss;
-    ss << hash << "_" << object.id.name << "_" << bnode.identifier << "_" << identifier;
-    long_name_ = ss.str();
-  }
-  {
-    uint64_t hash_result[2];
-    BLI_hash_md5_buffer(long_name_.data(), long_name_.size(), hash_result);
-    std::stringstream ss;
-    ss << ".a_" << std::hex << hash_result[0] << hash_result[1];
-    name_ = ss.str();
-    BLI_assert(name_.size() < MAX_CUSTOMDATA_LAYER_NAME);
-  }
-}
-
-std::string NodeAnonymousAttributeID::user_name() const
-{
-  return socket_name_;
-}
 
 void GeoNodeExecParams::error_message_add(const NodeWarningType type,
                                           const StringRef message) const
@@ -114,7 +86,7 @@ void GeoNodeExecParams::check_input_geometry_set(StringRef identifier,
         break;
       }
       case GEO_COMPONENT_TYPE_VOLUME: {
-        message += TIP_("Volume");
+        message += CTX_TIP_(BLT_I18NCONTEXT_ID_ID, "Volume");
         break;
       }
       case GEO_COMPONENT_TYPE_CURVE: {
@@ -133,8 +105,8 @@ void GeoNodeExecParams::check_output_geometry_set(const GeometrySet &geometry_se
 {
   UNUSED_VARS_NDEBUG(geometry_set);
 #ifdef DEBUG
-  if (const bke::CurvesEditHints *curve_edit_hints =
-          geometry_set.get_curve_edit_hints_for_read()) {
+  if (const bke::CurvesEditHints *curve_edit_hints = geometry_set.get_curve_edit_hints_for_read())
+  {
     /* If this is not valid, it's likely that the number of stored deformed points does not match
      * the number of points in the original data. */
     BLI_assert(curve_edit_hints->is_valid());
@@ -151,11 +123,6 @@ const bNodeSocket *GeoNodeExecParams::find_available_socket(const StringRef name
   }
 
   return nullptr;
-}
-
-std::string GeoNodeExecParams::attribute_producer_name() const
-{
-  return node_.label_or_name() + TIP_(" node");
 }
 
 void GeoNodeExecParams::set_default_remaining_outputs()

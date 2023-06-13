@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -32,6 +34,7 @@ struct KDTree {
   KDTreeNode *nodes;
   uint nodes_len;
   uint root;
+  int max_node_index;
 #ifdef DEBUG
   bool is_balanced;        /* ensure we call balance first */
   uint nodes_len_capacity; /* max size of the tree */
@@ -90,6 +93,7 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
   tree->nodes = MEM_mallocN(sizeof(KDTreeNode) * nodes_len_capacity, "KDTreeNode");
   tree->nodes_len = 0;
   tree->root = KD_NODE_ROOT_IS_INIT;
+  tree->max_node_index = -1;
 
 #ifdef DEBUG
   tree->is_balanced = false;
@@ -125,6 +129,7 @@ void BLI_kdtree_nd_(insert)(KDTree *tree, int index, const float co[KD_DIMS])
   copy_vn_vn(node->co, co);
   node->index = index;
   node->d = 0;
+  tree->max_node_index = MAX2(tree->max_node_index, index);
 
 #ifdef DEBUG
   tree->is_balanced = false;
@@ -796,12 +801,14 @@ finally:
  * Use when we want to loop over nodes ordered by index.
  * Requires indices to be aligned with nodes.
  */
-static uint *kdtree_order(const KDTree *tree)
+static int *kdtree_order(const KDTree *tree)
 {
   const KDTreeNode *nodes = tree->nodes;
-  uint *order = MEM_mallocN(sizeof(uint) * tree->nodes_len, __func__);
+  const size_t bytes_num = sizeof(int) * (size_t)(tree->max_node_index + 1);
+  int *order = MEM_mallocN(bytes_num, __func__);
+  memset(order, -1, bytes_num);
   for (uint i = 0; i < tree->nodes_len; i++) {
-    order[nodes[i].index] = i;
+    order[nodes[i].index] = (int)i;
   }
   return order;
 }
@@ -885,10 +892,13 @@ int BLI_kdtree_nd_(calc_duplicates_fast)(const KDTree *tree,
   };
 
   if (use_index_order) {
-    uint *order = kdtree_order(tree);
-    for (uint i = 0; i < tree->nodes_len; i++) {
-      const uint node_index = order[i];
-      const int index = (int)i;
+    int *order = kdtree_order(tree);
+    for (int i = 0; i < tree->max_node_index + 1; i++) {
+      const int node_index = order[i];
+      if (node_index == -1) {
+        continue;
+      }
+      const int index = i;
       if (ELEM(duplicates[index], -1, index)) {
         p.search = index;
         copy_vn_vn(p.search_co, tree->nodes[node_index].co);

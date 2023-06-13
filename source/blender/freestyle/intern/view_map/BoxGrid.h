@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -263,7 +265,8 @@ inline bool BoxGrid::Iterator::testOccluder(bool wantOccludee)
   Vec3r bbMin, bbMax;
   (*_current)->poly.getBBox(bbMin, bbMax);
   if (_target[0] < bbMin[0] || _target[0] > bbMax[0] || _target[1] < bbMin[1] ||
-      _target[1] > bbMax[1]) {
+      _target[1] > bbMax[1])
+  {
 #if BOX_GRID_LOGGING
     if (G.debug & G_DEBUG_FREESTYLE) {
       std::cout << "\t\tSkipping: bounding box violation" << std::endl;

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2021 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -32,7 +33,6 @@ set(SRC
   nodes/node_shader_bevel.cc
   nodes/node_shader_blackbody.cc
   nodes/node_shader_brightness.cc
-  nodes/node_shader_bsdf_anisotropic.cc
   nodes/node_shader_bsdf_diffuse.cc
   nodes/node_shader_bsdf_glass.cc
   nodes/node_shader_bsdf_glossy.cc

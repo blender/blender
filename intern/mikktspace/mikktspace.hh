@@ -4,7 +4,7 @@
  * Copyright 2011 by Morten S. Mikkelsen.
  *
  * C++ rewrite:
- * Copyright 2022 Blender Foundation. All rights reserved.
+ * Copyright 2022 Blender Foundation
  */
 
 /** \file
@@ -145,9 +145,7 @@ template<typename Mesh> class Mikktspace {
   bool isParallel;
 
  public:
-  Mikktspace(Mesh &mesh_) : mesh(mesh_)
-  {
-  }
+  Mikktspace(Mesh &mesh_) : mesh(mesh_) {}
 
   void genTangSpace()
   {
@@ -580,9 +578,7 @@ template<typename Mesh> class Mikktspace {
 
   struct NeighborShard {
     struct Entry {
-      Entry(uint32_t key_, uint data_) : key(key_), data(data_)
-      {
-      }
+      Entry(uint32_t key_, uint data_) : key(key_), data(data_) {}
       uint key, data;
     };
     std::vector<Entry> entries;
@@ -705,7 +701,8 @@ template<typename Mesh> class Mikktspace {
       // determines its orientation.
       // This is the only existing order dependency in the code!!
       if (triangle.group[0] == UNSET_ENTRY && triangle.group[1] == UNSET_ENTRY &&
-          triangle.group[2] == UNSET_ENTRY) {
+          triangle.group[2] == UNSET_ENTRY)
+      {
         triangle.orientPreserving = group.orientPreserving;
       }
     }

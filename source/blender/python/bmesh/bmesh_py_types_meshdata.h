@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -23,7 +24,7 @@ struct MVertSkin;
 struct BMesh;
 
 int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value);
-PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop);
+PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop, int layer);
 
 int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value);
 PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin);

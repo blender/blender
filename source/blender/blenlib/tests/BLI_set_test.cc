@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <set>
 #include <unordered_set>
@@ -582,8 +584,8 @@ TEST(set, RemoveIf)
   for (const int64_t i : IndexRange(100)) {
     set.add(i * i);
   }
-  set.remove_if([](const int64_t key) { return key > 100; });
-  EXPECT_EQ(set.size(), 11);
+  const int64_t removed = set.remove_if([](const int64_t key) { return key > 100; });
+  EXPECT_EQ(set.size() + removed, 100);
   for (const int64_t i : IndexRange(100)) {
     EXPECT_EQ(set.contains(i * i), i <= 10);
   }
@@ -598,6 +600,28 @@ TEST(set, RemoveUniquePtrWithRaw)
   EXPECT_EQ(set.size(), 1);
   set.remove_as(a_ptr);
   EXPECT_TRUE(set.is_empty());
+}
+
+TEST(set, Equality)
+{
+  const Set<int> a = {1, 2, 3, 4, 5};
+  const Set<int> b = {5, 2, 3, 1, 4};
+  const Set<int> c = {1, 2, 3};
+  const Set<int> d = {1, 2, 3, 4, 5, 6};
+  const Set<int> e = {};
+  const Set<int> f = {10, 11, 12, 13, 14};
+
+  EXPECT_EQ(a, a);
+  EXPECT_EQ(a, b);
+  EXPECT_EQ(b, a);
+  EXPECT_NE(a, c);
+  EXPECT_NE(a, d);
+  EXPECT_NE(a, e);
+  EXPECT_NE(a, f);
+  EXPECT_NE(c, a);
+  EXPECT_NE(d, a);
+  EXPECT_NE(e, a);
+  EXPECT_NE(f, a);
 }
 
 /**

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -15,7 +16,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
@@ -345,7 +346,7 @@ bool ED_object_jump_to_bone(bContext *C,
 
       /* Select it. */
       ED_pose_deselect_all(ob, SEL_DESELECT, true);
-      ED_pose_bone_select(ob, pchan, true);
+      ED_pose_bone_select(ob, pchan, true, true);
 
       arm->act_bone = pchan->bone;
 
@@ -822,7 +823,8 @@ static bool select_grouped_collection(bContext *C, Object *ob)
 
   for (collection = bmain->collections.first;
        collection && (collection_count < COLLECTION_MENU_MAX);
-       collection = collection->id.next) {
+       collection = collection->id.next)
+  {
     if (BKE_collection_has_object(collection, ob)) {
       ob_collections[collection_count] = collection;
       collection_count++;
@@ -1461,7 +1463,7 @@ void OBJECT_OT_select_random(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";
-  ot->description = "Set select on random visible objects";
+  ot->description = "Select or deselect random visible objects";
   ot->idname = "OBJECT_OT_select_random";
 
   /* api callbacks */

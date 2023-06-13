@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -118,7 +120,8 @@ inline bool insideProscenium(const real proscenium[4], const Polygon3r &polygon)
   Vec3r bbMin, bbMax;
   polygon.getBBox(bbMin, bbMax);
   if (bbMax[0] < proscenium[0] || bbMin[0] > proscenium[1] || bbMax[1] < proscenium[2] ||
-      bbMin[1] > proscenium[3]) {
+      bbMin[1] > proscenium[3])
+  {
     return false;
   }
 
@@ -140,7 +143,8 @@ inline vector<Vec3r> enumerateVertices(const vector<WOEdge *> &fedges)
   vector<Vec3r> points;
   // Iterate over vertices, storing projections in points
   for (vector<WOEdge *>::const_iterator woe = fedges.begin(), woend = fedges.end(); woe != woend;
-       woe++) {
+       woe++)
+  {
     points.push_back((*woe)->GetaVertex()->GetVertex());
   }
 

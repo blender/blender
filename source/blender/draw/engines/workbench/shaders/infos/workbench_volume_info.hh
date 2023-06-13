@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
@@ -6,7 +8,7 @@
 /** \name Volume shader base
  * \{ */
 
-GPU_SHADER_CREATE_INFO(workbench_volume)
+GPU_SHADER_CREATE_INFO(workbench_volume_common)
     .vertex_in(0, Type::VEC3, "pos")
     .fragment_out(0, Type::VEC4, "fragColor")
     .sampler(0, ImageType::DEPTH_2D, "depthBuffer")
@@ -16,27 +18,45 @@ GPU_SHADER_CREATE_INFO(workbench_volume)
     .push_constant(Type::FLOAT, "stepLength")
     .push_constant(Type::FLOAT, "densityScale")
     .vertex_source("workbench_volume_vert.glsl")
-    .fragment_source("workbench_volume_frag.glsl")
-    .additional_info("draw_object_infos");
+    .fragment_source("workbench_volume_frag.glsl");
 
+GPU_SHADER_CREATE_INFO(workbench_volume)
+    .additional_info("workbench_volume_common", "draw_object_infos");
+
+GPU_SHADER_CREATE_INFO(workbench_next_volume)
+    .define("WORKBENCH_NEXT")
+    .sampler(6, ImageType::UINT_2D, "stencil_tx")
+    .additional_info("workbench_volume_common", "draw_object_infos_new", "draw_view");
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Smoke variation
  * \{ */
 
-GPU_SHADER_CREATE_INFO(workbench_volume_smoke)
+GPU_SHADER_CREATE_INFO(workbench_volume_smoke_common)
     .define("VOLUME_SMOKE")
     .sampler(2, ImageType::FLOAT_3D, "flameTexture")
     .sampler(3, ImageType::FLOAT_1D, "flameColorTexture")
-    .additional_info("draw_mesh", "draw_resource_id_varying");
+    .additional_info("draw_resource_id_varying");
 
-GPU_SHADER_CREATE_INFO(workbench_volume_object)
+GPU_SHADER_CREATE_INFO(workbench_volume_object_common)
     .define("VOLUME_OBJECT")
     .push_constant(Type::MAT4, "volumeTextureToObject")
     /* FIXME(fclem): This overflow the push_constant limit. */
     .push_constant(Type::MAT4, "volumeObjectToTexture")
-    .additional_info("draw_volume", "draw_resource_id_varying");
+    .additional_info("draw_resource_id_varying");
+
+GPU_SHADER_CREATE_INFO(workbench_volume_smoke)
+    .additional_info("workbench_volume_smoke_common", "draw_mesh");
+
+GPU_SHADER_CREATE_INFO(workbench_volume_object)
+    .additional_info("workbench_volume_object_common", "draw_volume");
+
+GPU_SHADER_CREATE_INFO(workbench_next_volume_smoke)
+    .additional_info("workbench_volume_smoke_common", "draw_modelmat_new");
+
+GPU_SHADER_CREATE_INFO(workbench_next_volume_object)
+    .additional_info("workbench_volume_object_common", "draw_volume_new");
 
 /** \} */
 
@@ -110,5 +130,11 @@ GPU_SHADER_CREATE_INFO(workbench_volume_slice)
   WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_object, "workbench_volume_object", __VA_ARGS__)
 
 WORKBENCH_VOLUME_SMOKE_VARIATIONS(workbench_volume, "workbench_volume")
+
+#define WORKBENCH_NEXT_VOLUME_SMOKE_VARIATIONS(prefix, ...) \
+  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_smoke, "workbench_next_volume_smoke", __VA_ARGS__) \
+  WORKBENCH_VOLUME_INTERP_VARIATIONS(prefix##_object, "workbench_next_volume_object", __VA_ARGS__)
+
+WORKBENCH_NEXT_VOLUME_SMOKE_VARIATIONS(workbench_next_volume, "workbench_next_volume")
 
 /** \} */

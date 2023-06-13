@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -46,7 +48,7 @@ bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
   bAddon *addon = BKE_addon_find(addon_list, module);
   if (addon == NULL) {
     addon = BKE_addon_new();
-    BLI_strncpy(addon->module, module, sizeof(addon->module));
+    STRNCPY(addon->module, module);
     BLI_addtail(addon_list, addon);
   }
   return addon;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -78,11 +79,11 @@ static int volume_import_exec(bContext *C, wmOperator *op)
 
   ListBase ranges = ED_image_filesel_detect_sequences(bmain, op, false);
   LISTBASE_FOREACH (ImageFrameRange *, range, &ranges) {
-    char filename[FILE_MAX];
-    BLI_split_file_part(range->filepath, filename, sizeof(filename));
-    BLI_path_extension_replace(filename, sizeof(filename), "");
+    char filepath[FILE_MAX];
+    BLI_path_split_file_part(range->filepath, filepath, sizeof(filepath));
+    BLI_path_extension_strip(filepath);
 
-    Object *object = object_volume_add(C, op, filename);
+    Object *object = object_volume_add(C, op, filepath);
     Volume *volume = (Volume *)object->data;
 
     STRNCPY(volume->filepath, range->filepath);
@@ -94,7 +95,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" failed to load: %s",
-                  filename,
+                  filepath,
                   BKE_volume_grids_error_msg(volume));
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
@@ -104,7 +105,7 @@ static int volume_import_exec(bContext *C, wmOperator *op)
       BKE_reportf(op->reports,
                   RPT_WARNING,
                   "Volume \"%s\" contains points, only voxel grids are supported",
-                  filename);
+                  filepath);
       BKE_id_delete(bmain, &object->id);
       BKE_id_delete(bmain, &volume->id);
       continue;

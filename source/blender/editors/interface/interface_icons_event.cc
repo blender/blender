@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -26,12 +28,12 @@ static void icon_draw_rect_input_text(
   BLF_batch_draw_flush();
   const int font_id = BLF_default();
   BLF_color4fv(font_id, color);
-  BLF_size(font_id, font_size * U.dpi_fac);
+  BLF_size(font_id, font_size * UI_SCALE_FAC);
   float width, height;
   BLF_width_and_height(font_id, str, BLF_DRAW_STR_DUMMY_MAX, &width, &height);
   const float x = trunc(rect->xmin + (((rect->xmax - rect->xmin) - width) / 2.0f));
   const float y = rect->ymin + (((rect->ymax - rect->ymin) - height) / 2.0f) +
-                  (v_offset * U.dpi_fac);
+                  (v_offset * UI_SCALE_FAC);
   BLF_position(font_id, x, y, 0.0f);
   BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
   BLF_batch_draw_flush();

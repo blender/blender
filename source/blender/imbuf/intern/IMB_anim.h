@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -43,9 +44,11 @@
 #include "IMB_allocimbuf.h"
 
 #ifdef WITH_FFMPEG
+extern "C" {
 #  include <libavcodec/avcodec.h>
 #  include <libavformat/avformat.h>
 #  include <libswscale/swscale.h>
+}
 #endif
 
 /* more endianness... should move to a separate file... */
@@ -79,9 +82,9 @@ struct anim {
   int x, y;
 
   /* for number */
-  char name[1024];
+  char filepath[1024];
   /* for sequence */
-  char first[1024];
+  char filepath_first[1024];
 
   /* movie */
   void *movie;

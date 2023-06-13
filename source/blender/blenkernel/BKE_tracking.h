@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -20,6 +21,7 @@ struct MovieClipUser;
 struct MovieDistortion;
 struct MovieReconstructContext;
 struct MovieTracking;
+struct MovieTrackingCamera;
 struct MovieTrackingMarker;
 struct MovieTrackingObject;
 struct MovieTrackingPlaneMarker;
@@ -463,6 +465,16 @@ void BKE_tracking_camera_principal_point_pixel_get(struct MovieClip *clip,
 void BKE_tracking_camera_principal_point_pixel_set(struct MovieClip *clip,
                                                    const float principal_point_pixel[2]);
 
+/* Compares distortion related parameters of camera. Ideally, this implementation will be
+ * abstracted away in the future, but for now, one needs to be careful about it and handle any
+ * extra parameters of distortions models. */
+bool BKE_tracking_camera_distortion_equal(const struct MovieTrackingCamera *a,
+                                          const struct MovieTrackingCamera *b);
+/* Hashes distortion related parameters of camera. Ideally, this implementation will be
+ * abstracted away in the future, but for now, one needs to be careful about it and handle any
+ * extra parameters of distortions models. */
+uint64_t BKE_tracking_camera_distortion_hash(const struct MovieTrackingCamera *camera);
+
 /* --------------------------------------------------------------------
  * (Un)distortion.
  */
@@ -776,11 +788,11 @@ struct MovieTrackingObject *BKE_tracking_find_object_for_plane_track(
 void BKE_tracking_get_rna_path_for_track(const struct MovieTracking *tracking,
                                          const struct MovieTrackingTrack *track,
                                          char *rna_path,
-                                         size_t rna_path_len);
+                                         size_t rna_path_maxncpy);
 void BKE_tracking_get_rna_path_prefix_for_track(const struct MovieTracking *tracking,
                                                 const struct MovieTrackingTrack *track,
                                                 char *rna_path,
-                                                size_t rna_path_len);
+                                                size_t rna_path_maxncpy);
 void BKE_tracking_get_rna_path_for_plane_track(const struct MovieTracking *tracking,
                                                const struct MovieTrackingPlaneTrack *plane_track,
                                                char *rna_path,
@@ -789,7 +801,7 @@ void BKE_tracking_get_rna_path_prefix_for_plane_track(
     const struct MovieTracking *tracking,
     const struct MovieTrackingPlaneTrack *plane_track,
     char *rna_path,
-    size_t rna_path_len);
+    size_t rna_path_maxncpy);
 
 /* --------------------------------------------------------------------
  * Utility macros.

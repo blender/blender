@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -83,7 +84,8 @@ static int datadropper_init(bContext *C, wmOperator *op)
 
   if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
-      (RNA_property_type(ddr->prop) != PROP_POINTER)) {
+      (RNA_property_type(ddr->prop) != PROP_POINTER))
+  {
     MEM_freeN(ddr);
     return false;
   }
@@ -175,8 +177,7 @@ static void datadropper_id_sample_pt(
               id = (ID *)ob->data;
             }
             else {
-              BLI_snprintf(
-                  ddr->name, sizeof(ddr->name), "Incompatible, expected a %s", ddr->idcode_name);
+              SNPRINTF(ddr->name, "Incompatible, expected a %s", ddr->idcode_name);
             }
           }
 
@@ -184,7 +185,7 @@ static void datadropper_id_sample_pt(
           RNA_id_pointer_create(id, &idptr);
 
           if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
-            BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s", ddr->idcode_name, id->name + 2);
+            SNPRINTF(ddr->name, "%s: %s", ddr->idcode_name, id->name + 2);
             *r_id = id;
           }
 
@@ -342,7 +343,8 @@ static bool datadropper_poll(bContext *C)
   /* data dropper only supports object data */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_SEARCH_MENU) && (but->flag & UI_BUT_VALUE_CLEAR)) {
+      (but->type == UI_BTYPE_SEARCH_MENU) && (but->flag & UI_BUT_VALUE_CLEAR))
+  {
     if (prop && RNA_property_type(prop) == PROP_POINTER) {
       StructRNA *type = RNA_property_pointer_type(&ptr, prop);
       const short idcode = RNA_type_to_ID_code(type);

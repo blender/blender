@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_PlaneCornerPinOperation.h"
 #include "COM_ConstantOperation.h"
@@ -269,7 +270,8 @@ bool PlaneCornerPinWarpImageOperation::determine_depending_area_of_interest(
 {
   for (int i = 0; i < 4; i++) {
     if (get_input_operation(i + 1)->determine_depending_area_of_interest(
-            input, read_operation, output)) {
+            input, read_operation, output))
+    {
       return true;
     }
   }

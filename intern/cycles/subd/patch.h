@@ -11,9 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 class Patch {
  public:
-  Patch() : patch_index(0), shader(0), from_ngon(false)
-  {
-  }
+  Patch() : patch_index(0), shader(0), from_ngon(false) {}
 
   virtual ~Patch() = default;
 

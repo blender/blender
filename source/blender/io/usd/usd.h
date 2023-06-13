@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -50,6 +51,7 @@ struct USDExportParams {
   bool export_textures;
   bool overwrite_textures;
   bool relative_paths;
+  char root_prim_path[1024]; /* FILE_MAX */
 };
 
 struct USDImportParams {
@@ -67,7 +69,7 @@ struct USDImportParams {
   bool import_meshes;
   bool import_volumes;
   bool import_shapes;
-  char prim_path_mask[1024];
+  char *prim_path_mask;
   bool import_subdiv;
   bool import_instance_proxies;
   bool create_collection;
@@ -85,6 +87,16 @@ struct USDImportParams {
   eUSDTexNameCollisionMode tex_name_collision_mode;
   bool import_all_materials;
 };
+
+/* This struct is in place to store the mesh sequence parameters needed when reading a data from a
+ * usd file for the mesh sequence cache.
+ */
+typedef struct USDMeshReadParams {
+  double motion_sample_time; /* USD TimeCode in frames. */
+  int read_flags; /* MOD_MESHSEQ_xxx value that is set from MeshSeqCacheModifierData.read_flag. */
+} USDMeshReadParams;
+
+USDMeshReadParams create_mesh_read_params(double motion_sample_time, int read_flags);
 
 /* The USD_export takes a as_background_job parameter, and returns a boolean.
  *
@@ -121,9 +133,8 @@ void USD_get_transform(struct CacheReader *reader, float r_mat[4][4], float time
 struct Mesh *USD_read_mesh(struct CacheReader *reader,
                            struct Object *ob,
                            struct Mesh *existing_mesh,
-                           double time,
-                           const char **err_str,
-                           int read_flag);
+                           USDMeshReadParams params,
+                           const char **err_str);
 
 bool USD_mesh_topology_changed(struct CacheReader *reader,
                                const struct Object *ob,
@@ -138,7 +149,6 @@ struct CacheReader *CacheReader_open_usd_object(struct CacheArchiveHandle *handl
 
 void USD_CacheReader_incref(struct CacheReader *reader);
 void USD_CacheReader_free(struct CacheReader *reader);
-void USD_ensure_plugin_path_registered(void);
 #ifdef __cplusplus
 }
 #endif

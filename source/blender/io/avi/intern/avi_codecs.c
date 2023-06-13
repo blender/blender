@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup avi
@@ -70,10 +71,10 @@ int avi_get_data_id(AviFormat format, int stream)
   char fcc[5];
 
   if (avi_get_format_type(format) == FCC("vids")) {
-    BLI_snprintf(fcc, sizeof(fcc), "%2.2ddc", stream);
+    SNPRINTF(fcc, "%2.2ddc", stream);
   }
   else if (avi_get_format_type(format) == FCC("auds")) {
-    BLI_snprintf(fcc, sizeof(fcc), "%2.2ddc", stream);
+    SNPRINTF(fcc, "%2.2ddc", stream);
   }
   else {
     return 0;

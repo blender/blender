@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -55,11 +56,12 @@ static void extract_edituv_tris_iter_looptri_bm(const MeshRenderData * /*mr*/,
 
 static void extract_edituv_tris_iter_looptri_mesh(const MeshRenderData *mr,
                                                   const MLoopTri *mlt,
-                                                  const int /*elt_index*/,
+                                                  const int elt_index,
                                                   void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  const BMFace *efa = bm_original_face_get(mr, mlt->poly);
+  const int poly_i = mr->looptri_polys[elt_index];
+  const BMFace *efa = bm_original_face_get(mr, poly_i);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
@@ -118,12 +120,12 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache * /*subdiv
                                                  const MeshRenderData *mr,
                                                  void *_data,
                                                  uint subdiv_quad_index,
-                                                 const MPoly *coarse_quad)
+                                                 const int coarse_quad_index)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   const uint loop_idx = subdiv_quad_index * 4;
 
-  const BMFace *efa = bm_original_face_get(mr, coarse_quad - mr->mpoly);
+  const BMFace *efa = bm_original_face_get(mr, coarse_quad_index);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
@@ -131,7 +133,7 @@ static void extract_edituv_tris_iter_subdiv_mesh(const DRWSubdivCache * /*subdiv
   edituv_tri_add(data, mp_hidden, mp_select, loop_idx, loop_idx + 2, loop_idx + 3);
 }
 
-static void extract_edituv_tris_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_tris_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                               const MeshRenderData * /*mr*/,
                                               MeshBatchCache * /*cache*/,
                                               void *buf,
@@ -204,32 +206,29 @@ static void extract_edituv_lines_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_edituv_lines_iter_poly_mesh(const MeshRenderData *mr,
-                                                const MPoly *mp,
-                                                const int mp_index,
+                                                const int poly_index,
                                                 void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
+  const IndexRange poly = mr->polys[poly_index];
 
   bool mp_hidden, mp_select;
   if (mr->bm) {
-    const BMFace *efa = bm_original_face_get(mr, mp_index);
+    const BMFace *efa = bm_original_face_get(mr, poly_index);
     mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
     mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
   }
   else {
-    mp_hidden = (mr->hide_poly) ? mr->hide_poly[mp_index] : false;
-    mp_select = mr->select_poly && mr->select_poly[mp_index];
+    mp_hidden = (mr->hide_poly) ? mr->hide_poly[poly_index] : false;
+    mp_select = mr->select_poly && mr->select_poly[poly_index];
   }
 
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  for (const int ml_index : poly) {
+    const int edge = mr->corner_edges[ml_index];
 
-    const int ml_index_last = mp->totloop + mp->loopstart - 1;
-    const int ml_index_next = (ml_index == ml_index_last) ? mp->loopstart : (ml_index + 1);
-    const bool real_edge = (mr->e_origindex == nullptr ||
-                            mr->e_origindex[ml->e] != ORIGINDEX_NONE);
+    const int ml_index_last = poly.last();
+    const int ml_index_next = (ml_index == ml_index_last) ? poly.start() : (ml_index + 1);
+    const bool real_edge = (mr->e_origindex == nullptr || mr->e_origindex[edge] != ORIGINDEX_NONE);
     edituv_edge_add(data, mp_hidden || !real_edge, mp_select, ml_index, ml_index_next);
   }
 }
@@ -287,11 +286,10 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
                                                   const MeshRenderData *mr,
                                                   void *_data,
                                                   uint subdiv_quad_index,
-                                                  const MPoly *coarse_poly)
+                                                  const int coarse_poly_index)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   int *subdiv_loop_edge_index = (int *)GPU_vertbuf_get_data(subdiv_cache->edges_orig_index);
-  const int coarse_poly_index = coarse_poly - mr->mpoly;
   bool mp_hidden, mp_select;
   if (mr->bm) {
     const BMFace *efa = bm_original_face_get(mr, coarse_poly_index);
@@ -318,7 +316,7 @@ static void extract_edituv_lines_iter_subdiv_mesh(const DRWSubdivCache *subdiv_c
   }
 }
 
-static void extract_edituv_lines_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_lines_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                const MeshRenderData * /*mr*/,
                                                MeshBatchCache * /*cache*/,
                                                void *buf,
@@ -390,22 +388,19 @@ static void extract_edituv_points_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_edituv_points_iter_poly_mesh(const MeshRenderData *mr,
-                                                 const MPoly *mp,
-                                                 const int mp_index,
+                                                 const int poly_index,
                                                  void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
 
-  const BMFace *efa = bm_original_face_get(mr, mp_index);
+  const BMFace *efa = bm_original_face_get(mr, poly_index);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  for (const int ml_index : mr->polys[poly_index]) {
+    const int vert = mr->corner_verts[ml_index];
 
-    const bool real_vert = !mr->v_origindex || mr->v_origindex[ml->v] != ORIGINDEX_NONE;
+    const bool real_vert = !mr->v_origindex || mr->v_origindex[vert] != ORIGINDEX_NONE;
     edituv_point_add(data, mp_hidden || !real_vert, mp_select, ml_index);
   }
 }
@@ -456,12 +451,12 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
                                                    const MeshRenderData *mr,
                                                    void *_data,
                                                    uint subdiv_quad_index,
-                                                   const MPoly *coarse_quad)
+                                                   const int coarse_quad_index)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
   int *subdiv_loop_vert_index = (int *)GPU_vertbuf_get_data(subdiv_cache->verts_orig_index);
 
-  const BMFace *efa = bm_original_face_get(mr, coarse_quad - mr->mpoly);
+  const BMFace *efa = bm_original_face_get(mr, coarse_quad_index);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
@@ -475,7 +470,7 @@ static void extract_edituv_points_iter_subdiv_mesh(const DRWSubdivCache *subdiv_
   }
 }
 
-static void extract_edituv_points_finish_subdiv(const struct DRWSubdivCache * /*subdiv_cache*/,
+static void extract_edituv_points_finish_subdiv(const DRWSubdivCache * /*subdiv_cache*/,
                                                 const MeshRenderData * /*mr*/,
                                                 MeshBatchCache * /*cache*/,
                                                 void *buf,
@@ -546,32 +541,29 @@ static void extract_edituv_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_edituv_fdots_iter_poly_mesh(const MeshRenderData *mr,
-                                                const MPoly *mp,
-                                                const int mp_index,
+                                                const int poly_index,
                                                 void *_data)
 {
   MeshExtract_EditUvElem_Data *data = static_cast<MeshExtract_EditUvElem_Data *>(_data);
 
-  const BMFace *efa = bm_original_face_get(mr, mp_index);
+  const BMFace *efa = bm_original_face_get(mr, poly_index);
   const bool mp_hidden = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_HIDDEN) : true;
   const bool mp_select = (efa) ? BM_elem_flag_test_bool(efa, BM_ELEM_SELECT) : false;
 
   if (mr->use_subsurf_fdots) {
     const BitSpan facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
-    const MLoop *mloop = mr->mloop;
-    const int ml_index_end = mp->loopstart + mp->totloop;
-    for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-      const MLoop *ml = &mloop[ml_index];
+    for (const int ml_index : mr->polys[poly_index]) {
+      const int vert = mr->corner_verts[ml_index];
 
-      const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
-      const bool subd_fdot = facedot_tags[ml->v];
-      edituv_facedot_add(data, mp_hidden || !real_fdot || !subd_fdot, mp_select, mp_index);
+      const bool real_fdot = !mr->p_origindex || (mr->p_origindex[poly_index] != ORIGINDEX_NONE);
+      const bool subd_fdot = facedot_tags[vert];
+      edituv_facedot_add(data, mp_hidden || !real_fdot || !subd_fdot, mp_select, poly_index);
     }
   }
   else {
-    const bool real_fdot = !mr->p_origindex || (mr->p_origindex[mp_index] != ORIGINDEX_NONE);
-    edituv_facedot_add(data, mp_hidden || !real_fdot, mp_select, mp_index);
+    const bool real_fdot = !mr->p_origindex || (mr->p_origindex[poly_index] != ORIGINDEX_NONE);
+    edituv_facedot_add(data, mp_hidden || !real_fdot, mp_select, poly_index);
   }
 }
 

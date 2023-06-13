@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2003-2009 Blender Foundation.
- *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2003-2009 Blender Foundation.
+ * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -48,7 +49,7 @@ ListBase drivers_clipboard;
 int seqbase_clipboard_frame;
 static char seq_clipboard_active_seq_name[SEQ_NAME_MAXSTR];
 
-void seq_clipboard_pointers_free(struct ListBase *seqbase);
+void seq_clipboard_pointers_free(ListBase *seqbase);
 
 void SEQ_clipboard_free(void)
 {

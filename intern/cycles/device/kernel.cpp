@@ -3,7 +3,9 @@
 
 #include "device/kernel.h"
 
-#include "util/log.h"
+#ifndef __KERNEL_ONEAPI__
+#  include "util/log.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -16,6 +18,7 @@ bool device_kernel_has_shading(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_DISPLACE ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_BACKGROUND ||
           kernel == DEVICE_KERNEL_SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY);
@@ -27,6 +30,7 @@ bool device_kernel_has_intersection(DeviceKernel kernel)
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK ||
+          kernel == DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_RAYTRACE ||
           kernel == DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE);
 }
@@ -47,6 +51,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_intersect_subsurface";
     case DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK:
       return "integrator_intersect_volume_stack";
+    case DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT:
+      return "integrator_intersect_dedicated_light";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND:
       return "integrator_shade_background";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT:
@@ -61,6 +67,8 @@ const char *device_kernel_as_string(DeviceKernel kernel)
       return "integrator_shade_surface_mnee";
     case DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME:
       return "integrator_shade_volume";
+    case DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT:
+      return "integrator_shade_dedicated_light";
     case DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL:
       return "integrator_megakernel";
     case DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY:
@@ -153,10 +161,13 @@ const char *device_kernel_as_string(DeviceKernel kernel)
     case DEVICE_KERNEL_NUM:
       break;
   };
+#ifndef __KERNEL_ONEAPI__
   LOG(FATAL) << "Unhandled kernel " << static_cast<int>(kernel) << ", should never happen.";
+#endif
   return "UNKNOWN";
 }
 
+#ifndef __KERNEL_ONEAPI__
 std::ostream &operator<<(std::ostream &os, DeviceKernel kernel)
 {
   os << device_kernel_as_string(kernel);
@@ -178,5 +189,6 @@ string device_kernel_mask_as_string(DeviceKernelMask mask)
 
   return str;
 }
+#endif
 
 CCL_NAMESPACE_END

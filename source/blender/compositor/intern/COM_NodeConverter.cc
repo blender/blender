@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_utildefines.h"
 
@@ -14,9 +15,7 @@
 
 namespace blender::compositor {
 
-NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder)
-{
-}
+NodeConverter::NodeConverter(NodeOperationBuilder *builder) : builder_(builder) {}
 
 void NodeConverter::add_operation(NodeOperation *operation)
 {

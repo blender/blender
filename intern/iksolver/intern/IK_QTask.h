@@ -14,9 +14,7 @@
 class IK_QTask {
  public:
   IK_QTask(int size, bool primary, bool active, const IK_QSegment *segment);
-  virtual ~IK_QTask()
-  {
-  }
+  virtual ~IK_QTask() {}
 
   int Id() const
   {
@@ -62,9 +60,7 @@ class IK_QTask {
     return false;
   }
 
-  virtual void Scale(double)
-  {
-  }
+  virtual void Scale(double) {}
 
  protected:
   int m_id;

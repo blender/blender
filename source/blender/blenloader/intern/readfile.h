@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -94,7 +95,14 @@ typedef struct FileData {
 
   struct OldNewMap *datamap;
   struct OldNewMap *globmap;
+
+  /**
+   * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
+   * typically from value in `bhead->old` to address in memory where the ID was read.
+   * Used during library-linking process (see #lib_link_all).
+   */
   struct OldNewMap *libmap;
+
   struct OldNewMap *packedmap;
   struct BLOCacheStorage *cache_storage;
 
@@ -107,7 +115,20 @@ typedef struct FileData {
   ListBase *mainlist;
   /** Used for undo. */
   ListBase *old_mainlist;
-  struct IDNameLib_Map *old_idmap;
+  /**
+   * IDMap using UUID's as keys of all the old IDs in the old bmain. Used during undo to find a
+   * matching old data when reading a new ID. */
+  struct IDNameLib_Map *old_idmap_uuid;
+  /**
+   * IDMap using uuids as keys of the IDs read (or moved) in the new main(s).
+   *
+   * Used during undo to ensure that the ID pointers from the 'no undo' IDs remain valid (these
+   * IDs are re-used from old main even if their content is not the same as in the memfile undo
+   * step, so they could point e.g. to an ID that does not exist in the newly read undo step).
+   *
+   * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
+   * read memfile. */
+  struct IDNameLib_Map *new_idmap_uuid;
 
   struct BlendFileReadReport *reports;
 } FileData;
@@ -119,7 +140,7 @@ struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
 
-BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
+struct BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath);
 
 /**
  * On each new library added, it now checks for the current #FileData and expands relativeness
@@ -140,10 +161,6 @@ void blo_make_packed_pointer_map(FileData *fd, struct Main *oldmain);
  * this works because freeing old main only happens after this call.
  */
 void blo_end_packed_pointer_map(FileData *fd, struct Main *oldmain);
-/**
- * Undo file support: add all library pointers in lookup.
- */
-void blo_add_library_pointer_map(ListBase *old_mainlist, FileData *fd);
 /**
  * Build a #GSet of old main (we only care about local data here,
  * so we can do that after #blo_split_main() call.
@@ -191,8 +208,10 @@ void blo_do_versions_oldnewmap_insert(struct OldNewMap *onm,
 /**
  * Only library data.
  */
-void *blo_do_versions_newlibadr(struct FileData *fd, const void *lib, const void *adr);
-void *blo_do_versions_newlibadr_us(struct FileData *fd, const void *lib, const void *adr);
+void *blo_do_versions_newlibadr(struct FileData *fd,
+                                ID *self_id,
+                                const bool is_linked_only,
+                                const void *adr);
 
 /**
  * \note this version patch is intended for versions < 2.52.2,
@@ -219,9 +238,10 @@ void blo_do_versions_cycles(struct FileData *fd, struct Library *lib, struct Mai
 void do_versions_after_linking_250(struct Main *bmain);
 void do_versions_after_linking_260(struct Main *bmain);
 void do_versions_after_linking_270(struct Main *bmain);
-void do_versions_after_linking_280(struct Main *bmain, struct ReportList *reports);
-void do_versions_after_linking_290(struct Main *bmain, struct ReportList *reports);
-void do_versions_after_linking_300(struct Main *bmain, struct ReportList *reports);
+void do_versions_after_linking_280(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_290(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_300(struct FileData *fd, struct Main *bmain);
+void do_versions_after_linking_400(struct FileData *fd, struct Main *bmain);
 void do_versions_after_linking_cycles(struct Main *bmain);
 
 /**
@@ -231,6 +251,10 @@ void do_versions_after_linking_cycles(struct Main *bmain);
  * but better use that nasty hack in do_version than readfile itself.
  */
 void *blo_read_get_new_globaldata_address(struct FileData *fd, const void *adr);
+
+/* Mark the Main data as invalid (.blend file reading should be aborted ASAP, and the already read
+ * data should be discarded). Also add an error report to `fd` including given `message`. */
+void blo_readfile_invalidate(struct FileData *fd, struct Main *bmain, const char *message);
 
 #ifdef __cplusplus
 }

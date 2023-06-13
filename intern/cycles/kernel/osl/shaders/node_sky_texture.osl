@@ -132,11 +132,11 @@ color sky_radiance_nishita(vector dir, float nishita_data[10], string filename)
     /* definitions */
     vector sun_dir = geographical_to_direction(sun_elevation, sun_rotation + M_PI_2);
     float sun_dir_angle = precise_angle(dir, sun_dir);
-    float half_angular = angular_diameter / 2.0;
+    float half_angular = angular_diameter * 0.5;
     float dir_elevation = M_PI_2 - direction[0];
 
-    /* if ray inside sun disc render it, otherwise render sky.
-     * alternatively, ignore the sun if we're evaluating the background texture. */
+    /* If the ray is inside the sun disc, render it, otherwise render the sky.
+     * Alternatively, ignore the sun if we're evaluating the background texture. */
     if (sun_dir_angle < half_angular && sun_disc == 1 && raytype("importance_bake") != 1) {
       /* get 2 pixels data */
       color pixel_bottom = color(nishita_data[0], nishita_data[1], nishita_data[2]);

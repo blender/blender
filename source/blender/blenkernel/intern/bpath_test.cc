@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
 #include "CLG_log.h"
@@ -82,7 +83,7 @@ TEST_F(BPathTest, rebase_on_relative)
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE);
 
   BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
 
@@ -97,7 +98,7 @@ TEST_F(BPathTest, rebase_on_absolute)
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_relative_rebase(bmain, BASE_DIR, REBASE_DIR, nullptr);
 
@@ -111,7 +112,7 @@ TEST_F(BPathTest, convert_to_relative)
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_relative_convert(bmain, BASE_DIR, nullptr);
 
@@ -127,7 +128,7 @@ TEST_F(BPathTest, convert_to_absolute)
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   BKE_bpath_absolute_convert(bmain, BASE_DIR, nullptr);
 
@@ -143,7 +144,7 @@ TEST_F(BPathTest, list_backup_restore)
   text->filepath = BLI_strdup(TEXT_PATH_RELATIVE);
 
   MovieClip *movie_clip = reinterpret_cast<MovieClip *>(bmain->movieclips.first);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_ABSOLUTE);
 
   void *path_list_handle = BKE_bpath_list_backup(bmain, static_cast<eBPathForeachFlag>(0));
 
@@ -152,7 +153,7 @@ TEST_F(BPathTest, list_backup_restore)
 
   MEM_freeN(text->filepath);
   text->filepath = BLI_strdup(TEXT_PATH_ABSOLUTE);
-  BLI_strncpy(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE, sizeof(movie_clip->filepath));
+  STRNCPY(movie_clip->filepath, MOVIECLIP_PATH_RELATIVE);
 
   BKE_bpath_list_restore(bmain, static_cast<eBPathForeachFlag>(0), path_list_handle);
 

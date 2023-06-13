@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -55,10 +56,10 @@ enum {
 enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
   MR_ITER_POLY = 1 << 1,
-  MR_ITER_LEDGE = 1 << 2,
-  MR_ITER_LVERT = 1 << 3,
+  MR_ITER_LOOSE_EDGE = 1 << 2,
+  MR_ITER_LOOSE_VERT = 1 << 3,
 };
-ENUM_OPERATORS(eMRIterType, MR_ITER_LVERT)
+ENUM_OPERATORS(eMRIterType, MR_ITER_LOOSE_VERT)
 
 enum eMRDataType {
   MR_DATA_NONE = 0,
@@ -222,10 +223,19 @@ ENUM_OPERATORS(DRWBatchFlag, MBC_SURFACE_PER_MAT);
 BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of bit fields");
 
 struct MeshExtractLooseGeom {
-  int edge_len;
-  int vert_len;
-  int *verts;
-  int *edges;
+  /** Indices of all vertices not used by edges in the #Mesh or #BMesh. */
+  blender::Array<int> verts;
+  /** Indices of all edges not used by faces in the #Mesh or #BMesh. */
+  blender::Array<int> edges;
+};
+
+struct SortedPolyData {
+  /** The first triangle index for each polygon, sorted into slices by material. */
+  blender::Array<int> tri_first_index;
+  /** The number of visible triangles assigned to each material. */
+  blender::Array<int> mat_tri_len;
+  /* The total number of visible triangles (a sum of the values in #mat_tri_len). */
+  int visible_tri_len;
 };
 
 /**
@@ -238,11 +248,7 @@ struct MeshBufferCache {
 
   MeshExtractLooseGeom loose_geom;
 
-  struct {
-    int *tri_first_index;
-    int *mat_tri_len;
-    int visible_tri_len;
-  } poly_sorted;
+  SortedPolyData poly_sorted;
 };
 
 #define FOREACH_MESH_BUFFER_CACHE(batch_cache, mbc) \
@@ -257,7 +263,7 @@ struct MeshBatchCache {
 
   MeshBatchList batch;
 
-  /* Index buffer per material. These are subranges of `ibo.tris` */
+  /* Index buffer per material. These are sub-ranges of `ibo.tris`. */
   GPUIndexBuf **tris_per_mat;
 
   GPUBatch **surface_per_mat;

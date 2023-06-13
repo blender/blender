@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <string>
 
@@ -21,9 +23,7 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-Evaluator::Evaluator(Context &context) : context_(context)
-{
-}
+Evaluator::Evaluator(Context &context) : context_(context) {}
 
 void Evaluator::evaluate()
 {
@@ -66,13 +66,13 @@ bool Evaluator::validate_node_tree()
 
 void Evaluator::compile_and_evaluate()
 {
-  derived_node_tree_ = std::make_unique<DerivedNodeTree>(*context_.get_scene()->nodetree);
+  derived_node_tree_ = std::make_unique<DerivedNodeTree>(context_.get_node_tree());
 
   if (!validate_node_tree()) {
     return;
   }
 
-  const Schedule schedule = compute_schedule(*derived_node_tree_);
+  const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
 
   CompileState compile_state(schedule);
 

@@ -161,9 +161,7 @@ void DocumentImporter::cancel(const COLLADAFW::String &errorMessage)
    * The latter sounds better. */
 }
 
-void DocumentImporter::start()
-{
-}
+void DocumentImporter::start() {}
 
 void DocumentImporter::finish()
 {
@@ -601,7 +599,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node,
             pair_iter = object_map.equal_range(node_id);
         for (std::multimap<COLLADAFW::UniqueId, Object *>::iterator it2 = pair_iter.first;
              it2 != pair_iter.second;
-             it2++) {
+             it2++)
+        {
           Object *source_ob = (Object *)it2->second;
           COLLADAFW::Node *source_node = node_map[node_id];
           ob = create_instance_node(source_ob, source_node, node, sce, is_library_node);
@@ -936,7 +935,7 @@ bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
   char absolute_path[FILE_MAX];
   const char *workpath;
 
-  BLI_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
+  BLI_path_split_dir_part(this->import_settings->filepath, dir, sizeof(dir));
   BLI_path_join(absolute_path, sizeof(absolute_path), dir, imagepath.c_str());
   if (BLI_exists(absolute_path)) {
     workpath = absolute_path;

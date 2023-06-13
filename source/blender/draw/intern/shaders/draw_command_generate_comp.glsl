@@ -108,7 +108,14 @@ void main()
       uint view_index = i * 32u;
       while (word != 0u) {
         if ((word & 1u) != 0u) {
-          resource_id_buf[dst_index++] = view_index | (resource_index << view_shift);
+          if (use_custom_ids) {
+            resource_id_buf[dst_index * 2] = view_index | (resource_index << view_shift);
+            resource_id_buf[dst_index * 2 + 1] = proto.custom_id;
+          }
+          else {
+            resource_id_buf[dst_index] = view_index | (resource_index << view_shift);
+          }
+          dst_index++;
         }
         view_index++;
         word >>= 1u;
@@ -117,7 +124,13 @@ void main()
   }
   else {
     for (uint i = dst_index; i < dst_index + visible_instance_len; i++) {
-      resource_id_buf[i] = resource_index;
+      if (use_custom_ids) {
+        resource_id_buf[i * 2] = resource_index;
+        resource_id_buf[i * 2 + 1] = proto.custom_id;
+      }
+      else {
+        resource_id_buf[i] = resource_index;
+      }
     }
   }
 }

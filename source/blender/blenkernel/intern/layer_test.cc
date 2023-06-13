@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
 #include "MEM_guardedalloc.h"
@@ -19,7 +20,7 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
-#include "GHOST_Path-api.h"
+#include "GHOST_Path-api.hh"
 
 namespace blender::bke::tests {
 
@@ -60,7 +61,7 @@ TEST(view_layer, aov_unique_names)
   EXPECT_TRUE(STREQ(aov2->name, "AOV_001"));
 
   /* Revert previous resolution */
-  BLI_strncpy(aov2->name, "AOV", MAX_NAME);
+  STRNCPY(aov2->name, "AOV");
   BKE_view_layer_verify_aov(engine, &scene, view_layer);
   EXPECT_TRUE(BKE_view_layer_has_valid_aov(view_layer));
   EXPECT_FALSE((aov1->flag & AOV_CONFLICT) != 0);
@@ -97,7 +98,7 @@ static void test_render_pass_conflict(Scene *scene,
   RNA_boolean_set(&ptr, rna_prop_name, false);
 
   /* Rename to Conflicting name */
-  BLI_strncpy(aov->name, render_pass_name, MAX_NAME);
+  STRNCPY(aov->name, render_pass_name);
   BKE_view_layer_verify_aov(engine, scene, view_layer);
   EXPECT_TRUE(BKE_view_layer_has_valid_aov(view_layer));
   EXPECT_FALSE((aov->flag & AOV_CONFLICT) != 0);

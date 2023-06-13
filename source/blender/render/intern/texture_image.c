@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -46,27 +47,27 @@ static void boxsample(ImBuf *ibuf,
 /* *********** IMAGEWRAPPING ****************** */
 
 /* x and y have to be checked for image size */
-static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
+static void ibuf_get_color(float col[4], ImBuf *ibuf, int x, int y)
 {
   int ofs = y * ibuf->x + x;
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     if (ibuf->channels == 4) {
-      const float *fp = ibuf->rect_float + 4 * ofs;
+      const float *fp = ibuf->float_buffer.data + 4 * ofs;
       copy_v4_v4(col, fp);
     }
     else if (ibuf->channels == 3) {
-      const float *fp = ibuf->rect_float + 3 * ofs;
+      const float *fp = ibuf->float_buffer.data + 3 * ofs;
       copy_v3_v3(col, fp);
       col[3] = 1.0f;
     }
     else {
-      const float *fp = ibuf->rect_float + ofs;
+      const float *fp = ibuf->float_buffer.data + ofs;
       col[0] = col[1] = col[2] = col[3] = *fp;
     }
   }
   else {
-    const char *rect = (char *)(ibuf->rect + ofs);
+    const uchar *rect = ibuf->byte_buffer.data + 4 * ofs;
 
     col[0] = ((float)rect[0]) * (1.0f / 255.0f);
     col[1] = ((float)rect[1]) * (1.0f / 255.0f);
@@ -126,7 +127,7 @@ int imagewrap(Tex *tex,
 
   ima->flag |= IMA_USED_FOR_RENDER;
 
-  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+  if (ibuf == NULL || (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL)) {
     BKE_image_pool_release_ibuf(ima, ibuf, pool);
     return retval;
   }
@@ -460,7 +461,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
   return 1.0;
 }
 
-static void boxsampleclip(struct ImBuf *ibuf, rctf *rf, TexResult *texres)
+static void boxsampleclip(ImBuf *ibuf, rctf *rf, TexResult *texres)
 {
   /* Sample box, is clipped already, and minx etc. have been set at ibuf size.
    * Enlarge with anti-aliased edges of the pixels. */
@@ -719,8 +720,8 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
     }
   }
 
-  if (ibuf->rect_float) {
-    const float *fp = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;
+  if (ibuf->float_buffer.data) {
+    const float *fp = ibuf->float_buffer.data + (x + y * ibuf->x) * ibuf->channels;
     if (ibuf->channels == 1) {
       col[0] = col[1] = col[2] = col[3] = *fp;
     }
@@ -732,7 +733,7 @@ static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extf
     }
   }
   else {
-    const char *rect = (char *)(ibuf->rect + x + y * ibuf->x);
+    const uchar *rect = ibuf->byte_buffer.data + 4 * (x + y * ibuf->x);
     float inv_alpha_fac = (1.0f / 255.0f) * rect[3] * (1.0f / 255.0f);
     col[0] = rect[0] * inv_alpha_fac;
     col[1] = rect[1] * inv_alpha_fac;
@@ -979,7 +980,7 @@ static int imagewraposa_aniso(Tex *tex,
     ibuf = BKE_image_pool_acquire_ibuf(ima, &tex->iuser, pool);
   }
 
-  if ((ibuf == NULL) || ((ibuf->rect == NULL) && (ibuf->rect_float == NULL))) {
+  if ((ibuf == NULL) || ((ibuf->byte_buffer.data == NULL) && (ibuf->float_buffer.data == NULL))) {
     if (ima) {
       BKE_image_pool_release_ibuf(ima, ibuf, pool);
     }
@@ -1137,7 +1138,8 @@ static int imagewraposa_aniso(Tex *tex,
 
   if (tex->extend == TEX_CLIPCUBE) {
     if ((fx + minx) < 0.0f || (fy + miny) < 0.0f || (fx - minx) > 1.0f || (fy - miny) > 1.0f ||
-        texvec[2] < -1.0f || texvec[2] > 1.0f) {
+        texvec[2] < -1.0f || texvec[2] > 1.0f)
+    {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }
@@ -1382,7 +1384,7 @@ int imagewraposa(Tex *tex,
 
     ima->flag |= IMA_USED_FOR_RENDER;
   }
-  if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+  if (ibuf == NULL || (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL)) {
     if (ima) {
       BKE_image_pool_release_ibuf(ima, ibuf, pool);
     }
@@ -1565,7 +1567,8 @@ int imagewraposa(Tex *tex,
 
   if (tex->extend == TEX_CLIPCUBE) {
     if (fx + minx < 0.0f || fy + miny < 0.0f || fx - minx > 1.0f || fy - miny > 1.0f ||
-        texvec[2] < -1.0f || texvec[2] > 1.0f) {
+        texvec[2] < -1.0f || texvec[2] > 1.0f)
+    {
       if (ima) {
         BKE_image_pool_release_ibuf(ima, ibuf, pool);
       }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -20,7 +21,7 @@
 
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -38,7 +39,7 @@
 
 #include "BLT_translation.h"
 
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_idtype.h"
@@ -85,6 +86,10 @@ static void screen_foreach_id_dopesheet(LibraryForeachIDData *data, bDopeSheet *
 
 void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area)
 {
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
+  const bool is_readonly = (data_flags & IDWALK_READONLY) != 0;
+  const bool allow_pointer_access = (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0;
+
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, area->full, IDWALK_CB_NOP);
 
   /* TODO: this should be moved to a callback in `SpaceType`, defined in each editor's own code.
@@ -105,26 +110,55 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
         SpaceGraph *sipo = (SpaceGraph *)sl;
         BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                                 screen_foreach_id_dopesheet(data, sipo->ads));
+
+        if (!is_readonly) {
+          /* Force recalc of list of channels (i.e. including calculating F-Curve colors) to
+           * prevent the "black curves" problem post-undo. */
+          sipo->runtime.flag |= SIPO_RUNTIME_FLAG_NEED_CHAN_SYNC_COLOR;
+        }
         break;
       }
       case SPACE_PROPERTIES: {
         SpaceProperties *sbuts = (SpaceProperties *)sl;
         BKE_LIB_FOREACHID_PROCESS_ID(data, sbuts->pinid, IDWALK_CB_NOP);
+        if (!is_readonly) {
+          if (sbuts->pinid == NULL) {
+            sbuts->flag &= ~SB_PIN_CONTEXT;
+          }
+          /* Note: Restoring path pointers is complicated, if not impossible, because this contains
+           * data pointers too, not just ID ones. See #40046. */
+          MEM_SAFE_FREE(sbuts->path);
+        }
         break;
       }
-      case SPACE_FILE:
+      case SPACE_FILE: {
+        if (!is_readonly) {
+          SpaceFile *sfile = (SpaceFile *)sl;
+          sfile->op = NULL;
+          sfile->tags = FILE_TAG_REBUILD_MAIN_FILES;
+        }
         break;
+      }
       case SPACE_ACTION: {
         SpaceAction *saction = (SpaceAction *)sl;
         screen_foreach_id_dopesheet(data, &saction->ads);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, saction->action, IDWALK_CB_NOP);
+        if (!is_readonly) {
+          /* Force recalc of list of channels, potentially updating the active action while we're
+           * at it (as it can only be updated that way) #28962. */
+          saction->runtime.flag |= SACTION_RUNTIME_FLAG_NEED_CHAN_SYNC;
+        }
         break;
       }
       case SPACE_IMAGE: {
         SpaceImage *sima = (SpaceImage *)sl;
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->image, IDWALK_CB_USER_ONE);
+        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->iuser.scene, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->mask_info.mask, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sima->gpd, IDWALK_CB_USER);
+        if (!is_readonly) {
+          sima->scopes.ok = 0;
+        }
         break;
       }
       case SPACE_SEQ: {
@@ -156,45 +190,120 @@ void BKE_screen_foreach_id_screen_area(LibraryForeachIDData *data, ScrArea *area
 
           BLI_mempool_iternew(space_outliner->treestore, &iter);
           while ((tselem = BLI_mempool_iterstep(&iter))) {
-            BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, IDWALK_CB_NOP);
+            /* Do not try to restore non-ID pointers (drivers/sequence/etc.). */
+            if (TSE_IS_REAL_ID(tselem)) {
+              const int cb_flag = (tselem->id != NULL && allow_pointer_access &&
+                                   (tselem->id->flag & LIB_EMBEDDED_DATA) != 0) ?
+                                      IDWALK_CB_EMBEDDED_NOT_OWNING :
+                                      IDWALK_CB_NOP;
+              BKE_LIB_FOREACHID_PROCESS_ID(data, tselem->id, cb_flag);
+            }
+            else if (!is_readonly) {
+              tselem->id = NULL;
+            }
+          }
+          if (!is_readonly) {
+            /* rebuild hash table, because it depends on ids too */
+            space_outliner->storeflag |= SO_TREESTORE_REBUILD;
           }
         }
         break;
       }
       case SPACE_NODE: {
         SpaceNode *snode = (SpaceNode *)sl;
-        const bool is_private_nodetree = snode->id != NULL &&
-                                         ntreeFromID(snode->id) == snode->nodetree;
+        const bool is_embedded_nodetree = snode->id != NULL && allow_pointer_access &&
+                                          ntreeFromID(snode->id) == snode->nodetree;
 
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->id, IDWALK_CB_NOP);
         BKE_LIB_FOREACHID_PROCESS_ID(data, snode->from, IDWALK_CB_NOP);
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(
-            data, snode->nodetree, is_private_nodetree ? IDWALK_CB_EMBEDDED : IDWALK_CB_USER_ONE);
 
-        LISTBASE_FOREACH (bNodeTreePath *, path, &snode->treepath) {
-          if (path == snode->treepath.first) {
-            /* first nodetree in path is same as snode->nodetree */
-            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data,
-                                              path->nodetree,
-                                              is_private_nodetree ? IDWALK_CB_EMBEDDED :
-                                                                    IDWALK_CB_USER_ONE);
+        bNodeTreePath *path = snode->treepath.first;
+        BLI_assert(path == NULL || path->nodetree == snode->nodetree);
+
+        if (is_embedded_nodetree) {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+          if (path != NULL) {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_EMBEDDED_NOT_OWNING);
           }
-          else {
+
+          /* Embedded ID pointers are not remapped (besides exceptions), ensure it still matches
+           * actual data. Note that `snode->id` was already processed (and therefore potentially
+           * remapped) above. */
+          if (!is_readonly) {
+            snode->nodetree = (snode->id == NULL) ? NULL : ntreeFromID(snode->id);
+            if (path != NULL) {
+              path->nodetree = snode->nodetree;
+            }
+          }
+        }
+        else {
+          BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->nodetree, IDWALK_CB_USER_ONE);
+          if (path != NULL) {
             BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
-          }
-
-          if (path->nodetree == NULL) {
-            break;
           }
         }
 
-        BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+        /* Both `snode->id` and `snode->nodetree` have been remapped now, so their data can be
+         * accessed. */
+        BLI_assert(snode->id == NULL || snode->nodetree == NULL ||
+                   (snode->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0 ||
+                   snode->nodetree == ntreeFromID(snode->id));
+
+        if (path != NULL) {
+          for (path = path->next; path != NULL; path = path->next) {
+            BLI_assert(path->nodetree != NULL);
+            if ((data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) {
+              BLI_assert((path->nodetree->id.flag & LIB_EMBEDDED_DATA) == 0);
+            }
+
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, path->nodetree, IDWALK_CB_USER_ONE);
+
+            if (path->nodetree == NULL) {
+              BLI_assert(!is_readonly);
+              /* Remaining path entries are invalid, remove them. */
+              for (bNodeTreePath *path_next; path; path = path_next) {
+                path_next = path->next;
+                BLI_remlink(&snode->treepath, path);
+                MEM_freeN(path);
+              }
+              break;
+            }
+          }
+        }
+        BLI_assert(path == NULL);
+
+        if (!is_readonly) {
+          /* `edittree` is just the last in the path, set this directly since the path may have
+           * been shortened above. */
+          if (snode->treepath.last != NULL) {
+            path = snode->treepath.last;
+            snode->edittree = path->nodetree;
+          }
+          else {
+            snode->edittree = NULL;
+          }
+        }
+        else {
+          /* Only process this pointer in readonly case, otherwise could lead to a bad
+           * double-remapping e.g. */
+          if (is_embedded_nodetree && snode->edittree == snode->nodetree) {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(
+                data, snode->edittree, IDWALK_CB_EMBEDDED_NOT_OWNING);
+          }
+          else {
+            BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, snode->edittree, IDWALK_CB_NOP);
+          }
+        }
         break;
       }
       case SPACE_CLIP: {
         SpaceClip *sclip = (SpaceClip *)sl;
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->clip, IDWALK_CB_USER_ONE);
         BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, sclip->mask_info.mask, IDWALK_CB_USER_ONE);
+
+        if (!is_readonly) {
+          sclip->scopes.ok = 0;
+        }
         break;
       }
       case SPACE_SPREADSHEET: {
@@ -260,7 +369,7 @@ static void screen_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bScreen *screen = (bScreen *)id;
   /* deprecated, but needed for versioning (will be NULL'ed then) */
-  BLO_read_id_address(reader, screen->id.lib, &screen->scene);
+  BLO_read_id_address(reader, id, &screen->scene);
 
   screen->animtimer = NULL; /* saved in rare cases */
   screen->tool_tip = NULL;
@@ -547,17 +656,14 @@ ARegion *BKE_spacedata_find_region_type(const SpaceLink *slink,
   return region;
 }
 
-static void (*spacedata_id_remap_cb)(struct ScrArea *area,
-                                     struct SpaceLink *sl,
-                                     ID *old_id,
-                                     ID *new_id) = NULL;
+static void (*spacedata_id_remap_cb)(ScrArea *area, SpaceLink *sl, ID *old_id, ID *new_id) = NULL;
 
 void BKE_spacedata_callback_id_remap_set(void (*func)(ScrArea *area, SpaceLink *sl, ID *, ID *))
 {
   spacedata_id_remap_cb = func;
 }
 
-void BKE_spacedata_id_unref(struct ScrArea *area, struct SpaceLink *sl, struct ID *id)
+void BKE_spacedata_id_unref(ScrArea *area, SpaceLink *sl, ID *id)
 {
   if (spacedata_id_remap_cb) {
     spacedata_id_remap_cb(area, sl, id, NULL);
@@ -574,7 +680,7 @@ void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizm
   region_refresh_tag_gizmomap_callback = callback;
 }
 
-void BKE_screen_gizmo_tag_refresh(struct bScreen *screen)
+void BKE_screen_gizmo_tag_refresh(bScreen *screen)
 {
   if (region_refresh_tag_gizmomap_callback == NULL) {
     return;
@@ -920,7 +1026,7 @@ ARegion *BKE_screen_find_region_xy(bScreen *screen, const int regiontype, const 
   return NULL;
 }
 
-ScrArea *BKE_screen_find_area_from_space(struct bScreen *screen, SpaceLink *sl)
+ScrArea *BKE_screen_find_area_from_space(bScreen *screen, SpaceLink *sl)
 {
   LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
     if (BLI_findindex(&area->spacedata, sl) != -1) {
@@ -956,9 +1062,10 @@ ScrArea *BKE_screen_area_map_find_area_xy(const ScrAreaMap *areamap,
                                           const int xy[2])
 {
   LISTBASE_FOREACH (ScrArea *, area, &areamap->areabase) {
-    /* Test area's outer screen verts, not inner totrct. */
+    /* Test area's outer screen verts, not inner `area->totrct`. */
     if (xy[0] >= area->v1->vec.x && xy[0] <= area->v4->vec.x && xy[1] >= area->v1->vec.y &&
-        xy[1] <= area->v2->vec.y) {
+        xy[1] <= area->v2->vec.y)
+    {
       if (ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
         return area;
       }
@@ -972,7 +1079,7 @@ ScrArea *BKE_screen_find_area_xy(bScreen *screen, const int spacetype, const int
   return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(screen), spacetype, xy);
 }
 
-void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
+void BKE_screen_view3d_sync(View3D *v3d, Scene *scene)
 {
   if (v3d->scenelock && v3d->localvd == NULL) {
     v3d->camera = scene->camera;
@@ -1203,7 +1310,8 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   BLO_read_list(reader, &region->ui_lists);
 
   /* The area's search filter is runtime only, so we need to clear the active flag on read. */
-  region->flag &= ~RGN_FLAG_SEARCH_FILTER_ACTIVE;
+  /* Clear runtime flags (e.g. search filter is runtime only). */
+  region->flag &= ~(RGN_FLAG_SEARCH_FILTER_ACTIVE | RGN_FLAG_POLL_FAILED);
 
   LISTBASE_FOREACH (uiList *, ui_list, &region->ui_lists) {
     ui_list->type = NULL;
@@ -1256,7 +1364,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   memset(&region->drawrct, 0, sizeof(region->drawrct));
 }
 
-/* for the saved 2.50 files without regiondata */
 void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
 {
   LISTBASE_FOREACH (ARegion *, region, regions) {
@@ -1374,7 +1481,7 @@ bool BKE_screen_area_map_blend_read_data(BlendDataReader *reader, ScrAreaMap *ar
 
 void BKE_screen_area_blend_read_lib(BlendLibReader *reader, ID *parent_id, ScrArea *area)
 {
-  BLO_read_id_address(reader, parent_id->lib, &area->full);
+  BLO_read_id_address(reader, parent_id, &area->full);
 
   memset(&area->runtime, 0x0, sizeof(area->runtime));
 

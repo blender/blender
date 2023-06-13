@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -428,7 +429,7 @@ bool BKE_text_reload(Text *text)
     return false;
   }
 
-  BLI_strncpy(filepath_abs, text->filepath, FILE_MAX);
+  STRNCPY(filepath_abs, text->filepath);
   BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
@@ -465,7 +466,7 @@ Text *BKE_text_load_ex(Main *bmain,
   char filepath_abs[FILE_MAX];
   BLI_stat_t st;
 
-  BLI_strncpy(filepath_abs, filepath, FILE_MAX);
+  STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, relbase);
 
   buffer = BLI_file_read_text_as_mem(filepath_abs, 0, &buffer_len);
@@ -537,7 +538,7 @@ int BKE_text_file_modified_check(Text *text)
     return 0;
   }
 
-  BLI_strncpy(filepath, text->filepath, FILE_MAX);
+  STRNCPY(filepath, text->filepath);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(filepath)) {
@@ -571,7 +572,7 @@ void BKE_text_file_modified_ignore(Text *text)
     return;
   }
 
-  BLI_strncpy(filepath, text->filepath, FILE_MAX);
+  STRNCPY(filepath, text->filepath);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&text->id));
 
   if (!BLI_exists(filepath)) {
@@ -1150,7 +1151,8 @@ static void txt_curs_swap(Text *text)
 static void txt_pop_first(Text *text)
 {
   if (txt_get_span(text->curl, text->sell) < 0 ||
-      (text->curl == text->sell && text->curc > text->selc)) {
+      (text->curl == text->sell && text->curc > text->selc))
+  {
     txt_curs_swap(text);
   }
 
@@ -1160,7 +1162,8 @@ static void txt_pop_first(Text *text)
 static void txt_pop_last(Text *text)
 {
   if (txt_get_span(text->curl, text->sell) > 0 ||
-      (text->curl == text->sell && text->curc < text->selc)) {
+      (text->curl == text->sell && text->curc < text->selc))
+  {
     txt_curs_swap(text);
   }
 
@@ -1185,13 +1188,15 @@ void txt_order_cursors(Text *text, const bool reverse)
   /* Flip so text->curl is before/after text->sell */
   if (reverse == false) {
     if ((txt_get_span(text->curl, text->sell) < 0) ||
-        (text->curl == text->sell && text->curc > text->selc)) {
+        (text->curl == text->sell && text->curc > text->selc))
+    {
       txt_curs_swap(text);
     }
   }
   else {
     if ((txt_get_span(text->curl, text->sell) > 0) ||
-        (text->curl == text->sell && text->curc < text->selc)) {
+        (text->curl == text->sell && text->curc < text->selc))
+    {
       txt_curs_swap(text);
     }
   }
@@ -1450,7 +1455,7 @@ char *txt_to_buf(Text *text, size_t *r_buf_strlen)
   return buf;
 }
 
-char *txt_sel_to_buf(Text *text, size_t *r_buf_strlen)
+char *txt_sel_to_buf(const Text *text, size_t *r_buf_strlen)
 {
   char *buf;
   size_t length = 0;
@@ -2124,10 +2129,8 @@ static bool txt_select_unprefix(Text *text, const char *remove, const bool requi
   return changed_any;
 }
 
-void txt_comment(Text *text)
+void txt_comment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return;
   }
@@ -2136,10 +2139,8 @@ void txt_comment(Text *text)
   txt_select_prefix(text, prefix, skip_blank_lines);
 }
 
-bool txt_uncomment(Text *text)
+bool txt_uncomment(Text *text, const char *prefix)
 {
-  const char *prefix = "#";
-
   if (ELEM(NULL, text->curl, text->sell)) {
     return false;
   }
@@ -2169,7 +2170,7 @@ bool txt_unindent(Text *text)
   return txt_select_unprefix(text, prefix, false);
 }
 
-void txt_move_lines(struct Text *text, const int direction)
+void txt_move_lines(Text *text, const int direction)
 {
   TextLine *line_other;
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -47,7 +48,7 @@ struct wmWindow;
 struct wmWindowManager;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
- * #ED_spacetypes_init() in `editors/space_api/spacetypes.c` */
+ * #ED_spacetypes_init() in `editors/space_api/spacetypes.cc` */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
 #define BKE_ST_MAXNAME 64
@@ -155,6 +156,14 @@ typedef struct wmRegionMessageSubscribeParams {
   struct ARegion *region;
 } wmRegionMessageSubscribeParams;
 
+typedef struct RegionPollParams {
+  const struct bScreen *screen;
+  const struct ScrArea *area;
+  const struct ARegion *region;
+
+  /* For now only WM context members here, could add the scene or even #bContext if needed. */
+} RegionPollParams;
+
 typedef struct ARegionType {
   struct ARegionType *next, *prev;
 
@@ -164,6 +173,13 @@ typedef struct ARegionType {
   void (*init)(struct wmWindowManager *wm, struct ARegion *region);
   /* exit is called when the region is hidden or removed */
   void (*exit)(struct wmWindowManager *wm, struct ARegion *region);
+  /**
+   * Optional callback to decide whether the region should be treated as existing given the
+   * current context. When returning false, the region will be kept in storage, but is not
+   * available to the user in any way. Callbacks can assume that context has the owning area and
+   * space-data set.
+   */
+  bool (*poll)(const RegionPollParams *params);
   /* draw entirely, view changes should be handled here */
   void (*draw)(const struct bContext *C, struct ARegion *region);
   /**
@@ -239,7 +255,7 @@ typedef struct PanelType {
 
   char idname[BKE_ST_MAXNAME]; /* unique name */
   char label[BKE_ST_MAXNAME];  /* for panel header */
-  char *description;           /* for panel tooltip */
+  const char *description;     /* for panel tooltip */
   char translation_context[BKE_ST_MAXNAME];
   char context[BKE_ST_MAXNAME];   /* for buttons window */
   char category[BKE_ST_MAXNAME];  /* for category tabs */
@@ -559,6 +575,7 @@ bool BKE_screen_area_map_blend_read_data(struct BlendDataReader *reader,
                                          struct ScrAreaMap *area_map);
 /**
  * And as patch for 2.48 and older.
+ * For the saved 2.50 files without `regiondata`.
  */
 void BKE_screen_view3d_do_versions_250(struct View3D *v3d, ListBase *regions);
 void BKE_screen_area_blend_read_lib(struct BlendLibReader *reader,

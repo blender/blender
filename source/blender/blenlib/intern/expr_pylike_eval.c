@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation, Alexander Gavrilov. All rights reserved. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation, Alexander Gavrilov. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -600,7 +601,8 @@ static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *
       CHECK_ERROR(args == 3);
 
       if (jmp_gap >= 3 && prev_ops[-3].opcode == OPCODE_CONST &&
-          prev_ops[-2].opcode == OPCODE_CONST && prev_ops[-1].opcode == OPCODE_CONST) {
+          prev_ops[-2].opcode == OPCODE_CONST && prev_ops[-1].opcode == OPCODE_CONST)
+      {
         TernaryOpFunc func = funcptr;
 
         /* volatile because some compilers overly aggressive optimize this call out.
@@ -1013,7 +1015,8 @@ static bool parse_expr(ExprParseState *state)
 
     /* Parse condition. */
     if (!parse_next_token(state) || !parse_or(state) || state->token != TOKEN_ELSE ||
-        !parse_next_token(state)) {
+        !parse_next_token(state))
+    {
       MEM_freeN(body);
       return false;
     }

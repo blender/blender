@@ -58,9 +58,6 @@ Static Source Code Checking
    * check_cppcheck:        Run blender source through cppcheck (C & C++).
    * check_clang_array:     Run blender source through clang array checking script (C & C++).
    * check_deprecated:      Check if there is any deprecated code to remove.
-   * check_splint:          Run blenders source through splint (C only).
-   * check_sparse:          Run blenders source through sparse (C only).
-   * check_smatch:          Run blenders source through smatch (C only).
    * check_descriptions:    Check for duplicate/invalid descriptions.
    * check_licenses:        Check license headers follow the SPDX license specification,
                             using one of the accepted licenses in 'doc/license/SPDX-license-identifiers.txt'
@@ -69,7 +66,7 @@ Static Source Code Checking
    * check_cmake:           Runs our own cmake file checker which detects errors in the cmake file list definitions.
    * check_pep8:            Checks all Python script are pep8 which are tagged to use the stricter formatting.
    * check_mypy:            Checks all Python scripts using mypy,
-                            see: source/tools/check_source/check_mypy_config.py scripts which are included.
+                            see: tools/check_source/check_mypy_config.py scripts which are included.
 
 Documentation Checking
 
@@ -85,7 +82,7 @@ Spell Checkers
    * check_spelling_osl:    Check for spelling errors (OSL only).
    * check_spelling_py:     Check for spelling errors (Python only).
 
-   Note: an additional word-list is maintained at: 'source/tools/check_source/check_spelling_c_config.py'
+   Note: an additional word-list is maintained at: 'tools/check_source/check_spelling_c_config.py'
 
    Note: that spell checkers can take a 'CHECK_SPELLING_CACHE' filepath argument,
    so re-running does not need to re-check unchanged files.
@@ -474,38 +471,23 @@ check_clang_array: .FORCE
 	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang_array.py"
 
-check_splint: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_splint.py"
-
-check_sparse: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_sparse.py"
-
-check_smatch: .FORCE
-	@$(CMAKE_CONFIG)
-	@cd "$(BUILD_DIR)" ; \
-	$(PYTHON) "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_smatch.py"
-
 check_mypy: .FORCE
-	@$(PYTHON) "$(BLENDER_DIR)/source/tools/check_source/check_mypy.py"
+	@$(PYTHON) "$(BLENDER_DIR)/tools/check_source/check_mypy.py"
 
 check_wiki_file_structure: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_wiki/check_wiki_file_structure.py"
+	    "$(BLENDER_DIR)/tools/check_wiki/check_wiki_file_structure.py"
 
 check_spelling_py: .FORCE
 	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
-	    "$(BLENDER_DIR)/release/scripts"
+	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
+	    "$(BLENDER_DIR)/scripts"
 
 check_spelling_c: .FORCE
 	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
+	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    "$(BLENDER_DIR)/source" \
 	    "$(BLENDER_DIR)/intern/cycles" \
@@ -515,21 +497,21 @@ check_spelling_c: .FORCE
 check_spelling_osl: .FORCE
 	@cd "$(BUILD_DIR)" ; \
 	PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_spelling.py" \
+	    "$(BLENDER_DIR)/tools/check_source/check_spelling.py" \
 	    --cache-file=$(CHECK_SPELLING_CACHE) \
 	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
 
 check_descriptions: .FORCE
 	@$(BLENDER_BIN) --background -noaudio --factory-startup --python \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
+	    "$(BLENDER_DIR)/tools/check_source/check_descriptions.py"
 
 check_deprecated: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    source/tools/check_source/check_deprecated.py
+	    tools/check_source/check_deprecated.py
 
 check_licenses: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    "$(BLENDER_DIR)/source/tools/check_source/check_licenses.py" \
+	    "$(BLENDER_DIR)/tools/check_source/check_licenses.py" \
 	    "--show-headers=$(SHOW_HEADERS)"
 
 check_pep8: .FORCE
@@ -538,7 +520,7 @@ check_pep8: .FORCE
 
 check_cmake: .FORCE
 	@PYTHONIOENCODING=utf_8 $(PYTHON) \
-	    source/tools/check_source/check_cmake_consistency.py
+	    tools/check_source/check_cmake_consistency.py
 
 
 # -----------------------------------------------------------------------------
@@ -576,8 +558,8 @@ update_code: .FORCE
 	@$(PYTHON) ./build_files/utils/make_update.py --no-libraries
 
 format: .FORCE
-	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) source/tools/utils_maintenance/clang_format_paths.py $(PATHS)
-	@$(PYTHON) source/tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
+	@PATH="${LIBDIR}/llvm/bin/:$(PATH)" $(PYTHON) tools/utils_maintenance/clang_format_paths.py $(PATHS)
+	@$(PYTHON) tools/utils_maintenance/autopep8_format_paths.py --autopep8-command="$(AUTOPEP8)" $(PATHS)
 
 
 # -----------------------------------------------------------------------------

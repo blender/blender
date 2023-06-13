@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -19,7 +20,7 @@ struct bNodeTree;
 void node_group_label(const struct bNodeTree *ntree,
                       const struct bNode *node,
                       char *label,
-                      int maxlen);
+                      int label_maxncpy);
 bool node_group_poll_instance(const struct bNode *node,
                               const struct bNodeTree *nodetree,
                               const char **r_disabled_hint);

@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * Adapted from the Blender Alembic importer implementation. Copyright 2016 Kévin Dietrich.
  * Modifications Copyright 2021 Tangent Animation. All rights reserved. */
 
 #include "usd_reader_curve.h"
 
 #include "BKE_curve.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "BLI_listbase.h"
@@ -162,8 +164,7 @@ void USDCurvesReader::read_curve_sample(Curve *cu, const double motionSampleTime
 }
 
 Mesh *USDCurvesReader::read_mesh(struct Mesh *existing_mesh,
-                                 const double motionSampleTime,
-                                 const int /* read_flag */,
+                                 const USDMeshReadParams params,
                                  const char ** /* err_str */)
 {
   if (!curve_prim_) {
@@ -176,11 +177,11 @@ Mesh *USDCurvesReader::read_mesh(struct Mesh *existing_mesh,
 
   pxr::VtIntArray usdCounts;
 
-  vertexAttr.Get(&usdCounts, motionSampleTime);
+  vertexAttr.Get(&usdCounts, params.motion_sample_time);
   int num_subcurves = usdCounts.size();
 
   pxr::VtVec3fArray usdPoints;
-  pointsAttr.Get(&usdPoints, motionSampleTime);
+  pointsAttr.Get(&usdPoints, params.motion_sample_time);
 
   int vertex_idx = 0;
   int curve_idx;
@@ -204,7 +205,7 @@ Mesh *USDCurvesReader::read_mesh(struct Mesh *existing_mesh,
 
   if (!same_topology) {
     BKE_nurbList_free(&curve->nurb);
-    read_curve_sample(curve, motionSampleTime);
+    read_curve_sample(curve, params.motion_sample_time);
   }
   else {
     Nurb *nurbs = static_cast<Nurb *>(curve->nurb.first);

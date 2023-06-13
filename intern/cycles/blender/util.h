@@ -21,8 +21,12 @@
 
 extern "C" {
 void BKE_image_user_frame_calc(void *ima, void *iuser, int cfra);
-void BKE_image_user_file_path_ex(
-    void *bmain, void *iuser, void *ima, char *path, bool resolve_udim, bool resolve_multiview);
+void BKE_image_user_file_path_ex(void *bmain,
+                                 void *iuser,
+                                 void *ima,
+                                 char *filepath,
+                                 bool resolve_udim,
+                                 bool resolve_multiview);
 unsigned char *BKE_image_get_pixels_for_frame(void *image, int frame, int tile);
 float *BKE_image_get_float_pixels_for_frame(void *image, int frame, int tile);
 }
@@ -114,7 +118,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
   if ((bool)mesh && subdivision_type == Mesh::SUBDIVISION_NONE) {
     if (mesh.use_auto_smooth()) {
       mesh.calc_normals_split();
-      mesh.split_faces(false);
+      mesh.split_faces();
     }
 
     mesh.calc_loop_triangles();
@@ -588,7 +592,8 @@ static inline BL::FluidDomainSettings object_fluid_gas_domain_find(BL::Object &b
       BL::FluidModifier b_mmd(b_mod);
 
       if (b_mmd.fluid_type() == BL::FluidModifier::fluid_type_DOMAIN &&
-          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS) {
+          b_mmd.domain_settings().domain_type() == BL::FluidDomainSettings::domain_type_GAS)
+      {
         return b_mmd.domain_settings();
       }
     }
@@ -637,7 +642,8 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
     bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
     if (enabled && mod.type() == BL::Modifier::type_SUBSURF &&
-        RNA_boolean_get(&cobj, "use_adaptive_subdivision")) {
+        RNA_boolean_get(&cobj, "use_adaptive_subdivision"))
+    {
       BL::SubsurfModifier subsurf(mod);
 
       if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
@@ -702,9 +708,7 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
 
 class EdgeMap {
  public:
-  EdgeMap()
-  {
-  }
+  EdgeMap() {}
 
   void clear()
   {

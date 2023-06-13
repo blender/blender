@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include "BLI_listbase.h"
@@ -46,8 +47,8 @@ typedef struct WorkspaceConfigFileData {
 
 typedef enum eBlenFileType {
   BLENFILETYPE_BLEND = 1,
-  /* BLENFILETYPE_PUB = 2, */     /* UNUSED */
-  /* BLENFILETYPE_RUNTIME = 3, */ /* UNUSED */
+  // BLENFILETYPE_PUB = 2,     /* UNUSED */
+  // BLENFILETYPE_RUNTIME = 3, /* UNUSED */
 } eBlenFileType;
 
 typedef struct BlendFileData {
@@ -58,12 +59,28 @@ typedef struct BlendFileData {
   int globalf;
   char filepath[1024]; /* 1024 = FILE_MAX */
 
-  struct bScreen *curscreen; /* TODO: think this isn't needed anymore? */
+  /** TODO: think this isn't needed anymore? */
+  struct bScreen *curscreen;
   struct Scene *curscene;
-  struct ViewLayer *cur_view_layer; /* layer to activate in workspaces when reading without UI */
+  /** Layer to activate in workspaces when reading without UI. */
+  struct ViewLayer *cur_view_layer;
 
   eBlenFileType type;
 } BlendFileData;
+
+/**
+ * Data used by WM readfile code and BKE's setup_app_data to handle the complex preservation logic
+ * of WindowManager and other UI data-blocks across blend-file reading process.
+ */
+typedef struct BlendFileReadWMSetupData {
+  /** The existing WM when filereading process is started. */
+  struct wmWindowManager *old_wm;
+
+  /** The startup file is being read. */
+  bool is_read_homefile;
+  /** The factory startup file is being read. */
+  bool is_factory_startup;
+} BlendFileReadWMSetupData;
 
 struct BlendFileReadParams {
   uint skip_flags : 3; /* #eBLOReadSkip */
@@ -74,10 +91,10 @@ struct BlendFileReadParams {
 };
 
 typedef struct BlendFileReadReport {
-  /* General reports handling. */
+  /** General reports handling. */
   struct ReportList *reports;
 
-  /* Timing information. */
+  /** Timing information. */
   struct {
     double whole;
     double libraries;
@@ -86,38 +103,44 @@ typedef struct BlendFileReadReport {
     double lib_overrides_recursive_resync;
   } duration;
 
-  /* Count information. */
+  /** Count information. */
   struct {
-    /* Some numbers of IDs that ended up in a specific state, or required some specific process
-     * during this file read. */
+    /**
+     * Some numbers of IDs that ended up in a specific state, or required some specific process
+     * during this file read.
+     */
     int missing_libraries;
     int missing_linked_id;
-    /* Some sub-categories of the above `missing_linked_id` counter. */
+    /** Some sub-categories of the above `missing_linked_id` counter. */
     int missing_obdata;
     int missing_obproxies;
 
-    /* Number of root override IDs that were resynced. */
+    /** Number of root override IDs that were resynced. */
     int resynced_lib_overrides;
 
-    /* Number of proxies converted to library overrides. */
+    /** Number of proxies converted to library overrides. */
     int proxies_to_lib_overrides_success;
-    /* Number of proxies that failed to convert to library overrides. */
+    /** Number of proxies that failed to convert to library overrides. */
     int proxies_to_lib_overrides_failures;
-    /* Number of sequencer strips that were not read because were in non-supported channels. */
+    /** Number of sequencer strips that were not read because were in non-supported channels. */
     int sequence_strips_skipped;
   } count;
 
-  /* Number of libraries which had overrides that needed to be resynced, and a single linked list
-   * of those. */
+  /**
+   * Number of libraries which had overrides that needed to be resynced,
+   * and a single linked list of those.
+   */
   int resynced_lib_overrides_libraries_count;
   bool do_resynced_lib_overrides_libraries_list;
   struct LinkNode *resynced_lib_overrides_libraries;
 } BlendFileReadReport;
 
-/* skip reading some data-block types (may want to skip screen data too). */
+/** Skip reading some data-block types (may want to skip screen data too). */
 typedef enum eBLOReadSkip {
   BLO_READ_SKIP_NONE = 0,
+  /** Skip #BLO_CODE_USER blocks. */
   BLO_READ_SKIP_USERDEF = (1 << 0),
+  /** Only read #BLO_CODE_USER (and associated data). */
   BLO_READ_SKIP_DATA = (1 << 1),
   /** Do not attempt to re-use IDs from old bmain for unchanged ones in case of undo. */
   BLO_READ_SKIP_UNDO_OLD_MAIN = (1 << 2),
@@ -126,7 +149,7 @@ ENUM_OPERATORS(eBLOReadSkip, BLO_READ_SKIP_UNDO_OLD_MAIN)
 #define BLO_READ_SKIP_ALL (BLO_READ_SKIP_USERDEF | BLO_READ_SKIP_DATA)
 
 /**
- * Open a blender file from a pathname. The function returns NULL
+ * Open a blender file from a `filepath`. The function returns NULL
  * and sets a report in the list if it cannot open the file.
  *
  * \param filepath: The path of the file to open.
@@ -182,10 +205,12 @@ typedef struct BLODataBlockInfo {
   char name[64]; /* MAX_NAME */
   struct AssetMetaData *asset_data;
   bool free_asset_data;
-  /* Optimization: Tag data-blocks for which we know there is no preview.
+  /**
+   * Optimization: Tag data-blocks for which we know there is no preview.
    * Knowing this can be used to skip the (potentially expensive) preview loading process. If this
    * is set to true it means we looked for a preview and couldn't find one. False may mean that
-   * either no preview was found, or that it wasn't looked for in the first place. */
+   * either no preview was found, or that it wasn't looked for in the first place.
+   */
   bool no_preview_found;
 } BLODataBlockInfo;
 
@@ -288,31 +313,30 @@ struct LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
  */
 void BLO_blendhandle_close(BlendHandle *bh);
 
+/** Mark the given Main (and the 'root' local one in case of lib-split Mains) as invalid, and
+ * generate an error report containing given `message`. */
+void BLO_read_invalidate_message(BlendHandle *bh, struct Main *bmain, const char *message);
+
+/**
+ * BLI_assert-like macro to check a condition, and if `false`, fail the whole .blend reading
+ * process by marking the Main data-base as invalid, and returning provided `_ret_value`.
+ *
+ * NOTE: About usages:
+ *   - #BLI_assert should be used when the error is considered as a bug, but there is some code to
+ *     recover from it and produce a valid Main data-base.
+ *   - #BLO_read_assert_message should be used when the error is not considered as recoverable.
+ */
+#define BLO_read_assert_message(_check_expr, _ret_value, _bh, _bmain, _message) \
+  if (_check_expr) { \
+    BLO_read_invalidate_message((_bh), (_bmain), (_message)); \
+    return _ret_value; \
+  } \
+  (void)0
+
 /** \} */
 
 #define BLO_GROUP_MAX 32
 #define BLO_EMBEDDED_STARTUP_BLEND "<startup.blend>"
-
-/**
- * Check whether given path ends with a blend file compatible extension
- * (`.blend`, `.ble` or `.blend.gz`).
- *
- * \param str: The path to check.
- * \return true is this path ends with a blender file extension.
- */
-bool BLO_has_bfile_extension(const char *str);
-/**
- * Try to explode given path into its 'library components'
- * (i.e. a .blend file, id type/group, and data-block itself).
- *
- * \param path: the full path to explode.
- * \param r_dir: the string that'll contain path up to blend file itself ('library' path).
- * WARNING! Must be #FILE_MAX_LIBEXTRA long (it also stores group and name strings)!
- * \param r_group: the string that'll contain 'group' part of the path, if any. May be NULL.
- * \param r_name: the string that'll contain data's name part of the path, if any. May be NULL.
- * \return true if path contains a blend file.
- */
-bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name);
 
 /* -------------------------------------------------------------------- */
 /** \name BLO Blend File Linking API
@@ -330,9 +354,11 @@ typedef enum eBLOLibLinkFlags {
   BLO_LIBLINK_FORCE_INDIRECT = 1 << 17,
   /** Set fake user on appended IDs. */
   BLO_LIBLINK_APPEND_SET_FAKEUSER = 1 << 19,
-  /** Append (make local) also indirect dependencies of appended IDs coming from other libraries.
+  /**
+   * Append (make local) also indirect dependencies of appended IDs coming from other libraries.
    * NOTE: All IDs (including indirectly linked ones) coming from the same initial library are
-   * always made local. */
+   * always made local.
+   */
   BLO_LIBLINK_APPEND_RECURSIVE = 1 << 20,
   /** Try to re-use previously appended matching ID on new append. */
   BLO_LIBLINK_APPEND_LOCAL_ID_REUSE = 1 << 21,
@@ -431,7 +457,7 @@ typedef struct TempLibraryContext {
   struct LibraryLink_Params liblink_params;
   struct Library *lib;
 
-  /* The ID datablock that was loaded. Is NULL if loading failed. */
+  /** The ID datablock that was loaded. Is NULL if loading failed. */
   struct ID *temp_id;
 } TempLibraryContext;
 
@@ -446,17 +472,6 @@ void BLO_library_temp_free(TempLibraryContext *temp_lib_ctx);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
-/* internal function but we need to expose it */
-/**
- * Used to link a file (without UI) to the current UI.
- * Note that it assumes the old pointers in UI are still valid, so old Main is not freed.
- */
-void blo_lib_link_restore(struct Main *oldmain,
-                          struct Main *newmain,
-                          struct wmWindowManager *curwm,
-                          struct Scene *curscene,
-                          struct ViewLayer *cur_view_layer);
-
 typedef void (*BLOExpandDoitCallback)(void *fdhandle, struct Main *mainvar, void *idv);
 
 /**
@@ -469,7 +484,7 @@ void BLO_main_expander(BLOExpandDoitCallback expand_doit_func);
  * Loop over all ID data in Main to mark relations.
  * Set (id->tag & LIB_TAG_NEED_EXPAND) to mark expanding. Flags get cleared after expanding.
  *
- * \param fdhandle: usually filedata, or own handle.
+ * \param fdhandle: usually file-data, or own handle.
  * \param mainvar: the Main database to expand.
  */
 void BLO_expand_main(void *fdhandle, struct Main *mainvar);
@@ -490,7 +505,7 @@ void BLO_expand_main(void *fdhandle, struct Main *mainvar);
 void BLO_update_defaults_startup_blend(struct Main *bmain, const char *app_template);
 void BLO_update_defaults_workspace(struct WorkSpace *workspace, const char *app_template);
 
-/* Disable unwanted experimental feature settings on startup. */
+/** Disable unwanted experimental feature settings on startup. */
 void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
 
 /**
@@ -503,8 +518,9 @@ void BLO_sanitize_experimental_features_userpref_blend(struct UserDef *userdef);
  */
 struct BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
 
-/* datafiles (generated theme) */
+/** Default theme, see: `release/datafiles/userdef/userdef_default_theme.c`. */
 extern const struct bTheme U_theme_default;
+/** Default preferences, defined by: `release/datafiles/userdef/userdef_default.c`. */
 extern const struct UserDef U_default;
 
 #ifdef __cplusplus

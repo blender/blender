@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -161,9 +162,7 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const Scene *scene = CTX_data_scene(C);
-  PBVHNode **nodes;
   Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
-  int totnode;
   int filter_type = RNA_enum_get(op->ptr, "filter_type");
 
   MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
@@ -176,17 +175,13 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
 
   SCULPT_vertex_random_access_ensure(ss);
 
-  if (!ob->sculpt->pmap) {
-    return OPERATOR_CANCELLED;
-  }
-
   int num_verts = SCULPT_vertex_count_get(ss);
 
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
   SCULPT_undo_push_begin(ob, op);
 
-  for (int i = 0; i < totnode; i++) {
-    SCULPT_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);
+  for (PBVHNode *node : nodes) {
+    SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
   }
 
   float *prev_mask = nullptr;
@@ -217,15 +212,13 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
     data.prev_mask = prev_mask;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
 
     if (ELEM(filter_type, MASK_FILTER_GROW, MASK_FILTER_SHRINK)) {
       MEM_freeN(prev_mask);
     }
   }
-
-  MEM_SAFE_FREE(nodes);
 
   SCULPT_undo_push_end(ob);
 
@@ -234,8 +227,10 @@ static int sculpt_mask_filter_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SCULPT_mask_filter_smooth_apply(
-    Sculpt *sd, Object *ob, PBVHNode **nodes, const int totnode, const int smooth_iterations)
+void SCULPT_mask_filter_smooth_apply(Sculpt *sd,
+                                     Object *ob,
+                                     Span<PBVHNode *> nodes,
+                                     const int smooth_iterations)
 {
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -245,8 +240,8 @@ void SCULPT_mask_filter_smooth_apply(
 
   for (int i = 0; i < smooth_iterations; i++) {
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, mask_filter_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, mask_filter_task_cb, &settings);
   }
 }
 

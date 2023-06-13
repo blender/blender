@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -153,6 +154,13 @@ void BKE_sound_set_scene_volume(struct Scene *scene, float volume);
 void BKE_sound_set_scene_sound_volume(void *handle, float volume, char animated);
 
 void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated);
+
+void BKE_sound_set_scene_sound_pitch_at_frame(void *handle, int frame, float pitch, char animated);
+
+void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
+                                                    int frame_start,
+                                                    int frame_end,
+                                                    float pitch);
 
 void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated);
 

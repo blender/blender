@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -310,13 +311,15 @@ void gpu_shader_create_info_init()
                           GPU_DRIVER_ANY,
                           GPU_BACKEND_OPENGL) ||
       GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) ||
-      GPU_crappy_amd_driver()) {
+      GPU_crappy_amd_driver())
+  {
     draw_modelmat = draw_modelmat_legacy;
   }
 
   /* WORKAROUND: Replace the use of gpu_BaseInstance by an instance attribute. */
   if (GPU_shader_draw_parameters_support() == false) {
     draw_resource_id_new = draw_resource_id_fallback;
+    draw_resource_with_custom_id_new = draw_resource_with_custom_id_fallback;
   }
 
 #ifdef WITH_METAL_BACKEND
@@ -346,7 +349,7 @@ void gpu_shader_create_info_init()
     overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
 
     /* Workbench shadows.
-     * Note: Updates additional-info used by workbench shadow permutations.
+     * NOTE: Updates additional-info used by workbench shadow permutations.
      * Must be prepared prior to permutation preparation. */
     workbench_shadow_manifold = workbench_shadow_manifold_no_geom;
     workbench_shadow_no_manifold = workbench_shadow_no_manifold_no_geom;
@@ -379,6 +382,9 @@ void gpu_shader_create_info_init()
 
     /* EEVEE Volumetric Material */
     eevee_legacy_material_volumetric_vert = eevee_legacy_material_volumetric_vert_no_geom;
+
+    /* GPencil stroke. */
+    gpu_shader_gpencil_stroke = gpu_shader_gpencil_stroke_no_geom;
   }
 #endif
 
@@ -429,7 +435,8 @@ bool gpu_shader_create_info_compile_all()
           (GPU_compute_shader_support() == false && info->compute_source_ != nullptr) ||
           (GPU_geometry_shader_support() == false && info->geometry_source_ != nullptr) ||
           (GPU_shader_image_load_store_support() == false && info->has_resource_image()) ||
-          (GPU_shader_storage_buffer_objects_support() == false && info->has_resource_storage())) {
+          (GPU_shader_storage_buffer_objects_support() == false && info->has_resource_storage()))
+      {
         skipped++;
         continue;
       }
@@ -496,7 +503,6 @@ bool gpu_shader_create_info_compile_all()
   return success == total;
 }
 
-/* Runtime create infos are not registered in the dictionary and cannot be searched. */
 const GPUShaderCreateInfo *gpu_shader_create_info_get(const char *info_name)
 {
   if (g_create_infos->contains(info_name) == false) {

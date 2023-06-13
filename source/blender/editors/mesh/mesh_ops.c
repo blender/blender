@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -141,10 +142,6 @@ void ED_operatortypes_mesh(void)
   WM_operatortype_append(MESH_OT_customdata_skin_clear);
   WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_add);
   WM_operatortype_append(MESH_OT_customdata_custom_splitnormals_clear);
-  WM_operatortype_append(MESH_OT_customdata_bevel_weight_vertex_add);
-  WM_operatortype_append(MESH_OT_customdata_bevel_weight_vertex_clear);
-  WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_add);
-  WM_operatortype_append(MESH_OT_customdata_bevel_weight_edge_clear);
   WM_operatortype_append(MESH_OT_customdata_crease_vertex_add);
   WM_operatortype_append(MESH_OT_customdata_crease_vertex_clear);
   WM_operatortype_append(MESH_OT_customdata_crease_edge_add);

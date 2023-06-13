@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,9 +37,7 @@ class NodeCamera : public Node {
   NodeCamera(const NodeCamera &iBrother);
 #endif
 
-  virtual ~NodeCamera()
-  {
-  }
+  virtual ~NodeCamera() {}
 
   /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v);

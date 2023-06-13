@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_ViewerNode.h"
 
@@ -16,7 +17,7 @@ void ViewerNode::convert_to_operations(NodeConverter &converter,
                                        const CompositorContext &context) const
 {
   const bNode *editor_node = this->get_bnode();
-  bool do_output = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
+  bool is_active = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
                    (editor_node->flag & NODE_DO_OUTPUT);
   bool ignore_alpha = (editor_node->custom2 & CMP_NODE_OUTPUT_IGNORE_ALPHA) != 0;
 
@@ -61,7 +62,7 @@ void ViewerNode::convert_to_operations(NodeConverter &converter,
 
   converter.add_node_input_preview(image_socket);
 
-  if (do_output) {
+  if (is_active) {
     converter.register_viewer(viewer_operation);
   }
 }

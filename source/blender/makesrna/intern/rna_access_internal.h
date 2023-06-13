@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -31,6 +33,9 @@ void rna_property_rna_or_id_get(PropertyRNA *prop,
 void rna_idproperty_touch(struct IDProperty *idprop);
 struct IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name);
 
+/**
+ * Find the property which uses the given nested struct.
+ */
 PropertyRNA *rna_struct_find_nested(PointerRNA *ptr, StructRNA *srna);
 
 #ifdef __cplusplus

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -37,10 +38,10 @@ static void rna_FCurve_convert_to_samples(FCurve *fcu, ReportList *reports, int 
     BKE_reportf(reports, RPT_ERROR, "Invalid frame range (%d - %d)", start, end + 1);
   }
   else if (fcu->fpt) {
-    BKE_report(reports, RPT_WARNING, "FCurve has already sample points");
+    BKE_report(reports, RPT_WARNING, "F-Curve already has sample points");
   }
   else if (!fcu->bezt) {
-    BKE_report(reports, RPT_WARNING, "FCurve has no keyframes");
+    BKE_report(reports, RPT_WARNING, "F-Curve has no keyframes");
   }
   else {
     fcurve_store_samples(fcu, NULL, start, end, fcurve_samplingcb_evalcurve);
@@ -54,10 +55,10 @@ static void rna_FCurve_convert_to_keyframes(FCurve *fcu, ReportList *reports, in
     BKE_reportf(reports, RPT_ERROR, "Invalid frame range (%d - %d)", start, end);
   }
   else if (fcu->bezt) {
-    BKE_report(reports, RPT_WARNING, "FCurve has already keyframes");
+    BKE_report(reports, RPT_WARNING, "F-Curve already has keyframes");
   }
   else if (!fcu->fpt) {
-    BKE_report(reports, RPT_WARNING, "FCurve has no sample points");
+    BKE_report(reports, RPT_WARNING, "F-Curve has no sample points");
   }
   else {
     fcurve_samples_to_keyframes(fcu, start, end);

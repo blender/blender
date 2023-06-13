@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -70,6 +71,7 @@ void Instance::init(const int2 &output_res,
   shadows.init();
   motion_blur.init();
   main_view.init();
+  irradiance_cache.init();
 }
 
 void Instance::set_time(float time)
@@ -104,6 +106,7 @@ void Instance::begin_sync()
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
   lights.begin_sync();
   shadows.begin_sync();
+  pipelines.begin_sync();
   cryptomatte.begin_sync();
 
   gpencil_engine_enabled = false;
@@ -113,10 +116,11 @@ void Instance::begin_sync()
   depth_of_field.sync();
   motion_blur.sync();
   hiz_buffer.sync();
-  pipelines.sync();
   main_view.sync();
   world.sync();
   film.sync();
+  render_buffers.sync();
+  irradiance_cache.sync();
 }
 
 void Instance::scene_sync()
@@ -136,7 +140,7 @@ void Instance::scene_sync()
 
 void Instance::object_sync(Object *ob)
 {
-  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL, OB_MESH, OB_LAMP);
+  const bool is_renderable_type = ELEM(ob->type, OB_CURVES, OB_GPENCIL_LEGACY, OB_MESH, OB_LAMP);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -174,7 +178,7 @@ void Instance::object_sync(Object *ob)
       case OB_CURVES:
         sync.sync_curves(ob, ob_handle, res_handle);
         break;
-      case OB_GPENCIL:
+      case OB_GPENCIL_LEGACY:
         sync.sync_gpencil(ob, ob_handle, res_handle);
         break;
       default:
@@ -204,17 +208,25 @@ void Instance::end_sync()
   sampling.end_sync();
   film.end_sync();
   cryptomatte.end_sync();
+  pipelines.end_sync();
 }
 
 void Instance::render_sync()
 {
+  /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
+
+  manager->begin_sync();
 
   begin_sync();
   DRW_render_object_iter(this, render, depsgraph, object_sync_render);
   end_sync();
 
+  manager->end_sync();
+
+  /* TODO: Remove old draw manager calls. */
   DRW_render_instance_buffer_finish();
+
   /* Also we weed to have a correct FBO bound for #DRW_hair_update */
   // GPU_framebuffer_bind();
   // DRW_hair_update();
@@ -273,21 +285,43 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
          * However, on some implementation, we need a buffer with a few extra bytes for the read to
          * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
         /* Avoid memcpy(), replace the pointer directly. */
-        MEM_SAFE_FREE(rp->rect);
-        rp->rect = result;
+        RE_pass_set_buffer_data(rp, result);
         BLI_mutex_unlock(&render->update_render_passes_mutex);
       }
+    }
+  }
+
+  /* AOVs. */
+  LISTBASE_FOREACH (ViewLayerAOV *, aov, &view_layer->aovs) {
+    if ((aov->flag & AOV_CONFLICT) != 0) {
+      continue;
+    }
+    RenderPass *rp = RE_pass_find_by_name(render_layer, aov->name, view_name);
+    if (!rp) {
+      continue;
+    }
+    float *result = film.read_aov(aov);
+
+    if (result) {
+      BLI_mutex_lock(&render->update_render_passes_mutex);
+      /* WORKAROUND: We use texture read to avoid using a framebuffer to get the render result.
+       * However, on some implementation, we need a buffer with a few extra bytes for the read to
+       * happen correctly (see GLTexture::read()). So we need a custom memory allocation. */
+      /* Avoid memcpy(), replace the pointer directly. */
+      RE_pass_set_buffer_data(rp, result);
+      BLI_mutex_unlock(&render->update_render_passes_mutex);
     }
   }
 
   /* The vector pass is initialized to weird values. Set it to neutral value if not rendered. */
   if ((pass_bits & EEVEE_RENDER_PASS_VECTOR) == 0) {
     for (std::string vector_pass_name :
-         Film::pass_to_render_pass_names(EEVEE_RENDER_PASS_VECTOR, view_layer)) {
+         Film::pass_to_render_pass_names(EEVEE_RENDER_PASS_VECTOR, view_layer))
+    {
       RenderPass *vector_rp = RE_pass_find_by_name(
           render_layer, vector_pass_name.c_str(), view_name);
       if (vector_rp) {
-        memset(vector_rp->rect, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
+        memset(vector_rp->buffer.data, 0, sizeof(float) * 4 * vector_rp->rectx * vector_rp->recty);
       }
     }
   }

@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -53,8 +54,13 @@ class World {
   /* Used to detect if world change. */
   ::World *prev_original_world = nullptr;
 
+  /* Used when the scene doesn't have a world. */
+  ::World *default_world_ = nullptr;
+  ::World *default_world_get();
+
  public:
   World(Instance &inst) : inst_(inst){};
+  ~World();
 
   void sync();
 };

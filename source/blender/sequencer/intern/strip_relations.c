@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2003-2009 Blender Foundation.
- *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2003-2009 Blender Foundation.
+ * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -49,7 +50,8 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
 
   /* sequences are not intersecting in time, assume no dependency exists between them */
   if (SEQ_time_right_handle_frame_get(scene, cur) < SEQ_time_left_handle_frame_get(scene, seq) ||
-      SEQ_time_left_handle_frame_get(scene, cur) > SEQ_time_right_handle_frame_get(scene, seq)) {
+      SEQ_time_left_handle_frame_get(scene, cur) > SEQ_time_right_handle_frame_get(scene, seq))
+  {
     return false;
   }
 
@@ -63,7 +65,8 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
    */
   if ((cur->type & SEQ_TYPE_EFFECT) == 0 &&
       ((cur->blend_mode == SEQ_BLEND_REPLACE) ||
-       (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f))) {
+       (cur->blend_mode == SEQ_TYPE_CROSS && cur->blend_opacity == 100.0f)))
+  {
     return false;
   }
 
@@ -280,7 +283,8 @@ static void sequencer_all_free_anim_ibufs(const Scene *scene,
   Editing *ed = SEQ_editing_get(scene);
   for (Sequence *seq = seqbase->first; seq != NULL; seq = seq->next) {
     if (!SEQ_time_strip_intersects_frame(scene, seq, timeline_frame) ||
-        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame))) {
+        !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame)))
+    {
       SEQ_relations_sequence_free_anim(seq);
     }
     if (seq->type == SEQ_TYPE_META) {
@@ -375,7 +379,8 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
 
   if ((seq_main->seq1 && SEQ_relations_render_loop_check(seq_main->seq1, seq)) ||
       (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, seq)) ||
-      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq))) {
+      (seq_main->seq3 && SEQ_relations_render_loop_check(seq_main->seq3, seq)))
+  {
     return true;
   }
 
@@ -404,14 +409,14 @@ void SEQ_relations_sequence_free_anim(Sequence *seq)
   BLI_listbase_clear(&seq->anims);
 }
 
-void SEQ_relations_session_uuid_generate(struct Sequence *sequence)
+void SEQ_relations_session_uuid_generate(Sequence *sequence)
 {
   sequence->runtime.session_uuid = BLI_session_uuid_generate();
 }
 
 static bool get_uuids_cb(Sequence *seq, void *user_data)
 {
-  struct GSet *used_uuids = (struct GSet *)user_data;
+  GSet *used_uuids = (GSet *)user_data;
   const SessionUUID *session_uuid = &seq->runtime.session_uuid;
   if (!BLI_session_uuid_is_generated(session_uuid)) {
     printf("Sequence %s does not have UUID generated.\n", seq->name);
@@ -433,7 +438,7 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
     return;
   }
 
-  struct GSet *used_uuids = BLI_gset_new(
+  GSet *used_uuids = BLI_gset_new(
       BLI_session_uuid_ghash_hash, BLI_session_uuid_ghash_compare, "sequencer used uuids");
 
   SEQ_for_each_callback(&scene->ed->seqbase, get_uuids_cb, used_uuids);
@@ -441,7 +446,7 @@ void SEQ_relations_check_uuids_unique_and_report(const Scene *scene)
   BLI_gset_free(used_uuids, NULL);
 }
 
-struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
+Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
 {
   Sequence *iseq;
 
@@ -451,8 +456,8 @@ struct Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *met
     if (seq == iseq) {
       return meta;
     }
-    if (iseq->seqbase.first &&
-        (rval = SEQ_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq))) {
+    if (iseq->seqbase.first && (rval = SEQ_find_metastrip_by_sequence(&iseq->seqbase, iseq, seq)))
+    {
       return rval;
     }
   }

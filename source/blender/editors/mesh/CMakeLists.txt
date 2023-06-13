@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -10,9 +12,9 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../draw
+  ../../functions
   ../../geometry
   ../../gpu
-  ../../functions
   ../../imbuf
   ../../makesdna
   ../../makesrna
@@ -39,7 +41,7 @@ set(SRC
   editmesh_inset.c
   editmesh_intersect.c
   editmesh_knife.c
-  editmesh_knife_project.c
+  editmesh_knife_project.cc
   editmesh_loopcut.c
   editmesh_mask_extract.cc
   editmesh_path.c
@@ -50,11 +52,11 @@ set(SRC
   editmesh_rip_edge.c
   editmesh_select.cc
   editmesh_select_similar.c
-  editmesh_tools.c
+  editmesh_tools.cc
   editmesh_undo.cc
   editmesh_utils.c
   mesh_data.cc
-  mesh_mirror.c
+  mesh_mirror.cc
   mesh_ops.c
   meshtools.cc
 

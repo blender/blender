@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -9,6 +10,10 @@
 
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#ifdef __cplusplus
+#  include "BLI_array.hh"
+#  include "BLI_offset_indices.hh"
+#endif
 #include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
@@ -37,11 +42,9 @@ struct Image;
 struct ImagePool;
 struct ImageUser;
 struct ListBase;
-struct MLoop;
 struct MLoopTri;
 struct Main;
 struct Mesh;
-struct MeshElemMap;
 struct Object;
 struct PBVH;
 struct Paint;
@@ -49,9 +52,11 @@ struct PaintCurve;
 struct PaintModeSettings;
 struct Palette;
 struct PaletteColor;
+struct RegionView3D;
 struct Scene;
 struct StrokeCache;
 struct Sculpt;
+struct SculptSession;
 struct SubdivCCG;
 struct Tex;
 struct ToolSettings;
@@ -66,6 +71,7 @@ extern const uchar PAINT_CURSOR_SCULPT[3];
 extern const uchar PAINT_CURSOR_VERTEX_PAINT[3];
 extern const uchar PAINT_CURSOR_WEIGHT_PAINT[3];
 extern const uchar PAINT_CURSOR_TEXTURE_PAINT[3];
+extern const uchar PAINT_CURSOR_SCULPT_CURVES[3];
 
 typedef enum ePaintMode {
   PAINT_MODE_SCULPT = 0,
@@ -178,6 +184,7 @@ eObjectMode BKE_paint_object_mode_from_paintmode(ePaintMode mode);
 bool BKE_paint_ensure_from_paintmode(struct Scene *sce, ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
 const struct EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(ePaintMode mode);
+const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode);
 const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode);
 uint BKE_paint_get_brush_tool_offset_from_paintmode(ePaintMode mode);
 struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *view_layer);
@@ -216,7 +223,7 @@ bool BKE_paint_always_hide_test(struct Object *ob);
 /**
  * Returns non-zero if any of the face's vertices are hidden, zero otherwise.
  */
-bool paint_is_face_hidden(const struct MLoopTri *lt, const bool *hide_poly);
+bool paint_is_face_hidden(const int *looptri_polys, const bool *hide_poly, int tri_index);
 /**
  * Returns non-zero if any of the corners of the grid
  * face whose inner corner is at (x, y) are hidden, zero otherwise.
@@ -237,7 +244,8 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
-                                   const float mouse_pos[2]);
+                                   const float mouse_pos[2],
+                                   ePaintMode paint_mode);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       struct Brush *brush,
                                       float rotation);
@@ -270,12 +278,17 @@ void BKE_paint_blend_read_lib(struct BlendLibReader *reader,
 #define SCULPT_FACE_SET_NONE 0
 
 /** Used for both vertex color and weight paint. */
+#ifdef __cplusplus
 struct SculptVertexPaintGeomMap {
-  int *vert_map_mem;
-  struct MeshElemMap *vert_to_loop;
-  int *poly_map_mem;
-  struct MeshElemMap *vert_to_poly;
+  blender::Array<int> vert_to_loop_offsets;
+  blender::Array<int> vert_to_loop_indices;
+  blender::GroupedSpan<int> vert_to_loop;
+
+  blender::Array<int> vert_to_poly_offsets;
+  blender::Array<int> vert_to_poly_indices;
+  blender::GroupedSpan<int> vert_to_poly;
 };
+#endif
 
 /** Pose Brush IK Chain. */
 typedef struct SculptPoseIKChainSegment {
@@ -523,7 +536,8 @@ typedef struct SculptAttribute {
   /* Sculpt usage */
   SculptAttributeParams params;
 
-  /* Used to keep track of which preallocated SculptAttribute instances
+  /**
+   * Used to keep track of which pre-allocated SculptAttribute instances
    * inside of SculptSession.temp_attribute are used.
    */
   bool used;
@@ -563,6 +577,8 @@ typedef struct SculptAttributePointers {
   SculptAttribute *dyntopo_node_id_face;
 } SculptAttributePointers;
 
+#ifdef __cplusplus
+
 typedef struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */
@@ -576,8 +592,8 @@ typedef struct SculptSession {
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
   float (*vert_positions)[3];
-  const struct MPoly *mpoly;
-  const struct MLoop *mloop;
+  blender::OffsetIndices<int> polys;
+  blender::Span<int> corner_verts;
 
   /* These contain the vertex and poly counts of the final mesh. */
   int totvert, totpoly;
@@ -593,16 +609,19 @@ typedef struct SculptSession {
 
   /* Mesh connectivity maps. */
   /* Vertices to adjacent polys. */
-  struct MeshElemMap *pmap;
-  int *pmap_mem;
+  blender::Array<int> vert_to_poly_offsets;
+  blender::Array<int> vert_to_poly_indices;
+  blender::GroupedSpan<int> pmap;
 
   /* Edges to adjacent polys. */
-  struct MeshElemMap *epmap;
-  int *epmap_mem;
+  blender::Array<int> edge_to_poly_offsets;
+  blender::Array<int> edge_to_poly_indices;
+  blender::GroupedSpan<int> epmap;
 
   /* Vertices to adjacent edges. */
-  struct MeshElemMap *vemap;
-  int *vemap_mem;
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  blender::GroupedSpan<int> vemap;
 
   /* Mesh Face Sets */
   /* Total number of polys of the base mesh. */
@@ -700,7 +719,7 @@ typedef struct SculptSession {
   float prev_pivot_rot[4];
   float prev_pivot_scale[3];
 
-  union {
+  struct {
     struct {
       struct SculptVertexPaintGeomMap gmap;
     } vpaint;
@@ -758,12 +777,14 @@ typedef struct SculptSession {
   bool islands_valid; /* Is attrs.topology_island_key valid? */
 } SculptSession;
 
+#endif
+
 void BKE_sculptsession_free(struct Object *ob);
 void BKE_sculptsession_free_deformMats(struct SculptSession *ss);
 void BKE_sculptsession_free_vwpaint_data(struct SculptSession *ss);
 void BKE_sculptsession_bm_to_me(struct Object *ob, bool reorder);
 void BKE_sculptsession_bm_to_me_for_render(struct Object *object);
-int BKE_sculptsession_vertex_count(const SculptSession *ss);
+int BKE_sculptsession_vertex_count(const struct SculptSession *ss);
 
 /* Ensure an attribute layer exists. */
 SculptAttribute *BKE_sculpt_attribute_ensure(struct Object *ob,
@@ -910,6 +931,11 @@ enum {
 bool BKE_object_attributes_active_color_fill(struct Object *ob,
                                              const float fill_color[4],
                                              bool only_selected);
+
+/** C accessor for #Object::sculpt::pbvh. */
+struct PBVH *BKE_object_sculpt_pbvh_get(struct Object *object);
+bool BKE_object_sculpt_use_dyntopo(const struct Object *object);
+void BKE_object_sculpt_dyntopo_smooth_shading_set(struct Object *object, bool value);
 
 /* paint_canvas.cc */
 

@@ -129,6 +129,12 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
               continue;
             }
 
+#ifdef __SHADOW_LINKING__
+            if (intersection_skip_shadow_link(kg, ray, prim_object)) {
+              continue;
+            }
+#endif
+
             switch (type & PRIMITIVE_ALL) {
               case PRIMITIVE_TRIANGLE: {
                 if (triangle_intersect(kg,
@@ -140,7 +146,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                        visibility,
                                        prim_object,
                                        prim,
-                                       prim_addr)) {
+                                       prim_addr))
+                {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;
@@ -159,7 +166,8 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                               visibility,
                                               prim_object,
                                               prim,
-                                              prim_addr)) {
+                                              prim_addr))
+                {
                   /* shadow ray early termination */
                   if (visibility & PATH_RAY_SHADOW_OPAQUE)
                     return true;

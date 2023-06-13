@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -20,8 +22,8 @@
 #include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"
 #include "DNA_genfile.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -45,12 +47,13 @@
 #include "BKE_cryptomatte.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
+#include "BKE_mesh_legacy_convert.h"
 #include "BKE_multires.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "IMB_imbuf.h"
 #include "MEM_guardedalloc.h"
@@ -410,7 +413,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
   }
 }
 
-void do_versions_after_linking_290(Main *bmain, ReportList * /*reports*/)
+void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 1)) {
     /* Patch old grease pencil modifiers material filter. */
@@ -553,7 +556,7 @@ void do_versions_after_linking_290(Main *bmain, ReportList * /*reports*/)
     Scene *scene = static_cast<Scene *>(bmain->scenes.first);
     if (scene != nullptr) {
       LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-        if (ob->type != OB_GPENCIL) {
+        if (ob->type != OB_GPENCIL_LEGACY) {
           continue;
         }
         bGPdata *gpd = static_cast<bGPdata *>(ob->data);
@@ -816,20 +819,24 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   if (MAIN_VERSION_ATLEAST(bmain, 290, 2) && MAIN_VERSION_OLDER(bmain, 291, 1)) {
     /* In this range, the extrude manifold could generate meshes with degenerated face. */
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
-      for (const MPoly *mp = BKE_mesh_polys(me), *mp_end = mp + me->totpoly; mp < mp_end; mp++) {
-        if (mp->totloop == 2) {
+      const MPoly *polys = static_cast<const MPoly *>(CustomData_get_layer(&me->pdata, CD_MPOLY));
+      for (const int i : blender::IndexRange(me->totpoly)) {
+        if (polys[i].totloop == 2) {
           bool changed;
+          BKE_mesh_legacy_convert_loops_to_corners(me);
+          BKE_mesh_legacy_convert_polys_to_offsets(me);
           BKE_mesh_validate_arrays(
               me,
               BKE_mesh_vert_positions_for_write(me),
               me->totvert,
-              BKE_mesh_edges_for_write(me),
+              me->edges_for_write().data(),
               me->totedge,
               (MFace *)CustomData_get_layer_for_write(&me->fdata, CD_MFACE, me->totface),
               me->totface,
-              BKE_mesh_loops_for_write(me),
+              me->corner_verts_for_write().data(),
+              me->corner_edges_for_write().data(),
               me->totloop,
-              BKE_mesh_polys_for_write(me),
+              BKE_mesh_poly_offsets_for_write(me),
               me->totpoly,
               BKE_mesh_deform_verts_for_write(me),
               false,
@@ -867,8 +874,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     /* Init Grease Pencil new random curves. */
     if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "random_hue")) {
       LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
-        if ((brush->gpencil_settings) &&
-            (brush->gpencil_settings->curve_rand_pressure == nullptr)) {
+        if ((brush->gpencil_settings) && (brush->gpencil_settings->curve_rand_pressure == nullptr))
+        {
           brush->gpencil_settings->curve_rand_pressure = BKE_curvemapping_add(
               1, 0.0f, 0.0f, 1.0f, 1.0f);
           brush->gpencil_settings->curve_rand_strength = BKE_curvemapping_add(
@@ -1049,8 +1056,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     /* Initialize additional velocity parameter for #CacheFile's. */
-    if (!DNA_struct_elem_find(
-            fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale")) {
+    if (!DNA_struct_elem_find(fd->filesdna, "MeshSeqCacheModifierData", "float", "velocity_scale"))
+    {
       LISTBASE_FOREACH (Object *, object, &bmain->objects) {
         LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
           if (md->type == eModifierType_MeshSequenceCache) {
@@ -1063,7 +1070,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     if (!DNA_struct_elem_find(fd->filesdna, "CacheFile", "char", "velocity_unit")) {
       LISTBASE_FOREACH (CacheFile *, cache_file, &bmain->cachefiles) {
-        BLI_strncpy(cache_file->velocity_name, ".velocities", sizeof(cache_file->velocity_name));
+        STRNCPY(cache_file->velocity_name, ".velocities");
         cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
       }
     }
@@ -1298,8 +1305,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* Ensure that particle systems generated by fluid modifier have correct phystype. */
     LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
-      if (ELEM(
-              part->type, PART_FLUID_FLIP, PART_FLUID_SPRAY, PART_FLUID_BUBBLE, PART_FLUID_FOAM)) {
+      if (ELEM(part->type, PART_FLUID_FLIP, PART_FLUID_SPRAY, PART_FLUID_BUBBLE, PART_FLUID_FOAM))
+      {
         part->phystype = PART_PHYS_NO;
       }
     }
@@ -1452,7 +1459,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
             LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
               const char *volume_scatter = "VolumeScatterCol";
               if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
-                BLI_strncpy(output_socket->name, RE_PASSNAME_VOLUME_LIGHT, MAX_NAME);
+                STRNCPY(output_socket->name, RE_PASSNAME_VOLUME_LIGHT);
               }
             }
           }
@@ -1609,7 +1616,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 292, 14) ||
-      ((bmain->versionfile == 293) && !MAIN_VERSION_ATLEAST(bmain, 293, 1))) {
+      ((bmain->versionfile == 293) && !MAIN_VERSION_ATLEAST(bmain, 293, 1)))
+  {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_GEOMETRY) {
         continue;
@@ -1745,7 +1753,8 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
                        SEQ_RENDER_SIZE_PROXY_100,
                        SEQ_RENDER_SIZE_PROXY_75,
                        SEQ_RENDER_SIZE_PROXY_50,
-                       SEQ_RENDER_SIZE_PROXY_25)) {
+                       SEQ_RENDER_SIZE_PROXY_25))
+              {
                 sseq->flag |= SEQ_USE_PROXIES;
               }
               if (sseq->render_size == SEQ_RENDER_SIZE_FULL) {

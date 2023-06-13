@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -46,7 +47,7 @@ static void sculpt_mask_expand_cancel(bContext *C, wmOperator *op)
 
   MEM_freeN(op->customdata);
 
-  for (int n = 0; n < ss->filter_cache->totnode; n++) {
+  for (int n = 0; n < ss->filter_cache->nodes.size(); n++) {
     PBVHNode *node = ss->filter_cache->nodes[n];
     if (create_face_set) {
       for (int i = 0; i < ss->totfaces; i++) {
@@ -175,7 +176,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
   }
 
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     /* Returning OPERATOR_CANCELLED will leak memory due to not finishing
      * undo. Better solution could be to make paint_mesh_restore_co work
      * for this case. */
@@ -185,13 +187,13 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_PADENTER && event->val == KM_PRESS))
+  {
 
     /* Smooth iterations. */
     BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
     const int smooth_iterations = RNA_int_get(op->ptr, "smooth_iterations");
-    SCULPT_mask_filter_smooth_apply(
-        sd, ob, ss->filter_cache->nodes, ss->filter_cache->totnode, smooth_iterations);
+    SCULPT_mask_filter_smooth_apply(sd, ob, ss->filter_cache->nodes, smooth_iterations);
 
     /* Pivot position. */
     if (RNA_boolean_get(op->ptr, "update_pivot")) {
@@ -201,9 +203,9 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
       int total = 0;
       zero_v3(avg);
 
-      for (int n = 0; n < ss->filter_cache->totnode; n++) {
+      for (PBVHNode *node : ss->filter_cache->nodes) {
         PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, ss->filter_cache->nodes[n], vd, PBVH_ITER_UNIQUE) {
+        BKE_pbvh_vertex_iter_begin (ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
           const float mask = (vd.mask) ? *vd.mask : 0.0f;
           if (mask < (0.5f + threshold) && mask > (0.5f - threshold)) {
             if (SCULPT_check_vertex_pivot_symmetry(
@@ -225,8 +227,8 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
 
     MEM_freeN(op->customdata);
 
-    for (int i = 0; i < ss->filter_cache->totnode; i++) {
-      BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+    for (PBVHNode *node : ss->filter_cache->nodes) {
+      BKE_pbvh_node_mark_redraw(node);
     }
 
     SCULPT_filter_cache_free(ss);
@@ -270,8 +272,9 @@ static int sculpt_mask_expand_modal(bContext *C, wmOperator *op, const wmEvent *
     data.mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-    BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_expand_task_cb, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+    BLI_task_parallel_range(
+        0, ss->filter_cache->nodes.size(), &data, sculpt_expand_task_cb, &settings);
     ss->filter_cache->mask_update_current_it = mask_expand_update_it;
   }
 
@@ -353,23 +356,22 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
 
   int vertex_count = SCULPT_vertex_count_get(ss);
 
-  ss->filter_cache = MEM_cnew<FilterCache>(__func__);
+  ss->filter_cache = MEM_new<FilterCache>(__func__);
 
-  BKE_pbvh_search_gather(
-      pbvh, nullptr, nullptr, &ss->filter_cache->nodes, &ss->filter_cache->totnode);
+  ss->filter_cache->nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
   SCULPT_undo_push_begin(ob, op);
 
   if (create_face_set) {
-    for (int i = 0; i < ss->filter_cache->totnode; i++) {
-      BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
-      SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_FACE_SETS);
+    for (PBVHNode *node : ss->filter_cache->nodes) {
+      BKE_pbvh_node_mark_redraw(node);
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
     }
   }
   else {
-    for (int i = 0; i < ss->filter_cache->totnode; i++) {
-      SCULPT_undo_push_node(ob, ss->filter_cache->nodes[i], SCULPT_UNDO_MASK);
-      BKE_pbvh_node_mark_redraw(ss->filter_cache->nodes[i]);
+    for (PBVHNode *node : ss->filter_cache->nodes) {
+      SCULPT_undo_push_node(ob, node, SCULPT_UNDO_MASK);
+      BKE_pbvh_node_mark_redraw(node);
     }
   }
 
@@ -447,8 +449,9 @@ static int sculpt_mask_expand_invoke(bContext *C, wmOperator *op, const wmEvent 
   data.mask_expand_create_face_set = RNA_boolean_get(op->ptr, "create_face_set");
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->totnode);
-  BLI_task_parallel_range(0, ss->filter_cache->totnode, &data, sculpt_expand_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BLI_task_parallel_range(
+      0, ss->filter_cache->nodes.size(), &data, sculpt_expand_task_cb, &settings);
 
   const char *status_str = TIP_(
       "Move the mouse to expand the mask from the active vertex. LMB: confirm mask, ESC/RMB: "

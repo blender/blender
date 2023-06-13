@@ -1,9 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
  */
+
+#include "BLI_math.h"
+#include "BLI_span.hh"
 
 #include "BLT_translation.h"
 
@@ -30,8 +34,12 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
+
+#include "GEO_mesh_merge_by_distance.hh"
+
+using namespace blender;
 
 static void initData(ModifierData *md)
 {
@@ -58,6 +66,36 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   }
 }
 
+static Mesh *mirror_apply_on_axis(MirrorModifierData *mmd,
+                                  Object *ob,
+                                  Mesh *mesh,
+                                  const int axis,
+                                  const bool use_correct_order_on_merge)
+{
+  int *vert_merge_map = nullptr;
+  int vert_merge_map_len;
+  Mesh *result = mesh;
+  result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
+      mmd, ob, result, axis, use_correct_order_on_merge, &vert_merge_map, &vert_merge_map_len);
+
+  if (vert_merge_map) {
+    /* Slow - so only call if one or more merge verts are found,
+     * users may leave this on and not realize there is nothing to merge - campbell */
+
+    /* TODO(mano-wii): Polygons with all vertices merged are the ones that form duplicates.
+     * Therefore the duplicate polygon test can be skipped. */
+    if (vert_merge_map_len) {
+      Mesh *tmp = result;
+      result = geometry::mesh_merge_verts(
+          *tmp, MutableSpan<int>{vert_merge_map, result->totvert}, vert_merge_map_len);
+      BKE_id_free(nullptr, tmp);
+    }
+    MEM_freeN(vert_merge_map);
+  }
+
+  return result;
+}
+
 static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh *mesh)
 {
   Mesh *result = mesh;
@@ -65,13 +103,11 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
 
   /* check which axes have been toggled and mirror accordingly */
   if (mmd->flag & MOD_MIR_AXIS_X) {
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
-        mmd, ob, result, 0, use_correct_order_on_merge);
+    result = mirror_apply_on_axis(mmd, ob, result, 0, use_correct_order_on_merge);
   }
   if (mmd->flag & MOD_MIR_AXIS_Y) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
-        mmd, ob, result, 1, use_correct_order_on_merge);
+    result = mirror_apply_on_axis(mmd, ob, result, 1, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(nullptr, tmp);
@@ -79,8 +115,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd, Object *ob, Mesh 
   }
   if (mmd->flag & MOD_MIR_AXIS_Z) {
     Mesh *tmp = result;
-    result = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
-        mmd, ob, result, 2, use_correct_order_on_merge);
+    result = mirror_apply_on_axis(mmd, ob, result, 2, use_correct_order_on_merge);
     if (tmp != mesh) {
       /* free intermediate results */
       BKE_id_free(nullptr, tmp);
@@ -135,7 +170,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(col, ptr, "mirror_object", 0, nullptr, ICON_NONE);
 
-  uiItemR(col, ptr, "use_clip", 0, IFACE_("Clipping"), ICON_NONE);
+  uiItemR(col, ptr, "use_clip", 0, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Clipping"), ICON_NONE);
 
   row = uiLayoutRowWithHeading(col, true, IFACE_("Merge"));
   uiItemR(row, ptr, "use_mirror_merge", 0, "", ICON_NONE);

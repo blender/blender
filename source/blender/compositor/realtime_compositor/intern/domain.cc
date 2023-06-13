@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -7,9 +9,7 @@
 
 namespace blender::realtime_compositor {
 
-Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity())
-{
-}
+Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity()) {}
 
 Domain::Domain(const int2 &size, const float3x3 &transformation)
     : size(size), transformation(transformation)

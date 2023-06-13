@@ -29,7 +29,11 @@ void main()
   GPU_INTEL_VERTEX_SHADER_WORKAROUND
 
   vec3 world_pos = point_object_to_world(pos);
-  gl_Position = point_world_to_ndc(world_pos);
+  vec3 view_pos = point_world_to_view(world_pos);
+  gl_Position = point_view_to_ndc(view_pos);
+
+  /* Offset Z position for retopology overlay. */
+  gl_Position.z += get_homogenous_z_offset(view_pos.z, gl_Position.w, retopologyOffset);
 
   uvec4 m_data = data & uvec4(dataMask);
 
@@ -70,6 +74,11 @@ void main()
   finalColor = EDIT_MESH_face_color(m_data.x);
   bool occluded = true;
 
+#  ifdef GPU_METAL
+  /* Apply depth bias to overlay in order to prevent z-fighting on Apple Silicon GPUs. */
+  gl_Position.z -= 5e-5;
+#  endif
+
 #elif defined(FACEDOT)
   finalColor = EDIT_MESH_facedot_color(norAndFlag.w);
 
@@ -85,9 +94,8 @@ void main()
 
 #if !defined(FACE)
   /* Facing based color blend */
-  vec3 vpos = point_world_to_view(world_pos);
   vec3 view_normal = normalize(normal_object_to_view(vnor) + 1e-4);
-  vec3 view_vec = (drw_view.winmat[3][3] == 0.0) ? normalize(vpos) : vec3(0.0, 0.0, 1.0);
+  vec3 view_vec = (drw_view.winmat[3][3] == 0.0) ? normalize(view_pos) : vec3(0.0, 0.0, 1.0);
   float facing = dot(view_vec, view_normal);
   facing = 1.0 - abs(facing) * 0.2;
 

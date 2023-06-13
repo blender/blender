@@ -75,9 +75,7 @@ class CubeTriangleIsect {
   CubeProjection cubeProj[NUM_AXES];
 
  public:
-  CubeTriangleIsect()
-  {
-  }
+  CubeTriangleIsect() {}
 
   /**
    * Construction from a cube (axes aligned) and triangle

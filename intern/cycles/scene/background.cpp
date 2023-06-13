@@ -116,9 +116,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
   clear_modified();
 }
 
-void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
-{
-}
+void Background::device_free(Device * /*device*/, DeviceScene * /*dscene*/) {}
 
 void Background::tag_update(Scene *scene)
 {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -87,8 +88,8 @@ PyObject *BPY_app_openvdb_struct(void)
   /* prevent user from creating new instances */
   BlenderAppOVDBType.tp_init = NULL;
   BlenderAppOVDBType.tp_new = NULL;
-  BlenderAppOVDBType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
+  /* Without this we can't do `set(sys.modules)` #29635. */
+  BlenderAppOVDBType.tp_hash = (hashfunc)_Py_HashPointer;
 
   return ret;
 }

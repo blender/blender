@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -120,7 +121,8 @@ static void transdata_elem_rotate(const TransInfo *t,
   if (is_large_rotation && td->ext != NULL && td->ext->rotOrder == ROT_MODE_EUL) {
     copy_v3_v3(td->ext->rot, td->ext->irot);
     for (float angle_progress = angle_step; fabsf(angle_progress) < fabsf(angle_final);
-         angle_progress += angle_step) {
+         angle_progress += angle_step)
+    {
       axis_angle_normalized_to_mat3(rmc->mat, axis_final, angle_progress);
       ElementRotation(t, tc, td, rmc->mat, t->around);
     }
@@ -403,7 +405,7 @@ static void applyRotationMatrix(TransInfo *t, float mat_xform[4][4])
   mul_m4_m4m4(mat_xform, mat4, mat_xform);
 }
 
-void initRotation(TransInfo *t)
+static void initRotation(TransInfo *t, wmOperator *UNUSED(op))
 {
   if (t->spacetype == SPACE_ACTION) {
     BKE_report(t->reports, RPT_ERROR, "Rotation is not supported in the Dope Sheet Editor");
@@ -411,10 +413,6 @@ void initRotation(TransInfo *t)
   }
 
   t->mode = TFM_ROTATION;
-  t->transform = applyRotation;
-  t->transform_matrix = applyRotationMatrix;
-  t->tsnap.snap_mode_apply_fn = ApplySnapRotation;
-  t->tsnap.snap_mode_distance_fn = RotationBetween;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
@@ -436,3 +434,14 @@ void initRotation(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_rotate = {
+    /*flags*/ 0,
+    /*init_fn*/ initRotation,
+    /*transform_fn*/ applyRotation,
+    /*transform_matrix_fn*/ applyRotationMatrix,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ RotationBetween,
+    /*snap_apply_fn*/ ApplySnapRotation,
+    /*draw_fn*/ NULL,
+};

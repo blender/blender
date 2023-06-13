@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,15 +8,15 @@ namespace blender::nodes::node_shader_bsdf_diffuse_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Color")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Float>(N_("Roughness"))
+  b.add_input<decl::Color>("Color").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Float>("Roughness")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Vector>(N_("Normal")).hide_value();
-  b.add_input<decl::Float>(N_("Weight")).unavailable();
-  b.add_output<decl::Shader>(N_("BSDF"));
+  b.add_input<decl::Vector>("Normal").hide_value();
+  b.add_input<decl::Float>("Weight").unavailable();
+  b.add_output<decl::Shader>("BSDF");
 }
 
 static int node_shader_gpu_bsdf_diffuse(GPUMaterial *mat,
@@ -44,7 +45,8 @@ void register_node_type_sh_bsdf_diffuse()
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_DIFFUSE, "Diffuse BSDF", NODE_CLASS_SHADER);
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  ntype.add_ui_poll = object_shader_nodes_poll;
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_diffuse;
 
   nodeRegisterType(&ntype);

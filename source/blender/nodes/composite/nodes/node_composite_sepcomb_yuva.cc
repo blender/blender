@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -17,13 +18,13 @@ namespace blender::nodes::node_composite_separate_yuva_cc {
 
 static void cmp_node_sepyuva_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Y"));
-  b.add_output<decl::Float>(N_("U"));
-  b.add_output<decl::Float>(N_("V"));
-  b.add_output<decl::Float>(N_("A"));
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Float>("U");
+  b.add_output<decl::Float>("V");
+  b.add_output<decl::Float>("A");
 }
 
 using namespace blender::realtime_compositor;
@@ -58,6 +59,7 @@ void register_node_type_cmp_sepyuva()
       &ntype, CMP_NODE_SEPYUVA_LEGACY, "Separate YUVA (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_sepyuva_declare;
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);
@@ -69,15 +71,12 @@ namespace blender::nodes::node_composite_combine_yuva_cc {
 
 static void cmp_node_combyuva_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Y")).min(0.0f).max(1.0f).compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("U")).min(0.0f).max(1.0f).compositor_domain_priority(1);
-  b.add_input<decl::Float>(N_("V")).min(0.0f).max(1.0f).compositor_domain_priority(2);
-  b.add_input<decl::Float>(N_("A"))
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(3);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_input<decl::Float>("Y").min(0.0f).max(1.0f).compositor_domain_priority(0);
+  b.add_input<decl::Float>("U").min(0.0f).max(1.0f).compositor_domain_priority(1);
+  b.add_input<decl::Float>("V").min(0.0f).max(1.0f).compositor_domain_priority(2);
+  b.add_input<decl::Float>("A").default_value(1.0f).min(0.0f).max(1.0f).compositor_domain_priority(
+      3);
+  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::realtime_compositor;
@@ -112,6 +111,7 @@ void register_node_type_cmp_combyuva()
       &ntype, CMP_NODE_COMBYUVA_LEGACY, "Combine YUVA (Legacy)", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::cmp_node_combyuva_declare;
   ntype.gather_link_search_ops = nullptr;
+  ntype.gather_add_node_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
 
   nodeRegisterType(&ntype);

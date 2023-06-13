@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -41,9 +43,7 @@ template<class Functor> class ForEachMaterialFunctor {
   Functor *f;
 
  public:
-  ForEachMaterialFunctor(Functor *f) : f(f)
-  {
-  }
+  ForEachMaterialFunctor(Functor *f) : f(f) {}
 
   void operator()(Object *ob)
   {

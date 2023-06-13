@@ -7,9 +7,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-AdaptiveSampling::AdaptiveSampling()
-{
-}
+AdaptiveSampling::AdaptiveSampling() {}
 
 int AdaptiveSampling::align_samples(int start_sample, int num_samples) const
 {

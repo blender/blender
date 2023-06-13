@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -145,11 +146,6 @@ bool is_quad_flip_v3_first_third_fast(const float v1[3],
                                       const float v2[3],
                                       const float v3[3],
                                       const float v4[3]);
-bool is_quad_flip_v3_first_third_fast_with_normal(const float v1[3],
-                                                  const float v2[3],
-                                                  const float v3[3],
-                                                  const float v4[3],
-                                                  const float normal[3]);
 
 /** \} */
 
@@ -1407,6 +1403,10 @@ float geodesic_distance_propagate_across_triangle(
 
 /** \} */
 
+#ifdef __cplusplus
+}
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Inline Definitions
  * \{ */
@@ -1420,7 +1420,3 @@ float geodesic_distance_propagate_across_triangle(
 #endif
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif

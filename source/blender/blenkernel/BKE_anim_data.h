@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -56,6 +57,11 @@ struct AnimData *BKE_animdata_ensure_id(struct ID *id);
  * \return true when the action was successfully updated, false otherwise.
  */
 bool BKE_animdata_set_action(struct ReportList *reports, struct ID *id, struct bAction *act);
+
+/**
+ * Same as BKE_animdata_set_action(), except sets `tmpact` instead of `action`.
+ */
+bool BKE_animdata_set_tmpact(struct ReportList *reports, struct ID *id, struct bAction *act);
 
 bool BKE_animdata_action_editable(const struct AnimData *adt);
 

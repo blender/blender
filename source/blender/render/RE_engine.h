@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -41,28 +42,30 @@ extern "C" {
 /* External Engine */
 
 /** #RenderEngineType.flag */
-#define RE_INTERNAL 1
-/* #define RE_FLAG_DEPRECATED   2 */
-#define RE_USE_PREVIEW 4
-#define RE_USE_POSTPROCESS 8
-#define RE_USE_EEVEE_VIEWPORT 16
-/* #define RE_USE_SAVE_BUFFERS_DEPRECATED 32 */
-#define RE_USE_SHADING_NODES_CUSTOM 64
-#define RE_USE_SPHERICAL_STEREO 128
-#define RE_USE_STEREO_VIEWPORT 256
-#define RE_USE_GPU_CONTEXT 512
-#define RE_USE_CUSTOM_FREESTYLE 1024
-#define RE_USE_NO_IMAGE_SAVE 2048
-#define RE_USE_ALEMBIC_PROCEDURAL 4096
+enum RenderEngineTypeFlag {
+  RE_INTERNAL = (1 << 0),
+  RE_USE_PREVIEW = (1 << 1),
+  RE_USE_POSTPROCESS = (1 << 2),
+  RE_USE_EEVEE_VIEWPORT = (1 << 3),
+  RE_USE_SHADING_NODES_CUSTOM = (1 << 4),
+  RE_USE_SPHERICAL_STEREO = (1 << 5),
+  RE_USE_STEREO_VIEWPORT = (1 << 6),
+  RE_USE_GPU_CONTEXT = (1 << 7),
+  RE_USE_CUSTOM_FREESTYLE = (1 << 8),
+  RE_USE_NO_IMAGE_SAVE = (1 << 9),
+  RE_USE_ALEMBIC_PROCEDURAL = (1 << 10),
+};
 
 /** #RenderEngine.flag */
-#define RE_ENGINE_ANIMATION 1
-#define RE_ENGINE_PREVIEW 2
-#define RE_ENGINE_DO_DRAW 4
-#define RE_ENGINE_DO_UPDATE 8
-#define RE_ENGINE_RENDERING 16
-#define RE_ENGINE_HIGHLIGHT_TILES 32
-#define RE_ENGINE_CAN_DRAW 64
+enum RenderEngineFlag {
+  RE_ENGINE_ANIMATION = (1 << 0),
+  RE_ENGINE_PREVIEW = (1 << 1),
+  RE_ENGINE_DO_DRAW = (1 << 2),
+  RE_ENGINE_DO_UPDATE = (1 << 3),
+  RE_ENGINE_RENDERING = (1 << 4),
+  RE_ENGINE_HIGHLIGHT_TILES = (1 << 5),
+  RE_ENGINE_CAN_DRAW = (1 << 6),
+};
 
 extern ListBase R_engines;
 
@@ -159,10 +162,10 @@ typedef struct RenderEngine {
   void *update_render_passes_data;
 
   /* GPU context. */
-  void *wm_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
-  ThreadMutex gpu_context_mutex;
+  void *wm_blender_gpu_context; /* WindowManager GPU context -> GHOSTContext. */
+  ThreadMutex blender_gpu_context_mutex;
   bool use_drw_render_context;
-  struct GPUContext *gpu_context;
+  struct GPUContext *blender_gpu_context;
   /* Whether to restore DRWState after RenderEngine display pass. */
   bool gpu_restore_context;
 } RenderEngine;
@@ -268,8 +271,6 @@ void RE_engines_init(void);
 void RE_engines_init_experimental(void);
 void RE_engines_exit(void);
 void RE_engines_register(RenderEngineType *render_type);
-
-bool RE_engine_is_opengl(RenderEngineType *render_type);
 
 /**
  * Return true if the RenderEngineType has native support for direct loading of Alembic data. For

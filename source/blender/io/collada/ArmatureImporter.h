@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -171,7 +173,7 @@ class ArmatureImporter : private TransformReader {
 
   Object *get_armature_for_joint(COLLADAFW::Node *node);
 
-  void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t count);
+  void get_rna_path_for_joint(COLLADAFW::Node *node, char *joint_path, size_t joint_path_maxncpy);
 
   /** Gives a world-space mat. */
   bool get_joint_bind_mat(float m[4][4], COLLADAFW::Node *joint);

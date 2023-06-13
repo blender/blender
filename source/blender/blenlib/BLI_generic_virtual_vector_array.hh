@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -21,9 +23,7 @@ class GVVectorArray {
   int64_t size_;
 
  public:
-  GVVectorArray(const CPPType &type, const int64_t size) : type_(&type), size_(size)
-  {
-  }
+  GVVectorArray(const CPPType &type, const int64_t size) : type_(&type), size_(size) {}
 
   virtual ~GVVectorArray() = default;
 

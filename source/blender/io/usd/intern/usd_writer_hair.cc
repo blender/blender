@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_hair.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -12,9 +13,7 @@
 
 namespace blender::io::usd {
 
-USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDHairWriter::USDHairWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDHairWriter::do_write(HierarchyContext &context)
 {

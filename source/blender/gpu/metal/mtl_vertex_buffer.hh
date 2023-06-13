@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -22,7 +24,8 @@ class MTLVertBuf : public VertBuf {
   friend class gpu::MTLTexture; /* For buffer texture. */
   friend class MTLShader;       /* For transform feedback. */
   friend class MTLBatch;
-  friend class MTLContext; /* For transform feedback. */
+  friend class MTLContext;    /* For transform feedback. */
+  friend class MTLStorageBuf; /* For bind as SSBO resource access. */
 
  private:
   /** Metal buffer allocation. **/
@@ -37,6 +40,8 @@ class MTLVertBuf : public VertBuf {
   uint64_t alloc_size_ = 0;
   /** Whether existing allocation has been submitted for use by the GPU. */
   bool contents_in_flight_ = false;
+  /* SSBO wrapper for bind_as_ssbo support. */
+  MTLStorageBuf *ssbo_wrapper_ = nullptr;
 
   /* Fetch Metal buffer and offset into allocation if necessary.
    * Access limited to friend classes. */

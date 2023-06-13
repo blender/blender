@@ -106,7 +106,8 @@ void main()
     if (flag_test(grid_flag, PLANE_IMAGE) &&
         /* Grid begins to appear when the length of one grid unit is at least
          * (256/grid_size) pixels Value of grid_size defined in `overlay_grid.c`. */
-        !flag_test(grid_flag, CUSTOM_GRID)) {
+        !flag_test(grid_flag, CUSTOM_GRID))
+    {
       grid_res = grid_buf.zoom_factor;
     }
 

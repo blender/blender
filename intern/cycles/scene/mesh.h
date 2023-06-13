@@ -216,7 +216,7 @@ class Mesh : public Geometry {
   void pack_shaders(Scene *scene, uint *shader);
   void pack_normals(packed_float3 *vnormal);
   void pack_verts(packed_float3 *tri_verts,
-                  uint4 *tri_vindex,
+                  packed_uint3 *tri_vindex,
                   uint *tri_patch,
                   float2 *tri_patch_uv);
   void pack_patches(uint *patch_data);

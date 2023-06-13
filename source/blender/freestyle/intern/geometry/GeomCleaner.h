@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -21,12 +23,8 @@ using namespace Geometry;
 
 class GeomCleaner {
  public:
-  inline GeomCleaner()
-  {
-  }
-  inline ~GeomCleaner()
-  {
-  }
+  inline GeomCleaner() {}
+  inline ~GeomCleaner() {}
 
   /** Sorts an array of Indexed vertices
    *    iVertices
@@ -158,9 +156,7 @@ class IndexedVertex {
   unsigned _index;
 
  public:
-  inline IndexedVertex()
-  {
-  }
+  inline IndexedVertex() {}
 
   inline IndexedVertex(Vec3f iVector, unsigned iIndex)
   {

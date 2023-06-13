@@ -22,17 +22,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Shader Manager */
 
-SVMShaderManager::SVMShaderManager()
-{
-}
+SVMShaderManager::SVMShaderManager() {}
 
-SVMShaderManager::~SVMShaderManager()
-{
-}
+SVMShaderManager::~SVMShaderManager() {}
 
-void SVMShaderManager::reset(Scene * /*scene*/)
-{
-}
+void SVMShaderManager::reset(Scene * /*scene*/) {}
 
 void SVMShaderManager::device_update_shader(Scene *scene,
                                             Shader *shader,
@@ -268,7 +262,8 @@ int SVMCompiler::stack_assign(ShaderInput *input)
         add_node(NODE_VALUE_F, node->get_int(input->socket_type), input->stack_offset);
       }
       else if (input->type() == SocketType::VECTOR || input->type() == SocketType::NORMAL ||
-               input->type() == SocketType::POINT || input->type() == SocketType::COLOR) {
+               input->type() == SocketType::POINT || input->type() == SocketType::COLOR)
+      {
 
         add_node(NODE_VALUE_V, input->stack_offset);
         add_node(NODE_VALUE_V, node->get_float3(input->socket_type));
@@ -419,7 +414,8 @@ void SVMCompiler::find_dependencies(ShaderNodeSet &dependencies,
 {
   ShaderNode *node = (input->link) ? input->link->parent : NULL;
   if (node != NULL && done.find(node) == done.end() && node != skip_node &&
-      dependencies.find(node) == dependencies.end()) {
+      dependencies.find(node) == dependencies.end())
+  {
     foreach (ShaderInput *in, node->inputs) {
       find_dependencies(dependencies, done, in, skip_node);
     }

@@ -22,6 +22,7 @@ ccl_device int bsdf_ashikhmin_shirley_setup(ccl_private MicrofacetBsdf *bsdf)
   bsdf->alpha_x = clamp(bsdf->alpha_x, 1e-4f, 1.0f);
   bsdf->alpha_y = clamp(bsdf->alpha_y, 1e-4f, 1.0f);
 
+  bsdf->fresnel_type = MicrofacetFresnel::NONE;
   bsdf->type = CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID;
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
@@ -55,7 +56,8 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
   float out = 0.0f;
 
   if ((cosNgO < 0.0f) || fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f ||
-      !(NdotI > 0.0f && NdotO > 0.0f)) {
+      !(NdotI > 0.0f && NdotO > 0.0f))
+  {
     *pdf = 0.0f;
     return zero_spectrum();
   }
@@ -109,24 +111,19 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(ccl_private const Sh
   return make_spectrum(out);
 }
 
-ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
-                                                                    float n_y,
-                                                                    float randu,
-                                                                    float randv,
-                                                                    ccl_private float *phi,
-                                                                    ccl_private float *cos_theta)
+ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(
+    float n_x, float n_y, const float2 rand, ccl_private float *phi, ccl_private float *cos_theta)
 {
-  *phi = atanf(sqrtf((n_x + 1.0f) / (n_y + 1.0f)) * tanf(M_PI_2_F * randu));
+  *phi = atanf(sqrtf((n_x + 1.0f) / (n_y + 1.0f)) * tanf(M_PI_2_F * rand.x));
   float cos_phi = cosf(*phi);
   float sin_phi = sinf(*phi);
-  *cos_theta = powf(randv, 1.0f / (n_x * cos_phi * cos_phi + n_y * sin_phi * sin_phi + 1.0f));
+  *cos_theta = powf(rand.y, 1.0f / (n_x * cos_phi * cos_phi + n_y * sin_phi * sin_phi + 1.0f));
 }
 
 ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
                                              float3 wi,
-                                             float randu,
-                                             float randv,
+                                             float2 rand,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf,
@@ -160,32 +157,28 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   float cos_theta;
   if (n_x == n_y) {
     /* isotropic sampling */
-    phi = M_2PI_F * randu;
-    cos_theta = powf(randv, 1.0f / (n_x + 1.0f));
+    phi = M_2PI_F * rand.x;
+    cos_theta = powf(rand.y, 1.0f / (n_x + 1.0f));
   }
   else {
     /* anisotropic sampling */
-    if (randu < 0.25f) { /* first quadrant */
-      float remapped_randu = 4.0f * randu;
-      bsdf_ashikhmin_shirley_sample_first_quadrant(
-          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+    if (rand.x < 0.25f) { /* first quadrant */
+      rand.x *= 4.0f;
+      bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, rand, &phi, &cos_theta);
     }
-    else if (randu < 0.5f) { /* second quadrant */
-      float remapped_randu = 4.0f * (.5f - randu);
-      bsdf_ashikhmin_shirley_sample_first_quadrant(
-          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+    else if (rand.x < 0.5f) { /* second quadrant */
+      rand.x = 4.0f * (0.5f - rand.x);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, rand, &phi, &cos_theta);
       phi = M_PI_F - phi;
     }
-    else if (randu < 0.75f) { /* third quadrant */
-      float remapped_randu = 4.0f * (randu - 0.5f);
-      bsdf_ashikhmin_shirley_sample_first_quadrant(
-          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+    else if (rand.x < 0.75f) { /* third quadrant */
+      rand.x = 4.0f * (rand.x - 0.5f);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, rand, &phi, &cos_theta);
       phi = M_PI_F + phi;
     }
     else { /* fourth quadrant */
-      float remapped_randu = 4.0f * (1.0f - randu);
-      bsdf_ashikhmin_shirley_sample_first_quadrant(
-          n_x, n_y, remapped_randu, randv, &phi, &cos_theta);
+      rand.x = 4.0f * (1.0f - rand.x);
+      bsdf_ashikhmin_shirley_sample_first_quadrant(n_x, n_y, rand, &phi, &cos_theta);
       phi = 2.0f * M_PI_F - phi;
     }
   }

@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 # Libs that adhere to strict flags
 add_subdirectory(curve_fit_nd)
+add_subdirectory(fmtlib)
 
 # Otherwise we get warnings here that we cant fix in external projects
 remove_strict_flags()

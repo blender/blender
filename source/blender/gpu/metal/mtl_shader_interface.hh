@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -107,12 +109,13 @@ struct MTLShaderInputAttribute {
   uint32_t matrix_element_count;
 };
 
-struct MTLShaderUniformBlock {
+struct MTLShaderBufferBlock {
   uint32_t name_offset;
   uint32_t size = 0;
   /* Buffer resource bind index in shader `[[buffer(index)]]`. */
   uint32_t buffer_index;
-
+  /* Explicit bind location for texture. */
+  int location;
   /* Tracking for manual uniform addition. */
   uint32_t current_offset;
   ShaderStage stage_mask;
@@ -120,7 +123,7 @@ struct MTLShaderUniformBlock {
 
 struct MTLShaderUniform {
   uint32_t name_offset;
-  /* Index of `MTLShaderUniformBlock` this uniform belongs to. */
+  /* Index of `MTLShaderBufferBlock` this uniform belongs to. */
   uint32_t size_in_bytes;
   uint32_t byte_offset;
   eMTLDataType type;
@@ -132,9 +135,13 @@ struct MTLShaderTexture {
   uint32_t name_offset;
   /* Texture resource bind slot in shader `[[texture(n)]]`. */
   int slot_index;
+  /* Explicit bind location for texture. */
+  int location;
   eGPUTextureType type;
   eGPUSamplerFormat sampler_format;
   ShaderStage stage_mask;
+  /* Whether texture resource is expected to be image or sampler. */
+  bool is_texture_sampler;
 };
 
 struct MTLShaderSampler {
@@ -173,8 +180,13 @@ class MTLShaderInterface : public ShaderInterface {
   /* Uniform Blocks. */
   uint32_t total_uniform_blocks_;
   uint32_t max_uniformbuf_index_;
-  MTLShaderUniformBlock ubos_[MTL_MAX_UNIFORM_BUFFER_BINDINGS];
-  MTLShaderUniformBlock push_constant_block_;
+  MTLShaderBufferBlock ubos_[MTL_MAX_BUFFER_BINDINGS];
+  MTLShaderBufferBlock push_constant_block_;
+
+  /* Storage blocks. */
+  uint32_t total_storage_blocks_;
+  uint32_t max_storagebuf_index_;
+  MTLShaderBufferBlock ssbos_[MTL_MAX_BUFFER_BINDINGS];
 
   /* Textures. */
   /* Textures support explicit binding indices, so some texture slots
@@ -207,13 +219,21 @@ class MTLShaderInterface : public ShaderInterface {
                            int matrix_element_count = 1);
   uint32_t add_uniform_block(uint32_t name_offset,
                              uint32_t buffer_index,
+                             uint32_t location,
+                             uint32_t size,
+                             ShaderStage stage_mask = ShaderStage::ANY);
+  uint32_t add_storage_block(uint32_t name_offset,
+                             uint32_t buffer_index,
+                             uint32_t location,
                              uint32_t size,
                              ShaderStage stage_mask = ShaderStage::ANY);
   void add_uniform(uint32_t name_offset, eMTLDataType type, int array_len = 1);
   void add_texture(uint32_t name_offset,
                    uint32_t texture_slot,
+                   uint32_t location,
                    eGPUTextureType tex_binding_type,
                    eGPUSamplerFormat sampler_format,
+                   bool is_texture_sampler,
                    ShaderStage stage_mask = ShaderStage::FRAGMENT);
   void add_push_constant_block(uint32_t name_offset);
 
@@ -232,14 +252,20 @@ class MTLShaderInterface : public ShaderInterface {
   uint32_t get_total_uniforms() const;
 
   /* Fetch Uniform Blocks. */
-  const MTLShaderUniformBlock &get_uniform_block(uint index) const;
+  const MTLShaderBufferBlock &get_uniform_block(uint index) const;
   uint32_t get_total_uniform_blocks() const;
-  uint32_t get_max_ubo_index() const;
   bool has_uniform_block(uint32_t block_index) const;
   uint32_t get_uniform_block_size(uint32_t block_index) const;
 
+  /* Fetch Storage Blocks. */
+  const MTLShaderBufferBlock &get_storage_block(uint index) const;
+  uint32_t get_total_storage_blocks() const;
+  bool has_storage_block(uint32_t block_index) const;
+  uint32_t get_storage_block_size(uint32_t block_index) const;
+
   /* Push constant uniform data block should always be available. */
-  const MTLShaderUniformBlock &get_push_constant_block() const;
+  const MTLShaderBufferBlock &get_push_constant_block() const;
+  uint32_t get_max_buffer_index() const;
 
   /* Fetch textures. */
   const MTLShaderTexture &get_texture(uint index) const;

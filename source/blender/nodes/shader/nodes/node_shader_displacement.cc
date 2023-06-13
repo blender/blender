@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,23 +8,16 @@ namespace blender::nodes::node_shader_displacement_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Height")).default_value(0.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Midlevel")).default_value(0.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Scale")).default_value(1.0f).min(0.0f).max(1000.0f);
-  b.add_input<decl::Vector>(N_("Normal")).hide_value();
-  b.add_output<decl::Vector>(N_("Displacement"));
+  b.add_input<decl::Float>("Height").default_value(0.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Midlevel").default_value(0.5f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).max(1000.0f);
+  b.add_input<decl::Vector>("Normal").hide_value();
+  b.add_output<decl::Vector>("Displacement");
 }
 
 static void node_shader_init_displacement(bNodeTree * /*ntree*/, bNode *node)
 {
   node->custom1 = SHD_SPACE_OBJECT; /* space */
-
-  /* Set default value here for backwards compatibility. */
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Midlevel")) {
-      ((bNodeSocketValueFloat *)sock->default_value)->value = 0.5f;
-    }
-  }
 }
 
 static int gpu_shader_displacement(GPUMaterial *mat,

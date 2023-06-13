@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup stl
@@ -8,7 +10,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 
 #include "DNA_collection_types.h"
@@ -75,16 +77,12 @@ void importer_main(Main *bmain,
 
   /* Name used for both mesh and object. */
   char ob_name[FILE_MAX];
-  BLI_strncpy(ob_name, BLI_path_basename(import_params.filepath), FILE_MAX);
-  BLI_path_extension_replace(ob_name, FILE_MAX, "");
+  STRNCPY(ob_name, BLI_path_basename(import_params.filepath));
+  BLI_path_extension_strip(ob_name);
 
-  Mesh *mesh = nullptr;
-  if (is_ascii_stl) {
-    mesh = read_stl_ascii(import_params.filepath, bmain, ob_name, import_params.use_facet_normal);
-  }
-  else {
-    mesh = read_stl_binary(file, bmain, ob_name, import_params.use_facet_normal);
-  }
+  Mesh *mesh = is_ascii_stl ?
+                   read_stl_ascii(import_params.filepath, import_params.use_facet_normal) :
+                   read_stl_binary(file, import_params.use_facet_normal);
 
   if (mesh == nullptr) {
     fprintf(stderr, "STL Importer: Failed to import mesh '%s'\n", import_params.filepath);
@@ -99,10 +97,12 @@ void importer_main(Main *bmain,
     BKE_mesh_validate(mesh, verbose_validate, false);
   }
 
+  Mesh *mesh_in_main = BKE_mesh_add(bmain, ob_name);
+  BKE_mesh_nomain_to_mesh(mesh, mesh_in_main, nullptr);
   BKE_view_layer_base_deselect_all(scene, view_layer);
   LayerCollection *lc = BKE_layer_collection_get_active(view_layer);
   Object *obj = BKE_object_add_only_object(bmain, OB_MESH, ob_name);
-  BKE_mesh_assign_object(bmain, obj, mesh);
+  BKE_mesh_assign_object(bmain, obj, mesh_in_main);
   BKE_collection_object_add(bmain, lc->collection, obj);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Base *base = BKE_view_layer_base_find(view_layer, obj);

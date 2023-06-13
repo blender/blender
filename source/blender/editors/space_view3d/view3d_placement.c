@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -60,11 +62,6 @@ enum ePlace_Origin {
 enum ePlace_Aspect {
   PLACE_ASPECT_FREE = 1,
   PLACE_ASPECT_FIXED = 2,
-};
-
-enum ePlace_SnapTo {
-  PLACE_SNAP_TO_GEOMETRY = 1,
-  PLACE_SNAP_TO_DEFAULT = 2,
 };
 
 struct InteractivePlaceData {
@@ -154,7 +151,7 @@ struct InteractivePlaceData {
   /** When activated without a tool. */
   bool wait_for_input;
 
-  enum ePlace_SnapTo snap_to;
+  eSnapMode snap_to;
 };
 
 /** \} */
@@ -219,10 +216,6 @@ static UNUSED_FUNCTION_WITH_RETURN_TYPE(wmGizmoGroup *,
 static bool idp_snap_calc_incremental(
     Scene *scene, View3D *v3d, ARegion *region, const float co_relative[3], float co[3])
 {
-  if ((scene->toolsettings->snap_mode & SCE_SNAP_MODE_INCREMENT) == 0) {
-    return false;
-  }
-
   const float grid_size = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
   if (UNLIKELY(grid_size == 0.0f)) {
     return false;
@@ -470,7 +463,8 @@ static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
   }
 
   if ((ipd->step_index == STEP_DEPTH) &&
-      (compare_v3v3(ipd->step[0].co_dst, ipd->step[1].co_dst, FLT_EPSILON) == false)) {
+      (compare_v3v3(ipd->step[0].co_dst, ipd->step[1].co_dst, FLT_EPSILON) == false))
+  {
 
     for (int i = 0; i < ARRAY_SIZE(quad_base); i++) {
       add_v3_v3v3(quad_secondary[i], quad_base[i], delta_local);
@@ -532,7 +526,7 @@ static void draw_circle_in_quad(const float v1[3],
 /** \name Drawing Callbacks
  * \{ */
 
-static void draw_primitive_view_impl(const struct bContext *C,
+static void draw_primitive_view_impl(const bContext *C,
                                      struct InteractivePlaceData *ipd,
                                      const float color[4],
                                      int flatten_axis)
@@ -605,7 +599,8 @@ static void draw_primitive_view_impl(const struct bContext *C,
   }
   else if (ELEM(ipd->primitive_type,
                 PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                PLACE_PRIMITIVE_TYPE_SPHERE_ICO)) {
+                PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+  {
     /* See bound-box diagram for reference. */
 
     /* Primary Side. */
@@ -633,7 +628,7 @@ static void draw_primitive_view_impl(const struct bContext *C,
   }
 }
 
-static void draw_primitive_view(const struct bContext *C, ARegion *UNUSED(region), void *arg)
+static void draw_primitive_view(const bContext *C, ARegion *UNUSED(region), void *arg)
 {
   struct InteractivePlaceData *ipd = arg;
   float color[4];
@@ -706,10 +701,10 @@ static bool view3d_interactive_add_calc_snap(bContext *UNUSED(C),
 
 static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_active_get();
+  ToolSettings *tool_settings = CTX_data_tool_settings(C);
 
-  const int plane_axis = snap_state->plane_axis;
-  const enum ePlace_SnapTo snap_to = RNA_enum_get(op->ptr, "snap_target");
+  const int plane_axis = tool_settings->plane_axis;
 
   const enum ePlace_Origin plane_origin[2] = {
       RNA_enum_get(op->ptr, "plane_origin_base"),
@@ -724,7 +719,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
 
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
-  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_active();
+  V3DSnapCursorState *snap_state_new = ED_view3d_cursor_snap_state_create();
   if (snap_state_new) {
     ipd->snap_state = snap_state = snap_state_new;
 
@@ -753,7 +748,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
           C, event, ipd->co_src, ipd->matrix_orient, &ipd->use_snap, &ipd->is_snap_invert) != 0;
 
   snap_state->draw_plane = false;
-  ED_view3d_cursor_snap_prevpoint_set(snap_state, ipd->co_src);
+  ED_view3d_cursor_snap_state_prevpoint_set(snap_state, ipd->co_src);
 
   ipd->orient_axis = plane_axis;
   for (int i = 0; i < 2; i++) {
@@ -765,7 +760,11 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   }
 
   ipd->step_index = STEP_BASE;
-  ipd->snap_to = snap_to;
+
+  ipd->snap_to = tool_settings->snap_mode_tools;
+  if (ipd->snap_to == SCE_SNAP_MODE_NONE) {
+    ipd->snap_to = tool_settings->snap_mode;
+  }
 
   plane_from_point_normal_v3(ipd->step[0].plane, ipd->co_src, ipd->matrix_orient[plane_axis]);
 
@@ -783,7 +782,8 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
   }
 
   if (ipd->step[STEP_BASE].is_degenerate_view_align ||
-      ipd->step[STEP_DEPTH].is_degenerate_view_align) {
+      ipd->step[STEP_DEPTH].is_degenerate_view_align)
+  {
     RegionView3D *rv3d = ipd->region->regiondata;
     float axis_view[3];
     add_v3_v3v3(axis_view, rv3d->viewinv[0], rv3d->viewinv[1]);
@@ -907,11 +907,14 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
   UNUSED_VARS(C);
 
   struct InteractivePlaceData *ipd = op->customdata;
-  ED_view3d_cursor_snap_deactive(ipd->snap_state);
+  ED_view3d_cursor_snap_state_free(ipd->snap_state);
 
-  ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
-
-  ED_region_tag_redraw(ipd->region);
+  if (ipd->region != NULL) {
+    if (ipd->draw_handle_view != NULL) {
+      ED_region_draw_cb_exit(ipd->region->type, ipd->draw_handle_view);
+    }
+    ED_region_tag_redraw(ipd->region);
+  }
 
   MEM_freeN(ipd);
 }
@@ -1030,7 +1033,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
   if (ipd->step_index == STEP_BASE) {
     if (ELEM(event->type, ipd->launch_event, LEFTMOUSE)) {
       if (event->val == KM_RELEASE) {
-        ED_view3d_cursor_snap_prevpoint_set(ipd->snap_state, ipd->co_src);
+        ED_view3d_cursor_snap_state_prevpoint_set(ipd->snap_state, ipd->co_src);
 
         /* Set secondary plane. */
 
@@ -1145,11 +1148,12 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
           if (ELEM(ipd->primitive_type,
                    PLACE_PRIMITIVE_TYPE_CYLINDER,
                    PLACE_PRIMITIVE_TYPE_SPHERE_UV,
-                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO)) {
+                   PLACE_PRIMITIVE_TYPE_SPHERE_ICO))
+          {
             RNA_float_set(&op_props, "radius", 1.0f);
           }
-          if (ELEM(
-                  ipd->primitive_type, PLACE_PRIMITIVE_TYPE_CYLINDER, PLACE_PRIMITIVE_TYPE_CONE)) {
+          if (ELEM(ipd->primitive_type, PLACE_PRIMITIVE_TYPE_CYLINDER, PLACE_PRIMITIVE_TYPE_CONE))
+          {
             RNA_float_set(&op_props, "depth", 2.0f);
           }
           if (ipd->primitive_type == PLACE_PRIMITIVE_TYPE_CONE) {
@@ -1195,13 +1199,15 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_BASE].plane,
                 mval_fl,
                 ipd->step[STEP_BASE].is_degenerate_view_align ? ipd->view_plane : NULL,
-                ipd->step[STEP_BASE].co_dst)) {
+                ipd->step[STEP_BASE].co_dst))
+        {
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
+        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_MODE_INCREMENT)) {
           if (idp_snap_calc_incremental(
-                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst)) {
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_BASE].co_dst))
+          {
           }
         }
       }
@@ -1217,13 +1223,15 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
                 ipd->step[STEP_DEPTH].plane,
                 mval_fl,
                 ipd->step[STEP_DEPTH].is_degenerate_view_align ? ipd->view_plane : NULL,
-                ipd->step[STEP_DEPTH].co_dst)) {
+                ipd->step[STEP_DEPTH].co_dst))
+        {
           /* pass */
         }
 
-        if (ipd->use_snap && (ipd->snap_to == PLACE_SNAP_TO_DEFAULT)) {
+        if (ipd->use_snap && (ipd->snap_to & SCE_SNAP_MODE_INCREMENT)) {
           if (idp_snap_calc_incremental(
-                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst)) {
+                  ipd->scene, ipd->v3d, ipd->region, ipd->co_src, ipd->step[STEP_DEPTH].co_dst))
+          {
           }
         }
       }
@@ -1251,99 +1259,7 @@ static bool view3d_interactive_add_poll(bContext *C)
   return ELEM(mode, CTX_MODE_OBJECT, CTX_MODE_EDIT_MESH);
 }
 
-static int idp_rna_plane_axis_get_fn(struct PointerRNA *UNUSED(ptr),
-                                     struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  return snap_state->plane_axis;
-}
-
-static void idp_rna_plane_axis_set_fn(struct PointerRNA *UNUSED(ptr),
-                                      struct PropertyRNA *UNUSED(prop),
-                                      int value)
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->plane_axis = (short)value;
-  ED_view3d_cursor_snap_state_default_set(snap_state);
-}
-
-static int idp_rna_plane_depth_get_fn(struct PointerRNA *UNUSED(ptr),
-                                      struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  return snap_state->plane_depth;
-}
-
-static void idp_rna_plane_depth_set_fn(struct PointerRNA *UNUSED(ptr),
-                                       struct PropertyRNA *UNUSED(prop),
-                                       int value)
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->plane_depth = value;
-  ED_view3d_cursor_snap_state_default_set(snap_state);
-}
-
-static int idp_rna_plane_orient_get_fn(struct PointerRNA *UNUSED(ptr),
-                                       struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  return snap_state->plane_orient;
-}
-
-static void idp_rna_plane_orient_set_fn(struct PointerRNA *UNUSED(ptr),
-                                        struct PropertyRNA *UNUSED(prop),
-                                        int value)
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->plane_orient = value;
-  ED_view3d_cursor_snap_state_default_set(snap_state);
-}
-
-static int idp_rna_snap_target_get_fn(struct PointerRNA *UNUSED(ptr),
-                                      struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  if (snap_state->snap_elem_force == SCE_SNAP_MODE_NONE) {
-    return PLACE_SNAP_TO_DEFAULT;
-  }
-
-  /* Make sure you keep a consistent #snap_mode. */
-  snap_state->snap_elem_force = SCE_SNAP_MODE_GEOM;
-  return PLACE_SNAP_TO_GEOMETRY;
-}
-
-static void idp_rna_snap_target_set_fn(struct PointerRNA *UNUSED(ptr),
-                                       struct PropertyRNA *UNUSED(prop),
-                                       int value)
-{
-  eSnapMode snap_mode = SCE_SNAP_MODE_NONE; /* #toolsettings->snap_mode. */
-  const enum ePlace_SnapTo snap_to = value;
-  if (snap_to == PLACE_SNAP_TO_GEOMETRY) {
-    snap_mode = SCE_SNAP_MODE_GEOM;
-  }
-
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->snap_elem_force = snap_mode;
-  ED_view3d_cursor_snap_state_default_set(snap_state);
-}
-
-static bool idp_rna_use_plane_axis_auto_get_fn(struct PointerRNA *UNUSED(ptr),
-                                               struct PropertyRNA *UNUSED(prop))
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  return snap_state->use_plane_axis_auto;
-}
-
-static void idp_rna_use_plane_axis_auto_set_fn(struct PointerRNA *UNUSED(ptr),
-                                               struct PropertyRNA *UNUSED(prop),
-                                               bool value)
-{
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_get();
-  snap_state->use_plane_axis_auto = value;
-  ED_view3d_cursor_snap_state_default_set(snap_state);
-}
-
-void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
+void VIEW3D_OT_interactive_add(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Add Primitive Object";
@@ -1363,12 +1279,6 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
 
-  /* WORKAROUND: properties with `_funcs_runtime` should not be saved in keymaps.
-   *             So reassign the #PROP_IDPROPERTY flag to trick the property as not being set.
-   *             (See #RNA_property_is_set). */
-  PropertyFlag unsalvageable = PROP_SKIP_SAVE | PROP_HIDDEN | PROP_PTR_NO_OWNERSHIP |
-                               PROP_IDPROPERTY;
-
   /* Normally not accessed directly, leave unset and check the active tool. */
   static const EnumPropertyItem primitive_type[] = {
       {PLACE_PRIMITIVE_TYPE_CUBE, "CUBE", 0, "Cube", ""},
@@ -1383,85 +1293,6 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
   RNA_def_property_ui_text(prop, "Primitive", "");
   RNA_def_property_enum_items(prop, primitive_type);
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-
-  prop = RNA_def_property(ot->srna, "plane_axis", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Plane Axis", "The axis used for placing the base region");
-  RNA_def_property_enum_default(prop, 2);
-  RNA_def_property_enum_items(prop, rna_enum_axis_xyz_items);
-  RNA_def_property_enum_funcs_runtime(
-      prop, idp_rna_plane_axis_get_fn, idp_rna_plane_axis_set_fn, NULL);
-  RNA_def_property_flag(prop, unsalvageable);
-
-  prop = RNA_def_boolean(ot->srna,
-                         "plane_axis_auto",
-                         false,
-                         "Auto Axis",
-                         "Select the closest axis when placing objects "
-                         "(surface overrides)");
-  RNA_def_property_boolean_funcs_runtime(
-      prop, idp_rna_use_plane_axis_auto_get_fn, idp_rna_use_plane_axis_auto_set_fn);
-  RNA_def_property_flag(prop, unsalvageable);
-
-  static const EnumPropertyItem plane_depth_items[] = {
-      {V3D_PLACE_DEPTH_SURFACE,
-       "SURFACE",
-       0,
-       "Surface",
-       "Start placing on the surface, using the 3D cursor position as a fallback"},
-      {V3D_PLACE_DEPTH_CURSOR_PLANE,
-       "CURSOR_PLANE",
-       0,
-       "Cursor Plane",
-       "Start placement using a point projected onto the orientation axis "
-       "at the 3D cursor position"},
-      {V3D_PLACE_DEPTH_CURSOR_VIEW,
-       "CURSOR_VIEW",
-       0,
-       "Cursor View",
-       "Start placement using a point projected onto the view plane at the 3D cursor position"},
-      {0, NULL, 0, NULL, NULL},
-  };
-  prop = RNA_def_property(ot->srna, "plane_depth", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Position", "The initial depth used when placing the cursor");
-  RNA_def_property_enum_default(prop, V3D_PLACE_DEPTH_SURFACE);
-  RNA_def_property_enum_items(prop, plane_depth_items);
-  RNA_def_property_enum_funcs_runtime(
-      prop, idp_rna_plane_depth_get_fn, idp_rna_plane_depth_set_fn, NULL);
-  RNA_def_property_flag(prop, unsalvageable);
-
-  static const EnumPropertyItem plane_orientation_items[] = {
-      {V3D_PLACE_ORIENT_SURFACE,
-       "SURFACE",
-       ICON_SNAP_NORMAL,
-       "Surface",
-       "Use the surface normal (using the transform orientation as a fallback)"},
-      {V3D_PLACE_ORIENT_DEFAULT,
-       "DEFAULT",
-       ICON_ORIENTATION_GLOBAL,
-       "Default",
-       "Use the current transform orientation"},
-      {0, NULL, 0, NULL, NULL},
-  };
-  prop = RNA_def_property(ot->srna, "plane_orientation", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Orientation", "The initial depth used when placing the cursor");
-  RNA_def_property_enum_default(prop, V3D_PLACE_ORIENT_SURFACE);
-  RNA_def_property_enum_items(prop, plane_orientation_items);
-  RNA_def_property_enum_funcs_runtime(
-      prop, idp_rna_plane_orient_get_fn, idp_rna_plane_orient_set_fn, NULL);
-  RNA_def_property_flag(prop, unsalvageable);
-
-  static const EnumPropertyItem snap_to_items[] = {
-      {PLACE_SNAP_TO_GEOMETRY, "GEOMETRY", 0, "Geometry", "Snap to all geometry"},
-      {PLACE_SNAP_TO_DEFAULT, "DEFAULT", 0, "Default", "Use the current snap settings"},
-      {0, NULL, 0, NULL, NULL},
-  };
-  prop = RNA_def_property(ot->srna, "snap_target", PROP_ENUM, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Snap to", "The target to use while snapping");
-  RNA_def_property_enum_default(prop, PLACE_SNAP_TO_GEOMETRY);
-  RNA_def_property_enum_items(prop, snap_to_items);
-  RNA_def_property_enum_funcs_runtime(
-      prop, idp_rna_snap_target_get_fn, idp_rna_snap_target_set_fn, NULL);
-  RNA_def_property_flag(prop, unsalvageable);
 
   { /* Plane Origin. */
     static const EnumPropertyItem items[] = {
@@ -1512,7 +1343,7 @@ void VIEW3D_OT_interactive_add(struct wmOperatorType *ot)
 static void preview_plane_free_fn(void *customdata)
 {
   V3DSnapCursorState *snap_state = customdata;
-  ED_view3d_cursor_snap_deactive(snap_state);
+  ED_view3d_cursor_snap_state_free(snap_state);
 }
 
 static bool snap_cursor_poll(ARegion *region, void *data)
@@ -1526,7 +1357,7 @@ static bool snap_cursor_poll(ARegion *region, void *data)
 
 static void WIDGETGROUP_placement_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_active();
+  V3DSnapCursorState *snap_state = ED_view3d_cursor_snap_state_create();
   if (snap_state) {
     snap_state->poll = snap_cursor_poll;
     snap_state->poll_data = gzgroup->type;

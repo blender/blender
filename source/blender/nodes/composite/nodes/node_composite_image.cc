@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -11,8 +12,6 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -113,7 +112,7 @@ static void cmp_node_image_add_pass_output(bNodeTree *ntree,
 
   NodeImageLayer *sockdata = (NodeImageLayer *)sock->storage;
   if (sockdata) {
-    BLI_strncpy(sockdata->pass_name, passname, sizeof(sockdata->pass_name));
+    STRNCPY(sockdata->pass_name, passname);
   }
 
   /* Reorder sockets according to order that passes are added. */
@@ -310,7 +309,8 @@ static void cmp_node_rlayer_create_outputs(bNodeTree *ntree,
         RE_engine_free(engine);
 
         if ((scene->r.mode & R_EDGE_FRS) &&
-            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS)) {
+            (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS))
+        {
           node_cmp_rlayers_register_pass(
               ntree, node, scene, view_layer, RE_PASSNAME_FREESTYLE, SOCK_RGBA);
         }
@@ -374,7 +374,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
     sock_next = sock->next;
     if (BLI_linklist_index(available_sockets.list, sock) >= 0) {
       sock->flag &= ~SOCK_HIDDEN;
-      nodeSetSocketAvailability(ntree, sock, true);
+      blender::bke::nodeSetSocketAvailability(ntree, sock, true);
     }
     else {
       bNodeLink *link;
@@ -388,7 +388,7 @@ static void cmp_node_image_verify_outputs(bNodeTree *ntree, bNode *node, bool rl
         nodeRemoveSocket(ntree, node, sock);
       }
       else {
-        nodeSetSocketAvailability(ntree, sock, false);
+        blender::bke::nodeSetSocketAvailability(ntree, sock, false);
       }
     }
   }
@@ -516,6 +516,7 @@ class ImageOperation : public NodeOperation {
     }
 
     ImageUser image_user = compute_image_user_for_output(identifier);
+    BKE_image_ensure_gpu_texture(get_image(), &image_user);
     GPUTexture *image_texture = BKE_image_get_gpu_texture(get_image(), &image_user, nullptr);
 
     const int2 size = int2(GPU_texture_width(image_texture), GPU_texture_height(image_texture));
@@ -708,9 +709,7 @@ static void node_composit_init_rlayers(const bContext *C, PointerRNA *ptr)
     NodeImageLayer *sockdata = MEM_cnew<NodeImageLayer>(__func__);
     sock->storage = sockdata;
 
-    BLI_strncpy(sockdata->pass_name,
-                node_cmp_rlayers_sock_to_pass(sock_index),
-                sizeof(sockdata->pass_name));
+    STRNCPY(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(sock_index));
   }
 }
 
@@ -826,31 +825,57 @@ class RenderLayerOperation : public NodeOperation {
   void execute() override
   {
     const int view_layer = bnode().custom1;
-    GPUTexture *pass_texture = context().get_input_texture(view_layer, SCE_PASS_COMBINED);
 
-    execute_image(pass_texture);
-    execute_alpha(pass_texture);
+    Result &image_result = get_result("Image");
+    Result &alpha_result = get_result("Alpha");
+
+    if (image_result.should_compute() || alpha_result.should_compute()) {
+      GPUTexture *combined_texture = context().get_input_texture(view_layer, RE_PASSNAME_COMBINED);
+      if (image_result.should_compute()) {
+        execute_pass(image_result, combined_texture, "compositor_read_pass_color");
+      }
+      if (alpha_result.should_compute()) {
+        execute_pass(alpha_result, combined_texture, "compositor_read_pass_alpha");
+      }
+    }
 
     /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!STR_ELEM(output->identifier, "Image", "Alpha")) {
-        Result &unsupported_result = get_result(output->identifier);
-        if (unsupported_result.should_compute()) {
-          unsupported_result.allocate_invalid();
-          context().set_info_message("Viewport compositor setup not fully supported");
-        }
+      if (STR_ELEM(output->identifier, "Image", "Alpha")) {
+        continue;
+      }
+
+      Result &result = get_result(output->identifier);
+      if (!result.should_compute()) {
+        continue;
+      }
+
+      GPUTexture *pass_texture = context().get_input_texture(view_layer, output->identifier);
+      if (output->type == SOCK_FLOAT) {
+        execute_pass(result, pass_texture, "compositor_read_pass_float");
+      }
+      else if (output->type == SOCK_VECTOR) {
+        execute_pass(result, pass_texture, "compositor_read_pass_vector");
+      }
+      else if (output->type == SOCK_RGBA) {
+        execute_pass(result, pass_texture, "compositor_read_pass_color");
+      }
+      else {
+        BLI_assert_unreachable();
       }
     }
   }
 
-  void execute_image(GPUTexture *pass_texture)
+  void execute_pass(Result &result, GPUTexture *pass_texture, const char *shader_name)
   {
-    Result &image_result = get_result("Image");
-    if (!image_result.should_compute()) {
+    if (pass_texture == nullptr) {
+      /* Pass not rendered yet, or not supported by viewport. */
+      result.allocate_invalid();
+      context().set_info_message("Viewport compositor setup not fully supported");
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_read_pass");
+    GPUShader *shader = shader_manager().get(shader_name);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
@@ -863,44 +888,14 @@ class RenderLayerOperation : public NodeOperation {
     GPU_texture_bind(pass_texture, input_unit);
 
     const int2 compositing_region_size = context().get_compositing_region_size();
-    image_result.allocate_texture(Domain(compositing_region_size));
-    image_result.bind_as_image(shader, "output_img");
+    result.allocate_texture(Domain(compositing_region_size));
+    result.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, compositing_region_size);
 
     GPU_shader_unbind();
     GPU_texture_unbind(pass_texture);
-    image_result.unbind_as_image();
-  }
-
-  void execute_alpha(GPUTexture *pass_texture)
-  {
-    Result &alpha_result = get_result("Alpha");
-    if (!alpha_result.should_compute()) {
-      return;
-    }
-
-    GPUShader *shader = shader_manager().get("compositor_read_pass_alpha");
-    GPU_shader_bind(shader);
-
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
-     * compositing region into an appropriately sized texture. */
-    const rcti compositing_region = context().get_compositing_region();
-    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
-    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
-
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(pass_texture, input_unit);
-
-    const int2 compositing_region_size = context().get_compositing_region_size();
-    alpha_result.allocate_texture(Domain(compositing_region_size));
-    alpha_result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, compositing_region_size);
-
-    GPU_shader_unbind();
-    GPU_texture_unbind(pass_texture);
-    alpha_result.unbind_as_image();
+    result.unbind_as_image();
   }
 };
 
@@ -918,7 +913,7 @@ void register_node_type_cmp_rlayers()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, "Render Layers", NODE_CLASS_INPUT);
-  node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
+  blender::bke::node_type_socket_templates(&ntype, nullptr, cmp_node_rlayers_out);
   ntype.draw_buttons = file_ns::node_composit_buts_viewlayers;
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
@@ -930,7 +925,7 @@ void register_node_type_cmp_rlayers()
       &ntype, nullptr, file_ns::node_composit_free_rlayers, file_ns::node_composit_copy_rlayers);
   ntype.updatefunc = file_ns::cmp_node_rlayers_update;
   ntype.initfunc = node_cmp_rlayers_outputs;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
 
   nodeRegisterType(&ntype);
 }

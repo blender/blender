@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -15,7 +16,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_screen.h"
 
@@ -370,7 +371,7 @@ static int backimage_fit_exec(bContext *C, wmOperator * /*op*/)
 
   BKE_image_release_ibuf(ima, ibuf, lock);
 
-  snode->zoom *= min_ff(facx, facy) * U.dpi_fac;
+  snode->zoom *= min_ff(facx, facy) * UI_SCALE_FAC;
 
   snode->xof = 0;
   snode->yof = 0;
@@ -510,14 +511,14 @@ bool ED_space_node_color_sample(
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
 
-    if (ibuf->rect_float) {
-      fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+    if (ibuf->float_buffer.data) {
+      fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
       /* #IB_PROFILE_NONE is default but in fact its linear. */
       copy_v3_v3(r_col, fp);
       ret = true;
     }
-    else if (ibuf->rect) {
-      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+    else if (ibuf->byte_buffer.data) {
+      cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
       IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
       ret = true;
@@ -549,7 +550,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     return;
   }
 
-  if (!ibuf->rect) {
+  if (!ibuf->byte_buffer.data) {
     IMB_rect_from_float(ibuf);
   }
 
@@ -577,8 +578,8 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     info->zp = nullptr;
     info->zfp = nullptr;
 
-    if (ibuf->rect) {
-      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+    if (ibuf->byte_buffer.data) {
+      cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
 
       info->col[0] = cp[0];
       info->col[1] = cp[1];
@@ -596,8 +597,8 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
       info->color_manage = true;
     }
-    if (ibuf->rect_float) {
-      fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+    if (ibuf->float_buffer.data) {
+      fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
 
       info->colf[0] = fp[0];
       info->colf[1] = fp[1];
@@ -607,12 +608,12 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
       info->color_manage = true;
     }
 
-    if (ibuf->zbuf) {
-      info->z = ibuf->zbuf[y * ibuf->x + x];
+    if (ibuf->z_buffer.data) {
+      info->z = ibuf->z_buffer.data[y * ibuf->x + x];
       info->zp = &info->z;
     }
-    if (ibuf->zbuf_float) {
-      info->zf = ibuf->zbuf_float[y * ibuf->x + x];
+    if (ibuf->float_z_buffer.data) {
+      info->zf = ibuf->float_z_buffer.data[y * ibuf->x + x];
       info->zfp = &info->zf;
     }
 

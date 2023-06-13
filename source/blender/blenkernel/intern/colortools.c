@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -839,7 +840,7 @@ void BKE_curvemapping_premultiply(CurveMapping *cumap, bool restore)
 
 static int sort_curvepoints(const void *a1, const void *a2)
 {
-  const struct CurveMapPoint *x1 = a1, *x2 = a2;
+  const CurveMapPoint *x1 = a1, *x2 = a2;
 
   if (x1->x > x2->x) {
     return 1;
@@ -1382,11 +1383,11 @@ void BKE_histogram_update_sample_line(Histogram *hist,
   hist->xmax = 1.0f;
   /* hist->ymax = 1.0f; */ /* now do this on the operator _only_ */
 
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL) {
     return;
   }
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
 
@@ -1399,9 +1400,9 @@ void BKE_histogram_update_sample_line(Histogram *hist,
           0.0f;
     }
     else {
-      if (ibuf->rect_float) {
+      if (ibuf->float_buffer.data) {
         float rgba[4];
-        fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+        fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
 
         switch (ibuf->channels) {
           case 4:
@@ -1431,8 +1432,8 @@ void BKE_histogram_update_sample_line(Histogram *hist,
         hist->data_b[i] = rgba[2];
         hist->data_a[i] = rgba[3];
       }
-      else if (ibuf->rect) {
-        cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+      else if (ibuf->byte_buffer.data) {
+        cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
         hist->data_luma[i] = (float)IMB_colormanagement_get_luminance_byte(cp) / 255.0f;
         hist->data_r[i] = (float)cp[0] / 255.0f;
         hist->data_g[i] = (float)cp[1] / 255.0f;
@@ -1492,10 +1493,10 @@ static void scopes_update_cb(void *__restrict userdata,
   const int savedlines = y / rows_per_sample_line;
   const bool do_sample_line = (savedlines < scopes->sample_lines) &&
                               (y % rows_per_sample_line) == 0;
-  const bool is_float = (ibuf->rect_float != NULL);
+  const bool is_float = (ibuf->float_buffer.data != NULL);
 
   if (is_float) {
-    rf = ibuf->rect_float + ((size_t)y) * ibuf->x * ibuf->channels;
+    rf = ibuf->float_buffer.data + ((size_t)y) * ibuf->x * ibuf->channels;
   }
   else {
     rc = display_buffer + ((size_t)y) * ibuf->x * ibuf->channels;
@@ -1616,7 +1617,7 @@ void BKE_scopes_update(Scopes *scopes,
   void *cache_handle = NULL;
   struct ColormanageProcessor *cm_processor = NULL;
 
-  if (ibuf->rect == NULL && ibuf->rect_float == NULL) {
+  if (ibuf->byte_buffer.data == NULL && ibuf->float_buffer.data == NULL) {
     return;
   }
 
@@ -1692,7 +1693,7 @@ void BKE_scopes_update(Scopes *scopes,
   scopes->vecscope = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float),
                                  "vectorscope point channel");
 
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
     cm_processor = IMB_colormanagement_display_processor_new(view_settings, display_settings);
   }
   else {
@@ -1790,15 +1791,13 @@ void BKE_color_managed_display_settings_init(ColorManagedDisplaySettings *settin
 {
   const char *display_name = IMB_colormanagement_display_get_default_name();
 
-  BLI_strncpy(settings->display_device, display_name, sizeof(settings->display_device));
+  STRNCPY(settings->display_device, display_name);
 }
 
 void BKE_color_managed_display_settings_copy(ColorManagedDisplaySettings *new_settings,
                                              const ColorManagedDisplaySettings *settings)
 {
-  BLI_strncpy(new_settings->display_device,
-              settings->display_device,
-              sizeof(new_settings->display_device));
+  STRNCPY(new_settings->display_device, settings->display_device);
 }
 
 void BKE_color_managed_view_settings_init_render(
@@ -1806,7 +1805,7 @@ void BKE_color_managed_view_settings_init_render(
     const ColorManagedDisplaySettings *display_settings,
     const char *view_transform)
 {
-  struct ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
       display_settings->display_device);
 
   if (!view_transform) {
@@ -1827,8 +1826,7 @@ void BKE_color_managed_view_settings_init_render(
 }
 
 void BKE_color_managed_view_settings_init_default(
-    struct ColorManagedViewSettings *view_settings,
-    const struct ColorManagedDisplaySettings *display_settings)
+    ColorManagedViewSettings *view_settings, const ColorManagedDisplaySettings *display_settings)
 {
   IMB_colormanagement_init_default_view_settings(view_settings, display_settings);
 }
@@ -1836,10 +1834,8 @@ void BKE_color_managed_view_settings_init_default(
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {
-  BLI_strncpy(new_settings->look, settings->look, sizeof(new_settings->look));
-  BLI_strncpy(new_settings->view_transform,
-              settings->view_transform,
-              sizeof(new_settings->view_transform));
+  STRNCPY(new_settings->look, settings->look);
+  STRNCPY(new_settings->view_transform, settings->view_transform);
 
   new_settings->flag = settings->flag;
   new_settings->exposure = settings->exposure;
@@ -1882,14 +1878,14 @@ void BKE_color_managed_view_settings_blend_read_data(BlendDataReader *reader,
 void BKE_color_managed_colorspace_settings_init(
     ColorManagedColorspaceSettings *colorspace_settings)
 {
-  BLI_strncpy(colorspace_settings->name, "", sizeof(colorspace_settings->name));
+  STRNCPY(colorspace_settings->name, "");
 }
 
 void BKE_color_managed_colorspace_settings_copy(
     ColorManagedColorspaceSettings *colorspace_settings,
     const ColorManagedColorspaceSettings *settings)
 {
-  BLI_strncpy(colorspace_settings->name, settings->name, sizeof(colorspace_settings->name));
+  STRNCPY(colorspace_settings->name, settings->name);
 }
 
 bool BKE_color_managed_colorspace_settings_equals(const ColorManagedColorspaceSettings *settings1,

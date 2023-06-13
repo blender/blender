@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -15,12 +17,8 @@ template<typename T> class AutoPtr : public std::unique_ptr<T> {
  public:
   using std::unique_ptr<T>::unique_ptr;
 
-  AutoPtr() : std::unique_ptr<T>()
-  {
-  }
-  AutoPtr(T *ptr) : std::unique_ptr<T>(ptr)
-  {
-  }
+  AutoPtr() : std::unique_ptr<T>() {}
+  AutoPtr(T *ptr) : std::unique_ptr<T>(ptr) {}
 
   /* Mimic behavior of legacy auto_ptr.
    * Keep implementation as small as possible, hens delete assignment operator. */

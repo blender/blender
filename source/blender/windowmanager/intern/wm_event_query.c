@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -44,22 +45,22 @@ struct FlagIdentifierPair {
 };
 
 static void event_ids_from_flag(char *str,
-                                const int str_maxlen,
+                                const int str_maxncpy,
                                 const struct FlagIdentifierPair *flag_data,
                                 const int flag_data_len,
                                 const uint flag)
 {
   int ofs = 0;
-  ofs += BLI_strncpy_rlen(str + ofs, "{", str_maxlen - ofs);
+  ofs += BLI_strncpy_rlen(str + ofs, "{", str_maxncpy - ofs);
   for (int i = 0; i < flag_data_len; i++) {
     if (flag & flag_data[i].flag) {
       if (ofs != 1) {
-        ofs += BLI_strncpy_rlen(str + ofs, "|", str_maxlen - ofs);
+        ofs += BLI_strncpy_rlen(str + ofs, "|", str_maxncpy - ofs);
       }
-      ofs += BLI_strncpy_rlen(str + ofs, flag_data[i].id, str_maxlen - ofs);
+      ofs += BLI_strncpy_rlen(str + ofs, flag_data[i].id, str_maxncpy - ofs);
     }
   }
-  ofs += BLI_strncpy_rlen(str + ofs, "}", str_maxlen - ofs);
+  ofs += BLI_strncpy_rlen(str + ofs, "}", str_maxncpy - ofs);
 }
 
 static void event_ids_from_type_and_value(const short type,
@@ -103,6 +104,7 @@ void WM_event_print(const wmEvent *event)
       struct FlagIdentifierPair flag_data[] = {
           {"SCROLL_INVERT", WM_EVENT_SCROLL_INVERT},
           {"IS_REPEAT", WM_EVENT_IS_REPEAT},
+          {"IS_CONSECUTIVE", WM_EVENT_IS_CONSECUTIVE},
           {"FORCE_DRAG_THRESHOLD", WM_EVENT_FORCE_DRAG_THRESHOLD},
       };
       event_ids_from_flag(flag_id, sizeof(flag_id), flag_data, ARRAY_SIZE(flag_data), event->flag);
@@ -337,13 +339,50 @@ bool WM_cursor_test_motion_and_update(const int mval[2])
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Event Consecutive Checks
+ * \{ */
+
+bool WM_event_consecutive_gesture_test(const wmEvent *event)
+{
+  return ISMOUSE_GESTURE(event->type) || (event->type == NDOF_MOTION);
+}
+
+bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent *event)
+{
+  /* Cursor motion breaks the chain. */
+  if (ISMOUSE_MOTION(event->type)) {
+    /* Mouse motion is checked because the user may navigate to a new area
+     * and perform the same gesture - logically it's best to view this as two separate gestures. */
+    if (len_manhattan_v2v2_int(event->xy, win->event_queue_consecutive_gesture_xy) >
+        WM_EVENT_CURSOR_MOTION_THRESHOLD)
+    {
+      return true;
+    }
+  }
+  else if (ISKEYBOARD_OR_BUTTON(event->type)) {
+    /* Modifiers are excluded because from a user perspective,
+     * releasing a modifier (for e.g.) should not begin a new action. */
+    if (!ISKEYMODIFIER(event->type)) {
+      return true;
+    }
+  }
+  else if (event->type == WINDEACTIVATE) {
+    return true;
+  }
+
+  return false;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Event Click/Drag Checks
  *
  * Values under this limit are detected as clicks.
  *
  * \{ */
 
-int WM_event_drag_threshold(const struct wmEvent *event)
+int WM_event_drag_threshold(const wmEvent *event)
 {
   int drag_threshold;
   BLI_assert(event->prev_press_type != MOUSEMOVE);
@@ -362,7 +401,7 @@ int WM_event_drag_threshold(const struct wmEvent *event)
     /* Typically keyboard, could be NDOF button or other less common types. */
     drag_threshold = U.drag_threshold;
   }
-  return drag_threshold * U.dpi_fac;
+  return drag_threshold * UI_SCALE_FAC;
 }
 
 bool WM_event_drag_test_with_delta(const wmEvent *event, const int drag_delta[2])
@@ -403,7 +442,7 @@ void WM_event_drag_start_xy(const wmEvent *event, int r_xy[2])
 /** \name Event Text Queries
  * \{ */
 
-char WM_event_utf8_to_ascii(const struct wmEvent *event)
+char WM_event_utf8_to_ascii(const wmEvent *event)
 {
   if (BLI_str_utf8_size(event->utf8_buf) == 1) {
     return event->utf8_buf[0];
@@ -464,7 +503,7 @@ void WM_event_ndof_rotate_get(const wmNDOFMotionData *ndof, float r_rot[3])
   r_rot[2] = ndof->rvec[2] * ((U.ndof_flag & NDOF_ROTZ_INVERT_AXIS) ? -1.0f : 1.0f);
 }
 
-float WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axis[3])
+float WM_event_ndof_to_axis_angle(const wmNDOFMotionData *ndof, float axis[3])
 {
   float angle;
   angle = normalize_v3_v3(axis, ndof->rvec);
@@ -476,7 +515,7 @@ float WM_event_ndof_to_axis_angle(const struct wmNDOFMotionData *ndof, float axi
   return ndof->dt * angle;
 }
 
-void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
+void WM_event_ndof_to_quat(const wmNDOFMotionData *ndof, float q[4])
 {
   float axis[3];
   float angle;
@@ -493,7 +532,7 @@ void WM_event_ndof_to_quat(const struct wmNDOFMotionData *ndof, float q[4])
  * \{ */
 
 #ifdef WITH_XR_OPENXR
-bool WM_event_is_xr(const struct wmEvent *event)
+bool WM_event_is_xr(const wmEvent *event)
 {
   return (event->type == EVT_XR_ACTION && event->custom == EVT_DATA_XR);
 }
@@ -534,7 +573,7 @@ float WM_event_tablet_data(const wmEvent *event, int *pen_flip, float tilt[2])
   return event->tablet.pressure;
 }
 
-bool WM_event_is_tablet(const struct wmEvent *event)
+bool WM_event_is_tablet(const wmEvent *event)
 {
   return (event->tablet.active != EVT_TABLET_NONE);
 }
@@ -549,7 +588,7 @@ bool WM_event_is_tablet(const struct wmEvent *event)
  *
  * \{ */
 
-int WM_event_absolute_delta_x(const struct wmEvent *event)
+int WM_event_absolute_delta_x(const wmEvent *event)
 {
   int dx = event->xy[0] - event->prev_xy[0];
 
@@ -560,7 +599,7 @@ int WM_event_absolute_delta_x(const struct wmEvent *event)
   return dx;
 }
 
-int WM_event_absolute_delta_y(const struct wmEvent *event)
+int WM_event_absolute_delta_y(const wmEvent *event)
 {
   int dy = event->xy[1] - event->prev_xy[1];
 

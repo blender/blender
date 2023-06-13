@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -330,10 +332,10 @@
     .edge_types = LRT_EDGE_FLAG_INIT_TYPE, \
     .thickness = 25, \
     .opacity = 1.0f, \
-    .flags = LRT_GPENCIL_MATCH_OUTPUT_VGROUP, \
     .crease_threshold = DEG2RAD(140.0f), \
     .calculation_flags = LRT_ALLOW_DUPLI_OBJECTS | LRT_ALLOW_CLIPPING_BOUNDARIES | \
-                         LRT_USE_CREASE_ON_SHARP_EDGES | LRT_FILTER_FACE_MARK_KEEP_CONTOUR, \
+                         LRT_USE_CREASE_ON_SHARP_EDGES | LRT_FILTER_FACE_MARK_KEEP_CONTOUR | \
+                         LRT_GPENCIL_MATCH_OUTPUT_VGROUP, \
     /* Do not split by default, this is for better chaining quality. */ \
     .angle_splitting_threshold = 0.0f, \
     .chaining_image_threshold = 0.001f, \

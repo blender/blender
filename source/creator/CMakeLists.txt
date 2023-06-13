@@ -1,17 +1,18 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   ../../intern/clog
   ../../intern/guardedalloc
   ../blender/blenkernel
   ../blender/blenlib
-  ../blender/blenloader
   ../blender/depsgraph
   ../blender/editors/include
   ../blender/gpu
   ../blender/imbuf
   ../blender/io/usd
+  ../blender/bmesh
   ../blender/makesdna
   ../blender/makesrna
   ../blender/render
@@ -24,6 +25,10 @@ set(LIB
 
 if(HAVE_FEENABLEEXCEPT)
   add_definitions(-DHAVE_FEENABLEEXCEPT)
+endif()
+
+if(WITH_STRSIZE_DEBUG)
+  add_definitions(-DWITH_STRSIZE_DEBUG)
 endif()
 
 if(WITH_TBB)
@@ -45,6 +50,7 @@ if(WITH_LIBMV)
 endif()
 
 if(WITH_CYCLES)
+  add_definitions(-DWITH_CYCLES)
   if(WITH_CYCLES_LOGGING)
     list(APPEND INC ../../intern/cycles/blender)
     add_definitions(-DWITH_CYCLES_LOGGING)
@@ -53,6 +59,10 @@ endif()
 
 if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
+if(WITH_RENDERDOC)
+  add_definitions(-DWITH_RENDERDOC)
 endif()
 
 if(WITH_CODEC_FFMPEG)
@@ -67,6 +77,18 @@ if(WITH_TBB)
   endif()
 endif()
 
+if(WITH_USD)
+  # USD links libMaterialX, when using pre-compiled libraries
+  # ensures `usd_ms` can find `MaterialXRender` and friends.
+  #
+  # NOTE: This is _only_ needed when linking blender before the install target runs.
+  # Once MATERIALX libraries have been copied into `TARGETDIR_LIB` then Blender will link.
+  # Don't rely on this though as failing on a fresh build is no good and the library
+  # files could get outdated too.
+  if(DEFINED LIBDIR)
+    link_directories(${LIBDIR}/materialx/lib)
+  endif()
+endif()
 
 if(WITH_PYTHON)
   list(APPEND INC ../blender/python)
@@ -314,11 +336,15 @@ endif()
 
 
 set(BLENDER_TEXT_FILES
-  ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
   # Generate this file:
   # `${CMAKE_SOURCE_DIR}/release/text/readme.html`
 )
 
+if(WITH_INSTALL_COPYRIGHT)
+  list(APPEND BLENDER_TEXT_FILES
+    ${CMAKE_SOURCE_DIR}/release/text/copyright.txt
+  )
+endif()
 
 # -----------------------------------------------------------------------------
 # Platform specific target destinations
@@ -353,10 +379,12 @@ elseif(WIN32)
     set(TARGETDIR_VER ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy/${BLENDER_VERSION})
     # Important the DLL's are next to `__init__.pyd` otherwise it won't load.
     set(TARGETDIR_LIB ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
+    set(TARGETDIR_EXE ${CMAKE_INSTALL_PREFIX_WITH_CONFIG}/bpy)
   else()
     set(TARGETDIR_VER ${BLENDER_VERSION})
     set(TARGETDIR_TEXT .)
-    set(TARGETDIR_LIB .)
+    set(TARGETDIR_LIB ./blender.shared)
+    set(TARGETDIR_EXE .)
   endif()
 elseif(APPLE)
   if(WITH_PYTHON_MODULE)
@@ -411,10 +439,11 @@ if(WITH_PYTHON)
   endif()
 
   install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/release/scripts
+    DIRECTORY ${CMAKE_SOURCE_DIR}/scripts
     DESTINATION ${TARGETDIR_VER}
     PATTERN ".git" EXCLUDE
     PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
     PATTERN ".github" EXCLUDE
     PATTERN ".arcconfig" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
@@ -426,12 +455,12 @@ if(WITH_PYTHON)
   if(WITH_PYTHON_INSTALL)
     if(WIN32)
       install(
-        FILES ${CMAKE_SOURCE_DIR}/release/scripts/site/sitecustomize.py
+        FILES ${CMAKE_SOURCE_DIR}/scripts/site/sitecustomize.py
         DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
       )
     else()
       install(
-        FILES ${CMAKE_SOURCE_DIR}/release/scripts/site/sitecustomize.py
+        FILES ${CMAKE_SOURCE_DIR}/scripts/site/sitecustomize.py
         DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
       )
     endif()
@@ -448,7 +477,7 @@ install(
 
 # localization
 if(WITH_INTERNATIONAL)
-  set(_locale_dir "${CMAKE_SOURCE_DIR}/release/datafiles/locale")
+  set(_locale_dir "${CMAKE_SOURCE_DIR}/locale")
   set(_locale_target_dir ${TARGETDIR_VER}/datafiles/locale)
 
   file(GLOB _po_files "${_locale_dir}/po/*.po")
@@ -536,6 +565,9 @@ macro(install_dir from to)
     DESTINATION ${to}
     # Irrelevant files and caches.
     PATTERN ".git" EXCLUDE
+    PATTERN ".gitignore" EXCLUDE
+    PATTERN ".gitea" EXCLUDE
+    PATTERN ".github" EXCLUDE
     PATTERN ".svn" EXCLUDE
     PATTERN "*.pyc" EXCLUDE
     PATTERN "*.pyo" EXCLUDE
@@ -860,6 +892,12 @@ elseif(WIN32)
     FILES ${LIBDIR}/fftw3/lib/libfftw3-3.dll
     ALL
   )
+  if(EXISTS ${LIBDIR}/fftw3/lib/libfftw3f-3.dll)
+    windows_install_shared_manifest(
+      FILES ${LIBDIR}/fftw3/lib/libfftw3f-3.dll
+      ALL
+    )
+  endif()
   if(MSVC_ASAN)
     # The ASAN DLL's can be found in the same folder as the compiler,
     # this is the easiest way to find these.
@@ -982,6 +1020,24 @@ elseif(WIN32)
       ${LIBDIR}/materialx/bin/MaterialXGenShader.dll
     RELEASE
   )
+  if(EXISTS ${LIBDIR}/materialx/bin/MaterialXRender.dll) # 3.6+
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl.dll
+      RELEASE
+    )
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/materialx/bin/MaterialXRender_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderGlsl_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderHw_d.dll
+        ${LIBDIR}/materialx/bin/MaterialXRenderOsl_d.dll
+      DEBUG
+    )
+  endif()
   windows_install_shared_manifest(
     FILES
       ${LIBDIR}/materialx/bin/MaterialXCore_d.dll
@@ -1002,7 +1058,7 @@ elseif(WIN32)
           FILES
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}.dll
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3.dll
-          DESTINATION ${TARGETDIR_LIB}
+          DESTINATION ${TARGETDIR_EXE}
           CONFIGURATIONS Release;RelWithDebInfo;MinSizeRel
         )
 
@@ -1010,7 +1066,7 @@ elseif(WIN32)
           FILES
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python${_PYTHON_VERSION_NO_DOTS}_d.dll
             ${LIBDIR}/python/${_PYTHON_VERSION_NO_DOTS}/bin/python3_d.dll
-          DESTINATION ${TARGETDIR_LIB}
+          DESTINATION ${TARGETDIR_EXE}
           CONFIGURATIONS Debug
         )
       endif()
@@ -1161,9 +1217,20 @@ elseif(WIN32)
 
   endif()
 
-  # Filenames change slightly between FFMPEG versions check both 5.0 and fallback to 4.4
+  # Filenames change slightly between FFMPEG versions check both 6.0 and fallback to 5.0
   # to ease the transition between versions.
-  if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-59.dll")
+  if(EXISTS "${LIBDIR}/ffmpeg/lib/avcodec-60.dll")
+    windows_install_shared_manifest(
+      FILES
+        ${LIBDIR}/ffmpeg/lib/avcodec-60.dll
+        ${LIBDIR}/ffmpeg/lib/avformat-60.dll
+        ${LIBDIR}/ffmpeg/lib/avdevice-60.dll
+        ${LIBDIR}/ffmpeg/lib/avutil-58.dll
+        ${LIBDIR}/ffmpeg/lib/swscale-7.dll
+        ${LIBDIR}/ffmpeg/lib/swresample-4.dll
+      ALL
+    )
+  else()
     windows_install_shared_manifest(
       FILES
         ${LIBDIR}/ffmpeg/lib/avcodec-59.dll
@@ -1172,17 +1239,6 @@ elseif(WIN32)
         ${LIBDIR}/ffmpeg/lib/avutil-57.dll
         ${LIBDIR}/ffmpeg/lib/swscale-6.dll
         ${LIBDIR}/ffmpeg/lib/swresample-4.dll
-      ALL
-    )
-  else()
-    windows_install_shared_manifest(
-      FILES
-        ${LIBDIR}/ffmpeg/lib/avcodec-58.dll
-        ${LIBDIR}/ffmpeg/lib/avformat-58.dll
-        ${LIBDIR}/ffmpeg/lib/avdevice-58.dll
-        ${LIBDIR}/ffmpeg/lib/avutil-56.dll
-        ${LIBDIR}/ffmpeg/lib/swscale-5.dll
-        ${LIBDIR}/ffmpeg/lib/swresample-3.dll
       ALL
     )
   endif()
@@ -1218,6 +1274,16 @@ elseif(WIN32)
   )
 
   windows_install_shared_manifest(
+    FILES ${LIBDIR}/shaderc/bin/shaderc_shared.dll
+    RELEASE
+  )
+
+  windows_install_shared_manifest(
+    FILES ${LIBDIR}/shaderc/bin/shaderc_shared_d.dll
+    DEBUG
+  )
+
+  windows_install_shared_manifest(
     FILES
       ${LIBDIR}/openal/lib/OpenAL32.dll
     ALL
@@ -1248,7 +1314,7 @@ elseif(WIN32)
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_factory_startup.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_oculus.cmd
         ${CMAKE_SOURCE_DIR}/release/windows/batch/oculus.json
-      DESTINATION ${TARGETDIR_LIB}
+      DESTINATION ${TARGETDIR_EXE}
     )
   endif()
 
@@ -1274,43 +1340,13 @@ elseif(WIN32)
   endif()
 
   if(PLATFORM_BUNDLED_LIBRARIES)
-    install(
-      FILES ${PLATFORM_BUNDLED_LIBRARIES}
-      DESTINATION ${TARGETDIR_LIB}
-    )
+    windows_process_platform_bundled_libraries("${PLATFORM_BUNDLED_LIBRARIES}")
   endif()
 elseif(APPLE)
   if(NOT WITH_PYTHON_MODULE)
     # Uppercase name for app bundle.
     set_target_properties(blender PROPERTIES OUTPUT_NAME Blender)
   endif()
-
-  # Handy install macro to exclude files, we use \$ escape for the "to"
-  # argument when calling so `${BUILD_TYPE}` does not get expanded.
-  macro(install_dir from to)
-    install(
-      DIRECTORY ${from}
-      DESTINATION ${to}
-      PATTERN ".git" EXCLUDE
-      PATTERN ".svn" EXCLUDE
-      PATTERN "*.pyc" EXCLUDE
-      PATTERN "*.pyo" EXCLUDE
-      PATTERN "*.orig" EXCLUDE
-      PATTERN "*.rej" EXCLUDE
-      PATTERN "__pycache__" EXCLUDE
-      PATTERN "__MACOSX" EXCLUDE
-      PATTERN ".DS_Store" EXCLUDE
-      PATTERN "config-${PYTHON_VERSION}/*.a" EXCLUDE  # static lib
-      PATTERN "lib2to3" EXCLUDE                   # ./lib2to3
-      PATTERN "tkinter" EXCLUDE                   # ./tkinter
-      PATTERN "lib-dynload/_tkinter.*" EXCLUDE    # ./lib-dynload/_tkinter.co
-      PATTERN "idlelib" EXCLUDE                   # ./idlelib
-      PATTERN "test" EXCLUDE                      # ./test
-      PATTERN "turtledemo" EXCLUDE                # ./turtledemo
-      PATTERN "turtle.py" EXCLUDE                 # ./turtle.py
-      PATTERN "wininst*.exe" EXCLUDE              # from distutils, avoid malware false positive
-    )
-  endmacro()
 
   set(OSX_APP_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/Blender.app)
 
@@ -1484,7 +1520,11 @@ install(
 # -----------------------------------------------------------------------------
 # Bundle assets
 
-set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/release/datafiles/assets/publish/)
+
+if(NOT EXISTS "${ASSET_BUNDLE_DIR}")
+  set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/../lib/assets/publish/)
+endif()
 
 if(EXISTS "${ASSET_BUNDLE_DIR}")
   install(
@@ -1536,7 +1576,7 @@ if((DEFINED LIBDIR) AND TARGETDIR_LIB)
       )
       install(DIRECTORY
         ${USD_LIBRARY_DIR}/usd
-        DESTINATION "./blender.shared"
+        DESTINATION ${TARGETDIR_LIB}
       )
     elseif(USD_PYTHON_SUPPORT)
       install(DIRECTORY
@@ -1665,14 +1705,34 @@ endif()
 if(UNIX AND NOT APPLE)
   if(NOT WITH_PYTHON_MODULE)
     if(WITH_DOC_MANPAGE)
+      # Only run the command to generate the man-page when it may be outdated.
+      # The `IS_NEWER_THAN` checks always run when files are missing.
       install(
         CODE "\
-execute_process(\
-  COMMAND \
-  \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\" \
-  --blender \"${EXECUTABLE_OUTPUT_PATH}/blender\" \
-  --output \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\"\
-)"
+set(BLENDER_BIN \"${EXECUTABLE_OUTPUT_PATH}/blender\")\n\
+set(MANPAGE_GEN \"${CMAKE_SOURCE_DIR}/doc/manpage/blender.1.py\")\n\
+set(MANPAGE_OUT \"${CMAKE_CURRENT_BINARY_DIR}/blender.1\")\n\
+if(\n\
+  ($\{BLENDER_BIN\} IS_NEWER_THAN $\{MANPAGE_OUT\}) OR\n\
+  ($\{MANPAGE_GEN\} IS_NEWER_THAN $\{MANPAGE_OUT\})\n\
+)\n\
+  set(ENV{ASAN_OPTIONS} \"$ENV{ASAN_OPTIONS}:\
+exitcode=0:\
+check_initialization_order=0:\
+strict_init_order=0:\
+detect_leaks=0\"\n\
+  )\n\
+  execute_process(\n\
+    OUTPUT_QUIET\n\
+    COMMAND $\{BLENDER_BIN\}\n\
+    --background\n\
+    --factory-startup\n\
+    --python $\{MANPAGE_GEN\}\n\
+    --\n\
+    --output $\{MANPAGE_OUT\}\n\
+  )\n\
+endif()\n\
+"
         DEPENDS blender
       )
 

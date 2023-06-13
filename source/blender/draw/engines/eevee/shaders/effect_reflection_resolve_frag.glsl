@@ -39,7 +39,13 @@ vec4 ssr_get_scene_color_and_mask(vec3 hit_vP, int planar_index, float mip)
     color = textureLod(probePlanars, vec3(uv, planar_index), mip).rgb;
   }
   else {
+
+    /* Do not sample scene buffer if running probe pass in split reflection mode. */
+#ifndef RESOLVE_PROBE
     color = textureLod(colorBuffer, uv * hizUvScale.xy, mip).rgb;
+#else
+    color = vec3(0.0);
+#endif
   }
 
   /* Clamped brightness. */
@@ -97,6 +103,20 @@ void resolve_reflection_sample(int planar_index,
   weight_accum += weight;
 }
 
+/* NOTE(Metal): For Apple silicon GPUs executing this particular shader, by default, memory read
+ * pressure is high while ALU remains low. Packing the sample data into a smaller format balances
+ * this trade-off by reducing local shader register pressure and expensive memory look-ups into
+ * spilled local shader memory, resulting in an increase in performance of 20% for this shader. */
+#ifdef GPU_METAL
+#  define SAMPLE_STORAGE_TYPE uchar
+#  define pack_sample(x, y) uchar(((uchar(x + 2)) << uchar(3)) + (uchar(y + 2)))
+#  define unpack_sample(x) vec2((char(x) >> 3) - 2, (char(x) & 7) - 2)
+#else
+#  define SAMPLE_STORAGE_TYPE vec2
+#  define pack_sample(x, y) SAMPLE_STORAGE_TYPE(x, y)
+#  define unpack_sample(x) x
+#endif
+
 void raytrace_resolve(ClosureInputGlossy cl_in,
                       inout ClosureEvalGlossy cl_eval,
                       inout ClosureEvalCommon cl_common,
@@ -104,55 +124,55 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
 {
   /* Note: Reflection samples declared in function scope to avoid per-thread memory pressure on
    * tile-based GPUs e.g. Apple Silicon. */
-  const vec2 resolve_sample_offsets[36] = vec2[36](
+  const SAMPLE_STORAGE_TYPE resolve_sample_offsets[36] = SAMPLE_STORAGE_TYPE[36](
       /* Set 1. */
       /* First Ring (2x2). */
-      vec2(0, 0),
+      pack_sample(0, 0),
       /* Second Ring (6x6). */
-      vec2(-1, 3),
-      vec2(1, 3),
-      vec2(-1, 1),
-      vec2(3, 1),
-      vec2(-2, 0),
-      vec2(3, 0),
-      vec2(2, -1),
-      vec2(1, -2),
+      pack_sample(-1, 3),
+      pack_sample(1, 3),
+      pack_sample(-1, 1),
+      pack_sample(3, 1),
+      pack_sample(-2, 0),
+      pack_sample(3, 0),
+      pack_sample(2, -1),
+      pack_sample(1, -2),
       /* Set 2. */
       /* First Ring (2x2). */
-      vec2(1, 1),
+      pack_sample(1, 1),
       /* Second Ring (6x6). */
-      vec2(-2, 3),
-      vec2(3, 3),
-      vec2(0, 2),
-      vec2(2, 2),
-      vec2(-2, -1),
-      vec2(1, -1),
-      vec2(0, -2),
-      vec2(3, -2),
+      pack_sample(-2, 3),
+      pack_sample(3, 3),
+      pack_sample(0, 2),
+      pack_sample(2, 2),
+      pack_sample(-2, -1),
+      pack_sample(1, -1),
+      pack_sample(0, -2),
+      pack_sample(3, -2),
       /* Set 3. */
       /* First Ring (2x2). */
-      vec2(0, 1),
+      pack_sample(0, 1),
       /* Second Ring (6x6). */
-      vec2(0, 3),
-      vec2(3, 2),
-      vec2(-2, 1),
-      vec2(2, 1),
-      vec2(-1, 0),
-      vec2(-2, -2),
-      vec2(0, -1),
-      vec2(2, -2),
+      pack_sample(0, 3),
+      pack_sample(3, 2),
+      pack_sample(-2, 1),
+      pack_sample(2, 1),
+      pack_sample(-1, 0),
+      pack_sample(-2, -2),
+      pack_sample(0, -1),
+      pack_sample(2, -2),
       /* Set 4. */
       /* First Ring (2x2). */
-      vec2(1, 0),
+      pack_sample(1, 0),
       /* Second Ring (6x6). */
-      vec2(2, 3),
-      vec2(-2, 2),
-      vec2(-1, 2),
-      vec2(1, 2),
-      vec2(2, 0),
-      vec2(-1, -1),
-      vec2(3, -1),
-      vec2(-1, -2));
+      pack_sample(2, 3),
+      pack_sample(-2, 2),
+      pack_sample(-1, 2),
+      pack_sample(1, 2),
+      pack_sample(2, 0),
+      pack_sample(-1, -1),
+      pack_sample(3, -1),
+      pack_sample(-1, -2));
 
   float roughness = cl_in.roughness;
 
@@ -202,7 +222,8 @@ void raytrace_resolve(ClosureInputGlossy cl_in,
       int sample_id = sample_pool * resolve_samples_count + i;
       vec2 texture_size = vec2(textureSize(hitBuffer, 0));
       vec2 sample_texel = texture_size * uvcoordsvar.xy * ssrUvScale;
-      vec2 sample_uv = (sample_texel + resolve_sample_offsets[sample_id]) / texture_size;
+      vec2 sample_uv = (sample_texel + unpack_sample(resolve_sample_offsets[sample_id])) /
+                       texture_size;
 
       resolve_reflection_sample(
           planar_index, sample_uv, vP, vN, vV, roughness_squared, cone_tan, weight_acc, ssr_accum);
@@ -223,10 +244,26 @@ CLOSURE_EVAL_FUNCTION_DECLARE_1(ssr_resolve, Glossy)
 void main()
 {
   float depth = textureLod(maxzBuffer, uvcoordsvar.xy * hizUvScale.xy, 0.0).r;
-
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+  float factor = 1.0f;
+#endif
   if (depth == 1.0) {
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+    /* Divergent code execution (and sampling) causes corruption due to undefined
+     * derivative/sampling behaviour, on Intel GPUs. Using a mask factor to ensure shaders do not
+     * diverge and only the final result is masked. */
+    factor = 0.0f;
+#else
+    /* Note: In the Metal API, prior to Metal 2.3, Discard is not an explicit return and can
+     * produce undefined behaviour. This is especially prominent with derivatives if control-flow
+     * divergence is present.
+     *
+     * Adding a return call eliminates undefined behaviour and a later out-of-bounds read causing
+     * a crash on AMD platforms.
+     * This behaviour can also affect OpenGL on certain devices. */
     discard;
     return;
+#endif
   }
 
   ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -235,8 +272,12 @@ void main()
   float roughness = speccol_roughness.a;
 
   if (max_v3(brdf) <= 0.0) {
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+    factor = 0.0f;
+#else
     discard;
     return;
+#endif
   }
 
   FragDepth = depth;
@@ -258,5 +299,11 @@ void main()
    * passed as specular color. */
   CLOSURE_EVAL_FUNCTION_1(ssr_resolve, Glossy);
 
+  /* Default single pass resolve */
   fragColor = vec4(out_Glossy_0.radiance * brdf, 1.0);
+#if defined(GPU_INTEL) && defined(GPU_METAL)
+  /* Due to non-uniform control flow with discard, Intel on macOS requires blending factor
+   * to discard unwanted fragments. */
+  fragColor *= factor;
+#endif
 }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -57,7 +59,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 #  include "MEM_guardedalloc.h"
 
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_object_types.h"
 #  include "DNA_screen_types.h"
@@ -65,7 +67,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 
 #  include "BKE_colorband.h"
 #  include "BKE_context.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_main.h"
 #  include "BKE_material.h"
 #  include "BKE_node.h"
@@ -77,7 +79,7 @@ const EnumPropertyItem rna_enum_ramp_blend_items[] = {
 #  include "DEG_depsgraph.h"
 #  include "DEG_depsgraph_build.h"
 
-#  include "ED_gpencil.h"
+#  include "ED_gpencil_legacy.h"
 #  include "ED_image.h"
 #  include "ED_node.h"
 #  include "ED_screen.h"
@@ -110,7 +112,7 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
 
   /* Need set all caches as dirty. */
   for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       bGPdata *gpd = (bGPdata *)ob->data;
       DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     }
@@ -267,7 +269,7 @@ static void rna_TexPaintSlot_uv_layer_get(PointerRNA *ptr, char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->uvname != NULL) {
-    BLI_strncpy_utf8(value, data->uvname, 64);
+    strcpy(value, data->uvname);
   }
   else {
     value[0] = '\0';
@@ -294,12 +296,12 @@ static void rna_TexPaintSlot_name_get(PointerRNA *ptr, char *value)
   TexPaintSlot *data = (TexPaintSlot *)(ptr->data);
 
   if (data->ima != NULL) {
-    BLI_strncpy_utf8(value, data->ima->id.name + 2, MAX_NAME);
+    strcpy(value, data->ima->id.name + 2);
     return;
   }
 
   if (data->attribute_name != NULL) {
-    BLI_strncpy_utf8(value, data->attribute_name, MAX_NAME);
+    strcpy(value, data->attribute_name);
     return;
   }
 
@@ -667,6 +669,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "stroke_style");
   RNA_def_property_enum_items(prop, stroke_style_items);
   RNA_def_property_ui_text(prop, "Stroke Style", "Select style used to draw strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* stroke image texture */
@@ -683,6 +686,7 @@ static void rna_def_material_greasepencil(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, NULL, "fill_style");
   RNA_def_property_enum_items(prop, fill_style_items);
   RNA_def_property_ui_text(prop, "Fill Style", "Select style used to fill strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialGpencil_update");
 
   /* gradient type */
@@ -828,6 +832,7 @@ void RNA_def_material(BlenderRNA *brna)
   prop = RNA_def_property(srna, "blend_method", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, prop_eevee_blend_items);
   RNA_def_property_ui_text(prop, "Blend Mode", "Blend Mode for Transparent Faces");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MATERIAL);
   RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
   prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);

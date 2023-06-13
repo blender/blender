@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_pointcloud_types.h"
 
@@ -8,14 +10,11 @@ namespace blender::nodes::node_geo_set_point_radius_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Points")).supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Radius"))
-      .default_value(0.05f)
-      .min(0.0f)
-      .field_on_all()
-      .subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
+  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>("Radius").default_value(0.05f).min(0.0f).field_on_all().subtype(
+      PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Points").propagate_all();
 }
 
 static void set_radius_in_component(PointCloud &pointcloud,
@@ -29,7 +28,7 @@ static void set_radius_in_component(PointCloud &pointcloud,
   AttributeWriter<float> radii = attributes.lookup_or_add_for_write<float>("radius",
                                                                            ATTR_DOMAIN_POINT);
 
-  bke::PointCloudFieldContext field_context{pointcloud};
+  const bke::PointCloudFieldContext field_context{pointcloud};
   fn::FieldEvaluator evaluator{field_context, pointcloud.totpoint};
   evaluator.set_selection(selection_field);
   evaluator.add_with_destination(radius_field, radii.varray);

@@ -183,9 +183,7 @@ class BVHParams {
 
 class BVHReference {
  public:
-  __forceinline BVHReference()
-  {
-  }
+  __forceinline BVHReference() {}
 
   __forceinline BVHReference(const BoundBox &bounds_,
                              int prim_index_,
@@ -307,9 +305,7 @@ struct BVHSpatialBin {
   int enter;
   int exit;
 
-  __forceinline BVHSpatialBin()
-  {
-  }
+  __forceinline BVHSpatialBin() {}
 };
 
 /* BVH Spatial Storage

@@ -32,9 +32,8 @@ namespace blender::gpu {
 
 MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
 {
-
   switch (tex_format) {
-    /* Formats texture & render-buffer. */
+    /* Texture & Render-Buffer Formats. */
     case GPU_RGBA8UI:
       return MTLPixelFormatRGBA8Uint;
     case GPU_RGBA8I:
@@ -74,7 +73,7 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
     case GPU_RG16F:
       return MTLPixelFormatRG16Float;
     case GPU_RG16:
-      return MTLPixelFormatRG16Float;
+      return MTLPixelFormatRG16Unorm;
     case GPU_R8UI:
       return MTLPixelFormatR8Uint;
     case GPU_R8I:
@@ -94,42 +93,107 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
     case GPU_R16F:
       return MTLPixelFormatR16Float;
     case GPU_R16:
-      return MTLPixelFormatR16Snorm;
-
-    /* Special formats texture & renderbuffer. */
+      return MTLPixelFormatR16Unorm;
+    /* Special formats texture & renderbuffer */
+    case GPU_RGB10_A2:
+      return MTLPixelFormatRGB10A2Unorm;
+    case GPU_RGB10_A2UI:
+      return MTLPixelFormatRGB10A2Uint;
     case GPU_R11F_G11F_B10F:
       return MTLPixelFormatRG11B10Float;
     case GPU_DEPTH32F_STENCIL8:
       return MTLPixelFormatDepth32Float_Stencil8;
-    case GPU_DEPTH24_STENCIL8: {
+    case GPU_DEPTH24_STENCIL8:
       BLI_assert_msg(false, "GPU_DEPTH24_STENCIL8 not supported by Apple Silicon.");
       return MTLPixelFormatDepth24Unorm_Stencil8;
-    }
     case GPU_SRGB8_A8:
       return MTLPixelFormatRGBA8Unorm_sRGB;
+    /* Texture only formats. */
     case GPU_RGB16F:
+      /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
       return MTLPixelFormatRGBA16Float;
-
+    case GPU_RGBA16_SNORM:
+      return MTLPixelFormatRGBA16Snorm;
+    case GPU_RGBA8_SNORM:
+      return MTLPixelFormatRGBA8Snorm;
+    case GPU_RGB32F:
+      /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA32Float;
+    case GPU_RGB32I:
+      /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA32Sint;
+    case GPU_RGB32UI:
+      /* 96-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA32Uint;
+    case GPU_RGB16_SNORM:
+      /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA16Snorm;
+    case GPU_RGB16I:
+      /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA16Sint;
+    case GPU_RGB16UI:
+      /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA16Uint;
+    case GPU_RGB16:
+      /* 48-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA16Unorm;
+    case GPU_RGB8_SNORM:
+      /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA8Snorm;
+    case GPU_RGB8:
+      /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA8Unorm;
+    case GPU_RGB8I:
+      /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA8Sint;
+    case GPU_RGB8UI:
+      /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA8Uint;
+    case GPU_RG16_SNORM:
+      return MTLPixelFormatRG16Snorm;
+    case GPU_RG8_SNORM:
+      return MTLPixelFormatRG8Snorm;
+    case GPU_R16_SNORM:
+      return MTLPixelFormatR16Snorm;
+    case GPU_R8_SNORM:
+      return MTLPixelFormatR8Snorm;
+    /* Special formats, texture only. */
+    case GPU_SRGB8_A8_DXT1:
+    case GPU_SRGB8_A8_DXT3:
+    case GPU_SRGB8_A8_DXT5:
+    case GPU_RGBA8_DXT1:
+    case GPU_RGBA8_DXT3:
+    case GPU_RGBA8_DXT5:
+      BLI_assert_msg(false, "Compressed texture not implemented yet!\n");
+      return MTLPixelFormatRGBA8Unorm;
+    case GPU_SRGB8:
+      /* 24-Bit pixel format are not supported. Emulate using a padded type with alpha. */
+      return MTLPixelFormatRGBA8Unorm_sRGB;
+    case GPU_RGB9_E5:
+      return MTLPixelFormatRGB9E5Float;
     /* Depth Formats. */
     case GPU_DEPTH_COMPONENT32F:
+      return MTLPixelFormatDepth32Float;
     case GPU_DEPTH_COMPONENT24:
+      /* This formal is not supported on Metal.
+       * Use 32Float depth instead with some conversion steps for download and upload. */
       return MTLPixelFormatDepth32Float;
     case GPU_DEPTH_COMPONENT16:
       return MTLPixelFormatDepth16Unorm;
-
-    default:
-      BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
-      return MTLPixelFormatRGBA8Unorm;
   }
+  BLI_assert_msg(false, "Unrecognised GPU pixel format!\n");
+  return MTLPixelFormatRGBA8Unorm;
 }
 
-int get_mtl_format_bytesize(MTLPixelFormat tex_format)
+size_t get_mtl_format_bytesize(MTLPixelFormat tex_format)
 {
-
   switch (tex_format) {
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
@@ -139,10 +203,13 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
       return 8;
     case MTLPixelFormatRG8Uint:
     case MTLPixelFormatRG8Sint:
     case MTLPixelFormatRG8Unorm:
+    case MTLPixelFormatRG8Snorm:
+    case MTLPixelFormatRG8Unorm_sRGB:
       return 2;
     case MTLPixelFormatRG32Uint:
     case MTLPixelFormatRG32Sint:
@@ -151,6 +218,8 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Uint:
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
+    case MTLPixelFormatRG16Unorm:
+    case MTLPixelFormatRG16Snorm:
       return 4;
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
@@ -164,6 +233,7 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
     case MTLPixelFormatR16Snorm:
+    case MTLPixelFormatR16Unorm:
       return 2;
     case MTLPixelFormatRG11B10Float:
       return 4;
@@ -184,11 +254,11 @@ int get_mtl_format_bytesize(MTLPixelFormat tex_format)
 
 int get_mtl_format_num_components(MTLPixelFormat tex_format)
 {
-
   switch (tex_format) {
     case MTLPixelFormatRGBA8Uint:
     case MTLPixelFormatRGBA8Sint:
     case MTLPixelFormatRGBA8Unorm:
+    case MTLPixelFormatRGBA8Snorm:
     case MTLPixelFormatRGBA32Uint:
     case MTLPixelFormatRGBA32Sint:
     case MTLPixelFormatRGBA32Float:
@@ -196,7 +266,10 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRGBA16Sint:
     case MTLPixelFormatRGBA16Float:
     case MTLPixelFormatRGBA16Unorm:
+    case MTLPixelFormatRGBA16Snorm:
     case MTLPixelFormatRGBA8Unorm_sRGB:
+    case MTLPixelFormatRGB10A2Uint:
+    case MTLPixelFormatRGB10A2Unorm:
       return 4;
 
     case MTLPixelFormatRG11B10Float:
@@ -212,17 +285,21 @@ int get_mtl_format_num_components(MTLPixelFormat tex_format)
     case MTLPixelFormatRG16Sint:
     case MTLPixelFormatRG16Float:
     case MTLPixelFormatDepth32Float_Stencil8:
+    case MTLPixelFormatRG16Snorm:
+    case MTLPixelFormatRG16Unorm:
       return 2;
 
     case MTLPixelFormatR8Uint:
     case MTLPixelFormatR8Sint:
     case MTLPixelFormatR8Unorm:
+    case MTLPixelFormatR8Snorm:
     case MTLPixelFormatR32Uint:
     case MTLPixelFormatR32Sint:
     case MTLPixelFormatR32Float:
     case MTLPixelFormatR16Uint:
     case MTLPixelFormatR16Sint:
     case MTLPixelFormatR16Float:
+    case MTLPixelFormatR16Unorm:
     case MTLPixelFormatR16Snorm:
     case MTLPixelFormatDepth32Float:
     case MTLPixelFormatDepth16Unorm:
@@ -342,9 +419,13 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_update_impl(
                                                          options:options
                                                            error:&error] autorelease];
     if (error) {
-      NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
-      BLI_assert(false);
-      return nullptr;
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
     }
 
     /* Fetch compute function. */
@@ -485,7 +566,7 @@ void gpu::MTLTexture::update_sub_depth_2d(
                   GPU_DEPTH_COMPONENT16,
                   GPU_DEPTH24_STENCIL8,
                   GPU_DEPTH32F_STENCIL8));
-  BLI_assert(validate_data_format_mtl(format_, type));
+  BLI_assert(validate_data_format(format_, type));
   BLI_assert(ELEM(type, GPU_DATA_FLOAT, GPU_DATA_UINT_24_8, GPU_DATA_UINT));
 
   /* Determine whether we are in GPU_DATA_UINT_24_8 or GPU_DATA_FLOAT mode. */
@@ -513,16 +594,16 @@ void gpu::MTLTexture::update_sub_depth_2d(
   }
 
   /* Push contents into an r32_tex and render contents to depth using a shader. */
-  GPUTexture *r32_tex_tmp = GPU_texture_create_2d_ex("depth_intermediate_copy_tex",
-                                                     w_,
-                                                     h_,
-                                                     1,
-                                                     format,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ |
-                                                         GPU_TEXTURE_USAGE_ATTACHMENT,
-                                                     nullptr);
+  GPUTexture *r32_tex_tmp = GPU_texture_create_2d("depth_intermediate_copy_tex",
+                                                  w_,
+                                                  h_,
+                                                  1,
+                                                  format,
+                                                  GPU_TEXTURE_USAGE_SHADER_READ |
+                                                      GPU_TEXTURE_USAGE_ATTACHMENT,
+                                                  nullptr);
   GPU_texture_filter_mode(r32_tex_tmp, false);
-  GPU_texture_wrap_mode(r32_tex_tmp, false, true);
+  GPU_texture_extend_mode(r32_tex_tmp, GPU_SAMPLER_EXTEND_MODE_EXTEND);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(unwrap(r32_tex_tmp));
   mtl_tex->update_sub(mip, offset, extent, type, data);
 
@@ -658,9 +739,13 @@ id<MTLComputePipelineState> gpu::MTLTexture::mtl_texture_read_impl(
                                                          options:options
                                                            error:&error] autorelease];
     if (error) {
-      NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
-      BLI_assert(false);
-      return nil;
+      /* Only exit out if genuine error and not warning. */
+      if ([[error localizedDescription] rangeOfString:@"Compilation succeeded"].location ==
+          NSNotFound) {
+        NSLog(@"Compile Error - Metal Shader Library error %@ ", error);
+        BLI_assert(false);
+        return nil;
+      }
     }
 
     /* Fetch compute function. */

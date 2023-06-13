@@ -1,10 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 /** \file
  * \ingroup bke
  */
+
+#ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,7 +21,7 @@ struct CustomData_MeshMasks;
 struct MemArena;
 struct Mesh;
 
-/* Generic ways to map some geometry elements from a source mesh to a dest one. */
+/* Generic ways to map some geometry elements from a source mesh to a destination one. */
 
 typedef struct MeshPairRemapItem {
   int sources_num;
@@ -29,7 +35,7 @@ typedef struct MeshPairRemapItem {
 /* All mapping computing func return this. */
 typedef struct MeshPairRemap {
   int items_num;
-  MeshPairRemapItem *items; /* array, one item per dest element. */
+  MeshPairRemapItem *items; /* Array, one item per destination element. */
 
   struct MemArena *mem; /* memory arena, internal use only. */
 } MeshPairRemap;
@@ -45,7 +51,7 @@ void BKE_mesh_remap_item_define_invalid(MeshPairRemap *map, int index);
  * https://blenderartists.org/t/619105
  *
  * We could also use similar topology mappings inside a same mesh
- * (cf. Campbell's 'select face islands from similar topology' wip work).
+ * (cf. Campbell's 'select face islands from similar topology' WIP work).
  * Also, users will have to check, whether we can get rid of some modes here,
  * not sure all will be useful!
  */
@@ -85,7 +91,7 @@ enum {
   /* ***** Target's edges ***** */
   MREMAP_MODE_EDGE = 1 << 25,
 
-  /* Source edge which both vertices are nearest of dest ones. */
+  /* Source edge which both vertices are nearest of destination ones. */
   MREMAP_MODE_EDGE_VERT_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_VERT | MREMAP_USE_NEAREST,
 
   /* Nearest source edge (using mid-point). */
@@ -94,7 +100,7 @@ enum {
   /* Nearest edge of nearest poly (using mid-point). */
   MREMAP_MODE_EDGE_POLY_NEAREST = MREMAP_MODE_EDGE | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
 
-  /* Cast a set of rays from along dest edge,
+  /* Cast a set of rays from along destination edge,
    * interpolating its vertices' normals, and use hit source edges. */
   MREMAP_MODE_EDGE_EDGEINTERP_VNORPROJ = MREMAP_MODE_EDGE | MREMAP_USE_VERT | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
@@ -127,10 +133,10 @@ enum {
 
   /* Nearest source poly. */
   MREMAP_MODE_POLY_NEAREST = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NEAREST,
-  /* Source poly from best normal-matching dest poly. */
+  /* Source poly from best normal-matching destination poly. */
   MREMAP_MODE_POLY_NOR = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORMAL,
 
-  /* Project dest poly onto source mesh using its normal,
+  /* Project destination poly onto source mesh using its normal,
    * and use interpolation of all intersecting source polys. */
   MREMAP_MODE_POLY_POLYINTERP_PNORPROJ = MREMAP_MODE_POLY | MREMAP_USE_POLY | MREMAP_USE_NORPROJ |
                                          MREMAP_USE_INTERP,
@@ -159,14 +165,14 @@ void BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
 float BKE_mesh_remap_calc_difference_from_mesh(const struct SpaceTransform *space_transform,
                                                const float (*vert_positions_dst)[3],
                                                int numverts_dst,
-                                               struct Mesh *me_src);
+                                               const struct Mesh *me_src);
 
 /**
  * Set r_space_transform so that best bbox of dst matches best bbox of src.
  */
 void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[3],
                                               int numverts_dst,
-                                              struct Mesh *me_src,
+                                              const struct Mesh *me_src,
                                               struct SpaceTransform *r_space_transform);
 
 void BKE_mesh_remap_calc_verts_from_mesh(int mode,
@@ -176,9 +182,15 @@ void BKE_mesh_remap_calc_verts_from_mesh(int mode,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
                                          bool dirty_nors_dst,
-                                         struct Mesh *me_src,
+                                         const struct Mesh *me_src,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
 
 void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          const struct SpaceTransform *space_transform,
@@ -186,10 +198,10 @@ void BKE_mesh_remap_calc_edges_from_mesh(int mode,
                                          float ray_radius,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
-                                         const struct MEdge *edges_dst,
+                                         const blender::int2 *edges_dst,
                                          int numedges_dst,
                                          bool dirty_nors_dst,
-                                         struct Mesh *me_src,
+                                         const struct Mesh *me_src,
                                          struct Mesh *me_dst,
                                          MeshPairRemap *r_map);
 
@@ -200,17 +212,17 @@ void BKE_mesh_remap_calc_loops_from_mesh(int mode,
                                          struct Mesh *mesh_dst,
                                          const float (*vert_positions_dst)[3],
                                          int numverts_dst,
-                                         const struct MEdge *edges_dst,
+                                         const blender::int2 *edges_dst,
                                          int numedges_dst,
-                                         const struct MLoop *loops_dst,
+                                         const int *corner_verts_dst,
+                                         const int *corner_edges_dst,
                                          int numloops_dst,
-                                         const struct MPoly *polys_dst,
-                                         int numpolys_dst,
+                                         const blender::OffsetIndices<int> polys_dst,
                                          struct CustomData *ldata_dst,
                                          bool use_split_nors_dst,
                                          float split_angle_dst,
                                          bool dirty_nors_dst,
-                                         struct Mesh *me_src,
+                                         const struct Mesh *me_src,
                                          MeshRemapIslandsCalc gen_islands_src,
                                          float islands_precision_src,
                                          struct MeshPairRemap *r_map);
@@ -221,12 +233,10 @@ void BKE_mesh_remap_calc_polys_from_mesh(int mode,
                                          float ray_radius,
                                          const struct Mesh *mesh_dst,
                                          const float (*vert_positions_dst)[3],
-                                         const struct MLoop *loops_dst,
-                                         const struct MPoly *polys_dst,
-                                         int numpolys_dst,
-                                         struct Mesh *me_src,
+                                         int numverts_dst,
+                                         const int *corner_verts,
+                                         const blender::OffsetIndices<int> polys_dst,
+                                         const struct Mesh *me_src,
                                          struct MeshPairRemap *r_map);
 
-#ifdef __cplusplus
-}
 #endif

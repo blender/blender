@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -52,6 +53,8 @@ struct Render {
    * write lock, all external code must use a read lock. internal code is assumed
    * to not conflict with writes, so no lock used for that */
   ThreadRWMutex resultmutex;
+  /* True if result has GPU textures, to quickly skip cache clear. */
+  bool result_has_gpu_texture_caches;
 
   /* Guard for drawing render result using engine's `draw()` callback. */
   ThreadMutex engine_draw_mutex;
@@ -113,14 +116,18 @@ struct Render {
 
   RenderStats i;
 
+  /**
+   * Optional report list which may be null (borrowed memory).
+   * Callers to rendering functions are responsible for setting can clearing, see: #RE_SetReports.
+   */
   struct ReportList *reports;
 
   void **movie_ctx_arr;
   char viewname[MAX_NAME];
 
   /* TODO: replace by a whole draw manager. */
-  void *gl_context;
-  void *gpu_context;
+  void *system_gpu_context;
+  void *blender_gpu_context;
 };
 
 /* **************** defines ********************* */

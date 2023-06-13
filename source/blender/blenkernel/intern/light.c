@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -137,8 +138,13 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Node-tree is integral part of lights, no libdata. */
   if (la->nodetree) {
-    BLO_write_struct(writer, bNodeTree, la->nodetree);
-    ntreeBlendWrite(writer, la->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &la->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(
+        writer, bNodeTree, la->nodetree, BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(writer, (bNodeTree *)BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, la->preview);
@@ -162,7 +168,7 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 static void light_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Light *la = (Light *)id;
-  BLO_read_id_address(reader, la->id.lib, &la->ipo);  // XXX deprecated - old animation system
+  BLO_read_id_address(reader, id, &la->ipo);  // XXX deprecated - old animation system
 }
 
 static void light_blend_read_expand(BlendExpander *expander, ID *id)
@@ -210,7 +216,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
   return la;
 }
 
-void BKE_light_eval(struct Depsgraph *depsgraph, Light *la)
+void BKE_light_eval(Depsgraph *depsgraph, Light *la)
 {
   DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);
 }

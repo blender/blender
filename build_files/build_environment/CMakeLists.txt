@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 ##################################################################################################
@@ -78,12 +80,7 @@ include(cmake/tbb.cmake)
 include(cmake/python.cmake)
 include(cmake/llvm.cmake)
 include(cmake/osl.cmake)
-option(USE_PIP_NUMPY "Install NumPy using pip wheel instead of building from source" OFF)
-if(APPLE AND ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "x86_64"))
-  set(USE_PIP_NUMPY ON)
-else()
-  include(cmake/numpy.cmake)
-endif()
+include(cmake/numpy.cmake)
 include(cmake/python_site_packages.cmake)
 include(cmake/package_python.cmake)
 include(cmake/openimageio.cmake)
@@ -95,28 +92,26 @@ include(cmake/haru.cmake)
 # Boost needs to be included after `python.cmake` due to the PYTHON_BINARY variable being needed.
 include(cmake/boost.cmake)
 include(cmake/pugixml.cmake)
-include(cmake/ispc.cmake)
-include(cmake/openimagedenoise.cmake)
-include(cmake/embree.cmake)
-include(cmake/openpgl.cmake)
-include(cmake/fmt.cmake)
-include(cmake/robinmap.cmake)
-include(cmake/xml2.cmake)
-
 include(cmake/fribidi.cmake)
 include(cmake/harfbuzz.cmake)
 if(NOT APPLE)
   include(cmake/xr_openxr.cmake)
-  if(NOT WIN32 OR BUILD_MODE STREQUAL Release)
-    include(cmake/dpcpp.cmake)
-    include(cmake/dpcpp_deps.cmake)
-  endif()
+  include(cmake/dpcpp.cmake)
+  include(cmake/dpcpp_deps.cmake)
   if(NOT WIN32)
     include(cmake/igc.cmake)
     include(cmake/gmmlib.cmake)
     include(cmake/ocloc.cmake)
   endif()
 endif()
+include(cmake/ispc.cmake)
+include(cmake/openimagedenoise.cmake)
+# Embree needs to be included after dpcpp as it uses it for compiling with GPU support
+include(cmake/embree.cmake)
+include(cmake/openpgl.cmake)
+include(cmake/fmt.cmake)
+include(cmake/robinmap.cmake)
+include(cmake/xml2.cmake)
 
 # OpenColorIO and dependencies.
 include(cmake/expat.cmake)

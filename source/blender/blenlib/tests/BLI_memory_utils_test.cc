@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_utils.hh"
@@ -12,9 +14,7 @@ class TestBaseClass {
 };
 
 class TestChildClass : public TestBaseClass {
-  void mymethod() override
-  {
-  }
+  void mymethod() override {}
 };
 
 static_assert(is_convertible_pointer_v<int *, int *>);

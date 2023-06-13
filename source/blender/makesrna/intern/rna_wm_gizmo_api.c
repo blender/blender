@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -40,12 +42,6 @@ static void rna_gizmo_draw_preset_arrow(wmGizmo *gz, float matrix[16], int axis,
 static void rna_gizmo_draw_preset_circle(wmGizmo *gz, float matrix[16], int axis, int select_id)
 {
   ED_gizmo_draw_preset_circle(gz, (float(*)[4])matrix, axis, select_id);
-}
-
-static void rna_gizmo_draw_preset_facemap(
-    wmGizmo *gz, struct bContext *C, struct Object *ob, int facemap, int select_id)
-{
-  ED_gizmo_draw_preset_facemap(C, gz, ob, facemap, select_id);
 }
 
 /* -------------------------------------------------------------------- */
@@ -258,24 +254,6 @@ void RNA_api_gizmo(StructRNA *srna)
 
   /* -------------------------------------------------------------------- */
   /* Other Shapes */
-
-  /* draw_preset_facemap */
-  func = RNA_def_function(srna, "draw_preset_facemap", "rna_gizmo_draw_preset_facemap");
-  RNA_def_function_ui_description(func, "Draw the face-map of a mesh object");
-  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-  parm = RNA_def_pointer(func, "object", "Object", "", "Object");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_int(func, "face_map", 0, 0, INT_MAX, "Face map index", "", 0, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_int(func,
-              "select_id",
-              -1,
-              -1,
-              INT_MAX,
-              "ID to use when gizmo is selectable.  Use -1 when not selecting",
-              "",
-              -1,
-              INT_MAX);
 
   /* -------------------------------------------------------------------- */
   /* Property API */

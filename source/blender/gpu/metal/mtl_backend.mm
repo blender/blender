@@ -16,6 +16,7 @@
 #include "mtl_index_buffer.hh"
 #include "mtl_query.hh"
 #include "mtl_shader.hh"
+#include "mtl_storage_buffer.hh"
 #include "mtl_uniform_buffer.hh"
 #include "mtl_vertex_buffer.hh"
 
@@ -100,8 +101,7 @@ UniformBuf *MTLBackend::uniformbuf_alloc(int size, const char *name)
 
 StorageBuf *MTLBackend::storagebuf_alloc(int size, GPUUsageType usage, const char *name)
 {
-  /* TODO(Metal): Implement MTLStorageBuf. */
-  return nullptr;
+  return new MTLStorageBuf(size, usage, name);
 }
 
 VertBuf *MTLBackend::vertbuf_alloc()
@@ -189,7 +189,9 @@ void MTLBackend::platform_init(MTLContext *ctx)
   const char *vendor = [gpu_name UTF8String];
   const char *renderer = "Metal API";
   const char *version = "1.2";
-  printf("METAL API - DETECTED GPU: %s\n", vendor);
+  if (G.debug & G_DEBUG_GPU) {
+    printf("METAL API - DETECTED GPU: %s\n", vendor);
+  }
 
   /* macOS is the only supported platform, but check to ensure we are not building with Metal
    * enablement on another platform. */
@@ -229,7 +231,7 @@ void MTLBackend::platform_init(MTLContext *ctx)
     device = GPU_DEVICE_SOFTWARE;
     driver = GPU_DRIVER_SOFTWARE;
   }
-  else {
+  else if (G.debug & G_DEBUG_GPU) {
     printf("Warning: Could not find a matching GPU name. Things may not behave as expected.\n");
     printf("Detected configuration:\n");
     printf("Vendor: %s\n", vendor);
@@ -325,19 +327,21 @@ bool MTLBackend::metal_is_supported()
     bool result = supports_argument_buffers_tier2 && supports_barycentrics &&
                   supported_os_version && supported_metal_version;
 
-    if (!supports_argument_buffers_tier2) {
-      printf("[Metal] Device does not support argument buffers tier 2\n");
-    }
-    if (!supports_barycentrics) {
-      printf("[Metal] Device does not support barycentrics coordinates\n");
-    }
-    if (!supported_metal_version) {
-      printf("[Metal] Device does not support metal 2.2 or higher\n");
-    }
+    if (G.debug & G_DEBUG_GPU) {
+      if (!supports_argument_buffers_tier2) {
+        printf("[Metal] Device does not support argument buffers tier 2\n");
+      }
+      if (!supports_barycentrics) {
+        printf("[Metal] Device does not support barycentrics coordinates\n");
+      }
+      if (!supported_metal_version) {
+        printf("[Metal] Device does not support metal 2.2 or higher\n");
+      }
 
-    if (result) {
-      printf("Device with name %s supports metal minimum requirements\n",
-             [[device name] UTF8String]);
+      if (result) {
+        printf("Device with name %s supports metal minimum requirements\n",
+               [[device name] UTF8String]);
+      }
     }
 
     return result;
@@ -398,16 +402,15 @@ void MTLBackend::capabilities_init(MTLContext *ctx)
   GCaps.shader_image_load_store_support = ([device supportsFamily:MTLGPUFamilyApple3] ||
                                            MTLBackend::capabilities.supports_family_mac1 ||
                                            MTLBackend::capabilities.supports_family_mac2);
-  /* TODO(Metal): Add support? */
-  GCaps.shader_draw_parameters_support = false;
   GCaps.compute_shader_support = true;
+  GCaps.shader_storage_buffer_objects_support = true;
+  GCaps.shader_draw_parameters_support = true;
+
   GCaps.geometry_shader_support = false;
-  GCaps.shader_storage_buffer_objects_support =
-      false; /* TODO(Metal): implement Storage Buffer support. */
 
   /* Maximum buffer bindings: 31. Consider required slot for uniforms/UBOs/Vertex attributes.
    * Can use argument buffers if a higher limit is required. */
-  GCaps.max_shader_storage_buffer_bindings = 24;
+  GCaps.max_shader_storage_buffer_bindings = 14;
 
   if (GCaps.compute_shader_support) {
     GCaps.max_work_group_count[0] = 65535;
@@ -457,6 +460,18 @@ void MTLBackend::compute_dispatch(int groups_x_len, int groups_y_len, int groups
   BLI_assert(ctx != nullptr);
   if (ctx) {
     ctx->compute_dispatch(groups_x_len, groups_y_len, groups_z_len);
+  }
+}
+
+void MTLBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
+{
+  /* Fetch Context.
+   * With Metal, workload submission and resource management occurs within the context.
+   * Call compute dispatch on valid context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx != nullptr);
+  if (ctx) {
+    ctx->compute_dispatch_indirect(indirect_buf);
   }
 }
 

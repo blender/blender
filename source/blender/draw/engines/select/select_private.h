@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -40,6 +41,7 @@ typedef struct SELECTID_Shaders {
 
 typedef struct SELECTID_PrivateData {
   DRWShadingGroup *shgrp_depth_only;
+  DRWShadingGroup *shgrp_occlude;
   DRWShadingGroup *shgrp_face_unif;
   DRWShadingGroup *shgrp_face_flat;
   DRWShadingGroup *shgrp_edge;

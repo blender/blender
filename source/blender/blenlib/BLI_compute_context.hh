@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -56,6 +58,11 @@ struct ComputeContextHash {
   friend bool operator==(const ComputeContextHash &a, const ComputeContextHash &b)
   {
     return a.v1 == b.v1 && a.v2 == b.v2;
+  }
+
+  friend bool operator!=(const ComputeContextHash &a, const ComputeContextHash &b)
+  {
+    return !(a == b);
   }
 
   void mix_in(const void *data, int64_t len);

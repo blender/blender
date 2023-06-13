@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -79,7 +81,11 @@ void CavityEffect::setup_resolve_pass(PassSimple &pass, SceneResources &resource
 {
   if (cavity_enabled_) {
     pass.bind_ubo("cavity_samples", samples_buf);
-    pass.bind_texture("jitter_tx", &resources.jitter_tx, eGPUSamplerState::GPU_SAMPLER_REPEAT);
+    pass.bind_texture("jitter_tx",
+                      &resources.jitter_tx,
+                      {GPU_SAMPLER_FILTERING_DEFAULT,
+                       GPU_SAMPLER_EXTEND_MODE_REPEAT,
+                       GPU_SAMPLER_EXTEND_MODE_REPEAT});
   }
   if (curvature_enabled_) {
     pass.bind_texture("object_id_tx", &resources.object_id_tx);

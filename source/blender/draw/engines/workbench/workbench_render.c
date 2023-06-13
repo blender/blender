@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -28,9 +29,9 @@
 #include "workbench_private.h"
 
 static void workbench_render_cache(void *vedata,
-                                   struct Object *ob,
-                                   struct RenderEngine *UNUSED(engine),
-                                   struct Depsgraph *UNUSED(depsgraph))
+                                   Object *ob,
+                                   RenderEngine *UNUSED(engine),
+                                   Depsgraph *UNUSED(depsgraph))
 {
   workbench_cache_populate(vedata, ob);
 }
@@ -38,7 +39,7 @@ static void workbench_render_cache(void *vedata,
 static void workbench_render_matrices_init(RenderEngine *engine, Depsgraph *depsgraph)
 {
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 
   /* Set the perspective, view and window matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
@@ -66,9 +67,8 @@ static bool workbench_render_framebuffers_init(void)
   if (dtxl->color == NULL) {
     eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     BLI_assert(dtxl->depth == NULL);
-    dtxl->color = GPU_texture_create_2d_ex(
-        "txl.color", UNPACK2(size), 1, GPU_RGBA16F, usage, NULL);
-    dtxl->depth = GPU_texture_create_2d_ex(
+    dtxl->color = GPU_texture_create_2d("txl.color", UNPACK2(size), 1, GPU_RGBA16F, usage, NULL);
+    dtxl->depth = GPU_texture_create_2d(
         "txl.depth", UNPACK2(size), 1, GPU_DEPTH24_STENCIL8, usage, NULL);
   }
 
@@ -96,9 +96,7 @@ static bool workbench_render_framebuffers_init(void)
   return ok;
 }
 
-static void workbench_render_result_z(struct RenderLayer *rl,
-                                      const char *viewname,
-                                      const rcti *rect)
+static void workbench_render_result_z(RenderLayer *rl, const char *viewname, const rcti *rect)
 {
   DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -106,6 +104,7 @@ static void workbench_render_result_z(struct RenderLayer *rl,
 
   if ((view_layer->passflag & SCE_PASS_Z) != 0) {
     RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
+    float *rp_buffer_data = rp->buffer.data;
 
     GPU_framebuffer_bind(dfbl->default_fb);
     GPU_framebuffer_read_depth(dfbl->default_fb,
@@ -114,22 +113,22 @@ static void workbench_render_result_z(struct RenderLayer *rl,
                                BLI_rcti_size_x(rect),
                                BLI_rcti_size_y(rect),
                                GPU_DATA_FLOAT,
-                               rp->rect);
+                               rp_buffer_data);
 
     float winmat[4][4];
     DRW_view_winmat_get(NULL, winmat, false);
 
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
-    /* Convert ogl depth [0..1] to view Z [near..far] */
+    /* Convert GPU depth [0..1] to view Z [near..far] */
     if (DRW_view_is_persp_get(NULL)) {
       for (int i = 0; i < pix_num; i++) {
-        if (rp->rect[i] == 1.0f) {
-          rp->rect[i] = 1e10f; /* Background */
+        if (rp_buffer_data[i] == 1.0f) {
+          rp_buffer_data[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = rp->rect[i] * 2.0f - 1.0f;
-          rp->rect[i] = winmat[3][2] / (rp->rect[i] + winmat[2][2]);
+          rp_buffer_data[i] = rp_buffer_data[i] * 2.0f - 1.0f;
+          rp_buffer_data[i] = winmat[3][2] / (rp_buffer_data[i] + winmat[2][2]);
         }
       }
     }
@@ -140,11 +139,11 @@ static void workbench_render_result_z(struct RenderLayer *rl,
       float range = fabsf(far - near);
 
       for (int i = 0; i < pix_num; i++) {
-        if (rp->rect[i] == 1.0f) {
-          rp->rect[i] = 1e10f; /* Background */
+        if (rp_buffer_data[i] == 1.0f) {
+          rp_buffer_data[i] = 1e10f; /* Background */
         }
         else {
-          rp->rect[i] = rp->rect[i] * range - near;
+          rp_buffer_data[i] = rp_buffer_data[i] * range - near;
         }
       }
     }
@@ -209,7 +208,7 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
                              4,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->rect);
+                             rp->buffer.data);
 
   workbench_render_result_z(render_layer, viewname, rect);
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -22,7 +23,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -92,7 +93,7 @@ void ED_pose_bone_select_tag_update(Object *ob)
   DEG_id_tag_update(&arm->id, ID_RECALC_SELECT);
 }
 
-void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
+void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select, bool change_active)
 {
   bArmature *arm;
 
@@ -109,11 +110,15 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
     /* change selection state - activate too if selected */
     if (select) {
       pchan->bone->flag |= BONE_SELECTED;
-      arm->act_bone = pchan->bone;
+      if (change_active) {
+        arm->act_bone = pchan->bone;
+      }
     }
     else {
       pchan->bone->flag &= ~BONE_SELECTED;
-      arm->act_bone = NULL;
+      if (change_active) {
+        arm->act_bone = NULL;
+      }
     }
 
     /* TODO: select and activate corresponding vgroup? */
@@ -278,7 +283,7 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
   Object *ob_active = BKE_view_layer_active_object_get(view_layer);
   BLI_assert(ob_active && (ob_active->mode & OB_MODE_ALL_WEIGHT_PAINT));
 
-  if (ob_active->type == OB_GPENCIL) {
+  if (ob_active->type == OB_GPENCIL_LEGACY) {
     GpencilVirtualModifierData virtualModifierData;
     GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(ob_active,
                                                                              &virtualModifierData);
@@ -288,8 +293,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         Object *ob_arm = agmd->object;
         if (ob_arm != NULL) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
-          if ((base_arm != NULL) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+          if ((base_arm != NULL) && (base_arm != base_select) && (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }
@@ -305,8 +310,8 @@ void ED_armature_pose_select_in_wpaint_mode(const Scene *scene,
         Object *ob_arm = amd->object;
         if (ob_arm != NULL) {
           Base *base_arm = BKE_view_layer_base_find(view_layer, ob_arm);
-          if ((base_arm != NULL) && (base_arm != base_select) &&
-              (base_arm->flag & BASE_SELECTED)) {
+          if ((base_arm != NULL) && (base_arm != base_select) && (base_arm->flag & BASE_SELECTED))
+          {
             ED_object_base_select(base_arm, BA_DESELECT);
           }
         }
@@ -696,7 +701,8 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 
             /* Any armature that is also in pose mode should be selected. */
             if ((ct->subtarget[0] != '\0') && (ob != NULL) && (ob->type == OB_ARMATURE) &&
-                (ob->mode == OB_MODE_POSE)) {
+                (ob->mode == OB_MODE_POSE))
+            {
               bPoseChannel *pchanc = BKE_pose_channel_find_name(ob->pose, ct->subtarget);
               if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
                 pchanc->bone->flag |= BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
@@ -1237,7 +1243,8 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
         int flag_new = extend ? PBONE_PREV_FLAG_GET(pchan) : 0;
 
         if ((pchan_mirror = BKE_pose_channel_get_mirrored(ob->pose, pchan->name)) &&
-            PBONE_VISIBLE(arm, pchan_mirror->bone)) {
+            PBONE_VISIBLE(arm, pchan_mirror->bone))
+        {
           const int flag_mirror = PBONE_PREV_FLAG_GET(pchan_mirror);
           flag_new |= flag_mirror;
 

@@ -1,3 +1,5 @@
+#!/bin/sh
+
 # Disable ALSA and OSS as they are not available, and trying to initialize them
 # breaks sound in other apps. Use PulseAudio instead.
 export ALSOFT_DRIVERS=-oss,-alsa,

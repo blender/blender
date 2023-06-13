@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -163,9 +165,7 @@ class VectorSet {
   {
   }
 
-  VectorSet(NoExceptConstructor, Allocator allocator = {}) : VectorSet(allocator)
-  {
-  }
+  VectorSet(NoExceptConstructor, Allocator allocator = {}) : VectorSet(allocator) {}
 
   VectorSet(Span<Key> keys, Allocator allocator = {}) : VectorSet(NoExceptConstructor(), allocator)
   {
@@ -349,13 +349,14 @@ class VectorSet {
   }
 
   /**
-   * Remove all values for which the given predicate is true. This may change the order of elements
-   * in the vector.
+   * Remove all values for which the given predicate is true and return the number or values
+   * removed. This may change the order of elements in the vector.
    *
    * This is similar to std::erase_if.
    */
-  template<typename Predicate> void remove_if(Predicate &&predicate)
+  template<typename Predicate> int64_t remove_if(Predicate &&predicate)
   {
+    const int64_t prev_size = this->size();
     for (Slot &slot : slots_) {
       if (slot.is_occupied()) {
         const int64_t index = slot.index();
@@ -365,6 +366,7 @@ class VectorSet {
         }
       }
     }
+    return prev_size - this->size();
   }
 
   /**

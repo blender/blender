@@ -7,6 +7,10 @@
  * and texture2d types in metal).
  */
 
+/* Suppress unhelpful shader compiler warnings. */
+#pragma clang diagnostic ignored "-Wunused-variable"
+#pragma clang diagnostic ignored "-Wcomment"
+
 /* Base instance with offsets. */
 #define gpu_BaseInstance gl_BaseInstanceARB
 #define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)
@@ -30,6 +34,7 @@ using mat4x3 = float4x3;
 using mat4x4 = float4x4;
 using mat2 = float2x2;
 using mat3 = float3x3;
+using mat3x4 = float3x4;
 using mat4 = float4x4;
 using ivec2 = int2;
 using ivec3 = int3;
@@ -61,7 +66,7 @@ using uvec4 = uint4;
 
 /* Compute decorators. */
 #define TG threadgroup
-#define barrier() threadgroup_barrier(mem_flags::mem_threadgroup)
+#define barrier() threadgroup_barrier(mem_flags::mem_threadgroup | mem_flags::mem_device | mem_flags::mem_texture)
 
 #ifdef MTL_USE_WORKGROUP_SIZE
 /* Compute workgroup size. */
@@ -79,9 +84,7 @@ struct constexp_uvec3 {
     uint3 xyz;
   };
 
-  constexpr constexp_uvec3(uint _x, uint _y, uint _z) : x(_x), y(_y), z(_z)
-  {
-  }
+  constexpr constexp_uvec3(uint _x, uint _y, uint _z) : x(_x), y(_y), z(_z) {}
   constexpr uint operator[](int i)
   {
     /* Note: Need to switch on each elem value as array accessor triggers
@@ -97,9 +100,17 @@ struct constexp_uvec3 {
         return 0;
     }
   }
-  inline operator uint3() const
+  constexpr inline operator uint3() const
   {
     return xyz;
+  }
+  constexpr inline operator uint2() const
+  {
+    return xy;
+  }
+  constexpr inline operator uint() const
+  {
+    return x;
   }
 };
 
@@ -136,6 +147,10 @@ template<typename T> T atomicSub(threadgroup T &mem, T data)
 {
   return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicAnd(threadgroup T &mem, T data)
+{
+  return atomic_fetch_and_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
 template<typename T> T atomicOr(threadgroup T &mem, T data)
 {
   return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
@@ -144,32 +159,53 @@ template<typename T> T atomicXor(threadgroup T &mem, T data)
 {
   return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicExchange(threadgroup T &mem, T data)
+{
+  return atomic_exchange_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+}
 
 /* Device memory. */
 template<typename T> T atomicMax(device T &mem, T data)
 {
-  return atomic_fetch_max_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_max_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicMin(device T &mem, T data)
 {
-  return atomic_fetch_min_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_min_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicAdd(device T &mem, T data)
 {
-  return atomic_fetch_add_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_add_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicSub(device T &mem, T data)
 {
-  return atomic_fetch_sub_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_sub_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+template<typename T> T atomicAnd(device T &mem, T data)
+{
+  return atomic_fetch_and_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicOr(device T &mem, T data)
 {
-  return atomic_fetch_or_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_or_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
 template<typename T> T atomicXor(device T &mem, T data)
 {
-  return atomic_fetch_xor_explicit((threadgroup _atomic<T> *)&mem, data, memory_order_relaxed);
+  return atomic_fetch_xor_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
 }
+template<typename T> T atomicExchange(device T &mem, T data)
+{
+  return atomic_exchange_explicit((device _atomic<T> *)&mem, data, memory_order_relaxed);
+}
+
+/* Unblock texture atomic compilation.
+ * TODO(Metal): This is not correct for global atomic behaviour, but will be safe within a single
+ * thread.
+ * We need to re-visit the solution for this use-case and use a 2D texture buffer instead. */
+#define imageAtomicMin(tex, coord, data) \
+  uint val = _texelFetch_internal(tex, coord, 0).r; \
+  _texture_write_internal(tex, coord, uint4((val < data) ? val : data)); \
+  tex.texture->fence();
 
 /* Used to replace 'out' in function parameters with threadlocal reference
  * shortened to avoid expanding the glsl source string. */
@@ -266,6 +302,8 @@ struct SStruct {
 #define textureGather3(__tex, __uv, __comp) _texture_gather_internal(__tex, __uv, __comp)
 #define textureGatherOffset(__tex, __offset, __uv, __comp) \
   _texture_gather_internal(__tex, __uv, __comp, __offset)
+#define textureGrad(__tex, __uv, __dpdx, __dpdy) \
+  _texture_grad_internal(__tex, __uv, __dpdx, __dpdy)
 
 #define TEXURE_MACRO(_1, _2, _3, TEXNAME, ...) TEXNAME
 #define texture(...) TEXURE_MACRO(__VA_ARGS__, texture3, texture2)(__VA_ARGS__)
@@ -821,6 +859,34 @@ inline vec<T, 4> _texture_gather_internal(
   return tex.texture->gather(*tex.samp, uva.xy, uint(uva.z), offset);
 }
 
+/* Texture Grad. */
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_2d<float, access::sample> tex,
+    float2 uv,
+    float2 dpdx,
+    float2 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uv, gradient2d(dpdx, dpdy));
+}
+
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_2d_array<float, access::sample> tex,
+    float3 uva,
+    float2 dpdx,
+    float2 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uva.xy, uint(uva.z), gradient2d(dpdx, dpdy));
+}
+
+inline float4 _texture_grad_internal(
+    thread _mtl_combined_image_sampler_3d<float, access::sample> tex,
+    float3 uvw,
+    float3 dpdx,
+    float3 dpdy)
+{
+  return tex.texture->sample(*tex.samp, uvw, gradient3d(dpdx, dpdy));
+}
+
 /* Texture write support. */
 template<typename S, typename T, access A>
 inline void _texture_write_internal(thread _mtl_combined_image_sampler_1d<S, A> tex,
@@ -1122,6 +1188,26 @@ inline float4 uintBitsToFloat(uint4 f)
   return as_type<float4>(f);
 }
 
+#define bitfieldReverse reverse_bits
+#define bitfieldExtract extract_bits
+#define bitfieldInsert insert_bits
+#define bitCount popcount
+
+template<typename T> T findLSB(T x)
+{
+  /* ctz returns the number of trailing zeroes. To fetch the index of the LSB, we can also use this
+   * value as index, however we need to filter out the case where the input value is zero to match
+   * GLSL functionality. */
+  return (x == T(0)) ? T(-1) : T(ctz(x));
+}
+
+template<typename T> T findMSB(T x)
+{
+  /* clz returns the number of leading zeroes. To fetch the index of the MSB, we can also use this
+   * value as index when offset by 1. */
+  return (sizeof(T) * 8) - T(1) - clz(x);
+}
+
 /* Texture size functions. Add texture types as needed. */
 #define imageSize(image) textureSize(image, 0)
 
@@ -1368,7 +1454,7 @@ template<typename T> T mix(T a, T b, MTLBOOL mask)
   return (mask) ? b : a;
 }
 
-template<typename T, unsigned int Size> bool is_zero(vec<T, Size> a)
+template<typename T, int Size> bool is_zero(vec<T, Size> a)
 {
   for (int i = 0; i < Size; i++) {
     if (a[i] != T(0)) {
@@ -1426,6 +1512,10 @@ mat3 MAT3x3(mat4 m)
 {
   return mat3(m[0].xyz, m[1].xyz, m[2].xyz);
 }
+mat3 MAT3x3(mat3x4 m)
+{
+  return mat3(m[0].xyz, m[1].xyz, m[2].xyz);
+}
 mat3 MAT3x3(mat2 m)
 {
   return mat3(vec3(m[0].xy, 0.0), vec3(m[1].xy, 0.0), vec3(0.0, 0.0, 1.0));
@@ -1464,12 +1554,52 @@ mat4 MAT4x4(mat3 m)
   return mat4(
       vec4(m[0].xyz, 0.0), vec4(m[1].xyz, 0.0), vec4(m[2].xyz, 0.0), vec4(0.0, 0.0, 0.0, 1.0));
 }
+mat4 MAT4x4(mat3x4 m)
+{
+  return mat4(m[0], m[1], m[2], vec4(0.0, 0.0, 0.0, 1.0));
+}
 mat4 MAT4x4(mat2 m)
 {
   return mat4(vec4(m[0].xy, 0.0, 0.0),
               vec4(m[1].xy, 0.0, 0.0),
               vec4(0.0, 0.0, 1.0, 0.0),
               vec4(0.0, 0.0, 0.0, 1.0));
+}
+
+mat3x4 MAT3x4(vec4 a, vec4 b, vec4 c)
+{
+  return mat3x4(a, b, c);
+}
+mat3x4 MAT3x4(float a1,
+            float a2,
+            float a3,
+            float a4,
+            float b1,
+            float b2,
+            float b3,
+            float b4,
+            float c1,
+            float c2,
+            float c3,
+            float c4)
+{
+  return mat3x4(
+      vec4(a1, a2, a3, a4), vec4(b1, b2, b3, b4), vec4(c1, c2, c3, c4));
+}
+mat3x4 MAT3x4(float f)
+{
+  return mat3x4(f);
+}
+mat3x4 MAT3x4(mat3 m)
+{
+  return mat3x4(
+      vec4(m[0].xyz, 0.0), vec4(m[1].xyz, 0.0), vec4(m[2].xyz, 0.0));
+}
+mat3x4 MAT3x4(mat2 m)
+{
+  return mat3x4(vec4(m[0].xy, 0.0, 0.0),
+                vec4(m[1].xy, 0.0, 0.0),
+                vec4(0.0, 0.0, 1.0, 0.0));
 }
 
 #define MAT2 MAT2x2

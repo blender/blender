@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -107,12 +109,12 @@ static void verttag_add_adjacent_uv(HeapSimple *heap,
   }
 }
 
-struct LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
-                                           BMLoop *l_src,
-                                           BMLoop *l_dst,
-                                           const struct BMCalcPathUVParams *params,
-                                           bool (*filter_fn)(BMLoop *, void *),
-                                           void *user_data)
+LinkNode *BM_mesh_calc_path_uv_vert(BMesh *bm,
+                                    BMLoop *l_src,
+                                    BMLoop *l_dst,
+                                    const struct BMCalcPathUVParams *params,
+                                    bool (*filter_fn)(BMLoop *, void *),
+                                    void *user_data)
 {
   LinkNode *path = NULL;
   /* BM_ELEM_TAG flag is used to store visited edges */
@@ -312,12 +314,12 @@ static void edgetag_add_adjacent_uv(HeapSimple *heap,
   }
 }
 
-struct LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
-                                           BMLoop *l_src,
-                                           BMLoop *l_dst,
-                                           const struct BMCalcPathUVParams *params,
-                                           bool (*filter_fn)(BMLoop *, void *),
-                                           void *user_data)
+LinkNode *BM_mesh_calc_path_uv_edge(BMesh *bm,
+                                    BMLoop *l_src,
+                                    BMLoop *l_dst,
+                                    const struct BMCalcPathUVParams *params,
+                                    bool (*filter_fn)(BMLoop *, void *),
+                                    void *user_data)
 {
   LinkNode *path = NULL;
 
@@ -534,12 +536,12 @@ static void facetag_add_adjacent_uv(HeapSimple *heap,
   }
 }
 
-struct LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
-                                           BMFace *f_src,
-                                           BMFace *f_dst,
-                                           const struct BMCalcPathUVParams *params,
-                                           bool (*filter_fn)(BMFace *, void *),
-                                           void *user_data)
+LinkNode *BM_mesh_calc_path_uv_face(BMesh *bm,
+                                    BMFace *f_src,
+                                    BMFace *f_dst,
+                                    const struct BMCalcPathUVParams *params,
+                                    bool (*filter_fn)(BMFace *, void *),
+                                    void *user_data)
 {
   const float aspect_v2[2] = {1.0f, 1.0f / params->aspect_y};
   LinkNode *path = NULL;

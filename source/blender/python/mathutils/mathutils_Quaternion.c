@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -54,7 +56,8 @@ static void quat__axis_angle_sanitize(float axis[3], float *angle)
       axis[2] = 0.0f;
     }
     else if (EXPP_FloatsAreEqual(axis[0], 0.0f, 10) && EXPP_FloatsAreEqual(axis[1], 0.0f, 10) &&
-             EXPP_FloatsAreEqual(axis[2], 0.0f, 10)) {
+             EXPP_FloatsAreEqual(axis[2], 0.0f, 10))
+    {
       axis[0] = 1.0f;
     }
   }
@@ -120,8 +123,8 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
     case 1: {
       int size;
 
-      if ((size = mathutils_array_parse(quat, 3, QUAT_SIZE, seq, "mathutils.Quaternion()")) ==
-          -1) {
+      if ((size = mathutils_array_parse(quat, 3, QUAT_SIZE, seq, "mathutils.Quaternion()")) == -1)
+      {
         return NULL;
       }
 
@@ -387,7 +390,8 @@ static PyObject *Quaternion_cross(QuaternionObject *self, PyObject *value)
 
   if (mathutils_array_parse(
           tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.cross(other), invalid 'other' arg") ==
-      -1) {
+      -1)
+  {
     return NULL;
   }
 
@@ -419,8 +423,8 @@ static PyObject *Quaternion_dot(QuaternionObject *self, PyObject *value)
   }
 
   if (mathutils_array_parse(
-          tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.dot(other), invalid 'other' arg") ==
-      -1) {
+          tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.dot(other), invalid 'other' arg") == -1)
+  {
     return NULL;
   }
 
@@ -454,7 +458,8 @@ static PyObject *Quaternion_rotation_difference(QuaternionObject *self, PyObject
                             QUAT_SIZE,
                             QUAT_SIZE,
                             value,
-                            "Quaternion.rotation_difference(other), invalid 'other' arg") == -1) {
+                            "Quaternion.rotation_difference(other), invalid 'other' arg") == -1)
+  {
     return NULL;
   }
 
@@ -498,7 +503,8 @@ static PyObject *Quaternion_slerp(QuaternionObject *self, PyObject *args)
 
   if (mathutils_array_parse(
           tquat, QUAT_SIZE, QUAT_SIZE, value, "Quaternion.slerp(other), invalid 'other' arg") ==
-      -1) {
+      -1)
+  {
     return NULL;
   }
 
@@ -568,7 +574,8 @@ static PyObject *Quaternion_make_compatible(QuaternionObject *self, PyObject *va
                             QUAT_SIZE,
                             QUAT_SIZE,
                             value,
-                            "Quaternion.make_compatible(other), invalid 'other' arg") == -1) {
+                            "Quaternion.make_compatible(other), invalid 'other' arg") == -1)
+  {
     return NULL;
   }
 
@@ -987,7 +994,8 @@ static int Quaternion_ass_slice(QuaternionObject *self, int begin, int end, PyOb
   begin = MIN2(begin, end);
 
   if ((size = mathutils_array_parse(
-           quat, 0, QUAT_SIZE, seq, "mathutils.Quaternion[begin:end] = []")) == -1) {
+           quat, 0, QUAT_SIZE, seq, "mathutils.Quaternion[begin:end] = []")) == -1)
+  {
     return -1;
   }
 
@@ -1355,7 +1363,7 @@ static PySequenceMethods Quaternion_SeqMethods = {
 };
 
 static PyMappingMethods Quaternion_AsMapping = {
-    /*mp_len*/ (lenfunc)Quaternion_len,
+    /*mp_length*/ (lenfunc)Quaternion_len,
     /*mp_subscript*/ (binaryfunc)Quaternion_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Quaternion_ass_subscript,
 };
@@ -1597,7 +1605,7 @@ static PyGetSetDef Quaternion_getseters[] = {
 /** \name Quaternion Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Quaternion_methods[] = {
+static PyMethodDef Quaternion_methods[] = {
     /* In place only. */
     {"identity", (PyCFunction)Quaternion_identity, METH_NOARGS, Quaternion_identity_doc},
     {"negate", (PyCFunction)Quaternion_negate, METH_NOARGS, Quaternion_negate_doc},

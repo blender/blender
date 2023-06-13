@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -27,9 +28,17 @@ NODE_STORAGE_FUNCS(NodeEllipseMask)
 
 static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Mask")).default_value(0.0f).min(0.0f).max(1.0f);
-  b.add_input<decl::Float>(N_("Value")).default_value(1.0f).min(0.0f).max(1.0f);
-  b.add_output<decl::Float>(N_("Mask"));
+  b.add_input<decl::Float>("Mask")
+      .default_value(0.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(0);
+  b.add_input<decl::Float>("Value")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .compositor_domain_priority(1);
+  b.add_output<decl::Float>("Mask");
 }
 
 static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
@@ -155,7 +164,7 @@ void register_node_type_cmp_ellipsemask()
   cmp_node_type_base(&ntype, CMP_NODE_MASK_ELLIPSE, "Ellipse Mask", NODE_CLASS_MATTE);
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_ellipsemask;
-  node_type_size(&ntype, 260, 110, 320);
+  blender::bke::node_type_size(&ntype, 260, 110, 320);
   ntype.initfunc = file_ns::node_composit_init_ellipsemask;
   node_type_storage(
       &ntype, "NodeEllipseMask", node_free_standard_storage, node_copy_standard_storage);

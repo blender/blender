@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -12,10 +13,10 @@ namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 static void sh_node_sepxyz_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Float>(N_("X"));
-  b.add_output<decl::Float>(N_("Y"));
-  b.add_output<decl::Float>(N_("Z"));
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Float>("X");
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Float>("Z");
 }
 
 static int gpu_shader_sepxyz(GPUMaterial *mat,
@@ -43,7 +44,7 @@ class MF_SeparateXYZ : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vectors = params.readonly_single_input<float3>(0, "XYZ");
     MutableSpan<float> xs = params.uninitialized_single_output_if_required<float>(1, "X");
@@ -63,11 +64,11 @@ class MF_SeparateXYZ : public mf::MultiFunction {
     }
 
     devirtualize_varray(vectors, [&](auto vectors) {
-      mask.to_best_mask_type([&](auto mask) {
+      mask.foreach_segment_optimized([&](const auto segment) {
         const int used_outputs_num = used_outputs.size();
         const int *used_outputs_data = used_outputs.data();
 
-        for (const int64_t i : mask) {
+        for (const int64_t i : segment) {
           const float3 &vector = vectors[i];
           for (const int out_i : IndexRange(used_outputs_num)) {
             const int coordinate = used_outputs_data[out_i];
@@ -106,10 +107,10 @@ namespace blender::nodes::node_shader_sepcomb_xyz_cc {
 static void sh_node_combxyz_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Float>(N_("X")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("Y")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("Z")).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Vector>(N_("Vector"));
+  b.add_input<decl::Float>("X").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Y").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Z").min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Vector>("Vector");
 }
 
 static int gpu_shader_combxyz(GPUMaterial *mat,

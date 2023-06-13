@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -18,9 +19,7 @@
 
 namespace blender::deg {
 
-SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph)
-{
-}
+SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
 static bool seq_init_cb(Sequence *seq, void *user_data)
 {

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -26,7 +28,7 @@
 #include "BKE_cachefile.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -44,8 +46,8 @@
 
 #include "GEO_mesh_primitive_cuboid.hh"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #if defined(WITH_USD) || defined(WITH_ALEMBIC)
 #  include "BKE_global.h"
@@ -99,7 +101,7 @@ static void freeData(ModifierData *md)
   }
 }
 
-static bool isDisabled(const struct Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
+static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
@@ -156,6 +158,10 @@ static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
   }
 
   Mesh *result = geometry::create_cuboid_mesh(max - min, 2, 2, 2);
+  if (org_mesh->mat) {
+    result->mat = static_cast<Material **>(MEM_dupallocN(org_mesh->mat));
+    result->totcol = org_mesh->totcol;
+  }
   BKE_mesh_translate(result, math::midpoint(min, max), false);
 
   return result;
@@ -202,17 +208,18 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   if (me != nullptr) {
     const Span<float3> mesh_positions = mesh->vert_positions();
-    const Span<MEdge> mesh_edges = mesh->edges();
-    const Span<MPoly> mesh_polys = mesh->polys();
+    const Span<blender::int2> mesh_edges = mesh->edges();
+    const blender::OffsetIndices mesh_polys = mesh->polys();
     const Span<float3> me_positions = me->vert_positions();
-    const Span<MEdge> me_edges = me->edges();
-    const Span<MPoly> me_polys = me->polys();
+    const Span<blender::int2> me_edges = me->edges();
+    const blender::OffsetIndices me_polys = me->polys();
 
     /* TODO(sybren+bastien): possibly check relevant custom data layers (UV/color depending on
      * flags) and duplicate those too.
      * XXX(Hans): This probably isn't true anymore with various CoW improvements, etc. */
     if ((me_positions.data() == mesh_positions.data()) || (me_edges.data() == mesh_edges.data()) ||
-        (me_polys.data() == mesh_polys.data())) {
+        (me_polys.data() == mesh_polys.data()))
+    {
       /* We need to duplicate data here, otherwise we'll modify org mesh, see #51701. */
       mesh = reinterpret_cast<Mesh *>(
           BKE_id_copy_ex(nullptr,
@@ -245,12 +252,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 #  endif
       break;
     }
-    case CACHEFILE_TYPE_USD:
+    case CACHEFILE_TYPE_USD: {
 #  ifdef WITH_USD
-      result = USD_read_mesh(
-          mcmd->reader, ctx->object, mesh, time * FPS, &err_str, mcmd->read_flag);
+      const USDMeshReadParams params = create_mesh_read_params(time * FPS, mcmd->read_flag);
+      result = USD_read_mesh(mcmd->reader, ctx->object, mesh, params, &err_str);
 #  endif
       break;
+    }
     case CACHE_FILE_TYPE_INVALID:
       break;
   }

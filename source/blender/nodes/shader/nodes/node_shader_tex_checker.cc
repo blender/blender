@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -8,19 +9,17 @@ namespace blender::nodes::node_shader_tex_checker_cc {
 static void sh_node_tex_checker_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .min(-10000.0f)
-      .max(10000.0f)
-      .implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Color>(N_("Color1")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>(N_("Color2")).default_value({0.2f, 0.2f, 0.2f, 1.0f});
-  b.add_input<decl::Float>(N_("Scale"))
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
+      implicit_field_inputs::position);
+  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Float>("Scale")
       .min(-10000.0f)
       .max(10000.0f)
       .default_value(5.0f)
       .no_muted_links();
-  b.add_output<decl::Color>(N_("Color"));
-  b.add_output<decl::Float>(N_("Fac"));
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Fac");
 }
 
 static void node_shader_init_tex_checker(bNodeTree * /*ntree*/, bNode *node)
@@ -62,7 +61,7 @@ class NodeTexChecker : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1 = params.readonly_single_input<ColorGeometry4f>(
@@ -74,7 +73,7 @@ class NodeTexChecker : public mf::MultiFunction {
         params.uninitialized_single_output_if_required<ColorGeometry4f>(4, "Color");
     MutableSpan<float> r_fac = params.uninitialized_single_output<float>(5, "Fac");
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       /* Avoid precision issues on unit coordinates. */
       const float3 p = (vector[i] * scale[i] + 0.000001f) * 0.999999f;
 
@@ -83,12 +82,11 @@ class NodeTexChecker : public mf::MultiFunction {
       const int zi = abs(int(floorf(p.z)));
 
       r_fac[i] = ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
-    }
+    });
 
     if (!r_color.is_empty()) {
-      for (int64_t i : mask) {
-        r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i];
-      }
+      mask.foreach_index(
+          [&](const int64_t i) { r_color[i] = (r_fac[i] == 1.0f) ? color1[i] : color2[i]; });
     }
   }
 };

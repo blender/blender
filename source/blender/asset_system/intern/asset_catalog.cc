@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -260,6 +262,7 @@ void AssetCatalogService::update_catalog_path(const CatalogID catalog_id,
     }
     cat->path = new_path;
     cat->simple_name_refresh();
+    this->tag_has_unsaved_changes(cat);
 
     /* TODO(Sybren): go over all assets that are assigned to this catalog, defined in the current
      * blend file, and update the catalog simple name stored there. */
@@ -541,7 +544,7 @@ CatalogFilePath AssetCatalogService::find_suitable_cdf_path_for_writing(
 
   /* Determine the default CDF path in the same directory of the blend file. */
   char blend_dir_path[PATH_MAX];
-  BLI_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
+  BLI_path_split_dir_part(blend_file_path.c_str(), blend_dir_path, sizeof(blend_dir_path));
   const CatalogFilePath cdf_path_next_to_blend = asset_definition_default_file_path_from_dir(
       blend_dir_path);
   return cdf_path_next_to_blend;
@@ -839,12 +842,12 @@ bool AssetCatalogDefinitionFile::write_to_disk(const CatalogFilePath &dest_file_
     return false;
   }
   if (BLI_exists(dest_file_path.c_str())) {
-    if (BLI_rename(dest_file_path.c_str(), backup_path.c_str())) {
+    if (BLI_rename_overwrite(dest_file_path.c_str(), backup_path.c_str())) {
       /* TODO: communicate what went wrong. */
       return false;
     }
   }
-  if (BLI_rename(writable_path.c_str(), dest_file_path.c_str())) {
+  if (BLI_rename_overwrite(writable_path.c_str(), dest_file_path.c_str())) {
     /* TODO: communicate what went wrong. */
     return false;
   }
@@ -855,7 +858,7 @@ bool AssetCatalogDefinitionFile::write_to_disk(const CatalogFilePath &dest_file_
 bool AssetCatalogDefinitionFile::write_to_disk_unsafe(const CatalogFilePath &dest_file_path) const
 {
   char directory[PATH_MAX];
-  BLI_split_dir_part(dest_file_path.c_str(), directory, sizeof(directory));
+  BLI_path_split_dir_part(dest_file_path.c_str(), directory, sizeof(directory));
   if (!ensure_directory_exists(directory)) {
     /* TODO(Sybren): pass errors to the UI somehow. */
     return false;

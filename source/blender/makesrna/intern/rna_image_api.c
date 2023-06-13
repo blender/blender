@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -42,8 +43,8 @@
 static void rna_ImagePackedFile_save(ImagePackedFile *imapf, Main *bmain, ReportList *reports)
 {
   if (BKE_packedfile_write_to_file(
-          reports, BKE_main_blendfile_path(bmain), imapf->filepath, imapf->packedfile, 0) !=
-      RET_OK) {
+          reports, BKE_main_blendfile_path(bmain), imapf->filepath, imapf->packedfile) != RET_OK)
+  {
     BKE_reportf(reports, RPT_ERROR, "Could not save packed file to disk as '%s'", imapf->filepath);
   }
 }
@@ -168,7 +169,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
     return;
   }
 
-  if (ibuf->rect) {
+  if (ibuf->byte_buffer.data) {
     IMB_rect_from_float(ibuf);
   }
 

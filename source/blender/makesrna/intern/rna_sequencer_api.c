@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -27,7 +29,7 @@
 #  include "DNA_mask_types.h"
 #  include "DNA_sound_types.h"
 
-#  include "BLI_path_util.h" /* BLI_split_dirfile */
+#  include "BLI_path_util.h" /* #BLI_path_split_dir_file */
 
 #  include "BKE_image.h"
 #  include "BKE_mask.h"
@@ -44,6 +46,7 @@
 #  include "SEQ_effects.h"
 #  include "SEQ_relations.h"
 #  include "SEQ_render.h"
+#  include "SEQ_retiming.h"
 #  include "SEQ_sequencer.h"
 #  include "SEQ_time.h"
 
@@ -254,9 +257,9 @@ static Sequence *rna_Sequences_new_image(ID *id,
   load_data.fit_method = fit_method;
   Sequence *seq = SEQ_add_image_strip(bmain, scene, seqbase, &load_data);
 
-  char dir[FILE_MAX], filename[FILE_MAX];
-  BLI_split_dirfile(file, dir, filename, sizeof(dir), sizeof(filename));
-  SEQ_add_image_set_directory(seq, dir);
+  char dirpath[FILE_MAX], filename[FILE_MAXFILE];
+  BLI_path_split_dir_file(file, dirpath, sizeof(dirpath), filename, sizeof(filename));
+  SEQ_add_image_set_directory(seq, dirpath);
   SEQ_add_image_load_file(scene, seq, 0, filename);
   SEQ_add_image_init_alpha_mode(seq);
 
@@ -576,8 +579,10 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   seq->strip->stripdata = se = MEM_reallocN(seq->strip->stripdata,
                                             sizeof(StripElem) * (seq->len + 1));
   se += seq->len;
-  BLI_strncpy(se->name, filename, sizeof(se->name));
+  STRNCPY(se->filename, filename);
   seq->len++;
+
+  seq->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 
@@ -607,6 +612,10 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
   new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
   seq->len--;
 
+  if (seq->len == 1) {
+    seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+  }
+
   se = seq->strip->stripdata;
   if (index > 0) {
     memcpy(new_seq, se, sizeof(StripElem) * index);
@@ -635,6 +644,29 @@ static void rna_Sequence_invalidate_cache_rnafunc(ID *id, Sequence *self, int ty
       SEQ_relations_invalidate_cache_composite((Scene *)id, self);
       break;
   }
+}
+
+static SeqRetimingHandle *rna_Sequence_retiming_handles_add(ID *id,
+                                                            Sequence *seq,
+                                                            int timeline_frame)
+{
+  Scene *scene = (Scene *)id;
+
+  SeqRetimingHandle *handle = SEQ_retiming_add_handle(scene, seq, timeline_frame);
+
+  SEQ_relations_invalidate_cache_raw(scene, seq);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+  return handle;
+}
+
+static void rna_Sequence_retiming_handles_reset(ID *id, Sequence *seq)
+{
+  Scene *scene = (Scene *)id;
+
+  SEQ_retiming_data_clear(seq);
+
+  SEQ_relations_invalidate_cache_raw(scene, seq);
+  WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
 #else
@@ -742,6 +774,30 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_int(
       func, "index", -1, INT_MIN, INT_MAX, "", "Index of image to remove", INT_MIN, INT_MAX);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+}
+
+void RNA_api_sequence_retiming_handles(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+
+  RNA_def_property_srna(cprop, "RetimingHandles");
+  srna = RNA_def_struct(brna, "RetimingHandles", NULL);
+  RNA_def_struct_sdna(srna, "Sequence");
+  RNA_def_struct_ui_text(srna, "RetimingHandles", "Collection of RetimingHandle");
+
+  FunctionRNA *func = RNA_def_function(srna, "add", "rna_Sequence_retiming_handles_add");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_int(
+      func, "timeline_frame", 0, -MAXFRAME, MAXFRAME, "Timeline Frame", "", -MAXFRAME, MAXFRAME);
+  RNA_def_function_ui_description(func, "Add retiming handle");
+  /* return type */
+  PropertyRNA *parm = RNA_def_pointer(
+      func, "retiming_handle", "RetimingHandle", "", "New RetimingHandle");
+  RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(srna, "reset", "rna_Sequence_retiming_handles_reset");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_ui_description(func, "Remove all retiming handles");
 }
 
 void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop, const bool metastrip)

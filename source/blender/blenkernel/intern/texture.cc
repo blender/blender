@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -47,7 +48,7 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
@@ -55,6 +56,8 @@
 #include "NOD_texture.h"
 
 #include "RE_texture.h"
+
+#include "DRW_engine.h"
 
 #include "BLO_read_write.h"
 
@@ -100,6 +103,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
     texture_dst->nodetree->owner_id = &texture_dst->id;
   }
 
+  BLI_listbase_clear((ListBase *)&texture_dst->drawdata);
+
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&texture_dst->id, &texture_src->id);
   }
@@ -111,6 +116,8 @@ static void texture_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const i
 static void texture_free_data(ID *id)
 {
   Tex *texture = (Tex *)id;
+
+  DRW_drawdata_free(id);
 
   /* is no lib link block, but texture extension */
   if (texture->nodetree) {
@@ -155,8 +162,17 @@ static void texture_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 
   /* nodetree is integral part of texture, no libdata */
   if (tex->nodetree) {
-    BLO_write_struct(writer, bNodeTree, tex->nodetree);
-    ntreeBlendWrite(writer, tex->nodetree);
+    BLO_Write_IDBuffer *temp_embedded_id_buffer = BLO_write_allocate_id_buffer();
+    BLO_write_init_id_buffer_from_id(
+        temp_embedded_id_buffer, &tex->nodetree->id, BLO_write_is_undo(writer));
+    BLO_write_struct_at_address(writer,
+                                bNodeTree,
+                                tex->nodetree,
+                                BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer));
+    ntreeBlendWrite(
+        writer,
+        reinterpret_cast<bNodeTree *>(BLO_write_get_id_buffer_temp_id(temp_embedded_id_buffer)));
+    BLO_write_destroy_id_buffer(&temp_embedded_id_buffer);
   }
 
   BKE_previewimg_blend_write(writer, tex->preview);
@@ -179,8 +195,8 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 static void texture_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Tex *tex = (Tex *)id;
-  BLO_read_id_address(reader, tex->id.lib, &tex->ima);
-  BLO_read_id_address(reader, tex->id.lib, &tex->ipo); /* XXX deprecated - old animation system */
+  BLO_read_id_address(reader, id, &tex->ima);
+  BLO_read_id_address(reader, id, &tex->ipo); /* XXX deprecated - old animation system */
 }
 
 static void texture_blend_read_expand(BlendExpander *expander, ID *id)
@@ -257,7 +273,8 @@ void BKE_texture_mapping_init(TexMapping *texmap)
   float smat[4][4], rmat[4][4], tmat[4][4], proj[4][4], size[3];
 
   if (texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
-      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
+      is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size))
+  {
     unit_m4(texmap->mat);
 
     texmap->flag |= TEXMAP_UNIT_MATRIX;
@@ -659,7 +676,7 @@ void BKE_texture_pointdensity_free(PointDensity *pd)
 }
 /* ------------------------------------------------------------------------- */
 
-bool BKE_texture_is_image_user(const struct Tex *tex)
+bool BKE_texture_is_image_user(const Tex *tex)
 {
   switch (tex->type) {
     case TEX_IMAGE: {
@@ -670,7 +687,7 @@ bool BKE_texture_is_image_user(const struct Tex *tex)
   return false;
 }
 
-bool BKE_texture_dependsOnTime(const struct Tex *texture)
+bool BKE_texture_dependsOnTime(const Tex *texture)
 {
   if (texture->ima && BKE_image_is_animated(texture->ima)) {
     return true;
@@ -688,22 +705,15 @@ bool BKE_texture_dependsOnTime(const struct Tex *texture)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_texture_get_value_ex(const Scene *scene,
-                              Tex *texture,
+void BKE_texture_get_value_ex(Tex *texture,
                               const float *tex_co,
                               TexResult *texres,
-                              struct ImagePool *pool,
+                              ImagePool *pool,
                               bool use_color_management)
 {
-  int result_type;
-  bool do_color_manage = false;
-
-  if (scene && use_color_management) {
-    do_color_manage = BKE_scene_check_color_management_enabled(scene);
-  }
-
   /* no node textures for now */
-  result_type = multitex_ext_safe(texture, tex_co, texres, pool, do_color_manage, false);
+  const int result_type = multitex_ext_safe(
+      texture, tex_co, texres, pool, use_color_management, false);
 
   /* if the texture gave an RGB value, we assume it didn't give a valid
    * intensity, since this is in the context of modifiers don't use perceptual color conversion.
@@ -717,18 +727,15 @@ void BKE_texture_get_value_ex(const Scene *scene,
   }
 }
 
-void BKE_texture_get_value(const Scene *scene,
-                           Tex *texture,
+void BKE_texture_get_value(Tex *texture,
                            const float *tex_co,
                            TexResult *texres,
                            bool use_color_management)
 {
-  BKE_texture_get_value_ex(scene, texture, tex_co, texres, nullptr, use_color_management);
+  BKE_texture_get_value_ex(texture, tex_co, texres, nullptr, use_color_management);
 }
 
-static void texture_nodes_fetch_images_for_pool(Tex *texture,
-                                                bNodeTree *ntree,
-                                                struct ImagePool *pool)
+static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, ImagePool *pool)
 {
   for (bNode *node : ntree->all_nodes()) {
     if (node->type == SH_NODE_TEX_IMAGE && node->id != nullptr) {
@@ -743,7 +750,7 @@ static void texture_nodes_fetch_images_for_pool(Tex *texture,
   }
 }
 
-void BKE_texture_fetch_images_for_pool(Tex *texture, struct ImagePool *pool)
+void BKE_texture_fetch_images_for_pool(Tex *texture, ImagePool *pool)
 {
   if (texture->nodetree != nullptr) {
     texture_nodes_fetch_images_for_pool(texture, texture->nodetree, pool);

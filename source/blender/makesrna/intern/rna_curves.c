@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -68,13 +70,25 @@ static int rna_Curves_curve_offset_data_length(PointerRNA *ptr)
 
 static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-  const Curves *curves = rna_curves(ptr);
+  Curves *curves = rna_curves(ptr);
   rna_iterator_array_begin(iter,
-                           (void *)curves->geometry.curve_offsets,
+                           ED_curves_offsets_for_write(curves),
                            sizeof(int),
                            curves->geometry.curve_num + 1,
                            false,
                            NULL);
+}
+
+static int rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.curve_num + 1) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_IntAttributeValue;
+  r_ptr->data = &ED_curves_offsets_for_write(curves)[index];
+  return true;
 }
 
 static float (*get_curves_positions(Curves *curves))[3]
@@ -95,6 +109,35 @@ static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
   const float(*co)[3] = ptr->data;
   const float(*positions)[3] = get_curves_positions_const(curves);
   return (int)(co - positions);
+}
+
+static void rna_Curves_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  rna_iterator_array_begin(iter,
+                           ED_curves_offsets_for_write(curves),
+                           sizeof(int),
+                           curves->geometry.curve_num,
+                           false,
+                           NULL);
+}
+
+static int rna_Curves_curves_length(PointerRNA *ptr)
+{
+  const Curves *curves = rna_curves(ptr);
+  return curves->geometry.curve_num;
+}
+
+static int rna_Curves_curves_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
+{
+  Curves *curves = rna_curves(ptr);
+  if (index < 0 || index >= curves->geometry.curve_num) {
+    return false;
+  }
+  r_ptr->owner_id = &curves->id;
+  r_ptr->type = &RNA_CurveSlice;
+  r_ptr->data = &ED_curves_offsets_for_write(curves)[index];
+  return true;
 }
 
 static int rna_Curves_position_data_length(PointerRNA *ptr)
@@ -304,6 +347,7 @@ static void rna_def_curves_curve(BlenderRNA *brna)
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurvePoint");
   RNA_def_property_ui_text(prop, "Points", "Control points of the curve");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_CurveSlice_points_begin",
                                     "rna_iterator_array_next",
@@ -343,12 +387,22 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Point and Curve RNA API helpers. */
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", "geometry.curve_num");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_Curves_curves_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_get",
+                                    "rna_Curves_curves_length",
+                                    "rna_Curves_curves_lookup_int",
+                                    NULL,
+                                    NULL);
   RNA_def_property_struct_type(prop, "CurveSlice");
   RNA_def_property_ui_text(prop, "Curves", "All curves in the data-block");
 
   prop = RNA_def_property(srna, "points", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "CurvePoint");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_position_data_begin",
                                     "rna_iterator_array_next",
@@ -363,6 +417,7 @@ static void rna_def_curves(BlenderRNA *brna)
   /* Direct access to built-in attributes. */
 
   prop = RNA_def_property(srna, "position_data", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_position_data_begin",
                                     "rna_iterator_array_next",
@@ -376,15 +431,15 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   prop = RNA_def_property(srna, "curve_offset_data", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "geometry.curve_offsets", NULL);
   RNA_def_property_struct_type(prop, "IntAttributeValue");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
                                     "rna_Curves_curve_offset_data_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_curve_offset_data_length",
-                                    NULL,
+                                    "rna_Curves_curve_offset_data_lookup_int",
                                     NULL,
                                     NULL);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
@@ -392,6 +447,7 @@ static void rna_def_curves(BlenderRNA *brna)
   rna_def_read_only_float_vector(brna);
 
   prop = RNA_def_property(srna, "normals", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_struct_type(prop, "FloatVectorValueReadOnly");
   /* `lookup_int` isn't provided since the entire normals array is allocated and calculated when
    * it's accessed. */

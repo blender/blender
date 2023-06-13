@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -105,7 +107,8 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
                                         PyC_ParseBool,
                                         &use_fake_user,
                                         PyC_ParseBool,
-                                        &use_compress)) {
+                                        &use_compress))
+  {
     return NULL;
   }
 
@@ -116,7 +119,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
     write_flags |= G_FILE_COMPRESS;
   }
 
-  BLI_strncpy(filepath_abs, filepath, FILE_MAX);
+  STRNCPY(filepath_abs, filepath);
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
   BKE_blendfile_write_partial_begin(bmain_src);

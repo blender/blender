@@ -897,12 +897,10 @@ void Octree::printPath(PathElement *path)
 void Octree::printPaths(PathList *path)
 {
   PathList *iter = path;
-  int i = 0;
   while (iter != NULL) {
     dc_printf("Path %d:\n", i);
     printPath(iter);
     iter = iter->next;
-    i++;
   }
 }
 
@@ -1256,12 +1254,12 @@ Node *Octree::connectFace(
 
     updateParent(&newnode->internal, len, st);
 
-    int flag = 0;
     // Add the cells to the rings and fill in the patch
     PathElement *newEleN;
     if (curEleN->pos[0] != stN[0] || curEleN->pos[1] != stN[1] || curEleN->pos[2] != stN[2]) {
       if (curEleN->next->pos[0] != stN[0] || curEleN->next->pos[1] != stN[1] ||
-          curEleN->next->pos[2] != stN[2]) {
+          curEleN->next->pos[2] != stN[2])
+      {
         newEleN = new PathElement;
         newEleN->next = curEleN->next;
         newEleN->pos[0] = stN[0];
@@ -1286,7 +1284,6 @@ Node *Octree::connectFace(
                            alpha);
 
       curEleN = newEleN;
-      flag++;
     }
 
     PathElement *newEleP;
@@ -1316,7 +1313,6 @@ Node *Octree::connectFace(
                            alpha);
 
       curEleP = newEleP;
-      flag++;
     }
 
     /*
@@ -1542,6 +1538,8 @@ void Octree::getFacePoint(PathElement *leaf, int dir, int &x, int &y, float &p, 
   float avg[3] = {0, 0, 0};
   float off[3];
   int num = 0, num2 = 0;
+
+  (void)num2;  // Unused in release builds.
 
   LeafNode *leafnode = locateLeaf(leaf->pos);
   for (int i = 0; i < 4; i++) {
@@ -2305,7 +2303,8 @@ void Octree::computeMinimizer(const LeafNode *leaf, int st[3], int len, float rv
 
       if (rvalue[0] < st[0] - nh1 || rvalue[1] < st[1] - nh1 || rvalue[2] < st[2] - nh1 ||
 
-          rvalue[0] > st[0] + nh2 || rvalue[1] > st[1] + nh2 || rvalue[2] > st[2] + nh2) {
+          rvalue[0] > st[0] + nh2 || rvalue[1] > st[1] + nh2 || rvalue[2] > st[2] + nh2)
+      {
         // Use mass point instead
         rvalue[0] = mp[0];
         rvalue[1] = mp[1];

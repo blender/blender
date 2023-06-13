@@ -80,7 +80,8 @@ int IncreasingThicknessShader::shade(Stroke &stroke) const
   int n = stroke.strokeVerticesSize() - 1, i;
   StrokeInternal::StrokeVertexIterator v, vend;
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
-       ++v, ++i) {
+       ++v, ++i)
+  {
     float t;
     if (i < float(n) / 2.0f) {
       t = (1.0 - float(i) / float(n)) * _ThicknessMin + float(i) / float(n) * _ThicknessMax;
@@ -100,7 +101,8 @@ int ConstrainedIncreasingThicknessShader::shade(Stroke &stroke) const
   int n = stroke.strokeVerticesSize() - 1, i;
   StrokeInternal::StrokeVertexIterator v, vend;
   for (i = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
-       ++v, ++i) {
+       ++v, ++i)
+  {
     // XXX Why not using an if/else here? Else, if last condition is true, everything else is
     // computed for nothing!
     float t;
@@ -213,7 +215,8 @@ int IncreasingColorShader::shade(Stroke &stroke) const
   int n = stroke.strokeVerticesSize() - 1, yo;
   float newcolor[4];
   for (yo = 0, v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend;
-       ++v, ++yo) {
+       ++v, ++yo)
+  {
     for (int i = 0; i < 4; ++i) {
       newcolor[i] = (1.0 - float(yo) / float(n)) * _colorMin[i] +
                     float(yo) / float(n) * _colorMax[i];
@@ -375,7 +378,8 @@ int BezierCurveShader::shade(Stroke &stroke) const
   ++v;
   for (vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if (!((fabs(v->x() - (previous)->x()) < M_EPSILON) &&
-          (fabs(v->y() - (previous)->y()) < M_EPSILON))) {
+          (fabs(v->y() - (previous)->y()) < M_EPSILON)))
+    {
       data.emplace_back(v->x(), v->y());
     }
     previous = v;
@@ -432,7 +436,8 @@ int BezierCurveShader::shade(Stroke &stroke) const
       itend = stroke.strokeVerticesEnd(),
       pend = CurveVertices.end();
        (it != itend) && (p != pend);
-       ++it, ++p, ++n) {
+       ++it, ++p, ++n)
+  {
     it->setX(p->x());
     it->setY(p->y());
     last = p;
@@ -463,7 +468,8 @@ int BezierCurveShader::shade(Stroke &stroke) const
   for (vector<StrokeVertex *>::iterator vr = verticesToRemove.begin(),
                                         vrend = verticesToRemove.end();
        vr != vrend;
-       ++vr) {
+       ++vr)
+  {
     stroke.RemoveVertex(*vr);
   }
 
@@ -473,7 +479,8 @@ int BezierCurveShader::shade(Stroke &stroke) const
   int index2 = index1 + nExtraVertex;
   for (it = stroke.strokeVerticesBegin(), itend = stroke.strokeVerticesEnd();
        (it != itend) && (a != aend);
-       ++it) {
+       ++it)
+  {
     (it)->setAttribute(*a);
     if ((index <= index1) || (index > index2)) {
       ++a;
@@ -650,7 +657,8 @@ int TipRemoverShader::shade(Stroke &stroke) const
   vector<StrokeAttribute> oldAttributes;
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd(); v != vend; ++v) {
     if ((v->curvilinearAbscissa() < _tipLength) ||
-        (v->strokeLength() - v->curvilinearAbscissa() < _tipLength)) {
+        (v->strokeLength() - v->curvilinearAbscissa() < _tipLength))
+    {
       verticesToRemove.push_back(&(*v));
     }
     oldAttributes.push_back(v->attribute());
@@ -676,7 +684,8 @@ int TipRemoverShader::shade(Stroke &stroke) const
   vector<StrokeAttribute>::iterator a = oldAttributes.begin(), aend = oldAttributes.end();
   for (v = stroke.strokeVerticesBegin(), vend = stroke.strokeVerticesEnd();
        (v != vend) && (a != aend);
-       ++v, ++a) {
+       ++v, ++a)
+  {
     v->setAttribute(*a);
   }
   // we're done!

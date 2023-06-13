@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -13,23 +15,18 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveFillet)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Count"))
-      .default_value(1)
-      .min(1)
-      .max(1000)
-      .field_on_all()
-      .make_available([](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
-  b.add_input<decl::Float>(N_("Radius"))
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>("Count").default_value(1).min(1).max(1000).field_on_all().make_available(
+      [](bNode &node) { node_storage(node).mode = GEO_NODE_CURVE_FILLET_POLY; });
+  b.add_input<decl::Float>("Radius")
       .min(0.0f)
       .max(FLT_MAX)
       .subtype(PropertySubType::PROP_DISTANCE)
       .default_value(0.25f)
       .field_on_all();
-  b.add_input<decl::Bool>(N_("Limit Radius"))
-      .description(
-          N_("Limit the maximum value of the radius in order to avoid overlapping fillets"));
-  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_input<decl::Bool>("Limit Radius")
+      .description("Limit the maximum value of the radius in order to avoid overlapping fillets");
+  b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -49,7 +46,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryCurveFillet &storage = node_storage(*node);
   const GeometryNodeCurveFilletMode mode = (GeometryNodeCurveFilletMode)storage.mode;
   bNodeSocket *poly_socket = static_cast<bNodeSocket *>(node->inputs.first)->next;
-  nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
+  bke::nodeSetSocketAvailability(ntree, poly_socket, mode == GEO_NODE_CURVE_FILLET_POLY);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -77,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
     const Curves &curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
-    bke::CurvesFieldContext context{curves, ATTR_DOMAIN_POINT};
+    const bke::CurvesFieldContext context{curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{context, curves.points_num()};
     evaluator.add(radius_field);
 

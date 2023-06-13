@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_node_types.h"
 
@@ -21,7 +23,7 @@ void ModifierComputeContext::print_current_in_line(std::ostream &stream) const
 
 NodeGroupComputeContext::NodeGroupComputeContext(
     const ComputeContext *parent,
-    const int node_id,
+    const int32_t node_id,
     const std::optional<ComputeContextHash> &cached_hash)
     : ComputeContext(s_static_type, parent), node_id_(node_id)
 {

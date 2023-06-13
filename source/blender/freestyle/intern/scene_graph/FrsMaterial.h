@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -50,9 +52,7 @@ class FrsMaterial {
   inline FrsMaterial(const FrsMaterial &m);
 
   /** Destructor */
-  virtual ~FrsMaterial()
-  {
-  }
+  virtual ~FrsMaterial() {}
 
   /** Returns the line color as a 4 float array */
   inline const float *line() const

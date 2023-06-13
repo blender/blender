@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
 
 
 set(INC
@@ -8,9 +9,12 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blentranslation
+  ../compositor/realtime_compositor
+  ../compositor/realtime_compositor/cached_resources
   ../depsgraph
   ../draw
   ../gpu
+  ../gpu/intern
   ../imbuf
   ../makesdna
   ../makesrna
@@ -29,6 +33,7 @@ set(INC_SYS
 
 set(SRC
   intern/bake.cc
+  intern/compositor.cc
   intern/engine.cc
   intern/initrender.cc
   intern/multires_bake.cc
@@ -41,13 +46,14 @@ set(SRC
   intern/zbuf.c
 
   RE_bake.h
+  RE_compositor.hh
   RE_engine.h
   RE_multires_bake.h
   RE_pipeline.h
   RE_texture.h
   RE_texture_margin.h
 
-  intern/pipeline.h
+  intern/pipeline.hh
   intern/render_result.h
   intern/render_types.h
   intern/texture_common.h
@@ -55,6 +61,7 @@ set(SRC
 )
 
 set(LIB
+    bf_realtime_compositor
 )
 
 if(WITH_PYTHON)

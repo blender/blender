@@ -10,12 +10,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float fresnel_dielectric(float eta,
-                                    const float3 N,
-                                    const float3 I,
-                                    ccl_private float3 *R,
-                                    ccl_private float3 *T,
-                                    ccl_private bool *is_inside)
+ccl_device float fresnel_dielectric(
+    float eta, const float3 N, const float3 I, ccl_private float3 *T, ccl_private bool *is_inside)
 {
   float cos = dot(N, I), neta;
   float3 Nn;
@@ -34,9 +30,6 @@ ccl_device float fresnel_dielectric(float eta,
     Nn = -N;
     *is_inside = true;
   }
-
-  // compute reflection
-  *R = (2 * cos) * Nn - I;
 
   float arg = 1 - (neta * neta * (1 - (cos * cos)));
   if (arg < 0) {
@@ -71,15 +64,26 @@ ccl_device float fresnel_dielectric_cos(float cosi, float eta)
   return 1.0f;  // TIR(no refracted component)
 }
 
-ccl_device float3 fresnel_conductor(float cosi, const float3 eta, const float3 k)
+ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spectrum k)
 {
-  float3 cosi2 = make_float3(cosi * cosi, cosi * cosi, cosi * cosi);
-  float3 one = make_float3(1.0f, 1.0f, 1.0f);
-  float3 tmp_f = eta * eta + k * k;
-  float3 tmp = tmp_f * cosi2;
-  float3 Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
-  float3 Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) / (tmp_f + (2.0f * eta * cosi) + cosi2);
+  Spectrum cosi2 = make_spectrum(cosi * cosi);
+  Spectrum one = make_spectrum(1.0f);
+  Spectrum tmp_f = eta * eta + k * k;
+  Spectrum tmp = tmp_f * cosi2;
+  Spectrum Rparl2 = (tmp - (2.0f * eta * cosi) + one) / (tmp + (2.0f * eta * cosi) + one);
+  Spectrum Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi2) / (tmp_f + (2.0f * eta * cosi) + cosi2);
   return (Rparl2 + Rperp2) * 0.5f;
+}
+
+ccl_device float ior_from_F0(float f0)
+{
+  const float sqrt_f0 = sqrtf(clamp(f0, 0.0f, 0.99f));
+  return (1.0f + sqrt_f0) / (1.0f - sqrt_f0);
+}
+
+ccl_device float F0_from_ior(float ior)
+{
+  return sqr((ior - 1.0f) / (ior + 1.0f));
 }
 
 ccl_device float schlick_fresnel(float u)
@@ -97,7 +101,7 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
 {
   /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
    * The reason why we use this remapping instead of directly doing the
-   * Schlick approximation lerp(F0, 1.0, (1.0-cosLH)^5) is that for cases
+   * Schlick approximation mix(F0, 1.0, (1.0-cosLH)^5) is that for cases
    * with similar IORs (e.g. ice in water), the relative IOR can be close
    * enough to 1.0 that the Schlick approximation becomes inaccurate. */
   float real_F = fresnel_dielectric_cos(dot(L, H), ior);
@@ -106,12 +110,18 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
   return mix(F0, one_spectrum(), inverse_lerp(real_F0, 1.0f, real_F));
 }
 
-ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
+/* If the shading normal results in specular reflection in the lower hemisphere, raise the shading
+ * normal towards the geometry normal so that the specular reflection is just above the surface.
+ * Only used for glossy materials. */
+ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N)
 {
-  float3 R = 2 * dot(N, I) * N - I;
+  const float3 R = 2 * dot(N, I) * N - I;
+
+  const float Iz = dot(I, Ng);
+  kernel_assert(Iz > 0);
 
   /* Reflection rays may always be at least as shallow as the incoming ray. */
-  float threshold = min(0.9f * dot(Ng, I), 0.01f);
+  const float threshold = min(0.9f * Iz, 0.01f);
   if (dot(Ng, R) >= threshold) {
     return N;
   }
@@ -120,11 +130,8 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
    * The X axis is found by normalizing the component of N that's orthogonal to Ng.
    * The Y axis isn't actually needed.
    */
-  float NdotNg = dot(N, Ng);
-  float3 X = normalize(N - NdotNg * Ng);
+  const float3 X = normalize(N - dot(N, Ng) * Ng);
 
-  /* Keep math expressions. */
-  /* clang-format off */
   /* Calculate N.z and N.x in the local coordinate system.
    *
    * The goal of this computation is to find a N' that is rotated towards Ng just enough
@@ -142,74 +149,53 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
    *
    * Furthermore, we want N' to be normalized, so N'.x = sqrt(1 - N'.z^2).
    *
-   * With these simplifications,
-   * we get the final equation 2*(sqrt(1 - N'.z^2)*I.x + N'.z*I.z)*N'.z - I.z = t.
+   * With these simplifications, we get the equation
+   * 2*(sqrt(1 - N'.z^2)*I.x + N'.z*I.z)*N'.z - I.z = t,
+   * or
+   * 2*sqrt(1 - N'.z^2)*I.x*N'.z = t + I.z * (1 - 2*N'.z^2),
+   * after rearranging terms.
+   * Raise both sides to the power of two and substitute terms with
+   * a = I.x^2 + I.z^2,
+   * b = 2*(a + Iz*t),
+   * c = (Iz + t)^2,
+   * we obtain
+   * 4*a*N'.z^4 - 2*b*N'.z^2 + c = 0.
    *
    * The only unknown here is N'.z, so we can solve for that.
    *
-   * The equation has four solutions in general:
-   *
-   * N'.z = +-sqrt(0.5*(+-sqrt(I.x^2*(I.x^2 + I.z^2 - t^2)) + t*I.z + I.x^2 + I.z^2)/(I.x^2 + I.z^2))
-   * We can simplify this expression a bit by grouping terms:
-   *
-   * a = I.x^2 + I.z^2
-   * b = sqrt(I.x^2 * (a - t^2))
-   * c = I.z*t + a
-   * N'.z = +-sqrt(0.5*(+-b + c)/a)
-   *
-   * Two solutions can immediately be discarded because they're negative so N' would lie in the
-   * lower hemisphere.
+   * The equation has four solutions in general, two can immediately be discarded because they're
+   * negative so N' would lie in the lower hemisphere; one solves
+   * 2*sqrt(1 - N'.z^2)*I.x*N'.z = -(t + I.z * (1 - 2*N'.z^2))
+   * instead of the original equation (before squaring both sides).
+   * Therefore only one root is valid.
    */
-  /* clang-format on */
 
-  float Ix = dot(I, X), Iz = dot(I, Ng);
-  float Ix2 = sqr(Ix), Iz2 = sqr(Iz);
-  float a = Ix2 + Iz2;
+  const float Ix = dot(I, X);
 
-  float b = safe_sqrtf(Ix2 * (a - sqr(threshold)));
-  float c = Iz * threshold + a;
+  const float a = sqr(Ix) + sqr(Iz);
+  const float b = 2.0f * (a + Iz * threshold);
+  const float c = sqr(threshold + Iz);
 
-  /* Evaluate both solutions.
-   * In many cases one can be immediately discarded (if N'.z would be imaginary or larger than
-   * one), so check for that first. If no option is viable (might happen in extreme cases like N
-   * being in the wrong hemisphere), give up and return Ng. */
-  float fac = 0.5f / a;
-  float N1_z2 = fac * (b + c), N2_z2 = fac * (-b + c);
-  bool valid1 = (N1_z2 > 1e-5f) && (N1_z2 <= (1.0f + 1e-5f));
-  bool valid2 = (N2_z2 > 1e-5f) && (N2_z2 <= (1.0f + 1e-5f));
+  /* In order that the root formula solves 2*sqrt(1 - N'.z^2)*I.x*N'.z = t + I.z - 2*I.z*N'.z^2,
+   * Ix and (t + I.z * (1 - 2*N'.z^2)) must have the same sign (the rest terms are non-negative by
+   * definition). */
+  const float Nz2 = (Ix < 0) ? 0.25f * (b + safe_sqrtf(sqr(b) - 4.0f * a * c)) / a :
+                               0.25f * (b - safe_sqrtf(sqr(b) - 4.0f * a * c)) / a;
 
-  float2 N_new;
-  if (valid1 && valid2) {
-    /* If both are possible, do the expensive reflection-based check. */
-    float2 N1 = make_float2(safe_sqrtf(1.0f - N1_z2), safe_sqrtf(N1_z2));
-    float2 N2 = make_float2(safe_sqrtf(1.0f - N2_z2), safe_sqrtf(N2_z2));
+  const float Nx = safe_sqrtf(1.0f - Nz2);
+  const float Nz = safe_sqrtf(Nz2);
 
-    float R1 = 2 * (N1.x * Ix + N1.y * Iz) * N1.y - Iz;
-    float R2 = 2 * (N2.x * Ix + N2.y * Iz) * N2.y - Iz;
+  return Nx * X + Nz * Ng;
+}
 
-    valid1 = (R1 >= 1e-5f);
-    valid2 = (R2 >= 1e-5f);
-    if (valid1 && valid2) {
-      /* If both solutions are valid, return the one with the shallower reflection since it will be
-       * closer to the input (if the original reflection wasn't shallow, we would not be in this
-       * part of the function). */
-      N_new = (R1 < R2) ? N1 : N2;
-    }
-    else {
-      /* If only one reflection is valid (= positive), pick that one. */
-      N_new = (R1 > R2) ? N1 : N2;
-    }
+/* Do not call #ensure_valid_specular_reflection if the primitive type is curve or if the geometry
+ * normal and the shading normal is the same. */
+ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
+{
+  if ((sd->type & PRIMITIVE_CURVE) || isequal(sd->Ng, N)) {
+    return N;
   }
-  else if (valid1 || valid2) {
-    /* Only one solution passes the N'.z criterium, so pick that one. */
-    float Nz2 = valid1 ? N1_z2 : N2_z2;
-    N_new = make_float2(safe_sqrtf(1.0f - Nz2), safe_sqrtf(Nz2));
-  }
-  else {
-    return Ng;
-  }
-
-  return N_new.x * X + N_new.y * Ng;
+  return ensure_valid_specular_reflection(sd->Ng, sd->wi, N);
 }
 
 CCL_NAMESPACE_END

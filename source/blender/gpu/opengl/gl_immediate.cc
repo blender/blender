@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 by Mike Erwin. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 by Mike Erwin. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -79,7 +80,8 @@ uchar *GLImmediate::begin()
     recreate_buffer = true;
   }
   else if (bytes_needed < DEFAULT_INTERNAL_BUFFER_SIZE &&
-           buffer_size() > DEFAULT_INTERNAL_BUFFER_SIZE) {
+           buffer_size() > DEFAULT_INTERNAL_BUFFER_SIZE)
+  {
     /* shrink the internal buffer */
     buffer_size() = DEFAULT_INTERNAL_BUFFER_SIZE;
     recreate_buffer = true;

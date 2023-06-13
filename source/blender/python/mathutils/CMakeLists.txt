@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -22,7 +24,7 @@ set(SRC
   mathutils_Matrix.c
   mathutils_Quaternion.c
   mathutils_Vector.c
-  mathutils_bvhtree.c
+  mathutils_bvhtree.cc
   mathutils_geometry.c
   mathutils_interpolate.c
   mathutils_kdtree.c

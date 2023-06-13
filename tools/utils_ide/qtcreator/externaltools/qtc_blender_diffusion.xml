@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_blender_diffusion">
+    <description>Print a URL to Diffusion on developer.blender.org for online reference</description>
+    <displayname>Blender Diffusion</displayname>
+    <category>Documentation</category>
+    <executable output="showinpane" error="showinpane" modifiesdocument="no">
+        <path>qtc_blender_diffusion.py</path>
+        <arguments>%{CurrentDocument:FilePath} %{CurrentDocument:Row}</arguments>
+        <workingdirectory>%{CurrentDocument:Path}</workingdirectory>
+    </executable>
+</externaltool>

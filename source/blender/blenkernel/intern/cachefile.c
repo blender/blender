@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -58,7 +59,7 @@ static void cache_file_init_data(ID *id)
 
   cache_file->scale = 1.0f;
   cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
-  BLI_strncpy(cache_file->velocity_name, ".velocities", sizeof(cache_file->velocity_name));
+  STRNCPY(cache_file->velocity_name, ".velocities");
 }
 
 static void cache_file_copy_data(Main *UNUSED(bmain),
@@ -362,7 +363,7 @@ void BKE_cachefile_eval(Main *bmain, Depsgraph *depsgraph, CacheFile *cache_file
     cache_file->type = CACHEFILE_TYPE_ALEMBIC;
     cache_file->handle = ABC_create_handle(
         bmain, filepath, cache_file->layers.first, &cache_file->object_paths);
-    BLI_strncpy(cache_file->handle_filepath, filepath, FILE_MAX);
+    STRNCPY(cache_file->handle_filepath, filepath);
   }
 #endif
 #ifdef WITH_USD
@@ -399,8 +400,8 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
     const int frame = (int)BKE_cachefile_time_offset(cache_file, (double)ctime, fps);
 
     char ext[32];
-    BLI_path_frame_strip(r_filepath, ext);
-    BLI_path_frame(r_filepath, frame, frame_len);
+    BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
+    BLI_path_frame(r_filepath, FILE_MAX, frame, frame_len);
     BLI_path_extension_ensure(r_filepath, FILE_MAX, ext);
 
     /* TODO(kevin): store sequence range? */
@@ -422,7 +423,8 @@ bool BKE_cache_file_uses_render_procedural(const CacheFile *cache_file, Scene *s
   RenderEngineType *render_engine_type = RE_engines_find(scene->r.engine);
 
   if (cache_file->type != CACHEFILE_TYPE_ALEMBIC ||
-      !RE_engine_supports_alembic_procedural(render_engine_type, scene)) {
+      !RE_engine_supports_alembic_procedural(render_engine_type, scene))
+  {
     return false;
   }
 
@@ -440,7 +442,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
   const int num_layers = BLI_listbase_count(&cache_file->layers);
 
   CacheFileLayer *layer = MEM_callocN(sizeof(CacheFileLayer), "CacheFileLayer");
-  BLI_strncpy(layer->filepath, filepath, sizeof(layer->filepath));
+  STRNCPY(layer->filepath, filepath);
 
   BLI_addtail(&cache_file->layers, layer);
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -59,10 +61,26 @@ template<typename T> class SharedCache {
   }
 
   /** Retrieve the cached data. */
-  const T &data()
+  const T &data() const
   {
     BLI_assert(cache_->mutex.is_cached());
     return cache_->data;
+  }
+
+  /**
+   * Return true if the cache currently does not exist or has been invalidated.
+   */
+  bool is_dirty() const
+  {
+    return cache_->mutex.is_dirty();
+  }
+
+  /**
+   * Return true if the cache exists and is valid.
+   */
+  bool is_cached() const
+  {
+    return cache_->mutex.is_cached();
   }
 };
 

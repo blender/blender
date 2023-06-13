@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006-2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006-2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -33,7 +34,7 @@ enum {
   ICON_DATA_PREVIEW,
   /** 2D triangles: obj is #Icon_Geom */
   ICON_DATA_GEOM,
-  /** Studiolight */
+  /** Studio-light. */
   ICON_DATA_STUDIOLIGHT,
   /** GPencil Layer color preview (annotations): obj is #bGPDlayer */
   ICON_DATA_GPLAYER,

@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -43,10 +44,6 @@ struct DepthOfFieldBuffer {
 class DepthOfField {
  private:
   class Instance &inst_;
-
-  /** Samplers */
-  static constexpr eGPUSamplerState gather_bilinear = GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER;
-  static constexpr eGPUSamplerState gather_nearest = GPU_SAMPLER_MIPMAP;
 
   /** Input/Output texture references. */
   GPUTexture *input_color_tx_ = nullptr;

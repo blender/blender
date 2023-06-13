@@ -1,7 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
@@ -17,10 +19,10 @@ namespace blender::nodes::node_geo_triangulate_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on_all().hide_value();
-  b.add_input<decl::Int>(N_("Minimum Vertices")).default_value(4).min(4).max(10000);
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
+  b.add_input<decl::Int>("Minimum Vertices").default_value(4).min(4).max(10000);
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -38,7 +40,7 @@ static void geo_triangulate_init(bNodeTree * /*tree*/, bNode *node)
 static Mesh *triangulate_mesh_selection(const Mesh &mesh,
                                         const int quad_method,
                                         const int ngon_method,
-                                        const IndexMask selection,
+                                        const IndexMask &selection,
                                         const int min_vertices)
 {
   CustomData_MeshMasks cd_mask_extra = {
@@ -52,13 +54,17 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
 
   /* Tag faces to be triangulated from the selection mask. */
   BM_mesh_elem_table_ensure(bm, BM_FACE);
-  for (int i_face : selection) {
+  selection.foreach_index([&](const int i_face) {
     BM_elem_flag_set(BM_face_at_index(bm, i_face), BM_ELEM_TAG, true);
-  }
+  });
 
   BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, true, nullptr, nullptr, nullptr);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, &mesh);
   BM_mesh_free(bm);
+
+  /* Positions are not changed by the triangulation operation, so the bounds are the same. */
+  result->runtime->bounds_cache = mesh.runtime->bounds_cache;
+
   return result;
 }
 
@@ -77,7 +83,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     const Mesh &mesh_in = *geometry_set.get_mesh_for_read();
 
-    bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
+    const bke::MeshFieldContext context{mesh_in, ATTR_DOMAIN_FACE};
     FieldEvaluator evaluator{context, mesh_in.totpoly};
     evaluator.add(selection_field);
     evaluator.evaluate();

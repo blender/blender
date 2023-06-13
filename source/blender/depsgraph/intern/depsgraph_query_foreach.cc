@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -68,7 +69,8 @@ void deg_foreach_dependent_operation(const Depsgraph * /*graph*/,
     }
 
     if (source_component_type != DEG_OB_COMP_ANY &&
-        nodeTypeToObjectComponent(comp_node->type) != source_component_type) {
+        nodeTypeToObjectComponent(comp_node->type) != source_component_type)
+    {
       continue;
     }
     for (OperationNode *op_node : comp_node->operations) {

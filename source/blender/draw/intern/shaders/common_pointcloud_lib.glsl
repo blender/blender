@@ -17,7 +17,7 @@ in vec3 nor;
 #    endif
 #  else
 #    ifndef DRW_POINTCLOUD_INFO
-#      error Ensure createInfo includes `draw_pointcloud`.
+#      error Ensure createInfo includes draw_pointcloud.
 #    endif
 #  endif /* !USE_GPU_SHADER_CREATE_INFO */
 

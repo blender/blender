@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -45,7 +47,8 @@ static PyObject *M_Interpolate_poly_3d_calc(PyObject *UNUSED(self), PyObject *ar
   }
 
   if (mathutils_array_parse(
-          fp, 2, 3 | MU_ARRAY_ZERO, point, "pt must be a 2-3 dimensional vector") == -1) {
+          fp, 2, 3 | MU_ARRAY_ZERO, point, "pt must be a 2-3 dimensional vector") == -1)
+  {
     return NULL;
   }
 
@@ -87,7 +90,7 @@ static PyMethodDef M_Interpolate_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Interpolate_module_def = {
+static PyModuleDef M_Interpolate_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.interpolate",
     /*m_doc*/ M_Interpolate_doc,
@@ -100,6 +103,7 @@ static struct PyModuleDef M_Interpolate_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
+
 PyMODINIT_FUNC PyInit_mathutils_interpolate(void)
 {
   PyObject *submodule = PyModule_Create(&M_Interpolate_module_def);

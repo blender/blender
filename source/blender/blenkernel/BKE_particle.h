@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -9,6 +10,7 @@
  */
 
 #include "BLI_buffer.h"
+#include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_particle_types.h"
@@ -376,7 +378,8 @@ void psys_reset(struct ParticleSystem *psys, int mode);
 
 void psys_find_parents(struct ParticleSimulationData *sim, bool use_render_params);
 
-void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname);
+void psys_unique_name(struct Object *object, struct ParticleSystem *psys, const char *defname)
+    ATTR_NONNULL(1, 2, 3);
 
 /**
  * Calculates paths ready for drawing/rendering
@@ -639,7 +642,7 @@ void psys_calc_dmcache(struct Object *ob,
  * This is slow and can be optimized but only for many lookups.
  *
  * \param mesh_final: Final mesh, it may not have the same topology as original mesh.
- * \param mesh_original: Original mesh, use for accessing #MPoly to #MFace mapping.
+ * \param mesh_original: Original mesh, use for accessing poly to #MFace mapping.
  * \param findex_orig: The input tessface index.
  * \param fw: Face weights (position of the particle inside the \a findex_orig tessface).
  * \param poly_nodes: May be NULL, otherwise an array of linked list,

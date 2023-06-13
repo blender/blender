@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -73,7 +75,8 @@ class SphericalGrid {
   };
 
  public:
-  /** Iterator needs to allow the user to avoid full 3D comparison in two cases:
+  /**
+   * Iterator needs to allow the user to avoid full 3D comparison in two cases:
    *
    *  (1) Where (*current)->deepest < target[2], where the occluder is unambiguously in front of
    * the target point.
@@ -264,7 +267,8 @@ inline bool SphericalGrid::Iterator::testOccluder(bool wantOccludee)
   Vec3r bbMin, bbMax;
   (*_current)->poly.getBBox(bbMin, bbMax);
   if (_target[0] < bbMin[0] || _target[0] > bbMax[0] || _target[1] < bbMin[1] ||
-      _target[1] > bbMax[1]) {
+      _target[1] > bbMax[1])
+  {
 #if SPHERICAL_GRID_LOGGING
     if (G.debug & G_DEBUG_FREESTYLE) {
       std::cout << "\t\tSkipping: bounding box violation" << std::endl;

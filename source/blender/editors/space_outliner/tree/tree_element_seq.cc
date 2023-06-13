@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -68,8 +70,8 @@ TreeElementSequenceStrip::TreeElementSequenceStrip(TreeElement &legacy_te, Strip
 {
   BLI_assert(legacy_te.store_elem->type == TSE_SEQ_STRIP);
 
-  if (strip.dir[0] != '\0') {
-    legacy_te_.name = strip.dir;
+  if (strip.dirpath[0] != '\0') {
+    legacy_te_.name = strip.dirpath;
   }
   else {
     legacy_te_.name = IFACE_("Strip None");
@@ -86,7 +88,7 @@ TreeElementSequenceStripDuplicate::TreeElementSequenceStripDuplicate(TreeElement
   BLI_assert(legacy_te.store_elem->type == TSE_SEQUENCE_DUP);
 
   legacy_te_.idcode = sequence.type;
-  legacy_te_.name = sequence.strip->stripdata->name;
+  legacy_te_.name = sequence.strip->stripdata->filename;
 }
 
 Sequence &TreeElementSequenceStripDuplicate::getSequence() const

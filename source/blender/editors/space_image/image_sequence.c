@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -55,11 +56,13 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
     ImageFrame *frame = MEM_callocN(sizeof(ImageFrame), "image_frame");
 
     /* use the first file in the list as base filename */
-    frame->framenr = BLI_path_sequence_decode(filename, head, tail, &digits);
+    frame->framenr = BLI_path_sequence_decode(
+        filename, head, sizeof(head), tail, sizeof(tail), &digits);
 
     /* still in the same sequence */
     if (do_frame_range && (range != NULL) && STREQLEN(base_head, head, FILE_MAX) &&
-        STREQLEN(base_tail, tail, FILE_MAX)) {
+        STREQLEN(base_tail, tail, FILE_MAX))
+    {
       /* Set filepath to first frame in the range. */
       if (frame->framenr < range_first_frame) {
         BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
@@ -72,8 +75,8 @@ static void image_sequence_get_frame_ranges(wmOperator *op, ListBase *ranges)
       BLI_path_join(range->filepath, sizeof(range->filepath), dir, filename);
       BLI_addtail(ranges, range);
 
-      BLI_strncpy(base_head, head, sizeof(base_head));
-      BLI_strncpy(base_tail, tail, sizeof(base_tail));
+      STRNCPY(base_head, head);
+      STRNCPY(base_tail, tail);
 
       range_first_frame = frame->framenr;
     }
@@ -148,7 +151,8 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
 
   /* File browser. */
   if (RNA_struct_property_is_set(op->ptr, "directory") &&
-      RNA_struct_property_is_set(op->ptr, "files")) {
+      RNA_struct_property_is_set(op->ptr, "files"))
+  {
     const bool was_relative = BLI_path_is_rel(filepath);
 
     image_sequence_get_frame_ranges(op, &ranges);
@@ -166,7 +170,7 @@ ListBase ED_image_filesel_detect_sequences(Main *bmain, wmOperator *op, const bo
     ImageFrameRange *range = MEM_callocN(sizeof(*range), __func__);
     BLI_addtail(&ranges, range);
 
-    BLI_strncpy(range->filepath, filepath, FILE_MAX);
+    STRNCPY(range->filepath, filepath);
     image_detect_frame_range(range, detect_udim);
   }
 

@@ -31,7 +31,7 @@ def with_tempdir(wrapped):
     @functools.wraps(wrapped)
     def decorator(*args, **kwargs):
         dirname = tempfile.mkdtemp(prefix='blender-collada-test')
-        #print("Using tempdir %s" % dirname)
+        # print("Using tempdir %s" % dirname)
         try:
             retval = wrapped(*args, pathlib.Path(dirname), **kwargs)
         except:

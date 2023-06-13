@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -21,12 +23,21 @@ Result::Result(ResultType type, TexturePool &texture_pool)
 Result Result::Temporary(ResultType type, TexturePool &texture_pool)
 {
   Result result = Result(type, texture_pool);
-  result.increment_reference_count();
+  result.set_initial_reference_count(1);
+  result.reset();
   return result;
 }
 
 void Result::allocate_texture(Domain domain)
 {
+  /* The result is not actually needed, so allocate a dummy single value texture instead. See the
+   * method description for more information. */
+  if (!should_compute()) {
+    allocate_single_value();
+    increment_reference_count();
+    return;
+  }
+
   is_single_value_ = false;
   switch (type_) {
     case ResultType::Float:
@@ -245,6 +256,11 @@ bool Result::is_texture() const
 bool Result::is_single_value() const
 {
   return is_single_value_;
+}
+
+bool Result::is_allocated() const
+{
+  return texture_ != nullptr;
 }
 
 GPUTexture *Result::texture() const

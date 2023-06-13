@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_writer_volume.h"
 
@@ -23,9 +25,7 @@
 
 namespace blender::io::usd {
 
-USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDVolumeWriter::USDVolumeWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 bool USDVolumeWriter::check_is_animated(const HierarchyContext &context) const
 {
@@ -101,7 +101,8 @@ std::optional<std::string> USDVolumeWriter::resolve_vdb_file(const Volume *volum
 
     vdb_file_path = construct_vdb_file_path(volume);
     if (!BKE_volume_save(
-            volume, usd_export_context_.bmain, nullptr, vdb_file_path.value_or("").c_str())) {
+            volume, usd_export_context_.bmain, nullptr, vdb_file_path.value_or("").c_str()))
+    {
       return std::nullopt;
     }
   }
@@ -125,11 +126,11 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char usd_directory_path[FILE_MAX];
   char usd_file_name[FILE_MAXFILE];
-  BLI_split_dirfile(usd_file_path.c_str(),
-                    usd_directory_path,
-                    usd_file_name,
-                    sizeof(usd_directory_path),
-                    sizeof(usd_file_name));
+  BLI_path_split_dir_file(usd_file_path.c_str(),
+                          usd_directory_path,
+                          sizeof(usd_directory_path),
+                          usd_file_name,
+                          sizeof(usd_file_name));
 
   if (usd_directory_path[0] == '\0' || usd_file_name[0] == '\0') {
     return std::nullopt;
@@ -139,7 +140,7 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
 
   char vdb_directory_path[FILE_MAX];
   BLI_strncpy(vdb_directory_path, usd_directory_path, FILE_MAX);
-  strcat(vdb_directory_path, vdb_directory_name);
+  BLI_strncat(vdb_directory_path, vdb_directory_name, sizeof(vdb_directory_path));
   BLI_dir_create_recursive(vdb_directory_path);
 
   char vdb_file_name[FILE_MAXFILE];
@@ -148,9 +149,9 @@ std::optional<std::string> USDVolumeWriter::construct_vdb_file_path(const Volume
   if (!timecode.IsDefault()) {
     const int frame = int(timecode.GetValue());
     const int num_frame_digits = frame == 0 ? 1 : integer_digits_i(abs(frame));
-    BLI_path_frame(vdb_file_name, frame, num_frame_digits);
+    BLI_path_frame(vdb_file_name, sizeof(vdb_file_name), frame, num_frame_digits);
   }
-  strcat(vdb_file_name, ".vdb");
+  BLI_strncat(vdb_file_name, ".vdb", sizeof(vdb_file_name));
 
   char vdb_file_path[FILE_MAX];
   BLI_path_join(vdb_file_path, sizeof(vdb_file_path), vdb_directory_path, vdb_file_name);

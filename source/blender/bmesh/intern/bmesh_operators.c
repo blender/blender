@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -215,7 +217,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
                     const char *slot_name_src,
                     BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
                     const char *slot_name_dst,
-                    struct MemArena *arena_dst)
+                    MemArena *arena_dst)
 {
   BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);
   BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
@@ -234,7 +236,7 @@ void _bmo_slot_copy(BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
     slot_dst->data.buf = NULL;
     slot_dst->len = slot_src->len;
     if (slot_dst->len) {
-      /* check dest has all flags enabled that the source has */
+      /* Check destination has all flags enabled that the source has. */
       const eBMOpSlotSubType_Elem src_elem_flag = (slot_src->slot_subtype.elem & BM_ALL_NOLOOP);
       const eBMOpSlotSubType_Elem dst_elem_flag = (slot_dst->slot_subtype.elem & BM_ALL_NOLOOP);
 
@@ -599,7 +601,8 @@ void BMO_mesh_selected_remap(BMesh *bm,
       ese->ele = BMO_slot_map_elem_get(slot_elem_map, ese->ele);
 
       if (UNLIKELY((ese->ele == NULL) ||
-                   (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false)))) {
+                   (check_select && (BM_elem_flag_test(ese->ele, BM_ELEM_SELECT) == false))))
+      {
         BLI_remlink(&bm->selected, ese);
         MEM_freeN(ese);
       }
@@ -823,7 +826,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_VERT) {
       BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }
@@ -833,7 +837,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_EDGE) {
       BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }
@@ -843,7 +848,8 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm,
     if (htype & BM_FACE) {
       BM_ITER_MESH (ele, &iter, bm, BM_FACES_OF_MESH) {
         if ((!respecthide || !BM_elem_flag_test(ele, BM_ELEM_HIDDEN)) &&
-            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled) {
+            BM_elem_flag_test_bool(ele, hflag) == test_for_enabled)
+        {
           output->data.buf[i] = ele;
           i++;
         }
@@ -919,7 +925,7 @@ void _bmo_slot_buffer_append(BMOpSlot slot_args_dst[BMO_OP_MAX_SLOTS],
                              const char *slot_name_dst,
                              BMOpSlot slot_args_src[BMO_OP_MAX_SLOTS],
                              const char *slot_name_src,
-                             struct MemArena *arena_dst)
+                             MemArena *arena_dst)
 {
   BMOpSlot *slot_dst = BMO_slot_get(slot_args_dst, slot_name_dst);
   BMOpSlot *slot_src = BMO_slot_get(slot_args_src, slot_name_src);
@@ -1655,7 +1661,7 @@ bool BMO_op_vinitf(BMesh *bm, BMOperator *op, const int flag, const char *_fmt, 
         GOTO_ERROR("name to slot code check failed");
       }
 
-      BLI_strncpy(slot_name, fmt, sizeof(slot_name));
+      STRNCPY(slot_name, fmt);
 
       state = false;
       fmt += i;

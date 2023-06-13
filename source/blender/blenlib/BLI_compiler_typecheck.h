@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -56,7 +58,11 @@
 #if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
 #  define CHECK_TYPE_INLINE(val, type) \
     (void)((void)(((type)0) != (0 ? (val) : ((type)0))), _Generic((val), type : 0, const type : 0))
+/* NOTE: The NONCONST version is needed for scalar types on CLANG, to avoid warnings. . */
+#  define CHECK_TYPE_INLINE_NONCONST(val, type) \
+    (void)((void)(((type)0) != (0 ? (val) : ((type)0))), _Generic((val), type : 0))
 #else
+#  define CHECK_TYPE_INLINE_NONCONST(val, type) ((void)(((type)0) != (0 ? (val) : ((type)0))))
 #  define CHECK_TYPE_INLINE(val, type) ((void)(((type)0) != (0 ? (val) : ((type)0))))
 #endif
 

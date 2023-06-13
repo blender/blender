@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -750,7 +751,8 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
     ebp_b = ebp_a->next;
 
     if (((ebp_a->head_owner == ebp_b->tail_owner) && (ebp_a->head_owner != NULL)) ||
-        ((ebp_a->tail_owner == ebp_b->head_owner) && (ebp_a->tail_owner != NULL))) {
+        ((ebp_a->tail_owner == ebp_b->head_owner) && (ebp_a->tail_owner != NULL)))
+    {
       BKE_report(op->reports, RPT_ERROR, "Same bone selected...");
       BLI_freelistN(&points);
       return OPERATOR_CANCELLED;
@@ -1018,7 +1020,8 @@ static void fix_connected_bone(EditBone *ebone)
   float diff[3];
 
   if (!(ebone->parent) || !(ebone->flag & BONE_CONNECTED) ||
-      equals_v3v3(ebone->parent->tail, ebone->head)) {
+      equals_v3v3(ebone->parent->tail, ebone->head))
+  {
     return;
   }
 
@@ -1288,12 +1291,13 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
   ot->description = "Remove selected bones from the armature";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = armature_delete_selected_exec;
   ot->poll = ED_operator_editarmature;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 static bool armature_dissolve_ebone_cb(const char *bone_name, void *arm_p)
@@ -1381,12 +1385,14 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
     for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
       /* break connections for unseen bones */
       if (((arm->layer & ebone->layer) &&
-           (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0) {
+           (ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED))) == 0)
+      {
         ebone->temp.ebone = NULL;
       }
 
       if (((arm->layer & ebone->layer) &&
-           (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0) {
+           (ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED))) == 0)
+      {
         if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
           ebone->parent->temp.ebone = NULL;
         }

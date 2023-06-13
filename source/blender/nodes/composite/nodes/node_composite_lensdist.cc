@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -36,20 +37,20 @@ NODE_STORAGE_FUNCS(NodeLensDist)
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>(N_("Distort"))
+  b.add_input<decl::Float>("Distort")
       .default_value(0.0f)
       .min(MINIMUM_DISTORTION)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_input<decl::Float>(N_("Dispersion"))
+  b.add_input<decl::Float>("Dispersion")
       .default_value(0.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
@@ -102,7 +103,7 @@ class LensDistortionOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_wrap_mode(input_image.texture(), false, false);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const Domain domain = compute_domain();
 
@@ -129,7 +130,7 @@ class LensDistortionOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     GPU_texture_filter_mode(input_image.texture(), true);
-    GPU_texture_wrap_mode(input_image.texture(), false, false);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
 
     const Domain domain = compute_domain();
 

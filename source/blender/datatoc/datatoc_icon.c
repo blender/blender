@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup datatoc
@@ -34,22 +36,22 @@
 /* -------------------------------------------------------------------- */
 /* Utility functions */
 
-static int path_ensure_slash(char *string)
+static int path_ensure_slash(char *path)
 {
-  int len = strlen(string);
-  if (len == 0 || string[len - 1] != SEP) {
-    string[len] = SEP;
-    string[len + 1] = '\0';
+  int len = strlen(path);
+  if (len == 0 || path[len - 1] != SEP) {
+    path[len] = SEP;
+    path[len + 1] = '\0';
     return len + 1;
   }
   return len;
 }
 
-static bool path_test_extension(const char *str, const char *ext)
+static bool path_test_extension(const char *filepath, const char *ext)
 {
-  const size_t a = strlen(str);
+  const size_t a = strlen(filepath);
   const size_t b = strlen(ext);
-  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, str + a - b) == 0);
+  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, filepath + a - b) == 0);
 }
 
 static void endian_switch_uint32(uint *val)
@@ -58,10 +60,10 @@ static void endian_switch_uint32(uint *val)
   *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
-static const char *path_slash_rfind(const char *string)
+static const char *path_slash_rfind(const char *path)
 {
-  const char *const lfslash = strrchr(string, '/');
-  const char *const lbslash = strrchr(string, '\\');
+  const char *const lfslash = strrchr(path, '/');
+  const char *const lbslash = strrchr(path, '\\');
 
   if (!lfslash) {
     return lbslash;
@@ -82,7 +84,7 @@ static const char *path_basename(const char *path)
 /* -------------------------------------------------------------------- */
 /* Write a PNG from RGBA pixels */
 
-static bool write_png(const char *name, const uint *pixels, const int width, const int height)
+static bool write_png(const char *filepath, const uint *pixels, const int width, const int height)
 {
   png_structp png_ptr;
   png_infop info_ptr;
@@ -94,15 +96,15 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   const int compression = 9;
   int i;
 
-  fp = fopen(name, "wb");
+  fp = fopen(filepath, "wb");
   if (fp == NULL) {
-    printf("%s: Cannot open file for writing '%s'\n", __func__, name);
+    printf("%s: Cannot open file for writing '%s'\n", __func__, filepath);
     return false;
   }
 
   png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if (png_ptr == NULL) {
-    printf("%s: Cannot png_create_write_struct for file: '%s'\n", __func__, name);
+    printf("%s: Cannot png_create_write_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
@@ -110,14 +112,14 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   info_ptr = png_create_info_struct(png_ptr);
   if (info_ptr == NULL) {
     png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-    printf("%s: Cannot png_create_info_struct for file: '%s'\n", __func__, name);
+    printf("%s: Cannot png_create_info_struct for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
 
   if (setjmp(png_jmpbuf(png_ptr))) {
     png_destroy_write_struct(&png_ptr, &info_ptr);
-    printf("%s: Cannot setjmp for file: '%s'\n", __func__, name);
+    printf("%s: Cannot setjmp for file: '%s'\n", __func__, filepath);
     fclose(fp);
     return false;
   }
@@ -148,7 +150,7 @@ static bool write_png(const char *name, const uint *pixels, const int width, con
   /* allocate memory for an array of row-pointers */
   row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep));
   if (row_pointers == NULL) {
-    printf("%s: Cannot allocate row-pointers array for file '%s'\n", __func__, name);
+    printf("%s: Cannot allocate row-pointers array for file '%s'\n", __func__, filepath);
     png_destroy_write_struct(&png_ptr, &info_ptr);
     if (fp) {
       fclose(fp);
@@ -219,8 +221,8 @@ static struct IconInfo *icon_merge_context_info_for_icon_head(struct IconMergeCo
   for (int i = 0; i < context->num_read_icons; i++) {
     struct IconInfo *read_icon_info = &context->read_icons[i];
     const struct IconHead *read_icon_head = &read_icon_info->head;
-    if (read_icon_head->orig_x == icon_head->orig_x &&
-        read_icon_head->orig_y == icon_head->orig_y) {
+    if (read_icon_head->orig_x == icon_head->orig_x && read_icon_head->orig_y == icon_head->orig_y)
+    {
       return read_icon_info;
     }
   }

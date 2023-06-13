@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -14,11 +15,10 @@
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"
-#include "BKE_attribute.hh"
 #include "BKE_customdata.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -31,6 +31,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_particle_types.h"
+
+#include "WM_api.h"
 
 #include <iostream>
 
@@ -71,6 +73,73 @@ void USDGenericMeshWriter::do_write(HierarchyContext &context)
     }
     throw;
   }
+}
+
+void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
+{
+  const bke::AttributeAccessor attributes = mesh->attributes();
+
+  attributes.for_all(
+      [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
+        /* Color data. */
+        if (ELEM(meta_data.domain, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_POINT) &&
+            ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
+        {
+          write_color_data(mesh, usd_mesh, attribute_id, meta_data);
+        }
+
+        return true;
+      });
+}
+
+void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
+                                            pxr::UsdGeomMesh usd_mesh,
+                                            const bke::AttributeIDRef &attribute_id,
+                                            const bke::AttributeMetaData &meta_data)
+{
+  pxr::UsdTimeCode timecode = get_export_time_code();
+  const std::string name = attribute_id.name();
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
+  const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
+  /* Varying type depends on original domain. */
+  const pxr::TfToken prim_varying = meta_data.domain == ATTR_DOMAIN_CORNER ?
+                                        pxr::UsdGeomTokens->faceVarying :
+                                        pxr::UsdGeomTokens->vertex;
+
+  pxr::UsdGeomPrimvar colors_pv = pvApi.CreatePrimvar(
+      primvar_name, pxr::SdfValueTypeNames->Color3fArray, prim_varying);
+
+  const VArray<ColorGeometry4f> attribute = *mesh->attributes().lookup_or_default<ColorGeometry4f>(
+      attribute_id, meta_data.domain, {0.0f, 0.0f, 0.0f, 1.0f});
+
+  pxr::VtArray<pxr::GfVec3f> colors_data;
+
+  /* TODO: Thread the copy, like the obj exporter. */
+  switch (meta_data.domain) {
+    case ATTR_DOMAIN_CORNER:
+      for (size_t loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
+        const ColorGeometry4f color = attribute.get(loop_idx);
+        colors_data.push_back(pxr::GfVec3f(color.r, color.g, color.b));
+      }
+      break;
+
+    case ATTR_DOMAIN_POINT:
+      for (const int point_index : attribute.index_range()) {
+        const ColorGeometry4f color = attribute.get(point_index);
+        colors_data.push_back(pxr::GfVec3f(color.r, color.g, color.b));
+      }
+      break;
+
+    default:
+      BLI_assert_msg(0, "Invalid domain for mesh color data.");
+      return;
+  }
+
+  colors_pv.Set(colors_data, timecode);
+
+  const pxr::UsdAttribute &prim_colors_attr = colors_pv.GetAttr();
+  usd_value_writer_.SetAttribute(prim_colors_attr, pxr::VtValue(colors_data), timecode);
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
@@ -214,7 +283,8 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   if (!usd_mesh_data.corner_indices.empty() &&
-      usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size()) {
+      usd_mesh_data.corner_indices.size() == usd_mesh_data.corner_sharpnesses.size())
+  {
     pxr::UsdAttribute attr_corner_indices = usd_mesh.CreateCornerIndicesAttr(pxr::VtValue(), true);
     pxr::UsdAttribute attr_corner_sharpnesses = usd_mesh.CreateCornerSharpnessesAttr(
         pxr::VtValue(), true);
@@ -233,6 +303,9 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   if (usd_export_context_.export_params.export_uvmaps) {
     write_uv_maps(mesh, usd_mesh);
   }
+
+  write_custom_data(mesh, usd_mesh);
+
   if (usd_export_context_.export_params.export_normals) {
     write_normals(mesh, usd_mesh);
   }
@@ -275,7 +348,7 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   /* Only construct face groups (a.k.a. geometry subsets) when we need them for material
    * assignments. */
   const bke::AttributeAccessor attributes = mesh->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (!material_indices.is_single() && mesh->totcol > 1) {
     const VArraySpan<int> indices_span(material_indices);
@@ -287,14 +360,14 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
   usd_mesh_data.face_vertex_counts.reserve(mesh->totpoly);
   usd_mesh_data.face_indices.reserve(mesh->totloop);
 
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   for (const int i : polys.index_range()) {
-    const MPoly &poly = polys[i];
-    usd_mesh_data.face_vertex_counts.push_back(poly.totloop);
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      usd_mesh_data.face_indices.push_back(loop.v);
+    const IndexRange poly = polys[i];
+    usd_mesh_data.face_vertex_counts.push_back(poly.size());
+    for (const int vert : corner_verts.slice(poly)) {
+      usd_mesh_data.face_indices.push_back(vert);
     }
   }
 }
@@ -306,7 +379,7 @@ static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
     return;
   }
 
-  const Span<MEdge> edges = mesh->edges();
+  const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
     const float crease = creases[i];
     if (crease == 0.0f) {
@@ -315,8 +388,8 @@ static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
     const float sharpness = crease >= 1.0f ? pxr::UsdGeomMesh::SHARPNESS_INFINITE : crease;
 
-    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v1);
-    usd_mesh_data.crease_vertex_indices.push_back(edges[i].v2);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i][0]);
+    usd_mesh_data.crease_vertex_indices.push_back(edges[i][1]);
     usd_mesh_data.crease_lengths.push_back(2);
     usd_mesh_data.crease_sharpnesses.push_back(sharpness);
   }
@@ -381,9 +454,9 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
   }
 
   if (mesh_material_bound) {
-    /* USD will require that prims with material bindings have the MaterialBindingAPI applied
+    /* USD will require that prims with material bindings have the #MaterialBindingAPI applied
      * schema. While Bind() above will create the binding attribute, Apply() needs to be called as
-     * well to add the MaterialBindingAPI schema to the prim itself.*/
+     * well to add the #MaterialBindingAPI schema to the prim itself. */
     material_binding_api.Apply(mesh_prim);
   }
   else {
@@ -416,7 +489,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     auto subset_prim = usd_face_subset.GetPrim();
     auto subset_material_api = pxr::UsdShadeMaterialBindingAPI(subset_prim);
     subset_material_api.Bind(usd_material);
-    /* Apply the MaterialBindingAPI applied schema, as required by USD.*/
+    /* Apply the #MaterialBindingAPI applied schema, as required by USD. */
     subset_material_api.Apply(subset_prim);
   }
 }
@@ -426,8 +499,8 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   pxr::UsdTimeCode timecode = get_export_time_code();
   const float(*lnors)[3] = static_cast<const float(*)[3]>(
       CustomData_get_layer(&mesh->ldata, CD_NORMAL));
-  const Span<MPoly> polys = mesh->polys();
-  const Span<MLoop> loops = mesh->loops();
+  const OffsetIndices polys = mesh->polys();
+  const Span<int> corner_verts = mesh->corner_verts();
 
   pxr::VtVec3fArray loop_normals;
   loop_normals.reserve(mesh->totloop);
@@ -440,22 +513,24 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   }
   else {
     /* Compute the loop normals based on the 'smooth' flag. */
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(mesh);
-    const float(*face_normals)[3] = BKE_mesh_poly_normals_ensure(mesh);
+    bke::AttributeAccessor attributes = mesh->attributes();
+    const Span<float3> vert_normals = mesh->vert_normals();
+    const Span<float3> poly_normals = mesh->poly_normals();
+    const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
+        "sharp_face", ATTR_DOMAIN_FACE, false);
     for (const int i : polys.index_range()) {
-      const MPoly &poly = polys[i];
-
-      if ((poly.flag & ME_SMOOTH) == 0) {
+      const IndexRange poly = polys[i];
+      if (sharp_faces[i]) {
         /* Flat shaded, use common normal for all verts. */
-        pxr::GfVec3f pxr_normal(face_normals[i]);
-        for (int loop_idx = 0; loop_idx < poly.totloop; ++loop_idx) {
+        pxr::GfVec3f pxr_normal(&poly_normals[i].x);
+        for (int loop_idx = 0; loop_idx < poly.size(); ++loop_idx) {
           loop_normals.push_back(pxr_normal);
         }
       }
       else {
         /* Smooth shaded, use individual vert normals. */
-        for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-          loop_normals.push_back(pxr::GfVec3f(vert_normals[loop.v]));
+        for (const int vert : corner_verts.slice(poly)) {
+          loop_normals.push_back(pxr::GfVec3f(&vert_normals[vert].x));
         }
       }
     }
@@ -494,9 +569,7 @@ void USDGenericMeshWriter::write_surface_velocity(const Mesh *mesh, pxr::UsdGeom
   usd_mesh.CreateVelocitiesAttr().Set(usd_velocities, timecode);
 }
 
-USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx)
-{
-}
+USDMeshWriter::USDMeshWriter(const USDExporterContext &ctx) : USDGenericMeshWriter(ctx) {}
 
 Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/)
 {

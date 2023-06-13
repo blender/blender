@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -47,9 +49,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
   friend class Stroke;
   // friend class vertex_iterator;
 
-  inline vertex_iterator_base() : parent_class()
-  {
-  }
+  inline vertex_iterator_base() : parent_class() {}
 
   inline vertex_iterator_base(const iterator &iBrother) : parent_class()
   {
@@ -78,9 +78,7 @@ class vertex_iterator_base : public IteratorBase<Traits, BidirectionalIteratorTa
   }
 
  public:
-  virtual ~vertex_iterator_base()
-  {
-  }
+  virtual ~vertex_iterator_base() {}
 
   virtual bool begin() const
   {

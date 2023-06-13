@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 
@@ -216,7 +218,8 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     if (center_ray_hit.index >= 0) {
       const float3 hit_position_su = center_ray_hit.co;
       if (math::distance(center_ray_start_su, center_ray_end_su) >
-          math::distance(center_ray_start_su, hit_position_su)) {
+          math::distance(center_ray_start_su, hit_position_su))
+      {
         center_ray_end_su = hit_position_su;
         center_ray_end_wo = math::transform_point(surface_to_world_mat, center_ray_end_su);
       }
@@ -434,7 +437,7 @@ void report_invalid_uv_map(ReportList *reports)
 }
 
 void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,
-                                        const IndexMask curve_selection,
+                                        const IndexMask &curve_selection,
                                         const bool use_surface_collision)
 {
   use_surface_collision_ = use_surface_collision;
@@ -447,7 +450,7 @@ void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,
 }
 
 void CurvesConstraintSolver::solve_step(bke::CurvesGeometry &curves,
-                                        const IndexMask curve_selection,
+                                        const IndexMask &curve_selection,
                                         const Mesh *surface,
                                         const CurvesSurfaceTransforms &transforms)
 {

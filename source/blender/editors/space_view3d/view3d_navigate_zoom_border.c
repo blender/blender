@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -97,7 +99,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
     }
     /* convert border to 3d coordinates */
     if (!ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p) ||
-        !ED_view3d_unproject_v3(region, rect.xmin, rect.ymin, depth_close, p_corner)) {
+        !ED_view3d_unproject_v3(region, rect.xmin, rect.ymin, depth_close, p_corner))
+    {
       return OPERATOR_CANCELLED;
     }
 
@@ -120,8 +123,8 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
     new_dist = rv3d->dist;
 
     /* convert the drawn rectangle into 3d space */
-    if (depth_close != FLT_MAX &&
-        ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p)) {
+    if (depth_close != FLT_MAX && ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p))
+    {
       negate_v3_v3(new_ofs, p);
     }
     else {

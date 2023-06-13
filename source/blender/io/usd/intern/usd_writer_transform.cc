@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_transform.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -14,9 +15,7 @@
 
 namespace blender::io::usd {
 
-USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx)
-{
-}
+USDTransformWriter::USDTransformWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
 void USDTransformWriter::do_write(HierarchyContext &context)
 {

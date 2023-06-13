@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -259,7 +260,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                         (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                                         opname,
                                         slot_name,
-                                        "single element") == -1) {
+                                        "single element") == -1)
+        {
           return -1; /* error is set in bpy_slot_from_py_elem_check() */
         }
 
@@ -283,7 +285,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                                              opname,
                                              slot_name,
-                                             "element buffer") == -1) {
+                                             "element buffer") == -1)
+          {
             return -1; /* error is set in bpy_slot_from_py_elem_check() */
           }
 
@@ -296,7 +299,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                                              opname,
                                              slot_name,
-                                             "element buffer") == -1) {
+                                             "element buffer") == -1)
+          {
             return -1; /* error is set in bpy_slot_from_py_elem_check() */
           }
 
@@ -309,7 +313,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                              (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                                              opname,
                                              slot_name,
-                                             "element buffer") == -1) {
+                                             "element buffer") == -1)
+          {
             return -1; /* error is set in bpy_slot_from_py_elem_check() */
           }
           BMO_slot_buffer_from_all(bm, bmop, bmop->slots_in, slot_name, BM_FACE);
@@ -328,7 +333,8 @@ static int bpy_slot_from_py(BMesh *bm,
                   (slot->slot_subtype.elem & BM_ALL_NOLOOP),
                   opname,
                   slot_name,
-                  "element buffer") == -1) {
+                  "element buffer") == -1)
+          {
             return -1; /* error is set in bpy_slot_from_py_elem_check() */
           }
 
@@ -417,7 +423,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid key in dict") == -1) {
+                                              "invalid key in dict") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -426,7 +433,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid value in dict") == -1) {
+                                              "invalid value in dict") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -448,7 +456,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid key in dict") == -1) {
+                                              "invalid key in dict") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -481,7 +490,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid key in dict") == -1) {
+                                              "invalid key in dict") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -514,7 +524,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid key in dict") == -1) {
+                                              "invalid key in dict") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -547,7 +558,8 @@ static int bpy_slot_from_py(BMesh *bm,
                                               BM_ALL_NOLOOP,
                                               opname,
                                               slot_name,
-                                              "invalid key in set") == -1) {
+                                              "invalid key in set") == -1)
+              {
                 return -1; /* error is set in bpy_slot_from_py_elem_check() */
               }
 
@@ -738,7 +750,8 @@ PyObject *BPy_BMO_call(BPy_BMeshOpFunc *self, PyObject *args, PyObject *kw)
   BMOperator bmop;
 
   if ((PyTuple_GET_SIZE(args) == 1) && (py_bm = (BPy_BMesh *)PyTuple_GET_ITEM(args, 0)) &&
-      BPy_BMesh_Check(py_bm)) {
+      BPy_BMesh_Check(py_bm))
+  {
     BPY_BM_CHECK_OBJ(py_bm);
     bm = py_bm->bm;
 

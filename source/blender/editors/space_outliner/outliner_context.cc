@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -16,21 +17,15 @@
 
 namespace blender::ed::outliner {
 
-static void outliner_context_selected_ids_recursive(const SpaceOutliner &space_outliner,
-                                                    bContextDataResult *result)
+static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
+                                          bContextDataResult *result)
 {
-  tree_iterator::all(space_outliner, [&](const TreeElement *te) {
+  tree_iterator::all(*space_outliner, [&](const TreeElement *te) {
     const TreeStoreElem *tse = TREESTORE(te);
     if ((tse->flag & TSE_SELECTED) && ELEM(tse->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
       CTX_data_id_list_add(result, tse->id);
     }
   });
-}
-
-static void outliner_context_selected_ids(const SpaceOutliner *space_outliner,
-                                          bContextDataResult *result)
-{
-  outliner_context_selected_ids_recursive(*space_outliner, result);
   CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 }
 

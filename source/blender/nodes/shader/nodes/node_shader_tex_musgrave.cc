@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -15,20 +16,18 @@ NODE_STORAGE_FUNCS(NodeTexMusgrave)
 static void sh_node_tex_musgrave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .hide_value()
-      .implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Float>(N_("W")).min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
+  b.add_input<decl::Vector>("Vector").hide_value().implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Float>("W").min(-1000.0f).max(1000.0f).make_available([](bNode &node) {
     /* Default to 1 instead of 4, because it is much faster. */
     node_storage(node).dimensions = 1;
   });
-  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Dimension")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Lacunarity")).min(0.0f).max(1000.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Offset")).min(-1000.0f).max(1000.0f);
-  b.add_input<decl::Float>(N_("Gain")).min(0.0f).max(1000.0f).default_value(1.0f);
-  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Dimension").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Lacunarity").min(0.0f).max(1000.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Offset").min(-1000.0f).max(1000.0f);
+  b.add_input<decl::Float>("Gain").min(0.0f).max(1000.0f).default_value(1.0f);
+  b.add_output<decl::Float>("Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_musgrave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -110,16 +109,17 @@ static void node_shader_update_tex_musgrave(bNodeTree *ntree, bNode *node)
   bNodeSocket *inOffsetSock = nodeFindSocket(node, SOCK_IN, "Offset");
   bNodeSocket *inGainSock = nodeFindSocket(node, SOCK_IN, "Gain");
 
-  nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
-  nodeSetSocketAvailability(ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
-  nodeSetSocketAvailability(ntree,
-                            inOffsetSock,
-                            storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
-                                storage.musgrave_type != SHD_MUSGRAVE_FBM);
-  nodeSetSocketAvailability(ntree,
-                            inGainSock,
-                            storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
-                                storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
+  bke::nodeSetSocketAvailability(ntree, inVectorSock, storage.dimensions != 1);
+  bke::nodeSetSocketAvailability(
+      ntree, inWSock, storage.dimensions == 1 || storage.dimensions == 4);
+  bke::nodeSetSocketAvailability(ntree,
+                                 inOffsetSock,
+                                 storage.musgrave_type != SHD_MUSGRAVE_MULTIFRACTAL &&
+                                     storage.musgrave_type != SHD_MUSGRAVE_FBM);
+  bke::nodeSetSocketAvailability(ntree,
+                                 inGainSock,
+                                 storage.musgrave_type == SHD_MUSGRAVE_HYBRID_MULTIFRACTAL ||
+                                     storage.musgrave_type == SHD_MUSGRAVE_RIDGED_MULTIFRACTAL);
 
   bNodeSocket *outFacSock = nodeFindSocket(node, SOCK_OUT, "Fac");
   node_sock_label(outFacSock, "Height");
@@ -183,7 +183,8 @@ class MusgraveFunction : public mf::MultiFunction {
     if (ELEM(musgrave_type,
              SHD_MUSGRAVE_RIDGED_MULTIFRACTAL,
              SHD_MUSGRAVE_HYBRID_MULTIFRACTAL,
-             SHD_MUSGRAVE_HETERO_TERRAIN)) {
+             SHD_MUSGRAVE_HETERO_TERRAIN))
+    {
       builder.single_input<float>("Offset");
     }
     if (ELEM(musgrave_type, SHD_MUSGRAVE_RIDGED_MULTIFRACTAL, SHD_MUSGRAVE_HYBRID_MULTIFRACTAL)) {
@@ -195,7 +196,7 @@ class MusgraveFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -240,34 +241,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -275,13 +276,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -297,34 +298,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -332,13 +333,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -354,34 +355,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -389,13 +390,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -409,34 +410,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -444,13 +445,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -465,34 +466,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
@@ -500,13 +501,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
@@ -535,7 +536,7 @@ void register_node_type_sh_tex_musgrave()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_MUSGRAVE, "Musgrave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_musgrave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_musgrave;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_musgrave;
   node_type_storage(
       &ntype, "NodeTexMusgrave", node_free_standard_storage, node_copy_standard_storage);

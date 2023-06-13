@@ -1,29 +1,19 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_collection.h"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
-#include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
-#include "BKE_pointcloud.h"
 
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 namespace blender::bke {
-
-static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
-                                           const float4x4 &transform,
-                                           Vector<GeometryInstanceGroup> &r_sets);
-
-static void geometry_set_collect_recursive_collection(const Collection &collection,
-                                                      const float4x4 &transform,
-                                                      Vector<GeometryInstanceGroup> &r_sets);
 
 static void add_final_mesh_as_geometry_component(const Object &object, GeometrySet &geometry_set)
 {
@@ -72,87 +62,6 @@ GeometrySet object_get_evaluated_geometry_set(const Object &object)
 
   /* Return by value since there is not always an existing geometry set owned elsewhere to use. */
   return {};
-}
-
-static void geometry_set_collect_recursive_collection_instance(
-    const Collection &collection, const float4x4 &transform, Vector<GeometryInstanceGroup> &r_sets)
-{
-  float4x4 offset_matrix = float4x4::identity();
-  offset_matrix.location() -= float3(collection.instance_offset);
-  const float4x4 instance_transform = transform * offset_matrix;
-  geometry_set_collect_recursive_collection(collection, instance_transform, r_sets);
-}
-
-static void geometry_set_collect_recursive_object(const Object &object,
-                                                  const float4x4 &transform,
-                                                  Vector<GeometryInstanceGroup> &r_sets)
-{
-  GeometrySet instance_geometry_set = object_get_evaluated_geometry_set(object);
-  geometry_set_collect_recursive(instance_geometry_set, transform, r_sets);
-}
-
-static void geometry_set_collect_recursive_collection(const Collection &collection,
-                                                      const float4x4 &transform,
-                                                      Vector<GeometryInstanceGroup> &r_sets)
-{
-  LISTBASE_FOREACH (const CollectionObject *, collection_object, &collection.gobject) {
-    BLI_assert(collection_object->ob != nullptr);
-    const Object &object = *collection_object->ob;
-    const float4x4 object_transform = transform * float4x4_view(object.object_to_world);
-    geometry_set_collect_recursive_object(object, object_transform, r_sets);
-  }
-  LISTBASE_FOREACH (const CollectionChild *, collection_child, &collection.children) {
-    BLI_assert(collection_child->collection != nullptr);
-    const Collection &collection = *collection_child->collection;
-    geometry_set_collect_recursive_collection(collection, transform, r_sets);
-  }
-}
-
-static void geometry_set_collect_recursive(const GeometrySet &geometry_set,
-                                           const float4x4 &transform,
-                                           Vector<GeometryInstanceGroup> &r_sets)
-{
-  r_sets.append({geometry_set, {transform}});
-
-  if (geometry_set.has_instances()) {
-    const Instances &instances = *geometry_set.get_instances_for_read();
-
-    Span<float4x4> transforms = instances.transforms();
-    Span<int> handles = instances.reference_handles();
-    Span<InstanceReference> references = instances.references();
-    for (const int i : transforms.index_range()) {
-      const InstanceReference &reference = references[handles[i]];
-      const float4x4 instance_transform = transform * transforms[i];
-
-      switch (reference.type()) {
-        case InstanceReference::Type::Object: {
-          Object &object = reference.object();
-          geometry_set_collect_recursive_object(object, instance_transform, r_sets);
-          break;
-        }
-        case InstanceReference::Type::Collection: {
-          Collection &collection = reference.collection();
-          geometry_set_collect_recursive_collection_instance(
-              collection, instance_transform, r_sets);
-          break;
-        }
-        case InstanceReference::Type::GeometrySet: {
-          const GeometrySet &geometry_set = reference.geometry_set();
-          geometry_set_collect_recursive(geometry_set, instance_transform, r_sets);
-          break;
-        }
-        case InstanceReference::Type::None: {
-          break;
-        }
-      }
-    }
-  }
-}
-
-void geometry_set_gather_instances(const GeometrySet &geometry_set,
-                                   Vector<GeometryInstanceGroup> &r_instance_groups)
-{
-  geometry_set_collect_recursive(geometry_set, float4x4::identity(), r_instance_groups);
 }
 
 void Instances::foreach_referenced_geometry(

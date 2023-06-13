@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_generic_virtual_array.hh"
 
@@ -8,36 +10,36 @@ namespace blender {
 /** \name #GVArrayImpl
  * \{ */
 
-void GVArrayImpl::materialize(const IndexMask mask, void *dst) const
+void GVArrayImpl::materialize(const IndexMask &mask, void *dst) const
 {
-  for (const int64_t i : mask) {
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
     void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
     this->get(i, elem_dst);
-  }
+  });
 }
 
-void GVArrayImpl::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+void GVArrayImpl::materialize_to_uninitialized(const IndexMask &mask, void *dst) const
 {
-  for (const int64_t i : mask) {
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
     void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
     this->get_to_uninitialized(i, elem_dst);
-  }
+  });
 }
 
-void GVArrayImpl::materialize_compressed(IndexMask mask, void *dst) const
+void GVArrayImpl::materialize_compressed(const IndexMask &mask, void *dst) const
 {
-  for (const int64_t i : mask.index_range()) {
-    void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
-    this->get(mask[i], elem_dst);
-  }
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i, const int64_t pos) {
+    void *elem_dst = POINTER_OFFSET(dst, type_->size() * pos);
+    this->get(i, elem_dst);
+  });
 }
 
-void GVArrayImpl::materialize_compressed_to_uninitialized(IndexMask mask, void *dst) const
+void GVArrayImpl::materialize_compressed_to_uninitialized(const IndexMask &mask, void *dst) const
 {
-  for (const int64_t i : mask.index_range()) {
-    void *elem_dst = POINTER_OFFSET(dst, type_->size() * i);
-    this->get_to_uninitialized(mask[i], elem_dst);
-  }
+  mask.foreach_index_optimized<int64_t>([&](const int64_t i, const int64_t pos) {
+    void *elem_dst = POINTER_OFFSET(dst, type_->size() * pos);
+    this->get_to_uninitialized(i, elem_dst);
+  });
 }
 
 void GVArrayImpl::get(const int64_t index, void *r_value) const
@@ -143,22 +145,22 @@ CommonVArrayInfo GVArrayImpl_For_GSpan::common_info() const
   return CommonVArrayInfo{CommonVArrayInfo::Type::Span, true, data_};
 }
 
-void GVArrayImpl_For_GSpan::materialize(const IndexMask mask, void *dst) const
+void GVArrayImpl_For_GSpan::materialize(const IndexMask &mask, void *dst) const
 {
   type_->copy_assign_indices(data_, dst, mask);
 }
 
-void GVArrayImpl_For_GSpan::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+void GVArrayImpl_For_GSpan::materialize_to_uninitialized(const IndexMask &mask, void *dst) const
 {
   type_->copy_construct_indices(data_, dst, mask);
 }
 
-void GVArrayImpl_For_GSpan::materialize_compressed(const IndexMask mask, void *dst) const
+void GVArrayImpl_For_GSpan::materialize_compressed(const IndexMask &mask, void *dst) const
 {
   type_->copy_assign_compressed(data_, dst, mask);
 }
 
-void GVArrayImpl_For_GSpan::materialize_compressed_to_uninitialized(const IndexMask mask,
+void GVArrayImpl_For_GSpan::materialize_compressed_to_uninitialized(const IndexMask &mask,
                                                                     void *dst) const
 {
   type_->copy_construct_compressed(data_, dst, mask);
@@ -187,23 +189,23 @@ CommonVArrayInfo GVArrayImpl_For_SingleValueRef::common_info() const
   return CommonVArrayInfo{CommonVArrayInfo::Type::Single, true, value_};
 }
 
-void GVArrayImpl_For_SingleValueRef::materialize(const IndexMask mask, void *dst) const
+void GVArrayImpl_For_SingleValueRef::materialize(const IndexMask &mask, void *dst) const
 {
   type_->fill_assign_indices(value_, dst, mask);
 }
 
-void GVArrayImpl_For_SingleValueRef::materialize_to_uninitialized(const IndexMask mask,
+void GVArrayImpl_For_SingleValueRef::materialize_to_uninitialized(const IndexMask &mask,
                                                                   void *dst) const
 {
   type_->fill_construct_indices(value_, dst, mask);
 }
 
-void GVArrayImpl_For_SingleValueRef::materialize_compressed(const IndexMask mask, void *dst) const
+void GVArrayImpl_For_SingleValueRef::materialize_compressed(const IndexMask &mask, void *dst) const
 {
   type_->fill_assign_n(value_, dst, mask.size());
 }
 
-void GVArrayImpl_For_SingleValueRef::materialize_compressed_to_uninitialized(const IndexMask mask,
+void GVArrayImpl_For_SingleValueRef::materialize_compressed_to_uninitialized(const IndexMask &mask,
                                                                              void *dst) const
 {
   type_->fill_construct_n(value_, dst, mask.size());
@@ -495,20 +497,15 @@ class GVArrayImpl_For_SlicedGVArray : public GVArrayImpl {
     return {};
   }
 
-  void materialize_compressed_to_uninitialized(const IndexMask mask, void *dst) const override
+  void materialize_compressed_to_uninitialized(const IndexMask &mask, void *dst) const override
   {
-    if (mask.is_range()) {
-      const IndexRange mask_range = mask.as_range();
-      const IndexRange offset_mask_range{mask_range.start() + offset_, mask_range.size()};
-      varray_.materialize_compressed_to_uninitialized(offset_mask_range, dst);
-    }
-    else {
-      Vector<int64_t, 32> offset_mask_indices(mask.size());
-      for (const int64_t i : mask.index_range()) {
-        offset_mask_indices[i] = mask[i] + offset_;
-      }
-      varray_.materialize_compressed_to_uninitialized(offset_mask_indices.as_span(), dst);
-    }
+    IndexMaskFromSegment mask_from_segment;
+    mask.foreach_segment([&](const IndexMaskSegment segment, const int64_t start) {
+      const IndexMask &segment_mask = mask_from_segment.update(
+          {segment.offset() + offset_, segment.base_span()});
+      varray_.materialize_compressed_to_uninitialized(segment_mask,
+                                                      POINTER_OFFSET(dst, type_->size() * start));
+    });
   }
 };
 
@@ -549,7 +546,7 @@ void GVArrayCommon::materialize(void *dst) const
   this->materialize(IndexMask(impl_->size()), dst);
 }
 
-void GVArrayCommon::materialize(const IndexMask mask, void *dst) const
+void GVArrayCommon::materialize(const IndexMask &mask, void *dst) const
 {
   impl_->materialize(mask, dst);
 }
@@ -559,18 +556,18 @@ void GVArrayCommon::materialize_to_uninitialized(void *dst) const
   this->materialize_to_uninitialized(IndexMask(impl_->size()), dst);
 }
 
-void GVArrayCommon::materialize_to_uninitialized(const IndexMask mask, void *dst) const
+void GVArrayCommon::materialize_to_uninitialized(const IndexMask &mask, void *dst) const
 {
   BLI_assert(mask.min_array_size() <= impl_->size());
   impl_->materialize_to_uninitialized(mask, dst);
 }
 
-void GVArrayCommon::materialize_compressed(IndexMask mask, void *dst) const
+void GVArrayCommon::materialize_compressed(const IndexMask &mask, void *dst) const
 {
   impl_->materialize_compressed(mask, dst);
 }
 
-void GVArrayCommon::materialize_compressed_to_uninitialized(IndexMask mask, void *dst) const
+void GVArrayCommon::materialize_compressed_to_uninitialized(const IndexMask &mask, void *dst) const
 {
   impl_->materialize_compressed_to_uninitialized(mask, dst);
 }
@@ -650,13 +647,9 @@ GVArray::GVArray(const GVArray &other) = default;
 
 GVArray::GVArray(GVArray &&other) noexcept = default;
 
-GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl)
-{
-}
+GVArray::GVArray(const GVArrayImpl *impl) : GVArrayCommon(impl) {}
 
-GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl))
-{
-}
+GVArray::GVArray(std::shared_ptr<const GVArrayImpl> impl) : GVArrayCommon(std::move(impl)) {}
 
 GVArray::GVArray(varray_tag::single /* tag */,
                  const CPPType &type,
@@ -747,9 +740,7 @@ GVArray &GVArray::operator=(GVArray &&other) noexcept
 GVMutableArray::GVMutableArray(const GVMutableArray &other) = default;
 GVMutableArray::GVMutableArray(GVMutableArray &&other) noexcept = default;
 
-GVMutableArray::GVMutableArray(GVMutableArrayImpl *impl) : GVArrayCommon(impl)
-{
-}
+GVMutableArray::GVMutableArray(GVMutableArrayImpl *impl) : GVArrayCommon(impl) {}
 
 GVMutableArray::GVMutableArray(std::shared_ptr<GVMutableArrayImpl> impl)
     : GVArrayCommon(std::move(impl))

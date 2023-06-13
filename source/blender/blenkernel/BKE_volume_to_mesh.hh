@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -63,8 +65,8 @@ void fill_mesh_from_openvdb_data(const Span<openvdb::Vec3s> vdb_verts,
                                  int poly_offset,
                                  int loop_offset,
                                  MutableSpan<float3> vert_positions,
-                                 MutableSpan<MPoly> polys,
-                                 MutableSpan<MLoop> loops);
+                                 MutableSpan<int> poly_offsets,
+                                 MutableSpan<int> corner_verts);
 
 #endif
 

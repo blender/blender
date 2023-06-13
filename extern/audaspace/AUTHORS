@@ -14,3 +14,14 @@ The first three of them were employed by the Blender Foundation during that time
 Some features (random sounds, dynamic music, playback manager, convolution and HRTFs support) were added as part of the VALS (Virtual Alliances for Learning Society) project by
 
 - Juan Francisco Crespo Galán <dethon_5@outlook.com>
+
+The Equalizer sound effect has been added by
+
+- Marcos Perez
+
+Several people provided fixes:
+
+- Aaron Carlisle
+- Sebastian Parborg
+- Leon Zandman
+- Richard Antalik

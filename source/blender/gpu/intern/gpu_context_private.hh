@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 by Mike Erwin. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 by Mike Erwin. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -47,6 +48,7 @@ class Context {
   FrameBuffer *front_right = nullptr;
 
   DebugStack debug_stack;
+  bool debug_is_capturing = false;
 
   /* GPUContext counter used to assign a unique ID to each GPUContext.
    * NOTE(Metal): This is required by the Metal Backend, as a bug exists in the global OS shader
@@ -83,6 +85,13 @@ class Context {
 
   virtual void debug_group_begin(const char *, int){};
   virtual void debug_group_end(){};
+
+  /* Returns true if capture successfully started. */
+  virtual bool debug_capture_begin() = 0;
+  virtual void debug_capture_end() = 0;
+  virtual void *debug_capture_scope_create(const char *name) = 0;
+  virtual bool debug_capture_scope_begin(void *scope) = 0;
+  virtual void debug_capture_scope_end(void *scope) = 0;
 
   bool is_active_on_thread();
 };

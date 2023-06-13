@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -33,81 +34,81 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/MOD_armature.c
+  intern/MOD_armature.cc
   intern/MOD_array.cc
-  intern/MOD_bevel.c
+  intern/MOD_bevel.cc
   intern/MOD_boolean.cc
   intern/MOD_build.cc
-  intern/MOD_cast.c
-  intern/MOD_cloth.c
-  intern/MOD_collision.c
+  intern/MOD_cast.cc
+  intern/MOD_cloth.cc
+  intern/MOD_collision.cc
   intern/MOD_correctivesmooth.cc
-  intern/MOD_curve.c
+  intern/MOD_curve.cc
   intern/MOD_datatransfer.cc
-  intern/MOD_decimate.c
+  intern/MOD_decimate.cc
   intern/MOD_displace.cc
-  intern/MOD_dynamicpaint.c
-  intern/MOD_edgesplit.c
+  intern/MOD_dynamicpaint.cc
+  intern/MOD_edgesplit.cc
   intern/MOD_explode.cc
-  intern/MOD_fluid.c
-  intern/MOD_hook.c
-  intern/MOD_laplaciandeform.c
+  intern/MOD_fluid.cc
+  intern/MOD_hook.cc
+  intern/MOD_laplaciandeform.cc
   intern/MOD_laplaciansmooth.cc
-  intern/MOD_lattice.c
+  intern/MOD_lattice.cc
   intern/MOD_mask.cc
   intern/MOD_mesh_to_volume.cc
-  intern/MOD_meshcache.c
-  intern/MOD_meshcache_mdd.c
-  intern/MOD_meshcache_pc2.c
-  intern/MOD_meshcache_util.c
-  intern/MOD_meshdeform.c
+  intern/MOD_meshcache.cc
+  intern/MOD_meshcache_mdd.cc
+  intern/MOD_meshcache_pc2.cc
+  intern/MOD_meshcache_util.cc
+  intern/MOD_meshdeform.cc
   intern/MOD_meshsequencecache.cc
   intern/MOD_mirror.cc
   intern/MOD_multires.cc
   intern/MOD_nodes.cc
-  intern/MOD_none.c
+  intern/MOD_none.cc
   intern/MOD_normal_edit.cc
   intern/MOD_ocean.cc
   intern/MOD_particleinstance.cc
   intern/MOD_particlesystem.cc
   intern/MOD_remesh.cc
   intern/MOD_screw.cc
-  intern/MOD_shapekey.c
-  intern/MOD_shrinkwrap.c
-  intern/MOD_simpledeform.c
-  intern/MOD_skin.c
-  intern/MOD_smooth.c
-  intern/MOD_softbody.c
+  intern/MOD_shapekey.cc
+  intern/MOD_shrinkwrap.cc
+  intern/MOD_simpledeform.cc
+  intern/MOD_skin.cc
+  intern/MOD_smooth.cc
+  intern/MOD_softbody.cc
   intern/MOD_solidify.cc
   intern/MOD_solidify_extrude.cc
   intern/MOD_solidify_nonmanifold.cc
   intern/MOD_subsurf.cc
-  intern/MOD_surface.c
+  intern/MOD_surface.cc
   intern/MOD_surfacedeform.cc
   intern/MOD_triangulate.cc
-  intern/MOD_ui_common.c
+  intern/MOD_ui_common.cc
   intern/MOD_util.cc
   intern/MOD_uvproject.cc
   intern/MOD_uvwarp.cc
   intern/MOD_volume_displace.cc
   intern/MOD_volume_to_mesh.cc
-  intern/MOD_warp.c
+  intern/MOD_warp.cc
   intern/MOD_wave.cc
   intern/MOD_weighted_normal.cc
-  intern/MOD_weightvg_util.c
+  intern/MOD_weightvg_util.cc
   intern/MOD_weightvgedit.cc
   intern/MOD_weightvgmix.cc
   intern/MOD_weightvgproximity.cc
   intern/MOD_weld.cc
-  intern/MOD_wireframe.c
+  intern/MOD_wireframe.cc
 
-  MOD_modifiertypes.h
+  MOD_modifiertypes.hh
   MOD_nodes.h
-  intern/MOD_meshcache_util.h
+  intern/MOD_meshcache_util.hh
   intern/MOD_solidify_util.hh
-  intern/MOD_ui_common.h
-  intern/MOD_util.h
-  intern/MOD_weightvg_util.h
+  intern/MOD_ui_common.hh
+  intern/MOD_util.hh
+  intern/MOD_weightvg_util.hh
 )
 
 set(LIB

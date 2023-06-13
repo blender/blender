@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -75,9 +76,7 @@ void ED_view3d_project_float_v3_m4(const ARegion *region,
 /* Clipping Projection Functions
  * ***************************** */
 
-eV3DProjStatus ED_view3d_project_base(const struct ARegion *region,
-                                      struct Base *base,
-                                      float r_co[2])
+eV3DProjStatus ED_view3d_project_base(const ARegion *region, Base *base, float r_co[2])
 {
   eV3DProjStatus ret = ED_view3d_project_float_global(
       region, base->object->object_to_world[3], r_co, V3D_PROJ_TEST_CLIP_DEFAULT);
@@ -139,7 +138,8 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
   const float fy = ((float)region->winy / 2.0f) * (1.0f + (vec4[1] * scalar));
 
   if ((flag & V3D_PROJ_TEST_CLIP_WIN) &&
-      (fx <= 0.0f || fy <= 0.0f || fx >= (float)region->winx || fy >= (float)region->winy)) {
+      (fx <= 0.0f || fy <= 0.0f || fx >= (float)region->winx || fy >= (float)region->winy))
+  {
     return V3D_PROJ_RET_CLIP_WIN;
   }
 
@@ -159,8 +159,8 @@ eV3DProjStatus ED_view3d_project_short_ex(const ARegion *region,
   float tvec[2];
   eV3DProjStatus ret = ed_view3d_project__internal(region, perspmat, is_local, co, tvec, flag);
   if (ret == V3D_PROJ_RET_OK) {
-    if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) &&
-        (tvec[1] > -32700.0f && tvec[1] < 32700.0f)) {
+    if ((tvec[0] > -32700.0f && tvec[0] < 32700.0f) && (tvec[1] > -32700.0f && tvec[1] < 32700.0f))
+    {
       r_co[0] = (short)floorf(tvec[0]);
       r_co[1] = (short)floorf(tvec[1]);
     }
@@ -182,7 +182,8 @@ eV3DProjStatus ED_view3d_project_int_ex(const ARegion *region,
   eV3DProjStatus ret = ed_view3d_project__internal(region, perspmat, is_local, co, tvec, flag);
   if (ret == V3D_PROJ_RET_OK) {
     if ((tvec[0] > -2140000000.0f && tvec[0] < 2140000000.0f) &&
-        (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f)) {
+        (tvec[1] > -2140000000.0f && tvec[1] < 2140000000.0f))
+    {
       r_co[0] = (int)floorf(tvec[0]);
       r_co[1] = (int)floorf(tvec[1]);
     }
@@ -357,7 +358,8 @@ static void view3d_win_to_ray_segment(const struct Depsgraph *depsgraph,
 bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float ray_end[3])
 {
   if ((rv3d->rflag & RV3D_CLIPPING) &&
-      (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end) == false)) {
+      (clip_segment_v3_plane_n(ray_start, ray_end, rv3d->clip, 6, ray_start, ray_end) == false))
+  {
     return false;
   }
   return true;
@@ -701,7 +703,7 @@ void ED_view3d_ob_project_mat_get_from_obmat(const RegionView3D *rv3d,
   mul_m4_m4m4(r_pmat, rv3d->winmat, vmat);
 }
 
-void ED_view3d_project_v3(const struct ARegion *region, const float world[3], float r_region_co[3])
+void ED_view3d_project_v3(const ARegion *region, const float world[3], float r_region_co[3])
 {
   /* Viewport is set up to make coordinates relative to the region, not window. */
   RegionView3D *rv3d = region->regiondata;
@@ -709,7 +711,7 @@ void ED_view3d_project_v3(const struct ARegion *region, const float world[3], fl
   GPU_matrix_project_3fv(world, rv3d->viewmat, rv3d->winmat, viewport, r_region_co);
 }
 
-void ED_view3d_project_v2(const struct ARegion *region, const float world[3], float r_region_co[2])
+void ED_view3d_project_v2(const ARegion *region, const float world[3], float r_region_co[2])
 {
   /* Viewport is set up to make coordinates relative to the region, not window. */
   RegionView3D *rv3d = region->regiondata;
@@ -718,7 +720,7 @@ void ED_view3d_project_v2(const struct ARegion *region, const float world[3], fl
 }
 
 bool ED_view3d_unproject_v3(
-    const struct ARegion *region, float regionx, float regiony, float regionz, float world[3])
+    const ARegion *region, float regionx, float regiony, float regionz, float world[3])
 {
   RegionView3D *rv3d = region->regiondata;
   const int viewport[4] = {0, 0, region->winx, region->winy};

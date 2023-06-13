@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_kdtree.h"
 #include "BLI_rand.hh"
@@ -37,9 +39,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-#include "curves_sculpt_intern.h"
 #include "curves_sculpt_intern.hh"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -163,7 +164,7 @@ static bool stroke_get_location(bContext *C,
   return true;
 }
 
-static bool stroke_test_start(bContext *C, struct wmOperator *op, const float mouse[2])
+static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
   UNUSED_VARS(C, op, mouse);
   return true;
@@ -202,8 +203,9 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
 
 static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const Paint *paint = BKE_paint_get_active_from_context(C);
-  const Brush *brush = BKE_paint_brush_for_read(paint);
+  Scene *scene = CTX_data_scene(C);
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  const Brush *brush = paint ? BKE_paint_brush_for_read(paint) : nullptr;
   if (brush == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -254,7 +256,7 @@ static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
   }
 }
 
-static void SCULPT_CURVES_OT_brush_stroke(struct wmOperatorType *ot)
+static void SCULPT_CURVES_OT_brush_stroke(wmOperatorType *ot)
 {
   ot->name = "Stroke Curves Sculpt";
   ot->idname = "SCULPT_CURVES_OT_brush_stroke";
@@ -285,6 +287,11 @@ static void curves_sculptmode_enter(bContext *C)
   CurvesSculpt *curves_sculpt = scene->toolsettings->curves_sculpt;
 
   ob->mode = OB_MODE_SCULPT_CURVES;
+
+  /* Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
+  Paint *paint = BKE_paint_get_active_from_paintmode(scene, PAINT_MODE_SCULPT_CURVES);
+  copy_v3_v3_uchar(paint->paint_cursor_col, PAINT_CURSOR_SCULPT_CURVES);
+  paint->paint_cursor_col[3] = 128;
 
   ED_paint_cursor_start(&curves_sculpt->paint, CURVES_SCULPT_mode_poll_view3d);
   paint_init_pivot(ob, scene);
@@ -522,8 +529,8 @@ namespace select_grow {
 
 struct GrowOperatorDataPerCurve : NonCopyable, NonMovable {
   Curves *curves_id;
-  Vector<int64_t> selected_point_indices;
-  Vector<int64_t> unselected_point_indices;
+  IndexMaskMemory selected_points_memory;
+  IndexMaskMemory unselected_points_memory;
   IndexMask selected_points;
   IndexMask unselected_points;
   Array<float> distances_to_selected;
@@ -543,36 +550,24 @@ static void update_points_selection(const GrowOperatorDataPerCurve &data,
                                     MutableSpan<float> points_selection)
 {
   if (distance > 0.0f) {
-    threading::parallel_for(
-        data.unselected_points.index_range(), 256, [&](const IndexRange range) {
-          for (const int i : range) {
-            const int point_i = data.unselected_points[i];
-            const float distance_to_selected = data.distances_to_selected[i];
-            const float selection = distance_to_selected <= distance ? 1.0f : 0.0f;
-            points_selection[point_i] = selection;
-          }
+    data.unselected_points.foreach_index(
+        GrainSize(256), [&](const int point_i, const int index_pos) {
+          const float distance_to_selected = data.distances_to_selected[index_pos];
+          const float selection = distance_to_selected <= distance ? 1.0f : 0.0f;
+          points_selection[point_i] = selection;
         });
-    threading::parallel_for(data.selected_points.index_range(), 512, [&](const IndexRange range) {
-      for (const int point_i : data.selected_points.slice(range)) {
-        points_selection[point_i] = 1.0f;
-      }
-    });
+    data.selected_points.foreach_index(
+        GrainSize(512), [&](const int point_i) { points_selection[point_i] = 1.0f; });
   }
   else {
-    threading::parallel_for(data.selected_points.index_range(), 256, [&](const IndexRange range) {
-      for (const int i : range) {
-        const int point_i = data.selected_points[i];
-        const float distance_to_unselected = data.distances_to_unselected[i];
-        const float selection = distance_to_unselected <= -distance ? 0.0f : 1.0f;
-        points_selection[point_i] = selection;
-      }
-    });
-    threading::parallel_for(
-        data.unselected_points.index_range(), 512, [&](const IndexRange range) {
-          for (const int point_i : data.unselected_points.slice(range)) {
-            points_selection[point_i] = 0.0f;
-          }
+    data.selected_points.foreach_index(
+        GrainSize(256), [&](const int point_i, const int index_pos) {
+          const float distance_to_unselected = data.distances_to_unselected[index_pos];
+          const float selection = distance_to_unselected <= -distance ? 0.0f : 1.0f;
+          points_selection[point_i] = selection;
         });
+    data.unselected_points.foreach_index(
+        GrainSize(512), [&](const int point_i) { points_selection[point_i] = 0.0f; });
   }
 }
 
@@ -641,9 +636,9 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
 
   /* Find indices of selected and unselected points. */
   curve_op_data.selected_points = curves::retrieve_selected_points(
-      curves_id, curve_op_data.selected_point_indices);
-  curve_op_data.unselected_points = curve_op_data.selected_points.invert(
-      curves.points_range(), curve_op_data.unselected_point_indices);
+      curves_id, curve_op_data.selected_points_memory);
+  curve_op_data.unselected_points = curve_op_data.selected_points.complement(
+      curves.points_range(), curve_op_data.unselected_points_memory);
 
   threading::parallel_invoke(
       1024 < curve_op_data.selected_points.size() + curve_op_data.unselected_points.size(),
@@ -651,10 +646,10 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
         /* Build KD-tree for the selected points. */
         KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.selected_points.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
-        for (const int point_i : curve_op_data.selected_points) {
+        curve_op_data.selected_points.foreach_index([&](const int point_i) {
           const float3 &position = positions[point_i];
           BLI_kdtree_3d_insert(kdtree, point_i, position);
-        }
+        });
         BLI_kdtree_3d_balance(kdtree);
 
         /* For each unselected point, compute the distance to the closest selected point. */
@@ -674,10 +669,10 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
         /* Build KD-tree for the unselected points. */
         KDTree_3d *kdtree = BLI_kdtree_3d_new(curve_op_data.unselected_points.size());
         BLI_SCOPED_DEFER([&]() { BLI_kdtree_3d_free(kdtree); });
-        for (const int point_i : curve_op_data.unselected_points) {
+        curve_op_data.unselected_points.foreach_index([&](const int point_i) {
           const float3 &position = positions[point_i];
           BLI_kdtree_3d_insert(kdtree, point_i, position);
-        }
+        });
         BLI_kdtree_3d_balance(kdtree);
 
         /* For each selected point, compute the distance to the closest unselected point. */
@@ -965,9 +960,10 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
 
   const uint pos3d = GPU_vertformat_attr_add(format3d, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   const uint col3d = GPU_vertformat_attr_add(format3d, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  const uint siz3d = GPU_vertformat_attr_add(format3d, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
-  immUniform1f("size", 4.0f);
+  immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
+  GPU_program_point_size(true);
   immBegin(GPU_PRIM_POINTS, points_wo.size());
 
   float3 brush_origin_wo = math::transform_point(op_data.curves_to_world_mat, op_data.pos_cu);
@@ -985,6 +981,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
     const float dist_to_point_re = math::distance(pos_re, brush_origin_re);
     const float alpha = 1.0f - ((dist_to_point_re - dist_to_inner_border_re) / alpha_border_re);
 
+    immAttr1f(siz3d, 3.0f);
     immAttr4f(col3d, 0.9f, 0.9f, 0.9f, alpha);
     immVertex3fv(pos3d, pos_wo);
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -15,6 +17,8 @@
 #include "BKE_object.h"
 
 #include "BLI_math.h"
+
+#include "BLT_translation.h"
 
 using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::ICamera;
@@ -45,14 +49,14 @@ bool AbcCameraReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ICamera::matches(alembic_header)) {
-    *err_str =
+    *err_str = N_(
         "Object type mismatch, Alembic object path pointed to Camera when importing, but not any "
-        "more.";
+        "more.");
     return false;
   }
 
   if (ob->type != OB_CAMERA) {
-    *err_str = "Object type mismatch, Alembic object path points to Camera.";
+    *err_str = N_("Object type mismatch, Alembic object path points to Camera.");
     return false;
   }
 
@@ -69,7 +73,8 @@ void AbcCameraReader::readObjectData(Main *bmain, const ISampleSelector &sample_
   ICompoundProperty customDataContainer = m_schema.getUserProperties();
 
   if (customDataContainer.valid() && customDataContainer.getPropertyHeader("stereoDistance") &&
-      customDataContainer.getPropertyHeader("eyeSeparation")) {
+      customDataContainer.getPropertyHeader("eyeSeparation"))
+  {
     IFloatProperty convergence_plane(customDataContainer, "stereoDistance");
     IFloatProperty eye_separation(customDataContainer, "eyeSeparation");
 

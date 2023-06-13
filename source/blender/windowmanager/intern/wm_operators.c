@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -73,7 +74,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_fileselect.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_numinput.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -446,7 +447,8 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     { \
       const char *ctx_member = member; \
       if (RNA_struct_is_a((rna_ptr)->type, &(rna_type)) && \
-          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) { \
+          (rna_ptr)->data == (CTX_data_pointer_get_type(C, ctx_member, &(rna_type)).data)) \
+      { \
         member_id = ctx_member; \
         break; \
       } \
@@ -992,7 +994,7 @@ int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return op->type->modal(C, op, event);
 }
 
-void WM_operator_view3d_unit_defaults(struct bContext *C, struct wmOperator *op)
+void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op)
 {
   if (op->flag & OP_IS_INVOKE) {
     Scene *scene = CTX_data_scene(C);
@@ -1221,13 +1223,13 @@ int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *UNUSED(event
   return OPERATOR_RUNNING_MODAL;
 }
 
-bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const struct ImageFormatData *im_format)
+bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData *im_format)
 {
   char filepath[FILE_MAX];
   /* Don't NULL check prop, this can only run on ops with a 'filepath'. */
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "filepath");
   RNA_property_string_get(op->ptr, prop, filepath);
-  if (BKE_image_path_ensure_ext_from_imformat(filepath, im_format)) {
+  if (BKE_image_path_ext_from_imformat_ensure(filepath, sizeof(filepath), im_format)) {
     RNA_property_string_set(op->ptr, prop, filepath);
     /* NOTE: we could check for and update 'filename' here,
      * but so far nothing needs this. */
@@ -1281,7 +1283,7 @@ void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
   RNA_pointer_create(G_MAIN->wm.first, ot->srna, props, ptr);
 }
 
-ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short idcode)
+ID *WM_operator_drop_load_path(bContext *C, wmOperator *op, const short idcode)
 {
   Main *bmain = CTX_data_main(C);
   ID *id = NULL;
@@ -1289,15 +1291,15 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
   /* check input variables */
   if (RNA_struct_property_is_set(op->ptr, "filepath")) {
     const bool is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
-    char path[FILE_MAX];
+    char filepath[FILE_MAX];
     bool exists = false;
 
-    RNA_string_get(op->ptr, "filepath", path);
+    RNA_string_get(op->ptr, "filepath", filepath);
 
     errno = 0;
 
     if (idcode == ID_IM) {
-      id = (ID *)BKE_image_load_exists_ex(bmain, path, &exists);
+      id = (ID *)BKE_image_load_exists_ex(bmain, filepath, &exists);
     }
     else {
       BLI_assert_unreachable();
@@ -1308,7 +1310,7 @@ ID *WM_operator_drop_load_path(struct bContext *C, wmOperator *op, const short i
                   RPT_ERROR,
                   "Cannot read %s '%s': %s",
                   BKE_idtype_idcode_to_name(idcode),
-                  path,
+                  filepath,
                   errno ? strerror(errno) : TIP_("unsupported format"));
       return NULL;
     }
@@ -1411,7 +1413,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   uiTemplateOperatorPropertyButs(
       C, col, op, UI_BUT_LABEL_ALIGN_NONE, UI_TEMPLATE_OP_PROPS_SHOW_TITLE);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
@@ -1486,7 +1488,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *userD
 
   /* center around the mouse */
   UI_block_bounds_set_popup(
-      block, 6 * U.dpi_fac, (const int[2]){data->width / -2, data->height / 2});
+      block, 6 * UI_SCALE_FAC, (const int[2]){data->width / -2, data->height / 2});
 
   return block;
 }
@@ -1510,12 +1512,12 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *region, void *userDa
 
   UI_block_func_set(block, NULL, NULL, NULL);
 
-  UI_block_bounds_set_popup(block, 6 * U.dpi_fac, NULL);
+  UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, NULL);
 
   return block;
 }
 
-static void wm_operator_ui_popup_cancel(struct bContext *C, void *userData)
+static void wm_operator_ui_popup_cancel(bContext *C, void *userData)
 {
   wmOpPopUp *data = userData;
   wmOperator *op = data->op;
@@ -1533,7 +1535,7 @@ static void wm_operator_ui_popup_cancel(struct bContext *C, void *userData)
   MEM_freeN(data);
 }
 
-static void wm_operator_ui_popup_ok(struct bContext *C, void *arg, int retval)
+static void wm_operator_ui_popup_ok(bContext *C, void *arg, int retval)
 {
   wmOpPopUp *data = arg;
   wmOperator *op = data->op;
@@ -1549,7 +1551,7 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 {
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_ui_popup");
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual used height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -1560,7 +1562,8 @@ int WM_operator_ui_popup(bContext *C, wmOperator *op, int width)
 /**
  * For use by #WM_operator_props_popup_call, #WM_operator_props_popup only.
  *
- * \note operator menu needs undo flag enabled, for redo callback */
+ * \note operator menu needs undo flag enabled, for redo callback.
+ */
 static int wm_operator_props_popup_ex(bContext *C,
                                       wmOperator *op,
                                       const bool do_call,
@@ -1619,7 +1622,7 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width)
   wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 
   data->op = op;
-  data->width = width * U.dpi_fac;
+  data->width = width * UI_SCALE_FAC;
   /* Actual height depends on the content. */
   data->height = 0;
   data->free_op = true; /* if this runs and gets registered we may want not to free it */
@@ -2173,8 +2176,8 @@ void WM_paint_cursor_remove_by_type(wmWindowManager *wm, void *draw_fn, void (*f
 /** \name Radial Control Operator
  * \{ */
 
-#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)
-#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_DPI_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_SCALE_FAC)
+#define WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE (35 * UI_SCALE_FAC)
 #define WM_RADIAL_CONTROL_DISPLAY_WIDTH \
   (WM_RADIAL_CONTROL_DISPLAY_SIZE - WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE)
 #define WM_RADIAL_MAX_STR 10
@@ -2212,33 +2215,29 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
   if (hasNumInput(&rc->num_input)) {
     char num_str[NUM_STR_REP_LEN];
     outputNumInput(&rc->num_input, num_str, &scene->unit);
-    BLI_snprintf(msg, sizeof(msg), "%s: %s", RNA_property_ui_name(rc->prop), num_str);
+    SNPRINTF(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
   }
   else {
     const char *ui_name = RNA_property_ui_name(rc->prop);
     switch (rc->subtype) {
       case PROP_NONE:
       case PROP_DISTANCE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %0.4f", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %0.4f", ui_name, rc->current_value);
         break;
       case PROP_PIXEL:
-        BLI_snprintf(msg,
-                     sizeof(msg),
-                     "%s: %d",
-                     ui_name,
-                     (int)rc->current_value); /* XXX: round to nearest? */
+        SNPRINTF(msg, "%s: %d", ui_name, (int)rc->current_value); /* XXX: round to nearest? */
         break;
       case PROP_PERCENTAGE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %3.1f%%", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %3.1f%%", ui_name, rc->current_value);
         break;
       case PROP_FACTOR:
-        BLI_snprintf(msg, sizeof(msg), "%s: %1.3f", ui_name, rc->current_value);
+        SNPRINTF(msg, "%s: %1.3f", ui_name, rc->current_value);
         break;
       case PROP_ANGLE:
-        BLI_snprintf(msg, sizeof(msg), "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
+        SNPRINTF(msg, "%s: %3.2f", ui_name, RAD2DEGF(rc->current_value));
         break;
       default:
-        BLI_snprintf(msg, sizeof(msg), "%s", ui_name); /* XXX: No value? */
+        SNPRINTF(msg, "%s", ui_name); /* XXX: No value? */
         break;
     }
   }
@@ -2304,21 +2303,22 @@ static void radial_control_set_tex(RadialControl *rc)
       if ((ibuf = BKE_brush_gen_radial_control_imbuf(
                rc->image_id_ptr.data,
                rc->use_secondary_tex,
-               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE)))) {
+               !ELEM(rc->subtype, PROP_NONE, PROP_PIXEL, PROP_DISTANCE))))
+      {
 
-        rc->texture = GPU_texture_create_2d_ex("radial_control",
-                                               ibuf->x,
-                                               ibuf->y,
-                                               1,
-                                               GPU_R8,
-                                               GPU_TEXTURE_USAGE_SHADER_READ |
-                                                   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                                               ibuf->rect_float);
+        rc->texture = GPU_texture_create_2d("radial_control",
+                                            ibuf->x,
+                                            ibuf->y,
+                                            1,
+                                            GPU_R8,
+                                            GPU_TEXTURE_USAGE_SHADER_READ |
+                                                GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                            ibuf->float_buffer.data);
 
         GPU_texture_filter_mode(rc->texture, true);
         GPU_texture_swizzle_set(rc->texture, "111r");
 
-        MEM_freeN(ibuf->rect_float);
+        MEM_freeN(ibuf->float_buffer.data);
         MEM_freeN(ibuf);
       }
       break;
@@ -2336,8 +2336,9 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
     PointerRNA *fill_ptr;
     PropertyRNA *fill_prop;
 
-    if (rc->fill_col_override_prop && RNA_property_boolean_get(&rc->fill_col_override_test_ptr,
-                                                               rc->fill_col_override_test_prop)) {
+    if (rc->fill_col_override_prop &&
+        RNA_property_boolean_get(&rc->fill_col_override_test_ptr, rc->fill_col_override_test_prop))
+    {
       fill_ptr = &rc->fill_col_override_ptr;
       fill_prop = rc->fill_col_override_prop;
     }
@@ -2445,7 +2446,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
            WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.1f%%", rc->current_value);
+      SNPRINTF(str, "%3.1f%%", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       tex_radius = r1;
       alpha = 0.75;
@@ -2456,14 +2457,14 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
       r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
       alpha = rc->current_value / 2.0f + 0.5f;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%1.3f", rc->current_value);
+      SNPRINTF(str, "%1.3f", rc->current_value);
       strdrawlen = BLI_strlen_utf8(str);
       break;
     case PROP_ANGLE:
       r1 = r2 = tex_radius = WM_RADIAL_CONTROL_DISPLAY_SIZE;
       alpha = 0.75;
       rmin = WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE;
-      BLI_snprintf(str, WM_RADIAL_MAX_STR, "%3.2f", RAD2DEGF(rc->current_value));
+      SNPRINTF(str, "%3.2f", RAD2DEGF(rc->current_value));
       strdrawlen = BLI_strlen_utf8(str);
       break;
     default:
@@ -2558,7 +2559,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
   immUnbindProgram();
 
-  BLF_size(fontid, 1.75f * fstyle_points * U.dpi_fac);
+  BLF_size(fontid, 1.75f * fstyle_points * UI_SCALE_FAC);
   UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
   BLF_color4fv(fontid, text_color);
 
@@ -2631,7 +2632,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr,
     PropertyType prop_type = RNA_property_type(*r_prop);
 
     if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT))) {
+        ((flags & RC_PROP_REQUIRE_FLOAT) && (prop_type != PROP_FLOAT)))
+    {
       MEM_freeN(str);
       BKE_reportf(op->reports, RPT_ERROR, "Property from path '%s' is not a float", name);
       return 0;
@@ -2673,7 +2675,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &use_secondary_ptr,
                                &use_secondary_prop,
                                0,
-                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL))) {
+                               (RC_PROP_ALLOW_MISSING | RC_PROP_REQUIRE_BOOL)))
+  {
     return 0;
   }
 
@@ -2695,12 +2698,14 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "rotation_path", &rc->rot_ptr, &rc->rot_prop, 0, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
   if (!radial_control_get_path(
-          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT)) {
+          &ctx_ptr, op, "color_path", &rc->col_ptr, &rc->col_prop, 4, RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2710,7 +2715,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_ptr,
                                &rc->fill_col_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
 
@@ -2720,7 +2726,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_ptr,
                                &rc->fill_col_override_prop,
                                3,
-                               RC_PROP_REQUIRE_FLOAT)) {
+                               RC_PROP_REQUIRE_FLOAT))
+  {
     return 0;
   }
   if (!radial_control_get_path(&ctx_ptr,
@@ -2729,7 +2736,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->fill_col_override_test_ptr,
                                &rc->fill_col_override_test_prop,
                                0,
-                               RC_PROP_REQUIRE_BOOL)) {
+                               RC_PROP_REQUIRE_BOOL))
+  {
     return 0;
   }
 
@@ -2742,7 +2750,8 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
                                &rc->zoom_ptr,
                                &rc->zoom_prop,
                                2,
-                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING)) {
+                               RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
+  {
     return 0;
   }
 
@@ -2821,7 +2830,8 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
             PROP_FACTOR,
             PROP_PERCENTAGE,
             PROP_ANGLE,
-            PROP_PIXEL)) {
+            PROP_PIXEL))
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Property must be a none, distance, factor, percentage, angle, or pixel");
@@ -3085,7 +3095,8 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   if (!handled && (event->val == KM_RELEASE) && (rc->init_event == event->type) &&
-      RNA_boolean_get(op->ptr, "release_confirm")) {
+      RNA_boolean_get(op->ptr, "release_confirm"))
+  {
     ret = OPERATOR_FINISHED;
   }
 
@@ -3462,7 +3473,7 @@ static int previews_id_ensure_callback(LibraryIDLinkCallbackData *cb_data)
 {
   const int cb_flag = cb_data->cb_flag;
 
-  if (cb_flag & IDWALK_CB_EMBEDDED) {
+  if (cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
     return IDWALK_RET_NOP;
   }
 
@@ -3823,7 +3834,7 @@ void wm_operatortypes_register(void)
   WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
-/* circleselect-like modal operators */
+/* Circle-select-like modal operators. */
 static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {

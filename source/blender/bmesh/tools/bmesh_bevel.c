@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -336,6 +338,8 @@ typedef struct BevelParams {
   float pro_super_r;
   /** Bevel amount affected by weights on edges or verts. */
   bool use_weights;
+  int bweight_offset_vert;
+  int bweight_offset_edge;
   /** Should bevel prefer to slide along edges rather than keep widths spec? */
   bool loop_slide;
   /** Should offsets be limited by collisions? */
@@ -350,9 +354,9 @@ typedef struct BevelParams {
   bool harden_normals;
   char _pad[1];
   /** The struct used to store the custom profile input. */
-  const struct CurveProfile *custom_profile;
+  const CurveProfile *custom_profile;
   /** Vertex group array, maybe set if vertex only. */
-  const struct MDeformVert *dvert;
+  const MDeformVert *dvert;
   /** Vertex group index, maybe set if vertex only. */
   int vertex_group;
   /** If >= 0, material number for bevel; else material comes from adjacent faces. */
@@ -775,7 +779,8 @@ static bool contig_ldata_across_edge(BMesh *bm, BMEdge *e, BMFace *f1, BMFace *f
   for (int i = 0; i < bm->ldata.totlayer; i++) {
     if (CustomData_layer_has_math(&bm->ldata, i)) {
       if (!contig_ldata_across_loops(bm, lv1f1, lv1f2, i) ||
-          !contig_ldata_across_loops(bm, lv2f1, lv2f2, i)) {
+          !contig_ldata_across_loops(bm, lv2f1, lv2f2, i))
+      {
         return false;
       }
     }
@@ -1278,9 +1283,12 @@ static void offset_meet_lines_percent_or_absolute(BevelParams *bp,
         d5 = bp->offset * BM_edge_calc_length(e5.e) / 100.0f;
       }
       if (bp->use_weights) {
-        CustomData *cd = &bp->bm->edata;
-        e1_wt = BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT);
-        e2_wt = BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT);
+        e1_wt = bp->bweight_offset_edge == -1 ?
+                    0.0f :
+                    BM_ELEM_CD_GET_FLOAT(e1->e, bp->bweight_offset_edge);
+        e2_wt = bp->bweight_offset_edge == -1 ?
+                    0.0f :
+                    BM_ELEM_CD_GET_FLOAT(e2->e, bp->bweight_offset_edge);
       }
       else {
         e1_wt = 1.0f;
@@ -1606,9 +1614,10 @@ static bool offset_on_edge_between(BevelParams *bp,
     if (bp->offset_type == BEVEL_AMT_PERCENT) {
       float wt = 1.0;
       if (bp->use_weights) {
-        CustomData *cd = &bp->bm->edata;
-        wt = 0.5f * (BM_elem_float_data_get(cd, e1->e, CD_BWEIGHT) +
-                     BM_elem_float_data_get(cd, e2->e, CD_BWEIGHT));
+        wt = bp->bweight_offset_edge == -1 ?
+                 0.0f :
+                 0.5f * (BM_ELEM_CD_GET_FLOAT(e1->e, bp->bweight_offset_edge) +
+                         BM_ELEM_CD_GET_FLOAT(e2->e, bp->bweight_offset_edge));
       }
       interp_v3_v3v3(meetco, v->co, v2->co, wt * bp->offset / 100.0f);
     }
@@ -1843,7 +1852,8 @@ static void move_profile_plane(BoundVert *bndv, BMVert *bmvert)
   cross_v3_v3v3(no3, d2, pro->proj_dir);
 
   if (normalize_v3(no) > BEVEL_EPSILON_BIG && normalize_v3(no2) > BEVEL_EPSILON_BIG &&
-      normalize_v3(no3) > BEVEL_EPSILON_BIG) {
+      normalize_v3(no3) > BEVEL_EPSILON_BIG)
+  {
     float dot2 = dot_v3v3(no, no2);
     float dot3 = dot_v3v3(no, no3);
     if (fabsf(dot2) < (1 - BEVEL_EPSILON_BIG) && fabsf(dot3) < (1 - BEVEL_EPSILON_BIG)) {
@@ -2273,7 +2283,8 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 
   /* First edge with seam or sharp edge data. */
   while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) ||
-         (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))) {
+         (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))
+  {
     e = e->next;
     if (e == efirst) {
       break;
@@ -2295,14 +2306,16 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 
     while (((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag)) ||
             (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
-           ne != efirst) {
+           ne != efirst)
+    {
       if (ne->is_bev) {
         flag_count++;
       }
       ne = ne->next;
     }
     if (ne == e || (ne == efirst && ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)) ||
-                                     (neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag))))) {
+                                     (neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)))))
+    {
       break;
     }
     /* Set seam_len / sharp_len of starting edge. */
@@ -3087,7 +3100,8 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
        * and emiter will be set to the first edge of such an edge.
        * A miter kind of BEVEL_MITER_SHARP means no special miter */
       if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == ANGLE_LARGER) ||
-          (miter_inner != BEVEL_MITER_SHARP && ang_kind == ANGLE_SMALLER)) {
+          (miter_inner != BEVEL_MITER_SHARP && ang_kind == ANGLE_SMALLER))
+      {
         if (ang_kind == ANGLE_LARGER) {
           emiter = e;
         }
@@ -3160,7 +3174,8 @@ static void build_boundary(BevelParams *bp, BevVert *bv, bool construct)
     else { /* construct == false. */
       AngleKind ang_kind = edges_angle_kind(e, e2, bv->v);
       if ((miter_outer != BEVEL_MITER_SHARP && !emiter && ang_kind == ANGLE_LARGER) ||
-          (miter_inner != BEVEL_MITER_SHARP && ang_kind == ANGLE_SMALLER)) {
+          (miter_inner != BEVEL_MITER_SHARP && ang_kind == ANGLE_SMALLER))
+      {
         if (ang_kind == ANGLE_LARGER) {
           emiter = e;
         }
@@ -4494,7 +4509,8 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
   }
   float angdiff = fabsf(fabsf(totang) - 3.0f * (float)M_PI_2);
   if ((bp->pro_super_r == PRO_SQUARE_R && angdiff > (float)M_PI / 16.0f) ||
-      (angdiff > (float)M_PI_4)) {
+      (angdiff > (float)M_PI_4))
+  {
     return -1;
   }
   if (bv->edgecount != 3 || bv->selcount != 3) {
@@ -5358,7 +5374,8 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv, BoundVert
 
   VMesh *vm1;
   if (bp->pro_super_r == PRO_SQUARE_R && bv->selcount >= 3 && !odd &&
-      bp->profile_type != BEVEL_PROFILE_CUSTOM) {
+      bp->profile_type != BEVEL_PROFILE_CUSTOM)
+  {
     vm1 = square_out_adj_vmesh(bp, bv);
   }
   else if (vpipe) {
@@ -6112,7 +6129,8 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
     BM_BEVEL_EDGE_TAG_ENABLE(nextbme);
     int tryj = bevel_edge_order_extend(bm, bv, j + 1);
     if (tryj > bestj ||
-        (tryj == bestj && edges_face_connected_at_vert(bv->edges[tryj].e, bv->edges[0].e))) {
+        (tryj == bestj && edges_face_connected_at_vert(bv->edges[tryj].e, bv->edges[0].e)))
+    {
       bestj = tryj;
       BLI_array_clear(save_path);
       for (int k = j + 1; k <= bestj; k++) {
@@ -6171,7 +6189,8 @@ static bool fast_bevel_edge_order(BevVert *bv)
       }
     }
     if (nsucs == 0 || (nsucs == 2 && j != 1) || nsucs > 2 ||
-        (j == bv->edgecount - 1 && !edges_face_connected_at_vert(bmenext, bv->edges[0].e))) {
+        (j == bv->edgecount - 1 && !edges_face_connected_at_vert(bmenext, bv->edges[0].e)))
+    {
       for (int k = 1; k < j; k++) {
         BM_BEVEL_EDGE_TAG_DISABLE(bv->edges[k].e);
         bv->edges[k].e = NULL;
@@ -6351,7 +6370,8 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
   }
 
   if ((nsel == 0 && bp->affect_type != BEVEL_AFFECT_VERTICES) ||
-      (tot_edges < 2 && bp->affect_type == BEVEL_AFFECT_VERTICES)) {
+      (tot_edges < 2 && bp->affect_type == BEVEL_AFFECT_VERTICES))
+  {
     /* Signal this vert isn't being beveled. */
     BM_elem_flag_disable(v, BM_ELEM_TAG);
     return NULL;
@@ -6429,7 +6449,8 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
       bv->offset *= weight;
     }
     else if (bp->use_weights) {
-      weight = BM_elem_float_data_get(&bm->vdata, v, CD_BWEIGHT);
+      weight = bp->bweight_offset_vert == -1 ? 0.0f :
+                                               BM_ELEM_CD_GET_FLOAT(v, bp->bweight_offset_vert);
       bv->offset *= weight;
     }
     /* Find center axis. NOTE: Don't use vert normal, can give unwanted results. */
@@ -6509,7 +6530,9 @@ static BevVert *bevel_vert_construct(BMesh *bm, BevelParams *bp, BMVert *v)
         e->offset_r_spec = e->offset_l_spec;
       }
       if (bp->use_weights) {
-        weight = BM_elem_float_data_get(&bm->edata, e->e, CD_BWEIGHT);
+        weight = bp->bweight_offset_edge == -1 ?
+                     0.0f :
+                     BM_ELEM_CD_GET_FLOAT(e->e, bp->bweight_offset_edge);
         e->offset_l_spec *= weight;
         e->offset_r_spec *= weight;
       }
@@ -6749,8 +6772,8 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
         /* Want to undo seam and smooth for corner segments
          * if those attrs aren't contiguous around face. */
         if (k < n - 1 && ee[k] == ee[k + 1]) {
-          if (BM_elem_flag_test(ee[k], BM_ELEM_SEAM) &&
-              !BM_elem_flag_test(bme_prev, BM_ELEM_SEAM)) {
+          if (BM_elem_flag_test(ee[k], BM_ELEM_SEAM) && !BM_elem_flag_test(bme_prev, BM_ELEM_SEAM))
+          {
             BM_elem_flag_disable(bme_new, BM_ELEM_SEAM);
           }
           /* Actually want "sharp" to be contiguous, so reverse the test. */
@@ -7713,7 +7736,7 @@ void BM_mesh_bevel(BMesh *bm,
                    const bool affect_type,
                    const bool use_weights,
                    const bool limit_offset,
-                   const struct MDeformVert *dvert,
+                   const MDeformVert *dvert,
                    const int vertex_group,
                    const int mat,
                    const bool loop_slide,
@@ -7725,7 +7748,7 @@ void BM_mesh_bevel(BMesh *bm,
                    const int miter_inner,
                    const float spread,
                    const float smoothresh,
-                   const struct CurveProfile *custom_profile,
+                   const CurveProfile *custom_profile,
                    const int vmesh_method)
 {
   BMIter iter, liter;
@@ -7743,6 +7766,10 @@ void BM_mesh_bevel(BMesh *bm,
       .pro_super_r = -logf(2.0) / logf(sqrtf(profile)), /* Convert to superellipse exponent. */
       .affect_type = affect_type,
       .use_weights = use_weights,
+      .bweight_offset_vert = CustomData_get_offset_named(
+          &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert"),
+      .bweight_offset_edge = CustomData_get_offset_named(
+          &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge"),
       .loop_slide = loop_slide,
       .limit_offset = limit_offset,
       .offset_adjust = (bp.affect_type != BEVEL_AFFECT_VERTICES) &&
@@ -7806,7 +7833,8 @@ void BM_mesh_bevel(BMesh *bm,
 
   /* Get separate non-custom profile samples for the miter profiles if they are needed */
   if (bp.profile_type == BEVEL_PROFILE_CUSTOM &&
-      (bp.miter_inner != BEVEL_MITER_SHARP || bp.miter_outer != BEVEL_MITER_SHARP)) {
+      (bp.miter_inner != BEVEL_MITER_SHARP || bp.miter_outer != BEVEL_MITER_SHARP))
+  {
     set_profile_spacing(&bp, &bp.pro_spacing_miter, false);
   }
 

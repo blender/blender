@@ -12,9 +12,7 @@ struct FilterSample {
 
 #ifdef GPU_METAL
   inline FilterSample() = default;
-  inline FilterSample(vec4 in_color, float in_weight) : color(in_color), weight(in_weight)
-  {
-  }
+  inline FilterSample(vec4 in_color, float in_weight) : color(in_color), weight(in_weight) {}
 #endif
 };
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Janne Karhu. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Janne Karhu. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edphys
@@ -188,7 +189,8 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 
   if (!all) {
     PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
-    Object *ob = (Object *)ptr.owner_id;
+    ID *id = ptr.owner_id;
+    Object *ob = (GS(id->name) == ID_OB) ? (Object *)id : NULL;
     PointCache *cache = ptr.data;
     baker->pid = BKE_ptcache_id_find(ob, baker->scene, cache);
   }

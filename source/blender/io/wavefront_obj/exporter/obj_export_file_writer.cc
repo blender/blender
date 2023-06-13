@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
@@ -9,7 +11,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_blender_version.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_color.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -172,7 +174,11 @@ void OBJWriter::write_mtllib_name(const StringRefNull mtl_filepath) const
   /* Split .MTL file path into parent directory and filename. */
   char mtl_file_name[FILE_MAXFILE];
   char mtl_dir_name[FILE_MAXDIR];
-  BLI_split_dirfile(mtl_filepath.data(), mtl_dir_name, mtl_file_name, FILE_MAXDIR, FILE_MAXFILE);
+  BLI_path_split_dir_file(mtl_filepath.data(),
+                          mtl_dir_name,
+                          sizeof(mtl_dir_name),
+                          mtl_file_name,
+                          sizeof(mtl_file_name));
   FormatHandler fh;
   fh.write_obj_mtllib(mtl_file_name);
   fh.write_to_file(outfile_);
@@ -254,7 +260,7 @@ void OBJWriter::write_vertex_coords(FormatHandler &fh,
   const StringRef name = mesh->active_color_attribute;
   if (write_colors && !name.is_empty()) {
     const bke::AttributeAccessor attributes = mesh->attributes();
-    const VArray<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
+    const VArray<ColorGeometry4f> attribute = *attributes.lookup_or_default<ColorGeometry4f>(
         name, ATTR_DOMAIN_POINT, {0.0f, 0.0f, 0.0f, 0.0f});
 
     BLI_assert(tot_count == attribute.size());
@@ -338,7 +344,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
   const int tot_deform_groups = obj_mesh_data.tot_deform_groups();
   threading::EnumerableThreadSpecific<Vector<float>> group_weights;
   const bke::AttributeAccessor attributes = obj_mesh_data.get_mesh()->attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
 
   obj_parallel_chunked_output(fh, tot_polygons, [&](FormatHandler &buf, int idx) {
@@ -348,7 +354,7 @@ void OBJWriter::write_poly_elements(FormatHandler &fh,
     int prev_i = obj_mesh_data.remap_poly_index(idx - 1);
     int i = obj_mesh_data.remap_poly_index(idx);
 
-    Vector<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
+    Span<int> poly_vertex_indices = obj_mesh_data.calc_poly_vertex_indices(i);
     Span<int> poly_uv_indices = obj_mesh_data.calc_poly_uv_indices(i);
     Vector<int> poly_normal_indices = obj_mesh_data.calc_poly_normal_indices(i);
 
@@ -418,11 +424,11 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
     return;
   }
 
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   for (const int64_t i : edges.index_range()) {
     if (loose_edges.is_loose_bits[i]) {
-      const MEdge &edge = edges[i];
-      fh.write_obj_edge(edge.v1 + offsets.vertex_offset + 1, edge.v2 + offsets.vertex_offset + 1);
+      const int2 obj_edge = edges[i] + offsets.vertex_offset + 1;
+      fh.write_obj_edge(obj_edge[0], obj_edge[1]);
     }
   }
 }
@@ -519,7 +525,10 @@ static std::string float3_to_string(const float3 &numbers)
 MTLWriter::MTLWriter(const char *obj_filepath) noexcept(false)
 {
   mtl_filepath_ = obj_filepath;
-  const bool ok = BLI_path_extension_replace(mtl_filepath_.data(), FILE_MAX, ".mtl");
+  /* It only makes sense to replace this extension if it's at least as long as the existing one. */
+  BLI_assert(strlen(BLI_path_extension(obj_filepath)) == 4);
+  const bool ok = BLI_path_extension_replace(
+      mtl_filepath_.data(), mtl_filepath_.size() + 1, ".mtl");
   if (!ok) {
     throw std::system_error(ENAMETOOLONG, std::system_category(), "");
   }
@@ -607,8 +616,8 @@ void MTLWriter::write_bsdf_properties(const MTLMaterial &mtl, bool write_pbr)
     if (mtl.aniso_rot >= 0.0f) {
       fmt_handler_.write_mtl_float("anisor", mtl.aniso_rot);
     }
-    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f ||
-        mtl.transmit_color.z > 0.0f) {
+    if (mtl.transmit_color.x > 0.0f || mtl.transmit_color.y > 0.0f || mtl.transmit_color.z > 0.0f)
+    {
       fmt_handler_.write_mtl_float3(
           "Tf", mtl.transmit_color.x, mtl.transmit_color.y, mtl.transmit_color.z);
     }
@@ -664,9 +673,9 @@ void MTLWriter::write_materials(const char *blen_filepath,
   }
 
   char blen_filedir[PATH_MAX];
-  BLI_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
+  BLI_path_split_dir_part(blen_filepath, blen_filedir, PATH_MAX);
   BLI_path_slash_native(blen_filedir);
-  BLI_path_normalize(nullptr, blen_filedir);
+  BLI_path_normalize(blen_filedir);
 
   std::sort(mtlmaterials_.begin(),
             mtlmaterials_.end(),

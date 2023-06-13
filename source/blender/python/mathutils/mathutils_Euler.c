@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -280,7 +282,8 @@ static PyObject *Euler_make_compatible(EulerObject *self, PyObject *value)
                             EULER_SIZE,
                             EULER_SIZE,
                             value,
-                            "euler.make_compatible(other), invalid 'other' arg") == -1) {
+                            "euler.make_compatible(other), invalid 'other' arg") == -1)
+  {
     return NULL;
   }
 
@@ -540,7 +543,8 @@ static int Euler_ass_slice(EulerObject *self, int begin, int end, PyObject *seq)
   begin = MIN2(begin, end);
 
   if ((size = mathutils_array_parse(eul, 0, EULER_SIZE, seq, "mathutils.Euler[begin:end] = []")) ==
-      -1) {
+      -1)
+  {
     return -1;
   }
 
@@ -649,7 +653,7 @@ static PySequenceMethods Euler_SeqMethods = {
 };
 
 static PyMappingMethods Euler_AsMapping = {
-    /*mp_len*/ (lenfunc)Euler_len,
+    /*mp_length*/ (lenfunc)Euler_len,
     /*mp_subscript*/ (binaryfunc)Euler_subscript,
     /*mp_ass_subscript*/ (objobjargproc)Euler_ass_subscript,
 };
@@ -698,7 +702,8 @@ static int Euler_order_set(EulerObject *self, PyObject *value, void *UNUSED(clos
   }
 
   if (((order_str = PyUnicode_AsUTF8(value)) == NULL) ||
-      ((order = euler_order_from_string(order_str, "euler.order")) == -1)) {
+      ((order = euler_order_from_string(order_str, "euler.order")) == -1))
+  {
     return -1;
   }
 
@@ -744,7 +749,7 @@ static PyGetSetDef Euler_getseters[] = {
 /** \name Euler Type: Method Definitions
  * \{ */
 
-static struct PyMethodDef Euler_methods[] = {
+static PyMethodDef Euler_methods[] = {
     {"zero", (PyCFunction)Euler_zero, METH_NOARGS, Euler_zero_doc},
     {"to_matrix", (PyCFunction)Euler_to_matrix, METH_NOARGS, Euler_to_matrix_doc},
     {"to_quaternion", (PyCFunction)Euler_to_quaternion, METH_NOARGS, Euler_to_quaternion_doc},

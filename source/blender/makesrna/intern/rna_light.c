@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -89,7 +91,10 @@ static void rna_Light_use_nodes_update(bContext *C, PointerRNA *ptr)
 }
 
 #else
-/* Don't define icons here, so they don't show up in the Light UI (properties Editor) - DingTo */
+
+/* NOTE(@dingto): Don't define icons here,
+ * so they don't show up in the Light UI (properties editor). */
+
 const EnumPropertyItem rna_enum_light_type_items[] = {
     {LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
     {LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},

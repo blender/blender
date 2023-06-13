@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -14,7 +16,9 @@
 #include "BKE_callbacks.h"
 
 #include "RNA_access.h"
+#include "RNA_prototypes.h"
 #include "RNA_types.h"
+
 #include "bpy_app_handlers.h"
 #include "bpy_rna.h"
 
@@ -23,11 +27,18 @@
 #include "BPY_extern.h"
 
 void bpy_app_generic_callback(struct Main *main,
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg);
 
 static PyTypeObject BlenderAppCbType;
+
+#define FILEPATH_SAVE_ARG \
+  "Accepts one argument: " \
+  "the file being saved, an empty string for the startup-file."
+#define FILEPATH_LOAD_ARG \
+  "Accepts one argument: " \
+  "the file being loaded, an empty string for the startup-file."
 
 /**
  * See `BKE_callbacks.h` #eCbEvent declaration for the policy on naming.
@@ -50,10 +61,15 @@ static PyStructSequence_Field app_cb_info_fields[] = {
     {"render_init", "on initialization of a render job"},
     {"render_complete", "on completion of render job"},
     {"render_cancel", "on canceling a render job"},
-    {"load_pre", "on loading a new blend file (before)"},
-    {"load_post", "on loading a new blend file (after)"},
-    {"save_pre", "on saving a blend file (before)"},
-    {"save_post", "on saving a blend file (after)"},
+
+    {"load_pre", "on loading a new blend file (before)." FILEPATH_LOAD_ARG},
+    {"load_post", "on loading a new blend file (after). " FILEPATH_LOAD_ARG},
+    {"load_post_fail", "on failure to load a new blend file (after). " FILEPATH_LOAD_ARG},
+
+    {"save_pre", "on saving a blend file (before). " FILEPATH_SAVE_ARG},
+    {"save_post", "on saving a blend file (after). " FILEPATH_SAVE_ARG},
+    {"save_post_fail", "on failure to save a blend file (after). " FILEPATH_SAVE_ARG},
+
     {"undo_pre", "on loading an undo step (before)"},
     {"undo_post", "on loading an undo step (after)"},
     {"redo_pre", "on loading a redo step (before)"},
@@ -241,8 +257,8 @@ PyObject *BPY_app_handlers_struct(void)
   /* prevent user from creating new instances */
   BlenderAppCbType.tp_init = NULL;
   BlenderAppCbType.tp_new = NULL;
-  BlenderAppCbType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
+  /* Without this we can't do `set(sys.modules)` #29635. */
+  BlenderAppCbType.tp_hash = (hashfunc)_Py_HashPointer;
 
   /* assign the C callbacks */
   if (ret) {
@@ -296,7 +312,8 @@ void BPY_app_handlers_reset(const bool do_all)
 
         PyObject **dict_ptr;
         if (PyFunction_Check(item) && (dict_ptr = _PyObject_GetDictPtr(item)) && (*dict_ptr) &&
-            (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL)) {
+            (PyDict_GetItem(*dict_ptr, perm_id_str) != NULL))
+        {
           /* keep */
         }
         else {
@@ -327,7 +344,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main),
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg)
 {
@@ -344,7 +361,8 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
 
     /* setup arguments */
     for (int i = 0; i < pointers_num; ++i) {
-      PyTuple_SET_ITEM(args_all, i, pyrna_struct_CreatePyObject(pointers[i]));
+      PyTuple_SET_ITEM(
+          args_all, i, pyrna_struct_CreatePyObject_with_primitive_support(pointers[i]));
     }
     for (int i = pointers_num; i < num_arguments; ++i) {
       PyTuple_SET_ITEM(args_all, i, Py_INCREF_RET(Py_None));
@@ -354,7 +372,8 @@ void bpy_app_generic_callback(struct Main *UNUSED(main),
       PyTuple_SET_ITEM(args_single, 0, Py_INCREF_RET(Py_None));
     }
     else {
-      PyTuple_SET_ITEM(args_single, 0, pyrna_struct_CreatePyObject(pointers[0]));
+      PyTuple_SET_ITEM(
+          args_single, 0, pyrna_struct_CreatePyObject_with_primitive_support(pointers[0]));
     }
 
     /* Iterate the list and run the callbacks

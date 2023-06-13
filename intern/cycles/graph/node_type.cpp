@@ -23,6 +23,7 @@ size_t SocketType::size(Type type)
 {
   switch (type) {
     case UNDEFINED:
+    case NUM_TYPES:
       return 0;
 
     case BOOLEAN:
@@ -33,6 +34,8 @@ size_t SocketType::size(Type type)
       return sizeof(int);
     case UINT:
       return sizeof(uint);
+    case UINT64:
+      return sizeof(uint64_t);
     case COLOR:
       return sizeof(float3);
     case VECTOR:
@@ -99,11 +102,12 @@ ustring SocketType::type_name(Type type)
 
                             ustring("boolean"),       ustring("float"),
                             ustring("int"),           ustring("uint"),
-                            ustring("color"),         ustring("vector"),
-                            ustring("point"),         ustring("normal"),
-                            ustring("point2"),        ustring("closure"),
-                            ustring("string"),        ustring("enum"),
-                            ustring("transform"),     ustring("node"),
+                            ustring("uint64"),        ustring("color"),
+                            ustring("vector"),        ustring("point"),
+                            ustring("normal"),        ustring("point2"),
+                            ustring("closure"),       ustring("string"),
+                            ustring("enum"),          ustring("transform"),
+                            ustring("node"),
 
                             ustring("array_boolean"), ustring("array_float"),
                             ustring("array_int"),     ustring("array_color"),
@@ -111,6 +115,9 @@ ustring SocketType::type_name(Type type)
                             ustring("array_normal"),  ustring("array_point2"),
                             ustring("array_string"),  ustring("array_transform"),
                             ustring("array_node")};
+
+  constexpr size_t num_names = sizeof(names) / sizeof(*names);
+  static_assert(num_names == NUM_TYPES);
 
   return names[(int)type];
 }
@@ -131,9 +138,7 @@ NodeType::NodeType(Type type, const NodeType *base) : type(type), base(base)
   }
 }
 
-NodeType::~NodeType()
-{
-}
+NodeType::~NodeType() {}
 
 void NodeType::register_input(ustring name,
                               ustring ui_name,

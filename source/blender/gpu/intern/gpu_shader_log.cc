@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -34,7 +35,7 @@ namespace blender::gpu {
 #define DEBUG_DEPENDENCIES 0
 
 void Shader::print_log(Span<const char *> sources,
-                       char *log,
+                       const char *log,
                        const char *stage,
                        const bool error,
                        GPULogParser *parser)
@@ -80,7 +81,7 @@ void Shader::print_log(Span<const char *> sources,
     sources_end_line.append(0);
   }
 
-  char *log_line = log, *line_end;
+  const char *log_line = log, *line_end;
 
   LogCursor previous_location;
 
@@ -95,7 +96,8 @@ void Shader::print_log(Span<const char *> sources,
     /* Silence not useful lines. */
     StringRef logref = StringRefNull(log_line).substr(0, size_t(line_end) - size_t(log_line));
     if (logref.endswith(" shader failed to compile with the following errors:") ||
-        logref.endswith(" No code generated")) {
+        logref.endswith(" No code generated"))
+    {
       log_line += size_t(line_end) - size_t(log_line);
       continue;
     }
@@ -123,7 +125,8 @@ void Shader::print_log(Span<const char *> sources,
 
     /* Separate from previous block. */
     if (previous_location.source != log_item.cursor.source ||
-        previous_location.row != log_item.cursor.row) {
+        previous_location.row != log_item.cursor.row)
+    {
       BLI_dynstr_appendf(dynstr, "%s%s%s\n", info_col, line_prefix, reset_col);
     }
     else if (log_item.cursor.column != previous_location.column) {
@@ -131,7 +134,8 @@ void Shader::print_log(Span<const char *> sources,
     }
     /* Print line from the source file that is producing the error. */
     if ((log_item.cursor.row != -1) && (log_item.cursor.row != previous_location.row ||
-                                        log_item.cursor.column != previous_location.column)) {
+                                        log_item.cursor.column != previous_location.column))
+    {
       const char *src_line_end;
       found_line_id = false;
       /* error_line is 1 based in this case. */
@@ -220,6 +224,9 @@ void Shader::print_log(Span<const char *> sources,
     else if (log_item.severity == Severity::Error) {
       BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Warning", info_col);
     }
+    else if (log_item.severity == Severity::Note) {
+      BLI_dynstr_appendf(dynstr, "%s%s%s: ", warn_col, "Note", info_col);
+    }
     /* Print the error itself. */
     BLI_dynstr_append(dynstr, info_col);
     BLI_dynstr_nappend(dynstr, log_line, (line_end + 1) - log_line);
@@ -243,10 +250,11 @@ void Shader::print_log(Span<const char *> sources,
   BLI_dynstr_free(dynstr);
 }
 
-char *GPULogParser::skip_severity(char *log_line,
-                                  GPULogItem &log_item,
-                                  const char *error_msg,
-                                  const char *warning_msg) const
+const char *GPULogParser::skip_severity(const char *log_line,
+                                        GPULogItem &log_item,
+                                        const char *error_msg,
+                                        const char *warning_msg,
+                                        const char *note_msg) const
 {
   if (STREQLEN(log_line, error_msg, strlen(error_msg))) {
     log_line += strlen(error_msg);
@@ -256,10 +264,14 @@ char *GPULogParser::skip_severity(char *log_line,
     log_line += strlen(warning_msg);
     log_item.severity = Severity::Warning;
   }
+  else if (STREQLEN(log_line, note_msg, strlen(note_msg))) {
+    log_line += strlen(note_msg);
+    log_item.severity = Severity::Note;
+  }
   return log_line;
 }
 
-char *GPULogParser::skip_separators(char *log_line, const StringRef separators) const
+const char *GPULogParser::skip_separators(const char *log_line, const StringRef separators) const
 {
   while (at_any(log_line, separators)) {
     log_line++;
@@ -267,9 +279,9 @@ char *GPULogParser::skip_separators(char *log_line, const StringRef separators) 
   return log_line;
 }
 
-char *GPULogParser::skip_until(char *log_line, char stop_char) const
+const char *GPULogParser::skip_until(const char *log_line, char stop_char) const
 {
-  char *cursor = log_line;
+  const char *cursor = log_line;
   while (!ELEM(cursor[0], '\n', '\0')) {
     if (cursor[0] == stop_char) {
       return cursor;
@@ -289,9 +301,9 @@ bool GPULogParser::at_any(const char *log_line, const StringRef chars) const
   return chars.find(log_line[0]) != StringRef::not_found;
 }
 
-int GPULogParser::parse_number(const char *log_line, char **r_new_position) const
+int GPULogParser::parse_number(const char *log_line, const char **r_new_position) const
 {
-  return int(strtol(log_line, r_new_position, 10));
+  return int(strtol(log_line, const_cast<char **>(r_new_position), 10));
 }
 
 /** \} */

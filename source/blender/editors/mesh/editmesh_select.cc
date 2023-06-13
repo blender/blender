@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -24,7 +25,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -246,7 +247,8 @@ static void findnearestvert__doClosest(void *userData,
 
   if (data->use_cycle) {
     if ((data->hit_cycle.vert == nullptr) && (index > data->cycle_index_prev) &&
-        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN)) {
+        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN))
+    {
       data->hit_cycle.dist_bias = dist_test_bias;
       data->hit_cycle.dist = dist_test;
       data->hit_cycle.index = index;
@@ -320,7 +322,8 @@ BMVert *EDBM_vert_find_nearest_ex(ViewContext *vc,
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
-        prev_select.elem == BM_vert_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        prev_select.elem == BM_vert_at_index_find_or_table(vc->em->bm, prev_select.index))
+    {
       data.cycle_index_prev = prev_select.index;
       /* No need to compare in the rest of the loop. */
       use_cycle = false;
@@ -465,7 +468,8 @@ static void find_nearest_edge__doClosest(
 
   if (data->use_cycle) {
     if ((data->hit_cycle.edge == nullptr) && (index > data->cycle_index_prev) &&
-        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN)) {
+        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN))
+    {
       float screen_co_mid[2];
 
       data->hit_cycle.dist_bias = dist_test_bias;
@@ -570,7 +574,8 @@ BMEdge *EDBM_edge_find_nearest_ex(ViewContext *vc,
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
-        prev_select.elem == BM_edge_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        prev_select.elem == BM_edge_at_index_find_or_table(vc->em->bm, prev_select.index))
+    {
       data.cycle_index_prev = prev_select.index;
       /* No need to compare in the rest of the loop. */
       use_cycle = false;
@@ -683,7 +688,8 @@ static void findnearestface__doClosest(void *userData,
 
   if (data->use_cycle) {
     if ((data->hit_cycle.face == nullptr) && (index > data->cycle_index_prev) &&
-        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN)) {
+        (dist_test_bias < FIND_NEAR_CYCLE_THRESHOLD_MIN))
+    {
       data->hit_cycle.dist_bias = dist_test_bias;
       data->hit_cycle.dist = dist_test;
       data->hit_cycle.index = index;
@@ -791,7 +797,8 @@ BMFace *EDBM_face_find_nearest_ex(ViewContext *vc,
     Base *base_iter = bases[base_index];
     ED_view3d_viewcontext_init_object(vc, base_iter->object);
     if (use_cycle && prev_select.bm == vc->em->bm &&
-        prev_select.elem == BM_face_at_index_find_or_table(vc->em->bm, prev_select.index)) {
+        prev_select.elem == BM_face_at_index_find_or_table(vc->em->bm, prev_select.index))
+    {
       data.cycle_index_prev = prev_select.index;
       /* No need to compare in the rest of the loop. */
       use_cycle = false;
@@ -1041,7 +1048,8 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
   } best_face = {0, nullptr};
 
   if (ED_view3d_win_to_ray_clipped(
-          vc->depsgraph, vc->region, vc->v3d, mval_fl, ray_origin, ray_direction, true)) {
+          vc->depsgraph, vc->region, vc->v3d, mval_fl, ray_origin, ray_direction, true))
+  {
     float dist_sq_best = FLT_MAX;
     float dist_sq_best_vert = FLT_MAX;
     float dist_sq_best_edge = FLT_MAX;
@@ -1395,7 +1403,8 @@ static char *edbm_select_mode_get_description(bContext * /*C*/,
   if (RNA_struct_property_is_set(values, "type") &&
       !RNA_struct_property_is_set(values, "use_extend") &&
       !RNA_struct_property_is_set(values, "use_expand") &&
-      !RNA_struct_property_is_set(values, "action")) {
+      !RNA_struct_property_is_set(values, "action"))
+  {
     switch (type) {
       case SCE_SELECT_VERTEX:
         return BLI_strdup(TIP_(
@@ -1479,7 +1488,8 @@ static void walker_select_count(BMEditMesh *em,
            BMW_NIL_LAY);
 
   for (ele = static_cast<BMElem *>(BMW_begin(&walker, start)); ele;
-       ele = static_cast<BMElem *>(BMW_step(&walker))) {
+       ele = static_cast<BMElem *>(BMW_step(&walker)))
+  {
     r_count_by_select[BM_elem_flag_test(ele, BM_ELEM_SELECT) ? 1 : 0] += 1;
 
     /* Early exit when mixed (could be optional if needed. */
@@ -1508,7 +1518,8 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, const boo
            BMW_NIL_LAY);
 
   for (ele = static_cast<BMElem *>(BMW_begin(&walker, start)); ele;
-       ele = static_cast<BMElem *>(BMW_step(&walker))) {
+       ele = static_cast<BMElem *>(BMW_step(&walker)))
+  {
     if (!select) {
       BM_select_history_remove(bm, ele);
     }
@@ -1776,12 +1787,14 @@ static bool mouse_mesh_loop(
       ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
       if (ED_view3d_project_float_object(vc.region, eed->v1->co, v1_co, V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         length_1 = len_squared_v2v2(mvalf, v1_co);
       }
 
       if (ED_view3d_project_float_object(vc.region, eed->v2->co, v2_co, V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         length_2 = len_squared_v2v2(mvalf, v2_co);
       }
 #if 0
@@ -1811,7 +1824,8 @@ static bool mouse_mesh_loop(
 
           BM_face_calc_center_median(f, cent);
           if (ED_view3d_project_float_object(vc.region, cent, co, V3D_PROJ_TEST_CLIP_NEAR) ==
-              V3D_PROJ_RET_OK) {
+              V3D_PROJ_RET_OK)
+          {
             tdist = len_squared_v2v2(mvalf, co);
             if (tdist < best_dist) {
               // printf("Best face: %p (%f)\n", f, tdist);
@@ -1846,7 +1860,8 @@ static int edbm_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *e
                       RNA_boolean_get(op->ptr, "extend"),
                       RNA_boolean_get(op->ptr, "deselect"),
                       RNA_boolean_get(op->ptr, "toggle"),
-                      RNA_boolean_get(op->ptr, "ring"))) {
+                      RNA_boolean_get(op->ptr, "ring")))
+  {
     return OPERATOR_FINISHED;
   }
   return OPERATOR_CANCELLED;
@@ -2205,23 +2220,6 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
         vc.obedit->actcol = efa->mat_nr + 1;
         vc.em->mat_nr = efa->mat_nr;
         WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
-      }
-
-      /* Change active face-map on object. */
-      if (!BLI_listbase_is_empty(&vc.obedit->fmaps)) {
-        const int cd_fmap_offset = CustomData_get_offset(&vc.em->bm->pdata, CD_FACEMAP);
-        if (cd_fmap_offset != -1) {
-          int map = *((int *)BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset));
-          if ((map < -1) || (map > BLI_listbase_count_at_most(&vc.obedit->fmaps, map))) {
-            map = -1;
-          }
-          map += 1;
-          if (map != vc.obedit->actfmap) {
-            /* We may want to add notifiers later,
-             * currently select update handles redraw. */
-            vc.obedit->actfmap = map;
-          }
-        }
       }
     }
 
@@ -2796,7 +2794,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
  * \{ */
 
 struct BMFaceLink {
-  struct BMFaceLink *next, *prev;
+  BMFaceLink *next, *prev;
   BMFace *face;
   float area;
 };
@@ -3135,7 +3133,7 @@ bool EDBM_select_interior_faces(BMEditMesh *em)
 #define USE_LINKED_SELECT_DEFAULT_HACK
 
 struct DelimitData {
-  int cd_loop_type;
+  eCustomDataType cd_loop_type;
   int cd_loop_offset;
 };
 
@@ -3175,7 +3173,8 @@ static bool select_linked_delimit_test(BMEdge *e, int delimit, const DelimitData
 
   if (delimit & BMO_DELIM_UV) {
     if (BM_edge_is_contiguous_loop_cd(
-            e, delimit_data->cd_loop_type, delimit_data->cd_loop_offset) == 0) {
+            e, delimit_data->cd_loop_type, delimit_data->cd_loop_offset) == 0)
+    {
       return true;
     }
   }
@@ -3219,7 +3218,7 @@ static void select_linked_delimit_validate(BMesh *bm, int *delimit)
 
 static void select_linked_delimit_begin(BMesh *bm, int delimit)
 {
-  DelimitData delimit_data = {0};
+  DelimitData delimit_data{};
 
   if (delimit & BMO_DELIM_UV) {
     delimit_data.cd_loop_type = CD_PROP_FLOAT2;
@@ -4232,7 +4231,8 @@ static void walker_deselect_nth(BMEditMesh *em,
 
   BLI_assert(walker.order == BMW_BREADTH_FIRST);
   for (ele = static_cast<BMElem *>(BMW_begin(&walker, h_act)); ele != nullptr;
-       ele = static_cast<BMElem *>(BMW_step(&walker))) {
+       ele = static_cast<BMElem *>(BMW_step(&walker)))
+  {
     if (!BM_elem_flag_test(ele, BM_ELEM_TAG)) {
       /* Deselect elements that aren't at "nth" depth from active */
       const int depth = BMW_current_depth(&walker) - 1;
@@ -4510,8 +4510,8 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
     BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
       if ((BM_elem_flag_test(f, BM_ELEM_HIDDEN) != 0) ||
-          (BM_elem_flag_test(f, BM_ELEM_TAG) != 0) ||
-          (BM_elem_flag_test(f, BM_ELEM_SELECT) == 0)) {
+          (BM_elem_flag_test(f, BM_ELEM_TAG) != 0) || (BM_elem_flag_test(f, BM_ELEM_SELECT) == 0))
+      {
         continue;
       }
 
@@ -4526,8 +4526,8 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
           BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
             float angle_cos;
 
-            if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) ||
-                BM_elem_flag_test(l2->f, BM_ELEM_HIDDEN)) {
+            if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) || BM_elem_flag_test(l2->f, BM_ELEM_HIDDEN))
+            {
               continue;
             }
 
@@ -4636,7 +4636,8 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
         if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
           if ((use_wire && BM_edge_is_wire(e)) || (use_boundary && BM_edge_is_boundary(e)) ||
               (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
-              (use_multi_face && BM_edge_face_count_is_over(e, 2))) {
+              (use_multi_face && BM_edge_face_count_is_over(e, 2)))
+          {
             /* check we never select perfect edge (in test above) */
             BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));
 

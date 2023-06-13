@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,8 +8,8 @@ namespace blender::nodes::node_shader_output_world_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Shader>(N_("Surface"));
-  b.add_input<decl::Shader>(N_("Volume"));
+  b.add_input<decl::Shader>("Surface");
+  b.add_input<decl::Shader>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static int node_shader_gpu_output_world(GPUMaterial *mat,
@@ -40,6 +41,7 @@ void register_node_type_sh_output_world()
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_WORLD, "World Output", NODE_CLASS_OUTPUT);
   ntype.declare = file_ns::node_declare;
+  ntype.add_ui_poll = world_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_output_world;
 
   ntype.no_muting = true;

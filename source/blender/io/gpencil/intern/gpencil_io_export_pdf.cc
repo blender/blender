@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bgpencil
@@ -7,7 +8,7 @@
 
 #include "BLI_math_vector.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -15,15 +16,15 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_geom.h"
+#include "BKE_gpencil_geom_legacy.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_view3d.h"
 
 #ifdef WIN32
@@ -156,7 +157,8 @@ void GpencilExporterPDF::export_gpencil_layers()
         const float stroke_opacity = stroke_color_[3] * stroke_average_opacity_get() *
                                      gpl->opacity;
         if ((fill_opacity < GPENCIL_ALPHA_OPACITY_THRESH) &&
-            (stroke_opacity < GPENCIL_ALPHA_OPACITY_THRESH)) {
+            (stroke_opacity < GPENCIL_ALPHA_OPACITY_THRESH))
+        {
           continue;
         }
 
@@ -237,9 +239,11 @@ void GpencilExporterPDF::export_stroke_to_polyline(bGPDlayer *gpl,
 
   if (is_stroke && !do_fill) {
     HPDF_Page_SetLineJoin(page_, HPDF_ROUND_JOIN);
-    const float width = MAX2(
-        MAX2(gps->thickness + gpl->line_change, (radius * 2.0f) + gpl->line_change), 1.0f);
-    HPDF_Page_SetLineWidth(page_, width);
+    const float defined_width = (gps->thickness * avg_pressure) + gpl->line_change;
+    const float estimated_width = (radius * 2.0f) + gpl->line_change;
+    const float final_width = (avg_pressure == 1.0f) ? MAX2(defined_width, estimated_width) :
+                                                       estimated_width;
+    HPDF_Page_SetLineWidth(page_, MAX2(final_width, 1.0f));
   }
 
   /* Loop all points. */

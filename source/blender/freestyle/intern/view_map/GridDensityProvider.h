@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -30,9 +32,7 @@ class GridDensityProvider {
   GridDensityProvider &operator=(const GridDensityProvider &other);
 
  public:
-  GridDensityProvider(OccluderSource &source) : source(source)
-  {
-  }
+  GridDensityProvider(OccluderSource &source) : source(source) {}
 
   virtual ~GridDensityProvider(){};
 
@@ -128,9 +128,7 @@ class GridDensityProviderFactory {
   GridDensityProviderFactory &operator=(const GridDensityProviderFactory &other);
 
  public:
-  GridDensityProviderFactory()
-  {
-  }
+  GridDensityProviderFactory() {}
 
   virtual AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source,
                                                               const real proscenium[4]) = 0;
@@ -142,9 +140,7 @@ class GridDensityProviderFactory {
 
   virtual AutoPtr<GridDensityProvider> newGridDensityProvider(OccluderSource &source) = 0;
 
-  virtual ~GridDensityProviderFactory()
-  {
-  }
+  virtual ~GridDensityProviderFactory() {}
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:GridDensityProviderFactory")

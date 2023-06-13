@@ -14,9 +14,7 @@ typedef struct ProjectionTransform {
   float4 x, y, z, w; /* rows */
 
 #ifndef __KERNEL_GPU__
-  ProjectionTransform()
-  {
-  }
+  ProjectionTransform() {}
 
   explicit ProjectionTransform(const Transform &tfm)
       : x(tfm.x), y(tfm.y), z(tfm.z), w(make_float4(0.0f, 0.0f, 0.0f, 1.0f))

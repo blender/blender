@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -117,7 +118,7 @@ struct TransformUserData {
       return;
     }
 
-    /* Transform the src_crop to the destination buffer with a margin.*/
+    /* Transform the src_crop to the destination buffer with a margin. */
     const int2 margin(2);
     rcti rect;
     BLI_rcti_init_minmax(&rect);
@@ -127,13 +128,14 @@ struct TransformUserData {
              int2(src_crop.xmax, src_crop.ymin),
              int2(src_crop.xmin, src_crop.ymax),
              int2(src_crop.xmax, src_crop.ymax),
-         }) {
+         })
+    {
       float3 dst_co = math::transform_point(inverse, float3(src_coords.x, src_coords.y, 0.0f));
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) + margin);
       BLI_rcti_do_minmax_v(&rect, int2(dst_co) - margin);
     }
 
-    /* Clamp rect to fit inside the image buffer.*/
+    /* Clamp rect to fit inside the image buffer. */
     rcti dest_rect;
     BLI_rcti_init(&dest_rect, 0, dst->x, 0, dst->y);
     BLI_rcti_isect(&rect, &dest_rect, &rect);
@@ -220,11 +222,12 @@ class PixelPointer {
                           NumChannels;
 
     if constexpr (std::is_same_v<StorageType, float>) {
-      pointer = image_buffer->rect_float + offset;
+      pointer = image_buffer->float_buffer.data + offset;
     }
     else if constexpr (std::is_same_v<StorageType, uchar>) {
       pointer = const_cast<uchar *>(
-          static_cast<const uchar *>(static_cast<const void *>(image_buffer->rect)) + offset);
+          static_cast<const uchar *>(static_cast<const void *>(image_buffer->byte_buffer.data)) +
+          offset);
     }
     else {
       pointer = nullptr;
@@ -381,23 +384,26 @@ class Sampler {
   void sample(const ImBuf *source, const double2 &uv, SampleType &r_sample)
   {
     if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float> &&
-                  NumChannels == 4) {
+                  NumChannels == 4)
+    {
       const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
       bilinear_interpolation_color_fl(source, nullptr, r_sample.data(), UNPACK2(wrapped_uv));
     }
     else if constexpr (Filter == IMB_FILTER_NEAREST && std::is_same_v<StorageType, uchar> &&
-                       NumChannels == 4) {
+                       NumChannels == 4)
+    {
       const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
       nearest_interpolation_color_char(source, r_sample.data(), nullptr, UNPACK2(wrapped_uv));
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, uchar> &&
-                       NumChannels == 4) {
+                       NumChannels == 4)
+    {
       const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
       bilinear_interpolation_color_char(source, r_sample.data(), nullptr, UNPACK2(wrapped_uv));
     }
     else if constexpr (Filter == IMB_FILTER_BILINEAR && std::is_same_v<StorageType, float>) {
       if constexpr (std::is_same_v<UVWrapping, WrapRepeatUV>) {
-        BLI_bilinear_interpolation_wrap_fl(source->rect_float,
+        BLI_bilinear_interpolation_wrap_fl(source->float_buffer.data,
                                            r_sample.data(),
                                            source->x,
                                            source->y,
@@ -408,7 +414,7 @@ class Sampler {
       }
       else {
         const double2 wrapped_uv = uv_wrapper.modify_uv(source, uv);
-        BLI_bilinear_interpolation_fl(source->rect_float,
+        BLI_bilinear_interpolation_fl(source->float_buffer.data,
                                       r_sample.data(),
                                       source->x,
                                       source->y,
@@ -444,7 +450,7 @@ class Sampler {
     }
 
     const size_t offset = (size_t(source->x) * y1 + x1) * NumChannels;
-    const float *dataF = source->rect_float + offset;
+    const float *dataF = source->float_buffer.data + offset;
     for (int i = 0; i < NumChannels; i++) {
       r_sample[i] = dataF[i];
     }
@@ -481,19 +487,23 @@ class ChannelConverter {
       copy_v4_v4_uchar(pixel_pointer.get_pointer(), sample.data());
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
-                       DestinationNumChannels == 4) {
+                       DestinationNumChannels == 4)
+    {
       copy_v4_v4(pixel_pointer.get_pointer(), sample.data());
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 3 &&
-                       DestinationNumChannels == 4) {
+                       DestinationNumChannels == 4)
+    {
       copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], sample[2], 1.0f);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 2 &&
-                       DestinationNumChannels == 4) {
+                       DestinationNumChannels == 4)
+    {
       copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[1], 0.0f, 1.0f);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 1 &&
-                       DestinationNumChannels == 4) {
+                       DestinationNumChannels == 4)
+    {
       copy_v4_fl4(pixel_pointer.get_pointer(), sample[0], sample[0], sample[0], 1.0f);
     }
     else {
@@ -510,7 +520,8 @@ class ChannelConverter {
           pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
     }
     else if constexpr (std::is_same_v<StorageType, float> && SourceNumChannels == 4 &&
-                       DestinationNumChannels == 4) {
+                       DestinationNumChannels == 4)
+    {
       blend_color_interpolate_float(
           pixel_pointer.get_pointer(), pixel_pointer.get_pointer(), sample.data(), mix_factor);
     }
@@ -692,10 +703,10 @@ static void transform_threaded(TransformUserData *user_data, const eIMBTransform
 {
   ScanlineThreadFunc scanline_func = nullptr;
 
-  if (user_data->dst->rect_float && user_data->src->rect_float) {
+  if (user_data->dst->float_buffer.data && user_data->src->float_buffer.data) {
     scanline_func = get_scanline_function<Filter>(user_data, mode);
   }
-  else if (user_data->dst->rect && user_data->src->rect) {
+  else if (user_data->dst->byte_buffer.data && user_data->src->byte_buffer.data) {
     /* Number of channels is always 4 when using uchar buffers (sRGB + straight alpha). */
     scanline_func = get_scanline_function<Filter, uchar, 4, 4>(mode);
   }
@@ -715,13 +726,13 @@ extern "C" {
 
 using namespace blender::imbuf::transform;
 
-void IMB_transform(const struct ImBuf *src,
-                   struct ImBuf *dst,
+void IMB_transform(const ImBuf *src,
+                   ImBuf *dst,
                    const eIMBTransformMode mode,
                    const eIMBInterpolationFilterMode filter,
                    const int num_subsamples,
                    const float transform_matrix[4][4],
-                   const struct rctf *src_crop)
+                   const rctf *src_crop)
 {
   BLI_assert_msg(mode != IMB_TRANSFORM_MODE_CROP_SRC || src_crop != nullptr,
                  "No source crop rect given, but crop source is requested. Or source crop rect "

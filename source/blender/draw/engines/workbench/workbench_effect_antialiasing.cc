@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "workbench_private.hh"
 
 #include "BLI_jitter_2d.h"
-#include "smaa_textures.h"
+#include "BLI_smaa_textures.h"
 
 namespace blender::workbench {
 

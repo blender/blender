@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -32,8 +33,8 @@ NODE_STORAGE_FUNCS(NodeDilateErode)
 
 static void cmp_node_dilate_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Mask")).default_value(0.0f).min(0.0f).max(1.0f);
-  b.add_output<decl::Float>(N_("Mask"));
+  b.add_input<decl::Float>("Mask").default_value(0.0f).min(0.0f).max(1.0f);
+  b.add_output<decl::Float>("Mask");
 }
 
 static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)
@@ -256,7 +257,7 @@ class DilateErodeOperation : public NodeOperation {
     input_image.bind_as_texture(shader, "input_tx");
 
     const MorphologicalDistanceFeatherWeights &weights =
-        context().cache_manager().get_morphological_distance_feather_weights(
+        context().cache_manager().morphological_distance_feather_weights.get(
             node_storage(bnode()).falloff, math::abs(get_distance()));
     weights.bind_weights_as_texture(shader, "weights_tx");
     weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");
@@ -297,7 +298,7 @@ class DilateErodeOperation : public NodeOperation {
     GPU_texture_bind(horizontal_pass_result, texture_image_unit);
 
     const MorphologicalDistanceFeatherWeights &weights =
-        context().cache_manager().get_morphological_distance_feather_weights(
+        context().cache_manager().morphological_distance_feather_weights.get(
             node_storage(bnode()).falloff, math::abs(get_distance()));
     weights.bind_weights_as_texture(shader, "weights_tx");
     weights.bind_distance_falloffs_as_texture(shader, "falloffs_tx");

@@ -15,8 +15,7 @@ if(WIN32)
     -D_PXR_CXX_DEFINITIONS=/DBOOST_ALL_NO_LIB
     -DCMAKE_SHARED_LINKER_FLAGS_INIT=/LIBPATH:${LIBDIR}/tbb/lib
     -DPython_FIND_REGISTRY=NEVER
-    -DPYTHON_INCLUDE_DIRS=${LIBDIR}/python/include
-    -DPYTHON_LIBRARY=${LIBDIR}/python/libs/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}${LIBEXT}
+    -DPython3_EXECUTABLE=${PYTHON_BINARY}
   )
   if(BUILD_MODE STREQUAL Debug)
     list(APPEND USD_PLATFORM_FLAGS -DPXR_USE_DEBUG_PYTHON=ON)
@@ -27,6 +26,12 @@ elseif(UNIX)
   # part of the interpret in the USD library. Allow undefined Python symbols and replace
   # Python library with TBB so it doesn't complain about missing library.
   set(USD_PLATFORM_FLAGS
+    # NOTE(@ideasman42): Setting the root is needed, without this an older version of Python
+    # is detected from the system. Referencing the root-directory may remove the need
+    # to explicitly set the `PYTHON_INCLUDE_DIR` & `PYTHON_LIBRARY`.
+    # Keep them as it's known these are the libraries to use and it avoids any ambiguity.
+    -DPython3_ROOT_DIR=${LIBDIR}/python/
+
     -DPYTHON_INCLUDE_DIR=${LIBDIR}/python/include/python${PYTHON_SHORT_VERSION}/
     -DPYTHON_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   )
@@ -44,6 +49,7 @@ set(USD_EXTRA_ARGS
   ${USD_PLATFORM_FLAGS}
   -DOPENSUBDIV_ROOT_DIR=${LIBDIR}/opensubdiv
   -DOpenImageIO_ROOT=${LIBDIR}/openimageio
+  -DMaterialX_ROOT=${LIBDIR}/materialx
   -DOPENEXR_LIBRARIES=${LIBDIR}/imath/lib/${LIBPREFIX}Imath${OPENEXR_VERSION_POSTFIX}${SHAREDLIBEXT}
   -DOPENEXR_INCLUDE_DIR=${LIBDIR}/imath/include
   -DImath_DIR=${LIBDIR}/imath
@@ -56,9 +62,10 @@ set(USD_EXTRA_ARGS
   -DPXR_BUILD_TUTORIALS=OFF
   -DPXR_BUILD_USDVIEW=OFF
   -DPXR_ENABLE_HDF5_SUPPORT=OFF
-  -DPXR_ENABLE_MATERIALX_SUPPORT=OFF
+  -DPXR_ENABLE_MATERIALX_SUPPORT=ON
   -DPXR_ENABLE_OPENVDB_SUPPORT=ON
   -DPYTHON_EXECUTABLE=${PYTHON_BINARY}
+  -DPython3_EXECUTABLE=${PYTHON_BINARY}
   -DPXR_BUILD_MONOLITHIC=ON
   # OSL is an optional dependency of the Imaging module. However, since that
   # module was included for its support for converting primitive shapes (sphere,
@@ -83,10 +90,17 @@ set(USD_EXTRA_ARGS
   -DTBB_LIBRARIES=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
   -DTBB_tbb_LIBRARY_RELEASE=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
-  # USD wants the tbb debug lib set even when you are doing a release build
-  # Otherwise it will error out during the cmake configure phase.
-  -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
 )
+
+# Ray: I'm not sure if the other platforms relied on this or not but this is no longer
+# needed for windows. If mac/lin confirm, this can be removed. 
+if(NOT WIN32)
+  list(APPEND USD_EXTRA_ARGS
+    # USD wants the tbb debug lib set even when you are doing a release build
+    # Otherwise it will error out during the cmake configure phase.
+    -DTBB_LIBRARIES_DEBUG=${LIBDIR}/tbb/lib/${LIBPREFIX}${TBB_LIBRARY}${SHAREDLIBEXT}
+  )
+endif()
 
 ExternalProject_Add(external_usd
   URL file://${PACKAGE_DIR}/${USD_FILE}
@@ -95,7 +109,12 @@ ExternalProject_Add(external_usd
   CMAKE_GENERATOR ${PLATFORM_ALT_GENERATOR}
   PREFIX ${BUILD_DIR}/usd
   LIST_SEPARATOR ^^
-  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd.diff
+  # usd_pull_1965.diff  https://github.com/PixarAnimationStudios/USD/pull/1965
+  # usd_hydra.diff -    https://github.com/bnagirniak/RPRHydraRenderBlenderAddon/blob/master/usd.diff
+  # usd_hydra.diff also included the blender changes and usd_pull_1965 and has been edited to remove those sections.
+  PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd.diff &&
+                ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd_pull_1965.diff &&
+                ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/usd/src/external_usd < ${PATCH_DIR}/usd_hydra.diff
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/usd -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${USD_EXTRA_ARGS}
   INSTALL_DIR ${LIBDIR}/usd
 )
@@ -107,6 +126,7 @@ add_dependencies(
   external_opensubdiv
   external_python
   external_openimageio
+  external_materialx
   openvdb
 )
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -535,7 +536,8 @@ class MemoryBuffer {
     float v = y;
     this->wrap_pixel(u, v, extend_x, extend_y);
     if ((extend_x != MemoryBufferExtend::Repeat && (u < 0.0f || u >= get_width())) ||
-        (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= get_height()))) {
+        (extend_y != MemoryBufferExtend::Repeat && (v < 0.0f || v >= get_height())))
+    {
       copy_vn_fl(result, num_channels_, 0.0f);
       return;
     }

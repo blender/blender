@@ -74,7 +74,8 @@ static int SmoothingShader___init__(BPy_SmoothingShader *self, PyObject *args, P
   double d2 = 0.1, d3 = 0.0, d4 = 0.2, d5 = 0.0, d6 = 0.0, d7 = 0.0, d8 = 1.0;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|iddddddd", (char **)kwlist, &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8)) {
+          args, kwds, "|iddddddd", (char **)kwlist, &i1, &d2, &d3, &d4, &d5, &d6, &d7, &d8))
+  {
     return -1;
   }
   self->py_ss.ss = new SmoothingShader(i1, d2, d3, d4, d5, d6, d7, d8);

@@ -209,6 +209,12 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
     /* accumulate and also take into account the transmittance from previous steps */
     final_scattering += final_transmittance * Lscat;
     final_transmittance *= Tr;
+
+    if (final_transmittance <= 0.01) {
+      /* Early out */
+      final_transmittance = 0.0;
+      break;
+    }
   }
 
   return vec4(final_scattering, final_transmittance);
@@ -216,6 +222,14 @@ vec4 volume_integration(vec3 ray_ori, vec3 ray_dir, float ray_inc, float ray_max
 
 void main()
 {
+#ifdef WORKBENCH_NEXT
+  uint stencil = texelFetch(stencil_tx, ivec2(gl_FragCoord.xy), 0).r;
+  if (stencil != 0) {
+    /* Don't draw on top of "in front" objects. */
+    discard;
+    return;
+  }
+#endif
 #ifdef VOLUME_SLICE
   /* Manual depth test. TODO: remove. */
   float depth = texelFetch(depthBuffer, ivec2(gl_FragCoord.xy), 0).r;

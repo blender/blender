@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -74,6 +75,18 @@ static void outliner_show_active(SpaceOutliner *space_outliner,
                                  ID *id);
 
 /* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+static void outliner_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+{
+  /* NOTE: this uses the same path as the 3D viewport. */
+  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer.blend");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Highlight on Cursor Motion Operator
  * \{ */
 
@@ -110,7 +123,8 @@ static int outliner_highlight_update(bContext *C, wmOperator * /*op*/, const wmE
   bool changed = false;
 
   if (!hovered_te || !is_over_icon || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED) ||
-      !(icon_te->store_elem->flag & TSE_HIGHLIGHTED_ICON)) {
+      !(icon_te->store_elem->flag & TSE_HIGHLIGHTED_ICON))
+  {
     /* Clear highlights when nothing is hovered or when a new item is hovered. */
     changed = outliner_flag_set(*space_outliner, TSE_HIGHLIGHTED_ANY | TSE_DRAG_ANY, false);
     if (hovered_te) {
@@ -298,7 +312,8 @@ static void do_item_rename(ARegion *region,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,
            TSE_ID_BASE,
-           TSE_SCENE_OBJECTS_BASE)) {
+           TSE_SCENE_OBJECTS_BASE))
+  {
     /* do nothing */
   }
   else if (ELEM(tselem->type,
@@ -313,7 +328,8 @@ static void do_item_rename(ARegion *region,
                 TSE_R_LAYER_BASE,
                 TSE_SCENE_COLLECTION_BASE,
                 TSE_VIEW_COLLECTION_BASE,
-                TSE_LIBRARY_OVERRIDE_BASE)) {
+                TSE_LIBRARY_OVERRIDE_BASE))
+  {
     BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
   }
   else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
@@ -423,6 +439,8 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 
 void OUTLINER_OT_item_rename(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   ot->name = "Rename";
   ot->idname = "OUTLINER_OT_item_rename";
   ot->description = "Rename the active element";
@@ -434,11 +452,12 @@ void OUTLINER_OT_item_rename(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_boolean(ot->srna,
-                  "use_active",
-                  false,
-                  "Use Active",
-                  "Rename the active item, rather than the one the mouse is over");
+  prop = RNA_def_boolean(ot->srna,
+                         "use_active",
+                         false,
+                         "Use Active",
+                         "Rename the active item, rather than the one the mouse is over");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE | PROP_HIDDEN));
 }
 
 /** \} */
@@ -459,7 +478,8 @@ static void id_delete_tag(bContext *C, ReportList *reports, TreeElement *te, Tre
 
   if (ID_IS_OVERRIDE_LIBRARY(id)) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) ||
-        (id->override_library->flag & IDOVERRIDE_LIBRARY_FLAG_NO_HIERARCHY) == 0) {
+        (id->override_library->flag & LIBOVERRIDE_FLAG_NO_HIERARCHY) == 0)
+    {
       BKE_reportf(reports,
                   RPT_WARNING,
                   "Cannot delete library override id '%s', it is part of an override hierarchy",
@@ -799,7 +819,7 @@ static int outliner_id_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   BKE_copybuffer_copy_begin(bmain);
 
@@ -809,8 +829,8 @@ static int outliner_id_copy_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
-  BKE_copybuffer_copy_end(bmain, str, op->reports);
+  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
+  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
 
   BKE_reportf(op->reports, RPT_INFO, "Copied %d selected data-block(s)", num_ids);
 
@@ -822,7 +842,7 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Copy";
   ot->idname = "OUTLINER_OT_id_copy";
-  ot->description = "Selected data-blocks are copied to the clipboard";
+  ot->description = "Copy the selected data-blocks to the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_copy_exec;
@@ -840,12 +860,12 @@ void OUTLINER_OT_id_copy(wmOperatorType *ot)
 
 static int outliner_id_paste_exec(bContext *C, wmOperator *op)
 {
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
   const short flag = FILE_AUTOSELECT | FILE_ACTIVE_COLLECTION;
 
-  BLI_path_join(str, sizeof(str), BKE_tempdir_base(), "copybuffer.blend");
+  outliner_copybuffer_filepath_get(filepath, sizeof(filepath));
 
-  const int num_pasted = BKE_copybuffer_paste(C, str, flag, op->reports, 0);
+  const int num_pasted = BKE_copybuffer_paste(C, filepath, flag, op->reports, 0);
   if (num_pasted == 0) {
     BKE_report(op->reports, RPT_INFO, "No data to paste");
     return OPERATOR_CANCELLED;
@@ -863,7 +883,7 @@ void OUTLINER_OT_id_paste(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Outliner ID Data Paste";
   ot->idname = "OUTLINER_OT_id_paste";
-  ot->description = "Data-blocks from the clipboard are pasted";
+  ot->description = "Paste data-blocks from the internal clipboard";
 
   /* callbacks */
   ot->exec = outliner_id_paste_exec;
@@ -896,7 +916,7 @@ static int lib_relocate(
     Library *lib = (Library *)tselem->id;
     char dir[FILE_MAXDIR], filename[FILE_MAX];
 
-    BLI_split_dirfile(lib->filepath_abs, dir, filename, sizeof(dir), sizeof(filename));
+    BLI_path_split_dir_file(lib->filepath_abs, dir, sizeof(dir), filename, sizeof(filename));
 
     printf("%s, %s\n", tselem->id->name, lib->filepath_abs);
 
@@ -1259,7 +1279,8 @@ static int outliner_open_back(TreeElement *te)
   return retval;
 }
 
-/* Return element representing the active base or bone in the outliner, or NULL if none exists
+/**
+ * \return element representing the active base or bone in the outliner, or null if none exists
  */
 static TreeElement *outliner_show_active_get_element(bContext *C,
                                                      SpaceOutliner *space_outliner,
@@ -1521,7 +1542,8 @@ static void tree_element_show_hierarchy(Scene *scene, SpaceOutliner *space_outli
              TSE_SOME_ID,
              TSE_SCENE_OBJECTS_BASE,
              TSE_VIEW_COLLECTION_BASE,
-             TSE_LAYER_COLLECTION)) {
+             TSE_LAYER_COLLECTION))
+    {
       if (te->idcode == ID_SCE) {
         if (tselem->id != (ID *)scene) {
           tselem->flag |= TSE_CLOSED;
@@ -2130,7 +2152,7 @@ static int outliner_orphans_purge_invoke(bContext *C, wmOperator *op, const wmEv
   }
 
   DynStr *dyn_str = BLI_dynstr_new();
-  BLI_dynstr_appendf(dyn_str, "Purging %d unused data-blocks (", num_tagged[INDEX_ID_NULL]);
+  BLI_dynstr_appendf(dyn_str, TIP_("Purging %d unused data-blocks ("), num_tagged[INDEX_ID_NULL]);
   bool is_first = true;
   for (int i = 0; i < INDEX_ID_MAX - 2; i++) {
     if (num_tagged[i] != 0) {

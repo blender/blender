@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <optional>
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string_search.h"
@@ -26,6 +29,8 @@
 
 #include "WM_api.h"
 
+#include "NOD_add_node_search.hh"
+
 #include "ED_asset.h"
 #include "ED_node.h"
 
@@ -35,19 +40,10 @@ struct bContext;
 
 namespace blender::ed::space_node {
 
-struct AddNodeItem {
-  std::string ui_name;
-  std::string identifier;
-  std::string description;
-  std::optional<AssetHandle> asset;
-  std::function<void(const bContext &, bNodeTree &, bNode &)> after_add_fn;
-  int weight = 0;
-};
-
 struct AddNodeSearchStorage {
   float2 cursor;
   bool use_transform;
-  Vector<AddNodeItem> search_add_items;
+  Vector<nodes::AddNodeItem> search_add_items;
   char search[256];
   bool update_items_tag = true;
 };
@@ -67,37 +63,36 @@ static void add_node_search_listen_fn(const wmRegionListenerParams *params, void
 }
 
 static void search_items_for_asset_metadata(const bNodeTree &node_tree,
-                                            const AssetHandle asset,
-                                            Vector<AddNodeItem> &search_items)
+                                            const asset_system::AssetRepresentation &asset,
+                                            nodes::GatherAddNodeSearchParams &params)
 {
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset);
+  const AssetMetaData &asset_data = asset.get_metadata();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
     return;
   }
 
-  AddNodeItem item{};
-  item.ui_name = ED_asset_handle_get_name(&asset);
-  item.identifier = node_tree.typeinfo->group_idname;
-  item.description = asset_data.description == nullptr ? "" : asset_data.description;
-  item.asset = asset;
-  item.after_add_fn = [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
-    Main &bmain = *CTX_data_main(&C);
-    node.flag &= ~NODE_OPTIONS;
-    node.id = asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset);
-    id_us_plus(node.id);
-    BKE_ntree_update_tag_node_property(&node_tree, &node);
-    DEG_relations_tag_update(&bmain);
-  };
-
-  search_items.append(std::move(item));
+  params.add_single_node_item(
+      IFACE_(asset.get_name().c_str()),
+      asset_data.description == nullptr ? "" : IFACE_(asset_data.description),
+      [&asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
+        Main &bmain = *CTX_data_main(&C);
+        node.flag &= ~NODE_OPTIONS;
+        node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT);
+        id_us_plus(node.id);
+        BKE_ntree_update_tag_node_property(&node_tree, &node);
+        DEG_relations_tag_update(&bmain);
+      });
 }
 
 static void gather_search_items_for_all_assets(const bContext &C,
                                                const bNodeTree &node_tree,
                                                Set<std::string> &r_added_assets,
-                                               Vector<AddNodeItem> &search_items)
+                                               Vector<nodes::AddNodeItem> &search_items)
 {
+  const bNodeType &group_node_type = *nodeTypeFind(node_tree.typeinfo->group_idname);
+  nodes::GatherAddNodeSearchParams params(C, group_node_type, node_tree, search_items);
+
   AssetLibraryReference library_ref{};
   library_ref.custom_library_index = -1;
   library_ref.type = ASSET_LIBRARY_ALL;
@@ -107,15 +102,15 @@ static void gather_search_items_for_all_assets(const bContext &C,
 
   ED_assetlist_storage_fetch(&library_ref, &C);
   ED_assetlist_ensure_previews_job(&library_ref, &C);
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
-    if (!r_added_assets.add(ED_asset_handle_get_name(&asset))) {
+    if (!r_added_assets.add(asset.get_name())) {
       /* If an asset with the same name has already been added, skip this. */
       return true;
     }
-    search_items_for_asset_metadata(node_tree, asset, search_items);
+    search_items_for_asset_metadata(node_tree, asset, params);
     return true;
   });
 }
@@ -123,9 +118,11 @@ static void gather_search_items_for_all_assets(const bContext &C,
 static void gather_search_items_for_node_groups(const bContext &C,
                                                 const bNodeTree &node_tree,
                                                 const Set<std::string> &local_assets,
-                                                Vector<AddNodeItem> &search_items)
+                                                Vector<nodes::AddNodeItem> &search_items)
 {
-  const StringRef group_node_id = node_tree.typeinfo->group_idname;
+  const StringRefNull group_node_id = node_tree.typeinfo->group_idname;
+  const bNodeType &group_node_type = *nodeTypeFind(group_node_id.c_str());
+  nodes::GatherAddNodeSearchParams params(C, group_node_type, node_tree, search_items);
 
   Main &bmain = *CTX_data_main(&C);
   LISTBASE_FOREACH (bNodeTree *, node_group, &bmain.nodetrees) {
@@ -138,42 +135,36 @@ static void gather_search_items_for_node_groups(const bContext &C,
     if (!nodeGroupPoll(&node_tree, node_group, nullptr)) {
       continue;
     }
-    AddNodeItem item{};
-    item.ui_name = node_group->id.name + 2;
-    item.identifier = node_tree.typeinfo->group_idname;
-    item.after_add_fn = [node_group](const bContext &C, bNodeTree &node_tree, bNode &node) {
-      Main &bmain = *CTX_data_main(&C);
-      node.id = &node_group->id;
-      id_us_plus(node.id);
-      BKE_ntree_update_tag_node_property(&node_tree, &node);
-      DEG_relations_tag_update(&bmain);
-    };
-    search_items.append(std::move(item));
+    params.add_single_node_item(
+        node_group->id.name + 2,
+        "",
+        [node_group](const bContext &C, bNodeTree &node_tree, bNode &node) {
+          Main &bmain = *CTX_data_main(&C);
+          node.id = &node_group->id;
+          id_us_plus(node.id);
+          BKE_ntree_update_tag_node_property(&node_tree, &node);
+          DEG_relations_tag_update(&bmain);
+        });
   }
 }
 
 static void gather_add_node_operations(const bContext &C,
                                        bNodeTree &node_tree,
-                                       Vector<AddNodeItem> &r_search_items)
+                                       Vector<nodes::AddNodeItem> &r_search_items)
 {
   NODE_TYPES_BEGIN (node_type) {
     const char *disabled_hint;
-    if (!(node_type->poll && node_type->poll(node_type, &node_tree, &disabled_hint))) {
+    if (node_type->poll && !node_type->poll(node_type, &node_tree, &disabled_hint)) {
       continue;
     }
-    if (StringRefNull(node_tree.typeinfo->group_idname) == node_type->idname) {
-      /* Skip the empty group type. */
+    if (node_type->add_ui_poll && !node_type->add_ui_poll(&C)) {
       continue;
     }
-    if (StringRefNull(node_type->ui_name).endswith("(Legacy)")) {
+    if (!node_type->gather_add_node_search_ops) {
       continue;
     }
-
-    AddNodeItem item{};
-    item.ui_name = IFACE_(node_type->ui_name);
-    item.identifier = node_type->idname;
-    item.description = TIP_(node_type->ui_description);
-    r_search_items.append(std::move(item));
+    nodes::GatherAddNodeSearchParams params(C, *node_type, node_tree, r_search_items);
+    node_type->gather_add_node_search_ops(params);
   }
   NODE_TYPES_END;
 
@@ -198,18 +189,18 @@ static void add_node_search_update_fn(
 
   StringSearch *search = BLI_string_search_new();
 
-  for (AddNodeItem &item : storage.search_add_items) {
+  for (nodes::AddNodeItem &item : storage.search_add_items) {
     BLI_string_search_add(search, item.ui_name.c_str(), &item, item.weight);
   }
 
   /* Don't filter when the menu is first opened, but still run the search
    * so the items are in the same order they will appear in while searching. */
   const char *string = is_first ? "" : str;
-  AddNodeItem **filtered_items;
+  nodes::AddNodeItem **filtered_items;
   const int filtered_amount = BLI_string_search_query(search, string, (void ***)&filtered_items);
 
   for (const int i : IndexRange(filtered_amount)) {
-    AddNodeItem &item = *filtered_items[i];
+    nodes::AddNodeItem &item = *filtered_items[i];
     if (!UI_search_item_add(items, item.ui_name.c_str(), &item, ICON_NONE, 0, 0)) {
       break;
     }
@@ -225,24 +216,13 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &node_tree = *snode.edittree;
   AddNodeSearchStorage &storage = *static_cast<AddNodeSearchStorage *>(arg1);
-  AddNodeItem *item = static_cast<AddNodeItem *>(arg2);
+  nodes::AddNodeItem *item = static_cast<nodes::AddNodeItem *>(arg2);
   if (item == nullptr) {
     return;
   }
 
   node_deselect_all(node_tree);
-  bNode *new_node = nodeAddNode(C, &node_tree, item->identifier.c_str());
-  BLI_assert(new_node != nullptr);
-
-  if (item->after_add_fn) {
-    item->after_add_fn(*C, node_tree, *new_node);
-  }
-
-  new_node->locx = storage.cursor.x / UI_DPI_FAC;
-  new_node->locy = storage.cursor.y / UI_DPI_FAC + 20;
-
-  nodeSetSelected(new_node, true);
-  nodeSetActive(&node_tree, new_node);
+  Vector<bNode *> new_nodes = item->add_fn(*C, node_tree, storage.cursor);
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */
@@ -261,13 +241,11 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
 static ARegion *add_node_search_tooltip_fn(
     bContext *C, ARegion *region, const rcti *item_rect, void * /*arg*/, void *active)
 {
-  const AddNodeItem *item = static_cast<const AddNodeItem *>(active);
+  const nodes::AddNodeItem *item = static_cast<const nodes::AddNodeItem *>(active);
 
   uiSearchItemTooltipData tooltip_data{};
 
-  BLI_strncpy(tooltip_data.description,
-              item->asset ? item->description.c_str() : TIP_(item->description.c_str()),
-              sizeof(tooltip_data.description));
+  STRNCPY(tooltip_data.description, TIP_(item->description.c_str()));
 
   return UI_tooltip_create_from_search_item_generic(C, region, item_rect, &tooltip_data);
 }

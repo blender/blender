@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edutil
@@ -33,11 +34,11 @@
 
 #include "DEG_depsgraph.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "ED_armature.h"
 #include "ED_asset.h"
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_mesh.h"
 #include "ED_object.h"
@@ -101,7 +102,7 @@ void ED_editors_init(bContext *C)
       /* For multi-edit mode we may already have mode data. */
       continue;
     }
-    if (ob->type == OB_GPENCIL) {
+    if (ob->type == OB_GPENCIL_LEGACY) {
       /* Grease pencil does not need a toggle of mode. However we may have a non-active object
        * stuck in a grease-pencil edit mode. */
       if (ob != obact) {
@@ -131,7 +132,8 @@ void ED_editors_init(bContext *C)
     }
     /* Object mode is enforced for non-editable data (or their obdata). */
     if (!BKE_id_is_editable(bmain, &ob->id) ||
-        (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data))) {
+        (ob_data != nullptr && !BKE_id_is_editable(bmain, ob_data)))
+    {
       continue;
     }
 
@@ -146,7 +148,8 @@ void ED_editors_init(bContext *C)
      * modes like Sculpt.
      * Ref. #98225. */
     if (!BKE_collection_has_object_recursive(scene->master_collection, ob) ||
-        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0) {
+        !BKE_scene_has_object(scene, ob) || (ob->visibility_flag & OB_HIDE_VIEWPORT) != 0)
+    {
       continue;
     }
 
@@ -377,19 +380,19 @@ void unpack_menu(bContext *C,
   if (blendfile_path[0] != '\0') {
     char local_name[FILE_MAXDIR + FILE_MAX], fi[FILE_MAX];
 
-    BLI_split_file_part(abs_name, fi, sizeof(fi));
+    BLI_path_split_file_part(abs_name, fi, sizeof(fi));
     BLI_path_join(local_name, sizeof(local_name), "//", folder, fi);
     if (!STREQ(abs_name, local_name)) {
       switch (BKE_packedfile_compare_to_file(blendfile_path, local_name, pf)) {
         case PF_CMP_NOFILE:
-          BLI_snprintf(line, sizeof(line), TIP_("Create %s"), local_name);
+          SNPRINTF(line, TIP_("Create %s"), local_name);
           uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
           break;
         case PF_CMP_EQUAL:
-          BLI_snprintf(line, sizeof(line), TIP_("Use %s (identical)"), local_name);
+          SNPRINTF(line, TIP_("Use %s (identical)"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
           uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
@@ -397,13 +400,13 @@ void unpack_menu(bContext *C,
 
           break;
         case PF_CMP_DIFFERS:
-          BLI_snprintf(line, sizeof(line), TIP_("Use %s (differs)"), local_name);
+          SNPRINTF(line, TIP_("Use %s (differs)"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_LOCAL);
           uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_USE_LOCAL);
           RNA_string_set(&props_ptr, "id", id_name);
 
-          BLI_snprintf(line, sizeof(line), TIP_("Overwrite %s"), local_name);
+          SNPRINTF(line, TIP_("Overwrite %s"), local_name);
           // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_LOCAL);
           uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
           RNA_enum_set(&props_ptr, "method", PF_WRITE_LOCAL);
@@ -415,27 +418,27 @@ void unpack_menu(bContext *C,
 
   switch (BKE_packedfile_compare_to_file(blendfile_path, abs_name, pf)) {
     case PF_CMP_NOFILE:
-      BLI_snprintf(line, sizeof(line), TIP_("Create %s"), abs_name);
+      SNPRINTF(line, TIP_("Create %s"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
       uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_EQUAL:
-      BLI_snprintf(line, sizeof(line), TIP_("Use %s (identical)"), abs_name);
+      SNPRINTF(line, TIP_("Use %s (identical)"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
       uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
       break;
     case PF_CMP_DIFFERS:
-      BLI_snprintf(line, sizeof(line), TIP_("Use %s (differs)"), abs_name);
+      SNPRINTF(line, TIP_("Use %s (differs)"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_USE_ORIGINAL);
       uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_USE_ORIGINAL);
       RNA_string_set(&props_ptr, "id", id_name);
 
-      BLI_snprintf(line, sizeof(line), TIP_("Overwrite %s"), abs_name);
+      SNPRINTF(line, TIP_("Overwrite %s"), abs_name);
       // uiItemEnumO_ptr(layout, ot, line, 0, "method", PF_WRITE_ORIGINAL);
       uiItemFullO_ptr(layout, ot, line, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, 0, &props_ptr);
       RNA_enum_set(&props_ptr, "method", PF_WRITE_ORIGINAL);

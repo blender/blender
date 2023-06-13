@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -51,9 +53,7 @@ class FEdgeXDetector {
     _creaseAngle = 0.7;  // angle of 134.43 degrees
   }
 
-  virtual ~FEdgeXDetector()
-  {
-  }
+  virtual ~FEdgeXDetector() {}
 
   /** Process shapes from a WingedEdge containing a list of WShapes */
   virtual void processShapes(WingedEdge &);

@@ -8,6 +8,7 @@ import unittest
 from pxr import Usd
 from pxr import UsdUtils
 from pxr import UsdGeom
+from pxr import UsdShade
 from pxr import Gf
 
 import bpy
@@ -123,6 +124,75 @@ class USDExportTest(AbstractUSDTest):
         self.compareVec3d(
             Gf.Vec3d(extent[1]), Gf.Vec3d(0.7515701, 0.5500924, 0.9027928)
         )
+
+    def test_opacity_threshold(self):
+        # Note that the scene file used here is shared with a different test.
+        # Here we assume that it has a Principled BSDF material with
+        # a texture connected to its Base Color input.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+
+        export_path = self.tempdir / "opaque_material.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_materials=True,
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        # Inspect and validate the exported USD for the opaque blend case.
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        opacity_input = shader.GetInput('opacity')
+        self.assertEqual(opacity_input.HasConnectedSource(), False,
+                         "Opacity input should not be connected for opaque material")
+        self.assertAlmostEqual(opacity_input.Get(), 1.0, "Opacity input should be set to 1")
+
+        # The material already has a texture input to the Base Color.
+        # Now also link this texture to the Alpha input.
+        # Set an opacity threshold appropriate for alpha clipping.
+        mat = bpy.data.materials['Material']
+        bsdf = mat.node_tree.nodes['Principled BSDF']
+        tex_output = bsdf.inputs['Base Color'].links[0].from_node.outputs['Color']
+        alpha_input = bsdf.inputs['Alpha']
+        mat.node_tree.links.new(tex_output, alpha_input)
+        bpy.data.materials['Material'].blend_method = 'CLIP'
+        bpy.data.materials['Material'].alpha_threshold = 0.01
+        export_path = self.tempdir / "alphaclip_material.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_materials=True,
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        # Inspect and validate the exported USD for the alpha clip case.
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        opacity_input = shader.GetInput('opacity')
+        opacity_thres_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertGreater(opacity_thres_input.Get(), 0.0, "Opacity threshold input should be > 0")
+
+        # Modify material again, this time with alpha blend.
+        bpy.data.materials['Material'].blend_method = 'BLEND'
+        export_path = self.tempdir / "alphablend_material.usda"
+        res = bpy.ops.wm.usd_export(
+            filepath=str(export_path),
+            export_materials=True,
+            evaluation_mode="RENDER",
+        )
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
+
+        # Inspect and validate the exported USD for the alpha blend case.
+        stage = Usd.Stage.Open(str(export_path))
+        shader_prim = stage.GetPrimAtPath("/_materials/Material/Principled_BSDF")
+        shader = UsdShade.Shader(shader_prim)
+        opacity_input = shader.GetInput('opacity')
+        opacity_thres_input = shader.GetInput('opacityThreshold')
+        self.assertEqual(opacity_input.HasConnectedSource(), True, "Alpha input should be connected")
+        self.assertEqual(opacity_thres_input.Get(), None, "Opacity threshold should not be specified for alpha blend")
 
 
 def main():

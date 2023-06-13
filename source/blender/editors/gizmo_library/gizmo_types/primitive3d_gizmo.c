@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgizmolib
@@ -15,6 +17,8 @@
 
 #include "BLI_math.h"
 
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_context.h"
@@ -42,36 +46,133 @@ static float verts_plane[4][3] = {
     {-1, 1, 0},
 };
 
+typedef struct PrimitiveGizmo3D {
+  wmGizmo gizmo;
+
+  int draw_style;
+  float arc_inner_factor;
+  bool draw_inner;
+} PrimitiveGizmo3D;
+
 /* -------------------------------------------------------------------- */
+/** \name RNA callbacks */
 
-static void gizmo_primitive_draw_geom(const float col_inner[4],
-                                      const float col_outer[4],
-                                      const int draw_style)
+static PrimitiveGizmo3D *gizmo_primitive_rna_find_operator(PointerRNA *ptr)
 {
-  float(*verts)[3];
-  uint vert_count = 0;
-
-  if (draw_style == ED_GIZMO_PRIMITIVE_STYLE_PLANE) {
-    verts = verts_plane;
-    vert_count = ARRAY_SIZE(verts_plane);
-  }
-
-  if (vert_count > 0) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    wm_gizmo_vec_draw(col_inner, verts, vert_count, pos, GPU_PRIM_TRI_FAN);
-    wm_gizmo_vec_draw(col_outer, verts, vert_count, pos, GPU_PRIM_LINE_LOOP);
-    immUnbindProgram();
-  }
+  return (PrimitiveGizmo3D *)gizmo_find_from_properties(ptr->data, SPACE_TYPE_ANY, RGN_TYPE_ANY);
 }
 
-static void gizmo_primitive_draw_intern(wmGizmo *gz,
-                                        const bool UNUSED(select),
-                                        const bool highlight)
+static int gizmo_primitive_rna__draw_style_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
 {
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  return gz_prim->draw_style;
+}
+
+static void gizmo_primitive_rna__draw_style_set_fn(PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop),
+                                                   int value)
+{
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  gz_prim->draw_style = value;
+}
+
+static float gizmo_primitive_rna__arc_inner_factor_get_fn(PointerRNA *ptr,
+                                                          PropertyRNA *UNUSED(prop))
+{
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  return gz_prim->arc_inner_factor;
+}
+
+static void gizmo_primitive_rna__arc_inner_factor_set_fn(PointerRNA *ptr,
+                                                         PropertyRNA *UNUSED(prop),
+                                                         float value)
+{
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  gz_prim->arc_inner_factor = value;
+}
+
+static bool gizmo_primitive_rna__draw_inner_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
+{
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  return gz_prim->draw_inner;
+}
+
+static void gizmo_primitive_rna__draw_inner_set_fn(PointerRNA *ptr,
+                                                   PropertyRNA *UNUSED(prop),
+                                                   bool value)
+{
+  PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
+  gz_prim->draw_inner = value;
+}
+
+/* -------------------------------------------------------------------- */
+
+static void gizmo_primitive_draw_geom(PrimitiveGizmo3D *gz_prim,
+                                      const float col_inner[4],
+                                      const float col_outer[4],
+                                      const int nsegments,
+                                      const bool draw_inner)
+{
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const bool use_polyline_shader = gz_prim->gizmo.line_width > 1.0f;
+
+  if (draw_inner || !use_polyline_shader) {
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  }
+
+  if (draw_inner) {
+    if (gz_prim->draw_style == ED_GIZMO_PRIMITIVE_STYLE_PLANE) {
+      wm_gizmo_vec_draw(col_inner, verts_plane, ARRAY_SIZE(verts_plane), pos, GPU_PRIM_TRI_FAN);
+    }
+    else {
+      immUniformColor4fv(col_inner);
+      if (gz_prim->draw_style == ED_GIZMO_PRIMITIVE_STYLE_CIRCLE) {
+        imm_draw_circle_fill_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
+      }
+      else {
+        BLI_assert(gz_prim->draw_style == ED_GIZMO_PRIMITIVE_STYLE_ANNULUS);
+        imm_draw_disk_partial_fill_3d(
+            pos, 0.0f, 0.0f, 0.0f, gz_prim->arc_inner_factor, 1.0f, nsegments, 0.0f, 360.0f);
+      }
+    }
+  }
+
+  /* Draw outline. */
+
+  if (use_polyline_shader) {
+    if (draw_inner) {
+      immUnbindProgram();
+    }
+    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+    float viewport[4];
+    GPU_viewport_size_get_f(viewport);
+    immUniform2fv("viewportSize", &viewport[2]);
+    immUniform1f("lineWidth", gz_prim->gizmo.line_width * U.pixelsize);
+  }
+
+  if (gz_prim->draw_style == ED_GIZMO_PRIMITIVE_STYLE_PLANE) {
+    wm_gizmo_vec_draw(col_outer, verts_plane, ARRAY_SIZE(verts_plane), pos, GPU_PRIM_LINE_LOOP);
+  }
+  else {
+    immUniformColor4fv(col_outer);
+    if (gz_prim->draw_style == ED_GIZMO_PRIMITIVE_STYLE_CIRCLE) {
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
+    }
+    else {
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, gz_prim->arc_inner_factor, nsegments);
+      imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
+    }
+  }
+  immUnbindProgram();
+}
+
+static void gizmo_primitive_draw_intern(wmGizmo *gz, const bool select, const bool highlight)
+{
+  PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
+
   float color_inner[4], color_outer[4];
   float matrix_final[4][4];
-  const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
 
   gizmo_color_get(gz, highlight, color_outer);
   copy_v4_v4(color_inner, color_outer);
@@ -79,12 +180,15 @@ static void gizmo_primitive_draw_intern(wmGizmo *gz,
 
   WM_gizmo_calc_matrix_final(gz, matrix_final);
 
+  GPU_blend(GPU_BLEND_ALPHA);
   GPU_matrix_push();
   GPU_matrix_mul(matrix_final);
 
-  GPU_blend(GPU_BLEND_ALPHA);
-  gizmo_primitive_draw_geom(color_inner, color_outer, draw_style);
-  GPU_blend(GPU_BLEND_NONE);
+  gizmo_primitive_draw_geom(gz_prim,
+                            color_inner,
+                            color_outer,
+                            select ? 24 : DIAL_RESOLUTION,
+                            gz_prim->draw_inner || select);
 
   GPU_matrix_pop();
 
@@ -98,12 +202,12 @@ static void gizmo_primitive_draw_intern(wmGizmo *gz,
     GPU_matrix_push();
     GPU_matrix_mul(inter->init_matrix_final);
 
-    GPU_blend(GPU_BLEND_ALPHA);
-    gizmo_primitive_draw_geom(color_inner, color_outer, draw_style);
-    GPU_blend(GPU_BLEND_NONE);
+    gizmo_primitive_draw_geom(
+        gz_prim, color_inner, color_outer, DIAL_RESOLUTION, gz_prim->draw_inner);
 
     GPU_matrix_pop();
   }
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void gizmo_primitive_draw_select(const bContext *UNUSED(C), wmGizmo *gz, int select_id)
@@ -120,6 +224,12 @@ static void gizmo_primitive_draw(const bContext *UNUSED(C), wmGizmo *gz)
 static void gizmo_primitive_setup(wmGizmo *gz)
 {
   gz->flag |= WM_GIZMO_DRAW_MODAL;
+
+  /* Default Values. */
+  PrimitiveGizmo3D *gz_prim = (PrimitiveGizmo3D *)gz;
+  gz_prim->draw_style = ED_GIZMO_PRIMITIVE_STYLE_PLANE;
+  gz_prim->arc_inner_factor = true;
+  gz_prim->draw_inner = true;
 }
 
 static int gizmo_primitive_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *UNUSED(event))
@@ -148,18 +258,35 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
   gzt->setup = gizmo_primitive_setup;
   gzt->invoke = gizmo_primitive_invoke;
 
-  gzt->struct_size = sizeof(wmGizmo);
+  gzt->struct_size = sizeof(PrimitiveGizmo3D);
 
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
+      {ED_GIZMO_PRIMITIVE_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
+      {ED_GIZMO_PRIMITIVE_STYLE_ANNULUS, "ANNULUS", 0, "Annulus", ""},
       {0, NULL, 0, NULL, NULL},
   };
-  RNA_def_enum(gzt->srna,
-               "draw_style",
-               rna_enum_draw_style,
-               ED_GIZMO_PRIMITIVE_STYLE_PLANE,
-               "Draw Style",
-               "");
+
+  PropertyRNA *prop;
+  prop = RNA_def_enum(gzt->srna,
+                      "draw_style",
+                      rna_enum_draw_style,
+                      ED_GIZMO_PRIMITIVE_STYLE_PLANE,
+                      "Draw Style",
+                      "");
+  RNA_def_property_enum_funcs_runtime(
+      prop, gizmo_primitive_rna__draw_style_get_fn, gizmo_primitive_rna__draw_style_set_fn, NULL);
+
+  prop = RNA_def_float_factor(
+      gzt->srna, "arc_inner_factor", 0.0f, 0.0f, FLT_MAX, "Arc Inner Factor", "", 0.0f, 1.0f);
+  RNA_def_property_float_funcs_runtime(prop,
+                                       gizmo_primitive_rna__arc_inner_factor_get_fn,
+                                       gizmo_primitive_rna__arc_inner_factor_set_fn,
+                                       NULL);
+
+  prop = RNA_def_boolean(gzt->srna, "draw_inner", true, "Draw Inner", "");
+  RNA_def_property_boolean_funcs_runtime(
+      prop, gizmo_primitive_rna__draw_inner_get_fn, gizmo_primitive_rna__draw_inner_set_fn);
 }
 
 void ED_gizmotypes_primitive_3d(void)

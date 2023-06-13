@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -11,32 +13,66 @@
 
 #include "node_geometry_util.hh"
 
+namespace blender::nodes {
+
+template<typename T>
+void copy_with_checked_indices(const VArray<T> &src,
+                               const VArray<int> &indices,
+                               const IndexMask &mask,
+                               MutableSpan<T> dst)
+{
+  const IndexRange src_range = src.index_range();
+  devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      if (src_range.contains(index)) {
+        dst[i] = src[index];
+      }
+      else {
+        dst[i] = {};
+      }
+    });
+  });
+}
+
+void copy_with_checked_indices(const GVArray &src,
+                               const VArray<int> &indices,
+                               const IndexMask &mask,
+                               GMutableSpan dst)
+{
+  bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+    using T = decltype(dummy);
+    copy_with_checked_indices(src.typed<T>(), indices, mask, dst.typed<T>());
+  });
+}
+
+}  // namespace blender::nodes
+
 namespace blender::nodes::node_geo_sample_index_cc {
 
 NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"))
+  b.add_input<decl::Geometry>("Geometry")
       .supported_type({GEO_COMPONENT_TYPE_MESH,
                        GEO_COMPONENT_TYPE_POINT_CLOUD,
                        GEO_COMPONENT_TYPE_CURVE,
                        GEO_COMPONENT_TYPE_INSTANCES});
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Index"))
-      .supports_field()
-      .description(N_("Which element to retrieve a value from on the geometry"));
+  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Int>("Index").supports_field().description(
+      "Which element to retrieve a value from on the geometry");
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6});
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6});
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -66,11 +102,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_color4f = in_socket_vector->next;
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
@@ -78,11 +114,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -133,40 +169,16 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 }
 
 template<typename T>
-void copy_with_indices(const VArray<T> &src,
-                       const VArray<int> &indices,
-                       const IndexMask mask,
-                       MutableSpan<T> dst)
-{
-  const IndexRange src_range = src.index_range();
-  devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        if (src_range.contains(index)) {
-          dst[i] = src[index];
-        }
-        else {
-          dst[i] = {};
-        }
-      }
-    });
-  });
-}
-
-template<typename T>
 void copy_with_clamped_indices(const VArray<T> &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                MutableSpan<T> dst)
 {
   const int last_index = src.index_range().last();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        dst[i] = src[std::clamp(index, 0, last_index)];
-      }
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      dst[i] = src[std::clamp(index, 0, last_index)];
     });
   });
 }
@@ -222,7 +234,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
@@ -233,15 +245,15 @@ class SampleIndexFunction : public mf::MultiFunction {
       return;
     }
 
-    attribute_math::convert_to_static_type(type, [&](auto dummy) {
-      using T = decltype(dummy);
-      if (clamp_) {
+    if (clamp_) {
+      bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
+        using T = decltype(dummy);
         copy_with_clamped_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
-      }
-      else {
-        copy_with_indices(src_data_->typed<T>(), indices, mask, dst.typed<T>());
-      }
-    });
+      });
+    }
+    else {
+      copy_with_checked_indices(*src_data_, indices, mask, dst);
+    }
   }
 };
 
@@ -322,7 +334,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     if (index >= 0 && index < domain_size) {
       const IndexMask mask = IndexRange(index, 1);
-      bke::GeometryFieldContext geometry_context(*component, domain);
+      const bke::GeometryFieldContext geometry_context(*component, domain);
       FieldEvaluator evaluator(geometry_context, &mask);
       evaluator.add(value_field);
       evaluator.evaluate();

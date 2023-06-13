@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -63,6 +65,28 @@
 
 namespace blender {
 
+/**
+ * A key-value-pair stored in a #Map. This is used when looping over Map.items().
+ */
+template<typename Key, typename Value> struct MapItem {
+  const Key &key;
+  const Value &value;
+};
+
+/**
+ * Same as #MapItem, but the value is mutable. The key is still const because changing it might
+ * change its hash value which would lead to undefined behavior in the #Map.
+ */
+template<typename Key, typename Value> struct MutableMapItem {
+  const Key &key;
+  Value &value;
+
+  operator MapItem<Key, Value>() const
+  {
+    return {this->key, this->value};
+  }
+};
+
 template<
     /**
      * Type of the keys stored in the map. Keys have to be movable. Furthermore, the hash and
@@ -108,6 +132,8 @@ template<
 class Map {
  public:
   using size_type = int64_t;
+  using Item = MapItem<Key, Value>;
+  using MutableItem = MutableMapItem<Key, Value>;
 
  private:
   /**
@@ -171,9 +197,7 @@ class Map {
   {
   }
 
-  Map(NoExceptConstructor, Allocator allocator = {}) noexcept : Map(allocator)
-  {
-  }
+  Map(NoExceptConstructor, Allocator allocator = {}) noexcept : Map(allocator) {}
 
   ~Map() = default;
 
@@ -773,21 +797,6 @@ class Map {
     }
   };
 
-  struct Item {
-    const Key &key;
-    const Value &value;
-  };
-
-  struct MutableItem {
-    const Key &key;
-    Value &value;
-
-    operator Item() const
-    {
-      return Item{key, value};
-    }
-  };
-
   class ItemIterator final : public BaseIteratorRange<ItemIterator> {
    public:
     using value_type = Item;
@@ -852,9 +861,8 @@ class Map {
   }
 
   /**
-   * Returns an iterator over all key-value-pairs in the map. The key-value-pairs are stored in
-   * a temporary struct with a .key and a .value field.The iterator is invalidated, when the map is
-   * changed.
+   * Returns an iterator over all key-value-pairs in the map. The key-value-pairs are stored in a
+   * #MapItem. The iterator is invalidated, when the map is changed.
    */
   ItemIterator items() const
   {
@@ -862,9 +870,8 @@ class Map {
   }
 
   /**
-   * Returns an iterator over all key-value-pairs in the map. The key-value-pairs are stored in
-   * a temporary struct with a .key and a .value field. The iterator is invalidated, when the map
-   * is changed.
+   * Returns an iterator over all key-value-pairs in the map. The key-value-pairs are stored in a
+   * #MutableMapItem. The iterator is invalidated, when the map is changed.
    *
    * This iterator also allows you to modify the value (but not the key).
    */
@@ -887,12 +894,14 @@ class Map {
   }
 
   /**
-   * Remove all key-value-pairs for that the given predicate is true.
+   * Remove all key-value-pairs for that the given predicate is true and return the number of
+   * removed pairs.
    *
    * This is similar to std::erase_if.
    */
-  template<typename Predicate> void remove_if(Predicate &&predicate)
+  template<typename Predicate> int64_t remove_if(Predicate &&predicate)
   {
+    const int64_t prev_size = this->size();
     for (Slot &slot : slots_) {
       if (slot.is_occupied()) {
         const Key &key = *slot.key();
@@ -903,6 +912,7 @@ class Map {
         }
       }
     }
+    return prev_size - this->size();
   }
 
   /**
@@ -1341,9 +1351,7 @@ template<typename Key, typename Value> class StdUnorderedMapWrapper {
     map_.clear();
   }
 
-  void print_stats(StringRef /*name*/ = "") const
-  {
-  }
+  void print_stats(StringRef /*name*/ = "") const {}
 };
 
 }  // namespace blender

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -9,8 +10,8 @@ namespace blender::nodes::node_shader_wavelength_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Wavelength")).default_value(500.0f).min(380.0f).max(780.0f);
-  b.add_output<decl::Color>(N_("Color"));
+  b.add_input<decl::Float>("Wavelength").default_value(500.0f).min(380.0f).max(780.0f);
+  b.add_output<decl::Color>("Color");
 }
 
 static int node_shader_gpu_wavelength(GPUMaterial *mat,
@@ -40,7 +41,7 @@ void register_node_type_sh_wavelength()
 
   sh_node_type_base(&ntype, SH_NODE_WAVELENGTH, "Wavelength", NODE_CLASS_CONVERTER);
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.gpu_fn = file_ns::node_shader_gpu_wavelength;
 
   nodeRegisterType(&ntype);

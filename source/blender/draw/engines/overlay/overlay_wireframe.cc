@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -21,6 +22,7 @@
 #include "BKE_particle.h"
 
 #include "BLI_hash.h"
+#include "BLI_math_base.hh"
 
 #include "DRW_render.h"
 #include "GPU_shader.h"
@@ -28,6 +30,8 @@
 #include "ED_view3d.h"
 
 #include "overlay_private.hh"
+
+using namespace blender::math;
 
 void OVERLAY_wireframe_init(OVERLAY_Data *vedata)
 {
@@ -47,7 +51,13 @@ void OVERLAY_wireframe_cache_init(OVERLAY_Data *vedata)
 
   View3DShading *shading = &draw_ctx->v3d->shading;
 
-  pd->shdata.wire_step_param = pd->overlay.wireframe_threshold - 254.0f / 255.0f;
+  /* Use `sqrt` since the value stored in the edge is a variation of the cosine, so its square
+   * becomes more proportional with a variation of angle. */
+  pd->shdata.wire_step_param = sqrt(abs(pd->overlay.wireframe_threshold));
+
+  /* The maximum value (255 in the VBO) is used to force hide the edge. */
+  pd->shdata.wire_step_param = interpolate(0.0f, 1.0f - (1.0f / 255), pd->shdata.wire_step_param);
+
   pd->shdata.wire_opacity = pd->overlay.wireframe_opacity;
 
   bool is_wire_shmode = (shading->type == OB_WIRE);
@@ -144,7 +154,7 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
     unit_m4(dupli_mat);
   }
 
-  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+  GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
 
   const bool use_coloring = true;
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
@@ -186,7 +196,8 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   if (use_wire && pd->wireframe_mode && ob->particlesystem.first) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(ob->particlesystem.first);
          psys != nullptr;
-         psys = psys->next) {
+         psys = psys->next)
+    {
       if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
         continue;
       }
@@ -203,7 +214,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-    struct GPUBatch *geom = nullptr;
+    GPUBatch *geom = nullptr;
     switch (ob->type) {
       case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
@@ -262,7 +273,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-      struct GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
+      GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->object_to_world, color);
       }
@@ -271,7 +282,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   }
 
   DRWShadingGroup *shgrp = nullptr;
-  struct GPUBatch *geom = nullptr;
+  GPUBatch *geom = nullptr;
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {
@@ -297,7 +308,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
         shgrp = pd->wires_grp[is_xray][use_coloring];
       }
 
-      if (ob->type == OB_GPENCIL) {
+      if (ob->type == OB_GPENCIL_LEGACY) {
         /* TODO(fclem): Make GPencil objects have correct bound-box. */
         DRW_shgroup_call_no_cull(shgrp, geom, ob);
       }

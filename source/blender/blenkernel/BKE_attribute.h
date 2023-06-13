@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -57,8 +58,11 @@ bool BKE_attribute_allow_procedural_access(const char *attribute_name);
 /**
  * Create a new attribute layer.
  */
-struct CustomDataLayer *BKE_id_attribute_new(
-    struct ID *id, const char *name, int type, eAttrDomain domain, struct ReportList *reports);
+struct CustomDataLayer *BKE_id_attribute_new(struct ID *id,
+                                             const char *name,
+                                             eCustomDataType type,
+                                             eAttrDomain domain,
+                                             struct ReportList *reports);
 bool BKE_id_attribute_remove(struct ID *id, const char *name, struct ReportList *reports);
 
 /**
@@ -70,7 +74,7 @@ struct CustomDataLayer *BKE_id_attribute_duplicate(struct ID *id,
 
 struct CustomDataLayer *BKE_id_attribute_find(const struct ID *id,
                                               const char *name,
-                                              int type,
+                                              eCustomDataType type,
                                               eAttrDomain domain);
 
 struct CustomDataLayer *BKE_id_attribute_search(struct ID *id,
@@ -106,28 +110,11 @@ int BKE_id_attribute_to_index(const struct ID *id,
                               eAttrDomainMask domain_mask,
                               eCustomDataMask layer_mask);
 
-/**
- * Sets up a temporary ID with arbitrary CustomData domains. `r_id` will
- * be zero initialized with ID type id_type and any non-nullptr
- * CustomData parameter will be copied into the appropriate struct members.
- *
- * \param r_id: Pointer to storage sufficient for ID type-code id_type.
- */
-void BKE_id_attribute_copy_domains_temp(short id_type,
-                                        const struct CustomData *vdata,
-                                        const struct CustomData *edata,
-                                        const struct CustomData *ldata,
-                                        const struct CustomData *pdata,
-                                        const struct CustomData *cdata,
-                                        struct ID *r_id);
-
 const char *BKE_id_attributes_active_color_name(const struct ID *id);
 const char *BKE_id_attributes_default_color_name(const struct ID *id);
-
-struct CustomDataLayer *BKE_id_attributes_active_color_get(const struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
-struct CustomDataLayer *BKE_id_attributes_default_color_get(const struct ID *id);
 void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
+
 struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);

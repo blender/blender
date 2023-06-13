@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -22,7 +24,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_layer.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -52,7 +54,7 @@
  * would be used for this purpose. The problem with using poll is once the gizmo is visible again
  * is there is a visible flicker showing the previous location before cursor motion causes the
  * pre selection to be updated. While this is only a glitch, it's distracting.
- * The gizmo system it's self could support this use case by tracking which gizmos draw and ensure
+ * The gizmo system itself could support this use case by tracking which gizmos draw and ensure
  * gizmos always run #wmGizmoType.test_select before drawing, however pre-selection is already
  * outside the scope of what gizmos are meant to be used for, so keep this workaround localized
  * to this gizmo type unless this seems worth supporting for more typical use-cases.
@@ -161,7 +163,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
                                               &base_index_face,
                                               &eve_test,
                                               &eed_test,
-                                              &efa_test)) {
+                                              &efa_test))
+    {
       if (EDBM_preselect_action_get(gz_ele->psel) == PRESELECT_ACTION_DELETE) {
         /* Delete action */
         if (efa_test) {
@@ -193,7 +196,8 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
           best.base_index = base_index_vert;
         }
         if (!BM_vert_is_boundary(vert) &&
-            EDBM_preselect_action_get(gz_ele->psel) != PRESELECT_ACTION_DELETE) {
+            EDBM_preselect_action_get(gz_ele->psel) != PRESELECT_ACTION_DELETE)
+        {
           best.ele = (BMElem *)eve_test;
           best.base_index = base_index_vert;
         }
@@ -358,7 +362,8 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     View3D *v3d = CTX_wm_view3d(C);
     BKE_view_layer_synced_ensure(scene, view_layer);
     if ((gz_ring->bases) == nullptr ||
-        (gz_ring->bases[0] != BKE_view_layer_active_base_get(view_layer))) {
+        (gz_ring->bases[0] != BKE_view_layer_active_base_get(view_layer)))
+    {
       MEM_SAFE_FREE(gz_ring->bases);
       gz_ring->bases = BKE_view_layer_array_from_bases_in_edit_mode(
           scene, view_layer, v3d, &gz_ring->bases_len);

@@ -15,9 +15,7 @@ CCL_NAMESPACE_BEGIN
 
 class thread_counting_semaphore {
  public:
-  explicit thread_counting_semaphore(const int count) : count(count)
-  {
-  }
+  explicit thread_counting_semaphore(const int count) : count(count) {}
 
   thread_counting_semaphore(const thread_counting_semaphore &) = delete;
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
@@ -13,7 +15,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSelectHandles)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>(N_("Selection")).field_source();
+  b.add_output<decl::Bool>("Selection").field_source();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -86,7 +88,7 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
@@ -104,7 +106,8 @@ class HandleTypeFieldInput final : public bke::CurvesFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const HandleTypeFieldInput *other_handle_selection =
-            dynamic_cast<const HandleTypeFieldInput *>(&other)) {
+            dynamic_cast<const HandleTypeFieldInput *>(&other))
+    {
       return mode_ == other_handle_selection->mode_ && type_ == other_handle_selection->type_;
     }
     return false;

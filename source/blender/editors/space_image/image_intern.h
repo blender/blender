@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -62,6 +63,8 @@ void IMAGE_OT_save_sequence(struct wmOperatorType *ot);
 void IMAGE_OT_save_all_modified(struct wmOperatorType *ot);
 void IMAGE_OT_pack(struct wmOperatorType *ot);
 void IMAGE_OT_unpack(struct wmOperatorType *ot);
+void IMAGE_OT_clipboard_copy(struct wmOperatorType *ot);
+void IMAGE_OT_clipboard_paste(struct wmOperatorType *ot);
 
 void IMAGE_OT_flip(struct wmOperatorType *ot);
 void IMAGE_OT_invert(struct wmOperatorType *ot);

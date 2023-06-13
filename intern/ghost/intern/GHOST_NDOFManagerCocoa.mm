@@ -2,8 +2,8 @@
 
 #define DEBUG_NDOF_DRIVER false
 
-#include "GHOST_NDOFManagerCocoa.h"
-#include "GHOST_SystemCocoa.h"
+#include "GHOST_NDOFManagerCocoa.hh"
+#include "GHOST_SystemCocoa.hh"
 
 #include <dlfcn.h>
 #include <stdint.h>

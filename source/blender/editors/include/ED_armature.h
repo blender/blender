@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -356,8 +357,13 @@ bool ED_pose_deselect_all(struct Object *ob, int select_mode, bool ignore_visibi
 void ED_pose_bone_select_tag_update(struct Object *ob);
 /**
  * Utility method for changing the selection status of a bone.
+ * change_active determines whether to change the active bone of the armature when selecting pose
+ * channels. It is false during range selection otherwise true.
  */
-void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
+void ED_pose_bone_select(struct Object *ob,
+                         struct bPoseChannel *pchan,
+                         bool select,
+                         bool change_active);
 
 /* meshlaplacian.cc */
 

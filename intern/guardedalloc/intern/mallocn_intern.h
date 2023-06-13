@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+ * Copyright 2013 Blender Foundation */
 
 /** \file
  * \ingroup intern_mem
@@ -10,6 +10,9 @@
 
 #ifdef __GNUC__
 #  define UNUSED(x) UNUSED_##x __attribute__((__unused__))
+#elif defined(_MSC_VER)
+/* NOTE: This suppresses the warning for the line, not the attribute. */
+#  define UNUSED(x) UNUSED_##x __pragma(warning(suppress : 4100))
 #else
 #  define UNUSED(x) UNUSED_##x
 #endif
@@ -22,6 +25,8 @@
 #  define HAVE_MALLOC_STATS
 #elif defined(__FreeBSD__)
 #  include <malloc_np.h>
+#elif defined(__OpenBSD__)
+#  undef USE_MALLOC_USABLE_SIZE
 #elif defined(__APPLE__)
 #  include <malloc/malloc.h>
 #  define malloc_usable_size malloc_size
@@ -49,7 +54,7 @@ size_t malloc_usable_size(void *ptr);
 #  define UNLIKELY(x) (x)
 #endif
 
-#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__)
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(__OpenBSD__)
 // Needed for memalign on Linux and _aligned_alloc on Windows.
 
 #  include <malloc.h>

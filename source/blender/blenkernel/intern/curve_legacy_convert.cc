@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
@@ -80,6 +82,9 @@ static KnotsMode knots_mode_from_legacy(const short flag)
 Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_list)
 {
   const Vector<const Nurb *> src_curves(nurbs_list);
+  if (src_curves.is_empty()) {
+    return nullptr;
+  }
 
   Curves *curves_id = curves_new_nomain(0, src_curves.size());
   CurvesGeometry &curves = curves_id->geometry.wrap();
@@ -104,10 +109,6 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   curves.update_curve_types();
 
-  if (curves.curves_num() == 0) {
-    return curves_id;
-  }
-
   const OffsetIndices points_by_curve = curves.points_by_curve();
   MutableSpan<float3> positions = curves.positions_for_write();
   SpanAttributeWriter<float> radius_attribute =
@@ -115,19 +116,17 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
   MutableSpan<float> radii = radius_attribute.span;
   MutableSpan<float> tilts = curves.tilt_for_write();
 
-  auto create_poly = [&](IndexMask selection) {
-    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
-      for (const int curve_i : selection.slice(range)) {
-        const Nurb &src_curve = *src_curves[curve_i];
-        const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
-        const IndexRange points = points_by_curve[curve_i];
+  auto create_poly = [&](const IndexMask &selection) {
+    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
+      const Nurb &src_curve = *src_curves[curve_i];
+      const Span<BPoint> src_points(src_curve.bp, src_curve.pntsu);
+      const IndexRange points = points_by_curve[curve_i];
 
-        for (const int i : src_points.index_range()) {
-          const BPoint &bp = src_points[i];
-          positions[points[i]] = bp.vec;
-          radii[points[i]] = bp.radius;
-          tilts[points[i]] = bp.tilt;
-        }
+      for (const int i : src_points.index_range()) {
+        const BPoint &bp = src_points[i];
+        positions[points[i]] = bp.vec;
+        radii[points[i]] = bp.radius;
+        tilts[points[i]] = bp.tilt;
       }
     });
   };
@@ -136,58 +135,54 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
    * positions don't agree with the types because of evaluation, or because one-sided aligned
    * handles weren't considered. While recalculating automatic handles to fix those situations
    * is an option, currently this opts not to for the sake of flexibility. */
-  auto create_bezier = [&](IndexMask selection) {
+  auto create_bezier = [&](const IndexMask &selection) {
     MutableSpan<int> resolutions = curves.resolution_for_write();
     MutableSpan<float3> handle_positions_l = curves.handle_positions_left_for_write();
     MutableSpan<float3> handle_positions_r = curves.handle_positions_right_for_write();
     MutableSpan<int8_t> handle_types_l = curves.handle_types_left_for_write();
     MutableSpan<int8_t> handle_types_r = curves.handle_types_right_for_write();
 
-    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
-      for (const int curve_i : selection.slice(range)) {
-        const Nurb &src_curve = *src_curves[curve_i];
-        const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
-        const IndexRange points = points_by_curve[curve_i];
+    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
+      const Nurb &src_curve = *src_curves[curve_i];
+      const Span<BezTriple> src_points(src_curve.bezt, src_curve.pntsu);
+      const IndexRange points = points_by_curve[curve_i];
 
-        resolutions[curve_i] = src_curve.resolu;
+      resolutions[curve_i] = src_curve.resolu;
 
-        for (const int i : src_points.index_range()) {
-          const BezTriple &point = src_points[i];
-          positions[points[i]] = point.vec[1];
-          handle_positions_l[points[i]] = point.vec[0];
-          handle_types_l[points[i]] = handle_type_from_legacy(point.h1);
-          handle_positions_r[points[i]] = point.vec[2];
-          handle_types_r[points[i]] = handle_type_from_legacy(point.h2);
-          radii[points[i]] = point.radius;
-          tilts[points[i]] = point.tilt;
-        }
+      for (const int i : src_points.index_range()) {
+        const BezTriple &point = src_points[i];
+        positions[points[i]] = point.vec[1];
+        handle_positions_l[points[i]] = point.vec[0];
+        handle_types_l[points[i]] = handle_type_from_legacy(point.h1);
+        handle_positions_r[points[i]] = point.vec[2];
+        handle_types_r[points[i]] = handle_type_from_legacy(point.h2);
+        radii[points[i]] = point.radius;
+        tilts[points[i]] = point.tilt;
       }
     });
   };
 
-  auto create_nurbs = [&](IndexMask selection) {
+  auto create_nurbs = [&](const IndexMask &selection) {
     MutableSpan<int> resolutions = curves.resolution_for_write();
     MutableSpan<float> nurbs_weights = curves.nurbs_weights_for_write();
     MutableSpan<int8_t> nurbs_orders = curves.nurbs_orders_for_write();
     MutableSpan<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes_for_write();
 
-    threading::parallel_for(selection.index_range(), 256, [&](IndexRange range) {
-      for (const int curve_i : selection.slice(range)) {
-        const Nurb &src_curve = *src_curves[curve_i];
-        const Span src_points(src_curve.bp, src_curve.pntsu);
-        const IndexRange points = points_by_curve[curve_i];
+    selection.foreach_index(GrainSize(256), [&](const int curve_i) {
+      const Nurb &src_curve = *src_curves[curve_i];
+      const Span src_points(src_curve.bp, src_curve.pntsu);
+      const IndexRange points = points_by_curve[curve_i];
 
-        resolutions[curve_i] = src_curve.resolu;
-        nurbs_orders[curve_i] = src_curve.orderu;
-        nurbs_knots_modes[curve_i] = knots_mode_from_legacy(src_curve.flagu);
+      resolutions[curve_i] = src_curve.resolu;
+      nurbs_orders[curve_i] = src_curve.orderu;
+      nurbs_knots_modes[curve_i] = knots_mode_from_legacy(src_curve.flagu);
 
-        for (const int i : src_points.index_range()) {
-          const BPoint &bp = src_points[i];
-          positions[points[i]] = bp.vec;
-          radii[points[i]] = bp.radius;
-          tilts[points[i]] = bp.tilt;
-          nurbs_weights[points[i]] = bp.vec[3];
-        }
+      for (const int i : src_points.index_range()) {
+        const BPoint &bp = src_points[i];
+        positions[points[i]] = bp.vec;
+        radii[points[i]] = bp.radius;
+        tilts[points[i]] = bp.tilt;
+        nurbs_weights[points[i]] = bp.vec[3];
       }
     });
   };
@@ -196,7 +191,7 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
       curves.curve_types(),
       curves.curve_type_counts(),
       curves.curves_range(),
-      [&](IndexMask /*selection*/) { BLI_assert_unreachable(); },
+      [&](const IndexMask & /*selection*/) { BLI_assert_unreachable(); },
       create_poly,
       create_bezier,
       create_nurbs);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -49,10 +50,10 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
     char c[NUM_STR_REP_LEN];
 
     outputNumInput(&(t->num), c, &t->scene->unit);
-    BLI_snprintf(str, sizeof(str), TIP_("Feather Shrink/Fatten: %s"), c);
+    SNPRINTF(str, TIP_("Feather Shrink/Fatten: %s"), c);
   }
   else {
-    BLI_snprintf(str, sizeof(str), TIP_("Feather Shrink/Fatten: %3f"), ratio);
+    SNPRINTF(str, TIP_("Feather Shrink/Fatten: %3f"), ratio);
   }
 
   /* detect if no points have feather yet */
@@ -103,10 +104,9 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initMaskShrinkFatten(TransInfo *t)
+static void initMaskShrinkFatten(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_MASK_SHRINKFATTEN;
-  t->transform = applyMaskShrinkFatten;
 
   initMouseInputMode(t, &t->mouse, INPUT_SPRING);
 
@@ -122,8 +122,17 @@ void initMaskShrinkFatten(TransInfo *t)
 #ifdef USE_NUM_NO_ZERO
   t->num.val_flag[0] |= NUM_NO_ZERO;
 #endif
-
-  t->flag |= T_NO_CONSTRAINT;
 }
 
 /** \} */
+
+TransModeInfo TransMode_maskshrinkfatten = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initMaskShrinkFatten,
+    /*transform_fn*/ applyMaskShrinkFatten,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

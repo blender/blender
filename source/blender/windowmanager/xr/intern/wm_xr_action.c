@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -302,7 +304,8 @@ void WM_xr_action_destroy(wmXrData *xr, const char *action_set_name, const char 
   if ((action_set->controller_grip_action &&
        STREQ(action_set->controller_grip_action->name, action_name)) ||
       (action_set->controller_aim_action &&
-       STREQ(action_set->controller_aim_action->name, action_name))) {
+       STREQ(action_set->controller_aim_action->name, action_name)))
+  {
     if (action_set == xr->runtime->session_state.active_action_set) {
       wm_xr_session_controller_data_clear(&xr->runtime->session_state);
     }
@@ -334,7 +337,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const ListBase *component_paths,
                                  const float *float_thresholds,
                                  const eXrAxisFlag *axis_flags,
-                                 const struct wmXrPose *poses)
+                                 const wmXrPose *poses)
 {
   const uint count = (uint)BLI_listbase_count(user_paths);
   BLI_assert(count == (uint)BLI_listbase_count(component_paths));

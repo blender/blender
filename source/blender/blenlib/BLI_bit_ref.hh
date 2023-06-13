@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -213,6 +215,22 @@ class MutableBitRef {
         (~mask_ & old)
         /* Optionally set it again. The -1 turns a 1 into `0x00...` and a 0 into `0xff...`. */
         | (mask_ & ~(value_int - 1));
+  }
+
+  MutableBitRef &operator|=(const bool value)
+  {
+    if (value) {
+      this->set();
+    }
+    return *this;
+  }
+
+  MutableBitRef &operator&=(const bool value)
+  {
+    if (!value) {
+      this->reset();
+    }
+    return *this;
   }
 };
 

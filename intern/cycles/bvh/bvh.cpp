@@ -6,6 +6,7 @@
 
 #include "bvh/bvh2.h"
 #include "bvh/embree.h"
+#include "bvh/hiprt.h"
 #include "bvh/metal.h"
 #include "bvh/multi.h"
 #include "bvh/optix.h"
@@ -30,10 +31,18 @@ const char *bvh_layout_name(BVHLayout layout)
       return "OPTIX";
     case BVH_LAYOUT_METAL:
       return "METAL";
+    case BVH_LAYOUT_HIPRT:
+      return "HIPRT";
+    case BVH_LAYOUT_EMBREEGPU:
+      return "EMBREEGPU";
     case BVH_LAYOUT_MULTI_OPTIX:
     case BVH_LAYOUT_MULTI_METAL:
+    case BVH_LAYOUT_MULTI_HIPRT:
+    case BVH_LAYOUT_MULTI_EMBREEGPU:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
     case BVH_LAYOUT_MULTI_METAL_EMBREE:
+    case BVH_LAYOUT_MULTI_HIPRT_EMBREE:
+    case BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE:
       return "MULTI";
     case BVH_LAYOUT_ALL:
       return "ALL";
@@ -83,6 +92,7 @@ BVH *BVH::create(const BVHParams &params,
     case BVH_LAYOUT_BVH2:
       return new BVH2(params, geometry, objects);
     case BVH_LAYOUT_EMBREE:
+    case BVH_LAYOUT_EMBREEGPU:
 #ifdef WITH_EMBREE
       return new BVHEmbree(params, geometry, objects);
 #else
@@ -102,10 +112,21 @@ BVH *BVH::create(const BVHParams &params,
       (void)device;
       break;
 #endif
+    case BVH_LAYOUT_HIPRT:
+#ifdef WITH_HIPRT
+      return new BVHHIPRT(params, geometry, objects, device);
+#else
+      (void)device;
+      break;
+#endif
     case BVH_LAYOUT_MULTI_OPTIX:
     case BVH_LAYOUT_MULTI_METAL:
+    case BVH_LAYOUT_MULTI_HIPRT:
+    case BVH_LAYOUT_MULTI_EMBREEGPU:
     case BVH_LAYOUT_MULTI_OPTIX_EMBREE:
     case BVH_LAYOUT_MULTI_METAL_EMBREE:
+    case BVH_LAYOUT_MULTI_HIPRT_EMBREE:
+    case BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE:
       return new BVHMulti(params, geometry, objects);
     case BVH_LAYOUT_NONE:
     case BVH_LAYOUT_ALL:

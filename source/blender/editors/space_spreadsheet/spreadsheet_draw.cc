@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -13,7 +15,7 @@
 
 #include "spreadsheet_draw.hh"
 
-#define CELL_RIGHT_PADDING (2.0f * UI_DPI_FAC)
+#define CELL_RIGHT_PADDING (2.0f * UI_SCALE_FAC)
 
 namespace blender::ed::spreadsheet {
 

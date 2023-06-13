@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 
@@ -39,8 +40,8 @@ TEST(lib_id_remapper, mapped)
   ID id1;
   ID id2;
   ID *idp = &id1;
-  BLI_strncpy(id1.name, "OB1", sizeof(id1.name));
-  BLI_strncpy(id2.name, "OB2", sizeof(id2.name));
+  STRNCPY(id1.name, "OB1");
+  STRNCPY(id2.name, "OB2");
 
   IDRemapper *remapper = BKE_id_remapper_create();
   BKE_id_remapper_add(remapper, &id1, &id2);
@@ -55,7 +56,7 @@ TEST(lib_id_remapper, unassigned)
 {
   ID id1;
   ID *idp = &id1;
-  BLI_strncpy(id1.name, "OB2", sizeof(id1.name));
+  STRNCPY(id1.name, "OB2");
 
   IDRemapper *remapper = BKE_id_remapper_create();
   BKE_id_remapper_add(remapper, &id1, nullptr);
@@ -73,9 +74,9 @@ TEST(lib_id_remapper, unassign_when_mapped_to_self)
   ID id2;
   ID *idp;
 
-  BLI_strncpy(id_self.name, "OBSelf", sizeof(id1.name));
-  BLI_strncpy(id1.name, "OB1", sizeof(id1.name));
-  BLI_strncpy(id2.name, "OB2", sizeof(id2.name));
+  STRNCPY(id_self.name, "OBSelf");
+  STRNCPY(id1.name, "OB1");
+  STRNCPY(id2.name, "OB2");
 
   /* Default mapping behavior. Should just remap to id2. */
   idp = &id1;

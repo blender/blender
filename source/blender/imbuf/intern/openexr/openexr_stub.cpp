@@ -71,12 +71,8 @@ float *IMB_exr_channel_rect(void * /*handle*/,
   return nullptr;
 }
 
-void IMB_exr_read_channels(void * /*handle*/)
-{
-}
-void IMB_exr_write_channels(void * /*handle*/)
-{
-}
+void IMB_exr_read_channels(void * /*handle*/) {}
+void IMB_exr_write_channels(void * /*handle*/) {}
 void IMB_exrtile_write_channels(void * /*handle*/,
                                 int /*partx*/,
                                 int /*party*/,
@@ -85,9 +81,7 @@ void IMB_exrtile_write_channels(void * /*handle*/,
                                 bool /*empty*/)
 {
 }
-void IMB_exr_clear_channels(void * /*handle*/)
-{
-}
+void IMB_exr_clear_channels(void * /*handle*/) {}
 
 void IMB_exr_multilayer_convert(void * /*handle*/,
                                 void * /*base*/,
@@ -103,13 +97,9 @@ void IMB_exr_multilayer_convert(void * /*handle*/,
 {
 }
 
-void IMB_exr_close(void * /*handle*/)
-{
-}
+void IMB_exr_close(void * /*handle*/) {}
 
-void IMB_exr_add_view(void * /*handle*/, const char * /*name*/)
-{
-}
+void IMB_exr_add_view(void * /*handle*/, const char * /*name*/) {}
 bool IMB_exr_has_multilayer(void * /*handle*/)
 {
   return false;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -54,8 +56,8 @@ void BLI_array_store_at_size_clear(struct BArrayStore_AtSize *bs_stride)
     }
   }
 
-  MEM_freeN(bs_stride->stride_table);
-  bs_stride->stride_table = NULL;
+  /* It's possible this table was never used. */
+  MEM_SAFE_FREE(bs_stride->stride_table);
   bs_stride->stride_table_len = 0;
 }
 

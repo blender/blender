@@ -32,16 +32,19 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
                                     path_rng_3D(kg, rng_hash, sample, PRNG_LENS_TIME) :
                                     zero_float3();
 
+  /* We use x for time and y,z for lens because in practice with Sobol
+   * sampling this seems to give better convergence when an object is
+   * both motion blurred and out of focus, without significantly harming
+   * convergence for focal blur alone.  This is a little surprising,
+   * because one would expect using x,y for lens (the 2d part) would be
+   * best, since x,y are the best stratified.  Since it's not entirely
+   * clear why this is, this is probably worth revisiting at some point
+   * to investigate further. */
+  const float rand_time = rand_time_lens.x;
+  const float2 rand_lens = make_float2(rand_time_lens.y, rand_time_lens.z);
+
   /* Generate camera ray. */
-  camera_sample(kg,
-                x,
-                y,
-                rand_filter.x,
-                rand_filter.y,
-                rand_time_lens.y,
-                rand_time_lens.z,
-                rand_time_lens.x,
-                ray);
+  camera_sample(kg, x, y, rand_filter, rand_time, rand_lens, ray);
 }
 
 /* Return false to indicate that this pixel is finished.
@@ -85,7 +88,7 @@ ccl_device bool integrator_init_from_camera(KernelGlobals kg,
     }
 
     /* Write camera ray to state. */
-    integrator_state_write_ray(kg, state, &ray);
+    integrator_state_write_ray(state, &ray);
   }
 
   /* Initialize path state for path integration. */

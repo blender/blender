@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -80,7 +82,8 @@ static bool bm_vert_region_test_chain(BMVert *v, int *const depths[2], const int
   }
   if (BM_vert_is_edge_pair_manifold(v) && bm_vert_pair_ends(v, v_end_pair) &&
       bm_vert_region_test(v_end_pair[0], depths, pass) &&
-      bm_vert_region_test(v_end_pair[1], depths, pass)) {
+      bm_vert_region_test(v_end_pair[1], depths, pass))
+  {
     return true;
   }
 

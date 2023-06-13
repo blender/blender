@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -77,13 +78,13 @@ static void wm_block_splash_add_label(uiBlock *block, const char *label, int x, 
 #ifndef WITH_HEADLESS
 static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
 {
-  uchar *rct = (uchar *)ibuf->rect;
+  uchar *rct = ibuf->byte_buffer.data;
   if (!rct) {
     return;
   }
 
   bTheme *btheme = UI_GetTheme();
-  const float roundness = btheme->tui.wcol_menu_back.roundness * U.dpi_fac;
+  const float roundness = btheme->tui.wcol_menu_back.roundness * UI_SCALE_FAC;
   const int size = roundness * 20;
 
   if (size < ibuf->x && size < ibuf->y) {
@@ -130,16 +131,18 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
 
 static ImBuf *wm_block_splash_image(int width, int *r_height)
 {
+  ImBuf *ibuf = NULL;
+  int height = 0;
 #ifndef WITH_HEADLESS
   extern char datatoc_splash_png[];
   extern int datatoc_splash_png_size;
 
-  ImBuf *ibuf = NULL;
   if (U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
     if (BKE_appdir_app_template_id_search(
-            U.app_template, template_directory, sizeof(template_directory))) {
+            U.app_template, template_directory, sizeof(template_directory)))
+    {
       BLI_path_join(splash_filepath, sizeof(splash_filepath), template_directory, "splash.png");
       ibuf = IMB_loadiffname(splash_filepath, IB_rect, NULL);
     }
@@ -151,7 +154,6 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
   }
 
-  int height = 0;
   if (ibuf) {
     height = (width * ibuf->y) / ibuf->x;
     if (width != ibuf->x || height != ibuf->y) {
@@ -162,13 +164,11 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     IMB_premultiply_alpha(ibuf);
   }
 
-  *r_height = height;
-
-  return ibuf;
 #else
-  UNUSED_VARS(width, r_height);
-  return NULL;
+  UNUSED_VARS(width);
 #endif
+  *r_height = height;
+  return ibuf;
 }
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSED(arg))
@@ -184,32 +184,34 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  int splash_width = text_points_max * 45 * U.dpi_fac;
+  int splash_width = text_points_max * 45 * UI_SCALE_FAC;
   CLAMP_MAX(splash_width, CTX_wm_window(C)->sizex * 0.7f);
   int splash_height;
 
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
    * first draw or if the image changed. */
   ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
+  /* This should never happen, if it does - don't crash. */
+  if (LIKELY(ibuf)) {
+    uiBut *but = uiDefButImage(
+        block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
-  uiBut *but = uiDefButImage(
-      block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
+    UI_but_func_set(but, wm_block_close, block, NULL);
 
-  UI_but_func_set(but, wm_block_close, block, NULL);
+    wm_block_splash_add_label(block,
+                              BKE_blender_version_string(),
+                              splash_width - 8.0 * UI_SCALE_FAC,
+                              splash_height - 13.0 * UI_SCALE_FAC);
+  }
 
-  wm_block_splash_add_label(block,
-                            BKE_blender_version_string(),
-                            splash_width - 8.0 * U.dpi_fac,
-                            splash_height - 13.0 * U.dpi_fac);
-
-  const int layout_margin_x = U.dpi_fac * 26;
+  const int layout_margin_x = UI_SCALE_FAC * 26;
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
                                      UI_LAYOUT_PANEL,
                                      layout_margin_x,
                                      0,
                                      splash_width - (layout_margin_x * 2),
-                                     U.dpi_fac * 110,
+                                     UI_SCALE_FAC * 110,
                                      0,
                                      style);
 
@@ -263,7 +265,7 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED
 {
   const uiStyle *style = UI_style_get_dpi();
   const int text_points_max = MAX2(style->widget.points, style->widgetlabel.points);
-  const int dialog_width = text_points_max * 42 * U.dpi_fac;
+  const int dialog_width = text_points_max * 42 * UI_SCALE_FAC;
 
   uiBlock *block = UI_block_begin(C, region, "about", UI_EMBOSS);
 
@@ -317,7 +319,7 @@ static uiBlock *wm_block_create_about(bContext *C, ARegion *region, void *UNUSED
     UI_menutype_draw(C, mt, col);
   }
 
-  UI_block_bounds_set_centered(block, 22 * U.dpi_fac);
+  UI_block_bounds_set_centered(block, 22 * UI_SCALE_FAC);
 
   return block;
 }

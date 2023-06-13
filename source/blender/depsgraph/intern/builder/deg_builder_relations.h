@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -129,13 +130,13 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
-  virtual void build_layer_collections(ListBase *lb);
+  virtual bool build_layer_collection(LayerCollection *layer_collection);
+  virtual void build_view_layer_collections(ViewLayer *view_layer);
+
   virtual void build_view_layer(Scene *scene,
                                 ViewLayer *view_layer,
                                 eDepsNode_LinkedState_Type linked_state);
-  virtual void build_collection(LayerCollection *from_layer_collection,
-                                Object *object,
-                                Collection *collection);
+  virtual void build_collection(LayerCollection *from_layer_collection, Collection *collection);
   virtual void build_object(Object *object);
   virtual void build_object_from_view_layer_base(Object *object);
   virtual void build_object_layer_component_relations(Object *object);
@@ -149,6 +150,11 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_object_data_speaker(Object *object);
   virtual void build_object_parent(Object *object);
   virtual void build_object_pointcache(Object *object);
+  virtual void build_object_instance_collection(Object *object);
+
+  virtual void build_object_light_linking(Object *emitter);
+  virtual void build_light_linking_collection(Object *emitter, Collection *collection);
+
   virtual void build_constraints(ID *id,
                                  NodeType component_type,
                                  const char *component_subdata,
@@ -171,7 +177,20 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve);
   virtual void build_driver_data(ID *id, FCurve *fcurve);
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
-  virtual void build_driver_id_property(ID *id, const char *rna_path);
+
+  /* Build operations of a property value from which is read by a driver target.
+   *
+   * The driver target points to a data-block (or a sub-data-block like View Layer).
+   * This data-block is presented in the interface as a "Prop" and its resolved RNA pointer is
+   * passed here as `target_prop`.
+   *
+   * The tricky part (and a bit confusing naming) is that the driver target accesses a property of
+   * the `target_prop` to get its value. The property which is read to give an actual target value
+   * is denoted by its RNA path relative to the `target_prop`. In the interface it is called "Path"
+   * and here it is called `rna_path_from_target_prop`. */
+  virtual void build_driver_id_property(const PointerRNA &target_prop,
+                                        const char *rna_path_from_target_prop);
+
   virtual void build_parameters(ID *id);
   virtual void build_dimensions(Object *object);
   virtual void build_world(World *world);
@@ -250,6 +269,8 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   Node *get_node(const RNAPathKey &key);
 
   OperationNode *find_node(const OperationKey &key) const;
+  ComponentNode *find_node(const ComponentKey &key) const;
+  bool has_node(const ComponentKey &key) const;
   bool has_node(const OperationKey &key) const;
 
   Relation *add_time_relation(TimeSourceNode *timesrc,

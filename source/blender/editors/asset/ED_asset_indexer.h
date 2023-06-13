@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -6,11 +8,11 @@
 
 #pragma once
 
+#include "ED_file_indexer.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "ED_file_indexer.h"
 
 /**
  * File Indexer Service for indexing asset files.

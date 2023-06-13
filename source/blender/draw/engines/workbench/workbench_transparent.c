@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -36,8 +37,9 @@ void workbench_transparent_engine_init(WORKBENCH_Data *data)
   const eGPUTextureFormat accum_tex_format = GPU_RGBA16F;
   const eGPUTextureFormat reveal_tex_format = NORMAL_ENCODING_ENABLED() ? GPU_RG16F : GPU_RGBA32F;
 
-  wpd->accum_buffer_tx = DRW_texture_pool_query_fullscreen(accum_tex_format, owner);
-  wpd->reveal_buffer_tx = DRW_texture_pool_query_fullscreen(reveal_tex_format, owner);
+  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+  wpd->accum_buffer_tx = DRW_texture_pool_query_fullscreen_ex(accum_tex_format, usage, owner);
+  wpd->reveal_buffer_tx = DRW_texture_pool_query_fullscreen_ex(reveal_tex_format, usage, owner);
 
   GPU_framebuffer_ensure_config(&fbl->transp_accum_fb,
                                 {
@@ -57,8 +59,8 @@ static void workbench_transparent_lighting_uniforms(WORKBENCH_PrivateData *wpd,
     BKE_studiolight_ensure_flag(wpd->studio_light,
                                 STUDIOLIGHT_MATCAP_DIFFUSE_GPUTEXTURE |
                                     STUDIOLIGHT_MATCAP_SPECULAR_GPUTEXTURE);
-    struct GPUTexture *diff_tx = wpd->studio_light->matcap_diffuse.gputexture;
-    struct GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
+    GPUTexture *diff_tx = wpd->studio_light->matcap_diffuse.gputexture;
+    GPUTexture *spec_tx = wpd->studio_light->matcap_specular.gputexture;
     const bool use_spec = workbench_is_specular_highlight_enabled(wpd);
     spec_tx = (use_spec && spec_tx) ? spec_tx : diff_tx;
     DRW_shgroup_uniform_texture(grp, "matcap_diffuse_tx", diff_tx);
@@ -70,7 +72,7 @@ void workbench_transparent_cache_init(WORKBENCH_Data *vedata)
 {
   WORKBENCH_PassList *psl = vedata->psl;
   WORKBENCH_PrivateData *wpd = vedata->stl->wpd;
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   {

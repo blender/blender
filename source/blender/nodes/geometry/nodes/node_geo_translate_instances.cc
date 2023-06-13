@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -12,11 +14,11 @@ namespace blender::nodes::node_geo_translate_instances_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Instances")).only_instances();
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Translation")).subtype(PROP_TRANSLATION).field_on_all();
-  b.add_input<decl::Bool>(N_("Local Space")).default_value(true).field_on_all();
-  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
+  b.add_input<decl::Geometry>("Instances").only_instances();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Vector>("Translation").subtype(PROP_TRANSLATION).field_on_all();
+  b.add_input<decl::Bool>("Local Space").default_value(true).field_on_all();
+  b.add_output<decl::Geometry>("Instances").propagate_all();
 }
 
 static void translate_instances(GeoNodeExecParams &params, bke::Instances &instances)

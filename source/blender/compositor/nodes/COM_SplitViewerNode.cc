@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_SplitViewerNode.h"
 
@@ -17,7 +18,7 @@ void SplitViewerNode::convert_to_operations(NodeConverter &converter,
                                             const CompositorContext &context) const
 {
   const bNode *editor_node = this->get_bnode();
-  bool do_output = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
+  bool is_active = (editor_node->flag & NODE_DO_OUTPUT_RECALC || context.is_rendering()) &&
                    (editor_node->flag & NODE_DO_OUTPUT);
 
   NodeInput *image1Socket = this->get_input_socket(0);
@@ -54,7 +55,7 @@ void SplitViewerNode::convert_to_operations(NodeConverter &converter,
 
   converter.add_preview(split_viewer_operation->get_output_socket());
 
-  if (do_output) {
+  if (is_active) {
     converter.register_viewer(viewer_operation);
   }
 }

@@ -72,8 +72,7 @@ void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem
   }
 
 #define KERNEL_DATA_ARRAY(type, tname) \
-  else if (strcmp(name, #tname) == 0) \
-  { \
+  else if (strcmp(name, #tname) == 0) { \
     kg->tname.data = (type *)mem; \
     kg->tname.width = size; \
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -117,7 +119,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
     return;
   }
 
-  struct ListBase dirbase = {NULL, NULL};
+  ListBase dirbase = {NULL, NULL};
   int newnum = 0;
   const struct dirent *fname;
   bool has_current = false, has_parent = false;
@@ -127,7 +129,8 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
       dirname_with_slash, dirname, sizeof(dirname_with_slash) - 1);
 
   if ((dirname_with_slash_len > 0) &&
-      (BLI_path_slash_is_native_compat(dirname[dirname_with_slash_len - 1]) == false)) {
+      (BLI_path_slash_is_native_compat(dirname[dirname_with_slash_len - 1]) == false))
+  {
     dirname_with_slash[dirname_with_slash_len++] = SEP;
     dirname_with_slash[dirname_with_slash_len] = '\0';
   }
@@ -150,7 +153,7 @@ static void bli_builddir(struct BuildDirCtx *dir_ctx, const char *dirname)
   if (!has_parent) {
     char pardir[FILE_MAXDIR];
 
-    BLI_strncpy(pardir, dirname, sizeof(pardir));
+    STRNCPY(pardir, dirname);
     if (BLI_path_parent_dir(pardir) && (BLI_access(pardir, R_OK) == 0)) {
       struct dirlink *const dlink = (struct dirlink *)malloc(sizeof(struct dirlink));
       if (dlink != NULL) {
@@ -272,6 +275,7 @@ void BLI_filelist_entry_mode_to_string(const struct stat *st,
   const char *types[8] = {"---", "--x", "-w-", "-wx", "r--", "r-x", "rw-", "rwx"};
 
 #ifdef WIN32
+  UNUSED_VARS(st);
   BLI_strncpy(r_mode1, types[0], sizeof(*r_mode1) * FILELIST_DIRENTRY_MODE_LEN);
   BLI_strncpy(r_mode2, types[0], sizeof(*r_mode2) * FILELIST_DIRENTRY_MODE_LEN);
   BLI_strncpy(r_mode3, types[0], sizeof(*r_mode3) * FILELIST_DIRENTRY_MODE_LEN);
@@ -315,6 +319,7 @@ void BLI_filelist_entry_owner_to_string(const struct stat *st,
                                         char r_owner[FILELIST_DIRENTRY_OWNER_LEN])
 {
 #ifdef WIN32
+  UNUSED_VARS(st);
   strcpy(r_owner, "unknown");
 #else
   struct passwd *pwuser = getpwuid(st->st_uid);

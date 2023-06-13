@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004-2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004-2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -9,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -37,10 +38,6 @@
 #include "UI_resources.h"
 
 #include "view3d_intern.h"
-
-#define B_SEL_VERT 110
-#define B_SEL_EDGE 111
-#define B_SEL_FACE 112
 
 /* -------------------------------------------------------------------- */
 /** \name Toggle Matcap Flip Operator
@@ -82,7 +79,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 /** \name UI Templates
  * \{ */
 
-void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
+void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (!obedit || obedit->type != OB_MESH) {
@@ -123,7 +120,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C)
   RNA_enum_set(&op_ptr, "type", SCE_SELECT_FACE);
 }
 
-static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
+static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -147,7 +144,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
   }
 }
 
-void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C)
+void uiTemplateHeader3D_mode(uiLayout *layout, bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

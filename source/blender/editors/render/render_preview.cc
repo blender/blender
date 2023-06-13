@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -55,7 +56,7 @@
 #include "BKE_light.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_pose_backup.h"
 #include "BKE_scene.h"
@@ -130,7 +131,7 @@ struct ShaderPreview {
 };
 
 struct IconPreviewSize {
-  struct IconPreviewSize *next, *prev;
+  IconPreviewSize *next, *prev;
   int sizex, sizey;
   uint *rect;
 };
@@ -140,13 +141,14 @@ struct IconPreview {
   Depsgraph *depsgraph; /* May be nullptr (see #WM_OT_previews_ensure). */
   Scene *scene;
   void *owner;
-  ID *id,
-      *id_copy; /* May be nullptr! (see ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()) */
+  /** May be nullptr! (see #ICON_TYPE_PREVIEW case in #ui_icon_ensure_deferred()). */
+  ID *id;
+  ID *id_copy;
   ListBase sizes;
 
   /* May be nullptr, is used for rendering IDs that require some other object for it to be applied
    * on before the ID can be represented as an image, for example when rendering an Action. */
-  struct Object *active_object;
+  Object *active_object;
 };
 
 /** \} */
@@ -474,7 +476,7 @@ static Scene *preview_prepare_scene(
 
     /* This flag tells render to not execute depsgraph or F-Curves etc. */
     sce->r.scemode |= R_BUTS_PREVIEW;
-    BLI_strncpy(sce->r.engine, scene->r.engine, sizeof(sce->r.engine));
+    STRNCPY(sce->r.engine, scene->r.engine);
 
     sce->r.color_mgt_flag = scene->r.color_mgt_flag;
     BKE_color_managed_display_settings_copy(&sce->display_settings, &scene->display_settings);
@@ -497,7 +499,7 @@ static Scene *preview_prepare_scene(
 
     if (id_type == ID_TE) {
       /* Texture is not actually rendered with engine, just set dummy value. */
-      BLI_strncpy(sce->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(sce->r.engine));
+      STRNCPY(sce->r.engine, RE_engine_id_BLENDER_EEVEE);
     }
 
     if (id_type == ID_MA) {
@@ -630,10 +632,10 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
   bool ok = false;
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", (void *)area);
+    SNPRINTF(name, "Preview %p", (void *)area);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", (void *)area);
+    SNPRINTF(name, "SecondPreview %p", (void *)area);
   }
 
   if (split) {
@@ -665,7 +667,7 @@ static bool ed_preview_draw_rect(ScrArea *area, int split, int first, rcti *rect
     rv = nullptr;
   }
 
-  if (rv && rv->rectf) {
+  if (rv && rv->combined_buffer.data) {
 
     if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
 
@@ -744,7 +746,8 @@ void ED_preview_draw(const bContext *C, void *idp, void *parentp, void *slotp, r
      * or if the job is running and the size of preview changed */
     if ((sbuts != nullptr && sbuts->preview) ||
         (!ok && !WM_jobs_test(wm, area, WM_JOB_TYPE_RENDER_PREVIEW)) ||
-        (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2))) {
+        (sp && (abs(sp->sizex - newx) >= 2 || abs(sp->sizey - newy) > 2)))
+    {
       if (sbuts != nullptr) {
         sbuts->preview = 0;
       }
@@ -784,8 +787,8 @@ static Object *object_preview_camera_create(Main *preview_main,
   Object *camera = BKE_object_add(preview_main, scene, view_layer, OB_CAMERA, "Preview Camera");
 
   float rotmat[3][3];
-  float dummyscale[3];
-  mat4_to_loc_rot_size(camera->loc, rotmat, dummyscale, preview_object->object_to_world);
+  float dummy_scale[3];
+  mat4_to_loc_rot_size(camera->loc, rotmat, dummy_scale, preview_object->object_to_world);
 
   /* Camera is Y up, so needs additional rotations to obliquely face the front. */
   float drotmat[3][3];
@@ -802,7 +805,7 @@ static Object *object_preview_camera_create(Main *preview_main,
   return camera;
 }
 
-static Scene *object_preview_scene_create(const struct ObjectPreviewData *preview_data,
+static Scene *object_preview_scene_create(const ObjectPreviewData *preview_data,
                                           Depsgraph **r_depsgraph)
 {
   Scene *scene = BKE_scene_add(preview_data->pr_main, "Object preview scene");
@@ -851,7 +854,7 @@ static void object_preview_render(IconPreview *preview, IconPreviewSize *preview
 
   BLI_assert(preview->id_copy && (preview->id_copy != preview->id));
 
-  struct ObjectPreviewData preview_data = {};
+  ObjectPreviewData preview_data = {};
   preview_data.pr_main = preview_main;
   /* Act on a copy. */
   preview_data.object = (Object *)preview->id_copy;
@@ -939,7 +942,7 @@ static bool collection_preview_contains_geometry_recursive(const Collection *col
 /** \name Action Preview
  * \{ */
 
-static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
+static PoseBackup *action_preview_render_prepare(IconPreview *preview)
 {
   Object *object = preview->active_object;
   if (object == nullptr) {
@@ -954,8 +957,8 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   }
 
   /* Create a backup of the current pose. */
-  struct bAction *action = (struct bAction *)preview->id;
-  struct PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
+  bAction *action = (bAction *)preview->id;
+  PoseBackup *pose_backup = BKE_pose_backup_create_all_bones(object, action);
 
   /* Apply the Action as pose, so that it can be rendered. This assumes the Action represents a
    * single pose, and that thus the evaluation time doesn't matter. */
@@ -969,7 +972,7 @@ static struct PoseBackup *action_preview_render_prepare(IconPreview *preview)
   return pose_backup;
 }
 
-static void action_preview_render_cleanup(IconPreview *preview, struct PoseBackup *pose_backup)
+static void action_preview_render_cleanup(IconPreview *preview, PoseBackup *pose_backup)
 {
   if (pose_backup == nullptr) {
     return;
@@ -995,7 +998,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
   BLI_assert(preview->scene == DEG_get_input_scene(depsgraph));
 
   /* Apply the pose before getting the evaluated scene, so that the new pose is evaluated. */
-  struct PoseBackup *pose_backup = action_preview_render_prepare(preview);
+  PoseBackup *pose_backup = action_preview_render_prepare(preview);
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *camera_eval = scene_eval->camera;
@@ -1039,7 +1042,7 @@ static void action_preview_render(IconPreview *preview, IconPreviewSize *preview
  * \{ */
 
 /* inside thread, called by renderer, sets job update value */
-static void shader_preview_update(void *spv, RenderResult * /*rr*/, struct rcti * /*rect*/)
+static void shader_preview_update(void *spv, RenderResult * /*rr*/, rcti * /*rect*/)
 {
   ShaderPreview *sp = static_cast<ShaderPreview *>(spv);
 
@@ -1054,9 +1057,7 @@ static bool shader_preview_break(void *spv)
   return *(sp->stop);
 }
 
-static void shader_preview_updatejob(void * /*spv*/)
-{
-}
+static void shader_preview_updatejob(void * /*spv*/) {}
 
 /* Renders texture directly to render buffer. */
 static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Render *re)
@@ -1073,18 +1074,19 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  rv->rectf = static_cast<float *>(
-      MEM_callocN(sizeof(float[4]) * width * height, "texture render result"));
+  RE_RenderBuffer_assign_data(&rv->combined_buffer,
+                              static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
+                                                               "texture render result")));
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
-  struct ImagePool *img_pool = BKE_image_pool_new();
+  ImagePool *img_pool = BKE_image_pool_new();
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
-  float *rect_float = rv->rectf;
+  float *rect_float = rv->combined_buffer.data;
   float tex_coord[3] = {0.0f, 0.0f, 0.0f};
-  bool color_manage = true;
+  bool color_manage = BKE_scene_check_color_management_enabled(sce);
 
   for (int y = 0; y < height; y++) {
     /* Tex coords between -1.0f and 1.0f. */
@@ -1095,7 +1097,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
 
       /* Evaluate texture at tex_coord. */
       TexResult texres = {0};
-      BKE_texture_get_value_ex(sce, tex, tex_coord, &texres, img_pool, color_manage);
+      BKE_texture_get_value_ex(tex, tex_coord, &texres, img_pool, color_manage);
       copy_v4_fl4(rect_float,
                   texres.trgba[0],
                   texres.trgba[1],
@@ -1152,10 +1154,10 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
   }
 
   if (!split || first) {
-    BLI_snprintf(name, sizeof(name), "Preview %p", sp->owner);
+    SNPRINTF(name, "Preview %p", sp->owner);
   }
   else {
-    BLI_snprintf(name, sizeof(name), "SecondPreview %p", sp->owner);
+    SNPRINTF(name, "SecondPreview %p", sp->owner);
   }
   re = RE_GetRender(name);
 
@@ -1243,7 +1245,7 @@ static void shader_preview_startjob(void *customdata, bool *stop, bool *do_updat
 
 static void preview_id_copy_free(ID *id)
 {
-  struct IDProperty *properties;
+  IDProperty *properties;
   /* get rid of copied ID */
   properties = IDP_GetProperties(id, false);
   if (properties) {
@@ -1314,7 +1316,7 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
     /* First use the path directly to try and load the file. */
     char filepath[FILE_MAX];
 
-    BLI_strncpy(filepath, brush->icon_filepath, sizeof(brush->icon_filepath));
+    STRNCPY(filepath, brush->icon_filepath);
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&brush->id));
 
     /* Use default color-spaces for brushes. */
@@ -1346,13 +1348,14 @@ static ImBuf *icon_preview_imbuf_from_brush(Brush *brush)
 
 static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
 {
-  struct ImBuf *ima;
+  ImBuf *ima;
   uint *drect, *srect;
   float scaledx, scaledy;
   short ex, ey, dx, dy;
 
   /* paranoia test */
-  if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+  if (ibuf == nullptr || (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr))
+  {
     return;
   }
 
@@ -1382,11 +1385,11 @@ static void icon_copy_rect(ImBuf *ibuf, uint w, uint h, uint *rect)
   IMB_scalefastImBuf(ima, ex, ey);
 
   /* if needed, convert to 32 bits */
-  if (ima->rect == nullptr) {
+  if (ima->byte_buffer.data == nullptr) {
     IMB_rect_from_float(ima);
   }
 
-  srect = ima->rect;
+  srect = reinterpret_cast<uint *>(ima->byte_buffer.data);
   drect = rect;
 
   drect += dy * w + dx;
@@ -1440,7 +1443,8 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
      * already there. Very expensive for large images. Need to find a way to
      * only get existing `ibuf`. */
     ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
-    if (ibuf == nullptr || (ibuf->rect == nullptr && ibuf->rect_float == nullptr)) {
+    if (ibuf == nullptr ||
+        (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr)) {
       BKE_image_release_ibuf(ima, ibuf, nullptr);
       return;
     }
@@ -1458,7 +1462,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
 
     memset(sp->pr_rect, 0x88, sp->sizex * sp->sizey * sizeof(uint));
 
-    if (!(br->icon_imbuf) || !(br->icon_imbuf->rect)) {
+    if (!(br->icon_imbuf) || !(br->icon_imbuf->byte_buffer.data)) {
       return;
     }
 
@@ -1578,7 +1582,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
   IconPreviewSize *cur_size;
 
   for (cur_size = static_cast<IconPreviewSize *>(ip->sizes.first); cur_size;
-       cur_size = cur_size->next) {
+       cur_size = cur_size->next)
+  {
     PreviewImage *prv = static_cast<PreviewImage *>(ip->owner);
     /* Is this a render job or a deferred loading job? */
     const ePreviewRenderMethod pr_method = (prv->tag & PRV_TAG_DEFFERED) ? PR_ICON_DEFERRED :
@@ -1601,7 +1606,8 @@ static void icon_preview_startjob_all_sizes(void *customdata,
      * necessary to know here what happens inside lower-level functions. */
     const bool use_solid_render_mode = (ip->id != nullptr) && ELEM(GS(ip->id->name), ID_OB, ID_AC);
     if (!use_solid_render_mode && preview_method_is_render(pr_method) &&
-        !check_engine_supports_preview(ip->scene)) {
+        !check_engine_supports_preview(ip->scene))
+    {
       continue;
     }
 
@@ -1731,7 +1737,7 @@ class PreviewLoadJob {
   ThreadQueue *todo_queue_; /* RequestedPreview * */
   /** All unfinished preview requests, #update_fn() calls #finish_preview_request() on loaded
    * previews and removes them from this list. Only access from the main thread! */
-  std::list<struct RequestedPreview> requested_previews_;
+  std::list<RequestedPreview> requested_previews_;
 
  public:
   PreviewLoadJob();
@@ -1752,9 +1758,7 @@ class PreviewLoadJob {
   static void finish_request(RequestedPreview &request);
 };
 
-PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init())
-{
-}
+PreviewLoadJob::PreviewLoadJob() : todo_queue_(BLI_thread_queue_init()) {}
 
 PreviewLoadJob::~PreviewLoadJob()
 {
@@ -1814,7 +1818,8 @@ void PreviewLoadJob::run_fn(void *customdata, bool *stop, bool *do_update, float
   IMB_thumb_locks_acquire();
 
   while (RequestedPreview *request = static_cast<RequestedPreview *>(
-             BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100))) {
+             BLI_thread_queue_pop_timeout(job_data->todo_queue_, 100)))
+  {
     if (*stop) {
       break;
     }
@@ -1869,7 +1874,8 @@ void PreviewLoadJob::update_fn(void *customdata)
   PreviewLoadJob *job_data = static_cast<PreviewLoadJob *>(customdata);
 
   for (auto request_it = job_data->requested_previews_.begin();
-       request_it != job_data->requested_previews_.end();) {
+       request_it != job_data->requested_previews_.end();)
+  {
     RequestedPreview &requested = *request_it;
     /* Skip items that are not done loading yet. */
     if (requested.preview->tag & PRV_TAG_DEFFERED_RENDERING) {
@@ -2126,7 +2132,7 @@ void ED_preview_kill_jobs(wmWindowManager *wm, Main * /*bmain*/)
 }
 
 struct PreviewRestartQueueEntry {
-  struct PreviewRestartQueueEntry *next, *prev;
+  PreviewRestartQueueEntry *next, *prev;
 
   enum eIconSizes size;
   ID *id;

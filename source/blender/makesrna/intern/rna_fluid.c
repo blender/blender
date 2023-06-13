@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -614,7 +616,8 @@ static const EnumPropertyItem *rna_Fluid_cachetype_volume_itemf(bContext *UNUSED
   /* Support for deprecated .raw format. */
   FluidDomainSettings *fds = (FluidDomainSettings *)ptr->data;
   if (fds->cache_data_format == FLUID_DOMAIN_FILE_RAW ||
-      fds->cache_noise_format == FLUID_DOMAIN_FILE_RAW) {
+      fds->cache_noise_format == FLUID_DOMAIN_FILE_RAW)
+  {
     tmp.value = FLUID_DOMAIN_FILE_RAW;
     tmp.identifier = "RAW";
     tmp.name = N_("Raw Cache");
@@ -657,7 +660,7 @@ static void rna_Fluid_cache_directory_set(struct PointerRNA *ptr, const char *va
     return;
   }
 
-  BLI_strncpy(settings->cache_directory, value, sizeof(settings->cache_directory));
+  STRNCPY(settings->cache_directory, value);
 
   /* TODO(sebbas): Read cache state in order to set cache bake flags and cache pause frames
    * correctly. */
@@ -1821,6 +1824,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, 5);
   RNA_def_property_ui_text(
       prop, "Number", "Particle number factor (higher value results in more particles)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "particle_min", PROP_INT, PROP_NONE);

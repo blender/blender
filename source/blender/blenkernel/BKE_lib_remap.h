@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -56,28 +58,52 @@ enum {
    */
   ID_REMAP_FORCE_NEVER_NULL_USAGE = 1 << 3,
   /** Do not remap library override pointers. */
-  ID_REMAP_SKIP_OVERRIDE_LIBRARY = 1 << 5,
-  /** Don't touch the special user counts (use when the 'old' remapped ID remains in use):
-   * - Do not transfer 'fake user' status from old to new ID.
-   * - Do not clear 'extra user' from old ID. */
-  ID_REMAP_SKIP_USER_CLEAR = 1 << 6,
+  ID_REMAP_SKIP_OVERRIDE_LIBRARY = 1 << 4,
   /**
    * Force internal ID runtime pointers (like `ID.newid`, `ID.orig_id` etc.) to also be processed.
    * This should only be needed in some very specific cases, typically only BKE ID management code
    * should need it (e.g. required from `id_delete` to ensure no runtime pointer remains using
    * freed ones).
    */
-  ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS = 1 << 7,
-  /** Force handling user count even for IDs that are outside of Main (used in some cases when
-   * dealing with IDs temporarily out of Main, but which will be put in it ultimately).
-   */
-  ID_REMAP_FORCE_USER_REFCOUNT = 1 << 8,
+  ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS = 1 << 5,
+  /** Force remapping of 'UI-like' ID usages (ID pointers stored in editors data etc.). */
+  ID_REMAP_FORCE_UI_POINTERS = 1 << 6,
   /**
    * Force obdata pointers to also be processed, even when object (`id_owner`) is in Edit mode.
    * This is required by some tools creating/deleting IDs while operating in Edit mode, like e.g.
    * the 'separate' mesh operator.
    */
-  ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 9,
+  ID_REMAP_FORCE_OBDATA_IN_EDITMODE = 1 << 7,
+
+  /**
+   * Don't touch the special user counts (use when the 'old' remapped ID remains in use):
+   * - Do not transfer 'fake user' status from old to new ID.
+   * - Do not clear 'extra user' from old ID.
+   */
+  ID_REMAP_SKIP_USER_CLEAR = 1 << 16,
+  /**
+   * Force handling user count even for IDs that are outside of Main (used in some cases when
+   * dealing with IDs temporarily out of Main, but which will be put in it ultimately).
+   */
+  ID_REMAP_FORCE_USER_REFCOUNT = 1 << 17,
+  /**
+   * Do NOT handle user count for IDs (used in some cases when dealing with IDs from different
+   * BMains, if usercount will be recomputed anyway afterwards, like e.g. in memfile reading during
+   * undo step decoding).
+   */
+  ID_REMAP_SKIP_USER_REFCOUNT = 1 << 18,
+  /**
+   * Do NOT tag IDs which had some of their ID pointers updated for update in the depsgraph, or ID
+   * type specific updates, like e.g. with node trees.
+   */
+  ID_REMAP_SKIP_UPDATE_TAGGING = 1 << 19,
+  /**
+   * Do not attempt to access original ID pointers (triggers usages of
+   * `IDWALK_NO_ORIG_POINTERS_ACCESS` too).
+   *
+   * Use when original ID pointers values are (probably) not valid, e.g. during read-file process.
+   */
+  ID_REMAP_NO_ORIG_POINTERS_ACCESS = 1 << 20,
 };
 
 typedef enum eIDRemapType {
@@ -95,12 +121,24 @@ typedef enum eIDRemapType {
  */
 void BKE_libblock_remap_multiple_locked(struct Main *bmain,
                                         struct IDRemapper *mappings,
-                                        short remap_flags);
+                                        const int remap_flags);
 
 void BKE_libblock_remap_multiple(struct Main *bmain,
                                  struct IDRemapper *mappings,
-                                 short remap_flags);
+                                 const int remap_flags);
 
+/**
+ * Bare raw remapping of IDs, with no other processing than actually updating the ID pointers. No
+ * usercount, direct vs indirect linked status update, depsgraph tagging, etc.
+ *
+ * This is way more efficient than regular remapping from #BKE_libblock_remap_multiple & co, but it
+ * implies that calling code handles all the other aspects described above. This is typically the
+ * case e.g. in readfile process.
+ *
+ * WARNING: This call will likely leave the given BMain in invalid state in many aspects. */
+void BKE_libblock_remap_multiple_raw(struct Main *bmain,
+                                     struct IDRemapper *mappings,
+                                     const int remap_flags);
 /**
  * Replace all references in given Main to \a old_id by \a new_id
  * (if \a new_id is NULL, it unlinks \a old_id).
@@ -108,9 +146,9 @@ void BKE_libblock_remap_multiple(struct Main *bmain,
  * \note Requiring new_id to be non-null, this *may* not be the case ultimately,
  * but makes things simpler for now.
  */
-void BKE_libblock_remap_locked(struct Main *bmain, void *old_idv, void *new_idv, short remap_flags)
+void BKE_libblock_remap_locked(struct Main *bmain, void *old_idv, void *new_idv, int remap_flags)
     ATTR_NONNULL(1, 2);
-void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, short remap_flags)
+void BKE_libblock_remap(struct Main *bmain, void *old_idv, void *new_idv, int remap_flags)
     ATTR_NONNULL(1, 2);
 
 /**
@@ -130,12 +168,12 @@ void BKE_libblock_unlink(struct Main *bmain,
  *
  * \param old_idv: Unlike BKE_libblock_remap, can be NULL,
  * in which case all ID usages by given \a idv will be cleared.
+ *
+ * \param bmain: May be NULL, in which case there won't be depsgraph updates nor post-processing on
+ * some ID types (like collections or objects) to ensure their runtime data is valid.
  */
-void BKE_libblock_relink_ex(struct Main *bmain,
-                            void *idv,
-                            void *old_idv,
-                            void *new_idv,
-                            short remap_flags) ATTR_NONNULL(1, 2);
+void BKE_libblock_relink_ex(
+    struct Main *bmain, void *idv, void *old_idv, void *new_idv, int remap_flags) ATTR_NONNULL(2);
 /**
  * Same as #BKE_libblock_relink_ex, but applies all rules defined in \a id_remapper to \a ids (or
  * does cleanup if `ID_REMAP_TYPE_CLEANUP` is specified as \a remap_type).
@@ -144,7 +182,7 @@ void BKE_libblock_relink_multiple(struct Main *bmain,
                                   struct LinkNode *ids,
                                   eIDRemapType remap_type,
                                   struct IDRemapper *id_remapper,
-                                  short remap_flags);
+                                  int remap_flags);
 
 /**
  * Remaps ID usages of given ID to their `id->newid` pointer if not None, and proceeds recursively

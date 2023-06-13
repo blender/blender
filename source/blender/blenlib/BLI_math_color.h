@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -201,12 +202,12 @@ void lift_gamma_gain_to_asc_cdl(const float *lift,
                                 float *slope,
                                 float *power);
 
-#if BLI_MATH_DO_INLINE
-#  include "intern/math_color_inline.c"
-#endif
-
 /** \} */
 
 #ifdef __cplusplus
 }
+#endif
+
+#if BLI_MATH_DO_INLINE
+#  include "intern/math_color_inline.c"
 #endif

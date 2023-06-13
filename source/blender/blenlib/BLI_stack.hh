@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -123,9 +125,7 @@ class Stack {
     size_ = 0;
   }
 
-  Stack(NoExceptConstructor, Allocator allocator = {}) noexcept : Stack(allocator)
-  {
-  }
+  Stack(NoExceptConstructor, Allocator allocator = {}) noexcept : Stack(allocator) {}
 
   /**
    * Create a new stack that contains the given elements. The values are pushed to the stack in

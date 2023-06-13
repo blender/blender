@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -25,6 +27,7 @@ struct AddCurvesOnMeshInputs {
   bool interpolate_length = false;
   bool interpolate_shape = false;
   bool interpolate_point_count = false;
+  bool interpolate_resolution = false;
   float fallback_curve_length = 0.0f;
   int fallback_point_count = 0;
 

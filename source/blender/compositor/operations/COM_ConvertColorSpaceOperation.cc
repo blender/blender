@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_ConvertColorSpaceOperation.h"
 
@@ -21,7 +22,8 @@ void ConvertColorSpaceOperation::set_settings(NodeConvertColorSpace *node_color_
 void ConvertColorSpaceOperation::init_execution()
 {
   if (BLI_strnlen(settings_->from_color_space, sizeof(settings_->from_color_space)) == 0 ||
-      BLI_strnlen(settings_->to_color_space, sizeof(settings_->to_color_space)) == 0) {
+      BLI_strnlen(settings_->to_color_space, sizeof(settings_->to_color_space)) == 0)
+  {
     return;
   }
 

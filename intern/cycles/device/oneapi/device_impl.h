@@ -16,15 +16,16 @@ CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
 
-typedef void (*OneAPIDeviceIteratorCallback)(const char *id,
-                                             const char *name,
-                                             int num,
-                                             void *user_ptr);
+typedef void (*OneAPIDeviceIteratorCallback)(
+    const char *id, const char *name, int num, bool hwrt_support, void *user_ptr);
 
 class OneapiDevice : public Device {
  private:
   SyclQueue *device_queue_;
-
+#  ifdef WITH_EMBREE_GPU
+  RTCDevice embree_device;
+  RTCScene embree_scene;
+#  endif
   using ConstMemMap = map<string, device_vector<uchar> *>;
   ConstMemMap const_mem_map_;
   device_vector<TextureInfo> texture_info_;
@@ -34,17 +35,22 @@ class OneapiDevice : public Device {
   size_t kg_memory_size_ = (size_t)0;
   size_t max_memory_on_device_ = (size_t)0;
   std::string oneapi_error_string_;
+  bool use_hardware_raytracing = false;
+  unsigned int kernel_features = 0;
+  int scene_max_shaders_ = 0;
 
  public:
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override;
 
   OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
 
   virtual ~OneapiDevice();
-
+#  ifdef WITH_EMBREE_GPU
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+#  endif
   bool check_peer_access(Device *peer_device) override;
 
-  bool load_kernels(const uint requested_features) override;
+  bool load_kernels(const uint kernel_features) override;
 
   void load_texture_info();
 
@@ -55,6 +61,8 @@ class OneapiDevice : public Device {
   void generic_free(device_memory &mem);
 
   string oneapi_error_message();
+
+  int scene_max_shaders();
 
   void *kernel_globals_device_pointer();
 
@@ -113,8 +121,9 @@ class OneapiDevice : public Device {
   SyclQueue *sycl_queue();
 
  protected:
+  bool can_use_hardware_raytracing_for_features(uint kernel_features) const;
   void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
-  bool create_queue(SyclQueue *&external_queue, int device_index);
+  bool create_queue(SyclQueue *&external_queue, int device_index, void *embree_device);
   void free_queue(SyclQueue *queue);
   void *usm_aligned_alloc_host(SyclQueue *queue, size_t memory_size, size_t alignment);
   void *usm_alloc_device(SyclQueue *queue, size_t memory_size);

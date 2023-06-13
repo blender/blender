@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -108,6 +110,17 @@ class Vector {
   template<typename OtherT, int64_t OtherInlineBufferCapacity, typename OtherAllocator>
   friend class Vector;
 
+  /** Required in case `T` is an incomplete type. */
+  static constexpr bool is_nothrow_move_constructible()
+  {
+    if constexpr (InlineBufferCapacity == 0) {
+      return true;
+    }
+    else {
+      return std::is_nothrow_move_constructible_v<T>;
+    }
+  }
+
  public:
   /**
    * Create an empty vector.
@@ -121,9 +134,7 @@ class Vector {
     UPDATE_VECTOR_SIZE(this);
   }
 
-  Vector(NoExceptConstructor, Allocator allocator = {}) noexcept : Vector(allocator)
-  {
-  }
+  Vector(NoExceptConstructor, Allocator allocator = {}) noexcept : Vector(allocator) {}
 
   /**
    * Create a vector with a specific size.
@@ -174,9 +185,7 @@ class Vector {
   {
   }
 
-  Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values))
-  {
-  }
+  Vector(const std::initializer_list<T> &values) : Vector(Span<T>(values)) {}
 
   template<typename U, size_t N, BLI_ENABLE_IF((std::is_convertible_v<U, T>))>
   Vector(const std::array<U, N> &values) : Vector(Span(values))
@@ -214,9 +223,7 @@ class Vector {
    * Create a copy of another vector. The other vector will not be changed. If the other vector has
    * less than InlineBufferCapacity elements, no allocation will be made.
    */
-  Vector(const Vector &other) : Vector(other.as_span(), other.allocator_)
-  {
-  }
+  Vector(const Vector &other) : Vector(other.as_span(), other.allocator_) {}
 
   /**
    * Create a copy of a vector with a different InlineBufferCapacity. This needs to be handled
@@ -234,7 +241,7 @@ class Vector {
    */
   template<int64_t OtherInlineBufferCapacity>
   Vector(Vector<T, OtherInlineBufferCapacity, Allocator> &&other) noexcept(
-      std::is_nothrow_move_constructible_v<T>)
+      is_nothrow_move_constructible())
       : Vector(NoExceptConstructor(), other.allocator_)
   {
     const int64_t size = other.size();
@@ -811,14 +818,17 @@ class Vector {
   }
 
   /**
-   * Remove all values for which the given predicate is true.
+   * Remove all values for which the given predicate is true and return the number of values
+   * removed.
    *
    * This is similar to std::erase_if.
    */
-  template<typename Predicate> void remove_if(Predicate &&predicate)
+  template<typename Predicate> int64_t remove_if(Predicate &&predicate)
   {
+    const T *prev_end = this->end();
     end_ = std::remove_if(this->begin(), this->end(), predicate);
     UPDATE_VECTOR_SIZE(this);
+    return int64_t(prev_end - end_);
   }
 
   /**
@@ -974,7 +984,7 @@ class Vector {
     std::cout << "  Capacity: " << (capacity_end_ - begin_) << "\n";
     std::cout << "  Inline Capacity: " << InlineBufferCapacity << "\n";
 
-    char memory_size_str[15];
+    char memory_size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
     BLI_str_format_byte_unit(memory_size_str, sizeof(*this), true);
     std::cout << "  Size on Stack: " << memory_size_str << "\n";
   }

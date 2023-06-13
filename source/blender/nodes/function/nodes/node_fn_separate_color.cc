@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_function_util.hh"
 
@@ -12,11 +14,11 @@ NODE_STORAGE_FUNCS(NodeCombSepColor)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Color>(N_("Color")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Float>(N_("Red"));
-  b.add_output<decl::Float>(N_("Green"));
-  b.add_output<decl::Float>(N_("Blue"));
-  b.add_output<decl::Float>(N_("Alpha"));
+  b.add_input<decl::Color>("Color").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_output<decl::Float>("Red");
+  b.add_output<decl::Float>("Green");
+  b.add_output<decl::Float>("Blue");
+  b.add_output<decl::Float>("Alpha");
 };
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -54,7 +56,7 @@ class SeparateRGBAFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -80,11 +82,11 @@ class SeparateRGBAFunction : public mf::MultiFunction {
     }
 
     devirtualize_varray(colors, [&](auto colors) {
-      mask.to_best_mask_type([&](auto mask) {
+      mask.foreach_segment_optimized([&](const auto segment) {
         const int used_outputs_num = used_outputs.size();
         const int *used_outputs_data = used_outputs.data();
 
-        for (const int64_t i : mask) {
+        for (const int64_t i : segment) {
           const ColorGeometry4f &color = colors[i];
           for (const int out_i : IndexRange(used_outputs_num)) {
             const int channel = used_outputs_data[out_i];
@@ -113,7 +115,7 @@ class SeparateHSVAFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -122,14 +124,12 @@ class SeparateHSVAFunction : public mf::MultiFunction {
     MutableSpan<float> value = params.uninitialized_single_output<float>(3, "Value");
     MutableSpan<float> alpha = params.uninitialized_single_output_if_required<float>(4, "Alpha");
 
-    for (int64_t i : mask) {
+    mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
       rgb_to_hsv(colors[i].r, colors[i].g, colors[i].b, &hue[i], &saturation[i], &value[i]);
-    }
+    });
 
     if (!alpha.is_empty()) {
-      for (int64_t i : mask) {
-        alpha[i] = colors[i].a;
-      }
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) { alpha[i] = colors[i].a; });
     }
   }
 };
@@ -151,7 +151,7 @@ class SeparateHSLAFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<ColorGeometry4f> &colors = params.readonly_single_input<ColorGeometry4f>(0,
                                                                                           "Color");
@@ -160,14 +160,12 @@ class SeparateHSLAFunction : public mf::MultiFunction {
     MutableSpan<float> lightness = params.uninitialized_single_output<float>(3, "Lightness");
     MutableSpan<float> alpha = params.uninitialized_single_output_if_required<float>(4, "Alpha");
 
-    for (int64_t i : mask) {
+    mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
       rgb_to_hsl(colors[i].r, colors[i].g, colors[i].b, &hue[i], &saturation[i], &lightness[i]);
-    }
+    });
 
     if (!alpha.is_empty()) {
-      for (int64_t i : mask) {
-        alpha[i] = colors[i].a;
-      }
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) { alpha[i] = colors[i].a; });
     }
   }
 };

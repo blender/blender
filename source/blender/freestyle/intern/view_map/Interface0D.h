@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -41,9 +43,7 @@ class TVertex;
 class Interface0D {
  public:
   /** Default constructor */
-  Interface0D()
-  {
-  }
+  Interface0D() {}
 
   /** Destructor */
   virtual ~Interface0D(){};
@@ -114,9 +114,7 @@ class Interface0D {
 
 class Interface0DIteratorNested : public Iterator {
  public:
-  virtual ~Interface0DIteratorNested()
-  {
-  }
+  virtual ~Interface0DIteratorNested() {}
 
   virtual string getExactTypeName() const
   {

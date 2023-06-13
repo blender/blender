@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -10,21 +11,49 @@
 #include "GPU_texture.h"
 
 #include "gpu_storage_buffer_private.hh"
+#include "gpu_vertex_buffer_private.hh"
+
+#include "vk_buffer.hh"
 
 namespace blender::gpu {
+class VertBuf;
 
 class VKStorageBuffer : public StorageBuf {
+  GPUUsageType usage_;
+  VKBuffer buffer_;
+
  public:
-  VKStorageBuffer(int size, const char *name) : StorageBuf(size, name)
+  VKStorageBuffer(int size, GPUUsageType usage, const char *name)
+      : StorageBuf(size, name), usage_(usage)
   {
   }
 
   void update(const void *data) override;
   void bind(int slot) override;
   void unbind() override;
-  void clear(eGPUTextureFormat internal_format, eGPUDataFormat data_format, void *data) override;
+  void clear(uint32_t clear_value) override;
   void copy_sub(VertBuf *src, uint dst_offset, uint src_offset, uint copy_size) override;
   void read(void *data) override;
+
+  VkBuffer vk_handle() const
+  {
+    return buffer_.vk_handle();
+  }
+
+  int64_t size_in_bytes() const
+  {
+    return buffer_.size_in_bytes();
+  }
+
+  void ensure_allocated();
+
+ private:
+  void allocate();
 };
+
+static inline VKStorageBuffer *unwrap(StorageBuf *storage_buffer)
+{
+  return static_cast<VKStorageBuffer *>(storage_buffer);
+}
 
 }  // namespace blender::gpu

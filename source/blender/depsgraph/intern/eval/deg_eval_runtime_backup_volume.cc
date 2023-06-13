@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -19,9 +20,7 @@
 
 namespace blender::deg {
 
-VolumeBackup::VolumeBackup(const Depsgraph * /*depsgraph*/) : grids(nullptr)
-{
-}
+VolumeBackup::VolumeBackup(const Depsgraph * /*depsgraph*/) : grids(nullptr) {}
 
 void VolumeBackup::init_from_volume(Volume *volume)
 {

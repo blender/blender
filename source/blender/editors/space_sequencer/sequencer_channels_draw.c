@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sequencer
@@ -11,6 +12,7 @@
 #include "DNA_screen_types.h"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -40,18 +42,6 @@
 
 /* Own include. */
 #include "sequencer_intern.h"
-
-static ARegion *timeline_region_get(const ScrArea *area)
-{
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    if (region->regiontype == RGN_TYPE_WINDOW) {
-      return region;
-    }
-  }
-
-  BLI_assert_unreachable();
-  return NULL;
-}
 
 static float draw_offset_get(const View2D *timeline_region_v2d)
 {
@@ -335,7 +325,8 @@ void channel_draw_context_init(const bContext *C,
   r_context->ed = SEQ_editing_get(r_context->scene);
   r_context->seqbase = SEQ_active_seqbase_get(r_context->ed);
   r_context->channels = SEQ_channels_displayed_get(r_context->ed);
-  r_context->timeline_region = timeline_region_get(CTX_wm_area(C));
+  r_context->timeline_region = BKE_area_find_region_type(r_context->area, RGN_TYPE_WINDOW);
+  BLI_assert(r_context->timeline_region != NULL);
   r_context->timeline_region_v2d = &r_context->timeline_region->v2d;
 
   r_context->channel_height = channel_height_pixelspace_get(r_context->timeline_region_v2d);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -118,7 +120,8 @@ static void test_polyfill_topology(const float /*poly*/[][2],
   }
 
   for (ehi = BLI_edgehashIterator_new(edgehash), i = 0; BLI_edgehashIterator_isDone(ehi) == false;
-       BLI_edgehashIterator_step(ehi), i++) {
+       BLI_edgehashIterator_step(ehi), i++)
+  {
     void **p = BLI_edgehashIterator_getValue_p(ehi);
     EXPECT_TRUE(ELEM(intptr_t(*p), 1, 2));
   }
@@ -334,7 +337,7 @@ static void polyfill_to_obj(const char *id,
   FILE *f;
   uint i;
 
-  BLI_snprintf(path, sizeof(path), "%s.obj", id);
+  SNPRINTF(path, "%s.obj", id);
 
   f = fopen(path, "w");
   if (!f) {
@@ -427,14 +430,14 @@ TEST(polyfill2d, SquareCW)
   TEST_POLYFILL_TEMPLATE_STATIC(poly, POLYFILL2D_TEST_NOP);
 }
 
-/* Starfleet insigna */
+/* Star-fleet insignia. */
 TEST(polyfill2d, Starfleet)
 {
   const float poly[][2] = {{0, 0}, {0.6f, 0.4f}, {1, 0}, {0.5f, 1}};
   TEST_POLYFILL_TEMPLATE_STATIC(poly, POLYFILL2D_TEST_NOP);
 }
 
-/* Starfleet insigna with repeated point */
+/* Star-fleet insignia with repeated point. */
 TEST(polyfill2d, StarfleetDegenerate)
 {
   const float poly[][2] = {{0, 0}, {0.6f, 0.4f}, {0.6f, 0.4f}, {1, 0}, {0.5f, 1}};

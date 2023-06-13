@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -228,10 +229,7 @@ static void do_enhance_details_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-static void SCULPT_enhance_details_brush(Sculpt *sd,
-                                         Object *ob,
-                                         PBVHNode **nodes,
-                                         const int totnode)
+static void SCULPT_enhance_details_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -260,8 +258,8 @@ static void SCULPT_enhance_details_brush(Sculpt *sd,
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, do_enhance_details_brush_task_cb_ex, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, do_enhance_details_brush_task_cb_ex, &settings);
 }
 
 static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
@@ -326,19 +324,14 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_smooth(Sculpt *sd,
-                   Object *ob,
-                   PBVHNode **nodes,
-                   const int totnode,
-                   float bstrength,
-                   const bool smooth_mask)
+void SCULPT_smooth(
+    Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask)
 {
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;
-  PBVHType type = BKE_pbvh_type(ss->pbvh);
   int iteration, count;
   float last;
 
@@ -346,11 +339,6 @@ void SCULPT_smooth(Sculpt *sd,
 
   count = int(bstrength * max_iterations);
   last = max_iterations * (bstrength - count * fract);
-
-  if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert_msg(0, "sculpt smooth: pmap missing");
-    return;
-  }
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);
@@ -367,12 +355,12 @@ void SCULPT_smooth(Sculpt *sd,
     data.strength = strength;
 
     TaskParallelSettings settings;
-    BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-    BLI_task_parallel_range(0, totnode, &data, do_smooth_brush_task_cb_ex, &settings);
+    BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+    BLI_task_parallel_range(0, nodes.size(), &data, do_smooth_brush_task_cb_ex, &settings);
   }
 }
 
-void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -382,11 +370,11 @@ void SCULPT_do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
    * middle of the stroke. */
   if (ss->cache->bstrength < 0.0f) {
     /* Invert mode, intensify details. */
-    SCULPT_enhance_details_brush(sd, ob, nodes, totnode);
+    SCULPT_enhance_details_brush(sd, ob, nodes);
   }
   else {
     /* Regular mode, smooth. */
-    SCULPT_smooth(sd, ob, nodes, totnode, ss->cache->bstrength, false);
+    SCULPT_smooth(sd, ob, nodes, ss->cache->bstrength, false);
   }
 }
 
@@ -536,7 +524,7 @@ static void SCULPT_do_surface_smooth_brush_displace_task_cb_ex(
   BKE_pbvh_vertex_iter_end;
 }
 
-void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
 
@@ -548,11 +536,11 @@ void SCULPT_do_surface_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, in
   data.nodes = nodes;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   for (int i = 0; i < brush->surface_smooth_iterations; i++) {
     BLI_task_parallel_range(
-        0, totnode, &data, SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex, &settings);
+        0, nodes.size(), &data, SCULPT_do_surface_smooth_brush_laplacian_task_cb_ex, &settings);
     BLI_task_parallel_range(
-        0, totnode, &data, SCULPT_do_surface_smooth_brush_displace_task_cb_ex, &settings);
+        0, nodes.size(), &data, SCULPT_do_surface_smooth_brush_displace_task_cb_ex, &settings);
   }
 }

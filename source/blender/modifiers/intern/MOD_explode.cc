@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -27,7 +28,7 @@
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -46,8 +47,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 static void initData(ModifierData *md)
 {
@@ -667,7 +668,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
   int i, v1, v2, v3, v4, esplit, v[4] = {0, 0, 0, 0}, /* To quite gcc barking... */
       uv[4] = {0, 0, 0, 0};                           /* To quite gcc barking... */
   int layers_num;
-  uint ed_v1, ed_v2;
+  int ed_v1, ed_v2;
 
   edgehash = BLI_edgehash_new(__func__);
 
@@ -739,7 +740,8 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
     totfsplit += add_faces[*fs];
   }
 
-  split_m = BKE_mesh_new_nomain_from_template(mesh, totesplit, 0, totface + totfsplit, 0, 0);
+  split_m = BKE_mesh_new_nomain_from_template_ex(
+      mesh, totesplit, 0, totface + totfsplit, 0, 0, CD_MASK_EVERYTHING);
 
   layers_num = CustomData_number_of_layers(&split_m->fdata, CD_MTFACE);
 
@@ -897,6 +899,7 @@ static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 
   BKE_mesh_calc_edges_tessface(split_m);
   BKE_mesh_convert_mfaces_to_mpolys(split_m);
+  BKE_mesh_legacy_convert_polys_to_offsets(split_m);
 
   return split_m;
 }
@@ -921,7 +924,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   const int *facepa = emd->facepa;
   int totdup = 0, totvert = 0, totface = 0, totpart = 0, delface = 0;
   int i, v, u;
-  uint ed_v1, ed_v2, mindex = 0;
+  int ed_v1, ed_v2, mindex = 0;
 
   totface = mesh->totface;
   totvert = mesh->totvert;
@@ -948,7 +951,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
 
       if ((pa->alive == PARS_UNBORN && (emd->flag & eExplodeFlag_Unborn) == 0) ||
           (pa->alive == PARS_ALIVE && (emd->flag & eExplodeFlag_Alive) == 0) ||
-          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0)) {
+          (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0))
+      {
         delface++;
         continue;
       }
@@ -986,7 +990,8 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   BLI_edgehashIterator_free(ehi);
 
   /* the final duplicated vertices */
-  explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, totface - delface, 0, 0);
+  explode = BKE_mesh_new_nomain_from_template_ex(
+      mesh, totdup, 0, totface - delface, 0, 0, CD_MASK_EVERYTHING);
 
   MTFace *mtface = static_cast<MTFace *>(CustomData_get_layer_named_for_write(
       &explode->fdata, CD_MTFACE, emd->uvname, explode->totface));
@@ -1116,6 +1121,7 @@ static Mesh *explodeMesh(ExplodeModifierData *emd,
   /* finalization */
   BKE_mesh_calc_edges_tessface(explode);
   BKE_mesh_convert_mfaces_to_mpolys(explode);
+  BKE_mesh_legacy_convert_polys_to_offsets(explode);
 
   psys_sim_data_free(&sim);
 
@@ -1152,12 +1158,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       return mesh;
     }
 
-    BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+    BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYGONS */
 
     /* 1. find faces to be exploded if needed */
     if (emd->facepa == nullptr || psmd->flag & eParticleSystemFlag_Pars ||
         emd->flag & eExplodeFlag_CalcFaces ||
-        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface) {
+        MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface)
+    {
       if (psmd->flag & eParticleSystemFlag_Pars) {
         psmd->flag &= ~eParticleSystemFlag_Pars;
       }

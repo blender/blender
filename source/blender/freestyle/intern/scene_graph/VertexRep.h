@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -29,9 +31,7 @@ class VertexRep : public Rep {
     _PointSize = 0.0f;
   }
 
-  inline ~VertexRep()
-  {
-  }
+  inline ~VertexRep() {}
 
   /** Accept the corresponding visitor */
   virtual void accept(SceneVisitor &v)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -103,7 +104,7 @@ static bool hud_panel_operator_redo_poll(const bContext *C, PanelType * /*pt*/)
 static void hud_panel_operator_redo_draw_header(const bContext *C, Panel *panel)
 {
   wmOperator *op = WM_operator_last_redo(C);
-  BLI_strncpy(panel->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(panel->drawname));
+  STRNCPY(panel->drawname, WM_operatortype_name(op->type, op->ptr));
 }
 
 static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
@@ -172,9 +173,10 @@ static void hud_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout(C, region);
 
   if (region->panels.first &&
-      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y))) {
-    int winx_new = UI_DPI_FAC * (region->sizex + 0.5f);
-    int winy_new = UI_DPI_FAC * (region->sizey + 0.5f);
+      ((area->flag & AREA_FLAG_REGION_SIZE_UPDATE) || (region->sizey != size_y)))
+  {
+    int winx_new = UI_SCALE_FAC * (region->sizex + 0.5f);
+    int winy_new = UI_SCALE_FAC * (region->sizey + 0.5f);
     View2D *v2d = &region->v2d;
 
     if (region->flag & RGN_FLAG_SIZE_CLAMP_X) {

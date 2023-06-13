@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -16,6 +18,7 @@
 #include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_vector.hh"
 
 #include "BLT_translation.h"
@@ -214,7 +217,8 @@ static void node_socket_add_replace(const bContext *C,
 
   if (node_from) {
     if (node_from->inputs.first || node_from->typeinfo->draw_buttons ||
-        node_from->typeinfo->draw_buttons_ex) {
+        node_from->typeinfo->draw_buttons_ex)
+    {
       node_from = nullptr;
     }
   }
@@ -234,7 +238,7 @@ static void node_socket_add_replace(const bContext *C,
     }
     else {
       sock_from_tmp = (bNodeSocket *)BLI_findlink(&node_from->outputs, item->socket_index);
-      nodePositionRelative(node_from, node_to, sock_from_tmp, sock_to);
+      bke::nodePositionRelative(node_from, node_to, sock_from_tmp, sock_to);
     }
 
     node_link_item_apply(ntree, node_from, item);
@@ -277,7 +281,8 @@ static void node_socket_add_replace(const bContext *C,
     if (node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE &&
         /* White noise texture node does not have NodeTexBase. */
-        node_from->storage != nullptr && node_prev->storage != nullptr) {
+        node_from->storage != nullptr && node_prev->storage != nullptr)
+    {
       memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
     }
 
@@ -321,20 +326,22 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
     int i;
 
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
-         ngroup = (bNodeTree *)ngroup->id.next) {
+         ngroup = (bNodeTree *)ngroup->id.next)
+    {
       const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
+      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+      {
         continue;
       }
     }
 
     i = 0;
     for (ngroup = (bNodeTree *)arg->bmain->nodetrees.first; ngroup;
-         ngroup = (bNodeTree *)ngroup->id.next) {
+         ngroup = (bNodeTree *)ngroup->id.next)
+    {
       const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint)) {
+      if ((ngroup->type != arg->ntree->type) || !nodeGroupPoll(arg->ntree, ngroup, &disabled_hint))
+      {
         continue;
       }
 
@@ -463,21 +470,21 @@ static void ui_node_sock_name(const bNodeTree *ntree,
     bNode *node = sock->link->fromnode;
     char node_name[UI_MAX_NAME_STR];
 
-    nodeLabel(ntree, node, node_name, sizeof(node_name));
+    bke::nodeLabel(ntree, node, node_name, sizeof(node_name));
 
     if (BLI_listbase_is_empty(&node->inputs) && node->outputs.first != node->outputs.last) {
       BLI_snprintf(
           name, UI_MAX_NAME_STR, "%s | %s", IFACE_(node_name), IFACE_(sock->link->fromsock->name));
     }
     else {
-      BLI_strncpy(name, IFACE_(node_name), UI_MAX_NAME_STR);
+      BLI_strncpy_utf8(name, IFACE_(node_name), UI_MAX_NAME_STR);
     }
   }
   else if (sock->type == SOCK_SHADER) {
-    BLI_strncpy(name, IFACE_("None"), UI_MAX_NAME_STR);
+    BLI_strncpy_utf8(name, IFACE_("None"), UI_MAX_NAME_STR);
   }
   else {
-    BLI_strncpy(name, IFACE_("Default"), UI_MAX_NAME_STR);
+    BLI_strncpy_utf8(name, IFACE_("Default"), UI_MAX_NAME_STR);
   }
 }
 
@@ -596,11 +603,11 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
                    "");
         }
 
-        BLI_snprintf(name, UI_MAX_NAME_STR, "%s", IFACE_(item.socket_name));
+        SNPRINTF(name, "%s", IFACE_(item.socket_name));
         icon = ICON_BLANK1;
       }
       else {
-        BLI_strncpy(name, IFACE_(item.node_name), UI_MAX_NAME_STR);
+        STRNCPY_UTF8(name, IFACE_(item.node_name));
         icon = ICON_NONE;
       }
 
@@ -829,7 +836,7 @@ static void ui_node_draw_input(
 
     sub = uiLayoutRow(sub, true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, IFACE_(nodeSocketLabel(&input)), ICON_NONE);
+    uiItemL(sub, IFACE_(bke::nodeSocketLabel(&input)), ICON_NONE);
   }
 
   if (dependency_loop) {

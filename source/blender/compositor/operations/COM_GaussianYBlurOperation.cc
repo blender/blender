@@ -1,14 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GaussianYBlurOperation.h"
 #include "COM_OpenCLDevice.h"
 
 namespace blender::compositor {
 
-GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y)
-{
-}
+GaussianYBlurOperation::GaussianYBlurOperation() : GaussianBlurBaseOperation(eDimension::Y) {}
 
 void *GaussianYBlurOperation::initialize_tile_data(rcti * /*rect*/)
 {

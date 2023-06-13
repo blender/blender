@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -123,6 +124,17 @@ int insert_vert_fcurve(struct FCurve *fcu,
                        eBezTriple_KeyframeType keyframe_type,
                        eInsertKeyFlags flag);
 
+/**
+ * Add the given number of keyframes to the FCurve. Their coordinates are
+ * uninitialized, so the curve should not be used without further attention.
+ *
+ * The newly created keys are selected, existing keys are not touched.
+ *
+ * This can be used to allocate all the keys at once, and then update them
+ * afterwards.
+ */
+void ED_keyframes_add(struct FCurve *fcu, int num_keys_to_add);
+
 /* -------- */
 
 /**
@@ -223,7 +235,7 @@ typedef struct KeyingSetInfo {
   /* identifier so that user can hook this up to a KeyingSet (used as label). */
   char name[64];
   /* short help/description. */
-  char description[240]; /* RNA_DYN_DESCR_MAX */
+  char description[1024]; /* #RNA_DYN_DESCR_MAX */
   /* keying settings */
   short keyingflag;
 
@@ -577,8 +589,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
 /* Auto-Keying macros for use by various tools. */
 
-/** Check if auto-key-framing is enabled (per scene takes precedence).
- */
+/** Check if auto-key-framing is enabled (per scene takes precedence). */
 #define IS_AUTOKEY_ON(scene) \
   ((scene) ? ((scene)->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
 /** Check the mode for auto-keyframing (per scene takes precedence). */
@@ -608,7 +619,7 @@ bool autokeyframe_cfra_can_key(const struct Scene *scene, struct ID *id);
  * Checks if some F-Curve has a keyframe for a given frame.
  * \note Used for the buttons to check for keyframes.
  */
-bool fcurve_frame_has_keyframe(const struct FCurve *fcu, float frame, short filter);
+bool fcurve_frame_has_keyframe(const struct FCurve *fcu, float frame);
 
 /**
  * \brief Lesser Keyframe Checking API call.
@@ -629,23 +640,7 @@ bool fcurve_is_changed(struct PointerRNA ptr,
  * in case some detail of the implementation changes...
  * \param frame: The value of this is quite often result of #BKE_scene_ctime_get()
  */
-bool id_frame_has_keyframe(struct ID *id, float frame, short filter);
-
-/**
- * Filter flags for #id_frame_has_keyframe.
- *
- * \warning do not alter order of these, as also stored in files (for `v3d->keyflags`).
- */
-typedef enum eAnimFilterFlags {
-  /* general */
-  ANIMFILTER_KEYS_LOCAL = (1 << 0),  /* only include locally available anim data */
-  ANIMFILTER_KEYS_MUTED = (1 << 1),  /* include muted elements */
-  ANIMFILTER_KEYS_ACTIVE = (1 << 2), /* only include active-subelements */
-
-  /* object specific */
-  ANIMFILTER_KEYS_NOMAT = (1 << 9),   /* don't include material keyframes */
-  ANIMFILTER_KEYS_NOSKEY = (1 << 10), /* don't include shape keys (for geometry) */
-} eAnimFilterFlags;
+bool id_frame_has_keyframe(struct ID *id, float frame);
 
 /* Utility functions for auto key-frame. */
 

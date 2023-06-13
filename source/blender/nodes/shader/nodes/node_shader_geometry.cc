@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,15 +8,15 @@ namespace blender::nodes::node_shader_geometry_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Position"));
-  b.add_output<decl::Vector>(N_("Normal"));
-  b.add_output<decl::Vector>(N_("Tangent"));
-  b.add_output<decl::Vector>(N_("True Normal"));
-  b.add_output<decl::Vector>(N_("Incoming"));
-  b.add_output<decl::Vector>(N_("Parametric"));
-  b.add_output<decl::Float>(N_("Backfacing"));
-  b.add_output<decl::Float>(N_("Pointiness"));
-  b.add_output<decl::Float>(N_("Random Per Island"));
+  b.add_output<decl::Vector>("Position");
+  b.add_output<decl::Vector>("Normal");
+  b.add_output<decl::Vector>("Tangent");
+  b.add_output<decl::Vector>("True Normal");
+  b.add_output<decl::Vector>("Incoming");
+  b.add_output<decl::Vector>("Parametric");
+  b.add_output<decl::Float>("Backfacing");
+  b.add_output<decl::Float>("Pointiness");
+  b.add_output<decl::Float>("Random Per Island");
 }
 
 static int node_shader_gpu_geometry(GPUMaterial *mat,

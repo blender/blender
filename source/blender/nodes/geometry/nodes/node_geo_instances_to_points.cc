@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
+#include "BLI_array_utils.hh"
 
 #include "DNA_pointcloud_types.h"
 
@@ -12,21 +16,21 @@ namespace blender::nodes::node_geo_instances_to_points_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Instances")).only_instances();
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Position")).implicit_field_on_all(implicit_field_inputs::position);
-  b.add_input<decl::Float>(N_("Radius"))
+  b.add_input<decl::Geometry>("Instances").only_instances();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Vector>("Position").implicit_field_on_all(implicit_field_inputs::position);
+  b.add_input<decl::Float>("Radius")
       .default_value(0.05f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .field_on_all();
-  b.add_output<decl::Geometry>(N_("Points")).propagate_all();
+  b.add_output<decl::Geometry>("Points").propagate_all();
 }
 
 static void convert_instances_to_points(GeometrySet &geometry_set,
                                         Field<float3> position_field,
                                         Field<float> radius_field,
-                                        const Field<bool> selection_field,
+                                        Field<bool> selection_field,
                                         const AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::Instances &instances = *geometry_set.get_instances_for_read();
@@ -41,24 +45,20 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   if (selection.is_empty()) {
     return;
   }
-  const VArray<float3> &positions = evaluator.get_evaluated<float3>(0);
+  const VArray<float3> positions = evaluator.get_evaluated<float3>(0);
   const VArray<float> radii = evaluator.get_evaluated<float>(1);
 
   PointCloud *pointcloud = BKE_pointcloud_new_nomain(selection.size());
   geometry_set.replace_pointcloud(pointcloud);
+  array_utils::gather(positions, selection, pointcloud->positions_for_write());
 
-  bke::MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
-
-  bke::SpanAttributeWriter<float3> point_positions =
-      point_attributes.lookup_or_add_for_write_only_span<float3>("position", ATTR_DOMAIN_POINT);
+  bke::MutableAttributeAccessor dst_attributes = pointcloud->attributes_for_write();
   bke::SpanAttributeWriter<float> point_radii =
-      point_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
-
-  positions.materialize_compressed_to_uninitialized(selection, point_positions.span);
-  radii.materialize_compressed_to_uninitialized(selection, point_radii.span);
-  point_positions.finish();
+      dst_attributes.lookup_or_add_for_write_only_span<float>("radius", ATTR_DOMAIN_POINT);
+  array_utils::gather(radii, selection, point_radii.span);
   point_radii.finish();
 
+  const bke::AttributeAccessor src_attributes = instances.attributes();
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
   geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_INSTANCES},
                                                  GEO_COMPONENT_TYPE_POINT_CLOUD,
@@ -70,18 +70,22 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
   attributes_to_propagate.remove("radius");
 
   for (const auto item : attributes_to_propagate.items()) {
-    const AttributeIDRef &attribute_id = item.key;
-    const AttributeKind attribute_kind = item.value;
+    const AttributeIDRef &id = item.key;
+    const eCustomDataType type = item.value.data_type;
 
-    const GVArray src = instances.attributes().lookup_or_default(
-        attribute_id, ATTR_DOMAIN_INSTANCE, attribute_kind.data_type);
-    BLI_assert(src);
-    GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
-    BLI_assert(dst);
-
-    src.materialize_compressed_to_uninitialized(selection, dst.span.data());
-    dst.finish();
+    const GAttributeReader src = src_attributes.lookup(id);
+    if (selection.size() == instances.instances_num() && src.sharing_info && src.varray.is_span())
+    {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      dst_attributes.add(id, ATTR_DOMAIN_POINT, type, init);
+    }
+    else {
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          id, ATTR_DOMAIN_POINT, type);
+      array_utils::gather(src.varray, selection, dst.span);
+      dst.finish();
+    }
   }
 }
 

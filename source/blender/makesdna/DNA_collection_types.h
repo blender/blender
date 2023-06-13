@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -19,16 +20,58 @@ extern "C" {
 
 struct Collection;
 struct Object;
+struct GHash;
+
+/* Light linking relation of a collection or an object. */
+typedef struct CollectionLightLinking {
+  /* Light and shadow linking configuration, an enumerator of eCollectionLightLinkingState.
+   * The meaning depends on whether the collection is specified as a light or shadow linking on the
+   * Object's LightLinking.
+   *
+   * For the light linking collection:
+   *
+   *   - INCLUDE: the receiver is included into the light linking and is only receiving lights from
+   *     emitters which include it in their light linking collections. The receiver is not affected
+   *     by regular scene lights.
+   *
+   *   - EXCLUDE: the receiver does not receive light from this emitter, but is lit by regular
+   *     lights in the scene or by emitters which are linked to it via INCLUDE on their
+   *     light_state.
+   *
+   * For the shadow linking collection:
+   *
+   *   - INCLUDE: the collection or object casts shadows from the emitter. It does not cast shadow
+   *     from light sources which do not have INCLUDE on their light linking configuration for it.
+   *
+   *   - EXCLUDE: the collection or object does not cast shadow when lit by this emitter, but does
+   *     for other light sources in the scene. */
+  uint8_t link_state;
+
+  uint8_t _pad[3];
+} CollectionLightLinking;
 
 typedef struct CollectionObject {
   struct CollectionObject *next, *prev;
   struct Object *ob;
+
+  CollectionLightLinking light_linking;
+  int _pad;
 } CollectionObject;
 
 typedef struct CollectionChild {
   struct CollectionChild *next, *prev;
   struct Collection *collection;
+
+  CollectionLightLinking light_linking;
+  int _pad;
 } CollectionChild;
+
+/* Light linking state of object or collection: defines how they react to the emitters in the
+ * scene. See the comment for the link_state in the CollectionLightLinking for the details. */
+typedef enum eCollectionLightLinkingState {
+  COLLECTION_LIGHT_LINKING_STATE_INCLUDE = 0,
+  COLLECTION_LIGHT_LINKING_STATE_EXCLUDE = 1,
+} eCollectionLightLinkingState;
 
 enum eCollectionLineArt_Usage {
   COLLECTION_LRT_INCLUDE = 0,
@@ -60,6 +103,9 @@ typedef struct Collection_Runtime {
 
   /** List of collections that are a parent of this data-block. */
   ListBase parents;
+
+  /** An optional map for faster lookups on #Collection.gobject */
+  struct GHash *gobject_hash;
 
   uint8_t tag;
 
@@ -124,6 +170,13 @@ enum {
    * Using a generic tag like #LIB_TAG_DOIT for this is just impossible, we need our very own.
    */
   COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
+  /**
+   * Mark the `gobject` list and/or its `runtime.gobject_hash` mapping as dirty, i.e. that their
+   * data is not reliable and should be cleaned-up or updated.
+   *
+   * This should typically only be set by ID remapping code.
+   */
+  COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
 };
 
 /** #Collection.color_tag */

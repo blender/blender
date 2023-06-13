@@ -247,13 +247,17 @@ size_t CachedData::memory_used() const
 static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
 {
   V3d scale, shear, rotation, translation;
-  extractSHRT(mtx,
-              scale,
-              shear,
-              rotation,
-              translation,
-              true,
-              IMATH_INTERNAL_NAMESPACE::Euler<double>::XZY);
+
+  if (!extractSHRT(mtx,
+                   scale,
+                   shear,
+                   rotation,
+                   translation,
+                   true,
+                   IMATH_INTERNAL_NAMESPACE::Euler<double>::XZY))
+  {
+    return mtx;
+  }
 
   M44d rot_mat, scale_mat, trans_mat;
   rot_mat.setEulerAngles(V3d(rotation.x, -rotation.z, rotation.y));
@@ -433,9 +437,7 @@ AlembicObject::AlembicObject() : Node(get_node_type())
   schema_type = INVALID;
 }
 
-AlembicObject::~AlembicObject()
-{
-}
+AlembicObject::~AlembicObject() {}
 
 void AlembicObject::set_object(Object *object_)
 {
@@ -805,7 +807,8 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
     /* Check if the shaders were modified. */
     if (object->used_shaders_is_modified() && object->get_object() &&
-        object->get_object()->get_geometry()) {
+        object->get_object()->get_geometry())
+    {
       Geometry *geometry = object->get_object()->get_geometry();
       array<Node *> used_shaders = object->get_used_shaders();
       geometry->set_used_shaders(used_shaders);
@@ -907,7 +910,8 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
     /* skip constant objects */
     if (object->is_constant() && !object->is_modified() && !object->need_shader_update &&
-        !scale_is_modified()) {
+        !scale_is_modified())
+    {
       continue;
     }
 
@@ -993,7 +997,8 @@ void AlembicProcedural::load_objects(Progress &progress)
         geometry = scene_->create_node<PointCloud>();
       }
       else if (abc_object->schema_type == AlembicObject::POLY_MESH ||
-               abc_object->schema_type == AlembicObject::SUBD) {
+               abc_object->schema_type == AlembicObject::SUBD)
+      {
         geometry = scene_->create_node<Mesh>();
       }
       else {
@@ -1468,7 +1473,8 @@ void AlembicProcedural::build_caches(Progress &progress)
     }
     else if (object->schema_type == AlembicObject::CURVES) {
       if (!object->has_data_loaded() || default_radius_is_modified() ||
-          object->radius_scale_is_modified()) {
+          object->radius_scale_is_modified())
+      {
         ICurves curves(object->iobject, Alembic::Abc::kWrapExisting);
         ICurvesSchema schema = curves.getSchema();
         object->load_data_in_cache(object->get_cached_data(), this, schema, progress);
@@ -1476,7 +1482,8 @@ void AlembicProcedural::build_caches(Progress &progress)
     }
     else if (object->schema_type == AlembicObject::POINTS) {
       if (!object->has_data_loaded() || default_radius_is_modified() ||
-          object->radius_scale_is_modified()) {
+          object->radius_scale_is_modified())
+      {
         IPoints points(object->iobject, Alembic::Abc::kWrapExisting);
         IPointsSchema schema = points.getSchema();
         object->load_data_in_cache(object->get_cached_data(), this, schema, progress);

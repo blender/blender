@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_PlaneDistortCommonOperation.h"
 
@@ -254,7 +255,8 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
           isect_point_tri_v2(point,
                              sample_data->frame_space_corners[0],
                              sample_data->frame_space_corners[2],
-                             sample_data->frame_space_corners[3])) {
+                             sample_data->frame_space_corners[3]))
+      {
         inside_counter++;
       }
     }
@@ -273,7 +275,8 @@ void PlaneDistortMaskOperation::execute_pixel_sampled(float output[4],
             isect_point_tri_v2(point,
                                sample_data->frame_space_corners[0],
                                sample_data->frame_space_corners[2],
-                               sample_data->frame_space_corners[3])) {
+                               sample_data->frame_space_corners[3]))
+        {
           inside_counter++;
         }
       }
@@ -312,7 +315,8 @@ int PlaneDistortMaskOperation::get_jitter_samples_inside_count(int x,
         isect_point_tri_v2(point,
                            sample_data.frame_space_corners[0],
                            sample_data.frame_space_corners[2],
-                           sample_data.frame_space_corners[3])) {
+                           sample_data.frame_space_corners[3]))
+    {
       inside_count++;
     }
   }

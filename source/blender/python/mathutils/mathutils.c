@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
@@ -102,7 +104,8 @@ int mathutils_array_parse(
 
   if ((num = VectorObject_Check(value) ? ((VectorObject *)value)->vec_num : 0) ||
       (num = EulerObject_Check(value) ? 3 : 0) || (num = QuaternionObject_Check(value) ? 4 : 0) ||
-      (num = ColorObject_Check(value) ? 3 : 0)) {
+      (num = ColorObject_Check(value) ? 3 : 0))
+  {
     if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
       return -1;
     }
@@ -196,7 +199,8 @@ int mathutils_array_parse_alloc(float **array,
 
   if ((num = VectorObject_Check(value) ? ((VectorObject *)value)->vec_num : 0) ||
       (num = EulerObject_Check(value) ? 3 : 0) || (num = QuaternionObject_Check(value) ? 4 : 0) ||
-      (num = ColorObject_Check(value) ? 3 : 0)) {
+      (num = ColorObject_Check(value) ? 3 : 0))
+  {
     if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
       return -1;
     }
@@ -511,6 +515,7 @@ int EXPP_FloatsAreEqual(float af, float bf, int maxDiff)
 
 /*---------------------- EXPP_VectorsAreEqual -------------------------
  * Builds on EXPP_FloatsAreEqual to test vectors */
+
 int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int floatSteps)
 {
   int x;
@@ -523,7 +528,7 @@ int EXPP_VectorsAreEqual(const float *vecA, const float *vecB, int size, int flo
 }
 
 #ifndef MATH_STANDALONE
-PyObject *mathutils_dynstr_to_py(struct DynStr *ds)
+PyObject *mathutils_dynstr_to_py(DynStr *ds)
 {
   const int ds_len = BLI_dynstr_get_len(ds); /* space for \0 */
   char *ds_buf = PyMem_Malloc(ds_len + 1);
@@ -570,9 +575,10 @@ int _BaseMathObject_CheckCallback(BaseMathObject *self)
   return -1;
 }
 
-/* use macros to check for NULL */
 int _BaseMathObject_ReadCallback(BaseMathObject *self)
 {
+  /* NOTE: use macros to check for NULL. */
+
   Mathutils_Callback *cb = mathutils_callbacks[self->cb_type];
   if (LIKELY(cb->get(self, self->cb_subtype) != -1)) {
     return 0;
@@ -636,7 +642,8 @@ void _BaseMathObject_RaiseNotFrozenExc(const BaseMathObject *self)
       PyExc_TypeError, "%s is not frozen (mutable), call freeze first", Py_TYPE(self)->tp_name);
 }
 
-/* BaseMathObject generic functions for all mathutils types */
+/* #BaseMathObject generic functions for all mathutils types. */
+
 char BaseMathObject_owner_doc[] = "The item this is wrapping or None  (read-only).";
 PyObject *BaseMathObject_owner_get(BaseMathObject *self, void *UNUSED(closure))
 {
@@ -760,11 +767,11 @@ PyObject *_BaseMathObject_new_impl(PyTypeObject *root_type, PyTypeObject *base_t
 }
 
 /*----------------------------MODULE INIT-------------------------*/
-static struct PyMethodDef M_Mathutils_methods[] = {
+static PyMethodDef M_Mathutils_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Mathutils_module_def = {
+static PyModuleDef M_Mathutils_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils",
     /*m_doc*/ M_Mathutils_doc,

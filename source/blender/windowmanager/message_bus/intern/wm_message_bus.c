@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -68,8 +70,8 @@ void WM_msgbus_clear_by_owner(struct wmMsgBus *mbus, void *owner)
     msg_key_next = msg_key->next;
 
     wmMsgSubscribeValueLink *msg_lnk_next;
-    for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk;
-         msg_lnk = msg_lnk_next) {
+    for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk_next)
+    {
       msg_lnk_next = msg_lnk->next;
       if (msg_lnk->params.owner == owner) {
         if (msg_lnk->params.tag) {
@@ -154,7 +156,8 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(struct wmMsgBus *mbus,
     LISTBASE_FOREACH (wmMsgSubscribeValueLink *, msg_lnk, &key->values) {
       if ((msg_lnk->params.notify == msg_val_params->notify) &&
           (msg_lnk->params.owner == msg_val_params->owner) &&
-          (msg_lnk->params.user_data == msg_val_params->user_data)) {
+          (msg_lnk->params.user_data == msg_val_params->user_data))
+      {
         return key;
       }
     }
@@ -187,7 +190,7 @@ void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
   }
 }
 
-void WM_msg_id_update(struct wmMsgBus *mbus, struct ID *id_src, struct ID *id_dst)
+void WM_msg_id_update(struct wmMsgBus *mbus, ID *id_src, ID *id_dst)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];
@@ -197,7 +200,7 @@ void WM_msg_id_update(struct wmMsgBus *mbus, struct ID *id_src, struct ID *id_ds
   }
 }
 
-void WM_msg_id_remove(struct wmMsgBus *mbus, const struct ID *id)
+void WM_msg_id_remove(struct wmMsgBus *mbus, const ID *id)
 {
   for (uint i = 0; i < WM_MSG_TYPE_NUM; i++) {
     wmMsgTypeInfo *info = &wm_msg_types[i];

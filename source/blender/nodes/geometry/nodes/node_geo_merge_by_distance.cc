@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"
@@ -17,11 +19,11 @@ NODE_STORAGE_FUNCS(NodeGeometryMergeByDistance)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Geometry"))
+  b.add_input<decl::Geometry>("Geometry")
       .supported_type({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_MESH});
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Distance")).default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Geometry>(N_("Geometry")).propagate_all();
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_input<decl::Float>("Distance").default_value(0.001f).min(0.0f).subtype(PROP_DISTANCE);
+  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -44,7 +46,7 @@ static PointCloud *pointcloud_merge_by_distance(
     const Field<bool> &selection_field,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
-  bke::PointCloudFieldContext context{src_points};
+  const bke::PointCloudFieldContext context{src_points};
   FieldEvaluator evaluator{context, src_points.totpoint};
   evaluator.add(selection_field);
   evaluator.evaluate();
@@ -63,7 +65,7 @@ static std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                               const Field<bool> &selection_field)
 {
   Array<bool> selection(mesh.totvert);
-  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add_with_destination(selection_field, selection.as_mutable_span());
   evaluator.evaluate();
@@ -75,7 +77,7 @@ static std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
                                                         const float merge_distance,
                                                         const Field<bool> &selection_field)
 {
-  bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
+  const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_POINT};
   FieldEvaluator evaluator{context, mesh.totvert};
   evaluator.add(selection_field);
   evaluator.evaluate();

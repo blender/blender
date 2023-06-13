@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -61,9 +63,6 @@ typedef struct LightProbe {
   struct Image *image;
   /** Object visibility group, inclusive or exclusive. */
   struct Collection *visibility_grp;
-
-  /* Runtime display data */
-  float distfalloff, distgridinf;
 } LightProbe;
 
 /* Probe->type */
@@ -200,6 +199,137 @@ enum {
   LIGHTCACHETEX_FLOAT = (1 << 1),
   LIGHTCACHETEX_UINT = (1 << 2),
 };
+
+/* -------------------------------------------------------------------- */
+/** \name Irradiance grid data storage
+ *
+ * Each spherical harmonic band is stored separately. This allow loading only a specific band.
+ * The layout of each array is set by the #LightProbeGridType.
+ * Any unavailable data is be set to nullptr.
+ * \{ */
+
+/**
+ * Irradiance data (RGB) stored along visibility (A).
+ * This is the format used during baking and is used for visualizing the baking process.
+ */
+typedef struct LightProbeBakingData {
+  float (*L0)[4];
+  float (*L1_a)[4];
+  float (*L1_b)[4];
+  float (*L1_c)[4];
+} LightProbeBakingData;
+
+/**
+ * Irradiance stored as RGB triple using scene linear color space.
+ */
+typedef struct LightProbeIrradianceData {
+  float (*L0)[3];
+  float (*L1_a)[3];
+  float (*L1_b)[3];
+  float (*L1_c)[3];
+} LightProbeIrradianceData;
+
+/**
+ * Normalized visibility of distant light. Used for compositing grids together.
+ */
+typedef struct LightProbeVisibilityData {
+  float *L0;
+  float *L1_a;
+  float *L1_b;
+  float *L1_c;
+} LightProbeVisibilityData;
+
+/**
+ * Used to avoid light leaks. Validate visibility between each grid sample.
+ */
+typedef struct LightProbeConnectivityData {
+  /** Stores a bitmask of valid connections within a cell. */
+  uint8_t *bitmask;
+} LightProbeConnectivityData;
+
+/**
+ * Defines one block of data inside the grid cache data arrays.
+ * The block size if the same for all the blocks.
+ */
+typedef struct LightProbeBlockData {
+  /* Offset inside the level-of-detail this block starts. */
+  int offset[3];
+  /* Level-of-detail this block is from. */
+  int level;
+} LightProbeBlockData;
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name LightProbeGridCacheFrame
+ *
+ * \{ */
+
+/**
+ * A frame worth of baked lighting data.
+ */
+typedef struct LightProbeGridCacheFrame {
+  /** Number of samples in the highest level of detail. */
+  int size[3];
+  /** Spatial layout type of the data stored inside the data arrays. */
+  int data_layout;
+
+  /** Sparse or adaptive layout only: number of blocks inside data arrays. */
+  int block_len;
+  /** Sparse or adaptive layout only: size of a block in samples. All 3 dimensions are equal. */
+  int block_size;
+  /** Sparse or adaptive layout only: specify the blocks positions. */
+  LightProbeBlockData *block_infos;
+
+  /** In-progress baked data. Not stored in file. */
+  LightProbeBakingData baking;
+  /** Baked data. */
+  LightProbeIrradianceData irradiance;
+  LightProbeVisibilityData visibility;
+  LightProbeConnectivityData connectivity;
+
+  char _pad[4];
+
+  /** Number of debug surfels. */
+  int surfels_len;
+  /** Debug surfels used to visualize the baking process. Not stored in file. */
+  void *surfels;
+} LightProbeGridCacheFrame;
+
+/** #LightProbeGridCacheFrame.data_layout (int) */
+enum {
+  /** Simple uniform grid. Raw output from GPU. Used during the baking process. */
+  LIGHTPROBE_CACHE_UNIFORM_GRID = 0,
+  /** Fills the space with different level of resolution. More efficient storage. */
+  LIGHTPROBE_CACHE_ADAPTIVE_RESOLUTION = 1,
+};
+
+/**
+ * Per object container of baked data.
+ * Should be called #LightProbeCache but name is already taken.
+ */
+typedef struct LightProbeObjectCache {
+  /** Allow correct versioning / different types of data for the same layout. */
+  int cache_type;
+  /** True if this cache references the original object's cache. */
+  char shared;
+  /** True if the cache has been tagged for automatic baking. */
+  char dirty;
+
+  char _pad0[2];
+
+  struct LightProbeGridCacheFrame *grid_static_cache;
+} LightProbeObjectCache;
+
+/** #LightProbeObjectCache.type (int) */
+enum {
+  /** Light cache was just created and is not yet baked. Keep as 0 for default value. */
+  LIGHTPROBE_CACHE_TYPE_NONE = 0,
+  /** Light cache is baked for one specific frame and capture all indirect lighting. */
+  LIGHTPROBE_CACHE_TYPE_STATIC = 1,
+};
+
+/** \} */
 
 #ifdef __cplusplus
 }

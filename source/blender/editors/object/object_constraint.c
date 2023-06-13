@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -182,7 +183,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
   int i;
 
   /* add title first */
-  BLI_snprintf(buf, sizeof(buf), "Scripts: %%t|[None]%%x0|");
+  STRNCPY(buf, "Scripts: %t|[None]%x0|");
   BLI_dynstr_append(pupds, buf);
 
   /* init active-index first */
@@ -201,7 +202,7 @@ static char *buildmenu_pyconstraints(Main *bmain, Text *con_text, int *pyconinde
     if (BPY_is_pyconstraint(text)) {
       BLI_dynstr_append(pupds, text->id.name + 2);
 
-      BLI_snprintf(buf, sizeof(buf), "%%x%d", i);
+      SNPRINTF(buf, "%%x%d", i);
       BLI_dynstr_append(pupds, buf);
 
       if (text->id.next) {
@@ -269,7 +270,7 @@ static void set_constraint_nth_target(bConstraint *con,
     for (ct = targets.first, i = 0; ct; ct = ct->next, i++) {
       if (i == index) {
         ct->tar = target;
-        BLI_strncpy(ct->subtarget, subtarget, sizeof(ct->subtarget));
+        STRNCPY(ct->subtarget, subtarget);
         break;
       }
     }
@@ -522,8 +523,8 @@ static void test_constraint(
           if (ct->tar->type != OB_ARMATURE) {
             con->flag |= CONSTRAINT_DISABLE;
           }
-          else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar),
-                                                ct->subtarget)) {
+          else if (!BKE_armature_find_bone_name(BKE_armature_from_object(ct->tar), ct->subtarget))
+          {
             /* bone must exist in armature... */
             con->flag |= CONSTRAINT_DISABLE;
           }
@@ -719,7 +720,8 @@ static bool edit_constraint_invoke_properties(bContext *C,
   ListBase *list;
 
   if (RNA_struct_property_is_set(op->ptr, "constraint") &&
-      RNA_struct_property_is_set(op->ptr, "owner")) {
+      RNA_struct_property_is_set(op->ptr, "owner"))
+  {
     return true;
   }
 
@@ -778,6 +780,9 @@ static bConstraint *edit_constraint_property_get(bContext *C, wmOperator *op, Ob
 
   if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
     list = ED_object_pose_constraint_list(C);
+    if (!list) {
+      return NULL;
+    }
   }
   else {
     list = &ob->constraints;
@@ -1064,7 +1069,8 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
     Curve *cu = (Curve *)data->tar->data;
 
     if (ELEM(NULL, cu->adt, cu->adt->action) ||
-        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == NULL)) {
+        (BKE_fcurve_find(&cu->adt->action->curves, "eval_time", 0) == NULL))
+    {
       /* create F-Curve for path animation */
       act = ED_id_action_ensure(bmain, &cu->id);
       fcu = ED_action_fcurve_ensure(bmain, act, NULL, NULL, "eval_time", 0);
@@ -2043,7 +2049,7 @@ void POSE_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Pose Constraints";
   ot->idname = "POSE_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the selected bones";
+  ot->description = "Clear all constraints from the selected bones";
 
   /* callbacks */
   ot->exec = pose_constraints_clear_exec;
@@ -2082,7 +2088,7 @@ void OBJECT_OT_constraints_clear(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Clear Object Constraints";
   ot->idname = "OBJECT_OT_constraints_clear";
-  ot->description = "Clear all the constraints for the active object only";
+  ot->description = "Clear all constraints from the selected objects";
 
   /* callbacks */
   ot->exec = object_constraints_clear_exec;
@@ -2275,8 +2281,8 @@ static bool get_new_constraint_target(
         /* for armatures in pose mode, look inside the armature for the active bone
          * so that we set up cross-armature constraints with less effort
          */
-        if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) &&
-            (!only_curve && !only_mesh)) {
+        if ((ob->type == OB_ARMATURE) && (ob->mode & OB_MODE_POSE) && (!only_curve && !only_mesh))
+        {
 
           /* Only use the object & bone if the bone is visible & selected
            * since we may have multiple objects in pose mode at once. */
@@ -2630,7 +2636,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
  * \note Only for pose-channels.
  * \{ */
 
-/* TODO: should these be here, or back in editors/armature/poseobject.c again? */
+/* TODO: should these be here, or back in `editors/armature/poseobject.c` again? */
 
 /* present menu with options + validation for targets to use */
 static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

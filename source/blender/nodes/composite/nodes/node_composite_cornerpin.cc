@@ -1,13 +1,22 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
  */
 
-#include "BLT_translation.h"
+#include "BLI_math_geom.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "GPU_shader.h"
+#include "GPU_texture.h"
+
+#include "BKE_tracking.h"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
@@ -15,25 +24,31 @@ namespace blender::nodes::node_composite_cornerpin_cc {
 
 static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>(N_("Upper Left"))
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_input<decl::Vector>("Upper Left")
       .default_value({0.0f, 1.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f);
-  b.add_input<decl::Vector>(N_("Upper Right"))
+      .max(1.0f)
+      .compositor_expects_single_value();
+  b.add_input<decl::Vector>("Upper Right")
       .default_value({1.0f, 1.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f);
-  b.add_input<decl::Vector>(N_("Lower Left"))
+      .max(1.0f)
+      .compositor_expects_single_value();
+  b.add_input<decl::Vector>("Lower Left")
       .default_value({0.0f, 0.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f);
-  b.add_input<decl::Vector>(N_("Lower Right"))
+      .max(1.0f)
+      .compositor_expects_single_value();
+  b.add_input<decl::Vector>("Lower Right")
       .default_value({1.0f, 0.0f, 0.0f})
       .min(0.0f)
-      .max(1.0f);
-  b.add_output<decl::Color>(N_("Image"));
-  b.add_output<decl::Float>(N_("Plane"));
+      .max(1.0f)
+      .compositor_expects_single_value();
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Plane");
 }
 
 using namespace blender::realtime_compositor;
@@ -44,9 +59,70 @@ class CornerPinOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    get_result("Plane").allocate_invalid();
-    context().set_info_message("Viewport compositor setup not fully supported");
+    const float3x3 homography_matrix = compute_homography_matrix();
+
+    Result &input_image = get_input("Image");
+    Result &output_image = get_result("Image");
+    Result &output_mask = get_result("Plane");
+    if (input_image.is_single_value() || homography_matrix == float3x3::identity()) {
+      if (output_image.should_compute()) {
+        input_image.pass_through(output_image);
+      }
+      if (output_mask.should_compute()) {
+        output_mask.allocate_single_value();
+        output_mask.set_float_value(1.0f);
+      }
+      return;
+    }
+
+    GPUShader *shader = shader_manager().get("compositor_plane_deform");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_mat3_as_mat4(shader, "homography_matrix", homography_matrix.ptr());
+
+    GPU_texture_mipmap_mode(input_image.texture(), true, true);
+    GPU_texture_anisotropic_filter(input_image.texture(), true);
+    GPU_texture_extend_mode(input_image.texture(), GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Domain domain = compute_domain();
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    output_mask.allocate_texture(domain);
+    output_mask.bind_as_image(shader, "mask_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    input_image.unbind_as_texture();
+    output_image.unbind_as_image();
+    output_mask.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  float3x3 compute_homography_matrix()
+  {
+    float2 lower_left = get_input("Lower Left").get_vector_value_default(float4(0.0f)).xy();
+    float2 lower_right = get_input("Lower Right").get_vector_value_default(float4(0.0f)).xy();
+    float2 upper_right = get_input("Upper Right").get_vector_value_default(float4(0.0f)).xy();
+    float2 upper_left = get_input("Upper Left").get_vector_value_default(float4(0.0f)).xy();
+
+    /* The inputs are invalid because the plane is not convex, fallback to an identity operation in
+     * that case. */
+    if (!is_quad_convex_v2(lower_left, lower_right, upper_right, upper_left)) {
+      return float3x3::identity();
+    }
+
+    /* Compute a 2D projection matrix that projects from the corners of the image in normalized
+     * coordinates into the corners of the input plane. */
+    float3x3 homography_matrix;
+    float corners[4][2] = {{lower_left.x, lower_left.y},
+                           {lower_right.x, lower_right.y},
+                           {upper_right.x, upper_right.y},
+                           {upper_left.x, upper_left.y}};
+    float identity_corners[4][2] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
+    BKE_tracking_homography_between_two_quads(corners, identity_corners, homography_matrix.ptr());
+    return homography_matrix;
   }
 };
 
@@ -66,8 +142,6 @@ void register_node_type_cmp_cornerpin()
   cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, "Corner Pin", NODE_CLASS_DISTORT);
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -24,15 +25,19 @@ struct TextureInfo {
   bool need_full_update : 1;
 
   /** \brief area of the texture in screen space. */
-  rctf clipping_bounds;
+  rcti clipping_bounds;
   /** \brief uv area of the texture in screen space. */
   rctf clipping_uv_bounds;
+
+  /* Which tile of the screen is used with this texture. Used to safely calculate the correct
+   * offset of the textures. */
+  int2 tile_id;
 
   /**
    * \brief Batch to draw the associated text on the screen.
    *
    * Contains a VBO with `pos` and `uv`.
-   * `pos` (2xF32) is relative to the origin of the space.
+   * `pos` (2xI32) is relative to the origin of the space.
    * `uv` (2xF32) reflect the uv bounds.
    */
   GPUBatch *batch = nullptr;
@@ -66,22 +71,6 @@ struct TextureInfo {
   int2 offset() const
   {
     return int2(clipping_bounds.xmin, clipping_bounds.ymin);
-  }
-
-  /**
-   * \brief Update the region bounds from the uv bounds by applying the given transform matrix.
-   */
-  void update_region_bounds_from_uv_bounds(const float4x4 &uv_to_region)
-  {
-    float3 bottom_left_uv = float3(clipping_uv_bounds.xmin, clipping_uv_bounds.ymin, 0.0f);
-    float3 top_right_uv = float3(clipping_uv_bounds.xmax, clipping_uv_bounds.ymax, 0.0f);
-    float3 bottom_left_region = math::transform_point(uv_to_region, bottom_left_uv);
-    float3 top_right_region = math::transform_point(uv_to_region, top_right_uv);
-    BLI_rctf_init(&clipping_bounds,
-                  bottom_left_region.x,
-                  top_right_region.x,
-                  bottom_left_region.y,
-                  top_right_region.y);
   }
 
   void ensure_gpu_texture(int2 texture_size)

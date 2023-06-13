@@ -98,7 +98,12 @@ ShadowTileData shadow_tile_load(usampler2D tilemaps_tx, ivec2 tile_co, int tilem
   return shadow_tile_unpack(tile_data);
 }
 
-/* This function should be the inverse of ShadowDirectional::coverage_get(). */
+/**
+ * This function should be the inverse of ShadowDirectional::coverage_get().
+ *
+ * \a lP shading point position in light space, relative to the to camera position snapped to
+ * the smallest clipmap level (`shadow_world_to_local(light, P) - light._position`).
+ */
 int shadow_directional_level(LightData light, vec3 lP)
 {
   float lod;
@@ -144,14 +149,11 @@ ivec2 shadow_decompress_grid_offset(eLightType light_type, ivec2 offset, int lev
 }
 
 /**
- * \a lP shading point position in light space (world unit) and translated to camera position
- * snapped to smallest clipmap level.
+ * \a lP shading point position in light space (`shadow_world_to_local(light, P)`).
  */
-ShadowCoordinates shadow_directional_coordinates(LightData light, vec3 lP)
+ShadowCoordinates shadow_directional_coordinates_at_level(LightData light, vec3 lP, int level)
 {
   ShadowCoordinates ret;
-
-  int level = shadow_directional_level(light, lP - light._position);
   /* This difference needs to be less than 32 for the later shift to be valid.
    * This is ensured by ShadowDirectional::clipmap_level_range(). */
   int level_relative = level - light.clipmap_lod_min;
@@ -171,6 +173,15 @@ ShadowCoordinates shadow_directional_coordinates(LightData light, vec3 lP)
   /* Clamp to avoid out of tilemap access. */
   ret.tile_coord = clamp(ivec2(ret.uv), ivec2(0.0), ivec2(SHADOW_TILEMAP_RES - 1));
   return ret;
+}
+
+/**
+ * \a lP shading point position in light space (`shadow_world_to_local(light, P)`).
+ */
+ShadowCoordinates shadow_directional_coordinates(LightData light, vec3 lP)
+{
+  int level = shadow_directional_level(light, lP - light._position);
+  return shadow_directional_coordinates_at_level(light, lP, level);
 }
 
 /* Transform vector to face local coordinate. */

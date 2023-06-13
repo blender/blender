@@ -118,7 +118,7 @@ void main()
   vec4 finalColor_geom[2];
 
   do_vertex_shader(out_pos0, base_vertex_id, ssPos[0], finalColor_geom[0]);
-  do_vertex_shader(out_pos1, base_vertex_id + 1, ssPos[0], finalColor_geom[0]);
+  do_vertex_shader(out_pos1, base_vertex_id + 1, ssPos[1], finalColor_geom[1]);
 
   /* Geometry shader alternative -- Output is trianglelist consisting of 6 vertices.
    * Each vertex shader invocation is one vertex in the output primitive, so outptut

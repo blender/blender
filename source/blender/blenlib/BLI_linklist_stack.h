@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -38,7 +39,7 @@
 /* check for typeof() */
 #ifdef __GNUC__
 #  define BLI_LINKSTACK_PUSH(var, ptr) \
-    (CHECK_TYPE_INLINE(ptr, typeof(var##_type_)), \
+    (CHECK_TYPE_INLINE_NONCONST(ptr, typeof(var##_type_)), \
      BLI_linklist_prepend_pool(&(var), ptr, var##_pool_))
 #  define BLI_LINKSTACK_POP(var) \
     (var ? (typeof(var##_type_))BLI_linklist_pop_pool(&(var), var##_pool_) : NULL)
@@ -146,7 +147,8 @@
     LinkNode *_##var##_iter; \
     unsigned int i; \
     for (_##var##_iter = _##var##_stack, i = 0; _##var##_iter; \
-         _##var##_iter = _##var##_iter->next, i++) { \
+         _##var##_iter = _##var##_iter->next, i++) \
+    { \
       (data)[i] = _BLI_SMALLSTACK_CAST(var)(_##var##_iter->link); \
     } \
   } \

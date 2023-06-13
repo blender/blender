@@ -11,13 +11,13 @@
 CCL_NAMESPACE_BEGIN
 
 /* distribute uniform xy on [0,1] over unit disk [-1,1] */
-ccl_device void to_unit_disk(ccl_private float *x, ccl_private float *y)
+ccl_device void to_unit_disk(ccl_private float2 *rand)
 {
-  float phi = M_2PI_F * (*x);
-  float r = sqrtf(*y);
+  float phi = M_2PI_F * rand->x;
+  float r = sqrtf(rand->y);
 
-  *x = r * cosf(phi);
-  *y = r * sinf(phi);
+  rand->x = r * cosf(phi);
+  rand->y = r * sinf(phi);
 }
 
 /* return an orthogonal tangent and bitangent given a normal and tangent that
@@ -32,24 +32,29 @@ ccl_device void make_orthonormals_tangent(const float3 N,
 }
 
 /* sample direction with cosine weighted distributed in hemisphere */
-ccl_device_inline void sample_cos_hemisphere(
-    const float3 N, float randu, float randv, ccl_private float3 *wo, ccl_private float *pdf)
+ccl_device_inline void sample_cos_hemisphere(const float3 N,
+                                             float2 rand,
+                                             ccl_private float3 *wo,
+                                             ccl_private float *pdf)
 {
-  to_unit_disk(&randu, &randv);
-  float costheta = sqrtf(max(1.0f - randu * randu - randv * randv, 0.0f));
+  to_unit_disk(&rand);
+  float costheta = safe_sqrtf(1.0f - len_squared(rand));
+
   float3 T, B;
   make_orthonormals(N, &T, &B);
-  *wo = randu * T + randv * B + costheta * N;
+  *wo = rand.x * T + rand.y * B + costheta * N;
   *pdf = costheta * M_1_PI_F;
 }
 
 /* sample direction uniformly distributed in hemisphere */
-ccl_device_inline void sample_uniform_hemisphere(
-    const float3 N, float randu, float randv, ccl_private float3 *wo, ccl_private float *pdf)
+ccl_device_inline void sample_uniform_hemisphere(const float3 N,
+                                                 const float2 rand,
+                                                 ccl_private float3 *wo,
+                                                 ccl_private float *pdf)
 {
-  float z = randu;
-  float r = sqrtf(max(0.0f, 1.0f - z * z));
-  float phi = M_2PI_F * randv;
+  float z = rand.x;
+  float r = sin_from_cos(z);
+  float phi = M_2PI_F * rand.y;
   float x = r * cosf(phi);
   float y = r * sinf(phi);
 
@@ -60,17 +65,13 @@ ccl_device_inline void sample_uniform_hemisphere(
 }
 
 /* sample direction uniformly distributed in cone */
-ccl_device_inline void sample_uniform_cone(const float3 N,
-                                           float angle,
-                                           float randu,
-                                           float randv,
-                                           ccl_private float3 *wo,
-                                           ccl_private float *pdf)
+ccl_device_inline void sample_uniform_cone(
+    const float3 N, float angle, const float2 rand, ccl_private float3 *wo, ccl_private float *pdf)
 {
   const float cosThetaMin = cosf(angle);
-  const float cosTheta = mix(cosThetaMin, 1.0f, randu);
+  const float cosTheta = mix(cosThetaMin, 1.0f, rand.x);
   const float sinTheta = sin_from_cos(cosTheta);
-  const float phi = M_2PI_F * randv;
+  const float phi = M_2PI_F * rand.y;
   const float x = sinTheta * cosf(phi);
   const float y = sinTheta * sinf(phi);
   const float z = cosTheta;
@@ -84,19 +85,19 @@ ccl_device_inline void sample_uniform_cone(const float3 N,
 ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)
 {
   float zMin = cosf(angle);
-  float z = dot(N, D);
-  if (z > zMin) {
+  float z = precise_angle(N, D);
+  if (z < angle) {
     return M_1_2PI_F / (1.0f - zMin);
   }
   return 0.0f;
 }
 
 /* sample uniform point on the surface of a sphere */
-ccl_device float3 sample_uniform_sphere(float u1, float u2)
+ccl_device float3 sample_uniform_sphere(const float2 rand)
 {
-  float z = 1.0f - 2.0f * u1;
-  float r = sqrtf(fmaxf(0.0f, 1.0f - z * z));
-  float phi = M_2PI_F * u2;
+  float z = 1.0f - 2.0f * rand.x;
+  float r = sin_from_cos(z);
+  float phi = M_2PI_F * rand.y;
   float x = r * cosf(phi);
   float y = r * sinf(phi);
 
@@ -105,11 +106,11 @@ ccl_device float3 sample_uniform_sphere(float u1, float u2)
 
 /* distribute uniform xy on [0,1] over unit disk [-1,1], with concentric mapping
  * to better preserve stratification for some RNG sequences */
-ccl_device float2 concentric_sample_disk(float u1, float u2)
+ccl_device float2 concentric_sample_disk(const float2 rand)
 {
   float phi, r;
-  float a = 2.0f * u1 - 1.0f;
-  float b = 2.0f * u2 - 1.0f;
+  float a = 2.0f * rand.x - 1.0f;
+  float b = 2.0f * rand.y - 1.0f;
 
   if (a == 0.0f && b == 0.0f) {
     return zero_float2();
@@ -127,8 +128,10 @@ ccl_device float2 concentric_sample_disk(float u1, float u2)
 }
 
 /* sample point in unit polygon with given number of corners and rotation */
-ccl_device float2 regular_polygon_sample(float corners, float rotation, float u, float v)
+ccl_device float2 regular_polygon_sample(float corners, float rotation, const float2 rand)
 {
+  float u = rand.x, v = rand.y;
+
   /* sample corner number and reuse u */
   float corner = floorf(u * corners);
   u = u * corners - corner;

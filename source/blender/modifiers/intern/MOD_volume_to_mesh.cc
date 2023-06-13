@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -7,15 +9,15 @@
 #include <vector>
 
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
 #include "BKE_volume_to_mesh.hh"
 
 #include "BLT_translation.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -120,7 +122,7 @@ static void panelRegister(ARegionType *region_type)
 
 static Mesh *create_empty_mesh(const Mesh *input_mesh)
 {
-  Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+  Mesh *new_mesh = BKE_mesh_new_nomain(0, 0, 0, 0);
   BKE_mesh_copy_parameters_for_eval(new_mesh, input_mesh);
   return new_mesh;
 }
@@ -140,7 +142,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     return create_empty_mesh(input_mesh);
   }
   if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT &&
-      vmmd->voxel_amount == 0) {
+      vmmd->voxel_amount == 0)
+  {
     return create_empty_mesh(input_mesh);
   }
 
@@ -183,9 +186,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   }
 
   BKE_mesh_copy_parameters_for_eval(mesh, input_mesh);
-  if (vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE) {
-    BKE_mesh_smooth_flag_set(mesh, true);
-  }
+  BKE_mesh_smooth_flag_set(mesh, vmmd->flag & VOLUME_TO_MESH_USE_SMOOTH_SHADE);
   return mesh;
 #else
   UNUSED_VARS(md);

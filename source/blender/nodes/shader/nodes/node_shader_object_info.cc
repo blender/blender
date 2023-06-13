@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,12 +8,12 @@ namespace blender::nodes::node_shader_object_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Location"));
-  b.add_output<decl::Color>(N_("Color"));
-  b.add_output<decl::Float>(N_("Alpha"));
-  b.add_output<decl::Float>(N_("Object Index"));
-  b.add_output<decl::Float>(N_("Material Index"));
-  b.add_output<decl::Float>(N_("Random"));
+  b.add_output<decl::Vector>("Location");
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Alpha");
+  b.add_output<decl::Float>("Object Index");
+  b.add_output<decl::Float>("Material Index");
+  b.add_output<decl::Float>("Random");
 }
 
 static int node_shader_gpu_object_info(GPUMaterial *mat,

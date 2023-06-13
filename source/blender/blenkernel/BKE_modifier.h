@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -556,7 +558,7 @@ void BKE_modifier_mdef_compact_influences(struct ModifierData *md);
 /**
  * Initializes `path` with either the blend file or temporary directory.
  */
-void BKE_modifier_path_init(char *path, int path_maxlen, const char *name);
+void BKE_modifier_path_init(char *path, int path_maxncpy, const char *name);
 const char *BKE_modifier_path_relbase(struct Main *bmain, struct Object *ob);
 const char *BKE_modifier_path_relbase_from_global(struct Object *ob);
 

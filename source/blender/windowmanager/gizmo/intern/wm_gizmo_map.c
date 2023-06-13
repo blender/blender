@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -147,8 +148,7 @@ void wm_gizmomap_select_array_remove(wmGizmoMap *gzmap, wmGizmo *gz)
 /** \name wmGizmoMap
  * \{ */
 
-static wmGizmoMap *wm_gizmomap_new_from_type_ex(struct wmGizmoMapType *gzmap_type,
-                                                wmGizmoMap *gzmap)
+static wmGizmoMap *wm_gizmomap_new_from_type_ex(wmGizmoMapType *gzmap_type, wmGizmoMap *gzmap)
 {
   gzmap->type = gzmap_type;
   gzmap->is_init = true;
@@ -176,8 +176,8 @@ static void wm_gizmomap_free_data(wmGizmoMap *gzmap)
   /* Clear first so further calls don't waste time trying to maintain correct array state. */
   wm_gizmomap_select_array_clear(gzmap);
 
-  for (wmGizmoGroup *gzgroup = gzmap->groups.first, *gzgroup_next; gzgroup;
-       gzgroup = gzgroup_next) {
+  for (wmGizmoGroup *gzgroup = gzmap->groups.first, *gzgroup_next; gzgroup; gzgroup = gzgroup_next)
+  {
     gzgroup_next = gzgroup->next;
     BLI_assert(gzgroup->parent_gzmap == gzmap);
     wm_gizmogroup_free(NULL, gzgroup);
@@ -199,7 +199,7 @@ void WM_gizmomap_reinit(wmGizmoMap *gzmap)
   wm_gizmomap_new_from_type_ex(gzmap_type, gzmap);
 }
 
-wmGizmoGroup *WM_gizmomap_group_find(struct wmGizmoMap *gzmap, const char *idname)
+wmGizmoGroup *WM_gizmomap_group_find(wmGizmoMap *gzmap, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   if (gzgt) {
@@ -208,8 +208,7 @@ wmGizmoGroup *WM_gizmomap_group_find(struct wmGizmoMap *gzmap, const char *idnam
   return NULL;
 }
 
-wmGizmoGroup *WM_gizmomap_group_find_ptr(struct wmGizmoMap *gzmap,
-                                         const struct wmGizmoGroupType *gzgt)
+wmGizmoGroup *WM_gizmomap_group_find_ptr(wmGizmoMap *gzmap, const wmGizmoGroupType *gzgt)
 {
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     if (gzgroup->type == gzgt) {
@@ -274,8 +273,8 @@ static GHash *WM_gizmomap_gizmo_hash_new(const bContext *C,
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
       LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
-        if (((flag_exclude == 0) || ((gz->flag & flag_exclude) == 0)) &&
-            (!poll || poll(gz, data))) {
+        if (((flag_exclude == 0) || ((gz->flag & flag_exclude) == 0)) && (!poll || poll(gz, data)))
+        {
           BLI_ghash_insert(hash, gz, gz);
         }
       }
@@ -871,7 +870,7 @@ bool wm_gizmomap_deselect_all(wmGizmoMap *gzmap)
   return true;
 }
 
-BLI_INLINE bool gizmo_selectable_poll(const wmGizmo *gz, void *UNUSED(data))
+static bool gizmo_selectable_poll(const wmGizmo *gz, void *UNUSED(data))
 {
   return (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_SELECT);
 }
@@ -1070,7 +1069,7 @@ void wm_gizmomap_modal_set(
       gzmap->gzmap_context.event_xy[0] = INT_MAX;
     }
 
-    struct wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
+    wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
     if (gzop && gzop->type) {
       const int retval = WM_gizmo_operator_invoke(C, gz, gzop, event);
       if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
@@ -1119,9 +1118,29 @@ void wm_gizmomap_modal_set(
   }
 
   if (do_refresh) {
+    const int update_flag = GIZMOMAP_IS_REFRESH_CALLBACK;
     const eWM_GizmoFlagMapDrawStep step = WM_gizmomap_drawstep_from_gizmo_group(
         gz->parent_gzgroup);
-    gzmap->update_flag[step] |= GIZMOMAP_IS_REFRESH_CALLBACK;
+    gzmap->update_flag[step] |= update_flag;
+
+    /* Ensure the update flag is set for gizmos that were hidden while modal, see #104817. */
+    for (int i = 0; i < WM_GIZMOMAP_DRAWSTEP_MAX; i++) {
+      const eWM_GizmoFlagMapDrawStep step_iter = (eWM_GizmoFlagMapDrawStep)i;
+      if (step_iter == step) {
+        continue;
+      }
+      if ((gzmap->update_flag[i] & update_flag) == update_flag) {
+        continue;
+      }
+      LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
+        if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL) == 0) &&
+            wm_gizmogroup_is_visible_in_drawstep(gzgroup, step_iter))
+        {
+          gzmap->update_flag[i] |= update_flag;
+          break;
+        }
+      }
+    }
   }
 }
 
@@ -1148,7 +1167,8 @@ void WM_gizmomap_message_subscribe(const bContext *C,
 {
   LISTBASE_FOREACH (wmGizmoGroup *, gzgroup, &gzmap->groups) {
     if ((gzgroup->hide.any != 0) || (gzgroup->init_flag & WM_GIZMOGROUP_INIT_SETUP) == 0 ||
-        !WM_gizmo_group_type_poll(C, gzgroup->type)) {
+        !WM_gizmo_group_type_poll(C, gzgroup->type))
+    {
       continue;
     }
     LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
@@ -1169,11 +1189,11 @@ void WM_gizmomap_message_subscribe(const bContext *C,
 /** \name Tooltip Handling
  * \{ */
 
-struct ARegion *WM_gizmomap_tooltip_init(struct bContext *C,
-                                         struct ARegion *region,
-                                         int *UNUSED(r_pass),
-                                         double *UNUSED(pass_delay),
-                                         bool *r_exit_on_event)
+ARegion *WM_gizmomap_tooltip_init(bContext *C,
+                                  ARegion *region,
+                                  int *UNUSED(r_pass),
+                                  double *UNUSED(pass_delay),
+                                  bool *r_exit_on_event)
 {
   wmGizmoMap *gzmap = region->gizmo_map;
   *r_exit_on_event = false;
@@ -1228,10 +1248,12 @@ wmGizmoMapType *WM_gizmomaptype_ensure(const struct wmGizmoMapType_Params *gzmap
 void wm_gizmomaptypes_free(void)
 {
   for (wmGizmoMapType *gzmap_type = gizmomaptypes.first, *gzmap_type_next; gzmap_type;
-       gzmap_type = gzmap_type_next) {
+       gzmap_type = gzmap_type_next)
+  {
     gzmap_type_next = gzmap_type->next;
     for (wmGizmoGroupTypeRef *gzgt_ref = gzmap_type->grouptype_refs.first, *gzgt_next; gzgt_ref;
-         gzgt_ref = gzgt_next) {
+         gzgt_ref = gzgt_next)
+    {
       gzgt_next = gzgt_ref->next;
       WM_gizmomaptype_group_free(gzgt_ref);
     }
@@ -1282,7 +1304,7 @@ void WM_gizmoconfig_update_tag_group_remove(wmGizmoMap *gzmap)
   wm_gzmap_type_update_flag |= WM_GIZMOTYPE_GLOBAL_UPDATE_REMOVE;
 }
 
-void WM_gizmoconfig_update(struct Main *bmain)
+void WM_gizmoconfig_update(Main *bmain)
 {
   if (G.background) {
     return;
@@ -1298,7 +1320,8 @@ void WM_gizmoconfig_update(struct Main *bmain)
         gzmap_type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;
         for (wmGizmoGroupTypeRef *gzgt_ref = gzmap_type->grouptype_refs.first, *gzgt_ref_next;
              gzgt_ref;
-             gzgt_ref = gzgt_ref_next) {
+             gzgt_ref = gzgt_ref_next)
+        {
           gzgt_ref_next = gzgt_ref->next;
           if (gzgt_ref->type->type_update_flag & WM_GIZMOMAPTYPE_UPDATE_REMOVE) {
             gzgt_ref->type->type_update_flag &= ~WM_GIZMOMAPTYPE_UPDATE_REMOVE;

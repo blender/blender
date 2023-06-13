@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -20,12 +21,12 @@ namespace blender::nodes::node_shader_vector_math_cc {
 static void sh_node_vector_math_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>(N_("Vector"), "Vector_001").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Vector>(N_("Vector"), "Vector_002").min(-10000.0f).max(10000.0f);
-  b.add_input<decl::Float>(N_("Scale")).default_value(1.0f).min(-10000.0f).max(10000.0f);
-  b.add_output<decl::Vector>(N_("Vector"));
-  b.add_output<decl::Float>(N_("Value"));
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Vector>("Vector", "Vector_001").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Vector>("Vector", "Vector_002").min(-10000.0f).max(10000.0f);
+  b.add_input<decl::Float>("Scale").default_value(1.0f).min(-10000.0f).max(10000.0f);
+  b.add_output<decl::Vector>("Vector");
+  b.add_output<decl::Float>("Value");
 }
 
 static void node_shader_buts_vect_math(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -48,19 +49,22 @@ class SocketSearchOp {
 static void sh_node_vector_math_gather_link_searches(GatherLinkSearchOpParams &params)
 {
   if (!params.node_tree().typeinfo->validate_link(
-          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR)) {
+          static_cast<eNodeSocketDatatype>(params.other_socket().type), SOCK_VECTOR))
+  {
     return;
   }
 
   const int weight = ELEM(params.other_socket().type, SOCK_VECTOR, SOCK_RGBA) ? 0 : -1;
 
   for (const EnumPropertyItem *item = rna_enum_node_vec_math_items; item->identifier != nullptr;
-       item++) {
+       item++)
+  {
     if (item->name != nullptr && item->identifier[0] != '\0') {
       if ((params.in_out() == SOCK_OUT) && ELEM(item->value,
                                                 NODE_VECTOR_MATH_LENGTH,
                                                 NODE_VECTOR_MATH_DISTANCE,
-                                                NODE_VECTOR_MATH_DOT_PRODUCT)) {
+                                                NODE_VECTOR_MATH_DOT_PRODUCT))
+      {
         params.add_item(IFACE_(item->name),
                         SocketSearchOp{"Value", (NodeVectorMathOperation)item->value},
                         weight);
@@ -162,39 +166,39 @@ static void node_shader_update_vector_math(bNodeTree *ntree, bNode *node)
   bNodeSocket *sockVector = nodeFindSocket(node, SOCK_OUT, "Vector");
   bNodeSocket *sockValue = nodeFindSocket(node, SOCK_OUT, "Value");
 
-  nodeSetSocketAvailability(ntree,
-                            sockB,
-                            !ELEM(node->custom1,
-                                  NODE_VECTOR_MATH_SINE,
-                                  NODE_VECTOR_MATH_COSINE,
-                                  NODE_VECTOR_MATH_TANGENT,
-                                  NODE_VECTOR_MATH_CEIL,
-                                  NODE_VECTOR_MATH_SCALE,
-                                  NODE_VECTOR_MATH_FLOOR,
-                                  NODE_VECTOR_MATH_LENGTH,
-                                  NODE_VECTOR_MATH_ABSOLUTE,
-                                  NODE_VECTOR_MATH_FRACTION,
-                                  NODE_VECTOR_MATH_NORMALIZE));
-  nodeSetSocketAvailability(ntree,
-                            sockC,
-                            ELEM(node->custom1,
-                                 NODE_VECTOR_MATH_WRAP,
-                                 NODE_VECTOR_MATH_FACEFORWARD,
-                                 NODE_VECTOR_MATH_MULTIPLY_ADD));
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(ntree,
+                                 sockB,
+                                 !ELEM(node->custom1,
+                                       NODE_VECTOR_MATH_SINE,
+                                       NODE_VECTOR_MATH_COSINE,
+                                       NODE_VECTOR_MATH_TANGENT,
+                                       NODE_VECTOR_MATH_CEIL,
+                                       NODE_VECTOR_MATH_SCALE,
+                                       NODE_VECTOR_MATH_FLOOR,
+                                       NODE_VECTOR_MATH_LENGTH,
+                                       NODE_VECTOR_MATH_ABSOLUTE,
+                                       NODE_VECTOR_MATH_FRACTION,
+                                       NODE_VECTOR_MATH_NORMALIZE));
+  bke::nodeSetSocketAvailability(ntree,
+                                 sockC,
+                                 ELEM(node->custom1,
+                                      NODE_VECTOR_MATH_WRAP,
+                                      NODE_VECTOR_MATH_FACEFORWARD,
+                                      NODE_VECTOR_MATH_MULTIPLY_ADD));
+  bke::nodeSetSocketAvailability(
       ntree, sockScale, ELEM(node->custom1, NODE_VECTOR_MATH_SCALE, NODE_VECTOR_MATH_REFRACT));
-  nodeSetSocketAvailability(ntree,
-                            sockVector,
-                            !ELEM(node->custom1,
-                                  NODE_VECTOR_MATH_LENGTH,
-                                  NODE_VECTOR_MATH_DISTANCE,
-                                  NODE_VECTOR_MATH_DOT_PRODUCT));
-  nodeSetSocketAvailability(ntree,
-                            sockValue,
-                            ELEM(node->custom1,
-                                 NODE_VECTOR_MATH_LENGTH,
-                                 NODE_VECTOR_MATH_DISTANCE,
-                                 NODE_VECTOR_MATH_DOT_PRODUCT));
+  bke::nodeSetSocketAvailability(ntree,
+                                 sockVector,
+                                 !ELEM(node->custom1,
+                                       NODE_VECTOR_MATH_LENGTH,
+                                       NODE_VECTOR_MATH_DISTANCE,
+                                       NODE_VECTOR_MATH_DOT_PRODUCT));
+  bke::nodeSetSocketAvailability(ntree,
+                                 sockValue,
+                                 ELEM(node->custom1,
+                                      NODE_VECTOR_MATH_LENGTH,
+                                      NODE_VECTOR_MATH_DISTANCE,
+                                      NODE_VECTOR_MATH_DOT_PRODUCT));
 
   /* Labels */
   node_sock_label_clear(sockB);

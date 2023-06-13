@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -122,10 +124,8 @@ struct SortInfo {
   void *thunk;
 #endif
 
-  /**
-   * Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
-   *
-   * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit */
+  /* Invariant: `ranks[i] == NULL || length(ranks[i]) >= 2**(i+1)`.
+   * ~ 128 bytes on 32bit, ~ 512 bytes on 64bit. */
   list_node *ranks[MAX_RANKS];
 };
 

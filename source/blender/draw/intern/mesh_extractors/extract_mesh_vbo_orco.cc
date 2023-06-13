@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -61,18 +62,13 @@ static void extract_orco_iter_poly_bm(const MeshRenderData * /*mr*/,
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-static void extract_orco_iter_poly_mesh(const MeshRenderData *mr,
-                                        const MPoly *mp,
-                                        const int /*mp_index*/,
-                                        void *data)
+static void extract_orco_iter_poly_mesh(const MeshRenderData *mr, const int poly_index, void *data)
 {
-  const MLoop *mloop = mr->mloop;
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-    const MLoop *ml = &mloop[ml_index];
+  for (const int ml_index : mr->polys[poly_index]) {
+    const int vert = mr->corner_verts[ml_index];
     MeshExtract_Orco_Data *orco_data = (MeshExtract_Orco_Data *)data;
     float *loop_orco = orco_data->vbo_data[ml_index];
-    copy_v3_v3(loop_orco, orco_data->orco[ml->v]);
+    copy_v3_v3(loop_orco, orco_data->orco[vert]);
     loop_orco[3] = 0.0; /* Tag as not a generic attribute. */
   }
 }

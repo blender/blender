@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_node_declaration.hh"
 
@@ -23,6 +25,11 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
 {
   if (node.is_group()) {
     if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node.id)) {
+      /* Undefined tree types have no relations. */
+      if (!ntreeIsRegistered(group)) {
+        return scope.construct<aal::RelationsInNode>();
+      }
+
       BLI_assert(group->runtime->anonymous_attribute_relations);
       return *group->runtime->anonymous_attribute_relations;
     }
@@ -45,6 +52,44 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
       }();
       return geometry_relations;
     }
+  }
+  if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
+    aal::RelationsInNode &relations = scope.construct<aal::RelationsInNode>();
+    {
+      /* Add eval relations. */
+      int last_geometry_index = -1;
+      for (const int i : node.input_sockets().index_range()) {
+        const bNodeSocket &socket = node.input_socket(i);
+        if (socket.type == SOCK_GEOMETRY) {
+          last_geometry_index = i;
+        }
+        else if (socket_is_field(socket)) {
+          if (last_geometry_index != -1) {
+            relations.eval_relations.append({i, last_geometry_index});
+          }
+        }
+      }
+    }
+
+    {
+      /* Add available relations. */
+      int last_geometry_index = -1;
+      for (const int i : node.output_sockets().index_range()) {
+        const bNodeSocket &socket = node.output_socket(i);
+        if (socket.type == SOCK_GEOMETRY) {
+          last_geometry_index = i;
+        }
+        else if (socket_is_field(socket)) {
+          if (last_geometry_index == -1) {
+            relations.available_on_none.append(i);
+          }
+          else {
+            relations.available_relations.append({i, last_geometry_index});
+          }
+        }
+      }
+    }
+    return relations;
   }
   if (const NodeDeclaration *node_decl = node.declaration()) {
     if (const aal::RelationsInNode *relations = node_decl->anonymous_attribute_relations()) {
@@ -130,7 +175,8 @@ static void infer_propagate_relations(const bNodeTree &tree,
         tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
           Vector<int> indices;
           for (const aal::PropagateRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->propagate_relations) {
+               relations_by_node[output_socket.owner_node().index()]->propagate_relations)
+          {
             if (relation.to_geometry_output == output_socket.index()) {
               indices.append(relation.from_geometry_input);
             }
@@ -159,7 +205,8 @@ static void infer_reference_relations(const bNodeTree &tree,
         tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
           Vector<int> indices;
           for (const aal::ReferenceRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->reference_relations) {
+               relations_by_node[output_socket.owner_node().index()]->reference_relations)
+          {
             if (relation.to_field_output == output_socket.index()) {
               indices.append(relation.from_field_input);
             }
@@ -168,7 +215,8 @@ static void infer_reference_relations(const bNodeTree &tree,
         });
     for (const int input_index : input_indices) {
       if (tree.runtime->field_inferencing_interface->inputs[input_index] !=
-          nodes::InputSocketFieldType::None) {
+          nodes::InputSocketFieldType::None)
+      {
         aal::ReferenceRelation relation;
         relation.from_field_input = input_index;
         relation.to_field_output = group_output_socket->index();
@@ -429,7 +477,8 @@ static void infer_eval_relations(const bNodeTree &tree,
 {
   for (const int input_index : tree.interface_inputs().index_range()) {
     if (tree.runtime->field_inferencing_interface->inputs[input_index] ==
-        nodes::InputSocketFieldType::None) {
+        nodes::InputSocketFieldType::None)
+    {
       continue;
     }
     const Vector<int> geometry_input_indices = find_eval_on_inputs(

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -32,7 +33,7 @@
 #  include "BKE_curve.h"
 #  include "BKE_curves.h"
 #  include "BKE_displist.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
 #  include "BKE_idtype.h"
 #  include "BKE_image.h"
@@ -71,7 +72,7 @@
 #  include "DNA_collection_types.h"
 #  include "DNA_curve_types.h"
 #  include "DNA_curves_types.h"
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_light_types.h"
 #  include "DNA_lightprobe_types.h"
@@ -839,7 +840,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(armatures, armatures, ID_AR)
 RNA_MAIN_ID_TAG_FUNCS_DEF(actions, actions, ID_AC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(particles, particles, ID_PA)
 RNA_MAIN_ID_TAG_FUNCS_DEF(palettes, palettes, ID_PAL)
-RNA_MAIN_ID_TAG_FUNCS_DEF(gpencils, gpencils, ID_GD)
+RNA_MAIN_ID_TAG_FUNCS_DEF(gpencils, gpencils, ID_GD_LEGACY)
 RNA_MAIN_ID_TAG_FUNCS_DEF(movieclips, movieclips, ID_MC)
 RNA_MAIN_ID_TAG_FUNCS_DEF(masks, masks, ID_MSK)
 RNA_MAIN_ID_TAG_FUNCS_DEF(linestyle, linestyles, ID_LS)
@@ -2016,7 +2017,7 @@ void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
-void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
   FunctionRNA *func;
@@ -2056,6 +2057,16 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
                   "Decrement user counter of all datablocks used by this grease pencil");
   RNA_def_boolean(
       func, "do_ui_user", true, "", "Make sure interface does not reference this grease pencil");
+}
+
+void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+
+  RNA_def_property_srna(cprop, "BlendDataGreasePencilsV3");
+  srna = RNA_def_struct(brna, "BlendDataGreasePencilsV3", NULL);
+  RNA_def_struct_sdna(srna, "Main");
+  RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of grease pencils");
 }
 
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -142,14 +143,14 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 static void camera_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   Camera *ca = (Camera *)id;
-  BLO_read_id_address(reader, ca->id.lib, &ca->ipo); /* deprecated, for versioning */
+  BLO_read_id_address(reader, id, &ca->ipo); /* deprecated, for versioning */
 
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof_ob); /* deprecated, for versioning */
-  BLO_read_id_address(reader, ca->id.lib, &ca->dof.focus_object);
+  BLO_read_id_address(reader, id, &ca->dof_ob); /* deprecated, for versioning */
+  BLO_read_id_address(reader, id, &ca->dof.focus_object);
 
   LISTBASE_FOREACH (CameraBGImage *, bgpic, &ca->bg_images) {
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->ima);
-    BLO_read_id_address(reader, ca->id.lib, &bgpic->clip);
+    BLO_read_id_address(reader, id, &bgpic->ima);
+    BLO_read_id_address(reader, id, &bgpic->clip);
   }
 }
 
@@ -710,7 +711,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
     }
 
     if (!isect_plane_plane_v3(plane_tx[Y_MIN], plane_tx[Y_MAX], plane_isect_1, plane_isect_1_no) ||
-        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no)) {
+        !isect_plane_plane_v3(plane_tx[Z_MIN], plane_tx[Z_MAX], plane_isect_2, plane_isect_2_no))
+    {
       return false;
     }
 
@@ -722,7 +724,8 @@ static bool camera_frame_fit_calc_from_data(CameraParams *params,
                             plane_isect_2,
                             plane_isect_2_other,
                             plane_isect_pt_1,
-                            plane_isect_pt_2)) {
+                            plane_isect_pt_2))
+    {
       return false;
     }
 
@@ -1006,7 +1009,8 @@ bool BKE_camera_multiview_spherical_stereo(const RenderData *rd, const Object *c
   cam = camera->data;
 
   if ((rd->views_format == SCE_VIEWS_FORMAT_STEREO_3D) && ELEM(cam->type, CAM_PANO, CAM_PERSP) &&
-      ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0)) {
+      ((cam->stereo.flag & CAM_S3D_SPHERICAL) != 0))
+  {
     return true;
   }
 
@@ -1031,7 +1035,7 @@ static Object *camera_multiview_advanced(const Scene *scene, Object *camera, con
     }
 
     if (STREQ(camera_name + (len_name - len_suffix), srv->suffix)) {
-      BLI_snprintf(name, sizeof(name), "%.*s%s", (len_name - len_suffix), camera_name, suffix);
+      SNPRINTF(name, "%.*s%s", (len_name - len_suffix), camera_name, suffix);
       len_suffix_max = len_suffix;
     }
   }

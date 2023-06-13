@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "draw_defines.h"
 #include "gpu_shader_create_info.hh"
@@ -126,6 +128,9 @@ GPU_SHADER_CREATE_INFO(draw_pointcloud)
 
 GPU_SHADER_CREATE_INFO(draw_volume).additional_info("draw_modelmat", "draw_resource_id_uniform");
 
+GPU_SHADER_CREATE_INFO(draw_volume_new)
+    .additional_info("draw_modelmat_new", "draw_resource_handle_new");
+
 GPU_SHADER_CREATE_INFO(draw_gpencil)
     .typedef_source("gpencil_shader_shared.h")
     .define("DRW_GPENCIL_INFO")
@@ -138,6 +143,22 @@ GPU_SHADER_CREATE_INFO(draw_gpencil)
     /* Per Layer */
     .push_constant(Type::FLOAT, "gpThicknessOffset")
     .additional_info("draw_modelmat", "draw_object_infos");
+
+GPU_SHADER_CREATE_INFO(draw_gpencil_new)
+    .typedef_source("gpencil_shader_shared.h")
+    .define("DRW_GPENCIL_INFO")
+    .sampler(0, ImageType::FLOAT_BUFFER, "gp_pos_tx")
+    .sampler(1, ImageType::FLOAT_BUFFER, "gp_col_tx")
+    /* Per Object */
+    .define("gpThicknessScale", "1.0")               /* TODO(fclem): Replace with object info. */
+    .define("gpThicknessWorldScale", "1.0 / 2000.0") /* TODO(fclem): Same as above. */
+    .define("gpThicknessIsScreenSpace", "(gpThicknessWorldScale < 0.0)")
+    /* Per Layer */
+    .define("gpThicknessOffset", "0.0") /* TODO(fclem): Remove. */
+    .additional_info("draw_modelmat_new",
+                     "draw_resource_id_varying",
+                     "draw_view",
+                     "draw_object_infos_new");
 
 /** \} */
 
@@ -189,6 +210,7 @@ GPU_SHADER_CREATE_INFO(draw_command_generate)
     .push_constant(Type::INT, "prototype_len")
     .push_constant(Type::INT, "visibility_word_per_draw")
     .push_constant(Type::INT, "view_shift")
+    .push_constant(Type::BOOL, "use_custom_ids")
     .compute_source("draw_command_generate_comp.glsl");
 
 /** \} */
@@ -200,8 +222,17 @@ GPU_SHADER_CREATE_INFO(draw_command_generate)
 
 GPU_SHADER_CREATE_INFO(draw_resource_id_new)
     .define("UNIFORM_RESOURCE_ID_NEW")
+    /* TODO (Miguel Pozo): This is an int for compatibility.
+     * It should become uint once the "Next" ports are complete. */
     .storage_buf(DRW_RESOURCE_ID_SLOT, Qualifier::READ, "int", "resource_id_buf[]")
     .define("drw_ResourceID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID]");
+
+GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id_new)
+    .define("UNIFORM_RESOURCE_ID_NEW")
+    .define("WITH_CUSTOM_IDS")
+    .storage_buf(DRW_RESOURCE_ID_SLOT, Qualifier::READ, "int2", "resource_id_buf[]")
+    .define("drw_ResourceID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID].x")
+    .define("drw_CustomID", "resource_id_buf[gpu_BaseInstance + gl_InstanceID].y");
 
 /**
  * Workaround the lack of gl_BaseInstance by binding the resource_id_buf as vertex buf.
@@ -209,6 +240,13 @@ GPU_SHADER_CREATE_INFO(draw_resource_id_new)
 GPU_SHADER_CREATE_INFO(draw_resource_id_fallback)
     .define("UNIFORM_RESOURCE_ID_NEW")
     .vertex_in(15, Type::INT, "drw_ResourceID");
+
+GPU_SHADER_CREATE_INFO(draw_resource_with_custom_id_fallback)
+    .define("UNIFORM_RESOURCE_ID_NEW")
+    .define("WITH_CUSTOM_IDS")
+    .vertex_in(15, Type::IVEC2, "vertex_in_drw_ResourceID")
+    .define("drw_ResourceID", "vertex_in_drw_ResourceID.x")
+    .define("drw_CustomID", "vertex_in_drw_ResourceID.y");
 
 /** TODO mask view id bits. */
 GPU_SHADER_CREATE_INFO(draw_resource_handle_new).define("resource_handle", "drw_ResourceID");
@@ -219,14 +257,19 @@ GPU_SHADER_CREATE_INFO(draw_resource_handle_new).define("resource_handle", "drw_
 /** \name Draw Object Resources
  * \{ */
 
-GPU_SHADER_CREATE_INFO(draw_modelmat_new)
+GPU_SHADER_CREATE_INFO(draw_modelmat_new_common)
     .typedef_source("draw_shader_shared.h")
     .storage_buf(DRW_OBJ_MAT_SLOT, Qualifier::READ, "ObjectMatrices", "drw_matrix_buf[]")
     .define("drw_ModelMatrixInverse", "drw_matrix_buf[resource_id].model_inverse")
     .define("drw_ModelMatrix", "drw_matrix_buf[resource_id].model")
     /* TODO For compatibility with old shaders. To be removed. */
     .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
-    .define("ModelMatrix", "drw_ModelMatrix")
-    .additional_info("draw_resource_id_new");
+    .define("ModelMatrix", "drw_ModelMatrix");
+
+GPU_SHADER_CREATE_INFO(draw_modelmat_new)
+    .additional_info("draw_modelmat_new_common", "draw_resource_id_new");
+
+GPU_SHADER_CREATE_INFO(draw_modelmat_new_with_custom_id)
+    .additional_info("draw_modelmat_new_common", "draw_resource_with_custom_id_new");
 
 /** \} */

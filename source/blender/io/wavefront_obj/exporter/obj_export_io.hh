@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
@@ -7,18 +9,16 @@
 #pragma once
 
 #include <cstdio>
-#include <string>
 #include <type_traits>
-#include <vector>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_fileops.h"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 /* SEP macro from BLI path utils clashes with SEP symbol in fmt headers. */
 #undef SEP
-#define FMT_HEADER_ONLY
 #include <fmt/format.h>
 
 namespace blender::io::obj {
@@ -32,14 +32,12 @@ namespace blender::io::obj {
  */
 class FormatHandler : NonCopyable, NonMovable {
  private:
-  typedef std::vector<char> VectorChar;
-  std::vector<VectorChar> blocks_;
+  using VectorChar = Vector<char>;
+  Vector<VectorChar> blocks_;
   size_t buffer_chunk_size_;
 
  public:
-  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size)
-  {
-  }
+  FormatHandler(size_t buffer_chunk_size = 64 * 1024) : buffer_chunk_size_(buffer_chunk_size) {}
 
   /* Write contents to the buffer(s) into a file, and clear the buffers. */
   void write_to_file(FILE *f)
@@ -111,11 +109,11 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_usemtl(StringRef s)
   {
-    write_impl("usemtl {}\n", s);
+    write_impl("usemtl {}\n", std::string_view(s));
   }
   void write_obj_mtllib(StringRef s)
   {
-    write_impl("mtllib {}\n", s);
+    write_impl("mtllib {}\n", std::string_view(s));
   }
   void write_obj_smooth(int s)
   {
@@ -123,11 +121,11 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_group(StringRef s)
   {
-    write_impl("g {}\n", s);
+    write_impl("g {}\n", std::string_view(s));
   }
   void write_obj_object(StringRef s)
   {
-    write_impl("o {}\n", s);
+    write_impl("o {}\n", std::string_view(s));
   }
   void write_obj_edge(int a, int b)
   {
@@ -172,7 +170,7 @@ class FormatHandler : NonCopyable, NonMovable {
 
   void write_mtl_newmtl(StringRef s)
   {
-    write_impl("newmtl {}\n", s);
+    write_impl("newmtl {}\n", std::string_view(s));
   }
   void write_mtl_float(const char *type, float v)
   {
@@ -189,12 +187,12 @@ class FormatHandler : NonCopyable, NonMovable {
   /* NOTE: options, if present, will have its own leading space. */
   void write_mtl_map(const char *type, StringRef options, StringRef value)
   {
-    write_impl("{}{} {}\n", type, options, value);
+    write_impl("{}{} {}\n", type, std::string_view(options), std::string_view(value));
   }
 
   void write_string(StringRef s)
   {
-    write_impl("{}\n", s);
+    write_impl("{}\n", std::string_view(s));
   }
 
  private:
@@ -202,9 +200,9 @@ class FormatHandler : NonCopyable, NonMovable {
    * If not, add a new block with max of block size & the amount of space needed. */
   void ensure_space(size_t at_least)
   {
-    if (blocks_.empty() || (blocks_.back().capacity() - blocks_.back().size() < at_least)) {
-      VectorChar &b = blocks_.emplace_back(VectorChar());
-      b.reserve(std::max(at_least, buffer_chunk_size_));
+    if (blocks_.is_empty() || (blocks_.last().capacity() - blocks_.last().size() < at_least)) {
+      blocks_.append(VectorChar());
+      blocks_.last().reserve(std::max(at_least, buffer_chunk_size_));
     }
   }
 
@@ -215,7 +213,7 @@ class FormatHandler : NonCopyable, NonMovable {
     fmt::format_to(fmt::appender(buf), fmt, std::forward<T>(args)...);
     size_t len = buf.size();
     ensure_space(len);
-    VectorChar &bb = blocks_.back();
+    VectorChar &bb = blocks_.last();
     bb.insert(bb.end(), buf.begin(), buf.end());
   }
 };

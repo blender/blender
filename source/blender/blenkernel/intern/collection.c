@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -50,6 +52,11 @@
 
 static CLG_LogRef LOG = {"bke.collection"};
 
+/**
+ * Extra asserts that #Collection.gobject_hash is valid which are too slow even for debug mode.
+ */
+// #define USE_DEBUG_EXTRA_GOBJECT_ASSERT
+
 /* -------------------------------------------------------------------- */
 /** \name Prototypes
  * \{ */
@@ -61,6 +68,11 @@ static bool collection_child_add(Collection *parent,
 static bool collection_child_remove(Collection *parent, Collection *collection);
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us);
+
+static void collection_object_remove_no_gobject_hash(Main *bmain,
+                                                     Collection *collection,
+                                                     CollectionObject *cob,
+                                                     const bool free_us);
 static bool collection_object_remove(Main *bmain,
                                      Collection *collection,
                                      Object *ob,
@@ -71,6 +83,13 @@ static CollectionParent *collection_find_parent(Collection *child, Collection *c
 
 static bool collection_find_child_recursive(const Collection *parent,
                                             const Collection *collection);
+
+static void collection_object_cache_free(Collection *collection);
+
+static void collection_gobject_hash_ensure(Collection *collection);
+static void collection_gobject_hash_update_object(Collection *collection,
+                                                  Object *ob_old,
+                                                  CollectionObject *cob);
 
 /** \} */
 
@@ -119,6 +138,7 @@ static void collection_copy_data(Main *bmain, ID *id_dst, const ID *id_src, cons
   BLI_listbase_clear(&collection_dst->gobject);
   BLI_listbase_clear(&collection_dst->children);
   BLI_listbase_clear(&collection_dst->runtime.parents);
+  collection_dst->runtime.gobject_hash = NULL;
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection_src->children) {
     collection_child_add(collection_dst, child->collection, flag, false);
@@ -136,21 +156,41 @@ static void collection_free_data(ID *id)
   BKE_previewimg_free(&collection->preview);
 
   BLI_freelistN(&collection->gobject);
+  if (collection->runtime.gobject_hash) {
+    BLI_ghash_free(collection->runtime.gobject_hash, NULL, NULL);
+    collection->runtime.gobject_hash = NULL;
+  }
+
   BLI_freelistN(&collection->children);
   BLI_freelistN(&collection->runtime.parents);
 
-  BKE_collection_object_cache_free(collection);
+  collection_object_cache_free(collection);
 }
 
 static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
 {
   Collection *collection = (Collection *)id;
+  const int data_flags = BKE_lib_query_foreachid_process_flags_get(data);
 
   BKE_LIB_FOREACHID_PROCESS_ID(
       data, collection->runtime.owner_id, IDWALK_CB_LOOPBACK | IDWALK_CB_NEVER_SELF);
 
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    Object *cob_ob_old = cob->ob;
+
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, cob->ob, IDWALK_CB_USER);
+
+    if (collection->runtime.gobject_hash) {
+      /* If the remapping does not create inconsistent data (NULL object pointer or duplicate
+       * CollectionObjects), keeping the ghash consistent is also possible. Otherwise, this call
+       * will take care of tagging the collection objects list as dirty. */
+      collection_gobject_hash_update_object(collection, cob_ob_old, cob);
+    }
+    else if (cob_ob_old != cob->ob || cob->ob == NULL) {
+      /* If there is no reference GHash, duplicates cannot be reliably detected, so assume that any
+       * NULL pointer or changed pointer may create an invalid collection object list. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+    }
   }
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
@@ -160,8 +200,9 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
     const int cb_flag = ((parent->collection != NULL &&
+                          (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
                           (parent->collection->id.flag & LIB_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED :
+                             IDWALK_CB_EMBEDDED_NOT_OWNING :
                              IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
@@ -286,10 +327,11 @@ static void collection_blend_read_data(BlendDataReader *reader, ID *id)
   BKE_collection_blend_read_data(reader, collection, NULL);
 }
 
-static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Collection *collection)
+static void lib_link_collection_data(BlendLibReader *reader, ID *self_id, Collection *collection)
 {
+  BLI_assert(collection->runtime.gobject_hash == NULL);
   LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    BLO_read_id_address(reader, lib, &cob->ob);
+    BLO_read_id_address(reader, self_id, &cob->ob);
 
     if (cob->ob == NULL) {
       BLI_freelinkN(&collection->gobject, cob);
@@ -297,22 +339,20 @@ static void lib_link_collection_data(BlendLibReader *reader, Library *lib, Colle
   }
 
   LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-    BLO_read_id_address(reader, lib, &child->collection);
+    BLO_read_id_address(reader, self_id, &child->collection);
   }
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
-void BKE_collection_compat_blend_read_lib(BlendLibReader *reader,
-                                          Library *lib,
-                                          SceneCollection *sc)
+void BKE_collection_compat_blend_read_lib(BlendLibReader *reader, ID *self_id, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
-    BLO_read_id_address(reader, lib, &link->data);
+    BLO_read_id_address(reader, self_id, &link->data);
     BLI_assert(link->data);
   }
 
   LISTBASE_FOREACH (SceneCollection *, nsc, &sc->scene_collections) {
-    BKE_collection_compat_blend_read_lib(reader, lib, nsc);
+    BKE_collection_compat_blend_read_lib(reader, self_id, nsc);
   }
 }
 #endif
@@ -321,15 +361,15 @@ void BKE_collection_blend_read_lib(BlendLibReader *reader, Collection *collectio
 {
 #ifdef USE_COLLECTION_COMPAT_28
   if (collection->collection) {
-    BKE_collection_compat_blend_read_lib(reader, collection->id.lib, collection->collection);
+    BKE_collection_compat_blend_read_lib(reader, &collection->id, collection->collection);
   }
 
   if (collection->view_layer) {
-    BKE_view_layer_blend_read_lib(reader, collection->id.lib, collection->view_layer);
+    BKE_view_layer_blend_read_lib(reader, &collection->id, collection->view_layer);
   }
 #endif
 
-  lib_link_collection_data(reader, collection->id.lib, collection);
+  lib_link_collection_data(reader, &collection->id, collection);
 }
 
 static void collection_blend_read_lib(BlendLibReader *reader, ID *id)
@@ -339,8 +379,7 @@ static void collection_blend_read_lib(BlendLibReader *reader, ID *id)
 }
 
 #ifdef USE_COLLECTION_COMPAT_28
-void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
-                                             struct SceneCollection *sc)
+void BKE_collection_compat_blend_read_expand(BlendExpander *expander, SceneCollection *sc)
 {
   LISTBASE_FOREACH (LinkData *, link, &sc->objects) {
     BLO_expand(expander, link->data);
@@ -354,6 +393,7 @@ void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
 
 void BKE_collection_blend_read_expand(BlendExpander *expander, Collection *collection)
 {
+  BLI_assert(collection->runtime.gobject_hash == NULL);
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     BLO_expand(expander, cob->ob);
   }
@@ -456,7 +496,8 @@ void BKE_collection_add_from_object(Main *bmain,
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -478,8 +519,9 @@ void BKE_collection_add_from_collection(Main *bmain,
   bool is_instantiated = false;
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
-    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDABLE_LIBRARY(collection) &&
-        collection_find_child(collection, collection_src)) {
+    if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
+        collection_find_child(collection, collection_src))
+    {
       collection_child_add(collection, collection_dst, 0, true);
       is_instantiated = true;
     }
@@ -518,11 +560,20 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
     return false;
   }
 
+  /* This is being deleted, no need to handle each item.
+   * NOTE: While it might seem an advantage to use the hash instead of the list-lookup
+   * it is in fact slower because the items are removed in-order,
+   * so the list-lookup succeeds on the first test. */
+  if (collection->runtime.gobject_hash) {
+    BLI_ghash_free(collection->runtime.gobject_hash, NULL, NULL);
+    collection->runtime.gobject_hash = NULL;
+  }
+
   if (hierarchy) {
     /* Remove child objects. */
     CollectionObject *cob = collection->gobject.first;
     while (cob != NULL) {
-      collection_object_remove(bmain, collection, cob->ob, true);
+      collection_object_remove_no_gobject_hash(bmain, collection, cob, true);
       cob = collection->gobject.first;
     }
 
@@ -551,7 +602,7 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
       }
 
       /* Remove child object. */
-      collection_object_remove(bmain, collection, cob->ob, true);
+      collection_object_remove_no_gobject_hash(bmain, collection, cob, true);
       cob = collection->gobject.first;
     }
   }
@@ -673,8 +724,8 @@ static Collection *collection_duplicate_recursive(Main *bmain,
 Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      Collection *collection,
-                                     eDupli_ID_Flags duplicate_flags,
-                                     eLibIDDuplicateFlags duplicate_options)
+                                     /*eDupli_ID_Flags*/ uint duplicate_flags,
+                                     /*eLibIDDuplicateFlags*/ uint duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
   const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
@@ -751,7 +802,7 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
   MEM_freeN(name);
 }
 
-const char *BKE_collection_ui_name_get(struct Collection *collection)
+const char *BKE_collection_ui_name_get(Collection *collection)
 {
   if (collection->flag & COLLECTION_IS_MASTER) {
     return IFACE_("Scene Collection");
@@ -837,19 +888,44 @@ ListBase BKE_collection_object_cache_instanced_get(Collection *collection)
 
 static void collection_object_cache_free(Collection *collection)
 {
-  /* Clear own cache an for all parents, since those are affected by changes as well. */
   collection->flag &= ~(COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED);
   BLI_freelistN(&collection->runtime.object_cache);
   BLI_freelistN(&collection->runtime.object_cache_instanced);
+}
 
+static void collection_object_cache_free_parent_recursive(Collection *collection)
+{
+  collection_object_cache_free(collection);
+
+  /* Clear cache in all parents recursively, since those are affected by changes as well. */
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
-    collection_object_cache_free(parent->collection);
+    /* In theory there should be no NULL pointer here. However, this code can be called from
+     * non-valid temporary states (e.g. indirectly from #BKE_collections_object_remove_invalids
+     * as part of ID remapping process). */
+    if (parent->collection == NULL) {
+      continue;
+    }
+    collection_object_cache_free_parent_recursive(parent->collection);
   }
 }
 
 void BKE_collection_object_cache_free(Collection *collection)
 {
-  collection_object_cache_free(collection);
+  BLI_assert(collection != NULL);
+  collection_object_cache_free_parent_recursive(collection);
+}
+
+void BKE_main_collections_object_cache_free(const Main *bmain)
+{
+  for (Scene *scene = bmain->scenes.first; scene != NULL; scene = scene->id.next) {
+    collection_object_cache_free(scene->master_collection);
+  }
+
+  for (Collection *collection = bmain->collections.first; collection != NULL;
+       collection = collection->id.next)
+  {
+    collection_object_cache_free(collection);
+  }
 }
 
 Base *BKE_collection_or_layer_objects(const Scene *scene,
@@ -895,7 +971,7 @@ static bool collection_object_cyclic_check_internal(Object *object, Collection *
   if (object->instance_collection) {
     Collection *dup_collection = object->instance_collection;
     if ((dup_collection->id.tag & LIB_TAG_DOIT) == 0) {
-      /* Cycle already exists in collections, let's prevent further crappyness */
+      /* Cycle already exists in collections, let's prevent further creepiness. */
       return true;
     }
     /* flag the object to identify cyclic dependencies in further dupli collections */
@@ -938,8 +1014,8 @@ bool BKE_collection_has_object(Collection *collection, const Object *ob)
   if (ELEM(NULL, collection, ob)) {
     return false;
   }
-
-  return BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob));
+  collection_gobject_hash_ensure(collection);
+  return BLI_ghash_lookup(collection->runtime.gobject_hash, ob);
 }
 
 bool BKE_collection_has_object_recursive(Collection *collection, Object *ob)
@@ -1007,6 +1083,173 @@ bool BKE_collection_is_empty(const Collection *collection)
 /** \name Collection Objects
  * \{ */
 
+static void collection_gobject_assert_internal_consistency(Collection *collection,
+                                                           const bool do_extensive_check);
+
+static GHash *collection_gobject_hash_alloc(const Collection *collection)
+{
+  return BLI_ghash_ptr_new_ex(__func__, (uint)BLI_listbase_count(&collection->gobject));
+}
+
+static void collection_gobject_hash_create(Collection *collection)
+{
+  GHash *gobject_hash = collection_gobject_hash_alloc(collection);
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    if (UNLIKELY(cob->ob == NULL)) {
+      BLI_assert(collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY);
+      continue;
+    }
+    CollectionObject **cob_p;
+    /* Do not overwrite an already existing entry. */
+    if (UNLIKELY(BLI_ghash_ensure_p(gobject_hash, cob->ob, (void ***)&cob_p))) {
+      BLI_assert(collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY);
+      continue;
+    }
+    *cob_p = cob;
+  }
+  collection->runtime.gobject_hash = gobject_hash;
+}
+
+static void collection_gobject_hash_ensure(Collection *collection)
+{
+  if (collection->runtime.gobject_hash) {
+#ifdef USE_DEBUG_EXTRA_GOBJECT_ASSERT
+    collection_gobject_assert_internal_consistency(collection, true);
+#endif
+    return;
+  }
+
+  collection_gobject_hash_create(collection);
+
+  collection_gobject_assert_internal_consistency(collection, true);
+}
+
+/** Similar to #collection_gobject_hash_ensure/#collection_gobject_hash_create, but does fix
+ * inconsistencies in the collection objects list. */
+static void collection_gobject_hash_ensure_fix(Collection *collection)
+{
+  bool changed = false;
+
+  if ((collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY) == 0) {
+#ifdef USE_DEBUG_EXTRA_GOBJECT_ASSERT
+    collection_gobject_assert_internal_consistency(collection, true);
+#endif
+    return;
+  }
+
+  GHash *gobject_hash = collection->runtime.gobject_hash;
+  if (gobject_hash) {
+    BLI_ghash_clear_ex(gobject_hash, NULL, NULL, BLI_ghash_len(gobject_hash));
+  }
+  else {
+    collection->runtime.gobject_hash = gobject_hash = collection_gobject_hash_alloc(collection);
+  }
+
+  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
+    if (cob->ob == NULL) {
+      BLI_freelinkN(&collection->gobject, cob);
+      changed = true;
+      continue;
+    }
+    CollectionObject **cob_p;
+    if (BLI_ghash_ensure_p(gobject_hash, cob->ob, (void ***)&cob_p)) {
+      BLI_freelinkN(&collection->gobject, cob);
+      changed = true;
+      continue;
+    }
+    *cob_p = cob;
+  }
+
+  if (changed) {
+    BKE_collection_object_cache_free(collection);
+  }
+
+  collection->runtime.tag &= ~COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+  collection_gobject_assert_internal_consistency(collection, true);
+}
+
+/**
+ * Update the collections object hash, removing `ob_old`, inserting `cob->ob` as the new key.
+ *
+ * \note This function is called from #IDTypeInfo::foreach_id callback,
+ * and a difference of Object pointers is only expected in case ID remapping is happening.
+ * This code is the only are in Blender allowed to (temporarily) leave the #CollectionObject list
+ * in an inconsistent/invalid state (with NULL object pointers, or duplicates of
+ * #CollectionObjects). If such invalid cases are encountered,
+ * it will tag the collection objects list as dirty.
+ *
+ * \param ob_old: The existing key to `cob` in the hash, not removed when NULL.
+ * \param cob: The `cob->ob` is to be used as the new key,
+ * when NULL it's not added back into the hash.
+ */
+static void collection_gobject_hash_update_object(Collection *collection,
+                                                  Object *ob_old,
+                                                  CollectionObject *cob)
+{
+  if (ob_old == cob->ob) {
+    return;
+  }
+
+  if (ob_old) {
+    CollectionObject *cob_old = BLI_ghash_popkey(collection->runtime.gobject_hash, ob_old, NULL);
+    if (cob_old != cob) {
+      /* Old object already removed from the #GHash. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+    }
+  }
+
+  if (cob->ob) {
+    CollectionObject **cob_p;
+    if (!BLI_ghash_ensure_p(collection->runtime.gobject_hash, cob->ob, (void ***)&cob_p)) {
+      *cob_p = cob;
+    }
+    else {
+      /* Duplicate #CollectionObject entries. */
+      collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+    }
+  }
+  else {
+    /* #CollectionObject with NULL object pointer. */
+    collection->runtime.tag |= COLLECTION_TAG_COLLECTION_OBJECT_DIRTY;
+  }
+}
+
+/**
+ * Validate the integrity of the collection's #CollectionObject list, and of its mapping.
+ *
+ * Simple test is very fast, as it only checks that the 'dirty' tag for collection's objects is not
+ * set.
+ *
+ * The extensive check is expensive. This should not be done from within loops over collections
+ * items, or from low-level operations that can be assumed safe (like adding or removing an object
+ * from a collection). It ensures that:
+ * - There is a `gobject_hash` mapping.
+ * - There is no NULL-object #CollectionObject items.
+ * - there is no duplicate #CollectionObject items (two or more referencing the same Object).
+ */
+static void collection_gobject_assert_internal_consistency(Collection *collection,
+                                                           const bool do_extensive_check)
+{
+  BLI_assert((collection->runtime.tag & COLLECTION_TAG_COLLECTION_OBJECT_DIRTY) == 0);
+  if (!do_extensive_check) {
+    return;
+  }
+
+  if (collection->runtime.gobject_hash == NULL) {
+    /* NOTE: If the `ghash` does not exist yet, it's creation will assert on errors,
+     * so in theory the second loop below could be skipped. */
+    collection_gobject_hash_create(collection);
+  }
+  GHash *gobject_hash = collection->runtime.gobject_hash;
+  UNUSED_VARS_NDEBUG(gobject_hash);
+  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+    BLI_assert(cob->ob != NULL);
+    /* If there are more than one #CollectionObject for the same object,
+     * at most one of them will pass this test. */
+    BLI_assert(BLI_ghash_lookup(gobject_hash, cob->ob) == cob);
+  }
+}
+
 static void collection_tag_update_parent_recursive(Main *bmain,
                                                    Collection *collection,
                                                    const int flag)
@@ -1030,7 +1273,8 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
                                                              Collection *collection)
 {
   if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection))) {
+      (view_layer == NULL || BKE_view_layer_has_collection(view_layer, collection)))
+  {
     return collection;
   }
 
@@ -1040,9 +1284,11 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 
   LISTBASE_FOREACH (CollectionParent *, collection_parent, &collection->runtime.parents) {
     if (!ID_IS_LINKED(collection_parent->collection) &&
-        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection)) {
+        !ID_IS_OVERRIDE_LIBRARY(collection_parent->collection))
+    {
       if (view_layer != NULL &&
-          !BKE_view_layer_has_collection(view_layer, collection_parent->collection)) {
+          !BKE_view_layer_has_collection(view_layer, collection_parent->collection))
+      {
         /* In case this parent collection is not in given view_layer, there is no point in
          * searching in its ancestors either, we can skip that whole parenting branch. */
         continue;
@@ -1062,21 +1308,24 @@ static Collection *collection_parent_editable_find_recursive(const ViewLayer *vi
 static bool collection_object_add(
     Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)
 {
+  /* Cyclic dependency check. */
   if (ob->instance_collection) {
-    /* Cyclic dependency check. */
     if ((ob->instance_collection == collection) ||
-        collection_find_child_recursive(ob->instance_collection, collection)) {
+        collection_find_child_recursive(ob->instance_collection, collection))
+    {
       return false;
     }
   }
 
-  CollectionObject *cob = BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob));
-  if (cob) {
+  collection_gobject_hash_ensure(collection);
+  CollectionObject **cob_p;
+  if (BLI_ghash_ensure_p(collection->runtime.gobject_hash, ob, (void ***)&cob_p)) {
     return false;
   }
 
-  cob = MEM_callocN(sizeof(CollectionObject), __func__);
+  CollectionObject *cob = MEM_callocN(sizeof(CollectionObject), __func__);
   cob->ob = ob;
+  *cob_p = cob;
   BLI_addtail(&collection->gobject, cob);
   BKE_collection_object_cache_free(collection);
 
@@ -1095,16 +1344,16 @@ static bool collection_object_add(
   return true;
 }
 
-static bool collection_object_remove(Main *bmain,
-                                     Collection *collection,
-                                     Object *ob,
-                                     const bool free_us)
+/**
+ * A version of #collection_object_remove that does not handle `collection->runtime.gobject_hash`,
+ * Either the caller must have removed the object from the hash or the hash may be NULL.
+ */
+static void collection_object_remove_no_gobject_hash(Main *bmain,
+                                                     Collection *collection,
+                                                     CollectionObject *cob,
+                                                     const bool free_us)
 {
-  CollectionObject *cob = BLI_findptr(&collection->gobject, ob, offsetof(CollectionObject, ob));
-  if (cob == NULL) {
-    return false;
-  }
-
+  Object *ob = cob->ob;
   BLI_freelinkN(&collection->gobject, cob);
   BKE_collection_object_cache_free(collection);
 
@@ -1117,7 +1366,19 @@ static bool collection_object_remove(Main *bmain,
 
   collection_tag_update_parent_recursive(
       bmain, collection, ID_RECALC_COPY_ON_WRITE | ID_RECALC_GEOMETRY);
+}
 
+static bool collection_object_remove(Main *bmain,
+                                     Collection *collection,
+                                     Object *ob,
+                                     const bool free_us)
+{
+  collection_gobject_hash_ensure(collection);
+  CollectionObject *cob = BLI_ghash_popkey(collection->runtime.gobject_hash, ob, NULL);
+  if (cob == NULL) {
+    return false;
+  }
+  collection_object_remove_no_gobject_hash(bmain, collection, cob, free_us);
   return true;
 }
 
@@ -1142,7 +1403,7 @@ bool BKE_collection_object_add_notest(Main *bmain, Collection *collection, Objec
     BKE_main_collection_sync(bmain);
   }
 
-  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
 
   return true;
 }
@@ -1176,7 +1437,8 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
 
   FOREACH_SCENE_COLLECTION_BEGIN (scene, collection) {
     if (!ID_IS_LINKED(collection) && !ID_IS_OVERRIDE_LIBRARY(collection) &&
-        BKE_collection_has_object(collection, ob_src)) {
+        BKE_collection_has_object(collection, ob_src))
+    {
       collection_object_add(bmain, collection, ob_dst, 0, true);
       is_instantiated = true;
     }
@@ -1209,7 +1471,7 @@ bool BKE_collection_object_remove(Main *bmain,
     BKE_main_collection_sync(bmain);
   }
 
-  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(&collection->id, ID_RECALC_GEOMETRY | ID_RECALC_HIERARCHY);
 
   return true;
 }
@@ -1219,15 +1481,23 @@ bool BKE_collection_object_replace(Main *bmain,
                                    Object *ob_old,
                                    Object *ob_new)
 {
-  CollectionObject *cob = BLI_findptr(
-      &collection->gobject, ob_old, offsetof(CollectionObject, ob));
+  collection_gobject_hash_ensure(collection);
+  CollectionObject *cob;
+  cob = BLI_ghash_popkey(collection->runtime.gobject_hash, ob_old, NULL);
   if (cob == NULL) {
     return false;
   }
 
-  id_us_min(&cob->ob->id);
-  cob->ob = ob_new;
-  id_us_plus(&cob->ob->id);
+  if (!BLI_ghash_haskey(collection->runtime.gobject_hash, ob_new)) {
+    id_us_min(&cob->ob->id);
+    cob->ob = ob_new;
+    id_us_plus(&cob->ob->id);
+
+    BLI_ghash_insert(collection->runtime.gobject_hash, cob->ob, cob);
+  }
+  else {
+    collection_object_remove_no_gobject_hash(bmain, collection, cob, false);
+  }
 
   if (BKE_collection_is_in_scene(collection)) {
     BKE_main_collection_sync(bmain);
@@ -1273,78 +1543,14 @@ bool BKE_scene_collections_object_remove(Main *bmain, Scene *scene, Object *ob, 
   return scene_collections_object_remove(bmain, scene, ob, free_us, NULL);
 }
 
-/*
- * Remove all NULL objects from collections.
- * This is used for library remapping, where these pointers have been set to NULL.
- * Otherwise this should never happen.
- */
-static void collection_object_remove_nulls(Collection *collection)
-{
-  bool changed = false;
-
-  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    if (cob->ob == NULL) {
-      BLI_freelinkN(&collection->gobject, cob);
-      changed = true;
-    }
-  }
-
-  if (changed) {
-    BKE_collection_object_cache_free(collection);
-  }
-}
-
-void BKE_collections_object_remove_nulls(Main *bmain)
+void BKE_collections_object_remove_invalids(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    collection_object_remove_nulls(scene->master_collection);
+    collection_gobject_hash_ensure_fix(scene->master_collection);
   }
 
   LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    collection_object_remove_nulls(collection);
-  }
-}
-
-/*
- * Remove all duplicate objects from collections.
- * This is used for library remapping, happens when remapping an object to another one already
- * present in the collection. Otherwise this should never happen.
- */
-static void collection_object_remove_duplicates(Collection *collection)
-{
-  bool changed = false;
-
-  LISTBASE_FOREACH_MUTABLE (CollectionObject *, cob, &collection->gobject) {
-    if (cob->ob->runtime.collection_management) {
-      BLI_freelinkN(&collection->gobject, cob);
-      changed = true;
-      continue;
-    }
-    cob->ob->runtime.collection_management = true;
-  }
-
-  /* Cleanup. */
-  LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-    cob->ob->runtime.collection_management = false;
-  }
-
-  if (changed) {
-    BKE_collection_object_cache_free(collection);
-  }
-}
-
-void BKE_collections_object_remove_duplicates(struct Main *bmain)
-{
-  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
-    ob->runtime.collection_management = false;
-  }
-
-  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-    collection_object_remove_duplicates(scene->master_collection);
-  }
-
-  LISTBASE_FOREACH (Collection *, collection, &bmain->collections) {
-    collection_object_remove_duplicates(collection);
+    collection_gobject_hash_ensure_fix(collection);
   }
 }
 
@@ -1464,14 +1670,16 @@ static bool collection_instance_find_recursive(Collection *collection,
   LISTBASE_FOREACH (CollectionObject *, collection_object, &collection->gobject) {
     if (collection_object->ob != NULL &&
         /* Object from a given collection should never instantiate that collection either. */
-        ELEM(collection_object->ob->instance_collection, instance_collection, collection)) {
+        ELEM(collection_object->ob->instance_collection, instance_collection, collection))
+    {
       return true;
     }
   }
 
   LISTBASE_FOREACH (CollectionChild *, collection_child, &collection->children) {
     if (collection_child->collection != NULL &&
-        collection_instance_find_recursive(collection_child->collection, instance_collection)) {
+        collection_instance_find_recursive(collection_child->collection, instance_collection))
+    {
       return true;
     }
   }
@@ -1506,8 +1714,8 @@ static bool collection_instance_fix_recursive(Collection *parent_collection,
   bool cycles_found = false;
 
   LISTBASE_FOREACH (CollectionObject *, collection_object, &parent_collection->gobject) {
-    if (collection_object->ob != NULL &&
-        collection_object->ob->instance_collection == collection) {
+    if (collection_object->ob != NULL && collection_object->ob->instance_collection == collection)
+    {
       id_us_min(&collection->id);
       collection_object->ob->instance_collection = NULL;
       cycles_found = true;
@@ -1735,6 +1943,49 @@ void BKE_main_collections_parent_relations_rebuild(Main *bmain)
   }
 }
 
+bool BKE_collection_validate(Collection *collection)
+{
+  if (!BLI_listbase_validate(&collection->children)) {
+    return false;
+  }
+  if (!BLI_listbase_validate(&collection->runtime.parents)) {
+    return false;
+  }
+  if (BKE_collection_cycle_find(collection, NULL)) {
+    return false;
+  }
+
+  bool is_ok = true;
+
+  /* Check that children have each collection used/referenced only once. */
+  GSet *processed_collections = BLI_gset_ptr_new(__func__);
+  for (CollectionChild *child = collection->children.first; child; child = child->next) {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, child->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = child->collection;
+    }
+  }
+
+  /* Check that parents have each collection used/referenced only once. */
+  BLI_gset_clear(processed_collections, NULL);
+  for (CollectionParent *parent = collection->runtime.parents.first; parent; parent = parent->next)
+  {
+    void **r_key;
+    if (BLI_gset_ensure_p_ex(processed_collections, parent->collection, &r_key)) {
+      is_ok = false;
+    }
+    else {
+      *r_key = parent->collection;
+    }
+  }
+
+  BLI_gset_free(processed_collections, NULL);
+  return is_ok;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1952,7 +2203,7 @@ void BKE_scene_collections_iterator_begin(BLI_Iterator *iter, void *data_in)
   iter->current = data->array[data->cur];
 }
 
-void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
+void BKE_scene_collections_iterator_next(BLI_Iterator *iter)
 {
   CollectionsIteratorData *data = iter->data;
 
@@ -1964,7 +2215,7 @@ void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter)
   }
 }
 
-void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter)
+void BKE_scene_collections_iterator_end(BLI_Iterator *iter)
 {
   CollectionsIteratorData *data = iter->data;
 
@@ -2049,7 +2300,7 @@ void BKE_scene_objects_iterator_begin_ex(BLI_Iterator *iter, void *data_in)
   scene_objects_iterator_skip_invalid_flag(iter);
 }
 
-void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter)
+void BKE_scene_objects_iterator_next_ex(BLI_Iterator *iter)
 {
   /* Unpack the data. */
   SceneObjectsIteratorExData *data = iter->data;
@@ -2064,7 +2315,7 @@ void BKE_scene_objects_iterator_next_ex(struct BLI_Iterator *iter)
   scene_objects_iterator_skip_invalid_flag(iter);
 }
 
-void BKE_scene_objects_iterator_end_ex(struct BLI_Iterator *iter)
+void BKE_scene_objects_iterator_end_ex(BLI_Iterator *iter)
 {
   /* Unpack the data. */
   SceneObjectsIteratorExData *data = iter->data;

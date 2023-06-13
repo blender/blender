@@ -23,13 +23,9 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Allocator construction/destruction. */
 
-  StackAllocator() : pointer_(0), use_stack_(true)
-  {
-  }
+  StackAllocator() : pointer_(0), use_stack_(true) {}
 
-  StackAllocator(const StackAllocator &) : pointer_(0), use_stack_(true)
-  {
-  }
+  StackAllocator(const StackAllocator &) : pointer_(0), use_stack_(true) {}
 
   template<class U>
   StackAllocator(const StackAllocator<SIZE, U> &) : pointer_(0), use_stack_(false)

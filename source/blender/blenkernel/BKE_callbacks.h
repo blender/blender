@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -83,8 +85,10 @@ typedef enum {
   BKE_CB_EVT_RENDER_CANCEL,
   BKE_CB_EVT_LOAD_PRE,
   BKE_CB_EVT_LOAD_POST,
+  BKE_CB_EVT_LOAD_POST_FAIL,
   BKE_CB_EVT_SAVE_PRE,
   BKE_CB_EVT_SAVE_POST,
+  BKE_CB_EVT_SAVE_POST_FAIL,
   BKE_CB_EVT_UNDO_PRE,
   BKE_CB_EVT_UNDO_POST,
   BKE_CB_EVT_REDO_PRE,
@@ -123,6 +127,7 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
                                     struct ID *id,
                                     struct Depsgraph *depsgraph,
                                     eCbEvent evt);
+void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str);
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt);
 

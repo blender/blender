@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-'''
+"""
 This script generates the blender.1 man page, embedding the help text
 from the Blender executable itself. Invoke it as follows:
 
-    blender.1.py --blender <path-to-blender> --output <output-filename>
+    ./blender.bin -b --python doc/manpage/blender.1.py -- --output <output-filename>
 
 where <path-to-blender> is the path to the Blender executable,
 and <output-filename> is where to write the generated man page.
-'''
+"""
 
 import argparse
 import os
-import subprocess
 import time
+import sys
 
 from typing import (
     Dict,
@@ -28,58 +28,28 @@ def man_format(data: str) -> str:
     return data
 
 
-def blender_extract_info(blender_bin: str) -> Dict[str, str]:
+def blender_extract_info() -> Dict[str, str]:
+    # Only use of `bpy` in this file.
+    import bpy  # type: ignore
+    blender_help_text = bpy.app.help_text()
+    blender_version_text = bpy.app.version_string
+    blender_build_date_text = bpy.app.build_date
 
-    blender_env = {
-        "ASAN_OPTIONS": "exitcode=0:" + os.environ.get("ASAN_OPTIONS", ""),
-    }
-
-    blender_help = subprocess.run(
-        [blender_bin, "--help"],
-        env=blender_env,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout.decode(encoding="utf-8")
-
-    blender_version_output = subprocess.run(
-        [blender_bin, "--version"],
-        env=blender_env,
-        check=True,
-        stdout=subprocess.PIPE,
-    ).stdout.decode(encoding="utf-8")
-
-    # Extract information from the version string.
-    # Note that some internal modules may print errors (e.g. color management),
-    # check for each lines prefix to ensure these aren't included.
-    blender_version = ""
-    blender_date = ""
-    for l in blender_version_output.split("\n"):
-        if l.startswith("Blender "):
-            # Remove 'Blender' prefix.
-            blender_version = l.split(" ", 1)[1].strip()
-        elif l.lstrip().startswith("build date:"):
-            # Remove 'build date:' prefix.
-            blender_date = l.split(":", 1)[1].strip()
-        if blender_version and blender_date:
-            break
-
-    if not blender_date:
+    if blender_build_date_text == b'Unknown':
         # Happens when built without WITH_BUILD_INFO e.g.
-        date_string = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
+        blender_date = time.strftime("%B %d, %Y", time.gmtime(int(os.environ.get('SOURCE_DATE_EPOCH', time.time()))))
     else:
-        date_string = time.strftime("%B %d, %Y", time.strptime(blender_date, "%Y-%m-%d"))
+        blender_date = time.strftime("%B %d, %Y", time.strptime(blender_build_date_text, "%Y-%m-%d"))
 
     return {
-        "help": blender_help,
-        "version": blender_version,
-        "date": date_string,
+        "help": blender_help_text,
+        "version": blender_version_text,
+        "date": blender_date,
     }
 
 
-def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> None:
-    if verbose:
-        print("Extracting help text:", blender_bin)
-    blender_info = blender_extract_info(blender_bin)
+def man_page_from_blender_help(fh: TextIO, verbose: bool) -> None:
+    blender_info = blender_extract_info()
 
     # Header Content.
     fh.write(
@@ -87,29 +57,29 @@ def man_page_from_blender_help(fh: TextIO, blender_bin: str, verbose: bool) -> N
         (blender_info["date"], blender_info["version"].replace(".", "\\&."))
     )
 
-    fh.write(r'''
+    fh.write(r"""
 .SH NAME
-blender \- a full-featured 3D application''')
+blender \- a full-featured 3D application""")
 
-    fh.write(r'''
+    fh.write(r"""
 .SH SYNOPSIS
-.B blender [args ...] [file] [args ...]''')
+.B blender [args ...] [file] [args ...]""")
 
-    fh.write(r'''
+    fh.write(r"""
 .br
 .SH DESCRIPTION
 .PP
 .B blender
-is a full-featured 3D application. It supports the entirety of the 3D pipeline - '''
-             '''modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
+is a full-featured 3D application. It supports the entirety of the 3D pipeline - """
+             """modeling, rigging, animation, simulation, rendering, compositing, motion tracking, and video editing.
 
-Use Blender to create 3D images and animations, films and commercials, content for games, '''
-             r'''architectural and industrial visualizations, and scientific visualizations.
+Use Blender to create 3D images and animations, films and commercials, content for games, """
+             r"""architectural and industrial visualizations, and scientific visualizations.
 
-https://www.blender.org''')
+https://www.blender.org""")
 
-    fh.write(r'''
-.SH OPTIONS''')
+    fh.write(r"""
+.SH OPTIONS""")
 
     fh.write("\n\n")
 
@@ -152,7 +122,7 @@ https://www.blender.org''')
 
     # Footer Content.
 
-    fh.write(r'''
+    fh.write(r"""
 .br
 .SH SEE ALSO
 .B luxrender(1)
@@ -162,7 +132,7 @@ https://www.blender.org''')
 This manpage was written for a Debian GNU/Linux system by Daniel Mester
 <mester@uni-bremen.de> and updated by Cyril Brulebois
 <cyril.brulebois@enst-bretagne.fr> and Dan Eicher <dan@trollwerks.org>.
-''')
+""")
 
 
 def create_argparse() -> argparse.ArgumentParser:
@@ -171,11 +141,6 @@ def create_argparse() -> argparse.ArgumentParser:
         "--output",
         required=True,
         help="The man page to write to."
-    )
-    parser.add_argument(
-        "--blender",
-        required=True,
-        help="Path to the blender binary."
     )
     parser.add_argument(
         "--verbose",
@@ -189,15 +154,15 @@ def create_argparse() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    argv = sys.argv[sys.argv.index("--") + 1:]
     parser = create_argparse()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
-    blender_bin = args.blender
     output_filename = args.output
     verbose = args.verbose
 
     with open(output_filename, "w", encoding="utf-8") as fh:
-        man_page_from_blender_help(fh, blender_bin, verbose)
+        man_page_from_blender_help(fh, verbose)
         if verbose:
             print("Written:", output_filename)
 

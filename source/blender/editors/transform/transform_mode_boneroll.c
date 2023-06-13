@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -49,10 +50,10 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    BLI_snprintf(str, sizeof(str), TIP_("Roll: %s"), &c[0]);
+    SNPRINTF(str, TIP_("Roll: %s"), &c[0]);
   }
   else {
-    BLI_snprintf(str, sizeof(str), TIP_("Roll: %.2f"), RAD2DEGF(final));
+    SNPRINTF(str, TIP_("Roll: %.2f"), RAD2DEGF(final));
   }
 
   /* set roll values */
@@ -72,10 +73,9 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initBoneRoll(TransInfo *t)
+static void initBoneRoll(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_BONE_ROLL;
-  t->transform = applyBoneRoll;
 
   initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
 
@@ -88,8 +88,17 @@ void initBoneRoll(TransInfo *t)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_use_radians = (t->scene->unit.system_rotation == USER_UNIT_ROT_RADIANS);
   t->num.unit_type[0] = B_UNIT_ROTATION;
-
-  t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
 }
 
 /** \} */
+
+TransModeInfo TransMode_boneroll = {
+    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*init_fn*/ initBoneRoll,
+    /*transform_fn*/ applyBoneRoll,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

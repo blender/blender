@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnla
@@ -113,7 +114,7 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   return (SpaceLink *)snla;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void nla_free(SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
@@ -125,14 +126,15 @@ static void nla_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void nla_init(struct wmWindowManager *wm, ScrArea *area)
+static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceNla *snla = (SpaceNla *)area->spacedata.first;
 
   /* init dopesheet data if non-existent (i.e. for old files) */
   if (snla->ads == NULL) {
     snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
-    snla->ads->source = (wm->winactive) ? (ID *)WM_window_get_active_scene(wm->winactive) : NULL;
+    wmWindow *win = WM_window_find_by_area(wm, area);
+    snla->ads->source = win ? (ID *)WM_window_get_active_scene(win) : NULL;
   }
 
   ED_area_tag_refresh(area);
@@ -564,24 +566,24 @@ static void nla_id_remap(ScrArea *UNUSED(area),
   BKE_id_remapper_apply(mappings, (ID **)&snla->ads->source, ID_REMAP_APPLY_DEFAULT);
 }
 
-static void nla_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
   BLO_read_data_address(reader, &snla->ads);
 }
 
-static void nla_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
   bDopeSheet *ads = snla->ads;
 
   if (ads) {
-    BLO_read_id_address(reader, parent_id->lib, &ads->source);
-    BLO_read_id_address(reader, parent_id->lib, &ads->filter_grp);
+    BLO_read_id_address(reader, parent_id, &ads->source);
+    BLO_read_id_address(reader, parent_id, &ads->filter_grp);
   }
 }
 
-static void nla_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceNla *snla = (SpaceNla *)sl;
 
@@ -607,9 +609,9 @@ void ED_spacetype_nla(void)
   st->listener = nla_listener;
   st->keymap = nla_keymap;
   st->id_remap = nla_id_remap;
-  st->blend_read_data = nla_blend_read_data;
-  st->blend_read_lib = nla_blend_read_lib;
-  st->blend_write = nla_blend_write;
+  st->blend_read_data = nla_space_blend_read_data;
+  st->blend_read_lib = nla_space_blend_read_lib;
+  st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");

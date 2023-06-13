@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -87,6 +89,23 @@ struct WorkSpaceLayout *BKE_workspace_layout_iter_circular(
 
 void BKE_workspace_tool_remove(struct WorkSpace *workspace, struct bToolRef *tref)
     ATTR_NONNULL(1, 2);
+
+/**
+ * Replace tools ID's, intended for use in versioning code.
+ * \param space_type: The space-type to match #bToolRef::space_type.
+ * \param mode: The space-type to match #bToolRef::mode.
+ * \param idname_prefix_skip: Ignore when NULL, otherwise only operate
+ * on tools that have this text as the #bToolRef::idname prefix, which is skipped before
+ * the replacement runs. This avoids having to duplicate a common prefix in the replacement text.
+ * \param replace_table: An array of (source, destination) pairs.
+ * \param replace_table_num: The number of items in `replace_table`.
+ */
+void BKE_workspace_tool_id_replace_table(struct WorkSpace *workspace,
+                                         const int space_type,
+                                         const int mode,
+                                         const char *idname_prefix_skip,
+                                         const char *replace_table[][2],
+                                         int replace_table_num) ATTR_NONNULL(1, 5);
 
 /** \} */
 

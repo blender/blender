@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -11,9 +12,9 @@ namespace blender::nodes::node_shader_camera_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("View Vector"));
-  b.add_output<decl::Float>(N_("View Z Depth"));
-  b.add_output<decl::Float>(N_("View Distance"));
+  b.add_output<decl::Vector>("View Vector");
+  b.add_output<decl::Float>("View Z Depth");
+  b.add_output<decl::Float>("View Distance");
 }
 
 static int gpu_shader_camera(GPUMaterial *mat,

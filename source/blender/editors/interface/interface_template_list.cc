@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -8,9 +10,11 @@
 #include <cstring>
 
 #include "BLI_fnmatch.h"
+#include "BLI_function_ref.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_screen.h"
@@ -26,11 +30,14 @@
 #include "RNA_prototypes.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 #include "UI_view2d.h"
 
 #include "WM_api.h"
 
 #include "interface_intern.hh"
+
+using namespace blender;
 
 /**
  * The validated data that was passed to #uiTemplateList (typically through Python).
@@ -82,13 +89,13 @@ struct TemplateListVisualInfo {
   int end_idx;      /* Index of last item to display + 1. */
 };
 
-static void uilist_draw_item_default(struct uiList *ui_list,
-                                     const struct bContext * /*C*/,
-                                     struct uiLayout *layout,
-                                     struct PointerRNA * /*dataptr*/,
-                                     struct PointerRNA *itemptr,
+static void uilist_draw_item_default(uiList *ui_list,
+                                     const bContext * /*C*/,
+                                     uiLayout *layout,
+                                     PointerRNA * /*dataptr*/,
+                                     PointerRNA *itemptr,
                                      int icon,
-                                     struct PointerRNA * /*active_dataptr*/,
+                                     PointerRNA * /*active_dataptr*/,
                                      const char * /*active_propname*/,
                                      int /*index*/,
                                      int /*flt_flag*/)
@@ -113,9 +120,7 @@ static void uilist_draw_item_default(struct uiList *ui_list,
   }
 }
 
-static void uilist_draw_filter_default(struct uiList *ui_list,
-                                       const struct bContext * /*C*/,
-                                       struct uiLayout *layout)
+static void uilist_draw_filter_default(uiList *ui_list, const bContext * /*C*/, uiLayout *layout)
 {
   PointerRNA listptr;
   RNA_pointer_create(nullptr, &RNA_UIList, ui_list, &listptr);
@@ -148,6 +153,45 @@ static void uilist_draw_filter_default(struct uiList *ui_list,
   }
 }
 
+uiListNameFilter::uiListNameFilter(uiList &list)
+{
+  const char *filter_raw = list.filter_byname;
+
+  if (filter_raw[0]) {
+    const size_t slen = strlen(filter_raw);
+
+    /* Implicitly add heading/trailing wildcards if needed. */
+    if (slen + 3 <= sizeof(storage_.filter_buff)) {
+      filter_ = storage_.filter_buff;
+    }
+    else {
+      filter_ = storage_.filter_dyn = static_cast<char *>(
+          MEM_mallocN((slen + 3) * sizeof(char), "filter_dyn"));
+    }
+    BLI_strncpy_ensure_pad(filter_, filter_raw, '*', slen + 3);
+  }
+}
+
+uiListNameFilter::~uiListNameFilter()
+{
+  MEM_SAFE_FREE(storage_.filter_dyn);
+}
+
+eUIListFilterResult uiListNameFilter::operator()(const PointerRNA & /* itemptr */,
+                                                 StringRefNull name,
+                                                 int /* index */)
+{
+  if (!filter_) {
+    return UI_LIST_ITEM_FILTER_MATCHES;
+  }
+
+  /* Case-insensitive! */
+  if (fnmatch(filter_, name.c_str(), FNM_CASEFOLD) == 0) {
+    return UI_LIST_ITEM_FILTER_MATCHES;
+  }
+  return UI_LIST_ITEM_FILTER_MISMATCHES;
+}
+
 struct StringCmp {
   char name[MAX_IDPROP_NAME];
   int org_idx;
@@ -159,16 +203,16 @@ static int cmpstringp(const void *p1, const void *p2)
   return BLI_strcasecmp(((StringCmp *)p1)->name, ((StringCmp *)p2)->name);
 }
 
-static void uilist_filter_items_default(struct uiList *ui_list,
-                                        const struct bContext * /*C*/,
-                                        struct PointerRNA *dataptr,
-                                        const char *propname)
+void UI_list_filter_and_sort_items(uiList *ui_list,
+                                   const bContext * /*C*/,
+                                   uiListItemFilterFn item_filter_fn,
+                                   PointerRNA *dataptr,
+                                   const char *propname,
+                                   uiListItemGetNameFn get_name_fn)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
   PropertyRNA *prop = RNA_struct_find_property(dataptr, propname);
 
-  const char *filter_raw = ui_list->filter_byname;
-  char *filter = (char *)filter_raw, filter_buff[32], *filter_dyn = nullptr;
   const bool filter_exclude = (ui_list->filter_flag & UILST_FLT_EXCLUDE) != 0;
   const bool order_by_name = (ui_list->filter_sort_flag & UILST_FLT_SORT_MASK) ==
                              UILST_FLT_SORT_ALPHA;
@@ -176,41 +220,26 @@ static void uilist_filter_items_default(struct uiList *ui_list,
 
   dyn_data->items_shown = dyn_data->items_len = len;
 
-  if (len && (order_by_name || filter_raw[0])) {
+  if (len && (order_by_name || item_filter_fn)) {
     StringCmp *names = nullptr;
     int order_idx = 0, i = 0;
 
     if (order_by_name) {
       names = static_cast<StringCmp *>(MEM_callocN(sizeof(StringCmp) * len, "StringCmp"));
     }
-    if (filter_raw[0]) {
-      const size_t slen = strlen(filter_raw);
 
+    if (item_filter_fn) {
       dyn_data->items_filter_flags = static_cast<int *>(
           MEM_callocN(sizeof(int) * len, "items_filter_flags"));
       dyn_data->items_shown = 0;
-
-      /* Implicitly add heading/trailing wildcards if needed. */
-      if (slen + 3 <= sizeof(filter_buff)) {
-        filter = filter_buff;
-      }
-      else {
-        filter = filter_dyn = static_cast<char *>(
-            MEM_mallocN((slen + 3) * sizeof(char), "filter_dyn"));
-      }
-      BLI_strncpy_ensure_pad(filter, filter_raw, '*', slen + 3);
     }
 
     RNA_PROP_BEGIN (dataptr, itemptr, prop) {
       bool do_order = false;
 
       char *namebuf;
-      if (RNA_struct_is_a(itemptr.type, &RNA_AssetHandle)) {
-        /* XXX The AssetHandle design is hacky and meant to be temporary. It can't have a proper
-         * name property, so for now this hardcoded exception is needed. */
-        AssetHandle *asset_handle = (AssetHandle *)itemptr.data;
-        const char *asset_name = ED_asset_handle_get_name(asset_handle);
-        namebuf = BLI_strdup(asset_name);
+      if (get_name_fn) {
+        namebuf = BLI_strdup(get_name_fn(itemptr, i).c_str());
       }
       else {
         namebuf = RNA_struct_name_get_alloc(&itemptr, nullptr, 0, nullptr);
@@ -218,9 +247,13 @@ static void uilist_filter_items_default(struct uiList *ui_list,
 
       const char *name = namebuf ? namebuf : "";
 
-      if (filter[0]) {
-        /* Case-insensitive! */
-        if (fnmatch(filter, name, FNM_CASEFOLD) == 0) {
+      if (item_filter_fn) {
+        const eUIListFilterResult filter_result = item_filter_fn(itemptr, name, i);
+
+        if (filter_result == UI_LIST_ITEM_NEVER_SHOW) {
+          dyn_data->items_filter_flags[i] = UILST_FLT_ITEM_NEVER_SHOW;
+        }
+        else if (filter_result == UI_LIST_ITEM_FILTER_MATCHES) {
           dyn_data->items_filter_flags[i] = UILST_FLT_ITEM;
           if (!filter_exclude) {
             dyn_data->items_shown++;
@@ -239,7 +272,7 @@ static void uilist_filter_items_default(struct uiList *ui_list,
 
       if (do_order) {
         names[order_idx].org_idx = order_idx;
-        BLI_strncpy(names[order_idx++].name, name, MAX_IDPROP_NAME);
+        STRNCPY(names[order_idx++].name, name);
       }
 
       /* free name */
@@ -266,12 +299,27 @@ static void uilist_filter_items_default(struct uiList *ui_list,
       }
     }
 
-    if (filter_dyn) {
-      MEM_freeN(filter_dyn);
-    }
     if (names) {
       MEM_freeN(names);
     }
+  }
+}
+
+/**
+ * Default UI List filtering: Filter by name.
+ */
+static void uilist_filter_items_default(uiList *ui_list,
+                                        const bContext *C,
+                                        PointerRNA *dataptr,
+                                        const char *propname)
+{
+  if (ui_list->filter_byname[0]) {
+    uiListNameFilter name_filter(*ui_list);
+    UI_list_filter_and_sort_items(ui_list, C, name_filter, dataptr, propname);
+  }
+  /* Optimization: Skip filtering entirely when there is no filter string set. */
+  else {
+    UI_list_filter_and_sort_items(ui_list, C, nullptr, dataptr, propname);
   }
 }
 
@@ -384,7 +432,9 @@ static void ui_template_list_collect_items(PointerRNA *list_ptr,
 
   RNA_PROP_BEGIN (list_ptr, itemptr, list_prop) {
     if (!dyn_data->items_filter_flags ||
-        ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude)) {
+        (((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM_NEVER_SHOW) == 0) &&
+         ((dyn_data->items_filter_flags[i] & UILST_FLT_ITEM) ^ filter_exclude)))
+    {
       int new_order_idx;
       if (dyn_data->items_filter_neworder) {
         new_order_idx = dyn_data->items_filter_neworder[reorder_i++];
@@ -595,7 +645,12 @@ static void *uilist_item_use_dynamic_tooltip(PointerRNA *itemptr, const char *pr
 static char *uilist_item_tooltip_func(bContext * /*C*/, void *argN, const char *tip)
 {
   char *dyn_tooltip = static_cast<char *>(argN);
-  return BLI_sprintfN("%s - %s", tip, dyn_tooltip);
+  std::string tooltip_string = dyn_tooltip;
+  if (tip && tip[0]) {
+    tooltip_string += '\n';
+    tooltip_string += tip;
+  }
+  return BLI_strdupn(tooltip_string.c_str(), tooltip_string.size());
 }
 
 /**
@@ -624,7 +679,7 @@ static uiList *ui_list_ensure(const bContext *C,
 
   if (!ui_list) {
     ui_list = static_cast<uiList *>(MEM_callocN(sizeof(uiList), "uiList"));
-    BLI_strncpy(ui_list->list_id, full_list_id, sizeof(ui_list->list_id));
+    STRNCPY(ui_list->list_id, full_list_id);
     BLI_addtail(&region->ui_lists, ui_list);
     ui_list->list_grip = -UI_LIST_AUTO_SIZE_THRESHOLD; /* Force auto size by default. */
     if (sort_reverse) {
@@ -696,6 +751,9 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       int i = 0;
       if (input_data->dataptr.data && input_data->prop) {
+
+        const bool editable = (RNA_property_flag(input_data->prop) & PROP_EDITABLE);
+
         /* create list items */
         for (i = visual_info.start_idx; i < visual_info.end_idx; i++) {
           PointerRNA *itemptr = &items->item_vec[i].item;
@@ -726,7 +784,7 @@ static void ui_template_list_layout_draw(const bContext *C,
                                org_i,
                                0,
                                0,
-                               TIP_("Double click to rename"));
+                               editable ? TIP_("Double click to rename") : "");
           if ((dyntip_data = uilist_item_use_dynamic_tooltip(itemptr,
                                                              input_data->item_dyntip_propname))) {
             UI_but_func_tooltip_set(but, uilist_item_tooltip_func, dyntip_data, MEM_freeN);
@@ -790,7 +848,8 @@ static void ui_template_list_layout_draw(const bContext *C,
       row = uiLayoutRow(layout, true);
 
       if ((input_data->dataptr.data && input_data->prop) && (dyn_data->items_shown > 0) &&
-          (items->active_item_idx >= 0) && (items->active_item_idx < dyn_data->items_shown)) {
+          (items->active_item_idx >= 0) && (items->active_item_idx < dyn_data->items_shown))
+      {
         PointerRNA *itemptr = &items->item_vec[items->active_item_idx].item;
         const int org_i = items->item_vec[items->active_item_idx].org_idx;
 
@@ -815,7 +874,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
 
       /* next/prev button */
-      BLI_snprintf(numstr, sizeof(numstr), "%d :", dyn_data->items_shown);
+      SNPRINTF(numstr, "%d :", dyn_data->items_shown);
       but = uiDefIconTextButR_prop(block,
                                    UI_BTYPE_NUM,
                                    0,
@@ -1181,7 +1240,8 @@ uiList *uiTemplateList_ex(uiLayout *layout,
                                       active_propname,
                                       item_dyntip_propname,
                                       &input_data,
-                                      &ui_list_type)) {
+                                      &ui_list_type))
+  {
     return nullptr;
   }
 

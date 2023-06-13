@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -13,37 +14,39 @@ namespace blender::nodes::node_shader_tex_brick_cc {
 static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector"))
-      .min(-10000.0f)
-      .max(10000.0f)
-      .implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Color>(N_("Color1")).default_value({0.8f, 0.8f, 0.8f, 1.0f});
-  b.add_input<decl::Color>(N_("Color2")).default_value({0.2f, 0.2f, 0.2f, 1.0f});
-  b.add_input<decl::Color>(N_("Mortar")).default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
-  b.add_input<decl::Float>(N_("Scale"))
+  b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
+      implicit_field_inputs::position);
+  b.add_input<decl::Color>("Color1").default_value({0.8f, 0.8f, 0.8f, 1.0f});
+  b.add_input<decl::Color>("Color2").default_value({0.2f, 0.2f, 0.2f, 1.0f});
+  b.add_input<decl::Color>("Mortar").default_value({0.0f, 0.0f, 0.0f, 1.0f}).no_muted_links();
+  b.add_input<decl::Float>("Scale")
       .min(-1000.0f)
       .max(1000.0f)
       .default_value(5.0f)
       .no_muted_links();
-  b.add_input<decl::Float>(N_("Mortar Size"))
+  b.add_input<decl::Float>("Mortar Size")
       .min(0.0f)
       .max(0.125f)
       .default_value(0.02f)
       .no_muted_links();
-  b.add_input<decl::Float>(N_("Mortar Smooth")).min(0.0f).max(1.0f).no_muted_links();
-  b.add_input<decl::Float>(N_("Bias")).min(-1.0f).max(1.0f).no_muted_links();
-  b.add_input<decl::Float>(N_("Brick Width"))
+  b.add_input<decl::Float>("Mortar Smooth")
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(0.1f)
+      .no_muted_links();
+  b.add_input<decl::Float>("Bias").min(-1.0f).max(1.0f).no_muted_links();
+  b.add_input<decl::Float>("Brick Width")
       .min(0.01f)
       .max(100.0f)
       .default_value(0.5f)
       .no_muted_links();
-  b.add_input<decl::Float>(N_("Row Height"))
+  b.add_input<decl::Float>("Row Height")
       .min(0.01f)
       .max(100.0f)
       .default_value(0.25f)
       .no_muted_links();
-  b.add_output<decl::Color>(N_("Color"));
-  b.add_output<decl::Float>(N_("Fac"));
+  b.add_output<decl::Color>("Color");
+  b.add_output<decl::Float>("Fac");
 }
 
 static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -78,12 +81,6 @@ static void node_shader_init_tex_brick(bNodeTree * /*ntree*/, bNode *node)
   tex->squash_freq = 2;
 
   node->storage = tex;
-
-  LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-    if (STREQ(sock->name, "Mortar Smooth")) {
-      ((bNodeSocketValueFloat *)sock->default_value)->value = 0.1f;
-    }
-  }
 }
 
 static int node_shader_gpu_tex_brick(GPUMaterial *mat,
@@ -201,7 +198,7 @@ class BrickFunction : public mf::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(
@@ -224,7 +221,7 @@ class BrickFunction : public mf::MultiFunction {
     const bool store_fac = !r_fac.is_empty();
     const bool store_color = !r_color.is_empty();
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       const float2 f2 = brick(vector[i] * scale[i],
                               mortar_size[i],
                               mortar_smooth[i],
@@ -256,7 +253,7 @@ class BrickFunction : public mf::MultiFunction {
       if (store_fac) {
         r_fac[i] = f;
       }
-    }
+    });
   }
 };
 
@@ -280,7 +277,7 @@ void register_node_type_sh_tex_brick()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_BRICK, "Brick Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_brick_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_brick;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_brick;
   node_type_storage(
       &ntype, "NodeTexBrick", node_free_standard_storage, node_copy_standard_storage);

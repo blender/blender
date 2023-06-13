@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector_types.hh"
@@ -8,6 +10,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_ID.h"
 #include "DNA_ID_enums.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
@@ -55,9 +58,32 @@ class Context : public realtime_compositor::Context {
   {
   }
 
-  const Scene *get_scene() const override
+  const bNodeTree &get_node_tree() const override
   {
-    return DRW_context_state_get()->scene;
+    return *DRW_context_state_get()->scene->nodetree;
+  }
+
+  bool use_file_output() const override
+  {
+    return false;
+  }
+
+  /* The viewport compositor doesn't really support the composite output, it only displays the
+   * viewer output in the viewport. Settings this to false will make the compositor use the
+   * composite output as fallback viewer if no other viewer exists. */
+  bool use_composite_output() const override
+  {
+    return false;
+  }
+
+  bool use_texture_color_management() const override
+  {
+    return BKE_scene_check_color_management_enabled(DRW_context_state_get()->scene);
+  }
+
+  const RenderData &get_render_data() const override
+  {
+    return DRW_context_state_get()->scene->r;
   }
 
   int2 get_render_size() const override
@@ -127,21 +153,40 @@ class Context : public realtime_compositor::Context {
     return DRW_viewport_texture_list_get()->color;
   }
 
-  GPUTexture *get_input_texture(int /*view_layer*/, eScenePassType /*pass_type*/) override
+  GPUTexture *get_viewer_output_texture() override
   {
-    return get_output_texture();
+    return DRW_viewport_texture_list_get()->color;
+  }
+
+  GPUTexture *get_input_texture(int view_layer, const char *pass_name) override
+  {
+    if (view_layer == 0 && STREQ(pass_name, RE_PASSNAME_COMBINED)) {
+      return get_output_texture();
+    }
+    else {
+      return nullptr;
+    }
   }
 
   StringRef get_view_name() override
   {
     const SceneRenderView *view = static_cast<SceneRenderView *>(
-        BLI_findlink(&get_scene()->r.views, DRW_context_state_get()->v3d->multiview_eye));
+        BLI_findlink(&get_render_data().views, DRW_context_state_get()->v3d->multiview_eye));
     return view->name;
   }
 
   void set_info_message(StringRef message) const override
   {
     message.copy(info_message_, GPU_INFO_SIZE);
+  }
+
+  IDRecalcFlag query_id_recalc_flag(ID *id) const override
+  {
+    DrawEngineType *owner = &draw_engine_compositor_type;
+    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
+    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
+    draw_data->recalc = IDRecalcFlag(0);
+    return recalc_flag;
   }
 };
 

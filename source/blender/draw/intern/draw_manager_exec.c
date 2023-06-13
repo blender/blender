@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -646,10 +647,10 @@ static void draw_update_uniforms(DRWShadingGroup *shgroup,
               shgroup->shader, uni->location, uni->length, uni->arraysize, uni->pvalue);
           break;
         case DRW_UNIFORM_TEXTURE:
-          GPU_texture_bind_ex(uni->texture, uni->sampler_state, uni->location, false);
+          GPU_texture_bind_ex(uni->texture, uni->sampler_state, uni->location);
           break;
         case DRW_UNIFORM_TEXTURE_REF:
-          GPU_texture_bind_ex(*uni->texture_ref, uni->sampler_state, uni->location, false);
+          GPU_texture_bind_ex(*uni->texture_ref, uni->sampler_state, uni->location);
           break;
         case DRW_UNIFORM_IMAGE:
           GPU_texture_image_bind(uni->texture, uni->location);
@@ -926,7 +927,8 @@ static void draw_call_batching_do(DRWShadingGroup *shgroup,
   if ((state->neg_scale != neg_scale) ||  /* Need to change state. */
       (state->resource_chunk != chunk) || /* Need to change UBOs. */
       (state->batch != call->batch)       /* Need to change VAO. */
-  ) {
+  )
+  {
     draw_call_batching_flush(shgroup, state);
 
     state->batch = call->batch;
@@ -1222,7 +1224,8 @@ static void drw_draw_pass_ex(DRWPass *pass,
 
   /* Fix #67342 for some reason. AMD Pro driver bug. */
   if ((DST.state & DRW_STATE_BLEND_CUSTOM) != 0 &&
-      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)) {
+      GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL))
+  {
     drw_state_set(DST.state & ~DRW_STATE_BLEND_CUSTOM);
   }
 

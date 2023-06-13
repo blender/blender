@@ -1,9 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
+#include <optional>
+
 #include "BLI_bit_ref.hh"
 #include "BLI_index_range.hh"
+#include "BLI_math_bits.h"
 #include "BLI_memory_utils.hh"
 
 namespace blender::bits {
@@ -35,9 +40,7 @@ class BitIteratorBase {
 /** Allows iterating over the bits in a memory buffer. */
 class BitIterator : public BitIteratorBase {
  public:
-  BitIterator(const BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index)
-  {
-  }
+  BitIterator(const BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index) {}
 
   BitRef operator*() const
   {
@@ -48,9 +51,7 @@ class BitIterator : public BitIteratorBase {
 /** Allows iterating over the bits in a memory buffer. */
 class MutableBitIterator : public BitIteratorBase {
  public:
-  MutableBitIterator(BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index)
-  {
-  }
+  MutableBitIterator(BitInt *data, const int64_t bit_index) : BitIteratorBase(data, bit_index) {}
 
   MutableBitRef operator*() const
   {
@@ -66,7 +67,7 @@ class MutableBitIterator : public BitIteratorBase {
  * and end at any bit.
  */
 class BitSpan {
- private:
+ protected:
   /** Base pointer to the integers containing the bits. The actual bit span might start at a much
    * higher address when `bit_range_.start()` is large. */
   const BitInt *data_ = nullptr;
@@ -81,9 +82,7 @@ class BitSpan {
   {
   }
 
-  BitSpan(const BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range)
-  {
-  }
+  BitSpan(const BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range) {}
 
   /** Number of bits referenced by the span. */
   int64_t size() const
@@ -113,6 +112,16 @@ class BitSpan {
     return {data_, bit_range_.slice(range)};
   }
 
+  BitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+
+  BitSpan take_back(const int64_t n) const
+  {
+    return {data_, bit_range_.take_back(n)};
+  }
+
   const BitInt *data() const
   {
     return data_;
@@ -134,22 +143,89 @@ class BitSpan {
   }
 };
 
+/**
+ * Checks if the span fulfills the requirements for a bounded span. Bounded spans can often be
+ * processed more efficiently, because fewer cases have to be considered when aligning multiple
+ * such spans.
+ *
+ * See comments in the function for the exact requirements.
+ */
+inline bool is_bounded_span(const BitSpan span)
+{
+  const int64_t offset = span.bit_range().start();
+  const int64_t size = span.size();
+  if (offset >= BitsPerInt) {
+    /* The data pointer must point at the first int already. If the offset is a multiple of
+     * #BitsPerInt, the bit span could theoretically become bounded as well if the data pointer is
+     * adjusted. But that is not handled here. */
+    return false;
+  }
+  if (size < BitsPerInt) {
+    /** Don't allow small sized spans to cross `BitInt` boundaries. */
+    return offset + size <= 64;
+  }
+  if (offset != 0) {
+    /* Start of larger spans must be aligned to `BitInt` boundaries. */
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Same as #BitSpan but fulfills the requirements mentioned on #is_bounded_span.
+ */
+class BoundedBitSpan : public BitSpan {
+ public:
+  BoundedBitSpan() = default;
+
+  BoundedBitSpan(const BitInt *data, const int64_t size_in_bits) : BitSpan(data, size_in_bits)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  BoundedBitSpan(const BitInt *data, const IndexRange bit_range) : BitSpan(data, bit_range)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  explicit BoundedBitSpan(const BitSpan other) : BitSpan(other)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  int64_t offset() const
+  {
+    return bit_range_.start();
+  }
+
+  int64_t full_ints_num() const
+  {
+    return bit_range_.size() >> BitToIntIndexShift;
+  }
+
+  int64_t final_bits_num() const
+  {
+    return bit_range_.size() & BitIndexMask;
+  }
+
+  BoundedBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+};
+
 /** Same as #BitSpan, but also allows modifying the referenced bits. */
 class MutableBitSpan {
- private:
+ protected:
   BitInt *data_ = nullptr;
   IndexRange bit_range_ = {0, 0};
 
  public:
   MutableBitSpan() = default;
 
-  MutableBitSpan(BitInt *data, const int64_t size) : data_(data), bit_range_(size)
-  {
-  }
+  MutableBitSpan(BitInt *data, const int64_t size) : data_(data), bit_range_(size) {}
 
-  MutableBitSpan(BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range)
-  {
-  }
+  MutableBitSpan(BitInt *data, const IndexRange bit_range) : data_(data), bit_range_(bit_range) {}
 
   int64_t size() const
   {
@@ -178,6 +254,16 @@ class MutableBitSpan {
     return {data_, bit_range_.slice(range)};
   }
 
+  MutableBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+
+  MutableBitSpan take_back(const int64_t n) const
+  {
+    return {data_, bit_range_.take_back(n)};
+  }
+
   BitInt *data() const
   {
     return data_;
@@ -204,50 +290,13 @@ class MutableBitSpan {
   }
 
   /** Sets all referenced bits to 1. */
-  void set_all()
-  {
-    const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
-    {
-      BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
-      const BitInt first_int_mask = mask_range_bits(ranges.prefix.start() & BitIndexMask,
-                                                    ranges.prefix.size());
-      first_int |= first_int_mask;
-    }
-    {
-      BitInt *start = int_containing_bit(data_, ranges.aligned.start());
-      const int64_t ints_to_fill = ranges.aligned.size() / BitsPerInt;
-      constexpr BitInt fill_value = BitInt(-1);
-      initialized_fill_n(start, ints_to_fill, fill_value);
-    }
-    {
-      BitInt &last_int = *int_containing_bit(data_, bit_range_.one_after_last() - 1);
-      const BitInt last_int_mask = mask_first_n_bits(ranges.suffix.size());
-      last_int |= last_int_mask;
-    }
-  }
+  void set_all();
 
   /** Sets all referenced bits to 0. */
-  void reset_all()
-  {
-    const AlignedIndexRanges ranges = split_index_range_by_alignment(bit_range_, BitsPerInt);
-    {
-      BitInt &first_int = *int_containing_bit(data_, bit_range_.start());
-      const BitInt first_int_mask = mask_range_bits(ranges.prefix.start() & BitIndexMask,
-                                                    ranges.prefix.size());
-      first_int &= ~first_int_mask;
-    }
-    {
-      BitInt *start = int_containing_bit(data_, ranges.aligned.start());
-      const int64_t ints_to_fill = ranges.aligned.size() / BitsPerInt;
-      constexpr BitInt fill_value = 0;
-      initialized_fill_n(start, ints_to_fill, fill_value);
-    }
-    {
-      BitInt &last_int = *int_containing_bit(data_, bit_range_.one_after_last() - 1);
-      const BitInt last_int_mask = mask_first_n_bits(ranges.suffix.size());
-      last_int &= ~last_int_mask;
-    }
-  }
+  void reset_all();
+
+  void copy_from(const BitSpan other);
+  void copy_from(const BoundedBitSpan other);
 
   /** Sets all referenced bits to either 0 or 1. */
   void set_all(const bool value)
@@ -267,24 +316,95 @@ class MutableBitSpan {
   }
 };
 
-inline std::ostream &operator<<(std::ostream &stream, const BitSpan &span)
-{
-  stream << "(Size: " << span.size() << ", ";
-  for (const BitRef bit : span) {
-    stream << bit;
+/**
+ * Same as #MutableBitSpan but fulfills the requirements mentioned on #is_bounded_span.
+ */
+class MutableBoundedBitSpan : public MutableBitSpan {
+ public:
+  MutableBoundedBitSpan() = default;
+
+  MutableBoundedBitSpan(BitInt *data, const int64_t size) : MutableBitSpan(data, size)
+  {
+    BLI_assert(is_bounded_span(*this));
   }
-  stream << ")";
-  return stream;
+
+  MutableBoundedBitSpan(BitInt *data, const IndexRange bit_range) : MutableBitSpan(data, bit_range)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  explicit MutableBoundedBitSpan(const MutableBitSpan other) : MutableBitSpan(other)
+  {
+    BLI_assert(is_bounded_span(*this));
+  }
+
+  operator BoundedBitSpan() const
+  {
+    return BoundedBitSpan{BitSpan(*this)};
+  }
+
+  int64_t offset() const
+  {
+    return bit_range_.start();
+  }
+
+  int64_t full_ints_num() const
+  {
+    return bit_range_.size() >> BitToIntIndexShift;
+  }
+
+  int64_t final_bits_num() const
+  {
+    return bit_range_.size() & BitIndexMask;
+  }
+
+  MutableBoundedBitSpan take_front(const int64_t n) const
+  {
+    return {data_, bit_range_.take_front(n)};
+  }
+
+  void copy_from(const BitSpan other);
+  void copy_from(const BoundedBitSpan other);
+};
+
+inline std::optional<BoundedBitSpan> try_get_bounded_span(const BitSpan span)
+{
+  if (is_bounded_span(span)) {
+    return BoundedBitSpan(span);
+  }
+  if (span.bit_range().start() % BitsPerInt == 0) {
+    return BoundedBitSpan(span.data() + (span.bit_range().start() >> BitToIntIndexShift),
+                          span.size());
+  }
+  return std::nullopt;
 }
 
-inline std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span)
+/**
+ * Overloaded in BLI_bit_vector.hh. The purpose is to make passing #BitVector into bit span
+ * operations more efficient (interpreting it as `BoundedBitSpan` instead of just `BitSpan`).
+ */
+template<typename T> inline T to_best_bit_span(const T &data)
 {
-  return stream << BitSpan(span);
+  static_assert(is_same_any_v<std::decay_t<T>,
+                              BitSpan,
+                              MutableBitSpan,
+                              BoundedBitSpan,
+                              MutableBoundedBitSpan>);
+  return data;
 }
+
+template<typename... Args>
+constexpr bool all_bounded_spans =
+    (is_same_any_v<std::decay_t<Args>, BoundedBitSpan, MutableBoundedBitSpan> && ...);
+
+std::ostream &operator<<(std::ostream &stream, const BitSpan &span);
+std::ostream &operator<<(std::ostream &stream, const MutableBitSpan &span);
 
 }  // namespace blender::bits
 
 namespace blender {
 using bits::BitSpan;
+using bits::BoundedBitSpan;
 using bits::MutableBitSpan;
+using bits::MutableBoundedBitSpan;
 }  // namespace blender

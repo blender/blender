@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -59,7 +60,7 @@ void ED_armature_edit_sync_selection(ListBase *edbo)
   }
 }
 
-void ED_armature_edit_validate_active(struct bArmature *arm)
+void ED_armature_edit_validate_active(bArmature *arm)
 {
   EditBone *ebone = arm->act_edbone;
 
@@ -191,8 +192,8 @@ EditBone *ED_armature_ebone_find_shared_parent(EditBone *ebone_child[], const ui
   }
 
   /* only need search the first chain */
-  for (EditBone *ebone_iter = ebone_child[0]->parent; ebone_iter;
-       ebone_iter = ebone_iter->parent) {
+  for (EditBone *ebone_iter = ebone_child[0]->parent; ebone_iter; ebone_iter = ebone_iter->parent)
+  {
     if (EBONE_TEMP_UINT(ebone_iter) == ebone_child_tot) {
       return ebone_iter;
     }
@@ -466,7 +467,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
      * Keep selection logic in sync with ED_armature_edit_sync_selection.
      */
     eBone->parent = parent;
-    BLI_strncpy(eBone->name, curBone->name, sizeof(eBone->name));
+    STRNCPY(eBone->name, curBone->name);
     eBone->flag = curBone->flag;
     eBone->inherit_scale_mode = curBone->inherit_scale_mode;
 
@@ -560,7 +561,7 @@ static EditBone *find_ebone_link(ListBase *edbo, Bone *link)
   return NULL;
 }
 
-EditBone *make_boneList(ListBase *edbo, ListBase *bones, struct Bone *actBone)
+EditBone *make_boneList(ListBase *edbo, ListBase *bones, Bone *actBone)
 {
   BLI_assert(!edbo->first && !edbo->last);
 
@@ -694,7 +695,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     newBone = MEM_callocN(sizeof(Bone), "bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
-    BLI_strncpy(newBone->name, eBone->name, sizeof(newBone->name));
+    STRNCPY(newBone->name, eBone->name);
     copy_v3_v3(newBone->arm_head, eBone->head);
     copy_v3_v3(newBone->arm_tail, eBone->tail);
     newBone->arm_roll = eBone->roll;
@@ -785,7 +786,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
   DEG_id_tag_update(&arm->id, 0);
 }
 
-void ED_armature_edit_free(struct bArmature *arm)
+void ED_armature_edit_free(bArmature *arm)
 {
   EditBone *eBone;
 
@@ -923,9 +924,10 @@ void ED_armature_ebone_selectflag_disable(EditBone *ebone, int flag)
   ED_armature_ebone_selectflag_set(ebone, ebone->flag & ~flag);
 }
 
-/* could be used in more places */
 void ED_armature_ebone_select_set(EditBone *ebone, bool select)
 {
+  /* NOTE: this function could be used in more places. */
+
   int flag;
   if (select) {
     BLI_assert((ebone->flag & BONE_UNSELECTABLE) == 0);

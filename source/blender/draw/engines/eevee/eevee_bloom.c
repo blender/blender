@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -42,8 +43,9 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
     effects->blit_texel_size[0] = 1.0f / (float)blitsize[0];
     effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
 
-    effects->bloom_blit = DRW_texture_pool_query_2d(
-        blitsize[0], blitsize[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    effects->bloom_blit = DRW_texture_pool_query_2d_ex(
+        blitsize[0], blitsize[1], GPU_R11F_G11F_B10F, usage, &draw_engine_eevee_type);
 
     GPU_framebuffer_ensure_config(
         &fbl->bloom_blit_fb, {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->bloom_blit)});
@@ -83,8 +85,11 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
       effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
       effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
 
-      effects->bloom_downsample[i] = DRW_texture_pool_query_2d(
-          texsize[0], texsize[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
+      eGPUTextureUsage downsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
+                                          GPU_TEXTURE_USAGE_ATTACHMENT |
+                                          GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+      effects->bloom_downsample[i] = DRW_texture_pool_query_2d_ex(
+          texsize[0], texsize[1], GPU_R11F_G11F_B10F, downsample_usage, &draw_engine_eevee_type);
       GPU_framebuffer_ensure_config(
           &fbl->bloom_down_fb[i],
           {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->bloom_downsample[i])});
@@ -99,8 +104,12 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
       texsize[0] = MAX2(texsize[0], 2);
       texsize[1] = MAX2(texsize[1], 2);
 
-      effects->bloom_upsample[i] = DRW_texture_pool_query_2d(
-          texsize[0], texsize[1], GPU_R11F_G11F_B10F, &draw_engine_eevee_type);
+      eGPUTextureUsage upsample_usage = GPU_TEXTURE_USAGE_SHADER_READ |
+                                        GPU_TEXTURE_USAGE_ATTACHMENT |
+                                        GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+
+      effects->bloom_upsample[i] = DRW_texture_pool_query_2d_ex(
+          texsize[0], texsize[1], GPU_R11F_G11F_B10F, upsample_usage, &draw_engine_eevee_type);
       GPU_framebuffer_ensure_config(
           &fbl->bloom_accum_fb[i],
           {GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(effects->bloom_upsample[i])});
@@ -122,7 +131,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 static DRWShadingGroup *eevee_create_bloom_pass(const char *name,
                                                 EEVEE_EffectsInfo *effects,
-                                                struct GPUShader *sh,
+                                                GPUShader *sh,
                                                 DRWPass **pass,
                                                 bool upsample,
                                                 bool resolve,
@@ -241,7 +250,7 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
 
   /* Bloom */
   if ((effects->enabled_effects & EFFECT_BLOOM) != 0) {
-    struct GPUTexture *last;
+    GPUTexture *last;
 
     /* Extract bright pixels */
     copy_v2_v2(effects->unf_source_texel_size, effects->source_texel_size);

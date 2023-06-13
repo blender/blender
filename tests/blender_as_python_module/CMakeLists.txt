@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2021 Blender Foundation. All rights reserved.
+# Copyright 2021 Blender Foundation
 
 function(add_blender_as_python_module_test testname testscript)
   if(NOT TEST_PYTHON_EXE)

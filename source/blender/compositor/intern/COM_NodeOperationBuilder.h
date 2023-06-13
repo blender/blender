@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -35,9 +36,7 @@ class NodeOperationBuilder {
     NodeOperationInput *to_;
 
    public:
-    Link(NodeOperationOutput *from, NodeOperationInput *to) : from_(from), to_(to)
-    {
-    }
+    Link(NodeOperationOutput *from, NodeOperationInput *to) : from_(from), to_(to) {}
 
     NodeOperationOutput *from() const
     {
@@ -65,9 +64,9 @@ class NodeOperationBuilder {
 
   Node *current_node_;
 
-  /** Operation that will be writing to the viewer image
-   *  Only one operation can occupy this place at a time,
-   *  to avoid race conditions
+  /**
+   * Operation that will be writing to the viewer image
+   * Only one operation can occupy this place at a time, to avoid race conditions.
    */
   ViewerOperation *active_viewer_;
 

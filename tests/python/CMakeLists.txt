@@ -168,6 +168,7 @@ add_blender_test(
   blendfile_library_overrides
   --python ${CMAKE_CURRENT_LIST_DIR}/bl_blendfile_library_overrides.py --
   --output-dir ${TEST_OUT_DIR}/blendfile_io/
+  --test-dir "${TEST_SRC_DIR}/libraries_and_linking"
 )
 
 # ------------------------------------------------------------------------------
@@ -312,127 +313,6 @@ add_blender_test(
 
 # ------------------------------------------------------------------------------
 # IO TESTS
-
-# OBJ Import tests
-# disabled until updated & working
-if(FALSE)
-add_blender_test(
-  import_obj_cube
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/cube.obj'\)
-  --md5=39cce4bacac2d1b18fc470380279bc15 --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_cube.blend
-)
-
-add_blender_test(
-  import_obj_nurbs_cyclic
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/nurbs_cyclic.obj'\)
-  --md5=ad3c307e5883224a0492378cd32691ab --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_nurbs_cyclic.blend
-)
-
-add_blender_test(
-  import_obj_makehuman
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_scene.obj\(filepath='${TEST_SRC_DIR}/io_tests/obj/makehuman.obj'\)
-  --md5=c9f78b185e58358daa4ecaecfa75464e --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_obj_makehuman.blend
-)
-endif()
-
-# OBJ Export tests
-add_blender_test(
-  export_obj_cube
-  ${TEST_SRC_DIR}/io_tests/blend_geometry/all_quads.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_cube.obj',use_selection=False\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.obj
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_cube.mtl
-  --md5=e80660437ad9bfe082849641c361a233 --md5_method=FILE
-)
-
-add_blender_test(
-  export_obj_nurbs
-  ${TEST_SRC_DIR}/io_tests/blend_geometry/nurbs.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_nurbs.obj',use_selection=False,use_nurbs=True\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_nurbs.obj
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_nurbs.mtl
-  --md5=a733ae4fa4a591ea9b0912da3af042de --md5_method=FILE
-)
-
-# disabled until updated & working
-if(FALSE)
-add_blender_test(
-  export_obj_all_objects
-  ${TEST_SRC_DIR}/io_tests/blend_scene/all_objects.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_scene.obj\(filepath='${TEST_OUT_DIR}/io_tests/export_obj_all_objects.obj',use_selection=False,use_nurbs=True\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_all_objects.obj
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_obj_all_objects.mtl
-  --md5=04b3ed97cede07a19548fc518ce9f8ca --md5_method=FILE
-)
-endif()
-
-
-
-# PLY Import tests
-add_blender_test(
-  import_ply_cube
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/cube_ascii.ply'\)
-  --md5=527134343c27fc0ea73115b85fbfd3ac --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_cube.blend
-)
-
-add_blender_test(
-  import_ply_bunny
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/bunny2.ply'\)
-  --md5=6ea5b8533400a17accf928b8fd024eaa --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_bunny.blend
-)
-
-add_blender_test(
-  import_ply_small_holes
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.import_mesh.ply\(filepath='${TEST_SRC_DIR}/io_tests/ply/many_small_holes.ply'\)
-  --md5=c3093e26ecae5b6d59fbbcf2a0d0b39f --md5_method=SCENE
-  --write-blend=${TEST_OUT_DIR}/io_tests/import_ply_small_holes.blend
-)
-
-# PLY Export
-# disabled until updated & working
-if(FALSE)
-add_blender_test(
-  export_ply_cube_all_data
-  ${TEST_SRC_DIR}/io_tests/blend_geometry/cube_all_data.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_cube_all_data.ply'\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_cube_all_data.ply
-  --md5=6adc3748ceae8298496f99d0e7e76c15 --md5_method=FILE
-)
-
-add_blender_test(
-  export_ply_suzanne_all_data
-  ${TEST_SRC_DIR}/io_tests/blend_geometry/suzanne_all_data.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_suzanne_all_data.ply'\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_suzanne_all_data.ply
-  --md5=68ba23f02efd6511bfd093f45f703221 --md5_method=FILE
-)
-endif()
-
-add_blender_test(
-  export_ply_vertices # lame, add a better one
-  ${TEST_SRC_DIR}/io_tests/blend_geometry/vertices.blend
-  --python ${CMAKE_CURRENT_LIST_DIR}/bl_test.py --
-  --run={'FINISHED'}&bpy.ops.export_mesh.ply\(filepath='${TEST_OUT_DIR}/io_tests/export_ply_vertices.ply'\)
-  --md5_source=${TEST_OUT_DIR}/io_tests/export_ply_vertices.ply
-  --md5=ee6ce2e69c1d9a7418ff0548f6338f70 --md5_method=FILE
-)
-
 
 # STL Import tests
 # disabled until updated & working
@@ -646,7 +526,7 @@ add_blender_test(
 endif()
 
 # SVG Import
-if(True)
+if(TRUE)
   if(NOT OPENIMAGEIO_IDIFF)
     message(WARNING "Disabling SVG tests because OIIO idiff does not exist")
   else()
@@ -687,6 +567,8 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
       image_texture_limit
       integrator
       light
+      light_group
+      light_linking
       mesh
       pointcloud
       shader
@@ -736,8 +618,9 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
         set(_cycles_render_tests bake;${render_tests};osl)
 
         foreach(render_test ${_cycles_render_tests})
+          set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
           add_python_test(
-            cycles_${render_test}_${_cycles_device_lower}
+            ${_cycles_test_name}
             ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
             -blender "${TEST_BLENDER_EXE}"
             -testdir "${TEST_SRC_DIR}/render/${render_test}"
@@ -746,6 +629,11 @@ if(WITH_CYCLES OR WITH_OPENGL_RENDER_TESTS)
             -device ${_cycles_device}
             -blacklist ${_cycles_blacklist}
           )
+
+          if(NOT("${_cycles_device_lower}" STREQUAL "cpu"))
+            set_tests_properties(${_cycles_test_name} PROPERTIES RUN_SERIAL TRUE)
+          endif()
+          unset(_cycles_test_name)
         endforeach()
       endforeach()
       unset(_cycles_blacklist)
@@ -933,6 +821,43 @@ if(WITH_CODEC_FFMPEG)
   )
 endif()
 
+if(NOT OPENIMAGEIO_IDIFF)
+  message(STATUS "Disabling ImBuf image format tests because OIIO idiff does not exist")
+else()
+  SET(OPTIONAL_FORMATS "")
+  if(WITH_IMAGE_CINEON)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} CINEON")
+  endif()
+  if(WITH_IMAGE_OPENEXR)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} OPENEXR")
+  endif()
+  if(WITH_IMAGE_OPENJPEG)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} OPENJPEG")
+  endif()
+  if(WITH_IMAGE_WEBP)
+    set(OPTIONAL_FORMATS "${OPTIONAL_FORMATS} WEBP")
+  endif()
+
+  add_blender_test(
+    bf_imbuf_save
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_save.py
+    --
+    -test_dir "${TEST_SRC_DIR}/imbuf_io"
+    -output_dir "${TEST_OUT_DIR}/imbuf_io/save"
+    -idiff "${OPENIMAGEIO_IDIFF}"
+    -optional_formats "${OPTIONAL_FORMATS}"
+  )
+
+  add_blender_test(
+    bf_imbuf_load
+    --python ${CMAKE_CURRENT_LIST_DIR}/bl_imbuf_load.py
+    --
+    -test_dir "${TEST_SRC_DIR}/imbuf_io"
+    -output_dir "${TEST_OUT_DIR}/imbuf_io/load"
+    -idiff "${OPENIMAGEIO_IDIFF}"
+    -optional_formats "${OPTIONAL_FORMATS}"
+  )
+endif()
 
 # ------------------------------------------------------------------------------
 # SEQUENCER RENDER TESTS

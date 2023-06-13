@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -87,7 +88,8 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
       char pchanName[256], constName[256];
       if (BLI_str_quoted_substr(fcu->rna_path, "bones[", pchanName, sizeof(pchanName)) &&
-          BLI_str_quoted_substr(fcu->rna_path, "constraints[", constName, sizeof(constName))) {
+          BLI_str_quoted_substr(fcu->rna_path, "constraints[", constName, sizeof(constName)))
+      {
 
         /* assemble the string to display in the UI... */
         structname = BLI_sprintfN("%s : %s", pchanName, constName);
@@ -111,9 +113,11 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         if (GS(ptr.owner_id->name) == ID_SCE) {
           char stripname[256];
           if (BLI_str_quoted_substr(
-                  fcu->rna_path, "sequence_editor.sequences_all[", stripname, sizeof(stripname))) {
+                  fcu->rna_path, "sequence_editor.sequences_all[", stripname, sizeof(stripname)))
+          {
             if (strstr(fcu->rna_path, ".transform.") || strstr(fcu->rna_path, ".crop.") ||
-                strstr(fcu->rna_path, ".modifiers[")) {
+                strstr(fcu->rna_path, ".modifiers["))
+            {
               const char *structname_all = BLI_sprintfN("%s : %s", stripname, structname);
               if (free_structname) {
                 MEM_freeN((void *)structname);
@@ -150,10 +154,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
         /* we need to write the index to a temp buffer (in py syntax) */
         if (c) {
-          BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "%c ", c);
+          SNPRINTF(arrayindbuf, "%c ", c);
         }
         else {
-          BLI_snprintf(arrayindbuf, sizeof(arrayindbuf), "[%d]", fcu->array_index);
+          SNPRINTF(arrayindbuf, "[%d]", fcu->array_index);
         }
 
         arrayname = &arrayindbuf[0];

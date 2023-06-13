@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+ * Copyright 2012 Blender Foundation */
 
 #ifndef __OCIO_CAPI_H__
 #define __OCIO_CAPI_H__
@@ -11,9 +11,8 @@ extern "C" {
 typedef struct OCIO_GPUShader OCIO_GPUShader;
 
 #define OCIO_DECLARE_HANDLE(name) \
-  typedef struct name##__ { \
-    int unused; \
-  } * name
+  struct name; \
+  typedef struct name *name##Ptr;
 
 #define OCIO_ROLE_DATA "data"
 #define OCIO_ROLE_SCENE_LINEAR "scene_linear"
@@ -23,13 +22,13 @@ typedef struct OCIO_GPUShader OCIO_GPUShader;
 #define OCIO_ROLE_DEFAULT_FLOAT "default_float"
 #define OCIO_ROLE_DEFAULT_SEQUENCER "default_sequencer"
 
-OCIO_DECLARE_HANDLE(OCIO_ConstConfigRcPtr);
-OCIO_DECLARE_HANDLE(OCIO_ConstColorSpaceRcPtr);
-OCIO_DECLARE_HANDLE(OCIO_ConstProcessorRcPtr);
-OCIO_DECLARE_HANDLE(OCIO_ConstCPUProcessorRcPtr);
-OCIO_DECLARE_HANDLE(OCIO_ConstContextRcPtr);
+OCIO_DECLARE_HANDLE(OCIO_ConstConfigRc);
+OCIO_DECLARE_HANDLE(OCIO_ConstColorSpaceRc);
+OCIO_DECLARE_HANDLE(OCIO_ConstProcessorRc);
+OCIO_DECLARE_HANDLE(OCIO_ConstCPUProcessorRc);
+OCIO_DECLARE_HANDLE(OCIO_ConstContextRc);
 OCIO_DECLARE_HANDLE(OCIO_PackedImageDesc);
-OCIO_DECLARE_HANDLE(OCIO_ConstLookRcPtr);
+OCIO_DECLARE_HANDLE(OCIO_ConstLookRc);
 
 /* Standard XYZ (D65) to linear Rec.709 transform. */
 static const float OCIO_XYZ_TO_REC709[3][3] = {{3.2404542f, -0.9692660f, 0.0556434f},
@@ -151,9 +150,10 @@ OCIO_ConstProcessorRcPtr *OCIO_configGetProcessorWithNames(OCIO_ConstConfigRcPtr
 void OCIO_processorRelease(OCIO_ConstProcessorRcPtr *cpu_processor);
 
 OCIO_ConstCPUProcessorRcPtr *OCIO_processorGetCPUProcessor(OCIO_ConstProcessorRcPtr *processor);
-void OCIO_cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor, OCIO_PackedImageDesc *img);
+void OCIO_cpuProcessorApply(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
+                            struct OCIO_PackedImageDesc *img);
 void OCIO_cpuProcessorApply_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
-                                      OCIO_PackedImageDesc *img);
+                                      struct OCIO_PackedImageDesc *img);
 void OCIO_cpuProcessorApplyRGB(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
 void OCIO_cpuProcessorApplyRGBA(OCIO_ConstCPUProcessorRcPtr *cpu_processor, float *pixel);
 void OCIO_cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_processor,
@@ -175,15 +175,15 @@ OCIO_ConstProcessorRcPtr *OCIO_createDisplayProcessor(OCIO_ConstConfigRcPtr *con
                                                       const float exponent,
                                                       const bool inverse);
 
-OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data,
-                                                      long width,
-                                                      long height,
-                                                      long numChannels,
-                                                      long chanStrideBytes,
-                                                      long xStrideBytes,
-                                                      long yStrideBytes);
+struct OCIO_PackedImageDesc *OCIO_createOCIO_PackedImageDesc(float *data,
+                                                             long width,
+                                                             long height,
+                                                             long numChannels,
+                                                             long chanStrideBytes,
+                                                             long xStrideBytes,
+                                                             long yStrideBytes);
 
-void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *p);
+void OCIO_PackedImageDescRelease(struct OCIO_PackedImageDesc *p);
 
 bool OCIO_supportGPUShader(void);
 bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,

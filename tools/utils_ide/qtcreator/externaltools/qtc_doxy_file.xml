@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_doxygen_file">
+    <description>Doxygen a single file</description>
+    <displayname>Doxygen File</displayname>
+    <category>Documentation</category>
+    <executable output="showinpane" error="showinpane" modifiesdocument="no">
+        <path>qtc_doxy_file.py</path>
+        <arguments>--browse doc/doxygen/Doxyfile %{CurrentDocument:FilePath}</arguments>
+        <workingdirectory>%{CurrentProject:BuildPath}</workingdirectory>
+    </executable>
+</externaltool>

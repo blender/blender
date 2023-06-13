@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -9,12 +10,8 @@
 
 namespace blender::gpu {
 
-void VKFence::signal()
-{
-}
+void VKFence::signal() {}
 
-void VKFence::wait()
-{
-}
+void VKFence::wait() {}
 
 }  // namespace blender::gpu

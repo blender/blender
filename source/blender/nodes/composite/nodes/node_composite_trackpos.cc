@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -33,9 +34,9 @@ NODE_STORAGE_FUNCS(NodeTrackPosData)
 
 static void cmp_node_trackpos_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("X"));
-  b.add_output<decl::Float>(N_("Y"));
-  b.add_output<decl::Vector>(N_("Speed")).subtype(PROP_VELOCITY);
+  b.add_output<decl::Float>("X");
+  b.add_output<decl::Float>("Y");
+  b.add_output<decl::Vector>("Speed").subtype(PROP_VELOCITY);
 }
 
 static void init(const bContext *C, PointerRNA *ptr)
@@ -54,10 +55,10 @@ static void init(const bContext *C, PointerRNA *ptr)
     id_us_plus(&clip->id);
 
     const MovieTrackingObject *tracking_object = BKE_tracking_object_get_active(tracking);
-    BLI_strncpy(data->tracking_object, tracking_object->name, sizeof(data->tracking_object));
+    STRNCPY(data->tracking_object, tracking_object->name);
 
     if (tracking_object->active_track) {
-      BLI_strncpy(data->track_name, tracking_object->active_track->name, sizeof(data->track_name));
+      STRNCPY(data->track_name, tracking_object->active_track->name);
     }
   }
 }
@@ -106,7 +107,8 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 
     if (ELEM(node->custom1,
              CMP_NODE_TRACK_POSITION_RELATIVE_FRAME,
-             CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME)) {
+             CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME))
+    {
       uiItemR(layout, ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
     }
   }

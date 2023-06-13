@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -54,9 +55,7 @@ class PlaneTrackCommon {
 
 class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTrackCommon {
  public:
-  PlaneTrackMaskOperation()
-  {
-  }
+  PlaneTrackMaskOperation() {}
 
   void init_data() override;
 
@@ -75,9 +74,7 @@ class PlaneTrackMaskOperation : public PlaneDistortMaskOperation, public PlaneTr
 class PlaneTrackWarpImageOperation : public PlaneDistortWarpImageOperation,
                                      public PlaneTrackCommon {
  public:
-  PlaneTrackWarpImageOperation() : PlaneTrackCommon()
-  {
-  }
+  PlaneTrackWarpImageOperation() : PlaneTrackCommon() {}
 
   void init_data() override;
 

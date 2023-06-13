@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -25,7 +26,7 @@
 #include "BKE_colorband.h"
 #include "BKE_colortools.h"
 #include "BKE_curveprofile.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_tracking.h"
 
 #include "IMB_colormanagement.h"
@@ -301,7 +302,7 @@ void ui_draw_but_IMAGE(ARegion * /*region*/,
                         ibuf->y,
                         GPU_RGBA8,
                         false,
-                        ibuf->rect,
+                        ibuf->byte_buffer.data,
                         1.0f,
                         1.0f,
                         col);
@@ -610,7 +611,7 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
     char str[4];
-    BLI_snprintf(str, sizeof(str), "%-3d", i * 20);
+    SNPRINTF(str, "%-3d", i * 20);
     str[3] = '\0';
     BLF_color4f(BLF_default(), 1.0f, 1.0f, 1.0f, 0.08f);
     BLF_draw_default(rect.xmin + 1, yofs - 5 + (i * 0.2f) * h, 0, str, sizeof(str) - 1);
@@ -728,7 +729,8 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
                   SCOPES_WAVEFRM_RGB_PARADE,
                   SCOPES_WAVEFRM_YCC_601,
                   SCOPES_WAVEFRM_YCC_709,
-                  SCOPES_WAVEFRM_YCC_JPEG)) {
+                  SCOPES_WAVEFRM_YCC_JPEG))
+    {
       const int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
       GPU_matrix_push();
@@ -1098,7 +1100,8 @@ static void ui_draw_colorband_handle(uint shdr_pos,
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+    immUniform2f(
+        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
     immUniform1i("colors_len", 2); /* "advanced" mode */
     immUniform4f("color", 0.8f, 0.8f, 0.8f, 1.0f);
@@ -1672,7 +1675,7 @@ void ui_draw_but_CURVE(ARegion *region, uiBut *but, const uiWidgetColors *wcol, 
   }
 
   cmp = cuma->curve;
-  GPU_point_size(max_ff(1.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
+  GPU_point_size(max_ff(1.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f)));
   immBegin(GPU_PRIM_POINTS, cuma->totpoint);
   for (int a = 0; a < cuma->totpoint; a++) {
     const float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
@@ -1931,7 +1934,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   GPU_line_smooth(false);
   if (path_len > 0) {
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(3.0f, min_ff(UI_DPI_FAC / but->block->aspect * 5.0f, 5.0f)));
+    GPU_point_size(max_ff(3.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 5.0f, 5.0f)));
     immBegin(GPU_PRIM_POINTS, path_len);
     for (int i = 0; i < path_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
@@ -1946,7 +1949,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   if (selected_free_points > 0) {
     GPU_line_smooth(false);
     GPU_blend(GPU_BLEND_NONE);
-    GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 4.0f, 4.0f)));
+    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 4.0f, 4.0f)));
     immBegin(GPU_PRIM_POINTS, selected_free_points * 2);
     for (int i = 0; i < path_len; i++) {
       if (point_draw_handles(&pts[i])) {
@@ -1968,7 +1971,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   pts = profile->segments;
   const int segments_len = uint(profile->segments_len);
   if (segments_len > 0 && pts) {
-    GPU_point_size(max_ff(2.0f, min_ff(UI_DPI_FAC / but->block->aspect * 3.0f, 3.0f)));
+    GPU_point_size(max_ff(2.0f, min_ff(UI_SCALE_FAC / but->block->aspect * 3.0f, 3.0f)));
     immBegin(GPU_PRIM_POINTS, segments_len);
     for (int i = 0; i < segments_len; i++) {
       fx = rect->xmin + zoomx * (pts[i].x - offsx);
@@ -2034,7 +2037,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
   }
   else if ((scopes->track_search) &&
            ((!scopes->track_preview) ||
-            (scopes->track_preview->x != width || scopes->track_preview->y != height))) {
+            (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+  {
     if (scopes->track_preview) {
       IMB_freeImBuf(scopes->track_preview);
     }
@@ -2050,11 +2054,11 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                                                  height,
                                                  scopes->track_pos);
     if (tmpibuf) {
-      if (tmpibuf->rect_float) {
+      if (tmpibuf->float_buffer.data) {
         IMB_rect_from_float(tmpibuf);
       }
 
-      if (tmpibuf->rect) {
+      if (tmpibuf->byte_buffer.data) {
         scopes->track_preview = tmpibuf;
       }
       else {
@@ -2092,7 +2096,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
                             drawibuf->y,
                             GPU_RGBA8,
                             true,
-                            drawibuf->rect,
+                            drawibuf->byte_buffer.data,
                             1.0f,
                             1.0f,
                             nullptr);

@@ -1,8 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv.h"
-#include "BKE_subdiv_mesh.h"
+#include "BKE_subdiv_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -13,19 +15,14 @@ namespace blender::nodes::node_geo_mesh_subdivide_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Int>(N_("Level")).default_value(1).min(0).max(6);
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
-static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int level)
+#ifdef WITH_OPENSUBDIV
+static Mesh *simple_subdivide_mesh(const Mesh &mesh, const int level)
 {
-  if (!geometry_set.has_mesh()) {
-    return;
-  }
-
-  const Mesh *mesh_in = geometry_set.get_mesh_for_read();
-
   /* Initialize mesh settings. */
   SubdivToMeshSettings mesh_settings;
   mesh_settings.resolution = (1 << level) + 1;
@@ -42,43 +39,39 @@ static void geometry_set_mesh_subdivide(GeometrySet &geometry_set, const int lev
   subdiv_settings.fvar_linear_interpolation = BKE_subdiv_fvar_interpolation_from_uv_smooth(0);
 
   /* Apply subdivision from mesh. */
-  Subdiv *subdiv = BKE_subdiv_update_from_mesh(nullptr, &subdiv_settings, mesh_in);
-
-  /* In case of bad topology, skip to input mesh. */
-  if (subdiv == nullptr) {
-    return;
+  Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, &mesh);
+  if (!subdiv) {
+    return nullptr;
   }
 
-  Mesh *mesh_out = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh_in);
-
-  MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
-  mesh_component.replace(mesh_out);
+  Mesh *result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, &mesh);
 
   BKE_subdiv_free(subdiv);
+
+  return result;
 }
+#endif /* WITH_OPENSUBDIV */
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Mesh");
-
-#ifndef WITH_OPENSUBDIV
-  params.error_message_add(NodeWarningType::Error,
-                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
-  params.set_default_remaining_outputs();
-  return;
-#endif
-
+#ifdef WITH_OPENSUBDIV
   /* See CCGSUBSURF_LEVEL_MAX for max limit. */
-  const int subdiv_level = clamp_i(params.extract_input<int>("Level"), 0, 11);
-
-  if (subdiv_level == 0) {
+  const int level = clamp_i(params.extract_input<int>("Level"), 0, 11);
+  if (level == 0) {
     params.set_output("Mesh", std::move(geometry_set));
     return;
   }
 
-  geometry_set.modify_geometry_sets(
-      [&](GeometrySet &geometry_set) { geometry_set_mesh_subdivide(geometry_set, subdiv_level); });
-
+  geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
+    if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
+      geometry_set.replace_mesh(simple_subdivide_mesh(*mesh, level));
+    }
+  });
+#else
+  params.error_message_add(NodeWarningType::Error,
+                           TIP_("Disabled, Blender was compiled without OpenSubdiv"));
+#endif
   params.set_output("Mesh", std::move(geometry_set));
 }
 

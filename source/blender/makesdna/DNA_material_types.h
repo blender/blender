@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -33,7 +34,10 @@ typedef struct TexPaintSlot {
   struct Image *ima;
   struct ImageUser *image_user;
 
-  /** Custom-data index for uv layer, #MAX_NAME. */
+  /**
+   * Custom-data index for uv layer, #MAX_NAME.
+   * May reference #NodeShaderUVMap::uv_name.
+   */
   char *uvname;
   /**
    * Color attribute name when painting using color attributes. Mutual exclusive with ima.

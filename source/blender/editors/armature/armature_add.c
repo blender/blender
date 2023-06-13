@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -52,7 +53,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
   EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
 
-  BLI_strncpy(bone->name, name, sizeof(bone->name));
+  STRNCPY(bone->name, name);
   ED_armature_ebone_unique_name(arm->edbo, bone->name, NULL);
 
   BLI_addtail(arm->edbo, bone);
@@ -311,7 +312,7 @@ static bPoseChannel *pchan_duplicate_map(const bPose *pose,
   return pchan_dst;
 }
 
-void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
+void postEditBoneDuplicate(ListBase *editbones, Object *ob)
 {
   if (ob->pose == NULL) {
     return;
@@ -327,6 +328,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
     if (!ebone_dst) {
       ebone_dst = ED_armature_ebone_get_mirrored(editbones, ebone_src);
     }
+
     if (ebone_dst) {
       BLI_ghash_insert(name_map, ebone_src->name, ebone_dst->name);
     }
@@ -334,22 +336,28 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
 
   LISTBASE_FOREACH (EditBone *, ebone_src, editbones) {
     EditBone *ebone_dst = ebone_src->temp.ebone;
-    if (ebone_dst) {
-      bPoseChannel *pchan_src = BKE_pose_channel_find_name(ob->pose, ebone_src->name);
-      if (pchan_src) {
-        bPoseChannel *pchan_dst = BKE_pose_channel_find_name(ob->pose, ebone_dst->name);
-        if (pchan_dst) {
-          if (pchan_src->custom_tx) {
-            pchan_dst->custom_tx = pchan_duplicate_map(ob->pose, name_map, pchan_src->custom_tx);
-          }
-          if (pchan_src->bbone_prev) {
-            pchan_dst->bbone_prev = pchan_duplicate_map(ob->pose, name_map, pchan_src->bbone_prev);
-          }
-          if (pchan_src->bbone_next) {
-            pchan_dst->bbone_next = pchan_duplicate_map(ob->pose, name_map, pchan_src->bbone_next);
-          }
-        }
-      }
+    if (!ebone_dst) {
+      continue;
+    }
+
+    bPoseChannel *pchan_src = BKE_pose_channel_find_name(ob->pose, ebone_src->name);
+    if (!pchan_src) {
+      continue;
+    }
+
+    bPoseChannel *pchan_dst = BKE_pose_channel_find_name(ob->pose, ebone_dst->name);
+    if (!pchan_dst) {
+      continue;
+    }
+
+    if (pchan_src->custom_tx) {
+      pchan_dst->custom_tx = pchan_duplicate_map(ob->pose, name_map, pchan_src->custom_tx);
+    }
+    if (pchan_src->bbone_prev) {
+      pchan_dst->bbone_prev = pchan_duplicate_map(ob->pose, name_map, pchan_src->bbone_prev);
+    }
+    if (pchan_src->bbone_next) {
+      pchan_dst->bbone_next = pchan_duplicate_map(ob->pose, name_map, pchan_src->bbone_next);
     }
   }
 
@@ -389,7 +397,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
                  */
                 if (oldtarget->temp.ebone) {
                   newtarget = oldtarget->temp.ebone;
-                  BLI_strncpy(ct->subtarget, newtarget->name, sizeof(ct->subtarget));
+                  STRNCPY(ct->subtarget, newtarget->name);
                 }
                 else if (lookup_mirror_subtarget) {
                   /* The subtarget was not selected for duplication, try to see if a mirror bone of
@@ -399,7 +407,7 @@ static void updateDuplicateSubtarget(EditBone *dup_bone,
                   BLI_string_flip_side_name(name_flip, oldtarget->name, false, sizeof(name_flip));
                   newtarget = get_named_editbone(editbones, name_flip);
                   if (newtarget) {
-                    BLI_strncpy(ct->subtarget, newtarget->name, sizeof(ct->subtarget));
+                    STRNCPY(ct->subtarget, newtarget->name);
                   }
                 }
               }
@@ -510,15 +518,18 @@ static void updateDuplicateActionConstraintSettings(
           flip = true;
         }
         else if (BLI_strn_endswith(new_curve->rna_path, "rotation_quaternion", slength) &&
-                 ELEM(new_curve->array_index, 2, 3)) {
+                 ELEM(new_curve->array_index, 2, 3))
+        {
           flip = true;
         }
         else if (BLI_strn_endswith(new_curve->rna_path, "rotation_euler", slength) &&
-                 ELEM(new_curve->array_index, 1, 2)) {
+                 ELEM(new_curve->array_index, 1, 2))
+        {
           flip = true;
         }
         else if (BLI_strn_endswith(new_curve->rna_path, "rotation_axis_angle", slength) &&
-                 ELEM(new_curve->array_index, 2, 3)) {
+                 ELEM(new_curve->array_index, 2, 3))
+        {
           flip = true;
         }
 
@@ -723,7 +734,8 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
 
       for (int i = 0; i < 3; i++) {
         if ((trans->from == TRANS_LOCATION && trans->map[i] == X) ||
-            (trans->from == TRANS_ROTATION && trans->map[i] != X)) {
+            (trans->from == TRANS_ROTATION && trans->map[i] != X))
+        {
           /* X Loc to X/Y/Z Scale: Min/Max Flipped */
           /* Y Rot to X/Y/Z Scale: Min/Max Flipped */
           /* Z Rot to X/Y/Z Scale: Min/Max Flipped */
@@ -741,7 +753,8 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
 
       for (int i = 0; i < 3; i++) {
         if ((trans->from == TRANS_LOCATION && trans->map[i] == X) ||
-            (trans->from == TRANS_ROTATION && trans->map[i] != X)) {
+            (trans->from == TRANS_ROTATION && trans->map[i] != X))
+        {
           /* X Loc to X/Y/Z Loc: Min/Max Flipped (and Inverted)
            * Y Rot to X/Y/Z Loc: Min/Max Flipped
            * Z Rot to X/Y/Z Loc: Min/Max Flipped */
@@ -756,7 +769,8 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
       trans->to_max_rot[2] *= -1;
 
       if ((trans->from == TRANS_LOCATION && trans->map[1] != X) ||
-          (trans->from == TRANS_ROTATION && trans->map[1] != Y) || trans->from == TRANS_SCALE) {
+          (trans->from == TRANS_ROTATION && trans->map[1] != Y) || trans->from == TRANS_SCALE)
+      {
         /* Invert the Y rotation */
         trans->to_min_rot[1] *= -1;
         trans->to_max_rot[1] *= -1;
@@ -767,7 +781,8 @@ static void updateDuplicateTransformConstraintSettings(Object *ob,
       for (int i = 0; i < 3; i++) {
         if ((trans->from == TRANS_LOCATION && trans->map[i] == X && i != 1) ||
             (trans->from == TRANS_ROTATION && trans->map[i] == Y && i != 1) ||
-            (trans->from == TRANS_ROTATION && trans->map[i] == Z)) {
+            (trans->from == TRANS_ROTATION && trans->map[i] == Z))
+        {
           /* X Loc to X/Z Rot: Flipped
            * Y Rot to X/Z Rot: Flipped
            * Z Rot to X/Y/Z rot: Flipped */
@@ -803,7 +818,8 @@ static void updateDuplicateConstraintSettings(EditBone *dup_bone, EditBone *orig
   ListBase *conlist;
 
   if ((pchan = BKE_pose_channel_ensure(ob->pose, dup_bone->name)) == NULL ||
-      (conlist = &pchan->constraints) == NULL) {
+      (conlist = &pchan->constraints) == NULL)
+  {
     return;
   }
 
@@ -902,7 +918,7 @@ EditBone *duplicateEditBoneObjects(
   e_bone->temp.ebone = cur_bone;
 
   if (name != NULL) {
-    BLI_strncpy(e_bone->name, name, sizeof(e_bone->name));
+    STRNCPY(e_bone->name, name);
   }
 
   ED_armature_ebone_unique_name(editbones, e_bone->name, NULL);
@@ -960,7 +976,8 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
     /* Find the selected bones and duplicate them as needed */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
         EditBone *ebone;
         char new_bone_name_buff[MAXBONENAME];
@@ -987,7 +1004,8 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
     /* Run though the list and fix the pointers */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
         EditBone *ebone = ebone_iter->temp.ebone;
 
@@ -1033,7 +1051,8 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
     /* Deselect the old bones and select the new ones */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (EBONE_VISIBLE(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
@@ -1109,76 +1128,86 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-    Object *obedit = objects[ob_index];
-    bArmature *arm = obedit->data;
-
     EditBone *ebone_iter;
     /* The beginning of the duplicated mirrored bones in the edbo list */
     EditBone *ebone_first_dupe = NULL;
+
+    Object *obedit = objects[ob_index];
+    bArmature *arm = obedit->data;
 
     ED_armature_edit_sync_selection(arm->edbo); /* XXX why is this needed? */
 
     preEditBoneDuplicate(arm->edbo);
 
-    /* Select mirrored bones */
+    /* Deselect ebones depending on input axis and direction.
+     * A symmetrizable selection contains selected ebones of the input direction
+     * and unique selected bones with an unique flippable name.
+     *
+     * Storing temp pointers to mirrored unselected ebones. */
     for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
-      if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
-        char name_flip[MAXBONENAME];
+      if (!(EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED))) {
+        /* Skipping invisible selected bones. */
+        continue;
+      }
 
-        BLI_string_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
+      char name_flip[MAXBONENAME];
+      if (ebone_iter == NULL) {
+        continue;
+      }
 
-        if (STREQ(name_flip, ebone_iter->name)) {
-          /* if the name matches, we don't have the potential to be mirrored, just skip */
-          ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-        }
-        else {
-          EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, name_flip);
+      BLI_string_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
 
-          if (ebone) {
-            if ((ebone->flag & BONE_SELECTED) == 0) {
-              /* simple case, we're selected, the other bone isn't! */
-              ebone_iter->temp.ebone = ebone;
-            }
-            else {
-              /* complicated - choose which direction to copy */
-              float axis_delta;
+      if (STREQ(name_flip, ebone_iter->name)) {
+        /* Skipping ebones without flippable as they don't have the potential to be mirrored. */
+        ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+        continue;
+      }
 
-              axis_delta = ebone->head[axis] - ebone_iter->head[axis];
-              if (axis_delta == 0.0f) {
-                axis_delta = ebone->tail[axis] - ebone_iter->tail[axis];
-              }
+      EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, name_flip);
 
-              if (axis_delta == 0.0f) {
-                /* Both mirrored bones exist and point to each other and overlap exactly.
-                 *
-                 * in this case there's no well defined solution, so de-select both and skip.
-                 */
-                ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-                ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-              }
-              else {
-                EditBone *ebone_src, *ebone_dst;
-                if (((axis_delta < 0.0f) ? -1 : 1) == direction) {
-                  ebone_src = ebone;
-                  ebone_dst = ebone_iter;
-                }
-                else {
-                  ebone_src = ebone_iter;
-                  ebone_dst = ebone;
-                }
+      if (!ebone) {
+        /* The ebone_iter is unique and mirrorable. */
+        continue;
+      }
 
-                ebone_src->temp.ebone = ebone_dst;
-                ebone_dst->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-              }
-            }
+      if (ebone->flag & BONE_SELECTED) {
+        /* The mirrored ebone and the ebone_iter are selected.
+         * Deselect based on the input direction and axis. */
+        float axis_delta;
+
+        axis_delta = ebone->head[axis] - ebone_iter->head[axis];
+        if (axis_delta == 0.0f) {
+          /* The ebone heads are overlapping. */
+          axis_delta = ebone->tail[axis] - ebone_iter->tail[axis];
+
+          if (axis_delta == 0.0f) {
+            /* Both mirrored bones point to each other and overlap exactly.
+             * In this case there's no well defined solution, so de-select both and skip. */
+            ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+            ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+            continue;
           }
         }
+
+        /* Deselect depending on direction. */
+        if (((axis_delta < 0.0f) ? -1 : 1) == direction) {
+          /* Don't store temp ptr if the iter_bone gets deselected.
+           * In this case, the ebone.temp should point to the ebone_iter. */
+          ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+          continue;
+        }
+
+        ebone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
+
+      /* Set temp pointer to mirrored ebones */
+      ebone_iter->temp.ebone = ebone;
     }
 
     /* Find the selected bones and duplicate them as needed, with mirrored name. */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (EBONE_VISIBLE(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
         if (ebone_iter->temp.ebone != NULL) {
           /* This will be set if the mirror bone already exists (no need to make a new one)
@@ -1194,11 +1223,12 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
           ebone_iter->temp.ebone->inherit_scale_mode = ebone_iter->inherit_scale_mode;
           continue;
         }
+
         char name_flip[MAXBONENAME];
 
         BLI_string_flip_side_name(name_flip, ebone_iter->name, false, sizeof(name_flip));
 
-        /* bones must have a side-suffix */
+        /* mirrored bones must have a side-suffix */
         if (!STREQ(name_flip, ebone_iter->name)) {
           EditBone *ebone;
 
@@ -1213,7 +1243,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 
     /* Run through the list and fix the pointers. */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (ebone_iter->temp.ebone) {
         /* copy all flags except for ... */
         const int flag_copy = ((int)~0) & ~(BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
@@ -1241,8 +1272,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
              */
 
             if (ebone->head[axis] != 0.0f) {
-              /* The mirrored bone doesn't start on the mirror axis, so assume that this one should
-               * not be connected to the old parent */
+              /* The mirrored bone doesn't start on the mirror axis, so assume that this one
+               * should not be connected to the old parent */
               ebone->flag &= ~BONE_CONNECTED;
             }
           }
@@ -1281,7 +1312,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 
     /* Deselect the old bones and select the new ones */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       if (EBONE_VISIBLE(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
@@ -1289,7 +1321,8 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 
     /* New bones will be selected, but some of the bones may already exist */
     for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe;
-         ebone_iter = ebone_iter->next) {
+         ebone_iter = ebone_iter->next)
+    {
       EditBone *ebone = ebone_iter->temp.ebone;
       if (ebone && EBONE_SELECTABLE(arm, ebone)) {
         ED_armature_ebone_select_set(ebone, true);
@@ -1472,16 +1505,11 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
             copy_v3_v3(newbone->scale_in, ebone->scale_in);
             copy_v3_v3(newbone->scale_out, ebone->scale_out);
 
-            BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
+            STRNCPY(newbone->name, ebone->name);
 
             if (flipbone && forked_iter) { /* only set if mirror edit */
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {
-                if (a == 0) {
-                  strcat(newbone->name, "_L");
-                }
-                else {
-                  strcat(newbone->name, "_R");
-                }
+                BLI_strncat(newbone->name, (a == 0) ? "_L" : "_R", sizeof(newbone->name));
               }
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);

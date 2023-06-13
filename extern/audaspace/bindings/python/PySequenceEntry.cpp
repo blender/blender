@@ -43,7 +43,7 @@ SequenceEntry_dealloc(SequenceEntry* self)
 }
 
 PyDoc_STRVAR(M_aud_SequenceEntry_move_doc,
-			 ".. classmethod:: move()\n\n"
+			 ".. method:: move()\n\n"
 			 "   Moves the entry.\n\n"
 			 "   :arg begin: The new start time.\n"
 			 "   :type begin: double\n"
@@ -73,7 +73,7 @@ SequenceEntry_move(SequenceEntry* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_SequenceEntry_setAnimationData_doc,
-			 ".. classmethod:: setAnimationData()\n\n"
+			 ".. method:: setAnimationData()\n\n"
 			 "   Writes animation data to a sequenced entry.\n\n"
 			 "   :arg type: The type of animation data.\n"
 			 "   :type type: int\n"

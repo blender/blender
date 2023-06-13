@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -7,6 +8,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "GPU_capabilities.h"
 #include "GPU_shader.h"
 
 /* Cache of built-in shaders (each is created on first use). */
@@ -41,8 +43,8 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_2D_image_shuffle_color";
     case GPU_SHADER_2D_IMAGE_RECT_COLOR:
       return "gpu_shader_2D_image_rect_color";
-    case GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR:
-      return "gpu_shader_2D_image_multi_rect_color";
+    case GPU_SHADER_ICON_MULTI:
+      return "gpu_shader_icon_multi";
     case GPU_SHADER_3D_UNIFORM_COLOR:
       return "gpu_shader_3D_uniform_color";
     case GPU_SHADER_3D_FLAT_COLOR:
@@ -127,7 +129,8 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
                GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
                GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
-               GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR)) {
+               GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR))
+      {
         /* Set a default value for `lineSmooth`.
          * Ideally this value should be set by the caller. */
         GPU_shader_bind(*sh_p);

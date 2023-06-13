@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_OpenCLDevice.h"
@@ -338,12 +339,14 @@ static void blur_pixel(int x, int y, PixelData &p)
   const float *row_color = p.image_input->get_elem(minx, miny);
   const float *row_size = p.size_input->get_elem(minx, miny);
   for (int ny = miny; ny < maxy;
-       ny += p.step, row_size += size_row_stride, row_color += color_row_stride) {
+       ny += p.step, row_size += size_row_stride, row_color += color_row_stride)
+  {
     const float dy = ny - y;
     const float *size_elem = row_size;
     const float *color = row_color;
     for (int nx = minx; nx < maxx;
-         nx += p.step, size_elem += size_elem_stride, color += color_elem_stride) {
+         nx += p.step, size_elem += size_elem_stride, color += color_elem_stride)
+    {
       if (nx == x && ny == y) {
         continue;
       }
@@ -395,7 +398,8 @@ void VariableSizeBokehBlurOperation::update_memory_buffer_partial(MemoryBuffer *
 
   for (BuffersIterator<float> it = output->iterate_with({p.image_input, p.size_input}, area);
        !it.is_end();
-       ++it) {
+       ++it)
+  {
     const float *color = it.in(0);
     const float size = *it.in(1);
     copy_v4_v4(p.color_accum, color);

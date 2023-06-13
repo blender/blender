@@ -192,9 +192,7 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
   patch_table = NULL;
 }
 
-Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH)
-{
-}
+Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH) {}
 
 Mesh::~Mesh()
 {
@@ -587,10 +585,14 @@ void Mesh::add_vertex_normals()
       }
     }
 
-    for (size_t i = 0; i < verts_size; i++) {
-      vN[i] = normalize(vN[i]);
-      if (flip) {
-        vN[i] = -vN[i];
+    if (flip) {
+      for (size_t i = 0; i < verts_size; i++) {
+        vN[i] = -normalize(vN[i]);
+      }
+    }
+    else {
+      for (size_t i = 0; i < verts_size; i++) {
+        vN[i] = normalize(vN[i]);
       }
     }
   }
@@ -611,16 +613,21 @@ void Mesh::add_vertex_normals()
       memset(mN, 0, verts.size() * sizeof(float3));
 
       for (size_t i = 0; i < triangles_size; i++) {
+        Triangle tri = get_triangle(i);
+        float3 fN = tri.compute_normal(mP);
         for (size_t j = 0; j < 3; j++) {
-          float3 fN = get_triangle(i).compute_normal(mP);
-          mN[get_triangle(i).v[j]] += fN;
+          mN[tri.v[j]] += fN;
         }
       }
 
-      for (size_t i = 0; i < verts_size; i++) {
-        mN[i] = normalize(mN[i]);
-        if (flip) {
-          mN[i] = -mN[i];
+      if (flip) {
+        for (size_t i = 0; i < verts_size; i++) {
+          mN[i] = -normalize(mN[i]);
+        }
+      }
+      else {
+        for (size_t i = 0; i < verts_size; i++) {
+          mN[i] = normalize(mN[i]);
         }
       }
     }
@@ -645,10 +652,14 @@ void Mesh::add_vertex_normals()
       }
     }
 
-    for (size_t i = 0; i < verts_size; i++) {
-      vN[i] = normalize(vN[i]);
-      if (flip) {
-        vN[i] = -vN[i];
+    if (flip) {
+      for (size_t i = 0; i < verts_size; i++) {
+        vN[i] = -normalize(vN[i]);
+      }
+    }
+    else {
+      for (size_t i = 0; i < verts_size; i++) {
+        vN[i] = normalize(vN[i]);
       }
     }
   }
@@ -724,43 +735,53 @@ void Mesh::pack_normals(packed_float3 *vnormal)
   float3 *vN = attr_vN->data_float3();
   size_t verts_size = verts.size();
 
-  for (size_t i = 0; i < verts_size; i++) {
-    float3 vNi = vN[i];
-
-    if (do_transform)
-      vNi = safe_normalize(transform_direction(&ntfm, vNi));
-
-    vnormal[i] = make_float3(vNi.x, vNi.y, vNi.z);
+  if (do_transform) {
+    for (size_t i = 0; i < verts_size; i++) {
+      vnormal[i] = safe_normalize(transform_direction(&ntfm, vN[i]));
+    }
+  }
+  else {
+    for (size_t i = 0; i < verts_size; i++) {
+      vnormal[i] = vN[i];
+    }
   }
 }
 
 void Mesh::pack_verts(packed_float3 *tri_verts,
-                      uint4 *tri_vindex,
+                      packed_uint3 *tri_vindex,
                       uint *tri_patch,
                       float2 *tri_patch_uv)
 {
   size_t verts_size = verts.size();
-
+  size_t triangles_size = num_triangles();
+  const int *p_tris = triangles.data();
+  int off = 0;
   if (verts_size && get_num_subd_faces()) {
     float2 *vert_patch_uv_ptr = vert_patch_uv.data();
 
     for (size_t i = 0; i < verts_size; i++) {
+      tri_verts[i] = verts[i];
       tri_patch_uv[i] = vert_patch_uv_ptr[i];
     }
+    for (size_t i = 0; i < triangles_size; i++) {
+      tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
+                                        p_tris[off + 1] + vert_offset,
+                                        p_tris[off + 2] + vert_offset);
+      tri_patch[i] = triangle_patch[i] * 8 + patch_offset;
+      off += 3;
+    }
   }
-
-  size_t triangles_size = num_triangles();
-
-  for (size_t i = 0; i < triangles_size; i++) {
-    const Triangle t = get_triangle(i);
-    tri_vindex[i] = make_uint4(
-        t.v[0] + vert_offset, t.v[1] + vert_offset, t.v[2] + vert_offset, 3 * (prim_offset + i));
-
-    tri_patch[i] = (!get_num_subd_faces()) ? -1 : (triangle_patch[i] * 8 + patch_offset);
-
-    tri_verts[i * 3] = verts[t.v[0]];
-    tri_verts[i * 3 + 1] = verts[t.v[1]];
-    tri_verts[i * 3 + 2] = verts[t.v[2]];
+  else {
+    for (size_t i = 0; i < verts_size; i++) {
+      tri_verts[i] = verts[i];
+    }
+    for (size_t i = 0; i < triangles_size; i++) {
+      tri_vindex[i] = make_packed_uint3(p_tris[off + 0] + vert_offset,
+                                        p_tris[off + 1] + vert_offset,
+                                        p_tris[off + 2] + vert_offset);
+      tri_patch[i] = -1;
+      off += 3;
+    }
   }
 }
 

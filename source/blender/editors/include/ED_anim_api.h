@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -530,6 +531,8 @@ typedef enum eAnimChannels_SetFlag {
   ACHANNEL_SETFLAG_INVERT = 2,
   /** some on -> all off / all on */
   ACHANNEL_SETFLAG_TOGGLE = 3,
+  /** turn off, keep active flag **/
+  ACHANNEL_SETFLAG_EXTEND_RANGE = 4,
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
@@ -676,6 +679,8 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac,
                                       eAnimChannel_Settings setting,
                                       eAnimChannels_SetFlag mode);
 
+void ANIM_frame_channel_y_extents(struct bContext *C, bAnimContext *ac);
+
 /**
  * Set selection state of all animation channels in the context.
  */
@@ -695,6 +700,11 @@ void ANIM_set_active_channel(bAnimContext *ac,
                              eAnimFilter_Flags filter,
                              void *channel_data,
                              eAnim_ChannelType channel_type);
+
+/**
+ * Return whether channel is active.
+ */
+bool ANIM_is_active_channel(bAnimListElem *ale);
 
 /**
  * Delete the F-Curve from the given AnimData block (if possible),

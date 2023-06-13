@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
 
 set(INC
   .
@@ -7,6 +8,7 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../blenloader
+  ../../blentranslation
   ../../bmesh
   ../../depsgraph
   ../../editors/include

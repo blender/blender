@@ -1,8 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_set.hh"
 
-#include "BKE_node.h"
+#include "BKE_context.h"
+#include "BKE_node.hh"
 
 #include "UI_interface.h"
 
@@ -55,6 +58,11 @@ void LinkSearchOpParams::connect_available_socket(bNode &new_node, StringRef soc
     return;
   }
   nodeAddLink(&node_tree, &new_node, new_node_socket, &node, &socket);
+  if (in_out == SOCK_OUT) {
+    /* If the old socket already contained a value, then transfer it to a new one, from
+     * which this value will get there. */
+    bke::node_socket_move_default_value(*CTX_data_main(&C), node_tree, socket, *new_node_socket);
+  }
 }
 
 bNode &LinkSearchOpParams::add_node(StringRef idname)

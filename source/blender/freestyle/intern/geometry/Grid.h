@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -44,9 +46,7 @@ class Cell {
     _orig = orig;
   }
 
-  virtual ~Cell()
-  {
-  }
+  virtual ~Cell() {}
 
   inline void addOccluder(Polygon3r *o)
   {
@@ -78,17 +78,11 @@ class GridVisitor {
  public:
   virtual ~GridVisitor(){};  // soc
 
-  virtual void discoverCell(Cell * /*cell*/)
-  {
-  }
+  virtual void discoverCell(Cell * /*cell*/) {}
 
-  virtual void examineOccluder(Polygon3r * /*occ*/)
-  {
-  }
+  virtual void examineOccluder(Polygon3r * /*occ*/) {}
 
-  virtual void finishCell(Cell * /*cell*/)
-  {
-  }
+  virtual void finishCell(Cell * /*cell*/) {}
 
   virtual bool stop()
   {
@@ -103,9 +97,7 @@ class GridVisitor {
 /** Gathers all the occluders belonging to the cells traversed by the ray */
 class allOccludersGridVisitor : public GridVisitor {
  public:
-  allOccludersGridVisitor(OccludersSet &occluders) : GridVisitor(), occluders_(occluders)
-  {
-  }
+  allOccludersGridVisitor(OccludersSet &occluders) : GridVisitor(), occluders_(occluders) {}
 
   virtual void examineOccluder(Polygon3r *occ);
 
@@ -150,9 +142,7 @@ class firstIntersectionGridVisitor : public GridVisitor {
   {
   }
 
-  virtual ~firstIntersectionGridVisitor()
-  {
-  }
+  virtual ~firstIntersectionGridVisitor() {}
 
   virtual void discoverCell(Cell *cell)
   {
@@ -177,9 +167,7 @@ class firstIntersectionGridVisitor : public GridVisitor {
 class Grid {
  public:
   /** Builds a Grid. Must be followed by a call to configure() */
-  Grid()
-  {
-  }
+  Grid() {}
 
   virtual ~Grid()
   {

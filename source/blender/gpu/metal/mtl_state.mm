@@ -147,7 +147,8 @@ void MTLStateManager::set_mutable_state(const GPUStateMutable &state)
   }
 
   if (changed.stencil_compare_mask != 0 || changed.stencil_reference != 0 ||
-      changed.stencil_write_mask != 0) {
+      changed.stencil_write_mask != 0)
+  {
     set_stencil_mask((eGPUStencilTest)current_.stencil_test, state);
   }
 
@@ -572,7 +573,7 @@ void MTLStateManager::issue_barrier(eGPUBarrier barrier_bits)
   eGPUStageBarrierBits before_stages = GPU_BARRIER_STAGE_ANY;
   eGPUStageBarrierBits after_stages = GPU_BARRIER_STAGE_ANY;
 
-  MTLContext *ctx = reinterpret_cast<MTLContext *>(GPU_context_active_get());
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
 
   ctx->main_command_buffer.insert_memory_barrier(barrier_bits, before_stages, after_stages);
@@ -629,7 +630,7 @@ void MTLStateManager::texture_unpack_row_length_set(uint len)
   ctx->pipeline_state.unpack_row_length = len;
 }
 
-void MTLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type, int unit)
+void MTLStateManager::texture_bind(Texture *tex_, GPUSamplerState sampler_type, int unit)
 {
   BLI_assert(tex_);
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
@@ -637,7 +638,7 @@ void MTLStateManager::texture_bind(Texture *tex_, eGPUSamplerState sampler_type,
 
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   if (unit >= 0) {
-    ctx->texture_bind(mtl_tex, unit);
+    ctx->texture_bind(mtl_tex, unit, false);
 
     /* Fetching textures default sampler configuration and applying
      * eGPUSampler State on top. This path exists to support
@@ -656,14 +657,14 @@ void MTLStateManager::texture_unbind(Texture *tex_)
   gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
   BLI_assert(mtl_tex);
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
-  ctx->texture_unbind(mtl_tex);
+  ctx->texture_unbind(mtl_tex, false);
 }
 
 void MTLStateManager::texture_unbind_all()
 {
   MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
   BLI_assert(ctx);
-  ctx->texture_unbind_all();
+  ctx->texture_unbind_all(false);
 }
 
 /** \} */
@@ -674,19 +675,32 @@ void MTLStateManager::texture_unbind_all()
 
 void MTLStateManager::image_bind(Texture *tex_, int unit)
 {
-  this->texture_bind(tex_, GPU_SAMPLER_DEFAULT, unit);
+  BLI_assert(tex_);
+  gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
+  BLI_assert(mtl_tex);
+
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  if (unit >= 0) {
+    ctx->texture_bind(mtl_tex, unit, true);
+  }
 }
 
 void MTLStateManager::image_unbind(Texture *tex_)
 {
-  this->texture_unbind(tex_);
+  BLI_assert(tex_);
+  gpu::MTLTexture *mtl_tex = static_cast<gpu::MTLTexture *>(tex_);
+  BLI_assert(mtl_tex);
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  ctx->texture_unbind(mtl_tex, true);
 }
 
 void MTLStateManager::image_unbind_all()
 {
-  this->texture_unbind_all();
+  MTLContext *ctx = static_cast<MTLContext *>(unwrap(GPU_context_active_get()));
+  BLI_assert(ctx);
+  ctx->texture_unbind_all(true);
 }
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

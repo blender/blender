@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -135,7 +136,7 @@ static void bezt_to_transdata(TransData *td,
 
 static bool graph_edit_is_translation_mode(TransInfo *t)
 {
-  return ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE, TFM_TIME_DUPLICATE);
+  return ELEM(t->mode, TFM_TRANSLATION, TFM_TIME_TRANSLATE, TFM_TIME_SLIDE);
 }
 
 static bool graph_edit_use_local_center(TransInfo *t)
@@ -538,7 +539,8 @@ static void createTransGraphEditData(bContext *C, TransInfo *t)
            * - If so, change them auto-handles to aligned handles so that handles get affected too
            */
           if (ELEM(bezt->h1, HD_AUTO, HD_AUTO_ANIM) && ELEM(bezt->h2, HD_AUTO, HD_AUTO_ANIM) &&
-              ELEM(t->mode, TFM_ROTATION, TFM_RESIZE)) {
+              ELEM(t->mode, TFM_ROTATION, TFM_RESIZE))
+          {
             if (hdata && (sel_left) && (sel_right)) {
               bezt->h1 = HD_ALIGN;
               bezt->h2 = HD_ALIGN;
@@ -654,7 +656,8 @@ static void flushTransGraphData(TransInfo *t)
 
   /* flush to 2d vector from internally used 3d vector */
   for (a = 0, td = tc->data, td2d = tc->data_2d, tdg = tc->custom.type.data; a < tc->data_len;
-       a++, td++, td2d++, tdg++) {
+       a++, td++, td2d++, tdg++)
+  {
     /* pointers to relevant AnimData blocks are stored in the td->extra pointers */
     AnimData *adt = (AnimData *)td->extra;
 
@@ -758,7 +761,8 @@ static void sort_time_beztmaps(BeztMap *bezms, int totvert)
        */
       if (bezm->swapHs == 0) {
         if ((bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) &&
-            (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0])) {
+            (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]))
+        {
           /* handles need to be swapped */
           bezm->swapHs = 1;
         }
@@ -979,7 +983,7 @@ static void special_aftertrans_update__graph(bContext *C, TransInfo *t)
   const bool use_handle = (sipo->flag & SIPO_NOHANDLES) == 0;
 
   const bool canceled = (t->state == TRANS_CANCEL);
-  const bool duplicate = (t->mode == TFM_TIME_DUPLICATE);
+  const bool duplicate = (t->flag & T_AUTOMERGE) != 0;
 
   /* initialize relevant anim-context 'context' data */
   if (ANIM_animdata_get_context(C, &ac) == 0) {

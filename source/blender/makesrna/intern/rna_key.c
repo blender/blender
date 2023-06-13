@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -76,10 +78,10 @@ static void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
   char oldname[sizeof(kb->name)];
 
   /* make a copy of the old name first */
-  BLI_strncpy(oldname, kb->name, sizeof(kb->name));
+  STRNCPY(oldname, kb->name);
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(kb->name, value, sizeof(kb->name));
+  STRNCPY_UTF8(kb->name, value);
 
   /* make sure the name is truly unique */
   if (ptr->owner_id) {

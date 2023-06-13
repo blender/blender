@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -578,13 +579,15 @@ static int voronoi_getNextSideCoord(
     float co[2], cur_distance;
 
     if (fabsf(edge->start[other_dim] - coord[other_dim]) < VORONOI_EPS &&
-        len_squared_v2v2(coord, edge->start) > VORONOI_EPS) {
+        len_squared_v2v2(coord, edge->start) > VORONOI_EPS)
+    {
       copy_v2_v2(co, edge->start);
       ok = true;
     }
 
     if (fabsf(edge->end[other_dim] - coord[other_dim]) < VORONOI_EPS &&
-        len_squared_v2v2(coord, edge->end) > VORONOI_EPS) {
+        len_squared_v2v2(coord, edge->end) > VORONOI_EPS)
+    {
       copy_v2_v2(co, edge->end);
       ok = true;
     }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -85,7 +87,8 @@ static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
         BM_ITER_ELEM (l, &liter, v, BM_LOOPS_OF_VERT) {
           if (l->f->len > 3) {
             if (BMO_vert_flag_test(bm, l->next->v, oflag) == 0 &&
-                BMO_vert_flag_test(bm, l->prev->v, oflag) == 0) {
+                BMO_vert_flag_test(bm, l->prev->v, oflag) == 0)
+            {
               BM_face_split(bm, l->f, l->next, l->prev, NULL, NULL, true);
             }
           }
@@ -556,7 +559,8 @@ void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
 
                  /* check edges are not already going to be collapsed */
                  !BMO_edge_flag_test(bm, l_iter->e, EDGE_COLLAPSE) &&
-                 !BMO_edge_flag_test(bm, l_iter->prev->e, EDGE_COLLAPSE))) {
+                 !BMO_edge_flag_test(bm, l_iter->prev->e, EDGE_COLLAPSE)))
+        {
           /* test if the faces loop (ear) is degenerate */
           float dir_prev[3], len_prev;
           float dir_next[3], len_next;
@@ -580,8 +584,8 @@ void bmo_dissolve_degenerate_exec(BMesh *bm, BMOperator *op)
               else {
                 /* add a joining edge and tag for removal */
                 BMLoop *l_split;
-                if (BM_face_split(
-                        bm, l_iter->f, l_iter->prev, l_iter->next, &l_split, NULL, true)) {
+                if (BM_face_split(bm, l_iter->f, l_iter->prev, l_iter->next, &l_split, NULL, true))
+                {
                   BMO_edge_flag_enable(bm, l_split->e, EDGE_COLLAPSE);
                   found = true;
                   reset = true;

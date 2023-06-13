@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -42,6 +43,9 @@
 /* for bool */
 #include "../blenlib/BLI_sys_types.h"
 #include "../gpu/GPU_texture.h"
+
+#include "BLI_implicit_sharing.h"
+#include "IMB_imbuf_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -130,18 +134,65 @@ bool IMB_initImBuf(
  * (transferring ownership to the in imbuf).
  * \attention Defined in allocimbuf.c
  */
-struct ImBuf *IMB_allocFromBufferOwn(
-    unsigned int *rect, float *rectf, unsigned int w, unsigned int h, unsigned int channels);
+struct ImBuf *IMB_allocFromBufferOwn(uint8_t *byte_buffer,
+                                     float *float_buffer,
+                                     unsigned int w,
+                                     unsigned int h,
+                                     unsigned int channels);
 
 /**
  * Create a copy of a pixel buffer and wrap it to a new ImBuf
  * \attention Defined in allocimbuf.c
  */
-struct ImBuf *IMB_allocFromBuffer(const unsigned int *rect,
-                                  const float *rectf,
+struct ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
+                                  const float *float_buffer,
                                   unsigned int w,
                                   unsigned int h,
                                   unsigned int channels);
+
+/**
+ * Assign the content of the corresponding buffer using an implicitly shareable data pointer.
+ *
+ * \note Does not modify the topology (width, height, number of channels)
+ * or the mipmaps in any way.
+ */
+void IMB_assign_shared_byte_buffer(struct ImBuf *ibuf,
+                                   uint8_t *buffer_data,
+                                   const ImplicitSharingInfoHandle *implicit_sharing);
+void IMB_assign_shared_float_buffer(struct ImBuf *ibuf,
+                                    float *buffer_data,
+                                    const ImplicitSharingInfoHandle *implicit_sharing);
+void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
+                                      float *buffer_data,
+                                      const ImplicitSharingInfoHandle *implicit_sharing);
+
+/**
+ * Assign the content of the corresponding buffer with the given data and ownership.
+ * The current content of the buffer is released corresponding to its ownership configuration.
+ *
+ * \note Does not modify the topology (width, height, number of channels)
+ * or the mipmaps in any way.
+ */
+void IMB_assign_byte_buffer(struct ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ownership);
+void IMB_assign_float_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
+void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership);
+void IMB_assign_float_z_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
+
+/**
+ * Make corresponding buffers available for modification.
+ * Is achieved by ensuring that the given ImBuf is the only owner of the underlying buffer data.
+ */
+void IMB_make_writable_byte_buffer(struct ImBuf *ibuf);
+void IMB_make_writable_float_buffer(struct ImBuf *ibuf);
+
+/**
+ * Steal the buffer data pointer: the ImBuf is no longer an owner of this data.
+ * \note If the ImBuf does not own the data the behavior is undefined.
+ * \note Stealing encoded buffer resets the encoded size.
+ */
+uint8_t *IMB_steal_byte_buffer(struct ImBuf *ibuf);
+float *IMB_steal_float_buffer(struct ImBuf *ibuf);
+uint8_t *IMB_steal_encoded_buffer(struct ImBuf *ibuf);
 
 /**
  * Increase reference count to imbuf
@@ -335,11 +386,11 @@ typedef enum eIMBInterpolationFilterMode {
  * Defaults to BL_proxy within the directory of the animation.
  */
 void IMB_anim_set_index_dir(struct anim *anim, const char *dir);
-void IMB_anim_get_fname(struct anim *anim, char *file, int size);
+void IMB_anim_get_filename(struct anim *anim, char *filename, int filename_maxncpy);
 
 int IMB_anim_index_get_frame_index(struct anim *anim, IMB_Timecode_Type tc, int position);
 
-IMB_Proxy_Size IMB_anim_proxy_get_existing(struct anim *anim);
+int IMB_anim_proxy_get_existing(struct anim *anim);
 
 struct IndexBuildContext;
 
@@ -348,7 +399,7 @@ struct IndexBuildContext;
  */
 struct IndexBuildContext *IMB_anim_index_rebuild_context(struct anim *anim,
                                                          IMB_Timecode_Type tcs_in_use,
-                                                         IMB_Proxy_Size proxy_sizes_in_use,
+                                                         int proxy_sizes_in_use,
                                                          int quality,
                                                          const bool overwrite,
                                                          struct GSet *file_list,
@@ -386,7 +437,7 @@ bool IMB_anim_get_fps(struct anim *anim, short *frs_sec, float *frs_sec_base, bo
 /**
  * \attention Defined in anim_movie.c
  */
-struct anim *IMB_open_anim(const char *name,
+struct anim *IMB_open_anim(const char *filepath,
                            int ib_flags,
                            int streamindex,
                            char colorspace[IM_MAX_SPACE]);
@@ -677,8 +728,10 @@ void IMB_sampleImageAtLocation(
 /**
  * \attention defined in readimage.c
  */
-struct ImBuf *IMB_loadifffile(
-    int file, const char *filepath, int flags, char colorspace[IM_MAX_SPACE], const char *descr);
+struct ImBuf *IMB_loadifffile(int file,
+                              int flags,
+                              char colorspace[IM_MAX_SPACE],
+                              const char *descr);
 
 /**
  * \attention defined in scaling.c
@@ -789,8 +842,11 @@ void buf_rectfill_area(unsigned char *rect,
 /**
  * Exported for image tools in blender, to quickly allocate 32 bits rect.
  */
-void *imb_alloc_pixels(
-    unsigned int x, unsigned int y, unsigned int channels, size_t typesize, const char *name);
+void *imb_alloc_pixels(unsigned int x,
+                       unsigned int y,
+                       unsigned int channels,
+                       size_t typesize,
+                       const char *alloc_name);
 
 bool imb_addrectImBuf(struct ImBuf *ibuf);
 /**

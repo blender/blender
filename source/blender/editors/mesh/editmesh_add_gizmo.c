@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -103,7 +105,7 @@ static void calc_initial_placement_point_from_view(bContext *C,
  * \{ */
 
 typedef struct GizmoPlacementGroup {
-  struct wmGizmo *cage;
+  wmGizmo *cage;
   struct {
     bContext *context;
     wmOperator *op;
@@ -234,7 +236,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  struct GizmoPlacementGroup *ggd = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
+  GizmoPlacementGroup *ggd = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
@@ -260,7 +262,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
   {
     WM_gizmo_target_property_def_func(ggd->cage,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_placement_prop_matrix_get,
                                           .value_set_fn = gizmo_placement_prop_matrix_set,
                                           .range_get_fn = NULL,
@@ -280,7 +282,7 @@ static void gizmo_mesh_placement_draw_prepare(const bContext *UNUSED(C), wmGizmo
   gizmo_mesh_placement_update_from_op(ggd);
 }
 
-static void MESH_GGT_add_bounds(struct wmGizmoGroupType *gzgt)
+static void MESH_GGT_add_bounds(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "Mesh Add Bounds";
   gzgt->idname = "MESH_GGT_add_bounds";
@@ -338,7 +340,8 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
                                 "create_cube matrix=%m4 size=%f calc_uvs=%b",
                                 matrix,
                                 1.0f,
-                                calc_uvs)) {
+                                calc_uvs))
+  {
     return OPERATOR_CANCELLED;
   }
 

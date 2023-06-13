@@ -1,4 +1,4 @@
-// Copyright 2015 Blender Foundation. All rights reserved.
+// Copyright 2015 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -380,7 +380,7 @@ TopologyRefinerImpl *TopologyRefinerImpl::createFromConverter(
   TopologyRefinerImpl *topology_refiner_impl = new TopologyRefinerImpl();
   topology_refiner_impl->topology_refiner = topology_refiner;
   topology_refiner_impl->settings = settings;
-  topology_refiner_impl->base_mesh_topology = move(base_mesh_topology);
+  topology_refiner_impl->base_mesh_topology = std::move(base_mesh_topology);
 
   return topology_refiner_impl;
 }

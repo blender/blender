@@ -10,6 +10,7 @@
 #include "kernel/integrator/guiding.h"
 #include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/path_state.h"
+#include "kernel/integrator/shadow_linking.h"
 #include "kernel/integrator/volume_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
@@ -441,7 +442,8 @@ ccl_device_forceinline void volume_integrate_step_scattering(
   /* Equiangular sampling for direct lighting. */
   if (vstate.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR && !result.direct_scatter) {
     if (result.direct_t >= vstate.tmin && result.direct_t <= vstate.tmax &&
-        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF) {
+        vstate.equiangular_pdf > VOLUME_SAMPLE_PDF_CUTOFF)
+    {
       const float new_dt = result.direct_t - vstate.tmin;
       const Spectrum new_transmittance = volume_color_transmittance(coeff.sigma_t, new_dt);
 
@@ -672,8 +674,10 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 
   /* Write accumulated emission. */
   if (!is_zero(accum_emission)) {
-    film_write_volume_emission(
-        kg, state, accum_emission, render_buffer, object_lightgroup(kg, sd->object));
+    if (light_link_object_match(kg, light_link_receiver_forward(kg, state), sd->object)) {
+      film_write_volume_emission(
+          kg, state, accum_emission, render_buffer, object_lightgroup(kg, sd->object));
+    }
   }
 
 #  ifdef __DENOISING_FEATURES__
@@ -706,16 +710,16 @@ ccl_device_forceinline bool integrate_volume_equiangular_sample_light(
 
   LightSample ls ccl_optional_struct_init;
   if (!light_sample_from_volume_segment(kg,
-                                        rand_light.z,
-                                        rand_light.x,
-                                        rand_light.y,
+                                        rand_light,
                                         sd->time,
                                         sd->P,
                                         ray->D,
                                         ray->tmax - ray->tmin,
+                                        light_link_receiver_nee(kg, sd),
                                         bounce,
                                         path_flag,
-                                        &ls)) {
+                                        &ls))
+  {
     return false;
   }
 
@@ -770,16 +774,16 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
     if (!light_sample_from_position(kg,
                                     rng_state,
-                                    rand_light.z,
-                                    rand_light.x,
-                                    rand_light.y,
+                                    rand_light,
                                     sd->time,
                                     P,
                                     zero_float3(),
+                                    light_link_receiver_nee(kg, sd),
                                     SD_BSDF_HAS_TRANSMISSION,
                                     bounce,
                                     path_flag,
-                                    &ls)) {
+                                    &ls))
+    {
       return;
     }
   }
@@ -827,11 +831,8 @@ ccl_device_forceinline void integrate_volume_direct_light(
       kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, false);
 
   /* Write shadow ray and associated state to global memory. */
-  integrator_state_write_shadow_ray(kg, shadow_state, &ray);
-  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, object) = ray.self.object;
-  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 0, prim) = ray.self.prim;
-  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, object) = ray.self.light_object;
-  INTEGRATOR_STATE_ARRAY_WRITE(shadow_state, shadow_isect, 1, prim) = ray.self.light_prim;
+  integrator_state_write_shadow_ray(shadow_state, &ray);
+  integrator_state_write_shadow_ray_self(kg, shadow_state, &ray);
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -878,7 +879,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
       state, path, transmission_bounce);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, throughput) = throughput_phase;
 
-  /* Write Lightgroup, +1 as lightgroup is int but we need to encode into a uint8_t. */
+  /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(
       shadow_state, shadow_path, lightgroup) = (ls.type != LIGHT_BACKGROUND) ?
                                                    ls.group + 1 :
@@ -888,6 +889,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
       state, guiding, path_segment);
+  INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
 #  endif
 
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -982,6 +984,12 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = fminf(
       unguided_phase_pdf, INTEGRATOR_STATE(state, path, min_ray_pdf));
 
+#  ifdef __LIGHT_LINKING__
+  if (kernel_data.kernel_features & KERNEL_FEATURE_LIGHT_LINKING) {
+    INTEGRATOR_STATE_WRITE(state, path, mis_ray_object) = sd->object;
+  }
+#  endif
+
   path_state_next(kg, state, label, sd->flag);
   return true;
 }
@@ -1019,7 +1027,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   const float step_size = volume_stack_step_size(kg, volume_read_lambda_pass);
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
-  /* The current path throughput which is used later to calculate per-segment throughput.*/
+  /* The current path throughput which is used later to calculate per-segment throughput. */
   const float3 initial_throughput = INTEGRATOR_STATE(state, path, throughput);
   /* The path throughput used to calculate the throughput for direct light. */
   float3 unlit_throughput = initial_throughput;
@@ -1063,7 +1071,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
       if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
         /* If the direct scatter event is generated using VOLUME_SAMPLE_DISTANCE the direct event
          * will happen at the same position as the indirect event and the direct light contribution
-         * will contribute to the position of the next path segment.*/
+         * will contribute to the position of the next path segment. */
         float3 transmittance_weight = spectrum_to_rgb(
             safe_divide_color(result.indirect_throughput, initial_throughput));
         guiding_record_volume_transmission(kg, state, transmittance_weight);
@@ -1076,7 +1084,8 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
         /* If the direct scatter event is generated using VOLUME_SAMPLE_EQUIANGULAR the direct
          * event will happen at a separate position as the indirect event and the direct light
          * contribution will contribute to the position of the current/previous path segment. The
-         * unlit_throughput has to be adjusted to include the scattering at the previous segment.*/
+         * unlit_throughput has to be adjusted to include the scattering at the previous segment.
+         */
         float3 scatterEval = one_float3();
         if (state->guiding.path_segment) {
           pgl_vec3f scatteringWeight = state->guiding.path_segment->scatteringWeight;
@@ -1171,10 +1180,10 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 #ifdef __VOLUME__
   /* Setup shader data. */
   Ray ray ccl_optional_struct_init;
-  integrator_state_read_ray(kg, state, &ray);
+  integrator_state_read_ray(state, &ray);
 
   Intersection isect ccl_optional_struct_init;
-  integrator_state_read_isect(kg, state, &isect);
+  integrator_state_read_isect(state, &isect);
 
   /* Set ray length to current segment. */
   ray.tmax = (isect.prim != PRIM_NONE) ? isect.t : FLT_MAX;
@@ -1184,27 +1193,32 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
     volume_stack_clean(kg, state);
   }
 
-  VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
-
-  if (event == VOLUME_PATH_SCATTERED) {
-    /* Queue intersect_closest kernel. */
-    integrator_path_next(kg,
-                         state,
-                         DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
-                         DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
-    return;
-  }
-  else if (event == VOLUME_PATH_MISSED) {
+  const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
+  if (event == VOLUME_PATH_MISSED) {
     /* End path. */
     integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     return;
   }
-  else {
+
+  if (event == VOLUME_PATH_ATTENUATED) {
     /* Continue to background, light or surface. */
     integrator_intersect_next_kernel_after_volume<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(
         kg, state, &isect, render_buffer);
     return;
   }
+
+#  ifdef __SHADOW_LINKING__
+  if (shadow_linking_schedule_intersection_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME>(kg,
+                                                                                         state)) {
+    return;
+  }
+#  endif /* __SHADOW_LINKING__ */
+
+  /* Queue intersect_closest kernel. */
+  integrator_path_next(kg,
+                       state,
+                       DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
+                       DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
 #endif /* __VOLUME__ */
 }
 

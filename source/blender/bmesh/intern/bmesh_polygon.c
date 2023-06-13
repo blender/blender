@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -955,7 +957,7 @@ void BM_face_triangulate(BMesh *bm,
                          MemArena *pf_arena,
 
                          /* use for MOD_TRIANGULATE_NGON_BEAUTY only! */
-                         struct Heap *pf_heap)
+                         Heap *pf_heap)
 {
   const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
   const bool use_beauty = (ngon_method == MOD_TRIANGULATE_NGON_BEAUTY);
@@ -1274,7 +1276,8 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len)
   for (i = 0; i < len; i++) {
     BMLoop *l_a_dummy, *l_b_dummy;
     if (f != BM_vert_pair_share_face_by_angle(
-                 loops[i][0]->v, loops[i][1]->v, &l_a_dummy, &l_b_dummy, false)) {
+                 loops[i][0]->v, loops[i][1]->v, &l_a_dummy, &l_b_dummy, false))
+    {
       loops[i][0] = NULL;
     }
   }

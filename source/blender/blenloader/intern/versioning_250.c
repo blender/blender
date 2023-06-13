@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -72,6 +74,8 @@
 
 #include "readfile.h"
 
+#include "versioning_common.h"
+
 #include <errno.h>
 
 /* Make preferences read-only, use versioning_userdef.c. */
@@ -100,16 +104,16 @@ static void area_add_header_region(ScrArea *area, ListBase *lb)
   region->v2d.flag = (V2D_PIXELOFS_X | V2D_PIXELOFS_Y);
 }
 
-static void sequencer_init_preview_region(ARegion *region)
+void sequencer_init_preview_region(ARegion *region)
 {
   /* XXX a bit ugly still, copied from space_sequencer */
   /* NOTE: if you change values here, also change them in space_sequencer.c, sequencer_new */
   region->regiontype = RGN_TYPE_PREVIEW;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_HIDDEN;
-  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM;
-  region->v2d.minzoom = 0.00001f;
-  region->v2d.maxzoom = 100000.0f;
+  region->flag &= ~RGN_FLAG_HIDDEN;
+  region->v2d.keepzoom = V2D_KEEPASPECT | V2D_KEEPZOOM | V2D_LIMITZOOM;
+  region->v2d.minzoom = 0.001f;
+  region->v2d.maxzoom = 1000.0f;
   region->v2d.tot.xmin = -960.0f; /* 1920 width centered */
   region->v2d.tot.ymin = -540.0f; /* 1080 height centered */
   region->v2d.tot.xmax = 960.0f;
@@ -431,7 +435,7 @@ static void versions_gpencil_add_main(Main *bmain, ListBase *lb, ID *id, const c
   BLI_addtail(lb, id);
   id->us = 1;
   id->flag = LIB_FAKEUSER;
-  *((short *)id->name) = ID_GD;
+  *((short *)id->name) = ID_GD_LEGACY;
 
   BKE_id_new_name_validate(bmain, lb, id, name, false);
   /* alphabetic insertion: is in BKE_id_new_name_validate */
@@ -563,7 +567,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
   bNodeSocket *gsock = MEM_callocN(sizeof(bNodeSocket), "bNodeSocket");
 
-  BLI_strncpy(gsock->name, name, sizeof(gsock->name));
+  STRNCPY(gsock->name, name);
   gsock->type = type;
 
   gsock->next = gsock->prev = NULL;
@@ -629,16 +633,17 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
-    char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
-    BLI_path_abs(str, BKE_main_blendfile_path(bmain));
-    seq->sound = BKE_sound_new_file(bmain, str);
+    char filepath_abs[FILE_MAX];
+    BLI_path_join(
+        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
   }
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    BLI_snprintf(seq->strip->proxy->dir, FILE_MAXDIR, "%s/BL_proxy", seq->strip->dir);
+    SNPRINTF(seq->strip->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->strip->dirpath);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
@@ -666,7 +671,7 @@ static bool seq_set_pitch_cb(Sequence *seq, void *UNUSED(user_data))
 }
 
 /* NOLINTNEXTLINE: readability-function-size */
-void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
+void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
   /* WATCH IT!!!: pointers from libdata have not been converted */
 
@@ -725,10 +730,10 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       /* move to cameras */
       if (sce->r.mode & R_PANORAMA) {
         for (base = sce->base.first; base; base = base->next) {
-          ob = blo_do_versions_newlibadr(fd, lib, base->object);
+          ob = blo_do_versions_newlibadr(fd, &sce->id, ID_IS_LINKED(sce), base->object);
 
           if (ob->type == OB_CAMERA && !ob->id.lib) {
-            cam = blo_do_versions_newlibadr(fd, lib, ob->data);
+            cam = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
             cam->flag |= CAM_PANORAMA;
           }
         }
@@ -774,7 +779,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
       part->clength = 1.0f;
     }
 
-    /* set old pointcaches to have disk cache flag */
+    /* Set old point-caches to have disk cache flag. */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
 
 #if 0
@@ -906,7 +911,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* Add default gravity to scenes */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if ((sce->physics_settings.flag & PHYS_GLOBAL_GRAVITY) == 0 &&
-          is_zero_v3(sce->physics_settings.gravity)) {
+          is_zero_v3(sce->physics_settings.gravity))
+      {
         sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
         sce->physics_settings.gravity[2] = -9.81f;
         sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
@@ -993,7 +999,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
      * to the evaluated #Mesh, so here we ensure that the basis
      * shape key is always set in the mesh coordinates. */
     for (me = bmain->meshes.first; me; me = me->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, me->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &me->id, ID_IS_LINKED(me), me->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(me->totvert, key->refkey->totelem);
         MVert *verts = (MVert *)CustomData_get_layer_for_write(&me->vdata, CD_MVERT, me->totvert);
@@ -1004,7 +1011,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (lt = bmain->lattices.first; lt; lt = lt->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, lt->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &lt->id, ID_IS_LINKED(lt), lt->key)) && key->refkey)
+      {
         data = key->refkey->data;
         tot = MIN2(lt->pntsu * lt->pntsv * lt->pntsw, key->refkey->totelem);
 
@@ -1015,7 +1023,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     }
 
     for (cu = bmain->curves.first; cu; cu = cu->id.next) {
-      if ((key = blo_do_versions_newlibadr(fd, lib, cu->key)) && key->refkey) {
+      if ((key = blo_do_versions_newlibadr(fd, &cu->id, ID_IS_LINKED(cu), cu->key)) && key->refkey)
+      {
         data = key->refkey->data;
 
         for (nu = cu->nurb.first; nu; nu = nu->next) {
@@ -1291,7 +1300,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
        * performing initialization where appropriate
        */
       if (ob->pose && ob->data) {
-        bArmature *arm = blo_do_versions_newlibadr(fd, lib, ob->data);
+        bArmature *arm = blo_do_versions_newlibadr(fd, &ob->id, ID_IS_LINKED(ob), ob->data);
         if (arm) { /* XXX: why does this fail in some cases? */
           bAnimVizSettings *avs = &ob->pose->avs;
 
@@ -1404,7 +1413,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* initialize to sane default so toggling on border shows something */
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       if (sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f && sce->r.border.xmax == 0.0f &&
-          sce->r.border.ymax == 0.0f) {
+          sce->r.border.ymax == 0.0f)
+      {
         sce->r.border.xmin = 0.0f;
         sce->r.border.ymin = 0.0f;
         sce->r.border.xmax = 1.0f;
@@ -1624,12 +1634,14 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
     /* parent type to modifier */
     for (ob = bmain->objects.first; ob; ob = ob->id.next) {
       if (ob->parent) {
-        Object *parent = (Object *)blo_do_versions_newlibadr(fd, lib, ob->parent);
+        Object *parent = (Object *)blo_do_versions_newlibadr(
+            fd, &ob->id, ID_IS_LINKED(ob), ob->parent);
         if (parent) { /* parent may not be in group */
           enum { PARCURVE = 1 };
           if (parent->type == OB_ARMATURE && ob->partype == PARSKEL) {
             ArmatureModifierData *amd;
-            bArmature *arm = (bArmature *)blo_do_versions_newlibadr(fd, lib, parent->data);
+            bArmature *arm = (bArmature *)blo_do_versions_newlibadr(
+                fd, &parent->id, ID_IS_LINKED(parent), parent->data);
 
             amd = (ArmatureModifierData *)BKE_modifier_new(eModifierType_Armature);
             amd->object = ob->parent;

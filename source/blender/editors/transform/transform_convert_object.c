@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -91,7 +92,7 @@ static void trans_obdata_in_obmode_update_all(TransInfo *t)
     return;
   }
 
-  struct Main *bmain = CTX_data_main(t->context);
+  Main *bmain = CTX_data_main(t->context);
   ED_object_data_xform_container_update_all(tdo->xds, bmain, t->depsgraph);
 }
 
@@ -114,7 +115,7 @@ static void trans_obchild_in_obmode_update_all(TransInfo *t)
     return;
   }
 
-  struct Main *bmain = CTX_data_main(t->context);
+  Main *bmain = CTX_data_main(t->context);
   ED_object_xform_skip_child_container_update_all(tdo->xcs, bmain, t->depsgraph);
 }
 
@@ -285,7 +286,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
     invert_m3_m3_safe_ortho(td->mtx, td->smtx);
   }
   else {
-    /* no conversion to/from dataspace */
+    /* No conversion to/from data-space. */
     unit_m3(td->smtx);
     unit_m3(td->mtx);
   }
@@ -382,8 +383,8 @@ static void set_trans_object_base_flags(TransInfo *t)
       }
       if (parsel != NULL) {
         /* Rotation around local centers are allowed to propagate. */
-        if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-            ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL)) {
+        if ((t->around == V3D_AROUND_LOCAL_ORIGINS) && ELEM(t->mode, TFM_ROTATION, TFM_TRACKBALL))
+        {
           base->flag_legacy |= BA_TRANSFORM_CHILD;
         }
         else {
@@ -421,7 +422,7 @@ static int count_proportional_objects(TransInfo *t)
   int total = 0;
   ViewLayer *view_layer = t->view_layer;
   View3D *v3d = t->view;
-  struct Main *bmain = CTX_data_main(t->context);
+  Main *bmain = CTX_data_main(t->context);
   Scene *scene = t->scene;
   Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
   /* Clear all flags we need. It will be used to detect dependencies. */
@@ -444,7 +445,8 @@ static int count_proportional_objects(TransInfo *t)
       /* all base not already selected or marked that is editable */
       if ((base->object->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 &&
-          (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))) {
+          (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)))
+      {
         mark_children(base->object);
       }
     }
@@ -457,7 +459,8 @@ static int count_proportional_objects(TransInfo *t)
      */
     if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
         (base->flag & BASE_SELECTED) == 0 &&
-        (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))) {
+        (BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)))
+    {
       flush_trans_object_base_deps_flag(depsgraph, ob);
       total += 1;
     }
@@ -577,7 +580,8 @@ static void createTransObject(bContext *C, TransInfo *t)
        * or not a child of selection and it is editable and selectable */
       if ((ob->flag & (BA_TRANSFORM_CHILD | BA_TRANSFORM_PARENT)) == 0 &&
           (base->flag & BASE_SELECTED) == 0 && BASE_EDITABLE(v3d, base) &&
-          BASE_SELECTABLE(v3d, base)) {
+          BASE_SELECTABLE(v3d, base))
+      {
         td->protectflag = ob->protectflag;
         td->ext = tx;
         td->ext->rotOrder = ob->rotmode;
@@ -610,7 +614,8 @@ static void createTransObject(bContext *C, TransInfo *t)
       /* if base is not selected, not a parent of selection
        * or not a child of selection and it is editable and selectable */
       if ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0 &&
-          BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base)) {
+          BASE_EDITABLE(v3d, base) && BASE_SELECTABLE(v3d, base))
+      {
 
         Object *ob_parent = ob->parent;
         if (ob_parent != NULL) {
@@ -657,7 +662,8 @@ static void createTransObject(bContext *C, TransInfo *t)
       Object *ob = base->object;
       if (ob->parent != NULL) {
         if (ob->parent && !BLI_gset_haskey(objects_in_transdata, ob->parent) &&
-            !BLI_gset_haskey(objects_in_transdata, ob)) {
+            !BLI_gset_haskey(objects_in_transdata, ob))
+        {
           if ((base->flag_legacy & BA_WAS_SEL) && (base->flag & BASE_SELECTED) == 0) {
             Base *base_parent = BKE_view_layer_base_find(view_layer, ob->parent);
             if (base_parent && !BASE_XFORM_INDIRECT(base_parent)) {

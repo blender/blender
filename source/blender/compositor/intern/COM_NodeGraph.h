@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,9 +27,7 @@ class NodeGraph {
     NodeOutput *from;
     NodeInput *to;
 
-    Link(NodeOutput *from, NodeInput *to) : from(from), to(to)
-    {
-    }
+    Link(NodeOutput *from, NodeInput *to) : from(from), to(to) {}
   };
 
  private:

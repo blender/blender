@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -49,58 +50,6 @@
 #include "filelist.h"
 #include "fsmenu.h"
 
-static ARegion *file_ui_region_ensure(ScrArea *area, ARegion *region_prev)
-{
-  ARegion *region;
-
-  if ((region = BKE_area_find_region_type(area, RGN_TYPE_UI)) != NULL) {
-    return region;
-  }
-
-  region = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_insertlinkafter(&area->regionbase, region_prev, region);
-  region->regiontype = RGN_TYPE_UI;
-  region->alignment = RGN_ALIGN_TOP;
-  region->flag = RGN_FLAG_DYNAMIC_SIZE;
-
-  return region;
-}
-
-static ARegion *file_execute_region_ensure(ScrArea *area, ARegion *region_prev)
-{
-  ARegion *region;
-
-  if ((region = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE)) != NULL) {
-    return region;
-  }
-
-  region = MEM_callocN(sizeof(ARegion), "execute region for file");
-  BLI_insertlinkafter(&area->regionbase, region_prev, region);
-  region->regiontype = RGN_TYPE_EXECUTE;
-  region->alignment = RGN_ALIGN_BOTTOM;
-  region->flag = RGN_FLAG_DYNAMIC_SIZE;
-
-  return region;
-}
-
-static ARegion *file_tool_props_region_ensure(ScrArea *area, ARegion *region_prev)
-{
-  ARegion *region;
-
-  if ((region = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS)) != NULL) {
-    return region;
-  }
-
-  /* add subdiv level; after execute region */
-  region = MEM_callocN(sizeof(ARegion), "tool props for file");
-  BLI_insertlinkafter(&area->regionbase, region_prev, region);
-  region->regiontype = RGN_TYPE_TOOL_PROPS;
-  region->alignment = RGN_ALIGN_RIGHT;
-  region->flag = RGN_FLAG_HIDDEN;
-
-  return region;
-}
-
 /* ******************** default callbacks for file space ***************** */
 
 static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
@@ -129,9 +78,21 @@ static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   BLI_addtail(&sfile->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_TOP;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
+  region->flag = RGN_FLAG_DYNAMIC_SIZE;
 
-  /* Tool props and execute region are added as needed, see file_refresh(). */
+  /* execute region */
+  region = MEM_callocN(sizeof(ARegion), "execute region for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_EXECUTE;
+  region->alignment = RGN_ALIGN_BOTTOM;
+  region->flag = RGN_FLAG_DYNAMIC_SIZE;
+
+  /* tools props region */
+  region = MEM_callocN(sizeof(ARegion), "tool props for file");
+  BLI_addtail(&sfile->regionbase, region);
+  region->regiontype = RGN_TYPE_TOOL_PROPS;
+  region->alignment = RGN_ALIGN_RIGHT;
+  region->flag = RGN_FLAG_HIDDEN;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for file");
@@ -146,7 +107,7 @@ static SpaceLink *file_create(const ScrArea *UNUSED(area), const Scene *UNUSED(s
   return (SpaceLink *)sfile;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void file_free(SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
@@ -231,69 +192,6 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
   return (SpaceLink *)sfilen;
 }
 
-static void file_ensure_valid_region_state(bContext *C,
-                                           wmWindowManager *wm,
-                                           wmWindow *win,
-                                           ScrArea *area,
-                                           SpaceFile *sfile,
-                                           FileSelectParams *params)
-{
-  ARegion *region_tools = BKE_area_find_region_type(area, RGN_TYPE_TOOLS);
-  bool needs_init = false; /* To avoid multiple ED_area_init() calls. */
-
-  BLI_assert(region_tools);
-
-  if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
-    file_tool_props_region_ensure(area, region_tools);
-
-    ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
-    if (region_execute) {
-      ED_region_remove(C, area, region_execute);
-      needs_init = true;
-    }
-    ARegion *region_ui = BKE_area_find_region_type(area, RGN_TYPE_UI);
-    if (region_ui) {
-      ED_region_remove(C, area, region_ui);
-      needs_init = true;
-    }
-  }
-  /* If there's an file-operation, ensure we have the option and execute region */
-  else if (sfile->op && !BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS)) {
-    ARegion *region_ui = file_ui_region_ensure(area, region_tools);
-    ARegion *region_execute = file_execute_region_ensure(area, region_ui);
-    ARegion *region_props = file_tool_props_region_ensure(area, region_execute);
-
-    if (params->flag & FILE_HIDE_TOOL_PROPS) {
-      region_props->flag |= RGN_FLAG_HIDDEN;
-    }
-    else {
-      region_props->flag &= ~RGN_FLAG_HIDDEN;
-    }
-
-    needs_init = true;
-  }
-  /* If there's _no_ file-operation, ensure we _don't_ have the option and execute region */
-  else if (!sfile->op) {
-    ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS);
-    ARegion *region_execute = BKE_area_find_region_type(area, RGN_TYPE_EXECUTE);
-    ARegion *region_ui = file_ui_region_ensure(area, region_tools);
-    UNUSED_VARS(region_ui);
-
-    if (region_execute) {
-      ED_region_remove(C, area, region_execute);
-      needs_init = true;
-    }
-    if (region_props) {
-      ED_region_remove(C, area, region_props);
-      needs_init = true;
-    }
-  }
-
-  if (needs_init) {
-    ED_area_init(wm, win, area);
-  }
-}
-
 static void file_refresh(const bContext *C, ScrArea *area)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -307,7 +205,8 @@ static void file_refresh(const bContext *C, ScrArea *area)
   folder_history_list_ensure_for_active_browse_mode(sfile);
 
   if (sfile->files && (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES) &&
-      filelist_needs_reset_on_main_changes(sfile->files)) {
+      filelist_needs_reset_on_main_changes(sfile->files))
+  {
     filelist_tag_force_reset_mainfiles(sfile->files);
   }
   sfile->tags &= ~FILE_TAG_REBUILD_MAIN_FILES;
@@ -389,9 +288,26 @@ static void file_refresh(const bContext *C, ScrArea *area)
     sfile->layout->dirty = true;
   }
 
-  /* Might be called with NULL area, see file_main_region_draw() below. */
   if (area) {
-    file_ensure_valid_region_state((bContext *)C, wm, win, area, sfile, params);
+    ARegion *region_props = BKE_area_find_region_type(area, RGN_TYPE_TOOL_PROPS);
+    const bool region_flag_old = region_props->flag;
+    if (!(region_props->v2d.flag & V2D_IS_INIT)) {
+      if (ED_fileselect_is_asset_browser(sfile)) {
+        /* Hide by default in asset browser. */
+        region_props->flag |= RGN_FLAG_HIDDEN;
+      }
+      else {
+        if (params->flag & FILE_HIDE_TOOL_PROPS) {
+          region_props->flag |= RGN_FLAG_HIDDEN;
+        }
+        else {
+          region_props->flag &= ~RGN_FLAG_HIDDEN;
+        }
+      }
+    }
+    if (region_flag_old != region_props->flag) {
+      ED_region_visibility_change_update((bContext *)C, area, region_props);
+    }
   }
 
   ED_area_tag_redraw(area);
@@ -594,7 +510,8 @@ static bool file_main_region_needs_refresh_before_draw(SpaceFile *sfile)
 
   /* File reading tagged the space because main data changed that may require a filelist reset. */
   if (filelist_needs_reset_on_main_changes(sfile->files) &&
-      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES)) {
+      (sfile->tags & FILE_TAG_REBUILD_MAIN_FILES))
+  {
     return true;
   }
 
@@ -699,10 +616,11 @@ static void file_operatortypes(void)
   WM_operatortype_append(FILE_OT_start_filter);
   WM_operatortype_append(FILE_OT_edit_directory_path);
   WM_operatortype_append(FILE_OT_view_selected);
+  WM_operatortype_append(FILE_OT_external_operation);
 }
 
 /* NOTE: do not add .blend file reading on this level */
-static void file_keymap(struct wmKeyConfig *keyconf)
+static void file_keymap(wmKeyConfig *keyconf)
 {
   /* keys for all regions */
   WM_keymap_ensure(keyconf, "File Browser", SPACE_FILE, 0);
@@ -712,6 +630,25 @@ static void file_keymap(struct wmKeyConfig *keyconf)
 
   /* keys for button region (top) */
   WM_keymap_ensure(keyconf, "File Browser Buttons", SPACE_FILE, 0);
+}
+
+static bool file_ui_region_poll(const RegionPollParams *params)
+{
+  const SpaceFile *sfile = (SpaceFile *)params->area->spacedata.first;
+  /* Always visible except when browsing assets. */
+  return sfile->browse_mode != FILE_BROWSE_MODE_ASSETS;
+}
+
+static bool file_tool_props_region_poll(const RegionPollParams *params)
+{
+  const SpaceFile *sfile = (SpaceFile *)params->area->spacedata.first;
+  return (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) || (sfile->op != NULL);
+}
+
+static bool file_execution_region_poll(const RegionPollParams *params)
+{
+  const SpaceFile *sfile = (SpaceFile *)params->area->spacedata.first;
+  return sfile->op != NULL;
 }
 
 static void file_tools_region_init(wmWindowManager *wm, ARegion *region)
@@ -849,7 +786,7 @@ static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(
 
 static void filepath_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
-  RNA_string_set(drop->ptr, "filepath", drag->path);
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
 /* region dropbox definition */
@@ -869,6 +806,10 @@ static int file_space_subtype_get(ScrArea *area)
 static void file_space_subtype_set(ScrArea *area, int value)
 {
   SpaceFile *sfile = area->spacedata.first;
+  /* Force re-init. */
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    region->v2d.flag &= ~V2D_IS_INIT;
+  }
   sfile->browse_mode = value;
 }
 
@@ -885,6 +826,7 @@ const char *file_context_dir[] = {
     "asset_library_ref",
     "selected_asset_files",
     "id",
+    "selected_ids",
     NULL,
 };
 
@@ -973,6 +915,24 @@ static int /*eContextResult*/ file_context(const bContext *C,
     CTX_data_id_pointer_set(result, id);
     return CTX_RESULT_OK;
   }
+  if (CTX_data_equals(member, "selected_ids")) {
+    const int num_files_filtered = filelist_files_ensure(sfile->files);
+
+    for (int file_index = 0; file_index < num_files_filtered; file_index++) {
+      if (!filelist_entry_is_selected(sfile->files, file_index)) {
+        continue;
+      }
+      ID *id = filelist_entry_get_id(sfile->files, file_index);
+      if (!id) {
+        continue;
+      }
+
+      CTX_data_id_list_add(result, id);
+    }
+
+    CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
+    return CTX_RESULT_OK;
+  }
 
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
@@ -988,7 +948,7 @@ static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper 
   file_reset_filelist_showing_main_data(area, sfile);
 }
 
-static void file_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
+static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -1013,15 +973,15 @@ static void file_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
 }
 
-static void file_blend_read_lib(BlendLibReader *UNUSED(reader),
-                                ID *UNUSED(parent_id),
-                                SpaceLink *sl)
+static void file_space_blend_read_lib(BlendLibReader *UNUSED(reader),
+                                      ID *UNUSED(parent_id),
+                                      SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
   sfile->tags |= FILE_TAG_REBUILD_MAIN_FILES;
 }
 
-static void file_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -1057,9 +1017,9 @@ void ED_spacetype_file(void)
   st->space_subtype_set = file_space_subtype_set;
   st->context = file_context;
   st->id_remap = file_id_remap;
-  st->blend_read_data = file_blend_read_data;
-  st->blend_read_lib = file_blend_read_lib;
-  st->blend_write = file_blend_write;
+  st->blend_read_data = file_space_blend_read_data;
+  st->blend_read_lib = file_space_blend_read_lib;
+  st->blend_write = file_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
@@ -1085,6 +1045,7 @@ void ED_spacetype_file(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
   art->regionid = RGN_TYPE_UI;
   art->keymapflag = ED_KEYMAP_UI;
+  art->poll = file_ui_region_poll;
   art->listener = file_ui_region_listener;
   art->init = file_ui_region_init;
   art->draw = file_ui_region_draw;
@@ -1094,6 +1055,7 @@ void ED_spacetype_file(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
   art->regionid = RGN_TYPE_EXECUTE;
   art->keymapflag = ED_KEYMAP_UI;
+  art->poll = file_execution_region_poll;
   art->listener = file_ui_region_listener;
   art->init = file_execution_region_init;
   art->draw = file_execution_region_draw;
@@ -1118,11 +1080,13 @@ void ED_spacetype_file(void)
   art->prefsizex = 240;
   art->prefsizey = 60;
   art->keymapflag = ED_KEYMAP_UI;
+  art->poll = file_tool_props_region_poll;
   art->listener = file_tool_props_region_listener;
   art->init = file_tools_region_init;
   art->draw = file_tools_region_draw;
   BLI_addhead(&st->regiontypes, art);
   file_tool_props_region_panels_register(art);
+  file_external_operations_menu_register();
 
   BKE_spacetype_register(st);
 }
@@ -1156,8 +1120,8 @@ void ED_file_read_bookmarks(void)
   fsmenu_read_system(ED_fsmenu_get(), true);
 
   if (cfgdir) {
-    char name[FILE_MAX];
-    BLI_path_join(name, sizeof(name), cfgdir, BLENDER_BOOKMARK_FILE);
-    fsmenu_read_bookmarks(ED_fsmenu_get(), name);
+    char filepath[FILE_MAX];
+    BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_BOOKMARK_FILE);
+    fsmenu_read_bookmarks(ED_fsmenu_get(), filepath);
   }
 }

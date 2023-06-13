@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -141,8 +142,7 @@ static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
   return true;
 }
 
-bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
-                                               const struct Scene *scene)
+bool ED_space_sequencer_has_playback_animation(const SpaceSeq *sseq, const Scene *scene)
 {
   if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
     return true;
@@ -173,6 +173,18 @@ bool ED_space_sequencer_has_playback_animation(const struct SpaceSeq *sseq,
 bool sequencer_edit_poll(bContext *C)
 {
   return (SEQ_editing_get(CTX_data_scene(C)) != NULL);
+}
+
+bool sequencer_edit_with_channel_region_poll(bContext *C)
+{
+  if (!sequencer_edit_poll(C)) {
+    return false;
+  }
+  ARegion *region = CTX_wm_region(C);
+  if (!(region && (region->regiontype == RGN_TYPE_CHANNELS))) {
+    return false;
+  }
+  return true;
 }
 
 bool sequencer_editing_initialized_and_active(bContext *C)
@@ -207,7 +219,8 @@ bool sequencer_view_has_preview_poll(bContext *C)
     return false;
   }
   if (!(ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW) &&
-        (sseq->mainb == SEQ_DRAW_IMG_IMBUF))) {
+        (sseq->mainb == SEQ_DRAW_IMG_IMBUF)))
+  {
     return false;
   }
   ARegion *region = CTX_wm_region(C);
@@ -274,7 +287,7 @@ static int sequencer_gap_remove_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_gap_remove(struct wmOperatorType *ot)
+void SEQUENCER_OT_gap_remove(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Remove Gaps";
@@ -312,7 +325,7 @@ static int sequencer_gap_insert_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_gap_insert(struct wmOperatorType *ot)
+void SEQUENCER_OT_gap_insert(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Insert Gaps";
@@ -360,7 +373,8 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
   /* Check meta-strips. */
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     if (seq->flag & SELECT && !SEQ_transform_is_locked(channels, seq) &&
-        SEQ_transform_sequence_can_be_translated(seq)) {
+        SEQ_transform_sequence_can_be_translated(seq))
+    {
       if ((seq->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) == 0) {
         SEQ_transform_translate_sequence(scene, seq, (snap_frame - seq->startofs) - seq->start);
       }
@@ -429,7 +443,7 @@ static int sequencer_snap_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
   return sequencer_snap_exec(C, op);
 }
 
-void SEQUENCER_OT_snap(struct wmOperatorType *ot)
+void SEQUENCER_OT_snap(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Snap Strips to the Current Frame";
@@ -673,10 +687,10 @@ static void sequencer_slip_update_header(Scene *scene, ScrArea *area, SlipData *
     if (hasNumInput(&data->num_input)) {
       char num_str[NUM_STR_REP_LEN];
       outputNumInput(&data->num_input, num_str, &scene->unit);
-      BLI_snprintf(msg, sizeof(msg), TIP_("Slip offset: %s"), num_str);
+      SNPRINTF(msg, TIP_("Slip offset: %s"), num_str);
     }
     else {
-      BLI_snprintf(msg, sizeof(msg), TIP_("Slip offset: %d"), offset);
+      SNPRINTF(msg, TIP_("Slip offset: %d"), offset);
     }
   }
 
@@ -819,7 +833,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_slip(struct wmOperatorType *ot)
+void SEQUENCER_OT_slip(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Slip Strips";
@@ -885,7 +899,7 @@ static int sequencer_mute_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_mute(struct wmOperatorType *ot)
+void SEQUENCER_OT_mute(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Mute Strips";
@@ -942,7 +956,7 @@ static int sequencer_unmute_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
+void SEQUENCER_OT_unmute(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Unmute Strips";
@@ -983,7 +997,7 @@ static int sequencer_lock_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_lock(struct wmOperatorType *ot)
+void SEQUENCER_OT_lock(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Lock Strips";
@@ -1021,7 +1035,7 @@ static int sequencer_unlock_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
+void SEQUENCER_OT_unlock(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Unlock Strips";
@@ -1067,7 +1081,7 @@ static int sequencer_reload_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_reload(struct wmOperatorType *ot)
+void SEQUENCER_OT_reload(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -1117,7 +1131,7 @@ static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
+void SEQUENCER_OT_refresh_all(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Refresh Sequencer";
@@ -1244,14 +1258,16 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 
   if (!seq_effect_find_selected(
           scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg) ||
-      SEQ_effect_get_num_inputs(last_seq->type) == 0) {
+      SEQ_effect_get_num_inputs(last_seq->type) == 0)
+  {
     BKE_report(op->reports, RPT_ERROR, error_msg);
     return OPERATOR_CANCELLED;
   }
   /* Check if reassigning would create recursivity. */
   if (SEQ_relations_render_loop_check(seq1, last_seq) ||
       SEQ_relations_render_loop_check(seq2, last_seq) ||
-      SEQ_relations_render_loop_check(seq3, last_seq)) {
+      SEQ_relations_render_loop_check(seq3, last_seq))
+  {
     BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return OPERATOR_CANCELLED;
   }
@@ -1291,7 +1307,7 @@ static bool sequencer_effect_poll(bContext *C)
   return 0;
 }
 
-void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
+void SEQUENCER_OT_reassign_inputs(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Reassign Inputs";
@@ -1332,7 +1348,7 @@ static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
-void SEQUENCER_OT_swap_inputs(struct wmOperatorType *ot)
+void SEQUENCER_OT_swap_inputs(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Swap Inputs";
@@ -1482,14 +1498,14 @@ static int sequencer_split_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     }
   }
   float mouseloc[2];
-  UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
-  if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
-    RNA_int_set(op->ptr, "frame", mouseloc[0]);
+  if (v2d) {
+    UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &mouseloc[0], &mouseloc[1]);
+    if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
+      split_frame = mouseloc[0];
+    }
+    RNA_int_set(op->ptr, "channel", mouseloc[1]);
   }
-  else {
-    RNA_int_set(op->ptr, "frame", split_frame);
-  }
-  RNA_int_set(op->ptr, "channel", mouseloc[1]);
+  RNA_int_set(op->ptr, "frame", split_frame);
   RNA_enum_set(op->ptr, "side", split_side);
   // RNA_enum_set(op->ptr, "type", split_hard);
 
@@ -1515,7 +1531,7 @@ static void sequencer_split_ui(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-void SEQUENCER_OT_split(struct wmOperatorType *ot)
+void SEQUENCER_OT_split(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Split Strips";
@@ -1711,16 +1727,17 @@ static int sequencer_delete_exec(bContext *C, wmOperator *op)
 
 static int sequencer_delete_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);
   ListBase *markers = &scene->markers;
 
-  if (region->regiontype == RGN_TYPE_WINDOW && !BLI_listbase_is_empty(markers)) {
-    /* Bounding box of 30 pixels is used for markers shortcuts,
-     * prevent conflict with markers shortcuts here.
-     */
-    if (event->mval[1] <= 30) {
-      return OPERATOR_PASS_THROUGH;
+  if (!BLI_listbase_is_empty(markers)) {
+    ARegion *region = CTX_wm_region(C);
+    if (region && (region->regiontype == RGN_TYPE_WINDOW)) {
+      /* Bounding box of 30 pixels is used for markers shortcuts,
+       * prevent conflict with markers shortcuts here. */
+      if (event->mval[1] <= 30) {
+        return OPERATOR_PASS_THROUGH;
+      }
     }
   }
 
@@ -1731,9 +1748,9 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 {
 
   /* Identifiers. */
-  ot->name = "Erase Strips";
+  ot->name = "Delete Strips";
   ot->idname = "SEQUENCER_OT_delete";
-  ot->description = "Erase selected strips from the sequencer";
+  ot->description = "Delete selected strips from the sequencer";
 
   /* Api callbacks. */
   ot->invoke = sequencer_delete_invoke;
@@ -1851,6 +1868,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->start = start_ofs;
         seq_new->type = SEQ_TYPE_IMAGE;
         seq_new->len = 1;
+        seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
         seq_new->endofs = 1 - step;
 
         /* New strip. */
@@ -1861,7 +1879,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         /* Note this assume all elements (images) have the same dimension,
          * since we only copy the name here. */
         se_new = MEM_reallocN(strip_new->stripdata, sizeof(*se_new));
-        BLI_strncpy(se_new->name, se->name, sizeof(se_new->name));
+        STRNCPY(se_new->filename, se->filename);
         strip_new->stripdata = se_new;
 
         if (step > 1) {
@@ -2206,7 +2224,8 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
   seq = ed->seqbasep->first;
   while (seq) {
     if ((seq != test) && (test->machine == seq->machine) &&
-        ((sel == -1) || (sel == (seq->flag & SELECT)))) {
+        ((sel == -1) || (sel == (seq->flag & SELECT))))
+    {
       dist = MAXFRAME * 2;
 
       switch (lr) {
@@ -2264,11 +2283,13 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
     /* Disallow effect strips. */
     if (SEQ_effect_get_num_inputs(seq->type) >= 1 &&
-        (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3)) {
+        (seq->effectdata || seq->seq1 || seq->seq2 || seq->seq3))
+    {
       return OPERATOR_CANCELLED;
     }
     if ((SEQ_effect_get_num_inputs(active_seq->type) >= 1) &&
-        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3)) {
+        (active_seq->effectdata || active_seq->seq1 || active_seq->seq2 || active_seq->seq3))
+    {
       return OPERATOR_CANCELLED;
     }
 
@@ -2284,7 +2305,8 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
     /* Do this in a new loop since both effects need to be calculated first. */
     for (iseq = seqbase->first; iseq; iseq = iseq->next) {
       if ((iseq->type & SEQ_TYPE_EFFECT) &&
-          (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
+          (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq)))
+      {
         /* This may now overlap. */
         if (SEQ_transform_test_overlap(scene, seqbase, iseq)) {
           SEQ_transform_seqbase_shuffle(seqbase, iseq, scene);
@@ -2482,7 +2504,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Copy";
   ot->idname = "SEQUENCER_OT_copy";
-  ot->description = "Copy selected strips to clipboard";
+  ot->description = "Copy the selected strips to the internal clipboard";
 
   /* Api callbacks. */
   ot->exec = sequencer_copy_exec;
@@ -2629,7 +2651,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Paste";
   ot->idname = "SEQUENCER_OT_paste";
-  ot->description = "Paste strips from clipboard";
+  ot->description = "Paste strips from the internal clipboard";
 
   /* Api callbacks. */
   ot->exec = sequencer_paste_exec;
@@ -2760,7 +2782,7 @@ static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot)
+void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Change Effect Input";
@@ -2839,7 +2861,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot)
+void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Change Effect Type";
@@ -2898,7 +2920,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
        * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
-    BLI_strncpy(seq->strip->dir, directory, sizeof(seq->strip->dir));
+    STRNCPY(seq->strip->dirpath, directory);
 
     if (seq->strip->stripdata) {
       MEM_freeN(seq->strip->stripdata);
@@ -2911,11 +2933,18 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     else {
       RNA_BEGIN (op->ptr, itemptr, "files") {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
-        BLI_strncpy(se->name, filename, sizeof(se->name));
+        STRNCPY(se->filename, filename);
         MEM_freeN(filename);
         se++;
       }
       RNA_END;
+    }
+
+    if (len == 1) {
+      seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+    }
+    else {
+      seq->flag &= ~SEQ_SINGLE_FRAME_CONTENT;
     }
 
     /* Reset these else we won't see all the images. */
@@ -2932,7 +2961,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
     }
     char filepath[FILE_MAX];
     RNA_string_get(op->ptr, "filepath", filepath);
-    BLI_strncpy(sound->filepath, filepath, sizeof(sound->filepath));
+    STRNCPY(sound->filepath, filepath);
     BKE_sound_load(bmain, sound);
   }
   else {
@@ -2962,9 +2991,9 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   Sequence *seq = SEQ_select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dir, seq->strip->stripdata->name);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
 
-  RNA_string_set(op->ptr, "directory", seq->strip->dir);
+  RNA_string_set(op->ptr, "directory", seq->strip->dirpath);
   RNA_string_set(op->ptr, "filepath", filepath);
 
   /* Set default display depending on seq type. */
@@ -2980,7 +3009,7 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_change_path(struct wmOperatorType *ot)
+void SEQUENCER_OT_change_path(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Change Data/Files";
@@ -3060,7 +3089,7 @@ static int sequencer_change_scene_invoke(bContext *C, wmOperator *op, const wmEv
   return sequencer_change_scene_exec(C, op);
 }
 
-void SEQUENCER_OT_change_scene(struct wmOperatorType *ot)
+void SEQUENCER_OT_change_scene(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -3131,7 +3160,8 @@ static bool seq_get_text_strip_cb(Sequence *seq, void *user_data)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */
   if ((seq->type == SEQ_TYPE_TEXT) && !SEQ_render_is_muted(channels, seq) &&
-      (SEQ_time_right_handle_frame_get(cd->scene, seq) > cd->scene->r.sfra)) {
+      (SEQ_time_right_handle_frame_get(cd->scene, seq) > cd->scene->r.sfra))
+  {
     BLI_addtail(cd->text_seq, MEM_dupallocN(seq));
   }
   return true;
@@ -3148,7 +3178,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
   char filepath[FILE_MAX];
 
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
-    BKE_report(op->reports, RPT_ERROR, "No filename given");
+    BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
 
@@ -3157,7 +3187,7 @@ static int sequencer_export_subtitles_exec(bContext *C, wmOperator *op)
 
   /* Avoid File write exceptions. */
   if (!BLI_exists(filepath)) {
-    BLI_make_existing_file(filepath);
+    BLI_file_ensure_parent_dir_exists(filepath);
     if (!BLI_file_touch(filepath)) {
       BKE_report(op->reports, RPT_ERROR, "Can't create subtitle file");
       return OPERATOR_CANCELLED;
@@ -3224,7 +3254,7 @@ static bool sequencer_strip_is_text_poll(bContext *C)
           (seq->type == SEQ_TYPE_TEXT));
 }
 
-void SEQUENCER_OT_export_subtitles(struct wmOperatorType *ot)
+void SEQUENCER_OT_export_subtitles(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Export Subtitles";
@@ -3269,6 +3299,9 @@ static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
     if (seq->flag & SELECT) {
       selected = true;
       sfra = min_ii(sfra, SEQ_time_left_handle_frame_get(scene, seq));
+      /* Offset of -1 is needed because in VSE every frame has width. Range from 1 to 1 is drawn
+       * as range 1 to 2, because 1 frame long strip starts at frame 1 and ends at frame 2.
+       * See #106480. */
       efra = max_ii(efra, SEQ_time_right_handle_frame_get(scene, seq) - 1);
     }
   }
@@ -3298,7 +3331,7 @@ static int sequencer_set_range_to_strips_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_set_range_to_strips(struct wmOperatorType *ot)
+void SEQUENCER_OT_set_range_to_strips(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -3377,7 +3410,7 @@ static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_strip_transform_clear(struct wmOperatorType *ot)
+void SEQUENCER_OT_strip_transform_clear(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Clear Strip Transform";
@@ -3442,7 +3475,7 @@ static int sequencer_strip_transform_fit_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void SEQUENCER_OT_strip_transform_fit(struct wmOperatorType *ot)
+void SEQUENCER_OT_strip_transform_fit(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Strip Transform Set Fit";
@@ -3495,7 +3528,7 @@ static bool sequencer_strip_color_tag_set_poll(bContext *C)
   return act_seq != NULL;
 }
 
-void SEQUENCER_OT_strip_color_tag_set(struct wmOperatorType *ot)
+void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Set Color Tag";

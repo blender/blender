@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -50,11 +51,11 @@ bool BKE_image_has_gpu_texture_premultiplied_alpha(Image *image, ImBuf *ibuf)
     }
     /* Generated images use pre multiplied float buffer, but straight alpha for byte buffers. */
     if (image->type == IMA_TYPE_UV_TEST && ibuf) {
-      return ibuf->rect_float != nullptr;
+      return ibuf->float_buffer.data != nullptr;
     }
   }
   if (ibuf) {
-    if (ibuf->rect_float) {
+    if (ibuf->float_buffer.data) {
       return image ? (image->alpha_mode != IMA_ALPHA_STRAIGHT) : false;
     }
 
@@ -111,7 +112,7 @@ static GPUTexture *gpu_texture_create_tile_mapping(Image *ima, const int multivi
     tile_info[3] = tile_runtime->tilearray_size[1] / array_h;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_array_ex(
+  GPUTexture *tex = GPU_texture_create_1d_array(
       ima->id.name + 2, width, 2, 1, GPU_RGBA32F, GPU_TEXTURE_USAGE_SHADER_READ, data);
   GPU_texture_mipmap_mode(tex, false, false);
 
@@ -241,7 +242,7 @@ static GPUTexture *gpu_texture_create_tile_array(Image *ima, ImBuf *main_ibuf)
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
     GPU_texture_mipmap_mode(tex, true, true);
     if (ima) {
       ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
@@ -336,6 +337,21 @@ static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
   }
 }
 
+void BKE_image_ensure_gpu_texture(Image *image, ImageUser *image_user)
+{
+  if (!image) {
+    return;
+  }
+
+  /* Note that the image can cache both stereo views, so we only invalidate the cache if the view
+   * index is more than 2. */
+  if (image->gpu_pass != image_user->pass || image->gpu_layer != image_user->layer ||
+      (image->gpu_view != image_user->multi_index && image_user->multi_index >= 2))
+  {
+    BKE_image_partial_update_mark_full_update(image);
+  }
+}
+
 static GPUTexture *image_get_gpu_texture(Image *ima,
                                          ImageUser *iuser,
                                          ImBuf *ibuf,
@@ -361,10 +377,14 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
     requested_view = 0;
   }
   if (ima->gpu_pass != requested_pass || ima->gpu_layer != requested_layer ||
-      ima->gpu_view != requested_view) {
+      ima->gpu_view != requested_view)
+  {
     ima->gpu_pass = requested_pass;
     ima->gpu_layer = requested_layer;
     ima->gpu_view = requested_view;
+    /* The cache should be invalidated here, but it is intentionally isn't due to possible
+     * performance implications, see the BKE_image_ensure_gpu_texture function for more
+     * information. */
   }
 #undef GPU_FLAGS_TO_CHECK
 
@@ -420,10 +440,10 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
         ima->id.name + 2, ibuf_intern, use_high_bitdepth, store_premultiplied);
 
     if (*tex) {
-      GPU_texture_wrap_mode(*tex, true, false);
+      GPU_texture_extend_mode(*tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
       if (GPU_mipmap_enabled()) {
-        GPU_texture_generate_mipmap(*tex);
+        GPU_texture_update_mipmap_chain(*tex);
         if (ima) {
           ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
         }
@@ -436,7 +456,7 @@ static GPUTexture *image_get_gpu_texture(Image *ima,
   }
 
   if (*tex) {
-    GPU_texture_orig_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
+    GPU_texture_original_size_set(*tex, ibuf_intern->x, ibuf_intern->y);
   }
 
   if (ibuf != ibuf_intern) {
@@ -624,7 +644,7 @@ static ImBuf *update_do_scale(uchar *rect,
   }
 
   /* Scale pixels. */
-  ImBuf *ibuf = IMB_allocFromBuffer((uint *)rect, rect_float, part_w, part_h, 4);
+  ImBuf *ibuf = IMB_allocFromBuffer(rect, rect_float, part_w, part_h, 4);
   IMB_scaleImBuf(ibuf, *w, *h);
 
   return ibuf;
@@ -660,8 +680,9 @@ static void gpu_texture_update_scaled(GPUTexture *tex,
     ibuf = update_do_scale(rect, rect_float, &x, &y, &w, &h, limit_w, limit_h, full_w, full_h);
   }
 
-  void *data = (ibuf->rect_float) ? (void *)(ibuf->rect_float) : (void *)(ibuf->rect);
-  eGPUDataFormat data_format = (ibuf->rect_float) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
+  void *data = (ibuf->float_buffer.data) ? (void *)(ibuf->float_buffer.data) :
+                                           (void *)(ibuf->byte_buffer.data);
+  eGPUDataFormat data_format = (ibuf->float_buffer.data) ? GPU_DATA_FLOAT : GPU_DATA_UBYTE;
 
   GPU_texture_update_sub(tex, data_format, data, x, y, layer, w, h, 1);
 
@@ -723,8 +744,8 @@ static void gpu_texture_update_from_ibuf(
   }
 
   /* Get texture data pointers. */
-  float *rect_float = ibuf->rect_float;
-  uchar *rect = (uchar *)ibuf->rect;
+  float *rect_float = ibuf->float_buffer.data;
+  uchar *rect = ibuf->byte_buffer.data;
   int tex_stride = ibuf->x;
   int tex_offset = ibuf->channels * (y * ibuf->x + x);
 
@@ -752,7 +773,8 @@ static void gpu_texture_update_from_ibuf(
       /* Non-color data, just store buffer as is. */
     }
     else if (IMB_colormanagement_space_is_srgb(ibuf->rect_colorspace) ||
-             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace)) {
+             IMB_colormanagement_space_is_scene_linear(ibuf->rect_colorspace))
+    {
       /* sRGB or scene linear, store as byte texture that the GPU can decode directly. */
       rect = (uchar *)MEM_mallocN(sizeof(uchar[4]) * w * h, __func__);
       if (rect == nullptr) {
@@ -812,15 +834,15 @@ static void gpu_texture_update_from_ibuf(
   }
 
   /* Free buffers if needed. */
-  if (rect && rect != (uchar *)ibuf->rect) {
+  if (rect && rect != ibuf->byte_buffer.data) {
     MEM_freeN(rect);
   }
-  if (rect_float && rect_float != ibuf->rect_float) {
+  if (rect_float && rect_float != ibuf->float_buffer.data) {
     MEM_freeN(rect_float);
   }
 
   if (GPU_mipmap_enabled()) {
-    GPU_texture_generate_mipmap(tex);
+    GPU_texture_update_mipmap_chain(tex);
   }
   else {
     ima->gpuflag &= ~IMA_GPU_MIPMAP_COMPLETE;
@@ -854,17 +876,13 @@ void BKE_image_update_gputexture(Image *ima, ImageUser *iuser, int x, int y, int
   BKE_image_release_ibuf(ima, ibuf, nullptr);
 }
 
-void BKE_image_update_gputexture_delayed(struct Image *ima,
-                                         struct ImageTile *image_tile,
-                                         struct ImBuf *ibuf,
-                                         int x,
-                                         int y,
-                                         int w,
-                                         int h)
+void BKE_image_update_gputexture_delayed(
+    Image *ima, ImageTile *image_tile, ImBuf *ibuf, int x, int y, int w, int h)
 {
   /* Check for full refresh. */
   if (ibuf != nullptr && ima->source != IMA_SRC_TILED && x == 0 && y == 0 && w == ibuf->x &&
-      h == ibuf->y) {
+      h == ibuf->y)
+  {
     BKE_image_partial_update_mark_full_update(ima);
   }
   else {

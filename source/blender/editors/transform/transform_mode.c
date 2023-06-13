@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -10,7 +11,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
@@ -29,6 +30,7 @@
 
 #include "transform.h"
 #include "transform_convert.h"
+#include "transform_gizmo.h"
 #include "transform_orientations.h"
 #include "transform_snap.h"
 
@@ -54,12 +56,13 @@ eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
 
 bool transdata_check_local_center(const TransInfo *t, short around)
 {
-  return ((around == V3D_AROUND_LOCAL_ORIGINS) &&
-          ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
-           /* implicit: (t->flag & T_EDIT) */
-           ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL) ||
-           (t->spacetype == SPACE_GRAPH) ||
-           (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
+  return (
+      (around == V3D_AROUND_LOCAL_ORIGINS) &&
+      ((t->options & (CTX_OBJECT | CTX_POSE_BONE)) ||
+       /* implicit: (t->flag & T_EDIT) */
+       ELEM(t->obedit_type, OB_MESH, OB_CURVES_LEGACY, OB_MBALL, OB_ARMATURE, OB_GPENCIL_LEGACY) ||
+       (t->spacetype == SPACE_GRAPH) ||
+       (t->options & (CTX_MOVIECLIP | CTX_MASK | CTX_PAINT_CURVE | CTX_SEQUENCER_IMAGE))));
 }
 
 bool transform_mode_is_changeable(const int mode)
@@ -70,7 +73,8 @@ bool transform_mode_is_changeable(const int mode)
               TFM_TRACKBALL,
               TFM_TRANSLATION,
               TFM_EDGE_SLIDE,
-              TFM_VERT_SLIDE);
+              TFM_VERT_SLIDE,
+              TFM_NORMAL_ROTATION);
 }
 
 /* -------------------------------------------------------------------- */
@@ -372,12 +376,12 @@ static void constraintRotLim(const TransInfo *UNUSED(t), TransData *td)
           continue;
         }
 
-        /* skip incompatible spacetypes */
+        /* Skip incompatible space-types. */
         if (!ELEM(con->ownspace, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL)) {
           continue;
         }
 
-        /* only do conversion if necessary, to preserve quats and eulers */
+        /* Only do conversion if necessary, to preserve quaternion and euler rotations. */
         if (do_limit == false) {
           constraintob_from_transdata(&cob, td);
           do_limit = true;
@@ -948,7 +952,8 @@ void ElementResize(const TransInfo *t,
              &TransConvertType_Sculpt,
              &TransConvertType_Object,
              &TransConvertType_ObjectTexSpace,
-             &TransConvertType_Pose)) {
+             &TransConvertType_Pose))
+    {
       float obsizemat[3][3];
       /* Reorient the size mat to fit the oriented object. */
       mul_m3_m3m3(obsizemat, tmat, td->axismtx);
@@ -1061,152 +1066,92 @@ void ElementResize(const TransInfo *t,
 /** \name Transform Mode Initialization
  * \{ */
 
+static TransModeInfo *mode_info_get(TransInfo *t, const int mode)
+{
+  switch (mode) {
+    case TFM_TRANSLATION:
+      return &TransMode_translate;
+    case TFM_ROTATION:
+      return &TransMode_rotate;
+    case TFM_RESIZE:
+      return &TransMode_resize;
+    case TFM_SKIN_RESIZE:
+      return &TransMode_skinresize;
+    case TFM_TOSPHERE:
+      return &TransMode_tosphere;
+    case TFM_SHEAR:
+      return &TransMode_shear;
+    case TFM_BEND:
+      return &TransMode_bend;
+    case TFM_SHRINKFATTEN:
+      return &TransMode_shrinkfatten;
+    case TFM_TILT:
+      return &TransMode_tilt;
+    case TFM_CURVE_SHRINKFATTEN:
+      return &TransMode_curveshrinkfatten;
+    case TFM_MASK_SHRINKFATTEN:
+      return &TransMode_maskshrinkfatten;
+    case TFM_GPENCIL_SHRINKFATTEN:
+      return &TransMode_gpshrinkfatten;
+    case TFM_TRACKBALL:
+      return &TransMode_trackball;
+    case TFM_PUSHPULL:
+      return &TransMode_pushpull;
+    case TFM_EDGE_CREASE:
+      return &TransMode_edgecrease;
+    case TFM_VERT_CREASE:
+      return &TransMode_vertcrease;
+    case TFM_BONESIZE:
+      return &TransMode_bboneresize;
+    case TFM_BONE_ENVELOPE:
+    case TFM_BONE_ENVELOPE_DIST:
+      return &TransMode_boneenvelope;
+    case TFM_EDGE_SLIDE:
+      return &TransMode_edgeslide;
+    case TFM_VERT_SLIDE:
+      return &TransMode_vertslide;
+    case TFM_BONE_ROLL:
+      return &TransMode_boneroll;
+    case TFM_TIME_TRANSLATE:
+      return &TransMode_timetranslate;
+    case TFM_TIME_SLIDE:
+      return &TransMode_timeslide;
+    case TFM_TIME_SCALE:
+      return &TransMode_timescale;
+    case TFM_TIME_EXTEND:
+      /* Do TFM_TIME_TRANSLATE (for most Animation Editors because they have only 1D transforms for
+       * time values) or TFM_TRANSLATION (for Graph/NLA Editors only since they uses 'standard'
+       * transforms to get 2D movement) depending on which editor this was called from. */
+      if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
+        return &TransMode_translate;
+      }
+      return &TransMode_timetranslate;
+    case TFM_BAKE_TIME:
+      return &TransMode_baketime;
+    case TFM_MIRROR:
+      return &TransMode_mirror;
+    case TFM_BWEIGHT:
+      return &TransMode_bevelweight;
+    case TFM_ALIGN:
+      return &TransMode_align;
+    case TFM_SEQ_SLIDE:
+      return &TransMode_seqslide;
+    case TFM_NORMAL_ROTATION:
+      return &TransMode_rotatenormal;
+    case TFM_GPENCIL_OPACITY:
+      return &TransMode_gpopacity;
+  }
+  return NULL;
+}
+
 void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
 {
   t->mode = mode;
+  t->mode_info = mode_info_get(t, mode);
 
-  switch (mode) {
-    case TFM_TRANSLATION:
-      initTranslation(t);
-      break;
-    case TFM_ROTATION:
-      initRotation(t);
-      break;
-    case TFM_RESIZE: {
-      float mouse_dir_constraint[3];
-      if (op) {
-        PropertyRNA *prop = RNA_struct_find_property(op->ptr, "mouse_dir_constraint");
-        if (prop) {
-          RNA_property_float_get_array(op->ptr, prop, mouse_dir_constraint);
-        }
-        else {
-          /* Resize is expected to have this property. */
-          BLI_assert(!STREQ(op->idname, "TRANSFORM_OT_resize"));
-        }
-      }
-      else {
-        zero_v3(mouse_dir_constraint);
-      }
-      initResize(t, mouse_dir_constraint);
-      break;
-    }
-    case TFM_SKIN_RESIZE:
-      initSkinResize(t);
-      break;
-    case TFM_TOSPHERE:
-      initToSphere(t);
-      break;
-    case TFM_SHEAR:
-      initShear(t);
-      break;
-    case TFM_BEND:
-      initBend(t);
-      break;
-    case TFM_SHRINKFATTEN:
-      initShrinkFatten(t);
-      break;
-    case TFM_TILT:
-      initTilt(t);
-      break;
-    case TFM_CURVE_SHRINKFATTEN:
-      initCurveShrinkFatten(t);
-      break;
-    case TFM_MASK_SHRINKFATTEN:
-      initMaskShrinkFatten(t);
-      break;
-    case TFM_GPENCIL_SHRINKFATTEN:
-      initGPShrinkFatten(t);
-      break;
-    case TFM_TRACKBALL:
-      initTrackball(t);
-      break;
-    case TFM_PUSHPULL:
-      initPushPull(t);
-      break;
-    case TFM_EDGE_CREASE:
-      initEgdeCrease(t);
-      break;
-    case TFM_VERT_CREASE:
-      initVertCrease(t);
-      break;
-    case TFM_BONESIZE:
-      initBoneSize(t);
-      break;
-    case TFM_BONE_ENVELOPE:
-    case TFM_BONE_ENVELOPE_DIST:
-      initBoneEnvelope(t);
-      break;
-    case TFM_EDGE_SLIDE:
-    case TFM_VERT_SLIDE: {
-      const bool use_even = (op ? RNA_boolean_get(op->ptr, "use_even") : false);
-      const bool flipped = (op ? RNA_boolean_get(op->ptr, "flipped") : false);
-      const bool use_clamp = (op ? RNA_boolean_get(op->ptr, "use_clamp") : true);
-      if (mode == TFM_EDGE_SLIDE) {
-        const bool use_double_side = (op ? !RNA_boolean_get(op->ptr, "single_side") : true);
-        initEdgeSlide_ex(t, use_double_side, use_even, flipped, use_clamp);
-      }
-      else {
-        initVertSlide_ex(t, use_even, flipped, use_clamp);
-      }
-      break;
-    }
-    case TFM_BONE_ROLL:
-      initBoneRoll(t);
-      break;
-    case TFM_TIME_TRANSLATE:
-      initTimeTranslate(t);
-      break;
-    case TFM_TIME_SLIDE:
-      initTimeSlide(t);
-      break;
-    case TFM_TIME_SCALE:
-      initTimeScale(t);
-      break;
-    case TFM_TIME_DUPLICATE:
-      /* same as TFM_TIME_EXTEND, but we need the mode info for later
-       * so that duplicate-culling will work properly
-       */
-      if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
-        initTranslation(t);
-      }
-      else {
-        initTimeTranslate(t);
-      }
-      break;
-    case TFM_TIME_EXTEND:
-      /* now that transdata has been made, do like for TFM_TIME_TRANSLATE (for most Animation
-       * Editors because they have only 1D transforms for time values) or TFM_TRANSLATION
-       * (for Graph/NLA Editors only since they uses 'standard' transforms to get 2D movement)
-       * depending on which editor this was called from
-       */
-      if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_NLA)) {
-        initTranslation(t);
-      }
-      else {
-        initTimeTranslate(t);
-      }
-      break;
-    case TFM_BAKE_TIME:
-      initBakeTime(t);
-      break;
-    case TFM_MIRROR:
-      initMirror(t);
-      break;
-    case TFM_BWEIGHT:
-      initBevelWeight(t);
-      break;
-    case TFM_ALIGN:
-      initAlign(t);
-      break;
-    case TFM_SEQ_SLIDE:
-      initSeqSlide(t);
-      break;
-    case TFM_NORMAL_ROTATION:
-      initNormalRotation(t);
-      break;
-    case TFM_GPENCIL_OPACITY:
-      initGPOpacity(t);
-      break;
+  if (t->mode_info) {
+    t->flag |= t->mode_info->flags;
+    t->mode_info->init_fn(t, op);
   }
 
   if (t->data_type == &TransConvertType_Mesh) {
@@ -1217,7 +1162,7 @@ void transform_mode_init(TransInfo *t, wmOperator *op, const int mode)
 
   transform_gizmo_3d_model_from_constraint_and_mode_set(t);
 
-  /* TODO(@germano): Some of these operations change the `t->mode`.
+  /* TODO(@mano-wii): Some of these operations change the `t->mode`.
    * This can be bad for Redo. */
   // BLI_assert(t->mode == mode);
 }
@@ -1242,7 +1187,8 @@ void transform_mode_default_modal_orientation_set(TransInfo *t, int type)
   View3D *v3d = NULL;
   RegionView3D *rv3d = NULL;
   if ((type == V3D_ORIENT_VIEW) && (t->spacetype == SPACE_VIEW3D) && t->region &&
-      (t->region->regiontype == RGN_TYPE_WINDOW)) {
+      (t->region->regiontype == RGN_TYPE_WINDOW))
+  {
     v3d = t->view;
     rv3d = t->region->regiondata;
   }

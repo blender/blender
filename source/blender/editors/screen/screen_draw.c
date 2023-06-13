@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -425,7 +427,13 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uint *r_rect)
 {
   char err_out[256] = "unknown";
-  GPUOffScreen *offscreen = GPU_offscreen_create(size_x, size_y, true, GPU_RGBA8, err_out);
+  GPUOffScreen *offscreen = GPU_offscreen_create(size_x,
+                                                 size_y,
+                                                 true,
+                                                 GPU_RGBA8,
+                                                 GPU_TEXTURE_USAGE_SHADER_READ |
+                                                     GPU_TEXTURE_USAGE_HOST_READ,
+                                                 err_out);
 
   GPU_offscreen_bind(offscreen, true);
   GPU_clear_color(0.0f, 0.0f, 0.0f, 0.0f);
@@ -433,7 +441,7 @@ void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uin
 
   screen_preview_draw(screen, size_x, size_y);
 
-  GPU_offscreen_read_pixels(offscreen, GPU_DATA_UBYTE, r_rect);
+  GPU_offscreen_read_color(offscreen, GPU_DATA_UBYTE, r_rect);
   GPU_offscreen_unbind(offscreen, true);
 
   GPU_offscreen_free(offscreen);

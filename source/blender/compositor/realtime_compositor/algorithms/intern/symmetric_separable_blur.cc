@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
@@ -33,7 +35,7 @@ static Result horizontal_pass(Context &context,
   input.bind_as_texture(shader, "input_tx");
 
   const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().get_symmetric_separable_blur_weights(filter_type, radius);
+      context.cache_manager().symmetric_separable_blur_weights.get(filter_type, radius);
   weights.bind_as_texture(shader, "weights_tx");
 
   Domain domain = input.domain();
@@ -84,7 +86,7 @@ static void vertical_pass(Context &context,
   horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
   const SymmetricSeparableBlurWeights &weights =
-      context.cache_manager().get_symmetric_separable_blur_weights(filter_type, radius.y);
+      context.cache_manager().symmetric_separable_blur_weights.get(filter_type, radius.y);
   weights.bind_as_texture(shader, "weights_tx");
 
   Domain domain = original_input.domain();

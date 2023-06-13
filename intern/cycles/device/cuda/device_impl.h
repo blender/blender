@@ -38,7 +38,7 @@ class CUDADevice : public GPUDevice {
 
   static bool have_precompiled_kernels();
 
-  virtual BVHLayoutMask get_bvh_layout_mask() const override;
+  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   void set_error(const string &error) override;
 
@@ -68,7 +68,7 @@ class CUDADevice : public GPUDevice {
   virtual void free_device(void *device_pointer) override;
   virtual bool alloc_host(void *&shared_pointer, size_t size) override;
   virtual void free_host(void *shared_pointer) override;
-  virtual bool transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
+  virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
   virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) override;
 
   void mem_alloc(device_memory &mem) override;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spuserpref
@@ -55,7 +56,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   region->alignment = RGN_ALIGN_LEFT;
 
   /* Use smaller size when opened in area like properties editor. */
-  if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_DPI_FAC) {
+  if (area->winx && area->winx < 3.0f * UI_NAVIGATION_REGION_WIDTH * UI_SCALE_FAC) {
     region->sizex = UI_NARROW_NAVIGATION_REGION_WIDTH;
   }
 
@@ -65,7 +66,7 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   BLI_addtail(&spref->regionbase, region);
   region->regiontype = RGN_TYPE_EXECUTE;
   region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-  region->flag |= RGN_FLAG_DYNAMIC_SIZE | RGN_FLAG_HIDDEN;
+  region->flag |= RGN_FLAG_DYNAMIC_SIZE;
 
   /* main region */
   region = MEM_callocN(sizeof(ARegion), "main region for userpref");
@@ -76,16 +77,14 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   return (SpaceLink *)spref;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void userpref_free(SpaceLink *UNUSED(sl))
 {
   //  SpaceUserPref *spref = (SpaceUserPref *)sl;
 }
 
 /* spacetype; init callback */
-static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area))
-{
-}
+static void userpref_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *userpref_duplicate(SpaceLink *sl)
 {
@@ -130,13 +129,9 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, NULL);
 }
 
-static void userpref_operatortypes(void)
-{
-}
+static void userpref_operatortypes(void) {}
 
-static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf))
-{
-}
+static void userpref_keymap(wmKeyConfig *UNUSED(keyconf)) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
@@ -162,6 +157,12 @@ static void userpref_navigation_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
+static bool userpref_execute_region_poll(const RegionPollParams *params)
+{
+  const ARegion *region_header = BKE_area_find_region_type(params->area, RGN_TYPE_HEADER);
+  return !region_header->visible;
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
 {
@@ -169,23 +170,15 @@ static void userpref_execute_region_init(wmWindowManager *wm, ARegion *region)
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }
 
-static void userpref_main_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_main_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_header_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_header_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_navigation_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_navigation_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSED(params))
-{
-}
+static void userpref_execute_region_listener(const wmRegionListenerParams *UNUSED(params)) {}
 
-static void userpref_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void userpref_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceUserPref, sl);
 }
@@ -204,7 +197,7 @@ void ED_spacetype_userpref(void)
   st->duplicate = userpref_duplicate;
   st->operatortypes = userpref_operatortypes;
   st->keymap = userpref_keymap;
-  st->blend_write = userpref_blend_write;
+  st->blend_write = userpref_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
@@ -243,6 +236,7 @@ void ED_spacetype_userpref(void)
   art = MEM_callocN(sizeof(ARegionType), "spacetype userpref region");
   art->regionid = RGN_TYPE_EXECUTE;
   art->prefsizey = HEADERY;
+  art->poll = userpref_execute_region_poll;
   art->init = userpref_execute_region_init;
   art->layout = ED_region_panels_layout;
   art->draw = ED_region_panels_draw;

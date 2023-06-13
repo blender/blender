@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -7,7 +9,7 @@
 #include <stdlib.h>
 
 #include "DNA_brush_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -91,19 +93,45 @@ static const EnumPropertyItem rna_enum_brush_texture_slot_map_texture_mode_items
 };
 #endif
 
-/* clang-format off */
 /* Note: we don't actually turn these into a single enum bit-mask property,
  * instead we construct individual boolean properties. */
 const EnumPropertyItem rna_enum_brush_automasking_flag_items[] = {
-  {BRUSH_AUTOMASKING_TOPOLOGY, "use_automasking_topology", 0,"Topology", "Affect only vertices connected to the active vertex under the brush"},
-  {BRUSH_AUTOMASKING_FACE_SETS, "use_automasking_face_sets", 0,"Face Sets", "Affect only vertices that share Face Sets with the active vertex"},
-  {BRUSH_AUTOMASKING_BOUNDARY_EDGES, "use_automasking_boundary_edges", 0,"Mesh Boundary Auto-Masking", "Do not affect non manifold boundary edges"},
-  {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS, "use_automasking_boundary_face_sets", 0,"Face Sets Boundary Automasking", "Do not affect vertices that belong to a Face Set boundary"},
-  {BRUSH_AUTOMASKING_CAVITY_NORMAL, "use_automasking_cavity", 0,"Cavity Mask", "Do not affect vertices on peaks, based on the surface curvature"},
-  {BRUSH_AUTOMASKING_CAVITY_INVERTED, "use_automasking_cavity_inverted", 0,"Inverted Cavity Mask", "Do not affect vertices within crevices, based on the surface curvature"},
-  {BRUSH_AUTOMASKING_CAVITY_USE_CURVE, "use_automasking_custom_cavity_curve", 0,"Custom Cavity Curve", "Use custom curve"},
-  {0, NULL, 0, NULL, NULL}
-};
+    {BRUSH_AUTOMASKING_TOPOLOGY,
+     "use_automasking_topology",
+     0,
+     "Topology",
+     "Affect only vertices connected to the active vertex under the brush"},
+    {BRUSH_AUTOMASKING_FACE_SETS,
+     "use_automasking_face_sets",
+     0,
+     "Face Sets",
+     "Affect only vertices that share Face Sets with the active vertex"},
+    {BRUSH_AUTOMASKING_BOUNDARY_EDGES,
+     "use_automasking_boundary_edges",
+     0,
+     "Mesh Boundary Auto-Masking",
+     "Do not affect non manifold boundary edges"},
+    {BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS,
+     "use_automasking_boundary_face_sets",
+     0,
+     "Face Sets Boundary Automasking",
+     "Do not affect vertices that belong to a Face Set boundary"},
+    {BRUSH_AUTOMASKING_CAVITY_NORMAL,
+     "use_automasking_cavity",
+     0,
+     "Cavity Mask",
+     "Do not affect vertices on peaks, based on the surface curvature"},
+    {BRUSH_AUTOMASKING_CAVITY_INVERTED,
+     "use_automasking_cavity_inverted",
+     0,
+     "Inverted Cavity Mask",
+     "Do not affect vertices within crevices, based on the surface curvature"},
+    {BRUSH_AUTOMASKING_CAVITY_USE_CURVE,
+     "use_automasking_custom_cavity_curve",
+     0,
+     "Custom Cavity Curve",
+     "Use custom curve"},
+    {0, NULL, 0, NULL, NULL}};
 
 const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_DRAW, "DRAW", ICON_BRUSH_SCULPT_DRAW, "Draw", ""},
@@ -120,7 +148,11 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_FLATTEN, "FLATTEN", ICON_BRUSH_FLATTEN, "Flatten", ""},
     {SCULPT_TOOL_FILL, "FILL", ICON_BRUSH_FILL, "Fill", ""},
     {SCULPT_TOOL_SCRAPE, "SCRAPE", ICON_BRUSH_SCRAPE, "Scrape", ""},
-    {SCULPT_TOOL_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", ICON_BRUSH_SCRAPE, "Multi-plane Scrape", ""},
+    {SCULPT_TOOL_MULTIPLANE_SCRAPE,
+     "MULTIPLANE_SCRAPE",
+     ICON_BRUSH_SCRAPE,
+     "Multi-plane Scrape",
+     ""},
     {SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_PINCH, "Pinch", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_TOOL_GRAB, "GRAB", ICON_BRUSH_GRAB, "Grab", ""},
@@ -137,13 +169,20 @@ const EnumPropertyItem rna_enum_brush_sculpt_tool_items[] = {
     {SCULPT_TOOL_SIMPLIFY, "SIMPLIFY", ICON_BRUSH_DATA, "Simplify", ""},
     {SCULPT_TOOL_MASK, "MASK", ICON_BRUSH_MASK, "Mask", ""},
     {SCULPT_TOOL_DRAW_FACE_SETS, "DRAW_FACE_SETS", ICON_BRUSH_MASK, "Draw Face Sets", ""},
-    {SCULPT_TOOL_DISPLACEMENT_ERASER, "DISPLACEMENT_ERASER", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Eraser", ""},
-    {SCULPT_TOOL_DISPLACEMENT_SMEAR, "DISPLACEMENT_SMEAR", ICON_BRUSH_SCULPT_DRAW, "Multires Displacement Smear", ""},
+    {SCULPT_TOOL_DISPLACEMENT_ERASER,
+     "DISPLACEMENT_ERASER",
+     ICON_BRUSH_SCULPT_DRAW,
+     "Multires Displacement Eraser",
+     ""},
+    {SCULPT_TOOL_DISPLACEMENT_SMEAR,
+     "DISPLACEMENT_SMEAR",
+     ICON_BRUSH_SCULPT_DRAW,
+     "Multires Displacement Smear",
+     ""},
     {SCULPT_TOOL_PAINT, "PAINT", ICON_BRUSH_SCULPT_DRAW, "Paint", ""},
     {SCULPT_TOOL_SMEAR, "SMEAR", ICON_BRUSH_SCULPT_DRAW, "Smear", ""},
     {0, NULL, 0, NULL, NULL},
 };
-/* clang-format on */
 
 const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[] = {
     {UV_SCULPT_TOOL_GRAB, "GRAB", 0, "Grab", "Grab UVs"},
@@ -199,11 +238,27 @@ const EnumPropertyItem rna_enum_brush_gpencil_types_items[] = {
 };
 
 const EnumPropertyItem rna_enum_brush_gpencil_vertex_types_items[] = {
-    {GPVERTEX_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", ""},
-    {GPVERTEX_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
-    {GPVERTEX_TOOL_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
-    {GPVERTEX_TOOL_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
-    {GPVERTEX_TOOL_REPLACE, "REPLACE", ICON_BRUSH_BLUR, "Replace", ""},
+    {GPVERTEX_TOOL_DRAW, "DRAW", ICON_BRUSH_MIX, "Draw", "Paint a color on stroke points"},
+    {GPVERTEX_TOOL_BLUR,
+     "BLUR",
+     ICON_BRUSH_BLUR,
+     "Blur",
+     "Smooth out the colors of adjacent stroke points"},
+    {GPVERTEX_TOOL_AVERAGE,
+     "AVERAGE",
+     ICON_BRUSH_BLUR,
+     "Average",
+     "Smooth out colors with the average color under the brush"},
+    {GPVERTEX_TOOL_SMEAR,
+     "SMEAR",
+     ICON_BRUSH_BLUR,
+     "Smear",
+     "Smudge colors by grabbing and dragging them"},
+    {GPVERTEX_TOOL_REPLACE,
+     "REPLACE",
+     ICON_BRUSH_BLUR,
+     "Replace",
+     "Replace the color of stroke points that already have a color applied"},
     {0, NULL, 0, NULL, NULL},
 };
 
@@ -248,7 +303,7 @@ const EnumPropertyItem rna_enum_brush_gpencil_sculpt_types_items[] = {
      "CLONE",
      ICON_GPBRUSH_CLONE,
      "Clone",
-     "Paste copies of the strokes stored on the clipboard"},
+     "Paste copies of the strokes stored on the internal clipboard"},
     {0, NULL, 0, NULL, NULL}};
 
 const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
@@ -256,26 +311,45 @@ const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[] = {
      "WEIGHT",
      ICON_GPBRUSH_WEIGHT,
      "Weight",
-     "Weight Paint for Vertex Groups"},
+     "Paint weight in active vertex group"},
+    {GPWEIGHT_TOOL_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", "Blur weight in active vertex group"},
+    {GPWEIGHT_TOOL_AVERAGE,
+     "AVERAGE",
+     ICON_BRUSH_BLUR,
+     "Average",
+     "Average weight in active vertex group"},
+    {GPWEIGHT_TOOL_SMEAR,
+     "SMEAR",
+     ICON_BRUSH_SMEAR,
+     "Smear",
+     "Smear weight in active vertex group"},
     {0, NULL, 0, NULL, NULL},
 };
 
-/* clang-format off */
 const EnumPropertyItem rna_enum_brush_curves_sculpt_tool_items[] = {
-    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_BRUSH_CURVES_COMB, "Comb Curves", ""},
-    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_BRUSH_CURVES_DELETE, "Delete Curves", ""},
-    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_CURVES_SNAKE_HOOK, "Curves Snake Hook", ""},
-    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_BRUSH_CURVES_ADD, "Add Curves", ""},
-    {CURVES_SCULPT_TOOL_GROW_SHRINK, "GROW_SHRINK", ICON_BRUSH_CURVES_GROW_SHRINK, "Grow / Shrink Curves", ""},
-    {CURVES_SCULPT_TOOL_SELECTION_PAINT, "SELECTION_PAINT", ICON_BRUSH_PAINT_SELECT, "Paint Selection", ""},
-    {CURVES_SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_CURVES_PINCH, "Pinch Curves", ""},
-    {CURVES_SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_CURVES_SMOOTH, "Smooth Curves", ""},
-    {CURVES_SCULPT_TOOL_PUFF, "PUFF", ICON_BRUSH_CURVES_PUFF, "Puff Curves", ""},
-    {CURVES_SCULPT_TOOL_DENSITY, "DENSITY", ICON_BRUSH_CURVES_DENSITY, "Density Curves", ""},
-    {CURVES_SCULPT_TOOL_SLIDE, "SLIDE", ICON_BRUSH_CURVES_SLIDE, "Slide Curves", ""},
+    {CURVES_SCULPT_TOOL_SELECTION_PAINT,
+     "SELECTION_PAINT",
+     ICON_BRUSH_PAINT_SELECT,
+     "Paint Selection",
+     ""},
+    RNA_ENUM_ITEM_SEPR,
+    {CURVES_SCULPT_TOOL_ADD, "ADD", ICON_BRUSH_CURVES_ADD, "Add", ""},
+    {CURVES_SCULPT_TOOL_DELETE, "DELETE", ICON_BRUSH_CURVES_DELETE, "Delete", ""},
+    {CURVES_SCULPT_TOOL_DENSITY, "DENSITY", ICON_BRUSH_CURVES_DENSITY, "Density", ""},
+    RNA_ENUM_ITEM_SEPR,
+    {CURVES_SCULPT_TOOL_COMB, "COMB", ICON_BRUSH_CURVES_COMB, "Comb", ""},
+    {CURVES_SCULPT_TOOL_SNAKE_HOOK, "SNAKE_HOOK", ICON_BRUSH_CURVES_SNAKE_HOOK, "Snake Hook", ""},
+    {CURVES_SCULPT_TOOL_GROW_SHRINK,
+     "GROW_SHRINK",
+     ICON_BRUSH_CURVES_GROW_SHRINK,
+     "Grow / Shrink",
+     ""},
+    {CURVES_SCULPT_TOOL_PINCH, "PINCH", ICON_BRUSH_CURVES_PINCH, "Pinch", ""},
+    {CURVES_SCULPT_TOOL_PUFF, "PUFF", ICON_BRUSH_CURVES_PUFF, "Puff", ""},
+    {CURVES_SCULPT_TOOL_SMOOTH, "SMOOTH", ICON_BRUSH_CURVES_SMOOTH, "Smooth", ""},
+    {CURVES_SCULPT_TOOL_SLIDE, "SLIDE", ICON_BRUSH_CURVES_SLIDE, "Slide", ""},
     {0, NULL, 0, NULL, NULL},
 };
-/* clang-format on */
 
 #ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_brush_eraser_modes_items[] = {
@@ -356,6 +430,9 @@ static EnumPropertyItem rna_enum_gpencil_brush_sculpt_icons_items[] = {
 
 static EnumPropertyItem rna_enum_gpencil_brush_weight_icons_items[] = {
     {GP_BRUSH_ICON_GPBRUSH_WEIGHT, "DRAW", ICON_GPBRUSH_WEIGHT, "Draw", ""},
+    {GP_BRUSH_ICON_GPBRUSH_BLUR, "BLUR", ICON_BRUSH_BLUR, "Blur", ""},
+    {GP_BRUSH_ICON_GPBRUSH_AVERAGE, "AVERAGE", ICON_BRUSH_BLUR, "Average", ""},
+    {GP_BRUSH_ICON_GPBRUSH_SMEAR, "SMEAR", ICON_BRUSH_BLUR, "Smear", ""},
     {0, NULL, 0, NULL, NULL},
 };
 static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
@@ -376,7 +453,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_vertex_icons_items[] = {
 
 #  include "BKE_brush.h"
 #  include "BKE_colorband.h"
-#  include "BKE_gpencil.h"
+#  include "BKE_gpencil_legacy.h"
 #  include "BKE_icons.h"
 #  include "BKE_material.h"
 #  include "BKE_paint.h"
@@ -982,7 +1059,8 @@ static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain,
   /* disable default eraser in all brushes */
   for (Brush *brush = bmain->brushes.first; brush; brush = brush->id.next) {
     if ((brush != brush_cur) && (brush->ob_mode == OB_MODE_PAINT_GPENCIL) &&
-        (brush->gpencil_tool == GPAINT_TOOL_ERASE)) {
+        (brush->gpencil_tool == GPAINT_TOOL_ERASE))
+    {
       brush->gpencil_settings->flag &= ~GP_BRUSH_DEFAULT_ERASER;
     }
   }
@@ -1627,6 +1705,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "icon_id");
   RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_sculpt_icons_items);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_ui_text(prop, "Grease Pencil Icon", "");
 
   prop = RNA_def_property(srna, "gpencil_weight_icon", PROP_ENUM, PROP_NONE);
@@ -2473,6 +2552,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "sculpt_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_brush_sculpt_tool_items);
   RNA_def_property_ui_text(prop, "Sculpt Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update_and_reset_icon");
 
   prop = RNA_def_property(srna, "uv_sculpt_tool", PROP_ENUM, PROP_NONE);
@@ -2496,12 +2576,14 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "imagepaint_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_image_tool_items);
   RNA_def_property_ui_text(prop, "Image Paint Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Brush_update_and_reset_icon");
 
   prop = RNA_def_property(srna, "gpencil_tool", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_types_items);
   RNA_def_property_ui_text(prop, "Grease Pencil Draw Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "gpencil_vertex_tool", PROP_ENUM, PROP_NONE);
@@ -2514,6 +2596,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_sdna(prop, NULL, "gpencil_sculpt_tool");
   RNA_def_property_enum_items(prop, rna_enum_brush_gpencil_sculpt_types_items);
   RNA_def_property_ui_text(prop, "Grease Pencil Sculpt Paint Tool", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "gpencil_weight_tool", PROP_ENUM, PROP_NONE);
@@ -2556,6 +2639,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_curve_preset_items);
   RNA_def_property_ui_text(prop, "Curve Preset", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVES); /* Abusing id_curves :/ */
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "deform_target", PROP_ENUM, PROP_NONE);
@@ -2567,6 +2651,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "elastic_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_elastic_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "snake_hook_deform_type", PROP_ENUM, PROP_NONE);
@@ -2617,6 +2702,7 @@ static void rna_def_brush(BlenderRNA *brna)
   prop = RNA_def_property(srna, "boundary_deform_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, brush_boundary_deform_type_items);
   RNA_def_property_ui_text(prop, "Deformation", "Deformation type that is used in the brush");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_BRUSH);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "pose_deform_type", PROP_ENUM, PROP_NONE);
@@ -3423,7 +3509,10 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_plane_trim", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", BRUSH_PLANE_TRIM);
-  RNA_def_property_ui_text(prop, "Use Plane Trim", "Enable Plane Trim");
+  RNA_def_property_ui_text(
+      prop,
+      "Use Plane Trim",
+      "Limit the distance from the offset plane that a vertex can be affected");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_frontface", PROP_BOOLEAN, PROP_NONE);

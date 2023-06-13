@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -79,6 +80,7 @@ typedef enum ThemeColorID {
   TH_VERTEX_ACTIVE,
   TH_VERTEX_UNREFERENCED,
   TH_VERTEX_SIZE,
+  TH_EDGE_WIDTH,
   TH_OUTLINE_WIDTH,
   TH_OBCENTER_DIA,
   TH_EDGE,
@@ -87,6 +89,7 @@ typedef enum ThemeColorID {
   TH_EDGE_FACESEL,
   TH_FACE,
   TH_FACE_SELECT,
+  TH_FACE_RETOPOLOGY,
   TH_FACE_BACK,
   TH_FACE_FRONT,
   TH_NORMAL,
@@ -176,6 +179,9 @@ typedef enum ThemeColorID {
   TH_NODE_DISTORT,
   TH_NODE_GEOMETRY,
   TH_NODE_ATTRIBUTE,
+
+  TH_NODE_ZONE_SIMULATION,
+  TH_SIMULATED_FRAMES,
 
   TH_CONSOLE_OUTPUT,
   TH_CONSOLE_INPUT,

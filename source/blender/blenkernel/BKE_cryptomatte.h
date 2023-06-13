@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -47,7 +48,7 @@ float BKE_cryptomatte_hash_to_float(uint32_t cryptomatte_hash);
 bool BKE_cryptomatte_find_name(const struct CryptomatteSession *session,
                                float encoded_hash,
                                char *r_name,
-                               int name_len);
+                               int name_maxncpy);
 
 char *BKE_cryptomatte_entries_to_matte_id(struct NodeCryptomatte *node_storage);
 void BKE_cryptomatte_matte_id_to_entries(struct NodeCryptomatte *node_storage,

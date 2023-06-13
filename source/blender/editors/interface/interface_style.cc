@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -44,7 +45,7 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
  * This is a complete set of layout rules, the 'state' of the Layout
  * Engine. Multiple styles are possible, defined via C or Python. Styles
  * get a name, and will typically get activated per region type, like
- * "Header", or "Listview" or "Toolbar". Properties of Style definitions
+ * `Header`, or `Listview` or `Toolbar`. Properties of Style definitions
  * are:
  *
  * - default column properties, internal spacing, aligning, min/max width
@@ -62,7 +63,7 @@ static uiStyle *ui_style_new(ListBase *styles, const char *name, short uifont_id
   uiStyle *style = MEM_cnew<uiStyle>(__func__);
 
   BLI_addtail(styles, style);
-  BLI_strncpy(style->name, name, MAX_STYLE_NAME);
+  STRNCPY(style->name, name);
 
   style->panelzoom = 1.0; /* unused */
 
@@ -127,10 +128,10 @@ void UI_fontstyle_draw_ex(const uiFontStyle *fs,
                           const char *str,
                           const size_t str_len,
                           const uchar col[4],
-                          const struct uiFontStyleDraw_Params *fs_params,
+                          const uiFontStyleDraw_Params *fs_params,
                           int *r_xofs,
                           int *r_yofs,
-                          struct ResultBLF *r_info)
+                          ResultBLF *r_info)
 {
   int xofs = 0, yofs;
   int font_flag = BLF_CLIPPING;
@@ -198,7 +199,7 @@ void UI_fontstyle_draw(const uiFontStyle *fs,
                        const char *str,
                        const size_t str_len,
                        const uchar col[4],
-                       const struct uiFontStyleDraw_Params *fs_params)
+                       const uiFontStyleDraw_Params *fs_params)
 {
   UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }
@@ -321,20 +322,20 @@ const uiStyle *UI_style_get_dpi(void)
 
   _style = *style;
 
-  _style.paneltitle.shadx = short(UI_DPI_FAC * _style.paneltitle.shadx);
-  _style.paneltitle.shady = short(UI_DPI_FAC * _style.paneltitle.shady);
-  _style.grouplabel.shadx = short(UI_DPI_FAC * _style.grouplabel.shadx);
-  _style.grouplabel.shady = short(UI_DPI_FAC * _style.grouplabel.shady);
-  _style.widgetlabel.shadx = short(UI_DPI_FAC * _style.widgetlabel.shadx);
-  _style.widgetlabel.shady = short(UI_DPI_FAC * _style.widgetlabel.shady);
+  _style.paneltitle.shadx = short(UI_SCALE_FAC * _style.paneltitle.shadx);
+  _style.paneltitle.shady = short(UI_SCALE_FAC * _style.paneltitle.shady);
+  _style.grouplabel.shadx = short(UI_SCALE_FAC * _style.grouplabel.shadx);
+  _style.grouplabel.shady = short(UI_SCALE_FAC * _style.grouplabel.shady);
+  _style.widgetlabel.shadx = short(UI_SCALE_FAC * _style.widgetlabel.shadx);
+  _style.widgetlabel.shady = short(UI_SCALE_FAC * _style.widgetlabel.shady);
 
-  _style.columnspace = short(UI_DPI_FAC * _style.columnspace);
-  _style.templatespace = short(UI_DPI_FAC * _style.templatespace);
-  _style.boxspace = short(UI_DPI_FAC * _style.boxspace);
-  _style.buttonspacex = short(UI_DPI_FAC * _style.buttonspacex);
-  _style.buttonspacey = short(UI_DPI_FAC * _style.buttonspacey);
-  _style.panelspace = short(UI_DPI_FAC * _style.panelspace);
-  _style.panelouter = short(UI_DPI_FAC * _style.panelouter);
+  _style.columnspace = short(UI_SCALE_FAC * _style.columnspace);
+  _style.templatespace = short(UI_SCALE_FAC * _style.templatespace);
+  _style.boxspace = short(UI_SCALE_FAC * _style.boxspace);
+  _style.buttonspacex = short(UI_SCALE_FAC * _style.buttonspacex);
+  _style.buttonspacey = short(UI_SCALE_FAC * _style.buttonspacey);
+  _style.panelspace = short(UI_SCALE_FAC * _style.panelspace);
+  _style.panelouter = short(UI_SCALE_FAC * _style.panelouter);
 
   return &_style;
 }
@@ -351,7 +352,7 @@ int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
 {
   /* FIXME(@ideasman42): the final scale of the font is rounded which should be accounted for.
    * Failing to do so causes bad alignment when zoomed out very far in the node-editor. */
-  fontstyle_set_ex(fs, U.dpi_fac / aspect);
+  fontstyle_set_ex(fs, UI_SCALE_FAC / aspect);
   return int(BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX) * aspect);
 }
 
@@ -385,11 +386,11 @@ void uiStyleInit()
   }
 
   if (U.font_path_ui[0]) {
-    BLI_strncpy(font_first->filepath, U.font_path_ui, sizeof(font_first->filepath));
+    STRNCPY(font_first->filepath, U.font_path_ui);
     font_first->uifont_id = UIFONT_CUSTOM1;
   }
   else {
-    BLI_strncpy(font_first->filepath, "default", sizeof(font_first->filepath));
+    STRNCPY(font_first->filepath, "default");
     font_first->uifont_id = UIFONT_DEFAULT;
   }
 
@@ -492,5 +493,5 @@ static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac)
 
 void UI_fontstyle_set(const uiFontStyle *fs)
 {
-  fontstyle_set_ex(fs, U.dpi_fac);
+  fontstyle_set_ex(fs, UI_SCALE_FAC);
 }

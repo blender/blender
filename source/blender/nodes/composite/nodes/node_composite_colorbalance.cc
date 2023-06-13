@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -52,16 +53,16 @@ NODE_STORAGE_FUNCS(NodeColorBalance)
 
 static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Fac"))
+  b.add_input<decl::Float>("Fac")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .compositor_domain_priority(1);
-  b.add_input<decl::Color>(N_("Image"))
+  b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
@@ -209,7 +210,7 @@ void register_node_type_cmp_colorbalance()
   ntype.declare = file_ns::cmp_node_colorbalance_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_colorbalance;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorbalance_ex;
-  node_type_size(&ntype, 400, 200, 400);
+  blender::bke::node_type_size(&ntype, 400, 200, 400);
   ntype.initfunc = file_ns::node_composit_init_colorbalance;
   node_type_storage(
       &ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);

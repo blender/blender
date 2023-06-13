@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_CompositorOperation.h"
 
@@ -67,14 +68,9 @@ void CompositorOperation::deinit_execution()
     if (rr) {
       RenderView *rv = RE_RenderViewGetByName(rr, view_name_);
 
-      if (rv->rectf != nullptr) {
-        MEM_freeN(rv->rectf);
-      }
-      rv->rectf = output_buffer_;
-      if (rv->rectz != nullptr) {
-        MEM_freeN(rv->rectz);
-      }
-      rv->rectz = depth_buffer_;
+      RE_RenderBuffer_assign_data(&rv->combined_buffer, output_buffer_);
+      RE_RenderBuffer_assign_data(&rv->z_buffer, depth_buffer_);
+
       rr->have_combined = true;
     }
     else {

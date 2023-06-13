@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -13,19 +14,19 @@ namespace blender::nodes::node_shader_tex_wave_cc {
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>(N_("Vector")).implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Float>(N_("Scale")).min(-1000.0f).max(1000.0f).default_value(5.0f);
-  b.add_input<decl::Float>(N_("Distortion")).min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_input<decl::Float>(N_("Detail")).min(0.0f).max(15.0f).default_value(2.0f);
-  b.add_input<decl::Float>(N_("Detail Scale")).min(-1000.0f).max(1000.0f).default_value(1.0f);
-  b.add_input<decl::Float>(N_("Detail Roughness"))
+  b.add_input<decl::Vector>("Vector").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f);
+  b.add_input<decl::Float>("Distortion").min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_input<decl::Float>("Detail").min(0.0f).max(15.0f).default_value(2.0f);
+  b.add_input<decl::Float>("Detail Scale").min(-1000.0f).max(1000.0f).default_value(1.0f);
+  b.add_input<decl::Float>("Detail Roughness")
       .min(0.0f)
       .max(1.0f)
       .default_value(0.5f)
       .subtype(PROP_FACTOR);
-  b.add_input<decl::Float>(N_("Phase Offset")).min(-1000.0f).max(1000.0f).default_value(0.0f);
-  b.add_output<decl::Color>(N_("Color")).no_muted_links();
-  b.add_output<decl::Float>(N_("Fac")).no_muted_links();
+  b.add_input<decl::Float>("Phase Offset").min(-1000.0f).max(1000.0f).default_value(0.0f);
+  b.add_output<decl::Color>("Color").no_muted_links();
+  b.add_output<decl::Float>("Fac").no_muted_links();
 }
 
 static void node_shader_buts_tex_wave(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -111,7 +112,7 @@ class WaveFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");
@@ -125,8 +126,7 @@ class WaveFunction : public mf::MultiFunction {
         params.uninitialized_single_output_if_required<ColorGeometry4f>(7, "Color");
     MutableSpan<float> r_fac = params.uninitialized_single_output<float>(8, "Fac");
 
-    for (int64_t i : mask) {
-
+    mask.foreach_index([&](const int64_t i) {
       float3 p = vector[i] * scale[i];
       /* Prevent precision issues on unit coordinates. */
       p = (p + 0.000001f) * 0.999999f;
@@ -193,11 +193,11 @@ class WaveFunction : public mf::MultiFunction {
       }
 
       r_fac[i] = val;
-    }
+    });
     if (!r_color.is_empty()) {
-      for (int64_t i : mask) {
+      mask.foreach_index([&](const int64_t i) {
         r_color[i] = ColorGeometry4f(r_fac[i], r_fac[i], r_fac[i], 1.0f);
-      }
+      });
     }
   }
 };
@@ -221,7 +221,7 @@ void register_node_type_sh_tex_wave()
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_WAVE, "Wave Texture", NODE_CLASS_TEXTURE);
   ntype.declare = file_ns::sh_node_tex_wave_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_wave;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_tex_wave;
   node_type_storage(&ntype, "NodeTexWave", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_shader_gpu_tex_wave;

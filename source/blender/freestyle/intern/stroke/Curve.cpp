@@ -57,7 +57,8 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
   float t1 = iA->t2d();
   float t2 = iB->t2d();
   if ((iA->A() == iB->A()) && (iA->B() == iB->B()) && (iA->A() != nullptr) &&
-      (iA->B() != nullptr) && (iB->A() != nullptr) && (iB->B() != nullptr)) {
+      (iA->B() != nullptr) && (iB->A() != nullptr) && (iB->B() != nullptr))
+  {
     __A = iA->A();
     __B = iB->B();
     _t2d = t1 + t2 * t3 - t1 * t3;
@@ -120,15 +121,18 @@ CurvePoint::CurvePoint(CurvePoint *iA, CurvePoint *iB, float t3)
     }
   }
   else if (iA->A() != nullptr && iB->A() != nullptr &&
-           (iA->A()->point3d() - iB->A()->point3d()).norm() < 1.0e-6) {
+           (iA->A()->point3d() - iB->A()->point3d()).norm() < 1.0e-6)
+  {
     goto iA_A_eq_iB_A;
   }
   else if (iA->B() != nullptr && iB->B() != nullptr &&
-           (iA->B()->point3d() - iB->B()->point3d()).norm() < 1.0e-6) {
+           (iA->B()->point3d() - iB->B()->point3d()).norm() < 1.0e-6)
+  {
     goto iA_B_eq_iB_B;
   }
   else if (iA->B() != nullptr && iB->A() != nullptr &&
-           (iA->B()->point3d() - iB->A()->point3d()).norm() < 1.0e-6) {
+           (iA->B()->point3d() - iB->A()->point3d()).norm() < 1.0e-6)
+  {
     goto iA_B_eq_iB_A;
   }
 
@@ -195,7 +199,8 @@ FEdge *CurvePoint::getFEdge(Interface0D &inter)
     return nullptr;
   }
   if (((__A == iVertexB->__A) && (__B == iVertexB->__B)) ||
-      ((__A == iVertexB->__B) && (__B == iVertexB->__A))) {
+      ((__A == iVertexB->__B) && (__B == iVertexB->__A)))
+  {
     return __A->getFEdge(*__B);
   }
   if (__B == nullptr) {

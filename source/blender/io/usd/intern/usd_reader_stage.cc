@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Tangent Animation and. NVIDIA Corporation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Tangent Animation and. NVIDIA Corporation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_stage.h"
 #include "usd_reader_camera.h"
@@ -88,8 +89,9 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
     return new USDMeshReader(prim, params_, settings_);
   }
 #if PXR_VERSION >= 2111
-  if (params_.import_lights && (prim.IsA<pxr::UsdLuxBoundableLightBase>() ||
-                                prim.IsA<pxr::UsdLuxNonboundableLightBase>())) {
+  if (params_.import_lights &&
+      (prim.IsA<pxr::UsdLuxBoundableLightBase>() || prim.IsA<pxr::UsdLuxNonboundableLightBase>()))
+  {
 #else
   if (params_.import_lights && prim.IsA<pxr::UsdLuxLight>()) {
 #endif
@@ -277,7 +279,7 @@ USDPrimReader *USDStageReader::collect_readers(Main *bmain, const pxr::UsdPrim &
 
   if (prim.IsA<pxr::UsdShadeMaterial>()) {
     /* Record material path for later processing, if needed,
-     * e.g., when importing all materials.  */
+     * e.g., when importing all materials. */
     material_paths_.push_back(prim.GetPath().GetAsString());
 
     /* We don't create readers for materials, so return early. */
@@ -312,19 +314,6 @@ void USDStageReader::collect_readers(Main *bmain)
   /* Iterate through the stage. */
   pxr::UsdPrim root = stage_->GetPseudoRoot();
 
-  std::string prim_path_mask(params_.prim_path_mask);
-
-  if (!prim_path_mask.empty()) {
-    pxr::UsdPrim prim = stage_->GetPrimAtPath(pxr::SdfPath(prim_path_mask));
-    if (prim.IsValid()) {
-      root = prim;
-    }
-    else {
-      std::cerr << "WARNING: Prim Path Mask " << prim_path_mask
-                << " does not specify a valid prim.\n";
-    }
-  }
-
   stage_->SetInterpolationType(pxr::UsdInterpolationType::UsdInterpolationTypeHeld);
   collect_readers(bmain, root);
 }
@@ -349,7 +338,8 @@ void USDStageReader::import_all_materials(Main *bmain)
     }
 
     if (blender::io::usd::find_existing_material(
-            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name)) {
+            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name))
+    {
       /* The material already exists. */
       continue;
     }
@@ -375,7 +365,8 @@ void USDStageReader::fake_users_for_unused_materials()
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
   for (const std::pair<const std::string, std::string> &path_mat_pair :
-       settings_.usd_path_to_mat_name) {
+       settings_.usd_path_to_mat_name)
+  {
 
     std::map<std::string, Material *>::iterator mat_it = settings_.mat_name_to_mat.find(
         path_mat_pair.second);

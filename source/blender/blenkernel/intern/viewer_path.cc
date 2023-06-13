@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_lib_query.h"
 #include "BKE_lib_remap.h"
@@ -56,7 +58,7 @@ bool BKE_viewer_path_equal(const ViewerPath *a, const ViewerPath *b)
   return false;
 }
 
-void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *viewer_path)
+void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
@@ -81,7 +83,7 @@ void BKE_viewer_path_blend_write(struct BlendWriter *writer, const ViewerPath *v
   }
 }
 
-void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath *viewer_path)
+void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path)
 {
   BLO_read_list(reader, &viewer_path->path);
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
@@ -103,13 +105,13 @@ void BKE_viewer_path_blend_read_data(struct BlendDataReader *reader, ViewerPath 
   }
 }
 
-void BKE_viewer_path_blend_read_lib(BlendLibReader *reader, Library *lib, ViewerPath *viewer_path)
+void BKE_viewer_path_blend_read_lib(BlendLibReader *reader, ID *self_id, ViewerPath *viewer_path)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
     switch (ViewerPathElemType(elem->type)) {
       case VIEWER_PATH_ELEM_TYPE_ID: {
         auto *typed_elem = reinterpret_cast<IDViewerPathElem *>(elem);
-        BLO_read_id_address(reader, lib, &typed_elem->id);
+        BLO_read_id_address(reader, self_id, &typed_elem->id);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_MODIFIER:

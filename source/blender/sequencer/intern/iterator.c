@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2003-2009 Blender Foundation.
- *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2003-2009 Blender Foundation.
+ * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -261,8 +262,8 @@ static bool must_render_strip(const Sequence *seq, SeqCollection *strips_at_time
       return false;
     }
 
-    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 &&
-        SEQ_relation_is_effect_of_strip(seq_iter, seq)) {
+    if ((seq_iter->type & SEQ_TYPE_EFFECT) != 0 && SEQ_relation_is_effect_of_strip(seq_iter, seq))
+    {
       /* Strips in same channel or higher than its effect are rendered. */
       if (seq->machine >= seq_iter->machine) {
         return true;
@@ -357,7 +358,8 @@ void SEQ_query_strip_effect_chain(const Scene *scene,
   /* Find all strips connected to seq_reference. */
   LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
     if (seq_test->seq1 == seq_reference || seq_test->seq2 == seq_reference ||
-        seq_test->seq3 == seq_reference) {
+        seq_test->seq3 == seq_reference)
+    {
       SEQ_query_strip_effect_chain(scene, seq_test, seqbase, collection);
     }
   }

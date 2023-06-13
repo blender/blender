@@ -1,11 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern PyTypeObject BPy_BMesh_Type;
 extern PyTypeObject BPy_BMVert_Type;
@@ -199,8 +204,8 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
 #define BPY_BM_CHECK_SOURCE_OBJ(bm, errmsg, ...) \
   { \
     void *_args[] = {__VA_ARGS__}; \
-    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == \
-                 -1)) { \
+    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) \
+    { \
       return NULL; \
     } \
   } \
@@ -208,8 +213,8 @@ int bpy_bm_generic_valid_check_source(BMesh *bm_source,
 #define BPY_BM_CHECK_SOURCE_INT(bm, errmsg, ...) \
   { \
     void *_args[] = {__VA_ARGS__}; \
-    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == \
-                 -1)) { \
+    if (UNLIKELY(bpy_bm_generic_valid_check_source(bm, errmsg, _args, ARRAY_SIZE(_args)) == -1)) \
+    { \
       return -1; \
     } \
   } \
@@ -232,4 +237,8 @@ extern struct PyC_FlagSet bpy_bm_scene_vert_edge_face_flags[];
 extern struct PyC_FlagSet bpy_bm_htype_vert_edge_face_flags[];
 extern struct PyC_FlagSet bpy_bm_htype_all_flags[];
 extern struct PyC_FlagSet bpy_bm_hflag_all_flags[];
+#endif
+
+#ifdef __cplusplus
+}
 #endif

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spbuttons
@@ -29,11 +30,11 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_modifier.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -507,14 +508,14 @@ static void template_texture_user_menu(bContext *C, uiLayout *layout, void * /*a
       Tex *tex = static_cast<Tex *>(texptr.data);
 
       if (tex) {
-        BLI_snprintf(name, UI_MAX_NAME_STR, "  %s - %s", user->name, tex->id.name + 2);
+        SNPRINTF(name, "  %s - %s", user->name, tex->id.name + 2);
       }
       else {
-        BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+        SNPRINTF(name, "  %s", user->name);
       }
     }
     else {
-      BLI_snprintf(name, UI_MAX_NAME_STR, "  %s", user->name);
+      SNPRINTF(name, "  %s", user->name);
     }
 
     but = uiDefIconTextBut(block,
@@ -565,7 +566,7 @@ void uiTemplateTextureUser(uiLayout *layout, bContext *C)
   }
 
   /* create button */
-  BLI_strncpy(name, user->name, UI_MAX_NAME_STR);
+  STRNCPY(name, user->name);
 
   if (user->icon) {
     but = uiDefIconTextMenuBut(block,

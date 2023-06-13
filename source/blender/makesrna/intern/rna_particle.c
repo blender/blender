@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 AutoCRC (adaptive time step). */
+/* SPDX-FileCopyrightText: 2011 AutoCRC (adaptive time step).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -386,7 +387,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     BKE_report(reports, RPT_ERROR, "Mesh has no UV data");
     return;
   }
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
 
   if (ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
     if (particle->num < modifier->mesh_final->totface) {
@@ -396,7 +397,8 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
 
   /* get uvco */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
-      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
+      !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD))
+  {
 
     const MFace *mface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MFACE);
     const MTFace *mtface = CustomData_get_layer(&modifier->mesh_final->fdata, CD_MTFACE);
@@ -526,7 +528,7 @@ static int rna_ParticleSystem_tessfaceidx_on_emitter(ParticleSystem *particlesys
   int totvert;
   int num = -1;
 
-  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+  BKE_mesh_tessface_ensure(modifier->mesh_final); /* BMESH - UNTIL MODIFIER IS UPDATED FOR POLYS */
   totface = modifier->mesh_final->totface;
   totvert = modifier->mesh_final->totvert;
 
@@ -1105,7 +1107,7 @@ static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
   ParticleSystem *part = (ParticleSystem *)ptr->data;
 
   /* copy the new name into the name slot */
-  BLI_strncpy_utf8(part->name, value, sizeof(part->name));
+  STRNCPY_UTF8(part->name, value);
 
   BLI_uniquename(&ob->particlesystem,
                  part,
@@ -1190,11 +1192,11 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *str)
       }
     }
     else {
-      strcpy(str, "Invalid target!");
+      strcpy(str, TIP_("Invalid target!"));
     }
   }
   else {
-    strcpy(str, "Invalid target!");
+    strcpy(str, TIP_("Invalid target!"));
   }
 }
 
@@ -2575,7 +2577,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "apply_effector_to_children", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PART_CHILD_EFFECT);
-  RNA_def_property_ui_text(prop, "Effect Children", "Apply effectors to children");
+  RNA_def_property_ui_text(prop, "Affect Children", "Apply effectors to children");
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "create_long_hair_children", PROP_BOOLEAN, PROP_NONE);
@@ -2948,6 +2950,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_range(prop, 0, 1000000, 1, -1);
   RNA_def_property_ui_text(prop, "Number", "Total number of particles");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, 0, "rna_Particle_reset");
 
   prop = RNA_def_property(
@@ -3141,9 +3144,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
   /* children */
 
-  /* NOTE(@ideasman42): name is not following conventions: `nbr`.
-   * Could be changed next major version. */
-  prop = RNA_def_property(srna, "child_nbr", PROP_INT, PROP_NONE);
+  prop = RNA_def_property(srna, "child_percent", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(
       prop, NULL, "child_percent"); /* Optional if prop names are the same. */
   RNA_def_property_range(prop, 0, 100000);

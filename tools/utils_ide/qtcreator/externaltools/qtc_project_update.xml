@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<externaltool id="qtc_project_update">
+    <description>Regenerate the project file</description>
+    <displayname>Project File Regenerate</displayname>
+    <category>Project</category>
+    <executable output="showinpane" error="showinpane" modifiesdocument="no">
+        <path>qtc_project_update.py</path>
+        <arguments>%{CurrentProject:BuildPath}</arguments>
+    </executable>
+</externaltool>

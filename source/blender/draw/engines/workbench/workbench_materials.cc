@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -10,7 +11,7 @@
 #include "BLI_memblock.h"
 
 #include "BKE_image.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "BLI_dynstr.h"
 #include "BLI_hash.h"
@@ -86,10 +87,10 @@ BLI_INLINE Material *workbench_object_material_get(Object *ob, int mat_nr)
 }
 
 BLI_INLINE void workbench_material_get_image(
-    Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, eGPUSamplerState *r_sampler)
+    Object *ob, int mat_nr, Image **r_image, ImageUser **r_iuser, GPUSamplerState *r_sampler)
 {
   const bNode *node;
-  *r_sampler = eGPUSamplerState(0);
+  *r_sampler = GPUSamplerState::default_sampler();
 
   ED_object_get_active_image(ob, mat_nr, r_image, r_iuser, &node, nullptr);
   if (node && *r_image) {
@@ -97,19 +98,32 @@ BLI_INLINE void workbench_material_get_image(
       case SH_NODE_TEX_IMAGE: {
         const NodeTexImage *storage = static_cast<NodeTexImage *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        const bool use_mirror = (storage->extension == SHD_IMAGE_EXTENSION_MIRROR);
-        const bool use_repeat = use_mirror || (storage->extension == SHD_IMAGE_EXTENSION_REPEAT);
-        const bool use_clip = (storage->extension == SHD_IMAGE_EXTENSION_CLIP);
-        SET_FLAG_FROM_TEST(*r_sampler, use_filter, GPU_SAMPLER_FILTER);
-        SET_FLAG_FROM_TEST(*r_sampler, use_repeat, GPU_SAMPLER_REPEAT);
-        SET_FLAG_FROM_TEST(*r_sampler, use_clip, GPU_SAMPLER_CLAMP_BORDER);
-        SET_FLAG_FROM_TEST(*r_sampler, use_mirror, GPU_SAMPLER_MIRROR_REPEAT);
+        r_sampler->set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
+        switch (storage->extension) {
+          case SHD_IMAGE_EXTENSION_EXTEND:
+          default:
+            r_sampler->extend_x = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+            r_sampler->extend_yz = GPU_SAMPLER_EXTEND_MODE_EXTEND;
+            break;
+          case SHD_IMAGE_EXTENSION_REPEAT:
+            r_sampler->extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+            r_sampler->extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+            break;
+          case SHD_IMAGE_EXTENSION_MIRROR:
+            r_sampler->extend_x = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+            r_sampler->extend_yz = GPU_SAMPLER_EXTEND_MODE_MIRRORED_REPEAT;
+            break;
+          case SHD_IMAGE_EXTENSION_CLIP:
+            r_sampler->extend_x = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+            r_sampler->extend_yz = GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER;
+            break;
+        }
         break;
       }
       case SH_NODE_TEX_ENVIRONMENT: {
         const NodeTexEnvironment *storage = static_cast<NodeTexEnvironment *>(node->storage);
         const bool use_filter = (storage->interpolation != SHD_INTERP_CLOSEST);
-        SET_FLAG_FROM_TEST(*r_sampler, use_filter, GPU_SAMPLER_FILTER);
+        r_sampler->set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR, use_filter);
         break;
       }
       default:
@@ -157,7 +171,7 @@ DRWShadingGroup *workbench_material_setup_ex(WORKBENCH_PrivateData *wpd,
 {
   Image *ima = nullptr;
   ImageUser *iuser = nullptr;
-  eGPUSamplerState sampler;
+  GPUSamplerState sampler;
   const bool infront = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   if (color_type == V3D_SHADING_TEXTURE_COLOR) {
@@ -240,7 +254,7 @@ DRWShadingGroup *workbench_image_setup_ex(WORKBENCH_PrivateData *wpd,
                                           int mat_nr,
                                           Image *ima,
                                           ImageUser *iuser,
-                                          eGPUSamplerState sampler,
+                                          GPUSamplerState sampler,
                                           eWORKBENCH_DataType datatype)
 {
   GPUTexture *tex = nullptr, *tex_tile_data = nullptr;

@@ -3,6 +3,11 @@
 import pathlib
 import sys
 import unittest
+import tempfile
+from pxr import Usd
+from pxr import UsdShade
+from pxr import UsdGeom
+from pxr import Sdf
 
 import bpy
 
@@ -13,6 +18,8 @@ class AbstractUSDTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.testdir = args.testdir
+        cls._tempdir = tempfile.TemporaryDirectory()
+        cls.tempdir = pathlib.Path(cls._tempdir.name)
 
     def setUp(self):
         self.assertTrue(self.testdir.exists(),
@@ -20,6 +27,9 @@ class AbstractUSDTest(unittest.TestCase):
 
         # Make sure we always start with a known-empty file.
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
+    def tearDown(self):
+        self._tempdir.cleanup()
 
 
 class USDImportTest(AbstractUSDTest):
@@ -188,6 +198,107 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(1.400, test_cam.sensor_height, 3)
         self.assertAlmostEqual(1.234, test_cam.shift_x, 3)
         self.assertAlmostEqual(5.678, test_cam.shift_y, 3)
+
+    def test_import_shader_varname_with_connection(self):
+        """Test importing USD shader where uv primvar is a connection"""
+
+        varname = "testmap"
+        texfile = str(self.testdir / "textures/test_grid_1001.png")
+
+        # Create the test USD file.
+        temp_usd_file = str(self.tempdir / "usd_varname_test.usda")
+        stage = Usd.Stage.CreateNew(temp_usd_file)
+        mesh1 = stage.DefinePrim("/mesh1", "Mesh")
+        mesh2 = stage.DefinePrim("/mesh2", "Mesh")
+
+        # Create two USD preview surface shaders in two materials.
+        m1 = UsdShade.Material.Define(stage, "/mat1")
+        s1 = UsdShade.Shader.Define(stage, "/mat1/previewshader")
+        s1.CreateIdAttr("UsdPreviewSurface")
+        m1.CreateSurfaceOutput().ConnectToSource(s1.ConnectableAPI(), "surface")
+        t1 = UsdShade.Shader.Define(stage, "/mat1/diffuseTexture")
+        t1.CreateIdAttr("UsdUVTexture")
+        t1.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(texfile)
+        t1.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        s1.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(t1.ConnectableAPI(), "rgb")
+        t2 = UsdShade.Shader.Define(stage, "/mat1/roughnessTexture")
+        t2.CreateIdAttr("UsdUVTexture")
+        t2.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(texfile)
+        t2.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        s1.CreateInput("roughness", Sdf.ValueTypeNames.Color3f).ConnectToSource(t2.ConnectableAPI(), "rgb")
+
+        m2 = UsdShade.Material.Define(stage, "/mat2")
+        s2 = UsdShade.Shader.Define(stage, "/mat2/previewshader")
+        s2.CreateIdAttr("UsdPreviewSurface")
+        m2.CreateSurfaceOutput().ConnectToSource(s2.ConnectableAPI(), "surface")
+        t3 = UsdShade.Shader.Define(stage, "/mat2/diffuseTexture")
+        t3.CreateIdAttr("UsdUVTexture")
+        t3.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(texfile)
+        t3.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        s2.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(t3.ConnectableAPI(), "rgb")
+        t4 = UsdShade.Shader.Define(stage, "/mat2/roughnessTexture")
+        t4.CreateIdAttr("UsdUVTexture")
+        t4.CreateInput('file', Sdf.ValueTypeNames.Asset).Set(texfile)
+        t4.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        s2.CreateInput("roughness", Sdf.ValueTypeNames.Color3f).ConnectToSource(t4.ConnectableAPI(), "rgb")
+
+        # Bind mat1 to mesh1, mat2 to mesh2.
+        bindingAPI = UsdShade.MaterialBindingAPI.Apply(mesh1)
+        bindingAPI.Bind(m1)
+        bindingAPI = UsdShade.MaterialBindingAPI.Apply(mesh2)
+        bindingAPI.Bind(m2)
+
+        # Create varname defined as a token.
+        s3 = UsdShade.Shader.Define(stage, "/mat1/primvar_reader1")
+        s3.CreateIdAttr('UsdPrimvarReader_float2')
+        s3input = s3.CreateInput("varname", Sdf.ValueTypeNames.Token)
+        s3input.Set(varname)
+        t1.CreateInput("st", Sdf.ValueTypeNames.TexCoord2f).ConnectToSource(s3.ConnectableAPI(), "result")
+
+        # Create varname defined as a connection to a token.
+        varname1 = m1.CreateInput("varname", Sdf.ValueTypeNames.Token)
+        varname1.Set(varname)
+        s4 = UsdShade.Shader.Define(stage, "/mat1/primvar_reader2")
+        s4.CreateIdAttr('UsdPrimvarReader_float2')
+        s4input = s4.CreateInput("varname", Sdf.ValueTypeNames.Token)
+        UsdShade.ConnectableAPI.ConnectToSource(s4input, varname1)
+        t2.CreateInput("st", Sdf.ValueTypeNames.TexCoord2f).ConnectToSource(s4.ConnectableAPI(), "result")
+
+        # Create varname defined as a string.
+        s5 = UsdShade.Shader.Define(stage, "/mat2/primvar_reader1")
+        s5.CreateIdAttr('UsdPrimvarReader_float2')
+        s5input = s5.CreateInput("varname", Sdf.ValueTypeNames.String)
+        s5input.Set(varname)
+        t3.CreateInput("st", Sdf.ValueTypeNames.TexCoord2f).ConnectToSource(s5.ConnectableAPI(), "result")
+
+        # Create varname defined as a connection to a string.
+        varname2 = m2.CreateInput("varname", Sdf.ValueTypeNames.String)
+        varname2.Set(varname)
+        s6 = UsdShade.Shader.Define(stage, "/mat2/primvar_reader2")
+        s6.CreateIdAttr('UsdPrimvarReader_float2')
+        s6input = s6.CreateInput("varname", Sdf.ValueTypeNames.String)
+        UsdShade.ConnectableAPI.ConnectToSource(s6input, varname2)
+        t4.CreateInput("st", Sdf.ValueTypeNames.TexCoord2f).ConnectToSource(s6.ConnectableAPI(), "result")
+
+        stage.Save()
+
+        # Now import the USD file.
+        res = bpy.ops.wm.usd_import(filepath=temp_usd_file, import_all_materials=True)
+        self.assertEqual({'FINISHED'}, res)
+
+        # Ensure that we find the correct varname for all four primvar readers.
+        num_uvmaps_found = 0
+        mats_to_test = []
+        mats_to_test.append(bpy.data.materials["mat1"])
+        mats_to_test.append(bpy.data.materials["mat2"])
+        for mat in mats_to_test:
+            self.assertIsNotNone(mat.node_tree, "Material node tree is empty")
+            for node in mat.node_tree.nodes:
+                if node.type == "UVMAP":
+                    self.assertEqual(varname, node.uv_map, "Unexpected value for varname")
+                    num_uvmaps_found += 1
+
+        self.assertEqual(4, num_uvmaps_found, "One or more test materials failed to import")
 
 
 def main():

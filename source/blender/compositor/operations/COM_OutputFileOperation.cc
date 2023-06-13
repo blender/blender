@@ -1,10 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_OutputFileOperation.h"
 
+#include "BLI_fileops.h"
 #include "BLI_listbase.h"
-#include "BLI_path_util.h"
 #include "BLI_string.h"
 
 #include "BKE_image.h"
@@ -225,7 +226,7 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(const Scene *scene,
     format_.linear_colorspace_settings.name[0] = '\0';
   }
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
 
   view_name_ = view_name;
   save_as_render_ = save_as_render;
@@ -253,19 +254,19 @@ void OutputSingleLayerOperation::deinit_execution()
 
     int size = get_datatype_size(datatype_);
     ImBuf *ibuf = IMB_allocImBuf(this->get_width(), this->get_height(), format_.planes, 0);
-    char filename[FILE_MAX];
+    char filepath[FILE_MAX];
     const char *suffix;
 
     ibuf->channels = size;
-    ibuf->rect_float = output_buffer_;
-    ibuf->mall |= IB_rectfloat;
     ibuf->dither = rd_->dither_intensity;
+
+    IMB_assign_float_buffer(ibuf, output_buffer_, IB_TAKE_OWNERSHIP);
 
     IMB_colormanagement_imbuf_for_write(ibuf, save_as_render_, false, &format_);
 
     suffix = BKE_scene_multiview_view_suffix_get(rd_, view_name_);
 
-    BKE_image_path_from_imformat(filename,
+    BKE_image_path_from_imformat(filepath,
                                  path_,
                                  BKE_main_blendfile_path_from_global(),
                                  rd_->cfra,
@@ -274,11 +275,11 @@ void OutputSingleLayerOperation::deinit_execution()
                                  true,
                                  suffix);
 
-    if (0 == BKE_imbuf_write(ibuf, filename, &format_)) {
-      printf("Cannot save Node File Output to %s\n", filename);
+    if (0 == BKE_imbuf_write(ibuf, filepath, &format_)) {
+      printf("Cannot save Node File Output to %s\n", filepath);
     }
     else {
-      printf("Saved: %s\n", filename);
+      printf("Saved: %s\n", filepath);
     }
 
     IMB_freeImBuf(ibuf);
@@ -307,7 +308,7 @@ void OutputSingleLayerOperation::update_memory_buffer_partial(MemoryBuffer * /*o
 
 OutputOpenExrLayer::OutputOpenExrLayer(const char *name_, DataType datatype_, bool use_layer_)
 {
-  BLI_strncpy(this->name, name_, sizeof(this->name));
+  STRNCPY(this->name, name_);
   this->datatype = datatype_;
   this->use_layer = use_layer_;
 
@@ -328,7 +329,7 @@ OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(const Scene *
   rd_ = rd;
   tree_ = tree;
 
-  BLI_strncpy(path_, path, sizeof(path_));
+  STRNCPY(path_, path);
   exr_codec_ = exr_codec;
   exr_half_float_ = exr_half_float;
   view_name_ = view_name;
@@ -395,12 +396,12 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
   uint width = this->get_width();
   uint height = this->get_height();
   if (width != 0 && height != 0) {
-    char filename[FILE_MAX];
+    char filepath[FILE_MAX];
     const char *suffix;
     void *exrhandle = IMB_exr_get_handle();
 
     suffix = BKE_scene_multiview_view_suffix_get(rd_, view_name_);
-    BKE_image_path_from_imtype(filename,
+    BKE_image_path_from_imtype(filepath,
                                path_,
                                BKE_main_blendfile_path_from_global(),
                                rd_->cfra,
@@ -408,7 +409,7 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                                (rd_->scemode & R_EXTENSION) != 0,
                                true,
                                suffix);
-    BLI_make_existing_file(filename);
+    BLI_file_ensure_parent_dir_exists(filepath);
 
     for (uint i = 0; i < layers_.size(); i++) {
       OutputOpenExrLayer &layer = layers_[i];
@@ -425,9 +426,9 @@ void OutputOpenExrMultiLayerOperation::deinit_execution()
                        layers_[i].output_buffer);
     }
 
-    /* when the filename has no permissions, this can fail */
+    /* When the filepath has no permissions, this can fail. */
     StampData *stamp_data = create_stamp_data();
-    if (IMB_exr_begin_write(exrhandle, filename, width, height, exr_codec_, stamp_data)) {
+    if (IMB_exr_begin_write(exrhandle, filepath, width, height, exr_codec_, stamp_data)) {
       IMB_exr_write_channels(exrhandle);
     }
     else {
@@ -453,15 +454,14 @@ void OutputOpenExrMultiLayerOperation::update_memory_buffer_partial(MemoryBuffer
                                                                     const rcti &area,
                                                                     Span<MemoryBuffer *> inputs)
 {
-  const MemoryBuffer *input_image = inputs[0];
   for (int i = 0; i < layers_.size(); i++) {
     OutputOpenExrLayer &layer = layers_[i];
+    int layer_num_channels = COM_data_type_num_channels(layer.datatype);
     if (layer.output_buffer) {
-      MemoryBuffer output_buf(layer.output_buffer,
-                              COM_data_type_num_channels(layer.datatype),
-                              this->get_width(),
-                              this->get_height());
-      output_buf.copy_from(input_image, area);
+      MemoryBuffer output_buf(
+          layer.output_buffer, layer_num_channels, this->get_width(), this->get_height());
+      /* Input node always has 4 channels. Not all are needed depending on datatype. */
+      output_buf.copy_from(inputs[i], area, 0, layer_num_channels, 0);
     }
   }
 }

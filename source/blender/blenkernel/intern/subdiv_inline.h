@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -90,10 +91,4 @@ BLI_INLINE void BKE_subdiv_rotate_grid_to_quad(
 BLI_INLINE float BKE_subdiv_crease_to_sharpness_f(float edge_crease)
 {
   return edge_crease * edge_crease * 10.0f;
-}
-
-BLI_INLINE float BKE_subdiv_crease_to_sharpness_char(char edge_crease)
-{
-  const float edge_crease_f = edge_crease / 255.0f;
-  return BKE_subdiv_crease_to_sharpness_f(edge_crease_f);
 }

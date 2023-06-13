@@ -38,10 +38,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: adapted from jemalloc.
+ * The Original Code is adapted from jemalloc.
+ * Modifications Copyright (C) 2016 Blender Foundation.
  */
 
 /** \file

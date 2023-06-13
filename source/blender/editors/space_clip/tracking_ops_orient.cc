@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -568,9 +569,9 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Set Axis";
   ot->description =
-      "Set direction of scene axis rotating camera "
-      "(or its parent if present) and assume selected track "
-      "lies on real axis, joining it with the origin";
+      "Set the direction of a scene axis by rotating the camera "
+      "(or its parent if present). This assumes that the selected "
+      "track lies on a real axis connecting it to the origin";
   ot->idname = "CLIP_OT_set_axis";
 
   /* api callbacks */

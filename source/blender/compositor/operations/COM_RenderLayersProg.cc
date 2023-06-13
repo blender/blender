@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_RenderLayersProg.h"
 
@@ -324,7 +325,8 @@ void RenderLayersDepthProg::execute_pixel_sampled(float output[4],
   float *input_buffer = this->get_input_buffer();
 
   if (input_buffer == nullptr || ix < 0 || iy < 0 || ix >= int(this->get_width()) ||
-      iy >= int(this->get_height())) {
+      iy >= int(this->get_height()))
+  {
     output[0] = 10e10f;
   }
   else {

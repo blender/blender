@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spfile
@@ -55,7 +56,7 @@ static void file_panel_operator_header(const bContext *C, Panel *panel)
   SpaceFile *sfile = CTX_wm_space_file(C);
   wmOperator *op = sfile->op;
 
-  BLI_strncpy(panel->drawname, WM_operatortype_name(op->type, op->ptr), sizeof(panel->drawname));
+  STRNCPY(panel->drawname, WM_operatortype_name(op->type, op->ptr));
 }
 
 static void file_panel_operator(const bContext *C, Panel *panel)
@@ -237,7 +238,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
       uiItemS(col);
       uiItemMenuEnumO(col,
-                      mutable_ctx,
+                      C,
                       "asset.bundle_install",
                       "asset_library_ref",
                       "Copy Bundle to Asset Library...",

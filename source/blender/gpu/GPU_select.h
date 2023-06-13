@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -50,6 +51,15 @@ void GPU_select_begin(GPUSelectResult *buffer,
                       const struct rcti *input,
                       eGPUSelectMode mode,
                       int oldhits);
+/**
+ * Initialize and provide buffer for results.
+ * Uses the new Select-Next engine if enabled.
+ */
+void GPU_select_begin_next(GPUSelectResult *buffer,
+                           const uint buffer_len,
+                           const struct rcti *input,
+                           eGPUSelectMode mode,
+                           int oldhits);
 /**
  * Loads a new selection id and ends previous query, if any.
  * In second pass of selection it also returns

@@ -81,9 +81,7 @@ Canvas::~Canvas()
   delete _steerableViewMap;
 }
 
-void Canvas::preDraw()
-{
-}
+void Canvas::preDraw() {}
 
 void Canvas::Draw()
 {
@@ -132,7 +130,8 @@ void Canvas::Clear()
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s) {
+         ++s)
+    {
       if (*s) {
         delete (*s);
       }
@@ -190,7 +189,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_StyleModules.empty()) {
     for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
          s != send;
-         ++s, ++i) {
+         ++s, ++i)
+    {
       if (i == index) {
         // remove shader
         if (*s) {
@@ -205,7 +205,8 @@ void Canvas::RemoveStyleModule(uint index)
   if (!_Layers.empty()) {
     i = 0;
     for (deque<StrokeLayer *>::iterator sl = _Layers.begin(), slend = _Layers.end(); sl != slend;
-         ++sl, ++i) {
+         ++sl, ++i)
+    {
       if (i == index) {
         // remove layer
         if (*sl) {
@@ -236,7 +237,8 @@ void Canvas::ReplaceStyleModule(uint index, StyleModule *iStyleModule)
   uint i = 0;
   for (deque<StyleModule *>::iterator s = _StyleModules.begin(), send = _StyleModules.end();
        s != send;
-       ++s, ++i) {
+       ++s, ++i)
+  {
     if (i == index) {
       if (*s) {
         delete *s;
@@ -374,11 +376,11 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
   int h = qimg->y;
   int rowbytes = w * 4;
   GrayImage tmp(w, h);
-  char *pix;
+  uchar *pix;
 
   for (y = 0; y < h; ++y) {
     for (x = 0; x < w; ++x) {
-      pix = (char *)qimg->rect + y * rowbytes + x * 4;
+      pix = qimg->byte_buffer.data + y * rowbytes + x * 4;
       float c = (pix[0] * 11 + pix[1] * 16 + pix[2] * 5) / 32;
       tmp.setPixel(x, y, c);
     }
@@ -415,16 +417,16 @@ void Canvas::loadMap(const char *iFileName, const char *iMapName, uint iNbLevels
       for (x = 0; x < ow; ++x) {
         int c = pyramid->pixel(x, y, i);  // 255 * pyramid->pixel(x, y, i);
         // soc qtmp.setPixel(x, y, qRgb(c, c, c));
-        pix = (char *)qtmp->rect + y * rowbytes + x * 4;
+        pix = qtmp->byte_buffer.data + y * rowbytes + x * 4;
         pix[0] = pix[1] = pix[2] = c;
       }
     }
     // soc qtmp.save(base + QString::number(i) + ".bmp", "BMP");
-    stringstream filename;
-    filename << base;
-    filename << i << ".bmp";
+    stringstream filepath;
+    filepath << base;
+    filepath << i << ".bmp";
     qtmp->ftype = IMB_FTYPE_BMP;
-    IMB_saveiff(qtmp, const_cast<char *>(filename.str().c_str()), 0);
+    IMB_saveiff(qtmp, const_cast<char *>(filepath.str().c_str()), 0);
   }
 
 #if 0

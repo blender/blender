@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -98,7 +99,8 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   /* TODO: compute snap to maxZBuffer for clustered rendering. */
   if ((common_data->vol_tex_size[0] != tex_size[0]) ||
       (common_data->vol_tex_size[1] != tex_size[1]) ||
-      (common_data->vol_tex_size[2] != tex_size[2])) {
+      (common_data->vol_tex_size[2] != tex_size[2]))
+  {
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_scattering);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_extinction);
     DRW_TEXTURE_FREE_SAFE(txl->volume_prop_emission);
@@ -192,8 +194,11 @@ void EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   if (!e_data.dummy_scatter) {
     const float scatter[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     const float transmit[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-    e_data.dummy_scatter = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, scatter);
-    e_data.dummy_transmit = DRW_texture_create_3d(1, 1, 1, GPU_RGBA8, DRW_TEX_WRAP, transmit);
+    eGPUTextureUsage dummy_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+    e_data.dummy_scatter = DRW_texture_create_3d_ex(
+        1, 1, 1, GPU_RGBA8, dummy_usage, DRW_TEX_WRAP, scatter);
+    e_data.dummy_transmit = DRW_texture_create_3d_ex(
+        1, 1, 1, GPU_RGBA8, dummy_usage, DRW_TEX_WRAP, transmit);
   }
 }
 
@@ -239,10 +244,10 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   DRW_PASS_CREATE(psl->volumetric_objects_ps, DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD);
 
   /* World Volumetric */
-  struct World *wo = scene->world;
-  if (wo != NULL && wo->use_nodes && wo->nodetree &&
-      !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
-    struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
+  World *wo = scene->world;
+  if (wo != NULL && wo->use_nodes && wo->nodetree && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d))
+  {
+    GPUMaterial *mat = EEVEE_material_get(vedata, scene, NULL, wo, VAR_MAT_VOLUME);
 
     if (mat && GPU_material_has_volume_output(mat)) {
       grp = DRW_shgroup_material_create(mat, psl->volumetric_world_ps);
@@ -307,7 +312,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata,
   }
 
   int mat_options = VAR_MAT_VOLUME | VAR_MAT_MESH;
-  struct GPUMaterial *mat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+  GPUMaterial *mat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
 
   /* If shader failed to compile or is currently compiling. */
   if (mat == NULL) {
@@ -356,7 +361,7 @@ void EEVEE_volumes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
     DRWShadingGroup *grp;
-    struct GPUShader *sh;
+    GPUShader *sh;
 
     DRW_PASS_CREATE(psl->volumetric_scatter_ps, DRW_STATE_WRITE_COLOR);
     sh = (common_data->vol_use_lights) ? EEVEE_shaders_volumes_scatter_with_lights_sh_get() :
@@ -424,31 +429,54 @@ void EEVEE_volumes_draw_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     if (txl->volume_prop_scattering == NULL) {
       /* Volume properties: We evaluate all volumetric objects
        * and store their final properties into each froxel */
-      txl->volume_prop_scattering = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_extinction = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_emission = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_prop_phase = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_RG16F, DRW_TEX_FILTER, NULL);
+      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
+      txl->volume_prop_scattering = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_extinction = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_emission = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, usage, DRW_TEX_FILTER, NULL);
+      txl->volume_prop_phase = DRW_texture_create_3d_ex(
+          tex_size[0], tex_size[1], tex_size[2], GPU_RG16F, usage, DRW_TEX_FILTER, NULL);
 
       /* Volume scattering: We compute for each froxel the
        * Scattered light towards the view. We also resolve temporal
        * super sampling during this stage. */
-      txl->volume_scatter = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_transmit = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
+      eGPUTextureUsage usage_write = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                     GPU_TEXTURE_USAGE_SHADER_WRITE;
+      txl->volume_scatter = DRW_texture_create_3d_ex(tex_size[0],
+                                                     tex_size[1],
+                                                     tex_size[2],
+                                                     GPU_R11F_G11F_B10F,
+                                                     usage_write,
+                                                     DRW_TEX_FILTER,
+                                                     NULL);
+      txl->volume_transmit = DRW_texture_create_3d_ex(tex_size[0],
+                                                      tex_size[1],
+                                                      tex_size[2],
+                                                      GPU_R11F_G11F_B10F,
+                                                      usage_write,
+                                                      DRW_TEX_FILTER,
+                                                      NULL);
 
       /* Final integration: We compute for each froxel the
-       * amount of scattered light and extinction coef at this
+       * amount of scattered light and extinction coefficient at this
        * given depth. We use these textures as double buffer
        * for the volumetric history. */
-      txl->volume_scatter_history = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
-      txl->volume_transmit_history = DRW_texture_create_3d(
-          tex_size[0], tex_size[1], tex_size[2], GPU_R11F_G11F_B10F, DRW_TEX_FILTER, NULL);
+      txl->volume_scatter_history = DRW_texture_create_3d_ex(tex_size[0],
+                                                             tex_size[1],
+                                                             tex_size[2],
+                                                             GPU_R11F_G11F_B10F,
+                                                             usage_write,
+                                                             DRW_TEX_FILTER,
+                                                             NULL);
+      txl->volume_transmit_history = DRW_texture_create_3d_ex(tex_size[0],
+                                                              tex_size[1],
+                                                              tex_size[2],
+                                                              GPU_R11F_G11F_B10F,
+                                                              usage_write,
+                                                              DRW_TEX_FILTER,
+                                                              NULL);
     }
 
     GPU_framebuffer_ensure_config(&fbl->volumetric_fb,
@@ -516,7 +544,7 @@ void EEVEE_volumes_compute(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
     DRW_draw_pass(psl->volumetric_integration_ps);
 
-    SWAP(struct GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
+    SWAP(GPUFrameBuffer *, fbl->volumetric_scat_fb, fbl->volumetric_integ_fb);
     SWAP(GPUTexture *, txl->volume_scatter, txl->volume_scatter_history);
     SWAP(GPUTexture *, txl->volume_transmit, txl->volume_transmit_history);
 

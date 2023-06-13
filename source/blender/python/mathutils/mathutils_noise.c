@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup mathutils
@@ -307,8 +309,8 @@ static PyObject *M_Noise_random_unit_vector(PyObject *UNUSED(self), PyObject *ar
   float norm = 2.0f;
   int vec_num = 3;
 
-  if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "|$i:random_unit_vector", (char **)kwlist, &vec_num)) {
+  if (!PyArg_ParseTupleAndKeywords(args, kw, "|$i:random_unit_vector", (char **)kwlist, &vec_num))
+  {
     return NULL;
   }
 
@@ -392,7 +394,8 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args, PyObject 
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise", (char **)kwlist, &value, &noise_basis_str)) {
+          args, kw, "O|$s:noise", (char **)kwlist, &value, &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -400,7 +403,8 @@ static PyObject *M_Noise_noise(PyObject *UNUSED(self), PyObject *args, PyObject 
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(bpy_noise_types, noise_basis_str, &noise_basis_enum, "noise") ==
-           -1) {
+           -1)
+  {
     return NULL;
   }
 
@@ -431,7 +435,8 @@ static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args, Py
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$s:noise_vector", (char **)kwlist, &value, &noise_basis_str)) {
+          args, kw, "O|$s:noise_vector", (char **)kwlist, &value, &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -439,7 +444,8 @@ static PyObject *M_Noise_noise_vector(PyObject *UNUSED(self), PyObject *args, Py
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "noise_vector") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "noise_vector") == -1)
+  {
     return NULL;
   }
 
@@ -490,7 +496,8 @@ static PyObject *M_Noise_turbulence(PyObject *UNUSED(self), PyObject *args, PyOb
                                    &hd,
                                    &noise_basis_str,
                                    &as,
-                                   &fs)) {
+                                   &fs))
+  {
     return NULL;
   }
 
@@ -498,7 +505,8 @@ static PyObject *M_Noise_turbulence(PyObject *UNUSED(self), PyObject *args, PyOb
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "turbulence") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "turbulence") == -1)
+  {
     return NULL;
   }
 
@@ -547,7 +555,8 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
                                    &hd,
                                    &noise_basis_str,
                                    &as,
-                                   &fs)) {
+                                   &fs))
+  {
     return NULL;
   }
 
@@ -555,7 +564,8 @@ static PyObject *M_Noise_turbulence_vector(PyObject *UNUSED(self), PyObject *arg
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "turbulence_vector") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "turbulence_vector") == -1)
+  {
     return NULL;
   }
 
@@ -595,15 +605,9 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args, PyObjec
   float H, lac, oct;
   int noise_basis_enum = DEFAULT_NOISE_TYPE;
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kw,
-                                   "Offf|$s:fractal",
-                                   (char **)kwlist,
-                                   &value,
-                                   &H,
-                                   &lac,
-                                   &oct,
-                                   &noise_basis_str)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kw, "Offf|$s:fractal", (char **)kwlist, &value, &H, &lac, &oct, &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -611,7 +615,8 @@ static PyObject *M_Noise_fractal(PyObject *UNUSED(self), PyObject *args, PyObjec
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "fractal") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "fractal") == -1)
+  {
     return NULL;
   }
 
@@ -657,7 +662,8 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args, P
                                    &H,
                                    &lac,
                                    &oct,
-                                   &noise_basis_str)) {
+                                   &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -665,7 +671,8 @@ static PyObject *M_Noise_multi_fractal(PyObject *UNUSED(self), PyObject *args, P
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "multi_fractal") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "multi_fractal") == -1)
+  {
     return NULL;
   }
 
@@ -716,7 +723,8 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
                                    &value,
                                    &d,
                                    &noise_type1_str,
-                                   &noise_type2_str)) {
+                                   &noise_type2_str))
+  {
     return NULL;
   }
 
@@ -724,7 +732,8 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_type1_str, &noise_type1_enum, "variable_lacunarity") == -1) {
+               bpy_noise_types, noise_type1_str, &noise_type1_enum, "variable_lacunarity") == -1)
+  {
     return NULL;
   }
 
@@ -732,12 +741,13 @@ static PyObject *M_Noise_variable_lacunarity(PyObject *UNUSED(self), PyObject *a
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_type2_str, &noise_type2_enum, "variable_lacunarity") == -1) {
+               bpy_noise_types, noise_type2_str, &noise_type2_enum, "variable_lacunarity") == -1)
+  {
     return NULL;
   }
 
-  if (mathutils_array_parse(vec, 3, 3, value, "variable_lacunarity: invalid 'position' arg") ==
-      -1) {
+  if (mathutils_array_parse(vec, 3, 3, value, "variable_lacunarity: invalid 'position' arg") == -1)
+  {
     return NULL;
   }
 
@@ -782,7 +792,8 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args, 
                                    &lac,
                                    &oct,
                                    &ofs,
-                                   &noise_basis_str)) {
+                                   &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -790,7 +801,8 @@ static PyObject *M_Noise_hetero_terrain(PyObject *UNUSED(self), PyObject *args, 
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "hetero_terrain") == -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "hetero_terrain") == -1)
+  {
     return NULL;
   }
 
@@ -842,7 +854,8 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
                                    &oct,
                                    &ofs,
                                    &gn,
-                                   &noise_basis_str)) {
+                                   &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -850,8 +863,8 @@ static PyObject *M_Noise_hybrid_multi_fractal(PyObject *UNUSED(self), PyObject *
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "hybrid_multi_fractal") ==
-           -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "hybrid_multi_fractal") == -1)
+  {
     return NULL;
   }
 
@@ -904,7 +917,8 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
                                    &oct,
                                    &ofs,
                                    &gn,
-                                   &noise_basis_str)) {
+                                   &noise_basis_str))
+  {
     return NULL;
   }
 
@@ -912,8 +926,8 @@ static PyObject *M_Noise_ridged_multi_fractal(PyObject *UNUSED(self), PyObject *
     /* pass through */
   }
   else if (PyC_FlagSet_ValueFromID(
-               bpy_noise_types, noise_basis_str, &noise_basis_enum, "ridged_multi_fractal") ==
-           -1) {
+               bpy_noise_types, noise_basis_str, &noise_basis_enum, "ridged_multi_fractal") == -1)
+  {
     return NULL;
   }
 
@@ -952,7 +966,8 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args, PyObjec
   int i;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kw, "O|$sf:voronoi", (char **)kwlist, &value, &metric_str, &me)) {
+          args, kw, "O|$sf:voronoi", (char **)kwlist, &value, &metric_str, &me))
+  {
     return NULL;
   }
 
@@ -1083,7 +1098,7 @@ static PyMethodDef M_Noise_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_Noise_module_def = {
+static PyModuleDef M_Noise_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.noise",
     /*m_doc*/ M_Noise_doc,
@@ -1096,6 +1111,7 @@ static struct PyModuleDef M_Noise_module_def = {
 };
 
 /*----------------------------MODULE INIT-------------------------*/
+
 PyMODINIT_FUNC PyInit_mathutils_noise(void)
 {
   PyObject *submodule = PyModule_Create(&M_Noise_module_def);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -75,11 +76,13 @@ static bool check_seq_need_thumbnails(const Scene *scene, Sequence *seq, rctf *v
     return false;
   }
   if (min_ii(SEQ_time_left_handle_frame_get(scene, seq), SEQ_time_start_frame_get(seq)) >
-      view_area->xmax) {
+      view_area->xmax)
+  {
     return false;
   }
   if (max_ii(SEQ_time_right_handle_frame_get(scene, seq),
-             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin) {
+             SEQ_time_content_end_frame_get(scene, seq)) < view_area->xmin)
+  {
     return false;
   }
   if (seq->machine + 1.0f < view_area->ymin) {
@@ -187,6 +190,7 @@ static SeqRenderData sequencer_thumbnail_context_init(const bContext *C)
   SEQ_render_new_render_data(bmain, depsgraph, scene, 0, 0, sseq->render_size, false, &context);
   context.view_id = BKE_scene_multiview_view_id_get(&scene->r, STEREO_LEFT_NAME);
   context.use_proxies = false;
+  context.scene = scene;
 
   return context;
 }
@@ -238,7 +242,7 @@ static void sequencer_thumbnail_init_job(const bContext *C,
     tj = MEM_callocN(sizeof(ThumbnailDrawJob), "Thumbnail cache job");
 
     /* Duplicate value of v2d->cur and v2d->tot to have module separation. */
-    rctf *view_area = MEM_callocN(sizeof(struct rctf), "viewport area");
+    rctf *view_area = MEM_callocN(sizeof(rctf), "viewport area");
     view_area->xmax = v2d->cur.xmax;
     view_area->xmin = v2d->cur.xmin;
     view_area->ymax = v2d->cur.ymax;
@@ -292,13 +296,15 @@ static void sequencer_thumbnail_start_job_if_necessary(
   /* Job start requested, but over area which has been processed. Unless `thumbnail_is_missing` is
    * true, ignore this request as all images are in view. */
   if (v2d->cur.xmax == sseq->runtime.last_thumbnail_area.xmax &&
-      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing) {
+      v2d->cur.ymax == sseq->runtime.last_thumbnail_area.ymax && !thumbnail_is_missing)
+  {
     return;
   }
 
   /* Stop the job first as view has changed. Pointless to continue old job. */
   if (v2d->cur.xmax != sseq->runtime.last_thumbnail_area.xmax ||
-      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax) {
+      v2d->cur.ymax != sseq->runtime.last_thumbnail_area.ymax)
+  {
     WM_jobs_stop(CTX_wm_manager(C), NULL, thumbnail_start_job);
   }
 
@@ -364,7 +370,7 @@ static int sequencer_thumbnail_closest_previous_frame_get(int timeline_frame,
   return best_frame;
 }
 
-static int sequencer_thumbnail_closest_guaranteed_frame_get(struct Scene *scene,
+static int sequencer_thumbnail_closest_guaranteed_frame_get(Scene *scene,
                                                             Sequence *seq,
                                                             int timeline_frame)
 {
@@ -439,7 +445,7 @@ void draw_seq_strip_thumbnail(View2D *v2d,
   }
 
   /* If width of the strip too small ignore drawing thumbnails. */
-  if ((y2 - y1) / pixely <= 20 * U.dpi_fac) {
+  if ((y2 - y1) / pixely <= 20 * UI_SCALE_FAC) {
     return;
   }
 
@@ -536,14 +542,14 @@ void draw_seq_strip_thumbnail(View2D *v2d,
     /* Transparency on overlap. */
     if (seq->flag & SEQ_OVERLAP) {
       GPU_blend(GPU_BLEND_ALPHA);
-      if (ibuf->rect) {
-        uchar *buf = (uchar *)ibuf->rect;
+      if (ibuf->byte_buffer.data) {
+        uchar *buf = ibuf->byte_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += 4) {
           buf[3] = OVERLAP_ALPHA;
         }
       }
-      else if (ibuf->rect_float) {
-        float *buf = (float *)ibuf->rect_float;
+      else if (ibuf->float_buffer.data) {
+        float *buf = ibuf->float_buffer.data;
         for (int pixel = ibuf->x * ibuf->y; pixel--; buf += ibuf->channels) {
           buf[3] = (OVERLAP_ALPHA / 255.0f);
         }

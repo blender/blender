@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -77,6 +78,8 @@ enum class NodeType {
   /* Used by all operations which are updating object when something is
    * changed in view layer. */
   OBJECT_FROM_LAYER,
+  /* Hierarchy of objects and collections */
+  HIERARCHY,
   /* Audio-related evaluation. */
   AUDIO,
   ARMATURE,
@@ -189,13 +192,9 @@ struct Node {
   /** Generic identifier for Depsgraph Nodes. */
   virtual string identifier() const;
 
-  virtual void init(const ID * /*id*/, const char * /*subdata*/)
-  {
-  }
+  virtual void init(const ID * /*id*/, const char * /*subdata*/) {}
 
-  virtual void tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/)
-  {
-  }
+  virtual void tag_update(Depsgraph * /*graph*/, eUpdateSource /*source*/) {}
 
   virtual OperationNode *get_entry_operation()
   {

@@ -21,6 +21,7 @@ enum {
   PG_RGEN_INTERSECT_SHADOW,
   PG_RGEN_INTERSECT_SUBSURFACE,
   PG_RGEN_INTERSECT_VOLUME_STACK,
+  PG_RGEN_INTERSECT_DEDICATED_LIGHT,
   PG_RGEN_SHADE_BACKGROUND,
   PG_RGEN_SHADE_LIGHT,
   PG_RGEN_SHADE_SURFACE,
@@ -28,6 +29,7 @@ enum {
   PG_RGEN_SHADE_SURFACE_MNEE,
   PG_RGEN_SHADE_VOLUME,
   PG_RGEN_SHADE_SHADOW,
+  PG_RGEN_SHADE_DEDICATED_LIGHT,
   PG_RGEN_EVAL_DISPLACE,
   PG_RGEN_EVAL_BACKGROUND,
   PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY,
@@ -88,7 +90,7 @@ class OptiXDevice : public CUDADevice {
   OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler);
   ~OptiXDevice();
 
-  BVHLayoutMask get_bvh_layout_mask() const override;
+  BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   string compile_kernel_get_common_cflags(const uint kernel_features);
 

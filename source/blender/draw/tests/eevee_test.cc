@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
 #include "BKE_context.h"
 #include "BKE_idtype.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "DEG_depsgraph.h"
 #include "RNA_define.h"
@@ -68,7 +70,7 @@ static void test_eevee_shadow_shift_clear()
 
   Manager manager;
   manager.submit(pass);
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   tilemaps_data.read();
   tiles_data.read();
@@ -129,7 +131,7 @@ static void test_eevee_shadow_shift()
 
   Manager manager;
   manager.submit(pass);
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   tilemaps_data.read();
   tiles_data.read();
@@ -221,7 +223,7 @@ static void test_eevee_shadow_tag_update()
   pass.dispatch(int3(curr_casters_updated.size(), 1, tilemaps_data.size()));
 
   manager.submit(pass);
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   tiles_data.read();
 
@@ -422,7 +424,7 @@ static void test_eevee_shadow_free()
 
   Manager manager;
   manager.submit(pass);
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   tiles_data.read();
   pages_infos_data.read();
@@ -529,7 +531,7 @@ class TestDefrag {
 
     Manager manager;
     manager.submit(pass);
-    GPU_finish();
+    GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
     tiles_data.read();
     pages_cached_data.read();
@@ -650,7 +652,7 @@ class TestAlloc {
 
     Manager manager;
     manager.submit(pass);
-    GPU_finish();
+    GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
     tiles_data.read();
     pages_infos_data.read();
@@ -797,9 +799,7 @@ static void test_eevee_shadow_finalize()
 
   Manager manager;
   manager.submit(pass);
-  GPU_finish();
-
-  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE | GPU_BARRIER_TEXTURE_UPDATE);
 
   {
     uint *pixels = tilemap_tx.read<uint32_t>(GPU_DATA_UINT);
@@ -1052,7 +1052,7 @@ static void test_eevee_shadow_page_mask()
 
   Manager manager;
   manager.submit(pass);
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   tiles_data.read();
 

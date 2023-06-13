@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -73,6 +74,9 @@ struct uiSearchboxData {
   rcti bbox;
   uiFontStyle fstyle;
   uiSearchItems items;
+  bool size_set;
+  ARegion *butregion;
+  uiButSearch *search_but;
   /** index in items array */
   int active;
   /** when menu opened with enough space for this */
@@ -305,11 +309,8 @@ bool ui_searchbox_apply(uiBut *but, ARegion *region)
   return false;
 }
 
-static struct ARegion *wm_searchbox_tooltip_init(struct bContext *C,
-                                                 struct ARegion *region,
-                                                 int * /*r_pass*/,
-                                                 double * /*pass_delay*/,
-                                                 bool *r_exit_on_event)
+static ARegion *wm_searchbox_tooltip_init(
+    bContext *C, ARegion *region, int * /*r_pass*/, double * /*pass_delay*/, bool *r_exit_on_event)
 {
   *r_exit_on_event = true;
 
@@ -373,9 +374,9 @@ bool ui_searchbox_event(
              * (a little confusing if this isn't the case, although it does work). */
             rcti rect;
             ui_searchbox_butrect(&rect, data, data->active);
-            if (BLI_rcti_isect_pt(&rect,
-                                  event->xy[0] - region->winrct.xmin,
-                                  event->xy[1] - region->winrct.ymin)) {
+            if (BLI_rcti_isect_pt(
+                    &rect, event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin))
+            {
 
               void *active = data->items.pointers[data->active];
               if (search_but->item_context_menu_fn(C, search_but->arg, active, event)) {
@@ -396,7 +397,8 @@ bool ui_searchbox_event(
         for (a = 0; a < data->items.totitem; a++) {
           ui_searchbox_butrect(&rect, data, a);
           if (BLI_rcti_isect_pt(
-                  &rect, event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin)) {
+                  &rect, event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin))
+          {
             is_inside = true;
             if (data->active != a) {
               data->active = a;
@@ -533,7 +535,7 @@ int ui_searchbox_autocomplete(bContext *C, ARegion *region, uiBut *but, char *st
   BLI_assert(but->type == UI_BTYPE_SEARCH_MENU);
 
   if (str[0]) {
-    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_max_length(but));
+    data->items.autocpl = UI_autocomplete_begin(str, ui_but_string_get_maxncpy(but));
 
     ui_searchbox_update_fn(C, search_but, but->editstr, &data->items);
 
@@ -648,7 +650,7 @@ static void ui_searchbox_region_draw_fn(const bContext *C, ARegion *region)
 
           if (icon == ICON_BLANK1) {
             icon = ICON_NONE;
-            rect.xmin -= UI_DPI_ICON_SIZE / 4;
+            rect.xmin -= UI_ICON_SIZE / 4;
           }
 
           /* The previous menu item draws the active selection. */
@@ -702,55 +704,35 @@ static void ui_searchbox_region_listen_fn(const wmRegionListenerParams *params)
   }
 }
 
-static ARegion *ui_searchbox_create_generic_ex(bContext *C,
-                                               ARegion *butregion,
-                                               uiButSearch *but,
-                                               const bool use_shortcut_sep)
+static uiMenuItemSeparatorType ui_searchbox_item_separator(uiSearchboxData *data)
 {
-  wmWindow *win = CTX_wm_window(C);
-  const uiStyle *style = UI_style_get();
-  const float aspect = but->block->aspect;
+  uiMenuItemSeparatorType separator_type = data->use_shortcut_sep ?
+                                               UI_MENU_ITEM_SEPARATOR_SHORTCUT :
+                                               UI_MENU_ITEM_SEPARATOR_NONE;
+  if (separator_type == UI_MENU_ITEM_SEPARATOR_NONE && !data->preview) {
+    for (int a = 0; a < data->items.totitem; a++) {
+      if (data->items.but_flags[a] & UI_BUT_HAS_SEP_CHAR) {
+        separator_type = UI_MENU_ITEM_SEPARATOR_HINT;
+        break;
+      }
+    }
+  }
+  return separator_type;
+}
+
+static void ui_searchbox_region_layout_fn(const bContext *C, ARegion *region)
+{
+  uiSearchboxData *data = (uiSearchboxData *)region->regiondata;
+
+  if (data->size_set) {
+    /* Already set. */
+    return;
+  }
+
+  uiButSearch *but = data->search_but;
+  ARegion *butregion = data->butregion;
   const int margin = UI_POPUP_MARGIN;
-
-  /* create area region */
-  ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
-
-  static ARegionType type;
-  memset(&type, 0, sizeof(ARegionType));
-  type.draw = ui_searchbox_region_draw_fn;
-  type.free = ui_searchbox_region_free_fn;
-  type.listener = ui_searchbox_region_listen_fn;
-  type.regionid = RGN_TYPE_TEMPORARY;
-  region->type = &type;
-
-  /* Create search-box data. */
-  uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
-  data->search_arg = but->arg;
-  data->search_listener = but->listen_fn;
-
-  /* Set font, get the bounding-box. */
-  data->fstyle = style->widget; /* copy struct */
-  ui_fontscale(&data->fstyle.points, aspect);
-  UI_fontstyle_set(&data->fstyle);
-
-  region->regiondata = data;
-
-  /* Special case, hard-coded feature, not draw backdrop when called from menus,
-   * assume for design that popup already added it. */
-  if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
-    data->noback = true;
-  }
-
-  if (but->a1 > 0 && but->a2 > 0) {
-    data->preview = true;
-    data->prv_rows = but->a1;
-    data->prv_cols = but->a2;
-  }
-
-  if (but->optype != nullptr || use_shortcut_sep) {
-    data->use_shortcut_sep = true;
-  }
-  data->sep_string = but->item_sep_string;
+  wmWindow *win = CTX_wm_window(C);
 
   /* compute position */
   if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
@@ -775,7 +757,12 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
     }
   }
   else {
-    const int searchbox_width = UI_searchbox_size_x();
+    int searchbox_width = UI_searchbox_size_x();
+
+    /* We should make this wider if there is a path or hint on the right. */
+    if (ui_searchbox_item_separator(data) != UI_MENU_ITEM_SEPARATOR_NONE) {
+      searchbox_width += 12 * data->fstyle.points * UI_SCALE_FAC;
+    }
 
     rctf rect_fl;
     rect_fl.xmin = but->rect.xmin - 5; /* align text with button */
@@ -845,7 +832,65 @@ static ARegion *ui_searchbox_create_generic_ex(bContext *C,
     region->winrct.ymax = rect_i.ymax;
   }
 
-  /* adds subwindow */
+  region->winx = region->winrct.xmax - region->winrct.xmin + 1;
+  region->winy = region->winrct.ymax - region->winrct.ymin + 1;
+
+  data->size_set = true;
+}
+
+static ARegion *ui_searchbox_create_generic_ex(bContext *C,
+                                               ARegion *butregion,
+                                               uiButSearch *but,
+                                               const bool use_shortcut_sep)
+{
+  const uiStyle *style = UI_style_get();
+  const float aspect = but->block->aspect;
+
+  /* create area region */
+  ARegion *region = ui_region_temp_add(CTX_wm_screen(C));
+
+  static ARegionType type;
+  memset(&type, 0, sizeof(ARegionType));
+  type.layout = ui_searchbox_region_layout_fn;
+  type.draw = ui_searchbox_region_draw_fn;
+  type.free = ui_searchbox_region_free_fn;
+  type.listener = ui_searchbox_region_listen_fn;
+  type.regionid = RGN_TYPE_TEMPORARY;
+  region->type = &type;
+
+  /* Create search-box data. */
+  uiSearchboxData *data = MEM_cnew<uiSearchboxData>(__func__);
+  data->search_arg = but->arg;
+  data->search_but = but;
+  data->butregion = butregion;
+  data->size_set = false;
+  data->search_listener = but->listen_fn;
+
+  /* Set font, get the bounding-box. */
+  data->fstyle = style->widget; /* copy struct */
+  ui_fontscale(&data->fstyle.points, aspect);
+  UI_fontstyle_set(&data->fstyle);
+
+  region->regiondata = data;
+
+  /* Special case, hard-coded feature, not draw backdrop when called from menus,
+   * assume for design that popup already added it. */
+  if (but->block->flag & UI_BLOCK_SEARCH_MENU) {
+    data->noback = true;
+  }
+
+  if (but->a1 > 0 && but->a2 > 0) {
+    data->preview = true;
+    data->prv_rows = but->a1;
+    data->prv_cols = but->a2;
+  }
+
+  if (but->optype != nullptr || use_shortcut_sep) {
+    data->use_shortcut_sep = true;
+  }
+  data->sep_string = but->item_sep_string;
+
+  /* Adds sub-window. */
   ED_region_floating_init(region);
 
   /* notify change and redraw */

@@ -34,3 +34,156 @@ diff -Naur llvm-sycl-nightly-20220208.orig/libdevice/cmake/modules/SYCLLibdevice
    libsycldevice-obj
    libsycldevice-spv)
  
+diff --git a/sycl/source/detail/program_manager/program_manager.cpp b/sycl/source/detail/program_manager/program_manager.cpp
+index 17eeaafae194..09e6d2217aaa 100644
+--- a/sycl/source/detail/program_manager/program_manager.cpp
++++ b/sycl/source/detail/program_manager/program_manager.cpp
+@@ -1647,46 +1647,120 @@ ProgramManager::getSYCLDeviceImagesWithCompatibleState(
+   }
+   assert(BinImages.size() > 0 && "Expected to find at least one device image");
+ 
++  // Ignore images with incompatible state. Image is considered compatible
++  // with a target state if an image is already in the target state or can
++  // be brought to target state by compiling/linking/building.
++  //
++  // Example: an image in "executable" state is not compatible with
++  // "input" target state - there is no operation to convert the image it
++  // to "input" state. An image in "input" state is compatible with
++  // "executable" target state because it can be built to get into
++  // "executable" state.
++  for (auto It = BinImages.begin(); It != BinImages.end();) {
++    if (getBinImageState(*It) > TargetState)
++      It = BinImages.erase(It);
++    else
++      ++It;
++  }
++
+   std::vector<device_image_plain> SYCLDeviceImages;
+-  for (RTDeviceBinaryImage *BinImage : BinImages) {
+-    const bundle_state ImgState = getBinImageState(BinImage);
+-
+-    // Ignore images with incompatible state. Image is considered compatible
+-    // with a target state if an image is already in the target state or can
+-    // be brought to target state by compiling/linking/building.
+-    //
+-    // Example: an image in "executable" state is not compatible with
+-    // "input" target state - there is no operation to convert the image it
+-    // to "input" state. An image in "input" state is compatible with
+-    // "executable" target state because it can be built to get into
+-    // "executable" state.
+-    if (ImgState > TargetState)
+-      continue;
+ 
+-    for (const sycl::device &Dev : Devs) {
++  // If a non-input state is requested, we can filter out some compatible
++  // images and return only those with the highest compatible state for each
++  // device-kernel pair. This map tracks how many kernel-device pairs need each
++  // image, so that any unneeded ones are skipped.
++  // TODO this has no effect if the requested state is input, consider having
++  // a separate branch for that case to avoid unnecessary tracking work.
++  struct DeviceBinaryImageInfo {
++    std::shared_ptr<std::vector<sycl::kernel_id>> KernelIDs;
++    bundle_state State = bundle_state::input;
++    int RequirementCounter = 0;
++  };
++  std::unordered_map<RTDeviceBinaryImage *, DeviceBinaryImageInfo> ImageInfoMap;
++
++  for (const sycl::device &Dev : Devs) {
++    // Track the highest image state for each requested kernel.
++    using StateImagesPairT =
++        std::pair<bundle_state, std::vector<RTDeviceBinaryImage *>>;
++    using KernelImageMapT =
++        std::map<kernel_id, StateImagesPairT, LessByNameComp>;
++    KernelImageMapT KernelImageMap;
++    if (!KernelIDs.empty())
++      for (const kernel_id &KernelID : KernelIDs)
++        KernelImageMap.insert({KernelID, {}});
++
++    for (RTDeviceBinaryImage *BinImage : BinImages) {
+       if (!compatibleWithDevice(BinImage, Dev) ||
+           !doesDevSupportImgAspects(Dev, *BinImage))
+         continue;
+ 
+-      std::shared_ptr<std::vector<sycl::kernel_id>> KernelIDs;
+-      // Collect kernel names for the image
+-      {
+-        std::lock_guard<std::mutex> KernelIDsGuard(m_KernelIDsMutex);
+-        KernelIDs = m_BinImg2KernelIDs[BinImage];
+-        // If the image does not contain any non-service kernels we can skip it.
+-        if (!KernelIDs || KernelIDs->empty())
+-          continue;
++      auto InsertRes = ImageInfoMap.insert({BinImage, {}});
++      DeviceBinaryImageInfo &ImgInfo = InsertRes.first->second;
++      if (InsertRes.second) {
++        ImgInfo.State = getBinImageState(BinImage);
++        // Collect kernel names for the image
++        {
++          std::lock_guard<std::mutex> KernelIDsGuard(m_KernelIDsMutex);
++          ImgInfo.KernelIDs = m_BinImg2KernelIDs[BinImage];
++        }
+       }
++      const bundle_state ImgState = ImgInfo.State;
++      const std::shared_ptr<std::vector<sycl::kernel_id>> &ImageKernelIDs =
++          ImgInfo.KernelIDs;
++      int &ImgRequirementCounter = ImgInfo.RequirementCounter;
+ 
+-      DeviceImageImplPtr Impl = std::make_shared<detail::device_image_impl>(
+-          BinImage, Ctx, Devs, ImgState, KernelIDs, /*PIProgram=*/nullptr);
++      // If the image does not contain any non-service kernels we can skip it.
++      if (!ImageKernelIDs || ImageKernelIDs->empty())
++        continue;
+ 
+-      SYCLDeviceImages.push_back(
+-          createSyclObjFromImpl<device_image_plain>(Impl));
+-      break;
++      // Update tracked information.
++      for (kernel_id &KernelID : *ImageKernelIDs) {
++        StateImagesPairT *StateImagesPair;
++        // If only specific kernels are requested, ignore the rest.
++        if (!KernelIDs.empty()) {
++          auto It = KernelImageMap.find(KernelID);
++          if (It == KernelImageMap.end())
++            continue;
++          StateImagesPair = &It->second;
++        } else
++          StateImagesPair = &KernelImageMap[KernelID];
++
++        auto &[KernelImagesState, KernelImages] = *StateImagesPair;
++
++        if (KernelImages.empty()) {
++          KernelImagesState = ImgState;
++          KernelImages.push_back(BinImage);
++          ++ImgRequirementCounter;
++        } else if (KernelImagesState < ImgState) {
++          for (RTDeviceBinaryImage *Img : KernelImages) {
++            auto It = ImageInfoMap.find(Img);
++            assert(It != ImageInfoMap.end());
++            assert(It->second.RequirementCounter > 0);
++            --(It->second.RequirementCounter);
++          }
++          KernelImages.clear();
++          KernelImages.push_back(BinImage);
++          KernelImagesState = ImgState;
++          ++ImgRequirementCounter;
++        } else if (KernelImagesState == ImgState) {
++          KernelImages.push_back(BinImage);
++          ++ImgRequirementCounter;
++        }
++      }
+     }
+   }
+ 
++  for (const auto &ImgInfoPair : ImageInfoMap) {
++    if (ImgInfoPair.second.RequirementCounter == 0)
++      continue;
++
++    DeviceImageImplPtr Impl = std::make_shared<detail::device_image_impl>(
++        ImgInfoPair.first, Ctx, Devs, ImgInfoPair.second.State,
++        ImgInfoPair.second.KernelIDs, /*PIProgram=*/nullptr);
++
++    SYCLDeviceImages.push_back(createSyclObjFromImpl<device_image_plain>(Impl));
++  }
++
+   return SYCLDeviceImages;
+ }
+ 

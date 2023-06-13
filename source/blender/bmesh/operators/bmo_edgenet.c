@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -80,7 +82,8 @@ static BMEdge *edge_next(BMesh *bm, BMEdge *e)
   for (i = 0; i < 2; i++) {
     BM_ITER_ELEM (e2, &iter, i ? e->v2 : e->v1, BM_EDGES_OF_VERT) {
       if (BMO_edge_flag_test(bm, e2, EDGE_MARK) &&
-          (BMO_edge_flag_test(bm, e2, EDGE_VIS) == false) && (e2 != e)) {
+          (BMO_edge_flag_test(bm, e2, EDGE_VIS) == false) && (e2 != e))
+      {
         return e2;
       }
     }
@@ -129,7 +132,8 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
     BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
       if (!BMO_edge_flag_test(bm, e, EDGE_VIS)) {
         if (BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v1, EDGE_MARK, true) == 1 ||
-            BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v2, EDGE_MARK, true) == 1) {
+            BMO_iter_elem_count_flag(bm, BM_EDGES_OF_VERT, e->v2, EDGE_MARK, true) == 1)
+        {
           break;
         }
       }
@@ -173,9 +177,11 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
   }
 
   if (edges1 && BLI_array_len(edges1) > 2 &&
-      BM_edge_share_vert_check(edges1[0], edges1[BLI_array_len(edges1) - 1])) {
+      BM_edge_share_vert_check(edges1[0], edges1[BLI_array_len(edges1) - 1]))
+  {
     if (edges2 && BLI_array_len(edges2) > 2 &&
-        BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1])) {
+        BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1]))
+    {
       BLI_array_free(edges1);
       BLI_array_free(edges2);
       return;
@@ -185,7 +191,8 @@ void bmo_edgenet_prepare_exec(BMesh *bm, BMOperator *op)
   }
 
   if (edges2 && BLI_array_len(edges2) > 2 &&
-      BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1])) {
+      BM_edge_share_vert_check(edges2[0], edges2[BLI_array_len(edges2) - 1]))
+  {
     edges2 = NULL;
   }
 

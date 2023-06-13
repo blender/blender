@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -15,9 +16,9 @@ namespace blender::nodes::node_shader_normal_map_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Strength")).default_value(1.0f).min(0.0f).max(10.0f);
-  b.add_input<decl::Color>(N_("Color")).default_value({0.5f, 0.5f, 1.0f, 1.0f});
-  b.add_output<decl::Vector>(N_("Normal"));
+  b.add_input<decl::Float>("Strength").default_value(1.0f).min(0.0f).max(10.0f);
+  b.add_input<decl::Color>("Color").default_value({0.5f, 0.5f, 1.0f, 1.0f});
+  b.add_output<decl::Vector>("Normal");
 }
 
 static void node_shader_buts_normal_map(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -126,7 +127,7 @@ void register_node_type_sh_normal_map()
   sh_node_type_base(&ntype, SH_NODE_NORMAL_MAP, "Normal Map", NODE_CLASS_OP_VECTOR);
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_shader_init_normal_map;
   node_type_storage(
       &ntype, "NodeShaderNormalMap", node_free_standard_storage, node_copy_standard_storage);

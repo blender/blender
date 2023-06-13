@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -197,6 +198,10 @@ static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
   GPU_BATCH_DISCARD_SAFE(hair_cache->hairs);
   GPU_VERTBUF_DISCARD_SAFE(hair_cache->pos);
   GPU_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
+
+  MEM_SAFE_FREE(hair_cache->proc_col_buf);
+  MEM_SAFE_FREE(hair_cache->col_tex);
+  MEM_SAFE_FREE(hair_cache->col_layer_names);
 }
 
 static void particle_batch_cache_clear(ParticleSystem *psys)
@@ -206,9 +211,11 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
     return;
   }
 
-  particle_batch_cache_clear_point(&cache->point);
-  particle_batch_cache_clear_hair(&cache->hair);
+  /* All memory allocated by `cache` must be freed. */
 
+  particle_batch_cache_clear_point(&cache->point);
+
+  particle_batch_cache_clear_hair(&cache->hair);
   particle_batch_cache_clear_hair(&cache->edit_hair);
 
   GPU_BATCH_DISCARD_SAFE(cache->edit_inner_points);
@@ -217,24 +224,9 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
   GPU_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 }
 
-static void particle_batch_cache_free_hair(ParticleHairCache *hair)
-{
-  MEM_SAFE_FREE(hair->proc_col_buf);
-  MEM_SAFE_FREE(hair->col_tex);
-  MEM_SAFE_FREE(hair->col_layer_names);
-}
-
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
 {
   particle_batch_cache_clear(psys);
-
-  ParticleBatchCache *cache = psys->batch_cache;
-
-  if (cache) {
-    particle_batch_cache_free_hair(&cache->hair);
-    particle_batch_cache_free_hair(&cache->edit_hair);
-  }
-
   MEM_SAFE_FREE(psys->batch_cache);
 }
 
@@ -257,7 +249,8 @@ static void ensure_seg_pt_count(PTCacheEdit *edit,
                                 ParticleHairCache *hair_cache)
 {
   if ((hair_cache->pos != NULL && hair_cache->indices != NULL) ||
-      (hair_cache->proc_point_buf != NULL)) {
+      (hair_cache->proc_point_buf != NULL))
+  {
     return;
   }
 
@@ -911,13 +904,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    BLI_snprintf(cache->uv_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%s", attr_safe_name);
+    SNPRINTF(cache->uv_layer_names[i][n], "a%s", attr_safe_name);
+    n++;
 
     if (i == active_uv) {
-      BLI_strncpy(cache->uv_layer_names[i][n++], "au", MAX_LAYER_NAME_LEN);
+      STRNCPY(cache->uv_layer_names[i][n], "au");
+      n++;
     }
     if (i == render_uv) {
-      BLI_strncpy(cache->uv_layer_names[i][n++], "a", MAX_LAYER_NAME_LEN);
+      STRNCPY(cache->uv_layer_names[i][n], "a");
+      n++;
     }
   }
 
@@ -942,13 +938,16 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
     GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
     int n = 0;
-    BLI_snprintf(cache->col_layer_names[i][n++], MAX_LAYER_NAME_LEN, "a%s", attr_safe_name);
+    SNPRINTF(cache->col_layer_names[i][n], "a%s", attr_safe_name);
+    n++;
 
     if (i == active_col) {
-      BLI_strncpy(cache->col_layer_names[i][n++], "ac", MAX_LAYER_NAME_LEN);
+      STRNCPY(cache->col_layer_names[i][n], "ac");
+      n++;
     }
     if (i == render_col) {
-      BLI_strncpy(cache->col_layer_names[i][n++], "c", MAX_LAYER_NAME_LEN);
+      STRNCPY(cache->col_layer_names[i][n], "c");
+      n++;
     }
   }
 
@@ -987,8 +986,8 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   }
   else {
     int curr_point = 0;
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_strands_data(psys,
                                                           psmd,
                                                           psys->pathcache,
@@ -1087,8 +1086,8 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   }
   else {
     int curr_point = 0;
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments_indices(
           psys->pathcache, 0, psys->totpart, verts_per_hair, &elb);
     }
@@ -1211,7 +1210,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
       const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_PROP_FLOAT2, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      BLI_snprintf(uuid, sizeof(uuid), "a%s", attr_safe_name);
+      SNPRINTF(uuid, "a%s", attr_safe_name);
       uv_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
       if (i == active_uv) {
@@ -1225,7 +1224,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
           &psmd->mesh_final->ldata, CD_PROP_BYTE_COLOR, i);
       GPU_vertformat_safe_attr_name(name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
 
-      BLI_snprintf(uuid, sizeof(uuid), "a%s", attr_safe_name);
+      SNPRINTF(uuid, "a%s", attr_safe_name);
       col_id[i] = GPU_vertformat_attr_add(&format, uuid, GPU_COMP_U16, 4, GPU_FETCH_FLOAT);
 
       if (i == active_col) {
@@ -1278,8 +1277,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
                                                     hair_cache);
   }
   else {
-    if ((psys->pathcache != NULL) &&
-        (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+    if ((psys->pathcache != NULL) && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+    {
       curr_point = particle_batch_cache_fill_segments(psys,
                                                       psmd,
                                                       psys->pathcache,
@@ -1711,7 +1710,8 @@ bool particles_ensure_procedural_data(Object *object,
 
   /* Refreshed on combing and simulation. */
   if ((*r_hair_cache)->proc_point_buf == NULL ||
-      (gpu_material && (*r_hair_cache)->proc_length_buf == NULL)) {
+      (gpu_material && (*r_hair_cache)->proc_length_buf == NULL))
+  {
     ensure_seg_pt_count(source.edit, source.psys, &cache->hair);
     particle_batch_cache_ensure_procedural_pos(
         source.edit, source.psys, &cache->hair, gpu_material);

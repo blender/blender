@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -158,11 +159,11 @@ typedef struct Nurb {
 } Nurb;
 
 typedef struct CharInfo {
-  short kern;
+  float kern;
   /** Index start at 1, unlike mesh & nurbs. */
   short mat_nr;
   char flag;
-  char _pad[3];
+  char _pad[1];
 } CharInfo;
 
 typedef struct TextBox {
@@ -601,6 +602,10 @@ enum {
   /** Set at runtime, indicates char that doesn't fit in text boxes. */
   CU_CHINFO_OVERFLOW = 1 << 6,
 };
+
+/** User adjustable as styles (not relating to run-time layout calculation). */
+#define CU_CHINFO_STYLE_ALL \
+  (CU_CHINFO_BOLD | CU_CHINFO_ITALIC | CU_CHINFO_UNDERLINE | CU_CHINFO_SMALLCAPS)
 
 /* mixed with KEY_LINEAR but define here since only curve supports */
 #define KEY_CU_EASE 3

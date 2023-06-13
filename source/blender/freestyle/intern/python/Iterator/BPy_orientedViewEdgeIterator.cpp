@@ -43,7 +43,8 @@ static int orientedViewEdgeIterator_init(BPy_orientedViewEdgeIterator *self,
   PyObject *brother = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother)) {
+          args, kwds, "|O!", (char **)kwlist, &orientedViewEdgeIterator_Type, &brother))
+  {
     return -1;
   }
   if (!brother) {

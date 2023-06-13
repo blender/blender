@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -8,11 +9,11 @@
 #include "DRW_render.h"
 
 #include "BKE_global.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 
 #include "BKE_object.h"
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "UI_resources.h"
 
@@ -224,7 +225,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
     return;
   }
 
-  struct GPUBatch *geom = DRW_cache_gpencil_get(iter->ob, iter->cfra);
+  GPUBatch *geom = DRW_cache_gpencil_get(iter->ob, iter->cfra);
 
   if (show_fill) {
     int vfirst = gps->runtime.fill_start * 3;
@@ -268,7 +269,7 @@ static void OVERLAY_outline_gpencil(OVERLAY_PrivateData *pd, Object *ob)
 
 static void OVERLAY_outline_volume(OVERLAY_PrivateData *pd, Object *ob)
 {
-  struct GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
+  GPUBatch *geom = DRW_cache_volume_selection_surface_get(ob);
   if (geom == nullptr) {
     return;
   }
@@ -302,7 +303,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  struct GPUBatch *geom;
+  GPUBatch *geom;
   DRWShadingGroup *shgroup = nullptr;
   const bool draw_outline = ob->dt > OB_BOUNDBOX;
 
@@ -311,7 +312,7 @@ void OVERLAY_outline_cache_populate(OVERLAY_Data *vedata,
     return;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     OVERLAY_outline_gpencil(pd, ob);
     return;
   }

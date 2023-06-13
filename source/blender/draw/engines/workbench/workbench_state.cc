@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "workbench_private.hh"
 
@@ -87,7 +89,8 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
   if (SHADING_XRAY_ENABLED(shading) != SHADING_XRAY_ENABLED(previous_shading) ||
-      shading.flag != previous_shading.flag) {
+      shading.flag != previous_shading.flag)
+  {
     reset_taa = true;
   }
 
@@ -199,7 +202,7 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   sculpt_pbvh = false;
   texture_paint_mode = false;
   image_paint_override = nullptr;
-  override_sampler_state = GPU_SAMPLER_DEFAULT;
+  override_sampler_state = GPUSamplerState::default_sampler();
   draw_shadow = false;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -283,10 +286,11 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
         const ImagePaintSettings *imapaint = &scene_state.scene->toolsettings->imapaint;
         if (imapaint->mode == IMAGEPAINT_MODE_IMAGE) {
           image_paint_override = imapaint->canvas;
-          override_sampler_state = GPU_SAMPLER_REPEAT;
-          SET_FLAG_FROM_TEST(override_sampler_state,
-                             imapaint->interp == IMAGEPAINT_INTERP_LINEAR,
-                             GPU_SAMPLER_FILTER);
+          override_sampler_state.extend_x = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          override_sampler_state.extend_yz = GPU_SAMPLER_EXTEND_MODE_REPEAT;
+          const bool use_linear_filter = imapaint->interp == IMAGEPAINT_INTERP_LINEAR;
+          override_sampler_state.set_filtering_flag_from_test(GPU_SAMPLER_FILTERING_LINEAR,
+                                                              use_linear_filter);
         }
       }
     }

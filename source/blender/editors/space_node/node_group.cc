@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -75,7 +76,8 @@ static bool node_group_operator_active_poll(bContext *C)
                  "ShaderNodeTree",
                  "CompositorNodeTree",
                  "TextureNodeTree",
-                 "GeometryNodeTree")) {
+                 "GeometryNodeTree"))
+    {
       return true;
     }
   }
@@ -91,7 +93,8 @@ static bool node_group_operator_editable(bContext *C)
      * Disabled otherwise to allow python-nodes define their own operators
      * with same key-map. */
     if (ED_node_is_shader(snode) || ED_node_is_compositor(snode) || ED_node_is_texture(snode) ||
-        ED_node_is_geometry(snode)) {
+        ED_node_is_geometry(snode))
+    {
       return true;
     }
   }
@@ -133,6 +136,27 @@ static bNode *node_group_get_active(bContext *C, const char *node_idname)
     return node;
   }
   return nullptr;
+}
+
+/* Maps old to new identifiers for simulation input node pairing. */
+static void remap_pairing(bNodeTree &dst_tree,
+                          Span<bNode *> nodes,
+                          const Map<int32_t, int32_t> &identifier_map)
+{
+  for (bNode *dst_node : nodes) {
+    if (dst_node->type == GEO_NODE_SIMULATION_INPUT) {
+      NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
+          dst_node->storage);
+      if (data->output_node_id == 0) {
+        continue;
+      }
+
+      data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
+      if (data->output_node_id == 0) {
+        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+      }
+    }
+  }
 }
 
 /** \} */
@@ -227,10 +251,13 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
    * - `ngroup` (i.e. the source NodeTree) is left unscathed.
    * - Temp copy. do change ID user-count for the copies.
    */
-  bNodeTree *wgroup = ntreeCopyTree(bmain, ngroup);
+  bNodeTree *wgroup = bke::ntreeCopyTree(bmain, ngroup);
 
   /* Add the nodes into the `ntree`. */
+  Vector<bNode *> new_nodes;
+  Map<int32_t, int32_t> node_identifier_map;
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &wgroup->nodes) {
+    new_nodes.append(node);
     /* Remove interface nodes.
      * This also removes remaining links to and from interface nodes.
      */
@@ -251,8 +278,10 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     /* migrate node */
     BLI_remlink(&wgroup->nodes, node);
     BLI_addtail(&ntree->nodes, node);
+    const int32_t old_identifier = node->identifier;
     nodeUniqueID(ntree, node);
     nodeUniqueName(ntree, node);
+    node_identifier_map.add(old_identifier, node->identifier);
 
     BKE_ntree_update_tag_node_new(ntree, node);
 
@@ -308,6 +337,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     }
   }
 
+  remap_pairing(*ntree, new_nodes, node_identifier_map);
+
   /* free the group tree (takes care of user count) */
   BKE_id_free(bmain, wgroup);
 
@@ -322,7 +353,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
         /* find external links to this input */
         for (bNodeLink *tlink = (bNodeLink *)ntree->links.first; tlink != glinks_first->next;
-             tlink = tlink->next) {
+             tlink = tlink->next)
+        {
           if (tlink->tonode == gnode && STREQ(tlink->tosock->identifier, identifier)) {
             nodeAddLink(ntree, tlink->fromnode, tlink->fromsock, link->tonode, link->tosock);
             num_external_links++;
@@ -349,7 +381,8 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
 
     /* output links */
     for (bNodeLink *link = (bNodeLink *)ntree->links.first; link != glinks_first->next;
-         link = link->next) {
+         link = link->next)
+    {
       if (link->fromnode == gnode) {
         const char *identifier = link->fromsock->identifier;
         int num_internal_links = 0;
@@ -446,7 +479,9 @@ static bool node_group_separate_selected(
 
   ListBase anim_basepaths = {nullptr, nullptr};
 
+  Map<bNode *, bNode *> node_map;
   Map<const bNodeSocket *, bNodeSocket *> socket_map;
+  Map<int32_t, int32_t> node_identifier_map;
 
   /* Add selected nodes into the ntree, ignoring interface nodes. */
   VectorSet<bNode *> nodes_to_move = get_selected_nodes(ngroup);
@@ -457,14 +492,18 @@ static bool node_group_separate_selected(
     bNode *newnode;
     if (make_copy) {
       newnode = bke::node_copy_with_mapping(&ntree, *node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      node_identifier_map.add(node->identifier, newnode->identifier);
     }
     else {
       newnode = node;
       BLI_remlink(&ngroup.nodes, newnode);
       BLI_addtail(&ntree.nodes, newnode);
+      const int32_t old_identifier = node->identifier;
       nodeUniqueID(&ntree, newnode);
       nodeUniqueName(&ntree, newnode);
+      node_identifier_map.add(old_identifier, newnode->identifier);
     }
+    node_map.add_new(node, newnode);
 
     /* Keep track of this node's RNA "base" path (the part of the path identifying the node)
      * if the old node-tree has animation data which potentially covers this node. */
@@ -491,21 +530,21 @@ static bool node_group_separate_selected(
     }
   }
   if (!make_copy) {
-    nodeRebuildIDVector(&ngroup);
+    bke::nodeRebuildIDVector(&ngroup);
   }
 
   /* add internal links to the ntree */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ngroup.links) {
-    const bool fromselect = (link->fromnode && (link->fromnode->flag & NODE_SELECT));
-    const bool toselect = (link->tonode && (link->tonode->flag & NODE_SELECT));
+    const bool fromselect = (link->fromnode && nodes_to_move.contains(link->fromnode));
+    const bool toselect = (link->tonode && nodes_to_move.contains(link->tonode));
 
     if (make_copy) {
       /* make a copy of internal links */
       if (fromselect && toselect) {
         nodeAddLink(&ntree,
-                    ntree.node_by_id(link->fromnode->identifier),
+                    node_map.lookup(link->fromnode),
                     socket_map.lookup(link->fromsock),
-                    ntree.node_by_id(link->tonode->identifier),
+                    node_map.lookup(link->tonode),
                     socket_map.lookup(link->tosock));
       }
     }
@@ -519,6 +558,12 @@ static bool node_group_separate_selected(
         nodeRemLink(&ngroup, link);
       }
     }
+  }
+
+  remap_pairing(ntree, nodes_to_move, node_identifier_map);
+
+  for (bNode *node : node_map.values()) {
+    bke::nodeDeclarationEnsure(&ntree, node);
   }
 
   /* and copy across the animation,
@@ -653,7 +698,7 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
   /* make a local pseudo node tree to pass to the node poll functions */
   bNodeTree *ngroup = ntreeAddTree(nullptr, "Pseudo Node Group", ntree_idname);
   BLI_SCOPED_DEFER([&]() {
-    ntreeFreeTree(ngroup);
+    bke::ntreeFreeTree(ngroup);
     MEM_freeN(ngroup);
   });
 
@@ -694,8 +739,39 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
       return false;
     };
     if (sockets_connected_to_group(node->input_sockets()) &&
-        sockets_connected_to_group(node->output_sockets())) {
+        sockets_connected_to_group(node->output_sockets()))
+    {
       return false;
+    }
+  }
+  /* Check if simulation zone pairs are fully selected.
+   * Simulation input or output nodes can only be grouped together with the paired node.
+   */
+  for (bNode *input_node : ntree.nodes_by_type("GeometryNodeSimulationInput")) {
+    const NodeGeometrySimulationInput &input_data =
+        *static_cast<const NodeGeometrySimulationInput *>(input_node->storage);
+
+    if (bNode *output_node = ntree.node_by_id(input_data.output_node_id)) {
+      const bool input_selected = nodes_to_group.contains(input_node);
+      const bool output_selected = nodes_to_group.contains(output_node);
+      if (input_selected && !output_selected) {
+        BKE_reportf(
+            &reports,
+            RPT_WARNING,
+            "Can not add simulation input node '%s' to a group without its paired output '%s'",
+            input_node->name,
+            output_node->name);
+        return false;
+      }
+      if (output_selected && !input_selected) {
+        BKE_reportf(
+            &reports,
+            RPT_WARNING,
+            "Can not add simulation output node '%s' to a group without its paired input '%s'",
+            output_node->name,
+            input_node->name);
+        return false;
+      }
     }
   }
 
@@ -716,7 +792,7 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
   INIT_MINMAX2(min, max);
   for (const bNode *node : nodes) {
     float2 loc;
-    nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+    bke::nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
     math::min_max(loc, min, max);
     if (use_size) {
       loc.x += node->width;
@@ -727,7 +803,7 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
 }
 
 /**
- * Skip reroute nodes when finding the the socket to use as an example for a new group interface
+ * Skip reroute nodes when finding the socket to use as an example for a new group interface
  * item. This moves "inward" into nodes selected for grouping to find properties like whether a
  * connected socket has a hidden value. It only works in trivial situations-- a single line of
  * connected reroutes with no branching.
@@ -769,11 +845,11 @@ static bNodeSocket *add_interface_from_socket(const bNodeTree &original_tree,
   const bNodeSocket &socket_for_name = prefer_node_for_interface_name(socket.owner_node()) ?
                                            socket :
                                            socket_for_io;
-  return ntreeAddSocketInterfaceFromSocketWithName(&tree_for_interface,
-                                                   &node_for_io,
-                                                   &socket_for_io,
-                                                   socket_for_io.idname,
-                                                   socket_for_name.name);
+  return bke::ntreeAddSocketInterfaceFromSocketWithName(&tree_for_interface,
+                                                        &node_for_io,
+                                                        &socket_for_io,
+                                                        socket_for_io.idname,
+                                                        socket_for_name.name);
 }
 
 static void node_group_make_insert_selected(const bContext &C,
@@ -827,6 +903,8 @@ static void node_group_make_insert_selected(const bContext &C,
   Vector<OutputLinkInfo> output_links;
   Set<bNodeLink *> internal_links_to_move;
   Set<bNodeLink *> links_to_remove;
+  /* Map old to new node identifiers. */
+  Map<int32_t, int32_t> node_identifier_map;
 
   ntree.ensure_topology_cache();
   for (bNode *node : nodes_to_move) {
@@ -883,7 +961,8 @@ static void node_group_make_insert_selected(const bContext &C,
           if (socket->is_directly_linked()) {
             continue;
           }
-          const bNodeSocket *io_socket = ntreeAddSocketInterfaceFromSocket(&group, node, socket);
+          const bNodeSocket *io_socket = bke::ntreeAddSocketInterfaceFromSocket(
+              &group, node, socket);
           new_internal_links.append({node, socket, io_socket});
         }
       };
@@ -923,15 +1002,19 @@ static void node_group_make_insert_selected(const bContext &C,
 
   /* Move nodes into the group. */
   for (bNode *node : nodes_to_move) {
+    const int32_t old_identifier = node->identifier;
+
     BLI_remlink(&ntree.nodes, node);
     BLI_addtail(&group.nodes, node);
     nodeUniqueID(&group, node);
     nodeUniqueName(&group, node);
 
+    node_identifier_map.add(old_identifier, node->identifier);
+
     BKE_ntree_update_tag_node_removed(&ntree);
     BKE_ntree_update_tag_node_new(&group, node);
   }
-  nodeRebuildIDVector(&ntree);
+  bke::nodeRebuildIDVector(&ntree);
 
   /* Update input and output node first, since the group node declaration can depend on them. */
   nodes::update_node_declaration_and_sockets(group, *input_node);
@@ -993,7 +1076,11 @@ static void node_group_make_insert_selected(const bContext &C,
     }
   }
 
-  bke::node_field_inferencing::update_field_inferencing(group);
+  remap_pairing(group, nodes_to_move, node_identifier_map);
+
+  if (group.type == NTREE_GEOMETRY) {
+    bke::node_field_inferencing::update_field_inferencing(group);
+  }
   nodes::update_node_declaration_and_sockets(ntree, *gnode);
 
   /* Add new links to inputs outside of the group. */

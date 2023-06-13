@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -26,7 +27,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -278,7 +279,7 @@ const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
   return column;
 }
 
-const ActKeyColumn *ED_keylist_array(const struct AnimKeylist *keylist)
+const ActKeyColumn *ED_keylist_array(const AnimKeylist *keylist)
 {
   BLI_assert_msg(
       keylist->is_runtime_initialized,
@@ -286,17 +287,17 @@ const ActKeyColumn *ED_keylist_array(const struct AnimKeylist *keylist)
   return keylist->runtime.key_columns.data();
 }
 
-int64_t ED_keylist_array_len(const struct AnimKeylist *keylist)
+int64_t ED_keylist_array_len(const AnimKeylist *keylist)
 {
   return keylist->column_len;
 }
 
-bool ED_keylist_is_empty(const struct AnimKeylist *keylist)
+bool ED_keylist_is_empty(const AnimKeylist *keylist)
 {
   return keylist->column_len == 0;
 }
 
-const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
+const ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
 {
   if (keylist->is_runtime_initialized) {
     return &keylist->runtime.list_wrapper;
@@ -304,9 +305,9 @@ const struct ListBase *ED_keylist_listbase(const AnimKeylist *keylist)
   return &keylist->key_columns;
 }
 
-static void keylist_first_last(const struct AnimKeylist *keylist,
-                               const struct ActKeyColumn **first_column,
-                               const struct ActKeyColumn **last_column)
+static void keylist_first_last(const AnimKeylist *keylist,
+                               const ActKeyColumn **first_column,
+                               const ActKeyColumn **last_column)
 {
   if (keylist->is_runtime_initialized) {
     *first_column = keylist->runtime.key_columns.data();
@@ -318,7 +319,7 @@ static void keylist_first_last(const struct AnimKeylist *keylist,
   }
 }
 
-bool ED_keylist_all_keys_frame_range(const struct AnimKeylist *keylist, Range2f *r_frame_range)
+bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
 {
   BLI_assert(r_frame_range);
 
@@ -335,8 +336,7 @@ bool ED_keylist_all_keys_frame_range(const struct AnimKeylist *keylist, Range2f 
   return true;
 }
 
-bool ED_keylist_selected_keys_frame_range(const struct AnimKeylist *keylist,
-                                          Range2f *r_frame_range)
+bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range)
 {
   BLI_assert(r_frame_range);
 
@@ -926,20 +926,20 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, AnimKeylist *keylist, const i
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
 
-  bAnimListElem dummychan = {nullptr};
+  bAnimListElem dummy_chan = {nullptr};
 
   if (sce == nullptr) {
     return;
   }
 
   /* create a dummy wrapper data to work with */
-  dummychan.type = ANIMTYPE_SCENE;
-  dummychan.data = sce;
-  dummychan.id = &sce->id;
-  dummychan.adt = sce->adt;
+  dummy_chan.type = ANIMTYPE_SCENE;
+  dummy_chan.data = sce;
+  dummy_chan.id = &sce->id;
+  dummy_chan.adt = sce->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
@@ -961,23 +961,23 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, AnimKeylist *keylist, const int 
   bAnimContext ac = {nullptr};
   ListBase anim_data = {nullptr, nullptr};
 
-  bAnimListElem dummychan = {nullptr};
-  Base dummybase = {nullptr};
+  bAnimListElem dummy_chan = {nullptr};
+  Base dummy_base = {nullptr};
 
   if (ob == nullptr) {
     return;
   }
 
   /* create a dummy wrapper data to work with */
-  dummybase.object = ob;
+  dummy_base.object = ob;
 
-  dummychan.type = ANIMTYPE_OBJECT;
-  dummychan.data = &dummybase;
-  dummychan.id = &ob->id;
-  dummychan.adt = ob->adt;
+  dummy_chan.type = ANIMTYPE_OBJECT;
+  dummy_chan.data = &dummy_base;
+  dummy_chan.id = &ob->id;
+  dummy_chan.adt = ob->adt;
 
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */
@@ -1003,15 +1003,15 @@ void cachefile_to_keylist(bDopeSheet *ads,
   }
 
   /* create a dummy wrapper data to work with */
-  bAnimListElem dummychan = {nullptr};
-  dummychan.type = ANIMTYPE_DSCACHEFILE;
-  dummychan.data = cache_file;
-  dummychan.id = &cache_file->id;
-  dummychan.adt = cache_file->adt;
+  bAnimListElem dummy_chan = {nullptr};
+  dummy_chan.type = ANIMTYPE_DSCACHEFILE;
+  dummy_chan.data = cache_file;
+  dummy_chan.id = &cache_file->id;
+  dummy_chan.adt = cache_file->adt;
 
   bAnimContext ac = {nullptr};
   ac.ads = ads;
-  ac.data = &dummychan;
+  ac.data = &dummy_chan;
   ac.datatype = ANIMCONT_CHANNEL;
 
   /* get F-Curves to take keyframes from */

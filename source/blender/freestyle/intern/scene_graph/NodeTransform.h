@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,9 +28,7 @@ class NodeTransform : public NodeGroup {
     _Scaled = false;
   }
 
-  virtual ~NodeTransform()
-  {
-  }
+  virtual ~NodeTransform() {}
 
   /** multiplies the current matrix by the x, y, z translation matrix. */
   void Translate(real x, real y, real z);

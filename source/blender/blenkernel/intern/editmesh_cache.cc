@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -111,10 +113,7 @@ void BKE_editmesh_cache_ensure_poly_centers(BMEditMesh *em, EditMeshData *emd)
 /** \name Calculate Min/Max
  * \{ */
 
-bool BKE_editmesh_cache_calc_minmax(struct BMEditMesh *em,
-                                    struct EditMeshData *emd,
-                                    float min[3],
-                                    float max[3])
+bool BKE_editmesh_cache_calc_minmax(BMEditMesh *em, EditMeshData *emd, float min[3], float max[3])
 {
   using namespace blender;
   BMesh *bm = em->bm;

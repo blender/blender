@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,14 +28,10 @@ namespace Freestyle {
  */
 template<class Edge> struct EdgeModifier : public unary_function<Edge, void> {
   /** Default construction */
-  EdgeModifier() : unary_function<Edge, void>()
-  {
-  }
+  EdgeModifier() : unary_function<Edge, void>() {}
 
   /** the () operator */
-  virtual void operator()(Edge &iEdge)
-  {
-  }
+  virtual void operator()(Edge &iEdge) {}
 
 #ifdef WITH_CXX_GUARDEDALLOC
   MEM_CXX_CLASS_ALLOC_FUNCS("Freestyle:EdgeModifier")
@@ -43,9 +41,7 @@ template<class Edge> struct EdgeModifier : public unary_function<Edge, void> {
 /** Modifier that sets the time stamp of an Interface1D to the time stamp of the system. */
 template<class Edge> struct TimestampModifier : public EdgeModifier<Edge> {
   /** Default constructor */
-  TimestampModifier() : EdgeModifier<Edge>()
-  {
-  }
+  TimestampModifier() : EdgeModifier<Edge>() {}
 
   /** The () operator. */
   virtual void operator()(Edge &iEdge)

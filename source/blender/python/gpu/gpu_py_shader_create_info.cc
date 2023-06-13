@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -58,7 +60,7 @@ static const struct PyC_FlagSet pygpu_qualifiers[] = {
   "      - ``IVEC3``\n" \
   "      - ``IVEC4``\n" \
   "      - ``BOOL``\n"
-const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
+const PyC_StringEnumItems pygpu_attrtype_items[] = {
     {int(Type::FLOAT), "FLOAT"},
     {int(Type::VEC2), "VEC2"},
     {int(Type::VEC3), "VEC3"},
@@ -110,7 +112,7 @@ const struct PyC_StringEnumItems pygpu_attrtype_items[] = {
   "      - ``DEPTH_2D_ARRAY``\n" \
   "      - ``DEPTH_CUBE``\n" \
   "      - ``DEPTH_CUBE_ARRAY``\n"
-static const struct PyC_StringEnumItems pygpu_imagetype_items[] = {
+static const PyC_StringEnumItems pygpu_imagetype_items[] = {
     {int(ImageType::FLOAT_BUFFER), "FLOAT_BUFFER"},
     {int(ImageType::FLOAT_1D), "FLOAT_1D"},
     {int(ImageType::FLOAT_1D_ARRAY), "FLOAT_1D_ARRAY"},
@@ -146,7 +148,7 @@ static const struct PyC_StringEnumItems pygpu_imagetype_items[] = {
     {0, nullptr},
 };
 
-static const struct PyC_StringEnumItems pygpu_dualblend_items[] = {
+static const PyC_StringEnumItems pygpu_dualblend_items[] = {
     {int(DualBlend::NONE), "NONE"},
     {int(DualBlend::SRC_0), "SRC_0"},
     {int(DualBlend::SRC_1), "SRC_1"},
@@ -163,7 +165,7 @@ static bool pygpu_interface_info_get_args(BPyGPUStageInterfaceInfo *self,
                                           Type *r_type,
                                           const char **r_name)
 {
-  struct PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
+  PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
   PyObject *py_name;
 
   if (!PyArg_ParseTuple(args, format, PyC_ParseStringEnum, &pygpu_type, &py_name)) {
@@ -258,7 +260,7 @@ static PyObject *pygpu_interface_info_no_perspective(BPyGPUStageInterfaceInfo *s
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pygpu_interface_info__tp_methods[] = {
+static PyMethodDef pygpu_interface_info__tp_methods[] = {
     {"smooth",
      (PyCFunction)pygpu_interface_info_smooth,
      METH_VARARGS,
@@ -413,7 +415,7 @@ PyDoc_STRVAR(pygpu_shader_info_vertex_in_doc,
 static PyObject *pygpu_shader_info_vertex_in(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
   int slot;
-  struct PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
+  PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
   const char *param;
 
   if (!PyArg_ParseTuple(args, "iO&s:vertex_in", &slot, PyC_ParseStringEnum, &pygpu_type, &param)) {
@@ -476,9 +478,9 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                                 PyObject *kwds)
 {
   int slot;
-  struct PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
+  PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
   const char *name;
-  struct PyC_StringEnum blend_type = {pygpu_dualblend_items, int(DualBlend::NONE)};
+  PyC_StringEnum blend_type = {pygpu_dualblend_items, int(DualBlend::NONE)};
 
   static const char *_keywords[] = {"slot", "type", "name", "blend", nullptr};
   static _PyArg_Parser _parser = {
@@ -499,7 +501,8 @@ static PyObject *pygpu_shader_info_fragment_out(BPyGPUShaderCreateInfo *self,
                                         &pygpu_type,
                                         &name,
                                         PyC_ParseStringEnum,
-                                        &blend_type)) {
+                                        &blend_type))
+  {
     return nullptr;
   }
 
@@ -604,13 +607,15 @@ static PyObject *pygpu_shader_info_image(BPyGPUShaderCreateInfo *self,
                                         PyC_ParseStringEnum,
                                         &pygpu_imagetype,
                                         &name,
-                                        &py_qualifiers)) {
+                                        &py_qualifiers))
+  {
     return nullptr;
   }
 
   if (py_qualifiers &&
       PyC_FlagSet_ToBitfield(
-          pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1) {
+          pygpu_qualifiers, py_qualifiers, (int *)&qualifier, "shader_info.image") == -1)
+  {
     return nullptr;
   }
 
@@ -647,7 +652,7 @@ PyDoc_STRVAR(
 static PyObject *pygpu_shader_info_sampler(BPyGPUShaderCreateInfo *self, PyObject *args)
 {
   int slot;
-  struct PyC_StringEnum pygpu_samplertype = {pygpu_imagetype_items};
+  PyC_StringEnum pygpu_samplertype = {pygpu_imagetype_items};
   const char *name;
 
   if (!PyArg_ParseTuple(
@@ -760,7 +765,7 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
                                                  PyObject *args,
                                                  PyObject *kwds)
 {
-  struct PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
+  PyC_StringEnum pygpu_type = {pygpu_attrtype_items};
   const char *name = nullptr;
   int array_size = 0;
 
@@ -775,7 +780,8 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
       nullptr,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &name, &array_size)) {
+          args, kwds, &_parser, PyC_ParseStringEnum, &pygpu_type, &name, &array_size))
+  {
     return nullptr;
   }
 
@@ -790,9 +796,7 @@ static PyObject *pygpu_shader_info_push_constant(BPyGPUShaderCreateInfo *self,
 #define VULKAN_LIMIT 128
   int size = constants_calc_size(info);
   if (size > VULKAN_LIMIT) {
-    printf("Push constants have a minimum supported size of "
-    STRINGIFY(VULKAN_LIMIT)
-    " bytes, however the constants added so far already reach %d bytes. Consider using UBO.\n", size);
+    printf("Push constants have a minimum supported size of " STRINGIFY(VULKAN_LIMIT) " bytes, however the constants added so far already reach %d bytes. Consider using UBO.\n", size);
   }
 #undef VULKAN_LIMIT
 
@@ -963,7 +967,7 @@ static PyObject *pygpu_shader_info_define(BPyGPUShaderCreateInfo *self, PyObject
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pygpu_shader_info__tp_methods[] = {
+static PyMethodDef pygpu_shader_info__tp_methods[] = {
     {"vertex_in",
      (PyCFunction)pygpu_shader_info_vertex_in,
      METH_VARARGS,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -180,10 +181,10 @@ FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain,
   lineset->exclude_edge_types = 0;
   lineset->group = NULL;
   if (name) {
-    BLI_strncpy(lineset->name, name, sizeof(lineset->name));
+    STRNCPY(lineset->name, name);
   }
   else if (lineset_index > 0) {
-    BLI_snprintf(lineset->name, sizeof(lineset->name), "LineSet %i", lineset_index + 1);
+    SNPRINTF(lineset->name, "LineSet %i", lineset_index + 1);
   }
   else {
     strcpy(lineset->name, "LineSet");
@@ -228,7 +229,8 @@ short BKE_freestyle_lineset_get_active_index(FreestyleConfig *config)
   short i;
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
-       lineset = lineset->next, i++) {
+       lineset = lineset->next, i++)
+  {
     if (lineset->flags & FREESTYLE_LINESET_CURRENT) {
       return i;
     }
@@ -242,7 +244,8 @@ void BKE_freestyle_lineset_set_active_index(FreestyleConfig *config, short index
   short i;
 
   for (lineset = (FreestyleLineSet *)config->linesets.first, i = 0; lineset;
-       lineset = lineset->next, i++) {
+       lineset = lineset->next, i++)
+  {
     if (i == index) {
       lineset->flags |= FREESTYLE_LINESET_CURRENT;
     }

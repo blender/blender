@@ -1,0 +1,75 @@
+
+msgid "Select"
+msgstr "Elektas"
+
+
+msgid "Add"
+msgstr "Aldonia"
+
+
+msgid "View"
+msgstr "Rigardi"
+
+
+msgid "Render"
+msgstr "Por Kapitulacigi"
+
+
+msgid "Window"
+msgstr "Fenestro"
+
+
+msgid "Edit Mode"
+msgstr "Prilaborado Modo"
+
+
+msgid "Links"
+msgstr "Ligiloj"
+
+
+msgid "Object Mode"
+msgstr "Objekto Modo"
+
+
+msgid "Sculpt Mode"
+msgstr "Skulptaĵo Modo"
+
+
+msgid "File"
+msgstr "Dosiero"
+
+
+msgid "Help"
+msgstr "Helpo"
+
+
+msgid "New"
+msgstr "Nova"
+
+
+msgctxt "Operator"
+msgid "Select"
+msgstr "Elektas"
+
+
+msgid "View Z Axis"
+msgstr "Montri Z Axis"
+
+
+msgid "View X Axis"
+msgstr "Montri X Axis"
+
+
+msgctxt "Operator"
+msgid "Render"
+msgstr "Por Kapitulacigi"
+
+
+msgctxt "Operator"
+msgid "Recover Last Session"
+msgstr "Restaŭri lasta kunsido"
+
+
+msgid "Recent"
+msgstr "Freŝaj"
+

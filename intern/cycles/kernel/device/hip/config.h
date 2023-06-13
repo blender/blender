@@ -20,6 +20,10 @@
 #define GPU_KERNEL_BLOCK_NUM_THREADS 1024
 #define GPU_KERNEL_MAX_REGISTERS 64
 
+/* For performance tuning of HIPRT kernels we might have to change the number
+ * that's why we don't use GPU_KERNEL_BLOCK_NUM_THREADS. */
+#define GPU_HIPRT_KERNEL_BLOCK_NUM_THREADS 1024
+
 /* Compute number of threads per block and minimum blocks per multiprocessor
  * given the maximum number of registers per thread. */
 #define ccl_gpu_kernel(block_num_threads, thread_num_registers) \
@@ -34,6 +38,7 @@
 #define ccl_gpu_kernel_postfix
 
 #define ccl_gpu_kernel_call(x) x
+#define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
 
 /* Define a function object where "func" is the lambda body, and additional parameters are used to
  * specify captured state  */

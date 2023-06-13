@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -79,9 +81,7 @@ class Array {
     size_ = 0;
   }
 
-  Array(NoExceptConstructor, Allocator allocator = {}) noexcept : Array(allocator)
-  {
-  }
+  Array(NoExceptConstructor, Allocator allocator = {}) noexcept : Array(allocator) {}
 
   /**
    * Create a new array that contains copies of all values.
@@ -157,9 +157,7 @@ class Array {
     size_ = size;
   }
 
-  Array(const Array &other) : Array(other.as_span(), other.allocator_)
-  {
-  }
+  Array(const Array &other) : Array(other.as_span(), other.allocator_) {}
 
   Array(Array &&other) noexcept(std::is_nothrow_move_constructible_v<T>)
       : Array(NoExceptConstructor(), other.allocator_)

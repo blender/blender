@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -31,12 +32,12 @@ namespace blender::nodes::node_composite_movieclip_cc {
 
 static void cmp_node_movieclip_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>(N_("Image"));
-  b.add_output<decl::Float>(N_("Alpha"));
-  b.add_output<decl::Float>(N_("Offset X"));
-  b.add_output<decl::Float>(N_("Offset Y"));
-  b.add_output<decl::Float>(N_("Scale"));
-  b.add_output<decl::Float>(N_("Angle"));
+  b.add_output<decl::Color>("Image");
+  b.add_output<decl::Float>("Alpha");
+  b.add_output<decl::Float>("Offset X");
+  b.add_output<decl::Float>("Offset Y");
+  b.add_output<decl::Float>("Scale");
+  b.add_output<decl::Float>("Angle");
 }
 
 static void init(const bContext *C, PointerRNA *ptr)

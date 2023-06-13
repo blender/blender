@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -23,9 +25,7 @@ void WM_generic_callback_free(wmGenericCallback *callback)
   MEM_freeN(callback);
 }
 
-static void do_nothing(struct bContext *UNUSED(C), void *UNUSED(user_data))
-{
-}
+static void do_nothing(struct bContext *UNUSED(C), void *UNUSED(user_data)) {}
 
 wmGenericCallback *WM_generic_callback_steal(wmGenericCallback *callback)
 {

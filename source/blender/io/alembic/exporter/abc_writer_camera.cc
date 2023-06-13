@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -23,9 +25,7 @@ using Alembic::AbcGeom::CameraSample;
 using Alembic::AbcGeom::OCamera;
 using Alembic::AbcGeom::OFloatProperty;
 
-ABCCameraWriter::ABCCameraWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args)
-{
-}
+ABCCameraWriter::ABCCameraWriter(const ABCWriterConstructorArgs &args) : ABCAbstractWriter(args) {}
 
 bool ABCCameraWriter::is_supported(const HierarchyContext *context) const
 {

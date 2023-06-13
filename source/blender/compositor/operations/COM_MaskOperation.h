@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -62,6 +63,14 @@ class MaskOperation : public MultiThreadedOperation {
     mask_height_ = height;
     mask_height_inv_ = 1.0f / (float)height;
     mask_px_ofs_[1] = mask_height_inv_ * 0.5f;
+  }
+  int get_mask_width()
+  {
+    return mask_width_;
+  }
+  int get_mask_height()
+  {
+    return mask_height_;
   }
   void set_framenumber(int frame_number)
   {

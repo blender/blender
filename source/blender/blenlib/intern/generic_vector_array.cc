@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_generic_vector_array.hh"
 
@@ -47,27 +49,27 @@ void GVectorArray::extend(const int64_t index, const GSpan values)
   this->extend(index, GVArray::ForSpan(values));
 }
 
-void GVectorArray::extend(IndexMask mask, const GVVectorArray &values)
+void GVectorArray::extend(const IndexMask &mask, const GVVectorArray &values)
 {
-  for (const int i : mask) {
+  mask.foreach_index([&](const int64_t i) {
     GVArray_For_GVVectorArrayIndex array{values, i};
     this->extend(i, GVArray(&array));
-  }
+  });
 }
 
-void GVectorArray::extend(IndexMask mask, const GVectorArray &values)
+void GVectorArray::extend(const IndexMask &mask, const GVectorArray &values)
 {
   GVVectorArray_For_GVectorArray virtual_values{values};
   this->extend(mask, virtual_values);
 }
 
-void GVectorArray::clear(IndexMask mask)
+void GVectorArray::clear(const IndexMask &mask)
 {
-  for (const int64_t i : mask) {
+  mask.foreach_index([&](const int64_t i) {
     Item &item = items_[i];
     type_.destruct_n(item.start, item.length);
     item.length = 0;
-  }
+  });
 }
 
 GMutableSpan GVectorArray::operator[](const int64_t index)

@@ -1,20 +1,17 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Blender Foundation. All rights reserved. */
+ * Copyright 2010 Blender Foundation */
 
+#import <AppKit/NSDocumentController.h>
 #import <Foundation/Foundation.h>
 
-#include "GHOST_Debug.h"
-#include "GHOST_SystemPathsCocoa.h"
+#include "GHOST_Debug.hh"
+#include "GHOST_SystemPathsCocoa.hh"
 
 #pragma mark initialization/finalization
 
-GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::GHOST_SystemPathsCocoa() {}
 
-GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa()
-{
-}
+GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa() {}
 
 #pragma mark Base directories retrieval
 
@@ -116,7 +113,10 @@ const char *GHOST_SystemPathsCocoa::getBinaryDir() const
   return tempPath;
 }
 
-void GHOST_SystemPathsCocoa::addToSystemRecentFiles(const char *filename) const
+void GHOST_SystemPathsCocoa::addToSystemRecentFiles(const char *filepath) const
 {
-  /* TODO: implement for macOS */
+  @autoreleasepool {
+    NSURL *const file_url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:filepath]];
+    [[NSDocumentController sharedDocumentController] noteNewRecentDocumentURL:file_url];
+  }
 }

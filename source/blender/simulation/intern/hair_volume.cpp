@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation. All rights reserved. */
+ * Copyright Blender Foundation */
 
 /** \file
  * \ingroup sim
@@ -410,17 +410,17 @@ BLI_INLINE int major_axis_v3(const float v[3])
 }
 
 BLI_INLINE void hair_volume_add_segment_2D(HairGrid *grid,
-                                           const float UNUSED(x1[3]),
-                                           const float UNUSED(v1[3]),
+                                           const float /*x1*/ [3],
+                                           const float /*v1*/ [3]),
                                            const float x2[3],
                                            const float v2[3],
                                            const float x3[3],
                                            const float v3[3],
-                                           const float UNUSED(x4[3]),
-                                           const float UNUSED(v4[3]),
-                                           const float UNUSED(dir1[3]),
+                                           const float /*x4*/ [3],
+                                           const float /*v4*/ [3],
+                                           const float /*dir1*/[3],
                                            const float dir2[3],
-                                           const float UNUSED(dir3[3]),
+                                           const float /*dir3*/ [3],
                                            int resj,
                                            int resk,
                                            int jmin,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -72,4 +73,97 @@ bool GPU_debug_group_match(const char *ref)
     }
   }
   return false;
+}
+
+void GPU_debug_capture_begin()
+{
+  /* GPU Frame capture is only enabled when --debug-gpu is specified. */
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
+
+  Context *ctx = Context::get();
+  if (ctx && !ctx->debug_is_capturing) {
+    ctx->debug_is_capturing = ctx->debug_capture_begin();
+    if (!ctx->debug_is_capturing) {
+      printf("Failed to start GPU frame capture!\n");
+    }
+    /* Call GPU_finish to ensure all desired GPU commands occur within the capture boundary. */
+    GPU_finish();
+  }
+}
+
+void GPU_debug_capture_end()
+{
+  /* GPU Frame capture is only enabled when --debug-gpu is specified. */
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return;
+  }
+
+  Context *ctx = Context::get();
+  if (ctx && ctx->debug_is_capturing) {
+    /* Call GPU_finish to ensure all desired GPU commands occur within the capture boundary. */
+    GPU_finish();
+    ctx->debug_capture_end();
+    ctx->debug_is_capturing = false;
+  }
+}
+
+void *GPU_debug_capture_scope_create(const char *name)
+{
+  /* GPU Frame capture is only enabled when --debug-gpu is specified. */
+  if (!(G.debug & G_DEBUG_GPU)) {
+    return nullptr;
+  }
+
+  Context *ctx = Context::get();
+  if (!ctx) {
+    return nullptr;
+  }
+  return ctx->debug_capture_scope_create(name);
+}
+
+bool GPU_debug_capture_scope_begin(void *scope)
+{
+  /* Early exit if scope does not exist or not in debug mode. */
+  if (!(G.debug & G_DEBUG_GPU) || !scope) {
+    return false;
+  }
+
+  Context *ctx = Context::get();
+  if (!ctx) {
+    return false;
+  }
+
+  /* Declare beginning of capture scope region. */
+  bool scope_capturing = ctx->debug_capture_scope_begin(scope);
+  if (scope_capturing && !ctx->debug_is_capturing) {
+    /* Call GPU_finish to ensure all desired GPU commands occur within the capture boundary. */
+    GPU_finish();
+    ctx->debug_is_capturing = true;
+  }
+  return ctx->debug_is_capturing;
+}
+
+void GPU_debug_capture_scope_end(void *scope)
+{
+  /* Early exit if scope does not exist or not in debug mode. */
+  if (!(G.debug & G_DEBUG_GPU) || !scope) {
+    return;
+  }
+
+  Context *ctx = Context::get();
+  if (!ctx) {
+    return;
+  }
+
+  /* If capturing, call GPU_finish to ensure all desired GPU commands occur within the capture
+   * boundary. */
+  if (ctx->debug_is_capturing) {
+    GPU_finish();
+    ctx->debug_is_capturing = false;
+  }
+
+  /* Declare end of capture scope region. */
+  ctx->debug_capture_scope_end(scope);
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -17,8 +18,8 @@
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curves_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
-#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -511,7 +512,7 @@ static void outliner_add_object_contents(SpaceOutliner *space_outliner,
   }
 
   /* vertex groups */
-  if (ELEM(ob->type, OB_MESH, OB_GPENCIL, OB_LATTICE)) {
+  if (ELEM(ob->type, OB_MESH, OB_GPENCIL_LEGACY, OB_LATTICE)) {
     const ListBase *defbase = BKE_object_defgroup_list(ob);
     if (!BLI_listbase_is_empty(defbase)) {
       TreeElement *tenla = outliner_add_element(
@@ -550,49 +551,15 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
   switch (GS(id->name)) {
     case ID_LI:
     case ID_SCE:
+    case ID_ME:
+    case ID_CU_LEGACY:
+    case ID_MB:
+    case ID_TE:
+    case ID_LS:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
       outliner_add_object_contents(space_outliner, te, tselem, (Object *)id);
-      break;
-    }
-    case ID_ME: {
-      Mesh *me = (Mesh *)id;
-
-      if (outliner_animdata_test(me->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, me, te, TSE_ANIM_DATA, 0);
-      }
-
-      outliner_add_element(space_outliner, &te->subtree, me->key, te, TSE_SOME_ID, 0);
-      for (int a = 0; a < me->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, me->mat[a], te, TSE_SOME_ID, a);
-      }
-      /* could do tfaces with image links, but the images are not grouped nicely.
-       * would require going over all tfaces, sort images in use. etc... */
-      break;
-    }
-    case ID_CU_LEGACY: {
-      Curve *cu = (Curve *)id;
-
-      if (outliner_animdata_test(cu->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, cu, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < cu->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, cu->mat[a], te, TSE_SOME_ID, a);
-      }
-      break;
-    }
-    case ID_MB: {
-      MetaBall *mb = (MetaBall *)id;
-
-      if (outliner_animdata_test(mb->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, mb, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < mb->totcol; a++) {
-        outliner_add_element(space_outliner, &te->subtree, mb->mat[a], te, TSE_SOME_ID, a);
-      }
       break;
     }
     case ID_MA: {
@@ -600,14 +567,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       if (outliner_animdata_test(ma->adt)) {
         outliner_add_element(space_outliner, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
       }
-      break;
-    }
-    case ID_TE: {
-      Tex *tex = (Tex *)id;
-      if (outliner_animdata_test(tex->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, tex, te, TSE_ANIM_DATA, 0);
-      }
-      outliner_add_element(space_outliner, &te->subtree, tex->ima, te, TSE_SOME_ID, 0);
       break;
     }
     case ID_CA: {
@@ -701,7 +660,8 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
         /* do not extend Armature when we have posemode */
         tselem = TREESTORE(te->parent);
         if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
-            ((Object *)tselem->id)->mode & OB_MODE_POSE) {
+            ((Object *)tselem->id)->mode & OB_MODE_POSE)
+        {
           /* pass */
         }
         else {
@@ -713,21 +673,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
       }
       break;
     }
-    case ID_LS: {
-      FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
-
-      if (outliner_animdata_test(linestyle->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, linestyle, te, TSE_ANIM_DATA, 0);
-      }
-
-      for (int a = 0; a < MAX_MTEX; a++) {
-        if (linestyle->mtex[a]) {
-          outliner_add_element(space_outliner, &te->subtree, linestyle->mtex[a]->tex, te, 0, a);
-        }
-      }
-      break;
-    }
-    case ID_GD: {
+    case ID_GD_LEGACY: {
       bGPdata *gpd = (bGPdata *)id;
 
       if (outliner_animdata_test(gpd->adt)) {
@@ -869,7 +815,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type,
                 TSE_LIBRARY_OVERRIDE_BASE,
                 TSE_LIBRARY_OVERRIDE,
-                TSE_LIBRARY_OVERRIDE_OPERATION)) {
+                TSE_LIBRARY_OVERRIDE_OPERATION))
+  {
     if (!te->abstract_element) {
       BLI_assert_msg(0,
                      "Expected override types to be ported to new Outliner tree-element design");
@@ -912,7 +859,8 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                 TSE_SEQUENCE,
                 TSE_SEQ_STRIP,
                 TSE_SEQUENCE_DUP,
-                TSE_GENERIC_LABEL)) {
+                TSE_GENERIC_LABEL))
+  {
     BLI_assert_msg(false, "Element type should already use new AbstractTreeElement design");
   }
 
@@ -992,8 +940,8 @@ static int treesort_alpha_ob(const void *v1, const void *v2)
   if (comp == 3) {
     /* Among objects first come the ones in the collection, followed by the ones not on it.
      * This way we can have the dashed lines in a separate style connecting the former. */
-    if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) !=
-        (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION)) {
+    if ((x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) != (x2->te->flag & TE_CHILD_NOT_IN_COLLECTION))
+    {
       return (x1->te->flag & TE_CHILD_NOT_IN_COLLECTION) ? 1 : -1;
     }
 
@@ -1093,7 +1041,8 @@ static void outliner_sort(ListBase *lb)
 
   /* Sorting rules; only object lists, ID lists, or deform-groups. */
   if (ELEM(last_tselem->type, TSE_DEFGROUP, TSE_ID_BASE) ||
-      ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB))) {
+      ((last_tselem->type == TSE_SOME_ID) && (last_te->idcode == ID_OB)))
+  {
     int totelem = BLI_listbase_count(lb);
 
     if (totelem > 1) {
@@ -1288,7 +1237,8 @@ static TreeElement *outliner_find_first_desired_element_at_y(const SpaceOutliner
 
   bool (*callback_test)(TreeElement *);
   if ((space_outliner->outlinevis == SO_VIEW_LAYER) &&
-      (space_outliner->filter & SO_FILTER_NO_COLLECTION)) {
+      (space_outliner->filter & SO_FILTER_NO_COLLECTION))
+  {
     callback_test = test_object_callback;
   }
   else {
@@ -1438,6 +1388,11 @@ static bool outliner_element_visible_get(const Scene *scene,
             return false;
           }
           break;
+        case OB_GPENCIL_LEGACY:
+          if (exclude_filter & SO_FILTER_NO_OB_GPENCIL_LEGACY) {
+            return false;
+          }
+          break;
         default:
           if (exclude_filter & SO_FILTER_NO_OB_OTHERS) {
             return false;
@@ -1488,14 +1443,16 @@ static bool outliner_element_visible_get(const Scene *scene,
     }
 
     if ((te->parent != nullptr) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
-        (te->parent->idcode == ID_OB)) {
+        (te->parent->idcode == ID_OB))
+    {
       if (exclude_filter & SO_FILTER_NO_CHILDREN) {
         return false;
       }
     }
   }
   else if ((te->parent != nullptr) && (TREESTORE(te->parent)->type == TSE_SOME_ID) &&
-           (te->parent->idcode == ID_OB)) {
+           (te->parent->idcode == ID_OB))
+  {
     if (exclude_filter & SO_FILTER_NO_OB_CONTENT) {
       return false;
     }
@@ -1597,8 +1554,8 @@ static int outliner_filter_subtree(SpaceOutliner *space_outliner,
 
       if (!TSELEM_OPEN(tselem, space_outliner) ||
           outliner_filter_subtree(
-              space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter) ==
-              0) {
+              space_outliner, scene, view_layer, &te->subtree, search_string, exclude_filter) == 0)
+      {
         outliner_free_tree_element(te, lb);
       }
     }
@@ -1622,7 +1579,7 @@ static void outliner_filter_tree(SpaceOutliner *space_outliner,
                                  const Scene *scene,
                                  ViewLayer *view_layer)
 {
-  char search_buff[sizeof(((struct SpaceOutliner *)nullptr)->search_string) + 2];
+  char search_buff[sizeof(SpaceOutliner::search_string) + 2];
   char *search_string;
 
   const int exclude_filter = outliner_exclude_filter_get(space_outliner);
@@ -1676,7 +1633,8 @@ void outliner_build_tree(Main *mainvar,
   }
 
   if (space_outliner->runtime->tree_hash && (space_outliner->storeflag & SO_TREESTORE_REBUILD) &&
-      space_outliner->treestore) {
+      space_outliner->treestore)
+  {
     space_outliner->runtime->tree_hash->rebuild_from_treestore(*space_outliner->treestore);
   }
   space_outliner->storeflag &= ~SO_TREESTORE_REBUILD;

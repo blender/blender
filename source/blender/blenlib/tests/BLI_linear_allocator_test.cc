@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_linear_allocator.hh"
 #include "BLI_rand.hh"
@@ -58,15 +60,8 @@ TEST(linear_allocator, CopyString)
   blender::AlignedBuffer<256, 1> buffer;
   allocator.provide_buffer(buffer);
 
-  /* False positive warning with GCC 12.2,
-   * considers assignment outside of array bounds (`char [0]`). */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Warray-bounds"
-
   StringRefNull ref1 = allocator.copy_string("Hello");
   StringRefNull ref2 = allocator.copy_string("World");
-
-#pragma GCC diagnostic pop
 
   EXPECT_EQ(ref1, "Hello");
   EXPECT_EQ(ref2, "World");
@@ -154,6 +149,25 @@ TEST(linear_allocator, ConstructArray)
   for (std::string &string : strings) {
     string.~basic_string();
   }
+}
+
+TEST(linear_allocator, TransferOwnership)
+{
+  LinearAllocator<> main_allocator;
+  MutableSpan<int> values;
+
+  /* Allocate a large buffer that is likely to be given back to the system when freed. This test
+   * essentially only fails by crashing with a segfault. */
+  const int size = 1'000'000;
+  const int value = 42;
+  const int index = 500'000;
+  {
+    LinearAllocator<> nested_allocator;
+    values = nested_allocator.allocate_array<int>(size);
+    values[index] = value;
+    main_allocator.transfer_ownership_from(nested_allocator);
+  }
+  EXPECT_EQ(values[index], value);
 }
 
 }  // namespace blender::tests

@@ -16,18 +16,10 @@ CCL_NAMESPACE_BEGIN
 
 /* SSE replacements */
 
-__forceinline void prefetch_L1(const void * /*ptr*/)
-{
-}
-__forceinline void prefetch_L2(const void * /*ptr*/)
-{
-}
-__forceinline void prefetch_L3(const void * /*ptr*/)
-{
-}
-__forceinline void prefetch_NTA(const void * /*ptr*/)
-{
-}
+__forceinline void prefetch_L1(const void * /*ptr*/) {}
+__forceinline void prefetch_L2(const void * /*ptr*/) {}
+__forceinline void prefetch_L3(const void * /*ptr*/) {}
+__forceinline void prefetch_NTA(const void * /*ptr*/) {}
 
 template<size_t src> __forceinline float extract(const int4 &b)
 {

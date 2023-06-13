@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -18,7 +19,6 @@
  * although the order of initialization and shutdown should not matter
  * (except for the extensions), I chose alphabetical and reverse alphabetical order
  */
-
 static bool initialized = false;
 
 void GPU_init(void)

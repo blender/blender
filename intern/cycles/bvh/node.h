@@ -211,9 +211,7 @@ class LeafNode : public BVHNode {
     this->visibility = visibility;
   }
 
-  LeafNode(const LeafNode &other) : BVHNode(other), lo(other.lo), hi(other.hi)
-  {
-  }
+  LeafNode(const LeafNode &other) : BVHNode(other), lo(other.lo), hi(other.hi) {}
 
   bool is_leaf() const
   {

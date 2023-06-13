@@ -3,9 +3,15 @@
 
 #pragma once
 
-#if !defined(__KERNEL_GPU__) && defined(WITH_EMBREE)
-#  include <embree3/rtcore.h>
-#  include <embree3/rtcore_scene.h>
+#if (!defined(__KERNEL_GPU__) || (defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU))) && \
+    defined(WITH_EMBREE)
+#  if EMBREE_MAJOR_VERSION == 4
+#    include <embree4/rtcore.h>
+#    include <embree4/rtcore_scene.h>
+#  else
+#    include <embree3/rtcore.h>
+#    include <embree3/rtcore_scene.h>
+#  endif
 #  define __EMBREE__
 #endif
 
@@ -42,6 +48,9 @@ CCL_NAMESPACE_BEGIN
 #define PASS_UNUSED (~0)
 #define LIGHTGROUP_NONE (~0)
 
+#define LIGHT_LINK_SET_MAX 64
+#define LIGHT_LINK_MASK_ALL (~uint64_t(0))
+
 #define INTEGRATOR_SHADOW_ISECT_SIZE_CPU 1024U
 #define INTEGRATOR_SHADOW_ISECT_SIZE_GPU 4U
 
@@ -58,6 +67,8 @@ CCL_NAMESPACE_BEGIN
 #define __DENOISING_FEATURES__
 #define __DPDU__
 #define __HAIR__
+#define __LIGHT_LINKING__
+#define __SHADOW_LINKING__
 #define __LIGHT_TREE__
 #define __OBJECT_MOTION__
 #define __PASSES__
@@ -73,9 +84,8 @@ CCL_NAMESPACE_BEGIN
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
 
-/* TODO: solve internal compiler errors and enable light tree on HIP. */
 /* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
-#if defined(__KERNEL_HIP__) || defined(__KERNEL_METAL_AMD__)
+#if defined(__KERNEL_METAL_AMD__)
 #  undef __LIGHT_TREE__
 #endif
 
@@ -158,6 +168,11 @@ enum PathTraceDimension {
   PRNG_SURFACE_AO = 4,
   PRNG_SURFACE_BEVEL = 5,
   PRNG_SURFACE_BSDF_GUIDING = 6,
+
+  /* Guiding RIS */
+  PRNG_SURFACE_RIS_GUIDING_0 = 10,
+  PRNG_SURFACE_RIS_GUIDING_1 = 11,
+
   /* Volume */
   PRNG_VOLUME_PHASE = 3,
   PRNG_VOLUME_PHASE_CHANNEL = 4,
@@ -303,6 +318,8 @@ enum PathRayFlag : uint32_t {
 
 // 8bit enum, just in case we need to move more variables in it
 enum PathRayMNEE {
+  PATH_MNEE_NONE = 0,
+
   PATH_MNEE_VALID = (1U << 0U),
   PATH_MNEE_RECEIVER_ANCESTOR = (1U << 1U),
   PATH_MNEE_CULL_LIGHT_CONNECTION = (1U << 2U),
@@ -501,6 +518,16 @@ typedef enum GuidingDistributionType {
   GUIDING_NUM_TYPES,
 } GuidingDistributionType;
 
+/* Guiding Directional Sampling Type */
+
+typedef enum GuidingDirectionalSamplingType {
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS = 0,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS = 1,
+  GUIDING_DIRECTIONAL_SAMPLING_TYPE_ROUGHNESS = 2,
+
+  GUIDING_DIRECTIONAL_SAMPLING_NUM_TYPES,
+} GuidingDirectionalSamplingType;
+
 /* Camera Type */
 
 enum CameraType { CAMERA_PERSPECTIVE, CAMERA_ORTHOGRAPHIC, CAMERA_PANORAMA };
@@ -559,6 +586,7 @@ typedef struct RaySelfPrimitives {
   int object;       /* Instance prim is a part of */
   int light_prim;   /* Light primitive */
   int light_object; /* Light object */
+  int light;        /* Light ID (the light the shadow ray is traced towards to) */
 } RaySelfPrimitives;
 
 typedef struct Ray {
@@ -829,7 +857,7 @@ enum ShaderDataFlag {
   SD_NEED_VOLUME_ATTRIBUTES = (1 << 28),
   /* Shader has emission */
   SD_HAS_EMISSION = (1 << 29),
-  /* Shader has raytracing */
+  /* Shader has ray-tracing. */
   SD_HAS_RAYTRACE = (1 << 30),
   /* Use back side for direct light sampling. */
   SD_MIS_BACK = (1 << 31),
@@ -1164,10 +1192,19 @@ typedef enum KernelBVHLayout {
   BVH_LAYOUT_METAL = (1 << 5),
   BVH_LAYOUT_MULTI_METAL = (1 << 6),
   BVH_LAYOUT_MULTI_METAL_EMBREE = (1 << 7),
+  BVH_LAYOUT_HIPRT = (1 << 8),
+  BVH_LAYOUT_MULTI_HIPRT = (1 << 9),
+  BVH_LAYOUT_MULTI_HIPRT_EMBREE = (1 << 10),
+  BVH_LAYOUT_EMBREEGPU = (1 << 11),
+  BVH_LAYOUT_MULTI_EMBREEGPU = (1 << 12),
+  BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE = (1 << 13),
 
   /* Default BVH layout to use for CPU. */
   BVH_LAYOUT_AUTO = BVH_LAYOUT_EMBREE,
-  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL,
+  BVH_LAYOUT_ALL = BVH_LAYOUT_BVH2 | BVH_LAYOUT_EMBREE | BVH_LAYOUT_OPTIX | BVH_LAYOUT_METAL |
+                   BVH_LAYOUT_HIPRT | BVH_LAYOUT_MULTI_HIPRT | BVH_LAYOUT_MULTI_HIPRT_EMBREE |
+                   BVH_LAYOUT_EMBREEGPU | BVH_LAYOUT_MULTI_EMBREEGPU |
+                   BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE,
 } KernelBVHLayout;
 
 /* Specialized struct that can become constants in dynamic compilation. */
@@ -1187,7 +1224,13 @@ typedef enum KernelBVHLayout {
 
 typedef struct KernelTables {
   int filter_table_offset;
-  int pad1, pad2, pad3;
+  int ggx_E;
+  int ggx_Eavg;
+  int ggx_glass_E;
+  int ggx_glass_Eavg;
+  int ggx_glass_inv_E;
+  int ggx_glass_inv_Eavg;
+  int pad1;
 } KernelTables;
 static_assert_align(KernelTables, 16);
 
@@ -1198,6 +1241,10 @@ typedef struct KernelBake {
   int use_camera;
 } KernelBake;
 static_assert_align(KernelBake, 16);
+
+typedef struct KernelLightLinkSet {
+  uint light_tree_root;
+} KernelLightLinkSet;
 
 typedef struct KernelData {
   /* Features and limits. */
@@ -1210,6 +1257,7 @@ typedef struct KernelData {
   KernelCamera cam;
   KernelBake bake;
   KernelTables tables;
+  KernelLightLinkSet light_link_sets[LIGHT_LINK_SET_MAX];
 
   /* Potentially specialized data members. */
 #define KERNEL_STRUCT_BEGIN(name, parent) name parent;
@@ -1220,6 +1268,8 @@ typedef struct KernelData {
   OptixTraversableHandle device_bvh;
 #elif defined __METALRT__
   metalrt_as_type device_bvh;
+#elif defined(__HIPRT__)
+  void *device_bvh;
 #else
 #  ifdef __EMBREE__
   RTCScene device_bvh;
@@ -1273,6 +1323,12 @@ typedef struct KernelObject {
 
   /* Volume velocity scale. */
   float velocity_scale;
+
+  /* TODO: separate array to avoid memory overhead when not used. */
+  uint64_t light_set_membership;
+  uint receiver_light_set;
+  uint64_t shadow_set_membership;
+  uint blocker_shadow_set;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 
@@ -1338,6 +1394,8 @@ typedef struct KernelLight {
     KernelAreaLight area;
     KernelDistantLight distant;
   };
+  uint64_t light_set_membership;
+  uint64_t shadow_set_membership;
 } KernelLight;
 static_assert_align(KernelLight, 16);
 
@@ -1365,6 +1423,13 @@ using BoundingCone = struct BoundingCone {
   float theta_e;
 };
 
+enum LightTreeNodeType : uint8_t {
+  LIGHT_TREE_INSTANCE = (1 << 0),
+  LIGHT_TREE_INNER = (1 << 1),
+  LIGHT_TREE_LEAF = (1 << 2),
+  LIGHT_TREE_DISTANT = (1 << 3),
+};
+
 typedef struct KernelLightTreeNode {
   /* Bounding box. */
   BoundingBox bbox;
@@ -1375,17 +1440,33 @@ typedef struct KernelLightTreeNode {
   /* Energy. */
   float energy;
 
-  /* If this is 0 or less, we're at a leaf node
-   * and the negative value indexes into the first child of the light array.
-   * Otherwise, it's an index to the node's second child. */
-  int child_index;
-  int num_prims; /* leaf nodes need to know the number of primitives stored. */
+  LightTreeNodeType type;
+
+  /* Leaf nodes need to know the number of emitters stored. */
+  int num_emitters;
+
+  union {
+    struct {
+      int first_emitter; /* The index of the first emitter. */
+    } leaf;
+    struct {
+      /* Indices of the children. */
+      int left_child;
+      int right_child;
+    } inner;
+    struct {
+      int reference; /* A reference to the node with the subtree. */
+    } instance;
+  };
 
   /* Bit trail. */
   uint bit_trail;
 
+  /* Bits to skip in the bit trail, to skip nodes in for specialized trees. */
+  uint8_t bit_skip;
+
   /* Padding. */
-  int pad;
+  uint8_t pad[11];
 } KernelLightTreeNode;
 static_assert_align(KernelLightTreeNode, 16);
 
@@ -1397,13 +1478,26 @@ typedef struct KernelLightTreeEmitter {
   /* Energy. */
   float energy;
 
-  /* prim_id denotes the location in the lights or triangles array. */
-  int prim;
-  MeshLight mesh_light;
-  EmissionSampling emission_sampling;
+  union {
+    struct {
+      int id; /* The location in the triangles array. */
+      EmissionSampling emission_sampling;
+    } triangle;
 
-  /* Parent. */
-  int parent_index;
+    struct {
+      int id; /* The location in the lights array. */
+    } light;
+
+    struct {
+      int object_id;
+      int node_id;
+    } mesh;
+  };
+
+  MeshLight mesh_light;
+
+  /* Bit trail from root node to leaf node containing emitter. */
+  int bit_trail;
 } KernelLightTreeEmitter;
 static_assert_align(KernelLightTreeEmitter, 16);
 
@@ -1495,6 +1589,7 @@ typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
   DEVICE_KERNEL_INTEGRATOR_INTERSECT_SUBSURFACE,
   DEVICE_KERNEL_INTEGRATOR_INTERSECT_VOLUME_STACK,
+  DEVICE_KERNEL_INTEGRATOR_INTERSECT_DEDICATED_LIGHT,
   DEVICE_KERNEL_INTEGRATOR_SHADE_BACKGROUND,
   DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE,
@@ -1502,6 +1597,7 @@ typedef enum DeviceKernel : int {
   DEVICE_KERNEL_INTEGRATOR_SHADE_SURFACE_MNEE,
   DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
   DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW,
+  DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT,
   DEVICE_KERNEL_INTEGRATOR_MEGAKERNEL,
 
   DEVICE_KERNEL_INTEGRATOR_QUEUED_PATHS_ARRAY,
@@ -1621,6 +1717,10 @@ enum KernelFeatureFlag : uint32_t {
 
   /* OSL. */
   KERNEL_FEATURE_OSL = (1U << 26U),
+
+  /* Light and shadow linking. */
+  KERNEL_FEATURE_LIGHT_LINKING = (1U << 27U),
+  KERNEL_FEATURE_SHADOW_LINKING = (1U << 28U),
 };
 
 /* Shader node feature mask, to specialize shader evaluation for kernels. */
@@ -1646,8 +1746,8 @@ enum KernelFeatureFlag : uint32_t {
 
 /* Must be constexpr on the CPU to avoid compile errors because the state types
  * are different depending on the main, shadow or null path. For GPU we don't have
- * C++17 everywhere so can't use it. */
-#ifdef __KERNEL_GPU__
+ * C++17 everywhere so need to check it. */
+#if __cplusplus < 201703L
 #  define IF_KERNEL_FEATURE(feature) if ((node_feature_mask & (KERNEL_FEATURE_##feature)) != 0U)
 #  define IF_KERNEL_NODES_FEATURE(feature) \
     if ((node_feature_mask & (KERNEL_FEATURE_NODE_##feature)) != 0U)

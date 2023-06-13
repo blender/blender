@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -38,28 +39,56 @@ extern "C" {
  * (most likely doesn't exist or no access).
  */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
+
 /**
+ * \return 0 on success.
+ */
+int BLI_copy(const char *path_src, const char *path_dst) ATTR_NONNULL();
+/**
+ * When `path_src` points to a directory, moves all its contents into `path_dst`,
+ * else rename `path_src` itself to `path_dst`.
+ * \return 0 on success.
+ */
+int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
+
+/**
+ * Rename a file or directory.
+ *
  * \return zero on success (matching 'rename' behavior).
  */
-int BLI_rename(const char *from, const char *to) ATTR_NONNULL();
+int BLI_rename(const char *from, const char *to);
+
+/**
+ * Rename a file or directory.
+ *
+ * \warning It's up to the caller to ensure `from` & `to` don't point to the same file
+ * as this will result in `to` being deleted to make room for `from`
+ * (which will then also be deleted).
+ *
+ * See #BLI_path_move to move directories.
+ *
+ * \param from: The path to rename from (return failure if it does not exist).
+ * \param to: The destination path.
+ * This will be deleted if it already exists, unless it's a directory which will fail.
+ * \return zero on success (matching 'rename' behavior).
+ */
+int BLI_rename_overwrite(const char *from, const char *to) ATTR_NONNULL();
 /**
  * Deletes the specified file or directory (depending on dir), optionally
  * doing recursive delete of directory contents.
  *
  * \return zero on success (matching 'remove' behavior).
  */
-int BLI_delete(const char *file, bool dir, bool recursive) ATTR_NONNULL();
+int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
 /**
  * Soft deletes the specified file or directory (depending on dir) by moving the files to the
  * recycling bin, optionally doing recursive delete of directory contents.
  *
  * \return zero on success (matching 'remove' behavior).
  */
-int BLI_delete_soft(const char *file, const char **error_message) ATTR_NONNULL();
+int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
 #if 0 /* Unused */
-int BLI_move(const char *path, const char *to) ATTR_NONNULL();
-int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
+int BLI_create_symlink(const char *path, const char *path_dst) ATTR_NONNULL();
 #endif
 
 /* Keep in sync with the definition of struct `direntry` in `BLI_fileops_types.h`. */
@@ -110,6 +139,34 @@ ENUM_OPERATORS(eFileAttributes, FILE_ATTR_HARDLINK);
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name External File Operations
+ * \{ */
+
+typedef enum FileExternalOperation {
+  FILE_EXTERNAL_OPERATION_OPEN = 1,
+  FILE_EXTERNAL_OPERATION_FOLDER_OPEN,
+  /* Following are Windows-only: */
+  FILE_EXTERNAL_OPERATION_EDIT,
+  FILE_EXTERNAL_OPERATION_NEW,
+  FILE_EXTERNAL_OPERATION_FIND,
+  FILE_EXTERNAL_OPERATION_SHOW,
+  FILE_EXTERNAL_OPERATION_PLAY,
+  FILE_EXTERNAL_OPERATION_BROWSE,
+  FILE_EXTERNAL_OPERATION_PREVIEW,
+  FILE_EXTERNAL_OPERATION_PRINT,
+  FILE_EXTERNAL_OPERATION_INSTALL,
+  FILE_EXTERNAL_OPERATION_RUNAS,
+  FILE_EXTERNAL_OPERATION_PROPERTIES,
+  FILE_EXTERNAL_OPERATION_FOLDER_FIND,
+  FILE_EXTERNAL_OPERATION_FOLDER_CMD,
+} FileExternalOperation;
+
+bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation);
+bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Directories
  * \{ */
 
@@ -129,7 +186,7 @@ bool BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
  */
 bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
 /**
- * Returns the number of free bytes on the volume containing the specified pathname.
+ * Returns the number of free bytes on the volume containing the specified path.
  *
  * \note Not actually used anywhere.
  */
@@ -142,6 +199,18 @@ double BLI_dir_free_space(const char *dir) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
  */
 char *BLI_current_working_dir(char *dir, size_t maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 eFileAttributes BLI_file_attributes(const char *path);
+/**
+ * Changes the current working directory to the provided path.
+ *
+ * Usage of this function is strongly discouraged as it is not thread safe. It will likely cause
+ * issues if there is an operation on another thread that does not expect the current working
+ * directory to change. This has been added to support USDZ export, which has a problematic
+ * "feature" described in this issue #99807. It will be removed if it is possible to resolve
+ * that issue upstream in the USD library.
+ *
+ * \return true on success, false otherwise.
+ */
+bool BLI_change_working_dir(const char *dir);
 
 /** \} */
 
@@ -232,7 +301,14 @@ bool BLI_file_is_writable(const char *filepath) ATTR_WARN_UNUSED_RESULT ATTR_NON
  * Creates the file with nothing in it, or updates its last-modified date if it already exists.
  * Returns true if successful (like the unix touch command).
  */
-bool BLI_file_touch(const char *file) ATTR_NONNULL();
+bool BLI_file_touch(const char *filepath) ATTR_NONNULL(1);
+/**
+ * Ensures that the parent directory of `filepath` exists.
+ *
+ * \return true on success (i.e. given path now exists on file-system), false otherwise.
+ */
+bool BLI_file_ensure_parent_dir_exists(const char *filepath) ATTR_NONNULL(1);
+
 bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
 
 bool BLI_file_magic_is_gzip(const char header[4]);

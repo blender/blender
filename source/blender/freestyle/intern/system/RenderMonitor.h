@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -22,9 +24,7 @@ class RenderMonitor {
     _re = re;
   }
 
-  virtual ~RenderMonitor()
-  {
-  }
+  virtual ~RenderMonitor() {}
 
   inline void setInfo(string info)
   {

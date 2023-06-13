@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -444,8 +446,8 @@ inline bool try_dispatch_float_math_fl3_to_fl3(const NodeVectorMathOperation ope
 
   switch (operation) {
     case NODE_VECTOR_MATH_NORMALIZE:
-      return dispatch(exec_preset_fast,
-                      [](float3 in) { return normalize(in); }); /* Should be safe. */
+      /* Should be safe. */
+      return dispatch(exec_preset_fast, [](float3 in) { return normalize(in); });
     case NODE_VECTOR_MATH_FLOOR:
       return dispatch(exec_preset_fast, [](float3 in) { return floor(in); });
     case NODE_VECTOR_MATH_CEIL:

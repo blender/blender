@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -10,11 +11,13 @@
 #include "DNA_anim_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_expr_pylike_eval.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -31,10 +34,13 @@
 
 #include "RNA_access.h"
 #include "RNA_path.h"
+#include "RNA_prototypes.h"
 
 #include "atomic_ops.h"
 
 #include "CLG_log.h"
+
+#include "DEG_depsgraph_query.h"
 
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
@@ -53,7 +59,9 @@ static CLG_LogRef LOG = {"bke.fcurve"};
 /* TypeInfo for Driver Variables (dvti) */
 typedef struct DriverVarTypeInfo {
   /* Evaluation callback. */
-  float (*get_value)(ChannelDriver *driver, DriverVar *dvar);
+  float (*get_value)(const AnimationEvalContext *anim_eval_context,
+                     ChannelDriver *driver,
+                     DriverVar *dvar);
 
   /* Allocation of target slots. */
   int num_targets;                              /* Number of target slots required. */
@@ -73,27 +81,89 @@ typedef struct DriverVarTypeInfo {
 /** \name Driver Target Utilities
  * \{ */
 
+static DriverTargetContext driver_target_context_from_animation_context(
+    const AnimationEvalContext *anim_eval_context)
+{
+  DriverTargetContext driver_target_context;
+
+  driver_target_context.scene = DEG_get_evaluated_scene(anim_eval_context->depsgraph);
+  driver_target_context.view_layer = DEG_get_evaluated_view_layer(anim_eval_context->depsgraph);
+
+  return driver_target_context;
+}
+
+/* Specialized implementation of driver_get_target_property() used for the
+ * DVAR_TYPE_CONTEXT_PROP variable type. */
+static bool driver_get_target_context_property(const DriverTargetContext *driver_target_context,
+                                               DriverTarget *dtar,
+                                               PointerRNA *r_property_ptr)
+{
+  switch (dtar->context_property) {
+    case DTAR_CONTEXT_PROPERTY_ACTIVE_SCENE:
+      RNA_id_pointer_create(&driver_target_context->scene->id, r_property_ptr);
+      return true;
+
+    case DTAR_CONTEXT_PROPERTY_ACTIVE_VIEW_LAYER: {
+      RNA_pointer_create(&driver_target_context->scene->id,
+                         &RNA_ViewLayer,
+                         driver_target_context->view_layer,
+                         r_property_ptr);
+      return true;
+    }
+  }
+
+  BLI_assert_unreachable();
+
+  /* Reset to a NULL RNA pointer.
+   * This allows to more gracefully handle issues with unsupported configuration (forward
+   * compatibility. for example). */
+  /* TODO(sergey): Replace with utility null-RNA-pointer creation once that is available. */
+  r_property_ptr->data = NULL;
+  r_property_ptr->type = NULL;
+  r_property_ptr->owner_id = NULL;
+
+  return false;
+}
+
+bool driver_get_target_property(const DriverTargetContext *driver_target_context,
+                                DriverVar *dvar,
+                                DriverTarget *dtar,
+                                PointerRNA *r_prop)
+{
+  if (dvar->type == DVAR_TYPE_CONTEXT_PROP) {
+    return driver_get_target_context_property(driver_target_context, dtar, r_prop);
+  }
+
+  if (dtar->id == NULL) {
+    return false;
+  }
+
+  RNA_id_pointer_create(dtar->id, r_prop);
+
+  return true;
+}
+
 /**
  * Helper function to obtain a value using RNA from the specified source
  * (for evaluating drivers).
  */
-static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
+static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
+                               ChannelDriver *driver,
+                               DriverVar *dvar,
+                               DriverTarget *dtar)
 {
-  PointerRNA id_ptr, ptr;
-  PropertyRNA *prop;
-  ID *id;
-  int index = -1;
-  float value = 0.0f;
-
   /* Sanity check. */
-  if (ELEM(NULL, driver, dtar)) {
+  if (driver == NULL) {
     return 0.0f;
   }
 
-  id = dtar->id;
-
-  /* Error check for missing pointer. */
-  if (id == NULL) {
+  /* Get property to resolve the target from.
+   * Naming is a bit confusing, but this is what is exposed as "Prop" or "Context Property" in
+   * interface. */
+  const DriverTargetContext driver_target_context = driver_target_context_from_animation_context(
+      anim_eval_context);
+  PointerRNA property_ptr;
+  if (!driver_get_target_property(&driver_target_context, dvar, dtar, &property_ptr)) {
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG, "driver has an invalid target to use (path = %s)", dtar->rna_path);
     }
@@ -103,16 +173,19 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
     return 0.0f;
   }
 
-  /* Get RNA-pointer for the ID-block given in target. */
-  RNA_id_pointer_create(id, &id_ptr);
-
   /* Get property to read from, and get value as appropriate. */
-  if (!RNA_path_resolve_property_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
+  PointerRNA value_ptr;
+  PropertyRNA *value_prop;
+  int index = -1;
+  float value = 0.0f;
+  if (!RNA_path_resolve_property_full(
+          &property_ptr, dtar->rna_path, &value_ptr, &value_prop, &index))
+  {
     /* Path couldn't be resolved. */
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
                  "Driver Evaluation Error: cannot resolve target for %s -> %s",
-                 id->name,
+                 property_ptr.owner_id->name,
                  dtar->rna_path);
     }
 
@@ -121,14 +194,14 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
     return 0.0f;
   }
 
-  if (RNA_property_array_check(prop)) {
+  if (RNA_property_array_check(value_prop)) {
     /* Array. */
-    if (index < 0 || index >= RNA_property_array_length(&ptr, prop)) {
+    if (index < 0 || index >= RNA_property_array_length(&value_ptr, value_prop)) {
       /* Out of bounds. */
       if (G.debug & G_DEBUG) {
         CLOG_ERROR(&LOG,
                    "Driver Evaluation Error: array index is out of bounds for %s -> %s (%d)",
-                   id->name,
+                   property_ptr.owner_id->name,
                    dtar->rna_path,
                    index);
       }
@@ -138,15 +211,15 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
       return 0.0f;
     }
 
-    switch (RNA_property_type(prop)) {
+    switch (RNA_property_type(value_prop)) {
       case PROP_BOOLEAN:
-        value = (float)RNA_property_boolean_get_index(&ptr, prop, index);
+        value = (float)RNA_property_boolean_get_index(&value_ptr, value_prop, index);
         break;
       case PROP_INT:
-        value = (float)RNA_property_int_get_index(&ptr, prop, index);
+        value = (float)RNA_property_int_get_index(&value_ptr, value_prop, index);
         break;
       case PROP_FLOAT:
-        value = RNA_property_float_get_index(&ptr, prop, index);
+        value = RNA_property_float_get_index(&value_ptr, value_prop, index);
         break;
       default:
         break;
@@ -154,18 +227,18 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
   }
   else {
     /* Not an array. */
-    switch (RNA_property_type(prop)) {
+    switch (RNA_property_type(value_prop)) {
       case PROP_BOOLEAN:
-        value = (float)RNA_property_boolean_get(&ptr, prop);
+        value = (float)RNA_property_boolean_get(&value_ptr, value_prop);
         break;
       case PROP_INT:
-        value = (float)RNA_property_int_get(&ptr, prop);
+        value = (float)RNA_property_int_get(&value_ptr, value_prop);
         break;
       case PROP_FLOAT:
-        value = RNA_property_float_get(&ptr, prop);
+        value = RNA_property_float_get(&value_ptr, value_prop);
         break;
       case PROP_ENUM:
-        value = (float)RNA_property_enum_get(&ptr, prop);
+        value = (float)RNA_property_enum_get(&value_ptr, value_prop);
         break;
       default:
         break;
@@ -177,16 +250,16 @@ static float dtar_get_prop_val(ChannelDriver *driver, DriverTarget *dtar)
   return value;
 }
 
-bool driver_get_variable_property(ChannelDriver *driver,
+bool driver_get_variable_property(const AnimationEvalContext *anim_eval_context,
+                                  ChannelDriver *driver,
+                                  DriverVar *dvar,
                                   DriverTarget *dtar,
                                   PointerRNA *r_ptr,
                                   PropertyRNA **r_prop,
                                   int *r_index)
 {
-  PointerRNA id_ptr;
   PointerRNA ptr;
   PropertyRNA *prop;
-  ID *id;
   int index = -1;
 
   /* Sanity check. */
@@ -194,10 +267,11 @@ bool driver_get_variable_property(ChannelDriver *driver,
     return false;
   }
 
-  id = dtar->id;
-
-  /* Error check for missing pointer. */
-  if (id == NULL) {
+  /* Get RNA-pointer for the data-block given in target. */
+  const DriverTargetContext driver_target_context = driver_target_context_from_animation_context(
+      anim_eval_context);
+  PointerRNA target_ptr;
+  if (!driver_get_target_property(&driver_target_context, dvar, dtar, &target_ptr)) {
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG, "driver has an invalid target to use (path = %s)", dtar->rna_path);
     }
@@ -207,15 +281,12 @@ bool driver_get_variable_property(ChannelDriver *driver,
     return false;
   }
 
-  /* Get RNA-pointer for the ID-block given in target. */
-  RNA_id_pointer_create(id, &id_ptr);
-
   /* Get property to read from, and get value as appropriate. */
   if (dtar->rna_path == NULL || dtar->rna_path[0] == '\0') {
     ptr = PointerRNA_NULL;
     prop = NULL; /* OK. */
   }
-  else if (RNA_path_resolve_full(&id_ptr, dtar->rna_path, &ptr, &prop, &index)) {
+  else if (RNA_path_resolve_full(&target_ptr, dtar->rna_path, &ptr, &prop, &index)) {
     /* OK. */
   }
   else {
@@ -223,7 +294,7 @@ bool driver_get_variable_property(ChannelDriver *driver,
     if (G.debug & G_DEBUG) {
       CLOG_ERROR(&LOG,
                  "Driver Evaluation Error: cannot resolve target for %s -> %s",
-                 id->name,
+                 target_ptr.owner_id->name,
                  dtar->rna_path);
     }
 
@@ -276,14 +347,18 @@ static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
  * \{ */
 
 /* Evaluate 'single prop' driver variable. */
-static float dvar_eval_singleProp(ChannelDriver *driver, DriverVar *dvar)
+static float dvar_eval_singleProp(const AnimationEvalContext *anim_eval_context,
+                                  ChannelDriver *driver,
+                                  DriverVar *dvar)
 {
   /* Just evaluate the first target slot. */
-  return dtar_get_prop_val(driver, &dvar->targets[0]);
+  return dtar_get_prop_val(anim_eval_context, driver, dvar, &dvar->targets[0]);
 }
 
 /* Evaluate 'rotation difference' driver variable. */
-static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
+static float dvar_eval_rotDiff(const AnimationEvalContext *UNUSED(anim_eval_context),
+                               ChannelDriver *driver,
+                               DriverVar *dvar)
 {
   short valid_targets = driver_check_valid_targets(driver, dvar);
 
@@ -344,7 +419,9 @@ static float dvar_eval_rotDiff(ChannelDriver *driver, DriverVar *dvar)
  *
  * TODO: this needs to take into account space conversions.
  */
-static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
+static float dvar_eval_locDiff(const AnimationEvalContext *UNUSED(anim_eval_context),
+                               ChannelDriver *driver,
+                               DriverVar *dvar)
 {
   float loc1[3] = {0.0f, 0.0f, 0.0f};
   float loc2[3] = {0.0f, 0.0f, 0.0f};
@@ -446,7 +523,9 @@ static float dvar_eval_locDiff(ChannelDriver *driver, DriverVar *dvar)
 /**
  * Evaluate 'transform channel' driver variable.
  */
-static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
+static float dvar_eval_transChan(const AnimationEvalContext *UNUSED(anim_eval_context),
+                                 ChannelDriver *driver,
+                                 DriverVar *dvar)
 {
   DriverTarget *dtar = &dvar->targets[0];
   Object *ob = (Object *)dtar->id;
@@ -578,6 +657,15 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
   return mat[3][dtar->transChan];
 }
 
+/* Evaluate 'context prop' driver variable. */
+static float dvar_eval_contextProp(const AnimationEvalContext *anim_eval_context,
+                                   ChannelDriver *driver,
+                                   DriverVar *dvar)
+{
+  /* Just evaluate the first target slot. */
+  return dtar_get_prop_val(anim_eval_context, driver, dvar, &dvar->targets[0]);
+}
+
 /* Convert a quaternion to pseudo-angles representing the weighted amount of rotation. */
 static void quaternion_to_angles(float quat[4], int channel)
 {
@@ -619,7 +707,8 @@ void BKE_driver_target_matrix_to_rot_channels(
     }
   }
   else if (rotation_mode >= DTAR_ROTMODE_SWING_TWIST_X &&
-           rotation_mode <= DTAR_ROTMODE_SWING_TWIST_Z) {
+           rotation_mode <= DTAR_ROTMODE_SWING_TWIST_Z)
+  {
     int axis = rotation_mode - DTAR_ROTMODE_SWING_TWIST_X;
     float raw_quat[4], twist;
 
@@ -674,6 +763,12 @@ static DriverVarTypeInfo dvar_types[MAX_DVAR_TYPES] = {
     1,                                                                /* Number of targets used. */
     {"Object/Bone"},                                                  /* UI names for targets */
     {DTAR_FLAG_STRUCT_REF | DTAR_FLAG_ID_OB_ONLY}                     /* Flags. */
+    END_DVAR_TYPEDEF,
+
+    BEGIN_DVAR_TYPEDEF(DVAR_TYPE_CONTEXT_PROP) dvar_eval_contextProp, /* Eval callback. */
+    1,                                                                /* Number of targets used. */
+    {"Property"},                                                     /* UI names for targets */
+    {0}                                                               /* Flags. */
     END_DVAR_TYPEDEF,
 };
 
@@ -862,7 +957,7 @@ DriverVar *driver_add_new_variable(ChannelDriver *driver)
   BLI_addtail(&driver->variables, dvar);
 
   /* Give the variable a 'unique' name. */
-  strcpy(dvar->name, CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "var"));
+  STRNCPY_UTF8(dvar->name, CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "var"));
   BLI_uniquename(&driver->variables,
                  dvar,
                  CTX_DATA_(BLT_I18NCONTEXT_ID_ACTION, "var"),
@@ -972,7 +1067,8 @@ static bool driver_check_simple_expr_depends_on_time(ExprPyLike_Parsed *expr)
   return BLI_expr_pylike_is_using_param(expr, VAR_INDEX_FRAME);
 }
 
-static bool driver_evaluate_simple_expr(ChannelDriver *driver,
+static bool driver_evaluate_simple_expr(const AnimationEvalContext *anim_eval_context,
+                                        ChannelDriver *driver,
                                         ExprPyLike_Parsed *expr,
                                         float *result,
                                         float time)
@@ -985,7 +1081,7 @@ static bool driver_evaluate_simple_expr(ChannelDriver *driver,
   vars[VAR_INDEX_FRAME] = time;
 
   LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
-    vars[i++] = driver_get_variable_value(driver, dvar);
+    vars[i++] = driver_get_variable_value(anim_eval_context, driver, dvar);
   }
 
   /* Evaluate expression. */
@@ -1042,7 +1138,8 @@ static bool driver_compile_simple_expr(ChannelDriver *driver)
 
 /* Try using the simple expression evaluator to compute the result of the driver.
  * On success, stores the result and returns true; on failure result is set to 0. */
-static bool driver_try_evaluate_simple_expr(ChannelDriver *driver,
+static bool driver_try_evaluate_simple_expr(const AnimationEvalContext *anim_eval_context,
+                                            ChannelDriver *driver,
                                             ChannelDriver *driver_orig,
                                             float *result,
                                             float time)
@@ -1051,7 +1148,8 @@ static bool driver_try_evaluate_simple_expr(ChannelDriver *driver,
 
   return driver_compile_simple_expr(driver_orig) &&
          BLI_expr_pylike_is_valid(driver_orig->expr_simple) &&
-         driver_evaluate_simple_expr(driver, driver_orig->expr_simple, result, time);
+         driver_evaluate_simple_expr(
+             anim_eval_context, driver, driver_orig->expr_simple, result, time);
 }
 
 bool BKE_driver_has_simple_expression(ChannelDriver *driver)
@@ -1121,7 +1219,9 @@ void BKE_driver_invalidate_expression(ChannelDriver *driver,
 /** \name Driver Evaluation
  * \{ */
 
-float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
+float driver_get_variable_value(const AnimationEvalContext *anim_eval_context,
+                                ChannelDriver *driver,
+                                DriverVar *dvar)
 {
   const DriverVarTypeInfo *dvti;
 
@@ -1136,7 +1236,7 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
   dvti = get_dvar_typeinfo(dvar->type);
 
   if (dvti && dvti->get_value) {
-    dvar->curval = dvti->get_value(driver, dvar);
+    dvar->curval = dvti->get_value(anim_eval_context, driver, dvar);
   }
   else {
     dvar->curval = 0.0f;
@@ -1145,7 +1245,8 @@ float driver_get_variable_value(ChannelDriver *driver, DriverVar *dvar)
   return dvar->curval;
 }
 
-static void evaluate_driver_sum(ChannelDriver *driver)
+static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
+                                ChannelDriver *driver)
 {
   DriverVar *dvar;
 
@@ -1153,7 +1254,7 @@ static void evaluate_driver_sum(ChannelDriver *driver)
   if (BLI_listbase_is_single(&driver->variables)) {
     /* Just one target, so just use that. */
     dvar = driver->variables.first;
-    driver->curval = driver_get_variable_value(driver, dvar);
+    driver->curval = driver_get_variable_value(anim_eval_context, driver, dvar);
     return;
   }
 
@@ -1163,7 +1264,7 @@ static void evaluate_driver_sum(ChannelDriver *driver)
 
   /* Loop through targets, adding (hopefully we don't get any overflow!). */
   for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
-    value += driver_get_variable_value(driver, dvar);
+    value += driver_get_variable_value(anim_eval_context, driver, dvar);
     tot++;
   }
 
@@ -1176,7 +1277,8 @@ static void evaluate_driver_sum(ChannelDriver *driver)
   }
 }
 
-static void evaluate_driver_min_max(ChannelDriver *driver)
+static void evaluate_driver_min_max(const AnimationEvalContext *anim_eval_context,
+                                    ChannelDriver *driver)
 {
   DriverVar *dvar;
   float value = 0.0f;
@@ -1184,7 +1286,7 @@ static void evaluate_driver_min_max(ChannelDriver *driver)
   /* Loop through the variables, getting the values and comparing them to existing ones. */
   for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
     /* Get value. */
-    float tmp_val = driver_get_variable_value(driver, dvar);
+    float tmp_val = driver_get_variable_value(anim_eval_context, driver, dvar);
 
     /* Store this value if appropriate. */
     if (dvar->prev) {
@@ -1221,8 +1323,12 @@ static void evaluate_driver_python(PathResolvedRNA *anim_rna,
   if ((driver_orig->expression[0] == '\0') || (driver_orig->flag & DRIVER_FLAG_INVALID)) {
     driver->curval = 0.0f;
   }
-  else if (!driver_try_evaluate_simple_expr(
-               driver, driver_orig, &driver->curval, anim_eval_context->eval_time)) {
+  else if (!driver_try_evaluate_simple_expr(anim_eval_context,
+                                            driver,
+                                            driver_orig,
+                                            &driver->curval,
+                                            anim_eval_context->eval_time))
+  {
 #ifdef WITH_PYTHON
     /* This evaluates the expression using Python, and returns its result:
      * - on errors it reports, then returns 0.0f. */
@@ -1250,11 +1356,11 @@ float evaluate_driver(PathResolvedRNA *anim_rna,
   switch (driver->type) {
     case DRIVER_TYPE_AVERAGE: /* Average values of driver targets. */
     case DRIVER_TYPE_SUM:     /* Sum values of driver targets. */
-      evaluate_driver_sum(driver);
+      evaluate_driver_sum(anim_eval_context, driver);
       break;
     case DRIVER_TYPE_MIN: /* Smallest value. */
     case DRIVER_TYPE_MAX: /* Largest value. */
-      evaluate_driver_min_max(driver);
+      evaluate_driver_min_max(anim_eval_context, driver);
       break;
     case DRIVER_TYPE_PYTHON: /* Expression. */
       evaluate_driver_python(anim_rna, driver, driver_orig, anim_eval_context);

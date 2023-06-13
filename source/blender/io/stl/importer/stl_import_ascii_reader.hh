@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup stl
@@ -30,6 +32,6 @@
 
 namespace blender::io::stl {
 
-Mesh *read_stl_ascii(const char *filepath, Main *bmain, char *mesh_name, bool use_custom_normals);
+Mesh *read_stl_ascii(const char *filepath, bool use_custom_normals);
 
 }  // namespace blender::io::stl

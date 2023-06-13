@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -97,13 +98,19 @@ bUserMenu *ED_screen_user_menu_ensure(bContext *C)
 bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
                                                          const wmOperatorType *ot,
                                                          IDProperty *prop,
+                                                         const char *op_prop_enum,
                                                          wmOperatorCallContext opcontext)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_OPERATOR) {
       bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
-      if (STREQ(ot->idname, umi_op->op_idname) && (opcontext == umi_op->opcontext) &&
-          IDP_EqualsProperties(prop, umi_op->prop)) {
+      const bool ok_idprop = prop ? IDP_EqualsProperties(prop, umi_op->prop) : true;
+      const bool ok_prop_enum = (umi_op->op_prop_enum[0] != '\0') ?
+                                    STREQ(umi_op->op_prop_enum, op_prop_enum) :
+                                    true;
+      if (STREQ(ot->idname, umi_op->op_idname) && (opcontext == umi_op->opcontext) && ok_idprop &&
+          ok_prop_enum)
+      {
         return umi_op;
       }
     }
@@ -111,8 +118,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
   return NULL;
 }
 
-struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *lb,
-                                                              const struct MenuType *mt)
+bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBase *lb, const MenuType *mt)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_MENU) {
@@ -125,16 +131,17 @@ struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *l
   return NULL;
 }
 
-struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(struct ListBase *lb,
-                                                              const char *context_data_path,
-                                                              const char *prop_id,
-                                                              int prop_index)
+bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBase *lb,
+                                                       const char *context_data_path,
+                                                       const char *prop_id,
+                                                       int prop_index)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_PROP) {
       bUserMenuItem_Prop *umi_pr = (bUserMenuItem_Prop *)umi;
       if (STREQ(context_data_path, umi_pr->context_data_path) && STREQ(prop_id, umi_pr->prop_id) &&
-          (prop_index == umi_pr->prop_index)) {
+          (prop_index == umi_pr->prop_index))
+      {
         return umi_pr;
       }
     }
@@ -146,6 +153,7 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
                                            const char *ui_name,
                                            const wmOperatorType *ot,
                                            const IDProperty *prop,
+                                           const char *op_prop_enum,
                                            wmOperatorCallContext opcontext)
 {
   bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)BKE_blender_user_menu_item_add(
@@ -155,6 +163,7 @@ void ED_screen_user_menu_item_add_operator(ListBase *lb,
     STRNCPY(umi_op->item.ui_name, ui_name);
   }
   STRNCPY(umi_op->op_idname, ot->idname);
+  STRNCPY(umi_op->op_prop_enum, op_prop_enum);
   umi_op->prop = prop ? IDP_CopyProperty(prop) : NULL;
 }
 
@@ -214,15 +223,28 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         bUserMenuItem_Op *umi_op = (bUserMenuItem_Op *)umi;
         wmOperatorType *ot = WM_operatortype_find(umi_op->op_idname, false);
         if (ot != NULL) {
-          IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
-          uiItemFullO_ptr(menu->layout,
-                          ot,
-                          CTX_IFACE_(ot->translation_context, ui_name),
-                          ICON_NONE,
-                          prop,
-                          umi_op->opcontext,
-                          0,
-                          NULL);
+          if (umi_op->op_prop_enum[0] == '\0') {
+            IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : NULL;
+            uiItemFullO_ptr(menu->layout,
+                            ot,
+                            CTX_IFACE_(ot->translation_context, ui_name),
+                            ICON_NONE,
+                            prop,
+                            umi_op->opcontext,
+                            0,
+                            NULL);
+          }
+          else {
+            /* umi_op->prop could be used to set other properties but it's currently unsupported.
+             */
+            uiItemMenuEnumFullO_ptr(menu->layout,
+                                    C,
+                                    ot,
+                                    umi_op->op_prop_enum,
+                                    CTX_IFACE_(ot->translation_context, ui_name),
+                                    ICON_NONE,
+                                    NULL);
+          }
           is_empty = false;
         }
         else {
@@ -270,8 +292,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         if (ptr.type != NULL) {
           PropertyRNA *prop = NULL;
           PointerRNA prop_ptr = ptr;
-          if ((data_path == NULL) ||
-              RNA_path_resolve_full(&ptr, data_path, &prop_ptr, NULL, NULL)) {
+          if ((data_path == NULL) || RNA_path_resolve_full(&ptr, data_path, &prop_ptr, NULL, NULL))
+          {
             prop = RNA_struct_find_property(&prop_ptr, umi_pr->prop_id);
             if (prop) {
               ok = true;

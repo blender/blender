@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -55,8 +56,8 @@ bool BM_mesh_validate(BMesh *bm)
   BM_mesh_elem_index_ensure(bm, BM_ALL);
 
   BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-    if (BM_elem_flag_test(v, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ==
-        (BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
+    if (BM_elem_flag_test(v, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN))
+    {
       ERRMSG("vert %d: is hidden and selected", i);
     }
 
@@ -88,8 +89,8 @@ bool BM_mesh_validate(BMesh *bm)
 
   /* edge radial structure */
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
-    if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ==
-        (BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
+    if (BM_elem_flag_test(e, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN))
+    {
       ERRMSG("edge %d: is hidden and selected", i);
     }
 
@@ -124,8 +125,8 @@ bool BM_mesh_validate(BMesh *bm)
     BMLoop *l_iter;
     BMLoop *l_first;
 
-    if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN) ==
-        (BM_ELEM_SELECT | BM_ELEM_HIDDEN)) {
+    if (BM_elem_flag_test(f, BM_ELEM_SELECT | BM_ELEM_HIDDEN) == (BM_ELEM_SELECT | BM_ELEM_HIDDEN))
+    {
       ERRMSG("face %d: is hidden and selected", i);
     }
 

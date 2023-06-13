@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -25,12 +26,13 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mirror.h"
 #include "BKE_mesh_remesh_voxel.h"
 #include "BKE_mesh_runtime.h"
@@ -118,6 +120,7 @@ static bool object_remesh_poll(bContext *C)
 
 static int voxel_remesh_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   Object *ob = CTX_data_active_object(C);
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -132,8 +135,10 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   /* Output mesh will be all smooth or all flat shading. */
-  const Span<MPoly> polys = mesh->polys();
-  const bool smooth_normals = polys.first().flag & ME_SMOOTH;
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const VArray<bool> sharp_faces = *attributes.lookup_or_default<bool>(
+      "sharp_face", ATTR_DOMAIN_FACE, false);
+  const bool smooth_normals = !sharp_faces[0];
 
   float isovalue = 0.0f;
   if (mesh->flag & ME_REMESH_REPROJECT_VOLUME) {
@@ -176,9 +181,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  if (smooth_normals) {
-    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
-  }
+  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_end(ob);
@@ -352,7 +355,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
 
   GPU_matrix_push();
   GPU_matrix_mul(cd->text_mat);
-  BLF_size(fontid, 10.0f * fstyle_points * U.dpi_fac);
+  BLF_size(fontid, 10.0f * fstyle_points * UI_SCALE_FAC);
   BLF_color3f(fontid, 1.0f, 1.0f, 1.0f);
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
   BLF_position(fontid, -0.5f * strwidth, -0.5f * strheight, 0.0f);
@@ -386,7 +389,8 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
 
   /* Cancel modal operator */
   if ((event->type == EVT_ESCKEY && event->val == KM_PRESS) ||
-      (event->type == RIGHTMOUSE && event->val == KM_PRESS)) {
+      (event->type == RIGHTMOUSE && event->val == KM_PRESS))
+  {
     voxel_size_edit_cancel(C, op);
     ED_region_tag_redraw(region);
     return OPERATOR_FINISHED;
@@ -395,7 +399,8 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   /* Finish modal operator */
   if ((event->type == LEFTMOUSE && event->val == KM_RELEASE) ||
       (event->type == EVT_RETKEY && event->val == KM_PRESS) ||
-      (event->type == EVT_PADENTER && event->val == KM_PRESS)) {
+      (event->type == EVT_PADENTER && event->val == KM_PRESS))
+  {
     ED_region_draw_cb_exit(region->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
     MEM_freeN(op->customdata);
@@ -648,11 +653,11 @@ enum eSymmetryAxes {
 
 struct QuadriFlowJob {
   /* from wmJob */
-  struct Object *owner;
+  Object *owner;
   bool *stop, *do_update;
   float *progress;
 
-  const struct wmOperator *op;
+  const wmOperator *op;
   Scene *scene;
   int target_faces;
   int seed;
@@ -677,8 +682,9 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
    * flip
    */
   const Span<float3> positions = mesh->vert_positions();
-  const Span<MEdge> edges = mesh->edges();
-  const Span<MLoop> loops = mesh->loops();
+  const Span<blender::int2> edges = mesh->edges();
+  const Span<int> corner_verts = mesh->corner_verts();
+  const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
   char *edge_faces = (char *)MEM_callocN(mesh->totedge * sizeof(char), "remesh_manifold_check");
@@ -689,17 +695,19 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
     edge_vert[i] = -1;
   }
 
-  for (const MLoop &loop : loops) {
-    edge_faces[loop.e] += 1;
-    if (edge_faces[loop.e] > 2) {
+  for (const int corner_i : corner_verts.index_range()) {
+    const int vert = corner_verts[corner_i];
+    const int edge = corner_edges[corner_i];
+    edge_faces[edge] += 1;
+    if (edge_faces[edge] > 2) {
       is_manifold_consistent = false;
       break;
     }
 
-    if (edge_vert[loop.e] == -1) {
-      edge_vert[loop.e] = loop.v;
+    if (edge_vert[edge] == -1) {
+      edge_vert[edge] = vert;
     }
-    else if (edge_vert[loop.e] == loop.v) {
+    else if (edge_vert[edge] == vert) {
       /* Mesh has flips in the surface so it is non consistent */
       is_manifold_consistent = false;
       break;
@@ -714,7 +722,7 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
         break;
       }
       /* Check for zero length edges */
-      if (compare_v3v3(positions[edges[i].v1], positions[edges[i].v2], 1e-4f)) {
+      if (compare_v3v3(positions[edges[i][0]], positions[edges[i][1]], 1e-4f)) {
         is_manifold_consistent = false;
         break;
       }
@@ -773,7 +781,7 @@ static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
   mmd.tolerance = QUADRIFLOW_MIRROR_BISECT_TOLERANCE;
 
   Mesh *mesh_bisect, *mesh_bisect_temp;
-  mesh_bisect = BKE_mesh_copy_for_eval(mesh, false);
+  mesh_bisect = BKE_mesh_copy_for_eval(mesh);
 
   int axis;
   float plane_co[3], plane_no[3];
@@ -819,7 +827,7 @@ static Mesh *remesh_symmetry_mirror(Object *ob, Mesh *mesh, eSymmetryAxes symmet
       mmd.flag &= MOD_MIR_AXIS_X << i;
       mesh_mirror_temp = mesh_mirror;
       mesh_mirror = BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(
-          &mmd, ob, mesh_mirror, axis, true);
+          &mmd, ob, mesh_mirror, axis, true, nullptr, nullptr);
       if (mesh_mirror_temp != mesh_mirror) {
         BKE_id_free(nullptr, mesh_mirror_temp);
       }
@@ -855,7 +863,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
 
   /* Run Quadriflow bisect operations on a copy of the mesh to keep the code readable without
    * freeing the original ID */
-  bisect_mesh = BKE_mesh_copy_for_eval(mesh, false);
+  bisect_mesh = BKE_mesh_copy_for_eval(mesh);
 
   /* Bisect the input mesh using the paint symmetry settings */
   bisect_mesh = remesh_symmetry_bisect(bisect_mesh, qj->symmetry_axes);
@@ -898,9 +906,7 @@ static void quadriflow_start_job(void *customdata, bool *stop, bool *do_update, 
 
   BKE_mesh_nomain_to_mesh(new_mesh, mesh, ob);
 
-  if (qj->smooth_normals) {
-    BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), true);
-  }
+  BKE_mesh_smooth_flag_set(static_cast<Mesh *>(ob->data), qj->smooth_normals);
 
   if (ob->mode == OB_MODE_SCULPT) {
     ED_sculpt_undo_geometry_end(ob);
@@ -931,7 +937,7 @@ static void quadriflow_end_job(void *customdata)
       WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
     case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing cancelled");
+      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
     case -2:
       WM_report(RPT_WARNING,

@@ -46,7 +46,7 @@ void SceneExporter::exportHierarchy()
         case OB_CAMERA:
         case OB_LAMP:
         case OB_EMPTY:
-        case OB_GPENCIL:
+        case OB_GPENCIL_LEGACY:
         case OB_ARMATURE:
           base_objects.add(ob);
           break;

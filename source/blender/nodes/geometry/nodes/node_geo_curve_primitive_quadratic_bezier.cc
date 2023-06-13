@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 #include "node_geometry_util.hh"
@@ -7,25 +9,25 @@ namespace blender::nodes::node_geo_curve_primitive_quadratic_bezier_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Resolution"))
+  b.add_input<decl::Int>("Resolution")
       .default_value(16)
       .min(3)
       .max(256)
       .subtype(PROP_UNSIGNED)
-      .description(N_("The number of edges on the curve"));
-  b.add_input<decl::Vector>(N_("Start"))
+      .description("The number of edges on the curve");
+  b.add_input<decl::Vector>("Start")
       .default_value({-1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the first control point"));
-  b.add_input<decl::Vector>(N_("Middle"))
+      .description("Position of the first control point");
+  b.add_input<decl::Vector>("Middle")
       .default_value({0.0f, 2.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the middle control point"));
-  b.add_input<decl::Vector>(N_("End"))
+      .description("Position of the middle control point");
+  b.add_input<decl::Vector>("End")
       .default_value({1.0f, 0.0f, 0.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the last control point"));
-  b.add_output<decl::Geometry>(N_("Curve"));
+      .description("Position of the last control point");
+  b.add_output<decl::Geometry>("Curve");
 }
 
 static Curves *create_quadratic_bezier_curve(const float3 p1,

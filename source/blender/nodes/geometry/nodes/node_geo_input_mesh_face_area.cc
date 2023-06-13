@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -11,21 +13,20 @@ namespace blender::nodes::node_geo_input_mesh_face_area_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>(N_("Area"))
+  b.add_output<decl::Float>("Area")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT)
       .field_source()
-      .description(N_("The surface area of each of the mesh's faces"));
+      .description("The surface area of each of the mesh's faces");
 }
 
 static VArray<float> construct_face_area_varray(const Mesh &mesh, const eAttrDomain domain)
 {
   const Span<float3> positions = mesh.vert_positions();
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_verts = mesh.corner_verts();
 
-  auto area_fn = [positions, polys, loops](const int i) -> float {
-    const MPoly &poly = polys[i];
-    return BKE_mesh_calc_poly_area(
-        &poly, &loops[poly.loopstart], reinterpret_cast<const float(*)[3]>(positions.data()));
+  auto area_fn = [positions, polys, corner_verts](const int i) -> float {
+    return bke::mesh::poly_area_calc(positions, corner_verts.slice(polys[i]));
   };
 
   return mesh.attributes().adapt_domain<float>(
@@ -41,7 +42,7 @@ class FaceAreaFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_face_area_varray(mesh, domain);
   }

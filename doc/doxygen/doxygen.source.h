@@ -104,9 +104,9 @@
  *   merged in docs.
  */
 
-/**
- * \defgroup gui GUI
- * \ingroup blender */
+/** \defgroup gui GUI
+ *  \ingroup blender
+ */
 
 /** \defgroup wm Window Manager
  *  \ingroup gui */
@@ -299,10 +299,6 @@
  */
 
 /** \defgroup imbcineon Cineon
- *  \ingroup imbuf
- */
-
-/** \defgroup imbdds DDS
  *  \ingroup imbuf
  */
 

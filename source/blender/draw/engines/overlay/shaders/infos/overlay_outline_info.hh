@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 
 /* -------------------------------------------------------------------- */
-/** \name Outline Prepass
+/** \name Outline Pre-pass
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(overlay_outline_prepass_iface, "interp").flat(Type::UINT, "ob_id");

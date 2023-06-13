@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -35,13 +37,20 @@ class AssetStorage;
  * to also include asset indexes and more.
  */
 class AssetLibrary {
+  eAssetLibraryType library_type_;
+  /**
+   * The name this asset library will be displayed in the UI as. Will also be used as a weak way
+   * to identify an asset library (e.g. by #AssetWeakReference).
+   */
+  std::string name_;
   /** If this is an asset library on disk, the top-level directory path. Normalized using
    * #normalize_directory_path(). Shared pointer so assets can safely point to it, and don't have
    * to hold a copy (which is the size of `std::string` + the allocated buffer, if no short string
    * optimization is used). With thousands of assets this might make a reasonable difference. */
   std::shared_ptr<std::string> root_path_;
 
-  /** Storage for assets (better said their representations) that are considered to be part of this
+  /**
+   * Storage for assets (better said their representations) that are considered to be part of this
    * library. Assets are not automatically loaded into this when loading an asset library. Assets
    * have to be loaded externally and added to this storage via #add_external_asset() or
    * #add_local_id_asset(). So this really is arbitrary storage as far as #AssetLibrary is
@@ -63,6 +72,8 @@ class AssetLibrary {
    * #import_method_ above, it's just a default. */
   bool may_override_import_method_ = false;
 
+  bool use_relative_path_ = true;
+
   bCallbackFuncStore on_save_callback_store_{};
 
  public:
@@ -77,9 +88,13 @@ class AssetLibrary {
 
  public:
   /**
+   * \param name: The name this asset library will be displayed in the UI as. Will also be used as
+   *              a weak way to identify an asset library (e.g. by #AssetWeakReference). Make sure
+   *              this is set for any custom (not builtin) asset library. That is,
+   *              #ASSET_LIBRARY_CUSTOM ones.
    * \param root_path: If this is an asset library on disk, the top-level directory path.
    */
-  AssetLibrary(StringRef root_path = "");
+  AssetLibrary(eAssetLibraryType library_type, StringRef name = "", StringRef root_path = "");
   ~AssetLibrary();
 
   /**
@@ -109,16 +124,19 @@ class AssetLibrary {
    */
   AssetRepresentation &add_external_asset(StringRef relative_asset_path,
                                           StringRef name,
+                                          int id_type,
                                           std::unique_ptr<AssetMetaData> metadata);
   /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_local_id_asset(StringRef relative_asset_path, ID &id);
-  /** Remove an asset from the library that was added using #add_external_asset() or
+  /**
+   * Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
    * \note This is save to call if \a asset is freed (dangling reference), will not perform any
    *       change then.
    * \return True on success, false if the asset couldn't be found inside the library (also the
-   *         case when the reference is dangling). */
+   *         case when the reference is dangling).
+   */
   bool remove_asset(AssetRepresentation &asset);
 
   /**
@@ -133,7 +151,8 @@ class AssetLibrary {
    *
    * No-op if the catalog cannot be found. This could be the kind of "the
    * catalog definition file is corrupt/lost" scenario that the simple name is
-   * meant to help recover from. */
+   * meant to help recover from.
+   */
   void refresh_catalog_simplename(AssetMetaData *asset_data);
 
   void on_blend_save_handler_register();
@@ -147,6 +166,8 @@ class AssetLibrary {
    */
   AssetIdentifier asset_identifier_from_library(StringRef relative_asset_path);
 
+  eAssetLibraryType library_type() const;
+  StringRefNull name() const;
   StringRefNull root_path() const;
 };
 

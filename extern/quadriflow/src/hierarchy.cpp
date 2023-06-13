@@ -269,7 +269,13 @@ void Hierarchy::DownsampleGraph(const AdjacentMatrix adj, const MatrixXd& V, con
         for (auto it = ad.begin(); it != ad.end(); ++it, ++entry_it) {
             int k = it->id;
             double dp = N.col(i).dot(N.col(k));
-            double ratio = A[i] > A[k] ? (A[i] / A[k]) : (A[k] / A[i]);
+            double ratio;
+            if (A[i] > A[k]) {
+                ratio = (A[k] == 0.0f) ? 1.0f : A[i] / A[k];
+            }
+            else {
+                ratio = (A[i] == 0.0f) ? 1.0f : A[k] / A[i];
+            }
             *entry_it = Entry(i, k, dp * ratio);
         }
     }

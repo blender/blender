@@ -41,7 +41,7 @@ static const char *FRAGMENT_SHADER =
     "void main()\n"
     "{\n"
     "   vec4 rgba = texture(image_texture, texCoord_interp);\n"
-    /* Harcoded Rec.709 gamma, should use OpenColorIO eventually. */
+    /* Hard-coded Rec.709 gamma, should use OpenColorIO eventually. */
     "   fragColor = pow(rgba, vec4(0.45, 0.45, 0.45, 1.0));\n"
     "}\n\0";
 
@@ -149,9 +149,7 @@ void OpenGLShader::bind(int width, int height)
   glUniform2f(fullscreen_location_, width, height);
 }
 
-void OpenGLShader::unbind()
-{
-}
+void OpenGLShader::unbind() {}
 
 uint OpenGLShader::get_shader_program()
 {

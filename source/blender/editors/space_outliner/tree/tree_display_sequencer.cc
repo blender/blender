@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -69,7 +71,7 @@ SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Sequence *seq) const
       continue;
     }
 
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
       return SEQUENCE_DUPLICATE_NOOP;
     }
     p = p->prev;
@@ -82,7 +84,7 @@ SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Sequence *seq) const
       continue;
     }
 
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
       return SEQUENCE_DUPLICATE_ADD;
     }
     p = p->next;
@@ -95,12 +97,12 @@ void TreeDisplaySequencer::add_seq_dup(Sequence *seq, TreeElement *te, short ind
 {
   Sequence *p = seq;
   while (p) {
-    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->name[0] == '\0')) {
+    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->filename[0] == '\0')) {
       p = p->next;
       continue;
     }
 
-    if (STREQ(p->strip->stripdata->name, seq->strip->stripdata->name)) {
+    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
       outliner_add_element(&space_outliner_, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
     }
     p = p->next;

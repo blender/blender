@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_camera_types.h"
 #include "DRW_render.h"
@@ -57,7 +59,7 @@ void get_material_image(Object *ob,
                         int material_index,
                         ::Image *&image,
                         ImageUser *&iuser,
-                        eGPUSamplerState &sampler_state);
+                        GPUSamplerState &sampler_state);
 
 struct SceneState {
   Scene *scene = nullptr;
@@ -106,7 +108,7 @@ struct ObjectState {
   bool sculpt_pbvh = false;
   bool texture_paint_mode = false;
   ::Image *image_paint_override = nullptr;
-  eGPUSamplerState override_sampler_state = GPU_SAMPLER_DEFAULT;
+  GPUSamplerState override_sampler_state = GPUSamplerState::default_sampler();
   bool draw_shadow = false;
   bool use_per_material_batches = false;
 
@@ -184,8 +186,9 @@ class MeshPass : public PassMain {
   void draw(ObjectRef &ref,
             GPUBatch *batch,
             ResourceHandle handle,
+            uint material_index,
             ::Image *image = nullptr,
-            eGPUSamplerState sampler_state = eGPUSamplerState::GPU_SAMPLER_DEFAULT,
+            GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
             ImageUser *iuser = nullptr);
 };
 
@@ -321,6 +324,54 @@ class ShadowPass {
             GPUTexture &depth_stencil_tx,
             /* Needed when there are opaque "In Front" objects in the scene */
             bool force_fail_method);
+};
+
+class VolumePass {
+  bool active_ = true;
+
+  PassMain ps_ = {"Volume"};
+  Framebuffer fb_ = {"Volume"};
+
+  Texture dummy_shadow_tx_ = {"Volume.Dummy Shadow Tx"};
+  Texture dummy_volume_tx_ = {"Volume.Dummy Volume Tx"};
+  Texture dummy_coba_tx_ = {"Volume.Dummy Coba Tx"};
+
+  GPUTexture *stencil_tx_ = nullptr;
+
+  GPUShader *shaders_[2 /*slice*/][2 /*coba*/][3 /*interpolation*/][2 /*smoke*/];
+
+ public:
+  void sync(SceneResources &resources);
+
+  void object_sync_volume(Manager &manager,
+                          SceneResources &resources,
+                          const SceneState &scene_state,
+                          ObjectRef &ob_ref,
+                          float3 color);
+
+  void object_sync_modifier(Manager &manager,
+                            SceneResources &resources,
+                            const SceneState &scene_state,
+                            ObjectRef &ob_ref,
+                            ModifierData *md);
+
+  void draw(Manager &manager, View &view, SceneResources &resources);
+
+ private:
+  GPUShader *get_shader(bool slice, bool coba, int interpolation, bool smoke);
+
+  void draw_slice_ps(Manager &manager,
+                     PassMain::Sub &ps,
+                     ObjectRef &ob_ref,
+                     int slice_axis_enum,
+                     float slice_depth);
+
+  void draw_volume_ps(Manager &manager,
+                      PassMain::Sub &ps,
+                      ObjectRef &ob_ref,
+                      int taa_sample,
+                      float3 slice_count,
+                      float3 world_size);
 };
 
 class OutlinePass {

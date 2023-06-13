@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Shared structures, enums & defines between C++ and GLSL.
@@ -26,8 +28,8 @@ class ShadowPunctual;
 
 using namespace draw;
 
-constexpr eGPUSamplerState no_filter = GPU_SAMPLER_DEFAULT;
-constexpr eGPUSamplerState with_filter = GPU_SAMPLER_FILTER;
+constexpr GPUSamplerState no_filter = GPUSamplerState::default_sampler();
+constexpr GPUSamplerState with_filter = {GPU_SAMPLER_FILTERING_LINEAR};
 
 #endif
 
@@ -48,6 +50,10 @@ enum eDebugMode : uint32_t {
    * Show incorrectly downsample tiles in red.
    */
   DEBUG_HIZ_VALIDATION = 2u,
+  /**
+   * Display IrradianceCache surfels.
+   */
+  DEBUG_IRRADIANCE_CACHE_SURFELS = 3u,
   /**
    * Show tiles depending on their status.
    */
@@ -213,7 +219,8 @@ struct FilmData {
   int2 offset;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent;
-  /** Sub-pixel offset applied to the window matrix.
+  /**
+   * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
    * NOTE: The origin is the center of the lower left film pixel of the area covered by a render
@@ -302,18 +309,7 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Render passes
- * \{ */
-
-enum eRenderPassLayerIndex : uint32_t {
-  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
-  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Arbitrary Output Variables
+/** \name RenderBuffers
  * \{ */
 
 /* Theoretical max is 128 as we are using texture array and VRAM usage.
@@ -321,10 +317,11 @@ enum eRenderPassLayerIndex : uint32_t {
  * If we find a way to avoid this we could bump this number up. */
 #define AOV_MAX 16
 
-/* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct AOVsInfoData {
-  uint hash_value[AOV_MAX];
-  uint hash_color[AOV_MAX];
+  /* Use uint4 to workaround std140 packing rules.
+   * Only the x value is used. */
+  uint4 hash_value[AOV_MAX];
+  uint4 hash_color[AOV_MAX];
   /* Length of used data. */
   uint color_len;
   uint value_len;
@@ -334,6 +331,25 @@ struct AOVsInfoData {
   bool1 display_is_value;
 };
 BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
+
+struct RenderBuffersInfoData {
+  AOVsInfoData aovs;
+  /* Color. */
+  int color_len;
+  int normal_id;
+  int diffuse_light_id;
+  int diffuse_color_id;
+  int specular_light_id;
+  int specular_color_id;
+  int volume_light_id;
+  int emission_id;
+  int environment_id;
+  /* Value */
+  int value_len;
+  int shadow_id;
+  int ambient_occlusion_id;
+};
+BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
 /** \} */
 
@@ -350,8 +366,8 @@ enum eVelocityStep : uint32_t {
 };
 
 struct VelocityObjectIndex {
-  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;
 
@@ -363,11 +379,11 @@ BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
   /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 len;
+  packed_int3 len;
 
   int _pad0;
 
@@ -624,7 +640,7 @@ struct LightData {
   float radius_squared;
   /** NOTE: It is ok to use float3 here. A float is declared right after it.
    * float3 is also aligned to 16 bytes. */
-  float3 color;
+  packed_float3 color;
   /** Light Type. */
   eLightType type;
   /** Spot size. Aligned to size of float2. */
@@ -822,6 +838,21 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Debug
+ * \{ */
+
+struct DebugSurfel {
+  packed_float3 position;
+  int _pad0;
+  packed_float3 normal;
+  int _pad1;
+  float4 color;
+};
+BLI_STATIC_ASSERT_ALIGN(DebugSurfel, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Hierarchical-Z Buffer
  * \{ */
 
@@ -928,6 +959,7 @@ using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
+using DebugSurfelBuf = draw::StorageArrayBuffer<DebugSurfel, 64>;
 using HiZDataBuf = draw::UniformBuffer<HiZData>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
 using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;

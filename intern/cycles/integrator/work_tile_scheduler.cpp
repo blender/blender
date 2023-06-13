@@ -11,9 +11,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-WorkTileScheduler::WorkTileScheduler()
-{
-}
+WorkTileScheduler::WorkTileScheduler() {}
 
 void WorkTileScheduler::set_accelerated_rt(bool accelerated_rt)
 {
@@ -57,21 +55,29 @@ void WorkTileScheduler::reset_scheduler_state()
 
   VLOG_WORK << "Will schedule tiles of size " << tile_size_;
 
-  if (VLOG_IS_ON(3)) {
-    /* The logging is based on multiple tiles scheduled, ignoring overhead of multi-tile scheduling
-     * and purely focusing on the number of used path states. */
-    const int num_path_states_in_tile = tile_size_.width * tile_size_.height *
-                                        tile_size_.num_samples;
-    const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
-    VLOG_WORK << "Number of unused path states: "
-              << max_num_path_states_ - num_tiles * num_path_states_in_tile;
+  const int num_path_states_in_tile = tile_size_.width * tile_size_.height *
+                                      tile_size_.num_samples;
+
+  if (num_path_states_in_tile == 0) {
+    num_tiles_x_ = 0;
+    num_tiles_y_ = 0;
+    num_tiles_per_sample_range_ = 0;
+  }
+  else {
+    if (VLOG_IS_ON(3)) {
+      /* The logging is based on multiple tiles scheduled, ignoring overhead of multi-tile
+       * scheduling and purely focusing on the number of used path states. */
+      const int num_tiles = max_num_path_states_ / num_path_states_in_tile;
+      VLOG_WORK << "Number of unused path states: "
+                << max_num_path_states_ - num_tiles * num_path_states_in_tile;
+    }
+
+    num_tiles_x_ = divide_up(image_size_px_.x, tile_size_.width);
+    num_tiles_y_ = divide_up(image_size_px_.y, tile_size_.height);
+    num_tiles_per_sample_range_ = divide_up(samples_num_, tile_size_.num_samples);
   }
 
-  num_tiles_x_ = divide_up(image_size_px_.x, tile_size_.width);
-  num_tiles_y_ = divide_up(image_size_px_.y, tile_size_.height);
-
   total_tiles_num_ = num_tiles_x_ * num_tiles_y_;
-  num_tiles_per_sample_range_ = divide_up(samples_num_, tile_size_.num_samples);
 
   next_work_index_ = 0;
   total_work_size_ = total_tiles_num_ * num_tiles_per_sample_range_;

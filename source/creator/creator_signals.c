@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup creator
@@ -98,20 +100,20 @@ static void sig_handle_crash(int signum)
   if (wm && wm->undo_stack) {
     struct MemFile *memfile = BKE_undosys_stack_memfile_get_active(wm->undo_stack);
     if (memfile) {
-      char fname[FILE_MAX];
+      char filepath[FILE_MAX];
 
       if (!(G_MAIN && G_MAIN->filepath[0])) {
-        BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), "crash.blend");
+        BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "crash.blend");
       }
       else {
-        STRNCPY(fname, G_MAIN->filepath);
-        BLI_path_extension_replace(fname, sizeof(fname), ".crash.blend");
+        STRNCPY(filepath, G_MAIN->filepath);
+        BLI_path_extension_replace(filepath, sizeof(filepath), ".crash.blend");
       }
 
-      printf("Writing: %s\n", fname);
+      printf("Writing: %s\n", filepath);
       fflush(stdout);
 
-      BLO_memfile_write_file(memfile, fname);
+      BLO_memfile_write_file(memfile, filepath);
     }
   }
 #  endif
@@ -119,39 +121,38 @@ static void sig_handle_crash(int signum)
   FILE *fp;
   char header[512];
 
-  char fname[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!(G_MAIN && G_MAIN->filepath[0])) {
-    BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), "blender.crash.txt");
+    BLI_path_join(filepath, sizeof(filepath), BKE_tempdir_base(), "blender.crash.txt");
   }
   else {
-    BLI_path_join(fname, sizeof(fname), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
-    BLI_path_extension_replace(fname, sizeof(fname), ".crash.txt");
+    BLI_path_join(
+        filepath, sizeof(filepath), BKE_tempdir_base(), BLI_path_basename(G_MAIN->filepath));
+    BLI_path_extension_replace(filepath, sizeof(filepath), ".crash.txt");
   }
 
-  printf("Writing: %s\n", fname);
+  printf("Writing: %s\n", filepath);
   fflush(stdout);
 
 #  ifndef BUILD_DATE
-  BLI_snprintf(
-      header, sizeof(header), "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
+  SNPRINTF(header, "# " BLEND_VERSION_FMT ", Unknown revision\n", BLEND_VERSION_ARG);
 #  else
-  BLI_snprintf(header,
-               sizeof(header),
-               "# " BLEND_VERSION_FMT ", Commit date: %s %s, Hash %s\n",
-               BLEND_VERSION_ARG,
-               build_commit_date,
-               build_commit_time,
-               build_hash);
+  SNPRINTF(header,
+           "# " BLEND_VERSION_FMT ", Commit date: %s %s, Hash %s\n",
+           BLEND_VERSION_ARG,
+           build_commit_date,
+           build_commit_time,
+           build_hash);
 #  endif
 
   /* open the crash log */
   errno = 0;
-  fp = BLI_fopen(fname, "wb");
+  fp = BLI_fopen(filepath, "wb");
   if (fp == NULL) {
     fprintf(stderr,
             "Unable to save '%s': %s\n",
-            fname,
+            filepath,
             errno ? strerror(errno) : "Unknown error opening file");
   }
   else {

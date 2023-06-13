@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -31,9 +32,7 @@ class Device {
    * \brief Declaration of the virtual destructor
    * \note resolve warning gcc 4.7
    */
-  virtual ~Device()
-  {
-  }
+  virtual ~Device() {}
 
   /**
    * \brief execute a WorkPackage

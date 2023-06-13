@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -72,7 +73,7 @@ void OBJECT_OT_drop_geometry_nodes(struct wmOperatorType *ot);
  */
 void OBJECT_OT_unlink_data(struct wmOperatorType *ot);
 
-/* object_edit.c */
+/* object_edit.cc */
 
 void OBJECT_OT_hide_view_set(struct wmOperatorType *ot);
 void OBJECT_OT_hide_view_clear(struct wmOperatorType *ot);
@@ -118,6 +119,7 @@ void OBJECT_OT_empty_add(struct wmOperatorType *ot);
 void OBJECT_OT_lightprobe_add(struct wmOperatorType *ot);
 void OBJECT_OT_drop_named_image(struct wmOperatorType *ot);
 void OBJECT_OT_gpencil_add(struct wmOperatorType *ot);
+void OBJECT_OT_grease_pencil_add(struct wmOperatorType *ot);
 void OBJECT_OT_light_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
@@ -164,6 +166,18 @@ void COLLECTION_OT_objects_remove_all(struct wmOperatorType *ot);
 void COLLECTION_OT_objects_remove(struct wmOperatorType *ot);
 void COLLECTION_OT_objects_add_active(struct wmOperatorType *ot);
 void COLLECTION_OT_objects_remove_active(struct wmOperatorType *ot);
+
+/* object_light_linking_ops.cc */
+
+void OBJECT_OT_light_linking_receiver_collection_new(struct wmOperatorType *ot);
+void OBJECT_OT_light_linking_receivers_select(struct wmOperatorType *ot);
+void OBJECT_OT_light_linking_receivers_link(struct wmOperatorType *ot);
+
+void OBJECT_OT_light_linking_blocker_collection_new(struct wmOperatorType *ot);
+void OBJECT_OT_light_linking_blockers_select(struct wmOperatorType *ot);
+void OBJECT_OT_light_linking_blockers_link(struct wmOperatorType *ot);
+
+void OBJECT_OT_light_linking_unlink_from_collection(struct wmOperatorType *ot);
 
 /* object_modifier.c */
 
@@ -287,7 +301,6 @@ void OBJECT_OT_vertex_group_normalize(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_normalize_all(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_levels(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_lock(struct wmOperatorType *ot);
-void OBJECT_OT_vertex_group_fix(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_invert(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_group_clean(struct wmOperatorType *ot);
@@ -302,16 +315,6 @@ void OBJECT_OT_vertex_weight_delete(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_set_active(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_normalize_active_vertex(struct wmOperatorType *ot);
 void OBJECT_OT_vertex_weight_copy(struct wmOperatorType *ot);
-
-/* object_facemap_ops.c */
-
-void OBJECT_OT_face_map_add(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_remove(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_assign(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_remove_from(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_select(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_deselect(struct wmOperatorType *ot);
-void OBJECT_OT_face_map_move(struct wmOperatorType *ot);
 
 /* object_warp.c */
 
@@ -338,6 +341,12 @@ void OBJECT_OT_collection_objects_select(struct wmOperatorType *ot);
 
 void OBJECT_OT_bake_image(wmOperatorType *ot);
 void OBJECT_OT_bake(wmOperatorType *ot);
+
+/* object_bake_simulation.cc */
+
+void OBJECT_OT_simulation_nodes_cache_calculate_to_frame(wmOperatorType *ot);
+void OBJECT_OT_simulation_nodes_cache_bake(wmOperatorType *ot);
+void OBJECT_OT_simulation_nodes_cache_delete(wmOperatorType *ot);
 
 /* object_random.c */
 

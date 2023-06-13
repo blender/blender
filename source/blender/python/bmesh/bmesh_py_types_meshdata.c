@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -131,7 +132,7 @@ static PyObject *bpy_bmloopuv_select_edge_get(BPy_BMLoopUV *self, void *UNUSED(c
 }
 static int bpy_bmloopuv_select_edge_set(BPy_BMLoopUV *self, PyObject *value, void *UNUSED(closure))
 {
-  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here.  */
+  /* TODO: see comment above on bpy_bmloopuv_pin_uv_set(), the same applies here. */
   BLI_assert(self->edge_select);
   if (self->edge_select) {
     *self->edge_select = PyC_Long_AsBool(value);
@@ -183,7 +184,7 @@ static void bm_init_types_bmloopuv(void)
   PyType_Ready(&BPy_BMLoopUV_Type);
 }
 
-int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
+int BPy_BMLoopUV_AssignPyObject(BMesh *bm, BMLoop *loop, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMLoopUV_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMLoopUV, not a %.200s", Py_TYPE(value)->tp_name);
@@ -209,11 +210,11 @@ int BPy_BMLoopUV_AssignPyObject(struct BMesh *bm, BMLoop *loop, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMLoopUV_CreatePyObject(struct BMesh *bm, BMLoop *loop)
+PyObject *BPy_BMLoopUV_CreatePyObject(BMesh *bm, BMLoop *loop, int layer)
 {
   BPy_BMLoopUV *self = PyObject_New(BPy_BMLoopUV, &BPy_BMLoopUV_Type);
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_get_offsets_from_layer(bm, layer);
 
   self->uv = BM_ELEM_CD_GET_FLOAT_P(loop, offsets.uv);
   self->vert_select = offsets.select_vert >= 0 ? BM_ELEM_CD_GET_BOOL_P(loop, offsets.select_vert) :
@@ -321,7 +322,7 @@ static void bm_init_types_bmvertskin(void)
   PyType_Ready(&BPy_BMVertSkin_Type);
 }
 
-int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value)
+int BPy_BMVertSkin_AssignPyObject(MVertSkin *mvertskin, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMVertSkin_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMVertSkin, not a %.200s", Py_TYPE(value)->tp_name);
@@ -332,7 +333,7 @@ int BPy_BMVertSkin_AssignPyObject(struct MVertSkin *mvertskin, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMVertSkin_CreatePyObject(struct MVertSkin *mvertskin)
+PyObject *BPy_BMVertSkin_CreatePyObject(MVertSkin *mvertskin)
 {
   BPy_BMVertSkin *self = PyObject_New(BPy_BMVertSkin, &BPy_BMVertSkin_Type);
   self->data = mvertskin;
@@ -419,7 +420,7 @@ static void bm_init_types_bmloopcol(void)
   mathutils_bmloopcol_cb_index = Mathutils_RegisterCallback(&mathutils_bmloopcol_cb);
 }
 
-int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
+int BPy_BMLoopColor_AssignPyObject(MLoopCol *mloopcol, PyObject *value)
 {
   float tvec[4];
   if (mathutils_array_parse(tvec, 4, 4, value, "BMLoopCol") != -1) {
@@ -430,7 +431,7 @@ int BPy_BMLoopColor_AssignPyObject(struct MLoopCol *mloopcol, PyObject *value)
   return -1;
 }
 
-PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *mloopcol)
+PyObject *BPy_BMLoopColor_CreatePyObject(MLoopCol *mloopcol)
 {
   PyObject *color_capsule;
   color_capsule = PyCapsule_New(mloopcol, NULL, NULL);
@@ -588,7 +589,7 @@ static PySequenceMethods bpy_bmdeformvert_as_sequence = {
 };
 
 static PyMappingMethods bpy_bmdeformvert_as_mapping = {
-    /*mp_len*/ (lenfunc)bpy_bmdeformvert_len,
+    /*mp_length*/ (lenfunc)bpy_bmdeformvert_len,
     /*mp_subscript*/ (binaryfunc)bpy_bmdeformvert_subscript,
     /*mp_ass_subscript*/ (objobjargproc)bpy_bmdeformvert_ass_subscript,
 };
@@ -600,7 +601,7 @@ PyDoc_STRVAR(bpy_bmdeformvert_keys_doc,
              ".. method:: keys()\n"
              "\n"
              "   Return the group indices used by this vertex\n"
-             "   (matching pythons dict.keys() functionality).\n"
+             "   (matching Python's dict.keys() functionality).\n"
              "\n"
              "   :return: the deform group this vertex uses\n"
              "   :rtype: list of ints\n");
@@ -622,7 +623,7 @@ PyDoc_STRVAR(bpy_bmdeformvert_values_doc,
              ".. method:: values()\n"
              "\n"
              "   Return the weights of the deform vertex\n"
-             "   (matching pythons dict.values() functionality).\n"
+             "   (matching Python's dict.values() functionality).\n"
              "\n"
              "   :return: The weights that influence this vertex\n"
              "   :rtype: list of floats\n");
@@ -644,7 +645,7 @@ PyDoc_STRVAR(bpy_bmdeformvert_items_doc,
              ".. method:: items()\n"
              "\n"
              "   Return (group, weight) pairs for this vertex\n"
-             "   (matching pythons dict.items() functionality).\n"
+             "   (matching Python's dict.items() functionality).\n"
              "\n"
              "   :return: (key, value) pairs for each deform weight of this vertex.\n"
              "   :rtype: list of tuples\n");
@@ -669,7 +670,7 @@ PyDoc_STRVAR(bpy_bmdeformvert_get_doc,
              ".. method:: get(key, default=None)\n"
              "\n"
              "   Returns the deform weight matching the key or default\n"
-             "   when not found (matches pythons dictionary function of the same name).\n"
+             "   when not found (matches Python's dictionary function of the same name).\n"
              "\n"
              "   :arg key: The key associated with deform weight.\n"
              "   :type key: int\n"
@@ -705,12 +706,12 @@ static PyObject *bpy_bmdeformvert_clear(BPy_BMDeformVert *self)
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpy_bmdeformvert_methods[] = {
+static PyMethodDef bpy_bmdeformvert_methods[] = {
     {"keys", (PyCFunction)bpy_bmdeformvert_keys, METH_NOARGS, bpy_bmdeformvert_keys_doc},
     {"values", (PyCFunction)bpy_bmdeformvert_values, METH_NOARGS, bpy_bmdeformvert_values_doc},
     {"items", (PyCFunction)bpy_bmdeformvert_items, METH_NOARGS, bpy_bmdeformvert_items_doc},
     {"get", (PyCFunction)bpy_bmdeformvert_get, METH_VARARGS, bpy_bmdeformvert_get_doc},
-    /* BMESH_TODO pop, popitem, update */
+    /* BMESH_TODO `pop`, `popitem`, `update`. */
     {"clear", (PyCFunction)bpy_bmdeformvert_clear, METH_NOARGS, bpy_bmdeformvert_clear_doc},
     {NULL, NULL, 0, NULL},
 };
@@ -735,7 +736,7 @@ static void bm_init_types_bmdvert(void)
   PyType_Ready(&BPy_BMDeformVert_Type);
 }
 
-int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
+int BPy_BMDeformVert_AssignPyObject(MDeformVert *dvert, PyObject *value)
 {
   if (UNLIKELY(!BPy_BMDeformVert_Check(value))) {
     PyErr_Format(PyExc_TypeError, "expected BMDeformVert, not a %.200s", Py_TYPE(value)->tp_name);
@@ -749,7 +750,7 @@ int BPy_BMDeformVert_AssignPyObject(struct MDeformVert *dvert, PyObject *value)
   return 0;
 }
 
-PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
+PyObject *BPy_BMDeformVert_CreatePyObject(MDeformVert *dvert)
 {
   BPy_BMDeformVert *self = PyObject_New(BPy_BMDeformVert, &BPy_BMDeformVert_Type);
   self->data = dvert;

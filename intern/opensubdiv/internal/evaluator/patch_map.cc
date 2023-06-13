@@ -20,7 +20,7 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-// Modifications copyright 2021 Blender Foundation. All rights reserved.
+// Modifications copyright 2021 Blender Foundation
 
 #include "internal/evaluator/patch_map.h"
 #include <algorithm>

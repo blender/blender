@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GaussianAlphaBlurBaseOperation.h"
 
@@ -102,7 +103,7 @@ void GaussianAlphaBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *
     const int coord_min = max_ii(coord - filtersize_, min_input_coord);
     const int coord_max = min_ii(coord + filtersize_ + 1, max_input_coord);
 
-    /* *** This is the main part which is different to #GaussianBlurBaseOperation.  *** */
+    /* *** This is the main part which is different to #GaussianBlurBaseOperation. *** */
     /* Gauss. */
     float alpha_accum = 0.0f;
     float multiplier_accum = 0.0f;

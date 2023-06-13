@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -43,9 +45,7 @@ using namespace Geometry;
 
 class StrokeVertexRep {
  public:
-  StrokeVertexRep()
-  {
-  }
+  StrokeVertexRep() {}
 
   StrokeVertexRep(const Vec2r &iPoint2d)
   {
@@ -54,9 +54,7 @@ class StrokeVertexRep {
 
   StrokeVertexRep(const StrokeVertexRep &iBrother);
 
-  virtual ~StrokeVertexRep()
-  {
-  }
+  virtual ~StrokeVertexRep() {}
 
   inline Vec2r &point2d()
   {

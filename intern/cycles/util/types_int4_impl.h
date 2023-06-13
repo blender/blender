@@ -11,17 +11,11 @@ CCL_NAMESPACE_BEGIN
 
 #ifndef __KERNEL_NATIVE_VECTOR_TYPES__
 #  ifdef __KERNEL_SSE__
-__forceinline int4::int4()
-{
-}
+__forceinline int4::int4() {}
 
-__forceinline int4::int4(const int4 &a) : m128(a.m128)
-{
-}
+__forceinline int4::int4(const int4 &a) : m128(a.m128) {}
 
-__forceinline int4::int4(const __m128i &a) : m128(a)
-{
-}
+__forceinline int4::int4(const __m128i &a) : m128(a) {}
 
 __forceinline int4::operator const __m128i &() const
 {

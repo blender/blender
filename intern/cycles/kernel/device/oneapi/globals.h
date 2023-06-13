@@ -31,6 +31,8 @@ typedef struct KernelGlobalsGPU {
   size_t nd_item_group_range_0;
   size_t nd_item_global_id_0;
   size_t nd_item_global_range_0;
+#else
+  sycl::kernel_handler kernel_handler;
 #endif
 } KernelGlobalsGPU;
 

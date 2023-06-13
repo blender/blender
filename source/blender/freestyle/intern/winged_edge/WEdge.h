@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -65,9 +67,7 @@ class WVertex {
   /** Copy constructor */
   WVertex(WVertex &iBrother);
   virtual WVertex *duplicate();
-  virtual ~WVertex()
-  {
-  }
+  virtual ~WVertex() {}
 
   /** accessors */
   inline Vec3f &GetVertex()
@@ -710,9 +710,7 @@ class WFace {
   /** copy constructor */
   WFace(WFace &iBrother);
   virtual WFace *duplicate();
-  virtual ~WFace()
-  {
-  }
+  virtual ~WFace() {}
 
   /** accessors */
   inline const vector<WOEdge *> &getEdgeList()
@@ -766,7 +764,8 @@ class WFace {
     int index = 0;
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       if ((*woe)->GetaVertex() == iVertex) {
         return index;
       }
@@ -779,7 +778,8 @@ class WFace {
   {
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       oVertices.push_back((*woe)->GetaVertex());
     }
   }
@@ -788,7 +788,8 @@ class WFace {
   {
     for (vector<WOEdge *>::iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       WFace *af;
       if ((af = (*woe)->GetaFace())) {
         oWFaces.push_back(af);
@@ -840,7 +841,8 @@ class WFace {
     int index = 0;
     for (vector<WOEdge *>::const_iterator woe = _OEdgeList.begin(), woend = _OEdgeList.end();
          woe != woend;
-         woe++) {
+         woe++)
+    {
       if ((*woe)->GetaVertex() == iVertex) {
         index = i;
         break;
@@ -891,7 +893,8 @@ class WFace {
   {
     for (vector<WOEdge *>::const_iterator woe = _OEdgeList.begin(), woeend = _OEdgeList.end();
          woe != woeend;
-         ++woe) {
+         ++woe)
+    {
       if ((*woe)->GetOwner()->GetbOEdge() == 0) {
         return true;
       }

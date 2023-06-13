@@ -1,6 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
 #include "BLI_task.hh"
@@ -11,17 +13,15 @@ namespace blender::nodes::node_geo_mesh_topology_offset_corner_in_face_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Corner Index"))
+  b.add_input<decl::Int>("Corner Index")
       .implicit_field(implicit_field_inputs::index)
-      .description(
-          N_("The corner to retrieve data from. Defaults to the corner from the context"));
-  b.add_input<decl::Int>(N_("Offset"))
-      .supports_field()
-      .description(N_("The number of corners to move around the face before finding the result, "
-                      "circling around the start of the face if necessary"));
-  b.add_output<decl::Int>(N_("Corner Index"))
+      .description("The corner to retrieve data from. Defaults to the corner from the context");
+  b.add_input<decl::Int>("Offset").supports_field().description(
+      "The number of corners to move around the face before finding the result, "
+      "circling around the start of the face if necessary");
+  b.add_output<decl::Int>("Corner Index")
       .field_source_reference_all()
-      .description(N_("The index of the offset corner"));
+      .description("The index of the offset corner");
 }
 
 class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
@@ -39,10 +39,10 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     const IndexRange corner_range(mesh.totloop);
-    const Span<MPoly> polys = mesh.polys();
+    const OffsetIndices polys = mesh.polys();
 
     const bke::MeshFieldContext context{mesh, domain};
     fn::FieldEvaluator evaluator{context, &mask};
@@ -52,7 +52,7 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     const VArray<int> corner_indices = evaluator.get_evaluated<int>(0);
     const VArray<int> offsets = evaluator.get_evaluated<int>(1);
 
-    Array<int> loop_to_poly_map = bke::mesh_topology::build_loop_to_poly_map(polys, mesh.totloop);
+    Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
 
     Array<int> offset_corners(mask.min_array_size());
     threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {
@@ -64,9 +64,8 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
           continue;
         }
 
-        const int poly_i = loop_to_poly_map[corner_i];
-        const IndexRange poly_range(polys[poly_i].loopstart, polys[poly_i].totloop);
-        offset_corners[selection_i] = apply_offset_in_cyclic_range(poly_range, corner_i, offset);
+        const IndexRange poly = polys[loop_to_poly_map[corner_i]];
+        offset_corners[selection_i] = apply_offset_in_cyclic_range(poly, corner_i, offset);
       }
     });
 
@@ -87,7 +86,8 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const final
   {
     if (const OffsetCornerInFaceFieldInput *other_field =
-            dynamic_cast<const OffsetCornerInFaceFieldInput *>(&other)) {
+            dynamic_cast<const OffsetCornerInFaceFieldInput *>(&other))
+    {
       return other_field->corner_index_ == corner_index_ && other_field->offset_ == offset_;
     }
     return false;

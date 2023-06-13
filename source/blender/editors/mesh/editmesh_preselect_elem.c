@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -231,7 +233,8 @@ static void view3d_preselect_update_preview_triangle_from_vert(struct EditMesh_P
       BMEdge *e_iter = v_act->e;
       do {
         if ((BM_elem_flag_test(e_iter, BM_ELEM_HIDDEN) == false) &&
-            (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter))) {
+            (allow_wire ? BM_edge_is_wire(e_iter) : BM_edge_is_boundary(e_iter)))
+        {
           if (i == 2) {
             e_pair[0] = e_pair[1] = NULL;
             break;
@@ -373,11 +376,8 @@ void EDBM_preselect_elem_update_from_single(struct EditMesh_PreSelElem *psel,
   }
 }
 
-void EDBM_preselect_elem_update_preview(struct EditMesh_PreSelElem *psel,
-                                        struct ViewContext *vc,
-                                        struct BMesh *bm,
-                                        struct BMElem *ele,
-                                        const int mval[2])
+void EDBM_preselect_elem_update_preview(
+    struct EditMesh_PreSelElem *psel, ViewContext *vc, BMesh *bm, BMElem *ele, const int mval[2])
 {
   EDBM_preselect_preview_clear(psel);
 

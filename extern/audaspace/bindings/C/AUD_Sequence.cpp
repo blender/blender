@@ -165,6 +165,12 @@ AUD_API void AUD_SequenceEntry_move(AUD_SequenceEntry* entry, double begin, doub
 	(*entry)->move(begin, end, skip);
 }
 
+AUD_API void AUD_SequenceEntry_setConstantRangeAnimationData(AUD_SequenceEntry* entry, AUD_AnimateablePropertyType type, int frame_start, int frame_end, float* data)
+{
+	AnimateableProperty* prop = (*entry)->getAnimProperty(static_cast<AnimateablePropertyType>(type));
+	prop->writeConstantRange(data, frame_start, frame_end);
+}
+
 AUD_API void AUD_SequenceEntry_setAnimationData(AUD_SequenceEntry* entry, AUD_AnimateablePropertyType type, int frame, float* data, char animated)
 {
 	AnimateableProperty* prop = (*entry)->getAnimProperty(static_cast<AnimateablePropertyType>(type));

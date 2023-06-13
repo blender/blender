@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -53,7 +54,7 @@ template<
      *
      * Useful during development to switch between drawing implementations.
      */
-    typename DrawingMode = ScreenSpaceDrawingMode<ScreenTileTextures<1>>>
+    typename DrawingMode = ScreenSpaceDrawingMode<OneTexture>>
 class ImageEngine {
  private:
   const DRWContextState *draw_ctx;
@@ -99,8 +100,10 @@ class ImageEngine {
     /* Setup the matrix to go from screen UV coordinates to UV texture space coordinates. */
     float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
                                  image_buffer ? image_buffer->y : 1024.0f};
+    float image_offset[2] = {float(instance_data->image->offset_x),
+                             float(instance_data->image->offset_y)};
     space->init_ss_to_texture_matrix(
-        draw_ctx->region, image_resolution, instance_data->ss_to_texture);
+        draw_ctx->region, image_offset, image_resolution, instance_data->ss_to_texture);
 
     const Scene *scene = DRW_context_state_get()->scene;
     instance_data->sh_params.update(space.get(), scene, instance_data->image, image_buffer);

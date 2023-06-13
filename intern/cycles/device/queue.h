@@ -36,9 +36,7 @@ struct DeviceKernelArguments {
   size_t sizes[MAX_ARGS];
   size_t count = 0;
 
-  DeviceKernelArguments()
-  {
-  }
+  DeviceKernelArguments() {}
 
   template<class T> DeviceKernelArguments(const T *arg)
   {

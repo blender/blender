@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -35,7 +36,7 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -81,7 +82,7 @@ struct RenderJob {
    */
   Depsgraph *depsgraph;
   Render *re;
-  struct Object *camera_override;
+  Object *camera_override;
   bool v3d_override;
   bool anim, write_still;
   Image *image;
@@ -207,11 +208,11 @@ static void image_buffer_rect_update(RenderJob *rj,
     rv = RE_RenderViewGetById(rr, view_id);
 
     /* find current float rect for display, first case is after composite... still weak */
-    if (rv->rectf) {
-      rectf = rv->rectf;
+    if (rv->combined_buffer.data) {
+      rectf = rv->combined_buffer.data;
     }
     else {
-      if (rv->rect32) {
+      if (rv->byte_buffer.data) {
         /* special case, currently only happens with sequencer rendering,
          * which updates the whole frame, so we can only mark display buffer
          * as invalid here (sergey)
@@ -234,7 +235,7 @@ static void image_buffer_rect_update(RenderJob *rj,
     linear_offset_y = offset_y;
   }
   else {
-    rectf = ibuf->rect_float;
+    rectf = ibuf->float_buffer.data;
     linear_stride = ibuf->x;
     linear_offset_x = 0;
     linear_offset_y = 0;
@@ -311,7 +312,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
   Main *mainp = CTX_data_main(C);
   const bool is_animation = RNA_boolean_get(op->ptr, "animation");
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
 
   /* Cannot do render if there is not this function. */
   if (re_type->render == nullptr) {
@@ -369,11 +370,27 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
   RE_SetReports(re, nullptr);
 
+  const bool cancelled = G.is_break;
+
+  if (cancelled) {
+    RenderResult *rr = RE_AcquireResultRead(re);
+    if (rr && rr->error) {
+      /* NOTE(@ideasman42): Report, otherwise the error is entirely hidden from script authors.
+       * This is only done for the #wmOperatorType::exec function because it's assumed users
+       * rendering interactively will view the render and see the error message there. */
+      BKE_report(op->reports, RPT_ERROR, rr->error);
+    }
+    RE_ReleaseResult(re);
+  }
+
   /* No redraw needed, we leave state as we entered it. */
   ED_update_for_newframe(mainp, CTX_data_depsgraph_pointer(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
+  if (cancelled) {
+    return OPERATOR_CANCELLED;
+  }
   return OPERATOR_FINISHED;
 }
 
@@ -507,15 +524,19 @@ static void render_progress_update(void *rjv, float progress)
  */
 static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, ImageUser *iuser)
 {
-  wmWindowManager *wm;
   ScrArea *first_area = nullptr, *matched_area = nullptr;
 
   /* image window, compo node users */
-  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm && matched_area == nullptr;
-       wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
+
+  /* Only ever 1 `wm`. */
+  for (wmWindowManager *wm = static_cast<wmWindowManager *>(rj->main->wm.first);
+       wm && matched_area == nullptr;
+       wm = static_cast<wmWindowManager *>(wm->id.next))
+  {
     wmWindow *win;
     for (win = static_cast<wmWindow *>(wm->windows.first); win && matched_area == nullptr;
-         win = win->next) {
+         win = win->next)
+    {
       const bScreen *screen = WM_window_get_active_screen(win);
 
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -607,7 +628,8 @@ static void image_rect_update(void *rjv, RenderResult *rr, rcti *renrect)
      * operate with.
      */
     if (!rj->supports_glsl_draw || ibuf->channels == 1 ||
-        ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
+        ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL)
+    {
       image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, &tile_rect, offset_x, offset_y, viewname);
     }
     ImageTile *image_tile = BKE_image_get_tile(ima, 0);
@@ -674,11 +696,10 @@ static void render_startjob(void *rjv, bool *stop, bool *do_update, float *progr
 
 static void render_image_restore_layer(RenderJob *rj)
 {
-  wmWindowManager *wm;
-
   /* image window, compo node users */
-  for (wm = static_cast<wmWindowManager *>(rj->main->wm.first); wm;
-       wm = static_cast<wmWindowManager *>(wm->id.next)) { /* only 1 wm */
+
+  /* Only ever 1 `wm`. */
+  LISTBASE_FOREACH (wmWindowManager *, wm, &rj->main->wm) {
     wmWindow *win;
     for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
       const bScreen *screen = WM_window_get_active_screen(win);
@@ -883,8 +904,9 @@ static void clean_viewport_memory(Main *bmain, Scene *scene)
   BKE_main_id_tag_listbase(&bmain->objects, LIB_TAG_DOIT, true);
 
   /* Go over all the visible objects. */
-  for (wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first); wm;
-       wm = static_cast<wmWindowManager *>(wm->id.next)) {
+
+  /* Only ever 1 `wm`. */
+  LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
     LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       ViewLayer *view_layer = WM_window_get_active_view_layer(win);
       BKE_view_layer_synced_ensure(scene, view_layer);
@@ -917,7 +939,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
   const bool use_viewport = RNA_boolean_get(op->ptr, "use_viewport");
   View3D *v3d = use_viewport ? CTX_wm_view3d(C) : nullptr;
-  struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
+  Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : nullptr;
   const char *name;
   ScrArea *area;
 
@@ -1066,7 +1088,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   RE_current_scene_update_cb(re, rj, current_scene_update);
   RE_stats_draw_cb(re, rj, image_renderinfo_cb);
   RE_progress_cb(re, rj, render_progress_update);
-  RE_gl_context_create(re);
+  RE_system_gpu_context_create(re);
 
   rj->re = re;
   G.is_break = false;

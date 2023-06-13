@@ -120,10 +120,11 @@ extern "C" __global__ void __anyhit__kernel_optix_local_hit()
   isect->v = barycentrics.y;
 
   /* Record geometric normal. */
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
-  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0);
-  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1);
-  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const packed_uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 tri_b = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   local_isect->Ng[hit] = normalize(cross(tri_b - tri_a, tri_c - tri_a));
 
   /* Continue tracing (without this the trace call would return after the first hit). */
@@ -182,6 +183,12 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
     return optixIgnoreIntersection();
   }
 
+#  ifdef __SHADOW_LINKING__
+  if (intersection_skip_shadow_link(nullptr, ray, object)) {
+    return optixIgnoreIntersection();
+  }
+#  endif
+
 #  ifndef __TRANSPARENT_SHADOWS__
   /* No transparent shadows support compiled in, make opaque. */
   optixSetPayload_5(true);
@@ -194,7 +201,8 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW)) {
+      !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+  {
     optixSetPayload_5(true);
     return optixTerminateRay();
   }
@@ -324,6 +332,12 @@ extern "C" __global__ void __anyhit__kernel_optix_visibility_test()
   ccl_private Ray *const ray = get_payload_ptr_6<Ray>();
 
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
+#ifdef __SHADOW_LINKING__
+    if (intersection_skip_shadow_link(nullptr, ray, object)) {
+      return optixIgnoreIntersection();
+    }
+#endif
+
     if (intersection_skip_self_shadow(ray->self, object, prim)) {
       return optixIgnoreIntersection();
     }

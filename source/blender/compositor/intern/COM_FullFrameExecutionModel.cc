@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_FullFrameExecutionModel.h"
 
@@ -276,11 +277,10 @@ void FullFrameExecutionModel::update_progress_bar()
     tree->runtime->progress(tree->runtime->prh, progress);
 
     char buf[128];
-    BLI_snprintf(buf,
-                 sizeof(buf),
-                 TIP_("Compositing | Operation %i-%li"),
-                 num_operations_finished_ + 1,
-                 operations_.size());
+    SNPRINTF(buf,
+             TIP_("Compositing | Operation %i-%li"),
+             num_operations_finished_ + 1,
+             operations_.size());
     tree->runtime->stats_draw(tree->runtime->sdh, buf);
   }
 }

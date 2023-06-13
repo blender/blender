@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_CombineColorNodeLegacy.h"
 
@@ -7,9 +8,7 @@
 
 namespace blender::compositor {
 
-CombineColorNodeLegacy::CombineColorNodeLegacy(bNode *editor_node) : Node(editor_node)
-{
-}
+CombineColorNodeLegacy::CombineColorNodeLegacy(bNode *editor_node) : Node(editor_node) {}
 
 void CombineColorNodeLegacy::convert_to_operations(NodeConverter &converter,
                                                    const CompositorContext &context) const

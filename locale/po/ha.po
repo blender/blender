@@ -1,0 +1,123 @@
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"PO-Revision-Date: 2017-12-25 14:01+0100\n"
+"Last-Translator: UMAR HARUNA ABDULLAHI <umarbrowser20@gmail.com>\n"
+"Language-Team: BlenderNigeria <pyc0der@outlook.com>\n"
+"Language: ha\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 1.8.11"
+
+
+msgid "Name"
+msgstr "Suna"
+
+
+msgid "Action F-Curves"
+msgstr "Aikin F-Curves"
+
+
+msgid "Collection of action F-Curves"
+msgstr "Karban bayanan aikin F-Curves"
+
+
+msgid "Action Group"
+msgstr "Aikin Kunguya"
+
+
+msgid "Groups of F-Curves"
+msgstr "Kungiyar F-Curves"
+
+
+msgid "Channels"
+msgstr "Channels"
+
+
+msgid "F-Curves in this group"
+msgstr "F-Curves acikin wannan kungiya"
+
+
+msgid "Color Set"
+msgstr "Sashin Launi"
+
+
+msgid "Custom color set to use"
+msgstr "Hadaddiyar sashin launin daza a saka"
+
+
+msgid "Default Colors"
+msgstr "Launi na ainihi"
+
+
+msgid "01 - Theme Color Set"
+msgstr "01 - Theme Color Set"
+
+
+msgid "02 - Theme Color Set"
+msgstr "02 - Theme Color Set"
+
+
+msgid "03 - Theme Color Set"
+msgstr "03 - Theme Color Set"
+
+
+msgid "04 - Theme Color Set"
+msgstr "04 - Theme Color Set"
+
+
+msgid "Custom Color Set"
+msgstr "Hadaddiyar sashin launuka"
+
+
+msgid "Colors"
+msgstr "launuka"
+
+
+msgid "Copy of the colors associated with the group's color set"
+msgstr "Ari launukan dasuka danganta da launukannan"
+
+
+msgid "Color set is user-defined instead of a fixed theme color set"
+msgstr "Launukan nawanda yasane ba na gyararren theme ba"
+
+
+msgid "Lock"
+msgstr "rufe"
+
+
+msgid "Action group is locked"
+msgstr "Aikin kungiya ya rufe"
+
+
+msgid "Select"
+msgstr "Zabi"
+
+
+msgid "Action group is selected"
+msgstr "An zabi aikin kungiya"
+
+
+msgid "Expanded"
+msgstr "budadde"
+
+
+msgid "Action Groups"
+msgstr "Aikin kungiyoyi"
+
+
+msgid "Collection of action groups"
+msgstr "Karban aikin kungiyoyi"
+
+
+msgid "Action Pose Markers"
+msgstr "Aikin Pose Markers"
+
+
+msgid "Collection of timeline markers"
+msgstr "Sashin lokacin markers"
+

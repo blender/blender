@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -293,7 +294,8 @@ void ED_screen_draw_edges(struct wmWindow *win);
  * for file read and first use, for scaling window, area moves.
  */
 void ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
-void ED_screen_ensure_updated(struct wmWindowManager *wm,
+void ED_screen_ensure_updated(struct bContext *C,
+                              struct wmWindowManager *wm,
                               struct wmWindow *win,
                               struct bScreen *screen);
 void ED_screen_do_listen(struct bContext *C, const struct wmNotifier *note);
@@ -373,9 +375,7 @@ ScrArea *ED_screen_temp_space_open(struct bContext *C,
                                    bool dialog);
 void ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 void ED_screens_footer_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
-void ED_screens_navigation_bar_tools_menu_create(struct bContext *C,
-                                                 struct uiLayout *layout,
-                                                 void *arg);
+void ED_screens_region_flip_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 /**
  * \return true if any active area requires to see in 3D.
  */
@@ -497,9 +497,9 @@ bScreen *ED_screen_animation_no_scrub(const struct wmWindowManager *wm);
 bool ED_project_settings_window_show(struct bContext *C, struct ReportList *reports);
 
 /* screen keymaps */
-/* called in spacetypes.c */
+/* called in spacetypes.cc */
 void ED_operatortypes_screen(void);
-/* called in spacetypes.c */
+/* called in spacetypes.cc */
 void ED_keymap_screen(struct wmKeyConfig *keyconf);
 /**
  * Workspace key-maps.
@@ -525,9 +525,12 @@ bool ED_operator_objectmode(struct bContext *C);
  * to be displayed to the user explaining why the operator can't be used in current context.
  */
 bool ED_operator_objectmode_poll_msg(struct bContext *C);
+bool ED_operator_objectmode_with_view3d_poll_msg(struct bContext *C);
 
 bool ED_operator_view3d_active(struct bContext *C);
 bool ED_operator_region_view3d_active(struct bContext *C);
+bool ED_operator_region_gizmo_active(struct bContext *C);
+
 /**
  * Generic for any view2d which uses anim_ops.
  */
@@ -609,9 +612,16 @@ bool ED_operator_camera_poll(struct bContext *C);
 bUserMenu **ED_screen_user_menus_find(const struct bContext *C, uint *r_len);
 struct bUserMenu *ED_screen_user_menu_ensure(struct bContext *C);
 
+/**
+ * Finds a menu item associated with an operator in user menus (aka Quick Favorites)
+ *
+ * \param op_prop_enum: name of an operator property when the operator is called with an enum (to
+ * be an empty string otherwise)
+ */
 struct bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(struct ListBase *lb,
                                                                 const struct wmOperatorType *ot,
                                                                 struct IDProperty *prop,
+                                                                const char *op_prop_enum,
                                                                 wmOperatorCallContext opcontext);
 struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *lb,
                                                               const struct MenuType *mt);
@@ -624,6 +634,7 @@ void ED_screen_user_menu_item_add_operator(struct ListBase *lb,
                                            const char *ui_name,
                                            const struct wmOperatorType *ot,
                                            const struct IDProperty *prop,
+                                           const char *op_prop_enum,
                                            wmOperatorCallContext opcontext);
 void ED_screen_user_menu_item_add_menu(struct ListBase *lb,
                                        const char *ui_name,

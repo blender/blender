@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
  * The Original Code is:
  *     GTS - Library for the manipulation of triangulated surfaces
  *     Copyright 1999 Stephane Popinet
@@ -79,16 +81,15 @@ class CurvatureInfo {
 
 class Face_Curvature_Info {
  public:
-  Face_Curvature_Info()
-  {
-  }
+  Face_Curvature_Info() {}
 
   ~Face_Curvature_Info()
   {
     for (vector<CurvatureInfo *>::iterator ci = vec_curvature_info.begin(),
                                            ciend = vec_curvature_info.end();
          ci != ciend;
-         ++ci) {
+         ++ci)
+    {
       delete (*ci);
     }
     vec_curvature_info.clear();

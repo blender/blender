@@ -102,3 +102,6 @@ b5d310b569e07a937798a2d38539cfd290149f1c
 
 # Cleanup: clang-format.
 40d4a4cb1a6b4c3c2a486e8f2868f547530e0811
+
+# Code Style: format (with BraceWrapping::AfterControlStatement "MultiLine").
+6859bb6e67031765e79e525ae62bf2ebf4df2330

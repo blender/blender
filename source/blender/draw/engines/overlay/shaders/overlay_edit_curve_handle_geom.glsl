@@ -26,7 +26,7 @@ void main()
   uint color_id = (vert[1].flag >> COLOR_SHIFT);
 
   /* Don't output any edges if we don't show handles */
-  if (!showCurveHandles && (color_id < 5)) {
+  if (!showCurveHandles && (color_id < 5u)) {
     return;
   }
 
@@ -37,10 +37,10 @@ void main()
   bool is_gpencil = ((vert[1].flag & VERT_GPENCIL_BEZT_HANDLE) != 0u);
 
   /* If handle type is only selected and the edge is not selected, don't show. */
-  if ((curveHandleDisplay != CURVE_HANDLE_ALL) && (!handle_selected)) {
+  if ((uint(curveHandleDisplay) != CURVE_HANDLE_ALL) && (!handle_selected)) {
     /* Nurbs must show the handles always. */
     bool is_u_segment = (((vert[1].flag ^ vert[0].flag) & EVEN_U_BIT) != 0u);
-    if ((!is_u_segment) && (color_id <= 4)) {
+    if ((!is_u_segment) && (color_id <= 4u)) {
       return;
     }
     if (is_gpencil) {
@@ -49,24 +49,24 @@ void main()
   }
 
   vec4 inner_color;
-  if (color_id == 0) {
+  if (color_id == 0u) {
     inner_color = (edge_selected) ? colorHandleSelFree : colorHandleFree;
   }
-  else if (color_id == 1) {
+  else if (color_id == 1u) {
     inner_color = (edge_selected) ? colorHandleSelAuto : colorHandleAuto;
   }
-  else if (color_id == 2) {
+  else if (color_id == 2u) {
     inner_color = (edge_selected) ? colorHandleSelVect : colorHandleVect;
   }
-  else if (color_id == 3) {
+  else if (color_id == 3u) {
     inner_color = (edge_selected) ? colorHandleSelAlign : colorHandleAlign;
   }
-  else if (color_id == 4) {
+  else if (color_id == 4u) {
     inner_color = (edge_selected) ? colorHandleSelAutoclamp : colorHandleAutoclamp;
   }
   else {
-    bool is_selected = (((vert[1].flag & vert[0].flag) & VERT_SELECTED) != 0);
-    bool is_u_segment = (((vert[1].flag ^ vert[0].flag) & EVEN_U_BIT) != 0);
+    bool is_selected = (((vert[1].flag & vert[0].flag) & VERT_SELECTED) != 0u);
+    bool is_u_segment = (((vert[1].flag ^ vert[0].flag) & EVEN_U_BIT) != 0u);
     if (is_u_segment) {
       inner_color = (is_selected) ? colorNurbSelUline : colorNurbUline;
     }
@@ -75,7 +75,7 @@ void main()
     }
   }
 
-  vec4 outer_color = (is_active_nurb != 0) ?
+  vec4 outer_color = (is_active_nurb != 0u) ?
                          mix(colorActiveSpline,
                              inner_color,
                              0.25) /* Minimize active color bleeding on inner_color. */

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_multi_value_map.hh"
@@ -15,7 +17,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
@@ -53,6 +55,7 @@ static void add_tree_tag(bNodeTree *ntree, const eNodeTreeChangedFlag flag)
 {
   ntree->runtime->changed_flag |= flag;
   ntree->runtime->topology_cache_mutex.tag_dirty();
+  ntree->runtime->tree_zones_cache_mutex.tag_dirty();
 }
 
 static void add_node_tag(bNodeTree *ntree, bNode *node, const eNodeTreeChangedFlag flag)
@@ -172,9 +175,7 @@ struct NodeTreeRelations {
   std::optional<MultiValueMap<bNodeTree *, ObjectModifierPair>> modifiers_users_;
 
  public:
-  NodeTreeRelations(Main *bmain) : bmain_(bmain)
-  {
-  }
+  NodeTreeRelations(Main *bmain) : bmain_(bmain) {}
 
   void ensure_all_trees()
   {
@@ -489,7 +490,8 @@ class NodeTreeMainUpdater {
     }
 
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE ||
-        ntree.runtime->changed_flag & NTREE_CHANGED_ANY) {
+        ntree.runtime->changed_flag & NTREE_CHANGED_ANY)
+    {
       result.interface_changed = true;
     }
 
@@ -527,20 +529,15 @@ class NodeTreeMainUpdater {
   {
     tree.ensure_topology_cache();
     for (bNodeSocket *socket : tree.all_sockets()) {
-      socket->flag &= ~SOCK_IS_LINKED;
-      for (const bNodeLink *link : socket->directly_linked_links()) {
-        if (!link->is_muted()) {
-          socket->flag |= SOCK_IS_LINKED;
-          break;
-        }
-      }
+      const bool socket_is_linked = !socket->directly_linked_links().is_empty();
+      SET_FLAG_FROM_TEST(socket->flag, socket_is_linked, SOCK_IS_LINKED);
     }
   }
 
   void update_individual_nodes(bNodeTree &ntree)
   {
     for (bNode *node : ntree.all_nodes()) {
-      nodeDeclarationEnsure(&ntree, node);
+      blender::bke::nodeDeclarationEnsure(&ntree, node);
       if (this->should_update_individual_node(ntree, *node)) {
         bNodeType &ntype = *node->typeinfo;
         if (ntype.group_update_func) {
@@ -571,6 +568,16 @@ class NodeTreeMainUpdater {
     if (ntree.runtime->changed_flag & NTREE_CHANGED_INTERFACE) {
       if (ELEM(node.type, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
         return true;
+      }
+    }
+    /* Check paired simulation zone nodes. */
+    if (node.type == GEO_NODE_SIMULATION_INPUT) {
+      const NodeGeometrySimulationInput *data = static_cast<const NodeGeometrySimulationInput *>(
+          node.storage);
+      if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
+        if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
+          return true;
+        }
       }
     }
     return false;
@@ -691,7 +698,7 @@ class NodeTreeMainUpdater {
     if ((ntree.runtime->changed_flag & allowed_flags) == ntree.runtime->changed_flag) {
       return;
     }
-    BKE_node_preview_remove_unused(&ntree);
+    blender::bke::node_preview_remove_unused(&ntree);
   }
 
   void propagate_runtime_flags(const bNodeTree &ntree)
@@ -699,36 +706,42 @@ class NodeTreeMainUpdater {
     ntree.ensure_topology_cache();
 
     ntree.runtime->runtime_flag = 0;
-    if (ntree.type != NTREE_SHADER) {
-      return;
-    }
 
-    /* Check if a used node group has an animated image. */
-    for (const bNode *group_node : ntree.nodes_by_type("ShaderNodeGroup")) {
+    for (const bNode *group_node : ntree.group_nodes()) {
       const bNodeTree *group = reinterpret_cast<bNodeTree *>(group_node->id);
       if (group != nullptr) {
         ntree.runtime->runtime_flag |= group->runtime->runtime_flag;
       }
     }
-    /* Check if the tree itself has an animated image. */
-    for (const StringRefNull idname : {"ShaderNodeTexImage", "ShaderNodeTexEnvironment"}) {
-      for (const bNode *node : ntree.nodes_by_type(idname)) {
-        Image *image = reinterpret_cast<Image *>(node->id);
-        if (image != nullptr && BKE_image_is_animated(image)) {
-          ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION;
+
+    if (ntree.type == NTREE_SHADER) {
+      /* Check if the tree itself has an animated image. */
+      for (const StringRefNull idname : {"ShaderNodeTexImage", "ShaderNodeTexEnvironment"}) {
+        for (const bNode *node : ntree.nodes_by_type(idname)) {
+          Image *image = reinterpret_cast<Image *>(node->id);
+          if (image != nullptr && BKE_image_is_animated(image)) {
+            ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_IMAGE_ANIMATION;
+            break;
+          }
+        }
+      }
+      /* Check if the tree has a material output. */
+      for (const StringRefNull idname : {"ShaderNodeOutputMaterial",
+                                         "ShaderNodeOutputLight",
+                                         "ShaderNodeOutputWorld",
+                                         "ShaderNodeOutputAOV"})
+      {
+        const Span<const bNode *> nodes = ntree.nodes_by_type(idname);
+        if (!nodes.is_empty()) {
+          ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT;
           break;
         }
       }
     }
-    /* Check if the tree has a material output. */
-    for (const StringRefNull idname : {"ShaderNodeOutputMaterial",
-                                       "ShaderNodeOutputLight",
-                                       "ShaderNodeOutputWorld",
-                                       "ShaderNodeOutputAOV"}) {
-      const Span<const bNode *> nodes = ntree.nodes_by_type(idname);
-      if (!nodes.is_empty()) {
-        ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT;
-        break;
+    if (ntree.type == NTREE_GEOMETRY) {
+      /* Check if there is a simulation zone. */
+      if (!ntree.nodes_by_type("GeometryNodeSimulationOutput").is_empty()) {
+        ntree.runtime->runtime_flag |= NTREE_RUNTIME_FLAG_HAS_SIMULATION_ZONE;
       }
     }
   }
@@ -746,6 +759,10 @@ class NodeTreeMainUpdater {
 
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
+      if (!link->fromsock->is_available() || !link->tosock->is_available()) {
+        link->flag &= ~NODE_LINK_VALID;
+        continue;
+      }
       const bNode &from_node = *link->fromnode;
       const bNode &to_node = *link->tonode;
       if (toposort_indices[from_node.index()] > toposort_indices[to_node.index()]) {
@@ -808,7 +825,8 @@ class NodeTreeMainUpdater {
 
     /* The topology hash can only be used when only topology-changing operations have been done. */
     if (tree.runtime->changed_flag ==
-        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE))) {
+        (tree.runtime->changed_flag & (NTREE_CHANGED_LINK | NTREE_CHANGED_REMOVED_NODE)))
+    {
       if (old_topology_hash == new_topology_hash) {
         return false;
       }
@@ -849,7 +867,8 @@ class NodeTreeMainUpdater {
     if (node.type == NODE_GROUP) {
       const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(node.id);
       if (node_group != nullptr &&
-          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT) {
+          node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT)
+      {
         return true;
       }
     }

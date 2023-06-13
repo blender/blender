@@ -23,9 +23,7 @@
 class IK_QJacobianSolver {
  public:
   IK_QJacobianSolver();
-  ~IK_QJacobianSolver()
-  {
-  }
+  ~IK_QJacobianSolver() {}
 
   // setup pole vector constraint
   void SetPoleVectorConstraint(

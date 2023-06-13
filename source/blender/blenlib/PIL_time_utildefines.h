@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -103,6 +104,8 @@
   _timeit_var_##id += (PIL_check_seconds_timer() - _timeit_block_start_##id); \
   } \
   (void)0
+
+#define TIMEIT_BLOCK_VALUE(id) (float)(_timeit_var_##id)
 
 #define TIMEIT_BLOCK_STATS(id) \
   { \

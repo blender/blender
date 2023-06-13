@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -108,8 +110,7 @@ static void gizmo_light_radius_prop_matrix_get(const wmGizmo *UNUSED(gz),
   BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
   const Light *la = BKE_view_layer_active_object_get(view_layer)->data;
 
-  /* Draw gizmo even when radius is zero. */
-  const float diameter = fmaxf(2.0f * la->radius, 1e-2f);
+  const float diameter = 2.0f * la->radius;
   matrix[0][0] = diameter;
   matrix[1][1] = diameter;
 }
@@ -190,7 +191,7 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
 
     WM_gizmo_target_property_def_func(gz,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_spot_blend_prop_matrix_get,
                                           .value_set_fn = gizmo_spot_blend_prop_matrix_set,
                                           .range_get_fn = NULL,
@@ -212,7 +213,7 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
 
     WM_gizmo_target_property_def_func(gz,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_light_radius_prop_matrix_get,
                                           .value_set_fn = gizmo_light_radius_prop_matrix_set,
                                           .range_get_fn = NULL,
@@ -338,7 +339,7 @@ static void WIDGETGROUP_light_point_setup(const bContext *C, wmGizmoGroup *gzgro
 
   WM_gizmo_target_property_def_func(gz,
                                     "matrix",
-                                    &(const struct wmGizmoPropertyFnParams){
+                                    &(const wmGizmoPropertyFnParams){
                                         .value_get_fn = gizmo_light_radius_prop_matrix_get,
                                         .value_set_fn = gizmo_light_radius_prop_matrix_set,
                                         .range_get_fn = NULL,
@@ -476,7 +477,7 @@ static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgr
   /* need to set property here for undo. TODO: would prefer to do this in _init. */
   WM_gizmo_target_property_def_func(gz,
                                     "matrix",
-                                    &(const struct wmGizmoPropertyFnParams){
+                                    &(const wmGizmoPropertyFnParams){
                                         .value_get_fn = gizmo_area_light_prop_matrix_get,
                                         .value_set_fn = gizmo_area_light_prop_matrix_set,
                                         .range_get_fn = NULL,

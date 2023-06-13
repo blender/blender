@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -17,7 +18,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_subdiv.h"
 
 #include "MEM_guardedalloc.h"
@@ -29,7 +30,7 @@ struct PolyCornerIndex {
 
 struct GridPaintMaskData {
   // int grid_size;
-  const MPoly *mpoly;
+  blender::OffsetIndices<int> polys;
   const GridPaintMask *grid_paint_mask;
   /* Indexed by ptex face index, contains polygon/corner which corresponds
    * to it.
@@ -50,10 +51,10 @@ static int mask_get_grid_and_coord(SubdivCCGMaskEvaluator *mask_evaluator,
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
   const PolyCornerIndex *poly_corner = &data->ptex_poly_corner[ptex_face_index];
-  const MPoly *poly = &data->mpoly[poly_corner->poly_index];
-  const int start_grid_index = poly->loopstart + poly_corner->corner;
+  const blender::IndexRange poly = data->polys[poly_corner->poly_index];
+  const int start_grid_index = poly.start() + poly_corner->corner;
   int corner = 0;
-  if (poly->totloop == 4) {
+  if (poly.size() == 4) {
     float corner_u, corner_v;
     corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
     *r_mask_grid = &data->grid_paint_mask[start_grid_index + corner];
@@ -103,10 +104,9 @@ static void free_mask_data(SubdivCCGMaskEvaluator *mask_evaluator)
 static int count_num_ptex_faces(const Mesh *mesh)
 {
   int num_ptex_faces = 0;
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &mpoly[poly_index];
-    num_ptex_faces += (poly->totloop == 4) ? 1 : poly->totloop;
+  const blender::OffsetIndices polys = mesh->polys();
+  for (const int poly_index : polys.index_range()) {
+    num_ptex_faces += (polys[poly_index].size() == 4) ? 1 : polys[poly_index].size();
   }
   return num_ptex_faces;
 }
@@ -114,7 +114,7 @@ static int count_num_ptex_faces(const Mesh *mesh)
 static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  const MPoly *mpoly = BKE_mesh_polys(mesh);
+  const blender::OffsetIndices polys = mesh->polys();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
   data->ptex_poly_corner = static_cast<PolyCornerIndex *>(
@@ -122,15 +122,15 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_poly_corner = data->ptex_poly_corner;
-  for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
-    const MPoly *poly = &mpoly[poly_index];
-    if (poly->totloop == 4) {
+  for (const int poly_index : polys.index_range()) {
+    const blender::IndexRange poly = polys[poly_index];
+    if (poly.size() == 4) {
       ptex_poly_corner[ptex_face_index].poly_index = poly_index;
       ptex_poly_corner[ptex_face_index].corner = 0;
       ptex_face_index++;
     }
     else {
-      for (int corner = 0; corner < poly->totloop; corner++) {
+      for (int corner = 0; corner < poly.size(); corner++) {
         ptex_poly_corner[ptex_face_index].poly_index = poly_index;
         ptex_poly_corner[ptex_face_index].corner = corner;
         ptex_face_index++;
@@ -142,7 +142,7 @@ static void mask_data_init_mapping(SubdivCCGMaskEvaluator *mask_evaluator, const
 static void mask_init_data(SubdivCCGMaskEvaluator *mask_evaluator, const Mesh *mesh)
 {
   GridPaintMaskData *data = static_cast<GridPaintMaskData *>(mask_evaluator->user_data);
-  data->mpoly = BKE_mesh_polys(mesh);
+  data->polys = mesh->polys();
   data->grid_paint_mask = static_cast<const GridPaintMask *>(
       CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK));
   mask_data_init_mapping(mask_evaluator, mesh);
@@ -160,7 +160,7 @@ bool BKE_subdiv_ccg_mask_init_from_paint(SubdivCCGMaskEvaluator *mask_evaluator,
     return false;
   }
   /* Allocate all required memory. */
-  mask_evaluator->user_data = MEM_callocN(sizeof(GridPaintMaskData), "mask from grid data");
+  mask_evaluator->user_data = MEM_new<GridPaintMaskData>("mask from grid data");
   mask_init_data(mask_evaluator, mesh);
   mask_init_functions(mask_evaluator);
   return true;

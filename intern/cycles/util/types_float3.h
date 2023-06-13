@@ -70,9 +70,7 @@ typedef float3 packed_float3;
 struct packed_float3 {
   ccl_device_inline_method packed_float3(){};
 
-  ccl_device_inline_method packed_float3(const float3 &a) : x(a.x), y(a.y), z(a.z)
-  {
-  }
+  ccl_device_inline_method packed_float3(const float3 &a) : x(a.x), y(a.y), z(a.z) {}
 
   ccl_device_inline_method operator float3() const
   {

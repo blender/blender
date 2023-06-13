@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
 
 add_subdirectory(composite)
 add_subdirectory(function)
@@ -29,6 +30,7 @@ set(INC
   ../makesrna
   ../render
   ../windowmanager
+  ../../../extern/fmtlib/include
   ../../../intern/guardedalloc
 
   # dna_type_offsets.h
@@ -39,7 +41,9 @@ set(INC
 
 
 set(SRC
+  intern/add_node_search.cc
   intern/derived_node_tree.cc
+  intern/geometry_nodes_execute.cc
   intern/geometry_nodes_lazy_function.cc
   intern/geometry_nodes_log.cc
   intern/math_functions.cc
@@ -54,11 +58,13 @@ set(SRC
   intern/node_util.cc
   intern/socket_search_link.cc
 
+  NOD_add_node_search.hh
   NOD_common.h
   NOD_composite.h
   NOD_derived_node_tree.hh
   NOD_geometry.h
   NOD_geometry_exec.hh
+  NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_lazy_function.hh
   NOD_geometry_nodes_log.hh
   NOD_math_functions.hh
@@ -73,8 +79,8 @@ set(SRC
   NOD_static_types.h
   NOD_texture.h
   intern/node_common.h
-  intern/node_exec.h
-  intern/node_util.h
+  intern/node_exec.hh
+  intern/node_util.hh
 )
 
 set(LIB
@@ -85,6 +91,7 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
+  extern_fmtlib
 )
 
 if(WITH_BULLET)

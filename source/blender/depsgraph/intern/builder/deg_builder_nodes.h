@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -49,6 +50,7 @@ struct bNodeSocket;
 struct bNodeTree;
 struct bPoseChannel;
 struct bSound;
+struct PointerRNA;
 
 namespace blender::deg {
 
@@ -138,6 +140,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
                           OperationCode opcode,
                           const char *name = "",
                           int name_tag = -1);
+  bool has_operation_node(ID *id, NodeType comp_type, OperationCode opcode);
 
   OperationNode *find_operation_node(const ID *id,
                                      NodeType comp_type,
@@ -192,6 +195,10 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_object_transform(Object *object);
   virtual void build_object_constraints(Object *object);
   virtual void build_object_pointcache(Object *object);
+
+  virtual void build_object_light_linking(Object *object);
+  virtual void build_light_linking_collection(Collection *collection);
+
   virtual void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
   virtual void build_rigidbody(Scene *scene);
   virtual void build_particle_systems(Object *object, bool is_object_visible);
@@ -207,6 +214,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    */
   virtual void build_animation_images(ID *id);
   virtual void build_action(bAction *action);
+
   /**
    * Build graph node(s) for Driver
    * \param id: ID-Block that driver is attached to
@@ -214,8 +222,22 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
    * \param driver_index: Index in animation data drivers list
    */
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
+
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
-  virtual void build_driver_id_property(ID *id, const char *rna_path);
+
+  /* Build operations of a property value from which is read by a driver target.
+   *
+   * The driver target points to a data-block (or a sub-data-block like View Layer).
+   * This data-block is presented in the interface as a "Prop" and its resolved RNA pointer is
+   * passed here as `target_prop`.
+   *
+   * The tricky part (and a bit confusing naming) is that the driver target accesses a property of
+   * the `target_prop` to get its value. The property which is read to give an actual target value
+   * is denoted by its RNA path relative to the `target_prop`. In the interface it is called "Path"
+   * and here it is called `rna_path_from_target_prop`. */
+  virtual void build_driver_id_property(const PointerRNA &target_prop,
+                                        const char *rna_path_from_target_prop);
+
   virtual void build_parameters(ID *id);
   virtual void build_dimensions(Object *object);
   virtual void build_ik_pose(Object *object, bPoseChannel *pchan, bConstraint *con);
@@ -291,7 +313,6 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   int view_layer_index_;
   /* NOTE: Collection are possibly built recursively, so be careful when
    * setting the current state. */
-  Collection *collection_;
   /* Accumulated flag over the hierarchy of currently building collections.
    * Denotes whether all the hierarchy from parent of `collection_` to the
    * very root is visible (aka not restricted.). */

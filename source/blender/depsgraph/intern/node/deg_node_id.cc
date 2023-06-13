@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -41,9 +42,7 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state)
   return "UNKNOWN";
 }
 
-IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name)
-{
-}
+IDNode::ComponentIDKey::ComponentIDKey(NodeType type, const char *name) : type(type), name(name) {}
 
 bool IDNode::ComponentIDKey::operator==(const ComponentIDKey &other) const
 {
@@ -136,8 +135,8 @@ void IDNode::destroy()
 string IDNode::identifier() const
 {
   char orig_ptr[24], cow_ptr[24];
-  BLI_snprintf(orig_ptr, sizeof(orig_ptr), "%p", id_orig);
-  BLI_snprintf(cow_ptr, sizeof(cow_ptr), "%p", id_cow);
+  SNPRINTF(orig_ptr, "%p", id_orig);
+  SNPRINTF(cow_ptr, "%p", id_cow);
   return string(nodeTypeAsString(type)) + " : " + name + " (orig: " + orig_ptr +
          ", eval: " + cow_ptr + ", is_visible_on_build " +
          (is_visible_on_build ? "true" : "false") + ")";
@@ -154,10 +153,11 @@ ComponentNode *IDNode::add_component(NodeType type, const char *name)
   ComponentNode *comp_node = find_component(type, name);
   if (!comp_node) {
     DepsNodeFactory *factory = type_get_factory(type);
+    BLI_assert(factory);
     comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
 
     /* Register. */
-    ComponentIDKey key(type, name);
+    ComponentIDKey key(type, comp_node->name.c_str());
     components.add_new(key, comp_node);
     comp_node->owner = this;
   }

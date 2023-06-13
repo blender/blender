@@ -1,17 +1,23 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include "BLI_array.hh"
 #include "BLI_color.hh"
 #include "BLI_cpp_type.hh"
+#include "BLI_generic_span.hh"
+#include "BLI_generic_virtual_array.hh"
+#include "BLI_math_axis_angle.hh"
 #include "BLI_math_color.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 
 #include "BKE_customdata.h"
 
-namespace blender::attribute_math {
+namespace blender::bke::attribute_math {
 
 /**
  * Utility function that simplifies calling a templated function based on a run-time data type.
@@ -23,10 +29,12 @@ inline void convert_to_static_type(const CPPType &cpp_type, const Func &func)
                               float2,
                               float3,
                               int,
+                              int2,
                               bool,
                               int8_t,
                               ColorGeometry4f,
-                              ColorGeometry4b>([&](auto type_tag) {
+                              ColorGeometry4b,
+                              math::Quaternion>([&](auto type_tag) {
     using T = typename decltype(type_tag)::type;
     if constexpr (std::is_same_v<T, void>) {
       /* It's expected that the given cpp type is one of the supported ones. */
@@ -66,6 +74,11 @@ template<> inline int8_t mix2(const float factor, const int8_t &a, const int8_t 
 template<> inline int mix2(const float factor, const int &a, const int &b)
 {
   return int(std::round((1.0f - factor) * a + factor * b));
+}
+
+template<> inline int2 mix2(const float factor, const int2 &a, const int2 &b)
+{
+  return math::interpolate(a, b, factor);
 }
 
 template<> inline float mix2(const float factor, const float &a, const float &b)
@@ -119,6 +132,11 @@ template<> inline bool mix3(const float3 &weights, const bool &v0, const bool &v
 template<> inline int mix3(const float3 &weights, const int &v0, const int &v1, const int &v2)
 {
   return int(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2));
+}
+
+template<> inline int2 mix3(const float3 &weights, const int2 &v0, const int2 &v1, const int2 &v2)
+{
+  return int2(weights.x * float2(v0) + weights.y * float2(v1) + weights.z * float2(v2));
 }
 
 template<>
@@ -192,6 +210,14 @@ template<>
 inline int mix4(const float4 &weights, const int &v0, const int &v1, const int &v2, const int &v3)
 {
   return int(std::round(weights.x * v0 + weights.y * v1 + weights.z * v2 + weights.w * v3));
+}
+
+template<>
+inline int2 mix4(
+    const float4 &weights, const int2 &v0, const int2 &v1, const int2 &v2, const int2 &v3)
+{
+  return int2(weights.x * float2(v0) + weights.y * float2(v1) + weights.z * float2(v2) +
+              weights.w * float2(v3));
 }
 
 template<>
@@ -273,7 +299,7 @@ template<typename T> class SimpleMixer {
   /**
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
-  SimpleMixer(MutableSpan<T> buffer, const IndexMask mask, T default_value = {})
+  SimpleMixer(MutableSpan<T> buffer, const IndexMask &mask, T default_value = {})
       : buffer_(buffer), default_value_(default_value), total_weights_(buffer.size(), 0.0f)
   {
     BLI_STATIC_ASSERT(std::is_trivial_v<T>, "");
@@ -306,7 +332,7 @@ template<typename T> class SimpleMixer {
     this->finalize(IndexMask(buffer_.size()));
   }
 
-  void finalize(const IndexMask mask)
+  void finalize(const IndexMask &mask)
   {
     mask.foreach_index([&](const int64_t i) {
       const float weight = total_weights_[i];
@@ -344,7 +370,7 @@ class BooleanPropagationMixer {
   /**
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
-  BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask mask) : buffer_(buffer)
+  BooleanPropagationMixer(MutableSpan<bool> buffer, const IndexMask &mask) : buffer_(buffer)
   {
     mask.foreach_index([&](const int64_t i) { buffer_[i] = false; });
   }
@@ -368,25 +394,24 @@ class BooleanPropagationMixer {
   /**
    * Does not do anything, since the mixing is trivial.
    */
-  void finalize()
-  {
-  }
+  void finalize() {}
 
-  void finalize(const IndexMask /*mask*/)
-  {
-  }
+  void finalize(const IndexMask & /*mask*/) {}
 };
 
 /**
  * This mixer accumulates values in a type that is different from the one that is mixed.
  * Some types cannot encode the floating point weights in their values (e.g. int and bool).
  */
-template<typename T, typename AccumulationT, T (*ConvertToT)(const AccumulationT &value)>
+template<typename T,
+         typename AccumulationT,
+         AccumulationT (*ValueToAccumulate)(const T &value),
+         T (*AccumulateToValue)(const AccumulationT &value)>
 class SimpleMixerWithAccumulationType {
  private:
   struct Item {
     /* Store both values together, because they are accessed together. */
-    AccumulationT value = {0};
+    AccumulationT value = AccumulationT(0);
     float weight = 0.0f;
   };
 
@@ -404,7 +429,7 @@ class SimpleMixerWithAccumulationType {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   SimpleMixerWithAccumulationType(MutableSpan<T> buffer,
-                                  const IndexMask mask,
+                                  const IndexMask &mask,
                                   T default_value = {})
       : buffer_(buffer), default_value_(default_value), accumulation_buffer_(buffer.size())
   {
@@ -413,7 +438,7 @@ class SimpleMixerWithAccumulationType {
 
   void set(const int64_t index, const T &value, const float weight = 1.0f)
   {
-    const AccumulationT converted_value = static_cast<AccumulationT>(value);
+    const AccumulationT converted_value = ValueToAccumulate(value);
     Item &item = accumulation_buffer_[index];
     item.value = converted_value * weight;
     item.weight = weight;
@@ -421,7 +446,7 @@ class SimpleMixerWithAccumulationType {
 
   void mix_in(const int64_t index, const T &value, const float weight = 1.0f)
   {
-    const AccumulationT converted_value = static_cast<AccumulationT>(value);
+    const AccumulationT converted_value = ValueToAccumulate(value);
     Item &item = accumulation_buffer_[index];
     item.value += converted_value * weight;
     item.weight += weight;
@@ -432,13 +457,13 @@ class SimpleMixerWithAccumulationType {
     this->finalize(buffer_.index_range());
   }
 
-  void finalize(const IndexMask mask)
+  void finalize(const IndexMask &mask)
   {
     mask.foreach_index([&](const int64_t i) {
       const Item &item = accumulation_buffer_[i];
       if (item.weight > 0.0f) {
         const float weight_inv = 1.0f / item.weight;
-        const T converted_value = ConvertToT(item.value * weight_inv);
+        const T converted_value = AccumulateToValue(item.value * weight_inv);
         buffer_[i] = converted_value;
       }
       else {
@@ -461,12 +486,12 @@ class ColorGeometry4fMixer {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
-                       IndexMask mask,
+                       const IndexMask &mask,
                        ColorGeometry4f default_color = ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f));
   void set(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4f &color, float weight = 1.0f);
   void finalize();
-  void finalize(IndexMask mask);
+  void finalize(const IndexMask &mask);
 };
 
 class ColorGeometry4bMixer {
@@ -483,12 +508,12 @@ class ColorGeometry4bMixer {
    * \param mask: Only initialize these indices. Other indices in the buffer will be invalid.
    */
   ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
-                       IndexMask mask,
+                       const IndexMask &mask,
                        ColorGeometry4b default_color = ColorGeometry4b(0, 0, 0, 255));
   void set(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void mix_in(int64_t index, const ColorGeometry4b &color, float weight = 1.0f);
   void finalize();
-  void finalize(IndexMask mask);
+  void finalize(const IndexMask &mask);
 };
 
 template<typename T> struct DefaultMixerStruct {
@@ -513,31 +538,68 @@ template<> struct DefaultMixerStruct<ColorGeometry4b> {
   using type = ColorGeometry4bMixer;
 };
 template<> struct DefaultMixerStruct<int> {
+  static double int_to_double(const int &value)
+  {
+    return double(value);
+  }
   static int double_to_int(const double &value)
   {
     return int(std::round(value));
   }
   /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
    * uses double instead of float so that it is accurate for all 32 bit integers. */
-  using type = SimpleMixerWithAccumulationType<int, double, double_to_int>;
+  using type = SimpleMixerWithAccumulationType<int, double, int_to_double, double_to_int>;
+};
+template<> struct DefaultMixerStruct<int2> {
+  static double2 int_to_double(const int2 &value)
+  {
+    return double2(value);
+  }
+  static int2 double_to_int(const double2 &value)
+  {
+    return int2(math::round(value));
+  }
+  /* Store interpolated ints in a double temporarily, so that weights are handled correctly. It
+   * uses double instead of float so that it is accurate for all 32 bit integers. */
+  using type = SimpleMixerWithAccumulationType<int2, double2, int_to_double, double_to_int>;
 };
 template<> struct DefaultMixerStruct<bool> {
+  static float bool_to_float(const bool &value)
+  {
+    return value ? 1.0f : 0.0f;
+  }
   static bool float_to_bool(const float &value)
   {
     return value >= 0.5f;
   }
   /* Store interpolated booleans in a float temporary.
    * Otherwise information provided by weights is easily rounded away. */
-  using type = SimpleMixerWithAccumulationType<bool, float, float_to_bool>;
+  using type = SimpleMixerWithAccumulationType<bool, float, bool_to_float, float_to_bool>;
 };
 
 template<> struct DefaultMixerStruct<int8_t> {
+  static float int8_t_to_float(const int8_t &value)
+  {
+    return float(value);
+  }
   static int8_t float_to_int8_t(const float &value)
   {
     return int8_t(std::round(value));
   }
   /* Store interpolated 8 bit integers in a float temporarily to increase accuracy. */
-  using type = SimpleMixerWithAccumulationType<int8_t, float, float_to_int8_t>;
+  using type = SimpleMixerWithAccumulationType<int8_t, float, int8_t_to_float, float_to_int8_t>;
+};
+template<> struct DefaultMixerStruct<math::Quaternion> {
+  static float3 quat_to_expmap(const math::Quaternion &value)
+  {
+    return value.expmap();
+  }
+  static math::Quaternion expmap_to_quat(const float3 &value)
+  {
+    return math::Quaternion::expmap(value);
+  }
+  using type =
+      SimpleMixerWithAccumulationType<math::Quaternion, float3, quat_to_expmap, expmap_to_quat>;
 };
 
 template<typename T> struct DefaultPropagationMixerStruct {
@@ -563,4 +625,16 @@ template<typename T> using DefaultMixer = typename DefaultMixerStruct<T>::type;
 
 /** \} */
 
-}  // namespace blender::attribute_math
+/* -------------------------------------------------------------------- */
+/** \name Generic Array Utils Implementations
+ *
+ * Extra implementations of functions from #BLI_array_utils.hh for all attribute types,
+ * used to avoid templating the same logic for each type in many places.
+ * \{ */
+
+void gather(GSpan src, Span<int> map, GMutableSpan dst);
+void gather(const GVArray &src, Span<int> map, GMutableSpan dst);
+
+/** \} */
+
+}  // namespace blender::bke::attribute_math

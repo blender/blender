@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,9 +25,7 @@ class BufferedStyleModule : public StyleModule {
     _buffer = buffer;
   }
 
-  virtual ~BufferedStyleModule()
-  {
-  }
+  virtual ~BufferedStyleModule() {}
 
  protected:
   virtual int interpret()
@@ -51,9 +51,7 @@ class BlenderStyleModule : public StyleModule {
     _text = text;
   }
 
-  virtual ~BlenderStyleModule()
-  {
-  }
+  virtual ~BlenderStyleModule() {}
 
  protected:
   virtual int interpret()

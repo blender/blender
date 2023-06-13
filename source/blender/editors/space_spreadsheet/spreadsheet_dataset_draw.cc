@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
@@ -143,7 +145,7 @@ void GeometryDataSetTreeViewItem::build_row(uiLayout &row)
   if (const std::optional<int> count = this->count()) {
     /* Using the tree row button instead of a separate right aligned button gives padding
      * to the right side of the number, which it didn't have with the button. */
-    char element_count[7];
+    char element_count[BLI_STR_FORMAT_INT32_DECIMAL_UNIT_SIZE];
     BLI_str_format_decimal_unit(element_count, *count);
     UI_but_hint_drawstr_set((uiBut *)this->view_item_button(), element_count);
   }
@@ -219,8 +221,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
       std::make_unique<GeometryDataSetTreeView>(
           spreadsheet_get_display_geometry_set(sspreadsheet, object), *C));
 
-  ui::TreeViewBuilder builder(*block);
-  builder.build_tree_view(*tree_view);
+  ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }
 
 }  // namespace blender::ed::spreadsheet

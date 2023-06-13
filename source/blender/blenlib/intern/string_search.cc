@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_linear_allocator.hh"
@@ -346,13 +348,15 @@ void extract_normalized_words(StringRef str,
                               Vector<StringRef, 64> &r_words)
 {
   const uint32_t unicode_space = uint32_t(' ');
+  const uint32_t unicode_slash = uint32_t('/');
   const uint32_t unicode_right_triangle = UI_MENU_ARROW_SEP_UNICODE;
 
   BLI_assert(unicode_space == BLI_str_utf8_as_unicode(" "));
+  BLI_assert(unicode_slash == BLI_str_utf8_as_unicode("/"));
   BLI_assert(unicode_right_triangle == BLI_str_utf8_as_unicode(UI_MENU_ARROW_SEP));
 
   auto is_separator = [&](uint32_t unicode) {
-    return ELEM(unicode, unicode_space, unicode_right_triangle);
+    return ELEM(unicode, unicode_space, unicode_slash, unicode_right_triangle);
   };
 
   /* Make a copy of the string so that we can edit it. */

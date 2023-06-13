@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,9 +28,7 @@ using namespace Geometry;
 
 class NodeShape : public Node {
  public:
-  inline NodeShape() : Node()
-  {
-  }
+  inline NodeShape() : Node() {}
 
   virtual ~NodeShape();
 

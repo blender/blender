@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -299,7 +301,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
                           pyrna_enum_value_parse_string,
                           &params.space_type_enum,
                           pyrna_enum_value_parse_string,
-                          &params.region_type_enum)) {
+                          &params.region_type_enum))
+    {
       return NULL;
     }
 
@@ -327,7 +330,8 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
                           pyrna_enum_value_parse_string,
                           &params.region_type_enum,
                           pyrna_enum_value_parse_string,
-                          &params.event_enum)) {
+                          &params.event_enum))
+    {
       return NULL;
     }
 
@@ -394,7 +398,8 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 
   if (srna == &RNA_WindowManager) {
     if (!PyArg_ParseTuple(
-            args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle)) {
+            args, "OO!:WindowManager.draw_cursor_remove", &cls, &PyCapsule_Type, &py_handle))
+    {
       return NULL;
     }
     handle_removed = WM_paint_cursor_end(handle);
@@ -414,7 +419,8 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
                           &PyCapsule_Type,
                           &py_handle, /* already assigned, no matter */
                           pyrna_enum_value_parse_string,
-                          &params.region_type_enum)) {
+                          &params.region_type_enum))
+    {
       return NULL;
     }
 
@@ -487,12 +493,12 @@ static void cb_customdata_free(void *customdata)
   }
 }
 
-void BPY_callback_screen_free(struct ARegionType *art)
+void BPY_callback_screen_free(ARegionType *art)
 {
   ED_region_draw_cb_remove_by_type(art, cb_region_draw, cb_customdata_free);
 }
 
-void BPY_callback_wm_free(struct wmWindowManager *wm)
+void BPY_callback_wm_free(wmWindowManager *wm)
 {
   WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
 }

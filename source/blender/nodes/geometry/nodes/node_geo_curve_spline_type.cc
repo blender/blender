@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
@@ -15,9 +17,9 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveSplineType)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -51,7 +53,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       return;
     }
 
-    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
+    const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_CURVE};
     fn::FieldEvaluator evaluator{field_context, src_curves.curves_num()};
     evaluator.set_selection(selection_field);
     evaluator.evaluate();
@@ -63,7 +65,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry::try_curves_conversion_in_place(
             selection, dst_type, [&]() -> bke::CurvesGeometry & {
               return geometry_set.get_curves_for_write()->geometry.wrap();
-            })) {
+            }))
+    {
       return;
     }
 

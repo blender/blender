@@ -113,9 +113,6 @@ if "%TEST%" == "1" (
 	goto EOF
 )
 
-call "%BLENDER_DIR%\build_files\windows\check_submodules.cmd"
-if errorlevel 1 goto EOF
-
 if "%BUILD_WITH_NINJA%" == "" (
 	call "%BLENDER_DIR%\build_files\windows\configure_msbuild.cmd"
 	if errorlevel 1 goto EOF

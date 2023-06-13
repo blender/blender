@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,9 +28,7 @@ class SceneHash : public SceneVisitor {
     _sum = 1;
   }
 
-  virtual ~SceneHash()
-  {
-  }
+  virtual ~SceneHash() {}
 
   VISIT_DECL(NodeCamera);
   VISIT_DECL(NodeViewLayer);

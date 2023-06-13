@@ -50,6 +50,22 @@ if(WITH_CYCLES_STANDALONE AND WITH_CYCLES_STANDALONE_GUI)
   list(APPEND LIB ${Epoxy_LIBRARIES} ${SDL2_LIBRARIES})
 endif()
 
+if(WITH_USD)
+  # Silence warning from USD headers using deprecated TBB header.
+  add_definitions(
+    -D__TBB_show_deprecation_message_atomic_H
+    -D__TBB_show_deprecation_message_task_H
+  )
+
+  list(APPEND INC_SYS
+    ${USD_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    cycles_hydra
+    ${USD_LIBRARIES}
+  )
+endif()
+
 cycles_external_libraries_append(LIB)
 
 # Common configuration.
@@ -101,5 +117,24 @@ if(WITH_CYCLES_STANDALONE)
 
   install(PROGRAMS
     $<TARGET_FILE:cycles>
+    DESTINATION ${CMAKE_INSTALL_PREFIX})
+endif()
+
+if(WITH_CYCLES_PRECOMPUTE)
+  set(SRC
+    cycles_precompute.cpp
+  )
+
+  add_executable(cycles_precompute ${SRC} ${INC} ${INC_SYS})
+  unset(SRC)
+
+  target_link_libraries(cycles_precompute PRIVATE ${LIB})
+
+  if(UNIX AND NOT APPLE)
+    set_target_properties(cycles_precompute PROPERTIES INSTALL_RPATH $ORIGIN/lib)
+  endif()
+
+  install(PROGRAMS
+    $<TARGET_FILE:cycles_precompute>
     DESTINATION ${CMAKE_INSTALL_PREFIX})
 endif()

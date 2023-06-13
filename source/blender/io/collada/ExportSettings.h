@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -98,7 +100,6 @@ class BCExportSettings {
       : export_settings(*exportSettings),
         blender_context(blenderContext),
         global_transform(BCMatrix(exportSettings->global_forward, exportSettings->global_up))
-
   {
   }
 

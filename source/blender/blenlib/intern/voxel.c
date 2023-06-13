@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -180,7 +181,7 @@ float BLI_voxel_sample_tricubic(const float *data,
     const float dx = xf - (float)x, dy = yf - (float)y, dz = zf - (float)z;
 
     float u[4], v[4], w[4];
-    if (bspline) {  // B-Spline
+    if (bspline) { /* B-Spline. */
       u[0] = (((-1.0f / 6.0f) * dx + 0.5f) * dx - 0.5f) * dx + (1.0f / 6.0f);
       u[1] = ((0.5f * dx - 1.0f) * dx) * dx + (2.0f / 3.0f);
       u[2] = ((-0.5f * dx + 0.5f) * dx + 0.5f) * dx + (1.0f / 6.0f);
@@ -194,7 +195,7 @@ float BLI_voxel_sample_tricubic(const float *data,
       w[2] = ((-0.5f * dz + 0.5f) * dz + 0.5f) * dz + (1.0f / 6.0f);
       w[3] = (1.0f / 6.0f) * dz * dz * dz;
     }
-    else {  // Catmull-Rom
+    else { /* Catmull-Rom. */
       u[0] = ((-0.5f * dx + 1.0f) * dx - 0.5f) * dx;
       u[1] = ((1.5f * dx - 2.5f) * dx) * dx + 1.0f;
       u[2] = ((-1.5f * dx + 2.0f) * dx + 0.5f) * dx;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgizmolib
@@ -71,7 +72,6 @@ typedef struct DialInteraction {
 } DialInteraction;
 
 #define DIAL_WIDTH 1.0f
-#define DIAL_RESOLUTION 48
 
 /* Could make option, negative to clip more (don't show when view aligned). */
 #define DIAL_CLIP_BIAS 0.02

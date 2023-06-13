@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -26,6 +28,7 @@ struct BlendExpander;
 struct BlendLibReader;
 struct BlendWriter;
 struct Collection;
+struct Depsgraph;
 struct ID;
 struct Library;
 struct Main;
@@ -181,18 +184,13 @@ bool BKE_scene_collections_object_remove(struct Main *bmain,
                                          bool free_us);
 
 /**
- * Check all collections in \a bmain (including embedded ones in scenes) for CollectionObject with
- * NULL object pointer, and remove them.
- */
-void BKE_collections_object_remove_nulls(struct Main *bmain);
-
-/**
- * Check all collections in \a bmain (including embedded ones in scenes) for duplicate
- * CollectionObject with a same object pointer within a same object, and remove them.
+ * Check all collections in \a bmain (including embedded ones in scenes) for invalid
+ * CollectionObject (either with NULL object pointer, or duplicates), and remove them.
  *
- * NOTE: Always keeps the first of the detected duplicates.
+ * \note In case of duplicates, the first CollectionObject in the list is kept, all others are
+ * removed.
  */
-void BKE_collections_object_remove_duplicates(struct Main *bmain);
+void BKE_collections_object_remove_invalids(struct Main *bmain);
 
 /**
  * Remove all NULL children from parent collections of changed \a collection.
@@ -222,7 +220,11 @@ bool BKE_collection_object_cyclic_check(struct Main *bmain,
 
 struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(struct Collection *collection);
+/** Free the object cache of given `collection` and all of its ancestors (recursively). */
 void BKE_collection_object_cache_free(struct Collection *collection);
+/** Free the object cache of all collections in given `bmain`, including master collections of
+ * scenes. */
+void BKE_main_collections_object_cache_free(const struct Main *bmain);
 
 struct Base *BKE_collection_or_layer_objects(const struct Scene *scene,
                                              struct ViewLayer *view_layer,
@@ -304,6 +306,12 @@ void BKE_collection_parent_relations_rebuild(struct Collection *collection);
  */
 void BKE_main_collections_parent_relations_rebuild(struct Main *bmain);
 
+/**
+ * Perform some validation on integrity of the data of this collection.
+ *
+ * \return `true` if everything is OK, false if some errors are detected. */
+bool BKE_collection_validate(struct Collection *collection);
+
 /* .blend file I/O */
 
 void BKE_collection_blend_write_nolib(struct BlendWriter *writer, struct Collection *collection);
@@ -317,7 +325,7 @@ void BKE_collection_blend_read_expand(struct BlendExpander *expander,
 void BKE_collection_compat_blend_read_data(struct BlendDataReader *reader,
                                            struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_lib(struct BlendLibReader *reader,
-                                          struct Library *lib,
+                                          struct ID *self_id,
                                           struct SceneCollection *sc);
 void BKE_collection_compat_blend_read_expand(struct BlendExpander *expander,
                                              struct SceneCollection *sc);
@@ -336,7 +344,8 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
                                                                  OB_HIDE_RENDER; \
     int _base_id = 0; \
     for (Base *_base = (Base *)BKE_collection_object_cache_get(_collection).first; _base; \
-         _base = _base->next, _base_id++) { \
+         _base = _base->next, _base_id++) \
+    { \
       Object *_object = _base->object; \
       if ((_base->flag & _base_flag) && \
           (_object->visibility_flag & _object_visibility_flag) == 0) {
@@ -349,7 +358,8 @@ typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 
 #define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object) \
   for (Base *_base = (Base *)BKE_collection_object_cache_get(_collection).first; _base; \
-       _base = _base->next) { \
+       _base = _base->next) \
+  { \
     Object *_object = _base->object; \
     BLI_assert(_object != NULL);
 

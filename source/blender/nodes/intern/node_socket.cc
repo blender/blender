@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -18,7 +19,7 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
@@ -39,10 +40,10 @@ using namespace blender;
 using blender::fn::ValueOrField;
 using blender::nodes::SocketDeclarationPtr;
 
-struct bNodeSocket *node_add_socket_from_template(struct bNodeTree *ntree,
-                                                  struct bNode *node,
-                                                  struct bNodeSocketTemplate *stemp,
-                                                  eNodeSocketInOut in_out)
+bNodeSocket *node_add_socket_from_template(bNodeTree *ntree,
+                                           bNode *node,
+                                           bNodeSocketTemplate *stemp,
+                                           eNodeSocketInOut in_out)
 {
   bNodeSocket *sock = nodeAddStaticSocket(
       ntree, node, in_out, stemp->type, stemp->subtype, stemp->identifier, stemp->name);
@@ -240,7 +241,7 @@ static void refresh_socket_list(bNodeTree &ntree,
   }
   LISTBASE_FOREACH_MUTABLE (bNodeSocket *, old_socket, &sockets) {
     if (!new_sockets.contains(old_socket)) {
-      nodeRemoveSocketEx(&ntree, &node, old_socket, do_id_user);
+      blender::bke::nodeRemoveSocketEx(&ntree, &node, old_socket, do_id_user);
     }
   }
   BLI_listbase_clear(&sockets);
@@ -261,7 +262,7 @@ static void refresh_node(bNodeTree &ntree,
     refresh_socket_list(ntree, node, node.inputs, node_decl.inputs, do_id_user);
     refresh_socket_list(ntree, node, node.outputs, node_decl.outputs, do_id_user);
   }
-  nodeSocketDeclarationsUpdate(&node);
+  blender::bke::nodeSocketDeclarationsUpdate(&node);
 }
 
 void update_node_declaration_and_sockets(bNodeTree &ntree, bNode &node)
@@ -284,7 +285,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     return;
   }
   if (ntype->declare || ntype->declare_dynamic) {
-    nodeDeclarationEnsureOnOutdatedNode(ntree, node);
+    blender::bke::nodeDeclarationEnsureOnOutdatedNode(ntree, node);
     refresh_node(*ntree, *node, *node->runtime->declaration, do_id_user);
     return;
   }
@@ -423,7 +424,7 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
 
   /* use label instead of name if it has been set */
   if (from->label[0] != '\0') {
-    BLI_strncpy(to->name, from->label, NODE_MAXSTR);
+    STRNCPY(to->name, from->label);
   }
 
   switch (from->typeinfo->type) {
@@ -537,13 +538,15 @@ static bNodeSocketType *make_standard_socket_type(int type, int subtype)
   const char *socket_idname = nodeStaticSocketType(type, subtype);
   const char *interface_idname = nodeStaticSocketInterfaceType(type, subtype);
   const char *socket_label = nodeStaticSocketLabel(type, subtype);
+  const char *socket_subtype_label = blender::bke::nodeSocketSubTypeLabel(subtype);
   bNodeSocketType *stype;
   StructRNA *srna;
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
-  BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
-  BLI_strncpy(stype->label, socket_label, sizeof(stype->label));
+  STRNCPY(stype->idname, socket_idname);
+  STRNCPY(stype->label, socket_label);
+  STRNCPY(stype->subtype_label, socket_subtype_label);
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
@@ -585,7 +588,7 @@ static bNodeSocketType *make_socket_type_virtual()
 
   stype = MEM_cnew<bNodeSocketType>("node socket C type");
   stype->free_self = (void (*)(bNodeSocketType * stype)) MEM_freeN;
-  BLI_strncpy(stype->idname, socket_idname, sizeof(stype->idname));
+  STRNCPY(stype->idname, socket_idname);
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */

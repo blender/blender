@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -44,7 +45,7 @@
 
 /** Used for sequencer transform. */
 typedef struct TransDataSeq {
-  struct Sequence *seq;
+  Sequence *seq;
   /** A copy of #Sequence.flag that may be modified for nested strips. */
   int flag;
   /** Use this so we can have transform data at the strips start,
@@ -376,7 +377,8 @@ static Sequence *effect_input_get(const Scene *scene, Sequence *effect, SeqInput
   if (effect->seq2 && (SEQ_time_left_handle_frame_get(scene, effect->seq2) -
                        SEQ_time_left_handle_frame_get(scene, effect->seq1)) *
                               side >
-                          0) {
+                          0)
+  {
     input = effect->seq2;
   }
   return input;

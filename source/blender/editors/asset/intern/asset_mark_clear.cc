@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -10,6 +12,7 @@
 
 #include "BKE_asset.h"
 #include "BKE_context.h"
+#include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_idtype.h"
 #include "BKE_lib_id.h"
@@ -23,6 +26,9 @@
 #include "ED_asset_list.h"
 #include "ED_asset_mark_clear.h"
 #include "ED_asset_type.h"
+
+#include "WM_api.h"
+#include "WM_types.h"
 
 bool ED_asset_mark_id(ID *id)
 {
@@ -52,7 +58,7 @@ void ED_asset_generate_preview(const bContext *C, ID *id)
     BKE_previewimg_clear(preview);
   }
 
-  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, true);
+  UI_icon_render_id(C, nullptr, id, ICON_SIZE_PREVIEW, !G.background);
 }
 
 bool ED_asset_clear_id(ID *id)
@@ -69,7 +75,7 @@ bool ED_asset_clear_id(ID *id)
   return true;
 }
 
-void ED_assets_pre_save(struct Main *bmain)
+void ED_assets_pre_save(Main *bmain)
 {
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
@@ -92,4 +98,17 @@ bool ED_asset_can_mark_single_from_context(const bContext *C)
     return false;
   }
   return ED_asset_type_is_supported(id);
+}
+
+bool ED_asset_copy_to_id(const AssetMetaData *asset_data, ID *destination)
+{
+  if (!BKE_id_can_be_asset(destination)) {
+    return false;
+  }
+
+  if (destination->asset_data) {
+    BKE_asset_metadata_free(&destination->asset_data);
+  }
+  destination->asset_data = BKE_asset_metadata_copy(asset_data);
+  return true;
 }

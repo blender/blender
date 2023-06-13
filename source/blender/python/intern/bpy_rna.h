@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -56,6 +58,10 @@ struct ID;
 extern "C" {
 #endif
 
+/**
+ * Sub-classes of #pyrna_struct_Type which support idprop definitions use this as a meta-class.
+ * \note tp_base member is set to `&PyType_Type` on initialization.
+ */
 extern PyTypeObject pyrna_struct_meta_idprop_Type;
 extern PyTypeObject pyrna_struct_Type;
 extern PyTypeObject pyrna_prop_Type;
@@ -173,6 +179,7 @@ void BPY_update_rna_module(void);
 // PyObject *BPY_rna_doc(void);
 PyObject *BPY_rna_types(void);
 
+PyObject *pyrna_struct_CreatePyObject_with_primitive_support(PointerRNA *ptr);
 PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr);
 PyObject *pyrna_prop_CreatePyObject(PointerRNA *ptr, PropertyRNA *prop);
 

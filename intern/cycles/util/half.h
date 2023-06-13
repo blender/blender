@@ -40,12 +40,8 @@ ccl_device_inline float half_to_float(half h_in)
  * unsigned shorts. */
 class half {
  public:
-  half() : v(0)
-  {
-  }
-  half(const unsigned short &i) : v(i)
-  {
-  }
+  half() = default;
+  half(const unsigned short &i) : v(i) {}
   operator unsigned short()
   {
     return v;

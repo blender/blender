@@ -62,7 +62,20 @@ template<> uint denormalize<uint>(float val)
   return uint(float(DEPTH_SCALE_FACTOR) * val);
 }
 
+/* Float to other type case. */
 template<typename T> T convert_type(float type)
+{
+  return T(type);
+}
+
+/* Uint to other types. */
+template<typename T> T convert_type(uint type)
+{
+  return T(type);
+}
+
+/* Int to other types. */
+template<typename T> T convert_type(int type)
 {
   return T(type);
 }
@@ -141,8 +154,8 @@ kernel void compute_texture_read(constant TextureReadParams &params [[buffer(0)]
   uint xx = position[0];
   uint yy = position[1];
   uint zz = position[2];
-  int index = (zz * (params.extent[0] * params.extent[1]) + yy * params.extnt[0] + xx) *
-              COMPONENT_COUNT_INPUT;
+  int index = (zz * (params.extent[0] * params.extent[1]) + yy * params.extent[0] + xx) *
+              COMPONENT_COUNT_OUTPUT;
   read_colour = read_tex.read(uint3(params.offset[0], params.offset[1], params.offset[2]) +
                               uint3(xx, yy, zz));
 
@@ -163,7 +176,7 @@ kernel void compute_texture_read(constant TextureReadParams &params [[buffer(0)]
   uint yy = position[1];
   uint layer = position[2];
   int index = (layer * (params.extent[0] * params.extent[1]) + yy * params.extent[0] + xx) *
-              COMPONENT_COUNT_INPUT;
+              COMPONENT_COUNT_OUTPUT;
 
   /* Read data */
 #  if IS_DEPTH_FORMAT == 1

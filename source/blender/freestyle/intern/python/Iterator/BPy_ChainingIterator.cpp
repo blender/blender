@@ -72,7 +72,8 @@ static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args,
   PyObject *obj1 = nullptr, *obj2 = nullptr, *obj3 = nullptr, *obj4 = nullptr;
 
   if (PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1)) {
+          args, kwds, "O!", (char **)kwlist_1, &ChainingIterator_Type, &obj1))
+  {
     self->c_it = new ChainingIterator(*(((BPy_ChainingIterator *)obj1)->c_it));
   }
   else if ((void)PyErr_Clear(),
@@ -88,7 +89,8 @@ static int ChainingIterator___init__(BPy_ChainingIterator *self, PyObject *args,
                                        check_begin,
                                        &obj3,
                                        &PyBool_Type,
-                                       &obj4)) {
+                                       &obj4))
+  {
     bool restrict_to_selection = (!obj1) ? true : bool_from_PyBool(obj1);
     bool restrict_to_unvisited = (!obj2) ? true : bool_from_PyBool(obj2);
     ViewEdge *begin = (!obj3 || obj3 == Py_None) ? nullptr : ((BPy_ViewEdge *)obj3)->ve;
@@ -151,7 +153,8 @@ static PyObject *ChainingIterator_traverse(BPy_ChainingIterator *self,
     return nullptr;
   }
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "O!", (char **)kwlist, &AdjacencyIterator_Type, &py_a_it)) {
+          args, kwds, "O!", (char **)kwlist, &AdjacencyIterator_Type, &py_a_it))
+  {
     return nullptr;
   }
   if (((BPy_AdjacencyIterator *)py_a_it)->a_it) {

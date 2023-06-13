@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spgraph
@@ -448,6 +449,7 @@ void graphedit_operatortypes(void)
   WM_operatortype_append(GRAPH_OT_equalize_handles);
   WM_operatortype_append(GRAPH_OT_mirror);
   WM_operatortype_append(GRAPH_OT_frame_jump);
+  WM_operatortype_append(GRAPH_OT_keyframe_jump);
   WM_operatortype_append(GRAPH_OT_snap_cursor_value);
   WM_operatortype_append(GRAPH_OT_handle_type);
   WM_operatortype_append(GRAPH_OT_interpolation_type);
@@ -464,6 +466,7 @@ void graphedit_operatortypes(void)
   WM_operatortype_append(GRAPH_OT_breakdown);
   WM_operatortype_append(GRAPH_OT_ease);
   WM_operatortype_append(GRAPH_OT_blend_to_default);
+  WM_operatortype_append(GRAPH_OT_gaussian_smooth);
   WM_operatortype_append(GRAPH_OT_euler_filter);
   WM_operatortype_append(GRAPH_OT_delete);
   WM_operatortype_append(GRAPH_OT_duplicate);
@@ -495,8 +498,8 @@ void ED_operatormacros_graph(void)
                                     "Make a copy of all selected keyframes and move them",
                                     OPTYPE_UNDO | OPTYPE_REGISTER);
   WM_operatortype_macro_define(ot, "GRAPH_OT_duplicate");
-  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
-  RNA_enum_set(otmacro->ptr, "mode", TFM_TIME_DUPLICATE);
+  otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+  RNA_boolean_set(otmacro->ptr, "use_automerge_and_split", true);
   RNA_boolean_set(otmacro->ptr, "use_proportional_edit", false);
 }
 

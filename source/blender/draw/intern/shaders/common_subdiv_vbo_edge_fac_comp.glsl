@@ -6,12 +6,17 @@ layout(std430, binding = 0) readonly buffer inputVertexData
   PosNorLoop pos_nor[];
 };
 
-layout(std430, binding = 1) readonly buffer inputEdgeIndex
+layout(std430, binding = 1) readonly buffer inputEdgeDrawFlag
 {
-  uint input_edge_index[];
+  uint input_edge_draw_flag[];
 };
 
-layout(std430, binding = 2) writeonly buffer outputEdgeFactors
+layout(std430, binding = 2) readonly buffer inputPolyOtherMap
+{
+  int input_poly_other_map[];
+};
+
+layout(std430, binding = 3) writeonly buffer outputEdgeFactors
 {
 #ifdef GPU_AMD_DRIVER_BYTE_BUG
   float output_edge_fac[];
@@ -28,42 +33,46 @@ void write_vec4(uint index, vec4 edge_facs)
   }
 #else
   /* Use same scaling as in extract_edge_fac_iter_poly_mesh. */
-  uint a = uint(clamp(edge_facs.x * 253.0 + 1.0, 0.0, 255.0));
-  uint b = uint(clamp(edge_facs.y * 253.0 + 1.0, 0.0, 255.0));
-  uint c = uint(clamp(edge_facs.z * 253.0 + 1.0, 0.0, 255.0));
-  uint d = uint(clamp(edge_facs.w * 253.0 + 1.0, 0.0, 255.0));
-  uint packed_edge_fac = a << 24 | b << 16 | c << 8 | d;
+  uint a = uint(edge_facs.x * 255);
+  uint b = uint(edge_facs.y * 255);
+  uint c = uint(edge_facs.z * 255);
+  uint d = uint(edge_facs.w * 255);
+  uint packed_edge_fac = d << 24 | c << 16 | b << 8 | a;
   output_edge_fac[index] = packed_edge_fac;
 #endif
 }
 
 /* From extract_mesh_vbo_edge_fac.cc, keep in sync! */
-float loop_edge_factor_get(vec3 f_no, vec3 v_co, vec3 v_no, vec3 v_next_co)
+float loop_edge_factor_get(vec3 fa_no, vec3 fb_no)
 {
-  vec3 evec = v_next_co - v_co;
-  vec3 enor = normalize(cross(v_no, evec));
-  float d = abs(dot(enor, f_no));
+  float cosine = dot(fa_no, fb_no);
+
   /* Re-scale to the slider range. */
-  d *= (1.0 / 0.065);
-  return clamp(d, 0.0, 1.0);
+  float fac = (200 * (cosine - 1.0)) + 1.0;
+
+  /* The maximum value (255) is unreachable through the UI. */
+  return clamp(fac, 0.0, 1.0) * (254.0 / 255.0);
 }
 
-float compute_line_factor(uint start_loop_index, uint corner_index, vec3 face_normal)
+float compute_line_factor(uint corner_index, vec3 face_normal)
 {
-  uint vertex_index = start_loop_index + corner_index;
-  uint edge_index = input_edge_index[vertex_index];
+  if (input_edge_draw_flag[corner_index] == 0) {
+    return 1.0;
+  }
 
-  if (edge_index == -1 && optimal_display) {
+  int quad_other = input_poly_other_map[corner_index];
+  if (quad_other == -1) {
+    /* Boundary edge or non-manifold. */
     return 0.0;
   }
 
-  /* Mod 4 so we loop back at the first vertex on the last loop index (3), but only the corner
-   * index needs to be wrapped. */
-  uint next_vertex_index = start_loop_index + (corner_index + 1) % 4;
-  vec3 vertex_pos = get_vertex_pos(pos_nor[vertex_index]);
-  vec3 vertex_nor = get_vertex_nor(pos_nor[vertex_index]);
-  vec3 next_vertex_pos = get_vertex_pos(pos_nor[next_vertex_index]);
-  return loop_edge_factor_get(face_normal, vertex_pos, vertex_nor, next_vertex_pos);
+  uint start_coner_index_other = quad_other * 4;
+  vec3 v0 = get_vertex_pos(pos_nor[start_coner_index_other + 0]);
+  vec3 v1 = get_vertex_pos(pos_nor[start_coner_index_other + 1]);
+  vec3 v2 = get_vertex_pos(pos_nor[start_coner_index_other + 2]);
+  vec3 face_normal_other = normalize(cross(v1 - v0, v2 - v0));
+
+  return loop_edge_factor_get(face_normal, face_normal_other);
 }
 
 void main()
@@ -84,8 +93,8 @@ void main()
   vec3 face_normal = normalize(cross(v1 - v0, v2 - v0));
 
   vec4 edge_facs = vec4(0.0);
-  for (int i = 0; i < 4; i++) {
-    edge_facs[i] = compute_line_factor(start_loop_index, i, face_normal);
+  for (uint i = 0; i < 4; i++) {
+    edge_facs[i] = compute_line_factor(start_loop_index + i, face_normal);
   }
 
 #ifdef GPU_AMD_DRIVER_BYTE_BUG

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -90,6 +91,27 @@ template<typename T> inline T floor(const T &a)
   return std::floor(a);
 }
 
+template<typename T> inline T round(const T &a)
+{
+  return std::round(a);
+}
+
+/**
+ * Repeats the saw-tooth pattern even on negative numbers.
+ * ex: `mod_periodic(-3, 4) = 1`, `mod(-3, 4)= -3`
+ */
+template<typename T> inline T mod_periodic(const T &a, const T &b)
+{
+  return a - (b * math::floor(a / b));
+}
+template<> inline int64_t mod_periodic(const int64_t &a, const int64_t &b)
+{
+  int64_t c = (a >= 0) ? a : (-1 - a);
+  int64_t tmp = c - (b * (c / b));
+  /* Negative integers have different rounding that do not match floor(). */
+  return (a >= 0) ? tmp : (b - 1 - tmp);
+}
+
 template<typename T> inline T ceil(const T &a)
 {
   return std::ceil(a);
@@ -110,6 +132,20 @@ template<typename T> inline T sqrt(const T &a)
   return std::sqrt(a);
 }
 
+/* Inverse value.
+ * If the input is zero the output is NaN. */
+template<typename T> inline T rcp(const T &a)
+{
+  return T(1) / a;
+}
+
+/* Inverse value.
+ * If the input is zero the output is zero. */
+template<typename T> inline T safe_rcp(const T &a)
+{
+  return a ? T(1) / a : T(0);
+}
+
 template<typename T> inline T cos(const T &a)
 {
   return std::cos(a);
@@ -128,6 +164,27 @@ template<typename T> inline T tan(const T &a)
 template<typename T> inline T acos(const T &a)
 {
   return std::acos(a);
+}
+
+template<typename T> inline T pow(const T &x, const T &power)
+{
+  return std::pow(x, power);
+}
+
+template<typename T> inline T exp(const T &x)
+{
+  return std::exp(x);
+}
+
+template<typename T> inline T safe_acos(const T &a)
+{
+  if (UNLIKELY(a <= T(-1))) {
+    return T(M_PI);
+  }
+  else if (UNLIKELY(a >= T(1))) {
+    return T(0);
+  }
+  return math::acos((a));
 }
 
 template<typename T> inline T asin(const T &a)
@@ -162,11 +219,22 @@ inline T interpolate(const T &a, const T &b, const FactorT &t)
 
 template<typename T> inline T midpoint(const T &a, const T &b)
 {
-  auto result = (a + b) * T(0.5);
   if constexpr (std::is_integral_v<T>) {
-    result = std::round(result);
+    /** See std::midpoint from C++20. */
+    using Unsigned = std::make_unsigned_t<T>;
+    int sign = 1;
+    Unsigned smaller = a;
+    Unsigned larger = b;
+    if (a > b) {
+      sign = -1;
+      smaller = b;
+      larger = a;
+    }
+    return a + sign * T(Unsigned(larger - smaller) / 2);
   }
-  return result;
+  else {
+    return (a + b) * T(0.5);
+  }
 }
 
 }  // namespace blender::math

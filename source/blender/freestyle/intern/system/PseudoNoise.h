@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -17,9 +19,7 @@ namespace Freestyle {
 
 class PseudoNoise {
  public:
-  virtual ~PseudoNoise()
-  {
-  }
+  virtual ~PseudoNoise() {}
 
   real smoothNoise(real x);
   real linearNoise(real x);

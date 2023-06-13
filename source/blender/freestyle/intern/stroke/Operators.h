@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -260,9 +262,7 @@ class Operators {
   static void reset(bool removeStrokes = true);
 
  private:
-  Operators()
-  {
-  }
+  Operators() {}
 
   static I1DContainer _current_view_edges_set;
   static I1DContainer _current_chains_set;

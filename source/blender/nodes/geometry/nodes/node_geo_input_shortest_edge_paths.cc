@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <queue>
 
@@ -7,7 +9,7 @@
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -15,10 +17,10 @@ namespace blender::nodes::node_geo_input_shortest_edge_paths_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Bool>(N_("End Vertex")).default_value(false).hide_value().supports_field();
-  b.add_input<decl::Float>(N_("Edge Cost")).default_value(1.0f).hide_value().supports_field();
-  b.add_output<decl::Int>(N_("Next Vertex Index")).field_source();
-  b.add_output<decl::Float>(N_("Total Cost")).field_source();
+  b.add_input<decl::Bool>("End Vertex").default_value(false).hide_value().supports_field();
+  b.add_input<decl::Float>("Edge Cost").default_value(1.0f).hide_value().supports_field();
+  b.add_output<decl::Int>("Next Vertex Index").reference_pass_all();
+  b.add_output<decl::Float>("Total Cost").reference_pass_all();
 }
 
 typedef std::pair<float, int> VertPriority;
@@ -28,12 +30,12 @@ struct EdgeVertMap {
 
   EdgeVertMap(const Mesh &mesh)
   {
-    const Span<MEdge> edges = mesh.edges();
+    const Span<int2> edges = mesh.edges();
     edges_by_vertex_map.reinitialize(mesh.totvert);
     for (const int edge_i : edges.index_range()) {
-      const MEdge &edge = edges[edge_i];
-      edges_by_vertex_map[edge.v1].append(edge_i);
-      edges_by_vertex_map[edge.v2].append(edge_i);
+      const int2 &edge = edges[edge_i];
+      edges_by_vertex_map[edge[0]].append(edge_i);
+      edges_by_vertex_map[edge[1]].append(edge_i);
     }
   }
 };
@@ -45,15 +47,15 @@ static void shortest_paths(const Mesh &mesh,
                            MutableSpan<int> r_next_index,
                            MutableSpan<float> r_cost)
 {
-  const Span<MEdge> edges = mesh.edges();
+  const Span<int2> edges = mesh.edges();
   Array<bool> visited(mesh.totvert, false);
 
   std::priority_queue<VertPriority, std::vector<VertPriority>, std::greater<VertPriority>> queue;
 
-  for (const int start_vert_i : end_selection) {
+  end_selection.foreach_index([&](const int start_vert_i) {
     r_cost[start_vert_i] = 0.0f;
     queue.emplace(0.0f, start_vert_i);
-  }
+  });
 
   while (!queue.empty()) {
     const float cost_i = queue.top().first;
@@ -65,8 +67,8 @@ static void shortest_paths(const Mesh &mesh,
     visited[vert_i] = true;
     const Span<int> incident_edge_indices = maps.edges_by_vertex_map[vert_i];
     for (const int edge_i : incident_edge_indices) {
-      const MEdge &edge = edges[edge_i];
-      const int neighbor_vert_i = edge.v1 + edge.v2 - vert_i;
+      const int2 &edge = edges[edge_i];
+      const int neighbor_vert_i = edge[0] + edge[1] - vert_i;
       if (visited[neighbor_vert_i]) {
         continue;
       }
@@ -97,15 +99,15 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
-    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
@@ -144,7 +146,8 @@ class ShortestEdgePathsNextVertFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const ShortestEdgePathsNextVertFieldInput *other_field =
-            dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other)) {
+            dynamic_cast<const ShortestEdgePathsNextVertFieldInput *>(&other))
+    {
       return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
     }
     return false;
@@ -172,15 +175,15 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
-    bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
+    const bke::MeshFieldContext edge_context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator edge_evaluator{edge_context, mesh.totedge};
     edge_evaluator.add(cost_);
     edge_evaluator.evaluate();
     const VArray<float> input_cost = edge_evaluator.get_evaluated<float>(0);
 
-    bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
+    const bke::MeshFieldContext point_context{mesh, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator point_evaluator{point_context, mesh.totvert};
     point_evaluator.add(end_selection_);
     point_evaluator.evaluate();
@@ -204,6 +207,12 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
         VArray<float>::ForContainer(std::move(cost)), ATTR_DOMAIN_POINT, domain);
   }
 
+  void for_each_field_input_recursive(FunctionRef<void(const FieldInput &)> fn) const override
+  {
+    end_selection_.node().for_each_field_input_recursive(fn);
+    cost_.node().for_each_field_input_recursive(fn);
+  }
+
   uint64_t hash() const override
   {
     return get_default_hash_2(end_selection_, cost_);
@@ -212,7 +221,8 @@ class ShortestEdgePathsCostFieldInput final : public bke::MeshFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const ShortestEdgePathsCostFieldInput *other_field =
-            dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other)) {
+            dynamic_cast<const ShortestEdgePathsCostFieldInput *>(&other))
+    {
       return other_field->end_selection_ == end_selection_ && other_field->cost_ == cost_;
     }
     return false;

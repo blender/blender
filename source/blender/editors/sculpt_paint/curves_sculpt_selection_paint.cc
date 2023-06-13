@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 #include <numeric>
@@ -72,9 +74,7 @@ struct SelectionPaintOperationExecutor {
 
   CurvesSurfaceTransforms transforms_;
 
-  SelectionPaintOperationExecutor(const bContext &C) : ctx_(C)
-  {
-  }
+  SelectionPaintOperationExecutor(const bContext &C) : ctx_(C) {}
 
   void execute(SelectionPaintOperation &self,
                const bContext &C,

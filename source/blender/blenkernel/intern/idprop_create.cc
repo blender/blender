@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <type_traits>
 
@@ -49,7 +50,7 @@ std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_n
 std::unique_ptr<IDProperty, IDPropertyDeleter> create(const StringRefNull prop_name,
                                                       const StringRefNull value)
 {
-  IDProperty *property = IDP_NewString(value.c_str(), prop_name.c_str(), value.size() + 1);
+  IDProperty *property = IDP_NewString(value.c_str(), prop_name.c_str());
   return std::unique_ptr<IDProperty, IDPropertyDeleter>(property);
 }
 

@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 
 #include "UI_interface.h"
@@ -21,21 +23,21 @@ using namespace blender::bke::mesh_surface_sample;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Float>(N_("Value"), "Value_Float").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Value"), "Value_Int").hide_value().field_on_all();
-  b.add_input<decl::Vector>(N_("Value"), "Value_Vector").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Value"), "Value_Color").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Value"), "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
+  b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
+  b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
 
-  b.add_input<decl::Vector>(N_("Sample Position")).implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Sample Position").implicit_field(implicit_field_inputs::position);
 
-  b.add_output<decl::Float>(N_("Value"), "Value_Float").dependent_field({6});
-  b.add_output<decl::Int>(N_("Value"), "Value_Int").dependent_field({6});
-  b.add_output<decl::Vector>(N_("Value"), "Value_Vector").dependent_field({6});
-  b.add_output<decl::Color>(N_("Value"), "Value_Color").dependent_field({6});
-  b.add_output<decl::Bool>(N_("Value"), "Value_Bool").dependent_field({6});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -59,11 +61,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_color4f = in_socket_vector->next;
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
@@ -71,11 +73,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -98,7 +100,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
 static void get_closest_mesh_looptris(const Mesh &mesh,
                                       const VArray<float3> &positions,
-                                      const IndexMask mask,
+                                      const IndexMask &mask,
                                       const MutableSpan<int> r_looptri_indices,
                                       const MutableSpan<float> r_distances_sq,
                                       const MutableSpan<float3> r_positions)
@@ -111,71 +113,39 @@ static void get_closest_mesh_looptris(const Mesh &mesh,
   free_bvhtree_from_mesh(&tree_data);
 }
 
-/**
- * \note Multi-threading for this function is provided by the field evaluator. Since the #call
- * function could be called many times, calculate the data from the source geometry once and store
- * it for later.
- */
 class SampleNearestSurfaceFunction : public mf::MultiFunction {
   GeometrySet source_;
-  GField src_field_;
-
-  /**
-   * This function is meant to sample the surface of a mesh rather than take the value from
-   * individual elements, so use the most complex domain, ensuring no information is lost. In the
-   * future, it should be possible to use the most complex domain required by the field inputs, to
-   * simplify sampling and avoid domain conversions.
-   */
-  eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
-
-  mf::Signature signature_;
-
-  std::optional<bke::MeshFieldContext> source_context_;
-  std::unique_ptr<FieldEvaluator> source_evaluator_;
-  const GVArray *source_data_;
 
  public:
-  SampleNearestSurfaceFunction(GeometrySet geometry, GField src_field)
-      : source_(std::move(geometry)), src_field_(std::move(src_field))
+  SampleNearestSurfaceFunction(GeometrySet geometry) : source_(std::move(geometry))
   {
     source_.ensure_owns_direct_data();
-    this->evaluate_source_field();
-
-    mf::SignatureBuilder builder{"Sample Nearest Surface", signature_};
-    builder.single_input<float3>("Position");
-    builder.single_output("Value", src_field_.cpp_type(), mf::ParamFlag::SupportsUnusedOutput);
-    this->set_signature(&signature_);
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Sample Nearest Surface", signature};
+      builder.single_input<float3>("Position");
+      builder.single_output<int>("Triangle Index");
+      builder.single_output<float3>("Sample Position");
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &positions = params.readonly_single_input<float3>(0, "Position");
-    GMutableSpan dst = params.uninitialized_single_output_if_required(1, "Value");
-
-    const MeshComponent &mesh_component = *source_.get_component_for_read<MeshComponent>();
-    BLI_assert(mesh_component.has_mesh());
-    const Mesh &mesh = *mesh_component.get_for_read();
-    BLI_assert(mesh.totpoly > 0);
-
-    /* Find closest points on the mesh surface. */
-    Array<int> looptri_indices(mask.min_array_size());
-    Array<float3> sampled_positions(mask.min_array_size());
-    get_closest_mesh_looptris(mesh, positions, mask, looptri_indices, {}, sampled_positions);
-
-    MeshAttributeInterpolator interp(&mesh, mask, sampled_positions, looptri_indices);
-    interp.sample_data(*source_data_, domain_, eAttributeMapMode::INTERPOLATED, dst);
+    MutableSpan<int> triangle_index = params.uninitialized_single_output<int>(1, "Triangle Index");
+    MutableSpan<float3> sample_position = params.uninitialized_single_output<float3>(
+        2, "Sample Position");
+    const Mesh &mesh = *source_.get_mesh_for_read();
+    get_closest_mesh_looptris(mesh, positions, mask, triangle_index, {}, sample_position);
   }
 
- private:
-  void evaluate_source_field()
+  ExecutionHints get_execution_hints() const override
   {
-    const Mesh &mesh = *source_.get_mesh_for_read();
-    source_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = mesh.attributes().domain_size(domain_);
-    source_evaluator_ = std::make_unique<FieldEvaluator>(*source_context_, domain_size);
-    source_evaluator_->add(src_field_);
-    source_evaluator_->evaluate();
-    source_data_ = &source_evaluator_->get_evaluated(0);
+    ExecutionHints hints;
+    hints.min_grain_size = 512;
+    return hints;
   }
 };
 
@@ -245,11 +215,22 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  Field<float3> positions = params.extract_input<Field<float3>>("Sample Position");
+  auto nearest_op = FieldOperation::Create(
+      std::make_shared<SampleNearestSurfaceFunction>(geometry),
+      {params.extract_input<Field<float3>>("Sample Position")});
+  Field<int> triangle_indices(nearest_op, 0);
+  Field<float3> nearest_positions(nearest_op, 1);
+
+  Field<float3> bary_weights = Field<float3>(FieldOperation::Create(
+      std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(geometry),
+      {nearest_positions, triangle_indices}));
+
   GField field = get_input_attribute_field(params, data_type);
-  auto fn = std::make_shared<SampleNearestSurfaceFunction>(std::move(geometry), std::move(field));
-  auto op = FieldOperation::Create(std::move(fn), {std::move(positions)});
-  output_attribute_field(params, GField(std::move(op)));
+  auto sample_op = FieldOperation::Create(
+      std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(geometry, std::move(field)),
+      {triangle_indices, bary_weights});
+
+  output_attribute_field(params, GField(sample_op));
 }
 
 }  // namespace blender::nodes::node_geo_sample_nearest_surface_cc
@@ -265,7 +246,7 @@ void register_node_type_geo_sample_nearest_surface()
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   ntype.declare = file_ns::node_declare;
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   ntype.draw_buttons = file_ns::node_layout;
   ntype.gather_link_search_ops = file_ns::node_gather_link_searches;

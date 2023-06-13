@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Tangent Animation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include "usd.h"
@@ -20,8 +21,7 @@ class USDGeomReader : public USDXformReader {
   }
 
   virtual Mesh *read_mesh(struct Mesh *existing_mesh,
-                          double motionSampleTime,
-                          int read_flag,
+                          USDMeshReadParams params,
                           const char **err_str) = 0;
 
   virtual bool topology_changed(const Mesh * /* existing_mesh */, double /* motionSampleTime */)

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -165,6 +167,27 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Filtering
+ * \{ */
+
+bool AbstractViewItem::is_filtered_visible() const
+{
+  return true;
+}
+
+bool AbstractViewItem::is_filtered_visible_cached() const
+{
+  if (is_filtered_visible_.has_value()) {
+    return *is_filtered_visible_;
+  }
+
+  is_filtered_visible_ = is_filtered_visible();
+  return *is_filtered_visible_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Drag 'n Drop
  * \{ */
 
@@ -174,24 +197,20 @@ std::unique_ptr<AbstractViewItemDragController> AbstractViewItem::create_drag_co
   return nullptr;
 }
 
-std::unique_ptr<AbstractViewItemDropController> AbstractViewItem::create_drop_controller() const
+std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target()
 {
-  /* There's no drop controller (and hence no drop support) by default. */
+  /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
 }
 
-AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDragController::AbstractViewItemDragController(AbstractView &view) : view_(view) {}
 
 void AbstractViewItemDragController::on_drag_start()
 {
   /* Do nothing by default. */
 }
 
-AbstractViewItemDropController::AbstractViewItemDropController(AbstractView &view) : view_(view)
-{
-}
+AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view) {}
 
 /** \} */
 
@@ -208,11 +227,33 @@ AbstractView &AbstractViewItem::get_view() const
   return *view_;
 }
 
+void AbstractViewItem::disable_interaction()
+{
+  is_interactive_ = false;
+}
+
+bool AbstractViewItem::is_interactive() const
+{
+  return is_interactive_;
+}
+
 bool AbstractViewItem::is_active() const
 {
   BLI_assert_msg(get_view().is_reconstructed(),
                  "State can't be queried until reconstruction is completed");
   return is_active_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
+/** \name General API functions
+ * \{ */
+
+std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle)
+{
+  AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
+  return item.create_drop_target();
 }
 
 /** \} */
@@ -264,50 +305,17 @@ class ViewItemAPIWrapper {
 
     return true;
   }
-
-  static bool can_drop(const AbstractViewItem &item,
-                       const wmDrag &drag,
-                       const char **r_disabled_hint)
-  {
-    const std::unique_ptr<AbstractViewItemDropController> drop_controller =
-        item.create_drop_controller();
-    if (!drop_controller) {
-      return false;
-    }
-
-    return drop_controller->can_drop(drag, r_disabled_hint);
-  }
-
-  static std::string drop_tooltip(const AbstractViewItem &item, const wmDrag &drag)
-  {
-    const std::unique_ptr<AbstractViewItemDropController> drop_controller =
-        item.create_drop_controller();
-    if (!drop_controller) {
-      return {};
-    }
-
-    return drop_controller->drop_tooltip(drag);
-  }
-
-  static bool drop_handle(bContext &C, const AbstractViewItem &item, const ListBase &drags)
-  {
-    std::unique_ptr<AbstractViewItemDropController> drop_controller =
-        item.create_drop_controller();
-
-    const char *disabled_hint_dummy = nullptr;
-    LISTBASE_FOREACH (const wmDrag *, drag, &drags) {
-      if (drop_controller->can_drop(*drag, &disabled_hint_dummy)) {
-        return drop_controller->on_drop(&C, *drag);
-      }
-    }
-
-    return false;
-  }
 };
 
 }  // namespace blender::ui
 
 using namespace blender::ui;
+
+bool UI_view_item_is_interactive(const uiViewItemHandle *item_handle)
+{
+  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_handle);
+  return item.is_interactive();
+}
 
 bool UI_view_item_is_active(const uiViewItemHandle *item_handle)
 {
@@ -346,28 +354,6 @@ bool UI_view_item_drag_start(bContext *C, const uiViewItemHandle *item_)
 {
   const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
   return ViewItemAPIWrapper::drag_start(*C, item);
-}
-
-bool UI_view_item_can_drop(const uiViewItemHandle *item_,
-                           const wmDrag *drag,
-                           const char **r_disabled_hint)
-{
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
-  return ViewItemAPIWrapper::can_drop(item, *drag, r_disabled_hint);
-}
-
-char *UI_view_item_drop_tooltip(const uiViewItemHandle *item_, const wmDrag *drag)
-{
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
-
-  const std::string tooltip = ViewItemAPIWrapper::drop_tooltip(item, *drag);
-  return tooltip.empty() ? nullptr : BLI_strdup(tooltip.c_str());
-}
-
-bool UI_view_item_drop_handle(bContext *C, const uiViewItemHandle *item_, const ListBase *drags)
-{
-  const AbstractViewItem &item = reinterpret_cast<const AbstractViewItem &>(*item_);
-  return ViewItemAPIWrapper::drop_handle(*C, item, *drags);
 }
 
 /** \} */

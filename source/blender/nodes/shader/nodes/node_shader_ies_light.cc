@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -10,9 +11,9 @@ namespace blender::nodes::node_shader_ies_light_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Vector")).hide_value();
-  b.add_input<decl::Float>(N_("Strength")).default_value(1.0f).min(0.0f).max(1000000.0f);
-  b.add_output<decl::Float>(N_("Fac"));
+  b.add_input<decl::Vector>("Vector").hide_value();
+  b.add_input<decl::Float>("Strength").default_value(1.0f).min(0.0f).max(1000000.0f);
+  b.add_output<decl::Float>("Fac");
 }
 
 static void node_shader_buts_ies(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

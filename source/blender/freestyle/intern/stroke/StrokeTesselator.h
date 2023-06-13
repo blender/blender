@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -25,9 +27,7 @@ class StrokeTesselator {
     _overloadFrsMaterial = false;
   }
 
-  virtual ~StrokeTesselator()
-  {
-  }
+  virtual ~StrokeTesselator() {}
 
   /** Builds a line rep contained from a Stroke */
   LineRep *Tesselate(Stroke *iStroke);

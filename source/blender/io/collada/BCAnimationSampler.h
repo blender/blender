@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -120,9 +122,7 @@ class BCSampleFrameContainer {
   BCSampleFrameMap sample_frames;
 
  public:
-  ~BCSampleFrameContainer()
-  {
-  }
+  ~BCSampleFrameContainer() {}
 
   BCSample &add(Object *ob, int frame_index);
   /** Return either the #BCSampleFrame or NULL if frame does not exist. */

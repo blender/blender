@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_ScaleOperation.h"
 #include "COM_ConstantOperation.h"
@@ -28,9 +29,7 @@ void BaseScaleOperation::set_scale_canvas_max_size(Size2f size)
   max_scale_canvas_size_ = size;
 }
 
-ScaleOperation::ScaleOperation() : ScaleOperation(DataType::Color)
-{
-}
+ScaleOperation::ScaleOperation() : ScaleOperation(DataType::Color) {}
 
 ScaleOperation::ScaleOperation(DataType data_type) : BaseScaleOperation()
 {
@@ -236,13 +235,9 @@ void ScaleOperation::determine_canvas(const rcti &preferred_area, rcti &r_area)
   }
 }
 
-ScaleRelativeOperation::ScaleRelativeOperation() : ScaleOperation()
-{
-}
+ScaleRelativeOperation::ScaleRelativeOperation() : ScaleOperation() {}
 
-ScaleRelativeOperation::ScaleRelativeOperation(DataType data_type) : ScaleOperation(data_type)
-{
-}
+ScaleRelativeOperation::ScaleRelativeOperation(DataType data_type) : ScaleOperation(data_type) {}
 
 void ScaleRelativeOperation::execute_pixel_sampled(float output[4],
                                                    float x,

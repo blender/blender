@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -37,7 +38,6 @@ void wm_exit_schedule_delayed(const bContext *C);
  * Context is allowed to be NULL, do not free wm itself (lib_id.c).
  */
 extern void wm_close_and_free(bContext *C, wmWindowManager *);
-extern void wm_close_and_free_all(bContext *C, ListBase *);
 
 /**
  * On startup, it adds all data, for matching.

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -26,12 +27,12 @@ NODE_STORAGE_FUNCS(TexMapping)
 
 static void cmp_node_map_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Value"))
+  b.add_input<decl::Float>("Value")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .compositor_domain_priority(0);
-  b.add_output<decl::Float>(N_("Value"));
+  b.add_output<decl::Float>("Value");
 }
 
 static void node_composit_init_map_value(bNodeTree * /*ntree*/, bNode *node)

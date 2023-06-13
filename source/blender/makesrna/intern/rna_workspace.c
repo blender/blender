@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -65,7 +67,7 @@ static wmOwnerID *rna_WorkSpace_owner_ids_new(WorkSpace *workspace, const char *
 {
   wmOwnerID *owner_id = MEM_callocN(sizeof(*owner_id), __func__);
   BLI_addtail(&workspace->owner_ids, owner_id);
-  BLI_strncpy(owner_id->name, name, sizeof(owner_id->name));
+  STRNCPY(owner_id->name, name);
   WM_main_add_notifier(NC_WINDOW, NULL);
   return owner_id;
 }
@@ -302,7 +304,7 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Index", "");
   RNA_def_property_boolean_funcs(prop, "rna_WorkSpaceTool_use_paint_canvas_get", NULL);
-  RNA_def_property_ui_text(prop, "Use Paint Canvas", "Does this tool use an painting canvas");
+  RNA_def_property_ui_text(prop, "Use Paint Canvas", "Does this tool use a painting canvas");
 
   RNA_define_verify_sdna(0);
   prop = RNA_def_property(srna, "has_datablock", PROP_BOOLEAN, PROP_NONE);

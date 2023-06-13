@@ -1,9 +1,9 @@
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 
-float get_edge_sharpness(float wd)
+bool is_edge_sharpness_visible(float wd)
 {
-  return ((wd == 0.0) ? -1.5 : wd) + wireStepParam;
+  return wd <= wireStepParam;
 }
 
 void wire_color_get(out vec3 rim_col, out vec3 wire_col)
@@ -129,7 +129,7 @@ void main()
 #endif
 
   /* Cull flat edges below threshold. */
-  if (!no_attr && (get_edge_sharpness(wd) < 0.0)) {
+  if (!no_attr && !is_edge_sharpness_visible(wd)) {
     edgeStart = vec2(-1.0);
   }
 

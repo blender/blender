@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -70,9 +72,7 @@ template<class T> class UnaryFunction0D {
   }
 
   /** Destructor; */
-  virtual ~UnaryFunction0D()
-  {
-  }
+  virtual ~UnaryFunction0D() {}
 
   /** Returns the string "UnaryFunction0D" */
   virtual string getName() const

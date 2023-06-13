@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -41,7 +43,7 @@ typedef struct anim_index_entry {
 } anim_index_entry;
 
 struct anim_index {
-  char name[1024];
+  char filepath[1024];
 
   int num_entries;
   struct anim_index_entry *entries;
@@ -51,8 +53,8 @@ struct anim_index_builder;
 
 typedef struct anim_index_builder {
   FILE *fp;
-  char name[FILE_MAX];
-  char temp_name[FILE_MAX];
+  char filepath[FILE_MAX];
+  char filepath_temp[FILE_MAX];
 
   void *private_data;
 
@@ -63,7 +65,7 @@ typedef struct anim_index_builder {
                      struct anim_index_entry *entry);
 } anim_index_builder;
 
-anim_index_builder *IMB_index_builder_create(const char *name);
+anim_index_builder *IMB_index_builder_create(const char *filepath);
 void IMB_index_builder_add_entry(anim_index_builder *fp,
                                  int frameno,
                                  uint64_t seek_pos,

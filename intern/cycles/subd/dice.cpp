@@ -115,9 +115,7 @@ void EdgeDice::stitch_triangles(Subpatch &sub, int edge)
 
 /* QuadDice */
 
-QuadDice::QuadDice(const SubdParams &params_) : EdgeDice(params_)
-{
-}
+QuadDice::QuadDice(const SubdParams &params_) : EdgeDice(params_) {}
 
 float2 QuadDice::map_uv(Subpatch &sub, float u, float v)
 {

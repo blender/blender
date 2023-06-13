@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -64,6 +66,14 @@ void RNA_def_struct_register_funcs(StructRNA *srna,
                                    const char *reg,
                                    const char *unreg,
                                    const char *instance);
+/**
+ * Return an allocated string for the RNA data-path:
+ *
+ * - Double quotes must be used for string access, e.g: `collection["%s"]`.
+ * - Strings containing arbitrary characters must be escaped using #BLI_str_escape.
+ *
+ * Paths must be compatible with #RNA_path_resolve & related functions.
+ */
 void RNA_def_struct_path_func(StructRNA *srna, const char *path);
 /**
  * Only used in one case when we name the struct for the purpose of useful error messages.
@@ -573,7 +583,7 @@ extern const float rna_default_quaternion[4];
 extern const float rna_default_scale_3d[3];
 
 /** Maximum size for dynamic defined type descriptors, this value is arbitrary. */
-#define RNA_DYN_DESCR_MAX 240
+#define RNA_DYN_DESCR_MAX 1024
 
 #ifdef __cplusplus
 }

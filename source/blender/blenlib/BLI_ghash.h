@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -571,7 +572,7 @@ bool BLI_ghashutil_ptrcmp(const void *a, const void *b);
  */
 unsigned int BLI_ghashutil_strhash_n(const char *key, size_t n);
 #define BLI_ghashutil_strhash(key) \
-  (CHECK_TYPE_ANY(key, char *, const char *, const char *const), BLI_ghashutil_strhash_p(key))
+  (CHECK_TYPE_ANY(key, char *, const char *), BLI_ghashutil_strhash_p(key))
 unsigned int BLI_ghashutil_strhash_p(const void *ptr);
 unsigned int BLI_ghashutil_strhash_p_murmur(const void *ptr);
 bool BLI_ghashutil_strcmp(const void *a, const void *b);

@@ -60,14 +60,9 @@ static int FEdgeSharp_init(BPy_FEdgeSharp *self, PyObject *args, PyObject *kwds)
     }
   }
   else if ((void)PyErr_Clear(),
-           PyArg_ParseTupleAndKeywords(args,
-                                       kwds,
-                                       "O!O!",
-                                       (char **)kwlist_2,
-                                       &SVertex_Type,
-                                       &obj1,
-                                       &SVertex_Type,
-                                       &obj2)) {
+           PyArg_ParseTupleAndKeywords(
+               args, kwds, "O!O!", (char **)kwlist_2, &SVertex_Type, &obj1, &SVertex_Type, &obj2))
+  {
     self->fes = new FEdgeSharp(((BPy_SVertex *)obj1)->sv, ((BPy_SVertex *)obj2)->sv);
   }
   else {

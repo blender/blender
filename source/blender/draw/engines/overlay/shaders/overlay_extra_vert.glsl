@@ -1,6 +1,7 @@
 
 #pragma BLENDER_REQUIRE(common_view_clipping_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
+#pragma BLENDER_REQUIRE(select_lib.glsl)
 
 #define lamp_area_size inst_data.xy
 #define lamp_clip_sta inst_data.z
@@ -41,6 +42,8 @@
 
 void main()
 {
+  select_id_set(in_select_buf[gl_InstanceID]);
+
   /* Extract data packed inside the unused mat4 members. */
   vec4 inst_data = vec4(inst_obmat[0][3], inst_obmat[1][3], inst_obmat[2][3], inst_obmat[3][3]);
   float inst_color_data = color.a;

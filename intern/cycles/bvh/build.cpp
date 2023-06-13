@@ -49,9 +49,7 @@ BVHBuild::BVHBuild(const vector<Object *> &objects_,
   spatial_min_overlap = 0.0f;
 }
 
-BVHBuild::~BVHBuild()
-{
-}
+BVHBuild::~BVHBuild() {}
 
 /* Adding References */
 
@@ -180,9 +178,9 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
         const size_t num_keys = hair->get_curve_keys().size();
         const size_t num_steps = hair->get_motion_steps();
-        const float3 *key_steps = curve_attr_mP->data_float3();
+        const float4 *key_steps = curve_attr_mP->data_float4();
         for (size_t step = 0; step < num_steps - 1; step++) {
-          curve.bounds_grow(k, key_steps + step * num_keys, curve_radius, bounds);
+          curve.bounds_grow(k, key_steps + step * num_keys, bounds);
         }
         if (bounds.valid()) {
           int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
@@ -200,7 +198,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         const float num_bvh_steps_inv_1 = 1.0f / (num_bvh_steps - 1);
         const size_t num_steps = hair->get_motion_steps();
         const float3 *curve_keys = &hair->get_curve_keys()[0];
-        const float3 *key_steps = curve_attr_mP->data_float3();
+        const float4 *key_steps = curve_attr_mP->data_float4();
         const size_t num_keys = hair->get_curve_keys().size();
         /* Calculate bounding box of the previous time step.
          * Will be reused later to avoid duplicated work on
@@ -529,7 +527,7 @@ BVHNode *BVHBuild::run()
     if (progress.get_cancel()) {
       rootnode->deleteSubtree();
       rootnode = NULL;
-      VLOG_WORK << "BVH build cancelled.";
+      VLOG_WORK << "BVH build canceled.";
     }
     else {
       /*rotate(rootnode, 4, 5);*/
@@ -691,7 +689,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
   if (!(range.size() > 0 && params.top_level && level == 0)) {
     /* Make leaf node when threshold reached or SAH tells us. */
     if ((params.small_enough_for_leaf(size, level)) ||
-        (range_within_max_leaf_size(range, references) && leafSAH < splitSAH)) {
+        (range_within_max_leaf_size(range, references) && leafSAH < splitSAH))
+    {
       return create_leaf_node(range, references);
     }
   }
@@ -710,7 +709,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
     unalignedLeafSAH = params.sah_primitive_cost * unaligned_range.leafSAH;
     if (!(range.size() > 0 && params.top_level && level == 0)) {
       if (unalignedLeafSAH < unalignedSplitSAH && unalignedSplitSAH < splitSAH &&
-          range_within_max_leaf_size(range, references)) {
+          range_within_max_leaf_size(range, references))
+      {
         return create_leaf_node(range, references);
       }
     }
@@ -1169,8 +1169,8 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
 
 void BVHBuild::rotate(BVHNode *node, int max_depth, int iterations)
 {
-  /* in tested scenes, this resulted in slightly slower raytracing, so disabled
-   * it for now. could be implementation bug, or depend on the scene */
+  /* In tested scenes, this resulted in slightly slower ray-tracing, so disabled
+   * it for now. could be implementation bug, or depend on the scene. */
   if (node)
     for (int i = 0; i < iterations; i++)
       rotate(node, max_depth);

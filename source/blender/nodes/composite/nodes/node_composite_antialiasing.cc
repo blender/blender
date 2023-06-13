@@ -1,15 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
  */
 
-#include "BLT_translation.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "COM_algorithm_smaa.hh"
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -18,10 +18,14 @@
 
 namespace blender::nodes::node_composite_antialiasing_cc {
 
+NODE_STORAGE_FUNCS(NodeAntiAliasingData)
+
 static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>(N_("Image")).default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_output<decl::Color>(N_("Image"));
+  b.add_input<decl::Color>("Image")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .compositor_domain_priority(0);
+  b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
@@ -54,8 +58,33 @@ class AntiAliasingOperation : public NodeOperation {
 
   void execute() override
   {
-    get_input("Image").pass_through(get_result("Image"));
-    context().set_info_message("Viewport compositor setup not fully supported");
+    smaa(context(),
+         get_input("Image"),
+         get_result("Image"),
+         get_threshold(),
+         get_local_contrast_adaptation_factor(),
+         get_corner_rounding());
+  }
+
+  /* Blender encodes the threshold in the [0, 1] range, while the SMAA algorithm expects it in
+   * the [0, 0.5] range. */
+  float get_threshold()
+  {
+    return node_storage(bnode()).threshold / 2.0f;
+  }
+
+  /* Blender encodes the local contrast adaptation factor in the [0, 1] range, while the SMAA
+   * algorithm expects it in the [0, 10] range. */
+  float get_local_contrast_adaptation_factor()
+  {
+    return node_storage(bnode()).threshold * 10.0f;
+  }
+
+  /* Blender encodes the corner rounding factor in the float [0, 1] range, while the SMAA algorithm
+   * expects it in the integer [0, 100] range. */
+  int get_corner_rounding()
+  {
+    return int(node_storage(bnode()).corner_rounding * 100.0f);
   }
 };
 
@@ -76,13 +105,11 @@ void register_node_type_cmp_antialiasing()
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_antialiasing;
   ntype.flag |= NODE_PREVIEW;
-  node_type_size(&ntype, 170, 140, 200);
+  blender::bke::node_type_size(&ntype, 170, 140, 200);
   ntype.initfunc = file_ns::node_composit_init_antialiasing;
   node_type_storage(
       &ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }

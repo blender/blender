@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -33,9 +35,7 @@ namespace StrokeInternal {
 class StrokeVertexIterator : public Interface0DIteratorNested {
  public:
   /** Default constructor. */
-  StrokeVertexIterator()
-  {
-  }
+  StrokeVertexIterator() {}
 
   /** Copy constructor. */
   StrokeVertexIterator(const StrokeVertexIterator &vi)
@@ -54,9 +54,7 @@ class StrokeVertexIterator : public Interface0DIteratorNested {
     _end = end;
   }
 
-  virtual ~StrokeVertexIterator()
-  {
-  }
+  virtual ~StrokeVertexIterator() {}
 
   /** Casts this StrokeVertexIterator into an Interface0DIterator.
    *  Useful for any call to a function of the type UnaryFunction0D.

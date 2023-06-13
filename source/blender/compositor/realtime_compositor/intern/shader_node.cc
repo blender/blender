@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
 #include "BLI_math_vector.h"
@@ -77,18 +79,65 @@ static eGPUType gpu_type_from_socket_type(eNodeSocketDatatype type)
   }
 }
 
-static void gpu_stack_vector_from_socket(float *vector, const bNodeSocket *socket)
+/* Initializes the vector value of the given GPU node stack from the default value of the given
+ * socket. Note that the type of the stack may not match that of the socket, so perform implicit
+ * conversion if needed. */
+static void gpu_stack_vector_from_socket(GPUNodeStack &stack, const bNodeSocket *socket)
 {
   switch (socket->type) {
-    case SOCK_FLOAT:
-      vector[0] = socket->default_value_typed<bNodeSocketValueFloat>()->value;
-      return;
-    case SOCK_VECTOR:
-      copy_v3_v3(vector, socket->default_value_typed<bNodeSocketValueVector>()->value);
-      return;
-    case SOCK_RGBA:
-      copy_v4_v4(vector, socket->default_value_typed<bNodeSocketValueRGBA>()->value);
-      return;
+    case SOCK_FLOAT: {
+      const float value = socket->default_value_typed<bNodeSocketValueFloat>()->value;
+      switch (stack.sockettype) {
+        case SOCK_FLOAT:
+          stack.vec[0] = value;
+          return;
+        case SOCK_VECTOR:
+          copy_v3_fl(stack.vec, value);
+          return;
+        case SOCK_RGBA:
+          copy_v4_fl(stack.vec, value);
+          stack.vec[3] = 1.0f;
+          return;
+        default:
+          BLI_assert_unreachable();
+          return;
+      }
+    }
+    case SOCK_VECTOR: {
+      const float *value = socket->default_value_typed<bNodeSocketValueVector>()->value;
+      switch (stack.sockettype) {
+        case SOCK_FLOAT:
+          stack.vec[0] = (value[0] + value[1] + value[2]) / 3.0f;
+          return;
+        case SOCK_VECTOR:
+          copy_v3_v3(stack.vec, value);
+          return;
+        case SOCK_RGBA:
+          copy_v3_v3(stack.vec, value);
+          stack.vec[3] = 1.0f;
+          return;
+        default:
+          BLI_assert_unreachable();
+          return;
+      }
+    }
+    case SOCK_RGBA: {
+      const float *value = socket->default_value_typed<bNodeSocketValueRGBA>()->value;
+      switch (stack.sockettype) {
+        case SOCK_FLOAT:
+          stack.vec[0] = (value[0] + value[1] + value[2]) / 3.0f;
+          return;
+        case SOCK_VECTOR:
+          copy_v3_v3(stack.vec, value);
+          return;
+        case SOCK_RGBA:
+          copy_v4_v4(stack.vec, value);
+          return;
+        default:
+          BLI_assert_unreachable();
+          return;
+      }
+    }
     default:
       BLI_assert_unreachable();
   }
@@ -117,10 +166,10 @@ static void populate_gpu_node_stack(DSocket socket, GPUNodeStack &stack)
      * unlinked input or an unlinked input of a group input node that the socket is linked to,
      * otherwise, get the value from the socket itself. */
     if (origin->is_input()) {
-      gpu_stack_vector_from_socket(stack.vec, origin.bsocket());
+      gpu_stack_vector_from_socket(stack, origin.bsocket());
     }
     else {
-      gpu_stack_vector_from_socket(stack.vec, socket.bsocket());
+      gpu_stack_vector_from_socket(stack, socket.bsocket());
     }
   }
   else {

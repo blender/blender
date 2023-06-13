@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -117,11 +118,9 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
 
   PBVH *pbvh = ob->sculpt->pbvh;
-  PBVHNode **nodes;
-  int totnode;
-  BKE_pbvh_search_gather(pbvh, nullptr, nullptr, &nodes, &totnode);
+  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
-  if (totnode == 0) {
+  if (nodes.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -138,15 +137,14 @@ static int sculpt_mask_init_exec(bContext *C, wmOperator *op)
   data.mask_init_seed = PIL_check_seconds_timer();
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, totnode);
-  BLI_task_parallel_range(0, totnode, &data, mask_init_task_cb, &settings);
+  BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
+  BLI_task_parallel_range(0, nodes.size(), &data, mask_init_task_cb, &settings);
 
   multires_stitch_grids(ob);
 
   SCULPT_undo_push_end(ob);
 
   BKE_pbvh_update_vertex_data(ss->pbvh, PBVH_UpdateMask);
-  MEM_SAFE_FREE(nodes);
   SCULPT_tag_update_overlays(C);
   return OPERATOR_FINISHED;
 }

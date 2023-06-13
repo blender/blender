@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <mutex>
 
@@ -22,24 +24,11 @@
 
 #include "BLI_cpp_type_make.hh"
 
-using blender::float4x4;
-using blender::GSpan;
-using blender::IndexMask;
-using blender::Map;
-using blender::MutableSpan;
-using blender::Set;
-using blender::Span;
-using blender::VectorSet;
-using blender::bke::InstanceReference;
-using blender::bke::Instances;
-
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
  * \{ */
 
-InstancesComponent::InstancesComponent() : GeometryComponent(GEO_COMPONENT_TYPE_INSTANCES)
-{
-}
+InstancesComponent::InstancesComponent() : GeometryComponent(GEO_COMPONENT_TYPE_INSTANCES) {}
 
 InstancesComponent::~InstancesComponent()
 {
@@ -50,7 +39,7 @@ GeometryComponent *InstancesComponent::copy() const
 {
   InstancesComponent *new_component = new InstancesComponent();
   if (instances_ != nullptr) {
-    new_component->instances_ = new Instances(*instances_);
+    new_component->instances_ = new blender::bke::Instances(*instances_);
     new_component->ownership_ = GeometryOwnershipType::Owned;
   }
   return new_component;
@@ -58,7 +47,7 @@ GeometryComponent *InstancesComponent::copy() const
 
 void InstancesComponent::clear()
 {
-  BLI_assert(this->is_mutable());
+  BLI_assert(this->is_mutable() || this->is_expired());
   if (ownership_ == GeometryOwnershipType::Owned) {
     delete instances_;
   }
@@ -99,13 +88,14 @@ blender::bke::Instances *InstancesComponent::get_for_write()
 {
   BLI_assert(this->is_mutable());
   if (ownership_ == GeometryOwnershipType::ReadOnly) {
-    instances_ = new Instances(*instances_);
+    instances_ = new blender::bke::Instances(*instances_);
     ownership_ = GeometryOwnershipType::Owned;
   }
   return instances_;
 }
 
-void InstancesComponent::replace(Instances *instances, GeometryOwnershipType ownership)
+void InstancesComponent::replace(blender::bke::Instances *instances,
+                                 GeometryOwnershipType ownership)
 {
   BLI_assert(this->is_mutable());
   this->clear();
@@ -133,14 +123,16 @@ class InstancePositionAttributeProvider final : public BuiltinAttributeProvider 
   {
   }
 
-  GVArray try_get_for_read(const void *owner) const final
+  GAttributeReader try_get_for_read(const void *owner) const final
   {
     const Instances *instances = static_cast<const Instances *>(owner);
     if (instances == nullptr) {
       return {};
     }
     Span<float4x4> transforms = instances->transforms();
-    return VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms);
+    return {VArray<float3>::ForDerivedSpan<float4x4, get_transform_position>(transforms),
+            domain_,
+            nullptr};
   }
 
   GAttributeWriter try_get_for_write(void *owner) const final
@@ -202,8 +194,6 @@ static ComponentAttributeProviders create_attribute_providers_for_instances()
                                            BuiltinAttributeProvider::Creatable,
                                            BuiltinAttributeProvider::Deletable,
                                            instance_custom_data_access,
-                                           make_array_read_attribute<int>,
-                                           make_array_write_attribute<int>,
                                            nullptr);
 
   static CustomDataAttributeProvider instance_custom_data(ATTR_DOMAIN_INSTANCE,
@@ -233,13 +223,13 @@ static AttributeAccessorFunctions get_instances_accessor_functions()
     return domain == ATTR_DOMAIN_INSTANCE;
   };
   fn.adapt_domain = [](const void * /*owner*/,
-                       const blender::GVArray &varray,
+                       const GVArray &varray,
                        const eAttrDomain from_domain,
                        const eAttrDomain to_domain) {
     if (from_domain == to_domain && from_domain == ATTR_DOMAIN_INSTANCE) {
       return varray;
     }
-    return blender::GVArray{};
+    return GVArray{};
   };
   return fn;
 }

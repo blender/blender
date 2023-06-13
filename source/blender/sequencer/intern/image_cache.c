@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2010 Peter Schlaile <peter [at] schlaile [dot] de>. */
+/* SPDX-FileCopyrightText: 2010 Peter Schlaile <peter [at] schlaile [dot] de>.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -73,18 +74,18 @@
 
 typedef struct SeqCache {
   Main *bmain;
-  struct GHash *hash;
+  GHash *hash;
   ThreadMutex iterator_mutex;
-  struct BLI_mempool *keys_pool;
-  struct BLI_mempool *items_pool;
-  struct SeqCacheKey *last_key;
+  BLI_mempool *keys_pool;
+  BLI_mempool *items_pool;
+  SeqCacheKey *last_key;
   struct SeqDiskCache *disk_cache;
   int thumbnail_count;
 } SeqCache;
 
 typedef struct SeqCacheItem {
-  struct SeqCache *cache_owner;
-  struct ImBuf *ibuf;
+  SeqCache *cache_owner;
+  ImBuf *ibuf;
 } SeqCacheItem;
 
 static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
@@ -142,7 +143,7 @@ static float seq_cache_timeline_frame_to_frame_index(Scene *scene,
    * images or extended frame range of movies will only generate one cache entry. No special
    * treatment in converting frame index to timeline_frame is needed. */
   if (ELEM(type, SEQ_CACHE_STORE_RAW, SEQ_CACHE_STORE_THUMBNAIL)) {
-    return seq_give_frame_index(scene, seq, timeline_frame);
+    return SEQ_give_frame_index(scene, seq, timeline_frame);
   }
 
   return timeline_frame - SEQ_time_start_frame_get(seq);
@@ -437,6 +438,7 @@ static SeqCacheKey *seq_cache_get_item_for_removal(Scene *scene)
       rkey = key;
     }
   }
+  (void)total_count; /* Quiet set-but-unused warning (may be removed). */
 
   finalkey = seq_cache_choose_key(scene, lkey, rkey);
 
@@ -565,7 +567,8 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
           scene, key->seq, timeline_frame, key->type);
       if (frame_index != key->frame_index ||
           timeline_frame > SEQ_time_right_handle_frame_get(scene, key->seq) ||
-          timeline_frame < SEQ_time_left_handle_frame_get(scene, key->seq)) {
+          timeline_frame < SEQ_time_left_handle_frame_get(scene, key->seq))
+      {
         BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
       }
     }
@@ -660,7 +663,8 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
     /* Clean all final and composite in intersection of seq and seq_changed. */
     if (key->type & invalidate_composite && key->timeline_frame >= range_start &&
-        key->timeline_frame <= range_end) {
+        key->timeline_frame <= range_end)
+    {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
       }
@@ -670,7 +674,8 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
     if (key->type & invalidate_source && key->seq == seq &&
         key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
-        key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed)) {
+        key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed))
+    {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
       }
@@ -714,7 +719,8 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
     if ((key->type & SEQ_CACHE_STORE_THUMBNAIL) &&
         (key->timeline_frame > view_area_safe->xmax ||
          key->timeline_frame < view_area_safe->xmin || key->seq->machine > view_area_safe->ymax ||
-         key->seq->machine < view_area_safe->ymin)) {
+         key->seq->machine < view_area_safe->ymin))
+    {
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
       cache->thumbnail_count--;
     }
@@ -722,10 +728,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
   cache->last_key = NULL;
 }
 
-struct ImBuf *seq_cache_get(const SeqRenderData *context,
-                            Sequence *seq,
-                            float timeline_frame,
-                            int type)
+ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
 {
 
   if (context->skip_cache || context->is_proxy_render || !seq) {
@@ -891,10 +894,10 @@ void seq_cache_put(
 }
 
 void SEQ_cache_iterate(
-    struct Scene *scene,
+    Scene *scene,
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
-    bool callback_iter(void *userdata, struct Sequence *seq, int timeline_frame, int cache_type))
+    bool callback_iter(void *userdata, Sequence *seq, int timeline_frame, int cache_type))
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {

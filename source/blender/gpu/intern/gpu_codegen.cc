@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -86,12 +87,14 @@ struct GPUCodegenCreateInfo : ShaderCreateInfo {
 };
 
 struct GPUPass {
-  struct GPUPass *next;
+  GPUPass *next;
 
   GPUShader *shader;
   GPUCodegenCreateInfo *create_info = nullptr;
   /** Orphaned GPUPasses gets freed by the garbage collector. */
   uint refcount;
+  /** The last time the refcount was greater than 0. */
+  int gc_timestamp;
   /** Identity hash generated from all GLSL code. */
   uint32_t hash;
   /** Did we already tried to compile the attached GPUShader. */
@@ -99,6 +102,8 @@ struct GPUPass {
   /** Hint that an optimized variant of this pass should be created based on a complexity heuristic
    * during pass code generation. */
   bool should_optimize;
+  /** Whether pass is in the GPUPass cache. */
+  bool cached;
 };
 
 /* -------------------------------------------------------------------- */
@@ -132,6 +137,7 @@ static GPUPass *gpu_pass_cache_lookup(uint32_t hash)
 static void gpu_pass_cache_insert_after(GPUPass *node, GPUPass *pass)
 {
   BLI_spin_lock(&pass_cache_spin);
+  pass->cached = true;
   if (node != nullptr) {
     /* Add after the first pass having the same hash. */
     pass->next = node->next;
@@ -152,7 +158,8 @@ static GPUPass *gpu_pass_cache_resolve_collision(GPUPass *pass,
   BLI_spin_lock(&pass_cache_spin);
   for (; pass && (pass->hash == hash); pass = pass->next) {
     if (*reinterpret_cast<ShaderCreateInfo *>(info) ==
-        *reinterpret_cast<ShaderCreateInfo *>(pass->create_info)) {
+        *reinterpret_cast<ShaderCreateInfo *>(pass->create_info))
+    {
       BLI_spin_unlock(&pass_cache_spin);
       return pass;
     }
@@ -306,7 +313,7 @@ class GPUCodegen {
   bool should_optimize_heuristic() const
   {
     /* If each of the maximal attributes are exceeded, we can optimize, but we should also ensure
-     * the baseline is met.*/
+     * the baseline is met. */
     bool do_optimize = (nodes_total_ >= 60 || textures_total_ >= 4 || uniforms_total_ >= 64) &&
                        (textures_total_ >= 1 && uniforms_total_ >= 8 && nodes_total_ >= 4);
     return do_optimize;
@@ -477,16 +484,26 @@ void GPUCodegen::generate_library()
   GPUCodegenCreateInfo &info = *create_info;
 
   void *value;
-  /* Iterate over libraries. We need to keep this struct intact in case
-   * it is required for the optimization pass. */
+  blender::Vector<std::string> source_files;
+
+  /* Iterate over libraries. We need to keep this struct intact in case it is required for the
+   * optimization pass. The first pass just collects the keys from the GSET, given items in a GSET
+   * are unordered this can cause order differences between invocations, so we collect the keys
+   * first, and sort them before doing actual work, to guarantee stable behavior while still
+   * having cheap insertions into the GSET */
   GHashIterator *ihash = BLI_ghashIterator_new((GHash *)graph.used_libraries);
   while (!BLI_ghashIterator_done(ihash)) {
     value = BLI_ghashIterator_getKey(ihash);
-    auto deps = gpu_shader_dependency_get_resolved_source((const char *)value);
-    info.dependencies_generated.extend_non_duplicates(deps);
+    source_files.append((const char *)value);
     BLI_ghashIterator_step(ihash);
   }
   BLI_ghashIterator_free(ihash);
+
+  std::sort(source_files.begin(), source_files.end());
+  for (auto &key : source_files) {
+    auto deps = gpu_shader_dependency_get_resolved_source(key.c_str());
+    info.dependencies_generated.extend_non_duplicates(deps);
+  }
 }
 
 void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
@@ -775,6 +792,7 @@ GPUPass *GPU_generate_pass(GPUMaterial *material,
     pass->create_info = codegen.create_info;
     pass->hash = codegen.hash_get();
     pass->compiled = false;
+    pass->cached = false;
     /* Only flag pass optimization hint if this is the first generated pass for a material.
      * Optimized passes cannot be optimized further, even if the heuristic is still not
      * favorable. */
@@ -836,7 +854,8 @@ static bool gpu_pass_shader_validate(GPUPass *pass, GPUShader *shader)
 
   /* Validate against opengl limit. */
   if ((active_samplers_len > GPU_max_textures_frag()) ||
-      (active_samplers_len > GPU_max_textures_vert())) {
+      (active_samplers_len > GPU_max_textures_vert()))
+  {
     return false;
   }
 
@@ -881,14 +900,6 @@ GPUShader *GPU_pass_shader_get(GPUPass *pass)
   return pass->shader;
 }
 
-void GPU_pass_release(GPUPass *pass)
-{
-  BLI_spin_lock(&pass_cache_spin);
-  BLI_assert(pass->refcount > 0);
-  pass->refcount--;
-  BLI_spin_unlock(&pass_cache_spin);
-}
-
 static void gpu_pass_free(GPUPass *pass)
 {
   BLI_assert(pass->refcount == 0);
@@ -899,30 +910,37 @@ static void gpu_pass_free(GPUPass *pass)
   MEM_freeN(pass);
 }
 
+void GPU_pass_release(GPUPass *pass)
+{
+  BLI_spin_lock(&pass_cache_spin);
+  BLI_assert(pass->refcount > 0);
+  pass->refcount--;
+  /* Un-cached passes will not be filtered by garbage collection, so release here. */
+  if (pass->refcount == 0 && !pass->cached) {
+    gpu_pass_free(pass);
+  }
+  BLI_spin_unlock(&pass_cache_spin);
+}
+
 void GPU_pass_cache_garbage_collect(void)
 {
-  static int lasttime = 0;
   const int shadercollectrate = 60; /* hardcoded for now. */
   int ctime = int(PIL_check_seconds_timer());
-
-  if (ctime < shadercollectrate + lasttime) {
-    return;
-  }
-
-  lasttime = ctime;
 
   BLI_spin_lock(&pass_cache_spin);
   GPUPass *next, **prev_pass = &pass_cache;
   for (GPUPass *pass = pass_cache; pass; pass = next) {
     next = pass->next;
-    if (pass->refcount == 0) {
+    if (pass->refcount > 0) {
+      pass->gc_timestamp = ctime;
+    }
+    else if (pass->gc_timestamp + shadercollectrate < ctime) {
       /* Remove from list */
       *prev_pass = next;
       gpu_pass_free(pass);
+      continue;
     }
-    else {
-      prev_pass = &pass->next;
-    }
+    prev_pass = &pass->next;
   }
   BLI_spin_unlock(&pass_cache_spin);
 }
@@ -951,9 +969,7 @@ void GPU_pass_cache_free(void)
 /** \name Module
  * \{ */
 
-void gpu_codegen_init(void)
-{
-}
+void gpu_codegen_init(void) {}
 
 void gpu_codegen_exit(void)
 {

@@ -15,10 +15,10 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderData *sd)
 {
   /* load triangle vertices */
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
-  const float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-  const float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-  const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  const float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
 
   /* return normal */
   if (object_negative_scale_applied(sd->object_flag)) {
@@ -40,10 +40,11 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
                                              ccl_private int *shader)
 {
   /* load triangle vertices */
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-  float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-  float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
+  float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
+  float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   /* compute point */
   float w = 1.0f - u - v;
   *P = (w * v0 + u * v1 + v * v2);
@@ -64,10 +65,10 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 
 ccl_device_inline void triangle_vertices(KernelGlobals kg, int prim, float3 P[3])
 {
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  P[0] = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-  P[1] = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-  P[2] = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
+  P[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
+  P[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
 }
 
 /* Triangle vertex locations and vertex normals */
@@ -77,10 +78,11 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
                                                      float3 P[3],
                                                      float3 N[3])
 {
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  P[0] = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-  P[1] = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-  P[2] = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
+  P[1] = kernel_data_fetch(tri_verts, tri_vindex.y);
+  P[2] = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   N[0] = kernel_data_fetch(tri_vnormal, tri_vindex.x);
   N[1] = kernel_data_fetch(tri_vnormal, tri_vindex.y);
   N[2] = kernel_data_fetch(tri_vnormal, tri_vindex.z);
@@ -92,7 +94,8 @@ ccl_device_inline float3
 triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
 {
   /* load triangle vertices */
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
   float3 n0 = kernel_data_fetch(tri_vnormal, tri_vindex.x);
   float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
   float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
@@ -106,7 +109,8 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
     KernelGlobals kg, ccl_private const ShaderData *sd, float3 Ng, int prim, float u, float v)
 {
   /* load triangle vertices */
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+
   float3 n0 = kernel_data_fetch(tri_vnormal, tri_vindex.x);
   float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
   float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
@@ -131,10 +135,10 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
                                        ccl_private float3 *dPdv)
 {
   /* fetch triangle vertex coordinates */
-  const uint4 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  const float3 p0 = kernel_data_fetch(tri_verts, tri_vindex.w + 0);
-  const float3 p1 = kernel_data_fetch(tri_verts, tri_vindex.w + 1);
-  const float3 p2 = kernel_data_fetch(tri_verts, tri_vindex.w + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 p0 = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 p1 = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 p2 = kernel_data_fetch(tri_verts, tri_vindex.z);
 
   /* compute derivatives of P w.r.t. uv */
   *dPdu = (p1 - p0);
@@ -153,7 +157,8 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
     float f0, f1, f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
       f0 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.x);
       f1 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.y);
       f2 = kernel_data_fetch(attributes_float, desc.offset + tri_vindex.z);
@@ -203,7 +208,8 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
     float2 f0, f1, f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
       f0 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.x);
       f1 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.y);
       f2 = kernel_data_fetch(attributes_float2, desc.offset + tri_vindex.z);
@@ -253,7 +259,8 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
     float3 f0, f1, f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
       f0 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.x);
       f1 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.y);
       f2 = kernel_data_fetch(attributes_float3, desc.offset + tri_vindex.z);
@@ -300,11 +307,13 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
                                             ccl_private float4 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
-                      ATTR_ELEMENT_CORNER_BYTE)) {
+                      ATTR_ELEMENT_CORNER_BYTE))
+  {
     float4 f0, f1, f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
-      const uint4 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+      const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+
       f0 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.x);
       f1 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.y);
       f2 = kernel_data_fetch(attributes_float4, desc.offset + tri_vindex.z);

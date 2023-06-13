@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -31,6 +33,7 @@
 void viewdolly_modal_keymap(wmKeyConfig *keyconf)
 {
   static const EnumPropertyItem modal_items[] = {
+      {VIEW_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
       {VIEW_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
 
       {VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
@@ -47,34 +50,6 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
   }
 
   keymap = WM_modalkeymap_ensure(keyconf, "View3D Dolly Modal", modal_items);
-
-  /* disabled mode switching for now, can re-implement better, later on */
-#if 0
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = LEFTMOUSE,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTCTRLKEY,
-                              .value = KM_RELEASE,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_ROTATE);
-  WM_modalkeymap_add_item(keymap,
-                          &(const KeyMapItem_Params){
-                              .type = EVT_LEFTSHIFTKEY,
-                              .value = KM_PRESS,
-                              .modifier = KM_ANY,
-                              .direction = KM_ANY,
-                          },
-                          VIEWROT_MODAL_SWITCH_MOVE);
-#endif
 
   /* assign map to operators */
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_dolly");
@@ -167,7 +142,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
       }
     }
-    else if (ELEM(event->type, EVT_ESCKEY, RIGHTMOUSE)) {
+    else if (event->type == EVT_ESCKEY) {
       if (event->val == KM_PRESS) {
         event_code = VIEW_CANCEL;
       }
@@ -273,11 +248,7 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
-  vod = op->customdata = viewops_data_create(
-      C,
-      event,
-      (viewops_flag_from_prefs() & ~VIEWOPS_FLAG_ORBIT_SELECT) |
-          (use_cursor_init ? VIEWOPS_FLAG_USE_MOUSE_INIT : 0));
+  vod = op->customdata = viewops_data_create(C, event, V3D_OP_MODE_DOLLY, use_cursor_init);
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -336,25 +307,19 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_FINISHED;
 }
 
-static void viewdolly_cancel(bContext *C, wmOperator *op)
-{
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
-}
-
 void VIEW3D_OT_dolly(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Dolly View";
   ot->description = "Dolly in/out in the view";
-  ot->idname = "VIEW3D_OT_dolly";
+  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_DOLLY);
 
   /* api callbacks */
   ot->invoke = viewdolly_invoke;
   ot->exec = viewdolly_exec;
   ot->modal = viewdolly_modal;
   ot->poll = view3d_rotation_poll;
-  ot->cancel = viewdolly_cancel;
+  ot->cancel = view3d_navigate_cancel_fn;
 
   /* flags */
   ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_XY | OPTYPE_DEPENDS_ON_CURSOR;

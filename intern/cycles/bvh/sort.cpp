@@ -35,7 +35,7 @@ struct BVHReferenceCompare {
 
   /* Compare two references.
    *
-   * Returns value is similar to return value of strcmp().
+   * Returns value is similar to return value of `strcmp()`.
    */
   __forceinline int compare(const BVHReference &ra, const BVHReference &rb) const
   {

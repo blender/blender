@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_input_descriptor.hh"
 #include "COM_operation.hh"
@@ -20,9 +22,7 @@ void SimpleOperation::map_input_to_result(Result *result)
   Operation::map_input_to_result(input_identifier_, result);
 }
 
-void SimpleOperation::add_and_evaluate_input_processors()
-{
-}
+void SimpleOperation::add_and_evaluate_input_processors() {}
 
 Result &SimpleOperation::get_input()
 {

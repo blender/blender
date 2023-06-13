@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -329,8 +330,10 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata),
   return 0;
 }
 
-#define WITH_FILTERING (GPU_SAMPLER_MIPMAP | GPU_SAMPLER_FILTER)
-#define NO_FILTERING GPU_SAMPLER_MIPMAP
+static const GPUSamplerState WITH_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP |
+                                               GPU_SAMPLER_FILTERING_LINEAR};
+static const GPUSamplerState NO_FILTERING = {GPU_SAMPLER_FILTERING_MIPMAP};
+
 #define COLOR_FORMAT fx->dof_color_format
 #define FG_TILE_FORMAT GPU_RGBA16F
 #define BG_TILE_FORMAT GPU_R11F_G11F_B10F
@@ -343,7 +346,8 @@ static void dof_bokeh_pass_init(EEVEE_FramebufferList *fbl,
                                 EEVEE_EffectsInfo *fx)
 {
   if ((fx->dof_bokeh_aniso[0] == 1.0f) && (fx->dof_bokeh_aniso[1] == 1.0f) &&
-      (fx->dof_bokeh_blades == 0.0)) {
+      (fx->dof_bokeh_blades == 0.0))
+  {
     fx->dof_bokeh_gather_lut_tx = NULL;
     fx->dof_bokeh_scatter_lut_tx = NULL;
     fx->dof_bokeh_resolve_lut_tx = NULL;
@@ -574,7 +578,8 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     DRW_shgroup_call_procedural_triangles(grp, NULL, 1);
 
     void *owner = (void *)&EEVEE_depth_of_field_init;
-    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
     fx->dof_downsample_tx = DRW_texture_pool_query_2d_ex(
         UNPACK2(quater_res), COLOR_FORMAT, usage, owner);
 
@@ -628,7 +633,8 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     /* TODO(@fclem): In the future, we need to check if mip_count did not change.
      * For now it's ok as we always define all mip level. */
     if (res[0] != GPU_texture_width(txl->dof_reduced_color) ||
-        res[1] != GPU_texture_width(txl->dof_reduced_color)) {
+        res[1] != GPU_texture_width(txl->dof_reduced_color))
+    {
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_color);
       DRW_TEXTURE_FREE_SAFE(txl->dof_reduced_coc);
     }
@@ -639,9 +645,9 @@ static void dof_reduce_pass_init(EEVEE_FramebufferList *fbl,
     /* Do not use texture pool because of needs mipmaps. */
     eGPUTextureUsage tex_flags = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
                                  GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
-    txl->dof_reduced_color = GPU_texture_create_2d_ex(
+    txl->dof_reduced_color = GPU_texture_create_2d(
         "dof_reduced_color", UNPACK2(res), mip_count, GPU_RGBA16F, tex_flags, NULL);
-    txl->dof_reduced_coc = GPU_texture_create_2d_ex(
+    txl->dof_reduced_coc = GPU_texture_create_2d(
         "dof_reduced_coc", UNPACK2(res), mip_count, GPU_R16F, tex_flags, NULL);
   }
 

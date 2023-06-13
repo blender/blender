@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -202,7 +204,7 @@ typedef struct WalkInfo {
   RegionView3D *rv3d;
   View3D *v3d;
   ARegion *region;
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
   Scene *scene;
 
   /** Needed for updating that isn't triggered by input. */
@@ -292,7 +294,7 @@ typedef struct WalkInfo {
   /** Nicer dynamics. */
   float zlock_momentum;
 
-  struct SnapObjectContext *snap_context;
+  SnapObjectContext *snap_context;
 
   struct View3DCameraControl *v3d_camera_control;
 
@@ -308,10 +310,10 @@ typedef struct WalkInfo {
 #ifdef WITH_INPUT_NDOF
 static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
-static int walkApply(bContext *C, struct WalkInfo *walk, bool is_confirm);
+static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
-static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *region, void *arg)
+static void drawWalkPixel(const bContext *UNUSED(C), ARegion *region, void *arg)
 {
   /* draws an aim/cross in the center */
   WalkInfo *walk = arg;
@@ -499,7 +501,8 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   }
 
   if (walk->rv3d->persp == RV3D_CAMOB &&
-      !BKE_id_is_editable(CTX_data_main(C), &walk->v3d->camera->id)) {
+      !BKE_id_is_editable(CTX_data_main(C), &walk->v3d->camera->id))
+  {
     BKE_report(op->reports,
                RPT_ERROR,
                "Cannot navigate a camera from an external library or non-editable override");
@@ -820,7 +823,8 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
       case WALK_MODAL_JUMP:
         if ((walk->navigation_mode == WALK_MODE_GRAVITY) &&
             (walk->gravity_state == WALK_GRAVITY_STATE_OFF) &&
-            (walk->teleport.state == WALK_TELEPORT_STATE_OFF)) {
+            (walk->teleport.state == WALK_TELEPORT_STATE_OFF))
+        {
           /* no need to check for ground,
            * walk->gravity wouldn't be off
            * if we were over a hole */
@@ -968,7 +972,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
     if ((walk->active_directions) || moffset[0] || moffset[1] ||
         walk->zlock == WALK_AXISLOCK_STATE_ACTIVE ||
         walk->gravity_state != WALK_GRAVITY_STATE_OFF ||
-        walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm) {
+        walk->teleport.state == WALK_TELEPORT_STATE_ON || is_confirm)
+    {
       float dvec_tmp[3];
 
       /* time how fast it takes for us to redraw,
@@ -1181,7 +1186,8 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
 
       /* stick to the floor */
       if (walk->navigation_mode == WALK_MODE_GRAVITY &&
-          ELEM(walk->gravity_state, WALK_GRAVITY_STATE_OFF, WALK_GRAVITY_STATE_START)) {
+          ELEM(walk->gravity_state, WALK_GRAVITY_STATE_OFF, WALK_GRAVITY_STATE_START))
+      {
 
         bool ret;
         float ray_distance;
@@ -1404,7 +1410,8 @@ static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else
 #endif /* WITH_INPUT_NDOF */
-      if (event->type == TIMER && event->customdata == walk->timer) {
+      if (event->type == TIMER && event->customdata == walk->timer)
+  {
     walkApply(C, walk, false);
   }
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -120,12 +121,12 @@ static void camera_background_images_stereo_setup(const Scene *scene,
   }
 }
 
-static struct GPUTexture *image_camera_background_texture_get(CameraBGImage *bgpic,
-                                                              const DRWContextState *draw_ctx,
-                                                              OVERLAY_PrivateData *pd,
-                                                              float *r_aspect,
-                                                              bool *r_use_alpha_premult,
-                                                              bool *r_use_view_transform)
+static GPUTexture *image_camera_background_texture_get(CameraBGImage *bgpic,
+                                                       const DRWContextState *draw_ctx,
+                                                       OVERLAY_PrivateData *pd,
+                                                       float *r_aspect,
+                                                       bool *r_use_alpha_premult,
+                                                       bool *r_use_view_transform)
 {
   void *lock;
   Image *image = bgpic->ima;
@@ -382,8 +383,8 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
       camera_background_images_stereo_setup(draw_ctx->scene, draw_ctx->v3d, ima, &iuser);
       tex = BKE_image_get_gpu_texture(ima, &iuser, nullptr);
       if (tex) {
-        size[0] = GPU_texture_orig_width(tex);
-        size[1] = GPU_texture_orig_height(tex);
+        size[0] = GPU_texture_original_width(tex);
+        size[1] = GPU_texture_original_height(tex);
       }
     }
     CLAMP_MIN(size[0], 1);
@@ -454,7 +455,8 @@ void OVERLAY_image_scene_background_draw(OVERLAY_Data *vedata)
   OVERLAY_PassList *psl = vedata->psl;
 
   if (DRW_state_is_fbo() && (!DRW_pass_is_empty(psl->image_background_scene_ps) ||
-                             !DRW_pass_is_empty(psl->image_foreground_scene_ps))) {
+                             !DRW_pass_is_empty(psl->image_foreground_scene_ps)))
+  {
     const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_bind(dfbl->default_fb);
 

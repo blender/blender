@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -24,6 +26,7 @@
 
 #include "BKE_key.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_remap.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -46,7 +49,8 @@ bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
   int i = set_listbasepointers(bmain, lbarray);
   while (i--) {
     for (ID *id = static_cast<ID *>(lbarray[i]->first); id != nullptr;
-         id = static_cast<ID *>(id->next)) {
+         id = static_cast<ID *>(id->next))
+    {
       if (ID_IS_LINKED(id)) {
         is_valid = false;
         BKE_reportf(reports,
@@ -195,7 +199,10 @@ bool BLO_main_validate_shapekeys(Main *bmain, ReportList *reports)
                 "Shapekey %s has an invalid 'from' pointer (%p), it will be deleted",
                 shapekey->id.name,
                 shapekey->from);
-    BKE_id_delete(bmain, shapekey);
+    /* NOTE: also need to remap UI data ID pointers here, since `bmain` is not the current
+     * `G_MAIN`, default UI-handling remapping callback (defined by call to
+     * `BKE_library_callback_remap_editor_id_reference_set`) won't work on expected data here. */
+    BKE_id_delete_ex(bmain, shapekey, ID_REMAP_FORCE_UI_POINTERS);
   }
 
   return is_valid;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blendthumb
@@ -26,9 +28,7 @@
  */
 class CBlendThumb : public IInitializeWithStream, public IThumbnailProvider {
  public:
-  CBlendThumb() : _cRef(1), _pStream(nullptr)
-  {
-  }
+  CBlendThumb() : _cRef(1), _pStream(nullptr) {}
 
   virtual ~CBlendThumb()
   {

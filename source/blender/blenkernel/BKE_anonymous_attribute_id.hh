@@ -1,12 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include <atomic>
 
+#include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_user_counter.hh"
 
 namespace blender::bke {
 
@@ -29,13 +31,10 @@ namespace blender::bke {
  *
  * Once created, #AnonymousAttributeID is immutable. Also it is intrinsically reference counted so
  * that it can have shared ownership. `std::shared_ptr` can't be used for that purpose here,
- * because that is not available in C code. If possible, the #AutoAnonymousAttributeID wrapper
+ * because that is not available in C code. If possible, the #AnonymousAttributeIDPtr wrapper
  * should be used to avoid manual reference counting in C++ code.
  */
-class AnonymousAttributeID {
- private:
-  mutable std::atomic<int> users_ = 1;
-
+class AnonymousAttributeID : public ImplicitSharingMixin {
  protected:
   std::string name_;
 
@@ -49,22 +48,15 @@ class AnonymousAttributeID {
 
   virtual std::string user_name() const;
 
-  void user_add() const
+ private:
+  void delete_self() override
   {
-    users_.fetch_add(1);
-  }
-
-  void user_remove() const
-  {
-    const int new_users = users_.fetch_sub(1) - 1;
-    if (new_users == 0) {
-      MEM_delete(this);
-    }
+    MEM_delete(this);
   }
 };
 
 /** Wrapper for #AnonymousAttributeID that avoids manual reference counting. */
-using AutoAnonymousAttributeID = UserCounter<const AnonymousAttributeID>;
+using AnonymousAttributeIDPtr = ImplicitSharingPtr<const AnonymousAttributeID>;
 
 /**
  * A set of anonymous attribute names that is passed around in geometry nodes.

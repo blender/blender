@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "asset_library_service.hh"
 
@@ -92,10 +93,12 @@ TEST_F(AssetLibraryServiceTest, get_destroy)
 TEST_F(AssetLibraryServiceTest, library_pointers)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
+                                                                      asset_library_root_);
   AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
 
-  EXPECT_EQ(lib, service->get_asset_library_on_disk(asset_library_root_))
+  EXPECT_EQ(lib, service->get_asset_library_on_disk_custom(__func__, asset_library_root_))
       << "Calling twice without destroying in between should return the same instance.";
   EXPECT_EQ(curfile_lib, service->get_asset_library_current_file())
       << "Calling twice without destroying in between should return the same instance.";
@@ -108,7 +111,9 @@ TEST_F(AssetLibraryServiceTest, library_pointers)
 TEST_F(AssetLibraryServiceTest, library_from_reference)
 {
   AssetLibraryService *service = AssetLibraryService::get();
-  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
+                                                                      asset_library_root_);
   AssetLibrary *const curfile_lib = service->get_asset_library_current_file();
 
   AssetLibraryReference ref{};
@@ -119,7 +124,7 @@ TEST_F(AssetLibraryServiceTest, library_from_reference)
 
   Main dummy_main{};
   std::string dummy_filepath = asset_library_root_ + SEP + "dummy.blend";
-  BLI_strncpy(dummy_main.filepath, dummy_filepath.c_str(), sizeof(dummy_main.filepath));
+  STRNCPY(dummy_main.filepath, dummy_filepath.c_str());
   EXPECT_EQ(lib, service->get_asset_library(&dummy_main, ref))
       << "Getting the local (current file) reference with a main saved on disk should return "
          "the an asset library for this directory";
@@ -137,22 +142,26 @@ TEST_F(AssetLibraryServiceTest, library_path_trailing_slashes)
   /* Ensure #asset_lib_no_slash has no trailing slash, regardless of what was passed on the CLI to
    * the unit test. */
   while (strlen(asset_lib_no_slash) &&
-         ELEM(asset_lib_no_slash[strlen(asset_lib_no_slash) - 1], SEP, ALTSEP)) {
+         ELEM(asset_lib_no_slash[strlen(asset_lib_no_slash) - 1], SEP, ALTSEP))
+  {
     asset_lib_no_slash[strlen(asset_lib_no_slash) - 1] = '\0';
   }
 
   BLI_path_slash_ensure(asset_lib_with_slash, PATH_MAX);
 
-  AssetLibrary *const lib_no_slash = service->get_asset_library_on_disk(asset_lib_no_slash);
+  AssetLibrary *const lib_no_slash = service->get_asset_library_on_disk_custom(__func__,
+                                                                               asset_lib_no_slash);
 
-  EXPECT_EQ(lib_no_slash, service->get_asset_library_on_disk(asset_lib_with_slash))
+  EXPECT_EQ(lib_no_slash,
+            service->get_asset_library_on_disk_custom(__func__, asset_lib_with_slash))
       << "With or without trailing slash shouldn't matter.";
 }
 
 TEST_F(AssetLibraryServiceTest, catalogs_loaded)
 {
   AssetLibraryService *const service = AssetLibraryService::get();
-  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
+                                                                      asset_library_root_);
   AssetCatalogService *const cat_service = lib->catalog_service.get();
 
   const bUUID UUID_POSES_ELLIE("df60e1f6-2259-475b-93d9-69a1b4a8db78");
@@ -166,7 +175,8 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs)
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Empty AssetLibraryService should have no unsaved catalogs";
 
-  AssetLibrary *const lib = service->get_asset_library_on_disk(asset_library_root_);
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__,
+                                                                      asset_library_root_);
   AssetCatalogService *const cat_service = lib->catalog_service.get();
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Unchanged AssetLibrary should have no unsaved catalogs";
@@ -198,7 +208,7 @@ TEST_F(AssetLibraryServiceTest, has_any_unsaved_catalogs_after_write)
   ASSERT_EQ(0, BLI_copy(original_cdf_file.c_str(), writable_cdf_file.c_str()));
 
   AssetLibraryService *const service = AssetLibraryService::get();
-  AssetLibrary *const lib = service->get_asset_library_on_disk(writable_dir);
+  AssetLibrary *const lib = service->get_asset_library_on_disk_custom(__func__, writable_dir);
 
   EXPECT_FALSE(service->has_any_unsaved_catalogs())
       << "Unchanged AssetLibrary should have no unsaved catalogs";

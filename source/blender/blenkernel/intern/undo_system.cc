@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -119,7 +121,7 @@ static void undosys_id_ref_store(void * /*user_data*/, UndoRefID *id_ref)
 {
   BLI_assert(id_ref->name[0] == '\0');
   if (id_ref->ptr) {
-    BLI_strncpy(id_ref->name, id_ref->ptr->name, sizeof(id_ref->name));
+    STRNCPY(id_ref->name, id_ref->ptr->name);
     /* Not needed, just prevents stale data access. */
     id_ref->ptr = nullptr;
   }
@@ -244,9 +246,7 @@ static void undosys_stack_validate(UndoStack *ustack, bool expect_non_empty)
   }
 }
 #else
-static void undosys_stack_validate(UndoStack * /*ustack*/, bool /*expect_non_empty*/)
-{
-}
+static void undosys_stack_validate(UndoStack * /*ustack*/, bool /*expect_non_empty*/) {}
 #endif
 
 UndoStack *BKE_undosys_stack_create(void)
@@ -326,7 +326,7 @@ static void undosys_stack_clear_all_first(UndoStack *ustack, UndoStep *us, UndoS
   }
 }
 
-static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct Main *bmain)
+static bool undosys_stack_push_main(UndoStack *ustack, const char *name, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   BLI_assert(ustack->step_init == nullptr);
@@ -339,7 +339,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct 
   return (ret & UNDO_PUSH_RET_SUCCESS);
 }
 
-void BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain)
+void BKE_undosys_stack_init_from_main(UndoStack *ustack, Main *bmain)
 {
   UNDO_NESTED_ASSERT(false);
   undosys_stack_push_main(ustack, IFACE_("Original"), bmain);
@@ -386,7 +386,7 @@ UndoStep *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const Un
 void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit)
 {
   UNDO_NESTED_ASSERT(false);
-  if ((steps == -1) && (memory_limit != 0)) {
+  if ((steps == -1) && (memory_limit == 0)) {
     return;
   }
 
@@ -400,6 +400,12 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     if (memory_limit) {
       data_size_all += us->data_size;
       if (data_size_all > memory_limit) {
+        CLOG_INFO(&LOG,
+                  1,
+                  "At step %zu: data_size_all=%zu >= memory_limit=%zu",
+                  us_count,
+                  data_size_all,
+                  memory_limit);
         break;
       }
     }
@@ -412,6 +418,8 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
       }
     }
   }
+
+  CLOG_INFO(&LOG, 1, "Total steps %zu: data_size_all=%zu", us_count, data_size_all);
 
   if (us) {
 #ifdef WITH_GLOBAL_UNDO_KEEP_ONE
@@ -458,7 +466,7 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
 
     UndoStep *us = static_cast<UndoStep *>(MEM_callocN(ut->step_size, __func__));
     if (name != nullptr) {
-      BLI_strncpy(us->name, name, sizeof(us->name));
+      STRNCPY(us->name, name);
     }
     us->type = ut;
     ustack->step_init = us;
@@ -543,7 +551,7 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
                        static_cast<UndoStep *>(MEM_callocN(ut->step_size, __func__));
     ustack->step_init = nullptr;
     if (us->name[0] == '\0') {
-      BLI_strncpy(us->name, name, sizeof(us->name));
+      STRNCPY(us->name, name);
     }
     us->type = ut;
     /* True by default, code needs to explicitly set it to false if necessary. */
@@ -769,7 +777,8 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
    * from given reference step. */
   bool is_processing_extra_skipped_steps = false;
   for (UndoStep *us_iter = undosys_step_iter_first(us_reference, undo_dir); us_iter != nullptr;
-       us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next) {
+       us_iter = (undo_dir == -1) ? us_iter->prev : us_iter->next)
+  {
     BLI_assert(us_iter != nullptr);
 
     const bool is_final = (us_iter == us_target_active);

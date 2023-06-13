@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -144,7 +146,8 @@ static void stroke_elem_pressure_set(const struct CurveDrawData *cdd,
                                      float pressure)
 {
   if ((cdd->project.surface_offset != 0.0f) && !cdd->project.use_surface_offset_absolute &&
-      !is_zero_v3(selem->normal_local)) {
+      !is_zero_v3(selem->normal_local))
+  {
     const float adjust = stroke_elem_radius_from_pressure(cdd, pressure) -
                          stroke_elem_radius_from_pressure(cdd, selem->pressure);
     madd_v3_v3fl(selem->location_local, selem->normal_local, adjust);
@@ -182,8 +185,8 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
   /* project to 'location_world' */
   if (cdd->project.use_plane) {
     /* get the view vector to 'location' */
-    if (ED_view3d_win_to_3d_on_plane(
-            region, cdd->project.plane, mval_fl, true, r_location_world)) {
+    if (ED_view3d_win_to_3d_on_plane(region, cdd->project.plane, mval_fl, true, r_location_world))
+    {
       if (r_normal_world) {
         zero_v3(r_normal_world);
       }
@@ -335,9 +338,7 @@ static void curve_draw_stroke_from_operator(wmOperator *op)
 /** \name Operator Callbacks & Helpers
  * \{ */
 
-static void curve_draw_stroke_3d(const struct bContext *UNUSED(C),
-                                 ARegion *UNUSED(region),
-                                 void *arg)
+static void curve_draw_stroke_3d(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
 {
   wmOperator *op = arg;
   struct CurveDrawData *cdd = op->customdata;
@@ -505,7 +506,8 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
   curve_draw_event_add(op, event);
 
   if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) && cdd->project.use_depth &&
-      (cps->flag & CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS)) {
+      (cps->flag & CURVE_PAINT_FLAG_DEPTH_STROKE_ENDPOINTS))
+  {
     RegionView3D *rv3d = cdd->vc.rv3d;
 
     cdd->project.use_depth = false;
@@ -514,7 +516,8 @@ static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
     float normal[3] = {0.0f};
     if (ELEM(cps->surface_plane,
              CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,
-             CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE)) {
+             CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE))
+    {
       if (ED_view3d_depth_read_cached_normal(cdd->vc.region, cdd->depths, event->mval, normal)) {
         if (cps->surface_plane == CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW) {
           float cross_a[3], cross_b[3];
@@ -665,7 +668,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
       selem_prev = selem;
     }
     scale_px = ((len_3d > 0.0f) && (len_2d > 0.0f)) ? (len_3d / len_2d) : 0.0f;
-    float error_threshold = (cps->error_threshold * U.dpi_fac) * scale_px;
+    float error_threshold = (cps->error_threshold * UI_SCALE_FAC) * scale_px;
     RNA_property_float_set(op->ptr, prop, error_threshold);
   }
 
@@ -684,7 +687,8 @@ static void curve_draw_exec_precalc(wmOperator *op)
       }
 
       if (len_squared_v2v2(selem_first->mval, selem_last->mval) <=
-          square_f(STROKE_CYCLIC_DIST_PX * U.dpi_fac)) {
+          square_f(STROKE_CYCLIC_DIST_PX * UI_SCALE_FAC))
+      {
         use_cyclic = true;
       }
     }

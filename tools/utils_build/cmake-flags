@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+"""
+This tool is for configuring build flags.
+"""
+
+WITH_GUI = True
+
+# ----------------------------------------------------------------------------
+# Data (flags)
+# eg: indervidual flags, compat info.
+
+
+# ----------------------------------------------------------------------------
+# Data (presets)
+# eg: profiling, mudflap, debugging.
+
+# setting: ((add, ...), (remove, ...)), ...
+PRESETS = {
+    "sanitize_address": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=address",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=address",), ()),
+        "CMAKE_EXE_LINKER_FLAGS": (("-lasan",), ()),
+    },
+    "sanitize_leak": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=leak",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=leak",), ()),
+    },
+    "sanitize_undefined": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=undefined",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=undefined",), ()),
+    },
+    "sanitize_thread": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=thread",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=thread",), ()),
+    },
+
+    # GCC5
+    "sanitize_float_divide_by_zero": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=float-divide-by-zero",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=float-divide-by-zero",), ()),
+    },
+    "sanitize_float_cast_overflow": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=float-cast-overflow",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=float-cast-overflow",), ()),
+    },
+    "sanitize_int_overflow": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=signed-integer-overflow",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=signed-integer-overflow",), ()),
+    },
+    "sanitize_bool": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=bool",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=bool",), ()),
+    },
+    "sanitize_enum": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=enum",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=enum",), ()),
+    },
+    "sanitize_bounds": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=bounds",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=bounds",), ()),
+    },
+    "sanitize_bounds_strict": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=bounds-strict",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=bounds-strict",), ()),
+    },
+    "sanitize_vla_bound": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=vla-bound",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=vla-bound",), ()),
+    },
+    "sanitize_alignment": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=alignment",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=alignment",), ()),
+    },
+    "sanitize_object_size": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=object-size",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=object-size",), ()),
+    },
+    "sanitize_nonull_attribute": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=nonnull-attribute",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=nonnull-attribute",), ()),
+    },
+    "sanitize_returns_nonull_attribute": {
+        "CMAKE_CXX_FLAGS": (("-fsanitize=returns-nonnull-attribute",), ()),
+        "CMAKE_C_FLAGS": (("-fsanitize=returns-nonnull-attribute",), ()),
+    },
+
+    "warn_all": {
+        "CMAKE_CXX_FLAGS": (("-Wall",), ()),
+        "CMAKE_C_FLAGS": (("-Wall",), ()),
+    },
+    "warn_extra": {
+        "CMAKE_CXX_FLAGS": (("-Wextra",), ()),
+        "CMAKE_C_FLAGS": (("-Wextra",), ()),
+    },
+    "warn_unused_macros": {
+        "CMAKE_CXX_FLAGS": (("-Wunused-macros",), ()),
+        "CMAKE_C_FLAGS": (("-Wunused-macros",), ()),
+    },
+    "warn_undefined_macros": {
+        "CMAKE_CXX_FLAGS": (("-Wundef",), ()),
+        "CMAKE_C_FLAGS": (("-Wundef",), ()),
+    },
+    "warn_unused_local_typedefs": {
+        "CMAKE_CXX_FLAGS": (("-Wunused-local-typedefs",), ()),
+        "CMAKE_C_FLAGS": (("-Wunused-local-typedefs",), ()),
+    },
+    "warn_pointer_sign": {
+        "CMAKE_CXX_FLAGS": (("",), ()),
+        "CMAKE_C_FLAGS": (("-Wpointer-sign",), ()),
+    },
+    "warn_sizeof_pointer_memaccess": {
+        "CMAKE_CXX_FLAGS": (("-Wsizeof-pointer-memaccess",), ()),
+        "CMAKE_C_FLAGS": (("-Wsizeof-pointer-memaccess",), ()),
+    },
+    "warn_no_null": {
+        "CMAKE_CXX_FLAGS": (("-Wnonnull",), ()),
+        "CMAKE_C_FLAGS": (("-Wnonnull",), ()),
+    },
+    "warn_init_self": {
+        "CMAKE_CXX_FLAGS": (("-Winit-self",), ()),
+        "CMAKE_C_FLAGS": (("-Winit-self",), ()),
+    },
+    "warn_format": {
+        "CMAKE_CXX_FLAGS": (("-Wformat=2", "-Wno-format-nonliteral", "-Wno-format-y2k"), ()),
+        "CMAKE_C_FLAGS": (("-Wformat=2", "-Wno-format-nonliteral", "-Wno-format-y2k"), ()),
+    },
+    "warn_format": {
+        "CMAKE_CXX_FLAGS": (("-Wwrite-strings",), ()),
+        "CMAKE_C_FLAGS": (("-Wwrite-strings",), ()),
+    },
+    "warn_logical_op": {
+        "CMAKE_CXX_FLAGS": (("-Wlogical-op",), ()),
+        "CMAKE_C_FLAGS": (("-Wlogical-op",), ()),
+    },
+    "warn_error": {
+        "CMAKE_CXX_FLAGS": (("-Werror",), ()),
+        "CMAKE_C_FLAGS": (("-Werror",), ()),
+    },
+    "warn_shadow": {
+        "CMAKE_CXX_FLAGS": (("-Wshadow", "-Wno-error=shadow"), ()),
+        "CMAKE_C_FLAGS": (("-Wshadow", "-Wno-error=shadow"), ()),
+    },
+    "warn_missing_include_dirs": {
+        "CMAKE_CXX_FLAGS": (("-Wmissing-include-dirs",), ()),
+        "CMAKE_C_FLAGS": (("-Wmissing-include-dirs",), ()),
+    },
+    "warn_double_promotion": {
+        "CMAKE_CXX_FLAGS": (("-Wdouble-promotion",), ()),
+        "CMAKE_C_FLAGS": (("-Wdouble-promotion",), ()),
+    },
+    "warn_declaration_after_statement": {
+        "CMAKE_C_FLAGS": (("-Wdeclaration-after-statement",), ()),
+    },
+    "warn_zero_as_null_pointer_constant": {
+        "CMAKE_CXX_FLAGS": (("-Wzero-as-null-pointer-constant",), ()),
+    },
+    "show_color": {
+        "CMAKE_C_FLAGS": (("-fdiagnostics-color=always",), ()),
+        "CMAKE_CXX_FLAGS": (("-fdiagnostics-color=always",), ()),
+    },
+
+    # Optimize
+    "optimize_whole_program": {
+        "CMAKE_CXX_FLAGS": (("-flto",), ()),
+        "CMAKE_C_FLAGS": (("-flto",), ()),
+        "CMAKE_EXE_LINKER_FLAGS": (("-flto", "-fwhole-program",), ()),
+    },
+
+    # Profile
+    "profile_gprof": {
+        "CMAKE_CXX_FLAGS": (("-pg",), ()),
+        "CMAKE_C_FLAGS": (("-pg",), ()),
+        "CMAKE_EXE_LINKER_FLAGS": (("-pg",), ()),
+    },
+}
+
+# ----------------------------------------------------------------------------
+# Utility Functions
+# eg: check buildsystem (make or ninja?)
+
+
+def cmake_flag_buildtype_suffix(flag, build_type):
+    """
+    Add the build type as a suffix for options that support it.
+    this way for Debug builds we edit debug flags.
+    eg:
+      CMAKE_CXX_FLAGS -> CMAKE_CXX_FLAGS_DEBUG
+    """
+    if build_type == "":
+        return flag
+
+    # perhaps there are more,
+    # but these are default that can have _DEBUG... etc added.
+    if flag in {'CMAKE_CXX_FLAGS',
+                'CMAKE_C_FLAGS',
+                'CMAKE_EXE_LINKER_FLAGS',
+                'CMAKE_MODULE_LINKER_FLAGS',
+                'CMAKE_SHARED_LINKER_FLAGS'}:
+
+        return "%s_%s" % (flag, build_type.upper())
+    else:
+        return flag
+
+
+# ----------------------------------------------------------------------------
+# CMakeCache.txt Parser (simple)
+#
+# These functions should run standalone
+# format in python is as follows...
+#
+# CMakeCache.txt is converted into a dict
+# the key is the cache ID
+# the value is a triple (type, value, description, internal)
+# where the description is the comment above conforming to the CMake convention.
+#
+#
+def cmakecache_to_py(filepath, native=True):
+    """
+    header, cache
+    """
+
+    cmake_header = ""
+    cmake_cache = {}
+
+    with open(filepath, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+        for i in range(len(lines)):
+            if lines[i].startswith("#"):
+                cmake_header += lines[i]
+            else:
+                break
+
+        # in case it's not set
+        cmake_descr = ""
+        cmake_internal = False
+
+        for i in range(len(lines)):
+            if lines[i].startswith("//"):
+                cmake_descr += lines[i][2:].rstrip() + "\n"
+            elif lines[i].startswith("#"):
+                if "INTERNAL cache entries" in lines[i]:
+                    cmake_internal = True
+            elif lines[i][0].isalpha() or lines[i][0] in {"_", "-"}:
+                cmake_name, cmake_value = lines[i].split("=", 1)
+                if ":" in cmake_name:
+                    cmake_name, cmake_type = cmake_name.split(":", 1)
+                else:
+                    cmake_type = "STRING"
+                cmake_value = cmake_value.rstrip()  # remove trailing '\n'
+                cmake_descr = cmake_descr.rstrip()
+
+                if native:
+                    if cmake_type in {"STRING", "PATH", "FILEPATH", "STATIC", "INTERNAL", "UNINITIALIZED"}:
+                        pass
+                    elif cmake_type == "BOOL":
+                        cmake_value = cmake_value.upper() not in {"NO", "N", "", "OFF", "0", "FALSE"}
+
+                cmake_cache[cmake_name] = (cmake_type, cmake_value, cmake_descr, cmake_internal)
+
+                # in case it's not set
+                cmake_descr = ""
+
+    return cmake_header, cmake_cache
+
+
+def cmakecache_from_py(filepath, cmake_header, cmake_cache):
+
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(cmake_header)
+        f.write("\n")
+
+        cmake_cache_list = ([], [])
+
+        # sort into external/internal
+        for cmake_name, (cmake_type, cmake_value, cmake_descr, cmake_internal) in cmake_cache.items():
+            cmake_cache_list[cmake_internal].append((cmake_name, cmake_type, cmake_value, cmake_descr))
+
+        for is_internal, ls in enumerate(cmake_cache_list):
+            ls.sort()
+            if is_internal:
+                f.write("########################\n"
+                        "# INTERNAL cache entries\n"
+                        "########################\n\n")
+            else:
+                f.write("########################\n"
+                        "# EXTERNAL cache entries\n"
+                        "########################\n\n")
+
+            for cmake_name, cmake_type, cmake_value, cmake_descr in ls:
+                if cmake_descr:
+                    l = None
+                    for l in cmake_descr.split("\n"):
+                        f.write("//%s\n" % l)
+                    del l
+
+                # convert the value
+                if cmake_value is True:
+                    cmake_value = "TRUE"
+                elif cmake_value is False:
+                    cmake_value = "FALSE"
+
+                f.write("%s:%s=%s\n" % (cmake_name, cmake_type, cmake_value))
+                if not is_internal:
+                    f.write("\n")
+
+# cmake_header, cmake_cache = cmakecache_to_py("/src/cmake_debug/CMakeCache.txt~")
+# cmakecache_from_py("/src/cmake_debug/CMakeCache.txt", cmake_header, cmake_cache)
+# print(cmake_cache)
+
+
+# ----------------------------------------------------------------------------
+# Main Functions (can be run from command line)
+
+def config_set(config_id, state):
+    print(config_id, state.get(), dir(state))
+    cache = CMAKE_DATA["cmake_cache"]
+    build_type = cache["CMAKE_BUILD_TYPE"][1]  # value
+
+    cfg = PRESETS[config_id]
+    for key, (add, rem) in cfg.items():
+        key = cmake_flag_buildtype_suffix(key, build_type)
+        (cmake_type, cmake_value, cmake_descr, cmake_internal) = cache[key]
+        data = cmake_value.split()
+        if not state.get():
+            add, rem = rem, add
+
+        for arg in rem:
+            data[:] = [i for i in data if i != arg]
+        data.extend(add)
+
+        # print("A", data)
+        cmake_value = " ".join(data)
+        # print("B", cmake_value)
+        cache[key] = (cmake_type, cmake_value, cmake_descr, cmake_internal)
+        print("AFTER", cache[key])
+
+
+def config_check(config_id):
+    cache = CMAKE_DATA["cmake_cache"]
+    build_type = cache["CMAKE_BUILD_TYPE"][1]  # value
+
+    cfg = PRESETS[config_id]
+    for key, (add, rem) in cfg.items():
+        key = cmake_flag_buildtype_suffix(key, build_type)
+        (cmake_type, cmake_value, cmake_descr, cmake_internal) = cache[key]
+        data = cmake_value.split()
+        for arg in add:
+            if arg not in data:
+                return False
+    return True
+
+
+# ----------------------------------------------------------------------------
+# Command Line Interface
+
+# ----------------------------------------------------------------------------
+# User Interface
+if WITH_GUI:
+    CMAKE_DATA = {}
+    # CMAKE_CACHE = "/src/cmake_debugCMakeCache.txt"
+    CMAKE_CACHE = "CMakeCache.txt"
+
+    def cmake_read():
+        print("%s: reading..." % CMAKE_CACHE)
+        (CMAKE_DATA["cmake_header"],
+         CMAKE_DATA["cmake_cache"],
+         ) = cmakecache_to_py(CMAKE_CACHE)
+
+    def cmake_write():
+        print("%s: writing..." % CMAKE_CACHE)
+        CMAKE_CACHE_TMP = CMAKE_CACHE + "~"
+        cmakecache_from_py(CMAKE_CACHE_TMP,
+                           CMAKE_DATA["cmake_header"],
+                           CMAKE_DATA["cmake_cache"])
+
+        import shutil
+        shutil.move(CMAKE_CACHE_TMP, CMAKE_CACHE)
+
+    # read before load.
+    cmake_read()
+
+    import tkinter
+    master = tkinter.Tk()
+
+    row = 0
+    tkinter.Label(master, text="Flags:").grid(row=row, sticky=tkinter.W)
+    row += 1
+
+    def config_but(my_id):
+        global row
+        var = tkinter.IntVar()
+        var.set(config_check(my_id))
+        tkinter.Checkbutton(master,
+                            text=my_id.replace("_", " ").capitalize(),
+                            variable=var,
+                            command=lambda: config_set(my_id, var)).grid(row=row, sticky=tkinter.W)
+        row += 1
+
+    for my_id in sorted(PRESETS.keys()):
+        config_but(my_id)
+
+    tkinter.Button(master, text='Write', command=cmake_write).grid(row=row, sticky=tkinter.W, pady=4)
+    row += 1
+    tkinter.Button(master, text='Quit', command=master.quit).grid(row=row, sticky=tkinter.W, pady=4)
+    row += 1
+    # tkinter.Button(master, text='Show', command=var_states).grid(row=4, sticky=tkinter.W, pady=4)
+
+    tkinter.mainloop()
+
+# EOF

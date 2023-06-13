@@ -17,9 +17,7 @@ OIIOOutputDriver::OIIOOutputDriver(const string_view filepath,
 {
 }
 
-OIIOOutputDriver::~OIIOOutputDriver()
-{
-}
+OIIOOutputDriver::~OIIOOutputDriver() {}
 
 void OIIOOutputDriver::write_render_tile(const Tile &tile)
 {
@@ -61,7 +59,8 @@ void OIIOOutputDriver::write_render_tile(const Tile &tile)
   /* Apply gamma correction for (some) non-linear file formats.
    * TODO: use OpenColorIO view transform if available. */
   if (ColorSpaceManager::detect_known_colorspace(
-          u_colorspace_auto, "", image_output->format_name(), true) == u_colorspace_srgb) {
+          u_colorspace_auto, "", image_output->format_name(), true) == u_colorspace_srgb)
+  {
     const float g = 1.0f / 2.2f;
     ImageBufAlgo::pow(image_buffer, image_buffer, {g, g, g, 1.0f});
   }

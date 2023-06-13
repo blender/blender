@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -28,7 +29,7 @@
 /** \name Data Handling
  * \{ */
 
-struct CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
+CurveProfile *BKE_curveprofile_add(eCurveProfilePresets preset)
 {
   CurveProfile *profile = MEM_cnew<CurveProfile>(__func__);
 
@@ -79,13 +80,13 @@ CurveProfile *BKE_curveprofile_copy(const CurveProfile *profile)
   return nullptr;
 }
 
-void BKE_curveprofile_blend_write(struct BlendWriter *writer, const struct CurveProfile *profile)
+void BKE_curveprofile_blend_write(BlendWriter *writer, const CurveProfile *profile)
 {
   BLO_write_struct(writer, CurveProfile, profile);
   BLO_write_struct_array(writer, CurveProfilePoint, profile->path_len, profile->path);
 }
 
-void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurveProfile *profile)
+void BKE_curveprofile_blend_read(BlendDataReader *reader, CurveProfile *profile)
 {
   BLO_read_data_address(reader, &profile->path);
   profile->table = nullptr;
@@ -105,7 +106,7 @@ void BKE_curveprofile_blend_read(struct BlendDataReader *reader, struct CurvePro
 /** \name Editing
  * \{ */
 
-bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
+bool BKE_curveprofile_move_handle(CurveProfilePoint *point,
                                   const bool handle_1,
                                   const bool snap,
                                   const float delta[2])
@@ -145,8 +146,8 @@ bool BKE_curveprofile_move_handle(struct CurveProfilePoint *point,
   return false;
 }
 
-bool BKE_curveprofile_move_point(struct CurveProfile *profile,
-                                 struct CurveProfilePoint *point,
+bool BKE_curveprofile_move_point(CurveProfile *profile,
+                                 CurveProfilePoint *point,
                                  const bool snap,
                                  const float delta[2])
 {

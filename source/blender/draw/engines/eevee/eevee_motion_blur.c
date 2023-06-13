@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -162,7 +163,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
     }
     {
       DRW_PASS_CREATE(psl->motion_blur, DRW_STATE_WRITE_COLOR);
-      eGPUSamplerState state = 0;
+      const GPUSamplerState state = GPU_SAMPLER_DEFAULT;
       int expand_steps = 1 + (max_ii(0, effects->motion_blur_max - 1) / EEVEE_VELOCITY_TILE_SIZE);
       GPUTexture *tile_tx = (expand_steps & 1) ? effects->velocity_tiles_x_tx :
                                                  effects->velocity_tiles_tx;
@@ -388,7 +389,8 @@ void EEVEE_motion_blur_cache_populate(EEVEE_ViewLayerData *UNUSED(sldata),
       /* Avoid drawing object that has no motions since object_moves is always true. */
       if (!mb_geom->use_deform && /* Object deformation can happen without transform. */
           equals_m4m4(mb_data->obmat[MB_PREV], mb_data->obmat[MB_CURR]) &&
-          equals_m4m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR])) {
+          equals_m4m4(mb_data->obmat[MB_NEXT], mb_data->obmat[MB_CURR]))
+      {
         return;
       }
 
@@ -452,7 +454,8 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
 
   for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object);
        BLI_ghashIterator_done(&ghi) == false;
-       BLI_ghashIterator_step(&ghi)) {
+       BLI_ghashIterator_step(&ghi))
+  {
     EEVEE_ObjectMotionData *mb_data = BLI_ghashIterator_getValue(&ghi);
     EEVEE_HairMotionData *mb_hair = mb_data->hair_data;
     EEVEE_GeometryMotionData *mb_geom = mb_data->geometry_data;
@@ -470,7 +473,8 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
           EEVEE_HairMotionStepData **step_data_cache_ptr;
           if (!BLI_ghash_ensure_p(effects->motion_blur.hair_motion_step_cache[mb_step],
                                   vbo,
-                                  (void ***)&step_data_cache_ptr)) {
+                                  (void ***)&step_data_cache_ptr))
+          {
             EEVEE_HairMotionStepData *new_step_data = MEM_callocN(sizeof(EEVEE_HairMotionStepData),
                                                                   __func__);
             /* Duplicate the vbo, otherwise it would be lost when evaluating another frame. */
@@ -519,9 +523,9 @@ void EEVEE_motion_blur_cache_finish(EEVEE_Data *vedata)
           GPU_vertbuf_use(vbo);
           /* Perform a copy to avoid losing it after RE_engine_frame_set(). */
           GPUVertBuf **vbo_cache_ptr;
-          if (!BLI_ghash_ensure_p(effects->motion_blur.position_vbo_cache[mb_step],
-                                  vbo,
-                                  (void ***)&vbo_cache_ptr)) {
+          if (!BLI_ghash_ensure_p(
+                  effects->motion_blur.position_vbo_cache[mb_step], vbo, (void ***)&vbo_cache_ptr))
+          {
             /* Duplicate the vbo, otherwise it would be lost when evaluating another frame. */
             GPUVertBuf *duplicated_vbo = GPU_vertbuf_duplicate(vbo);
             *vbo_cache_ptr = duplicated_vbo;
@@ -576,7 +580,8 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
   /* Rename attributes in #position_vbo_cache. */
   for (BLI_ghashIterator_init(&ghi, effects->motion_blur.position_vbo_cache[MB_PREV]);
        !BLI_ghashIterator_done(&ghi);
-       BLI_ghashIterator_step(&ghi)) {
+       BLI_ghashIterator_step(&ghi))
+  {
     GPUVertBuf *vbo = BLI_ghashIterator_getValue(&ghi);
     GPUVertFormat *format = (GPUVertFormat *)GPU_vertbuf_get_format(vbo);
     int attrib_id = GPU_vertformat_attr_id_get(format, "nxt");
@@ -585,7 +590,8 @@ void EEVEE_motion_blur_swap_data(EEVEE_Data *vedata)
 
   /* Object Data. */
   for (BLI_ghashIterator_init(&ghi, effects->motion_blur.object); !BLI_ghashIterator_done(&ghi);
-       BLI_ghashIterator_step(&ghi)) {
+       BLI_ghashIterator_step(&ghi))
+  {
     EEVEE_ObjectMotionData *mb_data = BLI_ghashIterator_getValue(&ghi);
     EEVEE_GeometryMotionData *mb_geom = mb_data->geometry_data;
     EEVEE_HairMotionData *mb_hair = mb_data->hair_data;

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -23,15 +25,15 @@ set(INC_SYS
 )
 
 set(SRC
-  action_buttons.c
-  action_data.c
-  action_draw.c
-  action_edit.c
-  action_ops.c
-  action_select.c
-  space_action.c
+  action_buttons.cc
+  action_data.cc
+  action_draw.cc
+  action_edit.cc
+  action_ops.cc
+  action_select.cc
+  space_action.cc
 
-  action_intern.h
+  action_intern.hh
 )
 
 set(LIB

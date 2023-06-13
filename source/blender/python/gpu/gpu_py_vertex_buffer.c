@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -244,7 +246,8 @@ static PyObject *pygpu_vertbuf__tp_new(PyTypeObject *UNUSED(type), PyObject *arg
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kwds, &_parser, &BPyGPUVertFormat_Type, &params.py_fmt, &params.len)) {
+          args, kwds, &_parser, &BPyGPUVertFormat_Type, &params.py_fmt, &params.len))
+  {
     return NULL;
   }
 
@@ -308,7 +311,7 @@ static PyObject *pygpu_vertbuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, Py
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef pygpu_vertbuf__tp_methods[] = {
+static PyMethodDef pygpu_vertbuf__tp_methods[] = {
     {"attr_fill",
      (PyCFunction)pygpu_vertbuf_attr_fill,
      METH_VARARGS | METH_KEYWORDS,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -149,6 +150,7 @@ static bool path_select_poll_property(const bContext *C,
 struct UserData {
   BMesh *bm;
   Mesh *me;
+  int cd_offset;
   const struct PathSelectParams *op_params;
 };
 
@@ -182,7 +184,24 @@ static void mouse_mesh_shortest_path_vert(Scene *UNUSED(scene),
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
-  struct UserData user_data = {bm, obedit->data, op_params};
+  int cd_offset = -1;
+  switch (op_params->edge_mode) {
+    case EDGE_MODE_SELECT:
+    case EDGE_MODE_TAG_SEAM:
+    case EDGE_MODE_TAG_SHARP:
+#ifdef WITH_FREESTYLE
+    case EDGE_MODE_TAG_FREESTYLE:
+#endif
+      break;
+    case EDGE_MODE_TAG_CREASE:
+      cd_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+      break;
+    case EDGE_MODE_TAG_BEVEL:
+      cd_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+      break;
+  }
+
+  struct UserData user_data = {bm, obedit->data, cd_offset, op_params};
   LinkNode *path = NULL;
   bool is_path_ordered = false;
 
@@ -230,7 +249,8 @@ static void mouse_mesh_shortest_path_vert(Scene *UNUSED(scene),
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         verttag_set_cb((BMVert *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           v_dst_last = node->link;
@@ -280,7 +300,6 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
 {
   struct UserData *user_data = user_data_v;
   const char edge_mode = user_data->op_params->edge_mode;
-  BMesh *bm = user_data->bm;
 
   switch (edge_mode) {
     case EDGE_MODE_SELECT:
@@ -290,11 +309,11 @@ static bool edgetag_test_cb(BMEdge *e, void *user_data_v)
     case EDGE_MODE_TAG_SHARP:
       return BM_elem_flag_test(e, BM_ELEM_SMOOTH) ? false : true;
     case EDGE_MODE_TAG_CREASE:
-      return BM_elem_float_data_get(&bm->edata, e, CD_CREASE) ? true : false;
     case EDGE_MODE_TAG_BEVEL:
-      return BM_elem_float_data_get(&bm->edata, e, CD_BWEIGHT) ? true : false;
+      return BM_ELEM_CD_GET_FLOAT(e, user_data->cd_offset);
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE: {
+      BMesh *bm = user_data->bm;
       FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, e->head.data, CD_FREESTYLE_EDGE);
       return (!fed) ? false : (fed->flag & FREESTYLE_EDGE_MARK) ? true : false;
     }
@@ -319,10 +338,8 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
       BM_elem_flag_set(e, BM_ELEM_SMOOTH, !val);
       break;
     case EDGE_MODE_TAG_CREASE:
-      BM_elem_float_data_set(&bm->edata, e, CD_CREASE, (val) ? 1.0f : 0.0f);
-      break;
     case EDGE_MODE_TAG_BEVEL:
-      BM_elem_float_data_set(&bm->edata, e, CD_BWEIGHT, (val) ? 1.0f : 0.0f);
+      BM_ELEM_CD_SET_FLOAT(e, user_data->cd_offset, (val) ? 1.0f : 0.0f);
       break;
 #ifdef WITH_FREESTYLE
     case EDGE_MODE_TAG_FREESTYLE: {
@@ -351,8 +368,8 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
       }
       break;
     case EDGE_MODE_TAG_BEVEL:
-      if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
-        BM_data_layer_add(bm, &bm->edata, CD_BWEIGHT);
+      if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+        BM_data_layer_add_named(bm, &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
       }
       break;
 #ifdef WITH_FREESTYLE
@@ -379,7 +396,24 @@ static void mouse_mesh_shortest_path_edge(Scene *scene,
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
-  struct UserData user_data = {bm, obedit->data, op_params};
+  int cd_offset = -1;
+  switch (op_params->edge_mode) {
+    case EDGE_MODE_SELECT:
+    case EDGE_MODE_TAG_SEAM:
+    case EDGE_MODE_TAG_SHARP:
+#ifdef WITH_FREESTYLE
+    case EDGE_MODE_TAG_FREESTYLE:
+#endif
+      break;
+    case EDGE_MODE_TAG_CREASE:
+      cd_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+      break;
+    case EDGE_MODE_TAG_BEVEL:
+      cd_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+      break;
+  }
+
+  struct UserData user_data = {bm, obedit->data, cd_offset, op_params};
   LinkNode *path = NULL;
   bool is_path_ordered = false;
 
@@ -429,7 +463,8 @@ static void mouse_mesh_shortest_path_edge(Scene *scene,
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         edgetag_set_cb((BMEdge *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           e_dst_last = node->link;
@@ -514,7 +549,24 @@ static void mouse_mesh_shortest_path_face(Scene *UNUSED(scene),
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
 
-  struct UserData user_data = {bm, obedit->data, op_params};
+  int cd_offset = -1;
+  switch (op_params->edge_mode) {
+    case EDGE_MODE_SELECT:
+    case EDGE_MODE_TAG_SEAM:
+    case EDGE_MODE_TAG_SHARP:
+#ifdef WITH_FREESTYLE
+    case EDGE_MODE_TAG_FREESTYLE:
+#endif
+      break;
+    case EDGE_MODE_TAG_CREASE:
+      cd_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+      break;
+    case EDGE_MODE_TAG_BEVEL:
+      cd_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+      break;
+  }
+
+  struct UserData user_data = {bm, obedit->data, cd_offset, op_params};
   LinkNode *path = NULL;
   bool is_path_ordered = false;
 
@@ -564,7 +616,8 @@ static void mouse_mesh_shortest_path_face(Scene *UNUSED(scene),
     node = path;
     do {
       if ((is_path_ordered == false) ||
-          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth)) {
+          WM_operator_properties_checker_interval_test(&op_params->interval_params, depth))
+      {
         facetag_set_cb((BMFace *)node->link, !all_set, &user_data);
         if (is_path_ordered) {
           f_dst_last = node->link;
@@ -720,11 +773,13 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
   BMElem *ele_src, *ele_dst;
   if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
-      !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype))) {
+      !(ele_dst = edbm_elem_find_nearest(&vc, ele_src->head.htype)))
+  {
     /* special case, toggle edge tags even when we don't have a path */
     if (((em->selectmode & SCE_SELECT_EDGE) && (op_params.edge_mode != EDGE_MODE_SELECT)) &&
         /* check if we only have a destination edge */
-        ((ele_src == NULL) && (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE)))) {
+        ((ele_src == NULL) && (ele_dst = edbm_elem_find_nearest(&vc, BM_EDGE))))
+    {
       ele_src = ele_dst;
       track_active = false;
     }
@@ -767,7 +822,8 @@ static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMElem *ele_src, *ele_dst;
   if (!(ele_src = edbm_elem_active_elem_or_face_get(em->bm)) ||
-      !(ele_dst = EDBM_elem_from_index_any(em, index))) {
+      !(ele_dst = EDBM_elem_from_index_any(em, index)))
+  {
     return OPERATOR_CANCELLED;
   }
 

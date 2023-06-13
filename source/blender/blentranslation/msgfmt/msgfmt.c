@@ -1,10 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /*
- * Based on C++ version by Sergey Sharybin <sergey.vfx@gmail.com>.
- * Based on Python script msgfmt.py from Python source code tree, which was written by
- * Martin v. Löwis <loewis@informatik.hu-berlin.de>
+ * Based on C++ version by `Sergey Sharybin <sergey.vfx@gmail.com>`.
+ * Based on Python script `msgfmt.py` from Python source code tree, which was written by
+ * `Martin v. Löwis <loewis@informatik.hu-berlin.de>`.
  *
  * Generate binary message catalog from textual translation description.
  *

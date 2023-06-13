@@ -1,11 +1,14 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
  */
 
 #pragma once
+
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,6 +31,26 @@ struct View3D;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmOperator;
+
+typedef enum eV3D_OpMode {
+  V3D_OP_MODE_NONE = -1,
+  V3D_OP_MODE_ZOOM = 0,
+  V3D_OP_MODE_ROTATE,
+  V3D_OP_MODE_MOVE,
+  V3D_OP_MODE_VIEW_PAN,
+  V3D_OP_MODE_VIEW_ROLL,
+  V3D_OP_MODE_DOLLY,
+#ifdef WITH_INPUT_NDOF
+  V3D_OP_MODE_NDOF_ORBIT,
+  V3D_OP_MODE_NDOF_ORBIT_ZOOM,
+#endif
+} eV3D_OpMode;
+#ifndef WITH_INPUT_NDOF
+#  define V3D_OP_MODE_LEN V3D_OP_MODE_DOLLY + 1
+#else
+#  define V3D_OP_MODE_LEN V3D_OP_MODE_NDOF_ORBIT_ZOOM + 1
+#endif
 
 enum eV3D_OpPropFlag {
   V3D_OP_PROP_MOUSE_CO = (1 << 0),
@@ -36,16 +59,17 @@ enum eV3D_OpPropFlag {
   V3D_OP_PROP_USE_MOUSE_INIT = (1 << 3),
 };
 
-enum {
+typedef enum eV3D_OpEvent {
   VIEW_PASS = 0,
   VIEW_APPLY,
   VIEW_CONFIRM,
   /** Only supported by some viewport operators. */
   VIEW_CANCEL,
-};
+} eV3D_OpEvent;
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 enum {
+  VIEW_MODAL_CANCEL = 0,  /* used for all view operations */
   VIEW_MODAL_CONFIRM = 1, /* used for all view operations */
   VIEWROT_MODAL_AXIS_SNAP_ENABLE = 2,
   VIEWROT_MODAL_AXIS_SNAP_DISABLE = 3,
@@ -54,7 +78,8 @@ enum {
   VIEWROT_MODAL_SWITCH_ROTATE = 6,
 };
 
-enum eViewOpsFlag {
+typedef enum eViewOpsFlag {
+  VIEWOPS_FLAG_NONE = 0,
   /** When enabled, rotate around the selection. */
   VIEWOPS_FLAG_ORBIT_SELECT = (1 << 0),
   /** When enabled, use the depth under the cursor for navigation. */
@@ -67,7 +92,10 @@ enum eViewOpsFlag {
   VIEWOPS_FLAG_PERSP_ENSURE = (1 << 2),
   /** When set, ignore any options that depend on initial cursor location. */
   VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
-};
+
+  VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 4),
+} eViewOpsFlag;
+ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_ZOOM_TO_MOUSE);
 
 /** Generic View Operator Custom-Data */
 typedef struct ViewOpsData {
@@ -140,21 +168,48 @@ typedef struct ViewOpsData {
     float viewquat[4];
   } curr;
 
+  eV3D_OpMode nav_type;
+  eViewOpsFlag viewops_flag;
+
   float reverse;
   bool axis_snap; /* view rotate only */
 
   /** Use for orbit selection and auto-dist. */
   float dyn_ofs[3];
   bool use_dyn_ofs;
+
+  /**
+   * In orthographic views, a dynamic offset should not cause #RegionView3D::ofs to end up
+   * at a location that has no relation to the content where `ofs` originated or to `dyn_ofs`.
+   * Failing to do so can cause the orthographic views `ofs` to be far away from the content
+   * to the point it gets clipped out of the view.
+   * See #view3d_orbit_apply_dyn_ofs code-comments for an example, also see: #104385.
+   */
+  bool use_dyn_ofs_ortho_correction;
+
+  /** Used for navigation on non view3d operators. */
+  wmKeyMap *keymap;
+  bool is_modal_event;
 } ViewOpsData;
 
-/* view3d_navigate.c */
+/* view3d_navigate.cc */
+
+/**
+ * Navigation operators that share the `ViewOpsData` utility.
+ */
+const char *viewops_operator_idname_get(eV3D_OpMode nav_type);
 
 bool view3d_location_poll(struct bContext *C);
 bool view3d_rotation_poll(struct bContext *C);
 bool view3d_zoom_or_dolly_poll(struct bContext *C);
 
-enum eViewOpsFlag viewops_flag_from_prefs(void);
+int view3d_navigate_invoke_impl(bContext *C,
+                                wmOperator *op,
+                                const wmEvent *event,
+                                const eV3D_OpMode nav_type);
+int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event);
+void view3d_navigate_cancel_fn(struct bContext *C, struct wmOperator *op);
+
 void calctrackballvec(const struct rcti *rect, const int event_xy[2], float r_dir[3]);
 void viewmove_apply(ViewOpsData *vod, int x, int y);
 void viewmove_apply_reset(ViewOpsData *vod);
@@ -176,9 +231,10 @@ void viewops_data_free(struct bContext *C, ViewOpsData *vod);
 /**
  * Allocate, fill in context pointers and calculate the values for #ViewOpsData
  */
-ViewOpsData *viewops_data_create(struct bContext *C,
-                                 const struct wmEvent *event,
-                                 enum eViewOpsFlag viewops_flag);
+ViewOpsData *viewops_data_create(bContext *C,
+                                 const wmEvent *event,
+                                 const eV3D_OpMode nav_type,
+                                 const bool use_cursor_init);
 
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
@@ -202,6 +258,11 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 
 /* view3d_navigate_move.c */
 
+int viewmove_modal_impl(bContext *C,
+                        ViewOpsData *vod,
+                        const eV3D_OpEvent event_code,
+                        const int xy[2]);
+int viewmove_invoke_impl(ViewOpsData *vod, const wmEvent *event);
 void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_move(struct wmOperatorType *ot);
 
@@ -232,6 +293,11 @@ void VIEW3D_OT_view_roll(struct wmOperatorType *ot);
 
 /* view3d_navigate_rotate.c */
 
+int viewrotate_modal_impl(bContext *C,
+                          ViewOpsData *vod,
+                          const eV3D_OpEvent event_code,
+                          const int xy[2]);
+int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event);
 void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_rotate(struct wmOperatorType *ot);
 
@@ -309,6 +375,11 @@ void VIEW3D_OT_walk(struct wmOperatorType *ot);
 
 /* view3d_navigate_zoom.c */
 
+int viewzoom_modal_impl(bContext *C,
+                        ViewOpsData *vod,
+                        const eV3D_OpEvent event_code,
+                        const int xy[2]);
+int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr);
 void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
 void VIEW3D_OT_zoom(struct wmOperatorType *ot);
 

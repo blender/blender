@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -15,7 +16,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_unit.h"
 
 #include "DNA_mesh_types.h"
@@ -127,7 +128,7 @@ static void drw_text_cache_draw_ex(DRWTextStore *dt, ARegion *region)
 
   const uiStyle *style = UI_style_get();
 
-  BLF_size(font_id, style->widget.points * U.dpi_fac);
+  BLF_size(font_id, style->widget.points * UI_SCALE_FAC);
 
   BLI_memiter_iter_init(dt->cache_strings, &it);
   while ((vos = static_cast<ViewCachedString *>(BLI_memiter_iter_step(&it)))) {
@@ -166,7 +167,8 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
               vos->vec,
               vos->sco,
               V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN | V3D_PROJ_TEST_CLIP_NEAR) ==
-          V3D_PROJ_RET_OK) {
+          V3D_PROJ_RET_OK)
+      {
         tot++;
       }
       else {
@@ -249,7 +251,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) && (em->selectmode & SCE_SELECT_EDGE)) {
     edge_tex_count += 1;
   }
-  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * U.dpi_fac);
+  const short edge_tex_sep = short((edge_tex_count - 1) * 5.0f * UI_SCALE_FAC);
 
   /* Make the precision of the display value proportionate to the grid-size. */
 
@@ -270,7 +272,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   }
 
   if (v3d->overlay.edit_flag &
-      (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES)) {
+      (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES))
+  {
     BoundBox bb;
     const rcti rect = {0, region->winx, 0, region->winy};
 
@@ -290,7 +293,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
       /* draw selected edges, or edges next to selected verts while dragging */
       if (BM_elem_flag_test(eed, BM_ELEM_SELECT) ||
           (do_moving && (BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) ||
-                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT)))) {
+                         BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))))
+      {
         float v1_clip[3], v2_clip[3];
 
         if (vert_coords) {
@@ -322,7 +326,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                                                   false);
           }
           else {
-            numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
+            numstr_len = SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
           }
 
           DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, edge_tex_sep, txt_flag, col);
@@ -356,7 +360,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
                            BM_elem_flag_test(l_a->next->next->v, BM_ELEM_SELECT) ||
                            BM_elem_flag_test(l_a->prev->v, BM_ELEM_SELECT) ||
                            BM_elem_flag_test(l_b->next->next->v, BM_ELEM_SELECT) ||
-                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT)))) {
+                           BM_elem_flag_test(l_b->prev->v, BM_ELEM_SELECT))))
+        {
           float v1_clip[3], v2_clip[3];
 
           if (vert_coords) {
@@ -393,11 +398,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             angle = angle_normalized_v3v3(no_a, no_b);
 
-            numstr_len = BLI_snprintf_rlen(numstr,
-                                           sizeof(numstr),
-                                           "%.3f%s",
-                                           (is_rad) ? angle : RAD2DEGF(angle),
-                                           (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(
+                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
 
             DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
           }
@@ -465,7 +467,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
               false);
         }
         else {
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, area);
+          numstr_len = SNPRINTF_RLEN(numstr, conv_float, area);
         }
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
@@ -495,7 +497,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
         BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
           if (is_face_sel || (do_moving && (BM_elem_flag_test(loop->v, BM_ELEM_SELECT) ||
                                             BM_elem_flag_test(loop->prev->v, BM_ELEM_SELECT) ||
-                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT)))) {
+                                            BM_elem_flag_test(loop->next->v, BM_ELEM_SELECT))))
+          {
             float v2_local[3];
 
             /* lazy init center calc */
@@ -529,11 +532,8 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             float angle = angle_v3v3v3(v1, v2, v3);
 
-            numstr_len = BLI_snprintf_rlen(numstr,
-                                           sizeof(numstr),
-                                           "%.3f%s",
-                                           (is_rad) ? angle : RAD2DEGF(angle),
-                                           (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(
+                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
             interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
             mul_m4_v3(ob->object_to_world, fvec);
             DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);
@@ -568,7 +568,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
           mul_m4_v3(ob->object_to_world, v1);
 
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }
@@ -597,7 +597,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
             mid_v3_v3v3(vmid, v1_clip, v2_clip);
             mul_m4_v3(ob->object_to_world, vmid);
 
-            numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+            numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
             DRW_text_cache_add(
                 dt,
                 vmid,
@@ -631,7 +631,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
           mul_m4_v3(ob->object_to_world, v1);
 
-          numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
+          numstr_len = SNPRINTF_RLEN(numstr, "%d", i);
           DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
         }
       }

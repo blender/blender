@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -37,6 +39,7 @@
     .drotAngle = 0, \
     .quat = _DNA_DEFAULT_UNIT_QT, \
     .dquat = _DNA_DEFAULT_UNIT_QT, \
+    .flag = OB_FLAG_USE_SIMULATION_CACHE, \
     .protectflag = OB_LOCK_ROT4D, \
  \
     .dt = OB_TEXTURE, \

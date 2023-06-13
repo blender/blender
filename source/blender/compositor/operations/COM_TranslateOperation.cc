@@ -1,13 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_TranslateOperation.h"
 
 namespace blender::compositor {
 
-TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color)
-{
-}
+TranslateOperation::TranslateOperation() : TranslateOperation(DataType::Color) {}
 TranslateOperation::TranslateOperation(DataType data_type, ResizeMode resize_mode)
 {
   this->add_input_socket(data_type, resize_mode);

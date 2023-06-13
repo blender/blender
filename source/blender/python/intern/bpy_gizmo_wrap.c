@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -66,7 +68,8 @@ static bool bpy_gizmotype_target_property_def(wmGizmoType *gzt, PyObject *item)
                                         &params.id,
                                         pyrna_enum_value_parse_string,
                                         &params.type_enum,
-                                        &params.array_length)) {
+                                        &params.array_length))
+  {
     goto fail;
   }
 
@@ -117,7 +120,8 @@ static void gizmo_properties_init(wmGizmoType *gzt)
     if (bl_target_properties != NULL) {
       PyObject *bl_target_properties_fast;
       if (!(bl_target_properties_fast = PySequence_Fast(bl_target_properties,
-                                                        "bl_target_properties sequence"))) {
+                                                        "bl_target_properties sequence")))
+      {
         /* PySequence_Fast sets the error */
         PyErr_Print();
         PyErr_Clear();
@@ -193,7 +197,7 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 
   /* don't do translations here yet */
 #if 0
-  /* Use i18n context from rna_ext.srna if possible (py gizmogroups). */
+  /* Use i18n context from rna_ext.srna if possible (py gizmo-groups). */
   if (gzgt->rna_ext.srna) {
     RNA_def_struct_translation_context(gzgt->srna, RNA_struct_translation_context(gzgt->rna_ext.srna));
   }

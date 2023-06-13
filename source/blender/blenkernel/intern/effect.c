@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -107,7 +108,7 @@ PartDeflect *BKE_partdeflect_new(int type)
 
 /************************ PARTICLES ***************************/
 
-PartDeflect *BKE_partdeflect_copy(const struct PartDeflect *pd_src)
+PartDeflect *BKE_partdeflect_copy(const PartDeflect *pd_src)
 {
   if (pd_src == NULL) {
     return NULL;
@@ -132,7 +133,7 @@ void BKE_partdeflect_free(PartDeflect *pd)
 
 /******************** EFFECTOR RELATIONS ***********************/
 
-static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *eff)
+static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
 {
   float ctime = DEG_get_ctime(depsgraph);
   uint cfra = (uint)(ctime >= 0 ? ctime : -ctime);
@@ -147,7 +148,8 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
     Curve *cu = eff->ob->data;
     if (cu->flag & CU_PATH) {
       if (eff->ob->runtime.curve_cache == NULL ||
-          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL) {
+          eff->ob->runtime.curve_cache->anim_path_accum_length == NULL)
+      {
         BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, false);
       }
 
@@ -511,7 +513,8 @@ static float eff_calc_visibility(ListBase *colliders,
                                   &hit,
                                   eff_tri_ray_hit,
                                   NULL,
-                                  raycast_flag) != -1) {
+                                  raycast_flag) != -1)
+      {
         absorption = col->ob->pd->absorption;
 
         /* visibility is only between 0 and 1, calculated from 1-absorption */
@@ -532,7 +535,7 @@ static float eff_calc_visibility(ListBase *colliders,
 }
 
 /* Noise function for wind e.g. */
-static float wind_func(struct RNG *rng, float strength)
+static float wind_func(RNG *rng, float strength)
 {
   int random = (BLI_rng_get_int(rng) + 1) % 128; /* max 2357 */
   float force = BLI_rng_get_float(rng) + 1.0f;
@@ -660,12 +663,12 @@ bool closest_point_on_surface(SurfaceModifierData *surmd,
     }
 
     if (surface_vel) {
-      const MLoop *mloop = bvhtree->loop;
+      const int *corner_verts = bvhtree->corner_verts;
       const MLoopTri *lt = &bvhtree->looptri[nearest.index];
 
-      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[0]].v]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[1]].v]);
-      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[mloop[lt->tri[2]].v]);
+      copy_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[0]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[1]]]);
+      add_v3_v3(surface_vel, surmd->runtime.vert_velocities[corner_verts[lt->tri[2]]]);
 
       mul_v3_fl(surface_vel, (1.0f / 3.0f));
     }
@@ -703,7 +706,7 @@ bool get_effector_data(EffectorCache *eff,
     /* TODO: hair and points object support */
     const Mesh *me_eval = BKE_object_get_evaluated_mesh(eff->ob);
     const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-    const float(*vert_normals)[3] = BKE_mesh_vertex_normals_ensure(me_eval);
+    const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me_eval);
     if (me_eval != NULL) {
       copy_v3_v3(efd->loc, positions[*efd->index]);
       copy_v3_v3(efd->nor, vert_normals[*efd->index]);
@@ -1349,7 +1352,7 @@ void BKE_sim_debug_data_add_element(int type,
     zero_v3(elem->v2);
   }
   if (str) {
-    BLI_strncpy(elem->str, str, sizeof(elem->str));
+    STRNCPY(elem->str, str);
   }
   else {
     elem->str[0] = '\0';

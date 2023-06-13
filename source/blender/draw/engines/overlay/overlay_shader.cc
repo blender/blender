@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -10,6 +11,8 @@
 #include "GPU_shader.h"
 
 #include "UI_resources.h"
+
+#include "gpu_shader_create_info.hh"
 
 #include "overlay_private.hh"
 
@@ -40,6 +43,7 @@ struct OVERLAY_Shaders {
   GPUShader *edit_mesh_vert;
   GPUShader *edit_mesh_edge;
   GPUShader *edit_mesh_edge_flat;
+  GPUShader *edit_mesh_depth;
   GPUShader *edit_mesh_face;
   GPUShader *edit_mesh_facedot;
   GPUShader *edit_mesh_skin_root;
@@ -151,6 +155,18 @@ GPUShader *OVERLAY_shader_depth_only(void)
                                                        "overlay_depth_only");
   }
   return sh_data->depth_only;
+}
+
+GPUShader *OVERLAY_shader_edit_mesh_depth(void)
+{
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
+  if (!sh_data->edit_mesh_depth) {
+    sh_data->edit_mesh_depth = GPU_shader_create_from_info_name(
+        (draw_ctx->sh_cfg == GPU_SHADER_CFG_CLIPPED) ? "overlay_edit_mesh_depth_clipped" :
+                                                       "overlay_edit_mesh_depth");
+  }
+  return sh_data->edit_mesh_depth;
 }
 
 GPUShader *OVERLAY_shader_edit_mesh_vert(void)
@@ -918,7 +934,7 @@ GPUShader *OVERLAY_shader_viewer_attribute_curves(void)
   return sh_data->viewer_attribute_curves;
 }
 
-struct GPUShader *OVERLAY_shader_uniform_color(void)
+GPUShader *OVERLAY_shader_uniform_color(void)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
@@ -930,7 +946,7 @@ struct GPUShader *OVERLAY_shader_uniform_color(void)
   return sh_data->uniform_color;
 }
 
-struct GPUShader *OVERLAY_shader_uniform_color_pointcloud()
+GPUShader *OVERLAY_shader_uniform_color_pointcloud()
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   OVERLAY_Shaders *sh_data = &e_data.sh_data[draw_ctx->sh_cfg];
@@ -942,7 +958,7 @@ struct GPUShader *OVERLAY_shader_uniform_color_pointcloud()
   return sh_data->uniform_color_pointcloud;
 }
 
-struct GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac)
+GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (use_needle && !sh_data->volume_velocity_needle_sh) {
@@ -966,7 +982,7 @@ struct GPUShader *OVERLAY_shader_volume_velocity(bool use_needle, bool use_mac)
   return sh_data->volume_velocity_sh;
 }
 
-struct GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool color_range)
+GPUShader *OVERLAY_shader_volume_gridlines(bool color_with_flags, bool color_range)
 {
   OVERLAY_Shaders *sh_data = &e_data.sh_data[0];
   if (!sh_data->volume_gridlines_flags_sh && color_with_flags) {
@@ -1152,7 +1168,7 @@ OVERLAY_InstanceFormats *OVERLAY_shader_instance_formats_get(void)
                               {
                                   {"boneStart", DRW_ATTR_FLOAT, 3},
                                   {"boneEnd", DRW_ATTR_FLOAT, 3},
-                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO: uchar color. */
+                                  {"wireColor", DRW_ATTR_FLOAT, 4}, /* TODO: `uchar` color. */
                                   {"boneColor", DRW_ATTR_FLOAT, 4},
                                   {"headColor", DRW_ATTR_FLOAT, 4},
                                   {"tailColor", DRW_ATTR_FLOAT, 4},
@@ -1191,7 +1207,7 @@ void OVERLAY_shader_free(void)
       DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
     }
   }
-  struct GPUVertFormat **format = (struct GPUVertFormat **)&g_formats;
+  GPUVertFormat **format = (GPUVertFormat **)&g_formats;
   for (int i = 0; i < sizeof(g_formats) / sizeof(void *); i++, format++) {
     MEM_SAFE_FREE(*format);
   }

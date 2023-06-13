@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -11,14 +12,14 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "node_exec.h"
-#include "node_util.h"
+#include "node_exec.hh"
+#include "node_util.hh"
 
 static int node_exec_socket_use_stack(bNodeSocket *sock)
 {
@@ -56,7 +57,8 @@ static void node_init_input_index(bNodeSocket *sock, int *index)
 {
   /* Only consider existing link if from socket is valid! */
   if (sock->link && !(sock->link->flag & NODE_LINK_MUTED) && sock->link->fromsock &&
-      sock->link->fromsock->stack_index >= 0) {
+      sock->link->fromsock->stack_index >= 0)
+  {
     sock->stack_index = sock->link->fromsock->stack_index;
   }
   else {
@@ -108,10 +110,7 @@ static void node_init_output_index(bNodeSocket *sock, int *index)
 }
 
 /* basic preparation of socket stacks */
-static struct bNodeStack *setup_stack(bNodeStack *stack,
-                                      bNodeTree *ntree,
-                                      bNode *node,
-                                      bNodeSocket *sock)
+static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
   bNodeStack *ns = node_get_socket_stack(stack, sock);
   if (!ns) {

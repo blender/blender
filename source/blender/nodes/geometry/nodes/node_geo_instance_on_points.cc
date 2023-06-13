@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_collection_types.h"
 
@@ -19,30 +21,30 @@ namespace blender::nodes::node_geo_instance_on_points_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Points")).description(N_("Points to instance on"));
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).field_on({0}).hide_value();
-  b.add_input<decl::Geometry>(N_("Instance"))
-      .description(N_("Geometry that is instanced on the points"));
-  b.add_input<decl::Bool>(N_("Pick Instance"))
+  b.add_input<decl::Geometry>("Points").description("Points to instance on");
+  b.add_input<decl::Bool>("Selection").default_value(true).field_on({0}).hide_value();
+  b.add_input<decl::Geometry>("Instance").description("Geometry that is instanced on the points");
+  b.add_input<decl::Bool>("Pick Instance")
       .field_on({0})
-      .description(N_("Choose instances from the \"Instance\" input at each point instead of "
-                      "instancing the entire geometry"));
-  b.add_input<decl::Int>(N_("Instance Index"))
+      .description(
+          "Choose instances from the \"Instance\" input at each point instead of instancing the "
+          "entire geometry");
+  b.add_input<decl::Int>("Instance Index")
       .implicit_field_on(implicit_field_inputs::id_or_index, {0})
       .description(
-          N_("Index of the instance used for each point. This is only used when Pick Instances "
-             "is on. By default the point index is used"));
-  b.add_input<decl::Vector>(N_("Rotation"))
+          "Index of the instance used for each point. This is only used when Pick Instances "
+          "is on. By default the point index is used");
+  b.add_input<decl::Vector>("Rotation")
       .subtype(PROP_EULER)
       .field_on({0})
-      .description(N_("Rotation of the instances"));
-  b.add_input<decl::Vector>(N_("Scale"))
+      .description("Rotation of the instances");
+  b.add_input<decl::Vector>("Scale")
       .default_value({1.0f, 1.0f, 1.0f})
       .subtype(PROP_XYZ)
       .field_on({0})
-      .description(N_("Scale of the instances"));
+      .description("Scale of the instances");
 
-  b.add_output<decl::Geometry>(N_("Instances")).propagate_all();
+  b.add_output<decl::Geometry>("Instances").propagate_all();
 }
 
 static void add_instances_from_component(
@@ -60,7 +62,7 @@ static void add_instances_from_component(
   VArray<float3> rotations;
   VArray<float3> scales;
 
-  bke::GeometryFieldContext field_context{src_component, domain};
+  const bke::GeometryFieldContext field_context{src_component, domain};
   const Field<bool> selection_field = params.get_input<Field<bool>>("Selection");
   fn::FieldEvaluator evaluator{field_context, domain_num};
   evaluator.set_selection(selection_field);
@@ -76,6 +78,7 @@ static void add_instances_from_component(
   if (selection.is_empty()) {
     return;
   }
+  const AttributeAccessor src_attributes = *src_component.attributes();
 
   /* The initial size of the component might be non-zero when this function is called for multiple
    * component types. */
@@ -86,8 +89,7 @@ static void add_instances_from_component(
   MutableSpan<int> dst_handles = dst_component.reference_handles().slice(start_len, select_len);
   MutableSpan<float4x4> dst_transforms = dst_component.transforms().slice(start_len, select_len);
 
-  VArray<float3> positions = src_component.attributes()->lookup_or_default<float3>(
-      "position", domain, {0, 0, 0});
+  const VArraySpan positions = *src_attributes.lookup<float3>("position");
 
   const bke::Instances *src_instances = instance.get_instances_for_read();
 
@@ -95,7 +97,8 @@ static void add_instances_from_component(
   Array<int> handle_mapping;
   /* Only fill #handle_mapping when it may be used below. */
   if (src_instances != nullptr &&
-      (!pick_instance.is_single() || pick_instance.get_internal_single())) {
+      (!pick_instance.is_single() || pick_instance.get_internal_single()))
+  {
     Span<bke::InstanceReference> src_references = src_instances->references();
     handle_mapping.reinitialize(src_references.size());
     for (const int src_instance_handle : src_references.index_range()) {
@@ -158,24 +161,28 @@ static void add_instances_from_component(
     }
   }
 
-  bke::CustomDataAttributes &instance_attributes = dst_component.custom_data_attributes();
+  bke::MutableAttributeAccessor dst_attributes = dst_component.attributes_for_write();
   for (const auto item : attributes_to_propagate.items()) {
-    const AttributeIDRef &attribute_id = item.key;
-    const AttributeKind attribute_kind = item.value;
-
-    const GVArray src_attribute = src_component.attributes()->lookup_or_default(
-        attribute_id, ATTR_DOMAIN_POINT, attribute_kind.data_type);
-    BLI_assert(src_attribute);
-    std::optional<GMutableSpan> dst_attribute_opt = instance_attributes.get_for_write(
-        attribute_id);
-    if (!dst_attribute_opt) {
-      if (!instance_attributes.create(attribute_id, attribute_kind.data_type)) {
-        continue;
-      }
-      dst_attribute_opt = instance_attributes.get_for_write(attribute_id);
+    const AttributeIDRef &id = item.key;
+    const bke::GAttributeReader src = src_attributes.lookup(id, ATTR_DOMAIN_POINT);
+    if (!src) {
+      /* Domain interpolation can fail if the source domain is empty. */
+      continue;
     }
-    BLI_assert(dst_attribute_opt);
-    array_utils::gather(src_attribute, selection, dst_attribute_opt->slice(start_len, select_len));
+
+    const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.varray.type());
+    if (src.varray.size() == dst_component.instances_num() && src.sharing_info &&
+        src.varray.is_span()) {
+      const bke::AttributeInitShared init(src.varray.get_internal_span().data(),
+                                          *src.sharing_info);
+      dst_attributes.add(id, ATTR_DOMAIN_INSTANCE, type, init);
+    }
+    else {
+      GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+          id, ATTR_DOMAIN_INSTANCE, type);
+      array_utils::gather(src.varray, selection, dst.span.slice(start_len, select_len));
+      dst.finish();
+    }
   }
 }
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -142,8 +143,15 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_seams,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
+
+/**
+ * Return the #UvElement associated with a given #BMLoop, or NULL if no association exists.
+ *
+ * \param element_map: The #UvElementMap to look in.
+ * \param l: The loop to search for.
+ * \return The #UvElement associated with #l, or NULL if not found. (e.g. the vertex is hidden.)
+ */
 struct UvElement *BM_uv_element_get(const struct UvElementMap *element_map,
-                                    const struct BMFace *efa,
                                     const struct BMLoop *l);
 struct UvElement *BM_uv_element_get_head(struct UvElementMap *element_map,
                                          struct UvElement *child);
@@ -419,6 +427,14 @@ void paintface_select_linked(struct bContext *C,
                              struct Object *ob,
                              const int mval[2],
                              bool select);
+
+void paintface_select_loop(struct bContext *C, struct Object *ob, const int mval[2], bool select);
+/**
+ * Grow the selection of faces.
+ * \param face_step: If true will also select faces that only touch on the corner.
+ */
+void paintface_select_more(struct Mesh *mesh, bool face_step);
+void paintface_select_less(struct Mesh *mesh, bool face_step);
 bool paintface_minmax(struct Object *ob, float r_min[3], float r_max[3]);
 
 void paintface_hide(struct bContext *C, struct Object *ob, bool unselected);
@@ -444,6 +460,8 @@ void paintvert_select_linked_pick(struct bContext *C,
                                   struct Object *ob,
                                   const int region_coordinates[2],
                                   bool select);
+void paintvert_select_more(struct Mesh *mesh, bool face_step);
+void paintvert_select_less(struct Mesh *mesh, bool face_step);
 void paintvert_hide(struct bContext *C, struct Object *ob, bool unselected);
 void paintvert_reveal(struct bContext *C, struct Object *ob, bool select);
 
@@ -570,9 +588,6 @@ bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-bool ED_mesh_uv_remove_index(struct Mesh *me, int n);
-bool ED_mesh_uv_remove_active(struct Mesh *me);
-bool ED_mesh_uv_remove_named(struct Mesh *me, const char *name);
 
 void ED_mesh_uv_loop_reset(struct bContext *C, struct Mesh *me);
 /**
@@ -582,10 +597,6 @@ void ED_mesh_uv_loop_reset_ex(struct Mesh *me, int layernum);
 bool ED_mesh_color_ensure(struct Mesh *me, const char *name);
 int ED_mesh_color_add(
     struct Mesh *me, const char *name, bool active_set, bool do_init, struct ReportList *reports);
-int ED_mesh_sculpt_color_add(struct Mesh *me,
-                             const char *name,
-                             bool do_init,
-                             struct ReportList *reports);
 
 void ED_mesh_report_mirror(struct wmOperator *op, int totmirr, int totfail);
 void ED_mesh_report_mirror_ex(struct wmOperator *op, int totmirr, int totfail, char selectmode);

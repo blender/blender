@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -16,7 +18,7 @@ namespace blender::geometry {
  * between the start and end points.
  */
 bke::CurvesGeometry trim_curves(const bke::CurvesGeometry &src_curves,
-                                IndexMask selection,
+                                const IndexMask &selection,
                                 const VArray<float> &starts,
                                 const VArray<float> &ends,
                                 GeometryNodeCurveSampleMode mode,

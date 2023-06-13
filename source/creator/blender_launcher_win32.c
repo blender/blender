@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <Windows.h>
 #include <strsafe.h>
@@ -55,6 +57,11 @@ BOOL LaunchedFromSteam()
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine, int nCmdShow)
 {
+  /* Silence unreferenced formal parameter warning. */
+  (void)hInstance;
+  (void)hPrevInstance;
+  (void)nCmdShow;
+
   STARTUPINFO siStartInfo = {0};
   PROCESS_INFORMATION procInfo;
   wchar_t path[MAX_PATH];
@@ -105,7 +112,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                        STRSAFE_NULL_ON_FAILURE,
                        L"\"%s\" %s",
                        path,
-                       pCmdLine) != S_OK) {
+                       pCmdLine) != S_OK)
+  {
     free(buffer);
     return -1;
   }

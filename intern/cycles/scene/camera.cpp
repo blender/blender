@@ -36,7 +36,7 @@ static float shutter_curve_eval(float x, array<float> &shutter_curve)
   int index = (int)x;
   float frac = x - index;
   if (index < shutter_curve.size() - 1) {
-    return lerp(shutter_curve[index], shutter_curve[index + 1], frac);
+    return mix(shutter_curve[index], shutter_curve[index + 1], frac);
   }
   else {
     return shutter_curve[shutter_curve.size() - 1];
@@ -188,9 +188,7 @@ Camera::Camera() : Node(get_node_type())
   memset((void *)&kernel_camera, 0, sizeof(kernel_camera));
 }
 
-Camera::~Camera()
-{
-}
+Camera::~Camera() {}
 
 void Camera::compute_auto_viewplane()
 {
@@ -754,19 +752,15 @@ float Camera::world_to_raster_size(float3 P)
       /* No differentials, just use from directly ahead. */
       camera_sample_panorama(&kernel_camera,
                              kernel_camera_motion.data(),
-                             0.5f * full_width,
-                             0.5f * full_height,
-                             0.0f,
-                             0.0f,
+                             0.5f * make_float2(full_width, full_height),
+                             zero_float2(),
                              &ray);
     }
 #else
     camera_sample_panorama(&kernel_camera,
                            kernel_camera_motion.data(),
-                           0.5f * full_width,
-                           0.5f * full_height,
-                           0.0f,
-                           0.0f,
+                           0.5f * make_float2(full_width, full_height),
+                           zero_float2(),
                            &ray);
 #endif
 

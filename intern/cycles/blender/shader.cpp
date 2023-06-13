@@ -523,27 +523,6 @@ static ShaderNode *add_node(Scene *scene,
   else if (b_node.is_a(&RNA_ShaderNodeHoldout)) {
     node = graph->create_node<HoldoutNode>();
   }
-  else if (b_node.is_a(&RNA_ShaderNodeBsdfAnisotropic)) {
-    BL::ShaderNodeBsdfAnisotropic b_aniso_node(b_node);
-    AnisotropicBsdfNode *aniso = graph->create_node<AnisotropicBsdfNode>();
-
-    switch (b_aniso_node.distribution()) {
-      case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
-        aniso->set_distribution(CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
-        break;
-      case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
-        aniso->set_distribution(CLOSURE_BSDF_MICROFACET_GGX_ID);
-        break;
-      case BL::ShaderNodeBsdfAnisotropic::distribution_MULTI_GGX:
-        aniso->set_distribution(CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
-        break;
-      case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
-        aniso->set_distribution(CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
-        break;
-    }
-
-    node = aniso;
-  }
   else if (b_node.is_a(&RNA_ShaderNodeBsdfDiffuse)) {
     node = graph->create_node<DiffuseBsdfNode>();
   }
@@ -566,24 +545,21 @@ static ShaderNode *add_node(Scene *scene,
 
     node = subsurface;
   }
-  else if (b_node.is_a(&RNA_ShaderNodeBsdfGlossy)) {
-    BL::ShaderNodeBsdfGlossy b_glossy_node(b_node);
+  else if (b_node.is_a(&RNA_ShaderNodeBsdfAnisotropic)) {
+    BL::ShaderNodeBsdfAnisotropic b_glossy_node(b_node);
     GlossyBsdfNode *glossy = graph->create_node<GlossyBsdfNode>();
 
     switch (b_glossy_node.distribution()) {
-      case BL::ShaderNodeBsdfGlossy::distribution_SHARP:
-        glossy->set_distribution(CLOSURE_BSDF_REFLECTION_ID);
-        break;
-      case BL::ShaderNodeBsdfGlossy::distribution_BECKMANN:
+      case BL::ShaderNodeBsdfAnisotropic::distribution_BECKMANN:
         glossy->set_distribution(CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
         break;
-      case BL::ShaderNodeBsdfGlossy::distribution_GGX:
+      case BL::ShaderNodeBsdfAnisotropic::distribution_GGX:
         glossy->set_distribution(CLOSURE_BSDF_MICROFACET_GGX_ID);
         break;
-      case BL::ShaderNodeBsdfGlossy::distribution_ASHIKHMIN_SHIRLEY:
+      case BL::ShaderNodeBsdfAnisotropic::distribution_ASHIKHMIN_SHIRLEY:
         glossy->set_distribution(CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
         break;
-      case BL::ShaderNodeBsdfGlossy::distribution_MULTI_GGX:
+      case BL::ShaderNodeBsdfAnisotropic::distribution_MULTI_GGX:
         glossy->set_distribution(CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
         break;
     }
@@ -593,9 +569,6 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeBsdfGlass b_glass_node(b_node);
     GlassBsdfNode *glass = graph->create_node<GlassBsdfNode>();
     switch (b_glass_node.distribution()) {
-      case BL::ShaderNodeBsdfGlass::distribution_SHARP:
-        glass->set_distribution(CLOSURE_BSDF_SHARP_GLASS_ID);
-        break;
       case BL::ShaderNodeBsdfGlass::distribution_BECKMANN:
         glass->set_distribution(CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
         break;
@@ -612,9 +585,6 @@ static ShaderNode *add_node(Scene *scene,
     BL::ShaderNodeBsdfRefraction b_refraction_node(b_node);
     RefractionBsdfNode *refraction = graph->create_node<RefractionBsdfNode>();
     switch (b_refraction_node.distribution()) {
-      case BL::ShaderNodeBsdfRefraction::distribution_SHARP:
-        refraction->set_distribution(CLOSURE_BSDF_REFRACTION_ID);
-        break;
       case BL::ShaderNodeBsdfRefraction::distribution_BECKMANN:
         refraction->set_distribution(CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID);
         break;
@@ -903,6 +873,7 @@ static ShaderNode *add_node(Scene *scene,
     voronoi->set_dimensions(b_voronoi_node.voronoi_dimensions());
     voronoi->set_feature((NodeVoronoiFeature)b_voronoi_node.feature());
     voronoi->set_metric((NodeVoronoiDistanceMetric)b_voronoi_node.distance());
+    voronoi->set_normalize(b_voronoi_node.normalize());
     BL::TexMapping b_texture_mapping(b_voronoi_node.texture_mapping());
     get_tex_mapping(voronoi, b_texture_mapping);
     node = voronoi;
@@ -981,22 +952,8 @@ static ShaderNode *add_node(Scene *scene,
     sky->set_sun_disc(b_sky_node.sun_disc());
     sky->set_sun_size(b_sky_node.sun_size());
     sky->set_sun_intensity(b_sky_node.sun_intensity());
-    /* Patch sun position to be able to animate daylight cycle while keeping the shading code
-     * simple. */
-    float sun_rotation = b_sky_node.sun_rotation();
-    /* Wrap into [-2PI..2PI] range. */
-    float sun_elevation = fmodf(b_sky_node.sun_elevation(), M_2PI_F);
-    /* Wrap into [-PI..PI] range. */
-    if (fabsf(sun_elevation) >= M_PI_F) {
-      sun_elevation -= copysignf(2.0f, sun_elevation) * M_PI_F;
-    }
-    /* Wrap into [-PI/2..PI/2] range while keeping the same absolute position. */
-    if (sun_elevation >= M_PI_2_F || sun_elevation <= -M_PI_2_F) {
-      sun_elevation = copysignf(M_PI_F, sun_elevation) - sun_elevation;
-      sun_rotation += M_PI_F;
-    }
-    sky->set_sun_elevation(sun_elevation);
-    sky->set_sun_rotation(sun_rotation);
+    sky->set_sun_elevation(b_sky_node.sun_elevation());
+    sky->set_sun_rotation(b_sky_node.sun_rotation());
     sky->set_altitude(b_sky_node.altitude());
     sky->set_air_density(b_sky_node.air_density());
     sky->set_dust_density(b_sky_node.dust_density());
@@ -1260,7 +1217,8 @@ static void add_nodes(Scene *scene,
       }
     }
     else if (b_node.is_a(&RNA_ShaderNodeGroup) || b_node.is_a(&RNA_NodeCustomGroup) ||
-             b_node.is_a(&RNA_ShaderNodeCustomGroup)) {
+             b_node.is_a(&RNA_ShaderNodeCustomGroup))
+    {
 
       BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
       if (b_node.is_a(&RNA_ShaderNodeGroup))
@@ -1396,7 +1354,8 @@ static void add_nodes(Scene *scene,
     /* Ignore invalid links to avoid unwanted cycles created in graph.
      * Also ignore links with unavailable sockets. */
     if (!(b_link.is_valid() && b_link.from_socket().enabled() && b_link.to_socket().enabled()) ||
-        b_link.is_muted()) {
+        b_link.is_muted())
+    {
       continue;
     }
     /* get blender link data */
@@ -1545,7 +1504,8 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
     /* test if we need to sync */
     if (shader_map.add_or_update(&shader, b_mat) || update_all ||
-        scene_attr_needs_recalc(shader, b_depsgraph)) {
+        scene_attr_needs_recalc(shader, b_depsgraph))
+    {
       ShaderGraph *graph = new ShaderGraph();
 
       shader->name = b_mat.name().c_str();
@@ -1628,12 +1588,14 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
   if (world_recalc || update_all || b_world.ptr.data != world_map ||
       viewport_parameters.shader_modified(new_viewport_parameters) ||
-      scene_attr_needs_recalc(shader, b_depsgraph)) {
+      scene_attr_needs_recalc(shader, b_depsgraph))
+  {
     ShaderGraph *graph = new ShaderGraph();
 
     /* create nodes */
     if (new_viewport_parameters.use_scene_world && b_world && b_world.use_nodes() &&
-        b_world.node_tree()) {
+        b_world.node_tree())
+    {
       BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
       add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
@@ -1795,7 +1757,8 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
 
     /* test if we need to sync */
     if (shader_map.add_or_update(&shader, b_light) || update_all ||
-        scene_attr_needs_recalc(shader, b_depsgraph)) {
+        scene_attr_needs_recalc(shader, b_depsgraph))
+    {
       ShaderGraph *graph = new ShaderGraph();
 
       /* create nodes */

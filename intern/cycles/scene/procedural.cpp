@@ -16,22 +16,16 @@ NODE_ABSTRACT_DEFINE(Procedural)
   return type;
 }
 
-Procedural::Procedural(const NodeType *type) : Node(type)
-{
-}
+Procedural::Procedural(const NodeType *type) : Node(type) {}
 
-Procedural::~Procedural()
-{
-}
+Procedural::~Procedural() {}
 
 ProceduralManager::ProceduralManager()
 {
   need_update_ = true;
 }
 
-ProceduralManager::~ProceduralManager()
-{
-}
+ProceduralManager::~ProceduralManager() {}
 
 void ProceduralManager::update(Scene *scene, Progress &progress)
 {

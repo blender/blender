@@ -7,13 +7,9 @@
 
 #include "IK_QJacobian.h"
 
-IK_QJacobian::IK_QJacobian() : m_sdls(true), m_min_damp(1.0)
-{
-}
+IK_QJacobian::IK_QJacobian() : m_sdls(true), m_min_damp(1.0) {}
 
-IK_QJacobian::~IK_QJacobian()
-{
-}
+IK_QJacobian::~IK_QJacobian() {}
 
 void IK_QJacobian::ArmMatrices(int dof, int task_size)
 {

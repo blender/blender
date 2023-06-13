@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -11,6 +13,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_object_enums.h"
+#include "DNA_userdef_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -234,7 +237,7 @@ bool BKE_object_obdata_is_libdata(const struct Object *ob);
  */
 struct Object *BKE_object_duplicate(struct Main *bmain,
                                     struct Object *ob,
-                                    uint dupflag,
+                                    eDupli_ID_Flags dupflag,
                                     uint duplicate_options);
 
 /**
@@ -454,6 +457,9 @@ void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *
 void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Scene *scene,
                                struct Object *ob);
+
+void BKE_object_eval_light_linking(struct Depsgraph *depsgraph, struct Object *object);
+
 /**
  * Assign #Object.data after modifier stack evaluation.
  */

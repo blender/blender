@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -37,9 +39,7 @@ class BlenderStrokeRenderer : public StrokeRenderer {
   Object *NewMesh() const;
 
   struct StrokeGroup {
-    explicit StrokeGroup() : totvert(0), totedge(0), totpoly(0), totloop(0)
-    {
-    }
+    explicit StrokeGroup() : totvert(0), totedge(0), totpoly(0), totloop(0) {}
     vector<StrokeRep *> strokes;
     blender::Map<Material *, int> materials;
     int totvert;

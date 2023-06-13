@@ -312,7 +312,8 @@ float dof_coc_max_slight_focus(float coc1, float coc2)
   /* Do not consider values below 0.5 for expansion as they are "encoded".
    * See setup pass shader for more infos. */
   if ((coc1 == DOF_TILE_DEFOCUS && coc2 == DOF_TILE_FOCUS) ||
-      (coc1 == DOF_TILE_FOCUS && coc2 == DOF_TILE_DEFOCUS)) {
+      (coc1 == DOF_TILE_FOCUS && coc2 == DOF_TILE_DEFOCUS))
+  {
     /* Tile where completely out of focus and in focus are both present.
      * Consider as very slightly out of focus. */
     return DOF_TILE_MIXED;

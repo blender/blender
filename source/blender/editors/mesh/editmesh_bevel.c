@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -132,7 +134,7 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
 
   char offset_str[NUM_STR_REP_LEN];
   if (RNA_enum_get(op->ptr, "offset_type") == BEVEL_AMT_PERCENT) {
-    BLI_snprintf(offset_str, NUM_STR_REP_LEN, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
+    SNPRINTF(offset_str, "%.1f%%", RNA_float_get(op->ptr, "offset_pct"));
   }
   else {
     double offset_val = (double)RNA_float_get(op->ptr, "offset");
@@ -166,51 +168,50 @@ static void edbm_bevel_update_status_text(bContext *C, wmOperator *op)
   RNA_property_enum_name_gettexted(
       C, op->ptr, prop, RNA_property_enum_get(op->ptr, prop), &affect_str);
 
-  BLI_snprintf(status_text,
-               sizeof(status_text),
-               TIP_("%s: Confirm, "
-                    "%s: Cancel, "
-                    "%s: Width Type (%s), "
-                    "%s: Width (%s), "
-                    "%s: Segments (%d), "
-                    "%s: Profile (%.3f), "
-                    "%s: Clamp Overlap (%s), "
-                    "%s: Affect (%s), "
-                    "%s: Outer Miter (%s), "
-                    "%s: Inner Miter (%s), "
-                    "%s: Harden Normals (%s), "
-                    "%s: Mark Seam (%s), "
-                    "%s: Mark Sharp (%s), "
-                    "%s: Profile Type (%s), "
-                    "%s: Intersection (%s)"),
-               WM_MODALKEY(BEV_MODAL_CONFIRM),
-               WM_MODALKEY(BEV_MODAL_CANCEL),
-               WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),
-               mode_str,
-               WM_MODALKEY(BEV_MODAL_VALUE_OFFSET),
-               offset_str,
-               WM_MODALKEY(BEV_MODAL_VALUE_SEGMENTS),
-               RNA_int_get(op->ptr, "segments"),
-               WM_MODALKEY(BEV_MODAL_VALUE_PROFILE),
-               RNA_float_get(op->ptr, "profile"),
-               WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
-               WM_MODALKEY(BEV_MODAL_AFFECT_CHANGE),
-               affect_str,
-               WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
-               omiter_str,
-               WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
-               imiter_str,
-               WM_MODALKEY(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
-               WM_MODALKEY(BEV_MODAL_MARK_SEAM_TOGGLE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
-               WM_MODALKEY(BEV_MODAL_MARK_SHARP_TOGGLE),
-               WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp")),
-               WM_MODALKEY(BEV_MODAL_PROFILE_TYPE_CHANGE),
-               profile_type_str,
-               WM_MODALKEY(BEV_MODAL_VERTEX_MESH_CHANGE),
-               vmesh_str);
+  SNPRINTF(status_text,
+           TIP_("%s: Confirm, "
+                "%s: Cancel, "
+                "%s: Width Type (%s), "
+                "%s: Width (%s), "
+                "%s: Segments (%d), "
+                "%s: Profile (%.3f), "
+                "%s: Clamp Overlap (%s), "
+                "%s: Affect (%s), "
+                "%s: Outer Miter (%s), "
+                "%s: Inner Miter (%s), "
+                "%s: Harden Normals (%s), "
+                "%s: Mark Seam (%s), "
+                "%s: Mark Sharp (%s), "
+                "%s: Profile Type (%s), "
+                "%s: Intersection (%s)"),
+           WM_MODALKEY(BEV_MODAL_CONFIRM),
+           WM_MODALKEY(BEV_MODAL_CANCEL),
+           WM_MODALKEY(BEV_MODAL_OFFSET_MODE_CHANGE),
+           mode_str,
+           WM_MODALKEY(BEV_MODAL_VALUE_OFFSET),
+           offset_str,
+           WM_MODALKEY(BEV_MODAL_VALUE_SEGMENTS),
+           RNA_int_get(op->ptr, "segments"),
+           WM_MODALKEY(BEV_MODAL_VALUE_PROFILE),
+           RNA_float_get(op->ptr, "profile"),
+           WM_MODALKEY(BEV_MODAL_CLAMP_OVERLAP_TOGGLE),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "clamp_overlap")),
+           WM_MODALKEY(BEV_MODAL_AFFECT_CHANGE),
+           affect_str,
+           WM_MODALKEY(BEV_MODAL_OUTER_MITER_CHANGE),
+           omiter_str,
+           WM_MODALKEY(BEV_MODAL_INNER_MITER_CHANGE),
+           imiter_str,
+           WM_MODALKEY(BEV_MODAL_HARDEN_NORMALS_TOGGLE),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "harden_normals")),
+           WM_MODALKEY(BEV_MODAL_MARK_SEAM_TOGGLE),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_seam")),
+           WM_MODALKEY(BEV_MODAL_MARK_SHARP_TOGGLE),
+           WM_bool_as_string(RNA_boolean_get(op->ptr, "mark_sharp")),
+           WM_MODALKEY(BEV_MODAL_PROFILE_TYPE_CHANGE),
+           profile_type_str,
+           WM_MODALKEY(BEV_MODAL_VERTEX_MESH_CHANGE),
+           vmesh_str);
 
 #undef WM_MODALKEY
 
@@ -671,13 +672,15 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* When activated from toolbar, need to convert left-mouse release to confirm. */
   if (ELEM(etype, LEFTMOUSE, opdata->launch_event) && (eval == KM_RELEASE) &&
-      RNA_boolean_get(op->ptr, "release_confirm")) {
+      RNA_boolean_get(op->ptr, "release_confirm"))
+  {
     etype = EVT_MODAL_MAP;
     eval = BEV_MODAL_CONFIRM;
   }
   /* Modal numinput active, try to handle numeric inputs first... */
   if (etype != EVT_MODAL_MAP && eval == KM_PRESS && has_numinput &&
-      handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+      handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+  {
     edbm_bevel_numinput_set_value(op);
     edbm_bevel_calc(op);
     edbm_bevel_update_status_text(C, op);
@@ -882,7 +885,8 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Modal numinput inactive, try to handle numeric inputs last... */
   if (!handled && eval == KM_PRESS &&
-      handleNumInput(C, &opdata->num_input[opdata->value_mode], event)) {
+      handleNumInput(C, &opdata->num_input[opdata->value_mode], event))
+  {
     edbm_bevel_numinput_set_value(op);
     edbm_bevel_calc(op);
     edbm_bevel_update_status_text(C, op);

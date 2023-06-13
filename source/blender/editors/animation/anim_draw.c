@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -8,7 +9,7 @@
 #include "BLI_sys_types.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -177,8 +178,8 @@ void ANIM_draw_action_framerange(
 
   immUniform4f("color1", color[0], color[1], color[2], color[3]);
   immUniform4f("color2", 0.0f, 0.0f, 0.0f, 0.0f);
-  immUniform1i("size1", 2 * U.dpi_fac);
-  immUniform1i("size2", 4 * U.dpi_fac);
+  immUniform1i("size1", 2 * UI_SCALE_FAC);
+  immUniform1i("size2", 4 * UI_SCALE_FAC);
 
   if (sfra < efra) {
     immRectf(pos, v2d->cur.xmin, ymin, sfra, ymax);
@@ -233,7 +234,9 @@ AnimData *ANIM_nla_mapping_get(bAnimContext *ac, bAnimListElem *ale)
            ANIMCONT_DOPESHEET,
            ANIMCONT_FCURVES,
            ANIMCONT_NLA,
-           ANIMCONT_CHANNEL)) {
+           ANIMCONT_CHANNEL,
+           ANIMCONT_TIMELINE))
+  {
     /* handling depends on the type of animation-context we've got */
     if (ale) {
       /* NLA Control Curves occur on NLA strips,
@@ -343,12 +346,20 @@ static void fcurve_scene_coord_range_get(Scene *scene,
     int end = fcu->totvert;
 
     if (use_preview_only) {
-      /* Preview frame ranges need to be converted to bezt array indices. */
-      bool replace = false;
-      start = BKE_fcurve_bezt_binarysearch_index(
-          fcu->bezt, scene->r.psfra, fcu->totvert, &replace);
+      if (fcu->bezt) {
+        /* Preview frame ranges need to be converted to bezt array indices. */
+        bool replace = false;
+        start = BKE_fcurve_bezt_binarysearch_index(
+            fcu->bezt, scene->r.psfra, fcu->totvert, &replace);
 
-      end = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, scene->r.pefra, fcu->totvert, &replace);
+        end = BKE_fcurve_bezt_binarysearch_index(
+            fcu->bezt, scene->r.pefra + 1, fcu->totvert, &replace);
+      }
+      else if (fcu->fpt) {
+        const int unclamped_start = (int)(scene->r.psfra - fcu->fpt[0].vec[0]);
+        start = max_ii(unclamped_start, 0);
+        end = min_ii(unclamped_start + (scene->r.pefra - scene->r.psfra) + 1, fcu->totvert);
+      }
     }
 
     if (fcu->bezt) {
@@ -549,7 +560,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   return 1.0f;
 }
 
-static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_prevfra)
+static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra)
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -646,7 +657,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   return false;
 }
 
-void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
+void ANIM_center_frame(bContext *C, int smooth_viewtx)
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);

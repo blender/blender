@@ -56,6 +56,8 @@ void MTLShaderInterface::init()
   total_attributes_ = 0;
   total_uniform_blocks_ = 0;
   max_uniformbuf_index_ = 0;
+  total_storage_blocks_ = 0;
+  max_storagebuf_index_ = 0;
   total_uniforms_ = 0;
   total_textures_ = 0;
   max_texture_index_ = -1;
@@ -109,6 +111,7 @@ void MTLShaderInterface::add_input_attribute(uint32_t name_offset,
 
 uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
                                                uint32_t buffer_index,
+                                               uint32_t location,
                                                uint32_t size,
                                                ShaderStage stage_mask)
 {
@@ -117,14 +120,41 @@ uint32_t MTLShaderInterface::add_uniform_block(uint32_t name_offset,
     size += 16 - (size % 16);
   }
 
-  MTLShaderUniformBlock &uni_block = ubos_[total_uniform_blocks_];
+  BLI_assert(buffer_index < MTL_MAX_BUFFER_BINDINGS);
+
+  MTLShaderBufferBlock &uni_block = ubos_[total_uniform_blocks_];
   uni_block.name_offset = name_offset;
   uni_block.buffer_index = buffer_index;
+  uni_block.location = location;
   uni_block.size = size;
   uni_block.current_offset = 0;
   uni_block.stage_mask = ShaderStage::ANY;
   max_uniformbuf_index_ = max_ii(max_uniformbuf_index_, buffer_index);
   return (total_uniform_blocks_++);
+}
+
+uint32_t MTLShaderInterface::add_storage_block(uint32_t name_offset,
+                                               uint32_t buffer_index,
+                                               uint32_t location,
+                                               uint32_t size,
+                                               ShaderStage stage_mask)
+{
+  /* Ensure Size is 16 byte aligned to guarantees alignment rules are satisfied. */
+  if ((size % 16) != 0) {
+    size += 16 - (size % 16);
+  }
+
+  BLI_assert(buffer_index < MTL_MAX_BUFFER_BINDINGS);
+
+  MTLShaderBufferBlock &ssbo_block = ssbos_[total_storage_blocks_];
+  ssbo_block.name_offset = name_offset;
+  ssbo_block.buffer_index = buffer_index;
+  ssbo_block.location = location;
+  ssbo_block.size = size;
+  ssbo_block.current_offset = 0;
+  ssbo_block.stage_mask = ShaderStage::ANY;
+  max_storagebuf_index_ = max_ii(max_storagebuf_index_, buffer_index);
+  return (total_storage_blocks_++);
 }
 
 void MTLShaderInterface::add_push_constant_block(uint32_t name_offset)
@@ -145,8 +175,8 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
   BLI_assert(total_uniforms_ < MTL_MAX_UNIFORMS_PER_BLOCK);
   if (total_uniforms_ >= MTL_MAX_UNIFORMS_PER_BLOCK) {
     MTL_LOG_WARNING(
-        "[Warning] Cannot add uniform '%s' to shader interface '%s' as the uniform limit of %d "
-        "has been reached.\n",
+        "Cannot add uniform '%s' to shader interface '%s' as the uniform limit of %d has been "
+        "reached.",
         name,
         name,
         MTL_MAX_UNIFORMS_PER_BLOCK);
@@ -189,8 +219,10 @@ void MTLShaderInterface::add_uniform(uint32_t name_offset, eMTLDataType type, in
 
 void MTLShaderInterface::add_texture(uint32_t name_offset,
                                      uint32_t texture_slot,
+                                     uint32_t location,
                                      eGPUTextureType tex_binding_type,
                                      eGPUSamplerFormat sampler_format,
+                                     bool is_texture_sampler,
                                      ShaderStage stage_mask)
 {
   BLI_assert(texture_slot >= 0 && texture_slot < GPU_max_textures());
@@ -201,8 +233,10 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     BLI_assert_msg(tex.used == false, "Texture slot already in-use by another binding");
     tex.name_offset = name_offset;
     tex.slot_index = texture_slot;
+    tex.location = location;
     tex.type = tex_binding_type;
     tex.sampler_format = sampler_format;
+    tex.is_texture_sampler = is_texture_sampler;
     tex.stage_mask = stage_mask;
     tex.used = true;
     total_textures_++;
@@ -212,7 +246,7 @@ void MTLShaderInterface::add_texture(uint32_t name_offset,
     BLI_assert_msg(false, "Exceeding maximum supported texture count.");
     MTL_LOG_WARNING(
         "Could not add additional texture with index %d to shader interface. Maximum "
-        "supported texture count is %d\n",
+        "supported texture count is %d",
         texture_slot,
         GPU_max_textures());
   }
@@ -235,7 +269,7 @@ void MTLShaderInterface::map_builtins()
       BLI_assert(uni->location >= 0);
       if (uni->location >= 0) {
         builtins_[u] = uni->location;
-        MTL_LOG_INFO("Mapped builtin uniform '%s' NB: '%s' to location: %d\n",
+        MTL_LOG_INFO("Mapped builtin uniform '%s' NB: '%s' to location: %d",
                      builtin_uniform_name((GPUUniformBuiltin)u),
                      get_name_at_offset(uni->name_offset),
                      uni->location);
@@ -251,7 +285,7 @@ void MTLShaderInterface::map_builtins()
       BLI_assert(uni->location >= 0);
       if (uni->location >= 0) {
         builtin_blocks_[u] = uni->binding;
-        MTL_LOG_INFO("Mapped builtin uniform block '%s' to location %d\n",
+        MTL_LOG_INFO("Mapped builtin uniform block '%s' to location %d",
                      builtin_uniform_block_name((GPUUniformBlockBuiltin)u),
                      uni->location);
       }
@@ -272,9 +306,7 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   attr_len_ = this->get_total_attributes();
   ubo_len_ = this->get_total_uniform_blocks();
   uniform_len_ = this->get_total_uniforms() + this->get_total_textures();
-
-  /* TODO(Metal): Support storage buffer bindings. Pending compute shader support. */
-  ssbo_len_ = 0;
+  ssbo_len_ = this->get_total_storage_blocks();
 
   /* Calculate total inputs and allocate #ShaderInput array. */
   /* NOTE: We use the existing `name_buffer_` allocated for internal input structs. */
@@ -300,16 +332,17 @@ void MTLShaderInterface::prepare_common_shader_inputs()
   BLI_assert(&inputs_[attr_len_] >= current_input);
   current_input = &inputs_[attr_len_];
   for (const int ubo_index : IndexRange(total_uniform_blocks_)) {
-    MTLShaderUniformBlock &shd_ubo = ubos_[ubo_index];
+    MTLShaderBufferBlock &shd_ubo = ubos_[ubo_index];
     current_input->name_offset = shd_ubo.name_offset;
     current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_ubo.name_offset));
     /* Location refers to the index in the ubos_ array. */
-    current_input->location = ubo_index;
+    current_input->location = shd_ubo.location;
     /* Binding location refers to the UBO bind slot in
      * #MTLContextGlobalShaderPipelineState::ubo_bindings. The buffer bind index [[buffer(N)]]
      * within the shader will apply an offset for bound vertex buffers and the default uniform
-     * PushConstantBlock. */
-    current_input->binding = shd_ubo.buffer_index;
+     * PushConstantBlock.
+     * see `mtl_shader_generator.hh` for buffer binding table breakdown. */
+    current_input->binding = shd_ubo.location;
     current_input++;
   }
 
@@ -352,15 +385,26 @@ void MTLShaderInterface::prepare_common_shader_inputs()
       current_input->location = texture_index + total_uniforms_;
 
       /* Binding represents texture slot `[[texture(n)]]`. */
-      current_input->binding = shd_tex.slot_index;
+      current_input->binding = shd_tex.location;
       current_input++;
     }
   }
 
-  /* SSBO bindings.
-   * TODO(Metal): Support SSBOs. Pending compute support. */
+  /* SSBO bindings. */
   BLI_assert(&inputs_[attr_len_ + ubo_len_ + uniform_len_] >= current_input);
   current_input = &inputs_[attr_len_ + ubo_len_ + uniform_len_];
+  BLI_assert(ssbo_len_ >= total_storage_blocks_);
+  for (const int ssbo_index : IndexRange(total_storage_blocks_)) {
+    MTLShaderBufferBlock &shd_ssbo = ssbos_[ssbo_index];
+    current_input->name_offset = shd_ssbo.name_offset;
+    current_input->name_hash = BLI_hash_string(this->get_name_at_offset(shd_ssbo.name_offset));
+    /* `Location` is used as the returned explicit bind index for SSBOs. */
+    current_input->location = shd_ssbo.location;
+    current_input->binding = shd_ssbo.location;
+    current_input++;
+  }
+
+  this->sort_inputs();
 
   /* Map builtin uniform indices to uniform binding locations. */
   this->map_builtins();
@@ -417,14 +461,14 @@ uint32_t MTLShaderInterface::get_total_uniforms() const
 }
 
 /* Uniform Blocks. */
-const MTLShaderUniformBlock &MTLShaderInterface::get_uniform_block(uint index) const
+const MTLShaderBufferBlock &MTLShaderInterface::get_uniform_block(uint index) const
 {
-  BLI_assert(index < MTL_MAX_UNIFORM_BUFFER_BINDINGS);
+  BLI_assert(index < MTL_MAX_BUFFER_BINDINGS);
   BLI_assert(index < get_total_uniform_blocks());
   return ubos_[index];
 }
 
-const MTLShaderUniformBlock &MTLShaderInterface::get_push_constant_block() const
+const MTLShaderBufferBlock &MTLShaderInterface::get_push_constant_block() const
 {
   return push_constant_block_;
 }
@@ -432,11 +476,6 @@ const MTLShaderUniformBlock &MTLShaderInterface::get_push_constant_block() const
 uint32_t MTLShaderInterface::get_total_uniform_blocks() const
 {
   return total_uniform_blocks_;
-}
-
-uint32_t MTLShaderInterface::get_max_ubo_index() const
-{
-  return max_uniformbuf_index_;
 }
 
 bool MTLShaderInterface::has_uniform_block(uint32_t block_index) const
@@ -447,6 +486,35 @@ bool MTLShaderInterface::has_uniform_block(uint32_t block_index) const
 uint32_t MTLShaderInterface::get_uniform_block_size(uint32_t block_index) const
 {
   return (block_index < total_uniform_blocks_) ? ubos_[block_index].size : 0;
+}
+
+/* Storage Blocks. */
+const MTLShaderBufferBlock &MTLShaderInterface::get_storage_block(uint index) const
+{
+  BLI_assert(index < MTL_MAX_BUFFER_BINDINGS);
+  BLI_assert(index < get_total_storage_blocks());
+  return ssbos_[index];
+}
+
+uint32_t MTLShaderInterface::get_total_storage_blocks() const
+{
+  return total_storage_blocks_;
+}
+
+bool MTLShaderInterface::has_storage_block(uint32_t block_index) const
+{
+  return (block_index < total_storage_blocks_);
+}
+
+uint32_t MTLShaderInterface::get_storage_block_size(uint32_t block_index) const
+{
+  return (block_index < total_storage_blocks_) ? ssbos_[block_index].size : 0;
+}
+
+uint32_t MTLShaderInterface::get_max_buffer_index() const
+{
+  /* PushConstantBlock + All uniform blocks + all storage blocks. */
+  return 1 + get_total_uniform_blocks() + get_total_storage_blocks();
 }
 
 /* Textures. */

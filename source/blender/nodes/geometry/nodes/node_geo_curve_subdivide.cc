@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
@@ -13,15 +15,10 @@ namespace blender::nodes::node_geo_curve_subdivide_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Curve")).supported_type(GEO_COMPONENT_TYPE_CURVE);
-  b.add_input<decl::Int>(N_("Cuts"))
-      .default_value(1)
-      .min(0)
-      .max(1000)
-      .field_on_all()
-      .description(
-          N_("The number of control points to create on the segment following each point"));
-  b.add_output<decl::Geometry>(N_("Curve")).propagate_all();
+  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Int>("Cuts").default_value(1).min(0).max(1000).field_on_all().description(
+      "The number of control points to create on the segment following each point");
+  b.add_output<decl::Geometry>("Curve").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -39,7 +36,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     const Curves &src_curves_id = *geometry_set.get_curves_for_read();
     const bke::CurvesGeometry &src_curves = src_curves_id.geometry.wrap();
 
-    bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
+    const bke::CurvesFieldContext field_context{src_curves, ATTR_DOMAIN_POINT};
     fn::FieldEvaluator evaluator{field_context, src_curves.points_num()};
     evaluator.add(cuts_field);
     evaluator.evaluate();

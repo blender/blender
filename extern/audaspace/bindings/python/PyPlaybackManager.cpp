@@ -60,7 +60,7 @@ PlaybackManager_dealloc(PlaybackManagerP* self)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_play_doc,
-	".. classmethod:: play(sound, catKey)\n\n"
+	".. method:: play(sound, catKey)\n\n"
 	"   Plays a sound through the playback manager and assigns it to a category.\n\n"
 	"   :arg sound: The sound to play.\n"
 	"   :type sound: :class:`Sound`\n"
@@ -104,7 +104,7 @@ PlaybackManager_play(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_resume_doc,
-	".. classmethod:: resume(catKey)\n\n"
+	".. method:: resume(catKey)\n\n"
 	"   Resumes playback of the catgory.\n\n"
 	"   :arg catKey: the key of the category.\n"
 	"   :type catKey: int\n"
@@ -131,7 +131,7 @@ PlaybackManager_resume(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_pause_doc,
-	".. classmethod:: pause(catKey)\n\n"
+	".. method:: pause(catKey)\n\n"
 	"   Pauses playback of the category.\n\n"
 	"   :arg catKey: the key of the category.\n"
 	"   :type catKey: int\n"
@@ -158,7 +158,7 @@ PlaybackManager_pause(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_add_category_doc,
-	".. classmethod:: addCategory(volume)\n\n"
+	".. method:: addCategory(volume)\n\n"
 	"   Adds a category with a custom volume.\n\n"
 	"   :arg volume: The volume for ther new category.\n"
 	"   :type volume: float\n"
@@ -185,7 +185,7 @@ PlaybackManager_add_category(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_get_volume_doc,
-	".. classmethod:: getVolume(catKey)\n\n"
+	".. method:: getVolume(catKey)\n\n"
 	"   Retrieves the volume of a category.\n\n"
 	"   :arg catKey: the key of the category.\n"
 	"   :type catKey: int\n"
@@ -212,7 +212,7 @@ PlaybackManager_get_volume(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_set_volume_doc,
-	".. classmethod:: setVolume(volume, catKey)\n\n"
+	".. method:: setVolume(volume, catKey)\n\n"
 	"   Changes the volume of a category.\n\n"
 	"   :arg volume: the new volume value.\n"
 	"   :type volume: float\n"
@@ -242,7 +242,7 @@ PlaybackManager_set_volume(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_stop_doc,
-	".. classmethod:: stop(catKey)\n\n"
+	".. method:: stop(catKey)\n\n"
 	"   Stops playback of the category.\n\n"
 	"   :arg catKey: the key of the category.\n"
 	"   :type catKey: int\n"
@@ -269,7 +269,7 @@ PlaybackManager_stop(PlaybackManagerP* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_PlaybackManager_clean_doc,
-	".. classmethod:: clean()\n\n"
+	".. method:: clean()\n\n"
 	"   Cleans all the invalid and finished sound from the playback manager.\n\n");
 
 static PyObject *

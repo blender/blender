@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -28,7 +29,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
@@ -188,11 +189,11 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
               ok = false;
             }
             else {
-              if (ibuf->rect == nullptr && ibuf->rect_float == nullptr) {
+              if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) {
                 ok = false;
               }
 
-              if (ibuf->rect_float && !ELEM(ibuf->channels, 0, 4)) {
+              if (ibuf->float_buffer.data && !ELEM(ibuf->channels, 0, 4)) {
                 ok = false;
               }
 

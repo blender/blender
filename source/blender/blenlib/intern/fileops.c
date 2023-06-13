@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -43,8 +44,80 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_sys_types.h" /* for intptr_t support */
 #include "BLI_utildefines.h"
+
+/** Sizes above this must be allocated. */
+#define FILE_MAX_STATIC_BUF 256
+
+#ifdef WIN32
+/* Text string used as the "verb" for Windows shell operations. */
+static char *windows_operation_string(FileExternalOperation operation)
+{
+  switch (operation) {
+    case FILE_EXTERNAL_OPERATION_OPEN:
+      return "open";
+    case FILE_EXTERNAL_OPERATION_FOLDER_OPEN:
+      return "open";
+    case FILE_EXTERNAL_OPERATION_EDIT:
+      return "edit";
+    case FILE_EXTERNAL_OPERATION_NEW:
+      return "new";
+    case FILE_EXTERNAL_OPERATION_FIND:
+      return "find";
+    case FILE_EXTERNAL_OPERATION_SHOW:
+      return "show";
+    case FILE_EXTERNAL_OPERATION_PLAY:
+      return "play";
+    case FILE_EXTERNAL_OPERATION_BROWSE:
+      return "browse";
+    case FILE_EXTERNAL_OPERATION_PREVIEW:
+      return "preview";
+    case FILE_EXTERNAL_OPERATION_PRINT:
+      return "print";
+    case FILE_EXTERNAL_OPERATION_INSTALL:
+      return "install";
+    case FILE_EXTERNAL_OPERATION_RUNAS:
+      return "runas";
+    case FILE_EXTERNAL_OPERATION_PROPERTIES:
+      return "properties";
+    case FILE_EXTERNAL_OPERATION_FOLDER_FIND:
+      return "find";
+    case FILE_EXTERNAL_OPERATION_FOLDER_CMD:
+      return "cmd";
+  }
+  BLI_assert_unreachable();
+  return "";
+}
+#endif
+
+bool BLI_file_external_operation_supported(const char *filepath, FileExternalOperation operation)
+{
+#ifdef WIN32
+  char *opstring = windows_operation_string(operation);
+  return BLI_windows_external_operation_supported(filepath, opstring);
+#else
+  UNUSED_VARS(filepath, operation);
+  return false;
+#endif
+}
+
+bool BLI_file_external_operation_execute(const char *filepath, FileExternalOperation operation)
+{
+#ifdef WIN32
+  char *opstring = windows_operation_string(operation);
+  if (BLI_windows_external_operation_supported(filepath, opstring) &&
+      BLI_windows_external_operation_execute(filepath, opstring))
+  {
+    return true;
+  }
+  return false;
+#else
+  UNUSED_VARS(filepath, operation);
+  return false;
+#endif
+}
 
 size_t BLI_file_zstd_from_mem_at_pos(
     void *buf, size_t len, FILE *file, size_t file_offset, int compression_level)
@@ -178,7 +251,7 @@ bool BLI_file_is_writable(const char *filepath)
   else {
     /* file doesn't exist -- check I can create it in parent directory */
     char parent[FILE_MAX];
-    BLI_split_dirfile(filepath, parent, NULL, sizeof(parent), 0);
+    BLI_path_split_dir_part(filepath, parent, sizeof(parent));
 #ifdef WIN32
     /* windows does not have X_OK */
     writable = BLI_access(parent, W_OK) == 0;
@@ -189,9 +262,9 @@ bool BLI_file_is_writable(const char *filepath)
   return writable;
 }
 
-bool BLI_file_touch(const char *file)
+bool BLI_file_touch(const char *filepath)
 {
-  FILE *f = BLI_fopen(file, "r+b");
+  FILE *f = BLI_fopen(filepath, "r+b");
 
   if (f != NULL) {
     int c = getc(f);
@@ -199,7 +272,7 @@ bool BLI_file_touch(const char *file)
     if (c == EOF) {
       /* Empty file, reopen in truncate write mode... */
       fclose(f);
-      f = BLI_fopen(file, "w+b");
+      f = BLI_fopen(filepath, "w+b");
     }
     else {
       /* Otherwise, rewrite first byte. */
@@ -208,13 +281,144 @@ bool BLI_file_touch(const char *file)
     }
   }
   else {
-    f = BLI_fopen(file, "wb");
+    f = BLI_fopen(filepath, "wb");
   }
   if (f) {
     fclose(f);
     return true;
   }
   return false;
+}
+
+static bool dir_create_recursive(char *dirname, int len)
+{
+  BLI_assert(strlen(dirname) == len);
+  BLI_assert(BLI_exists(dirname) == 0);
+  /* Caller must ensure the path doesn't have trailing slashes. */
+  BLI_assert_msg(len && !BLI_path_slash_is_native_compat(dirname[len - 1]),
+                 "Paths must not end with a slash!");
+  BLI_assert_msg(!((len >= 3) && BLI_path_slash_is_native_compat(dirname[len - 3]) &&
+                   STREQ(dirname + (len - 2), "..")),
+                 "Paths containing \"..\" components must be normalized first!");
+
+  bool ret = true;
+  char *dirname_parent_end = (char *)BLI_path_parent_dir_end(dirname, len);
+  if (dirname_parent_end) {
+    const char dirname_parent_end_value = *dirname_parent_end;
+    *dirname_parent_end = '\0';
+#ifdef WIN32
+    /* Check special case `c:\foo`, don't try create `c:`, harmless but unnecessary. */
+    if (dirname[0] && !BLI_path_is_win32_drive_only(dirname))
+#endif
+    {
+      const int mode = BLI_exists(dirname);
+      if (mode != 0) {
+        if (!S_ISDIR(mode)) {
+          ret = false;
+        }
+      }
+      else if (!dir_create_recursive(dirname, dirname_parent_end - dirname)) {
+        ret = false;
+      }
+    }
+    *dirname_parent_end = dirname_parent_end_value;
+  }
+  if (ret) {
+#ifdef WIN32
+    if (umkdir(dirname) == -1) {
+      ret = false;
+    }
+#else
+    if (mkdir(dirname, 0777) != 0) {
+      ret = false;
+    }
+#endif
+  }
+  return ret;
+}
+
+bool BLI_dir_create_recursive(const char *dirname)
+{
+  const int mode = BLI_exists(dirname);
+  if (mode != 0) {
+    /* The file exists, either it's a directory (ok), or not,
+     * in which case this function can't do anything useful
+     * (the caller could remove it and re-run this function). */
+    return S_ISDIR(mode) ? true : false;
+  }
+
+  char dirname_static_buf[FILE_MAX];
+  char *dirname_mut = dirname_static_buf;
+
+  size_t len = strlen(dirname);
+  if (len >= sizeof(dirname_static_buf)) {
+    dirname_mut = MEM_mallocN(len + 1, __func__);
+  }
+  memcpy(dirname_mut, dirname, len + 1);
+
+  /* Strip trailing chars, important for first entering #dir_create_recursive
+   * when then ensures this is the case for recursive calls. */
+  while ((len > 0) && BLI_path_slash_is_native_compat(dirname_mut[len - 1])) {
+    len--;
+  }
+  dirname_mut[len] = '\0';
+
+  const bool ret = (len > 0) && dir_create_recursive(dirname_mut, len);
+
+  /* Ensure the string was properly restored. */
+  BLI_assert(memcmp(dirname, dirname_mut, len) == 0);
+
+  if (dirname_mut != dirname_static_buf) {
+    MEM_freeN(dirname_mut);
+  }
+
+  return ret;
+}
+
+bool BLI_file_ensure_parent_dir_exists(const char *filepath)
+{
+  char di[FILE_MAX];
+  BLI_path_split_dir_part(filepath, di, sizeof(di));
+
+  /* Make if the dir doesn't exist. */
+  return BLI_dir_create_recursive(di);
+}
+
+int BLI_rename(const char *from, const char *to)
+{
+#ifdef WIN32
+  return urename(from, to);
+#else
+  return rename(from, to);
+#endif
+}
+
+int BLI_rename_overwrite(const char *from, const char *to)
+{
+  if (!BLI_exists(from)) {
+    return 1;
+  }
+
+  /* NOTE(@ideasman42): there are no checks that `from` & `to` *aren't* the same file.
+   * It's up to the caller to ensure this. In practice these paths are often generated
+   * and known to be different rather than arbitrary user input.
+   * In the case of arbitrary paths (renaming a file in the file-selector for example),
+   * the caller must ensure file renaming doesn't cause user data loss.
+   *
+   * Support for checking the files aren't the same could be added, however path comparison
+   * alone is *not* a guarantee the files are different (given the possibility of accessing
+   * the same file through different paths via symbolic-links), we could instead support a
+   * version of Python's `os.path.samefile(..)` which compares the I-node & device.
+   * In this particular case we would not want to follow symbolic-links as well.
+   * Since this functionality isn't required at the moment, leave this as-is.
+   * Noting it as a potential improvement. */
+  if (BLI_exists(to)) {
+    if (BLI_delete(to, false, false)) {
+      return 1;
+    }
+  }
+
+  return BLI_rename(from, to);
 }
 
 #ifdef WIN32
@@ -391,16 +595,14 @@ static bool delete_recursive(const char *dir)
   i = filelist_num = BLI_filelist_dir_contents(dir, &filelist);
   fl = filelist;
   while (i--) {
-    const char *file = BLI_path_basename(fl->path);
-
-    if (FILENAME_IS_CURRPAR(file)) {
+    if (FILENAME_IS_CURRPAR(fl->relname)) {
       /* Skip! */
     }
     else if (S_ISDIR(fl->type)) {
       char path[FILE_MAXDIR];
 
       /* dir listing produces dir path without trailing slash... */
-      BLI_strncpy(path, fl->path, sizeof(path));
+      STRNCPY(path, fl->path);
       BLI_path_slash_ensure(path, sizeof(path));
 
       if (delete_recursive(path)) {
@@ -424,17 +626,17 @@ static bool delete_recursive(const char *dir)
   return err;
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
   int err;
 
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    err = delete_recursive(file);
+    err = delete_recursive(path);
   }
   else {
-    err = delete_unique(file, dir);
+    err = delete_unique(path, dir);
   }
 
   return err;
@@ -458,144 +660,96 @@ int BLI_delete_soft(const char *file, const char **error_message)
   return err;
 }
 
-/* Not used anywhere! */
-#  if 0
-int BLI_move(const char *file, const char *to)
+/**
+ * MS-Windows doesn't support moving to a directory, it has to be
+ * `mv filepath filepath` and not `mv filepath destination_directory` (same for copying).
+ *
+ * So when `path_dst` ends with as slash:
+ * ensure the filename component of `path_src` is added to a copy of `path_dst`.
+ */
+static const char *path_destination_ensure_filename(const char *path_src,
+                                                    const char *path_dst,
+                                                    char *buf,
+                                                    size_t buf_size)
 {
-  char str[MAXPATHLEN + 12];
-  int err;
-
-  /* windows doesn't support moving to a directory
-   * it has to be 'mv filepath filepath' and not
-   * 'mv filepath destination_directory' */
-
-  BLI_strncpy(str, to, sizeof(str));
-  /* points 'to' to a directory ? */
-  if (BLI_path_slash_rfind(str) == (str + strlen(str) - 1)) {
-    if (BLI_path_slash_rfind(file) != NULL) {
-      strcat(str, BLI_path_slash_rfind(file) + 1);
+  const char *filename_src = BLI_path_basename(path_src);
+  /* Unlikely but possible this has no slashes. */
+  if (filename_src != path_src) {
+    const size_t path_dst_len = strlen(path_dst);
+    /* Check if `path_dst` points to a directory. */
+    if (path_dst_len && BLI_path_slash_is_native_compat(path_dst[path_dst_len - 1])) {
+      size_t buf_size_needed = path_dst_len + strlen(filename_src) + 1;
+      char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
+                                         buf :
+                                         MEM_mallocN(buf_size_needed, __func__);
+      BLI_string_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
+      return path_dst_with_filename;
     }
   }
+  return path_dst;
+}
 
-  UTF16_ENCODE(file);
-  UTF16_ENCODE(str);
-  err = !MoveFileW(file_16, str_16);
-  UTF16_UN_ENCODE(str);
-  UTF16_UN_ENCODE(file);
+int BLI_path_move(const char *path_src, const char *path_dst)
+{
+  char path_dst_buf[FILE_MAX_STATIC_BUF];
+  const char *path_dst_with_filename = path_destination_ensure_filename(
+      path_src, path_dst, path_dst_buf, sizeof(path_dst_buf));
+
+  int err;
+
+  UTF16_ENCODE(path_src);
+  UTF16_ENCODE(path_dst_with_filename);
+  err = !MoveFileW(path_src_16, path_dst_with_filename_16);
+  UTF16_UN_ENCODE(path_dst_with_filename);
+  UTF16_UN_ENCODE(path_src);
 
   if (err) {
     callLocalErrorCallBack("Unable to move file");
-    printf(" Move from '%s' to '%s' failed\n", file, str);
+    printf(" Move from '%s' to '%s' failed\n", path_src, path_dst_with_filename);
+  }
+
+  if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
+    MEM_freeN((void *)path_dst_with_filename);
   }
 
   return err;
 }
-#  endif
 
-int BLI_copy(const char *file, const char *to)
+int BLI_copy(const char *path_src, const char *path_dst)
 {
-  char str[MAXPATHLEN + 12];
+  char path_dst_buf[FILE_MAX_STATIC_BUF];
+  const char *path_dst_with_filename = path_destination_ensure_filename(
+      path_src, path_dst, path_dst_buf, sizeof(path_dst_buf));
   int err;
 
-  /* windows doesn't support copying to a directory
-   * it has to be 'cp filepath filepath' and not
-   * 'cp filepath destdir' */
-
-  BLI_strncpy(str, to, sizeof(str));
-  /* points 'to' to a directory ? */
-  if (BLI_path_slash_rfind(str) == (str + strlen(str) - 1)) {
-    if (BLI_path_slash_rfind(file) != NULL) {
-      strcat(str, BLI_path_slash_rfind(file) + 1);
-    }
-  }
-
-  UTF16_ENCODE(file);
-  UTF16_ENCODE(str);
-  err = !CopyFileW(file_16, str_16, false);
-  UTF16_UN_ENCODE(str);
-  UTF16_UN_ENCODE(file);
+  UTF16_ENCODE(path_src);
+  UTF16_ENCODE(path_dst_with_filename);
+  err = !CopyFileW(path_src_16, path_dst_with_filename_16, false);
+  UTF16_UN_ENCODE(path_dst_with_filename);
+  UTF16_UN_ENCODE(path_src);
 
   if (err) {
     callLocalErrorCallBack("Unable to copy file!");
-    printf(" Copy from '%s' to '%s' failed\n", file, str);
+    printf(" Copy from '%s' to '%s' failed\n", path_src, path_dst_with_filename);
+  }
+
+  if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
+    MEM_freeN((void *)path_dst_with_filename);
   }
 
   return err;
 }
 
 #  if 0
-int BLI_create_symlink(const char *file, const char *to)
+int BLI_create_symlink(const char *path_src, const char *path_dst)
 {
   /* See patch from #30870, should this ever become needed. */
   callLocalErrorCallBack("Linking files is unsupported on Windows");
-  (void)file;
-  (void)to;
+  (void)path_src;
+  (void)path_dst;
   return 1;
 }
 #  endif
-
-/** \return true on success (i.e. given path now exists on FS), false otherwise. */
-bool BLI_dir_create_recursive(const char *dirname)
-{
-  char *lslash;
-  char tmp[MAXPATHLEN];
-  bool ret = true;
-
-  /* First remove possible slash at the end of the dirname.
-   * This routine otherwise tries to create
-   * blah1/blah2/ (with slash) after creating
-   * blah1/blah2 (without slash) */
-
-  BLI_strncpy(tmp, dirname, sizeof(tmp));
-  BLI_path_slash_native(tmp);
-  BLI_path_slash_rstrip(tmp);
-
-  /* check special case "c:\foo", don't try create "c:", harmless but prints an error below */
-  if (isalpha(tmp[0]) && (tmp[1] == ':') && tmp[2] == '\0') {
-    return true;
-  }
-
-  if (BLI_is_dir(tmp)) {
-    return true;
-  }
-  else if (BLI_exists(tmp)) {
-    return false;
-  }
-
-  lslash = (char *)BLI_path_slash_rfind(tmp);
-
-  if (lslash) {
-    /* Split about the last slash and recurse */
-    *lslash = 0;
-    if (!BLI_dir_create_recursive(tmp)) {
-      ret = false;
-    }
-  }
-
-  if (ret && dirname[0]) { /* patch, this recursive loop tries to create a nameless directory */
-    if (umkdir(dirname) == -1) {
-      printf("Unable to create directory %s\n", dirname);
-      ret = false;
-    }
-  }
-  return ret;
-}
-
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 0;
-  }
-
-  /* Make sure `from` & `to` are different (case insensitive) before removing. */
-  if (BLI_exists(to) && BLI_strcasecmp(from, to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return urename(from, to);
-}
 
 #else /* The UNIX world */
 
@@ -630,9 +784,9 @@ static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, c
   BLI_path_join(*dst, len + 1, dir, file);
 }
 
-static char *strip_last_slash(const char *dir)
+static char *strip_last_slash(const char *dirpath)
 {
-  char *result = BLI_strdup(dir);
+  char *result = BLI_strdup(dirpath);
   BLI_path_slash_rstrip(result);
 
   return result;
@@ -859,7 +1013,8 @@ static int delete_soft(const char *file, const char **error_message)
   char *xdg_session_desktop = getenv("XDG_SESSION_DESKTOP");
 
   if ((xdg_current_desktop != NULL && STREQ(xdg_current_desktop, "KDE")) ||
-      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE"))) {
+      (xdg_session_desktop != NULL && STREQ(xdg_session_desktop, "KDE")))
+  {
     args[0] = "kioclient5";
     args[1] = "move";
     args[2] = file;
@@ -931,17 +1086,17 @@ int BLI_access(const char *filepath, int mode)
   return access(filepath, mode);
 }
 
-int BLI_delete(const char *file, bool dir, bool recursive)
+int BLI_delete(const char *path, bool dir, bool recursive)
 {
-  BLI_assert(!BLI_path_is_rel(file));
+  BLI_assert(!BLI_path_is_rel(path));
 
   if (recursive) {
-    return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path, NULL, NULL, delete_single_file, delete_callback_post);
   }
   if (dir) {
-    return rmdir(file);
+    return rmdir(path);
   }
-  return remove(file);
+  return remove(path);
 }
 
 int BLI_delete_soft(const char *file, const char **error_message)
@@ -1123,8 +1278,6 @@ static int copy_single_file(const char *from, const char *to)
   return RecursiveOp_Callback_OK;
 }
 
-/* Not used anywhere! */
-#  if 0
 static int move_callback_pre(const char *from, const char *to)
 {
   int ret = rename(from, to);
@@ -1147,137 +1300,60 @@ static int move_single_file(const char *from, const char *to)
   return RecursiveOp_Callback_OK;
 }
 
-/* if *file represents a directory, moves all its contents into *to, else renames
- * file itself to *to. */
-int BLI_move(const char *file, const char *to)
+int BLI_path_move(const char *path_src, const char *path_dst)
 {
-  int ret = recursive_operation(file, to, move_callback_pre, move_single_file, NULL);
+  int ret = recursive_operation(path_src, path_dst, move_callback_pre, move_single_file, NULL);
 
   if (ret && ret != -1) {
-    return recursive_operation(file, NULL, NULL, delete_single_file, delete_callback_post);
+    return recursive_operation(path_src, NULL, NULL, delete_single_file, delete_callback_post);
   }
 
   return ret;
 }
-#  endif
 
-static const char *check_destination(const char *file, const char *to)
+static const char *path_destination_ensure_filename(const char *path_src,
+                                                    const char *path_dst,
+                                                    char *buf,
+                                                    size_t buf_size)
 {
-  struct stat st;
-
-  if (!stat(to, &st)) {
-    if (S_ISDIR(st.st_mode)) {
-      char *str, *path;
-      const char *filename;
-      size_t len = 0;
-
-      str = strip_last_slash(file);
-      filename = BLI_path_slash_rfind(str);
-
-      if (!filename) {
-        MEM_freeN(str);
-        return (char *)to;
-      }
-
-      /* skip slash */
-      filename += 1;
-
-      len = strlen(to) + strlen(filename) + 1;
-      path = MEM_callocN(len + 1, "check_destination path");
-      BLI_path_join(path, len + 1, to, filename);
-
-      MEM_freeN(str);
-
-      return path;
+  if (BLI_is_dir(path_dst)) {
+    char *path_src_no_slash = strip_last_slash(path_src);
+    const char *filename_src = BLI_path_basename(path_src_no_slash);
+    if (filename_src != path_src_no_slash) {
+      const size_t buf_size_needed = strlen(path_dst) + 1 + strlen(filename_src) + 1;
+      char *path_dst_with_filename = (buf_size_needed <= buf_size) ?
+                                         buf :
+                                         MEM_mallocN(buf_size_needed, __func__);
+      BLI_path_join(path_dst_with_filename, buf_size_needed, path_dst, filename_src);
+      path_dst = path_dst_with_filename;
     }
+    MEM_freeN(path_src_no_slash);
   }
-
-  return to;
+  return path_dst;
 }
 
-int BLI_copy(const char *file, const char *to)
+int BLI_copy(const char *path_src, const char *path_dst)
 {
-  const char *actual_to = check_destination(file, to);
+  char path_dst_buf[FILE_MAX_STATIC_BUF];
+  const char *path_dst_with_filename = path_destination_ensure_filename(
+      path_src, path_dst, path_dst_buf, sizeof(path_dst_buf));
   int ret;
 
-  ret = recursive_operation(file, actual_to, copy_callback_pre, copy_single_file, NULL);
+  ret = recursive_operation(
+      path_src, path_dst_with_filename, copy_callback_pre, copy_single_file, NULL);
 
-  if (actual_to != to) {
-    MEM_freeN((void *)actual_to);
+  if (!ELEM(path_dst_with_filename, path_dst_buf, path_dst)) {
+    MEM_freeN((void *)path_dst_with_filename);
   }
 
   return ret;
 }
 
 #  if 0
-int BLI_create_symlink(const char *file, const char *to)
+int BLI_create_symlink(const char *path_src, const char *path_dst)
 {
-  return symlink(to, file);
+  return symlink(path_dst, path_src);
 }
 #  endif
-
-bool BLI_dir_create_recursive(const char *dirname)
-{
-  char *lslash;
-  size_t size;
-#  ifdef MAXPATHLEN
-  char static_buf[MAXPATHLEN];
-#  endif
-  char *tmp;
-  bool ret = true;
-
-  if (BLI_is_dir(dirname)) {
-    return true;
-  }
-  if (BLI_exists(dirname)) {
-    return false;
-  }
-
-#  ifdef MAXPATHLEN
-  size = MAXPATHLEN;
-  tmp = static_buf;
-#  else
-  size = strlen(dirname) + 1;
-  tmp = MEM_callocN(size, __func__);
-#  endif
-
-  BLI_strncpy(tmp, dirname, size);
-
-  /* Avoids one useless recursion in case of '/foo/bar/' path... */
-  BLI_path_slash_rstrip(tmp);
-
-  lslash = (char *)BLI_path_slash_rfind(tmp);
-  if (lslash) {
-    /* Split about the last slash and recurse */
-    *lslash = 0;
-    if (!BLI_dir_create_recursive(tmp)) {
-      ret = false;
-    }
-  }
-
-#  ifndef MAXPATHLEN
-  MEM_freeN(tmp);
-#  endif
-
-  if (ret) {
-    ret = (mkdir(dirname, 0777) == 0);
-  }
-  return ret;
-}
-
-int BLI_rename(const char *from, const char *to)
-{
-  if (!BLI_exists(from)) {
-    return 1;
-  }
-
-  if (BLI_exists(to)) {
-    if (BLI_delete(to, false, false)) {
-      return 1;
-    }
-  }
-
-  return rename(from, to);
-}
 
 #endif

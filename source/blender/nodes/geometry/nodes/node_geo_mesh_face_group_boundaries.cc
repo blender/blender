@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -11,15 +13,16 @@ namespace blender::nodes::node_geo_mesh_face_group_boundaries_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Face Group ID"), "Face Set")
+  b.add_input<decl::Int>("Face Group ID", "Face Set")
       .default_value(0)
       .hide_value()
       .supports_field()
-      .description(N_("An identifier for the group of each face. All contiguous faces with the "
-                      "same value are in the same region"));
-  b.add_output<decl::Bool>(N_("Boundary Edges"))
+      .description(
+          "An identifier for the group of each face. All contiguous faces with the "
+          "same value are in the same region");
+  b.add_output<decl::Bool>("Boundary Edges")
       .field_source_reference_all()
-      .description(N_("The edges that lie on the boundaries between the different face groups"));
+      .description("The edges that lie on the boundaries between the different face groups");
 }
 
 class BoundaryFieldInput final : public bke::MeshFieldInput {
@@ -35,7 +38,7 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext face_context{mesh, ATTR_DOMAIN_FACE};
     FieldEvaluator face_evaluator{face_context, mesh.totpoly};
@@ -46,12 +49,10 @@ class BoundaryFieldInput final : public bke::MeshFieldInput {
     Array<bool> boundary(mesh.totedge, false);
     Array<bool> edge_visited(mesh.totedge, false);
     Array<int> edge_face_set(mesh.totedge, 0);
-    const Span<MPoly> polys = mesh.polys();
-    const Span<MLoop> loops = mesh.loops();
+    const OffsetIndices polys = mesh.polys();
+    const Span<int> corner_edges = mesh.corner_edges();
     for (const int i : polys.index_range()) {
-      const MPoly &poly = polys[i];
-      for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-        const int edge = loop.e;
+      for (const int edge : corner_edges.slice(polys[i])) {
         if (edge_visited[edge]) {
           if (edge_face_set[edge] != face_set[i]) {
             /* This edge is connected to two faces on different face sets. */
@@ -93,7 +94,7 @@ void register_node_type_geo_mesh_face_group_boundaries()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_MESH_FACE_GROUP_BOUNDARIES, "Face Group Boundaries", NODE_CLASS_INPUT);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

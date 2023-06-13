@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 by Mike Erwin. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 by Mike Erwin. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -169,7 +170,8 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 
   if (ELEM(polyline_sh,
            GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
-           GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR)) {
+           GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR))
+  {
     immUniformColor4fv(imm->uniform_color);
   }
 }
@@ -606,10 +608,10 @@ void immBindTexture(const char *name, GPUTexture *tex)
   GPU_texture_bind(tex, binding);
 }
 
-void immBindTextureSampler(const char *name, GPUTexture *tex, eGPUSamplerState state)
+void immBindTextureSampler(const char *name, GPUTexture *tex, GPUSamplerState state)
 {
   int binding = GPU_shader_get_sampler_binding(imm->shader, name);
-  GPU_texture_bind_ex(tex, state, binding, true);
+  GPU_texture_bind_ex(tex, state, binding);
 }
 
 void immBindUniformBuf(const char *name, GPUUniformBuf *ubo)

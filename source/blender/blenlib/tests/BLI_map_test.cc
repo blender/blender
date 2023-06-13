@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_map.hh"
@@ -240,7 +242,7 @@ TEST(map, MutableItemToItemConversion)
   map.add(2, 1);
 
   Vector<int> keys, values;
-  for (Map<int, int>::Item item : map.items()) {
+  for (MapItem<int, int> item : map.items()) {
     keys.append(item.key);
     values.append(item.value);
   }
@@ -628,7 +630,7 @@ TEST(map, RemoveDuringIteration)
   Iter begin = map.items().begin();
   Iter end = map.items().end();
   for (Iter iter = begin; iter != end; ++iter) {
-    Map<int, int>::MutableItem item = *iter;
+    MutableMapItem<int, int> item = *iter;
     if (item.value == 2) {
       map.remove(iter);
     }
@@ -646,8 +648,8 @@ TEST(map, RemoveIf)
   for (const int64_t i : IndexRange(100)) {
     map.add(i * i, i);
   }
-  map.remove_if([](auto item) { return item.key > 100; });
-  EXPECT_EQ(map.size(), 11);
+  const int64_t removed = map.remove_if([](auto item) { return item.key > 100; });
+  EXPECT_EQ(map.size() + removed, 100);
   for (const int64_t i : IndexRange(100)) {
     if (i <= 10) {
       EXPECT_EQ(map.lookup(i * i), i);

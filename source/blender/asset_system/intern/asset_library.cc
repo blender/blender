@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -29,9 +31,10 @@ using namespace blender::asset_system;
 
 bool asset_system::AssetLibrary::save_catalogs_when_file_is_saved = true;
 
-/* Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
 void AS_asset_libraries_exit()
 {
+  /* NOTE: Can probably removed once #WITH_DESTROY_VIA_LOAD_HANDLER gets enabled by default. */
+
   AssetLibraryService::destroy();
 }
 
@@ -42,21 +45,20 @@ asset_system::AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-/**
- * Loading an asset library at this point only means loading the catalogs. Later on this should
- * invoke reading of asset representations too.
- */
-struct ::AssetLibrary *AS_asset_library_load(const char *library_path)
+::AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath)
 {
+  /* NOTE: Loading an asset library at this point only means loading the catalogs.
+   * Later on this should invoke reading of asset representations too. */
+
   AssetLibraryService *service = AssetLibraryService::get();
   asset_system::AssetLibrary *lib;
-  if (library_path == nullptr || library_path[0] == '\0') {
+  if (library_dirpath == nullptr || library_dirpath[0] == '\0') {
     lib = service->get_asset_library_current_file();
   }
   else {
-    lib = service->get_asset_library_on_disk(library_path);
+    lib = service->get_asset_library_on_disk_custom(name, library_dirpath);
   }
-  return reinterpret_cast<struct ::AssetLibrary *>(lib);
+  return reinterpret_cast<::AssetLibrary *>(lib);
 }
 
 bool AS_asset_library_has_any_unsaved_catalogs()
@@ -75,12 +77,13 @@ std::string AS_asset_library_find_suitable_root_path_from_path(
     const blender::StringRefNull input_path)
 {
   if (CustomAssetLibraryDefinition *preferences_lib = BKE_asset_library_custom_containing_path(
-          &U.asset_libraries, input_path.c_str())) {
-    return preferences_lib->path;
+          &U.asset_libraries, input_path.c_str()))
+  {
+    return preferences_lib->dirpath;
   }
 
   char buffer[FILE_MAXDIR];
-  BLI_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
+  BLI_path_split_dir_part(input_path.c_str(), buffer, FILE_MAXDIR);
   return buffer;
 }
 
@@ -110,8 +113,8 @@ AssetCatalogTree *AS_asset_library_get_catalog_tree(const ::AssetLibrary *librar
   return catalog_service->get_catalog_tree();
 }
 
-void AS_asset_library_refresh_catalog_simplename(struct ::AssetLibrary *asset_library,
-                                                 struct AssetMetaData *asset_data)
+void AS_asset_library_refresh_catalog_simplename(::AssetLibrary *asset_library,
+                                                 AssetMetaData *asset_data)
 {
   asset_system::AssetLibrary *lib = reinterpret_cast<asset_system::AssetLibrary *>(asset_library);
   lib->refresh_catalog_simplename(asset_data);
@@ -127,10 +130,71 @@ void AS_asset_library_remap_ids(const IDRemapper *mappings)
       true);
 }
 
+void AS_asset_full_path_explode_from_weak_ref(const AssetWeakReference *asset_reference,
+                                              char r_path_buffer[1090 /* FILE_MAX_LIBEXTRA */],
+                                              char **r_dir,
+                                              char **r_group,
+                                              char **r_name)
+{
+  AssetLibraryService *service = AssetLibraryService::get();
+  std::optional<AssetLibraryService::ExplodedPath> exploded =
+      service->resolve_asset_weak_reference_to_exploded_path(*asset_reference);
+
+  if (!exploded) {
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = nullptr;
+    }
+    if (r_name) {
+      *r_name = nullptr;
+    }
+    r_path_buffer[0] = '\0';
+    return;
+  }
+
+  BLI_assert(!exploded->group_component.is_empty());
+  BLI_assert(!exploded->name_component.is_empty());
+
+  BLI_strncpy(r_path_buffer, exploded->full_path->c_str(), 1090 /* FILE_MAX_LIBEXTRA */);
+
+  if (!exploded->dir_component.is_empty()) {
+    r_path_buffer[exploded->dir_component.size()] = '\0';
+    r_path_buffer[exploded->dir_component.size() + 1 + exploded->group_component.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = r_path_buffer;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer + exploded->dir_component.size() + 1;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + exploded->dir_component.size() + 1 +
+                exploded->group_component.size() + 1;
+    }
+  }
+  else {
+    r_path_buffer[exploded->group_component.size()] = '\0';
+
+    if (r_dir) {
+      *r_dir = nullptr;
+    }
+    if (r_group) {
+      *r_group = r_path_buffer;
+    }
+    if (r_name) {
+      *r_name = r_path_buffer + exploded->group_component.size() + 1;
+    }
+  }
+}
+
 namespace blender::asset_system {
 
-AssetLibrary::AssetLibrary(StringRef root_path)
-    : root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
+AssetLibrary::AssetLibrary(eAssetLibraryType library_type, StringRef name, StringRef root_path)
+    : library_type_(library_type),
+      name_(name),
+      root_path_(std::make_shared<std::string>(utils::normalize_directory_path(root_path))),
       asset_storage_(std::make_unique<AssetStorage>()),
       catalog_service(std::make_unique<AssetCatalogService>())
 {
@@ -166,11 +230,12 @@ void AssetLibrary::refresh()
 
 AssetRepresentation &AssetLibrary::add_external_asset(StringRef relative_asset_path,
                                                       StringRef name,
+                                                      const int id_type,
                                                       std::unique_ptr<AssetMetaData> metadata)
 {
   AssetIdentifier identifier = asset_identifier_from_library(relative_asset_path);
   return asset_storage_->add_external_asset(
-      std::move(identifier), name, std::move(metadata), *this);
+      std::move(identifier), name, id_type, std::move(metadata), *this);
 }
 
 AssetRepresentation &AssetLibrary::add_local_id_asset(StringRef relative_asset_path, ID &id)
@@ -190,8 +255,8 @@ void AssetLibrary::remap_ids_and_remove_invalid(const IDRemapper &mappings)
 }
 
 namespace {
-void asset_library_on_save_post(struct Main *main,
-                                struct PointerRNA **pointers,
+void asset_library_on_save_post(Main *main,
+                                PointerRNA **pointers,
                                 const int num_pointers,
                                 void *arg)
 {
@@ -219,8 +284,8 @@ void AssetLibrary::on_blend_save_handler_unregister()
   on_save_callback_store_.arg = nullptr;
 }
 
-void AssetLibrary::on_blend_save_post(struct Main *main,
-                                      struct PointerRNA ** /*pointers*/,
+void AssetLibrary::on_blend_save_post(Main *main,
+                                      PointerRNA ** /*pointers*/,
                                       const int /*num_pointers*/)
 {
   if (this->catalog_service == nullptr) {
@@ -237,7 +302,7 @@ AssetIdentifier AssetLibrary::asset_identifier_from_library(StringRef relative_a
   return AssetIdentifier(root_path_, relative_asset_path);
 }
 
-void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
+void AssetLibrary::refresh_catalog_simplename(AssetMetaData *asset_data)
 {
   if (BLI_uuid_is_nil(asset_data->catalog_id)) {
     asset_data->catalog_simple_name[0] = '\0';
@@ -250,6 +315,16 @@ void AssetLibrary::refresh_catalog_simplename(struct AssetMetaData *asset_data)
     return;
   }
   STRNCPY(asset_data->catalog_simple_name, catalog->simple_name.c_str());
+}
+
+eAssetLibraryType AssetLibrary::library_type() const
+{
+  return library_type_;
+}
+
+StringRefNull AssetLibrary::name() const
+{
+  return name_;
 }
 
 StringRefNull AssetLibrary::root_path() const
@@ -267,9 +342,8 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
     result.append(library_ref);
   }
   int i;
-  LISTBASE_FOREACH_INDEX (
-      const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
-    if (!BLI_is_dir(asset_library->path)) {
+  LISTBASE_FOREACH_INDEX (const CustomAssetLibraryDefinition *, asset_library, &U.asset_libraries, i) {
+    if (!BLI_is_dir(asset_library->dirpath)) {
       continue;
     }
     AssetLibraryReference library_ref{};

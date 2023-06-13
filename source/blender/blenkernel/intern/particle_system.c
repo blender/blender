@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1034,10 +1035,7 @@ void psys_get_birth_coords(
 }
 
 /* recursively evaluate emitter parent anim at cfra */
-static void evaluate_emitter_anim(struct Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  Object *ob,
-                                  float cfra)
+static void evaluate_emitter_anim(Depsgraph *depsgraph, Scene *scene, Object *ob, float cfra)
 {
   if (ob->parent) {
     evaluate_emitter_anim(depsgraph, scene, ob->parent, cfra);
@@ -1077,7 +1075,8 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
     bpa->gravity[0] = bpa->gravity[1] = 0.0f;
     bpa->gravity[2] = -1.0f;
     if ((sim->scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) &&
-        (sim->scene->physics_settings.gravity[2] != 0.0f)) {
+        (sim->scene->physics_settings.gravity[2] != 0.0f))
+    {
       bpa->gravity[2] = sim->scene->physics_settings.gravity[2];
     }
 
@@ -1110,7 +1109,8 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
   pa->dietime = pa->time + pa->lifetime;
 
   if ((sim->psys->pointcache) && (sim->psys->pointcache->flag & PTCACHE_BAKED) &&
-      (sim->psys->pointcache->mem_cache.first)) {
+      (sim->psys->pointcache->mem_cache.first))
+  {
     float dietime = psys_get_dietime_from_cache(sim->psys->pointcache, p);
     pa->dietime = MIN2(pa->dietime, dietime);
   }
@@ -1355,26 +1355,24 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 {
   if (psys) {
     PARTICLE_P;
-    int totpart = 0;
 
     if (!psys->tree || psys->tree_frame != cfra) {
+      int totpart = 0;
       LOOP_SHOWN_PARTICLES
       {
-        totpart++;
+        if (pa->alive == PARS_ALIVE) {
+          totpart++;
+        }
       }
 
       BLI_kdtree_3d_free(psys->tree);
-      psys->tree = BLI_kdtree_3d_new(psys->totpart);
+      psys->tree = BLI_kdtree_3d_new(totpart);
 
       LOOP_SHOWN_PARTICLES
       {
         if (pa->alive == PARS_ALIVE) {
-          if (pa->state.time == cfra) {
-            BLI_kdtree_3d_insert(psys->tree, p, pa->prev_state.co);
-          }
-          else {
-            BLI_kdtree_3d_insert(psys->tree, p, pa->state.co);
-          }
+          const float *co = (pa->state.time == cfra) ? pa->prev_state.co : pa->state.co;
+          BLI_kdtree_3d_insert(psys->tree, p, co);
         }
       }
       BLI_kdtree_3d_balance(psys->tree);
@@ -1586,7 +1584,8 @@ static void sph_spring_delete(ParticleSystem *psys, int j)
   psys->tot_fluidsprings--;
 
   if (psys->tot_fluidsprings < psys->alloc_fluidsprings / 2 &&
-      psys->alloc_fluidsprings > PSYS_FLUID_SPRINGS_INITIAL_SIZE) {
+      psys->alloc_fluidsprings > PSYS_FLUID_SPRINGS_INITIAL_SIZE)
+  {
     psys->alloc_fluidsprings /= 2;
     psys->fluid_springs = (ParticleSpring *)MEM_reallocN(
         psys->fluid_springs, psys->alloc_fluidsprings * sizeof(ParticleSpring));
@@ -2281,7 +2280,8 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
   /* add global acceleration (gravitation) */
   if (psys_uses_gravity(sim) &&
       /* normal gravity is too strong for hair so it's disabled by default */
-      (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR)) {
+      (part->type != PART_HAIR || part->effector_weights->flag & EFF_WEIGHT_DO_HAIR))
+  {
     zero_v3(gr);
     madd_v3_v3fl(gr,
                  sim->scene->physics_settings.gravity,
@@ -2336,7 +2336,8 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
   }
 
   if ((part->flag & PART_ROT_DYN) &&
-      ELEM(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
+      ELEM(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL))
+  {
     float angle;
     float len1 = len_v3(pa->prev_state.vel);
     float len2 = len_v3(pa->state.vel);
@@ -3012,7 +3013,8 @@ static int collision_response(ParticleSimulationData *sim,
   /* calculate normal particle velocity */
   /* special case for object hitting the particle from behind */
   if (through == 0 && ((vc_dot > 0.0f && v0_dot > 0.0f && vc_dot > v0_dot) ||
-                       (vc_dot < 0.0f && v0_dot < 0.0f && vc_dot < v0_dot))) {
+                       (vc_dot < 0.0f && v0_dot < 0.0f && vc_dot < v0_dot)))
+  {
     mul_v3_v3fl(v0_nor, pce->nor, vc_dot);
   }
   else if (v0_dot > 0.0f) {
@@ -3155,7 +3157,8 @@ static void collision_check(ParticleSimulationData *sim, int p, float dfra, floa
       }
       else if (collision_response(
                    sim, pa, &col, &hit, part->flag & PART_DIE_ON_COL, part->flag & PART_ROT_DYN) ==
-               0) {
+               0)
+      {
         return;
       }
     }
@@ -3183,12 +3186,14 @@ static void psys_update_path_cache(ParticleSimulationData *sim,
 
   if ((psys->part->childtype &&
        psys->totchild != psys_get_tot_child(sim->scene, psys, use_render_params)) ||
-      psys->recalc & ID_RECALC_PSYS_RESET) {
+      psys->recalc & ID_RECALC_PSYS_RESET)
+  {
     alloc = 1;
   }
 
   if (alloc || psys->recalc & ID_RECALC_PSYS_CHILD ||
-      (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT))) {
+      (psys->vgroup[PSYS_VG_DENSITY] && (sim->ob && sim->ob->mode & OB_MODE_WEIGHT_PAINT)))
+  {
     distr = 1;
   }
 
@@ -3213,11 +3218,13 @@ static void psys_update_path_cache(ParticleSimulationData *sim,
   }
 
   if ((part->type == PART_HAIR || psys->flag & PSYS_KEYED ||
-       psys->pointcache->flag & PTCACHE_BAKED) == 0) {
+       psys->pointcache->flag & PTCACHE_BAKED) == 0)
+  {
     skip = 1; /* only hair, keyed and baked stuff can have paths */
   }
   else if (part->ren_as != PART_DRAW_PATH &&
-           !(part->type == PART_HAIR && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR))) {
+           !(part->type == PART_HAIR && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)))
+  {
     skip = 1; /* particle visualization must be set as path */
   }
   else if (DEG_get_mode(sim->depsgraph) != DAG_EVAL_RENDER) {
@@ -3232,7 +3239,8 @@ static void psys_update_path_cache(ParticleSimulationData *sim,
         skip = 1;
       }
       else if (part->childtype == 0 &&
-               (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) == 0) {
+               (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED) == 0)
+      {
         skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
       }
     }
@@ -3309,7 +3317,6 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
   ParticleSystem *psys = sim->psys;
   ParticleSettings *part = psys->part;
   Mesh *mesh;
-  MEdge *medge;
   MDeformVert *dvert;
   HairKey *key;
   PARTICLE_P;
@@ -3320,10 +3327,11 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
 
   mesh = *r_mesh;
   if (!mesh) {
-    *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
+    *r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0);
   }
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
-  medge = BKE_mesh_edges_for_write(mesh);
+  vec2i *edge = CustomData_get_layer_named_for_write(
+      &mesh->edata, CD_PROP_INT32_2D, ".edge_verts", mesh->totedge);
   dvert = BKE_mesh_deform_verts_for_write(mesh);
 
   if (psys->clmd->hairdata == NULL) {
@@ -3390,13 +3398,13 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
           sub_v3_v3(positions[vert_index], co_next);
           mul_m4_v3(hairmat, positions[vert_index]);
 
-          medge->v1 = pa->hair_index - 1;
-          medge->v2 = pa->hair_index;
+          edge->x = pa->hair_index - 1;
+          edge->y = pa->hair_index;
 
           dvert = hair_set_pinning(dvert, 1.0f);
 
           vert_index++;
-          medge++;
+          edge++;
         }
 
         /* store root transform in cloth data */
@@ -3411,8 +3419,8 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
         mul_m4_v3(hairmat, positions[vert_index]);
 
         if (k) {
-          medge->v1 = pa->hair_index + k - 1;
-          medge->v2 = pa->hair_index + k;
+          edge->x = pa->hair_index + k - 1;
+          edge->y = pa->hair_index + k;
         }
 
         /* roots and disabled hairs should be 1.0, the rest can be anything from 0.0 to 1.0 */
@@ -3425,7 +3433,7 @@ static void hair_create_input_mesh(ParticleSimulationData *sim,
 
         vert_index++;
         if (k) {
-          medge++;
+          edge++;
         }
       }
 
@@ -3441,7 +3449,6 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   EffectorWeights *clmd_effweights;
   int totpoint;
   int totedge;
-  float(*deformedVerts)[3];
   bool realloc_roots;
 
   if (!psys->clmd) {
@@ -3481,11 +3488,13 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
     }
   }
 
-  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
-
+  /* Free hair_out_mesh before modifying hair_in_mesh in hair_create_input_mesh() to avoid copying
+   * on write since they share some data */
   if (psys->hair_out_mesh) {
     BKE_id_free(NULL, psys->hair_out_mesh);
   }
+
+  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
 
   psys->clmd->point_cache = psys->pointcache;
   /* for hair sim we replace the internal cloth effector weights temporarily
@@ -3495,12 +3504,14 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
   BKE_id_copy_ex(NULL, &psys->hair_in_mesh->id, (ID **)&psys->hair_out_mesh, LIB_ID_COPY_LOCALIZE);
-  deformedVerts = BKE_mesh_vert_coords_alloc(psys->hair_out_mesh, NULL);
-  clothModifier_do(
-      psys->clmd, sim->depsgraph, sim->scene, sim->ob, psys->hair_in_mesh, deformedVerts);
-  BKE_mesh_vert_coords_apply(psys->hair_out_mesh, deformedVerts);
 
-  MEM_freeN(deformedVerts);
+  clothModifier_do(psys->clmd,
+                   sim->depsgraph,
+                   sim->scene,
+                   sim->ob,
+                   psys->hair_in_mesh,
+                   BKE_mesh_vert_positions_for_write(psys->hair_out_mesh));
+  BKE_mesh_tag_positions_changed(psys->hair_out_mesh);
 
   /* restore cloth effector weights */
   psys->clmd->sim_parms->effector_weights = clmd_effweights;
@@ -3880,8 +3891,8 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
       ParticleTarget *pt = psys->targets.first;
       psys_update_particle_bvhtree(psys, cfra);
 
-      for (; pt;
-           pt = pt->next) { /* Updating others systems particle tree for fluid-fluid interaction */
+      /* Updating others systems particle tree for fluid-fluid interaction. */
+      for (; pt; pt = pt->next) {
         if (pt->ob) {
           psys_update_particle_bvhtree(BLI_findlink(&pt->ob->particlesystem, pt->psys - 1), cfra);
         }
@@ -3924,15 +3935,16 @@ static void dynamics_step(ParticleSimulationData *sim, float cfra)
 
     /* Only reset unborn particles if they're shown or if the particle is born soon. */
     if (pa->alive == PARS_UNBORN &&
-        (part->flag & PART_UNBORN || (cfra + psys->pointcache->step > pa->time))) {
+        (part->flag & PART_UNBORN || (cfra + psys->pointcache->step > pa->time)))
+    {
       reset_particle(sim, pa, dtime, cfra);
     }
     else if (part->phystype == PART_PHYS_NO) {
       reset_particle(sim, pa, dtime, cfra);
     }
 
-    if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING) == 0 ||
-        (pa->flag & (PARS_UNEXIST | PARS_NO_DISP))) {
+    if (ELEM(pa->alive, PARS_ALIVE, PARS_DYING) == 0 || (pa->flag & (PARS_UNEXIST | PARS_NO_DISP)))
+    {
       pa->state.time = -1.0f;
     }
   }
@@ -4211,7 +4223,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           (particles_has_foam(part->type) &&
            (fds->particle_type & FLUID_DOMAIN_PARTICLE_FOAM) == 0) ||
           (particles_has_tracer(part->type) &&
-           (fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) == 0)) {
+           (fds->particle_type & FLUID_DOMAIN_PARTICLE_TRACER) == 0))
+      {
         BLI_snprintf(debugStrBuffer,
                      sizeof(debugStrBuffer),
                      "particles_fluid_step::error - found particle system that is not enabled in "
@@ -4224,7 +4237,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
         tottypepart = totpart = manta_liquid_get_num_flip_particles(fds->fluid);
       }
       if (particles_has_spray(part->type) || particles_has_bubble(part->type) ||
-          particles_has_foam(part->type) || particles_has_tracer(part->type)) {
+          particles_has_foam(part->type) || particles_has_tracer(part->type))
+      {
         totpart = manta_liquid_get_num_snd_particles(fds->fluid);
 
         /* tottypepart is the amount of particles of a snd particle type. */
@@ -4291,7 +4305,8 @@ static void particles_fluid_step(ParticleSimulationData *sim,
           velZ = manta_liquid_get_flip_particle_velocity_z_at(fds->fluid, p);
         }
         else if (particles_has_spray(part->type) || particles_has_bubble(part->type) ||
-                 particles_has_foam(part->type) || particles_has_tracer(part->type)) {
+                 particles_has_foam(part->type) || particles_has_tracer(part->type))
+        {
           flagActivePart = manta_liquid_get_snd_particle_flag_at(fds->fluid, p);
 
           resX = (float)manta_liquid_get_particle_res_x(fds->fluid);
@@ -4583,7 +4598,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     }
 
     for (dframe = -totframesback; dframe <= 0; dframe++) {
-      /* simulate each subframe */
+      /* Simulate each sub-frame. */
       dt_frac = psys->dt_frac;
       for (t_frac = dt_frac; t_frac <= 1.0f; t_frac += dt_frac) {
         sim->courant_num = 0.0f;
@@ -4728,7 +4743,8 @@ static int hair_needs_recalc(ParticleSystem *psys)
 {
   if (!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
       ((psys->flag & PSYS_HAIR_DONE) == 0 || psys->recalc & ID_RECALC_PSYS_RESET ||
-       (psys->part->flag & PART_HAIR_REGROW && !psys->edit))) {
+       (psys->part->flag & PART_HAIR_REGROW && !psys->edit)))
+  {
     return 1;
   }
 
@@ -4750,7 +4766,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
   MEM_freeN(particle_settings);
 }
 
-void particle_system_update(struct Depsgraph *depsgraph,
+void particle_system_update(Depsgraph *depsgraph,
                             Scene *scene,
                             Object *ob,
                             ParticleSystem *psys,
@@ -4867,7 +4883,8 @@ void particle_system_update(struct Depsgraph *depsgraph,
   }
   else if (particles_has_flip(part->type) || particles_has_spray(part->type) ||
            particles_has_bubble(part->type) || particles_has_foam(part->type) ||
-           particles_has_tracer(part->type)) {
+           particles_has_tracer(part->type))
+  {
     particles_fluid_step(&sim, (int)cfra, use_render_params);
   }
   else {
@@ -4989,6 +5006,8 @@ static void particlesystem_modifiersForeachIDLink(void *user_data,
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
   ParticleTarget *pt;
+  LibraryForeachIDData *foreachid_data = userdata;
+  const int foreachid_data_flags = BKE_lib_query_foreachid_process_flags_get(foreachid_data);
 
   func(psys, (ID **)&psys->part, userdata, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
   func(psys, (ID **)&psys->target_ob, userdata, IDWALK_CB_NOP);
@@ -5008,19 +5027,24 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
   }
 
-  /* Even though psys->part should never be NULL, this can happen as an exception during deletion.
-   * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
-  if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
+  /* In case `psys->part` is NULL (See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in
+   * #BKE_library_remap), or accessing it is forbidden, always handle particles for potential boids
+   * data. Unfortunate, but for now there is no other proper way to do this. */
+  if (!(psys->part && (foreachid_data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) ||
+      psys->part->phystype == PART_PHYS_BOIDS)
+  {
     ParticleData *pa;
     int p;
 
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
-      func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      if (pa->boid != NULL) {
+        func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      }
     }
   }
 }
 
-void BKE_particlesystem_reset_all(struct Object *object)
+void BKE_particlesystem_reset_all(Object *object)
 {
   for (ModifierData *md = object->modifiers.first; md != NULL; md = md->next) {
     if (md->type != eModifierType_ParticleSystem) {
@@ -5034,14 +5058,13 @@ void BKE_particlesystem_reset_all(struct Object *object)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_settings_eval_reset(struct Depsgraph *depsgraph,
-                                      ParticleSettings *particle_settings)
+void BKE_particle_settings_eval_reset(Depsgraph *depsgraph, ParticleSettings *particle_settings)
 {
   DEG_debug_print_eval(depsgraph, __func__, particle_settings->id.name, particle_settings);
   particle_settings->id.recalc |= ID_RECALC_PSYS_RESET;
 }
 
-void BKE_particle_system_eval_init(struct Depsgraph *depsgraph, Object *object)
+void BKE_particle_system_eval_init(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   for (ParticleSystem *psys = object->particlesystem.first; psys != NULL; psys = psys->next) {

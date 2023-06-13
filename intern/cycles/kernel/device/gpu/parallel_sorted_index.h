@@ -23,11 +23,6 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
 
-#  define atomic_store_local(p, x) \
-    atomic_store_explicit((threadgroup atomic_int *)p, x, memory_order_relaxed)
-#  define atomic_load_local(p) \
-    atomic_load_explicit((threadgroup atomic_int *)p, memory_order_relaxed)
-
 ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
                                                      const uint partition_size,
                                                      const uint max_shaders,
@@ -38,14 +33,20 @@ ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
                                                      ccl_gpu_shared int *buckets,
                                                      const ushort local_id,
                                                      const ushort local_size,
-                                                     const ushort grid_id)
+                                                     const uint grid_id)
 {
   /* Zero the bucket sizes. */
   if (local_id < max_shaders) {
     atomic_store_local(&buckets[local_id], 0);
   }
 
+#  ifdef __KERNEL_ONEAPI__
+  /* NOTE(@nsirgien): For us here only local memory writing (buckets) is important,
+   * so faster local barriers can be used. */
+  ccl_gpu_local_syncthreads();
+#  else
   ccl_gpu_syncthreads();
+#  endif
 
   /* Determine bucket sizes within the partitions. */
 
@@ -53,15 +54,22 @@ ccl_device_inline void gpu_parallel_sort_bucket_pass(const uint num_states,
   const uint partition_end = min(num_states, partition_start + partition_size);
 
   for (int state_index = partition_start + uint(local_id); state_index < partition_end;
-       state_index += uint(local_size)) {
+       state_index += uint(local_size))
+  {
     ushort kernel_index = d_queued_kernel[state_index];
     if (kernel_index == queued_kernel) {
       uint key = d_shader_sort_key[state_index] % max_shaders;
-      atomic_fetch_and_add_uint32(&buckets[key], 1);
+      atomic_fetch_and_add_uint32_shared(&buckets[key], 1);
     }
   }
 
+#  ifdef __KERNEL_ONEAPI__
+  /* NOTE(@nsirgien): For us here only local memory writing (buckets) is important,
+   * so faster local barriers can be used. */
+  ccl_gpu_local_syncthreads();
+#  else
   ccl_gpu_syncthreads();
+#  endif
 
   /* Calculate the partition's local offsets from the prefix sum of bucket sizes. */
 
@@ -89,7 +97,7 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
                                                     ccl_gpu_shared int *local_offset,
                                                     const ushort local_id,
                                                     const ushort local_size,
-                                                    const ushort grid_id)
+                                                    const uint grid_id)
 {
   /* Calculate each partition's global offset from the prefix sum of the active state counts per
    * partition. */
@@ -105,7 +113,13 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
     atomic_store_local(&local_offset[local_id], key_offsets[local_id] + partition_offset);
   }
 
+#  ifdef __KERNEL_ONEAPI__
+  /* NOTE(@nsirgien): For us here only local memory writing (local_offset) is important,
+   * so faster local barriers can be used. */
+  ccl_gpu_local_syncthreads();
+#  else
   ccl_gpu_syncthreads();
+#  endif
 
   /* Write the sorted active indices. */
 
@@ -115,11 +129,12 @@ ccl_device_inline void gpu_parallel_sort_write_pass(const uint num_states,
   ccl_global int *key_offsets = partition_key_offsets + (uint(grid_id) * max_shaders);
 
   for (int state_index = partition_start + uint(local_id); state_index < partition_end;
-       state_index += uint(local_size)) {
+       state_index += uint(local_size))
+  {
     ushort kernel_index = d_queued_kernel[state_index];
     if (kernel_index == queued_kernel) {
       uint key = d_shader_sort_key[state_index] % max_shaders;
-      int index = atomic_fetch_and_add_uint32(&local_offset[key], 1);
+      int index = atomic_fetch_and_add_uint32_shared(&local_offset[key], 1);
       if (index < num_states_limit) {
         indices[index] = state_index;
       }

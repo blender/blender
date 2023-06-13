@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -518,6 +519,7 @@ typedef struct wmNotifier {
 #define NS_MODE_POSE (9 << 8)
 #define NS_MODE_PARTICLE (10 << 8)
 #define NS_EDITMODE_CURVES (11 << 8)
+#define NS_EDITMODE_GREASE_PENCIL (12 << 8)
 
 /* subtype 3d view editing */
 #define NS_VIEW3D_GPU (16 << 8)
@@ -568,7 +570,7 @@ typedef struct wmGesture {
   /** optional, maximum amount of points stored. */
   int points_alloc;
   int modal_state;
-  /** optional, draw the active side of the straightline gesture. */
+  /** Optional, draw the active side of the straight-line gesture. */
   bool draw_active_side;
 
   /**
@@ -620,10 +622,18 @@ typedef enum eWM_EventFlag {
    */
   WM_EVENT_IS_REPEAT = (1 << 1),
   /**
+   * Generated for consecutive track-pad or NDOF-motion events,
+   * the repeat chain is broken by key/button events,
+   * or cursor motion exceeding #WM_EVENT_CURSOR_MOTION_THRESHOLD.
+   *
+   * Changing the type of track-pad or gesture event also breaks the chain.
+   */
+  WM_EVENT_IS_CONSECUTIVE = (1 << 2),
+  /**
    * Mouse-move events may have this flag set to force creating a click-drag event
    * even when the threshold has not been met.
    */
-  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 2),
+  WM_EVENT_FORCE_DRAG_THRESHOLD = (1 << 3),
 } eWM_EventFlag;
 ENUM_OPERATORS(eWM_EventFlag, WM_EVENT_FORCE_DRAG_THRESHOLD);
 
@@ -718,7 +728,18 @@ typedef struct wmEvent {
   /** Custom data type, stylus, 6-DOF, see `wm_event_types.h`. */
   short custom;
   short customdata_free;
-  /** Ascii, unicode, mouse-coords, angles, vectors, NDOF data, drag-drop info. */
+  /**
+   * The #wmEvent::type implies the following #wmEvent::custodata.
+   *
+   * - #EVT_ACTIONZONE_AREA / #EVT_ACTIONZONE_FULLSCREEN / #EVT_ACTIONZONE_FULLSCREEN:
+   *   Uses #sActionzoneData.
+   * - #EVT_DROP: uses #ListBase of #wmDrag (also #wmEvent::custom == #EVT_DATA_DRAGDROP).
+   *   Typically set to #wmWindowManger::drags.
+   * - #EVT_FILESELECT: uses #wmOperator.
+   * - #EVT_XR_ACTION: uses #wmXrActionData (also #wmEvent::custom == #EVT_DATA_XR).
+   * - #NDOF_MOTION: uses #wmNDOFMotionData (also #wmEvent::custom == #EVT_DATA_NDOF_MOTION).
+   * - #TIMER: uses #wmTimer (also #wmEvent::custom == #EVT_DATA_TIMER).
+   */
   void *customdata;
 
   /* Previous State. */
@@ -761,7 +782,7 @@ typedef struct wmEvent {
  *
  * Always check for <= this value since it may be zero.
  */
-#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * U.dpi_fac)
+#define WM_EVENT_CURSOR_MOTION_THRESHOLD ((float)U.move_threshold * UI_SCALE_FAC)
 
 /** Motion progress, for modal handlers. */
 typedef enum {
@@ -853,6 +874,11 @@ typedef struct wmXrActionData {
 typedef enum {
   /** Do not attempt to free custom-data pointer even if non-NULL. */
   WM_TIMER_NO_FREE_CUSTOM_DATA = 1 << 0,
+
+  /* Internal flags, should not be used outside of WM code. */
+  /** This timer has been tagged for removal and deletion, handled by WM code to ensure timers are
+   * deleted in a safe context. */
+  WM_TIMER_TAGGED_FOR_REMOVAL = 1 << 16,
 } wmTimerFlags;
 
 typedef struct wmTimer {
@@ -886,10 +912,11 @@ typedef struct wmTimer {
 } wmTimer;
 
 typedef struct wmOperatorType {
-  /** Text for UI, undo. */
+  /** Text for UI, undo (should not exceed #OP_MAX_TYPENAME). */
   const char *name;
-  /** Unique identifier. */
+  /** Unique identifier (must not exceed #OP_MAX_TYPENAME). */
   const char *idname;
+  /** Translation context (must not exceed #BKE_ST_MAXNAME) */
   const char *translation_context;
   /** Use for tool-tips and Python docs. */
   const char *description;
@@ -1042,19 +1069,21 @@ typedef void (*wmPaintCursorDraw)(struct bContext *C, int, int, void *customdata
 
 /* *************** Drag and drop *************** */
 
-#define WM_DRAG_ID 0
-#define WM_DRAG_ASSET 1
-/** The user is dragging multiple assets. This is only supported in few specific cases, proper
- * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
- * #WM_DRAG_ASSET. */
-#define WM_DRAG_ASSET_LIST 2
-#define WM_DRAG_RNA 3
-#define WM_DRAG_PATH 4
-#define WM_DRAG_NAME 5
-#define WM_DRAG_VALUE 6
-#define WM_DRAG_COLOR 7
-#define WM_DRAG_DATASTACK 8
-#define WM_DRAG_ASSET_CATALOG 9
+typedef enum eWM_DragDataType {
+  WM_DRAG_ID,
+  WM_DRAG_ASSET,
+  /** The user is dragging multiple assets. This is only supported in few specific cases, proper
+   * multi-item support for dragging isn't supported well yet. Therefore this is kept separate from
+   * #WM_DRAG_ASSET. */
+  WM_DRAG_ASSET_LIST,
+  WM_DRAG_RNA,
+  WM_DRAG_PATH,
+  WM_DRAG_NAME,
+  WM_DRAG_VALUE,
+  WM_DRAG_COLOR,
+  WM_DRAG_DATASTACK,
+  WM_DRAG_ASSET_CATALOG,
+} eWM_DragDataType;
 
 typedef enum eWM_DragFlags {
   WM_DRAG_NOP = 0,
@@ -1071,15 +1100,8 @@ typedef struct wmDragID {
 } wmDragID;
 
 typedef struct wmDragAsset {
-  /* NOTE: Can't store the #AssetHandle here, since the #FileDirEntry it wraps may be freed while
-   * dragging. So store necessary data here directly. */
-
-  char name[64]; /* MAX_NAME */
-  /* Always freed. */
-  const char *path;
-  int id_type;
-  struct AssetMetaData *metadata;
   int import_method; /* eAssetImportType */
+  const struct AssetRepresentation *asset;
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.
@@ -1112,32 +1134,48 @@ typedef struct wmDragAssetListItem {
   bool is_external;
 } wmDragAssetListItem;
 
+typedef struct wmDragPath {
+  char *path;
+  /* Note that even though the enum type uses bit-flags, this should never have multiple type-bits
+   * set, so `ELEM()` like comparison is possible. */
+  int file_type; /* eFileSel_File_Types */
+} wmDragPath;
+
 typedef char *(*WMDropboxTooltipFunc)(struct bContext *,
                                       struct wmDrag *,
                                       const int xy[2],
                                       struct wmDropBox *drop);
 
 typedef struct wmDragActiveDropState {
-  /** Informs which dropbox is activated with the drag item.
+  /**
+   * Informs which dropbox is activated with the drag item.
    * When this value changes, the #draw_activate and #draw_deactivate dropbox callbacks are
    * triggered.
    */
   struct wmDropBox *active_dropbox;
 
-  /** If `active_dropbox` is set, the area it successfully polled in. To restore the context of it
-   * as needed. */
+  /**
+   * If `active_dropbox` is set, the area it successfully polled in.
+   * To restore the context of it as needed.
+   */
   struct ScrArea *area_from;
-  /** If `active_dropbox` is set, the region it successfully polled in. To restore the context of
-   * it as needed. */
+  /**
+   * If `active_dropbox` is set, the region it successfully polled in.
+   * To restore the context of it as needed.
+   */
   struct ARegion *region_from;
 
-  /** If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
-   * Activated before context sensitive operations (polling, drawing, dropping). */
+  /**
+   * If `active_dropbox` is set, additional context provided by the active (i.e. hovered) button.
+   * Activated before context sensitive operations (polling, drawing, dropping).
+   */
   struct bContextStore *ui_context;
 
-  /** Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
+  /**
+   * Text to show when a dropbox poll succeeds (so the dropbox itself is available) but the
    * operator poll fails. Typically the message the operator set with
-   * CTX_wm_operator_poll_msg_set(). */
+   * #CTX_wm_operator_poll_msg_set().
+   */
   const char *disabled_info;
   bool free_disabled_info;
 } wmDragActiveDropState;
@@ -1146,10 +1184,8 @@ typedef struct wmDrag {
   struct wmDrag *next, *prev;
 
   int icon;
-  /** See 'WM_DRAG_' defines above. */
-  int type;
+  eWM_DragDataType type;
   void *poin;
-  char path[1024]; /* FILE_MAX */
   double value;
 
   /** If no icon but imbuf should be drawn around cursor. */

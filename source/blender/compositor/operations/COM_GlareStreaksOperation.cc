@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GlareStreaksOperation.h"
 
@@ -10,7 +11,7 @@ void GlareStreaksOperation::generate_glare(float *data,
                                            const NodeGlare *settings)
 {
   int x, y, n;
-  uint nump = 0;
+  // uint nump = 0; /* UNUSED. */
   float c1[4], c2[4], c3[4], c4[4];
   float a, ang = DEG2RADF(360.0f) / float(settings->streaks);
 
@@ -80,7 +81,7 @@ void GlareStreaksOperation::generate_glare(float *data,
 
     tdst.clear();
     memcpy(tsrc.get_buffer(), input_tile->get_buffer(), sizeof(float) * size4);
-    nump++;
+    // nump++; /* UNUSED. */
   }
 }
 

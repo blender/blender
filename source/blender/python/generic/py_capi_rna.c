@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -200,7 +202,8 @@ int pyrna_enum_value_parse_string(PyObject *o, void *p)
   }
   struct BPy_EnumProperty_Parse *parse_data = p;
   if (pyrna_enum_value_from_id(
-          parse_data->items, identifier, &parse_data->value, "enum identifier") == -1) {
+          parse_data->items, identifier, &parse_data->value, "enum identifier") == -1)
+  {
     return 0;
   }
 
@@ -218,7 +221,8 @@ int pyrna_enum_bitfield_parse_set(PyObject *o, void *p)
 
   struct BPy_EnumProperty_Parse *parse_data = p;
   if (pyrna_enum_bitfield_from_set(
-          parse_data->items, o, &parse_data->value, "enum identifier set") == -1) {
+          parse_data->items, o, &parse_data->value, "enum identifier set") == -1)
+  {
     return 0;
   }
   parse_data->value_orig = o;

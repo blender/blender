@@ -10,17 +10,11 @@
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_AVX__
-__forceinline vint8::vint8()
-{
-}
+__forceinline vint8::vint8() {}
 
-__forceinline vint8::vint8(const vint8 &a) : m256(a.m256)
-{
-}
+__forceinline vint8::vint8(const vint8 &a) : m256(a.m256) {}
 
-__forceinline vint8::vint8(const __m256i &a) : m256(a)
-{
-}
+__forceinline vint8::vint8(const __m256i &a) : m256(a) {}
 
 __forceinline vint8::operator const __m256i &() const
 {

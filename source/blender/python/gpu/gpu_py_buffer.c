@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -46,7 +48,8 @@ static bool pygpu_buffer_dimensions_tot_len_compare(const Py_ssize_t *shape_a,
                                                     const Py_ssize_t shape_b_len)
 {
   if (pygpu_buffer_dimensions_tot_elem(shape_a, shape_a_len) !=
-      pygpu_buffer_dimensions_tot_elem(shape_b, shape_b_len)) {
+      pygpu_buffer_dimensions_tot_elem(shape_b, shape_b_len))
+  {
     PyErr_Format(PyExc_BufferError, "array size does not match");
     return false;
   }
@@ -382,7 +385,8 @@ static PyObject *pygpu_buffer__tp_new(PyTypeObject *UNUSED(type), PyObject *args
 
   const struct PyC_StringEnum pygpu_dataformat = {bpygpu_dataformat_items, GPU_DATA_FLOAT};
   if (!PyArg_ParseTuple(
-          args, "O&O|O: Buffer", PyC_ParseStringEnum, &pygpu_dataformat, &length_ob, &init)) {
+          args, "O&O|O: Buffer", PyC_ParseStringEnum, &pygpu_dataformat, &length_ob, &init))
+  {
     return NULL;
   }
 
@@ -592,7 +596,7 @@ static PySequenceMethods pygpu_buffer__tp_as_sequence = {
 };
 
 static PyMappingMethods pygpu_buffer__tp_as_mapping = {
-    /*mp_len*/ (lenfunc)pygpu_buffer__sq_length,
+    /*mp_length*/ (lenfunc)pygpu_buffer__sq_length,
     /*mp_subscript*/ (binaryfunc)pygpu_buffer__mp_subscript,
     /*mp_ass_subscript*/ (objobjargproc)pygpu_buffer__mp_ass_subscript,
 };

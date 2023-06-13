@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -23,7 +25,6 @@ void ED_operatortypes_asset(void);
 #endif
 
 #include "../asset/ED_asset_catalog.h"
-#include "../asset/ED_asset_filter.h"
 #include "../asset/ED_asset_handle.h"
 #include "../asset/ED_asset_library.h"
 #include "../asset/ED_asset_list.h"
@@ -34,5 +35,7 @@ void ED_operatortypes_asset(void);
 /* C++ only headers. */
 #ifdef __cplusplus
 #  include "../asset/ED_asset_catalog.hh"
+#  include "../asset/ED_asset_filter.hh"
+#  include "../asset/ED_asset_import.hh"
 #  include "../asset/ED_asset_list.hh"
 #endif

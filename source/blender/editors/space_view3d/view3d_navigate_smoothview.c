@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -270,7 +272,8 @@ void ED_view3d_smooth_view_ex(
       (sms.dst.lens == v3d->lens) &&            /* Lens. */
       equals_v3v3(sms.dst.ofs, rv3d->ofs) &&    /* Offset. */
       equals_v4v4(sms.dst.quat, rv3d->viewquat) /* Rotation. */
-  ) {
+  )
+  {
     /* Early return if nothing changed. */
     return;
   }
@@ -365,7 +368,7 @@ void ED_view3d_smooth_view(bContext *C,
                            View3D *v3d,
                            ARegion *region,
                            const int smooth_viewtx,
-                           const struct V3D_SmoothParams *sview)
+                           const V3D_SmoothParams *sview)
 {
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -373,7 +376,7 @@ void ED_view3d_smooth_view(bContext *C,
   ScrArea *area = CTX_wm_area(C);
 
   /* #ED_view3d_smooth_view_ex asserts this is not set as it doesn't support undo. */
-  struct V3D_SmoothParams sview_no_undo = *sview;
+  V3D_SmoothParams sview_no_undo = *sview;
   sview_no_undo.undo_str = NULL;
   sview_no_undo.undo_grouped = false;
 

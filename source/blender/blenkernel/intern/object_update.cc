@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -8,7 +9,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -29,8 +30,10 @@
 #include "BKE_displist.h"
 #include "BKE_editmesh.h"
 #include "BKE_effect.h"
-#include "BKE_gpencil.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_legacy.h"
+#include "BKE_gpencil_modifier_legacy.h"
+#include "BKE_grease_pencil.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -38,7 +41,7 @@
 #include "BKE_light.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -49,7 +52,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_light_linking.hh"
 #include "DEG_depsgraph_query.h"
+
+namespace deg = blender::deg;
 
 void BKE_object_eval_reset(Object *ob_eval)
 {
@@ -181,7 +187,7 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_LATTICE:
       BKE_lattice_modifiers_calc(depsgraph, scene, ob);
       break;
-    case OB_GPENCIL: {
+    case OB_GPENCIL_LEGACY: {
       BKE_gpencil_prepare_eval_data(depsgraph, scene, ob);
       BKE_gpencil_modifiers_calc(depsgraph, scene, ob);
       BKE_gpencil_update_layer_transforms(depsgraph, ob);
@@ -196,6 +202,9 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
     case OB_VOLUME:
       BKE_volume_data_update(depsgraph, scene, ob);
       break;
+    case OB_GREASE_PENCIL:
+      BKE_grease_pencil_data_update(depsgraph, scene, ob);
+      break;
   }
 
   /* particles */
@@ -209,7 +218,8 @@ void BKE_object_handle_data_update(Depsgraph *depsgraph, Scene *scene, Object *o
         /* check use of dupli objects here */
         if (psys->part && (psys->part->draw_as == PART_DRAW_REND || use_render_params) &&
             ((psys->part->ren_as == PART_DRAW_OB && psys->part->instance_object) ||
-             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection))) {
+             (psys->part->ren_as == PART_DRAW_GR && psys->part->instance_collection)))
+        {
           ob->transflag |= OB_DUPLIPARTS;
         }
 
@@ -265,7 +275,8 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   for (ModifierData *md = static_cast<ModifierData *>(object->modifiers.first),
                     *md_orig = static_cast<ModifierData *>(object_orig->modifiers.first);
        md != nullptr && md_orig != nullptr;
-       md = md->next, md_orig = md_orig->next) {
+       md = md->next, md_orig = md_orig->next)
+  {
     BLI_assert(md->type == md_orig->type && STREQ(md->name, md_orig->name));
     MEM_SAFE_FREE(md_orig->error);
     if (md->error != nullptr) {
@@ -276,23 +287,21 @@ void BKE_object_sync_to_original(Depsgraph *depsgraph, Object *object)
   object_sync_boundbox_to_original(object_orig, object);
 }
 
-void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/)
-{
-}
+void BKE_object_eval_uber_transform(Depsgraph * /*depsgraph*/, Object * /*object*/) {}
 
 void BKE_object_batch_cache_dirty_tag(Object *ob)
 {
   switch (ob->type) {
     case OB_MESH:
-      BKE_mesh_batch_cache_dirty_tag((struct Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+      BKE_mesh_batch_cache_dirty_tag((Mesh *)ob->data, BKE_MESH_BATCH_DIRTY_ALL);
       break;
     case OB_LATTICE:
-      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
+      BKE_lattice_batch_cache_dirty_tag((Lattice *)ob->data, BKE_LATTICE_BATCH_DIRTY_ALL);
       break;
     case OB_CURVES_LEGACY:
     case OB_SURF:
     case OB_FONT:
-      BKE_curve_batch_cache_dirty_tag((struct Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
+      BKE_curve_batch_cache_dirty_tag((Curve *)ob->data, BKE_CURVE_BATCH_DIRTY_ALL);
       break;
     case OB_MBALL: {
       /* This function is currently called on original objects, so to properly
@@ -303,18 +312,21 @@ void BKE_object_batch_cache_dirty_tag(Object *ob)
       }
       break;
     }
-    case OB_GPENCIL:
-      BKE_gpencil_batch_cache_dirty_tag((struct bGPdata *)ob->data);
+    case OB_GPENCIL_LEGACY:
+      BKE_gpencil_batch_cache_dirty_tag((bGPdata *)ob->data);
       break;
     case OB_CURVES:
-      BKE_curves_batch_cache_dirty_tag((struct Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
+      BKE_curves_batch_cache_dirty_tag((Curves *)ob->data, BKE_CURVES_BATCH_DIRTY_ALL);
       break;
     case OB_POINTCLOUD:
-      BKE_pointcloud_batch_cache_dirty_tag((struct PointCloud *)ob->data,
-                                           BKE_POINTCLOUD_BATCH_DIRTY_ALL);
+      BKE_pointcloud_batch_cache_dirty_tag((PointCloud *)ob->data, BKE_POINTCLOUD_BATCH_DIRTY_ALL);
       break;
     case OB_VOLUME:
-      BKE_volume_batch_cache_dirty_tag((struct Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
+      BKE_volume_batch_cache_dirty_tag((Volume *)ob->data, BKE_VOLUME_BATCH_DIRTY_ALL);
+      break;
+    case OB_GREASE_PENCIL:
+      BKE_grease_pencil_batch_cache_dirty_tag((GreasePencil *)ob->data,
+                                              BKE_GREASEPENCIL_BATCH_DIRTY_ALL);
       break;
     default:
       break;
@@ -360,8 +372,7 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
       BKE_curve_batch_cache_dirty_tag((Curve *)object_data, BKE_CURVE_BATCH_DIRTY_SELECT);
       break;
     case ID_LT:
-      BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
-                                        BKE_LATTICE_BATCH_DIRTY_SELECT);
+      BKE_lattice_batch_cache_dirty_tag((Lattice *)object_data, BKE_LATTICE_BATCH_DIRTY_SELECT);
       break;
     default:
       break;
@@ -427,7 +438,8 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
   if (object->mode == OB_MODE_PARTICLE_EDIT) {
     for (ParticleSystem *psys = static_cast<ParticleSystem *>(object->particlesystem.first);
          psys != nullptr;
-         psys = psys->next) {
+         psys = psys->next)
+    {
       BKE_particle_batch_cache_dirty_tag(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
     }
   }
@@ -439,4 +451,10 @@ void BKE_object_eval_eval_base_flags(Depsgraph *depsgraph,
     BLI_assert(base_orig->object != nullptr);
     base_orig->flag = base->flag;
   }
+}
+
+void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object)
+{
+  DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+  deg::light_linking::eval_runtime_data(depsgraph, *object);
 }

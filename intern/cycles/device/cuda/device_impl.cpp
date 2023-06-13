@@ -35,7 +35,7 @@ bool CUDADevice::have_precompiled_kernels()
   return path_exists(cubins_path);
 }
 
-BVHLayoutMask CUDADevice::get_bvh_layout_mask() const
+BVHLayoutMask CUDADevice::get_bvh_layout_mask(uint /*kernel_features*/) const
 {
   return BVH_LAYOUT_BVH2;
 }
@@ -333,7 +333,8 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     return string();
   }
   else if (!(nvcc_cuda_version == 101 || nvcc_cuda_version == 102 || nvcc_cuda_version == 111 ||
-             nvcc_cuda_version == 112 || nvcc_cuda_version == 113 || nvcc_cuda_version == 114)) {
+             nvcc_cuda_version == 112 || nvcc_cuda_version == 113 || nvcc_cuda_version == 114))
+  {
     printf(
         "CUDA version %d.%d detected, build may succeed but only "
         "CUDA 10.1 to 11.4 are officially supported.\n",
@@ -536,12 +537,11 @@ void CUDADevice::free_host(void *shared_pointer)
   cuMemFreeHost(shared_pointer);
 }
 
-bool CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
+void CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_pointer)
 {
   CUDAContextScope scope(this);
 
   cuda_assert(cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, shared_pointer, 0));
-  return true;
 }
 
 void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
@@ -848,7 +848,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
   if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
       mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16) {
+      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
+  {
     CUDA_RESOURCE_DESC resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 

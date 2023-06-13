@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -10,19 +12,18 @@ namespace blender::nodes::node_geo_input_instance_rotation_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Rotation")).field_source();
+  b.add_output<decl::Vector>("Rotation").field_source();
 }
 
 class InstanceRotationFieldInput final : public bke::InstancesFieldInput {
  public:
-  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation")
-  {
-  }
+  InstanceRotationFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Rotation") {}
 
-  GVArray get_varray_for_context(const bke::Instances &instances, IndexMask /*mask*/) const final
+  GVArray get_varray_for_context(const bke::Instances &instances,
+                                 const IndexMask & /*mask*/) const final
   {
     auto rotation_fn = [&](const int i) -> float3 {
-      return float3(math::to_euler(instances.transforms()[i]));
+      return float3(math::to_euler(math::normalize(instances.transforms()[i])));
     };
 
     return VArray<float3>::ForFunc(instances.instances_num(), rotation_fn);

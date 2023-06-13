@@ -1,10 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -17,36 +19,36 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshCylinder)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertices"))
+  b.add_input<decl::Int>("Vertices")
       .default_value(32)
       .min(3)
       .max(512)
-      .description(N_("The number of vertices on the top and bottom circles"));
-  b.add_input<decl::Int>(N_("Side Segments"))
+      .description("The number of vertices on the top and bottom circles");
+  b.add_input<decl::Int>("Side Segments")
       .default_value(1)
       .min(1)
       .max(512)
-      .description(N_("The number of rectangular segments along each side"));
-  b.add_input<decl::Int>(N_("Fill Segments"))
+      .description("The number of rectangular segments along each side");
+  b.add_input<decl::Int>("Fill Segments")
       .default_value(1)
       .min(1)
       .max(512)
-      .description(N_("The number of concentric rings used to fill the round faces"));
-  b.add_input<decl::Float>(N_("Radius"))
+      .description("The number of concentric rings used to fill the round faces");
+  b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The radius of the cylinder"));
-  b.add_input<decl::Float>(N_("Depth"))
+      .description("The radius of the cylinder");
+  b.add_input<decl::Float>("Depth")
       .default_value(2.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("The height of the cylinder"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
-  b.add_output<decl::Bool>(N_("Top")).field_on_all();
-  b.add_output<decl::Bool>(N_("Side")).field_on_all();
-  b.add_output<decl::Bool>(N_("Bottom")).field_on_all();
-  b.add_output<decl::Vector>(N_("UV Map")).field_on_all();
+      .description("The height of the cylinder");
+  b.add_output<decl::Geometry>("Mesh");
+  b.add_output<decl::Bool>("Top").field_on_all();
+  b.add_output<decl::Bool>("Side").field_on_all();
+  b.add_output<decl::Bool>("Bottom").field_on_all();
+  b.add_output<decl::Vector>("UV Map").field_on_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -74,7 +76,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   const NodeGeometryMeshCylinder &storage = node_storage(*node);
   const GeometryNodeMeshCircleFillType fill = (GeometryNodeMeshCircleFillType)storage.fill_type;
   const bool has_fill = fill != GEO_NODE_MESH_CIRCLE_FILL_NONE;
-  nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
+  bke::nodeSetSocketAvailability(ntree, fill_subdiv_socket, has_fill);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -121,29 +123,6 @@ static void node_geo_exec(GeoNodeExecParams params)
                                             fill_segments,
                                             fill,
                                             attribute_outputs);
-
-  if (attribute_outputs.top_id) {
-    params.set_output("Top",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.top_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.bottom_id) {
-    params.set_output(
-        "Bottom",
-        AnonymousAttributeFieldInput::Create<bool>(std::move(attribute_outputs.bottom_id),
-                                                   params.attribute_producer_name()));
-  }
-  if (attribute_outputs.side_id) {
-    params.set_output("Side",
-                      AnonymousAttributeFieldInput::Create<bool>(
-                          std::move(attribute_outputs.side_id), params.attribute_producer_name()));
-  }
-  if (attribute_outputs.uv_map_id) {
-    params.set_output(
-        "UV Map",
-        AnonymousAttributeFieldInput::Create<float3>(std::move(attribute_outputs.uv_map_id),
-                                                     params.attribute_producer_name()));
-  }
 
   params.set_output("Mesh", GeometrySet::create_with_mesh(mesh));
 }

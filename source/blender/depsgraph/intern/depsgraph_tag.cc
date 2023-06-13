@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -30,7 +31,7 @@
 #include "BKE_anim_data.h"
 #include "BKE_global.h"
 #include "BKE_idtype.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
@@ -71,7 +72,7 @@ void depsgraph_geometry_tag_to_component(const ID *id, NodeType *component_type)
 
 bool is_selectable_data_id_type(const ID_Type id_type)
 {
-  return ELEM(id_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_GD, ID_CV, ID_PT, ID_VO);
+  return ELEM(id_type, ID_ME, ID_CU_LEGACY, ID_MB, ID_LT, ID_GD_LEGACY, ID_CV, ID_PT, ID_VO);
 }
 
 void depsgraph_select_tag_to_component_opcode(const ID *id,
@@ -217,7 +218,11 @@ void depsgraph_tag_to_component_opcode(const ID *id,
       *operation_code = OperationCode::NTREE_OUTPUT;
       break;
 
-    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_HIERARCHY:
+      *component_type = NodeType::HIERARCHY;
+      *operation_code = OperationCode::HIERARCHY;
+      break;
+
     case ID_RECALC_PROVISION_27:
     case ID_RECALC_PROVISION_28:
     case ID_RECALC_PROVISION_29:
@@ -585,10 +590,11 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_FONT:
         case OB_LATTICE:
         case OB_MBALL:
-        case OB_GPENCIL:
+        case OB_GPENCIL_LEGACY:
         case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:
+        case OB_GREASE_PENCIL:
           return NodeType::GEOMETRY;
         case OB_ARMATURE:
           return NodeType::EVAL_POSE;
@@ -609,12 +615,14 @@ NodeType geometry_tag_to_component(const ID *id)
       return NodeType::UNDEFINED;
     case ID_LP:
       return NodeType::PARAMETERS;
-    case ID_GD:
+    case ID_GD_LEGACY:
       return NodeType::GEOMETRY;
     case ID_PAL: /* Palettes */
       return NodeType::PARAMETERS;
     case ID_MSK:
       return NodeType::PARAMETERS;
+    case ID_GP:
+      return NodeType::GEOMETRY;
     default:
       break;
   }
@@ -749,7 +757,9 @@ const char *DEG_update_tag_as_string(IDRecalcFlag flag)
     case ID_RECALC_NTREE_OUTPUT:
       return "ID_RECALC_NTREE_OUTPUT";
 
-    case ID_RECALC_PROVISION_26:
+    case ID_RECALC_HIERARCHY:
+      return "ID_RECALC_HIERARCHY";
+
     case ID_RECALC_PROVISION_27:
     case ID_RECALC_PROVISION_28:
     case ID_RECALC_PROVISION_29:
@@ -780,23 +790,20 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, uint flags)
   deg::id_tag_update(bmain, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_graph_id_tag_update(struct Main *bmain,
-                             struct Depsgraph *depsgraph,
-                             struct ID *id,
-                             uint flags)
+void DEG_graph_id_tag_update(Main *bmain, Depsgraph *depsgraph, ID *id, uint flags)
 {
   deg::Depsgraph *graph = (deg::Depsgraph *)depsgraph;
   deg::graph_id_tag_update(bmain, graph, id, flags, deg::DEG_UPDATE_SOURCE_USER_EDIT);
 }
 
-void DEG_time_tag_update(struct Main *bmain)
+void DEG_time_tag_update(Main *bmain)
 {
   for (deg::Depsgraph *depsgraph : deg::get_all_registered_graphs(bmain)) {
     DEG_graph_time_tag_update(reinterpret_cast<::Depsgraph *>(depsgraph));
   }
 }
 
-void DEG_graph_time_tag_update(struct Depsgraph *depsgraph)
+void DEG_graph_time_tag_update(Depsgraph *depsgraph)
 {
   deg::Depsgraph *deg_graph = reinterpret_cast<deg::Depsgraph *>(depsgraph);
   deg_graph->tag_time_source();

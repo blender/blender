@@ -1,4 +1,4 @@
-// Copyright 2020 Blender Foundation. All rights reserved.
+// Copyright 2020 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,13 +23,9 @@
 namespace blender {
 namespace opensubdiv {
 
-MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0)
-{
-}
+MeshTopology::MeshTopology() : num_vertices_(0), num_edges_(0), num_faces_(0) {}
 
-MeshTopology::~MeshTopology()
-{
-}
+MeshTopology::~MeshTopology() {}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Vertices.

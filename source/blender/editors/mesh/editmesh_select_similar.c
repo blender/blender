@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -75,7 +76,6 @@ static const EnumPropertyItem prop_similar_types[] = {
     {SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
     {SIMFACE_COPLANAR, "COPLANAR", 0, "Coplanar", ""},
     {SIMFACE_SMOOTH, "SMOOTH", 0, "Flat/Smooth", ""},
-    {SIMFACE_FACEMAP, "FACE_MAP", 0, "Face Map", ""},
 #ifdef WITH_FREESTYLE
     {SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
 #endif
@@ -176,7 +176,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   KDTree_3d *tree_3d = NULL;
   KDTree_4d *tree_4d = NULL;
   GSet *gset = NULL;
-  GSet **gset_array = NULL;
   int face_data_value = SIMFACE_DATA_NONE;
 
   switch (type) {
@@ -194,10 +193,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     case SIMFACE_MATERIAL:
       gset = BLI_gset_ptr_new("Select similar face");
       break;
-    case SIMFACE_FACEMAP:
-      gset_array = MEM_callocN(sizeof(GSet *) * objects_len,
-                               "Select similar face: facemap gset array");
-      break;
   }
 
   int tree_index = 0;
@@ -207,7 +202,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     Material ***material_array = NULL;
     invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    int custom_data_offset = 0;
 
     if (bm->totfacesel == 0) {
       continue;
@@ -230,13 +224,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
-        gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
       }
     }
 
@@ -300,12 +287,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             }
             break;
           }
-          case SIMFACE_FACEMAP: {
-            BLI_assert(custom_data_offset != -1);
-            int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            BLI_gset_add(gset_array[ob_index], face_map);
-            break;
-          }
         }
       }
     }
@@ -332,7 +313,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     bool changed = false;
     Material ***material_array = NULL;
-    int custom_data_offset;
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world);
@@ -352,12 +332,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
       }
     }
 
@@ -435,7 +409,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             if (BLI_kdtree_4d_find_nearest(tree_4d, plane, &nearest) != -1) {
               if (nearest.dist <= thresh) {
                 if ((fabsf(plane[3] - nearest.co[3]) <= thresh) &&
-                    (angle_v3v3(plane, nearest.co) <= thresh_radians)) {
+                    (angle_v3v3(plane, nearest.co) <= thresh_radians))
+                {
                   select = true;
                 }
               }
@@ -459,20 +434,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
             fface = CustomData_bmesh_get(&bm->pdata, face->head.data, CD_FREESTYLE_FACE);
             if (((fface != NULL) && (fface->flag & FREESTYLE_FACE_MARK)) ==
-                ((face_data_value & SIMFACE_DATA_TRUE) != 0)) {
+                ((face_data_value & SIMFACE_DATA_TRUE) != 0))
+            {
               select = true;
-            }
-            break;
-          }
-          case SIMFACE_FACEMAP: {
-            const int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            GSetIterator gs_iter;
-            GSET_ITER (gs_iter, gset_array[ob_index]) {
-              const int *face_map_iter = BLI_gsetIterator_getKey(&gs_iter);
-              if (*face_map == *face_map_iter) {
-                select = true;
-                break;
-              }
             }
             break;
           }
@@ -529,14 +493,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   BLI_kdtree_4d_free(tree_4d);
   if (gset != NULL) {
     BLI_gset_free(gset, NULL);
-  }
-  if (gset_array != NULL) {
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      if (gset_array[ob_index] != NULL) {
-        BLI_gset_free(gset_array[ob_index], NULL);
-      }
-    }
-    MEM_freeN(gset_array);
   }
 
   return OPERATOR_FINISHED;
@@ -628,7 +584,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
   const float thresh = RNA_float_get(op->ptr, "threshold");
   const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
   const int compare = RNA_enum_get(op->ptr, "compare");
-  int custom_data_type = -1;
 
   int tot_edges_selected_all = 0;
   uint objects_len = 0;
@@ -667,15 +622,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       break;
   }
 
-  switch (type) {
-    case SIMEDGE_CREASE:
-      custom_data_type = CD_CREASE;
-      break;
-    case SIMEDGE_BEVEL:
-      custom_data_type = CD_BWEIGHT;
-      break;
-  }
-
   int tree_index = 0;
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
@@ -694,14 +640,31 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case SIMEDGE_CREASE:
-      case SIMEDGE_BEVEL: {
-        if (!CustomData_has_layer(&bm->edata, custom_data_type)) {
+      case SIMEDGE_CREASE: {
+        if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
           BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
           continue;
         }
         break;
       }
+      case SIMEDGE_BEVEL: {
+        if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "bevel_weight_edge")) {
+          BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
+          continue;
+        }
+        break;
+      }
+    }
+
+    int custom_data_offset;
+    switch (type) {
+      case SIMEDGE_CREASE:
+        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        break;
+      case SIMEDGE_BEVEL:
+        custom_data_offset = CustomData_get_offset_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+        break;
     }
 
     float ob_m3[3][3], ob_m3_inv[3][3];
@@ -761,8 +724,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
           }
           case SIMEDGE_CREASE:
           case SIMEDGE_BEVEL: {
-            const float *value = CustomData_bmesh_get(
-                &bm->edata, edge->head.data, custom_data_type);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             BLI_kdtree_1d_insert(tree_1d, tree_index++, value);
             break;
           }
@@ -797,9 +759,13 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         }
         break;
       }
-      case SIMEDGE_CREASE:
+      case SIMEDGE_CREASE: {
+        has_custom_data_layer = CustomData_has_layer(&bm->edata, CD_CREASE);
+        ATTR_FALLTHROUGH;
+      }
       case SIMEDGE_BEVEL: {
-        has_custom_data_layer = CustomData_has_layer(&bm->edata, custom_data_type);
+        has_custom_data_layer = CustomData_has_layer_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
         if (!has_custom_data_layer) {
           /* Proceed only if we have to select all the edges that have custom data value of 0.0f.
            * In this case we will just select all the edges.
@@ -814,6 +780,17 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     float ob_m3[3][3], ob_m3_inv[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world);
     invert_m3_m3(ob_m3_inv, ob_m3);
+
+    int custom_data_offset;
+    switch (type) {
+      case SIMEDGE_CREASE:
+        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        break;
+      case SIMEDGE_BEVEL:
+        custom_data_offset = CustomData_get_offset_named(
+            &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+        break;
+    }
 
     BMEdge *edge; /* Mesh edge. */
     BMIter iter;  /* Selected edges iterator. */
@@ -888,7 +865,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
             fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
             if (((fedge != NULL) && (fedge->flag & FREESTYLE_EDGE_MARK)) ==
-                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0)) {
+                ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+            {
               select = true;
             }
             break;
@@ -900,8 +878,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
               break;
             }
 
-            const float *value = CustomData_bmesh_get(
-                &bm->edata, edge->head.data, custom_data_type);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(edge, custom_data_offset);
             if (ED_select_similar_compare_float_tree(tree_1d, *value, thresh, compare)) {
               select = true;
             }
@@ -1352,7 +1329,7 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
 #ifdef WITH_FREESTYLE
       const int a_end = SIMFACE_FREESTYLE;
 #else
-      const int a_end = SIMFACE_FACEMAP;
+      const int a_end = SIMFACE_MATERIAL;
 #endif
       for (a = SIMFACE_MATERIAL; a <= a_end; a++) {
         RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);
@@ -1393,7 +1370,8 @@ static bool edbm_select_similar_poll_property(const bContext *UNUSED(C),
               SIMFACE_AREA,
               SIMFACE_PERIMETER,
               SIMFACE_NORMAL,
-              SIMFACE_COPLANAR)) {
+              SIMFACE_COPLANAR))
+    {
       return false;
     }
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Kévin Dietrich. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 Kévin Dietrich. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -16,8 +17,6 @@
 #include "BLI_math_vector_types.hh"
 
 struct CustomData;
-struct MLoop;
-struct MPoly;
 struct Mesh;
 
 using Alembic::Abc::ICompoundProperty;
@@ -30,10 +29,10 @@ struct UVSample {
 };
 
 struct CDStreamConfig {
-  MLoop *mloop;
+  int *corner_verts;
   int totloop;
 
-  MPoly *mpoly;
+  int *poly_offsets;
   int totpoly;
 
   float3 *positions;
@@ -73,9 +72,9 @@ struct CDStreamConfig {
   std::map<std::string, Alembic::AbcGeom::OC4fGeomParam> abc_vertex_colors;
 
   CDStreamConfig()
-      : mloop(NULL),
+      : corner_verts(NULL),
         totloop(0),
-        mpoly(NULL),
+        poly_offsets(NULL),
         totpoly(0),
         totvert(0),
         pack_uvs(false),

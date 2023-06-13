@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -25,11 +27,12 @@ AssetRepresentation &AssetStorage::add_local_id_asset(AssetIdentifier &&identifi
 
 AssetRepresentation &AssetStorage::add_external_asset(AssetIdentifier &&identifier,
                                                       StringRef name,
+                                                      const int id_type,
                                                       std::unique_ptr<AssetMetaData> metadata,
                                                       const AssetLibrary &owner_asset_library)
 {
   return *external_assets_.lookup_key_or_add(std::make_unique<AssetRepresentation>(
-      std::move(identifier), name, std::move(metadata), owner_asset_library));
+      std::move(identifier), name, id_type, std::move(metadata), owner_asset_library));
 }
 
 bool AssetStorage::remove_asset(AssetRepresentation &asset)

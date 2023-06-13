@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -64,9 +66,7 @@ TreeStoreElemKey::TreeStoreElemKey(const TreeStoreElem &elem)
 {
 }
 
-TreeStoreElemKey::TreeStoreElemKey(ID *id, short type, short nr) : id(id), type(type), nr(nr)
-{
-}
+TreeStoreElemKey::TreeStoreElemKey(ID *id, short type, short nr) : id(id), type(type), nr(nr) {}
 
 uint64_t TreeStoreElemKey::hash() const
 {

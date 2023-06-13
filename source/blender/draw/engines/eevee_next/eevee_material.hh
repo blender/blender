@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -99,7 +100,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
       return MAT_GEOM_CURVES;
     case OB_VOLUME:
       return MAT_GEOM_VOLUME;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return MAT_GEOM_GPENCIL;
     default:
       return MAT_GEOM_MESH;
@@ -108,7 +109,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
 
 /** Unique key to identify each material in the hash-map. */
 struct MaterialKey {
-  Material *mat;
+  ::Material *mat;
   uint64_t options;
 
   MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline surface_pipeline)
@@ -145,10 +146,14 @@ struct ShaderKey {
   GPUShader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat, eMaterialGeometry geometry, eMaterialPipeline pipeline)
+  ShaderKey(GPUMaterial *gpumat,
+            eMaterialGeometry geometry,
+            eMaterialPipeline pipeline,
+            char blend_flags)
   {
     shader = GPU_material_get_shader(gpumat);
-    options = shader_uuid_from_material_type(pipeline, geometry);
+    options = blend_flags;
+    options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
   }
 

@@ -78,8 +78,7 @@ ccl_device_inline float phong_ramp_exponent_to_roughness(float exponent)
 ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
                                       float3 Ng,
                                       float3 wi,
-                                      float randu,
-                                      float randv,
+                                      const float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf,
@@ -96,8 +95,8 @@ ccl_device int bsdf_phong_ramp_sample(ccl_private const ShaderClosure *sc,
     float3 R = (2 * cosNI) * bsdf->N - wi;
     float3 T, B;
     make_orthonormals(R, &T, &B);
-    float phi = M_2PI_F * randu;
-    float cosTheta = powf(randv, 1 / (m_exponent + 1));
+    float phi = M_2PI_F * rand.x;
+    float cosTheta = powf(rand.y, 1 / (m_exponent + 1));
     float sinTheta2 = 1 - cosTheta * cosTheta;
     float sinTheta = sinTheta2 > 0 ? sqrtf(sinTheta2) : 0;
     *wo = (cosf(phi) * sinTheta) * T + (sinf(phi) * sinTheta) * B + (cosTheta)*R;

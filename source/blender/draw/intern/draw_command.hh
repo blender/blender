@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -134,7 +135,7 @@ struct FramebufferBind {
 };
 
 struct ResourceBind {
-  eGPUSamplerState sampler;
+  GPUSamplerState sampler;
   int slot;
   bool is_reference;
 
@@ -191,9 +192,9 @@ struct ResourceBind {
       : slot(slot_), is_reference(false), type(Type::Image), texture(draw::as_texture(res)){};
   ResourceBind(int slot_, draw::Image **res)
       : slot(slot_), is_reference(true), type(Type::Image), texture_ref(draw::as_texture(res)){};
-  ResourceBind(int slot_, GPUTexture *res, eGPUSamplerState state)
+  ResourceBind(int slot_, GPUTexture *res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(false), type(Type::Sampler), texture(res){};
-  ResourceBind(int slot_, GPUTexture **res, eGPUSamplerState state)
+  ResourceBind(int slot_, GPUTexture **res, GPUSamplerState state)
       : sampler(state), slot(slot_), is_reference(true), type(Type::Sampler), texture_ref(res){};
   ResourceBind(int slot_, GPUVertBuf *res)
       : slot(slot_), is_reference(false), type(Type::BufferSampler), vertex_buf(res){};
@@ -433,7 +434,8 @@ class DrawCommandBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandle handle)
+                   ResourceHandle handle,
+                   uint /*custom_id*/)
   {
     vertex_first = vertex_first != -1 ? vertex_first : 0;
     instance_len = instance_len != -1 ? instance_len : 1;
@@ -533,7 +535,8 @@ class DrawMultiBuf {
                    uint instance_len,
                    uint vertex_len,
                    uint vertex_first,
-                   ResourceHandle handle)
+                   ResourceHandle handle,
+                   uint custom_id)
   {
     /* Custom draw-calls cannot be batched and will produce one group per draw. */
     const bool custom_group = ((vertex_first != 0 && vertex_first != -1) || vertex_len != -1);
@@ -555,6 +558,7 @@ class DrawMultiBuf {
 
     DrawPrototype &draw = prototype_buf_.get_or_resize(prototype_count_++);
     draw.resource_handle = handle.raw;
+    draw.custom_id = custom_id;
     draw.instance_len = instance_len;
     draw.group_id = group_id;
 
@@ -594,7 +598,8 @@ class DrawMultiBuf {
             Vector<Undetermined, 0> &commands,
             VisibilityBuf &visibility_buf,
             int visibility_word_per_draw,
-            int view_len);
+            int view_len,
+            bool use_custom_ids);
 };
 
 /** \} */

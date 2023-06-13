@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include "IO_abstract_hierarchy_iterator.h"
@@ -55,6 +56,8 @@ class USDAbstractWriter : public AbstractHierarchyWriter {
   std::string get_export_file_path() const;
   pxr::UsdTimeCode get_export_time_code() const;
 
+  /* Returns the parent path of exported materials. */
+  pxr::SdfPath get_material_library_path() const;
   pxr::UsdShadeMaterial ensure_usd_material(const HierarchyContext &context, Material *material);
 
   void write_visibility(const HierarchyContext &context,

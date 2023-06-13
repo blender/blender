@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -14,9 +15,7 @@ struct ChunkOrderHotspot {
   int y;
   float addition;
 
-  ChunkOrderHotspot(int x, int y, float addition) : x(x), y(y), addition(addition)
-  {
-  }
+  ChunkOrderHotspot(int x, int y, float addition) : x(x), y(y), addition(addition) {}
 
   double calc_distance(int x, int y);
 

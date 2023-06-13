@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -166,8 +167,8 @@ bool DepsgraphRelationBuilder::is_same_bone_dependency(const KeyFrom &key_from,
     return false;
   }
   /* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
-  if (!(op_from->opcode == OperationCode::BONE_DONE &&
-        op_to->opcode == OperationCode::BONE_LOCAL)) {
+  if (!(op_from->opcode == OperationCode::BONE_DONE && op_to->opcode == OperationCode::BONE_LOCAL))
+  {
     return false;
   }
   /* ... BUT, we also need to check if it's same bone. */
@@ -202,7 +203,8 @@ bool DepsgraphRelationBuilder::is_same_nodetree_node_dependency(const KeyFrom &k
   }
   /* We are only interested in relations like BONE_DONE -> BONE_LOCAL... */
   if (!(op_from->opcode == OperationCode::PARAMETERS_EVAL &&
-        op_to->opcode == OperationCode::PARAMETERS_EVAL)) {
+        op_to->opcode == OperationCode::PARAMETERS_EVAL))
+  {
     return false;
   }
   return true;

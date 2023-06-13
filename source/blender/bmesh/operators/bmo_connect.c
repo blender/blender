@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -46,7 +48,8 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
     if (BMO_vert_flag_test(bm, l_iter->v, VERT_INPUT) &&
         /* Ensure this vertex isn't part of a contiguous group. */
         ((BMO_vert_flag_test(bm, l_iter->prev->v, VERT_INPUT) == 0) ||
-         (BMO_vert_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0))) {
+         (BMO_vert_flag_test(bm, l_iter->next->v, VERT_INPUT) == 0)))
+    {
       if (!l_tag_prev) {
         l_tag_prev = l_tag_first = l_iter;
         continue;
@@ -72,7 +75,8 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
 
   if (!BM_loop_is_adjacent(l_tag_first, l_tag_prev) &&
       /* ensure we don't add the same pair twice */
-      (((loops_split[0][0] == l_tag_first) && (loops_split[0][1] == l_tag_prev)) == 0)) {
+      (((loops_split[0][0] == l_tag_first) && (loops_split[0][1] == l_tag_prev)) == 0))
+  {
     BMLoop **l_pair = STACK_PUSH_RET(loops_split);
     l_pair[0] = l_tag_first;
     l_pair[1] = l_tag_prev;
@@ -107,7 +111,8 @@ static int bm_face_connect_verts(BMesh *bm, BMFace *f, const bool check_degenera
     /* Note that duplicate edges in this case is very unlikely but it can happen, see #70287. */
     bool edge_exists = (BM_edge_exists(verts_pair[i][0], verts_pair[i][1]) != NULL);
     if ((l_pair[0] = BM_face_vert_share_loop(f, verts_pair[i][0])) &&
-        (l_pair[1] = BM_face_vert_share_loop(f, verts_pair[i][1]))) {
+        (l_pair[1] = BM_face_vert_share_loop(f, verts_pair[i][1])))
+    {
       f_new = BM_face_split(bm, f, l_pair[0], l_pair[1], &l_new, NULL, edge_exists);
 
       /* Check if duplicate faces have been created, store the loops for removal in this case.

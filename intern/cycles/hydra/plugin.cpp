@@ -35,14 +35,19 @@ HdCyclesPlugin::HdCyclesPlugin()
 #endif
 }
 
-HdCyclesPlugin::~HdCyclesPlugin()
-{
-}
+HdCyclesPlugin::~HdCyclesPlugin() {}
 
+#if PXR_VERSION < 2302
 bool HdCyclesPlugin::IsSupported() const
 {
   return true;
 }
+#else
+bool HdCyclesPlugin::IsSupported(bool gpuEnabled) const
+{
+  return true;
+}
+#endif
 
 HdRenderDelegate *HdCyclesPlugin::CreateRenderDelegate()
 {

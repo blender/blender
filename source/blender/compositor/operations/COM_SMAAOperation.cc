@@ -1,8 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_SMAAOperation.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "COM_SMAAAreaTexture.h"
 
 extern "C" {
@@ -861,7 +862,8 @@ int SMAABlendingWeightCalculationOperation::search_xright(int x, int y)
     x++;
     sample_image_fn_(x, y, e);
     if (e[1] == 0.0f || /* Is the edge not activated? */
-        e[0] != 0.0f) { /* Or is there a crossing edge that breaks the line? */
+        e[0] != 0.0f)   /* Or is there a crossing edge that breaks the line? */
+    {
       break;
     }
     sample_image_fn_(x, y - 1, e);
@@ -905,7 +907,8 @@ int SMAABlendingWeightCalculationOperation::search_ydown(int x, int y)
     y++;
     sample_image_fn_(x, y, e);
     if (e[0] == 0.0f || /* Is the edge not activated? */
-        e[1] != 0.0f) { /* Or is there a crossing edge that breaks the line? */
+        e[1] != 0.0f)   /* Or is there a crossing edge that breaks the line? */
+    {
       break;
     }
     sample_image_fn_(x - 1, y, e);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -18,6 +20,8 @@
 #include "BKE_volume.h"
 
 #include "BLI_math_base.h"
+
+#include "BLT_translation.h"
 
 const EnumPropertyItem rna_enum_volume_grid_data_type_items[] = {
     {VOLUME_GRID_BOOLEAN, "BOOLEAN", 0, "Boolean", "Boolean"},
@@ -154,9 +158,7 @@ static void rna_Volume_grids_next(CollectionPropertyIterator *iter)
   iter->valid = (iter->internal.count.item < num_grids);
 }
 
-static void rna_Volume_grids_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Volume_grids_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Volume_grids_get(CollectionPropertyIterator *iter)
 {
@@ -264,6 +266,7 @@ static void rna_def_volume_grid(BlenderRNA *brna)
   RNA_def_property_enum_funcs(prop, "rna_VolumeGrid_data_type_get", NULL, NULL);
   RNA_def_property_enum_items(prop, rna_enum_volume_grid_data_type_items);
   RNA_def_property_ui_text(prop, "Data Type", "Data type of voxel values");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_VOLUME);
 
   prop = RNA_def_property(srna, "channels", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -661,6 +664,7 @@ static void rna_def_volume(BlenderRNA *brna)
       "Velocity Unit",
       "Define how the velocity vectors are interpreted with regard to time, 'frame' means "
       "the delta time is 1 frame, 'second' means the delta time is 1 / FPS");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "velocity_scale", PROP_FLOAT, PROP_NONE);

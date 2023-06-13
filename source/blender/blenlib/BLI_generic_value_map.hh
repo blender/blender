@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -19,9 +21,7 @@ template<typename Key> class GValueMap {
   Map<Key, GMutablePointer> values_;
 
  public:
-  GValueMap(LinearAllocator<> &allocator) : allocator_(allocator)
-  {
-  }
+  GValueMap(LinearAllocator<> &allocator) : allocator_(allocator) {}
 
   ~GValueMap()
   {

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -182,7 +184,8 @@ static float bm_edge_calc_rotate_beauty__area(const float v1[3],
        * so the rotation calculation is scale independent.
        */
       if (!(signum_i_ex(cross_tri_v2(v2_xy, v3_xy, v4_xy) / no_scale, eps) +
-            signum_i_ex(cross_tri_v2(v2_xy, v4_xy, v1_xy) / no_scale, eps))) {
+            signum_i_ex(cross_tri_v2(v2_xy, v4_xy, v1_xy) / no_scale, eps)))
+      {
         break;
       }
     }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spseq
@@ -178,10 +179,10 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
     Sequence *last_seq = SEQ_select_active_get(scene);
     if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
       Main *bmain = CTX_data_main(C);
-      char path[FILE_MAX];
-      BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
-      BLI_path_abs(path, BKE_main_blendfile_path(bmain));
-      RNA_string_set(op->ptr, identifier, path);
+      char dirpath[FILE_MAX];
+      STRNCPY(dirpath, last_seq->strip->dirpath);
+      BLI_path_abs(dirpath, BKE_main_blendfile_path(bmain));
+      RNA_string_set(op->ptr, identifier, dirpath);
     }
   }
 }
@@ -202,7 +203,8 @@ static int sequencer_generic_invoke_xy_guess_channel(bContext *C, int type)
   for (seq = ed->seqbasep->first; seq; seq = seq->next) {
     const int strip_end = SEQ_time_right_handle_frame_get(scene, seq);
     if (ELEM(type, -1, seq->type) && (strip_end <= timeline_frame) &&
-        (timeline_frame - strip_end < proximity)) {
+        (timeline_frame - strip_end < proximity))
+    {
       tgt = seq;
       proximity = timeline_frame - strip_end;
     }
@@ -265,7 +267,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
 
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     RNA_property_string_get(op->ptr, prop, load_data->path);
-    BLI_strncpy(load_data->name, BLI_path_basename(load_data->path), sizeof(load_data->name));
+    STRNCPY(load_data->name, BLI_path_basename(load_data->path));
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
     char *directory = RNA_string_get_alloc(op->ptr, "directory", NULL, 0, NULL);
@@ -273,7 +275,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
     if ((prop = RNA_struct_find_property(op->ptr, "files"))) {
       RNA_PROP_BEGIN (op->ptr, itemptr, prop) {
         char *filename = RNA_string_get_alloc(&itemptr, "name", NULL, 0, NULL);
-        BLI_strncpy(load_data->name, filename, sizeof(load_data->name));
+        STRNCPY(load_data->name, filename);
         BLI_path_join(load_data->path, sizeof(load_data->path), directory, filename);
         MEM_freeN(filename);
         break;
@@ -303,17 +305,20 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_framerate")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_MOVIE_SYNC_FPS;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "set_view_transform")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     load_data->flags |= SEQ_LOAD_SET_VIEW_TRANSFORM;
   }
 
   if ((prop = RNA_struct_find_property(op->ptr, "use_multiview")) &&
-      RNA_property_boolean_get(op->ptr, prop)) {
+      RNA_property_boolean_get(op->ptr, prop))
+  {
     if (op->customdata) {
       SequencerAddData *sad = op->customdata;
       ImageFormatData *imf = &sad->im_format;
@@ -340,7 +345,8 @@ static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence
   }
 
   if (RNA_boolean_get(op->ptr, "overlap") == true ||
-      !SEQ_transform_test_overlap(scene, ed->seqbasep, seq)) {
+      !SEQ_transform_test_overlap(scene, ed->seqbasep, seq))
+  {
     /* No overlap should be handled or the strip is not overlapping, exit early. */
     return;
   }
@@ -461,14 +467,14 @@ static int sequencer_add_scene_strip_invoke(bContext *C, wmOperator *op, const w
   return sequencer_add_scene_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
   /* Identifiers. */
   ot->name = "Add Scene Strip";
   ot->idname = "SEQUENCER_OT_scene_strip_add";
-  ot->description = "Add a strip to the sequencer using a blender scene as a source";
+  ot->description = "Add a strip to the sequencer using a Blender scene as a source";
 
   /* Api callbacks. */
   ot->invoke = sequencer_add_scene_strip_invoke;
@@ -582,7 +588,7 @@ static const EnumPropertyItem *strip_new_sequencer_enum_itemf(bContext *C,
   return item;
 }
 
-void SEQUENCER_OT_scene_strip_add_new(struct wmOperatorType *ot)
+void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
 {
   /* Identifiers. */
   ot->name = "Add Strip with a new Scene";
@@ -643,7 +649,7 @@ static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, con
   return sequencer_add_movieclip_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -707,7 +713,7 @@ static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, const wm
   return sequencer_add_mask_strip_exec(C, op);
 }
 
-void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
@@ -835,7 +841,7 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
     BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
-    BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
+    STRNCPY(load_data->name, file_only);
     Sequence *seq_movie = NULL;
     Sequence *seq_sound = NULL;
 
@@ -996,7 +1002,8 @@ static int sequencer_add_movie_strip_invoke(bContext *C,
   /* This is for drag and drop. */
   if ((RNA_struct_property_is_set(op->ptr, "files") &&
        !RNA_collection_is_empty(op->ptr, "files")) ||
-      RNA_struct_property_is_set(op->ptr, "filepath")) {
+      RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, SEQ_TYPE_MOVIE);
     return sequencer_add_movie_strip_exec(C, op);
   }
@@ -1032,7 +1039,7 @@ static void sequencer_add_draw(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_movie_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1083,7 +1090,7 @@ static void sequencer_add_sound_multiple_strips(bContext *C,
     RNA_string_get(op->ptr, "directory", dir_only);
     RNA_string_get(&itemptr, "name", file_only);
     BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
-    BLI_strncpy(load_data->name, file_only, sizeof(load_data->name));
+    STRNCPY(load_data->name, file_only);
     Sequence *seq = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
     if (seq == NULL) {
       BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
@@ -1153,7 +1160,8 @@ static int sequencer_add_sound_strip_invoke(bContext *C,
   /* This is for drag and drop. */
   if ((RNA_struct_property_is_set(op->ptr, "files") &&
        !RNA_collection_is_empty(op->ptr, "files")) ||
-      RNA_struct_property_is_set(op->ptr, "filepath")) {
+      RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     sequencer_generic_invoke_xy__internal(C, op, SEQPROP_NOPATHS, SEQ_TYPE_SOUND_RAM);
     return sequencer_add_sound_strip_exec(C, op);
   }
@@ -1164,7 +1172,7 @@ static int sequencer_add_sound_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1239,15 +1247,15 @@ void sequencer_image_seq_reserve_frames(
   RNA_END;
 
   if (filename) {
-    char ext[PATH_MAX];
-    char filename_stripped[PATH_MAX];
+    char ext[FILE_MAX];
+    char filename_stripped[FILE_MAX];
     /* Strip the frame from filename and substitute with `#`. */
-    BLI_path_frame_strip(filename, ext);
+    BLI_path_frame_strip(filename, ext, sizeof(ext));
 
     for (int i = 0; i < len; i++, se++) {
-      BLI_strncpy(filename_stripped, filename, sizeof(filename_stripped));
-      BLI_path_frame(filename_stripped, minframe + i, numdigits);
-      BLI_snprintf(se->name, sizeof(se->name), "%s%s", filename_stripped, ext);
+      STRNCPY(filename_stripped, filename);
+      BLI_path_frame(filename_stripped, sizeof(filename_stripped), minframe + i, numdigits);
+      SNPRINTF(se->filename, "%s%s", filename_stripped, ext);
     }
 
     MEM_freeN(filename);
@@ -1275,10 +1283,9 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
                                                  const int numdigits)
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-  /* size of Strip->dir. */
-  char directory[768];
-  BLI_split_dir_part(load_data->path, directory, sizeof(directory));
-  SEQ_add_image_set_directory(seq, directory);
+  char dirpath[sizeof(seq->strip->dirpath)];
+  BLI_path_split_dir_part(load_data->path, dirpath, sizeof(dirpath));
+  SEQ_add_image_set_directory(seq, dirpath);
 
   if (use_placeholders) {
     sequencer_image_seq_reserve_frames(
@@ -1365,7 +1372,7 @@ static int sequencer_add_image_strip_invoke(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
 {
 
   /* Identifiers. */
@@ -1525,7 +1532,7 @@ static char *sequencer_add_effect_strip_desc(bContext *UNUSED(C),
   return NULL;
 }
 
-void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
+void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 

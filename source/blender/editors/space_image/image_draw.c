@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -48,7 +49,7 @@
 
 #include "BLF_api.h"
 
-#include "ED_gpencil.h"
+#include "ED_gpencil_legacy.h"
 #include "ED_image.h"
 #include "ED_mask.h"
 #include "ED_render.h"
@@ -168,7 +169,7 @@ void ED_image_draw_info(Scene *scene,
 
   GPU_blend(GPU_BLEND_NONE);
 
-  BLF_size(blf_mono_font, 11.0f * U.dpi_fac);
+  BLF_size(blf_mono_font, 11.0f * UI_SCALE_FAC);
 
   BLF_color3ub(blf_mono_font, 255, 255, 255);
   SNPRINTF(str, "X:%-4d  Y:%-4d |", x, y);
@@ -452,7 +453,8 @@ void draw_image_sample_line(SpaceImage *sima)
 
     float viewport_size[4];
     GPU_viewport_size_get_f(viewport_size);
-    immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+    immUniform2f(
+        "viewport_size", viewport_size[2] / UI_SCALE_FAC, viewport_size[3] / UI_SCALE_FAC);
 
     immUniform1i("colors_len", 2); /* Advanced dashes. */
     immUniform4f("color", 1.0f, 1.0f, 1.0f, 1.0f);
@@ -504,7 +506,7 @@ bool ED_space_image_show_cache_and_mval_over(const SpaceImage *sima,
                                              const int mval[2])
 {
   const rcti *rect_visible = ED_region_visible_rect(region);
-  if (mval[1] > rect_visible->ymin + (16 * UI_DPI_FAC)) {
+  if (mval[1] > rect_visible->ymin + (16 * UI_SCALE_FAC)) {
     return false;
   }
   return ED_space_image_show_cache(sima);
@@ -559,10 +561,10 @@ void draw_image_cache(const bContext *C, ARegion *region)
       immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_CFRAME);
-  immRecti(pos, x, region_bottom, x + ceilf(framelen), region_bottom + 8 * UI_DPI_FAC);
+  immRecti(pos, x, region_bottom, x + ceilf(framelen), region_bottom + 8 * UI_SCALE_FAC);
   immUnbindProgram();
 
-  ED_region_cache_draw_curfra_label(cfra, x, region_bottom + 8.0f * UI_DPI_FAC);
+  ED_region_cache_draw_curfra_label(cfra, x, region_bottom + 8.0f * UI_SCALE_FAC);
 
   if (mask != NULL) {
     ED_mask_draw_frames(mask, region, cfra, sfra, efra);

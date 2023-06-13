@@ -75,10 +75,12 @@ Device *device_cuda_create(const DeviceInfo &info, Stats &stats, Profiler &profi
 static CUresult device_cuda_safe_init()
 {
 #  ifdef _WIN32
-  __try {
+  __try
+  {
     return cuInit(0);
   }
-  __except (EXCEPTION_EXECUTE_HANDLER) {
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
     /* Ignore crashes inside the CUDA driver and hope we can
      * survive even with corrupted CUDA installs. */
     fprintf(stderr, "Cycles CUDA: driver crashed, continuing without CUDA.\n");

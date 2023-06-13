@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "node_geometry_util.hh"
 
@@ -11,29 +13,28 @@ namespace blender::nodes::node_geo_input_mesh_face_neighbors_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>(N_("Vertex Count"))
+  b.add_output<decl::Int>("Vertex Count")
       .field_source()
-      .description(N_("Number of edges or points in the face"));
-  b.add_output<decl::Int>(N_("Face Count"))
+      .description("Number of edges or points in the face");
+  b.add_output<decl::Int>("Face Count")
       .field_source()
-      .description(N_("Number of faces which share an edge with the face"));
+      .description("Number of faces which share an edge with the face");
 }
 
 static VArray<int> construct_neighbor_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MPoly> polys = mesh.polys();
-  const Span<MLoop> loops = mesh.loops();
+  const OffsetIndices polys = mesh.polys();
+  const Span<int> corner_edges = mesh.corner_edges();
 
   Array<int> edge_count(mesh.totedge, 0);
-  for (const MLoop &loop : loops) {
-    edge_count[loop.e]++;
+  for (const int edge : corner_edges) {
+    edge_count[edge]++;
   }
 
   Array<int> poly_count(polys.size(), 0);
   for (const int poly_index : polys.index_range()) {
-    const MPoly &poly = polys[poly_index];
-    for (const MLoop &loop : loops.slice(poly.loopstart, poly.totloop)) {
-      poly_count[poly_index] += edge_count[loop.e] - 1;
+    for (const int edge : corner_edges.slice(polys[poly_index])) {
+      poly_count[poly_index] += edge_count[edge] - 1;
     }
   }
 
@@ -51,7 +52,7 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_neighbor_count_varray(mesh, domain);
   }
@@ -75,10 +76,10 @@ class FaceNeighborCountFieldInput final : public bke::MeshFieldInput {
 
 static VArray<int> construct_vertex_count_varray(const Mesh &mesh, const eAttrDomain domain)
 {
-  const Span<MPoly> polys = mesh.polys();
+  const OffsetIndices polys = mesh.polys();
   return mesh.attributes().adapt_domain<int>(
       VArray<int>::ForFunc(polys.size(),
-                           [polys](const int i) -> float { return polys[i].totloop; }),
+                           [polys](const int i) -> float { return polys[i].size(); }),
       ATTR_DOMAIN_FACE,
       domain);
 }
@@ -92,7 +93,7 @@ class FaceVertexCountFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_vertex_count_varray(mesh, domain);
   }
@@ -131,7 +132,7 @@ void register_node_type_geo_input_mesh_face_neighbors()
   static bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_INPUT_MESH_FACE_NEIGHBORS, "Face Neighbors", NODE_CLASS_INPUT);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
   nodeRegisterType(&ntype);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -91,7 +93,7 @@
  * \subsection bm_ops Operators
  *
  * Operators are an integral part of BMesh. Unlike regular blender operators,
- * BMesh operators **bmo's** are designed to be nested (e.g. call other operators).
+ * BMesh operators (abbreviated to `bmo`) are designed to be nested (e.g. call other operators).
  *
  * Each operator has a number of input/output "slots"
  * which are used to pass settings & data into/out of the operator

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -98,16 +100,12 @@ class AbstractTreeElement {
 
  protected:
   /* Pseudo-abstract: Only allow creation through derived types. */
-  AbstractTreeElement(TreeElement &legacy_te) : legacy_te_(legacy_te)
-  {
-  }
+  AbstractTreeElement(TreeElement &legacy_te) : legacy_te_(legacy_te) {}
 
   /**
    * Let the type add its own children.
    */
-  virtual void expand(SpaceOutliner &) const
-  {
-  }
+  virtual void expand(SpaceOutliner &) const {}
 };
 
 /**

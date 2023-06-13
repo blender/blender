@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -15,7 +16,7 @@
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_gpencil_modifier.h"
+#include "BKE_gpencil_modifier_legacy.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
@@ -170,7 +171,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
   for (bScreen *screen = bmain->screens.first; screen != NULL; screen = screen->id.next) {
     for (ScrArea *area = screen->areabase.first; area != NULL; area = area->next) {
       for (SpaceLink *space_link = area->spacedata.first; space_link != NULL;
-           space_link = space_link->next) {
+           space_link = space_link->next)
+      {
         if (space_link->spacetype == SPACE_VIEW3D) {
           View3D *other_v3d = (View3D *)space_link;
           if (other_v3d == v3d) {
@@ -179,7 +181,8 @@ static void sync_viewport_camera_smoothview(bContext *C,
           if (other_v3d->camera == ob) {
             continue;
           }
-          if (v3d->scenelock) {
+          /* Checking the other view is needed to prevent local cameras being modified. */
+          if (v3d->scenelock && other_v3d->scenelock) {
             ListBase *lb = (space_link == area->spacedata.first) ? &area->regionbase :
                                                                    &space_link->regionbase;
             for (ARegion *other_region = lb->first; other_region != NULL;
@@ -485,7 +488,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
   bool continue_pass = false;
   struct DrawSelectLoopUserData *data = user_data;
   if (stage == DRW_SELECT_PASS_PRE) {
-    GPU_select_begin(
+    GPU_select_begin_next(
         data->buffer, data->buffer_len, data->rect, data->gpu_select_mode, data->hits);
     /* always run POST after PRE. */
     continue_pass = true;
@@ -512,7 +515,8 @@ eV3DSelectObjectFilter ED_view3d_select_filter_from_mode(const Scene *scene, con
 {
   if (scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) {
     if (obact && (obact->mode & OB_MODE_ALL_WEIGHT_PAINT) &&
-        BKE_object_pose_armature_get((Object *)obact)) {
+        BKE_object_pose_armature_get((Object *)obact))
+    {
       return VIEW3D_SELECT_FILTER_WPAINT_POSE_MODE_LOCK;
     }
     return VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK;
@@ -596,7 +600,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   /* Re-use cache (rect must be smaller than the cached)
    * other context is assumed to be unchanged */
   if (GPU_select_is_cached()) {
-    GPU_select_begin(buffer, buffer_len, &rect, gpu_select_mode, 0);
+    GPU_select_begin_next(buffer, buffer_len, &rect, gpu_select_mode, 0);
     GPU_select_cache_load_id();
     hits = GPU_select_end();
     goto finally;
@@ -623,7 +627,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
       /* While this uses 'alloca' in a loop (which we typically avoid),
        * the number of items is nearly always 1, maybe 2..3 in rare cases. */
       LinkNode *ob_pose_list = NULL;
-      if (obact->type == OB_GPENCIL) {
+      if (obact->type == OB_GPENCIL_LEGACY) {
         GpencilVirtualModifierData virtualModifierData;
         const GpencilModifierData *md = BKE_gpencil_modifiers_get_virtual_modifierlist(
             obact, &virtualModifierData);
@@ -662,7 +666,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
   UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
   /* All of the queries need to be perform on the drawing context. */
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   G.f |= G_FLAG_PICKSEL;
 
@@ -675,7 +679,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
 
-  /* If in xray mode, we select the wires in priority. */
+  /* If in X-ray mode, we select the wires in priority. */
   if (XRAY_ACTIVE(v3d) && use_nearest) {
     /* We need to call "GPU_select_*" API's inside DRW_draw_select_loop
      * because the OpenGL context created & destroyed inside this function. */
@@ -742,7 +746,7 @@ int view3d_opengl_select_ex(ViewContext *vc,
     GPU_depth_test(GPU_DEPTH_NONE);
   }
 
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   UI_Theme_Restore(&theme_state);
 
@@ -1225,7 +1229,7 @@ static void view3d_local_collections_reset(Main *bmain, const uint local_view_bi
   }
 }
 
-bool ED_view3d_local_collections_set(Main *bmain, struct View3D *v3d)
+bool ED_view3d_local_collections_set(Main *bmain, View3D *v3d)
 {
   if ((v3d->flag & V3D_LOCAL_COLLECTIONS) == 0) {
     return true;
@@ -1249,7 +1253,7 @@ bool ED_view3d_local_collections_set(Main *bmain, struct View3D *v3d)
   return true;
 }
 
-void ED_view3d_local_collections_reset(struct bContext *C, const bool reset_all)
+void ED_view3d_local_collections_reset(bContext *C, const bool reset_all)
 {
   Main *bmain = CTX_data_main(C);
   uint local_view_bit = ~(0);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -11,6 +13,7 @@
 #include "BLI_heap_simple.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
+#include "BLI_span.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_DerivedMesh.h"
@@ -21,6 +24,8 @@
 
 #include "bmesh.h"
 #include "pbvh_intern.hh"
+
+using blender::Span;
 
 /* Avoid skinny faces */
 #define USE_EDGEQUEUE_EVEN_SUBDIV
@@ -825,7 +830,8 @@ static void edge_queue_insert(EdgeQueueContext *eq_ctx, BMEdge *e, float priorit
   if (((eq_ctx->cd_vert_mask_offset == -1) ||
        (check_mask(eq_ctx, e->v1) || check_mask(eq_ctx, e->v2))) &&
       !(BM_elem_flag_test_bool(e->v1, BM_ELEM_HIDDEN) ||
-        BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN))) {
+        BM_elem_flag_test_bool(e->v2, BM_ELEM_HIDDEN)))
+  {
     BMVert **pair = static_cast<BMVert **>(BLI_mempool_alloc(eq_ctx->pool));
     pair[0] = e->v1;
     pair[1] = e->v2;
@@ -1021,7 +1027,8 @@ static void long_edge_queue_create(EdgeQueueContext *eq_ctx,
 
     /* Check leaf nodes marked for topology update */
     if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
-        !(node->flag & PBVH_FullyHidden)) {
+        !(node->flag & PBVH_FullyHidden))
+    {
       GSetIterator gs_iter;
 
       /* Check each face */
@@ -1080,7 +1087,8 @@ static void short_edge_queue_create(EdgeQueueContext *eq_ctx,
 
     /* Check leaf nodes marked for topology update */
     if ((node->flag & PBVH_Leaf) && (node->flag & PBVH_UpdateTopology) &&
-        !(node->flag & PBVH_FullyHidden)) {
+        !(node->flag & PBVH_FullyHidden))
+    {
       GSetIterator gs_iter;
 
       /* Check each face */
@@ -1250,7 +1258,8 @@ static bool pbvh_bmesh_subdivide_long_edges(EdgeQueueContext *eq_ctx,
      * and the node has been split, thus leaving wire edges and
      * associated vertices. */
     if ((BM_ELEM_CD_GET_INT(e->v1, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE) ||
-        (BM_ELEM_CD_GET_INT(e->v2, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE)) {
+        (BM_ELEM_CD_GET_INT(e->v2, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE))
+    {
       continue;
     }
 
@@ -1278,7 +1287,8 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
 
   /* one of the two vertices may be masked, select the correct one for deletion */
   if (BM_ELEM_CD_GET_FLOAT(v1, eq_ctx->cd_vert_mask_offset) <
-      BM_ELEM_CD_GET_FLOAT(v2, eq_ctx->cd_vert_mask_offset)) {
+      BM_ELEM_CD_GET_FLOAT(v2, eq_ctx->cd_vert_mask_offset))
+  {
     v_del = v1;
     v_conn = v2;
   }
@@ -1340,8 +1350,7 @@ static void pbvh_bmesh_collapse_edge(PBVH *pbvh,
     {
       BLI_buffer_append(deleted_faces, BMFace *, existing_face);
     }
-    else
-    {
+    else {
       BMVert *v_tri[3] = {v_conn, l->next->v, l->prev->v};
 
       BLI_assert(!BM_face_exists(v_tri, 3));
@@ -1450,7 +1459,8 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
 
     /* Check the verts still exist */
     if (!(v1 = bm_vert_hash_lookup_chain(deleted_verts, v1)) ||
-        !(v2 = bm_vert_hash_lookup_chain(deleted_verts, v2)) || (v1 == v2)) {
+        !(v2 = bm_vert_hash_lookup_chain(deleted_verts, v2)) || (v1 == v2))
+    {
       continue;
     }
 
@@ -1472,7 +1482,8 @@ static bool pbvh_bmesh_collapse_short_edges(EdgeQueueContext *eq_ctx,
      * and the node has been split, thus leaving wire edges and
      * associated vertices. */
     if ((BM_ELEM_CD_GET_INT(e->v1, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE) ||
-        (BM_ELEM_CD_GET_INT(e->v2, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE)) {
+        (BM_ELEM_CD_GET_INT(e->v2, eq_ctx->cd_vert_node_offset) == DYNTOPO_NODE_NONE))
+    {
       continue;
     }
 
@@ -1546,7 +1557,8 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
 
         BM_face_as_array_vert_tri(f, v_tri);
         if (ray_face_intersection_tri(
-                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth)) {
+                ray_start, isect_precalc, v_tri[0]->co, v_tri[1]->co, v_tri[2]->co, depth))
+        {
           hit = true;
 
           if (r_face_normal) {
@@ -1558,7 +1570,8 @@ bool pbvh_bmesh_node_raycast(PBVHNode *node,
             madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
             for (int j = 0; j < 3; j++) {
               if (j == 0 || len_squared_v3v3(location, v_tri[j]->co) <
-                                len_squared_v3v3(location, nearest_vertex_co)) {
+                                len_squared_v3v3(location, nearest_vertex_co))
+              {
                 copy_v3_v3(nearest_vertex_co, v_tri[j]->co);
                 r_active_vertex->i = intptr_t(v_tri[j]);
               }
@@ -1659,11 +1672,9 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
   return hit;
 }
 
-void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode)
+void pbvh_bmesh_normals_update(Span<PBVHNode *> nodes)
 {
-  for (int n = 0; n < totnode; n++) {
-    PBVHNode *node = nodes[n];
-
+  for (PBVHNode *node : nodes) {
     if (node->flag & PBVH_UpdateNormals) {
       GSetIterator gs_iter;
 

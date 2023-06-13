@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -16,7 +17,7 @@
 #include "BLI_rect.h"
 
 #include "DNA_anim_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -611,7 +612,7 @@ static AnimKeylistDrawListElem *ed_keylist_draw_list_add_elem(
 
 /* *************************** Channel Drawing Functions *************************** */
 
-void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
+void draw_summary_channel(AnimKeylistDrawList *draw_list,
                           bAnimContext *ac,
                           float ypos,
                           float yscale_fac,

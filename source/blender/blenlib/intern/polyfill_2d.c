@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -329,7 +331,8 @@ static void kdtree2d_node_remove(struct KDTree2D *tree, uint32_t index)
   node->flag |= KDNODE_FLAG_REMOVED;
 
   while ((node->neg == KDNODE_UNSET) && (node->pos == KDNODE_UNSET) &&
-         (node->parent != KDNODE_UNSET)) {
+         (node->parent != KDNODE_UNSET))
+  {
     KDTreeNode2D *node_parent = &tree->nodes[node->parent];
 
     BLI_assert((uint32_t)(node - tree->nodes) == node_index);
@@ -364,10 +367,12 @@ static bool kdtree2d_isect_tri_recursive(const struct KDTree2D *tree,
   if ((node->flag & KDNODE_FLAG_REMOVED) == 0) {
     /* bounding box test first */
     if ((co[0] >= bounds[0].min) && (co[0] <= bounds[0].max) && (co[1] >= bounds[1].min) &&
-        (co[1] <= bounds[1].max)) {
+        (co[1] <= bounds[1].max))
+    {
       if ((span_tri_v2_sign(tri_coords[0], tri_coords[1], co) != CONCAVE) &&
           (span_tri_v2_sign(tri_coords[1], tri_coords[2], co) != CONCAVE) &&
-          (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE)) {
+          (span_tri_v2_sign(tri_coords[2], tri_coords[0], co) != CONCAVE))
+      {
         if (!ELEM(node->index, tri_index[0], tri_index[1], tri_index[2])) {
           return true;
         }
@@ -738,7 +743,8 @@ static bool pf_ear_tip_check(PolyFill *pf, PolyIndex *pi_ear_tip, const eSign si
        * It's logical - the chance is low that points exist on the
        * same side as the ear we're clipping off. */
       if ((span_tri_v2_sign(v3, v1, v) != CONCAVE) && (span_tri_v2_sign(v1, v2, v) != CONCAVE) &&
-          (span_tri_v2_sign(v2, v3, v) != CONCAVE)) {
+          (span_tri_v2_sign(v2, v3, v) != CONCAVE))
+      {
         return false;
       }
 
@@ -860,7 +866,7 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
                              const int coords_sign,
                              uint32_t (*r_tris)[3],
 
-                             struct MemArena *arena)
+                             MemArena *arena)
 {
   PolyFill pf;
   PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_num);

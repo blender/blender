@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -73,7 +75,8 @@ static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e,
   int cd_loop_offset;
   for (cd_loop_offset = delimit_data->cd_loop_offset;
        cd_loop_offset < delimit_data->cd_loop_offset_end;
-       cd_loop_offset += delimit_data->cd_loop_size) {
+       cd_loop_offset += delimit_data->cd_loop_size)
+  {
     if (BM_edge_is_contiguous_loop_cd(e, delimit_data->cd_loop_type, cd_loop_offset) == false) {
       return false;
     }
@@ -199,7 +202,8 @@ static bool bm_loop_collapse_is_degenerate(BMLoop *l_ear)
     if (!BM_vert_is_edge_pair(l_ear->prev->v)) {
       mul_v2_m3v3_center(adjacent_2d, axis_mat, l_ear->prev->prev->v->co, center);
       if (signum_i(cross_tri_v2(adjacent_2d, tri_2d[0], tri_2d[1])) !=
-          signum_i(cross_tri_v2(adjacent_2d, tri_2d[0], tri_2d[2]))) {
+          signum_i(cross_tri_v2(adjacent_2d, tri_2d[0], tri_2d[2])))
+      {
         return true;
       }
     }
@@ -207,7 +211,8 @@ static bool bm_loop_collapse_is_degenerate(BMLoop *l_ear)
     if (!BM_vert_is_edge_pair(l_ear->next->v)) {
       mul_v2_m3v3_center(adjacent_2d, axis_mat, l_ear->next->next->v->co, center);
       if (signum_i(cross_tri_v2(adjacent_2d, tri_2d[2], tri_2d[1])) !=
-          signum_i(cross_tri_v2(adjacent_2d, tri_2d[2], tri_2d[0]))) {
+          signum_i(cross_tri_v2(adjacent_2d, tri_2d[2], tri_2d[0])))
+      {
         return true;
       }
     }
@@ -330,7 +335,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     while ((BLI_heap_is_empty(eheap) == false) &&
-           (BLI_heap_node_value(enode_top = BLI_heap_top(eheap)) < angle_limit_cos_neg)) {
+           (BLI_heap_node_value(enode_top = BLI_heap_top(eheap)) < angle_limit_cos_neg))
+    {
       BMFace *f_new = NULL;
       BMEdge *e;
 
@@ -451,7 +457,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
     }
 
     while ((BLI_heap_is_empty(vheap) == false) &&
-           (BLI_heap_node_value(vnode_top = BLI_heap_top(vheap)) < angle_limit)) {
+           (BLI_heap_node_value(vnode_top = BLI_heap_top(vheap)) < angle_limit))
+    {
       BMEdge *e_new = NULL;
       BMVert *v;
 
@@ -464,7 +471,8 @@ void BM_mesh_decimate_dissolve_ex(BMesh *bm,
 #else
           BM_vert_is_edge_pair(v)
 #endif
-      ) {
+      )
+      {
         e_new = BM_vert_collapse_edge(bm, v->e, v, true, true, true); /* join edges */
 
         if (e_new) {

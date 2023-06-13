@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -953,23 +954,20 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
       while (a--) {
         keyIndex = getCVKeyIndex(editnurb, bezt);
         if (keyIndex) {
-          BLI_snprintf(
-              rna_path, sizeof(rna_path), "splines[%d].bezier_points[%d]", nu_index, pt_index);
-          BLI_snprintf(orig_rna_path,
-                       sizeof(orig_rna_path),
-                       "splines[%d].bezier_points[%d]",
-                       keyIndex->nu_index,
-                       keyIndex->pt_index);
+          SNPRINTF(rna_path, "splines[%d].bezier_points[%d]", nu_index, pt_index);
+          SNPRINTF(orig_rna_path,
+                   "splines[%d].bezier_points[%d]",
+                   keyIndex->nu_index,
+                   keyIndex->pt_index);
 
           if (keyIndex->switched) {
             char handle_path[64], orig_handle_path[64];
-            BLI_snprintf(orig_handle_path, sizeof(orig_rna_path), "%s.handle_left", orig_rna_path);
-            BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_right", rna_path);
+            SNPRINTF(orig_handle_path, "%s.handle_left", orig_rna_path);
+            SNPRINTF(handle_path, "%s.handle_right", rna_path);
             fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
 
-            BLI_snprintf(
-                orig_handle_path, sizeof(orig_rna_path), "%s.handle_right", orig_rna_path);
-            BLI_snprintf(handle_path, sizeof(rna_path), "%s.handle_left", rna_path);
+            SNPRINTF(orig_handle_path, "%s.handle_right", orig_rna_path);
+            SNPRINTF(handle_path, "%s.handle_left", rna_path);
             fcurve_path_rename(adt, orig_handle_path, handle_path, orig_curves, &curves);
           }
 
@@ -991,12 +989,9 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
       while (a--) {
         keyIndex = getCVKeyIndex(editnurb, bp);
         if (keyIndex) {
-          BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d].points[%d]", nu_index, pt_index);
-          BLI_snprintf(orig_rna_path,
-                       sizeof(orig_rna_path),
-                       "splines[%d].points[%d]",
-                       keyIndex->nu_index,
-                       keyIndex->pt_index);
+          SNPRINTF(rna_path, "splines[%d].points[%d]", nu_index, pt_index);
+          SNPRINTF(
+              orig_rna_path, "splines[%d].points[%d]", keyIndex->nu_index, keyIndex->pt_index);
           fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
 
           keyIndex->nu_index = nu_index;
@@ -1035,8 +1030,8 @@ static void curve_rename_fcurves(Curve *cu, ListBase *orig_curves)
     }
 
     if (keyIndex) {
-      BLI_snprintf(rna_path, sizeof(rna_path), "splines[%d]", nu_index);
-      BLI_snprintf(orig_rna_path, sizeof(orig_rna_path), "splines[%d]", keyIndex->nu_index);
+      SNPRINTF(rna_path, "splines[%d]", nu_index);
+      SNPRINTF(orig_rna_path, "splines[%d]", keyIndex->nu_index);
       fcurve_path_rename(adt, orig_rna_path, rna_path, orig_curves, &curves);
     }
   }
@@ -1174,7 +1169,8 @@ static void remap_hooks_and_vertex_parents(Main *bmain, Object *obedit)
   LISTBASE_FOREACH (Object *, object, &bmain->objects) {
     int index;
     if ((object->parent) && (object->parent->data == curve) &&
-        ELEM(object->partype, PARVERT1, PARVERT3)) {
+        ELEM(object->partype, PARVERT1, PARVERT3))
+    {
       if (old_to_new_map == NULL) {
         old_to_new_map = init_index_map(obedit, &old_totvert);
       }
@@ -1429,7 +1425,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 
     /* All curves failed due to the same error. */
     if (status.error_vertex_keys) {
-      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with vertex keys");
+      BKE_report(op->reports, RPT_ERROR, "Cannot separate curves with shape keys");
     }
     else {
       BLI_assert(status.error_generic);
@@ -1451,12 +1447,13 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->description = "Separate selected points from connected unselected points into a new object";
 
   /* api callbacks */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = separate_exec;
   ot->poll = ED_operator_editsurfcurve;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */
@@ -1994,7 +1991,8 @@ static int sel_to_copy_ints(const BPoint *bp,
   if (selected_leg_count &&
       /* Prevents leading and trailing unselected legs if all selected.
        * Unless it is extrusion from point or curve. */
-      (selected_leg_count < max_j || max_j == 1)) {
+      (selected_leg_count < max_j || max_j == 1))
+  {
     /* Prepend unselected leg if more than one leg selected at the starting edge.
      * max_j == 1 handles extrusion from point to curve and from curve to surface cases. */
     if (is_first_sel && (copy_intervals[0] < copy_intervals[1] || max_j == 1)) {
@@ -2085,7 +2083,8 @@ bool ed_editnurb_extrude_flag(EditNurb *editnurb, const uint8_t flag)
     for (int j = 1; j <= intvl_cnt_v; j++, selected_v = !selected_v) {
       BPoint *old_bp_v = nu->bp + intvls_v[j - 1] * nu->pntsu;
       for (int v_j = intvls_v[j - 1]; v_j <= intvls_v[j];
-           v_j++, new_bp_v += new_pntsu, old_bp_v += nu->pntsu) {
+           v_j++, new_bp_v += new_pntsu, old_bp_v += nu->pntsu)
+      {
         BPoint *new_bp_u_v = new_bp_v;
         bool selected_u = is_first_sel_u;
         for (int i = 1; i <= intvl_cnt_u; i++, selected_u = !selected_u) {
@@ -2322,7 +2321,8 @@ static void adduplicateflagNurb(
         MEM_freeN(usel);
 
         if ((newu == 0 || newv == 0) ||
-            (split && !isNurbselU(nu, &newv, SELECT) && !isNurbselV(nu, &newu, SELECT))) {
+            (split && !isNurbselU(nu, &newv, SELECT) && !isNurbselV(nu, &newu, SELECT)))
+        {
           if (G.debug & G_DEBUG) {
             printf("Can't duplicate Nurb\n");
           }
@@ -2395,7 +2395,8 @@ static void adduplicateflagNurb(
                                                  cu->actvert,
                                                  starta,
                                                  cu->actvert % nu->pntsu + newu +
-                                                     b * newnu->pntsu)) {
+                                                     b * newnu->pntsu))
+                      {
                         /* actvert in cyclicu selection */
                         break;
                       }
@@ -2404,7 +2405,8 @@ static void adduplicateflagNurb(
                                                  cu,
                                                  starta,
                                                  starta + newu,
-                                                 cu->actvert - starta + b * newnu->pntsu)) {
+                                                 cu->actvert - starta + b * newnu->pntsu))
+                      {
                         /* actvert in 'current' iteration selection */
                         break;
                       }
@@ -2447,7 +2449,8 @@ static void adduplicateflagNurb(
                                                starta,
                                                starta + newu,
                                                cu->actvert - (a / nu->pntsu * nu->pntsu + diffa +
-                                                              (starta % nu->pntsu)))) {
+                                                              (starta % nu->pntsu))))
+                    {
                       break;
                     }
                   }
@@ -2487,7 +2490,8 @@ static void adduplicateflagNurb(
                                              cu,
                                              starta,
                                              starta + newu,
-                                             cu->actvert - (diffa + (starta % nu->pntsu)))) {
+                                             cu->actvert - (diffa + (starta % nu->pntsu))))
+                  {
                     break;
                   }
                 }
@@ -3437,8 +3441,8 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           break;
         }
 
-        if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt) &&
-            BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nextbezt)) {
+        if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt) && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nextbezt))
+        {
           amount += number_cuts;
         }
         bezt++;
@@ -4676,13 +4680,15 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
       if (!(nu1->flagu & CU_NURB_CYCLIC) && nu1->pntsu > 1) {
         if (nu1->type == CU_BEZIER && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, nu1->bezt) &&
-            BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1])) {
+            BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, &nu1->bezt[nu1->pntsu - 1]))
+        {
           nu1->flagu |= CU_NURB_CYCLIC;
           BKE_nurb_handles_calc(nu1);
           ok = true;
         }
         else if (ELEM(nu1->type, CU_NURBS, CU_POLY) && nu1->bp->f1 & SELECT &&
-                 (nu1->bp[nu1->pntsu - 1].f1 & SELECT)) {
+                 (nu1->bp[nu1->pntsu - 1].f1 & SELECT))
+        {
           nu1->flagu |= CU_NURB_CYCLIC;
           BKE_nurb_knot_calc_u(nu1);
           ok = true;
@@ -4723,7 +4729,8 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 
     /* All curves failed: If there is more than one error give a generic error report. */
     if (((status.error_selected_few ? 1 : 0) + (status.error_resolution ? 1 : 0) +
-         (status.error_generic ? 1 : 0)) > 1) {
+         (status.error_generic ? 1 : 0)) > 1)
+    {
       BKE_report(op->reports, RPT_ERROR, "Could not make new segments");
     }
 
@@ -5603,7 +5610,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     Curve *cu;
     float location[3];
     const bool use_proj = ((vc.scene->toolsettings->snap_flag & SCE_SNAP) &&
-                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE_RAYCAST));
+                           (vc.scene->toolsettings->snap_mode == SCE_SNAP_MODE_FACE));
 
     Nurb *nu;
     BezTriple *bezt;
@@ -5628,15 +5635,14 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     if (use_proj) {
       const float mval[2] = {UNPACK2(event->mval)};
 
-      struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene,
-                                                                                       0);
+      SnapObjectContext *snap_context = ED_transform_snap_object_context_create(vc.scene, 0);
 
       ED_transform_snap_object_project_view3d(
           snap_context,
           vc.depsgraph,
           vc.region,
           vc.v3d,
-          SCE_SNAP_MODE_FACE_RAYCAST,
+          SCE_SNAP_MODE_FACE,
           &(const struct SnapObjectParams){
               .snap_target_select = (vc.obedit != NULL) ? SCE_SNAP_TARGET_NOT_ACTIVE :
                                                           SCE_SNAP_TARGET_ALL,
@@ -5675,7 +5681,8 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
           float location_test[3];
           madd_v3_v3v3fl(location_test, location, view_dir, lambda);
           if ((vc.rv3d->is_persp == false) ||
-              (mul_project_m4_v3_zfac(vc.rv3d->persmat, location_test) > 0.0f)) {
+              (mul_project_m4_v3_zfac(vc.rv3d->persmat, location_test) > 0.0f))
+          {
             copy_v3_v3(location, location_test);
           }
         }
@@ -6084,7 +6091,8 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
             bezt2 = &nu->bezt[nu->pntsu - 2];
 
             if ((nu->flagu & CU_NURB_CYCLIC) && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt1) &&
-                BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt2)) {
+                BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt2))
+            {
               /* check if need to join start of spline to end */
               nu1 = BKE_nurb_copy(nu, cut + 1, 1);
               ED_curve_beztcpy(editnurb, &nu1->bezt[1], nu->bezt, cut);
@@ -6108,7 +6116,8 @@ static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
             bezt2 = &nu->bezt[1];
 
             if ((nu->flagu & CU_NURB_CYCLIC) && BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt1) &&
-                BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt2)) {
+                BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt2))
+            {
               /* check if need to join start of spline to end */
               nu1 = BKE_nurb_copy(nu, cut + 1, 1);
               ED_curve_beztcpy(editnurb, &nu1->bezt[cut], nu->bezt, 1);
@@ -6673,7 +6682,8 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
                                    test_bezt_is_sel_any,
                                    v3d,
                                    span_step,
-                                   &span_len)) {
+                                   &span_len))
+        {
           BezTriple *bezt_prev = &nu->bezt[mod_i(span_step[0] - 1, nu->pntsu)];
           BezTriple *bezt_next = &nu->bezt[mod_i(span_step[1] + 1, nu->pntsu)];
 

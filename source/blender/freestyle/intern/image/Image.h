@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -99,9 +101,7 @@ class FrsImage {
   }
 
   /** Destructor */
-  virtual ~FrsImage()
-  {
-  }
+  virtual ~FrsImage() {}
 
   /** Returns the width of the complete image */
   inline unsigned width() const

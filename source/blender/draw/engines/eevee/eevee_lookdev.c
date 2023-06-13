@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -60,7 +61,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   {
     Material *ma = EEVEE_material_default_diffuse_get();
     GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
-    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+    GPUShader *sh = GPU_material_get_shader(gpumat);
 
     DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
@@ -71,7 +72,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   {
     Material *ma = EEVEE_material_default_glossy_get();
     GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
-    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+    GPUShader *sh = GPU_material_get_shader(gpumat);
 
     DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
@@ -93,7 +94,7 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     /* Viewport / Spheres size. */
     const rcti *rect;
     rcti fallback_rect;
-    if (DRW_state_is_opengl_render()) {
+    if (DRW_state_is_viewport_image_render()) {
       const float *vp_size = DRW_viewport_size_get();
       fallback_rect.xmax = vp_size[0];
       fallback_rect.ymax = vp_size[1];
@@ -107,14 +108,15 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     /* Make the viewport width scale the lookdev spheres a bit.
      * Scale between 1000px and 2000px. */
     const float viewport_scale = clamp_f(
-        BLI_rcti_size_x(rect) / (2000.0f * U.dpi_fac), 0.5f, 1.0f);
-    const int sphere_size = U.lookdev_sphere_size * U.dpi_fac * viewport_scale;
+        BLI_rcti_size_x(rect) / (2000.0f * UI_SCALE_FAC), 0.5f, 1.0f);
+    const int sphere_size = U.lookdev_sphere_size * UI_SCALE_FAC * viewport_scale;
 
     if (sphere_size != effects->sphere_size || rect->xmax != effects->anchor[0] ||
-        rect->ymin != effects->anchor[1]) {
+        rect->ymin != effects->anchor[1])
+    {
       /* Make sphere resolution adaptive to viewport_scale, DPI and #U.lookdev_sphere_size. */
       float res_scale = clamp_f(
-          (U.lookdev_sphere_size / 400.0f) * viewport_scale * U.dpi_fac, 0.1f, 1.0f);
+          (U.lookdev_sphere_size / 400.0f) * viewport_scale * UI_SCALE_FAC, 0.1f, 1.0f);
 
       if (res_scale > 0.7f) {
         effects->sphere_lod = DRW_LOD_HIGH;
@@ -176,7 +178,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
     /* If one of the component is missing we start from scratch. */
     if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||
         (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL) ||
-        (g_data->light_cache && g_data->light_cache->ref_res != cube_res)) {
+        (g_data->light_cache && g_data->light_cache->ref_res != cube_res))
+    {
       eevee_lookdev_lightcache_delete(vedata);
     }
 
@@ -227,7 +230,9 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
 
     if (probe_render) {
       /* Avoid artifact with equirectangular mapping. */
-      eGPUSamplerState state = (GPU_SAMPLER_FILTER | GPU_SAMPLER_REPEAT_S);
+      GPUSamplerState state = {GPU_SAMPLER_FILTERING_LINEAR,
+                               GPU_SAMPLER_EXTEND_MODE_REPEAT,
+                               GPU_SAMPLER_EXTEND_MODE_EXTEND};
       DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", shading->studiolight_intensity);
       BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
       DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);
@@ -255,7 +260,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
         g_data->studiolight_intensity != shading->studiolight_intensity ||
         g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
         g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
-        g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality) {
+        g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality)
+    {
       stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
       g_data->studiolight_index = sl->index;
       copy_m3_m3(g_data->studiolight_matrix, studiolight_matrix);

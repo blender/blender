@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -62,7 +63,7 @@ struct DepthDropper {
   char name[200];
 };
 
-static void depthdropper_draw_cb(const struct bContext * /*C*/, ARegion * /*region*/, void *arg)
+static void depthdropper_draw_cb(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   DepthDropper *ddr = static_cast<DepthDropper *>(arg);
   eyedropper_draw_cursor_text_region(ddr->name_pos, ddr->name);
@@ -88,7 +89,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
+      {
         Camera *camera = (Camera *)v3d->camera->data;
         RNA_pointer_create(&camera->id, &RNA_CameraDOFSettings, &camera->dof, &ddr->ptr);
         ddr->prop = RNA_struct_find_property(&ddr->ptr, "focus_distance");
@@ -102,7 +104,8 @@ static int depthdropper_init(bContext *C, wmOperator *op)
 
   if ((ddr->ptr.data == nullptr) || (ddr->prop == nullptr) ||
       (RNA_property_editable(&ddr->ptr, ddr->prop) == false) ||
-      (RNA_property_type(ddr->prop) != PROP_FLOAT)) {
+      (RNA_property_type(ddr->prop) != PROP_FLOAT))
+  {
     MEM_freeN(ddr);
     return false;
   }
@@ -156,7 +159,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
     if (area->spacetype == SPACE_VIEW3D) {
       ARegion *region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, m_xy);
       if (region) {
-        struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+        Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
         View3D *v3d = static_cast<View3D *>(area->spacedata.first);
         RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
         /* weak, we could pass in some reference point */
@@ -192,7 +195,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    false);
         }
         else {
-          BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));
+          STRNCPY(ddr->name, "Nothing under cursor");
         }
       }
     }
@@ -337,10 +340,12 @@ static bool depthdropper_poll(bContext *C)
   /* check if there's an active button taking depth value */
   if ((CTX_wm_window(C) != nullptr) &&
       (but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy)) &&
-      (but->type == UI_BTYPE_NUM) && (prop != nullptr)) {
+      (but->type == UI_BTYPE_NUM) && (prop != nullptr))
+  {
     if ((RNA_property_type(prop) == PROP_FLOAT) &&
         (RNA_property_subtype(prop) & PROP_UNIT_LENGTH) &&
-        (RNA_property_array_check(prop) == false)) {
+        (RNA_property_array_check(prop) == false))
+    {
       return true;
     }
   }
@@ -349,7 +354,8 @@ static bool depthdropper_poll(bContext *C)
     if (rv3d && rv3d->persp == RV3D_CAMOB) {
       View3D *v3d = CTX_wm_view3d(C);
       if (v3d->camera && v3d->camera->data &&
-          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data))) {
+          BKE_id_is_editable(CTX_data_main(C), static_cast<const ID *>(v3d->camera->data)))
+      {
         return true;
       }
     }

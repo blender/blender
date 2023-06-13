@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup avi
@@ -24,6 +25,10 @@
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "BLI_sys_types.h"
 #include <stdio.h> /* for FILE */
@@ -217,12 +222,12 @@ typedef enum {
 /**
  * Test whether this is an avi-format.
  */
-bool AVI_is_avi(const char *name);
+bool AVI_is_avi(const char *filepath);
 
 /**
  * Open a compressed file, decompress it into memory.
  */
-AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...);
+AviError AVI_open_compress(char *filepath, AviMovie *movie, int streams, ...);
 
 /**
  * Finalize a compressed output stream.
@@ -259,7 +264,7 @@ int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num);
 /**
  * Open a movie stream from file.
  */
-AviError AVI_open_movie(const char *name, AviMovie *movie);
+AviError AVI_open_movie(const char *filepath, AviMovie *movie);
 
 /**
  * Read a frame from a movie stream.
@@ -279,3 +284,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...);
  * Unused but still external
  */
 AviError AVI_print_error(AviError error);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmeta
@@ -73,9 +74,7 @@ void ED_mball_editmball_make(Object *obedit)
   mb->editelems = &mb->elems;
 }
 
-void ED_mball_editmball_load(Object *UNUSED(obedit))
-{
-}
+void ED_mball_editmball_load(Object *UNUSED(obedit)) {}
 
 /** \} */
 
@@ -505,7 +504,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
+void MBALL_OT_select_random_metaelems(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Select Random";
@@ -633,12 +632,13 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
   ot->idname = "MBALL_OT_delete_metaelems";
 
   /* callback functions */
-  ot->invoke = WM_operator_confirm;
+  ot->invoke = WM_operator_confirm_or_exec;
   ot->exec = delete_metaelems_exec;
   ot->poll = ED_operator_editmball;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  WM_operator_properties_confirm_or_exec(ot);
 }
 
 /** \} */

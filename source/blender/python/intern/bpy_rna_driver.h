@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -17,7 +19,10 @@ extern "C" {
 /**
  * A version of #driver_get_variable_value which returns a #PyObject.
  */
-PyObject *pyrna_driver_get_variable_value(struct ChannelDriver *driver, struct DriverTarget *dtar);
+PyObject *pyrna_driver_get_variable_value(const struct AnimationEvalContext *anim_eval_context,
+                                          struct ChannelDriver *driver,
+                                          struct DriverVar *dvar,
+                                          struct DriverTarget *dtar);
 
 PyObject *pyrna_driver_self_from_anim_rna(struct PathResolvedRNA *anim_rna);
 bool pyrna_driver_is_equal_anim_rna(const struct PathResolvedRNA *anim_rna,

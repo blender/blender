@@ -42,6 +42,9 @@ op_blacklist = (
     "*.*_import",
     "ed.undo",
     "ed.undo_push",
+    "image.external_edit",  # just annoying - but harmless (opens an app).
+    "image.project_edit",  # just annoying - but harmless (opens an app).
+    "object.quadriflow_remesh",  # OK but slow.
     "preferences.studiolight_new",
     "script.autoexec_warn_clear",
     "screen.delete",           # already used for random screens
@@ -74,6 +77,12 @@ op_blacklist = (
     "wm.addon_*",               # harmless, but don't change state
     "console.*",                # just annoying - but harmless
     "wm.url_open_preset",       # Annoying but harmless (opens web pages).
+
+    "render.cycles_integrator_preset_add",
+    "render.cycles_performance_preset_add",
+    "render.cycles_sampling_preset_add",
+    "render.cycles_viewport_sampling_preset_add",
+    "render.preset_add",
 
     # FIXME:
     # Crashes with non-trivial fixes.
@@ -245,29 +254,40 @@ if USE_ATTRSET:
 
 
 def run_ops(operators, setup_func=None, reset=True):
+    from bpy import context
     print("\ncontext:", setup_func.__name__)
+
+    def temp_override_default_kwargs():
+        return {
+            "window": context.window_manager.windows[0],
+        }
 
     # first invoke
     for op_id, op in operators:
-        if op.poll():
-            print("    operator: %4d, %s" % (STATE["counter"], op_id))
-            STATE["counter"] += 1
-            sys.stdout.flush()  # in case of crash
+        with context.temp_override(window=context.window_manager.windows[0]):
+            if not op.poll():
+                continue
 
-            # disable will get blender in a bad state and crash easy!
-            if reset:
-                reset_test = True
-                if USE_RANDOM:
-                    import random
-                    if random.random() < (1.0 - RANDOM_RESET):
-                        reset_test = False
+        print("    operator: %4d, %s" % (STATE["counter"], op_id))
+        STATE["counter"] += 1
+        sys.stdout.flush()  # in case of crash
 
-                if reset_test:
-                    if USE_FILES:
-                        reset_file()
-                    else:
-                        reset_blend()
-                del reset_test
+        # disable will get blender in a bad state and crash easy!
+        if reset:
+            reset_test = True
+            if USE_RANDOM:
+                import random
+                if random.random() < (1.0 - RANDOM_RESET):
+                    reset_test = False
+
+            if reset_test:
+                if USE_FILES:
+                    reset_file()
+                else:
+                    reset_blend()
+            del reset_test
+
+        with context.temp_override(**temp_override_default_kwargs()):
 
             if USE_RANDOM:
                 # we can't be sure it will work
@@ -293,14 +313,16 @@ def run_ops(operators, setup_func=None, reset=True):
         # run test
         if reset:
             reset_blend()
-        if USE_RANDOM:
-            # we can't be sure it will work
-            try:
+
+        with context.temp_override(**temp_override_default_kwargs()):
+            if USE_RANDOM:
+                # we can't be sure it will work
+                try:
+                    setup_func()
+                except:
+                    pass
+            else:
                 setup_func()
-            except:
-                pass
-        else:
-            setup_func()
 
 
 # contexts

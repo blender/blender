@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -19,7 +21,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_cloth_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -32,7 +34,7 @@
 #include "BKE_action.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_gpencil.h"
+#include "BKE_gpencil_legacy.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -257,7 +259,7 @@ static void object_defgroup_remove_common(Object *ob, bDeformGroup *dg, const in
     BKE_object_defgroup_active_index_set(ob, active_index - 1);
   }
 
-  /* remove all dverts */
+  /* Remove all deform-verts. */
   if (BLI_listbase_is_empty(defbase)) {
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
@@ -366,7 +368,7 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
 
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     BKE_gpencil_vgroup_remove(ob, defgroup);
   }
   else {
@@ -381,7 +383,7 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
   }
 }
 
-void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
+void BKE_object_defgroup_remove_all_ex(Object *ob, bool only_unlocked)
 {
   ListBase *defbase = BKE_object_defgroup_list_mutable(ob);
 
@@ -404,8 +406,8 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
       dg = next_dg;
     }
   }
-  else { /* defbase is empty... */
-    /* remove all dverts */
+  else { /* `defbase` is empty. */
+    /* Remove all deform-verts. */
     if (ob->type == OB_MESH) {
       Mesh *me = ob->data;
       CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
@@ -419,7 +421,7 @@ void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked)
   }
 }
 
-void BKE_object_defgroup_remove_all(struct Object *ob)
+void BKE_object_defgroup_remove_all(Object *ob)
 {
   BKE_object_defgroup_remove_all_ex(ob, false);
 }
@@ -568,7 +570,8 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
   /* now loop through the armature modifiers and identify deform bones */
   for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0),
       BKE_modifiers_get_virtual_modifierlist(ob, &virtualModifierData) :
-                                     md->next) {
+                                     md->next)
+  {
     if (!(md->mode & (eModifierMode_Realtime | eModifierMode_Virtual))) {
       continue;
     }
@@ -691,7 +694,7 @@ void BKE_object_defgroup_split_locked_validmap(
   }
 }
 
-void BKE_object_defgroup_mirror_selection(struct Object *ob,
+void BKE_object_defgroup_mirror_selection(Object *ob,
                                           int defbase_tot,
                                           const bool *dg_selection,
                                           bool *dg_flags_sel,

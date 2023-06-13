@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -59,7 +60,7 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
                                  float dither);
 
 /**
- * Should be called from DRW after DRW_opengl_context_enable.
+ * Should be called from DRW after DRW_gpu_context_enable.
  */
 void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
                                       struct GPUOffScreen *ofs,

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2012 Blender Foundation.
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2012 Blender Foundation.
 
 set(INC
   ../include
@@ -17,15 +18,15 @@ set(INC_SYS
 )
 
 set(SRC
-  mask_add.c
-  mask_draw.c
-  mask_edit.c
-  mask_editaction.c
-  mask_ops.c
-  mask_query.c
-  mask_relationships.c
-  mask_select.c
-  mask_shapekey.c
+  mask_add.cc
+  mask_draw.cc
+  mask_edit.cc
+  mask_editaction.cc
+  mask_ops.cc
+  mask_query.cc
+  mask_relationships.cc
+  mask_select.cc
+  mask_shapekey.cc
 
   mask_intern.h
 )

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -158,7 +160,8 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
                     NULL,
                     SymFunctionTableAccess64,
                     SymGetModuleBase64,
-                    0)) {
+                    0))
+    {
       if (frame.AddrPC.Offset) {
         char module[MAX_PATH];
 
@@ -170,7 +173,8 @@ static bool BLI_windows_system_backtrace_run_trace(FILE *fp, HANDLE hThread, PCO
           lineinfo.SizeOfStruct = sizeof(lineinfo);
           DWORD displacement = 0;
           if (SymGetLineFromAddr(
-                  GetCurrentProcess(), (DWORD64)(frame.AddrPC.Offset), &displacement, &lineinfo)) {
+                  GetCurrentProcess(), (DWORD64)(frame.AddrPC.Offset), &displacement, &lineinfo))
+          {
             fprintf(fp, " %s:%d", lineinfo.FileName, lineinfo.LineNumber);
           }
           fprintf(fp, "\n");

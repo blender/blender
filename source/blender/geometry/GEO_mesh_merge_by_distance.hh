@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,7 +25,7 @@ namespace blender::geometry {
  * avoid copying the input. Otherwise returns the new mesh with merged geometry.
  */
 std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
-                                                 IndexMask selection,
+                                                 const IndexMask &selection,
                                                  float merge_distance);
 
 /**
@@ -37,5 +39,20 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
                                                        Span<bool> selection,
                                                        float merge_distance,
                                                        bool only_loose_edges);
+
+/**
+ * Merge Verts indicated in the targets map.
+ *
+ * This frees the given mesh and returns a new mesh.
+ *
+ * \param vert_dest_map: The table that maps vertices to target vertices.  a value of -1
+ * indicates a vertex is a target, and is to be kept.
+ * This array is aligned with 'mesh->totvert'
+ * \warning \a vert_merge_map must **not** contain any chained mapping (v1 -> v2 -> v3 etc.),
+ * this is not supported and will likely generate corrupted geometry.
+ *
+ * \param vert_dest_map_len: The number of non '-1' values in `vert_dest_map`. (not the size)
+ */
+Mesh *mesh_merge_verts(const Mesh &mesh, MutableSpan<int> vert_dest_map, int vert_dest_map_len);
 
 }  // namespace blender::geometry

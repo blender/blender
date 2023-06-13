@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -16,13 +18,13 @@ namespace blender::nodes::node_geo_material_selection_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Material>(N_("Material")).hide_label(true);
-  b.add_output<decl::Bool>(N_("Selection")).field_source();
+  b.add_input<decl::Material>("Material").hide_label(true);
+  b.add_output<decl::Bool>("Selection").field_source();
 }
 
 static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
                                                   const Material *material,
-                                                  const IndexMask face_mask)
+                                                  const IndexMask &face_mask)
 {
   Vector<int> slots;
   for (const int slot_i : IndexRange(mesh.totcol)) {
@@ -35,7 +37,7 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
   }
 
   const AttributeAccessor attributes = mesh.attributes();
-  const VArray<int> material_indices = attributes.lookup_or_default<int>(
+  const VArray<int> material_indices = *attributes.lookup_or_default<int>(
       "material_index", ATTR_DOMAIN_FACE, 0);
   if (material_indices.is_single()) {
     const int slot_i = material_indices.get_internal_single();
@@ -68,7 +70,7 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     if (context.type() != GEO_COMPONENT_TYPE_MESH) {
       return {};
@@ -93,7 +95,8 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   bool is_equal_to(const fn::FieldNode &other) const override
   {
     if (const MaterialSelectionFieldInput *other_material_selection =
-            dynamic_cast<const MaterialSelectionFieldInput *>(&other)) {
+            dynamic_cast<const MaterialSelectionFieldInput *>(&other))
+    {
       return material_ == other_material_selection->material_;
     }
     return false;

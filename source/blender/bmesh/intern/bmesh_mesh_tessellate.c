@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -81,11 +83,9 @@ BLI_INLINE void bmesh_calc_tessellation_for_face_impl(BMLoop *(*looptris)[3],
             efa->no, l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co);
       }
 
-      if (UNLIKELY(is_quad_flip_v3_first_third_fast_with_normal(l_ptr_a[0]->v->co,
-                                                                l_ptr_a[1]->v->co,
-                                                                l_ptr_a[2]->v->co,
-                                                                l_ptr_b[2]->v->co,
-                                                                efa->no))) {
+      if (UNLIKELY(is_quad_flip_v3_first_third_fast(
+              l_ptr_a[0]->v->co, l_ptr_a[1]->v->co, l_ptr_a[2]->v->co, l_ptr_b[2]->v->co)))
+      {
         /* Flip out of degenerate 0-2 state. */
         l_ptr_a[2] = l_ptr_b[2];
         l_ptr_b[0] = l_ptr_a[1];

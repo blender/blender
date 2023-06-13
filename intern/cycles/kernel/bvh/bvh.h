@@ -17,8 +17,32 @@
 #  include "kernel/device/metal/bvh.h"
 #elif defined(__KERNEL_OPTIX__)
 #  include "kernel/device/optix/bvh.h"
+#elif defined(__HIPRT__)
+#  include "kernel/device/hiprt/bvh.h"
 #else
 #  define __BVH2__
+#endif
+
+#if defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU)
+/* bool is apparently not tested for specialization constants:
+ * https://github.com/intel/llvm/blob/39d1c65272a786b2b13a6f094facfddf9408406d/sycl/test/basic_tests/SYCL-2020-spec-constants.cpp#L25-L27
+ * Instead of adding one more bool specialization constant, we reuse existing embree_features one
+ * and use RTC_FEATURE_FLAG_NONE as value to test for avoiding to call Embree on GPU.
+ */
+/* We set it to RTC_FEATURE_FLAG_NONE by default so AoT binaries contain MNE and ray-trace kernels
+ * pre-compiled without Embree.
+ * Changing this default value would require updating the logic in oneapi_load_kernels(). */
+static constexpr sycl::specialization_id<RTCFeatureFlags> oneapi_embree_features{
+    RTC_FEATURE_FLAG_NONE};
+#  define IF_USING_EMBREE \
+    if (kernel_handler.get_specialization_constant<oneapi_embree_features>() != \
+        RTC_FEATURE_FLAG_NONE)
+#  define IF_NOT_USING_EMBREE \
+    if (kernel_handler.get_specialization_constant<oneapi_embree_features>() == \
+        RTC_FEATURE_FLAG_NONE)
+#else
+#  define IF_USING_EMBREE
+#  define IF_NOT_USING_EMBREE
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -74,30 +98,39 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   }
 
 #  ifdef __EMBREE__
-  if (kernel_data.device_bvh) {
-    return kernel_embree_intersect(kg, ray, visibility, isect);
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect(kg, ray, visibility, isect);
+    }
   }
 #  endif
 
+  IF_NOT_USING_EMBREE
+  {
 #  ifdef __OBJECT_MOTION__
-  if (kernel_data.bvh.have_motion) {
+    if (kernel_data.bvh.have_motion) {
 #    ifdef __HAIR__
-    if (kernel_data.bvh.have_curves) {
-      return bvh_intersect_hair_motion(kg, ray, isect, visibility);
-    }
+      if (kernel_data.bvh.have_curves) {
+        return bvh_intersect_hair_motion(kg, ray, isect, visibility);
+      }
 #    endif /* __HAIR__ */
 
-    return bvh_intersect_motion(kg, ray, isect, visibility);
-  }
+      return bvh_intersect_motion(kg, ray, isect, visibility);
+    }
 #  endif /* __OBJECT_MOTION__ */
 
 #  ifdef __HAIR__
-  if (kernel_data.bvh.have_curves) {
-    return bvh_intersect_hair(kg, ray, isect, visibility);
-  }
+    if (kernel_data.bvh.have_curves) {
+      return bvh_intersect_hair(kg, ray, isect, visibility);
+    }
 #  endif /* __HAIR__ */
 
-  return bvh_intersect(kg, ray, isect, visibility);
+    return bvh_intersect(kg, ray, isect, visibility);
+  }
+
+  kernel_assert(false);
+  return false;
 }
 
 /* Single object BVH traversal, for SSS/AO/bevel. */
@@ -129,17 +162,27 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.device_bvh) {
-    return kernel_embree_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect_local(
+          kg, ray, local_isect, local_object, lcg_state, max_hits);
+    }
   }
 #    endif
 
+  IF_NOT_USING_EMBREE
+  {
 #    ifdef __OBJECT_MOTION__
-  if (kernel_data.bvh.have_motion) {
-    return bvh_intersect_local_motion(kg, ray, local_isect, local_object, lcg_state, max_hits);
-  }
+    if (kernel_data.bvh.have_motion) {
+      return bvh_intersect_local_motion(kg, ray, local_isect, local_object, lcg_state, max_hits);
+    }
 #    endif /* __OBJECT_MOTION__ */
-  return bvh_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
+    return bvh_intersect_local(kg, ray, local_isect, local_object, lcg_state, max_hits);
+  }
+
+  kernel_assert(false);
+  return false;
 }
 #  endif
 
@@ -184,35 +227,44 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.device_bvh) {
-    return kernel_embree_intersect_shadow_all(
-        kg, state, ray, visibility, max_hits, num_recorded_hits, throughput);
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect_shadow_all(
+          kg, state, ray, visibility, max_hits, num_recorded_hits, throughput);
+    }
   }
 #    endif
 
+  IF_NOT_USING_EMBREE
+  {
 #    ifdef __OBJECT_MOTION__
-  if (kernel_data.bvh.have_motion) {
+    if (kernel_data.bvh.have_motion) {
 #      ifdef __HAIR__
-    if (kernel_data.bvh.have_curves) {
-      return bvh_intersect_shadow_all_hair_motion(
-          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
-    }
+      if (kernel_data.bvh.have_curves) {
+        return bvh_intersect_shadow_all_hair_motion(
+            kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+      }
 #      endif /* __HAIR__ */
 
-    return bvh_intersect_shadow_all_motion(
-        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
-  }
+      return bvh_intersect_shadow_all_motion(
+          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+    }
 #    endif /* __OBJECT_MOTION__ */
 
 #    ifdef __HAIR__
-  if (kernel_data.bvh.have_curves) {
-    return bvh_intersect_shadow_all_hair(
-        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
-  }
+    if (kernel_data.bvh.have_curves) {
+      return bvh_intersect_shadow_all_hair(
+          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+    }
 #    endif /* __HAIR__ */
 
-  return bvh_intersect_shadow_all(
-      kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+    return bvh_intersect_shadow_all(
+        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+  }
+
+  kernel_assert(false);
+  return false;
 }
 #  endif /* __SHADOW_RECORD_ALL__ */
 
@@ -239,13 +291,28 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
     return false;
   }
 
-#    ifdef __OBJECT_MOTION__
-  if (kernel_data.bvh.have_motion) {
-    return bvh_intersect_volume_motion(kg, ray, isect, visibility);
+#    ifdef __EMBREE__
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect_volume(kg, ray, isect, visibility);
+    }
   }
+#    endif
+
+  IF_NOT_USING_EMBREE
+  {
+#    ifdef __OBJECT_MOTION__
+    if (kernel_data.bvh.have_motion) {
+      return bvh_intersect_volume_motion(kg, ray, isect, visibility);
+    }
 #    endif /* __OBJECT_MOTION__ */
 
-  return bvh_intersect_volume(kg, ray, isect, visibility);
+    return bvh_intersect_volume(kg, ray, isect, visibility);
+  }
+
+  kernel_assert(false);
+  return false;
 }
 #  endif /* defined(__VOLUME__) && !defined(__VOLUME_RECORD_ALL__) */
 
@@ -275,18 +342,27 @@ ccl_device_intersect uint scene_intersect_volume(KernelGlobals kg,
   }
 
 #    ifdef __EMBREE__
-  if (kernel_data.device_bvh) {
-    return kernel_embree_intersect_volume(kg, ray, isect, max_hits, visibility);
+  IF_USING_EMBREE
+  {
+    if (kernel_data.device_bvh) {
+      return kernel_embree_intersect_volume(kg, ray, isect, max_hits, visibility);
+    }
   }
 #    endif
 
+  IF_NOT_USING_EMBREE
+  {
 #    ifdef __OBJECT_MOTION__
-  if (kernel_data.bvh.have_motion) {
-    return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits, visibility);
-  }
+    if (kernel_data.bvh.have_motion) {
+      return bvh_intersect_volume_all_motion(kg, ray, isect, max_hits, visibility);
+    }
 #    endif /* __OBJECT_MOTION__ */
 
-  return bvh_intersect_volume_all(kg, ray, isect, max_hits, visibility);
+    return bvh_intersect_volume_all(kg, ray, isect, max_hits, visibility);
+  }
+
+  kernel_assert(false);
+  return false;
 }
 
 #  endif /* defined(__VOLUME__) && defined(__VOLUME_RECORD_ALL__) */

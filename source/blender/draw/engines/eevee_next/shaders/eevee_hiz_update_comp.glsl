@@ -62,7 +62,7 @@ void main()
   int mask_shift = 1;
 
 #define downsample_level(out_mip__, lod_) \
-  active_thread = all(lessThan(local_px, gl_WorkGroupSize.xy >> uint(mask_shift))); \
+  active_thread = all(lessThan(uvec2(local_px), gl_WorkGroupSize.xy >> uint(mask_shift))); \
   barrier(); /* Wait for previous writes to finish. */ \
   if (active_thread) { \
     max_depth = max_v4(load_local_depths(local_px)); \
@@ -89,12 +89,12 @@ void main()
   }
   finished_tile_counter = 0u;
 
-  ivec2 iter = divide_ceil(imageSize(out_mip_5), ivec2(gl_WorkGroupSize * 2u));
+  ivec2 iter = divide_ceil(imageSize(out_mip_5), ivec2(gl_WorkGroupSize.xy * 2u));
   ivec2 image_border = imageSize(out_mip_5) - 1;
   for (int y = 0; y < iter.y; y++) {
     for (int x = 0; x < iter.x; x++) {
       /* Load result of the other work groups. */
-      kernel_origin = ivec2(gl_WorkGroupSize) * ivec2(x, y);
+      kernel_origin = ivec2(gl_WorkGroupSize.xy) * ivec2(x, y);
       src_px = ivec2(kernel_origin + local_px) * 2;
       vec4 samp;
       samp.x = imageLoad(out_mip_5, min(src_px + ivec2(0, 1), image_border)).x;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -242,6 +243,8 @@ typedef struct EEVEE_PassList {
   struct DRWPass *volumetric_accum_ps;
   struct DRWPass *ssr_raytrace;
   struct DRWPass *ssr_resolve;
+  struct DRWPass *ssr_resolve_probe;
+  struct DRWPass *ssr_resolve_refl;
   struct DRWPass *sss_blur_ps;
   struct DRWPass *sss_resolve_ps;
   struct DRWPass *sss_translucency_ps;
@@ -265,6 +268,7 @@ typedef struct EEVEE_PassList {
   /* Render-pass Accumulation. */
   struct DRWPass *material_accum_ps;
   struct DRWPass *background_accum_ps;
+  struct DRWPass *transparent_accum_ps;
   struct DRWPass *cryptomatte_ps;
 
   struct DRWPass *depth_ps;
@@ -348,6 +352,8 @@ typedef struct EEVEE_FramebufferList {
   struct GPUFrameBuffer *double_buffer_fb;
   struct GPUFrameBuffer *double_buffer_color_fb;
   struct GPUFrameBuffer *double_buffer_depth_fb;
+  struct GPUFrameBuffer *transparent_rpass_fb;
+  struct GPUFrameBuffer *transparent_rpass_accum_fb;
   struct GPUFrameBuffer *taa_history_fb;
   struct GPUFrameBuffer *taa_history_color_fb;
 } EEVEE_FramebufferList;
@@ -368,6 +374,9 @@ typedef struct EEVEE_TextureList {
   struct GPUTexture *bloom_accum;
   struct GPUTexture *ssr_accum;
   struct GPUTexture *shadow_accum;
+  struct GPUTexture *transparent_accum;
+  struct GPUTexture *transparent_depth_tmp;
+  struct GPUTexture *transparent_color_tmp;
   struct GPUTexture *cryptomatte;
   struct GPUTexture *taa_history;
   /* Could not be pool texture because of mipmapping. */
@@ -700,6 +709,9 @@ typedef struct EEVEE_EffectsInfo {
   struct GPUTexture *ssr_specrough_input;
   struct GPUTexture *ssr_hit_output;
   struct GPUTexture *ssr_hit_depth;
+  /* Intel devices require a split execution due to shader issue */
+  bool use_split_ssr_pass;
+
   /* Temporal Anti Aliasing */
   int taa_reproject_sample;
   int taa_current_sample;
@@ -1210,6 +1222,9 @@ struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_ambient_occlusion_debug_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_trace_sh_get(void);
 struct GPUShader *EEVEE_shaders_effect_reflection_resolve_sh_get(void);
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_probe_sh_get(void);
+struct GPUShader *EEVEE_shaders_effect_reflection_resolve_refl_sh_get(void);
+struct GPUShader *EEVEE_shaders_renderpasses_accumulate_sh_get(void);
 struct GPUShader *EEVEE_shaders_renderpasses_post_process_sh_get(void);
 struct GPUShader *EEVEE_shaders_cryptomatte_sh_get(bool is_hair);
 struct GPUShader *EEVEE_shaders_shadow_sh_get(void);
@@ -1468,6 +1483,8 @@ void EEVEE_renderpasses_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 void EEVEE_renderpasses_output_accumulate(EEVEE_ViewLayerData *sldata,
                                           EEVEE_Data *vedata,
                                           bool post_effect);
+void EEVEE_material_transparent_output_init(EEVEE_Data *vedata);
+void EEVEE_material_transparent_output_accumulate(EEVEE_Data *vedata);
 /**
  * Post-process data to construct a specific render-pass
  *

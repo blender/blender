@@ -1,8 +1,13 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <array>
 
 #include "BLI_bit_span.hh"
+#include "BLI_bit_span_ops.hh"
+#include "BLI_timeit.hh"
+#include "BLI_vector.hh"
 
 #include "testing/testing.h"
 
@@ -118,6 +123,12 @@ TEST(bit_span, Set)
             0b0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'0000'1111'0000);
 }
 
+TEST(bit_span, SetEmpty)
+{
+  MutableBitSpan().set_all(true);
+  MutableBitSpan().set_all(false);
+}
+
 TEST(bit_span, SetSliced)
 {
   std::array<uint64_t, 10> data;
@@ -134,6 +145,107 @@ TEST(bit_span, SetSliced)
   for (const int64_t i : IndexRange(640)) {
     EXPECT_EQ(span[i], (i >= 5 && i < 10) || (i >= 200 && i < 505));
   }
+}
+
+TEST(bit_span, IsBounded)
+{
+  std::array<uint64_t, 10> data;
+
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 0)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 1)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 50)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 63)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 64)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 65)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 100)));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), 400)));
+
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), IndexRange(0, 3))));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), IndexRange(1, 3))));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), IndexRange(10, 20))));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), IndexRange(63, 1))));
+  EXPECT_TRUE(is_bounded_span(BitSpan(data.data(), IndexRange(10, 54))));
+
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(1, 64))));
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(10, 64))));
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(10, 200))));
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(60, 5))));
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(64, 0))));
+  EXPECT_FALSE(is_bounded_span(BitSpan(data.data(), IndexRange(70, 5))));
+}
+
+TEST(bit_span, CopyFrom)
+{
+  std::array<uint64_t, 30> src_data;
+  uint64_t i = 0;
+  for (uint64_t &value : src_data) {
+    value = i;
+    i += 234589766883;
+  }
+  const BitSpan src(src_data.data(), src_data.size() * BitsPerInt);
+
+  std::array<uint64_t, 4> dst_data;
+  dst_data.fill(-1);
+  MutableBitSpan dst(dst_data.data(), 100);
+  dst.copy_from(src.slice({401, 100}));
+
+  for (const int i : dst.index_range()) {
+    EXPECT_TRUE(dst[i].test() == src[401 + i].test());
+  }
+}
+
+TEST(bit_span, InPlaceOr)
+{
+  std::array<uint64_t, 100> data_1;
+  MutableBitSpan span_1(data_1.data(), data_1.size() * BitsPerInt);
+  for (const int i : span_1.index_range()) {
+    span_1[i].set(i % 2 == 0);
+  }
+
+  std::array<uint64_t, 100> data_2;
+  MutableBitSpan span_2(data_2.data(), data_2.size() * BitsPerInt);
+  for (const int i : span_2.index_range()) {
+    span_2[i].set(i % 2 != 0);
+  }
+
+  span_1 |= span_2;
+  for (const int i : span_1.index_range()) {
+    EXPECT_TRUE(span_1[i].test());
+  }
+}
+
+TEST(bit_span, InPlaceAnd)
+{
+  std::array<uint64_t, 100> data_1{};
+  MutableBitSpan span_1(data_1.data(), data_1.size() * BitsPerInt);
+  for (const int i : span_1.index_range()) {
+    span_1[i].set(i % 2 == 0);
+  }
+
+  std::array<uint64_t, 100> data_2{};
+  MutableBitSpan span_2(data_2.data(), data_2.size() * BitsPerInt);
+  for (const int i : span_2.index_range()) {
+    span_2[i].set(i % 2 != 0);
+  }
+
+  span_1 &= span_2;
+  for (const int i : span_1.index_range()) {
+    EXPECT_FALSE(span_1[i].test());
+  }
+}
+
+TEST(bit_span, ForEach1)
+{
+  std::array<uint64_t, 2> data{};
+  MutableBitSpan span(data.data(), data.size() * BitsPerInt);
+  for (const int i : {1, 28, 37, 86}) {
+    span[i].set();
+  }
+
+  Vector<int> indices_test;
+  foreach_1_index(span.slice({4, span.size() - 4}), [&](const int i) { indices_test.append(i); });
+
+  EXPECT_EQ(indices_test.as_span(), Span({24, 33, 82}));
 }
 
 }  // namespace blender::bits::tests

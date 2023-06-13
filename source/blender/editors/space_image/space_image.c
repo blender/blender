@@ -1,12 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
  */
 
 #include "DNA_defaults.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_image_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
@@ -160,7 +161,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   return (SpaceLink *)simage;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void image_free(SpaceLink *sl)
 {
   SpaceImage *simage = (SpaceImage *)sl;
@@ -169,7 +170,7 @@ static void image_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void image_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -216,6 +217,8 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_save_all_modified);
   WM_operatortype_append(IMAGE_OT_pack);
   WM_operatortype_append(IMAGE_OT_unpack);
+  WM_operatortype_append(IMAGE_OT_clipboard_copy);
+  WM_operatortype_append(IMAGE_OT_clipboard_paste);
 
   WM_operatortype_append(IMAGE_OT_flip);
   WM_operatortype_append(IMAGE_OT_invert);
@@ -241,7 +244,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_tile_fill);
 }
 
-static void image_keymap(struct wmKeyConfig *keyconf)
+static void image_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Image Generic", SPACE_IMAGE, 0);
   WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, 0);
@@ -255,8 +258,8 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
     return false;
   }
   if (drag->type == WM_DRAG_PATH) {
-    /* rule might not work? */
-    if (ELEM(drag->icon, 0, ICON_FILE_IMAGE, ICON_FILE_MOVIE, ICON_FILE_BLANK)) {
+    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    if (ELEM(file_type, 0, FILE_TYPE_IMAGE, FILE_TYPE_MOVIE)) {
       return true;
     }
   }
@@ -266,7 +269,7 @@ static bool image_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 static void image_drop_copy(bContext *UNUSED(C), wmDrag *drag, wmDropBox *drop)
 {
   /* copy drag path to properties */
-  RNA_string_set(drop->ptr, "filepath", drag->path);
+  RNA_string_set(drop->ptr, "filepath", WM_drag_get_path(drag));
 }
 
 /* area+region dropbox definition */
@@ -336,6 +339,7 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
         case ND_COMPO_RESULT:
           if (ED_space_image_show_render(sima)) {
             image_scopes_tag_refresh(area);
+            BKE_image_partial_update_mark_full_update(sima->image);
           }
           ED_area_tag_redraw(area);
           break;
@@ -993,7 +997,8 @@ static void image_id_remap(ScrArea *UNUSED(area),
 {
   SpaceImage *simg = (SpaceImage *)slink;
 
-  if (!BKE_id_remapper_has_mapping_for(mappings, FILTER_ID_IM | FILTER_ID_GD | FILTER_ID_MSK)) {
+  if (!BKE_id_remapper_has_mapping_for(mappings,
+                                       FILTER_ID_IM | FILTER_ID_GD_LEGACY | FILTER_ID_MSK)) {
     return;
   }
 
@@ -1034,7 +1039,7 @@ static void image_space_subtype_item_extend(bContext *UNUSED(C),
   RNA_enum_items_add(item, totitem, rna_enum_space_image_mode_items);
 }
 
-static void image_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
+static void image_space_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl)
 {
   SpaceImage *sima = (SpaceImage *)sl;
 
@@ -1056,20 +1061,20 @@ static void image_blend_read_data(BlendDataReader *UNUSED(reader), SpaceLink *sl
 #endif
 }
 
-static void image_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
+static void image_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceImage *sima = (SpaceImage *)sl;
 
-  BLO_read_id_address(reader, parent_id->lib, &sima->image);
-  BLO_read_id_address(reader, parent_id->lib, &sima->mask_info.mask);
+  BLO_read_id_address(reader, parent_id, &sima->image);
+  BLO_read_id_address(reader, parent_id, &sima->mask_info.mask);
 
   /* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
    * so fingers crossed this works fine!
    */
-  BLO_read_id_address(reader, parent_id->lib, &sima->gpd);
+  BLO_read_id_address(reader, parent_id, &sima->gpd);
 }
 
-static void image_blend_write(BlendWriter *writer, SpaceLink *sl)
+static void image_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceImage, sl);
 }
@@ -1099,9 +1104,9 @@ void ED_spacetype_image(void)
   st->space_subtype_item_extend = image_space_subtype_item_extend;
   st->space_subtype_get = image_space_subtype_get;
   st->space_subtype_set = image_space_subtype_set;
-  st->blend_read_data = image_blend_read_data;
-  st->blend_read_lib = image_blend_read_lib;
-  st->blend_write = image_blend_write;
+  st->blend_read_data = image_space_blend_read_data;
+  st->blend_read_lib = image_space_blend_read_lib;
+  st->blend_write = image_space_blend_write;
 
   /* regions: main window */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
@@ -1112,7 +1117,7 @@ void ED_spacetype_image(void)
   art->listener = image_main_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: listview/buttons/scopes */
+  /* regions: list-view/buttons/scopes */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
@@ -1130,7 +1135,7 @@ void ED_spacetype_image(void)
   /* regions: tool(bar) */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_TOOLS;
-  art->prefsizex = 58; /* XXX */
+  art->prefsizex = (int)UI_TOOLBAR_WIDTH;
   art->prefsizey = 50; /* XXX */
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_tools_region_listener;

@@ -53,7 +53,7 @@ ClosureEvalGlossy closure_Glossy_eval_init(inout ClosureInputGlossy cl_in,
   cl_out.radiance = vec3(0.0);
 
 #ifndef STEP_RESOLVE /* SSR */
-  cl_in.N = ensure_valid_reflection(cl_common.Ng, cl_common.V, cl_in.N);
+  cl_in.N = ensure_valid_specular_reflection(cl_common.Ng, cl_common.V, cl_in.N);
 #endif
 
   float NV = dot(cl_in.N, cl_common.V);
@@ -88,10 +88,13 @@ void closure_Glossy_light_eval(ClosureInputGlossy cl_in,
                                ClosureLightData light,
                                inout ClosureOutputGlossy cl_out)
 {
+/* Ensure specular light contribution only gets applied once when running split pass */
+#ifndef RESOLVE_SSR
   float radiance = light_specular(light.data, cl_eval.ltc_mat, cl_in.N, cl_common.V, light.L);
   radiance *= cl_eval.ltc_brdf_scale;
   cl_out.radiance += light.data.l_color *
                      (light.data.l_spec * light.vis * light.contact_shadow * radiance);
+#endif
 }
 
 void closure_Glossy_planar_eval(ClosureInputGlossy cl_in,
@@ -117,9 +120,12 @@ void closure_Glossy_cubemap_eval(ClosureInputGlossy cl_in,
                                  ClosureCubemapData cube,
                                  inout ClosureOutputGlossy cl_out)
 {
+/* Ensure cubemap probes contribution only gets applied once when running split pass */
+#ifndef RESOLVE_SSR
   vec3 probe_radiance = probe_evaluate_cube(
       cube.id, cl_common.P, cl_eval.probe_sampling_dir, cl_in.roughness);
   cl_out.radiance += cube.attenuation * probe_radiance;
+#endif
 }
 
 void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
@@ -127,6 +133,8 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
                                  ClosureEvalCommon cl_common,
                                  inout ClosureOutputGlossy cl_out)
 {
+/* Ensure specular contribution only gets applied once when running split pass */
+#ifndef RESOLVE_SSR
   /* If not enough light has been accumulated from probes, use the world specular cubemap
    * to fill the remaining energy needed. */
   if (specToggle && cl_common.specular_accum > 0.0) {
@@ -136,8 +144,17 @@ void closure_Glossy_indirect_end(ClosureInputGlossy cl_in,
 
   /* Apply occlusion on distant lighting. */
   cl_out.radiance *= cl_eval.spec_occlusion;
+#endif
   /* Apply Raytrace reflections after occlusion since they are direct, local reflections. */
+#if defined(RESOLVE_PROBE)
+  /* NO OP - output base radiance*/
+#elif defined(RESOLVE_SSR)
+  /* Output only raytrace radiance */
+  cl_out.radiance = cl_eval.raytrace_radiance;
+#else
+  /* Standard resolve */
   cl_out.radiance += cl_eval.raytrace_radiance;
+#endif
 }
 
 void closure_Glossy_eval_end(ClosureInputGlossy cl_in,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2023 Nvidia. All rights reserved. */
+/* SPDX-FileCopyrightText: 2023 Nvidia. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -48,12 +49,12 @@ class USDShapeReader : public USDGeomReader {
   void create_object(Main *bmain, double /*motionSampleTime*/) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
   Mesh *read_mesh(Mesh *existing_mesh,
-                  double motionSampleTime,
-                  int /*read_flag*/,
+                  USDMeshReadParams params,
                   const char ** /*err_str*/) override;
   bool is_time_varying();
 
-  virtual bool topology_changed(const Mesh * /*existing_mesh*/, double /*motionSampleTime*/)
+  virtual bool topology_changed(const Mesh * /*existing_mesh*/,
+                                double /*motionSampleTime*/) override
   {
     return false;
   };

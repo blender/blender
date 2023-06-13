@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -531,4 +532,4 @@ void IMB_colormanagement_wavelength_to_rgb_table(float *r_table, int width);
 }
 #endif
 
-#include "intern/colormanagement_inline.c"
+#include "intern/colormanagement_inline.h"

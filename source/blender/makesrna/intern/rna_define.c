@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -203,7 +205,7 @@ static void rna_brna_structs_remove_and_free(BlenderRNA *brna, StructRNA *srna)
 }
 #endif
 
-static int DNA_struct_find_nr_wrapper(const struct SDNA *sdna, const char *struct_name)
+static int DNA_struct_find_nr_wrapper(const SDNA *sdna, const char *struct_name)
 {
   struct_name = DNA_struct_rename_legacy_hack_static_from_alias(struct_name);
 #ifdef RNA_RUNTIME
@@ -528,7 +530,8 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 {
   int a = 0;
 
-  /** List is from:
+  /**
+   * List is from:
    * \code{.py}
    * ", ".join([
    *     '"%s"' % kw for kw in __import__("keyword").kwlist
@@ -574,7 +577,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 
   for (a = 0; kwlist[a]; a++) {
     if (STREQ(identifier, kwlist[a])) {
-      strcpy(error, "this keyword is reserved by python");
+      strcpy(error, "this keyword is reserved by Python");
       return 0;
     }
   }
@@ -591,7 +594,7 @@ static int rna_validate_identifier(const char *identifier, char *error, bool pro
 
     for (a = 0; kwlist_prop[a]; a++) {
       if (STREQ(identifier, kwlist_prop[a])) {
-        strcpy(error, "this keyword is reserved by python");
+        strcpy(error, "this keyword is reserved by Python");
         return 0;
       }
     }
@@ -784,7 +787,7 @@ void RNA_struct_free(BlenderRNA *brna, StructRNA *srna)
 #  if 0
   if (srna->flag & STRUCT_RUNTIME) {
     if (RNA_struct_py_type_get(srna)) {
-      fprintf(stderr, "%s '%s' freed while holding a python reference.", srna->identifier);
+      fprintf(stderr, "%s '%s' freed while holding a Python reference.", srna->identifier);
     }
   }
 #  endif
@@ -1100,7 +1103,7 @@ void RNA_def_struct_sdna_from(StructRNA *srna, const char *structname, const cha
   ds->dnaname = structname;
 }
 
-void RNA_def_struct_name_property(struct StructRNA *srna, struct PropertyRNA *prop)
+void RNA_def_struct_name_property(StructRNA *srna, PropertyRNA *prop)
 {
   if (prop->type != PROP_STRING) {
     CLOG_ERROR(&LOG, "\"%s.%s\", must be a string property.", srna->identifier, prop->identifier);
@@ -2814,7 +2817,8 @@ void RNA_def_property_collection_sdna(PropertyRNA *prop,
 
     int dnaoffset = 0;
     if (lengthpropname[0] == 0 ||
-        rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember, &dnaoffset)) {
+        rna_find_sdna_member(DefRNA.sdna, structname, lengthpropname, &smember, &dnaoffset))
+    {
       if (lengthpropname[0] == 0) {
         dp->dnalengthfixed = prop->totarraylength;
         prop->arraydimension = 0;

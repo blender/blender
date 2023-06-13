@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -169,7 +171,8 @@ static void py_rna_gizmo_handler_get_cb(const wmGizmo *UNUSED(gz),
                       ret,
                       gz_prop->type->array_length,
                       &PyFloat_Type,
-                      "Gizmo get callback: ") == -1) {
+                      "Gizmo get callback: ") == -1)
+      {
         goto fail;
       }
     }
@@ -361,7 +364,8 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
                                         /* `get/set/range` */
                                         &params.py_fn_slots[BPY_GIZMO_FN_SLOT_GET],
                                         &params.py_fn_slots[BPY_GIZMO_FN_SLOT_SET],
-                                        &params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET])) {
+                                        &params.py_fn_slots[BPY_GIZMO_FN_SLOT_RANGE_GET]))
+  {
     goto fail;
   }
 
@@ -394,7 +398,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
 
   WM_gizmo_target_property_def_func_ptr(gz,
                                         gz_prop_type,
-                                        &(const struct wmGizmoPropertyFnParams){
+                                        &(const wmGizmoPropertyFnParams){
                                             .value_get_fn = py_rna_gizmo_handler_get_cb,
                                             .value_set_fn = py_rna_gizmo_handler_set_cb,
                                             .range_get_fn = py_rna_gizmo_handler_range_get_cb,
@@ -450,7 +454,8 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
                                         &params.gz_with_target.gz,
                                         /* `target` */
                                         py_rna_gizmo_target_id_parse_and_ensure_is_valid,
-                                        &params.gz_with_target)) {
+                                        &params.gz_with_target))
+  {
     goto fail;
   }
 
@@ -517,7 +522,8 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
                                         py_rna_gizmo_target_id_parse_and_ensure_is_valid,
                                         &params.gz_with_target,
                                         /* `value` */
-                                        &params.value)) {
+                                        &params.value))
+  {
     goto fail;
   }
 
@@ -534,7 +540,8 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
                         params.value,
                         gz_prop->type->array_length,
                         &PyFloat_Type,
-                        "Gizmo target property array: ") == -1) {
+                        "Gizmo target property array: ") == -1)
+        {
           goto fail;
         }
         WM_gizmo_target_property_float_set_array(BPY_context_get(), gz, gz_prop, value);
@@ -590,7 +597,8 @@ static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *ar
                                         &params.gz_with_target.gz,
                                         /* `target` */
                                         py_rna_gizmo_target_id_parse_and_ensure_is_valid,
-                                        &params.gz_with_target)) {
+                                        &params.gz_with_target))
+  {
     goto fail;
   }
 

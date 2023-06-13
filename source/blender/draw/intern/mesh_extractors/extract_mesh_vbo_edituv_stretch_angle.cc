@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -7,7 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "BLI_math_vector_types.hh"
 
@@ -154,33 +155,33 @@ static void extract_edituv_stretch_angle_iter_poly_bm(const MeshRenderData *mr,
 }
 
 static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr,
-                                                        const MPoly *mp,
-                                                        const int /*mp_index*/,
+                                                        const int poly_index,
                                                         void *_data)
 {
   MeshExtract_StretchAngle_Data *data = static_cast<MeshExtract_StretchAngle_Data *>(_data);
+  const IndexRange poly = mr->polys[poly_index];
 
-  const int ml_index_end = mp->loopstart + mp->totloop;
-  for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
+  const int ml_index_end = poly.start() + poly.size();
+  for (int ml_index = poly.start(); ml_index < ml_index_end; ml_index += 1) {
     float(*auv)[2] = data->auv, *last_auv = data->last_auv;
     float(*av)[3] = data->av, *last_av = data->last_av;
     int l_next = ml_index + 1;
-    if (ml_index == mp->loopstart) {
+    if (ml_index == poly.start()) {
       /* First loop in face. */
       const int ml_index_last = ml_index_end - 1;
-      const int l_next_tmp = mp->loopstart;
+      const int l_next_tmp = poly.start();
       compute_normalize_edge_vectors(auv,
                                      av,
                                      data->uv[ml_index_last],
                                      data->uv[l_next_tmp],
-                                     mr->vert_positions[mr->mloop[ml_index_last].v],
-                                     mr->vert_positions[mr->mloop[l_next_tmp].v]);
+                                     mr->vert_positions[mr->corner_verts[ml_index_last]],
+                                     mr->vert_positions[mr->corner_verts[l_next_tmp]]);
       /* Save last edge. */
       copy_v2_v2(last_auv, auv[1]);
       copy_v3_v3(last_av, av[1]);
     }
     if (l_next == ml_index_end) {
-      l_next = mp->loopstart;
+      l_next = poly.start();
       /* Move previous edge. */
       copy_v2_v2(auv[0], auv[1]);
       copy_v3_v3(av[0], av[1]);
@@ -193,8 +194,8 @@ static void extract_edituv_stretch_angle_iter_poly_mesh(const MeshRenderData *mr
                                      av,
                                      data->uv[ml_index],
                                      data->uv[l_next],
-                                     mr->vert_positions[mr->mloop[ml_index].v],
-                                     mr->vert_positions[mr->mloop[l_next].v]);
+                                     mr->vert_positions[mr->corner_verts[ml_index]],
+                                     mr->vert_positions[mr->corner_verts[l_next]]);
     }
     edituv_get_edituv_stretch_angle(auv, av, &data->vbo_data[ml_index]);
   }
@@ -248,7 +249,7 @@ static void extract_edituv_stretch_angle_init_subdiv(const DRWSubdivCache *subdi
   /* HACK to fix #68857 */
   if (mr->extract_type == MR_EXTRACT_BMESH && cache->cd_used.edit_uv == 1) {
     int layer = CustomData_get_active_layer(cd_ldata, CD_PROP_FLOAT2);
-    if (layer != -1) {
+    if (layer != -1 && !CustomData_layer_is_anonymous(cd_ldata, CD_PROP_FLOAT2, layer)) {
       uv_layers |= (1 << layer);
     }
   }

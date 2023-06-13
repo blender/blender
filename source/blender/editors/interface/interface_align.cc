@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -45,7 +46,7 @@ struct ButAlign {
   uiBut *but;
 
   /* Neighbor buttons */
-  struct ButAlign *neighbors[4];
+  ButAlign *neighbors[4];
 
   /* Pointers to coordinates (rctf values) of the button. */
   float *borders[4];
@@ -270,7 +271,8 @@ static void block_align_stitch_neighbors(ButAlign *butal,
    * it may have both of its stitching flags
    * set, but would not be the case of its immediate neighbor! */
   while ((butal->flags[side] & stitch_s1) && (butal = butal->neighbors[side_s1]) &&
-         (butal->flags[side] & stitch_s2)) {
+         (butal->flags[side] & stitch_s2))
+  {
     butal_neighbor = butal->neighbors[side];
 
     /* If we actually do have a neighbor, we directly set its values accordingly,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "ED_viewer_path.hh"
 #include "ED_screen.h"
@@ -24,6 +26,9 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
                                           const bNode &node,
                                           ViewerPath &r_dst)
 {
+  /* Only valid if the node space has a context object. */
+  BLI_assert(snode.id != nullptr && GS(snode.id->name) == ID_OB);
+
   BKE_viewer_path_init(&r_dst);
 
   Object *ob = reinterpret_cast<Object *>(snode.id);
@@ -50,10 +55,11 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
       modifier = nmd;
     }
   }
-
-  ModifierViewerPathElem *modifier_elem = BKE_viewer_path_elem_new_modifier();
-  modifier_elem->modifier_name = BLI_strdup(modifier->modifier.name);
-  BLI_addtail(&r_dst.path, modifier_elem);
+  if (modifier != nullptr) {
+    ModifierViewerPathElem *modifier_elem = BKE_viewer_path_elem_new_modifier();
+    modifier_elem->modifier_name = BLI_strdup(modifier->modifier.name);
+    BLI_addtail(&r_dst.path, modifier_elem);
+  }
 
   Vector<const bNodeTreePath *, 16> tree_path = snode.treepath;
   for (const int i : tree_path.index_range().drop_back(1)) {
@@ -86,7 +92,9 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
   }
   ViewerPath new_viewer_path{};
   BLI_SCOPED_DEFER([&]() { BKE_viewer_path_clear(&new_viewer_path); });
-  viewer_path_for_geometry_node(snode, node, new_viewer_path);
+  if (snode.id != nullptr && GS(snode.id->name) == ID_OB) {
+    viewer_path_for_geometry_node(snode, node, new_viewer_path);
+  }
 
   bool found_view3d_with_enabled_viewer = false;
   View3D *any_view3d_without_viewer = nullptr;
@@ -340,6 +348,11 @@ bool is_active_geometry_nodes_viewer(const bContext &C,
 
 bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snode)
 {
+  /* Viewer path is only valid if the context object is set. */
+  if (snode.id == nullptr || GS(snode.id->name) != ID_OB) {
+    return nullptr;
+  }
+
   const std::optional<ViewerPathForGeometryNodesViewer> parsed_viewer_path =
       parse_geometry_nodes_viewer(viewer_path);
   if (!parsed_viewer_path.has_value()) {

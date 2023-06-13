@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -55,7 +57,7 @@ typedef struct MPathTarget {
 /* ........ */
 
 /* update scene for current frame */
-static void motionpaths_calc_update_scene(struct Depsgraph *depsgraph)
+static void motionpaths_calc_update_scene(Depsgraph *depsgraph)
 {
   BKE_scene_graph_update_for_newframe(depsgraph);
 }
@@ -345,13 +347,14 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
   bAnimVizSettings *avs = ob->mode == OB_MODE_POSE ? &ob->pose->avs : &ob->avs;
 
   if (avs->path_range == MOTIONPATH_RANGE_MANUAL) {
-    /* Don't touch manually-determined ranges.  */
+    /* Don't touch manually-determined ranges. */
     return;
   }
 
   const bool has_action = ob->adt && ob->adt->action;
   if (avs->path_range == MOTIONPATH_RANGE_SCENE || !has_action ||
-      BLI_listbase_is_empty(&ob->adt->action->curves)) {
+      BLI_listbase_is_empty(&ob->adt->action->curves))
+  {
     /* Default to the scene (preview) range if there is no animation data to
      * find selected keys in. */
     avs->path_sf = PSFRA;
@@ -370,7 +373,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
       if (ED_keylist_selected_keys_frame_range(keylist, &frame_range)) {
         break;
       }
-      ATTR_FALLTHROUGH;  // Fall through if there were no selected keys found.
+      ATTR_FALLTHROUGH; /* Fall through if there were no selected keys found. */
     case MOTIONPATH_RANGE_KEYS_ALL:
       ED_keylist_all_keys_frame_range(keylist, &frame_range);
       break;

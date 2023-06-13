@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -183,7 +184,7 @@ static void sound_blend_read_lib(BlendLibReader *reader, ID *id)
 {
   bSound *sound = (bSound *)id;
   /* XXX: deprecated - old animation system. */
-  BLO_read_id_address(reader, sound->id.lib, &sound->ipo);
+  BLO_read_id_address(reader, id, &sound->ipo);
 }
 
 static void sound_blend_read_expand(BlendExpander *expander, ID *id)
@@ -256,13 +257,13 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 {
   bSound *sound;
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  BLI_strncpy(str, filepath, sizeof(str));
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
-  BLI_strncpy(sound->filepath, filepath, FILE_MAX);
+  STRNCPY(sound->filepath, filepath);
   /* sound->type = SOUND_TYPE_FILE; */ /* XXX unused currently */
 
   /* Extract sound specs for bSound */
@@ -284,17 +285,17 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 bSound *BKE_sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   bSound *sound;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  BLI_strncpy(str, filepath, sizeof(str));
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
-    BLI_strncpy(strtest, sound->filepath, sizeof(sound->filepath));
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
+    STRNCPY(filepath_test, sound->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &sound->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
@@ -551,7 +552,7 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     PackedFile *pf = sound->packedfile;
 
     /* don't modify soundact->sound->filepath, only change a copy */
-    BLI_strncpy(fullpath, sound->filepath, sizeof(fullpath));
+    STRNCPY(fullpath, sound->filepath);
     BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 
     /* but we need a packed file then */
@@ -649,12 +650,12 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
-void BKE_sound_lock()
+void BKE_sound_lock(void)
 {
   AUD_Device_lock(sound_device);
 }
 
-void BKE_sound_unlock()
+void BKE_sound_unlock(void)
 {
   AUD_Device_unlock(sound_device);
 }
@@ -819,6 +820,20 @@ void BKE_sound_set_scene_sound_pitch(void *handle, float pitch, char animated)
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, sound_cfra, &pitch, animated);
 }
 
+void BKE_sound_set_scene_sound_pitch_at_frame(void *handle, int frame, float pitch, char animated)
+{
+  AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PITCH, frame, &pitch, animated);
+}
+
+void BKE_sound_set_scene_sound_pitch_constant_range(void *handle,
+                                                    int frame_start,
+                                                    int frame_end,
+                                                    float pitch)
+{
+  AUD_SequenceEntry_setConstantRangeAnimationData(
+      handle, AUD_AP_PITCH, frame_start, frame_end, &pitch);
+}
+
 void BKE_sound_set_scene_sound_pan(void *handle, float pan, char animated)
 {
   AUD_SequenceEntry_setAnimationData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
@@ -944,7 +959,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
     }
     AUD_Handle_resume(scene->playback_handle);
     if (scene->sound_scrub_handle &&
-        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID) {
+        AUD_Handle_getStatus(scene->sound_scrub_handle) != AUD_STATUS_INVALID)
+    {
       AUD_Handle_setPosition(scene->sound_scrub_handle, 0);
     }
     else {
@@ -1223,7 +1239,7 @@ static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *so
   return true;
 }
 
-bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info)
+bool BKE_sound_info_get(Main *main, bSound *sound, SoundInfo *sound_info)
 {
   if (sound->playback_handle != NULL) {
     return sound_info_from_playback_handle(sound->playback_handle, sound_info);
@@ -1237,21 +1253,21 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   return result;
 }
 
-bool BKE_sound_stream_info_get(struct Main *main,
+bool BKE_sound_stream_info_get(Main *main,
                                const char *filepath,
                                int stream,
                                SoundStreamInfo *sound_info)
 {
   const char *blendfile_path = BKE_main_blendfile_path(main);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
   AUD_Sound *sound;
   AUD_StreamInfo *stream_infos;
   int stream_count;
 
-  BLI_strncpy(str, filepath, sizeof(str));
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
-  sound = AUD_Sound_file(str);
+  sound = AUD_Sound_file(filepath_abs);
   if (!sound) {
     return false;
   }
@@ -1281,48 +1297,20 @@ bool BKE_sound_stream_info_get(struct Main *main,
 
 #  include "BLI_utildefines.h"
 
-void BKE_sound_force_device(const char *UNUSED(device))
-{
-}
-void BKE_sound_init_once(void)
-{
-}
-void BKE_sound_init(Main *UNUSED(bmain))
-{
-}
-void BKE_sound_exit(void)
-{
-}
-void BKE_sound_exit_once(void)
-{
-}
-void BKE_sound_cache(bSound *UNUSED(sound))
-{
-}
-void BKE_sound_delete_cache(bSound *UNUSED(sound))
-{
-}
-void BKE_sound_load(Main *UNUSED(bmain), bSound *UNUSED(sound))
-{
-}
-void BKE_sound_create_scene(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_destroy_scene(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_lock(void)
-{
-}
-void BKE_sound_unlock(void)
-{
-}
-void BKE_sound_reset_scene_specs(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_mute_scene(Scene *UNUSED(scene), int UNUSED(muted))
-{
-}
+void BKE_sound_force_device(const char *UNUSED(device)) {}
+void BKE_sound_init_once(void) {}
+void BKE_sound_init(Main *UNUSED(bmain)) {}
+void BKE_sound_exit(void) {}
+void BKE_sound_exit_once(void) {}
+void BKE_sound_cache(bSound *UNUSED(sound)) {}
+void BKE_sound_delete_cache(bSound *UNUSED(sound)) {}
+void BKE_sound_load(Main *UNUSED(bmain), bSound *UNUSED(sound)) {}
+void BKE_sound_create_scene(Scene *UNUSED(scene)) {}
+void BKE_sound_destroy_scene(Scene *UNUSED(scene)) {}
+void BKE_sound_lock(void) {}
+void BKE_sound_unlock(void) {}
+void BKE_sound_reset_scene_specs(Scene *UNUSED(scene)) {}
+void BKE_sound_mute_scene(Scene *UNUSED(scene), int UNUSED(muted)) {}
 void *BKE_sound_scene_add_scene_sound(Scene *UNUSED(scene),
                                       Sequence *UNUSED(sequence),
                                       int UNUSED(startframe),
@@ -1347,12 +1335,8 @@ void *BKE_sound_add_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(
 {
   return NULL;
 }
-void BKE_sound_remove_scene_sound(Scene *UNUSED(scene), void *UNUSED(handle))
-{
-}
-void BKE_sound_mute_scene_sound(void *UNUSED(handle), bool UNUSED(mute))
-{
-}
+void BKE_sound_remove_scene_sound(Scene *UNUSED(scene), void *UNUSED(handle)) {}
+void BKE_sound_mute_scene_sound(void *UNUSED(handle), bool UNUSED(mute)) {}
 void BKE_sound_move_scene_sound(const Scene *UNUSED(scene),
                                 void *UNUSED(handle),
                                 int UNUSED(startframe),
@@ -1361,18 +1345,10 @@ void BKE_sound_move_scene_sound(const Scene *UNUSED(scene),
                                 double UNUSED(audio_offset))
 {
 }
-void BKE_sound_move_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence))
-{
-}
-void BKE_sound_play_scene(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_stop_scene(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_seek_scene(Main *UNUSED(bmain), Scene *UNUSED(scene))
-{
-}
+void BKE_sound_move_scene_sound_defaults(Scene *UNUSED(scene), Sequence *UNUSED(sequence)) {}
+void BKE_sound_play_scene(Scene *UNUSED(scene)) {}
+void BKE_sound_stop_scene(Scene *UNUSED(scene)) {}
+void BKE_sound_seek_scene(Main *UNUSED(bmain), Scene *UNUSED(scene)) {}
 double BKE_sound_sync_scene(Scene *UNUSED(scene))
 {
   return NAN_FLT;
@@ -1388,27 +1364,13 @@ void BKE_sound_read_waveform(Main *bmain,
 {
   UNUSED_VARS(sound, stop, bmain);
 }
-void BKE_sound_init_main(Main *UNUSED(bmain))
-{
-}
-void BKE_sound_set_cfra(int UNUSED(cfra))
-{
-}
-void BKE_sound_update_sequencer(Main *UNUSED(main), bSound *UNUSED(sound))
-{
-}
-void BKE_sound_update_scene(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene))
-{
-}
-void BKE_sound_update_scene_sound(void *UNUSED(handle), bSound *UNUSED(sound))
-{
-}
-void BKE_sound_update_scene_listener(Scene *UNUSED(scene))
-{
-}
-void BKE_sound_update_fps(Main *UNUSED(bmain), Scene *UNUSED(scene))
-{
-}
+void BKE_sound_init_main(Main *UNUSED(bmain)) {}
+void BKE_sound_set_cfra(int UNUSED(cfra)) {}
+void BKE_sound_update_sequencer(Main *UNUSED(main), bSound *UNUSED(sound)) {}
+void BKE_sound_update_scene(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene)) {}
+void BKE_sound_update_scene_sound(void *UNUSED(handle), bSound *UNUSED(sound)) {}
+void BKE_sound_update_scene_listener(Scene *UNUSED(scene)) {}
+void BKE_sound_update_fps(Main *UNUSED(bmain), Scene *UNUSED(scene)) {}
 void BKE_sound_set_scene_sound_volume(void *UNUSED(handle),
                                       float UNUSED(volume),
                                       char UNUSED(animated))
@@ -1417,12 +1379,22 @@ void BKE_sound_set_scene_sound_volume(void *UNUSED(handle),
 void BKE_sound_set_scene_sound_pan(void *UNUSED(handle), float UNUSED(pan), char UNUSED(animated))
 {
 }
-void BKE_sound_set_scene_volume(Scene *UNUSED(scene), float UNUSED(volume))
-{
-}
+void BKE_sound_set_scene_volume(Scene *UNUSED(scene), float UNUSED(volume)) {}
 void BKE_sound_set_scene_sound_pitch(void *UNUSED(handle),
                                      float UNUSED(pitch),
                                      char UNUSED(animated))
+{
+}
+void BKE_sound_set_scene_sound_pitch_at_frame(void *UNUSED(handle),
+                                              int UNUSED(frame),
+                                              float UNUSED(pitch),
+                                              char UNUSED(animated))
+{
+}
+void BKE_sound_set_scene_sound_pitch_constant_range(void *UNUSED(handle),
+                                                    int UNUSED(frame_start),
+                                                    int UNUSED(frame_end),
+                                                    float UNUSED(pitch))
 {
 }
 float BKE_sound_get_length(struct Main *UNUSED(bmain), bSound *UNUSED(sound))
@@ -1435,9 +1407,7 @@ char **BKE_sound_get_device_names(void)
   return names;
 }
 
-void BKE_sound_free_waveform(bSound *UNUSED(sound))
-{
-}
+void BKE_sound_free_waveform(bSound *UNUSED(sound)) {}
 
 bool BKE_sound_info_get(struct Main *UNUSED(main),
                         struct bSound *UNUSED(sound),
@@ -1464,7 +1434,7 @@ void BKE_sound_reset_scene_runtime(Scene *scene)
   scene->speaker_handles = NULL;
 }
 
-void BKE_sound_ensure_scene(struct Scene *scene)
+void BKE_sound_ensure_scene(Scene *scene)
 {
   if (scene->sound_scene != NULL) {
     return;

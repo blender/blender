@@ -3,6 +3,11 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(common_uniforms_lib.glsl)
 
+/* Fix for #104266 wherein AMD GPUs running Metal erroneously discard a successful hit. */
+#if defined(GPU_METAL) && defined(GPU_ATI)
+#  define METAL_AMD_RAYTRACE_WORKAROUND 1
+#endif
+
 /**
  * Screen-Space Raytracing functions.
  */
@@ -129,6 +134,9 @@ bool raytrace(Ray ray,
   /* Cross at least one pixel. */
   float t = 1.001, time = 1.001;
   bool hit = false;
+#ifdef METAL_AMD_RAYTRACE_WORKAROUND
+  bool hit_failsafe = true;
+#endif
   const float max_steps = 255.0;
   for (float iter = 1.0; !hit && (time < ssray.max_time) && (iter < max_steps); iter++) {
     float stride = 1.0 + iter * params.trace_quality;
@@ -148,17 +156,36 @@ bool raytrace(Ray ray,
     hit = (delta < 0.0);
     /* ... and above it with the added thickness. */
     hit = hit && (delta > ss_p.z - ss_p.w || abs(delta) < abs(ssray.direction.z * stride * 2.0));
+
+#ifdef METAL_AMD_RAYTRACE_WORKAROUND
+    /* For workaround, perform discard backface and background check only within
+     * the iteration where the first successful ray intersection is registered.
+     * We flag failures to discard ray hits later. */
+    bool hit_valid = !(discard_backface && prev_delta < 0.0) && (depth_sample != 1.0);
+    if (hit && !hit_valid) {
+      hit_failsafe = false;
+    }
+#endif
   }
+
+#ifndef METAL_AMD_RAYTRACE_WORKAROUND
   /* Discard back-face hits. */
   hit = hit && !(discard_backface && prev_delta < 0.0);
   /* Reject hit if background. */
   hit = hit && (depth_sample != 1.0);
+#endif
   /* Refine hit using intersection between the sampled heightfield and the ray.
    * This simplifies nicely to this single line. */
   time = mix(prev_time, time, saturate(prev_delta / (prev_delta - delta)));
 
   hit_position = ssray.origin.xyz + ssray.direction.xyz * time;
 
+#ifdef METAL_AMD_RAYTRACE_WORKAROUND
+  /* Check failed ray flag to discard bad hits. */
+  if (!hit_failsafe) {
+    return false;
+  }
+#endif
   return hit;
 }
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_context.h"
 
@@ -21,7 +23,8 @@ static void validate_viewer_paths(bContext &C, WorkSpace &workspace)
   const std::optional<blender::ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
       blender::ed::viewer_path::parse_geometry_nodes_viewer(workspace.viewer_path);
   if (parsed_path.has_value() &&
-      blender::ed::viewer_path::is_active_geometry_nodes_viewer(C, *parsed_path)) {
+      blender::ed::viewer_path::is_active_geometry_nodes_viewer(C, *parsed_path))
+  {
     /* The current viewer path is still valid and active. */
     return;
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -15,19 +16,17 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
-#include "BLT_translation.h"
-
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_paint.h"
 
 #include "NOD_texture.h"
 #include "node_common.h"
-#include "node_exec.h"
+#include "node_exec.hh"
 #include "node_texture_util.hh"
-#include "node_util.h"
+#include "node_util.hh"
 
 #include "DEG_depsgraph.h"
 
@@ -49,7 +48,7 @@ static void texture_get_from_context(
   Tex *tx = nullptr;
 
   if (snode->texfrom == SNODE_TEX_BRUSH) {
-    struct Brush *brush = nullptr;
+    Brush *brush = nullptr;
 
     if (ob && (ob->mode & OB_MODE_SCULPT)) {
       brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
@@ -107,15 +106,13 @@ static void localize(bNodeTree *localtree, bNodeTree * /*ntree*/)
     node_next = node->next;
 
     if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
-      nodeInternalRelink(localtree, node);
-      ntreeFreeLocalNode(localtree, node);
+      blender::bke::nodeInternalRelink(localtree, node);
+      blender::bke::ntreeFreeLocalNode(localtree, node);
     }
   }
 }
 #else
-static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/)
-{
-}
+static void localize(bNodeTree * /*localtree*/, bNodeTree * /*ntree*/) {}
 #endif
 
 static void update(bNodeTree *ntree)
@@ -126,7 +123,7 @@ static void update(bNodeTree *ntree)
 static bool texture_node_tree_socket_type_valid(bNodeTreeType * /*ntreetype*/,
                                                 bNodeSocketType *socket_type)
 {
-  return nodeIsStaticSocketType(socket_type) &&
+  return blender::bke::nodeIsStaticSocketType(socket_type) &&
          ELEM(socket_type->type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
 }
 
@@ -263,8 +260,8 @@ static void tex_free_delegates(bNodeTreeExec *exec)
   int th, a;
 
   for (th = 0; th < BLENDER_MAX_THREADS; th++) {
-    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts;
-         nts = nts->next) {
+    for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[th].first); nts; nts = nts->next)
+    {
       for (ns = nts->stack, a = 0; a < exec->stacksize; a++, ns++) {
         if (ns->data && !ns->is_copy) {
           MEM_freeN(ns->data);
@@ -283,8 +280,8 @@ void ntreeTexEndExecTree_internal(bNodeTreeExec *exec)
     tex_free_delegates(exec);
 
     for (a = 0; a < BLENDER_MAX_THREADS; a++) {
-      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts;
-           nts = nts->next) {
+      for (nts = static_cast<bNodeThreadStack *>(exec->threadstack[a].first); nts; nts = nts->next)
+      {
         if (nts->stack) {
           MEM_freeN(nts->stack);
         }

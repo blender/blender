@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -98,12 +99,12 @@ typedef struct LatticeRenderData {
   } dims;
   bool show_only_outside;
 
-  struct EditLatt *edit_latt;
+  EditLatt *edit_latt;
   BPoint *bp;
 
   int actbp;
 
-  const struct MDeformVert *dvert;
+  const MDeformVert *dvert;
 } LatticeRenderData;
 
 enum {
@@ -231,7 +232,8 @@ static bool lattice_batch_cache_valid(Lattice *lt)
 
   if ((cache->dims.u_len != lt->pntsu) || (cache->dims.v_len != lt->pntsv) ||
       (cache->dims.w_len != lt->pntsw) ||
-      (cache->show_only_outside != ((lt->flag & LT_OUTSIDE) != 0))) {
+      (cache->show_only_outside != ((lt->flag & LT_OUTSIDE) != 0)))
+  {
     return false;
   }
 
@@ -400,6 +402,7 @@ static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata,
     else {
       BLI_assert(edge_len_real == edge_len);
     }
+    UNUSED_VARS_NDEBUG(edge_len_real);
 
     cache->edges = GPU_indexbuf_build(&elb);
   }

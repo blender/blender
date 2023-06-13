@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -17,7 +18,6 @@ extern "C" {
 struct CustomData_MeshMasks;
 struct Depsgraph;
 struct KeyBlock;
-struct MLoop;
 struct MLoopTri;
 struct MVertTri;
 struct Mesh;
@@ -34,6 +34,7 @@ int BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
  * \note Prefer #Mesh::looptris() in C++ code.
  */
 const struct MLoopTri *BKE_mesh_runtime_looptri_ensure(const struct Mesh *mesh);
+const int *BKE_mesh_runtime_looptri_polys_ensure(const struct Mesh *mesh);
 
 bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
 void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
@@ -44,7 +45,7 @@ void BKE_mesh_runtime_reset_edit_data(struct Mesh *mesh);
  * directly or making other large changes to topology. It does not need to be called on new meshes.
  *
  * For "smaller" changes to meshes like updating positions, consider calling a more specific update
- * function like #BKE_mesh_tag_coords_changed.
+ * function like #BKE_mesh_tag_positions_changed.
  *
  * Also note that some derived caches like #CD_NORMAL and #CD_TANGENT are stored directly in
  * #CustomData.
@@ -63,7 +64,7 @@ void BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
  * Convert triangles encoded as face corner indices to triangles encoded as vertex indices.
  */
 void BKE_mesh_runtime_verttri_from_looptri(struct MVertTri *r_verttri,
-                                           const struct MLoop *mloop,
+                                           const int *corner_verts,
                                            const struct MLoopTri *looptri,
                                            int looptri_num);
 
@@ -76,11 +77,6 @@ eMeshWrapperType BKE_mesh_wrapper_type(const struct Mesh *mesh);
  * to a more suitable location when that file is removed.
  * They should also be renamed to use conventions from BKE, not old DerivedMesh.cc.
  * For now keep the names similar to avoid confusion. */
-
-struct Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                                 const struct Scene *scene,
-                                 struct Object *ob,
-                                 const struct CustomData_MeshMasks *dataMask);
 
 struct Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
                                   const struct Scene *scene,

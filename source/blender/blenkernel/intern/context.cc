@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -11,7 +13,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -78,7 +80,7 @@ struct bContext {
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
-    struct bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
+    bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
   } wm;
 
   /* data context */
@@ -248,6 +250,8 @@ void CTX_py_state_pop(bContext *C, bContext_PyState *pystate)
 struct bContextDataResult {
   PointerRNA ptr;
   ListBase list;
+  PropertyRNA *prop;
+  int index;
   const char **dir;
   short type; /* 0: normal, 1: seq */
 };
@@ -411,7 +415,8 @@ static int ctx_data_base_collection_get(const bContext *C, const char *member, L
 {
   ListBase ctx_object_list;
   if ((ctx_data_collection_get(C, member, &ctx_object_list) == false) ||
-      BLI_listbase_is_empty(&ctx_object_list)) {
+      BLI_listbase_is_empty(&ctx_object_list))
+  {
     BLI_listbase_clear(list);
     return 0;
   }
@@ -427,7 +432,8 @@ static int ctx_data_base_collection_get(const bContext *C, const char *member, L
 
   CollectionPointerLink *ctx_object;
   for (ctx_object = static_cast<CollectionPointerLink *>(ctx_object_list.first); ctx_object;
-       ctx_object = ctx_object->next) {
+       ctx_object = ctx_object->next)
+  {
     Object *ob = static_cast<Object *>(ctx_object->ptr.data);
     Base *base = BKE_view_layer_base_find(view_layer, ob);
     if (base != nullptr) {
@@ -495,8 +501,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
   return list;
 }
 
-int /*eContextResult*/ CTX_data_get(
-    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type)
+int /*eContextResult*/ CTX_data_get(const bContext *C,
+                                    const char *member,
+                                    PointerRNA *r_ptr,
+                                    ListBase *r_lb,
+                                    PropertyRNA **r_prop,
+                                    int *r_index,
+                                    short *r_type)
 {
   bContextDataResult result;
   eContextResult ret = ctx_data_get((bContext *)C, member, &result);
@@ -504,6 +515,8 @@ int /*eContextResult*/ CTX_data_get(
   if (ret == CTX_RESULT_OK) {
     *r_ptr = result.ptr;
     *r_lb = result.list;
+    *r_prop = result.prop;
+    *r_index = result.index;
     *r_type = result.type;
   }
   else {
@@ -672,6 +685,12 @@ int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, ListBa
   }
 
   return 0;
+}
+
+void CTX_data_prop_set(bContextDataResult *result, PropertyRNA *prop, int index)
+{
+  result->prop = prop;
+  result->index = index;
 }
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir)
@@ -1182,6 +1201,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_EDIT_LATTICE;
       case OB_CURVES:
         return CTX_MODE_EDIT_CURVES;
+      case OB_GREASE_PENCIL:
+        return CTX_MODE_EDIT_GPENCIL;
     }
   }
   else {
@@ -1506,6 +1527,11 @@ AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid)
 
   *r_is_valid = false;
   return AssetHandle{nullptr};
+}
+
+AssetRepresentation *CTX_wm_asset(const bContext *C)
+{
+  return static_cast<AssetRepresentation *>(ctx_data_pointer_get(C, "asset"));
 }
 
 Depsgraph *CTX_data_depsgraph_pointer(const bContext *C)

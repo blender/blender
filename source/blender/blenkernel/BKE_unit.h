@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -17,14 +19,20 @@ struct UnitSettings;
 /**
  * Humanly readable representation of a value in units (used for button drawing).
  */
-size_t BKE_unit_value_as_string_adaptive(
-    char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+size_t BKE_unit_value_as_string_adaptive(char *str,
+                                         int str_maxncpy,
+                                         double value,
+                                         int prec,
+                                         int system,
+                                         int type,
+                                         bool split,
+                                         bool pad);
 /**
  * Representation of a value in units. Negative precision is used to disable stripping of zeroes.
  * This reduces text jumping when changing values.
  */
 size_t BKE_unit_value_as_string(char *str,
-                                int len_max,
+                                int str_maxncpy,
                                 double value,
                                 int prec,
                                 int type,
@@ -49,7 +57,7 @@ size_t BKE_unit_value_as_string(char *str,
  * \return True of a change was made.
  */
 bool BKE_unit_replace_string(
-    char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+    char *str, int str_maxncpy, const char *str_prev, double scale_pref, int system, int type);
 
 /**
  * \return true if the string contains any valid unit for the given type.
@@ -64,7 +72,7 @@ double BKE_unit_apply_preferred_unit(const struct UnitSettings *settings, int ty
 /**
  * Make string keyboard-friendly, e.g: `10µm -> 10um`.
  */
-void BKE_unit_name_to_alt(char *str, int len_max, const char *orig_str, int system, int type);
+void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int system, int type);
 
 /**
  * The size of the unit used for this value (used for calculating the click-step).

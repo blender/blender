@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -310,7 +312,7 @@ class HashTableStats {
     std::cout << "  Removed Slots: " << removed_amount_ << " (" << removed_load_factor_ * 100.0f
               << " %)\n";
 
-    char memory_size_str[15];
+    char memory_size_str[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE];
     BLI_str_format_byte_unit(memory_size_str, size_in_bytes_, true);
     std::cout << "  Size: ~" << memory_size_str << "\n";
     std::cout << "  Size per Slot: " << size_per_element_ << " bytes\n";

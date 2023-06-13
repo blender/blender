@@ -10,7 +10,6 @@
 
 /* included as Light::set_shader defined through NODE_SOCKET_API does not select
  * the right Node::set overload as it does not know that Shader is a Node */
-#include "scene/light_tree.h"
 #include "scene/shader.h"
 
 #include "util/ies.h"
@@ -22,7 +21,6 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Object;
 class Progress;
 class Scene;
 class Shader;
@@ -74,13 +72,22 @@ class Light : public Node {
   NODE_SOCKET_API(uint, random_id)
 
   NODE_SOCKET_API(ustring, lightgroup)
+  NODE_SOCKET_API(uint64_t, light_set_membership);
+  NODE_SOCKET_API(uint64_t, shadow_set_membership);
+
+  NODE_SOCKET_API(bool, normalize)
 
   void tag_update(Scene *scene);
 
   /* Check whether the light has contribution the scene. */
   bool has_contribution(Scene *scene);
 
+  /* Check whether this light participates in light or shadow linking. */
+  bool has_light_linking() const;
+  bool has_shadow_linking() const;
+
   friend class LightManager;
+  friend class LightTree;
 };
 
 class LightManager {
@@ -140,9 +147,6 @@ class LightManager {
                                 Scene *scene,
                                 Progress &progress);
   void device_update_ies(DeviceScene *dscene);
-
-  /* Check whether light manager can use the object as a light-emissive. */
-  bool object_usable_as_light(Object *object);
 
   struct IESSlot {
     IESFile ies;

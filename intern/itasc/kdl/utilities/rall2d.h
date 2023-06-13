@@ -174,7 +174,7 @@ class Rall2d
          friend INLINE Rall2d<T,V,S> operator +(S s,const Rall2d<T,V,S>& v);
          friend INLINE Rall2d<T,V,S> operator +(const Rall2d<T,V,S>& v,S s);
          friend INLINE Rall2d<T,V,S> operator -(S s,const Rall2d<T,V,S>& v);
-         friend INLINE INLINE Rall2d<T,V,S> operator -(const Rall2d<T,V,S>& v,S s);
+         friend INLINE Rall2d<T,V,S> operator -(const Rall2d<T,V,S>& v,S s);
          friend INLINE Rall2d<T,V,S> operator /(S s,const Rall2d<T,V,S>& v);
          friend INLINE Rall2d<T,V,S> operator /(const Rall2d<T,V,S>& v,S s);
 

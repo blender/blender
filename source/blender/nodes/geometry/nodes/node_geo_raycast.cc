@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 
@@ -21,36 +23,34 @@ NODE_STORAGE_FUNCS(NodeGeometryRaycast)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Target Geometry"))
+  b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
       .supported_type(GEO_COMPONENT_TYPE_MESH);
 
-  b.add_input<decl::Vector>(N_("Attribute")).hide_value().field_on_all();
-  b.add_input<decl::Float>(N_("Attribute"), "Attribute_001").hide_value().field_on_all();
-  b.add_input<decl::Color>(N_("Attribute"), "Attribute_002").hide_value().field_on_all();
-  b.add_input<decl::Bool>(N_("Attribute"), "Attribute_003").hide_value().field_on_all();
-  b.add_input<decl::Int>(N_("Attribute"), "Attribute_004").hide_value().field_on_all();
+  b.add_input<decl::Vector>("Attribute").hide_value().field_on_all();
+  b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().field_on_all();
+  b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().field_on_all();
+  b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().field_on_all();
+  b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().field_on_all();
 
-  b.add_input<decl::Vector>(N_("Source Position")).implicit_field(implicit_field_inputs::position);
-  b.add_input<decl::Vector>(N_("Ray Direction"))
-      .default_value({0.0f, 0.0f, -1.0f})
-      .supports_field();
-  b.add_input<decl::Float>(N_("Ray Length"))
+  b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
+  b.add_input<decl::Float>("Ray Length")
       .default_value(100.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>(N_("Is Hit")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Position")).dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>(N_("Hit Normal")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Hit Distance")).dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Is Hit").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Position").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Hit Normal").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Hit Distance").dependent_field({6, 7, 8});
 
-  b.add_output<decl::Vector>(N_("Attribute")).dependent_field({6, 7, 8});
-  b.add_output<decl::Float>(N_("Attribute"), "Attribute_001").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>(N_("Attribute"), "Attribute_002").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>(N_("Attribute"), "Attribute_003").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>(N_("Attribute"), "Attribute_004").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7, 8});
+  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7, 8});
+  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7, 8});
+  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7, 8});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -78,11 +78,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
 
   bNodeSocket *out_socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 4));
   bNodeSocket *out_socket_float = out_socket_vector->next;
@@ -90,11 +90,11 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
 
-  nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
-  nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
-  nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
-  nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
-  nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
+  bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
+  bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
+  bke::nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
+  bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -116,18 +116,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static eAttributeMapMode get_map_mode(GeometryNodeRaycastMapMode map_mode)
-{
-  switch (map_mode) {
-    case GEO_NODE_RAYCAST_INTERPOLATED:
-      return eAttributeMapMode::INTERPOLATED;
-    default:
-    case GEO_NODE_RAYCAST_NEAREST:
-      return eAttributeMapMode::NEAREST;
-  }
-}
-
-static void raycast_to_mesh(IndexMask mask,
+static void raycast_to_mesh(const IndexMask &mask,
                             const Mesh &mesh,
                             const VArray<float3> &ray_origins,
                             const VArray<float3> &ray_directions,
@@ -136,8 +125,7 @@ static void raycast_to_mesh(IndexMask mask,
                             const MutableSpan<int> r_hit_indices,
                             const MutableSpan<float3> r_hit_positions,
                             const MutableSpan<float3> r_hit_normals,
-                            const MutableSpan<float> r_hit_distances,
-                            int &hit_count)
+                            const MutableSpan<float> r_hit_distances)
 {
   BVHTreeFromMesh tree_data;
   BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_LOOPTRI, 4);
@@ -149,10 +137,10 @@ static void raycast_to_mesh(IndexMask mask,
   /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
   BLI_assert(tree_data.cached);
 
-  for (const int i : mask) {
+  mask.foreach_index([&](const int i) {
     const float ray_length = ray_lengths[i];
     const float3 ray_origin = ray_origins[i];
-    const float3 ray_direction = math::normalize(ray_directions[i]);
+    const float3 ray_direction = ray_directions[i];
 
     BVHTreeRayHit hit;
     hit.index = -1;
@@ -163,8 +151,8 @@ static void raycast_to_mesh(IndexMask mask,
                              0.0f,
                              &hit,
                              tree_data.raycast_callback,
-                             &tree_data) != -1) {
-      hit_count++;
+                             &tree_data) != -1)
+    {
       if (!r_hit.is_empty()) {
         r_hit[i] = hit.index >= 0;
       }
@@ -199,119 +187,48 @@ static void raycast_to_mesh(IndexMask mask,
         r_hit_distances[i] = ray_length;
       }
     }
-  }
+  });
 }
 
 class RaycastFunction : public mf::MultiFunction {
  private:
   GeometrySet target_;
-  GeometryNodeRaycastMapMode mapping_;
-
-  /** The field for data evaluated on the target geometry. */
-  std::optional<bke::MeshFieldContext> target_context_;
-  std::unique_ptr<FieldEvaluator> target_evaluator_;
-  const GVArray *target_data_ = nullptr;
-
-  /* Always evaluate the target domain data on the face corner domain because it contains the most
-   * information. Eventually this could be exposed as an option or determined automatically from
-   * the field inputs for better performance. */
-  const eAttrDomain domain_ = ATTR_DOMAIN_CORNER;
-
-  mf::Signature signature_;
 
  public:
-  RaycastFunction(GeometrySet target, GField src_field, GeometryNodeRaycastMapMode mapping)
-      : target_(std::move(target)), mapping_((GeometryNodeRaycastMapMode)mapping)
+  RaycastFunction(GeometrySet target) : target_(std::move(target))
   {
     target_.ensure_owns_direct_data();
-    this->evaluate_target_field(std::move(src_field));
-
-    mf::SignatureBuilder builder{"Geometry Proximity", signature_};
-    builder.single_input<float3>("Source Position");
-    builder.single_input<float3>("Ray Direction");
-    builder.single_input<float>("Ray Length");
-    builder.single_output<bool>("Is Hit", mf::ParamFlag::SupportsUnusedOutput);
-    builder.single_output<float3>("Hit Position");
-    builder.single_output<float3>("Hit Normal", mf::ParamFlag::SupportsUnusedOutput);
-    builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
-    if (target_data_) {
-      builder.single_output(
-          "Attribute", target_data_->type(), mf::ParamFlag::SupportsUnusedOutput);
-    }
-    this->set_signature(&signature_);
+    static const mf::Signature signature = []() {
+      mf::Signature signature;
+      mf::SignatureBuilder builder{"Raycast", signature};
+      builder.single_input<float3>("Source Position");
+      builder.single_input<float3>("Ray Direction");
+      builder.single_input<float>("Ray Length");
+      builder.single_output<bool>("Is Hit", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float3>("Hit Position", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float3>("Hit Normal", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<float>("Distance", mf::ParamFlag::SupportsUnusedOutput);
+      builder.single_output<int>("Triangle Index", mf::ParamFlag::SupportsUnusedOutput);
+      return signature;
+    }();
+    this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
-    /* Hit positions are always necessary for retrieving the attribute from the target if that
-     * output is required, so always retrieve a span from the evaluator in that case (it's
-     * expected that the evaluator is more likely to have a spare buffer that could be used). */
-    MutableSpan<float3> hit_positions = params.uninitialized_single_output<float3>(4,
-                                                                                   "Hit Position");
-
-    Array<int> hit_indices;
-    if (target_data_) {
-      hit_indices.reinitialize(mask.min_array_size());
-    }
-
     BLI_assert(target_.has_mesh());
     const Mesh &mesh = *target_.get_mesh_for_read();
 
-    int hit_count = 0;
     raycast_to_mesh(mask,
                     mesh,
                     params.readonly_single_input<float3>(0, "Source Position"),
                     params.readonly_single_input<float3>(1, "Ray Direction"),
                     params.readonly_single_input<float>(2, "Ray Length"),
                     params.uninitialized_single_output_if_required<bool>(3, "Is Hit"),
-                    hit_indices,
-                    hit_positions,
+                    params.uninitialized_single_output_if_required<int>(7, "Triangle Index"),
+                    params.uninitialized_single_output_if_required<float3>(4, "Hit Position"),
                     params.uninitialized_single_output_if_required<float3>(5, "Hit Normal"),
-                    params.uninitialized_single_output_if_required<float>(6, "Distance"),
-                    hit_count);
-
-    if (target_data_) {
-      IndexMask hit_mask;
-      Vector<int64_t> hit_mask_indices;
-      if (hit_count < mask.size()) {
-        /* Not all rays hit the target. Create a corrected mask to avoid transferring attribute
-         * data to invalid indices. An alternative would be handling -1 indices in a separate case
-         * in #MeshAttributeInterpolator, but since it already has an IndexMask in its constructor,
-         * it's simpler to use that. */
-        hit_mask_indices.reserve(hit_count);
-        for (const int64_t i : mask) {
-          if (hit_indices[i] != -1) {
-            hit_mask_indices.append(i);
-          }
-          hit_mask = IndexMask(hit_mask_indices);
-        }
-      }
-      else {
-        hit_mask = mask;
-      }
-
-      GMutableSpan result = params.uninitialized_single_output_if_required(7, "Attribute");
-      if (!result.is_empty()) {
-        MeshAttributeInterpolator interp(&mesh, hit_mask, hit_positions, hit_indices);
-        result.type().value_initialize_indices(result.data(), mask);
-        interp.sample_data(*target_data_, domain_, get_map_mode(mapping_), result);
-      }
-    }
-  }
-
- private:
-  void evaluate_target_field(GField src_field)
-  {
-    if (!src_field) {
-      return;
-    }
-    const Mesh &mesh = *target_.get_mesh_for_read();
-    target_context_.emplace(bke::MeshFieldContext{mesh, domain_});
-    const int domain_size = mesh.attributes().domain_size(domain_);
-    target_evaluator_ = std::make_unique<FieldEvaluator>(*target_context_, domain_size);
-    target_evaluator_->add(std::move(src_field));
-    target_evaluator_->evaluate();
-    target_data_ = &target_evaluator_->get_evaluated(0);
+                    params.uninitialized_single_output_if_required<float>(6, "Distance"));
   }
 };
 
@@ -400,23 +317,43 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  GField field = get_input_attribute_field(params, data_type);
-  const bool do_attribute_transfer = bool(field);
-  Field<float3> position_field = params.extract_input<Field<float3>>("Source Position");
-  Field<float3> direction_field = params.extract_input<Field<float3>>("Ray Direction");
-  Field<float> length_field = params.extract_input<Field<float>>("Ray Length");
+  static auto normalize_fn = mf::build::SI1_SO<float3, float3>(
+      "Normalize",
+      [](const float3 &v) { return math::normalize(v); },
+      mf::build::exec_presets::AllSpanOrSingle());
+  auto direction_op = FieldOperation::Create(
+      normalize_fn, {params.extract_input<Field<float3>>("Ray Direction")});
 
-  auto fn = std::make_unique<RaycastFunction>(std::move(target), std::move(field), mapping);
-  auto op = std::make_shared<FieldOperation>(FieldOperation(
-      std::move(fn),
-      {std::move(position_field), std::move(direction_field), std::move(length_field)}));
+  auto op = FieldOperation::Create(std::make_unique<RaycastFunction>(target),
+                                   {params.extract_input<Field<float3>>("Source Position"),
+                                    Field<float3>(direction_op),
+                                    params.extract_input<Field<float>>("Ray Length")});
 
+  Field<float3> hit_position(op, 1);
   params.set_output("Is Hit", Field<bool>(op, 0));
-  params.set_output("Hit Position", Field<float3>(op, 1));
+  params.set_output("Hit Position", hit_position);
   params.set_output("Hit Normal", Field<float3>(op, 2));
   params.set_output("Hit Distance", Field<float>(op, 3));
-  if (do_attribute_transfer) {
-    output_attribute_field(params, GField(op, 4));
+
+  if (GField field = get_input_attribute_field(params, data_type)) {
+    Field<int> triangle_index(op, 4);
+    Field<float3> bary_weights;
+    switch (mapping) {
+      case GEO_NODE_RAYCAST_INTERPOLATED:
+        bary_weights = Field<float3>(FieldOperation::Create(
+            std::make_shared<bke::mesh_surface_sample::BaryWeightFromPositionFn>(target),
+            {hit_position, triangle_index}));
+        break;
+      case GEO_NODE_RAYCAST_NEAREST:
+        bary_weights = Field<float3>(FieldOperation::Create(
+            std::make_shared<bke::mesh_surface_sample::CornerBaryWeightFromPositionFn>(target),
+            {hit_position, triangle_index}));
+    }
+    auto sample_op = FieldOperation::Create(
+        std::make_shared<bke::mesh_surface_sample::BaryWeightSampleFn>(std::move(target),
+                                                                       std::move(field)),
+        {triangle_index, bary_weights});
+    output_attribute_field(params, GField(sample_op));
   }
 }
 
@@ -429,7 +366,7 @@ void register_node_type_geo_raycast()
   static bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.initfunc = file_ns::node_init;
   ntype.updatefunc = file_ns::node_update;
   node_type_storage(

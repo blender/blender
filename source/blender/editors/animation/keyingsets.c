@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -577,7 +578,7 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
   memcpy(&ks->typeinfo, ksi->idname, sizeof(ks->typeinfo));
 
   /* Copy description... */
-  BLI_strncpy(ks->description, ksi->description, sizeof(ks->description));
+  STRNCPY(ks->description, ksi->description);
 
   /* add type-info to the list */
   BLI_addtail(&keyingset_type_infos, ksi);

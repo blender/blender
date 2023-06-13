@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_index_range.hh"
 #include "BLI_listbase.h"
@@ -144,6 +146,7 @@ static eCustomDataType data_type_in_attribute_input_node(const eCustomDataType t
       /* Unsupported currently. */
       return CD_PROP_FLOAT;
     case CD_PROP_FLOAT2:
+    case CD_PROP_INT32_2D:
       /* No 2D vector sockets currently. */
       return CD_PROP_FLOAT3;
     case CD_PROP_INT8:
@@ -244,7 +247,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   AttributeSearchData *data = MEM_new<AttributeSearchData>(__func__);
   data->node_id = node.identifier;
-  BLI_strncpy(data->socket_identifier, socket.identifier, sizeof(data->socket_identifier));
+  STRNCPY(data->socket_identifier, socket.identifier);
 
   UI_but_func_search_set_results_are_suggestions(but, true);
   UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);

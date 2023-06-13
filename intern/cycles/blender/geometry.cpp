@@ -28,7 +28,8 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
 
   if (b_ob_info.object_data.is_a(&RNA_Volume) ||
       (b_ob_info.object_data == b_ob_info.real_object.data() &&
-       object_fluid_gas_domain_find(b_ob_info.real_object))) {
+       object_fluid_gas_domain_find(b_ob_info.real_object)))
+  {
     return Geometry::VOLUME;
   }
 
@@ -192,7 +193,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   Geometry *geom = object->get_geometry();
 
   if (geometry_motion_synced.find(geom) != geometry_motion_synced.end() ||
-      geometry_motion_attribute_synced.find(geom) != geometry_motion_attribute_synced.end()) {
+      geometry_motion_attribute_synced.find(geom) != geometry_motion_attribute_synced.end())
+  {
     return;
   }
 
@@ -218,7 +220,8 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
       sync_hair_motion(b_depsgraph, b_ob_info, hair, motion_step);
     }
     else if (b_ob_info.object_data.is_a(&RNA_Volume) ||
-             object_fluid_gas_domain_find(b_ob_info.real_object)) {
+             object_fluid_gas_domain_find(b_ob_info.real_object))
+    {
       /* No volume motion blur support yet. */
     }
     else if (b_ob_info.object_data.is_a(&RNA_PointCloud)) {

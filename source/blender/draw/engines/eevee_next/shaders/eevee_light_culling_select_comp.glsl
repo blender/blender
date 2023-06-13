@@ -45,7 +45,8 @@ void main()
     case LIGHT_RECT:
     case LIGHT_ELLIPSE:
     case LIGHT_POINT:
-      sphere = Sphere(light._position, light.influence_radius_max);
+      sphere.center = light._position;
+      sphere.radius = light.influence_radius_max;
       break;
   }
 

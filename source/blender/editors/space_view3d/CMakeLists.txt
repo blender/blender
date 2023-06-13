@@ -1,7 +1,10 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
+  ../../asset_system
   ../../blenfont
   ../../blenkernel
   ../../blenlib
@@ -45,11 +48,11 @@ set(SRC
   view3d_gizmo_navigate_type.c
   view3d_gizmo_preselect.c
   view3d_gizmo_preselect_type.cc
-  view3d_gizmo_ruler.c
+  view3d_gizmo_ruler.cc
   view3d_gizmo_tool_generic.c
   view3d_header.c
   view3d_iterators.cc
-  view3d_navigate.c
+  view3d_navigate.cc
   view3d_navigate_dolly.c
   view3d_navigate_fly.c
   view3d_navigate_move.c

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -115,7 +117,7 @@ static PyObject *pygpu_platform_backend_type_get(PyObject *UNUSED(self))
 /** \name Module
  * \{ */
 
-static struct PyMethodDef pygpu_platform__tp_methods[] = {
+static PyMethodDef pygpu_platform__tp_methods[] = {
     {"vendor_get",
      (PyCFunction)pygpu_platform_vendor_get,
      METH_NOARGS,

@@ -39,10 +39,10 @@
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_mesh_runtime.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -211,8 +211,7 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
                        bool apply_modifiers,
                        bool triangulate)
 {
-  CustomData_MeshMasks mask = CD_MASK_MESH;
-  Mesh *tmpmesh = nullptr;
+  const Mesh *tmpmesh = nullptr;
   if (apply_modifiers) {
 #if 0 /* Not supported by new system currently... */
     switch (export_mesh_type) {
@@ -227,22 +226,21 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
     }
 #else
     Depsgraph *depsgraph = blender_context.get_depsgraph();
-    Scene *scene_eval = blender_context.get_evaluated_scene();
-    Object *ob_eval = blender_context.get_evaluated_object(ob);
-    tmpmesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &mask);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    tmpmesh = BKE_object_get_evaluated_mesh(ob_eval);
 #endif
   }
   else {
     tmpmesh = (Mesh *)ob->data;
   }
 
-  tmpmesh = (Mesh *)BKE_id_copy_ex(nullptr, &tmpmesh->id, nullptr, LIB_ID_COPY_LOCALIZE);
+  Mesh *mesh = BKE_mesh_copy_for_eval(tmpmesh);
 
   if (triangulate) {
-    bc_triangulate_mesh(tmpmesh);
+    bc_triangulate_mesh(mesh);
   }
-  BKE_mesh_tessface_ensure(tmpmesh);
-  return tmpmesh;
+  BKE_mesh_tessface_ensure(mesh);
+  return mesh;
 }
 
 Object *bc_get_assigned_armature(Object *ob)
@@ -516,7 +514,7 @@ char *BoneExtended::get_name()
 
 void BoneExtended::set_name(char *aName)
 {
-  BLI_strncpy(name, aName, MAXBONENAME);
+  STRNCPY(name, aName);
 }
 
 int BoneExtended::get_chain_length()
@@ -719,7 +717,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
         result = float(IDP_Double(property));
         break;
       case IDP_BOOLEAN:
-        result = (float)(IDP_Bool(property));
+        result = float(IDP_Bool(property));
         break;
       default:
         result = def;
@@ -769,9 +767,9 @@ void bc_enable_fcurves(bAction *act, char *bone_name)
   char prefix[200];
 
   if (bone_name) {
-    char bone_name_esc[sizeof(((Bone *)nullptr)->name) * 2];
+    char bone_name_esc[sizeof(Bone::name) * 2];
     BLI_str_escape(bone_name_esc, bone_name, sizeof(bone_name_esc));
-    BLI_snprintf(prefix, sizeof(prefix), "pose.bones[\"%s\"]", bone_name_esc);
+    SNPRINTF(prefix, "pose.bones[\"%s\"]", bone_name_esc);
   }
 
   for (fcu = (FCurve *)act->curves.first; fcu; fcu = fcu->next) {
@@ -865,7 +863,8 @@ bool bc_has_animations(Object *ob)
   /* Check for object, light and camera transform animations */
   if ((bc_getSceneObjectAction(ob) && bc_getSceneObjectAction(ob)->curves.first) ||
       (bc_getSceneLightAction(ob) && bc_getSceneLightAction(ob)->curves.first) ||
-      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first)) {
+      (bc_getSceneCameraAction(ob) && bc_getSceneCameraAction(ob)->curves.first))
+  {
     return true;
   }
 
@@ -964,7 +963,8 @@ void bc_create_restpose_mat(BCExportSettings &export_settings,
 
   if (!has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_loc") &&
       !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_rot") &&
-      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale")) {
+      !has_custom_props(bone, export_settings.get_keep_bind_info(), "restpose_scale"))
+  {
     /* No need */
     copy_m4_m4(to_mat, from_mat);
     return;
@@ -1112,7 +1112,7 @@ static std::string bc_get_uvlayer_name(Mesh *me, int layer)
 static bNodeTree *prepare_material_nodetree(Material *ma)
 {
   if (ma->nodetree == nullptr) {
-    ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
+    blender::bke::ntreeAddTreeEmbedded(nullptr, &ma->id, "Shader Nodetree", "ShaderNodeTree");
     ma->use_nodes = true;
   }
   return ma->nodetree;
@@ -1137,66 +1137,6 @@ static bNode *bc_add_node(bContext *C, bNodeTree *ntree, int node_type, int locx
 {
   return bc_add_node(C, ntree, node_type, locx, locy, "");
 }
-
-#if 0
-/* experimental, probably not used */
-static bNodeSocket *bc_group_add_input_socket(bNodeTree *ntree,
-                                              bNode *to_node,
-                                              int to_index,
-                                              std::string label)
-{
-  bNodeSocket *to_socket = (bNodeSocket *)BLI_findlink(&to_node->inputs, to_index);
-
-#  if 0
-  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  return socket;
-#  endif
-
-  bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  bNode *inputGroup = ntreeFindType(ntree, NODE_GROUP_INPUT);
-  node_group_input_verify(ntree, inputGroup, (ID *)ntree);
-  bNodeSocket *newsock = node_group_input_find_socket(inputGroup, gsock->identifier);
-  nodeAddLink(ntree, inputGroup, newsock, to_node, to_socket);
-  strcpy(newsock->name, label.c_str());
-  return newsock;
-}
-
-static bNodeSocket *bc_group_add_output_socket(bNodeTree *ntree,
-                                               bNode *from_node,
-                                               int from_index,
-                                               std::string label)
-{
-  bNodeSocket *from_socket = (bNodeSocket *)BLI_findlink(&from_node->outputs, from_index);
-
-#  if 0
-  bNodeSocket *socket = ntreeAddSocketInterfaceFromSocket(ntree, to_node, to_socket);
-  return socket;
-#  endif
-
-  bNodeSocket *gsock = ntreeAddSocketInterfaceFromSocket(ntree, from_node, from_socket);
-  bNode *outputGroup = ntreeFindType(ntree, NODE_GROUP_OUTPUT);
-  node_group_output_verify(ntree, outputGroup, (ID *)ntree);
-  bNodeSocket *newsock = node_group_output_find_socket(outputGroup, gsock->identifier);
-  nodeAddLink(ntree, from_node, from_socket, outputGroup, newsock);
-  strcpy(newsock->name, label.c_str());
-  return newsock;
-}
-
-void bc_make_group(bContext *C, bNodeTree *ntree, std::map<std::string, bNode *> nmap)
-{
-  bNode *gnode = node_group_make_from_selected(C, ntree, "ShaderNodeGroup", "ShaderNodeTree");
-  bNodeTree *gtree = (bNodeTree *)gnode->id;
-
-  bc_group_add_input_socket(gtree, nmap["main"], 0, "Diffuse");
-  bc_group_add_input_socket(gtree, nmap["emission"], 0, "Emission");
-  bc_group_add_input_socket(gtree, nmap["mix"], 0, "Transparency");
-  bc_group_add_input_socket(gtree, nmap["emission"], 1, "Emission");
-  bc_group_add_input_socket(gtree, nmap["main"], 4, "Metallic");
-  bc_group_add_input_socket(gtree, nmap["main"], 5, "Specular");
-
-  bc_group_add_output_socket(gtree, nmap["mix"], 0, "Shader");
-}
-#endif
 
 static void bc_node_add_link(
     bNodeTree *ntree, bNode *from_node, int from_index, bNode *to_node, int to_index)

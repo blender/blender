@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -172,9 +174,7 @@ class ViewEdgeXBuilder {
     _currentSVertexId = 0;
   }
 
-  virtual ~ViewEdgeXBuilder()
-  {
-  }
+  virtual ~ViewEdgeXBuilder() {}
 
   /** Builds a view shape from a WXShape in which the feature edges are flagged
    *  Builds chains of feature edges (so ViewEdges) from a WXShape

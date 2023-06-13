@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -100,7 +102,7 @@ bool BKE_copybuffer_read(Main *bmain_dst,
    * should remain linked. */
   const int flag = 0;
   const int id_tag_extra = 0;
-  struct LibraryLink_Params liblink_params;
+  LibraryLink_Params liblink_params;
   BLO_library_link_params_init(&liblink_params, bmain_dst, flag, id_tag_extra);
 
   BlendfileLinkAppendContext *lapp_context = BKE_blendfile_link_append_context_new(
@@ -135,7 +137,7 @@ int BKE_copybuffer_paste(bContext *C,
   /* NOTE: No recursive append here, external linked data should remain linked. */
   BLI_assert((flag & BLO_LIBLINK_APPEND_RECURSIVE) == 0);
 
-  struct LibraryLink_Params liblink_params;
+  LibraryLink_Params liblink_params;
   BLO_library_link_params_init_with_context(
       &liblink_params, bmain, flag, id_tag_extra, scene, view_layer, v3d);
 

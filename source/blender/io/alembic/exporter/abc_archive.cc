@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "abc_archive.h"
 
@@ -65,20 +66,20 @@ static MetaData create_abc_metadata(const Main *bmain, double scene_fps)
 }
 
 static OArchive *create_archive(std::ofstream *abc_ostream,
-                                const std::string &filename,
+                                const std::string &filepath,
                                 MetaData &abc_metadata)
 {
   /* Use stream to support unicode character paths on Windows. */
 #ifdef WIN32
-  char filename_cstr[FILE_MAX];
-  BLI_strncpy(filename_cstr, filename.c_str(), FILE_MAX);
+  char filepath_cstr[FILE_MAX];
+  BLI_strncpy(filepath_cstr, filepath.c_str(), FILE_MAX);
 
-  UTF16_ENCODE(filename_cstr);
-  std::wstring wstr(filename_cstr_16);
+  UTF16_ENCODE(filepath_cstr);
+  std::wstring wstr(filepath_cstr_16);
   abc_ostream->open(wstr.c_str(), std::ios::out | std::ios::binary);
-  UTF16_UN_ENCODE(filename_cstr);
+  UTF16_UN_ENCODE(filepath_cstr);
 #else
-  abc_ostream->open(filename, std::ios::out | std::ios::binary);
+  abc_ostream->open(filepath, std::ios::out | std::ios::binary);
 #endif
 
   ErrorHandler::Policy policy = ErrorHandler::kThrowPolicy;
@@ -155,14 +156,14 @@ static void get_frames(double scene_fps,
 ABCArchive::ABCArchive(const Main *bmain,
                        const Scene *scene,
                        AlembicExportParams params,
-                       std::string filename)
+                       std::string filepath)
     : archive(nullptr)
 {
   double scene_fps = FPS;
   MetaData abc_metadata = create_abc_metadata(bmain, scene_fps);
 
   /* Create the Archive. */
-  archive = create_archive(&abc_ostream_, filename, abc_metadata);
+  archive = create_archive(&abc_ostream_, filepath, abc_metadata);
 
   /* Create time samples for transforms and shapes. */
   TimeSamplingPtr ts_xform;

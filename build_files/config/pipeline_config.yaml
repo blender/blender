@@ -1,54 +1,4 @@
 #
-# Used by Buildbot build pipeline make_update.py script only for now
-# We intended to update the make_update.py in the branches to use this file eventually
-#
-update-code:
-    git:
-        submodules:
-        -   branch: main
-            commit_id: HEAD
-            path: release/scripts/addons
-        -   branch: main
-            commit_id: HEAD
-            path: release/scripts/addons_contrib
-        -   branch: main
-            commit_id: HEAD
-            path: release/datafiles/locale
-        -   branch: main
-            commit_id: HEAD
-            path: source/tools
-    svn:
-        libraries:
-            darwin-arm64:
-                branch: trunk
-                commit_id: HEAD
-                path: lib/darwin_arm64
-            darwin-x86_64:
-                branch: trunk
-                commit_id: HEAD
-                path: lib/darwin
-            linux-x86_64:
-                branch: trunk
-                commit_id: HEAD
-                path: lib/linux_x86_64_glibc_228
-            windows-amd64:
-                branch: trunk
-                commit_id: HEAD
-                path: lib/win64_vc15
-        tests:
-            branch: trunk
-            commit_id: HEAD
-            path: lib/tests
-        benchmarks:
-            branch: trunk
-            commit_id: HEAD
-            path: lib/benchmarks
-        assets:
-            branch: trunk
-            commit_id: HEAD
-            path: lib/assets
-
-#
 # Buildbot only configs
 #
 buildbot:
@@ -58,8 +8,12 @@ buildbot:
         version: '10.1.243'
     cuda11:
         version: '11.4.1'
+    cuda12:
+        version: '12.1.1'
     hip:
-        version: '5.3.22480'
+        version: '5.5.30571'
+    hiprt:
+        version: '2.0.3a134c7'
     optix:
         version: '7.3.0'
     ocloc:

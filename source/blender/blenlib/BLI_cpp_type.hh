@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -43,7 +45,7 @@
  *      Constructs a single instance of that type at the given pointer.
  *  - `default_construct_n(void *ptr, int64_t n)`:
  *      Constructs n instances of that type in an array that starts at the given pointer.
- *  - `default_construct_indices(void *ptr, IndexMask mask)`:
+ *  - `default_construct_indices(void *ptr, const IndexMask &mask)`:
  *      Constructs multiple instances of that type in an array that starts at the given pointer.
  *      Only the indices referenced by `mask` will by constructed.
  *
@@ -105,37 +107,37 @@ class CPPType : NonCopyable, NonMovable {
   bool has_special_member_functions_ = false;
 
   void (*default_construct_)(void *ptr) = nullptr;
-  void (*default_construct_indices_)(void *ptr, IndexMask mask) = nullptr;
+  void (*default_construct_indices_)(void *ptr, const IndexMask &mask) = nullptr;
 
   void (*value_initialize_)(void *ptr) = nullptr;
-  void (*value_initialize_indices_)(void *ptr, IndexMask mask) = nullptr;
+  void (*value_initialize_indices_)(void *ptr, const IndexMask &mask) = nullptr;
 
   void (*destruct_)(void *ptr) = nullptr;
-  void (*destruct_indices_)(void *ptr, IndexMask mask) = nullptr;
+  void (*destruct_indices_)(void *ptr, const IndexMask &mask) = nullptr;
 
   void (*copy_assign_)(const void *src, void *dst) = nullptr;
-  void (*copy_assign_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
-  void (*copy_assign_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_assign_indices_)(const void *src, void *dst, const IndexMask &mask) = nullptr;
+  void (*copy_assign_compressed_)(const void *src, void *dst, const IndexMask &mask) = nullptr;
 
   void (*copy_construct_)(const void *src, void *dst) = nullptr;
-  void (*copy_construct_indices_)(const void *src, void *dst, IndexMask mask) = nullptr;
-  void (*copy_construct_compressed_)(const void *src, void *dst, IndexMask mask) = nullptr;
+  void (*copy_construct_indices_)(const void *src, void *dst, const IndexMask &mask) = nullptr;
+  void (*copy_construct_compressed_)(const void *src, void *dst, const IndexMask &mask) = nullptr;
 
   void (*move_assign_)(void *src, void *dst) = nullptr;
-  void (*move_assign_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
+  void (*move_assign_indices_)(void *src, void *dst, const IndexMask &mask) = nullptr;
 
   void (*move_construct_)(void *src, void *dst) = nullptr;
-  void (*move_construct_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
+  void (*move_construct_indices_)(void *src, void *dst, const IndexMask &mask) = nullptr;
 
   void (*relocate_assign_)(void *src, void *dst) = nullptr;
-  void (*relocate_assign_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
+  void (*relocate_assign_indices_)(void *src, void *dst, const IndexMask &mask) = nullptr;
 
   void (*relocate_construct_)(void *src, void *dst) = nullptr;
-  void (*relocate_construct_indices_)(void *src, void *dst, IndexMask mask) = nullptr;
+  void (*relocate_construct_indices_)(void *src, void *dst, const IndexMask &mask) = nullptr;
 
-  void (*fill_assign_indices_)(const void *value, void *dst, IndexMask mask) = nullptr;
+  void (*fill_assign_indices_)(const void *value, void *dst, const IndexMask &mask) = nullptr;
 
-  void (*fill_construct_indices_)(const void *value, void *dst, IndexMask mask) = nullptr;
+  void (*fill_construct_indices_)(const void *value, void *dst, const IndexMask &mask) = nullptr;
 
   void (*print_)(const void *value, std::stringstream &ss) = nullptr;
   bool (*is_equal_)(const void *a, const void *b) = nullptr;
@@ -323,7 +325,7 @@ class CPPType : NonCopyable, NonMovable {
     this->default_construct_indices(ptr, IndexMask(n));
   }
 
-  void default_construct_indices(void *ptr, IndexMask mask) const
+  void default_construct_indices(void *ptr, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
 
@@ -348,7 +350,7 @@ class CPPType : NonCopyable, NonMovable {
     this->value_initialize_indices(ptr, IndexMask(n));
   }
 
-  void value_initialize_indices(void *ptr, IndexMask mask) const
+  void value_initialize_indices(void *ptr, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
 
@@ -375,7 +377,7 @@ class CPPType : NonCopyable, NonMovable {
     this->destruct_indices(ptr, IndexMask(n));
   }
 
-  void destruct_indices(void *ptr, IndexMask mask) const
+  void destruct_indices(void *ptr, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(ptr));
 
@@ -401,7 +403,7 @@ class CPPType : NonCopyable, NonMovable {
     this->copy_assign_indices(src, dst, IndexMask(n));
   }
 
-  void copy_assign_indices(const void *src, void *dst, IndexMask mask) const
+  void copy_assign_indices(const void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -413,7 +415,7 @@ class CPPType : NonCopyable, NonMovable {
   /**
    * Similar to #copy_assign_indices, but does not leave gaps in the #dst array.
    */
-  void copy_assign_compressed(const void *src, void *dst, IndexMask mask) const
+  void copy_assign_compressed(const void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -444,7 +446,7 @@ class CPPType : NonCopyable, NonMovable {
     this->copy_construct_indices(src, dst, IndexMask(n));
   }
 
-  void copy_construct_indices(const void *src, void *dst, IndexMask mask) const
+  void copy_construct_indices(const void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -456,7 +458,7 @@ class CPPType : NonCopyable, NonMovable {
   /**
    * Similar to #copy_construct_indices, but does not leave gaps in the #dst array.
    */
-  void copy_construct_compressed(const void *src, void *dst, IndexMask mask) const
+  void copy_construct_compressed(const void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -486,7 +488,7 @@ class CPPType : NonCopyable, NonMovable {
     this->move_assign_indices(src, dst, IndexMask(n));
   }
 
-  void move_assign_indices(void *src, void *dst, IndexMask mask) const
+  void move_assign_indices(void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -517,7 +519,7 @@ class CPPType : NonCopyable, NonMovable {
     this->move_construct_indices(src, dst, IndexMask(n));
   }
 
-  void move_construct_indices(void *src, void *dst, IndexMask mask) const
+  void move_construct_indices(void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -548,7 +550,7 @@ class CPPType : NonCopyable, NonMovable {
     this->relocate_assign_indices(src, dst, IndexMask(n));
   }
 
-  void relocate_assign_indices(void *src, void *dst, IndexMask mask) const
+  void relocate_assign_indices(void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -579,7 +581,7 @@ class CPPType : NonCopyable, NonMovable {
     this->relocate_construct_indices(src, dst, IndexMask(n));
   }
 
-  void relocate_construct_indices(void *src, void *dst, IndexMask mask) const
+  void relocate_construct_indices(void *src, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || src != dst);
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(src));
@@ -598,7 +600,7 @@ class CPPType : NonCopyable, NonMovable {
     this->fill_assign_indices(value, dst, IndexMask(n));
   }
 
-  void fill_assign_indices(const void *value, void *dst, IndexMask mask) const
+  void fill_assign_indices(const void *value, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(value));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
@@ -616,7 +618,7 @@ class CPPType : NonCopyable, NonMovable {
     this->fill_construct_indices(value, dst, IndexMask(n));
   }
 
-  void fill_construct_indices(const void *value, void *dst, IndexMask mask) const
+  void fill_construct_indices(const void *value, void *dst, const IndexMask &mask) const
   {
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(value));
     BLI_assert(mask.size() == 0 || this->pointer_can_point_to_instance(dst));
@@ -703,6 +705,11 @@ class CPPType : NonCopyable, NonMovable {
   template<typename T> bool is() const
   {
     return this == &CPPType::get<std::decay_t<T>>();
+  }
+
+  template<typename... T> bool is_any() const
+  {
+    return (this->is<T>() || ...);
   }
 
   /**

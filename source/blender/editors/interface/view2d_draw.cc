@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -38,7 +39,7 @@
 /* Compute display grid resolution
  ********************************************************/
 
-#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_DPI_FAC)
+#define MIN_MAJOR_LINE_DISTANCE (U.v2d_min_gridsize * UI_SCALE_FAC)
 
 static float select_major_distance(const float *possible_distances,
                                    uint amount,
@@ -102,17 +103,16 @@ static float view2d_major_step_x__time(const View2D *v2d, const Scene *scene)
   for (int step = 1; step < fps; step *= 2) {
     possible_distances.append(step);
   }
-  possible_distances.append(fps);
-  possible_distances.append(2 * fps);
-  possible_distances.append(5 * fps);
-  possible_distances.append(10 * fps);
-  possible_distances.append(30 * fps);
-  possible_distances.append(60 * fps);
-  possible_distances.append(2 * 60 * fps);
-  possible_distances.append(5 * 60 * fps);
-  possible_distances.append(10 * 60 * fps);
-  possible_distances.append(30 * 60 * fps);
-  possible_distances.append(60 * 60 * fps);
+
+  for (int i = 0; i <= 5; i++) {
+    uint fac = pow(60, i);
+    possible_distances.append(fac * fps);
+    possible_distances.append(fac * 2 * fps);
+    possible_distances.append(fac * 5 * fps);
+    possible_distances.append(fac * 10 * fps);
+    possible_distances.append(fac * 30 * fps);
+    possible_distances.append(fac * 60 * fps);
+  }
 
   float distance = select_major_distance(possible_distances.data(),
                                          possible_distances.size(),
@@ -265,7 +265,7 @@ static void view2d_draw_lines(const View2D *v2d,
  **************************************************/
 
 using PositionToString =
-    void (*)(void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str);
+    void (*)(void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy);
 
 static void draw_horizontal_scale_indicators(const ARegion *region,
                                              const View2D *v2d,
@@ -304,7 +304,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
 
   BLF_batch_draw_begin();
 
-  const float ypos = rect->ymin + 4 * UI_DPI_FAC;
+  const float ypos = rect->ymin + 4 * UI_SCALE_FAC;
   const float xmin = rect->xmin;
   const float xmax = rect->xmax;
 
@@ -313,9 +313,9 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   /* Calculate max_label_count and draw_frequency based on largest visible label. */
   int draw_frequency;
   {
-    to_string(to_string_data, start, 0, sizeof(text), text);
+    to_string(to_string_data, start, 0, text, sizeof(text));
     const float left_text_width = BLF_width(font_id, text, strlen(text));
-    to_string(to_string_data, start + steps * distance, 0, sizeof(text), text);
+    to_string(to_string_data, start + steps * distance, 0, text, sizeof(text));
     const float right_text_width = BLF_width(font_id, text, strlen(text));
     const float max_text_width = max_ff(left_text_width, right_text_width);
     const float max_label_count = BLI_rcti_size_x(&v2d->mask) / (max_text_width + 10.0f);
@@ -327,7 +327,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
     for (uint i = start_index; i < steps; i += draw_frequency) {
       const float xpos_view = start + i * distance;
       const float xpos_region = UI_view2d_view_to_region_x(v2d, xpos_view);
-      to_string(to_string_data, xpos_view, distance, sizeof(text), text);
+      to_string(to_string_data, xpos_view, distance, text, sizeof(text));
       const float text_width = BLF_width(font_id, text, strlen(text));
 
       if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
@@ -384,7 +384,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   BLF_shadow_offset(font_id, 1, -1);
 
   const float x_offset = 8.0f;
-  const float xpos = (rect->xmin + x_offset) * UI_DPI_FAC;
+  const float xpos = (rect->xmin + x_offset) * UI_SCALE_FAC;
   const float ymin = rect->ymin;
   const float ymax = rect->ymax;
   const float y_offset = (BLF_height(font_id, "0", 1) / 2.0f) - U.pixelsize;
@@ -393,7 +393,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
     const float ypos_view = start + i * distance;
     const float ypos_region = UI_view2d_view_to_region_y(v2d, ypos_view + display_offset);
     char text[32];
-    to_string(to_string_data, ypos_view, distance, sizeof(text), text);
+    to_string(to_string_data, ypos_view, distance, text, sizeof(text));
 
     if (ypos_region - y_offset >= ymin && ypos_region + y_offset <= ymax) {
       BLF_draw_default(xpos, ypos_region - y_offset, 0.0f, text, sizeof(text));
@@ -408,13 +408,13 @@ static void draw_vertical_scale_indicators(const ARegion *region,
 }
 
 static void view_to_string__frame_number(
-    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float /*v2d_step*/, char *r_str, uint str_maxncpy)
 {
-  BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
+  BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
 }
 
 static void view_to_string__time(
-    void *user_data, float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void *user_data, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
 {
   const Scene *scene = (const Scene *)user_data;
 
@@ -424,31 +424,31 @@ static void view_to_string__time(
   }
 
   BLI_timecode_string_from_time(
-      r_str, max_len, brevity_level, v2d_pos / float(FPS), FPS, U.timecode_style);
+      r_str, str_maxncpy, brevity_level, v2d_pos / float(FPS), FPS, U.timecode_style);
 }
 
 static void view_to_string__value(
-    void * /*user_data*/, float v2d_pos, float v2d_step, uint max_len, char *r_str)
+    void * /*user_data*/, float v2d_pos, float v2d_step, char *r_str, uint str_maxncpy)
 {
   if (v2d_step >= 1.0f) {
-    BLI_snprintf(r_str, max_len, "%d", int(v2d_pos));
+    BLI_snprintf(r_str, str_maxncpy, "%d", int(v2d_pos));
   }
   else if (v2d_step >= 0.1f) {
-    BLI_snprintf(r_str, max_len, "%.1f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.1f", v2d_pos);
   }
   else if (v2d_step >= 0.01f) {
-    BLI_snprintf(r_str, max_len, "%.2f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.2f", v2d_pos);
   }
   else {
-    BLI_snprintf(r_str, max_len, "%.3f", v2d_pos);
+    BLI_snprintf(r_str, str_maxncpy, "%.3f", v2d_pos);
   }
 }
 
 /* Grid Resolution API
  **************************************************/
 
-float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
-                                                     const struct Scene *scene,
+float UI_view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d,
+                                                     const Scene *scene,
                                                      bool display_seconds)
 {
   if (display_seconds) {
@@ -457,7 +457,7 @@ float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
   return view2d_major_step_x__continuous(v2d);
 }
 
-float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)
+float UI_view2d_grid_resolution_y__values(const View2D *v2d)
 {
   return view2d_major_step_y__continuous(v2d);
 }
@@ -568,10 +568,10 @@ void UI_view2d_draw_scale_y__block(const ARegion *region,
       region, v2d, 1.0f, 0.5f, rect, view_to_string__value, nullptr, colorid);
 }
 
-void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
-                                                        const struct View2D *v2d,
-                                                        const struct rcti *rect,
-                                                        const struct Scene *scene,
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
+                                                        const View2D *v2d,
+                                                        const rcti *rect,
+                                                        const Scene *scene,
                                                         bool display_seconds,
                                                         int colorid)
 {
@@ -583,10 +583,10 @@ void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *re
   }
 }
 
-void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
-                                               const struct View2D *v2d,
-                                               const struct rcti *rect,
-                                               const struct Scene *scene,
+void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
+                                               const View2D *v2d,
+                                               const rcti *rect,
+                                               const Scene *scene,
                                                bool display_seconds,
                                                int colorid)
 {

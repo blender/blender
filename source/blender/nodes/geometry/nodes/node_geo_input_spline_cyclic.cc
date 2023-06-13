@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -6,7 +8,7 @@ namespace blender::nodes::node_geo_input_spline_cyclic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>(N_("Cyclic")).field_source();
+  b.add_output<decl::Bool>("Cyclic").field_source();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

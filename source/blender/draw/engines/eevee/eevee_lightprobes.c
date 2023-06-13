@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -35,11 +36,11 @@
 #include "WM_types.h"
 
 static struct {
-  struct GPUTexture *planar_pool_placeholder;
-  struct GPUTexture *depth_placeholder;
-  struct GPUTexture *depth_array_placeholder;
+  GPUTexture *planar_pool_placeholder;
+  GPUTexture *depth_placeholder;
+  GPUTexture *depth_array_placeholder;
 
-  struct GPUVertFormat *format_probe_display_planar;
+  GPUVertFormat *format_probe_display_planar;
 } e_data = {NULL}; /* Engine data */
 
 /* *********** FUNCTIONS *********** */
@@ -94,29 +95,36 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
   /* Fix case were the pool was allocated width the dummy size (1,1,1). */
   if (txl->planar_pool && (num_planar_ref > 0) &&
       (GPU_texture_width(txl->planar_pool) != width ||
-       GPU_texture_height(txl->planar_pool) != height)) {
+       GPU_texture_height(txl->planar_pool) != height))
+  {
     DRW_TEXTURE_FREE_SAFE(txl->planar_pool);
     DRW_TEXTURE_FREE_SAFE(txl->planar_depth);
   }
 
   /* We need an Array texture so allocate it ourself */
   if (!txl->planar_pool) {
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    eGPUTextureUsage planar_usage_depth = GPU_TEXTURE_USAGE_ATTACHMENT |
+                                          GPU_TEXTURE_USAGE_SHADER_READ;
     if (num_planar_ref > 0) {
-      txl->planar_pool = DRW_texture_create_2d_array(width,
-                                                     height,
-                                                     num_planar_ref,
-                                                     GPU_R11F_G11F_B10F,
-                                                     DRW_TEX_FILTER | DRW_TEX_MIPMAP,
-                                                     NULL);
-      txl->planar_depth = DRW_texture_create_2d_array(
-          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, 0, NULL);
+      txl->planar_pool = DRW_texture_create_2d_array_ex(width,
+                                                        height,
+                                                        num_planar_ref,
+                                                        GPU_R11F_G11F_B10F,
+                                                        planar_usage,
+                                                        DRW_TEX_FILTER | DRW_TEX_MIPMAP,
+                                                        NULL);
+      txl->planar_depth = DRW_texture_create_2d_array_ex(
+          width, height, num_planar_ref, GPU_DEPTH_COMPONENT24, planar_usage_depth, 0, NULL);
     }
     else if (num_planar_ref == 0) {
       /* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still
        * bound to shader. */
-      txl->planar_pool = DRW_texture_create_2d_array(
-          1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-      txl->planar_depth = DRW_texture_create_2d_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
+      txl->planar_pool = DRW_texture_create_2d_array_ex(
+          1, 1, 1, GPU_RGBA8, planar_usage, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+      txl->planar_depth = DRW_texture_create_2d_array_ex(
+          1, 1, 1, GPU_DEPTH_COMPONENT24, planar_usage_depth, 0, NULL);
     }
   }
 }
@@ -142,10 +150,10 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
   else {
     if (scene_eval->eevee.light_cache_data &&
-        (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE)) {
+        (scene_eval->eevee.light_cache_data->flag & LIGHTCACHE_NOT_USABLE))
+    {
       /* Error message info. */
-      BLI_snprintf(
-          vedata->info, sizeof(vedata->info), "Error: LightCache cannot be loaded on this GPU");
+      STRNCPY(vedata->info, "Error: LightCache cannot be loaded on this GPU");
     }
 
     if (!sldata->fallback_lightcache) {
@@ -182,8 +190,10 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
   /* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
   if (!e_data.planar_pool_placeholder) {
-    e_data.planar_pool_placeholder = DRW_texture_create_2d_array(
-        1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER, NULL);
+    eGPUTextureUsage planar_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ |
+                                    GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW;
+    e_data.planar_pool_placeholder = DRW_texture_create_2d_array_ex(
+        1, 1, 1, GPU_RGBA8, planar_usage, DRW_TEX_FILTER, NULL);
   }
 }
 
@@ -298,7 +308,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
       World *world = (scene->world) ? scene->world : EEVEE_world_default_get();
 
       const int options = VAR_WORLD_BACKGROUND | VAR_WORLD_PROBE;
-      struct GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
+      GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, NULL, world, options);
 
       grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
       DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
@@ -429,7 +439,8 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
 
   if ((probe->type == LIGHTPROBE_TYPE_CUBE && pinfo->num_cube >= EEVEE_PROBE_MAX) ||
       (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= EEVEE_PROBE_MAX) ||
-      (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_planar >= MAX_PLANAR)) {
+      (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_planar >= MAX_PLANAR))
+  {
     printf("Too many probes in the view !!!\n");
     return;
   }
@@ -699,8 +710,9 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
   /* If light-cache auto-update is enable we tag the relevant part
    * of the cache to update and fire up a baking job. */
-  if (!DRW_state_is_image_render() && !DRW_state_is_opengl_render() &&
-      (pinfo->do_grid_update || pinfo->do_cube_update)) {
+  if (!DRW_state_is_image_render() && !DRW_state_is_viewport_image_render() &&
+      (pinfo->do_grid_update || pinfo->do_cube_update))
+  {
     BLI_assert(draw_ctx->evil_C);
 
     if (draw_ctx->scene->eevee.flag & SCE_EEVEE_GI_AUTOBAKE) {
@@ -741,7 +753,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 typedef struct EEVEE_BakeRenderData {
   EEVEE_Data *vedata;
   EEVEE_ViewLayerData *sldata;
-  struct GPUFrameBuffer **face_fb; /* should contain 6 framebuffer */
+  GPUFrameBuffer **face_fb; /* should contain 6 framebuffer */
 } EEVEE_BakeRenderData;
 
 static void render_cubemap(void (*callback)(int face, EEVEE_BakeRenderData *user_data),
@@ -813,7 +825,7 @@ static void render_reflections(void (*callback)(int face, EEVEE_BakeRenderData *
 static void lightbake_render_world_face(int face, EEVEE_BakeRenderData *user_data)
 {
   EEVEE_PassList *psl = user_data->vedata->psl;
-  struct GPUFrameBuffer **face_fb = user_data->face_fb;
+  GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* For world probe, we don't need to clear the color buffer
    * since we render the background directly. */
@@ -824,7 +836,7 @@ static void lightbake_render_world_face(int face, EEVEE_BakeRenderData *user_dat
 
 void EEVEE_lightbake_render_world(EEVEE_ViewLayerData *UNUSED(sldata),
                                   EEVEE_Data *vedata,
-                                  struct GPUFrameBuffer *face_fb[6])
+                                  GPUFrameBuffer *face_fb[6])
 {
   EEVEE_BakeRenderData brdata = {
       .vedata = vedata,
@@ -841,7 +853,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
   EEVEE_PrivateData *g_data = user_data->vedata->stl->g_data;
   DRWView **views = g_data->bake_views;
 
-  struct GPUFrameBuffer **face_fb = user_data->face_fb;
+  GPUFrameBuffer **face_fb = user_data->face_fb;
 
   /* Be sure that cascaded shadow maps are updated. */
   EEVEE_shadows_draw(sldata, user_data->vedata, views[face]);
@@ -858,7 +870,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
 
 void EEVEE_lightbake_render_scene(EEVEE_ViewLayerData *sldata,
                                   EEVEE_Data *vedata,
-                                  struct GPUFrameBuffer *face_fb[6],
+                                  GPUFrameBuffer *face_fb[6],
                                   const float pos[3],
                                   float near_clip,
                                   float far_clip)
@@ -962,8 +974,8 @@ static void eevee_lightbake_render_scene_to_planars(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
                                    EEVEE_Data *vedata,
-                                   struct GPUTexture *rt_color,
-                                   struct GPUFrameBuffer *fb,
+                                   GPUTexture *rt_color,
+                                   GPUFrameBuffer *fb,
                                    int probe_idx,
                                    float intensity,
                                    int maxlevel,
@@ -1050,8 +1062,8 @@ void EEVEE_lightbake_filter_glossy(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
                                     EEVEE_Data *vedata,
-                                    struct GPUTexture *rt_color,
-                                    struct GPUFrameBuffer *fb,
+                                    GPUTexture *rt_color,
+                                    GPUFrameBuffer *fb,
                                     int grid_offset,
                                     float intensity)
 {
@@ -1102,8 +1114,8 @@ void EEVEE_lightbake_filter_diffuse(EEVEE_ViewLayerData *sldata,
 
 void EEVEE_lightbake_filter_visibility(EEVEE_ViewLayerData *sldata,
                                        EEVEE_Data *vedata,
-                                       struct GPUTexture *UNUSED(rt_depth),
-                                       struct GPUFrameBuffer *fb,
+                                       GPUTexture *UNUSED(rt_depth),
+                                       GPUFrameBuffer *fb,
                                        int grid_offset,
                                        float clipsta,
                                        float clipend,
@@ -1241,8 +1253,8 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
   LightCache *light_cache = vedata->stl->g_data->light_cache;
 
-  if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) &&
-      (light_cache->flag & LIGHTCACHE_BAKED) == 0) {
+  if ((light_cache->flag & LIGHTCACHE_UPDATE_WORLD) && (light_cache->flag & LIGHTCACHE_BAKED) == 0)
+  {
     EEVEE_lightbake_update_world_quick(sldata, vedata, scene_eval);
   }
 }

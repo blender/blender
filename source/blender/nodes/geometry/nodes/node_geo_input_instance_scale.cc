@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -10,16 +12,15 @@ namespace blender::nodes::node_geo_input_instance_scale_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Scale")).field_source();
+  b.add_output<decl::Vector>("Scale").field_source();
 }
 
 class InstanceScaleFieldInput final : public bke::InstancesFieldInput {
  public:
-  InstanceScaleFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Scale")
-  {
-  }
+  InstanceScaleFieldInput() : bke::InstancesFieldInput(CPPType::get<float3>(), "Scale") {}
 
-  GVArray get_varray_for_context(const bke::Instances &instances, IndexMask /*mask*/) const final
+  GVArray get_varray_for_context(const bke::Instances &instances,
+                                 const IndexMask & /*mask*/) const final
   {
     auto scale_fn = [&](const int i) -> float3 {
       return math::to_scale(instances.transforms()[i]);

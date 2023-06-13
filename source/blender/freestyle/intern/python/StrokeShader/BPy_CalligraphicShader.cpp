@@ -62,7 +62,8 @@ static int CalligraphicShader___init__(BPy_CalligraphicShader *self,
   PyObject *obj4 = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwds, "ddO&O!", (char **)kwlist, &d1, &d2, convert_v2, f3, &PyBool_Type, &obj4)) {
+          args, kwds, "ddO&O!", (char **)kwlist, &d1, &d2, convert_v2, f3, &PyBool_Type, &obj4))
+  {
     return -1;
   }
   Vec2f v(f3[0], f3[1]);

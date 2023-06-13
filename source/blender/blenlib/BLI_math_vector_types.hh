@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -78,6 +79,9 @@ template<typename T> uint64_t vector_hash(const T &vec)
 }  // namespace math
 
 template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> {
+
+  BLI_STATIC_ASSERT(alignof(T) <= sizeof(T),
+                    "VecBase is not compatible with aligned type for now.");
 
   static constexpr int type_length = Size;
 
@@ -176,14 +180,34 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
 
   /** Swizzling. */
 
-  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> xy() const
+  template<BLI_ENABLE_IF_VEC(Size, >= 2)> VecBase<T, 2> xy() const
   {
     return *reinterpret_cast<const VecBase<T, 2> *>(this);
   }
 
-  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> xyz() const
+  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 2> yz() const
+  {
+    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[1]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 2> zw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 2> *>(&((*this)[2]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 3)> VecBase<T, 3> xyz() const
   {
     return *reinterpret_cast<const VecBase<T, 3> *>(this);
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 3> yzw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 3> *>(&((*this)[1]));
+  }
+
+  template<BLI_ENABLE_IF_VEC(Size, >= 4)> VecBase<T, 4> xyzw() const
+  {
+    return *reinterpret_cast<const VecBase<T, 4> *>(this);
   }
 
 #undef BLI_ENABLE_IF_VEC
@@ -200,9 +224,7 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     unroll<Size>([&](auto i) { (*this)[i] = ptr[i]; });
   }
 
-  VecBase(const T (*ptr)[Size]) : VecBase(static_cast<const T *>(ptr[0]))
-  {
-  }
+  VecBase(const T (*ptr)[Size]) : VecBase(static_cast<const T *>(ptr[0])) {}
 
   /** Conversion from other vector types. */
 
@@ -622,7 +644,9 @@ template<typename T> struct AssertUnitEpsilon {
 
 }  // namespace math
 
+using char2 = blender::VecBase<int8_t, 2>;
 using char3 = blender::VecBase<int8_t, 3>;
+using char4 = blender::VecBase<int8_t, 4>;
 
 using uchar3 = blender::VecBase<uint8_t, 3>;
 using uchar4 = blender::VecBase<uint8_t, 4>;
@@ -637,6 +661,7 @@ using uint4 = VecBase<uint32_t, 4>;
 
 using short2 = blender::VecBase<int16_t, 2>;
 using short3 = blender::VecBase<int16_t, 3>;
+using short4 = blender::VecBase<int16_t, 4>;
 
 using ushort2 = VecBase<uint16_t, 2>;
 using ushort3 = blender::VecBase<uint16_t, 3>;

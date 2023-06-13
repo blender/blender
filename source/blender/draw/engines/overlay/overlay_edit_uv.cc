@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -80,7 +81,7 @@ static GPUTexture *edit_uv_mask_texture(
 
   /* Free memory. */
   BKE_maskrasterize_handle_free(handle);
-  GPUTexture *texture = GPU_texture_create_2d_ex(
+  GPUTexture *texture = GPU_texture_create_2d(
       mask->id.name, width, height, 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, buffer);
   MEM_freeN(buffer);
   return texture;
@@ -158,7 +159,7 @@ void OVERLAY_edit_uv_init(OVERLAY_Data *vedata)
   pd->edit_uv.uv_opacity = sima->uv_opacity;
   pd->edit_uv.do_tiled_image_overlay = show_overlays && is_image_type && is_tiled_image;
   pd->edit_uv.do_tiled_image_border_overlay = is_image_type && is_tiled_image;
-  pd->edit_uv.dash_length = 4.0f * UI_DPI_FAC;
+  pd->edit_uv.dash_length = 4.0f * UI_SCALE_FAC;
   pd->edit_uv.line_style = edit_uv_line_style_from_space_image(sima);
   pd->edit_uv.do_smooth_wire = ((U.gpu_flag & USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE) != 0);
   pd->edit_uv.do_stencil_overlay = show_overlays && do_stencil_overlay;
@@ -237,7 +238,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       GPUShader *sh = OVERLAY_shader_edit_uv_verts_get();
       pd->edit_uv_verts_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
 
-      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * U.dpi_fac;
+      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC;
 
       DRW_shgroup_uniform_block(pd->edit_uv_verts_grp, "globalsBlock", G_draw.block_ubo);
       DRW_shgroup_uniform_float_copy(
@@ -261,7 +262,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
 
     /* uv face dots */
     if (pd->edit_uv.do_face_dots) {
-      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * U.dpi_fac;
+      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
       GPUShader *sh = OVERLAY_shader_edit_uv_face_dots_get();
       pd->edit_uv_face_dots_grp = DRW_shgroup_create(sh, psl->edit_uv_verts_ps);
       DRW_shgroup_uniform_block(pd->edit_uv_face_dots_grp, "globalsBlock", G_draw.block_ubo);
@@ -324,7 +325,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
         obmat[3][0] = float((active_tile->tile_number - 1001) % 10);
         obmat[3][1] = float((active_tile->tile_number - 1001) / 10);
         grp = DRW_shgroup_create(sh, psl->edit_uv_tiled_image_borders_ps);
-        DRW_shgroup_uniform_vec4_copy(grp, "color", selected_color);
+        DRW_shgroup_uniform_vec4_copy(grp, "ucolor", selected_color);
         DRW_shgroup_call_obmat(grp, geom, obmat);
       }
     }
@@ -370,7 +371,7 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
       DRW_shgroup_uniform_bool_copy(grp, "imgPremultiplied", true);
       DRW_shgroup_uniform_bool_copy(grp, "imgAlphaBlend", true);
       const float4 color = {1.0f, 1.0f, 1.0f, brush->clone.alpha};
-      DRW_shgroup_uniform_vec4_copy(grp, "color", color);
+      DRW_shgroup_uniform_vec4_copy(grp, "ucolor", color);
 
       float size_image[2];
       BKE_image_get_size_fl(image, nullptr, size_image);
@@ -416,7 +417,8 @@ void OVERLAY_edit_uv_cache_init(OVERLAY_Data *vedata)
    * first one in the order that is used during uv editing. We can only trust that the first object
    * has the correct batches with the correct selection state. See #83187. */
   if ((pd->edit_uv.do_uv_overlay || pd->edit_uv.do_uv_shadow_overlay) &&
-      draw_ctx->obact->type == OB_MESH) {
+      draw_ctx->obact->type == OB_MESH)
+  {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(
         draw_ctx->scene, draw_ctx->view_layer, nullptr, &objects_len, draw_ctx->object_mode);

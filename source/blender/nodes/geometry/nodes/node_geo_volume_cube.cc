@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
@@ -15,41 +17,40 @@
 
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_volume.h"
 
 namespace blender::nodes::node_geo_volume_cube_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>(N_("Density"))
-      .description(N_("Volume density per voxel"))
+  b.add_input<decl::Float>("Density")
+      .description("Volume density per voxel")
       .supports_field()
       .default_value(1.0f);
-  b.add_input<decl::Float>(N_("Background"))
-      .description(N_("Value for voxels outside of the cube"));
+  b.add_input<decl::Float>("Background").description("Value for voxels outside of the cube");
 
-  b.add_input<decl::Vector>(N_("Min"))
-      .description(N_("Minimum boundary of volume"))
+  b.add_input<decl::Vector>("Min")
+      .description("Minimum boundary of volume")
       .default_value(float3(-1.0f));
-  b.add_input<decl::Vector>(N_("Max"))
-      .description(N_("Maximum boundary of volume"))
+  b.add_input<decl::Vector>("Max")
+      .description("Maximum boundary of volume")
       .default_value(float3(1.0f));
 
-  b.add_input<decl::Int>(N_("Resolution X"))
-      .description(N_("Number of voxels in the X axis"))
+  b.add_input<decl::Int>("Resolution X")
+      .description("Number of voxels in the X axis")
       .default_value(32)
       .min(2);
-  b.add_input<decl::Int>(N_("Resolution Y"))
-      .description(N_("Number of voxels in the Y axis"))
+  b.add_input<decl::Int>("Resolution Y")
+      .description("Number of voxels in the Y axis")
       .default_value(32)
       .min(2);
-  b.add_input<decl::Int>(N_("Resolution Z"))
-      .description(N_("Number of voxels in the Z axis"))
+  b.add_input<decl::Int>("Resolution Z")
+      .description("Number of voxels in the Z axis")
       .default_value(32)
       .min(2);
 
-  b.add_output<decl::Geometry>(N_("Volume"));
+  b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
 static float map(const float x,
@@ -79,7 +80,7 @@ class Grid3DFieldContext : public FieldContext {
   }
 
   GVArray get_varray_for_input(const FieldInput &field_input,
-                               const IndexMask /*mask*/,
+                               const IndexMask & /*mask*/,
                                ResourceScope & /*scope*/) const
   {
     const bke::AttributeFieldInput *attribute_field_input =
@@ -128,8 +129,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y ||
-      bounds_min.z == bounds_max.z) {
+  if (bounds_min.x == bounds_max.x || bounds_min.y == bounds_max.y || bounds_min.z == bounds_max.z)
+  {
     params.error_message_add(NodeWarningType::Error,
                              TIP_("Bounding box volume must be greater than 0"));
     params.set_default_remaining_outputs();

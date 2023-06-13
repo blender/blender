@@ -108,9 +108,10 @@ template<> struct device_type_traits<uint2> {
 };
 
 template<> struct device_type_traits<uint3> {
-  static const DataType data_type = TYPE_UINT;
-  static const size_t num_elements = 3;
-  static_assert(sizeof(uint3) == num_elements * datatype_size(data_type));
+  /* uint3 has different size depending on the device, can't use it for interchanging
+   * memory between CPU and GPU.
+   *
+   * Leave body empty to trigger a compile error if used. */
 };
 
 template<> struct device_type_traits<uint4> {
@@ -132,9 +133,10 @@ template<> struct device_type_traits<int2> {
 };
 
 template<> struct device_type_traits<int3> {
-  static const DataType data_type = TYPE_INT;
-  static const size_t num_elements = 4;
-  static_assert(sizeof(int3) == num_elements * datatype_size(data_type));
+  /* int3 has different size depending on the device, can't use it for interchanging
+   * memory between CPU and GPU.
+   *
+   * Leave body empty to trigger a compile error if used. */
 };
 
 template<> struct device_type_traits<int4> {
@@ -303,9 +305,7 @@ template<typename T> class device_only_memory : public device_memory {
     data_elements = max(device_type_traits<T>::num_elements, size_t(1));
   }
 
-  device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other))
-  {
-  }
+  device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other)) {}
 
   virtual ~device_only_memory()
   {

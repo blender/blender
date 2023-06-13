@@ -154,20 +154,14 @@ class IK_QSegment {
 
   // update the angles using the dTheta's computed using the jacobian matrix
   virtual bool UpdateAngle(const IK_QJacobian &, Vector3d &, bool *) = 0;
-  virtual void Lock(int, IK_QJacobian &, Vector3d &)
-  {
-  }
+  virtual void Lock(int, IK_QJacobian &, Vector3d &) {}
   virtual void UpdateAngleApply() = 0;
 
   // set joint limits
-  virtual void SetLimit(int, double, double)
-  {
-  }
+  virtual void SetLimit(int, double, double) {}
 
   // set joint weights (per axis)
-  virtual void SetWeight(int, double)
-  {
-  }
+  virtual void SetWeight(int, double) {}
 
   virtual void SetBasis(const Matrix3d &basis)
   {
@@ -251,9 +245,7 @@ class IK_QNullSegment : public IK_QSegment {
   {
     return false;
   }
-  void UpdateAngleApply()
-  {
-  }
+  void UpdateAngleApply() {}
 
   Vector3d Axis(int) const
   {

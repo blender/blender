@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -332,7 +334,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
         WM_main_add_notifier(NC_LINESTYLE, linestyle);
         break;
       }
-      /* ColorRamp for particle display is owned by the object (see #54422) */
+      /* Color Ramp for particle display is owned by the object (see #54422) */
       case ID_OB:
       case ID_PA: {
         ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
@@ -407,7 +409,7 @@ static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA
   const char *name = IMB_colormanagement_display_get_indexed_name(value);
 
   if (name) {
-    BLI_strncpy(display->display_device, name, sizeof(display->display_device));
+    STRNCPY(display->display_device, name);
   }
 }
 
@@ -469,7 +471,7 @@ static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int
   const char *name = IMB_colormanagement_view_get_indexed_name(value);
 
   if (name) {
-    BLI_strncpy(view->view_transform, name, sizeof(view->view_transform));
+    STRNCPY(view->view_transform, name);
   }
 }
 
@@ -502,7 +504,7 @@ static void rna_ColorManagedViewSettings_look_set(PointerRNA *ptr, int value)
   const char *name = IMB_colormanagement_look_get_indexed_name(value);
 
   if (name) {
-    BLI_strncpy(view->look, name, sizeof(view->look));
+    STRNCPY(view->look, name);
   }
 }
 
@@ -572,7 +574,7 @@ static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA 
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
 
   if (name && name[0]) {
-    BLI_strncpy(colorspace->name, name, sizeof(colorspace->name));
+    STRNCPY(colorspace->name, name);
   }
 }
 
@@ -705,7 +707,8 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
                                         float value)
 {
   if (&cumap->cm[0] != cuma && &cumap->cm[1] != cuma && &cumap->cm[2] != cuma &&
-      &cumap->cm[3] != cuma) {
+      &cumap->cm[3] != cuma)
+  {
     BKE_report(reports, RPT_ERROR, "CurveMapping does not own CurveMap");
     return 0.0f;
   }
@@ -979,7 +982,7 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
 
   /* TODO: make these functions generic in `texture.c`. */
   func = RNA_def_function(srna, "new", "rna_ColorRampElement_new");
-  RNA_def_function_ui_description(func, "Add element to ColorRamp");
+  RNA_def_function_ui_description(func, "Add element to Color Ramp");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_float(
       func, "position", 0.0f, 0.0f, 1.0f, "Position", "Position to add element", 0.0f, 1.0f);
@@ -989,7 +992,7 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_ColorRampElement_remove");
-  RNA_def_function_ui_description(func, "Delete element from ColorRamp");
+  RNA_def_function_ui_description(func, "Delete element from Color Ramp");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
@@ -1069,14 +1072,14 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 #  endif
 
   func = RNA_def_function(srna, "evaluate", "rna_ColorRamp_eval");
-  RNA_def_function_ui_description(func, "Evaluate ColorRamp");
+  RNA_def_function_ui_description(func, "Evaluate Color Ramp");
   parm = RNA_def_float(func,
                        "position",
                        1.0f,
                        0.0f,
                        1.0f,
                        "Position",
-                       "Evaluate ColorRamp at position",
+                       "Evaluate Color Ramp at position",
                        0.0f,
                        1.0f);
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -1134,7 +1137,7 @@ static void rna_def_scopes(BlenderRNA *brna)
       {SCOPES_WAVEFRM_RGB_PARADE, "PARADE", ICON_COLOR, "Parade", ""},
       {SCOPES_WAVEFRM_YCC_601, "YCBCR601", ICON_COLOR, "YCbCr (ITU 601)", ""},
       {SCOPES_WAVEFRM_YCC_709, "YCBCR709", ICON_COLOR, "YCbCr (ITU 709)", ""},
-      {SCOPES_WAVEFRM_YCC_JPEG, "YCBCRJPG", ICON_COLOR, "YCbCr (Jpeg)", ""},
+      {SCOPES_WAVEFRM_YCC_JPEG, "YCBCRJPG", ICON_COLOR, "YCbCr (JPEG)", ""},
       {SCOPES_WAVEFRM_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
       {0, NULL, 0, NULL, NULL},
   };

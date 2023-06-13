@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -351,7 +352,16 @@ void mat3_normalized_to_quat_fast(float q[4], const float mat[3][3])
   }
 
   BLI_assert(!(q[0] < 0.0f));
-  BLI_ASSERT_UNIT_QUAT(q);
+
+  /* Sometimes normalization is necessary due to round-off errors in the above
+   * calculations. The comparison here uses tighter tolerances than
+   * BLI_ASSERT_UNIT_QUAT(), so it's likely that even after a few more
+   * transformations the quaternion will still be considered unit-ish. */
+  const float q_len_squared = dot_qtqt(q, q);
+  const float threshold = 0.0002f /* BLI_ASSERT_UNIT_EPSILON */ * 3;
+  if (fabs(q_len_squared - 1.0f) >= threshold) {
+    normalize_qt(q);
+  }
 }
 
 static void mat3_normalized_to_quat_with_checks(float q[4], float mat[3][3])
@@ -1405,7 +1415,8 @@ void mat3_normalized_to_eul(float eul[3], const float mat[3][3])
 
   /* return best, which is just the one with lowest values it in */
   if (fabsf(eul1[0]) + fabsf(eul1[1]) + fabsf(eul1[2]) >
-      fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2])) {
+      fabsf(eul2[0]) + fabsf(eul2[1]) + fabsf(eul2[2]))
+  {
     copy_v3_v3(eul, eul2);
   }
   else {
@@ -1964,7 +1975,8 @@ void mat4_to_dquat(DualQuat *dq, const float basemat[4][4], const float mat[4][4
   copy_m3_m4(mat3, mat);
 
   if (!is_orthonormal_m3(mat3) || (determinant_m4(mat) < 0.0f) ||
-      len_squared_v3(dscale) > square_f(1e-4f)) {
+      len_squared_v3(dscale) > square_f(1e-4f))
+  {
     /* Extract R and S. */
     float tmp[4][4];
 
@@ -2361,7 +2373,8 @@ bool mat3_from_axis_conversion(
   }
 
   if ((_axis_signed(src_forward) == _axis_signed(src_up)) ||
-      (_axis_signed(dst_forward) == _axis_signed(dst_up))) {
+      (_axis_signed(dst_forward) == _axis_signed(dst_up)))
+  {
     /* we could assert here! */
     unit_m3(r_mat);
     return false;

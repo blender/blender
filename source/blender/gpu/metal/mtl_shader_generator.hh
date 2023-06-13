@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -105,6 +107,22 @@
  * }
  * \endcode
  *
+ * -- Metal buffer bindings structure --
+ *
+ * Metal shader contains several different binding types. All buffers are bound using the buffer(N)
+ * binding attribute tag. However, different ranges serve different purposes. The structure of the
+ * bindings always happen as follows:
+ *
+ * Vertex Buffers (N)                       <-- 0
+ * Index buffer
+ * Default Push constant block for uniforms <-- MTL_uniform_buffer_base_index
+ * Uniform buffers                          <-- MTL_uniform_buffer_base_index+1
+ * Storage buffers                          <-- MTL_storage_buffer_base_index
+ * Samplers/argument buffer table           <-- last buffer + 1
+ * Transform feedback buffer                <-- MTL_transform_feedback_buffer_index ~last_buffer+2
+ *
+ * Up to a maximum of 31 bindings.
+ *
  * -- SSBO-vertex-fetchmode --
  *
  * SSBO-vertex-fetchmode is a special option wherein vertex buffers are bound directly
@@ -200,13 +218,17 @@ struct MSLUniform {
   }
 };
 
-struct MSLUniformBlock {
+struct MSLBufferBlock {
   std::string type_name;
   std::string name;
   ShaderStage stage;
   bool is_array;
+  /* Resource index in buffer*/
+  uint slot;
+  uint location;
+  shader::Qualifier qualifiers;
 
-  bool operator==(const MSLUniformBlock &right) const
+  bool operator==(const MSLBufferBlock &right) const
   {
     return (type_name == right.type_name && name == right.name);
   }
@@ -220,11 +242,16 @@ enum MSLTextureSamplerAccess {
   TEXTURE_ACCESS_READWRITE,
 };
 
-struct MSLTextureSampler {
+struct MSLTextureResource {
   ShaderStage stage;
   shader::ImageType type;
   std::string name;
   MSLTextureSamplerAccess access;
+  /* Whether resource is a texture sampler or an image. */
+  bool is_texture_sampler;
+  /* Index in shader bind table `[[texture(N)]]`. */
+  uint slot;
+  /* Explicit bind index provided by ShaderCreateInfo. */
   uint location;
 
   eGPUTextureType get_texture_binding_type() const;
@@ -232,20 +259,7 @@ struct MSLTextureSampler {
 
   void resolve_binding_indices();
 
-  MSLTextureSampler(ShaderStage in_stage,
-                    shader::ImageType in_sampler_type,
-                    std::string in_sampler_name,
-                    MSLTextureSamplerAccess in_access,
-                    uint in_location)
-      : stage(in_stage),
-        type(in_sampler_type),
-        name(in_sampler_name),
-        access(in_access),
-        location(in_location)
-  {
-  }
-
-  bool operator==(const MSLTextureSampler &right) const
+  bool operator==(const MSLTextureResource &right) const
   {
     /* We do not compare stage as we want to avoid duplication of resources used across multiple
      * stages. */
@@ -369,9 +383,10 @@ class MSLGeneratorInterface {
  public:
   /** Shader stage input/output binding information.
    * Derived from shader source reflection or GPUShaderCreateInfo. */
-  blender::Vector<MSLUniformBlock> uniform_blocks;
+  blender::Vector<MSLBufferBlock> uniform_blocks;
+  blender::Vector<MSLBufferBlock> storage_blocks;
   blender::Vector<MSLUniform> uniforms;
-  blender::Vector<MSLTextureSampler> texture_samplers;
+  blender::Vector<MSLTextureResource> texture_samplers;
   blender::Vector<MSLVertexInputAttribute> vertex_input_attributes;
   blender::Vector<MSLVertexOutputAttribute> vertex_output_varyings;
   /* Should match vertex outputs, but defined separately as
@@ -385,7 +400,8 @@ class MSLGeneratorInterface {
   blender::Vector<char> clip_distances;
   /* Shared Memory Blocks. */
   blender::Vector<MSLSharedMemoryBlock> shared_memory_blocks;
-
+  /* Max bind IDs. */
+  int max_tex_bind_index = 0;
   /** GL Global usage. */
   /* Whether GL position is used, or an alternative vertex output should be the default. */
   bool uses_gl_Position;
@@ -414,9 +430,14 @@ class MSLGeneratorInterface {
   bool uses_gl_NumWorkGroups;
   bool uses_gl_LocalInvocationIndex;
   bool uses_gl_LocalInvocationID;
+  /* Early fragment tests. */
+  bool uses_early_fragment_test;
 
   /* Parameters. */
   shader::DepthWrite depth_write;
+
+  /* Bind index trackers. */
+  int max_buffer_slot = 0;
 
   /* Shader buffer bind indices for argument buffers per shader stage.
    * NOTE: Compute stage will re-use index 0. */
@@ -459,8 +480,10 @@ class MSLGeneratorInterface {
   /* Samplers. */
   bool use_argument_buffer_for_samplers() const;
   uint32_t num_samplers_for_stage(ShaderStage stage) const;
+  uint32_t max_sampler_index_for_stage(ShaderStage stage) const;
 
-  /* Returns the bind index, relative to MTL_uniform_buffer_base_index. */
+  /* Returns the bind index, relative to
+   * MTL_uniform_buffer_base_index+MTL_storage_buffer_base_index. */
   uint32_t get_sampler_argument_buffer_bind_index(ShaderStage stage);
 
   /* Code generation utility functions. */
@@ -476,7 +499,7 @@ class MSLGeneratorInterface {
   std::string generate_msl_fragment_entry_stub();
   std::string generate_msl_compute_entry_stub();
   std::string generate_msl_global_uniform_population(ShaderStage stage);
-  std::string generate_ubo_block_macro_chain(MSLUniformBlock block);
+  std::string generate_ubo_block_macro_chain(MSLBufferBlock block);
   std::string generate_msl_uniform_block_population(ShaderStage stage);
   std::string generate_msl_vertex_attribute_input_population();
   std::string generate_msl_vertex_output_population();
@@ -486,8 +509,12 @@ class MSLGeneratorInterface {
   std::string generate_msl_uniform_undefs(ShaderStage stage);
   std::string generate_ubo_block_undef_chain(ShaderStage stage);
   std::string generate_msl_texture_vars(ShaderStage shader_stage);
-  void generate_msl_textures_input_string(std::stringstream &out, ShaderStage stage);
-  void generate_msl_uniforms_input_string(std::stringstream &out, ShaderStage stage);
+  void generate_msl_textures_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
+  void generate_msl_uniforms_input_string(std::stringstream &out,
+                                          ShaderStage stage,
+                                          bool &is_first_parameter);
 
   /* Location is not always specified, so this will resolve outstanding locations. */
   void resolve_input_attribute_locations();
@@ -538,7 +565,9 @@ inline bool is_builtin_type(std::string type)
 {
   /* Add Types as needed. */
   /* TODO(Metal): Consider replacing this with a switch and `constexpr` hash and switch.
-   * Though most efficient and maintainable approach to be determined. */
+   * Though most efficient and maintainable approach to be determined.
+   * NOTE: Some duplicate types exit for Metal and GLSL representations, as generated type-names
+   * from #shader::ShaderCreateInfo may use GLSL signature. */
   static std::map<std::string, eMTLDataType> glsl_builtin_types = {
       {"float", MTL_DATATYPE_FLOAT},
       {"vec2", MTL_DATATYPE_FLOAT2},
@@ -548,10 +577,17 @@ inline bool is_builtin_type(std::string type)
       {"ivec2", MTL_DATATYPE_INT2},
       {"ivec3", MTL_DATATYPE_INT3},
       {"ivec4", MTL_DATATYPE_INT4},
+      {"int2", MTL_DATATYPE_INT2},
+      {"int3", MTL_DATATYPE_INT3},
+      {"int4", MTL_DATATYPE_INT4},
       {"uint32_t", MTL_DATATYPE_UINT},
       {"uvec2", MTL_DATATYPE_UINT2},
       {"uvec3", MTL_DATATYPE_UINT3},
       {"uvec4", MTL_DATATYPE_UINT4},
+      {"uint", MTL_DATATYPE_UINT},
+      {"uint2", MTL_DATATYPE_UINT2},
+      {"uint3", MTL_DATATYPE_UINT3},
+      {"uint4", MTL_DATATYPE_UINT4},
       {"mat3", MTL_DATATYPE_FLOAT3x3},
       {"mat4", MTL_DATATYPE_FLOAT4x4},
       {"bool", MTL_DATATYPE_INT},
@@ -779,7 +815,8 @@ inline char *next_word_in_range(char *begin, char *end)
   for (char *a = begin; a < end; a++) {
     char chr = *a;
     if ((chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') || (chr >= '0' && chr <= '9') ||
-        (chr == '_')) {
+        (chr == '_'))
+    {
       return a;
     }
   }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -25,7 +26,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -43,8 +44,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_ui_common.h"
-#include "MOD_util.h"
+#include "MOD_ui_common.hh"
+#include "MOD_util.hh"
 
 #include "RE_texture.h"
 
@@ -63,7 +64,7 @@ static void requiredDataMask(ModifierData *md, CustomData_MeshMasks *r_cddata_ma
 {
   DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 
-  /* ask for vertexgroups if we need them */
+  /* Ask for vertex-groups if we need them. */
   if (dmd->defgrp_name[0] != '\0') {
     r_cddata_masks->vmask |= CD_MASK_MDEFORMVERT;
   }
@@ -120,7 +121,8 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
   bool need_transform_relation = false;
 
   if (dmd->space == MOD_DISP_SPACE_GLOBAL &&
-      ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ)) {
+      ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ))
+  {
     need_transform_relation = true;
   }
 
@@ -155,7 +157,7 @@ struct DisplaceUserdata {
   float (*tex_co)[3];
   float (*vertexCos)[3];
   float local_mat[4][4];
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
   float (*vert_clnors)[3];
 };
 
@@ -175,8 +177,8 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float(*vertexCos)[3] = data->vertexCos;
   float(*vert_clnors)[3] = data->vert_clnors;
 
-  const float delta_fixed = 1.0f -
-                            dmd->midlevel; /* when no texture is used, we fallback to white */
+  /* When no texture is used, we fallback to white. */
+  const float delta_fixed = 1.0f - dmd->midlevel;
 
   TexResult texres;
   float strength = dmd->strength;
@@ -192,8 +194,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   }
 
   if (data->tex_target) {
-    BKE_texture_get_value_ex(
-        data->scene, data->tex_target, tex_co[iter], &texres, data->pool, false);
+    BKE_texture_get_value_ex(data->tex_target, tex_co[iter], &texres, data->pool, false);
     delta = texres.tin - dmd->midlevel;
   }
   else {
@@ -311,15 +312,19 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
           CustomData_get_layer_for_write(ldata, CD_NORMAL, mesh->totloop));
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(verts_num, sizeof(*vert_clnors), __func__));
-      BKE_mesh_normals_loop_to_vertex(
-          verts_num, BKE_mesh_loops(mesh), mesh->totloop, (const float(*)[3])clnors, vert_clnors);
+      BKE_mesh_normals_loop_to_vertex(verts_num,
+                                      mesh->corner_verts().data(),
+                                      mesh->totloop,
+                                      (const float(*)[3])clnors,
+                                      vert_clnors);
     }
     else {
       direction = MOD_DISP_DIR_NOR;
     }
   }
   else if (ELEM(direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
-           use_global_direction) {
+           use_global_direction)
+  {
     copy_m4_m4(local_mat, ob->object_to_world);
   }
 
@@ -336,7 +341,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   data.vertexCos = vertexCos;
   copy_m4_m4(data.local_mat, local_mat);
   if (direction == MOD_DISP_DIR_NOR) {
-    data.vert_normals = BKE_mesh_vertex_normals_ensure(mesh);
+    data.vert_normals = mesh->vert_normals();
   }
   data.vert_clnors = vert_clnors;
   if (tex_target != nullptr) {
@@ -367,7 +372,7 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, verts_num);
 
@@ -383,8 +388,7 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(
-      ctx->object, editData, mesh, nullptr, verts_num, false);
+  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
 
   /* TODO(@ideasman42): use edit-mode data only (remove this line). */
   if (mesh_src != nullptr) {
@@ -423,7 +427,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "texture_coords_object", 0, IFACE_("Object"), ICON_NONE);
     PointerRNA texture_coords_obj_ptr = RNA_pointer_get(ptr, "texture_coords_object");
     if (!RNA_pointer_is_null(&texture_coords_obj_ptr) &&
-        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE)) {
+        (RNA_enum_get(&texture_coords_obj_ptr, "type") == OB_ARMATURE))
+    {
       PointerRNA texture_coords_obj_data_ptr = RNA_pointer_get(&texture_coords_obj_ptr, "data");
       uiItemPointerR(col,
                      ptr,
@@ -446,7 +451,8 @@ static void panel_draw(const bContext *C, Panel *panel)
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,
            MOD_DISP_DIR_Z,
-           MOD_DISP_DIR_RGB_XYZ)) {
+           MOD_DISP_DIR_RGB_XYZ))
+  {
     uiItemR(col, ptr, "space", 0, nullptr, ICON_NONE);
   }
 

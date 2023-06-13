@@ -101,7 +101,8 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
           bez.h1 = bez.h2 = HD_AUTO;
 
           if (curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_BEZIER ||
-              curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP) {
+              curve->getInterpolationType() == COLLADAFW::AnimationCurve::INTERPOLATION_STEP)
+          {
             COLLADAFW::FloatOrDoubleArray &intan = curve->getInTangentValues();
             COLLADAFW::FloatOrDoubleArray &outtan = curve->getOutTangentValues();
 
@@ -226,7 +227,7 @@ void AnimationImporter::add_fcurves_to_object(Main *bmain,
           grp = MEM_cnew<bActionGroup>("bActionGroup");
 
           grp->flag = AGRP_SELECTED;
-          BLI_strncpy(grp->name, bone_name, sizeof(grp->name));
+          STRNCPY(grp->name, bone_name);
 
           BLI_addtail(&act->groups, grp);
           BLI_uniquename(&act->groups,
@@ -367,8 +368,8 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
     char grp_name_esc[sizeof(grp->name) * 2];
     BLI_str_escape(grp_name_esc, grp->name, sizeof(grp_name_esc));
 
-    BLI_snprintf(joint_path, sizeof(joint_path), "pose.bones[\"%s\"]", grp_name_esc);
-    BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_quaternion", joint_path);
+    SNPRINTF(joint_path, "pose.bones[\"%s\"]", grp_name_esc);
+    SNPRINTF(rna_path, "%s.rotation_quaternion", joint_path);
 
     FCurve *quatcu[4] = {
       create_fcurve(0, rna_path),
@@ -541,10 +542,10 @@ void AnimationImporter::Assign_transform_animations(
     case COLLADAFW::Transformation::SCALE: {
       bool loc = tm_type == COLLADAFW::Transformation::TRANSLATE;
       if (is_joint) {
-        BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, loc ? "location" : "scale");
+        SNPRINTF(rna_path, "%s.%s", joint_path, loc ? "location" : "scale");
       }
       else {
-        BLI_strncpy(rna_path, loc ? "location" : "scale", sizeof(rna_path));
+        STRNCPY(rna_path, loc ? "location" : "scale");
       }
 
       switch (binding->animationClass) {
@@ -572,10 +573,10 @@ void AnimationImporter::Assign_transform_animations(
 
     case COLLADAFW::Transformation::ROTATE: {
       if (is_joint) {
-        BLI_snprintf(rna_path, sizeof(rna_path), "%s.rotation_euler", joint_path);
+        SNPRINTF(rna_path, "%s.rotation_euler", joint_path);
       }
       else {
-        BLI_strncpy(rna_path, "rotation_euler", sizeof(rna_path));
+        STRNCPY(rna_path, "rotation_euler");
       }
       std::vector<FCurve *>::iterator iter;
       for (iter = curves->begin(); iter != curves->end(); iter++) {
@@ -635,7 +636,7 @@ void AnimationImporter::Assign_color_animations(const COLLADAFW::UniqueId &listi
                                                 const char *anim_type)
 {
   char rna_path[100];
-  BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+  STRNCPY(rna_path, anim_type);
 
   const COLLADAFW::AnimationList *animlist = animlist_map[listid];
   if (animlist == nullptr) {
@@ -702,7 +703,7 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
   for (uint j = 0; j < bindings.getCount(); j++) {
     animcurves = curve_map[bindings[j].animation];
 
-    BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+    STRNCPY(rna_path, anim_type);
     modify_fcurve(&animcurves, rna_path, 0);
     std::vector<FCurve *>::iterator iter;
     /* Add the curves of the current animation to the object */
@@ -715,7 +716,8 @@ void AnimationImporter::Assign_float_animations(const COLLADAFW::UniqueId &listi
          * Reason: old blender versions stored spot_size in radians (was a bug)
          */
         if (this->import_from_version.empty() ||
-            BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1) {
+            BLI_strcasecmp_natural(this->import_from_version.c_str(), "2.69.10") != -1)
+        {
           fcurve_deg_to_rad(fcu);
         }
       }
@@ -759,7 +761,7 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId &listid
   for (uint j = 0; j < bindings.getCount(); j++) {
     animcurves = curve_map[bindings[j].animation];
 
-    BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
+    STRNCPY(rna_path, anim_type);
 
     modify_fcurve(&animcurves, rna_path, 0);
     std::vector<FCurve *>::iterator iter;
@@ -838,10 +840,10 @@ void AnimationImporter::apply_matrix_curves(Object *ob,
     }
 
     if (is_joint) {
-      BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+      SNPRINTF(rna_path, "%s.%s", joint_path, tm_str);
     }
     else {
-      BLI_strncpy(rna_path, tm_str, sizeof(rna_path));
+      STRNCPY(rna_path, tm_str);
     }
     newcu[i] = create_fcurve(axis, rna_path);
     newcu[i]->totvert = frames.size();
@@ -1000,7 +1002,7 @@ void AnimationImporter::translate_Animations(
     ob = armature_importer->get_armature_for_joint(root);
   }
   else {
-    ob = object_map.find(uid) == object_map.end() ? NULL : object_map.find(uid)->second;
+    ob = object_map.find(uid) == object_map.end() ? nullptr : object_map.find(uid)->second;
   }
 
   if (!ob) {
@@ -1013,7 +1015,7 @@ void AnimationImporter::translate_Animations(
   Main *bmain = CTX_data_main(mContext);
 
   if ((animType->transform) != 0) {
-    /* const char *bone_name = is_joint ? bc_get_joint_name(node) : NULL; */ /* UNUSED */
+    // const char *bone_name = is_joint ? bc_get_joint_name(node) : nullptr; /* UNUSED */
     char joint_path[200];
 
     if (is_joint) {
@@ -1293,7 +1295,7 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob,
       axis = i - 7;
     }
 
-    BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+    SNPRINTF(rna_path, "%s.%s", joint_path, tm_str);
 
     newcu[i] = create_fcurve(axis, rna_path);
     newcu[i]->totvert = frames.size();
@@ -1655,10 +1657,10 @@ Object *AnimationImporter::translate_animation_OLD(
     }
 
     if (is_joint) {
-      BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
+      SNPRINTF(rna_path, "%s.%s", joint_path, tm_str);
     }
     else {
-      BLI_strncpy(rna_path, tm_str, sizeof(rna_path));
+      STRNCPY(rna_path, tm_str);
     }
     newcu[i] = create_fcurve(axis, rna_path);
 
@@ -1888,7 +1890,8 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
             COLLADAFW::Transformation::ROTATE,
             COLLADAFW::Transformation::SCALE,
             COLLADAFW::Transformation::TRANSLATE,
-            COLLADAFW::Transformation::MATRIX)) {
+            COLLADAFW::Transformation::MATRIX))
+  {
     fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
     return false;
   }
@@ -1921,16 +1924,16 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm,
 
       switch (type) {
         case COLLADAFW::Transformation::ROTATE:
-          BLI_snprintf(path, sizeof(path), "%s.rotate (binding %u)", node_id, index);
+          SNPRINTF(path, "%s.rotate (binding %u)", node_id, index);
           break;
         case COLLADAFW::Transformation::SCALE:
-          BLI_snprintf(path, sizeof(path), "%s.scale (binding %u)", node_id, index);
+          SNPRINTF(path, "%s.scale (binding %u)", node_id, index);
           break;
         case COLLADAFW::Transformation::TRANSLATE:
-          BLI_snprintf(path, sizeof(path), "%s.translate (binding %u)", node_id, index);
+          SNPRINTF(path, "%s.translate (binding %u)", node_id, index);
           break;
         case COLLADAFW::Transformation::MATRIX:
-          BLI_snprintf(path, sizeof(path), "%s.matrix (binding %u)", node_id, index);
+          SNPRINTF(path, "%s.matrix (binding %u)", node_id, index);
           break;
         default:
           break;
@@ -2170,7 +2173,7 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
     grp = MEM_cnew<bActionGroup>("bActionGroup");
 
     grp->flag = AGRP_SELECTED;
-    BLI_strncpy(grp->name, bone_name, sizeof(grp->name));
+    STRNCPY(grp->name, bone_name);
 
     BLI_addtail(&act->groups, grp);
     BLI_uniquename(&act->groups,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -9,7 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "extract_mesh.hh"
 
@@ -75,15 +76,15 @@ static void compute_area_ratio(const MeshRenderData *mr,
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
     const float2 *uv_data = (const float2 *)CustomData_get_layer(&mr->me->ldata, CD_PROP_FLOAT2);
-    const MPoly *mp = mr->mpoly;
-    for (int mp_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      float area = BKE_mesh_calc_poly_area(
-          mp, &mr->mloop[mp->loopstart], reinterpret_cast<const float(*)[3]>(mr->vert_positions));
-      float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[mp->loopstart]),
-                                  mp->totloop);
+    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+      const IndexRange poly = mr->polys[poly_index];
+      const float area = bke::mesh::poly_area_calc(mr->vert_positions,
+                                                   mr->corner_verts.slice(poly));
+      float uvarea = area_poly_v2(reinterpret_cast<const float(*)[2]>(&uv_data[poly.start()]),
+                                  poly.size());
       tot_area += area;
       tot_uv_area += uvarea;
-      r_area_ratio[mp_index] = area_ratio_get(area, uvarea);
+      r_area_ratio[poly_index] = area_ratio_get(area, uvarea);
     }
   }
 
@@ -115,10 +116,9 @@ static void extract_edituv_stretch_area_finish(const MeshRenderData *mr,
   }
   else {
     BLI_assert(mr->extract_type == MR_EXTRACT_MESH);
-    const MPoly *mp = mr->mpoly;
-    for (int mp_index = 0, l_index = 0; mp_index < mr->poly_len; mp_index++, mp++) {
-      for (int i = 0; i < mp->totloop; i++, l_index++) {
-        loop_stretch[l_index] = area_ratio[mp_index];
+    for (int poly_index = 0; poly_index < mr->poly_len; poly_index++) {
+      for (const int l_index : mr->polys[poly_index]) {
+        loop_stretch[l_index] = area_ratio[poly_index];
       }
     }
   }

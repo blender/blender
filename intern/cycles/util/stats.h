@@ -13,12 +13,8 @@ class Stats {
  public:
   enum static_init_t { static_init = 0 };
 
-  Stats() : mem_used(0), mem_peak(0)
-  {
-  }
-  explicit Stats(static_init_t)
-  {
-  }
+  Stats() : mem_used(0), mem_peak(0) {}
+  explicit Stats(static_init_t) {}
 
   void mem_alloc(size_t size)
   {

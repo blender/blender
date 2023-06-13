@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -21,11 +23,11 @@ namespace blender::geometry {
  */
 bke::CurvesGeometry mesh_to_curve_convert(
     const Mesh &mesh,
-    const IndexMask selection,
+    const IndexMask &selection,
     const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 bke::CurvesGeometry create_curve_from_vert_indices(
-    const Mesh &mesh,
+    const bke::AttributeAccessor &mesh_attributes,
     Span<int> vert_indices,
     Span<int> curve_offsets,
     IndexRange cyclic_curves,

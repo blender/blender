@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
+#include "BLI_math_rotation.h"
 #include "BLI_math_rotation.hh"
 
 TEST(math_matrix, interp_m4_m4m4_regular)
@@ -98,6 +101,40 @@ TEST(math_matrix, interp_m3_m3m3_singularity)
   interp_m3_m3m3(result, matrix_a, matrix_i, 0.5f);
   EXPECT_NEAR(0.0f, determinant_m3_array(result), 1e-5);
   EXPECT_M3_NEAR(result, expect, 1e-5);
+}
+
+TEST(math_matrix, mul_m3_series)
+{
+  float matrix[3][3] = {
+      {2.0f, 0.0f, 0.0f},
+      {0.0f, 3.0f, 0.0f},
+      {0.0f, 0.0f, 5.0f},
+  };
+  mul_m3_series(matrix, matrix, matrix, matrix);
+  float expect[3][3] = {
+      {8.0f, 0.0f, 0.0f},
+      {0.0f, 27.0f, 0.0f},
+      {0.0f, 0.0f, 125.0f},
+  };
+  EXPECT_M3_NEAR(matrix, expect, 1e-5);
+}
+
+TEST(math_matrix, mul_m4_series)
+{
+  float matrix[4][4] = {
+      {2.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 3.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 5.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 7.0f},
+  };
+  mul_m4_series(matrix, matrix, matrix, matrix);
+  float expect[4][4] = {
+      {8.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 27.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 125.0f, 0.0f},
+      {0.0f, 0.0f, 0.0f, 343.0f},
+  };
+  EXPECT_M4_NEAR(matrix, expect, 1e-5);
 }
 
 namespace blender::tests {
@@ -195,13 +232,21 @@ TEST(math_matrix, MatrixInit)
                               {-0.909297, -0.350175, -0.224845, 0},
                               {0, 0, 0, 1}));
   EulerXYZ euler(1, 2, 3);
-  Quaternion quat(euler);
-  AxisAngle axis_angle(euler);
+  Quaternion quat = to_quaternion(euler);
+  AxisAngle axis_angle = to_axis_angle(euler);
   m = from_rotation<float4x4>(euler);
   EXPECT_M3_NEAR(m, expect, 1e-5);
   m = from_rotation<float4x4>(quat);
   EXPECT_M3_NEAR(m, expect, 1e-5);
   m = from_rotation<float4x4>(axis_angle);
+  EXPECT_M3_NEAR(m, expect, 1e-5);
+
+  expect = transpose(float4x4({0.823964, -1.66748, -0.735261, 3.28334},
+                              {-0.117453, -0.853835, 1.80476, 5.44925},
+                              {-1.81859, -0.700351, -0.44969, -0.330972},
+                              {0, 0, 0, 1}));
+  DualQuaternion dual_quat(quat, Quaternion(0.5f, 0.5f, 0.5f, 1.5f), float4x4::diagonal(2.0f));
+  m = from_rotation<float4x4>(dual_quat);
   EXPECT_M3_NEAR(m, expect, 1e-5);
 
   m = from_scale<float4x4>(float4(1, 2, 3, 4));
@@ -283,6 +328,19 @@ TEST(math_matrix, MatrixCompareTest)
   EXPECT_FALSE(is_negative(m6));
 }
 
+TEST(math_matrix, MatrixToNearestEuler)
+{
+  EulerXYZ eul1 = EulerXYZ(225.08542, -1.12485, -121.23738);
+  Euler3 eul2 = Euler3(float3{4.06112, 100.561928, -18.9063}, EulerOrder::ZXY);
+
+  float3x3 mat = {{0.808309, -0.578051, -0.111775},
+                  {0.47251, 0.750174, -0.462572},
+                  {0.351241, 0.321087, 0.879507}};
+
+  EXPECT_V3_NEAR(float3(to_nearest_euler(mat, eul1)), float3(225.71, 0.112009, -120.001), 1e-3);
+  EXPECT_V3_NEAR(float3(to_nearest_euler(mat, eul2)), float3(5.95631, 100.911, -19.5061), 1e-3);
+}
+
 TEST(math_matrix, MatrixMethods)
 {
   float4x4 m = float4x4({0, 3, 0, 0}, {2, 0, 0, 0}, {0, 0, 2, 0}, {0, 1, 0, 1});
@@ -291,18 +349,19 @@ TEST(math_matrix, MatrixMethods)
   float3 expect_scale = float3(3, 2, 2);
   float3 expect_location = float3(0, 1, 0);
 
-  EXPECT_V3_NEAR(float3(to_euler(m)), float3(expect_eul), 0.0002f);
-  EXPECT_V4_NEAR(float4(to_quaternion(m)), float4(expect_qt), 0.0002f);
   EXPECT_EQ(to_scale(m), expect_scale);
 
-  float4 expect_sz = {3, 2, 2, M_SQRT2};
+  float4 expect_size = {3, 2, 2, M_SQRT2};
   float4 size;
   float4x4 m1 = normalize_and_get_size(m, size);
   EXPECT_TRUE(is_unit_scale(m1));
-  EXPECT_V4_NEAR(size, expect_sz, 0.0002f);
+  EXPECT_V4_NEAR(size, expect_size, 0.0002f);
 
   float4x4 m2 = normalize(m);
   EXPECT_TRUE(is_unit_scale(m2));
+
+  EXPECT_V3_NEAR(float3(to_euler(m1)), float3(expect_eul), 0.0002f);
+  EXPECT_V4_NEAR(float4(to_quaternion(m1)), float4(expect_qt), 0.0002f);
 
   EulerXYZ eul;
   Quaternion qt;
@@ -320,6 +379,17 @@ TEST(math_matrix, MatrixMethods)
   EXPECT_V3_NEAR(loc, expect_location, 0.00001f);
   EXPECT_V4_NEAR(float4(qt), float4(expect_qt), 0.0002f);
   EXPECT_V3_NEAR(float3(eul), float3(expect_eul), 0.0002f);
+}
+
+TEST(math_matrix, MatrixToQuaternionLegacy)
+{
+  float3x3 mat = {{0.808309, -0.578051, -0.111775},
+                  {0.47251, 0.750174, -0.462572},
+                  {0.351241, 0.321087, 0.879507}};
+
+  EXPECT_V4_NEAR(float4(to_quaternion_legacy(mat)),
+                 float4(0.927091f, -0.211322f, 0.124857f, -0.283295f),
+                 1e-5f);
 }
 
 TEST(math_matrix, MatrixTranspose)

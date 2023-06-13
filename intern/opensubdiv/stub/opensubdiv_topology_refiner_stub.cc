@@ -1,4 +1,4 @@
-// Copyright 2018 Blender Foundation. All rights reserved.
+// Copyright 2018 Blender Foundation
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -26,9 +26,7 @@ OpenSubdiv_TopologyRefiner *openSubdiv_createTopologyRefinerFromConverter(
   return NULL;
 }
 
-void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner * /*topology_refiner*/)
-{
-}
+void openSubdiv_deleteTopologyRefiner(OpenSubdiv_TopologyRefiner * /*topology_refiner*/) {}
 
 bool openSubdiv_topologyRefinerCompareWithConverter(
     const OpenSubdiv_TopologyRefiner * /*topology_refiner*/,

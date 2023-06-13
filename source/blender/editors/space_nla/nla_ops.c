@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnla
@@ -140,7 +141,7 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_fmodifier_paste);
 }
 
-void ED_operatormacros_nla()
+void ED_operatormacros_nla(void)
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

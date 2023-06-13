@@ -22,9 +22,7 @@ class HdCyclesMaterial final : public PXR_NS::HdMaterial {
             PXR_NS::HdDirtyBits *dirtyBits) override;
 
 #if PXR_VERSION < 2011
-  void Reload() override
-  {
-  }
+  void Reload() override {}
 #endif
 
   void Finalize(PXR_NS::HdRenderParam *renderParam) override;

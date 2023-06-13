@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -53,7 +54,7 @@ static void cmp_node_switch_view_update(bNodeTree *ntree, bNode *node)
   }
 
   if (scene == nullptr) {
-    nodeRemoveAllSockets(ntree, node);
+    blender::bke::nodeRemoveAllSockets(ntree, node);
     /* make sure there is always one socket */
     cmp_node_switch_view_sanitycheck(ntree, node);
     return;
@@ -170,7 +171,7 @@ void register_node_type_cmp_switch_view()
   static bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
-  node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
+  blender::bke::node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_switch_view_out);
   ntype.draw_buttons_ex = file_ns::node_composit_buts_switch_view_ex;
   ntype.initfunc_api = file_ns::init_switch_view;
   ntype.updatefunc = file_ns::cmp_node_switch_view_update;

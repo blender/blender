@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
@@ -8,10 +10,8 @@
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_object.h"
-
-#include "BLT_translation.h"
 
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
@@ -21,6 +21,8 @@
 #include "RNA_prototypes.h"
 
 #include "UI_resources.h"
+
+#include "BLT_translation.h"
 
 #include "node_common.h"
 
@@ -81,7 +83,8 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
   /* Geometry, string, object, material, texture and collection sockets can only be connected to
    * themselves. The other types can be converted between each other. */
   if (ELEM(type_a, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT) &&
-      ELEM(type_b, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT)) {
+      ELEM(type_b, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT))
+  {
     return true;
   }
   return type_a == type_b;
@@ -90,19 +93,19 @@ static bool geometry_node_tree_validate_link(eNodeSocketDatatype type_a,
 static bool geometry_node_tree_socket_type_valid(bNodeTreeType * /*treetype*/,
                                                  bNodeSocketType *socket_type)
 {
-  return nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
-                                                     SOCK_FLOAT,
-                                                     SOCK_VECTOR,
-                                                     SOCK_RGBA,
-                                                     SOCK_BOOLEAN,
-                                                     SOCK_INT,
-                                                     SOCK_STRING,
-                                                     SOCK_OBJECT,
-                                                     SOCK_GEOMETRY,
-                                                     SOCK_COLLECTION,
-                                                     SOCK_TEXTURE,
-                                                     SOCK_IMAGE,
-                                                     SOCK_MATERIAL);
+  return blender::bke::nodeIsStaticSocketType(socket_type) && ELEM(socket_type->type,
+                                                                   SOCK_FLOAT,
+                                                                   SOCK_VECTOR,
+                                                                   SOCK_RGBA,
+                                                                   SOCK_BOOLEAN,
+                                                                   SOCK_INT,
+                                                                   SOCK_STRING,
+                                                                   SOCK_OBJECT,
+                                                                   SOCK_GEOMETRY,
+                                                                   SOCK_COLLECTION,
+                                                                   SOCK_TEXTURE,
+                                                                   SOCK_IMAGE,
+                                                                   SOCK_MATERIAL);
 }
 
 void register_node_tree_type_geo()

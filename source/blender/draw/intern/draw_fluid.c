@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -85,7 +86,7 @@ static void create_flame_spectrum_texture(float *data)
 #  undef FULL_ON_FIRE
 }
 
-static void create_color_ramp(const struct ColorBand *coba, float *data)
+static void create_color_ramp(const ColorBand *coba, float *data)
 {
   for (int i = 0; i < TFUNC_WIDTH; i++) {
     BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
@@ -93,7 +94,7 @@ static void create_color_ramp(const struct ColorBand *coba, float *data)
   }
 }
 
-static GPUTexture *create_transfer_function(int type, const struct ColorBand *coba)
+static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
 {
   float *data = (float *)MEM_mallocN(sizeof(float[4]) * TFUNC_WIDTH, __func__);
 
@@ -106,7 +107,7 @@ static GPUTexture *create_transfer_function(int type, const struct ColorBand *co
       break;
   }
 
-  GPUTexture *tex = GPU_texture_create_1d_ex(
+  GPUTexture *tex = GPU_texture_create_1d(
       "transf_func", TFUNC_WIDTH, 1, GPU_SRGB8_A8, GPU_TEXTURE_USAGE_SHADER_READ, data);
 
   MEM_freeN(data);
@@ -179,14 +180,12 @@ static GPUTexture *create_volume_texture(const int dim[3],
   }
 
   while (1) {
-    tex = GPU_texture_create_3d_ex("volume",
-                                   UNPACK3(final_dim),
-                                   1,
-                                   texture_format,
-                                   data_format,
-                                   GPU_TEXTURE_USAGE_SHADER_READ |
-                                       GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
-                                   NULL);
+    tex = GPU_texture_create_3d("volume",
+                                UNPACK3(final_dim),
+                                1,
+                                texture_format,
+                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW,
+                                NULL);
 
     if (tex != NULL) {
       break;
@@ -449,7 +448,8 @@ void DRW_smoke_ensure_coba_field(FluidModifierData *fmd)
                                 FLUID_DOMAIN_FIELD_PHI_OUT,
                                 FLUID_DOMAIN_FIELD_PHI_OBSTACLE,
                                 FLUID_DOMAIN_FIELD_FLAGS,
-                                FLUID_DOMAIN_FIELD_PRESSURE)) {
+                                FLUID_DOMAIN_FIELD_PRESSURE))
+    {
       fds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, fds->coba);
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_coba));
     }
@@ -509,27 +509,12 @@ void DRW_smoke_ensure_velocity(FluidModifierData *fmd)
     }
 
     if (!fds->tex_velocity_x) {
-      fds->tex_velocity_x = GPU_texture_create_3d_ex("velx",
-                                                     UNPACK3(fds->res),
-                                                     1,
-                                                     GPU_R16F,
-                                                     GPU_DATA_FLOAT,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ,
-                                                     vel_x);
-      fds->tex_velocity_y = GPU_texture_create_3d_ex("vely",
-                                                     UNPACK3(fds->res),
-                                                     1,
-                                                     GPU_R16F,
-                                                     GPU_DATA_FLOAT,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ,
-                                                     vel_y);
-      fds->tex_velocity_z = GPU_texture_create_3d_ex("velz",
-                                                     UNPACK3(fds->res),
-                                                     1,
-                                                     GPU_R16F,
-                                                     GPU_DATA_FLOAT,
-                                                     GPU_TEXTURE_USAGE_SHADER_READ,
-                                                     vel_z);
+      fds->tex_velocity_x = GPU_texture_create_3d(
+          "velx", UNPACK3(fds->res), 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, vel_x);
+      fds->tex_velocity_y = GPU_texture_create_3d(
+          "vely", UNPACK3(fds->res), 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, vel_y);
+      fds->tex_velocity_z = GPU_texture_create_3d(
+          "velz", UNPACK3(fds->res), 1, GPU_R16F, GPU_TEXTURE_USAGE_SHADER_READ, vel_z);
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_x));
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_y));
       BLI_addtail(&DST.vmempool->smoke_textures, BLI_genericNodeN(&fds->tex_velocity_z));

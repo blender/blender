@@ -41,16 +41,26 @@ endif()
 # HIP
 ###########################################################################
 
-if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
-  set(WITH_CYCLES_HIP_BINARIES OFF)
-  message(STATUS "HIP temporarily disabled due to compiler bugs")
+if(WITH_CYCLES_DEVICE_HIP)
+  if(WITH_CYCLES_HIP_BINARIES)
+    # Need at least HIP 5.5 to solve compiler bug affecting the kernel.
+    find_package(HIP 5.5.0)
+    set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
 
-  # find_package(HIP)
-  # set_and_warn_library_found("HIP compiler" HIP_FOUND WITH_CYCLES_HIP_BINARIES)
+    if(HIP_FOUND)
+      message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
+    endif()
+  endif()
 
-  # if(HIP_FOUND)
-  #   message(STATUS "Found HIP ${HIP_HIPCC_EXECUTABLE} (${HIP_VERSION})")
-  # endif()
+  # HIP RT
+  if(WITH_CYCLES_DEVICE_HIP AND WITH_CYCLES_DEVICE_HIPRT)
+    find_package(HIPRT)
+    set_and_warn_library_found("HIP RT" HIPRT_FOUND WITH_CYCLES_DEVICE_HIPRT)
+  endif()
+endif()
+
+if(NOT WITH_CYCLES_DEVICE_HIP)
+  set(WITH_CYCLES_DEVICE_HIPRT OFF)
 endif()
 
 if(NOT WITH_HIP_DYNLOAD)

@@ -57,6 +57,63 @@ void MTLContext::debug_group_end()
   }
 }
 
+bool MTLContext::debug_capture_begin()
+{
+  MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
+  if (!capture_manager) {
+    /* Early exit if frame capture is disabled. */
+    return false;
+  }
+  MTLCaptureDescriptor *capture_descriptor = [[MTLCaptureDescriptor alloc] init];
+  capture_descriptor.captureObject = this->device;
+  NSError *error;
+  if (![capture_manager startCaptureWithDescriptor:capture_descriptor error:&error]) {
+    NSLog(@"Failed to start Metal frame capture, error %@", error);
+    return false;
+  }
+  return true;
+}
+
+void MTLContext::debug_capture_end()
+{
+  MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
+  if (!capture_manager) {
+    /* Early exit if frame capture is disabled. */
+    return;
+  }
+  [capture_manager stopCapture];
+}
+
+void *MTLContext::debug_capture_scope_create(const char *name)
+{
+  /* Create a capture scope visible to xCode Metal Frame capture utility. */
+  MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
+  if (!capture_manager) {
+    /* Early exit if frame capture is disabled. */
+    return nullptr;
+  }
+  id<MTLCaptureScope> capture_scope = [capture_manager newCaptureScopeWithDevice:this->device];
+  capture_scope.label = [NSString stringWithUTF8String:name];
+  [capture_scope retain];
+
+  return reinterpret_cast<void *>(capture_scope);
+}
+
+bool MTLContext::debug_capture_scope_begin(void *scope)
+{
+  /* Declare opening boundary of scope.
+   * When scope is selected for capture, GPU commands between begin/end scope will be captured. */
+  [(id<MTLCaptureScope>)scope beginScope];
+
+  MTLCaptureManager *capture_manager = [MTLCaptureManager sharedCaptureManager];
+  return [capture_manager isCapturing];
+}
+
+void MTLContext::debug_capture_scope_end(void *scope)
+{
+  [(id<MTLCaptureScope>)scope endScope];
+}
+
 /** \} */
 
 }  // namespace blender::gpu

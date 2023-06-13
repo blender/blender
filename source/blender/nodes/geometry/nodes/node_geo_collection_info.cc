@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.h"
 
@@ -20,15 +22,15 @@ NODE_STORAGE_FUNCS(NodeGeometryCollectionInfo)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Collection>(N_("Collection")).hide_label();
-  b.add_input<decl::Bool>(N_("Separate Children"))
+  b.add_input<decl::Collection>("Collection").hide_label();
+  b.add_input<decl::Bool>("Separate Children")
       .description(
-          N_("Output each child of the collection as a separate instance, sorted alphabetically"));
-  b.add_input<decl::Bool>(N_("Reset Children"))
+          "Output each child of the collection as a separate instance, sorted alphabetically");
+  b.add_input<decl::Bool>("Reset Children")
       .description(
-          N_("Reset the transforms of every child instance in the output. Only used when Separate "
-             "Children is enabled"));
-  b.add_output<decl::Geometry>(N_("Instances"));
+          "Reset the transforms of every child instance in the output. Only used when Separate "
+          "Children is enabled");
+  b.add_output<decl::Geometry>("Instances");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -61,7 +63,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool is_recursive = BKE_collection_has_object_recursive_instanced(
       collection, const_cast<Object *>(self_object));
   if (is_recursive) {
-    params.error_message_add(NodeWarningType::Error, "Collection contains current object");
+    params.error_message_add(NodeWarningType::Error, TIP_("Collection contains current object"));
     params.set_default_remaining_outputs();
     return;
   }

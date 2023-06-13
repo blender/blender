@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -21,7 +23,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_ccg.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
@@ -89,19 +91,17 @@ static void pbvh_vertex_color_get(const PBVH &pbvh, PBVHVertRef vertex, float r_
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap[index];
-
     int count = 0;
     zero_v4(r_color);
-    for (const int i_poly : Span(melem.indices, melem.count)) {
-      const MPoly &mp = pbvh.mpoly[i_poly];
-      Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + mp.loopstart, mp.totloop};
-      Span<MLoop> loops{pbvh.mloop + mp.loopstart, mp.totloop};
+    for (const int i_poly : pbvh.pmap[index]) {
+      const IndexRange poly = pbvh.polys[i_poly];
+      Span<T> colors{static_cast<const T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
+      Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};
 
-      for (const int i_loop : IndexRange(mp.totloop)) {
-        if (loops[i_loop].v == index) {
+      for (const int i : IndexRange(poly.size())) {
+        if (poly_verts[i] == index) {
           float temp[4];
-          to_float(colors[i_loop], temp);
+          to_float(colors[i], temp);
 
           add_v4_v4(r_color, temp);
           count++;
@@ -124,16 +124,14 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
   int index = vertex.i;
 
   if (pbvh.color_domain == ATTR_DOMAIN_CORNER) {
-    const MeshElemMap &melem = pbvh.pmap[index];
+    for (const int i_poly : pbvh.pmap[index]) {
+      const IndexRange poly = pbvh.polys[i_poly];
+      MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + poly.start(), poly.size()};
+      Span<int> poly_verts{pbvh.corner_verts + poly.start(), poly.size()};
 
-    for (const int i_poly : Span(melem.indices, melem.count)) {
-      const MPoly &mp = pbvh.mpoly[i_poly];
-      MutableSpan<T> colors{static_cast<T *>(pbvh.color_layer->data) + mp.loopstart, mp.totloop};
-      Span<MLoop> loops{pbvh.mloop + mp.loopstart, mp.totloop};
-
-      for (const int i_loop : IndexRange(mp.totloop)) {
-        if (loops[i_loop].v == index) {
-          from_float(color, colors[i_loop]);
+      for (const int i : IndexRange(poly.size())) {
+        if (poly_verts[i] == index) {
+          from_float(color, colors[i]);
         }
       }
     }

@@ -7,11 +7,11 @@
 #ifndef __MEM_CACHELIMITERC_API_H__
 #define __MEM_CACHELIMITERC_API_H__
 
+#include "BLI_utildefines.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_utildefines.h"
 
 struct MEM_CacheLimiter_s;
 struct MEM_CacheLimiterHandle_s;
@@ -62,8 +62,8 @@ void delete_MEM_CacheLimiter(MEM_CacheLimiterC *This);
 /**
  * Manage object
  *
- * \param This: "This" pointer, data data object to manage.
- * \return CacheLimiterHandle to ref, unref, touch the managed object
+ * \param This: "This" pointer, data object to manage.
+ * \return The handle to reference/unreference & touch the managed object.
  */
 
 MEM_CacheLimiterHandleC *MEM_CacheLimiter_insert(MEM_CacheLimiterC *This, void *data);

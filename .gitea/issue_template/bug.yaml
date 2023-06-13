@@ -1,9 +1,9 @@
 name: Bug Report
 about: File a bug report
 labels:
-  - "type::Report"
-  - "status::Needs Triage"
-  - "priority::Normal"
+  - "Type/Report"
+  - "Status/Needs Triage"
+  - "Priority/Normal"
 body:
   - type: markdown
     attributes:
@@ -15,6 +15,7 @@ body:
                 * Test [daily builds](https://builder.blender.org/) to verify if the issue is already fixed.
                 * Test [previous versions](https://download.blender.org/release/) to find an older working version.
                 * For feature requests, feedback, questions or build issues, see [communication channels](https://wiki.blender.org/wiki/Communication/Contact#User_Feedback_and_Requests).
+                * Security vulnerabilities should be [reported privately](https://wiki.blender.org/wiki/Process/Vulnerability_Reports).
                 * If there are multiple bugs, make multiple bug reports.
 
   - type: textarea

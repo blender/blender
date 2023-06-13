@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -581,9 +583,7 @@ class FEdge : public Interface1D {
   }
 
   /** Destructor */
-  virtual ~FEdge()
-  {
-  }
+  virtual ~FEdge() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()
@@ -1171,9 +1171,7 @@ class FEdgeSharp : public FEdge {
   }
 
   /** Destructor. */
-  virtual ~FEdgeSharp()
-  {
-  }
+  virtual ~FEdgeSharp() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()
@@ -1326,9 +1324,7 @@ class FEdgeSmooth : public FEdge {
   }
 
   /** Destructor. */
-  virtual ~FEdgeSmooth()
-  {
-  }
+  virtual ~FEdgeSmooth() {}
 
   /** Cloning method. */
   virtual FEdge *duplicate()
@@ -1480,7 +1476,8 @@ class SShape {
       vector<FEdge *> newfedgelist;
       for (vector<FEdge *>::const_iterator fed = fedgeList.begin(), fedend = fedgeList.end();
            fed != fedend;
-           fed++) {
+           fed++)
+      {
         FEdge *current = *fed;
         newfedgelist.push_back((FEdge *)current->userdata);
       }
@@ -1607,7 +1604,8 @@ class SShape {
     real t, T;
     for (vector<Vec2r>::const_iterator p = iParameters.begin(), pend = iParameters.end();
          p != pend;
-         p++) {
+         p++)
+    {
       T = (*p)[0];
       t = (*p)[1];
 
@@ -1634,7 +1632,8 @@ class SShape {
 
     for (vector<SVertex *>::iterator sv = intersections.begin(), svend = intersections.end();
          sv != svend;
-         sv++) {
+         sv++)
+    {
       // SVertex *svA = fe->vertexA();
       SVertex *svB = fe->vertexB();
 
@@ -1818,8 +1817,8 @@ class SShape {
 
   inline void RemoveEdgeFromChain(FEdge *iEdge)
   {
-    for (vector<FEdge *>::iterator fe = _chains.begin(), feend = _chains.end(); fe != feend;
-         fe++) {
+    for (vector<FEdge *>::iterator fe = _chains.begin(), feend = _chains.end(); fe != feend; fe++)
+    {
       if (iEdge == (*fe)) {
         _chains.erase(fe);
         break;
@@ -1830,7 +1829,8 @@ class SShape {
   inline void RemoveEdge(FEdge *iEdge)
   {
     for (vector<FEdge *>::iterator fe = _edgesList.begin(), feend = _edgesList.end(); fe != feend;
-         fe++) {
+         fe++)
+    {
       if (iEdge == (*fe)) {
         _edgesList.erase(fe);
         break;

@@ -1,7 +1,7 @@
 name: Design
 about: Create a design task (for developers only)
 labels:
-  - "type::Design"
+  - "Type/Design"
 body:
   - type: textarea
     id: body

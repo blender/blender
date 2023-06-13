@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation. All rights reserved.
+# Copyright 2006 Blender Foundation
 
 set(INC
   .
@@ -14,62 +14,62 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/GHOST_Buttons.cpp
-  intern/GHOST_C-api.cpp
-  intern/GHOST_CallbackEventConsumer.cpp
-  intern/GHOST_Context.cpp
-  intern/GHOST_ContextNone.cpp
-  intern/GHOST_DisplayManager.cpp
-  intern/GHOST_EventManager.cpp
-  intern/GHOST_ISystem.cpp
-  intern/GHOST_ISystemPaths.cpp
-  intern/GHOST_ModifierKeys.cpp
-  intern/GHOST_Path-api.cpp
-  intern/GHOST_PathUtils.cpp
-  intern/GHOST_Rect.cpp
-  intern/GHOST_System.cpp
-  intern/GHOST_TimerManager.cpp
-  intern/GHOST_Window.cpp
-  intern/GHOST_WindowManager.cpp
+  intern/GHOST_Buttons.cc
+  intern/GHOST_C-api.cc
+  intern/GHOST_CallbackEventConsumer.cc
+  intern/GHOST_Context.cc
+  intern/GHOST_ContextNone.cc
+  intern/GHOST_DisplayManager.cc
+  intern/GHOST_EventManager.cc
+  intern/GHOST_ISystem.cc
+  intern/GHOST_ISystemPaths.cc
+  intern/GHOST_ModifierKeys.cc
+  intern/GHOST_Path-api.cc
+  intern/GHOST_PathUtils.cc
+  intern/GHOST_Rect.cc
+  intern/GHOST_System.cc
+  intern/GHOST_TimerManager.cc
+  intern/GHOST_Window.cc
+  intern/GHOST_WindowManager.cc
 
   GHOST_C-api.h
-  GHOST_IContext.h
-  GHOST_IEvent.h
-  GHOST_IEventConsumer.h
-  GHOST_ISystem.h
-  GHOST_ISystemPaths.h
-  GHOST_ITimerTask.h
-  GHOST_IWindow.h
-  GHOST_Path-api.h
-  GHOST_Rect.h
+  GHOST_IContext.hh
+  GHOST_IEvent.hh
+  GHOST_IEventConsumer.hh
+  GHOST_ISystem.hh
+  GHOST_ISystemPaths.hh
+  GHOST_ITimerTask.hh
+  GHOST_IWindow.hh
+  GHOST_Path-api.hh
+  GHOST_Rect.hh
   GHOST_Types.h
 
-  intern/GHOST_Buttons.h
-  intern/GHOST_CallbackEventConsumer.h
-  intern/GHOST_Context.h
-  intern/GHOST_ContextNone.h
-  intern/GHOST_Debug.h
-  intern/GHOST_DisplayManager.h
-  intern/GHOST_Event.h
-  intern/GHOST_EventButton.h
-  intern/GHOST_EventCursor.h
-  intern/GHOST_EventDragnDrop.h
-  intern/GHOST_EventKey.h
-  intern/GHOST_EventManager.h
-  intern/GHOST_EventString.h
-  intern/GHOST_EventTrackpad.h
-  intern/GHOST_EventWheel.h
-  intern/GHOST_ModifierKeys.h
-  intern/GHOST_PathUtils.h
-  intern/GHOST_System.h
-  intern/GHOST_SystemPaths.h
-  intern/GHOST_TimerManager.h
-  intern/GHOST_TimerTask.h
-  intern/GHOST_Util.h
-  intern/GHOST_Window.h
-  intern/GHOST_WindowManager.h
-  intern/GHOST_utildefines.h
-  intern/GHOST_utildefines_variadic.h
+  intern/GHOST_Buttons.hh
+  intern/GHOST_CallbackEventConsumer.hh
+  intern/GHOST_Context.hh
+  intern/GHOST_ContextNone.hh
+  intern/GHOST_Debug.hh
+  intern/GHOST_DisplayManager.hh
+  intern/GHOST_Event.hh
+  intern/GHOST_EventButton.hh
+  intern/GHOST_EventCursor.hh
+  intern/GHOST_EventDragnDrop.hh
+  intern/GHOST_EventKey.hh
+  intern/GHOST_EventManager.hh
+  intern/GHOST_EventString.hh
+  intern/GHOST_EventTrackpad.hh
+  intern/GHOST_EventWheel.hh
+  intern/GHOST_ModifierKeys.hh
+  intern/GHOST_PathUtils.hh
+  intern/GHOST_System.hh
+  intern/GHOST_SystemPaths.hh
+  intern/GHOST_TimerManager.hh
+  intern/GHOST_TimerTask.hh
+  intern/GHOST_Util.hh
+  intern/GHOST_Window.hh
+  intern/GHOST_WindowManager.hh
+  intern/GHOST_utildefines.hh
+  intern/GHOST_utildefines_variadic.hh
 )
 
 set(LIB
@@ -78,9 +78,9 @@ set(LIB
 
 if(WITH_VULKAN_BACKEND)
   list(APPEND SRC
-    intern/GHOST_ContextVK.cpp
+    intern/GHOST_ContextVK.cc
 
-    intern/GHOST_ContextVK.h
+    intern/GHOST_ContextVK.hh
   )
 
   list(APPEND INC_SYS
@@ -98,9 +98,9 @@ endif()
 
 if(WITH_GHOST_DEBUG)
   list(APPEND SRC
-    intern/GHOST_EventPrinter.cpp
+    intern/GHOST_EventPrinter.cc
 
-    intern/GHOST_EventPrinter.h
+    intern/GHOST_EventPrinter.hh
   )
   add_definitions(-DWITH_GHOST_DEBUG)
 endif()
@@ -109,10 +109,10 @@ if(WITH_INPUT_NDOF)
   add_definitions(-DWITH_INPUT_NDOF)
 
   list(APPEND SRC
-    intern/GHOST_NDOFManager.cpp
+    intern/GHOST_NDOFManager.cc
 
-    intern/GHOST_EventNDOF.h
-    intern/GHOST_NDOFManager.h
+    intern/GHOST_EventNDOF.hh
+    intern/GHOST_NDOFManager.hh
   )
 
   list(APPEND INC_SYS
@@ -124,24 +124,24 @@ if(WITH_INPUT_NDOF)
 endif()
 
 list(APPEND SRC
-  intern/GHOST_DisplayManagerNULL.h
-  intern/GHOST_SystemHeadless.h
-  intern/GHOST_WindowNULL.h
+  intern/GHOST_DisplayManagerNULL.hh
+  intern/GHOST_SystemHeadless.hh
+  intern/GHOST_WindowNULL.hh
 )
 
 if(WITH_HEADLESS)
   add_definitions(-DWITH_HEADLESS)
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC
-    intern/GHOST_ContextSDL.cpp
-    intern/GHOST_DisplayManagerSDL.cpp
-    intern/GHOST_SystemSDL.cpp
-    intern/GHOST_WindowSDL.cpp
+    intern/GHOST_ContextSDL.cc
+    intern/GHOST_DisplayManagerSDL.cc
+    intern/GHOST_SystemSDL.cc
+    intern/GHOST_WindowSDL.cc
 
-    intern/GHOST_ContextSDL.h
-    intern/GHOST_DisplayManagerSDL.h
-    intern/GHOST_SystemSDL.h
-    intern/GHOST_WindowSDL.h
+    intern/GHOST_ContextSDL.hh
+    intern/GHOST_DisplayManagerSDL.hh
+    intern/GHOST_SystemSDL.hh
+    intern/GHOST_WindowSDL.hh
   )
   add_definitions(-DWITH_GHOST_SDL)
 
@@ -167,23 +167,23 @@ elseif(APPLE AND NOT WITH_GHOST_X11)
     intern/GHOST_SystemCocoa.mm
     intern/GHOST_WindowCocoa.mm
 
-    intern/GHOST_DisplayManagerCocoa.h
-    intern/GHOST_SystemCocoa.h
-    intern/GHOST_WindowCocoa.h
-    intern/GHOST_WindowViewCocoa.h
+    intern/GHOST_DisplayManagerCocoa.hh
+    intern/GHOST_SystemCocoa.hh
+    intern/GHOST_WindowCocoa.hh
+    intern/GHOST_WindowViewCocoa.hh
   )
 
   list(APPEND SRC
     intern/GHOST_ContextCGL.mm
 
-    intern/GHOST_ContextCGL.h
+    intern/GHOST_ContextCGL.hh
   )
 
   if(WITH_INPUT_NDOF)
     list(APPEND SRC
       intern/GHOST_NDOFManagerCocoa.mm
 
-      intern/GHOST_NDOFManagerCocoa.h
+      intern/GHOST_NDOFManagerCocoa.hh
     )
   endif()
 
@@ -199,22 +199,22 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
 
     list(APPEND SRC
-      intern/GHOST_DisplayManagerX11.cpp
-      intern/GHOST_SystemX11.cpp
-      intern/GHOST_TaskbarX11.cpp
-      intern/GHOST_WindowX11.cpp
+      intern/GHOST_DisplayManagerX11.cc
+      intern/GHOST_SystemX11.cc
+      intern/GHOST_TaskbarX11.cc
+      intern/GHOST_WindowX11.cc
 
-      intern/GHOST_DisplayManagerX11.h
-      intern/GHOST_IconX11.h
-      intern/GHOST_SystemX11.h
-      intern/GHOST_TaskbarX11.h
-      intern/GHOST_WindowX11.h
+      intern/GHOST_DisplayManagerX11.hh
+      intern/GHOST_IconX11.hh
+      intern/GHOST_SystemX11.hh
+      intern/GHOST_TaskbarX11.hh
+      intern/GHOST_WindowX11.hh
     )
 
     list(APPEND SRC
-      intern/GHOST_ContextGLX.cpp
+      intern/GHOST_ContextGLX.cc
 
-      intern/GHOST_ContextGLX.h
+      intern/GHOST_ContextGLX.hh
     )
 
     if(WITH_GHOST_XDND)
@@ -229,9 +229,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       )
 
       list(APPEND SRC
-        intern/GHOST_DropTargetX11.cpp
+        intern/GHOST_DropTargetX11.cc
 
-        intern/GHOST_DropTargetX11.h
+        intern/GHOST_DropTargetX11.hh
       )
     endif()
 
@@ -336,13 +336,13 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     endif()
 
     list(APPEND SRC
-      intern/GHOST_SystemWayland.cpp
-      intern/GHOST_WindowWayland.cpp
+      intern/GHOST_SystemWayland.cc
+      intern/GHOST_WindowWayland.cc
 
-      intern/GHOST_SystemWayland.h
-      intern/GHOST_WaylandCursorSettings.h
-      intern/GHOST_WaylandUtils.h
-      intern/GHOST_WindowWayland.h
+      intern/GHOST_SystemWayland.hh
+      intern/GHOST_WaylandCursorSettings.hh
+      intern/GHOST_WaylandUtils.hh
+      intern/GHOST_WindowWayland.hh
     )
 
     set(INC_DST ${CMAKE_CURRENT_BINARY_DIR}/libwayland)
@@ -378,7 +378,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       unset(_name)
     endmacro()
 
-
     list(APPEND INC_SYS
       ${INC_DST}
     )
@@ -397,6 +396,18 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     # `xdg-output`.
     generate_protocol_bindings(
       "${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-output/xdg-output-unstable-v1.xml"
+    )
+    # `xdg-activation`.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/staging/xdg-activation/xdg-activation-v1.xml"
+    )
+    # Fractional scale.
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/staging/fractional-scale/fractional-scale-v1.xml"
+    )
+    # Viewport (only required when fractional scale is in use).
+    generate_protocol_bindings(
+      "${WAYLAND_PROTOCOLS_DIR}/stable/viewporter/viewporter.xml"
     )
     # Pointer-constraints.
     generate_protocol_bindings(
@@ -422,7 +433,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     unset(INC_DST)
 
     add_definitions(-DWITH_GHOST_WAYLAND)
-
     if(NOT WITH_GHOST_WAYLAND_APP_ID STREQUAL "")
       add_definitions(-DWITH_GHOST_WAYLAND_APP_ID=${WITH_GHOST_WAYLAND_APP_ID})
     endif()
@@ -431,9 +441,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
 
   if(WITH_INPUT_NDOF)
     list(APPEND SRC
-      intern/GHOST_NDOFManagerUnix.cpp
+      intern/GHOST_NDOFManagerUnix.cc
 
-      intern/GHOST_NDOFManagerUnix.h
+      intern/GHOST_NDOFManagerUnix.hh
     )
   endif()
 
@@ -453,67 +463,67 @@ elseif(WIN32)
   )
 
   list(APPEND SRC
-    intern/GHOST_ContextD3D.cpp
-    intern/GHOST_DisplayManagerWin32.cpp
-    intern/GHOST_DropTargetWin32.cpp
-    intern/GHOST_SystemWin32.cpp
-    intern/GHOST_TrackpadWin32.cpp
-    intern/GHOST_WindowWin32.cpp
-    intern/GHOST_Wintab.cpp
+    intern/GHOST_ContextD3D.cc
+    intern/GHOST_DisplayManagerWin32.cc
+    intern/GHOST_DropTargetWin32.cc
+    intern/GHOST_SystemWin32.cc
+    intern/GHOST_TrackpadWin32.cc
+    intern/GHOST_WindowWin32.cc
+    intern/GHOST_Wintab.cc
 
-    intern/GHOST_ContextD3D.h
-    intern/GHOST_DisplayManagerWin32.h
-    intern/GHOST_DropTargetWin32.h
-    intern/GHOST_SystemWin32.h
-    intern/GHOST_TaskbarWin32.h
-    intern/GHOST_TrackpadWin32.h
-    intern/GHOST_WindowWin32.h
-    intern/GHOST_Wintab.h
+    intern/GHOST_ContextD3D.hh
+    intern/GHOST_DisplayManagerWin32.hh
+    intern/GHOST_DropTargetWin32.hh
+    intern/GHOST_SystemWin32.hh
+    intern/GHOST_TaskbarWin32.hh
+    intern/GHOST_TrackpadWin32.hh
+    intern/GHOST_WindowWin32.hh
+    intern/GHOST_Wintab.hh
   )
 
   list(APPEND SRC
-    intern/GHOST_ContextWGL.cpp
+    intern/GHOST_ContextWGL.cc
 
-    intern/GHOST_ContextWGL.h
+    intern/GHOST_ContextWGL.hh
   )
 
   if(WITH_INPUT_IME)
     add_definitions(-DWITH_INPUT_IME)
 
     list(APPEND SRC
-      intern/GHOST_ImeWin32.cpp
+      intern/GHOST_ImeWin32.cc
 
-      intern/GHOST_ImeWin32.h
+      intern/GHOST_ImeWin32.hh
     )
   endif()
 
   if(WITH_INPUT_NDOF)
     list(APPEND SRC
-      intern/GHOST_NDOFManagerWin32.cpp
+      intern/GHOST_NDOFManagerWin32.cc
 
-      intern/GHOST_NDOFManagerWin32.h
+      intern/GHOST_NDOFManagerWin32.hh
     )
   endif()
 endif()
 
 if(UNIX AND NOT APPLE)
   list(APPEND SRC
-    intern/GHOST_ContextEGL.cpp
+    intern/GHOST_ContextEGL.cc
 
-    intern/GHOST_ContextEGL.h
+    intern/GHOST_ContextEGL.hh
   )
 endif()
 
 if(APPLE)
   list(APPEND SRC
-    intern/GHOST_SystemPathsCocoa.h
+    intern/GHOST_SystemPathsCocoa.hh
     intern/GHOST_SystemPathsCocoa.mm
   )
 
 elseif(UNIX)
   list(APPEND SRC
-    intern/GHOST_SystemPathsUnix.cpp
-    intern/GHOST_SystemPathsUnix.h
+    intern/GHOST_SystemPathsUnix.cc
+    intern/GHOST_SystemPathsUnix.hh
   )
 
   if(NOT WITH_INSTALL_PORTABLE)
@@ -522,8 +532,8 @@ elseif(UNIX)
 
 elseif(WIN32)
   list(APPEND SRC
-    intern/GHOST_SystemPathsWin32.cpp
-    intern/GHOST_SystemPathsWin32.h
+    intern/GHOST_SystemPathsWin32.cc
+    intern/GHOST_SystemPathsWin32.hh
   )
 
   list(APPEND INC
@@ -534,30 +544,30 @@ endif()
 
 if(WITH_XR_OPENXR)
   list(APPEND SRC
-    intern/GHOST_Xr.cpp
-    intern/GHOST_XrAction.cpp
-    intern/GHOST_XrContext.cpp
-    intern/GHOST_XrControllerModel.cpp
-    intern/GHOST_XrEvent.cpp
-    intern/GHOST_XrGraphicsBinding.cpp
-    intern/GHOST_XrSession.cpp
-    intern/GHOST_XrSwapchain.cpp
+    intern/GHOST_Xr.cc
+    intern/GHOST_XrAction.cc
+    intern/GHOST_XrContext.cc
+    intern/GHOST_XrControllerModel.cc
+    intern/GHOST_XrEvent.cc
+    intern/GHOST_XrGraphicsBinding.cc
+    intern/GHOST_XrSession.cc
+    intern/GHOST_XrSwapchain.cc
 
-    GHOST_IXrContext.h
-    intern/GHOST_IXrGraphicsBinding.h
-    intern/GHOST_XrAction.h
-    intern/GHOST_XrContext.h
-    intern/GHOST_XrControllerModel.h
-    intern/GHOST_XrException.h
-    intern/GHOST_XrSession.h
-    intern/GHOST_XrSwapchain.h
-    intern/GHOST_Xr_intern.h
-    intern/GHOST_Xr_openxr_includes.h
+    GHOST_IXrContext.hh
+    intern/GHOST_IXrGraphicsBinding.hh
+    intern/GHOST_XrAction.hh
+    intern/GHOST_XrContext.hh
+    intern/GHOST_XrControllerModel.hh
+    intern/GHOST_XrException.hh
+    intern/GHOST_XrSession.hh
+    intern/GHOST_XrSwapchain.hh
+    intern/GHOST_Xr_intern.hh
+    intern/GHOST_Xr_openxr_includes.hh
 
     # Header only library.
     ../../extern/tinygltf/tiny_gltf.h
   )
-  list(APPEND INC
+  list(APPEND INC_SYS
     ../../extern/json/include
     ../../extern/tinygltf
   )

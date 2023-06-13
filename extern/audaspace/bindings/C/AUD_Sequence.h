@@ -68,6 +68,16 @@ extern AUD_API void AUD_Sequence_remove(AUD_Sound* sequence, AUD_SequenceEntry* 
  * Writes animation data to a sequence.
  * \param sequence The sound scene.
  * \param type The type of animation data.
+ * \param frame_start Start of the frame range.
+ * \param frame_end End of the frame range.
+ * \param data The data to write.
+ */
+AUD_API void AUD_SequenceEntry_setConstantRangeAnimationData(AUD_SequenceEntry* entry, AUD_AnimateablePropertyType type, int frame_start, int frame_end, float* data);
+
+/**
+ * Writes animation data to a sequenced entry.
+ * \param entry The sequenced entry.
+ * \param type The type of animation data.
  * \param frame The frame this data is for.
  * \param data The data to write.
  * \param animated Whether the attribute is animated.

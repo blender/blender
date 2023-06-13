@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -181,10 +183,11 @@ static void bpy_pydriver_namespace_update_frame(const float evaltime)
   }
 }
 
-static void bpy_pydriver_namespace_update_self(struct PathResolvedRNA *anim_rna)
+static void bpy_pydriver_namespace_update_self(PathResolvedRNA *anim_rna)
 {
   if ((g_pydriver_state_prev.self == NULL) ||
-      (pyrna_driver_is_equal_anim_rna(anim_rna, g_pydriver_state_prev.self) == false)) {
+      (pyrna_driver_is_equal_anim_rna(anim_rna, g_pydriver_state_prev.self) == false))
+  {
     PyObject *item = pyrna_driver_self_from_anim_rna(anim_rna);
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_self, item);
     Py_DECREF(item);
@@ -204,7 +207,7 @@ static void bpy_pydriver_namespace_clear_self(void)
 
 static PyObject *bpy_pydriver_depsgraph_as_pyobject(struct Depsgraph *depsgraph)
 {
-  struct PointerRNA depsgraph_ptr;
+  PointerRNA depsgraph_ptr;
   RNA_pointer_create(NULL, &RNA_Depsgraph, depsgraph, &depsgraph_ptr);
   return pyrna_struct_CreatePyObject(&depsgraph_ptr);
 }
@@ -225,7 +228,8 @@ static void bpy_pydriver_namespace_update_depsgraph(struct Depsgraph *depsgraph)
   }
 
   if ((g_pydriver_state_prev.depsgraph == NULL) ||
-      (depsgraph != g_pydriver_state_prev.depsgraph->ptr.data)) {
+      (depsgraph != g_pydriver_state_prev.depsgraph->ptr.data))
+  {
     PyObject *item = bpy_pydriver_depsgraph_as_pyobject(depsgraph);
     PyDict_SetItem(bpy_pydriver_Dict, bpy_intern_str_depsgraph, item);
     Py_DECREF(item);
@@ -279,7 +283,7 @@ void BPY_driver_reset(void)
  *
  * \param anim_rna: Used to show the target when printing the error to give additional context.
  */
-static void pydriver_error(ChannelDriver *driver, const struct PathResolvedRNA *anim_rna)
+static void pydriver_error(ChannelDriver *driver, const PathResolvedRNA *anim_rna)
 {
   driver->flag |= DRIVER_FLAG_INVALID; /* Python expression failed. */
 
@@ -552,7 +556,7 @@ bool BPY_driver_secure_bytecode_test(PyObject *expr_code, PyObject *namespace, c
 }
 
 #endif /* USE_BYTECODE_WHITELIST */
-float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
+float BPY_driver_exec(PathResolvedRNA *anim_rna,
                       ChannelDriver *driver,
                       ChannelDriver *driver_orig,
                       const AnimationEvalContext *anim_eval_context)
@@ -596,7 +600,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
   if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC)) {
     if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
       G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-      BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
+      SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
 
       printf("skipping driver '%s', automatic scripts are disabled\n", expr);
     }
@@ -688,7 +692,8 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
     /* Support for any RNA data. */
 #ifdef USE_RNA_AS_PYOBJECT
     if (dvar->type == DVAR_TYPE_SINGLE_PROP) {
-      driver_arg = pyrna_driver_get_variable_value(driver, &dvar->targets[0]);
+      driver_arg = pyrna_driver_get_variable_value(
+          anim_eval_context, driver, dvar, &dvar->targets[0]);
 
       if (driver_arg == NULL) {
         driver_arg = PyFloat_FromDouble(0.0);
@@ -714,7 +719,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
 #endif
     {
       /* Try to get variable value. */
-      const float tval = driver_get_variable_value(driver, dvar);
+      const float tval = driver_get_variable_value(anim_eval_context, driver, dvar);
       driver_arg = PyFloat_FromDouble((double)tval);
     }
 
@@ -752,10 +757,11 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna,
               },
               /* Always be verbose since this can give hints to why evaluation fails. */
               true,
-              __func__)) {
+              __func__))
+      {
         if (!(G.f & G_FLAG_SCRIPT_AUTOEXEC_FAIL_QUIET)) {
           G.f |= G_FLAG_SCRIPT_AUTOEXEC_FAIL;
-          BLI_snprintf(G.autoexec_fail, sizeof(G.autoexec_fail), "Driver '%s'", expr);
+          SNPRINTF(G.autoexec_fail, "Driver '%s'", expr);
         }
 
         Py_DECREF(expr_code);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -24,7 +25,7 @@
 #include "BKE_camera.h"
 
 /* this module */
-#include "pipeline.h"
+#include "pipeline.hh"
 #include "render_types.h"
 
 /* ****************** MASKS and LUTS **************** */
@@ -148,7 +149,7 @@ float RE_filter_value(int type, float x)
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-struct Object *RE_GetCamera(Render *re)
+Object *RE_GetCamera(Render *re)
 {
   Object *camera = re->camera_override ? re->camera_override : re->scene->camera;
   return BKE_camera_multiview_render(re->scene, camera, re->viewname);
@@ -179,13 +180,13 @@ void RE_SetCamera(Render *re, const Object *cam_ob)
   re->viewplane = params.viewplane;
 }
 
-void RE_GetCameraWindow(struct Render *re, const struct Object *camera, float r_winmat[4][4])
+void RE_GetCameraWindow(Render *re, const Object *camera, float r_winmat[4][4])
 {
   RE_SetCamera(re, camera);
   copy_m4_m4(r_winmat, re->winmat);
 }
 
-void RE_GetCameraWindowWithOverscan(const struct Render *re, float overscan, float r_winmat[4][4])
+void RE_GetCameraWindowWithOverscan(const Render *re, float overscan, float r_winmat[4][4])
 {
   CameraParams params;
   params.is_ortho = re->winmat[3][3] != 0.0f;
@@ -203,7 +204,7 @@ void RE_GetCameraWindowWithOverscan(const struct Render *re, float overscan, flo
   copy_m4_m4(r_winmat, params.winmat);
 }
 
-void RE_GetCameraModelMatrix(const Render *re, const struct Object *camera, float r_modelmat[4][4])
+void RE_GetCameraModelMatrix(const Render *re, const Object *camera, float r_modelmat[4][4])
 {
   BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_modelmat);
 }

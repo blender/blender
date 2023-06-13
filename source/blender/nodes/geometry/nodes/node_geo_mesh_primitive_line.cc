@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -7,7 +9,7 @@
 #include "BLI_task.hh"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -22,26 +24,23 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshLine)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Count"))
-      .default_value(10)
-      .min(1)
-      .max(10000)
-      .description(N_("Number of vertices on the line"));
-  b.add_input<decl::Float>(N_("Resolution"))
+  b.add_input<decl::Int>("Count").default_value(10).min(1).max(10000).description(
+      "Number of vertices on the line");
+  b.add_input<decl::Float>("Resolution")
       .default_value(1.0f)
       .min(0.1f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Length of each individual edge"));
-  b.add_input<decl::Vector>(N_("Start Location"))
+      .description("Length of each individual edge");
+  b.add_input<decl::Vector>("Start Location")
       .subtype(PROP_TRANSLATION)
-      .description(N_("Position of the first vertex"));
-  b.add_input<decl::Vector>(N_("Offset"))
+      .description("Position of the first vertex");
+  b.add_input<decl::Vector>("Offset")
       .default_value({0.0f, 0.0f, 1.0f})
       .subtype(PROP_TRANSLATION)
-      .description(N_(
+      .description(
           "In offset mode, the distance between each socket on each axis. In end points mode, the "
-          "position of the final vertex"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
+          "position of the final vertex");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -80,14 +79,14 @@ static void node_update(bNodeTree *ntree, bNode *node)
                   (mode == GEO_NODE_MESH_LINE_MODE_END_POINTS) ? N_("End Location") :
                                                                  N_("Offset"));
 
-  nodeSetSocketAvailability(ntree,
-                            resolution_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
-  nodeSetSocketAvailability(ntree,
-                            count_socket,
-                            mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
-                                count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
+  bke::nodeSetSocketAvailability(ntree,
+                                 resolution_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_END_POINTS &&
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_RESOLUTION);
+  bke::nodeSetSocketAvailability(ntree,
+                                 count_socket,
+                                 mode == GEO_NODE_MESH_LINE_MODE_OFFSET ||
+                                     count_mode == GEO_NODE_MESH_LINE_COUNT_TOTAL);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -98,7 +97,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
   else if (params.node_tree().typeinfo->validate_link(
-               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT)) {
+               eNodeSocketDatatype(params.other_socket().type), SOCK_FLOAT))
+  {
     params.add_item(IFACE_("Count"), [](LinkSearchOpParams &params) {
       bNode &node = params.add_node("GeometryNodeMeshLine");
       node_storage(node).mode = GEO_NODE_MESH_LINE_MODE_OFFSET;
@@ -178,10 +178,10 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
     return nullptr;
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0, 0);
+  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0);
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
 
   threading::parallel_invoke(
       1024 < count,
@@ -195,8 +195,8 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
       [&]() {
         threading::parallel_for(edges.index_range(), 4096, [&](IndexRange range) {
           for (const int i : range) {
-            edges[i].v1 = i;
-            edges[i].v2 = i + 1;
+            edges[i][0] = i;
+            edges[i][1] = i + 1;
           }
         });
       });

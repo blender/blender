@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -114,13 +115,13 @@ static void remove_tagged_functions(void)
   }
 }
 
-void BLI_timer_execute()
+void BLI_timer_execute(void)
 {
   execute_functions_if_necessary();
   remove_tagged_functions();
 }
 
-void BLI_timer_free()
+void BLI_timer_free(void)
 {
   LISTBASE_FOREACH (TimedFunction *, timed_func, &GlobalTimer.funcs) {
     timed_func->tag_removal = true;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -59,11 +60,8 @@ static void square_to_circle(float x, float y, float *r, float *T)
 #define KERNEL_RAD (3)
 #define SAMP_LEN SQUARE_UNSAFE(KERNEL_RAD * 2 + 1)
 
-static void workbench_dof_setup_samples(struct GPUUniformBuf **ubo,
-                                        float **data,
-                                        float bokeh_sides,
-                                        float bokeh_rotation,
-                                        float bokeh_ratio)
+static void workbench_dof_setup_samples(
+    GPUUniformBuf **ubo, float **data, float bokeh_sides, float bokeh_rotation, float bokeh_ratio)
 {
   if (*data == NULL) {
     *data = MEM_callocN(sizeof(float[4]) * SAMP_LEN, "workbench dof samples");
@@ -130,7 +128,8 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
 
   Camera *cam = camera != NULL && camera->type == OB_CAMERA ? camera->data : NULL;
   if ((wpd->shading.flag & V3D_SHADING_DEPTH_OF_FIELD) == 0 || (cam == NULL) ||
-      ((cam->dof.flag & CAM_DOF_ENABLED) == 0)) {
+      ((cam->dof.flag & CAM_DOF_ENABLED) == 0))
+  {
     wpd->dof_enabled = false;
 
     /* Cleanup. */
@@ -226,7 +225,8 @@ void workbench_dof_engine_init(WORKBENCH_Data *vedata)
     float ratio = 1.0f / cam->dof.aperture_ratio;
 
     if (wpd->vldata->dof_sample_ubo == NULL || blades != wpd->dof_blades ||
-        rotation != wpd->dof_rotation || ratio != wpd->dof_ratio) {
+        rotation != wpd->dof_rotation || ratio != wpd->dof_ratio)
+    {
       wpd->dof_blades = blades;
       wpd->dof_rotation = rotation;
       wpd->dof_ratio = ratio;

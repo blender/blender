@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -60,7 +62,8 @@ class AtomicDisjointSet {
           /* Implement union by rank heuristic. */
           x_item.rank > y_item.rank
           /* If the rank is the same, make a consistent decision. */
-          || (x_item.rank == y_item.rank && x < y)) {
+          || (x_item.rank == y_item.rank && x < y))
+      {
         std::swap(x_item, y_item);
         std::swap(x, y);
       }

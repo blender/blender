@@ -23,9 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class array {
  public:
-  array() : data_(NULL), datasize_(0), capacity_(0)
-  {
-  }
+  array() : data_(NULL), datasize_(0), capacity_(0) {}
 
   explicit array(size_t newsize)
   {

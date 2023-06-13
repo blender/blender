@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -20,7 +22,7 @@
  * When adding new defaults for larger structs you may want to write-out the in-memory data.
  *
  * To create these defaults there is a GDB script which can be handy to get started:
- * `./source/tools/utils/gdb_struct_repr_c99.py`
+ * `./tools/utils/gdb_struct_repr_c99.py`
  *
  * Magic numbers should be replaced with flags before committing.
  *
@@ -132,6 +134,7 @@
 #include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
+#include "DNA_userdef_defaults.h"
 #include "DNA_volume_defaults.h"
 #include "DNA_world_defaults.h"
 
@@ -221,6 +224,9 @@ SDNA_DEFAULT_DECL_STRUCT(Speaker);
 
 /* DNA_texture_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Tex);
+
+/* DNA_userdef_types.h */
+SDNA_DEFAULT_DECL_STRUCT(bUserAssetLibrary);
 
 /* DNA_view3d_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(View3D);
@@ -323,7 +329,7 @@ SDNA_DEFAULT_DECL_STRUCT(EnvelopeGpencilModifierData);
 #undef SDNA_DEFAULT_DECL_STRUCT
 
 /* Reuse existing definitions. */
-extern const struct UserDef U_default;
+extern const UserDef U_default;
 #define DNA_DEFAULT_UserDef U_default
 
 extern const bTheme U_theme_default;
@@ -344,7 +350,8 @@ extern const bTheme U_theme_default;
 #define SDNA_DEFAULT_DECL_EX(struct_name, struct_path) \
   [SDNA_TYPE_FROM_STRUCT(struct_name)] = SDNA_TYPE_CHECKED(DNA_DEFAULT_##struct_path, struct_name)
 
-/** Keep headers sorted. */
+/* NOTE: Keep headers sorted. */
+
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_asset_defaults.h */
@@ -460,6 +467,7 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(UserDef_SpaceData, UserDef.space_data),
     SDNA_DEFAULT_DECL_EX(UserDef_FileSpaceData, UserDef.file_space_data),
     SDNA_DEFAULT_DECL_EX(WalkNavigation, UserDef.walk_navigation),
+    SDNA_DEFAULT_DECL(bUserAssetLibrary),
 
     /* DNA_view3d_defaults.h */
     SDNA_DEFAULT_DECL(View3D),

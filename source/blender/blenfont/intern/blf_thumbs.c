@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blf
@@ -246,9 +248,10 @@ static const char32_t *blf_get_sample_text(FT_Face face)
     return def;
   }
 
-  /* Detect "Last resort" fonts. They have everything, except the last 5 bits.  */
+  /* Detect "Last resort" fonts. They have everything, except the last 5 bits. */
   if (os2_table->ulUnicodeRange1 == 0xffffffffU && os2_table->ulUnicodeRange2 == 0xffffffffU &&
-      os2_table->ulUnicodeRange3 == 0xffffffffU && os2_table->ulUnicodeRange4 >= 0x7FFFFFFU) {
+      os2_table->ulUnicodeRange3 == 0xffffffffU && os2_table->ulUnicodeRange4 >= 0x7FFFFFFU)
+  {
     return U"\xE000\xFFFF";
   }
 
@@ -386,13 +389,14 @@ bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int UNUSE
   int glyph_count = 0; /* How many are successfully loaded and rendered. */
 
   for (int i = 0; i < BLF_SAMPLE_LEN && glyph_ids[i]; i++) {
-    if (FT_Load_Glyph(face, glyph_ids[i], FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING) !=
-        FT_Err_Ok) {
+    if (FT_Load_Glyph(face, glyph_ids[i], FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING) != FT_Err_Ok)
+    {
       break;
     }
 
     if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL) != FT_Err_Ok ||
-        face->glyph->format != FT_GLYPH_FORMAT_BITMAP) {
+        face->glyph->format != FT_GLYPH_FORMAT_BITMAP)
+    {
       break;
     }
 

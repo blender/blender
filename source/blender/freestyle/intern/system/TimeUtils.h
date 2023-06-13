@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -17,12 +19,8 @@ namespace Freestyle {
 
 class Chronometer {
  public:
-  inline Chronometer()
-  {
-  }
-  inline ~Chronometer()
-  {
-  }
+  inline Chronometer() {}
+  inline ~Chronometer() {}
 
   inline clock_t start()
   {

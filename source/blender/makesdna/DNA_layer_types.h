@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -44,6 +46,7 @@ typedef enum eViewLayerEEVEEPassType {
   EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET = (1 << 17),
   EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL = (1 << 18),
   EEVEE_RENDER_PASS_VECTOR = (1 << 19),
+  EEVEE_RENDER_PASS_TRANSPARENT = (1 << 20),
 } eViewLayerEEVEEPassType;
 #define EEVEE_RENDER_PASS_MAX_BIT 20
 

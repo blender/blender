@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -65,9 +67,7 @@ class TriangleRep : public Rep {
     _Style = FILL;
   }
 
-  virtual ~TriangleRep()
-  {
-  }
+  virtual ~TriangleRep() {}
 
   /** accessors */
   inline const TRIANGLE_STYLE style() const

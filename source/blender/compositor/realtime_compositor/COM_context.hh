@@ -1,10 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include "BLI_math_vector_types.hh"
 #include "BLI_string_ref.hh"
 
+#include "DNA_ID.h"
 #include "DNA_scene_types.h"
 #include "DNA_vec_types.h"
 
@@ -39,8 +42,22 @@ class Context {
  public:
   Context(TexturePool &texture_pool);
 
-  /* Get the active compositing scene. */
-  virtual const Scene *get_scene() const = 0;
+  /* Get the node tree used for compositing. */
+  virtual const bNodeTree &get_node_tree() const = 0;
+
+  /* True if the compositor should write file outputs, false otherwise. */
+  virtual bool use_file_output() const = 0;
+
+  /* True if the compositor should write the composite output, otherwise, the compositor is assumed
+   * to not support the composite output and just displays its viewer output. In that case, the
+   * composite output will be used as a fallback viewer if no other viewer exists */
+  virtual bool use_composite_output() const = 0;
+
+  /* True if color management should be used for texture evaluation. */
+  virtual bool use_texture_color_management() const = 0;
+
+  /* Get the render settings for compositing. */
+  virtual const RenderData &get_render_data() const = 0;
 
   /* Get the width and height of the render passes and of the output texture returned by the
    * get_input_texture and get_output_texture methods respectively. */
@@ -54,13 +71,17 @@ class Context {
    * region. */
   virtual rcti get_compositing_region() const = 0;
 
-  /* Get the texture representing the output where the result of the compositor should be
-   * written. This should be called by output nodes to get their target texture. */
+  /* Get the texture where the result of the compositor should be written. This should be called by
+   * the composite output node to get its target texture. */
   virtual GPUTexture *get_output_texture() = 0;
+
+  /* Get the texture where the result of the compositor viewer should be written. This should be
+   * called by viewer output nodes to get their target texture. */
+  virtual GPUTexture *get_viewer_output_texture() = 0;
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */
-  virtual GPUTexture *get_input_texture(int view_layer, eScenePassType pass_type) = 0;
+  virtual GPUTexture *get_input_texture(int view_layer, const char *pass_name) = 0;
 
   /* Get the name of the view currently being rendered. */
   virtual StringRef get_view_name() = 0;
@@ -70,8 +91,19 @@ class Context {
    * appropriate place, which can be directly in the UI or just logged to the output stream. */
   virtual void set_info_message(StringRef message) const = 0;
 
+  /* Returns the ID recalculate flag of the given ID and reset it to zero. The given ID is assumed
+   * to be one that has a DrawDataList and conforms to the IdDdtTemplate.
+   *
+   * The ID recalculate flag is a mechanism through which one can identify if an ID has changed
+   * since the last time the flag was reset, hence why the method reset the flag after querying it,
+   * that is, to ready it to track the next change. */
+  virtual IDRecalcFlag query_id_recalc_flag(ID *id) const = 0;
+
   /* Get the size of the compositing region. See get_compositing_region(). */
   int2 get_compositing_region_size() const;
+
+  /* Get the normalized render percentage of the active scene. */
+  float get_render_percentage() const;
 
   /* Get the current frame number of the active scene. */
   int get_frame_number() const;

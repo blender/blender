@@ -16,12 +16,26 @@ import shutil
 import sys
 
 import make_utils
+from pathlib import Path
 from make_utils import call, check_output
+from urllib.parse import urljoin
 
 from typing import (
     List,
+    Iterable,
     Optional,
 )
+
+
+class Submodule:
+    path: str
+    branch: str
+    branch_fallback: str
+
+    def __init__(self, path: str, branch: str, branch_fallback: str) -> None:
+        self.path = path
+        self.branch = branch
+        self.branch_fallback = branch_fallback
 
 
 def print_stage(text: str) -> None:
@@ -52,9 +66,11 @@ def get_blender_git_root() -> str:
 # Setup for precompiled libraries and tests from svn.
 
 
-def get_effective_architecture(args: argparse.Namespace):
-    if args.architecture:
-        return args.architecture
+def get_effective_architecture(args: argparse.Namespace) -> str:
+    architecture = args.architecture
+    if architecture:
+        assert isinstance(architecture, str)
+        return architecture
 
     # Check platform.version to detect arm64 with x86_64 python binary.
     if "ARM64" in platform.version():
@@ -196,71 +212,276 @@ def git_update_skip(args: argparse.Namespace, check_remote_exists: bool = True) 
     return ""
 
 
+def use_upstream_workflow(args: argparse.Namespace) -> bool:
+    return make_utils.git_remote_exist(args.git_command, "upstream")
+
+
+def work_tree_update_upstream_workflow(args: argparse.Namespace, use_fetch: bool = True) -> str:
+    """
+    Update the Blender repository using the Github style of fork organization
+
+    Returns true if the current local branch has been updated to the upstream state.
+    Otherwise false is returned.
+    """
+
+    branch_name = make_utils.git_branch(args.git_command)
+
+    if use_fetch:
+        call((args.git_command, "fetch", "upstream"))
+
+    upstream_branch = f"upstream/{branch_name}"
+    if not make_utils.git_branch_exists(args.git_command, upstream_branch):
+        return "no_branch"
+
+    retcode = call((args.git_command, "merge", "--ff-only", upstream_branch), exit_on_error=False)
+    if retcode != 0:
+        return "Unable to fast forward\n"
+
+    return ""
+
+
+def work_tree_update(args: argparse.Namespace, use_fetch: bool = True) -> str:
+    """
+    Update the Git working tree using the best strategy
+
+    This function detects whether it is a github style of fork remote organization is used, or
+    is it a repository which origin is an upstream.
+    """
+
+    if use_upstream_workflow(args):
+        message = work_tree_update_upstream_workflow(args, use_fetch)
+        if message != "no_branch":
+            return message
+
+        # If there is upstream configured but the local branch is not in the upstream, try to
+        # update the branch from the fork.
+
+    update_command = [args.git_command, "pull", "--rebase"]
+
+    call(update_command)
+
+    return ""
+
+
 # Update blender repository.
-def blender_update(args: argparse.Namespace) -> None:
+def blender_update(args: argparse.Namespace) -> str:
     print_stage("Updating Blender Git Repository")
-    call([args.git_command, "pull", "--rebase"])
+
+    return work_tree_update(args)
 
 
-# Update submodules.
-def submodules_update(
-        args: argparse.Namespace,
-        release_version: Optional[str],
-        branch: Optional[str],
-) -> str:
-    print_stage("Updating Submodules")
-    if make_utils.command_missing(args.git_command):
-        sys.stderr.write("git not found, can't update code\n")
-        sys.exit(1)
+def resolve_external_url(blender_url: str, repo_name: str) -> str:
+    return urljoin(blender_url + "/", "../" + repo_name)
 
-    # Update submodules to appropriate given branch,
-    # falling back to main if none is given and/or found in a sub-repository.
+
+def external_script_copy_old_submodule_over(args: argparse.Namespace, directory_name: str) -> None:
+    blender_git_root = Path(get_blender_git_root())
+    scripts_dir = blender_git_root / "scripts"
+    external_dir = scripts_dir / directory_name
+
+    old_submodule_relative_dir = Path("release") / "scripts" / directory_name
+    print(f"Moving {old_submodule_relative_dir} to scripts/{directory_name} ...")
+
+    old_submodule_dir = blender_git_root / old_submodule_relative_dir
+    shutil.move(old_submodule_dir, external_dir)
+
+    # Remove old ".git" which is a file with path to a submodule bare repo inside of main
+    # repo .git/modules directory.
+    (external_dir / ".git").unlink()
+
+    bare_repo_relative_dir = Path(".git") / "modules" / "release" / "scripts" / directory_name
+    print(f"Copying {bare_repo_relative_dir} to scripts/{directory_name}/.git ...")
+    bare_repo_dir = blender_git_root / bare_repo_relative_dir
+    shutil.copytree(bare_repo_dir, external_dir / ".git")
+
+    git_config = external_dir / ".git" / "config"
+    call((args.git_command, "config", "--file", str(git_config), "--unset", "core.worktree"))
+
+
+def external_script_initialize_if_needed(args: argparse.Namespace,
+                                         repo_name: str,
+                                         directory_name: str) -> None:
+    """Initialize checkout of an external repository scripts directory"""
+
+    blender_git_root = Path(get_blender_git_root())
+    blender_dot_git = blender_git_root / ".git"
+    scripts_dir = blender_git_root / "scripts"
+    external_dir = scripts_dir / directory_name
+
+    if external_dir.exists():
+        return
+
+    print(f"Initializing scripts/{directory_name} ...")
+
+    old_submodule_dot_git = blender_git_root / "release" / "scripts" / directory_name / ".git"
+    if old_submodule_dot_git.exists() and blender_dot_git.is_dir():
+        external_script_copy_old_submodule_over(args, directory_name)
+        return
+
+    origin_name = "upstream" if use_upstream_workflow(args) else "origin"
+    blender_url = make_utils.git_get_remote_url(args.git_command, origin_name)
+    external_url = resolve_external_url(blender_url, repo_name)
+
+    # When running `make update` from a freshly cloned fork check whether the fork of the submodule is
+    # available, If not, switch to the submodule relative to the main blender repository.
+    if origin_name == "origin" and not make_utils.git_is_remote_repository(args.git_command, external_url):
+        external_url = resolve_external_url("https://projects.blender.org/blender/blender", repo_name)
+
+    call((args.git_command, "clone", "--origin", origin_name, external_url, str(external_dir)))
+
+
+def external_script_add_origin_if_needed(args: argparse.Namespace,
+                                         repo_name: str,
+                                         directory_name: str) -> None:
+    """
+    Add remote called 'origin' if there is a fork of the external repository available
+
+    This is only done when using Github style upstream workflow in the main repository.
+    """
+
+    if not use_upstream_workflow(args):
+        return
+
+    cwd = os.getcwd()
+
+    blender_git_root = Path(get_blender_git_root())
+    scripts_dir = blender_git_root / "scripts"
+    external_dir = scripts_dir / directory_name
+
+    origin_blender_url = make_utils.git_get_remote_url(args.git_command, "origin")
+    origin_external_url = resolve_external_url(origin_blender_url, repo_name)
+
+    try:
+        os.chdir(external_dir)
+
+        if (make_utils.git_remote_exist(args.git_command, "origin") or
+                not make_utils.git_remote_exist(args.git_command, "upstream")):
+            return
+
+        if not make_utils.git_is_remote_repository(args.git_command, origin_external_url):
+            return
+
+        print(f"Adding origin remote to {directory_name} pointing to fork ...")
+
+        # Non-obvious tricks to introduce the new remote called "origin" to the existing
+        # submodule configuration.
+        #
+        # This is all within the content of creating a fork of a submodule after `make update`
+        # has been run and possibly local branches tracking upstream were added.
+        #
+        # The idea here goes as following:
+        #
+        #  - Rename remote "upstream" to "origin", which takes care of changing the names of
+        #    remotes the local branches are tracking.
+        #
+        #  - Change the URL to the "origin", which was still pointing to upstream.
+        #
+        #  - Re-introduce the "upstream" remote, with the same URL as it had prior to rename.
+
+        upstream_url = make_utils.git_get_remote_url(args.git_command, "upstream")
+
+        call((args.git_command, "remote", "rename", "upstream", "origin"))
+        make_utils.git_set_config(args.git_command, f"remote.origin.url", origin_external_url)
+
+        call((args.git_command, "remote", "add", "upstream", upstream_url))
+    finally:
+        os.chdir(cwd)
+
+    return
+
+
+def external_scripts_update(args: argparse.Namespace,
+                            repo_name: str,
+                            directory_name: str,
+                            branch: Optional[str]) -> str:
+    """Update a single external checkout with the given name in the scripts folder"""
+
+    external_script_initialize_if_needed(args, repo_name, directory_name)
+    external_script_add_origin_if_needed(args, repo_name, directory_name)
+
+    print(f"Updating scripts/{directory_name} ...")
+
+    cwd = os.getcwd()
+
+    blender_git_root = Path(get_blender_git_root())
+    scripts_dir = blender_git_root / "scripts"
+    external_dir = scripts_dir / directory_name
+
+    # Update externals to appropriate given branch, falling back to main if none is given and/or
+    # found in a sub-repository.
     branch_fallback = "main"
     if not branch:
         branch = branch_fallback
 
-    submodules = [
-        ("release/scripts/addons", branch, branch_fallback),
-        ("release/scripts/addons_contrib", branch, branch_fallback),
-        ("release/datafiles/locale", branch, branch_fallback),
-        ("source/tools", branch, branch_fallback),
-    ]
-
-    # Initialize submodules only if needed.
-    for submodule_path, submodule_branch, submodule_branch_fallback in submodules:
-        if not os.path.exists(os.path.join(submodule_path, ".git")):
-            call([args.git_command, "submodule", "update", "--init", "--recursive"])
-            break
-
-    # Checkout appropriate branch and pull changes.
     skip_msg = ""
-    for submodule_path, submodule_branch, submodule_branch_fallback in submodules:
-        cwd = os.getcwd()
-        try:
-            os.chdir(submodule_path)
-            msg = git_update_skip(args, check_remote_exists=False)
-            if msg:
-                skip_msg += submodule_path + " skipped: " + msg + "\n"
-            else:
-                # Find a matching branch that exists.
-                call([args.git_command, "fetch", "origin"])
-                if make_utils.git_branch_exists(args.git_command, submodule_branch):
-                    pass
-                elif make_utils.git_branch_exists(args.git_command, submodule_branch_fallback):
-                    submodule_branch = submodule_branch_fallback
-                else:
-                    # Skip.
-                    submodule_branch = ""
 
-                # Switch to branch and pull.
-                if submodule_branch:
-                    if make_utils.git_branch(args.git_command) != submodule_branch:
+    try:
+        os.chdir(external_dir)
+        msg = git_update_skip(args, check_remote_exists=False)
+        if msg:
+            skip_msg += directory_name + " skipped: " + msg + "\n"
+        else:
+            # Find a matching branch that exists.
+            for remote in ("origin", "upstream"):
+                if make_utils.git_remote_exist(args.git_command, remote):
+                    call([args.git_command, "fetch", remote])
+
+            submodule_branch = branch
+
+            if make_utils.git_branch_exists(args.git_command, submodule_branch):
+                pass
+            elif make_utils.git_branch_exists(args.git_command, branch_fallback):
+                submodule_branch = branch_fallback
+            else:
+                # Skip.
+                submodule_branch = ""
+
+            # Switch to branch and pull.
+            if submodule_branch:
+                if make_utils.git_branch(args.git_command) != submodule_branch:
+                    # If the local branch exists just check out to it.
+                    # If there is no local branch but only remote specify an explicit remote.
+                    # Without this explicit specification Git attempts to set-up tracking
+                    # automatically and fails when the branch is available in multiple remotes.
+                    if make_utils.git_local_branch_exists(args.git_command, submodule_branch):
                         call([args.git_command, "checkout", submodule_branch])
-                    call([args.git_command, "pull", "--rebase", "origin", submodule_branch])
-        finally:
-            os.chdir(cwd)
+                    else:
+                        if make_utils.git_remote_branch_exists(args.git_command, "origin", submodule_branch):
+                            call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
+                        elif make_utils.git_remote_exist(args.git_command, "upstream"):
+                            # For the Github style of upstream workflow create a local branch from
+                            # the upstream, but do not track it, so that we stick to the paradigm
+                            # that no local branches are tracking upstream, preventing possible
+                            # accidental commit to upstream.
+                            call([args.git_command, "checkout", "-b", submodule_branch,
+                                 f"upstream/{submodule_branch}", "--no-track"])
+
+                # Don't use extra fetch since all remotes of interest have been already fetched
+                # some lines above.
+                skip_msg += work_tree_update(args, use_fetch=False)
+    finally:
+        os.chdir(cwd)
 
     return skip_msg
+
+
+def scripts_submodules_update(args: argparse.Namespace, branch: Optional[str]) -> str:
+    """Update working trees of addons and addons_contrib within the scripts/ directory"""
+    msg = ""
+
+    msg += external_scripts_update(args, "blender-addons", "addons", branch)
+    msg += external_scripts_update(args, "blender-addons-contrib", "addons_contrib", branch)
+
+    return msg
+
+
+def submodules_update(args: argparse.Namespace, branch: Optional[str]) -> str:
+    """Update submodules or other externally tracked source trees"""
+    msg = ""
+
+    msg += scripts_submodules_update(args, branch)
+
+    return msg
 
 
 if __name__ == "__main__":
@@ -273,7 +494,7 @@ if __name__ == "__main__":
         major = blender_version.version // 100
         minor = blender_version.version % 100
         branch = f"blender-v{major}.{minor}-release"
-        release_version = f"{major}.{minor}"
+        release_version: Optional[str] = f"{major}.{minor}"
     else:
         branch = 'main'
         release_version = None
@@ -282,12 +503,12 @@ if __name__ == "__main__":
         svn_update(args, release_version)
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
+        if not blender_skip_msg:
+            blender_skip_msg = blender_update(args)
         if blender_skip_msg:
             blender_skip_msg = "Blender repository skipped: " + blender_skip_msg + "\n"
-        else:
-            blender_update(args)
     if not args.no_submodules:
-        submodules_skip_msg = submodules_update(args, release_version, branch)
+        submodules_skip_msg = submodules_update(args, branch)
 
     # Report any skipped repositories at the end, so it's not as easy to miss.
     skip_msg = blender_skip_msg + submodules_skip_msg

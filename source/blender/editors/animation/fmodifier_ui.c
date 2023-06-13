@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -43,7 +44,7 @@
 
 #include "DEG_depsgraph.h"
 
-typedef void (*PanelDrawFn)(const bContext *, struct Panel *);
+typedef void (*PanelDrawFn)(const bContext *, Panel *);
 static void fmodifier_panel_header(const bContext *C, Panel *panel);
 
 /* -------------------------------------------------------------------- */
@@ -162,9 +163,9 @@ static PanelType *fmodifier_panel_register(ARegionType *region_type,
 
   /* Intentionally leave the label field blank. The header is filled with buttons. */
   const FModifierTypeInfo *fmi = get_fmodifier_typeinfo(type);
-  BLI_snprintf(panel_type->idname, BKE_ST_MAXNAME, "%s_PT_%s", id_prefix, fmi->name);
-  BLI_strncpy(panel_type->category, "Modifiers", BKE_ST_MAXNAME);
-  BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  SNPRINTF(panel_type->idname, "%s_PT_%s", id_prefix, fmi->name);
+  STRNCPY(panel_type->category, "Modifiers");
+  STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   panel_type->draw_header = fmodifier_panel_header;
   panel_type->draw = draw;
@@ -198,10 +199,10 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
 {
   PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
 
-  BLI_snprintf(panel_type->idname, BKE_ST_MAXNAME, "%s_%s", parent->idname, name);
-  BLI_strncpy(panel_type->label, label, BKE_ST_MAXNAME);
-  BLI_strncpy(panel_type->category, "Modifiers", BKE_ST_MAXNAME);
-  BLI_strncpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA, BKE_ST_MAXNAME);
+  SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);
+  STRNCPY(panel_type->label, label);
+  STRNCPY(panel_type->category, "Modifiers");
+  STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   panel_type->draw_header = draw_header;
   panel_type->draw = draw;
@@ -209,7 +210,7 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
   BLI_assert(parent != NULL);
-  BLI_strncpy(panel_type->parent_id, parent->idname, BKE_ST_MAXNAME);
+  STRNCPY(panel_type->parent_id, parent->idname);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));
   BLI_addtail(&region_type->paneltypes, panel_type);
@@ -222,11 +223,6 @@ static PanelType *fmodifier_subpanel_register(ARegionType *region_type,
 /* -------------------------------------------------------------------- */
 /** \name General UI Callbacks and Drawing
  * \{ */
-
-/* XXX! -------------------------------- */
-/* Temporary definition for limits of float number buttons
- * (FLT_MAX tends to infinity with old system). */
-#define UI_FLT_MAX 10000.0f
 
 #define B_REDR 1
 #define B_FMODIFIER_REDRAW 20
@@ -308,20 +304,17 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
   uiBlock *block = uiLayoutGetBlock(layout);
 
   uiLayout *sub = uiLayoutRow(layout, true);
-  uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
-  uiLayoutSetEmboss(sub, UI_EMBOSS_NONE);
 
   /* Checkbox for 'active' status (for now). */
   uiItemR(sub, ptr, "active", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* Name. */
   if (fmi) {
-    uiItemL(sub, IFACE_(fmi->name), ICON_NONE);
+    uiItemR(sub, ptr, "name", 0, "", ICON_NONE);
   }
   else {
     uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
   }
-
   /* Right align. */
   sub = uiLayoutRow(layout, true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
@@ -388,11 +381,11 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       char xval[32];
 
       /* The first value gets a "Coefficient" label. */
-      BLI_strncpy(xval, N_("Coefficient"), sizeof(xval));
+      STRNCPY(xval, N_("Coefficient"));
 
       for (int i = 0; i < data->arraysize; i++) {
         uiItemFullR(col, ptr, prop, i, 0, 0, IFACE_(xval), ICON_NONE);
-        BLI_snprintf(xval, sizeof(xval), "x^%d", i + 1);
+        SNPRINTF(xval, "x^%d", i + 1);
       }
       break;
     }
@@ -405,8 +398,8 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
         uiLayoutColumn(split, false);
         uiLayout *title_col = uiLayoutColumn(split, false);
         uiLayout *title_row = uiLayoutRow(title_col, true);
-        uiItemL(title_row, IFACE_("A"), ICON_NONE);
-        uiItemL(title_row, IFACE_("B"), ICON_NONE);
+        uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "A"), ICON_NONE);
+        uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "B"), ICON_NONE);
       }
 
       uiLayout *first_row = uiLayoutRow(col, true);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -125,8 +127,11 @@ extern Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
 extern Object *bc_get_assigned_armature(Object *ob);
 extern bool bc_has_object_type(LinkNode *export_set, short obtype);
 
-extern const char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
-extern const char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
+extern const char *bc_CustomData_get_layer_name(const CustomData *data,
+                                                eCustomDataType type,
+                                                int n);
+extern const char *bc_CustomData_get_active_layer_name(const CustomData *data,
+                                                       eCustomDataType type);
 
 extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
 /**

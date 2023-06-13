@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -415,7 +417,7 @@ static PointerRNA rna_Gizmo_group_get(PointerRNA *ptr)
 
 #  ifdef WITH_PYTHON
 
-static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type);
+static bool rna_Gizmo_unregister(struct Main *bmain, StructRNA *type);
 void BPY_RNA_gizmo_wrapper(wmGizmoType *gzgt, void *userdata);
 
 static StructRNA *rna_Gizmo_register(Main *bmain,
@@ -426,34 +428,36 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
                                      StructCallbackFunc call,
                                      StructFreeFunc free)
 {
+  const char *error_prefix = "Registering gizmo class:";
   struct {
     char idname[MAX_NAME];
   } temp_buffers;
 
-  wmGizmoType dummygt = {NULL};
-  wmGizmo dummymnp = {NULL};
-  PointerRNA mnp_ptr;
+  wmGizmoType dummy_gt = {NULL};
+  wmGizmo dummy_gizmo = {NULL};
+  PointerRNA dummy_gizmo_ptr;
 
   /* Two sets of functions. */
-  int have_function[8];
+  bool have_function[8];
 
   /* setup dummy gizmo & gizmo type to store static properties in */
-  dummymnp.type = &dummygt;
-  dummygt.idname = temp_buffers.idname;
-  RNA_pointer_create(NULL, &RNA_Gizmo, &dummymnp, &mnp_ptr);
+  dummy_gizmo.type = &dummy_gt;
+  dummy_gt.idname = temp_buffers.idname;
+  RNA_pointer_create(NULL, &RNA_Gizmo, &dummy_gizmo, &dummy_gizmo_ptr);
 
   /* Clear so we can detect if it's left unset. */
   temp_buffers.idname[0] = '\0';
 
   /* validate the python class */
-  if (validate(&mnp_ptr, data, have_function) != 0) {
+  if (validate(&dummy_gizmo_ptr, data, have_function) != 0) {
     return NULL;
   }
 
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering gizmo class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(temp_buffers.idname));
     return NULL;
@@ -461,58 +465,68 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
 
   /* check if we have registered this gizmo type before, and remove it */
   {
-    const wmGizmoType *gzt = WM_gizmotype_find(dummygt.idname, true);
-    if (gzt && gzt->rna_ext.srna) {
-      rna_Gizmo_unregister(bmain, gzt->rna_ext.srna);
+    const wmGizmoType *gzt = WM_gizmotype_find(dummy_gt.idname, true);
+    if (gzt) {
+      StructRNA *srna = gzt->rna_ext.srna;
+      if (!(srna && rna_Gizmo_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummy_gt.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
-  if (!RNA_struct_available_or_report(reports, dummygt.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_gt.idname)) {
     return NULL;
   }
 
   { /* allocate the idname */
     /* For multiple strings see GizmoGroup. */
-    dummygt.idname = BLI_strdup(temp_buffers.idname);
+    dummy_gt.idname = BLI_strdup(temp_buffers.idname);
   }
 
   /* create a new gizmo type */
-  dummygt.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummygt.idname, &RNA_Gizmo);
+  dummy_gt.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_gt.idname, &RNA_Gizmo);
   /* gizmo properties are registered separately */
-  RNA_def_struct_flag(dummygt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
-  dummygt.rna_ext.data = data;
-  dummygt.rna_ext.call = call;
-  dummygt.rna_ext.free = free;
+  RNA_def_struct_flag(dummy_gt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
+  dummy_gt.rna_ext.data = data;
+  dummy_gt.rna_ext.call = call;
+  dummy_gt.rna_ext.free = free;
 
   {
     int i = 0;
-    dummygt.draw = (have_function[i++]) ? rna_gizmo_draw_cb : NULL;
-    dummygt.draw_select = (have_function[i++]) ? rna_gizmo_draw_select_cb : NULL;
-    dummygt.test_select = (have_function[i++]) ? rna_gizmo_test_select_cb : NULL;
-    dummygt.modal = (have_function[i++]) ? rna_gizmo_modal_cb : NULL;
-    //      dummygt.property_update = (have_function[i++]) ? rna_gizmo_property_update : NULL;
-    //      dummygt.position_get = (have_function[i++]) ? rna_gizmo_position_get : NULL;
-    dummygt.setup = (have_function[i++]) ? rna_gizmo_setup_cb : NULL;
-    dummygt.invoke = (have_function[i++]) ? rna_gizmo_invoke_cb : NULL;
-    dummygt.exit = (have_function[i++]) ? rna_gizmo_exit_cb : NULL;
-    dummygt.select_refresh = (have_function[i++]) ? rna_gizmo_select_refresh_cb : NULL;
+    dummy_gt.draw = (have_function[i++]) ? rna_gizmo_draw_cb : NULL;
+    dummy_gt.draw_select = (have_function[i++]) ? rna_gizmo_draw_select_cb : NULL;
+    dummy_gt.test_select = (have_function[i++]) ? rna_gizmo_test_select_cb : NULL;
+    dummy_gt.modal = (have_function[i++]) ? rna_gizmo_modal_cb : NULL;
+    // dummy_gt.property_update = (have_function[i++]) ? rna_gizmo_property_update : NULL;
+    // dummy_gt.position_get = (have_function[i++]) ? rna_gizmo_position_get : NULL;
+    dummy_gt.setup = (have_function[i++]) ? rna_gizmo_setup_cb : NULL;
+    dummy_gt.invoke = (have_function[i++]) ? rna_gizmo_invoke_cb : NULL;
+    dummy_gt.exit = (have_function[i++]) ? rna_gizmo_exit_cb : NULL;
+    dummy_gt.select_refresh = (have_function[i++]) ? rna_gizmo_select_refresh_cb : NULL;
 
     BLI_assert(i == ARRAY_SIZE(have_function));
   }
 
-  WM_gizmotype_append_ptr(BPY_RNA_gizmo_wrapper, (void *)&dummygt);
+  WM_gizmotype_append_ptr(BPY_RNA_gizmo_wrapper, (void *)&dummy_gt);
 
   /* update while blender is running */
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 
-  return dummygt.rna_ext.srna;
+  return dummy_gt.rna_ext.srna;
 }
 
-static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
+static bool rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
 {
   wmGizmoType *gzt = RNA_struct_blender_type_get(type);
 
   if (!gzt) {
-    return;
+    return false;
   }
 
   WM_gizmotype_remove_ptr(NULL, bmain, gzt);
@@ -525,6 +539,7 @@ static void rna_Gizmo_unregister(struct Main *bmain, StructRNA *type)
   WM_gizmotype_free_ptr(gzt);
 
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  return true;
 }
 
 static void **rna_Gizmo_instance(PointerRNA *ptr)
@@ -535,9 +550,9 @@ static void **rna_Gizmo_instance(PointerRNA *ptr)
 
 #  endif /* WITH_PYTHON */
 
-static StructRNA *rna_Gizmo_refine(PointerRNA *mnp_ptr)
+static StructRNA *rna_Gizmo_refine(PointerRNA *gz_ptr)
 {
-  wmGizmo *gz = mnp_ptr->data;
+  wmGizmo *gz = gz_ptr->data;
   return (gz->type && gz->type->rna_ext.srna) ? gz->type->rna_ext.srna : &RNA_Gizmo;
 }
 
@@ -784,7 +799,7 @@ static void rna_gizmogroup_invoke_prepare_cb(const bContext *C,
 }
 
 void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata);
-static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type);
+static bool rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type);
 
 static StructRNA *rna_GizmoGroup_register(Main *bmain,
                                           ReportList *reports,
@@ -794,24 +809,25 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
+  const char *error_prefix = "Registering gizmogroup class:";
   struct {
     char name[MAX_NAME];
     char idname[MAX_NAME];
   } temp_buffers;
 
-  wmGizmoGroupType dummywgt = {NULL};
-  wmGizmoGroup dummywg = {NULL};
+  wmGizmoGroupType dummy_wgt = {NULL};
+  wmGizmoGroup dummy_gizmo_group = {NULL};
   PointerRNA wgptr;
 
   /* Two sets of functions. */
-  int have_function[6];
+  bool have_function[6];
 
   /* setup dummy gizmogroup & gizmogroup type to store static properties in */
-  dummywg.type = &dummywgt;
-  dummywgt.name = temp_buffers.name;
-  dummywgt.idname = temp_buffers.idname;
+  dummy_gizmo_group.type = &dummy_wgt;
+  dummy_wgt.name = temp_buffers.name;
+  dummy_wgt.idname = temp_buffers.idname;
 
-  RNA_pointer_create(NULL, &RNA_GizmoGroup, &dummywg, &wgptr);
+  RNA_pointer_create(NULL, &RNA_GizmoGroup, &dummy_gizmo_group, &wgptr);
 
   /* Clear so we can detect if it's left unset. */
   temp_buffers.idname[0] = temp_buffers.name[0] = '\0';
@@ -824,7 +840,8 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
   if (strlen(identifier) >= sizeof(temp_buffers.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "Registering gizmogroup class: '%s' is too long, maximum length is %d",
+                "%s '%s' is too long, maximum length is %d",
+                error_prefix,
                 identifier,
                 (int)sizeof(temp_buffers.idname));
     return NULL;
@@ -832,24 +849,34 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
 
   /* check if the area supports widgets */
   const struct wmGizmoMapType_Params wmap_params = {
-      .spaceid = dummywgt.gzmap_params.spaceid,
-      .regionid = dummywgt.gzmap_params.regionid,
+      .spaceid = dummy_wgt.gzmap_params.spaceid,
+      .regionid = dummy_wgt.gzmap_params.regionid,
   };
 
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&wmap_params);
   if (gzmap_type == NULL) {
-    BKE_report(reports, RPT_ERROR, "Area type does not support gizmos");
+    BKE_reportf(reports, RPT_ERROR, "%s area type does not support gizmos", error_prefix);
     return NULL;
   }
 
   /* check if we have registered this gizmogroup type before, and remove it */
   {
-    wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(dummywgt.idname, true);
-    if (gzgt && gzgt->rna_ext.srna) {
-      rna_GizmoGroup_unregister(bmain, gzgt->rna_ext.srna);
+    wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(dummy_wgt.idname, true);
+    if (gzgt) {
+      StructRNA *srna = gzgt->rna_ext.srna;
+      if (!(srna && rna_GizmoGroup_unregister(bmain, srna))) {
+        BKE_reportf(reports,
+                    RPT_ERROR,
+                    "%s '%s', bl_idname '%s' %s",
+                    error_prefix,
+                    identifier,
+                    dummy_wgt.idname,
+                    srna ? "is built-in" : "could not be unregistered");
+        return NULL;
+      }
     }
   }
-  if (!RNA_struct_available_or_report(reports, dummywgt.idname)) {
+  if (!RNA_struct_available_or_report(reports, dummy_wgt.idname)) {
     return NULL;
   }
 
@@ -862,37 +889,37 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
     BLI_string_join_array_by_sep_char_with_tableN(
         '\0', strings_table, strings, ARRAY_SIZE(strings));
 
-    dummywgt.idname = strings_table[0]; /* allocated string stored here */
-    dummywgt.name = strings_table[1];
+    dummy_wgt.idname = strings_table[0]; /* allocated string stored here */
+    dummy_wgt.name = strings_table[1];
     BLI_assert(ARRAY_SIZE(strings) == 2);
   }
 
   /* create a new gizmogroup type */
-  dummywgt.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummywgt.idname, &RNA_GizmoGroup);
+  dummy_wgt.rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, dummy_wgt.idname, &RNA_GizmoGroup);
 
   /* Gizmo group properties are registered separately. */
-  RNA_def_struct_flag(dummywgt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
+  RNA_def_struct_flag(dummy_wgt.rna_ext.srna, STRUCT_NO_IDPROPERTIES);
 
-  dummywgt.rna_ext.data = data;
-  dummywgt.rna_ext.call = call;
-  dummywgt.rna_ext.free = free;
+  dummy_wgt.rna_ext.data = data;
+  dummy_wgt.rna_ext.call = call;
+  dummy_wgt.rna_ext.free = free;
 
   /* We used to register widget group types like this, now we do it similar to
    * operator types. Thus we should be able to do the same as operator types now. */
-  dummywgt.poll = (have_function[0]) ? rna_gizmogroup_poll_cb : NULL;
-  dummywgt.setup_keymap = (have_function[1]) ? rna_gizmogroup_setup_keymap_cb : NULL;
-  dummywgt.setup = (have_function[2]) ? rna_gizmogroup_setup_cb : NULL;
-  dummywgt.refresh = (have_function[3]) ? rna_gizmogroup_refresh_cb : NULL;
-  dummywgt.draw_prepare = (have_function[4]) ? rna_gizmogroup_draw_prepare_cb : NULL;
-  dummywgt.invoke_prepare = (have_function[5]) ? rna_gizmogroup_invoke_prepare_cb : NULL;
+  dummy_wgt.poll = (have_function[0]) ? rna_gizmogroup_poll_cb : NULL;
+  dummy_wgt.setup_keymap = (have_function[1]) ? rna_gizmogroup_setup_keymap_cb : NULL;
+  dummy_wgt.setup = (have_function[2]) ? rna_gizmogroup_setup_cb : NULL;
+  dummy_wgt.refresh = (have_function[3]) ? rna_gizmogroup_refresh_cb : NULL;
+  dummy_wgt.draw_prepare = (have_function[4]) ? rna_gizmogroup_draw_prepare_cb : NULL;
+  dummy_wgt.invoke_prepare = (have_function[5]) ? rna_gizmogroup_invoke_prepare_cb : NULL;
 
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_append_ptr(BPY_RNA_gizmogroup_wrapper,
-                                                        (void *)&dummywgt);
+                                                        (void *)&dummy_wgt);
 
   {
     const char *owner_id = RNA_struct_state_owner_get();
     if (owner_id) {
-      BLI_strncpy(gzgt->owner_id, owner_id, sizeof(gzgt->owner_id));
+      STRNCPY(gzgt->owner_id, owner_id);
     }
   }
 
@@ -903,15 +930,15 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
     WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
   }
 
-  return dummywgt.rna_ext.srna;
+  return dummy_wgt.rna_ext.srna;
 }
 
-static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
+static bool rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
 {
   wmGizmoGroupType *gzgt = RNA_struct_blender_type_get(type);
 
   if (!gzgt) {
-    return;
+    return false;
   }
 
   WM_gizmo_group_type_remove_ptr(bmain, gzgt);
@@ -924,6 +951,7 @@ static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type)
   WM_gizmo_group_type_free_ptr(gzgt);
 
   WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
+  return true;
 }
 
 static void **rna_GizmoGroup_instance(PointerRNA *ptr)
@@ -1307,7 +1335,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_api_gizmo(srna);
 
   srna = RNA_def_struct(brna, "GizmoProperties", NULL);
-  RNA_def_struct_ui_text(srna, "Gizmo Properties", "Input properties of an Gizmo");
+  RNA_def_struct_ui_text(srna, "Gizmo Properties", "Input properties of a Gizmo");
   RNA_def_struct_refine_func(srna, "rna_GizmoProperties_refine");
   RNA_def_struct_idprops_func(srna, "rna_GizmoProperties_idprops");
   RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);

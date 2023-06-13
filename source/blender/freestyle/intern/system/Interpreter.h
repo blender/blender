@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -24,9 +26,7 @@ class Interpreter {
     _language = "Unknown";
   }
 
-  virtual ~Interpreter()
-  {
-  }
+  virtual ~Interpreter() {}
 
   virtual int interpretFile(const string &filename) = 0;
 

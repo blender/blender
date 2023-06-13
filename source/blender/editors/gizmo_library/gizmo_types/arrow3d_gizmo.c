@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgizmolib
@@ -48,7 +49,7 @@
 #include "../gizmo_library_intern.h"
 
 /* to use custom arrows exported to geom_arrow_gizmo.c */
-//#define USE_GIZMO_CUSTOM_ARROWS
+// #define USE_GIZMO_CUSTOM_ARROWS
 
 /* Margin to add when selecting the arrow. */
 #define ARROW_SELECT_THRESHOLD_PX (5)
@@ -115,6 +116,29 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
     immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
     wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_LOOP);
   }
+  else if (draw_style == ED_GIZMO_ARROW_STYLE_PLANE) {
+    const float scale = 0.1f;
+    const float verts[4][3] = {
+        {0, 0, 0},
+        {scale, 0, scale},
+        {0, 0, 2 * scale},
+        {-scale, 0, scale},
+    };
+
+    const float color_inner[4] = {UNPACK3(color), color[3] * 0.5f};
+
+    /* Translate to line end. */
+    GPU_matrix_push();
+    GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length);
+
+    immUniform1f("lineWidth", arrow->gizmo.line_width * U.pixelsize);
+    wm_gizmo_vec_draw(color, verts, ARRAY_SIZE(verts), pos, GPU_PRIM_LINE_LOOP);
+
+    immUnbindProgram();
+    immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+    wm_gizmo_vec_draw(color_inner, verts, ARRAY_SIZE(verts), pos, GPU_PRIM_TRI_FAN);
+    GPU_matrix_pop();
+  }
   else {
 #ifdef USE_GIZMO_CUSTOM_ARROWS
     wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_arrow, select, color);
@@ -126,7 +150,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
 
     if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
       const float stem_width = arrow->gizmo.line_width * U.pixelsize +
-                               (select ? ARROW_SELECT_THRESHOLD_PX * U.dpi_fac : 0);
+                               (select ? ARROW_SELECT_THRESHOLD_PX * UI_SCALE_FAC : 0);
       immUniform1f("lineWidth", stem_width);
       wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
     }
@@ -176,6 +200,19 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow,
 
   if (unbind_shader) {
     immUnbindProgram();
+  }
+
+  if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN) {
+    const float point_size = 10 * U.pixelsize;
+    GPU_program_point_size(true);
+    immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
+    immUniform1f("size", point_size);
+    immUniformColor4fv(color);
+    immBegin(GPU_PRIM_POINTS, 1);
+    immVertex3f(pos, 0.0f, 0.0f, 0.0f);
+    immEnd();
+    immUnbindProgram();
+    GPU_program_point_size(false);
   }
 }
 
@@ -504,10 +541,12 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
       {ED_GIZMO_ARROW_STYLE_CROSS, "CROSS", 0, "Cross", ""},
       {ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
       {ED_GIZMO_ARROW_STYLE_CONE, "CONE", 0, "Cone", ""},
+      {ED_GIZMO_ARROW_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static EnumPropertyItem rna_enum_draw_options_items[] = {
       {ED_GIZMO_ARROW_DRAW_FLAG_STEM, "STEM", 0, "Stem", ""},
+      {ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN, "ORIGIN", 0, "Origin", ""},
       {0, NULL, 0, NULL, NULL},
   };
   static EnumPropertyItem rna_enum_transform_items[] = {

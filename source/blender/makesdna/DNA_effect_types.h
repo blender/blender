@@ -1,8 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
+ *
+ * Types defined in this file are deprecated, converted into modifiers on load.
  */
 
 #pragma once
@@ -57,12 +60,14 @@ typedef struct Effect {
   struct Effect *next, *prev;
   short type, flag, buttype;
   char _pad0[2];
-
 } Effect;
 
 typedef struct BuildEff {
+  /* NOTE: match #Effect. */
   struct BuildEff *next, *prev;
   short type, flag, buttype;
+  /* End header. */
+
   char _pad0[2];
 
   float len, sfra;
@@ -81,8 +86,12 @@ typedef struct Particle {
 struct Collection;
 
 typedef struct PartEff {
+  /* NOTE: match #Effect. */
   struct PartEff *next, *prev;
-  short type, flag, buttype, stype, vertgroup, userjit;
+  short type, flag, buttype;
+  /* End header. */
+
+  short stype, vertgroup, userjit;
 
   float sta, end, lifetime;
   int totpart, totkey, seed;
@@ -111,8 +120,10 @@ typedef struct PartEff {
 } PartEff;
 
 typedef struct WaveEff {
+  /* NOTE: match #Effect. */
   struct WaveEff *next, *prev;
   short type, flag, buttype, stype;
+  /* End header. */
 
   float startx, starty, height, width;
   float narrow, speed, minfac, damp;

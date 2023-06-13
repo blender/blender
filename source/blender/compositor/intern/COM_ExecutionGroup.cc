@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_ExecutionGroup.h"
 #include "COM_ChunkOrder.h"
@@ -103,7 +104,8 @@ bool ExecutionGroup::add_operation(NodeOperation *operation)
   }
 
   if (!operation->get_flags().is_read_buffer_operation &&
-      !operation->get_flags().is_write_buffer_operation) {
+      !operation->get_flags().is_write_buffer_operation)
+  {
     flags_.complex = operation->get_flags().complex;
     flags_.open_cl = operation->get_flags().open_cl;
     flags_.single_threaded = operation->get_flags().single_threaded;
@@ -117,8 +119,8 @@ bool ExecutionGroup::add_operation(NodeOperation *operation)
 
 NodeOperation *ExecutionGroup::get_output_operation() const
 {
-  return this
-      ->operations_[0]; /* the first operation of the group is always the output operation. */
+  /* The first operation of the group is always the output operation. */
+  return this->operations_[0];
 }
 
 void ExecutionGroup::init_work_packages()
@@ -323,7 +325,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
     int number_evaluated = 0;
 
     for (int index = start_index; index < chunks_len_ && number_evaluated < max_number_evaluated;
-         index++) {
+         index++)
+    {
       chunk_index = chunk_order[index];
       int y_chunk = chunk_index / x_chunks_len_;
       int x_chunk = chunk_index - (y_chunk * x_chunks_len_);
@@ -417,8 +420,7 @@ void ExecutionGroup::finalize_chunk_execution(int chunk_number, MemoryBuffer **m
     bTree_->runtime->progress(bTree_->runtime->prh, progress);
 
     char buf[128];
-    BLI_snprintf(
-        buf, sizeof(buf), TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
+    SNPRINTF(buf, TIP_("Compositing | Tile %u-%u"), chunks_finished_, chunks_len_);
     bTree_->runtime->stats_draw(bTree_->runtime->sdh, buf);
   }
 }

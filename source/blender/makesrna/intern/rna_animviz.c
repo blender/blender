@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -157,6 +159,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Color", "Custom color for motion path");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* Line width */
   prop = RNA_def_property(srna, "line_thickness", PROP_INT, PROP_NONE);
@@ -164,6 +167,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
   RNA_def_property_range(prop, 1, 6);
   RNA_def_property_ui_text(prop, "Line Thickness", "Line thickness for motion path");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* Settings */
   prop = RNA_def_property(srna, "use_bone_head", PROP_BOOLEAN, PROP_NONE);
@@ -184,6 +188,7 @@ static void rna_def_animviz_motion_path(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "flag", MOTIONPATH_FLAG_CUSTOM);
   RNA_def_property_ui_text(prop, "Custom Colors", "Use custom color for this motion path");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW_ANIMVIZ, NULL);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
 
   /* Draw lines between keyframes */
   prop = RNA_def_property(srna, "lines", PROP_BOOLEAN, PROP_NONE);

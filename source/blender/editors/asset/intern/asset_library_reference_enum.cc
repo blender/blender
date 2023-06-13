@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -65,7 +67,7 @@ AssetLibraryReference ED_asset_library_reference_from_enum_value(int value)
 
     /* Note that there is no check if the path exists here. If an invalid library path is used, the
      * Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = custom_library && (custom_library->name[0] && custom_library->path[0]);
+    const bool is_valid = custom_library && (custom_library->name[0] && custom_library->dirpath[0]);
     if (!is_valid) {
       library.custom_library_index = -1;
     }
@@ -84,7 +86,7 @@ static void add_custom_asset_library_enum_items(
   LISTBASE_FOREACH_INDEX (CustomAssetLibraryDefinition *, custom_library, libraries, i) {
     /* Note that the path itself isn't checked for validity here. If an invalid library path is
      * used, the Asset Browser can give a nice hint on what's wrong. */
-    const bool is_valid = (custom_library->name[0] && custom_library->path[0]);
+    const bool is_valid = (custom_library->name[0] && custom_library->dirpath[0]);
     if (!is_valid) {
       continue;
     }
@@ -96,7 +98,7 @@ static void add_custom_asset_library_enum_items(
     const int enum_value = ED_asset_library_reference_to_enum_value(&library_reference);
     /* Use library path as description, it's a nice hint for users. */
     EnumPropertyItem tmp = {
-        enum_value, custom_library->name, ICON_NONE, custom_library->name, custom_library->path};
+        enum_value, custom_library->name, ICON_NONE, custom_library->name, custom_library->dirpath};
     RNA_enum_item_add(items, totitem, &tmp);
   }
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -7,9 +8,9 @@ namespace blender::nodes::node_shader_point_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Vector>(N_("Position"));
-  b.add_output<decl::Float>(N_("Radius"));
-  b.add_output<decl::Float>(N_("Random"));
+  b.add_output<decl::Vector>("Position");
+  b.add_output<decl::Float>("Radius");
+  b.add_output<decl::Float>("Random");
 }
 
 static int node_shader_gpu_point_info(GPUMaterial *mat,

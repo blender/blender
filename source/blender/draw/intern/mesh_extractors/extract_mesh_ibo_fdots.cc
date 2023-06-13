@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -38,33 +39,30 @@ static void extract_fdots_iter_poly_bm(const MeshRenderData * /*mr*/,
 }
 
 static void extract_fdots_iter_poly_mesh(const MeshRenderData *mr,
-                                         const MPoly *mp,
-                                         const int mp_index,
+                                         const int poly_index,
                                          void *_userdata)
 {
-  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[mp - mr->mpoly];
+  const bool hidden = mr->use_hide && mr->hide_poly && mr->hide_poly[poly_index];
 
   GPUIndexBufBuilder *elb = static_cast<GPUIndexBufBuilder *>(_userdata);
   if (mr->use_subsurf_fdots) {
     const BitSpan facedot_tags = mr->me->runtime->subsurf_face_dot_tags;
 
-    const MLoop *mloop = mr->mloop;
-    const int ml_index_end = mp->loopstart + mp->totloop;
-    for (int ml_index = mp->loopstart; ml_index < ml_index_end; ml_index += 1) {
-      const MLoop *ml = &mloop[ml_index];
-      if (facedot_tags[ml->v] && !hidden) {
-        GPU_indexbuf_set_point_vert(elb, mp_index, mp_index);
+    for (const int ml_index : mr->polys[poly_index]) {
+      const int vert = mr->corner_verts[ml_index];
+      if (facedot_tags[vert] && !hidden) {
+        GPU_indexbuf_set_point_vert(elb, poly_index, poly_index);
         return;
       }
     }
-    GPU_indexbuf_set_point_restart(elb, mp_index);
+    GPU_indexbuf_set_point_restart(elb, poly_index);
   }
   else {
     if (!hidden) {
-      GPU_indexbuf_set_point_vert(elb, mp_index, mp_index);
+      GPU_indexbuf_set_point_vert(elb, poly_index, poly_index);
     }
     else {
-      GPU_indexbuf_set_point_restart(elb, mp_index);
+      GPU_indexbuf_set_point_restart(elb, poly_index);
     }
   }
 }

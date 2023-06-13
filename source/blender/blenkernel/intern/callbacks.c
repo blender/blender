@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -25,7 +27,7 @@ static bool callbacks_initialized = false;
                  "the callback system.")
 
 void BKE_callback_exec(struct Main *bmain,
-                       struct PointerRNA **pointers,
+                       PointerRNA **pointers,
                        const int num_pointers,
                        eCbEvent evt)
 {
@@ -67,6 +69,18 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
   PointerRNA *pointers[2] = {&id_ptr, &depsgraph_ptr};
 
   BKE_callback_exec(bmain, pointers, 2, evt);
+}
+
+void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str)
+{
+  PointerRNA str_ptr;
+  PrimitiveStringRNA data = {NULL};
+  data.value = str;
+  RNA_pointer_create(NULL, &RNA_PrimitiveString, &data, &str_ptr);
+
+  PointerRNA *pointers[1] = {&str_ptr};
+
+  BKE_callback_exec(bmain, pointers, 1, evt);
 }
 
 void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)

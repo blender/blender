@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -180,8 +181,8 @@ typedef struct Panel {
  * There are 16 defines because the expansion data is typically stored in a short.
  *
  * \note Expansion for instanced panels is stored in depth first order. For example, the value of
- * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second subpanel or the first
- * subpanel's first subpanel.
+ * UI_SUBPANEL_DATA_EXPAND_2 correspond to mean the expansion of the second sub-panel or the first
+ * sub-panel's first sub-panel.
  */
 typedef enum uiPanelDataExpansion {
   UI_PANEL_DATA_EXPAND_ROOT = (1 << 0),
@@ -200,7 +201,6 @@ typedef enum uiPanelDataExpansion {
   UI_SUBPANEL_DATA_EXPAND_13 = (1 << 13),
   UI_SUBPANEL_DATA_EXPAND_14 = (1 << 14),
   UI_SUBPANEL_DATA_EXPAND_15 = (1 << 15),
-  UI_SUBPANEL_DATA_EXPAND_16 = (1 << 16),
 } uiPanelDataExpansion;
 
 /**
@@ -455,6 +455,10 @@ typedef struct ARegion {
   rcti drawrct;
   /** Size. */
   short winx, winy;
+  /* This is a Y offset on the panel tabs that represents pixels, where zero represents no scroll -
+   * the first category always shows first at the top. */
+  int category_scroll;
+  char _pad0[4];
 
   /** Region is currently visible on screen. */
   short visible;
@@ -466,7 +470,7 @@ typedef struct ARegion {
   short flag;
 
   /** Current split size in unscaled pixels (if zero it uses regiontype).
-   * To convert to pixels use: `UI_DPI_FAC * region->sizex + 0.5f`.
+   * To convert to pixels use: `UI_SCALE_FAC * region->sizex + 0.5f`.
    * However to get the current region size, you should usually use winx/winy from above, not this!
    */
   short sizex, sizey;
@@ -568,6 +572,7 @@ typedef enum eScreen_Redraws_Flag {
   // TIME_CONTINUE_PHYSICS  = (1 << 7), /* UNUSED */
   TIME_NODES = (1 << 8),
   TIME_CLIPS = (1 << 9),
+  TIME_SPREADSHEETS = (1 << 10),
 
   TIME_FOLLOW = (1 << 15),
 } eScreen_Redraws_Flag;
@@ -609,7 +614,8 @@ enum {
 /* WARNING! Those values are used by integer RNA too, which does not handle well values > INT_MAX.
  *          So please do not use 32nd bit here. */
 enum {
-  UILST_FLT_ITEM = 1 << 30, /* This item has passed the filter process successfully. */
+  UILST_FLT_ITEM_NEVER_SHOW = (1 << 0), /* Filtering returned #UI_LIST_ITEM_NEVER_SHOW. */
+  UILST_FLT_ITEM = 1 << 30,        /* This item has passed the filter process successfully. */
 };
 
 /** #uiList.filter_flag */
@@ -721,6 +727,9 @@ enum {
    * region's layout pass. so that expansion is still interactive,
    */
   RGN_FLAG_SEARCH_FILTER_UPDATE = (1 << 9),
+  /** #ARegionType.poll() failed for the current context, and the region should be treated as if it
+   * wouldn't exist. Runtime only flag. */
+  RGN_FLAG_POLL_FAILED = (1 << 10),
 };
 
 /** #ARegion.do_draw */

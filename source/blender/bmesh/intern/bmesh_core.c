@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -540,7 +542,8 @@ int bmesh_elem_check(void *element, const char htype)
     case BM_EDGE: {
       BMEdge *e = element;
       if (e->v1_disk_link.prev == NULL || e->v2_disk_link.prev == NULL ||
-          e->v1_disk_link.next == NULL || e->v2_disk_link.next == NULL) {
+          e->v1_disk_link.next == NULL || e->v2_disk_link.next == NULL)
+      {
         err |= IS_EDGE_NULL_DISK_LINK;
       }
 
@@ -1909,7 +1912,8 @@ BMFace *bmesh_kernel_join_face_kill_edge(BMesh *bm, BMFace *f1, BMFace *f2, BMEd
   /* validate that for each face, each vertex has another edge in its disk cycle that is
    * not e, and not shared. */
   if (BM_edge_in_face(l_f1->next->e, f2) || BM_edge_in_face(l_f1->prev->e, f2) ||
-      BM_edge_in_face(l_f2->next->e, f1) || BM_edge_in_face(l_f2->prev->e, f1)) {
+      BM_edge_in_face(l_f2->next->e, f1) || BM_edge_in_face(l_f2->prev->e, f1))
+  {
     return NULL;
   }
 

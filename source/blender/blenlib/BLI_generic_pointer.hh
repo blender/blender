@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -23,13 +25,9 @@ class GMutablePointer {
     BLI_assert(data_ == nullptr || type_ != nullptr);
   }
 
-  GMutablePointer(const CPPType &type, void *data = nullptr) : GMutablePointer(&type, data)
-  {
-  }
+  GMutablePointer(const CPPType &type, void *data = nullptr) : GMutablePointer(&type, data) {}
 
-  template<typename T> GMutablePointer(T *data) : GMutablePointer(&CPPType::get<T>(), data)
-  {
-  }
+  template<typename T> GMutablePointer(T *data) : GMutablePointer(&CPPType::get<T>(), data) {}
 
   void *get() const
   {
@@ -80,9 +78,7 @@ class GPointer {
  public:
   GPointer() = default;
 
-  GPointer(GMutablePointer ptr) : type_(ptr.type()), data_(ptr.get())
-  {
-  }
+  GPointer(GMutablePointer ptr) : type_(ptr.type()), data_(ptr.get()) {}
 
   GPointer(const CPPType *type, const void *data = nullptr) : type_(type), data_(data)
   {
@@ -90,13 +86,9 @@ class GPointer {
     BLI_assert(data_ == nullptr || type_ != nullptr);
   }
 
-  GPointer(const CPPType &type, const void *data = nullptr) : type_(&type), data_(data)
-  {
-  }
+  GPointer(const CPPType &type, const void *data = nullptr) : type_(&type), data_(data) {}
 
-  template<typename T> GPointer(T *data) : GPointer(&CPPType::get<T>(), data)
-  {
-  }
+  template<typename T> GPointer(T *data) : GPointer(&CPPType::get<T>(), data) {}
 
   const void *get() const
   {

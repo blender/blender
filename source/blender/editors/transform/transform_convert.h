@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -142,7 +143,7 @@ extern TransConvertTypeInfo TransConvertType_Curves;
 
 extern TransConvertTypeInfo TransConvertType_Graph;
 
-/* transform_convert_gpencil.c */
+/* transform_convert_gpencil_legacy.c */
 
 extern TransConvertTypeInfo TransConvertType_GPencil;
 
@@ -275,6 +276,10 @@ extern TransConvertTypeInfo TransConvertType_SequencerImage;
 /* transform_convert_tracking.c */
 
 extern TransConvertTypeInfo TransConvertType_Tracking;
+
+/* transform_convert_tracking_curves.c */
+
+extern TransConvertTypeInfo TransConvertType_TrackingCurves;
 
 #ifdef __cplusplus
 }

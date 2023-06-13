@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -25,7 +26,7 @@
 #include "BKE_effect.h"
 #include "BKE_lattice.h"
 #include "BKE_lib_query.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
@@ -40,8 +41,8 @@
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
 
-#include "MOD_modifiertypes.h"
-#include "MOD_ui_common.h"
+#include "MOD_modifiertypes.hh"
+#include "MOD_ui_common.hh"
 
 static void initData(ModifierData *md)
 {
@@ -84,8 +85,8 @@ static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParam
   /* If the psys modifier is disabled we cannot use its data.
    * First look up the psys modifier from the object, then check if it is enabled.
    */
-  for (ob_md = static_cast<ModifierData *>(pimd->ob->modifiers.first); ob_md;
-       ob_md = ob_md->next) {
+  for (ob_md = static_cast<ModifierData *>(pimd->ob->modifiers.first); ob_md; ob_md = ob_md->next)
+  {
     if (ob_md->type == eModifierType_ParticleSystem) {
       ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
       if (psmd->psys == psys) {
@@ -312,14 +313,16 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     max_co = max[track];
   }
 
-  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, 0, maxloop, maxpoly);
+  result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxpoly, maxloop);
 
-  const MPoly *orig_mpoly = BKE_mesh_polys(mesh);
-  const MLoop *orig_mloop = BKE_mesh_loops(mesh);
+  const blender::OffsetIndices orig_polys = mesh->polys();
+  const blender::Span<int> orig_corner_verts = mesh->corner_verts();
+  const blender::Span<int> orig_corner_edges = mesh->corner_edges();
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
-  MEdge *edges = BKE_mesh_edges_for_write(result);
-  MPoly *mpoly = BKE_mesh_polys_for_write(result);
-  MLoop *mloop = BKE_mesh_loops_for_write(result);
+  blender::MutableSpan<blender::int2> edges = result->edges_for_write();
+  blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
+  blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
+  blender::MutableSpan<int> corner_edges = result->corner_edges_for_write();
 
   MLoopCol *mloopcols_index = static_cast<MLoopCol *>(CustomData_get_layer_named_for_write(
       &result->ldata, CD_PROP_BYTE_COLOR, pimd->index_layer_name, result->totloop));
@@ -366,7 +369,8 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
       /* get particle state */
       if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
-          (pimd->flag & eParticleInstanceFlag_Path)) {
+          (pimd->flag & eParticleInstanceFlag_Path))
+      {
         float ran = 0.0f;
         if (pimd->random_position != 0.0f) {
           ran = pimd->random_position * BLI_hash_frand(psys->seed + p);
@@ -468,40 +472,38 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
     /* Create edges and adjust edge vertex indices. */
     CustomData_copy_data(&mesh->edata, &result->edata, 0, p_skip * totedge, totedge);
-    MEdge *me = &edges[p_skip * totedge];
-    for (k = 0; k < totedge; k++, me++) {
-      me->v1 += p_skip * totvert;
-      me->v2 += p_skip * totvert;
+    blender::int2 *edge = &edges[p_skip * totedge];
+    for (k = 0; k < totedge; k++, edge++) {
+      (*edge)[0] += p_skip * totvert;
+      (*edge)[1] += p_skip * totvert;
     }
 
     /* create polys and loops */
     for (k = 0; k < totpoly; k++) {
-
-      const MPoly *inMP = orig_mpoly + k;
-      MPoly *mp = mpoly + p_skip * totpoly + k;
+      const blender::IndexRange in_poly = orig_polys[k];
 
       CustomData_copy_data(&mesh->pdata, &result->pdata, k, p_skip * totpoly + k, 1);
-      *mp = *inMP;
-      mp->loopstart += p_skip * totloop;
+      const int dst_poly_start = in_poly.start() + p_skip * totloop;
+      poly_offsets[p_skip * totpoly + k] = dst_poly_start;
 
       {
-        const MLoop *inML = orig_mloop + inMP->loopstart;
-        MLoop *ml = mloop + mp->loopstart;
-        int j = mp->totloop;
+        int orig_corner_i = in_poly.start();
+        int dst_corner_i = dst_poly_start;
+        int j = in_poly.size();
 
-        CustomData_copy_data(&mesh->ldata, &result->ldata, inMP->loopstart, mp->loopstart, j);
-        for (; j; j--, ml++, inML++) {
-          ml->v = inML->v + (p_skip * totvert);
-          ml->e = inML->e + (p_skip * totedge);
-          const int ml_index = (ml - mloop);
+        CustomData_copy_data(&mesh->ldata, &result->ldata, in_poly.start(), dst_poly_start, j);
+        for (; j; j--, orig_corner_i++, dst_corner_i++) {
+          corner_verts[dst_corner_i] = orig_corner_verts[orig_corner_i] + (p_skip * totvert);
+          corner_edges[dst_corner_i] = orig_corner_edges[orig_corner_i] + (p_skip * totedge);
+          const int vert = corner_verts[orig_corner_i];
           if (mloopcols_index != nullptr) {
-            const int part_index = vert_part_index[ml->v];
-            store_float_in_vcol(&mloopcols_index[ml_index],
+            const int part_index = vert_part_index[vert];
+            store_float_in_vcol(&mloopcols_index[dst_corner_i],
                                 float(part_index) / float(psys->totpart - 1));
           }
           if (mloopcols_value != nullptr) {
-            const float part_value = vert_part_value[ml->v];
-            store_float_in_vcol(&mloopcols_value[ml_index], part_value);
+            const float part_value = vert_part_value[vert];
+            store_float_in_vcol(&mloopcols_value[dst_corner_i], part_value);
           }
         }
       }

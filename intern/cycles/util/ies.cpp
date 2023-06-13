@@ -64,8 +64,9 @@ class IESTextParser {
  public:
   vector<char> text;
   char *data;
+  bool error;
 
-  IESTextParser(const string &str) : text(str.begin(), str.end())
+  IESTextParser(const string &str) : text(str.begin(), str.end()), error(false)
   {
     std::replace(text.begin(), text.end(), ',', ' ');
     data = strstr(&text[0], "\nTILT=");
@@ -76,15 +77,22 @@ class IESTextParser {
     return (data == NULL) || (data[0] == '\0');
   }
 
+  bool has_error()
+  {
+    return error;
+  }
+
   double get_double()
   {
     if (eof()) {
+      error = true;
       return 0.0;
     }
     char *old_data = data;
     double val = strtod(data, &data);
     if (data == old_data) {
       data = NULL;
+      error = true;
       return 0.0;
     }
     return val;
@@ -93,12 +101,14 @@ class IESTextParser {
   long get_long()
   {
     if (eof()) {
+      error = true;
       return 0;
     }
     char *old_data = data;
     long val = strtol(data, &data, 10);
     if (data == old_data) {
       data = NULL;
+      error = true;
       return 0;
     }
     return val;
@@ -191,7 +201,7 @@ bool IESFile::parse(const string &ies)
     }
   }
 
-  return !parser.eof();
+  return !parser.has_error();
 }
 
 bool IESFile::process_type_b()
@@ -340,13 +350,7 @@ bool IESFile::process_type_c()
 
   float v_first = v_angles[0], v_last = v_angles[v_angles.size() - 1];
   if (v_first == 90.0f) {
-    if (v_last == 180.0f) {
-      /* Flip to ensure that vertical angles always start at 0°. */
-      for (int i = 0; i < v_angles.size(); i++) {
-        v_angles[i] = 180.0f - v_angles[i];
-      }
-    }
-    else {
+    if (v_last != 180.0f) {
       return false;
     }
   }
@@ -375,7 +379,7 @@ bool IESFile::process()
     }
   }
 
-  assert(v_angles[0] == 0.0f);
+  assert(v_angles[0] == 0.0f || v_angles[0] == 90.0f);
   assert(h_angles[0] == 0.0f);
   assert(h_angles[h_angles.size() - 1] == 360.0f);
 

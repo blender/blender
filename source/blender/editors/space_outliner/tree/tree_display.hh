@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -61,9 +63,7 @@ struct TreeSourceData {
  */
 class AbstractTreeDisplay {
  public:
-  AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner)
-  {
-  }
+  AbstractTreeDisplay(SpaceOutliner &space_outliner) : space_outliner_(space_outliner) {}
   virtual ~AbstractTreeDisplay() = default;
 
   static std::unique_ptr<AbstractTreeDisplay> createFromDisplayMode(

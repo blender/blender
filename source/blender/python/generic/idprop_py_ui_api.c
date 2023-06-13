@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -58,7 +60,8 @@ static bool idprop_ui_data_update_base(IDPropertyUIData *ui_data,
     if (pyrna_enum_value_from_id(rna_enum_property_subtype_items,
                                  rna_subtype,
                                  &ui_data->rna_subtype,
-                                 "IDPropertyUIManager.update") == -1) {
+                                 "IDPropertyUIManager.update") == -1)
+    {
       return false;
     }
   }
@@ -88,7 +91,8 @@ static bool idprop_ui_data_update_int_default(IDProperty *idprop,
     int *new_default_array = (int *)MEM_malloc_arrayN(len, sizeof(int), __func__);
     if (PyC_AsArray(
             new_default_array, sizeof(int), default_value, len, &PyLong_Type, "ui_data_update") ==
-        -1) {
+        -1)
+    {
       MEM_freeN(new_default_array);
       return false;
     }
@@ -130,7 +134,8 @@ static bool idprop_ui_data_update_int(IDProperty *idprop, PyObject *args, PyObje
                                    &step,
                                    &default_value,
                                    &rna_subtype,
-                                   &description)) {
+                                   &description))
+  {
     return false;
   }
 
@@ -202,7 +207,8 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
                     default_value,
                     len,
                     &PyBool_Type,
-                    "ui_data_update") == -1) {
+                    "ui_data_update") == -1)
+    {
       MEM_freeN(new_default_array);
       return false;
     }
@@ -237,7 +243,8 @@ static bool idprop_ui_data_update_bool(IDProperty *idprop, PyObject *args, PyObj
                                    (char **)kwlist,
                                    &default_value,
                                    &rna_subtype,
-                                   &description)) {
+                                   &description))
+  {
     return false;
   }
 
@@ -285,7 +292,8 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
                     default_value,
                     len,
                     &PyFloat_Type,
-                    "ui_data_update") == -1) {
+                    "ui_data_update") == -1)
+    {
       MEM_freeN(new_default_array);
       return false;
     }
@@ -337,7 +345,8 @@ static bool idprop_ui_data_update_float(IDProperty *idprop, PyObject *args, PyOb
                                    &precision,
                                    &default_value,
                                    &rna_subtype,
-                                   &description)) {
+                                   &description))
+  {
     return false;
   }
 
@@ -406,7 +415,8 @@ static bool idprop_ui_data_update_string(IDProperty *idprop, PyObject *args, PyO
                                    (char **)kwlist,
                                    &default_value,
                                    &rna_subtype,
-                                   &description)) {
+                                   &description))
+  {
     return false;
   }
 
@@ -438,7 +448,8 @@ static bool idprop_ui_data_update_id(IDProperty *idprop, PyObject *args, PyObjec
   const char *description = NULL;
   const char *kwlist[] = {"subtype", "description", NULL};
   if (!PyArg_ParseTupleAndKeywords(
-          args, kwargs, "|$zz:update", (char **)kwlist, &rna_subtype, &description)) {
+          args, kwargs, "|$zz:update", (char **)kwlist, &rna_subtype, &description))
+  {
     return false;
   }
 
@@ -738,7 +749,7 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
 /** \name UI Data Manager Definition
  * \{ */
 
-static struct PyMethodDef BPy_IDPropertyUIManager_methods[] = {
+static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
     {"update",
      (PyCFunction)BPy_IDPropertyUIManager_update,
      METH_VARARGS | METH_KEYWORDS,
@@ -822,7 +833,7 @@ PyTypeObject BPy_IDPropertyUIManager_Type = {
     /*tp_vectorcall*/ NULL,
 };
 
-void IDPropertyUIData_Init_Types()
+void IDPropertyUIData_Init_Types(void)
 {
   PyType_Ready(&BPy_IDPropertyUIManager_Type);
 }

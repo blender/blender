@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -96,9 +98,7 @@ template<typename T> void uninitialized_fill_n(T *dst, int64_t n, const T &value
 template<typename T> struct DestructValueAtAddress {
   DestructValueAtAddress() = default;
 
-  template<typename U> DestructValueAtAddress(const U &)
-  {
-  }
+  template<typename U> DestructValueAtAddress(const U &) {}
 
   void operator()(T *ptr)
   {
@@ -156,7 +156,29 @@ template<size_t Size, size_t Alignment> class AlignedBuffer {
  */
 template<typename T, int64_t Size = 1> class TypedBuffer {
  private:
-  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<sizeof(T) * size_t(Size), alignof(T)> buffer_;
+  /** Required so that `sizeof(T)` is not required when `Size` is 0. */
+  static constexpr size_t get_size()
+  {
+    if constexpr (Size == 0) {
+      return 0;
+    }
+    else {
+      return sizeof(T) * size_t(Size);
+    }
+  }
+
+  /** Required so that `alignof(T)` is not required when `Size` is 0. */
+  static constexpr size_t get_alignment()
+  {
+    if constexpr (Size == 0) {
+      return 1;
+    }
+    else {
+      return alignof(T);
+    }
+  }
+
+  BLI_NO_UNIQUE_ADDRESS AlignedBuffer<get_size(), get_alignment()> buffer_;
 
  public:
   operator T *()

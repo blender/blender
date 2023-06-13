@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -7,7 +8,7 @@
 
 #pragma once
 
-#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_legacy_types.h"
 
 #include "DRW_render.h"
 
@@ -25,6 +26,7 @@ extern "C" {
 #include "gpencil_shader_shared.h"
 
 extern DrawEngineType draw_engine_gpencil_type;
+extern DrawEngineType draw_engine_gpencil_next_type;
 
 struct GPENCIL_Data;
 struct GPENCIL_StorageList;
@@ -309,7 +311,7 @@ typedef struct GPENCIL_PrivateData {
   float fade_3d_object_opacity;
   /* Mask opacity uniform. */
   float mask_opacity;
-  /* Xray transparency in solid mode. */
+  /* X-ray transparency in solid mode. */
   float xray_alpha;
   /* Mask invert uniform. */
   int mask_invert;

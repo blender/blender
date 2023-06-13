@@ -1,19 +1,8 @@
-diff -Naur org/kernels/rtcore_config.h.in embree-3.13.4/kernels/rtcore_config.h.in
---- org/kernels/rtcore_config.h.in      2022-06-14 22:13:52 -0600
-+++ embree-3.13.4/kernels/rtcore_config.h.in    2022-06-24 15:20:12 -0600
-@@ -14,6 +14,7 @@
- #cmakedefine01 EMBREE_MIN_WIDTH
- #define RTC_MIN_WIDTH EMBREE_MIN_WIDTH
-
-+#cmakedefine EMBREE_STATIC_LIB
- #cmakedefine EMBREE_API_NAMESPACE
-
- #if defined(EMBREE_API_NAMESPACE)
 diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
 index 7c2f43d..106b1d5 100644
 --- a/kernels/CMakeLists.txt
 +++ b/kernels/CMakeLists.txt
-@@ -201,6 +201,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
+@@ -208,6 +208,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
  #message("AVX2: ${EMBREE_LIBRARY_FILES_AVX2}")
  #message("AVX512: ${EMBREE_LIBRARY_FILES_AVX512}")
  
@@ -26,7 +15,7 @@ index 7c2f43d..106b1d5 100644
  # replaces all .cpp files with a dummy file that includes that .cpp file
  # this is to work around an ICC name mangling issue related to lambda functions under windows
  MACRO (CreateISADummyFiles list isa)
-@@ -277,7 +283,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
+@@ -311,7 +317,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
    ENDIF()
  ENDIF()
  

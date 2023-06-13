@@ -339,7 +339,8 @@ ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scal
   float stz = len_squared(transform_get_column(&tfm, 2));
 
   if (fabsf(sx - sy) < eps && fabsf(sx - sz) < eps && fabsf(sx - stx) < eps &&
-      fabsf(sx - sty) < eps && fabsf(sx - stz) < eps) {
+      fabsf(sx - sty) < eps && fabsf(sx - stz) < eps)
+  {
     scale = sx;
     return true;
   }
@@ -378,7 +379,7 @@ ccl_device_inline Transform transform_empty()
 
 ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
 {
-  /* Optix and MetalRT are using lerp to interpolate motion transformations. */
+  /* Optix and MetalRT are using linear interpolation to interpolate motion transformations. */
 #if defined(__KERNEL_GPU_RAYTRACING__)
   return normalize((1.0f - t) * q1 + t * q2);
 #else  /* defined(__KERNEL_GPU_RAYTRACING__) */

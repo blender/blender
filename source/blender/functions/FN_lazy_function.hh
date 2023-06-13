@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -73,6 +75,16 @@ enum class ValueUsage {
 class LazyFunction;
 
 /**
+ * Extension of #UserData that is thread-local. This avoids accessing e.g.
+ * `EnumerableThreadSpecific.local()` in every nested lazy-function because the thread local
+ * data is passed in by the caller.
+ */
+class LocalUserData {
+ public:
+  virtual ~LocalUserData() = default;
+};
+
+/**
  * This allows passing arbitrary data into a lazy-function during execution. For that, #UserData
  * has to be subclassed. This mainly exists because it's more type safe than passing a `void *`
  * with no type information attached.
@@ -82,6 +94,11 @@ class LazyFunction;
 class UserData {
  public:
   virtual ~UserData() = default;
+
+  /**
+   * Get thread local data for this user-data and the current thread.
+   */
+  virtual destruct_ptr<LocalUserData> get_local(LinearAllocator<> &allocator);
 };
 
 /**
@@ -98,6 +115,15 @@ struct Context {
    * Custom user data that can be used in the function.
    */
   UserData *user_data;
+  /**
+   * Custom user data that is local to the thread that executes the lazy-function.
+   */
+  LocalUserData *local_user_data;
+
+  Context(void *storage, UserData *user_data, LocalUserData *local_user_data)
+      : storage(storage), user_data(user_data), local_user_data(local_user_data)
+  {
+  }
 };
 
 /**
@@ -241,9 +267,7 @@ struct Output {
    */
   const CPPType *type = nullptr;
 
-  Output(const char *debug_name, const CPPType &type) : debug_name(debug_name), type(&type)
-  {
-  }
+  Output(const char *debug_name, const CPPType &type) : debug_name(debug_name), type(&type) {}
 };
 
 /**
@@ -252,7 +276,7 @@ struct Output {
  */
 class LazyFunction {
  protected:
-  const char *debug_name_ = "<unknown>";
+  const char *debug_name_ = "unknown";
   Vector<Input> inputs_;
   Vector<Output> outputs_;
   /**

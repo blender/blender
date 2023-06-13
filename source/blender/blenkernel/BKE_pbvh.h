@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -10,6 +12,10 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#ifdef __cplusplus
+#  include "BLI_offset_indices.hh"
+#  include "BLI_vector.hh"
+#endif
 
 #include "bmesh.h"
 
@@ -29,20 +35,17 @@ struct CCGKey;
 struct CustomData;
 struct DMFlagMat;
 struct IsectRayPrecalc;
-struct MLoop;
 struct MLoopTri;
-struct MPoly;
 struct Mesh;
-struct MeshElemMap;
 struct PBVH;
 struct PBVHBatches;
 struct PBVHNode;
 struct PBVH_GPU_Args;
+struct SculptSession;
 struct SubdivCCG;
 struct TaskParallelSettings;
 struct Image;
 struct ImageUser;
-struct MeshElemMap;
 
 typedef struct PBVH PBVH;
 typedef struct PBVHNode PBVHNode;
@@ -280,23 +283,12 @@ typedef void (*BKE_pbvh_SearchNearestCallback)(PBVHNode *node, void *data, float
 /* Building */
 
 PBVH *BKE_pbvh_new(PBVHType type);
+
 /**
  * Do a full rebuild with on Mesh data structure.
- *
- * \note Unlike mpoly/mloop/verts, looptri is *totally owned* by PBVH
- * (which means it may rewrite it if needed, see #BKE_pbvh_vert_coords_apply().
  */
-void BKE_pbvh_build_mesh(PBVH *pbvh,
-                         struct Mesh *mesh,
-                         const struct MPoly *mpoly,
-                         const struct MLoop *mloop,
-                         float (*vert_positions)[3],
-                         int totvert,
-                         struct CustomData *vdata,
-                         struct CustomData *ldata,
-                         struct CustomData *pdata,
-                         const struct MLoopTri *looptri,
-                         int looptri_num);
+void BKE_pbvh_build_mesh(PBVH *pbvh, struct Mesh *mesh);
+void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, struct Mesh *mesh);
 /**
  * Do a full rebuild with on Grids data structure.
  */
@@ -329,7 +321,8 @@ void BKE_pbvh_free(PBVH *pbvh);
 
 /* Hierarchical Search in the BVH, two methods:
  * - For each hit calling a callback.
- * - Gather nodes in an array (easy to multi-thread). */
+ * - Gather nodes in an array (easy to multi-thread) see blender::bke::pbvh::search_gather.
+ */
 
 void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_SearchCallback scb,
@@ -337,14 +330,6 @@ void BKE_pbvh_search_callback(PBVH *pbvh,
                               BKE_pbvh_HitCallback hcb,
                               void *hit_data);
 
-void BKE_pbvh_search_gather(
-    PBVH *pbvh, BKE_pbvh_SearchCallback scb, void *search_data, PBVHNode ***array, int *tot);
-void BKE_pbvh_search_gather_ex(PBVH *pbvh,
-                               BKE_pbvh_SearchCallback scb,
-                               void *search_data,
-                               PBVHNode ***r_array,
-                               int *r_tot,
-                               PBVHNodeFlags leaf_flag);
 /* Ray-cast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
@@ -510,7 +495,7 @@ const int *BKE_pbvh_node_get_vert_indices(PBVHNode *node);
 void BKE_pbvh_node_get_loops(PBVH *pbvh,
                              PBVHNode *node,
                              const int **r_loop_indices,
-                             const struct MLoop **r_loops);
+                             const int **r_corner_verts);
 
 /* Get number of faces in the mesh; for PBVH_GRIDS the
  * number of base mesh faces is returned.
@@ -571,8 +556,6 @@ void BKE_pbvh_update_hide_attributes_from_mesh(PBVH *pbvh);
 
 void BKE_pbvh_face_sets_color_set(PBVH *pbvh, int seed, int color_default);
 
-void BKE_pbvh_respect_hide_set(PBVH *pbvh, bool respect_hide);
-
 /* Vertex Deformer. */
 
 float (*BKE_pbvh_vert_coords_alloc(struct PBVH *pbvh))[3];
@@ -600,7 +583,6 @@ typedef struct PBVHVertexIter {
   int i;
   int index;
   PBVHVertRef vertex;
-  bool respect_hide;
 
   /* grid */
   struct CCGKey key;
@@ -673,14 +655,9 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
           } \
         } \
         else if (vi.vert_positions) { \
-          if (vi.respect_hide) { \
-            vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
-            if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
-              continue; \
-            } \
-          } \
-          else { \
-            BLI_assert(vi.visible); \
+          vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
+          if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
+            continue; \
           } \
           vi.co = vi.vert_positions[vi.vert_indices[vi.gx]]; \
           vi.no = vi.vert_normals[vi.vert_indices[vi.gx]]; \
@@ -735,15 +712,15 @@ typedef struct PBVHFaceIter {
   int cd_hide_poly_, cd_face_set_;
   bool *hide_poly_;
   int *face_sets_;
-  const struct MPoly *mpoly_;
-  const struct MLoopTri *looptri_;
-  const struct MLoop *mloop_;
+  const int *poly_offsets_;
+  const int *looptri_polys_;
+  const int *corner_verts_;
   int prim_index_;
   const struct SubdivCCG *subdiv_ccg_;
   const struct BMesh *bm;
   CCGKey subdiv_key_;
 
-  int last_face_index_;
+  int last_poly_index_;
 } PBVHFaceIter;
 
 void BKE_pbvh_face_iter_init(PBVH *pbvh, PBVHNode *node, PBVHFaceIter *fd);
@@ -751,7 +728,8 @@ void BKE_pbvh_face_iter_step(PBVHFaceIter *fd);
 bool BKE_pbvh_face_iter_done(PBVHFaceIter *fd);
 void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 
-/** Iterate over faces inside a PBVHNode.  These are either base mesh faces
+/**
+ * Iterate over faces inside a #PBVHNode. These are either base mesh faces
  * (for PBVH_FACES and PBVH_GRIDS) or BMesh faces (for PBVH_BMESH).
  */
 #define BKE_pbvh_face_iter_begin(pbvh, node, fd) \
@@ -765,7 +743,6 @@ void BKE_pbvh_face_iter_finish(PBVHFaceIter *fd);
 void BKE_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
 void BKE_pbvh_node_free_proxies(PBVHNode *node);
 PBVHProxyNode *BKE_pbvh_node_add_proxy(PBVH *pbvh, PBVHNode *node);
-void BKE_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***r_array, int *r_tot);
 void BKE_pbvh_node_get_bm_orco_data(PBVHNode *node,
                                     int (**r_orco_tris)[3],
                                     int *r_orco_tris_num,
@@ -783,10 +760,8 @@ bool BKE_pbvh_node_has_vert_with_normal_update_tag(PBVH *pbvh, PBVHNode *node);
 // void BKE_pbvh_node_BB_expand(PBVHNode *node, float co[3]);
 
 bool pbvh_has_mask(const PBVH *pbvh);
-void pbvh_show_mask_set(PBVH *pbvh, bool show_mask);
 
 bool pbvh_has_face_sets(PBVH *pbvh);
-void pbvh_show_face_sets_set(PBVH *pbvh, bool show_face_sets);
 
 /* Parallelization. */
 
@@ -834,7 +809,6 @@ void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
 void BKE_pbvh_update_active_vcol(PBVH *pbvh, const struct Mesh *mesh);
-void BKE_pbvh_pmap_set(PBVH *pbvh, const struct MeshElemMap *pmap);
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
@@ -844,5 +818,15 @@ bool BKE_pbvh_draw_cache_invalid(const PBVH *pbvh);
 int BKE_pbvh_debug_draw_gen_get(PBVHNode *node);
 
 #ifdef __cplusplus
+void BKE_pbvh_pmap_set(PBVH *pbvh, blender::GroupedSpan<int> pmap);
 }
+
+namespace blender::bke::pbvh {
+Vector<PBVHNode *> search_gather(PBVH *pbvh,
+                                 BKE_pbvh_SearchCallback scb,
+                                 void *search_data,
+                                 PBVHNodeFlags leaf_flag = PBVH_Leaf);
+Vector<PBVHNode *> gather_proxies(PBVH *pbvh);
+
+}  // namespace blender::bke::pbvh
 #endif

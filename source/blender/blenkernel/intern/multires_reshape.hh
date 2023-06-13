@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -7,6 +8,9 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_offset_indices.hh"
+#include "BLI_span.hh"
 #include "BLI_sys_types.h"
 
 #include "BKE_multires.h"
@@ -14,10 +18,7 @@
 struct Depsgraph;
 struct GridPaintMask;
 struct MDisps;
-struct MEdge;
 struct Mesh;
-struct MLoop;
-struct MPoly;
 struct MultiresModifierData;
 struct Object;
 struct Subdiv;
@@ -34,9 +35,10 @@ struct MultiresReshapeContext {
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
   const float (*base_positions)[3];
-  const MEdge *base_edges;
-  const MPoly *base_polys;
-  const MLoop *base_loops;
+  blender::Span<blender::int2> base_edges;
+  blender::OffsetIndices<int> base_polys;
+  blender::Span<int> base_corner_verts;
+  blender::Span<int> base_corner_edges;
 
   /* Subdivision surface created for multires modifier.
    *

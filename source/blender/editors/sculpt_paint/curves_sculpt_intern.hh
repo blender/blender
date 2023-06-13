@@ -1,11 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 #include <optional>
 
-#include "curves_sculpt_intern.h"
-#include "paint_intern.h"
+#include "paint_intern.hh"
 
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
@@ -156,11 +157,11 @@ struct CurvesConstraintSolver {
 
  public:
   void initialize(const bke::CurvesGeometry &curves,
-                  const IndexMask curve_selection,
+                  const IndexMask &curve_selection,
                   const bool use_surface_collision);
 
   void solve_step(bke::CurvesGeometry &curves,
-                  const IndexMask curve_selection,
+                  const IndexMask &curve_selection,
                   const Mesh *surface,
                   const CurvesSurfaceTransforms &transforms);
 
@@ -171,3 +172,6 @@ struct CurvesConstraintSolver {
 };
 
 }  // namespace blender::ed::sculpt_paint
+
+bool CURVES_SCULPT_mode_poll(struct bContext *C);
+bool CURVES_SCULPT_mode_poll_view3d(struct bContext *C);

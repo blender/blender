@@ -46,8 +46,8 @@ void FEdgeXDetector::processShapes(WingedEdge &we)
 #endif
     if (_changes) {
       vector<WFace *> &wfaces = wxs->GetFaceList();
-      for (vector<WFace *>::iterator wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend;
-           ++wf) {
+      for (vector<WFace *>::iterator wf = wfaces.begin(), wfend = wfaces.end(); wf != wfend; ++wf)
+      {
         WXFace *wxf = dynamic_cast<WXFace *>(*wf);
         wxf->Clear();
       }
@@ -128,7 +128,8 @@ void FEdgeXDetector::preProcessShape(WXShape *iWShape)
   if (_computeRidgesAndValleys || _computeSuggestiveContours) {
     vector<WVertex *> &wvertices = iWShape->getVertexList();
     for (vector<WVertex *>::iterator wv = wvertices.begin(), wvend = wvertices.end(); wv != wvend;
-         ++wv) {
+         ++wv)
+    {
       // Compute curvatures
       WXVertex *wxv = dynamic_cast<WXVertex *>(*wv);
       computeCurvatures(wxv);
@@ -320,8 +321,8 @@ void FEdgeXDetector::ProcessSilhouetteEdge(WXEdge *iEdge)
   WXFace *fA = (WXFace *)iEdge->GetaOEdge()->GetaFace();
   WXFace *fB = (WXFace *)iEdge->GetaOEdge()->GetbFace();
 
-  if (fA->front() ^
-      fB->front()) {  // fA->visible XOR fB->visible (true if one is 0 and the other is 1)
+  /* fA->visible XOR fB->visible (true if one is 0 and the other is 1). */
+  if (fA->front() ^ fB->front()) {
     // The only edges we want to set as silhouette edges in this way are the ones with 2 different
     // normals for 1 vertex for these two faces
     //--------------------
@@ -695,7 +696,8 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   t = sc_edge->ta();
   if (t * kr_derivatives[iFace->GetIndex(sc_oedge->GetaVertex())] +
           (1 - t) * kr_derivatives[iFace->GetIndex(sc_oedge->GetbVertex())] <
-      _kr_derivative_epsilon) {
+      _kr_derivative_epsilon)
+  {
     sc_layer->removeSmoothEdge();
     return;
   }
@@ -703,7 +705,8 @@ void FEdgeXDetector::postProcessSuggestiveContourFace(WXFace *iFace)
   t = sc_edge->tb();
   if (t * kr_derivatives[iFace->GetIndex(sc_oedge->GetaVertex())] +
           (1 - t) * kr_derivatives[iFace->GetIndex(sc_oedge->GetbVertex())] <
-      _kr_derivative_epsilon) {
+      _kr_derivative_epsilon)
+  {
     sc_layer->removeSmoothEdge();
   }
 }
@@ -765,7 +768,8 @@ void FEdgeXDetector::buildSmoothEdges(WXShape *iShape)
     vector<WXFaceLayer *> &faceLayers = ((WXFace *)(*f))->getSmoothLayers();
     for (vector<WXFaceLayer *>::iterator wxfl = faceLayers.begin(), wxflend = faceLayers.end();
          wxfl != wxflend;
-         ++wxfl) {
+         ++wxfl)
+    {
       if ((*wxfl)->BuildSmoothEdge()) {
         hasSmoothEdges = true;
       }
@@ -775,7 +779,8 @@ void FEdgeXDetector::buildSmoothEdges(WXShape *iShape)
   if (hasSmoothEdges && !_computeRidgesAndValleys && !_computeSuggestiveContours) {
     vector<WVertex *> &wvertices = iShape->getVertexList();
     for (vector<WVertex *>::iterator wv = wvertices.begin(), wvend = wvertices.end(); wv != wvend;
-         ++wv) {
+         ++wv)
+    {
       // Compute curvatures
       WXVertex *wxv = dynamic_cast<WXVertex *>(*wv);
       computeCurvatures(wxv);

@@ -89,14 +89,9 @@ static PyObject *BinaryPredicate0D___call__(BPy_BinaryPredicate0D *self,
   static const char *kwlist[] = {"inter1", "inter2", nullptr};
   BPy_Interface0D *obj1, *obj2;
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kwds,
-                                   "O!O!",
-                                   (char **)kwlist,
-                                   &Interface0D_Type,
-                                   &obj1,
-                                   &Interface0D_Type,
-                                   &obj2)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O!O!", (char **)kwlist, &Interface0D_Type, &obj1, &Interface0D_Type, &obj2))
+  {
     return nullptr;
   }
   if (typeid(*(self->bp0D)) == typeid(BinaryPredicate0D)) {

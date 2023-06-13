@@ -22,7 +22,7 @@ apps:
         command: ./blender-wrapper
         desktop: ./blender.desktop
 
-base: core18
+base: core20
 version: '@VERSION@'
 grade: @GRADE@
 

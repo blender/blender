@@ -30,6 +30,38 @@ class Shader;
 class Volume;
 struct PackedBVH;
 
+/* Set of flags used to help determining what data has been modified or needs reallocation, so we
+ * can decide which device data to free or update. */
+enum {
+  DEVICE_CURVE_DATA_MODIFIED = (1 << 0),
+  DEVICE_MESH_DATA_MODIFIED = (1 << 1),
+  DEVICE_POINT_DATA_MODIFIED = (1 << 2),
+
+  ATTR_FLOAT_MODIFIED = (1 << 3),
+  ATTR_FLOAT2_MODIFIED = (1 << 4),
+  ATTR_FLOAT3_MODIFIED = (1 << 5),
+  ATTR_FLOAT4_MODIFIED = (1 << 6),
+  ATTR_UCHAR4_MODIFIED = (1 << 7),
+
+  CURVE_DATA_NEED_REALLOC = (1 << 8),
+  MESH_DATA_NEED_REALLOC = (1 << 9),
+  POINT_DATA_NEED_REALLOC = (1 << 10),
+
+  ATTR_FLOAT_NEEDS_REALLOC = (1 << 11),
+  ATTR_FLOAT2_NEEDS_REALLOC = (1 << 12),
+  ATTR_FLOAT3_NEEDS_REALLOC = (1 << 13),
+  ATTR_FLOAT4_NEEDS_REALLOC = (1 << 14),
+
+  ATTR_UCHAR4_NEEDS_REALLOC = (1 << 15),
+
+  ATTRS_NEED_REALLOC = (ATTR_FLOAT_NEEDS_REALLOC | ATTR_FLOAT2_NEEDS_REALLOC |
+                        ATTR_FLOAT3_NEEDS_REALLOC | ATTR_FLOAT4_NEEDS_REALLOC |
+                        ATTR_UCHAR4_NEEDS_REALLOC),
+  DEVICE_MESH_DATA_NEEDS_REALLOC = (MESH_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_POINT_DATA_NEEDS_REALLOC = (POINT_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+  DEVICE_CURVE_DATA_NEEDS_REALLOC = (CURVE_DATA_NEED_REALLOC | ATTRS_NEED_REALLOC),
+};
+
 /* Geometry
  *
  * Base class for geometric types like Mesh and Hair. */

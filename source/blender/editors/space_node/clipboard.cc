@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_space_types.h"
 
@@ -6,7 +8,7 @@
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
@@ -15,6 +17,8 @@
 #include "ED_node.hh"
 #include "ED_render.h"
 #include "ED_screen.h"
+
+#include "NOD_socket.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -167,7 +171,7 @@ static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 void NODE_OT_clipboard_copy(wmOperatorType *ot)
 {
   ot->name = "Copy to Clipboard";
-  ot->description = "Copies selected nodes to the clipboard";
+  ot->description = "Copy the selected nodes to the internal clipboard";
   ot->idname = "NODE_OT_clipboard_copy";
 
   ot->exec = node_clipboard_copy_exec;
@@ -182,6 +186,33 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 /** \name Paste
  * \{ */
 
+static void remap_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &node_map)
+{
+  /* We don't have the old tree for looking up output nodes by ID,
+   * so we have to build a map first to find copied output nodes in the new tree. */
+  Map<int32_t, bNode *> dst_output_node_map;
+  for (const auto &item : node_map.items()) {
+    if (item.key->type == GEO_NODE_SIMULATION_OUTPUT) {
+      dst_output_node_map.add_new(item.key->identifier, item.value);
+    }
+  }
+
+  for (bNode *dst_node : node_map.values()) {
+    if (dst_node->type == GEO_NODE_SIMULATION_INPUT) {
+      NodeGeometrySimulationInput &data = *static_cast<NodeGeometrySimulationInput *>(
+          dst_node->storage);
+      if (const bNode *output_node = dst_output_node_map.lookup_default(data.output_node_id,
+                                                                        nullptr)) {
+        data.output_node_id = output_node->identifier;
+      }
+      else {
+        data.output_node_id = 0;
+        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+      }
+    }
+  }
+}
+
 static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -191,7 +222,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   const bool is_valid = clipboard.validate();
 
   if (clipboard.nodes.is_empty()) {
-    BKE_report(op->reports, RPT_ERROR, "Clipboard is empty");
+    BKE_report(op->reports, RPT_ERROR, "The internal clipboard is empty");
     return OPERATOR_CANCELLED;
   }
 
@@ -212,10 +243,17 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   for (NodeClipboardItem &item : clipboard.nodes) {
     const bNode &node = *item.node;
     const char *disabled_hint = nullptr;
-    if (node.typeinfo->poll_instance &&
-        node.typeinfo->poll_instance(&node, &tree, &disabled_hint)) {
+    if (node.typeinfo->poll_instance && node.typeinfo->poll_instance(&node, &tree, &disabled_hint))
+    {
       bNode *new_node = bke::node_copy_with_mapping(
           &tree, node, LIB_ID_COPY_DEFAULT, true, socket_map);
+      /* Reset socket shape in case a node is copied to a different tree type. */
+      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->inputs) {
+        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+      }
+      LISTBASE_FOREACH (bNodeSocket *, socket, &new_node->outputs) {
+        socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+      }
       node_map.add_new(&node, new_node);
     }
     else {
@@ -260,11 +298,14 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
 
     float2 mouse_location;
     RNA_property_float_get_array(op->ptr, offset_prop, mouse_location);
-    const float2 offset = (mouse_location - center) / UI_DPI_FAC;
+    const float2 offset = (mouse_location - center) / UI_SCALE_FAC;
 
     for (bNode *new_node : node_map.values()) {
-      new_node->locx += offset.x;
-      new_node->locy += offset.y;
+      /* Skip the offset for parented nodes since the location is in parent space. */
+      if (new_node->parent == nullptr) {
+        new_node->locx += offset.x;
+        new_node->locy += offset.y;
+      }
     }
   }
 
@@ -281,6 +322,12 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
       new_link->multi_input_socket_index = link.multi_input_socket_index;
     }
   }
+
+  for (bNode *new_node : node_map.values()) {
+    bke::nodeDeclarationEnsure(&tree, new_node);
+  }
+
+  remap_pairing(tree, node_map);
 
   tree.ensure_topology_cache();
   for (bNode *new_node : node_map.values()) {
@@ -308,7 +355,7 @@ static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEven
 void NODE_OT_clipboard_paste(wmOperatorType *ot)
 {
   ot->name = "Paste from Clipboard";
-  ot->description = "Pastes nodes from the clipboard to the active node tree";
+  ot->description = "Paste nodes from the internal clipboard to the active node tree";
   ot->idname = "NODE_OT_clipboard_paste";
 
   ot->invoke = node_clipboard_paste_invoke;

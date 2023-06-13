@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -127,7 +128,8 @@ static int edbm_screw_exec(bContext *C, wmOperator *op)
             turns * steps,
             DEG2RADF(360.0f * turns),
             obedit->object_to_world,
-            false)) {
+            false))
+    {
       continue;
     }
 

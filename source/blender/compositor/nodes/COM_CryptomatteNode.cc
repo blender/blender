@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_node.h"
+#include "BKE_node.hh"
 
 #include "NOD_composite.h"
 
@@ -171,7 +172,8 @@ void CryptomatteNode::input_operations_from_image_source(
     int layer_index;
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       if (!blender::StringRef(prefix).startswith(blender::StringRef(
-              render_layer->name, BLI_strnlen(render_layer->name, sizeof(render_layer->name))))) {
+              render_layer->name, BLI_strnlen(render_layer->name, sizeof(render_layer->name)))))
+      {
         continue;
       }
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {

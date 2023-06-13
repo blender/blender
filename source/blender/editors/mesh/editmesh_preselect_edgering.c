@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -305,7 +307,8 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
 #else
       BM_edge_share_quad_check(eed_last, eed_start)
 #endif
-  ) {
+  )
+  {
     v[1][0] = v[0][0];
     v[1][1] = v[0][1];
 

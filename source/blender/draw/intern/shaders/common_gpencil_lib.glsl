@@ -178,6 +178,13 @@ vec4 gpencil_vertex(vec4 viewport_size,
   vec4 out_ndc;
 
   if (gpencil_is_stroke_vertex()) {
+    bool show_stroke = flag_test(material_flags, GP_SHOW_STROKE);
+    if (!show_stroke) {
+      /* We set the vertex at the camera origin to generate 0 fragments. */
+      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
+      return out_ndc;
+    }
+
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
     bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
@@ -316,7 +323,8 @@ vec4 gpencil_vertex(vec4 viewport_size,
 
       /* Reminder: we packed the cap flag into the sign of strength and thickness sign. */
       if ((is_stroke_start && strength1 > 0.0) || (is_stroke_end && thickness1 > 0.0) ||
-          (miter_break && !is_stroke_start && !is_stroke_end)) {
+          (miter_break && !is_stroke_start && !is_stroke_end))
+      {
         screen_ofs += line * x;
       }
 
@@ -329,6 +337,14 @@ vec4 gpencil_vertex(vec4 viewport_size,
   }
   else {
     /* Fill vertex. */
+
+    bool show_fill = flag_test(material_flags, GP_SHOW_FILL);
+    if (!show_fill) {
+      /* We set the vertex at the camera origin to generate 0 fragments. */
+      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
+      return out_ndc;
+    }
+
     out_P = transform_point(ModelMatrix, pos1.xyz);
     out_ndc = point_world_to_ndc(out_P);
     out_uv = uv1.xy;

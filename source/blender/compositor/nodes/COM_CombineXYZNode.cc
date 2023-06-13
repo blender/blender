@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_CombineXYZNode.h"
 
@@ -7,9 +8,7 @@
 
 namespace blender::compositor {
 
-CombineXYZNode::CombineXYZNode(bNode *editor_node) : Node(editor_node)
-{
-}
+CombineXYZNode::CombineXYZNode(bNode *editor_node) : Node(editor_node) {}
 
 void CombineXYZNode::convert_to_operations(NodeConverter &converter,
                                            const CompositorContext & /*context*/) const

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blf
@@ -70,7 +71,8 @@ static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size
     if (gc->size == size && (gc->bold == ((font->flags & BLF_BOLD) != 0)) &&
         (gc->italic == ((font->flags & BLF_ITALIC) != 0)) &&
         (gc->char_weight == font->char_weight) && (gc->char_slant == font->char_slant) &&
-        (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing)) {
+        (gc->char_width == font->char_width) && (gc->char_spacing == font->char_spacing))
+    {
       return gc;
     }
     gc = gc->next;
@@ -286,7 +288,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
  *
  * This table can be used to find a coverage bit based on a charcode.
  * Later we can get default language and script from `codepoint`.
- */
+ * \{ */
 
 struct UnicodeBlock {
   uint first;
@@ -631,20 +633,55 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return 0;
   }
 
-  /* Not found in main font, so look in the others. */
-  FontBLF *last_resort = NULL;
+  /* First look in currently-loaded cached fonts that match the coverage bit. Super fast. */
   int coverage_bit = blf_charcode_to_coverage_bit(charcode);
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *f = global_font[i];
+    if (!f || f == *font || !(f->face) || !(f->flags & BLF_DEFAULT) ||
+        (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
+        f->flags & BLF_LAST_RESORT)
+    {
+      continue;
+    }
+    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+      glyph_index = blf_get_char_index(f, charcode);
+      if (glyph_index) {
+        *font = f;
+        return glyph_index;
+      }
+    }
+  }
+
+  /* Next look only in unloaded fonts that match the coverage bit. */
+  for (int i = 0; i < BLF_MAX_FONT; i++) {
+    FontBLF *f = global_font[i];
+    if (!f || f == *font || (f->face) || !(f->flags & BLF_DEFAULT) ||
+        (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
+        f->flags & BLF_LAST_RESORT)
+    {
+      continue;
+    }
+    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+      glyph_index = blf_get_char_index(f, charcode);
+      if (glyph_index) {
+        *font = f;
+        return glyph_index;
+      }
+    }
+  }
+
+  /* Last look in anything else. Also check if we have a last-resort font. */
+  FontBLF *last_resort = NULL;
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
     if (!f || f == *font || !(f->flags & BLF_DEFAULT)) {
       continue;
     }
-
     if (f->flags & BLF_LAST_RESORT) {
       last_resort = f;
       continue;
     }
-    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
+    if (coverage_bit >= 0 && !blf_font_has_coverage_bit(f, coverage_bit)) {
       glyph_index = blf_get_char_index(f, charcode);
       if (glyph_index) {
         *font = f;
@@ -1199,7 +1236,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
-      gc->texture = GPU_texture_create_2d_ex(
+      gc->texture = GPU_texture_create_2d(
           __func__, w, h, 1, GPU_R8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
 
       gc->bitmap_len_landed = 0;
@@ -1212,10 +1249,20 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
   }
 
   if (font->flags & BLF_CLIPPING) {
-    rcti rect_test;
-    blf_glyph_calc_rect_test(&rect_test, g, x, y);
-    BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
+    float xa, ya;
 
+    if (font->flags & BLF_ASPECT) {
+      xa = font->aspect[0];
+      ya = font->aspect[1];
+    }
+    else {
+      xa = 1.0f;
+      ya = 1.0f;
+    }
+
+    rcti rect_test;
+    blf_glyph_calc_rect_test(&rect_test, g, (int)((float)x * xa), (int)((float)y * ya));
+    BLI_rcti_translate(&rect_test, font->pos[0], font->pos[1]);
     if (!BLI_rcti_inside_rcti(&font->clip_rec, &rect_test)) {
       return;
     }

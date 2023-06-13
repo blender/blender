@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -81,7 +82,8 @@ void Manager::sync_layer_attributes()
 
   for (uint32_t id : id_list) {
     if (layer_attributes_buf[count].sync(
-            DST.draw_ctx.scene, DST.draw_ctx.view_layer, layer_attributes.lookup(id))) {
+            DST.draw_ctx.scene, DST.draw_ctx.view_layer, layer_attributes.lookup(id)))
+    {
       /* Check if the buffer is full. */
       if (++count == size) {
         break;
@@ -186,7 +188,8 @@ void Manager::submit(PassMain &pass, View &view)
                                pass.commands_,
                                view.get_visibility_buffer(),
                                view.visibility_word_per_draw(),
-                               view.view_len_);
+                               view.view_len_,
+                               pass.use_custom_ids);
 
   resource_bind();
 
@@ -235,7 +238,7 @@ Manager::SubmitDebugOutput Manager::submit_debug(PassMain &pass, View &view)
 {
   submit(pass, view);
 
-  GPU_finish();
+  GPU_memory_barrier(GPU_BARRIER_BUFFER_UPDATE);
 
   pass.draw_commands_buf_.resource_id_buf_.read();
   view.get_visibility_buffer().read();

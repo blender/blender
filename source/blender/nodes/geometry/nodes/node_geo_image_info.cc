@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_image.h"
 
@@ -17,21 +19,19 @@ namespace blender::nodes::node_geo_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Image>(N_("Image")).hide_label();
-  b.add_input<decl::Int>(N_("Frame"))
-      .min(0)
-      .description(N_("Which frame to use for videos. Note that different frames in videos can "
-                      "have different resolutions"));
+  b.add_input<decl::Image>("Image").hide_label();
+  b.add_input<decl::Int>("Frame").min(0).description(
+      "Which frame to use for videos. Note that different frames in videos can "
+      "have different resolutions");
 
-  b.add_output<decl::Int>(N_("Width"));
-  b.add_output<decl::Int>(N_("Height"));
-  b.add_output<decl::Bool>(N_("Has Alpha"))
-      .description(N_("Whether the image has an alpha channel"));
+  b.add_output<decl::Int>("Width");
+  b.add_output<decl::Int>("Height");
+  b.add_output<decl::Bool>("Has Alpha").description("Whether the image has an alpha channel");
 
-  b.add_output<decl::Int>(N_("Frame Count"))
-      .description(N_("The number of animation frames. If a single image, then 1"));
-  b.add_output<decl::Float>(N_("FPS")).description(
-      N_("Animation playback speed in frames per second. If a single image, then 0"));
+  b.add_output<decl::Int>("Frame Count")
+      .description("The number of animation frames. If a single image, then 1");
+  b.add_output<decl::Float>("FPS").description(
+      "Animation playback speed in frames per second. If a single image, then 0");
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -90,6 +90,6 @@ void register_node_type_geo_image_info()
   geo_node_type_base(&ntype, GEO_NODE_IMAGE_INFO, "Image Info", NODE_CLASS_INPUT);
   ntype.declare = file_ns::node_declare;
   ntype.geometry_node_execute = file_ns::node_geo_exec;
-  node_type_size_preset(&ntype, NODE_SIZE_LARGE);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::LARGE);
   nodeRegisterType(&ntype);
 }

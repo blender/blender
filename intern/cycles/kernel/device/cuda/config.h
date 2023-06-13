@@ -91,6 +91,7 @@
 #define ccl_gpu_kernel_postfix
 
 #define ccl_gpu_kernel_call(x) x
+#define ccl_gpu_kernel_within_bounds(i, n) ((i) < (n))
 
 /* Define a function object where "func" is the lambda body, and additional parameters are used to
  * specify captured state  */

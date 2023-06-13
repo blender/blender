@@ -3,14 +3,12 @@
 
 #include <Cocoa/Cocoa.h>
 
-#include "GHOST_Debug.h"
-#include "GHOST_DisplayManagerCocoa.h"
+#include "GHOST_Debug.hh"
+#include "GHOST_DisplayManagerCocoa.hh"
 
 // We do not support multiple monitors at the moment
 
-GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void)
-{
-}
+GHOST_DisplayManagerCocoa::GHOST_DisplayManagerCocoa(void) {}
 
 GHOST_TSuccess GHOST_DisplayManagerCocoa::getNumDisplays(uint8_t &numDisplays) const
 {

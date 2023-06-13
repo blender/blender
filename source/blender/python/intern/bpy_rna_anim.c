@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -199,7 +201,8 @@ static int pyrna_struct_anim_args_parse_no_resolve_fallback(PointerRNA *ptr,
 {
   bool path_unresolved = false;
   if (pyrna_struct_anim_args_parse_ex(
-          ptr, error_prefix, path, r_path_full, r_index, &path_unresolved) == -1) {
+          ptr, error_prefix, path, r_path_full, r_index, &path_unresolved) == -1)
+  {
     if (path_unresolved == true) {
       if (pyrna_struct_anim_args_parse_no_resolve(ptr, error_prefix, path, r_path_full) == -1) {
         return -1;
@@ -239,7 +242,8 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
                                    r_cfra,
                                    r_group_name,
                                    &PySet_Type,
-                                   &pyoptions)) {
+                                   &pyoptions))
+  {
     return -1;
   }
 
@@ -255,7 +259,8 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
   if (r_options) {
     if (pyoptions &&
         (pyrna_enum_bitfield_from_set(
-             rna_enum_keying_flag_items_api, pyoptions, r_options, error_prefix) == -1)) {
+             rna_enum_keying_flag_items_api, pyoptions, r_options, error_prefix) == -1))
+    {
       return -1;
     }
 
@@ -319,7 +324,8 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
                                   &index,
                                   &cfra,
                                   &group_name,
-                                  &options) == -1) {
+                                  &options) == -1)
+  {
     return NULL;
   }
 
@@ -434,7 +440,8 @@ PyObject *pyrna_struct_keyframe_delete(BPy_StructRNA *self, PyObject *args, PyOb
                                   &index,
                                   &cfra,
                                   &group_name,
-                                  NULL) == -1) {
+                                  NULL) == -1)
+  {
     return NULL;
   }
 
@@ -536,7 +543,8 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
   }
 
   if (pyrna_struct_anim_args_parse(
-          &self->ptr, "bpy_struct.driver_add():", path, &path_full, &index) == -1) {
+          &self->ptr, "bpy_struct.driver_add():", path, &path_full, &index) == -1)
+  {
     return NULL;
   }
 
@@ -618,7 +626,8 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
   }
 
   if (pyrna_struct_anim_args_parse_no_resolve_fallback(
-          &self->ptr, "bpy_struct.driver_remove():", path, &path_full, &index) == -1) {
+          &self->ptr, "bpy_struct.driver_remove():", path, &path_full, &index) == -1)
+  {
     return NULL;
   }
 

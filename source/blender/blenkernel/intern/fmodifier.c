@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1109,6 +1110,9 @@ FModifier *add_fmodifier(ListBase *modifiers, int type, FCurve *owner_fcu)
   fcm->influence = 1.0f;
   BLI_addtail(modifiers, fcm);
 
+  /* Set modifier name and make sure it is unique. */
+  BKE_fmodifier_name_set(fcm, "");
+
   /* tag modifier as "active" if no other modifiers exist in the stack yet */
   if (BLI_listbase_is_single(modifiers)) {
     fcm->flag |= FMODIFIER_FLAG_ACTIVE;
@@ -1426,7 +1430,8 @@ float evaluate_time_fmodifiers(FModifiersStackStorage *storage,
      * (whatever scale it is on, it won't affect the results)
      * hence we shouldn't bother seeing what it would do given the chance. */
     if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
+        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)))
+    {
       /* only evaluate if there's a callback for this */
       if (fmi->evaluate_modifier_time) {
         if ((fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) == 0) {
@@ -1475,7 +1480,8 @@ void evaluate_value_fmodifiers(FModifiersStackStorage *storage,
     /* Only evaluate if there's a callback for this,
      * and if F-Modifier can be evaluated on this frame. */
     if ((fcm->flag & FMODIFIER_FLAG_RANGERESTRICT) == 0 ||
-        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime))) {
+        ((fcm->sfra <= evaltime) && (fcm->efra >= evaltime)))
+    {
       if (fmi->evaluate_modifier) {
         if ((fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) == 0) {
           void *storage_ptr = POINTER_OFFSET(storage->buffer,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurves
@@ -8,8 +10,10 @@
 
 #include "BKE_context.h"
 #include "BKE_curves.hh"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+
+#include "BLT_translation.h"
 
 #include "ED_curves.h"
 #include "ED_node.h"
@@ -23,15 +27,13 @@ namespace blender::ed::curves {
 
 static bool has_surface_deformation_node(const bNodeTree &ntree)
 {
-  LISTBASE_FOREACH (const bNode *, node, &ntree.nodes) {
-    if (node->type == GEO_NODE_DEFORM_CURVES_ON_SURFACE) {
-      return true;
-    }
-    if (node->type == NODE_GROUP) {
-      if (node->id != nullptr) {
-        if (has_surface_deformation_node(*reinterpret_cast<const bNodeTree *>(node->id))) {
-          return true;
-        }
+  if (!ntree.nodes_by_type("GeometryNodeDeformCurvesOnSurface").is_empty()) {
+    return true;
+  }
+  for (const bNode *node : ntree.group_nodes()) {
+    if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+      if (has_surface_deformation_node(*sub_tree)) {
+        return true;
       }
     }
   }
@@ -65,9 +67,9 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
   Scene *scene = CTX_data_scene(&C);
 
   ModifierData *md = ED_object_modifier_add(
-      nullptr, bmain, scene, &curves_ob, "Surface Deform", eModifierType_Nodes);
+      nullptr, bmain, scene, &curves_ob, DATA_("Surface Deform"), eModifierType_Nodes);
   NodesModifierData &nmd = *reinterpret_cast<NodesModifierData *>(md);
-  nmd.node_group = ntreeAddTree(bmain, "Surface Deform", "GeometryNodeTree");
+  nmd.node_group = ntreeAddTree(bmain, DATA_("Surface Deform"), "GeometryNodeTree");
 
   bNodeTree *ntree = nmd.node_group;
   ntreeAddSocketInterface(ntree, SOCK_IN, "NodeSocketGeometry", "Geometry");

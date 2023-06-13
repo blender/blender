@@ -5,13 +5,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-BlenderOutputDriver::BlenderOutputDriver(BL::RenderEngine &b_engine) : b_engine_(b_engine)
-{
-}
+BlenderOutputDriver::BlenderOutputDriver(BL::RenderEngine &b_engine) : b_engine_(b_engine) {}
 
-BlenderOutputDriver::~BlenderOutputDriver()
-{
-}
+BlenderOutputDriver::~BlenderOutputDriver() {}
 
 bool BlenderOutputDriver::read_render_tile(const Tile &tile)
 {

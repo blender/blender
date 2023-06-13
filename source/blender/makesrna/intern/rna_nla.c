@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -23,7 +25,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-/* enum defines exported for rna_animation.c */
+/* Enum defines exported for `rna_animation.c`. */
+
 const EnumPropertyItem rna_enum_nla_mode_blend_items[] = {
     {NLASTRIP_MODE_REPLACE,
      "REPLACE",
@@ -88,7 +91,7 @@ static void rna_NlaStrip_name_set(PointerRNA *ptr, const char *value)
   NlaStrip *data = (NlaStrip *)ptr->data;
 
   /* copy the name first */
-  BLI_strncpy_utf8(data->name, value, sizeof(data->name));
+  STRNCPY_UTF8(data->name, value);
 
   /* validate if there's enough info to do so */
   if (ptr->owner_id) {
@@ -738,11 +741,38 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Start Frame", "");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+  /* The `frame_start` and `frame_end` properties should NOT be considered for library overrides,
+   * as their setters always enforce a valid state. While library overrides are applied, the
+   * intermediate state may be invalid, even when the end state is valid. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   prop = RNA_def_property(srna, "frame_end", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "end");
   RNA_def_property_float_funcs(prop, NULL, "rna_NlaStrip_end_frame_set", NULL);
   RNA_def_property_ui_text(prop, "End Frame", "");
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+  /* The `frame_start` and `frame_end` properties should NOT be considered for library overrides,
+   * as their setters always enforce a valid state. While library overrides are applied, the
+   * intermediate state may be invalid, even when the end state is valid. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+
+  /* Strip extents without enforcing a valid state. */
+  prop = RNA_def_property(srna, "frame_start_raw", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "start");
+  RNA_def_property_ui_text(prop,
+                           "Start Frame (raw value)",
+                           "Same as frame_start, except that any value can be set, including ones "
+                           "that create an invalid state");
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+
+  prop = RNA_def_property(srna, "frame_end_raw", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_float_sdna(prop, NULL, "end");
+  RNA_def_property_ui_text(prop,
+                           "End Frame (raw value)",
+                           "Same as frame_end, except that any value can be set, including ones "
+                           "that create an invalid state");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
 
@@ -758,6 +788,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
       "property instead");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+  /* The `..._ui` properties should NOT be considered for library overrides, as they are meant to
+   * have different behavior than when setting their non-`..._ui` counterparts. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   prop = RNA_def_property(srna, "frame_end_ui", PROP_FLOAT, PROP_TIME);
   RNA_def_property_float_sdna(prop, NULL, "end");
@@ -770,6 +803,9 @@ static void rna_def_nlastrip(BlenderRNA *brna)
       "changed, see the \"frame_end\" property instead");
   RNA_def_property_update(
       prop, NC_ANIMATION | ND_NLA | NA_EDITED, "rna_NlaStrip_transform_update");
+  /* The `..._ui` properties should NOT be considered for library overrides, as they are meant to
+   * have different behavior than when setting their non-`..._ui` counterparts. */
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   /* Blending */
   prop = RNA_def_property(srna, "blend_in", PROP_FLOAT, PROP_NONE);

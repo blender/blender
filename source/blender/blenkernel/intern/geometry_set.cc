@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_bounds.hh"
 #include "BLI_map.hh"
@@ -11,7 +13,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcloud.h"
@@ -39,11 +41,9 @@ using blender::bke::Instances;
 /** \name Geometry Component
  * \{ */
 
-GeometryComponent::GeometryComponent(GeometryComponentType type) : type_(type)
-{
-}
+GeometryComponent::GeometryComponent(GeometryComponentType type) : type_(type) {}
 
-GeometryComponent *GeometryComponent::create(GeometryComponentType component_type)
+GeometryComponentPtr GeometryComponent::create(GeometryComponentType component_type)
 {
   switch (component_type) {
     case GEO_COMPONENT_TYPE_MESH:
@@ -60,7 +60,7 @@ GeometryComponent *GeometryComponent::create(GeometryComponentType component_typ
       return new GeometryComponentEditData();
   }
   BLI_assert_unreachable();
-  return nullptr;
+  return {};
 }
 
 int GeometryComponent::attribute_domain_size(const eAttrDomain domain) const
@@ -84,26 +84,6 @@ std::optional<blender::bke::MutableAttributeAccessor> GeometryComponent::attribu
   return std::nullopt;
 }
 
-void GeometryComponent::user_add() const
-{
-  users_.fetch_add(1);
-}
-
-void GeometryComponent::user_remove() const
-{
-  const int new_users = users_.fetch_sub(1) - 1;
-  if (new_users == 0) {
-    delete this;
-  }
-}
-
-bool GeometryComponent::is_mutable() const
-{
-  /* If the item is shared, it is read-only. */
-  /* The user count can be 0, when this is called from the destructor. */
-  return users_ <= 1;
-}
-
 GeometryComponentType GeometryComponent::type() const
 {
   return type_;
@@ -112,6 +92,16 @@ GeometryComponentType GeometryComponent::type() const
 bool GeometryComponent::is_empty() const
 {
   return false;
+}
+
+void GeometryComponent::delete_self()
+{
+  delete this;
+}
+
+void GeometryComponent::delete_data_only()
+{
+  this->clear();
 }
 
 /** \} */
@@ -137,6 +127,7 @@ GeometryComponent &GeometrySet::get_component_for_write(GeometryComponentType co
   }
   if (component_ptr->is_mutable()) {
     /* If the referenced component is already mutable, return it directly. */
+    component_ptr->tag_ensured_mutable();
     return *component_ptr;
   }
   /* If the referenced component is shared, make a copy. The copy is not shared and is
@@ -198,7 +189,7 @@ void GeometrySet::remove_geometry_during_modify()
 void GeometrySet::add(const GeometryComponent &component)
 {
   BLI_assert(!components_[component.type()]);
-  component.user_add();
+  component.add_user();
   components_[component.type()] = const_cast<GeometryComponent *>(&component);
 }
 
@@ -290,6 +281,14 @@ void GeometrySet::ensure_owns_direct_data()
     GeometryComponent &component_for_write = this->get_component_for_write(component_ptr->type());
     component_for_write.ensure_owns_direct_data();
   }
+}
+
+void GeometrySet::ensure_owns_all_data()
+{
+  if (Instances *instances = this->get_instances_for_write()) {
+    instances->ensure_geometry_instances();
+  }
+  this->ensure_owns_direct_data();
 }
 
 bool GeometrySet::owns_direct_data() const
@@ -588,7 +587,7 @@ void GeometrySet::gather_attributes_for_propagation(
   using namespace blender::bke;
   /* Only needed right now to check if an attribute is built-in on this component type.
    * TODO: Get rid of the dummy component. */
-  const GeometryComponent *dummy_component = GeometryComponent::create(dst_component_type);
+  const GeometryComponentPtr dummy_component = GeometryComponent::create(dst_component_type);
   this->attribute_foreach(
       component_types,
       include_instances,
@@ -628,7 +627,6 @@ void GeometrySet::gather_attributes_for_propagation(
         };
         r_attributes.add_or_modify(attribute_id, add_info, modify_info);
       });
-  delete dummy_component;
 }
 
 static void gather_component_types_recursive(const GeometrySet &geometry_set,

@@ -95,8 +95,7 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
      */
     static const int w = 1;
 
-    if (*((const uint8_t *)&w)) /* dynamic little-endian */
-    {
+    if (*((const uint8_t *)&w)) /* dynamic little-endian */ {
       /*
        * On little-endian machines, we can process properly aligned
        * data without copying it.
@@ -249,9 +248,7 @@ MD5Hash::MD5Hash()
   abcd[3] = 0x10325476;
 }
 
-MD5Hash::~MD5Hash()
-{
-}
+MD5Hash::~MD5Hash() {}
 
 void MD5Hash::append(const uint8_t *data, int nbytes)
 {

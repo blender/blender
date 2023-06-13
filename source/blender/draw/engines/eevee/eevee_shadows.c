@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup EEVEE
@@ -67,7 +68,8 @@ void EEVEE_shadows_init(EEVEE_ViewLayerData *sldata)
   }
 
   if ((linfo->shadow_cascade_size != sh_cascade_size) ||
-      (linfo->shadow_high_bitdepth != sh_high_bitdepth)) {
+      (linfo->shadow_high_bitdepth != sh_high_bitdepth))
+  {
     BLI_assert((sh_cascade_size > 0) && (sh_cascade_size <= 4096));
     DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_pool);
     CLAMP(sh_cascade_size, 1, 4096);
@@ -213,22 +215,26 @@ void EEVEE_shadows_update(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
     linfo->cache_num_cascade_layer = linfo->num_cascade_layer;
   }
 
+  eGPUTextureUsage shadow_usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ;
   if (!sldata->shadow_cube_pool) {
-    sldata->shadow_cube_pool = DRW_texture_create_2d_array(linfo->shadow_cube_size,
-                                                           linfo->shadow_cube_size,
-                                                           max_ii(1, linfo->num_cube_layer * 6),
-                                                           shadow_pool_format,
-                                                           DRW_TEX_FILTER | DRW_TEX_COMPARE,
-                                                           NULL);
+    sldata->shadow_cube_pool = DRW_texture_create_2d_array_ex(linfo->shadow_cube_size,
+                                                              linfo->shadow_cube_size,
+                                                              max_ii(1, linfo->num_cube_layer * 6),
+                                                              shadow_pool_format,
+                                                              shadow_usage,
+                                                              DRW_TEX_FILTER | DRW_TEX_COMPARE,
+                                                              NULL);
   }
 
   if (!sldata->shadow_cascade_pool) {
-    sldata->shadow_cascade_pool = DRW_texture_create_2d_array(linfo->shadow_cascade_size,
-                                                              linfo->shadow_cascade_size,
-                                                              max_ii(1, linfo->num_cascade_layer),
-                                                              shadow_pool_format,
-                                                              DRW_TEX_FILTER | DRW_TEX_COMPARE,
-                                                              NULL);
+    sldata->shadow_cascade_pool = DRW_texture_create_2d_array_ex(
+        linfo->shadow_cascade_size,
+        linfo->shadow_cascade_size,
+        max_ii(1, linfo->num_cascade_layer),
+        shadow_pool_format,
+        shadow_usage,
+        DRW_TEX_FILTER | DRW_TEX_COMPARE,
+        NULL);
   }
 
   if (sldata->shadow_fb == NULL) {

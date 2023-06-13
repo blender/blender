@@ -20,9 +20,7 @@
  */
 class VirtualMemoryAllocator {
  public:
-  virtual ~VirtualMemoryAllocator()
-  {
-  }
+  virtual ~VirtualMemoryAllocator() {}
 
   virtual void *allocate() = 0;
   virtual void deallocate(void *obj) = 0;

@@ -32,9 +32,7 @@ SceneLock::SceneLock(const HdRenderParam *renderParam)
 {
 }
 
-SceneLock::~SceneLock()
-{
-}
+SceneLock::~SceneLock() {}
 
 HdCyclesSession::HdCyclesSession(Session *session_, const bool keep_nodes)
     : session(session_), keep_nodes(true), _ownCyclesSession(false)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -50,21 +51,21 @@ typedef struct EXTERNAL_Storage {
 } EXTERNAL_Storage;
 
 typedef struct EXTERNAL_StorageList {
-  struct EXTERNAL_Storage *storage;
+  EXTERNAL_Storage *storage;
   struct EXTERNAL_PrivateData *g_data;
 } EXTERNAL_StorageList;
 
 typedef struct EXTERNAL_FramebufferList {
-  struct GPUFrameBuffer *depth_buffer_fb;
+  GPUFrameBuffer *depth_buffer_fb;
 } EXTERNAL_FramebufferList;
 
 typedef struct EXTERNAL_TextureList {
   /* default */
-  struct GPUTexture *depth_buffer_tx;
+  GPUTexture *depth_buffer_tx;
 } EXTERNAL_TextureList;
 
 typedef struct EXTERNAL_PassList {
-  struct DRWPass *depth_pass;
+  DRWPass *depth_pass;
 } EXTERNAL_PassList;
 
 typedef struct EXTERNAL_Data {
@@ -82,7 +83,7 @@ typedef struct EXTERNAL_Data {
 
 static struct {
   /* Depth Pre Pass */
-  struct GPUShader *depth_sh;
+  GPUShader *depth_sh;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct EXTERNAL_PrivateData {
@@ -191,11 +192,12 @@ static void external_cache_populate(void *vedata, Object *ob)
   }
 
   if (!(DRW_object_is_renderable(ob) &&
-        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
+        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF))
+  {
     return;
   }
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* Grease Pencil objects need correct depth to do the blending. */
     stl->g_data->need_depth = true;
     return;
@@ -214,21 +216,19 @@ static void external_cache_populate(void *vedata, Object *ob)
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
       if (draw_as == PART_DRAW_PATH) {
-        struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
+        GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
         DRW_shgroup_call(stl->g_data->depth_shgrp, hairs, NULL);
       }
     }
   }
-  struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
+  GPUBatch *geom = DRW_cache_object_surface_get(ob);
   if (geom) {
-    /* Depth Prepass */
+    /* Depth Pre-pass. */
     DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob);
   }
 }
 
-static void external_cache_finish(void *UNUSED(vedata))
-{
-}
+static void external_cache_finish(void *UNUSED(vedata)) {}
 
 static void external_draw_scene_do_v3d(void *vedata)
 {
@@ -272,7 +272,7 @@ static void external_draw_scene_do_v3d(void *vedata)
   /* Set render info. */
   EXTERNAL_Data *data = vedata;
   if (rv3d->render_engine->text[0] != '\0') {
-    BLI_strncpy(data->info, rv3d->render_engine->text, sizeof(data->info));
+    STRNCPY(data->info, rv3d->render_engine->text);
   }
   else {
     data->info[0] = '\0';
@@ -290,7 +290,7 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const DRWView *view = DRW_view_get_active();
-  struct SpaceImage *space_image = (struct SpaceImage *)draw_ctx->space_data;
+  SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
 
   /* Apply current view as transformation matrix.
    * This will configure drawing for normalized space with current zoom and pan applied. */
@@ -488,7 +488,7 @@ bool DRW_engine_external_acquire_for_image_editor(void)
     return false;
   }
 
-  struct SpaceImage *space_image = (struct SpaceImage *)space_data;
+  SpaceImage *space_image = (SpaceImage *)space_data;
   const Image *image = ED_space_image(space_image);
   if (image == NULL || image->type != IMA_TYPE_R_RESULT) {
     return false;

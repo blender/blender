@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "BLI_exception_safety_test_utils.hh"
 #include "BLI_strict_flags.h"
@@ -422,7 +424,8 @@ TEST(vector, Remove)
 TEST(vector, RemoveIf)
 {
   Vector<int> vec = {1, 2, 3, 4, 5, 6, 7, 8};
-  vec.remove_if([](const int x) { return x % 2 == 0; });
+  const int64_t removed = vec.remove_if([](const int x) { return x % 2 == 0; });
+  EXPECT_EQ(vec.size() + removed, 8);
   const Vector<int> expected_vec = {1, 3, 5, 7};
   EXPECT_EQ(vec.size(), expected_vec.size());
   EXPECT_EQ_ARRAY(vec.data(), expected_vec.data(), size_t(vec.size()));
@@ -502,17 +505,11 @@ class TypeConstructMock {
   bool copy_assigned = false;
   bool move_assigned = false;
 
-  TypeConstructMock() : default_constructed(true)
-  {
-  }
+  TypeConstructMock() : default_constructed(true) {}
 
-  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true)
-  {
-  }
+  TypeConstructMock(const TypeConstructMock & /*other*/) : copy_constructed(true) {}
 
-  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true)
-  {
-  }
+  TypeConstructMock(TypeConstructMock && /*other*/) noexcept : move_constructed(true) {}
 
   TypeConstructMock &operator=(const TypeConstructMock &other)
   {
@@ -857,6 +854,16 @@ TEST(vector, RemoveChunkExceptions)
   vec[5].throw_during_move = true;
   EXPECT_ANY_THROW({ vec.remove(2, 3); });
   EXPECT_EQ(vec.size(), 7);
+}
+
+struct RecursiveType {
+  Vector<RecursiveType, 0> my_vector;
+};
+
+TEST(vector, RecursiveStructure)
+{
+  RecursiveType my_recursive_type;
+  my_recursive_type.my_vector.append({});
 }
 
 }  // namespace blender::tests

@@ -54,6 +54,7 @@ vec4 EDIT_MESH_face_color(uint face_flag)
 {
   vec4 color = colorFace;
   vec4 color_active = mix(colorFaceSelect, colorEditMeshActive, 0.5);
+  color = (retopologyOffset > 0.0) ? colorFaceRetopology : color;
   color = ((face_flag & FACE_FREESTYLE) != 0u) ? colorFaceFreestyle : color;
   color = ((face_flag & FACE_SELECTED) != 0u) ? colorFaceSelect : color;
   color = ((face_flag & FACE_ACTIVE) != 0u) ? color_active : color;

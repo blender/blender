@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup obj
@@ -25,7 +27,7 @@ namespace blender::io::obj {
 struct GlobalVertices {
   Vector<float3> vertices;
   Vector<float2> uv_vertices;
-  Vector<float3> vertex_normals;
+  Vector<float3> vert_normals;
 
   /**
    * Vertex colors might not be present in the file at all, or only
@@ -41,7 +43,7 @@ struct GlobalVertices {
 };
 
 /**
- * A face's corner in an OBJ file. In Blender, it translates to a mloop vertex.
+ * A face's corner in an OBJ file. In Blender, it translates to a corner vertex.
  */
 struct PolyCorner {
   /* These indices range from zero to total vertices in the OBJ file. */
@@ -98,7 +100,7 @@ struct Geometry {
   /* Mapping from global vertex index to geometry-local vertex index. */
   Map<int, int> global_to_local_vertices_;
   /* Loose edges in the file. */
-  Vector<MEdge> edges_;
+  Vector<int2> edges_;
 
   Vector<PolyCorner> face_corners_;
   Vector<PolyElem> face_elements_;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -34,7 +36,7 @@ namespace blender::meshintersect {
  * the faces in the returned (polygonal) mesh.
  */
 static IMesh mesh_from_bm(BMesh *bm,
-                          struct BMLoop *(*looptris)[3],
+                          BMLoop *(*looptris)[3],
                           const int looptris_tot,
                           IMesh *r_triangulated,
                           IMeshArena *arena)
@@ -112,7 +114,8 @@ static bool bmvert_attached_to_hidden_face(BMVert *bmv)
   BMIter iter;
   for (BMFace *bmf = static_cast<BMFace *>(BM_iter_new(&iter, nullptr, BM_FACES_OF_VERT, bmv));
        bmf;
-       bmf = static_cast<BMFace *>(BM_iter_step(&iter))) {
+       bmf = static_cast<BMFace *>(BM_iter_step(&iter)))
+  {
     if (BM_elem_flag_test(bmf, BM_ELEM_HIDDEN)) {
       return true;
     }
@@ -155,7 +158,8 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
     BMVert *bmv = BM_vert_at_index(bm, v);
     if ((keep_hidden &&
          (BM_elem_flag_test(bmv, BM_ELEM_HIDDEN) || bmvert_attached_to_hidden_face(bmv))) ||
-        bmvert_attached_to_wire(bmv)) {
+        bmvert_attached_to_wire(bmv))
+    {
       BM_elem_flag_enable(bmv, KEEP_FLAG);
     }
     else {
@@ -333,7 +337,7 @@ static bool apply_mesh_output_to_bmesh(BMesh *bm, IMesh &m_out, bool keep_hidden
 }
 
 static bool bmesh_boolean(BMesh *bm,
-                          struct BMLoop *(*looptris)[3],
+                          BMLoop *(*looptris)[3],
                           const int looptris_tot,
                           int (*test_fn)(BMFace *f, void *user_data),
                           void *user_data,
@@ -418,7 +422,7 @@ extern "C" {
  */
 #ifdef WITH_GMP
 bool BM_mesh_boolean(BMesh *bm,
-                     struct BMLoop *(*looptris)[3],
+                     BMLoop *(*looptris)[3],
                      const int looptris_tot,
                      int (*test_fn)(BMFace *f, void *user_data),
                      void *user_data,
@@ -443,7 +447,7 @@ bool BM_mesh_boolean(BMesh *bm,
 }
 
 bool BM_mesh_boolean_knife(BMesh *bm,
-                           struct BMLoop *(*looptris)[3],
+                           BMLoop *(*looptris)[3],
                            const int looptris_tot,
                            int (*test_fn)(BMFace *f, void *user_data),
                            void *user_data,

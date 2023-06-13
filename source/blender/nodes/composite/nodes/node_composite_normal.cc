@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -17,18 +18,18 @@ namespace blender::nodes::node_composite_normal_cc {
 
 static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>(N_("Normal"))
+  b.add_input<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_DIRECTION)
       .compositor_domain_priority(0);
-  b.add_output<decl::Vector>(N_("Normal"))
+  b.add_output<decl::Vector>("Normal")
       .default_value({0.0f, 0.0f, 1.0f})
       .min(-1.0f)
       .max(1.0f)
       .subtype(PROP_DIRECTION);
-  b.add_output<decl::Float>(N_("Dot"));
+  b.add_output<decl::Float>("Dot");
 }
 
 using namespace blender::realtime_compositor;

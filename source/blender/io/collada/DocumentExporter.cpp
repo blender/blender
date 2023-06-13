@@ -109,7 +109,7 @@ extern "C" char build_hash[];
 
 #include <cerrno>
 
-const char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
+const char *bc_CustomData_get_layer_name(const CustomData *data, const eCustomDataType type, int n)
 {
   int layer_index = CustomData_get_layer_index(data, type);
   if (layer_index < 0) {
@@ -119,7 +119,7 @@ const char *bc_CustomData_get_layer_name(const struct CustomData *data, int type
   return data->layers[layer_index + n].name;
 }
 
-const char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
+const char *bc_CustomData_get_active_layer_name(const CustomData *data, const eCustomDataType type)
 {
   /* get the layer index of the active layer of type */
   int layer_index = CustomData_get_active_layer_index(data, type);
@@ -226,15 +226,14 @@ int DocumentExporter::exportCurrentScene()
   asset.getContributor().mAuthor = "Blender User";
   char version_buf[128];
 #ifdef WITH_BUILDINFO
-  BLI_snprintf(version_buf,
-               sizeof(version_buf),
-               "Blender %s commit date:%s, commit time:%s, hash:%s",
-               BKE_blender_version_string(),
-               build_commit_date,
-               build_commit_time,
-               build_hash);
+  SNPRINTF(version_buf,
+           "Blender %s commit date:%s, commit time:%s, hash:%s",
+           BKE_blender_version_string(),
+           build_commit_date,
+           build_commit_time,
+           build_hash);
 #else
-  BLI_snprintf(version_buf, sizeof(version_buf), "Blender %s", BKE_blender_version_string());
+  SNPRINTF(version_buf, "Blender %s", BKE_blender_version_string());
 #endif
   asset.getContributor().mAuthoringTool = version_buf;
   asset.add();
@@ -273,8 +272,8 @@ int DocumentExporter::exportCurrentScene()
   /* <library_controllers> */
   ArmatureExporter arm_exporter(blender_context, writer, this->export_settings);
   ControllerExporter controller_exporter(blender_context, writer, this->export_settings);
-  if (bc_has_object_type(export_set, OB_ARMATURE) ||
-      this->export_settings.get_include_shapekeys()) {
+  if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings.get_include_shapekeys())
+  {
     controller_exporter.export_controllers();
   }
 
@@ -301,7 +300,7 @@ int DocumentExporter::exportCurrentScene()
 
   /* Finally move the created document into place */
   fprintf(stdout, "Collada export to: %s\n", this->export_settings.get_filepath());
-  int status = BLI_rename(native_filename.c_str(), this->export_settings.get_filepath());
+  int status = BLI_rename_overwrite(native_filename.c_str(), this->export_settings.get_filepath());
   if (status != 0) {
     status = BLI_copy(native_filename.c_str(), this->export_settings.get_filepath());
     BLI_delete(native_filename.c_str(), false, false);
@@ -309,9 +308,7 @@ int DocumentExporter::exportCurrentScene()
   return status;
 }
 
-void DocumentExporter::exportScenes(const char *filename)
-{
-}
+void DocumentExporter::exportScenes(const char *filename) {}
 
 /*
  * NOTES:

@@ -635,7 +635,8 @@ WFace *WShape::MakeFace(vector<WVertex *> &iVertexList,
 
   if (3 == iVertexList.size()) {
     if ((iVertexList[0] == iVertexList[1]) || (iVertexList[0] == iVertexList[2]) ||
-        (iVertexList[2] == iVertexList[1])) {
+        (iVertexList[2] == iVertexList[1]))
+    {
       cerr << "Warning: degenerated triangle detected, correcting" << endl;
       return nullptr;
     }
@@ -713,7 +714,8 @@ real WShape::ComputeMeanEdgeSize() const
   real meanEdgeSize = 0.0;
   for (vector<WEdge *>::const_iterator it = _EdgeList.begin(), itend = _EdgeList.end();
        it != itend;
-       it++) {
+       it++)
+  {
     meanEdgeSize += (*it)->GetaOEdge()->GetVec().norm();
   }
   return meanEdgeSize / (real)_EdgeList.size();

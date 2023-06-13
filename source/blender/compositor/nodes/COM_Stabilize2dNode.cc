@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_Stabilize2dNode.h"
 #include "COM_MovieClipAttributeOperation.h"
@@ -21,7 +22,7 @@ void Stabilize2dNode::convert_to_operations(NodeConverter &converter,
   const bNode *editor_node = this->get_bnode();
   NodeInput *image_input = this->get_input_socket(0);
   MovieClip *clip = (MovieClip *)editor_node->id;
-  bool invert = (editor_node->custom2 & CMP_NODEFLAG_STABILIZE_INVERSE) != 0;
+  bool invert = (editor_node->custom2 & CMP_NODE_STABILIZE_FLAG_INVERSE) != 0;
   const PixelSampler sampler = (PixelSampler)editor_node->custom1;
 
   MovieClipAttributeOperation *scale_attribute = new MovieClipAttributeOperation();

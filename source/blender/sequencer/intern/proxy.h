@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -20,7 +21,7 @@ struct anim;
 struct ImBuf *seq_proxy_fetch(const struct SeqRenderData *context,
                               struct Sequence *seq,
                               int timeline_frame);
-bool seq_proxy_get_custom_file_fname(struct Sequence *seq, char *name, int view_id);
+bool seq_proxy_get_custom_file_filepath(struct Sequence *seq, char *name, int view_id);
 void free_proxy_seq(Sequence *seq);
 void seq_proxy_index_dir_set(struct anim *anim, const char *base_dir);
 

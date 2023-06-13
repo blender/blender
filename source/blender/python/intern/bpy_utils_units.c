@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -156,7 +158,7 @@ PyDoc_STRVAR(
     "   :type str_ref_unit: string or None\n"
     "   :return: The converted/interpreted value.\n"
     "   :rtype: float\n"
-    "   :raises ValueError: if conversion fails to generate a valid python float value.\n");
+    "   :raises ValueError: if conversion fails to generate a valid Python float value.\n");
 static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   char *usys_str = NULL, *ucat_str = NULL, *inpt = NULL, *uref = NULL;
@@ -186,7 +188,8 @@ static PyObject *bpyunits_to_value(PyObject *UNUSED(self), PyObject *args, PyObj
       0,
   };
   if (!_PyArg_ParseTupleAndKeywordsFast(
-          args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref)) {
+          args, kw, &_parser, &usys_str, &ucat_str, &inpt, &str_len, &uref))
+  {
     return NULL;
   }
 
@@ -242,7 +245,7 @@ PyDoc_STRVAR(bpyunits_to_string_doc,
              "   :type compatible_unit: bool\n"
              "   :return: The converted string.\n"
              "   :rtype: str\n"
-             "   :raises ValueError: if conversion fails to generate a valid python string.\n");
+             "   :raises ValueError: if conversion fails to generate a valid Python string.\n");
 static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
   char *usys_str = NULL, *ucat_str = NULL;
@@ -283,7 +286,8 @@ static PyObject *bpyunits_to_string(PyObject *UNUSED(self), PyObject *args, PyOb
                                         PyC_ParseBool,
                                         &split_unit,
                                         PyC_ParseBool,
-                                        &compatible_unit)) {
+                                        &compatible_unit))
+  {
     return NULL;
   }
 
@@ -334,7 +338,7 @@ static PyMethodDef bpyunits_methods[] = {
 
 PyDoc_STRVAR(bpyunits_doc, "This module contains some data/methods regarding units handling.");
 
-static struct PyModuleDef bpyunits_module = {
+static PyModuleDef bpyunits_module = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.utils.units",
     /*m_doc*/ bpyunits_doc,

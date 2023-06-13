@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 
@@ -10,9 +12,9 @@ namespace blender::nodes::node_geo_edge_split_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>(N_("Mesh")).supported_type(GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Bool>(N_("Selection")).default_value(true).hide_value().field_on_all();
-  b.add_output<decl::Geometry>(N_("Mesh")).propagate_all();
+  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
+  b.add_output<decl::Geometry>("Mesh").propagate_all();
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -23,8 +25,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (const Mesh *mesh = geometry_set.get_mesh_for_read()) {
-
-      bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_EDGE};
+      const bke::MeshFieldContext field_context{*mesh, ATTR_DOMAIN_EDGE};
       fn::FieldEvaluator selection_evaluator{field_context, mesh->totedge};
       selection_evaluator.set_selection(selection_field);
       selection_evaluator.evaluate();

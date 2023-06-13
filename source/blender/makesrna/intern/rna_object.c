@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -33,7 +35,6 @@
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
 #include "BKE_object_deform.h"
-#include "BKE_object_facemap.h"
 #include "BKE_paint.h"
 
 #include "RNA_access.h"
@@ -88,7 +89,6 @@ const EnumPropertyItem rna_enum_object_mode_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-/* Same as above, but with names that distinguish grease pencil. */
 const EnumPropertyItem rna_enum_workspace_object_mode_items[] = {
     {OB_MODE_OBJECT, "OBJECT", ICON_OBJECT_DATAMODE, "Object Mode", ""},
     {OB_MODE_EDIT, "EDIT", ICON_EDITMODE_HLT, "Edit Mode", ""},
@@ -255,7 +255,8 @@ const EnumPropertyItem rna_enum_object_type_items[] = {
     {OB_CURVES, "CURVES", ICON_OUTLINER_OB_CURVES, "Hair Curves", ""},
     {OB_POINTCLOUD, "POINTCLOUD", ICON_OUTLINER_OB_POINTCLOUD, "Point Cloud", ""},
     {OB_VOLUME, "VOLUME", ICON_OUTLINER_OB_VOLUME, "Volume", ""},
-    {OB_GPENCIL, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
+    {OB_GPENCIL_LEGACY, "GPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil (legacy)", ""},
+    {OB_GREASE_PENCIL, "GREASEPENCIL", ICON_OUTLINER_OB_GREASEPENCIL, "Grease Pencil", ""},
     RNA_ENUM_ITEM_SEPR,
     {OB_ARMATURE, "ARMATURE", ICON_OUTLINER_OB_ARMATURE, "Armature", ""},
     {OB_LATTICE, "LATTICE", ICON_OUTLINER_OB_LATTICE, "Lattice", ""},
@@ -310,7 +311,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
-#  include "DNA_gpencil_types.h"
+#  include "DNA_gpencil_legacy_types.h"
 #  include "DNA_key_types.h"
 #  include "DNA_lattice_types.h"
 #  include "DNA_node_types.h"
@@ -323,8 +324,9 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #  include "BKE_deform.h"
 #  include "BKE_effect.h"
 #  include "BKE_global.h"
-#  include "BKE_gpencil_modifier.h"
+#  include "BKE_gpencil_modifier_legacy.h"
 #  include "BKE_key.h"
+#  include "BKE_light_linking.h"
 #  include "BKE_material.h"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh_wrapper.h"
@@ -382,7 +384,7 @@ static void rna_Object_duplicator_visibility_flag_update(Main *UNUSED(bmain),
 static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
@@ -391,7 +393,7 @@ static void rna_MaterialIndex_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (ob && ob->type == OB_GPENCIL) {
+  if (ob && ob->type == OB_GPENCIL_LEGACY) {
     bGPdata *gpd = (bGPdata *)ob->data;
     DEG_id_tag_update(&gpd->id, ID_RECALC_GEOMETRY);
     WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
@@ -600,8 +602,10 @@ static StructRNA *rna_Object_data_typef(PointerRNA *ptr)
       return &RNA_Speaker;
     case OB_LIGHTPROBE:
       return &RNA_LightProbe;
-    case OB_GPENCIL:
+    case OB_GPENCIL_LEGACY:
       return &RNA_GreasePencil;
+    case OB_GREASE_PENCIL:
+      return &RNA_GreasePencilv3;
     case OB_CURVES:
       return &RNA_Curves;
     case OB_POINTCLOUD:
@@ -617,7 +621,7 @@ static bool rna_Object_data_poll(PointerRNA *ptr, const PointerRNA value)
 {
   Object *ob = (Object *)ptr->data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Object - Don't allow using "Annotation" GP datablocks here */
     bGPdata *gpd = value.data;
     return (gpd->flag & GP_DATA_ANNOTATIONS) == 0;
@@ -654,7 +658,7 @@ static bool rna_Object_parent_override_apply(Main *bmain,
                                              IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
              "Unsupported RNA override operation on object parent pointer");
   UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
 
@@ -812,7 +816,7 @@ static void rna_VertexGroup_name_set(PointerRNA *ptr, const char *value)
   }
 
   bDeformGroup *dg = (bDeformGroup *)ptr->data;
-  BLI_strncpy_utf8(dg->name, value, sizeof(dg->name));
+  STRNCPY_UTF8(dg->name, value);
   BKE_object_defgroup_unique_name(dg, ob);
 }
 
@@ -910,7 +914,7 @@ void rna_object_vgroup_name_index_get(PointerRNA *ptr, char *value, int index)
   const bDeformGroup *dg = BLI_findlink(defbase, index - 1);
 
   if (dg) {
-    BLI_strncpy(value, dg->name, sizeof(dg->name));
+    strcpy(value, dg->name);
   }
   else {
     value[0] = '\0';
@@ -940,7 +944,10 @@ void rna_object_vgroup_name_index_set(PointerRNA *ptr, const char *value, short 
   *index = BKE_object_defgroup_name_index(ob, value) + 1;
 }
 
-void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_vgroup_name_set(PointerRNA *ptr,
+                                const char *value,
+                                char *result,
+                                int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   if (!BKE_object_supports_vertex_groups(ob)) {
@@ -951,99 +958,17 @@ void rna_object_vgroup_name_set(PointerRNA *ptr, const char *value, char *result
   bDeformGroup *dg = BKE_object_defgroup_find_name(ob, value);
   if (dg) {
     /* No need for BLI_strncpy_utf8, since this matches an existing group. */
-    BLI_strncpy(result, value, maxlen);
+    BLI_strncpy(result, value, result_maxncpy);
     return;
   }
 
   result[0] = '\0';
 }
 
-static void rna_FaceMap_name_set(PointerRNA *ptr, const char *value)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bFaceMap *fmap = (bFaceMap *)ptr->data;
-  BLI_strncpy_utf8(fmap->name, value, sizeof(fmap->name));
-  BKE_object_facemap_unique_name(ob, fmap);
-}
-
-static int rna_FaceMap_index_get(PointerRNA *ptr)
-{
-  Object *ob = (Object *)ptr->owner_id;
-
-  return BLI_findindex(&ob->fmaps, ptr->data);
-}
-
-static PointerRNA rna_Object_active_face_map_get(PointerRNA *ptr)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  return rna_pointer_inherit_refine(ptr, &RNA_FaceMap, BLI_findlink(&ob->fmaps, ob->actfmap - 1));
-}
-
-static int rna_Object_active_face_map_index_get(PointerRNA *ptr)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  return ob->actfmap - 1;
-}
-
-static void rna_Object_active_face_map_index_set(PointerRNA *ptr, int value)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  ob->actfmap = value + 1;
-}
-
-static void rna_Object_active_face_map_index_range(
-    PointerRNA *ptr, int *min, int *max, int *UNUSED(softmin), int *UNUSED(softmax))
-{
-  Object *ob = (Object *)ptr->owner_id;
-
-  *min = 0;
-  *max = max_ii(0, BLI_listbase_count(&ob->fmaps) - 1);
-}
-
-void rna_object_BKE_object_facemap_name_index_get(PointerRNA *ptr, char *value, int index)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bFaceMap *fmap;
-
-  fmap = BLI_findlink(&ob->fmaps, index - 1);
-
-  if (fmap) {
-    BLI_strncpy(value, fmap->name, sizeof(fmap->name));
-  }
-  else {
-    value[0] = '\0';
-  }
-}
-
-int rna_object_BKE_object_facemap_name_index_length(PointerRNA *ptr, int index)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bFaceMap *fmap;
-
-  fmap = BLI_findlink(&ob->fmaps, index - 1);
-  return (fmap) ? strlen(fmap->name) : 0;
-}
-
-void rna_object_BKE_object_facemap_name_index_set(PointerRNA *ptr, const char *value, short *index)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  *index = BKE_object_facemap_name_index(ob, value) + 1;
-}
-
-void rna_object_fmap_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
-{
-  Object *ob = (Object *)ptr->owner_id;
-  bFaceMap *fmap = BKE_object_facemap_find_name(ob, value);
-  if (fmap) {
-    /* No need for BLI_strncpy_utf8, since this matches an existing group. */
-    BLI_strncpy(result, value, maxlen);
-    return;
-  }
-
-  result[0] = '\0';
-}
-
-void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_uvlayer_name_set(PointerRNA *ptr,
+                                 const char *value,
+                                 char *result,
+                                 int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   Mesh *me;
@@ -1057,7 +982,7 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
       layer = &me->ldata.layers[a];
 
       if (layer->type == CD_PROP_FLOAT2 && STREQ(layer->name, value)) {
-        BLI_strncpy(result, value, maxlen);
+        BLI_strncpy(result, value, result_maxncpy);
         return;
       }
     }
@@ -1066,7 +991,10 @@ void rna_object_uvlayer_name_set(PointerRNA *ptr, const char *value, char *resul
   result[0] = '\0';
 }
 
-void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *result, int maxlen)
+void rna_object_vcollayer_name_set(PointerRNA *ptr,
+                                   const char *value,
+                                   char *result,
+                                   int result_maxncpy)
 {
   Object *ob = (Object *)ptr->owner_id;
   Mesh *me;
@@ -1080,7 +1008,7 @@ void rna_object_vcollayer_name_set(PointerRNA *ptr, const char *value, char *res
       layer = &me->fdata.layers[a];
 
       if (layer->type == CD_MCOL && STREQ(layer->name, value)) {
-        BLI_strncpy(result, value, maxlen);
+        BLI_strncpy(result, value, result_maxncpy);
         return;
       }
     }
@@ -1138,8 +1066,8 @@ static void rna_Object_active_material_set(PointerRNA *ptr,
   BLI_assert(BKE_id_is_in_global_main(value.data));
   BKE_object_material_assign(G_MAIN, ob, value.data, ob->actcol, BKE_MAT_ASSIGN_EXISTING);
 
-  if (ob->type == OB_GPENCIL) {
-    /* notifying material property in topbar */
+  if (ob->type == OB_GPENCIL_LEGACY) {
+    /* Notifying material property in top-bar. */
     WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, NULL);
   }
 }
@@ -1377,7 +1305,7 @@ static bool rna_MaterialSlot_material_poll(PointerRNA *ptr, PointerRNA value)
   Object *ob = (Object *)ptr->owner_id;
   Material *ma = (Material *)value.data;
 
-  if (ob->type == OB_GPENCIL) {
+  if (ob->type == OB_GPENCIL_LEGACY) {
     /* GP Materials only */
     return (ma->gp_style != NULL);
   }
@@ -1498,9 +1426,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   return ptr;
 }
 
-static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter))
-{
-}
+static void rna_Object_material_slots_end(CollectionPropertyIterator *UNUSED(iter)) {}
 
 static PointerRNA rna_Object_display_get(PointerRNA *ptr)
 {
@@ -1686,7 +1612,7 @@ bool rna_Object_constraints_override_apply(Main *bmain,
                                            PointerRNA *UNUSED(ptr_item_storage),
                                            IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on constraints collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -1741,8 +1667,8 @@ static void rna_Object_modifier_remove(Object *object,
                                        PointerRNA *md_ptr)
 {
   ModifierData *md = md_ptr->data;
-  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) ==
-      false) {
+  if (ED_object_modifier_remove(reports, CTX_data_main(C), CTX_data_scene(C), object, md) == false)
+  {
     /* error is already set */
     return;
   }
@@ -1814,7 +1740,7 @@ bool rna_Object_modifiers_override_apply(Main *bmain,
                                          PointerRNA *UNUSED(ptr_item_storage),
                                          IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -1930,7 +1856,7 @@ bool rna_Object_greasepencil_modifiers_override_apply(Main *bmain,
                                                       PointerRNA *UNUSED(ptr_item_storage),
                                                       IDOverrideLibraryPropertyOperation *opop)
 {
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_INSERT_AFTER &&
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_INSERT_AFTER &&
              "Unsupported RNA override operation on modifiers collection");
 
   Object *ob_dst = (Object *)ptr_dst->owner_id;
@@ -2139,71 +2065,6 @@ static float rna_VertexGroup_weight(ID *id, bDeformGroup *dg, ReportList *report
   return weight;
 }
 
-static bFaceMap *rna_Object_fmap_new(Object *ob, const char *name)
-{
-  bFaceMap *fmap = BKE_object_facemap_add_name(ob, name);
-
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-
-  return fmap;
-}
-
-static void rna_Object_fmap_remove(Object *ob, ReportList *reports, PointerRNA *fmap_ptr)
-{
-  bFaceMap *fmap = fmap_ptr->data;
-  if (BLI_findindex(&ob->fmaps, fmap) == -1) {
-    BKE_reportf(
-        reports, RPT_ERROR, "Face map '%s' not in object '%s'", fmap->name, ob->id.name + 2);
-    return;
-  }
-
-  BKE_object_facemap_remove(ob, fmap);
-  RNA_POINTER_INVALIDATE(fmap_ptr);
-
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-}
-
-static void rna_Object_fmap_clear(Object *ob)
-{
-  BKE_object_facemap_clear(ob);
-
-  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
-}
-
-static void rna_FaceMap_face_add(
-    ID *id, bFaceMap *fmap, ReportList *reports, int index_len, int *index)
-{
-  Object *ob = (Object *)id;
-
-  if (BKE_object_is_in_editmode(ob)) {
-    BKE_report(reports, RPT_ERROR, "FaceMap.add(): cannot be called while object is in edit mode");
-    return;
-  }
-
-  while (index_len--) {
-    ED_object_facemap_face_add(ob, fmap, *index++);
-  }
-
-  WM_main_add_notifier(NC_GEOM | ND_DATA, (ID *)ob->data);
-}
-
-static void rna_FaceMap_face_remove(
-    ID *id, bFaceMap *fmap, ReportList *reports, int index_len, int *index)
-{
-  Object *ob = (Object *)id;
-
-  if (BKE_object_is_in_editmode(ob)) {
-    BKE_report(reports, RPT_ERROR, "FaceMap.add(): cannot be called while object is in edit mode");
-    return;
-  }
-
-  while (index_len--) {
-    ED_object_facemap_face_remove(ob, fmap, *index++);
-  }
-
-  WM_main_add_notifier(NC_GEOM | ND_DATA, (ID *)ob->data);
-}
-
 /* generic poll functions */
 bool rna_Lattice_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
@@ -2237,13 +2098,12 @@ bool rna_Light_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 
 bool rna_GPencil_object_poll(PointerRNA *UNUSED(ptr), PointerRNA value)
 {
-  return ((Object *)value.owner_id)->type == OB_GPENCIL;
+  return ((Object *)value.owner_id)->type == OB_GPENCIL_LEGACY;
 }
 
 bool rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 {
-  SculptSession *ss = ((Object *)ptr->owner_id)->sculpt;
-  return (ss && ss->bm);
+  return BKE_object_sculpt_use_dyntopo((Object *)ptr->owner_id);
 }
 
 static void rna_object_lineart_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -2334,17 +2194,77 @@ static int rna_Object_mesh_symmetry_yz_editable(PointerRNA *ptr, const char **UN
 
 void rna_Object_lightgroup_get(PointerRNA *ptr, char *value)
 {
-  BKE_lightgroup_membership_get(((Object *)ptr->owner_id)->lightgroup, value);
+  const LightgroupMembership *lgm = ((Object *)ptr->owner_id)->lightgroup;
+  char value_buf[sizeof(lgm->name)];
+  int len = BKE_lightgroup_membership_get(lgm, value_buf);
+  memcpy(value, value_buf, len + 1);
 }
 
 int rna_Object_lightgroup_length(PointerRNA *ptr)
 {
-  return BKE_lightgroup_membership_length(((Object *)ptr->owner_id)->lightgroup);
+  const LightgroupMembership *lgm = ((Object *)ptr->owner_id)->lightgroup;
+  return BKE_lightgroup_membership_length(lgm);
 }
 
 void rna_Object_lightgroup_set(PointerRNA *ptr, const char *value)
 {
   BKE_lightgroup_membership_set(&((Object *)ptr->owner_id)->lightgroup, value);
+}
+
+static PointerRNA rna_Object_light_linking_get(PointerRNA *ptr)
+{
+  return rna_pointer_inherit_refine(ptr, &RNA_ObjectLightLinking, ptr->data);
+}
+
+static char *rna_ObjectLightLinking_path(const PointerRNA *UNUSED(ptr))
+{
+  return BLI_strdup("light_linking");
+}
+
+static PointerRNA rna_LightLinking_receiver_collection_get(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  PointerRNA collection_ptr;
+  RNA_id_pointer_create((ID *)BKE_light_linking_collection_get(object, LIGHT_LINKING_RECEIVER),
+                        &collection_ptr);
+  return collection_ptr;
+}
+
+static void rna_LightLinking_receiver_collection_set(PointerRNA *ptr,
+                                                     PointerRNA value,
+                                                     struct ReportList *UNUSED(reports))
+{
+  Object *object = (Object *)ptr->owner_id;
+  Collection *new_collection = (Collection *)value.data;
+
+  BKE_light_linking_collection_assign_only(object, new_collection, LIGHT_LINKING_RECEIVER);
+}
+
+static PointerRNA rna_LightLinking_blocker_collection_get(PointerRNA *ptr)
+{
+  Object *object = (Object *)ptr->owner_id;
+  PointerRNA collection_ptr;
+  RNA_id_pointer_create((ID *)BKE_light_linking_collection_get(object, LIGHT_LINKING_BLOCKER),
+                        &collection_ptr);
+  return collection_ptr;
+}
+
+static void rna_LightLinking_blocker_collection_set(PointerRNA *ptr,
+                                                    PointerRNA value,
+                                                    struct ReportList *UNUSED(reports))
+{
+  Object *object = (Object *)ptr->owner_id;
+  Collection *new_collection = (Collection *)value.data;
+
+  BKE_light_linking_collection_assign_only(object, new_collection, LIGHT_LINKING_BLOCKER);
+}
+
+static void rna_LightLinking_collection_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+  DEG_id_tag_update(ptr->owner_id, ID_RECALC_SHADING);
+
+  DEG_relations_tag_update(bmain);
+  WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->owner_id);
 }
 
 #else
@@ -2413,52 +2333,6 @@ static void rna_def_vertex_group(BlenderRNA *brna)
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   parm = RNA_def_float(func, "weight", 0, 0.0f, 1.0f, "", "Vertex weight", 0.0f, 1.0f);
   RNA_def_function_return(func, parm);
-}
-
-static void rna_def_face_map(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  srna = RNA_def_struct(brna, "FaceMap", NULL);
-  RNA_def_struct_sdna(srna, "bFaceMap");
-  RNA_def_struct_ui_text(
-      srna, "Face Map", "Group of faces, each face can only be part of one map");
-  RNA_def_struct_ui_icon(srna, ICON_MOD_TRIANGULATE);
-
-  prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Name", "Face map name");
-  RNA_def_struct_name_property(srna, prop);
-  RNA_def_property_string_funcs(prop, NULL, NULL, "rna_FaceMap_name_set");
-  /* update data because modifiers may use #24761. */
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA | NA_RENAME, "rna_Object_internal_update_data");
-
-  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
-  RNA_def_property_ui_text(prop, "Select", "Face map selection state (for tools to use)");
-  /* important not to use a notifier here, creates a feedback loop! */
-
-  prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_FaceMap_index_get", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Index", "Index number of the face map");
-
-  func = RNA_def_function(srna, "add", "rna_FaceMap_face_add");
-  RNA_def_function_ui_description(func, "Add faces to the face-map");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO: see how array size of 0 works, this shouldn't be used. */
-  parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
-  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
-
-  func = RNA_def_function(srna, "remove", "rna_FaceMap_face_remove");
-  RNA_def_function_ui_description(func, "Remove faces from the face-map");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
-  /* TODO: see how array size of 0 works, this shouldn't be used. */
-  parm = RNA_def_int_array(func, "index", 1, NULL, 0, 0, "", "List of indices", 0, 0);
-  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 }
 
 static void rna_def_material_slot(BlenderRNA *brna)
@@ -2847,56 +2721,6 @@ static void rna_def_object_vertex_groups(BlenderRNA *brna, PropertyRNA *cprop)
 
   func = RNA_def_function(srna, "clear", "rna_Object_vgroup_clear");
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Delete all vertex groups from object");
-}
-
-/* object.face_maps */
-static void rna_def_object_face_maps(BlenderRNA *brna, PropertyRNA *cprop)
-{
-  StructRNA *srna;
-
-  PropertyRNA *prop;
-
-  FunctionRNA *func;
-  PropertyRNA *parm;
-
-  RNA_def_property_srna(cprop, "FaceMaps");
-  srna = RNA_def_struct(brna, "FaceMaps", NULL);
-  RNA_def_struct_sdna(srna, "Object");
-  RNA_def_struct_ui_text(srna, "Face Maps", "Collection of face maps");
-
-  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-  RNA_def_property_struct_type(prop, "FaceMap");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_Object_active_face_map_get", "rna_Object_active_face_map_set", NULL, NULL);
-  RNA_def_property_ui_text(prop, "Active Face Map", "Face maps of the object");
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
-
-  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_int_sdna(prop, NULL, "actfmap");
-  RNA_def_property_int_funcs(prop,
-                             "rna_Object_active_face_map_index_get",
-                             "rna_Object_active_face_map_index_set",
-                             "rna_Object_active_face_map_index_range");
-  RNA_def_property_ui_text(prop, "Active Face Map Index", "Active index in face map array");
-  RNA_def_property_update(prop, NC_GEOM | ND_DATA, "rna_Object_internal_update_data");
-
-  /* face maps */ /* add_face_map */
-  func = RNA_def_function(srna, "new", "rna_Object_fmap_new");
-  RNA_def_function_ui_description(func, "Add face map to object");
-  RNA_def_string(func, "name", "Map", 0, "", "face map name"); /* optional */
-  parm = RNA_def_pointer(func, "fmap", "FaceMap", "", "New face map");
-  RNA_def_function_return(func, parm);
-
-  func = RNA_def_function(srna, "remove", "rna_Object_fmap_remove");
-  RNA_def_function_flag(func, FUNC_USE_REPORTS);
-  RNA_def_function_ui_description(func, "Delete vertex group from object");
-  parm = RNA_def_pointer(func, "group", "FaceMap", "", "Face map to remove");
-  RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-  RNA_def_property_clear_flag(parm, PROP_THICK_WRAP);
-
-  func = RNA_def_function(srna, "clear", "rna_Object_fmap_clear");
   RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 
@@ -3307,6 +3131,7 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "rotation_euler", PROP_FLOAT, PROP_EULER);
   RNA_def_property_float_sdna(prop, NULL, "rot");
   RNA_def_property_editable_array_func(prop, "rna_Object_rotation_euler_editable");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_ui_text(prop, "Euler Rotation", "Rotation in Eulers");
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
@@ -3354,6 +3179,7 @@ static void rna_def_object(BlenderRNA *brna)
       prop,
       "Delta Rotation (Euler)",
       "Extra rotation added to the rotation of the object (when using Euler rotations)");
+  RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);
   RNA_def_property_update(prop, NC_OBJECT | ND_TRANSFORM, "rna_Object_internal_update");
 
   prop = RNA_def_property(srna, "delta_rotation_quaternion", PROP_FLOAT, PROP_QUATERNION);
@@ -3526,14 +3352,6 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Vertex Groups", "Vertex groups of the object");
   rna_def_object_vertex_groups(brna, prop);
 
-  /* face maps */
-  prop = RNA_def_property(srna, "face_maps", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "fmaps", NULL);
-  RNA_def_property_struct_type(prop, "FaceMap");
-  RNA_def_property_override_clear_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
-  RNA_def_property_ui_text(prop, "Face Maps", "Maps of faces of the object");
-  rna_def_object_face_maps(brna, prop);
-
   /* empty */
   prop = RNA_def_property(srna, "empty_display_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "empty_drawtype");
@@ -3630,7 +3448,7 @@ static void rna_def_object(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_ui_text(
-      prop, "Color", "Object color and alpha, used when faces have the ObColor mode enabled");
+      prop, "Color", "Object color and alpha, used when the Object Color mode is enabled");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_internal_update_draw");
 
   /* physics */
@@ -3669,6 +3487,12 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_pointer_sdna(prop, NULL, "rigidbody_constraint");
   RNA_def_property_struct_type(prop, "RigidBodyConstraint");
   RNA_def_property_ui_text(prop, "Rigid Body Constraint", "Constraint constraining rigid bodies");
+
+  prop = RNA_def_property(srna, "use_simulation_cache", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_FLAG_USE_SIMULATION_CACHE);
+  RNA_def_property_ui_text(
+      prop, "Use Simulation Cache", "Cache all frames during simulation nodes playback");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   rna_def_object_visibility(srna);
 
@@ -3781,15 +3605,14 @@ static void rna_def_object(BlenderRNA *brna)
   /* shape keys */
   prop = RNA_def_property(srna, "show_only_shape_key", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_LOCK);
-  RNA_def_property_ui_text(
-      prop, "Shape Key Lock", "Always show the current shape for this object");
+  RNA_def_property_ui_text(prop, "Shape Key Lock", "Only show the active shape key at full value");
   RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
   RNA_def_property_update(prop, 0, "rna_Object_internal_update_data");
 
   prop = RNA_def_property(srna, "use_shape_key_edit_mode", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "shapeflag", OB_SHAPE_EDIT_MODE);
   RNA_def_property_ui_text(
-      prop, "Shape Key Edit Mode", "Apply shape keys in edit mode (for meshes only)");
+      prop, "Shape Key Edit Mode", "Display shape keys in edit mode (for meshes only)");
   RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
   RNA_def_property_update(prop, 0, "rna_Object_internal_update_data");
 
@@ -3850,6 +3673,7 @@ static void rna_def_object(BlenderRNA *brna)
       prop, "rna_Object_mesh_symmetry_x_get", "rna_Object_mesh_symmetry_x_set");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "X", "Enable mesh symmetry in the X axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "use_mesh_mirror_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
@@ -3857,6 +3681,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_editable_func(prop, "rna_Object_mesh_symmetry_yz_editable");
   RNA_def_property_ui_text(prop, "Y", "Enable mesh symmetry in the Y axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   prop = RNA_def_property(srna, "use_mesh_mirror_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
@@ -3864,6 +3689,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_editable_func(prop, "rna_Object_mesh_symmetry_yz_editable");
   RNA_def_property_ui_text(prop, "Z", "Enable mesh symmetry in the Z axis");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
   /* Lightgroup Membership */
   prop = RNA_def_property(srna, "lightgroup", PROP_STRING, PROP_NONE);
@@ -3873,6 +3699,13 @@ static void rna_def_object(BlenderRNA *brna)
                                 "rna_Object_lightgroup_set");
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Lightgroup", "Lightgroup that the object belongs to");
+
+  /* Light Linking. */
+  prop = RNA_def_property(srna, "light_linking", PROP_POINTER, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_NEVER_NULL);
+  RNA_def_property_struct_type(prop, "ObjectLightLinking");
+  RNA_def_property_pointer_funcs(prop, "rna_Object_light_linking_get", NULL, NULL, NULL);
+  RNA_def_property_ui_text(prop, "Light Linking", "Light linking settings");
 
   RNA_define_lib_overridable(false);
 
@@ -3885,16 +3718,54 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_api_object(srna);
 }
 
+static void rna_def_object_light_linking(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ObjectLightLinking", NULL);
+  RNA_def_struct_ui_text(srna, "Object Light Linking", "");
+  RNA_def_struct_sdna(srna, "Object");
+  RNA_def_struct_nested(brna, srna, "Object");
+  RNA_def_struct_path_func(srna, "rna_ObjectLightLinking_path");
+
+  prop = RNA_def_property(srna, "receiver_collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_LightLinking_receiver_collection_get",
+                                 "rna_LightLinking_receiver_collection_set",
+                                 NULL,
+                                 NULL);
+  RNA_def_property_ui_text(prop,
+                           "Receiver Collection",
+                           "Collection which defines light linking relation of this emitter");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
+
+  prop = RNA_def_property(srna, "blocker_collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_LightLinking_blocker_collection_get",
+                                 "rna_LightLinking_blocker_collection_set",
+                                 NULL,
+                                 NULL);
+  RNA_def_property_ui_text(prop,
+                           "Blocker Collection",
+                           "Collection which defines objects which block light from this emitter");
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_LightLinking_collection_update");
+}
+
 void RNA_def_object(BlenderRNA *brna)
 {
   rna_def_object(brna);
 
   RNA_define_animate_sdna(false);
   rna_def_vertex_group(brna);
-  rna_def_face_map(brna);
   rna_def_material_slot(brna);
   rna_def_object_display(brna);
   rna_def_object_lineart(brna);
+  rna_def_object_light_linking(brna);
   RNA_define_animate_sdna(true);
 }
 

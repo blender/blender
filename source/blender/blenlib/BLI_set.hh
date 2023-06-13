@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -66,8 +68,9 @@
 namespace blender {
 
 template<
-    /** Type of the elements that are stored in this set. It has to be movable. Furthermore, the
-     * hash and is-equal functions have to support it.
+    /**
+     * Type of the elements that are stored in this set. It has to be movable.
+     * Furthermore, the hash and is-equal functions have to support it.
      */
     typename Key,
     /**
@@ -175,9 +178,7 @@ class Set {
   {
   }
 
-  Set(NoExceptConstructor, Allocator allocator = {}) noexcept : Set(allocator)
-  {
-  }
+  Set(NoExceptConstructor, Allocator allocator = {}) noexcept : Set(allocator) {}
 
   Set(Span<Key> values, Allocator allocator = {}) : Set(NoExceptConstructor(), allocator)
   {
@@ -187,9 +188,7 @@ class Set {
   /**
    * Construct a set that contains the given keys. Duplicates will be removed automatically.
    */
-  Set(const std::initializer_list<Key> &values) : Set(Span<Key>(values))
-  {
-  }
+  Set(const std::initializer_list<Key> &values) : Set(Span<Key>(values)) {}
 
   ~Set() = default;
 
@@ -493,12 +492,14 @@ class Set {
   }
 
   /**
-   * Remove all values for which the given predicate is true.
+   * Remove all values for which the given predicate is true and return the number of removed
+   * values.
    *
    * This is similar to std::erase_if.
    */
-  template<typename Predicate> void remove_if(Predicate &&predicate)
+  template<typename Predicate> int64_t remove_if(Predicate &&predicate)
   {
+    const int64_t prev_size = this->size();
     for (Slot &slot : slots_) {
       if (slot.is_occupied()) {
         const Key &key = *slot.key();
@@ -508,6 +509,7 @@ class Set {
         }
       }
     }
+    return prev_size - this->size();
   }
 
   /**
@@ -644,6 +646,24 @@ class Set {
   static bool Disjoint(const Set &a, const Set &b)
   {
     return !Intersects(a, b);
+  }
+
+  friend bool operator==(const Set &a, const Set &b)
+  {
+    if (a.size() != b.size()) {
+      return false;
+    }
+    for (const Key &key : a) {
+      if (!b.contains(key)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend bool operator!=(const Set &a, const Set &b)
+  {
+    return !(a == b);
   }
 
  private:

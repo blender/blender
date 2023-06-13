@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup texnodes
@@ -91,9 +92,9 @@ void register_node_type_tex_hue_sat()
 {
   static bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue Saturation Value", NODE_CLASS_OP_COLOR);
-  node_type_socket_templates(&ntype, inputs, outputs);
-  node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+  tex_node_type_base(&ntype, TEX_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
+  blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
+  blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::MIDDLE);
   ntype.exec_fn = exec;
 
   nodeRegisterType(&ntype);

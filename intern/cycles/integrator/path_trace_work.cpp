@@ -44,9 +44,7 @@ PathTraceWork::PathTraceWork(Device *device,
 {
 }
 
-PathTraceWork::~PathTraceWork()
-{
-}
+PathTraceWork::~PathTraceWork() {}
 
 RenderBuffers *PathTraceWork::get_render_buffers()
 {

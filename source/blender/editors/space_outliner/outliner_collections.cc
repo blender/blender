@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -52,10 +54,9 @@ bool outliner_is_collection_tree_element(const TreeElement *te)
     return false;
   }
 
-  if (ELEM(tselem->type,
-           TSE_LAYER_COLLECTION,
-           TSE_SCENE_COLLECTION_BASE,
-           TSE_VIEW_COLLECTION_BASE)) {
+  if (ELEM(
+          tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE))
+  {
     return true;
   }
   if ((tselem->type == TSE_SOME_ID) && te->idcode == ID_GR) {
@@ -90,7 +91,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata)
 {
-  struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
+  IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
@@ -107,15 +108,15 @@ TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void 
 
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata)
 {
-  struct IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
+  IDsSelectedData *data = static_cast<IDsSelectedData *>(customdata);
   TreeStoreElem *tselem = TREESTORE(te);
 
   if (outliner_is_collection_tree_element(te)) {
     return TRAVERSE_CONTINUE;
   }
 
-  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) ||
-      (GS(tselem->id->name) != ID_OB)) {
+  if ((tselem->type != TSE_SOME_ID) || (tselem->id == nullptr) || (GS(tselem->id->name) != ID_OB))
+  {
     return TRAVERSE_SKIP_CHILDS;
   }
 
@@ -131,7 +132,7 @@ void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
   using namespace blender::ed::outliner;
 
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
-  struct IDsSelectedData data = {{nullptr}};
+  IDsSelectedData data = {{nullptr}};
   outliner_tree_traverse(space_outliner,
                          &space_outliner->tree,
                          0,
@@ -196,7 +197,7 @@ struct CollectionNewData {
 
 static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void *customdata)
 {
-  struct CollectionNewData *data = static_cast<CollectionNewData *>(customdata);
+  CollectionNewData *data = static_cast<CollectionNewData *>(customdata);
   Collection *collection = outliner_collection_from_tree_element(te);
 
   if (!collection) {
@@ -239,7 +240,8 @@ static int collection_new_exec(bContext *C, wmOperator *op)
   }
 
   if (data.collection == nullptr || ID_IS_LINKED(data.collection) ||
-      ID_IS_OVERRIDE_LIBRARY(data.collection)) {
+      ID_IS_OVERRIDE_LIBRARY(data.collection))
+  {
     data.collection = scene->master_collection;
   }
 
@@ -410,7 +412,7 @@ static int collection_hierarchy_delete_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   const Base *basact_prev = BKE_view_layer_active_base_get(view_layer);
 
@@ -699,7 +701,8 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
   if ((ID_IS_LINKED(active_collection) || ID_IS_OVERRIDE_LIBRARY(active_collection)) ||
       ((active_collection->flag & COLLECTION_IS_MASTER) &&
-       (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene)))) {
+       (ID_IS_LINKED(scene) || ID_IS_OVERRIDE_LIBRARY(scene))))
+  {
     BKE_report(
         op->reports, RPT_ERROR, "Cannot add a collection to a linked/override collection/scene");
     return OPERATOR_CANCELLED;

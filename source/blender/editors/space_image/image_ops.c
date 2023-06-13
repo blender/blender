@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -70,6 +71,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_undo.h"
 #include "ED_util.h"
 #include "ED_util_imbuf.h"
 #include "ED_uvedit.h"
@@ -230,7 +232,7 @@ static bool image_from_context_has_data_poll(bContext *C)
 
   void *lock;
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-  const bool has_buffer = (ibuf && (ibuf->rect || ibuf->rect_float));
+  const bool has_buffer = (ibuf && (ibuf->byte_buffer.data || ibuf->float_buffer.data));
   BKE_image_release_ibuf(ima, ibuf, lock);
   return has_buffer;
 }
@@ -253,7 +255,7 @@ static bool image_not_packed_poll(bContext *C)
   return (ima && BLI_listbase_is_empty(&ima->packedfiles));
 }
 
-static void image_view_all(struct SpaceImage *sima, struct ARegion *region, struct wmOperator *op)
+static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
 {
   float aspx, aspy, zoomx, zoomy, w, h;
   int width, height;
@@ -1585,8 +1587,7 @@ static int image_file_browse_exec(bContext *C, wmOperator *op)
 
   /* If loading into a tiled texture, ensure that the filename is tokenized. */
   if (ima->source == IMA_SRC_TILED) {
-    char *filename = (char *)BLI_path_basename(filepath);
-    BKE_image_ensure_tile_token(filename);
+    BKE_image_ensure_tile_token(filepath, sizeof(filepath));
   }
 
   PointerRNA imaptr;
@@ -1608,7 +1609,7 @@ static int image_file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *
   }
 
   char filepath[FILE_MAX];
-  BLI_strncpy(filepath, ima->filepath, sizeof(filepath));
+  STRNCPY(filepath, ima->filepath);
 
   /* Shift+Click to open the file, Alt+Click to browse a folder in the OS's browser. */
   if (event->modifier & (KM_SHIFT | KM_ALT)) {
@@ -1736,23 +1737,23 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!sima->image) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", str);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  /* we can't do much if the str is longer than FILE_MAX :/ */
-  BLI_strncpy(sima->image->filepath, str, sizeof(sima->image->filepath));
+  /* we can't do much if the filepath is longer than FILE_MAX :/ */
+  STRNCPY(sima->image->filepath, filepath);
 
   if (sima->image->source == IMA_SRC_GENERATED) {
     sima->image->source = IMA_SRC_FILE;
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
   }
 
-  if (BLI_path_extension_check_array(str, imb_ext_movie)) {
+  if (BLI_path_extension_check_array(filepath, imb_ext_movie)) {
     sima->image->source = IMA_SRC_MOVIE;
   }
   else {
@@ -1852,7 +1853,7 @@ static bool save_image_op(
   WM_cursor_wait(false);
 
   /* Remember file path for next save. */
-  BLI_strncpy(G.ima, opts->filepath, sizeof(G.ima));
+  STRNCPY(G.ima, opts->filepath);
 
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, ima);
 
@@ -2006,7 +2007,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render, true);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
@@ -2073,7 +2074,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
                          "copy",
                          0,
                          "Copy",
-                         "Create a new image file without modifying the current image in blender");
+                         "Create a new image file without modifying the current image in Blender");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   image_operator_prop_allow_tokens(ot);
@@ -2174,7 +2175,8 @@ static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   /* Not writable formats or images without a file-path will go to "Save As". */
   if (!BKE_image_has_packedfile(ima) &&
-      (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser))) {
+      (!BKE_image_has_filepath(ima) || !image_file_format_writable(ima, iuser)))
+  {
     WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL, event);
     return OPERATOR_CANCELLED;
   }
@@ -2205,7 +2207,6 @@ void IMAGE_OT_save(wmOperatorType *ot)
 
 static int image_save_sequence_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
   Image *image = image_from_context(C);
   ImBuf *ibuf, *first_ibuf = NULL;
   int tot = 0;
@@ -2249,7 +2250,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   }
 
   /* get a filename for menu */
-  BLI_split_dir_part(first_ibuf->name, di, sizeof(di));
+  BLI_path_split_dir_part(first_ibuf->filepath, di, sizeof(di));
   BKE_reportf(op->reports, RPT_INFO, "%d image(s) will be saved in %s", tot, di);
 
   iter = IMB_moviecacheIter_new(image->cache);
@@ -2257,17 +2258,12 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
     if (ibuf != NULL && ibuf->userflags & IB_BITMAPDIRTY) {
-      char name[FILE_MAX];
-      BLI_strncpy(name, ibuf->name, sizeof(name));
-
-      BLI_path_abs(name, BKE_main_blendfile_path(bmain));
-
-      if (0 == IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat)) {
+      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_rect | IB_zbuf | IB_zbuffloat)) {
         BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
         break;
       }
 
-      BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->name);
+      BKE_reportf(op->reports, RPT_INFO, "Saved %s", ibuf->filepath);
       ibuf->userflags &= ~IB_BITMAPDIRTY;
     }
 
@@ -2307,7 +2303,8 @@ static bool image_should_be_saved_when_modified(Image *ima)
 static bool image_should_be_saved(Image *ima, bool *is_format_writable)
 {
   if (BKE_image_is_dirty_writable(ima, is_format_writable) &&
-      ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED)) {
+      ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_GENERATED, IMA_SRC_TILED))
+  {
     return image_should_be_saved_when_modified(ima);
   }
   return false;
@@ -2747,8 +2744,8 @@ static int image_flip_exec(bContext *C, wmOperator *op)
   const int size_x = ibuf->x;
   const int size_y = ibuf->y;
 
-  if (ibuf->rect_float) {
-    float *float_pixels = (float *)ibuf->rect_float;
+  if (ibuf->float_buffer.data) {
+    float *float_pixels = ibuf->float_buffer.data;
 
     float *orig_float_pixels = MEM_dupallocN(float_pixels);
     for (int x = 0; x < size_x; x++) {
@@ -2765,23 +2762,23 @@ static int image_flip_exec(bContext *C, wmOperator *op)
     }
     MEM_freeN(orig_float_pixels);
 
-    if (ibuf->rect) {
+    if (ibuf->byte_buffer.data) {
       IMB_rect_from_float(ibuf);
     }
   }
-  else if (ibuf->rect) {
-    char *char_pixels = (char *)ibuf->rect;
-    char *orig_char_pixels = MEM_dupallocN(char_pixels);
+  else if (ibuf->byte_buffer.data) {
+    uchar *char_pixels = ibuf->byte_buffer.data;
+    uchar *orig_char_pixels = MEM_dupallocN(char_pixels);
     for (int x = 0; x < size_x; x++) {
       const int source_pixel_x = use_flip_x ? size_x - x - 1 : x;
       for (int y = 0; y < size_y; y++) {
         const int source_pixel_y = use_flip_y ? size_y - y - 1 : y;
 
-        const char *source_pixel =
+        const uchar *source_pixel =
             &orig_char_pixels[4 * (source_pixel_x + source_pixel_y * size_x)];
-        char *target_pixel = &char_pixels[4 * (x + y * size_x)];
+        uchar *target_pixel = &char_pixels[4 * (x + y * size_x)];
 
-        copy_v4_v4_char(target_pixel, source_pixel);
+        copy_v4_v4_uchar(target_pixel, source_pixel);
       }
     }
     MEM_freeN(orig_char_pixels);
@@ -2835,6 +2832,125 @@ void IMAGE_OT_flip(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Clipboard Copy Operator
+ * \{ */
+
+static int image_clipboard_copy_exec(bContext *C, wmOperator *op)
+{
+  Image *ima = image_from_context(C);
+  if (ima == NULL) {
+    return false;
+  }
+
+  if (G.is_rendering && ima->source == IMA_SRC_VIEWER) {
+    BKE_report(op->reports, RPT_ERROR, "Images cannot be copied while rendering");
+    return false;
+  }
+
+  ImageUser *iuser = image_user_from_context(C);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+  if (ibuf == NULL) {
+    BKE_image_release_ibuf(ima, ibuf, lock);
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  WM_clipboard_image_set(ibuf);
+  BKE_image_release_ibuf(ima, ibuf, lock);
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_copy_poll(bContext *C)
+{
+  if (!image_from_context_has_data_poll(C)) {
+    CTX_wm_operator_poll_msg_set(C, "No images available");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_copy(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Copy Image";
+  ot->idname = "IMAGE_OT_clipboard_copy";
+  ot->description = "Copy the image to the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_copy_exec;
+  ot->poll = image_clipboard_copy_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Clipboard Paste Operator
+ * \{ */
+
+static int image_clipboard_paste_exec(bContext *C, wmOperator *op)
+{
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_WAIT);
+
+  ImBuf *ibuf = WM_clipboard_image_get();
+  if (!ibuf) {
+    WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+    return OPERATOR_CANCELLED;
+  }
+
+  ED_undo_push_op(C, op);
+
+  Main *bmain = CTX_data_main(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  Image *ima = BKE_image_add_from_imbuf(bmain, ibuf, "Clipboard");
+  IMB_freeImBuf(ibuf);
+
+  ED_space_image_set(bmain, sima, ima, false);
+  BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
+  WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
+
+  WM_cursor_set(CTX_wm_window(C), WM_CURSOR_DEFAULT);
+
+  return OPERATOR_FINISHED;
+}
+
+static bool image_clipboard_paste_poll(bContext *C)
+{
+  if (!WM_clipboard_image_available()) {
+    CTX_wm_operator_poll_msg_set(C, "No compatible images are on the clipboard");
+    return false;
+  }
+
+  return true;
+}
+
+void IMAGE_OT_clipboard_paste(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Paste Image";
+  ot->idname = "IMAGE_OT_clipboard_paste";
+  ot->description = "Paste new image from the clipboard";
+
+  /* api callbacks */
+  ot->exec = image_clipboard_paste_exec;
+  ot->poll = image_clipboard_paste_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Invert Operators
  * \{ */
 
@@ -2866,9 +2982,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   }
 
   /* TODO: make this into an IMB_invert_channels(ibuf,r,g,b,a) method!? */
-  if (ibuf->rect_float) {
+  if (ibuf->float_buffer.data) {
 
-    float *fp = (float *)ibuf->rect_float;
+    float *fp = ibuf->float_buffer.data;
     for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
       if (r) {
         fp[0] = 1.0f - fp[0];
@@ -2884,13 +3000,13 @@ static int image_invert_exec(bContext *C, wmOperator *op)
       }
     }
 
-    if (ibuf->rect) {
+    if (ibuf->byte_buffer.data) {
       IMB_rect_from_float(ibuf);
     }
   }
-  else if (ibuf->rect) {
+  else if (ibuf->byte_buffer.data) {
 
-    char *cp = (char *)ibuf->rect;
+    uchar *cp = ibuf->byte_buffer.data;
     for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
       if (r) {
         cp[0] = 255 - cp[0];
@@ -3008,6 +3124,7 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   IMB_scaleImBuf(ibuf, size[0], size[1]);
+  BKE_image_mark_dirty(ima, ibuf);
   BKE_image_release_ibuf(ima, ibuf, NULL);
 
   ED_image_undo_push_end();
@@ -3063,7 +3180,7 @@ static bool image_pack_test(bContext *C, wmOperator *op)
 
 static int image_pack_exec(bContext *C, wmOperator *op)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
 
   if (!image_pack_test(C, op)) {
@@ -3206,10 +3323,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-bool ED_space_image_get_position(SpaceImage *sima,
-                                 struct ARegion *region,
-                                 int mval[2],
-                                 float fpos[2])
+bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2])
 {
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
@@ -3255,13 +3369,13 @@ bool ED_space_image_color_sample(
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
 
-    if (ibuf->rect_float) {
-      fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
+    if (ibuf->float_buffer.data) {
+      fp = (ibuf->float_buffer.data + (ibuf->channels) * (y * ibuf->x + x));
       copy_v3_v3(r_col, fp);
       ret = true;
     }
-    else if (ibuf->rect) {
-      cp = (uchar *)(ibuf->rect + y * ibuf->x + x);
+    else if (ibuf->byte_buffer.data) {
+      cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
       IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
       ret = true;
@@ -3781,7 +3895,8 @@ static int render_border_exec(bContext *C, wmOperator *op)
   /* Drawing a border surrounding the entire camera view switches off border rendering
    * or the border covers no pixels. */
   if ((border.xmin <= 0.0f && border.xmax >= 1.0f && border.ymin <= 0.0f && border.ymax >= 1.0f) ||
-      (border.xmin == border.xmax || border.ymin == border.ymax)) {
+      (border.xmin == border.xmax || border.ymin == border.ymax))
+  {
     scene->r.mode &= ~R_BORDER;
   }
   else {
@@ -3907,7 +4022,7 @@ static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
     /* Initialize properties from reference tile. */
     RNA_int_set(ptr, "width", ibuf->x);
     RNA_int_set(ptr, "height", ibuf->y);
-    RNA_boolean_set(ptr, "float", ibuf->rect_float != NULL);
+    RNA_boolean_set(ptr, "float", ibuf->float_buffer.data != NULL);
     RNA_boolean_set(ptr, "alpha", ibuf->planes > 24);
 
     BKE_image_release_ibuf(ima, ibuf, NULL);

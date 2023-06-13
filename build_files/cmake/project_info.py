@@ -142,7 +142,7 @@ def cmake_advanced_info() -> Union[Tuple[List[str], List[Tuple[str, str]]], Tupl
 
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
     if make_exe is None:
-        print("Make command not found in: %r not found" % project_path)
+        print("Make command not found: CMAKE_MAKE_PROGRAM")
         return None, None
 
     make_exe_basename = os.path.basename(make_exe)

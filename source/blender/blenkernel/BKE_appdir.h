@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -66,7 +68,7 @@ bool BKE_appdir_folder_documents(char *dir) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RES
  * \returns True if the path is valid. It doesn't create or checks format
  * if the `blender` folder exists. It does check if the parent of the path exists.
  */
-bool BKE_appdir_folder_caches(char *r_path, size_t path_len) ATTR_NONNULL(1);
+bool BKE_appdir_folder_caches(char *r_path, size_t r_path_maxncpy) ATTR_NONNULL(1);
 /**
  * Get a folder out of the \a folder_id presets for paths.
  *
@@ -74,7 +76,10 @@ bool BKE_appdir_folder_caches(char *r_path, size_t path_len) ATTR_NONNULL(1);
  * this may contain path separators but must resolve to a directory, checked with #BLI_is_dir.
  * \return The path if found, NULL string if not.
  */
-bool BKE_appdir_folder_id_ex(int folder_id, const char *subfolder, char *path, size_t path_len);
+bool BKE_appdir_folder_id_ex(int folder_id,
+                             const char *subfolder,
+                             char *path,
+                             size_t path_maxncpy);
 const char *BKE_appdir_folder_id(int folder_id, const char *subfolder) ATTR_WARN_UNUSED_RESULT;
 /**
  * Returns the path to a folder in the user area, creating it if it doesn't exist.
@@ -104,7 +109,7 @@ bool BKE_appdir_app_is_portable_install(void);
  * Return true if templates exist
  */
 bool BKE_appdir_app_template_any(void);
-bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_len)
+bool BKE_appdir_app_template_id_search(const char *app_template, char *path, size_t path_maxncpy)
     ATTR_NONNULL(1);
 bool BKE_appdir_app_template_has_userpref(const char *app_template) ATTR_NONNULL(1);
 void BKE_appdir_app_templates(struct ListBase *templates) ATTR_NONNULL(1);

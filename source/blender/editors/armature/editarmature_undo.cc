@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -119,7 +120,7 @@ static Object *editarm_object_from_context(bContext *C)
  * \{ */
 
 typedef struct ArmatureUndoStep_Elem {
-  struct ArmatureUndoStep_Elem *next, *prev;
+  ArmatureUndoStep_Elem *next, *prev;
   UndoRefID_Object obedit_ref;
   UndoArmature data;
 } ArmatureUndoStep_Elem;
@@ -135,7 +136,7 @@ static bool armature_undosys_poll(bContext *C)
   return editarm_object_from_context(C) != nullptr;
 }
 
-static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain, UndoStep *us_p)
+static bool armature_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 
@@ -167,11 +168,8 @@ static bool armature_undosys_step_encode(struct bContext *C, struct Main *bmain,
   return true;
 }
 
-static void armature_undosys_step_decode(struct bContext *C,
-                                         struct Main *bmain,
-                                         UndoStep *us_p,
-                                         const eUndoStepDir /*dir*/,
-                                         bool /*is_final*/)
+static void armature_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
 

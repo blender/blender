@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -253,7 +254,7 @@ static void ui_tooltip_region_draw_cb(const bContext * /*C*/, ARegion *region)
 
       UI_fontstyle_set(&fstyle_mono);
       /* XXX: needed because we don't have mono in 'U.uifonts'. */
-      BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * U.dpi_fac);
+      BLF_size(fstyle_mono.uifont_id, fstyle_mono.points * UI_SCALE_FAC);
       rgb_float_to_uchar(drawcol, tip_colors[int(field->format.color_id)]);
       UI_fontstyle_draw(&fstyle_mono, &bbox, field->text, UI_TIP_STR_MAX, drawcol, &fs_params);
     }
@@ -550,7 +551,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                            static_cast<IDProperty *>(op_props.data),
                                            true,
                                            shortcut_brush,
-                                           ARRAY_SIZE(shortcut_brush))) {
+                                           ARRAY_SIZE(shortcut_brush)))
+          {
             shortcut = BLI_strdup(shortcut_brush);
           }
           WM_operator_properties_free(&op_props);
@@ -567,7 +569,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                        nullptr,
                                        true,
                                        shortcut_toolbar,
-                                       ARRAY_SIZE(shortcut_toolbar))) {
+                                       ARRAY_SIZE(shortcut_toolbar)))
+      {
         /* Generate keymap in order to inspect it.
          * NOTE: we could make a utility to avoid the keymap generation part of this. */
         const char *expr_imports[] = {
@@ -645,7 +648,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
         /* pass */
       }
       else if (BPY_run_string_as_string_and_size(
-                   C, expr_imports, expr, nullptr, &expr_result, &expr_result_len)) {
+                   C, expr_imports, expr, nullptr, &expr_result, &expr_result_len))
+      {
         /* pass. */
       }
     }
@@ -668,7 +672,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
                                          static_cast<IDProperty *>(op_props.data),
                                          true,
                                          shortcut,
-                                         ARRAY_SIZE(shortcut))) {
+                                         ARRAY_SIZE(shortcut)))
+        {
           break;
         }
         item_step += strlen(item_step) + 1;
@@ -742,7 +747,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 
 static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
                                                                 uiBut *but,
-                                                                uiButExtraOpIcon *extra_icon)
+                                                                uiButExtraOpIcon *extra_icon,
+                                                                const bool is_label)
 {
   uiStringInfo but_label = {BUT_GET_LABEL, nullptr};
   uiStringInfo but_tip = {BUT_GET_TIP, nullptr};
@@ -763,20 +769,30 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
   uiTooltipData *data = MEM_cnew<uiTooltipData>(__func__);
 
   if (extra_icon) {
-    UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &but_tip, &op_keymap, nullptr);
+    if (is_label) {
+      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &enum_label, nullptr);
+    }
+    else {
+      UI_but_extra_icon_string_info_get(C, extra_icon, &but_label, &but_tip, &op_keymap, nullptr);
+    }
   }
   else {
-    UI_but_string_info_get(C,
-                           but,
-                           &but_label,
-                           &but_tip,
-                           &enum_label,
-                           &enum_tip,
-                           &op_keymap,
-                           &prop_keymap,
-                           &rna_struct,
-                           &rna_prop,
-                           nullptr);
+    if (is_label) {
+      UI_but_string_info_get(C, but, &but_label, &enum_label, nullptr);
+    }
+    else {
+      UI_but_string_info_get(C,
+                             but,
+                             &but_label,
+                             &but_tip,
+                             &enum_label,
+                             &enum_tip,
+                             &op_keymap,
+                             &prop_keymap,
+                             &rna_struct,
+                             &rna_prop,
+                             nullptr);
+    }
   }
 
   /* Tip Label (only for buttons not already showing the label).
@@ -811,6 +827,13 @@ static uiTooltipData *ui_tooltip_data_from_button_or_extra_icon(bContext *C,
       field->text = BLI_strdup(TIP_("(Shift-Click/Drag to select multiple)"));
     }
   }
+  /* When there is only an enum label (no button label or tip), draw that as header. */
+  else if (enum_label.strinfo && !(but_label.strinfo && but_label.strinfo[0])) {
+    uiTooltipField *field = text_field_add(
+        data, uiTooltipFormat::Style::Header, uiTooltipFormat::ColorID::Normal);
+    field->text = BLI_strdup(enum_label.strinfo);
+  }
+
   /* Enum field label & tip. */
   if (enum_tip.strinfo) {
     uiTooltipField *field = text_field_add(
@@ -1044,7 +1067,8 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
           IDProperty *prop = static_cast<IDProperty *>(gzop->ptr.data);
           char buf[128];
           if (WM_key_event_operator_string(
-                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true, buf, ARRAY_SIZE(buf))) {
+                  C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true, buf, ARRAY_SIZE(buf)))
+          {
             uiTooltipField *field = text_field_add(
                 data, uiTooltipFormat::Style::Normal, uiTooltipFormat::ColorID::Value, true);
             field->text = BLI_sprintfN(TIP_("Shortcut: %s"), buf);
@@ -1127,12 +1151,12 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     uiTooltipField *field = &data->fields[i];
     uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
 
-    struct ResultBLF info;
+    ResultBLF info;
     int w, x_pos = 0;
     int font_id;
 
     if (field->format.style == uiTooltipFormat::Style::Mono) {
-      BLF_size(blf_mono_font, data->fstyle.points * U.dpi_fac);
+      BLF_size(blf_mono_font, data->fstyle.points * UI_SCALE_FAC);
       font_id = blf_mono_font;
     }
     else {
@@ -1313,7 +1337,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     region->winrct.ymax = rect_i.ymax + margin;
   }
 
-  /* adds subwindow */
+  /* Adds sub-window. */
   ED_region_floating_init(region);
 
   /* notify change and redraw */
@@ -1346,11 +1370,11 @@ ARegion *UI_tooltip_create_from_button_or_extra_icon(
   }
 
   if (data == nullptr) {
-    data = ui_tooltip_data_from_button_or_extra_icon(C, but, extra_icon);
+    data = ui_tooltip_data_from_button_or_extra_icon(C, but, extra_icon, is_label);
   }
 
   if (data == nullptr) {
-    data = ui_tooltip_data_from_button_or_extra_icon(C, but, nullptr);
+    data = ui_tooltip_data_from_button_or_extra_icon(C, but, nullptr, is_label);
   }
 
   if (data == nullptr) {

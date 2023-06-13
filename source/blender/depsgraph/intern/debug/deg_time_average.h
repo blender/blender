@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -12,9 +13,7 @@ namespace blender::deg {
 /* Utility class which takes care of calculating average of time series, such as FPS counters. */
 template<int MaxSamples> class AveragedTimeSampler {
  public:
-  AveragedTimeSampler() : num_samples_(0), next_sample_index_(0)
-  {
-  }
+  AveragedTimeSampler() : num_samples_(0), next_sample_index_(0) {}
 
   void add_sample(double value)
   {

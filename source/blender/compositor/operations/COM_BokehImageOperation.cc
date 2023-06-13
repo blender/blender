@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_BokehImageOperation.h"
 
@@ -56,12 +57,14 @@ float BokehImageOperation::is_inside_bokeh(float distance, float x, float y)
 
   const float catadioptric_distance_to_center = distance_rounding_to_center * data_->catadioptric;
   if (distance_rounding_to_center >= distance_to_center &&
-      catadioptric_distance_to_center <= distance_to_center) {
+      catadioptric_distance_to_center <= distance_to_center)
+  {
     if (distance_rounding_to_center - distance_to_center < 1.0f) {
       inside_bokeh = (distance_rounding_to_center - distance_to_center);
     }
     else if (data_->catadioptric != 0.0f &&
-             distance_to_center - catadioptric_distance_to_center < 1.0f) {
+             distance_to_center - catadioptric_distance_to_center < 1.0f)
+    {
       inside_bokeh = (distance_to_center - catadioptric_distance_to_center);
     }
     else {

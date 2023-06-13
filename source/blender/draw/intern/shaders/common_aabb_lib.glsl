@@ -9,6 +9,14 @@ struct AABB {
   vec3 min, max;
 };
 
+AABB shape_aabb(vec3 min, vec3 max)
+{
+  AABB aabb;
+  aabb.min = min;
+  aabb.max = max;
+  return aabb;
+}
+
 AABB aabb_init_min_max()
 {
   AABB aabb;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -39,6 +40,9 @@ void ED_operatortypes_curve(void)
   WM_operatortype_append(FONT_OT_text_cut);
   WM_operatortype_append(FONT_OT_text_paste);
   WM_operatortype_append(FONT_OT_text_paste_from_file);
+
+  WM_operatortype_append(FONT_OT_selection_set);
+  WM_operatortype_append(FONT_OT_select_word);
 
   WM_operatortype_append(FONT_OT_move);
   WM_operatortype_append(FONT_OT_move_select);

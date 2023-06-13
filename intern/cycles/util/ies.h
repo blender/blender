@@ -11,9 +11,7 @@ CCL_NAMESPACE_BEGIN
 
 class IESFile {
  public:
-  IESFile()
-  {
-  }
+  IESFile() {}
   ~IESFile();
 
   int packed_size();

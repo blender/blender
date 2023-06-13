@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -257,7 +259,7 @@ bool rna_Cache_use_disk_cache_override_apply(Main *UNUSED(bmain),
                                              IDOverrideLibraryPropertyOperation *opop)
 {
   BLI_assert(RNA_property_type(prop_dst) == PROP_BOOLEAN);
-  BLI_assert(opop->operation == IDOVERRIDE_LIBRARY_OP_REPLACE);
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE);
   UNUSED_VARS_NDEBUG(opop);
 
   RNA_property_boolean_set(ptr_dst, prop_dst, RNA_property_boolean_get(ptr_src, prop_src));
@@ -304,25 +306,25 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
       }
       else if (cache->name[0] != '\0' && STREQ(cache->name, pid->cache->name)) {
         /* TODO: report "name exists" to user. */
-        BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
+        STRNCPY(cache->name, cache->prev_name);
         use_new_name = false;
       }
     }
 
     if (use_new_name) {
-      BLI_filename_make_safe(cache->name);
+      BLI_path_make_safe_filename(cache->name);
 
       if (pid2 && cache->flag & PTCACHE_DISK_CACHE) {
         char old_name[80];
         char new_name[80];
 
-        BLI_strncpy(old_name, cache->prev_name, sizeof(old_name));
-        BLI_strncpy(new_name, cache->name, sizeof(new_name));
+        STRNCPY(old_name, cache->prev_name);
+        STRNCPY(new_name, cache->name);
 
         BKE_ptcache_disk_cache_rename(pid2, old_name, new_name);
       }
 
-      BLI_strncpy(cache->prev_name, cache->name, sizeof(cache->prev_name));
+      STRNCPY(cache->prev_name, cache->name);
     }
 
     BLI_freelistN(&pidlist);
@@ -667,7 +669,8 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
     /* In the case of specific force-fields that are using the #EffectorData's normal, we need to
      * rebuild mesh and BVH-tree for #SurfaceModifier to work correctly. */
     if (ELEM(ob->pd->shape, PFIELD_SHAPE_SURFACE, PFIELD_SHAPE_POINTS) ||
-        ob->pd->forcefield == PFIELD_GUIDE) {
+        ob->pd->forcefield == PFIELD_GUIDE)
+    {
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
     }
 
@@ -841,8 +844,8 @@ static char *rna_EffectorWeight_path(const PointerRNA *ptr)
     md = (ModifierData *)BKE_modifiers_findby_type(ob, eModifierType_Fluid);
     if (md) {
       FluidModifierData *fmd = (FluidModifierData *)md;
-      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain &&
-          fmd->domain->effector_weights == ew) {
+      if (fmd->type == MOD_FLUID_TYPE_DOMAIN && fmd->domain && fmd->domain->effector_weights == ew)
+      {
         char name_esc[sizeof(md->name) * 2];
         BLI_str_escape(name_esc, md->name, sizeof(name_esc));
         return BLI_sprintfN("modifiers[\"%s\"].domain_settings.effector_weights", name_esc);
@@ -1150,7 +1153,7 @@ static void rna_def_collision(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "deflect", 1);
   RNA_def_property_ui_text(
-      prop, "Enabled", "Enable this objects as a collider for physics systems");
+      prop, "Enabled", "Enable this object as a collider for physics systems");
   RNA_def_property_update(prop, 0, "rna_CollisionSettings_dependency_update");
 
   /* Particle Interaction */
@@ -1517,7 +1520,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, NULL, "falloff");
   RNA_def_property_enum_items(prop, falloff_items);
-  RNA_def_property_ui_text(prop, "Fall-Off", "");
+  RNA_def_property_ui_text(prop, "Falloff", "");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "texture_mode", PROP_ENUM, PROP_NONE);
@@ -1612,7 +1615,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "mindist");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
-  RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance for the field's fall-off");
+  RNA_def_property_ui_text(prop, "Minimum Distance", "Minimum distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "distance_max", PROP_FLOAT, PROP_DISTANCE);
@@ -1626,7 +1629,7 @@ static void rna_def_field(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "minrad");
   RNA_def_property_range(prop, 0.0f, 1000.0f);
   RNA_def_property_ui_text(
-      prop, "Minimum Radial Distance", "Minimum radial distance for the field's fall-off");
+      prop, "Minimum Radial Distance", "Minimum radial distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "radial_max", PROP_FLOAT, PROP_NONE);
@@ -1665,7 +1668,7 @@ static void rna_def_field(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_min_distance", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMIN);
-  RNA_def_property_ui_text(prop, "Use Min", "Use a minimum distance for the field's fall-off");
+  RNA_def_property_ui_text(prop, "Use Min", "Use a minimum distance for the field's falloff");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_max_distance", PROP_BOOLEAN, PROP_NONE);
@@ -1676,8 +1679,8 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_radial_min", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_USEMINR);
   RNA_def_property_ui_text(
-      prop, "Use Min", "Use a minimum radial distance for the field's fall-off");
-  /* "Use a minimum angle for the field's fall-off" */
+      prop, "Use Min", "Use a minimum radial distance for the field's falloff");
+  /* "Use a minimum angle for the field's falloff" */
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_radial_max", PROP_BOOLEAN, PROP_NONE);
@@ -1726,7 +1729,7 @@ static void rna_def_field(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_multiple_springs", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", PFIELD_MULTIPLE_SPRINGS);
   RNA_def_property_ui_text(
-      prop, "Multiple Springs", "Every point is effected by multiple springs");
+      prop, "Multiple Springs", "Every point is affected by multiple springs");
   RNA_def_property_update(prop, 0, "rna_FieldSettings_update");
 
   prop = RNA_def_property(srna, "use_smoke_density", PROP_BOOLEAN, PROP_NONE);

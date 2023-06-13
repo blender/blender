@@ -1,9 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_pbvh.h"
 #include "BKE_pbvh_pixels.hh"
@@ -23,6 +24,7 @@
 #include "bmesh.h"
 
 #include "pbvh_intern.hh"
+#include "pbvh_pixels_copy.hh"
 #include "pbvh_uv_islands.hh"
 
 namespace blender::bke::pbvh::pixels {
@@ -408,9 +410,9 @@ static void update_geom_primitives(PBVH &pbvh, const uv_islands::MeshData &mesh_
   PBVHData &pbvh_data = BKE_pbvh_pixels_data_get(pbvh);
   pbvh_data.clear_data();
   for (const MLoopTri &looptri : mesh_data.looptris) {
-    pbvh_data.geom_primitives.append(int3(mesh_data.loops[looptri.tri[0]].v,
-                                          mesh_data.loops[looptri.tri[1]].v,
-                                          mesh_data.loops[looptri.tri[2]].v));
+    pbvh_data.geom_primitives.append(int3(mesh_data.corner_verts[looptri.tri[0]],
+                                          mesh_data.corner_verts[looptri.tri[1]],
+                                          mesh_data.corner_verts[looptri.tri[2]]));
   }
 }
 
@@ -636,12 +638,11 @@ static void apply_watertight_check(PBVH *pbvh, Image *image, ImageUser *image_us
         int pixel_offset = pixel_row.start_image_coordinate.y * image_buffer->x +
                            pixel_row.start_image_coordinate.x;
         for (int x = 0; x < pixel_row.num_pixels; x++) {
-          if (image_buffer->rect_float) {
-            copy_v4_fl(&image_buffer->rect_float[pixel_offset * 4], 1.0);
+          if (image_buffer->float_buffer.data) {
+            copy_v4_fl(&image_buffer->float_buffer.data[pixel_offset * 4], 1.0);
           }
-          if (image_buffer->rect) {
-            uint8_t *dest = static_cast<uint8_t *>(
-                static_cast<void *>(&image_buffer->rect[pixel_offset]));
+          if (image_buffer->byte_buffer.data) {
+            uint8_t *dest = &image_buffer->byte_buffer.data[pixel_offset * 4];
             copy_v4_uchar(dest, 255);
           }
           pixel_offset += 1;
@@ -667,12 +668,11 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   }
 
   const AttributeAccessor attributes = mesh->attributes();
-  const VArraySpan<float2> uv_map = attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
+  const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
 
   uv_islands::MeshData mesh_data(
       {pbvh->looptri, pbvh->totprim},
-      {pbvh->mloop, mesh->totloop},
-      pbvh->totvert,
+      {pbvh->corner_verts, mesh->totloop},
       uv_map,
       {static_cast<blender::float3 *>(static_cast<void *>(pbvh->vert_positions)), pbvh->totvert});
   uv_islands::UVIslands islands(mesh_data);
@@ -714,6 +714,9 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   if (USE_WATERTIGHT_CHECK) {
     apply_watertight_check(pbvh, image, image_user);
   }
+
+  /* Add solution for non-manifold parts of the model. */
+  BKE_pbvh_pixels_copy_update(*pbvh, *image, *image_user, mesh_data);
 
   /* Rebuild the undo regions. */
   for (PBVHNode *node : nodes_to_update) {
@@ -798,6 +801,13 @@ void BKE_pbvh_pixels_mark_image_dirty(PBVHNode &node, Image &image, ImageUser &i
     node_data->flags.dirty = false;
   }
 }
+
+void BKE_pbvh_pixels_collect_dirty_tiles(PBVHNode &node, Vector<image::TileNumber> &r_dirty_tiles)
+{
+  NodeData *node_data = static_cast<NodeData *>(node.pixels.node_data);
+  node_data->collect_dirty_tiles(r_dirty_tiles);
+}
+
 }  // namespace blender::bke::pbvh::pixels
 
 using namespace blender::bke::pbvh::pixels;

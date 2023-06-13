@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -56,21 +58,14 @@ PyDoc_STRVAR(py_blf_size_doc,
              "font use 0.\n"
              "   :type fontid: int\n"
              "   :arg size: Point size of the font.\n"
-             "   :type size: float\n"
-             "   :arg dpi: DEPRECATED: Defaults to 72 when omitted.\n"
-             "   :type dpi: int\n");
+             "   :type size: float\n");
 static PyObject *py_blf_size(PyObject *UNUSED(self), PyObject *args)
 {
-  int fontid, dpi = -1;
+  int fontid;
   float size;
 
-  if (!PyArg_ParseTuple(args, "if|i:blf.size", &fontid, &size, &dpi)) {
+  if (!PyArg_ParseTuple(args, "if:blf.size", &fontid, &size)) {
     return NULL;
-  }
-
-  if (dpi != -1) {
-    size *= (float)dpi / 72.0f;
-    PyErr_WarnEx(PyExc_DeprecationWarning, "'dpi' is deprecated and assumed to be always 72.", 1);
   }
 
   BLF_size(fontid, size);
@@ -123,8 +118,8 @@ static PyObject *py_blf_color(PyObject *UNUSED(self), PyObject *args)
   int fontid;
   float rgba[4];
 
-  if (!PyArg_ParseTuple(
-          args, "iffff:blf.color", &fontid, &rgba[0], &rgba[1], &rgba[2], &rgba[3])) {
+  if (!PyArg_ParseTuple(args, "iffff:blf.color", &fontid, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+  {
     return NULL;
   }
 
@@ -361,7 +356,8 @@ static PyObject *py_blf_shadow(PyObject *UNUSED(self), PyObject *args)
   float rgba[4];
 
   if (!PyArg_ParseTuple(
-          args, "iiffff:blf.shadow", &fontid, &level, &rgba[0], &rgba[1], &rgba[2], &rgba[3])) {
+          args, "iiffff:blf.shadow", &fontid, &level, &rgba[0], &rgba[1], &rgba[2], &rgba[3]))
+  {
     return NULL;
   }
 
@@ -464,7 +460,7 @@ static PyMethodDef BLF_methods[] = {
 };
 
 PyDoc_STRVAR(BLF_doc, "This module provides access to Blender's text drawing functions.");
-static struct PyModuleDef BLF_module_def = {
+static PyModuleDef BLF_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "blf",
     /*m_doc*/ BLF_doc,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -32,9 +34,7 @@ class DrawingStyle {
 
   inline explicit DrawingStyle(const DrawingStyle &iBrother);
 
-  virtual ~DrawingStyle()
-  {
-  }
+  virtual ~DrawingStyle() {}
 
   /** operators */
   inline DrawingStyle &operator=(const DrawingStyle &ds);

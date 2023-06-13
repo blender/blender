@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -199,7 +201,9 @@ void BKE_id_free_us(Main *bmain, void *idv) /* test users */
   }
 }
 
-static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
+static size_t id_delete(Main *bmain,
+                        const bool do_tagged_deletion,
+                        const int extra_remapping_flags)
 {
   const int tag = LIB_TAG_DOIT;
   ListBase *lbarray[INDEX_ID_MAX];
@@ -211,6 +215,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
   const int free_flag = LIB_ID_FREE_NO_UI_USER |
                         (do_tagged_deletion ? LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_USER_REFCOUNT :
                                               0);
+  const int remapping_flags = (ID_REMAP_FLAG_NEVER_NULL_USAGE | ID_REMAP_FORCE_NEVER_NULL_USAGE |
+                               ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS | extra_remapping_flags);
   ListBase tagged_deleted_ids = {NULL};
 
   base_count = set_listbasepointers(bmain, lbarray);
@@ -261,11 +267,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
        * links, this can lead to nasty crashing here in second, actual deleting loop.
        * Also, this will also flag users of deleted data that cannot be unlinked
        * (object using deleted obdata, etc.), so that they also get deleted. */
-      BKE_libblock_remap_multiple_locked(bmain,
-                                         id_remapper,
-                                         ID_REMAP_FLAG_NEVER_NULL_USAGE |
-                                             ID_REMAP_FORCE_NEVER_NULL_USAGE |
-                                             ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS);
+      BKE_libblock_remap_multiple_locked(bmain, id_remapper, remapping_flags);
       BKE_id_remapper_clear(id_remapper);
     }
 
@@ -329,11 +331,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
        * links, this can lead to nasty crashing here in second, actual deleting loop.
        * Also, this will also flag users of deleted data that cannot be unlinked
        * (object using deleted obdata, etc.), so that they also get deleted. */
-      BKE_libblock_remap_multiple_locked(bmain,
-                                         remapper,
-                                         (ID_REMAP_FLAG_NEVER_NULL_USAGE |
-                                          ID_REMAP_FORCE_NEVER_NULL_USAGE |
-                                          ID_REMAP_FORCE_INTERNAL_RUNTIME_POINTERS));
+      BKE_libblock_remap_multiple_locked(bmain, remapper, remapping_flags);
     }
     BKE_id_remapper_free(remapper);
   }
@@ -353,7 +351,8 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
       id_next = id->next;
       if (id->tag & tag) {
         if (((id->tag & LIB_TAG_EXTRAUSER_SET) == 0 && ID_REAL_USERS(id) != 0) ||
-            ((id->tag & LIB_TAG_EXTRAUSER_SET) != 0 && ID_REAL_USERS(id) != 1)) {
+            ((id->tag & LIB_TAG_EXTRAUSER_SET) != 0 && ID_REAL_USERS(id) != 1))
+        {
           CLOG_ERROR(&LOG,
                      "Deleting %s which still has %d users (including %d 'extra' shallow users)\n",
                      id->name,
@@ -370,7 +369,7 @@ static size_t id_delete(Main *bmain, const bool do_tagged_deletion)
   return num_datablocks_deleted;
 }
 
-void BKE_id_delete(Main *bmain, void *idv)
+void BKE_id_delete_ex(Main *bmain, void *idv, const int extra_remapping_flags)
 {
   BLI_assert_msg((((ID *)idv)->tag & LIB_TAG_NO_MAIN) == 0,
                  "Cannot be used with IDs outside of Main");
@@ -378,12 +377,17 @@ void BKE_id_delete(Main *bmain, void *idv)
   BKE_main_id_tag_all(bmain, LIB_TAG_DOIT, false);
   ((ID *)idv)->tag |= LIB_TAG_DOIT;
 
-  id_delete(bmain, false);
+  id_delete(bmain, false, extra_remapping_flags);
+}
+
+void BKE_id_delete(Main *bmain, void *idv)
+{
+  BKE_id_delete_ex(bmain, idv, 0);
 }
 
 size_t BKE_id_multi_tagged_delete(Main *bmain)
 {
-  return id_delete(bmain, true);
+  return id_delete(bmain, true, 0);
 }
 
 /* -------------------------------------------------------------------- */

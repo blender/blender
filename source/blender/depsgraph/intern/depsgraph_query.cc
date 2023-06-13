@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -78,19 +79,19 @@ static ID *get_evaluated_id(const Depsgraph *deg_graph, ID *id)
 
 namespace deg = blender::deg;
 
-struct Scene *DEG_get_input_scene(const Depsgraph *graph)
+Scene *DEG_get_input_scene(const Depsgraph *graph)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   return deg_graph->scene;
 }
 
-struct ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph)
+ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   return deg_graph->view_layer;
 }
 
-struct Main *DEG_get_bmain(const Depsgraph *graph)
+Main *DEG_get_bmain(const Depsgraph *graph)
 {
   const deg::Depsgraph *deg_graph = reinterpret_cast<const deg::Depsgraph *>(graph);
   return deg_graph->bmain;
@@ -325,7 +326,7 @@ bool DEG_is_evaluated_object(const Object *object)
   return !DEG_is_original_object(object);
 }
 
-bool DEG_is_fully_evaluated(const struct Depsgraph *depsgraph)
+bool DEG_is_fully_evaluated(const Depsgraph *depsgraph)
 {
   const deg::Depsgraph *deg_graph = (const deg::Depsgraph *)depsgraph;
   /* Check whether relations are up to date. */

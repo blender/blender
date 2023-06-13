@@ -1,10 +1,16 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pymathutils
  */
 
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern PyTypeObject vector_Type;
 
@@ -47,3 +53,7 @@ PyObject *Vector_CreatePyObject_alloc(float *vec,
                                       int vec_num,
                                       PyTypeObject *base_type) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1);
+
+#ifdef __cplusplus
+}
+#endif

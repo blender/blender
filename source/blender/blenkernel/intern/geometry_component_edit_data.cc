@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
@@ -27,6 +29,12 @@ bool GeometryComponentEditData::owns_direct_data() const
 void GeometryComponentEditData::ensure_owns_direct_data()
 {
   /* Nothing to do. */
+}
+
+void GeometryComponentEditData::clear()
+{
+  BLI_assert(this->is_mutable() || this->is_expired());
+  curves_edit_hints_.reset();
 }
 
 void GeometryComponentEditData::remember_deformed_curve_positions_if_necessary(

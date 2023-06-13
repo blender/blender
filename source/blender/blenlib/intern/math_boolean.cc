@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -412,7 +414,6 @@ static double isperrboundA, isperrboundB, isperrboundC;
  *
  *  Don't change this routine unless you fully understand it.
  */
-
 void exactinit()
 {
   double half;
@@ -891,7 +892,8 @@ static double orient3dadapt(
 
   if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0) && (adytail == 0.0) &&
       (bdytail == 0.0) && (cdytail == 0.0) && (adztail == 0.0) && (bdztail == 0.0) &&
-      (cdztail == 0.0)) {
+      (cdztail == 0.0))
+  {
     return det;
   }
 
@@ -1419,7 +1421,8 @@ static double incircleadapt(
   Two_Diff_Tail(pc[0], pd[0], cdx, cdxtail);
   Two_Diff_Tail(pc[1], pd[1], cdy, cdytail);
   if ((adxtail == 0.0) && (bdxtail == 0.0) && (cdxtail == 0.0) && (adytail == 0.0) &&
-      (bdytail == 0.0) && (cdytail == 0.0)) {
+      (bdytail == 0.0) && (cdytail == 0.0))
+  {
     return det;
   }
 
@@ -2322,7 +2325,8 @@ static double insphereadapt(const double *pa,
   Two_Diff_Tail(pd[2], pe[2], dez, deztail);
   if ((aextail == 0.0) && (aeytail == 0.0) && (aeztail == 0.0) && (bextail == 0.0) &&
       (beytail == 0.0) && (beztail == 0.0) && (cextail == 0.0) && (ceytail == 0.0) &&
-      (ceztail == 0.0) && (dextail == 0.0) && (deytail == 0.0) && (deztail == 0.0)) {
+      (ceztail == 0.0) && (dextail == 0.0) && (deytail == 0.0) && (deztail == 0.0))
+  {
     return det;
   }
 

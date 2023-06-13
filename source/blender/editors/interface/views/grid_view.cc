@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -39,6 +41,15 @@ void AbstractGridView::foreach_item(ItemIterFn iter_fn) const
 {
   for (const auto &item_ptr : items_) {
     iter_fn(*item_ptr);
+  }
+}
+
+void AbstractGridView::foreach_filtered_item(ItemIterFn iter_fn) const
+{
+  for (const auto &item_ptr : items_) {
+    if (item_ptr->is_filtered_visible_cached()) {
+      iter_fn(*item_ptr);
+    }
   }
 }
 
@@ -84,15 +95,25 @@ int AbstractGridView::get_item_count() const
   return items_.size();
 }
 
-GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height)
+int AbstractGridView::get_item_count_filtered() const
 {
+  if (item_count_filtered_) {
+    return *item_count_filtered_;
+  }
+
+  int i = 0;
+  foreach_filtered_item([&i](const auto &) { i++; });
+
+  BLI_assert(i <= get_item_count());
+  item_count_filtered_ = i;
+  return i;
 }
+
+GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height) {}
 
 /* ---------------------------------------------------------------------- */
 
-AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier)
-{
-}
+AbstractGridViewItem::AbstractGridViewItem(StringRef identifier) : identifier_(identifier) {}
 
 bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
 {
@@ -100,9 +121,7 @@ bool AbstractGridViewItem::matches(const AbstractViewItem &other) const
   return identifier_ == other_grid_item.identifier_;
 }
 
-void AbstractGridViewItem::grid_tile_click_fn(struct bContext * /*C*/,
-                                              void *but_arg1,
-                                              void * /*arg2*/)
+void AbstractGridViewItem::grid_tile_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *view_item_but = (uiButViewItem *)but_arg1;
   AbstractGridViewItem &grid_item = reinterpret_cast<AbstractGridViewItem &>(
@@ -269,7 +288,7 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) c
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) const
 {
-  const int last_item_idx = grid_view_.get_item_count() - 1;
+  const int last_item_idx = grid_view_.get_item_count_filtered() - 1;
   const int last_visible_idx = visible_items_range_.last();
 
   if (last_item_idx > last_visible_idx) {
@@ -314,7 +333,7 @@ class GridViewLayoutBuilder {
   friend class GridViewBuilder;
 
  public:
-  GridViewLayoutBuilder(uiBlock &block);
+  GridViewLayoutBuilder(uiLayout &layout);
 
   void build_from_view(const AbstractGridView &grid_view, const View2D &v2d) const;
 
@@ -324,7 +343,7 @@ class GridViewLayoutBuilder {
   uiLayout *current_layout() const;
 };
 
-GridViewLayoutBuilder::GridViewLayoutBuilder(uiBlock &block) : block_(block)
+GridViewLayoutBuilder::GridViewLayoutBuilder(uiLayout &layout) : block_(*uiLayoutGetBlock(&layout))
 {
 }
 
@@ -332,6 +351,7 @@ void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
                                             AbstractGridViewItem &item) const
 {
   uiLayout *overlap = uiLayoutOverlap(&grid_layout);
+  uiLayoutSetFixedSize(overlap, true);
 
   item.add_grid_tile_button(block_);
   item.build_grid_tile(*uiLayoutRow(overlap, false));
@@ -340,9 +360,9 @@ void GridViewLayoutBuilder::build_grid_tile(uiLayout &grid_layout,
 void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
                                             const View2D &v2d) const
 {
-  uiLayout *prev_layout = current_layout();
+  uiLayout *parent_layout = current_layout();
 
-  uiLayout &layout = *uiLayoutColumn(current_layout(), false);
+  uiLayout &layout = *uiLayoutColumn(current_layout(), true);
   const GridViewStyle &style = grid_view.get_style();
 
   const int cols_per_row = std::max(uiLayoutGetWidth(&layout) / style.tile_width, 1);
@@ -351,33 +371,25 @@ void GridViewLayoutBuilder::build_from_view(const AbstractGridView &grid_view,
 
   build_visible_helper.fill_layout_before_visible(block_);
 
-  /* Use `-cols_per_row` because the grid layout uses a multiple of the passed absolute value for
-   * the number of columns then, rather than distributing the number of items evenly over rows and
-   * stretching the items to fit (see #uiLayoutItemGridFlow.columns_len). */
-  uiLayout *grid_layout = uiLayoutGridFlow(&layout, true, -cols_per_row, true, true, true);
-
   int item_idx = 0;
-  grid_view.foreach_item([&](AbstractGridViewItem &item) {
+  uiLayout *row = nullptr;
+  grid_view.foreach_filtered_item([&](AbstractGridViewItem &item) {
     /* Skip if item isn't visible. */
     if (!build_visible_helper.is_item_visible(item_idx)) {
       item_idx++;
       return;
     }
 
-    build_grid_tile(*grid_layout, item);
+    /* Start a new row for every first item in the row. */
+    if ((item_idx % cols_per_row) == 0) {
+      row = uiLayoutRow(&layout, true);
+    }
+
+    build_grid_tile(*row, item);
     item_idx++;
   });
 
-  /* If there are not enough items to fill the layout, add padding items so the layout doesn't
-   * stretch over the entire width. */
-  if (grid_view.get_item_count() < cols_per_row) {
-    for (int padding_item_idx = 0; padding_item_idx < (cols_per_row - grid_view.get_item_count());
-         padding_item_idx++) {
-      uiItemS(grid_layout);
-    }
-  }
-
-  UI_block_layout_set_current(&block_, prev_layout);
+  UI_block_layout_set_current(&block_, parent_layout);
 
   build_visible_helper.fill_layout_after_visible(block_);
 }
@@ -389,17 +401,22 @@ uiLayout *GridViewLayoutBuilder::current_layout() const
 
 /* ---------------------------------------------------------------------- */
 
-GridViewBuilder::GridViewBuilder(uiBlock &block) : block_(block)
-{
-}
+GridViewBuilder::GridViewBuilder(uiBlock & /*block*/) {}
 
-void GridViewBuilder::build_grid_view(AbstractGridView &grid_view, const View2D &v2d)
+void GridViewBuilder::build_grid_view(AbstractGridView &grid_view,
+                                      const View2D &v2d,
+                                      uiLayout &layout)
 {
+  uiBlock &block = *uiLayoutGetBlock(&layout);
+
   grid_view.build_items();
-  grid_view.update_from_old(block_);
+  grid_view.update_from_old(block);
   grid_view.change_state_delayed();
 
-  GridViewLayoutBuilder builder(block_);
+  /* Ensure the given layout is actually active. */
+  UI_block_layout_set_current(&block, &layout);
+
+  GridViewLayoutBuilder builder(layout);
   builder.build_from_view(grid_view, v2d);
 }
 
@@ -433,6 +450,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  but->emboss = UI_EMBOSS_NONE;
 }
 
 void PreviewGridItem::set_on_activate_fn(ActivateFn fn)

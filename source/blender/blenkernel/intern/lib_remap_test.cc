@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "testing/testing.h"
 
 #include "BLI_utildefines.h"
@@ -20,8 +21,8 @@
 #include "BKE_lib_id.h"
 #include "BKE_lib_remap.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_node.h"
+#include "BKE_mesh.hh"
+#include "BKE_node.hh"
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
@@ -36,7 +37,7 @@ namespace blender::bke::tests {
 class TestData {
  public:
   Main *bmain = nullptr;
-  struct bContext *C = nullptr;
+  bContext *C = nullptr;
 
   virtual void setup()
   {

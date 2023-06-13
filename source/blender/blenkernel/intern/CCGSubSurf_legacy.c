@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -174,8 +176,8 @@ static void ccgSubSurf__calcVertNormals_faces_accumulate_cb(
           NormAdd(FACE_getIFNo(f, lvl, S, x + 0, y + 1), no);
         }
         if (xPlusOk && yPlusOk) {
-          if (x < gridSize - 2 || y < gridSize - 2 ||
-              FACE_getVerts(f)[S]->flags & Vert_eEffected) {
+          if (x < gridSize - 2 || y < gridSize - 2 || FACE_getVerts(f)[S]->flags & Vert_eEffected)
+          {
             NormAdd(FACE_getIFNo(f, lvl, S, x + 1, y + 1), no);
           }
         }
@@ -334,7 +336,7 @@ static void ccgSubSurf__calcVertNormals(CCGSubSurf *ss,
         0, numEffectedF, &data, ccgSubSurf__calcVertNormals_faces_accumulate_cb, &settings);
   }
 
-  /* XXX can I reduce the number of normalisations here? */
+  /* XXX can I reduce the number of normalization calls here? */
   for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
     CCGVert *v = (CCGVert *)effectedV[ptrIdx];
     float *no = VERT_getNo(v, lvl);

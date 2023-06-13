@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_AntiAliasOperation.h"
 
@@ -140,7 +141,8 @@ void AntiAliasOperation::execute_pixel(float output[4], int x, int y, void *data
                      &row_curr[x + 1],
                      &row_next[x - 1],
                      &row_next[x],
-                     &row_next[x + 1])) {
+                     &row_next[x + 1]))
+    {
       /* Some rounding magic to so make weighting correct with the
        * original coefficients.
        */
@@ -207,9 +209,11 @@ void AntiAliasOperation::update_memory_buffer_partial(MemoryBuffer *output,
     const float *row_next = row_curr + input->row_stride;
     int x_offset = 0;
     for (int x = area.xmin; x < area.xmax;
-         x++, out += output->elem_stride, x_offset += input->elem_stride) {
+         x++, out += output->elem_stride, x_offset += input->elem_stride)
+    {
       if (x == input_area.xmin || x == input_area.xmax - 1 || y == input_area.xmin ||
-          y == input_area.ymax - 1) {
+          y == input_area.ymax - 1)
+      {
         out[0] = row_curr[x_offset];
         continue;
       }
@@ -231,7 +235,8 @@ void AntiAliasOperation::update_memory_buffer_partial(MemoryBuffer *output,
                        &row_curr[x_offset + input->elem_stride],
                        &row_next[x_offset - input->elem_stride],
                        &row_next[x_offset],
-                       &row_next[x_offset + input->elem_stride])) {
+                       &row_next[x_offset + input->elem_stride]))
+      {
         /* Some rounding magic to make weighting correct with the
          * original coefficients. */
         uchar result = ((3 * ninepix[0] + 5 * ninepix[1] + 3 * ninepix[2] + 5 * ninepix[3] +

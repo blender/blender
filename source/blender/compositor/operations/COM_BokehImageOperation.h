@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -8,8 +9,8 @@
 namespace blender::compositor {
 
 /**
- * \brief The BokehImageOperation class is an operation that creates an image useful to mimic the
- *internals of a camera.
+ * \brief The #BokehImageOperation class is an operation that creates an image useful to mimic the
+ * internals of a camera.
  *
  * features:
  *  - number of flaps
@@ -19,20 +20,20 @@ namespace blender::compositor {
  *  - simulate lens-shift
  *
  * Per pixel the algorithm determines the edge of the bokeh on the same line as the center of the
- *image and the pixel is evaluating.
+ * image and the pixel is evaluating.
  *
  * The edge is detected by finding the closest point on the direct line between the two nearest
- *flap-corners. this edge is interpolated with a full circle. Result of this edge detection is
- *stored as the distance between the center of the image and the edge.
+ * flap-corners. this edge is interpolated with a full circle. Result of this edge detection is
+ * stored as the distance between the center of the image and the edge.
  *
  * catadioptric lenses are simulated to interpolate between the center of the image and the
- *distance of the edge. We now have three distances:
- *  - distance between the center of the image and the pixel to be evaluated
- *  - distance between the center of the image and the outer-edge
- *  - distance between the center of the image and the inner-edge
+ * distance of the edge. We now have three distances:
+ * - Distance between the center of the image and the pixel to be evaluated.
+ * - Distance between the center of the image and the outer-edge.
+ * - Distance between the center of the image and the inner-edge.
  *
  * With a simple compare it can be detected if the evaluated pixel is between the outer and inner
- *edge.
+ * edge.
  */
 class BokehImageOperation : public MultiThreadedOperation {
  private:
@@ -105,7 +106,7 @@ class BokehImageOperation : public MultiThreadedOperation {
   void init_execution() override;
 
   /**
-   * \brief Deinitialize the execution
+   * \brief De-initialize the execution
    */
   void deinit_execution() override;
 

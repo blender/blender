@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -153,6 +154,8 @@ typedef struct Tex {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
+  /* runtime (must be immediately after id for utilities to use it). */
+  DrawDataList drawdata;
 
   float noisesize, turbul;
   float bright, contrast, saturation, rfac, gfac, bfac;
@@ -185,14 +188,17 @@ typedef struct Tex {
 
   float cropxmin, cropymin, cropxmax, cropymax;
   int texfilter;
-  int afmax; /* anisotropic filter maximum value, ewa -> max eccentricity, feline -> max probes */
+  /** Anisotropic filter maximum value, EWA -> max eccentricity, feline -> max probes. */
+  int afmax;
   short xrepeat, yrepeat;
   short extend;
 
-  /* variables disabled, moved to struct iuser */
+  /* Variables only used for versioning, moved to struct member `iuser`. */
   short _pad0;
-  int len;
-  int frames, offset, sfra;
+  int len DNA_DEPRECATED;
+  int frames DNA_DEPRECATED;
+  int offset DNA_DEPRECATED;
+  int sfra DNA_DEPRECATED;
 
   float checkerdist, nabla;
   char _pad1[4];
@@ -264,14 +270,14 @@ typedef struct ColorMapping {
 #define TEX_STUCCI 6
 #define TEX_NOISE 7
 #define TEX_IMAGE 8
-//#define TEX_PLUGIN        9 /* Deprecated */
-//#define TEX_ENVMAP        10 /* Deprecated */
+// #define TEX_PLUGIN        9 /* Deprecated */
+// #define TEX_ENVMAP        10 /* Deprecated */
 #define TEX_MUSGRAVE 11
 #define TEX_VORONOI 12
 #define TEX_DISTNOISE 13
-//#define TEX_POINTDENSITY  14 /* Deprecated */
-//#define TEX_VOXELDATA     15 /* Deprecated */
-//#define TEX_OCEAN         16 /* Deprecated */
+// #define TEX_POINTDENSITY  14 /* Deprecated */
+// #define TEX_VOXELDATA     15 /* Deprecated */
+// #define TEX_OCEAN         16 /* Deprecated */
 
 /* musgrave stype */
 #define TEX_MFRACTAL 0

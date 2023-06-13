@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnla
@@ -573,6 +574,7 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
     if (ale->type == ANIMTYPE_NLATRACK) {
       NlaTrack *nlt = (NlaTrack *)ale->data;
       AnimData *adt = ale->adt;
+      NlaTrack *new_track = NULL;
 
       const bool is_liboverride = ID_IS_OVERRIDE_LIBRARY(ale->id);
 
@@ -581,14 +583,16 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
        */
       if (above_sel) {
         /* just add a new one above this one */
-        BKE_nlatrack_add(adt, nlt, is_liboverride);
+        new_track = BKE_nlatrack_new_after(&adt->nla_tracks, nlt, is_liboverride);
+        BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
         ale->update = ANIM_UPDATE_DEPS;
         added = true;
       }
       else if ((lastAdt == NULL) || (adt != lastAdt)) {
         /* add one track to the top of the owning AnimData's stack,
          * then don't add anymore to this stack */
-        BKE_nlatrack_add(adt, NULL, is_liboverride);
+        new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, is_liboverride);
+        BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
         lastAdt = adt;
         ale->update = ANIM_UPDATE_DEPS;
         added = true;
@@ -618,6 +622,7 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
   /* check if selected AnimData blocks are empty, and add tracks if so... */
   for (ale = anim_data.first; ale; ale = ale->next) {
     AnimData *adt = ale->adt;
+    NlaTrack *new_track;
 
     /* sanity check */
     BLI_assert(adt->flag & ADT_UI_SELECTED);
@@ -625,7 +630,8 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
     /* ensure it is empty */
     if (BLI_listbase_is_empty(&adt->nla_tracks)) {
       /* add new track to this AnimData block then */
-      BKE_nlatrack_add(adt, NULL, ID_IS_OVERRIDE_LIBRARY(ale->id));
+      new_track = BKE_nlatrack_new_tail(&adt->nla_tracks, ID_IS_OVERRIDE_LIBRARY(ale->id));
+      BKE_nlatrack_set_active(&adt->nla_tracks, new_track);
       ale->update = ANIM_UPDATE_DEPS;
       added = true;
     }

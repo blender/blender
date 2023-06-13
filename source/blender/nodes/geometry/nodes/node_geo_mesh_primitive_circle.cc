@@ -1,10 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -17,16 +19,16 @@ NODE_STORAGE_FUNCS(NodeGeometryMeshCircle)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Int>(N_("Vertices"))
+  b.add_input<decl::Int>("Vertices")
       .default_value(32)
       .min(3)
-      .description(N_("Number of vertices on the circle"));
-  b.add_input<decl::Float>(N_("Radius"))
+      .description("Number of vertices on the circle");
+  b.add_input<decl::Float>("Radius")
       .default_value(1.0f)
       .min(0.0f)
       .subtype(PROP_DISTANCE)
-      .description(N_("Distance of the vertices from the origin"));
-  b.add_output<decl::Geometry>(N_("Mesh"));
+      .description("Distance of the vertices from the origin");
+  b.add_output<decl::Geometry>("Mesh");
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -99,20 +101,26 @@ static int circle_face_total(const GeometryNodeMeshCircleFillType fill_type, con
   return 0;
 }
 
+static Bounds<float3> calculate_bounds_circle(const float radius, const int verts_num)
+{
+  return calculate_bounds_radial_primitive(0.0f, radius, verts_num, 0.0f);
+}
+
 static Mesh *create_circle_mesh(const float radius,
                                 const int verts_num,
                                 const GeometryNodeMeshCircleFillType fill_type)
 {
   Mesh *mesh = BKE_mesh_new_nomain(circle_vert_total(fill_type, verts_num),
                                    circle_edge_total(fill_type, verts_num),
-                                   0,
-                                   circle_corner_total(fill_type, verts_num),
-                                   circle_face_total(fill_type, verts_num));
+                                   circle_face_total(fill_type, verts_num),
+                                   circle_corner_total(fill_type, verts_num));
   BKE_id_material_eval_ensure_default_slot(&mesh->id);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
-  MutableSpan<MEdge> edges = mesh->edges_for_write();
-  MutableSpan<MPoly> polys = mesh->polys_for_write();
-  MutableSpan<MLoop> loops = mesh->loops_for_write();
+  MutableSpan<int2> edges = mesh->edges_for_write();
+  MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
+  MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
+  MutableSpan<int> corner_edges = mesh->corner_edges_for_write();
+  BKE_mesh_smooth_flag_set(mesh, false);
 
   /* Assign vertex coordinates. */
   const float angle_delta = 2.0f * (M_PI / float(verts_num));
@@ -126,49 +134,48 @@ static Mesh *create_circle_mesh(const float radius,
 
   /* Create outer edges. */
   for (const int i : IndexRange(verts_num)) {
-    MEdge &edge = edges[i];
-    edge.v1 = i;
-    edge.v2 = (i + 1) % verts_num;
+    int2 &edge = edges[i];
+    edge[0] = i;
+    edge[1] = (i + 1) % verts_num;
   }
 
   /* Create triangle fan edges. */
   if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
     for (const int i : IndexRange(verts_num)) {
-      MEdge &edge = edges[verts_num + i];
-      edge.v1 = verts_num;
-      edge.v2 = i;
+      int2 &edge = edges[verts_num + i];
+      edge[0] = verts_num;
+      edge[1] = i;
     }
   }
 
   /* Create corners and faces. */
   if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_NGON) {
-    MPoly &poly = polys[0];
-    poly.loopstart = 0;
-    poly.totloop = loops.size();
+    poly_offsets.first() = 0;
+    poly_offsets.last() = corner_verts.size();
 
-    for (const int i : IndexRange(verts_num)) {
-      MLoop &loop = loops[i];
-      loop.e = i;
-      loop.v = i;
-    }
+    std::iota(corner_verts.begin(), corner_verts.end(), 0);
+    std::iota(corner_edges.begin(), corner_edges.end(), 0);
+
+    mesh->tag_loose_edges_none();
   }
   else if (fill_type == GEO_NODE_MESH_CIRCLE_FILL_TRIANGLE_FAN) {
+    for (const int i : poly_offsets.index_range()) {
+      poly_offsets[i] = 3 * i;
+    }
     for (const int i : IndexRange(verts_num)) {
-      MPoly &poly = polys[i];
-      poly.loopstart = 3 * i;
-      poly.totloop = 3;
+      corner_verts[3 * i] = i;
+      corner_edges[3 * i] = i;
 
-      MLoop &loop_a = loops[3 * i];
-      loop_a.e = i;
-      loop_a.v = i;
-      MLoop &loop_b = loops[3 * i + 1];
-      loop_b.e = verts_num + ((i + 1) % verts_num);
-      loop_b.v = (i + 1) % verts_num;
-      MLoop &loop_c = loops[3 * i + 2];
-      loop_c.e = verts_num + i;
-      loop_c.v = verts_num;
+      corner_verts[3 * i + 1] = (i + 1) % verts_num;
+      corner_edges[3 * i + 1] = verts_num + ((i + 1) % verts_num);
+
+      corner_verts[3 * i + 2] = verts_num;
+      corner_edges[3 * i + 2] = verts_num + i;
     }
   }
+
+  mesh->tag_loose_verts_none();
+  mesh->bounds_set_eager(calculate_bounds_circle(radius, verts_num));
 
   return mesh;
 }

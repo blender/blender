@@ -156,7 +156,8 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   { \
     CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
     if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) { \
+        (severity >= CLG_SEVERITY_WARN)) \
+    { \
       CLG_logf(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
     } \
   } \
@@ -166,7 +167,8 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   { \
     CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
     if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) { \
+        (severity >= CLG_SEVERITY_WARN)) \
+    { \
       CLG_log_str(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, str); \
     } \
   } \
@@ -176,7 +178,8 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   { \
     CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
     if (((_lg_ty->flag & CLG_FLAG_USE) && (_lg_ty->level >= verbose_level)) || \
-        (severity >= CLG_SEVERITY_WARN)) { \
+        (severity >= CLG_SEVERITY_WARN)) \
+    { \
       const char *_str = str; \
       CLG_log_str(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, _str); \
       MEM_freeN((void *)_str); \

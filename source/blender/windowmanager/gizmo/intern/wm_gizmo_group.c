@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -73,8 +74,8 @@ void wm_gizmogroup_free(bContext *C, wmGizmoGroup *gzgroup)
 
   /* Similar to WM_gizmo_unlink, but only to keep gzmap state correct,
    * we don't want to run callbacks. */
-  if (gzmap->gzmap_context.highlight &&
-      gzmap->gzmap_context.highlight->parent_gzgroup == gzgroup) {
+  if (gzmap->gzmap_context.highlight && gzmap->gzmap_context.highlight->parent_gzgroup == gzgroup)
+  {
     wm_gizmomap_highlight_set(gzmap, C, NULL, 0);
   }
   if (gzmap->gzmap_context.modal && gzmap->gzmap_context.modal->parent_gzgroup == gzgroup) {
@@ -199,7 +200,8 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(wmWindowManager *wm,
     if (gz->type->test_select && (gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
 
       if (!wm_gizmo_keymap_uses_event_modifier(
-              wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+              wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier))
+      {
         continue;
       }
 
@@ -222,10 +224,12 @@ void wm_gizmogroup_intersectable_gizmos_to_list(wmWindowManager *wm,
     if ((gz->flag & (WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT)) == 0) {
       if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) &&
            (gz->type->draw_select || gz->type->test_select)) ||
-          ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select)) {
+          ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select))
+      {
 
         if (!wm_gizmo_keymap_uses_event_modifier(
-                wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier)) {
+                wm, gzgroup, gz, event_modifier, &gzgroup_keymap_uses_modifier))
+        {
           continue;
         }
 
@@ -380,6 +384,7 @@ void GIZMOGROUP_OT_gizmo_select(wmOperatorType *ot)
 
   /* api callbacks */
   ot->invoke = gizmo_select_invoke;
+  ot->poll = ED_operator_region_gizmo_active;
 
   ot->flag = OPTYPE_UNDO;
 
@@ -457,7 +462,8 @@ static void gizmo_tweak_finish(bContext *C, wmOperator *op, const bool cancel, b
   if (clear_modal) {
     /* The gizmo may have been removed. */
     if ((BLI_findindex(&mtweak->gzmap->groups, mtweak->gzgroup) != -1) &&
-        (BLI_findindex(&mtweak->gzgroup->gizmos, mtweak->gz_modal) != -1)) {
+        (BLI_findindex(&mtweak->gzgroup->gizmos, mtweak->gz_modal) != -1))
+    {
       wm_gizmomap_modal_set(mtweak->gzmap, C, mtweak->gz_modal, NULL, false);
     }
   }
@@ -606,6 +612,7 @@ void GIZMOGROUP_OT_gizmo_tweak(wmOperatorType *ot)
   /* api callbacks */
   ot->invoke = gizmo_tweak_invoke;
   ot->modal = gizmo_tweak_modal;
+  ot->poll = ED_operator_region_gizmo_active;
 
   /* TODO(@ideasman42): This causes problems tweaking settings for operators,
    * need to find a way to support this. */
@@ -860,52 +867,52 @@ wmKeyMap *WM_gizmogroup_setup_keymap_generic_select(const wmGizmoGroupType *UNUS
  * Key config version so these can be called from #wmGizmoGroupFnSetupKeymap.
  * \{ */
 
-struct wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_select_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Select";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_select(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_select_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_drag_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_click_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Click Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_click_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_click_drag_with_keyconfig(wm->defaultconf);
 }
 
-struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
+wmKeyMap *WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wmKeyConfig *kc)
 {
   const char *idname = "Generic Gizmo Maybe Drag";
   return WM_keymap_ensure(kc, idname, SPACE_EMPTY, RGN_TYPE_WINDOW);
 }
-struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
+wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 {
   return WM_gizmo_keymap_generic_maybe_drag_with_keyconfig(wm->defaultconf);
 }
@@ -916,8 +923,8 @@ struct wmKeyMap *WM_gizmo_keymap_generic_maybe_drag(wmWindowManager *wm)
 /** \name wmGizmoGroupType
  * \{ */
 
-struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(struct wmGizmoMapType *gzmap_type,
-                                                           const wmGizmoGroupType *gzgt)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(wmGizmoMapType *gzmap_type,
+                                                    const wmGizmoGroupType *gzgt)
 {
   /* could use hash lookups as operator types do, for now simple search. */
   LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
@@ -928,8 +935,7 @@ struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find_ptr(struct wmGizmoMapType
   return NULL;
 }
 
-struct wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(struct wmGizmoMapType *gzmap_type,
-                                                       const char *idname)
+wmGizmoGroupTypeRef *WM_gizmomaptype_group_find(wmGizmoMapType *gzmap_type, const char *idname)
 {
   /* could use hash lookups as operator types do, for now simple search. */
   LISTBASE_FOREACH (wmGizmoGroupTypeRef *, gzgt_ref, &gzmap_type->grouptype_refs) {
@@ -1129,25 +1135,25 @@ bool WM_gizmo_group_type_ensure(const char *idname)
   return WM_gizmo_group_type_ensure_ptr(gzgt);
 }
 
-void WM_gizmo_group_type_remove_ptr_ex(struct Main *bmain,
+void WM_gizmo_group_type_remove_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)
 {
   WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
 }
-void WM_gizmo_group_type_remove_ptr(struct Main *bmain, wmGizmoGroupType *gzgt)
+void WM_gizmo_group_type_remove_ptr(Main *bmain, wmGizmoGroupType *gzgt)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_remove_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_remove(struct Main *bmain, const char *idname)
+void WM_gizmo_group_type_remove(Main *bmain, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != NULL);
   WM_gizmo_group_type_remove_ptr(bmain, gzgt);
 }
 
-void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
+void WM_gizmo_group_type_reinit_ptr_ex(Main *bmain,
                                        wmGizmoGroupType *gzgt,
                                        wmGizmoMapType *gzmap_type)
 {
@@ -1157,12 +1163,12 @@ void WM_gizmo_group_type_reinit_ptr_ex(struct Main *bmain,
   WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
   WM_gizmo_group_type_add_ptr_ex(gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_reinit_ptr(struct Main *bmain, wmGizmoGroupType *gzgt)
+void WM_gizmo_group_type_reinit_ptr(Main *bmain, wmGizmoGroupType *gzgt)
 {
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
   WM_gizmo_group_type_reinit_ptr_ex(bmain, gzgt, gzmap_type);
 }
-void WM_gizmo_group_type_reinit(struct Main *bmain, const char *idname)
+void WM_gizmo_group_type_reinit(Main *bmain, const char *idname)
 {
   wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
   BLI_assert(gzgt != NULL);
@@ -1242,7 +1248,8 @@ void WM_gizmo_group_refresh(const bContext *C, wmGizmoGroup *gzgroup)
       BLI_assert(region->gizmo_map == gzmap);
       /* Check if the tweak event originated from this region. */
       if ((win->eventstate != NULL) && (win->event_queue_check_drag) &&
-          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy)) {
+          BLI_rcti_isect_pt_v(&region->winrct, win->eventstate->prev_press_xy))
+      {
         /* We need to run refresh again. */
         gzgroup->init_flag &= ~WM_GIZMOGROUP_INIT_REFRESH;
         WM_gizmomap_tag_refresh_drawstep(gzmap, WM_gizmomap_drawstep_from_gizmo_group(gzgroup));

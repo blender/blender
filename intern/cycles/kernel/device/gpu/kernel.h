@@ -27,10 +27,12 @@
 #include "kernel/integrator/init_from_bake.h"
 #include "kernel/integrator/init_from_camera.h"
 #include "kernel/integrator/intersect_closest.h"
+#include "kernel/integrator/intersect_dedicated_light.h"
 #include "kernel/integrator/intersect_shadow.h"
 #include "kernel/integrator/intersect_subsurface.h"
 #include "kernel/integrator/intersect_volume_stack.h"
 #include "kernel/integrator/shade_background.h"
+#include "kernel/integrator/shade_dedicated_light.h"
 #include "kernel/integrator/shade_light.h"
 #include "kernel/integrator/shade_shadow.h"
 #include "kernel/integrator/shade_surface.h"
@@ -48,6 +50,9 @@
 
 #include "kernel/film/read.h"
 
+#if defined(__HIPRT__)
+#  include "kernel/device/hiprt/hiprt_kernels.h"
+#endif
 /* --------------------------------------------------------------------
  * Integrator.
  */
@@ -128,6 +133,14 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 }
 ccl_gpu_kernel_postfix
 
+#if !defined(__HIPRT__)
+
+/* Intersection kernels need access to the kernel handler for specialization constants to work
+ * properly. */
+#  ifdef __KERNEL_ONEAPI__
+#    include "kernel/device/oneapi/context_intersect_begin.h"
+#  endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_intersect_closest,
                              ccl_global const int *path_index_array,
@@ -136,7 +149,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_intersect_closest(NULL, state, render_buffer));
   }
@@ -150,7 +163,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_intersect_shadow(NULL, state));
   }
@@ -164,7 +177,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_intersect_subsurface(NULL, state));
   }
@@ -178,12 +191,32 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_intersect_volume_stack(NULL, state));
   }
 }
 ccl_gpu_kernel_postfix
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(integrator_intersect_dedicated_light,
+                             ccl_global const int *path_index_array,
+                             const int work_size)
+{
+  const int global_index = ccl_gpu_global_id_x();
+
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
+    const int state = (path_index_array) ? path_index_array[global_index] : global_index;
+    ccl_gpu_kernel_call(integrator_intersect_dedicated_light(NULL, state));
+  }
+}
+ccl_gpu_kernel_postfix
+
+#  ifdef __KERNEL_ONEAPI__
+#    include "kernel/device/oneapi/context_intersect_end.h"
+#  endif
+
+#endif
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_background,
@@ -193,7 +226,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_background(NULL, state, render_buffer));
   }
@@ -208,7 +241,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_light(NULL, state, render_buffer));
   }
@@ -223,7 +256,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_shadow(NULL, state, render_buffer));
   }
@@ -238,7 +271,7 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_surface(NULL, state, render_buffer));
   }
@@ -249,6 +282,14 @@ ccl_gpu_kernel_postfix
 constant int __dummy_constant [[function_constant(Kernel_DummyConstant)]];
 #endif
 
+#if !defined(__HIPRT__)
+
+/* Kernels using intersections need access to the kernel handler for specialization constants to
+ * work properly. */
+#  ifdef __KERNEL_ONEAPI__
+#    include "kernel/device/oneapi/context_intersect_begin.h"
+#  endif
+
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_surface_raytrace,
                              ccl_global const int *path_index_array,
@@ -257,18 +298,18 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
 
-#if defined(__KERNEL_METAL_APPLE__) && defined(__METALRT__)
+#  if defined(__KERNEL_METAL_APPLE__) && defined(__METALRT__)
     KernelGlobals kg = NULL;
     /* Workaround Ambient Occlusion and Bevel nodes not working with Metal.
      * Dummy offset should not affect result, but somehow fixes bug! */
     kg += __dummy_constant;
     ccl_gpu_kernel_call(integrator_shade_surface_raytrace(kg, state, render_buffer));
-#else
+#  else
     ccl_gpu_kernel_call(integrator_shade_surface_raytrace(NULL, state, render_buffer));
-#endif
+#  endif
   }
 }
 ccl_gpu_kernel_postfix
@@ -281,12 +322,18 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_surface_mnee(NULL, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
+
+#  ifdef __KERNEL_ONEAPI__
+#    include "kernel/device/oneapi/context_intersect_end.h"
+#  endif
+
+#endif
 
 ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
     ccl_gpu_kernel_signature(integrator_shade_volume,
@@ -296,9 +343,24 @@ ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int state = (path_index_array) ? path_index_array[global_index] : global_index;
     ccl_gpu_kernel_call(integrator_shade_volume(NULL, state, render_buffer));
+  }
+}
+ccl_gpu_kernel_postfix
+
+ccl_gpu_kernel(GPU_KERNEL_BLOCK_NUM_THREADS, GPU_KERNEL_MAX_REGISTERS)
+    ccl_gpu_kernel_signature(integrator_shade_dedicated_light,
+                             ccl_global const int *path_index_array,
+                             ccl_global float *render_buffer,
+                             const int work_size)
+{
+  const int global_index = ccl_gpu_global_id_x();
+
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
+    const int state = (path_index_array) ? path_index_array[global_index] : global_index;
+    ccl_gpu_kernel_call(integrator_shade_dedicated_light(NULL, state, render_buffer));
   }
 }
 ccl_gpu_kernel_postfix
@@ -401,6 +463,17 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
 }
 ccl_gpu_kernel_postfix
 
+/* oneAPI Verizon needs the local_mem accessor in the arguments. */
+#ifdef __KERNEL_ONEAPI__
+ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
+    ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
+                             int num_states,
+                             int partition_size,
+                             int num_states_limit,
+                             ccl_global int *indices,
+                             int kernel_index,
+                             sycl::local_accessor<int> &local_mem)
+#else
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_bucket_pass,
                              int num_states,
@@ -408,15 +481,29 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                              int num_states_limit,
                              ccl_global int *indices,
                              int kernel_index)
+#endif
 {
 #if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
-  int max_shaders = context.launch_params_metal.data.max_shaders;
   ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
                                            kernel_integrator_state.path.queued_kernel;
   ccl_global uint *d_shader_sort_key = (ccl_global uint *)
                                            kernel_integrator_state.path.shader_sort_key;
   ccl_global int *key_offsets = (ccl_global int *)
                                     kernel_integrator_state.sort_partition_key_offsets;
+
+#  ifdef __KERNEL_METAL__
+  int max_shaders = context.launch_params_metal.data.max_shaders;
+#  endif
+
+#  ifdef __KERNEL_ONEAPI__
+  /* Metal backend doesn't have these particular ccl_gpu_* defines and current kernel code
+   * uses metal_*, we need the below to be compatible with these kernels. */
+  int max_shaders = ((ONEAPIKernelContext *)kg)->__data->max_shaders;
+  int metal_local_id = ccl_gpu_thread_idx_x;
+  int metal_local_size = ccl_gpu_block_dim_x;
+  int metal_grid_id = ccl_gpu_block_idx_x;
+  ccl_gpu_shared int *threadgroup_array = local_mem.get_pointer();
+#  endif
 
   gpu_parallel_sort_bucket_pass(num_states,
                                 partition_size,
@@ -425,7 +512,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                                 d_queued_kernel,
                                 d_shader_sort_key,
                                 key_offsets,
-                                (threadgroup int *)threadgroup_array,
+                                (ccl_gpu_shared int *)threadgroup_array,
                                 metal_local_id,
                                 metal_local_size,
                                 metal_grid_id);
@@ -433,6 +520,17 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
 }
 ccl_gpu_kernel_postfix
 
+/* oneAPI version needs the local_mem accessor in the arguments. */
+#ifdef __KERNEL_ONEAPI__
+ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
+    ccl_gpu_kernel_signature(integrator_sort_write_pass,
+                             int num_states,
+                             int partition_size,
+                             int num_states_limit,
+                             ccl_global int *indices,
+                             int kernel_index,
+                             sycl::local_accessor<int> &local_mem)
+#else
 ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
     ccl_gpu_kernel_signature(integrator_sort_write_pass,
                              int num_states,
@@ -440,15 +538,30 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                              int num_states_limit,
                              ccl_global int *indices,
                              int kernel_index)
+#endif
+
 {
 #if defined(__KERNEL_LOCAL_ATOMIC_SORT__)
-  int max_shaders = context.launch_params_metal.data.max_shaders;
   ccl_global ushort *d_queued_kernel = (ccl_global ushort *)
                                            kernel_integrator_state.path.queued_kernel;
   ccl_global uint *d_shader_sort_key = (ccl_global uint *)
                                            kernel_integrator_state.path.shader_sort_key;
   ccl_global int *key_offsets = (ccl_global int *)
                                     kernel_integrator_state.sort_partition_key_offsets;
+
+#  ifdef __KERNEL_METAL__
+  int max_shaders = context.launch_params_metal.data.max_shaders;
+#  endif
+
+#  ifdef __KERNEL_ONEAPI__
+  /* Metal backend doesn't have these particular ccl_gpu_* defines and current kernel code
+   * uses metal_*, we need the below to be compatible with these kernels. */
+  int max_shaders = ((ONEAPIKernelContext *)kg)->__data->max_shaders;
+  int metal_local_id = ccl_gpu_thread_idx_x;
+  int metal_local_size = ccl_gpu_block_dim_x;
+  int metal_grid_id = ccl_gpu_block_idx_x;
+  ccl_gpu_shared int *threadgroup_array = local_mem.get_pointer();
+#  endif
 
   gpu_parallel_sort_write_pass(num_states,
                                partition_size,
@@ -459,7 +572,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORT_BLOCK_SIZE)
                                d_queued_kernel,
                                d_shader_sort_key,
                                key_offsets,
-                               (threadgroup int *)threadgroup_array,
+                               (ccl_gpu_shared int *)threadgroup_array,
                                metal_local_id,
                                metal_local_size,
                                metal_grid_id);
@@ -492,7 +605,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int from_state = active_terminated_states[active_states_offset + global_index];
     const int to_state = active_terminated_states[terminated_states_offset + global_index];
 
@@ -526,7 +639,7 @@ ccl_gpu_kernel_threads(GPU_PARALLEL_SORTED_INDEX_DEFAULT_BLOCK_SIZE)
 {
   const int global_index = ccl_gpu_global_id_x();
 
-  if (global_index < work_size) {
+  if (ccl_gpu_kernel_within_bounds(global_index, work_size)) {
     const int from_state = active_terminated_states[active_states_offset + global_index];
     const int to_state = active_terminated_states[terminated_states_offset + global_index];
 

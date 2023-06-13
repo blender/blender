@@ -1,3 +1,104 @@
+Audaspace 1.4
+
+- Support for OS specific/native audio devices/backends has been added, that is PulseAudio (Linux), WASAPI (Windows) and CoreAudio (MacOS).
+- New sound effects have been added, namely Modulator and Equalizer. Thanks to Marcos Perez for contributing the Equalizer.
+- File stream info: if an audio file contains multiple streams you can choose which one to process instead of taking the first one (this feature is only supported by ffmpeg, not libsndfile).
+- API Change: double instead of float for time values for more precise timing control.
+- There have been lots of bugfixes, which are basically the majority of all changes.
+- And some other minor improvements were implemented as well.
+
+Detailed list of changes:
+
+d4042d9 Port changes in Blender to upstream.
+b60fb45 Equalizer
+ab04e84 Fixes
+8f0c305 Fix build error with MSVC 17.4+ ported from Blender.
+ce44342 Minor documentation update.
+cdcb3f4 Migrate from distuils to setuptools for python module.
+21eccef Fix FindFFTW to find the float version fftw3f.
+ab15e2f Bugfix: API change in new ffmpeg version.
+a097be8 Clang format file added, valid from now on.
+2fc9fb7 Porting bugfix from Blender upstream.
+bb655b7 Bugfix: wrong sample size computation for PulseAudio.
+a150495 Bugfix: Buffer did not support buffers > 2 GB.
+034645c Update for ffmpeg 5.
+932739c Bugfix: WASAPI hangs.
+4fcd47c WASAPI: fix bug when switching the default device while there is no playback.
+a16fbd2 Python API: fix to get convolution in the python API.
+27ac5c1 WASAPI: always switch to default audio device.
+1b03e6c Bugfix: catch exception if file cannot be read.
+369ff6e PulseAudio: remove unused underflow callback.
+2d8bf3a PulseAudio: improve synchronization accuracy.
+4868e14 Revert PulseAudioDevice back from ThreadedDevice to threaded mainloop.
+6a04446 Adding a jack style mixing thread with a ring buffer for pulseaudio.
+5d4b57b Implement RingBuffer class.
+e02d3aa FFMPEG: fix seeking and duration calculation.
+07b9fa0 Adding file stream functionality.
+5a8ad27 Porting changes from Blender.
+fa47258 Bugfix: PulseAudio writing to little data on request.
+ca3edb5 PulseAudio: increase buffersize.
+6d36f3e Pulseaudio: may fix crackling playback start bug.
+dbeac4b WASAPI: reinitialize device when lost.
+0cba4d3 Bugfix Pulseaudio: might hang.
+b73dc6d Bugfix: ffmpeg 4.4 requires channels to be set.
+f1ecbe0 Fixed typo.
+09e4f27 Rewrite PulseAudioDevice to use ThreadedDevice.
+9516924 WASAPI: refactor to simplify and use ThreadedDevice.
+749c974 Add ThreadedDevice.
+e68b355 Fix some locks in SoftwareDevice.
+44b57af Bugfix for deadlock in WASAPIDevice.
+8c4b266 CMake: fix ERROR to FATAL_ERROR in MESSAGE.
+5a17338 Rename NullDevice's reported name to None.
+cd138d7 PulseAudio: add dynamic loading and threading fixes.
+6e0250f CoreAudio: add CoreAudioClock as synchronizer.
+43aff35 Fix leakage in CoreAudioDevice.cpp
+7f6f059 Remove unnecessary cmake code.
+a5c1a02 Add CoreAudio device for Apple.
+af96f67 Indentation fix.
+eec8fd5 WASAPI: use padding also for first buffer submission.
+c63bd9b WASAPI: deal with IsFormatSupported case.
+079cccb Hide WITH_PULSEAUDIO when not on Linux.
+67b5013 Add mingw64 cross compilation toolchain on Linux.
+a7bfa58 Add WASAPI backend for Windows.
+be1cb25 Allow AUD_init with nullptr to use default device.
+fc68868 Compilation fix for mingw.
+bb79d25 Add a PulseAudio output device.
+a11f593 Bugfix for unwanted volume fading at the beginning of sounds.
+8510acf Bugfix: more accurate positioning of sequences.
+cb816c1 Fix API docs for python playback manager play function
+d125fa2 Add callback for mixing down audio.
+789832e Fix numpy import.
+9a6a802 Bugfix: JOS resampling type bugfix caused integer underflow.
+ece0842 Fix corrupted document in python bindings
+28b2ea2 SDL 2: support more audio formats.
+a39b7e3 Trying to fix Travis CI build for OS X.
+c924007 Some more changes of times from flaot to double.
+659afd4 Porting fixes from blender.
+8e5e2e6 Fix documentation warnings.
+7a6054f API: All times are now double instead of float.
+452a724 Mixer sample buffer added channels twice
+8ddb6c1 Docs: Cleanup Line Wrapping for python examples
+a0c37b2 Docs: Use class methods for api docs
+2f8b2e3 Bugfix for invalid offsets provided by ffmpeg's seeking code.
+20a7a28 Bug fixes for files with more than 8 channels.
+94dc527 Bugfix: Fading from full volume.
+2fb9862 Fix: Missing include in FileManager.h.
+afadb94 Minor CMakeLists.txt formatting fixes.
+734ef03 Add sample rate parameter to silence generation.
+ed50f3b Bugfix: Return correct length for modulator and superpose.
+cb7a314 Adding a modulator sound effect.
+101c714 Bugfix: don't add non-existing devices to the device manager.
+7ad99df OpenAL: recreate device if disconnected.
+a2ff4e8 Bugfix: memory leak in python API.
+5fb21bb Silence some warnings.
+9b38605 Some fixes backported from Blender.
+40a0a34 Udpate for travis.ci.
+212b4b6 Support newer ffmpeg versions.
+d27746c Build option: configure whether to build versioned plugins.
+19c8d9f Make fftw3 optional.
+aa11968 Bugfix for building with gcc7.
+10413c5 Fix for seeking with modified pitch.
+
 Audaspace 1.3
 =============
 
@@ -9,6 +110,8 @@ Audaspace 1.3
  - C API was not working
  - filter python API parameter check
  - finding ffmpeg with pkgconfig
+
+ Detailed list of changes:
 
 64884a7 Windows fixes.
 53ba3e6 Implemented JACK dynamic loading.
@@ -45,6 +148,8 @@ Audaspace 1.2
 - CMake/Building:
  - assuring numpy is installed
  - building the Python module on Mac OS X with CMake
+
+ Detailed list of changes:
 
 a6b6e70 Changing default sample rate from 44.1 to 48 kHz.
 20f0164 Bugfix: CMake custom command for python module on OS X.

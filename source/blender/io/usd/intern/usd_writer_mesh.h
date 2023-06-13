@@ -1,8 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include "usd_writer_abstract.h"
+
+#include "BKE_attribute.hh"
 
 #include <pxr/usd/usdGeom/mesh.h>
 
@@ -34,6 +37,12 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+
+  void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_color_data(const Mesh *mesh,
+                        pxr::UsdGeomMesh usd_mesh,
+                        const bke::AttributeIDRef &attribute_id,
+                        const bke::AttributeMetaData &meta_data);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {

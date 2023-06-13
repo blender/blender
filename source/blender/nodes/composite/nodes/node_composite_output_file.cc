@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup cmpnodes
@@ -10,8 +11,6 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_image_format.h"
@@ -128,9 +127,9 @@ bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree,
   NodeImageMultiFileSocket *sockdata = MEM_cnew<NodeImageMultiFileSocket>(__func__);
   sock->storage = sockdata;
 
-  BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
+  STRNCPY_UTF8(sockdata->path, name);
   ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
-  BLI_strncpy_utf8(sockdata->layer, name, sizeof(sockdata->layer));
+  STRNCPY_UTF8(sockdata->layer, name);
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 
   if (im_format) {
@@ -176,14 +175,14 @@ int ntreeCompositOutputFileRemoveActiveSocket(bNodeTree *ntree, bNode *node)
 void ntreeCompositOutputFileSetPath(bNode *node, bNodeSocket *sock, const char *name)
 {
   NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_strncpy_utf8(sockdata->path, name, sizeof(sockdata->path));
+  STRNCPY_UTF8(sockdata->path, name);
   ntreeCompositOutputFileUniquePath(&node->inputs, sock, name, '_');
 }
 
 void ntreeCompositOutputFileSetLayer(bNode *node, bNodeSocket *sock, const char *name)
 {
   NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)sock->storage;
-  BLI_strncpy_utf8(sockdata->layer, name, sizeof(sockdata->layer));
+  STRNCPY_UTF8(sockdata->layer, name);
   ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, name, '_');
 }
 
@@ -202,7 +201,7 @@ static void init_output_file(const bContext *C, PointerRNA *ptr)
   if (scene) {
     RenderData *rd = &scene->r;
 
-    BLI_strncpy(nimf->base_path, rd->pic, sizeof(nimf->base_path));
+    STRNCPY(nimf->base_path, rd->pic);
     BKE_image_format_copy(&nimf->format, &rd->im_format);
     nimf->format.color_management = R_IMF_COLOR_MANAGEMENT_FOLLOW_SCENE;
     if (BKE_imtype_is_movie(nimf->format.imtype)) {
@@ -246,7 +245,8 @@ static void copy_output_file(bNodeTree * /*dst_ntree*/, bNode *dest_node, const 
   for (src_sock = (bNodeSocket *)src_node->inputs.first,
       dest_sock = (bNodeSocket *)dest_node->inputs.first;
        src_sock && dest_sock;
-       src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next) {
+       src_sock = src_sock->next, dest_sock = (bNodeSocket *)dest_sock->next)
+  {
     dest_sock->storage = MEM_dupallocN(src_sock->storage);
     NodeImageMultiFileSocket *dest_sockdata = (NodeImageMultiFileSocket *)dest_sock->storage;
     NodeImageMultiFileSocket *src_sockdata = (NodeImageMultiFileSocket *)src_sock->storage;
@@ -305,9 +305,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
   const bool is_exr = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_OPENEXR;
   const bool is_multiview = (scene->r.scemode & R_MULTIVIEW) != 0;
+  /* Unclear where to get z-information from, so deactivate it. */
+  const bool show_z_buffer = false;
 
   node_composit_buts_file_output(layout, C, ptr);
-  uiTemplateImageSettings(layout, &imfptr, true);
+  uiTemplateImageSettings(layout, &imfptr, true, show_z_buffer);
 
   /* disable stereo output for multilayer, too much work for something that no one will use */
   /* if someone asks for that we can implement it */
@@ -430,7 +432,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
 
         col = uiLayoutColumn(layout, false);
-        uiTemplateImageSettings(col, &imfptr, use_color_management);
+        uiTemplateImageSettings(col, &imfptr, use_color_management, show_z_buffer);
 
         if (is_multiview) {
           col = uiLayoutColumn(layout, false);
@@ -449,7 +451,9 @@ class OutputFileOperation : public NodeOperation {
 
   void execute() override
   {
-    context().set_info_message("Viewport compositor setup not fully supported");
+    if (context().use_file_output()) {
+      context().set_info_message("Viewport compositor setup not fully supported");
+    }
   }
 };
 

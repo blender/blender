@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *  */
 
 /** \file
  * \ingroup eevee
@@ -29,6 +30,10 @@ enum eShaderType {
   FILM_FRAG = 0,
   FILM_COMP,
   FILM_CRYPTOMATTE_POST,
+
+  DEFERRED_LIGHT,
+
+  DEBUG_SURFELS,
 
   DOF_BOKEH_LUT,
   DOF_DOWNSAMPLE,
@@ -62,6 +67,7 @@ enum eShaderType {
   MOTION_BLUR_TILE_FLATTEN_RENDER,
   MOTION_BLUR_TILE_FLATTEN_VIEWPORT,
 
+  SHADOW_CLIPMAP_CLEAR,
   SHADOW_DEBUG,
   SHADOW_PAGE_ALLOCATE,
   SHADOW_PAGE_CLEAR,

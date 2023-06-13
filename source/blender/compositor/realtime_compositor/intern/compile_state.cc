@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <limits>
 
@@ -21,9 +23,7 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-CompileState::CompileState(const Schedule &schedule) : schedule_(schedule)
-{
-}
+CompileState::CompileState(const Schedule &schedule) : schedule_(schedule) {}
 
 const Schedule &CompileState::get_schedule()
 {
@@ -95,7 +95,8 @@ bool CompileState::should_compile_shader_compile_unit(DNode node)
    * complete and should be compiled. Identity domains are an exception as they are always
    * compatible because they represents single values. */
   if (shader_compile_unit_domain_ != Domain::identity() &&
-      shader_compile_unit_domain_ != compute_shader_node_domain(node)) {
+      shader_compile_unit_domain_ != compute_shader_node_domain(node))
+  {
     return true;
   }
 

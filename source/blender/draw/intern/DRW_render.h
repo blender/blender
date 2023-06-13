@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -41,7 +42,7 @@
 #include "draw_view.h"
 
 #include "draw_debug.h"
-#include "draw_manager_profiling.h"
+#include "draw_manager_profiling.hh"
 #include "draw_state.h"
 #include "draw_view_data.h"
 
@@ -534,11 +535,11 @@ void DRW_shgroup_clear_framebuffer(DRWShadingGroup *shgroup,
 void DRW_shgroup_uniform_texture_ex(DRWShadingGroup *shgroup,
                                     const char *name,
                                     const struct GPUTexture *tex,
-                                    eGPUSamplerState sampler_state);
+                                    GPUSamplerState sampler_state);
 void DRW_shgroup_uniform_texture_ref_ex(DRWShadingGroup *shgroup,
                                         const char *name,
                                         GPUTexture **tex,
-                                        eGPUSamplerState sampler_state);
+                                        GPUSamplerState sampler_state);
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup,
                                  const char *name,
                                  const struct GPUTexture *tex);
@@ -943,7 +944,7 @@ bool DRW_state_is_scene_render(void);
 /**
  * Whether we are rendering simple opengl render
  */
-bool DRW_state_is_opengl_render(void);
+bool DRW_state_is_viewport_image_render(void);
 bool DRW_state_is_playback(void);
 /**
  * Is the user navigating the region.

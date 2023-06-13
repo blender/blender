@@ -4,6 +4,12 @@
 
 #ifdef _WIN32
 // Include first to avoid "NOGDI" definition set in Cycles headers
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
 #  include <Windows.h>
 #endif
 
@@ -112,9 +118,7 @@ void HdCyclesDisplayDriver::gl_context_dispose()
 #endif
 }
 
-void HdCyclesDisplayDriver::next_tile_begin()
-{
-}
+void HdCyclesDisplayDriver::next_tile_begin() {}
 
 bool HdCyclesDisplayDriver::update_begin(const Params &params,
                                          int texture_width,
@@ -222,7 +226,8 @@ void HdCyclesDisplayDriver::draw(const Params &params)
   const auto renderBuffer = static_cast<HdCyclesRenderBuffer *>(
       _renderParam->GetDisplayAovBinding().renderBuffer);
   if (!renderBuffer ||  // Ensure this render buffer matches the texture dimensions
-      (renderBuffer->GetWidth() != params.size.x || renderBuffer->GetHeight() != params.size.y)) {
+      (renderBuffer->GetWidth() != params.size.x || renderBuffer->GetHeight() != params.size.y))
+  {
     return;
   }
 

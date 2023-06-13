@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -24,7 +26,7 @@ struct ProjCameraInfo *BLI_uvproject_camera_info(struct Object *ob,
                                                  float winy);
 
 /**
- * Apply UV from uvinfo (camera).
+ * Apply UV from #ProjCameraInfo (camera).
  */
 void BLI_uvproject_from_camera(float target[2], float source[3], struct ProjCameraInfo *uci);
 

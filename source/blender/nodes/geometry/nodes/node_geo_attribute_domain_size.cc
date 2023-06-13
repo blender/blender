@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -49,17 +51,18 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *spline_socket = face_corner_socket->next;
   bNodeSocket *instances_socket = spline_socket->next;
 
-  nodeSetSocketAvailability(ntree,
-                            point_socket,
-                            ELEM(node->custom1,
-                                 GEO_COMPONENT_TYPE_MESH,
-                                 GEO_COMPONENT_TYPE_CURVE,
-                                 GEO_COMPONENT_TYPE_POINT_CLOUD));
-  nodeSetSocketAvailability(ntree, edge_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, face_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, face_corner_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  nodeSetSocketAvailability(ntree, spline_socket, node->custom1 == GEO_COMPONENT_TYPE_CURVE);
-  nodeSetSocketAvailability(
+  bke::nodeSetSocketAvailability(ntree,
+                                 point_socket,
+                                 ELEM(node->custom1,
+                                      GEO_COMPONENT_TYPE_MESH,
+                                      GEO_COMPONENT_TYPE_CURVE,
+                                      GEO_COMPONENT_TYPE_POINT_CLOUD));
+  bke::nodeSetSocketAvailability(ntree, edge_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(ntree, face_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(
+      ntree, face_corner_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+  bke::nodeSetSocketAvailability(ntree, spline_socket, node->custom1 == GEO_COMPONENT_TYPE_CURVE);
+  bke::nodeSetSocketAvailability(
       ntree, instances_socket, node->custom1 == GEO_COMPONENT_TYPE_INSTANCES);
 }
 
@@ -83,8 +86,8 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     }
     case GEO_COMPONENT_TYPE_CURVE: {
-      if (const CurveComponent *component =
-              geometry_set.get_component_for_read<CurveComponent>()) {
+      if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>())
+      {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
         params.set_output("Spline Count", attributes.domain_size(ATTR_DOMAIN_CURVE));
@@ -96,7 +99,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case GEO_COMPONENT_TYPE_POINT_CLOUD: {
       if (const PointCloudComponent *component =
-              geometry_set.get_component_for_read<PointCloudComponent>()) {
+              geometry_set.get_component_for_read<PointCloudComponent>())
+      {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
       }
@@ -107,7 +111,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     }
     case GEO_COMPONENT_TYPE_INSTANCES: {
       if (const InstancesComponent *component =
-              geometry_set.get_component_for_read<InstancesComponent>()) {
+              geometry_set.get_component_for_read<InstancesComponent>())
+      {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Instance Count", attributes.domain_size(ATTR_DOMAIN_INSTANCE));
       }

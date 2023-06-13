@@ -24,10 +24,11 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                                           int prim,
                                           int prim_addr)
 {
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
-  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
-               tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
-               tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x),
+               tri_b = kernel_data_fetch(tri_verts, tri_vindex.y),
+               tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   float t, u, v;
   if (ray_triangle_intersect(P, dir, tmin, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
@@ -68,10 +69,11 @@ ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                                                 ccl_private uint *lcg_state,
                                                 int max_hits)
 {
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, prim).w;
-  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
-               tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
-               tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x),
+               tri_b = kernel_data_fetch(tri_verts, tri_vindex.y),
+               tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
+
   float t, u, v;
   if (!ray_triangle_intersect(P, dir, tmin, tmax, tri_a, tri_b, tri_c, &u, &v, &t)) {
     return false;
@@ -141,10 +143,10 @@ ccl_device_inline float3 triangle_point_from_uv(KernelGlobals kg,
                                                 const float u,
                                                 const float v)
 {
-  const uint tri_vindex = kernel_data_fetch(tri_vindex, isect_prim).w;
-  const packed_float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex + 0),
-                      tri_b = kernel_data_fetch(tri_verts, tri_vindex + 1),
-                      tri_c = kernel_data_fetch(tri_verts, tri_vindex + 2);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, isect_prim);
+  const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x),
+               tri_b = kernel_data_fetch(tri_verts, tri_vindex.y),
+               tri_c = kernel_data_fetch(tri_verts, tri_vindex.z);
 
   /* This appears to give slightly better precision than interpolating with w = (1 - u - v). */
   float3 P = tri_a + u * (tri_b - tri_a) + v * (tri_c - tri_a);

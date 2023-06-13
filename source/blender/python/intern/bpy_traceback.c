@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -201,11 +203,13 @@ bool python_script_error_jump(
                              r_offset,
                              r_lineno_end,
                              r_offset_end,
-                             &text_py)) {
+                             &text_py))
+      {
         const char *filepath_exc = PyUnicode_AsUTF8(filepath_exc_py);
         /* python adds a '/', prefix, so check for both */
         if ((BLI_path_cmp(filepath_exc, filepath) == 0) ||
-            (ELEM(filepath_exc[0], '\\', '/') && BLI_path_cmp(filepath_exc + 1, filepath) == 0)) {
+            (ELEM(filepath_exc[0], '\\', '/') && BLI_path_cmp(filepath_exc + 1, filepath) == 0))
+        {
           success = true;
         }
       }
@@ -216,7 +220,8 @@ bool python_script_error_jump(
 
     for (tb = (PyTracebackObject *)PySys_GetObject("last_traceback");
          tb && (PyObject *)tb != Py_None;
-         tb = tb->tb_next) {
+         tb = tb->tb_next)
+    {
       PyObject *coerce;
       const char *tb_filepath = traceback_filepath(tb, &coerce);
       const int match = ((BLI_path_cmp(tb_filepath, filepath) == 0) ||

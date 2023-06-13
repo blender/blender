@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -511,8 +512,8 @@ int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
   Link *link;
   int count = 0;
 
-  for (link = static_cast<Link *>(listbase->first); link && count != count_max;
-       link = link->next) {
+  for (link = static_cast<Link *>(listbase->first); link && count != count_max; link = link->next)
+  {
     count++;
   }
 
@@ -754,7 +755,8 @@ void *BLI_listbase_string_or_index_find(const ListBase *listbase,
 
   int index_iter;
   for (link = static_cast<Link *>(listbase->first), index_iter = 0; link;
-       link = link->next, index_iter++) {
+       link = link->next, index_iter++)
+  {
     if (string != nullptr && string[0] != '\0') {
       const char *string_iter = ((const char *)link) + string_offset;
 
@@ -811,7 +813,7 @@ ListBase BLI_listbase_from_link(Link *some_link)
 
 void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 {
-  struct Link *dst_link, *src_link;
+  Link *dst_link, *src_link;
 
   /* in this order, to ensure it works if dst == src */
   src_link = static_cast<Link *>(src->first);
@@ -827,9 +829,9 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 
 void BLI_listbase_reverse(ListBase *lb)
 {
-  struct Link *curr = static_cast<Link *>(lb->first);
-  struct Link *prev = nullptr;
-  struct Link *next = nullptr;
+  Link *curr = static_cast<Link *>(lb->first);
+  Link *prev = nullptr;
+  Link *next = nullptr;
   while (curr) {
     next = curr->next;
     curr->next = prev;
@@ -868,6 +870,47 @@ void BLI_listbase_rotate_last(ListBase *lb, void *vlink)
 
   ((Link *)lb->first)->prev = nullptr;
   ((Link *)lb->last)->next = nullptr;
+}
+
+bool BLI_listbase_validate(ListBase *lb)
+{
+  if (lb->first == nullptr && lb->last == nullptr) {
+    /* Empty list. */
+    return true;
+  }
+  if (ELEM(nullptr, lb->first, lb->last)) {
+    /* If one of the pointer is null, but not this other, this is a corrupted listbase. */
+    return false;
+  }
+
+  /* Walk the list in bot directions to ensure all next & prev pointers are valid and consistent.
+   */
+  for (Link *lb_link = static_cast<Link *>(lb->first); lb_link; lb_link = lb_link->next) {
+    if (lb_link == lb->first) {
+      if (lb_link->prev != nullptr) {
+        return false;
+      }
+    }
+    if (lb_link == lb->last) {
+      if (lb_link->next != nullptr) {
+        return false;
+      }
+    }
+  }
+  for (Link *lb_link = static_cast<Link *>(lb->last); lb_link; lb_link = lb_link->prev) {
+    if (lb_link == lb->last) {
+      if (lb_link->next != nullptr) {
+        return false;
+      }
+    }
+    if (lb_link == lb->first) {
+      if (lb_link->prev != nullptr) {
+        return false;
+      }
+    }
+  }
+
+  return true;
 }
 
 LinkData *BLI_genericNodeN(void *data)

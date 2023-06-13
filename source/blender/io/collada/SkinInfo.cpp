@@ -56,9 +56,7 @@ SkinInfo::SkinInfo(const SkinInfo &skin)
   transfer_int_array_data_const(skin.joint_indices, joint_indices);
 }
 
-SkinInfo::SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(nullptr), parent(nullptr)
-{
-}
+SkinInfo::SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(nullptr), parent(nullptr) {}
 
 template<class T> void SkinInfo::transfer_array_data(T &src, T &dest)
 {
@@ -248,7 +246,7 @@ void SkinInfo::link_armature(bContext *C,
    * ^ bone index can be -1 meaning weight toward bind shape, how to express this in Blender?
    *
    * for each vertex in weight indices
-   *  for each bone index in vertex
+   *   for each bone index in vertex
    *      add vertex to group at group index
    *      treat group index -1 specially
    *

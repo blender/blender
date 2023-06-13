@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -40,7 +42,8 @@ static BMFace *bm_face_split_walk_back(BMesh *bm, BMLoop *l_src, BMLoop **r_l)
   int num, i;
 
   for (l_dst = l_src->prev, num = 0; BM_elem_index_get(l_dst->prev->v) != -1;
-       l_dst = l_dst->prev, num++) {
+       l_dst = l_dst->prev, num++)
+  {
     /* pass */
   }
 

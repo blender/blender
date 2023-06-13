@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -79,11 +81,11 @@ class MeshImporter : public MeshImporterBase {
 
   /* this structure is used to assign material indices to polygons
    * it holds a portion of Mesh faces and corresponds to a DAE primitive list
-   * (<triangles>, <polylist>, etc.) */
+   * (`<triangles>`, `<polylist>`, etc.) */
   struct Primitive {
-    MPoly *mpoly;
+    int poly_index;
     int *material_indices;
-    unsigned int totpoly;
+    uint totpoly;
   };
   typedef std::map<COLLADAFW::MaterialId, std::vector<Primitive>> MaterialIdPrimitiveArrayMap;
   /* crazy name! */
@@ -92,8 +94,7 @@ class MeshImporter : public MeshImporterBase {
    * A pair/of geom UID and mat UID, one geometry can have several materials. */
   std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId> materials_mapped_to_geom;
 
-  bool set_poly_indices(
-      MPoly *mpoly, MLoop *mloop, int loop_index, const unsigned int *indices, int loop_count);
+  bool set_poly_indices(int *poly_verts, int loop_index, const uint *indices, int loop_count);
 
   void set_face_uv(blender::float2 *mloopuv,
                    UVDataWrapper &uvs,
@@ -111,7 +112,10 @@ class MeshImporter : public MeshImporterBase {
   void print_index_list(COLLADAFW::IndexList &index_list);
 #endif
 
-  /** Checks if mesh has supported primitive types: lines, polylist, triangles, triangle_fans. */
+  /**
+   * Checks if mesh has supported primitive types:
+   * `lines`, `polylist`, `triangles`, `triangle_fans`.
+   */
   bool is_nice_mesh(COLLADAFW::Mesh *mesh);
 
   void read_vertices(COLLADAFW::Mesh *mesh, Mesh *me);
@@ -138,9 +142,7 @@ class MeshImporter : public MeshImporterBase {
    */
   static void mesh_add_edges(Mesh *mesh, int len);
 
-  unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
-
-  CustomData create_edge_custom_data(EdgeHash *eh);
+  uint get_loose_edge_count(COLLADAFW::Mesh *mesh);
 
   /**
    * Return the number of faces by summing up
@@ -166,11 +168,11 @@ class MeshImporter : public MeshImporterBase {
    * So this function MUST be called after read_faces() (see below)
    */
   void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
-  unsigned int get_vertex_count(COLLADAFW::Polygons *mp, int index);
+  uint get_vertex_count(COLLADAFW::Polygons *mp, int index);
 
   void get_vector(float v[3], COLLADAFW::MeshVertexData &arr, int i, int stride);
 
-  bool is_flat_face(unsigned int *nind, COLLADAFW::MeshVertexData &nor, int count);
+  bool is_flat_face(uint *nind, COLLADAFW::MeshVertexData &nor, int count);
 
   /**
    * Returns the list of Users of the given Mesh object.

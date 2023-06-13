@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -8,21 +10,25 @@
 
 #include "BLI_compiler_attrs.h"
 
+#include "BKE_scene.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum eSceneCopyMethod;
-
 struct Scene *ED_scene_add(struct Main *bmain,
                            struct bContext *C,
                            struct wmWindow *win,
-                           enum eSceneCopyMethod method) ATTR_NONNULL();
-/** Special mode for adding a scene assigned to sequencer strip. */
+                           eSceneCopyMethod method) ATTR_NONNULL();
+/**
+ * Add a new scene in the sequence editor.
+ *
+ * Special mode for adding a scene assigned to sequencer strip.
+ */
 struct Scene *ED_scene_sequencer_add(struct Main *bmain,
                                      struct bContext *C,
-                                     enum eSceneCopyMethod method,
-                                     const bool assign_strip);
+                                     eSceneCopyMethod method,
+                                     bool assign_strip);
 /**
  * \note Only call outside of area/region loops.
  * \return true if successful.

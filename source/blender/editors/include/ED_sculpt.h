@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -18,6 +19,7 @@ struct ViewContext;
 struct bContext;
 struct rcti;
 struct wmOperator;
+struct wmKeyConfig;
 
 /* sculpt.cc */
 
@@ -28,6 +30,7 @@ bool ED_sculpt_mask_box_select(struct bContext *C,
                                const struct rcti *rect,
                                bool select);
 
+void ED_keymap_sculpt(wmKeyConfig *keyconf);
 /* sculpt_transform.cc */
 
 void ED_sculpt_update_modal_transform(struct bContext *C, struct Object *ob);

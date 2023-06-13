@@ -125,7 +125,8 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
                                    &UnaryPredicate1D_Type,
                                    &obj2,
                                    &UnaryFunction1DVoid_Type,
-                                   &obj3)) {
+                                   &obj3))
+  {
     return nullptr;
   }
   if (!((BPy_ChainingIterator *)obj1)->c_it) {
@@ -140,7 +141,8 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
   }
   if (!obj3) {
     if (Operators::chain(*(((BPy_ChainingIterator *)obj1)->c_it),
-                         *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0) {
+                         *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.chain() failed");
       }
@@ -155,7 +157,8 @@ static PyObject *Operators_chain(BPy_Operators * /*self*/, PyObject *args, PyObj
     }
     if (Operators::chain(*(((BPy_ChainingIterator *)obj1)->c_it),
                          *(((BPy_UnaryPredicate1D *)obj2)->up1D),
-                         *(((BPy_UnaryFunction1DVoid *)obj3)->uf1D_void)) < 0) {
+                         *(((BPy_UnaryFunction1DVoid *)obj3)->uf1D_void)) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.chain() failed");
       }
@@ -203,7 +206,8 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
                                    &ChainingIterator_Type,
                                    &obj1,
                                    &UnaryPredicate1D_Type,
-                                   &obj2)) {
+                                   &obj2))
+  {
     return nullptr;
   }
   if (!((BPy_ChainingIterator *)obj1)->c_it) {
@@ -228,7 +232,8 @@ static PyObject *Operators_bidirectional_chain(BPy_Operators * /*self*/,
       return nullptr;
     }
     if (Operators::bidirectionalChain(*(((BPy_ChainingIterator *)obj1)->c_it),
-                                      *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0) {
+                                      *(((BPy_UnaryPredicate1D *)obj2)->up1D)) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.bidirectional_chain() failed");
       }
@@ -286,7 +291,8 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
                                   &obj1,
                                   &UnaryPredicate0D_Type,
                                   &obj2,
-                                  &f)) {
+                                  &f))
+  {
     if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
       PyErr_SetString(
           PyExc_TypeError,
@@ -301,7 +307,8 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
     }
     if (Operators::sequentialSplit(*(((BPy_UnaryPredicate0D *)obj1)->up0D),
                                    *(((BPy_UnaryPredicate0D *)obj2)->up0D),
-                                   f) < 0) {
+                                   f) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.sequential_split() failed");
       }
@@ -311,7 +318,8 @@ static PyObject *Operators_sequential_split(BPy_Operators * /*self*/,
   else if ((void)PyErr_Clear(),
            (void)(f = 0.0f),
            PyArg_ParseTupleAndKeywords(
-               args, kwds, "O!|f", (char **)kwlist_2, &UnaryPredicate0D_Type, &obj1, &f)) {
+               args, kwds, "O!|f", (char **)kwlist_2, &UnaryPredicate0D_Type, &obj1, &f))
+  {
     if (!((BPy_UnaryPredicate0D *)obj1)->up0D) {
       PyErr_SetString(
           PyExc_TypeError,
@@ -385,7 +393,8 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
                                   &obj1,
                                   &UnaryPredicate1D_Type,
                                   &obj2,
-                                  &f)) {
+                                  &f))
+  {
     if (!((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double) {
       PyErr_SetString(
           PyExc_TypeError,
@@ -400,7 +409,8 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
     }
     if (Operators::recursiveSplit(*(((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double),
                                   *(((BPy_UnaryPredicate1D *)obj2)->up1D),
-                                  f) < 0) {
+                                  f) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.recursive_split() failed");
       }
@@ -419,7 +429,8 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
                                        &obj2,
                                        &UnaryPredicate1D_Type,
                                        &obj3,
-                                       &f)) {
+                                       &f))
+  {
     if (!((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double) {
       PyErr_SetString(
           PyExc_TypeError,
@@ -441,7 +452,8 @@ static PyObject *Operators_recursive_split(BPy_Operators * /*self*/,
     if (Operators::recursiveSplit(*(((BPy_UnaryFunction0DDouble *)obj1)->uf0D_double),
                                   *(((BPy_UnaryPredicate0D *)obj2)->up0D),
                                   *(((BPy_UnaryPredicate1D *)obj3)->up1D),
-                                  f) < 0) {
+                                  f) < 0)
+    {
       if (!PyErr_Occurred()) {
         PyErr_SetString(PyExc_RuntimeError, "Operators.recursive_split() failed");
       }
@@ -504,14 +516,9 @@ static PyObject *Operators_create(BPy_Operators * /*self*/, PyObject *args, PyOb
   static const char *kwlist[] = {"pred", "shaders", nullptr};
   PyObject *obj1 = nullptr, *obj2 = nullptr;
 
-  if (!PyArg_ParseTupleAndKeywords(args,
-                                   kwds,
-                                   "O!O!",
-                                   (char **)kwlist,
-                                   &UnaryPredicate1D_Type,
-                                   &obj1,
-                                   &PyList_Type,
-                                   &obj2)) {
+  if (!PyArg_ParseTupleAndKeywords(
+          args, kwds, "O!O!", (char **)kwlist, &UnaryPredicate1D_Type, &obj1, &PyList_Type, &obj2))
+  {
     return nullptr;
   }
   if (!((BPy_UnaryPredicate1D *)obj1)->up1D) {

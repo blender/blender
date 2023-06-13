@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -589,7 +590,13 @@ void DebugDraw::display_to_view()
   GPU_debug_group_end();
 }
 
+/** \} */
+
 }  // namespace blender::draw
+
+/* -------------------------------------------------------------------- */
+/** \name DebugDraw Access
+ * \{ */
 
 blender::draw::DebugDraw *DRW_debug_get()
 {

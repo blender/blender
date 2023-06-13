@@ -1,11 +1,15 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
  */
 
 #include <numeric>
+
+#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "MEM_guardedalloc.h"
 
@@ -21,7 +25,7 @@
 #include "BKE_image.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_node.h"
+#include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_report.h"
@@ -55,8 +59,8 @@ namespace blender::ed::space_node {
 
 static void position_node_based_on_mouse(bNode &node, const float2 &location)
 {
-  node.locx = location.x - NODE_DY * 1.5f / UI_DPI_FAC;
-  node.locy = location.y + NODE_DY * 0.5f / UI_DPI_FAC;
+  node.locx = location.x - NODE_DY * 1.5f / UI_SCALE_FAC;
+  node.locy = location.y + NODE_DY * 0.5f / UI_SCALE_FAC;
 }
 
 bNode *add_node(const bContext &C, const StringRef idname, const float2 &location)
@@ -107,12 +111,10 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
 /** \name Add Reroute Operator
  * \{ */
 
-std::optional<float2> link_path_intersection(const Span<float2> socket_locations,
-                                             const bNodeLink &link,
-                                             const Span<float2> path)
+std::optional<float2> link_path_intersection(const bNodeLink &link, const Span<float2> path)
 {
   std::array<float2, NODE_LINK_RESOL + 1> coords;
-  node_link_bezier_points_evaluated(socket_locations, link, coords);
+  node_link_bezier_points_evaluated(link, coords);
 
   for (const int i : path.index_range().drop_back(1)) {
     for (const int j : IndexRange(NODE_LINK_RESOL)) {
@@ -138,7 +140,6 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   const ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
-  const Span<float2> socket_locations = snode.runtime->all_socket_locations;
 
   Vector<float2> path;
   RNA_BEGIN (op->ptr, itemptr, "path") {
@@ -170,10 +171,10 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
   Map<bNodeSocket *, RerouteCutsForSocket> cuts_per_socket;
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (node_link_is_hidden_or_dimmed(socket_locations, region.v2d, *link)) {
+    if (node_link_is_hidden_or_dimmed(region.v2d, *link)) {
       continue;
     }
-    const std::optional<float2> cut = link_path_intersection(socket_locations, *link, path);
+    const std::optional<float2> cut = link_path_intersection(*link, path);
     if (!cut) {
       continue;
     }
@@ -204,8 +205,8 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     const float2 insert_point = std::accumulate(
                                     cuts.values().begin(), cuts.values().end(), float2(0)) /
                                 cuts.size();
-    reroute->locx = insert_point.x / UI_DPI_FAC;
-    reroute->locy = insert_point.y / UI_DPI_FAC;
+    reroute->locx = insert_point.x / UI_SCALE_FAC;
+    reroute->locy = insert_point.y / UI_SCALE_FAC;
 
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
@@ -348,8 +349,8 @@ static int node_add_group_invoke(bContext *C, wmOperator *op, const wmEvent *eve
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_group_exec(C, op);
 }
@@ -378,14 +379,17 @@ void NODE_OT_add_group(wmOperatorType *ot)
 /** \name Add Node Group Asset Operator
  * \{ */
 
-static bool add_node_group_asset(const bContext &C, const AssetHandle asset, ReportList &reports)
+static bool add_node_group_asset(const bContext &C,
+                                 const AssetRepresentation &asset_c_handle,
+                                 ReportList &reports)
 {
   Main &bmain = *CTX_data_main(&C);
   SpaceNode &snode = *CTX_wm_space_node(&C);
   bNodeTree &edit_tree = *snode.edittree;
 
+  auto &asset = reinterpret_cast<const asset_system::AssetRepresentation &>(asset_c_handle);
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      asset::get_local_id_from_asset_or_append_and_reuse(bmain, asset));
+      ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT));
   if (!node_group) {
     return false;
   }
@@ -427,9 +431,8 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   if (!library_ref) {
     return OPERATOR_CANCELLED;
   }
-  bool is_valid;
-  const AssetHandle handle = CTX_wm_asset_handle(C, &is_valid);
-  if (!is_valid) {
+  const AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
     return OPERATOR_CANCELLED;
   }
 
@@ -440,9 +443,9 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
                            &snode.runtime->cursor[0],
                            &snode.runtime->cursor[1]);
 
-  snode.runtime->cursor /= UI_DPI_FAC;
+  snode.runtime->cursor /= UI_SCALE_FAC;
 
-  if (!add_node_group_asset(*C, handle, *op->reports)) {
+  if (!add_node_group_asset(*C, *asset, *op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -456,6 +459,21 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_FINISHED;
 }
 
+static char *node_add_group_asset_get_description(bContext *C,
+                                                  wmOperatorType * /*op*/,
+                                                  PointerRNA * /*values*/)
+{
+  const AssetRepresentation *asset = CTX_wm_asset(C);
+  if (!asset) {
+    return nullptr;
+  }
+  const AssetMetaData &asset_data = *AS_asset_representation_metadata_get(asset);
+  if (!asset_data.description) {
+    return nullptr;
+  }
+  return BLI_strdup(DATA_(asset_data.description));
+}
+
 void NODE_OT_add_group_asset(wmOperatorType *ot)
 {
   ot->name = "Add Node Group Asset";
@@ -464,6 +482,7 @@ void NODE_OT_add_group_asset(wmOperatorType *ot)
 
   ot->invoke = node_add_group_asset_invoke;
   ot->poll = node_add_group_poll;
+  ot->get_description = node_add_group_asset_get_description;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
@@ -524,8 +543,8 @@ static int node_add_object_invoke(bContext *C, wmOperator *op, const wmEvent *ev
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_object_exec(C, op);
 }
@@ -611,8 +630,8 @@ static int node_add_collection_invoke(bContext *C, wmOperator *op, const wmEvent
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   return node_add_collection_exec(C, op);
 }
@@ -726,11 +745,12 @@ static int node_add_file_invoke(bContext *C, wmOperator *op, const wmEvent *even
                            &snode->runtime->cursor[0],
                            &snode->runtime->cursor[1]);
 
-  snode->runtime->cursor[0] /= UI_DPI_FAC;
-  snode->runtime->cursor[1] /= UI_DPI_FAC;
+  snode->runtime->cursor[0] /= UI_SCALE_FAC;
+  snode->runtime->cursor[1] /= UI_SCALE_FAC;
 
   if (WM_operator_properties_id_lookup_is_set(op->ptr) ||
-      RNA_struct_property_is_set(op->ptr, "filepath")) {
+      RNA_struct_property_is_set(op->ptr, "filepath"))
+  {
     return node_add_file_exec(C, op);
   }
   return WM_operator_filesel(C, op, event);

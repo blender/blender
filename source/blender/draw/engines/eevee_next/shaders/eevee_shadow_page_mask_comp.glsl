@@ -40,7 +40,7 @@ void main()
           tile.is_used = true;
         }
         /* Reset count for next level. */
-        usage_grid[tile_co.y][tile_co.x] = 0u;
+        usage_grid[tile_co.y / 2][tile_co.x / 2] = 0u;
       }
 
       barrier();

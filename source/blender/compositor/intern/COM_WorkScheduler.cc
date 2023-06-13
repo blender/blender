@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_WorkScheduler.h"
 
@@ -129,7 +130,8 @@ static void opencl_start(const CompositorContext &context)
 static bool opencl_schedule(WorkPackage *package)
 {
   if (package->type == eWorkPackageType::Tile && package->execution_group->get_flags().open_cl &&
-      g_work_scheduler.opencl.active) {
+      g_work_scheduler.opencl.active)
+  {
     BLI_thread_queue_push(g_work_scheduler.opencl.queue, package);
     return true;
   }

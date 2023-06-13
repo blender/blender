@@ -9,18 +9,18 @@
 #include "sky_model.h"
 
 /* Constants */
-static const float rayleigh_scale = 8e3f;        // Rayleigh scale height (m)
-static const float mie_scale = 1.2e3f;           // Mie scale height (m)
-static const float mie_coeff = 2e-5f;            // Mie scattering coefficient (m^-1)
-static const float mie_G = 0.76f;                // aerosols anisotropy
-static const float sqr_G = mie_G * mie_G;        // squared aerosols anisotropy
-static const float earth_radius = 6360e3f;       // radius of Earth (m)
-static const float atmosphere_radius = 6420e3f;  // radius of atmosphere (m)
-static const int steps = 32;                     // segments of primary ray
-static const int num_wavelengths = 21;           // number of wavelengths
-static const int min_wavelength = 380;           // lowest sampled wavelength (nm)
-static const int max_wavelength = 780;           // highest sampled wavelength (nm)
-// step between each sampled wavelength (nm)
+static const float rayleigh_scale = 8e3f;       /* Rayleigh scale height (m). */
+static const float mie_scale = 1.2e3f;          /* Mie scale height (m). */
+static const float mie_coeff = 2e-5f;           /* Mie scattering coefficient (m^-1). */
+static const float mie_G = 0.76f;               /* aerosols anisotropy. */
+static const float sqr_G = mie_G * mie_G;       /* squared aerosols anisotropy. */
+static const float earth_radius = 6360e3f;      /* radius of Earth (m). */
+static const float atmosphere_radius = 6420e3f; /* radius of atmosphere (m). */
+static const int steps = 32;                    /* segments of primary ray. */
+static const int num_wavelengths = 21;          /* number of wavelengths. */
+static const int min_wavelength = 380;          /* lowest sampled wavelength (nm). */
+static const int max_wavelength = 780;          /* highest sampled wavelength (nm). */
+/* Step between each sampled wavelength (nm). */
 static const float step_lambda = (max_wavelength - min_wavelength) / (num_wavelengths - 1);
 /* Sun irradiance on top of the atmosphere (W*m^-2*nm^-1) */
 static const float irradiance[] = {

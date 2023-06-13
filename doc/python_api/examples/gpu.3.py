@@ -17,7 +17,7 @@ indices = (
     (4, 5), (4, 6), (5, 7), (6, 7),
     (0, 4), (1, 5), (2, 6), (3, 7))
 
-shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+shader = gpu.shader.from_builtin('UNIFORM_COLOR')
 batch = batch_for_shader(shader, 'LINES', {"pos": coords}, indices=indices)
 
 

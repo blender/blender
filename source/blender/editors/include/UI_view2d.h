@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -60,11 +61,11 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_MIN_ALPHA (0.4f)
 
 /* Minimum size needs to include outline which varies with line width. */
-#define V2D_SCROLL_MIN_WIDTH ((5.0f * U.dpi_fac) + (2.0f * U.pixelsize))
+#define V2D_SCROLL_MIN_WIDTH ((5.0f * UI_SCALE_FAC) + (2.0f * U.pixelsize))
 
 /* When to start showing the full-width scroller. */
-#define V2D_SCROLL_HIDE_WIDTH (AREAMINX * U.dpi_fac)
-#define V2D_SCROLL_HIDE_HEIGHT (HEADERY * U.dpi_fac)
+#define V2D_SCROLL_HIDE_WIDTH (AREAMINX * UI_SCALE_FAC)
+#define V2D_SCROLL_HIDE_HEIGHT (HEADERY * UI_SCALE_FAC)
 
 /** Scroll bars with 'handles' used for scale (zoom). */
 #define V2D_SCROLL_HANDLE_HEIGHT (0.6f * U.widget_unit)
@@ -74,7 +75,7 @@ enum eView2D_CommonViewTypes {
 #define V2D_SCROLL_HANDLE_SIZE_HOTSPOT (0.6f * U.widget_unit)
 
 /** Don't allow scroll thumb to show below this size (so it's never too small to click on). */
-#define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_DPI_FAC)
+#define V2D_SCROLL_THUMB_SIZE_MIN (30.0 * UI_SCALE_FAC)
 
 /** \} */
 
@@ -122,8 +123,6 @@ struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 
-typedef struct View2DScrollers View2DScrollers;
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -167,10 +166,6 @@ void UI_view2d_sync(struct bScreen *screen, struct ScrArea *area, struct View2D 
 void UI_view2d_curRect_changed(const struct bContext *C, struct View2D *v2d);
 
 void UI_view2d_totRect_set(struct View2D *v2d, int width, int height);
-/**
- * Change the size of the maximum viewable area (i.e. 'tot' rect).
- */
-void UI_view2d_totRect_set_resize(struct View2D *v2d, int width, int height, bool resize);
 
 void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
 
@@ -270,13 +265,6 @@ void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
 /* -------------------------------------------------------------------- */
 /** \name Scroll-bar Drawing
  * \{ */
-
-/**
- * Calculate relevant scroller properties.
- */
-void UI_view2d_scrollers_calc(struct View2D *v2d,
-                              const struct rcti *mask_custom,
-                              struct View2DScrollers *r_scrollers);
 
 /**
  * Draw scroll-bars in the given 2D-region.
@@ -490,8 +478,8 @@ void UI_view2d_smooth_view(const struct bContext *C,
                            const struct rctf *cur,
                            int smooth_viewtx);
 
-#define UI_MARKER_MARGIN_Y (42 * UI_DPI_FAC)
-#define UI_TIME_SCRUB_MARGIN_Y (23 * UI_DPI_FAC)
+#define UI_MARKER_MARGIN_Y (42 * UI_SCALE_FAC)
+#define UI_TIME_SCRUB_MARGIN_Y (23 * UI_SCALE_FAC)
 
 /** \} */
 
@@ -543,9 +531,10 @@ typedef struct View2DEdgePanData {
   float max_speed;
   /** Delay in seconds before maximum speed is reached. */
   float delay;
-  /** Influence factor for view zoom:
-   *    0 = Constant speed in UI units
-   *    1 = Constant speed in view space, UI speed slows down when zooming out
+  /**
+   * Influence factor for view zoom:
+   * - 0 = Constant speed in UI units.
+   * - 1 = Constant speed in view space, UI speed slows down when zooming out.
    */
   float zoom_influence;
 
@@ -559,8 +548,6 @@ typedef struct View2DEdgePanData {
   double edge_pan_last_time;
   double edge_pan_start_time_x, edge_pan_start_time_y;
 } View2DEdgePanData;
-
-bool UI_view2d_edge_pan_poll(struct bContext *C);
 
 void UI_view2d_edge_pan_init(struct bContext *C,
                              struct View2DEdgePanData *vpd,

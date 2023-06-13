@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -18,6 +19,7 @@
 
 #include "DRW_render.h"
 
+#include "BLI_listbase_wrapper.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -45,6 +47,8 @@
 #define BONE_FLAG(eBone, pchan) ((eBone) ? (eBone->flag) : (pchan->bone->flag))
 
 #define PT_DEFAULT_RAD 0.05f /* radius of the point batch. */
+
+using namespace blender;
 
 struct ArmatureDrawContext {
   /* Current armature object */
@@ -95,7 +99,8 @@ bool OVERLAY_armature_is_pose_mode(Object *ob, const DRWContextState *draw_ctx)
 
   /* Pose armature is handled by pose mode engine. */
   if (((ob == active_ob) || (ob->mode & OB_MODE_POSE)) &&
-      ((draw_ctx->object_mode & OB_MODE_POSE) != 0)) {
+      ((draw_ctx->object_mode & OB_MODE_POSE) != 0))
+  {
     return true;
   }
 
@@ -615,9 +620,6 @@ static void drw_shgroup_bone_envelope(ArmatureDrawContext *ctx,
 
 /* Custom (geometry) */
 
-extern "C" void drw_batch_cache_validate(Object *custom);
-extern "C" void drw_batch_cache_generate_requested_delayed(Object *custom);
-
 BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
                                                        DRWShadingGroup *grp,
                                                        GPUBatch *custom_geom)
@@ -646,11 +648,11 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
 
   GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
   GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
-  GPUBatch *ledges = DRW_mesh_batch_cache_get_loose_edges(mesh);
+  GPUBatch *loose_edges = DRW_mesh_batch_cache_get_loose_edges(mesh);
   BoneInstanceData inst_data;
   DRWCallBuffer *buf;
 
-  if (surf || edges || ledges) {
+  if (surf || edges || loose_edges) {
     mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   }
 
@@ -667,8 +669,8 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
-  if (ledges) {
-    buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+  if (loose_edges) {
+    buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
     OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
@@ -714,19 +716,19 @@ static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
 
   /* This only handles curves without any surface. The other curve types should have been converted
    * to meshes and rendered in the mesh drawing function. */
-  GPUBatch *ledges = nullptr;
+  GPUBatch *loose_edges = nullptr;
   if (custom->type == OB_FONT) {
-    ledges = DRW_cache_text_edge_wire_get(custom);
+    loose_edges = DRW_cache_text_edge_wire_get(custom);
   }
   else {
-    ledges = DRW_cache_curve_edge_wire_get(custom);
+    loose_edges = DRW_cache_curve_edge_wire_get(custom);
   }
 
-  if (ledges) {
+  if (loose_edges) {
     BoneInstanceData inst_data;
     mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
 
-    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
     OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
@@ -1093,7 +1095,8 @@ static const float *get_bone_solid_with_consts_color(const ArmatureDrawContext *
 
   static float consts_color[4];
   if ((arm->flag & ARM_POSEMODE) && !(boneflag & BONE_DRAW_LOCKED_WEIGHT) &&
-      set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color)) {
+      set_pchan_color(ctx, PCHAN_COLOR_CONSTS, boneflag, constflag, consts_color))
+  {
     interp_v3_v3v3(consts_color, col, consts_color, 0.5f);
   }
   else {
@@ -1548,7 +1551,8 @@ static void draw_points(ArmatureDrawContext *ctx,
 
   /* Draw root point if we are not connected to our parent */
   if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
-                (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
+                (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
+  {
     if (select_id != -1) {
       DRW_select_load_id(select_id | BONESEL_ROOT);
     }
@@ -1678,7 +1682,8 @@ static void draw_bone_envelope(ArmatureDrawContext *ctx,
   }
 
   if ((select_id == -1) && (boneflag & BONE_NO_DEFORM) == 0 &&
-      ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL))))) {
+      ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
+  {
     drw_shgroup_bone_envelope_distance(
         ctx, BONE_VAR(eBone, pchan, disp_mat), rad_head, rad_tail, distance);
   }
@@ -1729,7 +1734,8 @@ static void draw_bone_line(ArmatureDrawContext *ctx,
 
     /* Draw root point if we are not connected to our parent. */
     if (!(eBone ? (eBone->parent && (boneflag & BONE_CONNECTED)) :
-                  (pchan->bone->parent && (boneflag & BONE_CONNECTED)))) {
+                  (pchan->bone->parent && (boneflag & BONE_CONNECTED))))
+    {
 
       if (eBone) {
         col_head = (eBone->flag & BONE_ROOTSEL) ? &G_draw.block.color_vertex_select.x : col_bone;
@@ -2020,6 +2026,20 @@ static void pchan_draw_ik_lines(ArmatureDrawContext *ctx,
   }
 }
 
+static void draw_bone_bone_relationship_line(ArmatureDrawContext *ctx,
+                                             const float bone_head[3],
+                                             const float parent_head[3],
+                                             const float parent_tail[3],
+                                             const eArmature_Flag armature_flags)
+{
+  if (armature_flags & ARM_DRAW_RELATION_FROM_HEAD) {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_head);
+  }
+  else {
+    drw_shgroup_bone_relationship_lines(ctx, bone_head, parent_tail);
+  }
+}
+
 static void draw_bone_relations(ArmatureDrawContext *ctx,
                                 EditBone *ebone,
                                 bPoseChannel *pchan,
@@ -2033,7 +2053,8 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
        * since riggers will want to know about the links between bones
        */
       if ((boneflag & BONE_CONNECTED) == 0) {
-        drw_shgroup_bone_relationship_lines(ctx, ebone->head, ebone->parent->tail);
+        draw_bone_bone_relationship_line(
+            ctx, ebone->head, ebone->parent->head, ebone->parent->tail, eArmature_Flag(arm->flag));
       }
     }
   }
@@ -2042,9 +2063,14 @@ static void draw_bone_relations(ArmatureDrawContext *ctx,
       /* Only draw if bone or its parent is selected - reduces viewport complexity with complex
        * rigs */
       if ((boneflag & BONE_SELECTED) ||
-          (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED))) {
+          (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
+      {
         if ((boneflag & BONE_CONNECTED) == 0) {
-          drw_shgroup_bone_relationship_lines(ctx, pchan->pose_head, pchan->parent->pose_tail);
+          draw_bone_bone_relationship_line(ctx,
+                                           pchan->pose_head,
+                                           pchan->parent->pose_head,
+                                           pchan->parent->pose_tail,
+                                           eArmature_Flag(arm->flag));
         }
       }
     }
@@ -2239,7 +2265,8 @@ static void draw_armature_edit(ArmatureDrawContext *ctx)
 
   for (eBone = static_cast<EditBone *>(arm->edbo->first), index = ob_orig->runtime.select_id;
        eBone;
-       eBone = eBone->next, index += 0x10000) {
+       eBone = eBone->next, index += 0x10000)
+  {
     if (eBone->layer & arm->layer) {
       if ((eBone->flag & BONE_HIDDEN_A) == 0) {
         const int select_id = is_select ? index : uint(-1);
@@ -2344,18 +2371,19 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
 
   /* In weight paint mode retrieve the vertex group lock status. */
   if ((draw_ctx->object_mode & OB_MODE_ALL_WEIGHT_PAINT) && (draw_ctx->object_pose == ob) &&
-      (draw_ctx->obact != nullptr)) {
+      (draw_ctx->obact != nullptr))
+  {
     draw_locked_weights = true;
 
-    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-         pchan = pchan->next) {
+    for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next)
+    {
       pchan->bone->flag &= ~BONE_DRAW_LOCKED_WEIGHT;
     }
 
     const Object *obact_orig = DEG_get_original_object(draw_ctx->obact);
 
     const ListBase *defbase = BKE_object_defgroup_list(obact_orig);
-    LISTBASE_FOREACH (const bDeformGroup *, dg, defbase) {
+    for (const bDeformGroup *dg : ConstListBaseWrapper<bDeformGroup>(defbase)) {
       if (dg->flag & DG_LOCK_WEIGHT) {
         pchan = BKE_pose_channel_find_name(ob->pose, dg->name);
 
@@ -2369,7 +2397,8 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
   const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
 
   for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
-       pchan = pchan->next, index += 0x10000) {
+       pchan = pchan->next, index += 0x10000)
+  {
     Bone *bone = pchan->bone;
     const bool bone_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
 
@@ -2437,7 +2466,7 @@ static void draw_armature_pose(ArmatureDrawContext *ctx)
             draw_bone_box(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);
           }
         }
-        else {
+        else if (arm->drawtype == ARM_OCTA) {
           draw_bone_update_disp_matrix_default(nullptr, pchan);
           if (!is_pose_select || pchan_culling_test_octohedral(view, ob, pchan)) {
             draw_bone_octahedral(ctx, nullptr, pchan, arm, boneflag, constflag, select_id);

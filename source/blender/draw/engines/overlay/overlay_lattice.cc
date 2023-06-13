@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -13,7 +14,7 @@ void OVERLAY_edit_lattice_cache_init(OVERLAY_Data *vedata)
 {
   OVERLAY_PassList *psl = vedata->psl;
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   {
@@ -34,7 +35,7 @@ void OVERLAY_edit_lattice_cache_init(OVERLAY_Data *vedata)
 void OVERLAY_edit_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom;
+  GPUBatch *geom;
 
   geom = DRW_cache_lattice_wire_get(ob, true);
   DRW_shgroup_call(pd->edit_lattice_wires_grp, geom, ob);
@@ -51,7 +52,7 @@ void OVERLAY_lattice_cache_populate(OVERLAY_Data *vedata, Object *ob)
   float *color;
   DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-  struct GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
+  GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
   OVERLAY_extra_wire(cb, geom, ob->object_to_world, color);
 }
 

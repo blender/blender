@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spoutliner
@@ -79,8 +81,14 @@ ListBase TreeDisplayViewLayer::buildTree(const TreeSourceData &source_data)
     }
     else {
       TreeElement &te_view_layer = *outliner_add_element(
-          &space_outliner_, &tree, scene, nullptr, TSE_R_LAYER, 0);
-      TREESTORE(&te_view_layer)->flag &= ~TSE_CLOSED;
+          &space_outliner_, &tree, view_layer, nullptr, TSE_R_LAYER, 0);
+
+      TreeStoreElem *tselem = TREESTORE(&te_view_layer);
+
+      if (!tselem->used) {
+        tselem->flag &= ~TSE_CLOSED;
+      }
+
       te_view_layer.name = view_layer->name;
       te_view_layer.directdata = view_layer;
 
@@ -194,9 +202,7 @@ void TreeDisplayViewLayer::add_layer_collection_objects_children(TreeElement &co
  *
  * \{ */
 
-ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner) : outliner_(outliner)
-{
-}
+ObjectsChildrenBuilder::ObjectsChildrenBuilder(SpaceOutliner &outliner) : outliner_(outliner) {}
 
 void ObjectsChildrenBuilder::operator()(TreeElement &collection_tree_elem)
 {
@@ -257,7 +263,8 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
       parent_ob_collection_tree_element = parent_ob_tree_element->parent;
       while (!ELEM(TREESTORE(parent_ob_collection_tree_element)->type,
                    TSE_VIEW_COLLECTION_BASE,
-                   TSE_LAYER_COLLECTION)) {
+                   TSE_LAYER_COLLECTION))
+      {
         parent_ob_collection_tree_element = parent_ob_collection_tree_element->parent;
       }
 

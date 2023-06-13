@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -85,7 +87,8 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
       return NULL;
     }
     if ((screen && BLI_findindex(&screen->regionbase, region) == -1) &&
-        (BLI_findindex(&area->regionbase, region) == -1)) {
+        (BLI_findindex(&area->regionbase, region) == -1))
+    {
       PyErr_SetString(PyExc_TypeError, "Region not found in area");
       return NULL;
     }

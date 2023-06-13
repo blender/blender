@@ -9,7 +9,7 @@ Typical line in the input file (elements in [] are optional).
 [comment *] ToolSettings.snap_align_rotation -> use_snap_align_rotation:    boolean    [Align rotation with the snapping target]
 
 Geterate output format from blender run this:
- ./blender.bin --background -noaudio --python ./release/scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
+ ./blender.bin --background -noaudio --python ./scripts/modules/rna_info.py 2> source/blender/makesrna/rna_cleanup/out.txt
 """
 
 
@@ -103,7 +103,7 @@ def check_if_changed(a, b):
 
 def get_props_from_txt(input_filename):
     """
-    If the file is *.txt, the script assumes it is formatted as outlined in this script docstring
+    If the file is *.txt, the script assumes it is formatted as outlined in this script doc-string.
     """
 
     file = open(input_filename, 'r')
@@ -324,6 +324,6 @@ def main():
 if __name__ == '__main__':
     import sys
     if sys.version_info.major < 3:
-        print("Incorrect python version, use Python 3 or newer!")
+        print("Incorrect Python version, use Python 3 or newer!")
     else:
         main()

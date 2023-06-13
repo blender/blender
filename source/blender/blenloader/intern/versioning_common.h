@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -19,10 +21,24 @@ struct bNodeTree;
 extern "C" {
 #endif
 
+/**
+ * Check if a region of type \a region_type exists in \a regionbase. Otherwise add it after the
+ * first region of type \a link_after_region_type.
+ * \returns null if a region of the given type already existed, otherwise the newly added region.
+ */
 struct ARegion *do_versions_add_region_if_not_found(struct ListBase *regionbase,
                                                     int region_type,
-                                                    const char *name,
+                                                    const char *allocname,
                                                     int link_after_region_type);
+/**
+ * Check if a region of type \a region_type exists in \a regionbase. Otherwise add it after the
+ * first region of type \a link_after_region_type.
+ * \returns either a new, or already existing region.
+ */
+ARegion *do_versions_ensure_region(ListBase *regionbase,
+                                   int region_type,
+                                   const char *allocname,
+                                   int link_after_region_type);
 
 /**
  * Rename if the ID doesn't exist.
@@ -93,6 +109,12 @@ struct bNodeSocket *version_node_add_socket_if_not_exist(struct bNodeTree *ntree
  */
 void version_socket_update_is_used(bNodeTree *ntree);
 ARegion *do_versions_add_region(int regiontype, const char *name);
+
+void sequencer_init_preview_region(ARegion *region);
+
+void add_realize_instances_before_socket(bNodeTree *ntree,
+                                         bNode *node,
+                                         bNodeSocket *geometry_socket);
 
 #ifdef __cplusplus
 }

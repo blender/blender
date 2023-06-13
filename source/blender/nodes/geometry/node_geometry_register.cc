@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_register.hh"
 
@@ -62,6 +64,7 @@ void register_geometry_nodes()
   register_node_type_geo_image_info();
   register_node_type_geo_image_texture();
   register_node_type_geo_image();
+  register_node_type_geo_index_of_nearest();
   register_node_type_geo_input_curve_handles();
   register_node_type_geo_input_curve_tilt();
   register_node_type_geo_input_id();
@@ -85,6 +88,7 @@ void register_geometry_nodes()
   register_node_type_geo_input_scene_time();
   register_node_type_geo_input_shade_smooth();
   register_node_type_geo_input_shortest_edge_paths();
+  register_node_type_geo_input_signed_distance();
   register_node_type_geo_input_spline_cyclic();
   register_node_type_geo_input_spline_length();
   register_node_type_geo_input_spline_resolution();
@@ -96,6 +100,7 @@ void register_geometry_nodes()
   register_node_type_geo_join_geometry();
   register_node_type_geo_material_replace();
   register_node_type_geo_material_selection();
+  register_node_type_geo_mean_filter_sdf_volume();
   register_node_type_geo_merge_by_distance();
   register_node_type_geo_mesh_face_group_boundaries();
   register_node_type_geo_mesh_primitive_circle();
@@ -109,7 +114,9 @@ void register_geometry_nodes()
   register_node_type_geo_mesh_subdivide();
   register_node_type_geo_mesh_to_curve();
   register_node_type_geo_mesh_to_points();
+  register_node_type_geo_mesh_to_sdf_volume();
   register_node_type_geo_mesh_to_volume();
+  register_node_type_geo_mesh_topology_corners_of_edge();
   register_node_type_geo_mesh_topology_corners_of_face();
   register_node_type_geo_mesh_topology_corners_of_vertex();
   register_node_type_geo_mesh_topology_edges_of_corner();
@@ -119,7 +126,9 @@ void register_geometry_nodes()
   register_node_type_geo_mesh_topology_vertex_of_corner();
   register_node_type_geo_object_info();
   register_node_type_geo_offset_point_in_curve();
+  register_node_type_geo_offset_sdf_volume();
   register_node_type_geo_points_to_vertices();
+  register_node_type_geo_points_to_sdf_volume();
   register_node_type_geo_points_to_volume();
   register_node_type_geo_points();
   register_node_type_geo_proximity();
@@ -131,8 +140,10 @@ void register_geometry_nodes()
   register_node_type_geo_sample_nearest_surface();
   register_node_type_geo_sample_nearest();
   register_node_type_geo_sample_uv_surface();
+  register_node_type_geo_sample_volume();
   register_node_type_geo_scale_elements();
   register_node_type_geo_scale_instances();
+  register_node_type_geo_sdf_volume_sphere();
   register_node_type_geo_self_object();
   register_node_type_geo_separate_components();
   register_node_type_geo_separate_geometry();
@@ -148,6 +159,8 @@ void register_geometry_nodes()
   register_node_type_geo_set_shade_smooth();
   register_node_type_geo_set_spline_cyclic();
   register_node_type_geo_set_spline_resolution();
+  register_node_type_geo_simulation_input();
+  register_node_type_geo_simulation_output();
   register_node_type_geo_store_named_attribute();
   register_node_type_geo_string_join();
   register_node_type_geo_string_to_curves();

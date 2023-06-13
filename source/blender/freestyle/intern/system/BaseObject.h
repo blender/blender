@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -21,9 +23,7 @@ class BaseObject {
     _ref_counter = 0;
   }
 
-  virtual ~BaseObject()
-  {
-  }
+  virtual ~BaseObject() {}
 
   /** At least makes a release on this.
    *  The BaseObject::destroy method must be explicitly called at the end of any overloaded destroy

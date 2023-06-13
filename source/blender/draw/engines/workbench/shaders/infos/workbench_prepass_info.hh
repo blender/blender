@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "gpu_shader_create_info.hh"
 #include "workbench_defines.hh"
@@ -40,8 +42,7 @@ GPU_SHADER_CREATE_INFO(workbench_next_mesh)
     .vertex_in(2, Type::VEC4, "ac")
     .vertex_in(3, Type::VEC2, "au")
     .vertex_source("workbench_prepass_vert.glsl")
-    .additional_info("draw_modelmat_new")
-    .additional_info("draw_resource_handle_new");
+    .additional_info("draw_modelmat_new_with_custom_id", "draw_resource_handle_new");
 
 GPU_SHADER_CREATE_INFO(workbench_next_curves)
     /* TODO Adding workbench_next_mesh to avoid shader compilation errors */

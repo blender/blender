@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -26,7 +27,8 @@ static bool is_constant_foldable(NodeOperation *operation)
     for (int i = 0; i < operation->get_number_of_input_sockets(); i++) {
       NodeOperation *input = operation->get_input_operation(i);
       if (!input->get_flags().is_constant_operation ||
-          !static_cast<ConstantOperation *>(input)->can_get_constant_elem()) {
+          !static_cast<ConstantOperation *>(input)->can_get_constant_elem())
+      {
         return false;
       }
     }

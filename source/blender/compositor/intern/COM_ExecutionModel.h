@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -45,9 +46,7 @@ class ExecutionModel {
  public:
   ExecutionModel(CompositorContext &context, Span<NodeOperation *> operations);
 
-  virtual ~ExecutionModel()
-  {
-  }
+  virtual ~ExecutionModel() {}
 
   virtual void execute(ExecutionSystem &exec_system) = 0;
 

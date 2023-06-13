@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -50,7 +51,8 @@ void View::frustum_boundbox_calc(int view_id)
   }
 #endif
 
-  MutableSpan<float4> corners = {culling_[view_id].corners, ARRAY_SIZE(culling_[view_id].corners)};
+  MutableSpan<float4> corners = {culling_[view_id].frustum_corners.corners,
+                                 int64_t(ARRAY_SIZE(culling_[view_id].frustum_corners.corners))};
 
   float left, right, bottom, top, near, far;
   bool is_persp = data_[view_id].winmat[3][3] == 0.0f;
@@ -89,15 +91,15 @@ void View::frustum_culling_planes_calc(int view_id)
 {
   float4x4 persmat = data_[view_id].winmat * data_[view_id].viewmat;
   planes_from_projmat(persmat.ptr(),
-                      culling_[view_id].planes[0],
-                      culling_[view_id].planes[5],
-                      culling_[view_id].planes[1],
-                      culling_[view_id].planes[3],
-                      culling_[view_id].planes[4],
-                      culling_[view_id].planes[2]);
+                      culling_[view_id].frustum_planes.planes[0],
+                      culling_[view_id].frustum_planes.planes[5],
+                      culling_[view_id].frustum_planes.planes[1],
+                      culling_[view_id].frustum_planes.planes[3],
+                      culling_[view_id].frustum_planes.planes[4],
+                      culling_[view_id].frustum_planes.planes[2]);
 
   /* Normalize. */
-  for (float4 &plane : culling_[view_id].planes) {
+  for (float4 &plane : culling_[view_id].frustum_planes.planes) {
     plane.w /= normalize_v3(plane);
   }
 }
@@ -105,7 +107,8 @@ void View::frustum_culling_planes_calc(int view_id)
 void View::frustum_culling_sphere_calc(int view_id)
 {
   BoundSphere &bsphere = *reinterpret_cast<BoundSphere *>(&culling_[view_id].bound_sphere);
-  Span<float4> corners = {culling_[view_id].corners, ARRAY_SIZE(culling_[view_id].corners)};
+  Span<float4> corners = {culling_[view_id].frustum_corners.corners,
+                          int64_t(ARRAY_SIZE(culling_[view_id].frustum_corners.corners))};
 
   /* Extract Bounding Sphere */
   if (data_[view_id].winmat[3][3] != 0.0f) {
@@ -280,8 +283,8 @@ void View::compute_visibility(ObjectBoundsBuf &bounds, uint resource_len, bool d
   /* TODO(fclem): Resize to nearest pow2 to reduce fragmentation. */
   visibility_buf_.resize(words_len);
 
-  uint32_t data = 0xFFFFFFFFu;
-  GPU_storagebuf_clear(visibility_buf_, GPU_R32UI, GPU_DATA_UINT, &data);
+  const uint32_t data = 0xFFFFFFFFu;
+  GPU_storagebuf_clear(visibility_buf_, data);
 
   if (do_visibility_) {
     GPUShader *shader = DRW_shader_draw_visibility_compute_get();
