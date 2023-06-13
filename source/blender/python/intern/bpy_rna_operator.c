@@ -79,7 +79,7 @@ static void pyop_poll_message_free_fn(bContext *UNUSED(C), void *user_data)
 }
 
 PyDoc_STRVAR(BPY_rna_operator_poll_message_set_doc,
-             ".. method:: poll_message_set(message, *args)\n"
+             ".. classmethod:: poll_message_set(message, *args)\n"
              "\n"
              "   Set the message to show in the tool-tip when poll fails.\n"
              "\n"
