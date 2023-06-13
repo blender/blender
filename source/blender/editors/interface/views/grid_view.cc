@@ -109,6 +109,12 @@ int AbstractGridView::get_item_count_filtered() const
   return i;
 }
 
+void AbstractGridView::set_tile_size(int tile_width, int tile_height)
+{
+  style_.tile_width = tile_width;
+  style_.tile_height = tile_height;
+}
+
 GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height) {}
 
 /* ---------------------------------------------------------------------- */

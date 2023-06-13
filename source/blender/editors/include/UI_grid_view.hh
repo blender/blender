@@ -131,6 +131,8 @@ class AbstractGridView : public AbstractView {
   int get_item_count() const;
   int get_item_count_filtered() const;
 
+  void set_tile_size(int tile_width, int tile_height);
+
  protected:
   virtual void build_items() = 0;
 
