@@ -237,11 +237,6 @@ void AbstractViewItem::disable_interaction()
   is_interactive_ = false;
 }
 
-void AbstractViewItem::disable_activatable()
-{
-  is_activatable_ = false;
-}
-
 bool AbstractViewItem::is_interactive() const
 {
   return is_interactive_;
