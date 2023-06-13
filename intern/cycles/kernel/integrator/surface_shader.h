@@ -95,11 +95,11 @@ ccl_device_inline void surface_shader_prepare_closures(KernelGlobals kg,
       sd->closure_emission_background = zero_spectrum();
     }
 
-    if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
-      sd->flag &= ~SD_BSDF_HAS_EVAL;
-    }
-
     if (path_flag & PATH_RAY_CAMERA) {
+      if (filter_closures & FILTER_CLOSURE_DIRECT_LIGHT) {
+        sd->flag &= ~SD_BSDF_HAS_EVAL;
+      }
+
       for (int i = 0; i < sd->num_closure; i++) {
         ccl_private ShaderClosure *sc = &sd->closure[i];
 
