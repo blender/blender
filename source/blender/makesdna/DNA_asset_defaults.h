@@ -29,4 +29,16 @@
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name CustomAssetLibraryDefinition Struct
+ * \{ */
+
+#define _DNA_DEFAULT_CustomAssetLibraryDefinition \
+  { \
+    .import_method = ASSET_IMPORT_APPEND_REUSE, \
+    .flag = ASSET_LIBRARY_RELATIVE_PATH, \
+  }
+
+/** \} */
+
 /* clang-format on */
