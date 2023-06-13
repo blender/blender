@@ -1170,6 +1170,7 @@ void CurvesGeometry::remove_points(const IndexMask &points_to_delete,
   }
   if (points_to_delete.size() == this->points_num()) {
     *this = {};
+    return;
   }
   IndexMaskMemory memory;
   const IndexMask points_to_copy = points_to_delete.complement(this->points_range(), memory);
