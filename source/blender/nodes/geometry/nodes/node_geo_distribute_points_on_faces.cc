@@ -305,6 +305,9 @@ BLI_NOINLINE static void propagate_existing_attributes(
     if (!src) {
       continue;
     }
+    if (src.domain == ATTR_DOMAIN_EDGE) {
+      continue;
+    }
 
     GSpanAttributeWriter dst = point_attributes.lookup_or_add_for_write_only_span(
         attribute_id, ATTR_DOMAIN_POINT, output_data_type);
