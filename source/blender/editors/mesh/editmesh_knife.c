@@ -3729,12 +3729,13 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     return false;
   }
 
-  /* Re-calculate current ray in object space. */
-  knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, curr_origin, curr_origin_ofs);
-  sub_v3_v3v3(curr_ray, curr_origin_ofs, curr_origin);
-  normalize_v3_v3(curr_ray_normal, curr_ray);
+  /* Use normal global direction. */
+  float no_global[3];
+  copy_v3_v3(no_global, fprev->no);
+  mul_transposed_mat3_m4_v3(kcd->curr.ob->world_to_object, no_global);
+  normalize_v3(no_global);
 
-  plane_from_point_normal_v3(plane, kcd->prev.cage, fprev->no);
+  plane_from_point_normal_v3(plane, kcd->prev.cage, no_global);
 
   if (isect_ray_plane_v3(curr_origin, curr_ray_normal, plane, &lambda, false)) {
     madd_v3_v3v3fl(ray_hit, curr_origin, curr_ray_normal, lambda);
@@ -3756,7 +3757,7 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     /* Maybe check for vectors being zero here? */
     sub_v3_v3v3(v1, ray_hit, kcd->prev.cage);
     copy_v3_v3(v2, refv);
-    kcd->angle = snap_v3_angle_plane(rotated_vec, v1, v2, fprev->no, snap_step);
+    kcd->angle = snap_v3_angle_plane(rotated_vec, v1, v2, no_global, snap_step);
     add_v3_v3(rotated_vec, kcd->prev.cage);
 
     knife_project_v2(kcd, rotated_vec, kcd->curr.mval);
