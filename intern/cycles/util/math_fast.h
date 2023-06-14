@@ -1,4 +1,8 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2004 NVIDIA Corporation
+ * SPDX-FileCopyrightText: 2008-2014 Larry Gritz
+ * SPDX-FileCopyrightText: 2009-2014 Sony Pictures Imageworks Inc., et al.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Adapted from OpenImageIO
  * Copyright 2008-2014 Larry Gritz and the other authors and contributors.

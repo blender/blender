@@ -1,6 +1,9 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Adapted from code copyright 2009-2010 NVIDIA Corporation
- * Modifications Copyright 2011-2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2009-2010 NVIDIA Corporation
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Adapted code from NVIDIA Corporation. */
 
 #ifndef __BVH_BUILD_H__
 #define __BVH_BUILD_H__

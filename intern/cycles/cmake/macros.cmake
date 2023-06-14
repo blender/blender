@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 function(cycles_set_solution_folder target)
   if(IDE_GROUP_PROJECTS_IN_FOLDERS)

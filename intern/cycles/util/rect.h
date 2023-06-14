@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2017-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_RECT_H__
 #define __UTIL_RECT_H__
