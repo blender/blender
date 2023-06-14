@@ -440,7 +440,6 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
     if (load_data->flags & SEQ_LOAD_MOVIE_SYNC_FPS) {
       scene->r.frs_sec = fps_denom;
       scene->r.frs_sec_base = fps_num;
-      DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
     }
 
     load_data->r_video_stream_start = IMD_anim_get_offset(anim_arr[0]);

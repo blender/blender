@@ -414,6 +414,7 @@ static void draw_seq_waveform_overlay(
 
   const float frames_per_pixel = BLI_rctf_size_x(&region->v2d.cur) / region->winx;
   const float samples_per_frame = SOUND_WAVE_SAMPLES_PER_SECOND / FPS;
+  float samples_per_pixel = samples_per_frame * frames_per_pixel;
 
   /* Align strip start with nearest pixel to prevent waveform flickering. */
   const float x1_aligned = align_frame_with_pixel(x1, frames_per_pixel);
@@ -439,17 +440,15 @@ static void draw_seq_waveform_overlay(
   size_t wave_data_len = 0;
 
   /* Offset must be also aligned, otherwise waveform flickers when moving left handle. */
-  float start_frame = SEQ_time_left_handle_frame_get(scene, seq);
-
+  const float strip_offset = align_frame_with_pixel(seq->startofs + seq->anim_startofs,
+                                                    frames_per_pixel);
+  float start_sample = strip_offset * samples_per_frame;
+  start_sample += seq->sound->offset_time * SOUND_WAVE_SAMPLES_PER_SECOND;
   /* Add off-screen part of strip to offset. */
-  start_frame += (frame_start - x1_aligned);
-  start_frame += seq->sound->offset_time / FPS;
+  start_sample += (frame_start - x1_aligned) * samples_per_frame;
 
   for (int i = 0; i < pixels_to_draw; i++) {
-    float timeline_frame = start_frame + i * frames_per_pixel;
-    /* TODO: Use linear interpolation between frames to avoid bad drawing quality. */
-    float frame_index = SEQ_give_frame_index(scene, seq, timeline_frame);
-    float sample = frame_index * samples_per_frame;
+    float sample = start_sample + i * samples_per_pixel;
     int sample_index = round_fl_to_int(sample);
 
     if (sample_index < 0) {
@@ -470,8 +469,6 @@ static void draw_seq_waveform_overlay(
       value_min = (1.0f - f) * value_min + f * waveform->data[sample_index * 3 + 3];
       value_max = (1.0f - f) * value_max + f * waveform->data[sample_index * 3 + 4];
       rms = (1.0f - f) * rms + f * waveform->data[sample_index * 3 + 5];
-
-      float samples_per_pixel = samples_per_frame * frames_per_pixel;
       if (samples_per_pixel > 1.0f) {
         /* We need to sum up the values we skip over until the next step. */
         float next_pos = sample + samples_per_pixel;

@@ -10,17 +10,11 @@
 #include "DNA_sequence_types.h"
 #include "RNA_access.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Internal exports only. */
 
 struct ARegion;
 struct ARegionType;
 struct Depsgraph;
-struct wmGizmoGroupType;
-struct wmGizmoType;
 struct Main;
 struct Scene;
 struct SeqCollection;
@@ -305,21 +299,3 @@ int sequencer_image_seq_get_minmax_frame(struct wmOperator *op,
                                          int *r_numdigits);
 void sequencer_image_seq_reserve_frames(
     struct wmOperator *op, struct StripElem *se, int len, int minframe, int numdigits);
-
-/* sequencer_retiming.c */
-void SEQUENCER_OT_retiming_reset(struct wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_move(struct wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_add(struct wmOperatorType *ot);
-void SEQUENCER_OT_retiming_handle_remove(struct wmOperatorType *ot);
-
-/* sequencer_gizmo_retime.c */
-void SEQUENCER_GGT_gizmo_retime(struct wmGizmoGroupType *gzgt);
-
-/* sequencer_gizmo_retime_type.c */
-void GIZMO_GT_retime_handle_add(struct wmGizmoType *gzt);
-void GIZMO_GT_retime_handle(struct wmGizmoType *gzt);
-void GIZMO_GT_retime_remove(struct wmGizmoType *gzt);
-
-#ifdef __cplusplus
-}
-#endif

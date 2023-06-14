@@ -426,15 +426,10 @@ static void sequencer_gizmos(void)
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
       &(const struct wmGizmoMapType_Params){SPACE_SEQ, RGN_TYPE_PREVIEW});
 
-  WM_gizmotype_append(GIZMO_GT_retime_handle_add);
-  WM_gizmotype_append(GIZMO_GT_retime_handle);
-  WM_gizmotype_append(GIZMO_GT_retime_remove);
-
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_translate);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_resize);
   WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo2d_rotate);
-  WM_gizmogrouptype_append(SEQUENCER_GGT_gizmo_retime);
 
   WM_gizmogrouptype_append_and_link(gzmap_type, SEQUENCER_GGT_navigate);
 }
@@ -589,7 +584,6 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
         case ND_SEQUENCER:
         case ND_RENDER_RESULT:
           ED_region_tag_redraw(region);
-          WM_gizmomap_tag_refresh(region->gizmo_map);
           break;
       }
       break;
@@ -603,7 +597,6 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
     case NC_SPACE:
       if (wmn->data == ND_SPACE_SEQUENCER) {
         ED_region_tag_redraw(region);
-        WM_gizmomap_tag_refresh(region->gizmo_map);
       }
       break;
     case NC_ID:
@@ -614,7 +607,6 @@ static void sequencer_main_region_listener(const wmRegionListenerParams *params)
     case NC_SCREEN:
       if (ELEM(wmn->data, ND_ANIMPLAY)) {
         ED_region_tag_redraw(region);
-        WM_gizmomap_tag_refresh(region->gizmo_map);
       }
       break;
   }
@@ -1031,6 +1023,7 @@ void ED_spacetype_sequencer(void)
   art->on_view2d_changed = sequencer_main_region_view2d_changed;
   art->listener = sequencer_main_region_listener;
   art->message_subscribe = sequencer_main_region_message_subscribe;
+  /* NOTE: inclusion of #ED_KEYMAP_GIZMO is currently for scripts and isn't used by default. */
   art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
                     ED_KEYMAP_ANIMATION;
   BLI_addhead(&st->regiontypes, art);
