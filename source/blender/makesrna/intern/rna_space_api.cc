@@ -47,17 +47,16 @@ static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 
   if (area && region && area->spacetype == SPACE_VIEW3D) {
     Main *bmain = CTX_data_main(C);
-    View3D *v3d = area->spacedata.first;
+    View3D *v3d = static_cast<View3D *>(area->spacedata.first);
     wmWindowManager *wm = CTX_wm_manager(C);
-    wmWindow *win;
 
-    for (win = wm->windows.first; win; win = win->next) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
       if (WM_window_get_active_screen(win) == screen) {
         Scene *scene = WM_window_get_active_scene(win);
         ViewLayer *view_layer = WM_window_get_active_view_layer(win);
         Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
 
-        ED_view3d_update_viewmat(depsgraph, scene, v3d, region, NULL, NULL, NULL, false);
+        ED_view3d_update_viewmat(depsgraph, scene, v3d, region, nullptr, nullptr, nullptr, false);
         break;
       }
     }
@@ -97,9 +96,9 @@ void RNA_api_space_node(StructRNA *srna)
   RNA_def_function_ui_description(func, "Set the cursor location using region coordinates");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_int(func, "x", 0, INT_MIN, INT_MAX, "x", "Region x coordinate", -10000, 10000);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "y", 0, INT_MIN, INT_MAX, "y", "Region y coordinate", -10000, 10000);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
 void RNA_api_space_text(StructRNA *srna)
@@ -113,11 +112,11 @@ void RNA_api_space_text(StructRNA *srna)
       func, "Retrieve the region position from the given line and character position");
   RNA_def_function_flag(func, FUNC_USE_SELF_ID);
   parm = RNA_def_int(func, "line", 0, INT_MIN, INT_MAX, "Line", "Line index", 0, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "column", 0, INT_MIN, INT_MAX, "Column", "Column index", 0, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int_array(
-      func, "result", 2, NULL, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
+      func, "result", 2, nullptr, -1, INT_MAX, "", "Region coordinates", -1, INT_MAX);
   RNA_def_function_output(func, parm);
 }
 
@@ -175,7 +174,7 @@ void rna_def_object_type_visibility_flags_common(StructRNA *srna,
       prop = RNA_def_property(
           srna, info[type_index].identifier[mask_index], PROP_BOOLEAN, PROP_NONE);
       RNA_def_property_boolean_negative_sdna(
-          prop, NULL, view_mask_member[mask_index], info[type_index].type_mask);
+          prop, nullptr, view_mask_member[mask_index], info[type_index].type_mask);
       RNA_def_property_ui_text(prop, info[type_index].name, "");
       RNA_def_property_update(prop, noteflag, update_func);
     }
@@ -193,7 +192,7 @@ void RNA_api_space_filebrowser(StructRNA *srna)
 
   parm = RNA_def_property(func, "id_to_activate", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(parm, "ID");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   parm = RNA_def_boolean(
       func,
