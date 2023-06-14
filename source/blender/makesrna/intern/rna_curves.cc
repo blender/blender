@@ -15,9 +15,6 @@
 
 #include "DNA_curves_types.h"
 
-#include "BLI_math_base.h"
-#include "BLI_string.h"
-
 #include "WM_types.h"
 
 const EnumPropertyItem rna_enum_curves_types[] = {
@@ -59,7 +56,7 @@ const EnumPropertyItem rna_enum_curve_normal_modes[] = {
 
 static Curves *rna_curves(const PointerRNA *ptr)
 {
-  return (Curves *)ptr->owner_id;
+  return reinterpret_cast<Curves *>(ptr->owner_id);
 }
 
 static int rna_Curves_curve_offset_data_length(PointerRNA *ptr)
@@ -106,9 +103,9 @@ static const float (*get_curves_positions_const(const Curves *curves))[3]
 static int rna_CurvePoint_index_get_const(const PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
-  const float(*co)[3] = ptr->data;
+  const float(*co)[3] = static_cast<float(*)[3]>(ptr->data);
   const float(*positions)[3] = get_curves_positions_const(curves);
-  return (int)(co - positions);
+  return int(co - positions);
 }
 
 static void rna_Curves_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -176,19 +173,19 @@ static int rna_CurvePoint_index_get(PointerRNA *ptr)
 
 static void rna_CurvePoint_location_get(PointerRNA *ptr, float value[3])
 {
-  copy_v3_v3(value, (const float *)ptr->data);
+  copy_v3_v3(value, static_cast<const float *>(ptr->data));
 }
 
 static void rna_CurvePoint_location_set(PointerRNA *ptr, const float value[3])
 {
-  copy_v3_v3((float *)ptr->data, value);
+  copy_v3_v3(static_cast<float *>(ptr->data), value);
 }
 
 static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 {
   const Curves *curves = rna_curves(ptr);
-  const float *radii = (const float *)CustomData_get_layer_named(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius");
+  const float *radii = static_cast<const float *>(
+      CustomData_get_layer_named(&curves->geometry.point_data, CD_PROP_FLOAT, "radius"));
   if (radii == NULL) {
     return 0.0f;
   }
@@ -198,8 +195,8 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
 static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
 {
   Curves *curves = rna_curves(ptr);
-  float *radii = (float *)CustomData_get_layer_named_for_write(
-      &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num);
+  float *radii = static_cast<float *>(CustomData_get_layer_named_for_write(
+      &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num));
   if (radii == NULL) {
     return;
   }
@@ -226,7 +223,7 @@ int rna_Curves_points_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
 static int rna_CurveSlice_index_get_const(const PointerRNA *ptr)
 {
   Curves *curves = rna_curves(ptr);
-  return (int)((int *)ptr->data - curves->geometry.curve_offsets);
+  return int(static_cast<int *>(ptr->data) - curves->geometry.curve_offsets);
 }
 
 static int rna_CurveSlice_index_get(PointerRNA *ptr)
@@ -241,13 +238,13 @@ static char *rna_CurveSlice_path(const PointerRNA *ptr)
 
 static int rna_CurveSlice_first_point_index_get(PointerRNA *ptr)
 {
-  const int *offset_ptr = (int *)ptr->data;
+  const int *offset_ptr = static_cast<int *>(ptr->data);
   return *offset_ptr;
 }
 
 static int rna_CurveSlice_points_length_get(PointerRNA *ptr)
 {
-  const int *offset_ptr = (int *)ptr->data;
+  const int *offset_ptr = static_cast<int *>(ptr->data);
   const int offset = *offset_ptr;
   return *(offset_ptr + 1) - offset;
 }
@@ -270,8 +267,8 @@ static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRN
   rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, NULL);
 }
 
-static void rna_Curves_update_data(struct Main *UNUSED(bmain),
-                                   struct Scene *UNUSED(scene),
+static void rna_Curves_update_data(struct Main * /*bmain*/,
+                                   struct Scene * /*scene*/,
                                    PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
@@ -282,7 +279,7 @@ static void rna_Curves_update_data(struct Main *UNUSED(bmain),
   }
 }
 
-void rna_Curves_update_draw(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+void rna_Curves_update_draw(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   /* Avoid updates for importers creating curves. */

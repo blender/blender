@@ -77,7 +77,7 @@ void RNA_api_curve(StructRNA *srna)
   func = RNA_def_function(srna, "transform", "rna_Curve_transform");
   RNA_def_function_ui_description(func, "Transform curve by a matrix");
   parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
 
   func = RNA_def_function(srna, "validate_material_indices", "BKE_curve_material_index_validate");
@@ -122,7 +122,7 @@ void RNA_api_curve_nurb(StructRNA *srna)
   RNA_def_function_ui_description(func, "Return the message");
   parm = RNA_def_int(
       func, "direction", 0, 0, 1, "Direction", "The direction where 0-1 maps to U-V", 0, 1);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return value */
   parm = RNA_def_string(func,
                         "result",
