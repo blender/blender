@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019 Blender Foundation.
 
 # - Find OptiX library
 # Find the native OptiX includes and library

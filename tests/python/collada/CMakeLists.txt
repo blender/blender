@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # --env-system-scripts allows to run without the install target.

@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021 Blender Foundation.
 
 # Find HIP compiler. This module defines
 #  HIP_HIPCC_EXECUTABLE, the full path to the hipcc executable

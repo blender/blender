@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # CPE's are used to identify dependencies, for more information on what they

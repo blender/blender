@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021 Blender Foundation.
 
 # - Find HARU library
 # Find the native Haru includes and library

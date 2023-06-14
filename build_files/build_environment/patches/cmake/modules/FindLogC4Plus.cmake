@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016 Blender Foundation.
 
 # - Find LOGC4PLUS library
 # Find the native LOGC4PLUS includes and library

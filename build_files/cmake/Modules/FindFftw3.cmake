@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2011 Blender Foundation.
 
 # - Find Fftw3 library
 # Find the native Fftw3 includes and library

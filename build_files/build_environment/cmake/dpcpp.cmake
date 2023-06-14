@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # LLVM does not switch over to cpp17 until llvm 16 and building ealier versions with

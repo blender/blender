@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023 Blender Foundation.
 
 # - Find ShaderC libraries
 # Find the ShaderC includes and libraries

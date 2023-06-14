@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2002-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(LZMA_PATCH_CMD echo .)

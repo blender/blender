@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019 Blender Foundation.
 
 # - Find Zstd library
 # Find the native Zstd includes and library

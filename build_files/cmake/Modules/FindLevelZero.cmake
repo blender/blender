@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2021-2022 Intel Corporation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021-2022 Intel Corporation
 
 # - Find Level Zero library
 # Find Level Zero headers and libraries needed by oneAPI implementation

@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 if(WIN32)
   set(EPOXY_LIB_TYPE shared)
 else()

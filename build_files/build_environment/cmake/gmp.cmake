@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(GMP_EXTRA_ARGS -enable-cxx)
