@@ -512,11 +512,10 @@ void BlenderSession::render_frame_finish()
   full_buffer_files_.clear();
 }
 
-static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int bake_filter)
+static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bake_filter)
 {
   Integrator *integrator = scene->integrator;
   Film *film = scene->film;
-  const char *bake_type = bake_type_str.c_str();
 
   PassType type = PASS_NONE;
   bool use_direct_light = false;
@@ -524,31 +523,31 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
   bool include_albedo = false;
 
   /* Data passes. */
-  if (strcmp(bake_type, "POSITION") == 0) {
+  if (bake_type == "POSITION") {
     type = PASS_POSITION;
   }
-  else if (strcmp(bake_type, "NORMAL") == 0) {
+  else if (bake_type == "NORMAL") {
     type = PASS_NORMAL;
   }
-  else if (strcmp(bake_type, "UV") == 0) {
+  else if (bake_type == "UV") {
     type = PASS_UV;
   }
-  else if (strcmp(bake_type, "ROUGHNESS") == 0) {
+  else if (bake_type == "ROUGHNESS") {
     type = PASS_ROUGHNESS;
   }
-  else if (strcmp(bake_type, "EMIT") == 0) {
+  else if (bake_type == "EMIT") {
     type = PASS_EMISSION;
   }
   /* Environment pass. */
-  else if (strcmp(bake_type, "ENVIRONMENT") == 0) {
+  else if (bake_type == "ENVIRONMENT") {
     type = PASS_BACKGROUND;
   }
   /* AO pass. */
-  else if (strcmp(bake_type, "AO") == 0) {
+  else if (bake_type == "AO") {
     type = PASS_AO;
   }
   /* Shadow pass. */
-  else if (strcmp(bake_type, "SHADOW") == 0) {
+  else if (bake_type == "SHADOW") {
     /* Bake as combined pass, together with marking the object as a shadow catcher. */
     type = PASS_SHADOW_CATCHER;
     film->set_use_approximate_shadow_catcher(true);
@@ -563,7 +562,7 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
     integrator->set_use_emission(true);
   }
   /* Combined pass. */
-  else if (strcmp(bake_type, "COMBINED") == 0) {
+  else if (bake_type == "COMBINED") {
     type = PASS_COMBINED;
     film->set_use_approximate_shadow_catcher(true);
 
@@ -578,7 +577,7 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
     integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
   }
   /* Light component passes. */
-  else if (strcmp(bake_type, "DIFFUSE") == 0) {
+  else if (bake_type == "DIFFUSE") {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
     {
@@ -600,7 +599,7 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
 
     include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
-  else if (strcmp(bake_type, "GLOSSY") == 0) {
+  else if (bake_type == "GLOSSY") {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
     {
@@ -622,7 +621,7 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type_str, const int
 
     include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
-  else if (strcmp(bake_type, "TRANSMISSION") == 0) {
+  else if (bake_type == "TRANSMISSION") {
     if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
         bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
     {
