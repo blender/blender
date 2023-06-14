@@ -13,10 +13,6 @@
 #ifdef __cplusplus
 #  include "BLI_resource_scope.hh"
 #  include "BLI_span.hh"
-#  include "BLI_vector.hh"
-
-#  include "DNA_customdata_types.h"
-#  include "DNA_meshdata_types.h"
 #endif
 
 struct CustomData;
@@ -25,10 +21,6 @@ struct MFace;
 
 #ifdef __cplusplus
 
-void BKE_mesh_legacy_convert_uvs_to_struct(
-    Mesh *mesh,
-    blender::ResourceScope &temp_mloopuv_for_convert,
-    blender::Vector<CustomDataLayer, 16> &loop_layers_to_write);
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
 /**

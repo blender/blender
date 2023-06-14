@@ -25,7 +25,6 @@ struct BoundBox;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct ID;
 struct KeyBlock;
 struct LinkNode;
 struct ListBase;
@@ -37,7 +36,6 @@ struct Main;
 struct MemArena;
 struct Mesh;
 struct Object;
-struct PointCloud;
 struct Scene;
 
 #ifdef __cplusplus
