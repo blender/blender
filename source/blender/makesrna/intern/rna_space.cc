@@ -1726,7 +1726,7 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr,
                                            PointerRNA value,
                                            struct ReportList * /*reports*/)
 {
-  BLI_assert(BKE_id_is_in_global_main(value.data));
+  BLI_assert(BKE_id_is_in_global_main(static_cast<ID *>(value.data)));
   SpaceImage *sima = static_cast<SpaceImage *>(ptr->data);
   ED_space_image_set(G_MAIN, sima, (Image *)value.data, false);
 }

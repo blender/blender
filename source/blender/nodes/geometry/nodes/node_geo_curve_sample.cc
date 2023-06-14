@@ -86,7 +86,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
   bNodeSocket *in_socket_quat = in_socket_bool->next;
 
-  bNodeSocket *factor = in_socket_bool->next;
+  bNodeSocket *factor = in_socket_quat->next;
   bNodeSocket *length = factor->next;
   bNodeSocket *curve_index = length->next;
 
