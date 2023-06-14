@@ -26,7 +26,7 @@ uint WXFaceLayer::Get0VertexIndex() const
   int i = 0;
   int nEdges = _pWXFace->numberOfEdges();
   for (i = 0; i < nEdges; ++i) {
-    if (_DotP[i] == 0.0f) {  // TODO: this comparison is weak, check if it actually works
+    if (_DotP[i] == 0.0f) { /* TODO: this comparison is weak, check if it actually works */
       return i;
     }
   }
@@ -37,7 +37,7 @@ uint WXFaceLayer::GetSmoothEdgeIndex() const
   int i = 0;
   int nEdges = _pWXFace->numberOfEdges();
   for (i = 0; i < nEdges; ++i) {
-    if ((_DotP[i] == 0.0f) && (_DotP[(i + 1) % nEdges] == 0.0f)) {  // TODO: ditto
+    if ((_DotP[i] == 0.0f) && (_DotP[(i + 1) % nEdges] == 0.0f)) { /* TODO: ditto */
       return i;
     }
   }

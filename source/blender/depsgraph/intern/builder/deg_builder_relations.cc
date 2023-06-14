@@ -1469,7 +1469,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
         }
         else {
           /* Standard object relation. */
-          // TODO: loc vs rot vs scale?
+          /* TODO: loc vs rot vs scale? */
           if (&ct->tar->id == id) {
             /* Constraint targeting own object:
              * - This case is fine IF we're dealing with a bone

@@ -514,8 +514,8 @@ static bool sphere_clip_vector(const Vec3r &O, real r, const Vec3r &P, Vec3r &V)
   return true;
 }
 
-// TODO: check optimizations:
-// use marking ? (measure *timings* ...)
+/* TODO: check optimizations:
+ * use marking ? (measure *timings* ...). */
 void compute_curvature_tensor(WVertex *start, real radius, NormalCycle &nc)
 {
   // in case we have a non-manifold vertex, skip it...

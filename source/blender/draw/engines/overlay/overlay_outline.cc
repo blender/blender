@@ -218,7 +218,7 @@ static void gpencil_stroke_cache_populate(bGPDlayer * /*gpl*/,
 
   bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
   bool show_stroke = (gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0;
-  // TODO: What about simplify Fill?
+  /* TODO: What about simplify Fill? */
   bool show_fill = (gps->tot_triangles > 0) && (gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0;
 
   if (hide_material) {

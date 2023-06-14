@@ -463,7 +463,7 @@ bool VKTexture::allocate()
   return result == VK_SUCCESS;
 }
 
-// TODO: move texture/image bindings to shader.
+/* TODO: move texture/image bindings to shader. */
 void VKTexture::bind(int unit, VKSampler &sampler)
 {
   if (!is_allocated()) {

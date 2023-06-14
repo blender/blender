@@ -2037,8 +2037,8 @@ static bool select_grouped_effect_link(const Scene *scene,
   /* Get collection of strips. */
   SEQ_filter_selected_strips(strips);
   const int selected_strip_count = SEQ_collection_len(strips);
-  // XXX this uses scene as arg, so it does not work with iterator :( I had thought about this, but
-  // expand function is just so useful... I can just add scene and inject it I guess.....
+  /* XXX: this uses scene as arg, so it does not work with iterator :( I had thought about this,
+   * but expand function is just so useful... I can just add scene and inject it I guess. */
   SEQ_collection_expand(scene, seqbase, strips, query_lower_channel_strips);
   SEQ_collection_expand(scene, seqbase, strips, SEQ_query_strip_effect_chain);
 

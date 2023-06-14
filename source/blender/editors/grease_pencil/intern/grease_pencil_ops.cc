@@ -50,7 +50,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [action](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        // TODO: Support different selection domains.
+        /* TODO: Support different selection domains. */
         blender::ed::curves::select_all(drawing.geometry.wrap(), ATTR_DOMAIN_POINT, action);
       });
 
@@ -84,7 +84,7 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
 
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        // TODO: Support different selection domains.
+        /* TODO: Support different selection domains. */
         blender::ed::curves::select_adjacent(drawing.geometry.wrap(), false);
       });
 
@@ -116,7 +116,7 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
 
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        // TODO: Support different selection domains.
+        /* TODO: Support different selection domains. */
         blender::ed::curves::select_adjacent(drawing.geometry.wrap(), true);
       });
 
@@ -148,7 +148,7 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
 
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        // TODO: Support different selection domains.
+        /* TODO: Support different selection domains. */
         blender::ed::curves::select_linked(drawing.geometry.wrap());
       });
 
@@ -231,7 +231,6 @@ static void keymap_grease_pencil_editing(wmKeyConfig *keyconf)
 }
 
 }  // namespace blender::ed::greasepencil
-
 void ED_operatortypes_grease_pencil(void)
 {
   using namespace blender::ed::greasepencil;
