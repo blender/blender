@@ -914,9 +914,8 @@ void DepsgraphNodeBuilder::build_object_modifiers(Object *object)
           return;
         }
         if (modifier_node->flag & DEPSOP_FLAG_USER_MODIFIED) {
-          if (nmd->simulation_cache &&
-              nmd->simulation_cache->cache_state() == bke::sim::CacheState::Valid) {
-            nmd->simulation_cache->invalidate();
+          if (nmd->simulation_cache->ptr->cache_state() == bke::sim::CacheState::Valid) {
+            nmd->simulation_cache->ptr->invalidate();
           }
         }
       };
