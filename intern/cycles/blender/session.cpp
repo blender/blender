@@ -586,6 +586,10 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
     use_indirect_light = filter_indirect;
     include_albedo = filter_color;
 
+    integrator->set_use_diffuse(bake_type == "DIFFUSE");
+    integrator->set_use_glossy(bake_type == "GLOSSY");
+    integrator->set_use_transmission(bake_type == "TRANSMISSION");
+
     if (bake_type == "DIFFUSE") {
       if (filter_direct && filter_indirect) {
         type = PASS_DIFFUSE;
