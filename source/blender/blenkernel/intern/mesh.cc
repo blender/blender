@@ -936,11 +936,14 @@ void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
   mesh->poly_offset_indices[mesh->totpoly] = mesh->totloop;
 }
 
-int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
+MutableSpan<int> Mesh::poly_offsets_for_write()
 {
+  if (this->totpoly == 0) {
+    return {};
+  }
   blender::implicit_sharing::make_trivial_data_mutable(
-      &mesh->poly_offset_indices, &mesh->runtime->poly_offsets_sharing_info, mesh->totpoly + 1);
-  return mesh->poly_offset_indices;
+      &this->poly_offset_indices, &this->runtime->poly_offsets_sharing_info, this->totpoly + 1);
+  return {this->poly_offset_indices, this->totpoly + 1};
 }
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)

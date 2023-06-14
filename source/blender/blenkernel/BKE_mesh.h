@@ -317,12 +317,6 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
 const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
- * See #Mesh::poly_normals().
- * \warning May return null if the mesh is empty or has no polygons.
- */
-const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
-
-/**
  * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
  * that they are calculated. The provided vertex normals should be the same as if they were
  * calculated automatically.
@@ -788,26 +782,10 @@ BLI_INLINE const int *BKE_mesh_poly_offsets(const Mesh *mesh)
 {
   return mesh->poly_offset_indices;
 }
-int *BKE_mesh_poly_offsets_for_write(Mesh *mesh);
 
 BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
 {
   return (const int *)CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert");
-}
-BLI_INLINE int *BKE_mesh_corner_verts_for_write(Mesh *mesh)
-{
-  return (int *)CustomData_get_layer_named_for_write(
-      &mesh->ldata, CD_PROP_INT32, ".corner_vert", mesh->totloop);
-}
-
-BLI_INLINE const int *BKE_mesh_corner_edges(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge");
-}
-BLI_INLINE int *BKE_mesh_corner_edges_for_write(Mesh *mesh)
-{
-  return (int *)CustomData_get_layer_named_for_write(
-      &mesh->ldata, CD_PROP_INT32, ".corner_edge", mesh->totloop);
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)

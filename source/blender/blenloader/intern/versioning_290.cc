@@ -836,7 +836,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
               me->corner_verts_for_write().data(),
               me->corner_edges_for_write().data(),
               me->totloop,
-              BKE_mesh_poly_offsets_for_write(me),
+              me->poly_offsets_for_write().data(),
               me->totpoly,
               BKE_mesh_deform_verts_for_write(me),
               false,

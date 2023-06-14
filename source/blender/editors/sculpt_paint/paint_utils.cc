@@ -281,7 +281,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
 
   const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-  const int *corner_verts = BKE_mesh_corner_verts(me_eval);
+  const blender::Span<int> corner_verts = me_eval->corner_verts();
   const int *index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
 
