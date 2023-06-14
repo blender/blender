@@ -935,14 +935,12 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
 
   /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
-   * destination mesh. So we "steal" all related fields before calling it.
+   * destination mesh. So we "steal" materials before calling it.
    *
    * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
    */
   mesh_in_bmain->mat = mesh->mat;
   mesh_in_bmain->totcol = mesh->totcol;
-  mesh_in_bmain->flag = mesh->flag;
-  mesh_in_bmain->smoothresh = mesh->smoothresh;
   mesh->mat = nullptr;
 
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr);
