@@ -234,12 +234,12 @@ void BKE_mesh_texspace_get_reference(struct Mesh *me,
 
 /**
  * Create new mesh from the given object at its current state.
- * The owner of this mesh is unknown, it is up to the caller to decide.
+ * The caller owns the result mesh.
  *
- * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
+ * If \a preserve_all_data_layers is true then the modifier stack is re-evaluated to ensure it
  * preserves all possible custom data layers.
  *
- * \note Dependency graph argument is required when preserve_all_data_layers is truth, and is
+ * \note Dependency graph argument is required when preserve_all_data_layers is true, and is
  * ignored otherwise.
  */
 struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
