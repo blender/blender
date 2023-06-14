@@ -231,7 +231,6 @@ void BKE_mesh_texspace_get_reference(struct Mesh *me,
                                      char **r_texspace_flag,
                                      float **r_texspace_location,
                                      float **r_texspace_size);
-void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 /**
  * Create new mesh from the given object at its current state.

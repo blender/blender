@@ -1273,18 +1273,6 @@ void BKE_mesh_texspace_get_reference(Mesh *me,
   }
 }
 
-void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
-{
-  float *texspace_location, *texspace_size;
-  char *texspace_flag;
-
-  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &texspace_location, &texspace_size)) {
-    me->texspace_flag = *texspace_flag;
-    copy_v3_v3(me->texspace_location, texspace_location);
-    copy_v3_v3(me->texspace_size, texspace_size);
-  }
-}
-
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
   Mesh *me = (Mesh *)ob->data;
