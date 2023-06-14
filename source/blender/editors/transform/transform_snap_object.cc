@@ -1428,7 +1428,7 @@ struct Nearest2dUserData {
       BMesh *bm;
     };
     struct {
-      const float (*vert_positions)[3];
+      const blender::float3 *vert_positions;
       const blender::float3 *vert_normals;
       const blender::int2 *edges; /* only used for #BVHTreeFromMeshEdges */
       const int *corner_verts;
@@ -1716,7 +1716,7 @@ static void nearest2d_data_init_mesh(const Mesh *mesh,
   r_nearest2d->get_tri_verts_index = cb_mlooptri_verts_get;
   r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
 
-  r_nearest2d->vert_positions = BKE_mesh_vert_positions(mesh);
+  r_nearest2d->vert_positions = mesh->vert_positions().data();
   r_nearest2d->vert_normals = mesh->vert_normals().data();
   r_nearest2d->edges = mesh->edges().data();
   r_nearest2d->corner_verts = mesh->corner_verts().data();

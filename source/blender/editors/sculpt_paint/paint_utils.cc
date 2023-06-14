@@ -32,7 +32,7 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -280,7 +280,7 @@ static void imapaint_pick_uv(const Mesh *me_eval,
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
   const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
+  const blender::Span<blender::float3> positions = me_eval->vert_positions();
   const blender::Span<int> corner_verts = me_eval->corner_verts();
   const int *index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));

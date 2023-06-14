@@ -264,8 +264,9 @@ void BKE_mesh_remap_find_best_match_from_mesh(const float (*vert_positions_dst)[
   float best_match = FLT_MAX, match;
 
   const int numverts_src = me_src->totvert;
-  const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
-  mesh_calc_eigen_matrix(nullptr, positions_src, numverts_src, mat_src);
+  const blender::Span<blender::float3> positions_src = me_src->vert_positions();
+  mesh_calc_eigen_matrix(
+      nullptr, reinterpret_cast<const float(*)[3]>(positions_src.data()), numverts_src, mat_src);
   mesh_calc_eigen_matrix(vert_positions_dst, nullptr, numverts_dst, mat_dst);
 
   BLI_space_transform_global_from_matrices(r_space_transform, mat_dst, mat_src);
@@ -514,7 +515,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
     else if (ELEM(mode, MREMAP_MODE_VERT_EDGE_NEAREST, MREMAP_MODE_VERT_EDGEINTERP_NEAREST)) {
       const blender::Span<blender::int2> edges_src = me_src->edges();
-      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
+      const blender::Span<blender::float3> positions_src = me_src->vert_positions();
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
       nearest.index = -1;
@@ -720,7 +721,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     if (mode == MREMAP_MODE_EDGE_VERT_NEAREST) {
       const int num_verts_src = me_src->totvert;
       const blender::Span<blender::int2> edges_src = me_src->edges();
-      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
+      const blender::Span<blender::float3> positions_src = me_src->vert_positions();
 
       struct HitData {
         float hit_dist;
@@ -868,7 +869,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const blender::Span<blender::int2> edges_src = me_src->edges();
       const blender::OffsetIndices polys_src = me_src->polys();
       const blender::Span<int> corner_edges_src = me_src->corner_edges();
-      const float(*positions_src)[3] = BKE_mesh_vert_positions(me_src);
+      const blender::Span<blender::float3> positions_src = me_src->vert_positions();
       const blender::Span<int> looptri_polys = me_src->looptri_polys();
 
       BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_LOOPTRI, 2);

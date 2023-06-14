@@ -1234,14 +1234,15 @@ static int mesh_tessface_calc(Mesh &mesh,
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-  mesh->totface = mesh_tessface_calc(*mesh,
-                                     &mesh->fdata,
-                                     &mesh->ldata,
-                                     &mesh->pdata,
-                                     BKE_mesh_vert_positions_for_write(mesh),
-                                     mesh->totface,
-                                     mesh->totloop,
-                                     mesh->totpoly);
+  mesh->totface = mesh_tessface_calc(
+      *mesh,
+      &mesh->fdata,
+      &mesh->ldata,
+      &mesh->pdata,
+      reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+      mesh->totface,
+      mesh->totloop,
+      mesh->totpoly);
 
   mesh_ensure_tessellation_customdata(mesh);
 }

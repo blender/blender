@@ -827,7 +827,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           BKE_mesh_legacy_convert_polys_to_offsets(me);
           BKE_mesh_validate_arrays(
               me,
-              BKE_mesh_vert_positions_for_write(me),
+              reinterpret_cast<float(*)[3]>(me->vert_positions_for_write().data()),
               me->totvert,
               me->edges_for_write().data(),
               me->totedge,

@@ -158,7 +158,7 @@ bool multires_reshape_context_create_from_base_mesh(MultiresReshapeContext *resh
   reshape_context->mmd = mmd;
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
+  reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_polys = base_mesh->polys();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
@@ -197,7 +197,7 @@ bool multires_reshape_context_create_from_object(MultiresReshapeContext *reshape
   reshape_context->mmd = mmd;
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
+  reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_polys = base_mesh->polys();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
@@ -231,7 +231,7 @@ bool multires_reshape_context_create_from_ccg(MultiresReshapeContext *reshape_co
   context_zero(reshape_context);
 
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
+  reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_polys = base_mesh->polys();
   reshape_context->base_corner_verts = base_mesh->corner_verts();
@@ -280,7 +280,7 @@ bool multires_reshape_context_create_from_subdiv(MultiresReshapeContext *reshape
 
   reshape_context->mmd = mmd;
   reshape_context->base_mesh = base_mesh;
-  reshape_context->base_positions = BKE_mesh_vert_positions(base_mesh);
+  reshape_context->base_positions = base_mesh->vert_positions();
   reshape_context->base_edges = base_mesh->edges();
   reshape_context->base_polys = base_mesh->polys();
   reshape_context->base_corner_verts = base_mesh->corner_verts();

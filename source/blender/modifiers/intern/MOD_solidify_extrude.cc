@@ -204,7 +204,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
 
   MOD_get_vgroup(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
-  const float(*orig_vert_positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> orig_vert_positions = mesh->vert_positions();
   const blender::Span<blender::int2> orig_edges = mesh->edges();
   const blender::OffsetIndices orig_polys = mesh->polys();
   const blender::Span<int> orig_corner_verts = mesh->corner_verts();
@@ -327,7 +327,7 @@ Mesh *MOD_solidify_extrude_modifyMesh(ModifierData *md, const ModifierEvalContex
                                              int((polys_num * stride) + newPolys),
                                              int((loops_num * stride) + newLoops));
 
-  float(*vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<blender::float3> vert_positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> edges = result->edges_for_write();
   blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();

@@ -743,8 +743,11 @@ static GeometrySet curve_calc_modifiers_post(Depsgraph *depsgraph,
     Mesh *mesh = geometry_set.get_mesh_for_write();
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
-      mti->deformVerts(
-          md, &mectx_deform, mesh, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert);
+      mti->deformVerts(md,
+                       &mectx_deform,
+                       mesh,
+                       reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+                       mesh->totvert);
       BKE_mesh_tag_positions_changed(mesh);
     }
     else {

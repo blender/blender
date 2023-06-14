@@ -34,7 +34,7 @@
 struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
-  const float (*vert_positions)[3];
+  blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
@@ -386,7 +386,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
-  user_data->vert_positions = BKE_mesh_vert_positions(mesh);
+  user_data->vert_positions = mesh->vert_positions();
   user_data->edges = mesh->edges();
   user_data->polys = mesh->polys();
   user_data->corner_verts = mesh->corner_verts();

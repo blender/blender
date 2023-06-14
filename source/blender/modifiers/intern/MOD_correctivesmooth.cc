@@ -660,7 +660,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
       }
       else {
         const Mesh *me = static_cast<const Mesh *>(ob->data);
-        rest_coords = BKE_mesh_vert_positions(me);
+        rest_coords = reinterpret_cast<const float(*)[3]>(me->vert_positions().data());
         me_numVerts = me->totvert;
       }
 

@@ -266,8 +266,8 @@ static void rna_Mesh_update_positions_tag(Main *bmain, Scene *scene, PointerRNA 
 static int rna_MeshVertex_index_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
-  const float(*position)[3] = (const float(*)[3])ptr->data;
-  const int index = (int)(position - BKE_mesh_vert_positions(mesh));
+  const blender::float3 *position = static_cast<const blender::float3 *>(ptr->data);
+  const int index = (int)(position - mesh->vert_positions().data());
   BLI_assert(index >= 0);
   BLI_assert(index < mesh->totvert);
   return index;
@@ -697,7 +697,7 @@ static void rna_MeshLoopTriangle_normal_get(PointerRNA *ptr, float *values)
 {
   Mesh *me = rna_mesh(ptr);
   MLoopTri *lt = (MLoopTri *)ptr->data;
-  const float(*positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> positions = me->vert_positions();
   const blender::Span<int> corner_verts = me->corner_verts();
   const int v1 = corner_verts[lt->tri[0]];
   const int v2 = corner_verts[lt->tri[1]];
@@ -729,7 +729,7 @@ static float rna_MeshLoopTriangle_area_get(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   MLoopTri *lt = (MLoopTri *)ptr->data;
-  const float(*positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> positions = me->vert_positions();
   const blender::Span<int> corner_verts = me->corner_verts();
   const int v1 = corner_verts[lt->tri[0]];
   const int v2 = corner_verts[lt->tri[1]];
@@ -1549,8 +1549,8 @@ static void rna_Mesh_vertices_begin(CollectionPropertyIterator *iter, PointerRNA
 {
   Mesh *mesh = rna_mesh(ptr);
   rna_iterator_array_begin(iter,
-                           BKE_mesh_vert_positions_for_write(mesh),
-                           sizeof(float[3]),
+                           mesh->vert_positions_for_write().data(),
+                           sizeof(blender::float3),
                            mesh->totvert,
                            false,
                            nullptr);
@@ -1568,7 +1568,7 @@ int rna_Mesh_vertices_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
   }
   r_ptr->owner_id = &mesh->id;
   r_ptr->type = &RNA_MeshVertex;
-  r_ptr->data = &BKE_mesh_vert_positions_for_write(mesh)[index];
+  r_ptr->data = &mesh->vert_positions_for_write()[index];
   return true;
 }
 

@@ -35,7 +35,7 @@ struct MultiresReshapeContext {
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
-  const float (*base_positions)[3];
+  blender::Span<blender::float3> base_positions;
   blender::Span<blender::int2> base_edges;
   blender::OffsetIndices<int> base_polys;
   blender::Span<int> base_corner_verts;

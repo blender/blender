@@ -27,7 +27,7 @@
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -184,7 +184,8 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
           me->totpoly,
           me->corner_verts().data(),
           me->totvert,
-          BKE_mesh_vert_positions(me),       /* From the original Mesh. */
+          reinterpret_cast<const float(*)[3]>(
+              me->vert_positions().data()),  /* From the original Mesh. */
           (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */
           (const float(*)[3])vertexCos,      /* The result of this modifier. */
           vertexCos_New                      /* The result of this function. */
