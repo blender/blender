@@ -1029,8 +1029,6 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
         BLI_kdtree_1d_insert(tree_1d, tree_1d_index++, (float[1]){0.0f});
         continue;
       }
-    }
-    else if (type == SIMVERT_CREASE) {
       cd_crease_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
     }
 
