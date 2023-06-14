@@ -92,9 +92,9 @@ static void displayed_channel_range_get(const SeqChannelDrawContext *context,
   CLAMP(r_channel_range[1], strip_boundbox.ymin, MAXSEQ);
 }
 
-static char *draw_channel_widget_tooltip(bContext *UNUSED(C), void *argN, const char *UNUSED(tip))
+static char *draw_channel_widget_tooltip(bContext * /*C*/, void *argN, const char * /*tip*/)
 {
-  char *dyn_tooltip = argN;
+  char *dyn_tooltip = static_cast<char *>(argN);
   return BLI_strdup(dyn_tooltip);
 }
 
@@ -129,7 +129,7 @@ static float draw_channel_widget_mute(const SeqChannelDrawContext *context,
                                   0,
                                   0,
                                   0,
-                                  NULL);
+                                  nullptr);
 
   char *tooltip = BLI_sprintfN(
       "%s channel %d", SEQ_channel_is_muted(channel) ? "Unmute" : "Mute", channel_index);
@@ -228,7 +228,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
 
   if (channel_is_being_renamed(sseq, channel_index)) {
     SeqTimelineChannel *channel = SEQ_channel_get_by_index(context->channels, channel_index);
-    PointerRNA ptr = {NULL};
+    PointerRNA ptr = {nullptr};
     RNA_pointer_create(&context->scene->id, &RNA_SequenceTimelineChannel, channel, &ptr);
     PropertyRNA *prop = RNA_struct_name_property(ptr.type);
 
@@ -248,7 +248,7 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
                            0,
                            0,
                            0,
-                           NULL);
+                           nullptr);
     UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
     if (UI_but_active_only(context->C, context->region, block, but) == false) {
@@ -267,12 +267,12 @@ static void draw_channel_labels(const SeqChannelDrawContext *context,
              rect.ymin,
              rect.xmax - rect.xmin,
              (rect.ymax - rect.ymin),
-             NULL,
+             nullptr,
              0,
              0,
              0,
              0,
-             NULL);
+             nullptr);
   }
 }
 
@@ -326,7 +326,7 @@ void channel_draw_context_init(const bContext *C,
   r_context->seqbase = SEQ_active_seqbase_get(r_context->ed);
   r_context->channels = SEQ_channels_displayed_get(r_context->ed);
   r_context->timeline_region = BKE_area_find_region_type(r_context->area, RGN_TYPE_WINDOW);
-  BLI_assert(r_context->timeline_region != NULL);
+  BLI_assert(r_context->timeline_region != nullptr);
   r_context->timeline_region_v2d = &r_context->timeline_region->v2d;
 
   r_context->channel_height = channel_height_pixelspace_get(r_context->timeline_region_v2d);
@@ -341,7 +341,7 @@ void draw_channels(const bContext *C, ARegion *region)
   draw_background();
 
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
-  if (ed == NULL) {
+  if (ed == nullptr) {
     return;
   }
 

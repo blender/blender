@@ -82,7 +82,7 @@ static int sequencer_view_all_exec(bContext *C, wmOperator *op)
   SEQ_timeline_init_boundbox(scene, &box);
   MetaStack *ms = SEQ_meta_stack_active_get(ed);
   /* Use meta strip range instead of scene. */
-  if (ms != NULL) {
+  if (ms != nullptr) {
     box.xmin = ms->disp_range[0] - 1;
     box.xmax = ms->disp_range[1] + 1;
   }
@@ -151,7 +151,7 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
 /** \name Preview Frame All Operator
  * \{ */
 
-static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_view_all_preview_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   bScreen *screen = CTX_wm_screen(C);
@@ -179,12 +179,12 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
   BKE_render_resolution(&scene->r, false, &imgwidth, &imgheight);
 
   /* Apply aspect, doesn't need to be that accurate. */
-  imgwidth = (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
+  imgwidth = int(imgwidth * (scene->r.xasp / scene->r.yasp));
 
   if (((imgwidth >= width) || (imgheight >= height)) && ((width > 0) && (height > 0))) {
     /* Find the zoom value that will fit the image in the image space. */
-    zoomX = ((float)width) / ((float)imgwidth);
-    zoomY = ((float)height) / ((float)imgheight);
+    zoomX = float(width) / float(imgwidth);
+    zoomY = float(height) / float(imgheight);
     sseq->zoom = (zoomX < zoomY) ? zoomX : zoomY;
 
     sseq->zoom = 1.0f / power_of_2(1 / min_ff(zoomX, zoomY));
@@ -231,8 +231,8 @@ static int sequencer_view_zoom_ratio_exec(bContext *C, wmOperator *op)
   int winx, winy;
   BKE_render_resolution(rd, false, &winx, &winy);
 
-  float facx = BLI_rcti_size_x(&v2d->mask) / (float)winx;
-  float facy = BLI_rcti_size_y(&v2d->mask) / (float)winy;
+  float facx = BLI_rcti_size_x(&v2d->mask) / float(winx);
+  float facy = BLI_rcti_size_y(&v2d->mask) / float(winy);
 
   BLI_rctf_resize(&v2d->cur, ceilf(winx * facx / ratio + 0.5f), ceilf(winy * facy / ratio + 0.5f));
 

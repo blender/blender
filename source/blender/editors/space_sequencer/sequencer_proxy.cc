@@ -44,7 +44,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   Editing *ed = SEQ_editing_get(scene);
   ScrArea *area = CTX_wm_area(C);
 
-  if (ed == NULL) {
+  if (ed == nullptr) {
     return;
   }
 
@@ -92,24 +92,22 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   ED_area_tag_redraw(area);
 }
 
-static int sequencer_rebuild_proxy_invoke(bContext *C,
-                                          wmOperator *op,
-                                          const wmEvent *UNUSED(event))
+static int sequencer_rebuild_proxy_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   seq_proxy_build_job(C, op->reports);
 
   return OPERATOR_FINISHED;
 }
 
-static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
+static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
 {
   Main *bmain = CTX_data_main(C);
-  struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   GSet *file_list;
 
-  if (ed == NULL) {
+  if (ed == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -117,15 +115,14 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
-      ListBase queue = {NULL, NULL};
-      LinkData *link;
+      ListBase queue = {nullptr, nullptr};
       bool stop = false, do_update;
       float progress;
 
       SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue, false);
 
-      for (link = queue.first; link; link = link->next) {
-        struct SeqIndexBuildContext *context = link->data;
+      LISTBASE_FOREACH (LinkData *, link, &queue) {
+        SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
         SEQ_proxy_rebuild(context, &stop, &do_update, &progress);
         SEQ_proxy_rebuild_finish(context, false);
       }
@@ -159,9 +156,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 /** \name Set Selected Strip Proxies Operator
  * \{ */
 
-static int sequencer_enable_proxies_invoke(bContext *C,
-                                           wmOperator *op,
-                                           const wmEvent *UNUSED(event))
+static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   return WM_operator_props_dialog_popup(C, op, 200);
 }
@@ -177,7 +172,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
   bool overwrite = RNA_boolean_get(op->ptr, "overwrite");
   bool turnon = true;
 
-  if (ed == NULL || !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
+  if (ed == nullptr || !(proxy_25 || proxy_50 || proxy_75 || proxy_100)) {
     turnon = false;
   }
 
@@ -185,7 +180,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
     if (seq->flag & SELECT) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
-        if (seq->strip->proxy == NULL) {
+        if (seq->strip->proxy == nullptr) {
           continue;
         }
 

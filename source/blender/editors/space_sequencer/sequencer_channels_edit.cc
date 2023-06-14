@@ -31,9 +31,7 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-static int sequencer_rename_channel_invoke(bContext *C,
-                                           wmOperator *UNUSED(op),
-                                           const wmEvent *event)
+static int sequencer_rename_channel_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   SeqChannelDrawContext context;
   SpaceSeq *sseq = CTX_wm_space_seq(C);

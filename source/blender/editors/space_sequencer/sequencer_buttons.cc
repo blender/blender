@@ -6,8 +6,8 @@
  * \ingroup spseq
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "MEM_guardedalloc.h"
 
@@ -31,7 +31,7 @@
 /* **************************** buttons ********************************* */
 
 #if 0
-static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType */*pt*/)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
 
@@ -40,10 +40,10 @@ static bool sequencer_grease_pencil_panel_poll(const bContext *C, PanelType *UNU
 }
 #endif
 
-static bool metadata_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool metadata_panel_context_poll(const bContext *C, PanelType * /*pt*/)
 {
   SpaceSeq *space_sequencer = CTX_wm_space_seq(C);
-  if (space_sequencer == NULL) {
+  if (space_sequencer == nullptr) {
     return false;
   }
   return ED_space_sequencer_check_show_imbuf(space_sequencer);
@@ -56,8 +56,8 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
   if (G.is_rendering) {
     return;
   }
-  struct Main *bmain = CTX_data_main(C);
-  struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
+  Main *bmain = CTX_data_main(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   SpaceSeq *space_sequencer = CTX_wm_space_seq(C);
@@ -73,7 +73,7 @@ static void metadata_panel_context_draw(const bContext *C, Panel *panel)
    * from the panel (is kind of all the views?). */
   ImBuf *ibuf = sequencer_ibuf_get(
       bmain, region, depsgraph, scene, space_sequencer, scene->r.cfra, 0, "");
-  if (ibuf != NULL) {
+  if (ibuf != nullptr) {
     ED_region_image_metadata_panel_draw(ibuf, panel->layout);
     IMB_freeImBuf(ibuf);
   }
@@ -94,7 +94,7 @@ void sequencer_buttons_register(ARegionType *art)
   BLI_addtail(&art->paneltypes, pt);
 #endif
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel metadata");
+  pt = MEM_cnew<PanelType>("spacetype sequencer panel metadata");
   strcpy(pt->idname, "SEQUENCER_PT_metadata");
   strcpy(pt->label, N_("Metadata"));
   strcpy(pt->category, "Metadata");

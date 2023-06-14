@@ -52,7 +52,7 @@ static int strip_modifier_add_exec(bContext *C, wmOperator *op)
   Sequence *seq = SEQ_select_active_get(scene);
   int type = RNA_enum_get(op->ptr, "type");
 
-  SEQ_modifier_new(seq, NULL, type);
+  SEQ_modifier_new(seq, nullptr, type);
 
   SEQ_relations_invalidate_cache_preprocessed(scene, seq);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -181,7 +181,7 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
   static const EnumPropertyItem direction_items[] = {
       {SEQ_MODIFIER_MOVE_UP, "UP", 0, "Up", "Move modifier up in the stack"},
       {SEQ_MODIFIER_MOVE_DOWN, "DOWN", 0, "Down", "Move modifier down in the stack"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */
@@ -229,7 +229,8 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 
       if (type == SEQ_MODIFIER_COPY_REPLACE) {
         if (seq_iter->modifiers.first) {
-          SequenceModifierData *smd_tmp, *smd = seq_iter->modifiers.first;
+          SequenceModifierData *smd_tmp,
+              *smd = static_cast<SequenceModifierData *>(seq_iter->modifiers.first);
           while (smd) {
             smd_tmp = smd->next;
             BLI_remlink(&seq_iter->modifiers, smd);
@@ -259,7 +260,7 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
        0,
        "Append",
        "Append active modifiers to selected strips"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   /* identifiers */

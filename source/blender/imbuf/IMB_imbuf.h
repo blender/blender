@@ -45,6 +45,8 @@
 #include "../gpu/GPU_texture.h"
 
 #include "BLI_implicit_sharing.h"
+#include "BLI_utildefines.h"
+
 #include "IMB_imbuf_types.h"
 
 #ifdef __cplusplus
@@ -376,6 +378,7 @@ typedef enum IMB_Proxy_Size {
   IMB_PROXY_100 = 8,
   IMB_PROXY_MAX_SLOT = 4,
 } IMB_Proxy_Size;
+ENUM_OPERATORS(IMB_Proxy_Size, IMB_PROXY_100);
 
 typedef enum eIMBInterpolationFilterMode {
   IMB_FILTER_NEAREST,

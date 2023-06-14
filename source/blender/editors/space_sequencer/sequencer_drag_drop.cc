@@ -49,24 +49,24 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-typedef struct SeqDropCoords {
+struct SeqDropCoords {
   float start_frame, channel;
   int strip_len, channel_len;
   float playback_rate;
-  bool in_use;
-  bool has_read_mouse_pos;
+  bool in_use = false;
+  bool has_read_mouse_pos = false;
   bool is_intersecting;
   bool use_snapping;
   float snap_point_x;
   uint8_t type;
-} SeqDropCoords;
+};
 
 /* The current drag and drop API doesn't allow us to easily pass along the
  * required custom data to all callbacks that need it. Especially when
  * preloading data on drag start.
  * Therefore we will for now use a global variable for this.
  */
-static SeqDropCoords g_drop_coords = {.in_use = false, .has_read_mouse_pos = false};
+static SeqDropCoords g_drop_coords{};
 
 static void generic_poll_operations(const wmEvent *event, uint8_t type)
 {
@@ -76,10 +76,10 @@ static void generic_poll_operations(const wmEvent *event, uint8_t type)
   g_drop_coords.use_snapping = event->modifier & KM_CTRL;
 }
 
-static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
+static bool image_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
       generic_poll_operations(event, TH_SEQ_IMAGE);
       return true;
@@ -97,7 +97,7 @@ static bool image_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *ev
 static bool is_movie(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
       return true;
     }
@@ -108,7 +108,7 @@ static bool is_movie(wmDrag *drag)
   return false;
 }
 
-static bool movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
+static bool movie_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
 {
   if (is_movie(drag)) {
     generic_poll_operations(event, TH_SEQ_MOVIE);
@@ -121,7 +121,7 @@ static bool movie_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *ev
 static bool is_sound(wmDrag *drag)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
       return true;
     }
@@ -132,7 +132,7 @@ static bool is_sound(wmDrag *drag)
   return false;
 }
 
-static bool sound_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *event)
+static bool sound_drop_poll(bContext * /*C*/, wmDrag *drag, const wmEvent *event)
 {
   if (is_sound(drag)) {
     generic_poll_operations(event, TH_SEQ_AUDIO);
@@ -163,7 +163,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   float strip_len;
 
   if (coords->playback_rate != 0.0f) {
-    float scene_playback_rate = (float)scene->r.frs_sec / scene->r.frs_sec_base;
+    float scene_playback_rate = float(scene->r.frs_sec) / scene->r.frs_sec_base;
     strip_len = coords->strip_len / (coords->playback_rate / scene_playback_rate);
   }
   else {
@@ -201,12 +201,13 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
     coords->is_intersecting = false;
-    Sequence dummy_seq = {.machine = coords->channel,
-                          .start = coords->start_frame,
-                          .len = coords->strip_len,
-                          .speed_factor = 1.0f,
-                          .media_playback_rate = coords->playback_rate,
-                          .flag = SEQ_AUTO_PLAYBACK_RATE};
+    Sequence dummy_seq{};
+    dummy_seq.machine = coords->channel;
+    dummy_seq.start = coords->start_frame;
+    dummy_seq.len = coords->strip_len;
+    dummy_seq.speed_factor = 1.0f;
+    dummy_seq.media_playback_rate = coords->playback_rate;
+    dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
     Editing *ed = SEQ_editing_ensure(scene);
 
     for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
@@ -222,7 +223,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
   /* ID dropped. */
-  if (id != NULL) {
+  if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
       Image *ima = (Image *)id;
@@ -319,7 +320,7 @@ static void get_drag_path(wmDrag *drag, char r_path[FILE_MAX])
 {
   ID *id = WM_drag_get_local_ID_or_import_from_asset(drag, 0);
   /* ID dropped. */
-  if (id != NULL) {
+  if (id != nullptr) {
     const ID_Type id_type = GS(id->name);
     if (id_type == ID_IM) {
       Image *ima = (Image *)id;
@@ -340,7 +341,7 @@ static void get_drag_path(wmDrag *drag, char r_path[FILE_MAX])
   }
 }
 
-static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, const int xy[2])
+static void draw_seq_in_view(bContext *C, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
 {
   SeqDropCoords *coords = &g_drop_coords;
   if (!coords->in_use) {
@@ -360,7 +361,7 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
 
   /* Sometimes the active theme is not the sequencer theme, e.g. when an operator invokes the
    * file browser. This makes sure we get the right color values for the theme. */
-  struct bThemeState theme_state;
+  bThemeState theme_state;
   UI_Theme_Store(&theme_state);
   UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
@@ -470,7 +471,7 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
     }
 
     if (sseq->timeline_overlay.flag & SEQ_TIMELINE_SHOW_STRIP_DURATION) {
-      SNPRINTF(strip_duration_text, "%d", (int)(x2 - x1));
+      SNPRINTF(strip_duration_text, "%d", int(x2 - x1));
       text_array[len_text_arr++] = text_sep;
       text_array[len_text_arr++] = strip_duration_text;
     }
@@ -495,18 +496,19 @@ static void draw_seq_in_view(bContext *C, wmWindow *UNUSED(win), wmDrag *drag, c
 
 static bool generic_drop_draw_handling(wmDropBox *drop)
 {
-  SeqDropCoords *coords = drop->draw_data;
+  SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   if (coords && coords->in_use) {
     return true;
   }
 
-  coords = drop->draw_data = &g_drop_coords;
+  coords = &g_drop_coords;
+  drop->draw_data = static_cast<void *>(&g_drop_coords);
   coords->in_use = true;
 
   return false;
 }
 
-typedef struct DropJobData {
+struct DropJobData {
   /**
    * This is practically always a `filepath`, however that isn't a requirement
    * for drag-and-drop, so keep the name generic.
@@ -514,12 +516,12 @@ typedef struct DropJobData {
   char path[FILE_MAX];
   bool only_audio;
   float scene_fps;
-} DropJobData;
+};
 
 static void prefetch_data_fn(void *custom_data,
-                             bool *UNUSED(stop),
-                             bool *UNUSED(do_update),
-                             float *UNUSED(progress))
+                             bool * /*stop*/,
+                             bool * /*do_update*/,
+                             float * /*progress*/)
 {
   DropJobData *job_data = (DropJobData *)custom_data;
 
@@ -527,7 +529,7 @@ static void prefetch_data_fn(void *custom_data,
 #ifdef WITH_AUDASPACE
     /* Get the sound file length */
     AUD_Sound *sound = AUD_Sound_file(job_data->path);
-    if (sound != NULL) {
+    if (sound != nullptr) {
 
       AUD_SoundInfo info = AUD_getInfo(sound);
       if ((eSoundChannels)info.specs.channels != SOUND_CHANNELS_INVALID) {
@@ -540,14 +542,14 @@ static void prefetch_data_fn(void *custom_data,
   }
 
   char colorspace[64] = "\0"; /* 64 == MAX_COLORSPACE_NAME length. */
-  struct anim *anim = openanim(job_data->path, IB_rect, 0, colorspace);
+  anim *anim = openanim(job_data->path, IB_rect, 0, colorspace);
 
-  if (anim != NULL) {
+  if (anim != nullptr) {
     g_drop_coords.strip_len = IMB_anim_get_duration(anim, IMB_TC_NONE);
     short frs_sec;
     float frs_sec_base;
     if (IMB_anim_get_fps(anim, &frs_sec, &frs_sec_base, true)) {
-      g_drop_coords.playback_rate = (float)frs_sec / frs_sec_base;
+      g_drop_coords.playback_rate = float(frs_sec) / frs_sec_base;
     }
     else {
       g_drop_coords.playback_rate = 0;
@@ -556,7 +558,7 @@ static void prefetch_data_fn(void *custom_data,
 #ifdef WITH_AUDASPACE
     /* Try to load sound and see if the video has a sound channel. */
     AUD_Sound *sound = AUD_Sound_file(job_data->path);
-    if (sound != NULL) {
+    if (sound != nullptr) {
 
       AUD_SoundInfo info = AUD_getInfo(sound);
       if ((eSoundChannels)info.specs.channels != SOUND_CHANNELS_INVALID) {
@@ -584,7 +586,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
   Scene *scene = CTX_data_scene(C);
 
   wmJob *wm_job = WM_jobs_get(
-      wm, win, NULL, "Load Previews", 0, WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
+      wm, win, nullptr, "Load Previews", eWM_JobFlag(0), WM_JOB_TYPE_SEQ_DRAG_DROP_PREVIEW);
 
   DropJobData *job_data = (DropJobData *)MEM_mallocN(sizeof(DropJobData),
                                                      "SeqDragDropPreviewData");
@@ -595,7 +597,7 @@ static void start_audio_video_job(bContext *C, wmDrag *drag, bool only_audio)
 
   WM_jobs_customdata_set(wm_job, job_data, free_prefetch_data_fn);
   WM_jobs_timer(wm_job, 0.1, NC_WINDOW, NC_WINDOW);
-  WM_jobs_callbacks(wm_job, prefetch_data_fn, NULL, NULL, NULL);
+  WM_jobs_callbacks(wm_job, prefetch_data_fn, nullptr, nullptr, nullptr);
 
   WM_jobs_start(wm, wm_job);
 }
@@ -614,45 +616,45 @@ static void audio_prefetch(bContext *C, wmDrag *drag)
   }
 }
 
-static void movie_drop_draw_activate(wmDropBox *drop, wmDrag *UNUSED(drag))
+static void movie_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void sound_drop_draw_activate(wmDropBox *drop, wmDrag *UNUSED(drag))
+static void sound_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 }
 
-static void image_drop_draw_activate(wmDropBox *drop, wmDrag *UNUSED(drag))
+static void image_drop_draw_activate(wmDropBox *drop, wmDrag * /*drag*/)
 {
   if (generic_drop_draw_handling(drop)) {
     return;
   }
 
-  SeqDropCoords *coords = drop->draw_data;
+  SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   coords->strip_len = DEFAULT_IMG_STRIP_LENGTH;
   coords->channel_len = 1;
 }
 
-static void sequencer_drop_draw_deactivate(wmDropBox *drop, wmDrag *UNUSED(drag))
+static void sequencer_drop_draw_deactivate(wmDropBox *drop, wmDrag * /*drag*/)
 {
-  SeqDropCoords *coords = drop->draw_data;
+  SeqDropCoords *coords = static_cast<SeqDropCoords *>(drop->draw_data);
   if (coords) {
     coords->in_use = false;
     coords->has_read_mouse_pos = false;
-    drop->draw_data = NULL;
+    drop->draw_data = nullptr;
   }
 }
 
-static void nop_draw_droptip_fn(bContext *UNUSED(C),
-                                wmWindow *UNUSED(win),
-                                wmDrag *UNUSED(drag),
-                                const int UNUSED(xy[2]))
+static void nop_draw_droptip_fn(bContext * /*C*/,
+                                wmWindow * /*win*/,
+                                wmDrag * /*drag*/,
+                                const int /*xy*/[2])
 {
   /* Do nothing in here.
    * This is to prevent the default drag and drop mouse overlay to be drawn.
@@ -664,7 +666,7 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
 {
   wmDropBox *drop;
   drop = WM_dropbox_add(
-      lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, NULL, NULL);
+      lb, "SEQUENCER_OT_image_strip_add", image_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
   drop->draw_activate = image_drop_draw_activate;
@@ -673,7 +675,7 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
   drop->on_drag_start = audio_prefetch;
 
   drop = WM_dropbox_add(
-      lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, NULL, NULL);
+      lb, "SEQUENCER_OT_movie_strip_add", movie_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
   drop->draw_activate = movie_drop_draw_activate;
@@ -682,19 +684,17 @@ static void sequencer_dropboxes_add_to_lb(ListBase *lb)
   drop->on_drag_start = video_prefetch;
 
   drop = WM_dropbox_add(
-      lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, NULL, NULL);
+      lb, "SEQUENCER_OT_sound_strip_add", sound_drop_poll, sequencer_drop_copy, nullptr, nullptr);
   drop->draw_droptip = nop_draw_droptip_fn;
   drop->draw_in_view = draw_seq_in_view;
   drop->draw_activate = sound_drop_draw_activate;
   drop->draw_deactivate = sequencer_drop_draw_deactivate;
 }
 
-static bool image_drop_preview_poll(bContext *UNUSED(C),
-                                    wmDrag *drag,
-                                    const wmEvent *UNUSED(event))
+static bool image_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_IMAGE)) {
       return true;
     }
@@ -703,12 +703,10 @@ static bool image_drop_preview_poll(bContext *UNUSED(C),
   return WM_drag_is_ID_type(drag, ID_IM);
 }
 
-static bool movie_drop_preview_poll(bContext *UNUSED(C),
-                                    wmDrag *drag,
-                                    const wmEvent *UNUSED(event))
+static bool movie_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_MOVIE)) {
       return true;
     }
@@ -717,12 +715,10 @@ static bool movie_drop_preview_poll(bContext *UNUSED(C),
   return WM_drag_is_ID_type(drag, ID_MC);
 }
 
-static bool sound_drop_preview_poll(bContext *UNUSED(C),
-                                    wmDrag *drag,
-                                    const wmEvent *UNUSED(event))
+static bool sound_drop_preview_poll(bContext * /*C*/, wmDrag *drag, const wmEvent * /*event*/)
 {
   if (drag->type == WM_DRAG_PATH) {
-    const eFileSel_File_Types file_type = WM_drag_get_path_file_type(drag);
+    const eFileSel_File_Types file_type = eFileSel_File_Types(WM_drag_get_path_file_type(drag));
     if (ELEM(file_type, 0, FILE_TYPE_SOUND)) {
       return true;
     }
@@ -737,22 +733,22 @@ static void sequencer_preview_dropboxes_add_to_lb(ListBase *lb)
                  "SEQUENCER_OT_image_strip_add",
                  image_drop_preview_poll,
                  sequencer_drop_copy,
-                 NULL,
-                 NULL);
+                 nullptr,
+                 nullptr);
 
   WM_dropbox_add(lb,
                  "SEQUENCER_OT_movie_strip_add",
                  movie_drop_preview_poll,
                  sequencer_drop_copy,
-                 NULL,
-                 NULL);
+                 nullptr,
+                 nullptr);
 
   WM_dropbox_add(lb,
                  "SEQUENCER_OT_sound_strip_add",
                  sound_drop_preview_poll,
                  sequencer_drop_copy,
-                 NULL,
-                 NULL);
+                 nullptr,
+                 nullptr);
 }
 
 void sequencer_dropboxes(void)

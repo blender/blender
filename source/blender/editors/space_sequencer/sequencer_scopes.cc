@@ -6,8 +6,8 @@
  * \ingroup spseq
  */
 
-#include <math.h>
-#include <string.h>
+#include <cmath>
+#include <cstring>
 
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -107,7 +107,7 @@ static void wform_put_border(uchar *tgt, int w, int h)
 
 static void wform_put_gridrow(uchar *tgt, float perc, int w, int h)
 {
-  tgt += (int)(perc / 100.0f * h) * w * 4;
+  tgt += int(perc / 100.0f * h) * w * 4;
 
   for (int i = 0; i < w * 2; i++) {
     tgt[0] = 255;
@@ -138,23 +138,23 @@ static ImBuf *make_waveform_view_from_ibuf_byte(ImBuf *ibuf)
   wform_put_border(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p = NULL;
+    uchar *last_p = nullptr;
 
     for (x = 0; x < ibuf->x; x++) {
       const uchar *rgb = src + 4 * (ibuf->x * y + x);
-      float v = (float)IMB_colormanagement_get_luminance_byte(rgb) / 255.0f;
+      float v = float(IMB_colormanagement_get_luminance_byte(rgb)) / 255.0f;
       uchar *p = tgt;
-      p += 4 * (w * ((int)(v * (h - 3)) + 1) + x + 1);
+      p += 4 * (w * (int(v * (h - 3)) + 1) + x + 1);
 
       scope_put_pixel(wtable, p);
       p += 4 * w;
       scope_put_pixel(wtable, p);
 
-      if (last_p != NULL) {
+      if (last_p != nullptr) {
         wform_put_line(w, last_p, p);
       }
       last_p = p;
@@ -178,11 +178,11 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p = NULL;
+    uchar *last_p = nullptr;
 
     for (x = 0; x < ibuf->x; x++) {
       const float *rgb = src + 4 * (ibuf->x * y + x);
@@ -191,13 +191,13 @@ static ImBuf *make_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
       CLAMP(v, 0.0f, 1.0f);
 
-      p += 4 * (w * ((int)(v * (h - 3)) + 1) + x + 1);
+      p += 4 * (w * (int(v * (h - 3)) + 1) + x + 1);
 
       scope_put_pixel(wtable, p);
       p += 4 * w;
       scope_put_pixel(wtable, p);
 
-      if (last_p != NULL) {
+      if (last_p != nullptr) {
         wform_put_line(w, last_p, p);
       }
       last_p = p;
@@ -232,11 +232,11 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p[3] = {NULL, NULL, NULL};
+    uchar *last_p[3] = {nullptr, nullptr, nullptr};
 
     for (x = 0; x < ibuf->x; x++) {
       int c;
@@ -249,7 +249,7 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
         p += 4 * w;
         scope_put_pixel_single(wtable, p, c);
 
-        if (last_p[c] != NULL) {
+        if (last_p[c] != nullptr) {
           wform_put_line_single(w, last_p[c], p, c);
         }
         last_p[c] = p;
@@ -277,11 +277,11 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
   wform_put_grid(tgt, w, h);
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, waveform_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, waveform_gamma) * 255.0f);
   }
 
   for (y = 0; y < ibuf->y; y++) {
-    uchar *last_p[3] = {NULL, NULL, NULL};
+    uchar *last_p[3] = {nullptr, nullptr, nullptr};
 
     for (x = 0; x < ibuf->x; x++) {
       int c;
@@ -292,13 +292,13 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
         CLAMP(v, 0.0f, 1.0f);
 
-        p += 4 * (w * ((int)(v * (h - 3)) + 1) + c * sw + x / 3 + 1);
+        p += 4 * (w * (int(v * (h - 3)) + 1) + c * sw + x / 3 + 1);
 
         scope_put_pixel_single(wtable, p, c);
         p += 4 * w;
         scope_put_pixel_single(wtable, p, c);
 
-        if (last_p[c] != NULL) {
+        if (last_p[c] != nullptr) {
           wform_put_line_single(w, last_p[c], p, c);
         }
         last_p[c] = p;
@@ -421,19 +421,19 @@ static void draw_histogram_bar(ImBuf *ibuf, int x, float val, int col)
 
 #define HIS_STEPS 512
 
-typedef struct MakeHistogramViewData {
+struct MakeHistogramViewData {
   const ImBuf *ibuf;
-} MakeHistogramViewData;
+};
 
 static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
                                                   const int y,
                                                   const TaskParallelTLS *__restrict tls)
 {
-  MakeHistogramViewData *data = userdata;
+  MakeHistogramViewData *data = static_cast<MakeHistogramViewData *>(userdata);
   const ImBuf *ibuf = data->ibuf;
   const uchar *src = ibuf->byte_buffer.data;
 
-  uint32_t(*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
+  uint32_t(*cur_bins)[HIS_STEPS] = static_cast<uint32_t(*)[HIS_STEPS]>(tls->userdata_chunk);
 
   for (int x = 0; x < ibuf->x; x++) {
     const uchar *pixel = src + (y * ibuf->x + x) * 4;
@@ -444,13 +444,12 @@ static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
   }
 }
 
-static void make_histogram_view_from_ibuf_reduce(const void *__restrict UNUSED(userdata),
+static void make_histogram_view_from_ibuf_reduce(const void *__restrict /*userdata*/,
                                                  void *__restrict chunk_join,
                                                  void *__restrict chunk)
 {
-  uint32_t(*join_bins)[HIS_STEPS] = chunk_join;
-  uint32_t(*bins)[HIS_STEPS] = chunk;
-
+  uint32_t(*join_bins)[HIS_STEPS] = static_cast<uint32_t(*)[HIS_STEPS]>(chunk_join);
+  uint32_t(*bins)[HIS_STEPS] = static_cast<uint32_t(*)[HIS_STEPS]>(chunk);
   for (int j = 3; j--;) {
     for (int i = 0; i < HIS_STEPS; i++) {
       join_bins[j][i] += bins[j][i];
@@ -468,9 +467,8 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
   memset(bins, 0, sizeof(bins));
 
-  MakeHistogramViewData data = {
-      .ibuf = ibuf,
-  };
+  MakeHistogramViewData data{};
+  data.ibuf = ibuf;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
@@ -494,16 +492,16 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x * 2 + 1, ((float)bins[0][x]) / nr, 0);
-      draw_histogram_bar(rval, x * 2 + 2, ((float)bins[0][x]) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 1, (float(bins[0][x])) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 2, (float(bins[0][x])) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x * 2 + 1, ((float)bins[1][x]) / ng, 1);
-      draw_histogram_bar(rval, x * 2 + 2, ((float)bins[1][x]) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 1, (float(bins[1][x])) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 2, (float(bins[1][x])) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x * 2 + 1, ((float)bins[2][x]) / nb, 2);
-      draw_histogram_bar(rval, x * 2 + 2, ((float)bins[2][x]) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 1, (float(bins[2][x])) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 2, (float(bins[2][x])) / nb, 2);
     }
   }
 
@@ -521,18 +519,18 @@ BLI_INLINE int get_bin_float(float f)
     return 511;
   }
 
-  return (int)(((f + 0.25f) / 1.5f) * 512);
+  return int(((f + 0.25f) / 1.5f) * 512);
 }
 
 static void make_histogram_view_from_ibuf_float_fn(void *__restrict userdata,
                                                    const int y,
                                                    const TaskParallelTLS *__restrict tls)
 {
-  const MakeHistogramViewData *data = userdata;
-  const ImBuf *ibuf = data->ibuf;
+  const MakeHistogramViewData *data = static_cast<const MakeHistogramViewData *>(userdata);
+  const ImBuf *ibuf = static_cast<const ImBuf *>(data->ibuf);
   const float *src = ibuf->float_buffer.data;
 
-  uint32_t(*cur_bins)[HIS_STEPS] = tls->userdata_chunk;
+  uint32_t(*cur_bins)[HIS_STEPS] = static_cast<uint32_t(*)[HIS_STEPS]>(tls->userdata_chunk);
 
   for (int x = 0; x < ibuf->x; x++) {
     const float *pixel = src + (y * ibuf->x + x) * 4;
@@ -553,9 +551,8 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   memset(bins, 0, sizeof(bins));
 
-  MakeHistogramViewData data = {
-      .ibuf = ibuf,
-  };
+  MakeHistogramViewData data{};
+  data.ibuf = ibuf;
   TaskParallelSettings settings;
   BLI_parallel_range_settings_defaults(&settings);
   settings.use_threading = (ibuf->y >= 256);
@@ -579,13 +576,13 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x + 1, ((float)bins[0][x]) / nr, 0);
+      draw_histogram_bar(rval, x + 1, (float(bins[0][x])) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x + 1, ((float)bins[1][x]) / ng, 1);
+      draw_histogram_bar(rval, x + 1, (float(bins[1][x])) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x + 1, ((float)bins[2][x]) / nb, 2);
+      draw_histogram_bar(rval, x + 1, (float(bins[2][x])) / nb, 2);
     }
   }
 
@@ -611,12 +608,12 @@ static void vectorscope_put_cross(uchar r, uchar g, uchar b, uchar *tgt, int w, 
   float rgb[3], yuv[3];
   uchar *p;
 
-  rgb[0] = (float)r / 255.0f;
-  rgb[1] = (float)g / 255.0f;
-  rgb[2] = (float)b / 255.0f;
+  rgb[0] = float(r) / 255.0f;
+  rgb[1] = float(g) / 255.0f;
+  rgb[2] = float(b) / 255.0f;
   rgb_to_yuv_normalized(rgb, yuv);
 
-  p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
+  p = tgt + 4 * (w * int(yuv[2] * (h - 3) + 1) + int(yuv[1] * (w - 3) + 1));
 
   if (r == 0 && g == 0 && b == 0) {
     r = 255;
@@ -646,7 +643,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
   uchar wtable[256];
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, scope_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, scope_gamma) * 255.0f);
   }
 
   for (x = 0; x < 256; x++) {
@@ -663,12 +660,12 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
       const uchar *src1 = src + 4 * (ibuf->x * y + x);
       uchar *p;
 
-      rgb[0] = (float)src1[0] / 255.0f;
-      rgb[1] = (float)src1[1] / 255.0f;
-      rgb[2] = (float)src1[2] / 255.0f;
+      rgb[0] = float(src1[0]) / 255.0f;
+      rgb[1] = float(src1[1]) / 255.0f;
+      rgb[2] = float(src1[2]) / 255.0f;
       rgb_to_yuv_normalized(rgb, yuv);
 
-      p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
+      p = tgt + 4 * (w * int(yuv[2] * (h - 3) + 1) + int(yuv[1] * (w - 3) + 1));
       scope_put_pixel(wtable, (uchar *)p);
     }
   }
@@ -691,7 +688,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
   uchar wtable[256];
 
   for (x = 0; x < 256; x++) {
-    wtable[x] = (uchar)(pow(((float)x + 1) / 256, scope_gamma) * 255);
+    wtable[x] = uchar(pow((float(x) + 1.0f) / 256.0f, scope_gamma) * 255.0f);
   }
 
   for (x = 0; x <= 255; x++) {
@@ -714,7 +711,7 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 
       rgb_to_yuv_normalized(rgb, yuv);
 
-      p = tgt + 4 * (w * (int)(yuv[2] * (h - 3) + 1) + (int)(yuv[1] * (w - 3) + 1));
+      p = tgt + 4 * (w * int(yuv[2] * (h - 3) + 1) + int(yuv[1] * (w - 3) + 1));
       scope_put_pixel(wtable, (uchar *)p);
     }
   }

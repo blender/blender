@@ -25,26 +25,26 @@
 
 #include "sequencer_intern.h"
 
-typedef struct PreviewJob {
+struct PreviewJob {
   ListBase previews;
   ThreadMutex *mutex;
   Scene *scene;
   int total;
   int processed;
-} PreviewJob;
+};
 
-typedef struct PreviewJobAudio {
-  struct PreviewJobAudio *next, *prev;
-  struct Main *bmain;
+struct PreviewJobAudio {
+  PreviewJobAudio *next, *prev;
+  Main *bmain;
   bSound *sound;
   int lr; /* Sample left or right. */
   int startframe;
   bool waveform; /* Reload sound or waveform. */
-} PreviewJobAudio;
+};
 
 static void free_preview_job(void *data)
 {
-  PreviewJob *pj = (PreviewJob *)data;
+  PreviewJob *pj = static_cast<PreviewJob *>(data);
 
   BLI_mutex_free(pj->mutex);
   BLI_freelistN(&pj->previews);
@@ -54,11 +54,11 @@ static void free_preview_job(void *data)
 /* Only this runs inside thread. */
 static void preview_startjob(void *data, bool *stop, bool *do_update, float *progress)
 {
-  PreviewJob *pj = data;
+  PreviewJob *pj = static_cast<PreviewJob *>(data);
   PreviewJobAudio *previewjb;
 
   BLI_mutex_lock(pj->mutex);
-  previewjb = pj->previews.first;
+  previewjb = static_cast<PreviewJobAudio *>(pj->previews.first);
   BLI_mutex_unlock(pj->mutex);
 
   while (previewjb) {
@@ -75,9 +75,9 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
         sound = previewjb->sound;
 
         /* Make sure we cleanup the loading flag! */
-        BLI_spin_lock(sound->spinlock);
+        BLI_spin_lock(static_cast<SpinLock *>(sound->spinlock));
         sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
-        BLI_spin_unlock(sound->spinlock);
+        BLI_spin_unlock(static_cast<SpinLock *>(sound->spinlock));
 
         BLI_mutex_lock(pj->mutex);
         previewjb = previewjb->next;
@@ -97,7 +97,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
     BLI_freelinkN(&pj->previews, previewjb);
     previewjb = preview_next;
     pj->processed++;
-    *progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0f;
+    *progress = (pj->total > 0) ? float(pj->processed) / float(pj->total) : 1.0f;
     *do_update = true;
     BLI_mutex_unlock(pj->mutex);
   }
@@ -105,7 +105,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
 
 static void preview_endjob(void *data)
 {
-  PreviewJob *pj = data;
+  PreviewJob *pj = static_cast<PreviewJob *>(data);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
@@ -115,7 +115,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
   wmJob *wm_job;
   PreviewJob *pj;
   ScrArea *area = CTX_wm_area(C);
-  PreviewJobAudio *audiojob = MEM_callocN(sizeof(PreviewJobAudio), "preview_audio");
+  PreviewJobAudio *audiojob = MEM_cnew<PreviewJobAudio>("preview_audio");
   wm_job = WM_jobs_get(CTX_wm_manager(C),
                        CTX_wm_window(C),
                        CTX_data_scene(C),
@@ -124,17 +124,17 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
                        WM_JOB_TYPE_SEQ_BUILD_PREVIEW);
 
   /* Get the preview job if it exists. */
-  pj = WM_jobs_customdata_get(wm_job);
+  pj = static_cast<PreviewJob *>(WM_jobs_customdata_get(wm_job));
 
   if (!pj) {
-    pj = MEM_callocN(sizeof(PreviewJob), "preview rebuild job");
+    pj = MEM_cnew<PreviewJob>("preview rebuild job");
 
     pj->mutex = BLI_mutex_alloc();
     pj->scene = CTX_data_scene(C);
 
     WM_jobs_customdata_set(wm_job, pj, free_preview_job);
     WM_jobs_timer(wm_job, 0.1, NC_SCENE | ND_SEQUENCER, NC_SCENE | ND_SEQUENCER);
-    WM_jobs_callbacks(wm_job, preview_startjob, NULL, NULL, preview_endjob);
+    WM_jobs_callbacks(wm_job, preview_startjob, nullptr, nullptr, preview_endjob);
   }
 
   audiojob->bmain = CTX_data_main(C);
