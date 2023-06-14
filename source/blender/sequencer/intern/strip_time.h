@@ -17,7 +17,6 @@ struct Scene;
 struct Sequence;
 struct SeqCollection;
 
-float seq_give_frame_index(const struct Scene *scene, struct Sequence *seq, float timeline_frame);
 void seq_update_sound_bounds_recursive(const struct Scene *scene, struct Sequence *metaseq);
 
 /* Describes gap between strips in timeline. */
@@ -47,7 +46,9 @@ void seq_time_update_effects_strip_range(const struct Scene *scene, struct SeqCo
 void seq_time_translate_handles(const struct Scene *scene, struct Sequence *seq, const int offset);
 float seq_time_media_playback_rate_factor_get(const struct Scene *scene,
                                               const struct Sequence *seq);
-float seq_time_playback_rate_factor_get(const struct Scene *scene, const struct Sequence *seq);
+int seq_time_strip_original_content_length_get(const struct Scene *scene,
+                                               const struct Sequence *seq);
+float seq_retiming_evaluate(const struct Sequence *seq, const float frame_index);
 
 #ifdef __cplusplus
 }

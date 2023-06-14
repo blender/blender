@@ -1877,7 +1877,7 @@ class SEQUENCER_PT_time(SequencerButtonsPanel, Panel):
         split.label(text="Channel")
         split.prop(strip, "channel", text="")
 
-        if not is_effect:
+        if strip.type == 'SOUND':
             split = layout.split(factor=0.5 + max_factor)
             split.alignment = 'RIGHT'
             split.label(text="Speed Factor")

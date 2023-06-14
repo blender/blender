@@ -212,7 +212,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
   }
 
   if (proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE) {
-    int frameno = (int)seq_give_frame_index(context->scene, seq, timeline_frame) +
+    int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                   seq->anim_startofs;
     if (proxy->anim == NULL) {
       if (seq_proxy_get_filepath(

@@ -74,6 +74,8 @@ int SEQ_time_find_next_prev_edit(struct Scene *scene,
 bool SEQ_time_strip_intersects_frame(const struct Scene *scene,
                                      const struct Sequence *seq,
                                      int timeline_frame);
+/* Convert timeline frame so strip frame index. */
+float SEQ_give_frame_index(const struct Scene *scene, struct Sequence *seq, float timeline_frame);
 /**
  * Returns true if strip has frames without content to render.
  */
@@ -139,7 +141,6 @@ void SEQ_time_start_frame_set(const struct Scene *scene, struct Sequence *seq, i
  * \note this function is currently only used internally and in versioning code.
  */
 void SEQ_time_update_meta_strip_range(const struct Scene *scene, struct Sequence *seq_meta);
-
 #ifdef __cplusplus
 }
 #endif

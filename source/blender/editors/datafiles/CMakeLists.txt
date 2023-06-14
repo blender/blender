@@ -874,6 +874,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
   ops.sculpt.mask_by_color
   ops.sculpt.mesh_filter
   ops.sequencer.blade
+  ops.sequencer.retime
   ops.transform.bone_envelope
   ops.transform.bone_size
   ops.transform.edge_slide

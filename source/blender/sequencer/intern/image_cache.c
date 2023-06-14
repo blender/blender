@@ -143,7 +143,7 @@ static float seq_cache_timeline_frame_to_frame_index(Scene *scene,
    * images or extended frame range of movies will only generate one cache entry. No special
    * treatment in converting frame index to timeline_frame is needed. */
   if (ELEM(type, SEQ_CACHE_STORE_RAW, SEQ_CACHE_STORE_THUMBNAIL)) {
-    return seq_give_frame_index(scene, seq, timeline_frame);
+    return SEQ_give_frame_index(scene, seq, timeline_frame);
   }
 
   return timeline_frame - SEQ_time_start_frame_get(seq);

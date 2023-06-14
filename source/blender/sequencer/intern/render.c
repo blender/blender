@@ -253,7 +253,7 @@ StripElem *SEQ_render_give_stripelem(const Scene *scene, Sequence *seq, int time
      * all other strips don't use this...
      */
 
-    int frame_index = (int)seq_give_frame_index(scene, seq, timeline_frame);
+    int frame_index = (int)SEQ_give_frame_index(scene, seq, timeline_frame);
 
     if (frame_index == -1 || se == NULL) {
       return NULL;
@@ -1062,7 +1062,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
     }
   }
 
-  int frameno = (int)seq_give_frame_index(context->scene, seq, timeline_frame) +
+  int frameno = (int)SEQ_give_frame_index(context->scene, seq, timeline_frame) +
                 seq->anim_startofs;
   return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
@@ -1679,7 +1679,7 @@ static ImBuf *do_render_strip_uncached(const SeqRenderData *context,
                                        bool *r_is_proxy_image)
 {
   ImBuf *ibuf = NULL;
-  float frame_index = seq_give_frame_index(context->scene, seq, timeline_frame);
+  float frame_index = SEQ_give_frame_index(context->scene, seq, timeline_frame);
   int type = (seq->type & SEQ_TYPE_EFFECT) ? SEQ_TYPE_EFFECT : seq->type;
   switch (type) {
     case SEQ_TYPE_META: {

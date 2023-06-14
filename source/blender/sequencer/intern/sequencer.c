@@ -19,6 +19,7 @@
 
 #include "BLI_listbase.h"
 
+#include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_sound.h"
@@ -35,6 +36,7 @@
 #include "SEQ_modifier.h"
 #include "SEQ_proxy.h"
 #include "SEQ_relations.h"
+#include "SEQ_retiming.h"
 #include "SEQ_select.h"
 #include "SEQ_sequencer.h"
 #include "SEQ_sound.h"
@@ -217,6 +219,12 @@ static void seq_sequence_free_ex(Scene *scene,
   }
   if (seq->type == SEQ_TYPE_META) {
     SEQ_channels_free(&seq->channels);
+  }
+
+  if (seq->retiming_handles != NULL) {
+    MEM_freeN(seq->retiming_handles);
+    seq->retiming_handles = NULL;
+    seq->retiming_handle_num = 0;
   }
 
   MEM_freeN(seq);
@@ -577,6 +585,11 @@ static Sequence *seq_dupli(const Scene *scene_src,
     }
   }
 
+  if (seq->retiming_handles != NULL) {
+    seqn->retiming_handles = MEM_dupallocN(seq->retiming_handles);
+    seqn->retiming_handle_num = seq->retiming_handle_num;
+  }
+
   return seqn;
 }
 
@@ -750,6 +763,12 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
   LISTBASE_FOREACH (SeqTimelineChannel *, channel, &seq->channels) {
     BLO_write_struct(writer, SeqTimelineChannel, channel);
   }
+
+  if (seq->retiming_handles != NULL) {
+    int size = SEQ_retiming_handles_count(seq);
+    BLO_write_struct_array(writer, SeqRetimingHandle, size, seq->retiming_handles);
+  }
+
   return true;
 }
 
@@ -819,6 +838,11 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   SEQ_modifier_blend_read_data(reader, &seq->modifiers);
 
   BLO_read_list(reader, &seq->channels);
+
+  if (seq->retiming_handles != NULL) {
+    BLO_read_data_address(reader, &seq->retiming_handles);
+  }
+
   return true;
 }
 void SEQ_blend_read(BlendDataReader *reader, ListBase *seqbase)
@@ -968,9 +992,7 @@ static bool seq_update_seq_cb(Sequence *seq, void *user_data)
     }
     BKE_sound_set_scene_sound_volume(
         seq->scene_sound, seq->volume, (seq->flag & SEQ_AUDIO_VOLUME_ANIMATED) != 0);
-    BKE_sound_set_scene_sound_pitch(seq->scene_sound,
-                                    SEQ_sound_pitch_get(scene, seq),
-                                    (seq->flag & SEQ_AUDIO_PITCH_ANIMATED) != 0);
+    SEQ_retiming_sound_animation_data_set(scene, seq);
     BKE_sound_set_scene_sound_pan(
         seq->scene_sound, seq->pan, (seq->flag & SEQ_AUDIO_PAN_ANIMATED) != 0);
   }
