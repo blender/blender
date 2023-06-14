@@ -6746,6 +6746,9 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_node_panels", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Node Panels", "Enable node panels UI for grouping sockets in node groups");
+
+  prop = RNA_def_property(srna, "use_rotation_socket", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Rotation Socket", "Enable the new rotation node socket type");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

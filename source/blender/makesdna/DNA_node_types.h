@@ -241,6 +241,7 @@ typedef enum eNodeSocketDatatype {
   SOCK_COLLECTION = 11,
   SOCK_TEXTURE = 12,
   SOCK_MATERIAL = 13,
+  SOCK_ROTATION = 14,
 } eNodeSocketDatatype;
 
 /** Socket shape. */
@@ -743,6 +744,10 @@ typedef struct bNodeSocketValueVector {
   float value[3];
   float min, max;
 } bNodeSocketValueVector;
+
+typedef struct bNodeSocketValueRotation {
+  float value_euler[3];
+} bNodeSocketValueRotation;
 
 typedef struct bNodeSocketValueRGBA {
   float value[4];

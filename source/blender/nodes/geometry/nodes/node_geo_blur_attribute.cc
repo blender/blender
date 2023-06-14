@@ -97,6 +97,10 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   if (fixed_data_type == CD_PROP_STRING) {
     return;
   }
+  if (fixed_data_type == CD_PROP_QUATERNION) {
+    /* Don't implement quaternion blurring for now. */
+    return;
+  }
   if (fixed_data_type == CD_PROP_BOOL) {
     /* This node does not support boolean sockets, use integer instead. */
     fixed_data_type = CD_PROP_INT32;

@@ -681,7 +681,8 @@ typedef struct UserDef_Experimental {
   char enable_workbench_next;
   char use_new_volume_nodes;
   char use_node_panels;
-  char _pad[3];
+  char use_rotation_socket;
+  char _pad[2];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

@@ -360,6 +360,7 @@ static void library_foreach_node_socket(LibraryForeachIDData *data, bNodeSocket 
     case SOCK_VECTOR:
     case SOCK_RGBA:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_INT:
     case SOCK_STRING:
     case SOCK_CUSTOM:
@@ -505,6 +506,9 @@ static void write_node_socket_default_value(BlendWriter *writer, bNodeSocket *so
       break;
     case SOCK_MATERIAL:
       BLO_write_struct(writer, bNodeSocketValueMaterial, sock->default_value);
+      break;
+    case SOCK_ROTATION:
+      BLO_write_struct(writer, bNodeSocketValueRotation, sock->default_value);
       break;
     case SOCK_CUSTOM:
       /* Custom node sockets where default_value is defined uses custom properties for storage. */
@@ -963,6 +967,7 @@ static void lib_link_node_socket(BlendLibReader *reader, ID *self_id, bNodeSocke
     case SOCK_VECTOR:
     case SOCK_RGBA:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_INT:
     case SOCK_STRING:
     case SOCK_CUSTOM:
@@ -1055,6 +1060,7 @@ static void expand_node_socket(BlendExpander *expander, bNodeSocket *sock)
     case SOCK_VECTOR:
     case SOCK_RGBA:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_INT:
     case SOCK_STRING:
     case SOCK_CUSTOM:
@@ -1743,6 +1749,7 @@ static void socket_id_user_increment(bNodeSocket *sock)
     case SOCK_VECTOR:
     case SOCK_RGBA:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_INT:
     case SOCK_STRING:
     case SOCK_CUSTOM:
@@ -1788,6 +1795,7 @@ static bool socket_id_user_decrement(bNodeSocket *sock)
     case SOCK_VECTOR:
     case SOCK_RGBA:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_INT:
     case SOCK_STRING:
     case SOCK_CUSTOM:
@@ -1841,6 +1849,7 @@ void nodeModifySocketType(bNodeTree *ntree,
         case SOCK_RGBA:
         case SOCK_SHADER:
         case SOCK_BOOLEAN:
+        case SOCK_ROTATION:
         case SOCK_CUSTOM:
         case SOCK_OBJECT:
         case SOCK_IMAGE:
@@ -1944,6 +1953,8 @@ const char *nodeStaticSocketType(const int type, const int subtype)
       }
     case SOCK_BOOLEAN:
       return "NodeSocketBool";
+    case SOCK_ROTATION:
+      return "NodeSocketRotation";
     case SOCK_VECTOR:
       switch (PropertySubType(subtype)) {
         case PROP_TRANSLATION:
@@ -2023,6 +2034,8 @@ const char *nodeStaticSocketInterfaceType(const int type, const int subtype)
       }
     case SOCK_BOOLEAN:
       return "NodeSocketInterfaceBool";
+    case SOCK_ROTATION:
+      return "NodeSocketInterfaceRotation";
     case SOCK_VECTOR:
       switch (PropertySubType(subtype)) {
         case PROP_TRANSLATION:
@@ -2074,6 +2087,8 @@ const char *nodeStaticSocketLabel(const int type, const int /*subtype*/)
       return "Integer";
     case SOCK_BOOLEAN:
       return "Boolean";
+    case SOCK_ROTATION:
+      return "Rotation";
     case SOCK_VECTOR:
       return "Vector";
     case SOCK_RGBA:
@@ -2614,6 +2629,7 @@ static void *socket_value_storage(bNodeSocket &socket)
     case SOCK_MATERIAL:
       return &socket.default_value_typed<bNodeSocketValueMaterial>()->value;
     case SOCK_STRING:
+    case SOCK_ROTATION:
       /* We don't want do this now! */
       return nullptr;
     case SOCK_CUSTOM:

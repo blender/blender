@@ -32,6 +32,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().field_on_all();
   b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().field_on_all();
   b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().field_on_all();
+  b.add_input<decl::Rotation>("Attribute", "Attribute_005").hide_value().field_on_all();
 
   b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
@@ -41,16 +42,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>("Is Hit").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>("Hit Position").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>("Hit Normal").dependent_field({6, 7, 8});
-  b.add_output<decl::Float>("Hit Distance").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Is Hit").dependent_field({7, 8, 9});
+  b.add_output<decl::Vector>("Hit Position").dependent_field({7, 8, 9});
+  b.add_output<decl::Vector>("Hit Normal").dependent_field({7, 8, 9});
+  b.add_output<decl::Float>("Hit Distance").dependent_field({7, 8, 9});
 
-  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7, 8});
-  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Attribute").dependent_field({7, 8, 9});
+  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({7, 8, 9});
+  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({7, 8, 9});
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({7, 8, 9});
+  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({7, 8, 9});
+  b.add_output<decl::Rotation>("Attribute", "Attribute_005").dependent_field({7, 8, 9});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -77,24 +79,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
+  bNodeSocket *socket_quat = socket_boolean->next;
 
   bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
 
   bNodeSocket *out_socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 4));
   bNodeSocket *out_socket_float = out_socket_vector->next;
   bNodeSocket *out_socket_color4f = out_socket_float->next;
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
+  bNodeSocket *out_socket_quat = out_socket_boolean->next;
 
   bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -260,6 +266,11 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
         return params.extract_input<Field<int>>("Attribute_004");
       }
       break;
+    case CD_PROP_QUATERNION:
+      if (params.output_is_required("Attribute_005")) {
+        return params.extract_input<Field<math::Quaternion>>("Attribute_005");
+      }
+      break;
     default:
       BLI_assert_unreachable();
   }
@@ -287,6 +298,10 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
     }
     case CD_PROP_INT32: {
       params.set_output("Attribute_004", Field<int>(field));
+      break;
+    }
+    case CD_PROP_QUATERNION: {
+      params.set_output("Attribute_005", Field<math::Quaternion>(field));
       break;
     }
     default:

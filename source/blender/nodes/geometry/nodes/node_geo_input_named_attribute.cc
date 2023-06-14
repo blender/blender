@@ -22,6 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Attribute", "Attribute_Color").field_source();
   b.add_output<decl::Bool>("Attribute", "Attribute_Bool").field_source();
   b.add_output<decl::Int>("Attribute", "Attribute_Int").field_source();
+  b.add_output<decl::Rotation>("Attribute", "Attribute_Rotation").field_source();
 
   b.add_output<decl::Bool>("Exists").field_source();
 }
@@ -48,12 +49,14 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
+  bNodeSocket *socket_quat = socket_int32->next;
 
   bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -144,6 +147,9 @@ static void node_geo_exec(GeoNodeExecParams params)
       break;
     case CD_PROP_INT32:
       params.set_output("Attribute_Int", AttributeFieldInput::Create<int>(name));
+      break;
+    case CD_PROP_QUATERNION:
+      params.set_output("Attribute_Rotation", AttributeFieldInput::Create<math::Quaternion>(name));
       break;
     default:
       break;

@@ -64,6 +64,11 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
       decl->input_field_type = InputSocketFieldType::IsSupported;
       decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
       break;
+    case SOCK_ROTATION:
+      decl = std::make_unique<decl::Rotation>();
+      decl->input_field_type = InputSocketFieldType::IsSupported;
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      break;
     case SOCK_INT:
       decl = std::make_unique<decl::Int>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
@@ -214,6 +219,7 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const fn::ValueOrFieldCPPType &value_or_field_type =
             *fn::ValueOrFieldCPPType::get_from_self(cpp_type);
@@ -311,6 +317,7 @@ void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const CPPType &type = get_simulation_item_cpp_type(item);
         const fn::ValueOrFieldCPPType &value_or_field_type =
@@ -616,6 +623,7 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_VECTOR:
     case SOCK_INT:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(item);
       const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
@@ -1005,6 +1013,7 @@ bool NOD_geometry_simulation_output_item_socket_type_supported(
               SOCK_VECTOR,
               SOCK_RGBA,
               SOCK_BOOLEAN,
+              SOCK_ROTATION,
               SOCK_INT,
               SOCK_STRING,
               SOCK_GEOMETRY);

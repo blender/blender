@@ -1205,6 +1205,7 @@ static const float std_node_socket_colors[][4] = {
     {0.96, 0.96, 0.96, 1.0}, /* SOCK_COLLECTION */
     {0.62, 0.31, 0.64, 1.0}, /* SOCK_TEXTURE */
     {0.92, 0.46, 0.51, 1.0}, /* SOCK_MATERIAL */
+    {0.92, 0.46, 0.7, 1.0},  /* SOCK_ROTATION */
 };
 
 /* common color callbacks for standard types */
@@ -1327,6 +1328,11 @@ static void std_node_socket_draw(
         }
       }
       break;
+    case SOCK_ROTATION: {
+      uiLayout *column = uiLayoutColumn(layout, true);
+      uiItemR(column, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      break;
+    }
     case SOCK_RGBA: {
       if (text[0] == '\0') {
         uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", 0);
@@ -1461,6 +1467,7 @@ static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, P
       break;
     }
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_RGBA:
     case SOCK_STRING:
     case SOCK_OBJECT:

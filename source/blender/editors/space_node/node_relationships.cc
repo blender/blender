@@ -432,6 +432,7 @@ static bool socket_can_be_viewed(const bNodeSocket &socket)
               SOCK_VECTOR,
               SOCK_INT,
               SOCK_BOOLEAN,
+              SOCK_ROTATION,
               SOCK_RGBA);
 }
 
@@ -448,6 +449,8 @@ static eCustomDataType socket_type_to_custom_data_type(const eNodeSocketDatatype
       return CD_PROP_BOOL;
     case SOCK_RGBA:
       return CD_PROP_COLOR;
+    case SOCK_ROTATION:
+      return CD_PROP_QUATERNION;
     default:
       /* Fallback. */
       return CD_AUTO_FROM_NAME;
@@ -2238,6 +2241,7 @@ static int get_main_socket_priority(const bNodeSocket *socket)
     case SOCK_SHADER:
     case SOCK_OBJECT:
     case SOCK_IMAGE:
+    case SOCK_ROTATION:
     case SOCK_GEOMETRY:
     case SOCK_COLLECTION:
     case SOCK_TEXTURE:
