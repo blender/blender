@@ -246,11 +246,6 @@ static void snap_object_data_mesh_get(SnapObjectContext *sctx,
   const blender::OffsetIndices polys = me_eval->polys();
   const Span<int> corner_verts = me_eval->corner_verts();
 
-  if (ob_eval->type == OB_MESH) {
-    /* Any existing #SnapData_EditMesh is now invalid. */
-    sctx->editmesh_caches.remove(BKE_editmesh_from_object(ob_eval));
-  }
-
   /* The BVHTree from looptris is always required. */
   BKE_bvhtree_from_mesh_get(
       r_treedata, me_eval, use_hide ? BVHTREE_FROM_LOOPTRI_NO_HIDDEN : BVHTREE_FROM_LOOPTRI, 4);
