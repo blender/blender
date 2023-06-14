@@ -2615,7 +2615,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   }
 
   SEQ_effect_handle_get(seq_speed); /* Ensure, that data are initialized. */
-  int frame_index = SEQ_give_frame_index(scene, seq_speed, timeline_frame);
+  int frame_index = seq_give_frame_index(scene, seq_speed, timeline_frame);
   SpeedControlVars *s = (SpeedControlVars *)seq_speed->effectdata;
   const Sequence *source = seq_speed->seq1;
 
