@@ -1144,22 +1144,22 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
   /* This cache may be shared between original and evaluated modifiers. */
   blender::bke::sim::ModifierSimulationCache &simulation_cache = *nmd.simulation_cache->ptr;
 
-  if (DEG_is_active(ctx.depsgraph)) {
-    {
-      /* Try to use baked data. */
-      const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
-      if (simulation_cache.cache_state() != bke::sim::CacheState::Baked && !bmain_path.is_empty())
-      {
-        if (!StringRef(nmd.simulation_bake_directory).is_empty()) {
-          if (const char *base_path = ID_BLEND_PATH(bmain, &ctx.object->id)) {
-            char absolute_bake_dir[FILE_MAX];
-            STRNCPY(absolute_bake_dir, nmd.simulation_bake_directory);
-            BLI_path_abs(absolute_bake_dir, base_path);
-            simulation_cache.try_discover_bake(absolute_bake_dir);
-          }
+  {
+    /* Try to use baked data. */
+    const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
+    if (simulation_cache.cache_state() != bke::sim::CacheState::Baked && !bmain_path.is_empty()) {
+      if (!StringRef(nmd.simulation_bake_directory).is_empty()) {
+        if (const char *base_path = ID_BLEND_PATH(bmain, &ctx.object->id)) {
+          char absolute_bake_dir[FILE_MAX];
+          STRNCPY(absolute_bake_dir, nmd.simulation_bake_directory);
+          BLI_path_abs(absolute_bake_dir, base_path);
+          simulation_cache.try_discover_bake(absolute_bake_dir);
         }
       }
     }
+  }
+
+  if (DEG_is_active(ctx.depsgraph)) {
 
     {
       /* Reset cached data if necessary. */

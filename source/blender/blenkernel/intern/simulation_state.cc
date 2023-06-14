@@ -86,11 +86,10 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bak
       new_state_at_frame->state.owner_ = this;
       states_at_frames_.append(std::move(new_state_at_frame));
     }
+
+    bdata_sharing_ = std::make_unique<BDataSharing>();
+    cache_state_ = CacheState::Baked;
   }
-
-  bdata_sharing_ = std::make_unique<BDataSharing>();
-
-  cache_state_ = CacheState::Baked;
 }
 
 bool ModifierSimulationCache::has_state_at_frame(const SubFrame &frame) const
