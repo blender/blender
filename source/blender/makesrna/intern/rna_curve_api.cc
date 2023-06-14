@@ -62,7 +62,7 @@ static void rna_Nurb_valid_message(Nurb *nu, int direction, int *result_len, con
     *result_len = buf_len;
   }
   else {
-    *r_result = NULL;
+    *r_result = nullptr;
     *result_len = 0;
   }
 }
@@ -76,7 +76,7 @@ void RNA_api_curve(StructRNA *srna)
 
   func = RNA_def_function(srna, "transform", "rna_Curve_transform");
   RNA_def_function_ui_description(func, "Transform curve by a matrix");
-  parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
+  parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_boolean(func, "shape_keys", 0, "", "Transform Shape Keys");
 

@@ -22,7 +22,7 @@ const EnumPropertyItem rna_enum_curves_types[] = {
     {CURVE_TYPE_POLY, "POLY", 0, "Poly", ""},
     {CURVE_TYPE_BEZIER, "BEZIER", 0, "Bezier", ""},
     {CURVE_TYPE_NURBS, "NURBS", 0, "NURBS", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 const EnumPropertyItem rna_enum_curve_normal_modes[] = {
@@ -37,7 +37,7 @@ const EnumPropertyItem rna_enum_curve_normal_modes[] = {
      "Z Up",
      "Calculate normals perpendicular to the Z axis and the curve tangent. If a series of points "
      "is vertical, the X axis is used"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 #ifdef RNA_RUNTIME
@@ -73,7 +73,7 @@ static void rna_Curves_curve_offset_data_begin(CollectionPropertyIterator *iter,
                            sizeof(int),
                            curves->geometry.curve_num + 1,
                            false,
-                           NULL);
+                           nullptr);
 }
 
 static int rna_Curves_curve_offset_data_lookup_int(PointerRNA *ptr, int index, PointerRNA *r_ptr)
@@ -116,7 +116,7 @@ static void rna_Curves_curves_begin(CollectionPropertyIterator *iter, PointerRNA
                            sizeof(int),
                            curves->geometry.curve_num,
                            false,
-                           NULL);
+                           nullptr);
 }
 
 static int rna_Curves_curves_length(PointerRNA *ptr)
@@ -163,7 +163,7 @@ static void rna_Curves_position_data_begin(CollectionPropertyIterator *iter, Poi
                            sizeof(float[3]),
                            curves->geometry.point_num,
                            false,
-                           NULL);
+                           nullptr);
 }
 
 static int rna_CurvePoint_index_get(PointerRNA *ptr)
@@ -186,7 +186,7 @@ static float rna_CurvePoint_radius_get(PointerRNA *ptr)
   const Curves *curves = rna_curves(ptr);
   const float *radii = static_cast<const float *>(
       CustomData_get_layer_named(&curves->geometry.point_data, CD_PROP_FLOAT, "radius"));
-  if (radii == NULL) {
+  if (radii == nullptr) {
     return 0.0f;
   }
   return radii[rna_CurvePoint_index_get_const(ptr)];
@@ -197,7 +197,7 @@ static void rna_CurvePoint_radius_set(PointerRNA *ptr, float value)
   Curves *curves = rna_curves(ptr);
   float *radii = static_cast<float *>(CustomData_get_layer_named_for_write(
       &curves->geometry.point_data, CD_PROP_FLOAT, "radius", curves->geometry.point_num));
-  if (radii == NULL) {
+  if (radii == nullptr) {
     return;
   }
   radii[rna_CurvePoint_index_get_const(ptr)] = value;
@@ -256,7 +256,7 @@ static void rna_CurveSlice_points_begin(CollectionPropertyIterator *iter, Pointe
   const int size = rna_CurveSlice_points_length_get(ptr);
   float(*positions)[3] = get_curves_positions(curves);
   float(*co)[3] = positions + offset;
-  rna_iterator_array_begin(iter, co, sizeof(float[3]), size, 0, NULL);
+  rna_iterator_array_begin(iter, co, sizeof(float[3]), size, 0, nullptr);
 }
 
 static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -264,7 +264,7 @@ static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRN
   Curves *curves = rna_curves(ptr);
   float(*positions)[3] = ED_curves_point_normals_array_create(curves);
   const int size = curves->geometry.point_num;
-  rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, NULL);
+  rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, nullptr);
 }
 
 static void rna_Curves_update_data(struct Main * /*bmain*/,
@@ -295,39 +295,39 @@ static void rna_def_curves_point(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "CurvePoint", NULL);
+  srna = RNA_def_struct(brna, "CurvePoint", nullptr);
   RNA_def_struct_ui_text(srna, "Curve Point", "Curve control point");
   RNA_def_struct_path_func(srna, "rna_CurvePoint_path");
 
   prop = RNA_def_property(srna, "position", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_funcs(
-      prop, "rna_CurvePoint_location_get", "rna_CurvePoint_location_set", NULL);
+      prop, "rna_CurvePoint_location_get", "rna_CurvePoint_location_set", nullptr);
   RNA_def_property_ui_text(prop, "Position", "");
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_funcs(
-      prop, "rna_CurvePoint_radius_get", "rna_CurvePoint_radius_set", NULL);
+      prop, "rna_CurvePoint_radius_get", "rna_CurvePoint_radius_set", nullptr);
   RNA_def_property_ui_text(prop, "Radius", "");
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_CurvePoint_index_get", NULL, NULL);
+  RNA_def_property_int_funcs(prop, "rna_CurvePoint_index_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Index", "Index of this point");
 }
 
 /* Defines a read-only vector type since normals can not be modified manually. */
 static void rna_def_read_only_float_vector(BlenderRNA *brna)
 {
-  StructRNA *srna = RNA_def_struct(brna, "FloatVectorValueReadOnly", NULL);
+  StructRNA *srna = RNA_def_struct(brna, "FloatVectorValueReadOnly", nullptr);
   RNA_def_struct_sdna(srna, "vec3f");
   RNA_def_struct_ui_text(srna, "Read-Only Vector", "");
 
   PropertyRNA *prop = RNA_def_property(srna, "vector", PROP_FLOAT, PROP_DIRECTION);
   RNA_def_property_ui_text(prop, "Vector", "3D vector");
-  RNA_def_property_float_sdna(prop, NULL, "x");
+  RNA_def_property_float_sdna(prop, nullptr, "x");
   RNA_def_property_array(prop, 3);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
@@ -337,7 +337,7 @@ static void rna_def_curves_curve(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "CurveSlice", NULL);
+  srna = RNA_def_struct(brna, "CurveSlice", nullptr);
   RNA_def_struct_ui_text(srna, "Curve Slice", "A single curve from a curves data-block");
   RNA_def_struct_path_func(srna, "rna_CurveSlice_path");
 
@@ -351,24 +351,24 @@ static void rna_def_curves_curve(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_CurveSlice_points_length_get",
-                                    NULL,
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
 
   prop = RNA_def_property(srna, "first_point_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_CurveSlice_first_point_index_get", NULL, NULL);
+  RNA_def_property_int_funcs(prop, "rna_CurveSlice_first_point_index_get", nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "First Point Index", "The index of this curve's first control point");
 
   prop = RNA_def_property(srna, "points_length", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_CurveSlice_points_length_get", NULL, NULL);
+  RNA_def_property_int_funcs(prop, "rna_CurveSlice_points_length_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Number of Points", "Number of control points in the curve");
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_int_funcs(prop, "rna_CurveSlice_index_get", NULL, NULL);
+  RNA_def_property_int_funcs(prop, "rna_CurveSlice_index_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Index", "Index of this curve");
 }
 
@@ -392,8 +392,8 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_get",
                                     "rna_Curves_curves_length",
                                     "rna_Curves_curves_lookup_int",
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_struct_type(prop, "CurveSlice");
   RNA_def_property_ui_text(prop, "Curves", "All curves in the data-block");
 
@@ -407,8 +407,8 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_get",
                                     "rna_Curves_position_data_length",
                                     "rna_Curves_points_lookup_int",
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_ui_text(prop, "Points", "Control points of all curves");
 
   /* Direct access to built-in attributes. */
@@ -422,8 +422,8 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_get",
                                     "rna_Curves_position_data_length",
                                     "rna_Curves_position_data_lookup_int",
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_struct_type(prop, "FloatVectorAttributeValue");
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
@@ -437,8 +437,8 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_get",
                                     "rna_Curves_curve_offset_data_length",
                                     "rna_Curves_curve_offset_data_lookup_int",
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   rna_def_read_only_float_vector(brna);
@@ -454,30 +454,37 @@ static void rna_def_curves(BlenderRNA *brna)
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_get",
                                     "rna_Curves_position_data_length",
-                                    NULL,
-                                    NULL,
-                                    NULL);
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
   RNA_def_property_ui_text(
       prop, "Normals", "The curve normal value at each of the curve's control points");
 
   /* materials */
   prop = RNA_def_property(srna, "materials", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, NULL, "mat", "totcol");
+  RNA_def_property_collection_sdna(prop, nullptr, "mat", "totcol");
   RNA_def_property_struct_type(prop, "Material");
   RNA_def_property_ui_text(prop, "Materials", "");
   RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
-  RNA_def_property_collection_funcs(
-      prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+  RNA_def_property_collection_funcs(prop,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    nullptr,
+                                    "rna_IDMaterials_assign_int");
 
   prop = RNA_def_property(srna, "surface", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Mesh_object_poll");
+  RNA_def_property_pointer_funcs(prop, nullptr, nullptr, nullptr, "rna_Mesh_object_poll");
   RNA_def_property_ui_text(prop, "Surface", "Mesh object that the curves can be attached to");
-  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+  RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   prop = RNA_def_property(srna, "surface_uv_map", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, NULL, "surface_uv_map");
+  RNA_def_property_string_sdna(prop, nullptr, "surface_uv_map");
   RNA_def_property_ui_text(prop,
                            "Surface UV Map",
                            "The name of the attribute on the surface mesh used to define the "
@@ -486,17 +493,17 @@ static void rna_def_curves(BlenderRNA *brna)
 
   /* Symmetry. */
   prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_X);
+  RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", CURVES_SYMMETRY_X);
   RNA_def_property_ui_text(prop, "X", "Enable symmetry in the X axis");
   RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Y);
+  RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", CURVES_SYMMETRY_Y);
   RNA_def_property_ui_text(prop, "Y", "Enable symmetry in the Y axis");
   RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_z", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "symmetry", CURVES_SYMMETRY_Z);
+  RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", CURVES_SYMMETRY_Z);
   RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
   RNA_def_property_update(prop, 0, "rna_Curves_update_draw");
 
@@ -507,7 +514,7 @@ static void rna_def_curves(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_Curves_update_data");
 
   prop = RNA_def_property(srna, "use_sculpt_collision", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", CV_SCULPT_COLLISION_ENABLED);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", CV_SCULPT_COLLISION_ENABLED);
   RNA_def_property_ui_text(
       prop, "Use Sculpt Collision", "Enable collision with the surface while sculpting");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
