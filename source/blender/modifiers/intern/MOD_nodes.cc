@@ -103,6 +103,13 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 namespace blender {
 
+static blender::bke::sim::ModifierSimulationCachePtr *new_simulation_cache()
+{
+  auto *simulation_cache = MEM_new<blender::bke::sim::ModifierSimulationCachePtr>(__func__);
+  simulation_cache->ptr = std::make_shared<blender::bke::sim::ModifierSimulationCache>();
+  return simulation_cache;
+}
+
 static void initData(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
@@ -110,6 +117,8 @@ static void initData(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
 
   MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
+
+  nmd->simulation_cache = new_simulation_cache();
 }
 
 static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
@@ -1379,13 +1388,6 @@ static void blendWrite(BlendWriter *writer, const ID * /*id_owner*/, const Modif
       }
     }
   }
-}
-
-static blender::bke::sim::ModifierSimulationCachePtr *new_simulation_cache()
-{
-  auto *simulation_cache = MEM_new<blender::bke::sim::ModifierSimulationCachePtr>(__func__);
-  simulation_cache->ptr = std::make_shared<blender::bke::sim::ModifierSimulationCache>();
-  return simulation_cache;
 }
 
 static void blendRead(BlendDataReader *reader, ModifierData *md)
