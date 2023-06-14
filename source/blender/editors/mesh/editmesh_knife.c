@@ -3721,11 +3721,6 @@ static bool knife_snap_angle_relative(KnifeTool_OpData *kcd)
     return false;
   }
 
-  /* Re-calculate current ray in object space. */
-  knife_input_ray_segment(kcd, kcd->curr.mval, 1.0f, curr_origin, curr_origin_ofs);
-  sub_v3_v3v3(curr_ray, curr_origin_ofs, curr_origin);
-  normalize_v3_v3(curr_ray_normal, curr_ray);
-
   plane_from_point_normal_v3(plane, kcd->prev.cage, fprev->no);
 
   if (isect_ray_plane_v3(curr_origin, curr_ray_normal, plane, &lambda, false)) {
