@@ -36,6 +36,9 @@ namespace aal = anonymous_attribute_lifetime;
 namespace blender::bke::node_tree_zones {
 class TreeZones;
 }
+namespace blender::bke::anonymous_attribute_inferencing {
+struct AnonymousAttributeInferencingResult;
+};
 
 namespace blender {
 
@@ -121,7 +124,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
   /** Information about usage of anonymous attributes within the group. */
-  std::unique_ptr<nodes::aal::RelationsInNode> anonymous_attribute_relations;
+  std::unique_ptr<anonymous_attribute_inferencing::AnonymousAttributeInferencingResult>
+      anonymous_attribute_inferencing;
 
   /**
    * For geometry nodes, a lazy function graph with some additional info is cached. This is used to
@@ -349,11 +353,6 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 namespace node_field_inferencing {
 bool update_field_inferencing(const bNodeTree &tree);
 }
-namespace anonymous_attribute_inferencing {
-Array<const nodes::aal::RelationsInNode *> get_relations_by_node(const bNodeTree &tree,
-                                                                 ResourceScope &scope);
-bool update_anonymous_attribute_relations(bNodeTree &tree);
-}  // namespace anonymous_attribute_inferencing
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */

@@ -66,6 +66,7 @@
 #include "BKE_main.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_update.h"
 #include "BKE_node_tree_zones.hh"
 #include "BKE_type_conversions.hh"
@@ -223,10 +224,25 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
-  if (ntree_src->runtime->anonymous_attribute_relations) {
-    dst_runtime.anonymous_attribute_relations =
-        std::make_unique<blender::nodes::anonymous_attribute_lifetime::RelationsInNode>(
-            *ntree_src->runtime->anonymous_attribute_relations);
+  if (ntree_src->runtime->anonymous_attribute_inferencing) {
+    using namespace blender::bke::anonymous_attribute_inferencing;
+    dst_runtime.anonymous_attribute_inferencing =
+        std::make_unique<AnonymousAttributeInferencingResult>(
+            *ntree_src->runtime->anonymous_attribute_inferencing);
+    for (FieldSource &field_source :
+         dst_runtime.anonymous_attribute_inferencing->all_field_sources) {
+      if (auto *socket_field_source = std::get_if<SocketFieldSource>(&field_source.data)) {
+        socket_field_source->socket = socket_map.lookup(socket_field_source->socket);
+      }
+    }
+    for (GeometrySource &geometry_source :
+         dst_runtime.anonymous_attribute_inferencing->all_geometry_sources)
+    {
+      if (auto *socket_geometry_source = std::get_if<SocketGeometrySource>(&geometry_source.data))
+      {
+        socket_geometry_source->socket = socket_map.lookup(socket_geometry_source->socket);
+      }
+    }
   }
 
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
