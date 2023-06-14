@@ -515,7 +515,15 @@ inline blender::Span<bNode *> bNodeTree::root_frames() const
   return this->runtime->root_frames;
 }
 
-/** \} */
+inline blender::Span<const bNodePanel *> bNodeTree::panels() const
+{
+  return blender::Span(panels_array, panels_num);
+}
+
+inline blender::MutableSpan<bNodePanel *> bNodeTree::panels_for_write()
+{
+  return blender::MutableSpan(panels_array, panels_num);
+}
 
 /* -------------------------------------------------------------------- */
 /** \name #bNode Inline Methods

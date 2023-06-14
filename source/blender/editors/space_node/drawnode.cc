@@ -1433,6 +1433,9 @@ static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, P
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
   int type = sock->typeinfo->type;
 
+  PointerRNA tree_ptr;
+  RNA_id_pointer_create(ptr->owner_id, &tree_ptr);
+
   uiLayout *col = uiLayoutColumn(layout, false);
 
   switch (type) {
@@ -1476,6 +1479,10 @@ static void std_node_socket_interface_draw(bContext * /*C*/, uiLayout *layout, P
   const bNodeTree *node_tree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
   if (sock->in_out == SOCK_IN && node_tree->type == NTREE_GEOMETRY) {
     uiItemR(col, ptr, "hide_in_modifier", DEFAULT_FLAGS, nullptr, 0);
+  }
+
+  if (U.experimental.use_node_panels) {
+    uiItemPointerR(col, ptr, "panel", &tree_ptr, "panels", nullptr, 0);
   }
 }
 
