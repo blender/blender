@@ -758,7 +758,7 @@ static void rna_MeshLoopColor_color_set(PointerRNA *ptr, const float *values)
 static int rna_Mesh_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   Mesh *me = (Mesh *)ptr->data;
-  return (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
+  return (me->texspace_flag & ME_TEXSPACE_FLAG_AUTO) ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
 static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
