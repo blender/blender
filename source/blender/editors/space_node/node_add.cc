@@ -427,10 +427,6 @@ static int node_add_group_asset_invoke(bContext *C, wmOperator *op, const wmEven
   ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
 
-  const AssetLibraryReference *library_ref = CTX_wm_asset_library_ref(C);
-  if (!library_ref) {
-    return OPERATOR_CANCELLED;
-  }
   const AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
     return OPERATOR_CANCELLED;
