@@ -14,11 +14,11 @@
 
 #ifdef __cplusplus
 namespace blender::bke::sim {
-class ModifierSimulationCache;
+class ModifierSimulationCachePtr;
 }
-using ModifierSimulationCacheHandle = blender::bke::sim::ModifierSimulationCache;
+using ModifierSimulationCachePtrHandle = blender::bke::sim::ModifierSimulationCachePtr;
 #else
-typedef struct ModifierSimulationCacheHandle ModifierSimulationCacheHandle;
+typedef struct ModifierSimulationCachePtrHandle ModifierSimulationCachePtrHandle;
 #endif
 
 #ifdef __cplusplus
@@ -2339,7 +2339,12 @@ typedef struct NodesModifierData {
    */
   void *runtime_eval_log;
 
-  ModifierSimulationCacheHandle *simulation_cache;
+  /**
+   * Simulation cache that is shared between original and evaluated modifiers. This allows the
+   * original modifier to be removed, without also removing the simulation state which may still be
+   * used by the evaluated modifier.
+   */
+  ModifierSimulationCachePtrHandle *simulation_cache;
 } NodesModifierData;
 
 typedef struct MeshToVolumeModifierData {
