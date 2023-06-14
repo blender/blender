@@ -86,10 +86,8 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   /* Weight and Iterations inputs don't change based on the data type. */
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
 
-  const eNodeSocketDatatype other_socket_type = static_cast<eNodeSocketDatatype>(
-      params.other_socket().type);
   const std::optional<eCustomDataType> new_node_type = node_data_type_to_custom_data_type(
-      other_socket_type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (!new_node_type.has_value()) {
     return;
   }

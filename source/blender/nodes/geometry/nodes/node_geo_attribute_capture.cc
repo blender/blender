@@ -95,7 +95,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 
   const bNodeType &node_type = params.node_type();
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     if (params.in_out() == SOCK_OUT) {
       params.add_item(IFACE_("Attribute"), [node_type, type](LinkSearchOpParams &params) {

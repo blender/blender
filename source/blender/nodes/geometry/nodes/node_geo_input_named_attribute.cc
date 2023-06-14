@@ -75,13 +75,17 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
         node_storage(node).data_type = *type;
         params.update_and_connect_available_socket(node, "Attribute");
       });
-      params.add_item(
-          IFACE_("Exists"),
-          [node_type](LinkSearchOpParams &params) {
-            bNode &node = params.add_node(node_type);
-            params.update_and_connect_available_socket(node, "Exists");
-          },
-          -1);
+      if (params.node_tree().typeinfo->validate_link(
+              SOCK_BOOLEAN, eNodeSocketDatatype(params.other_socket().type)))
+      {
+        params.add_item(
+            IFACE_("Exists"),
+            [node_type](LinkSearchOpParams &params) {
+              bNode &node = params.add_node(node_type);
+              params.update_and_connect_available_socket(node, "Exists");
+            },
+            -1);
+      }
     }
   }
 }
