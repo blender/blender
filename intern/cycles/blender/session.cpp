@@ -517,6 +517,10 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
   Integrator *integrator = scene->integrator;
   Film *film = scene->film;
 
+  const bool filter_direct = (bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0;
+  const bool filter_indirect = (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) != 0;
+  const bool filter_color = (bake_filter & BL::BakeSettings::pass_filter_COLOR) != 0;
+
   PassType type = PASS_NONE;
   bool use_direct_light = false;
   bool use_indirect_light = false;
@@ -566,9 +570,9 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
     type = PASS_COMBINED;
     film->set_use_approximate_shadow_catcher(true);
 
-    use_direct_light = (bake_filter & BL::BakeSettings::pass_filter_DIRECT) != 0;
-    use_indirect_light = (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) != 0;
-    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
+    use_direct_light = filter_direct;
+    use_indirect_light = filter_indirect;
+    include_albedo = filter_color;
 
     integrator->set_use_diffuse((bake_filter & BL::BakeSettings::pass_filter_DIFFUSE) != 0);
     integrator->set_use_glossy((bake_filter & BL::BakeSettings::pass_filter_GLOSSY) != 0);
@@ -577,71 +581,53 @@ static bool bake_setup_pass(Scene *scene, const string &bake_type, const int bak
     integrator->set_use_emission((bake_filter & BL::BakeSettings::pass_filter_EMIT) != 0);
   }
   /* Light component passes. */
-  else if (bake_type == "DIFFUSE") {
-    if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
-    {
-      type = PASS_DIFFUSE;
-      use_direct_light = true;
-      use_indirect_light = true;
-    }
-    else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      type = PASS_DIFFUSE_DIRECT;
-      use_direct_light = true;
-    }
-    else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      type = PASS_DIFFUSE_INDIRECT;
-      use_indirect_light = true;
-    }
-    else {
-      type = PASS_DIFFUSE_COLOR;
-    }
+  else if ((bake_type == "DIFFUSE") || (bake_type == "GLOSSY") || (bake_type == "TRANSMISSION")) {
+    use_direct_light = filter_direct;
+    use_indirect_light = filter_indirect;
+    include_albedo = filter_color;
 
-    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
-  }
-  else if (bake_type == "GLOSSY") {
-    if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
-    {
-      type = PASS_GLOSSY;
-      use_direct_light = true;
-      use_indirect_light = true;
+    if (bake_type == "DIFFUSE") {
+      if (filter_direct && filter_indirect) {
+        type = PASS_DIFFUSE;
+      }
+      else if (filter_direct) {
+        type = PASS_DIFFUSE_DIRECT;
+      }
+      else if (filter_indirect) {
+        type = PASS_DIFFUSE_INDIRECT;
+      }
+      else {
+        type = PASS_DIFFUSE_COLOR;
+      }
     }
-    else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      type = PASS_GLOSSY_DIRECT;
-      use_direct_light = true;
+    else if (bake_type == "GLOSSY") {
+      if (filter_direct && filter_indirect) {
+        type = PASS_GLOSSY;
+      }
+      else if (filter_direct) {
+        type = PASS_GLOSSY_DIRECT;
+      }
+      else if (filter_indirect) {
+        type = PASS_GLOSSY_INDIRECT;
+      }
+      else {
+        type = PASS_GLOSSY_COLOR;
+      }
     }
-    else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      type = PASS_GLOSSY_INDIRECT;
-      use_indirect_light = true;
+    else if (bake_type == "TRANSMISSION") {
+      if (filter_direct && filter_indirect) {
+        type = PASS_TRANSMISSION;
+      }
+      else if (filter_direct) {
+        type = PASS_TRANSMISSION_DIRECT;
+      }
+      else if (filter_indirect) {
+        type = PASS_TRANSMISSION_INDIRECT;
+      }
+      else {
+        type = PASS_TRANSMISSION_COLOR;
+      }
     }
-    else {
-      type = PASS_GLOSSY_COLOR;
-    }
-
-    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
-  }
-  else if (bake_type == "TRANSMISSION") {
-    if ((bake_filter & BL::BakeSettings::pass_filter_DIRECT) &&
-        bake_filter & BL::BakeSettings::pass_filter_INDIRECT)
-    {
-      type = PASS_TRANSMISSION;
-      use_direct_light = true;
-      use_indirect_light = true;
-    }
-    else if (bake_filter & BL::BakeSettings::pass_filter_DIRECT) {
-      type = PASS_TRANSMISSION_DIRECT;
-      use_direct_light = true;
-    }
-    else if (bake_filter & BL::BakeSettings::pass_filter_INDIRECT) {
-      type = PASS_TRANSMISSION_INDIRECT;
-      use_indirect_light = true;
-    }
-    else {
-      type = PASS_TRANSMISSION_COLOR;
-    }
-
-    include_albedo = (bake_filter & BL::BakeSettings::pass_filter_COLOR);
   }
 
   if (type == PASS_NONE) {
