@@ -12,7 +12,7 @@
 
 #ifdef __cplusplus
 namespace blender::bke::sim {
-class ModifierSimulationCachePtr;
+struct ModifierSimulationCachePtr;
 }
 using ModifierSimulationCachePtrHandle = blender::bke::sim::ModifierSimulationCachePtr;
 #else
