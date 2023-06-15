@@ -752,6 +752,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->func != oldbut->func) {
     return false;
   }
+  /* Looks a bit confusing, but simply compares the contained function pointers. */
   if (but->apply_func.target<void(bContext &)>() != oldbut->apply_func.target<void(bContext &)>())
   {
     return false;
