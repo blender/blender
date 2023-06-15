@@ -2,10 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_mesh_boolean_convert.hh"
+
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
