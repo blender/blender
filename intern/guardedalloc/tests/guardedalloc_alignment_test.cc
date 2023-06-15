@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-
 #include "testing/testing.h"
 
 #include "BLI_utildefines.h"

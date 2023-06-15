@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-
 #ifndef __GUARDEDALLOC_TEST_UTIL_H__
 #define __GUARDEDALLOC_TEST_UTIL_H__
 
