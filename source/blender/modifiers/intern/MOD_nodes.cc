@@ -2069,13 +2069,16 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
     /* Share the simulation cache between the original and evaluated modifier. */
     tnmd->simulation_cache = MEM_new<blender::bke::sim::ModifierSimulationCachePtr>(
         __func__, *nmd->simulation_cache);
+    /* Keep bake path in the evaluated modifier. */
+    tnmd->simulation_bake_directory = nmd->simulation_bake_directory ?
+                                          BLI_strdup(nmd->simulation_bake_directory) :
+                                          nullptr;
   }
   else {
     tnmd->simulation_cache = new_simulation_cache();
+    /* Clear the bake path when duplicating. */
+    tnmd->simulation_bake_directory = nullptr;
   }
-  tnmd->simulation_bake_directory = nmd->simulation_bake_directory ?
-                                        BLI_strdup(nmd->simulation_bake_directory) :
-                                        nullptr;
 
   if (nmd->settings.properties != nullptr) {
     tnmd->settings.properties = IDP_CopyProperty_ex(nmd->settings.properties, flag);
