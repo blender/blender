@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -179,6 +181,46 @@ def txt_anonymous_years(text: str) -> str:
     return text
 
 
+def txt_find_next_indented_block(text: str, find: str, pos: int, limit: int) -> Tuple[int, int]:
+    """
+    Support for finding an indented block of text.
+    Return the identifier index and the end of the block.
+
+    Where searching for ``SPDX-FileCopyrightText: ``
+
+    .. code-block::
+
+       # SPDX-FileCopyrightText: 2020 Name
+         ^ begin                          ^ end.
+
+    With multiple lines supported:
+
+    .. code-block::
+
+       # SPDX-FileCopyrightText: 2020 Name
+       #                         2021 Another Name
+         ^ begin (one line up)                    ^ end.
+    """
+    pos_found = text.find(find, pos, limit)
+    if pos_found == -1:
+        return (-1, -1)
+
+    pos_next = txt_next_eol(text, pos_found, limit - 1, False) + 1
+    if pos_next != limit:
+        pos_found_indent = pos_found - txt_prev_bol(text, pos_found, 0)
+        while True:
+            # Step over leading comment chars.
+            pos_next_test = pos_next + pos_found_indent
+            pos_next_step = pos_next_test + len(find)
+            # The next lines text is indented.
+            text_indent = text[pos_next_test:pos_next_step]
+            if (len(text_indent) == pos_next_step - pos_next_test) and (not text[pos_next_test:pos_next_step].strip()):
+                pos_next = txt_next_eol(text, pos_next_step, limit - 1, step_over=False) + 1
+            else:
+                break
+
+    return (pos_found, pos_next)
+
 # -----------------------------------------------------------------------------
 # License Checker
 
@@ -190,21 +232,72 @@ def check_contents(filepath: str, text: str) -> None:
     Intentionally be strict here... no extra spaces, no trailing space at the end of line etc.
     As there is no reason to be sloppy in this case.
     """
-    identifier = "SPDX-License-Identifier: "
-    identifier_beg = text[:EXPECT_SPDX_IN_FIRST_CHARS].find(identifier)
-    if identifier_beg == -1:
+    text_header = text[:EXPECT_SPDX_IN_FIRST_CHARS]
+
+    # Check copyright text, reading multiple (potentially multi-line indented) blocks.
+    copyright_id = " SPDX-FileCopyrightText: "
+
+    copyright_id_step = 0
+    copyright_id_beg = -1
+    copyright_id_end = -1
+    while ((copyright_id_item := txt_find_next_indented_block(
+            text_header,
+            copyright_id,
+            copyright_id_step,
+            EXPECT_SPDX_IN_FIRST_CHARS,
+    )) != (-1, -1)):
+        if copyright_id_end == -1:
+            # Set once.
+            copyright_id_beg = copyright_id_item[0]
+        else:
+            lines = text_header[copyright_id_end:copyright_id_item[0]].count("\n")
+            if lines != 0:
+                print(
+                    "Expected no blank lines, found {:d} between \"{:s}\": {:s}".format(
+                        lines,
+                        copyright_id,
+                        filepath,
+                    ))
+
+        copyright_id_end = copyright_id_item[1]
+        copyright_id_step = copyright_id_end
+    del copyright_id_item, copyright_id_step
+
+    if copyright_id_beg == -1:
         # Allow completely empty files (sometimes `__init__.py`).
         if not text.rstrip():
             return
-        print("Missing 'SPDX-License-Identifier:'", filepath)
+        print("Missing {:s}{:s}".format(copyright_id, filepath))
 
         # Maintain statistics.
         SPDX_IDENTIFIER_STATS[SPDX_IDENTIFIER_UNKNOWN] += 1
-
         return
-    identifier_end = identifier_beg + len(identifier)
-    line_end = txt_next_eol(text, identifier_end, len(text), step_over=False)
-    license_text = text[identifier_end:line_end]
+
+    # Check for blank lines:
+    blank_lines = text[:copyright_id_beg].count("\n")
+    if filename_is_script_compat(filepath):
+        if blank_lines > 0 and text.startswith("#!/"):
+            blank_lines -= 1
+    if blank_lines > 0:
+        print("SPDX \"{:s}\" not on first line: {:s}".format(copyright_id, filepath))
+
+    license_id = " SPDX-License-Identifier: "
+    license_id_beg = text_header.find(license_id, copyright_id_end)
+    if license_id_beg == -1:
+        # Empty file already accounted for.
+        print("Missing {:s}{:s}".format(license_id, filepath))
+        return
+
+    # Leading char.
+    leading_char = text_header[txt_prev_bol(text_header, license_id_beg, 0):license_id_beg].strip()
+    text_blank_line = text_header[copyright_id_end:license_id_beg]
+    if (text_blank_line.count("\n") != 1) or (text_blank_line.replace(leading_char, "").strip() != ""):
+        print("Expected blank line between \"{:s}\" & \"{:s}\": {:s}".format(copyright_id, license_id, filepath))
+    del text_blank_line, leading_char
+
+    license_id_end = license_id_beg + len(license_id)
+    line_end = txt_next_eol(text, license_id_end, len(text), step_over=False)
+    license_text = text[license_id_end:line_end]
     # For C/C++ comments.
     license_text = license_text.rstrip("*/")
     for license_id in license_text.split():
@@ -214,7 +307,7 @@ def check_contents(filepath: str, text: str) -> None:
         if license_id not in ACCEPTABLE_LICENSES:
             print(
                 "Unexpected:",
-                "{:s}:{:d}".format(filepath, text[:identifier_beg].count("\n") + 1),
+                "{:s}:{:d}".format(filepath, text[:license_id_beg].count("\n") + 1),
                 "contains license",
                 repr(license_text),
                 "not in",
@@ -226,21 +319,13 @@ def check_contents(filepath: str, text: str) -> None:
         except KeyError:
             SPDX_IDENTIFIER_STATS[license_id] = 1
 
-    # Check for blank lines:
-    blank_lines = text[:identifier_beg].count("\n")
-    if filename_is_script_compat(filepath):
-        if blank_lines > 0 and text.startswith("#!/"):
-            blank_lines -= 1
-    if blank_lines > 0:
-        print("SPDX not on first line:", filepath)
-
     if REPORT_UNIQUE_HEADER_MAPPING:
         if filename_is_c_compat(filepath):
-            comment_beg = text.rfind("/*", 0, identifier_beg)
+            comment_beg = text.rfind("/*", 0, license_id_beg)
             if comment_beg == -1:
                 print("Comment Block:", filepath, "failed to find comment start")
                 return
-            comment_end = text.find("*/", identifier_end, len(text))
+            comment_end = text.find("*/", license_id_end, len(text))
             if comment_end == -1:
                 print("Comment Block:", filepath, "failed to find comment end")
                 return
@@ -250,8 +335,8 @@ def check_contents(filepath: str, text: str) -> None:
                 [l.removeprefix(" *") for l in comment_block.split("\n")]
             )
         elif filename_is_script_compat(filepath) or filename_is_cmake(filepath):
-            comment_beg = txt_prev_bol(text, identifier_beg, 0)
-            comment_end = txt_next_eol(text, identifier_beg, len(text), step_over=False)
+            comment_beg = txt_prev_bol(text, license_id_beg, 0)
+            comment_end = txt_next_eol(text, license_id_beg, len(text), step_over=False)
 
             comment_beg = txt_next_line_while_fn(
                 text,
