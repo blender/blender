@@ -306,7 +306,7 @@ class BMeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, bmloop_[loop]->prev->v->co);
   }
 
-  ATTR_NO_OPT int other_vertex_index_from_loop(const int loop, const uint v) override
+  int other_vertex_index_from_loop(const int loop, const uint v) override
   {
     BMLoop *l = bmloop_[loop];
     BMVert *bmvert = BM_vert_at_index(bm, v);
@@ -350,7 +350,7 @@ class UniformVertexWeight : public VertexWeight {
 class VoronoiVertexWeight : public VertexWeight {
 
  public:
-  ATTR_NO_OPT VoronoiVertexWeight(FairingContext *fairing_context)
+  VoronoiVertexWeight(FairingContext *fairing_context)
   {
 
     const int totvert = fairing_context->vertex_count_get();

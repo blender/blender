@@ -3444,7 +3444,7 @@ void reproject_interp_data(CustomData *data,
 }
 
 template<typename T = double>  // myinterp::TestFloat<double>>
-static void reproject_bm_data(
+static bool reproject_bm_data(
     BMesh *bm, BMLoop *l_dst, const BMFace *f_src, const bool do_vertex, eCustomDataMask typemask)
 {
   using namespace myinterp;
@@ -3487,7 +3487,7 @@ static void reproject_bm_data(
 
     float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
     if (len_sq < FLT_EPSILON * 100.0f) {
-      return;
+      return false;
     }
 
     if (do_vertex) {
@@ -3497,8 +3497,21 @@ static void reproject_bm_data(
 
   mul_v2_m3v3(co, axis_mat, l_dst->v->co);
 
+  return false;
   T tco[2];
   myinterp::copy_v2_v2<T, float>(tco, co);
+
+  for (int i = 0; i < f_src->len; i++) {
+    float2 t1 = float2(cos_2d[(i + 1) % f_src->len]) - float2(cos_2d[i]);
+    float2 t2 = float2(cos_2d[(i + 2) % f_src->len]) - float2(cos_2d[(i + 1) % f_src->len]);
+    normalize_v2(t1);
+    normalize_v2(t2);
+
+    float angle = saacos(dot_v2v2(t1, t2));
+    if (angle > M_PI * 0.95) {
+      return false; /* Very acute face */
+    }
+  }
 
   /* interpolate */
   if (f_src->len == 3) {
@@ -3554,6 +3567,8 @@ static void reproject_bm_data(
     reproject_interp_data(
         &bm->vdata, vblocks, fw, nullptr, f_src->len, l_dst->v->head.data, typemask);
   }
+
+  return true;
 }
 
 void BKE_sculpt_reproject_cdata(
@@ -3590,9 +3605,6 @@ void BKE_sculpt_reproject_cdata(
 
   int tag = BM_ELEM_TAG_ALT;
 
-  float *lastuvs = static_cast<float *>(BLI_array_alloca(lastuvs, totuv * 2));
-  bool *snapuvs = static_cast<bool *>(BLI_array_alloca(snapuvs, totuv));
-
   e = v->e;
   int valence = 0;
 
@@ -3615,13 +3627,6 @@ void BKE_sculpt_reproject_cdata(
 
   Vector<BMLoop *, 8> ls;
 
-  bool first = true;
-  bool bad = false;
-
-  for (int i = 0; i < totuv; i++) {
-    snapuvs[i] = true;
-  }
-
   do {
     BMLoop *l = e->l;
 
@@ -3638,42 +3643,8 @@ void BKE_sculpt_reproject_cdata(
 
       l2->head.hflag |= tag;
       ls.append(l2);
-
-      for (int i = 0; do_uvs && i < totuv; i++) {
-        const int cd_uv = uvlayer[i].offset;
-        float *luv = BM_ELEM_CD_PTR<float *>(l2, cd_uv);
-
-        /* Check that we are not part of a uv seam. */
-        if (!first) {
-          const float dx = lastuvs[i * 2] - luv[0];
-          const float dy = lastuvs[i * 2 + 1] - luv[1];
-          const float eps = 0.00001f;
-
-          if (dx * dx + dy * dy > eps) {
-            bad = true;
-            snapuvs[i] = false;
-          }
-        }
-
-        lastuvs[i * 2] = luv[0];
-        lastuvs[i * 2 + 1] = luv[1];
-      }
-
-      first = false;
-
-      if (bad) {
-        break;
-      }
     } while ((l = l->radial_next) != e->l);
-
-    if (bad) {
-      break;
-    }
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  if (bad || !ls.size()) {
-    return;
-  }
 
   int totloop = ls.size();
 
@@ -3874,9 +3845,9 @@ void BKE_sculpt_reproject_cdata(
 
 #ifdef WITH_ASAN
         /* Can't unpoison memory in threaded code. */
-        CustomData_bmesh_copy_data(&ss->bm->vdata, &ss->bm->vdata, v->head.data, &vblocks[i]);
+        CustomData_bmesh_copy_data(&ss->bm->vdata, &ss->bm->vdata, v->head.data, &vblock);
 #else
-        memcpy(vblocks[i], v->head.data, ss->bm->vdata.totsize);
+        memcpy(vblock, v->head.data, ss->bm->vdata.totsize);
 #endif
 
         interpl->v->head.data = (void *)vblock;
@@ -3914,65 +3885,5 @@ void BKE_sculpt_reproject_cdata(
     }
   }
 
-  int *tots = static_cast<int *>(BLI_array_alloca(tots, totuv));
-
-  for (int i = 0; i < totuv; i++) {
-    lastuvs[i * 2] = lastuvs[i * 2 + 1] = 0.0f;
-    tots[i] = 0;
-  }
-
   snapper.snap();
-  return;
-
-  // XXX delete the below code after testing new snap code.
-
-  /* Re-snap uvs. */
-  v = (BMVert *)vertex.i;
-
-  e = v->e;
-  do {
-    if (!e->l) {
-      continue;
-    }
-
-    BMLoop *l_iter = e->l;
-    do {
-      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
-
-      for (int i = 0; i < totuv; i++) {
-        const int cd_uv = uvlayer[i].offset;
-        float *luv = BM_ELEM_CD_PTR<float *>(l, cd_uv);
-
-        add_v2_v2(lastuvs + i * 2, luv);
-        tots[i]++;
-      }
-    } while ((l_iter = l_iter->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
-
-  for (int i = 0; i < totuv; i++) {
-    if (tots[i]) {
-      mul_v2_fl(lastuvs + i * 2, 1.0f / (float)tots[i]);
-    }
-  }
-
-  e = v->e;
-  do {
-    if (!e->l) {
-      continue;
-    }
-
-    BMLoop *l_iter = e->l;
-    do {
-      BMLoop *l = l_iter->v != v ? l_iter->next : l_iter;
-
-      for (int i = 0; i < totuv; i++) {
-        const int cd_uv = uvlayer[i].offset;
-        float *luv = BM_ELEM_CD_PTR<float *>(l, cd_uv);
-
-        if (snapuvs[i]) {
-          copy_v2_v2(luv, lastuvs + i * 2);
-        }
-      }
-    } while ((l_iter = l_iter->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 }

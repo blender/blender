@@ -3998,6 +3998,11 @@ void BKE_sculpt_attribute_destroy_temporary_all(Object *ob)
 
 SculptAttribute BKE_sculpt_find_attribute(Object *ob, const char *name)
 {
+  if (!name) {
+    SculptAttribute attr = {};
+    return attr;
+  }
+
   SculptSession *ss = ob->sculpt;
 
   CustomData *cdatas[4];

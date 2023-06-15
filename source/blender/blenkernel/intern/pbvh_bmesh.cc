@@ -2194,10 +2194,6 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
     if (!(e->head.hflag & BM_ELEM_SMOOTH)) {
       boundflag |= SCULPT_BOUNDARY_SHARP_MARK;
       sharpcount++;
-
-      if (sharpcount > 2) {
-        boundflag |= SCULPT_CORNER_SHARP_MARK;
-      }
     }
 
     if (e->l) {
@@ -2273,7 +2269,7 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
   }
 
   if (!ELEM(sharpcount, 0, 2)) {
-    boundflag |= SCULPT_CORNER_SHARP_MARK;
+    //boundflag |= SCULPT_CORNER_SHARP_MARK;
   }
 
   if (seamcount == 1) {
