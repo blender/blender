@@ -115,7 +115,8 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
   eSculptBoundary uvflag = ss->reproject_smooth ? SCULPT_BOUNDARY_UV : SCULPT_BOUNDARY_NONE;
 
-  eSculptBoundary hard_flags = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SHARP_ANGLE;
+  eSculptBoundary hard_flags = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SHARP_ANGLE |
+                               SCULPT_BOUNDARY_MESH;
   if (ss->hard_edge_mode) {
     hard_flags |= SCULPT_BOUNDARY_FACE_SET;
   }

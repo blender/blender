@@ -259,7 +259,7 @@ class BMeshFairingContext : public FairingContext {
     totvert_ = bm->totvert;
     totloop_ = bm->totloop;
 
-    BM_mesh_elem_table_ensure(bm, BM_VERT);
+    BM_mesh_elem_table_ensure(bm, BM_VERT | BM_FACE);
     BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
     /* Deformation coords. */
@@ -270,7 +270,7 @@ class BMeshFairingContext : public FairingContext {
     }
 
     bmloop_.reinitialize(bm->totloop);
-    vert_to_loop_offsets_ = Array<int>(bm->totvert, 0);
+    vert_to_loop_offsets_ = Array<int>(bm->totvert + 1, 0);
     vert_to_loop_indices_.reinitialize(bm->totloop);
 
     BMVert *v;
@@ -290,7 +290,12 @@ class BMeshFairingContext : public FairingContext {
         index_iter++;
       }
     }
+
+    vert_to_loop_offsets_[bm->totvert] = bm->totloop;
+
     vert_to_loop_offsets_.last() = index_iter;
+    vlmap_ = blender::GroupedSpan<int>(blender::OffsetIndices<int>(vert_to_loop_offsets_),
+                                       vert_to_loop_indices_);
   }
 
   void adjacents_coords_from_loop(const int loop,
@@ -301,12 +306,12 @@ class BMeshFairingContext : public FairingContext {
     copy_v3_v3(r_adj_prev, bmloop_[loop]->prev->v->co);
   }
 
-  int other_vertex_index_from_loop(const int loop, const uint v) override
+  ATTR_NO_OPT int other_vertex_index_from_loop(const int loop, const uint v) override
   {
     BMLoop *l = bmloop_[loop];
     BMVert *bmvert = BM_vert_at_index(bm, v);
     BMVert *bm_other_vert = BM_edge_other_vert(l->e, bmvert);
-    return BM_elem_index_get(bm_other_vert);
+    return bm_other_vert ? BM_elem_index_get(bm_other_vert) : v;
   }
 
  protected:
@@ -345,7 +350,7 @@ class UniformVertexWeight : public VertexWeight {
 class VoronoiVertexWeight : public VertexWeight {
 
  public:
-  VoronoiVertexWeight(FairingContext *fairing_context)
+  ATTR_NO_OPT VoronoiVertexWeight(FairingContext *fairing_context)
   {
 
     const int totvert = fairing_context->vertex_count_get();

@@ -683,7 +683,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
+  BKE_sculpt_face_sets_ensure(ob);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   switch (mode) {
@@ -1395,7 +1395,6 @@ static void sculpt_face_set_delete_geometry(Object *ob,
   if (ss->bm) {
     BM_mesh_toolflags_set(bm, false);
     BM_idmap_check_attributes(ss->bm_idmap);
-    BKE_sculptsession_update_attr_refs(ob);
   }
   else {
     BMeshToMeshParams bmesh_to_mesh_params{};
@@ -1404,6 +1403,9 @@ static void sculpt_face_set_delete_geometry(Object *ob,
 
     BM_mesh_free(bm);
   }
+
+  BKE_sculptsession_update_attr_refs(ob);
+  SCULPT_update_all_valence_boundary(ob);
 }
 
 static void sculpt_face_set_edit_fair_face_set(Object *ob,
