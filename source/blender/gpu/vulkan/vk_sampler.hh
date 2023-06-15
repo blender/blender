@@ -25,7 +25,7 @@ class VKSampler : public NonCopyable {
   void create();
   void free();
 
-  VkSampler vk_handle()
+  VkSampler vk_handle() const
   {
     BLI_assert(vk_sampler_ != VK_NULL_HANDLE);
     return vk_sampler_;

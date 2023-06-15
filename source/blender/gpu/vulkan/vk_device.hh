@@ -9,10 +9,12 @@
 #pragma once
 
 #include "BLI_utility_mixins.hh"
+#include "BLI_vector.hh"
 
 #include "vk_common.hh"
 #include "vk_debug.hh"
 #include "vk_descriptor_pools.hh"
+#include "vk_sampler.hh"
 
 namespace blender::gpu {
 class VKBackend;
@@ -35,6 +37,20 @@ class VKDevice : public NonCopyable {
   VkDevice vk_device_ = VK_NULL_HANDLE;
   uint32_t vk_queue_family_ = 0;
   VkQueue vk_queue_ = VK_NULL_HANDLE;
+
+  /* Dummy sampler for now. */
+  VKSampler sampler_;
+
+  /**
+   * Available Contexts for this device.
+   *
+   * Device keeps track of each contexts. When buffers/images are freed they need to be removed
+   * from all contexts state managers.
+   *
+   * The contexts inside this list aren't owned by the VKDevice. Caller of `GPU_context_create`
+   * holds the ownership.
+   */
+  Vector<std::reference_wrapper<VKContext>> contexts_;
 
   /** Allocator used for texture and buffers and other resources. */
   VmaAllocator mem_allocator_ = VK_NULL_HANDLE;
@@ -100,6 +116,11 @@ class VKDevice : public NonCopyable {
     return debugging_tools_;
   }
 
+  const VKSampler &sampler_get() const
+  {
+    return sampler_;
+  }
+
   bool is_initialized() const;
   void init(void *ghost_context);
   void deinit();
@@ -113,6 +134,16 @@ class VKDevice : public NonCopyable {
   {
     return workarounds_;
   }
+
+  /* -------------------------------------------------------------------- */
+  /** \name Resource management
+   * \{ */
+
+  void context_register(VKContext &context);
+  void context_unregister(VKContext &context);
+  const Vector<std::reference_wrapper<VKContext>> &contexts_get() const;
+
+  /** \} */
 
  private:
   void init_physical_device_properties();
