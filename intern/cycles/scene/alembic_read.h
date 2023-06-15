@@ -111,7 +111,7 @@ void read_geometry_data(AlembicProcedural *proc,
                         const CurvesSchemaData &data,
                         Progress &progress);
 
-/* Data of a ICurvesSchema that we need to read. */
+/* Data of a IPointsSchema that we need to read. */
 struct PointsSchemaData {
   Alembic::AbcGeom::TimeSamplingPtr time_sampling;
   size_t num_samples;
