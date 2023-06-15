@@ -29,6 +29,8 @@ set(SRC
   src/config_hurd.h
   src/config_linux.h
   src/config_mac.h
+  src/config_netbsd.h
+  src/config_openbsd.h
 
   src/base/commandlineflags.h
   src/base/googleinit.h
