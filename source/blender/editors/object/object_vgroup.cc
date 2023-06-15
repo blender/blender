@@ -723,7 +723,7 @@ static const EnumPropertyItem WT_vertex_group_select_item[] = {
 
 const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *C,
                                                                 PointerRNA * /*ptr*/,
-                                                                PropertyRNA *prop,
+                                                                PropertyRNA * /*prop*/,
                                                                 bool *r_free,
                                                                 const uint selection_mask)
 {
@@ -759,12 +759,6 @@ const EnumPropertyItem *ED_object_vgroup_selection_itemf_helper(const bContext *
 
   if (selection_mask & (1 << WT_VGROUP_ALL)) {
     RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ALL);
-  }
-
-  /* Set `Deform Bone` as default selection if armature is present. */
-  if (ob) {
-    RNA_def_property_enum_default(
-        prop, BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
   }
 
   RNA_enum_item_end(&item, &totitem);
@@ -2898,6 +2892,12 @@ void OBJECT_OT_vertex_group_normalize(wmOperatorType *ot)
 static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
+
+  /* If armature is present, default to `Deform Bones` otherwise `All Groups`. */
+  RNA_enum_set(op->ptr,
+               "group_select_mode",
+               BKE_modifiers_is_deformed_by_armature(ob) ? WT_VGROUP_BONE_DEFORM : WT_VGROUP_ALL);
+
   bool lock_active = RNA_boolean_get(op->ptr, "lock_active");
   eVGroupSelect subset_type = static_cast<eVGroupSelect>(
       RNA_enum_get(op->ptr, "group_select_mode"));
