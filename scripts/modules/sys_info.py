@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # classes for extracting info from blenders internal classes

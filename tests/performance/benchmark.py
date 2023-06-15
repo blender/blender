@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-# Apache License, Version 2.0
+# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+#
+# SPDX-License-Identifier: Apache-2.0
 
 import api
 import argparse

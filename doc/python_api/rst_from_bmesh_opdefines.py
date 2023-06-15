@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2012-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # This is a quite stupid script which extracts bmesh api docs from

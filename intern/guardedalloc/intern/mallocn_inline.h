@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: BSD-2-Clause
- * Copyright 2002-2017 Jason Evans <jasone@canonware.com>. All rights reserved.
- *           2007-2012 Mozilla Foundation. All rights reserved.
- *           2009-2017 Facebook, Inc. All rights reserved. */
+/* SPDX-FileCopyrightText: 2002-2017 `Jason Evans <jasone@canonware.com>`. All rights reserved.
+ * SPDX-FileCopyrightText: 2007-2012 Mozilla Foundation. All rights reserved.
+ * SPDX-FileCopyrightText: 2009-2017 Facebook, Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-2-Clause */
 
 /** \file
  * \ingroup intern_mem

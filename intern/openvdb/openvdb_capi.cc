@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "openvdb_capi.h"
 #include <openvdb/openvdb.h>

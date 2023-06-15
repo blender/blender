@@ -1,6 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Campbell Barton
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright Campbell Barton.
-
 
 def ensure_active_color_attribute(me):
     if me.attributes.active_color:

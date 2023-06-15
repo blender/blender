@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import requests
 
 r = requests.get("https://blender.org/", verify=True)

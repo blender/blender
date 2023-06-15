@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import api

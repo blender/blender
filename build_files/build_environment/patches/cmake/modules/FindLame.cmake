@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2022 `Erik de Castro Lopo <erikd@mega-nerd.com>`
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
 # Backported (with some minor modifications) from libsndfile 1.2.0
 
 # - Find lame

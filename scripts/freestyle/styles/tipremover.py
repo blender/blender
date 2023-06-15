@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 #  Filename : tipremover.py

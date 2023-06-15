@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 ##################################################################################################
@@ -65,7 +67,7 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/m4.exe")
     COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -Syy --noconfirm && exit"
     WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
   )
-  
+
   message("Installing required packages")
   execute_process(
     COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c "pacman -S patch m4 coreutils pkgconf make diffutils autoconf-wrapper --noconfirm && exit"
