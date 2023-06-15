@@ -104,8 +104,15 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
    SCULPT_CORNER_UV | SCULPT_CORNER_SHARP_ANGLE)
 
 #define DYNTOPO_MAX_ITER 512
-#define DYNTOPO_MAX_ITER_COLLAPSE 16
-#define DYNTOPO_MAX_ITER_SUBD 16
+
+/* Very long skinny edges are pathological for remeshing,
+ * they lead to degenerate geometry with 1/1 ratio between
+ * subdivison and collapse.  Ideally we should detect this
+ * case and adjust the ratio dynamically, but for now just
+ * use a very high ratio all the time.
+ */
+#define DYNTOPO_MAX_ITER_COLLAPSE 64
+#define DYNTOPO_MAX_ITER_SUBD 1
 
 #define DYNTOPO_USE_HEAP
 #define DYNTOPO_USE_MINMAX_HEAP
