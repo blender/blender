@@ -4747,7 +4747,8 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 
   /* We're done, time to clean up. */
   BKE_texture_pointdensity_free_data(pd);
-  memset(pd, 0, sizeof(*pd));
+  *pd = blender::dna::shallow_zero_initialize();
+
   shader_point_density->cached_resolution = 0.0f;
 }
 
