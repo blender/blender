@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021-2023 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import base64
@@ -175,7 +177,7 @@ class TestEnvironment:
         if self.log_file:
             if not self.log_file.exists():
                 self.log_file.parent.mkdir(parents=True, exist_ok=True)
-            f = open(self.log_file, 'a')
+            f = open(self.log_file, 'a', encoding='utf-8', errors='ignore')
             f.write('\n' + ' '.join([str(arg) for arg in args]) + '\n\n')
 
         env = os.environ

@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2004 Blender Foundation.
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -48,6 +48,10 @@ void SEQ_retiming_offset_handle(const struct Scene *scene,
                                 const int offset);
 float SEQ_retiming_handle_speed_get(const struct Sequence *seq,
                                     const struct SeqRetimingHandle *handle);
+void SEQ_retiming_handle_speed_set(const struct Scene *scene,
+                                   struct Sequence *seq,
+                                   struct SeqRetimingHandle *handle,
+                                   const float speed);
 int SEQ_retiming_handle_index_get(const struct Sequence *seq,
                                   const struct SeqRetimingHandle *handle);
 void SEQ_retiming_sound_animation_data_set(const struct Scene *scene, const struct Sequence *seq);

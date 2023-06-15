@@ -1,11 +1,7 @@
-/* SPDX-License-Identifier: Apache-2.0
+/* SPDX-FileCopyrightText: 2012-2021 Meta Platforms, Inc. and affiliates.
+ * SPDX-FileCopyrightText: 2022 Blender Foundation
  *
- * Original code:
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- *
- * Modifications:
- * Copyright 2022 Blender Foundation
- */
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Simplified version of Folly's AtomicHashArray
  * (https://github.com/facebook/folly/blob/main/folly/AtomicHashArray.h).

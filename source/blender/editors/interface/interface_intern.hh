@@ -675,7 +675,7 @@ void ui_but_string_get_ex(uiBut *but,
 void ui_but_string_get(uiBut *but, char *str, size_t str_maxncpy) ATTR_NONNULL();
 /**
  * A version of #ui_but_string_get_ex for dynamic buffer sizes
- * (where #ui_but_string_get_max_length returns 0).
+ * (where #ui_but_string_get_maxncpy returns 0).
  *
  * \param r_str_size: size of the returned string (including terminator).
  */
@@ -687,7 +687,7 @@ void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy) 
 bool ui_but_string_set(bContext *C, uiBut *but, const char *str) ATTR_NONNULL();
 bool ui_but_string_eval_number(bContext *C, const uiBut *but, const char *str, double *value)
     ATTR_NONNULL();
-int ui_but_string_get_max_length(uiBut *but);
+int ui_but_string_get_maxncpy(uiBut *but);
 /**
  * Clear & exit the active button's string..
  */

@@ -382,6 +382,61 @@ bNodeSocket &Color::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name #Rotation
+ * \{ */
+
+bNodeSocket &Rotation::build(bNodeTree &ntree, bNode &node) const
+{
+  bNodeSocket &socket = *nodeAddStaticSocket(&ntree,
+                                             &node,
+                                             this->in_out,
+                                             SOCK_ROTATION,
+                                             PROP_NONE,
+                                             this->identifier.c_str(),
+                                             this->name.c_str());
+  this->set_common_flags(socket);
+  bNodeSocketValueRotation &value = *static_cast<bNodeSocketValueRotation *>(socket.default_value);
+  copy_v3_v3(value.value_euler, float3(this->default_value));
+  return socket;
+}
+
+bool Rotation::matches(const bNodeSocket &socket) const
+{
+  if (!this->matches_common_data(socket)) {
+    if (socket.name != this->name) {
+      return false;
+    }
+    if (socket.identifier != this->identifier) {
+      return false;
+    }
+  }
+  if (socket.type != SOCK_ROTATION) {
+    return false;
+  }
+  return true;
+}
+
+bool Rotation::can_connect(const bNodeSocket &socket) const
+{
+  if (!sockets_can_connect(*this, socket)) {
+    return false;
+  }
+  return socket.type == SOCK_ROTATION;
+}
+
+bNodeSocket &Rotation::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
+{
+  if (socket.type != SOCK_ROTATION) {
+    BLI_assert(socket.in_out == this->in_out);
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
+  STRNCPY(socket.name, this->name.c_str());
+  return socket;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name #String

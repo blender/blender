@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "AS_asset_representation.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_string_search.h"
 
@@ -148,10 +150,10 @@ static void add_existing_group_input_fn(nodes::LinkSearchOpParams &params,
  */
 static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
                                                const bNodeSocket &socket,
-                                               const AssetHandle asset_handle,
+                                               const asset_system::AssetRepresentation &asset,
                                                Vector<SocketLinkOperation> &search_link_ops)
 {
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset_handle);
+  const AssetMetaData &asset_data = asset.get_metadata();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
     return;
@@ -187,13 +189,12 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
       continue;
     }
 
-    AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
-    const StringRef asset_name = ED_asset_handle_get_name(&asset_handle);
+    const StringRef asset_name = asset.get_name();
     const StringRef socket_name = socket_property->name;
 
     search_link_ops.append(
         {asset_name + " " + UI_MENU_ARROW_SEP + socket_name,
-         [asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
+         [&asset, socket_property, in_out](nodes::LinkSearchOpParams &params) {
            Main &bmain = *CTX_data_main(&params.C);
 
            bNode &node = params.add_node(params.node_tree.typeinfo->group_idname);
@@ -232,11 +233,11 @@ static void gather_search_link_ops_for_asset_library(const bContext &C,
 
   ED_assetlist_storage_fetch(&library_ref, &C);
   ED_assetlist_ensure_previews_job(&library_ref, &C);
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
-    if (skip_local && ED_asset_handle_get_local_id(&asset) != nullptr) {
+    if (skip_local && asset.is_local_id()) {
       return true;
     }
     search_link_ops_for_asset_metadata(node_tree, socket, asset, search_link_ops);

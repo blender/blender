@@ -4,6 +4,7 @@
 
 #include "COM_KuwaharaNode.h"
 
+#include "COM_ConvolutionFilterOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_KuwaharaAnisotropicOperation.h"
 #include "COM_KuwaharaClassicOperation.h"

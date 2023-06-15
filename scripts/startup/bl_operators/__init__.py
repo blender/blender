@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 from __future__ import annotations
 
 # support reloading sub-modules

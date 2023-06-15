@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -307,7 +308,12 @@ ccl_device_inline void bsdf_roughness_eta(const KernelGlobals kg,
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID: {
       ccl_private const MicrofacetBsdf *bsdf = (ccl_private const MicrofacetBsdf *)sc;
       *roughness = make_float2(bsdf->alpha_x, bsdf->alpha_y);
-      *eta = CLOSURE_IS_REFRACTIVE(bsdf->type) ? 1.0f / bsdf->ior : bsdf->ior;
+      if (CLOSURE_IS_REFRACTION(bsdf->type) || CLOSURE_IS_GLASS(bsdf->type)) {
+        *eta = 1.0f / bsdf->ior;
+      }
+      else {
+        *eta = bsdf->ior;
+      }
       break;
     }
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID: {
@@ -594,7 +600,9 @@ ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float
 }
 
 ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
-                                       ccl_private const ShaderClosure *sc)
+                                       ccl_private const ShaderClosure *sc,
+                                       const bool reflection,
+                                       const bool transmission)
 {
   Spectrum albedo = sc->weight;
   /* Some closures include additional components such as Fresnel terms that cause their albedo to
@@ -608,12 +616,16 @@ ccl_device_inline Spectrum bsdf_albedo(ccl_private const ShaderData *sd,
    * extra overhead though. */
 #if defined(__SVM__) || defined(__OSL__)
   if (CLOSURE_IS_BSDF_MICROFACET(sc->type)) {
-    albedo *= bsdf_microfacet_estimate_fresnel(sd, (ccl_private const MicrofacetBsdf *)sc);
+    albedo *= bsdf_microfacet_estimate_fresnel(
+        sd, (ccl_private const MicrofacetBsdf *)sc, reflection, transmission);
   }
   else if (sc->type == CLOSURE_BSDF_PRINCIPLED_SHEEN_ID) {
+    kernel_assert(reflection);
     albedo *= ((ccl_private const PrincipledSheenBsdf *)sc)->avg_value;
   }
   else if (sc->type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID) {
+    /* TODO(lukas): Principled Hair could also be split into a glossy and a transmission component,
+     * similar to Glass BSDFs. */
     albedo *= bsdf_principled_hair_albedo(sd, sc);
   }
 #endif

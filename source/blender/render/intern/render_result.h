@@ -131,6 +131,11 @@ void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResu
  */
 void render_result_views_shallowdelete(struct RenderResult *rr);
 
+/**
+ * Free GPU texture caches to reduce memory usage.
+ */
+void render_result_free_gpu_texture_caches(struct RenderResult *rr);
+
 #define FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re_, iter_) \
   { \
     int nr_; \

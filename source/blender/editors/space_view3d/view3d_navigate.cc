@@ -101,6 +101,8 @@ static eV3D_OpEvent view3d_navigate_event(ViewOpsData *vod, const wmEvent *event
 {
   if (event->type == EVT_MODAL_MAP) {
     switch (event->val) {
+      case VIEW_MODAL_CANCEL:
+        return VIEW_CANCEL;
       case VIEW_MODAL_CONFIRM:
         return VIEW_CONFIRM;
       case VIEWROT_MODAL_AXIS_SNAP_ENABLE:

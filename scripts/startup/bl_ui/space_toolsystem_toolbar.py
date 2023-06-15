@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # For documentation on tool definitions: see "bl_ui.space_toolsystem_common.ToolDef"

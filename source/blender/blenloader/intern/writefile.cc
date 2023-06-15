@@ -1365,46 +1365,49 @@ static bool write_file_handle(Main *mainvar,
   return mywrite_end(wd);
 }
 
-/* do reverse file history: .blend1 -> .blend2, .blend -> .blend1 */
-/* return: success(0), failure(1) */
-static bool do_history(const char *name, ReportList *reports)
+/**
+ * Do reverse file history: `.blend1` -> `.blend2`, `.blend` -> `.blend1` ... etc.
+ * \return True on success.
+ */
+static bool do_history(const char *filepath, ReportList *reports)
 {
-  char tempname1[FILE_MAX], tempname2[FILE_MAX];
-  int hisnr = U.versions;
+  /* Add 2 because version number maximum is double-digits. */
+  char filepath_tmp1[FILE_MAX + 2], filepath_tmp2[FILE_MAX + 2];
+  int version_number = min_ii(99, U.versions);
 
-  if (U.versions == 0) {
-    return false;
-  }
-
-  if (strlen(name) < 2) {
-    BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
+  if (version_number == 0) {
     return true;
   }
 
-  while (hisnr > 1) {
-    SNPRINTF(tempname1, "%s%d", name, hisnr - 1);
-    if (BLI_exists(tempname1)) {
-      SNPRINTF(tempname2, "%s%d", name, hisnr);
+  if (strlen(filepath) < 2) {
+    BKE_report(reports, RPT_ERROR, "Unable to make version backup: filename too short");
+    return false;
+  }
 
-      if (BLI_rename_overwrite(tempname1, tempname2)) {
+  while (version_number > 1) {
+    SNPRINTF(filepath_tmp1, "%s%d", filepath, version_number - 1);
+    if (BLI_exists(filepath_tmp1)) {
+      SNPRINTF(filepath_tmp2, "%s%d", filepath, version_number);
+
+      if (BLI_rename_overwrite(filepath_tmp1, filepath_tmp2)) {
         BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-        return true;
+        return false;
       }
     }
-    hisnr--;
+    version_number--;
   }
 
-  /* is needed when hisnr==1 */
-  if (BLI_exists(name)) {
-    SNPRINTF(tempname1, "%s%d", name, hisnr);
+  /* Needed when `version_number == 1`. */
+  if (BLI_exists(filepath)) {
+    SNPRINTF(filepath_tmp1, "%s%d", filepath, version_number);
 
-    if (BLI_rename_overwrite(name, tempname1)) {
+    if (BLI_rename_overwrite(filepath, filepath_tmp1)) {
       BKE_report(reports, RPT_ERROR, "Unable to make version backup");
-      return true;
+      return false;
     }
   }
 
-  return false;
+  return true;
 }
 
 /** \} */
@@ -1558,8 +1561,7 @@ bool BLO_write_file(Main *mainvar,
   /* file save to temporary file was successful */
   /* now do reverse file history (move .blend1 -> .blend2, .blend -> .blend1) */
   if (use_save_versions) {
-    const bool err_hist = do_history(filepath, reports);
-    if (err_hist) {
+    if (!do_history(filepath, reports)) {
       BKE_report(reports, RPT_ERROR, "Version backup failed (file saved with @)");
       return false;
     }

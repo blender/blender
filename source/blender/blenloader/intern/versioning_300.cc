@@ -4600,7 +4600,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 306, 11)) {
-    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, NULL);
+    BKE_animdata_main_cb(bmain, version_liboverride_nla_frame_start_end, nullptr);
 
     /* Store simulation bake directory in geometry nodes modifier. */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {

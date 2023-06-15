@@ -630,12 +630,14 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
     return;
   }
 
-  float *creases = static_cast<float *>(
-      CustomData_add_layer(&mesh->vdata, CD_CREASE, CD_SET_DEFAULT, mesh->totvert));
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_span<float>(
+      "crease_vert", ATTR_DOMAIN_POINT);
 
   for (size_t i = 0; i < corner_indices.size(); i++) {
-    creases[corner_indices[i]] = corner_sharpnesses[i];
+    creases.span[corner_indices[i]] = corner_sharpnesses[i];
   }
+  creases.finish();
 }
 
 void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)

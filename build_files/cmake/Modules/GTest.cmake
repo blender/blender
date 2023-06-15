@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2022 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
 
 #[=======================================================================[.rst:

@@ -1783,7 +1783,7 @@ void ED_mesh_deform_bind_callback(Object *object,
       MEM_callocN(sizeof(*mdb.cagecos) * mdb.cage_verts_num, "MeshDeformBindCos"));
   copy_m4_m4(mdb.cagemat, cagemat);
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(mdb.cagemesh);
+  const blender::Span<blender::float3> positions = mdb.cagemesh->vert_positions();
   for (a = 0; a < mdb.cage_verts_num; a++) {
     copy_v3_v3(mdb.cagecos[a], positions[a]);
   }

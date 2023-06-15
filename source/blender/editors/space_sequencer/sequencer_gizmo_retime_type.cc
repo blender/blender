@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -403,61 +403,6 @@ static void retime_handle_draw(const bContext *C,
   immEnd();
 }
 
-static void retime_speed_text_draw(const bContext *C,
-                                   const Sequence *seq,
-                                   const SeqRetimingHandle *handle)
-{
-  SeqRetimingHandle *last_handle = SEQ_retiming_last_handle_get(seq);
-  if (handle == last_handle) {
-    return;
-  }
-
-  const Scene *scene = CTX_data_scene(C);
-  const int start_frame = SEQ_time_left_handle_frame_get(scene, seq);
-  const int end_frame = SEQ_time_right_handle_frame_get(scene, seq);
-
-  int next_handle_index = SEQ_retiming_handle_index_get(seq, handle) + 1;
-  const SeqRetimingHandle *next_handle = &SEQ_retiming_handles_get(seq)[next_handle_index];
-  if (handle_x_get(scene, seq, next_handle) < start_frame ||
-      handle_x_get(scene, seq, handle) > end_frame)
-  {
-    return; /* Label out of strip bounds. */
-  }
-
-  char label_str[40];
-  size_t label_len;
-
-  if (SEQ_retiming_handle_is_transition_type(handle)) {
-    const float prev_speed = SEQ_retiming_handle_speed_get(seq, handle - 1);
-    const float next_speed = SEQ_retiming_handle_speed_get(seq, next_handle + 1);
-    label_len = SNPRINTF_RLEN(label_str,
-                              "%d%% - %d%%",
-                              round_fl_to_int(prev_speed * 100.0f),
-                              round_fl_to_int(next_speed * 100.0f));
-  }
-  else {
-    const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
-    label_len = SNPRINTF_RLEN(label_str, "%d%%", round_fl_to_int(speed * 100.0f));
-  }
-
-  const float width = pixels_to_view_width(C, BLF_width(BLF_default(), label_str, label_len));
-
-  const float xmin = max_ff(SEQ_time_left_handle_frame_get(scene, seq),
-                            handle_x_get(scene, seq, handle));
-  const float xmax = min_ff(SEQ_time_right_handle_frame_get(scene, seq),
-                            handle_x_get(scene, seq, next_handle));
-
-  const float text_x = (xmin + xmax - width) / 2;
-  const float text_y = strip_y_rescale(seq, 0) + pixels_to_view_height(C, 5);
-
-  if (width > xmax - xmin) {
-    return; /* Not enough space to draw label. */
-  }
-
-  const uchar col[4] = {255, 255, 255, 255};
-  UI_view2d_text_cache_add(UI_view2d_fromcontext(C), text_x, text_y, label_str, label_len, col);
-}
-
 static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
 {
   RetimeHandleMoveGizmo *gizmo = (RetimeHandleMoveGizmo *)gz;
@@ -488,8 +433,6 @@ static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
   MutableSpan handles = SEQ_retiming_handles_get(seq);
 
   for (const SeqRetimingHandle &handle : handles) {
-    retime_speed_text_draw(C, seq, &handle);
-
     if (&handle == handles.begin()) {
       continue; /* Ignore first handle. */
     }
@@ -639,6 +582,186 @@ void GIZMO_GT_retime_remove(wmGizmoType *gzt)
   gzt->draw = gizmo_retime_remove_draw;
   gzt->test_select = gizmo_retime_remove_test_select;
   gzt->cursor_get = gizmo_retime_remove_cursor_get;
+  gzt->struct_size = sizeof(wmGizmo);
+
+  /* Currently only used for cursor display. */
+  RNA_def_boolean(gzt->srna, "show_drag", true, "Show Drag", "");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Retiming Speed Set Gizmo
+ * \{ */
+
+static size_t label_str_get(const Sequence *seq,
+                            const SeqRetimingHandle *handle,
+                            size_t str_len,
+                            char *r_label_str)
+{
+  const SeqRetimingHandle *next_handle = handle + 1;
+  if (SEQ_retiming_handle_is_transition_type(handle)) {
+    const float prev_speed = SEQ_retiming_handle_speed_get(seq, handle - 1);
+    const float next_speed = SEQ_retiming_handle_speed_get(seq, next_handle + 1);
+    return BLI_snprintf_rlen(r_label_str,
+                             str_len,
+                             "%d%% - %d%%",
+                             round_fl_to_int(prev_speed * 100.0f),
+                             round_fl_to_int(next_speed * 100.0f));
+  }
+  const float speed = SEQ_retiming_handle_speed_get(seq, next_handle);
+  return BLI_snprintf_rlen(r_label_str, str_len, "%d%%", round_fl_to_int(speed * 100.0f));
+}
+
+static bool label_rect_get(const bContext *C,
+                           const Sequence *seq,
+                           const SeqRetimingHandle *handle,
+                           char *label_str,
+                           size_t label_len,
+                           rctf *rect)
+{
+  const Scene *scene = CTX_data_scene(C);
+  const SeqRetimingHandle *next_handle = handle + 1;
+  const float width = pixels_to_view_width(C, BLF_width(BLF_default(), label_str, label_len));
+  const float height = pixels_to_view_height(C, BLF_height(BLF_default(), label_str, label_len));
+
+  const float xmin = max_ff(SEQ_time_left_handle_frame_get(scene, seq),
+                            handle_x_get(scene, seq, handle));
+  const float xmax = min_ff(SEQ_time_right_handle_frame_get(scene, seq),
+                            handle_x_get(scene, seq, next_handle));
+
+  rect->xmin = (xmin + xmax - width) / 2;
+  rect->xmax = rect->xmin + width;
+  rect->ymin = strip_y_rescale(seq, 0) + pixels_to_view_height(C, 5);
+  rect->ymax = rect->ymin + height;
+
+  return width < xmax - xmin;
+}
+
+static void label_rect_apply_mouseover_offset(const View2D *v2d, rctf *rect)
+{
+  float scale_x, scale_y;
+  UI_view2d_scale_get_inverse(v2d, &scale_x, &scale_y);
+  rect->xmin -= RETIME_HANDLE_MOUSEOVER_THRESHOLD * scale_x;
+  rect->xmax += RETIME_HANDLE_MOUSEOVER_THRESHOLD * scale_x;
+  rect->ymax += RETIME_HANDLE_MOUSEOVER_THRESHOLD * scale_y;
+}
+
+static void retime_speed_text_draw(const bContext *C,
+                                   const Sequence *seq,
+                                   const SeqRetimingHandle *handle)
+{
+  SeqRetimingHandle *last_handle = SEQ_retiming_last_handle_get(seq);
+  if (handle == last_handle) {
+    return;
+  }
+
+  const Scene *scene = CTX_data_scene(C);
+  const int start_frame = SEQ_time_left_handle_frame_get(scene, seq);
+  const int end_frame = SEQ_time_right_handle_frame_get(scene, seq);
+
+  const SeqRetimingHandle *next_handle = handle + 1;
+  if (handle_x_get(scene, seq, next_handle) < start_frame ||
+      handle_x_get(scene, seq, handle) > end_frame)
+  {
+    return; /* Label out of strip bounds. */
+  }
+
+  char label_str[40];
+  rctf label_rect;
+  size_t label_len = label_str_get(seq, handle, sizeof(label_str), label_str);
+
+  if (!label_rect_get(C, seq, handle, label_str, label_len, &label_rect)) {
+    return; /* Not enough space to draw label. */
+  }
+
+  const uchar col[4] = {255, 255, 255, 255};
+  UI_view2d_text_cache_add(
+      UI_view2d_fromcontext(C), label_rect.xmin, label_rect.ymin, label_str, label_len, col);
+}
+
+static void gizmo_retime_speed_set_draw(const bContext *C, wmGizmo * /* gz */)
+{
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
+  wmOrtho2_region_pixelspace(CTX_wm_region(C));
+  GPU_blend(GPU_BLEND_ALPHA);
+  GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+  Sequence *seq = active_seq_from_context(C);
+  SEQ_retiming_data_ensure(seq);
+  MutableSpan handles = SEQ_retiming_handles_get(seq);
+
+  for (const SeqRetimingHandle &handle : handles) {
+    retime_speed_text_draw(C, seq, &handle);
+  }
+
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+
+  UI_view2d_text_cache_draw(CTX_wm_region(C));
+  UI_view2d_view_ortho(v2d); /* 'UI_view2d_text_cache_draw()' messes up current view. */
+}
+
+static int gizmo_retime_speed_set_test_select(bContext *C, wmGizmo *gz, const int mval[2])
+{
+  Scene *scene = CTX_data_scene(C);
+  wmGizmoOpElem *op_elem = WM_gizmo_operator_get(gz, 0);
+  const View2D *v2d = UI_view2d_fromcontext(C);
+
+  Sequence *seq = active_seq_from_context(C);
+  SEQ_retiming_data_ensure(seq);
+
+  for (const SeqRetimingHandle &handle : SEQ_retiming_handles_get(seq)) {
+    if (SEQ_retiming_handle_is_transition_type(&handle)) {
+      continue;
+    }
+
+    char label_str[40];
+    rctf label_rect;
+    size_t label_len = label_str_get(seq, &handle, sizeof(label_str), label_str);
+
+    if (!label_rect_get(C, seq, &handle, label_str, label_len, &label_rect)) {
+      continue;
+    }
+
+    label_rect_apply_mouseover_offset(v2d, &label_rect);
+
+    float mouse_view[2];
+    UI_view2d_region_to_view(v2d, mval[0], mval[1], &mouse_view[0], &mouse_view[1]);
+
+    if (!BLI_rctf_isect_pt(&label_rect, mouse_view[0], mouse_view[1])) {
+      continue;
+    }
+
+    /* Store next handle in RNA property, since label rect uses first handle as reference. */
+    const int handle_index = SEQ_retiming_handle_index_get(seq, &handle) + 1;
+    RNA_int_set(&op_elem->ptr, "handle_index", handle_index);
+    WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+    return 0;
+  }
+
+  return -1;
+}
+
+static int gizmo_retime_speed_set_cursor_get(wmGizmo *gz)
+{
+  if (RNA_boolean_get(gz->ptr, "show_drag")) {
+    return WM_CURSOR_TEXT_EDIT;
+  }
+  return WM_CURSOR_DEFAULT;
+}
+
+void GIZMO_GT_speed_set_remove(wmGizmoType *gzt)
+{
+  /* Identifiers. */
+  gzt->idname = "GIZMO_GT_retime_speed_set";
+
+  /* Api callbacks. */
+  gzt->draw = gizmo_retime_speed_set_draw;
+  gzt->test_select = gizmo_retime_speed_set_test_select;
+  gzt->cursor_get = gizmo_retime_speed_set_cursor_get;
   gzt->struct_size = sizeof(wmGizmo);
 
   /* Currently only used for cursor display. */

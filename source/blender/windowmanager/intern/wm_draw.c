@@ -1299,7 +1299,7 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
    *
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
-  /* Draw into an off-screen buffer and read it's contents. */
+  /* Draw into an off-screen buffer and read its contents. */
   r_size[0] = WM_window_pixels_x(win);
   r_size[1] = WM_window_pixels_y(win);
 

@@ -357,7 +357,6 @@ static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
 static void rna_AssetHandle_get_full_library_path(
     // AssetHandle *asset,
     FileDirEntry *asset_file,
-    AssetLibraryReference *UNUSED(asset_library), /* Deprecated. */
     char r_result[/*FILE_MAX_LIBEXTRA*/])
 {
   AssetHandle asset = {.file_data = asset_file};
@@ -537,13 +536,6 @@ static void rna_def_asset_handle_api(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_NO_SELF);
   parm = RNA_def_pointer(func, "asset_file_handle", "FileSelectEntry", "", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  RNA_def_pointer(
-      func,
-      "asset_library_ref",
-      "AssetLibraryReference",
-      "",
-      "The asset library containing the given asset. Deprecated and optional argument, will be "
-      "ignored. Kept for API compatibility only");
   parm = RNA_def_string(func, "result", NULL, FILE_MAX_LIBEXTRA, "result", "");
   RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
   RNA_def_function_output(func, parm);

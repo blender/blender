@@ -1765,7 +1765,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
       dist += len_v3(offset);
       add_v3_v3(flow, npa->prev_state.vel);
     }
-    dist += sphdata->psys[0]->part->fluid->radius;  // TODO: remove this? - z0r
+    dist += sphdata->psys[0]->part->fluid->radius; /* TODO(@z0r): remove this? */
     sphdata->element_size = dist / pfr->tot_neighbors;
     mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
   }
@@ -3449,7 +3449,6 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   EffectorWeights *clmd_effweights;
   int totpoint;
   int totedge;
-  float(*deformedVerts)[3];
   bool realloc_roots;
 
   if (!psys->clmd) {
@@ -3505,12 +3504,14 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
   BKE_id_copy_ex(NULL, &psys->hair_in_mesh->id, (ID **)&psys->hair_out_mesh, LIB_ID_COPY_LOCALIZE);
-  deformedVerts = BKE_mesh_vert_coords_alloc(psys->hair_out_mesh, NULL);
-  clothModifier_do(
-      psys->clmd, sim->depsgraph, sim->scene, sim->ob, psys->hair_in_mesh, deformedVerts);
-  BKE_mesh_vert_coords_apply(psys->hair_out_mesh, deformedVerts);
 
-  MEM_freeN(deformedVerts);
+  clothModifier_do(psys->clmd,
+                   sim->depsgraph,
+                   sim->scene,
+                   sim->ob,
+                   psys->hair_in_mesh,
+                   BKE_mesh_vert_positions_for_write(psys->hair_out_mesh));
+  BKE_mesh_tag_positions_changed(psys->hair_out_mesh);
 
   /* restore cloth effector weights */
   psys->clmd->sim_parms->effector_weights = clmd_effweights;
@@ -5005,6 +5006,8 @@ static void particlesystem_modifiersForeachIDLink(void *user_data,
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
   ParticleTarget *pt;
+  LibraryForeachIDData *foreachid_data = userdata;
+  const int foreachid_data_flags = BKE_lib_query_foreachid_process_flags_get(foreachid_data);
 
   func(psys, (ID **)&psys->part, userdata, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
   func(psys, (ID **)&psys->target_ob, userdata, IDWALK_CB_NOP);
@@ -5024,14 +5027,19 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
   }
 
-  /* Even though psys->part should never be NULL, this can happen as an exception during deletion.
-   * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
-  if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
+  /* In case `psys->part` is NULL (See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in
+   * #BKE_library_remap), or accessing it is forbidden, always handle particles for potential boids
+   * data. Unfortunate, but for now there is no other proper way to do this. */
+  if (!(psys->part && (foreachid_data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) ||
+      psys->part->phystype == PART_PHYS_BOIDS)
+  {
     ParticleData *pa;
     int p;
 
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
-      func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      if (pa->boid != NULL) {
+        func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      }
     }
   }
 }

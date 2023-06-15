@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import unittest

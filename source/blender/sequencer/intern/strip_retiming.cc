@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -533,6 +533,29 @@ float SEQ_retiming_handle_speed_get(const Sequence *seq, const SeqRetimingHandle
 
   const float speed = float(fragment_length_retimed) / float(fragment_length_original);
   return speed;
+}
+
+void SEQ_retiming_handle_speed_set(const Scene *scene,
+                                   Sequence *seq,
+                                   SeqRetimingHandle *handle,
+                                   const float speed)
+{
+  if (handle->strip_frame_index == 0) {
+    return;
+  }
+
+  const SeqRetimingHandle *handle_prev = handle - 1;
+  const float speed_fac = 100.0f / speed;
+
+  const int frame_index_max = seq->len;
+  const int frame_retimed_prev = round_fl_to_int(handle_prev->retiming_factor * frame_index_max);
+  const int frame_retimed = round_fl_to_int(handle->retiming_factor * frame_index_max);
+
+  const int segment_duration = frame_retimed - frame_retimed_prev;
+  const int new_duration = segment_duration * speed_fac;
+
+  const int offset = (handle_prev->strip_frame_index + new_duration) - handle->strip_frame_index;
+  SEQ_retiming_offset_handle(scene, seq, handle, offset);
 }
 
 enum eRangeType {

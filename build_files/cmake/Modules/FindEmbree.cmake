@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2018 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018 Blender Foundation.
 
 # - Find Embree library
 # Find the native Embree includes and library

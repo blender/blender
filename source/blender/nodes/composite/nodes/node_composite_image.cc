@@ -825,36 +825,57 @@ class RenderLayerOperation : public NodeOperation {
   void execute() override
   {
     const int view_layer = bnode().custom1;
-    GPUTexture *pass_texture = context().get_input_texture(view_layer, RE_PASSNAME_COMBINED);
 
-    execute_image(pass_texture);
-    execute_alpha(pass_texture);
+    Result &image_result = get_result("Image");
+    Result &alpha_result = get_result("Alpha");
+
+    if (image_result.should_compute() || alpha_result.should_compute()) {
+      GPUTexture *combined_texture = context().get_input_texture(view_layer, RE_PASSNAME_COMBINED);
+      if (image_result.should_compute()) {
+        execute_pass(image_result, combined_texture, "compositor_read_pass_color");
+      }
+      if (alpha_result.should_compute()) {
+        execute_pass(alpha_result, combined_texture, "compositor_read_pass_alpha");
+      }
+    }
 
     /* Other output passes are not supported for now, so allocate them as invalid. */
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!STR_ELEM(output->identifier, "Image", "Alpha")) {
-        Result &unsupported_result = get_result(output->identifier);
-        if (unsupported_result.should_compute()) {
-          unsupported_result.allocate_invalid();
-          context().set_info_message("Viewport compositor setup not fully supported");
-        }
+      if (STR_ELEM(output->identifier, "Image", "Alpha")) {
+        continue;
+      }
+
+      Result &result = get_result(output->identifier);
+      if (!result.should_compute()) {
+        continue;
+      }
+
+      GPUTexture *pass_texture = context().get_input_texture(view_layer, output->identifier);
+      if (output->type == SOCK_FLOAT) {
+        execute_pass(result, pass_texture, "compositor_read_pass_float");
+      }
+      else if (output->type == SOCK_VECTOR) {
+        execute_pass(result, pass_texture, "compositor_read_pass_vector");
+      }
+      else if (output->type == SOCK_RGBA) {
+        execute_pass(result, pass_texture, "compositor_read_pass_color");
+      }
+      else {
+        BLI_assert_unreachable();
       }
     }
   }
 
-  void execute_image(GPUTexture *pass_texture)
+  void execute_pass(Result &result, GPUTexture *pass_texture, const char *shader_name)
   {
-    Result &image_result = get_result("Image");
-    if (!image_result.should_compute()) {
-      return;
-    }
     if (pass_texture == nullptr) {
-      /* Pass not rendered (yet). */
-      image_result.allocate_invalid();
+      /* Pass not rendered yet, or not supported by viewport. */
+      result.allocate_invalid();
+      context().set_info_message("Viewport compositor setup not fully supported");
       return;
     }
 
-    GPUShader *shader = shader_manager().get("compositor_read_pass");
+    GPUShader *shader = shader_manager().get(shader_name);
     GPU_shader_bind(shader);
 
     /* The compositing space might be limited to a subset of the pass texture, so only read that
@@ -867,49 +888,14 @@ class RenderLayerOperation : public NodeOperation {
     GPU_texture_bind(pass_texture, input_unit);
 
     const int2 compositing_region_size = context().get_compositing_region_size();
-    image_result.allocate_texture(Domain(compositing_region_size));
-    image_result.bind_as_image(shader, "output_img");
+    result.allocate_texture(Domain(compositing_region_size));
+    result.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, compositing_region_size);
 
     GPU_shader_unbind();
     GPU_texture_unbind(pass_texture);
-    image_result.unbind_as_image();
-  }
-
-  void execute_alpha(GPUTexture *pass_texture)
-  {
-    Result &alpha_result = get_result("Alpha");
-    if (!alpha_result.should_compute()) {
-      return;
-    }
-    if (pass_texture == nullptr) {
-      /* Pass not rendered (yet). */
-      alpha_result.allocate_invalid();
-      return;
-    }
-
-    GPUShader *shader = shader_manager().get("compositor_read_pass_alpha");
-    GPU_shader_bind(shader);
-
-    /* The compositing space might be limited to a subset of the pass texture, so only read that
-     * compositing region into an appropriately sized texture. */
-    const rcti compositing_region = context().get_compositing_region();
-    const int2 lower_bound = int2(compositing_region.xmin, compositing_region.ymin);
-    GPU_shader_uniform_2iv(shader, "compositing_region_lower_bound", lower_bound);
-
-    const int input_unit = GPU_shader_get_sampler_binding(shader, "input_tx");
-    GPU_texture_bind(pass_texture, input_unit);
-
-    const int2 compositing_region_size = context().get_compositing_region_size();
-    alpha_result.allocate_texture(Domain(compositing_region_size));
-    alpha_result.bind_as_image(shader, "output_img");
-
-    compute_dispatch_threads_at_least(shader, compositing_region_size);
-
-    GPU_shader_unbind();
-    GPU_texture_unbind(pass_texture);
-    alpha_result.unbind_as_image();
+    result.unbind_as_image();
   }
 };
 

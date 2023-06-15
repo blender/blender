@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "BLI_math_quaternion_types.hh"
+
 #include "FN_field.hh"
 #include "FN_lazy_function.hh"
 #include "FN_multi_function_builder.hh"
@@ -72,7 +74,7 @@ class GeoNodeExecParams {
 
   template<typename T>
   static inline constexpr bool is_field_base_type_v =
-      is_same_any_v<T, float, int, bool, ColorGeometry4f, float3, std::string>;
+      is_same_any_v<T, float, int, bool, ColorGeometry4f, float3, std::string, math::Quaternion>;
 
   /**
    * Get the input value for the input socket with the given identifier.

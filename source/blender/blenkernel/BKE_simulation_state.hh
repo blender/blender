@@ -188,4 +188,12 @@ class ModifierSimulationCache {
   void clear_prev_states();
 };
 
+/**
+ * Wrap simulation cache in `std::shared_ptr` so that it can be owned by evaluated modifier even if
+ * the original modifier has been deleted.
+ */
+struct ModifierSimulationCachePtr {
+  std::shared_ptr<ModifierSimulationCache> ptr;
+};
+
 }  // namespace blender::bke::sim

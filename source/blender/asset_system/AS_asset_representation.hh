@@ -19,6 +19,7 @@
 
 #include "BLI_string_ref.hh"
 
+#include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
 #include "AS_asset_identifier.hh"
@@ -87,7 +88,7 @@ class AssetRepresentation {
   std::unique_ptr<AssetWeakReference> make_weak_reference() const;
 
   StringRefNull get_name() const;
-  int get_id_type() const;
+  ID_Type get_id_type() const;
   AssetMetaData &get_metadata() const;
   /**
    * Get the import method to use for this asset. A different one may be used if
@@ -129,5 +130,3 @@ std::string AS_asset_representation_full_path_get(const ::AssetRepresentation *a
 std::string AS_asset_representation_full_library_path_get(const ::AssetRepresentation *asset);
 std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
     const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_may_override_import_method(const ::AssetRepresentation *asset_handle);
-bool AS_asset_representation_use_relative_path_get(const ::AssetRepresentation *asset_handle);

@@ -26,7 +26,6 @@ extern "C" {
 #endif
 
 struct ARegion;
-struct AssetHandle;
 struct GHashIterator;
 struct GPUViewport;
 struct ID;
@@ -155,7 +154,7 @@ void WM_init_gpu(void);
 const char *WM_ghost_backend(void);
 
 typedef enum eWM_CapabilitiesFlag {
-  /** Ability to warp the cursor (set it's location). */
+  /** Ability to warp the cursor (set its location). */
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
   /** Ability to access window positions & move them. */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
@@ -186,7 +185,7 @@ void WM_script_tag_reload(void);
 wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
 
 /**
- * Knowing the area, return it's screen.
+ * Knowing the area, return its screen.
  * \note This should typically be avoided, only use when the context is not available.
  */
 wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area);
@@ -788,7 +787,7 @@ bool WM_operator_name_poll(struct bContext *C, const char *opstring);
  * \param event: Optionally pass in an event to use when context uses one of the
  * `WM_OP_INVOKE_*` values. When left unset the #wmWindow.eventstate will be used,
  * this can cause problems for operators that read the events type - for example,
- * storing the key that was pressed so as to be able to detect it's release.
+ * storing the key that was pressed so as to be able to detect its release.
  * In these cases it's necessary to forward the current event being handled.
  */
 int WM_operator_name_call_ptr(struct bContext *C,
@@ -1445,8 +1444,7 @@ bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-wmDragAsset *WM_drag_create_asset_data(const struct AssetHandle *asset,
-                                       const char *path,
+wmDragAsset *WM_drag_create_asset_data(const struct AssetRepresentation *asset,
                                        int /* #eAssetImportMethod */ import_type);
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int idcode);
@@ -1476,7 +1474,7 @@ struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *d
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetHandle *asset);
+void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetRepresentation *asset);
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);

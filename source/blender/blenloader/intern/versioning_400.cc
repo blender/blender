@@ -10,15 +10,21 @@
 
 #include "CLG_log.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
+
+#include "DNA_genfile.h"
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 
+#include "BKE_idprop.hh"
 #include "BKE_main.h"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_tracking.h"
 
 #include "BLO_readfile.h"
@@ -115,6 +121,45 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
   }
 }
 
+static void version_mesh_crease_generic(Main &bmain)
+{
+  LISTBASE_FOREACH (Mesh *, mesh, &bmain.meshes) {
+    BKE_mesh_legacy_crease_to_generic(mesh);
+  }
+
+  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
+    if (ntree->type == NTREE_GEOMETRY) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (STR_ELEM(node->idname,
+                     "GeometryNodeStoreNamedAttribute",
+                     "GeometryNodeInputNamedAttribute")) {
+          bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Name");
+          if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
+            STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");
+          }
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      if (IDProperty *settings = reinterpret_cast<NodesModifierData *>(md)->settings.properties) {
+        LISTBASE_FOREACH (IDProperty *, prop, &settings->data.group) {
+          if (blender::StringRef(prop->name).endswith("_attribute_name")) {
+            if (STREQ(IDP_String(prop), "crease")) {
+              IDP_AssignString(prop, "crease_edge");
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -182,11 +227,33 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->snap_mode_tools != SCE_SNAP_MODE_NONE) {
+        ts->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      }
+
 #define SCE_SNAP_PROJECT (1 << 3)
-      if (scene->toolsettings->snap_flag & SCE_SNAP_PROJECT) {
-        scene->toolsettings->snap_mode |= SCE_SNAP_MODE_FACE_RAYCAST;
+      if (ts->snap_flag & SCE_SNAP_PROJECT) {
+        ts->snap_mode |= SCE_SNAP_MODE_FACE_RAYCAST;
       }
 #undef SCE_SNAP_PROJECT
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 6)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      BKE_mesh_legacy_face_map_to_generic(mesh);
+    }
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_replace_legacy_glossy_node(ntree);
+      versioning_remove_microfacet_sharp_distribution(ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 7)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      version_mesh_crease_generic(*bmain);
     }
   }
 
@@ -204,11 +271,6 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
    */
   {
     /* Convert anisotropic BSDF node to glossy BSDF. */
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      versioning_replace_legacy_glossy_node(ntree);
-      versioning_remove_microfacet_sharp_distribution(ntree);
-    }
-    FOREACH_NODETREE_END;
 
     /* Keep this block, even when empty. */
   }

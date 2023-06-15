@@ -193,6 +193,8 @@ static BlendFileReadWMSetupData *wm_file_read_setup_wm_init(bContext *C,
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BlendFileReadWMSetupData *wm_setup_data = MEM_cnew<BlendFileReadWMSetupData>(__func__);
   wm_setup_data->is_read_homefile = is_read_homefile;
+  /* This info is not always known yet when this function is called. */
+  wm_setup_data->is_factory_startup = false;
 
   if (wm == nullptr) {
     return wm_setup_data;
@@ -407,10 +409,13 @@ static void wm_file_read_setup_wm_finalize(bContext *C,
   BLI_assert(wm_setup_data != nullptr);
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
 
-  /* If reading home (startup) file, and there was no previous WM, clear the size of the windows in
-   * newly read WM so that they get resized to occupy the whole available space on current monitor.
+  /* If reading factory startup file, and there was no previous WM, clear the size of the windows
+   * in newly read WM so that they get resized to occupy the whole available space on current
+   * monitor.
    */
-  if (wm_setup_data->is_read_homefile && wm_setup_data->old_wm == nullptr) {
+  if (wm_setup_data->is_read_homefile && wm_setup_data->is_factory_startup &&
+      wm_setup_data->old_wm == nullptr)
+  {
     wm_clear_default_size(C);
   }
 
@@ -1355,6 +1360,7 @@ void wm_homefile_read_ex(bContext *C,
     BKE_reportf(reports, RPT_ERROR, "Could not read \"%s\"", filepath_startup_override);
   }
 
+  bool loaded_factory_settings = false;
   if (success == false) {
     BlendFileReadParams read_file_params{};
     read_file_params.is_startup = true;
@@ -1367,6 +1373,7 @@ void wm_homefile_read_ex(bContext *C,
       BKE_blendfile_read_setup_readfile(
           C, bfd, &read_file_params, wm_setup_data, &read_report, true, nullptr);
       success = true;
+      loaded_factory_settings = true;
       bmain = CTX_data_main(C);
     }
   }
@@ -1421,6 +1428,7 @@ void wm_homefile_read_ex(bContext *C,
   if (use_data) {
     /* Finalize handling of WM, using the read WM and/or the current WM depending on things like
      * whether the UI is loaded from the .blend file or not, etc. */
+    wm_setup_data->is_factory_startup = loaded_factory_settings;
     wm_file_read_setup_wm_finalize(C, bmain, wm_setup_data);
   }
 

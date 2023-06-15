@@ -80,7 +80,7 @@ bool BKE_pointcloud_attribute_required(const struct PointCloud *pointcloud, cons
 
 /* Dependency Graph */
 
-struct PointCloud *BKE_pointcloud_copy_for_eval(struct PointCloud *pointcloud_src);
+struct PointCloud *BKE_pointcloud_copy_for_eval(const struct PointCloud *pointcloud_src);
 
 void BKE_pointcloud_data_update(struct Depsgraph *depsgraph,
                                 struct Scene *scene,

@@ -211,6 +211,9 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
 
 Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, Object *object)
 {
+  if (object == nullptr) {
+    return nullptr;
+  }
   return (Object *)DEG_get_evaluated_id(depsgraph, &object->id);
 }
 

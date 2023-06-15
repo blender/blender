@@ -9,7 +9,7 @@
  * \brief Pseudo-random number generator
  */
 
-// TODO: Check whether we could replace this with BLI rand stuff...
+/* TODO: Check whether we could replace this with BLI rand stuff. */
 
 #include "../system/Precision.h"
 

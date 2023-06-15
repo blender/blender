@@ -1,10 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
+/* SPDX-FileCopyrightText: 1999 Stephane Popinet
+ * SPDX-FileCopyrightText: 2000-2003 `Bruno Levy <levy@loria.fr>`
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
  * The Original Code is:
- *     GTS - Library for the manipulation of triangulated surfaces
- *     Copyright 1999 Stephane Popinet
- * and:
- *     OGF/Graphite: Geometry and Graphics Programming Library + Utilities
- *     Copyright 2000-2003 Bruno Levy <levy@loria.fr> */
+ * - GTS - Library for the manipulation of triangulated surfaces.
+ * - OGF/Graphite: Geometry and Graphics Programming Library + Utilities.
+ */
 
 /** \file
  * \ingroup freestyle
@@ -514,8 +516,8 @@ static bool sphere_clip_vector(const Vec3r &O, real r, const Vec3r &P, Vec3r &V)
   return true;
 }
 
-// TODO: check optimizations:
-// use marking ? (measure *timings* ...)
+/* TODO: check optimizations:
+ * use marking ? (measure *timings* ...). */
 void compute_curvature_tensor(WVertex *start, real radius, NormalCycle &nc)
 {
   // in case we have a non-manifold vertex, skip it...

@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 from _bpy import types as bpy_types
@@ -178,6 +180,8 @@ class Object(bpy_types.ID):
     def children(self):
         """All the children of this object.
 
+        :type: tuple of :class:`Object`
+
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
         return tuple(child for child in bpy.data.objects
@@ -186,6 +190,8 @@ class Object(bpy_types.ID):
     @property
     def children_recursive(self):
         """A list of all children from this object.
+
+        :type: tuple of :class:`Object`
 
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
@@ -209,6 +215,8 @@ class Object(bpy_types.ID):
         """
         The collections this object is in.
 
+        :type: tuple of :class:`Collection`
+
         .. note:: Takes ``O(len(bpy.data.collections) + len(bpy.data.scenes))`` time."""
         import bpy
         return (
@@ -224,6 +232,8 @@ class Object(bpy_types.ID):
     @property
     def users_scene(self):
         """The scenes this object is in.
+
+        :type: tuple of :class:`Scene`
 
         .. note:: Takes ``O(len(bpy.data.scenes) * len(bpy.data.objects))`` time."""
         import bpy
@@ -523,6 +533,36 @@ def ord_ind(i1, i2):
     return i2, i1
 
 
+def _name_convention_attribute_get(attributes, name, domain, data_type):
+    try:
+        attribute = attributes[name]
+    except KeyError:
+        return None
+    if attribute.domain != domain:
+        return None
+    if attribute.data_type != data_type:
+        return None
+    return attribute
+
+
+def _name_convention_attribute_ensure(attributes, name, domain, data_type):
+    try:
+        attribute = attributes[name]
+    except KeyError:
+        return attributes.new(name, data_type, domain)
+    if attribute.domain == domain and attribute.data_type == data_type:
+        return attribute
+    attributes.remove(attribute)
+    return attributes.new(name, data_type, domain)
+
+
+def _name_convention_attribute_remove(attributes, name):
+    try:
+        attributes.remove(attributes[name])
+    except KeyError:
+        pass
+
+
 class Mesh(bpy_types.ID):
     __slots__ = ()
 
@@ -596,6 +636,32 @@ class Mesh(bpy_types.ID):
     @property
     def edge_keys(self):
         return [ed.key for ed in self.edges]
+
+    @property
+    def vertex_creases(self):
+        """
+        Vertex crease values for subdivision surface, corresponding to the "crease_vert" attribute.
+        """
+        return _name_convention_attribute_get(self.attributes, "crease_vert", 'POINT', 'FLOAT')
+
+    def vertex_creases_ensure(self):
+        return _name_convention_attribute_ensure(self.attributes, "crease_vert", 'POINT', 'FLOAT')
+
+    def vertex_creases_remove(self):
+        _name_convention_attribute_remove(self.attributes, "crease_vert")
+
+    @property
+    def edge_creases(self):
+        """
+        Edge crease values for subdivision surface, corresponding to the "crease_edge" attribute.
+        """
+        return _name_convention_attribute_get(self.attributes, "crease_edge", 'EDGE', 'FLOAT')
+
+    def edge_creases_ensure(self):
+        return _name_convention_attribute_ensure(self.attributes, "crease_edge", 'EDGE', 'FLOAT')
+
+    def edge_creases_remove(self):
+        _name_convention_attribute_remove(self.attributes, "crease_edge")
 
 
 class MeshEdge(StructRNA):
@@ -724,15 +790,14 @@ class Gizmo(StructRNA):
     # Convenience wrappers around private `_gpu` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
-        Draw a shape created form :class:`bpy.types.Gizmo.draw_custom_shape`.
+        Draw a shape created form :class:`Gizmo.draw_custom_shape`.
 
         :arg shape: The cached shape to draw.
         :type shape: Undefined.
-        :arg matrix: 4x4 matrix, when not given
-           :class:`bpy.types.Gizmo.matrix_world` is used.
+        :arg matrix: 4x4 matrix, when not given :class:`Gizmo.matrix_world` is used.
         :type matrix: :class:`mathutils.Matrix`
         :arg select_id: The selection id.
-           Only use when drawing within :class:`bpy.types.Gizmo.draw_select`.
+           Only use when drawing within :class:`Gizmo.draw_select`.
         :type select_it: int
         """
         import gpu
@@ -766,7 +831,7 @@ class Gizmo(StructRNA):
     @staticmethod
     def new_custom_shape(type, verts):
         """
-        Create a new shape that can be passed to :class:`bpy.types.Gizmo.draw_custom_shape`.
+        Create a new shape that can be passed to :class:`Gizmo.draw_custom_shape`.
 
         :arg type: The type of shape to create in (POINTS, LINES, TRIS, LINE_STRIP).
         :type type: string

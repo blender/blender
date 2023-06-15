@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2019-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __BLENDER_VIEWPORT_H__
 #define __BLENDER_VIEWPORT_H__

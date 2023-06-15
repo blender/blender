@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2019, NVIDIA Corporation
- * Copyright 2019-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 NVIDIA Corporation
+ * SPDX-FileCopyrightText: 2019-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_OPTIX
 

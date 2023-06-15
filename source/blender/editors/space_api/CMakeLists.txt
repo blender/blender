@@ -5,6 +5,7 @@
 set(INC
   ../include
   ../io
+  ../../asset_system
   ../../blenkernel
   ../../blenlib
   ../../gpu
@@ -19,7 +20,7 @@ set(INC_SYS
 )
 
 set(SRC
-  spacetypes.c
+  spacetypes.cc
 )
 
 set(LIB

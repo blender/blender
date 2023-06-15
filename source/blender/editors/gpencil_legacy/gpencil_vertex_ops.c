@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2015 Blender Foundation.
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 

@@ -1,9 +1,10 @@
-/* SPDX-FileCopyrightText: 2011 Blender Foundation.
+/* SPDX-FileCopyrightText: 1999 Tom Tromey
+ * SPDX-FileCopyrightText: 2000 Red Hat, Inc. All rights reserved.
+ * SPDX-FileCopyrightText: 2011 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
- * Code from gutf8.c Copyright 1999 Tom Tromey
- *                   Copyright 2000 Red Hat, Inc.
- * All rights reserved. */
+ *
+ * Code from `gutf8.c` by Tom Tromey & Red Hat, Inc. */
 
 /** \file
  * \ingroup bli

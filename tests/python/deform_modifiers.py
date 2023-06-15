@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # To run the test type: blender -b /path/to/the/blend/file --python path/to/this/py/file -- --run-all-tests -- --verbose

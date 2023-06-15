@@ -59,7 +59,7 @@ typedef struct BMEditMesh {
   int mirror_cdlayer;
 
   /**
-   * Enable for evaluated copies, causes the edit-mesh to free the memory, not it's contents.
+   * Enable for evaluated copies, causes the edit-mesh to free the memory, not its contents.
    */
   char is_shallow_copy;
 

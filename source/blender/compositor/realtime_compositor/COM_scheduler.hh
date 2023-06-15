@@ -8,6 +8,8 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "COM_context.hh"
+
 namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
@@ -18,6 +20,6 @@ using Schedule = VectorSet<DNode>;
 /* Computes the execution schedule of the node tree. This is essentially a post-order depth first
  * traversal of the node tree from the output node to the leaf input nodes, with informed order of
  * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
-Schedule compute_schedule(const DerivedNodeTree &tree);
+Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree);
 
 }  // namespace blender::realtime_compositor

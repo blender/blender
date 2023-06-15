@@ -2166,7 +2166,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
   const blender::Span<blender::float3> vert_normals = mesh_final->vert_normals();
 
   if (from == PART_FROM_VERT) {
-    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
+    const blender::Span<blender::float3> vert_positions = mesh_final->vert_positions();
     copy_v3_v3(vec, vert_positions[mapindex]);
 
     if (nor) {
@@ -2195,7 +2195,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     MFace *mfaces = static_cast<MFace *>(
         CustomData_get_layer_for_write(&mesh_final->fdata, CD_MFACE, mesh_final->totface));
     mface = &mfaces[mapindex];
-    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh_final);
+    const blender::Span<blender::float3> vert_positions = mesh_final->vert_positions();
     mtface = static_cast<MTFace *>(
         CustomData_get_layer_for_write(&mesh_final->fdata, CD_MTFACE, mesh_final->totface));
 
@@ -2205,7 +2205,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
 
     if (from == PART_FROM_VOLUME) {
       psys_interpolate_face(mesh_final,
-                            vert_positions,
+                            reinterpret_cast<const float(*)[3]>(vert_positions.data()),
                             reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
@@ -2228,7 +2228,7 @@ void psys_particle_on_dm(Mesh *mesh_final,
     }
     else {
       psys_interpolate_face(mesh_final,
-                            vert_positions,
+                            reinterpret_cast<const float(*)[3]>(vert_positions.data()),
                             reinterpret_cast<const float(*)[3]>(vert_normals.data()),
                             mface,
                             mtface,
@@ -3924,7 +3924,7 @@ static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4]
     }
   }
   else {
-    const float(*vert_positions)[3] = BKE_mesh_vert_positions(mesh);
+    const blender::Span<blender::float3> vert_positions = mesh->vert_positions();
     copy_v3_v3(v[0], vert_positions[mface->v1]);
     copy_v3_v3(v[1], vert_positions[mface->v2]);
     copy_v3_v3(v[2], vert_positions[mface->v3]);

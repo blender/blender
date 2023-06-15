@@ -39,6 +39,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_openexr.h"
 
+#include "GPU_texture.h"
+
 #include "RE_engine.h"
 
 #include "render_result.h"
@@ -112,6 +114,18 @@ void render_result_free_list(ListBase *lb, RenderResult *rr)
     }
 
     render_result_free(rr);
+  }
+}
+
+void render_result_free_gpu_texture_caches(RenderResult *rr)
+{
+  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
+    LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
+      if (rpass->buffer.gpu_texture) {
+        GPU_texture_free(rpass->buffer.gpu_texture);
+        rpass->buffer.gpu_texture = nullptr;
+      }
+    }
   }
 }
 
@@ -405,6 +419,35 @@ void RE_create_render_pass(RenderResult *rr,
 void RE_pass_set_buffer_data(RenderPass *pass, float *data)
 {
   RE_RenderBuffer_assign_data(&pass->buffer, data);
+}
+
+GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
+{
+  if (rpass->buffer.gpu_texture) {
+    return rpass->buffer.gpu_texture;
+  }
+  if (rpass->buffer.data == nullptr) {
+    return nullptr;
+  }
+
+  const eGPUTextureFormat format = (rpass->channels == 1) ? GPU_R16F :
+                                   (rpass->channels == 3) ? GPU_RGB16F :
+                                                            GPU_RGBA16F;
+
+  rpass->buffer.gpu_texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
+                                                    rpass->rectx,
+                                                    rpass->recty,
+                                                    1,
+                                                    format,
+                                                    GPU_TEXTURE_USAGE_GENERAL,
+                                                    nullptr);
+
+  if (rpass->buffer.gpu_texture) {
+    GPU_texture_update(rpass->buffer.gpu_texture, GPU_DATA_FLOAT, rpass->buffer.data);
+    re->result_has_gpu_texture_caches = true;
+  }
+
+  return rpass->buffer.gpu_texture;
 }
 
 void RE_render_result_full_channel_name(char *fullname,
@@ -1200,6 +1243,7 @@ template<class BufferType> static BufferType render_buffer_new(decltype(BufferTy
 
   buffer.data = data;
   buffer.sharing_info = blender::implicit_sharing::info_for_mem_free(data);
+  buffer.gpu_texture = nullptr;
 
   return buffer;
 }
@@ -1212,6 +1256,11 @@ template<class BufferType> static void render_buffer_data_free(BufferType *rende
   }
 
   blender::implicit_sharing::free_shared_data(&render_buffer->data, &render_buffer->sharing_info);
+
+  if (render_buffer->gpu_texture) {
+    GPU_texture_free(render_buffer->gpu_texture);
+    render_buffer->gpu_texture = nullptr;
+  }
 }
 
 template<class BufferType>

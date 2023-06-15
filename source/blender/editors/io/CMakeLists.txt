@@ -45,7 +45,7 @@ set(SRC
   io_collada.hh
   io_gpencil.hh
   io_obj.hh
-  io_ops.h
+  io_ops.hh
   io_ply_ops.hh
   io_stl_ops.hh
   io_usd.hh

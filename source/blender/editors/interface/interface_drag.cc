@@ -30,14 +30,13 @@ void UI_but_drag_attach_image(uiBut *but, ImBuf *imb, const float scale)
 }
 
 void UI_but_drag_set_asset(uiBut *but,
-                           const AssetHandle *asset_handle,
-                           const char *path,
+                           const AssetRepresentation *asset,
                            int import_type,
                            int icon,
                            ImBuf *imb,
                            float scale)
 {
-  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset_handle, path, import_type);
+  wmDragAsset *asset_drag = WM_drag_create_asset_data(asset, import_type);
 
   /* FIXME: This is temporary evil solution to get scene/view-layer/etc in the copy callback of the
    * #wmDropBox.

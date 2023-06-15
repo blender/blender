@@ -2473,7 +2473,8 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
     BKE_pbvh_face_sets_set(ss->pbvh, static_cast<int *>(ss->attrs.face_set->data));
   }
 
-  return static_cast<int *>(ss->attrs.face_set->data);
+  ss->face_sets = static_cast<int *>(ss->attrs.face_set->data);
+  return ss->face_sets;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Object *ob)
@@ -2747,7 +2748,9 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
     BKE_pbvh_vert_coords_apply(
-        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
+        pbvh,
+        reinterpret_cast<const float(*)[3]>(me_eval_deform->vert_positions().data()),
+        me_eval_deform->totvert);
   }
 
   return pbvh;

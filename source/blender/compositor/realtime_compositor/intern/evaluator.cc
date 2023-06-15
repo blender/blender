@@ -72,7 +72,7 @@ void Evaluator::compile_and_evaluate()
     return;
   }
 
-  const Schedule schedule = compute_schedule(*derived_node_tree_);
+  const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
 
   CompileState compile_state(schedule);
 

@@ -2684,7 +2684,8 @@ void BKE_scene_update_sound(Depsgraph *depsgraph, Main *bmain)
     BKE_sound_set_scene_volume(scene, scene->audio.volume);
   }
   if (recalc & ID_RECALC_AUDIO_MUTE) {
-    const bool is_mute = (scene->audio.flag & AUDIO_MUTE);
+    const bool is_mute = (DEG_get_mode(depsgraph) == DAG_EVAL_VIEWPORT) &&
+                         (scene->audio.flag & AUDIO_MUTE);
     BKE_sound_mute_scene(scene, is_mute);
   }
   if (recalc & ID_RECALC_AUDIO_LISTENER) {

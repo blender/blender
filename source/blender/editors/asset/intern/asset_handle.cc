@@ -43,23 +43,12 @@ ID *ED_asset_handle_get_local_id(const AssetHandle *asset_handle)
 
 ID_Type ED_asset_handle_get_id_type(const AssetHandle *asset_handle)
 {
-  return static_cast<ID_Type>(AS_asset_representation_id_type_get(asset_handle->file_data->asset));
+  return AS_asset_representation_id_type_get(asset_handle->file_data->asset);
 }
 
 int ED_asset_handle_get_preview_icon_id(const AssetHandle *asset)
 {
   return asset->file_data->preview_icon_id;
-}
-
-std::optional<eAssetImportMethod> ED_asset_handle_get_import_method(
-    const AssetHandle *asset_handle)
-{
-  return AS_asset_representation_import_method_get(asset_handle->file_data->asset);
-}
-
-blender::StringRefNull ED_asset_handle_get_library_relative_identifier(const AssetHandle &asset)
-{
-  return AS_asset_representation_library_relative_identifier_get(asset.file_data->asset);
 }
 
 void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
@@ -74,9 +63,4 @@ void ED_asset_handle_get_full_library_path(const AssetHandle *asset_handle,
   }
 
   BLI_strncpy(r_full_lib_path, library_path.c_str(), FILE_MAX);
-}
-
-bool ED_asset_handle_get_use_relative_path(const AssetHandle *asset)
-{
-  return AS_asset_representation_use_relative_path_get(asset->file_data->asset);
 }

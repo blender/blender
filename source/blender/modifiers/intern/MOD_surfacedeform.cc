@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2017 Blender Foundation.
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -1180,7 +1180,7 @@ static bool surfacedeformBind(Object *ob,
                               Mesh *mesh)
 {
   BVHTreeFromMesh treeData = {nullptr};
-  const float(*positions)[3] = BKE_mesh_vert_positions(target);
+  const blender::Span<blender::float3> positions = target->vert_positions();
   const blender::Span<blender::int2> edges = target->edges();
   const blender::OffsetIndices polys = target->polys();
   const blender::Span<int> corner_verts = target->corner_verts();

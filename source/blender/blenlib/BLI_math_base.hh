@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -169,6 +169,11 @@ template<typename T> inline T acos(const T &a)
 template<typename T> inline T pow(const T &x, const T &power)
 {
   return std::pow(x, power);
+}
+
+template<typename T> inline T exp(const T &x)
+{
+  return std::exp(x);
 }
 
 template<typename T> inline T safe_acos(const T &a)

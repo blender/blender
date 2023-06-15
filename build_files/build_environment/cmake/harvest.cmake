@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 ########################################################################
@@ -262,7 +264,6 @@ else()
   harvest(opus/lib ffmpeg/lib "*.a")
   harvest(vpx/lib ffmpeg/lib "*.a")
   harvest(x264/lib ffmpeg/lib "*.a")
-  harvest(xvidcore/lib ffmpeg/lib "*.a")
   harvest(aom/lib ffmpeg/lib "*.a")
   harvest(webp/lib webp/lib "*.a")
   harvest(webp/include webp/include "*.h")

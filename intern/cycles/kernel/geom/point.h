@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Licensed under the Apache License, Version 2.0 (the "License"); */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 CCL_NAMESPACE_BEGIN
 

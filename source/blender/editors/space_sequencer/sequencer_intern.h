@@ -312,6 +312,7 @@ void SEQUENCER_OT_retiming_reset(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_move(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_retiming_handle_remove(struct wmOperatorType *ot);
+void SEQUENCER_OT_retiming_segment_speed_set(struct wmOperatorType *ot);
 
 /* sequencer_gizmo_retime.c */
 void SEQUENCER_GGT_gizmo_retime(struct wmGizmoGroupType *gzgt);
@@ -320,6 +321,7 @@ void SEQUENCER_GGT_gizmo_retime(struct wmGizmoGroupType *gzgt);
 void GIZMO_GT_retime_handle_add(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_handle(struct wmGizmoType *gzt);
 void GIZMO_GT_retime_remove(struct wmGizmoType *gzt);
+void GIZMO_GT_speed_set_remove(struct wmGizmoType *gzt);
 
 #ifdef __cplusplus
 }

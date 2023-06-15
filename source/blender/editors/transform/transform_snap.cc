@@ -174,12 +174,10 @@ void drawSnapping(const bContext *C, TransInfo *t)
     return;
   }
 
-  const bool draw_source = (t->spacetype == SPACE_VIEW3D) &&
-                           (t->tsnap.status & SNAP_SOURCE_FOUND) &&
-                           ((t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR) ||
-                            t->tsnap.snap_source_fn == nullptr);
+  const bool draw_source = (t->tsnap.status & SNAP_SOURCE_FOUND) && (t->flag & T_DRAW_SNAP_SOURCE);
+  const bool draw_target = (t->tsnap.status & (SNAP_TARGET_FOUND | SNAP_MULTI_POINTS));
 
-  if (!(draw_source || validSnap(t))) {
+  if (!(draw_source || draw_target)) {
     return;
   }
 
@@ -765,6 +763,10 @@ static void initSnappingMode(TransInfo *t)
   if ((t->spacetype != SPACE_VIEW3D) || (t->flag & T_NO_PROJECT)) {
     /* Force project off when not supported. */
     t->tsnap.mode &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+  }
+
+  if (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
+    t->flag |= T_DRAW_SNAP_SOURCE;
   }
 
   setSnappingCallback(t);
@@ -1388,7 +1390,7 @@ eSnapMode snapObjectsTransform(
   snap_object_params.use_occlusion_test = true;
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
 
-  float *target = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : t->center_global;
+  float *prev_co = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : nullptr;
   return ED_transform_snap_object_project_view3d(t->tsnap.object_context,
                                                  t->depsgraph,
                                                  t->region,
@@ -1397,7 +1399,7 @@ eSnapMode snapObjectsTransform(
                                                  &snap_object_params,
                                                  nullptr,
                                                  mval,
-                                                 target,
+                                                 prev_co,
                                                  dist_px,
                                                  r_loc,
                                                  r_no);

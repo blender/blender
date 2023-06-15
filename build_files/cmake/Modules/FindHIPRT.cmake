@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2021 Blender Foundation.
 
 # Find HIPRT SDK. This module defines:
 #   HIPRT_INCLUDE_DIR, path to HIPRT include directory

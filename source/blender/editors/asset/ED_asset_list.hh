@@ -17,7 +17,8 @@ struct AssetLibraryReference;
 
 namespace blender::asset_system {
 class AssetLibrary;
-}
+class AssetRepresentation;
+}  // namespace blender::asset_system
 
 /**
  * Get the asset library being read into an asset-list and identified using \a library_reference.
@@ -31,9 +32,13 @@ blender::asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
     const AssetLibraryReference &library_reference);
 
 /* Can return false to stop iterating. */
-using AssetListIterFn = blender::FunctionRef<bool(AssetHandle)>;
+using AssetListHandleIterFn = blender::FunctionRef<bool(AssetHandle)>;
+using AssetListIterFn = blender::FunctionRef<bool(blender::asset_system::AssetRepresentation &)>;
+
 /**
  * \warning Never keep the asset handle passed to \a fn outside of \a fn's scope. While iterating,
  * the file data wrapped by the asset handle can be freed, since the file cache has a maximum size.
  */
+void ED_assetlist_iterate(const AssetLibraryReference &library_reference,
+                          AssetListHandleIterFn fn);
 void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn);

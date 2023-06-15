@@ -298,3 +298,6 @@ if(WITH_OPENCOLORIO)
 endif()
 
 blender_add_lib(bf_realtime_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# Needed so we can use dna_type_offsets.h
+add_dependencies(bf_realtime_compositor bf_dna)

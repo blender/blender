@@ -89,13 +89,13 @@ StringRefNull AssetRepresentation::get_name() const
   return external_asset_.name;
 }
 
-int AssetRepresentation::get_id_type() const
+ID_Type AssetRepresentation::get_id_type() const
 {
   if (is_local_id_) {
     return GS(local_asset_id_->name);
   }
 
-  return external_asset_.id_type;
+  return ID_Type(external_asset_.id_type);
 }
 
 AssetMetaData &AssetRepresentation::get_metadata() const
@@ -203,7 +203,7 @@ const char *AS_asset_representation_name_get(const AssetRepresentation *asset_ha
   return asset->get_name().c_str();
 }
 
-int AS_asset_representation_id_type_get(const AssetRepresentation *asset_handle)
+ID_Type AS_asset_representation_id_type_get(const AssetRepresentation *asset_handle)
 {
   const asset_system::AssetRepresentation *asset =
       reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);

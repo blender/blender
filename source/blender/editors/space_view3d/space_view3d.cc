@@ -12,6 +12,8 @@
 #include <cstdio>
 #include <cstring>
 
+#include "AS_asset_representation.h"
+
 #include "DNA_collection_types.h"
 #include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -496,7 +498,7 @@ static ID_Type view3d_drop_id_in_main_region_poll_get_id_type(bContext *C,
 
   wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
   if (asset_drag) {
-    return ID_Type(asset_drag->id_type);
+    return AS_asset_representation_id_type_get(asset_drag->asset);
   }
 
   return ID_Type(0);
@@ -731,7 +733,8 @@ static bool view3d_geometry_nodes_drop_poll(bContext *C, wmDrag *drag, const wmE
     if (!asset_data) {
       return false;
     }
-    const IDProperty *tree_type = BKE_asset_metadata_idprop_find(asset_data->metadata, "type");
+    const AssetMetaData *metadata = AS_asset_representation_metadata_get(asset_data->asset);
+    const IDProperty *tree_type = BKE_asset_metadata_idprop_find(metadata, "type");
     if (!tree_type || IDP_Int(tree_type) != NTREE_GEOMETRY) {
       return false;
     }

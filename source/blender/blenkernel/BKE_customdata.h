@@ -649,8 +649,8 @@ int CustomData_layertype_layers_max(eCustomDataType type);
 
 #ifdef __cplusplus
 
-/** \return The maximum length for a layer name with the given prefix. */
-int CustomData_name_max_length_calc(blender::StringRef name);
+/** \return The maximum size in bytes needed for a layer name with the given prefix. */
+int CustomData_name_maxncpy_calc(blender::StringRef name);
 
 #endif
 
@@ -742,7 +742,8 @@ enum {
 
   CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
 
-  CD_FAKE_BWEIGHT = CD_FAKE | 300, /* UV seam flag for edges. */
+  CD_FAKE_BWEIGHT = CD_FAKE | 300,
+  CD_FAKE_CREASE = CD_FAKE | 400,
 };
 
 enum {
@@ -770,7 +771,7 @@ enum {
 typedef struct CustomDataTransferLayerMap {
   struct CustomDataTransferLayerMap *next, *prev;
 
-  eCustomDataType data_type;
+  int data_type;
   int mix_mode;
   float mix_factor;
   /** If non-NULL, array of weights, one for each dest item, replaces mix_factor. */

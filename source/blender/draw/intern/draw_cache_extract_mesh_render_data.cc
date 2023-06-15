@@ -453,8 +453,10 @@ MeshRenderData *mesh_render_data_create(Object *object,
     mr->eed_act = BM_mesh_active_edge_get(mr->bm);
     mr->eve_act = BM_mesh_active_vert_get(mr->bm);
 
-    mr->vert_crease_ofs = CustomData_get_offset(&mr->bm->vdata, CD_CREASE);
-    mr->edge_crease_ofs = CustomData_get_offset(&mr->bm->edata, CD_CREASE);
+    mr->vert_crease_ofs = CustomData_get_offset_named(
+        &mr->bm->vdata, CD_PROP_FLOAT, "crease_vert");
+    mr->edge_crease_ofs = CustomData_get_offset_named(
+        &mr->bm->edata, CD_PROP_FLOAT, "crease_edge");
     mr->bweight_ofs = CustomData_get_offset_named(
         &mr->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE

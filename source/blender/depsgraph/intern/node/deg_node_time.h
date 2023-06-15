@@ -16,7 +16,7 @@ namespace blender::deg {
 struct TimeSourceNode : public Node {
   bool tagged_for_update = false;
 
-  // TODO: evaluate() operation needed
+  /* TODO: evaluate() operation needed */
 
   virtual void tag_update(Depsgraph *graph, eUpdateSource source) override;
 

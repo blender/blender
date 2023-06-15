@@ -2699,7 +2699,7 @@ void ui_but_value_set(uiBut *but, double value)
   ui_but_update_select_flag(but, &value);
 }
 
-int ui_but_string_get_max_length(uiBut *but)
+int ui_but_string_get_maxncpy(uiBut *but)
 {
   if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
     return but->hardmax;
@@ -4937,20 +4937,20 @@ static int findBitIndex(uint x)
 
 /* Auto-complete helper functions. */
 struct AutoComplete {
-  size_t maxlen;
+  size_t maxncpy;
   int matches;
   char *truncate;
   const char *startname;
 };
 
-AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxlen)
+AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
 {
   AutoComplete *autocpl;
 
   autocpl = MEM_cnew<AutoComplete>(__func__);
-  autocpl->maxlen = maxlen;
+  autocpl->maxncpy = maxncpy;
   autocpl->matches = 0;
-  autocpl->truncate = static_cast<char *>(MEM_callocN(sizeof(char) * maxlen, __func__));
+  autocpl->truncate = static_cast<char *>(MEM_callocN(sizeof(char) * maxncpy, __func__));
   autocpl->startname = startname;
 
   return autocpl;
@@ -4961,7 +4961,7 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
   char *truncate = autocpl->truncate;
   const char *startname = autocpl->startname;
   int match_index = 0;
-  for (int a = 0; a < autocpl->maxlen - 1; a++) {
+  for (int a = 0; a < autocpl->maxncpy - 1; a++) {
     if (startname[a] == 0 || startname[a] != name[a]) {
       match_index = a;
       break;
@@ -4973,11 +4973,11 @@ void UI_autocomplete_update_name(AutoComplete *autocpl, const char *name)
     autocpl->matches++;
     /* first match */
     if (truncate[0] == 0) {
-      BLI_strncpy(truncate, name, autocpl->maxlen);
+      BLI_strncpy(truncate, name, autocpl->maxncpy);
     }
     else {
       /* remove from truncate what is not in bone->name */
-      for (int a = 0; a < autocpl->maxlen - 1; a++) {
+      for (int a = 0; a < autocpl->maxncpy - 1; a++) {
         if (name[a] == 0) {
           truncate[a] = 0;
           break;
@@ -5000,11 +5000,11 @@ int UI_autocomplete_end(AutoComplete *autocpl, char *autoname)
     else {
       match = AUTOCOMPLETE_PARTIAL_MATCH;
     }
-    BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
+    BLI_strncpy(autoname, autocpl->truncate, autocpl->maxncpy);
   }
   else {
     if (autoname != autocpl->startname) { /* don't copy a string over itself */
-      BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
+      BLI_strncpy(autoname, autocpl->startname, autocpl->maxncpy);
     }
   }
 
@@ -6271,7 +6271,7 @@ uiBut *uiDefSearchBut(uiBlock *block,
                       void *arg,
                       int retval,
                       int icon,
-                      int maxlen,
+                      int maxncpy,
                       int x,
                       int y,
                       short width,
@@ -6280,8 +6280,20 @@ uiBut *uiDefSearchBut(uiBlock *block,
                       float a2,
                       const char *tip)
 {
-  uiBut *but = ui_def_but(
-      block, UI_BTYPE_SEARCH_MENU, retval, "", x, y, width, height, arg, 0.0, maxlen, a1, a2, tip);
+  uiBut *but = ui_def_but(block,
+                          UI_BTYPE_SEARCH_MENU,
+                          retval,
+                          "",
+                          x,
+                          y,
+                          width,
+                          height,
+                          arg,
+                          0.0,
+                          maxncpy,
+                          a1,
+                          a2,
+                          tip);
 
   ui_def_but_icon(but, icon, UI_HAS_ICON);
 
@@ -6466,7 +6478,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                            void *arg,
                            int retval,
                            int icon,
-                           int maxlen,
+                           int maxncpy,
                            int x,
                            int y,
                            short width,
@@ -6475,7 +6487,7 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block,
                            float a2,
                            const char *tip)
 {
-  uiBut *but = uiDefSearchBut(block, arg, retval, icon, maxlen, x, y, width, height, a1, a2, tip);
+  uiBut *but = uiDefSearchBut(block, arg, retval, icon, maxncpy, x, y, width, height, a1, a2, tip);
   UI_but_func_search_set(but,
                          ui_searchbox_create_generic,
                          operator_enum_search_update_fn,

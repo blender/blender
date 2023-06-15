@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -117,7 +117,7 @@ class ObjectModule {
     const bool is_stroke_order_3d = false; /* TODO */
     bool do_material_holdout = false;
     bool do_layer_blending = false;
-    bool object_has_vfx = false;  // TODO: vfx.object_has_vfx(gpd);
+    bool object_has_vfx = false; /* TODO: `vfx.object_has_vfx(gpd);`. */
 
     uint material_offset = materials_.object_offset_get();
     for (auto i : IndexRange(BKE_object_material_count_eval(object))) {

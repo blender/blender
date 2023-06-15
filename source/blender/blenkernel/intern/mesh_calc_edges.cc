@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_map.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_timeit.hh"
@@ -21,43 +22,14 @@
 
 namespace blender::bke::calc_edges {
 
-/** This is used to uniquely identify edges in a hash map. */
-struct OrderedEdge {
-  int v_low, v_high;
-
-  OrderedEdge(const int v1, const int v2)
-  {
-    if (v1 < v2) {
-      v_low = v1;
-      v_high = v2;
-    }
-    else {
-      v_low = v2;
-      v_high = v1;
-    }
-  }
-
-  OrderedEdge(const uint v1, const uint v2) : OrderedEdge(int(v1), int(v2)) {}
-
-  uint64_t hash() const
-  {
-    return (this->v_low << 8) ^ this->v_high;
-  }
-
-  /** Return a hash value that is likely to be different in the low bits from the normal `hash()`
-   * function. This is necessary to avoid collisions in #BKE_mesh_calc_edges. */
-  uint64_t hash2() const
-  {
-    return this->v_low;
-  }
-
-  friend bool operator==(const OrderedEdge &e1, const OrderedEdge &e2)
-  {
-    BLI_assert(e1.v_low < e1.v_high);
-    BLI_assert(e2.v_low < e2.v_high);
-    return e1.v_low == e2.v_low && e1.v_high == e2.v_high;
-  }
-};
+/**
+ * Return a hash value that is likely to be different in the low bits from the normal `hash()`
+ * function. This is necessary to avoid collisions in #BKE_mesh_calc_edges.
+ */
+static uint64_t edge_hash_2(const OrderedEdge &edge)
+{
+  return edge.v_low;
+}
 
 /* The map first contains an edge pointer and later an index. */
 union OrigEdgeOrIndex {
@@ -86,7 +58,7 @@ static void add_existing_edges_to_hash_maps(Mesh *mesh,
     for (const int2 &edge : edges) {
       OrderedEdge ordered_edge{edge[0], edge[1]};
       /* Only add the edge when it belongs into this map. */
-      if (task_index == (parallel_mask & ordered_edge.hash2())) {
+      if (task_index == (parallel_mask & edge_hash_2(ordered_edge))) {
         edge_map.add_new(ordered_edge, {&edge});
       }
     }
@@ -109,7 +81,7 @@ static void add_polygon_edges_to_hash_maps(Mesh *mesh,
         if (vert_prev != vert) {
           OrderedEdge ordered_edge{vert_prev, vert};
           /* Only add the edge when it belongs into this map. */
-          if (task_index == (parallel_mask & ordered_edge.hash2())) {
+          if (task_index == (parallel_mask & edge_hash_2(ordered_edge))) {
             edge_map.lookup_or_add(ordered_edge, {nullptr});
           }
         }
@@ -171,7 +143,7 @@ static void update_edge_indices_in_poly_loops(const OffsetIndices<int> polys,
         if (vert_prev != vert) {
           OrderedEdge ordered_edge{vert_prev, vert};
           /* Double lookup: First find the map that contains the edge, then lookup the edge. */
-          const EdgeMap &edge_map = edge_maps[parallel_mask & ordered_edge.hash2()];
+          const EdgeMap &edge_map = edge_maps[parallel_mask & edge_hash_2(ordered_edge)];
           edge_index = edge_map.lookup(ordered_edge).index;
         }
         else {

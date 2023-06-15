@@ -18,6 +18,7 @@
 #include "BLI_endian_switch.h"
 #include "BLI_fileops.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_path_util.h"
 
 #include "RNA_access.h"
@@ -778,6 +779,10 @@ static std::shared_ptr<io::serialize::Value> serialize_primitive_value(
       const ColorGeometry4f value = *static_cast<const ColorGeometry4f *>(value_ptr);
       return serialize_float_array({&value.r, 4});
     }
+    case CD_PROP_QUATERNION: {
+      const math::Quaternion value = *static_cast<const math::Quaternion *>(value_ptr);
+      return serialize_float_array({&value.x, 4});
+    }
     default:
       break;
   }
@@ -964,6 +969,9 @@ template<typename T>
       return deserialize_int_array<uint8_t>(io_value, {static_cast<uint8_t *>(r_value), 4});
     }
     case CD_PROP_COLOR: {
+      return deserialize_float_array(io_value, {static_cast<float *>(r_value), 4});
+    }
+    case CD_PROP_QUATERNION: {
       return deserialize_float_array(io_value, {static_cast<float *>(r_value), 4});
     }
     default:

@@ -100,7 +100,7 @@ bool ED_asset_can_mark_single_from_context(const bContext *C)
   return ED_asset_type_is_supported(id);
 }
 
-bool ED_asset_copy_to_id(const struct AssetMetaData *asset_data, struct ID *destination)
+bool ED_asset_copy_to_id(const AssetMetaData *asset_data, ID *destination)
 {
   if (!BKE_id_can_be_asset(destination)) {
     return false;

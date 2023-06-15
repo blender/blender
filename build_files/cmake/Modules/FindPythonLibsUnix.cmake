@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2011 Blender Foundation.
 
 # - Find Python libraries
 # Find the native Python includes and library

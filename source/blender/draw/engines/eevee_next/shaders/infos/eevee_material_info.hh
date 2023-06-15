@@ -17,7 +17,7 @@ GPU_SHADER_CREATE_INFO(eevee_shared)
 GPU_SHADER_CREATE_INFO(eevee_sampling_data)
     .define("EEVEE_SAMPLING_DATA")
     .additional_info("eevee_shared")
-    .storage_buf(6, Qualifier::READ, "SamplingData", "sampling_buf");
+    .storage_buf(SAMPLING_BUF_SLOT, Qualifier::READ, "SamplingData", "sampling_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_utility_texture)
     .sampler(RBUFS_UTILITY_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "utility_tx");

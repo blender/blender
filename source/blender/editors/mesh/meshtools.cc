@@ -40,7 +40,6 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
-#include "BKE_object_facemap.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -421,23 +420,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
     for (const int i : blender::IndexRange(me->totpoly)) {
       poly_offsets[i] = src_poly_offsets[i] + *loopofs;
     }
-
-    /* Face maps. */
-    int *fmap = (int *)CustomData_get_for_write(pdata, *polyofs, CD_FACEMAP, totpoly);
-    const int *fmap_src = (const int *)CustomData_get_for_write(
-        &me->pdata, 0, CD_FACEMAP, me->totpoly);
-
-    /* Remap to correct new face-map indices, if needed. */
-    if (fmap_src) {
-      BLI_assert(fmap != nullptr);
-      int *fmap_index_map;
-      int fmap_index_map_len;
-      fmap_index_map = BKE_object_facemap_index_map_create(ob_src, ob_dst, &fmap_index_map_len);
-      BKE_object_facemap_index_map_apply(fmap, me->totpoly, fmap_index_map, fmap_index_map_len);
-      if (fmap_index_map != nullptr) {
-        MEM_freeN(fmap_index_map);
-      }
-    }
   }
 
   handle_missing_id_layers(me,
@@ -640,19 +622,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       if (!BLI_listbase_is_empty(&mesh_active->vertex_group_names) &&
           me->vertex_group_active_index == 0) {
         me->vertex_group_active_index = 1;
-      }
-
-      /* Join this object's face maps to the base one's. */
-      LISTBASE_FOREACH (bFaceMap *, fmap, &ob_iter->fmaps) {
-        /* See if this group exists in the object (if it doesn't, add it to the end) */
-        if (BKE_object_facemap_find_name(ob, fmap->name) == nullptr) {
-          bFaceMap *fmap_new = static_cast<bFaceMap *>(MEM_mallocN(sizeof(bFaceMap), __func__));
-          memcpy(fmap_new, fmap, sizeof(bFaceMap));
-          BLI_addtail(&ob->fmaps, fmap_new);
-        }
-      }
-      if (ob->fmaps.first && ob->actfmap == 0) {
-        ob->actfmap = 1;
       }
 
       mesh_join_offset_face_sets_ID(me, &face_set_id_offset);

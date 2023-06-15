@@ -29,7 +29,7 @@
 #include "transform_convert.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Edit Mesh Bevel Weight and #CD_CREASE Transform Creation
+/** \name Edit Mesh Bevel Weight and Crease Transform Creation
  * \{ */
 
 static float *tc_mesh_cdata_transdata_center(const struct TransIslandData *island_data,
@@ -92,10 +92,10 @@ static void createTransMeshVertCData(bContext *UNUSED(C), TransInfo *t)
       cd_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
     }
     else {
-      if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-        BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
+      if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert")) {
+        BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_FLOAT, "crease_vert");
       }
-      cd_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
+      cd_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
     }
 
     if (cd_offset == -1) {

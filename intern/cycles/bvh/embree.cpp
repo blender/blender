@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2018-2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2018-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* This class implements a ray accelerator for Cycles using Intel's Embree library.
  * It supports triangles, curves, object and deformation blur and instancing.

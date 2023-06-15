@@ -690,7 +690,13 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
     BKE_lattice_deform_coords(
-        ob->parent, ob, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert, 0, nullptr, 1.0f);
+        ob->parent,
+        ob,
+        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+        mesh->totvert,
+        0,
+        nullptr,
+        1.0f);
     BKE_mesh_tag_positions_changed(mesh);
   }
 

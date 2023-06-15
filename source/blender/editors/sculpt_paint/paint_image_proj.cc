@@ -417,7 +417,7 @@ struct ProjPaintState {
   int totpoly_eval;
   int totvert_eval;
 
-  const float (*vert_positions_eval)[3];
+  blender::Span<blender::float3> vert_positions_eval;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::int2> edges_eval;
   blender::OffsetIndices<int> polys_eval;
@@ -4104,7 +4104,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mat_array[totmat - 1] = nullptr;
 
-  ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
+  ps->vert_positions_eval = ps->me_eval->vert_positions();
   ps->vert_normals = ps->me_eval->vert_normals();
   ps->edges_eval = ps->me_eval->edges();
   ps->polys_eval = ps->me_eval->polys();

@@ -25,7 +25,6 @@ struct BoundBox;
 struct CustomData;
 struct CustomData_MeshMasks;
 struct Depsgraph;
-struct ID;
 struct KeyBlock;
 struct LinkNode;
 struct ListBase;
@@ -37,7 +36,6 @@ struct Main;
 struct MemArena;
 struct Mesh;
 struct Object;
-struct PointCloud;
 struct Scene;
 
 #ifdef __cplusplus
@@ -180,9 +178,6 @@ struct Mesh *BKE_mesh_new_nomain_from_curve_displist(const struct Object *ob,
 
 bool BKE_mesh_attribute_required(const char *name);
 
-bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
-bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
-
 float (*BKE_mesh_orco_verts_get(struct Object *ob))[3];
 void BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 
@@ -234,16 +229,15 @@ void BKE_mesh_texspace_get_reference(struct Mesh *me,
                                      char **r_texspace_flag,
                                      float **r_texspace_location,
                                      float **r_texspace_size);
-void BKE_mesh_texspace_copy_from_object(struct Mesh *me, struct Object *ob);
 
 /**
  * Create new mesh from the given object at its current state.
- * The owner of this mesh is unknown, it is up to the caller to decide.
+ * The caller owns the result mesh.
  *
- * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
+ * If \a preserve_all_data_layers is true then the modifier stack is re-evaluated to ensure it
  * preserves all possible custom data layers.
  *
- * \note Dependency graph argument is required when preserve_all_data_layers is truth, and is
+ * \note Dependency graph argument is required when preserve_all_data_layers is true, and is
  * ignored otherwise.
  */
 struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph,
@@ -321,12 +315,6 @@ void BKE_mesh_recalc_looptri(const int *corner_verts,
 const float (*BKE_mesh_vert_normals_ensure(const struct Mesh *mesh))[3];
 
 /**
- * See #Mesh::poly_normals().
- * \warning May return null if the mesh is empty or has no polygons.
- */
-const float (*BKE_mesh_poly_normals_ensure(const struct Mesh *mesh))[3];
-
-/**
  * Retrieve write access to the cached vertex normals, ensuring that they are allocated but *not*
  * that they are calculated. The provided vertex normals should be the same as if they were
  * calculated automatically.
@@ -356,12 +344,6 @@ bool BKE_mesh_vert_normals_are_dirty(const struct Mesh *mesh);
  * This can be used to help decide whether to transfer them when copying a mesh.
  */
 bool BKE_mesh_poly_normals_are_dirty(const struct Mesh *mesh);
-
-void BKE_mesh_calc_poly_normal(const int *poly_verts,
-                               int poly_size,
-                               const float (*vert_positions)[3],
-                               int verts_num,
-                               float r_no[3]);
 
 /**
  * Called after calculating all modifiers.
@@ -522,15 +504,6 @@ void BKE_mesh_set_custom_normals_from_verts(struct Mesh *mesh, float (*r_custom_
 
 /* *** mesh_evaluate.cc *** */
 
-void BKE_mesh_calc_poly_center(const int *poly_verts,
-                               int poly_size,
-                               const float (*vert_positions)[3],
-                               int verts_num,
-                               float r_cent[3]);
-float BKE_mesh_calc_poly_area(const int *poly_verts,
-                              int poly_size,
-                              const float (*vert_positions)[3],
-                              int verts_num);
 float BKE_mesh_calc_area(const struct Mesh *me);
 
 bool BKE_mesh_center_median(const struct Mesh *me, float r_cent[3]);
@@ -792,26 +765,10 @@ BLI_INLINE const int *BKE_mesh_poly_offsets(const Mesh *mesh)
 {
   return mesh->poly_offset_indices;
 }
-int *BKE_mesh_poly_offsets_for_write(Mesh *mesh);
 
 BLI_INLINE const int *BKE_mesh_corner_verts(const Mesh *mesh)
 {
   return (const int *)CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_vert");
-}
-BLI_INLINE int *BKE_mesh_corner_verts_for_write(Mesh *mesh)
-{
-  return (int *)CustomData_get_layer_named_for_write(
-      &mesh->ldata, CD_PROP_INT32, ".corner_vert", mesh->totloop);
-}
-
-BLI_INLINE const int *BKE_mesh_corner_edges(const Mesh *mesh)
-{
-  return (const int *)CustomData_get_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge");
-}
-BLI_INLINE int *BKE_mesh_corner_edges_for_write(Mesh *mesh)
-{
-  return (int *)CustomData_get_layer_named_for_write(
-      &mesh->ldata, CD_PROP_INT32, ".corner_edge", mesh->totloop);
 }
 
 BLI_INLINE const MDeformVert *BKE_mesh_deform_verts(const Mesh *mesh)

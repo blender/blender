@@ -2403,7 +2403,6 @@ static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
   if (ss->expand_cache->target == SCULPT_EXPAND_TARGET_FACE_SETS) {
-    Mesh *mesh = (Mesh *)ob->data;
     ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   }
 

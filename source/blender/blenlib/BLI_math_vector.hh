@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2022 Blender Foundation.
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -202,6 +202,16 @@ template<typename T, int Size>
   VecBase<T, Size> result;
   for (int i = 0; i < Size; i++) {
     result[i] = math::pow(x[i], y[i]);
+  }
+  return result;
+}
+
+/* Per-element exponent. */
+template<typename T, int Size> [[nodiscard]] inline VecBase<T, Size> exp(const VecBase<T, Size> &x)
+{
+  VecBase<T, Size> result;
+  for (int i = 0; i < Size; i++) {
+    result[i] = math::exp(x[i]);
   }
   return result;
 }

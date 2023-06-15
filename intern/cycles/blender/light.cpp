@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/light.h"
 
@@ -149,7 +150,11 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   light->set_is_shadow_catcher(b_ob_info.real_object.is_shadow_catcher());
 
   /* Light group and linking. */
-  light->set_lightgroup(ustring(b_ob_info.real_object.lightgroup()));
+  string lightgroup = b_ob_info.real_object.lightgroup();
+  if (lightgroup.empty()) {
+    lightgroup = b_parent.lightgroup();
+  }
+  light->set_lightgroup(ustring(lightgroup));
   light->set_light_set_membership(
       BlenderLightLink::get_light_set_membership(PointerRNA_NULL, b_ob_info.real_object));
   light->set_shadow_set_membership(

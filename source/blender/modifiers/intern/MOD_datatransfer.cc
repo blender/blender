@@ -175,12 +175,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
     BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, ob_source);
   }
 
-  const float(*me_positions)[3] = BKE_mesh_vert_positions(me);
+  const blender::Span<blender::float3> me_positions = me->vert_positions();
   const blender::Span<blender::int2> me_edges = me->edges();
-  const float(*result_positions)[3] = BKE_mesh_vert_positions(result);
+  const blender::Span<blender::float3> result_positions = result->vert_positions();
+
   const blender::Span<blender::int2> result_edges = result->edges();
 
-  if (((result == me) || (me_positions == result_positions) ||
+  if (((result == me) || (me_positions.data() == result_positions.data()) ||
        (me_edges.data() == result_edges.data())) &&
       (dtmd->data_types & DT_TYPES_AFFECT_MESH))
   {

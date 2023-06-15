@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2022 Blender Foundation
 
 # Auto update existing CMake caches for new libraries.
 

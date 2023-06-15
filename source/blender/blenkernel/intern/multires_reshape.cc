@@ -70,15 +70,12 @@ bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
     return false;
   }
 
-  int num_deformed_verts;
-  float(*deformed_verts)[3] = BKE_mesh_vert_coords_alloc(src_mesh_eval, &num_deformed_verts);
-
-  const bool result = multiresModifier_reshapeFromVertcos(
-      depsgraph, dst, mmd, deformed_verts, num_deformed_verts);
-
-  MEM_freeN(deformed_verts);
-
-  return result;
+  return multiresModifier_reshapeFromVertcos(
+      depsgraph,
+      dst,
+      mmd,
+      reinterpret_cast<const float(*)[3]>(src_mesh_eval->vert_positions().data()),
+      src_mesh_eval->totvert);
 }
 
 /** \} */
