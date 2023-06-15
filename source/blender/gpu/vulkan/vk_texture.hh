@@ -10,6 +10,7 @@
 
 #include "gpu_texture_private.hh"
 
+#include "vk_bindable_resource.hh"
 #include "vk_context.hh"
 #include "vk_image_view.hh"
 
@@ -17,7 +18,7 @@ namespace blender::gpu {
 
 class VKSampler;
 
-class VKTexture : public Texture {
+class VKTexture : public Texture, public VKBindableResource {
   VkImage vk_image_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
 
@@ -60,8 +61,7 @@ class VKTexture : public Texture {
   /* TODO(fclem): Legacy. Should be removed at some point. */
   uint gl_bindcode_get() const override;
 
-  void bind(int unit, VKSampler &sampler);
-  void image_bind(int location);
+  void bind(int location, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
 
   VkImage vk_image_handle() const
   {
@@ -149,9 +149,14 @@ class VKTexture : public Texture {
   /** \} */
 };
 
-static inline VKTexture *unwrap(Texture *tex)
+BLI_INLINE VKTexture *unwrap(Texture *tex)
 {
   return static_cast<VKTexture *>(tex);
+}
+
+BLI_INLINE Texture *wrap(VKTexture *texture)
+{
+  return static_cast<Texture *>(texture);
 }
 
 }  // namespace blender::gpu

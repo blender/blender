@@ -272,7 +272,7 @@ static void rna_Curve_texspace_set(Main * /*bmain*/, Scene * /*scene*/, PointerR
 static int rna_Curve_texspace_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   Curve *cu = static_cast<Curve *>(ptr->data);
-  return (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) ? 0 : PROP_EDITABLE;
+  return (cu->texspace_flag & CU_TEXSPACE_FLAG_AUTO) ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
 static void rna_Curve_texspace_location_get(PointerRNA *ptr, float *values)

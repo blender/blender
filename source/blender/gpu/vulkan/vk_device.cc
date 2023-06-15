@@ -8,7 +8,12 @@
 
 #include "vk_device.hh"
 #include "vk_backend.hh"
+#include "vk_context.hh"
 #include "vk_memory.hh"
+#include "vk_state_manager.hh"
+#include "vk_storage_buffer.hh"
+#include "vk_texture.hh"
+#include "vk_vertex_buffer.hh"
 
 #include "GHOST_C-api.h"
 
@@ -16,6 +21,7 @@ namespace blender::gpu {
 
 void VKDevice::deinit()
 {
+  sampler_.free();
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
   debugging_tools_.deinit(vk_instance_);
@@ -49,6 +55,8 @@ void VKDevice::init(void *ghost_context)
   init_debug_callbacks();
   init_memory_allocator();
   init_descriptor_pools();
+
+  sampler_.create();
 
   debug::object_label(device_get(), "LogicalDevice");
   debug::object_label(queue_get(), "GenericQueue");
@@ -175,6 +183,26 @@ std::string VKDevice::driver_version() const
          std::to_string(VK_VERSION_MINOR(driver_version)) + "." +
          std::to_string(VK_VERSION_PATCH(driver_version));
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Resource management
+ * \{ */
+
+void VKDevice::context_register(VKContext &context)
+{
+  contexts_.append(std::reference_wrapper(context));
+}
+
+void VKDevice::context_unregister(VKContext &context)
+{
+  contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
+}
+const Vector<std::reference_wrapper<VKContext>> &VKDevice::contexts_get() const
+{
+  return contexts_;
+};
 
 /** \} */
 

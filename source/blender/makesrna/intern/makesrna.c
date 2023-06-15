@@ -4112,7 +4112,8 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
           prop->totarraylength);
   fprintf(f,
           "\t%s%s, %d, %s, %s, %s, %s, %s,\n",
-          (prop->flag & PROP_CONTEXT_UPDATE) ? "(UpdateFunc)" : "",
+          /* NOTE: void cast is needed to quiet function cast warning in C++. */
+          (prop->flag & PROP_CONTEXT_UPDATE) ? "(UpdateFunc)(void *)" : "",
           rna_function_string(prop->update),
           prop->noteflag,
           rna_function_string(prop->editable),

@@ -1230,7 +1230,7 @@ static int rna_3DViewShading_type_get(PointerRNA *ptr)
     return shading->type;
   }
   else if (BKE_scene_uses_blender_workbench(scene)) {
-    return (shading->type == OB_MATERIAL) ? OB_SOLID : shading->type;
+    return (shading->type == OB_MATERIAL) ? int(OB_SOLID) : shading->type;
   }
   else {
     if (shading->type == OB_RENDER && !(type && type->view_draw)) {
@@ -2710,7 +2710,7 @@ int rna_FileSelectParams_filename_editable(struct PointerRNA *ptr, const char **
     return 0;
   }
 
-  return params ? PROP_EDITABLE : 0;
+  return params ? int(PROP_EDITABLE) : 0;
 }
 
 static bool rna_FileSelectParams_use_lib_get(PointerRNA *ptr)
@@ -2952,7 +2952,7 @@ static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const 
 {
   FSMenuEntry *fsm = static_cast<FSMenuEntry *>(ptr->data);
 
-  return fsm->save ? PROP_EDITABLE : 0;
+  return fsm->save ? int(PROP_EDITABLE) : 0;
 }
 
 static int rna_FileBrowser_FSMenuEntry_icon_get(PointerRNA *ptr)
