@@ -466,47 +466,47 @@ struct uiHandleButtonData {
 };
 
 struct uiAfterFunc {
-  uiAfterFunc *next = nullptr, *prev = nullptr;
+  uiAfterFunc *next, *prev;
 
-  uiButHandleFunc func = nullptr;
-  void *func_arg1 = nullptr;
-  void *func_arg2 = nullptr;
+  uiButHandleFunc func;
+  void *func_arg1;
+  void *func_arg2;
   /** C++ version of #func above, without need for void pointer arguments. */
   std::function<void(bContext &)> apply_func;
 
-  uiButHandleNFunc funcN = nullptr;
-  void *func_argN = nullptr;
+  uiButHandleNFunc funcN;
+  void *func_argN;
 
-  uiButHandleRenameFunc rename_func = nullptr;
-  void *rename_arg1 = nullptr;
-  void *rename_orig = nullptr;
+  uiButHandleRenameFunc rename_func;
+  void *rename_arg1;
+  void *rename_orig;
 
-  uiBlockHandleFunc handle_func = nullptr;
-  void *handle_func_arg = nullptr;
-  int retval = 0;
+  uiBlockHandleFunc handle_func;
+  void *handle_func_arg;
+  int retval;
 
-  uiMenuHandleFunc butm_func = nullptr;
-  void *butm_func_arg = nullptr;
-  int a2 = 0;
+  uiMenuHandleFunc butm_func;
+  void *butm_func_arg;
+  int a2;
 
-  wmOperator *popup_op = nullptr;
-  wmOperatorType *optype = nullptr;
+  wmOperator *popup_op;
+  wmOperatorType *optype;
   wmOperatorCallContext opcontext;
-  PointerRNA *opptr = nullptr;
+  PointerRNA *opptr;
 
-  PointerRNA rnapoin = {};
-  PropertyRNA *rnaprop = nullptr;
+  PointerRNA rnapoin;
+  PropertyRNA *rnaprop;
 
-  void *search_arg = nullptr;
-  uiFreeArgFunc search_arg_free_fn = nullptr;
+  void *search_arg;
+  uiFreeArgFunc search_arg_free_fn;
 
-  uiBlockInteraction_CallbackData custom_interaction_callbacks = {};
-  uiBlockInteraction_Handle *custom_interaction_handle = nullptr;
+  uiBlockInteraction_CallbackData custom_interaction_callbacks;
+  uiBlockInteraction_Handle *custom_interaction_handle;
 
-  bContextStore *context = nullptr;
+  bContextStore *context;
 
-  char undostr[BKE_UNDO_STR_MAX] = "";
-  char drawstr[UI_MAX_DRAW_STR] = "";
+  char undostr[BKE_UNDO_STR_MAX];
+  char drawstr[UI_MAX_DRAW_STR];
 };
 
 static void button_activate_init(bContext *C,
@@ -755,6 +755,9 @@ static ListBase UIAfterFuncs = {nullptr, nullptr};
 static uiAfterFunc *ui_afterfunc_new()
 {
   uiAfterFunc *after = MEM_new<uiAfterFunc>(__func__);
+  /* Safety asserts to check if members were 0 initialized properly. */
+  BLI_assert(after->next == nullptr && after->prev == nullptr);
+  BLI_assert(after->undostr[0] == '\0');
 
   BLI_addtail(&UIAfterFuncs, after);
 
