@@ -10,6 +10,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector_types.hh"
 
 #include "DNA_listBase.h"
 
@@ -156,9 +157,9 @@ bool nodeLinkIsSelected(const bNodeLink *link);
 
 void nodeInternalRelink(bNodeTree *ntree, bNode *node);
 
-void nodeToView(const bNode *node, float x, float y, float *rx, float *ry);
+float2 nodeToView(const bNode *node, float2 loc);
 
-void nodeFromView(const bNode *node, float x, float y, float *rx, float *ry);
+float2 nodeFromView(const bNode *node, float2 view_loc);
 
 void nodePositionRelative(bNode *from_node,
                           const bNode *to_node,
