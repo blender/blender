@@ -6,8 +6,8 @@
  * \ingroup spnla
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
@@ -39,7 +39,7 @@
 
 #include "BLO_read_write.h"
 
-#include "nla_intern.h" /* own include */
+#include "nla_intern.hh" /* own include */
 
 /* ******************** default callbacks for nla space ***************** */
 
@@ -48,26 +48,26 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   ARegion *region;
   SpaceNla *snla;
 
-  snla = MEM_callocN(sizeof(SpaceNla), "initnla");
+  snla = MEM_cnew<SpaceNla>("initnla");
   snla->spacetype = SPACE_NLA;
 
   /* allocate DopeSheet data for NLA Editor */
-  snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
-  snla->ads->source = (ID *)scene;
+  snla->ads = MEM_cnew<bDopeSheet>("NlaEdit DopeSheet");
+  snla->ads->source = (ID *)(scene);
 
   /* set auto-snapping settings */
   snla->autosnap = SACTSNAP_FRAME;
   snla->flag = SNLA_SHOW_MARKERS;
 
   /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for nla");
+  region = MEM_cnew<ARegion>("header for nla");
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* channel list region */
-  region = MEM_callocN(sizeof(ARegion), "channel list for nla");
+  region = MEM_cnew<ARegion>("channel list for nla");
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_CHANNELS;
   region->alignment = RGN_ALIGN_LEFT;
@@ -77,21 +77,21 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
   /* ui buttons */
-  region = MEM_callocN(sizeof(ARegion), "buttons region for nla");
+  region = MEM_cnew<ARegion>("buttons region for nla");
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "main region for nla");
+  region = MEM_cnew<ARegion>("main region for nla");
 
   BLI_addtail(&snla->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
 
-  region->v2d.tot.xmin = (float)(scene->r.sfra - 10);
-  region->v2d.tot.ymin = (float)(-area->winy) / 3.0f;
-  region->v2d.tot.xmax = (float)(scene->r.efra + 10);
+  region->v2d.tot.xmin = float(scene->r.sfra - 10);
+  region->v2d.tot.ymin = float(-area->winy) / 3.0f;
+  region->v2d.tot.xmax = float(scene->r.efra + 10);
   region->v2d.tot.ymax = 0.0f;
 
   region->v2d.cur = region->v2d.tot;
@@ -111,13 +111,13 @@ static SpaceLink *nla_create(const ScrArea *area, const Scene *scene)
   region->v2d.align = V2D_ALIGN_NO_POS_Y;
   region->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
 
-  return (SpaceLink *)snla;
+  return reinterpret_cast<SpaceLink *>(snla);
 }
 
 /* Doesn't free the space-link itself. */
 static void nla_free(SpaceLink *sl)
 {
-  SpaceNla *snla = (SpaceNla *)sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
 
   if (snla->ads) {
     BLI_freelistN(&snla->ads->chanbase);
@@ -128,13 +128,13 @@ static void nla_free(SpaceLink *sl)
 /* spacetype; init callback */
 static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
-  SpaceNla *snla = (SpaceNla *)area->spacedata.first;
+  SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
 
   /* init dopesheet data if non-existent (i.e. for old files) */
-  if (snla->ads == NULL) {
-    snla->ads = MEM_callocN(sizeof(bDopeSheet), "NlaEdit DopeSheet");
+  if (snla->ads == nullptr) {
+    snla->ads = MEM_cnew<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
-    snla->ads->source = win ? (ID *)WM_window_get_active_scene(win) : NULL;
+    snla->ads->source = win ? reinterpret_cast<ID *>(WM_window_get_active_scene(win)) : nullptr;
   }
 
   ED_area_tag_refresh(area);
@@ -142,12 +142,12 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 
 static SpaceLink *nla_duplicate(SpaceLink *sl)
 {
-  SpaceNla *snlan = MEM_dupallocN(sl);
+  SpaceNla *snlan = static_cast<SpaceNla *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
-  snlan->ads = MEM_dupallocN(snlan->ads);
+  snlan->ads = static_cast<bDopeSheet *>(MEM_dupallocN(snlan->ads));
 
-  return (SpaceLink *)snlan;
+  return reinterpret_cast<SpaceLink *>(snlan);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -195,7 +195,7 @@ static void nla_channel_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -274,11 +274,11 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
   ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, NULL);
+  UI_view2d_scrollers_draw(v2d, nullptr);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void nla_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void nla_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -403,7 +403,7 @@ static void nla_main_region_listener(const wmRegionListenerParams *params)
 
 static void nla_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
@@ -412,11 +412,10 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
-  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = region,
-      .user_data = region,
-      .notify = ED_region_do_msg_notify_tag_redraw,
-  };
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw;
+  msg_sub_value_region_tag_redraw.owner = region;
+  msg_sub_value_region_tag_redraw.user_data = region;
+  msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   /* Timeline depends on scene properties. */
   {
@@ -481,7 +480,7 @@ static void nla_channel_region_listener(const wmRegionListenerParams *params)
 
 static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
   ARegion *region = params->region;
@@ -489,11 +488,10 @@ static void nla_channel_region_message_subscribe(const wmRegionMessageSubscribeP
   PointerRNA ptr;
   RNA_pointer_create(&screen->id, &RNA_SpaceNLA, area->spacedata.first, &ptr);
 
-  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = region,
-      .user_data = region,
-      .notify = ED_region_do_msg_notify_tag_redraw,
-  };
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw;
+  msg_sub_value_region_tag_redraw.owner = region;
+  msg_sub_value_region_tag_redraw.user_data = region;
+  msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   /* All dopesheet filter settings, etc. affect the drawing of this editor,
    * so just whitelist the entire struct for updates
@@ -553,28 +551,28 @@ static void nla_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void nla_id_remap(ScrArea *UNUSED(area),
-                         SpaceLink *slink,
-                         const struct IDRemapper *mappings)
+static void nla_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
-  SpaceNla *snla = (SpaceNla *)slink;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(slink);
 
-  if (snla->ads == NULL) {
+  if (snla->ads == nullptr) {
     return;
   }
-  BKE_id_remapper_apply(mappings, (ID **)&snla->ads->filter_grp, ID_REMAP_APPLY_DEFAULT);
-  BKE_id_remapper_apply(mappings, (ID **)&snla->ads->source, ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(
+      mappings, reinterpret_cast<ID **>(&snla->ads->filter_grp), ID_REMAP_APPLY_DEFAULT);
+  BKE_id_remapper_apply(
+      mappings, reinterpret_cast<ID **>(&snla->ads->source), ID_REMAP_APPLY_DEFAULT);
 }
 
 static void nla_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
 {
-  SpaceNla *snla = (SpaceNla *)sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
   BLO_read_data_address(reader, &snla->ads);
 }
 
 static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
-  SpaceNla *snla = (SpaceNla *)sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
   bDopeSheet *ads = snla->ads;
 
   if (ads) {
@@ -585,7 +583,7 @@ static void nla_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, Spac
 
 static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
-  SpaceNla *snla = (SpaceNla *)sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(sl);
 
   BLO_write_struct(writer, SpaceNla, snla);
   if (snla->ads) {
@@ -595,7 +593,7 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_nla(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype nla");
+  SpaceType *st = MEM_cnew<SpaceType>("spacetype nla");
   ARegionType *art;
 
   st->spaceid = SPACE_NLA;
@@ -614,7 +612,7 @@ void ED_spacetype_nla(void)
   st->blend_write = nla_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
+  art = MEM_cnew<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = nla_main_region_init;
   art->draw = nla_main_region_draw;
@@ -626,7 +624,7 @@ void ED_spacetype_nla(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
+  art = MEM_cnew<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_HEADER;
@@ -637,7 +635,7 @@ void ED_spacetype_nla(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: channels */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
+  art = MEM_cnew<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_CHANNELS;
   art->prefsizex = 200;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
@@ -650,7 +648,7 @@ void ED_spacetype_nla(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: UI buttons */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype nla region");
+  art = MEM_cnew<ARegionType>("spacetype nla region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
