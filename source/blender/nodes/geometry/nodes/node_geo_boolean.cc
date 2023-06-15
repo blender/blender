@@ -17,8 +17,9 @@ namespace blender::nodes::node_geo_boolean_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Mesh 1").only_realized_data().supported_type(
-      GEO_COMPONENT_TYPE_MESH);
-  b.add_input<decl::Geometry>("Mesh 2").multi_input().supported_type(GEO_COMPONENT_TYPE_MESH);
+      GeometryComponent::Type::Mesh);
+  b.add_input<decl::Geometry>("Mesh 2").multi_input().supported_type(
+      GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Self Intersection");
   b.add_input<decl::Bool>("Hole Tolerant");
   b.add_output<decl::Geometry>("Mesh").propagate_all();

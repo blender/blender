@@ -9,7 +9,6 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_geometry_set.h"
 #include "BKE_volume.h"
 
 #include "DNA_node_types.h"
@@ -25,7 +24,7 @@ namespace blender::nodes::node_geo_mean_filter_sdf_volume_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
-      .supported_type(GEO_COMPONENT_TYPE_VOLUME)
+      .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Int>("Iterations").min(1).max(256).default_value(1);
   b.add_input<decl::Int>("Width").min(0).default_value(1);

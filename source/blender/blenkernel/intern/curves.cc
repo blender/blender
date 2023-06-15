@@ -231,7 +231,7 @@ Curves *BKE_curves_copy_for_eval(const Curves *curves_src)
 static void curves_evaluate_modifiers(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *object,
-                                      GeometrySet &geometry_set)
+                                      blender::bke::GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -267,6 +267,8 @@ static void curves_evaluate_modifiers(Depsgraph *depsgraph,
 
 void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
+  using namespace blender;
+  using namespace blender::bke;
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
 
@@ -279,7 +281,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
      * on evaluated curves. */
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
-    edit_component.curves_edit_hints_ = std::make_unique<blender::bke::CurvesEditHints>(
+    edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
         *static_cast<const Curves *>(DEG_get_original_object(object)->data));
   }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
@@ -287,7 +289,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   /* Assign evaluated object. */
   Curves *curves_eval = const_cast<Curves *>(geometry_set.get_curves_for_read());
   if (curves_eval == nullptr) {
-    curves_eval = blender::bke::curves_new_nomain(0, 0);
+    curves_eval = curves_new_nomain(0, 0);
     BKE_object_eval_assign_data(object, &curves_eval->id, true);
   }
   else {

@@ -22,7 +22,7 @@ using geometry::ReverseUVSampler;
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
 
   b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
   b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();

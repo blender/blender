@@ -13,4 +13,6 @@ namespace blender::bke {
  */
 GeometrySet object_get_evaluated_geometry_set(const Object &object);
 
+bool object_has_geometry_set_instances(const Object &object);
+
 }  // namespace blender::bke

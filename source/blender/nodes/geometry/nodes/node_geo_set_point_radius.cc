@@ -10,7 +10,7 @@ namespace blender::nodes::node_geo_set_point_radius_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Points").supported_type(GEO_COMPONENT_TYPE_POINT_CLOUD);
+  b.add_input<decl::Geometry>("Points").supported_type(GeometryComponent::Type::PointCloud);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Float>("Radius").default_value(0.05f).min(0.0f).field_on_all().subtype(
       PROP_DISTANCE);

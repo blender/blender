@@ -718,7 +718,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
 
 static void modifyGeometry(ModifierData *md,
                            const ModifierEvalContext *ctx,
-                           GeometrySet &geometry_set)
+                           bke::GeometrySet &geometry_set)
 {
   using namespace blender;
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
@@ -832,11 +832,12 @@ static void modifyGeometry(ModifierData *md,
 
 static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-  GeometrySet geometry_set = GeometrySet::create_with_mesh(mesh, GeometryOwnershipType::Editable);
+  bke::GeometrySet geometry_set = bke::GeometrySet::create_with_mesh(
+      mesh, bke::GeometryOwnershipType::Editable);
 
   modifyGeometry(md, ctx, geometry_set);
 
-  Mesh *new_mesh = geometry_set.get_component_for_write<MeshComponent>().release();
+  Mesh *new_mesh = geometry_set.get_component_for_write<bke::MeshComponent>().release();
   if (new_mesh == nullptr) {
     return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
@@ -845,7 +846,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
 static void modifyGeometrySet(ModifierData *md,
                               const ModifierEvalContext *ctx,
-                              GeometrySet *geometry_set)
+                              bke::GeometrySet *geometry_set)
 {
   modifyGeometry(md, ctx, *geometry_set);
 }

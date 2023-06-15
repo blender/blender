@@ -55,10 +55,10 @@ NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry")
-      .supported_type({GEO_COMPONENT_TYPE_MESH,
-                       GEO_COMPONENT_TYPE_POINT_CLOUD,
-                       GEO_COMPONENT_TYPE_CURVE,
-                       GEO_COMPONENT_TYPE_INSTANCES});
+      .supported_type({GeometryComponent::Type::Mesh,
+                       GeometryComponent::Type::PointCloud,
+                       GeometryComponent::Type::Curve,
+                       GeometryComponent::Type::Instance});
 
   b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
   b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
@@ -146,7 +146,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 }
 
 static bool component_is_available(const GeometrySet &geometry,
-                                   const GeometryComponentType type,
+                                   const GeometryComponent::Type type,
                                    const eAttrDomain domain)
 {
   if (!geometry.has(type)) {
@@ -161,11 +161,12 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
-  static const Array<GeometryComponentType> supported_types = {GEO_COMPONENT_TYPE_MESH,
-                                                               GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                                               GEO_COMPONENT_TYPE_CURVE,
-                                                               GEO_COMPONENT_TYPE_INSTANCES};
-  for (const GeometryComponentType src_type : supported_types) {
+  static const Array<GeometryComponent::Type> supported_types = {
+      GeometryComponent::Type::Mesh,
+      GeometryComponent::Type::PointCloud,
+      GeometryComponent::Type::Curve,
+      GeometryComponent::Type::Instance};
+  for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
       return geometry.get_component_for_read(src_type);
     }
