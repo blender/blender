@@ -1477,14 +1477,6 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                                              ListBase *hit_list,
                                              bool use_occlusion_test)
 {
-  if (use_occlusion_test && XRAY_ENABLED(v3d) && (snap_to_flag & SCE_SNAP_MODE_FACE)) {
-    if (snap_to_flag != SCE_SNAP_MODE_FACE) {
-      /* In theory everything is visible in X-Ray except faces. */
-      snap_to_flag &= ~SCE_SNAP_MODE_FACE;
-      use_occlusion_test = false;
-    }
-  }
-
   if (snap_to_flag & (SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_FACE_NEAREST)) {
     if (prev_co) {
       copy_v3_v3(sctx->runtime.curr_co, prev_co);
@@ -1705,6 +1697,14 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   eSnapMode retval = SCE_SNAP_MODE_NONE;
 
   bool use_occlusion_test = params->use_occlusion_test;
+  if (use_occlusion_test && XRAY_ENABLED(v3d)) {
+    if (snap_to_flag != SCE_SNAP_MODE_FACE) {
+      /* In theory everything is visible in X-Ray except faces. */
+      snap_to_flag &= ~SCE_SNAP_MODE_FACE;
+      use_occlusion_test = false;
+    }
+  }
+
   if (use_occlusion_test || (snap_to_flag & SCE_SNAP_MODE_FACE)) {
     if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
                                          region,
