@@ -903,7 +903,7 @@ void drawPropCircle(const bContext *C, TransInfo *t)
 
       const float fac_scale = xscale / yscale;
       GPU_matrix_scale_2f(1.0f, fac_scale);
-      GPU_matrix_translate_2f(0.0f,  (t->center_global[1] / fac_scale) - t->center_global[1]);
+      GPU_matrix_translate_2f(0.0f, (t->center_global[1] / fac_scale) - t->center_global[1]);
     }
 
     eGPUDepthTest depth_test_enabled = GPU_depth_test_get();
