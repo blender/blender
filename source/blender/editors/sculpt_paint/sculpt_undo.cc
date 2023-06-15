@@ -619,10 +619,9 @@ static bool sculpt_undo_restore_face_sets(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Mesh *me = BKE_object_get_original_mesh(ob);
   SculptSession *ss = ob->sculpt;
 
-  ss->face_sets = BKE_sculpt_face_sets_ensure(me);
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   BKE_pbvh_face_sets_set(ss->pbvh, ss->face_sets);
 
   bool modified = false;
