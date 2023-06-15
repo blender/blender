@@ -10,12 +10,6 @@
 
 #define MAX_CLIPPLANE_LEN 3
 
-enum eViewProj {
-  VIEW_PROJ_NONE = -1,
-  VIEW_PROJ_ORTHO = 0,
-  VIEW_PROJ_PERSP = -1,
-};
-
 /* -------------------------------------------------------------------- */
 /** \name Internal Data Types
  * \{ */
@@ -58,8 +52,6 @@ struct SnapData_EditMesh {
 struct SnapObjectContext {
   struct Scene *scene;
 
-  int flag;
-
   blender::Map<const BMEditMesh *, std::unique_ptr<SnapData_EditMesh>> editmesh_caches;
 
   /* Filter data, returns true to check this value */
@@ -77,14 +69,27 @@ struct SnapObjectContext {
     const ARegion *region;
     const View3D *v3d;
 
+    eSnapMode snap_to_flag;
+    SnapObjectParams params;
+
+    float ray_start[3];
+    float ray_dir[3];
     float mval[2];
+
+    float init_co[3];
+    float curr_co[3];
+
     float pmat[4][4];  /* perspective matrix */
     float win_size[2]; /* win x and y */
-    enum eViewProj view_proj;
     float clip_plane[MAX_CLIPPLANE_LEN][4];
-    short clip_plane_len;
-    eSnapMode snap_to_flag;
+    int clip_plane_len;
+
+    /* read/write */
+    uint object_index;
+
+    bool is_persp;
     bool has_occlusion_plane; /* Ignore plane of occlusion in curves. */
+    bool use_occlusion_test_edit;
   } runtime;
 
   /* Output. */
@@ -104,7 +109,8 @@ struct SnapObjectContext {
     /* Snapped data. */
     ID *data;
 
-    float dist_sq;
+    float ray_depth_max;
+    float dist_px_sq;
 
     bool is_edit;
   } ret;
@@ -203,7 +209,6 @@ void cb_snap_edge(void *userdata,
                   BVHTreeNearest *nearest);
 
 bool nearest_world_tree(SnapObjectContext *sctx,
-                        const struct SnapObjectParams *params,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
                         void *treedata,
@@ -217,57 +222,20 @@ bool nearest_world_tree(SnapObjectContext *sctx,
 
 /* transform_snap_object_editmesh.cc */
 
-bool raycastEditMesh(SnapObjectContext *sctx,
-                     const struct SnapObjectParams *params,
-                     const float ray_start[3],
-                     const float ray_dir[3],
-                     Object *ob_eval,
-                     BMEditMesh *em,
-                     const float obmat[4][4],
-                     const uint ob_index,
-                     /* read/write args */
-                     float *ray_depth,
-                     /* return args */
-                     float r_loc[3],
-                     float r_no[3],
-                     int *r_index,
-                     ListBase *r_hit_list);
+eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
+                               Object *ob_eval,
+                               ID *id,
+                               const float obmat[4][4],
+                               eSnapMode snap_to_flag,
+                               bool use_hide);
 
 eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
-                                const SnapObjectParams *params,
-                                BMEditMesh *em,
+                                Object *ob_eval,
+                                ID *id,
                                 const float obmat[4][4],
-                                float clip_planes_local[MAX_CLIPPLANE_LEN][4],
-                                /* read/write args */
-                                float *dist_px,
-                                /* return args */
-                                float r_loc[3],
-                                float r_no[3],
-                                int *r_index);
-
-eSnapMode snapEditMesh(struct SnapObjectContext *sctx,
-                       const struct SnapObjectParams *params,
-                       struct Object *ob_eval,
-                       struct BMEditMesh *em,
-                       const float obmat[4][4],
-                       /* read/write args */
-                       float *dist_px,
-                       /* return args */
-                       float r_loc[3],
-                       float r_no[3],
-                       int *r_index);
-
-bool nearest_world_editmesh(struct SnapObjectContext *sctx,
-                            const struct SnapObjectParams *params,
-                            struct Object *ob_eval,
-                            struct BMEditMesh *em,
-                            const float (*obmat)[4],
-                            const float init_co[3],
-                            const float curr_co[3],
-                            float *r_dist_sq,
-                            float *r_loc,
-                            float *r_no,
-                            int *r_index);
+                                eSnapMode snap_to_flag,
+                                int polygon,
+                                const float clip_planes_local[MAX_CLIPPLANE_LEN][4]);
 
 void nearest2d_data_init_editmesh(struct BMEditMesh *em,
                                   bool is_persp,
@@ -276,60 +244,22 @@ void nearest2d_data_init_editmesh(struct BMEditMesh *em,
 
 /* transform_snap_object_mesh.cc */
 
-bool raycastMesh(const struct SnapObjectParams *params,
-                 const float ray_start[3],
-                 const float ray_dir[3],
-                 struct Object *ob_eval,
-                 const struct Mesh *me_eval,
-                 const float obmat[4][4],
-                 const uint ob_index,
-                 bool use_hide,
-                 /* read/write args */
-                 float *ray_depth,
-                 /* return args */
-                 float r_loc[3],
-                 float r_no[3],
-                 int *r_index,
-                 struct ListBase *r_hit_list);
+eSnapMode snap_object_mesh(SnapObjectContext *sctx,
+                           Object *ob_eval,
+                           ID *id,
+                           const float obmat[4][4],
+                           eSnapMode snap_to_flag,
+                           bool use_hide);
 
-bool nearest_world_mesh(SnapObjectContext *sctx,
-                        const SnapObjectParams *params,
-                        const Mesh *me_eval,
-                        const float (*obmat)[4],
-                        bool use_hide,
-                        const float init_co[3],
-                        const float curr_co[3],
-                        float *r_dist_sq,
-                        float *r_loc,
-                        float *r_no,
-                        int *r_index);
+eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
+                            Object *ob_eval,
+                            ID *id,
+                            const float obmat[4][4],
+                            eSnapMode snap_to_flag,
+                            int polygon,
+                            const float clip_planes_local[MAX_CLIPPLANE_LEN][4]);
 
 void nearest2d_data_init_mesh(const Mesh *mesh,
                               bool is_persp,
                               bool use_backface_culling,
                               Nearest2dUserData *r_nearest2d);
-
-eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
-                            const SnapObjectParams *params,
-                            const Mesh *mesh,
-                            const float obmat[4][4],
-                            float clip_planes_local[MAX_CLIPPLANE_LEN][4],
-                            /* read/write args */
-                            float *dist_px,
-                            /* return args */
-                            float r_loc[3],
-                            float r_no[3],
-                            int *r_index);
-
-eSnapMode snapMesh(SnapObjectContext *sctx,
-                   const SnapObjectParams *params,
-                   Object *ob_eval,
-                   const Mesh *me_eval,
-                   const float obmat[4][4],
-                   bool use_hide,
-                   /* read/write args */
-                   float *dist_px,
-                   /* return args */
-                   float r_loc[3],
-                   float r_no[3],
-                   int *r_index);
