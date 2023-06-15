@@ -466,45 +466,47 @@ struct uiHandleButtonData {
 };
 
 struct uiAfterFunc {
-  uiAfterFunc *next, *prev;
+  uiAfterFunc *next = nullptr, *prev = nullptr;
 
-  uiButHandleFunc func;
-  void *func_arg1;
-  void *func_arg2;
+  uiButHandleFunc func = nullptr;
+  void *func_arg1 = nullptr;
+  void *func_arg2 = nullptr;
+  /** C++ version of #func above, without need for void pointer arguments. */
+  std::function<void(bContext &)> apply_func;
 
-  uiButHandleNFunc funcN;
-  void *func_argN;
+  uiButHandleNFunc funcN = nullptr;
+  void *func_argN = nullptr;
 
-  uiButHandleRenameFunc rename_func;
-  void *rename_arg1;
-  void *rename_orig;
+  uiButHandleRenameFunc rename_func = nullptr;
+  void *rename_arg1 = nullptr;
+  void *rename_orig = nullptr;
 
-  uiBlockHandleFunc handle_func;
-  void *handle_func_arg;
-  int retval;
+  uiBlockHandleFunc handle_func = nullptr;
+  void *handle_func_arg = nullptr;
+  int retval = 0;
 
-  uiMenuHandleFunc butm_func;
-  void *butm_func_arg;
-  int a2;
+  uiMenuHandleFunc butm_func = nullptr;
+  void *butm_func_arg = nullptr;
+  int a2 = 0;
 
-  wmOperator *popup_op;
-  wmOperatorType *optype;
+  wmOperator *popup_op = nullptr;
+  wmOperatorType *optype = nullptr;
   wmOperatorCallContext opcontext;
-  PointerRNA *opptr;
+  PointerRNA *opptr = nullptr;
 
-  PointerRNA rnapoin;
-  PropertyRNA *rnaprop;
+  PointerRNA rnapoin = {};
+  PropertyRNA *rnaprop = nullptr;
 
-  void *search_arg;
-  uiFreeArgFunc search_arg_free_fn;
+  void *search_arg = nullptr;
+  uiFreeArgFunc search_arg_free_fn = nullptr;
 
-  uiBlockInteraction_CallbackData custom_interaction_callbacks;
-  uiBlockInteraction_Handle *custom_interaction_handle;
+  uiBlockInteraction_CallbackData custom_interaction_callbacks = {};
+  uiBlockInteraction_Handle *custom_interaction_handle = nullptr;
 
-  bContextStore *context;
+  bContextStore *context = nullptr;
 
-  char undostr[BKE_UNDO_STR_MAX];
-  char drawstr[UI_MAX_DRAW_STR];
+  char undostr[BKE_UNDO_STR_MAX] = "";
+  char drawstr[UI_MAX_DRAW_STR] = "";
 };
 
 static void button_activate_init(bContext *C,
@@ -752,7 +754,7 @@ static ListBase UIAfterFuncs = {nullptr, nullptr};
 
 static uiAfterFunc *ui_afterfunc_new()
 {
-  uiAfterFunc *after = MEM_cnew<uiAfterFunc>(__func__);
+  uiAfterFunc *after = MEM_new<uiAfterFunc>(__func__);
 
   BLI_addtail(&UIAfterFuncs, after);
 
@@ -809,8 +811,9 @@ static void popup_check(bContext *C, wmOperator *op)
  */
 static bool ui_afterfunc_check(const uiBlock *block, const uiBut *but)
 {
-  return (but->func || but->funcN || but->rename_func || but->optype || but->rnaprop ||
-          block->handle_func || (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
+  return (but->func || but->apply_func || but->funcN || but->rename_func || but->optype ||
+          but->rnaprop || block->handle_func ||
+          (but->type == UI_BTYPE_BUT_MENU && block->butm_func) ||
           (block->handle && block->handle->popup_op));
 }
 
@@ -838,6 +841,8 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 
   after->func_arg1 = but->func_arg1;
   after->func_arg2 = but->func_arg2;
+
+  after->apply_func = but->apply_func;
 
   after->funcN = but->funcN;
   after->func_argN = (but->func_argN) ? MEM_dupallocN(but->func_argN) : nullptr;
@@ -1008,7 +1013,8 @@ static void ui_apply_but_funcs_after(bContext *C)
 
   LISTBASE_FOREACH_MUTABLE (uiAfterFunc *, afterf, &funcs) {
     uiAfterFunc after = *afterf; /* Copy to avoid memory leak on exit(). */
-    BLI_freelinkN(&funcs, afterf);
+    BLI_remlink(&funcs, afterf);
+    MEM_delete(afterf);
 
     if (after.context) {
       CTX_store_set(C, after.context);
@@ -1049,6 +1055,9 @@ static void ui_apply_but_funcs_after(bContext *C)
 
     if (after.func) {
       after.func(C, after.func_arg1, after.func_arg2);
+    }
+    if (after.apply_func) {
+      after.apply_func(*C);
     }
     if (after.funcN) {
       after.funcN(C, after.func_argN, after.func_arg2);
