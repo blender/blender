@@ -3862,9 +3862,6 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
       max = float3(0);
     }
   }
-  else if (ob->runtime.curve_cache) {
-    BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
-  }
   else {
     return false;
   }
