@@ -398,6 +398,10 @@ class AlembicObject : public Node {
                           AlembicProcedural *proc,
                           const Alembic::AbcGeom::ICurvesSchema &schema,
                           Progress &progress);
+  void load_data_in_cache(CachedData &cached_data,
+                          AlembicProcedural *proc,
+                          const Alembic::AbcGeom::IPointsSchema &schema,
+                          Progress &progress);
 
   bool has_data_loaded() const;
 

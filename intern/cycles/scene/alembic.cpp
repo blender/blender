@@ -611,6 +611,41 @@ void AlembicObject::load_data_in_cache(CachedData &cached_data,
   data_loaded = true;
 }
 
+void AlembicObject::load_data_in_cache(CachedData &cached_data,
+                                       AlembicProcedural *proc,
+                                       const IPointsSchema &schema,
+                                       Progress &progress)
+{
+  /* Only load data for the original Geometry. */
+  if (instance_of) {
+    return;
+  }
+
+  cached_data.clear();
+
+  PointsSchemaData data;
+  data.positions = schema.getPositionsProperty();
+  data.radiuses = schema.getWidthsParam();
+  data.velocities = schema.getVelocitiesProperty();
+  data.time_sampling = schema.getTimeSampling();
+  data.num_samples = schema.getNumSamples();
+  data.default_radius = proc->get_default_radius();
+  data.radius_scale = get_radius_scale();
+
+  read_geometry_data(proc, cached_data, data, progress);
+
+  if (progress.get_cancel()) {
+    return;
+  }
+
+  /* Use the schema as the base compound property to also be able to look for top level properties.
+   */
+  read_attributes(proc, cached_data, schema, {}, get_requested_attributes(), progress);
+
+  cached_data.invalidate_last_loaded_time(true);
+  data_loaded = true;
+}
+
 void AlembicObject::setup_transform_cache(CachedData &cached_data, float scale)
 {
   cached_data.transforms.clear();

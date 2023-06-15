@@ -663,8 +663,8 @@ static void read_points_data(CachedData &cached_data, const PointsSchemaData &da
 
     if (do_radius) {
       radius = (*radiuses)[offset + i];
-      a_radius.push_back_slow(radius);
     }
+    a_radius.push_back_slow(radius * data.radius_scale);
 
     a_shader.push_back_slow((int)0);
   }
