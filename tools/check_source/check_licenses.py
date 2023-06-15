@@ -11,7 +11,6 @@ This can be activated by calling "make check_licenses" from Blenders root direct
 """
 
 import os
-import sys
 import argparse
 import datetime
 import re
@@ -23,7 +22,6 @@ from typing import (
     Dict,
     Generator,
     List,
-    Optional,
     Tuple,
 )
 
@@ -58,7 +56,7 @@ SPDX_IDENTIFIER_FILE = os.path.join(
 SPDX_IDENTIFIER_UNKNOWN = "*Unknown License*"
 
 with open(SPDX_IDENTIFIER_FILE, "r", encoding="utf-8") as fh:
-    ACCEPTABLE_LICENSES = set(l.split()[0] for l in sorted(fh) if "https://spdx.org/licenses/" in l)
+    ACCEPTABLE_LICENSES = set(line.split()[0] for line in sorted(fh) if "https://spdx.org/licenses/" in line)
 del fh
 
 
@@ -332,7 +330,7 @@ def check_contents(filepath: str, text: str) -> None:
             comment_end += 2
             comment_block = text[comment_beg + 2: comment_end - 2]
             comment_block = "\n".join(
-                [l.removeprefix(" *") for l in comment_block.split("\n")]
+                [line.removeprefix(" *") for line in comment_block.split("\n")]
             )
         elif filename_is_script_compat(filepath) or filename_is_cmake(filepath):
             comment_beg = txt_prev_bol(text, license_id_beg, 0)
@@ -341,17 +339,17 @@ def check_contents(filepath: str, text: str) -> None:
             comment_beg = txt_next_line_while_fn(
                 text,
                 comment_beg,
-                lambda l: l.startswith("#") and not l.startswith("#!/"),
+                lambda line: line.startswith("#") and not line.startswith("#!/"),
             )
             comment_end = txt_next_line_while_fn(
                 text,
                 comment_end,
-                lambda l: l.startswith("#"),
+                lambda line: line.startswith("#"),
             )
 
             comment_block = text[comment_beg:comment_end].rstrip()
             comment_block = "\n".join(
-                [l.removeprefix("# ") for l in comment_block.split("\n")]
+                [line.removeprefix("# ") for line in comment_block.split("\n")]
             )
         else:
             raise Exception("Unknown file type: {:s}".format(filepath))
