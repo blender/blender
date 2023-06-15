@@ -5,16 +5,22 @@
 #include "NOD_node_declaration.hh"
 
 #include "BKE_node_runtime.hh"
+#include "BKE_node_tree_anonymous_attributes.hh"
+#include "BKE_node_tree_dot_export.hh"
 
-#include "BLI_multi_value_map.hh"
+#include "BLI_bit_group_vector.hh"
+#include "BLI_bit_span_ops.hh"
+
 #include "BLI_resource_scope.hh"
-#include "BLI_set.hh"
-#include "BLI_stack.hh"
-#include "BLI_timeit.hh"
 
 namespace blender::bke::anonymous_attribute_inferencing {
 namespace aal = nodes::aal;
 using nodes::NodeDeclaration;
+
+static bool is_possible_field_socket(const bNodeSocket &socket)
+{
+  return ELEM(socket.type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_BOOLEAN, SOCK_INT);
+}
 
 static bool socket_is_field(const bNodeSocket &socket)
 {
@@ -30,8 +36,8 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
         return scope.construct<aal::RelationsInNode>();
       }
 
-      BLI_assert(group->runtime->anonymous_attribute_relations);
-      return *group->runtime->anonymous_attribute_relations;
+      BLI_assert(group->runtime->anonymous_attribute_inferencing);
+      return group->runtime->anonymous_attribute_inferencing->tree_relations;
     }
   }
   if (node.is_reroute()) {
@@ -110,409 +116,345 @@ Array<const aal::RelationsInNode *> get_relations_by_node(const bNodeTree &tree,
   return relations_by_node;
 }
 
-/**
- * Start at a group output socket and find all linked group inputs.
- */
-static Vector<int> find_linked_group_inputs(
-    const bNodeTree &tree,
-    const bNodeSocket &group_output_socket,
-    const FunctionRef<Vector<int>(const bNodeSocket &)> get_linked_node_inputs)
+class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeToDotOptions {
+ private:
+  const AnonymousAttributeInferencingResult &result_;
+
+ public:
+  bNodeTreeToDotOptionsForAnonymousAttributeInferencing(
+      const AnonymousAttributeInferencingResult &result)
+      : result_(result)
+  {
+  }
+
+  std::string socket_name(const bNodeSocket &socket) const
+  {
+    if (socket.type == SOCK_GEOMETRY) {
+      std::stringstream ss;
+      ss << socket.identifier << " [";
+      bits::foreach_1_index(result_.required_fields_by_geometry_socket[socket.index_in_tree()],
+                            [&](const int i) { ss << i << ","; });
+      ss << "]";
+      return ss.str();
+    }
+    else if (is_possible_field_socket(socket)) {
+      std::stringstream ss;
+      ss << socket.identifier << " [";
+      bits::foreach_1_index(result_.propagated_fields_by_socket[socket.index_in_tree()],
+                            [&](const int i) { ss << i << ","; });
+      ss << "]";
+      return ss.str();
+    }
+    return socket.identifier;
+  }
+};
+
+static AnonymousAttributeInferencingResult analyse_anonymous_attribute_usages(
+    const bNodeTree &tree)
 {
-  Set<const bNodeSocket *> found_sockets;
-  Stack<const bNodeSocket *> sockets_to_check;
+  BLI_assert(!tree.has_available_link_cycle());
 
-  Vector<int> input_indices;
+  ResourceScope scope;
+  const Array<const aal::RelationsInNode *> relations_by_node = get_relations_by_node(tree, scope);
 
-  found_sockets.add_new(&group_output_socket);
-  sockets_to_check.push(&group_output_socket);
+  Vector<FieldSource> all_field_sources;
+  Vector<GeometrySource> all_geometry_sources;
 
-  while (!sockets_to_check.is_empty()) {
-    const bNodeSocket &socket = *sockets_to_check.pop();
-    if (socket.is_input()) {
-      for (const bNodeLink *link : socket.directly_linked_links()) {
-        if (link->is_used()) {
-          const bNodeSocket &from_socket = *link->fromsock;
-          if (found_sockets.add(&from_socket)) {
-            sockets_to_check.push(&from_socket);
-          }
+  /* Find input field and geometry sources. */
+  for (const int i : tree.interface_inputs().index_range()) {
+    const bNodeSocket &interface_socket = *tree.interface_inputs()[i];
+    if (interface_socket.type == SOCK_GEOMETRY) {
+      all_geometry_sources.append_and_get_index({InputGeometrySource{i}});
+    }
+    else if (is_possible_field_socket(interface_socket)) {
+      all_field_sources.append_and_get_index({InputFieldSource{i}});
+    }
+  }
+  for (const int geometry_source_index : all_geometry_sources.index_range()) {
+    for (const int field_source_index : all_field_sources.index_range()) {
+      all_geometry_sources[geometry_source_index].field_sources.append(field_source_index);
+      all_field_sources[field_source_index].geometry_sources.append(geometry_source_index);
+    }
+  }
+
+  /* Find socket field and geometry sources. */
+  Map<const bNodeSocket *, int> field_source_by_socket;
+  Map<const bNodeSocket *, int> geometry_source_by_socket;
+  for (const bNode *node : tree.all_nodes()) {
+    const aal::RelationsInNode &relations = *relations_by_node[node->index()];
+    for (const aal::AvailableRelation &relation : relations.available_relations) {
+      const bNodeSocket &geometry_socket = node->output_socket(relation.geometry_output);
+      const bNodeSocket &field_socket = node->output_socket(relation.field_output);
+      if (!field_socket.is_available()) {
+        continue;
+      }
+      if (!field_socket.is_directly_linked()) {
+        continue;
+      }
+
+      const int field_source_index = field_source_by_socket.lookup_or_add_cb(&field_socket, [&]() {
+        return all_field_sources.append_and_get_index({SocketFieldSource{&field_socket}});
+      });
+      const int geometry_source_index = geometry_source_by_socket.lookup_or_add_cb(
+          &geometry_socket, [&]() {
+            return all_geometry_sources.append_and_get_index(
+                {SocketGeometrySource{&geometry_socket}});
+          });
+
+      all_field_sources[field_source_index].geometry_sources.append(geometry_source_index);
+      all_geometry_sources[geometry_source_index].field_sources.append(field_source_index);
+    }
+  }
+
+  const int sockets_num = tree.all_sockets().size();
+  BitGroupVector<> propagated_fields_by_socket(sockets_num, all_field_sources.size(), false);
+  BitGroupVector<> propagated_geometries_by_socket(
+      sockets_num, all_geometry_sources.size(), false);
+  BitGroupVector<> available_fields_by_geometry_socket(
+      sockets_num, all_field_sources.size(), false);
+
+  /* Insert field and geometry sources into the maps for the first inferencing pass. */
+  for (const int field_source_index : all_field_sources.index_range()) {
+    const FieldSource &field_source = all_field_sources[field_source_index];
+    if (const auto *input_field = std::get_if<InputFieldSource>(&field_source.data)) {
+      for (const bNode *node : tree.group_input_nodes()) {
+        const bNodeSocket &socket = node->output_socket(input_field->input_index);
+        propagated_fields_by_socket[socket.index_in_tree()][field_source_index].set();
+      }
+    }
+    else {
+      const auto &socket_field = std::get<SocketFieldSource>(field_source.data);
+      propagated_fields_by_socket[socket_field.socket->index_in_tree()][field_source_index].set();
+    }
+  }
+  for (const int geometry_source_index : all_geometry_sources.index_range()) {
+    const GeometrySource &geometry_source = all_geometry_sources[geometry_source_index];
+    if (const auto *input_geometry = std::get_if<InputGeometrySource>(&geometry_source.data)) {
+      for (const bNode *node : tree.group_input_nodes()) {
+        const bNodeSocket &socket = node->output_socket(input_geometry->input_index);
+        const int socket_i = socket.index_in_tree();
+        propagated_geometries_by_socket[socket_i][geometry_source_index].set();
+        for (const int field_source_index : geometry_source.field_sources) {
+          available_fields_by_geometry_socket[socket_i][field_source_index].set();
         }
       }
     }
     else {
-      const bNode &node = socket.owner_node();
-      for (const int input_index : get_linked_node_inputs(socket)) {
-        const bNodeSocket &input_socket = node.input_socket(input_index);
-        if (input_socket.is_available()) {
-          if (found_sockets.add(&input_socket)) {
-            sockets_to_check.push(&input_socket);
-          }
-        }
+      const auto &socket_geometry = std::get<SocketGeometrySource>(geometry_source.data);
+      const int socket_i = socket_geometry.socket->index_in_tree();
+      propagated_geometries_by_socket[socket_i][geometry_source_index].set();
+      for (const int field_source_index : geometry_source.field_sources) {
+        available_fields_by_geometry_socket[socket_i][field_source_index].set();
       }
     }
   }
 
-  for (const bNode *node : tree.group_input_nodes()) {
+  /* Inferencing pass from left to right to figure out where fields and geometries may be
+   * propagated to. */
+  for (const bNode *node : tree.toposort_left_to_right()) {
+    for (const bNodeSocket *socket : node->input_sockets()) {
+      if (!socket->is_available()) {
+        continue;
+      }
+      const int dst_index = socket->index_in_tree();
+      for (const bNodeLink *link : socket->directly_linked_links()) {
+        if (link->is_used()) {
+          const int src_index = link->fromsock->index_in_tree();
+          propagated_fields_by_socket[dst_index] |= propagated_fields_by_socket[src_index];
+          propagated_geometries_by_socket[dst_index] |= propagated_geometries_by_socket[src_index];
+          available_fields_by_geometry_socket[dst_index] |=
+              available_fields_by_geometry_socket[src_index];
+        }
+      }
+    }
+    const aal::RelationsInNode &relations = *relations_by_node[node->index()];
+    for (const aal::ReferenceRelation &relation : relations.reference_relations) {
+      const bNodeSocket &from_socket = node->input_socket(relation.from_field_input);
+      const bNodeSocket &to_socket = node->output_socket(relation.to_field_output);
+      if (!from_socket.is_available() || !to_socket.is_available()) {
+        continue;
+      }
+      const int src_index = from_socket.index_in_tree();
+      const int dst_index = to_socket.index_in_tree();
+      propagated_fields_by_socket[dst_index] |= propagated_fields_by_socket[src_index];
+    }
+    for (const aal::PropagateRelation &relation : relations.propagate_relations) {
+      const bNodeSocket &from_socket = node->input_socket(relation.from_geometry_input);
+      const bNodeSocket &to_socket = node->output_socket(relation.to_geometry_output);
+      if (!from_socket.is_available() || !to_socket.is_available()) {
+        continue;
+      }
+      const int src_index = from_socket.index_in_tree();
+      const int dst_index = to_socket.index_in_tree();
+      propagated_geometries_by_socket[dst_index] |= propagated_geometries_by_socket[src_index];
+      available_fields_by_geometry_socket[dst_index] |=
+          available_fields_by_geometry_socket[src_index];
+    }
+  }
+
+  BitGroupVector<> required_fields_by_geometry_socket(
+      sockets_num, all_field_sources.size(), false);
+  VectorSet<int> propagated_output_geometry_indices;
+  aal::RelationsInNode tree_relations;
+
+  /* Create #PropagateRelation, #AvailableRelation and #ReferenceRelation for the tree based on the
+   * propagated data from above. */
+  if (const bNode *group_output_node = tree.group_output_node()) {
+    for (const bNodeSocket *socket : group_output_node->input_sockets().drop_back(1)) {
+      if (socket->type == SOCK_GEOMETRY) {
+        const BoundedBitSpan propagated_geometries =
+            propagated_geometries_by_socket[socket->index_in_tree()];
+        bits::foreach_1_index(propagated_geometries, [&](const int geometry_source_index) {
+          const GeometrySource &geometry_source = all_geometry_sources[geometry_source_index];
+          if (const auto *input_geometry = std::get_if<InputGeometrySource>(&geometry_source.data))
+          {
+            tree_relations.propagate_relations.append(
+                aal::PropagateRelation{input_geometry->input_index, socket->index()});
+            propagated_output_geometry_indices.add(socket->index());
+          }
+          else {
+            [[maybe_unused]] const auto &socket_geometry = std::get<SocketGeometrySource>(
+                geometry_source.data);
+            for (const int field_source_index : geometry_source.field_sources) {
+              for (const bNodeSocket *other_socket :
+                   group_output_node->input_sockets().drop_back(1)) {
+                if (!is_possible_field_socket(*other_socket)) {
+                  continue;
+                }
+                if (propagated_fields_by_socket[other_socket->index_in_tree()][field_source_index]
+                        .test()) {
+                  tree_relations.available_relations.append(
+                      aal::AvailableRelation{other_socket->index(), socket->index()});
+                  required_fields_by_geometry_socket[socket->index_in_tree()][field_source_index]
+                      .set();
+                }
+              }
+            }
+          }
+        });
+      }
+      else if (is_possible_field_socket(*socket)) {
+        const BoundedBitSpan propagated_fields =
+            propagated_fields_by_socket[socket->index_in_tree()];
+        bits::foreach_1_index(propagated_fields, [&](const int field_source_index) {
+          const FieldSource &field_source = all_field_sources[field_source_index];
+          if (const auto *input_field = std::get_if<InputFieldSource>(&field_source.data)) {
+            tree_relations.reference_relations.append(
+                aal::ReferenceRelation{input_field->input_index, socket->index()});
+          }
+        });
+      }
+    }
+  }
+
+  /* Initialize map for second inferencing pass. */
+  BitGroupVector<> propagate_to_output_by_geometry_socket(
+      sockets_num, propagated_output_geometry_indices.size(), false);
+  for (const aal::PropagateRelation &relation : tree_relations.propagate_relations) {
+    const bNodeSocket &socket = tree.group_output_node()->input_socket(
+        relation.to_geometry_output);
+    propagate_to_output_by_geometry_socket[socket.index_in_tree()]
+                                          [propagated_output_geometry_indices.index_of(
+                                               relation.to_geometry_output)]
+                                              .set();
+  }
+
+  /* Inferencing pass from right to left to determine which anonymous attributes have to be
+   * propagated to which geometry sockets. */
+  for (const bNode *node : tree.toposort_right_to_left()) {
     for (const bNodeSocket *socket : node->output_sockets()) {
-      if (found_sockets.contains(socket)) {
-        input_indices.append_non_duplicates(socket->index());
+      if (!socket->is_available()) {
+        continue;
       }
-    }
-  }
-
-  return input_indices;
-}
-
-static void infer_propagate_relations(const bNodeTree &tree,
-                                      const Span<const aal::RelationsInNode *> relations_by_node,
-                                      const bNode &group_output_node,
-                                      aal::RelationsInNode &r_relations)
-{
-  for (const bNodeSocket *group_output_socket : group_output_node.input_sockets().drop_back(1)) {
-    if (group_output_socket->type != SOCK_GEOMETRY) {
-      continue;
-    }
-    const Vector<int> input_indices = find_linked_group_inputs(
-        tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
-          Vector<int> indices;
-          for (const aal::PropagateRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->propagate_relations)
-          {
-            if (relation.to_geometry_output == output_socket.index()) {
-              indices.append(relation.from_geometry_input);
-            }
-          }
-          return indices;
-        });
-    for (const int input_index : input_indices) {
-      aal::PropagateRelation relation;
-      relation.from_geometry_input = input_index;
-      relation.to_geometry_output = group_output_socket->index();
-      r_relations.propagate_relations.append(relation);
-    }
-  }
-}
-
-static void infer_reference_relations(const bNodeTree &tree,
-                                      const Span<const aal::RelationsInNode *> relations_by_node,
-                                      const bNode &group_output_node,
-                                      aal::RelationsInNode &r_relations)
-{
-  for (const bNodeSocket *group_output_socket : group_output_node.input_sockets().drop_back(1)) {
-    if (!socket_is_field(*group_output_socket)) {
-      continue;
-    }
-    const Vector<int> input_indices = find_linked_group_inputs(
-        tree, *group_output_socket, [&](const bNodeSocket &output_socket) {
-          Vector<int> indices;
-          for (const aal::ReferenceRelation &relation :
-               relations_by_node[output_socket.owner_node().index()]->reference_relations)
-          {
-            if (relation.to_field_output == output_socket.index()) {
-              indices.append(relation.from_field_input);
-            }
-          }
-          return indices;
-        });
-    for (const int input_index : input_indices) {
-      if (tree.runtime->field_inferencing_interface->inputs[input_index] !=
-          nodes::InputSocketFieldType::None)
-      {
-        aal::ReferenceRelation relation;
-        relation.from_field_input = input_index;
-        relation.to_field_output = group_output_socket->index();
-        r_relations.reference_relations.append(relation);
-      }
-    }
-  }
-}
-
-/**
- * Find group output geometries that contain anonymous attributes referenced by the field.
- * If `nullopt` is returned, the field does not depend on any anonymous attribute created in this
- * node tree.
- */
-static std::optional<Vector<int>> find_available_on_outputs(
-    const bNodeSocket &initial_group_output_socket,
-    const bNode &group_output_node,
-    const Span<const aal::RelationsInNode *> relations_by_node)
-{
-  Set<const bNodeSocket *> geometry_sockets;
-
-  {
-    /* Find the nodes that added anonymous attributes to the field. */
-    Set<const bNodeSocket *> found_sockets;
-    Stack<const bNodeSocket *> sockets_to_check;
-
-    found_sockets.add_new(&initial_group_output_socket);
-    sockets_to_check.push(&initial_group_output_socket);
-
-    while (!sockets_to_check.is_empty()) {
-      const bNodeSocket &socket = *sockets_to_check.pop();
-      if (socket.is_input()) {
-        for (const bNodeLink *link : socket.directly_linked_links()) {
-          if (link->is_used()) {
-            const bNodeSocket &from_socket = *link->fromsock;
-            if (found_sockets.add(&from_socket)) {
-              sockets_to_check.push(&from_socket);
-            }
-          }
-        }
-      }
-      else {
-        const bNode &node = socket.owner_node();
-        const aal::RelationsInNode &relations = *relations_by_node[node.index()];
-        for (const aal::AvailableRelation &relation : relations.available_relations) {
-          if (socket.index() == relation.field_output) {
-            const bNodeSocket &geometry_output = node.output_socket(relation.geometry_output);
-            if (geometry_output.is_available()) {
-              geometry_sockets.add(&geometry_output);
-            }
-          }
-        }
-        for (const aal::ReferenceRelation &relation : relations.reference_relations) {
-          if (socket.index() == relation.to_field_output) {
-            const bNodeSocket &field_input = node.input_socket(relation.from_field_input);
-            if (field_input.is_available()) {
-              if (found_sockets.add(&field_input)) {
-                sockets_to_check.push(&field_input);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (geometry_sockets.is_empty()) {
-    /* The field does not depend on any anonymous attribute created within this node tree. */
-    return std::nullopt;
-  }
-
-  /* Find the group output geometries that contain the anonymous attribute referenced by the field
-   * output. */
-  Set<const bNodeSocket *> found_sockets;
-  Stack<const bNodeSocket *> sockets_to_check;
-
-  for (const bNodeSocket *socket : geometry_sockets) {
-    found_sockets.add_new(socket);
-    sockets_to_check.push(socket);
-  }
-
-  while (!sockets_to_check.is_empty()) {
-    const bNodeSocket &socket = *sockets_to_check.pop();
-    if (socket.is_input()) {
-      const bNode &node = socket.owner_node();
-      const aal::RelationsInNode &relations = *relations_by_node[node.index()];
-      for (const aal::PropagateRelation &relation : relations.propagate_relations) {
-        if (socket.index() == relation.from_geometry_input) {
-          const bNodeSocket &output_socket = node.output_socket(relation.to_geometry_output);
-          if (output_socket.is_available()) {
-            if (found_sockets.add(&output_socket)) {
-              sockets_to_check.push(&output_socket);
-            }
-          }
-        }
-      }
-    }
-    else {
-      for (const bNodeLink *link : socket.directly_linked_links()) {
+      const int dst_index = socket->index_in_tree();
+      for (const bNodeLink *link : socket->directly_linked_links()) {
         if (link->is_used()) {
-          const bNodeSocket &to_socket = *link->tosock;
-          if (found_sockets.add(&to_socket)) {
-            sockets_to_check.push(&to_socket);
-          }
+          const int src_index = link->tosock->index_in_tree();
+          required_fields_by_geometry_socket[dst_index] |=
+              required_fields_by_geometry_socket[src_index];
+          propagate_to_output_by_geometry_socket[dst_index] |=
+              propagate_to_output_by_geometry_socket[src_index];
         }
       }
     }
-  }
-
-  Vector<int> output_indices;
-  for (const bNodeSocket *socket : group_output_node.input_sockets().drop_back(1)) {
-    if (found_sockets.contains(socket)) {
-      output_indices.append(socket->index());
+    const aal::RelationsInNode &relations = *relations_by_node[node->index()];
+    for (const aal::PropagateRelation &relation : relations.propagate_relations) {
+      const bNodeSocket &output_socket = node->output_socket(relation.to_geometry_output);
+      const bNodeSocket &input_socket = node->input_socket(relation.from_geometry_input);
+      const int src_index = output_socket.index_in_tree();
+      const int dst_index = input_socket.index_in_tree();
+      required_fields_by_geometry_socket[dst_index] |=
+          required_fields_by_geometry_socket[src_index];
+      propagate_to_output_by_geometry_socket[dst_index] |=
+          propagate_to_output_by_geometry_socket[src_index];
+    }
+    for (const aal::EvalRelation &relation : relations.eval_relations) {
+      const bNodeSocket &geometry_socket = node->input_socket(relation.geometry_input);
+      const bNodeSocket &field_socket = node->input_socket(relation.field_input);
+      required_fields_by_geometry_socket[geometry_socket.index_in_tree()] |=
+          propagated_fields_by_socket[field_socket.index_in_tree()];
     }
   }
-  return output_indices;
-}
 
-static void infer_available_relations(const Span<const aal::RelationsInNode *> relations_by_node,
-                                      const bNode &group_output_node,
-                                      aal::RelationsInNode &r_relations)
-{
-  for (const bNodeSocket *group_output_socket : group_output_node.input_sockets().drop_back(1)) {
-    if (!socket_is_field(*group_output_socket)) {
+  /* Make sure that only available fields are also required. */
+  required_fields_by_geometry_socket.all_bits() &= available_fields_by_geometry_socket.all_bits();
+
+  /* Create #EvalRelation for the tree. */
+  for (const int interface_i : tree.interface_inputs().index_range()) {
+    const bNodeSocket &interface_socket = *tree.interface_inputs()[interface_i];
+    if (interface_socket.type != SOCK_GEOMETRY) {
       continue;
     }
-    const std::optional<Vector<int>> output_indices = find_available_on_outputs(
-        *group_output_socket, group_output_node, relations_by_node);
-    if (output_indices.has_value()) {
-      if (output_indices->is_empty()) {
-        r_relations.available_on_none.append(group_output_socket->index());
-      }
-      else {
-        for (const int output_index : *output_indices) {
-          aal::AvailableRelation relation;
-          relation.field_output = group_output_socket->index();
-          relation.geometry_output = output_index;
-          r_relations.available_relations.append(relation);
-        }
-      }
+    BitVector<> required_fields(all_field_sources.size(), false);
+    for (const bNode *node : tree.group_input_nodes()) {
+      const bNodeSocket &geometry_socket = node->output_socket(interface_i);
+      required_fields |= required_fields_by_geometry_socket[geometry_socket.index_in_tree()];
     }
-  }
-}
-
-/**
- * Returns a list of all the geometry inputs that the field input may be evaluated on.
- */
-static Vector<int> find_eval_on_inputs(const bNodeTree &tree,
-                                       const int field_input_index,
-                                       const Span<const aal::RelationsInNode *> relations_by_node)
-{
-  const Span<const bNode *> group_input_nodes = tree.group_input_nodes();
-  Set<const bNodeSocket *> geometry_sockets;
-
-  {
-    /* Find all the nodes that evaluate the input field. */
-    Set<const bNodeSocket *> found_sockets;
-    Stack<const bNodeSocket *> sockets_to_check;
-
-    for (const bNode *node : group_input_nodes) {
-      const bNodeSocket &socket = node->output_socket(field_input_index);
-      found_sockets.add_new(&socket);
-      sockets_to_check.push(&socket);
-    }
-
-    while (!sockets_to_check.is_empty()) {
-      const bNodeSocket &socket = *sockets_to_check.pop();
-      if (socket.is_input()) {
-        const bNode &node = socket.owner_node();
-        const aal::RelationsInNode &relations = *relations_by_node[node.index()];
-        for (const aal::EvalRelation &relation : relations.eval_relations) {
-          if (socket.index() == relation.field_input) {
-            const bNodeSocket &geometry_input = node.input_socket(relation.geometry_input);
-            if (geometry_input.is_available()) {
-              geometry_sockets.add(&geometry_input);
-            }
-          }
-        }
-        for (const aal::ReferenceRelation &relation : relations.reference_relations) {
-          if (socket.index() == relation.from_field_input) {
-            const bNodeSocket &field_output = node.output_socket(relation.to_field_output);
-            if (field_output.is_available()) {
-              if (found_sockets.add(&field_output)) {
-                sockets_to_check.push(&field_output);
-              }
-            }
-          }
-        }
+    bits::foreach_1_index(required_fields, [&](const int field_source_index) {
+      const FieldSource &field_source = all_field_sources[field_source_index];
+      if (const auto *input_field = std::get_if<InputFieldSource>(&field_source.data)) {
+        tree_relations.eval_relations.append(
+            aal::EvalRelation{input_field->input_index, interface_i});
       }
-      else {
-        for (const bNodeLink *link : socket.directly_linked_links()) {
-          if (link->is_used()) {
-            const bNodeSocket &to_socket = *link->tosock;
-            if (found_sockets.add(&to_socket)) {
-              sockets_to_check.push(&to_socket);
-            }
-          }
-        }
-      }
-    }
+    });
   }
 
-  if (geometry_sockets.is_empty()) {
-    return {};
-  }
+  AnonymousAttributeInferencingResult result{std::move(all_field_sources),
+                                             std::move(all_geometry_sources),
+                                             std::move(propagated_fields_by_socket),
+                                             std::move(propagated_geometries_by_socket),
+                                             std::move(available_fields_by_geometry_socket),
+                                             std::move(required_fields_by_geometry_socket),
+                                             std::move(propagated_output_geometry_indices),
+                                             std::move(propagate_to_output_by_geometry_socket),
+                                             std::move(tree_relations)};
 
-  /* Find the group input geometries whose attributes are propagated to the nodes that evaluate the
-   * field. */
-  Set<const bNodeSocket *> found_sockets;
-  Stack<const bNodeSocket *> sockets_to_check;
-
-  Vector<int> geometry_input_indices;
-
-  for (const bNodeSocket *socket : geometry_sockets) {
-    found_sockets.add_new(socket);
-    sockets_to_check.push(socket);
-  }
-
-  while (!sockets_to_check.is_empty()) {
-    const bNodeSocket &socket = *sockets_to_check.pop();
-    if (socket.is_input()) {
-      for (const bNodeLink *link : socket.directly_linked_links()) {
-        if (link->is_used()) {
-          const bNodeSocket &from_socket = *link->fromsock;
-          if (found_sockets.add(&from_socket)) {
-            sockets_to_check.push(&from_socket);
-          }
-        }
-      }
-    }
-    else {
-      const bNode &node = socket.owner_node();
-      if (node.is_group_input()) {
-        geometry_input_indices.append_non_duplicates(socket.index());
-      }
-      else {
-        const aal::RelationsInNode &relations = *relations_by_node[node.index()];
-        for (const aal::PropagateRelation &relation : relations.propagate_relations) {
-          if (socket.index() == relation.to_geometry_output) {
-            const bNodeSocket &input_socket = node.input_socket(relation.from_geometry_input);
-            if (input_socket.is_available()) {
-              if (found_sockets.add(&input_socket)) {
-                sockets_to_check.push(&input_socket);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return geometry_input_indices;
-}
-
-static void infer_eval_relations(const bNodeTree &tree,
-                                 const Span<const aal::RelationsInNode *> relations_by_node,
-                                 aal::RelationsInNode &r_relations)
-{
-  for (const int input_index : tree.interface_inputs().index_range()) {
-    if (tree.runtime->field_inferencing_interface->inputs[input_index] ==
-        nodes::InputSocketFieldType::None)
-    {
-      continue;
-    }
-    const Vector<int> geometry_input_indices = find_eval_on_inputs(
-        tree, input_index, relations_by_node);
-    for (const int geometry_input : geometry_input_indices) {
-      aal::EvalRelation relation;
-      relation.field_input = input_index;
-      relation.geometry_input = geometry_input;
-      r_relations.eval_relations.append(std::move(relation));
-    }
-  }
+/* Print analysis result for debugging purposes. */
+#if 0
+  bNodeTreeToDotOptionsForAnonymousAttributeInferencing options{result};
+  std::cout << "\n\n" << node_tree_to_dot(tree, options) << "\n\n";
+#endif
+  return result;
 }
 
 bool update_anonymous_attribute_relations(bNodeTree &tree)
 {
   tree.ensure_topology_cache();
 
-  ResourceScope scope;
-  Array<const aal::RelationsInNode *> relations_by_node = get_relations_by_node(tree, scope);
-
-  std::unique_ptr<aal::RelationsInNode> new_relations = std::make_unique<aal::RelationsInNode>();
-  if (!tree.has_available_link_cycle()) {
-    if (const bNode *group_output_node = tree.group_output_node()) {
-      infer_propagate_relations(tree, relations_by_node, *group_output_node, *new_relations);
-      infer_reference_relations(tree, relations_by_node, *group_output_node, *new_relations);
-      infer_available_relations(relations_by_node, *group_output_node, *new_relations);
-    }
-    infer_eval_relations(tree, relations_by_node, *new_relations);
+  if (tree.has_available_link_cycle()) {
+    const bool changed = tree.runtime->anonymous_attribute_inferencing.get() != nullptr;
+    tree.runtime->anonymous_attribute_inferencing.reset();
+    return changed;
   }
 
-  const bool group_interface_changed = !tree.runtime->anonymous_attribute_relations ||
-                                       *tree.runtime->anonymous_attribute_relations !=
-                                           *new_relations;
-  tree.runtime->anonymous_attribute_relations = std::move(new_relations);
+  AnonymousAttributeInferencingResult result = analyse_anonymous_attribute_usages(tree);
+
+  const bool group_interface_changed =
+      !tree.runtime->anonymous_attribute_inferencing ||
+      tree.runtime->anonymous_attribute_inferencing->tree_relations != result.tree_relations;
+
+  tree.runtime->anonymous_attribute_inferencing =
+      std::make_unique<AnonymousAttributeInferencingResult>(std::move(result));
 
   return group_interface_changed;
 }

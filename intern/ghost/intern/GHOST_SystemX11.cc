@@ -1,7 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2009 Nokia Corporation and/or its subsidiary(-ies).
- *                Part of this code has been taken from Qt, under LGPL license. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2009 Nokia Corporation and/or its subsidiary(-ies).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Part of this code from Nokia has been taken from Qt, under LGPL license. */
 
 /** \file
  * \ingroup GHOST

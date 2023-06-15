@@ -43,7 +43,7 @@ struct bDeformGroup;
 struct wmKeyConfig;
 struct wmOperator;
 
-/* editmesh_utils.c */
+/* editmesh_utils.cc */
 
 /**
  * \param em: Edit-mesh used for generating mirror data.

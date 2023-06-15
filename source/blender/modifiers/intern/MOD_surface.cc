@@ -22,7 +22,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_screen.h"
 
 #include "UI_interface.h"
@@ -148,7 +148,8 @@ static void deformVerts(ModifierData *md,
     }
 
     /* convert to global coordinates and calculate velocity */
-    float(*positions)[3] = BKE_mesh_vert_positions_for_write(surmd->runtime.mesh);
+    blender::MutableSpan<blender::float3> positions =
+        surmd->runtime.mesh->vert_positions_for_write();
     for (i = 0; i < mesh_verts_num; i++) {
       float *vec = positions[i];
       mul_m4_v3(ctx->object->object_to_world, vec);

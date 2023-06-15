@@ -1765,7 +1765,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
       dist += len_v3(offset);
       add_v3_v3(flow, npa->prev_state.vel);
     }
-    dist += sphdata->psys[0]->part->fluid->radius;  // TODO: remove this? - z0r
+    dist += sphdata->psys[0]->part->fluid->radius; /* TODO(@z0r): remove this? */
     sphdata->element_size = dist / pfr->tot_neighbors;
     mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
   }

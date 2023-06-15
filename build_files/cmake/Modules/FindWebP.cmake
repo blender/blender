@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2022 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2022 Blender Foundation.
 
 # - Find WebP library
 # Find the native WebP includes and library

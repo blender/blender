@@ -86,6 +86,20 @@ class BitGroupVector {
   {
     return IndexRange{this->size()};
   }
+
+  /**
+   * Get all stored bits. Note that this may also contain padding bits. This can be used to e.g.
+   * mix multiple #BitGroupVector.
+   */
+  BoundedBitSpan all_bits() const
+  {
+    return data_;
+  }
+
+  MutableBoundedBitSpan all_bits()
+  {
+    return data_;
+  }
 };
 
 }  // namespace blender::bits

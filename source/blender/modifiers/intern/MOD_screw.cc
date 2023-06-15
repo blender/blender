@@ -123,7 +123,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 }
 
 static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
-                                         float (*vert_positions_new)[3],
+                                         blender::MutableSpan<blender::float3> vert_positions_new,
                                          const uint totvert,
                                          const uint step_tot,
                                          const float axis_vec[3],
@@ -398,13 +398,13 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   CustomData_free_layers(&result->edata, CD_ORIGINDEX, result->totedge);
   CustomData_free_layers(&result->pdata, CD_ORIGINDEX, result->totedge);
 
-  const float(*vert_positions_orig)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<float3> vert_positions_orig = mesh->vert_positions();
   const blender::Span<int2> edges_orig = mesh->edges();
   const OffsetIndices polys_orig = mesh->polys();
   const blender::Span<int> corner_verts_orig = mesh->corner_verts();
   const blender::Span<int> corner_edges_orig = mesh->corner_edges();
 
-  float(*vert_positions_new)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<float3> vert_positions_new = result->vert_positions_for_write();
   blender::MutableSpan<int2> edges_new = result->edges_for_write();
   MutableSpan<int> poly_offests_new = result->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts_new = result->corner_verts_for_write();

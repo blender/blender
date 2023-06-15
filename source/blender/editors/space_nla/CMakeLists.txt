@@ -25,15 +25,15 @@ set(INC_SYS
 )
 
 set(SRC
-  nla_buttons.c
-  nla_channels.c
-  nla_draw.c
-  nla_edit.c
-  nla_ops.c
-  nla_select.c
-  space_nla.c
+  nla_buttons.cc
+  nla_channels.cc
+  nla_draw.cc
+  nla_edit.cc
+  nla_ops.cc
+  nla_select.cc
+  space_nla.cc
 
-  nla_intern.h
+  nla_intern.hh
 )
 
 set(LIB

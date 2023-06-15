@@ -91,9 +91,7 @@ static void calculate_simulation_job_startjob(void *customdata,
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        if (nmd->simulation_cache != nullptr) {
-          nmd->simulation_cache->reset();
-        }
+        nmd->simulation_cache->ptr->reset();
       }
     }
     objects_to_calc.append(object);
@@ -253,9 +251,7 @@ static void bake_simulation_job_startjob(void *customdata,
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        if (nmd->simulation_cache != nullptr) {
-          nmd->simulation_cache->reset();
-        }
+        nmd->simulation_cache->ptr->reset();
         if (StringRef(nmd->simulation_bake_directory).is_empty()) {
           nmd->simulation_bake_directory = BLI_strdup(
               bke::sim::get_default_modifier_bake_directory(*job.bmain, *object, *md).c_str());
@@ -301,7 +297,7 @@ static void bake_simulation_job_startjob(void *customdata,
         if (nmd.simulation_cache == nullptr) {
           continue;
         }
-        ModifierSimulationCache &sim_cache = *nmd.simulation_cache;
+        ModifierSimulationCache &sim_cache = *nmd.simulation_cache->ptr;
         const ModifierSimulationState *sim_state = sim_cache.get_state_at_exact_frame(frame);
         if (sim_state == nullptr || sim_state->zone_states_.is_empty()) {
           continue;
@@ -345,7 +341,7 @@ static void bake_simulation_job_startjob(void *customdata,
       NodesModifierData &nmd = *modifier_bake_data.nmd;
       if (nmd.simulation_cache) {
         /* Tag the caches as being baked so that they are not changed anymore. */
-        nmd.simulation_cache->cache_state_ = CacheState::Baked;
+        nmd.simulation_cache->ptr->cache_state_ = CacheState::Baked;
       }
     }
     DEG_id_tag_update(&object_bake_data.object->id, ID_RECALC_GEOMETRY);
@@ -443,9 +439,7 @@ static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
     LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
       if (md->type == eModifierType_Nodes) {
         NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-        if (nmd->simulation_cache != nullptr) {
-          nmd->simulation_cache->reset();
-        }
+        nmd->simulation_cache->ptr->reset();
         if (StringRef(nmd->simulation_bake_directory).is_empty()) {
           continue;
         }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader_nodes.h"
 #include "scene/colorspace.h"
@@ -1207,7 +1208,7 @@ NODE_DEFINE(VoronoiTextureNode)
   feature_enum.insert("n_sphere_radius", NODE_VORONOI_N_SPHERE_RADIUS);
   SOCKET_ENUM(feature, "Feature", feature_enum, NODE_VORONOI_F1);
 
-  SOCKET_BOOLEAN(normalize, "Normalize", false);
+  SOCKET_BOOLEAN(use_normalize, "Normalize", false);
 
   SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_TEXTURE_GENERATED);
   SOCKET_IN_FLOAT(w, "W", 0.0f);
@@ -1272,7 +1273,7 @@ void VoronoiTextureNode::compile(SVMCompiler &compiler)
                              smoothness_stack_offset,
                              exponent_stack_offset),
       compiler.encode_uchar4(
-          randomness_stack_offset, normalize, distance_stack_offset, color_stack_offset),
+          randomness_stack_offset, use_normalize, distance_stack_offset, color_stack_offset),
       compiler.encode_uchar4(position_stack_offset, w_out_stack_offset, radius_stack_offset));
 
   compiler.add_node(
@@ -1291,7 +1292,7 @@ void VoronoiTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter(this, "dimensions");
   compiler.parameter(this, "feature");
   compiler.parameter(this, "metric");
-  compiler.parameter(this, "normalize");
+  compiler.parameter(this, "use_normalize");
   compiler.add(this, "node_voronoi_texture");
 }
 

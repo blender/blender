@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *  */
@@ -206,6 +206,7 @@ void Instance::end_sync()
   shadows.end_sync(); /** \note: Needs to be before lights. */
   lights.end_sync();
   sampling.end_sync();
+  subsurface.end_sync();
   film.end_sync();
   cryptomatte.end_sync();
   pipelines.end_sync();

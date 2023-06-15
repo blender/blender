@@ -19,7 +19,7 @@ class VKContext;
  * Class for handing vulkan buffers (allocation/updating/binding).
  */
 class VKBuffer {
-  int64_t size_in_bytes_;
+  int64_t size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   /* Pointer to the virtually mapped memory. */

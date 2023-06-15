@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: Zlib
- * Copyright (C) 1999, 2002 Aladdin Enterprises.  All rights reserved.
- * L. Peter Deutsch
- * ghost@aladdin.com */
+/* SPDX-FileCopyrightText: 1999, 2002 Aladdin Enterprises. All rights reserved.
+ *
+ * SPDX-License-Identifier: Zlib
+ *
+ * By `L. Peter Deutsch <ghost@aladdin.com>`. */
 
 /* Minor modifications done to remove some code and change style. */
 

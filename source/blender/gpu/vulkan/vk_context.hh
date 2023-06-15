@@ -68,8 +68,12 @@ class VKContext : public Context, NonCopyable {
     return command_buffer_;
   }
 
-  const VKStateManager &state_manager_get() const;
-  VKStateManager &state_manager_get();
+  VKStateManager &state_manager_get() const;
 };
+
+BLI_INLINE bool operator==(const VKContext &a, const VKContext &b)
+{
+  return static_cast<const void *>(&a) == static_cast<const void *>(&b);
+}
 
 }  // namespace blender::gpu

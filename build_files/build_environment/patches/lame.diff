@@ -1,0 +1,47 @@
+diff --git a/Makefile.MSVC b/Makefile.MSVC
+index 6538911..530c9f9 100644
+--- a/Makefile.MSVC
++++ b/Makefile.MSVC
+@@ -61,6 +61,10 @@ ASM = NO # or it could be ML64 if we want to use it...
+ GTK = NO
+ !	ENDIF
+ !	ENDIF
++!   IF "$(MSVCVER)" == "ARM64"
++ASM = NO
++GTK = NO
++!   ENDIF
+ !	ELSE
+ !	IF "$(COMP)" == ""
+ COMP = MSVC
+@@ -99,7 +103,13 @@ SNDFILE = NO
+ !	ENDIF
+ 
+ OFF = win32
++!   IF "$(MSVCVER)" == "Win64"
++MACHINE = /machine:x64
++!   ELSEIF "$(MSVCVER)" == "ARM64"
++MACHINE = /machine:ARM64
++!   ELSE
+ MACHINE = /machine:I386
++!   ENDIF
+ LIB_OPTS = /nologo $(MACHINE) 
+ 
+ !	MESSAGE ----------------------------------------------------------------------
+@@ -150,6 +160,8 @@ LIB_OPTS = /nologo $(MACHINE)
+ !	 ELSE
+ !	  IF "$(MSVCVER)" == "Win64"
+ !	   MESSAGE + using MS 64-Bit Compiler
++!     ELSEIF "$(MSVCVER)" == "ARM64"
++!      MESSAGE + using MS ARM64 Compiler
+ !	  ELSE
+ !	   MESSAGE using MS COMPILER
+ !	   IF "$(CPU)" == "P1"
+@@ -209,6 +221,8 @@ CC_OPTS = /nologo /DWin64 /O2b2ity /GAy /Gs1024 /Zp8 /GL /GS- /Zi
+ CC_OPTS = /nologo /O2 /Wp64 /Oi /GL /arch:SSE /fp:precise
+ !	ELSEif "$(CPU)"=="P6"
+ CC_OPTS = /nologo /O2 /Ob2 /GAy /Gs1024 /Zp8 /Zi
++!   ELSEIF "$(MSVCVER)" == "ARM64"
++CC_OPTS = /nologo /O2 /Ob3 /GAy /Zi
+ !else
+ CC_OPTS = /nologo /O2 /Ob2 /GAy /Gs1024 /QIfdiv /QI0f /YX
+ !	ENDIF

@@ -15,7 +15,7 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_customdata.h"
+#include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
@@ -34,16 +34,16 @@
 struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
-  const float (*vert_positions)[3];
+  blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
 
   /* CustomData layer for vertex sharpnesses. */
-  const float *cd_vertex_crease;
+  blender::VArraySpan<float> cd_vertex_crease;
   /* CustomData layer for edge sharpness. */
-  const float *cd_edge_crease;
+  blender::VArraySpan<float> cd_edge_crease;
   /* Indexed by loop index, value denotes index of face-varying vertex
    * which corresponds to the UV coordinate.
    */
@@ -161,7 +161,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (storage->cd_edge_crease == nullptr) {
+  if (storage->cd_edge_crease.is_empty()) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
@@ -187,7 +187,7 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (storage->cd_vertex_crease == nullptr) {
+  if (storage->cd_vertex_crease.is_empty()) {
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
@@ -382,19 +382,19 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const SubdivSettings *settings,
                            const Mesh *mesh)
 {
+  using namespace blender;
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
-  user_data->vert_positions = BKE_mesh_vert_positions(mesh);
+  user_data->vert_positions = mesh->vert_positions();
   user_data->edges = mesh->edges();
   user_data->polys = mesh->polys();
   user_data->corner_verts = mesh->corner_verts();
   user_data->corner_edges = mesh->corner_edges();
   if (settings->use_creases) {
-    user_data->cd_vertex_crease = static_cast<const float *>(
-        CustomData_get_layer(&mesh->vdata, CD_CREASE));
-    user_data->cd_edge_crease = static_cast<const float *>(
-        CustomData_get_layer(&mesh->edata, CD_CREASE));
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
+    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
   }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);

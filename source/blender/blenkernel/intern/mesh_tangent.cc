@@ -144,15 +144,16 @@ void BKE_mesh_calc_loop_tangent_single(Mesh *mesh,
     return;
   }
 
-  BKE_mesh_calc_loop_tangent_single_ex(BKE_mesh_vert_positions(mesh),
-                                       mesh->totvert,
-                                       mesh->corner_verts().data(),
-                                       r_looptangents,
-                                       loop_normals,
-                                       reinterpret_cast<const float(*)[2]>(uv_map.data()),
-                                       mesh->totloop,
-                                       mesh->polys(),
-                                       reports);
+  BKE_mesh_calc_loop_tangent_single_ex(
+      reinterpret_cast<const float(*)[3]>(mesh->vert_positions().data()),
+      mesh->totvert,
+      mesh->corner_verts().data(),
+      r_looptangents,
+      loop_normals,
+      reinterpret_cast<const float(*)[2]>(uv_map.data()),
+      mesh->totloop,
+      mesh->polys(),
+      reports);
 }
 
 /** \} */
@@ -587,7 +588,7 @@ void BKE_mesh_calc_loop_tangents(Mesh *me_eval,
   const blender::Span<MLoopTri> looptris = me_eval->looptris();
   short tangent_mask = 0;
   BKE_mesh_calc_loop_tangent_ex(
-      BKE_mesh_vert_positions(me_eval),
+      reinterpret_cast<const float(*)[3]>(me_eval->vert_positions().data()),
       me_eval->polys(),
       me_eval->corner_verts().data(),
       looptris.data(),

@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import (
     Header,
@@ -2419,6 +2422,8 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_asset_shelf"}, ("blender/blender/issues/102879", "#102879")),
                 ({"property": "use_override_templates"}, ("blender/blender/issues/73318", "Milestone 4")),
                 ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
+                ({"property": "use_node_panels"}, ("blender/blender/issues/105248", "#105248")),
+                ({"property": "use_rotation_socket"}, ("/blender/blender/issues/92967", "#92967")),
             ),
         )
 

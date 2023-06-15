@@ -68,6 +68,24 @@ static void search_node_add_ops(GatherAddNodeSearchParams &params)
   blender::nodes::search_node_add_ops_for_basic_node(params);
 }
 
+static std::optional<eCustomDataType> other_socket_type_to_grid_type(
+    const eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+      return CD_PROP_FLOAT3;
+    case SOCK_BOOLEAN:
+      return CD_PROP_BOOL;
+    case SOCK_INT:
+      return CD_PROP_INT32;
+    default:
+      return std::nullopt;
+  }
+}
+
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (!U.experimental.use_new_volume_nodes) {
@@ -77,16 +95,17 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
-  if (type && *type != CD_PROP_STRING) {
-    /* The input and output sockets have the same name. */
-    params.add_item(IFACE_("Grid"), [type](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeSampleVolume");
-      node_storage(node).grid_type = *type;
-      params.update_and_connect_available_socket(node, "Grid");
-    });
+  const std::optional<eCustomDataType> type = other_socket_type_to_grid_type(
+      eNodeSocketDatatype(params.other_socket().type));
+  if (!type) {
+    return;
   }
+  /* The input and output sockets have the same name. */
+  params.add_item(IFACE_("Grid"), [type](LinkSearchOpParams &params) {
+    bNode &node = params.add_node("GeometryNodeSampleVolume");
+    node_storage(node).grid_type = *type;
+    params.update_and_connect_available_socket(node, "Grid");
+  });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

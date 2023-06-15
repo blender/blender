@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import os

@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
+
 '''
 Created compact byte arrays which can be decoded into 2D shapes.
 (See 'GPU_batch_from_poly_2d_encoded').

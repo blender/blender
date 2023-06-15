@@ -59,10 +59,10 @@ static void rna_LatticePoint_groups_begin(CollectionPropertyIterator *iter, Poin
     MDeformVert *dvert = lt->dvert + (bp - lt->def);
 
     rna_iterator_array_begin(
-        iter, (void *)dvert->dw, sizeof(MDeformWeight), dvert->totweight, 0, NULL);
+        iter, (void *)dvert->dw, sizeof(MDeformWeight), dvert->totweight, 0, nullptr);
   }
   else {
-    rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
+    rna_iterator_array_begin(iter, nullptr, 0, 0, 0, nullptr);
   }
 }
 
@@ -72,13 +72,14 @@ static void rna_Lattice_points_begin(CollectionPropertyIterator *iter, PointerRN
   int tot = lt->pntsu * lt->pntsv * lt->pntsw;
 
   if (lt->editlatt && lt->editlatt->latt->def) {
-    rna_iterator_array_begin(iter, (void *)lt->editlatt->latt->def, sizeof(BPoint), tot, 0, NULL);
+    rna_iterator_array_begin(
+        iter, (void *)lt->editlatt->latt->def, sizeof(BPoint), tot, 0, nullptr);
   }
   else if (lt->def) {
-    rna_iterator_array_begin(iter, (void *)lt->def, sizeof(BPoint), tot, 0, NULL);
+    rna_iterator_array_begin(iter, (void *)lt->def, sizeof(BPoint), tot, 0, nullptr);
   }
   else {
-    rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
+    rna_iterator_array_begin(iter, nullptr, 0, 0, 0, nullptr);
   }
 }
 
@@ -137,9 +138,9 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 
   /* otherwise without, means old points are not repositioned */
   if (!ob) {
-    BKE_lattice_resize(lt, newu, newv, neww, NULL);
+    BKE_lattice_resize(lt, newu, newv, neww, nullptr);
     if (lt->editlatt) {
-      BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, NULL);
+      BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, nullptr);
     }
   }
 
@@ -175,7 +176,7 @@ static int rna_Lattice_size_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   Lattice *lt = (Lattice *)ptr->data;
 
-  return (lt->key == NULL) ? int(PROP_EDITABLE) : 0;
+  return (lt->key == nullptr) ? int(PROP_EDITABLE) : 0;
 }
 
 static void rna_Lattice_points_u_set(PointerRNA *ptr, int value)
@@ -214,7 +215,7 @@ static char *rna_LatticePoint_path(const PointerRNA *ptr)
 {
   const Lattice *lt = (Lattice *)ptr->owner_id;
   const void *point = ptr->data;
-  const BPoint *points = NULL;
+  const BPoint *points = nullptr;
 
   if (lt->editlatt && lt->editlatt->latt->def) {
     points = lt->editlatt->latt->def;
@@ -240,7 +241,7 @@ static char *rna_LatticePoint_path(const PointerRNA *ptr)
 static bool rna_Lattice_is_editmode_get(PointerRNA *ptr)
 {
   Lattice *lt = (Lattice *)ptr->owner_id;
-  return (lt->editlatt != NULL);
+  return (lt->editlatt != nullptr);
 }
 
 #else

@@ -130,7 +130,7 @@ void MOD_get_texture_coords(MappingInfoModifierData *dmd,
     texmapping = MOD_DISP_MAP_LOCAL;
   }
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const Span<float3> positions = mesh->vert_positions();
   for (i = 0; i < verts_num; i++, r_texco++) {
     switch (texmapping) {
       case MOD_DISP_MAP_LOCAL:

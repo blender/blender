@@ -314,9 +314,8 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
 
 float2 node_to_view(const bNode &node, const float2 &co)
 {
-  float2 result;
-  bke::nodeToView(&node, co.x, co.y, &result.x, &result.y);
-  return result * UI_SCALE_FAC;
+  const float2 node_location = bke::nodeToView(&node, co);
+  return node_location * UI_SCALE_FAC;
 }
 
 void node_to_updated_rect(const bNode &node, rctf &r_rect)
@@ -332,11 +331,9 @@ void node_to_updated_rect(const bNode &node, rctf &r_rect)
 
 float2 node_from_view(const bNode &node, const float2 &co)
 {
-  const float x = co.x / UI_SCALE_FAC;
-  const float y = co.y / UI_SCALE_FAC;
-  float2 result;
-  bke::nodeFromView(&node, x, y, &result.x, &result.y);
-  return result;
+  const float2 node_location = co / UI_SCALE_FAC;
+  return bke::nodeFromView(&node, node_location);
+  ;
 }
 
 /**
@@ -3333,15 +3330,13 @@ static bool realtime_compositor_is_in_use(const bContext &context)
     return true;
   }
 
-  const Main *main = CTX_data_main(&context);
-  LISTBASE_FOREACH (const bScreen *, screen, &main->screens) {
+  wmWindowManager *wm = CTX_wm_manager(&context);
+  LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
+    const bScreen *screen = WM_window_get_active_screen(win);
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
-      LISTBASE_FOREACH (const SpaceLink *, space, &area->spacedata) {
-        if (space->spacetype != SPACE_VIEW3D) {
-          continue;
-        }
-
-        const View3D &view_3d = *reinterpret_cast<const View3D *>(space);
+      const SpaceLink &space = *static_cast<const SpaceLink *>(area->spacedata.first);
+      if (space.spacetype == SPACE_VIEW3D) {
+        const View3D &view_3d = reinterpret_cast<const View3D &>(space);
 
         if (view_3d.shading.use_compositor == V3D_SHADING_USE_COMPOSITOR_DISABLED) {
           continue;

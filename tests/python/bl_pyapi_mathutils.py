@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # ./blender.bin --background -noaudio --python tests/python/bl_pyapi_mathutils.py -- --verbose

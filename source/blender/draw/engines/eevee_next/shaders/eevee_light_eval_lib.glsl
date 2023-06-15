@@ -47,7 +47,7 @@ void light_eval_ex(ClosureDiffuse diffuse,
 #ifdef SSS_TRANSMITTANCE
     /* Transmittance evaluation first to use initial visibility without shadow. */
     if (diffuse.sss_id != 0u && light.diffuse_power > 0.0) {
-      float delta = max(thickness, samp.occluder_delta + samp.bias);
+      float delta = max(thickness, -(samp.occluder_delta + samp.bias));
 
       vec3 intensity = visibility * light.transmit_power *
                        light_translucent(sss_transmittance_tx,

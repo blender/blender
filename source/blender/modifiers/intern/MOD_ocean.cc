@@ -152,7 +152,7 @@ static bool dependsOnNormals(ModifierData *md)
 #ifdef WITH_OCEANSIM
 
 struct GenerateOceanGeometryData {
-  float (*vert_positions)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::MutableSpan<int> poly_offsets;
   blender::MutableSpan<int> corner_verts;
   float (*mloopuvs)[2];
@@ -259,7 +259,7 @@ static Mesh *generate_ocean_geometry(OceanModifierData *omd, Mesh *mesh_orig, co
   result = BKE_mesh_new_nomain(verts_num, 0, polys_num, polys_num * 4);
   BKE_mesh_copy_parameters_for_eval(result, mesh_orig);
 
-  gogd.vert_positions = BKE_mesh_vert_positions_for_write(result);
+  gogd.vert_positions = result->vert_positions_for_write();
   gogd.poly_offsets = result->poly_offsets_for_write();
   gogd.corner_verts = result->corner_verts_for_write();
 
@@ -352,7 +352,7 @@ static Mesh *doOcean(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mes
   CLAMP(cfra_for_cache, omd->bakestart, omd->bakeend);
   cfra_for_cache -= omd->bakestart; /* shift to 0 based */
 
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
   const blender::OffsetIndices polys = result->polys();
 
   /* Add vertex-colors before displacement: allows lookup based on position. */

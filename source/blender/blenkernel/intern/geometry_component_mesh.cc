@@ -1195,20 +1195,6 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                                    edge_access,
                                                    nullptr);
 
-  static const auto crease_clamp = mf::build::SI1_SO<float, float>(
-      "Crease Clamp",
-      [](float value) { return std::clamp(value, 0.0f, 1.0f); },
-      mf::build::exec_presets::AllSpanOrSingle());
-  static BuiltinCustomDataLayerProvider crease("crease",
-                                               ATTR_DOMAIN_EDGE,
-                                               CD_PROP_FLOAT,
-                                               CD_CREASE,
-                                               BuiltinAttributeProvider::Creatable,
-                                               BuiltinAttributeProvider::Deletable,
-                                               edge_access,
-                                               nullptr,
-                                               AttributeValidator{&crease_clamp});
-
   static VertexGroupsAttributeProvider vertex_groups;
   static CustomDataAttributeProvider corner_custom_data(ATTR_DOMAIN_CORNER, corner_access);
   static CustomDataAttributeProvider point_custom_data(ATTR_DOMAIN_POINT, point_access);
@@ -1222,8 +1208,7 @@ static ComponentAttributeProviders create_attribute_providers_for_mesh()
                                       &id,
                                       &material_index,
                                       &sharp_face,
-                                      &sharp_edge,
-                                      &crease},
+                                      &sharp_edge},
                                      {&corner_custom_data,
                                       &vertex_groups,
                                       &point_custom_data,

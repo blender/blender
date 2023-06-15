@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
 
 ###########################################################################
 # SDL
@@ -94,7 +95,7 @@ endif()
 # oneAPI
 ###########################################################################
 
-if(WITH_CYCLES_DEVICE_ONEAPI)
+if(WITH_CYCLES_DEVICE_ONEAPI OR EMBREE_SYCL_SUPPORT)
   find_package(SYCL)
   find_package(LevelZero)
   set_and_warn_library_found("oneAPI" SYCL_FOUND WITH_CYCLES_DEVICE_ONEAPI)
@@ -102,23 +103,23 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(SYCL_FOUND AND SYCL_VERSION VERSION_GREATER_EQUAL 6.0 AND LEVEL_ZERO_FOUND)
     message(STATUS "Found Level Zero: ${LEVEL_ZERO_LIBRARY}")
-
-    if(WITH_CYCLES_ONEAPI_BINARIES)
-      if(NOT OCLOC_INSTALL_DIR)
-        get_filename_component(_sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
-        get_filename_component(OCLOC_INSTALL_DIR "${_sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
-        unset(_sycl_compiler_root)
-      endif()
-
-      if(NOT EXISTS ${OCLOC_INSTALL_DIR})
-        set(OCLOC_FOUND OFF)
-        message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}."
-                       " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
-        set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
-      endif()
-    endif()
   else()
     message(STATUS "SYCL 6.0+ or Level Zero not found, disabling WITH_CYCLES_DEVICE_ONEAPI")
     set(WITH_CYCLES_DEVICE_ONEAPI OFF)
+  endif()
+endif()
+
+if(WITH_CYCLES_DEVICE_ONEAPI AND WITH_CYCLES_ONEAPI_BINARIES)
+  if(NOT OCLOC_INSTALL_DIR)
+    get_filename_component(_sycl_compiler_root ${SYCL_COMPILER} DIRECTORY)
+    get_filename_component(OCLOC_INSTALL_DIR "${_sycl_compiler_root}/../lib/ocloc" ABSOLUTE)
+    unset(_sycl_compiler_root)
+  endif()
+
+  if(NOT EXISTS ${OCLOC_INSTALL_DIR})
+    set(OCLOC_FOUND OFF)
+    message(STATUS "oneAPI ocloc not found in ${OCLOC_INSTALL_DIR}."
+                   " A different ocloc directory can be set using OCLOC_INSTALL_DIR cmake variable.")
+    set_and_warn_library_found("ocloc" OCLOC_FOUND WITH_CYCLES_ONEAPI_BINARIES)
   endif()
 endif()

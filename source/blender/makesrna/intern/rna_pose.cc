@@ -139,7 +139,7 @@ static bool rna_bone_group_poll(Object *ob, ReportList *reports)
 static bActionGroup *rna_bone_group_new(ID *id, bPose *pose, ReportList *reports, const char *name)
 {
   if (!rna_bone_group_poll((Object *)id, reports)) {
-    return NULL;
+    return nullptr;
   }
 
   bActionGroup *grp = BKE_pose_add_group(pose, name);
@@ -170,7 +170,7 @@ static void rna_bone_group_remove(ID *id, bPose *pose, ReportList *reports, Poin
 void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (!rna_bone_group_poll(ob, NULL)) {
+  if (!rna_bone_group_poll(ob, nullptr)) {
     return;
   }
 
@@ -181,7 +181,7 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
     grp->customCol = value;
 
     /* sync colors stored with theme colors based on the index specified */
-    action_group_colors_sync(grp, NULL);
+    action_group_colors_sync(grp, nullptr);
   }
 }
 
@@ -195,7 +195,7 @@ bool rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
 static void rna_BoneGroup_name_set(PointerRNA *ptr, const char *value)
 {
   Object *ob = (Object *)ptr->owner_id;
-  if (!rna_bone_group_poll(ob, NULL)) {
+  if (!rna_bone_group_poll(ob, nullptr)) {
     return;
   }
 
@@ -227,7 +227,7 @@ static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
     BIK_clear_data(pose);
     if (pose->ikparam) {
       MEM_freeN(pose->ikparam);
-      pose->ikparam = NULL;
+      pose->ikparam = nullptr;
     }
     pose->iksolver = value;
     BKE_pose_ikparam_init(pose);
@@ -410,7 +410,7 @@ static void rna_Itasc_update_rebuild(Main *bmain, Scene *scene, PointerRNA *ptr)
 static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : NULL;
+  bPose *pose = (ob) ? ob->pose : nullptr;
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   bActionGroup *grp;
 
@@ -418,7 +418,7 @@ static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
     grp = static_cast<bActionGroup *>(BLI_findlink(&pose->agroups, pchan->agrp_index - 1));
   }
   else {
-    grp = NULL;
+    grp = nullptr;
   }
 
   return rna_pointer_inherit_refine(ptr, &RNA_BoneGroup, grp);
@@ -429,7 +429,7 @@ static void rna_PoseChannel_bone_group_set(PointerRNA *ptr,
                                            struct ReportList * /*reports*/)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : NULL;
+  bPose *pose = (ob) ? ob->pose : nullptr;
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
 
   if (pose) {
@@ -456,7 +456,7 @@ static void rna_PoseChannel_bone_group_index_range(
     PointerRNA *ptr, int *min, int *max, int * /*softmin*/, int * /*softmax*/)
 {
   Object *ob = (Object *)ptr->owner_id;
-  bPose *pose = (ob) ? ob->pose : NULL;
+  bPose *pose = (ob) ? ob->pose : nullptr;
 
   *min = 0;
   *max = pose ? max_ii(0, BLI_listbase_count(&pose->agroups) - 1) : 0;
@@ -579,7 +579,7 @@ static bConstraint *rna_PoseChannel_constraints_new(ID *id,
                                                     int type)
 {
   Object *ob = (Object *)id;
-  bConstraint *new_con = BKE_constraint_add_for_pose(ob, pchan, NULL, type);
+  bConstraint *new_con = BKE_constraint_add_for_pose(ob, pchan, nullptr, type);
 
   ED_object_constraint_dependency_tag_update(main, ob, new_con);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_ADDED, id);
@@ -606,7 +606,7 @@ static void rna_PoseChannel_constraints_remove(
   ED_object_constraint_update(bmain, ob);
 
   /* XXX(@ideasman42): is this really needed? */
-  BKE_constraints_active_set(&pchan->constraints, NULL);
+  BKE_constraints_active_set(&pchan->constraints, nullptr);
 
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, id);
 
@@ -629,7 +629,7 @@ static void rna_PoseChannel_constraints_move(
     return;
   }
 
-  ED_object_constraint_tag_update(bmain, ob, NULL);
+  ED_object_constraint_tag_update(bmain, ob, nullptr);
   WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT, ob);
 }
 
@@ -679,19 +679,19 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
                                         opop->subitem_reference_name,
                                         name_offset,
                                         opop->subitem_reference_index));
-  /* If `con_anchor` is NULL, `con_src` will be inserted in first position. */
+  /* If `con_anchor` is nullptr, `con_src` will be inserted in first position. */
 
   bConstraint *con_src = static_cast<bConstraint *>(BLI_listbase_string_or_index_find(
       &pchan_src->constraints, opop->subitem_local_name, name_offset, opop->subitem_local_index));
 
-  if (con_src == NULL) {
-    BLI_assert(con_src != NULL);
+  if (con_src == nullptr) {
+    BLI_assert(con_src != nullptr);
     return false;
   }
 
   bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
 
-  /* This handles NULL anchor as expected by adding at head of list. */
+  /* This handles nullptr anchor as expected by adding at head of list. */
   BLI_insertlinkafter(&pchan_dst->constraints, con_anchor, con_dst);
 
   /* This should actually *not* be needed in typical cases.
@@ -700,7 +700,7 @@ bool rna_PoseChannel_constraints_override_apply(Main *bmain,
   BKE_constraint_unique_name(con_dst, &pchan_dst->constraints);
 
   //  printf("%s: We inserted a constraint...\n", __func__);
-  RNA_property_update_main(bmain, NULL, ptr_dst, prop_dst);
+  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
   return true;
 }
 
@@ -833,7 +833,7 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
   Object *ob = (Object *)ptr->owner_id;
   float tmat[4][4];
 
-  BKE_armature_mat_pose_to_bone_ex(NULL, ob, pchan, (float(*)[4])values, tmat);
+  BKE_armature_mat_pose_to_bone_ex(nullptr, ob, pchan, (float(*)[4])values, tmat);
 
   BKE_pchan_apply_mat4(pchan, tmat, false); /* no compat for predictable result */
 }
@@ -845,7 +845,7 @@ static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob,
   if (ref_ob != ob) {
     /* We are trying to set a pchan from another object! Forbidden,
      * try to find by name, or abort. */
-    if (ref_pchan != NULL) {
+    if (ref_pchan != nullptr) {
       ref_pchan = BKE_pose_channel_find_name(ob->pose, ref_pchan->name);
     }
   }

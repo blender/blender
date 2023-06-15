@@ -785,7 +785,7 @@ static void sculpt_gesture_init_face_set_properties(SculptGestureContext *sgcont
   sgcontext->operation = reinterpret_cast<SculptGestureOperation *>(
       MEM_cnew<SculptGestureFaceSetOperation>(__func__));
 
-  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  sgcontext->ss->face_sets = BKE_sculpt_face_sets_ensure(sgcontext->vc.obact);
 
   SculptGestureFaceSetOperation *face_set_operation = (SculptGestureFaceSetOperation *)
                                                           sgcontext->operation;
@@ -1405,8 +1405,7 @@ static void sculpt_gesture_trim_begin(bContext *C, SculptGestureContext *sgconte
 {
   Object *object = sgcontext->vc.obact;
   SculptSession *ss = object->sculpt;
-  Mesh *mesh = (Mesh *)object->data;
-  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  ss->face_sets = BKE_sculpt_face_sets_ensure(object);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   sculpt_gesture_trim_calculate_depth(sgcontext);

@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import Menu
 from bl_ui import node_add_menu

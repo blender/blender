@@ -91,7 +91,7 @@ static void _vert_addFace(CCGVert *v, CCGFace *f, CCGSubSurf *ss)
 static CCGEdge *_vert_findEdgeTo(const CCGVert *v, const CCGVert *vQ)
 {
   for (int i = 0; i < v->numEdges; i++) {
-    CCGEdge *e = v->edges[v->numEdges - 1 - i];  // XXX, note reverse
+    CCGEdge *e = v->edges[v->numEdges - 1 - i]; /* XXX, note reverse. */
     if ((e->v0 == v && e->v1 == vQ) || (e->v1 == v && e->v0 == vQ)) {
       return e;
     }

@@ -6,7 +6,7 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_data)
-    .sampler(15, ImageType::FLOAT_2D, "hiz_tx")
+    .sampler(HIZ_TEX_SLOT, ImageType::FLOAT_2D, "hiz_tx")
     .uniform_buf(5, "HiZData", "hiz_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_update)

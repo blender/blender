@@ -170,18 +170,6 @@ float3 poly_normal_calc(const Span<float3> vert_positions, const Span<int> poly_
 
 }  // namespace blender::bke::mesh
 
-void BKE_mesh_calc_poly_normal(const int *poly_verts,
-                               const int poly_size,
-                               const float (*vert_positions)[3],
-                               const int verts_num,
-                               float r_no[3])
-{
-  copy_v3_v3(r_no,
-             blender::bke::mesh::poly_normal_calc(
-                 {reinterpret_cast<const blender::float3 *>(vert_positions), verts_num},
-                 {poly_verts, poly_size}));
-}
-
 /** \} */
 
 namespace blender::bke::mesh {
@@ -364,11 +352,6 @@ blender::Span<blender::float3> Mesh::poly_normals() const
 }
 
 const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
-{
-  return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
-}
-
-const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 {
   return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
 }

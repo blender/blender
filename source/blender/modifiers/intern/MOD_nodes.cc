@@ -103,6 +103,13 @@ namespace geo_log = blender::nodes::geo_eval_log;
 
 namespace blender {
 
+static blender::bke::sim::ModifierSimulationCachePtr *new_simulation_cache()
+{
+  auto *simulation_cache = MEM_new<blender::bke::sim::ModifierSimulationCachePtr>(__func__);
+  simulation_cache->ptr = std::make_shared<blender::bke::sim::ModifierSimulationCache>();
+  return simulation_cache;
+}
+
 static void initData(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
@@ -110,6 +117,8 @@ static void initData(ModifierData *md)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
 
   MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
+
+  nmd->simulation_cache = new_simulation_cache();
 }
 
 static void add_used_ids_from_sockets(const ListBase &sockets, Set<ID *> &ids)
@@ -604,7 +613,6 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
 }
 
 static void prepare_simulation_states_for_evaluation(const NodesModifierData &nmd,
-                                                     NodesModifierData &nmd_orig,
                                                      const ModifierEvalContext &ctx,
                                                      nodes::GeoNodesModifierData &exec_data)
 {
@@ -614,63 +622,61 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
   const SubFrame start_frame = scene->r.sfra;
   const bool is_start_frame = current_frame == start_frame;
 
-  if (DEG_is_active(ctx.depsgraph)) {
-    if (nmd_orig.simulation_cache == nullptr) {
-      nmd_orig.simulation_cache = MEM_new<bke::sim::ModifierSimulationCache>(__func__);
-    }
+  /* This cache may be shared between original and evaluated modifiers. */
+  blender::bke::sim::ModifierSimulationCache &simulation_cache = *nmd.simulation_cache->ptr;
 
-    {
-      /* Try to use baked data. */
-      const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
-      if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked &&
-          !bmain_path.is_empty())
-      {
-        if (!StringRef(nmd.simulation_bake_directory).is_empty()) {
-          if (const char *base_path = ID_BLEND_PATH(bmain, &ctx.object->id)) {
-            char absolute_bake_dir[FILE_MAX];
-            STRNCPY(absolute_bake_dir, nmd.simulation_bake_directory);
-            BLI_path_abs(absolute_bake_dir, base_path);
-            nmd_orig.simulation_cache->try_discover_bake(absolute_bake_dir);
-          }
+  {
+    /* Try to use baked data. */
+    const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
+    if (simulation_cache.cache_state() != bke::sim::CacheState::Baked && !bmain_path.is_empty()) {
+      if (!StringRef(nmd.simulation_bake_directory).is_empty()) {
+        if (const char *base_path = ID_BLEND_PATH(bmain, &ctx.object->id)) {
+          char absolute_bake_dir[FILE_MAX];
+          STRNCPY(absolute_bake_dir, nmd.simulation_bake_directory);
+          BLI_path_abs(absolute_bake_dir, base_path);
+          simulation_cache.try_discover_bake(absolute_bake_dir);
         }
       }
     }
+  }
+
+  if (DEG_is_active(ctx.depsgraph)) {
 
     {
       /* Invalidate cached data on user edits. */
       if (nmd.modifier.flag & eModifierFlag_UserModified) {
-        if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked) {
-          nmd_orig.simulation_cache->invalidate();
+        if (simulation_cache.cache_state() != bke::sim::CacheState::Baked) {
+          simulation_cache.invalidate();
         }
       }
     }
 
     {
       /* Reset cached data if necessary. */
-      const bke::sim::StatesAroundFrame sim_states =
-          nmd_orig.simulation_cache->get_states_around_frame(current_frame);
-      if (nmd_orig.simulation_cache->cache_state() == bke::sim::CacheState::Invalid &&
+      const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
+          current_frame);
+      if (simulation_cache.cache_state() == bke::sim::CacheState::Invalid &&
           (current_frame == start_frame ||
            (sim_states.current == nullptr && sim_states.prev == nullptr &&
             sim_states.next != nullptr)))
       {
-        nmd_orig.simulation_cache->reset();
+        simulation_cache.reset();
       }
     }
     /* Decide if a new simulation state should be created in this evaluation. */
-    const bke::sim::StatesAroundFrame sim_states =
-        nmd_orig.simulation_cache->get_states_around_frame(current_frame);
-    if (nmd_orig.simulation_cache->cache_state() != bke::sim::CacheState::Baked) {
+    const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
+        current_frame);
+    if (simulation_cache.cache_state() != bke::sim::CacheState::Baked) {
       if (sim_states.current == nullptr) {
-        if (is_start_frame || !nmd_orig.simulation_cache->has_states()) {
+        if (is_start_frame || !simulation_cache.has_states()) {
           bke::sim::ModifierSimulationState &current_sim_state =
-              nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+              simulation_cache.get_state_at_frame_for_write(current_frame);
           exec_data.current_simulation_state_for_write = &current_sim_state;
           exec_data.simulation_time_delta = 0.0f;
           if (!is_start_frame) {
             /* When starting a new simulation at another frame than the start frame, it can't match
              * what would be baked, so invalidate it immediately. */
-            nmd_orig.simulation_cache->invalidate();
+            simulation_cache.invalidate();
           }
         }
         else if (sim_states.prev != nullptr && sim_states.next == nullptr) {
@@ -678,10 +684,10 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
           const float scene_delta_frames = float(current_frame) - float(sim_states.prev->frame);
           const float delta_frames = std::min(max_delta_frames, scene_delta_frames);
           if (delta_frames != scene_delta_frames) {
-            nmd_orig.simulation_cache->invalidate();
+            simulation_cache.invalidate();
           }
           bke::sim::ModifierSimulationState &current_sim_state =
-              nmd_orig.simulation_cache->get_state_at_frame_for_write(current_frame);
+              simulation_cache.get_state_at_frame_for_write(current_frame);
           exec_data.current_simulation_state_for_write = &current_sim_state;
           const float delta_seconds = delta_frames / FPS;
           exec_data.simulation_time_delta = delta_seconds;
@@ -690,13 +696,9 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
     }
   }
 
-  if (nmd_orig.simulation_cache == nullptr) {
-    return;
-  }
-
   /* Load read-only states to give nodes access to cached data. */
-  const bke::sim::StatesAroundFrame sim_states =
-      nmd_orig.simulation_cache->get_states_around_frame(current_frame);
+  const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
+      current_frame);
   if (sim_states.current) {
     sim_states.current->state.ensure_bake_loaded();
     exec_data.current_simulation_state = &sim_states.current->state;
@@ -773,7 +775,7 @@ static void modifyGeometry(ModifierData *md,
   modifier_eval_data.self_object = ctx->object;
   auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
 
-  prepare_simulation_states_for_evaluation(*nmd, *nmd_orig, *ctx, modifier_eval_data);
+  prepare_simulation_states_for_evaluation(*nmd, *ctx, modifier_eval_data);
 
   Set<ComputeContextHash> socket_log_contexts;
   if (logging_enabled(ctx)) {
@@ -806,7 +808,7 @@ static void modifyGeometry(ModifierData *md,
     /* When caching is turned off, remove all states except the last which was just created in this
      * evaluation. Check if active status to avoid changing original data in other depsgraphs. */
     if (!(ctx->object->flag & OB_FLAG_USE_SIMULATION_CACHE)) {
-      nmd_orig->simulation_cache->clear_prev_states();
+      nmd_orig->simulation_cache->ptr->clear_prev_states();
     }
   }
 
@@ -1400,7 +1402,7 @@ static void blendRead(BlendDataReader *reader, ModifierData *md)
     IDP_BlendDataRead(reader, &nmd->settings.properties);
   }
   nmd->runtime_eval_log = nullptr;
-  nmd->simulation_cache = nullptr;
+  nmd->simulation_cache = new_simulation_cache();
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -1411,7 +1413,14 @@ static void copyData(const ModifierData *md, ModifierData *target, const int fla
   BKE_modifier_copydata_generic(md, target, flag);
 
   tnmd->runtime_eval_log = nullptr;
-  tnmd->simulation_cache = nullptr;
+  if (flag & LIB_ID_COPY_SET_COPIED_ON_WRITE) {
+    /* Share the simulation cache between the original and evaluated modifier. */
+    tnmd->simulation_cache = MEM_new<blender::bke::sim::ModifierSimulationCachePtr>(
+        __func__, *nmd->simulation_cache);
+  }
+  else {
+    tnmd->simulation_cache = new_simulation_cache();
+  }
   tnmd->simulation_bake_directory = nmd->simulation_bake_directory ?
                                         BLI_strdup(nmd->simulation_bake_directory) :
                                         nullptr;

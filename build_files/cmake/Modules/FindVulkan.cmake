@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2023 Blender Foundation.
 
 # - Find Vulkan libraries
 # Find the Vulkan includes and libraries

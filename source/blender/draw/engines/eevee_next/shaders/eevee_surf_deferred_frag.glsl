@@ -124,7 +124,7 @@ void main()
     /* SubSurface Scattering. */
     vec4 closure;
     closure.xyz = gbuffer_sss_radii_pack(g_diffuse_data.sss_radius);
-    closure.w = gbuffer_object_id_unorm16_pack(g_diffuse_data.sss_id);
+    closure.w = gbuffer_object_id_unorm16_pack(g_diffuse_data.sss_id > 0 ? uint(resource_id) : 0);
     imageStore(out_gbuff_closure_img, ivec3(out_texel, 2), closure);
   }
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/alembic_read.h"
 #include "scene/alembic.h"
@@ -663,8 +664,8 @@ static void read_points_data(CachedData &cached_data, const PointsSchemaData &da
 
     if (do_radius) {
       radius = (*radiuses)[offset + i];
-      a_radius.push_back_slow(radius);
     }
+    a_radius.push_back_slow(radius * data.radius_scale);
 
     a_shader.push_back_slow((int)0);
   }

@@ -155,6 +155,7 @@ set(SRC
   engines/eevee_next/eevee_shader.cc
   engines/eevee_next/eevee_shadow.cc
   engines/eevee_next/eevee_sync.cc
+  engines/eevee_next/eevee_subsurface.cc
   engines/eevee_next/eevee_velocity.cc
   engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
@@ -296,6 +297,7 @@ set(SRC
   engines/eevee_next/eevee_shader.hh
   engines/eevee_next/eevee_shadow.hh
   engines/eevee_next/eevee_sync.hh
+  engines/eevee_next/eevee_subsurface.hh
   engines/eevee_next/eevee_velocity.hh
   engines/eevee_next/eevee_view.hh
   engines/eevee_next/eevee_world.hh
@@ -504,6 +506,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
   engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
+  engines/eevee_next/shaders/eevee_subsurface_eval_frag.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl

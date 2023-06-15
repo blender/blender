@@ -1766,10 +1766,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
     {sizeof(int), "", 0, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 28: CD_SHAPEKEY */
     {sizeof(float[3]), "", 0, N_("ShapeKey"), nullptr, nullptr, layerInterp_shapekey},
-    /* 29: CD_BWEIGHT */ /* DEPRECATED*/
+    /* 29: CD_BWEIGHT */ /* DEPRECATED */
     {sizeof(MFloatProperty), "MFloatProperty", 1},
-    /* 30: CD_CREASE */
-    {sizeof(float), "", 0, nullptr, nullptr, nullptr, layerInterp_propFloat},
+    /* 30: CD_CREASE */ /* DEPRECATED */
+    {sizeof(float), ""},
     /* 31: CD_ORIGSPACE_MLOOP */
     {sizeof(OrigSpaceLoop),
      "OrigSpaceLoop",
@@ -2034,9 +2034,9 @@ const CustomData_MeshMasks CD_MASK_BAREMESH_ORIGINDEX = {
 };
 const CustomData_MeshMasks CD_MASK_MESH = {
     /*vmask*/ (CD_MASK_PROP_FLOAT3 | CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN |
-               CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
+               CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL),
     /*emask*/
-    (CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_CREASE),
+    (CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/ 0,
     /*pmask*/
     (CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
@@ -2045,10 +2045,9 @@ const CustomData_MeshMasks CD_MASK_MESH = {
 };
 const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
     /*vmask*/ (CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT | CD_MASK_SHAPEKEY | CD_MASK_MVERT_SKIN |
-               CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL |
-               CD_MASK_CREASE),
+               CD_MASK_PAINT_MASK | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_PROP_ALL),
     /*emask*/
-    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL | CD_MASK_CREASE),
+    (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/ (CD_MASK_ORIGINDEX | CD_MASK_ORIGSPACE | CD_MASK_PREVIEW_MCOL | CD_MASK_TANGENT),
     /*pmask*/
     (CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
@@ -2058,8 +2057,8 @@ const CustomData_MeshMasks CD_MASK_DERIVEDMESH = {
 };
 const CustomData_MeshMasks CD_MASK_BMESH = {
     /*vmask*/ (CD_MASK_MDEFORMVERT | CD_MASK_MVERT_SKIN | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
-    /*emask*/ (CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL),
+    /*emask*/ (CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/ 0,
     /*pmask*/
     (CD_MASK_FREESTYLE_FACE | CD_MASK_PROP_ALL),
@@ -2069,10 +2068,9 @@ const CustomData_MeshMasks CD_MASK_BMESH = {
 const CustomData_MeshMasks CD_MASK_EVERYTHING = {
     /*vmask*/ (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_MDEFORMVERT |
                CD_MASK_MVERT_SKIN | CD_MASK_ORCO | CD_MASK_CLOTH_ORCO | CD_MASK_SHAPEKEY |
-               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL | CD_MASK_CREASE),
+               CD_MASK_SHAPE_KEYINDEX | CD_MASK_PAINT_MASK | CD_MASK_PROP_ALL),
     /*emask*/
-    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_CREASE | CD_MASK_FREESTYLE_EDGE |
-     CD_MASK_PROP_ALL),
+    (CD_MASK_BM_ELEM_PYPTR | CD_MASK_ORIGINDEX | CD_MASK_FREESTYLE_EDGE | CD_MASK_PROP_ALL),
     /*fmask*/
     (CD_MASK_MFACE | CD_MASK_ORIGINDEX | CD_MASK_NORMAL | CD_MASK_MTFACE | CD_MASK_MCOL |
      CD_MASK_ORIGSPACE | CD_MASK_TANGENT | CD_MASK_TESSLOOPNORMAL | CD_MASK_PREVIEW_MCOL |
@@ -5181,9 +5179,6 @@ void CustomData_blend_write(BlendWriter *writer,
         break;
       case CD_PROP_BOOL:
         BLO_write_raw(writer, sizeof(bool) * count, static_cast<const bool *>(layer.data));
-        break;
-      case CD_CREASE:
-        BLO_write_raw(writer, sizeof(float) * count, static_cast<const float *>(layer.data));
         break;
       default: {
         const char *structname;

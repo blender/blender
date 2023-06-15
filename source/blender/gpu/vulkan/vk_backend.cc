@@ -6,6 +6,8 @@
  * \ingroup gpu
  */
 
+#include "GHOST_C-api.h"
+
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
@@ -121,7 +123,19 @@ void VKBackend::compute_dispatch_indirect(StorageBuf *indirect_buf)
 
 Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 {
-  return new VKContext(ghost_window, ghost_context);
+  if (ghost_window) {
+    BLI_assert(ghost_context == nullptr);
+    ghost_context = GHOST_GetDrawingContext((GHOST_WindowHandle)ghost_window);
+  }
+
+  BLI_assert(ghost_context != nullptr);
+  if (!device_.is_initialized()) {
+    device_.init(ghost_context);
+  }
+
+  VKContext *context = new VKContext(ghost_window, ghost_context);
+  device_.context_register(*context);
+  return context;
 }
 
 Batch *VKBackend::batch_alloc()

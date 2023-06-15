@@ -230,7 +230,7 @@ void BKE_fcurves_main_cb(struct Main *bmain, ID_FCurve_Edit_Callback func, void 
 void BKE_fcurves_id_cb(struct ID *id, ID_FCurve_Edit_Callback func, void *user_data);
 
 /* ************************************* */
-// TODO: overrides, remapping, and path-finding api's
+/* TODO: overrides, remapping, and path-finding API's. */
 
 /* ------------ NLA Keyframing --------------- */
 

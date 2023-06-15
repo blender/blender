@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2014-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Turn everything ON that's expected for an official release builds.

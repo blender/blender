@@ -39,6 +39,7 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
                      "eevee_light_data",
                      "eevee_shadow_data",
                      "eevee_deferred_base",
+                     "eevee_transmittance_data",
                      "eevee_hiz_data",
                      "eevee_render_pass_out",
                      "draw_view",

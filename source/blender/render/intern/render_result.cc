@@ -440,7 +440,7 @@ GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
                                                     1,
                                                     format,
                                                     GPU_TEXTURE_USAGE_GENERAL,
-                                                    NULL);
+                                                    nullptr);
 
   if (rpass->buffer.gpu_texture) {
     GPU_texture_update(rpass->buffer.gpu_texture, GPU_DATA_FLOAT, rpass->buffer.data);
