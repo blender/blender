@@ -142,6 +142,8 @@ void ForwardPipeline::sync()
       opaque_ps_.bind_image(RBUFS_CRYPTOMATTE_SLOT, &inst_.render_buffers.cryptomatte_tx);
       /* Textures. */
       opaque_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+      opaque_ps_.bind_texture(SSS_TRANSMITTANCE_TEX_SLOT, inst_.subsurface.transmittance_tx_get());
+
       /* Uniform Buffer. */
       opaque_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
       opaque_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
@@ -169,6 +171,7 @@ void ForwardPipeline::sync()
 
     /* Textures. */
     sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    sub.bind_texture(SSS_TRANSMITTANCE_TEX_SLOT, inst_.subsurface.transmittance_tx_get());
     /* Uniform Buffer. */
     sub.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
 
@@ -306,7 +309,7 @@ void DeferredLayer::begin_sync()
   {
     gbuffer_ps_.init();
     gbuffer_ps_.clear_stencil(0x00u);
-    gbuffer_ps_.state_stencil(0x01u, 0x01u, 0x01u);
+    gbuffer_ps_.state_stencil(0xFFu, 0xFFu, 0xFFu);
 
     {
       /* Common resources. */
@@ -343,18 +346,14 @@ void DeferredLayer::begin_sync()
 
 void DeferredLayer::end_sync()
 {
-  /* Use stencil test to reject pixel not written by this layer. */
-  /* WORKAROUND: Stencil write is only here to avoid rasterizer discard. */
-  DRWState state = DRW_STATE_WRITE_STENCIL | DRW_STATE_STENCIL_EQUAL;
-  /* Allow output to combined pass for the last pass. */
-  DRWState state_write_color = state | DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM;
-
   if (closure_bits_ & (CLOSURE_DIFFUSE | CLOSURE_REFLECTION)) {
-    const bool is_last_eval_pass = true;
+    const bool is_last_eval_pass = !(closure_bits_ & CLOSURE_SSS);
 
     eval_light_ps_.init();
-    eval_light_ps_.state_set(is_last_eval_pass ? state_write_color : state);
-    eval_light_ps_.state_stencil(0x00u, 0x01u, 0xFFu);
+    /* Use stencil test to reject pixel not written by this layer. */
+    eval_light_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL |
+                             DRW_STATE_BLEND_CUSTOM);
+    eval_light_ps_.state_stencil(0x00u, 0x00u, (CLOSURE_DIFFUSE | CLOSURE_REFLECTION));
     eval_light_ps_.shader_set(inst_.shaders.static_shader_get(DEFERRED_LIGHT));
     eval_light_ps_.bind_image("out_diffuse_light_img", &diffuse_light_tx_);
     eval_light_ps_.bind_image("out_specular_light_img", &specular_light_tx_);
@@ -364,6 +363,8 @@ void DeferredLayer::end_sync()
     eval_light_ps_.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
     eval_light_ps_.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
     eval_light_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+    eval_light_ps_.bind_texture(SSS_TRANSMITTANCE_TEX_SLOT,
+                                inst_.subsurface.transmittance_tx_get());
     eval_light_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
     inst_.lights.bind_resources(&eval_light_ps_);
@@ -391,12 +392,15 @@ PassMain::Sub *DeferredLayer::prepass_add(::Material *blender_mat,
 
 PassMain::Sub *DeferredLayer::material_add(::Material *blender_mat, GPUMaterial *gpumat)
 {
-  closure_bits_ |= shader_closure_bits_from_flag(gpumat);
+  eClosureBits closure_bits = shader_closure_bits_from_flag(gpumat);
+  closure_bits_ |= closure_bits;
 
   PassMain::Sub *pass = (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) ?
                             gbuffer_single_sided_ps_ :
                             gbuffer_double_sided_ps_;
-  return &pass->sub(GPU_material_get_name(gpumat));
+  pass = &pass->sub(GPU_material_get_name(gpumat));
+  pass->state_stencil(closure_bits, 0xFFu, 0xFFu);
+  return pass;
 }
 
 void DeferredLayer::render(View &view,
@@ -404,7 +408,6 @@ void DeferredLayer::render(View &view,
                            Framebuffer &combined_fb,
                            int2 extent)
 {
-
   GPU_framebuffer_bind(prepass_fb);
   inst_.manager->submit(prepass_ps_, view);
 
@@ -423,6 +426,10 @@ void DeferredLayer::render(View &view,
   specular_light_tx_.clear(float4(0.0f));
 
   inst_.manager->submit(eval_light_ps_, view);
+
+  if (closure_bits_ & CLOSURE_SSS) {
+    inst_.subsurface.render(view, combined_fb, diffuse_light_tx_);
+  }
 
   diffuse_light_tx_.release();
   specular_light_tx_.release();

@@ -173,6 +173,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_usage_opaque";
     case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
       return "eevee_shadow_tag_usage_transparent";
+    case SUBSURFACE_EVAL:
+      return "eevee_subsurface_eval";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
@@ -254,6 +256,10 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
     /* Opaque forward do support AOVs and render pass if not using transparency. */
     info.additional_info("eevee_render_pass_out");
     info.additional_info("eevee_cryptomatte_out");
+  }
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE) && pipeline_type == MAT_PIPE_FORWARD) {
+    info.additional_info("eevee_transmittance_data");
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_BARYCENTRIC)) {

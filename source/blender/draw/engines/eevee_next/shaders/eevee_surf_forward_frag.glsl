@@ -63,6 +63,8 @@ void main()
 
   g_holdout = saturate(g_holdout);
 
+  float thickness = nodetree_thickness();
+
   vec3 diffuse_light = vec3(0.0);
   vec3 reflection_light = vec3(0.0);
   vec3 refraction_light = vec3(0.0);
@@ -76,7 +78,7 @@ void main()
              g_data.Ng,
              cameraVec(g_data.P),
              vP_z,
-             0.01 /* TODO(fclem) thickness. */,
+             thickness,
              diffuse_light,
              reflection_light,
              shadow);
