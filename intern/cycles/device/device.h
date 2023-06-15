@@ -75,6 +75,7 @@ class DeviceInfo {
   bool display_device;          /* GPU is used as a display device. */
   bool has_nanovdb;             /* Support NanoVDB volumes. */
   bool has_light_tree;          /* Support light tree. */
+  bool has_mnee;                /* Support MNEE. */
   bool has_osl;                 /* Support Open Shading Language. */
   bool has_guiding;             /* Support path guiding. */
   bool has_profiling;           /* Supports runtime collection of profiling info. */
@@ -97,6 +98,7 @@ class DeviceInfo {
     display_device = false;
     has_nanovdb = false;
     has_light_tree = true;
+    has_mnee = true;
     has_osl = false;
     has_guiding = false;
     has_profiling = false;
