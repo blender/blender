@@ -33,6 +33,7 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
     : m_object(nullptr),
       m_iobject(object),
       m_settings(&settings),
+      m_is_reading_a_file_sequence(settings.is_sequence),
       m_min_time(std::numeric_limits<chrono_t>::max()),
       m_max_time(std::numeric_limits<chrono_t>::min()),
       m_refcount(0),

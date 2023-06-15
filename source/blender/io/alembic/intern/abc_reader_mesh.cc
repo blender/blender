@@ -465,6 +465,39 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
   }
 }
 
+static bool samples_have_same_topology(const IPolyMeshSchema::Sample &sample,
+                                       const IPolyMeshSchema::Sample &ceil_sample)
+{
+  const P3fArraySamplePtr &positions = sample.getPositions();
+  const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
+  const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
+
+  const P3fArraySamplePtr &ceil_positions = ceil_sample.getPositions();
+  const Alembic::Abc::Int32ArraySamplePtr &ceil_face_indices = ceil_sample.getFaceIndices();
+  const Alembic::Abc::Int32ArraySamplePtr &ceil_face_counts = ceil_sample.getFaceCounts();
+
+  /* It the counters are different, we can be sure the topology is different. */
+  const bool different_counters = positions->size() != ceil_positions->size() ||
+                                  face_counts->size() != ceil_face_counts->size() ||
+                                  face_indices->size() != ceil_face_indices->size();
+  if (different_counters) {
+    return false;
+  }
+
+  /* Otherwise, we need to check the connectivity as files from e.g. videogrammetry may have the
+   * same face count, but different connections between faces. */
+
+  if (memcmp(face_counts->get(), ceil_face_counts->get(), face_counts->size() * sizeof(int))) {
+    return false;
+  }
+
+  if (memcmp(face_indices->get(), ceil_face_indices->get(), face_indices->size() * sizeof(int))) {
+    return false;
+  }
+
+  return true;
+}
+
 static void read_mesh_sample(const std::string &iobject_full_name,
                              ImportSettings *settings,
                              const IPolyMeshSchema &schema,
@@ -483,7 +516,10 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   if (config.weight != 0.0f) {
     Alembic::AbcGeom::IPolyMeshSchema::Sample ceil_sample;
     schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
-    abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    if (samples_have_same_topology(sample, ceil_sample)) {
+      /* Only set interpolation data if the samples are compatible. */
+      abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    }
   }
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
@@ -668,9 +704,47 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
   const Alembic::Abc::Int32ArraySamplePtr &face_counts = sample.getFaceCounts();
 
-  return positions->size() != existing_mesh->totvert ||
-         face_counts->size() != existing_mesh->totpoly ||
-         face_indices->size() != existing_mesh->totloop;
+  /* It the counters are different, we can be sure the topology is different. */
+  const bool different_counters = positions->size() != existing_mesh->totvert ||
+                                  face_counts->size() != existing_mesh->totpoly ||
+                                  face_indices->size() != existing_mesh->totloop;
+  if (different_counters) {
+    return true;
+  }
+
+  /* Check first if we indeed have multiple samples, unless we read a file sequence in which case
+   * we need to do a full topology comparison. */
+  if (!m_is_reading_a_file_sequence && (m_schema.getFaceIndicesProperty().getNumSamples() == 1 &&
+                                        m_schema.getFaceCountsProperty().getNumSamples() == 1))
+  {
+    return false;
+  }
+
+  /* Otherwise, we need to check the connectivity as files from e.g. videogrammetry may have the
+   * same face count, but different connections between faces. */
+  uint abc_index = 0;
+
+  const int *mesh_corners = existing_mesh->corner_verts().data();
+  const int *mesh_poly_offsets = existing_mesh->poly_offsets().data();
+
+  for (int i = 0; i < face_counts->size(); i++) {
+    if (mesh_poly_offsets[i] != abc_index) {
+      return true;
+    }
+
+    const int abc_face_size = (*face_counts)[i];
+    /* NOTE: Alembic data is stored in the reverse order. */
+    uint rev_loop_index = abc_index + (abc_face_size - 1);
+    for (int f = 0; f < abc_face_size; f++, abc_index++, rev_loop_index--) {
+      const int mesh_vert = mesh_corners[rev_loop_index];
+      const int abc_vert = (*face_indices)[abc_index];
+      if (mesh_vert != abc_vert) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,

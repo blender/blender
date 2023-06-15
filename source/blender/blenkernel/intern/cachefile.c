@@ -188,7 +188,8 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
     case CACHEFILE_TYPE_ALEMBIC:
 #  ifdef WITH_ALEMBIC
       /* Open Alembic cache reader. */
-      *reader = CacheReader_open_alembic_object(cache_file->handle, *reader, object, object_path);
+      *reader = CacheReader_open_alembic_object(
+          cache_file->handle, *reader, object, object_path, cache_file->is_sequence);
 #  endif
       break;
     case CACHEFILE_TYPE_USD:
