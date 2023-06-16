@@ -2166,7 +2166,7 @@ static bool ui_but_drag_init(bContext *C,
     else if (but->type == UI_BTYPE_VIEW_ITEM) {
       const uiButViewItem *view_item_but = (uiButViewItem *)but;
       if (view_item_but->view_item) {
-        UI_view_item_drag_start(C, view_item_but->view_item);
+        return UI_view_item_drag_start(C, view_item_but->view_item);
       }
     }
     else {
