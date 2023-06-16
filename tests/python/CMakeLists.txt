@@ -746,6 +746,22 @@ foreach(geo_node_test ${geo_node_tests})
   endif()
 endforeach()
 
+
+if(EXISTS "${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/")
+  file(GLOB files "${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/*.blend")
+  foreach(file ${files})
+    get_filename_component(filename ${file} NAME_WE)
+    add_blender_test(
+      geo_node_simulation_test_${filename}
+      ${file}
+      --python ${TEST_PYTHON_DIR}/geo_node_sim_test.py
+      )
+  endforeach()
+else()
+  message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/simulation/ not found, disabling tests")
+endif()
+
+
 if(WITH_OPENGL_DRAW_TESTS)
   if(NOT OPENIMAGEIO_IDIFF)
     message(STATUS "Disabling OpenGL draw tests because OIIO idiff does not exist")
