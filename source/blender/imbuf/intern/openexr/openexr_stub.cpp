@@ -56,7 +56,7 @@ void IMB_exrtile_begin_write(void * /*handle*/,
 {
 }
 
-void IMB_exr_set_channel(void * /*handle*/,
+bool IMB_exr_set_channel(void * /*handle*/,
                          const char * /*layname*/,
                          const char * /*passname*/,
                          int /*xstride*/,

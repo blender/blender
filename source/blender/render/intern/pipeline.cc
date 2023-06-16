@@ -2513,6 +2513,11 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filepath, int x, int y)
 {
+  /* First try loading multilayer EXR. */
+  if (render_result_exr_file_read_path(nullptr, layer, reports, filepath)) {
+    return;
+  }
+
   /* OCIO_TODO: assume layer was saved in default color space */
   ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
   RenderPass *rpass = nullptr;
@@ -2582,7 +2587,7 @@ void RE_layer_load_from_file(
 
 void RE_result_load_from_file(RenderResult *result, ReportList *reports, const char *filepath)
 {
-  if (!render_result_exr_file_read_path(result, nullptr, filepath)) {
+  if (!render_result_exr_file_read_path(result, nullptr, reports, filepath)) {
     BKE_reportf(reports, RPT_ERROR, "%s: failed to load '%s'", __func__, filepath);
     return;
   }
