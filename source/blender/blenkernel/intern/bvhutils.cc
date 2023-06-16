@@ -665,7 +665,7 @@ static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
   }
 }
 
-static BVHTree *bvhtree_new_commom(
+static BVHTree *bvhtree_new_common(
     float epsilon, int tree_type, int axis, int elems_num, int &elems_num_active)
 {
   if (elems_num_active != -1) {
@@ -697,7 +697,7 @@ static BVHTree *bvhtree_from_editmesh_verts_create_tree(float epsilon,
 {
   const int verts_num = em->bm->totvert;
 
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, verts_num, verts_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, verts_num, verts_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -724,7 +724,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(float epsilon,
                                                     const BitSpan verts_mask,
                                                     int verts_num_active)
 {
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, verts_num, verts_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, verts_num, verts_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -804,7 +804,7 @@ static BVHTree *bvhtree_from_editmesh_edges_create_tree(float epsilon,
 {
   const int edges_num = em->bm->totedge;
 
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, edges_num, edges_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, edges_num, edges_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -837,7 +837,7 @@ static BVHTree *bvhtree_from_mesh_edges_create_tree(const float (*positions)[3],
                                                     int tree_type,
                                                     int axis)
 {
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, edges.size(), edges_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, edges.size(), edges_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -921,7 +921,7 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(float epsilon,
                                                     const BitSpan faces_mask,
                                                     int faces_num_active)
 {
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, faces_num, faces_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, faces_num, faces_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -963,7 +963,7 @@ static BVHTree *bvhtree_from_editmesh_looptri_create_tree(float epsilon,
 {
   const int looptri_num = em->tottri;
 
-  BVHTree *tree = bvhtree_new_commom(epsilon, tree_type, axis, looptri_num, looptri_num_active);
+  BVHTree *tree = bvhtree_new_common(epsilon, tree_type, axis, looptri_num, looptri_num_active);
   if (!tree) {
     return nullptr;
   }
@@ -1006,7 +1006,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(float epsilon,
     return nullptr;
   }
 
-  BVHTree *tree = bvhtree_new_commom(
+  BVHTree *tree = bvhtree_new_common(
       epsilon, tree_type, axis, looptris.size(), looptri_num_active);
 
   if (!tree) {
@@ -1356,7 +1356,7 @@ BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
                                          const int tree_type)
 {
   int tot_point = pointcloud->totpoint;
-  BVHTree *tree = bvhtree_new_commom(0.0f, tree_type, 6, tot_point, tot_point);
+  BVHTree *tree = bvhtree_new_common(0.0f, tree_type, 6, tot_point, tot_point);
   if (!tree) {
     return nullptr;
   }
