@@ -2548,6 +2548,13 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
+  bool do_reproject = SCULPT_need_reproject(ss);
+  bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
+
+  if (weighted) {
+    BKE_pbvh_check_tri_areas(ss->pbvh, data->nodes[n]);
+  }
+
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     SCULPT_orig_vert_data_update(ss, &orig_data, vd.vertex);
     if (!sculpt_brush_test_sq_fn(&test, orig_data.co)) {
@@ -2555,18 +2562,35 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
     }
     SCULPT_automasking_node_update(ss, &automask_data, &vd);
 
-    const float fade = SCULPT_brush_strength_factor(ss,
-                                                    brush,
-                                                    orig_data.co,
-                                                    sqrtf(test.dist),
-                                                    orig_data.no,
-                                                    nullptr,
-                                                    vd.mask ? *vd.mask : 0.0f,
-                                                    vd.vertex,
-                                                    thread_id,
-                                                    &automask_data);
+    const float fade = bstrength * SCULPT_brush_strength_factor(ss,
+                                                                brush,
+                                                                orig_data.co,
+                                                                sqrtf(test.dist),
+                                                                orig_data.no,
+                                                                nullptr,
+                                                                vd.mask ? *vd.mask : 0.0f,
+                                                                vd.vertex,
+                                                                thread_id,
+                                                                &automask_data);
 
-    SCULPT_relax_vertex(ss, &vd, fade * bstrength, SCULPT_BOUNDARY_MESH, vd.co);
+    float3 startco = vd.co;
+    float3 startno;
+    float3 avg;
+
+    SCULPT_vertex_normal_get(ss, vd.vertex, startno);
+
+    /* SCULPT_relax_vertex(ss, &vd, fade , SCULPT_BOUNDARY_MESH, vd.co); */
+
+    SCULPT_neighbor_coords_average_interior(
+        ss, avg, vd.vertex, 0.98f, 1.0f, weighted, false, fade);
+
+    interp_v3_v3v3(vd.co, vd.co, avg, fade);
+    BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
+
+    if (do_reproject) {
+      BKE_sculpt_reproject_cdata(ss, vd.vertex, startco, startno, false);
+    }
+
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
     }
@@ -2597,6 +2621,10 @@ void SCULPT_do_slide_relax_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
   BKE_pbvh_parallel_range_settings(&settings, true, nodes.size());
   if (ss->cache->alt_smooth) {
     SCULPT_boundary_info_ensure(ob);
+    if (brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT) {
+      BKE_pbvh_face_areas_begin(ss->pbvh);
+    }
+
     for (int i = 0; i < 4; i++) {
       BLI_task_parallel_range(0, nodes.size(), &data, do_topology_relax_task_cb_ex, &settings);
     }
@@ -2975,7 +3003,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
 
     if (do_reproject) {
       /* Use interp_face_corners instead. */
-      //BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
+      // BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
     }
 
     if (vd.is_mesh) {
