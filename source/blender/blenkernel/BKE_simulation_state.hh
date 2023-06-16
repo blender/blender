@@ -149,6 +149,9 @@ struct StatesAroundFrame {
 class ModifierSimulationCache {
  private:
   mutable std::mutex states_at_frames_mutex_;
+  /**
+   * All simulation states, sorted by frame.
+   */
   Vector<std::unique_ptr<ModifierSimulationStateAtFrame>> states_at_frames_;
   /**
    * Used for baking to deduplicate arrays when writing and writing from storage. Sharing info
