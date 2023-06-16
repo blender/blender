@@ -13,7 +13,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 if(WIN32)
-    add_definitions(-D_USE_MATH_DEFINES)
+  add_definitions(-D_USE_MATH_DEFINES)
 endif()
 
 set(LEMON_3RD_PATH 3rd/lemon-1.3.1)

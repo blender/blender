@@ -61,7 +61,7 @@ set(SRC
 )
 
 set(LIB
-    bf_realtime_compositor
+  bf_realtime_compositor
 )
 
 if(WITH_PYTHON)

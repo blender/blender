@@ -15,7 +15,7 @@ if(NOT WIN32)
     INSTALL_DIR ${LIBDIR}/ogg
   )
 else()
-    ExternalProject_Add(external_ogg
+  ExternalProject_Add(external_ogg
     URL file://${PACKAGE_DIR}/${OGG_FILE}
     DOWNLOAD_DIR ${DOWNLOAD_DIR}
     URL_HASH ${OGG_HASH_TYPE}=${OGG_HASH}
