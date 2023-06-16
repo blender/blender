@@ -143,7 +143,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
  * applied stochastically (by skipping verts randomly) to improve
  * performance.
  */
-#define DYNTOPO_SAFE_SMOOTH_FAC 0.025f
+#define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"
@@ -251,8 +251,6 @@ struct EdgeQueueContext {
 
   blender::MinMaxHeap<BMEdge *> edge_heap;
 
-  int max_heap_mm;
-  // TableGSet *used_verts;
   blender::Vector<BMVert *> used_verts;
 
   float3 view_normal;
@@ -273,8 +271,6 @@ struct EdgeQueueContext {
   int steps[2];
   PBVHTopologyUpdateMode ops[2];
   int totop = 0;
-  int current_i = 0;
-  int max_steps;
   PBVH *pbvh;
 
   bool ignore_loop_data = false;
@@ -291,8 +287,7 @@ struct EdgeQueueContext {
                    float3 view_normal,
                    bool updatePBVH,
                    DyntopoMaskCB mask_cb,
-                   void *mask_cb_data,
-                   int edge_limit_multiply);
+                   void *mask_cb_data);
 
   void insert_val34_vert(BMVert *v);
   void insert_edge(BMEdge *e, float w);
@@ -301,6 +296,10 @@ struct EdgeQueueContext {
   bool done();
   void step();
   void finish();
+
+  /* Remove 3 and 4 valence vertices surrounded only by triangles. */
+  bool cleanup_valence_34();
+  void surface_smooth(BMVert *v, float fac);
 
   void report();
 

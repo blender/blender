@@ -141,7 +141,6 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
   }
 
   double time = PIL_check_seconds_timer();
-  int edge_step_mul = 1 + int(ss->cached_dyntopo.quality * 100.0f);
 
   unlock_main_thread();
 
@@ -163,6 +162,8 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     radius = SCULPT_calc_radius(vc, brush, vc->scene, center);
     printf("radius: %.5f", radius);
   }
+
+  double last_flush = PIL_check_seconds_timer();
 
   int repeat = ss->cached_dyntopo.repeat;
   for (int i = 0; i < 1 + repeat; i++) {
@@ -203,20 +204,23 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
                               float3(0.0f, 0.0f, 1.0f),
                               false,
                               mask_cb,
-                              mask_cb_data,
-                              edge_step_mul);
+                              mask_cb_data);
 
+    remesher.surface_smooth_fac = 0.25;
     remesher.start();
 
     while (!remesher.done()) {
       remesher.step();
 
-      if (developer_mode && remesher.was_flushed()) {
+      if (developer_mode && remesher.was_flushed() ||
+          (PIL_check_seconds_timer() - last_flush > 0.5)) {
         DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
         unlock_main_thread();
         update_main_thread();
         PIL_sleep_ms(1);
         lock_main_thread();
+
+        last_flush = PIL_check_seconds_timer();
       }
 
       if (should_stop()) {
@@ -225,6 +229,11 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
     }
 
     remesher.finish();
+    /* Push a new subentry. */
+    BM_log_entry_add_ex(ss->bm, ss->bm_log, true);
+
+    blender::bke::dyntopo::after_stroke(ss->pbvh, true);
+
     unlock_main_thread();
   }
 
@@ -254,6 +263,9 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
+  double time = PIL_check_seconds_timer();
+  auto should_stop = [&time]() { return PIL_check_seconds_timer() - time > 1.0f; };
+
   int ret = sculpt_detail_flood_fill_run(
       CTX_data_scene(C),
       CTX_data_active_object(C),
@@ -264,7 +276,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
       []() {},
       []() {},
       []() {},
-      []() { return false; });
+      should_stop);
   WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
   SCULPT_undo_push_end(ob);

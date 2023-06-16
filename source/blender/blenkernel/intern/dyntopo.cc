@@ -334,6 +334,11 @@ static PBVHTopologyUpdateMode edge_queue_test(EdgeQueueContext *eq_ctx,
   return PBVH_None;
 }
 
+void EdgeQueueContext::surface_smooth(BMVert *v, float fac)
+{
+  surface_smooth_v_safe(ss, pbvh, v, fac, reproject_cdata);
+}
+
 void EdgeQueueContext::insert_edge(BMEdge *e, float w)
 {
   if (!(e->head.hflag & EDGE_QUEUE_FLAG)) {
@@ -2024,8 +2029,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
                                    float3 view_normal_,
                                    bool updatePBVH_,
                                    DyntopoMaskCB mask_cb_,
-                                   void *mask_cb_data_,
-                                   int edge_limit_multiply)
+                                   void *mask_cb_data_)
 {
   ss = ob->sculpt;
 
@@ -2051,7 +2055,6 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   surface_relax = true;
   reproject_cdata = ss->reproject_smooth;
 
-  max_heap_mm = (DYNTOPO_MAX_ITER * edge_limit_multiply) << 8;
   limit_len_min = pbvh->bm_min_edge_len;
   limit_len_max = pbvh->bm_max_edge_len;
   limit_len_min_sqr = limit_len_min * limit_len_min;
@@ -2104,14 +2107,10 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
 
     steps[0] = DYNTOPO_MAX_ITER_COLLAPSE;
   }
-
-  max_steps = (DYNTOPO_MAX_ITER * edge_limit_multiply) << (totop - 1);
 }
 
 void EdgeQueueContext::start()
 {
-  current_i = 0;
-
   /* Preemptively log UVs. */
   if (!ignore_loop_data) {
     for (int i : IndexRange(pbvh->totnode)) {
@@ -2128,7 +2127,12 @@ void EdgeQueueContext::start()
 
 bool EdgeQueueContext::done()
 {
-  return totop == 0 || edge_heap.empty() || current_i >= max_steps;
+  return totop == 0 || edge_heap.empty();
+}
+
+bool EdgeQueueContext::cleanup_valence_34()
+{
+  return do_cleanup_3_4(this, pbvh);
 }
 
 void EdgeQueueContext::finish()
@@ -2311,7 +2315,6 @@ void EdgeQueueContext::step()
   }
 
   count++;
-  current_i++;
 }
 
 void EdgeQueueContext::report()
@@ -2355,19 +2358,10 @@ bool remesh_topology(BrushTester *brush_tester,
                      bool updatePBVH,
                      DyntopoMaskCB mask_cb,
                      void *mask_cb_data,
-                     int edge_limit_multiply,
                      float quality)
 {
-  EdgeQueueContext eq_ctx(brush_tester,
-                          ob,
-                          pbvh,
-                          mode,
-                          use_frontface,
-                          view_normal,
-                          updatePBVH,
-                          mask_cb,
-                          mask_cb_data,
-                          edge_limit_multiply);
+  EdgeQueueContext eq_ctx(
+      brush_tester, ob, pbvh, mode, use_frontface, view_normal, updatePBVH, mask_cb, mask_cb_data);
   eq_ctx.start();
 
   /* Apply a time limit to avoid excessive hangs on pathological topology. */

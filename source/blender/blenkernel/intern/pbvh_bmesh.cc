@@ -2269,7 +2269,7 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
   }
 
   if (!ELEM(sharpcount, 0, 2)) {
-    //boundflag |= SCULPT_CORNER_SHARP_MARK;
+    // boundflag |= SCULPT_CORNER_SHARP_MARK;
   }
 
   if (seamcount == 1) {
@@ -2554,7 +2554,6 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
                            bool updatePBVH,
                            DyntopoMaskCB mask_cb,
                            void *mask_cb_data,
-                           int edge_limit_multiply,
                            float quality)
 {
   bool modified = false;
@@ -2588,7 +2587,6 @@ bool remesh_topology_nodes(blender::bke::dyntopo::BrushTester *brush_tester,
                              updatePBVH,
                              mask_cb,
                              mask_cb_data,
-                             edge_limit_multiply,
                              quality);
 
   return modified;
