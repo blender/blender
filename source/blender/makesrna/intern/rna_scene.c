@@ -177,14 +177,16 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-const EnumPropertyItem rna_enum_snap_element_base_items[] = {
+static const EnumPropertyItem rna_enum_snap_element_base_items[] = {
     RNA_SNAP_ELEMENTS_BASE,
     {0, NULL, 0, NULL, NULL},
 };
 
+#ifndef RNA_RUNTIME
 /* Last two snap elements from #rna_enum_snap_element_items. */
-const EnumPropertyItem *rna_enum_snap_element_individual_items =
+static const EnumPropertyItem *rna_enum_snap_element_individual_items =
     &rna_enum_snap_element_items[ARRAY_SIZE(rna_enum_snap_element_items) - 3];
+#endif
 
 const EnumPropertyItem rna_enum_snap_node_element_items[] = {
     {SCE_SNAP_MODE_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"},
