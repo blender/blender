@@ -62,6 +62,7 @@ bool IMB_exr_set_channel(void * /*handle*/,
                          int /*ystride*/,
                          float * /*rect*/)
 {
+  return false;
 }
 float *IMB_exr_channel_rect(void * /*handle*/,
                             const char * /*layname*/,
