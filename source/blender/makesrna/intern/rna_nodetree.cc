@@ -3320,7 +3320,7 @@ static bNodePanel *rna_NodeTree_panels_new(bNodeTree *ntree,
                                            ReportList *reports,
                                            const char *name)
 {
-  bNodePanel *panel = ntreeAddPanel(ntree, name, 0);
+  bNodePanel *panel = ntreeAddPanel(ntree, name);
 
   if (panel == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create panel");

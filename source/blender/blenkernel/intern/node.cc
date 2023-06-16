@@ -3854,7 +3854,7 @@ int ntreeGetPanelIndex(const bNodeTree *ntree, const bNodePanel *panel)
   return ntree->panels().first_index_try(const_cast<bNodePanel *>(panel));
 }
 
-bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
+bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name)
 {
   bNodePanel **old_panels_array = ntree->panels_array;
   const Span<const bNodePanel *> old_panels = ntree->panels();
@@ -3867,7 +3867,7 @@ bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
             new_panels.data());
 
   bNodePanel *new_panel = MEM_cnew<bNodePanel>(__func__);
-  *new_panel = {BLI_strdup(name), flag, ntree->next_panel_identifier++};
+  *new_panel = {BLI_strdup(name)};
   new_panels[new_panels.size() - 1] = new_panel;
 
   MEM_SAFE_FREE(old_panels_array);
@@ -3877,7 +3877,7 @@ bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
   return new_panel;
 }
 
-bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int flag, int index)
+bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int index)
 {
   if (!blender::IndexRange(ntree->panels().size() + 1).contains(index)) {
     return nullptr;
@@ -3899,7 +3899,7 @@ bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int flag, int i
             new_panels.drop_front(index + 1).data());
 
   bNodePanel *new_panel = MEM_cnew<bNodePanel>(__func__);
-  *new_panel = {BLI_strdup(name), flag, ntree->next_panel_identifier++};
+  *new_panel = {BLI_strdup(name)};
   new_panels[index] = new_panel;
 
   MEM_SAFE_FREE(old_panels_array);

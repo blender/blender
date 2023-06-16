@@ -576,17 +576,15 @@ int ntreeGetPanelIndex(const bNodeTree *ntree, const bNodePanel *panel);
 /**
  * Add a new panel to the node tree.
  * \param name: Name of the new panel.
- * \param flag: Flags of the new panel.
  */
-bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag);
+bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name);
 
 /**
  * Insert a new panel in the node tree.
  * \param name: Name of the new panel.
- * \param flag: Flags of the new panel.
  * \param index: Index at which to insert the panel.
  */
-bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int flag, int index);
+bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int index);
 
 /** Remove a panel from the node tree. */
 void ntreeRemovePanel(bNodeTree *ntree, bNodePanel *panel);

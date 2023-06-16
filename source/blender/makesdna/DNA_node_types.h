@@ -536,9 +536,8 @@ typedef struct bNodeLink {
 
 /** Panel in node tree for grouping sockets. */
 typedef struct bNodePanel {
+  /* UI name of the panel (not unique) */
   char *name;
-  int flag;
-  int _pad;
 } bNodePanel;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
@@ -608,8 +607,6 @@ typedef struct bNodeTree {
   struct bNodePanel **panels_array;
   int panels_num;
   int active_panel;
-  int next_panel_identifier;
-  char _pad2[4];
 
   bNodeTreeRuntimeHandle *runtime;
 
