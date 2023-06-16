@@ -586,7 +586,8 @@ static void sculpt_face_sets_init_flood_fill(Object *ob, const FaceSetsFloodFill
 
   BitVector<> visited_faces(mesh->totpoly, false);
 
-  int *face_sets = ss->face_sets;
+  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
+      &mesh->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(face_set), mesh->totpoly));
 
   const Span<int2> edges = mesh->edges();
   const OffsetIndices polys = mesh->polys();
@@ -663,11 +664,6 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
-  /* Dyntopo not supported. */
-  if (BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) {
-    return OPERATOR_CANCELLED;
-  }
-
   PBVH *pbvh = ob->sculpt->pbvh;
   Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(pbvh, nullptr, nullptr);
 
@@ -675,17 +671,34 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  BKE_sculpt_face_sets_ensure(ob);
+
   SCULPT_undo_push_begin(ob, op);
   for (PBVHNode *node : nodes) {
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
   }
 
-  const float threshold = RNA_float_get(op->ptr, "threshold");
+  /* Flush bmesh to base mesh. */
+  if (ss->bm) {
+    BKE_sculptsession_bm_to_me_for_render(ob);
 
-  Mesh *mesh = static_cast<Mesh *>(ob->data);
-  BKE_sculpt_face_sets_ensure(ob);
+    if (!ss->epmap.is_empty()) {
+      ss->epmap = {};
+      ss->edge_to_poly_indices = {};
+      ss->edge_to_poly_offsets = {};
+    }
+
+    if (!ss->pmap.is_empty()) {
+      ss->pmap = {};
+      ss->vert_to_poly_indices = {};
+      ss->vert_to_poly_offsets = {};
+    }
+  }
+
   const bke::AttributeAccessor attributes = mesh->attributes();
-
   switch (mode) {
     case SCULPT_FACE_SETS_FROM_LOOSE_PARTS: {
       const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
@@ -755,6 +768,20 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   }
 
   SCULPT_undo_push_end(ob);
+
+  if (ss->bm) {
+    SCULPT_face_random_access_ensure(ss);
+    BKE_sculpt_face_sets_ensure(ob);
+
+    int cd_fset = ss->attrs.face_set->bmesh_cd_offset;
+    const int *face_sets = static_cast<const int *>(
+        CustomData_get_layer_named(&mesh->pdata, CD_PROP_INT32, SCULPT_ATTRIBUTE_NAME(face_set)));
+
+    for (int i = 0; i < mesh->totpoly; i++) {
+      BMFace *f = ss->bm->ftable[i];
+      BM_ELEM_CD_SET_INT(f, cd_fset, face_sets[i]);
+    }
+  }
 
   int verts_num = SCULPT_vertex_count_get(ob->sculpt);
   for (int i : IndexRange(verts_num)) {
