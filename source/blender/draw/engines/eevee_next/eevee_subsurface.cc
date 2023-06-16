@@ -209,7 +209,7 @@ float SubsurfaceModule::burley_eval(float d, float r)
   /* Slide 33. */
   float exp_r_3_d = expf(-r / (3.0f * d));
   float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-  return (exp_r_d + exp_r_3_d) / (8.0f * (float)M_PI * d);
+  return (exp_r_d + exp_r_3_d) / (8.0f * float(M_PI) * d);
 }
 
 float SubsurfaceModule::burley_pdf(float d, float r)
