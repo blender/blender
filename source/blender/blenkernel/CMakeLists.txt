@@ -235,6 +235,7 @@ set(SRC
   intern/node.cc
   intern/node_runtime.cc
   intern/node_tree_anonymous_attributes.cc
+  intern/node_tree_dot_export.cc
   intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
