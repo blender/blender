@@ -2413,14 +2413,13 @@ static bool lineart_geometry_check_visible(double model_view_proj[4][4],
                                            double shift_y,
                                            Mesh *use_mesh)
 {
+  using namespace blender;
   if (!use_mesh) {
     return false;
   }
-  float mesh_min[3], mesh_max[3];
-  INIT_MINMAX(mesh_min, mesh_max);
-  BKE_mesh_minmax(use_mesh, mesh_min, mesh_max);
+  const Bounds<float3> bounds = *use_mesh->bounds_min_max();
   BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, mesh_min, mesh_max);
+  BKE_boundbox_init_from_minmax(&bb, bounds.min, bounds.max);
 
   double co[8][4];
   double tmp[3];

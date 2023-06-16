@@ -263,12 +263,12 @@ void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud 
   BKE_id_free(nullptr, pointcloud_src);
 }
 
-bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) const
+std::optional<blender::Bounds<blender::float3>> PointCloud::bounds_min_max() const
 {
   using namespace blender;
   using namespace blender::bke;
   if (this->totpoint == 0) {
-    return false;
+    return std::nullopt;
   }
   this->runtime->bounds_cache.ensure([&](Bounds<float3> &r_bounds) {
     const AttributeAccessor attributes = this->attributes();
@@ -281,34 +281,35 @@ bool PointCloud::bounds_min_max(blender::float3 &min, blender::float3 &max) cons
       r_bounds = *bounds::min_max(positions);
     }
   });
-  const Bounds<float3> &bounds = this->runtime->bounds_cache.data();
-  min = math::min(bounds.min, min);
-  max = math::max(bounds.max, max);
-  return true;
+  return this->runtime->bounds_cache.data();
 }
 
 BoundBox *BKE_pointcloud_boundbox_get(Object *ob)
 {
+  using namespace blender;
   BLI_assert(ob->type == OB_POINTCLOUD);
-
   if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
-
   if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = static_cast<BoundBox *>(MEM_callocN(sizeof(BoundBox), "pointcloud boundbox"));
+    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
 
-  float3 min, max;
-  INIT_MINMAX(min, max);
-  if (ob->runtime.geometry_set_eval != nullptr) {
-    ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max);
+  std::optional<Bounds<float3>> bounds;
+  if (ob->runtime.geometry_set_eval) {
+    bounds = ob->runtime.geometry_set_eval->compute_boundbox_without_instances();
   }
   else {
     const PointCloud *pointcloud = static_cast<PointCloud *>(ob->data);
-    pointcloud->bounds_min_max(min, max);
+    bounds = pointcloud->bounds_min_max();
   }
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+
+  if (bounds) {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
+  }
+  else {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
+  }
 
   return ob->runtime.bb;
 }

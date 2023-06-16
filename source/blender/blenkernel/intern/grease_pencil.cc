@@ -17,6 +17,7 @@
 #include "BKE_material.h"
 #include "BKE_object.h"
 
+#include "BLI_bounds.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memarena.h"
@@ -699,25 +700,21 @@ GreasePencil *BKE_grease_pencil_new_nomain()
 
 BoundBox *BKE_grease_pencil_boundbox_get(Object *ob)
 {
+  using namespace blender;
   BLI_assert(ob->type == OB_GREASE_PENCIL);
   const GreasePencil *grease_pencil = static_cast<const GreasePencil *>(ob->data);
-
   if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
     return ob->runtime.bb;
   }
-
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
+  }
 
-    float3 min(FLT_MAX);
-    float3 max(-FLT_MAX);
-
-    if (!grease_pencil->bounds_min_max(min, max)) {
-      min = float3(-1);
-      max = float3(1);
-    }
-
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  if (const std::optional<Bounds<float3>> bounds = grease_pencil->bounds_min_max()) {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
+  }
+  else {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
   }
 
   return ob->runtime.bb;
@@ -1109,21 +1106,19 @@ void GreasePencil::foreach_editable_drawing(
   foreach_drawing_ex(*this, frame, EDITABLE, function);
 }
 
-bool GreasePencil::bounds_min_max(float3 &min, float3 &max) const
+std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() const
 {
-  bool found = false;
+  using namespace blender;
   /* FIXME: this should somehow go through the visible drawings. We don't have access to the
    * scene time here, so we probably need to cache the visible drawing for each layer somehow. */
+  std::optional<Bounds<float3>> bounds;
   for (int i = 0; i < this->drawing_array_num; i++) {
     GreasePencilDrawingBase *drawing_base = this->drawing_array[i];
     switch (drawing_base->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        const blender::bke::CurvesGeometry &curves = drawing->geometry.wrap();
-
-        if (curves.bounds_min_max(min, max)) {
-          found = true;
-        }
+        const bke::CurvesGeometry &curves = drawing->geometry.wrap();
+        bounds = bounds::merge(bounds, curves.bounds_min_max());
         break;
       }
       case GP_DRAWING_REFERENCE: {
@@ -1133,7 +1128,7 @@ bool GreasePencil::bounds_min_max(float3 &min, float3 &max) const
     }
   }
 
-  return found;
+  return bounds;
 }
 
 blender::Span<const blender::bke::greasepencil::Layer *> GreasePencil::layers() const

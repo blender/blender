@@ -306,11 +306,10 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   psys_sim_data_init(&sim);
 
   if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
-    float min[3], max[3];
-    INIT_MINMAX(min, max);
-    BKE_mesh_minmax(mesh, min, max);
-    min_co = min[track];
-    max_co = max[track];
+    if (const std::optional<blender::Bounds<blender::float3>> bounds = mesh->bounds_min_max()) {
+      min_co = bounds->min[track];
+      max_co = bounds->max[track];
+    }
   }
 
   result = BKE_mesh_new_nomain_from_template(mesh, maxvert, maxedge, maxpoly, maxloop);

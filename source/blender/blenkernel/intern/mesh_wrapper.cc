@@ -29,6 +29,7 @@
 
 #include "BLI_ghash.h"
 #include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -153,12 +154,19 @@ void BKE_mesh_wrapper_ensure_mdata(Mesh *me)
 
 bool BKE_mesh_wrapper_minmax(const Mesh *me, float min[3], float max[3])
 {
+  using namespace blender;
   switch (me->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       return BKE_editmesh_cache_calc_minmax(me->edit_mesh, me->runtime->edit_data, min, max);
     case ME_WRAPPER_TYPE_MDATA:
-    case ME_WRAPPER_TYPE_SUBD:
-      return BKE_mesh_minmax(me, min, max);
+    case ME_WRAPPER_TYPE_SUBD: {
+      if (const std::optional<Bounds<float3>> bounds = me->bounds_min_max()) {
+        copy_v3_v3(min, math::min(bounds->min, float3(min)));
+        copy_v3_v3(max, math::max(bounds->max, float3(max)));
+        return true;
+      }
+      return false;
+    }
   }
   BLI_assert_unreachable();
   return false;

@@ -151,18 +151,17 @@ static bool can_use_mesh_for_orco_evaluation(MeshSeqCacheModifierData *mcmd,
 static Mesh *generate_bounding_box_mesh(const Mesh *org_mesh)
 {
   using namespace blender;
-  float3 min(std::numeric_limits<float>::max());
-  float3 max(-std::numeric_limits<float>::max());
-  if (!BKE_mesh_minmax(org_mesh, min, max)) {
+  const std::optional<Bounds<float3>> bounds = org_mesh->bounds_min_max();
+  if (!bounds) {
     return nullptr;
   }
 
-  Mesh *result = geometry::create_cuboid_mesh(max - min, 2, 2, 2);
+  Mesh *result = geometry::create_cuboid_mesh(bounds->max - bounds->min, 2, 2, 2);
   if (org_mesh->mat) {
     result->mat = static_cast<Material **>(MEM_dupallocN(org_mesh->mat));
     result->totcol = org_mesh->totcol;
   }
-  BKE_mesh_translate(result, math::midpoint(min, max), false);
+  BKE_mesh_translate(result, math::midpoint(bounds->min, bounds->max), false);
 
   return result;
 }

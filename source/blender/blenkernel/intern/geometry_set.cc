@@ -196,24 +196,30 @@ Vector<const GeometryComponent *> GeometrySet::get_components_for_read() const
   return components;
 }
 
-bool GeometrySet::compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const
+std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() const
 {
-  using namespace blender;
-  bool have_minmax = false;
+  std::optional<Bounds<float3>> bounds;
   if (const PointCloud *pointcloud = this->get_pointcloud_for_read()) {
-    have_minmax |= pointcloud->bounds_min_max(*r_min, *r_max);
+    bounds = bounds::merge(bounds, pointcloud->bounds_min_max());
   }
   if (const Mesh *mesh = this->get_mesh_for_read()) {
-    have_minmax |= BKE_mesh_wrapper_minmax(mesh, *r_min, *r_max);
+    Bounds<float3> mesh_bounds{float3(std::numeric_limits<float>::max()),
+                               float3(std::numeric_limits<float>::min())};
+    if (BKE_mesh_wrapper_minmax(mesh, mesh_bounds.min, mesh_bounds.max)) {
+      bounds = bounds::merge(bounds, {mesh_bounds});
+    }
   }
   if (const Volume *volume = this->get_volume_for_read()) {
-    have_minmax |= BKE_volume_min_max(volume, *r_min, *r_max);
+    Bounds<float3> volume_bounds{float3(std::numeric_limits<float>::max()),
+                                 float3(std::numeric_limits<float>::min())};
+    if (BKE_volume_min_max(volume, volume_bounds.min, volume_bounds.max)) {
+      bounds = bounds::merge(bounds, {volume_bounds});
+    }
   }
   if (const Curves *curves_id = this->get_curves_for_read()) {
-    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-    have_minmax |= curves.bounds_min_max(*r_min, *r_max);
+    bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max());
   }
-  return have_minmax;
+  return bounds;
 }
 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)

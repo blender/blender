@@ -192,6 +192,7 @@ void *BKE_curves_add(Main *bmain, const char *name)
 
 BoundBox *BKE_curves_boundbox_get(Object *ob)
 {
+  using namespace blender;
   BLI_assert(ob->type == OB_CURVES);
   const Curves *curves_id = static_cast<const Curves *>(ob->data);
 
@@ -201,17 +202,13 @@ BoundBox *BKE_curves_boundbox_get(Object *ob)
 
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-
-    const blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
-
-    float3 min(FLT_MAX);
-    float3 max(-FLT_MAX);
-    if (!curves.bounds_min_max(min, max)) {
-      min = float3(-1);
-      max = float3(1);
+    const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    if (const std::optional<Bounds<float3>> bounds = curves.bounds_min_max()) {
+      BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
     }
-
-    BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+    else {
+      BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(-1), float3(1));
+    }
   }
 
   return ob->runtime.bb;

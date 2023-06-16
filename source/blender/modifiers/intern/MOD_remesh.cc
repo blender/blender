@@ -71,8 +71,9 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
-  INIT_MINMAX(input->min, input->max);
-  BKE_mesh_minmax(mesh, input->min, input->max);
+  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
+  copy_v3_v3(input->min, bounds.min);
+  copy_v3_v3(input->max, bounds.max);
 }
 
 /* simple structure to hold the output: a CDDM and two counters to
