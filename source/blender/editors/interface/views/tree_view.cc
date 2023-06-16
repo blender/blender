@@ -122,6 +122,20 @@ void AbstractTreeView::change_state_delayed()
   BLI_assert_msg(
       is_reconstructed(),
       "These state changes are supposed to be delayed until reconstruction is completed");
+
+/* Debug-only sanity check: Ensure only one item requests to be active. */
+#ifndef NDEBUG
+  bool has_active = false;
+  foreach_item([&has_active](AbstractTreeViewItem &item) {
+    if (item.should_be_active().value_or(false)) {
+      BLI_assert_msg(
+          !has_active,
+          "Only one view item should ever return true for its `should_be_active()` method");
+      has_active = true;
+    }
+  });
+#endif
+
   foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
 }
 
