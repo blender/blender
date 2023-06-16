@@ -2823,16 +2823,14 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         const int size_no_snap = rmd->origval + delta;
         rmd->region->sizex = size_no_snap;
-        CLAMP(rmd->region->sizex, 0, rmd->maxsize);
 
         if (rmd->region->type->snap_size) {
           short sizex_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizex, 0);
-          if ((abs(rmd->region->sizex - sizex_test) < snap_size_threshold) &&
-              (sizex_test <= rmd->maxsize)) {
+          if (abs(rmd->region->sizex - sizex_test) < snap_size_threshold) {
             rmd->region->sizex = sizex_test;
           }
         }
-        BLI_assert(rmd->region->sizex <= rmd->maxsize);
+        CLAMP(rmd->region->sizex, 0, rmd->maxsize);
 
         if (size_no_snap < UI_UNIT_X / aspect) {
           rmd->region->sizex = rmd->origval;
@@ -2858,16 +2856,14 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         const int size_no_snap = rmd->origval + delta;
         rmd->region->sizey = size_no_snap;
-        CLAMP(rmd->region->sizey, 0, rmd->maxsize);
 
         if (rmd->region->type->snap_size) {
           short sizey_test = rmd->region->type->snap_size(rmd->region, rmd->region->sizey, 1);
-          if ((abs(rmd->region->sizey - sizey_test) < snap_size_threshold) &&
-              (sizey_test <= rmd->maxsize)) {
+          if (abs(rmd->region->sizey - sizey_test) < snap_size_threshold) {
             rmd->region->sizey = sizey_test;
           }
         }
-        BLI_assert(rmd->region->sizey <= rmd->maxsize);
+        CLAMP(rmd->region->sizey, 0, rmd->maxsize);
 
         /* NOTE: `UI_UNIT_Y / 4` means you need to drag the footer and execute region
          * almost all the way down for it to become hidden, this is done
