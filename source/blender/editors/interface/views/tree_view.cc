@@ -108,7 +108,7 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
     const AbstractTreeViewItem &lookup_item, const TreeViewOrItem &items)
 {
   for (const auto &iter_item : items.children_) {
-    if (lookup_item.matches_single(*iter_item)) {
+    if (lookup_item.matches(*iter_item)) {
       /* We have a matching item! */
       return iter_item.get();
     }
