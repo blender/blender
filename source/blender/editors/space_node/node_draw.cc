@@ -3100,7 +3100,7 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
       if (link.fromnode == nullptr) {
         continue;
       }
-      if (zone.contains_node_recursively(*link.fromnode) || zone.input_node == link.fromnode) {
+      if (zone.contains_node_recursively(*link.fromnode) && zone.output_node != link.fromnode) {
         const float2 pos = node_link_bezier_points_dragged(snode, link)[3];
         rctf rect;
         BLI_rctf_init_pt_radius(&rect, pos, node_padding);
