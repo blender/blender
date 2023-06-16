@@ -57,7 +57,7 @@ std::string node_tree_to_dot(const bNodeTree &tree, const bNodeTreeToDotOptions 
     dot_nodes.add_new(node, dot::NodeWithSocketsRef(dot_node, dot_node_with_sockets));
   }
 
-  LISTBASE_FOREACH (const bNodeLink *, link, &tree.links) {
+  for (const bNodeLink *link : tree.all_links()) {
     const dot::NodeWithSocketsRef &from_dot_node = dot_nodes.lookup(link->fromnode);
     const dot::NodeWithSocketsRef &to_dot_node = dot_nodes.lookup(link->tonode);
     const dot::NodePort from_dot_port = from_dot_node.output(link->fromsock->index());
