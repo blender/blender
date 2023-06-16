@@ -615,7 +615,7 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     BLO_write_struct(writer, LightgroupMembership, ob->lightgroup);
   }
   if (ob->light_linking) {
-    BLO_write_struct(writer, LightgroupMembership, ob->light_linking);
+    BLO_write_struct(writer, LightLinking, ob->light_linking);
   }
 
   if (ob->lightprobe_cache) {
