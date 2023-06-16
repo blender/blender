@@ -12,8 +12,8 @@
 #  LAME_FOUND        - True if Lame found.
 
 if (LAME_INCLUDE_DIR)
-    # Already in cache, be silent
-    set(LAME_FIND_QUIETLY TRUE)
+  # Already in cache, be silent
+  set(LAME_FIND_QUIETLY TRUE)
 endif ()
 
 find_path (LAME_INCLUDE_DIR lame/lame.h

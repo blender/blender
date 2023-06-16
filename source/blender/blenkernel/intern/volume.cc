@@ -1089,7 +1089,7 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 static void volume_evaluate_modifiers(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *object,
-                                      GeometrySet &geometry_set)
+                                      blender::bke::GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -1142,20 +1142,20 @@ void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
   }
 }
 
-static Volume *take_volume_ownership_from_geometry_set(GeometrySet &geometry_set)
+static Volume *take_volume_ownership_from_geometry_set(blender::bke::GeometrySet &geometry_set)
 {
-  if (!geometry_set.has<VolumeComponent>()) {
+  if (!geometry_set.has<blender::bke::VolumeComponent>()) {
     return nullptr;
   }
-  VolumeComponent &volume_component = geometry_set.get_component_for_write<VolumeComponent>();
+  auto &volume_component = geometry_set.get_component_for_write<blender::bke::VolumeComponent>();
   Volume *volume = volume_component.release();
   if (volume != nullptr) {
     /* Add back, but only as read-only non-owning component. */
-    volume_component.replace(volume, GeometryOwnershipType::ReadOnly);
+    volume_component.replace(volume, blender::bke::GeometryOwnershipType::ReadOnly);
   }
   else {
     /* The component was empty, we can remove it. */
-    geometry_set.remove<VolumeComponent>();
+    geometry_set.remove<blender::bke::VolumeComponent>();
   }
   return volume;
 }
@@ -1167,8 +1167,8 @@ void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 
   /* Evaluate modifiers. */
   Volume *volume = (Volume *)object->data;
-  GeometrySet geometry_set;
-  geometry_set.replace_volume(volume, GeometryOwnershipType::ReadOnly);
+  blender::bke::GeometrySet geometry_set;
+  geometry_set.replace_volume(volume, blender::bke::GeometryOwnershipType::ReadOnly);
   volume_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   Volume *volume_eval = take_volume_ownership_from_geometry_set(geometry_set);
@@ -1181,7 +1181,7 @@ void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   /* Assign evaluated object. */
   const bool eval_is_owned = (volume != volume_eval);
   BKE_object_eval_assign_data(object, &volume_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
+  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, const char *filepath)

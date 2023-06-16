@@ -726,7 +726,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
    * same face count, but different connections between faces. */
   uint abc_index = 0;
 
-  const int *mesh_corners = existing_mesh->corner_verts().data();
+  const int *mesh_corner_verts = existing_mesh->corner_verts().data();
   const int *mesh_poly_offsets = existing_mesh->poly_offsets().data();
 
   for (int i = 0; i < face_counts->size(); i++) {
@@ -738,7 +738,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
     /* NOTE: Alembic data is stored in the reverse order. */
     uint rev_loop_index = abc_index + (abc_face_size - 1);
     for (int f = 0; f < abc_face_size; f++, abc_index++, rev_loop_index--) {
-      const int mesh_vert = mesh_corners[rev_loop_index];
+      const int mesh_vert = mesh_corner_verts[rev_loop_index];
       const int abc_vert = (*face_indices)[abc_index];
       if (mesh_vert != abc_vert) {
         return true;

@@ -108,7 +108,7 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
     const AbstractTreeViewItem &lookup_item, const TreeViewOrItem &items)
 {
   for (const auto &iter_item : items.children_) {
-    if (lookup_item.matches_single(*iter_item)) {
+    if (lookup_item.matches(*iter_item)) {
       /* We have a matching item! */
       return iter_item.get();
     }
@@ -122,6 +122,20 @@ void AbstractTreeView::change_state_delayed()
   BLI_assert_msg(
       is_reconstructed(),
       "These state changes are supposed to be delayed until reconstruction is completed");
+
+/* Debug-only sanity check: Ensure only one item requests to be active. */
+#ifndef NDEBUG
+  bool has_active = false;
+  foreach_item([&has_active](AbstractTreeViewItem &item) {
+    if (item.should_be_active().value_or(false)) {
+      BLI_assert_msg(
+          !has_active,
+          "Only one view item should ever return true for its `should_be_active()` method");
+      has_active = true;
+    }
+  });
+#endif
+
   foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
 }
 
@@ -475,7 +489,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   }
 
   uiLayout *row = uiLayoutRow(overlap, false);
-  /* Enable emboss for item mouse hover highlight. */
+  /* Enable emboss for mouse hover highlight. */
   uiLayoutSetEmboss(row, UI_EMBOSS);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);

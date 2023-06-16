@@ -30,7 +30,7 @@
 #include "BKE_animsys.h"
 #include "BKE_attribute.h"
 #include "BKE_cryptomatte.h"
-#include "BKE_geometry_set.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_image.h"
 #include "BKE_node.h"
 #include "BKE_node_tree_update.h"
@@ -3320,7 +3320,7 @@ static bNodePanel *rna_NodeTree_panels_new(bNodeTree *ntree,
                                            ReportList *reports,
                                            const char *name)
 {
-  bNodePanel *panel = ntreeAddPanel(ntree, name, 0);
+  bNodePanel *panel = ntreeAddPanel(ntree, name);
 
   if (panel == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create panel");
@@ -9666,7 +9666,7 @@ static void def_geo_attribute_domain_size(StructRNA *srna)
   PropertyRNA *prop = RNA_def_property(srna, "component", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "custom1");
   RNA_def_property_enum_items(prop, rna_enum_geometry_component_type_items);
-  RNA_def_property_enum_default(prop, GEO_COMPONENT_TYPE_MESH);
+  RNA_def_property_enum_default(prop, int(blender::bke::GeometryComponent::Type::Mesh));
   RNA_def_property_ui_text(prop, "Component", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_socket_update");
 }

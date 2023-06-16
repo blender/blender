@@ -18,11 +18,13 @@
 
 #include "attribute_access_intern.hh"
 
+namespace blender::bke {
+
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
  * \{ */
 
-CurveComponent::CurveComponent() : GeometryComponent(GEO_COMPONENT_TYPE_CURVE) {}
+CurveComponent::CurveComponent() : GeometryComponent(Type::Curve) {}
 
 CurveComponent::~CurveComponent()
 {
@@ -132,8 +134,6 @@ const Curve *CurveComponent::get_curve_for_render() const
 }
 
 /** \} */
-
-namespace blender::bke {
 
 /* -------------------------------------------------------------------- */
 /** \name Curve Normals Access
@@ -612,17 +612,17 @@ MutableAttributeAccessor CurvesGeometry::attributes_for_write()
   return MutableAttributeAccessor(this, get_curves_accessor_functions_ref());
 }
 
-}  // namespace blender::bke
-
-std::optional<blender::bke::AttributeAccessor> CurveComponent::attributes() const
+std::optional<AttributeAccessor> CurveComponent::attributes() const
 {
-  return blender::bke::AttributeAccessor(curves_ ? &curves_->geometry : nullptr,
-                                         blender::bke::get_curves_accessor_functions_ref());
+  return AttributeAccessor(curves_ ? &curves_->geometry : nullptr,
+                           get_curves_accessor_functions_ref());
 }
 
-std::optional<blender::bke::MutableAttributeAccessor> CurveComponent::attributes_for_write()
+std::optional<MutableAttributeAccessor> CurveComponent::attributes_for_write()
 {
   Curves *curves = this->get_for_write();
-  return blender::bke::MutableAttributeAccessor(curves ? &curves->geometry : nullptr,
-                                                blender::bke::get_curves_accessor_functions_ref());
+  return MutableAttributeAccessor(curves ? &curves->geometry : nullptr,
+                                  get_curves_accessor_functions_ref());
 }
+
+}  // namespace blender::bke

@@ -1624,7 +1624,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator * /*op*/)
    * This way, when pasted strips are renamed, curves are renamed with them. Finally, restore
    * original curves from backup.
    */
-  SeqAnimationBackup animation_backup = {0};
+  SeqAnimationBackup animation_backup = {{nullptr}};
   SEQ_animation_backup_original(scene, &animation_backup);
 
   Sequence *seq = static_cast<Sequence *>(duplicated_strips.first);
@@ -2599,7 +2599,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
    * curves from backup.
    */
 
-  SeqAnimationBackup animation_backup = {0};
+  SeqAnimationBackup animation_backup = {{nullptr}};
   SEQ_animation_backup_original(scene, &animation_backup);
   sequencer_paste_animation(C);
 

@@ -28,7 +28,7 @@ NODE_STORAGE_FUNCS(NodeGeometryDistributePointsInVolume)
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Volume")
-      .supported_type(GEO_COMPONENT_TYPE_VOLUME)
+      .supported_type(GeometryComponent::Type::Volume)
       .translation_context(BLT_I18NCONTEXT_ID_ID);
   b.add_input<decl::Float>("Density")
       .default_value(1.0f)
@@ -205,7 +205,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     if (!geometry_set.has_volume()) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.keep_only_during_modify({GeometryComponent::Type::PointCloud});
       return;
     }
     const VolumeComponent *component = geometry_set.get_component_for_read<VolumeComponent>();
@@ -251,7 +251,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     point_radii.finish();
 
     geometry_set.replace_pointcloud(pointcloud);
-    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_POINT_CLOUD});
+    geometry_set.keep_only_during_modify({GeometryComponent::Type::PointCloud});
   });
 
   params.set_output("Points", std::move(geometry_set));

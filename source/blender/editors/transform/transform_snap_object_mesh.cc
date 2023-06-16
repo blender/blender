@@ -480,7 +480,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
   }
 
   if (nearest.index != -1) {
-    sctx->ret.dist_px_sq = sqrtf(nearest.dist_sq);
+    sctx->ret.dist_px_sq = nearest.dist_sq;
 
     mul_m4_v3(obmat, nearest.co);
     copy_v3_v3(sctx->ret.loc, nearest.co);

@@ -97,21 +97,21 @@ class GeometryFieldContext : public fn::FieldContext {
    * instead of #Curves.
    */
   const void *geometry_;
-  const GeometryComponentType type_;
+  const GeometryComponent::Type type_;
   const eAttrDomain domain_;
 
   friend GeometryFieldInput;
 
  public:
   GeometryFieldContext(const GeometryComponent &component, eAttrDomain domain);
-  GeometryFieldContext(const void *geometry, GeometryComponentType type, eAttrDomain domain);
+  GeometryFieldContext(const void *geometry, GeometryComponent::Type type, eAttrDomain domain);
 
   const void *geometry() const
   {
     return geometry_;
   }
 
-  GeometryComponentType type() const
+  GeometryComponent::Type type() const
   {
     return type_;
   }

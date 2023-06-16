@@ -107,10 +107,12 @@ static Vector<ZoneRelation> get_direct_zone_relations(
   return zone_relations;
 }
 
-static void update_parent_zone_per_node(const Span<const bNode *> all_nodes,
-                                        const Span<std::unique_ptr<TreeZone>> all_zones,
-                                        const BitGroupVector<> &depend_on_input_flag_array,
-                                        Map<int, int> &r_parent_zone_by_node_id)
+static void update_zone_per_node(const Span<const bNode *> all_nodes,
+                                 const Span<std::unique_ptr<TreeZone>> all_zones,
+                                 const BitGroupVector<> &depend_on_input_flag_array,
+                                 const Map<const bNode *, TreeZone *> &zone_by_inout_node,
+                                 Map<int, int> &r_zone_by_node_id,
+                                 Vector<const bNode *> &r_node_outside_zones)
 {
   for (const int node_i : all_nodes.index_range()) {
     const bNode &node = *all_nodes[node_i];
@@ -125,8 +127,37 @@ static void update_parent_zone_per_node(const Span<const bNode *> all_nodes,
         parent_zone = zone;
       }
     });
-    if (parent_zone != nullptr) {
-      r_parent_zone_by_node_id.add(node.identifier, parent_zone->index);
+    if (parent_zone == nullptr) {
+      if (!zone_by_inout_node.contains(&node)) {
+        r_node_outside_zones.append(&node);
+      }
+    }
+    else {
+      r_zone_by_node_id.add(node.identifier, parent_zone->index);
+    }
+  }
+  for (const MapItem<const bNode *, TreeZone *> item : zone_by_inout_node.items()) {
+    r_zone_by_node_id.add_overwrite(item.key->identifier, item.value->index);
+  }
+}
+
+static void update_zone_border_links(const bNodeTree &tree, TreeZones &tree_zones)
+{
+  for (const bNodeLink *link : tree.all_links()) {
+    if (!link->is_available()) {
+      continue;
+    }
+    if (link->is_muted()) {
+      continue;
+    }
+    TreeZone *from_zone = const_cast<TreeZone *>(tree_zones.get_zone_by_socket(*link->fromsock));
+    TreeZone *to_zone = const_cast<TreeZone *>(tree_zones.get_zone_by_socket(*link->tosock));
+    if (from_zone == to_zone) {
+      continue;
+    }
+    BLI_assert(from_zone == nullptr || from_zone->contains_zone_recursively(*to_zone));
+    for (TreeZone *zone = to_zone; zone != from_zone; zone = zone->parent_zone) {
+      zone->border_links.append(link);
     }
   }
 }
@@ -212,19 +243,33 @@ static std::unique_ptr<TreeZones> discover_tree_zones(const bNodeTree &tree)
     update_zone_depths(*zone);
   }
 
-  update_parent_zone_per_node(all_nodes,
-                              tree_zones->zones,
-                              depend_on_input_flag_array,
-                              tree_zones->parent_zone_by_node_id);
+  for (std::unique_ptr<TreeZone> &zone : tree_zones->zones) {
+    if (zone->depth == 0) {
+      tree_zones->root_zones.append(zone.get());
+    }
+  }
+
+  update_zone_per_node(all_nodes,
+                       tree_zones->zones,
+                       depend_on_input_flag_array,
+                       zone_by_inout_node,
+                       tree_zones->zone_by_node_id,
+                       tree_zones->nodes_outside_zones);
 
   for (const int node_i : all_nodes.index_range()) {
     const bNode *node = all_nodes[node_i];
-    const int parent_zone_i = tree_zones->parent_zone_by_node_id.lookup_default(node->identifier,
-                                                                                -1);
-    if (parent_zone_i != -1) {
-      tree_zones->zones[parent_zone_i]->child_nodes.append(node);
+    const int zone_i = tree_zones->zone_by_node_id.lookup_default(node->identifier, -1);
+    if (zone_i == -1) {
+      continue;
     }
+    const TreeZone &zone = *tree_zones->zones[zone_i];
+    if (ELEM(node, zone.input_node, zone.output_node)) {
+      continue;
+    }
+    tree_zones->zones[zone_i]->child_nodes.append(node);
   }
+
+  update_zone_border_links(tree, *tree_zones);
 
   return tree_zones;
 }
@@ -239,16 +284,47 @@ const TreeZones *get_tree_zones(const bNodeTree &tree)
 bool TreeZone::contains_node_recursively(const bNode &node) const
 {
   const TreeZones *zones = this->owner;
-  const int parent_zone_i = zones->parent_zone_by_node_id.lookup_default(node.identifier, -1);
-  if (parent_zone_i == -1) {
+  const int zone_i = zones->zone_by_node_id.lookup_default(node.identifier, -1);
+  if (zone_i == -1) {
     return false;
   }
-  for (const TreeZone *zone = zones->zones[parent_zone_i].get(); zone; zone = zone->parent_zone) {
+  for (const TreeZone *zone = zones->zones[zone_i].get(); zone; zone = zone->parent_zone) {
     if (zone == this) {
       return true;
     }
   }
   return false;
+}
+
+bool TreeZone::contains_zone_recursively(const TreeZone &other_zone) const
+{
+  for (const TreeZone *zone = other_zone.parent_zone; zone; zone = zone->parent_zone) {
+    if (zone == this) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const TreeZone *TreeZones::get_zone_by_socket(const bNodeSocket &socket) const
+{
+  const bNode &node = socket.owner_node();
+  const int zone_i = this->zone_by_node_id.lookup_default(node.identifier, -1);
+  if (zone_i == -1) {
+    return nullptr;
+  }
+  const TreeZone &zone = *this->zones[zone_i];
+  if (zone.input_node == &node) {
+    if (socket.is_input()) {
+      return zone.parent_zone;
+    }
+  }
+  if (zone.output_node == &node) {
+    if (socket.is_output()) {
+      return zone.parent_zone;
+    }
+  }
+  return &zone;
 }
 
 }  // namespace blender::bke::node_tree_zones

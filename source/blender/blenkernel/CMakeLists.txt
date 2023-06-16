@@ -235,6 +235,7 @@ set(SRC
   intern/node.cc
   intern/node_runtime.cc
   intern/node_tree_anonymous_attributes.cc
+  intern/node_tree_dot_export.cc
   intern/node_tree_field_inferencing.cc
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
@@ -387,7 +388,6 @@ set(SRC
   BKE_fluid.h
   BKE_freestyle.h
   BKE_geometry_fields.hh
-  BKE_geometry_set.h
   BKE_geometry_set.hh
   BKE_geometry_set_instances.hh
   BKE_global.h
@@ -452,6 +452,8 @@ set(SRC
   BKE_node.h
   BKE_node.hh
   BKE_node_runtime.hh
+  BKE_node_tree_anonymous_attributes.hh
+  BKE_node_tree_dot_export.hh
   BKE_node_tree_update.h
   BKE_node_tree_zones.hh
   BKE_object.h

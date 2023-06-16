@@ -60,7 +60,7 @@ static void node_geo_exec(GeoNodeExecParams params)
         Mesh *mesh = geometry::create_cuboid_mesh(scale, 2, 2, 2, "uv_map");
         transform_mesh(*mesh, center, float3(0), float3(1));
         sub_geometry.replace_mesh(mesh);
-        sub_geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
+        sub_geometry.keep_only_during_modify({GeometryComponent::Type::Mesh});
       }
     });
 

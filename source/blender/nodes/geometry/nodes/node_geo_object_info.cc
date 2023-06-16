@@ -7,6 +7,8 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_instances.hh"
 
+#include "DNA_object_types.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 

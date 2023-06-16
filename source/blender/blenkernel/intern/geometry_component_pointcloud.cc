@@ -10,11 +10,13 @@
 
 #include "attribute_access_intern.hh"
 
+namespace blender::bke {
+
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component Implementation
  * \{ */
 
-PointCloudComponent::PointCloudComponent() : GeometryComponent(GEO_COMPONENT_TYPE_POINT_CLOUD) {}
+PointCloudComponent::PointCloudComponent() : GeometryComponent(Type::PointCloud) {}
 
 PointCloudComponent::~PointCloudComponent()
 {
@@ -103,8 +105,6 @@ void PointCloudComponent::ensure_owns_direct_data()
 /** \name Attribute Access
  * \{ */
 
-namespace blender::bke {
-
 static void tag_component_positions_changed(void *owner)
 {
   PointCloud &points = *static_cast<PointCloud *>(owner);
@@ -187,13 +187,13 @@ static AttributeAccessorFunctions get_pointcloud_accessor_functions()
     return domain == ATTR_DOMAIN_POINT;
   };
   fn.adapt_domain = [](const void * /*owner*/,
-                       const blender::GVArray &varray,
+                       const GVArray &varray,
                        const eAttrDomain from_domain,
                        const eAttrDomain to_domain) {
     if (from_domain == to_domain && from_domain == ATTR_DOMAIN_POINT) {
       return varray;
     }
-    return blender::GVArray{};
+    return GVArray{};
   };
   return fn;
 }
@@ -218,17 +218,19 @@ blender::bke::MutableAttributeAccessor PointCloud::attributes_for_write()
       this, blender::bke::get_pointcloud_accessor_functions_ref());
 }
 
-std::optional<blender::bke::AttributeAccessor> PointCloudComponent::attributes() const
+namespace blender::bke {
+
+std::optional<AttributeAccessor> PointCloudComponent::attributes() const
 {
-  return blender::bke::AttributeAccessor(pointcloud_,
-                                         blender::bke::get_pointcloud_accessor_functions_ref());
+  return AttributeAccessor(pointcloud_, get_pointcloud_accessor_functions_ref());
 }
 
-std::optional<blender::bke::MutableAttributeAccessor> PointCloudComponent::attributes_for_write()
+std::optional<MutableAttributeAccessor> PointCloudComponent::attributes_for_write()
 {
   PointCloud *pointcloud = this->get_for_write();
-  return blender::bke::MutableAttributeAccessor(
-      pointcloud, blender::bke::get_pointcloud_accessor_functions_ref());
+  return MutableAttributeAccessor(pointcloud, get_pointcloud_accessor_functions_ref());
 }
 
 /** \} */
+
+}  // namespace blender::bke

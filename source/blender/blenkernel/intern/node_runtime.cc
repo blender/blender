@@ -506,11 +506,19 @@ static void ensure_topology_cache(const bNodeTree &ntree)
                           ToposortDirection::LeftToRight,
                           tree_runtime.toposort_left_to_right,
                           tree_runtime.has_available_link_cycle);
+          for (const int i : tree_runtime.toposort_left_to_right.index_range()) {
+            const bNode &node = *tree_runtime.toposort_left_to_right[i];
+            node.runtime->toposort_left_to_right_index = i;
+          }
         },
         [&]() {
           bool dummy;
           update_toposort(
               ntree, ToposortDirection::RightToLeft, tree_runtime.toposort_right_to_left, dummy);
+          for (const int i : tree_runtime.toposort_right_to_left.index_range()) {
+            const bNode &node = *tree_runtime.toposort_right_to_left[i];
+            node.runtime->toposort_right_to_left_index = i;
+          }
         },
         [&]() { update_root_frames(ntree); },
         [&]() { update_direct_frames_childrens(ntree); });

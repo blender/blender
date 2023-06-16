@@ -35,10 +35,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   std::atomic<bool> cannot_delete = false;
 
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-    for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                             GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                             GEO_COMPONENT_TYPE_CURVE,
-                                             GEO_COMPONENT_TYPE_INSTANCES})
+    for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                               GeometryComponent::Type::PointCloud,
+                                               GeometryComponent::Type::Curve,
+                                               GeometryComponent::Type::Instance})
     {
       if (geometry_set.has(type)) {
         /* First check if the attribute exists before getting write access,
