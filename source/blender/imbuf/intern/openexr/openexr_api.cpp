@@ -1092,11 +1092,10 @@ bool IMB_exr_begin_read(
   return true;
 }
 
-void IMB_exr_set_channel(
+bool IMB_exr_set_channel(
     void *handle, const char *layname, const char *passname, int xstride, int ystride, float *rect)
 {
   ExrHandle *data = (ExrHandle *)handle;
-  ExrChannel *echan;
   char name[EXR_TOT_MAXNAME + 1];
 
   if (layname && layname[0] != '\0') {
@@ -1110,16 +1109,17 @@ void IMB_exr_set_channel(
     BLI_strncpy(name, passname, EXR_TOT_MAXNAME - 1);
   }
 
-  echan = (ExrChannel *)BLI_findstring(&data->channels, name, offsetof(ExrChannel, name));
+  ExrChannel *echan = (ExrChannel *)BLI_findstring(
+      &data->channels, name, offsetof(ExrChannel, name));
 
-  if (echan) {
-    echan->xstride = xstride;
-    echan->ystride = ystride;
-    echan->rect = rect;
+  if (echan == nullptr) {
+    return false;
   }
-  else {
-    printf("IMB_exr_set_channel error %s\n", name);
-  }
+
+  echan->xstride = xstride;
+  echan->ystride = ystride;
+  echan->rect = rect;
+  return true;
 }
 
 float *IMB_exr_channel_rect(void *handle,
@@ -1350,9 +1350,6 @@ void IMB_exr_read_channels(void *handle)
 
         frameBuffer.insert(echan->m->internal_name,
                            Slice(Imf::FLOAT, (char *)rect, xstride, ystride));
-      }
-      else {
-        printf("warning, channel with no rect set %s\n", echan->m->internal_name.c_str());
       }
     }
 
