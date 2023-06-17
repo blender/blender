@@ -2635,6 +2635,14 @@ void EdgeQueueContext::split_edge(BMEdge *e)
         insert_edge(newl->e, w);
       }
     }
+    else {
+      float w = 0.0f;
+      PBVHTopologyUpdateMode mode = edge_queue_test(this, pbvh, newl->e, &w);
+
+      if (mode == PBVH_Collapse) {
+        insert_edge(newl->e, w);
+      }
+    }
   }
 
   pbvh_bmesh_check_nodes(pbvh);

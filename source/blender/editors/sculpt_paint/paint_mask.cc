@@ -1530,7 +1530,7 @@ static void sculpt_gesture_apply_trim(SculptGestureContext *sgcontext)
   if (sgcontext->ss && sgcontext->ss->bm) { /* Rebuild pbvh. */
     BKE_pbvh_free(sgcontext->ss->pbvh);
     sgcontext->ss->pbvh = BKE_pbvh_new(PBVH_BMESH);
-
+    
     BKE_pbvh_build_bmesh(sgcontext->ss->pbvh,
                          sculpt_mesh,
                          sgcontext->ss->bm,

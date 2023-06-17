@@ -2366,6 +2366,7 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_origno)
 {
   pbvh->bm_idmap = idmap;
+  pbvh->header.bm = bm;
 
   pbvh->cd_face_area = cd_face_areas;
   pbvh->cd_vert_node_offset = cd_vert_node_offset;
