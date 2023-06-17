@@ -3592,9 +3592,6 @@ class VIEW3D_MT_face_sets_init(Menu):
         props = layout.operator("sculpt.face_sets_init", text="By Sharp Edges")
         props.mode = 'SHARP_EDGES'
 
-        props = layout.operator("sculpt.face_sets_init", text="By Face Maps")
-        props.mode = 'FACE_MAPS'
-
 
 class VIEW3D_MT_random_mask(Menu):
     bl_label = "Random Mask"
