@@ -78,7 +78,7 @@ set(DEFSRC
   rna_texture.c
   rna_timeline.c
   rna_tracking.c
-  rna_ui.c
+  rna_ui.cc
   rna_userdef.c
   rna_vfont.c
   rna_volume.c
@@ -119,7 +119,7 @@ set(APISRC
   rna_space_api.cc
   rna_text_api.c
   rna_texture_api.c
-  rna_ui_api.c
+  rna_ui_api.cc
   rna_vfont_api.c
   rna_wm_api.c
   rna_wm_gizmo_api.c
