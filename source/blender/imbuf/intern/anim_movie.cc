@@ -100,7 +100,12 @@ static void free_anim_movie(struct anim * /*anim*/)
 #  define PATHSEPARATOR '/'
 #endif
 
-static int an_stringdec(const char *string, char *head, char *tail, ushort *numlen)
+static int an_stringdec(const char *string,
+                        char *head,
+                        size_t head_maxncpy,
+                        char *tail,
+                        size_t tail_maxncpy,
+                        ushort *numlen)
 {
   ushort len, nume, nums = 0;
   short i;
@@ -130,14 +135,13 @@ static int an_stringdec(const char *string, char *head, char *tail, ushort *numl
     }
   }
   if (found) {
-    strcpy(tail, &string[nume + 1]);
-    strcpy(head, string);
-    head[nums] = '\0';
+    BLI_strncpy(tail, &string[nume + 1], MIN2(nums + 1, tail_maxncpy));
+    BLI_strncpy(head, string, head_maxncpy);
     *numlen = nume - nums + 1;
     return int(atoi(&(string)[nums]));
   }
   tail[0] = '\0';
-  strcpy(head, string);
+  BLI_strncpy(head, string, head_maxncpy);
   *numlen = 0;
   return true;
 }
@@ -1590,9 +1594,6 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
                                 IMB_Proxy_Size preview_size)
 {
   struct ImBuf *ibuf = nullptr;
-  char head[256], tail[256];
-  ushort digits;
-  int pic;
   int filter_y;
   if (anim == nullptr) {
     return nullptr;
@@ -1625,15 +1626,19 @@ struct ImBuf *IMB_anim_absolute(struct anim *anim,
   }
 
   switch (anim->curtype) {
-    case ANIM_SEQUENCE:
-      pic = an_stringdec(anim->filepath_first, head, tail, &digits);
-      pic += position;
+    case ANIM_SEQUENCE: {
+      char head[ARRAY_SIZE(anim->filepath_first)], tail[ARRAY_SIZE(anim->filepath_first)];
+      ushort digits;
+      const int pic = an_stringdec(
+                          anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
+                      position;
       an_stringenc(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
       ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;
       }
       break;
+    }
     case ANIM_MOVIE:
       ibuf = movie_fetchibuf(anim, position);
       if (ibuf) {
