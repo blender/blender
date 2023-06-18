@@ -100,26 +100,25 @@ static int an_stringdec(const char *filepath,
                         size_t head_maxncpy,
                         char *tail,
                         size_t tail_maxncpy,
-                        ushort *numlen)
+                        ushort *r_numlen)
 {
-  ushort len, nume, nums = 0;
-  short i;
+  const ushort len = strlen(filepath);
   bool found = false;
 
-  len = strlen(filepath);
-  nume = len;
+  ushort num_beg = 0;
+  ushort num_end = len;
 
-  for (i = len - 1; i >= 0; i--) {
+  for (short i = (short)len - 1; i >= 0; i--) {
     if (filepath[i] == SEP) {
       break;
     }
     if (isdigit(filepath[i])) {
       if (found) {
-        nums = i;
+        num_beg = i;
       }
       else {
-        nume = i;
-        nums = i;
+        num_end = i;
+        num_beg = i;
         found = true;
       }
     }
@@ -130,14 +129,14 @@ static int an_stringdec(const char *filepath,
     }
   }
   if (found) {
-    BLI_strncpy(tail, &filepath[nume + 1], MIN2(nums + 1, tail_maxncpy));
+    BLI_strncpy(tail, &filepath[num_end + 1], MIN2(num_beg + 1, tail_maxncpy));
     BLI_strncpy(head, filepath, head_maxncpy);
-    *numlen = nume - nums + 1;
-    return int(atoi(&(filepath)[nums]));
+    *r_numlen = num_end - num_beg + 1;
+    return int(atoi(&(filepath)[num_beg]));
   }
   tail[0] = '\0';
   BLI_strncpy(head, filepath, head_maxncpy);
-  *numlen = 0;
+  *r_numlen = 0;
   return true;
 }
 
