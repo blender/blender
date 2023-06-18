@@ -79,10 +79,6 @@ static void surface_smooth_v_safe(
   float tan[3];
   float tot = 0.0;
 
-  if (BM_ELEM_CD_GET_INT(v, pbvh->cd_valence) > 12) {
-    return;
-  }
-
   PBVH_CHECK_NAN(v->co);
 
   Vector<BMLoop *, 32> loops;
@@ -1987,7 +1983,7 @@ static bool do_cleanup_3_4(EdgeQueueContext *eq_ctx, PBVH *pbvh)
 
       bool ok = eq_ctx->brush_tester->vert_in_range(v);
 
-      if (!ok) {
+      if (!ok && v->e) {
         /* Check if any surrounding vertex is in range. */
         BMEdge *e = v->e;
         do {
@@ -2125,8 +2121,12 @@ void EdgeQueueContext::start()
   }
 }
 
-bool EdgeQueueContext::done()
+ATTR_NO_OPT bool EdgeQueueContext::done()
 {
+  if (edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr) {
+    return true;
+  }
+
   return totop == 0 || edge_heap.empty();
 }
 

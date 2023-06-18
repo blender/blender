@@ -143,7 +143,7 @@ inline bool bm_elem_is_free(BMElem *elem, int htype)
  * applied stochastically (by skipping verts randomly) to improve
  * performance.
  */
-#define DYNTOPO_SAFE_SMOOTH_FAC 0.05f
+#define DYNTOPO_SAFE_SMOOTH_FAC 0.1f
 
 #ifdef USE_EDGEQUEUE_EVEN_SUBDIV
 #  include "BKE_global.h"

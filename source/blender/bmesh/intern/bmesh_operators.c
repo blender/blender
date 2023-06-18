@@ -1216,7 +1216,10 @@ static void bmo_flag_layer_alloc_do(BMesh *bm,
     short *oldflags = flags->flag;
     flags->flag = BLI_mempool_calloc(newpool);
 
-    memcpy(flags->flag, oldflags, old_totflags_size);
+    if (oldflags) {
+      memcpy(flags->flag, oldflags, old_totflags_size);
+    }
+
     BM_elem_index_set(elem, i); /* set_inline */
     BM_ELEM_API_FLAG_CLEAR((BMElemF *)elem);
   }

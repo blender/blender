@@ -1142,8 +1142,8 @@ void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
       for (int vert_i : ss->corner_verts.slice(ss->polys[face.i])) {
         PBVHVertRef vertex = {vert_i};
         BKE_sculpt_boundary_flag_update(ss, vertex);
-        break;
       }
+      break;
       case PBVH_GRIDS: {
         const CCGKey *key = BKE_pbvh_get_grid_key(ss->pbvh);
         int grid_index = BKE_subdiv_ccg_start_face_grid_index_get(ss->subdiv_ccg)[face.i];
