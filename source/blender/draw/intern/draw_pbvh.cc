@@ -953,7 +953,61 @@ struct PBVHBatches {
             short no[3];
             bool smooth = BM_elem_flag_test(l->f, BM_ELEM_SMOOTH);
 
-            normal_float_to_short_v3(no, smooth ? l->v->no : l->f->no);
+            if (!smooth) {
+              normal_float_to_short_v3(no, l->f->no);
+              *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
+              return;
+            }
+
+            /* Deal with normal splitting.  We do not (yet) implement
+             * the full autosmoothing functionality here, we just check
+             * for marked sharp edges.
+             */
+            float3 fno = {};
+
+            /* Find start of normal span. */
+            BMLoop *l2 = l;
+            do {
+              l2 = l2->prev;
+
+              if (l2->radial_next == l2 || !(l2->e->head.hflag & BM_ELEM_SMOOTH)) {
+                break;
+              }
+
+              l2 = l2->radial_next;
+
+              if (l2->v != l->v) {
+                l2 = l2->next->next;
+              }
+            } while (l2 != l);
+
+            /* No split edges. */
+            if (l2 == l) {
+              normal_float_to_short_v3(no, l->v->no);
+              *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
+              return;
+            }
+
+            /* Iterate over normal span */
+            int i = 0;
+            while (1) {
+              fno += l2->f->no;
+
+              if (i++ > 1000) {
+                printf("%s: infinite loop error.\n");
+                break;
+              }
+
+              l2 = l2->v == l->v ? l2->prev : l2->next;
+              l2 = l2->radial_next;
+
+              if (l2 == l2->radial_next || !(l2->e->head.hflag & BM_ELEM_SMOOTH)) {
+                break;
+              }
+            }
+            normalize_v3(fno);
+
+            normal_float_to_short_v3(no, fno);
             *static_cast<short3 *>(GPU_vertbuf_raw_step(&access)) = no;
           });
         }
@@ -1277,7 +1331,8 @@ struct PBVHBatches {
   void create_index_bmesh_faces(PBVH_GPU_Args *args)
   {
     GPUIndexBufBuilder elb_tris;
-    GPU_indexbuf_init(&elb_tris, GPU_PRIM_TRIS, args->tribuf->tris.size(), args->tribuf->verts.size());
+    GPU_indexbuf_init(
+        &elb_tris, GPU_PRIM_TRIS, args->tribuf->tris.size(), args->tribuf->verts.size());
     needs_tri_index = true;
 
     for (int i = 0; i < args->tribuf->tris.size(); i++) {

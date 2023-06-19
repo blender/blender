@@ -30,6 +30,7 @@ Topology rake:
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_asan.h"
 #include "BLI_buffer.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.h"
@@ -2360,8 +2361,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
                           const int cd_face_areas,
                           const int cd_boundary_flag,
                           const int cd_edge_boundary,
-                          const int /*cd_flag_offset*/,
-                          const int /*cd_valence_offset*/,
+                          const int cd_flag_offset,
+                          const int cd_valence_offset,
                           const int cd_origco,
                           const int cd_origno)
 {
@@ -2377,10 +2378,8 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   pbvh->cd_origco = cd_origco;
   pbvh->cd_origno = cd_origno;
 
-  pbvh->cd_flag = CustomData_get_offset_named(
-      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_flags");
-  pbvh->cd_valence = CustomData_get_offset_named(
-      &pbvh->header.bm->vdata, CD_PROP_INT8, ".sculpt_valence");
+  pbvh->cd_flag = cd_flag_offset;
+  pbvh->cd_valence = cd_valence_offset;
 
   pbvh->mesh = me;
 
@@ -2508,6 +2507,20 @@ void BKE_pbvh_build_bmesh(PBVH *pbvh,
   }
 
   pbvh_print_mem_size(pbvh);
+
+  /* Update boundary flags. */
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    blender::bke::pbvh::update_vert_boundary_bmesh(pbvh->cd_faceset_offset,
+                                                   pbvh->cd_vert_node_offset,
+                                                   pbvh->cd_face_node_offset,
+                                                   -1,
+                                                   pbvh->cd_boundary_flag,
+                                                   pbvh->cd_flag,
+                                                   pbvh->cd_valence,
+                                                   v,
+                                                   &bm->ldata,
+                                                   pbvh->sharp_angle_limit);
+  }
 
   /* update face areas */
   const int cd_face_area = pbvh->cd_face_area;
@@ -2666,7 +2679,8 @@ static void pbvh_init_tribuf(PBVHNode * /*node*/, PBVHTriBuf *tribuf)
   tribuf->loops.reserve(512);
 }
 
-static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv)
+static uintptr_t tri_loopkey(
+    BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], int totuv, int cd_vert_boundary)
 {
   uintptr_t key = ((uintptr_t)l->v) << 12ULL;
   int i = 0;
@@ -2676,6 +2690,14 @@ static uintptr_t tri_loopkey(BMLoop *l, int mat_nr, int cd_fset, int cd_uvs[], i
   if (cd_fset >= 0) {
     // key ^= (uintptr_t)BLI_hash_int(BM_ELEM_CD_GET_INT(l->f, cd_fset));
     key ^= (uintptr_t)BLI_hash_int(BM_ELEM_CD_GET_INT(l->f, cd_fset) + i++);
+  }
+
+  /* Split by sharp flags.*/
+  bool sharp = BM_ELEM_CD_GET_INT(l->v, cd_vert_boundary) & SCULPT_BOUNDARY_SHARP_MARK;
+  if (sharp) {
+    key ^= (uintptr_t)l;
+
+    return key;
   }
 
   for (int i = 0; i < totuv; i++) {
@@ -2738,16 +2760,24 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   const int edgeflag = BM_ELEM_TAG_ALT;
 
   float min[3], max[3];
-
   INIT_MINMAX(min, max);
 
-  auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max](
+  int ni = int(node - pbvh->nodes);
+
+  auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max, ni](
                            PBVHTriBuf *tribuf, PBVHTri &tri, BMLoop *l, int mat_nr, int j) {
     int tri_v;
 
     if ((l->f->head.hflag & BM_ELEM_SMOOTH)) {
+      /* This is called in threads, so updating boundary flags can be tricky. */
+      if (BM_ELEM_CD_GET_INT(l->v, pbvh->cd_boundary_flag) & SCULPT_BOUNDARY_NEEDS_UPDATE) {
+        if (BM_ELEM_CD_GET_INT(l->v, pbvh->cd_vert_node_offset) == ni) {
+          pbvh_check_vert_boundary_bmesh(pbvh, l->v);
+        }
+      }
+
       void *loopkey = reinterpret_cast<void *>(
-          tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+          tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv, pbvh->cd_boundary_flag));
 
       tri_v = tribuf->vertmap.lookup_or_add(loopkey, tribuf->verts.size());
     }
@@ -2841,7 +2871,8 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   }
   /*
                 void *loopkey = reinterpret_cast<void *>(
-                tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv));
+                tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv,
+     pbvh->cd_boundary_flag));
    */
 
   bm->elem_index_dirty |= BM_VERT;

@@ -2121,7 +2121,7 @@ void EdgeQueueContext::start()
   }
 }
 
-ATTR_NO_OPT bool EdgeQueueContext::done()
+bool EdgeQueueContext::done()
 {
   if (edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr) {
     return true;
