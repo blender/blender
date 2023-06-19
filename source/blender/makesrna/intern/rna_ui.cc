@@ -1085,13 +1085,13 @@ static bool asset_shelf_asset_poll(const AssetShelfType *shelf_type, const Asset
   extern FunctionRNA rna_AssetShelf_asset_poll___func;
 
   PointerRNA ptr;
-  RNA_pointer_create(NULL, shelf_type->rna_ext.srna, NULL, &ptr); /* dummy */
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
   FunctionRNA *func = &rna_AssetShelf_asset_poll___func;
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
   RNA_parameter_set_lookup(&list, "asset_handle", &asset);
-  shelf_type->rna_ext.call(NULL, &ptr, func, &list);
+  shelf_type->rna_ext.call(nullptr, &ptr, func, &list);
 
   void *ret;
   RNA_parameter_get_lookup(&list, "visible", &ret);
@@ -1108,7 +1108,7 @@ static bool asset_shelf_poll(const bContext *C, const AssetShelfType *shelf_type
   extern FunctionRNA rna_AssetShelf_poll_func;
 
   PointerRNA ptr;
-  RNA_pointer_create(NULL, shelf_type->rna_ext.srna, NULL, &ptr); /* dummy */
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
   FunctionRNA *func = &rna_AssetShelf_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
 
   ParameterList list;
@@ -1134,9 +1134,9 @@ static void asset_shelf_draw_context_menu(const bContext *C,
   extern FunctionRNA rna_AssetShelf_draw_context_menu_func;
 
   PointerRNA ptr;
-  RNA_pointer_create(NULL, shelf_type->rna_ext.srna, NULL, &ptr); /* dummy */
-  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func;     /* RNA_struct_find_function(&ptr,
-                                                                         "draw_context_menu"); */
+  RNA_pointer_create(nullptr, shelf_type->rna_ext.srna, nullptr, &ptr); /* dummy */
+  FunctionRNA *func = &rna_AssetShelf_draw_context_menu_func; /* RNA_struct_find_function(&ptr,
+                                                                     "draw_context_menu"); */
 
   ParameterList list;
   RNA_parameter_list_create(&list, &ptr, func);
@@ -1148,9 +1148,9 @@ static void asset_shelf_draw_context_menu(const bContext *C,
   RNA_parameter_list_free(&list);
 }
 
-static bool rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
+static bool rna_AssetShelf_unregister(Main * /*bmain*/, StructRNA *type)
 {
-  AssetShelfType *shelf_type = RNA_struct_blender_type_get(type);
+  AssetShelfType *shelf_type = static_cast<AssetShelfType *>(RNA_struct_blender_type_get(type));
 
   if (!shelf_type) {
     return false;
@@ -1167,7 +1167,7 @@ static bool rna_AssetShelf_unregister(Main *UNUSED(bmain), StructRNA *type)
   BLI_freelinkN(&space_type->asset_shelf_types, shelf_type);
 
   /* update while blender is running */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return true;
 }
@@ -1180,19 +1180,19 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
                                           StructCallbackFunc call,
                                           StructFreeFunc free)
 {
-  AssetShelfType dummy_shelf_type = {NULL};
-  AssetShelf dummy_shelf = {NULL};
+  AssetShelfType dummy_shelf_type = {};
+  AssetShelf dummy_shelf = {};
   PointerRNA dummy_shelf_ptr;
 
   /* setup dummy shelf & shelf type to store static properties in */
   dummy_shelf.type = &dummy_shelf_type;
-  RNA_pointer_create(NULL, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_ptr);
+  RNA_pointer_create(nullptr, &RNA_AssetShelf, &dummy_shelf, &dummy_shelf_ptr);
 
   bool have_function[3];
 
   /* validate the python class */
   if (validate(&dummy_shelf_ptr, data, have_function) != 0) {
-    return NULL;
+    return nullptr;
   }
 
   if (strlen(identifier) >= sizeof(dummy_shelf_type.idname)) {
@@ -1201,12 +1201,12 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
                 "Registering asset shelf class: '%s' is too long, maximum length is %d",
                 identifier,
                 (int)sizeof(dummy_shelf_type.idname));
-    return NULL;
+    return nullptr;
   }
 
   SpaceType *space_type = BKE_spacetype_from_id(dummy_shelf_type.space_type);
   if (!space_type) {
-    return NULL;
+    return nullptr;
   }
 
   /* Check if we have registered this asset shelf type before, and remove it. */
@@ -1219,14 +1219,15 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
     }
   }
   if (!RNA_struct_available_or_report(reports, dummy_shelf_type.idname)) {
-    return NULL;
+    return nullptr;
   }
   if (!RNA_struct_bl_idname_ok_or_report(reports, dummy_shelf_type.idname, "_AST_")) {
-    return NULL;
+    return nullptr;
   }
 
   /* Create the new shelf type. */
-  AssetShelfType *shelf_type = MEM_mallocN(sizeof(*shelf_type), __func__);
+  AssetShelfType *shelf_type = static_cast<AssetShelfType *>(
+      MEM_mallocN(sizeof(*shelf_type), __func__));
   memcpy(shelf_type, &dummy_shelf_type, sizeof(*shelf_type));
 
   shelf_type->rna_ext.srna = RNA_def_struct_ptr(&BLENDER_RNA, shelf_type->idname, &RNA_AssetShelf);
@@ -1235,14 +1236,14 @@ static StructRNA *rna_AssetShelf_register(Main *bmain,
   shelf_type->rna_ext.free = free;
   RNA_struct_blender_type_set(shelf_type->rna_ext.srna, shelf_type);
 
-  shelf_type->poll = have_function[0] ? asset_shelf_poll : NULL;
-  shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : NULL;
-  shelf_type->draw_context_menu = have_function[2] ? asset_shelf_draw_context_menu : NULL;
+  shelf_type->poll = have_function[0] ? asset_shelf_poll : nullptr;
+  shelf_type->asset_poll = have_function[1] ? asset_shelf_asset_poll : nullptr;
+  shelf_type->draw_context_menu = have_function[2] ? asset_shelf_draw_context_menu : nullptr;
 
   BLI_addtail(&space_type->asset_shelf_types, shelf_type);
 
   /* update while blender is running */
-  WM_main_add_notifier(NC_WINDOW, NULL);
+  WM_main_add_notifier(NC_WINDOW, nullptr);
 
   return shelf_type->rna_ext.srna;
 }
@@ -2127,7 +2128,7 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
   parm = RNA_def_pointer(func, "context", "Context", "", "");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "asset_poll__", NULL);
   RNA_def_function_ui_description(
@@ -2138,18 +2139,18 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
   parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "draw_context_menu", NULL);
   RNA_def_function_ui_description(
       func, "Draw UI elements into the context menu UI layout displayed on right click");
   RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
   parm = RNA_def_pointer(func, "context", "Context", "", "");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "asset_handle", "AssetHandle", "", "");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   prop = RNA_def_property(srna, "show_names", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "settings.display_flag", ASSETSHELF_SHOW_NAMES);
