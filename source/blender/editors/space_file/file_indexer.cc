@@ -71,16 +71,14 @@ void ED_file_indexer_entries_extend_from_datablock_infos(
   }
 }
 
-static void ED_file_indexer_entry_free(void *indexer_entry_ptr)
-{
-  FileIndexerEntry *indexer_entry = static_cast<FileIndexerEntry *>(indexer_entry_ptr);
-  BLO_datablock_info_free(&indexer_entry->datablock_info);
-  MEM_freeN(indexer_entry);
-}
-
 void ED_file_indexer_entries_clear(FileIndexerEntries *indexer_entries)
 {
-  BLI_linklist_free(indexer_entries->entries, ED_file_indexer_entry_free);
+  BLI_linklist_free(indexer_entries->entries, [](void *indexer_entry_ptr) {
+    FileIndexerEntry *indexer_entry = static_cast<FileIndexerEntry *>(indexer_entry_ptr);
+    BLO_datablock_info_free(&indexer_entry->datablock_info);
+    MEM_freeN(indexer_entry);
+  });
+
   indexer_entries->entries = nullptr;
 }
 
