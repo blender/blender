@@ -38,7 +38,7 @@ typedef struct bMovieHandle {
   void (*end_movie)(void *context_v);
 
   /* Optional function. */
-  void (*get_movie_path)(char *filepath,
+  void (*get_movie_path)(char filepath[/*FILE_MAX*/ 1024],
                          const struct RenderData *rd,
                          bool preview,
                          const char *suffix);
@@ -52,7 +52,7 @@ bMovieHandle *BKE_movie_handle_get(char imtype);
 /**
  * \note Similar to #BKE_image_path_from_imformat()
  */
-void BKE_movie_filepath_get(char *filepath,
+void BKE_movie_filepath_get(char filepath[/*FILE_MAX*/ 1024],
                             const struct RenderData *rd,
                             bool preview,
                             const char *suffix);
