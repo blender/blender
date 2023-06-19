@@ -12,6 +12,7 @@
 #include "BLI_fileops.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
