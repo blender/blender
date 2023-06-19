@@ -2435,7 +2435,6 @@ int *BKE_sculpt_face_sets_ensure(Object *ob)
   SculptSession *ss = ob->sculpt;
 
   if (!ss->attrs.face_set) {
-    Mesh *mesh = static_cast<Mesh *>(ob->data);
     SculptAttributeParams params = {};
     params.permanent = true;
 
@@ -2861,7 +2860,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   }
 
   SculptSession *ss = ob->sculpt;
-  Scene *scene = DEG_get_input_scene(depsgraph);
 
   PBVH *pbvh = ss->pbvh;
   if (pbvh != nullptr) {

@@ -178,7 +178,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
       continue;
     }
 
-    /* Face set automasking in inverted draw mode is tricky,, we have
+    /* Face set automasking in inverted draw mode is tricky, we have
      * to sample the automasking face set after the stroke has started.
      */
     if (set_active_faceset &&
@@ -220,7 +220,7 @@ static void do_draw_face_sets_brush_task_cb_ex(void *__restrict userdata,
 
     if (fade > 0.05f) {
       for (int i = 0; i < fd.verts_num; i++) {
-        BKE_sculpt_boundary_flag_update(ss, fd.verts[i]);
+        BKE_sculpt_boundary_flag_update(ss, fd.verts[i], true);
       }
 
       *fd.face_set = ss->cache->paint_face_set;
@@ -785,7 +785,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
 
   int verts_num = SCULPT_vertex_count_get(ob->sculpt);
   for (int i : IndexRange(verts_num)) {
-    BKE_sculpt_boundary_flag_update(ob->sculpt, BKE_pbvh_index_to_vertex(ss->pbvh, i));
+    BKE_sculpt_boundary_flag_update(ob->sculpt, BKE_pbvh_index_to_vertex(ss->pbvh, i), true);
   }
 
   /* Sync face sets visibility and vertex visibility as now all Face Sets are visible. */
@@ -1133,7 +1133,7 @@ void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
       BMLoop *l = f->l_first;
       do {
         PBVHVertRef vertex = {reinterpret_cast<intptr_t>(l->v)};
-        BKE_sculpt_boundary_flag_update(ss, vertex);
+        BKE_sculpt_boundary_flag_update(ss, vertex, true);
       } while ((l = l->next) != f->l_first);
 
       break;
@@ -1141,7 +1141,7 @@ void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
     case PBVH_FACES: {
       for (int vert_i : ss->corner_verts.slice(ss->polys[face.i])) {
         PBVHVertRef vertex = {vert_i};
-        BKE_sculpt_boundary_flag_update(ss, vertex);
+        BKE_sculpt_boundary_flag_update(ss, vertex, true);
       }
       break;
       case PBVH_GRIDS: {
@@ -1151,7 +1151,7 @@ void SCULPT_face_mark_boundary_update(SculptSession *ss, PBVHFaceRef face)
         int verts_num = ss->polys[face.i].size() * key->grid_area;
 
         for (int i = 0; i < verts_num; i++, vertex_i++) {
-          BKE_sculpt_boundary_flag_update(ss, {vertex_i});
+          BKE_sculpt_boundary_flag_update(ss, {vertex_i}, true);
         }
 
         break;

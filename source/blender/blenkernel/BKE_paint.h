@@ -1205,12 +1205,62 @@ void load_all_original(Object *ob);
 }  // namespace blender::bke::paint
 
 template<typename PBVHElemRef = PBVHVertRef>
-inline void BKE_sculpt_boundary_flag_update(SculptSession *ss, PBVHElemRef elem)
+inline void BKE_sculpt_boundary_flag_update(SculptSession *ss,
+                                            PBVHElemRef elem,
+                                            bool flag_vert_edges = false)
 {
   int *flags;
 
   if constexpr (std::is_same_v<PBVHElemRef, PBVHVertRef>) {
+    PBVHVertRef vertex = {elem.i};
     flags = blender::bke::paint::vertex_attr_ptr<int>(elem, ss->attrs.boundary_flags);
+
+    if (flag_vert_edges) {
+      switch (BKE_pbvh_type(ss->pbvh)) {
+        case PBVH_BMESH: {
+          BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+          if (!v->e) {
+            break;
+          }
+
+          BMEdge *e = v->e;
+          do {
+            PBVHEdgeRef edge = {reinterpret_cast<intptr_t>(e)};
+            *blender::bke::paint::edge_attr_ptr<int>(
+                edge, ss->attrs.edge_boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                        SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+          } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+          break;
+        }
+        case PBVH_FACES:
+          /* If we have a vertex to edge map use it. */
+          if (!ss->vemap.is_empty()) {
+            for (int edge_i : ss->vemap[vertex.i]) {
+              *blender::bke::paint::edge_attr_ptr<int>(
+                  {edge_i}, ss->attrs.edge_boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                              SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+            }
+          }
+          else { /* Otherwise use vertex to poly map. */
+            for (int poly_i : ss->pmap[vertex.i]) {
+              for (int loop_i : ss->polys[poly_i]) {
+                if (ss->corner_verts[loop_i] == vertex.i) {
+                  int edge_i = ss->corner_edges[loop_i];
+                  *blender::bke::paint::edge_attr_ptr<int>(
+                      {edge_i},
+                      ss->attrs.edge_boundary_flags) |= SCULPT_BOUNDARY_NEEDS_UPDATE |
+                                                        SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE;
+                }
+              }
+            }
+          }
+          break;
+        case PBVH_GRIDS:
+          /* Not supported. */
+          break;
+      }
+    }
   }
   else {
     flags = blender::bke::paint::edge_attr_ptr<int>(elem, ss->attrs.edge_boundary_flags);

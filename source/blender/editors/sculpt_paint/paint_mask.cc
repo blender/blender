@@ -760,6 +760,9 @@ static void face_set_gesture_apply_task_cb(void *__restrict userdata,
         continue;
       }
       SCULPT_face_set_set(sgcontext->ss, fd.face, face_set_operation->new_face_set_id);
+      for (int i : IndexRange(fd.verts_num)) {
+        BKE_sculpt_boundary_flag_update(sgcontext->ss, fd.verts[i], true);
+      }
       any_updated = true;
     }
   }
