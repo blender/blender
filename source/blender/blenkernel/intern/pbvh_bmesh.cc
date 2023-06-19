@@ -2269,11 +2269,11 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
     boundflag |= SCULPT_CORNER_SHARP_ANGLE;
   }
 
-  if (!ELEM(sharpcount, 0, 2)) {
-    // boundflag |= SCULPT_CORNER_SHARP_MARK;
+  if (sharpcount > 2) {
+    boundflag |= SCULPT_CORNER_SHARP_MARK;
   }
 
-  if (seamcount == 1) {
+  if (seamcount > 2) {
     boundflag |= SCULPT_CORNER_SEAM;
   }
 
