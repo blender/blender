@@ -1629,7 +1629,8 @@ ImBuf *IMB_anim_absolute(anim *anim,
 
   switch (anim->curtype) {
     case ANIM_SEQUENCE: {
-      char head[ARRAY_SIZE(anim->filepath_first)], tail[ARRAY_SIZE(anim->filepath_first)];
+      constexpr size_t filepath_size = BOUNDED_ARRAY_TYPE_SIZE<decltype(anim->filepath_first)>();
+      char head[filepath_size], tail[filepath_size];
       ushort digits;
       const int pic = an_stringdec(
                           anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
