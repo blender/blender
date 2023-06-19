@@ -324,7 +324,7 @@ static void customdata_version_242(Mesh *me)
     if (layer->type == CD_MTFACE) {
       if (layer->name[0] == 0) {
         if (mtfacen == 0) {
-          strcpy(layer->name, "UVMap");
+          STRNCPY(layer->name, "UVMap");
         }
         else {
           SNPRINTF(layer->name, "UVMap.%.3d", mtfacen);
@@ -335,7 +335,7 @@ static void customdata_version_242(Mesh *me)
     else if (layer->type == CD_MCOL) {
       if (layer->name[0] == 0) {
         if (mcoln == 0) {
-          strcpy(layer->name, "Col");
+          STRNCPY(layer->name, "Col");
         }
         else {
           SNPRINTF(layer->name, "Col.%.3d", mcoln);
@@ -843,7 +843,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     VFont *vf;
     for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
       if (BLI_str_endswith(vf->filepath, ".Bfont")) {
-        strcpy(vf->filepath, FO_BUILTIN_NAME);
+        STRNCPY(vf->filepath, FO_BUILTIN_NAME);
       }
     }
   }
@@ -1476,7 +1476,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (kb = key->block.first; kb; kb = kb->next) {
         if (kb == key->refkey) {
           if (kb->name[0] == 0) {
-            strcpy(kb->name, "Basis");
+            STRNCPY(kb->name, "Basis");
           }
         }
         else {
@@ -1611,8 +1611,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       Image *ima;
       for (ima = bmain->images.first; ima; ima = ima->id.next) {
         if (STREQ(ima->filepath, "Compositor")) {
-          strcpy(ima->id.name + 2, "Viewer Node");
-          strcpy(ima->filepath, "Viewer Node");
+          BLI_strncpy(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2);
+          STRNCPY(ima->filepath, "Viewer Node");
         }
       }
     }

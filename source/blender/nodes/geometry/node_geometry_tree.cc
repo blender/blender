@@ -114,11 +114,11 @@ void register_node_tree_type_geo()
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
       MEM_callocN(sizeof(bNodeTreeType), "geometry node tree type"));
   tt->type = NTREE_GEOMETRY;
-  strcpy(tt->idname, "GeometryNodeTree");
-  strcpy(tt->group_idname, "GeometryNodeGroup");
-  strcpy(tt->ui_name, N_("Geometry Node Editor"));
+  STRNCPY(tt->idname, "GeometryNodeTree");
+  STRNCPY(tt->group_idname, "GeometryNodeGroup");
+  STRNCPY(tt->ui_name, N_("Geometry Node Editor"));
   tt->ui_icon = ICON_GEOMETRY_NODES;
-  strcpy(tt->ui_description, N_("Geometry nodes"));
+  STRNCPY(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;

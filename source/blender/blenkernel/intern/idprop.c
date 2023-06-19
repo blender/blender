@@ -791,7 +791,7 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
     /* NOTE(@ideasman42): Don't overwrite the data's name and type
      * some functions might need this if they
      * don't have a real ID, should be named elsewhere. */
-    // strcpy(id->name, "top_level_group");
+    // STRNCPY(id->name, "top_level_group");
   }
   return id->properties;
 }

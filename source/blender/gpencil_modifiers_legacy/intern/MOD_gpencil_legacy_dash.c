@@ -366,7 +366,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 
   uiListType *list_type = MEM_callocN(sizeof(uiListType), "dash modifier segment uilist");
-  strcpy(list_type->idname, "MOD_UL_dash_segment");
+  STRNCPY(list_type->idname, "MOD_UL_dash_segment");
   list_type->draw_item = segment_list_item;
   WM_uilisttype_add(list_type);
 }

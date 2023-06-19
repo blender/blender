@@ -793,7 +793,7 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 #ifdef WIN32
     BLI_str_replace_char(res + 2, '/', '\\');
 #endif
-    strcpy(path, res);
+    BLI_strncpy(path, res, FILE_MAX);
   }
 }
 

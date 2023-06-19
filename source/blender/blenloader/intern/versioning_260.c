@@ -551,13 +551,13 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int UNUSED(is_gro
     /* tree type idname */
     switch (ntree->type) {
       case NTREE_COMPOSIT:
-        strcpy(ntree->idname, "CompositorNodeTree");
+        STRNCPY(ntree->idname, "CompositorNodeTree");
         break;
       case NTREE_SHADER:
-        strcpy(ntree->idname, "ShaderNodeTree");
+        STRNCPY(ntree->idname, "ShaderNodeTree");
         break;
       case NTREE_TEXTURE:
-        strcpy(ntree->idname, "TextureNodeTree");
+        STRNCPY(ntree->idname, "TextureNodeTree");
         break;
     }
 
@@ -1947,13 +1947,13 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
             /* convert deprecated treetype setting to tree_idname */
             switch (snode->treetype) {
               case NTREE_COMPOSIT:
-                strcpy(snode->tree_idname, "CompositorNodeTree");
+                STRNCPY(snode->tree_idname, "CompositorNodeTree");
                 break;
               case NTREE_SHADER:
-                strcpy(snode->tree_idname, "ShaderNodeTree");
+                STRNCPY(snode->tree_idname, "ShaderNodeTree");
                 break;
               case NTREE_TEXTURE:
-                strcpy(snode->tree_idname, "TextureNodeTree");
+                STRNCPY(snode->tree_idname, "TextureNodeTree");
                 break;
             }
           }

@@ -1040,8 +1040,8 @@ static void update_voronoi_node_fac_output(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_TEX_VORONOI) {
       bNodeSocket *facOutput = BLI_findlink(&node->outputs, 1);
-      strcpy(facOutput->identifier, "Distance");
-      strcpy(facOutput->name, "Distance");
+      STRNCPY(facOutput->identifier, "Distance");
+      STRNCPY(facOutput->name, "Distance");
     }
   }
 }

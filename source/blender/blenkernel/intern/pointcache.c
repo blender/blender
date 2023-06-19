@@ -1424,14 +1424,15 @@ static int ptcache_filepath(PTCacheID *pid,
     idname = (pid->owner_id->name + 2);
     /* convert chars to hex so they are always a valid filename */
     while ('\0' != *idname) {
-      BLI_snprintf(newname, MAX_PTCACHE_FILE - len, "%02X", (uint)(*idname++));
-      newname += 2;
-      len += 2;
+      /* Always 2 unless there isn't enough room in the string. */
+      const int temp = BLI_snprintf_rlen(
+          newname, MAX_PTCACHE_FILE - len, "%02X", (uint)(*idname++));
+      newname += temp;
+      len += temp;
     }
   }
   else {
-    int temp = (int)strlen(pid->cache->name);
-    strcpy(newname, pid->cache->name);
+    int temp = BLI_strncpy_rlen(newname, pid->cache->name, MAX_PTCACHE_FILE - len);
     newname += temp;
     len += temp;
   }

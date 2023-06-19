@@ -1480,6 +1480,8 @@ static int imb_exr_split_token(const char *str, const char *end, const char **to
 
 static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *passname)
 {
+  const int layname_maxncpy = EXR_TOT_MAXNAME;
+  const int passname_maxncpy = EXR_TOT_MAXNAME;
   const char *name = echan->m->name.c_str();
   const char *end = name + strlen(name);
   const char *token;
@@ -1490,13 +1492,13 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
     layname[0] = '\0';
 
     if (ELEM(name[0], 'R', 'G', 'B', 'A')) {
-      strcpy(passname, "Combined");
+      BLI_strncpy(passname, "Combined", passname_maxncpy);
     }
     else if (name[0] == 'Z') {
-      strcpy(passname, "Depth");
+      BLI_strncpy(passname, "Depth", passname_maxncpy);
     }
     else {
-      strcpy(passname, name);
+      BLI_strncpy(passname, name, passname_maxncpy);
     }
 
     return 1;
@@ -1565,7 +1567,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 
   /* all preceding tokens combined as layer name */
   if (end > name) {
-    BLI_strncpy(layname, name, int(end - name) + 1);
+    BLI_strncpy(layname, name, std::min(layname_maxncpy, int(end - name) + 1));
   }
   else {
     layname[0] = '\0';

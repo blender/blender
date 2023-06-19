@@ -32,7 +32,7 @@
 #endif
 
 #include <fcntl.h>
-#include <string.h> /* `strcpy` etc. */
+#include <string.h>
 
 #ifdef WIN32
 #  include "BLI_string_utf8.h"
@@ -145,16 +145,17 @@ double BLI_dir_free_space(const char *dir)
     return -1;
   }
 
-  strcpy(dirname, dir);
+  memcpy(dirname, dir, len + 1);
 
   if (len) {
     slash = strrchr(dirname, '/');
     if (slash) {
-      slash[1] = 0;
+      slash[1] = '\0';
     }
   }
   else {
-    strcpy(dirname, "/");
+    dirname[0] = '/';
+    dirname[1] = '\0';
   }
 
 #  if defined(USE_STATFS_STATVFS)

@@ -367,7 +367,7 @@ void BKE_nlatrack_insert_before(ListBase *nla_tracks,
   new_track->index = BLI_findindex(nla_tracks, new_track);
 
   /* Must have unique name, but we need to seed this. */
-  strcpy(new_track->name, "NlaTrack");
+  STRNCPY(new_track->name, "NlaTrack");
 
   BLI_uniquename(nla_tracks,
                  new_track,
