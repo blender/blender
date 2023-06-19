@@ -72,7 +72,7 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
                                  const IndexMask &mask) const final
   {
-    if (context.type() != GEO_COMPONENT_TYPE_MESH) {
+    if (context.type() != GeometryComponent::Type::Mesh) {
       return {};
     }
     const Mesh *mesh = context.mesh();

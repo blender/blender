@@ -404,7 +404,7 @@ static SeqCollection *query_time_dependent_strips_strips(TransInfo *t)
 
   /* Query dependent strips where used strips do not have handles selected.
    * If all inputs of any effect even indirectly(through another effect) points to selected strip,
-   * it's position will change. */
+   * its position will change. */
 
   SeqCollection *strips_no_handles = query_selected_strips_no_handles(seqbase);
   /* Selection is needed as reference for related strips. */

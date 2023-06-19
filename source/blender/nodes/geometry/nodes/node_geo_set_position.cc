@@ -50,7 +50,7 @@ static void set_computed_position_and_offset(GeometryComponent &component,
   const GrainSize grain_size{10000};
 
   switch (component.type()) {
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case GeometryComponent::Type::Curve: {
       if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
         CurveComponent &curve_component = static_cast<CurveComponent &>(component);
         Curves &curves_id = *curve_component.get_for_write();
@@ -109,13 +109,13 @@ static void set_computed_position_and_offset(GeometryComponent &component,
 }
 
 static void set_position_in_component(GeometrySet &geometry,
-                                      GeometryComponentType component_type,
+                                      GeometryComponent::Type component_type,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
   const GeometryComponent &component = *geometry.get_component_for_read(component_type);
-  const eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ?
+  const eAttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;
   const int domain_size = component.attribute_domain_size(domain);
@@ -148,10 +148,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
 
-  for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                           GEO_COMPONENT_TYPE_CURVE,
-                                           GEO_COMPONENT_TYPE_INSTANCES})
+  for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                             GeometryComponent::Type::PointCloud,
+                                             GeometryComponent::Type::Curve,
+                                             GeometryComponent::Type::Instance})
   {
     if (geometry.has(type)) {
       set_position_in_component(geometry, type, selection_field, position_field, offset_field);

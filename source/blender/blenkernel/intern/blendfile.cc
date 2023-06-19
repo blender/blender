@@ -417,7 +417,7 @@ static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool
    * for further processing in WM code. */
   if (load_ui && new_wm != nullptr) {
     /* Support window-manager ID references being held between file load operations by keeping
-     * #Main.wm.first memory address in-place, while swapping all of it's contents.
+     * #Main.wm.first memory address in-place, while swapping all of its contents.
      *
      * This is needed so items such as key-maps can be held by an add-on,
      * without it pointing to invalid memory, see: #86431. */

@@ -28,16 +28,31 @@ struct TreeZone {
   TreeZone *parent_zone = nullptr;
   /** Direct children zones. Does not contain recursively nested zones. */
   Vector<TreeZone *> child_zones;
-  /** Direct children nodes. Does not contain recursively nested nodes. */
+  /** Direct children nodes excluding nodes that belong to child zones. */
   Vector<const bNode *> child_nodes;
+  /** Links that enter the zone through the zone border. */
+  Vector<const bNodeLink *> border_links;
 
   bool contains_node_recursively(const bNode &node) const;
+  bool contains_zone_recursively(const TreeZone &other_zone) const;
 };
 
 class TreeZones {
  public:
   Vector<std::unique_ptr<TreeZone>> zones;
-  Map<int, int> parent_zone_by_node_id;
+  Vector<TreeZone *> root_zones;
+  Vector<const bNode *> nodes_outside_zones;
+  /**
+   * Zone index by node. Nodes that are in no zone, are not included. Nodes that are at the border
+   * of a zone (e.g. Simulation Input) are mapped to the zone they create.
+   */
+  Map<int, int> zone_by_node_id;
+
+  /**
+   * Get the deepest zone that a socket is in. Note that the inputs of a Simulation Input node are
+   * in a different zone than its output sockets.
+   */
+  const TreeZone *get_zone_by_socket(const bNodeSocket &socket) const;
 };
 
 const TreeZones *get_tree_zones(const bNodeTree &tree);

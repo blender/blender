@@ -177,8 +177,7 @@ void VKTexture::read_sub(int mip, eGPUDataFormat format, const int area[4], void
   size_t sample_len = area[2] * area[3] * layer_count();
   size_t device_memory_size = sample_len * to_bytesize(format_);
 
-  staging_buffer.create(
-      device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+  staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
   VkBufferImageCopy region = {};
   region.imageOffset.x = area[0];
@@ -224,8 +223,7 @@ void VKTexture::update_sub(
   size_t sample_len = extent.x * extent.y * extent.z;
   size_t device_memory_size = sample_len * to_bytesize(format_);
 
-  staging_buffer.create(
-      device_memory_size, GPU_USAGE_DEVICE_ONLY, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+  staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
 
   uint buffer_row_length = context.state_manager_get().texture_unpack_row_length_get();
   if (buffer_row_length) {
@@ -463,8 +461,7 @@ bool VKTexture::allocate()
   return result == VK_SUCCESS;
 }
 
-// TODO: move texture/image bindings to shader.
-void VKTexture::bind(int unit, VKSampler &sampler)
+void VKTexture::bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type)
 {
   if (!is_allocated()) {
     allocate();
@@ -473,28 +470,16 @@ void VKTexture::bind(int unit, VKSampler &sampler)
   VKShader *shader = static_cast<VKShader *>(context.shader);
   const VKShaderInterface &shader_interface = shader->interface_get();
   const std::optional<VKDescriptorSet::Location> location =
-      shader_interface.descriptor_set_location(
-          shader::ShaderCreateInfo::Resource::BindType::SAMPLER, unit);
+      shader_interface.descriptor_set_location(bind_type, binding);
   if (location) {
     VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
-    descriptor_set.bind(*this, *location, sampler);
-  }
-}
-
-void VKTexture::image_bind(int binding)
-{
-  if (!is_allocated()) {
-    allocate();
-  }
-  VKContext &context = *VKContext::get();
-  VKShader *shader = static_cast<VKShader *>(context.shader);
-  const VKShaderInterface &shader_interface = shader->interface_get();
-  const std::optional<VKDescriptorSet::Location> location =
-      shader_interface.descriptor_set_location(shader::ShaderCreateInfo::Resource::BindType::IMAGE,
-                                               binding);
-  if (location) {
-    VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
-    descriptor_set.image_bind(*this, *location);
+    if (bind_type == shader::ShaderCreateInfo::Resource::BindType::IMAGE) {
+      descriptor_set.image_bind(*this, *location);
+    }
+    else {
+      const VKDevice &device = VKBackend::get().device_get();
+      descriptor_set.bind(*this, *location, device.sampler_get());
+    }
   }
 }
 

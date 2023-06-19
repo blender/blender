@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2021-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_METAL
 
@@ -59,6 +60,7 @@ void device_metal_info(vector<DeviceInfo> &devices)
 
     info.has_nanovdb = vendor == METAL_GPU_APPLE;
     info.has_light_tree = vendor != METAL_GPU_AMD;
+    info.has_mnee = vendor != METAL_GPU_AMD;
 
     info.use_hardware_raytracing = vendor != METAL_GPU_INTEL;
     if (info.use_hardware_raytracing) {

@@ -344,8 +344,8 @@ static int sculpt_face_set_create_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
 
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, mode == SCULPT_FACE_SET_MASKED, false);
 
@@ -636,7 +636,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   const float threshold = RNA_float_get(op->ptr, "threshold");
 
   Mesh *mesh = static_cast<Mesh *>(ob->data);
-  ss->face_sets = BKE_sculpt_face_sets_ensure(mesh);
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
   switch (mode) {
@@ -672,7 +672,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
     }
     case SCULPT_FACE_SETS_FROM_CREASES: {
       const float *creases = static_cast<const float *>(
-          CustomData_get_layer(&mesh->edata, CD_CREASE));
+          CustomData_get_layer_named(&mesh->edata, CD_PROP_FLOAT, "crease_edge"));
       sculpt_face_sets_init_flood_fill(
           ob, [&](const int /*from_face*/, const int edge, const int /*to_face*/) -> bool {
             return creases ? creases[edge] < threshold : true;
@@ -1387,7 +1387,7 @@ static bool sculpt_face_set_edit_init(bContext *C, wmOperator *op)
     return false;
   }
 
-  ss->face_sets = BKE_sculpt_face_sets_ensure(BKE_mesh_from_object(ob));
+  ss->face_sets = BKE_sculpt_face_sets_ensure(ob);
   BKE_sculpt_update_object_for_edit(depsgraph, ob, true, false, false);
 
   return true;

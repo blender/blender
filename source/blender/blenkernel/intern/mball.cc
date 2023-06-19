@@ -670,6 +670,8 @@ bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 
 void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_MBALL);
 
   BKE_object_free_derived_caches(ob);
@@ -690,7 +692,13 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
     BKE_lattice_deform_coords(
-        ob->parent, ob, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert, 0, nullptr, 1.0f);
+        ob->parent,
+        ob,
+        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+        mesh->totvert,
+        0,
+        nullptr,
+        1.0f);
     BKE_mesh_tag_positions_changed(mesh);
   }
 
@@ -699,11 +707,11 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
-  blender::float3 min(std::numeric_limits<float>::max());
-  blender::float3 max(-std::numeric_limits<float>::max());
+  float3 min(std::numeric_limits<float>::max());
+  float3 max(-std::numeric_limits<float>::max());
   if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
-    min = blender::float3(0);
-    max = blender::float3(0);
+    min = float3(0);
+    max = float3(0);
   }
   BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
 };

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader.h"
 #include "scene/background.h"
@@ -873,7 +874,7 @@ static ShaderNode *add_node(Scene *scene,
     voronoi->set_dimensions(b_voronoi_node.voronoi_dimensions());
     voronoi->set_feature((NodeVoronoiFeature)b_voronoi_node.feature());
     voronoi->set_metric((NodeVoronoiDistanceMetric)b_voronoi_node.distance());
-    voronoi->set_normalize(b_voronoi_node.normalize());
+    voronoi->set_use_normalize(b_voronoi_node.normalize());
     BL::TexMapping b_texture_mapping(b_voronoi_node.texture_mapping());
     get_tex_mapping(voronoi, b_texture_mapping);
     node = voronoi;

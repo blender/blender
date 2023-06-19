@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009-2011 Jörg Hermann Müller. */
+/* SPDX-FileCopyrightText: 2009-2011 Jörg Hermann Müller
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup audaspace

@@ -153,7 +153,7 @@ static void rna_MetaBall_elements_clear(MetaBall *mb)
 static bool rna_Meta_is_editmode_get(PointerRNA *ptr)
 {
   MetaBall *mb = (MetaBall *)ptr->owner_id;
-  return (mb->editelems != NULL);
+  return (mb->editelems != nullptr);
 }
 
 static char *rna_MetaElement_path(const PointerRNA *ptr)
@@ -169,7 +169,7 @@ static char *rna_MetaElement_path(const PointerRNA *ptr)
     index = BLI_findindex(&mb->elems, ml);
   }
   if (index == -1) {
-    return NULL;
+    return nullptr;
   }
 
   return BLI_sprintfN("elements[%d]", index);
@@ -386,7 +386,7 @@ static void rna_def_metaball(BlenderRNA *brna)
   /* not supported yet */
 #  if 0
   prop = RNA_def_property(srna, "texspace_rot", PROP_FLOAT, PROP_EULER);
-  RNA_def_property_float(prop, NULL, "rot");
+  RNA_def_property_float(prop, nullptr, "rot");
   RNA_def_property_ui_text(prop, "Texture Space Rotation", "Texture space rotation");
   RNA_def_property_editable_func(prop, "rna_Meta_texspace_editable");
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 100, RNA_TRANSLATION_PREC_DEFAULT);

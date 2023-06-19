@@ -632,7 +632,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   Mesh *subdiv_mesh = subdivide_edit_mesh(ob, em, &smd);
 
-  const float(*subsurfedPositions)[3] = BKE_mesh_vert_positions(subdiv_mesh);
+  const blender::Span<blender::float3> subsurf_positions = subdiv_mesh->vert_positions();
   const blender::Span<blender::int2> subsurf_edges = subdiv_mesh->edges();
   const blender::OffsetIndices subsurf_polys = subdiv_mesh->polys();
   const blender::Span<int> subsurf_corner_verts = subdiv_mesh->corner_verts();
@@ -697,10 +697,10 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
     vkeys[2] = (ParamKey)poly_corner_verts[2];
     vkeys[3] = (ParamKey)poly_corner_verts[3];
 
-    co[0] = subsurfedPositions[poly_corner_verts[0]];
-    co[1] = subsurfedPositions[poly_corner_verts[1]];
-    co[2] = subsurfedPositions[poly_corner_verts[2]];
-    co[3] = subsurfedPositions[poly_corner_verts[3]];
+    co[0] = subsurf_positions[poly_corner_verts[0]];
+    co[1] = subsurf_positions[poly_corner_verts[1]];
+    co[2] = subsurf_positions[poly_corner_verts[2]];
+    co[3] = subsurf_positions[poly_corner_verts[3]];
 
     /* This is where all the magic is done.
      * If the vertex exists in the, we pass the original uv pointer to the solver, thus
@@ -1527,7 +1527,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   if (pid->use_job) {
     /* Setup job. */
     if (pid->wm->op_undo_depth == 0) {
-      /* The job must do it's own undo push. */
+      /* The job must do its own undo push. */
       pid->undo_context = C;
       pid->undo_str = op->type->name;
     }

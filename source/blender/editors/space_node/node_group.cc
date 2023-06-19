@@ -791,8 +791,8 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
 
   INIT_MINMAX2(min, max);
   for (const bNode *node : nodes) {
-    float2 loc;
-    bke::nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+    const float2 node_offset = {node->offsetx, node->offsety};
+    float2 loc = bke::nodeToView(node, node_offset);
     math::min_max(loc, min, max);
     if (use_size) {
       loc.x += node->width;

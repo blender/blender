@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2009 Jrg Hermann Mller
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2009 Jrg Hermann Mller
 
 remove_strict_flags()
 

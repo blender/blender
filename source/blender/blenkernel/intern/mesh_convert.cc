@@ -571,7 +571,8 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   BLI_assert(ob->type == OB_POINTCLOUD);
 
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(*ob_eval);
+  const blender::bke::GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(
+      *ob_eval);
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
@@ -688,7 +689,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
 
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
-  if (GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
+  if (blender::bke::GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
     return geometry_set_eval->get_curves_for_read();
   }
   return nullptr;
@@ -935,14 +936,12 @@ Mesh *BKE_mesh_new_from_object_to_bmain(Main *bmain,
   Mesh *mesh_in_bmain = BKE_mesh_add(bmain, mesh->id.name + 2);
 
   /* NOTE: BKE_mesh_nomain_to_mesh() does not copy materials and instead it preserves them in the
-   * destination mesh. So we "steal" all related fields before calling it.
+   * destination mesh. So we "steal" materials before calling it.
    *
    * TODO(sergey): We really better have a function which gets and ID and accepts it for the bmain.
    */
   mesh_in_bmain->mat = mesh->mat;
   mesh_in_bmain->totcol = mesh->totcol;
-  mesh_in_bmain->flag = mesh->flag;
-  mesh_in_bmain->smoothresh = mesh->smoothresh;
   mesh->mat = nullptr;
 
   BKE_mesh_nomain_to_mesh(mesh, mesh_in_bmain, nullptr);

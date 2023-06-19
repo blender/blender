@@ -40,8 +40,8 @@ class ExtraColumns {
 class GeometryDataSource : public DataSource {
  private:
   Object *object_eval_;
-  const GeometrySet geometry_set_;
-  const GeometryComponent *component_;
+  const bke::GeometrySet geometry_set_;
+  const bke::GeometryComponent *component_;
   eAttrDomain domain_;
   ExtraColumns extra_columns_;
 
@@ -53,8 +53,8 @@ class GeometryDataSource : public DataSource {
 
  public:
   GeometryDataSource(Object *object_eval,
-                     GeometrySet geometry_set,
-                     const GeometryComponentType component_type,
+                     bke::GeometrySet geometry_set,
+                     const bke::GeometryComponent::Type component_type,
                      const eAttrDomain domain,
                      ExtraColumns extra_columns = {})
       : object_eval_(object_eval),
@@ -83,13 +83,13 @@ class GeometryDataSource : public DataSource {
 };
 
 class VolumeDataSource : public DataSource {
-  const GeometrySet geometry_set_;
-  const VolumeComponent *component_;
+  const bke::GeometrySet geometry_set_;
+  const bke::VolumeComponent *component_;
 
  public:
-  VolumeDataSource(GeometrySet geometry_set)
+  VolumeDataSource(bke::GeometrySet geometry_set)
       : geometry_set_(std::move(geometry_set)),
-        component_(geometry_set_.get_component_for_read<VolumeComponent>())
+        component_(geometry_set_.get_component_for_read<bke::VolumeComponent>())
   {
   }
 

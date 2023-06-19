@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 
@@ -155,7 +157,6 @@ FFMPEG_TEST_VCODEC_NAME(libtheora, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libx264, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libvpx, AV_PIX_FMT_YUV420P)
 FFMPEG_TEST_VCODEC_NAME(libopenjpeg, AV_PIX_FMT_YUV420P)
-FFMPEG_TEST_VCODEC_NAME(libxvid, AV_PIX_FMT_YUV420P)
 /* aom's AV1 encoder is "libaom-av1". FFMPEG_TEST_VCODEC_NAME(libaom-av1, ...)
  * will not work because the dash will not work with the test macro. */
 TEST(ffmpeg, libaom_av1_AV_PIX_FMT_YUV420P)

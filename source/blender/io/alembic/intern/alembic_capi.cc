@@ -849,7 +849,8 @@ void ABC_CacheReader_incref(CacheReader *reader)
 CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
                                              CacheReader *reader,
                                              Object *object,
-                                             const char *object_path)
+                                             const char *object_path,
+                                             const bool is_sequence)
 {
   if (object_path[0] == '\0') {
     return reader;
@@ -869,6 +870,7 @@ CacheReader *CacheReader_open_alembic_object(CacheArchiveHandle *handle,
   }
 
   ImportSettings settings;
+  settings.is_sequence = is_sequence;
   AbcObjectReader *abc_reader = create_reader(iobject, settings);
   if (abc_reader == nullptr) {
     /* This object is not supported */

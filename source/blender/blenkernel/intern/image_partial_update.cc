@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 /**
@@ -541,7 +541,7 @@ extern "C" {
 
 using namespace blender::bke::image::partial_update;
 
-// TODO(jbakker): cleanup parameter.
+/* TODO(@jbakker): cleanup parameter. */
 PartialUpdateUser *BKE_image_partial_update_create(const Image *image)
 {
   PartialUpdateUserImpl *user_impl = MEM_new<PartialUpdateUserImpl>(__func__);

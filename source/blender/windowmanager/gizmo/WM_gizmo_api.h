@@ -114,11 +114,11 @@ void WM_gizmo_set_fn_custom_modal(struct wmGizmo *gz, wmGizmoFnModal fn);
 
 void WM_gizmo_set_matrix_location(struct wmGizmo *gz, const float origin[3]);
 /**
- * #wmGizmo.matrix utility, set the orientation by it's Z axis.
+ * #wmGizmo.matrix utility, set the orientation by its Z axis.
  */
 void WM_gizmo_set_matrix_rotation_from_z_axis(struct wmGizmo *gz, const float z_axis[3]);
 /**
- * #wmGizmo.matrix utility, set the orientation by it's Y/Z axis.
+ * #wmGizmo.matrix utility, set the orientation by its Y/Z axis.
  */
 void WM_gizmo_set_matrix_rotation_from_yz_axis(struct wmGizmo *gz,
                                                const float y_axis[3],
@@ -126,11 +126,11 @@ void WM_gizmo_set_matrix_rotation_from_yz_axis(struct wmGizmo *gz,
 
 void WM_gizmo_set_matrix_offset_location(struct wmGizmo *gz, const float offset[3]);
 /**
- * #wmGizmo.matrix_offset utility, set the orientation by it's Z axis.
+ * #wmGizmo.matrix_offset utility, set the orientation by its Z axis.
  */
 void WM_gizmo_set_matrix_offset_rotation_from_z_axis(struct wmGizmo *gz, const float z_axis[3]);
 /**
- * #wmGizmo.matrix_offset utility, set the orientation by it's Y/Z axis.
+ * #wmGizmo.matrix_offset utility, set the orientation by its Y/Z axis.
  */
 void WM_gizmo_set_matrix_offset_rotation_from_yz_axis(struct wmGizmo *gz,
                                                       const float y_axis[3],

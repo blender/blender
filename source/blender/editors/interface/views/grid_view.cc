@@ -68,6 +68,20 @@ void AbstractGridView::change_state_delayed()
   BLI_assert_msg(
       is_reconstructed(),
       "These state changes are supposed to be delayed until reconstruction is completed");
+
+/* Debug-only sanity check: Ensure only one item requests to be active. */
+#ifndef NDEBUG
+  bool has_active = false;
+  foreach_item([&has_active](AbstractGridViewItem &item) {
+    if (item.should_be_active().value_or(false)) {
+      BLI_assert_msg(
+          !has_active,
+          "Only one view item should ever return true for its `should_be_active()` method");
+      has_active = true;
+    }
+  });
+#endif
+
   foreach_item([](AbstractGridViewItem &item) { item.change_state_delayed(); });
 }
 
@@ -107,6 +121,12 @@ int AbstractGridView::get_item_count_filtered() const
   BLI_assert(i <= get_item_count());
   item_count_filtered_ = i;
   return i;
+}
+
+void AbstractGridView::set_tile_size(int tile_width, int tile_height)
+{
+  style_.tile_width = tile_width;
+  style_.tile_height = tile_height;
 }
 
 GridViewStyle::GridViewStyle(int width, int height) : tile_width(width), tile_height(height) {}
@@ -175,6 +195,9 @@ void AbstractGridViewItem::activate()
   BLI_assert_msg(get_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
+  if (!is_activatable_) {
+    return;
+  }
   if (is_active()) {
     return;
   }
@@ -192,7 +215,7 @@ void AbstractGridViewItem::deactivate()
   is_active_ = false;
 }
 
-const AbstractGridView &AbstractGridViewItem::get_view() const
+AbstractGridView &AbstractGridViewItem::get_view() const
 {
   if (UNLIKELY(!view_)) {
     throw std::runtime_error(

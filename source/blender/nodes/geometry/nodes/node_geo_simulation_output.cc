@@ -64,6 +64,11 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
       decl->input_field_type = InputSocketFieldType::IsSupported;
       decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
       break;
+    case SOCK_ROTATION:
+      decl = std::make_unique<decl::Rotation>();
+      decl->input_field_type = InputSocketFieldType::IsSupported;
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      break;
     case SOCK_INT:
       decl = std::make_unique<decl::Int>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
@@ -164,10 +169,10 @@ static void cleanup_geometry_for_simulation_state(GeometrySet &main_geometry)
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
     }
-    geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH,
-                                      GEO_COMPONENT_TYPE_CURVE,
-                                      GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                      GEO_COMPONENT_TYPE_INSTANCES});
+    geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
+                                      GeometryComponent::Type::Curve,
+                                      GeometryComponent::Type::PointCloud,
+                                      GeometryComponent::Type::Instance});
   });
 }
 
@@ -214,6 +219,7 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const fn::ValueOrFieldCPPType &value_or_field_type =
             *fn::ValueOrFieldCPPType::get_from_self(cpp_type);
@@ -268,10 +274,10 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
 
   /* Make some attributes anonymous. */
   for (GeometrySet *geometry : geometries) {
-    for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                             GEO_COMPONENT_TYPE_CURVE,
-                                             GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                             GEO_COMPONENT_TYPE_INSTANCES})
+    for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                               GeometryComponent::Type::Curve,
+                                               GeometryComponent::Type::PointCloud,
+                                               GeometryComponent::Type::Instance})
     {
       if (!geometry->has(type)) {
         continue;
@@ -311,6 +317,7 @@ void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const CPPType &type = get_simulation_item_cpp_type(item);
         const fn::ValueOrFieldCPPType &value_or_field_type =
@@ -616,6 +623,7 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_VECTOR:
     case SOCK_INT:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(item);
       const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
@@ -1005,6 +1013,7 @@ bool NOD_geometry_simulation_output_item_socket_type_supported(
               SOCK_VECTOR,
               SOCK_RGBA,
               SOCK_BOOLEAN,
+              SOCK_ROTATION,
               SOCK_INT,
               SOCK_STRING,
               SOCK_GEOMETRY);

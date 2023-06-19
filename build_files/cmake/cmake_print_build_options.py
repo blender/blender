@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # Simple utility that prints all WITH_* options in a CMakeLists.txt

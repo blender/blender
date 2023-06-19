@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -84,11 +85,6 @@ CCL_NAMESPACE_BEGIN
 #define __VISIBILITY_FLAG__
 #define __VOLUME__
 
-/* TODO: solve internal compiler perf issue and enable light tree on Metal/AMD. */
-#if defined(__KERNEL_METAL_AMD__)
-#  undef __LIGHT_TREE__
-#endif
-
 /* Device specific features */
 #ifdef WITH_OSL
 #  define __OSL__
@@ -108,6 +104,13 @@ CCL_NAMESPACE_BEGIN
  * in spill buffer allocation sizing. */
 #if !defined(__KERNEL_METAL__) || (__KERNEL_METAL_MACOS__ >= 13)
 #  define __MNEE__
+#endif
+
+#if defined(__KERNEL_METAL_AMD__)
+/* Disabled due to internal compiler perf issue and enable light tree on Metal/AMD. */
+#  undef __LIGHT_TREE__
+/* Disabled due to compiler crash on Metal/AMD. */
+#  undef __MNEE__
 #endif
 
 /* Scene-based selective features compilation. */

@@ -153,7 +153,7 @@ void WM_init_gpu(void);
 const char *WM_ghost_backend(void);
 
 typedef enum eWM_CapabilitiesFlag {
-  /** Ability to warp the cursor (set it's location). */
+  /** Ability to warp the cursor (set its location). */
   WM_CAPABILITY_CURSOR_WARP = (1 << 0),
   /** Ability to access window positions & move them. */
   WM_CAPABILITY_WINDOW_POSITION = (1 << 1),
@@ -184,7 +184,7 @@ void WM_script_tag_reload(void);
 wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mval[2]);
 
 /**
- * Knowing the area, return it's screen.
+ * Knowing the area, return its screen.
  * \note This should typically be avoided, only use when the context is not available.
  */
 wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area);
@@ -786,7 +786,7 @@ bool WM_operator_name_poll(struct bContext *C, const char *opstring);
  * \param event: Optionally pass in an event to use when context uses one of the
  * `WM_OP_INVOKE_*` values. When left unset the #wmWindow.eventstate will be used,
  * this can cause problems for operators that read the events type - for example,
- * storing the key that was pressed so as to be able to detect it's release.
+ * storing the key that was pressed so as to be able to detect its release.
  * In these cases it's necessary to forward the current event being handled.
  */
 int WM_operator_name_call_ptr(struct bContext *C,

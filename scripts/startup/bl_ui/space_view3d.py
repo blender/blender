@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import (
     Header,
@@ -2031,6 +2034,15 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator("grease_pencil.select_linked", text="Linked")
+
+        layout.separator()
+
+        op = layout.operator("grease_pencil.select_ends", text="First")
+        op.amount_start = 1
+        op.amount_end = 0
+        op = layout.operator("grease_pencil.select_ends", text="Last")
+        op.amount_start = 0
+        op.amount_end = 1
 
         layout.separator()
 

@@ -461,7 +461,7 @@ bool BMO_op_initf(BMesh *bm, BMOperator *op, int flag, const char *fmt, ...);
 
 /**
  * A `va_list` version, used to implement the above two functions,
- * plus #EDBM_op_callf in editmesh_utils.c.
+ * plus #EDBM_op_callf in editmesh_utils.cc.
  */
 bool BMO_op_vinitf(BMesh *bm, BMOperator *op, int flag, const char *fmt, va_list vlist);
 

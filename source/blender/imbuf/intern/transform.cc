@@ -317,7 +317,7 @@ class WrapRepeatUV : public BaseUVWrapping {
   }
 };
 
-// TODO: should we use math_vectors for this.
+/* TODO: should we use math_vectors for this. */
 template<typename StorageType, int NumChannels>
 class Pixel : public std::array<StorageType, NumChannels> {
  public:

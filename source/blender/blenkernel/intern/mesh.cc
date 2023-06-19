@@ -936,11 +936,14 @@ void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
   mesh->poly_offset_indices[mesh->totpoly] = mesh->totloop;
 }
 
-int *BKE_mesh_poly_offsets_for_write(Mesh *mesh)
+MutableSpan<int> Mesh::poly_offsets_for_write()
 {
+  if (this->totpoly == 0) {
+    return {};
+  }
   blender::implicit_sharing::make_trivial_data_mutable(
-      &mesh->poly_offset_indices, &mesh->runtime->poly_offsets_sharing_info, mesh->totpoly + 1);
-  return mesh->poly_offset_indices;
+      &this->poly_offset_indices, &this->runtime->poly_offsets_sharing_info, this->totpoly + 1);
+  return {this->poly_offset_indices, this->totpoly + 1};
 }
 
 static void mesh_ensure_cdlayers_primary(Mesh &mesh)
@@ -1270,18 +1273,6 @@ void BKE_mesh_texspace_get_reference(Mesh *me,
   }
   if (r_texspace_size != nullptr) {
     *r_texspace_size = me->texspace_size;
-  }
-}
-
-void BKE_mesh_texspace_copy_from_object(Mesh *me, Object *ob)
-{
-  float *texspace_location, *texspace_size;
-  char *texspace_flag;
-
-  if (BKE_object_obdata_texspace_get(ob, &texspace_flag, &texspace_location, &texspace_size)) {
-    me->texspace_flag = *texspace_flag;
-    copy_v3_v3(me->texspace_location, texspace_location);
-    copy_v3_v3(me->texspace_size, texspace_size);
   }
 }
 

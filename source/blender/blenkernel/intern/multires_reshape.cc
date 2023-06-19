@@ -71,7 +71,11 @@ bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
   }
 
   return multiresModifier_reshapeFromVertcos(
-      depsgraph, dst, mmd, BKE_mesh_vert_positions(src_mesh_eval), src_mesh_eval->totvert);
+      depsgraph,
+      dst,
+      mmd,
+      reinterpret_cast<const float(*)[3]>(src_mesh_eval->vert_positions().data()),
+      src_mesh_eval->totvert);
 }
 
 /** \} */

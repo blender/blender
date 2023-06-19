@@ -400,7 +400,7 @@ static void manta_set_domain_from_mesh(FluidDomainSettings *fds,
   float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
   float size[3];
 
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
+  blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
   float scale = 0.0;
   int res;
 
@@ -845,7 +845,7 @@ BLI_INLINE void apply_effector_fields(FluidEffectorSettings * /*fes*/,
 }
 
 static void update_velocities(FluidEffectorSettings *fes,
-                              const float (*vert_positions)[3],
+                              const blender::Span<blender::float3> vert_positions,
                               const int *corner_verts,
                               const MLoopTri *mlooptri,
                               float *velocity_map,
@@ -945,7 +945,7 @@ static void update_velocities(FluidEffectorSettings *fes,
 struct ObstaclesFromDMData {
   FluidEffectorSettings *fes;
 
-  const float (*vert_positions)[3];
+  blender::Span<blender::float3> vert_positions;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
 
@@ -1012,7 +1012,7 @@ static void obstacles_from_mesh(Object *coll_ob,
     bool has_velocity = false;
 
     Mesh *me = BKE_mesh_copy_for_eval(fes->mesh);
-    float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
+    blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
 
     int min[3], max[3], res[3];
 
@@ -1793,7 +1793,7 @@ static void update_distances(int index,
 }
 
 static void sample_mesh(FluidFlowSettings *ffs,
-                        const float (*vert_positions)[3],
+                        blender::Span<blender::float3> vert_positions,
                         const blender::Span<blender::float3> vert_normals,
                         const int *corner_verts,
                         const MLoopTri *mlooptri,
@@ -1991,7 +1991,7 @@ struct EmitFromDMData {
   FluidDomainSettings *fds;
   FluidFlowSettings *ffs;
 
-  const float (*vert_positions)[3];
+  blender::Span<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
@@ -2075,7 +2075,7 @@ static void emit_from_mesh(
     /* Copy mesh for thread safety as we modify it.
      * Main issue is its VertArray being modified, then replaced and freed. */
     Mesh *me = BKE_mesh_copy_for_eval(ffs->mesh);
-    float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
+    blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
 
     const blender::Span<int> corner_verts = me->corner_verts();
     const blender::Span<MLoopTri> looptris = me->looptris();
@@ -3246,7 +3246,7 @@ static Mesh *create_liquid_geometry(FluidDomainSettings *fds,
   if (!me) {
     return nullptr;
   }
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(me);
+  blender::MutableSpan<blender::float3> positions = me->vert_positions_for_write();
   blender::MutableSpan<int> poly_offsets = me->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = me->corner_verts_for_write();
 
@@ -3381,7 +3381,7 @@ static Mesh *create_smoke_geometry(FluidDomainSettings *fds, Mesh *orgmesh, Obje
   }
 
   result = BKE_mesh_new_nomain(num_verts, 0, num_faces, num_faces * 4);
-  float(*positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<blender::float3> positions = result->vert_positions_for_write();
   blender::MutableSpan<int> poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> corner_verts = result->corner_verts_for_write();
 

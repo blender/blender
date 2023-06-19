@@ -1,4 +1,7 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
@@ -440,16 +443,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
             col.operator("mesh.customdata_custom_splitnormals_clear", icon='X')
         else:
             col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
-
-        if me.has_crease_edge:
-            col.operator("mesh.customdata_crease_edge_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_edge_add", icon='ADD')
-
-        if me.has_crease_vertex:
-            col.operator("mesh.customdata_crease_vertex_clear", icon='X')
-        else:
-            col.operator("mesh.customdata_crease_vertex_add", icon='ADD')
 
 
 class DATA_PT_custom_props_mesh(MeshButtonsPanel, PropertyPanel, Panel):

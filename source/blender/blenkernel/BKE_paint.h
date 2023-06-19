@@ -877,7 +877,7 @@ void BKE_sculpt_update_object_after_eval(struct Depsgraph *depsgraph, struct Obj
  */
 struct MultiresModifierData *BKE_sculpt_multires_active(const struct Scene *scene,
                                                         struct Object *ob);
-int *BKE_sculpt_face_sets_ensure(struct Mesh *mesh);
+int *BKE_sculpt_face_sets_ensure(struct Object *ob);
 /**
  * Create the attribute used to store face visibility and retrieve its data.
  * Note that changes to the face visibility have to be propagated to other domains

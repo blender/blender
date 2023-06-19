@@ -368,7 +368,7 @@ static int lineart_gpencil_bake_strokes_exec(bContext *C, wmOperator *op)
 {
   return lineart_gpencil_bake_common(C, op, false, false);
 }
-static int lineart_gpencil_bake_strokes_commom_modal(bContext *C,
+static int lineart_gpencil_bake_strokes_common_modal(bContext *C,
                                                      wmOperator *op,
                                                      const wmEvent *UNUSED(event))
 {
@@ -440,7 +440,7 @@ void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
 
   ot->invoke = lineart_gpencil_bake_strokes_invoke;
   ot->exec = lineart_gpencil_bake_strokes_exec;
-  ot->modal = lineart_gpencil_bake_strokes_commom_modal;
+  ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
 void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
@@ -451,7 +451,7 @@ void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 
   ot->invoke = lineart_gpencil_bake_strokes_all_invoke;
   ot->exec = lineart_gpencil_bake_strokes_all_exec;
-  ot->modal = lineart_gpencil_bake_strokes_commom_modal;
+  ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
 void OBJECT_OT_lineart_clear(wmOperatorType *ot)

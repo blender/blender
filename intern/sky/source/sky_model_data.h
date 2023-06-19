@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: BSD-3-Clause
- * Copyright 2012-2013 Lukas Hosek and Alexander Wilkie. All rights reserved. */
+/* SPDX-FileCopyrightText: 2012-2013 Lukas Hosek and Alexander Wilkie. All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause */
 
 /* ============================================================================
 

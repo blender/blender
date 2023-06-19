@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include <stdlib.h>
 #include <string.h>
@@ -359,6 +360,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
 
   info.has_nanovdb = true;
   info.has_light_tree = true;
+  info.has_mnee = true;
   info.has_osl = true;
   info.has_guiding = true;
   info.has_profiling = true;
@@ -408,6 +410,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Accumulate device info. */
     info.has_nanovdb &= device.has_nanovdb;
     info.has_light_tree &= device.has_light_tree;
+    info.has_mnee &= device.has_mnee;
     info.has_osl &= device.has_osl;
     info.has_guiding &= device.has_guiding;
     info.has_profiling &= device.has_profiling;

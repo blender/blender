@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2013 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2013 Blender Foundation.
 
 # - Find OpenSubdiv library
 # Find the native OpenSubdiv includes and library

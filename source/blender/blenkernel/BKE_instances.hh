@@ -27,11 +27,12 @@
 
 #include "BKE_attribute.hh"
 
-struct GeometrySet;
 struct Object;
 struct Collection;
 
 namespace blender::bke {
+
+struct GeometrySet;
 
 /**
  * Holds a reference to conceptually unique geometry or a pointer to object/collection data

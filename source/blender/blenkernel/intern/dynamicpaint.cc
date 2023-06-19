@@ -1802,7 +1802,7 @@ struct DynamicPaintModifierApplyData {
   const DynamicPaintSurface *surface;
   Object *ob;
 
-  float (*vert_positions)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
@@ -1840,7 +1840,7 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Mesh
   if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE) {
     DynamicPaintModifierApplyData data{};
     data.surface = surface;
-    data.vert_positions = BKE_mesh_vert_positions_for_write(result);
+    data.vert_positions = result->vert_positions_for_write();
     data.vert_normals = result->vert_normals();
 
     TaskParallelSettings settings;
@@ -2039,7 +2039,7 @@ static Mesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd, Object *
           else if (surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
             DynamicPaintModifierApplyData data{};
             data.surface = surface;
-            data.vert_positions = BKE_mesh_vert_positions_for_write(result);
+            data.vert_positions = result->vert_positions_for_write();
             data.vert_normals = result->vert_normals();
 
             TaskParallelSettings settings;
@@ -3925,7 +3925,7 @@ struct DynamicPaintPaintData {
   int c_index;
 
   Mesh *mesh;
-  const float (*positions)[3];
+  blender::Span<blender::float3> positions;
   blender::Span<int> corner_verts;
   blender::Span<MLoopTri> looptris;
   float brush_radius;
@@ -3959,7 +3959,7 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
   const float timescale = data->timescale;
   const int c_index = data->c_index;
 
-  const float(*positions)[3] = data->positions;
+  const blender::Span<blender::float3> positions = data->positions;
   const blender::Span<int> corner_verts = data->corner_verts;
   const blender::Span<MLoopTri> looptris = data->looptris;
   const float brush_radius = data->brush_radius;
@@ -4309,7 +4309,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     VolumeGrid *grid = bData->grid;
 
     mesh = BKE_mesh_copy_for_eval(brush_mesh);
-    float(*positions)[3] = BKE_mesh_vert_positions_for_write(mesh);
+    blender::MutableSpan<blender::float3> positions = mesh->vert_positions_for_write();
     const blender::Span<blender::float3> vert_normals = mesh->vert_normals();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const blender::Span<MLoopTri> looptris = mesh->looptris();
@@ -4804,7 +4804,6 @@ static bool dynamicPaint_paintSinglePoint(
   }
 
   const Mesh *brush_mesh = dynamicPaint_brush_mesh_get(brush);
-  const float(*positions)[3] = BKE_mesh_vert_positions(brush_mesh);
 
   /*
    * Loop through every surface point
@@ -4815,7 +4814,7 @@ static bool dynamicPaint_paintSinglePoint(
   data.brushOb = brushOb;
   data.scene = scene;
   data.timescale = timescale;
-  data.positions = positions;
+  data.positions = brush_mesh->vert_positions();
   data.brush_radius = brush_radius;
   data.brushVelocity = &brushVel;
   data.pointCoord = pointCoord;
@@ -5914,7 +5913,7 @@ static bool dynamicPaint_surfaceHasMoved(DynamicPaintSurface *surface, Object *o
   PaintSurfaceData *sData = surface->data;
   PaintBakeData *bData = sData->bData;
   Mesh *mesh = dynamicPaint_canvas_mesh_get(surface->canvas);
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
 
   int numOfVerts = mesh->totvert;
 
@@ -5942,7 +5941,7 @@ struct DynamicPaintGenerateBakeData {
   const DynamicPaintSurface *surface;
   Object *ob;
 
-  const float (*positions)[3];
+  blender::Span<blender::float3> positions;
   blender::Span<blender::float3> vert_normals;
   const Vec3f *canvas_verts;
 
@@ -6075,7 +6074,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
   const bool do_accel_data = (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) != 0;
 
   int canvasNumOfVerts = mesh->totvert;
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   Vec3f *canvas_verts;
 
   if (bData) {
@@ -6200,7 +6199,7 @@ static bool dynamicPaint_generateBakeData(DynamicPaintSurface *surface,
 
   /* Copy current frame vertices to check against in next frame */
   copy_m4_m4(bData->prev_obmat, ob->object_to_world);
-  memcpy(bData->prev_positions, positions, canvasNumOfVerts * sizeof(float[3]));
+  memcpy(bData->prev_positions, positions.data(), canvasNumOfVerts * sizeof(float[3]));
 
   bData->clear = 0;
 

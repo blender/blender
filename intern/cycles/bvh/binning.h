@@ -1,6 +1,9 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Adapted from code copyright 2009-2011 Intel Corporation
- * Modifications Copyright 2012-2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2009-2011 Intel Corporation
+ * SPDX-FileCopyrightText: 2012-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Adapted code from Intel Corporation. */
 
 #ifndef __BVH_BINNING_H__
 #define __BVH_BINNING_H__

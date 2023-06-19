@@ -1,7 +1,6 @@
-/* SPDX-FileCopyrightText: 2021 Blender Foundation.
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- *  */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -89,13 +88,16 @@
 
 /* Resource bindings. */
 
-/* Texture. */
-#define SHADOW_TILEMAPS_TEX_SLOT 12
-/* Only during surface shading. */
-#define SHADOW_ATLAS_TEX_SLOT 13
+/* Textures. */
+/* Used anywhere. (Starts at index 2, since 0 and 1 are used by draw_gpencil) */
+#define RBUFS_UTILITY_TEX_SLOT 2
+#define HIZ_TEX_SLOT 3
+/* Only during surface shading (forward and deferred eval). */
+#define SHADOW_TILEMAPS_TEX_SLOT 4
+#define SHADOW_ATLAS_TEX_SLOT 5
+#define SSS_TRANSMITTANCE_TEX_SLOT 6
 /* Only during shadow rendering. */
-#define SHADOW_RENDER_MAP_SLOT 13
-#define RBUFS_UTILITY_TEX_SLOT 14
+#define SHADOW_RENDER_MAP_SLOT 4
 
 /* Images. */
 #define RBUFS_COLOR_SLOT 0

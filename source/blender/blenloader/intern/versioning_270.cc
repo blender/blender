@@ -1378,7 +1378,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_ATLEAST(bmain, 278, 4)) {
-    const float sqrt_3 = (float)M_SQRT3;
+    const float sqrt_3 = float(M_SQRT3);
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       br->fill_threshold /= sqrt_3;
     }

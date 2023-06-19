@@ -31,7 +31,7 @@
 void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  float(*base_positions)[3] = BKE_mesh_vert_positions_for_write(base_mesh);
+  blender::MutableSpan<blender::float3> base_positions = base_mesh->vert_positions_for_write();
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_positions = base_positions;
 
@@ -68,7 +68,7 @@ static float v3_dist_from_plane(const float v[3], const float center[3], const f
 void multires_reshape_apply_base_refit_base_mesh(MultiresReshapeContext *reshape_context)
 {
   Mesh *base_mesh = reshape_context->base_mesh;
-  float(*base_positions)[3] = BKE_mesh_vert_positions_for_write(base_mesh);
+  blender::MutableSpan<blender::float3> base_positions = base_mesh->vert_positions_for_write();
   /* Update the context in case the vertices were duplicated. */
   reshape_context->base_positions = base_positions;
   blender::Array<int> vert_to_poly_offsets;

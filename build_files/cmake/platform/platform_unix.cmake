@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2016 Blender Foundation
 
 # Libraries configuration for any *nix system including Linux and Unix (excluding APPLE).
 
@@ -242,10 +243,14 @@ if(WITH_CODEC_FFMPEG)
       theora theoradec theoraenc
       vorbis vorbisenc vorbisfile ogg
       vpx
-      x264
-      xvidcore)
-    if((DEFINED LIBDIR) AND (EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a))
-      list(APPEND FFMPEG_FIND_COMPONENTS aom)
+      x264)
+    if(DEFINED LIBDIR)
+      if(EXISTS ${LIBDIR}/ffmpeg/lib/libaom.a)
+        list(APPEND FFMPEG_FIND_COMPONENTS aom)
+      endif()
+      if(EXISTS ${LIBDIR}/ffmpeg/lib/libxvidcore.a)
+        list(APPEND FFMPEG_FIND_COMPONENTS xvidcore)
+      endif()
     endif()
   elseif(FFMPEG)
     # Old cache variable used for root dir, convert to new standard.
@@ -921,6 +926,27 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
       set(_IS_LINKER_DEFAULT OFF)
     endif()
     unset(MOLD_BIN)
+  endif()
+
+  if(WITH_LINKER_LLD AND _IS_LINKER_DEFAULT)
+    find_program(LLD_BIN "ld.lld")
+    mark_as_advanced(LLD_BIN)
+    if(NOT LLD_BIN)
+      message(STATUS "The \"ld.lld\" binary could not be found, using system linker.")
+      set(WITH_LINKER_LLD OFF)
+    else()
+      if(CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 12.0)
+        string(APPEND CMAKE_EXE_LINKER_FLAGS    " --ld-path=\"${LLD_BIN}\"")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS " --ld-path=\"${LLD_BIN}\"")
+        string(APPEND CMAKE_MODULE_LINKER_FLAGS " --ld-path=\"${LLD_BIN}\"")
+      else()
+        string(APPEND CMAKE_EXE_LINKER_FLAGS    " -fuse-ld=\"${LLD_BIN}\"")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=\"${LLD_BIN}\"")
+        string(APPEND CMAKE_MODULE_LINKER_FLAGS " -fuse-ld=\"${LLD_BIN}\"")
+      endif()
+      set(_IS_LINKER_DEFAULT OFF)
+    endif()
+    unset(LLD_BIN)
   endif()
 
 # Intel C++ Compiler

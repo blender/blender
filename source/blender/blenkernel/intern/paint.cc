@@ -1977,8 +1977,11 @@ void BKE_sculpt_update_object_for_edit(
   sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
 }
 
-int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
+int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -1990,8 +1993,14 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
     face_sets.finish();
   }
 
-  return static_cast<int *>(CustomData_get_layer_named_for_write(
+  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+
+  if (ss->pbvh && ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
+    BKE_pbvh_face_sets_set(ss->pbvh, face_sets);
+  }
+
+  return face_sets;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
@@ -2208,7 +2217,9 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
     BKE_pbvh_vert_coords_apply(
-        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
+        pbvh,
+        reinterpret_cast<const float(*)[3]>(me_eval_deform->vert_positions().data()),
+        me_eval_deform->totvert);
   }
 
   return pbvh;

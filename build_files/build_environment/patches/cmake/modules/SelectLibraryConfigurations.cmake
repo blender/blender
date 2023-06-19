@@ -1,7 +1,8 @@
+# SPDX-FileCopyrightText: 2009 Kitware, Inc.
+# SPDX-FileCopyrightText: 2009 Will Dicharry <wdicharry@stellarscience.com>
+# SPDX-FileCopyrightText: 2005-2009 Kitware, Inc.
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2009 Kitware, Inc.
-#           2009 Will Dicharry <wdicharry@stellarscience.com>
-#           2005-2009 Kitware, Inc.
 
 # select_library_configurations( basename )
 #

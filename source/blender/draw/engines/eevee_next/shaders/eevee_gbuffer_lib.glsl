@@ -10,7 +10,10 @@
 vec2 gbuffer_normal_pack(vec3 N)
 {
   N /= length_manhattan(N);
-  N.xy = (N.z >= 0.0) ? N.xy : ((1.0 - abs(N.yx)) * sign(N.xy));
+  vec2 _sign = sign(N.xy);
+  _sign.x = _sign.x == 0.0 ? 1.0 : _sign.x;
+  _sign.y = _sign.y == 0.0 ? 1.0 : _sign.y;
+  N.xy = (N.z >= 0.0) ? N.xy : ((1.0 - abs(N.yx)) * _sign);
   N.xy = N.xy * 0.5 + 0.5;
   return N.xy;
 }
@@ -32,7 +35,7 @@ float gbuffer_ior_pack(float ior)
 
 float gbuffer_ior_unpack(float ior_packed)
 {
-  return (ior_packed > 0.5) ? (-1.0 / (ior_packed * 2.0 + 2.0)) : (2.0 * ior_packed);
+  return (ior_packed > 0.5) ? (0.5 / (1.0 - ior_packed)) : (2.0 * ior_packed);
 }
 
 float gbuffer_thickness_pack(float thickness)

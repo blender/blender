@@ -775,7 +775,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
         continue;
       }
       timeline_cache_draw_simulation_nodes(
-          *scene, *nmd->simulation_cache, y_offset, cache_draw_height, pos_id);
+          *scene, *nmd->simulation_cache->ptr, y_offset, cache_draw_height, pos_id);
       y_offset += cache_draw_height;
     }
   }

@@ -132,7 +132,7 @@ static int svert_sum_cmp(const void *e1, const void *e2)
 }
 
 static void svert_from_mvert(SortVertsElem *sv,
-                             const float (*vert_positions)[3],
+                             const Span<float3> vert_positions,
                              const int i_begin,
                              const int i_end)
 {
@@ -152,7 +152,7 @@ static void svert_from_mvert(SortVertsElem *sv,
  * The `int doubles_map[verts_source_num]` array must have been allocated by caller.
  */
 static void dm_mvert_map_doubles(int *doubles_map,
-                                 const float (*vert_positions)[3],
+                                 const Span<float3> vert_positions,
                                  const int target_start,
                                  const int target_verts_num,
                                  const int source_start,
@@ -289,7 +289,7 @@ static void mesh_merge_transform(Mesh *result,
   int i;
   int2 *edge;
   const blender::Span<int> cap_poly_offsets = cap_mesh->poly_offsets();
-  float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
   blender::MutableSpan<int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();
@@ -559,7 +559,7 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
   /* Initialize a result dm */
   result = BKE_mesh_new_nomain_from_template(
       mesh, result_nverts, result_nedges, result_npolys, result_nloops);
-  float(*result_positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<float3> result_positions = result->vert_positions_for_write();
   blender::MutableSpan<int2> result_edges = result->edges_for_write();
   blender::MutableSpan<int> result_poly_offsets = result->poly_offsets_for_write();
   blender::MutableSpan<int> result_corner_verts = result->corner_verts_for_write();

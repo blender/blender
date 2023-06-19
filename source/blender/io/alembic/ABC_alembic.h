@@ -143,7 +143,8 @@ void ABC_CacheReader_free(struct CacheReader *reader);
 struct CacheReader *CacheReader_open_alembic_object(struct CacheArchiveHandle *handle,
                                                     struct CacheReader *reader,
                                                     struct Object *object,
-                                                    const char *object_path);
+                                                    const char *object_path,
+                                                    bool is_sequence);
 
 #ifdef __cplusplus
 }

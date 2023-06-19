@@ -216,7 +216,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     Mesh *mesh = compute_hull(geometry_set);
     geometry_set.replace_mesh(mesh);
-    geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH});
+    geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
   });
 
   params.set_output("Convex Hull", std::move(geometry_set));

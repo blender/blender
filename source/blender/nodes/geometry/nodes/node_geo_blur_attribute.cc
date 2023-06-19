@@ -86,15 +86,17 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   /* Weight and Iterations inputs don't change based on the data type. */
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(2));
 
-  const eNodeSocketDatatype other_socket_type = static_cast<eNodeSocketDatatype>(
-      params.other_socket().type);
   const std::optional<eCustomDataType> new_node_type = node_data_type_to_custom_data_type(
-      other_socket_type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (!new_node_type.has_value()) {
     return;
   }
   eCustomDataType fixed_data_type = *new_node_type;
   if (fixed_data_type == CD_PROP_STRING) {
+    return;
+  }
+  if (fixed_data_type == CD_PROP_QUATERNION) {
+    /* Don't implement quaternion blurring for now. */
     return;
   }
   if (fixed_data_type == CD_PROP_BOOL) {
@@ -423,7 +425,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
 
     GSpan result_buffer;
     switch (context.type()) {
-      case GEO_COMPONENT_TYPE_MESH:
+      case GeometryComponent::Type::Mesh:
         if (ELEM(context.domain(), ATTR_DOMAIN_POINT, ATTR_DOMAIN_EDGE, ATTR_DOMAIN_FACE)) {
           if (const Mesh *mesh = context.mesh()) {
             result_buffer = blur_on_mesh(
@@ -431,7 +433,7 @@ class BlurAttributeFieldInput final : public bke::GeometryFieldInput {
           }
         }
         break;
-      case GEO_COMPONENT_TYPE_CURVE:
+      case GeometryComponent::Type::Curve:
         if (context.domain() == ATTR_DOMAIN_POINT) {
           if (const bke::CurvesGeometry *curves = context.curves()) {
             result_buffer = blur_on_curves(

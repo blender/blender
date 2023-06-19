@@ -39,7 +39,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  * The Original Code is adapted from jemalloc.
- * Modifications Copyright (C) 2016 Blender Foundation.
+ * Modifications Copyright (C) 2016 Blender Foundation
  */
 
 /** \file

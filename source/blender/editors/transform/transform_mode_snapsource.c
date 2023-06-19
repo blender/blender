@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -38,6 +39,7 @@ struct SnapSouceCustomData {
   void *customdata_mode_prev;
 
   eSnapTargetOP target_operation_prev;
+  eSnapMode snap_mode_confirm;
 
   struct {
     void (*apply)(TransInfo *t, MouseInput *mi, const double mval[2], float output[3]);
@@ -74,6 +76,9 @@ static void snapsource_confirm(TransInfo *t)
   t->tsnap.snap_source_fn = NULL;
   t->tsnap.status |= SNAP_SOURCE_FOUND;
   t->flag |= T_DRAW_SNAP_SOURCE;
+
+  struct SnapSouceCustomData *customdata = t->custom.mode.data;
+  t->tsnap.mode = customdata->snap_mode_confirm;
 
   int mval[2];
 #ifndef RESET_TRANSFORMATION
@@ -182,10 +187,17 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
   t->tsnap.status &= ~SNAP_SOURCE_FOUND;
 
+  customdata->snap_mode_confirm = t->tsnap.mode;
+  t->tsnap.mode &= ~(SCE_SNAP_MODE_EDGE_PERPENDICULAR);
+
   if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
     /* Initialize snap modes for geometry. */
     t->tsnap.mode &= ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID);
     t->tsnap.mode |= SCE_SNAP_MODE_GEOM;
+
+    if (!(customdata->snap_mode_confirm & SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+      customdata->snap_mode_confirm = t->tsnap.mode;
+    }
   }
 
   if (t->data_type == &TransConvertType_Mesh) {

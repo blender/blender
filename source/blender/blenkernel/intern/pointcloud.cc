@@ -329,7 +329,7 @@ PointCloud *BKE_pointcloud_copy_for_eval(const PointCloud *pointcloud_src)
 static void pointcloud_evaluate_modifiers(Depsgraph *depsgraph,
                                           Scene *scene,
                                           Object *object,
-                                          GeometrySet &geometry_set)
+                                          blender::bke::GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -360,21 +360,22 @@ static void pointcloud_evaluate_modifiers(Depsgraph *depsgraph,
   }
 }
 
-static PointCloud *take_pointcloud_ownership_from_geometry_set(GeometrySet &geometry_set)
+static PointCloud *take_pointcloud_ownership_from_geometry_set(
+    blender::bke::GeometrySet &geometry_set)
 {
-  if (!geometry_set.has<PointCloudComponent>()) {
+  if (!geometry_set.has<blender::bke::PointCloudComponent>()) {
     return nullptr;
   }
-  PointCloudComponent &pointcloud_component =
-      geometry_set.get_component_for_write<PointCloudComponent>();
+  blender::bke::PointCloudComponent &pointcloud_component =
+      geometry_set.get_component_for_write<blender::bke::PointCloudComponent>();
   PointCloud *pointcloud = pointcloud_component.release();
   if (pointcloud != nullptr) {
     /* Add back, but as read-only non-owning component. */
-    pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
+    pointcloud_component.replace(pointcloud, blender::bke::GeometryOwnershipType::ReadOnly);
   }
   else {
     /* The component was empty, we can also remove it. */
-    geometry_set.remove<PointCloudComponent>();
+    geometry_set.remove<blender::bke::PointCloudComponent>();
   }
   return pointcloud;
 }
@@ -386,8 +387,8 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
 
   /* Evaluate modifiers. */
   PointCloud *pointcloud = static_cast<PointCloud *>(object->data);
-  GeometrySet geometry_set = GeometrySet::create_with_pointcloud(pointcloud,
-                                                                 GeometryOwnershipType::ReadOnly);
+  blender::bke::GeometrySet geometry_set = blender::bke::GeometrySet::create_with_pointcloud(
+      pointcloud, blender::bke::GeometryOwnershipType::ReadOnly);
   pointcloud_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   PointCloud *pointcloud_eval = take_pointcloud_ownership_from_geometry_set(geometry_set);
@@ -400,7 +401,7 @@ void BKE_pointcloud_data_update(Depsgraph *depsgraph, Scene *scene, Object *obje
   /* Assign evaluated object. */
   const bool eval_is_owned = pointcloud_eval != pointcloud;
   BKE_object_eval_assign_data(object, &pointcloud_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
+  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void PointCloud::tag_positions_changed()

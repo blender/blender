@@ -73,6 +73,8 @@ static void test_texture_cube()
   float4 clear_color(1.0f, 0.5f, 0.2f, 1.0f);
   GPU_texture_clear(tex, GPU_DATA_FLOAT, clear_color);
 
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
+
   float4 *data = (float4 *)GPU_texture_read(tex, GPU_DATA_FLOAT, 0);
   for (int index : IndexRange(SIZE * SIZE * 6)) {
     EXPECT_EQ(clear_color, data[index]);

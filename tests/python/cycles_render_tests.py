@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2015-2023 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse

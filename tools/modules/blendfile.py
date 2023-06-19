@@ -1,6 +1,7 @@
+# SPDX-FileCopyrightText: 2009 At Mind B.V. - Jeroen Bakker.
+# SPDX-FileCopyrightText: 2014 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2009 At Mind B.V. - Jeroen Bakker.
-#           2014 Blender Foundation. - Campbell Barton.
 
 # -----------------------------------------------------------------------------
 # NOTICE: this module is expanded upon in Blender Asset Tracer.

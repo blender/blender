@@ -44,7 +44,7 @@ set(SRC
 )
 
 set(LIB
-    bf_blenkernel
+  bf_blenkernel
 )
 
 

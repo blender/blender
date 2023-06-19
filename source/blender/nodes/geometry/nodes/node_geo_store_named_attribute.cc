@@ -31,6 +31,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Value", "Value_Color").field_on_all();
   b.add_input<decl::Bool>("Value", "Value_Bool").field_on_all();
   b.add_input<decl::Int>("Value", "Value_Int").field_on_all();
+  b.add_input<decl::Rotation>("Value", "Value_Rotation").field_on_all();
 
   b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
@@ -63,6 +64,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
+  bNodeSocket *socket_quat = socket_int32->next;
 
   bke::nodeSetSocketAvailability(
       ntree, socket_vector, ELEM(data_type, CD_PROP_FLOAT2, CD_PROP_FLOAT3));
@@ -71,6 +73,7 @@ static void node_update(bNodeTree *ntree, bNode *node)
       ntree, socket_color4f, ELEM(data_type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR));
   bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -144,6 +147,9 @@ static void node_geo_exec(GeoNodeExecParams params)
     case CD_PROP_INT32:
       field = params.get_input<Field<int>>("Value_Int");
       break;
+    case CD_PROP_QUATERNION:
+      field = params.get_input<Field<math::Quaternion>>("Value_Rotation");
+      break;
     default:
       break;
   }
@@ -154,7 +160,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   if (domain == ATTR_DOMAIN_INSTANCE) {
     if (geometry_set.has_instances()) {
       GeometryComponent &component = geometry_set.get_component_for_write(
-          GEO_COMPONENT_TYPE_INSTANCES);
+          GeometryComponent::Type::Instance);
       if (!bke::try_capture_field_on_geometry(component, name, domain, selection, field)) {
         if (component.attribute_domain_size(domain) != 0) {
           failure.store(true);
@@ -164,8 +170,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   else {
     geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
-      for (const GeometryComponentType type :
-           {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE})
+      for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                                 GeometryComponent::Type::PointCloud,
+                                                 GeometryComponent::Type::Curve})
       {
         if (geometry_set.has(type)) {
           GeometryComponent &component = geometry_set.get_component_for_write(type);

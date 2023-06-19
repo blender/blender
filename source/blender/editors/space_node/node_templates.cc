@@ -391,6 +391,9 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       else if (dynamic_cast<const decl::Color *>(&socket_decl)) {
         item.socket_type = SOCK_RGBA;
       }
+      else if (dynamic_cast<const decl::Rotation *>(&socket_decl)) {
+        item.socket_type = SOCK_ROTATION;
+      }
       else if (dynamic_cast<const decl::String *>(&socket_decl)) {
         item.socket_type = SOCK_STRING;
       }
@@ -873,6 +876,7 @@ static void ui_node_draw_input(
           ATTR_FALLTHROUGH;
         case SOCK_FLOAT:
         case SOCK_INT:
+        case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
           uiItemR(sub, &inputptr, "default_value", 0, "", ICON_NONE);
