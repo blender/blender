@@ -40,12 +40,14 @@ constexpr FileIndexerType default_indexer()
 }
 
 static FileIndexerEntry *file_indexer_entry_create_from_datablock_info(
-    const BLODataBlockInfo *datablock_info, const int idcode)
+    BLODataBlockInfo *datablock_info, const int idcode)
 {
   FileIndexerEntry *entry = static_cast<FileIndexerEntry *>(
       MEM_mallocN(sizeof(FileIndexerEntry), __func__));
-  entry->datablock_info = *datablock_info;
   entry->idcode = idcode;
+  /* Shallow copy data-block info and mark original as having its asset data ownership stolen. */
+  entry->datablock_info = *datablock_info;
+  datablock_info->free_asset_data = false;
   return entry;
 }
 
@@ -55,11 +57,11 @@ extern "C" {
 
 void ED_file_indexer_entries_extend_from_datablock_infos(
     FileIndexerEntries *indexer_entries,
-    const LinkNode * /*BLODataBlockInfo*/ datablock_infos,
+    LinkNode * /*BLODataBlockInfo*/ datablock_infos,
     const int idcode)
 {
-  for (const LinkNode *ln = datablock_infos; ln; ln = ln->next) {
-    const BLODataBlockInfo *datablock_info = static_cast<const BLODataBlockInfo *>(ln->link);
+  for (LinkNode *ln = datablock_infos; ln; ln = ln->next) {
+    BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(ln->link);
     FileIndexerEntry *file_indexer_entry =
         blender::ed::file::indexer::file_indexer_entry_create_from_datablock_info(datablock_info,
                                                                                   idcode);
