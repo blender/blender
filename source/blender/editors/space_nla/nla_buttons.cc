@@ -610,50 +610,50 @@ void nla_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_cnew<PanelType>("spacetype nla panel animdata");
-  strcpy(pt->idname, "NLA_PT_animdata");
-  strcpy(pt->label, N_("Animation Data"));
-  strcpy(pt->category, "Edited Action");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_animdata");
+  STRNCPY(pt->label, N_("Animation Data"));
+  STRNCPY(pt->category, "Edited Action");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->flag = PANEL_TYPE_NO_HEADER;
   pt->draw = nla_panel_animdata;
   pt->poll = nla_animdata_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype nla panel properties");
-  strcpy(pt->idname, "NLA_PT_stripname");
-  strcpy(pt->label, N_("Active Strip Name"));
-  strcpy(pt->category, "Strip");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_stripname");
+  STRNCPY(pt->label, N_("Active Strip Name"));
+  STRNCPY(pt->category, "Strip");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->flag = PANEL_TYPE_NO_HEADER;
   pt->draw = nla_panel_stripname;
   pt->poll = nla_strip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   PanelType *pt_properties = pt = MEM_cnew<PanelType>("spacetype nla panel properties");
-  strcpy(pt->idname, "NLA_PT_properties");
-  strcpy(pt->label, N_("Active Strip"));
-  strcpy(pt->category, "Strip");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_properties");
+  STRNCPY(pt->label, N_("Active Strip"));
+  STRNCPY(pt->category, "Strip");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_properties;
   pt->poll = nla_strip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype nla panel properties");
-  strcpy(pt->idname, "NLA_PT_actionclip");
-  strcpy(pt->label, N_("Action Clip"));
-  strcpy(pt->category, "Strip");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_actionclip");
+  STRNCPY(pt->label, N_("Action Clip"));
+  STRNCPY(pt->category, "Strip");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_actclip;
   pt->flag = PANEL_TYPE_DEFAULT_CLOSED;
   pt->poll = nla_strip_actclip_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype nla panel evaluation");
-  strcpy(pt->idname, "NLA_PT_evaluation");
-  strcpy(pt->parent_id, "NLA_PT_properties");
-  strcpy(pt->label, N_("Animated Influence"));
-  strcpy(pt->category, "Strip");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_evaluation");
+  STRNCPY(pt->parent_id, "NLA_PT_properties");
+  STRNCPY(pt->label, N_("Animated Influence"));
+  STRNCPY(pt->category, "Strip");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_evaluation;
   pt->draw_header = nla_panel_animated_influence_header;
   pt->parent = pt_properties;
@@ -663,11 +663,11 @@ void nla_buttons_register(ARegionType *art)
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype nla panel animated strip time");
-  strcpy(pt->idname, "NLA_PT_animated_strip_time");
-  strcpy(pt->parent_id, "NLA_PT_properties");
-  strcpy(pt->label, N_("Animated Strip Time"));
-  strcpy(pt->category, "Strip");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_animated_strip_time");
+  STRNCPY(pt->parent_id, "NLA_PT_properties");
+  STRNCPY(pt->label, N_("Animated Strip Time"));
+  STRNCPY(pt->category, "Strip");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_animated_strip_time;
   pt->draw_header = nla_panel_animated_strip_time_header;
   pt->parent = pt_properties;
@@ -677,10 +677,10 @@ void nla_buttons_register(ARegionType *art)
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype nla panel modifiers");
-  strcpy(pt->idname, "NLA_PT_modifiers");
-  strcpy(pt->label, N_("Modifiers"));
-  strcpy(pt->category, "Modifiers");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "NLA_PT_modifiers");
+  STRNCPY(pt->label, N_("Modifiers"));
+  STRNCPY(pt->category, "Modifiers");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = nla_panel_modifiers;
   pt->poll = nla_strip_eval_panel_poll;
   pt->flag = PANEL_TYPE_NO_HEADER;

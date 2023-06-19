@@ -1452,7 +1452,7 @@ static int constraint_delete_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  strcpy(name, con->name);
+  STRNCPY(name, con->name);
 
   /* free the constraint */
   if (BKE_constraint_remove_ex(lb, ob, con, true)) {
@@ -1525,7 +1525,7 @@ static int constraint_apply_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  strcpy(name, con->name);
+  STRNCPY(name, con->name);
   const bool is_first_constraint = con != constraints->first;
 
   /* Copy the constraint. */
@@ -1622,7 +1622,7 @@ static int constraint_copy_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  strcpy(name, con->name);
+  STRNCPY(name, con->name);
 
   /* Copy the constraint. */
   bConstraint *copy_con;

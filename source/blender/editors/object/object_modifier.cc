@@ -1517,7 +1517,7 @@ static int modifier_remove_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  strcpy(name, md->name);
+  STRNCPY(name, md->name);
 
   if (!ED_object_modifier_remove(op->reports, bmain, scene, ob, md)) {
     return OPERATOR_CANCELLED;
@@ -1769,7 +1769,7 @@ static int modifier_apply_exec_ex(bContext *C, wmOperator *op, int apply_as, boo
   char name[MAX_NAME];
   if (do_report) {
     reports_len = BLI_listbase_count(&op->reports->list);
-    strcpy(name, md->name); /* Store name temporarily since the modifier is removed. */
+    STRNCPY(name, md->name); /* Store name temporarily since the modifier is removed. */
   }
 
   if (!ED_object_modifier_apply(

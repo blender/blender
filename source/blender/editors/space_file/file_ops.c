@@ -2023,9 +2023,9 @@ void file_external_operations_menu_register(void)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), "spacetype file menu file operations");
-  strcpy(mt->idname, "FILEBROWSER_MT_operations_menu");
-  strcpy(mt->label, N_("External"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "FILEBROWSER_MT_operations_menu");
+  STRNCPY(mt->label, N_("External"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = file_os_operations_menu_draw;
   mt->poll = file_os_operations_menu_poll;
   WM_menutype_add(mt);

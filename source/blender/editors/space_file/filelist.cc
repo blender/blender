@@ -1345,7 +1345,7 @@ static void parent_dir_until_exists_or_default_root(char *dir)
 #ifdef WIN32
     BLI_windows_get_default_root_dir(dir);
 #else
-    strcpy(dir, "/");
+    ARRAY_SET_ITEMS(dir, '/', '\0');
 #endif
   }
 }

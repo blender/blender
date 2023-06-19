@@ -32,6 +32,9 @@
 
 int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
+  /* Could make an argument, it's a documented limit at the moment. */
+  const size_t name_maxncpy = 256;
+
   int icon = 0;
 
   /* sanity checks */
@@ -41,13 +44,13 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
   if (ELEM(NULL, id, fcu, fcu->rna_path)) {
     if (fcu == NULL) {
-      strcpy(name, TIP_("<invalid>"));
+      BLI_strncpy(name, TIP_("<invalid>"), name_maxncpy);
     }
     else if (fcu->rna_path == NULL) {
-      strcpy(name, TIP_("<no path>"));
+      BLI_strncpy(name, TIP_("<no path>"), name_maxncpy);
     }
     else { /* id == NULL */
-      BLI_snprintf(name, 256, "%s[%d]", fcu->rna_path, fcu->array_index);
+      BLI_snprintf(name, name_maxncpy, "%s[%d]", fcu->rna_path, fcu->array_index);
     }
   }
   else {
@@ -171,10 +174,10 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
       /* XXX we need to check for invalid names...
        * XXX the name length limit needs to be passed in or as some define */
       if (structname) {
-        BLI_snprintf(name, 256, "%s%s (%s)", arrayname, propname, structname);
+        BLI_snprintf(name, name_maxncpy, "%s%s (%s)", arrayname, propname, structname);
       }
       else {
-        BLI_snprintf(name, 256, "%s%s", arrayname, propname);
+        BLI_snprintf(name, name_maxncpy, "%s%s", arrayname, propname);
       }
 
       /* free temp name if nameprop is set */
@@ -193,7 +196,7 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
     }
     else {
       /* invalid path */
-      BLI_snprintf(name, 256, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
+      BLI_snprintf(name, name_maxncpy, "\"%s[%d]\"", fcu->rna_path, fcu->array_index);
 
       /* icon for this should be the icon for the base ID */
       /* TODO: or should we just use the error icon? */

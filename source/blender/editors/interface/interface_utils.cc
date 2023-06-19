@@ -490,8 +490,9 @@ static bool add_collection_search_item(CollItemSearch *cis,
      * removed). */
     BKE_id_full_name_ui_prefix_get(
         name_buf, static_cast<const ID *>(cis->data), false, UI_SEP_CHAR, &name_prefix_offset);
-    BLI_assert(strlen(name_buf) <= MEM_allocN_len(cis->name));
-    strcpy(cis->name, name_buf);
+    const int name_buf_len = strlen(name_buf);
+    BLI_assert(name_buf_len <= strlen(cis->name));
+    memcpy(cis->name, name_buf, name_buf_len + 1);
   }
 
   return UI_search_item_add(items,
