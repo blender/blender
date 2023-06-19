@@ -733,7 +733,7 @@ static void rna_MeshPolygon_use_smooth_set(PointerRNA *ptr, bool value)
   bool *sharp_faces = (bool *)CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_BOOL, "sharp_face", mesh->totpoly);
   if (!sharp_faces) {
-    if (!value) {
+    if (value) {
       /* Skip adding layer if the value is the same as the default. */
       return;
     }
