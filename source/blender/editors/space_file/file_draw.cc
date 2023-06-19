@@ -359,6 +359,7 @@ static void file_draw_preview(const FileDirEntry *file,
   bool show_outline = !is_icon &&
                       (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
   const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
+  const bool is_loading = file->flags & FILE_ENTRY_PREVIEW_LOADING;
 
   BLI_assert(imb != nullptr);
 
@@ -420,20 +421,23 @@ static void file_draw_preview(const FileDirEntry *file,
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
-  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-  immDrawPixelsTexTiled_scaling(&state,
-                                float(xco),
-                                float(yco),
-                                imb->x,
-                                imb->y,
-                                GPU_RGBA8,
-                                true,
-                                imb->byte_buffer.data,
-                                scale,
-                                scale,
-                                1.0f,
-                                1.0f,
-                                document_img_col);
+  if (!is_loading) {
+    /* Don't show outer document image if loading - too flashy. */
+    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
+    immDrawPixelsTexTiled_scaling(&state,
+                                  float(xco),
+                                  float(yco),
+                                  imb->x,
+                                  imb->y,
+                                  GPU_RGBA8,
+                                  true,
+                                  imb->byte_buffer.data,
+                                  scale,
+                                  scale,
+                                  1.0f,
+                                  1.0f,
+                                  document_img_col);
+  }
 
   GPU_blend(GPU_BLEND_ALPHA);
 
@@ -448,11 +452,17 @@ static void file_draw_preview(const FileDirEntry *file,
       icon_color[1] = 255;
       icon_color[2] = 255;
     }
+
+    if (is_loading) {
+      /* Contrast with background since we are not showing the large document image. */
+      UI_GetThemeColor4ubv(TH_TEXT, icon_color);
+    }
+
     icon_x = xco + (ex / 2.0f) - (icon_size / 2.0f);
     icon_y = yco + (ey / 2.0f) - (icon_size * ((file->typeflag & FILE_TYPE_DIR) ? 0.78f : 0.75f));
     UI_icon_draw_ex(icon_x,
                     icon_y,
-                    icon,
+                    is_loading ? ICON_TEMP : icon,
                     icon_aspect / UI_SCALE_FAC,
                     icon_opacity,
                     0.0f,
@@ -507,7 +517,7 @@ static void file_draw_preview(const FileDirEntry *file,
                       UI_NO_ICON_OVERLAY_TEXT);
     }
   }
-  else if (icon && !is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) {
+  else if (icon && ((!is_icon && !(file->typeflag & FILE_TYPE_FTFONT)) || is_loading)) {
     /* Smaller, fainter icon at bottom-left for preview image thumbnail, but not for fonts. */
     float icon_x, icon_y;
     const uchar dark[4] = {0, 0, 0, 255};
