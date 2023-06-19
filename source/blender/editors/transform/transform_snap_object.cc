@@ -1715,7 +1715,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         mval,
                                         init_co,
                                         prev_co,
-                                        square_f(*dist_px),
+                                        dist_px ? square_f(*dist_px) : FLT_MAX,
                                         nullptr,
                                         use_occlusion_test))
   {
