@@ -614,8 +614,7 @@ enum {
 /* WARNING! Those values are used by integer RNA too, which does not handle well values > INT_MAX.
  *          So please do not use 32nd bit here. */
 enum {
-  UILST_FLT_ITEM_NEVER_SHOW = (1 << 0), /* Filtering returned #UI_LIST_ITEM_NEVER_SHOW. */
-  UILST_FLT_ITEM = 1 << 30,        /* This item has passed the filter process successfully. */
+  UILST_FLT_ITEM = 1 << 30, /* This item has passed the filter process successfully. */
 };
 
 /** #uiList.filter_flag */
