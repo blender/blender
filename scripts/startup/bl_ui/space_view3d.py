@@ -2034,6 +2034,7 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator("grease_pencil.select_linked", text="Linked")
+        layout.operator("grease_pencil.select_random", text="Random")
 
         layout.separator()
 
