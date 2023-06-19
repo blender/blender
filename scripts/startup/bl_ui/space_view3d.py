@@ -2032,6 +2032,7 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
     def draw(self, context):
         if not context.preferences.experimental.use_grease_pencil_version3:
             self.draw_legacy(context)
+            return
 
         layout = self.layout
 
