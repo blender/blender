@@ -203,9 +203,10 @@ static int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject 
         Py_XDECREF(value_coerce);
       }
 #  else
-      st = PyUnicode_AsUTF8(value);
-      IDP_ResizeArray(prop, strlen(st) + 1);
-      strcpy(IDP_Array(prop), st);
+      length_ssize_t st_len;
+      st = PyUnicode_AsUTF8AndSize(value, &st_len);
+      IDP_ResizeArray(prop, st_len + 1);
+      memcpy(IDP_Array(prop), st, st_len + 1);
 #  endif
 
       return 0;
@@ -254,21 +255,21 @@ static PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *UNUSED(closure)
 static int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *UNUSED(closure))
 {
   const char *name;
-  Py_ssize_t name_size;
+  Py_ssize_t name_len;
 
   if (!PyUnicode_Check(value)) {
     PyErr_SetString(PyExc_TypeError, "expected a string!");
     return -1;
   }
 
-  name = PyUnicode_AsUTF8AndSize(value, &name_size);
+  name = PyUnicode_AsUTF8AndSize(value, &name_len);
 
-  if (name_size + 1 > MAX_IDPROP_NAME) {
+  if (!(name_len < MAX_IDPROP_NAME)) {
     PyErr_SetString(PyExc_TypeError, "string length cannot exceed 63 characters!");
     return -1;
   }
 
-  memcpy(self->prop->name, name, name_size + 1);
+  memcpy(self->prop->name, name, name_len + 1);
   return 0;
 }
 
@@ -371,8 +372,8 @@ static const char *idp_try_read_name(PyObject *name_obj)
 {
   const char *name = NULL;
   if (name_obj) {
-    Py_ssize_t name_size;
-    name = PyUnicode_AsUTF8AndSize(name_obj, &name_size);
+    Py_ssize_t name_len;
+    name = PyUnicode_AsUTF8AndSize(name_obj, &name_len);
 
     if (name == NULL) {
       PyErr_Format(PyExc_KeyError,
@@ -381,7 +382,7 @@ static const char *idp_try_read_name(PyObject *name_obj)
       return NULL;
     }
 
-    if (name_size >= MAX_IDPROP_NAME) {
+    if (!(name_len < MAX_IDPROP_NAME)) {
       PyErr_SetString(PyExc_KeyError,
                       "the length of IDProperty names is limited to 63 characters");
       return NULL;
@@ -433,10 +434,10 @@ static IDProperty *idp_from_PyUnicode(const char *name, PyObject *ob)
   IDProperty *prop;
   IDPropertyTemplate val = {0};
 #ifdef USE_STRING_COERCE
-  Py_ssize_t value_size;
+  Py_ssize_t value_len;
   PyObject *value_coerce = NULL;
-  val.string.str = PyC_UnicodeAsBytesAndSize(ob, &value_size, &value_coerce);
-  val.string.len = (int)value_size + 1;
+  val.string.str = PyC_UnicodeAsBytesAndSize(ob, &value_len, &value_coerce);
+  val.string.len = (int)value_len + 1;
   val.string.subtype = IDP_STRING_SUB_UTF8;
   prop = IDP_New(IDP_STRING, &val, name);
   Py_XDECREF(value_coerce);

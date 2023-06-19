@@ -163,14 +163,14 @@ bool BPY_run_string_as_intptr(struct bContext *C,
  * \param r_value: The resulting value.
  * \return Success.
  */
-bool BPY_run_string_as_string_and_size(struct bContext *C,
-                                       const char *imports[],
-                                       const char *expr,
-                                       struct BPy_RunErrInfo *err_info,
-                                       char **r_value,
-                                       size_t *r_value_size) ATTR_NONNULL(1, 3, 5, 6);
+bool BPY_run_string_as_string_and_len(struct bContext *C,
+                                      const char *imports[],
+                                      const char *expr,
+                                      struct BPy_RunErrInfo *err_info,
+                                      char **r_value,
+                                      size_t *r_value_len) ATTR_NONNULL(1, 3, 5, 6);
 
-/** See #BPY_run_string_as_string_and_size */
+/** See #BPY_run_string_as_string_and_len */
 bool BPY_run_string_as_string(struct bContext *C,
                               const char *imports[],
                               const char *expr,
