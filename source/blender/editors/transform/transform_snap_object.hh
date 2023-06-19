@@ -10,44 +10,7 @@
 
 #define MAX_CLIPPLANE_LEN 3
 
-/* -------------------------------------------------------------------- */
-/** \name Internal Data Types
- * \{ */
-
-/** #SnapObjectContext.editmesh_caches */
-struct SnapData_EditMesh {
-  /* Verts, Edges. */
-  BVHTree *bvhtree[2];
-  bool cached[2];
-
-  /* BVH tree from #BMEditMesh.looptris. */
-  BVHTreeFromEditMesh treedata_editmesh;
-
-  blender::bke::MeshRuntime *mesh_runtime;
-  float min[3], max[3];
-
-  void clear()
-  {
-    for (int i = 0; i < ARRAY_SIZE(this->bvhtree); i++) {
-      if (!this->cached[i]) {
-        BLI_bvhtree_free(this->bvhtree[i]);
-      }
-      this->bvhtree[i] = nullptr;
-    }
-    free_bvhtree_from_editmesh(&this->treedata_editmesh);
-  }
-
-  ~SnapData_EditMesh()
-  {
-    this->clear();
-  }
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("SnapData_EditMesh")
-#endif
-};
-
-/** \} */
+struct SnapData_EditMesh;
 
 struct SnapObjectContext {
   struct Scene *scene;
@@ -123,17 +86,14 @@ struct RayCastAll_Data {
   BVHTree_RayCastCallback raycast_callback;
 
   const float (*obmat)[4];
-  const float (*timat)[3];
 
   float len_diff;
   float local_scale;
 
-  Object *ob_eval;
   uint ob_uuid;
 
   /* output data */
   ListBase *hit_list;
-  bool retval;
 };
 
 struct Nearest2dUserData;
@@ -221,6 +181,29 @@ bool nearest_world_tree(SnapObjectContext *sctx,
                         int *r_index);
 
 /* transform_snap_object_editmesh.cc */
+
+struct SnapData_EditMesh {
+  /* Verts, Edges. */
+  BVHTree *bvhtree[2];
+  bool cached[2];
+
+  /* BVH tree from #BMEditMesh.looptris. */
+  BVHTreeFromEditMesh treedata_editmesh;
+
+  blender::bke::MeshRuntime *mesh_runtime;
+  float min[3], max[3];
+
+  void clear();
+
+  ~SnapData_EditMesh()
+  {
+    this->clear();
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("SnapData_EditMesh")
+#endif
+};
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,

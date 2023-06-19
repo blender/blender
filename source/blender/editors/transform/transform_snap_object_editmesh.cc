@@ -25,6 +25,17 @@
 /** \name Snap Object Data
  * \{ */
 
+void SnapData_EditMesh::clear()
+{
+  for (int i = 0; i < ARRAY_SIZE(this->bvhtree); i++) {
+    if (!this->cached[i]) {
+      BLI_bvhtree_free(this->bvhtree[i]);
+    }
+    this->bvhtree[i] = nullptr;
+  }
+  free_bvhtree_from_editmesh(&this->treedata_editmesh);
+}
+
 /**
  * Calculate the minimum and maximum coordinates of the box that encompasses this mesh.
  */
@@ -257,7 +268,6 @@ static void editmesh_looptri_raycast_backface_culling_cb(void *userdata,
 
 static bool raycastEditMesh(SnapData_EditMesh *sod,
                             SnapObjectContext *sctx,
-                            Object *ob_eval,
                             BMEditMesh *em,
                             const float obmat[4][4],
                             const uint ob_index,
@@ -316,23 +326,18 @@ static bool raycastEditMesh(SnapData_EditMesh *sod,
     return retval;
   }
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   if (r_hit_list) {
     RayCastAll_Data data;
 
     data.bvhdata = treedata;
     data.raycast_callback = treedata->raycast_callback;
     data.obmat = obmat;
-    data.timat = timat;
     data.len_diff = len_diff;
     data.local_scale = local_scale;
-    data.ob_eval = ob_eval;
     data.ob_uuid = ob_index;
     data.hit_list = r_hit_list;
-    data.retval = retval;
 
+    void *hit_last_prev = data.hit_list->last;
     BLI_bvhtree_ray_cast_all(treedata->tree,
                              ray_start_local,
                              ray_normal_local,
@@ -341,7 +346,7 @@ static bool raycastEditMesh(SnapData_EditMesh *sod,
                              raycast_all_cb,
                              &data);
 
-    retval = data.retval;
+    retval = hit_last_prev != data.hit_list->last;
   }
   else {
     BVHTreeRayHit hit{};
@@ -369,7 +374,7 @@ static bool raycastEditMesh(SnapData_EditMesh *sod,
 
         if (r_no) {
           copy_v3_v3(r_no, hit.no);
-          mul_m3_v3(timat, r_no);
+          mul_transposed_mat3_m4_v3(imat, r_no);
           normalize_v3(r_no);
         }
 
@@ -759,7 +764,6 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   if (snap_mode_used & SCE_SNAP_MODE_FACE) {
     if (raycastEditMesh(sod,
                         sctx,
-                        ob_eval,
                         em,
                         obmat,
                         sctx->runtime.object_index++,
