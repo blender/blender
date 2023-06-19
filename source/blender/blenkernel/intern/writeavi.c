@@ -83,7 +83,10 @@ static int append_avi(void *context_v,
                       int recty,
                       const char *suffix,
                       ReportList *reports);
-static void filepath_avi(char *string, const RenderData *rd, bool preview, const char *suffix);
+static void filepath_avi(char filepath[FILE_MAX],
+                         const RenderData *rd,
+                         bool preview,
+                         const char *suffix);
 static void *context_create_avi(void);
 static void context_free_avi(void *context_v);
 #endif /* WITH_AVI */
@@ -141,7 +144,10 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 
 #ifdef WITH_AVI
 
-static void filepath_avi(char *filepath, const RenderData *rd, bool preview, const char *suffix)
+static void filepath_avi(char filepath[FILE_MAX],
+                         const RenderData *rd,
+                         bool preview,
+                         const char *suffix)
 {
   int sfra, efra;
 
@@ -158,7 +164,7 @@ static void filepath_avi(char *filepath, const RenderData *rd, bool preview, con
     efra = rd->efra;
   }
 
-  strcpy(filepath, rd->pic);
+  BLI_strncpy(filepath, rd->pic, FILE_MAX);
   BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
   BLI_file_ensure_parent_dir_exists(filepath);
@@ -188,13 +194,13 @@ static int start_avi(void *context_v,
                      const char *suffix)
 {
   int x, y;
-  char name[256];
+  char filepath[FILE_MAX];
   AviFormat format;
   int quality;
   double framerate;
   AviMovie *avi = context_v;
 
-  filepath_avi(name, rd, preview, suffix);
+  filepath_avi(filepath, rd, preview, suffix);
 
   x = rectx;
   y = recty;
@@ -209,7 +215,7 @@ static int start_avi(void *context_v,
     format = AVI_FORMAT_MJPEG;
   }
 
-  if (AVI_open_compress(name, avi, 1, format) != AVI_ERROR_NONE) {
+  if (AVI_open_compress(filepath, avi, 1, format) != AVI_ERROR_NONE) {
     BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file");
     return 0;
   }
@@ -222,7 +228,7 @@ static int start_avi(void *context_v,
   avi->interlace = 0;
   avi->odd_fields = 0;
 
-  printf("Created avi: %s\n", name);
+  printf("Created avi: %s\n", filepath);
   return 1;
 }
 
@@ -298,7 +304,10 @@ static void context_free_avi(void *context_v)
 
 #endif /* WITH_AVI */
 
-void BKE_movie_filepath_get(char *filepath, const RenderData *rd, bool preview, const char *suffix)
+void BKE_movie_filepath_get(char filepath[/*FILE_MAX*/ 1024],
+                            const RenderData *rd,
+                            bool preview,
+                            const char *suffix)
 {
   bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);
   if (mh && mh->get_movie_path) {
