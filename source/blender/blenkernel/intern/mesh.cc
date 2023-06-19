@@ -1502,21 +1502,15 @@ void BKE_mesh_looptri_get_real_edges(const blender::int2 *edges,
   }
 }
 
-bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
+std::optional<blender::Bounds<blender::float3>> Mesh::bounds_min_max() const
 {
   using namespace blender;
-  if (me->totvert == 0) {
-    return false;
+  if (this->totvert == 0) {
+    return std::nullopt;
   }
-
-  me->runtime->bounds_cache.ensure(
-      [me](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(me->vert_positions()); });
-
-  const Bounds<float3> &bounds = me->runtime->bounds_cache.data();
-  copy_v3_v3(r_min, math::min(bounds.min, float3(r_min)));
-  copy_v3_v3(r_max, math::max(bounds.max, float3(r_max)));
-
-  return true;
+  this->runtime->bounds_cache.ensure(
+      [&](Bounds<float3> &r_bounds) { r_bounds = *bounds::min_max(this->vert_positions()); });
+  return this->runtime->bounds_cache.data();
 }
 
 void Mesh::bounds_set_eager(const blender::Bounds<float3> &bounds)

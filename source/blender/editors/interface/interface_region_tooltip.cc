@@ -647,7 +647,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       if (has_valid_context == false) {
         /* pass */
       }
-      else if (BPY_run_string_as_string_and_size(
+      else if (BPY_run_string_as_string_and_len(
                    C, expr_imports, expr, nullptr, &expr_result, &expr_result_len))
       {
         /* pass. */

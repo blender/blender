@@ -79,7 +79,12 @@ bke::GSpanAttributeWriter ensure_selection_attribute(bke::CurvesGeometry &curves
 {
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   if (attributes.contains(".selection")) {
-    return attributes.lookup_for_write_span(".selection");
+    bke::GSpanAttributeWriter selection_attr = attributes.lookup_for_write_span(".selection");
+    /* Check domain type. */
+    if (selection_attr.domain == selection_domain) {
+      return selection_attr;
+    }
+    attributes.remove(".selection");
   }
   const int domain_size = attributes.domain_size(selection_domain);
   switch (create_type) {

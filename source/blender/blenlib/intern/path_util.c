@@ -117,7 +117,7 @@ int BLI_path_sequence_decode(const char *path,
   if (head) {
     /* Name_end points to last character of head,
      * make it +1 so null-terminator is nicely placed. */
-    BLI_strncpy(head, path, name_end + 1);
+    BLI_strncpy(head, path, MIN2(head_maxncpy, name_end + 1));
   }
   if (r_digits_len) {
     *r_digits_len = 0;
@@ -793,7 +793,7 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 #ifdef WIN32
     BLI_str_replace_char(res + 2, '/', '\\');
 #endif
-    strcpy(path, res);
+    BLI_strncpy(path, res, FILE_MAX);
   }
 }
 

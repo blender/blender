@@ -52,6 +52,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_bounds.hh"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
@@ -3847,23 +3848,18 @@ void BKE_object_boundbox_calc_from_mesh(Object *ob, const Mesh *me_eval)
 
 bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
 {
-  float3 min(FLT_MAX);
-  float3 max(-FLT_MAX);
+  using namespace blender;
 
+  std::optional<Bounds<float3>> bounds;
   if (ob->runtime.geometry_set_eval) {
-    if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
-      min = float3(0);
-      max = float3(0);
-    }
+    bounds = ob->runtime.geometry_set_eval->compute_boundbox_without_instances();
   }
   else if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob)) {
-    if (!BKE_mesh_wrapper_minmax(mesh_eval, min, max)) {
-      min = float3(0);
-      max = float3(0);
+    Bounds<float3> mesh_bounds{float3(std::numeric_limits<float>::max()),
+                               float3(std::numeric_limits<float>::min())};
+    if (BKE_mesh_wrapper_minmax(mesh_eval, mesh_bounds.min, mesh_bounds.max)) {
+      bounds = bounds::merge(bounds, {mesh_bounds});
     }
-  }
-  else if (ob->runtime.curve_cache) {
-    BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
   }
   else {
     return false;
@@ -3872,8 +3868,12 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   if (ob->runtime.bb == nullptr) {
     ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
   }
-
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  if (bounds) {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, bounds->min, bounds->max);
+  }
+  else {
+    BKE_boundbox_init_from_minmax(ob->runtime.bb, float3(0), float3(0));
+  }
 
   ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
 

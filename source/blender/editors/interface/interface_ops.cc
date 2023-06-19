@@ -1026,8 +1026,8 @@ static void override_idtemplate_menu()
   MenuType *mt;
 
   mt = MEM_cnew<MenuType>(__func__);
-  strcpy(mt->idname, "UI_MT_idtemplate_liboverride");
-  strcpy(mt->label, N_("Library Override"));
+  STRNCPY(mt->idname, "UI_MT_idtemplate_liboverride");
+  STRNCPY(mt->label, N_("Library Override"));
   mt->poll = override_idtemplate_menu_poll;
   mt->draw = override_idtemplate_menu_draw;
   WM_menutype_add(mt);

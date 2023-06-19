@@ -8,13 +8,12 @@
  * \ingroup bke
  */
 
-#include <atomic>
 #include <iostream>
 #include <mutex>
 
+#include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
-#include "BLI_vector_set.hh"
 
 #include "BKE_attribute.hh"
 
@@ -194,7 +193,7 @@ struct GeometrySet {
    */
   Vector<const GeometryComponent *> get_components_for_read() const;
 
-  bool compute_boundbox_without_instances(float3 *r_min, float3 *r_max) const;
+  std::optional<Bounds<float3>> compute_boundbox_without_instances() const;
 
   friend std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set);
 

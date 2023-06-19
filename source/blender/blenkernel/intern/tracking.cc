@@ -499,7 +499,7 @@ MovieTrackingTrack *BKE_tracking_track_add_empty(MovieTracking *tracking, ListBa
   const MovieTrackingSettings *settings = &tracking->settings;
 
   MovieTrackingTrack *track = MEM_cnew<MovieTrackingTrack>("add_marker_exec track");
-  strcpy(track->name, "Track");
+  STRNCPY(track->name, "Track");
 
   /* Fill track's settings from default settings. */
   track->motion_model = settings->default_motion_model;
@@ -1579,7 +1579,7 @@ MovieTrackingPlaneTrack *BKE_tracking_plane_track_add(MovieTracking *tracking,
   plane_track = MEM_cnew<MovieTrackingPlaneTrack>("new plane track");
 
   /* Use some default name. */
-  strcpy(plane_track->name, "Plane Track");
+  STRNCPY(plane_track->name, "Plane Track");
 
   plane_track->image_opacity = 1.0f;
 

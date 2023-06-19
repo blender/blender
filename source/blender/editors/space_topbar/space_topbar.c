@@ -212,9 +212,9 @@ static void recent_files_menu_register(void)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
-  strcpy(mt->idname, "TOPBAR_MT_file_open_recent");
-  strcpy(mt->label, N_("Open Recent"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "TOPBAR_MT_file_open_recent");
+  STRNCPY(mt->label, N_("Open Recent"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = recent_files_menu_draw;
   WM_menutype_add(mt);
 }
@@ -270,9 +270,9 @@ static void undo_history_menu_register(void)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), __func__);
-  strcpy(mt->idname, "TOPBAR_MT_undo_history");
-  strcpy(mt->label, N_("Undo History"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "TOPBAR_MT_undo_history");
+  STRNCPY(mt->label, N_("Undo History"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = undo_history_draw_menu;
   WM_menutype_add(mt);
 }

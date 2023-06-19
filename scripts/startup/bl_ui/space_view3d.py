@@ -748,6 +748,14 @@ class VIEW3D_HT_header(Header):
                 ).domain = 'CURVE'
 
         # Grease Pencil
+        if obj and obj.type == 'GREASEPENCIL':
+            # Select mode for Editing
+            if object_mode == 'EDIT':
+                row = layout.row(align=True)
+                row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='POINT')
+                row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='STROKE')
+        
+        # Grease Pencil (legacy)
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
             gpd = context.gpencil_data
 
@@ -2027,6 +2035,7 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
     def draw(self, context):
         if not context.preferences.experimental.use_grease_pencil_version3:
             self.draw_legacy(context)
+            return
 
         layout = self.layout
 
@@ -2037,6 +2046,7 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator("grease_pencil.select_linked", text="Linked")
+        layout.operator("grease_pencil.select_random", text="Random")
 
         layout.separator()
 
@@ -3594,9 +3604,6 @@ class VIEW3D_MT_face_sets_init(Menu):
 
         props = layout.operator("sculpt.face_sets_init", text="By Sharp Edges")
         props.mode = 'SHARP_EDGES'
-
-        props = layout.operator("sculpt.face_sets_init", text="By Face Maps")
-        props.mode = 'FACE_MAPS'
 
 
 class VIEW3D_MT_random_mask(Menu):

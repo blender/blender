@@ -412,7 +412,7 @@ static std::string get_in_memory_texture_filename(Image *ima)
 
   char file_name[FILE_MAX];
   /* Use the image name for the file name. */
-  strcpy(file_name, ima->id.name + 2);
+  STRNCPY(file_name, ima->id.name + 2);
 
   BKE_image_path_ext_from_imformat_ensure(file_name, sizeof(file_name), &imageFormat);
 
@@ -432,7 +432,7 @@ static void export_in_memory_texture(Image *ima,
   }
   else {
     /* Use the image name for the file name. */
-    strcpy(file_name, ima->id.name + 2);
+    STRNCPY(file_name, ima->id.name + 2);
   }
 
   ImBuf *imbuf = BKE_image_acquire_ibuf(ima, nullptr, nullptr);
@@ -674,7 +674,7 @@ static std::string get_tex_image_asset_filepath(bNode *node,
     }
 
     char rel_path[FILE_MAX];
-    strcpy(rel_path, path.c_str());
+    STRNCPY(rel_path, path.c_str());
 
     BLI_path_rel(rel_path, stage_path.c_str());
     if (!BLI_path_is_rel(rel_path)) {

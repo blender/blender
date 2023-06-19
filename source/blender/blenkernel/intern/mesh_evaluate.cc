@@ -276,18 +276,6 @@ bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
   return (me->totpoly != 0);
 }
 
-bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
-{
-  float min[3], max[3];
-  INIT_MINMAX(min, max);
-  if (BKE_mesh_minmax(me, min, max)) {
-    mid_v3_v3v3(r_cent, min, max);
-    return true;
-  }
-
-  return false;
-}
-
 bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])
 {
   float poly_area;

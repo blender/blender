@@ -567,7 +567,7 @@ static void write_jpeg(jpeg_compress_struct *cinfo, ImBuf *ibuf)
 
   jpeg_start_compress(cinfo, true);
 
-  strcpy(neogeo, "NeoGeo");
+  STRNCPY(neogeo, "NeoGeo");
   neogeo_word = (NeoGeo_Word *)(neogeo + 6);
   memset(neogeo_word, 0, sizeof(*neogeo_word));
   neogeo_word->quality = ibuf->foptions.quality;

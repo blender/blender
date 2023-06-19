@@ -4598,7 +4598,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_text.c", "rna_text_api.c", RNA_def_text},
     {"rna_timeline.c", NULL, RNA_def_timeline_marker},
     {"rna_sound.c", "rna_sound_api.c", RNA_def_sound},
-    {"rna_ui.c", "rna_ui_api.c", RNA_def_ui},
+    {"rna_ui.cc", "rna_ui_api.cc", RNA_def_ui},
     {"rna_userdef.c", NULL, RNA_def_userdef},
     {"rna_vfont.c", "rna_vfont_api.c", RNA_def_vfont},
     {"rna_volume.c", NULL, RNA_def_volume},

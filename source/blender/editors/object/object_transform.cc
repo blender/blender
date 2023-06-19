@@ -1444,7 +1444,9 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
           BKE_mesh_center_of_volume(me, cent);
         }
         else if (around == V3D_AROUND_CENTER_BOUNDS) {
-          BKE_mesh_center_bounds(me, cent);
+          if (const std::optional<Bounds<float3>> bounds = me->bounds_min_max()) {
+            cent = math::midpoint(bounds->min, bounds->max);
+          }
         }
         else { /* #V3D_AROUND_CENTER_MEDIAN. */
           BKE_mesh_center_median(me, cent);
@@ -1696,11 +1698,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         /* done */
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
-        float3 min(std::numeric_limits<float>::max());
-        float3 max(-std::numeric_limits<float>::max());
-        if (curves.bounds_min_max(min, max)) {
-          cent = math::midpoint(min, max);
-        }
+        const Bounds<float3> bounds = *curves.bounds_min_max();
+        cent = math::midpoint(bounds.min, bounds.max);
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {
         cent = calculate_mean(curves.positions());
@@ -1729,10 +1728,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
         /* Done. */
       }
       else if (around == V3D_AROUND_CENTER_BOUNDS) {
-        float3 min(std::numeric_limits<float>::max());
-        float3 max(-std::numeric_limits<float>::max());
-        if (pointcloud.bounds_min_max(min, max)) {
-          cent = math::midpoint(min, max);
+        if (const std::optional<Bounds<float3>> bounds = pointcloud.bounds_min_max()) {
+          cent = math::midpoint(bounds->min, bounds->max);
         }
       }
       else if (around == V3D_AROUND_CENTER_MEDIAN) {

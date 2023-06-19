@@ -95,26 +95,30 @@ static void free_anim_movie(anim * /*anim*/)
   /* pass */
 }
 
-static int an_stringdec(const char *filepath, char *head, char *tail, ushort *numlen)
+static int an_stringdec(const char *filepath,
+                        char *head,
+                        size_t head_maxncpy,
+                        char *tail,
+                        size_t tail_maxncpy,
+                        ushort *r_numlen)
 {
-  ushort len, nume, nums = 0;
-  short i;
+  const ushort len = strlen(filepath);
   bool found = false;
 
-  len = strlen(filepath);
-  nume = len;
+  ushort num_beg = 0;
+  ushort num_end = len;
 
-  for (i = len - 1; i >= 0; i--) {
+  for (short i = (short)len - 1; i >= 0; i--) {
     if (filepath[i] == SEP) {
       break;
     }
     if (isdigit(filepath[i])) {
       if (found) {
-        nums = i;
+        num_beg = i;
       }
       else {
-        nume = i;
-        nums = i;
+        num_end = i;
+        num_beg = i;
         found = true;
       }
     }
@@ -125,15 +129,14 @@ static int an_stringdec(const char *filepath, char *head, char *tail, ushort *nu
     }
   }
   if (found) {
-    strcpy(tail, &filepath[nume + 1]);
-    strcpy(head, filepath);
-    head[nums] = '\0';
-    *numlen = nume - nums + 1;
-    return int(atoi(&(filepath)[nums]));
+    BLI_strncpy(tail, &filepath[num_end + 1], MIN2(num_beg + 1, tail_maxncpy));
+    BLI_strncpy(head, filepath, head_maxncpy);
+    *r_numlen = num_end - num_beg + 1;
+    return int(atoi(&(filepath)[num_beg]));
   }
   tail[0] = '\0';
-  strcpy(head, filepath);
-  *numlen = 0;
+  BLI_strncpy(head, filepath, head_maxncpy);
+  *r_numlen = 0;
   return true;
 }
 
@@ -1593,9 +1596,6 @@ ImBuf *IMB_anim_absolute(anim *anim,
                          IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
-  char head[256], tail[256];
-  ushort digits;
-  int pic;
   int filter_y;
   if (anim == nullptr) {
     return nullptr;
@@ -1628,15 +1628,20 @@ ImBuf *IMB_anim_absolute(anim *anim,
   }
 
   switch (anim->curtype) {
-    case ANIM_SEQUENCE:
-      pic = an_stringdec(anim->filepath_first, head, tail, &digits);
-      pic += position;
+    case ANIM_SEQUENCE: {
+      constexpr size_t filepath_size = BOUNDED_ARRAY_TYPE_SIZE<decltype(anim->filepath_first)>();
+      char head[filepath_size], tail[filepath_size];
+      ushort digits;
+      const int pic = an_stringdec(
+                          anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
+                      position;
       an_stringenc(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
       ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;
       }
       break;
+    }
     case ANIM_MOVIE:
       ibuf = movie_fetchibuf(anim, position);
       if (ibuf) {

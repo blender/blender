@@ -336,6 +336,8 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
 bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
 
+void remap_node_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &node_map);
+
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);
 void NODE_OT_delete_reconnect(wmOperatorType *ot);

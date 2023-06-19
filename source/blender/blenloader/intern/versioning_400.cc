@@ -166,7 +166,7 @@ static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_BSDF_GLOSSY_LEGACY) {
-      strcpy(node->idname, "ShaderNodeBsdfAnisotropic");
+      STRNCPY(node->idname, "ShaderNodeBsdfAnisotropic");
       node->type = SH_NODE_BSDF_GLOSSY;
     }
   }

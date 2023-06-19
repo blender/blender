@@ -123,9 +123,9 @@ static void hud_panel_operator_redo_draw(const bContext *C, Panel *panel)
 static void hud_panels_register(ARegionType *art, int space_type, int region_type)
 {
   PanelType *pt = MEM_cnew<PanelType>(__func__);
-  strcpy(pt->idname, "OPERATOR_PT_redo");
-  strcpy(pt->label, N_("Redo"));
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "OPERATOR_PT_redo");
+  STRNCPY(pt->label, N_("Redo"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw_header = hud_panel_operator_redo_draw_header;
   pt->draw = hud_panel_operator_redo_draw;
   pt->poll = hud_panel_operator_redo_poll;

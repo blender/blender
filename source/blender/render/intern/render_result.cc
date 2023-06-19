@@ -824,31 +824,35 @@ void render_result_single_layer_end(Render *re)
   re->pushedresult = nullptr;
 }
 
-int render_result_exr_file_read_path(RenderResult *rr,
-                                     RenderLayer *rl_single,
-                                     const char *filepath)
+bool render_result_exr_file_read_path(RenderResult *rr,
+                                      RenderLayer *rl_single,
+                                      ReportList *reports,
+                                      const char *filepath)
 {
   void *exrhandle = IMB_exr_get_handle();
   int rectx, recty;
 
   if (!IMB_exr_begin_read(exrhandle, filepath, &rectx, &recty, false)) {
-    printf("failed being read %s\n", filepath);
     IMB_exr_close(exrhandle);
-    return 0;
+    return false;
   }
 
-  if (rr == nullptr || rectx != rr->rectx || recty != rr->recty) {
-    if (rr) {
-      printf("error in reading render result: dimensions don't match\n");
-    }
-    else {
-      printf("error in reading render result: nullptr result pointer\n");
-    }
+  ListBase layers = (rr) ? rr->layers : ListBase{rl_single, rl_single};
+  const int expected_rectx = (rr) ? rr->rectx : rl_single->rectx;
+  const int expected_recty = (rr) ? rr->recty : rl_single->recty;
+  bool found_channels = false;
+
+  if (rectx != expected_rectx || recty != expected_recty) {
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "reading render result: dimensions don't match, expected %dx%d",
+                expected_rectx,
+                expected_recty);
     IMB_exr_close(exrhandle);
-    return 0;
+    return true;
   }
 
-  LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
+  LISTBASE_FOREACH (RenderLayer *, rl, &layers) {
     if (rl_single && rl_single != rl) {
       continue;
     }
@@ -856,14 +860,39 @@ int render_result_exr_file_read_path(RenderResult *rr,
     /* passes are allocated in sync */
     LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
       const int xstride = rpass->channels;
+      const int ystride = xstride * rectx;
       int a;
       char fullname[EXR_PASS_MAXNAME];
 
       for (a = 0; a < xstride; a++) {
         RE_render_result_full_channel_name(
             fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, a);
-        IMB_exr_set_channel(
-            exrhandle, rl->name, fullname, xstride, xstride * rectx, rpass->buffer.data + a);
+
+        if (IMB_exr_set_channel(
+                exrhandle, rl->name, fullname, xstride, ystride, rpass->buffer.data + a)) {
+          found_channels = true;
+        }
+        else if (rl_single) {
+          if (IMB_exr_set_channel(
+                  exrhandle, nullptr, fullname, xstride, ystride, rpass->buffer.data + a)) {
+            found_channels = true;
+          }
+          else {
+            BKE_reportf(nullptr,
+                        RPT_WARNING,
+                        "reading render result: expected channel \"%s.%s\" or \"%s\" not found",
+                        rl->name,
+                        fullname,
+                        fullname);
+          }
+        }
+        else {
+          BKE_reportf(nullptr,
+                      RPT_WARNING,
+                      "reading render result: expected channel \"%s.%s\" not found",
+                      rl->name,
+                      fullname);
+        }
       }
 
       RE_render_result_full_channel_name(
@@ -871,10 +900,13 @@ int render_result_exr_file_read_path(RenderResult *rr,
     }
   }
 
-  IMB_exr_read_channels(exrhandle);
+  if (found_channels) {
+    IMB_exr_read_channels(exrhandle);
+  }
+
   IMB_exr_close(exrhandle);
 
-  return 1;
+  return true;
 }
 
 #define FILE_CACHE_MAX (FILE_MAXFILE + FILE_MAXFILE + MAX_ID_NAME + 100)

@@ -1126,7 +1126,7 @@ static bNode *bc_add_node(
   bNode *node = nodeAddStaticNode(C, ntree, node_type);
   if (node) {
     if (label.length() > 0) {
-      strcpy(node->label, label.c_str());
+      STRNCPY(node->label, label.c_str());
     }
     node->locx = locx;
     node->locy = locy;

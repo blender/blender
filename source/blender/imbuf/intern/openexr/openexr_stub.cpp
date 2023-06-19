@@ -56,13 +56,14 @@ void IMB_exrtile_begin_write(void * /*handle*/,
 {
 }
 
-void IMB_exr_set_channel(void * /*handle*/,
+bool IMB_exr_set_channel(void * /*handle*/,
                          const char * /*layname*/,
                          const char * /*passname*/,
                          int /*xstride*/,
                          int /*ystride*/,
                          float * /*rect*/)
 {
+  return false;
 }
 float *IMB_exr_channel_rect(void * /*handle*/,
                             const char * /*layname*/,

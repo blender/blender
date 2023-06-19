@@ -341,10 +341,10 @@ void register_row_filter_panels(ARegionType &region_type)
 {
   {
     PanelType *panel_type = MEM_cnew<PanelType>(__func__);
-    strcpy(panel_type->idname, "SPREADSHEET_PT_row_filters");
-    strcpy(panel_type->label, N_("Filters"));
-    strcpy(panel_type->category, "Filters");
-    strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+    STRNCPY(panel_type->idname, "SPREADSHEET_PT_row_filters");
+    STRNCPY(panel_type->label, N_("Filters"));
+    STRNCPY(panel_type->category, "Filters");
+    STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
     panel_type->flag = PANEL_TYPE_NO_HEADER;
     panel_type->draw = spreadsheet_row_filters_layout;
     BLI_addtail(&region_type.paneltypes, panel_type);
@@ -352,10 +352,10 @@ void register_row_filter_panels(ARegionType &region_type)
 
   {
     PanelType *panel_type = MEM_cnew<PanelType>(__func__);
-    strcpy(panel_type->idname, "SPREADSHEET_PT_filter");
-    strcpy(panel_type->label, "");
-    strcpy(panel_type->category, "Filters");
-    strcpy(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+    STRNCPY(panel_type->idname, "SPREADSHEET_PT_filter");
+    STRNCPY(panel_type->label, "");
+    STRNCPY(panel_type->category, "Filters");
+    STRNCPY(panel_type->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
     panel_type->flag = PANEL_TYPE_INSTANCED | PANEL_TYPE_HEADER_EXPAND;
     panel_type->draw_header = spreadsheet_filter_panel_draw_header;
     panel_type->draw = spreadsheet_filter_panel_draw;
