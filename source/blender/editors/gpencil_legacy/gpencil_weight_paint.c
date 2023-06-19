@@ -347,71 +347,18 @@ static bool *gpencil_vgroup_bone_deformed_map_get(Object *ob, const int defbase_
  * for points in vertex groups deformed by bones.
  * The logic is copied from `editors/sculpt_paint/paint_vertex.cc`. */
 
-/**
- * Normalize weights of a stroke point deformed by bones.
- */
-static void do_weight_paint_normalize_all(MDeformVert *dvert,
-                                          const int defbase_tot,
-                                          const bool *vgroup_bone_deformed)
-{
-  float sum = 0.0f, fac;
-  uint tot = 0;
-  MDeformWeight *dw;
-
-  dw = dvert->dw;
-  for (int i = dvert->totweight; i != 0; i--, dw++) {
-    if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
-      tot++;
-      sum += dw->weight;
-    }
-  }
-
-  if ((tot == 0) || (sum == 1.0f)) {
-    return;
-  }
-
-  if (sum != 0.0f) {
-    fac = 1.0f / sum;
-
-    dw = dvert->dw;
-    for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
-        dw->weight *= fac;
-      }
-    }
-  }
-  else {
-    fac = 1.0f / tot;
-
-    dw = dvert->dw;
-    for (int i = dvert->totweight; i != 0; i--, dw++) {
-      if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
-        dw->weight = fac;
-      }
-    }
-  }
-}
-
-/**
- * A version of #do_weight_paint_normalize_all that only changes unlocked weights.
- */
-static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
-                                                   const int defbase_tot,
-                                                   const bool *vgroup_bone_deformed,
-                                                   const bool *vgroup_locked,
-                                                   const bool lock_active_vgroup,
-                                                   const int active_vgroup)
+static bool do_weight_paint_normalize(MDeformVert *dvert,
+                                      const int defbase_tot,
+                                      const bool *vgroup_bone_deformed,
+                                      const bool *vgroup_locked,
+                                      const bool lock_active_vgroup,
+                                      const int active_vgroup)
 {
   float sum = 0.0f, fac;
   float sum_unlock = 0.0f;
   float sum_lock = 0.0f;
-  uint tot = 0;
+  uint lock_tot = 0, unlock_tot = 0;
   MDeformWeight *dw;
-
-  if (vgroup_locked == NULL) {
-    do_weight_paint_normalize_all(dvert, defbase_tot, vgroup_bone_deformed);
-    return true;
-  }
 
   if (dvert->totweight <= 1) {
     return true;
@@ -424,10 +371,11 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
       sum += dw->weight;
 
       if (vgroup_locked[dw->def_nr] || (lock_active_vgroup && active_vgroup == dw->def_nr)) {
+        lock_tot++;
         sum_lock += dw->weight;
       }
       else {
-        tot++;
+        unlock_tot++;
         sum_unlock += dw->weight;
       }
     }
@@ -437,8 +385,10 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
     return true;
   }
 
-  if (tot == 0) {
-    return false;
+  if (unlock_tot == 0) {
+    /* There are no unlocked vertex groups to normalize. We don't need
+     * a second pass when there is only one locked group (the active group). */
+    return (lock_tot == 1);
   }
 
   if (sum_lock >= 1.0f - VERTEX_WEIGHT_LOCK_EPSILON) {
@@ -446,7 +396,6 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
      * zero out what we can and return false. */
     dw = dvert->dw;
     for (int i = dvert->totweight; i != 0; i--, dw++) {
-      *dw = dvert->dw[i];
       if (dw->def_nr < defbase_tot && vgroup_bone_deformed[dw->def_nr]) {
         if ((vgroup_locked[dw->def_nr] == false) &&
             !(lock_active_vgroup && active_vgroup == dw->def_nr)) {
@@ -473,7 +422,7 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
     }
   }
   else {
-    fac = (1.0f - sum_lock) / tot;
+    fac = (1.0f - sum_lock) / unlock_tot;
     CLAMP(fac, 0.0f, 1.0f);
 
     dw = dvert->dw;
@@ -492,18 +441,18 @@ static bool do_weight_paint_normalize_all_unlocked(MDeformVert *dvert,
 }
 
 /**
- * A version of #do_weight_paint_normalize_all that only changes unlocked weights
+ * A version of #do_weight_paint_normalize that only changes unlocked weights
  * and does a second pass without the active vertex group locked when the first pass fails.
  */
-static void do_weight_paint_normalize_all_try(MDeformVert *dvert, tGP_BrushWeightpaintData *gso)
+static void do_weight_paint_normalize_try(MDeformVert *dvert, tGP_BrushWeightpaintData *gso)
 {
   /* First pass with both active and explicitly locked vertex groups restricted from change. */
-  bool succes = do_weight_paint_normalize_all_unlocked(
+  bool succes = do_weight_paint_normalize(
       dvert, gso->vgroup_tot, gso->vgroup_bone_deformed, gso->vgroup_locked, true, gso->vrgroup);
 
   if (!succes) {
     /* Second pass with active vertex group unlocked. */
-    do_weight_paint_normalize_all_unlocked(
+    do_weight_paint_normalize(
         dvert, gso->vgroup_tot, gso->vgroup_bone_deformed, gso->vgroup_locked, false, -1);
   }
 }
@@ -585,7 +534,7 @@ static bool brush_draw_apply(tGP_BrushWeightpaintData *gso,
 
   /* Perform auto-normalize. */
   if (gso->auto_normalize) {
-    do_weight_paint_normalize_all_try(dvert, gso);
+    do_weight_paint_normalize_try(dvert, gso);
   }
 
   return true;
@@ -615,7 +564,7 @@ static bool brush_average_apply(tGP_BrushWeightpaintData *gso,
 
   /* Perform auto-normalize. */
   if (gso->auto_normalize) {
-    do_weight_paint_normalize_all_try(dvert, gso);
+    do_weight_paint_normalize_try(dvert, gso);
   }
 
   return true;
@@ -667,7 +616,7 @@ static bool brush_blur_apply(tGP_BrushWeightpaintData *gso,
 
   /* Perform auto-normalize. */
   if (gso->auto_normalize) {
-    do_weight_paint_normalize_all_try(dvert, gso);
+    do_weight_paint_normalize_try(dvert, gso);
   }
 
   return true;
@@ -749,7 +698,7 @@ static bool brush_smear_apply(tGP_BrushWeightpaintData *gso,
 
   /* Perform auto-normalize. */
   if (gso->auto_normalize) {
-    do_weight_paint_normalize_all_try(dvert, gso);
+    do_weight_paint_normalize_try(dvert, gso);
   }
 
   return true;
