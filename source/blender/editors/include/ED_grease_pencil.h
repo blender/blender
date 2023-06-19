@@ -25,6 +25,7 @@ extern "C" {
 /** \name C Wrappers
  * \{ */
 
+void ED_operatortypes_grease_pencil(void);
 void ED_operatortypes_grease_pencil_draw(void);
 void ED_operatortypes_grease_pencil_select(void);
 void ED_keymap_grease_pencil(struct wmKeyConfig *keyconf);
