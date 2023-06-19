@@ -75,6 +75,7 @@
 #include "ED_curve.h"
 #include "ED_curves.h"
 #include "ED_gpencil_legacy.h"
+#include "ED_grease_pencil.h"
 #include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
@@ -139,24 +140,6 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
       vc->em = BKE_editmesh_from_object(vc->obedit);
     }
   }
-}
-
-eAttrDomain ED_view3d_grease_pencil_selection_domain_get(bContext *C)
-{
-  ToolSettings *ts = CTX_data_tool_settings(C);
-
-  switch (ts->gpencil_selectmode_edit) {
-    case GP_SELECTMODE_POINT:
-      return ATTR_DOMAIN_POINT;
-      break;
-    case GP_SELECTMODE_STROKE:
-      return ATTR_DOMAIN_CURVE;
-      break;
-    case GP_SELECTMODE_SEGMENT:
-      return ATTR_DOMAIN_POINT;
-      break;
-  }
-  return ATTR_DOMAIN_POINT;
 }
 
 /** \} */
@@ -1201,7 +1184,7 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
@@ -3191,7 +3174,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
                                          });
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
       drawings.index_range(),
@@ -4207,7 +4190,7 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
   /* Get selection domain from tool settings. */
-  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(vc->C);
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
