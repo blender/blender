@@ -1628,8 +1628,7 @@ static void filelist_cache_previews_push(FileList *filelist, FileDirEntry *entry
    * some time in heavy files, because otherwise for each missing preview and for each preview
    * reload, we'd reopen the .blend to look for the preview. */
   if ((entry->typeflag & FILE_TYPE_BLENDERLIB) &&
-      (entry->flags & FILE_ENTRY_BLENDERLIB_NO_PREVIEW))
-  {
+      (entry->flags & FILE_ENTRY_BLENDERLIB_NO_PREVIEW)) {
     return;
   }
 

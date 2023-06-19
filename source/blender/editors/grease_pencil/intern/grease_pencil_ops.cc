@@ -184,8 +184,10 @@ static int select_random_exec(bContext *C, wmOperator *op)
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
         // TODO: Support different selection domains.
-        blender::ed::curves::select_random(
-            drawing.geometry.wrap(), ATTR_DOMAIN_POINT, blender::get_default_hash_2<int>(seed, drawing_index), ratio);
+        blender::ed::curves::select_random(drawing.geometry.wrap(),
+                                           ATTR_DOMAIN_POINT,
+                                           blender::get_default_hash_2<int>(seed, drawing_index),
+                                           ratio);
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
