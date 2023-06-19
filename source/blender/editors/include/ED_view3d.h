@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BKE_attribute.h"
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
 
@@ -995,6 +996,10 @@ void ED_view3d_viewcontext_init(struct bContext *C,
  * So object-mode specific values should remain cleared when initialized with another object.
  */
 void ED_view3d_viewcontext_init_object(struct ViewContext *vc, struct Object *obact);
+/**
+ * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
+ */
+eAttrDomain ED_view3d_grease_pencil_selection_domain_get(struct bContext *C);
 /**
  * Use this call when executing an operator,
  * event system doesn't set for each event the OpenGL drawing context.

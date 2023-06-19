@@ -35,6 +35,7 @@ void ED_keymap_grease_pencil(struct wmKeyConfig *keyconf);
 namespace blender::ed::greasepencil {
 
 bool editable_grease_pencil_poll(bContext *C);
+bool editable_grease_pencil_point_selection_poll(bContext *C);
 
 void create_blank(Main &bmain, Object &object, int frame_number);
 void create_stroke(Main &bmain, Object &object, float4x4 matrix, int frame_number);

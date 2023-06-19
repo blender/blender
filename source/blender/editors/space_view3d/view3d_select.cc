@@ -141,6 +141,24 @@ void ED_view3d_viewcontext_init_object(ViewContext *vc, Object *obact)
   }
 }
 
+eAttrDomain ED_view3d_grease_pencil_selection_domain_get(bContext *C)
+{
+  ToolSettings *ts = CTX_data_tool_settings(C);
+
+  switch (ts->gpencil_selectmode_edit) {
+    case GP_SELECTMODE_POINT:
+      return ATTR_DOMAIN_POINT;
+      break;
+    case GP_SELECTMODE_STROKE:
+      return ATTR_DOMAIN_CURVE;
+      break;
+    case GP_SELECTMODE_SEGMENT:
+      return ATTR_DOMAIN_POINT;
+      break;
+  }
+  return ATTR_DOMAIN_POINT;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1182,6 +1200,9 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
                                                    const_cast<Object *>(vc->obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
+  /* Get selection domain from tool settings. */
+  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(vc->C);
+
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
       vc->scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
@@ -1189,12 +1210,11 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                 ob_eval, *vc->obedit, drawing_index);
 
-        /* TODO: Support different selection domains. */
         changed = ed::curves::select_lasso(
             *vc,
             drawing.geometry.wrap(),
             deformation.positions,
-            ATTR_DOMAIN_POINT,
+            selection_domain,
             Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
             sel_op);
       });
@@ -3170,8 +3190,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
                                            drawing_indices.append(drawing_index);
                                          });
 
-  /* TODO: Support different selection domains. */
-  const eAttrDomain selection_domain = ATTR_DOMAIN_POINT;
+  /* Get selection domain from tool settings. */
+  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(C);
 
   const ClosestGreasePencilDrawing closest = threading::parallel_reduce(
       drawings.index_range(),
@@ -3215,17 +3235,18 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           selection.finish();
 
           deselected = true;
-
-          /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
-           * generic attribute for now. */
-          DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-          WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
         }
       }
     });
   }
 
   if (!closest.drawing) {
+    if (deselected) {
+      /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+       * generic attribute for now. */
+      DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+    }
     return deselected;
   }
 
@@ -3237,10 +3258,8 @@ static bool ed_grease_pencil_select_pick(bContext *C,
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
    * generic attribute for now. */
-  if (!deselected) {
-    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
-    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
-  }
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
 
   return true;
 }
@@ -4187,6 +4206,9 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
                                                    const_cast<Object *>(vc->obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
 
+  /* Get selection domain from tool settings. */
+  const eAttrDomain selection_domain = ED_view3d_grease_pencil_selection_domain_get(vc->C);
+
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
@@ -4194,7 +4216,7 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                 ob_eval, *vc->obedit, drawing_index);
         changed |= ed::curves::select_box(
-            *vc, drawing.geometry.wrap(), deformation.positions, ATTR_DOMAIN_POINT, *rect, sel_op);
+            *vc, drawing.geometry.wrap(), deformation.positions, selection_domain, *rect, sel_op);
       });
 
   if (changed) {
