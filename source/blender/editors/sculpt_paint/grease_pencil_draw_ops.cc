@@ -10,7 +10,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_grease_pencil_types.h"
 
-#include "ED_grease_pencil_draw.h"
+#include "ED_grease_pencil.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 

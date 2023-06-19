@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BKE_attribute.h"
+
 struct bContext;
 
 struct Main;
@@ -23,7 +25,8 @@ extern "C" {
 /** \name C Wrappers
  * \{ */
 
-void ED_operatortypes_grease_pencil(void);
+void ED_operatortypes_grease_pencil_draw(void);
+void ED_operatortypes_grease_pencil_select(void);
 void ED_keymap_grease_pencil(struct wmKeyConfig *keyconf);
 /**
  * Get the selection mode for Grease Pencil selection operators: point, stroke, segment.
@@ -35,6 +38,8 @@ eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
 #endif
 
 #ifdef __cplusplus
+
+#  include "BLI_math_matrix_types.hh"
 
 namespace blender::ed::greasepencil {
 
