@@ -91,13 +91,15 @@ void normals_calc_poly_vert(Span<float3> vert_positions,
  * a regular #float3 format.
  */
 struct CornerNormalSpace {
-  /** Reference vector, orthogonal to corner normal. */
+  /** The automatically computed face corner normal, not including influence of custom normals. */
+  float3 vec_lnor;
+  /** Reference vector, orthogonal to #vec_lnor. */
   float3 vec_ref;
-  /** Third vector, orthogonal to corner normal and #vec_ref. */
+  /** Third vector, orthogonal to #vec_lnor and #vec_ref. */
   float3 vec_ortho;
   /** Reference angle around #vec_ortho, in [0, pi] range (0.0 marks space as invalid). */
   float ref_alpha;
-  /** Reference angle around corner normal, in [0, 2pi] range (0.0 marks space as invalid). */
+  /** Reference angle around #vec_lnor, in [0, 2pi] range (0.0 marks space as invalid). */
   float ref_beta;
 };
 
@@ -129,7 +131,6 @@ struct CornerNormalSpaceArray {
 };
 
 void lnor_space_custom_normal_to_data(const CornerNormalSpace *lnor_space,
-                                      float3 lnor_no_custom,
                                       const float custom_lnor[3],
                                       short r_clnor_data[2]);
 
