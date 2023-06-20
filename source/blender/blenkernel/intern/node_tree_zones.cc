@@ -309,22 +309,44 @@ bool TreeZone::contains_zone_recursively(const TreeZone &other_zone) const
 const TreeZone *TreeZones::get_zone_by_socket(const bNodeSocket &socket) const
 {
   const bNode &node = socket.owner_node();
-  const int zone_i = this->zone_by_node_id.lookup_default(node.identifier, -1);
+  const TreeZone *zone = this->get_zone_by_node(node.identifier);
+  if (zone == nullptr) {
+    return zone;
+  }
+  if (zone->input_node == &node) {
+    if (socket.is_input()) {
+      return zone->parent_zone;
+    }
+  }
+  if (zone->output_node == &node) {
+    if (socket.is_output()) {
+      return zone->parent_zone;
+    }
+  }
+  return zone;
+}
+
+const TreeZone *TreeZones::get_zone_by_node(const int32_t node_id) const
+{
+  const int zone_i = this->zone_by_node_id.lookup_default(node_id, -1);
   if (zone_i == -1) {
     return nullptr;
   }
-  const TreeZone &zone = *this->zones[zone_i];
-  if (zone.input_node == &node) {
-    if (socket.is_input()) {
-      return zone.parent_zone;
-    }
+  return this->zones[zone_i].get();
+}
+
+Vector<const TreeZone *> TreeZones::get_zone_stack_for_node(const int node_id) const
+{
+  const TreeZone *zone = this->get_zone_by_node(node_id);
+  if (zone == nullptr) {
+    return {};
   }
-  if (zone.output_node == &node) {
-    if (socket.is_output()) {
-      return zone.parent_zone;
-    }
+  Vector<const TreeZone *> zone_stack;
+  for (; zone; zone = zone->parent_zone) {
+    zone_stack.append(zone);
   }
-  return &zone;
+  std::reverse(zone_stack.begin(), zone_stack.end());
+  return zone_stack;
 }
 
 }  // namespace blender::bke::node_tree_zones

@@ -31,6 +31,10 @@ class bNodeTreeRuntime;
 class bNodeRuntime;
 class bNodeSocketRuntime;
 }  // namespace blender::bke
+namespace blender::bke::node_tree_zones {
+class TreeZones;
+struct TreeZone;
+}  // namespace blender::bke::node_tree_zones
 using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
 using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
 using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
@@ -677,6 +681,8 @@ typedef struct bNodeTree {
 
   blender::Span<const bNodePanel *> panels() const;
   blender::MutableSpan<bNodePanel *> panels_for_write();
+  /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
+  const blender::bke::node_tree_zones::TreeZones *zones() const;
 #endif
 } bNodeTree;
 

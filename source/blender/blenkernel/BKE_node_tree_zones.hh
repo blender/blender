@@ -14,6 +14,8 @@
 
 namespace blender::bke::node_tree_zones {
 
+class TreeZones;
+
 struct TreeZone {
   TreeZones *owner = nullptr;
   /** Index of the zone in the array of all zones in a node tree. */
@@ -53,8 +55,25 @@ class TreeZones {
    * in a different zone than its output sockets.
    */
   const TreeZone *get_zone_by_socket(const bNodeSocket &socket) const;
+
+  /**
+   * Get the deepest zone that the node is in. Note that the e.g. Simulation Input and Output nodes
+   * are considered to be inside of the zone they create.
+   */
+  const TreeZone *get_zone_by_node(const int32_t node_id) const;
+
+  /**
+   * Get a sorted list of zones that the node is in. First comes the root zone and last the most
+   * nested zone. For nodes that are at the root level, the returned list is empty.
+   */
+  Vector<const TreeZone *> get_zone_stack_for_node(const int32_t node_id) const;
 };
 
 const TreeZones *get_tree_zones(const bNodeTree &tree);
 
 }  // namespace blender::bke::node_tree_zones
+
+inline const blender::bke::node_tree_zones::TreeZones *bNodeTree::zones() const
+{
+  return blender::bke::node_tree_zones::get_tree_zones(*this);
+}

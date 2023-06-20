@@ -28,6 +28,7 @@
 
 #include "BLI_compute_context.hh"
 
+#include "BKE_node_tree_zones.hh"
 #include "BKE_simulation_state.hh"
 
 struct Object;
@@ -175,7 +176,7 @@ struct GeometryNodeLazyFunctionGraphMapping {
    */
   Map<const bNode *, const lf::FunctionNode *> group_node_map;
   Map<const bNode *, const lf::FunctionNode *> viewer_node_map;
-  Map<const bNode *, const lf::FunctionNode *> sim_output_node_map;
+  Map<const bke::node_tree_zones::TreeZone *, const lf::FunctionNode *> zone_node_map;
 
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_output_bsocket_usage;
@@ -190,29 +191,9 @@ struct GeometryNodeLazyFunctionGraphMapping {
  */
 struct GeometryNodesLazyFunctionGraphInfo {
   /**
-   * Allocator used for many things contained in this struct.
+   * Contains resources that need to be freed when the graph is not needed anymore.
    */
-  LinearAllocator<> allocator;
-  /**
-   * Many nodes are implemented as multi-functions. So this contains a mapping from nodes to their
-   * corresponding multi-functions.
-   */
-  std::unique_ptr<NodeMultiFunctions> node_multi_functions;
-  /**
-   * Many lazy-functions are build for the lazy-function graph. Since the graph does not own them,
-   * we have to keep track of them separately.
-   */
-  Vector<std::unique_ptr<LazyFunction>> functions;
-  /**
-   * Debug info that has to be destructed when the graph is not used anymore.
-   */
-  Vector<std::unique_ptr<lf::DummyDebugInfo>> dummy_debug_infos_;
-  /**
-   * Many sockets have default values. Since those are not owned by the lazy-function graph, we
-   * have to keep track of them separately. This only owns the values, the memory is owned by the
-   * allocator above.
-   */
-  Vector<GMutablePointer> values_to_destruct;
+  ResourceScope scope;
   /**
    * The actual lazy-function graph.
    */
@@ -226,9 +207,6 @@ struct GeometryNodesLazyFunctionGraphInfo {
    * This can be used as a simple heuristic for the complexity of the node group.
    */
   int num_inline_nodes_approximate = 0;
-
-  GeometryNodesLazyFunctionGraphInfo();
-  ~GeometryNodesLazyFunctionGraphInfo();
 };
 
 /**

@@ -37,6 +37,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_node_tree_zones.hh"
 #include "BKE_viewer_path.h"
 
 #include "FN_field.hh"
@@ -333,9 +334,11 @@ class GeoModifierLog {
   /**
    * Utility accessor to logged data.
    */
-  static std::optional<ComputeContextHash> get_compute_context_hash_for_node_editor(
-      const SpaceNode &snode, StringRefNull modifier_name);
-  static GeoTreeLog *get_tree_log_for_node_editor(const SpaceNode &snode);
+  static Map<const bke::node_tree_zones::TreeZone *, ComputeContextHash>
+  get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name);
+
+  static Map<const bke::node_tree_zones::TreeZone *, GeoTreeLog *>
+  get_tree_log_by_zone_for_node_editor(const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 
