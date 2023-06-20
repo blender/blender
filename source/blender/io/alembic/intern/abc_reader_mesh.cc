@@ -1164,6 +1164,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
   CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
   config.time = sample_sel.getRequestedTime();
+  config.modifier_error_message = err_str;
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
 
   return mesh_to_export;
