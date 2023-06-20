@@ -467,8 +467,8 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
   }
 }
 
-static bool samples_have_same_topology(const IPolyMeshSchema::Sample &sample,
-                                       const IPolyMeshSchema::Sample &ceil_sample)
+template<typename SampleType>
+static bool samples_have_same_topology(const SampleType &sample, const SampleType &ceil_sample)
 {
   const P3fArraySamplePtr &positions = sample.getPositions();
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
@@ -926,7 +926,10 @@ static void read_subd_sample(const std::string &iobject_full_name,
   if (config.weight != 0.0f) {
     Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
     schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
-    abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    if (samples_have_same_topology(sample, ceil_sample)) {
+      /* Only set interpolation data if the samples are compatible. */
+      abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    }
   }
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
