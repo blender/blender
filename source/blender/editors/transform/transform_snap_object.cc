@@ -215,23 +215,12 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
 /* Store all ray-hits
  * Support for storing all depths, not just the first (ray-cast 'all'). */
 
-static SnapObjectHitDepth *hit_depth_create(const float depth,
-                                            const float co[3],
-                                            const float no[3],
-                                            int index,
-                                            Object *ob_eval,
-                                            const float obmat[4][4],
-                                            uint ob_uuid)
+static SnapObjectHitDepth *hit_depth_create(const float depth, const float co[3], uint ob_uuid)
 {
   SnapObjectHitDepth *hit = MEM_new<SnapObjectHitDepth>(__func__);
 
   hit->depth = depth;
   copy_v3_v3(hit->co, co);
-  copy_v3_v3(hit->no, no);
-  hit->index = index;
-
-  hit->ob_eval = ob_eval;
-  copy_m4_m4(hit->obmat, (float(*)[4])obmat);
   hit->ob_uuid = ob_uuid;
 
   return hit;
@@ -259,20 +248,14 @@ void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRay
   data->raycast_callback(data->bvhdata, index, ray, hit);
   if (hit->index != -1) {
     /* Get all values in world-space. */
-    float location[3], normal[3];
+    float location[3];
     float depth;
 
     /* World-space location. */
     mul_v3_m4v3(location, (float(*)[4])data->obmat, hit->co);
     depth = (hit->dist + data->len_diff) / data->local_scale;
 
-    /* World-space normal. */
-    copy_v3_v3(normal, hit->no);
-    mul_m3_v3((float(*)[3])data->timat, normal);
-    normalize_v3(normal);
-
-    SnapObjectHitDepth *hit_item = hit_depth_create(
-        depth, location, normal, hit->index, data->ob_eval, data->obmat, data->ob_uuid);
+    SnapObjectHitDepth *hit_item = hit_depth_create(depth, location, data->ob_uuid);
     BLI_addtail(data->hit_list, hit_item);
   }
 }
@@ -1732,7 +1715,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
                                         mval,
                                         init_co,
                                         prev_co,
-                                        square_f(*dist_px),
+                                        dist_px ? square_f(*dist_px) : FLT_MAX,
                                         nullptr,
                                         use_occlusion_test))
   {

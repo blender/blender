@@ -1357,7 +1357,7 @@ static int rna_MaterialSlot_name_length(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_MaterialSlot_name_get(PointerRNA *ptr, char *str)
+static void rna_MaterialSlot_name_get(PointerRNA *ptr, char *value)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   Material *ma;
@@ -1366,10 +1366,10 @@ static void rna_MaterialSlot_name_get(PointerRNA *ptr, char *str)
   ma = BKE_object_material_get(ob, index + 1);
 
   if (ma) {
-    strcpy(str, ma->id.name + 2);
+    strcpy(value, ma->id.name + 2);
   }
   else {
-    str[0] = '\0';
+    value[0] = '\0';
   }
 }
 

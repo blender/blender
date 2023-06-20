@@ -218,25 +218,6 @@ bool outliner_requires_rebuild_on_select_or_active_change(const SpaceOutliner *s
   return exclude_flags & (SO_FILTER_OB_STATE_SELECTED | SO_FILTER_OB_STATE_ACTIVE);
 }
 
-/* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOutliner *space_outliner,
-                              ListBase *lb,
-                              ID *id,
-                              Bone *curBone,
-                              TreeElement *parent,
-                              int *a)
-{
-  TreeElement *te = outliner_add_element(space_outliner, lb, id, parent, TSE_BONE, *a);
-
-  (*a)++;
-  te->name = curBone->name;
-  te->directdata = curBone;
-
-  LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
-    outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);
-  }
-}
-
 #ifdef WITH_FREESTYLE
 static void outliner_add_line_styles(SpaceOutliner *space_outliner,
                                      ListBase *lb,
@@ -558,6 +539,7 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     case ID_LS:
     case ID_GD_LEGACY:
     case ID_GR:
+    case ID_AR:
       BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
       break;
     case ID_OB: {
@@ -624,55 +606,6 @@ static void outliner_add_id_contents(SpaceOutliner *space_outliner,
     case ID_AC: {
       /* XXX do we want to be exposing the F-Curves here? */
       /* bAction *act = (bAction *)id; */
-      break;
-    }
-    case ID_AR: {
-      bArmature *arm = (bArmature *)id;
-
-      if (outliner_animdata_test(arm->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, arm, te, TSE_ANIM_DATA, 0);
-      }
-
-      if (arm->edbo) {
-        int a = 0;
-        LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm->edbo, a) {
-          TreeElement *ten = outliner_add_element(
-              space_outliner, &te->subtree, id, te, TSE_EBONE, a);
-          ten->directdata = ebone;
-          ten->name = ebone->name;
-          ebone->temp.p = ten;
-        }
-        /* make hierarchy */
-        TreeElement *ten = arm->edbo->first ?
-                               static_cast<TreeElement *>(((EditBone *)arm->edbo->first)->temp.p) :
-                               nullptr;
-        while (ten) {
-          TreeElement *nten = ten->next, *par;
-          EditBone *ebone = (EditBone *)ten->directdata;
-          if (ebone->parent) {
-            BLI_remlink(&te->subtree, ten);
-            par = static_cast<TreeElement *>(ebone->parent->temp.p);
-            BLI_addtail(&par->subtree, ten);
-            ten->parent = par;
-          }
-          ten = nten;
-        }
-      }
-      else {
-        /* do not extend Armature when we have posemode */
-        tselem = TREESTORE(te->parent);
-        if (TSE_IS_REAL_ID(tselem) && GS(tselem->id->name) == ID_OB &&
-            ((Object *)tselem->id)->mode & OB_MODE_POSE)
-        {
-          /* pass */
-        }
-        else {
-          int a = 0;
-          LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
-            outliner_add_bone(space_outliner, &te->subtree, id, bone, te, &a);
-          }
-        }
-      }
       break;
     }
     case ID_CV: {

@@ -424,25 +424,6 @@ void MOD_nodes_update_interface(Object *object, NodesModifierData *nmd)
 
 namespace blender {
 
-static const lf::FunctionNode *find_viewer_lf_node(const bNode &viewer_bnode)
-{
-  if (const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-          nodes::ensure_geometry_nodes_lazy_function_graph(viewer_bnode.owner_tree()))
-  {
-    return lf_graph_info->mapping.viewer_node_map.lookup_default(&viewer_bnode, nullptr);
-  }
-  return nullptr;
-}
-static const lf::FunctionNode *find_group_lf_node(const bNode &group_bnode)
-{
-  if (const nodes::GeometryNodesLazyFunctionGraphInfo *lf_graph_info =
-          nodes::ensure_geometry_nodes_lazy_function_graph(group_bnode.owner_tree()))
-  {
-    return lf_graph_info->mapping.group_node_map.lookup_default(&group_bnode, nullptr);
-  }
-  return nullptr;
-}
-
 static void find_side_effect_nodes_for_viewer_path(
     const ViewerPath &viewer_path,
     const NodesModifierData &nmd,
@@ -464,45 +445,101 @@ static void find_side_effect_nodes_for_viewer_path(
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
 
+  /* Write side effect nodes to a new map and only if everything succeeds, move the nodes to the
+   * caller. This is easier than changing r_side_effect_nodes directly and then undoing changes in
+   * case of errors. */
+  MultiValueMap<ComputeContextHash, const lf::FunctionNode *> local_side_effect_nodes;
+
   const bNodeTree *group = nmd.node_group;
-  Stack<const bNode *> group_node_stack;
-  for (const int32_t group_node_id : parsed_path->group_node_ids) {
-    const bNode *found_node = group->node_by_id(group_node_id);
-    if (found_node == nullptr) {
+  const bke::bNodeTreeZone *zone = nullptr;
+  for (const ViewerPathElem *elem : parsed_path->node_path) {
+    const bke::bNodeTreeZones *tree_zones = group->zones();
+    if (tree_zones == nullptr) {
       return;
     }
-    if (found_node->id == nullptr) {
+    const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*group);
+    if (lf_graph_info == nullptr) {
       return;
     }
-    if (found_node->is_muted()) {
-      return;
+    switch (elem->type) {
+      case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
+        const bke::bNodeTreeZone *next_zone = tree_zones->get_zone_by_node(
+            typed_elem.sim_output_node_id);
+        if (next_zone == nullptr) {
+          return;
+        }
+        if (next_zone->parent_zone != zone) {
+          return;
+        }
+        const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
+            next_zone, nullptr);
+        if (lf_zone_node == nullptr) {
+          return;
+        }
+        local_side_effect_nodes.add(compute_context_builder.hash(), lf_zone_node);
+        compute_context_builder.push<bke::SimulationZoneComputeContext>(*next_zone->output_node);
+        zone = next_zone;
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
+        const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
+        const bNode *node = group->node_by_id(typed_elem.node_id);
+        if (node == nullptr) {
+          return;
+        }
+        if (node->id == nullptr) {
+          return;
+        }
+        if (node->is_muted()) {
+          return;
+        }
+        if (zone != tree_zones->get_zone_by_node(node->identifier)) {
+          return;
+        }
+        const lf::FunctionNode *lf_group_node =
+            lf_graph_info->mapping.group_node_map.lookup_default(node, nullptr);
+        if (lf_group_node == nullptr) {
+          return;
+        }
+        local_side_effect_nodes.add(compute_context_builder.hash(), lf_group_node);
+        compute_context_builder.push<bke::NodeGroupComputeContext>(*node);
+        group = reinterpret_cast<const bNodeTree *>(node->id);
+        zone = nullptr;
+        break;
+      }
+      default: {
+        BLI_assert_unreachable();
+        return;
+      }
     }
-    group_node_stack.push(found_node);
-    group = reinterpret_cast<bNodeTree *>(found_node->id);
-    compute_context_builder.push<bke::NodeGroupComputeContext>(*found_node);
   }
 
   const bNode *found_viewer_node = group->node_by_id(parsed_path->viewer_node_id);
   if (found_viewer_node == nullptr) {
     return;
   }
-  const lf::FunctionNode *lf_viewer_node = find_viewer_lf_node(*found_viewer_node);
+  const auto *lf_graph_info = nodes::ensure_geometry_nodes_lazy_function_graph(*group);
+  if (lf_graph_info == nullptr) {
+    return;
+  }
+  const bke::bNodeTreeZones *tree_zones = group->zones();
+  if (tree_zones == nullptr) {
+    return;
+  }
+  if (tree_zones->get_zone_by_node(found_viewer_node->identifier) != zone) {
+    return;
+  }
+  const lf::FunctionNode *lf_viewer_node = lf_graph_info->mapping.viewer_node_map.lookup_default(
+      found_viewer_node, nullptr);
   if (lf_viewer_node == nullptr) {
     return;
   }
+  local_side_effect_nodes.add(compute_context_builder.hash(), lf_viewer_node);
 
-  /* Not only mark the viewer node as having side effects, but also all group nodes it is contained
-   * in. */
-  r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(), lf_viewer_node);
-  compute_context_builder.pop();
-  while (!compute_context_builder.is_empty()) {
-    const lf::FunctionNode *lf_group_node = find_group_lf_node(*group_node_stack.pop());
-    if (lf_group_node == nullptr) {
-      return;
-    }
-
-    r_side_effect_nodes.add_non_duplicates(compute_context_builder.hash(), lf_group_node);
-    compute_context_builder.pop();
+  /* Successfully found all compute contexts for the viewer. */
+  for (const auto item : local_side_effect_nodes.items()) {
+    r_side_effect_nodes.add_multiple(item.key, item.value);
   }
 }
 
@@ -550,11 +587,11 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
       const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
       if (sl->spacetype == SPACE_NODE) {
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
-        if (const std::optional<ComputeContextHash> hash =
-                geo_log::GeoModifierLog::get_compute_context_hash_for_node_editor(
-                    snode, nmd.modifier.name))
-        {
-          r_socket_log_contexts.add(*hash);
+        const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
+                                                                              nmd.modifier.name);
+        for (const ComputeContextHash &hash : hash_by_zone.values()) {
+          r_socket_log_contexts.add(hash);
         }
       }
     }

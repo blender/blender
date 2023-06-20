@@ -156,9 +156,6 @@ static bool raycastMesh(SnapObjectContext *sctx,
     return retval;
   }
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   BLI_assert(treedata.raycast_callback != nullptr);
   if (r_hit_list) {
     RayCastAll_Data data;
@@ -166,18 +163,16 @@ static bool raycastMesh(SnapObjectContext *sctx,
     data.bvhdata = &treedata;
     data.raycast_callback = treedata.raycast_callback;
     data.obmat = obmat;
-    data.timat = timat;
     data.len_diff = len_diff;
     data.local_scale = local_scale;
-    data.ob_eval = ob_eval;
     data.ob_uuid = ob_index;
     data.hit_list = r_hit_list;
-    data.retval = retval;
 
+    void *hit_last_prev = data.hit_list->last;
     BLI_bvhtree_ray_cast_all(
         treedata.tree, ray_start_local, ray_normal_local, 0.0f, *ray_depth, raycast_all_cb, &data);
 
-    retval = data.retval;
+    retval = hit_last_prev != data.hit_list->last;
   }
   else {
     BVHTreeRayHit hit{};
@@ -205,7 +200,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
 
         if (r_no) {
           copy_v3_v3(r_no, hit.no);
-          mul_m3_v3(timat, r_no);
+          mul_transposed_mat3_m4_v3(imat, r_no);
           normalize_v3(r_no);
         }
 

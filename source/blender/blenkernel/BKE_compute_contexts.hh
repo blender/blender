@@ -59,4 +59,23 @@ class NodeGroupComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
+class SimulationZoneComputeContext : public ComputeContext {
+ private:
+  static constexpr const char *s_static_type = "SIMULATION_ZONE";
+
+  int32_t output_node_id_;
+
+ public:
+  SimulationZoneComputeContext(const ComputeContext *parent, int output_node_id);
+  SimulationZoneComputeContext(const ComputeContext *parent, const bNode &node);
+
+  int32_t output_node_id() const
+  {
+    return output_node_id_;
+  }
+
+ private:
+  void print_current_in_line(std::ostream &stream) const override;
+};
+
 }  // namespace blender::bke

@@ -30,6 +30,8 @@
 
 #include "rna_internal.h" /* own include */
 
+#define MESH_DM_INFO_STR_MAX 16384
+
 static const EnumPropertyItem space_items[] = {
     {CONSTRAINT_SPACE_WORLD, "WORLD", 0, "World Space", "The most global space in Blender"},
     {CONSTRAINT_SPACE_POSE,
@@ -763,7 +765,7 @@ void rna_Object_me_eval_info(
   if (me_eval) {
     ret = BKE_mesh_debug_info(me_eval);
     if (ret) {
-      strcpy(result, ret);
+      BLI_strncpy(result, ret, MESH_DM_INFO_STR_MAX);
       MEM_freeN(ret);
     }
   }
@@ -1329,7 +1331,8 @@ void RNA_api_object(StructRNA *srna)
       "(only needed if current Context's depsgraph is not suitable)");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_RNAPTR);
   /* weak!, no way to return dynamic string type */
-  parm = RNA_def_string(func, "result", nullptr, 16384, "", "Requested information");
+  parm = RNA_def_string(
+      func, "result", nullptr, MESH_DM_INFO_STR_MAX, "", "Requested information");
   RNA_def_parameter_flags(
       parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
