@@ -613,8 +613,19 @@ class Mesh(bpy_types.ID):
         Render and display faces uniform, using face normals,
         setting the "sharp_face" attribute true for every face
         """
-        sharp_faces = self.attributes.new("sharp_face", 'BOOLEAN', 'FACE')
-        for value in sharp_faces.data:
+        attr = self.attributes.get("sharp_face")
+        if attr is None:
+            pass
+        elif attr.data_type == 'BOOLEAN' and attr.domain == 'FACE':
+            pass
+        else:
+            self.attributes.remove(attr)
+            attr = None
+
+        if attr is None:
+            attr = self.attributes.new("sharp_face", 'BOOLEAN', 'FACE')
+
+        for value in attr.data:
             value.value = True
 
     def shade_smooth(self):
@@ -622,11 +633,9 @@ class Mesh(bpy_types.ID):
         Render and display faces smooth, using interpolated vertex normals,
         removing the "sharp_face" attribute
         """
-        try:
-            attribute = self.attributes["sharp_face"]
-            self.attributes.remove(attribute)
-        except KeyError:
-            pass
+        attr = self.attributes.get("sharp_face")
+        if attr is not None:
+            self.attributes.remove(attr)
 
 
 class MeshEdge(StructRNA):
