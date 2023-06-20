@@ -1855,7 +1855,7 @@ static float pack_islands_scale_margin(const Span<PackIsland *> islands,
     rotate_inside_square(slow_aabbs, islands, params, scale, margin, r_phis, &extent);
   }
 
-  if (!memcmp(&extent, &fast_extent, sizeof(rctf))) {
+  if (BLI_rctf_compare(&extent, &fast_extent, 0.0f)) {
     /* The fast packer was the best so far. Lets just use the fast packer for everything. */
     slow_aabbs = slow_aabbs.take_front(locked_island_count);
     extent = locked_bounds;
