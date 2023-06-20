@@ -57,7 +57,7 @@ static void rna_Bone_convert_local_to_pose(Bone *bone,
   if (is_zero_m4(parent_pose_mat) || is_zero_m4(parent_arm_mat)) {
     /* No parent case. */
     BKE_bone_parent_transform_calc_from_matrices(
-        bone->flag, bone->inherit_scale_mode, bone_arm_mat, NULL, NULL, &bpt);
+        bone->flag, bone->inherit_scale_mode, bone_arm_mat, nullptr, nullptr, &bpt);
   }
   else {
     invert_m4_m4(offs_bone, parent_arm_mat);
@@ -107,8 +107,8 @@ void RNA_api_armature_edit_bone(StructRNA *srna)
                                   "Align the bone to a local-space roll so the Z axis "
                                   "points in the direction of the vector given");
   parm = RNA_def_float_vector(
-      func, "vector", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+      func, "vector", 3, nullptr, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 }
 
 void RNA_api_bone(StructRNA *srna)
@@ -121,14 +121,14 @@ void RNA_api_bone(StructRNA *srna)
   parm = RNA_def_float_vector_xyz(func,
                                   "point",
                                   3,
-                                  NULL,
+                                  nullptr,
                                   -FLT_MAX,
                                   FLT_MAX,
                                   "Point",
                                   "Position in 3d space to evaluate",
                                   -FLT_MAX,
                                   FLT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   /* return value */
   parm = RNA_def_float(
       func, "factor", 0, -FLT_MAX, FLT_MAX, "Factor", "Envelope factor", -FLT_MAX, FLT_MAX);
@@ -148,11 +148,11 @@ void RNA_api_bone(StructRNA *srna)
   parm = RNA_def_property(func, "matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(parm, "", "The matrix to transform");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "matrix_local", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(parm, "", "The custom rest matrix of this bone (Bone.matrix_local)");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "parent_matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_ui_text(
@@ -173,7 +173,7 @@ void RNA_api_bone(StructRNA *srna)
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   parm = RNA_def_property(func, "roll", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(parm, "", "The roll of the bone");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_property(func, "result_matrix", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_multi_array(parm, 2, rna_matrix_dimsize_3x3);
   RNA_def_property_ui_text(parm, "", "The resulting orientation matrix");
