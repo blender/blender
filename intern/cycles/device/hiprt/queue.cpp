@@ -60,6 +60,8 @@ bool HIPRTDeviceQueue::enqueue(DeviceKernel kernel,
                                        0),
                  "enqueue");
 
+  debug_enqueue_end();
+
   return !(hiprt_device_->have_error());
 }
 

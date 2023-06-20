@@ -45,11 +45,11 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
   GET_TRAVERSAL_STACK()
 
   if (visibility & PATH_RAY_SHADOW_OPAQUE) {
-    GET_TRAVERSAL_ANY_HIT(table_closest_intersect, 0)
+    GET_TRAVERSAL_ANY_HIT(table_closest_intersect, 0, ray->time)
     hit = traversal.getNextHit();
   }
   else {
-    GET_TRAVERSAL_CLOSEST_HIT(table_closest_intersect, 0)
+    GET_TRAVERSAL_CLOSEST_HIT(table_closest_intersect, 0, ray->time)
     hit = traversal.getNextHit();
   }
   if (hit.hasHit()) {
@@ -156,13 +156,13 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   payload.in_state = state;
   payload.max_hits = max_hits;
   payload.visibility = visibility;
-  payload.prim_type = PRIMITIVE_TRIANGLE;
+  payload.prim_type = PRIMITIVE_NONE;
   payload.ray_time = ray->time;
   payload.num_hits = 0;
   payload.r_num_recorded_hits = num_recorded_hits;
   payload.r_throughput = throughput;
   GET_TRAVERSAL_STACK()
-  GET_TRAVERSAL_ANY_HIT(table_shadow_intersect, 1)
+  GET_TRAVERSAL_ANY_HIT(table_shadow_intersect, 1, ray->time)
   hiprtHit hit = traversal.getNextHit();
   num_recorded_hits = payload.r_num_recorded_hits;
   throughput = payload.r_throughput;
@@ -200,7 +200,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 
   GET_TRAVERSAL_STACK()
 
-  GET_TRAVERSAL_CLOSEST_HIT(table_volume_intersect, 3)
+  GET_TRAVERSAL_CLOSEST_HIT(table_volume_intersect, 3, ray->time)
   hiprtHit hit = traversal.getNextHit();
   // return hit.hasHit();
   if (hit.hasHit()) {

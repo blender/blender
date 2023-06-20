@@ -41,6 +41,7 @@ thiprtGetSceneBuildTemporaryBufferSize *hiprtGetSceneBuildTemporaryBufferSize;
 thiprtCreateFuncTable *hiprtCreateFuncTable;
 thiprtSetFuncTable *hiprtSetFuncTable;
 thiprtDestroyFuncTable *hiprtDestroyFuncTable;
+thiprtSetLogLevel *hiprtSetLogLevel;
 
 static void hipewHipRtExit(void)
 {
@@ -89,6 +90,7 @@ bool hiprtewInit()
   HIPRT_LIBRARY_FIND(hiprtCreateFuncTable)
   HIPRT_LIBRARY_FIND(hiprtSetFuncTable)
   HIPRT_LIBRARY_FIND(hiprtDestroyFuncTable)
+  HIPRT_LIBRARY_FIND(hiprtSetLogLevel)
 
   result = true;
 #endif
