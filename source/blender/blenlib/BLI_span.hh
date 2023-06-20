@@ -599,7 +599,8 @@ template<typename T> class MutableSpan {
 
   constexpr T &operator[](const int64_t index) const
   {
-    BLI_assert(index < this->size());
+    BLI_assert(index >= 0);
+    BLI_assert(index < size_);
     return data_[index];
   }
 
