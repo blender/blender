@@ -29,7 +29,7 @@ struct SnapObjectContext {
 
   struct {
     Depsgraph *depsgraph;
-    const ARegion *region;
+    const RegionView3D *rv3d;
     const View3D *v3d;
 
     eSnapMode snap_to_flag;
@@ -42,7 +42,6 @@ struct SnapObjectContext {
     float init_co[3];
     float curr_co[3];
 
-    float pmat[4][4];  /* perspective matrix */
     float win_size[2]; /* win x and y */
     float clip_plane[MAX_CLIPPLANE_LEN][4];
     int clip_plane_len;
@@ -50,7 +49,6 @@ struct SnapObjectContext {
     /* read/write */
     uint object_index;
 
-    bool is_persp;
     bool has_occlusion_plane; /* Ignore plane of occlusion in curves. */
     bool use_occlusion_test_edit;
   } runtime;
@@ -116,6 +114,21 @@ using Nearest2DCopyVertNoCallback = void (*)(const int index,
                                              float r_no[3]);
 
 struct Nearest2dUserData {
+ public:
+  /* Constructor. */
+  Nearest2dUserData(SnapObjectContext *sctx,
+                    const blender::float4x4 &obmat = blender::float4x4::identity());
+
+  void clip_planes_get(SnapObjectContext *sctx,
+                       const blender::float4x4 &obmat,
+                       bool skip_occlusion_plane = false);
+
+  bool snap_boundbox(const blender::float3 &min, const blender::float3 &max, float dist_px_sq);
+
+  DistProjectedAABBPrecalc nearest_precalc;
+  blender::float4x4 pmat_local;
+  blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
+
   Nearest2DGetVertCoCallback get_vert_co;
   Nearest2DGetEdgeVertsCallback get_edge_verts_index;
   Nearest2DGetTriVertsCallback get_tri_verts_index;
@@ -146,13 +159,6 @@ void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRay
 
 bool raycast_tri_backface_culling_test(
     const float dir[3], const float v0[3], const float v1[3], const float v2[3], float no[3]);
-
-bool snap_bound_box_check_dist(const float min[3],
-                               const float max[3],
-                               const float lpmat[4][4],
-                               const float win_size[2],
-                               const float mval[2],
-                               float dist_px_sq);
 
 void cb_snap_vert(void *userdata,
                   int index,
@@ -211,13 +217,9 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 ID *id,
                                 const float obmat[4][4],
                                 eSnapMode snap_to_flag,
-                                int polygon,
-                                const float clip_planes_local[MAX_CLIPPLANE_LEN][4]);
+                                int polygon);
 
-void nearest2d_data_init_editmesh(struct BMEditMesh *em,
-                                  bool is_persp,
-                                  bool use_backface_culling,
-                                  struct Nearest2dUserData *r_nearest2d);
+void nearest2d_data_init_editmesh(struct BMEditMesh *em, struct Nearest2dUserData *r_nearest2d);
 
 /* transform_snap_object_mesh.cc */
 
@@ -233,10 +235,6 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
                             ID *id,
                             const float obmat[4][4],
                             eSnapMode snap_to_flag,
-                            int polygon,
-                            const float clip_planes_local[MAX_CLIPPLANE_LEN][4]);
+                            int polygon);
 
-void nearest2d_data_init_mesh(const Mesh *mesh,
-                              bool is_persp,
-                              bool use_backface_culling,
-                              Nearest2dUserData *r_nearest2d);
+void nearest2d_data_init_mesh(const Mesh *mesh, Nearest2dUserData *r_nearest2d);
