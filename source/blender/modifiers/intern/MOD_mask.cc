@@ -5,8 +5,6 @@
  * \ingroup modifiers
  */
 
-#define DNA_DEPRECATED_ALLOW
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -296,7 +294,7 @@ static void compute_interpolated_polys(const Mesh *mesh,
     }
     if (0 < in_count && in_count < poly_src.size()) {
       /* Ring search starting at a vertex which is not included in the mask. */
-      int last_corner_vert = corner_verts[start];
+      int last_corner_vert = poly_verts_src[start];
       bool v_loop_in_mask_last = vertex_mask[last_corner_vert];
       for (const int j : poly_verts_src.index_range()) {
         const int corner_vert = poly_verts_src[(start + 1 + j) % poly_src.size()];
