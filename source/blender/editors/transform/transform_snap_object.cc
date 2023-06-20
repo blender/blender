@@ -47,7 +47,66 @@ static long _num_snap_calls = 0;
 
 using namespace blender;
 
-Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx, const float4x4 &obmat)
+static bool test_projected_vert_dist(const DistProjectedAABBPrecalc *precalc,
+                                     const float (*clip_plane)[4],
+                                     const int clip_plane_len,
+                                     const bool is_persp,
+                                     const float *co,
+                                     BVHTreeNearest *nearest)
+{
+  if (!isect_point_planes_v3_negated(clip_plane, clip_plane_len, co)) {
+    return false;
+  }
+
+  float co2d[2] = {
+      (dot_m4_v3_row_x(precalc->pmat, co) + precalc->pmat[3][0]),
+      (dot_m4_v3_row_y(precalc->pmat, co) + precalc->pmat[3][1]),
+  };
+
+  if (is_persp) {
+    float w = mul_project_m4_v3_zfac(precalc->pmat, co);
+    mul_v2_fl(co2d, 1.0f / w);
+  }
+
+  const float dist_sq = len_squared_v2v2(precalc->mval, co2d);
+  if (dist_sq < nearest->dist_sq) {
+    copy_v3_v3(nearest->co, co);
+    nearest->dist_sq = dist_sq;
+    return true;
+  }
+  return false;
+}
+
+static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
+                                     const float (*clip_plane)[4],
+                                     const int clip_plane_len,
+                                     const bool is_persp,
+                                     const float va[3],
+                                     const float vb[3],
+                                     BVHTreeNearest *nearest)
+{
+  float near_co[3], lambda;
+  if (!isect_ray_line_v3(precalc->ray_origin, precalc->ray_direction, va, vb, &lambda)) {
+    copy_v3_v3(near_co, va);
+  }
+  else {
+    if (lambda <= 0.0f) {
+      copy_v3_v3(near_co, va);
+    }
+    else if (lambda >= 1.0f) {
+      copy_v3_v3(near_co, vb);
+    }
+    else {
+      interp_v3_v3v3(near_co, va, vb, lambda);
+    }
+  }
+
+  return test_projected_vert_dist(precalc, clip_plane, clip_plane_len, is_persp, near_co, nearest);
+}
+
+Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
+                                     float dist_px_sq,
+                                     const float4x4 &obmat)
     : get_vert_co(nullptr),
       get_edge_verts_index(nullptr),
       get_tri_verts_index(nullptr),
@@ -66,6 +125,9 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx, const float4x4 &ob
 
   dist_squared_to_projected_aabb_precalc(
       &this->nearest_precalc, this->pmat_local.ptr(), sctx->runtime.win_size, sctx->runtime.mval);
+
+  this->nearest_point.index = -2;
+  this->nearest_point.dist_sq = dist_px_sq;
 }
 
 void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx,
@@ -89,7 +151,7 @@ void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx,
   BLI_assert(this->clip_planes.size() == clip_plane_len);
 }
 
-bool Nearest2dUserData::snap_boundbox(const float3 &min, const float3 &max, float dist_px_sq)
+bool Nearest2dUserData::snap_boundbox(const float3 &min, const float3 &max)
 {
   /* In vertex and edges you need to get the pixel distance from ray to BoundBox,
    * see: #46099, #46816 */
@@ -108,11 +170,42 @@ bool Nearest2dUserData::snap_boundbox(const float3 &min, const float3 &max, floa
 
   bool dummy[3];
   float bb_dist_px_sq = dist_squared_to_projected_aabb(&this->nearest_precalc, min, max, dummy);
-  if (bb_dist_px_sq > dist_px_sq) {
+  if (bb_dist_px_sq > this->nearest_point.dist_sq) {
     return false;
   }
 
   return true;
+}
+
+bool Nearest2dUserData::snap_point(const float3 &co, int index)
+{
+  if (test_projected_vert_dist(&this->nearest_precalc,
+                               reinterpret_cast<const float(*)[4]>(this->clip_planes.data()),
+                               this->clip_planes.size(),
+                               this->is_persp,
+                               co,
+                               &this->nearest_point))
+  {
+    this->nearest_point.index = index;
+    return true;
+  }
+  return false;
+}
+
+bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_index)
+{
+  if (test_projected_edge_dist(&this->nearest_precalc,
+                               reinterpret_cast<const float(*)[4]>(this->clip_planes.data()),
+                               this->clip_planes.size(),
+                               this->is_persp,
+                               va,
+                               vb,
+                               &this->nearest_point))
+  {
+    this->nearest_point.index = edge_index;
+    return true;
+  }
+  return false;
 }
 
 /* -------------------------------------------------------------------- */
@@ -585,66 +678,6 @@ static bool nearestWorldObjects(SnapObjectContext *sctx)
 /** \name Callbacks
  * \{ */
 
-static bool test_projected_vert_dist(const DistProjectedAABBPrecalc *precalc,
-                                     const float (*clip_plane)[4],
-                                     const int clip_plane_len,
-                                     const bool is_persp,
-                                     const float co[3],
-                                     float *dist_px_sq,
-                                     float r_co[3])
-{
-  if (!isect_point_planes_v3_negated(clip_plane, clip_plane_len, co)) {
-    return false;
-  }
-
-  float co2d[2] = {
-      (dot_m4_v3_row_x(precalc->pmat, co) + precalc->pmat[3][0]),
-      (dot_m4_v3_row_y(precalc->pmat, co) + precalc->pmat[3][1]),
-  };
-
-  if (is_persp) {
-    float w = mul_project_m4_v3_zfac(precalc->pmat, co);
-    mul_v2_fl(co2d, 1.0f / w);
-  }
-
-  const float dist_sq = len_squared_v2v2(precalc->mval, co2d);
-  if (dist_sq < *dist_px_sq) {
-    copy_v3_v3(r_co, co);
-    *dist_px_sq = dist_sq;
-    return true;
-  }
-  return false;
-}
-
-static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
-                                     const float (*clip_plane)[4],
-                                     const int clip_plane_len,
-                                     const bool is_persp,
-                                     const float va[3],
-                                     const float vb[3],
-                                     float *dist_px_sq,
-                                     float r_co[3])
-{
-  float near_co[3], lambda;
-  if (!isect_ray_line_v3(precalc->ray_origin, precalc->ray_direction, va, vb, &lambda)) {
-    copy_v3_v3(near_co, va);
-  }
-  else {
-    if (lambda <= 0.0f) {
-      copy_v3_v3(near_co, va);
-    }
-    else if (lambda >= 1.0f) {
-      copy_v3_v3(near_co, vb);
-    }
-    else {
-      interp_v3_v3v3(near_co, va, vb, lambda);
-    }
-  }
-
-  return test_projected_vert_dist(
-      precalc, clip_plane, clip_plane_len, is_persp, near_co, dist_px_sq, r_co);
-}
-
 void cb_snap_vert(void *userdata,
                   int index,
                   const DistProjectedAABBPrecalc *precalc,
@@ -657,9 +690,7 @@ void cb_snap_vert(void *userdata,
   const float *co;
   data->get_vert_co(index, data, &co);
 
-  if (test_projected_vert_dist(
-          precalc, clip_plane, clip_plane_len, data->is_persp, co, &nearest->dist_sq, nearest->co))
-  {
+  if (test_projected_vert_dist(precalc, clip_plane, clip_plane_len, data->is_persp, co, nearest)) {
     data->copy_vert_no(index, data, nearest->no);
     nearest->index = index;
   }
@@ -681,14 +712,8 @@ void cb_snap_edge(void *userdata,
   data->get_vert_co(vindex[0], data, &v_pair[0]);
   data->get_vert_co(vindex[1], data, &v_pair[1]);
 
-  if (test_projected_edge_dist(precalc,
-                               clip_plane,
-                               clip_plane_len,
-                               data->is_persp,
-                               v_pair[0],
-                               v_pair[1],
-                               &nearest->dist_sq,
-                               nearest->co))
+  if (test_projected_edge_dist(
+          precalc, clip_plane, clip_plane_len, data->is_persp, v_pair[0], v_pair[1], nearest))
   {
     sub_v3_v3v3(nearest->no, v_pair[0], v_pair[1]);
     nearest->index = index;
@@ -734,7 +759,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
     return elem;
   }
 
-  Nearest2dUserData nearest2d(sctx, float4x4(sctx->ret.obmat));
+  Nearest2dUserData nearest2d(sctx, square_f(original_dist_px), float4x4(sctx->ret.obmat));
   if (mesh) {
     nearest2d_data_init_mesh(mesh, &nearest2d);
   }
@@ -751,9 +776,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
   nearest2d.get_vert_co(vindex[0], &nearest2d, &v_pair[0]);
   nearest2d.get_vert_co(vindex[1], &nearest2d, &v_pair[1]);
 
-  BVHTreeNearest nearest{};
-  nearest.index = -1;
-  nearest.dist_sq = square_f(original_dist_px);
+  sub_v3_v3v3(nearest2d.nearest_point.no, v_pair[1], v_pair[0]);
 
   float lambda;
   if (!isect_ray_line_v3(nearest2d.nearest_precalc.ray_origin,
@@ -765,58 +788,26 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
     /* Do nothing. */
   }
   else {
-    short snap_to_flag = sctx->runtime.snap_to_flag;
-    int e_mode_len = ((snap_to_flag & SCE_SNAP_MODE_EDGE) != 0) +
-                     ((snap_to_flag & SCE_SNAP_MODE_VERTEX) != 0) +
-                     ((snap_to_flag & SCE_SNAP_MODE_EDGE_MIDPOINT) != 0);
+    eSnapMode snap_to = sctx->runtime.snap_to_flag;
+    int e_mode_len = ((snap_to & SCE_SNAP_MODE_EDGE) != 0) +
+                     ((snap_to & SCE_SNAP_MODE_VERTEX) != 0) +
+                     ((snap_to & SCE_SNAP_MODE_EDGE_MIDPOINT) != 0);
 
     float range = 1.0f / (2 * e_mode_len - 1);
-    if (snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-      if (lambda < (range) || (1.0f - range) < lambda) {
-        int v_id = lambda < 0.5f ? 0 : 1;
 
-        if (test_projected_vert_dist(&nearest2d.nearest_precalc,
-                                     nullptr,
-                                     0,
-                                     nearest2d.is_persp,
-                                     v_pair[v_id],
-                                     &nearest.dist_sq,
-                                     nearest.co))
-        {
-          nearest.index = vindex[v_id];
-          elem = SCE_SNAP_MODE_VERTEX;
-          {
-            float imat[4][4];
-            invert_m4_m4(imat, sctx->ret.obmat);
-            nearest2d.copy_vert_no(vindex[v_id], &nearest2d, sctx->ret.no);
-            mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
-            normalize_v3(sctx->ret.no);
-          }
-        }
-      }
-    }
-
-    if (snap_to_flag & SCE_SNAP_MODE_EDGE_MIDPOINT) {
+    if (snap_to & SCE_SNAP_MODE_EDGE_MIDPOINT) {
       range *= e_mode_len - 1;
       if ((range) < lambda && lambda < (1.0f - range)) {
         float vmid[3];
         mid_v3_v3v3(vmid, v_pair[0], v_pair[1]);
 
-        if (test_projected_vert_dist(&nearest2d.nearest_precalc,
-                                     nullptr,
-                                     0,
-                                     nearest2d.is_persp,
-                                     vmid,
-                                     &nearest.dist_sq,
-                                     nearest.co))
-        {
-          nearest.index = sctx->ret.index;
+        if (nearest2d.snap_point(vmid, sctx->ret.index)) {
           elem = SCE_SNAP_MODE_EDGE_MIDPOINT;
         }
       }
     }
 
-    if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
+    if (snap_to & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
       float v_near[3], va_g[3], vb_g[3];
 
       mul_v3_m4v3(va_g, sctx->ret.obmat, v_pair[0]);
@@ -826,28 +817,33 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
       if (IN_RANGE(lambda, 0.0f, 1.0f)) {
         interp_v3_v3v3(v_near, v_pair[0], v_pair[1], lambda);
 
-        if (test_projected_vert_dist(&nearest2d.nearest_precalc,
-                                     nullptr,
-                                     0,
-                                     nearest2d.is_persp,
-                                     v_near,
-                                     &nearest.dist_sq,
-                                     nearest.co))
-        {
-          nearest.index = sctx->ret.index;
+        if (nearest2d.snap_point(v_near, sctx->ret.index)) {
           elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+        }
+      }
+    }
+
+    /* Leave this one for last so it doesn't change the normal. */
+    if (snap_to & SCE_SNAP_MODE_VERTEX) {
+      if (lambda < (range) || (1.0f - range) < lambda) {
+        int v_id = lambda < 0.5f ? 0 : 1;
+
+        if (nearest2d.snap_point(v_pair[v_id], v_id)) {
+          elem = SCE_SNAP_MODE_VERTEX;
+          nearest2d.copy_vert_no(vindex[v_id], &nearest2d, sctx->ret.no);
+
+          float3x3 timat = math::transpose(math::invert(float3x3(float4x4(sctx->ret.obmat))));
+          copy_v3_v3(sctx->ret.no, math::transform_direction(timat, float3(sctx->ret.no)));
+          normalize_v3(sctx->ret.no);
         }
       }
     }
   }
 
-  if (nearest.index != -1) {
-    sctx->ret.dist_px_sq = nearest.dist_sq;
-
-    copy_v3_v3(sctx->ret.loc, nearest.co);
-    mul_m4_v3(sctx->ret.obmat, sctx->ret.loc);
-
-    sctx->ret.index = nearest.index;
+  if (nearest2d.nearest_point.index != -2) {
+    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
+    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
+    sctx->ret.index = nearest2d.nearest_point.index;
   }
 
   return elem;
@@ -865,14 +861,14 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
     return retval;
   }
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
 
   bArmature *arm = static_cast<bArmature *>(ob_eval->data);
   const bool is_editmode = arm->edbo != nullptr;
 
   if (is_editmode == false) {
     const BoundBox *bb = BKE_armature_boundbox_get(ob_eval);
-    if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6], sctx->ret.dist_px_sq)) {
+    if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
       return retval;
     }
   }
@@ -899,38 +895,14 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
         bool has_vert_snap = false;
 
         if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-          has_vert_snap = test_projected_vert_dist(
-              &nearest2d.nearest_precalc,
-              reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-              nearest2d.clip_planes.size(),
-              nearest2d.is_persp,
-              eBone->head,
-              &sctx->ret.dist_px_sq,
-              sctx->ret.loc);
-          has_vert_snap |= test_projected_vert_dist(
-              &nearest2d.nearest_precalc,
-              reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-              nearest2d.clip_planes.size(),
-              nearest2d.is_persp,
-              eBone->tail,
-
-              &sctx->ret.dist_px_sq,
-              sctx->ret.loc);
-
+          has_vert_snap |= nearest2d.snap_point(eBone->head);
+          has_vert_snap |= nearest2d.snap_point(eBone->tail);
           if (has_vert_snap) {
             retval = SCE_SNAP_MODE_VERTEX;
           }
         }
         if (!has_vert_snap && sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
-          if (test_projected_edge_dist(&nearest2d.nearest_precalc,
-                                       reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                                       nearest2d.clip_planes.size(),
-                                       nearest2d.is_persp,
-                                       eBone->head,
-                                       eBone->tail,
-                                       &sctx->ret.dist_px_sq,
-                                       sctx->ret.loc))
-          {
+          if (nearest2d.snap_edge(eBone->head, eBone->tail)) {
             retval = SCE_SNAP_MODE_EDGE;
           }
         }
@@ -955,37 +927,14 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
       const float *tail_vec = pchan->pose_tail;
 
       if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-        has_vert_snap = test_projected_vert_dist(
-            &nearest2d.nearest_precalc,
-            reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-            nearest2d.clip_planes.size(),
-            nearest2d.is_persp,
-            head_vec,
-            &sctx->ret.dist_px_sq,
-            sctx->ret.loc);
-        has_vert_snap |= test_projected_vert_dist(
-            &nearest2d.nearest_precalc,
-            reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-            nearest2d.clip_planes.size(),
-            nearest2d.is_persp,
-            tail_vec,
-            &sctx->ret.dist_px_sq,
-            sctx->ret.loc);
-
+        has_vert_snap |= nearest2d.snap_point(head_vec);
+        has_vert_snap |= nearest2d.snap_point(tail_vec);
         if (has_vert_snap) {
           retval = SCE_SNAP_MODE_VERTEX;
         }
       }
       if (!has_vert_snap && sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE) {
-        if (test_projected_edge_dist(&nearest2d.nearest_precalc,
-                                     reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                                     nearest2d.clip_planes.size(),
-                                     nearest2d.is_persp,
-                                     head_vec,
-                                     tail_vec,
-                                     &sctx->ret.dist_px_sq,
-                                     sctx->ret.loc))
-        {
+        if (nearest2d.snap_edge(head_vec, tail_vec)) {
           retval = SCE_SNAP_MODE_EDGE;
         }
       }
@@ -993,9 +942,10 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   }
 
   if (retval) {
-    mul_m4_v3(obmat, sctx->ret.loc);
-    /* Does not support index. */
-    sctx->ret.index = -1;
+    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
+
+    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
+    sctx->ret.index = nearest2d.nearest_point.index;
     return retval;
   }
 
@@ -1013,14 +963,14 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
 
   Curve *cu = static_cast<Curve *>(ob_eval->data);
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
 
   const bool use_obedit = BKE_object_is_in_editmode(ob_eval);
 
   if (use_obedit == false) {
     /* Test BoundBox */
     BoundBox *bb = BKE_curve_boundbox_get(ob_eval);
-    if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6], sctx->ret.dist_px_sq)) {
+    if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
       return SCE_SNAP_MODE_NONE;
     }
   }
@@ -1044,14 +994,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
             if (is_selected && skip_selected) {
               continue;
             }
-            has_snap |= test_projected_vert_dist(
-                &nearest2d.nearest_precalc,
-                reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                nearest2d.clip_planes.size(),
-                nearest2d.is_persp,
-                nu->bezt[u].vec[1],
-                &sctx->ret.dist_px_sq,
-                sctx->ret.loc);
+            has_snap |= nearest2d.snap_point(nu->bezt[u].vec[1]);
 
             /* Don't snap if handle is selected (moving),
              * or if it is aligning to a moving handle. */
@@ -1060,25 +1003,11 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
             bool is_autoalign_h1 = (nu->bezt[u].h1 & HD_ALIGN) != 0;
             bool is_autoalign_h2 = (nu->bezt[u].h2 & HD_ALIGN) != 0;
             if (!skip_selected || !(is_selected_h1 || (is_autoalign_h1 && is_selected_h2))) {
-              has_snap |= test_projected_vert_dist(
-                  &nearest2d.nearest_precalc,
-                  reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                  nearest2d.clip_planes.size(),
-                  nearest2d.is_persp,
-                  nu->bezt[u].vec[0],
-                  &sctx->ret.dist_px_sq,
-                  sctx->ret.loc);
+              has_snap |= nearest2d.snap_point(nu->bezt[u].vec[0]);
             }
 
             if (!skip_selected || !(is_selected_h2 || (is_autoalign_h2 && is_selected_h1))) {
-              has_snap |= test_projected_vert_dist(
-                  &nearest2d.nearest_precalc,
-                  reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                  nearest2d.clip_planes.size(),
-                  nearest2d.is_persp,
-                  nu->bezt[u].vec[2],
-                  &sctx->ret.dist_px_sq,
-                  sctx->ret.loc);
+              has_snap |= nearest2d.snap_point(nu->bezt[u].vec[2]);
             }
           }
           else {
@@ -1092,38 +1021,17 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
               continue;
             }
 
-            has_snap |= test_projected_vert_dist(
-                &nearest2d.nearest_precalc,
-                reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                nearest2d.clip_planes.size(),
-                nearest2d.is_persp,
-                nu->bp[u].vec,
-                &sctx->ret.dist_px_sq,
-                sctx->ret.loc);
+            has_snap |= nearest2d.snap_point(nu->bp[u].vec);
           }
         }
         else {
           /* Curve is not visible outside editmode if nurb length less than two. */
           if (nu->pntsu > 1) {
             if (nu->bezt) {
-              has_snap |= test_projected_vert_dist(
-                  &nearest2d.nearest_precalc,
-                  reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                  nearest2d.clip_planes.size(),
-                  nearest2d.is_persp,
-                  nu->bezt[u].vec[1],
-                  &sctx->ret.dist_px_sq,
-                  sctx->ret.loc);
+              has_snap |= nearest2d.snap_point(nu->bezt[u].vec[1]);
             }
             else {
-              has_snap |= test_projected_vert_dist(
-                  &nearest2d.nearest_precalc,
-                  reinterpret_cast<float(*)[4]>(nearest2d.clip_planes.data()),
-                  nearest2d.clip_planes.size(),
-                  nearest2d.is_persp,
-                  nu->bp[u].vec,
-                  &sctx->ret.dist_px_sq,
-                  sctx->ret.loc);
+              has_snap |= nearest2d.snap_point(nu->bp[u].vec);
             }
           }
         }
@@ -1131,9 +1039,10 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
     }
   }
   if (has_snap) {
-    mul_m4_v3(obmat, sctx->ret.loc);
-    /* Does not support index yet. */
-    sctx->ret.index = -1;
+    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
+
+    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
+    sctx->ret.index = nearest2d.nearest_point.index;
     return SCE_SNAP_MODE_VERTEX;
   }
 
@@ -1157,21 +1066,16 @@ static eSnapMode snap_object_center(SnapObjectContext *sctx,
     return retval;
   }
 
-  Nearest2dUserData nearest2d(sctx);
-
-  if (test_projected_vert_dist(&nearest2d.nearest_precalc,
-                               sctx->runtime.clip_plane,
-                               sctx->runtime.clip_plane_len,
-                               nearest2d.is_persp,
-                               obmat[3],
-                               &sctx->ret.dist_px_sq,
-                               sctx->ret.loc))
-  {
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq);
+  if (nearest2d.snap_point(obmat[3])) {
     retval = SCE_SNAP_MODE_VERTEX;
   }
 
   if (retval) {
-    sctx->ret.index = -1;
+    copy_v3_v3(sctx->ret.loc, nearest2d.nearest_point.co);
+
+    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
+    sctx->ret.index = nearest2d.nearest_point.index;
     return retval;
   }
 
@@ -1184,6 +1088,10 @@ static eSnapMode snapCamera(SnapObjectContext *sctx,
                             eSnapMode snap_to_flag)
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;
+
+  if (!(sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
+    return retval;
+  }
 
   Scene *scene = sctx->scene;
 
@@ -1204,55 +1112,47 @@ static eSnapMode snapCamera(SnapObjectContext *sctx,
 
   invert_m4_m4(orig_camera_imat, orig_camera_mat);
   invert_m4_m4(imat, obmat);
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq);
 
-  if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
-    Nearest2dUserData nearest2d(sctx);
+  LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
+    float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
+    const float(*vertex_obmat)[4];
 
-    LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
-      float reconstructed_camera_mat[4][4], reconstructed_camera_imat[4][4];
-      const float(*vertex_obmat)[4];
+    if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
+      BKE_tracking_camera_get_reconstructed_interpolate(
+          tracking, tracking_object, scene->r.cfra, reconstructed_camera_mat);
 
-      if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
-        BKE_tracking_camera_get_reconstructed_interpolate(
-            tracking, tracking_object, scene->r.cfra, reconstructed_camera_mat);
+      invert_m4_m4(reconstructed_camera_imat, reconstructed_camera_mat);
+    }
 
-        invert_m4_m4(reconstructed_camera_imat, reconstructed_camera_mat);
+    LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
+      float bundle_pos[3];
+
+      if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
+        continue;
       }
 
-      LISTBASE_FOREACH (MovieTrackingTrack *, track, &tracking_object->tracks) {
-        float bundle_pos[3];
+      copy_v3_v3(bundle_pos, track->bundle_pos);
+      if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+        vertex_obmat = orig_camera_mat;
+      }
+      else {
+        mul_m4_v3(reconstructed_camera_imat, bundle_pos);
+        vertex_obmat = obmat;
+      }
 
-        if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
-          continue;
-        }
-
-        copy_v3_v3(bundle_pos, track->bundle_pos);
-        if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-          vertex_obmat = orig_camera_mat;
-        }
-        else {
-          mul_m4_v3(reconstructed_camera_imat, bundle_pos);
-          vertex_obmat = obmat;
-        }
-
-        mul_m4_v3(vertex_obmat, bundle_pos);
-        if (test_projected_vert_dist(&nearest2d.nearest_precalc,
-                                     sctx->runtime.clip_plane,
-                                     sctx->runtime.clip_plane_len,
-                                     nearest2d.is_persp,
-                                     bundle_pos,
-                                     &sctx->ret.dist_px_sq,
-                                     sctx->ret.loc))
-        {
-          retval = SCE_SNAP_MODE_VERTEX;
-        }
+      mul_m4_v3(vertex_obmat, bundle_pos);
+      if (nearest2d.snap_point(bundle_pos)) {
+        retval = SCE_SNAP_MODE_VERTEX;
       }
     }
   }
 
   if (retval) {
-    /* Does not support index. */
-    sctx->ret.index = -1;
+    copy_v3_v3(sctx->ret.loc, nearest2d.nearest_point.co);
+
+    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
+    sctx->ret.index = nearest2d.nearest_point.index;
     return retval;
   }
 

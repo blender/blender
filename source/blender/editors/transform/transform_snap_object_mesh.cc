@@ -399,7 +399,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 
   Mesh *mesh_eval = reinterpret_cast<Mesh *>(id);
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
   nearest2d.clip_planes_get(sctx, float4x4(obmat));
   nearest2d_data_init_mesh(mesh_eval, &nearest2d);
 
@@ -471,11 +471,11 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     return SCE_SNAP_MODE_NONE;
   }
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
 
   if (ob_eval->data == me_eval) {
     const BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
-    if (!nearest2d.snap_boundbox(bb->vec[0], bb->vec[6], sctx->ret.dist_px_sq)) {
+    if (!nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
       return SCE_SNAP_MODE_NONE;
     }
   }

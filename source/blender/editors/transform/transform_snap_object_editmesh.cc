@@ -458,7 +458,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
 
   BMEditMesh *em = sod->treedata_editmesh.em;
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
   nearest2d.clip_planes_get(sctx, float4x4(obmat));
   nearest2d_data_init_editmesh(em, &nearest2d);
 
@@ -527,10 +527,10 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
 {
   BLI_assert(snap_to_flag != SCE_SNAP_MODE_FACE);
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
 
   /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
-  if (!nearest2d.snap_boundbox(sod->min, sod->max, sctx->ret.dist_px_sq)) {
+  if (!nearest2d.snap_boundbox(sod->min, sod->max)) {
     return SCE_SNAP_MODE_NONE;
   }
 

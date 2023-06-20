@@ -117,13 +117,18 @@ struct Nearest2dUserData {
  public:
   /* Constructor. */
   Nearest2dUserData(SnapObjectContext *sctx,
+                    float dist_px_sq,
                     const blender::float4x4 &obmat = blender::float4x4::identity());
 
   void clip_planes_get(SnapObjectContext *sctx,
                        const blender::float4x4 &obmat,
                        bool skip_occlusion_plane = false);
 
-  bool snap_boundbox(const blender::float3 &min, const blender::float3 &max, float dist_px_sq);
+  bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
+
+  bool snap_point(const blender::float3 &co, int index = -1);
+
+  bool snap_edge(const blender::float3 &va, const blender::float3 &vb, int edge_index = -1);
 
   DistProjectedAABBPrecalc nearest_precalc;
   blender::float4x4 pmat_local;
@@ -151,6 +156,8 @@ struct Nearest2dUserData {
 
   bool is_persp;
   bool use_backface_culling;
+
+  BVHTreeNearest nearest_point;
 };
 
 /* transform_snap_object.cc */
