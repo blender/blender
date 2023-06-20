@@ -18,8 +18,9 @@ class MyPanel(bpy.types.Panel):
         draw_ui_list(
             layout,
             context,
-            list_context_path="scene.my_list",
-            active_index_context_path="scene.my_list_active_index"
+            list_path="scene.my_list",
+            active_index_path="scene.my_list_active_index",
+            unique_id="my_list_id",
         )
 
 
