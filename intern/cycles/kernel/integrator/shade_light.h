@@ -24,12 +24,15 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
   float3 ray_P = INTEGRATOR_STATE(state, ray, P);
   const float3 ray_D = INTEGRATOR_STATE(state, ray, D);
   const float ray_time = INTEGRATOR_STATE(state, ray, time);
+  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
+  const float3 N = INTEGRATOR_STATE(state, path, mis_origin_n);
 
   /* Advance ray to new start distance. */
   INTEGRATOR_STATE_WRITE(state, ray, tmin) = intersection_t_offset(isect.t);
 
   LightSample ls ccl_optional_struct_init;
-  const bool use_light_sample = light_sample_from_intersection(kg, &isect, ray_P, ray_D, &ls);
+  const bool use_light_sample = light_sample_from_intersection(
+      kg, &isect, ray_P, ray_D, N, path_flag, &ls);
 
   if (!use_light_sample) {
     return;
@@ -37,7 +40,6 @@ ccl_device_inline void integrate_light(KernelGlobals kg,
 
   /* Use visibility flag to skip lights. */
 #ifdef __PASSES__
-  const uint32_t path_flag = INTEGRATOR_STATE(state, path, flag);
   if (!is_light_shader_visible_to_path(ls.shader, path_flag)) {
     return;
   }

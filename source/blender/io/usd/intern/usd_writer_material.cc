@@ -280,8 +280,6 @@ void create_usd_viewport_material(const USDExporterContext &usd_export_context,
   shader.CreateIdAttr(pxr::VtValue(usdtokens::preview_surface));
   shader.CreateInput(usdtokens::diffuse_color, pxr::SdfValueTypeNames->Color3f)
       .Set(pxr::GfVec3f(material->r, material->g, material->b));
-  shader.CreateInput(usdtokens::emissive_color, pxr::SdfValueTypeNames->Color3f)
-      .Set(pxr::GfVec3f(material->r, material->g, material->b));
   shader.CreateInput(usdtokens::roughness, pxr::SdfValueTypeNames->Float).Set(material->roughness);
   shader.CreateInput(usdtokens::metallic, pxr::SdfValueTypeNames->Float).Set(material->metallic);
 

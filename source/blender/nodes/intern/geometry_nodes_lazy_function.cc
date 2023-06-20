@@ -1528,13 +1528,16 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     lf::Node *lf_zone_input_node = nullptr;
     lf::Node *lf_main_input_usage_node = nullptr;
     if (zone.input_node != nullptr) {
-      lf_zone_input_node = &this->build_simulation_zone_input_node(zone, lf_graph);
-      lf_main_input_usage_node = &this->build_simulation_zone_input_usage_node(zone, lf_graph);
+      lf_zone_input_node = &this->build_dummy_node_for_sockets(
+          "Zone Input", {}, zone.input_node->input_sockets().drop_back(1), lf_graph);
+      lf_main_input_usage_node = &this->build_dummy_node_for_socket_usages(
+          "Input Usages", zone.input_node->input_sockets().drop_back(1), {}, lf_graph);
     }
     lf::Node &lf_border_link_input_node = this->build_zone_border_links_input_node(zone, lf_graph);
-    lf::Node &lf_zone_output_node = this->build_simulation_zone_output_node(zone, lf_graph);
-    lf::Node &lf_main_output_usage_node = this->build_simulation_zone_output_usage_node(zone,
-                                                                                        lf_graph);
+    lf::Node &lf_zone_output_node = this->build_dummy_node_for_sockets(
+        "Zone Output", zone.output_node->output_sockets().drop_back(1), {}, lf_graph);
+    lf::Node &lf_main_output_usage_node = this->build_dummy_node_for_socket_usages(
+        "Output Usages", {}, zone.output_node->output_sockets().drop_back(1), lf_graph);
     lf::Node &lf_border_link_usage_node = this->build_border_link_input_usage_node(zone, lf_graph);
 
     lf::Node &lf_simulation_usage_node = [&]() -> lf::Node & {
@@ -1638,58 +1641,6 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     zone_info.lazy_function = &zone_function;
 
     // std::cout << "\n\n" << lf_graph.to_dot() << "\n\n";
-  }
-
-  lf::DummyNode &build_simulation_zone_input_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
-  {
-    Vector<const CPPType *, 16> zone_input_types;
-    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
-    debug_info.name = "Zone Input";
-    for (const bNodeSocket *socket : zone.input_node->input_sockets().drop_back(1)) {
-      zone_input_types.append(socket->typeinfo->geometry_nodes_cpp_type);
-      debug_info.output_names.append(socket->identifier);
-    }
-    lf::DummyNode &node = lf_graph.add_dummy({}, zone_input_types, &debug_info);
-    return node;
-  }
-
-  lf::DummyNode &build_simulation_zone_output_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
-  {
-    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
-    debug_info.name = "Zone Output";
-    Vector<const CPPType *, 16> zone_output_types;
-    for (const bNodeSocket *socket : zone.output_node->output_sockets().drop_back(1)) {
-      zone_output_types.append(socket->typeinfo->geometry_nodes_cpp_type);
-      debug_info.input_names.append(socket->identifier);
-    }
-    lf::DummyNode &node = lf_graph.add_dummy(zone_output_types, {}, &debug_info);
-    return node;
-  }
-
-  lf::DummyNode &build_simulation_zone_input_usage_node(const bNodeTreeZone &zone,
-                                                        lf::Graph &lf_graph)
-  {
-    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
-    debug_info.name = "Input Usages";
-    Vector<const CPPType *, 16> types;
-    types.append_n_times(&CPPType::get<bool>(),
-                         zone.input_node->input_sockets().drop_back(1).size());
-    debug_info.input_names.append_n_times("Usage", types.size());
-    lf::DummyNode &node = lf_graph.add_dummy(types, {}, &debug_info);
-    return node;
-  }
-
-  lf::DummyNode &build_simulation_zone_output_usage_node(const bNodeTreeZone &zone,
-                                                         lf::Graph &lf_graph)
-  {
-    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
-    debug_info.name = "Output Usages";
-    Vector<const CPPType *, 16> types;
-    types.append_n_times(&CPPType::get<bool>(),
-                         zone.output_node->output_sockets().drop_back(1).size());
-    debug_info.output_names.append_n_times("Usage", types.size());
-    lf::DummyNode &node = lf_graph.add_dummy({}, types, &debug_info);
-    return node;
   }
 
   lf::DummyNode &build_zone_border_links_input_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
@@ -2854,6 +2805,48 @@ struct GeometryNodesLazyFunctionGraphBuilder {
       graph_params.lf_output_by_bsocket.add(bsocket, &lf_socket);
       mapping_->bsockets_by_lf_socket_map.add(&lf_socket, bsocket);
     }
+  }
+
+  lf::DummyNode &build_dummy_node_for_sockets(const StringRef name,
+                                              const Span<const bNodeSocket *> input_bsockets,
+                                              const Span<const bNodeSocket *> output_bsockets,
+                                              lf::Graph &lf_graph)
+  {
+    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
+    debug_info.name = name;
+    Vector<const CPPType *, 16> input_types;
+    Vector<const CPPType *, 16> output_types;
+    for (const bNodeSocket *bsocket : input_bsockets) {
+      input_types.append(bsocket->typeinfo->geometry_nodes_cpp_type);
+      debug_info.input_names.append(bsocket->identifier);
+    }
+    for (const bNodeSocket *bsocket : output_bsockets) {
+      output_types.append(bsocket->typeinfo->geometry_nodes_cpp_type);
+      debug_info.output_names.append(bsocket->identifier);
+    }
+    lf::DummyNode &node = lf_graph.add_dummy(input_types, output_types, &debug_info);
+    return node;
+  }
+
+  lf::DummyNode &build_dummy_node_for_socket_usages(
+      const StringRef name,
+      const Span<const bNodeSocket *> input_bsockets,
+      const Span<const bNodeSocket *> output_bsockets,
+      lf::Graph &lf_graph)
+  {
+    auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
+    debug_info.name = name;
+    const CPPType &bool_cpp_type = CPPType::get<bool>();
+    Vector<const CPPType *, 16> input_types(input_bsockets.size(), &bool_cpp_type);
+    Vector<const CPPType *, 16> output_types(output_bsockets.size(), &bool_cpp_type);
+    for (const bNodeSocket *bsocket : input_bsockets) {
+      debug_info.input_names.append(bsocket->identifier);
+    }
+    for (const bNodeSocket *bsocket : output_bsockets) {
+      debug_info.output_names.append(bsocket->identifier);
+    }
+    lf::DummyNode &node = lf_graph.add_dummy(input_types, output_types, &debug_info);
+    return node;
   }
 
   struct TypeWithLinks {

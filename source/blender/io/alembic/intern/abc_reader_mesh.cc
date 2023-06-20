@@ -467,8 +467,8 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
   }
 }
 
-static bool samples_have_same_topology(const IPolyMeshSchema::Sample &sample,
-                                       const IPolyMeshSchema::Sample &ceil_sample)
+template<typename SampleType>
+static bool samples_have_same_topology(const SampleType &sample, const SampleType &ceil_sample)
 {
   const P3fArraySamplePtr &positions = sample.getPositions();
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
@@ -926,7 +926,10 @@ static void read_subd_sample(const std::string &iobject_full_name,
   if (config.weight != 0.0f) {
     Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
     schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
-    abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    if (samples_have_same_topology(sample, ceil_sample)) {
+      /* Only set interpolation data if the samples are compatible. */
+      abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    }
   }
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
@@ -1161,6 +1164,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
   CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
   config.time = sample_sel.getRequestedTime();
+  config.modifier_error_message = err_str;
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
 
   return mesh_to_export;
