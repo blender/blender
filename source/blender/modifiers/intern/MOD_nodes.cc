@@ -430,8 +430,6 @@ static void find_side_effect_nodes_for_viewer_path(
     const ModifierEvalContext &ctx,
     MultiValueMap<ComputeContextHash, const lf::FunctionNode *> &r_side_effect_nodes)
 {
-  using namespace bke::node_tree_zones;
-
   const std::optional<ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
       ed::viewer_path::parse_geometry_nodes_viewer(viewer_path);
   if (!parsed_path.has_value()) {
@@ -453,9 +451,9 @@ static void find_side_effect_nodes_for_viewer_path(
   MultiValueMap<ComputeContextHash, const lf::FunctionNode *> local_side_effect_nodes;
 
   const bNodeTree *group = nmd.node_group;
-  const TreeZone *zone = nullptr;
+  const bke::bNodeTreeZone *zone = nullptr;
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    const TreeZones *tree_zones = group->zones();
+    const bke::bNodeTreeZones *tree_zones = group->zones();
     if (tree_zones == nullptr) {
       return;
     }
@@ -466,7 +464,8 @@ static void find_side_effect_nodes_for_viewer_path(
     switch (elem->type) {
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
         const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(elem);
-        const TreeZone *next_zone = tree_zones->get_zone_by_node(typed_elem.sim_output_node_id);
+        const bke::bNodeTreeZone *next_zone = tree_zones->get_zone_by_node(
+            typed_elem.sim_output_node_id);
         if (next_zone == nullptr) {
           return;
         }
@@ -524,7 +523,7 @@ static void find_side_effect_nodes_for_viewer_path(
   if (lf_graph_info == nullptr) {
     return;
   }
-  const TreeZones *tree_zones = group->zones();
+  const bke::bNodeTreeZones *tree_zones = group->zones();
   if (tree_zones == nullptr) {
     return;
   }
@@ -588,7 +587,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
       const SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
       if (sl->spacetype == SPACE_NODE) {
         const SpaceNode &snode = *reinterpret_cast<const SpaceNode *>(sl);
-        const Map<const bke::node_tree_zones::TreeZone *, ComputeContextHash> hash_by_zone =
+        const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
             geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
                                                                               nmd.modifier.name);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {

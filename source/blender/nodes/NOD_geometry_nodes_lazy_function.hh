@@ -176,7 +176,7 @@ struct GeometryNodeLazyFunctionGraphMapping {
    */
   Map<const bNode *, const lf::FunctionNode *> group_node_map;
   Map<const bNode *, const lf::FunctionNode *> viewer_node_map;
-  Map<const bke::node_tree_zones::TreeZone *, const lf::FunctionNode *> zone_node_map;
+  Map<const bke::bNodeTreeZone *, const lf::FunctionNode *> zone_node_map;
 
   /* Indexed by #bNodeSocket::index_in_all_outputs. */
   Array<int> lf_input_index_for_output_bsocket_usage;

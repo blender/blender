@@ -19,9 +19,10 @@
 
 namespace blender::nodes::geo_eval_log {
 
+using bke::bNodeTreeZone;
+using bke::bNodeTreeZones;
 using fn::FieldInput;
 using fn::FieldInputs;
-using namespace bke::node_tree_zones;
 
 GenericValueLog::~GenericValueLog()
 {
@@ -520,20 +521,20 @@ static std::optional<ObjectAndModifier> get_modifier_for_node_editor(const Space
 }
 
 static void find_tree_zone_hash_recursive(
-    const TreeZone &zone,
+    const bNodeTreeZone &zone,
     ComputeContextBuilder &compute_context_builder,
-    Map<const TreeZone *, ComputeContextHash> &r_hash_by_zone)
+    Map<const bNodeTreeZone *, ComputeContextHash> &r_hash_by_zone)
 {
   compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone.output_node);
   r_hash_by_zone.add_new(&zone, compute_context_builder.hash());
-  for (const TreeZone *child_zone : zone.child_zones) {
+  for (const bNodeTreeZone *child_zone : zone.child_zones) {
     find_tree_zone_hash_recursive(*child_zone, compute_context_builder, r_hash_by_zone);
   }
   compute_context_builder.pop();
 }
 
-Map<const TreeZone *, ComputeContextHash> GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-    const SpaceNode &snode, StringRefNull modifier_name)
+Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
+    get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name)
 {
   const Vector<const bNodeTreePath *> tree_path = snode.treepath;
   if (tree_path.is_empty()) {
@@ -550,31 +551,31 @@ Map<const TreeZone *, ComputeContextHash> GeoModifierLog::get_context_hash_by_zo
     if (group_node == nullptr) {
       return {};
     }
-    const TreeZones *tree_zones = tree->zones();
+    const bNodeTreeZones *tree_zones = tree->zones();
     if (tree_zones == nullptr) {
       return {};
     }
-    const Vector<const TreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
+    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
         group_node->identifier);
-    for (const TreeZone *zone : zone_stack) {
+    for (const bNodeTreeZone *zone : zone_stack) {
       compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
     }
     compute_context_builder.push<bke::NodeGroupComputeContext>(*group_node);
   }
 
-  const TreeZones *tree_zones = snode.edittree->zones();
+  const bNodeTreeZones *tree_zones = snode.edittree->zones();
   if (tree_zones == nullptr) {
     return {};
   }
-  Map<const TreeZone *, ComputeContextHash> hash_by_zone;
+  Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone;
   hash_by_zone.add_new(nullptr, compute_context_builder.hash());
-  for (const TreeZone *zone : tree_zones->root_zones) {
+  for (const bNodeTreeZone *zone : tree_zones->root_zones) {
     find_tree_zone_hash_recursive(*zone, compute_context_builder, hash_by_zone);
   }
   return hash_by_zone;
 }
 
-Map<const TreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
+Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_node_editor(
     const SpaceNode &snode)
 {
   std::optional<ObjectAndModifier> object_and_modifier = get_modifier_for_node_editor(snode);
@@ -586,10 +587,10 @@ Map<const TreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_for_nod
   if (modifier_log == nullptr) {
     return {};
   }
-  const Map<const TreeZone *, ComputeContextHash> hash_by_zone =
+  const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
       GeoModifierLog::get_context_hash_by_zone_for_node_editor(
           snode, object_and_modifier->nmd->modifier.name);
-  Map<const TreeZone *, GeoTreeLog *> log_by_zone;
+  Map<const bNodeTreeZone *, GeoTreeLog *> log_by_zone;
   for (const auto item : hash_by_zone.items()) {
     GeoTreeLog &tree_log = modifier_log->get_tree_log(item.value);
     log_by_zone.add(item.key, &tree_log);

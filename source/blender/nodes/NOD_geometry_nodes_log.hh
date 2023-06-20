@@ -334,11 +334,11 @@ class GeoModifierLog {
   /**
    * Utility accessor to logged data.
    */
-  static Map<const bke::node_tree_zones::TreeZone *, ComputeContextHash>
+  static Map<const bke::bNodeTreeZone *, ComputeContextHash>
   get_context_hash_by_zone_for_node_editor(const SpaceNode &snode, StringRefNull modifier_name);
 
-  static Map<const bke::node_tree_zones::TreeZone *, GeoTreeLog *>
-  get_tree_log_by_zone_for_node_editor(const SpaceNode &snode);
+  static Map<const bke::bNodeTreeZone *, GeoTreeLog *> get_tree_log_by_zone_for_node_editor(
+      const SpaceNode &snode);
   static const ViewerNodeLog *find_viewer_node_log_for_path(const ViewerPath &viewer_path);
 };
 

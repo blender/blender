@@ -23,7 +23,8 @@
 
 namespace blender::ed::viewer_path {
 
-using namespace bke::node_tree_zones;
+using bke::bNodeTreeZone;
+using bke::bNodeTreeZones;
 
 static void viewer_path_for_geometry_node(const SpaceNode &snode,
                                           const bNode &node,
@@ -75,13 +76,13 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
     BLI_assert(node != nullptr);
 
     tree->ensure_topology_cache();
-    const TreeZones *tree_zones = tree->zones();
+    const bNodeTreeZones *tree_zones = tree->zones();
     if (!tree_zones) {
       return;
     }
-    const Vector<const TreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
+    const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
         node->identifier);
-    for (const TreeZone *zone : zone_stack) {
+    for (const bNodeTreeZone *zone : zone_stack) {
       SimulationZoneViewerPathElem *node_elem = BKE_viewer_path_elem_new_simulation_zone();
       node_elem->sim_output_node_id = zone->output_node->identifier;
       BLI_addtail(&r_dst.path, node_elem);
@@ -94,12 +95,13 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
   }
 
   snode.edittree->ensure_topology_cache();
-  const TreeZones *tree_zones = snode.edittree->zones();
+  const bNodeTreeZones *tree_zones = snode.edittree->zones();
   if (!tree_zones) {
     return;
   }
-  const Vector<const TreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(node.identifier);
-  for (const TreeZone *zone : zone_stack) {
+  const Vector<const bNodeTreeZone *> zone_stack = tree_zones->get_zone_stack_for_node(
+      node.identifier);
+  for (const bNodeTreeZone *zone : zone_stack) {
     SimulationZoneViewerPathElem *node_elem = BKE_viewer_path_elem_new_simulation_zone();
     node_elem->sim_output_node_id = zone->output_node->identifier;
     BLI_addtail(&r_dst.path, node_elem);
@@ -254,15 +256,16 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
     return false;
   }
   const bNodeTree *ngroup = modifier->node_group;
-  const TreeZone *zone = nullptr;
+  const bNodeTreeZone *zone = nullptr;
   for (const ViewerPathElem *path_elem : parsed_viewer_path.node_path) {
     ngroup->ensure_topology_cache();
-    const TreeZones *tree_zones = ngroup->zones();
+    const bNodeTreeZones *tree_zones = ngroup->zones();
     switch (path_elem->type) {
       case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
         const auto &typed_elem = *reinterpret_cast<const SimulationZoneViewerPathElem *>(
             path_elem);
-        const TreeZone *next_zone = tree_zones->get_zone_by_node(typed_elem.sim_output_node_id);
+        const bNodeTreeZone *next_zone = tree_zones->get_zone_by_node(
+            typed_elem.sim_output_node_id);
         if (next_zone == nullptr) {
           return false;
         }
@@ -278,7 +281,7 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
         if (group_node == nullptr) {
           return false;
         }
-        const TreeZone *parent_zone = tree_zones->get_zone_by_node(typed_elem.node_id);
+        const bNodeTreeZone *parent_zone = tree_zones->get_zone_by_node(typed_elem.node_id);
         if (parent_zone != zone) {
           return false;
         }
@@ -299,7 +302,7 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
   if (viewer_node == nullptr) {
     return false;
   }
-  const TreeZones *tree_zones = ngroup->zones();
+  const bNodeTreeZones *tree_zones = ngroup->zones();
   if (tree_zones == nullptr) {
     return false;
   }

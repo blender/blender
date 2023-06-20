@@ -42,8 +42,6 @@ using blender::nodes::geo_eval_log::GeometryAttributeInfo;
 
 namespace blender::ed::space_node {
 
-using namespace bke::node_tree_zones;
-
 struct AttributeSearchData {
   int32_t node_id;
   char socket_identifier[MAX_NAME];
@@ -72,11 +70,11 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     BLI_assert_unreachable();
     return {};
   }
-  const TreeZones *tree_zones = node_tree->zones();
+  const bke::bNodeTreeZones *tree_zones = node_tree->zones();
   if (!tree_zones) {
     return {};
   }
-  const Map<const TreeZone *, GeoTreeLog *> log_by_zone =
+  const Map<const bke::bNodeTreeZone *, GeoTreeLog *> log_by_zone =
       GeoModifierLog::get_tree_log_by_zone_for_node_editor(*snode);
 
   /* For the attribute input node, collect attribute information from all nodes in the group. */
@@ -93,7 +91,7 @@ static Vector<const GeometryAttributeInfo *> get_attribute_info_from_context(
     }
     return attributes;
   }
-  const TreeZone *zone = tree_zones->get_zone_by_node(node->identifier);
+  const bke::bNodeTreeZone *zone = tree_zones->get_zone_by_node(node->identifier);
   GeoTreeLog *tree_log = log_by_zone.lookup_default(zone, nullptr);
   if (!tree_log) {
     return {};

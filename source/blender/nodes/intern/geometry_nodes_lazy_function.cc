@@ -52,8 +52,8 @@
 namespace blender::nodes {
 
 namespace aai = bke::anonymous_attribute_inferencing;
-using bke::node_tree_zones::TreeZone;
-using bke::node_tree_zones::TreeZones;
+using bke::bNodeTreeZone;
+using bke::bNodeTreeZones;
 using fn::ValueOrField;
 using fn::ValueOrFieldCPPType;
 
@@ -1445,7 +1445,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
    */
   Map<const bNode *, lf::Node *> simulation_inputs_usage_nodes_;
 
-  const TreeZones *tree_zones_;
+  const bNodeTreeZones *tree_zones_;
   Array<ZoneBuildInfo> zone_build_infos_;
 
   friend class UsedSocketVisualizeOptions;
@@ -1497,7 +1497,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     const Array<int> zone_build_order = this->compute_zone_build_order();
 
     for (const int zone_i : zone_build_order) {
-      const TreeZone &zone = *tree_zones_->zones[zone_i];
+      const bNodeTreeZone &zone = *tree_zones_->zones[zone_i];
       BLI_assert(zone.output_node->type == GEO_NODE_SIMULATION_OUTPUT);
       this->build_simulation_zone_function(zone);
     }
@@ -1519,7 +1519,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
    * Builds a lazy-function for a simulation zone.
    * Internally, the generated lazy-function is just another graph.
    */
-  void build_simulation_zone_function(const TreeZone &zone)
+  void build_simulation_zone_function(const bNodeTreeZone &zone)
   {
     const int zone_i = zone.index;
     ZoneBuildInfo &zone_info = zone_build_infos_[zone_i];
@@ -1640,7 +1640,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     // std::cout << "\n\n" << lf_graph.to_dot() << "\n\n";
   }
 
-  lf::DummyNode &build_simulation_zone_input_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_simulation_zone_input_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
   {
     Vector<const CPPType *, 16> zone_input_types;
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
@@ -1653,7 +1653,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     return node;
   }
 
-  lf::DummyNode &build_simulation_zone_output_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_simulation_zone_output_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
   {
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
     debug_info.name = "Zone Output";
@@ -1666,7 +1666,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     return node;
   }
 
-  lf::DummyNode &build_simulation_zone_input_usage_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_simulation_zone_input_usage_node(const bNodeTreeZone &zone,
+                                                        lf::Graph &lf_graph)
   {
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
     debug_info.name = "Input Usages";
@@ -1678,7 +1679,8 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     return node;
   }
 
-  lf::DummyNode &build_simulation_zone_output_usage_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_simulation_zone_output_usage_node(const bNodeTreeZone &zone,
+                                                         lf::Graph &lf_graph)
   {
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
     debug_info.name = "Output Usages";
@@ -1690,7 +1692,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     return node;
   }
 
-  lf::DummyNode &build_zone_border_links_input_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_zone_border_links_input_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
   {
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
     debug_info.name = "Border Links";
@@ -1703,7 +1705,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     return node;
   }
 
-  lf::DummyNode &build_border_link_input_usage_node(const TreeZone &zone, lf::Graph &lf_graph)
+  lf::DummyNode &build_border_link_input_usage_node(const bNodeTreeZone &zone, lf::Graph &lf_graph)
   {
     auto &debug_info = scope_.construct<lf::SimpleDummyDebugInfo>();
     debug_info.name = "Border Link Usages";
@@ -2024,12 +2026,12 @@ struct GeometryNodesLazyFunctionGraphBuilder {
   }
 
   void insert_nodes_and_zones(const Span<const bNode *> bnodes,
-                              const Span<const TreeZone *> zones,
+                              const Span<const bNodeTreeZone *> zones,
                               BuildGraphParams &graph_params)
   {
     Vector<const bNode *> nodes_to_insert = bnodes;
-    Map<const bNode *, const TreeZone *> zone_by_output;
-    for (const TreeZone *zone : zones) {
+    Map<const bNode *, const bNodeTreeZone *> zone_by_output;
+    for (const bNodeTreeZone *zone : zones) {
       nodes_to_insert.append(zone->output_node);
       zone_by_output.add(zone->output_node, zone);
     }
@@ -2040,7 +2042,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
 
     for (const bNode *bnode : nodes_to_insert) {
       this->build_output_socket_usages(*bnode, graph_params);
-      if (const TreeZone *zone = zone_by_output.lookup_default(bnode, nullptr)) {
+      if (const bNodeTreeZone *zone = zone_by_output.lookup_default(bnode, nullptr)) {
         this->insert_child_zone_node(*zone, graph_params);
       }
       else {
@@ -2049,7 +2051,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
   }
 
-  void link_border_link_inputs_and_usages(const TreeZone &zone,
+  void link_border_link_inputs_and_usages(const bNodeTreeZone &zone,
                                           lf::Node &lf_border_link_input_node,
                                           lf::Node &lf_border_link_usage_node,
                                           BuildGraphParams &graph_params)
@@ -2137,7 +2139,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     });
   }
 
-  void insert_child_zone_node(const TreeZone &child_zone, BuildGraphParams &graph_params)
+  void insert_child_zone_node(const bNodeTreeZone &child_zone, BuildGraphParams &graph_params)
   {
     const int child_zone_i = child_zone.index;
     ZoneBuildInfo &child_zone_info = zone_build_infos_[child_zone_i];

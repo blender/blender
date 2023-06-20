@@ -94,8 +94,8 @@
 #include <fmt/format.h>
 
 namespace geo_log = blender::nodes::geo_eval_log;
-using blender::bke::node_tree_zones::TreeZone;
-using blender::bke::node_tree_zones::TreeZones;
+using blender::bke::bNodeTreeZone;
+using blender::bke::bNodeTreeZones;
 
 /**
  * This is passed to many functions which draw the node editor.
@@ -113,7 +113,7 @@ struct TreeDrawContext {
    * Geometry nodes logs various data during execution. The logged data that corresponds to the
    * currently drawn node tree can be retrieved from the log below.
    */
-  blender::Map<const TreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
+  blender::Map<const bNodeTreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
   /**
    * True if there is an active realtime compositor using the node tree, false otherwise.
    */
@@ -1146,11 +1146,11 @@ static char *node_socket_get_tooltip(const SpaceNode *snode,
   }
 
   geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const TreeZones *zones = ntree.zones();
+    const bNodeTreeZones *zones = ntree.zones();
     if (!zones) {
       return nullptr;
     }
-    const TreeZone *zone = zones->get_zone_by_socket(socket);
+    const bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
     return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
   }();
 
@@ -1749,11 +1749,11 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   }
 
   geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const TreeZones *zones = node.owner_tree().zones();
+    const bNodeTreeZones *zones = node.owner_tree().zones();
     if (!zones) {
       return nullptr;
     }
-    const TreeZone *zone = zones->get_zone_by_node(node.identifier);
+    const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
     return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
   }();
 
@@ -1798,11 +1798,11 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
     const TreeDrawContext &tree_draw_ctx, const bNodeTree &ntree, const bNode &node)
 {
   geo_log::GeoTreeLog *tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const TreeZones *zones = ntree.zones();
+    const bNodeTreeZones *zones = ntree.zones();
     if (!zones) {
       return nullptr;
     }
-    const TreeZone *zone = zones->get_zone_by_node(node.identifier);
+    const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
     return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
   }();
 
@@ -1964,11 +1964,11 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
     TreeDrawContext &tree_draw_ctx, const bNode &node)
 {
   geo_log::GeoTreeLog *geo_tree_log = [&]() -> geo_log::GeoTreeLog * {
-    const TreeZones *zones = node.owner_tree().zones();
+    const bNodeTreeZones *zones = node.owner_tree().zones();
     if (!zones) {
       return nullptr;
     }
-    const TreeZone *zone = zones->get_zone_by_node(node.identifier);
+    const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
     return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
   }();
   if (geo_tree_log == nullptr) {
@@ -2034,11 +2034,11 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
 
   if (snode.edittree->type == NTREE_GEOMETRY) {
     geo_log::GeoTreeLog *tree_log = [&]() -> geo_log::GeoTreeLog * {
-      const TreeZones *tree_zones = node.owner_tree().zones();
+      const bNodeTreeZones *tree_zones = node.owner_tree().zones();
       if (!tree_zones) {
         return nullptr;
       }
-      const TreeZone *zone = tree_zones->get_zone_by_node(node.identifier);
+      const bNodeTreeZone *zone = tree_zones->get_zone_by_node(node.identifier);
       return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
     }();
 
@@ -3097,8 +3097,8 @@ static void add_rect_corner_positions(Vector<float2> &positions, const rctf &rec
 }
 
 static void find_bounds_by_zone_recursive(const SpaceNode &snode,
-                                          const TreeZone &zone,
-                                          const Span<std::unique_ptr<TreeZone>> all_zones,
+                                          const bNodeTreeZone &zone,
+                                          const Span<std::unique_ptr<bNodeTreeZone>> all_zones,
                                           MutableSpan<Vector<float2>> r_bounds_by_zone)
 {
   const float node_padding = UI_UNIT_X;
@@ -3110,7 +3110,7 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
   }
 
   Vector<float2> possible_bounds;
-  for (const TreeZone *child_zone : zone.child_zones) {
+  for (const bNodeTreeZone *child_zone : zone.child_zones) {
     find_bounds_by_zone_recursive(snode, *child_zone, all_zones, r_bounds_by_zone);
     const Span<float2> child_bounds = r_bounds_by_zone[child_zone->index];
     for (const float2 &pos : child_bounds) {
@@ -3170,7 +3170,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
                             const SpaceNode &snode,
                             const bNodeTree &ntree)
 {
-  const TreeZones *zones = ntree.zones();
+  const bNodeTreeZones *zones = ntree.zones();
   if (zones == nullptr) {
     return;
   }
@@ -3179,7 +3179,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
   Array<bke::CurvesGeometry> fillet_curve_by_zone(zones->zones.size());
 
   for (const int zone_i : zones->zones.index_range()) {
-    const TreeZone &zone = *zones->zones[zone_i];
+    const bNodeTreeZone &zone = *zones->zones[zone_i];
 
     find_bounds_by_zone_recursive(snode, zone, zones->zones, bounds_by_zone);
     const Span<float2> boundary_positions = bounds_by_zone[zone_i];
