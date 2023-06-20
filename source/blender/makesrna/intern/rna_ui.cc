@@ -266,7 +266,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   RNA_pointer_create(nullptr, &RNA_Panel, &dummy_panel, &dummy_panel_ptr);
 
   /* We have to set default context! Else we get a void string... */
-  strcpy(dummy_pt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(dummy_pt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   /* validate the python class */
   if (validate(&dummy_panel_ptr, data, have_function) != 0) {
@@ -286,7 +286,7 @@ static StructRNA *rna_Panel_register(Main *bmain,
   if ((1 << dummy_pt.region_type) & RGN_TYPE_HAS_CATEGORY_MASK) {
     if (dummy_pt.category[0] == '\0') {
       /* Use a fallback, otherwise an empty value will draw the panel in every category. */
-      strcpy(dummy_pt.category, PNL_CATEGORY_FALLBACK);
+      STRNCPY(dummy_pt.category, PNL_CATEGORY_FALLBACK);
 #  ifndef NDEBUG
       printf("%s '%s' misses category, please update the script\n", error_prefix, dummy_pt.idname);
 #  endif
@@ -989,7 +989,7 @@ static StructRNA *rna_Menu_register(Main *bmain,
   RNA_pointer_create(nullptr, &RNA_Menu, &dummy_menu, &dummy_menu_ptr);
 
   /* We have to set default context! Else we get a void string... */
-  strcpy(dummy_mt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(dummy_mt.translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 
   /* validate the python class */
   if (validate(&dummy_menu_ptr, data, have_function) != 0) {

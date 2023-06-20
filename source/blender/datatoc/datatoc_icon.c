@@ -36,17 +36,6 @@
 /* -------------------------------------------------------------------- */
 /* Utility functions */
 
-static int path_ensure_slash(char *path)
-{
-  int len = strlen(path);
-  if (len == 0 || path[len - 1] != SEP) {
-    path[len] = SEP;
-    path[len + 1] = '\0';
-    return len + 1;
-  }
-  return len;
-}
-
 static bool path_test_extension(const char *filepath, const char *ext)
 {
   const size_t a = strlen(filepath);
@@ -79,6 +68,25 @@ static const char *path_basename(const char *path)
 {
   const char *const filename = path_slash_rfind(path);
   return filename ? filename + 1 : path;
+}
+
+static bool path_join(char *filepath,
+                      size_t filepath_maxncpy,
+                      const char *dirpath,
+                      const char *filename)
+{
+  int dirpath_len = strlen(dirpath);
+  if (dirpath_len && dirpath[dirpath_len - 1] == SEP) {
+    dirpath_len--;
+  }
+  const int filename_len = strlen(filename);
+  if (dirpath_len + 1 + filename_len + 1 > filepath_maxncpy) {
+    return false;
+  }
+  memcpy(filepath, dirpath, dirpath_len);
+  filepath[dirpath_len] = SEP;
+  memcpy(filepath + dirpath_len + 1, filename, filename_len + 1);
+  return true;
 }
 
 /* -------------------------------------------------------------------- */
@@ -392,8 +400,6 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
   DIR *dir;
   const struct dirent *fname;
   char filepath[1024];
-  char *filename;
-  int path_str_len;
   int found = 0, fail = 0;
 
   struct IconMergeContext context;
@@ -411,15 +417,12 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
     return false;
   }
 
-  strcpy(filepath, path_src);
-  path_str_len = path_ensure_slash(filepath);
-  filename = &filepath[path_str_len];
-
   while ((fname = readdir(dir)) != NULL) {
     if (path_test_extension(fname->d_name, ".dat")) {
-
-      strcpy(filename, fname->d_name);
-
+      if (!path_join(filepath, sizeof(filepath), path_src, fname->d_name)) {
+        printf("%s: path is too long (%s, %s)\n", __func__, path_src, fname->d_name);
+        return false;
+      }
       if (icon_merge(&context, filepath, &pixels_canvas, &canvas_w, &canvas_h)) {
         found++;
       }
