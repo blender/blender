@@ -396,19 +396,8 @@ bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
                         void *treedata,
-                        const float (*obmat)[4],
-                        const float init_co[3],
-                        const float curr_co[3],
-                        float *r_dist_sq,
-                        float *r_loc,
-                        float *r_no,
-                        int *r_index)
+                        const float (*obmat)[4])
 {
-  if (curr_co == nullptr || init_co == nullptr) {
-    /* No location to work with, so just return. */
-    return false;
-  }
-
   float imat[4][4];
   invert_m4_m4(imat, obmat);
 
@@ -418,8 +407,8 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   /* compute offset between init co and prev co in local space */
   float init_co_local[3], curr_co_local[3];
   float delta_local[3];
-  mul_v3_m4v3(init_co_local, imat, init_co);
-  mul_v3_m4v3(curr_co_local, imat, curr_co);
+  mul_v3_m4v3(init_co_local, imat, sctx->runtime.init_co);
+  mul_v3_m4v3(curr_co_local, imat, sctx->runtime.curr_co);
   sub_v3_v3v3(delta_local, curr_co_local, init_co_local);
 
   float dist_sq;
@@ -434,10 +423,10 @@ bool nearest_world_tree(SnapObjectContext *sctx,
     nearest_world_tree_co(
         tree, nearest_cb, treedata, curr_co_local, nullptr, nullptr, nullptr, &dist_sq);
   }
-  if (*r_dist_sq <= dist_sq) {
+  if (sctx->ret.dist_px_sq <= dist_sq) {
     return false;
   }
-  *r_dist_sq = dist_sq;
+  sctx->ret.dist_px_sq = dist_sq;
 
   /* scale to make `snap_face_nearest_steps` steps */
   float step_scale_factor = 1.0f / max_ff(1.0f, float(sctx->runtime.params.face_nearest_steps));
@@ -451,15 +440,13 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   for (int i = 0; i < sctx->runtime.params.face_nearest_steps; i++) {
     add_v3_v3(co_local, delta_local);
     nearest_world_tree_co(
-        tree, nearest_cb, treedata, co_local, co_local, no_local, r_index, nullptr);
+        tree, nearest_cb, treedata, co_local, co_local, no_local, &sctx->ret.index, nullptr);
   }
 
-  mul_v3_m4v3(r_loc, obmat, co_local);
+  mul_v3_m4v3(sctx->ret.loc, obmat, co_local);
 
-  if (r_no) {
-    mul_v3_m3v3(r_no, timat, no_local);
-    normalize_v3(r_no);
-  }
+  mul_v3_m3v3(sctx->ret.no, timat, no_local);
+  normalize_v3(sctx->ret.no);
 
   return true;
 }

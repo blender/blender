@@ -87,14 +87,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
                         const Mesh *me_eval,
                         const float obmat[4][4],
                         const uint ob_index,
-                        bool use_hide,
-                        /* read/write args */
-                        float *ray_depth,
-                        /* return args */
-                        float r_loc[3],
-                        float r_no[3],
-                        int *r_index,
-                        ListBase *r_hit_list)
+                        bool use_hide)
 {
   bool retval = false;
 
@@ -116,7 +109,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
 
   /* local scale in normal direction */
   local_scale = normalize_v3(ray_normal_local);
-  local_depth = *ray_depth;
+  local_depth = sctx->ret.ray_depth_max;
   if (local_depth != BVH_RAYCAST_DIST_MAX) {
     local_depth *= local_scale;
   }
@@ -157,7 +150,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
   }
 
   BLI_assert(treedata.raycast_callback != nullptr);
-  if (r_hit_list) {
+  if (sctx->ret.hit_list) {
     RayCastAll_Data data;
 
     data.bvhdata = &treedata;
@@ -166,11 +159,16 @@ static bool raycastMesh(SnapObjectContext *sctx,
     data.len_diff = len_diff;
     data.local_scale = local_scale;
     data.ob_uuid = ob_index;
-    data.hit_list = r_hit_list;
+    data.hit_list = sctx->ret.hit_list;
 
     void *hit_last_prev = data.hit_list->last;
-    BLI_bvhtree_ray_cast_all(
-        treedata.tree, ray_start_local, ray_normal_local, 0.0f, *ray_depth, raycast_all_cb, &data);
+    BLI_bvhtree_ray_cast_all(treedata.tree,
+                             ray_start_local,
+                             ray_normal_local,
+                             0.0f,
+                             sctx->ret.ray_depth_max,
+                             raycast_all_cb,
+                             &data);
 
     retval = hit_last_prev != data.hit_list->last;
   }
@@ -191,24 +189,18 @@ static bool raycastMesh(SnapObjectContext *sctx,
     {
       hit.dist += len_diff;
       hit.dist /= local_scale;
-      if (hit.dist <= *ray_depth) {
-        *ray_depth = hit.dist;
-        copy_v3_v3(r_loc, hit.co);
+      if (hit.dist <= sctx->ret.ray_depth_max) {
+        copy_v3_v3(sctx->ret.loc, hit.co);
+        copy_v3_v3(sctx->ret.no, hit.no);
 
-        /* Back to world-space. */
-        mul_m4_v3(obmat, r_loc);
+        mul_m4_v3(obmat, sctx->ret.loc);
 
-        if (r_no) {
-          copy_v3_v3(r_no, hit.no);
-          mul_transposed_mat3_m4_v3(imat, r_no);
-          normalize_v3(r_no);
-        }
+        mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
+        normalize_v3(sctx->ret.no);
 
+        sctx->ret.ray_depth_max = hit.dist;
+        sctx->ret.index = looptri_polys[hit.index];
         retval = true;
-
-        if (r_index) {
-          *r_index = looptri_polys[hit.index];
-        }
       }
     }
   }
@@ -225,13 +217,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
 static bool nearest_world_mesh(SnapObjectContext *sctx,
                                const Mesh *me_eval,
                                const float (*obmat)[4],
-                               bool use_hide,
-                               const float init_co[3],
-                               const float curr_co[3],
-                               float *r_dist_sq,
-                               float *r_loc,
-                               float *r_no,
-                               int *r_index)
+                               bool use_hide)
 {
   BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(me_eval, use_hide, &treedata);
@@ -239,17 +225,7 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
     return false;
   }
 
-  return nearest_world_tree(sctx,
-                            treedata.tree,
-                            treedata.nearest_callback,
-                            &treedata,
-                            obmat,
-                            init_co,
-                            curr_co,
-                            r_dist_sq,
-                            r_loc,
-                            r_no,
-                            r_index);
+  return nearest_world_tree(sctx, treedata.tree, treedata.nearest_callback, &treedata, obmat);
 }
 
 /** \} */
@@ -500,13 +476,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                           Object *ob_eval,
                           const Mesh *me_eval,
                           const float obmat[4][4],
-                          bool use_hide,
-                          /* read/write args */
-                          float *dist_px_sq,
-                          /* return args */
-                          float r_loc[3],
-                          float r_no[3],
-                          int *r_index)
+                          bool use_hide)
 {
   BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_MODE_FACE);
   if (me_eval->totvert == 0) {
@@ -527,7 +497,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
                                    lpmat,
                                    sctx->runtime.win_size,
                                    sctx->runtime.mval,
-                                   *dist_px_sq))
+                                   sctx->ret.dist_px_sq))
     {
       return SCE_SNAP_MODE_NONE;
     }
@@ -550,7 +520,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
-  nearest.dist_sq = *dist_px_sq;
+  nearest.dist_sq = sctx->ret.dist_px_sq;
 
   int last_index = nearest.index;
   eSnapMode elem = SCE_SNAP_MODE_VERTEX;
@@ -638,22 +608,19 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   }
 
   if (nearest.index != -1) {
-    *dist_px_sq = nearest.dist_sq;
+    copy_v3_v3(sctx->ret.loc, nearest.co);
+    copy_v3_v3(sctx->ret.no, nearest.no);
 
-    copy_v3_v3(r_loc, nearest.co);
-    mul_m4_v3(obmat, r_loc);
+    mul_m4_v3(obmat, sctx->ret.loc);
 
-    if (r_no) {
-      float imat[4][4];
-      invert_m4_m4(imat, obmat);
+    float imat[3][3];
+    copy_m3_m4(imat, obmat);
+    invert_m3(imat);
+    mul_transposed_m3_v3(imat, sctx->ret.no);
+    normalize_v3(sctx->ret.no);
 
-      copy_v3_v3(r_no, nearest.no);
-      mul_transposed_mat3_m4_v3(imat, r_no);
-      normalize_v3(r_no);
-    }
-    if (r_index) {
-      *r_index = nearest.index;
-    }
+    sctx->ret.index = nearest.index;
+    sctx->ret.dist_px_sq = nearest.dist_sq;
 
     return elem;
   }
@@ -694,51 +661,20 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
   if (snap_mode_used & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
                         SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_VERTEX))
   {
-    elem = snapMesh(sctx,
-                    ob_eval,
-                    mesh_eval,
-                    obmat,
-                    use_hide,
-                    &sctx->ret.dist_px_sq,
-                    sctx->ret.loc,
-                    sctx->ret.no,
-                    &sctx->ret.index);
+    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, use_hide);
     if (elem) {
       return elem;
     }
   }
 
   if (snap_mode_used & SCE_SNAP_MODE_FACE) {
-    if (raycastMesh(sctx,
-                    ob_eval,
-                    mesh_eval,
-                    obmat,
-                    sctx->runtime.object_index++,
-                    use_hide,
-                    /* read/write args */
-                    &sctx->ret.ray_depth_max,
-                    /* return args */
-                    sctx->ret.loc,
-                    sctx->ret.no,
-                    &sctx->ret.index,
-                    sctx->ret.hit_list))
-    {
+    if (raycastMesh(sctx, ob_eval, mesh_eval, obmat, sctx->runtime.object_index++, use_hide)) {
       return SCE_SNAP_MODE_FACE;
     }
   }
 
   if (snap_mode_used & SCE_SNAP_MODE_FACE_NEAREST) {
-    if (nearest_world_mesh(sctx,
-                           mesh_eval,
-                           obmat,
-                           use_hide,
-                           sctx->runtime.init_co,
-                           sctx->runtime.curr_co,
-                           &sctx->ret.dist_px_sq,
-                           sctx->ret.loc,
-                           sctx->ret.no,
-                           &sctx->ret.index))
-    {
+    if (nearest_world_mesh(sctx, mesh_eval, obmat, use_hide)) {
       return SCE_SNAP_MODE_FACE_NEAREST;
     }
   }

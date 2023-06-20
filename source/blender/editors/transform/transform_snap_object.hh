@@ -172,13 +172,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
                         void *treedata,
-                        const float (*obmat)[4],
-                        const float init_co[3],
-                        const float curr_co[3],
-                        float *r_dist_sq,
-                        float *r_loc,
-                        float *r_no,
-                        int *r_index);
+                        const float (*obmat)[4]);
 
 /* transform_snap_object_editmesh.cc */
 
