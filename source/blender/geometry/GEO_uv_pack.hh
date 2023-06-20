@@ -49,12 +49,18 @@ enum eUVPackIsland_ShapeMethod {
 };
 
 enum eUVPackIsland_PinMethod {
-  ED_UVPACK_PIN_IGNORE = 0,
-  ED_UVPACK_PIN_PACK,
+  /** Pin has no impact on packing. */
+  ED_UVPACK_PIN_NONE = 0,
+  /**
+   * Ignore islands containing any pinned UV's.
+   * \note Not exposed in the UI, used only for live-unwrap.
+   */
+  ED_UVPACK_PIN_IGNORE,
   ED_UVPACK_PIN_LOCK_ROTATION,
   ED_UVPACK_PIN_LOCK_ROTATION_SCALE,
   ED_UVPACK_PIN_LOCK_SCALE,
-  ED_UVPACK_PIN_LOCK_ALL, /* Lock translation, rotation and scale. */
+  /** Lock the island in-place (translation, rotation and scale). */
+  ED_UVPACK_PIN_LOCK_ALL,
 };
 
 namespace blender::geometry {
