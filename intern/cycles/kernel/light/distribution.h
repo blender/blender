@@ -46,7 +46,9 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
                                                    const float3 rand,
                                                    const float time,
                                                    const float3 P,
+                                                   const float3 N,
                                                    const int object_receiver,
+                                                   const int shader_flags,
                                                    const int bounce,
                                                    const uint32_t path_flag,
                                                    ccl_private LightSample *ls)
@@ -56,8 +58,19 @@ ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
   const int index = light_distribution_sample(kg, rand.z);
   const float pdf_selection = kernel_data.integrator.distribution_pdf_lights;
   const float2 rand_uv = float3_to_float2(rand);
-  return light_sample<in_volume_segment>(
-      kg, rand_uv, time, P, object_receiver, bounce, path_flag, index, 0, pdf_selection, ls);
+  return light_sample<in_volume_segment>(kg,
+                                         rand_uv,
+                                         time,
+                                         P,
+                                         N,
+                                         object_receiver,
+                                         shader_flags,
+                                         bounce,
+                                         path_flag,
+                                         index,
+                                         0,
+                                         pdf_selection,
+                                         ls);
 }
 
 ccl_device_inline float light_distribution_pdf_lamp(KernelGlobals kg)

@@ -96,6 +96,8 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
                                     const int lamp,
                                     const float2 rand,
                                     const float3 P,
+                                    const float3 N,
+                                    const int shader_flags,
                                     const uint32_t path_flag,
                                     ccl_private LightSample *ls)
 {
@@ -150,7 +152,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample<in_volume_segment>(klight, rand, P, ls)) {
+    if (!point_light_sample(klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
@@ -171,7 +173,9 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
                                       const float2 rand,
                                       const float time,
                                       const float3 P,
+                                      const float3 N,
                                       const int object_receiver,
+                                      const int shader_flags,
                                       const int bounce,
                                       const uint32_t path_flag,
                                       const int emitter_index,
@@ -233,7 +237,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
       return false;
     }
 
-    if (!light_sample<in_volume_segment>(kg, light, rand, P, path_flag, ls)) {
+    if (!light_sample<in_volume_segment>(kg, light, rand, P, N, shader_flags, path_flag, ls)) {
       return false;
     }
   }
@@ -446,6 +450,8 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
                                                ccl_private const Intersection *ccl_restrict isect,
                                                const float3 ray_P,
                                                const float3 ray_D,
+                                               const float3 N,
+                                               const uint32_t path_flag,
                                                ccl_private LightSample *ccl_restrict ls)
 {
   const int lamp = isect->prim;
@@ -468,7 +474,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
     }
   }
   else if (type == LIGHT_POINT) {
-    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, ls)) {
+    if (!point_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }

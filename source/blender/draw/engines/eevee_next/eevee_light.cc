@@ -186,8 +186,7 @@ float Light::shape_radiance_get(const ::Light *la)
     case LA_LOCAL: {
       /* Sphere area. */
       float area = 4.0f * float(M_PI) * square_f(_radius);
-      /* NOTE: Presence of a factor of PI here to match Cycles. But it should be missing to be
-       * consistent with the other cases. */
+      /* Convert radiant flux to radiance. */
       return 1.0f / (area * float(M_PI));
     }
     default:
@@ -221,10 +220,9 @@ float Light::point_radiance_get(const ::Light *la)
     }
     case LA_SPOT:
     case LA_LOCAL: {
-      /* Sphere solid angle. */
-      float area = 4.0f * float(M_PI);
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return 1.0f / area;
+      /* Convert radiant flux to intensity. */
+      /* Inverse of sphere solid angle. */
+      return 0.25f * float(M_1_PI);
     }
     default:
     case LA_SUN: {
