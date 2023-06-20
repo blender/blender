@@ -368,17 +368,16 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
   /* if mesh has uv coords writes <input> for TEXCOORD */
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
-  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
+  int active_uv = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2);
   for (int i = 0; i < num_layers; i++) {
-    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
-    if (!this->export_settings.get_active_uv_only() || layer_index == active_uv_index) {
+    if (!this->export_settings.get_active_uv_only() || i == active_uv) {
 
       // char *name = CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, i);
       COLLADASW::Input texcoord_input(
           COLLADASW::InputSemantic::TEXCOORD,
           makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings.get_active_uv_only())),
           2, /* this is only until we have optimized UV sets */
-          (this->export_settings.get_active_uv_only()) ? 0 : layer_index - 1 /* set (0,1,2,...) */
+          (this->export_settings.get_active_uv_only()) ? 0 : i /* set (0,1,2,...) */
       );
       til.push_back(texcoord_input);
     }
