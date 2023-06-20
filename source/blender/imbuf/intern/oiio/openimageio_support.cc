@@ -180,11 +180,12 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   const ImageSpec &spec = in->spec();
   const int width = spec.width;
   const int height = spec.height;
-  const int channels = spec.nchannels;
   const bool has_alpha = spec.alpha_channel != -1;
   const bool is_float = spec.format.basesize() > 1;
 
-  if (channels < 1 || channels > 4) {
+  /* Only a maximum of 4 channels are supported by ImBuf. */
+  const int channels = spec.nchannels <= 4 ? spec.nchannels : 4;
+  if (channels < 1) {
     return nullptr;
   }
 
