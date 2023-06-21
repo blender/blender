@@ -225,12 +225,9 @@ Nearest2dUserData::~Nearest2dUserData()
   sctx->ret.data = this->id_;
   sctx->ret.dist_px_sq = this->nearest_point.dist_sq;
 
+  /* Global space. */
   mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
-
-  float3 loc_no = math::transform_point(
-      this->obmat_, float3(this->nearest_point.co) + float3(this->nearest_point.no));
-
-  copy_v3_v3(sctx->ret.no, loc_no - float3(sctx->ret.loc));
+  mul_mat3_m4_v3(this->obmat_.ptr(), sctx->ret.no);
   normalize_v3(sctx->ret.no);
 }
 
