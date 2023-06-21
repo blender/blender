@@ -119,7 +119,7 @@ struct Nearest2dUserData {
                     const ID *id_eval,
                     const blender::float4x4 &obmat = blender::float4x4::identity());
 
-  void clip_planes_get(SnapObjectContext *sctx, bool skip_occlusion_plane = false);
+  void clip_planes_enable(bool skip_occlusion_plane = false);
 
   bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
 

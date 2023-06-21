@@ -45,7 +45,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
-  nearest2d.clip_planes_get(sctx);
+  nearest2d.clip_planes_enable();
 
   const bool is_posemode = is_object_active && (ob_eval->mode & OB_MODE_POSE);
   const bool skip_selected = (is_editmode || is_posemode) &&

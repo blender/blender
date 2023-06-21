@@ -130,8 +130,10 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
   copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
-void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx, bool skip_occlusion_plane)
+void Nearest2dUserData::clip_planes_enable(bool skip_occlusion_plane)
 {
+  SnapObjectContext *sctx = this->sctx_;
+
   float(*clip_planes)[4] = sctx->runtime.clip_plane;
   int clip_plane_len = sctx->runtime.clip_plane_len;
 

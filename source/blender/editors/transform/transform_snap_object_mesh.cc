@@ -400,7 +400,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
   Nearest2dUserData nearest2d(sctx, ob_eval, id, float4x4(obmat));
-  nearest2d.clip_planes_get(sctx);
+  nearest2d.clip_planes_enable();
   nearest2d_data_init_mesh(mesh_eval, &nearest2d);
 
   BVHTreeNearest nearest{};
@@ -477,7 +477,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     BLI_assert(treedata_dummy.cached);
   }
 
-  nearest2d.clip_planes_get(sctx);
+  nearest2d.clip_planes_enable();
   nearest2d_data_init_mesh(me_eval, &nearest2d);
 
   BVHTreeNearest nearest{};

@@ -45,6 +45,7 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
 
   invert_m4_m4(orig_camera_imat, orig_camera_mat);
   Nearest2dUserData nearest2d(sctx, object, static_cast<const ID *>(object->data));
+  nearest2d.clip_planes_enable();
 
   MovieTracking *tracking = &clip->tracking;
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {

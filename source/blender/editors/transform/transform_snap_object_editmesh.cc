@@ -459,7 +459,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   BMEditMesh *em = sod->treedata_editmesh.em;
 
   Nearest2dUserData nearest2d(sctx, ob_eval, nullptr, float4x4(obmat));
-  nearest2d.clip_planes_get(sctx);
+  nearest2d.clip_planes_enable();
   nearest2d_data_init_editmesh(em, &nearest2d);
 
   BVHTreeNearest nearest{};
@@ -581,7 +581,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
     }
   }
 
-  nearest2d.clip_planes_get(sctx);
+  nearest2d.clip_planes_enable();
   nearest2d_data_init_editmesh(em, &nearest2d);
 
   BVHTreeNearest nearest{};
