@@ -187,6 +187,29 @@ bool nearest_world_tree(SnapObjectContext *sctx,
                         void *treedata,
                         const float (*obmat)[4]);
 
+eSnapMode snap_object_center(SnapObjectContext *sctx,
+                             Object *ob_eval,
+                             const float obmat[4][4],
+                             eSnapMode snap_to_flag);
+
+/* transform_snap_object_armature.cc */
+
+eSnapMode snapArmature(SnapObjectContext *sctx,
+                       Object *ob_eval,
+                       const float obmat[4][4],
+                       bool is_object_active);
+
+/* transform_snap_object_camera.cc */
+
+eSnapMode snapCamera(SnapObjectContext *sctx,
+                     Object *object,
+                     const float obmat[4][4],
+                     eSnapMode snap_to_flag);
+
+/* transform_snap_object_curve.cc */
+
+eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[4][4]);
+
 /* transform_snap_object_editmesh.cc */
 
 struct SnapData_EditMesh {
