@@ -614,7 +614,14 @@ BMVert *join_vert_kill_edge(BMesh *bm,
       callbacks.on_edge_combine(exist, e);
 
       if (combine_flags) {
+        /* The sharp flag is inverted so we can't just OR it. */
+        bool sharp = !(exist->head.hflag & BM_ELEM_SMOOTH) || !(e->head.hflag & BM_ELEM_SMOOTH);
+
         exist->head.hflag |= e->head.hflag;
+
+        if (sharp) {
+          exist->head.hflag &= ~BM_ELEM_SMOOTH;
+        }
       }
 
       callbacks.on_edge_kill(e);
