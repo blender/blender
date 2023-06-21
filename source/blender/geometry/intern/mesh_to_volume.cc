@@ -113,7 +113,7 @@ static openvdb::FloatGrid::Ptr mesh_to_fog_volume_grid(
     const float interior_band_width,
     const float density)
 {
-  if (voxel_size < 1e-5f || interior_band_width <= 0.0f) {
+  if (voxel_size < 1e-5f) {
     return nullptr;
   }
 
