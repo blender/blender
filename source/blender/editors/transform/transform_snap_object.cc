@@ -128,6 +128,7 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
 
   this->nearest_point.index = -2;
   this->nearest_point.dist_sq = dist_px_sq;
+  copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
 void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx,
@@ -942,7 +943,7 @@ static eSnapMode snapArmature(SnapObjectContext *sctx,
   }
 
   if (retval) {
-    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
+    mul_v3_m4v3(sctx->ret.loc, obmat, nearest2d.nearest_point.co);
 
     sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
     sctx->ret.index = nearest2d.nearest_point.index;
@@ -1039,7 +1040,7 @@ static eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float
     }
   }
   if (has_snap) {
-    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
+    mul_v3_m4v3(sctx->ret.loc, obmat, nearest2d.nearest_point.co);
 
     sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
     sctx->ret.index = nearest2d.nearest_point.index;
