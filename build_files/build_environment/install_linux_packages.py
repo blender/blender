@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import logging
+import os
 import re
 import subprocess
 import sys
@@ -1630,22 +1631,43 @@ def get_distro(settings):
         settings.logger.info(f"Distribution identifier forced by user to {settings.distro_id}.")
         return settings.distro_id
     import platform
-    info = platform.freedesktop_os_release()
-    ids = [info["ID"]]
-    if "ID_LIKE" in info:
-        # ids are space separated and ordered by precedence.
-        ids.extend(info["ID_LIKE"].split())
-    for distro_id in ids:
-        if distro_id in DISTRO_IDS_INSTALLERS:
-            settings.distro_id = distro_id
-            return distro_id
-    settings.logger.warning(f"Distribution IDs do not match any supported one by this script ({ids})")
+    if hasattr(platform, "freedesktop_os_release"):
+        info = platform.freedesktop_os_release()
+        ids = [info["ID"]]
+        if "ID_LIKE" in info:
+            # ids are space separated and ordered by precedence.
+            ids.extend(info["ID_LIKE"].split())
+        for distro_id in ids:
+            if distro_id in DISTRO_IDS_INSTALLERS:
+                settings.distro_id = distro_id
+                return distro_id
+        settings.logger.warning(f"Distribution IDs do not match any supported one by this script ({ids})")
+
+    settings.logger.warning("A valid distribution ID could not be found using `platform.freedesktop_os_release`, "
+                            "now trying a lower-level check for specific files")
+    if os.path.exists("/etc/debian_version"):
+        distro_id = DISTRO_ID_DEBIAN
+    elif os.path.exists("/etc/redhat-release"):
+        distro_id = DISTRO_ID_FEDORA
+    elif os.path.exists("/etc/SuSE-release"):
+        distro_id = DISTRO_ID_SUSE
+    elif os.path.exists("/etc/arch-release"):
+        distro_id = DISTRO_ID_ARCH
+    if distro_id in DISTRO_IDS_INSTALLERS:
+        settings.distro_id = distro_id
+        return distro_id
+
     settings.distro_id = ...
     return ...
 
 
 def get_distro_package_installer(settings):
-    return DISTRO_IDS_INSTALLERS[get_distro(settings)](settings)
+    distro_id = get_distro(settings)
+    if distro_id is ...:
+        settings.logger.warning("No valid distribution ID found, please try to set it using the `--distro-id` option")
+    else:
+        settings.logger.info(f"Distribution identified as '{distro_id}'")
+    return DISTRO_IDS_INSTALLERS[distro_id](settings)
 
 
 def argparse_create():
