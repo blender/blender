@@ -35,14 +35,14 @@
 #include "transform_snap_object.hh"
 
 #ifdef DEBUG_SNAP_TIME
-#  include "PIL_time.h"
+#  include "BLI_timeit.hh"
 
 #  if WIN32 and NDEBUG
 #    pragma optimize("O", on)
 #  endif
 
-static double _sum_snap_time = 0.0;
-static long _num_snap_calls = 0;
+static int64_t total_count_ = 0;
+static blender::timeit::Nanoseconds duration_;
 #endif
 
 using namespace blender;
@@ -1581,7 +1581,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   }
 
 #ifdef DEBUG_SNAP_TIME
-  double snap_timeit = PIL_check_seconds_timer();
+  const timeit::TimePoint start_ = timeit::Clock::now();
 #endif
 
   snap_to_flag = sctx->runtime.snap_to_flag;
@@ -1717,8 +1717,8 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
   }
 
 #ifdef DEBUG_SNAP_TIME
-  _sum_snap_time += PIL_check_seconds_timer() - snap_timeit;
-  _num_snap_calls++;
+  duration_ += timeit::Clock::now() - start_;
+  total_count_++;
 #endif
 
   return retval;
@@ -1780,9 +1780,12 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
 #ifdef DEBUG_SNAP_TIME
 void ED_transform_snap_object_time_average_print(void)
 {
-  printf("Average snapping time: %lf ms\n", 1000 * (_sum_snap_time / _num_snap_calls));
-  _sum_snap_time = 0.0;
-  _num_snap_calls = 0;
+  std::cout << "Average snapping time: ";
+  std::cout << std::fixed << duration_.count() / 1.0e6 << " ms";
+  std::cout << '\n';
+
+  duration_ = timeit::Nanoseconds::zero();
+  total_count_ = 0;
 }
 #endif
 
