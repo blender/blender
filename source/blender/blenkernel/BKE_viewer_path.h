@@ -50,7 +50,9 @@ void BKE_viewer_path_id_remap(ViewerPath *viewer_path, const struct IDRemapper *
 ViewerPathElem *BKE_viewer_path_elem_new(ViewerPathElemType type);
 IDViewerPathElem *BKE_viewer_path_elem_new_id(void);
 ModifierViewerPathElem *BKE_viewer_path_elem_new_modifier(void);
-NodeViewerPathElem *BKE_viewer_path_elem_new_node(void);
+GroupNodeViewerPathElem *BKE_viewer_path_elem_new_group_node(void);
+SimulationZoneViewerPathElem *BKE_viewer_path_elem_new_simulation_zone(void);
+ViewerNodeViewerPathElem *BKE_viewer_path_elem_new_viewer_node(void);
 ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
 bool BKE_viewer_path_elem_equal(const ViewerPathElem *a, const ViewerPathElem *b);
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);

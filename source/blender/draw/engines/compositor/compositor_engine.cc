@@ -58,6 +58,11 @@ class Context : public realtime_compositor::Context {
   {
   }
 
+  const Scene &get_scene() const override
+  {
+    return *DRW_context_state_get()->scene;
+  }
+
   const bNodeTree &get_node_tree() const override
   {
     return *DRW_context_state_get()->scene->nodetree;

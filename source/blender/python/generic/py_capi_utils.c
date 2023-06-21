@@ -1014,11 +1014,11 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
  * In some cases we need to coerce strings, avoid doing this inline.
  * \{ */
 
-const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyObject **r_coerce)
 {
   const char *result;
 
-  result = PyUnicode_AsUTF8AndSize(py_str, size);
+  result = PyUnicode_AsUTF8AndSize(py_str, r_size);
 
   if (result) {
     /* 99% of the time this is enough but we better support non unicode
@@ -1029,19 +1029,19 @@ const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObje
   PyErr_Clear();
 
   if (PyBytes_Check(py_str)) {
-    *size = PyBytes_GET_SIZE(py_str);
+    *r_size = PyBytes_GET_SIZE(py_str);
     return PyBytes_AS_STRING(py_str);
   }
-  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-    *size = PyBytes_GET_SIZE(*coerce);
-    return PyBytes_AS_STRING(*coerce);
+  if ((*r_coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    *r_size = PyBytes_GET_SIZE(*r_coerce);
+    return PyBytes_AS_STRING(*r_coerce);
   }
 
   /* leave error raised from EncodeFS */
   return NULL;
 }
 
-const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **r_coerce)
 {
   const char *result;
 
@@ -1058,8 +1058,8 @@ const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
   if (PyBytes_Check(py_str)) {
     return PyBytes_AS_STRING(py_str);
   }
-  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-    return PyBytes_AS_STRING(*coerce);
+  if ((*r_coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    return PyBytes_AS_STRING(*r_coerce);
   }
 
   /* leave error raised from EncodeFS */

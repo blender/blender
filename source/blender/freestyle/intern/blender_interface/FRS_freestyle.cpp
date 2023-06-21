@@ -708,7 +708,7 @@ void FRS_copy_active_lineset(FreestyleConfig *config)
     lineset_buffer.edge_types = lineset->edge_types;
     lineset_buffer.exclude_edge_types = lineset->exclude_edge_types;
     lineset_buffer.group = lineset->group;
-    strcpy(lineset_buffer.name, lineset->name);
+    STRNCPY(lineset_buffer.name, lineset->name);
     lineset_copied = true;
   }
 }
@@ -744,7 +744,7 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
       lineset->group = lineset_buffer.group;
       id_us_plus(&lineset->group->id);
     }
-    strcpy(lineset->name, lineset_buffer.name);
+    STRNCPY(lineset->name, lineset_buffer.name);
     BKE_freestyle_lineset_unique_name(config, lineset);
     lineset->flags |= FREESTYLE_LINESET_CURRENT;
   }

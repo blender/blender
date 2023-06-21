@@ -120,7 +120,7 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
   TexNodeOutput *tno = MEM_cnew<TexNodeOutput>("TEX_output");
   node->storage = tno;
 
-  strcpy(tno->name, "Default");
+  STRNCPY(tno->name, "Default");
   unique_name(node);
   assign_index(node);
 }

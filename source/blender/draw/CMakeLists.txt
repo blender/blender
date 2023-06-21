@@ -99,10 +99,12 @@ set(SRC
   intern/draw_manager_texture.c
   intern/draw_pbvh.cc
   intern/draw_pointcloud.cc
+  intern/draw_resource.cc
   intern/draw_select_buffer.c
   intern/draw_shader.cc
   intern/draw_texture_pool.cc
   intern/draw_view.c
+  intern/draw_view.cc
   intern/draw_view_data.cc
   intern/draw_volume.cc
   engines/basic/basic_engine.c
@@ -155,6 +157,7 @@ set(SRC
   engines/eevee_next/eevee_shader.cc
   engines/eevee_next/eevee_shadow.cc
   engines/eevee_next/eevee_sync.cc
+  engines/eevee_next/eevee_subsurface.cc
   engines/eevee_next/eevee_velocity.cc
   engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
@@ -189,7 +192,6 @@ set(SRC
   engines/gpencil/gpencil_draw_data.c
   engines/gpencil/gpencil_engine.c
   engines/gpencil/gpencil_engine.cc
-  engines/gpencil/gpencil_engine.h
   engines/gpencil/gpencil_render.c
   engines/gpencil/gpencil_shader.c
   engines/gpencil/gpencil_shader.cc
@@ -258,14 +260,12 @@ set(SRC
   intern/draw_manager_text.h
   intern/draw_pass.hh
   intern/draw_pbvh.h
-  intern/draw_resource.cc
   intern/draw_resource.hh
   intern/draw_shader.h
   intern/draw_shader_shared.h
   intern/draw_state.h
   intern/draw_subdivision.h
   intern/draw_texture_pool.h
-  intern/draw_view.cc
   intern/draw_view.h
   intern/draw_view.hh
   intern/draw_view_data.h
@@ -296,10 +296,19 @@ set(SRC
   engines/eevee_next/eevee_shader.hh
   engines/eevee_next/eevee_shadow.hh
   engines/eevee_next/eevee_sync.hh
+  engines/eevee_next/eevee_subsurface.hh
   engines/eevee_next/eevee_velocity.hh
   engines/eevee_next/eevee_view.hh
   engines/eevee_next/eevee_world.hh
   engines/external/external_engine.h
+  engines/gpencil/gpencil_antialiasing.hh
+  engines/gpencil/gpencil_engine.h
+  engines/gpencil/gpencil_layer.hh
+  engines/gpencil/gpencil_light.hh
+  engines/gpencil/gpencil_material.hh
+  engines/gpencil/gpencil_object.hh
+  engines/gpencil/gpencil_shader.hh
+  engines/gpencil/gpencil_vfx.hh
   engines/image/image_batches.hh
   engines/image/image_buffer_cache.hh
   engines/image/image_drawing_mode.hh
@@ -314,18 +323,25 @@ set(SRC
   engines/image/image_space_node.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
+  engines/overlay/overlay_engine.h
+  engines/overlay/overlay_next_background.hh
+  engines/overlay/overlay_next_empty.hh
+  engines/overlay/overlay_next_grid.hh
+  engines/overlay/overlay_next_instance.hh
+  engines/overlay/overlay_next_metaball.hh
+  engines/overlay/overlay_next_prepass.hh
+  engines/overlay/overlay_next_private.hh
+  engines/overlay/overlay_private.hh
+  engines/select/select_defines.h
+  engines/select/select_engine.h
+  engines/select/select_instance.hh
+  engines/select/select_private.h
   engines/workbench/workbench_defines.hh
   engines/workbench/workbench_engine.h
   engines/workbench/workbench_enums.hh
   engines/workbench/workbench_private.h
   engines/workbench/workbench_private.hh
   engines/workbench/workbench_shader_shared.h
-  engines/select/select_engine.h
-  engines/select/select_private.h
-  engines/overlay/overlay_engine.h
-  engines/overlay/overlay_next_instance.hh
-  engines/overlay/overlay_next_private.hh
-  engines/overlay/overlay_private.hh
 )
 
 set(LIB
@@ -504,6 +520,7 @@ set(GLSL_SRC
   engines/eevee_next/shaders/eevee_shadow_tilemap_init_comp.glsl
   engines/eevee_next/shaders/eevee_shadow_tilemap_lib.glsl
   engines/eevee_next/shaders/eevee_spherical_harmonics_lib.glsl
+  engines/eevee_next/shaders/eevee_subsurface_eval_frag.glsl
   engines/eevee_next/shaders/eevee_surf_deferred_frag.glsl
   engines/eevee_next/shaders/eevee_surf_depth_frag.glsl
   engines/eevee_next/shaders/eevee_surf_forward_frag.glsl

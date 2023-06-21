@@ -18,7 +18,7 @@ set(DEFSRC
   rna_action.c
   rna_animation.c
   rna_animviz.c
-  rna_armature.c
+  rna_armature.cc
   rna_asset.c
   rna_attribute.c
   rna_boid.c
@@ -78,7 +78,7 @@ set(DEFSRC
   rna_texture.c
   rna_timeline.c
   rna_tracking.c
-  rna_ui.c
+  rna_ui.cc
   rna_userdef.c
   rna_vfont.c
   rna_volume.c
@@ -101,7 +101,7 @@ endif()
 set(APISRC
   rna_action_api.c
   rna_animation_api.c
-  rna_armature_api.c
+  rna_armature_api.cc
   rna_camera_api.c
   rna_curve_api.cc
   rna_fcurve_api.c
@@ -119,7 +119,7 @@ set(APISRC
   rna_space_api.cc
   rna_text_api.c
   rna_texture_api.c
-  rna_ui_api.c
+  rna_ui_api.cc
   rna_vfont_api.c
   rna_wm_api.c
   rna_wm_gizmo_api.c

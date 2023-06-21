@@ -1620,7 +1620,7 @@ bool BKE_id_new_name_validate(
 
   result = BKE_main_namemap_get_name(bmain, id, name);
 
-  strcpy(id->name + 2, name);
+  BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
   id_sort_by_name(lb, id, NULL);
   return result;
 }
@@ -2012,7 +2012,7 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 
 void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separator_char)
 {
-  strcpy(name, id->name + 2);
+  BLI_strncpy(name, id->name + 2, MAX_ID_FULL_NAME);
 
   if (ID_IS_LINKED(id)) {
     const size_t idname_len = strlen(id->name + 2);
@@ -2020,7 +2020,7 @@ void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id, char separa
 
     name[idname_len] = separator_char ? separator_char : ' ';
     name[idname_len + 1] = '[';
-    strcpy(name + idname_len + 2, id->lib->id.name + 2);
+    BLI_strncpy(name + idname_len + 2, id->lib->id.name + 2, MAX_ID_FULL_NAME - (idname_len + 2));
     name[idname_len + 2 + libname_len] = ']';
     name[idname_len + 2 + libname_len + 1] = '\0';
   }

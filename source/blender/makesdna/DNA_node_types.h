@@ -31,6 +31,10 @@ class bNodeTreeRuntime;
 class bNodeRuntime;
 class bNodeSocketRuntime;
 }  // namespace blender::bke
+namespace blender::bke {
+class bNodeTreeZones;
+class bNodeTreeZone;
+}  // namespace blender::bke
 using NodeDeclarationHandle = blender::nodes::NodeDeclaration;
 using SocketDeclarationHandle = blender::nodes::SocketDeclaration;
 using bNodeTreeRuntimeHandle = blender::bke::bNodeTreeRuntime;
@@ -536,9 +540,8 @@ typedef struct bNodeLink {
 
 /** Panel in node tree for grouping sockets. */
 typedef struct bNodePanel {
+  /* UI name of the panel (not unique) */
   char *name;
-  int flag;
-  int _pad;
 } bNodePanel;
 
 /* the basis for a Node tree, all links and nodes reside internal here */
@@ -608,8 +611,6 @@ typedef struct bNodeTree {
   struct bNodePanel **panels_array;
   int panels_num;
   int active_panel;
-  int next_panel_identifier;
-  char _pad2[4];
 
   bNodeTreeRuntimeHandle *runtime;
 
@@ -649,6 +650,9 @@ typedef struct bNodeTree {
   blender::Span<const bNode *> nodes_by_type(blender::StringRefNull type_idname) const;
   /** Frame nodes without any parents. */
   blender::Span<bNode *> root_frames() const;
+  /** A span containing all links in the node tree. */
+  blender::Span<bNodeLink *> all_links();
+  blender::Span<const bNodeLink *> all_links() const;
   /**
    * Cached toposort of all nodes. If there are cycles, the returned array is not actually a
    * toposort. However, if a connected component does not contain a cycle, this component is sorted
@@ -677,6 +681,8 @@ typedef struct bNodeTree {
 
   blender::Span<const bNodePanel *> panels() const;
   blender::MutableSpan<bNodePanel *> panels_for_write();
+  /** Zones in the node tree. Currently there are only simulation zones in geometry nodes. */
+  const blender::bke::bNodeTreeZones *zones() const;
 #endif
 } bNodeTree;
 

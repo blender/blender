@@ -152,11 +152,11 @@ void register_node_tree_type_cmp()
   bNodeTreeType *tt = ntreeType_Composite = MEM_cnew<bNodeTreeType>(__func__);
 
   tt->type = NTREE_COMPOSIT;
-  strcpy(tt->idname, "CompositorNodeTree");
-  strcpy(tt->group_idname, "CompositorNodeGroup");
-  strcpy(tt->ui_name, N_("Compositor"));
+  STRNCPY(tt->idname, "CompositorNodeTree");
+  STRNCPY(tt->group_idname, "CompositorNodeGroup");
+  STRNCPY(tt->ui_name, N_("Compositor"));
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  strcpy(tt->ui_description, N_("Compositing nodes"));
+  STRNCPY(tt->ui_description, N_("Compositing nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

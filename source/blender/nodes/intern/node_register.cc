@@ -29,9 +29,9 @@ static void register_undefined_types()
    */
 
   blender::bke::NodeTreeTypeUndefined.type = NTREE_UNDEFINED;
-  strcpy(blender::bke::NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
-  strcpy(blender::bke::NodeTreeTypeUndefined.ui_name, N_("Undefined"));
-  strcpy(blender::bke::NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
+  STRNCPY(blender::bke::NodeTreeTypeUndefined.idname, "NodeTreeUndefined");
+  STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_name, N_("Undefined"));
+  STRNCPY(blender::bke::NodeTreeTypeUndefined.ui_description, N_("Undefined Node Tree Type"));
 
   node_type_base_custom(&blender::bke::NodeTypeUndefined, "NodeUndefined", "Undefined", 0);
   blender::bke::NodeTypeUndefined.poll = node_undefined_poll;

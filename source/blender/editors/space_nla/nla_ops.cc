@@ -6,8 +6,8 @@
  * \ingroup spnla
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_scene_types.h"
 
@@ -22,7 +22,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "nla_intern.h" /* own include */
+#include "nla_intern.hh" /* own include */
 
 /* ************************** poll callbacks for operators **********************************/
 
@@ -41,7 +41,7 @@ bool nlaop_poll_tweakmode_off(bContext *C)
   }
 
   scene = CTX_data_scene(C);
-  if ((scene == NULL) || (scene->flag & SCE_NLA_EDIT_ON)) {
+  if ((scene == nullptr) || (scene->flag & SCE_NLA_EDIT_ON)) {
     return 0;
   }
 
@@ -63,7 +63,7 @@ bool nlaop_poll_tweakmode_on(bContext *C)
   }
 
   scene = CTX_data_scene(C);
-  if ((scene == NULL) || !(scene->flag & SCE_NLA_EDIT_ON)) {
+  if ((scene == nullptr) || !(scene->flag & SCE_NLA_EDIT_ON)) {
     return 0;
   }
 

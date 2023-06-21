@@ -13,22 +13,22 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry");
   b.add_output<decl::Int>("Point Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_MESH;
+    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
   });
   b.add_output<decl::Int>("Edge Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_MESH;
+    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
   });
   b.add_output<decl::Int>("Face Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_MESH;
+    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
   });
   b.add_output<decl::Int>("Face Corner Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_MESH;
+    node.custom1 = int16_t(GeometryComponent::Type::Mesh);
   });
   b.add_output<decl::Int>("Spline Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_CURVE;
+    node.custom1 = int16_t(GeometryComponent::Type::Curve);
   });
   b.add_output<decl::Int>("Instance Count").make_available([](bNode &node) {
-    node.custom1 = GEO_COMPONENT_TYPE_INSTANCES;
+    node.custom1 = int16_t(GeometryComponent::Type::Instance);
   });
 }
 
@@ -39,7 +39,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
 {
-  node->custom1 = GEO_COMPONENT_TYPE_MESH;
+  node->custom1 = int16_t(GeometryComponent::Type::Mesh);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -54,25 +54,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bke::nodeSetSocketAvailability(ntree,
                                  point_socket,
                                  ELEM(node->custom1,
-                                      GEO_COMPONENT_TYPE_MESH,
-                                      GEO_COMPONENT_TYPE_CURVE,
-                                      GEO_COMPONENT_TYPE_POINT_CLOUD));
-  bke::nodeSetSocketAvailability(ntree, edge_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  bke::nodeSetSocketAvailability(ntree, face_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
+                                      int16_t(GeometryComponent::Type::Mesh),
+                                      int16_t(GeometryComponent::Type::Curve),
+                                      int16_t(GeometryComponent::Type::PointCloud)));
   bke::nodeSetSocketAvailability(
-      ntree, face_corner_socket, node->custom1 == GEO_COMPONENT_TYPE_MESH);
-  bke::nodeSetSocketAvailability(ntree, spline_socket, node->custom1 == GEO_COMPONENT_TYPE_CURVE);
+      ntree, edge_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
   bke::nodeSetSocketAvailability(
-      ntree, instances_socket, node->custom1 == GEO_COMPONENT_TYPE_INSTANCES);
+      ntree, face_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
+  bke::nodeSetSocketAvailability(
+      ntree, face_corner_socket, node->custom1 == int16_t(GeometryComponent::Type::Mesh));
+  bke::nodeSetSocketAvailability(
+      ntree, spline_socket, node->custom1 == int16_t(GeometryComponent::Type::Curve));
+  bke::nodeSetSocketAvailability(
+      ntree, instances_socket, node->custom1 == int16_t(GeometryComponent::Type::Instance));
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  const GeometryComponentType component = (GeometryComponentType)params.node().custom1;
+  const GeometryComponent::Type component = GeometryComponent::Type(params.node().custom1);
   const GeometrySet geometry_set = params.extract_input<GeometrySet>("Geometry");
 
   switch (component) {
-    case GEO_COMPONENT_TYPE_MESH: {
+    case GeometryComponent::Type::Mesh: {
       if (const MeshComponent *component = geometry_set.get_component_for_read<MeshComponent>()) {
         const AttributeAccessor attributes = *component->attributes();
         params.set_output("Point Count", attributes.domain_size(ATTR_DOMAIN_POINT));
@@ -85,7 +88,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       break;
     }
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case GeometryComponent::Type::Curve: {
       if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>())
       {
         const AttributeAccessor attributes = *component->attributes();
@@ -97,7 +100,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       break;
     }
-    case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+    case GeometryComponent::Type::PointCloud: {
       if (const PointCloudComponent *component =
               geometry_set.get_component_for_read<PointCloudComponent>())
       {
@@ -109,7 +112,7 @@ static void node_geo_exec(GeoNodeExecParams params)
       }
       break;
     }
-    case GEO_COMPONENT_TYPE_INSTANCES: {
+    case GeometryComponent::Type::Instance: {
       if (const InstancesComponent *component =
               geometry_set.get_component_for_read<InstancesComponent>())
       {

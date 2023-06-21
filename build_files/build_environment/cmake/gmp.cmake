@@ -7,7 +7,6 @@ set(GMP_EXTRA_ARGS -enable-cxx)
 if(WIN32)
   cmake_to_msys_path("${BUILD_DIR}/gmp/src/external_gmp/compile" compilescript_path)
 
-  
   set(arlib_joint_path "ar-lib lib.exe")
   set(GMP_CFLAGS "-nologo -W3 -utf-8 -MP -MD -Z7 -Ob0 -Od -Xcompiler -RTC1 -DWIN32 -D_WINDOWS")
   set(GMP_CC_CXX "${compilescript_path} cl")

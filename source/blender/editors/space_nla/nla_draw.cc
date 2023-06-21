@@ -6,11 +6,11 @@
  * \ingroup spnla
  */
 
-#include <float.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
@@ -43,7 +43,7 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
-#include "nla_intern.h" /* own include */
+#include "nla_intern.hh" /* own include */
 #include "nla_private.h"
 
 /* *********************************************** */
@@ -79,12 +79,12 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 static void nla_action_draw_keyframes(
     View2D *v2d, AnimData *adt, bAction *act, float y, float ymin, float ymax)
 {
-  if (act == NULL) {
+  if (act == nullptr) {
     return;
   }
 
   /* get a list of the keyframes with NLA-scaling applied */
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
   action_to_keylist(adt, act, keylist, 0);
 
   if (ED_keylist_is_empty(keylist)) {
@@ -173,7 +173,7 @@ static void nla_actionclip_draw_markers(
 {
   const bAction *act = strip->act;
 
-  if (ELEM(NULL, act, act->markers.first)) {
+  if (ELEM(nullptr, act, act->markers.first)) {
     return;
   }
 
@@ -323,7 +323,6 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
   /* influence -------------------------- */
   if (strip->flag & NLASTRIP_FLAG_USR_INFLUENCE) {
     FCurve *fcu = BKE_fcurve_find(&strip->fcurves, "influence", 0);
-    float cfra;
 
     /* plot the curve (over the strip's main region) */
     if (fcu) {
@@ -332,7 +331,7 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc, uin
       /* sample at 1 frame intervals, and draw
        * - min y-val is yminc, max is y-maxc, so clamp in those regions
        */
-      for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
+      for (float cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
         float y = evaluate_fcurve(fcu, cfra); /* assume this to be in 0-1 range */
         CLAMP(y, 0.0f, 1.0f);
         immVertex2f(pos, cfra, ((y * yheight) + yminc));
@@ -411,7 +410,7 @@ static uint nla_draw_use_dashed_outlines(const float color[4], bool muted)
  */
 static bool is_nlastrip_enabled(AnimData *adt, NlaTrack *nlt, NlaStrip *strip)
 {
-  /** This shouldn't happen. If passed NULL, then just treat strip as enabled. */
+  /** This shouldn't happen. If passed nullptr, then just treat strip as enabled. */
   BLI_assert(adt);
   if (!adt) {
     return true;
@@ -461,7 +460,7 @@ static void nla_draw_strip(SpaceNla *snla,
         /* only need to draw here if there's no strip before since
          * it only applies in such a situation
          */
-        if (strip->prev == NULL) {
+        if (strip->prev == nullptr) {
           /* set the drawing color to the color of the strip, but with very faint alpha */
           immUniformColor3fvAlpha(color, 0.15f);
 
@@ -473,7 +472,7 @@ static void nla_draw_strip(SpaceNla *snla,
       /* this only draws after the strip */
       case NLASTRIP_EXTEND_HOLD_FORWARD:
         /* only need to try and draw if the next strip doesn't occur immediately after */
-        if ((strip->next == NULL) || (IS_EQF(strip->next->start, strip->end) == 0)) {
+        if ((strip->next == nullptr) || (IS_EQF(strip->next->start, strip->end) == 0)) {
           /* set the drawing color to the color of the strip, but this time less faint */
           immUniformColor3fvAlpha(color, 0.3f);
 
@@ -495,16 +494,12 @@ static void nla_draw_strip(SpaceNla *snla,
 
     /* strip is in normal track */
     UI_draw_roundbox_corner_set(UI_CNR_ALL); /* all corners rounded */
-    UI_draw_roundbox_4fv(
-        &(const rctf){
-            .xmin = strip->start,
-            .xmax = strip->end,
-            .ymin = yminc,
-            .ymax = ymaxc,
-        },
-        true,
-        0.0f,
-        color);
+    rctf rect;
+    rect.xmin = strip->start;
+    rect.xmax = strip->end;
+    rect.ymin = yminc;
+    rect.ymax = ymaxc;
+    UI_draw_roundbox_4fv(&rect, true, 0.0f, color);
 
     /* restore current vertex format & program (roundbox trashes it) */
     shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -560,16 +555,12 @@ static void nla_draw_strip(SpaceNla *snla,
   }
   else {
     /* non-muted - draw solid, rounded outline */
-    UI_draw_roundbox_4fv(
-        &(const rctf){
-            .xmin = strip->start,
-            .xmax = strip->end,
-            .ymin = yminc,
-            .ymax = ymaxc,
-        },
-        false,
-        0.0f,
-        color);
+    rctf rect;
+    rect.xmin = strip->start;
+    rect.xmax = strip->end;
+    rect.ymin = yminc;
+    rect.ymax = ymaxc;
+    UI_draw_roundbox_4fv(&rect, false, 0.0f, color);
 
     /* restore current vertex format & program (roundbox trashes it) */
     shdr_pos = nla_draw_use_dashed_outlines(color, muted);
@@ -672,12 +663,11 @@ static void nla_draw_strip_text(AnimData *adt,
    * - padding of 2 'units' on either side
    */
   /* TODO: make this centered? */
-  rctf rect = {
-      .xmin = xminc,
-      .ymin = yminc,
-      .xmax = xmaxc,
-      .ymax = ymaxc,
-  };
+  rctf rect;
+  rect.xmin = xminc;
+  rect.ymin = yminc;
+  rect.xmax = xmaxc;
+  rect.ymax = ymaxc;
 
   /* add this string to the cache of texts to draw */
   UI_view2d_text_cache_add_rectf(v2d, &rect, str, str_len, col);
@@ -688,7 +678,7 @@ static void nla_draw_strip_text(AnimData *adt,
  * for now, only used when transforming strips.
  */
 static void nla_draw_strip_frames_text(
-    NlaTrack *UNUSED(nlt), NlaStrip *strip, View2D *v2d, float UNUSED(yminc), float ymaxc)
+    NlaTrack * /*nlt*/, NlaStrip *strip, View2D *v2d, float /*yminc*/, float ymaxc)
 {
   const float ytol = 1.0f; /* small offset to vertical positioning of text, for legibility */
   const uchar col[4] = {220, 220, 220, 255}; /* light gray */
@@ -698,9 +688,9 @@ static void nla_draw_strip_frames_text(
   /* Always draw times above the strip, whereas sequencer drew below + above.
    * However, we should be fine having everything on top, since these tend to be
    * quite spaced out.
-   * - 1 dp is compromise between lack of precision (ints only, as per sequencer)
-   *   while also preserving some accuracy, since we do use floats
-   */
+   * NOTE: 1 decimal point is a compromise between lack of precision (ints only, as per sequencer)
+   * while also preserving some accuracy, since we do use floats. */
+
   /* start frame */
   numstr_len = SNPRINTF_RLEN(numstr, "%.1f", strip->start);
   UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, numstr_len, col);
@@ -720,12 +710,12 @@ static void nla_draw_strip_frames_text(
 static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
 {
   if (BLI_listbase_is_empty(&nlt->strips)) {
-    ListBase empty = {NULL, NULL};
+    ListBase empty = {nullptr, nullptr};
     return empty;
   }
 
-  NlaStrip *first = NULL;
-  NlaStrip *last = NULL;
+  NlaStrip *first = nullptr;
+  NlaStrip *last = nullptr;
 
   /* Find the first strip that is within the bounds of the view. */
   LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
@@ -735,7 +725,7 @@ static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
     }
   }
 
-  const bool has_strips_within_bounds = first != NULL;
+  const bool has_strips_within_bounds = first != nullptr;
 
   if (has_strips_within_bounds) {
     /* Find the last visible strip. */
@@ -760,8 +750,8 @@ static ListBase get_visible_nla_strips(NlaTrack *nlt, View2D *v2d)
      * if the view is adjacent to a strip that should have its extendmode
      * rendered.
      */
-    NlaStrip *first_strip = nlt->strips.first;
-    NlaStrip *last_strip = nlt->strips.last;
+    NlaStrip *first_strip = static_cast<NlaStrip *>(nlt->strips.first);
+    NlaStrip *last_strip = static_cast<NlaStrip *>(nlt->strips.last);
     if (first_strip && v2d->cur.xmax < first_strip->start &&
         first_strip->extendmode == NLASTRIP_EXTEND_HOLD)
     {
@@ -804,10 +794,11 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
   const float text_margin_x = (8 * UI_SCALE_FAC) * pixelx;
 
   /* build list of channels to draw */
-  ListBase anim_data = {NULL, NULL};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-                ANIMFILTER_FCURVESONLY);
-  size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ListBase anim_data = {nullptr, nullptr};
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  size_t items = ANIM_animdata_filter(
+      ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Update max-extent of channels here (taking into account scrollers):
    * - this is done to allow the channel list to be scrollable, but must be done here
@@ -821,7 +812,9 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
   /* Loop through channels, and set up drawing depending on their type. */
   float ymax = NLACHANNEL_FIRST_TOP(ac);
 
-  for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
+  for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= NLACHANNEL_STEP(snla))
+  {
     float ymin = ymax - NLACHANNEL_HEIGHT(snla);
     float ycenter = (ymax + ymin) / 2.0f;
 
@@ -832,7 +825,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
       switch (ale->type) {
         case ANIMTYPE_NLATRACK: {
           AnimData *adt = ale->adt;
-          NlaTrack *nlt = (NlaTrack *)ale->data;
+          NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
           ListBase visible_nla_strips = get_visible_nla_strips(nlt, v2d);
 
           /* Draw each visible strip in the track. */
@@ -862,7 +855,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 
           /* Draw the manually set intended playback frame range highlight. */
           if (ale->data) {
-            ANIM_draw_action_framerange(adt, ale->data, v2d, ymin, ymax);
+            ANIM_draw_action_framerange(adt, static_cast<bAction *>(ale->data), v2d, ymin, ymax);
           }
 
           uint pos = GPU_vertformat_attr_add(
@@ -877,7 +870,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 
           /* get colors for drawing */
           float color[4];
-          nla_action_get_color(adt, ale->data, color);
+          nla_action_get_color(adt, static_cast<bAction *>(ale->data), color);
           immUniformColor4fv(color);
 
           /* draw slightly shifted up for greater separation from standard channels,
@@ -895,7 +888,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
             case NLASTRIP_EXTEND_HOLD_FORWARD: {
               float r_start;
               float r_end;
-              BKE_action_get_frame_range(ale->data, &r_start, &r_end);
+              BKE_action_get_frame_range(static_cast<bAction *>(ale->data), &r_start, &r_end);
 
               immRectf(pos, r_end, ymin + NLACHANNEL_SKIP, v2d->cur.xmax, ymax - NLACHANNEL_SKIP);
               break;
@@ -907,8 +900,12 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
           immUnbindProgram();
 
           /* draw keyframes in the action */
-          nla_action_draw_keyframes(
-              v2d, adt, ale->data, ycenter, ymin + NLACHANNEL_SKIP, ymax - NLACHANNEL_SKIP);
+          nla_action_draw_keyframes(v2d,
+                                    adt,
+                                    static_cast<bAction *>(ale->data),
+                                    ycenter,
+                                    ymin + NLACHANNEL_SKIP,
+                                    ymax - NLACHANNEL_SKIP);
 
           GPU_blend(GPU_BLEND_NONE);
           break;
@@ -926,18 +923,16 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *region)
 
 void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
 {
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
+  ListBase anim_data = {nullptr, nullptr};
 
-  SpaceNla *snla = (SpaceNla *)ac->sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &region->v2d;
   size_t items;
 
   /* build list of channels to draw */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-            ANIMFILTER_FCURVESONLY);
-  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* Update max-extent of channels here (taking into account scrollers):
    * - this is done to allow the channel list to be scrollable, but must be done here
@@ -950,15 +945,16 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
 
   /* need to do a view-sync here, so that the keys area doesn't jump around
    * (it must copy this) */
-  UI_view2d_sync(NULL, ac->area, v2d, V2D_LOCK_COPY);
+  UI_view2d_sync(nullptr, ac->area, v2d, V2D_LOCK_COPY);
 
   /* draw channels */
   { /* first pass: just the standard GL-drawing for backdrop + text */
     size_t channel_index = 0;
     float ymax = NLACHANNEL_FIRST_TOP(ac);
 
-    for (ale = anim_data.first; ale;
-         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
+    for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++)
+    {
       float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
       /* check if visible */
@@ -978,8 +974,9 @@ void draw_nla_channel_list(const bContext *C, bAnimContext *ac, ARegion *region)
     GPU_blend(GPU_BLEND_ALPHA);
 
     /* Loop through channels, and set up drawing depending on their type. */
-    for (ale = anim_data.first; ale;
-         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++) {
+    for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+         ale = ale->next, ymax -= NLACHANNEL_STEP(snla), channel_index++)
+    {
       float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
       /* check if visible */

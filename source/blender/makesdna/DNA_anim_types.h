@@ -906,6 +906,10 @@ typedef enum eNlaTrack_Flag {
    * usually as result of tweaking being enabled (internal flag) */
   NLATRACK_DISABLED = (1 << 10),
 
+  /** Marks tracks automatically added for space while dragging strips vertically.
+   * Internal flag that's only set during transform operator. */
+  NLATRACK_TEMPORARILY_ADDED = (1 << 11),
+
   /** This NLA track is added to an override ID, which means it is fully editable.
    * Irrelevant in case the owner ID is not an override. */
   NLATRACK_OVERRIDELIBRARY_LOCAL = 1 << 16,

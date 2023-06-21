@@ -133,14 +133,14 @@ size_t BLI_string_flip_side_name(char *name_dst,
   BLI_string_debug_size(name_dst, name_dst_maxncpy);
 
   size_t len;
-  char *prefix = alloca(name_dst_maxncpy);  /* The part before the facing */
-  char *suffix = alloca(name_dst_maxncpy);  /* The part after the facing */
-  char *replace = alloca(name_dst_maxncpy); /* The replacement string */
-  char *number = alloca(name_dst_maxncpy);  /* The number extension string */
+  char *prefix = alloca(name_dst_maxncpy); /* The part before the facing */
+  char *suffix = alloca(name_dst_maxncpy); /* The part after the facing */
+  char *number = alloca(name_dst_maxncpy); /* The number extension string */
+  const char *replace = NULL;
   char *index = NULL;
   bool is_set = false;
 
-  *prefix = *suffix = *replace = *number = '\0';
+  *prefix = *suffix = *number = '\0';
 
   /* always copy the name, since this can be called with an uninitialized string */
   len = BLI_strncpy_rlen(name_dst, name_src, name_dst_maxncpy);
@@ -169,19 +169,19 @@ size_t BLI_string_flip_side_name(char *name_dst,
     switch (name_dst[len - 1]) {
       case 'l':
         prefix[len - 1] = 0;
-        strcpy(replace, "r");
+        replace = "r";
         break;
       case 'r':
         prefix[len - 1] = 0;
-        strcpy(replace, "l");
+        replace = "l";
         break;
       case 'L':
         prefix[len - 1] = 0;
-        strcpy(replace, "R");
+        replace = "R";
         break;
       case 'R':
         prefix[len - 1] = 0;
-        strcpy(replace, "L");
+        replace = "L";
         break;
       default:
         is_set = false;
@@ -193,22 +193,22 @@ size_t BLI_string_flip_side_name(char *name_dst,
     is_set = true;
     switch (name_dst[0]) {
       case 'l':
-        strcpy(replace, "r");
+        replace = "r";
         BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'r':
-        strcpy(replace, "l");
+        replace = "l";
         BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'L':
-        strcpy(replace, "R");
+        replace = "R";
         BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
       case 'R':
-        strcpy(replace, "L");
+        replace = "L";
         BLI_strncpy(suffix, name_dst + 1, name_dst_maxncpy);
         prefix[0] = 0;
         break;
@@ -222,10 +222,10 @@ size_t BLI_string_flip_side_name(char *name_dst,
     if (((index = BLI_strcasestr(prefix, "right")) == prefix) || (index == prefix + len - 5)) {
       is_set = true;
       if (index[0] == 'r') {
-        strcpy(replace, "left");
+        replace = "left";
       }
       else {
-        strcpy(replace, (index[1] == 'I') ? "LEFT" : "Left");
+        replace = (index[1] == 'I' ? "LEFT" : "Left");
       }
       *index = 0;
       BLI_strncpy(suffix, index + 5, name_dst_maxncpy);
@@ -233,10 +233,10 @@ size_t BLI_string_flip_side_name(char *name_dst,
     else if (((index = BLI_strcasestr(prefix, "left")) == prefix) || (index == prefix + len - 4)) {
       is_set = true;
       if (index[0] == 'l') {
-        strcpy(replace, "right");
+        replace = "right";
       }
       else {
-        strcpy(replace, (index[1] == 'E') ? "RIGHT" : "Right");
+        replace = (index[1] == 'E' ? "RIGHT" : "Right");
       }
       *index = 0;
       BLI_strncpy(suffix, index + 4, name_dst_maxncpy);
@@ -244,7 +244,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
   }
 
   return BLI_snprintf_rlen(
-      name_dst, name_dst_maxncpy, "%s%s%s%s", prefix, replace, suffix, number);
+      name_dst, name_dst_maxncpy, "%s%s%s%s", prefix, replace ? replace : "", suffix, number);
 }
 
 /* Unique name utils. */

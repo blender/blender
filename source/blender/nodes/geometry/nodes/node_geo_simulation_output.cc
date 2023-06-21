@@ -169,10 +169,10 @@ static void cleanup_geometry_for_simulation_state(GeometrySet &main_geometry)
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
     }
-    geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH,
-                                      GEO_COMPONENT_TYPE_CURVE,
-                                      GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                      GEO_COMPONENT_TYPE_INSTANCES});
+    geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
+                                      GeometryComponent::Type::Curve,
+                                      GeometryComponent::Type::PointCloud,
+                                      GeometryComponent::Type::Instance});
   });
 }
 
@@ -274,10 +274,10 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
 
   /* Make some attributes anonymous. */
   for (GeometrySet *geometry : geometries) {
-    for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                             GEO_COMPONENT_TYPE_CURVE,
-                                             GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                             GEO_COMPONENT_TYPE_INSTANCES})
+    for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                               GeometryComponent::Type::Curve,
+                                               GeometryComponent::Type::PointCloud,
+                                               GeometryComponent::Type::Instance})
     {
       if (!geometry->has(type)) {
         continue;

@@ -488,7 +488,7 @@ static int shaderfx_remove_exec(bContext *C, wmOperator *op)
 
   /* Store name temporarily for report. */
   char name[MAX_NAME];
-  strcpy(name, fx->name);
+  STRNCPY(name, fx->name);
 
   if (!ED_object_shaderfx_remove(op->reports, bmain, ob, fx)) {
     return OPERATOR_CANCELLED;

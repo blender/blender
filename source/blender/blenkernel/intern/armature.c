@@ -703,7 +703,7 @@ bool bone_autoside_name(
 {
   uint len;
   char basename[MAXBONENAME] = "";
-  char extension[5] = "";
+  const char *extension = NULL;
 
   len = strlen(name);
   if (len == 0) {
@@ -723,18 +723,18 @@ bool bone_autoside_name(
     /* z-axis - vertical (top/bottom) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "Bot");
+        extension = "Bot";
       }
       else if (tail > 0) {
-        strcpy(extension, "Top");
+        extension = "Top";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "Bot");
+        extension = "Bot";
       }
       else {
-        strcpy(extension, "Top");
+        extension = "Top";
       }
     }
   }
@@ -742,18 +742,18 @@ bool bone_autoside_name(
     /* y-axis - depth (front/back) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "Fr");
+        extension = "Fr";
       }
       else if (tail > 0) {
-        strcpy(extension, "Bk");
+        extension = "Bk";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "Fr");
+        extension = "Fr";
       }
       else {
-        strcpy(extension, "Bk");
+        extension = "Bk";
       }
     }
   }
@@ -761,19 +761,19 @@ bool bone_autoside_name(
     /* x-axis - horizontal (left/right) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "R");
+        extension = "R";
       }
       else if (tail > 0) {
-        strcpy(extension, "L");
+        extension = "L";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "R");
+        extension = "R";
         /* XXX Shouldn't this be simple else, as for z and y axes? */
       }
       else if (head > 0) {
-        strcpy(extension, "L");
+        extension = "L";
       }
     }
   }
@@ -782,7 +782,7 @@ bool bone_autoside_name(
    * - truncate if there is an extension and it wouldn't be able to fit
    * - otherwise, just append to end
    */
-  if (extension[0]) {
+  if (extension) {
     bool changed = true;
 
     while (changed) { /* remove extensions */

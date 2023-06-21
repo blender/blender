@@ -195,7 +195,7 @@ typedef enum eWM_CursorWrapAxis {
 
 /**
  * Context to call operator in for #WM_operator_name_call.
- * rna_ui.c contains EnumPropertyItem's of these, keep in sync.
+ * rna_ui.cc contains EnumPropertyItem's of these, keep in sync.
  */
 typedef enum wmOperatorCallContext {
   /* if there's invoke, call it, otherwise exec */

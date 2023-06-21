@@ -566,7 +566,7 @@ bool Geometry::can_connect(const bNodeSocket &socket) const
   return sockets_can_connect(*this, socket) && socket.type == SOCK_GEOMETRY;
 }
 
-Span<GeometryComponentType> Geometry::supported_types() const
+Span<bke::GeometryComponent::Type> Geometry::supported_types() const
 {
   return supported_types_;
 }
@@ -581,14 +581,14 @@ bool Geometry::only_instances() const
   return only_instances_;
 }
 
-GeometryBuilder &GeometryBuilder::supported_type(GeometryComponentType supported_type)
+GeometryBuilder &GeometryBuilder::supported_type(bke::GeometryComponent::Type supported_type)
 {
   decl_->supported_types_ = {supported_type};
   return *this;
 }
 
 GeometryBuilder &GeometryBuilder::supported_type(
-    blender::Vector<GeometryComponentType> supported_types)
+    blender::Vector<bke::GeometryComponent::Type> supported_types)
 {
   decl_->supported_types_ = std::move(supported_types);
   return *this;

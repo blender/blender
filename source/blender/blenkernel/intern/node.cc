@@ -2891,28 +2891,22 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
   }
 }
 
-void nodeToView(const bNode *node, const float x, const float y, float *rx, float *ry)
+float2 nodeToView(const bNode *node, const float2 loc)
 {
-  float mapping_x = 0.0f;
-  float mapping_y = 0.0f;
+  float2 view_loc = loc;
   for (const bNode *node_iter = node; node_iter; node_iter = node_iter->parent) {
-    mapping_x += node_iter->locx;
-    mapping_y += node_iter->locy;
+    view_loc += float2(node_iter->locx, node_iter->locy);
   }
-  *rx = mapping_x + x;
-  *ry = mapping_y + y;
+  return view_loc;
 }
 
-void nodeFromView(const bNode *node, const float x, const float y, float *rx, float *ry)
+float2 nodeFromView(const bNode *node, const float2 view_loc)
 {
-  float mapping_x = 0.0f;
-  float mapping_y = 0.0f;
+  float2 loc = view_loc;
   for (const bNode *node_iter = node; node_iter; node_iter = node_iter->parent) {
-    mapping_x += node_iter->locx;
-    mapping_y += node_iter->locy;
+    loc -= float2(node_iter->locx, node_iter->locy);
   }
-  *rx = -mapping_x + x;
-  *ry = -mapping_y + y;
+  return loc;
 }
 
 }  // namespace blender::bke
@@ -2922,13 +2916,14 @@ void nodeAttachNode(bNodeTree *ntree, bNode *node, bNode *parent)
   BLI_assert(parent->type == NODE_FRAME);
   BLI_assert(!nodeIsParentAndChild(parent, node));
 
-  float locx, locy;
-  blender::bke::nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+  const blender::float2 loc = blender::bke::nodeToView(node, {});
 
   node->parent = parent;
   BKE_ntree_update_tag_parent_change(ntree, node);
   /* transform to parent space */
-  blender::bke::nodeFromView(parent, locx, locy, &node->locx, &node->locy);
+  const blender::float2 new_loc = blender::bke::nodeFromView(parent, loc);
+  node->locx = new_loc.x;
+  node->locy = new_loc.y;
 }
 
 void nodeDetachNode(bNodeTree *ntree, bNode *node)
@@ -2937,10 +2932,9 @@ void nodeDetachNode(bNodeTree *ntree, bNode *node)
     BLI_assert(node->parent->type == NODE_FRAME);
 
     /* transform to view space */
-    float locx, locy;
-    blender::bke::nodeToView(node, 0.0f, 0.0f, &locx, &locy);
-    node->locx = locx;
-    node->locy = locy;
+    const blender::float2 loc = blender::bke::nodeToView(node, {});
+    node->locx = loc.x;
+    node->locy = loc.y;
     node->parent = nullptr;
     BKE_ntree_update_tag_parent_change(ntree, node);
   }
@@ -3659,9 +3653,6 @@ void ntreeLocalMerge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
     if (ntree->typeinfo->local_merge) {
       ntree->typeinfo->local_merge(bmain, localtree, ntree);
     }
-
-    ntreeFreeTree(localtree);
-    MEM_freeN(localtree);
   }
 }
 
@@ -3860,7 +3851,7 @@ int ntreeGetPanelIndex(const bNodeTree *ntree, const bNodePanel *panel)
   return ntree->panels().first_index_try(const_cast<bNodePanel *>(panel));
 }
 
-bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
+bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name)
 {
   bNodePanel **old_panels_array = ntree->panels_array;
   const Span<const bNodePanel *> old_panels = ntree->panels();
@@ -3873,7 +3864,7 @@ bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
             new_panels.data());
 
   bNodePanel *new_panel = MEM_cnew<bNodePanel>(__func__);
-  *new_panel = {BLI_strdup(name), flag, ntree->next_panel_identifier++};
+  *new_panel = {BLI_strdup(name)};
   new_panels[new_panels.size() - 1] = new_panel;
 
   MEM_SAFE_FREE(old_panels_array);
@@ -3883,7 +3874,7 @@ bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name, int flag)
   return new_panel;
 }
 
-bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int flag, int index)
+bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int index)
 {
   if (!blender::IndexRange(ntree->panels().size() + 1).contains(index)) {
     return nullptr;
@@ -3905,7 +3896,7 @@ bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int flag, int i
             new_panels.drop_front(index + 1).data());
 
   bNodePanel *new_panel = MEM_cnew<bNodePanel>(__func__);
-  *new_panel = {BLI_strdup(name), flag, ntree->next_panel_identifier++};
+  *new_panel = {BLI_strdup(name)};
   new_panels[index] = new_panel;
 
   MEM_SAFE_FREE(old_panels_array);

@@ -219,11 +219,13 @@ static void setup_app_userdef(BlendFileData *bfd)
   }
 }
 
-/** Helper struct to manage IDs that are re-used across blendfile loading (i.e. moved from the old
- * Main the the new one).
+/**
+ * Helper struct to manage IDs that are re-used across blend-file loading (i.e. moved from the old
+ * Main the new one).
  *
- * NOTE: this is only used when actually loading a real .blend file, loading of memfile undo steps
- * does not need it. */
+ * NOTE: this is only used when actually loading a real `.blend` file,
+ * loading of memfile undo steps does not need it.
+ */
 typedef struct ReuseOldBMainData {
   Main *new_bmain;
   Main *old_bmain;

@@ -338,14 +338,16 @@ void BKE_mesh_calc_loop_tangent_step_0(const CustomData *loopData,
   *ract_uv_n = CustomData_get_active_layer(loopData, CD_PROP_FLOAT2);
   ract_uv_name[0] = 0;
   if (*ract_uv_n != -1) {
-    strcpy(ract_uv_name, loopData->layers[*ract_uv_n + layer_index].name);
+    BLI_strncpy(
+        ract_uv_name, loopData->layers[*ract_uv_n + layer_index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
 
   /* Active tangent in render */
   *rren_uv_n = CustomData_get_render_layer(loopData, CD_PROP_FLOAT2);
   rren_uv_name[0] = 0;
   if (*rren_uv_n != -1) {
-    strcpy(rren_uv_name, loopData->layers[*rren_uv_n + layer_index].name);
+    BLI_strncpy(
+        rren_uv_name, loopData->layers[*rren_uv_n + layer_index].name, MAX_CUSTOMDATA_LAYER_NAME);
   }
 
   /* If active tangent not in tangent_names we take it into account */

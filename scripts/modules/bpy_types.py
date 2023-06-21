@@ -566,7 +566,7 @@ def _name_convention_attribute_remove(attributes, name):
 class Mesh(bpy_types.ID):
     __slots__ = ()
 
-    def from_pydata(self, vertices, edges, faces):
+    def from_pydata(self, vertices, edges, faces, shade_flat=True):
         """
         Make a mesh from a list of vertices/edges/faces
         Until we have a nicer way to make geometry, use this.
@@ -623,6 +623,9 @@ class Mesh(bpy_types.ID):
         self.polygons.foreach_set("loop_start", loop_starts)
         self.polygons.foreach_set("vertices", vertex_indices)
 
+        if shade_flat:
+            self.shade_flat()
+
         if edges_len or faces_len:
             self.update(
                 # Needed to either:
@@ -662,6 +665,22 @@ class Mesh(bpy_types.ID):
 
     def edge_creases_remove(self):
         _name_convention_attribute_remove(self.attributes, "crease_edge")
+
+    def shade_flat(self):
+        """
+        Render and display faces uniform, using face normals,
+        setting the "sharp_face" attribute true for every face
+        """
+        sharp_faces = _name_convention_attribute_ensure(self.attributes, "sharp_face", 'FACE', 'BOOLEAN')
+        for value in sharp_faces.data:
+            value.value = True
+
+    def shade_smooth(self):
+        """
+        Render and display faces smooth, using interpolated vertex normals,
+        removing the "sharp_face" attribute
+        """
+        _name_convention_attribute_remove(self.attributes, "sharp_face")
 
 
 class MeshEdge(StructRNA):

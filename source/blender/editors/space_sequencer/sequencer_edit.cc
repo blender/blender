@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
 
@@ -1624,7 +1625,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator * /*op*/)
    * This way, when pasted strips are renamed, curves are renamed with them. Finally, restore
    * original curves from backup.
    */
-  SeqAnimationBackup animation_backup = {0};
+  SeqAnimationBackup animation_backup = {{nullptr}};
   SEQ_animation_backup_original(scene, &animation_backup);
 
   Sequence *seq = static_cast<Sequence *>(duplicated_strips.first);
@@ -2016,7 +2017,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
   }
 
   seqm->machine = active_seq ? active_seq->machine : channel_max;
-  strcpy(seqm->name + 2, "MetaStrip");
+  BLI_strncpy(seqm->name + 2, "MetaStrip", sizeof(seqm->name) - 2);
   SEQ_sequence_base_unique_name_recursive(scene, &ed->seqbase, seqm);
   seqm->start = meta_start_frame;
   seqm->len = meta_end_frame - meta_start_frame;
@@ -2599,7 +2600,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *op)
    * curves from backup.
    */
 
-  SeqAnimationBackup animation_backup = {0};
+  SeqAnimationBackup animation_backup = {{nullptr}};
   SEQ_animation_backup_original(scene, &animation_backup);
   sequencer_paste_animation(C);
 

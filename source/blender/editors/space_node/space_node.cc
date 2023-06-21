@@ -178,18 +178,20 @@ int ED_node_tree_path_length(SpaceNode *snode)
 void ED_node_tree_path_get(SpaceNode *snode, char *value)
 {
   int i = 0;
-
-  value[0] = '\0';
+#ifndef NDEBUG
+  const char *value_orig = value;
+#endif
+  /* Note that the caller ensures there is enough space available. */
   LISTBASE_FOREACH_INDEX (bNodeTreePath *, path, &snode->treepath, i) {
-    if (i == 0) {
-      strcpy(value, path->display_name);
-      value += strlen(path->display_name);
+    const int len = strlen(path->display_name);
+    if (i != 0) {
+      *value++ = '/';
     }
-    else {
-      BLI_sprintf(value, "/%s", path->display_name);
-      value += strlen(path->display_name) + 1;
-    }
+    memcpy(value, path->display_name, len);
+    value += len;
   }
+  *value = '\0';
+  BLI_assert(ptrdiff_t(ED_node_tree_path_length(snode)) == ptrdiff_t(value - value_orig));
 }
 
 void ED_node_set_active_viewer_key(SpaceNode *snode)
@@ -247,7 +249,7 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 
   /* select the first tree type for valid type */
   NODE_TREE_TYPES_BEGIN (treetype) {
-    strcpy(snode->tree_idname, treetype->idname);
+    STRNCPY(snode->tree_idname, treetype->idname);
     break;
   }
   NODE_TREE_TYPES_END;

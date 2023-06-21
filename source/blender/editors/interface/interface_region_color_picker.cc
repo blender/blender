@@ -214,9 +214,8 @@ static void ui_update_color_picker_buts_rgb(uiBut *from_but,
       }
 
       rgb_float_to_uchar(rgb_hex_uchar, rgb_hex);
-      SNPRINTF(col, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
-
-      strcpy(bt->poin, col);
+      const int col_len = SNPRINTF_RLEN(col, "%02X%02X%02X", UNPACK3_EX((uint), rgb_hex_uchar, ));
+      memcpy(bt->poin, col, col_len + 1);
     }
     else if (bt->str[1] == ' ') {
       if (bt->str[0] == 'R') {

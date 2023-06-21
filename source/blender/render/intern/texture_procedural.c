@@ -517,7 +517,8 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
   BLI_noise_voronoi(texvec[0], texvec[1], texvec[2], da, pa, tex->vn_mexp, tex->vn_distm);
   texres->tin = sc * fabsf(dot_v4v4(&tex->vn_w1, da));
 
-  if (tex->vn_coltype) {
+  const bool is_color = ELEM(tex->vn_coltype, TEX_COL1, TEX_COL2, TEX_COL3);
+  if (is_color) {
     float ca[3]; /* cell color */
     BLI_noise_cell_v3(pa[0], pa[1], pa[2], ca);
     texres->trgba[0] = aw1 * ca[0];
@@ -535,12 +536,12 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     texres->trgba[0] += aw4 * ca[0];
     texres->trgba[1] += aw4 * ca[1];
     texres->trgba[2] += aw4 * ca[2];
-    if (tex->vn_coltype >= 2) {
+    if (ELEM(tex->vn_coltype, TEX_COL2, TEX_COL3)) {
       float t1 = (da[1] - da[0]) * 10;
       if (t1 > 1) {
         t1 = 1;
       }
-      if (tex->vn_coltype == 3) {
+      if (tex->vn_coltype == TEX_COL3) {
         t1 *= texres->tin;
       }
       else {
@@ -557,7 +558,7 @@ static int voronoiTex(const Tex *tex, const float texvec[3], TexResult *texres)
     }
   }
 
-  if (tex->vn_coltype) {
+  if (is_color) {
     BRICONTRGB;
     texres->trgba[3] = 1.0;
     return (rv | TEX_RGB);

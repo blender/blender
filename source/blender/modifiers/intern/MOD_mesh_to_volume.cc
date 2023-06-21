@@ -184,7 +184,7 @@ static Volume *mesh_to_volume(ModifierData *md,
 
 static void modifyGeometrySet(ModifierData *md,
                               const ModifierEvalContext *ctx,
-                              GeometrySet *geometry_set)
+                              blender::bke::GeometrySet *geometry_set)
 {
   Volume *input_volume = geometry_set->get_volume_for_write();
   Volume *result_volume = mesh_to_volume(md, ctx, input_volume);

@@ -222,8 +222,8 @@ void RE_FreeAllPersistentData(void);
  */
 void RE_FreePersistentData(const struct Scene *scene);
 
-/*
- * Free cached GPU textures to reduce memory usage. Before rendering all are cleard
+/**
+ * Free cached GPU textures to reduce memory usage. Before rendering all are cleared
  * and on UI changes when detected they are no longer used.
  */
 void RE_FreeGPUTextureCaches(const bool only_unused);
@@ -264,15 +264,6 @@ struct RenderStats *RE_GetStats(struct Render *re);
  * Caller is responsible for allocating `rect` in correct size!
  */
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
-/**
- * Only for acquired results, for lock.
- *
- * \note The caller is responsible for allocating `rect` in correct size!
- */
-void RE_AcquiredResultGet32(struct Render *re,
-                            struct RenderResult *result,
-                            unsigned int *rect,
-                            int view_id);
 
 void RE_render_result_full_channel_name(char *fullname,
                                         const char *layname,

@@ -6,8 +6,8 @@
  * \ingroup spnla
  */
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "DNA_anim_types.h"
 #include "DNA_scene_types.h"
@@ -35,7 +35,7 @@
 #include "UI_interface.h"
 #include "UI_view2d.h"
 
-#include "nla_intern.h" /* own include */
+#include "nla_intern.hh" /* own include */
 
 /* ******************** Utilities ***************************************** */
 
@@ -80,25 +80,22 @@ enum {
  */
 static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
 {
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
+  ListBase anim_data = {nullptr, nullptr};
   short smode;
 
   /* determine type-based settings */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FCURVESONLY);
 
   /* filter data */
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* See if we should be selecting or deselecting */
   if (test == DESELECT_STRIPS_TEST) {
-    for (ale = anim_data.first; ale; ale = ale->next) {
-      NlaTrack *nlt = (NlaTrack *)ale->data;
-      NlaStrip *strip;
+    LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
       /* if any strip is selected, break out, since we should now be deselecting */
-      for (strip = nlt->strips.first; strip; strip = strip->next) {
+      LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
         if (strip->flag & NLASTRIP_FLAG_SELECT) {
           sel = SELECT_SUBTRACT;
           break;
@@ -115,12 +112,11 @@ static void deselect_nla_strips(bAnimContext *ac, short test, short sel)
   smode = selmodes_to_flagmodes(sel);
 
   /* Now set the flags */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    NlaTrack *nlt = (NlaTrack *)ale->data;
-    NlaStrip *strip;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
     /* apply same selection to all strips */
-    for (strip = nlt->strips.first; strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       /* set selection */
       if (test != DESELECT_STRIPS_CLEARACTIVE) {
         ACHANNEL_SET_FLAG(strip, smode, NLASTRIP_FLAG_SELECT);
@@ -169,7 +165,7 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
   }
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -211,11 +207,9 @@ enum {
 
 static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short selectmode)
 {
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
+  ListBase anim_data = {nullptr, nullptr};
 
-  SpaceNla *snla = (SpaceNla *)ac->sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &ac->region->v2d;
   rctf rectf;
 
@@ -224,27 +218,28 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
   UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-            ANIMFILTER_FCURVESONLY);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* convert selection modes to selection modes */
   selectmode = selmodes_to_flagmodes(selectmode);
 
   /* loop over data, doing box select */
   float ymax = NLACHANNEL_FIRST_TOP(ac);
-  for (ale = anim_data.first; ale; ale = ale->next, ymax -= NLACHANNEL_STEP(snla)) {
+  for (bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data.first); ale;
+       ale = ale->next, ymax -= NLACHANNEL_STEP(snla))
+  {
     float ymin = ymax - NLACHANNEL_HEIGHT(snla);
 
     /* perform vertical suitability check (if applicable) */
     if ((mode == NLA_BOXSEL_FRAMERANGE) || !((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
       /* loop over data selecting (only if NLA-Track) */
       if (ale->type == ANIMTYPE_NLATRACK) {
-        NlaTrack *nlt = (NlaTrack *)ale->data;
-        NlaStrip *strip;
+        NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
         /* only select strips if they fall within the required ranges (if applicable) */
-        for (strip = nlt->strips.first; strip; strip = strip->next) {
+        LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
           if ((mode == NLA_BOXSEL_CHANNELS) ||
               BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax)) {
             /* set selection */
@@ -267,22 +262,28 @@ static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short
 static void nlaedit_strip_at_region_position(
     bAnimContext *ac, float region_x, float region_y, bAnimListElem **r_ale, NlaStrip **r_strip)
 {
-  *r_ale = NULL;
-  *r_strip = NULL;
+  *r_ale = nullptr;
+  *r_strip = nullptr;
 
-  SpaceNla *snla = (SpaceNla *)ac->sl;
+  SpaceNla *snla = reinterpret_cast<SpaceNla *>(ac->sl);
   View2D *v2d = &ac->region->v2d;
 
   float view_x, view_y;
   int channel_index;
   UI_view2d_region_to_view(v2d, region_x, region_y, &view_x, &view_y);
-  UI_view2d_listview_view_to_cell(
-      0, NLACHANNEL_STEP(snla), 0, NLACHANNEL_FIRST_TOP(ac), view_x, view_y, NULL, &channel_index);
+  UI_view2d_listview_view_to_cell(0,
+                                  NLACHANNEL_STEP(snla),
+                                  0,
+                                  NLACHANNEL_FIRST_TOP(ac),
+                                  view_x,
+                                  view_y,
+                                  nullptr,
+                                  &channel_index);
 
-  ListBase anim_data = {NULL, NULL};
-  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS |
-                ANIMFILTER_FCURVESONLY);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  ListBase anim_data = {nullptr, nullptr};
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* x-range to check is +/- 7 (in screen/region-space) on either side of mouse click
    * (that is the size of keyframe icons, so user should be expecting similar tolerances)
@@ -291,10 +292,10 @@ static void nlaedit_strip_at_region_position(
   const float xmin = UI_view2d_region_to_view_x(v2d, region_x - 7);
   const float xmax = UI_view2d_region_to_view_x(v2d, region_x + 7);
 
-  bAnimListElem *ale = BLI_findlink(&anim_data, channel_index);
-  if (ale != NULL) {
+  bAnimListElem *ale = static_cast<bAnimListElem *>(BLI_findlink(&anim_data, channel_index));
+  if (ale != nullptr) {
     if (ale->type == ANIMTYPE_NLATRACK) {
-      NlaTrack *nlt = (NlaTrack *)ale->data;
+      NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
       float best_distance = MAXFRAMEF;
 
       LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
@@ -330,8 +331,8 @@ static bool nlaedit_mouse_is_over_strip(bAnimContext *ac, const int mval[2])
   NlaStrip *strip;
   nlaedit_strip_at_region_position(ac, mval[0], mval[1], &ale, &strip);
 
-  if (ale != NULL) {
-    BLI_assert(strip != NULL);
+  if (ale != nullptr) {
+    BLI_assert(strip != nullptr);
     MEM_freeN(ale);
     return true;
   }
@@ -363,7 +364,7 @@ static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  const eSelectOp sel_op = RNA_enum_get(op->ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(op->ptr, "mode"));
   const int selectmode = (sel_op != SEL_OP_SUB) ? SELECT_ADD : SELECT_SUBTRACT;
   if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
     deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_SUBTRACT);
@@ -396,7 +397,7 @@ static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
   box_select_nla_strips(&ac, rect, mode, selectmode);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -438,7 +439,7 @@ static const EnumPropertyItem prop_nlaedit_leftright_select_types[] = {
     {NLAEDIT_LRSEL_TEST, "CHECK", 0, "Check if Select Left or Right", ""},
     {NLAEDIT_LRSEL_LEFT, "LEFT", 0, "Before Current Frame", ""},
     {NLAEDIT_LRSEL_RIGHT, "RIGHT", 0, "After Current Frame", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 /* ------------------- */
@@ -448,16 +449,14 @@ static void nlaedit_select_leftright(bContext *C,
                                      short leftright,
                                      short select_mode)
 {
-  ListBase anim_data = {NULL, NULL};
-  bAnimListElem *ale;
-  int filter;
+  ListBase anim_data = {nullptr, nullptr};
 
   Scene *scene = ac->scene;
   float xmin, xmax;
 
   /* if currently in tweak-mode, exit tweak-mode first */
   if (scene->flag & SCE_NLA_EDIT_ON) {
-    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL, NULL);
+    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
   }
 
   /* if select mode is replace, deselect all keyframes (and channels) first */
@@ -473,26 +472,26 @@ static void nlaedit_select_leftright(bContext *C,
   /* get range, and get the right flag-setting mode */
   if (leftright == NLAEDIT_LRSEL_LEFT) {
     xmin = MINAFRAMEF;
-    xmax = (float)(scene->r.cfra + 0.1f);
+    xmax = float(scene->r.cfra + 0.1f);
   }
   else {
-    xmin = (float)(scene->r.cfra - 0.1f);
+    xmin = float(scene->r.cfra - 0.1f);
     xmax = MAXFRAMEF;
   }
 
   select_mode = selmodes_to_flagmodes(select_mode);
 
   /* filter data */
-  filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FCURVESONLY);
-  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(ac, &anim_data, filter, ac->data, eAnimCont_Types(ac->datatype));
 
   /* select strips on the side where most data occurs */
-  for (ale = anim_data.first; ale; ale = ale->next) {
-    NlaTrack *nlt = (NlaTrack *)ale->data;
-    NlaStrip *strip;
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
     /* check each strip to see if it is appropriate */
-    for (strip = nlt->strips.first; strip; strip = strip->next) {
+    LISTBASE_FOREACH (NlaStrip *, strip, &nlt->strips) {
       if (BKE_nlastrip_within_bounds(strip, xmin, xmax)) {
         ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
       }
@@ -533,8 +532,8 @@ static int nlaedit_select_leftright_exec(bContext *C, wmOperator *op)
   nlaedit_select_leftright(C, &ac, leftright, selectmode);
 
   /* set notifier that keyframe selection (and channels too) have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, nullptr);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -608,8 +607,8 @@ static int mouse_nla_strips(bContext *C,
 {
   Scene *scene = ac->scene;
 
-  bAnimListElem *ale = NULL;
-  NlaStrip *strip = NULL;
+  bAnimListElem *ale = nullptr;
+  NlaStrip *strip = nullptr;
   int ret_value = OPERATOR_FINISHED;
 
   nlaedit_strip_at_region_position(ac, mval[0], mval[1], &ale, &strip);
@@ -618,7 +617,7 @@ static int mouse_nla_strips(bContext *C,
    * now that we've found our target...
    */
   if (scene->flag & SCE_NLA_EDIT_ON) {
-    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, NULL, NULL);
+    WM_operator_name_call(C, "NLA_OT_tweakmode_exit", WM_OP_EXEC_DEFAULT, nullptr, nullptr);
   }
 
   if (select_mode != SELECT_REPLACE) {
@@ -628,7 +627,7 @@ static int mouse_nla_strips(bContext *C,
   /* For replacing selection, if we have something to select, we have to clear existing selection.
    * The same goes if we found nothing to select, and deselect_all is true
    * (deselect on nothing behavior). */
-  if ((strip != NULL && select_mode == SELECT_REPLACE) || (strip == NULL && deselect_all)) {
+  if ((strip != nullptr && select_mode == SELECT_REPLACE) || (strip == nullptr && deselect_all)) {
     /* reset selection mode for next steps */
     select_mode = SELECT_ADD;
 
@@ -645,9 +644,9 @@ static int mouse_nla_strips(bContext *C,
   }
 
   /* only select strip if we clicked on a valid channel and hit something */
-  if (ale != NULL) {
+  if (ale != nullptr) {
     /* select the strip accordingly (if a matching one was found) */
-    if (strip != NULL) {
+    if (strip != nullptr) {
       select_mode = selmodes_to_flagmodes(select_mode);
       ACHANNEL_SET_FLAG(strip, select_mode, NLASTRIP_FLAG_SELECT);
 
@@ -662,12 +661,13 @@ static int mouse_nla_strips(bContext *C,
 
         /* Highlight NLA-Track */
         if (ale->type == ANIMTYPE_NLATRACK) {
-          NlaTrack *nlt = (NlaTrack *)ale->data;
+          NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
           nlt->flag |= NLATRACK_SELECTED;
-          int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
-                       ANIMFILTER_LIST_CHANNELS;
-          ANIM_set_active_channel(ac, ac->data, ac->datatype, filter, nlt, ANIMTYPE_NLATRACK);
+          eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                                     ANIMFILTER_LIST_CHANNELS;
+          ANIM_set_active_channel(
+              ac, ac->data, eAnimCont_Types(ac->datatype), filter, nlt, ANIMTYPE_NLATRACK);
         }
       }
     }
@@ -704,7 +704,7 @@ static int nlaedit_clickselect_exec(bContext *C, wmOperator *op)
   ret_value = mouse_nla_strips(C, &ac, mval, selectmode, deselect_all, wait_to_deselect_others);
 
   /* set notifier that things have changed */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, nullptr);
 
   /* for tweak grab to work */
   return ret_value | OPERATOR_PASS_THROUGH;

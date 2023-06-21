@@ -398,7 +398,7 @@ def lightmap_uvpack(
         # Since the boxes are sized in powers of 2, we can neatly group them into bigger squares
         # this is done hierarchically, so that we may avoid running the pack function
         # on many thousands of boxes, (under 1k is best) because it would get slow.
-        # Using an off and even dict us useful because they are packed differently
+        # Using an odd and even dict is useful because they are packed differently
         # where w/h are the same, their packed in groups of 4
         # where they are different they are packed in pairs
         #

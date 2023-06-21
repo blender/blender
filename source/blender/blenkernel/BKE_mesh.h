@@ -265,7 +265,6 @@ void BKE_mesh_nomain_to_meshkey(struct Mesh *mesh_src, struct Mesh *mesh_dst, st
 /* vertex level transformations & checks (no derived mesh) */
 
 /* basic vertex data functions */
-bool BKE_mesh_minmax(const struct Mesh *me, float r_min[3], float r_max[3]);
 void BKE_mesh_transform(struct Mesh *me, const float mat[4][4], bool do_keys);
 void BKE_mesh_translate(struct Mesh *me, const float offset[3], bool do_keys);
 
@@ -512,7 +511,6 @@ bool BKE_mesh_center_median(const struct Mesh *me, float r_cent[3]);
  * use when we want to ignore vertex locations that don't have connected faces.
  */
 bool BKE_mesh_center_median_from_polys(const struct Mesh *me, float r_cent[3]);
-bool BKE_mesh_center_bounds(const struct Mesh *me, float r_cent[3]);
 bool BKE_mesh_center_of_surface(const struct Mesh *me, float r_cent[3]);
 /**
  * \note Mesh must be manifold with consistent face-winding,

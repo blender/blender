@@ -1422,8 +1422,21 @@ static char *rna_def_property_set_func(
           }
           else {
             rna_clamp_value_range(f, prop);
+            /* C++ may require casting to an enum type.  */
+            fprintf(f, "#ifdef __cplusplus\n");
+            fprintf(f,
+                    /* If #rna_clamp_value() adds an expression like `CLAMPIS(...)`
+                     * (instead of an `lvalue`), #decltype() yields a reference,
+                     * so that has to be removed. */
+                    "    data->%s = %s(std::remove_reference_t<decltype(data->%s)>)",
+                    dp->dnaname,
+                    (dp->booleannegative) ? "!" : "",
+                    dp->dnaname);
+            rna_clamp_value(f, prop, 0);
+            fprintf(f, "#else\n");
             fprintf(f, "    data->%s = %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
             rna_clamp_value(f, prop, 0);
+            fprintf(f, "#endif\n");
           }
         }
 
@@ -4539,7 +4552,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_action.c", "rna_action_api.c", RNA_def_action},
     {"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
     {"rna_animviz.c", NULL, RNA_def_animviz},
-    {"rna_armature.c", "rna_armature_api.c", RNA_def_armature},
+    {"rna_armature.cc", "rna_armature_api.cc", RNA_def_armature},
     {"rna_attribute.c", NULL, RNA_def_attribute},
     {"rna_asset.c", NULL, RNA_def_asset},
     {"rna_boid.c", NULL, RNA_def_boid},
@@ -4598,7 +4611,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_text.c", "rna_text_api.c", RNA_def_text},
     {"rna_timeline.c", NULL, RNA_def_timeline_marker},
     {"rna_sound.c", "rna_sound_api.c", RNA_def_sound},
-    {"rna_ui.c", "rna_ui_api.c", RNA_def_ui},
+    {"rna_ui.cc", "rna_ui_api.cc", RNA_def_ui},
     {"rna_userdef.c", NULL, RNA_def_userdef},
     {"rna_vfont.c", "rna_vfont_api.c", RNA_def_vfont},
     {"rna_volume.c", NULL, RNA_def_volume},

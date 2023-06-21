@@ -188,12 +188,12 @@ using FormatF10 = FloatingPointFormat<false, 5, 5>;
  */
 template<
     /**
-     * FloatingPointFormat of the the value that is converted to.
+     * FloatingPointFormat of the value that is converted to.
      */
     typename DestinationFormat,
 
     /**
-     * FloatingPointFormat of the the value that is converted from.
+     * FloatingPointFormat of the value that is converted from.
      */
     typename SourceFormat,
 

@@ -912,6 +912,8 @@ void freeSnapping(TransInfo *t)
   else if (t->tsnap.object_context) {
     ED_transform_snap_object_context_destroy(t->tsnap.object_context);
     t->tsnap.object_context = nullptr;
+
+    ED_transform_snap_object_time_average_print();
   }
 }
 
@@ -1390,7 +1392,8 @@ eSnapMode snapObjectsTransform(
   snap_object_params.use_occlusion_test = true;
   snap_object_params.use_backface_culling = (t->tsnap.flag & SCE_SNAP_BACKFACE_CULLING) != 0;
 
-  float *prev_co = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : nullptr;
+  float *prev_co = (t->tsnap.status & SNAP_SOURCE_FOUND) ? t->tsnap.snap_source : t->center_global;
+
   return ED_transform_snap_object_project_view3d(t->tsnap.object_context,
                                                  t->depsgraph,
                                                  t->region,

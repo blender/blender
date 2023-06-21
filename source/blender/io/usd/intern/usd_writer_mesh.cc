@@ -323,13 +323,12 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   /* Blender grows its bounds cache to cover animated meshes, so only author once. */
-  float bound_min[3];
-  float bound_max[3];
-  INIT_MINMAX(bound_min, bound_max);
-  BKE_mesh_minmax(mesh, bound_min, bound_max);
-  pxr::VtArray<pxr::GfVec3f> extent{pxr::GfVec3f{bound_min[0], bound_min[1], bound_min[2]},
-                                    pxr::GfVec3f{bound_max[0], bound_max[1], bound_max[2]}};
-  usd_mesh.CreateExtentAttr().Set(extent);
+  if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
+    pxr::VtArray<pxr::GfVec3f> extent{
+        pxr::GfVec3f{bounds->min[0], bounds->min[1], bounds->min[2]},
+        pxr::GfVec3f{bounds->max[0], bounds->max[1], bounds->max[2]}};
+    usd_mesh.CreateExtentAttr().Set(extent);
+  }
 }
 
 static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)

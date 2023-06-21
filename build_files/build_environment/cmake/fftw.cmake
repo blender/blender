@@ -49,7 +49,7 @@ if(MSVC)
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/lib/fftw3f.lib ${HARVEST_TARGET}/fftw3/lib/fftw3f.lib
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/bin/fftw3f.dll ${HARVEST_TARGET}/fftw3/lib/fftw3f.dll
       DEPENDEES install
-    )    
+    )
   endif()
-  
+
 endif()

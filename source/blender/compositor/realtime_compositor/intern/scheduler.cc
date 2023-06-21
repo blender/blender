@@ -21,58 +21,6 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-/* Find the active context from the given context and its descendants contexts. The active context
- * is the one whose node instance key matches the active_viewer_key stored in the root node tree.
- * The instance key of each context is computed by calling BKE_node_instance_key given the key of
- * the parent as well as the group node making the context. */
-static const DTreeContext *find_active_context_recursive(const DTreeContext *context,
-                                                         bNodeInstanceKey key)
-{
-  /* The instance key of the given context matches the active viewer instance key, so this is the
-   * active context, return it. */
-  if (key.value == context->derived_tree().root_context().btree().active_viewer_key.value) {
-    return context;
-  }
-
-  /* For each of the group nodes, compute their instance key and contexts and call this function
-   * recursively. */
-  for (const bNode *group_node : context->btree().group_nodes()) {
-    const bNodeInstanceKey child_key = BKE_node_instance_key(key, &context->btree(), group_node);
-    const DTreeContext *child_context = context->child_context(*group_node);
-    const DTreeContext *found_context = find_active_context_recursive(child_context, child_key);
-
-    /* If the found context is null, that means neither the child context nor one of its descendant
-     * contexts is active. */
-    if (!found_context) {
-      continue;
-    }
-
-    /* Otherwise, we have found our active context, return it. */
-    return found_context;
-  }
-
-  /* Neither the given context nor one of its descendant contexts is active, so return null. */
-  return nullptr;
-}
-
-/* Find the active context for the given node tree. The active context represents the node tree
- * currently being edited. In most cases, that would be the top level node tree itself, but in the
- * case where the user is editing the node tree of a node group, the active context would be a
- * representation of the node tree of that node group. Note that the context also stores the group
- * node that the user selected to edit the node tree, so the context fully represents a particular
- * instance of the node group. */
-static const DTreeContext *find_active_context(const DerivedNodeTree &tree)
-{
-  /* If the active viewer key is NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
-   * we return the root context in that case. See the find_active_context_recursive function. */
-  if (tree.root_context().btree().active_viewer_key.value == NODE_INSTANCE_KEY_NONE.value) {
-    return &tree.root_context();
-  }
-
-  /* The root context has an instance key of NODE_INSTANCE_KEY_BASE by definition. */
-  return find_active_context_recursive(&tree.root_context(), NODE_INSTANCE_KEY_BASE);
-}
-
 /* Add the viewer node which is marked as NODE_DO_OUTPUT in the given context to the given stack.
  * If multiple types of viewer nodes are marked, then the preference will be CMP_NODE_VIEWER >
  * CMP_NODE_SPLITVIEWER. If no viewer nodes were found, composite nodes can be added as a fallback
@@ -114,7 +62,8 @@ static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode
  * Output, Composite, and Viewer nodes. Viewer nodes are a special case, as only the nodes that
  * satisfies the requirements in the add_viewer_nodes_in_context function are added. First, the
  * active context is searched for viewer nodes, if non were found, the root context is searched.
- * For more information on what contexts mean here, see the find_active_context function. */
+ * For more information on what contexts mean here, see the DerivedNodeTree::active_context()
+ * function. */
 static void add_output_nodes(const Context &context,
                              const DerivedNodeTree &tree,
                              Stack<DNode> &node_stack)
@@ -139,8 +88,8 @@ static void add_output_nodes(const Context &context,
     }
   }
 
-  const DTreeContext *active_context = find_active_context(tree);
-  const bool viewer_was_added = add_viewer_nodes_in_context(active_context, node_stack);
+  const DTreeContext &active_context = tree.active_context();
+  const bool viewer_was_added = add_viewer_nodes_in_context(&active_context, node_stack);
 
   /* An active viewer was added, no need to search further. */
   if (viewer_was_added) {
@@ -149,7 +98,7 @@ static void add_output_nodes(const Context &context,
 
   /* If the active context is the root one and no viewer nodes were found, we consider this node
    * tree to have no viewer nodes, even if one of the non-active descendants have viewer nodes. */
-  if (active_context->is_root()) {
+  if (active_context.is_root()) {
     return;
   }
 
@@ -394,7 +343,8 @@ Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree)
       int insertion_position = 0;
       for (int i = 0; i < sorted_dependency_nodes.size(); i++) {
         if (needed_buffers.lookup(doutput.node()) >
-            needed_buffers.lookup(sorted_dependency_nodes[i])) {
+            needed_buffers.lookup(sorted_dependency_nodes[i]))
+        {
           insertion_position++;
         }
         else {

@@ -15,7 +15,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_context.h"
-#include "BKE_geometry_set.h"
+#include "BKE_geometry_set.hh"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
@@ -63,22 +63,22 @@
 #include "RNA_enum_types.h"
 
 const EnumPropertyItem rna_enum_geometry_component_type_items[] = {
-    {GEO_COMPONENT_TYPE_MESH,
+    {int(blender::bke::GeometryComponent::Type::Mesh),
      "MESH",
      ICON_MESH_DATA,
      "Mesh",
      "Mesh component containing point, corner, edge and face data"},
-    {GEO_COMPONENT_TYPE_POINT_CLOUD,
+    {int(blender::bke::GeometryComponent::Type::PointCloud),
      "POINTCLOUD",
      ICON_POINTCLOUD_DATA,
      "Point Cloud",
      "Point cloud component containing only point data"},
-    {GEO_COMPONENT_TYPE_CURVE,
+    {int(blender::bke::GeometryComponent::Type::Curve),
      "CURVE",
      ICON_CURVE_DATA,
      "Curve",
      "Curve component containing spline and control point data"},
-    {GEO_COMPONENT_TYPE_INSTANCES,
+    {int(blender::bke::GeometryComponent::Type::Instance),
      "INSTANCES",
      ICON_EMPTY_AXIS,
      "Instances",
@@ -2202,7 +2202,7 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
       }
     }
     else if (saction->mode == SACTCONT_SHAPEKEY) {
-      /* as the name says, "shapekey-level" only... */
+      /* As the name says, "shape-key level" only. */
       if (act->idroot == ID_KE) {
         saction->action = act;
       }
@@ -3227,7 +3227,7 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main * /*bmain*/
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
   switch (sspreadsheet->geometry_component_type) {
-    case GEO_COMPONENT_TYPE_MESH: {
+    case int(blender::bke::GeometryComponent::Type::Mesh): {
       if (!ELEM(sspreadsheet->attribute_domain,
                 ATTR_DOMAIN_POINT,
                 ATTR_DOMAIN_EDGE,
@@ -3238,18 +3238,18 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main * /*bmain*/
       }
       break;
     }
-    case GEO_COMPONENT_TYPE_POINT_CLOUD: {
+    case int(blender::bke::GeometryComponent::Type::PointCloud): {
       sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
       break;
     }
-    case GEO_COMPONENT_TYPE_INSTANCES: {
+    case int(blender::bke::GeometryComponent::Type::Instance): {
       sspreadsheet->attribute_domain = ATTR_DOMAIN_INSTANCE;
       break;
     }
-    case GEO_COMPONENT_TYPE_VOLUME: {
+    case int(blender::bke::GeometryComponent::Type::Volume): {
       break;
     }
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case int(blender::bke::GeometryComponent::Type::Curve): {
       if (!ELEM(sspreadsheet->attribute_domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
         sspreadsheet->attribute_domain = ATTR_DOMAIN_POINT;
       }
@@ -3264,7 +3264,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
                                                                     bool *r_free)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
-  GeometryComponentType component_type = GeometryComponentType(
+  auto component_type = blender::bke::GeometryComponent::Type(
       sspreadsheet->geometry_component_type);
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     ID *used_id = ED_spreadsheet_get_current_id(sspreadsheet);
@@ -3272,10 +3272,10 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
       if (GS(used_id->name) == ID_OB) {
         Object *used_object = (Object *)used_id;
         if (used_object->type == OB_POINTCLOUD) {
-          component_type = GEO_COMPONENT_TYPE_POINT_CLOUD;
+          component_type = blender::bke::GeometryComponent::Type::PointCloud;
         }
         else {
-          component_type = GEO_COMPONENT_TYPE_MESH;
+          component_type = blender::bke::GeometryComponent::Type::Mesh;
         }
       }
     }
@@ -3289,7 +3289,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
   for (const EnumPropertyItem *item = rna_enum_attribute_domain_items; item->identifier != nullptr;
        item++)
   {
-    if (component_type == GEO_COMPONENT_TYPE_MESH) {
+    if (component_type == blender::bke::GeometryComponent::Type::Mesh) {
       if (!ELEM(item->value,
                 ATTR_DOMAIN_CORNER,
                 ATTR_DOMAIN_EDGE,
@@ -3298,17 +3298,19 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
         continue;
       }
     }
-    if (component_type == GEO_COMPONENT_TYPE_POINT_CLOUD) {
+    if (component_type == blender::bke::GeometryComponent::Type::PointCloud) {
       if (item->value != ATTR_DOMAIN_POINT) {
         continue;
       }
     }
-    if (component_type == GEO_COMPONENT_TYPE_CURVE) {
+    if (component_type == blender::bke::GeometryComponent::Type::Curve) {
       if (!ELEM(item->value, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CURVE)) {
         continue;
       }
     }
-    if (item->value == ATTR_DOMAIN_POINT && component_type == GEO_COMPONENT_TYPE_MESH) {
+    if (item->value == ATTR_DOMAIN_POINT &&
+        component_type == blender::bke::GeometryComponent::Type::Mesh)
+    {
       RNA_enum_item_add(&item_array, &items_len, &mesh_vertex_domain_item);
     }
     else {
@@ -3329,8 +3331,12 @@ static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
       return &RNA_IDViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_MODIFIER:
       return &RNA_ModifierViewerPathElem;
-    case VIEWER_PATH_ELEM_TYPE_NODE:
-      return &RNA_NodeViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_GROUP_NODE:
+      return &RNA_GroupNodeViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE:
+      return &RNA_SimulationZoneViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
+      return &RNA_ViewerNodeViewerPathElem;
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -8047,7 +8053,9 @@ static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
 static const EnumPropertyItem viewer_path_elem_type_items[] = {
     {VIEWER_PATH_ELEM_TYPE_ID, "ID", ICON_NONE, "ID", ""},
     {VIEWER_PATH_ELEM_TYPE_MODIFIER, "MODIFIER", ICON_NONE, "Modifier", ""},
-    {VIEWER_PATH_ELEM_TYPE_NODE, "NODE", ICON_NONE, "Node", ""},
+    {VIEWER_PATH_ELEM_TYPE_GROUP_NODE, "GROUP_NODE", ICON_NONE, "Group Node", ""},
+    {VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE, "SIMULATION_ZONE", ICON_NONE, "Simulation Zone", ""},
+    {VIEWER_PATH_ELEM_TYPE_VIEWER_NODE, "VIEWER_NODE", ICON_NONE, "Viewer Node", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -8063,6 +8071,11 @@ static void rna_def_viewer_path_elem(BlenderRNA *brna)
   prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, viewer_path_elem_type_items);
   RNA_def_property_ui_text(prop, "Type", "Type of the path element");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "ui_name", PROP_STRING, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "UI Name", "Name that can be displayed in the UI for this element");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
@@ -8088,15 +8101,37 @@ static void rna_def_modifier_viewer_path_elem(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Modifier Name", "");
 }
 
-static void rna_def_node_viewer_path_elem(BlenderRNA *brna)
+static void rna_def_group_node_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
 
-  srna = RNA_def_struct(brna, "NodeViewerPathElem", "ViewerPathElem");
+  srna = RNA_def_struct(brna, "GroupNodeViewerPathElem", "ViewerPathElem");
 
-  prop = RNA_def_property(srna, "node_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Node Name", "");
+  prop = RNA_def_property(srna, "node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Node ID", "");
+}
+
+static void rna_def_simulation_zone_viewer_path_elem(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SimulationZoneViewerPathElem", "ViewerPathElem");
+
+  prop = RNA_def_property(srna, "sim_output_node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Simulation Output Node ID", "");
+}
+
+static void rna_def_viewer_node_viewer_path_elem(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "ViewerNodeViewerPathElem", "ViewerPathElem");
+
+  prop = RNA_def_property(srna, "node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Node ID", "");
 }
 
 static void rna_def_viewer_path(BlenderRNA *brna)
@@ -8107,7 +8142,9 @@ static void rna_def_viewer_path(BlenderRNA *brna)
   rna_def_viewer_path_elem(brna);
   rna_def_id_viewer_path_elem(brna);
   rna_def_modifier_viewer_path_elem(brna);
-  rna_def_node_viewer_path_elem(brna);
+  rna_def_group_node_viewer_path_elem(brna);
+  rna_def_simulation_zone_viewer_path_elem(brna);
+  rna_def_viewer_node_viewer_path_elem(brna);
 
   srna = RNA_def_struct(brna, "ViewerPath", nullptr);
   RNA_def_struct_ui_text(srna, "Viewer Path", "Path to data that is viewed");

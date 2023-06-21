@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BKE_attribute.h"
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
 

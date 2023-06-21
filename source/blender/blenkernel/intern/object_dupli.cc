@@ -38,8 +38,8 @@
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_cache.h"
-#include "BKE_geometry_set.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_geometry_set_instances.hh"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_instances.hh"
@@ -73,6 +73,7 @@ using blender::float3;
 using blender::float4x4;
 using blender::Span;
 using blender::Vector;
+using blender::bke::GeometrySet;
 using blender::bke::InstanceReference;
 using blender::bke::Instances;
 namespace geo_log = blender::nodes::geo_eval_log;
@@ -900,7 +901,9 @@ static void make_duplis_geometry_set_impl(const DupliContext *ctx,
     }
   }
   if (!ELEM(ctx->object->type, OB_CURVES_LEGACY, OB_FONT, OB_CURVES) || geometry_set_is_instance) {
-    if (const CurveComponent *component = geometry_set.get_component_for_read<CurveComponent>()) {
+    if (const blender::bke::CurveComponent *component =
+            geometry_set.get_component_for_read<blender::bke::CurveComponent>())
+    {
       if (use_new_curves_type) {
         if (const Curves *curves = component->get_for_read()) {
           make_dupli(ctx, ctx->object, &curves->id, parent_transform, component_index++);
@@ -1724,7 +1727,7 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
   }
 
   if (ctx->object->runtime.geometry_set_eval != nullptr) {
-    if (BKE_object_has_geometry_set_instances(ctx->object)) {
+    if (blender::bke::object_has_geometry_set_instances(*ctx->object)) {
       return &gen_dupli_geometry_set;
     }
   }
@@ -1823,6 +1826,7 @@ static bool find_geonode_attribute_rgba(const DupliObject *dupli,
                                         float r_value[4])
 {
   using namespace blender;
+  using namespace blender::bke;
 
   /* Loop over layers from innermost to outermost. */
   for (const int i : IndexRange(ARRAY_SIZE(dupli->instance_data))) {

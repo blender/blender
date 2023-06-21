@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
-      .supported_type(GEO_COMPONENT_TYPE_MESH);
+      .supported_type(GeometryComponent::Type::Mesh);
 
   b.add_input<decl::Vector>("Attribute").hide_value().field_on_all();
   b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().field_on_all();

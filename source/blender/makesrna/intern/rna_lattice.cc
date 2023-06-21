@@ -91,9 +91,9 @@ static void rna_Lattice_update_data(Main * /*bmain*/, Scene * /*scene*/, Pointer
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-/* copy settings to editlattice,
- * we could split this up differently (one update call per property)
- * but for now that's overkill
+/**
+ * Copy settings to edit-lattice, we could split this up differently
+ * (one update call per property) but for now that's overkill.
  */
 static void rna_Lattice_update_data_editlatt(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {

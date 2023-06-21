@@ -467,8 +467,8 @@ static void read_velocity(const V3fArraySamplePtr &velocities,
   }
 }
 
-static bool samples_have_same_topology(const IPolyMeshSchema::Sample &sample,
-                                       const IPolyMeshSchema::Sample &ceil_sample)
+template<typename SampleType>
+static bool samples_have_same_topology(const SampleType &sample, const SampleType &ceil_sample)
 {
   const P3fArraySamplePtr &positions = sample.getPositions();
   const Alembic::Abc::Int32ArraySamplePtr &face_indices = sample.getFaceIndices();
@@ -726,7 +726,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
    * same face count, but different connections between faces. */
   uint abc_index = 0;
 
-  const int *mesh_corners = existing_mesh->corner_verts().data();
+  const int *mesh_corner_verts = existing_mesh->corner_verts().data();
   const int *mesh_poly_offsets = existing_mesh->poly_offsets().data();
 
   for (int i = 0; i < face_counts->size(); i++) {
@@ -738,7 +738,7 @@ bool AbcMeshReader::topology_changed(const Mesh *existing_mesh, const ISampleSel
     /* NOTE: Alembic data is stored in the reverse order. */
     uint rev_loop_index = abc_index + (abc_face_size - 1);
     for (int f = 0; f < abc_face_size; f++, abc_index++, rev_loop_index--) {
-      const int mesh_vert = mesh_corners[rev_loop_index];
+      const int mesh_vert = mesh_corner_verts[rev_loop_index];
       const int abc_vert = (*face_indices)[abc_index];
       if (mesh_vert != abc_vert) {
         return true;
@@ -926,7 +926,10 @@ static void read_subd_sample(const std::string &iobject_full_name,
   if (config.weight != 0.0f) {
     Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
     schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
-    abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    if (samples_have_same_topology(sample, ceil_sample)) {
+      /* Only set interpolation data if the samples are compatible. */
+      abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+    }
   }
 
   if ((settings->read_flag & MOD_MESHSEQ_READ_UV) != 0) {
@@ -1135,7 +1138,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
   if (existing_mesh->totvert != positions->size()) {
     new_mesh = BKE_mesh_new_nomain_from_template(
-        existing_mesh, positions->size(), 0, face_indices->size(), face_counts->size());
+        existing_mesh, positions->size(), 0, face_counts->size(), face_indices->size());
 
     settings.read_flag |= MOD_MESHSEQ_READ_ALL;
   }
@@ -1161,6 +1164,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
   CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
   config.time = sample_sel.getRequestedTime();
+  config.modifier_error_message = err_str;
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);
 
   return mesh_to_export;

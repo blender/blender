@@ -735,24 +735,25 @@ typedef struct GPMatArray {
 static uint get_material_type(MaterialGPencilStyle *gp_style,
                               bool use_stroke,
                               bool use_fill,
-                              char *name)
+                              char *name,
+                              size_t name_maxncpy)
 {
   uint r_i = 0;
   if ((use_stroke) && (use_fill)) {
     switch (gp_style->mode) {
       case GP_MATERIAL_MODE_LINE: {
         r_i = 1;
-        strcpy(name, "Line Stroke-Fill");
+        BLI_strncpy(name, "Line Stroke-Fill", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_DOT: {
         r_i = 2;
-        strcpy(name, "Dots Stroke-Fill");
+        BLI_strncpy(name, "Dots Stroke-Fill", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_SQUARE: {
         r_i = 3;
-        strcpy(name, "Squares Stroke-Fill");
+        BLI_strncpy(name, "Squares Stroke-Fill", name_maxncpy);
         break;
       }
       default:
@@ -763,17 +764,17 @@ static uint get_material_type(MaterialGPencilStyle *gp_style,
     switch (gp_style->mode) {
       case GP_MATERIAL_MODE_LINE: {
         r_i = 4;
-        strcpy(name, "Line Stroke");
+        BLI_strncpy(name, "Line Stroke", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_DOT: {
         r_i = 5;
-        strcpy(name, "Dots Stroke");
+        BLI_strncpy(name, "Dots Stroke", name_maxncpy);
         break;
       }
       case GP_MATERIAL_MODE_SQUARE: {
         r_i = 6;
-        strcpy(name, "Squares Stroke");
+        BLI_strncpy(name, "Squares Stroke", name_maxncpy);
         break;
       }
       default:
@@ -782,7 +783,7 @@ static uint get_material_type(MaterialGPencilStyle *gp_style,
   }
   else {
     r_i = 7;
-    strcpy(name, "Solid Fill");
+    BLI_strncpy(name, "Solid Fill", name_maxncpy);
   }
 
   /* Create key TSSSSFFFF (T: Type S: Stroke Alpha F: Fill Alpha) */
@@ -878,7 +879,7 @@ static int gpencil_material_to_vertex_exec(bContext *C, wmOperator *op)
         /* Only for no Stencil materials. */
         if (!is_stencil) {
           /* Create material type unique key by type and alpha. */
-          uint key = get_material_type(gp_style, use_stroke, use_fill, name);
+          uint key = get_material_type(gp_style, use_stroke, use_fill, name, sizeof(name));
 
           /* Check if material exist. */
           bool found = false;

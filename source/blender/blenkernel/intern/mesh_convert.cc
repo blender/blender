@@ -571,7 +571,8 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   BLI_assert(ob->type == OB_POINTCLOUD);
 
   const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(*ob_eval);
+  const blender::bke::GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(
+      *ob_eval);
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
 
@@ -688,7 +689,7 @@ static void curve_to_mesh_eval_ensure(Object &object)
 
 static const Curves *get_evaluated_curves_from_object(const Object *object)
 {
-  if (GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
+  if (blender::bke::GeometrySet *geometry_set_eval = object->runtime.geometry_set_eval) {
     return geometry_set_eval->get_curves_for_read();
   }
   return nullptr;

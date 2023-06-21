@@ -41,7 +41,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveTrim)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curves").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curves").supported_type(GeometryComponent::Type::Curve);
   b.add_output<decl::Geometry>("Curves").propagate_all();
 }
 

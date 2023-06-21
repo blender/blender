@@ -349,15 +349,15 @@ static int rna_TextureSlot_name_length(PointerRNA *ptr)
   return 0;
 }
 
-static void rna_TextureSlot_name_get(PointerRNA *ptr, char *str)
+static void rna_TextureSlot_name_get(PointerRNA *ptr, char *value)
 {
   MTex *mtex = ptr->data;
 
   if (mtex->tex) {
-    strcpy(str, mtex->tex->id.name + 2);
+    strcpy(value, mtex->tex->id.name + 2);
   }
   else {
-    str[0] = '\0';
+    value[0] = '\0';
   }
 }
 
