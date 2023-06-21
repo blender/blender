@@ -203,6 +203,7 @@ bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_i
                                &this->nearest_point))
   {
     this->nearest_point.index = edge_index;
+    sub_v3_v3v3(this->nearest_point.no, vb, va);
     return true;
   }
   return false;
@@ -226,8 +227,10 @@ Nearest2dUserData::~Nearest2dUserData()
 
   mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
 
-  float3x3 timat = math::transpose(math::invert(float3x3(this->obmat_)));
-  copy_v3_v3(sctx->ret.no, math::transform_direction(timat, float3(sctx->ret.no)));
+  float3 loc_no = math::transform_point(
+      this->obmat_, float3(this->nearest_point.co) + float3(this->nearest_point.no));
+
+  copy_v3_v3(sctx->ret.no, loc_no - float3(sctx->ret.loc));
   normalize_v3(sctx->ret.no);
 }
 
@@ -732,7 +735,7 @@ void cb_snap_edge(void *userdata,
   if (test_projected_edge_dist(
           precalc, clip_plane, clip_plane_len, data->is_persp, v_pair[0], v_pair[1], nearest))
   {
-    sub_v3_v3v3(nearest->no, v_pair[0], v_pair[1]);
+    sub_v3_v3v3(nearest->no, v_pair[1], v_pair[0]);
     nearest->index = index;
   }
 }
@@ -768,11 +771,11 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
   eSnapMode elem = SCE_SNAP_MODE_EDGE;
 
   if (sctx->ret.ob->type != OB_MESH) {
-    return SCE_SNAP_MODE_NONE;
+    return elem;
   }
 
   if (sctx->ret.data && GS(sctx->ret.data->name) != ID_ME) {
-    return SCE_SNAP_MODE_NONE;
+    return elem;
   }
 
   Nearest2dUserData nearest2d(sctx, sctx->ret.ob, sctx->ret.data, float4x4(sctx->ret.obmat));
