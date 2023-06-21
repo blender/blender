@@ -1425,8 +1425,9 @@ static char *rna_def_property_set_func(
             /* C++ may require casting to an enum type.  */
             fprintf(f, "#ifdef __cplusplus\n");
             fprintf(f,
-                    /* If #rna_clamp_value() adds an expression like `CLAMPIS(...)` (instead of an
-                       lvalue), #decltype() yields a reference, so that has to be removed.*/
+                    /* If #rna_clamp_value() adds an expression like `CLAMPIS(...)`
+                     * (instead of an `lvalue`), #decltype() yields a reference,
+                     * so that has to be removed. */
                     "    data->%s = %s(std::remove_reference_t<decltype(data->%s)>)",
                     dp->dnaname,
                     (dp->booleannegative) ? "!" : "",

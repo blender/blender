@@ -56,8 +56,10 @@ typedef struct TransDataNla {
   /** index of track that strip is currently in. */
   int trackIndex;
 
-  /** NOTE: This index is relative to the initial first track at the start of transforming and
-   * thus can be negative when the tracks list grows downward. */
+  /**
+   * \note This index is relative to the initial first track at the start of transforming and
+   * thus can be negative when the tracks list grows downward.
+   */
   int signed_track_index;
 
   /** handle-index: 0 for dummy entry, -1 for start, 1 for end, 2 for both ends. */
@@ -148,8 +150,8 @@ static float transdata_get_time_shuffle_offset(ListBase *trans_datas)
   return -offset_left < offset_right ? offset_left : offset_right;
 }
 
-/** Assumes all of given trans_datas are part of the same ID.
- *
+/**
+ * Assumes all of given trans_datas are part of the same ID.
  *
  * \param shuffle_direction: the direction the strip is traveling. 1 is towards the bottom
  * of the stack, -1 is away from it.
@@ -205,7 +207,8 @@ static bool transdata_get_track_shuffle_offset_side(ListBase *trans_datas,
   return true;
 }
 
-/** Assumes all of given trans_datas are part of the same ID.
+/**
+ * Assumes all of given trans_datas are part of the same ID.
  *
  * \param r_track_offset: The minimal total signed offset that results in valid strip track-moves
  * for all strips from \a trans_datas.
@@ -243,7 +246,6 @@ static bool transdata_get_track_shuffle_offset(ListBase *trans_datas, int *r_tra
 /** \name Transform application to NLA strips
  * \{ */
 
-/** \} */
 static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
 {
   short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
@@ -288,6 +290,9 @@ static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
 
   ANIM_animdata_freelist(&anim_data);
 }
+
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Transform application to NLA strips
  * \{ */
@@ -744,8 +749,7 @@ static void recalcData_nla(TransInfo *t)
        *
        * Determine dst_track, which will end up being NULL, the last library override
        * track, or a normal local track. The first two cases lead to delta_new_tracks!=0.
-       * The last case leads to delta_new_tracks==0.
-       */
+       * The last case leads to `delta_new_tracks == 0`. */
       int delta_new_tracks = delta;
 
       /* it's possible to drag a strip fast enough to make delta > |1|. We only want to process
@@ -760,8 +764,7 @@ static void recalcData_nla(TransInfo *t)
       }
 
       /* We assume all library tracks are grouped at the bottom of the nla stack.
-       * Thus, no need to check for them when moving tracks upward.
-       */
+       * Thus, no need to check for them when moving tracks upward. */
       while (delta_new_tracks > 0) {
         dst_track = dst_track->next;
         delta_new_tracks--;
