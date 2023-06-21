@@ -111,18 +111,6 @@ static void rna_Mesh_calc_smooth_groups(
                                              use_bitflags);
 }
 
-static void rna_Mesh_normals_split_custom_do(Mesh *mesh,
-                                             float (*custom_loop_or_vert_normals)[3],
-                                             const bool use_verts)
-{
-  if (use_verts) {
-    BKE_mesh_set_custom_normals_from_verts(mesh, custom_loop_or_vert_normals);
-  }
-  else {
-    BKE_mesh_set_custom_normals(mesh, custom_loop_or_vert_normals);
-  }
-}
-
 static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               ReportList *reports,
                                               int normals_len,
@@ -130,7 +118,6 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
 {
   float(*loop_normals)[3] = (float(*)[3])normals;
   const int numloops = mesh->totloop;
-
   if (normals_len != numloops * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -140,7 +127,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, loop_normals, false);
+  BKE_mesh_set_custom_normals(mesh, loop_normals);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -152,7 +139,6 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
 {
   float(*vert_normals)[3] = (float(*)[3])normals;
   const int numverts = mesh->totvert;
-
   if (normals_len != numverts * 3) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -162,7 +148,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
     return;
   }
 
-  rna_Mesh_normals_split_custom_do(mesh, vert_normals, true);
+  BKE_mesh_set_custom_normals_from_verts(mesh, vert_normals);
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -185,6 +171,29 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
   BKE_mesh_runtime_clear_geometry(mesh);
 
   DEG_id_tag_update(&mesh->id, 0);
+}
+
+static void rna_Mesh_update(Mesh *mesh,
+                            bContext *C,
+                            const bool calc_edges,
+                            const bool calc_edges_loose)
+{
+  if (calc_edges || ((mesh->totpoly || mesh->totface) && mesh->totedge == 0)) {
+    BKE_mesh_calc_edges(mesh, calc_edges, true);
+  }
+
+  if (calc_edges_loose) {
+    mesh->runtime->loose_edges_cache.tag_dirty();
+  }
+
+  /* Default state is not to have tessface's so make sure this is the case. */
+  BKE_mesh_tessface_clear(mesh);
+
+  mesh->runtime->vert_normals_dirty = true;
+  mesh->runtime->poly_normals_dirty = true;
+
+  DEG_id_tag_update(&mesh->id, 0);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, mesh);
 }
 
 static void rna_Mesh_update_gpu_tag(Mesh *mesh)
@@ -295,7 +304,7 @@ void RNA_api_mesh(StructRNA *srna)
   RNA_def_property_multi_array(parm, 2, normals_array_dim);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
-  func = RNA_def_function(srna, "update", "ED_mesh_update");
+  func = RNA_def_function(srna, "update", "rna_Mesh_update");
   RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
   RNA_def_boolean(func,
                   "calc_edges_loose",

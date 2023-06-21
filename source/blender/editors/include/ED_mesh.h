@@ -574,16 +574,12 @@ void ED_mesh_polys_remove(struct Mesh *mesh, struct ReportList *reports, int cou
 
 void ED_mesh_geometry_clear(struct Mesh *mesh);
 
-void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
-
 bool *ED_mesh_uv_map_vert_select_layer_ensure(struct Mesh *mesh, int uv_map_index);
 bool *ED_mesh_uv_map_edge_select_layer_ensure(struct Mesh *mesh, int uv_map_index);
 bool *ED_mesh_uv_map_pin_layer_ensure(struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_vert_select_layer_get(const struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_edge_select_layer_get(const struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_pin_layer_get(const struct Mesh *mesh, int uv_map_index);
-
-bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
 
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(
