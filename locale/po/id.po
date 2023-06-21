@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -1461,6 +1461,10 @@ msgid "Vector font data-blocks"
 msgstr "Font vektor data-blok"
 
 
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
 msgid "Images"
 msgstr "Gambar"
 
@@ -1623,6 +1627,10 @@ msgstr "Kunci Bentuk"
 
 msgid "Shape Key data-blocks"
 msgstr "Kunci Bentuk data-blok"
+
+
+msgid "Simulations"
+msgstr "Simulasi"
 
 
 msgid "Sounds"
@@ -7266,18 +7274,6 @@ msgid "Step Size"
 msgstr "Ukuran Langkah"
 
 
-msgid "Face Map"
-msgstr "Peta Wajah"
-
-
-msgid "Face Maps"
-msgstr "Peta Wajah"
-
-
-msgid "Active index in face map array"
-msgstr "Indeks aktif di larik peta wajah"
-
-
 msgid "Shape"
 msgstr "Bentuk"
 
@@ -7342,10 +7338,6 @@ msgid "Show Font data-blocks"
 msgstr "Tampilkan Font data-blok"
 
 
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "Tampilkan Pensil grease data-blok"
 
@@ -7392,10 +7384,6 @@ msgstr "Tampilkan/sembunyikan Awan Titik data-blok"
 
 msgid "Show Scene data-blocks"
 msgstr "Tampilkan Adegan data-blok"
-
-
-msgid "Simulations"
-msgstr "Simulasi"
 
 
 msgid "Show Simulation data-blocks"
@@ -9215,10 +9203,6 @@ msgid "Gpencil Settings"
 msgstr "Pengaturan PensilG"
 
 
-msgid "Erase"
-msgstr "Hapus"
-
-
 msgid "The brush is used for erasing strokes"
 msgstr "Kusa digunakan untuk menghapus stroke"
 
@@ -9237,14 +9221,6 @@ msgstr "Penjepit"
 
 msgid "Brush Height"
 msgstr "Tinggi Kuas"
-
-
-msgid "Image Paint Tool"
-msgstr "Penyunting Gambar"
-
-
-msgid "Clone"
-msgstr "Duplikasi"
 
 
 msgid "Brush"
@@ -9283,18 +9259,6 @@ msgid "Sculpt Plane"
 msgstr "Modus Pahat"
 
 
-msgid "Sculpt Tool"
-msgstr "Modus Pahat"
-
-
-msgid "Boundary"
-msgstr "Batas"
-
-
-msgid "Cloth"
-msgstr "Kain"
-
-
 msgid "Secondary Color"
 msgstr "Warna Sekunder"
 
@@ -9325,6 +9289,10 @@ msgstr "Gunakan Cat"
 
 msgid "Show texture in viewport"
 msgstr "Tampilkan tekstur di viewport"
+
+
+msgid "Sculpt Tool"
+msgstr "Modus Pahat"
 
 
 msgid "Grab UVs"
@@ -9846,6 +9814,10 @@ msgstr "Koleksi Visibilitas"
 
 msgid "Active Shape Index"
 msgstr "Tekstur"
+
+
+msgid "Cloth"
+msgstr "Kain"
 
 
 msgid "Edges"
@@ -11984,14 +11956,6 @@ msgid "Polygon Normal"
 msgstr "Poligon Normal"
 
 
-msgid "User defined floating-point number value in a float properties layer"
-msgstr "Nilai angka floating-point yang didefinisikan pengguna di layer properti float"
-
-
-msgid "User defined layer of floating-point number values"
-msgstr "Layer nilai angka floating-point yang didefinisikan pengguna"
-
-
 msgid "Skin Vertex"
 msgstr "Warna Standar"
 
@@ -12624,6 +12588,10 @@ msgstr "Area Wajah"
 
 msgid "Thickness factor"
 msgstr "Faktor ketebalan"
+
+
+msgid "Boundary"
+msgstr "Batas"
 
 
 msgid "Support face boundaries"
@@ -15935,6 +15903,11 @@ msgstr "Tekstur"
 
 
 msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Lompat ke Keyframe"
+
+
+msgctxt "Operator"
 msgid "Smooth Keys"
 msgstr "Semua Tampilan"
 
@@ -15942,6 +15915,26 @@ msgstr "Semua Tampilan"
 msgctxt "Operator"
 msgid "Bake Sound to F-Curves"
 msgstr "Gambar Latar"
+
+
+msgid "Stroke Mode"
+msgstr "Mode Garis Luar"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Aksi diambil saat garis luar cat dibuat"
+
+
+msgid "Apply brush normally"
+msgstr "Terapkan kuas biasanya"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Balikkan aksi kuas untuk durasi garis luar"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 
 
 msgctxt "Operator"
@@ -16180,10 +16173,6 @@ msgstr "Menimpna Material yang ada (berdasarkan nama material)"
 
 msgid "Decal Offset"
 msgstr "Decal Offset"
-
-
-msgid "Clamp Size"
-msgstr "Ukurang"
 
 
 msgctxt "Operator"
@@ -17090,10 +17079,6 @@ msgid "Add Constraint"
 msgstr "Tambah Pembatas"
 
 
-msgid "Grease Pencil from Curve or Mesh objects"
-msgstr "Pensil Grease dari Kurva atau objek Mesh"
-
-
 msgctxt "Operator"
 msgid "Add Object Data Instance"
 msgstr "Tambah Instansi Data Objek"
@@ -17559,11 +17544,6 @@ msgid "Assign to New Group"
 msgstr "Warna Standar"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "Warna Standar"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "Warna Standar"
 
@@ -17819,6 +17799,10 @@ msgid "Create Missing"
 msgstr "Buat"
 
 
+msgid "Clone"
+msgstr "Duplikasi"
+
+
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "Modus Sunting"
@@ -17875,26 +17859,6 @@ msgstr "Cat Gambar"
 
 msgid "Paint a stroke into the image"
 msgstr "Cat sebuah garis luar ke gambar"
-
-
-msgid "Stroke Mode"
-msgstr "Mode Garis Luar"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "Aksi diambil saat garis luar cat dibuat"
-
-
-msgid "Apply brush normally"
-msgstr "Terapkan kuas biasanya"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Balikkan aksi kuas untuk durasi garis luar"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 
 
 msgctxt "Operator"
@@ -18273,11 +18237,6 @@ msgstr "Offset Frame"
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Tampilkan Log Info"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Lompat ke Keyframe"
 
 
 msgctxt "Operator"
@@ -21861,6 +21820,11 @@ msgstr "Font"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "Pose"
 
@@ -22018,11 +21982,6 @@ msgstr "Editor Grafik Klip"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "Editor Dopesheet Klip"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
 
 
 msgctxt "WindowManager"
@@ -22436,10 +22395,6 @@ msgstr "Tidak dapat mencari gambar '%s'"
 
 msgid "Context incorrect, image not found"
 msgstr "Konteks salah, gambar tidak ditemukan"
-
-
-msgid "Node has no attribute "
-msgstr "Node tidak punya atribut "
 
 
 msgid "No camera found"
@@ -24683,11 +24638,6 @@ msgstr "Kamera"
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
-msgctxt "Operator"
 msgid "Speaker"
 msgstr "Tambah Gambar"
 
@@ -24863,6 +24813,11 @@ msgstr "Orientasi Transformasi"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Seleksi"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
 
 
 msgctxt "Operator"
@@ -25424,10 +25379,6 @@ msgid "Method Quads"
 msgstr "Metode Quads"
 
 
-msgid "No filename given"
-msgstr "Tidak ada namafile yang diberi"
-
-
 msgid "Unable to determine ABC sequence length"
 msgstr "Tidak dapat menentukan jarak sequence ABC"
 
@@ -25813,14 +25764,6 @@ msgid "Maximize Area"
 msgstr "Maksimalkan Area"
 
 
-msgid "Flip to Bottom"
-msgstr "Balik ke Bawah"
-
-
-msgid "Flip to Top"
-msgstr "Balik ke Atas"
-
-
 msgid "Show Header"
 msgstr "Tampilkan Header"
 
@@ -25835,6 +25778,14 @@ msgstr "Balik ke Kanan"
 
 msgid "Flip to Left"
 msgstr "Balik ke Kiri"
+
+
+msgid "Flip to Top"
+msgstr "Balik ke Atas"
+
+
+msgid "Flip to Bottom"
+msgstr "Balik ke Bawah"
 
 
 msgid "Blender Drivers Editor"
@@ -26273,10 +26224,6 @@ msgstr "tidak dapat memuat klip film"
 
 msgid "Index %d is invalid"
 msgstr "Indeks %d tidak valid"
-
-
-msgid "Face map not in mesh"
-msgstr "Map wajah tidak di mesh"
 
 
 msgid "Metaball '%s' does not contain spline given"

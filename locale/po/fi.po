@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1014,6 +1014,10 @@ msgid "Vector font data-blocks"
 msgstr "Vektorifontin data-palikat"
 
 
+msgid "Grease Pencil"
+msgstr "Öljykynä"
+
+
 msgid "Images"
 msgstr "Kuvat"
 
@@ -1180,6 +1184,10 @@ msgstr "Muotoavaimet"
 
 msgid "Shape Key data-blocks"
 msgstr "Muotoavaimen data-palikat"
+
+
+msgid "Simulations"
+msgstr "Simulaatiot"
 
 
 msgid "Sounds"
@@ -4482,10 +4490,6 @@ msgid "Show Font data-blocks"
 msgstr "Näytä fontin data-palikat"
 
 
-msgid "Grease Pencil"
-msgstr "Öljykynä"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "Näytä öljykynän data-palikat"
 
@@ -4540,10 +4544,6 @@ msgstr "Näytä/piilosta pistepilven data-palikat"
 
 msgid "Show Scene data-blocks"
 msgstr "Näytä kohtauksen data-palikat"
-
-
-msgid "Simulations"
-msgstr "Simulaatiot"
 
 
 msgid "Show Simulation data-blocks"
@@ -6820,46 +6820,6 @@ msgid "Animation settings"
 msgstr "Animaatioasetukset"
 
 
-msgid "Material Groups"
-msgstr "Materiaaliryhmät"
-
-
-msgid "OBJ Groups"
-msgstr "OBJ-ryhmät"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "Vie Blender-objektit OBJ-ryhminä"
-
-
-msgid "Keep Vertex Order"
-msgstr "Pidä kärkien järjestys"
-
-
-msgid "OBJ Objects"
-msgstr "OBJ-objektit"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "Vie Blender-objektit OBJ-objekteina"
-
-
-msgid "Include Edges"
-msgstr "Sisällytä reunat"
-
-
-msgid "Write Materials"
-msgstr "Kirjoita materiaalit"
-
-
-msgid "Apply modifiers"
-msgstr "Kytke muuntimet"
-
-
-msgid "Write Normals"
-msgstr "Kirjoita normaalit"
-
-
 msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Poista valitut tiedostot"
@@ -7507,6 +7467,10 @@ msgid "Save Sequence"
 msgstr "Tallenna sekvenssi"
 
 
+msgid "Column"
+msgstr "Sarake"
+
+
 msgid "Canvas"
 msgstr "Kangas"
 
@@ -7667,10 +7631,6 @@ msgstr "Aktiivinen valoryhmä -indeksi"
 
 msgid "Index of active lightgroup"
 msgstr "Aktiivisen valoryhmän indeksi"
-
-
-msgid "Node Name"
-msgstr "Noodin nimi"
 
 
 msgid "3D float vector"
@@ -9523,6 +9483,10 @@ msgid "Grouping"
 msgstr "Ryhmittäminen"
 
 
+msgid "Material Groups"
+msgstr "Materiaaliryhmät"
+
+
 msgid "Data Types"
 msgstr "Tietotyypit"
 
@@ -10258,10 +10222,6 @@ msgstr "Tasosarja"
 
 msgid "Data Set"
 msgstr "Data-sarja"
-
-
-msgid "Column"
-msgstr "Sarake"
 
 
 msgid "Reload from disk"
@@ -11075,10 +11035,6 @@ msgid "Remainder"
 msgstr "Jakojäännös"
 
 
-msgid " node"
-msgstr "noodi"
-
-
 msgid "Shader Editor"
 msgstr "Varjostineditori"
 
@@ -11091,16 +11047,16 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "Anisotropy"
-msgstr "Anisotropia"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "Anisotropia"
 
 
 msgid "RoughnessU"
