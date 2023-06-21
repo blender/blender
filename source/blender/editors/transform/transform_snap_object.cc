@@ -445,7 +445,6 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
                                 bool use_hide)
 {
   bool retval = false;
-  bool is_edit = false;
 
   if (ob_data == nullptr) {
     if (sctx->runtime.use_occlusion_test_edit && ELEM(ob_eval->dt, OB_BOUNDBOX, OB_WIRE)) {
@@ -455,7 +454,6 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
     if (ob_eval->type == OB_MESH) {
       if (snap_object_editmesh(sctx, ob_eval, nullptr, obmat, SCE_SNAP_MODE_FACE, use_hide)) {
         retval = true;
-        is_edit = true;
       }
     }
     else {
@@ -480,7 +478,6 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
     copy_m4_m4(sctx->ret.obmat, obmat);
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
-    sctx->ret.is_edit = is_edit;
     return SCE_SNAP_MODE_FACE;
   }
   return SCE_SNAP_MODE_NONE;
@@ -615,14 +612,12 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
                                          bool use_hide)
 {
   bool retval = false;
-  bool is_edit = false;
 
   if (ob_data == nullptr) {
     if (ob_eval->type == OB_MESH) {
       if (snap_object_editmesh(
               sctx, ob_eval, nullptr, obmat, SCE_SNAP_MODE_FACE_NEAREST, use_hide)) {
         retval = true;
-        is_edit = true;
       }
     }
     else {
@@ -643,7 +638,6 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
     copy_m4_m4(sctx->ret.obmat, obmat);
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
-    sctx->ret.is_edit = is_edit;
     return SCE_SNAP_MODE_FACE_NEAREST;
   }
   return SCE_SNAP_MODE_NONE;
@@ -721,19 +715,22 @@ void cb_snap_edge(void *userdata,
 
 static eSnapMode snap_polygon(SnapObjectContext *sctx, eSnapMode snap_to_flag)
 {
-  const Mesh *mesh = sctx->ret.data && GS(sctx->ret.data->name) == ID_ME ?
-                         (const Mesh *)sctx->ret.data :
-                         nullptr;
-  if (mesh) {
+  if (sctx->ret.ob->type != OB_MESH) {
+    return SCE_SNAP_MODE_NONE;
+  }
+
+  if (sctx->ret.data && GS(sctx->ret.data->name) != ID_ME) {
+    return SCE_SNAP_MODE_NONE;
+  }
+
+  if (sctx->ret.data) {
     return snap_polygon_mesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
   }
-  else if (sctx->ret.is_edit) {
+  else {
     return snap_polygon_editmesh(
         sctx, sctx->ret.ob, sctx->ret.data, sctx->ret.obmat, snap_to_flag, sctx->ret.index);
   }
-
-  return SCE_SNAP_MODE_NONE;
 }
 
 static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float original_dist_px)
@@ -741,25 +738,22 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
   eSnapMode elem = SCE_SNAP_MODE_EDGE;
 
   if (sctx->ret.ob->type != OB_MESH) {
-    return elem;
+    return SCE_SNAP_MODE_NONE;
   }
 
-  const Mesh *mesh = sctx->ret.data && GS(sctx->ret.data->name) == ID_ME ?
-                         (const Mesh *)sctx->ret.data :
-                         nullptr;
-
-  if (!mesh && !sctx->ret.is_edit) {
-    return elem;
+  if (sctx->ret.data && GS(sctx->ret.data->name) != ID_ME) {
+    return SCE_SNAP_MODE_NONE;
   }
 
   Nearest2dUserData nearest2d(sctx, square_f(original_dist_px), float4x4(sctx->ret.obmat));
-  if (mesh) {
+  if (sctx->ret.data) {
+    const Mesh *mesh = reinterpret_cast<const Mesh *>(sctx->ret.data);
     nearest2d_data_init_mesh(mesh, &nearest2d);
   }
   else {
-    BLI_assert(sctx->ret.is_edit);
     /* The object's #BMEditMesh was used to snap instead. */
-    nearest2d_data_init_editmesh(BKE_editmesh_from_object(sctx->ret.ob), &nearest2d);
+    BMEditMesh *em = BKE_editmesh_from_object(sctx->ret.ob);
+    nearest2d_data_init_editmesh(em, &nearest2d);
   }
 
   int vindex[2];
@@ -886,14 +880,10 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              bool use_hide)
 {
   eSnapMode retval = SCE_SNAP_MODE_NONE;
-  bool is_edit = false;
 
   if (ob_data == nullptr && (ob_eval->type == OB_MESH)) {
     retval = snap_object_editmesh(
         sctx, ob_eval, nullptr, obmat, sctx->runtime.snap_to_flag, use_hide);
-    if (retval) {
-      is_edit = true;
-    }
   }
   else if (ob_data == nullptr) {
     retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
@@ -946,7 +936,6 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
     copy_m4_m4(sctx->ret.obmat, obmat);
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
-    sctx->ret.is_edit = is_edit;
   }
   return retval;
 }
@@ -1098,7 +1087,6 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
   sctx->ret.ob = nullptr;
   sctx->ret.data = nullptr;
   sctx->ret.dist_px_sq = dist_px_sq;
-  sctx->ret.is_edit = false;
 
   return true;
 }

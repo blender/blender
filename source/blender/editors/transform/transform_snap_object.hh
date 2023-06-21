@@ -72,8 +72,6 @@ struct SnapObjectContext {
 
     float ray_depth_max;
     float dist_px_sq;
-
-    bool is_edit;
   } ret;
 };
 
