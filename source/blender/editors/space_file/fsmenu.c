@@ -988,34 +988,39 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
           fprintf(stderr, "could not close the list of mounted file-systems\n");
         }
       }
-      /* Check gvfs shares. */
+      /* Check `gvfs` shares. */
       const char *const xdg_runtime_dir = BLI_getenv("XDG_RUNTIME_DIR");
       if (xdg_runtime_dir != NULL) {
         struct direntry *dirs;
         char filepath[FILE_MAX];
         BLI_path_join(filepath, sizeof(filepath), xdg_runtime_dir, "gvfs/");
-        const uint dirs_num = BLI_filelist_dir_contents(filepath, &dirs);
-        for (uint i = 0; i < dirs_num; i++) {
-          if (dirs[i].type & S_IFDIR) {
-            const char *dirname = dirs[i].relname;
-            if (dirname[0] != '.') {
-              /* Dir names contain a lot of unwanted text.
-               * Assuming every entry ends with the share name */
-              const char *label = strstr(dirname, "share=");
-              if (label != NULL) {
-                /* Move pointer so "share=" is trimmed off
-                 * or use full dirname as label. */
-                const char *label_test = label + 6;
-                label = *label_test ? label_test : dirname;
-              }
-              SNPRINTF(line, "%s%s", filepath, dirname);
-              fsmenu_insert_entry(
-                  fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
-              found = 1;
+        /* Avoid error message if the directory doesn't exist as this isn't a requirement. */
+        if (BLI_is_dir(filepath)) {
+          const uint dirs_num = BLI_filelist_dir_contents(filepath, &dirs);
+          for (uint i = 0; i < dirs_num; i++) {
+            if ((dirs[i].type & S_IFDIR) == 0) {
+              continue;
             }
+            const char *dirname = dirs[i].relname;
+            if (dirname[0] == '.') {
+              continue;
+            }
+
+            /* Directory names contain a lot of unwanted text.
+             * Assuming every entry ends with the share name. */
+            const char *label = strstr(dirname, "share=");
+            if (label != NULL) {
+              /* Move pointer so `share=` is trimmed off or use full `dirname` as label. */
+              const char *label_test = label + 6;
+              label = *label_test ? label_test : dirname;
+            }
+            SNPRINTF(line, "%s%s", filepath, dirname);
+            fsmenu_insert_entry(
+                fsmenu, FS_CATEGORY_SYSTEM, line, label, ICON_NETWORK_DRIVE, FS_INSERT_SORTED);
+            found = 1;
           }
+          BLI_filelist_free(dirs, dirs_num);
         }
-        BLI_filelist_free(dirs, dirs_num);
       }
 #  endif
 
