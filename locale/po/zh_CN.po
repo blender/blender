@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -1249,6 +1249,10 @@ msgid "Smaller integer with a range from -128 to 127"
 msgstr "更小的整型，取值范围为 -128 到 127"
 
 
+msgid "Quaternion"
+msgstr "四元数"
+
+
 msgid "Domain"
 msgstr "域"
 
@@ -1961,6 +1965,10 @@ msgid "Vector font data-blocks"
 msgstr "矢量字体数据块"
 
 
+msgid "Grease Pencil"
+msgstr "蜡笔"
+
+
 msgid "Hair Curves"
 msgstr "毛发曲线"
 
@@ -2143,6 +2151,10 @@ msgstr "形态键"
 
 msgid "Shape Key data-blocks"
 msgstr "形态键数据块"
+
+
+msgid "Simulations"
+msgstr "模拟"
 
 
 msgid "Sounds"
@@ -5539,6 +5551,14 @@ msgid "Collection of child collections"
 msgstr "子集合的集合"
 
 
+msgid "Include"
+msgstr "包括"
+
+
+msgid "Exclude"
+msgstr "排除"
+
+
 msgid "Collection Objects"
 msgstr "物体集合"
 
@@ -8250,10 +8270,6 @@ msgstr "自动欧拉"
 
 msgid "Euler using the rotation order of the target"
 msgstr "使用目标的欧拉旋转顺序"
-
-
-msgid "Quaternion"
-msgstr "四元数"
 
 
 msgid "Quaternion rotation"
@@ -11867,50 +11883,6 @@ msgid "Lower bound of envelope at this control-point"
 msgstr "控制点封套的下边界"
 
 
-msgid "Face Map"
-msgstr "面映射"
-
-
-msgid "Group of faces, each face can only be part of one map"
-msgstr "面组，每个面只能是一个映射里的一部分"
-
-
-msgid "Index number of the face map"
-msgstr "面映射的索引数字"
-
-
-msgid "Face map name"
-msgstr "面映射名字"
-
-
-msgid "Face map selection state (for tools to use)"
-msgstr "面映射选择状态(用于工具使用)"
-
-
-msgid "Face Maps"
-msgstr "面映射"
-
-
-msgid "Collection of face maps"
-msgstr "面映射组"
-
-
-msgid "Active Face Map"
-msgstr "激活面映射"
-
-
-msgid "Face maps of the object"
-msgstr "物体的面映射"
-
-
-msgid "Active Face Map Index"
-msgstr "激活面映射索引"
-
-
-msgid "Active index in face map array"
-msgstr "激活面映射数组中的索引"
-
-
 msgid "Field Settings"
 msgstr "力场设置"
 
@@ -12383,10 +12355,6 @@ msgid "Show Font data-blocks"
 msgstr "显示字体数据块"
 
 
-msgid "Grease Pencil"
-msgstr "蜡笔"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "显示蜡笔数据块"
 
@@ -12453,10 +12421,6 @@ msgstr "显示/隐藏点云数据块"
 
 msgid "Show Scene data-blocks"
 msgstr "显示场景数据块"
-
-
-msgid "Simulations"
-msgstr "模拟"
 
 
 msgid "Show Simulation data-blocks"
@@ -19709,20 +19673,12 @@ msgid "Gpencil Settings"
 msgstr "蜡笔设置"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "蜡笔绘制工具"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "用于绘制描边笔刷的类型"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "用于填充区域笔刷的类型"
-
-
-msgid "Erase"
-msgstr "擦除"
 
 
 msgid "The brush is used for erasing strokes"
@@ -19783,22 +19739,6 @@ msgstr "笔刷图标文件路径"
 
 msgid "File path to brush icon"
 msgstr "笔刷图标的文件路径"
-
-
-msgid "Image Paint Tool"
-msgstr "图像绘制工具"
-
-
-msgid "Soften"
-msgstr "柔化"
-
-
-msgid "Clone"
-msgstr "克隆"
-
-
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Invert Pressure for Density"
@@ -20059,86 +19999,6 @@ msgstr "Y 平面"
 
 msgid "Z Plane"
 msgstr "Z 平面"
-
-
-msgid "Sculpt Tool"
-msgstr "雕刻工具"
-
-
-msgid "Draw Sharp"
-msgstr "绘制刻痕"
-
-
-msgid "Clay"
-msgstr "黏塑"
-
-
-msgid "Clay Strips"
-msgstr "黏条"
-
-
-msgid "Clay Thumb"
-msgstr "指推"
-
-
-msgid "Blob"
-msgstr "球体"
-
-
-msgid "Flatten"
-msgstr "平化"
-
-
-msgid "Scrape"
-msgstr "刮削"
-
-
-msgid "Multi-plane Scrape"
-msgstr "多平面刮削"
-
-
-msgid "Elastic Deform"
-msgstr "弹性变形"
-
-
-msgid "Thumb"
-msgstr "拇指"
-
-
-msgid "Pose"
-msgstr "姿态"
-
-
-msgid "Nudge"
-msgstr "推移"
-
-
-msgid "Rotate"
-msgstr "旋转"
-
-
-msgid "Slide Relax"
-msgstr "滑动松弛(拓扑)"
-
-
-msgid "Boundary"
-msgstr "边界范围"
-
-
-msgid "Cloth"
-msgstr "布料"
-
-
-msgid "Draw Face Sets"
-msgstr "绘制面组"
-
-
-msgid "Multires Displacement Eraser"
-msgstr "多精度置换橡皮擦"
-
-
-msgid "Multires Displacement Smear"
-msgstr "多精度置换涂抹"
 
 
 msgid "Secondary Color"
@@ -20821,6 +20681,10 @@ msgid "Use pressure to modulate wet persistence"
 msgstr "使用压力调制湿润持久"
 
 
+msgid "Sculpt Tool"
+msgstr "雕刻工具"
+
+
 msgid "Grab UVs"
 msgstr "抓取 UV"
 
@@ -21388,10 +21252,6 @@ msgid "How to use this collection in line art"
 msgstr "如何在线条画中使用该集合"
 
 
-msgid "Include"
-msgstr "包括"
-
-
 msgid "Generate feature lines for this collection"
 msgstr "为此集合生成特征线"
 
@@ -21402,10 +21262,6 @@ msgstr "仅遮挡"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "仅使用集合生成遮挡"
-
-
-msgid "Exclude"
-msgstr "排除"
 
 
 msgid "Don't use this collection in line art"
@@ -22972,6 +22828,10 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "在表面模式下绘制时的偏移量"
 
 
+msgid "Grease Pencil data-block"
+msgstr "蜡笔数据块"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "引用自外部图像或已打包图像的图像数据块"
 
@@ -24295,6 +24155,10 @@ msgid "Shader ball"
 msgstr "着色球"
 
 
+msgid "Cloth"
+msgstr "布料"
+
+
 msgid "Refraction Depth"
 msgstr "折射深度"
 
@@ -24427,52 +24291,12 @@ msgid "Maximum angle between face normals that will be considered as smooth (unu
 msgstr "将被视为平滑的面法向的最大角度(如果有自定义分割法线数据，则不使用)"
 
 
-msgid "Edge Creases"
-msgstr "边线折痕"
-
-
-msgid "Sharpness of the edges for subdivision"
-msgstr "边线锐度，用于细分"
-
-
 msgid "Edges"
 msgstr "边"
 
 
 msgid "Edges of the mesh"
 msgstr "光晕的硬度"
-
-
-msgid "Has Edge Bevel Weight"
-msgstr "有边倒角权重"
-
-
-msgid "True if the mesh has an edge bevel weight layer"
-msgstr "如果网格具有边倒角权重层，则为真"
-
-
-msgid "Has Vertex Bevel Weight"
-msgstr "有顶点倒角权重"
-
-
-msgid "True if the mesh has an vertex bevel weight layer"
-msgstr "如果网格具有顶点倒角权重层，则为真"
-
-
-msgid "Has Edge Crease"
-msgstr "有边线折痕"
-
-
-msgid "True if the mesh has an edge crease layer"
-msgstr "如果网格具有边线折痕层，则为真"
-
-
-msgid "Has Vertex Crease"
-msgstr "有顶点折痕"
-
-
-msgid "True if the mesh has an vertex crease layer"
-msgstr "如果网格具有顶点折痕层，则为真"
 
 
 msgid "Has Custom Normals"
@@ -24497,18 +24321,6 @@ msgstr "循环"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "网格的循环结构(多边形转角)"
-
-
-msgid "Float Property Layers"
-msgstr "浮点型属性层"
-
-
-msgid "Int Property Layers"
-msgstr "整数型属性层"
-
-
-msgid "String Property Layers"
-msgstr "字符串型属性层"
 
 
 msgid "Polygon Normals"
@@ -24561,14 +24373,6 @@ msgstr "体素大小"
 
 msgid "Size of the voxel in object space used for volume evaluation. Lower values preserve finer details"
 msgstr "用于体积计算的物体空间中的体素大小。值越低，细节保留越好"
-
-
-msgid "Sculpt Vertex Colors"
-msgstr "雕刻顶点色"
-
-
-msgid "Sculpt vertex color layers. Deprecated, use color attributes instead"
-msgstr "雕刻顶点颜色层。已弃用，改用颜色属性"
 
 
 msgid "Skin Vertices"
@@ -24751,14 +24555,6 @@ msgid "Legacy vertex color layers. Deprecated, use color attributes instead"
 msgstr "旧版顶点颜色图层。已弃用，改用颜色属性"
 
 
-msgid "Vertex Creases"
-msgstr "顶点折痕"
-
-
-msgid "Sharpness of the vertices"
-msgstr "顶点的锐度"
-
-
 msgid "Vertex Normals"
 msgstr "顶点法向"
 
@@ -24933,10 +24729,6 @@ msgstr "节点树标签"
 
 msgid "Grease Pencil Data"
 msgstr "蜡笔数据"
-
-
-msgid "Grease Pencil data-block"
-msgstr "蜡笔数据块"
 
 
 msgid "Inputs"
@@ -25439,10 +25231,6 @@ msgid "Both"
 msgstr "两者"
 
 
-msgid "Maps of faces of the object"
-msgstr "物体面的映射"
-
-
 msgid "Settings for using the object as a field in physics simulation"
 msgstr "在物理模拟时, 将物体用作某个场的设置"
 
@@ -25725,6 +25513,10 @@ msgstr "顶点编号, 用于顶点父子关系中"
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "用于物体编号渲染通道的编号数值"
+
+
+msgid "Pose"
+msgstr "姿态"
 
 
 msgid "Current pose for armatures"
@@ -26015,10 +25807,6 @@ msgid "Shape Key Edit Mode"
 msgstr "形态键编辑模式"
 
 
-msgid "Apply shape keys in edit mode (for meshes only)"
-msgstr "在编辑模式下应用形态键 (仅用于网格物体)"
-
-
 msgid "Vertex Groups"
 msgstr "顶点组"
 
@@ -26167,14 +25955,6 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "未受子粒子路程影响的粒子数量"
 
 
-msgid "Children Per Parent"
-msgstr "各父级的子粒子数"
-
-
-msgid "Number of children per parent"
-msgstr "每个父级的子级数量"
-
-
 msgid "Parting Factor"
 msgstr "分界系数"
 
@@ -26197,6 +25977,14 @@ msgstr "最小分界值"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "根级与末级之间的最小角 (长发的末级距离/根级距离)"
+
+
+msgid "Children Per Parent"
+msgstr "各父级的子粒子数"
+
+
+msgid "Number of children per parent"
+msgstr "每个父级的子级数量"
 
 
 msgid "Child Radius"
@@ -33667,6 +33455,10 @@ msgid "Override object and collection intersection priority value"
 msgstr "重写物体和集合交叉优先级灵敏值"
 
 
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Material slot in an object"
 msgstr "物体上的材质槽"
 
@@ -34441,18 +34233,6 @@ msgid "Edge in a Mesh data-block"
 msgstr "网格数据块的边"
 
 
-msgid "Bevel Weight"
-msgstr "倒角权重"
-
-
-msgid "Weight used by the Bevel modifier"
-msgstr "应用于倒角修改器创建的权重"
-
-
-msgid "Weight used by the Subdivision Surface modifier for creasing"
-msgstr "用于表面细分修改器的折痕权重"
-
-
 msgid "Index of this edge"
 msgstr "此条边线的编号"
 
@@ -34489,52 +34269,12 @@ msgid "Vertex indices"
 msgstr "顶点编号"
 
 
-msgid "Float Property"
-msgstr "浮点属性"
-
-
-msgid "Mesh Edge Crease Layer"
-msgstr "网格边线折痕层"
-
-
-msgid "Per-edge crease"
-msgstr "各边线折痕"
-
-
 msgid "Mesh Edges"
 msgstr "网格边"
 
 
 msgid "Collection of mesh edges"
 msgstr "网格边线集合"
-
-
-msgid "Int Property"
-msgstr "整数属性"
-
-
-msgid "Mesh Face Map Layer"
-msgstr "网格面映射层"
-
-
-msgid "Per-face map index"
-msgstr "逐面映射编号"
-
-
-msgid "Name of face map layer"
-msgstr "面映射层的名称"
-
-
-msgid "Mesh Face Maps"
-msgstr "网格的面映射"
-
-
-msgid "Collection of mesh face maps"
-msgstr "面映射集合"
-
-
-msgid "Active Face Map Layer"
-msgstr "激活面映射图层"
 
 
 msgid "Mesh Loop"
@@ -34773,54 +34513,6 @@ msgid "Face mark for Freestyle line rendering"
 msgstr "用于Freestyle线条渲染的面标记"
 
 
-msgid "Mesh Polygon Float Property"
-msgstr "网格多边形浮点属性"
-
-
-msgid "User defined floating-point number value in a float properties layer"
-msgstr "在浮点属性层中使用定义的浮点数值"
-
-
-msgid "Mesh Polygon Float Property Layer"
-msgstr "网格多边形浮点型属性层"
-
-
-msgid "User defined layer of floating-point number values"
-msgstr "使用浮点数值的定义层"
-
-
-msgid "Mesh Polygon Int Property"
-msgstr "网格多边形整型属性"
-
-
-msgid "User defined integer number value in an integer properties layer"
-msgstr "在整型属性层中使用默认的整型数值"
-
-
-msgid "Mesh Polygon Int Property Layer"
-msgstr "网格多边形整型属性层"
-
-
-msgid "User defined layer of integer number values"
-msgstr "在整型属性数值的默认层"
-
-
-msgid "Mesh Polygon String Property"
-msgstr "网格多边形字符串型属性"
-
-
-msgid "User defined string text value in a string properties layer"
-msgstr "在字符串属性层中使用默认的字符串文本值"
-
-
-msgid "Mesh Polygon String Property Layer"
-msgstr "网格多边形字符串型属性层"
-
-
-msgid "User defined layer of string text values"
-msgstr "使用字符串文本值的默认层"
-
-
 msgid "Mesh Polygons"
 msgstr "网格多边形"
 
@@ -35009,34 +34701,6 @@ msgid "Selection state of the face corner the UV editor"
 msgstr "UV编辑器的面角选择状态"
 
 
-msgid "Mesh Sculpt Vertex Color"
-msgstr "网格雕刻顶点色"
-
-
-msgid "Vertex colors in a Mesh"
-msgstr "网格中的顶点色"
-
-
-msgid "Mesh Sculpt Vertex Color Layer"
-msgstr "网格雕刻顶点色的图层"
-
-
-msgid "Layer of sculpt vertex colors in a Mesh data-block"
-msgstr "网格数据块中雕刻顶点色的图层"
-
-
-msgid "Sets the sculpt vertex color layer as active for display and editing"
-msgstr "将雕刻顶点色图层设置为活动以供显示和编辑"
-
-
-msgid "Sets the sculpt vertex color layer as active for rendering"
-msgstr "将雕刻顶点色图层设置为活动以供渲染"
-
-
-msgid "Name of Sculpt Vertex color layer"
-msgstr "雕刻顶点色图层的名称"
-
-
 msgid "Mesh Vertex"
 msgstr "网格顶点"
 
@@ -35063,38 +34727,6 @@ msgstr "未形变位置"
 
 msgid "For meshes with modifiers applied, the coordinate of the vertex with no deforming modifiers applied, as used for generated texture coordinates"
 msgstr "对于应用了修改器的网格，未应用形变修改器的顶点的坐标，作为用来生成纹理的坐标"
-
-
-msgid "Mesh Vertex Crease Layer"
-msgstr "网格顶点折痕层"
-
-
-msgid "Per-vertex crease"
-msgstr "各顶点折痕"
-
-
-msgid "Mesh Vertex Float Property"
-msgstr "网格顶点浮点型属性"
-
-
-msgid "Mesh Vertex Float Property Layer"
-msgstr "网格顶点浮点型属性层"
-
-
-msgid "Mesh Vertex Int Property"
-msgstr "网格顶点整型属性"
-
-
-msgid "Mesh Vertex Int Property Layer"
-msgstr "网格顶点整型属性层"
-
-
-msgid "Mesh Vertex String Property"
-msgstr "网格多边形字符串型属性"
-
-
-msgid "Mesh Vertex String Property Layer"
-msgstr "网格多边形字符串型属性层"
 
 
 msgid "Mesh Vertices"
@@ -36319,6 +35951,10 @@ msgstr "传递UV缝合边"
 
 msgid "Transfer subdivision crease values"
 msgstr "传递细分折痕值"
+
+
+msgid "Bevel Weight"
+msgstr "倒角权重"
 
 
 msgid "Transfer bevel weights"
@@ -39511,6 +39147,10 @@ msgid "Thickness factor"
 msgstr "厚度系数"
 
 
+msgid "Boundary"
+msgstr "边界范围"
+
+
 msgid "Support face boundaries"
 msgstr "支持面边界"
 
@@ -41213,14 +40853,6 @@ msgid "Width of the node"
 msgstr "节点宽度"
 
 
-msgid "Width Hidden"
-msgstr "宽度被隐藏"
-
-
-msgid "Deprecated width of the node when it is collapsed"
-msgstr "节点折叠时已弃用的宽度"
-
-
 msgid "Custom Group"
 msgstr "自定义节点组"
 
@@ -42341,6 +41973,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "椭圆遮罩中心点的 Y 向位置"
 
 
+msgid "Soften"
+msgstr "柔化"
+
+
 msgid "Box Sharpen"
 msgstr "盒形锐化"
 
@@ -42592,6 +42228,14 @@ msgstr "屏幕抠像"
 
 msgid "Tracking Object"
 msgstr "追踪物体"
+
+
+msgid "Smoothing"
+msgstr "平滑"
+
+
+msgid "Anisotropic"
+msgstr "各向异性过滤"
 
 
 msgid "Lens Distortion"
@@ -43174,6 +42818,10 @@ msgstr "RGB -> BW"
 
 msgid "Render Layers"
 msgstr "渲染层"
+
+
+msgid "Rotate"
+msgstr "旋转"
 
 
 msgid "Method to use to filter rotation"
@@ -44967,14 +44615,6 @@ msgid "Convert instances into real geometry data"
 msgstr "将实例转换为真实的几何体"
 
 
-msgid "Legacy Behavior"
-msgstr "后遗行为"
-
-
-msgid "Behave like before instance attributes existed"
-msgstr "行为与实例属性存在之前类似"
-
-
 msgid "Remove Named Attribute"
 msgstr "删除已命名属性"
 
@@ -45668,12 +45308,12 @@ msgid "Control the brightness and contrast of the input color"
 msgstr "控制输入颜色的亮度和对比度"
 
 
-msgid "Anisotropic BSDF"
-msgstr "各向异性 BSDF"
+msgid "Glossy BSDF"
+msgstr "光泽 BSDF"
 
 
-msgid "Glossy reflection with separate control over U and V direction roughness"
-msgstr "光泽反射，可单独控制 U 和 V 方向粗糙度"
+msgid "Reflection with microfacet distribution, used for materials such as metal or mirrors"
+msgstr "带有微面分布的反射，用于金属或镜子等材质"
 
 
 msgid "Light scattering distribution on rough surface"
@@ -45688,16 +45328,12 @@ msgid "GGX"
 msgstr "GGX"
 
 
-msgid "Multiscatter GGX"
-msgstr "多重散射GGX"
-
-
-msgid "Slower than GGX but gives a more energy conserving results, which would otherwise be visible as excessive darkening"
-msgstr "比GGX慢，但提供更节能的结果，否则会呈现为过度暗化"
-
-
 msgid "Ashikhmin-Shirley"
 msgstr "Ashikhmin-Shirley"
+
+
+msgid "Multiscatter GGX"
+msgstr "多重散射GGX"
 
 
 msgid "Diffuse BSDF"
@@ -45714,18 +45350,6 @@ msgstr "玻璃 BSDF"
 
 msgid "Glass-like shader mixing refraction and reflection at grazing angles"
 msgstr "在掠角混合折射和反射的玻璃状着色器"
-
-
-msgid "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"
-msgstr "可产生完美的镜面反射。 不使用糙度值"
-
-
-msgid "Glossy BSDF"
-msgstr "光泽 BSDF"
-
-
-msgid "Reflection with microfacet distribution, used for materials such as metal or mirrors"
-msgstr "带有微面分布的反射，用于金属或镜子等材质"
 
 
 msgid "Hair BSDF"
@@ -52104,21 +51728,8 @@ msgid "(De)select all control points"
 msgstr "(不)全选全部控制点"
 
 
-msgctxt "Operator"
-msgid "Select End"
-msgstr "选择端点"
-
-
 msgid "Select end points of curves"
 msgstr "选取曲线的端点"
-
-
-msgid "Number of points to select"
-msgstr "要选择的点数"
-
-
-msgid "Select points at the end of the curve as opposed to the beginning"
-msgstr "选取曲线末端而非起点位置的点"
 
 
 msgid "Select all points in curves with any point selection"
@@ -53240,12 +52851,20 @@ msgstr "转换转动至欧拉 ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "导出PLY"
+msgid "Export STL"
+msgstr "导出STL"
 
 
-msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
-msgstr "导出为带有法线、顶点颜色和纹理坐标的斯坦福 PLY"
+msgid "Save STL triangle mesh data"
+msgstr "保存 STL 三角网格数据"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "保存文件为 ASCII 文件格式"
 
 
 msgid "X Forward"
@@ -53292,59 +52911,6 @@ msgid "-Z Up"
 msgstr "-Z 向上"
 
 
-msgid "ASCII"
-msgstr "ASCII"
-
-
-msgid "Export using ASCII file format, otherwise use binary"
-msgstr "使用ASCII文件格式导出，否则使用二进制"
-
-
-msgid "Export the active vertex color layer"
-msgstr "导出活动顶点颜色色层"
-
-
-msgid "Apply Modifiers"
-msgstr "应用修改器"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "为输出的网格应用修改器"
-
-
-msgid "Export vertex normals"
-msgstr "导出顶点法向"
-
-
-msgid "Selection Only"
-msgstr "仅导出选中的物体"
-
-
-msgid "Export selected objects only"
-msgstr "仅导出选择的物体"
-
-
-msgid "Export the active UV layer (will split edges by seams)"
-msgstr "导出活动 UV 层(将按缝合线拆分边)"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "导出STL"
-
-
-msgid "Save STL triangle mesh data"
-msgstr "保存 STL 三角网格数据"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "保存文件为 ASCII 文件格式"
-
-
 msgid "Batch Mode"
 msgstr "批量模式"
 
@@ -53365,6 +52931,10 @@ msgid "Export in this reference space"
 msgstr "在此参考空间中导出"
 
 
+msgid "Apply Modifiers"
+msgstr "应用修改器"
+
+
 msgid "Apply the modifiers before saving"
 msgstr "保存前应用修改器"
 
@@ -53375,6 +52945,14 @@ msgstr "场景单位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "应用当前场景单位 (由单位比例定义) 输出数据"
+
+
+msgid "Selection Only"
+msgstr "仅导出选中的物体"
+
+
+msgid "Export selected objects only"
+msgstr "仅导出选择的物体"
 
 
 msgctxt "Operator"
@@ -53584,10 +53162,6 @@ msgstr "FBX 二进制文件的内嵌纹理 (仅供 \"复制\" 路径模式!)"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "缩放所有数据 (某些导入器不支持经缩放的骨架!)"
-
-
-msgid "Smoothing"
-msgstr "平滑"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -54193,107 +53767,6 @@ msgstr "记住导出设置"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "将 glTF 导出设置存储在 Blender 中"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "导出OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "保存一个Wavefront的OBJ文件"
-
-
-msgid "Material Groups"
-msgstr "材质组"
-
-
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "为几何中使用不同材质的每个部分生成OBJ组"
-
-
-msgid "OBJ Groups"
-msgstr "OBJ组"
-
-
-msgid "Export Blender objects as OBJ groups"
-msgstr "导出Blender物体为OBJ组"
-
-
-msgid "Keep Vertex Order"
-msgstr "保持顶点顺序"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "为每帧写出一个OBJ"
-
-
-msgid "OBJ Objects"
-msgstr "OBJ物体"
-
-
-msgid "Export Blender objects as OBJ objects"
-msgstr "导出Blender物体为OBJ物体"
-
-
-msgid "Include Edges"
-msgstr "包括边"
-
-
-msgid "Write Materials"
-msgstr "写入材质"
-
-
-msgid "Write out the MTL file"
-msgstr "写入为 MTL 文件"
-
-
-msgid "Apply modifiers"
-msgstr "应用修改器"
-
-
-msgid "Write Normals"
-msgstr "写入法线"
-
-
-msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
-msgstr "逐点逐面导出法向, 已显示平直面和锐利边线"
-
-
-msgid "Write Nurbs"
-msgstr "写入Nurbs"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "将 Nurbs 曲线作为 OBJ Nurbs 写入, 而不是转换为几何体"
-
-
-msgid "Smooth Groups"
-msgstr "平滑组"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "写出锐边为平滑组"
-
-
-msgid "Bitflag Smooth Groups"
-msgstr "Bitflag 平滑组"
-
-
-msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
-msgstr "与'平滑组'相同，但生成平滑组 ID 为位标记(最多生成 32 个不同的平滑组，通常要少得多)"
-
-
-msgid "Include UVs"
-msgstr "包括UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "写入活动UV 坐标轴"
-
-
-msgid "Polygroups"
-msgstr "多边形组"
 
 
 msgctxt "Operator"
@@ -57782,10 +57255,6 @@ msgid "Blend selected keyframes to their left or right neighbor"
 msgstr "将所选关键帧混合到其左右邻帧"
 
 
-msgid "The blend factor with 0.5 being the current frame"
-msgstr "混合系数，0.5 为当前帧"
-
-
 msgctxt "Operator"
 msgid "Breakdown"
 msgstr "间断"
@@ -57929,6 +57398,10 @@ msgstr "等长化控制柄"
 
 msgid "Ensure selected keyframes' handles have equal length, optionally making them horizontal. Automatic, Automatic Clamped, or Vector handle types will be converted to Aligned"
 msgstr "确保所选关键帧的控制柄具有相等的长度，可以选择使其水平、自动、自动钳制或矢量控制柄类型转换为对齐"
+
+
+msgid "Flatten"
+msgstr "平化"
 
 
 msgid "Make the values of the selected keyframes' handles the same as their respective keyframes"
@@ -58076,6 +57549,19 @@ msgstr "光标位置选中的通道"
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "为选中的函数曲线在游标点位置添加一个关键帧"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "跳转到关键帧"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "跳转到上一个 / 下一个关键帧"
+
+
+msgid "Next Keyframe"
+msgstr "下一关键帧"
 
 
 msgid "By Values Over Cursor Value"
@@ -58233,6 +57719,26 @@ msgstr "取消烘焙所选函数点为函数曲线"
 
 msgid "Reset viewable area to show selected keyframe range"
 msgstr "重置可视区域并显示选定关键帧的范围"
+
+
+msgid "Stroke Mode"
+msgstr "笔画模式"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "当形成了绘制笔画时的执行动作"
+
+
+msgid "Apply brush normally"
+msgstr "正常应用笔刷"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "为笔画持续时间反转笔刷动作"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "在画笔持续时间内将笔刷切换到平滑模式"
 
 
 msgctxt "Operator"
@@ -59044,19 +58550,6 @@ msgstr "将Alpha 通道用于透明"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "导入PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "加载 PLY 几何体文件"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "导入 PLY 文件的路径"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "导入STL"
 
@@ -59297,63 +58790,6 @@ msgstr "日志级别"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "glTF 格式要求将不连续法向、UV以及其他顶点属性存储为单独的顶点，这是在典型图形硬件上渲染所需的。此选项将尽可能合并同一位置的顶点。当前无法合并具有不同法向的顶点"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "导入OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "加载 OBJ 文件"
-
-
-msgid "Clamp Size"
-msgstr "钳制尺寸"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "钳制的下界(0为禁用)"
-
-
-msgid "Split geometry, omits vertices unused by edges or faces"
-msgstr "拆分几何体，忽略未被边或面使用的顶点"
-
-
-msgid "Keep Vert Order"
-msgstr "保留顶点顺序"
-
-
-msgid "Keep vertex order from file"
-msgstr "保留文件中的顶点顺序"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "将线条以及含有 2 个顶点的面作为线元素导入"
-
-
-msgid "Poly Groups"
-msgstr "多边形组"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "将 OBJ 组导入为顶点组"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "为所有关联图像搜索子目录(警告, 速度可能会慢)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "使用锐边包围光滑组"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "将OBJ组导入到Blender物体"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "将OBJ物体导入到Blender物体"
 
 
 msgctxt "Operator"
@@ -60360,78 +59796,6 @@ msgstr "比较UV"
 
 msgid "Compare VCols"
 msgstr "比较顶点色"
-
-
-msgctxt "Operator"
-msgid "Add Edge Bevel Weight"
-msgstr "添加边倒角权重"
-
-
-msgid "Add an edge bevel weight layer"
-msgstr "添加边倒角权重层"
-
-
-msgctxt "Operator"
-msgid "Clear Edge Bevel Weight"
-msgstr "清除边倒角权重"
-
-
-msgid "Clear the edge bevel weight layer"
-msgstr "清除边倒角权重层"
-
-
-msgctxt "Operator"
-msgid "Add Vertex Bevel Weight"
-msgstr "添加顶点倒角权重"
-
-
-msgid "Add a vertex bevel weight layer"
-msgstr "添加顶点倒角权重层"
-
-
-msgctxt "Operator"
-msgid "Clear Vertex Bevel Weight"
-msgstr "清除顶点倒角权重"
-
-
-msgid "Clear the vertex bevel weight layer"
-msgstr "清除顶点倒角权重层"
-
-
-msgctxt "Operator"
-msgid "Add Edge Crease"
-msgstr "添加边线折痕"
-
-
-msgid "Add an edge crease layer"
-msgstr "添加边线折痕层"
-
-
-msgctxt "Operator"
-msgid "Clear Edge Crease"
-msgstr "清除边线折痕"
-
-
-msgid "Clear the edge crease layer"
-msgstr "清除边线折痕层"
-
-
-msgctxt "Operator"
-msgid "Add Vertex Crease"
-msgstr "添加顶点折痕"
-
-
-msgid "Add a vertex crease layer"
-msgstr "添加顶点折痕层"
-
-
-msgctxt "Operator"
-msgid "Clear Vertex Crease"
-msgstr "清除顶点折痕"
-
-
-msgid "Clear the vertex crease layer"
-msgstr "清除顶点折痕层"
 
 
 msgctxt "Operator"
@@ -62608,11 +61972,6 @@ msgstr "平直/光滑"
 
 
 msgctxt "Mesh"
-msgid "Face Map"
-msgstr "面映射"
-
-
-msgctxt "Mesh"
 msgid "Freestyle Face Marks"
 msgstr "Freestyle 面标记"
 
@@ -64694,10 +64053,6 @@ msgid "Curve from Mesh or Text objects"
 msgstr "网格/文本物体 -> 曲线"
 
 
-msgid "Grease Pencil from Curve or Mesh objects"
-msgstr "曲线/网格 -> 蜡笔"
-
-
 msgid "Curves from evaluated curve data"
 msgstr "来自已解算曲线数据的曲线"
 
@@ -64955,73 +64310,6 @@ msgstr "刷新爆破修改器的数据"
 
 
 msgctxt "Operator"
-msgid "Add Face Map"
-msgstr "添加面映射"
-
-
-msgid "Add a new face map to the active object"
-msgstr "为活动物体添加新的面映射"
-
-
-msgctxt "Operator"
-msgid "Assign Face Map"
-msgstr "指定面映射"
-
-
-msgid "Assign faces to a face map"
-msgstr "将面添加到指定面映射"
-
-
-msgctxt "Operator"
-msgid "Deselect Face Map Faces"
-msgstr "取消选择属于面映射的面"
-
-
-msgid "Deselect faces belonging to a face map"
-msgstr "取消选择属于面映射的面"
-
-
-msgctxt "Operator"
-msgid "Move Face Map"
-msgstr "移动面映射"
-
-
-msgid "Move the active face map up/down in the list"
-msgstr "在列表中上下移动活动面映射"
-
-
-msgid "Direction to move, up or down"
-msgstr "移动方向，朝上或朝下"
-
-
-msgctxt "Operator"
-msgid "Remove Face Map"
-msgstr "移除面映射"
-
-
-msgid "Remove a face map from the active object"
-msgstr "从活动物体中删除面映射"
-
-
-msgctxt "Operator"
-msgid "Remove from Face Map"
-msgstr "从面映射中移除"
-
-
-msgid "Remove faces from a face map"
-msgstr "从一个面映射中移除面"
-
-
-msgctxt "Operator"
-msgid "Select Face Map Faces"
-msgstr "选择属于面映射的面"
-
-
-msgid "Select faces belonging to a face map"
-msgstr "选择属于面映射的面"
-
-
-msgctxt "Operator"
 msgid "Toggle Force Field"
 msgstr "切换力场"
 
@@ -65050,15 +64338,6 @@ msgstr "在属性和单个值之间切换以定义每个元素的数据"
 
 msgid "Prop Path"
 msgstr "属性路径"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "添加蜡笔"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "向场景中添加一个蜡笔物体"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -65211,6 +64490,15 @@ msgstr "删除蜡笔修改器"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "从活动物体上移除修改器"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "添加蜡笔"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "向场景中添加一个蜡笔物体"
 
 
 msgctxt "Operator"
@@ -67255,11 +66543,6 @@ msgid "Remove vertices which weight is below or equal to this limit"
 msgstr "移除权重低于或等于此限值的顶点"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "复制顶点组"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "为当前活动顶点组合创建一个副本"
 
@@ -68619,6 +67902,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "若所需的笔刷类型不存在, 则新建笔刷"
 
 
+msgid "Clone"
+msgstr "克隆"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "在两个笔刷间切换, 而不是循环切换"
 
@@ -68740,26 +68027,6 @@ msgstr "图像绘制"
 
 msgid "Paint a stroke into the image"
 msgstr "将笔画贴附到视图角度"
-
-
-msgid "Stroke Mode"
-msgstr "笔画模式"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "当形成了绘制笔画时的执行动作"
-
-
-msgid "Apply brush normally"
-msgstr "正常应用笔刷"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "为笔画持续时间反转笔刷动作"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "在画笔持续时间内将笔刷切换到平滑模式"
 
 
 msgctxt "Operator"
@@ -69676,10 +68943,6 @@ msgstr "自定义属性"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "关键帧更倾向的权重系数"
-
-
-msgid "Next Keyframe"
-msgstr "下一关键帧"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -71561,15 +70824,6 @@ msgstr "在单独的窗口中显示信息日志"
 
 
 msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "跳转到关键帧"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "跳转到上一个 / 下一个关键帧"
-
-
-msgctxt "Operator"
 msgid "Jump to Marker"
 msgstr "跳转到标记"
 
@@ -72378,14 +71632,6 @@ msgstr "从锐边创建面组"
 
 msgid "Create Face Sets using Sharp Edges as boundaries"
 msgstr "以锐边为边界创建面组"
-
-
-msgid "Face Sets from Face Maps"
-msgstr "从面映射创建面组"
-
-
-msgid "Create a Face Set per Face Map"
-msgstr "为每个面映射创建面组"
 
 
 msgid "Face Sets from Face Set Boundaries"
@@ -74556,6 +73802,10 @@ msgid "Line number to jump to"
 msgstr "要跳转到的行号"
 
 
+msgid "Column"
+msgstr "列"
+
+
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "行号"
@@ -74905,10 +74155,6 @@ msgid "Snap to Elements"
 msgstr "吸附元素"
 
 
-msgid "Snap to increments of grid"
-msgstr "吸附到栅格的增量点"
-
-
 msgid "Snap to vertices"
 msgstr "吸附至像素点"
 
@@ -74917,20 +74163,8 @@ msgid "Snap to edges"
 msgstr "吸附至边"
 
 
-msgid "Face Project"
-msgstr "面投射"
-
-
 msgid "Snap by projecting onto faces"
 msgstr "通过投影吸附至面"
-
-
-msgid "Face Nearest"
-msgstr "面最近"
-
-
-msgid "Snap to nearest point on faces"
-msgstr "吸附至面上的最近点"
 
 
 msgid "Snap to volume"
@@ -74951,6 +74185,18 @@ msgstr "垂直交线"
 
 msgid "Snap to the nearest point on an edge"
 msgstr "吸附至一条边上的最近点"
+
+
+msgid "Face Project"
+msgstr "面投射"
+
+
+msgid "Face Nearest"
+msgstr "面最近"
+
+
+msgid "Snap to nearest point on faces"
+msgstr "吸附至面上的最近点"
 
 
 msgid "Snap With"
@@ -75151,6 +74397,14 @@ msgid "Align with Point Normal"
 msgstr "根据点的法线来对齐"
 
 
+msgid "Auto Merge & Split"
+msgstr "自动合并 & 拆分"
+
+
+msgid "Forces the use of Auto Merge and Split"
+msgstr "强制使用自动合并和拆分"
+
+
 msgid "Values"
 msgstr "值"
 
@@ -75162,14 +74416,6 @@ msgstr "移动"
 
 msgid "Transform Cursor"
 msgstr "变换光标"
-
-
-msgid "Auto Merge & Split"
-msgstr "自动合并 & 拆分"
-
-
-msgid "Forces the use of Auto Merge and Split"
-msgstr "强制使用自动合并和拆分"
 
 
 msgctxt "Operator"
@@ -76371,10 +75617,6 @@ msgstr "分数"
 
 msgid "Specify a precise fraction of final UV output"
 msgstr "指定最终UV输出的精确比例"
-
-
-msgid "Pack"
-msgstr "打包"
 
 
 msgid "Pack to"
@@ -79085,6 +78327,10 @@ msgid "Export Material Groups"
 msgstr "导出材质组"
 
 
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "为几何中使用不同材质的每个部分生成OBJ组"
+
+
 msgid "Export Materials"
 msgstr "导出材质"
 
@@ -79210,6 +78456,10 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "调整物体大小以使边界框保持在该值以下。数值为0禁用钳制"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "将 OBJ 组导入为顶点组"
+
+
 msgid "Split By Group"
 msgstr "按组拆分"
 
@@ -79309,6 +78559,16 @@ msgstr "启用工作区的插件"
 
 msgid "Open a path in a file browser"
 msgstr "在文件浏览器中打开路径"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "导出PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "导入PLY"
 
 
 msgctxt "Operator"
@@ -81854,10 +81114,6 @@ msgid "Mask"
 msgstr "遮罩"
 
 
-msgid "Brush Tip"
-msgstr "笔刷提示"
-
-
 msgid "Tiling"
 msgstr "平铺"
 
@@ -84023,30 +83279,6 @@ msgid "Collection of point caches"
 msgstr "点缓存集合"
 
 
-msgid "Polygon Float Properties"
-msgstr "多边形浮点属性"
-
-
-msgid "Collection of float properties"
-msgstr "浮点属性集合"
-
-
-msgid "Polygon Int Properties"
-msgstr "多边形整型属性"
-
-
-msgid "Collection of int properties"
-msgstr "整型属性集合"
-
-
-msgid "Polygon String Properties"
-msgstr "多边形字符串型属性"
-
-
-msgid "Collection of string properties"
-msgstr "字符串型属性集合"
-
-
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "姿态通道集合,包括动画骨骼设置"
 
@@ -84930,14 +84162,6 @@ msgstr "扩展资产浏览器"
 
 msgid "Enable Asset Browser editor and operators to manage regular data-blocks as assets, not just poses"
 msgstr "启用资产浏览器编辑器和操作将数据块作为资产管理，而非仅姿态"
-
-
-msgid "Full Frame Compositor"
-msgstr "全画幅合成器"
-
-
-msgid "Enable compositor full frame execution mode option (no tiling, reduces execution time and memory usage)"
-msgstr "启用合成器全画幅执行模式选项(无分块，降低执行时间和内存使用）"
 
 
 msgid "New Curves Tools"
@@ -99009,6 +98233,10 @@ msgid "Snap UV Element"
 msgstr "吸附 UV 元素"
 
 
+msgid "Snap to increments of grid"
+msgstr "吸附到栅格的增量点"
+
+
 msgid "Mesh Statistics Visualization"
 msgstr "物理静态可视化"
 
@@ -99836,34 +99064,6 @@ msgid "Enable this light in solid shading mode"
 msgstr "在实体着色模式下启用该灯光"
 
 
-msgid "Vert Colors"
-msgstr "顶点色"
-
-
-msgid "Collection of sculpt vertex colors"
-msgstr "雕刻顶点色集合"
-
-
-msgid "Active Sculpt Vertex Color Layer"
-msgstr "活动雕刻顶点色层"
-
-
-msgid "Active sculpt vertex color layer"
-msgstr "活动雕刻顶点色层"
-
-
-msgid "Active Sculpt Vertex Color Index"
-msgstr "活动雕刻顶点色编号"
-
-
-msgid "Active sculpt vertex color index"
-msgstr "活动雕刻顶点色编号"
-
-
-msgid "Vertex Float Properties"
-msgstr "顶点浮点型属性"
-
-
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "点组,用于骨骼封套或者其他"
 
@@ -99890,14 +99090,6 @@ msgstr "活动顶点组编号"
 
 msgid "Active index in vertex group array"
 msgstr "顶点组中阵列的活动编号"
-
-
-msgid "Vertex Int Properties"
-msgstr "顶点整型属性"
-
-
-msgid "Vertex String Properties"
-msgstr "顶点字符串型属性"
 
 
 msgid "Scroll and zoom for a 2D region"
@@ -100981,10 +100173,6 @@ msgstr "查看器路径的元素"
 
 msgid "Type of the path element"
 msgstr "路径元素的类型"
-
-
-msgid "Node Name"
-msgstr "节点名称"
 
 
 msgid "Volume Display"
@@ -102483,6 +101671,11 @@ msgstr "文本"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "蜡笔"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "姿态"
 
@@ -103573,11 +102766,6 @@ msgstr "剪辑动画摄影表编辑器"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "蜡笔"
-
-
-msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Curve Edit Mode"
 msgstr "蜡笔笔画曲线编辑模式"
 
@@ -104031,10 +103219,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "未在节点中指定文本或文件, 无可编译对象"
 
 
-msgid "OSL query failed to open "
-msgstr "未能打开OSL查询 "
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "外部着色器脚本扩展名须为 .osl 或 .oso, 或模块名"
 
@@ -104449,10 +103633,6 @@ msgid "Add a new Variant Slot"
 msgstr "添加新的变量槽"
 
 
-msgid "Curves as NURBS"
-msgstr "曲线为NURBS"
-
-
 msgid "untitled"
 msgstr "无标题"
 
@@ -104639,11 +103819,6 @@ msgstr "选择要散列的物体和目标物体"
 
 
 msgctxt "Operator"
-msgid "Blend Pose"
-msgstr "混合姿态"
-
-
-msgctxt "Operator"
 msgid "Select Pose Bones"
 msgstr "选择姿态骨骼"
 
@@ -104661,6 +103836,11 @@ msgstr "应用姿态"
 msgctxt "Operator"
 msgid "Apply Pose Flipped"
 msgstr "应用翻转姿态"
+
+
+msgctxt "Operator"
+msgid "Blend Pose"
+msgstr "混合姿态"
 
 
 msgid "Action %s marked Fake User to prevent loss"
@@ -105153,10 +104333,6 @@ msgstr "%d 无活动UV层的网格"
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "%d 个副本被发现位于 %d 个网格中，镜像可能不完整"
-
-
-msgid "Node has no attribute "
-msgstr "节点没有属性 "
 
 
 msgid "No camera found"
@@ -107613,8 +106789,8 @@ msgid "Enable the Color Ramp first"
 msgstr "先启用颜色渐变"
 
 
-msgid "Tiles Even"
-msgstr "偶数块"
+msgid "Tiles"
+msgstr "分块"
 
 
 msgid "Odd"
@@ -108544,10 +107720,6 @@ msgid "Fixed Subdivisions"
 msgstr "固定细分"
 
 
-msgid "Tiles"
-msgstr "分块"
-
-
 msgctxt "Operator"
 msgid "Render Slot Cycle Previous"
 msgstr "向前循环滚动渲染槽"
@@ -109421,6 +108593,10 @@ msgid "Unpack"
 msgstr "解包"
 
 
+msgid "Pack"
+msgstr "打包"
+
+
 msgid "Original frame range: %d-%d (%d)"
 msgstr "原始帧范围: %d-%d (%d)"
 
@@ -110110,15 +109286,6 @@ msgid "Sample Format"
 msgstr "采样格式"
 
 
-msgid "Make this installation your default Blender"
-msgstr "使本次安装成为默认Blender"
-
-
-msgctxt "Operator"
-msgid "Make Default"
-msgstr "设为默认"
-
-
 msgid "Undo Memory Limit"
 msgstr "取消内存限制"
 
@@ -110665,11 +109832,6 @@ msgstr "空物体"
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "蜡笔"
-
-
-msgctxt "Operator"
 msgid "Speaker"
 msgstr "扬声器"
 
@@ -111094,11 +110256,6 @@ msgstr "按锐边"
 
 
 msgctxt "Operator"
-msgid "By Face Maps"
-msgstr "根据面映射"
-
-
-msgctxt "Operator"
 msgid "Per Vertex"
 msgstr "逐顶点"
 
@@ -111230,16 +110387,6 @@ msgstr "挤出边线"
 msgctxt "Operator"
 msgid "Clear Sharp from Vertices"
 msgstr "为顶点清除锐边标记"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "挤出面"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "沿法向挤出面"
 
 
 msgctxt "Operator"
@@ -111546,6 +110693,11 @@ msgstr "点云"
 
 
 msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "蜡笔"
+
+
+msgctxt "Operator"
 msgid "Armature"
 msgstr "骨架"
 
@@ -111752,6 +110904,16 @@ msgstr "清除锐边"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "为顶点标记锐边"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "挤出面"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "沿法向挤出面"
 
 
 msgctxt "Operator"
@@ -112017,6 +111179,14 @@ msgid "Fade Geometry"
 msgstr "淡化几何体"
 
 
+msgid "Target Selection"
+msgstr "目标选中项"
+
+
+msgid "Exclude Non-Selectable"
+msgstr "排除不可选中"
+
+
 msgid "Reference Point"
 msgstr "参考点"
 
@@ -112111,12 +111281,16 @@ msgid "Specular Lighting"
 msgstr "高光光照"
 
 
-msgid "Target Selection"
-msgstr "目标选中项"
+msgid "Include Active"
+msgstr "包括活动项"
 
 
-msgid "Exclude Non-Selectable"
-msgstr "排除不可选中"
+msgid "Include Edited"
+msgstr "包括已编辑"
+
+
+msgid "Include Non-Edited"
+msgstr "包括未编辑"
 
 
 msgid "Custom Location"
@@ -112185,18 +111359,6 @@ msgstr "从所有组中移除"
 
 msgid "Disable Studio Light Edit"
 msgstr "禁用棚灯编辑"
-
-
-msgid "Include Active"
-msgstr "包括活动项"
-
-
-msgid "Include Edited"
-msgstr "包括已编辑"
-
-
-msgid "Include Non-Edited"
-msgstr "包括未编辑"
 
 
 msgid "Object Location"
@@ -112807,16 +111969,8 @@ msgid "Stepped"
 msgstr "阶化"
 
 
-msgid " attribute from geometry"
-msgstr " 来自几何体的属性"
-
-
 msgid "ID / Index"
 msgstr "ID/编号"
-
-
-msgid " from "
-msgstr " 从 "
 
 
 msgid "GP_Layer"
@@ -112945,10 +112099,6 @@ msgstr "蜡笔"
 
 msgid "LightProbe"
 msgstr "光照探头"
-
-
-msgid "FaceMap"
-msgstr "面映射"
 
 
 msgid "No new files have been packed"
@@ -114944,30 +114094,6 @@ msgid "Grease Pencil has no active paint tool"
 msgstr "蜡笔没有活动的绘画工具"
 
 
-msgid "Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center, E: extrude"
-msgstr "线: ESC 取消, 鼠标左键设置原点, 回车/鼠标中键确定, 滚轮/+- 调节细分次数, Shift 对齐, Alt 到中心, E: 挤压"
-
-
-msgid "Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align"
-msgstr "折线: ESC取消, 鼠标左键设置, 回车/鼠标中键确认, 滚轮/+- 调节细分次数, Shift 对齐"
-
-
-msgid "Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
-msgstr "矩形：ESC 取消，鼠标左键 设置原点，Enter/鼠标中键确认，鼠标滚轮/ +- 调整细分级数，Shift 到方形，Alt 到中心"
-
-
-msgid "Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
-msgstr "圆：ESC 取消，Enter/鼠标中键确认，鼠标滚轮/+- 调整边数，Shift 到方形，Alt 到中心"
-
-
-msgid "Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, M: Flip, E: extrude"
-msgstr "弧：ESC 取消，Enter/鼠标中键确认，鼠标滚轮/+- 调整边数，Shift 到方形，Alt 到中心，M：翻转，E：挤出"
-
-
-msgid "Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, E: extrude"
-msgstr "曲线：ESC 取消，Enter/鼠标中键确认，鼠标滚轮/+- 调整边数，Shift 到方形，Alt 到中心，E：挤出"
-
-
 msgid "Primitives can only be added in Draw or Edit modes"
 msgstr "只能在绘制或者编辑模式下添加原始物体"
 
@@ -115249,14 +114375,6 @@ msgstr "无法计算出一条有效路径"
 
 msgid "Failed to create the override operation"
 msgstr "无法创建重写操作"
-
-
-msgid "File '%s' cannot be opened"
-msgstr "打不开文件 '%s'"
-
-
-msgid "See '%s' in the text editor"
-msgstr "参见文本编辑器中的 '%s'"
 
 
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
@@ -115697,10 +114815,6 @@ msgid "Browse Particle Settings to be linked"
 msgstr "浏览要关联的粒子设置"
 
 
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "浏览要关联的蜡笔"
-
-
 msgid "Browse Movie Clip to be linked"
 msgstr "浏览要关联的影片剪辑"
 
@@ -115743,6 +114857,10 @@ msgstr "浏览要关联的体积数据"
 
 msgid "Browse Simulation to be linked"
 msgstr "浏览要关联的模拟"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "浏览要关联的蜡笔"
 
 
 msgid "Browse ID data to be linked"
@@ -115915,16 +115033,12 @@ msgid "Method Quads"
 msgstr "矩形面方式"
 
 
-msgid "No filename given"
-msgstr "未指定文件名"
+msgid "No filepath given"
+msgstr "未给出文件路径"
 
 
 msgid "Unable to determine ABC sequence length"
 msgstr "无法确定ABC片段长度"
-
-
-msgid "No filepath given"
-msgstr "未给出文件路径"
 
 
 msgid "Global Orientation"
@@ -115999,6 +115113,10 @@ msgid "Triangulated Mesh"
 msgstr "三角化网格"
 
 
+msgid "Curves as NURBS"
+msgstr "曲线为NURBS"
+
+
 msgid "Grouping"
 msgstr "分组"
 
@@ -116007,8 +115125,20 @@ msgid "Object Groups"
 msgstr "物体组"
 
 
+msgid "Material Groups"
+msgstr "材质组"
+
+
+msgid "Smooth Groups"
+msgstr "平滑组"
+
+
 msgid "Smooth Group Bitflags"
 msgstr "平滑组位标记"
+
+
+msgid "ASCII"
+msgstr "ASCII"
 
 
 msgid "File References"
@@ -117862,14 +116992,6 @@ msgid "Full Screen Area"
 msgstr "区域全屏"
 
 
-msgid "Flip to Bottom"
-msgstr "在底部显示"
-
-
-msgid "Flip to Top"
-msgstr "在顶部显示"
-
-
 msgid "Show Header"
 msgstr "显示标题栏"
 
@@ -117888,6 +117010,14 @@ msgstr "翻转至右侧"
 
 msgid "Flip to Left"
 msgstr "翻转至左侧"
+
+
+msgid "Flip to Top"
+msgstr "在顶部显示"
+
+
+msgid "Flip to Bottom"
+msgstr "在底部显示"
 
 
 msgid "Blender Preferences"
@@ -120129,14 +119259,6 @@ msgid "Data Set"
 msgstr "数据集"
 
 
-msgid "Column"
-msgstr "列"
-
-
-msgid "Unknown column type"
-msgstr "未知列类型"
-
-
 msgid "File Modified Outside and Inside Blender"
 msgstr "在 Blender 外部及内部修改的文件"
 
@@ -120207,6 +119329,14 @@ msgstr "无法统计 '%s': %s"
 
 msgid "Text not found: %s"
 msgstr "文字无法找到: %s"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "打不开文件 '%s'"
+
+
+msgid "See '%s' in the text editor"
+msgstr "参见文本编辑器中的 '%s'"
 
 
 msgid "No Recent Files"
@@ -122011,18 +121141,6 @@ msgid "Index %d is invalid"
 msgstr "编号 %d 非法"
 
 
-msgid "Currently only single face map layers are supported"
-msgstr "当前仅支持单个面映射图层"
-
-
-msgid "Face map not in mesh"
-msgstr "面映射不在网格"
-
-
-msgid "Error removing face map"
-msgstr "移除面映射错误"
-
-
 msgid "UV map '%s' not found"
 msgstr "未能找到UV贴图 '%s'"
 
@@ -122155,10 +121273,6 @@ msgid "Vertex not in group"
 msgstr "顶点未包含在顶点组中"
 
 
-msgid "FaceMap.add(): cannot be called while object is in edit mode"
-msgstr "FaceMap.add(): 无法在编辑模式下调用"
-
-
 msgid "VertexGroup '%s' not found in object '%s'"
 msgstr "顶点组 '%s' 未在物体 '%s' 中找到"
 
@@ -122185,10 +121299,6 @@ msgstr "%s 不受 '%s' 物体支持"
 
 msgid "DeformGroup '%s' not in object '%s'"
 msgstr "形变组 '%s' 未存在于物体 '%s' 中"
-
-
-msgid "Face map '%s' not in object '%s'"
-msgstr "面映射 '%s' 不在于物体 '%s'中"
 
 
 msgid "Viewport not in local view"
@@ -123829,24 +122939,12 @@ msgid "Surface has no mesh"
 msgstr "表面没有网格"
 
 
-msgid "Evaluated surface missing UV map: \"%s\""
-msgstr "被解算的表面缺少UV贴图: \"%s\""
-
-
-msgid "Original surface missing UV map: \"%s\""
-msgstr "原始表面缺少UV贴图: \"%s\""
-
-
 msgid "Evaluated surface missing attribute: \"rest_position\""
 msgstr "被解算的表面缺失属性: \"rest_position\""
 
 
 msgid "Curves are not attached to any UV map"
 msgstr "曲线不附加到任何UV贴图"
-
-
-msgid "Invalid surface UVs on %d curves"
-msgstr "%d 曲线上的无效表面UV"
 
 
 msgid "The parts of the geometry to be deleted"
@@ -124345,6 +123443,10 @@ msgid "Disabled, Blender was compiled without OpenSubdiv"
 msgstr "已禁用, 未使用OpenSubdiv编译Blender"
 
 
+msgid "Which of the sorted corners to output"
+msgstr "要输出的排序后的拐角"
+
+
 msgid "Corner Index"
 msgstr "拐角编号"
 
@@ -124355,10 +123457,6 @@ msgstr "要从中检索数据的面。默认为上下文中的面"
 
 msgid "Values used to sort the face's corners. Uses indices by default"
 msgstr "用于对面拐进行排序的值。默认使用编号"
-
-
-msgid "Which of the sorted corners to output"
-msgstr "要输出的排序后的拐角"
 
 
 msgid "A corner of the face, chosen by the sort index"
@@ -124517,10 +123615,6 @@ msgid "Hit Distance"
 msgstr "命中距离"
 
 
-msgid "This node uses legacy behavior with regards to attributes on instances. The behavior can be changed in the node properties in the side bar. In most cases the new behavior is the same for files created in Blender 3.0"
-msgstr "此节点使用与实例上的属性相关的旧版行为。可以在侧栏的节点属性中更改行为。在大多数情况下，新行为与在Blender 3.0中创建的文件是相同的"
-
-
 msgid "Which element to retrieve a value from on the geometry"
 msgstr "从几何体上检索值的元素"
 
@@ -124599,10 +123693,6 @@ msgstr "曲线只支持单个材质；选中项输入不能是一个场"
 
 msgid "Shade Smooth"
 msgstr "平滑着色"
-
-
-msgid "Failed to write to attribute \"%s\" with domain \"%s\" and type \"%s\""
-msgstr "无法写入属性 \"%s\" 与域 \"%s\" 并键入 \"%s\""
 
 
 msgid "Delimiter"
@@ -124701,10 +123791,6 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "大于阈值的值位于生成的网格内"
 
 
-msgid " node"
-msgstr " 节点"
-
-
 msgid "Missing Data-Block"
 msgstr "缺失数据块"
 
@@ -124749,16 +123835,16 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "Anisotropy"
-msgstr "各向异性"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR 折射率"
+
+
+msgid "Anisotropy"
+msgstr "各向异性"
 
 
 msgid "RoughnessU"
@@ -124811,10 +123897,6 @@ msgstr "次表面各向异性"
 
 msgid "Specular Tint"
 msgstr "高光染色"
-
-
-msgid "Anisotropic"
-msgstr "各向异性过滤"
 
 
 msgid "Anisotropic Rotation"
@@ -126194,18 +125276,6 @@ msgid "Import SVG as curves"
 msgstr "导入SVG为曲线"
 
 
-msgid "Stanford PLY format"
-msgstr "斯坦福PLY格式"
-
-
-msgid "File > Import/Export"
-msgstr "文件 > 导入/导出"
-
-
-msgid "Import-Export PLY mesh data with UVs and vertex colors"
-msgstr "导入-导出带有UV和顶点颜色的PLY网格数据"
-
-
 msgid "UV Layout"
 msgstr "UV布局"
 
@@ -126216,10 +125286,6 @@ msgstr "UV 编辑器 > UV > 导出 UV 布局"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "将 UV 布局导出为二维图形"
-
-
-msgid "Wavefront OBJ format (legacy)"
-msgstr "Wavefront OBJ 格式 (旧版)"
 
 
 msgid "glTF 2.0 format"
