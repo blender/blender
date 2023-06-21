@@ -34,6 +34,17 @@
 
 #include "transform_snap_object.hh"
 
+#ifdef DEBUG_SNAP_TIME
+#  include "PIL_time.h"
+
+#  if WIN32 and NDEBUG
+#    pragma optimize("O", on)
+#  endif
+
+static double _sum_snap_time = 0.0;
+static long _num_snap_calls = 0;
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  * \{ */
@@ -1722,6 +1733,10 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     return retval;
   }
 
+#ifdef DEBUG_SNAP_TIME
+  double snap_timeit = PIL_check_seconds_timer();
+#endif
+
   snap_to_flag = sctx->runtime.snap_to_flag;
 
   BLI_assert(snap_to_flag & (SCE_SNAP_MODE_GEOM | SCE_SNAP_MODE_FACE_NEAREST));
@@ -1854,6 +1869,11 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     }
   }
 
+#ifdef DEBUG_SNAP_TIME
+  _sum_snap_time += PIL_check_seconds_timer() - snap_timeit;
+  _num_snap_calls++;
+#endif
+
   return retval;
 }
 
@@ -1909,5 +1929,14 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
   return ED_transform_snap_object_project_ray_all(
       sctx, depsgraph, v3d, params, ray_start, ray_normal, ray_depth, sort, r_hit_list);
 }
+
+#ifdef DEBUG_SNAP_TIME
+void ED_transform_snap_object_time_average_print(void)
+{
+  printf("Average snapping time: %lf ms\n", 1000 * (_sum_snap_time / _num_snap_calls));
+  _sum_snap_time = 0.0;
+  _num_snap_calls = 0;
+}
+#endif
 
 /** \} */

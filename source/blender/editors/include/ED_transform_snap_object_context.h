@@ -10,6 +10,8 @@
 
 #include "DNA_scene_types.h"
 
+//#define DEBUG_SNAP_TIME
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -193,6 +195,12 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
                                                     float ray_depth,
                                                     bool sort,
                                                     ListBase *r_hit_list);
+
+#ifdef DEBUG_SNAP_TIME
+void ED_transform_snap_object_time_average_print(void);
+#else
+#  define ED_transform_snap_object_time_average_print() void(0)
+#endif
 
 #ifdef __cplusplus
 }
