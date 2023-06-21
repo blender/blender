@@ -4700,6 +4700,11 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader,
   return static_cast<ID *>(newlibadr(reader->fd, self_id, is_linked_only, id));
 }
 
+ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+{
+  return BKE_main_idmap_lookup_uuid(reader->fd->new_idmap_uuid, session_uuid);
+}
+
 int BLO_read_fileversion_get(BlendDataReader *reader)
 {
   return reader->fd->fileversion;
