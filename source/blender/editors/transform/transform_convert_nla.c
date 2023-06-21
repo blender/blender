@@ -767,7 +767,7 @@ static void recalcData_nla(TransInfo *t)
         delta_new_tracks--;
       }
 
-      for (int i = 0; i < -delta_new_tracks; i++) {
+      for (int j = 0; j < -delta_new_tracks; j++) {
         NlaTrack *new_track = BKE_nlatrack_new();
         new_track->flag |= NLATRACK_TEMPORARILY_ADDED;
         BKE_nlatrack_insert_before(
@@ -775,7 +775,7 @@ static void recalcData_nla(TransInfo *t)
         dst_track = new_track;
       }
 
-      for (int i = 0; i < delta_new_tracks; i++) {
+      for (int j = 0; j < delta_new_tracks; j++) {
         NlaTrack *new_track = BKE_nlatrack_new();
         new_track->flag |= NLATRACK_TEMPORARILY_ADDED;
 
