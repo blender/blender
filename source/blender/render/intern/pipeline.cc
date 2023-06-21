@@ -2513,7 +2513,7 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 void RE_layer_load_from_file(
     RenderLayer *layer, ReportList *reports, const char *filepath, int x, int y)
 {
-  /* First try loading multilayer EXR. */
+  /* First try loading multi-layer EXR. */
   if (render_result_exr_file_read_path(nullptr, layer, reports, filepath)) {
     return;
   }
@@ -2522,7 +2522,7 @@ void RE_layer_load_from_file(
   ImBuf *ibuf = IMB_loadiffname(filepath, IB_rect, nullptr);
   RenderPass *rpass = nullptr;
 
-  /* multiview: since the API takes no 'view', we use the first combined pass found */
+  /* multi-view: since the API takes no 'view', we use the first combined pass found */
   for (rpass = static_cast<RenderPass *>(layer->passes.first); rpass; rpass = rpass->next) {
     if (STREQ(rpass->name, RE_PASSNAME_COMBINED)) {
       break;

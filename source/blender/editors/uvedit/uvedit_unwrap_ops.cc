@@ -1602,7 +1602,7 @@ static const EnumPropertyItem pack_shape_method_items[] = {
  * \note #ED_UVPACK_PIN_NONE is exposed as a boolean "pin".
  * \note #ED_UVPACK_PIN_IGNORE is intentionally not exposed as it is confusing from the UI level
  * (users can simply not select these islands).
- * The option is kept kept internally because it's used for live unwrap.
+ * The option is kept internally because it's used for live unwrap.
  */
 static const EnumPropertyItem pinned_islands_method_items[] = {
     {ED_UVPACK_PIN_LOCK_SCALE, "SCALE", 0, "Scale", "Pinned islands won't rescale"},

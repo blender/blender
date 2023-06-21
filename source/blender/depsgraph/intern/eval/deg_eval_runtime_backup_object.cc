@@ -34,7 +34,7 @@ void ObjectRuntimeBackup::init_from_object(Object *object)
     light_linking_runtime = object->light_linking->runtime;
   }
   BKE_object_runtime_reset(object);
-  /* Keep bbox (for now at least). */
+  /* Keep bounding-box (for now at least). */
   object->runtime.bb = runtime.bb;
   /* Object update will override actual object->data to an evaluated version.
    * Need to make sure we don't have data set to evaluated one before free

@@ -309,11 +309,10 @@ static bool raycastEditMesh(SnapData_EditMesh *sod,
     return retval;
   }
 
-  /* We pass a temp ray_start, set from object's boundbox, to avoid precision issues with
-   * very far away ray_start values (as returned in case of ortho view3d), see #50486, #38358.
-   */
+  /* We pass a temp ray_start, set from object's bounding-box, to avoid precision issues with
+   * very far away ray_start values (as returned in case of ortho view3d), see #50486, #38358. */
   if (len_diff > 400.0f) {
-    len_diff -= local_scale; /* make temp start point a bit away from bbox hit point. */
+    len_diff -= local_scale; /* make temp start point a bit away from bounding-box hit point. */
     madd_v3_v3fl(ray_start_local, ray_normal_local, len_diff);
     local_depth -= len_diff;
   }

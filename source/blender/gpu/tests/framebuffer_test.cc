@@ -200,7 +200,7 @@ static void test_framebuffer_scissor_test()
 }
 GPU_TEST(framebuffer_scissor_test);
 
-/* Color each side of a cubemap with a different color. */
+/* Color each side of a cube-map with a different color. */
 static void test_framebuffer_cube()
 {
   const int SIZE = 32;

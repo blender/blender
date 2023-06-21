@@ -2202,7 +2202,7 @@ static void rna_SpaceDopeSheetEditor_action_set(PointerRNA *ptr,
       }
     }
     else if (saction->mode == SACTCONT_SHAPEKEY) {
-      /* as the name says, "shapekey-level" only... */
+      /* As the name says, "shape-key level" only. */
       if (act->idroot == ID_KE) {
         saction->action = act;
       }
