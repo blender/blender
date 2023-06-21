@@ -1978,6 +1978,36 @@ class VIEW3D_MT_select_edit_armature(Menu):
         layout.operator("object.select_pattern", text="Select Pattern...")
 
 
+class VIEW3D_MT_select_edit_grease_pencil(Menu):
+    bl_label = "Select"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("grease_pencil.select_all", text="All").action = 'SELECT'
+        layout.operator("grease_pencil.select_all", text="None").action = 'DESELECT'
+        layout.operator("grease_pencil.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
+        layout.operator("grease_pencil.select_linked", text="Linked")
+        layout.operator("grease_pencil.select_random", text="Random")
+
+        layout.separator()
+
+        op = layout.operator("grease_pencil.select_ends", text="First")
+        op.amount_start = 1
+        op.amount_end = 0
+        op = layout.operator("grease_pencil.select_ends", text="Last")
+        op.amount_start = 0
+        op.amount_end = 1
+
+        layout.separator()
+
+        layout.operator("grease_pencil.select_more")
+        layout.operator("grease_pencil.select_less")
+
+
 class VIEW3D_MT_paint_gpencil(Menu):
     bl_label = "Paint"
 
@@ -1996,7 +2026,7 @@ class VIEW3D_MT_paint_gpencil(Menu):
 class VIEW3D_MT_select_edit_gpencil(Menu):
     bl_label = "Select"
 
-    def draw_legacy(self, context):
+    def draw(self, context):
         layout = self.layout
 
         layout.operator("gpencil.select_all", text="All").action = 'SELECT'
@@ -2028,36 +2058,6 @@ class VIEW3D_MT_select_edit_gpencil(Menu):
 
         layout.operator("gpencil.select_more")
         layout.operator("gpencil.select_less")
-
-    def draw(self, context):
-        if not context.preferences.experimental.use_grease_pencil_version3:
-            self.draw_legacy(context)
-            return
-
-        layout = self.layout
-
-        layout.operator("grease_pencil.select_all", text="All").action = 'SELECT'
-        layout.operator("grease_pencil.select_all", text="None").action = 'DESELECT'
-        layout.operator("grease_pencil.select_all", text="Invert").action = 'INVERT'
-
-        layout.separator()
-
-        layout.operator("grease_pencil.select_linked", text="Linked")
-        layout.operator("grease_pencil.select_random", text="Random")
-
-        layout.separator()
-
-        op = layout.operator("grease_pencil.select_ends", text="First")
-        op.amount_start = 1
-        op.amount_end = 0
-        op = layout.operator("grease_pencil.select_ends", text="Last")
-        op.amount_start = 0
-        op.amount_end = 1
-
-        layout.separator()
-
-        layout.operator("grease_pencil.select_more")
-        layout.operator("grease_pencil.select_less")
 
 
 class VIEW3D_MT_select_paint_mask(Menu):
@@ -8235,6 +8235,7 @@ classes = (
     VIEW3D_MT_edit_lattice_context_menu,
     VIEW3D_MT_select_edit_lattice,
     VIEW3D_MT_select_edit_armature,
+    VIEW3D_MT_select_edit_grease_pencil,
     VIEW3D_MT_select_edit_gpencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
