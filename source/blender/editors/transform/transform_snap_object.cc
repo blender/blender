@@ -813,10 +813,10 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
 
       mul_v3_m4v3(va_g, sctx->ret.obmat, v_pair[0]);
       mul_v3_m4v3(vb_g, sctx->ret.obmat, v_pair[1]);
-      lambda = line_point_factor_v3(sctx->runtime.curr_co, va_g, vb_g);
+      float lambda_perp = line_point_factor_v3(sctx->runtime.curr_co, va_g, vb_g);
 
-      if (IN_RANGE(lambda, 0.0f, 1.0f)) {
-        interp_v3_v3v3(v_near, v_pair[0], v_pair[1], lambda);
+      if (IN_RANGE(lambda_perp, 0.0f, 1.0f)) {
+        interp_v3_v3v3(v_near, v_pair[0], v_pair[1], lambda_perp);
 
         if (nearest2d.snap_point(v_near, sctx->ret.index)) {
           elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
