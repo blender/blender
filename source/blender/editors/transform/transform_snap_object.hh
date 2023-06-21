@@ -68,7 +68,7 @@ struct SnapObjectContext {
     /* Snapped object. */
     Object *ob;
     /* Snapped data. */
-    ID *data;
+    const ID *data;
 
     float ray_depth_max;
     float dist_px_sq;
@@ -115,12 +115,11 @@ struct Nearest2dUserData {
  public:
   /* Constructor. */
   Nearest2dUserData(SnapObjectContext *sctx,
-                    float dist_px_sq,
+                    Object *ob_eval,
+                    const ID *id_eval,
                     const blender::float4x4 &obmat = blender::float4x4::identity());
 
-  void clip_planes_get(SnapObjectContext *sctx,
-                       const blender::float4x4 &obmat,
-                       bool skip_occlusion_plane = false);
+  void clip_planes_get(SnapObjectContext *sctx, bool skip_occlusion_plane = false);
 
   bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
 
@@ -156,6 +155,14 @@ struct Nearest2dUserData {
   bool use_backface_culling;
 
   BVHTreeNearest nearest_point;
+
+  ~Nearest2dUserData();
+
+ protected:
+  SnapObjectContext *sctx_;
+  Object *ob_;
+  const ID *id_;
+  const blender::float4x4 &obmat_;
 };
 
 /* transform_snap_object.cc */
@@ -235,14 +242,14 @@ struct SnapData_EditMesh {
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,
-                               ID *id,
+                               const ID *id,
                                const float obmat[4][4],
                                eSnapMode snap_to_flag,
                                bool use_hide);
 
 eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 Object *ob_eval,
-                                ID *id,
+                                const ID *id,
                                 const float obmat[4][4],
                                 eSnapMode snap_to_flag,
                                 int polygon);
@@ -253,14 +260,14 @@ void nearest2d_data_init_editmesh(struct BMEditMesh *em, struct Nearest2dUserDat
 
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            Object *ob_eval,
-                           ID *id,
+                           const ID *id,
                            const float obmat[4][4],
                            eSnapMode snap_to_flag,
                            bool use_hide);
 
 eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
                             Object *ob_eval,
-                            ID *id,
+                            const ID *id,
                             const float obmat[4][4],
                             eSnapMode snap_to_flag,
                             int polygon);

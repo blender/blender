@@ -33,7 +33,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 
   Curve *cu = static_cast<Curve *>(ob_eval->data);
 
-  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, ob_eval, &cu->id, float4x4(obmat));
 
   const bool use_obedit = BKE_object_is_in_editmode(ob_eval);
 
@@ -45,7 +45,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
     }
   }
 
-  nearest2d.clip_planes_get(sctx, float4x4(obmat), true);
+  nearest2d.clip_planes_get(sctx, true);
 
   bool skip_selected = (sctx->runtime.params.snap_target_select & SCE_SNAP_TARGET_NOT_SELECTED) !=
                        0;
@@ -108,13 +108,6 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
       }
     }
   }
-  if (has_snap) {
-    mul_v3_m4v3(sctx->ret.loc, obmat, nearest2d.nearest_point.co);
 
-    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
-    sctx->ret.index = nearest2d.nearest_point.index;
-    return SCE_SNAP_MODE_VERTEX;
-  }
-
-  return SCE_SNAP_MODE_NONE;
+  return has_snap ? SCE_SNAP_MODE_VERTEX : SCE_SNAP_MODE_NONE;
 }

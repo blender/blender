@@ -40,12 +40,11 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
     return retval;
   }
 
-  float orig_camera_mat[4][4], orig_camera_imat[4][4], imat[4][4];
+  float orig_camera_mat[4][4], orig_camera_imat[4][4];
   BKE_tracking_get_camera_object_matrix(object, orig_camera_mat);
 
   invert_m4_m4(orig_camera_imat, orig_camera_mat);
-  invert_m4_m4(imat, obmat);
-  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq);
+  Nearest2dUserData nearest2d(sctx, object, static_cast<const ID *>(object->data));
 
   MovieTracking *tracking = &clip->tracking;
   LISTBASE_FOREACH (MovieTrackingObject *, tracking_object, &tracking->objects) {
@@ -80,14 +79,6 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
         retval = SCE_SNAP_MODE_VERTEX;
       }
     }
-  }
-
-  if (retval) {
-    copy_v3_v3(sctx->ret.loc, nearest2d.nearest_point.co);
-
-    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
-    sctx->ret.index = nearest2d.nearest_point.index;
-    return retval;
   }
 
   return SCE_SNAP_MODE_NONE;

@@ -97,7 +97,8 @@ static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
 }
 
 Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
-                                     float dist_px_sq,
+                                     Object *ob_eval,
+                                     const ID *id_eval,
                                      const float4x4 &obmat)
     : get_vert_co(nullptr),
       get_edge_verts_index(nullptr),
@@ -106,7 +107,13 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
       copy_vert_no(nullptr),
       bm(nullptr),
       is_persp(sctx->runtime.rv3d ? sctx->runtime.rv3d->is_persp : false),
-      use_backface_culling(sctx->runtime.params.use_backface_culling)
+      use_backface_culling(sctx->runtime.params.use_backface_culling),
+
+      /* To register the result. */
+      sctx_(sctx),
+      ob_(ob_eval),
+      id_(id_eval),
+      obmat_(obmat)
 {
   if (sctx->runtime.rv3d) {
     this->pmat_local = float4x4(sctx->runtime.rv3d->persmat) * obmat;
@@ -119,13 +126,11 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
       &this->nearest_precalc, this->pmat_local.ptr(), sctx->runtime.win_size, sctx->runtime.mval);
 
   this->nearest_point.index = -2;
-  this->nearest_point.dist_sq = dist_px_sq;
+  this->nearest_point.dist_sq = sctx->ret.dist_px_sq;
   copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
-void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx,
-                                        const float4x4 &obmat,
-                                        bool skip_occlusion_plane)
+void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx, bool skip_occlusion_plane)
 {
   float(*clip_planes)[4] = sctx->runtime.clip_plane;
   int clip_plane_len = sctx->runtime.clip_plane_len;
@@ -136,7 +141,7 @@ void Nearest2dUserData::clip_planes_get(SnapObjectContext *sctx,
     clip_plane_len--;
   }
 
-  float4x4 tobmat = math::transpose(obmat);
+  float4x4 tobmat = math::transpose(this->obmat_);
   for (int i : IndexRange(clip_plane_len)) {
     this->clip_planes.append(tobmat * clip_planes[i]);
   }
@@ -199,6 +204,29 @@ bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_i
     return true;
   }
   return false;
+}
+
+Nearest2dUserData::~Nearest2dUserData()
+{
+  if (this->nearest_point.index == -2) {
+    return;
+  }
+
+  SnapObjectContext *sctx = this->sctx_;
+
+  copy_v3_v3(sctx->ret.loc, this->nearest_point.co);
+  copy_v3_v3(sctx->ret.no, this->nearest_point.no);
+  sctx->ret.index = this->nearest_point.index;
+  copy_m4_m4(sctx->ret.obmat, this->obmat_.ptr());
+  sctx->ret.ob = this->ob_;
+  sctx->ret.data = this->id_;
+  sctx->ret.dist_px_sq = this->nearest_point.dist_sq;
+
+  mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
+
+  float3x3 timat = math::transpose(math::invert(float3x3(this->obmat_)));
+  copy_v3_v3(sctx->ret.no, math::transform_direction(timat, float3(sctx->ret.no)));
+  normalize_v3(sctx->ret.no);
 }
 
 /* -------------------------------------------------------------------- */
@@ -745,7 +773,9 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
     return SCE_SNAP_MODE_NONE;
   }
 
-  Nearest2dUserData nearest2d(sctx, square_f(original_dist_px), float4x4(sctx->ret.obmat));
+  Nearest2dUserData nearest2d(sctx, sctx->ret.ob, sctx->ret.data, float4x4(sctx->ret.obmat));
+  nearest2d.nearest_point.dist_sq = square_f(original_dist_px);
+
   if (sctx->ret.data) {
     const Mesh *mesh = reinterpret_cast<const Mesh *>(sctx->ret.data);
     nearest2d_data_init_mesh(mesh, &nearest2d);
@@ -789,6 +819,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
         mid_v3_v3v3(vmid, v_pair[0], v_pair[1]);
 
         if (nearest2d.snap_point(vmid, sctx->ret.index)) {
+          sub_v3_v3v3(nearest2d.nearest_point.no, v_pair[1], v_pair[0]);
           elem = SCE_SNAP_MODE_EDGE_MIDPOINT;
         }
       }
@@ -805,6 +836,7 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
         interp_v3_v3v3(v_near, v_pair[0], v_pair[1], lambda_perp);
 
         if (nearest2d.snap_point(v_near, sctx->ret.index)) {
+          sub_v3_v3v3(nearest2d.nearest_point.no, v_pair[1], v_pair[0]);
           elem = SCE_SNAP_MODE_EDGE_PERPENDICULAR;
         }
       }
@@ -817,20 +849,10 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx, float origi
 
         if (nearest2d.snap_point(v_pair[v_id], v_id)) {
           elem = SCE_SNAP_MODE_VERTEX;
-          nearest2d.copy_vert_no(vindex[v_id], &nearest2d, sctx->ret.no);
-
-          float3x3 timat = math::transpose(math::invert(float3x3(float4x4(sctx->ret.obmat))));
-          copy_v3_v3(sctx->ret.no, math::transform_direction(timat, float3(sctx->ret.no)));
-          normalize_v3(sctx->ret.no);
+          nearest2d.copy_vert_no(vindex[v_id], &nearest2d, nearest2d.nearest_point.no);
         }
       }
     }
-  }
-
-  if (nearest2d.nearest_point.index != -2) {
-    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
-    mul_v3_m4v3(sctx->ret.loc, sctx->ret.obmat, nearest2d.nearest_point.co);
-    sctx->ret.index = nearest2d.nearest_point.index;
   }
 
   return elem;
@@ -842,28 +864,20 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
                              const float obmat[4][4],
                              eSnapMode snap_to_flag)
 {
-  eSnapMode retval = SCE_SNAP_MODE_NONE;
-
   if (ob_eval->transflag & OB_DUPLI) {
-    return retval;
+    return SCE_SNAP_MODE_NONE;
   }
 
   /* For now only vertex supported. */
   if ((snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
-    return retval;
+    return SCE_SNAP_MODE_NONE;
   }
 
-  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq);
-  if (nearest2d.snap_point(obmat[3])) {
-    retval = SCE_SNAP_MODE_VERTEX;
-  }
+  Nearest2dUserData nearest2d(
+      sctx, ob_eval, static_cast<const ID *>(ob_eval->data), float4x4(obmat));
 
-  if (retval) {
-    copy_v3_v3(sctx->ret.loc, nearest2d.nearest_point.co);
-
-    sctx->ret.dist_px_sq = nearest2d.nearest_point.dist_sq;
-    sctx->ret.index = nearest2d.nearest_point.index;
-    return retval;
+  if (nearest2d.snap_point(float3(0.0f))) {
+    return SCE_SNAP_MODE_VERTEX;
   }
 
   return SCE_SNAP_MODE_NONE;
@@ -930,12 +944,6 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
         retval = snapCamera(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
         break;
     }
-  }
-
-  if (retval) {
-    copy_m4_m4(sctx->ret.obmat, obmat);
-    sctx->ret.ob = ob_eval;
-    sctx->ret.data = ob_data;
   }
   return retval;
 }
