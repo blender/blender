@@ -70,6 +70,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
           has_vert_snap |= nearest2d.snap_point(eBone->head);
           has_vert_snap |= nearest2d.snap_point(eBone->tail);
           if (has_vert_snap) {
+            sub_v3_v3v3(nearest2d.nearest_point.no, eBone->tail, eBone->head);
             retval = SCE_SNAP_MODE_VERTEX;
           }
         }
@@ -102,6 +103,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
         has_vert_snap |= nearest2d.snap_point(head_vec);
         has_vert_snap |= nearest2d.snap_point(tail_vec);
         if (has_vert_snap) {
+          sub_v3_v3v3(nearest2d.nearest_point.no, tail_vec, head_vec);
           retval = SCE_SNAP_MODE_VERTEX;
         }
       }
