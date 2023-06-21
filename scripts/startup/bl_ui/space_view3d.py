@@ -754,7 +754,7 @@ class VIEW3D_HT_header(Header):
                 row = layout.row(align=True)
                 row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='POINT')
                 row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='STROKE')
-        
+
         # Grease Pencil (legacy)
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
             gpd = context.gpencil_data
@@ -3065,7 +3065,7 @@ class VIEW3D_MT_object_convert(Menu):
     def draw(self, context):
         layout = self.layout
         ob = context.active_object
-        
+
         if ob and ob.type == 'GPENCIL' and context.gpencil_data and not context.preferences.experimental.use_grease_pencil_version3:
             layout.operator_enum("gpencil.convert", "type")
         else:
