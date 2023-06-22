@@ -297,10 +297,10 @@ struct ID *BLO_read_get_new_id_address(BlendLibReader *reader,
  * Only IDs existing in the newly read Main will be returned. If no matching `session_uuid` in new
  * main can be found, `nullptr` is returned.
  *
- * This expected to be used during liblinking and/or 'undo_preserve' processes in undo case (i.e.
- * memfile reading), typically to find a valid value (or nullptr) for ID pointers values comming
- * from the previous, existing Main data, when it is preserved in newly read Main. See e.g. the
- * #scene_undo_preserve codepath.
+ * This expected to be used during library-linking and/or 'undo_preserve' processes in undo case
+ * (i.e. memfile reading), typically to find a valid value (or nullptr) for ID pointers values
+ * coming from the previous, existing Main data, when it is preserved in newly read Main.
+ * See e.g. the #scene_undo_preserve code-path.
  */
 struct ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
     ATTR_NONNULL(1);

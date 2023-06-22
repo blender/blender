@@ -2298,8 +2298,9 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
   }
 }
 
-/* Noise and Wave Texture nodes: Restore previous Distortion range.
- * In 2.81 we used noise() for distortion, now we use snoise() which has twice the range.
+/**
+ * Noise and Wave Texture nodes: Restore previous Distortion range.
+ * In 2.81 we used `noise()` for distortion, now we use `snoise()` which has twice the range.
  * To fix this we halve distortion value, directly or by adding multiply node for used sockets.
  */
 static void update_noise_and_wave_distortion(bNodeTree *ntree)

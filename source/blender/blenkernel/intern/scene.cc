@@ -513,9 +513,9 @@ static void scene_foreach_toolsettings_id_pointer_process(
       }
 
       /* We failed to find a new valid pointer for the previous ID, just keep the current one as
-       * if we had been under SCENE_FOREACH_UNDO_NO_RESTORE case.
+       * if we had been under #SCENE_FOREACH_UNDO_NO_RESTORE case.
        *
-       * There is a nasty twist here though: a prvious call to 'undo_preserve' on the Scene ID may
+       * There is a nasty twist here though: a previous call to 'undo_preserve' on the Scene ID may
        * have modified it, even though the undo step detected it as unmodified. In such case, the
        * value of `*id_p` may end up also pointing to an invalid (no more in newly read Main) ID,
        * se it also needs to be checked from its `session_uuid`. */
