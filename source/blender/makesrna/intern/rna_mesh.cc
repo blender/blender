@@ -1948,19 +1948,6 @@ static bool rna_Mesh_is_editmode_get(PointerRNA *ptr)
   return (me->edit_mesh != nullptr);
 }
 
-/* only to quiet warnings */
-static void UNUSED_FUNCTION(rna_mesh_unused)(void)
-{
-  /* unused functions made by macros */
-  (void)rna_Mesh_skin_vertice_index_range;
-  (void)rna_Mesh_vertex_paint_mask_index_range;
-  (void)rna_Mesh_uv_layer_render_get;
-  (void)rna_Mesh_uv_layer_render_index_get;
-  (void)rna_Mesh_uv_layer_render_index_set;
-  (void)rna_Mesh_uv_layer_render_set;
-  /* end unused function block */
-}
-
 static bool rna_Mesh_materials_override_apply(Main *bmain,
                                               PointerRNA *ptr_dst,
                                               PointerRNA * /*ptr_src*/,
