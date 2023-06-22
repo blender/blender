@@ -14,7 +14,7 @@ ccl_device float spot_light_attenuation(const ccl_global KernelSpotLight *spot, 
       make_float3(dot(ray, spot->axis_u), dot(ray, spot->axis_v), dot(ray, spot->dir)) /
       spot->len);
 
-  return smoothstepf((scaled_ray.z - spot->cos_half_spot_angle) / spot->spot_smooth);
+  return smoothstepf((scaled_ray.z - spot->cos_half_spot_angle) * spot->spot_smooth);
 }
 
 template<bool in_volume_segment>

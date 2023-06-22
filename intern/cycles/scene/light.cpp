@@ -1322,7 +1322,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) :
                                                             1.0f;
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
-      float spot_smooth = (1.0f - cos_half_spot_angle) * light->spot_smooth;
+      float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
