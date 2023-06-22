@@ -1214,8 +1214,13 @@ UserDef *BKE_blendfile_userdef_from_defaults(void)
   userdef->flag &= ~USER_SCRIPT_AUTOEXEC_DISABLE;
 #endif
 
-  /* System-specific fonts directory. */
-  BKE_appdir_font_folder_default(userdef->fontdir);
+  /* System-specific fonts directory.
+   * NOTE: when not found, leaves as-is (`//` for the blend-file directory). */
+  if (BKE_appdir_font_folder_default(userdef->fontdir, sizeof(userdef->fontdir))) {
+    /* Not actually needed, just a convention that directory selection
+     * adds a trailing slash. */
+    BLI_path_slash_ensure(userdef->fontdir, sizeof(userdef->fontdir));
+  }
 
   userdef->memcachelimit = min_ii(BLI_system_memory_max_in_megabytes_int() / 2,
                                   userdef->memcachelimit);

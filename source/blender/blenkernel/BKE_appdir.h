@@ -131,7 +131,7 @@ const char *BKE_appdir_program_dir(void) ATTR_WARN_UNUSED_RESULT ATTR_RETURNS_NO
 /**
  * Gets a good default directory for fonts.
  */
-bool BKE_appdir_font_folder_default(char *dir);
+bool BKE_appdir_font_folder_default(char *dir, size_t dir_maxncpy);
 
 /**
  * Find Python executable.
