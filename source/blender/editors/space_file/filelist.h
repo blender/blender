@@ -100,7 +100,7 @@ void filelist_free(struct FileList *filelist);
  * #filelist_file_get_full_path().
  */
 const char *filelist_dir(const struct FileList *filelist);
-bool filelist_is_dir(struct FileList *filelist, const char *path);
+bool filelist_is_dir(const struct FileList *filelist, const char *path);
 /**
  * May modify in place given `dirpath`, which is expected to be #FILE_MAX_LIBEXTRA length.
  */
@@ -113,7 +113,7 @@ void filelist_setdir(struct FileList *filelist, char dirpath[1090 /*FILE_MAX_LIB
  * unless it is tagged for a full refresh.
  */
 int filelist_files_ensure(struct FileList *filelist);
-int filelist_needs_reading(struct FileList *filelist);
+int filelist_needs_reading(const struct FileList *filelist);
 /**
  * Request a file from the file browser cache, adding it to the cache if necessary.
  *
@@ -158,12 +158,12 @@ void filelist_file_cache_slidingwindow_set(struct FileList *filelist, size_t win
  */
 bool filelist_file_cache_block(struct FileList *filelist, int index);
 
-bool filelist_needs_force_reset(struct FileList *filelist);
+bool filelist_needs_force_reset(const struct FileList *filelist);
 void filelist_tag_force_reset(struct FileList *filelist);
 void filelist_tag_force_reset_mainfiles(struct FileList *filelist);
-bool filelist_pending(struct FileList *filelist);
+bool filelist_pending(const struct FileList *filelist);
 bool filelist_needs_reset_on_main_changes(const struct FileList *filelist);
-bool filelist_is_ready(struct FileList *filelist);
+bool filelist_is_ready(const struct FileList *filelist);
 
 unsigned int filelist_entry_select_set(const struct FileList *filelist,
                                        const struct FileDirEntry *entry,
