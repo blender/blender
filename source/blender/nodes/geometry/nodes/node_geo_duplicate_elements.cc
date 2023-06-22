@@ -538,7 +538,6 @@ static void duplicate_faces(GeometrySet &geometry_set,
         const int src_corner = source[i_loops];
         loop_mapping[loop_index] = src_corner;
         vert_mapping[loop_index] = corner_verts[src_corner];
-        new_edges[loop_index] = edges[corner_edges[src_corner]];
         edge_mapping[loop_index] = corner_edges[src_corner];
         new_edges[loop_index][0] = loop_index;
         if (i_loops + 1 != source.size()) {
@@ -547,13 +546,13 @@ static void duplicate_faces(GeometrySet &geometry_set,
         else {
           new_edges[loop_index][1] = new_poly_offsets[poly_index];
         }
-        new_corner_verts[loop_index] = loop_index;
-        new_corner_edges[loop_index] = loop_index;
         loop_index++;
       }
       poly_index++;
     }
   }
+  std::iota(new_corner_verts.begin(), new_corner_verts.end(), 0);
+  std::iota(new_corner_edges.begin(), new_corner_edges.end(), 0);
 
   new_mesh->tag_loose_verts_none();
   new_mesh->tag_loose_edges_none();
