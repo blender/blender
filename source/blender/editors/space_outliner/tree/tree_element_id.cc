@@ -28,6 +28,7 @@
 #include "tree_element_id_linestyle.hh"
 #include "tree_element_id_mesh.hh"
 #include "tree_element_id_metaball.hh"
+#include "tree_element_id_object.hh"
 #include "tree_element_id_scene.hh"
 #include "tree_element_id_texture.hh"
 
@@ -64,6 +65,7 @@ std::unique_ptr<TreeElementID> TreeElementID::createFromID(TreeElement &legacy_t
     case ID_AR:
       return std::make_unique<TreeElementIDArmature>(legacy_te, (bArmature &)id);
     case ID_OB:
+      return std::make_unique<TreeElementIDObject>(legacy_te, (Object &)id);
     case ID_MA:
     case ID_LT:
     case ID_LA:
