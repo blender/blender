@@ -40,6 +40,23 @@
         </screenshot>
     </screenshots>
     <releases>
+        <release version="3.6" date="2023-06-27">
+            <description>
+                <p>New features:</p>
+                <ul>
+                    <li>Simulation Nodes</li>
+                    <li>Cycles Hardware Raytracing on AMD and Intel graphics cards</li>
+                    <li>New transparent Render Pass</li>
+                </ul>
+                <p>Enhancements:</p>
+                <ul>
+                    <li>Improved UV packing</li>
+                    <li>Python API: Custom script directories</li>
+                    <li>USD Curves/Hair export</li>
+                    <li>Major improvements to the resyncing process of Library Overrides</li>
+                </ul>
+            </description>
+        </release>
         <release version="3.5" date="2023-03-29">
             <description>
                 <p>New features:</p>
