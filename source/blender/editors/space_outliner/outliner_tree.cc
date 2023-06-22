@@ -230,10 +230,7 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
 }
 #endif
 /* Can be inlined if necessary. */
-static void outliner_add_id_contents(SpaceOutliner *space_outliner,
-                                     TreeElement *te,
-                                     TreeStoreElem *tselem,
-                                     ID *id)
+static void outliner_add_id_contents(SpaceOutliner *space_outliner, TreeElement *te, ID *id)
 {
   /* expand specific data always */
   switch (GS(id->name)) {
@@ -459,7 +456,7 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (type == TSE_SOME_ID) {
     /* ID types not (fully) ported to new design yet. */
     if (te->abstract_element->expandPoll(*space_outliner)) {
-      outliner_add_id_contents(space_outliner, te, tselem, id);
+      outliner_add_id_contents(space_outliner, te, id);
     }
   }
   else if (ELEM(type,
