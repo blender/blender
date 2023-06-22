@@ -490,7 +490,6 @@ static void duplicate_faces(GeometrySet &geometry_set,
   geometry_set.keep_only_during_modify({GeometryComponent::Type::Mesh});
 
   const Mesh &mesh = *geometry_set.get_mesh_for_read();
-  const Span<int2> edges = mesh.edges();
   const OffsetIndices polys = mesh.polys();
   const Span<int> corner_verts = mesh.corner_verts();
   const Span<int> corner_edges = mesh.corner_edges();
