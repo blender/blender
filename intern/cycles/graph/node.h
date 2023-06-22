@@ -107,7 +107,7 @@ struct Node {
 
   /* Implicitly cast enums and enum classes to integer, which matches an internal way of how
    * enumerator values are stored and accessed in a generic API. */
-  template<class ValueType, typename std::enable_if_t<std::is_enum_v<ValueType>> * = nullptr>
+  template<class ValueType, std::enable_if_t<std::is_enum_v<ValueType>, bool> = true>
   void set(const SocketType &input, const ValueType &value)
   {
     static_assert(sizeof(ValueType) <= sizeof(int), "Enumerator type should fit int");
