@@ -2274,7 +2274,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   VFont *vfont = NULL;
-  const char *filepath;
+  char filepath[FILE_MAX];
 
   PointerRNA idptr;
   PropertyPointerRNA *pprop;
@@ -2289,13 +2289,21 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
     vfont = (VFont *)idptr.owner_id;
   }
 
-  filepath = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->filepath : U.fontdir;
-
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
+  if (RNA_property_is_set(op->ptr, prop_filepath)) {
     return font_open_exec(C, op);
   }
 
-  RNA_string_set(op->ptr, "filepath", filepath);
+  if (vfont && !BKE_vfont_is_builtin(vfont)) {
+    STRNCPY(filepath, vfont->filepath);
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+  }
+  else {
+    STRNCPY(filepath, U.fontdir);
+    BLI_path_slash_ensure(filepath, sizeof(filepath));
+  }
+  RNA_property_string_set(op->ptr, prop_filepath, filepath);
+
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;

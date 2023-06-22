@@ -688,9 +688,9 @@ static void nla_draw_strip_frames_text(
   /* Always draw times above the strip, whereas sequencer drew below + above.
    * However, we should be fine having everything on top, since these tend to be
    * quite spaced out.
-   * - 1 dp is compromise between lack of precision (ints only, as per sequencer)
-   *   while also preserving some accuracy, since we do use floats
-   */
+   * NOTE: 1 decimal point is a compromise between lack of precision (ints only, as per sequencer)
+   * while also preserving some accuracy, since we do use floats. */
+
   /* start frame */
   numstr_len = SNPRINTF_RLEN(numstr, "%.1f", strip->start);
   UI_view2d_text_cache_add(v2d, strip->start - 1.0f, ymaxc + ytol, numstr, numstr_len, col);

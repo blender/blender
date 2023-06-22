@@ -547,16 +547,24 @@ if(WIN32)
   endif()
 endif()
 
-# Helpful tip when using make.
+# Show helpful tip.
+set(_install_cmd "")
 if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
+  set(_install_cmd "make install")
+elseif("${CMAKE_GENERATOR}" MATCHES "Ninja")
+  set(_install_cmd "ninja install")
+endif()
+if(NOT ("${_install_cmd}" STREQUAL ""))
   # Message to display after building.
+  get_filename_component(_install_dst ${TARGETDIR_VER} ABSOLUTE BASE_DIR ${CMAKE_INSTALL_PREFIX})
   add_custom_command(
     TARGET blender POST_BUILD MAIN_DEPENDENCY blender
-    COMMAND
-      ${CMAKE_COMMAND} -E
-      echo 'now run: \"make install\" to copy runtime files and scripts to ${TARGETDIR_VER}'
+    COMMAND ${CMAKE_COMMAND} -E echo
+    "Run: \\\"${_install_cmd}\\\" to copy runtime files and scripts to: ${_install_dst}"
   )
+  unset(_install_dst)
 endif()
+unset(_install_cmd)
 
 # macro to help install files without dragging in unnecessary data.
 macro(install_dir from to)
@@ -645,6 +653,7 @@ if(UNIX AND NOT APPLE)
 
       install(
         PROGRAMS
+        ${CMAKE_SOURCE_DIR}/release/bin/blender-launcher
         ${CMAKE_SOURCE_DIR}/release/bin/blender-softwaregl
         DESTINATION "."
       )

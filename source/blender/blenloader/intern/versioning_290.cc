@@ -926,6 +926,56 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 290, 5)) {
+    /* New denoiser settings. */
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      IDProperty *cscene = version_cycles_properties_from_ID(&scene->id);
+
+      /* Check if any view layers had (optix) denoising enabled. */
+      bool use_optix = false;
+      bool use_denoising = false;
+      LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+        IDProperty *cview_layer = version_cycles_properties_from_view_layer(view_layer);
+        if (cview_layer) {
+          use_denoising = use_denoising ||
+                          version_cycles_property_boolean(cview_layer, "use_denoising", false);
+          use_optix = use_optix ||
+                      version_cycles_property_boolean(cview_layer, "use_optix_denoising", false);
+        }
+      }
+
+      if (cscene) {
+        enum {
+          DENOISER_AUTO = 0,
+          DENOISER_NLM = 1,
+          DENOISER_OPTIX = 2,
+        };
+
+        /* Enable denoiser if it was enabled for one view layer before. */
+        version_cycles_property_int_set(
+            cscene, "denoiser", (use_optix) ? DENOISER_OPTIX : DENOISER_NLM);
+        version_cycles_property_boolean_set(cscene, "use_denoising", use_denoising);
+
+        /* Migrate Optix denoiser to new settings. */
+        if (version_cycles_property_int(cscene, "preview_denoising", 0)) {
+          version_cycles_property_boolean_set(cscene, "use_preview_denoising", true);
+          version_cycles_property_int_set(cscene, "preview_denoiser", DENOISER_AUTO);
+        }
+      }
+
+      /* Enable denoising in all view layer if there was no denoising before,
+       * so that enabling the scene settings auto enables it for all view layers. */
+      if (!use_denoising) {
+        LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+          IDProperty *cview_layer = version_cycles_properties_from_view_layer(view_layer);
+          if (cview_layer) {
+            version_cycles_property_boolean_set(cview_layer, "use_denoising", true);
+          }
+        }
+      }
+    }
+  }
+
   if (!MAIN_VERSION_ATLEAST(bmain, 290, 6)) {
     /* Transition to saving expansion for all of a modifier's sub-panels. */
     if (!DNA_struct_elem_find(fd->filesdna, "ModifierData", "short", "ui_expand_flag")) {

@@ -3008,6 +3008,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
             _defs_view3d_generic.ruler,
         ],
+        'EDIT_GREASE_PENCIL': [
+            *_tools_select,
+        ],
         'PARTICLE': [
             *_tools_select,
             _defs_view3d_generic.cursor,
@@ -3113,7 +3116,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
         ],
         'EDIT_GPENCIL': [
-            *_tools_select,
+            *_tools_gpencil_select,
             _defs_view3d_generic.cursor,
             None,
             *_tools_transform,

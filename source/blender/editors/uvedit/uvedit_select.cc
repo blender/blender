@@ -5192,26 +5192,16 @@ static int uv_select_similar_exec(bContext *C, wmOperator *op)
   return uv_select_similar_vert_exec(C, op);
 }
 
-static EnumPropertyItem prop_vert_similar_types[] = {{UV_SSIM_PIN, "PIN", 0, "Pinned", ""}, {0}};
-
-static EnumPropertyItem prop_edge_similar_types[] = {
+static EnumPropertyItem uv_select_similar_type_items[] = {
+    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""},
     {UV_SSIM_LENGTH_UV, "LENGTH", 0, "Length", ""},
     {UV_SSIM_LENGTH_3D, "LENGTH_3D", 0, "Length 3D", ""},
-    {UV_SSIM_PIN, "PIN", 0, "Pinned", ""},
-    {0}};
-
-static EnumPropertyItem prop_face_similar_types[] = {
     {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
     {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
     {UV_SSIM_MATERIAL, "MATERIAL", 0, "Material", ""},
     {UV_SSIM_OBJECT, "OBJECT", 0, "Object", ""},
     {UV_SSIM_SIDES, "SIDES", 0, "Polygon Sides", ""},
     {UV_SSIM_WINDING, "WINDING", 0, "Winding", ""},
-    {0}};
-
-static EnumPropertyItem prop_island_similar_types[] = {
-    {UV_SSIM_AREA_UV, "AREA", 0, "Area", ""},
-    {UV_SSIM_AREA_3D, "AREA_3D", 0, "Area 3D", ""},
     {UV_SSIM_FACE, "FACE", 0, "Amount of Faces in Island", ""},
     {0}};
 
@@ -5223,24 +5213,45 @@ static EnumPropertyItem prop_similar_compare_types[] = {{SIM_CMP_EQ, "EQUAL", 0,
 static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
                                                             PointerRNA * /*ptr*/,
                                                             PropertyRNA * /*prop*/,
-                                                            bool * /*r_free*/)
+                                                            bool *r_free)
 {
+  EnumPropertyItem *item = nullptr;
+  int totitem = 0;
+
   const ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts) {
     int selectmode = (ts->uv_flag & UV_SYNC_SELECTION) ? ts->selectmode : ts->uv_selectmode;
-    if (selectmode & UV_SELECT_EDGE) {
-      return prop_edge_similar_types;
+    if (selectmode & UV_SELECT_VERTEX) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
     }
-    if (selectmode & UV_SELECT_FACE) {
-      return prop_face_similar_types;
+    else if (selectmode & UV_SELECT_EDGE) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
     }
-    if (selectmode & UV_SELECT_ISLAND) {
-      return prop_island_similar_types;
+    else if (selectmode & UV_SELECT_FACE) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_MATERIAL);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_OBJECT);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_SIDES);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_WINDING);
+    }
+    else if (selectmode & UV_SELECT_ISLAND) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_FACE);
     }
   }
+  else {
+    RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
+  }
 
-  return prop_vert_similar_types;
+  RNA_enum_item_end(&item, &totitem);
+  *r_free = true;
+  return item;
 }
+
 void UV_OT_select_similar(wmOperatorType *ot)
 {
   /* identifiers */
@@ -5258,7 +5269,7 @@ void UV_OT_select_similar(wmOperatorType *ot)
 
   /* properties */
   PropertyRNA *prop = ot->prop = RNA_def_enum(
-      ot->srna, "type", prop_vert_similar_types, SIMVERT_NORMAL, "Type", "");
+      ot->srna, "type", uv_select_similar_type_items, SIMVERT_NORMAL, "Type", "");
   RNA_def_enum_funcs(prop, uv_select_similar_type_itemf);
   RNA_def_enum(ot->srna, "compare", prop_similar_compare_types, SIM_CMP_EQ, "Compare", "");
   RNA_def_float(ot->srna, "threshold", 0.0f, 0.0f, 1.0f, "Threshold", "", 0.0f, 1.0f);

@@ -79,6 +79,7 @@ typedef hiprtError(thiprtSetFuncTable)(hiprtContext context,
                                         hiprtFuncDataSet set);
 typedef hiprtError(thiprtDestroyFuncTable)(hiprtContext context,
                                            hiprtFuncTable funcTable);
+typedef void(thiprtSetLogLevel)( hiprtLogLevel level );
 
 /* Function declarations. */
 extern thiprtCreateContext *hiprtCreateContext;
@@ -94,6 +95,7 @@ extern thiprtGetSceneBuildTemporaryBufferSize *hiprtGetSceneBuildTemporaryBuffer
 extern thiprtCreateFuncTable *hiprtCreateFuncTable;
 extern thiprtSetFuncTable *hiprtSetFuncTable;
 extern thiprtDestroyFuncTable *hiprtDestroyFuncTable;
+extern thiprtSetLogLevel *hiprtSetLogLevel;
 
 /* HIPEW API. */
 

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1359,24 +1359,12 @@ msgid "Repeat"
 msgstr "ทำซ้ำ"
 
 
-msgid "Mask"
-msgstr "หน้ากาก"
-
-
 msgid "Mask Texture"
 msgstr "พื้นผิวหน้ากาก"
 
 
 msgid "Sculpt Tool"
 msgstr "เครื่องแกะสลัก"
-
-
-msgid "Pose"
-msgstr "ท่าทาง"
-
-
-msgid "Rotate"
-msgstr "หมุน"
 
 
 msgid "Grab UVs"
@@ -1761,6 +1749,10 @@ msgid "Texture Paint"
 msgstr "วาดพื้นผิว"
 
 
+msgid "Pose"
+msgstr "ท่าทาง"
+
+
 msgid "Euler Rotation"
 msgstr "หมุน"
 
@@ -2053,6 +2045,10 @@ msgstr "ชั้นหน้ากาก"
 
 msgid "Mix Color"
 msgstr "ผสมสี"
+
+
+msgid "Mask"
+msgstr "หน้ากาก"
 
 
 msgid "Pivot Point"
@@ -2412,6 +2408,10 @@ msgstr "ช่องสีแดง"
 
 msgid "RGB to BW"
 msgstr "RGB ไปยัง BW"
+
+
+msgid "Rotate"
+msgstr "หมุน"
 
 
 msgid "Ray Length"
@@ -3257,10 +3257,6 @@ msgid "Transformation orientation"
 msgstr "ทิศทางการแปลง"
 
 
-msgid "Snap to increments of grid"
-msgstr "ยึดตามจำนวนที่เพิ่มขึ้นของตาราง"
-
-
 msgid "Snap to vertices"
 msgstr "ยึดตามจุดยอด"
 
@@ -3942,6 +3938,10 @@ msgstr "ยึดตามตาราง"
 
 msgid "Snap Target"
 msgstr "ยึดตามเป้าหมาย"
+
+
+msgid "Snap to increments of grid"
+msgstr "ยึดตามจำนวนที่เพิ่มขึ้นของตาราง"
 
 
 msgid "Automatically merge vertices moved to the same location"

@@ -47,6 +47,12 @@
 
 static ThreadMutex sample_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+enum {
+  POINT_DATA_VEL = 1 << 0,
+  POINT_DATA_LIFE = 1 << 1,
+  POINT_DATA_COLOR = 1 << 2,
+};
+
 static int point_data_used(PointDensity *pd)
 {
   int pd_bitflag = 0;

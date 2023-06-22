@@ -206,7 +206,7 @@ typedef struct GlyphBLF {
 
   /**
    * X and Y bearing of the glyph.
-   * The X bearing is from the origin to the glyph left bbox edge.
+   * The X bearing is from the origin to the glyph left bounding-box edge.
    * The Y bearing is from the baseline to the top of the glyph edge.
    */
   int pos[2];

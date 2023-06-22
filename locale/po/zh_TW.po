@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -1003,6 +1003,10 @@ msgid "Smaller integer with a range from -128 to 127"
 msgstr "範圍從 -128 至 127 的較小整數"
 
 
+msgid "Quaternion"
+msgstr "四元數"
+
+
 msgid "Domain"
 msgstr "領域"
 
@@ -1479,6 +1483,10 @@ msgid "Vector font data-blocks"
 msgstr "向量字型資料塊"
 
 
+msgid "Grease Pencil"
+msgstr "蠟筆"
+
+
 msgid "Images"
 msgstr "影像"
 
@@ -1645,6 +1653,10 @@ msgstr "外形鍵"
 
 msgid "Shape Key data-blocks"
 msgstr "外形鍵資料塊"
+
+
+msgid "Simulations"
+msgstr "模擬"
 
 
 msgid "Sounds"
@@ -6344,10 +6356,6 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Z 軸來源運動的底端範圍"
 
 
-msgid "Quaternion"
-msgstr "四元數"
-
-
 msgid "Map From"
 msgstr "映射從"
 
@@ -8901,10 +8909,6 @@ msgid "Lower bound of envelope at this control-point"
 msgstr "此控制點上封套的下邊界"
 
 
-msgid "Face Maps"
-msgstr "面圖群組"
-
-
 msgid "Field Settings"
 msgstr "場域設定"
 
@@ -9275,14 +9279,6 @@ msgstr "雙向 Z"
 
 msgid "Fonts"
 msgstr "字型"
-
-
-msgid "Grease Pencil"
-msgstr "蠟筆"
-
-
-msgid "Simulations"
-msgstr "模擬"
 
 
 msgid "Show workspace data-blocks"
@@ -11600,22 +11596,6 @@ msgid "File path to brush icon"
 msgstr "筆刷圖示的檔案路徑"
 
 
-msgid "Image Paint Tool"
-msgstr "影像繪製工具"
-
-
-msgid "Soften"
-msgstr "柔化"
-
-
-msgid "Clone"
-msgstr "拓製"
-
-
-msgid "Mask"
-msgstr "遮罩"
-
-
 msgid "Jitter the position of the brush while painting"
 msgstr "繪製時抖動筆刷的位置"
 
@@ -11726,62 +11706,6 @@ msgstr "Y 平面"
 
 msgid "Z Plane"
 msgstr "Z 平面"
-
-
-msgid "Sculpt Tool"
-msgstr "雕塑工具"
-
-
-msgid "Draw Sharp"
-msgstr "描繪銳利"
-
-
-msgid "Clay"
-msgstr "黏土"
-
-
-msgid "Clay Strips"
-msgstr "黏土片段"
-
-
-msgid "Blob"
-msgstr "塗抹"
-
-
-msgid "Flatten"
-msgstr "弄平"
-
-
-msgid "Scrape"
-msgstr "刮削"
-
-
-msgid "Thumb"
-msgstr "縮圖"
-
-
-msgid "Pose"
-msgstr "姿勢"
-
-
-msgid "Nudge"
-msgstr "輕推"
-
-
-msgid "Rotate"
-msgstr "旋轉"
-
-
-msgid "Boundary"
-msgstr "邊界"
-
-
-msgid "Cloth"
-msgstr "布料"
-
-
-msgid "Draw Face Sets"
-msgstr "繪製面集"
 
 
 msgid "Secondary Color"
@@ -12134,6 +12058,10 @@ msgstr "筆刷遲滯在滑鼠之後並跟隨較平滑的路徑"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "自動調整強度以給予不同間隔一致的結果"
+
+
+msgid "Sculpt Tool"
+msgstr "雕塑工具"
 
 
 msgid "Grab UVs"
@@ -14054,6 +13982,10 @@ msgid "Hair strands"
 msgstr "毛髮線股"
 
 
+msgid "Cloth"
+msgstr "布料"
+
+
 msgid "Roughness"
 msgstr "粗糙度"
 
@@ -14128,18 +14060,6 @@ msgstr "迴圈"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "網格的迴圈 (多角形角落)"
-
-
-msgid "Float Property Layers"
-msgstr "浮點屬性分層"
-
-
-msgid "Int Property Layers"
-msgstr "整數屬性分層"
-
-
-msgid "String Property Layers"
-msgstr "字串屬性分層"
 
 
 msgid "Polygons"
@@ -14930,6 +14850,10 @@ msgid "Indices of vertices in case of a vertex parenting relation"
 msgstr "頂點親子關係案例中的頂點索引"
 
 
+msgid "Pose"
+msgstr "姿勢"
+
+
 msgid "Current pose for armatures"
 msgstr "骨架的目前姿勢"
 
@@ -15173,10 +15097,6 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "留下不受子代路徑長度碰觸的粒子量"
 
 
-msgid "Children Per Parent"
-msgstr "每個親代的子代"
-
-
 msgid "Parting Factor"
 msgstr "分開係數"
 
@@ -15199,6 +15119,10 @@ msgstr "分開最小值"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "最小的根部至末梢角度 (長毛髮為末梢距離/根部距離)"
+
+
+msgid "Children Per Parent"
+msgstr "每個親代的子代"
 
 
 msgid "Child Radius"
@@ -19092,6 +19016,10 @@ msgid "Scale Factor for Texture"
 msgstr "紋理縮放係數"
 
 
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Material slot in an object"
 msgstr "物體中的材質槽"
 
@@ -19502,14 +19430,6 @@ msgid "Mesh Edge"
 msgstr "網格邊線"
 
 
-msgid "Bevel Weight"
-msgstr "倒角權重"
-
-
-msgid "Weight used by the Bevel modifier"
-msgstr "用於倒角修改器的權重"
-
-
 msgid "Index of this edge"
 msgstr "此邊線的索引"
 
@@ -19536,10 +19456,6 @@ msgstr "UV 拆解處理的縫合邊線"
 
 msgid "Vertex indices"
 msgstr "頂點索引"
-
-
-msgid "Mesh Face Maps"
-msgstr "網格面圖群組"
 
 
 msgid "Mesh Loop"
@@ -19640,22 +19556,6 @@ msgstr "此多角形的區域空間單位長度法線向量"
 
 msgid "Freestyle Face Mark"
 msgstr "Freestyle 面標記"
-
-
-msgid "User defined integer number value in an integer properties layer"
-msgstr "整數屬性分層中的使用者定義整數值"
-
-
-msgid "User defined layer of integer number values"
-msgstr "整數值的使用者自訂層"
-
-
-msgid "User defined string text value in a string properties layer"
-msgstr "在字串屬性分層中的使用者定義字串文字值"
-
-
-msgid "User defined layer of string text values"
-msgstr "字串文字值的使用者定義層"
 
 
 msgid "Skin Vertex"
@@ -20348,6 +20248,10 @@ msgstr "UV 合縫"
 
 msgid "Transfer UV seam mark"
 msgstr "傳輸 UV 合縫標記"
+
+
+msgid "Bevel Weight"
+msgstr "倒角權重"
 
 
 msgid "Transfer bevel weights"
@@ -22282,6 +22186,10 @@ msgid "Thickness factor"
 msgstr "厚度係數"
 
 
+msgid "Boundary"
+msgstr "邊界"
+
+
 msgid "Support face boundaries"
 msgstr "支援面邊界"
 
@@ -23530,10 +23438,6 @@ msgid "Width of the node"
 msgstr "節點的寬度"
 
 
-msgid "Width Hidden"
-msgstr "隱藏寬度"
-
-
 msgid "Custom Group"
 msgstr "自訂群組"
 
@@ -24350,6 +24254,10 @@ msgid "Width of the ellipse"
 msgstr "橢圓的寬"
 
 
+msgid "Soften"
+msgstr "柔化"
+
+
 msgid "Laplace"
 msgstr "拉普拉斯"
 
@@ -24587,6 +24495,14 @@ msgid "Tracking Object"
 msgstr "追蹤用物體"
 
 
+msgid "Smoothing"
+msgstr "平滑處理"
+
+
+msgid "Anisotropic"
+msgstr "各向異性"
+
+
 msgid "Lens Distortion"
 msgstr "鏡頭扭曲"
 
@@ -24777,6 +24693,10 @@ msgstr "RGB 至黑白"
 
 msgid "Render Layers"
 msgstr "算繪分層"
+
+
+msgid "Rotate"
+msgstr "旋轉"
 
 
 msgid "Method to use to filter rotation"
@@ -25204,8 +25124,8 @@ msgid "Blackbody"
 msgstr "黑體"
 
 
-msgid "Anisotropic BSDF"
-msgstr "各向異性 BSDF"
+msgid "Glossy BSDF"
+msgstr "光澤 BSDF"
 
 
 msgid "Beckmann"
@@ -25218,10 +25138,6 @@ msgstr "漫射 BSDF"
 
 msgid "Glass BSDF"
 msgstr "玻璃 BSDF"
-
-
-msgid "Glossy BSDF"
-msgstr "光澤 BSDF"
 
 
 msgid "Hair BSDF"
@@ -29710,8 +29626,16 @@ msgstr "轉換旋轉至尤拉 ZYX"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "匯出 PLY"
+msgid "Export STL"
+msgstr "匯出 STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "儲存檔案為 ASCII 檔案格式"
 
 
 msgid "X Forward"
@@ -29758,41 +29682,12 @@ msgid "-Z Up"
 msgstr "-Z 向上"
 
 
-msgid "Export the active vertex color layer"
-msgstr "匯出作用中頂點色彩分層"
+msgid "Batch Mode"
+msgstr "批次模式"
 
 
 msgid "Apply Modifiers"
 msgstr "套用修改器"
-
-
-msgid "Apply Modifiers to the exported mesh"
-msgstr "為匯出的網格套用修改器"
-
-
-msgid "Selection Only"
-msgstr "僅所選項"
-
-
-msgid "Export selected objects only"
-msgstr "僅匯出選取的物體"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "匯出 STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "儲存檔案為 ASCII 檔案格式"
-
-
-msgid "Batch Mode"
-msgstr "批次模式"
 
 
 msgid "Apply the modifiers before saving"
@@ -29805,6 +29700,14 @@ msgstr "場景單位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "將目前場景的單位 (如單位規模所定義) 套用至匯出資料中"
+
+
+msgid "Selection Only"
+msgstr "僅所選項"
+
+
+msgid "Export selected objects only"
+msgstr "僅匯出選取的物體"
 
 
 msgctxt "Operator"
@@ -29846,10 +29749,6 @@ msgstr "作用中場景集盒"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "縮放所有資料 (有些匯入器不支援縮的骨架！)"
-
-
-msgid "Smoothing"
-msgstr "平滑處理"
 
 
 msgid "Write face smoothing"
@@ -29967,71 +29866,6 @@ msgstr "通用"
 
 msgid "Include active collection and nested collections"
 msgstr "包括活動集盒和嵌入集盒"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "匯出 OBJ"
-
-
-msgid "Save a Wavefront OBJ File"
-msgstr "儲存一個 Wavefront OBJ 檔案"
-
-
-msgid "Material Groups"
-msgstr "材質群組"
-
-
-msgid "Keep Vertex Order"
-msgstr "保持頂點順序"
-
-
-msgid "Write out an OBJ for each frame"
-msgstr "為每個框幀寫出一個 OBJ"
-
-
-msgid "Include Edges"
-msgstr "包括邊線"
-
-
-msgid "Write Materials"
-msgstr "寫入材質"
-
-
-msgid "Write out the MTL file"
-msgstr "寫出 MTL 檔案"
-
-
-msgid "Write Normals"
-msgstr "寫入法線"
-
-
-msgid "Write Nurbs"
-msgstr "寫入 Nurbs"
-
-
-msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
-msgstr "將 Nurbs 曲線寫入為 OBJ Nurbs 而不是轉換為幾何形狀"
-
-
-msgid "Smooth Groups"
-msgstr "平滑群組"
-
-
-msgid "Write sharp edges as smooth groups"
-msgstr "以平滑群組寫入銳利邊線"
-
-
-msgid "Include UVs"
-msgstr "包括 UV"
-
-
-msgid "Write out the active UV coordinates"
-msgstr "寫出作用中 UV 座標軸"
-
-
-msgid "Polygroups"
-msgstr "多邊形群組"
 
 
 msgctxt "Operator"
@@ -31170,6 +31004,10 @@ msgid "Replace Existing"
 msgstr "替換既有"
 
 
+msgid "Flatten"
+msgstr "弄平"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "非連續性尤拉過濾器"
@@ -31234,6 +31072,19 @@ msgstr "建立殘影曲線"
 
 msgid "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor"
 msgstr "為所選 F 曲線建立快照 (殘影) 為背景來輔助作用中的圖表編輯器"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "跳到鍵幀"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "跳到上一個/下一個鍵幀"
+
+
+msgid "Next Keyframe"
+msgstr "下一鍵幀"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -31329,6 +31180,26 @@ msgstr "輸出為平方曲線 (負值總是 -1，而正值總是 1)"
 
 msgid "Reset viewable area to show selected keyframe range"
 msgstr "重設可視區域以顯示所選鍵幀的範圍"
+
+
+msgid "Stroke Mode"
+msgstr "筆觸模式"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "當劃下繪製筆觸時要採取的動作"
+
+
+msgid "Apply brush normally"
+msgstr "正常套用筆刷"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "劃下筆觸時反轉筆刷動作"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "劃下筆觸時將筆刷切換至光滑模式"
 
 
 msgctxt "Operator"
@@ -31676,19 +31547,6 @@ msgstr "散發光著色器"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "匯入 PLY"
-
-
-msgid "Load a PLY geometry file"
-msgstr "載入一個 PLY 幾何檔案"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "用來匯入 PLY 檔案的檔案路徑"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "匯入 STL"
 
@@ -31712,59 +31570,6 @@ msgstr "影像搜尋"
 
 msgid "Manual Orientation"
 msgstr "手動方向"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "匯入 OBJ"
-
-
-msgid "Load a Wavefront OBJ File"
-msgstr "載入一個 Wavefront OBJ 檔案"
-
-
-msgid "Clamp Size"
-msgstr "緊固大小"
-
-
-msgid "Clamp bounds under this value (zero to disable)"
-msgstr "邊界緊固至此值以下 (零為停用)"
-
-
-msgid "Keep Vert Order"
-msgstr "保留頂點順序"
-
-
-msgid "Keep vertex order from file"
-msgstr "保留來自檔案的頂點順序"
-
-
-msgid "Import lines and faces with 2 verts as edge"
-msgstr "匯入以 2 個頂點作為邊線的線條與面"
-
-
-msgid "Poly Groups"
-msgstr "多角形群組"
-
-
-msgid "Import OBJ groups as vertex groups"
-msgstr "將 OBJ 群組匯入為頂點群組"
-
-
-msgid "Search subdirs for any associated images (Warning, may be slow)"
-msgstr "為任何相關的影像搜尋次目錄 (警告，可能變很慢)"
-
-
-msgid "Surround smooth groups by sharp edges"
-msgstr "以銳利邊線環繞平滑群組"
-
-
-msgid "Import OBJ Groups into Blender Objects"
-msgstr "匯入 OBJ 群組至 Blender 物體中"
-
-
-msgid "Import OBJ Objects into Blender Objects"
-msgstr "匯入 OBJ 物體至 Bledner 物體中"
 
 
 msgctxt "Operator"
@@ -36199,11 +36004,6 @@ msgid "Keep verts assigned to at least one group when cleaning"
 msgstr "清理時保留至少被指派至一個群組的頂點"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "複製頂點群組"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "製作作用中頂點群組的副本"
 
@@ -36745,6 +36545,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "如果請求的筆刷類型不存在，便建立新的筆刷"
 
 
+msgid "Clone"
+msgstr "拓製"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "在兩個筆刷之間切換，而不是循環"
 
@@ -36845,26 +36649,6 @@ msgstr "影像繪製"
 
 msgid "Paint a stroke into the image"
 msgstr "繪入影像中的一道筆觸"
-
-
-msgid "Stroke Mode"
-msgstr "筆觸模式"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "當劃下繪製筆觸時要採取的動作"
-
-
-msgid "Apply brush normally"
-msgstr "正常套用筆刷"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "劃下筆觸時反轉筆刷動作"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "劃下筆觸時將筆刷切換至光滑模式"
 
 
 msgid "Set mask to the level specified by the 'value' property"
@@ -37407,10 +37191,6 @@ msgstr "僅縮放"
 
 msgid "Custom properties"
 msgstr "自訂屬性"
-
-
-msgid "Next Keyframe"
-msgstr "下一鍵幀"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -38867,15 +38647,6 @@ msgstr "以給定的數目往前/往後移動目前的框幀"
 
 
 msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "跳到鍵幀"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "跳到上一個/下一個鍵幀"
-
-
-msgctxt "Operator"
 msgid "Jump to Marker"
 msgstr "跳至標記"
 
@@ -39162,10 +38933,6 @@ msgstr "依編輯模是所選取建立面集"
 
 msgid "Initializes all Face Sets in the mesh"
 msgstr "初始化網格上所有的面集"
-
-
-msgid "Face Sets from Face Maps"
-msgstr "依面圖群組建立面集"
 
 
 msgctxt "Operator"
@@ -40524,10 +40291,6 @@ msgid "Correct UV coordinates when transforming"
 msgstr "當變換時校正 UV 座標"
 
 
-msgid "Snap to increments of grid"
-msgstr "格線定量吸附"
-
-
 msgid "Snap to vertices"
 msgstr "吸附頂點"
 
@@ -40540,10 +40303,6 @@ msgid "Snap by projecting onto faces"
 msgstr "在表面上使用投影吸附"
 
 
-msgid "Snap to nearest point on faces"
-msgstr "吸附至面上最近的點"
-
-
 msgid "Snap to volume"
 msgstr "吸附體積"
 
@@ -40554,6 +40313,10 @@ msgstr "吸附至線段中央"
 
 msgid "Snap to the nearest point on an edge"
 msgstr "吸附至邊線上最近的點"
+
+
+msgid "Snap to nearest point on faces"
+msgstr "吸附至面上最近的點"
 
 
 msgid "Snap closest point onto target"
@@ -42677,6 +42440,10 @@ msgid "Print memory statistics to the console"
 msgstr "將記憶體統計資料列印至主控臺"
 
 
+msgid "Import OBJ groups as vertex groups"
+msgstr "將 OBJ 群組匯入為頂點群組"
+
+
 msgid "Open a Blender file"
 msgstr "開啟一個 Blender 檔案"
 
@@ -42730,6 +42497,16 @@ msgstr "添加或移除操作器預置"
 
 msgid "Open a path in a file browser"
 msgstr "在檔案瀏覽器中開啟路徑"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "匯出 PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "匯入 PLY"
 
 
 msgctxt "Operator"
@@ -52260,6 +52037,10 @@ msgid "Snap UV Element"
 msgstr "吸附 UV 元素"
 
 
+msgid "Snap to increments of grid"
+msgstr "格線定量吸附"
+
+
 msgid "Mesh Statistics Visualization"
 msgstr "網格統計示現處理"
 
@@ -53103,6 +52884,11 @@ msgstr "字型"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "蠟筆"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "姿勢"
 
@@ -53348,11 +53134,6 @@ msgstr "剪輯律表編輯器"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "蠟筆"
-
-
-msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Edit Mode"
 msgstr "蠟筆筆觸編輯模式"
 
@@ -53422,10 +53203,6 @@ msgstr "OSL 指令稿編纂失敗，請查看主控臺以瞭解錯誤"
 
 msgid "No text or file specified in node, nothing to compile"
 msgstr "節點中無指定文字或檔案，無可編譯"
-
-
-msgid "OSL query failed to open "
-msgstr "OSL 查詢無法開啟"
 
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"
@@ -54276,6 +54053,10 @@ msgid "Eccentricity"
 msgstr "離心"
 
 
+msgid "Tiles"
+msgstr "鋪排"
+
+
 msgid "Odd"
 msgstr "偶數"
 
@@ -54647,10 +54428,6 @@ msgstr "影像*"
 
 msgid "Aspect Ratio"
 msgstr "長寬比"
-
-
-msgid "Tiles"
-msgstr "鋪排"
 
 
 msgctxt "Operator"
@@ -55698,11 +55475,6 @@ msgstr "依銳利邊線"
 
 
 msgctxt "Operator"
-msgid "By Face Maps"
-msgstr "依面圖群組"
-
-
-msgctxt "Operator"
 msgid "Per Vertex"
 msgstr "依每個頂點"
 
@@ -56043,6 +55815,10 @@ msgid "Hide Inactive Layers"
 msgstr "隱藏非作用中分層"
 
 
+msgid "Exclude Non-Selectable"
+msgstr "排除關閉選擇的物體"
+
+
 msgctxt "Operator"
 msgid "Assign to Group"
 msgstr "指派至群組"
@@ -56058,8 +55834,16 @@ msgid "Clear Freestyle Face"
 msgstr "清除 Freestyle 面"
 
 
-msgid "Exclude Non-Selectable"
-msgstr "排除關閉選擇的物體"
+msgid "Include Active"
+msgstr "包括作用中的物體"
+
+
+msgid "Include Edited"
+msgstr "包括已編輯的物體"
+
+
+msgid "Include Non-Edited"
+msgstr "包括未編輯的物體"
 
 
 msgid "Scaling"
@@ -56079,18 +55863,6 @@ msgstr "攝影機鏡頭縮放"
 msgctxt "Operator"
 msgid "Remove from All"
 msgstr "從全部移除"
-
-
-msgid "Include Active"
-msgstr "包括作用中的物體"
-
-
-msgid "Include Edited"
-msgstr "包括已編輯的物體"
-
-
-msgid "Include Non-Edited"
-msgstr "包括未編輯的物體"
 
 
 msgctxt "Operator"
@@ -56294,14 +56066,6 @@ msgstr "內建函式"
 
 msgid "Stepped"
 msgstr "步進"
-
-
-msgid " attribute from geometry"
-msgstr " 幾何的屬性"
-
-
-msgid " from "
-msgstr " 來自 "
 
 
 msgid "Cannot pack multiview images from raw data currently..."
@@ -57138,14 +56902,6 @@ msgid "Please set your Preferences' 'Translation Branches Directory' path to a v
 msgstr "請將您的偏好設定「翻譯分支目錄」路徑設定成有效的目錄"
 
 
-msgid "File '%s' cannot be opened"
-msgstr "無法開啟檔案「%s」"
-
-
-msgid "See '%s' in the text editor"
-msgstr "在文字編輯器中查看「%s」"
-
-
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
 msgstr "找不到「%s」操作器！請啟用使用者偏好設定中的 ui_translate 附加元件"
 
@@ -57411,16 +57167,16 @@ msgid "Browse Particle Settings to be linked"
 msgstr "瀏覽要連結的粒子設定"
 
 
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "瀏覽要連結的蠟筆"
-
-
 msgid "Browse Palette Data to be linked"
 msgstr "瀏覽要連結的色版資料"
 
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "瀏覽要連結的繪製曲線資料"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "瀏覽要連結的蠟筆"
 
 
 msgid "Browse ID data to be linked"
@@ -57536,10 +57292,6 @@ msgid "%d items"
 msgstr "%d 項"
 
 
-msgid "No filename given"
-msgstr "未給予檔名"
-
-
 msgid "Can't create export file"
 msgstr "無法建立匯出檔"
 
@@ -57550,6 +57302,14 @@ msgstr "無法覆寫匯出檔"
 
 msgid "Export Options"
 msgstr "匯出資料選項"
+
+
+msgid "Material Groups"
+msgstr "材質群組"
+
+
+msgid "Smooth Groups"
+msgstr "平滑群組"
 
 
 msgctxt "Mesh"
@@ -58278,12 +58038,12 @@ msgid "Maximize Area"
 msgstr "最大化區域"
 
 
-msgid "Flip to Bottom"
-msgstr "翻轉至底部"
-
-
 msgid "Flip to Top"
 msgstr "翻轉至頂部"
+
+
+msgid "Flip to Bottom"
+msgstr "翻轉至底部"
 
 
 msgid "Blender Preferences"
@@ -59078,6 +58838,14 @@ msgstr "無法取得「%s」狀態：%s"
 
 msgid "Text not found: %s"
 msgstr "找不到文字：%s"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "無法開啟檔案「%s」"
+
+
+msgid "See '%s' in the text editor"
+msgstr "在文字編輯器中查看「%s」"
 
 
 msgid "Open Recent"
@@ -60420,16 +60188,16 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "Anisotropy"
-msgstr "各向異性"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "各向異性"
 
 
 msgid "RoughnessU"
@@ -60446,10 +60214,6 @@ msgstr "次表面"
 
 msgid "Subsurface Radius"
 msgstr "次表面半徑"
-
-
-msgid "Anisotropic"
-msgstr "各向異性"
 
 
 msgid "Transmission Roughness"

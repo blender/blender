@@ -28,12 +28,12 @@ namespace blender::gpu {
  *
  * When using a GPU_TEXTURE_CUBE as an frame buffer attachment it will be used as a
  * GPU_TEXTURE_2D_ARRAY. eg only a single side of the cube map will be attached. But when bound as
- * a shader resource the cubemap will be used.
+ * a shader resource the cube-map will be used.
  */
 enum class eImageViewUsage {
   /** Image View will be used as a bindable shader resource. */
   ShaderBinding,
-  /** Image View will be used as an framebuffer attachment. */
+  /** Image View will be used as an frame-buffer attachment. */
   Attachment,
 };
 

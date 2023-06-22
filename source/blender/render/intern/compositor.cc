@@ -99,6 +99,11 @@ class Context : public realtime_compositor::Context {
     GPU_TEXTURE_FREE_SAFE(viewer_output_texture_);
   }
 
+  const Scene &get_scene() const override
+  {
+    return scene_;
+  }
+
   const bNodeTree &get_node_tree() const override
   {
     return node_tree_;

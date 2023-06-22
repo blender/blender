@@ -85,7 +85,12 @@ void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
     const int reference_count = number_of_inputs_linked_to_output_conditioned(
-        item.key, [&](DInputSocket input) { return schedule.contains(input.node()); });
+        item.key, [&](DInputSocket input) {
+          /* We only consider inputs that are not part of the shader operations, because inputs
+           * that are part of the shader operations are internal and do not deal with the result
+           * directly. */
+          return schedule.contains(input.node()) && !compile_unit_.contains(input.node());
+        });
 
     get_result(item.value).set_initial_reference_count(reference_count);
   }

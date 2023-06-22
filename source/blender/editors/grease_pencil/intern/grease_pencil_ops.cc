@@ -10,6 +10,7 @@
 
 void ED_operatortypes_grease_pencil(void)
 {
-  ED_operatortypes_grease_pencil_select();
   ED_operatortypes_grease_pencil_draw();
+  ED_operatortypes_grease_pencil_layers();
+  ED_operatortypes_grease_pencil_select();
 }

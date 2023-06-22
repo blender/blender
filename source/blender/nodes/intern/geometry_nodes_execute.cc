@@ -182,9 +182,11 @@ bool id_property_type_matches_socket(const bNodeSocket &socket, const IDProperty
       return property.type == IDP_INT;
     case SOCK_VECTOR:
     case SOCK_ROTATION:
-      return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 3;
+      return property.type == IDP_ARRAY && ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_FLOAT) &&
+             property.len == 3;
     case SOCK_RGBA:
-      return property.type == IDP_ARRAY && property.subtype == IDP_FLOAT && property.len == 4;
+      return property.type == IDP_ARRAY &&
+             ELEM(property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && property.len == 4;
     case SOCK_BOOLEAN:
       return property.type == IDP_BOOLEAN;
     case SOCK_STRING:
@@ -222,12 +224,35 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       break;
     }
     case SOCK_VECTOR: {
-      float3 value = (const float *)IDP_Array(&property);
+      const void *property_array = IDP_Array(&property);
+      float3 value;
+      if (property.subtype == IDP_FLOAT) {
+        value = float3(static_cast<const float *>(property_array));
+      }
+      else if (property.subtype == IDP_INT) {
+        value = float3(int3(static_cast<const int *>(property_array)));
+      }
+      else {
+        BLI_assert(property.subtype == IDP_DOUBLE);
+        value = float3(double3(static_cast<const double *>(property_array)));
+      }
       new (r_value) fn::ValueOrField<float3>(value);
       break;
     }
     case SOCK_RGBA: {
-      ColorGeometry4f value = (const float *)IDP_Array(&property);
+      const void *property_array = IDP_Array(&property);
+      float4 vec;
+      if (property.subtype == IDP_FLOAT) {
+        vec = float4(static_cast<const float *>(property_array));
+      }
+      else if (property.subtype == IDP_INT) {
+        vec = float4(int4(static_cast<const int *>(property_array)));
+      }
+      else {
+        BLI_assert(property.subtype == IDP_DOUBLE);
+        vec = float4(double4(static_cast<const double *>(property_array)));
+      }
+      ColorGeometry4f value(vec);
       new (r_value) fn::ValueOrField<ColorGeometry4f>(value);
       break;
     }
@@ -237,8 +262,19 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
       break;
     }
     case SOCK_ROTATION: {
-      const math::EulerXYZ euler_value = math::EulerXYZ(
-          float3(static_cast<const float *>(IDP_Array(&property))));
+      const void *property_array = IDP_Array(&property);
+      float3 vec;
+      if (property.subtype == IDP_FLOAT) {
+        vec = float3(static_cast<const float *>(property_array));
+      }
+      else if (property.subtype == IDP_INT) {
+        vec = float3(int3(static_cast<const int *>(property_array)));
+      }
+      else {
+        BLI_assert(property.subtype == IDP_DOUBLE);
+        vec = float3(double3(static_cast<const double *>(property_array)));
+      }
+      const math::EulerXYZ euler_value = math::EulerXYZ(vec);
       new (r_value) fn::ValueOrField<math::Quaternion>(math::to_quaternion(euler_value));
       break;
     }

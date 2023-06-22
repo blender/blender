@@ -35,6 +35,8 @@ void Operation::evaluate()
 
   execute();
 
+  compute_preview();
+
   release_inputs();
 
   release_unneeded_results();
@@ -135,6 +137,8 @@ void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOpe
 
   processor->evaluate();
 }
+
+void Operation::compute_preview(){};
 
 Result &Operation::get_input(StringRef identifier) const
 {

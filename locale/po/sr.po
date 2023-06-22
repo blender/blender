@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-21 15:21:42\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -765,6 +765,10 @@ msgstr "Путања до .blend датотеке"
 
 msgid "Vector Fonts"
 msgstr "Фонтови"
+
+
+msgid "Grease Pencil"
+msgstr "Скицирање"
 
 
 msgid "Images"
@@ -4253,10 +4257,6 @@ msgid "Fonts"
 msgstr "Фонтови"
 
 
-msgid "Grease Pencil"
-msgstr "Скицирање"
-
-
 msgid "File Select Parameters"
 msgstr "Параметри избора датотека"
 
@@ -5446,22 +5446,6 @@ msgid "File path to brush icon"
 msgstr "Путања за упис датотеке"
 
 
-msgid "Image Paint Tool"
-msgstr "Алатке бојења слике"
-
-
-msgid "Soften"
-msgstr "Умекшање"
-
-
-msgid "Clone"
-msgstr "Клинирање"
-
-
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Brush"
 msgstr "Четкица"
 
@@ -5496,58 +5480,6 @@ msgstr "Y плоча"
 
 msgid "Z Plane"
 msgstr "Z плоча"
-
-
-msgid "Sculpt Tool"
-msgstr "Алатке вајања"
-
-
-msgid "Draw Sharp"
-msgstr "Цртај оштро"
-
-
-msgid "Clay"
-msgstr "Глина"
-
-
-msgid "Clay Strips"
-msgstr "Траке глине"
-
-
-msgid "Blob"
-msgstr "Грудвица"
-
-
-msgid "Flatten"
-msgstr "Изравнавање"
-
-
-msgid "Scrape"
-msgstr "Огреботина"
-
-
-msgid "Thumb"
-msgstr "Палац"
-
-
-msgid "Pose"
-msgstr "Поза"
-
-
-msgid "Nudge"
-msgstr "Гуркање"
-
-
-msgid "Rotate"
-msgstr "Ротирање"
-
-
-msgid "Boundary"
-msgstr "Граница"
-
-
-msgid "Cloth"
-msgstr "Тканина"
 
 
 msgid "Secondary Color"
@@ -5668,6 +5600,10 @@ msgstr "Користи додатну провидност"
 
 msgid "Restore Mesh"
 msgstr "Врати"
+
+
+msgid "Sculpt Tool"
+msgstr "Алатке вајања"
 
 
 msgid "Relax"
@@ -6646,6 +6582,10 @@ msgid "Hair strands"
 msgstr "Нити косе"
 
 
+msgid "Cloth"
+msgstr "Тканина"
+
+
 msgid "Roughness"
 msgstr "Храпавост"
 
@@ -6680,10 +6620,6 @@ msgstr "Петље"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "Одређује тврдоћу сјаја"
-
-
-msgid "String Property Layers"
-msgstr "Слојеви текстуалне особине"
 
 
 msgid "Polygons of the mesh"
@@ -7212,6 +7148,10 @@ msgstr "Објекат је подређен кости"
 
 msgid "Parent Vertices"
 msgstr "Родитељска темена"
+
+
+msgid "Pose"
+msgstr "Поза"
 
 
 msgid "Current pose for armatures"
@@ -9233,6 +9173,10 @@ msgid "Mix Factor"
 msgstr "Фактор мешања"
 
 
+msgid "Mask"
+msgstr "Маска"
+
+
 msgid "Material slot in an object"
 msgstr "Слот материјала у објекту"
 
@@ -9517,10 +9461,6 @@ msgstr "Предефинисани оператори"
 
 msgid "Splash"
 msgstr "Уводни прозор"
-
-
-msgid "Bevel Weight"
-msgstr "Тежина искошавања"
 
 
 msgid "Freestyle Edge Mark"
@@ -9961,6 +9901,10 @@ msgstr "Модификатор деформације криве"
 
 msgid "Deform Axis"
 msgstr "Оса деформације"
+
+
+msgid "Bevel Weight"
+msgstr "Тежина искошавања"
 
 
 msgid "Freestyle"
@@ -10691,6 +10635,10 @@ msgid "Thickness factor"
 msgstr "Фактор дебљине"
 
 
+msgid "Boundary"
+msgstr "Граница"
+
+
 msgid "Support face boundaries"
 msgstr "Подржава границе странице"
 
@@ -11403,6 +11351,10 @@ msgid "Width of the ellipse"
 msgstr "Ширина елипсе"
 
 
+msgid "Soften"
+msgstr "Умекшање"
+
+
 msgid "Sobel"
 msgstr "Собел"
 
@@ -11469,6 +11421,10 @@ msgstr "Исеци црну"
 
 msgid "Tracking Object"
 msgstr "Објекат за праћење"
+
+
+msgid "Smoothing"
+msgstr "Умекшање"
 
 
 msgid "Lens Distortion"
@@ -11581,6 +11537,10 @@ msgstr "RGB у ЦБ"
 
 msgid "Render Layers"
 msgstr "Рендеруј слојеве"
+
+
+msgid "Rotate"
+msgstr "Ротирање"
 
 
 msgid "Offset image horizontally (factor of image size)"
@@ -11803,8 +11763,8 @@ msgid "Background"
 msgstr "Позадина"
 
 
-msgid "Anisotropic BSDF"
-msgstr "Анизотропно BSDF"
+msgid "Glossy BSDF"
+msgstr "Сјајно BSDF"
 
 
 msgid "Diffuse BSDF"
@@ -11813,10 +11773,6 @@ msgstr "Дифузно BSDF"
 
 msgid "Glass BSDF"
 msgstr "Стакло BSDF"
-
-
-msgid "Glossy BSDF"
-msgstr "Сјајно BSDF"
 
 
 msgid "Hair BSDF"
@@ -14186,8 +14142,12 @@ msgstr "Ојлер (ZYX)"
 
 
 msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Извоз PLY"
+msgid "Export STL"
+msgstr "Извоз у STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
 
 
 msgid "Y Up"
@@ -14208,15 +14168,6 @@ msgstr "Горе по -Z"
 
 msgid "Selection Only"
 msgstr "Само изабрано"
-
-
-msgctxt "Operator"
-msgid "Export STL"
-msgstr "Извоз у STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
 
 
 msgctxt "Operator"
@@ -14242,10 +14193,6 @@ msgstr "Активна сцена у датотеку"
 
 msgid "Each scene as a file"
 msgstr "Свака сцена као датотека"
-
-
-msgid "Smoothing"
-msgstr "Умекшање"
 
 
 msgid "Write face smoothing"
@@ -14314,39 +14261,6 @@ msgstr "Троугласте странице"
 
 msgid "Convert all faces to triangles"
 msgstr "Претврои све странице у троуглове"
-
-
-msgctxt "Operator"
-msgid "Export OBJ"
-msgstr "Извоз OBJ"
-
-
-msgid "Material Groups"
-msgstr "Група материјала"
-
-
-msgid "Keep Vertex Order"
-msgstr "Сачувај низ темена"
-
-
-msgid "Include Edges"
-msgstr "Укључи ивице"
-
-
-msgid "Write Materials"
-msgstr "Уписуј материјал"
-
-
-msgid "Write Normals"
-msgstr "Уписуј нормале"
-
-
-msgid "Smooth Groups"
-msgstr "Групе умекшања"
-
-
-msgid "Include UVs"
-msgstr "Укључи UV"
 
 
 msgid "Compress"
@@ -15062,6 +14976,10 @@ msgid "Set Cursor"
 msgstr "Постави курсор"
 
 
+msgid "Flatten"
+msgstr "Изравнавање"
+
+
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
 msgstr "Додај модификатор Ф-криве"
@@ -15073,6 +14991,19 @@ msgstr "Само активне"
 
 msgid "Sigma"
 msgstr "Сигма"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Скочи на кадар"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Скочи на претходни/наредни кључни кадар"
+
+
+msgid "Next Keyframe"
+msgstr "Следећи кључни кадар"
 
 
 msgctxt "Operator"
@@ -15273,15 +15204,6 @@ msgstr "Сенчења"
 
 
 msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Увоз PLY"
-
-
-msgid "File path used for importing the PLY file"
-msgstr "Путања за упис датотеке"
-
-
-msgctxt "Operator"
 msgid "Import STL"
 msgstr "Увоз у STL"
 
@@ -15297,11 +15219,6 @@ msgstr "Претрага слика"
 
 msgid "Manual Orientation"
 msgstr "Ручна оријентација"
-
-
-msgctxt "Operator"
-msgid "Import OBJ"
-msgstr "Увоз OBJ"
 
 
 msgctxt "Operator"
@@ -17806,6 +17723,10 @@ msgid "Brush Select"
 msgstr "Избор четкице"
 
 
+msgid "Clone"
+msgstr "Клинирање"
+
+
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "Сакриј изабрано"
@@ -18077,10 +17998,6 @@ msgstr "Поза коа почетна"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Поставља тренутну позу као почетну"
-
-
-msgid "Next Keyframe"
-msgstr "Следећи кључни кадар"
 
 
 msgid "Previous Keyframe"
@@ -18664,15 +18581,6 @@ msgstr "Последњи кадар"
 msgctxt "Operator"
 msgid "Expand/Collapse Header Menus"
 msgstr "Прошири/скупи мени заглавља"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Скочи на кадар"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Скочи на претходни/наредни кључни кадар"
 
 
 msgctxt "Operator"
@@ -20495,6 +20403,16 @@ msgstr "Додај или уклони предефинисани операто
 
 msgid "Open a path in a file browser"
 msgstr "Отвори путању у прегледачу датотека"
+
+
+msgctxt "Operator"
+msgid "Export PLY"
+msgstr "Извоз PLY"
+
+
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Увоз PLY"
 
 
 msgctxt "Operator"
@@ -26929,8 +26847,12 @@ msgid "%d items"
 msgstr "%d ставки"
 
 
-msgid "No filename given"
-msgstr "Без имена датотеке"
+msgid "Material Groups"
+msgstr "Група материјала"
+
+
+msgid "Smooth Groups"
+msgstr "Групе умекшања"
 
 
 msgctxt "Mesh"
@@ -27268,12 +27190,12 @@ msgid "Blender Render"
 msgstr "Blender рендеринг"
 
 
-msgid "Flip to Bottom"
-msgstr "Обрни ка дну"
-
-
 msgid "Flip to Top"
 msgstr "Обрни ка врху"
+
+
+msgid "Flip to Bottom"
+msgstr "Обрни ка дну"
 
 
 msgid "No active camera set"
@@ -27795,16 +27717,16 @@ msgid "Edge Crease"
 msgstr "Набор ивице"
 
 
-msgid "Anisotropy"
-msgstr "Анизотропно"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "Анизотропно"
 
 
 msgid "RoughnessU"

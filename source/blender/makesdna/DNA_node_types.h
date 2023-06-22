@@ -1661,7 +1661,7 @@ typedef struct NodeGeometrySimulationOutput {
 
 #ifdef __cplusplus
   blender::Span<NodeSimulationItem> items_span() const;
-  blender::MutableSpan<NodeSimulationItem> items_span_for_write();
+  blender::MutableSpan<NodeSimulationItem> items_span();
   blender::IndexRange items_range() const;
 #endif
 } NodeGeometrySimulationOutput;

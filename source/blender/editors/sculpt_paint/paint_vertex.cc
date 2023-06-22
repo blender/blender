@@ -3291,7 +3291,7 @@ static void do_vpaint_brush_smear(bContext *C,
 
             /* if the vertex is selected for painting. */
             if (!use_vert_sel || select_vert[v_index]) {
-              /* Calc the dot prod. between ray norm on surf and current vert
+              /* Calculate the dot prod. between ray norm on surf and current vert
                * (ie splash prevention factor), and only paint front facing verts. */
               float brush_strength = cache->bstrength;
               const float angle_cos = (use_normal && vd.no) ?

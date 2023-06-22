@@ -1086,9 +1086,8 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
     for (a = 0; a < poly; a++, pf++) {
       for (c = (ushort)(a + 1); c < poly; c++) {
 
-        /* if 'a' inside 'c': join (bbox too)
-         * Careful: 'a' can also be inside another poly.
-         */
+        /* If 'a' inside 'c': join (bounding-box too)
+         * Careful: 'a' can also be inside another poly. */
         if (boundisect(pf, pflist + c)) {
           *pc = c;
           pc++;

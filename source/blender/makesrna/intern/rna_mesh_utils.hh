@@ -13,14 +13,15 @@
 /* Define the accessors for a basic CustomDataLayer collection, skipping anonymous layers */
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION(collection_name, customdata_type, layer_type) \
   /* check */ \
-  static int rna_##collection_name##_check(CollectionPropertyIterator *, void *data) \
+  [[maybe_unused]] static int rna_##collection_name##_check(CollectionPropertyIterator *, \
+                                                            void *data) \
   { \
     CustomDataLayer *layer = (CustomDataLayer *)data; \
     return (layer->anonymous_id != NULL || layer->type != layer_type); \
   } \
   /* begin */ \
-  static void rna_Mesh_##collection_name##s_begin(CollectionPropertyIterator *iter, \
-                                                  PointerRNA *ptr) \
+  [[maybe_unused]] static void rna_Mesh_##collection_name##s_begin( \
+      CollectionPropertyIterator *iter, PointerRNA *ptr) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     if (data) { \
@@ -36,7 +37,7 @@
     } \
   } \
   /* length */ \
-  static int rna_Mesh_##collection_name##s_length(PointerRNA *ptr) \
+  [[maybe_unused]] static int rna_Mesh_##collection_name##s_length(PointerRNA *ptr) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     return data ? CustomData_number_of_layers(data, layer_type) - \
@@ -44,7 +45,7 @@
                   0; \
   } \
   /* index range */ \
-  static void rna_Mesh_##collection_name##_index_range( \
+  [[maybe_unused]] static void rna_Mesh_##collection_name##_index_range( \
       PointerRNA *ptr, int *min, int *max, int *, int *) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
@@ -60,7 +61,8 @@
 #define DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM( \
     collection_name, customdata_type, layer_type, active_type, layer_rna_type) \
 \
-  static PointerRNA rna_Mesh_##collection_name##_##active_type##_get(PointerRNA *ptr) \
+  [[maybe_unused]] static PointerRNA rna_Mesh_##collection_name##_##active_type##_get( \
+      PointerRNA *ptr) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     CustomDataLayer *layer; \
@@ -74,7 +76,7 @@
     return rna_pointer_inherit_refine(ptr, &RNA_##layer_rna_type, layer); \
   } \
 \
-  static void rna_Mesh_##collection_name##_##active_type##_set( \
+  [[maybe_unused]] static void rna_Mesh_##collection_name##_##active_type##_set( \
       PointerRNA *ptr, PointerRNA value, struct ReportList *) \
   { \
     Mesh *me = rna_mesh(ptr); \
@@ -94,7 +96,8 @@
     } \
   } \
 \
-  static int rna_Mesh_##collection_name##_##active_type##_index_get(PointerRNA *ptr) \
+  [[maybe_unused]] static int rna_Mesh_##collection_name##_##active_type##_index_get( \
+      PointerRNA *ptr) \
   { \
     CustomData *data = rna_mesh_##customdata_type(ptr); \
     if (data) { \
@@ -105,7 +108,8 @@
     } \
   } \
 \
-  static void rna_Mesh_##collection_name##_##active_type##_index_set(PointerRNA *ptr, int value) \
+  [[maybe_unused]] static void rna_Mesh_##collection_name##_##active_type##_index_set( \
+      PointerRNA *ptr, int value) \
   { \
     Mesh *me = rna_mesh(ptr); \
     CustomData *data = rna_mesh_##customdata_type(ptr); \

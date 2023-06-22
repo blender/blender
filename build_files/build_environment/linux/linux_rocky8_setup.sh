@@ -105,6 +105,10 @@ PACKAGES_FOR_LIBS=(
     ncurses-devel
     # Required by: `external_ispc` (when building with CLANG).
     libstdc++-static
+
+    # Required by: `external_ssl` (build dependencies).
+    perl-IPC-Cmd
+    perl-Pod-Html
 )
 
 # Additional packages needed for building Blender.

@@ -71,8 +71,7 @@ class Layer;
 /**
  * A TreeNode represents one node in the layer tree.
  * It can either be a layer or a group. The node has zero children if it is a layer or zero or
- more
- * children if it is a group.
+ * more children if it is a group.
  */
 class TreeNode : public ::GreasePencilLayerTreeNode {
  public:
@@ -184,10 +183,16 @@ class Layer : public ::GreasePencilLayer {
   Layer(const Layer &other);
   ~Layer();
 
-  StringRefNull name() const
-  {
-    return this->base.name;
-  }
+  /**
+   * \returns the layer name.
+   */
+  StringRefNull name() const;
+  void set_name(StringRefNull new_name);
+
+  /**
+   * \returns the parent layer group.
+   */
+  LayerGroup &parent_group() const;
 
   /**
    * \returns the frames mapping.
@@ -258,6 +263,11 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   ~LayerGroup();
 
  public:
+  StringRefNull name() const
+  {
+    return this->base.name;
+  }
+
   /**
    * Adds a group at the end of this group.
    */
@@ -269,6 +279,18 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    */
   Layer &add_layer(Layer *layer);
   Layer &add_layer(StringRefNull name);
+
+  /**
+   * Adds a layer before \a link and returns it.
+   */
+  Layer &add_layer_before(Layer *layer, Layer *link);
+  Layer &add_layer_before(StringRefNull name, Layer *link);
+
+  /**
+   * Adds a layer after \a link and returns it.
+   */
+  Layer &add_layer_after(Layer *layer, Layer *link);
+  Layer &add_layer_after(StringRefNull name, Layer *link);
 
   /**
    * Returns the number of direct nodes in this group.
@@ -285,6 +307,12 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    * \note: Assumes the removed child is not the active layer.
    */
   void remove_child(int64_t index);
+
+  /**
+   * Tries to unlink the layer from the list of nodes in this group.
+   * \returns true, if the layer was successfully unlinked.
+   */
+  bool unlink_layer(Layer *link);
 
   /**
    * Returns a `Span` of pointers to all the `TreeNode`s in this group.
@@ -313,6 +341,16 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void ensure_nodes_cache() const;
   void tag_nodes_cache_dirty() const;
 };
+
+inline StringRefNull Layer::name() const
+{
+  return this->base.name;
+}
+
+inline LayerGroup &Layer::parent_group() const
+{
+  return this->base.parent->wrap();
+}
 
 namespace convert {
 

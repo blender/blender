@@ -13,9 +13,13 @@
 #endif
 
 struct ARegion;
+struct bNodeSocket;
+struct bNodeTree;
+struct ID;
+struct IDProperty;
 struct ListBase;
 struct Main;
-struct bNodeTree;
+struct ViewLayer;
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,6 +50,8 @@ ARegion *do_versions_ensure_region(ListBase *regionbase,
  * \return the ID (if found).
  */
 ID *do_versions_rename_id(Main *bmain, short id_type, const char *name_src, const char *name_dst);
+
+bool version_node_socket_is_used(struct bNodeSocket *sock);
 
 void version_node_socket_name(struct bNodeTree *ntree,
                               int node_type,
@@ -115,6 +121,24 @@ void sequencer_init_preview_region(ARegion *region);
 void add_realize_instances_before_socket(bNodeTree *ntree,
                                          bNode *node,
                                          bNodeSocket *geometry_socket);
+
+float *version_cycles_node_socket_float_value(struct bNodeSocket *socket);
+float *version_cycles_node_socket_rgba_value(struct bNodeSocket *socket);
+float *version_cycles_node_socket_vector_value(struct bNodeSocket *socket);
+
+struct IDProperty *version_cycles_properties_from_ID(struct ID *id);
+struct IDProperty *version_cycles_properties_from_view_layer(struct ViewLayer *view_layer);
+struct IDProperty *version_cycles_visibility_properties_from_ID(ID *id);
+
+float version_cycles_property_float(struct IDProperty *idprop,
+                                    const char *name,
+                                    float default_value);
+int version_cycles_property_int(struct IDProperty *idprop, const char *name, int default_value);
+void version_cycles_property_int_set(struct IDProperty *idprop, const char *name, int value);
+bool version_cycles_property_boolean(struct IDProperty *idprop,
+                                     const char *name,
+                                     bool default_value);
+void version_cycles_property_boolean_set(struct IDProperty *idprop, const char *name, bool value);
 
 #ifdef __cplusplus
 }

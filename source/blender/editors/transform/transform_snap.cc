@@ -912,6 +912,8 @@ void freeSnapping(TransInfo *t)
   else if (t->tsnap.object_context) {
     ED_transform_snap_object_context_destroy(t->tsnap.object_context);
     t->tsnap.object_context = nullptr;
+
+    ED_transform_snap_object_time_average_print();
   }
 }
 

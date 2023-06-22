@@ -4439,12 +4439,7 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
     return;
   }
 
-  /* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
-  const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
-  if (tmp == node->typeinfo->ui_name) {
-    tmp = IFACE_(node->typeinfo->ui_name);
-  }
-  BLI_strncpy(label, tmp, label_maxncpy);
+  BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), label_maxncpy);
 }
 
 const char *nodeSocketLabel(const bNodeSocket *sock)

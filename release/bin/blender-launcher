@@ -1,0 +1,12 @@
+#!/bin/sh
+BF_DIST_BIN=$(dirname "$0")
+BF_PROGRAM="blender"
+
+# Add own lib folder first, because Steam or other environments may set an
+# LD_LIBRARY_PATH that has priority over the runpath in the Blender excutable,
+# but contains incompatible libraries.
+LD_LIBRARY_PATH=${BF_DIST_BIN}/lib:${LD_LIBRARY_PATH}
+
+export LD_LIBRARY_PATH
+
+exec "$BF_DIST_BIN/$BF_PROGRAM" "$@"
