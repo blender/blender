@@ -9,4 +9,4 @@ LD_LIBRARY_PATH=${BF_DIST_BIN}/lib:${LD_LIBRARY_PATH}
 
 export LD_LIBRARY_PATH
 
-exec "$BF_DIST_BIN/$BF_PROGRAM" ${1+"$@"}
+exec "$BF_DIST_BIN/$BF_PROGRAM" "$@"
