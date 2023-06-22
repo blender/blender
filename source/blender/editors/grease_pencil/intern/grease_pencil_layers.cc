@@ -59,7 +59,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_add_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = active_grease_pencil_poll;
 
   prop = RNA_def_string(
       ot->srna, "new_layer_name", "GP_Layer", INT16_MAX, "Name", "Name of the new layer");
@@ -94,7 +94,7 @@ static void GREASE_PENCIL_OT_layer_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_remove_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = active_grease_pencil_poll;
 }
 
 }  // namespace blender::ed::greasepencil
