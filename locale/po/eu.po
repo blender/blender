@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -945,6 +945,15 @@ msgstr "-Z ardatza"
 
 msgid "Use Metadata"
 msgstr "Metadata erabili"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Esportatu OBJ"
+
+
+msgid "Include UVs"
+msgstr "Gehitu UVs"
 
 
 msgid "Hierarchy"
@@ -2207,12 +2216,12 @@ msgid "AO"
 msgstr "Inguruneko Oklusioa"
 
 
-msgid "BSDF"
-msgstr "BSDF"
-
-
 msgid "Anisotropy"
 msgstr "Anisotropia"
+
+
+msgid "BSDF"
+msgstr "BSDF"
 
 
 msgid "View Vector"

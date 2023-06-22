@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -453,10 +453,6 @@ msgstr "भार"
 
 msgid "Brushes"
 msgstr "तूलिका"
-
-
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
 
 
 msgid "Images"
@@ -1427,6 +1423,10 @@ msgstr "द्वि-आयाम"
 
 msgid "Fonts"
 msgstr "मुद्र्"
+
+
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
 
 
 msgid "Save"
@@ -3729,10 +3729,6 @@ msgid "Only Selected"
 msgstr "केवल चयनित"
 
 
-msgid "Ascii"
-msgstr "ऐस्की"
-
-
 msgid "X Up"
 msgstr "X ऊर्ध्व"
 
@@ -3751,6 +3747,10 @@ msgstr "-Y ऊर्ध्व"
 
 msgid "-Z Up"
 msgstr "-Z ऊर्ध्व"
+
+
+msgid "Ascii"
+msgstr "ऐस्की"
 
 
 msgid "Null"
@@ -5323,11 +5323,6 @@ msgstr "वक्र"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "तैलीय पेंसिल"
-
-
-msgctxt "WindowManager"
 msgid "Pose"
 msgstr "मुद्रा"
 
@@ -5380,6 +5375,11 @@ msgstr "छांटन संपादक"
 msgctxt "WindowManager"
 msgid "Clip Graph Editor"
 msgstr "छांटन बिंदुरेख संपादक"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "तैलीय पेंसिल"
 
 
 msgctxt "WindowManager"

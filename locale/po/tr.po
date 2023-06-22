@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2023-06-13 20:00+0300\n"
 "Last-Translator: Emir SARI <emir_sari@îcloud.com>\n"
 "Language-Team: Turkish <>\n"
@@ -353,12 +353,24 @@ msgid "HIP RT (Experimental)"
 msgstr "HIP RT (Deneysel)"
 
 
+msgid "HIP RT enables AMD hardware ray tracing on RDNA2 and above, with shader fallback on older cards. This feature is experimental and some scenes may render incorrectly"
+msgstr "HIP RT, RDNA2 ve yukarısında AMD donanımı ışın izlemesini etkinleştirir ve eski kartlarda gölgelendiriciye geri döner. Bu özellik deneyseldir ve bazı sahneler düzgünce sunulamayabilir"
+
+
 msgid "MetalRT (Experimental)"
 msgstr "MetalRT (Deneysel)"
 
 
 msgid "MetalRT for ray tracing uses less memory for scenes which use curves extensively, and can give better performance in specific cases. However this support is experimental and some scenes may render incorrectly"
 msgstr "MetalRT, eğrileri kapsamlı bir biçimde kullanan sahnelerde ışın izleme yaparken daha az bellek kullanır ve belirli durumlarda daha iyi başarım gösterebilir. Ancak bu destek deneyseldir ve bazı sahneler yanlış sunulabilir"
+
+
+msgid "Embree on GPU"
+msgstr "GPU üzerinde Embree"
+
+
+msgid "Embree on GPU enables the use of hardware ray tracing on Intel GPUs, providing better overall performance"
+msgstr "GPU üzerinde Embree, Intel GPU'larda donanım ışın izlemesini etkinleştirir ve daha iyi başarım sağlar"
 
 
 msgid "KHR_materials_variants_ui"
@@ -551,6 +563,14 @@ msgstr "Eylem Etkisi"
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Etkin Eylem'in DOC yığınının sonucuna katkıda bulunduğu miktar"
+
+
+msgid "Tweak Mode Action Storage"
+msgstr "İnce Ayar Kipi Eylemi Depolaması"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "İnce ayar kipindeyken ana eylemin geçici olarak tutulacağı yuva"
 
 
 msgid "Drivers"
@@ -1113,6 +1133,14 @@ msgid "Simple name of the asset's catalog, for debugging and data recovery purpo
 msgstr "Varlığın kataloğunun yalın adı; hata ayıklama ve veri kurtarma amaçlı"
 
 
+msgid "Copyright"
+msgstr "Telif Hakkı"
+
+
+msgid "Copyright notice for this asset. An empty copyright notice does not necessarily indicate that this is copyright-free. Contact the author if any clarification is needed"
+msgstr "Bu varlık için telif hakkı bildirisi. Boş bir telif hakkı bildirisi, bunun özünde telifsiz olduğunu bildirmez. Kesinleştirmeniz gerekiyorsa yazar ile iletişim kurun"
+
+
 msgid "Description"
 msgstr "Açıklama"
 
@@ -1121,12 +1149,28 @@ msgid "A description of the asset to be displayed for the user"
 msgstr "Varlığın kullanıcıya gösterilecek bir açıklaması"
 
 
+msgid "License"
+msgstr "Lisans"
+
+
+msgid "The type of license this asset is distributed under. An empty license name does not necessarily indicate that this is free of licensing terms. Contact the author if any clarification is needed"
+msgstr "Bu varlığın dağıtıldığı lisansın türü. Boş bir lisans adı, bunun özünde lisans koşullarına bağlı olmadığı anlamına gelmez. Kesinleştirmeniz gerekiyorsa yazarla iletişim kurun"
+
+
 msgid "Tags"
 msgstr "Etiketler"
 
 
 msgid "Custom tags (name tokens) for the asset, used for filtering and general asset management"
 msgstr "Varlık için özel etiketler (ad jetonları); süzme ve genel varlık yönetimi için kullanılır"
+
+
+msgid "Asset Representation"
+msgstr "Varlık Temsili"
+
+
+msgid "Information about an entity that makes it possible for the asset system to deal with the entity as asset"
+msgstr "Varlık sisteminin bu mülkü bir varlık olarak ele almasını olanaklı kılan varlık bilgisi"
 
 
 msgid "Asset Tag"
@@ -1227,6 +1271,14 @@ msgstr "8 Bit Tamsayı"
 
 msgid "Smaller integer with a range from -128 to 127"
 msgstr "-128 ve 127 arasında bir değerli küçükçe tamsayı"
+
+
+msgid "2D Integer Vector"
+msgstr "2B Tamsayı Vektör"
+
+
+msgid "32-bit signed integer vector"
+msgstr "32 bit imzalı tamsayı vektör"
 
 
 msgid "Domain"
@@ -1426,11 +1478,11 @@ msgstr "Etkin öznitelik indeksi"
 
 
 msgid "Default Color Attribute"
-msgstr "Öntanımlı Renk Özniteliği"
+msgstr "Saptanmış Renk Özniteliği"
 
 
 msgid "The name of the default color attribute used as a fallback for rendering"
-msgstr "Sunum için yedek olarak kullanılan öntanımlı renk özniteliğinin adı"
+msgstr "Sunum için yedek olarak kullanılan saptanmış renk özniteliğinin adı"
 
 
 msgid "Active Render Color Index"
@@ -1957,10 +2009,6 @@ msgid "Grease Pencil (legacy) data-blocks"
 msgstr "Gres Kalemi (eski) veri blokları"
 
 
-msgid "Grease Pencil"
-msgstr "Gres Kalemi"
-
-
 msgid "Hair Curves"
 msgstr "Kıl Eğrileri"
 
@@ -2143,10 +2191,6 @@ msgstr "Şekil Anahtarları"
 
 msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
-
-
-msgid "Simulations"
-msgstr "Benzetimler"
 
 
 msgid "Sounds"
@@ -3647,6 +3691,14 @@ msgid "Length of newly added curves when it is not interpolated from other curve
 msgstr "Başka eğimlerden aradeğerlenmediği zaman yeni eklenen eğimlerin uzunluğu"
 
 
+msgid "Curve Parameter Falloff"
+msgstr "Eğri Parametresi Düşüşü"
+
+
+msgid "Falloff that is applied from the tip to the root of each curve"
+msgstr "Her bir eğrinin tepesinden köküne dek uygulanan düşüş"
+
+
 msgid "Density Add Attempts"
 msgstr "Yoğunluk Ekleme Girişimleri"
 
@@ -4181,40 +4233,612 @@ msgid "Hardness"
 msgstr "Sertlik"
 
 
+msgid "Gradient from the center of Dot and Box strokes (set to 1 for a solid stroke)"
+msgstr "Nokta ve Kutu vuruşlarının merkezinden olan gradyan (katı bir vuruş için 1 olarak ayarlayın)"
+
+
+msgid "Input Samples"
+msgstr "Girdi Örnekleri"
+
+
+msgid "Generate intermediate points for very fast mouse movements. Set to 0 to disable"
+msgstr "Çok hızlı fare hareketleri için orta noktalar üretin. Devre dışı bırakmak için 0 olarak ayarlayın"
+
+
+msgid "Material used for strokes drawn using this brush"
+msgstr "Bu fırça kullanılarak çizilen vuruşlarda kullanılan malzeme"
+
+
+msgid "Material used for secondary uses for this brush"
+msgstr "Bu fırçanın ikincil kullanımları için kullanılan malzeme"
+
+
 msgid "Thickness"
 msgstr "Kalınlık"
+
+
+msgid "Thickness of the outline stroke relative to current brush thickness"
+msgstr "Geçerli fırça kalınlığına göreceli olarak ana hat vuruşunun kalınlığı"
+
+
+msgctxt "Brush"
+msgid "Jitter"
+msgstr "Seğirtme"
+
+
+msgid "Jitter factor for new strokes"
+msgstr "Yeni vuruşlar için seğirtme çarpanı"
 
 
 msgid "Smooth"
 msgstr "Pürüzsüz"
 
 
+msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
+msgstr "Seğirtme ve gürültüyü azaltmak için yeni oluşturulan vuruşlardan sonra uygulanacak pürüzsüzleştirme miktarı"
+
+
+msgid "Iterations"
+msgstr "Yinelemeler"
+
+
+msgid "Number of times to smooth newly created strokes"
+msgstr "Yeni oluşturulan vuruşların kaç kere pürüzsüzleştirileceği"
+
+
+msgid "Color strength for new strokes (affect alpha factor of color)"
+msgstr "Yeni vuruşlar için renk gücü (rengin alfa çarpanını etkiler)"
+
+
+msgid "Subdivision Steps"
+msgstr "Yeniden Bölme Adımları"
+
+
+msgid "Number of times to subdivide newly created strokes, for less jagged strokes"
+msgstr "Daha az tırtıklı vuruşlar için yeni oluşturulan vuruşların kaç kere yeniden bölüneceği"
+
+
+msgid "Pin Mode"
+msgstr "Sabitleme Kipi"
+
+
+msgid "Pin the mode to the brush"
+msgstr "Kipi fırçaya sabitle"
+
+
 msgid "Hue"
-msgstr "Hue"
+msgstr "Ton"
+
+
+msgid "Random factor to modify original hue"
+msgstr "Özgün tonun değiştirileceği rastgele çarpan"
+
+
+msgid "Pressure Randomness"
+msgstr "Basınç Rastgeleliği"
+
+
+msgid "Randomness factor for pressure in new strokes"
+msgstr "Yeni vuruşlardaki basınç için olan rastgelelik çarpanı"
 
 
 msgid "Saturation"
 msgstr "Doygunluk"
 
 
+msgid "Random factor to modify original saturation"
+msgstr "Özgün doygunluğun değiştirileceği rastgele çarpan"
+
+
+msgid "Strength Randomness"
+msgstr "Güç Rastgeleliği"
+
+
+msgid "Randomness factor strength in new strokes"
+msgstr "Yeni vuruşlardaki rastgelelik çarpanı gücü"
+
+
+msgid "Random factor to modify original value"
+msgstr "Özgün değerin değiştirileceği rastgele çarpan"
+
+
+msgid "Show Fill"
+msgstr "Dolguyu Göster"
+
+
+msgid "Show transparent lines to use as boundary for filling"
+msgstr "Dolgu için bir sınır olarak kullanmak üzere saydam çizgiler göster"
+
+
+msgid "Show Lines"
+msgstr "Çizgileri Göster"
+
+
+msgid "Show help lines for filling to see boundaries"
+msgstr "Sınırları görmek üzere dolgu için yardım çizgilerini göster"
+
+
+msgid "Visual Aids"
+msgstr "Görsel Yardımlar"
+
+
+msgid "Show help lines for stroke extension"
+msgstr "Vuruş uzantısı için yardım çizgilerini göster"
+
+
+msgid "Show Lasso"
+msgstr "Kemeri Göster"
+
+
+msgid "Do not display fill color while drawing the stroke"
+msgstr "Vuruşu çizerken dolgu rengini görüntüleme"
+
+
+msgid "Factor of Simplify using adaptive algorithm"
+msgstr "Uyarlanabilir algoritma kullanarak Basitleştirme Çarpanı"
+
+
+msgid "Strokes Collision"
+msgstr "Vuruşlar Çarpışması"
+
+
+msgid "Check if extend lines collide with strokes"
+msgstr "Uzantı çizgilerin vuruşlarla çarpışıp çarpışmadığını denetle"
+
+
+msgid "Default Eraser"
+msgstr "Saptanmış Silgi"
+
+
+msgid "Use this brush when enable eraser with fast switch key"
+msgstr "Hızlı değiştirme düğmesiyle fırça etkinleştirildiğinde bu fırçayı kullan"
+
+
+msgid "Affect Position"
+msgstr "Konumu Etkile"
+
+
+msgid "The brush affects the position of the point"
+msgstr "Fırça, noktanın konumunu etkiler"
+
+
+msgid "Affect Strength"
+msgstr "Gücü Etkile"
+
+
+msgid "The brush affects the color strength of the point"
+msgstr "Fırça, noktanın renk gücünü etkiler"
+
+
+msgid "Affect Thickness"
+msgstr "Kalınlığı Etkile"
+
+
+msgid "The brush affects the thickness of the point"
+msgstr "Fırça, noktanın kalınlığını etkiler"
+
+
+msgid "Affect UV"
+msgstr "UV'yi Etkile"
+
+
+msgid "The brush affects the UV rotation of the point"
+msgstr "Fırça, noktanın UV döndürmesini etkiler"
+
+
+msgid "Limit to Viewport"
+msgstr "Görüş Alanına Sınırla"
+
+
+msgid "Fill only visible areas in viewport"
+msgstr "Yalnızca Görüş Alanı'ndaki görünür alanları doldur"
+
+
+msgid "Use Pressure Jitter"
+msgstr "Basınç Seğirtmesi Kullan"
+
+
+msgid "Use tablet pressure for jitter"
+msgstr "Seğirtme için tablet basıncını kullan"
+
+
+msgid "Pin Material"
+msgstr "Malzemeyi Sabitle"
+
+
+msgid "Keep material assigned to brush"
+msgstr "Malzemeyi fırçaya atanmış olarak tut"
+
+
+msgid "Occlude Eraser"
+msgstr "Silgiyi Tıka"
+
+
+msgid "Erase only strokes visible and not occluded"
+msgstr "Yalnızca görünür ve tıkanmamış vuruşları sil"
+
+
+msgid "Use Pressure"
+msgstr "Basınç Kullan"
+
+
+msgid "Use tablet pressure"
+msgstr "Tablet basıncını kullan"
+
+
+msgid "Use pressure to modulate randomness"
+msgstr "Rastgeleliği düzenlemek için basınç kullan"
+
+
 msgid "Outline"
-msgstr "Anahat"
+msgstr "Ana Hat"
+
+
+msgid "Convert stroke to perimeter"
+msgstr "Vuruşu perimetreye dönüştür"
+
+
+msgid "Use Post-Process Settings"
+msgstr "İşlem Sonrası Ayarlarını Kullan"
+
+
+msgid "Additional post processing options for new strokes"
+msgstr "Yeni vuruşlar için ek işlem sonrası seçenekleri"
+
+
+msgid "Random Settings"
+msgstr "Rastgele Ayarlar"
+
+
+msgid "Random brush settings"
+msgstr "Rastgele fırça ayarları"
+
+
+msgid "Use Stabilizer"
+msgstr "Dengeleyici Kullan"
+
+
+msgid "Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing"
+msgstr "Pürüzsüz vuruşları olanaklı kılmak için çizgileri gecikmeyle çizin. Çizerken geçersiz kılmak için Üst Karakter düğmesine basın"
+
+
+msgid "Use Pressure Strength"
+msgstr "Basınç Gücünü Kullan"
+
+
+msgid "Use tablet pressure for color strength"
+msgstr "Renk gücü için tablet basıncını kullan"
+
+
+msgid "Stroke Random"
+msgstr "Rastgele Vuruş"
+
+
+msgid "Use randomness at stroke level"
+msgstr "Rastgeleliği vuruş düzeyinde kullan"
+
+
+msgid "Trim Stroke Ends"
+msgstr "Vuruş Uçlarını Kırp"
+
+
+msgid "Trim intersecting stroke ends"
+msgstr "Kesişen vuruş uçlarını kırp"
+
+
+msgid "UV Random"
+msgstr "Rastgele UV"
+
+
+msgid "Random factor for auto-generated UV rotation"
+msgstr "Kendiliğinden üretilmiş UV döndürmesi için rastgele çarpan"
+
+
+msgid "Vertex Color Factor"
+msgstr "Tepecik Rengi Çarpanı"
+
+
+msgid "Factor used to mix vertex color to get final color"
+msgstr "Son rengi almak üzere tepecik rengini karıştırmak için kullanılan çarpan"
+
+
+msgid "Mode Type"
+msgstr "Kip Türü"
+
+
+msgid "Defines how vertex color affect to the strokes"
+msgstr "Tepecik renginin vuruşlara nasıl etki ettiğini tanımlar"
+
+
+msgid "Vertex Color affects to Stroke only"
+msgstr "Tepecik Rengi, yalnızca vuruşa etki eder"
+
+
+msgid "Vertex Color affects to Fill only"
+msgstr "Tepecik Rengi, yalnızca dolguya etki eder"
+
+
+msgid "Stroke & Fill"
+msgstr "Vuruş & Dolgu"
+
+
+msgid "Vertex Color affects to Stroke and Fill"
+msgstr "Tepecik Rengi, vuruşa ve dolguya etki eder"
+
+
+msgid "Byte Color Attribute Value"
+msgstr "Bayt Rengi Özniteliği Değeri"
+
+
+msgid "Color value in geometry attribute"
+msgstr "Geometri özniteliği türünden renk değeri"
+
+
+msgid "RGBA color in scene linear color space"
+msgstr "Sahne doğrusal renk uzayında RGBA rengi"
+
+
+msgid "RGBA color in sRGB color space"
+msgstr "sRGB renk uzayında RGBA rengi"
+
+
+msgid "8-bit Integer Attribute Value"
+msgstr "8 bit Tamsayı Öznitelik Değeri"
+
+
+msgid "8-bit value in geometry attribute"
+msgstr "Geometri özniteliği türünden 8 bit değer"
+
+
+msgid "Cache Layer"
+msgstr "Önbellek Katmanı"
+
+
+msgid "Layer of the cache, used to load or override data from the first the first layer"
+msgstr "İlk katmandan veri yüklemek veya geçersiz kılmak üzere kullanılan önbelleğin katmanı"
+
+
+msgid "Path to the archive"
+msgstr "Arşive olan yol"
+
+
+msgid "Hide Layer"
+msgstr "Katmanı Gizle"
+
+
+msgid "Do not load data from this layer"
+msgstr "Bu katmandan veri yükleme"
+
+
+msgid "Cache Layers"
+msgstr "Önbellek Katmanları"
+
+
+msgid "Collection of cache layers"
+msgstr "Önbellek katmanları koleksiyonu"
+
+
+msgid "Active Layer"
+msgstr "Etkin Katman"
+
+
+msgid "Active layer of the CacheFile"
+msgstr "Önbellek dosyasının etkin katmanı"
+
+
+msgid "Object Path"
+msgstr "Nesne Yolu"
+
+
+msgid "Path of an object inside of an Alembic archive"
+msgstr "Bir Alembic arşivinin içindeki nesnenin yolu"
 
 
 msgid "Path"
 msgstr "Yol"
 
 
+msgid "Object path"
+msgstr "Nesne yolu"
+
+
+msgid "Object Paths"
+msgstr "Nesne Yolları"
+
+
+msgid "Collection of object paths"
+msgstr "Nesne yolları koleksiyonu"
+
+
+msgid "Background Image"
+msgstr "Arka Plan Görseli"
+
+
+msgid "Image and settings for display in the 3D View background"
+msgstr "3B Görünüm arka planındaki ekran görseli ve ayarları"
+
+
+msgid "Opacity"
+msgstr "Matlık"
+
+
+msgid "Image opacity to blend the image against the background color"
+msgstr "Görseli arka plan rengiyle harmanlamak için görsel matlığı"
+
+
+msgid "MovieClip"
+msgstr "Film Klibi"
+
+
+msgid "Movie clip displayed and edited in this space"
+msgstr "Bu uzayda görüntülenen ve düzenlenen film klibi"
+
+
+msgid "Clip User"
+msgstr "Klip Kullanıcısı"
+
+
+msgid "Parameters defining which frame of the movie clip is displayed"
+msgstr "Film klibinin hangi karesinin görüntülendiğini tanımlayan parametreler"
+
+
+msgctxt "Camera"
+msgid "Depth"
+msgstr "Derinlik"
+
+
+msgid "Display under or over everything"
+msgstr "Her şeyin altında veya üstünde görüntüle"
+
+
+msgctxt "Camera"
+msgid "Back"
+msgstr "Arka"
+
+
+msgctxt "Camera"
+msgid "Front"
+msgstr "Ön"
+
+
+msgid "Frame Method"
+msgstr "Kare Yöntemi"
+
+
+msgid "How the image fits in the camera frame"
+msgstr "Görselin kamera karesine nasıl sığdığı"
+
+
+msgid "Stretch"
+msgstr "Ger"
+
+
+msgid "Fit"
+msgstr "Sığdır"
+
+
+msgid "Crop"
+msgstr "Kırp"
+
+
 msgid "Image"
-msgstr "Görüntü"
+msgstr "Görsel"
+
+
+msgid "Image displayed and edited in this space"
+msgstr "Bu uzayda görüntülenen ve düzenlenen görsel"
+
+
+msgid "Image User"
+msgstr "Görsel Kullanıcısı"
+
+
+msgid "Parameters defining which layer, pass and frame of the image is displayed"
+msgstr "Görselin hangi katmanının, geçişinin ve karesinin görüntülendiğini tanımlayan parametreler"
+
+
+msgid "Override Background Image"
+msgstr "Arka Plan Görselini Geçersiz Kıl"
+
+
+msgid "In a local override camera, whether this background image comes from the linked reference camera, or is local to the override"
+msgstr "Yerel bir geçersiz kılma kamerasında, bu arka plan görselinin bağlantılı başvuru kamerasından mı geldiği veya geçersiz kılmaya yerel mi olduğu"
+
+
+msgid "Offset"
+msgstr "Ofset"
 
 
 msgid "Rotation"
-msgstr "Dönme"
+msgstr "Döndürme"
+
+
+msgid "Rotation for the background image (ortho view only)"
+msgstr "Arka plan görseli için döndürme (yalnızca dik görünüm)"
 
 
 msgid "Scale"
 msgstr "Ölçekle"
+
+
+msgid "Scale the background image"
+msgstr "Arka plan görselini ölçekle"
+
+
+msgid "Show Background Image"
+msgstr "Arka Plan Görseli Olarak Göster"
+
+
+msgid "Show this image as background"
+msgstr "Bu görseli arka plan olarak göster"
+
+
+msgid "Show Expanded"
+msgstr "Genişletilmiş Göster"
+
+
+msgid "Show the details in the user interface"
+msgstr "Kullanıcı arayüzünde ayrıntıları göster"
+
+
+msgid "Show On Foreground"
+msgstr "Ön Planda Göster"
+
+
+msgid "Show this image in front of objects in viewport"
+msgstr "Bu görseli, görüş alanındaki nesnelerin önünde göster"
+
+
+msgid "Background Source"
+msgstr "Arka Plan Kaynağı"
+
+
+msgid "Data source used for background"
+msgstr "Arka plan için kullanılan veri kaynağı"
+
+
+msgid "Movie Clip"
+msgstr "Film Klibi"
+
+
+msgid "Camera Clip"
+msgstr "Kamera Klibi"
+
+
+msgid "Use movie clip from active scene camera"
+msgstr "Etkin sahne kamerasından film klibi kullan"
+
+
+msgid "Flip Horizontally"
+msgstr "Yatay Olarak Çevir"
+
+
+msgid "Flip the background image horizontally"
+msgstr "Arka plan görselini yatay olarak ters çevir"
+
+
+msgid "Flip Vertically"
+msgstr "Dikey Olarak Çevir"
+
+
+msgid "Flip the background image vertically"
+msgstr "Arka plan görselini dikey olarak ters çevir"
+
+
+msgid "Background Images"
+msgstr "Arka Plan Görselleri"
+
+
+msgid "Collection of background images"
+msgstr "Arka plan görselleri koleksiyonu"
+
+
+msgid "Depth of Field"
+msgstr "Derinlik Alanı"
+
+
+msgid "Depth of Field settings"
+msgstr "Derinlik Alanı ayarları"
 
 
 msgid "Center"
@@ -4262,7 +4886,7 @@ msgstr "Armatür"
 
 
 msgid "Default"
-msgstr "Varsayılan"
+msgstr "Saptanmış"
 
 
 msgid "Camera"
@@ -4271,6 +4895,10 @@ msgstr "Kamera"
 
 msgid "Bone"
 msgstr "Kemik"
+
+
+msgid "Quaternion"
+msgstr "Dördey"
 
 
 msgid "Vector Handle"
@@ -4337,6 +4965,41 @@ msgid "Data Path"
 msgstr "Veri Yolu"
 
 
+msgctxt "ID"
+msgid "Collection"
+msgstr "Koleksiyon"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Eğri"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Eğriler"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Yazıtipi"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Görsel"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Anahtar"
+
+
 msgid "Factor"
 msgstr "Faktör"
 
@@ -4399,6 +5062,14 @@ msgstr "Boyut"
 
 msgid "Use Global Coordinates"
 msgstr "Evrensel Kordinatları Kullan"
+
+
+msgid "Grease Pencil"
+msgstr "Gres Kalemi"
+
+
+msgid "Simulations"
+msgstr "Benzetimler"
 
 
 msgid "Save"
@@ -5544,7 +6215,7 @@ msgid ""
 msgstr ""
 "Görseli sunum renk yönetimiyle kaydet.\n"
 "PNG gibi görüntüleme biçimleri için görünümü uygula/dönüştürmeyi görüntüle.\n"
-"OpenEXR gibi orta halli görsel biçimleri için öntanımlı sunum çıktı renk uzayını kullan"
+"OpenEXR gibi orta halli görsel biçimleri için saptanmış sunum çıktı renk uzayını kullan"
 
 
 msgctxt "Operator"
@@ -6041,10 +6712,6 @@ msgid "Strand"
 msgstr "İplik"
 
 
-msgid "Collection of RetimingHandle"
-msgstr "Yeniden zamanlama tutacı koleksiyonu"
-
-
 msgid "Shadow Pool Size"
 msgstr "Gölge Havuzu Boyutu"
 
@@ -6144,6 +6811,10 @@ msgstr "Modül Hata Ayıklaması"
 
 msgid "Animation UI"
 msgstr "Canlandırma Arayüzü"
+
+
+msgid "Objects as"
+msgstr "Nesneler şöyle"
 
 
 msgid "Animate Settings:"

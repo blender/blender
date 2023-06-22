@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -414,10 +414,6 @@ msgid "Filename"
 msgstr "Bestandsnaam"
 
 
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
-
-
 msgid "Images"
 msgstr "Afbeeldingen"
 
@@ -796,10 +792,6 @@ msgstr "Succes"
 
 msgid "Invalid Input"
 msgstr "Ongeldige Invoer"
-
-
-msgid "Include"
-msgstr "Includeer"
 
 
 msgid "Collection Objects"
@@ -1385,6 +1377,10 @@ msgstr "2D"
 
 msgid "Fonts"
 msgstr "Lettertypen"
+
+
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
 
 
 msgid "Particles Settings"
@@ -2079,6 +2075,10 @@ msgstr "Uitschakelen in Renders"
 
 msgid "Disable Selection"
 msgstr "Selectie Uitschakelen"
+
+
+msgid "Include"
+msgstr "Includeer"
 
 
 msgid "Profile"
@@ -3839,12 +3839,17 @@ msgstr "Exporteer BVH"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Exporteer STL"
+msgid "Export PLY"
+msgstr "Exporteer PLY"
 
 
 msgid "Apply Modifiers"
 msgstr "Pas Aanpassers Toe"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Exporteer STL"
 
 
 msgctxt "Operator"
@@ -3878,6 +3883,15 @@ msgstr "Algemeen"
 
 msgid "Animation settings"
 msgstr "Animatie-instellingen"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Exporteer OBJ"
+
+
+msgid "Apply modifiers"
+msgstr "Pas aanpassers toe"
 
 
 msgctxt "Operator"
@@ -4378,6 +4392,11 @@ msgstr "Importeer Afbeeldingen als Vlakken"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importeer PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importeer STL"
 
@@ -4393,6 +4412,11 @@ msgstr "Importeer Animatie"
 
 msgid "Import FBX animation"
 msgstr "Importeer FBX Animatie"
+
+
+msgctxt "Operator"
+msgid "Import OBJ"
+msgstr "Importeer OBJ"
 
 
 msgctxt "Operator"
@@ -4845,6 +4869,15 @@ msgid "Toggle Force Field"
 msgstr "Krachtveld Aan/Uit"
 
 
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Voeg Vetkrijt Toe"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Voeg een vetkrijt object toe in de scene"
+
+
 msgid "Monkey"
 msgstr "Aap"
 
@@ -4866,15 +4899,6 @@ msgstr "Object Gegevens"
 msgctxt "Operator"
 msgid "Copy Modifier"
 msgstr "Kopieer Aanpasser"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Voeg Vetkrijt Toe"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Voeg een vetkrijt object toe in de scene"
 
 
 msgctxt "Operator"
@@ -5134,6 +5158,11 @@ msgstr "Voeg Groep van Punten Toe"
 msgctxt "Operator"
 msgid "Assign to New Group"
 msgstr "Koppel aan Nieuwe Groep"
+
+
+msgctxt "Operator"
+msgid "Copy Vertex Group"
+msgstr "Kopieer Groep van Punten"
 
 
 msgid "Add Weights"
@@ -6188,16 +6217,6 @@ msgid "Open a Blender file"
 msgstr "Open een Blender Bestand"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Exporteer PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importeer PLY"
-
-
 msgid "All Types"
 msgstr "Alle Types"
 
@@ -7198,11 +7217,6 @@ msgstr "Lettertype"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
-
-
-msgctxt "WindowManager"
 msgid "Sculpt"
 msgstr "Beeldhouwen"
 
@@ -7250,6 +7264,11 @@ msgstr "Console"
 msgctxt "WindowManager"
 msgid "Clip"
 msgstr "Clip"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
 
 
 msgctxt "WindowManager"
@@ -8223,6 +8242,11 @@ msgstr "Toon Waarschuwing"
 
 
 msgctxt "Operator"
+msgid "Make Default"
+msgstr "Maak Standaard"
+
+
+msgctxt "Operator"
 msgid "Install..."
 msgstr "Installeer..."
 
@@ -9081,6 +9105,10 @@ msgstr "Alleen"
 
 msgid "Object Options"
 msgstr "Objectopties"
+
+
+msgid "No filename given"
+msgstr "Geen bestandsnaam gegeven"
 
 
 msgid "Armature Options"

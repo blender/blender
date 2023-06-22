@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -765,10 +765,6 @@ msgstr "Путања до .blend датотеке"
 
 msgid "Vector Fonts"
 msgstr "Фонтови"
-
-
-msgid "Grease Pencil"
-msgstr "Скицирање"
 
 
 msgid "Images"
@@ -4257,6 +4253,10 @@ msgid "Fonts"
 msgstr "Фонтови"
 
 
+msgid "Grease Pencil"
+msgstr "Скицирање"
+
+
 msgid "File Select Parameters"
 msgstr "Параметри избора датотека"
 
@@ -6620,6 +6620,10 @@ msgstr "Петље"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "Одређује тврдоћу сјаја"
+
+
+msgid "String Property Layers"
+msgstr "Слојеви текстуалне особине"
 
 
 msgid "Polygons of the mesh"
@@ -9463,6 +9467,10 @@ msgid "Splash"
 msgstr "Уводни прозор"
 
 
+msgid "Bevel Weight"
+msgstr "Тежина искошавања"
+
+
 msgid "Freestyle Edge Mark"
 msgstr "Слободоручне ознаке ивица"
 
@@ -9901,10 +9909,6 @@ msgstr "Модификатор деформације криве"
 
 msgid "Deform Axis"
 msgstr "Оса деформације"
-
-
-msgid "Bevel Weight"
-msgstr "Тежина искошавања"
 
 
 msgid "Freestyle"
@@ -11423,10 +11427,6 @@ msgid "Tracking Object"
 msgstr "Објекат за праћење"
 
 
-msgid "Smoothing"
-msgstr "Умекшање"
-
-
 msgid "Lens Distortion"
 msgstr "Изобличавање сочива"
 
@@ -11763,8 +11763,8 @@ msgid "Background"
 msgstr "Позадина"
 
 
-msgid "Glossy BSDF"
-msgstr "Сјајно BSDF"
+msgid "Anisotropic BSDF"
+msgstr "Анизотропно BSDF"
 
 
 msgid "Diffuse BSDF"
@@ -11773,6 +11773,10 @@ msgstr "Дифузно BSDF"
 
 msgid "Glass BSDF"
 msgstr "Стакло BSDF"
+
+
+msgid "Glossy BSDF"
+msgstr "Сјајно BSDF"
 
 
 msgid "Hair BSDF"
@@ -14142,12 +14146,8 @@ msgstr "Ојлер (ZYX)"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Извоз у STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
+msgid "Export PLY"
+msgstr "Извоз PLY"
 
 
 msgid "Y Up"
@@ -14168,6 +14168,15 @@ msgstr "Горе по -Z"
 
 msgid "Selection Only"
 msgstr "Само изабрано"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Извоз у STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
 
 
 msgctxt "Operator"
@@ -14193,6 +14202,10 @@ msgstr "Активна сцена у датотеку"
 
 msgid "Each scene as a file"
 msgstr "Свака сцена као датотека"
+
+
+msgid "Smoothing"
+msgstr "Умекшање"
 
 
 msgid "Write face smoothing"
@@ -14261,6 +14274,39 @@ msgstr "Троугласте странице"
 
 msgid "Convert all faces to triangles"
 msgstr "Претврои све странице у троуглове"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Извоз OBJ"
+
+
+msgid "Material Groups"
+msgstr "Група материјала"
+
+
+msgid "Keep Vertex Order"
+msgstr "Сачувај низ темена"
+
+
+msgid "Include Edges"
+msgstr "Укључи ивице"
+
+
+msgid "Write Materials"
+msgstr "Уписуј материјал"
+
+
+msgid "Write Normals"
+msgstr "Уписуј нормале"
+
+
+msgid "Smooth Groups"
+msgstr "Групе умекшања"
+
+
+msgid "Include UVs"
+msgstr "Укључи UV"
 
 
 msgid "Compress"
@@ -15204,6 +15250,15 @@ msgstr "Сенчења"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Увоз PLY"
+
+
+msgid "File path used for importing the PLY file"
+msgstr "Путања за упис датотеке"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "Увоз у STL"
 
@@ -15219,6 +15274,11 @@ msgstr "Претрага слика"
 
 msgid "Manual Orientation"
 msgstr "Ручна оријентација"
+
+
+msgctxt "Operator"
+msgid "Import OBJ"
+msgstr "Увоз OBJ"
 
 
 msgctxt "Operator"
@@ -20403,16 +20463,6 @@ msgstr "Додај или уклони предефинисани операто
 
 msgid "Open a path in a file browser"
 msgstr "Отвори путању у прегледачу датотека"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Извоз PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Увоз PLY"
 
 
 msgctxt "Operator"
@@ -26847,12 +26897,8 @@ msgid "%d items"
 msgstr "%d ставки"
 
 
-msgid "Material Groups"
-msgstr "Група материјала"
-
-
-msgid "Smooth Groups"
-msgstr "Групе умекшања"
+msgid "No filename given"
+msgstr "Без имена датотеке"
 
 
 msgctxt "Mesh"
@@ -27190,12 +27236,12 @@ msgid "Blender Render"
 msgstr "Blender рендеринг"
 
 
-msgid "Flip to Top"
-msgstr "Обрни ка врху"
-
-
 msgid "Flip to Bottom"
 msgstr "Обрни ка дну"
+
+
+msgid "Flip to Top"
+msgstr "Обрни ка врху"
 
 
 msgid "No active camera set"
@@ -27717,16 +27763,16 @@ msgid "Edge Crease"
 msgstr "Набор ивице"
 
 
+msgid "Anisotropy"
+msgstr "Анизотропно"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
-
-
-msgid "Anisotropy"
-msgstr "Анизотропно"
 
 
 msgid "RoughnessU"
