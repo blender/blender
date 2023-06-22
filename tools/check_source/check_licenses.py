@@ -367,7 +367,7 @@ def report_statistics() -> None:
     files_total = sum(SPDX_IDENTIFIER_STATS.values())
     files_unknown = SPDX_IDENTIFIER_STATS[SPDX_IDENTIFIER_UNKNOWN]
     files_percent = (1.0 - (files_unknown / files_total)) * 100.0
-    title = "License Statistics in {:d} Files, {:.2f}% Complete".format(files_total, files_percent)
+    title = "License Statistics in {:,d} Files, {:.2f}% Complete".format(files_total, files_percent)
     print("#" * len(title))
     print(title)
     print("#" * len(title))
@@ -375,10 +375,12 @@ def report_statistics() -> None:
     max_length = max(len(k) for k in SPDX_IDENTIFIER_STATS.keys())
     print("  License:" + (" " * (max_length - 7)) + "Files:")
     print("")
-    for k, v in sorted(SPDX_IDENTIFIER_STATS.items()):
-        if not v:
+    items = [(k, "{:,d}".format(v)) for k, v in sorted(SPDX_IDENTIFIER_STATS.items())]
+    v_max = max([len(v) for _, v in items])
+    for k, v in items:
+        if v == "0":
             continue
-        print("-", k + " " * (max_length - len(k)), v)
+        print("-", k + " " * (max_length - len(k)), (" " * (v_max - len(v))) + v)
     print("")
 
 
