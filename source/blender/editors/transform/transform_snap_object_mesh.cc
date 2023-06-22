@@ -18,6 +18,12 @@
 
 #include "transform_snap_object.hh"
 
+#ifdef DEBUG_SNAP_TIME
+#  if WIN32 and NDEBUG
+#    pragma optimize("O", on)
+#  endif
+#endif
+
 using namespace blender;
 
 /* -------------------------------------------------------------------- */
@@ -230,8 +236,78 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Callbacks
+/** \name Subclass for Snapping to Edges or Points of a Mesh
  * \{ */
+
+class Nearest2dUserData_Mesh : public Nearest2dUserData {
+ public:
+  const float3 *vert_positions;
+  const float3 *vert_normals;
+  const int2 *edges; /* only used for #BVHTreeFromMeshEdges */
+  const int *corner_verts;
+  const int *corner_edges;
+  const MLoopTri *looptris;
+
+  Nearest2dUserData_Mesh(SnapObjectContext *sctx,
+                         Object *ob_eval,
+                         const ID *id_eval,
+                         const float4x4 &obmat)
+      : Nearest2dUserData(sctx, ob_eval, id_eval, obmat)
+  {
+    const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id_eval);
+    this->vert_positions = mesh_eval->vert_positions().data();
+    this->vert_normals = mesh_eval->vert_normals().data();
+    this->edges = mesh_eval->edges().data();
+    this->corner_verts = mesh_eval->corner_verts().data();
+    this->corner_edges = mesh_eval->corner_edges().data();
+    this->looptris = mesh_eval->looptris().data();
+  };
+
+  void get_vert_co(const int index, const float **r_co)
+  {
+    *r_co = this->vert_positions[index];
+  }
+
+  void get_edge_verts_index(const int index, int r_v_index[2])
+  {
+    const blender::int2 &edge = this->edges[index];
+    r_v_index[0] = edge[0];
+    r_v_index[1] = edge[1];
+  }
+
+  void get_tri_verts_index(const int index, int r_v_index[3])
+  {
+    const int *corner_verts = this->corner_verts;
+    const MLoopTri *looptri = &this->looptris[index];
+    r_v_index[0] = corner_verts[looptri->tri[0]];
+    r_v_index[1] = corner_verts[looptri->tri[1]];
+    r_v_index[2] = corner_verts[looptri->tri[2]];
+  }
+
+  void get_tri_edges_index(const int index, int r_e_index[3])
+  {
+    const blender::int2 *edges = this->edges;
+    const int *corner_verts = this->corner_verts;
+    const int *corner_edges = this->corner_edges;
+    const MLoopTri *lt = &this->looptris[index];
+    for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
+      const blender::int2 &edge = edges[corner_edges[lt->tri[j]]];
+      const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
+      if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
+        // printf("real edge found\n");
+        r_e_index[j] = corner_edges[lt->tri[j]];
+      }
+      else {
+        r_e_index[j] = -1;
+      }
+    }
+  }
+
+  void copy_vert_no(const int index, float r_no[3])
+  {
+    copy_v3_v3(r_no, this->vert_normals[index]);
+  }
+};
 
 static void cb_snap_edge_verts(void *userdata,
                                int index,
@@ -240,12 +316,43 @@ static void cb_snap_edge_verts(void *userdata,
                                const int clip_plane_len,
                                BVHTreeNearest *nearest)
 {
-  Nearest2dUserData *data = static_cast<Nearest2dUserData *>(userdata);
+  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
 
   int vindex[2];
-  data->get_edge_verts_index(index, data, vindex);
+  data->get_edge_verts_index(index, vindex);
 
   for (int i = 2; i--;) {
+    if (vindex[i] == nearest->index) {
+      continue;
+    }
+    cb_snap_vert(userdata, vindex[i], precalc, clip_plane, clip_plane_len, nearest);
+  }
+}
+
+static void cb_snap_tri_verts(void *userdata,
+                              int index,
+                              const DistProjectedAABBPrecalc *precalc,
+                              const float (*clip_plane)[4],
+                              const int clip_plane_len,
+                              BVHTreeNearest *nearest)
+{
+  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
+
+  int vindex[3];
+  data->get_tri_verts_index(index, vindex);
+
+  if (data->use_backface_culling) {
+    const float *t0, *t1, *t2;
+    data->get_vert_co(vindex[0], &t0);
+    data->get_vert_co(vindex[1], &t1);
+    data->get_vert_co(vindex[2], &t2);
+    float dummy[3];
+    if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
+      return;
+    }
+  }
+
+  for (int i = 3; i--;) {
     if (vindex[i] == nearest->index) {
       continue;
     }
@@ -260,16 +367,16 @@ static void cb_snap_tri_edges(void *userdata,
                               const int clip_plane_len,
                               BVHTreeNearest *nearest)
 {
-  Nearest2dUserData *data = static_cast<Nearest2dUserData *>(userdata);
+  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
 
   if (data->use_backface_culling) {
     int vindex[3];
-    data->get_tri_verts_index(index, data, vindex);
+    data->get_tri_verts_index(index, vindex);
 
     const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], data, &t0);
-    data->get_vert_co(vindex[1], data, &t1);
-    data->get_vert_co(vindex[2], data, &t2);
+    data->get_vert_co(vindex[0], &t0);
+    data->get_vert_co(vindex[1], &t1);
+    data->get_vert_co(vindex[2], &t2);
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -277,7 +384,7 @@ static void cb_snap_tri_edges(void *userdata,
   }
 
   int eindex[3];
-  data->get_tri_edges_index(index, data, eindex);
+  data->get_tri_edges_index(index, eindex);
   for (int i = 3; i--;) {
     if (eindex[i] != -1) {
       if (eindex[i] == nearest->index) {
@@ -286,100 +393,6 @@ static void cb_snap_tri_edges(void *userdata,
       cb_snap_edge(userdata, eindex[i], precalc, clip_plane, clip_plane_len, nearest);
     }
   }
-}
-
-static void cb_snap_tri_verts(void *userdata,
-                              int index,
-                              const DistProjectedAABBPrecalc *precalc,
-                              const float (*clip_plane)[4],
-                              const int clip_plane_len,
-                              BVHTreeNearest *nearest)
-{
-  Nearest2dUserData *data = static_cast<Nearest2dUserData *>(userdata);
-
-  int vindex[3];
-  data->get_tri_verts_index(index, data, vindex);
-
-  if (data->use_backface_culling) {
-    const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], data, &t0);
-    data->get_vert_co(vindex[1], data, &t1);
-    data->get_vert_co(vindex[2], data, &t2);
-    float dummy[3];
-    if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
-      return;
-    }
-  }
-
-  for (int i = 3; i--;) {
-    if (vindex[i] == nearest->index) {
-      continue;
-    }
-    cb_snap_vert(userdata, vindex[i], precalc, clip_plane, clip_plane_len, nearest);
-  }
-}
-
-static void cb_mvert_co_get(const int index, const Nearest2dUserData *data, const float **r_co)
-{
-  *r_co = data->vert_positions[index];
-}
-
-static void cb_mvert_no_copy(const int index, const Nearest2dUserData *data, float r_no[3])
-{
-  copy_v3_v3(r_no, data->vert_normals[index]);
-}
-
-static void cb_medge_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[2])
-{
-  const blender::int2 &edge = data->edges[index];
-
-  r_v_index[0] = edge[0];
-  r_v_index[1] = edge[1];
-}
-
-static void cb_mlooptri_edges_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
-{
-  const blender::int2 *edges = data->edges;
-  const int *corner_verts = data->corner_verts;
-  const int *corner_edges = data->corner_edges;
-  const MLoopTri *lt = &data->looptris[index];
-  for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-    const blender::int2 &edge = edges[corner_edges[lt->tri[j]]];
-    const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
-    if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
-      // printf("real edge found\n");
-      r_v_index[j] = corner_edges[lt->tri[j]];
-    }
-    else {
-      r_v_index[j] = -1;
-    }
-  }
-}
-
-static void cb_mlooptri_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[3])
-{
-  const int *corner_verts = data->corner_verts;
-  const MLoopTri *looptri = &data->looptris[index];
-
-  r_v_index[0] = corner_verts[looptri->tri[0]];
-  r_v_index[1] = corner_verts[looptri->tri[1]];
-  r_v_index[2] = corner_verts[looptri->tri[2]];
-}
-
-void nearest2d_data_init_mesh(const Mesh *mesh, Nearest2dUserData *r_nearest2d)
-{
-  r_nearest2d->get_vert_co = cb_mvert_co_get;
-  r_nearest2d->get_edge_verts_index = cb_medge_verts_get;
-  r_nearest2d->copy_vert_no = cb_mvert_no_copy;
-  r_nearest2d->get_tri_verts_index = cb_mlooptri_verts_get;
-  r_nearest2d->get_tri_edges_index = cb_mlooptri_edges_get;
-
-  r_nearest2d->vert_positions = mesh->vert_positions().data();
-  r_nearest2d->vert_normals = mesh->vert_normals().data();
-  r_nearest2d->edges = mesh->edges().data();
-  r_nearest2d->corner_verts = mesh->corner_verts().data();
-  r_nearest2d->corner_edges = mesh->corner_edges().data();
-  r_nearest2d->looptris = mesh->looptris().data();
 }
 
 /** \} */
@@ -399,9 +412,8 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
-  Nearest2dUserData nearest2d(sctx, ob_eval, id, float4x4(obmat));
+  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, id, float4x4(obmat));
   nearest2d.clip_planes_enable();
-  nearest2d_data_init_mesh(mesh_eval, &nearest2d);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -443,6 +455,17 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
   return SCE_SNAP_MODE_NONE;
 }
 
+eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
+                                Object *ob_eval,
+                                const ID *id,
+                                const float obmat[4][4],
+                                float dist_pex_sq_orig,
+                                int edge)
+{
+  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, id, float4x4(obmat));
+  return nearest2d.snap_edge_points(edge, dist_pex_sq_orig);
+}
+
 static eSnapMode snapMesh(SnapObjectContext *sctx,
                           Object *ob_eval,
                           const Mesh *me_eval,
@@ -457,7 +480,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     return SCE_SNAP_MODE_NONE;
   }
 
-  Nearest2dUserData nearest2d(sctx, ob_eval, &me_eval->id, float4x4(obmat));
+  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, &me_eval->id, float4x4(obmat));
 
   if (ob_eval->data == me_eval) {
     const BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
@@ -478,7 +501,6 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   }
 
   nearest2d.clip_planes_enable();
-  nearest2d_data_init_mesh(me_eval, &nearest2d);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
