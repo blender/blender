@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -227,10 +227,6 @@ msgstr "Чачылар"
 
 msgid "Filename"
 msgstr "Файл аты"
-
-
-msgid "Grease Pencil"
-msgstr "Эскиз карандашы"
 
 
 msgid "Images"
@@ -785,6 +781,10 @@ msgstr "Өлчөмү"
 
 msgid "Fonts"
 msgstr "Ариптер"
+
+
+msgid "Grease Pencil"
+msgstr "Эскиз карандашы"
 
 
 msgid "Save"
@@ -3151,11 +3151,6 @@ msgstr "Арип"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Эскиз карандашы"
-
-
-msgctxt "WindowManager"
 msgid "Particle"
 msgstr "Бөлүкчө"
 
@@ -3198,6 +3193,11 @@ msgstr "Консоль"
 msgctxt "WindowManager"
 msgid "Clip"
 msgstr "Видеофрагмент"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Эскиз карандашы"
 
 
 msgctxt "WindowManager"
@@ -3941,12 +3941,12 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "BSDF"
-msgstr "BSDF"
-
-
 msgid "Anisotropy"
 msgstr "Анизотропия"
+
+
+msgid "BSDF"
+msgstr "BSDF"
 
 
 msgid "Transparency"

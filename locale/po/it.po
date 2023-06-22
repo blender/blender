@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -870,10 +870,6 @@ msgid "Boolean"
 msgstr "Booleano"
 
 
-msgid "Quaternion"
-msgstr "Quaternione"
-
-
 msgid "Domain"
 msgstr "Dominio"
 
@@ -1280,10 +1276,6 @@ msgstr "Font Vettoriali"
 
 msgid "Vector font data-blocks"
 msgstr "Blocchi-dati Caratteri vettoriali"
-
-
-msgid "Grease Pencil"
-msgstr "Matita"
 
 
 msgid "Images"
@@ -5575,6 +5567,10 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Valore più basso dell'intervallo origine del movimento sull'asse X"
 
 
+msgid "Quaternion"
+msgstr "Quaternione"
+
+
 msgid "Map From"
 msgstr "Mappa Da"
 
@@ -8388,6 +8384,10 @@ msgstr "Entrambe Z"
 
 msgid "Fonts"
 msgstr "Caratteri"
+
+
+msgid "Grease Pencil"
+msgstr "Matita"
 
 
 msgid "Freestyle Linestyles"
@@ -11941,10 +11941,6 @@ msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Modifica i tratti Matita anziché i dati della vista"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Blocco-dati Matita"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "Blocco-dati Immagine che referenzia un'immagine esterna o incorporata"
 
@@ -13027,6 +13023,10 @@ msgid "Grease Pencil Data"
 msgstr "Dati Matita"
 
 
+msgid "Grease Pencil data-block"
+msgstr "Blocco-dati Matita"
+
+
 msgid "Inputs"
 msgstr "Ingressi"
 
@@ -13794,6 +13794,10 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "Quantità di particelle lasciate intatte per la lunghezza del percorso figlio"
 
 
+msgid "Children Per Parent"
+msgstr "Figli Per Genitore"
+
+
 msgid "Parting Factor"
 msgstr "Fattore Separazione"
 
@@ -13804,10 +13808,6 @@ msgstr "Separazione Massima"
 
 msgid "Parting Minimum"
 msgstr "Separazione Minima"
-
-
-msgid "Children Per Parent"
-msgstr "Figli Per Genitore"
 
 
 msgid "Child Radius"
@@ -18736,6 +18736,18 @@ msgid "Edge in a Mesh data-block"
 msgstr "Spigolo in un blocco-dati Mesh"
 
 
+msgid "Bevel Weight"
+msgstr "Peso Smusso"
+
+
+msgid "Weight used by the Bevel modifier"
+msgstr "Peso usato dal modificatore Smusso"
+
+
+msgid "Weight used by the Subdivision Surface modifier for creasing"
+msgstr "Peso usato del modificatore Suddivisione Superficie per la piegatura"
+
+
 msgid "Index of this edge"
 msgstr "Indice di questo spigolo"
 
@@ -19638,10 +19650,6 @@ msgstr "Cucitura UV"
 
 msgid "Transfer UV seam mark"
 msgstr "Trasferisce la marcatura Cucitura UV"
-
-
-msgid "Bevel Weight"
-msgstr "Peso Smusso"
 
 
 msgid "Transfer bevel weights"
@@ -22632,6 +22640,10 @@ msgid "Width of the node"
 msgstr "Larghezza del nodo"
 
 
+msgid "Width Hidden"
+msgstr "Larghezza da Nascosto"
+
+
 msgid "Custom Group"
 msgstr "Gruppo Personalizzato"
 
@@ -23449,14 +23461,6 @@ msgid "Tracking Object"
 msgstr "Oggetto Tracciamento"
 
 
-msgid "Smoothing"
-msgstr "Levigatura"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropico"
-
-
 msgid "Lens Distortion"
 msgstr "Distorsione Lente"
 
@@ -23914,20 +23918,20 @@ msgid "Blackbody"
 msgstr "Corpo Nero"
 
 
-msgid "Glossy BSDF"
-msgstr "Lucido BSDF"
+msgid "Anisotropic BSDF"
+msgstr "Anisotropico BSDF"
 
 
 msgid "Beckmann"
 msgstr "Beckmann"
 
 
-msgid "Ashikhmin-Shirley"
-msgstr "Ashikhmin-Shirley"
-
-
 msgid "Multiscatter GGX"
 msgstr "Multiscatter GGX"
+
+
+msgid "Ashikhmin-Shirley"
+msgstr "Ashikhmin-Shirley"
 
 
 msgid "Diffuse BSDF"
@@ -23936,6 +23940,10 @@ msgstr "Diffuso BSDF"
 
 msgid "Glass BSDF"
 msgstr "Vetro BSDF"
+
+
+msgid "Glossy BSDF"
+msgstr "Lucido BSDF"
 
 
 msgid "Hair BSDF"
@@ -28202,16 +28210,8 @@ msgstr "Converte le rotazioni nell'euleriana ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Esporta STL"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Salva il file nel formato di file ASCII"
+msgid "Export PLY"
+msgstr "Esporta PLY"
 
 
 msgid "X Forward"
@@ -28258,6 +28258,39 @@ msgid "-Z Up"
 msgstr "-Z In Alto"
 
 
+msgid "Export the active vertex color layer"
+msgstr "Esporta il livello colori vertice attivo"
+
+
+msgid "Apply Modifiers"
+msgstr "Applica Modificatori"
+
+
+msgid "Apply Modifiers to the exported mesh"
+msgstr "Applica i modificatori alle mesh esportate"
+
+
+msgid "Selection Only"
+msgstr "Solo Selezione"
+
+
+msgid "Export selected objects only"
+msgstr "Esporta solo gli oggetti selezionati"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Esporta STL"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Salva il file nel formato di file ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Modo Batch"
 
@@ -28270,24 +28303,12 @@ msgid "Each object as a file"
 msgstr "Ogni oggetto come un file"
 
 
-msgid "Apply Modifiers"
-msgstr "Applica Modificatori"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Applica i modificatori prima di salvare"
 
 
 msgid "Scene Unit"
 msgstr "Unità Scena"
-
-
-msgid "Selection Only"
-msgstr "Solo Selezione"
-
-
-msgid "Export selected objects only"
-msgstr "Esporta solo gli oggetti selezionati"
 
 
 msgctxt "Operator"
@@ -28353,6 +28374,10 @@ msgstr "Incorpora Texture"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Scala tutti i dati (Alcuni importatori non supportano le armature scalate!)"
+
+
+msgid "Smoothing"
+msgstr "Levigatura"
 
 
 msgid "Normals Only"
@@ -28469,6 +28494,67 @@ msgstr "Converte tutte le facce in triangoli"
 
 msgid "General"
 msgstr "Generale"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Esporta OBJ"
+
+
+msgid "Save a Wavefront OBJ File"
+msgstr "Salva in un file Wavefront OBJ"
+
+
+msgid "Material Groups"
+msgstr "Gruppi Materiale"
+
+
+msgid "Keep Vertex Order"
+msgstr "Mantieni Ordine Vertici"
+
+
+msgid "Write out an OBJ for each frame"
+msgstr "Scrive un OBJ per ogni fotogramma"
+
+
+msgid "Include Edges"
+msgstr "Includi Spigoli"
+
+
+msgid "Write Materials"
+msgstr "Scrivi Materiali"
+
+
+msgid "Write out the MTL file"
+msgstr "Scrive il file MTL"
+
+
+msgid "Apply modifiers"
+msgstr "Applica modificatori"
+
+
+msgid "Write Normals"
+msgstr "Scrivi Normali"
+
+
+msgid "Write Nurbs"
+msgstr "Scrivi Nurbs"
+
+
+msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
+msgstr "Scrivi curve nurbs come OBJ nurbs anziché convertire la geometria"
+
+
+msgid "Include UVs"
+msgstr "Includi UV"
+
+
+msgid "Write out the active UV coordinates"
+msgstr "Esporta le coordinate UV attive"
+
+
+msgid "Polygroups"
+msgstr "Gruppi Multipli"
 
 
 msgid "Compress"
@@ -29917,26 +30003,6 @@ msgid "Reset viewable area to show selected keyframe range"
 msgstr "Ripristina l'area visibile per mostrare tutti i fotogrammi chiave selezionati"
 
 
-msgid "Stroke Mode"
-msgstr "Modalità Tratto"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "Azione intrapresa quando viene fatto un tratto di pittura"
-
-
-msgid "Apply brush normally"
-msgstr "Applica il pennello normalmente"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Inverte l'azione del pennello per la durata del tratto"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
-
-
 msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Aggiungi Slot Render"
@@ -30338,6 +30404,19 @@ msgstr "Senza ombre"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Importa PLY"
+
+
+msgid "Load a PLY geometry file"
+msgstr "Carica un file geometria PLY"
+
+
+msgid "File path used for importing the PLY file"
+msgstr "Percorso usato per importare il file PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "Importa STL"
 
@@ -30413,6 +30492,55 @@ msgstr "Specifica orientamento e scala, anzichè usare quelli inclusi nel file F
 
 msgid "Use Pre/Post Rotation"
 msgstr "Usa Pre/Post Rotazione"
+
+
+msgctxt "Operator"
+msgid "Import OBJ"
+msgstr "Importa OBJ"
+
+
+msgid "Load a Wavefront OBJ File"
+msgstr "Carica un file Wavefront OBJ"
+
+
+msgid "Clamp Size"
+msgstr "Blocca Dimensione"
+
+
+msgid "Clamp bounds under this value (zero to disable)"
+msgstr "Blocca i confini al di sotto di questo valore (zero per disabilitare)"
+
+
+msgid "Keep Vert Order"
+msgstr "Mantieni Ordine Vertici"
+
+
+msgid "Keep vertex order from file"
+msgstr "Mantiene l'ordine dei vertici del file"
+
+
+msgid "Import lines and faces with 2 verts as edge"
+msgstr "Importa linee e facce con 2 vertici come spigoli"
+
+
+msgid "Poly Groups"
+msgstr "Gruppi Poly"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Importa gruppi OBJ come gruppo di vertici"
+
+
+msgid "Search subdirs for any associated images (Warning, may be slow)"
+msgstr "Ricerca nelle sottodrectory per qualsiasi immagine associata (Attenzione, può essere lento)"
+
+
+msgid "Import OBJ Groups into Blender Objects"
+msgstr "Importa Gruppi OBJ in Oggetti Blender"
+
+
+msgid "Import OBJ Objects into Blender Objects"
+msgstr "Importa Oggetti OBJ in Oggetti Blender"
 
 
 msgctxt "Operator"
@@ -34924,6 +35052,11 @@ msgid "Remove vertices which weight is below or equal to this limit"
 msgstr "Rimuove i vertici i cui peso è sotto o uguale a questo limite"
 
 
+msgctxt "Operator"
+msgid "Copy Vertex Group"
+msgstr "Copia Gruppo Vertici"
+
+
 msgid "Make a copy of the active vertex group"
 msgstr "Crea una copia del gruppo vertici attivo"
 
@@ -35784,6 +35917,26 @@ msgstr "Pittura Immagine"
 
 msgid "Paint a stroke into the image"
 msgstr "Dipinge un tratto in una immagine"
+
+
+msgid "Stroke Mode"
+msgstr "Modalità Tratto"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Azione intrapresa quando viene fatto un tratto di pittura"
+
+
+msgid "Apply brush normally"
+msgstr "Applica il pennello normalmente"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Inverte l'azione del pennello per la durata del tratto"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 
 msgid "Value Inverted"
@@ -39061,6 +39214,10 @@ msgid "Single Side"
 msgstr "Lato Singolo"
 
 
+msgid "Snap to increments of grid"
+msgstr "Snap agli incrementi di griglia"
+
+
 msgid "Snap to vertices"
 msgstr "Snap ai vertici"
 
@@ -41123,10 +41280,6 @@ msgid "Print memory statistics to the console"
 msgstr "Stampa la statistica della memoria nella console"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Importa gruppi OBJ come gruppo di vertici"
-
-
 msgid "Open a Blender file"
 msgstr "Apre un file Blender"
 
@@ -41171,16 +41324,6 @@ msgstr "Aggiunge o rimuove una Preimpostazione Operatore"
 
 msgid "Open a path in a file browser"
 msgstr "Apre un percorso nel file browser"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Esporta PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Importa PLY"
 
 
 msgctxt "Operator"
@@ -50479,10 +50622,6 @@ msgid "Snap UV Element"
 msgstr "Snap Elemento UV"
 
 
-msgid "Snap to increments of grid"
-msgstr "Snap agli incrementi di griglia"
-
-
 msgid "Mesh Statistics Visualization"
 msgstr "Visualizzazione Statistiche Mesh"
 
@@ -50807,6 +50946,10 @@ msgid "Color of the light's specular highlight"
 msgstr "Colore della luce speculare brillante"
 
 
+msgid "Vertex Float Properties"
+msgstr "Proprietà Float Vertice"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Gruppo di vertici, usato per deformare l'armatura e per altri usi"
 
@@ -50829,6 +50972,14 @@ msgstr "Gruppo Vertici Attivo"
 
 msgid "Active Vertex Group Index"
 msgstr "Indice Gruppo Vertici Attivo"
+
+
+msgid "Vertex Int Properties"
+msgstr "Proprietà Int. Vertice"
+
+
+msgid "Vertex String Properties"
+msgstr "Proprietà Stringa Vertice"
 
 
 msgid "Grid Lines"
@@ -51194,11 +51345,6 @@ msgstr "Carattere"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Matita"
-
-
-msgctxt "WindowManager"
 msgid "Pose"
 msgstr "Posa"
 
@@ -51391,6 +51537,11 @@ msgstr "Clip Editor Grafi"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "Clip Editor DopeSheet"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Matita"
 
 
 msgctxt "WindowManager"
@@ -54311,6 +54462,16 @@ msgstr "Estrudi Spigoli"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Estrudi Facce"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Estrudi Facce Lungo Le Normali"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Solidifica Facce"
 
@@ -54611,16 +54772,6 @@ msgstr "Ruota Spigolo in Senso Antiorario"
 msgctxt "Operator"
 msgid "Clear Sharp"
 msgstr "Smarca come Netto"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Estrudi Facce"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Estrudi Facce Lungo Le Normali"
 
 
 msgctxt "Operator"
@@ -55902,6 +56053,14 @@ msgid "Active button not found"
 msgstr "Bottone attivo non trovato"
 
 
+msgid "File '%s' cannot be opened"
+msgstr "Il file '%s' non può essere aperto"
+
+
+msgid "See '%s' in the text editor"
+msgstr "Vedi '%s' nell'editor testi"
+
+
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
 msgstr "Impossibile trovare l'operatore '%s'! Per favore abilita l'addon ui_translate nelle Preferenze Utente"
 
@@ -56160,6 +56319,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Naviga Impostazioni Particella del Mondo da collegare"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Naviga Dati della Matita da collegare"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Naviga Filmato da collegare"
 
@@ -56178,10 +56341,6 @@ msgstr "Naviga Dati Pittura Curva da collegare"
 
 msgid "Browse Cache Files to be linked"
 msgstr "Naviga File Cache da collegare"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Naviga Dati della Matita da collegare"
 
 
 msgid "Browse ID data to be linked"
@@ -56319,6 +56478,10 @@ msgid "Object Options"
 msgstr "Opzioni Oggetto"
 
 
+msgid "No filename given"
+msgstr "Nessun nome file"
+
+
 msgid "No objects selected -- Created empty export file"
 msgstr "Nessun oggetto selezionato -- Creato un file esportato vuoto"
 
@@ -56329,10 +56492,6 @@ msgstr "Errore durante l'esportazione (vedi Console)"
 
 msgid "Object Groups"
 msgstr "Gruppi Oggetto"
-
-
-msgid "Material Groups"
-msgstr "Gruppi Materiale"
 
 
 msgid "Mesh Data"
@@ -57183,12 +57342,12 @@ msgid "Full Screen Area"
 msgstr "Area a Schermo Intero"
 
 
-msgid "Flip to Top"
-msgstr "Sposta sopra la vista"
-
-
 msgid "Flip to Bottom"
 msgstr "Sposta sotto la vista"
+
+
+msgid "Flip to Top"
+msgstr "Sposta sopra la vista"
 
 
 msgid "Blender Preferences"
@@ -57880,14 +58039,6 @@ msgstr "Impossibile salvare '%s': %s"
 
 msgid "Text not found: %s"
 msgstr "Testo non trovato: %s"
-
-
-msgid "File '%s' cannot be opened"
-msgstr "Il file '%s' non può essere aperto"
-
-
-msgid "See '%s' in the text editor"
-msgstr "Vedi '%s' nell'editor testi"
 
 
 msgid "No Recent Files"
@@ -59145,16 +59296,16 @@ msgid "AO"
 msgstr "OA"
 
 
+msgid "Anisotropy"
+msgstr "Anisotropia"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "Indice Di Rifrazione"
-
-
-msgid "Anisotropy"
-msgstr "Anisotropia"
 
 
 msgid "RoughnessU"
@@ -59183,6 +59334,10 @@ msgstr "Raggio Subsuperficie"
 
 msgid "Specular Tint"
 msgstr "Tinta Speculare"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropico"
 
 
 msgid "Anisotropic Rotation"

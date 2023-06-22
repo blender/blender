@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -1281,10 +1281,6 @@ msgid "32-bit signed integer vector"
 msgstr "32ビット符号付き整数ベクトル"
 
 
-msgid "Quaternion"
-msgstr "クォータニオン"
-
-
 msgid "Domain"
 msgstr "ドメイン"
 
@@ -2019,10 +2015,6 @@ msgid "Grease Pencil (legacy) data-blocks"
 msgstr "グリースペンシル（旧）データブロック"
 
 
-msgid "Grease Pencil"
-msgstr "グリースペンシル"
-
-
 msgid "Hair Curves"
 msgstr "ヘアーカーブ"
 
@@ -2205,10 +2197,6 @@ msgstr "シェイプキー"
 
 msgid "Shape Key data-blocks"
 msgstr "シェイプキーデータブロック"
-
-
-msgid "Simulations"
-msgstr "シミュレーション"
 
 
 msgid "Sounds"
@@ -5692,14 +5680,6 @@ msgid "Collection of child collections"
 msgstr "子コレクションの集合"
 
 
-msgid "Include"
-msgstr "内容"
-
-
-msgid "Exclude"
-msgstr "排他"
-
-
 msgid "Collection Objects"
 msgstr "コレクションオブジェクト"
 
@@ -8469,6 +8449,10 @@ msgstr "自動オイラー"
 
 msgid "Euler using the rotation order of the target"
 msgstr "ターゲットの回転の順序を使用したオイラー"
+
+
+msgid "Quaternion"
+msgstr "クォータニオン"
 
 
 msgid "Quaternion rotation"
@@ -12132,6 +12116,50 @@ msgid "Lower bound of envelope at this control-point"
 msgstr "この制御点でのエンベロープの下の境界"
 
 
+msgid "Face Map"
+msgstr "フェイスマップ"
+
+
+msgid "Group of faces, each face can only be part of one map"
+msgstr "面のグループ。各面は一つのマップにのみ属せます"
+
+
+msgid "Index number of the face map"
+msgstr "フェイスマップのインデックス番号"
+
+
+msgid "Face map name"
+msgstr "フェイスマップ名"
+
+
+msgid "Face map selection state (for tools to use)"
+msgstr "フェイスマップの選択状態（ツール用）"
+
+
+msgid "Face Maps"
+msgstr "フェイスマップ"
+
+
+msgid "Collection of face maps"
+msgstr "フェイスマップの集合"
+
+
+msgid "Active Face Map"
+msgstr "アクティブフェイスマップ"
+
+
+msgid "Face maps of the object"
+msgstr "オブジェクトのフェイスマップ"
+
+
+msgid "Active Face Map Index"
+msgstr "アクティブフェイスマップインデックス"
+
+
+msgid "Active index in face map array"
+msgstr "フェイスマップ配列内のアクティブインデックス"
+
+
 msgid "Field Settings"
 msgstr "フィールド設定"
 
@@ -12627,6 +12655,10 @@ msgid "Show Font data-blocks"
 msgstr "フォントデータブロックを表示します"
 
 
+msgid "Grease Pencil"
+msgstr "グリースペンシル"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "グリースペンシルデータブロックを表示します"
 
@@ -12693,6 +12725,10 @@ msgstr "ポイントクラウドデータブロックを表示/隠します"
 
 msgid "Show Scene data-blocks"
 msgstr "シーンデータブロックを表示します"
+
+
+msgid "Simulations"
+msgstr "シミュレーション"
 
 
 msgid "Show Simulation data-blocks"
@@ -21826,6 +21862,10 @@ msgid "How to use this collection in line art"
 msgstr "このコレクションをラインアートに使用する方法"
 
 
+msgid "Include"
+msgstr "内容"
+
+
 msgid "Generate feature lines for this collection"
 msgstr "このコレクションの特徴ラインを生成します"
 
@@ -21836,6 +21876,10 @@ msgstr "遮蔽のみ"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "遮蔽の生成にのみコレクションを使用します"
+
+
+msgid "Exclude"
+msgstr "排他"
 
 
 msgid "Don't use this collection in line art"
@@ -23463,10 +23507,6 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "サーフェスモードでドローイング時のオフセット量"
 
 
-msgid "Grease Pencil data-block"
-msgstr "グリースペンシルデータブロック"
-
-
 msgid "Image data-block referencing an external or packed image"
 msgstr "外部またはパックされた画像を参照する画像データブロック"
 
@@ -24993,12 +25033,52 @@ msgid "The \"slit\" normal direction of each face corner, influenced by vertex n
 msgstr "各面コーナーを「切り裂く」法線方向。頂点の法線、シャープ面、シャープ辺、カスタム法線の影響を受けます。空になることも"
 
 
+msgid "Edge Creases"
+msgstr "辺クリース"
+
+
+msgid "Sharpness of the edges for subdivision"
+msgstr "サブディビジョンサーフェス用の辺のシャープ設定"
+
+
 msgid "Edges"
 msgstr "辺"
 
 
 msgid "Edges of the mesh"
 msgstr "メッシュの辺"
+
+
+msgid "Has Edge Bevel Weight"
+msgstr "辺ベベルウェイトの有無"
+
+
+msgid "True if the mesh has an edge bevel weight layer"
+msgstr "メッシュに辺ベベルウェイトレイヤーがあれば True"
+
+
+msgid "Has Vertex Bevel Weight"
+msgstr "頂点べベルウェイトの有無"
+
+
+msgid "True if the mesh has an vertex bevel weight layer"
+msgstr "メッシュに頂点ベベルウェイトレイヤーがあれば True"
+
+
+msgid "Has Edge Crease"
+msgstr "辺クリースの有無"
+
+
+msgid "True if the mesh has an edge crease layer"
+msgstr "メッシュに辺クリースレイヤーがあれば True"
+
+
+msgid "Has Vertex Crease"
+msgstr "頂点クリースの有無"
+
+
+msgid "True if the mesh has an vertex crease layer"
+msgstr "メッシュに頂点クリースレイヤーがあれば True"
 
 
 msgid "Has Custom Normals"
@@ -25031,6 +25111,18 @@ msgstr "ループ"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "メッシュのループ(ポリゴンの角)"
+
+
+msgid "Float Property Layers"
+msgstr "Floatプロパティのレイヤー"
+
+
+msgid "Int Property Layers"
+msgstr "Intプロパティのレイヤー"
+
+
+msgid "String Property Layers"
+msgstr "文字列プロパティレイヤー"
 
 
 msgid "Polygon Normals"
@@ -25085,6 +25177,14 @@ msgstr "ボクセルサイズ"
 
 msgid "Size of the voxel in object space used for volume evaluation. Lower values preserve finer details"
 msgstr "体積の評価に使用される、オブジェクト空間でのボクセルサイズ。低い値でより細かいディテールが維持されます"
+
+
+msgid "Sculpt Vertex Colors"
+msgstr "スカルプト頂点カラー"
+
+
+msgid "Sculpt vertex color layers. Deprecated, use color attributes instead"
+msgstr "スカルプト頂点カラーレイヤー。廃止予定ですので代わりにカラー属性を使用してください"
 
 
 msgid "Skin Vertices"
@@ -25265,6 +25365,14 @@ msgstr "頂点カラー"
 
 msgid "Legacy vertex color layers. Deprecated, use color attributes instead"
 msgstr "旧頂点カラーレイヤー。廃止予定ですので代わりにカラー属性を使用してください"
+
+
+msgid "Vertex Creases"
+msgstr "頂点のクリース"
+
+
+msgid "Sharpness of the vertices"
+msgstr "サブディビジョンサーフェス用の頂点のシャープ設定"
 
 
 msgid "Vertex Normals"
@@ -25453,6 +25561,10 @@ msgstr "ノードツリー名"
 
 msgid "Grease Pencil Data"
 msgstr "グリースペンシルデータ"
+
+
+msgid "Grease Pencil data-block"
+msgstr "グリースペンシルデータブロック"
 
 
 msgid "Inputs"
@@ -25960,6 +26072,10 @@ msgid "Both"
 msgstr "両方"
 
 
+msgid "Maps of faces of the object"
+msgstr "オブジェクトの面のマップ"
+
+
 msgid "Settings for using the object as a field in physics simulation"
 msgstr "物理シミュレーション内のフィールドとして使用されるオブジェクトの設定"
 
@@ -26429,6 +26545,10 @@ msgid "Shape Key Lock"
 msgstr "シェイプキー固定"
 
 
+msgid "Only show the active shape at full strength"
+msgstr "アクティブシェイプのみ最高強度で表示します"
+
+
 msgid "Display Texture Space"
 msgstr "テクスチャ空間を表示"
 
@@ -26551,6 +26671,10 @@ msgstr "Z 軸でメッシュを対称にします"
 
 msgid "Shape Key Edit Mode"
 msgstr "シェイプキー編集モード"
+
+
+msgid "Apply shape keys in edit mode (for meshes only)"
+msgstr "シェイプキーを編集モードで適用します（メッシュのみ）"
 
 
 msgid "Use Simulation Cache"
@@ -26713,6 +26837,14 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "子パスの長さに左右されないパーティクル量"
 
 
+msgid "Children Per Parent"
+msgstr "親子関係をクリア"
+
+
+msgid "Number of children per parent"
+msgstr "親ごとの子の数"
+
+
 msgid "Parting Factor"
 msgstr "パーティング係数"
 
@@ -26735,14 +26867,6 @@ msgstr "パーティング最小値"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "根本から先端への最小角度（ロングヘアー時は先端の距離/根本の距離）"
-
-
-msgid "Children Per Parent"
-msgstr "親子関係をクリア"
-
-
-msgid "Number of children per parent"
-msgstr "親ごとの子の数"
 
 
 msgid "Child Radius"
@@ -35108,6 +35232,18 @@ msgid "Edge in a Mesh data-block"
 msgstr "メッシュデータブロックの辺"
 
 
+msgid "Bevel Weight"
+msgstr "ベベルウェイト"
+
+
+msgid "Weight used by the Bevel modifier"
+msgstr "ベベルモディファイアーで使用されるウェイト"
+
+
+msgid "Weight used by the Subdivision Surface modifier for creasing"
+msgstr "サブディビジョンサーフェスモディファイアーのクリースで使用されるウェイト"
+
+
 msgid "Index of this edge"
 msgstr "この辺のインデックス"
 
@@ -35144,12 +35280,52 @@ msgid "Vertex indices"
 msgstr "頂点インデックス"
 
 
+msgid "Float Property"
+msgstr "Floatプロパティ"
+
+
+msgid "Mesh Edge Crease Layer"
+msgstr "メッシュ辺クリースレイヤー"
+
+
+msgid "Per-edge crease"
+msgstr "辺毎のクリース"
+
+
 msgid "Mesh Edges"
 msgstr "メッシュ辺"
 
 
 msgid "Collection of mesh edges"
 msgstr "メッシュの辺の集合"
+
+
+msgid "Int Property"
+msgstr "Intプロパティ"
+
+
+msgid "Mesh Face Map Layer"
+msgstr "メッシュフェイスマップレイヤー"
+
+
+msgid "Per-face map index"
+msgstr "フェイスマップ毎のインデックス"
+
+
+msgid "Name of face map layer"
+msgstr "フェイスマップレイヤー名"
+
+
+msgid "Mesh Face Maps"
+msgstr "メッシュフェイスマップ"
+
+
+msgid "Collection of mesh face maps"
+msgstr "メッシュフェイスマップの集合"
+
+
+msgid "Active Face Map Layer"
+msgstr "アクティブフェイスマップレイヤー"
 
 
 msgid "Mesh Loop"
@@ -35390,6 +35566,54 @@ msgid "Face mark for Freestyle line rendering"
 msgstr "Freestyleラインレンダリング用の面マーク"
 
 
+msgid "Mesh Polygon Float Property"
+msgstr "メッシュポリゴンのFloatプロパティ"
+
+
+msgid "User defined floating-point number value in a float properties layer"
+msgstr "Float プロパティレイヤー内のユーザ定義の浮動小数点値"
+
+
+msgid "Mesh Polygon Float Property Layer"
+msgstr "メッシュポリゴンのFloatプロパティレイヤー"
+
+
+msgid "User defined layer of floating-point number values"
+msgstr "浮動小数点数値のユーザー定義レイヤー"
+
+
+msgid "Mesh Polygon Int Property"
+msgstr "メッシュポリゴンの整数プロパティ"
+
+
+msgid "User defined integer number value in an integer properties layer"
+msgstr "整数値プロパティレイヤー内のユーザ定義の整数値"
+
+
+msgid "Mesh Polygon Int Property Layer"
+msgstr "メッシュポリゴンのIntプロパティレイヤー"
+
+
+msgid "User defined layer of integer number values"
+msgstr "ユーザ定義の整数値レイヤー"
+
+
+msgid "Mesh Polygon String Property"
+msgstr "メッシュポリゴン文字列プロパティ"
+
+
+msgid "User defined string text value in a string properties layer"
+msgstr "文字列プロパティレイヤー内のユーザ定義の文字列テキスト値"
+
+
+msgid "Mesh Polygon String Property Layer"
+msgstr "メッシュポリゴン文字列プロパティレイヤー"
+
+
+msgid "User defined layer of string text values"
+msgstr "ユーザ定義の文字列テキスト値のレイヤー"
+
+
 msgid "Mesh Polygons"
 msgstr "メッシュポリゴン"
 
@@ -35586,12 +35810,44 @@ msgid "Selection state of the face corner the UV editor"
 msgstr "UV エディター内での面コーナーの選択状態"
 
 
+msgid "Mesh Sculpt Vertex Color"
+msgstr "メッシュスカルプト頂点カラー"
+
+
+msgid "Vertex colors in a Mesh"
+msgstr "メッシュ内の頂点カラー"
+
+
+msgid "Mesh Sculpt Vertex Color Layer"
+msgstr "メッシュスカルプト頂点カラーレイヤー"
+
+
+msgid "Layer of sculpt vertex colors in a Mesh data-block"
+msgstr "メッシュデータブロック内のスカルプト頂点カラーレイヤー"
+
+
+msgid "Sets the sculpt vertex color layer as active for display and editing"
+msgstr "スカルプト頂点カラーレイヤーを、表示・編集する「アクティブ」に設定します"
+
+
+msgid "Sets the sculpt vertex color layer as active for rendering"
+msgstr "スカルプト頂点カラーレイヤーを、レンダリングする「アクティブ」に設定します"
+
+
+msgid "Name of Sculpt Vertex color layer"
+msgstr "スカルプト頂点カラーレイヤーの名前"
+
+
 msgid "Mesh Vertex"
 msgstr "メッシュ頂点"
 
 
 msgid "Vertex in a Mesh data-block"
 msgstr "メッシュデータブロック内の頂点"
+
+
+msgid "Weight used by the Bevel modifier Vertices mode"
+msgstr "ベベルモディファイアーの頂点モードで使用されるウェイト"
 
 
 msgid "Weights for the vertex groups this vertex is member of"
@@ -35614,6 +35870,38 @@ msgid "For meshes with modifiers applied, the coordinate of the vertex with no d
 msgstr ""
 "モディファイアーが適用されたメッシュ用、変形モディファイアーが何も適用されていない頂点の座標。\n"
 "「生成」テクスチャ座標に使用される物と同じ"
+
+
+msgid "Mesh Vertex Crease Layer"
+msgstr "メッシュ頂点クリースレイヤー"
+
+
+msgid "Per-vertex crease"
+msgstr "頂点毎のクリース"
+
+
+msgid "Mesh Vertex Float Property"
+msgstr "メッシュ頂点のFloatプロパティ"
+
+
+msgid "Mesh Vertex Float Property Layer"
+msgstr "メッシュ頂点のFloatプロパティレイヤー"
+
+
+msgid "Mesh Vertex Int Property"
+msgstr "メッシュ頂点の整数プロパティ"
+
+
+msgid "Mesh Vertex Int Property Layer"
+msgstr "メッシュ頂点の整数プロパティレイヤー"
+
+
+msgid "Mesh Vertex String Property"
+msgstr "メッシュ頂点の文字列プロパティ"
+
+
+msgid "Mesh Vertex String Property Layer"
+msgstr "メッシュ頂点の文字列プロパティレイヤー"
 
 
 msgid "Mesh Vertices"
@@ -36858,10 +37146,6 @@ msgstr "UVシームマークを転送します"
 
 msgid "Transfer subdivision crease values"
 msgstr "細分化のクリース値を転送します"
-
-
-msgid "Bevel Weight"
-msgstr "ベベルウェイト"
 
 
 msgid "Transfer bevel weights"
@@ -41852,6 +42136,14 @@ msgid "Width of the node"
 msgstr "ノード幅"
 
 
+msgid "Width Hidden"
+msgstr "非表示時の幅"
+
+
+msgid "Deprecated width of the node when it is collapsed"
+msgstr "（廃止予定）折り畳んだ時の幅"
+
+
 msgid "Custom Group"
 msgstr "カスタムグループ"
 
@@ -43241,14 +43533,6 @@ msgstr "キーイングスクリーン"
 
 msgid "Tracking Object"
 msgstr "トラッキングオブジェクト"
-
-
-msgid "Smoothing"
-msgstr "スムージング"
-
-
-msgid "Anisotropic"
-msgstr "異方性"
 
 
 msgid "Lens Distortion"
@@ -45684,6 +45968,14 @@ msgid "Convert instances into real geometry data"
 msgstr "インスタンスを実際の形状データに変換します"
 
 
+msgid "Legacy Behavior"
+msgstr "旧挙動"
+
+
+msgid "Behave like before instance attributes existed"
+msgstr "インスタンス属性が存在する以前の挙動にします"
+
+
 msgid "Remove Named Attribute"
 msgstr "名前付き属性削除"
 
@@ -46456,12 +46748,12 @@ msgid "Control the brightness and contrast of the input color"
 msgstr "入力する色の輝度とコントラストを調整します"
 
 
-msgid "Glossy BSDF"
-msgstr "光沢BSDF"
+msgid "Anisotropic BSDF"
+msgstr "異方性BSDF"
 
 
-msgid "Reflection with microfacet distribution, used for materials such as metal or mirrors"
-msgstr "マイクロファセット分布による反射。金属や鏡などの素材用"
+msgid "Glossy reflection with separate control over U and V direction roughness"
+msgstr "U と V 方向の粗さで別々に光沢の反射を調整します"
 
 
 msgid "Light scattering distribution on rough surface"
@@ -46476,12 +46768,16 @@ msgid "GGX"
 msgstr "GGX"
 
 
-msgid "Ashikhmin-Shirley"
-msgstr "Ashikhmin-Shirley"
-
-
 msgid "Multiscatter GGX"
 msgstr "複合散乱GGX"
+
+
+msgid "Slower than GGX but gives a more energy conserving results, which would otherwise be visible as excessive darkening"
+msgstr "GGX より遅いですが、さらにエネルギーを維持した結果になり、過度に暗くなりすぎるのを防ぎます"
+
+
+msgid "Ashikhmin-Shirley"
+msgstr "Ashikhmin-Shirley"
 
 
 msgid "Diffuse BSDF"
@@ -46498,6 +46794,18 @@ msgstr "グラスBSDF"
 
 msgid "Glass-like shader mixing refraction and reflection at grazing angles"
 msgstr "屈折と浅い角度での反射をミックスしたガラス状のシェーダー"
+
+
+msgid "Results in perfectly sharp reflections like a mirror. The Roughness value is not used"
+msgstr "鏡のように完全にシャープな反射になります。粗さの値は使用されません"
+
+
+msgid "Glossy BSDF"
+msgstr "光沢BSDF"
+
+
+msgid "Reflection with microfacet distribution, used for materials such as metal or mirrors"
+msgstr "マイクロファセット分布による反射。金属や鏡などの素材用"
 
 
 msgid "Hair BSDF"
@@ -53049,8 +53357,21 @@ msgid "(De)select all control points"
 msgstr "すべての制御点を(非)選択にします"
 
 
+msgctxt "Operator"
+msgid "Select End"
+msgstr "終端を選択"
+
+
 msgid "Select end points of curves"
 msgstr "カーブの終端を選択します"
+
+
+msgid "Number of points to select"
+msgstr "選択するポイント数"
+
+
+msgid "Select points at the end of the curve as opposed to the beginning"
+msgstr "カーブの始点ではなく終端から複数のポイントを選択します"
 
 
 msgid "Shrink the selection by one point"
@@ -54188,20 +54509,12 @@ msgstr "回転をオイラー ZYX に変換します"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "STLをエクスポート"
+msgid "Export PLY"
+msgstr "PLYをエクスポート"
 
 
-msgid "Save STL triangle mesh data"
-msgstr "STL 三角形メッシュデータを保存します"
-
-
-msgid "Ascii"
-msgstr "Ascii"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "ファイルをASCIIファイル形式で保存します"
+msgid "Export as a Stanford PLY with normals, vertex colors and texture coordinates"
+msgstr "法線や頂点カラー、テクスチャ座標付きの Stanford PLY としてエクスポートします"
 
 
 msgid "X Forward"
@@ -54248,6 +54561,59 @@ msgid "-Z Up"
 msgstr "-Zが上"
 
 
+msgid "ASCII"
+msgstr "ASCII"
+
+
+msgid "Export using ASCII file format, otherwise use binary"
+msgstr "バイナリの代わりに ASCII ファイルフォーマットでエクスポートします"
+
+
+msgid "Export the active vertex color layer"
+msgstr "アクティブな頂点カラーレイヤーをエクスポートします"
+
+
+msgid "Apply Modifiers"
+msgstr "モディファイアーを適用"
+
+
+msgid "Apply Modifiers to the exported mesh"
+msgstr "エクスポートされたメッシュにモディファイアーを適用します"
+
+
+msgid "Export vertex normals"
+msgstr "頂点の法線をエクスポート"
+
+
+msgid "Selection Only"
+msgstr "選択物のみ"
+
+
+msgid "Export selected objects only"
+msgstr "選択されたオブジェクトのみエクスポートします"
+
+
+msgid "Export the active UV layer (will split edges by seams)"
+msgstr "アクティブ UV レイヤーをエクスポート（シームで辺を分割）"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "STLをエクスポート"
+
+
+msgid "Save STL triangle mesh data"
+msgstr "STL 三角形メッシュデータを保存します"
+
+
+msgid "Ascii"
+msgstr "Ascii"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "ファイルをASCIIファイル形式で保存します"
+
+
 msgid "Batch Mode"
 msgstr "バッチモード"
 
@@ -54268,10 +54634,6 @@ msgid "Export in this reference space"
 msgstr "この参照空間でエクスポートします"
 
 
-msgid "Apply Modifiers"
-msgstr "モディファイアーを適用"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "保存前にモディファイアーを適用します"
 
@@ -54282,14 +54644,6 @@ msgstr "シーンの単位"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "現在のシーンの単位（「単位の倍率」で定義）をエクスポートするデータに適用します"
-
-
-msgid "Selection Only"
-msgstr "選択物のみ"
-
-
-msgid "Export selected objects only"
-msgstr "選択されたオブジェクトのみエクスポートします"
 
 
 msgctxt "Operator"
@@ -54514,6 +54868,10 @@ msgstr "FBXバイナリファイル内にテクスチャを埋め込みます（
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "すべてのデータをスケーリング（いくつかのインポータはアーマチュアのスケーリングに対応していません！）"
+
+
+msgid "Smoothing"
+msgstr "スムージング"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -55319,6 +55677,107 @@ msgstr "エクスポート設定を維持"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "glTFエクスポート設定を Blender プロジェクト内に格納します"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "OBJをエクスポート"
+
+
+msgid "Save a Wavefront OBJ File"
+msgstr "Wavefront OBJファイル保存します"
+
+
+msgid "Material Groups"
+msgstr "マテリアルグループ"
+
+
+msgid "Generate an OBJ group for each part of a geometry using a different material"
+msgstr "マテリアルで分けた形状の部分毎に OBJ グループを生成します"
+
+
+msgid "OBJ Groups"
+msgstr "OBJグループ"
+
+
+msgid "Export Blender objects as OBJ groups"
+msgstr "OBJグループとして Blender オブジェクトをエクスポートします"
+
+
+msgid "Keep Vertex Order"
+msgstr "頂点の順序を保持"
+
+
+msgid "Write out an OBJ for each frame"
+msgstr "各フレームごとにOBJを書き出します"
+
+
+msgid "OBJ Objects"
+msgstr "OBJオブジェクト"
+
+
+msgid "Export Blender objects as OBJ objects"
+msgstr "OBJオブジェクトとして Blender オブジェクトをエクスポートします"
+
+
+msgid "Include Edges"
+msgstr "エッジを含む"
+
+
+msgid "Write Materials"
+msgstr "マテリアルを書き出す"
+
+
+msgid "Write out the MTL file"
+msgstr "MTLファイルを書き出します"
+
+
+msgid "Apply modifiers"
+msgstr "モディファイアーを適用"
+
+
+msgid "Write Normals"
+msgstr "法線を出力"
+
+
+msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
+msgstr "頂点毎と面毎に法線を出力し、フラットな面とシャープな辺を表現します"
+
+
+msgid "Write Nurbs"
+msgstr "NURBSを出力"
+
+
+msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
+msgstr "NURBSカーブを形状に変換せず、OBJ NURBSとして保存します"
+
+
+msgid "Smooth Groups"
+msgstr "スムーズグループ"
+
+
+msgid "Write sharp edges as smooth groups"
+msgstr "シャープ辺をスムーズグループとして書き込み"
+
+
+msgid "Bitflag Smooth Groups"
+msgstr "スムーズグループ(ビットフラグ)"
+
+
+msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
+msgstr "「スムーズグループ」と似ていますが、ビットフラグとしてスムーズグループを生成します（最大32個の別々のスムーズグループを生成しますが、通常はそんなに多くありません）"
+
+
+msgid "Include UVs"
+msgstr "UVを含む"
+
+
+msgid "Write out the active UV coordinates"
+msgstr "アクティブなUV座標を書き出します"
+
+
+msgid "Polygroups"
+msgstr "複数のグループ"
 
 
 msgctxt "Operator"
@@ -58965,6 +59424,10 @@ msgid "Blend selected keyframes to their left or right neighbor"
 msgstr "選択中のキーフレームを左右の隣のキーフレームとブレンドします"
 
 
+msgid "The blend factor with 0.5 being the current frame"
+msgstr "ブレンド係数。0.5で現在のフレーム"
+
+
 msgctxt "Operator"
 msgid "Breakdown"
 msgstr "ブレイクダウン"
@@ -59498,26 +59961,6 @@ msgstr "選択中の F ポイントを F カーブにベイク解除します"
 
 msgid "Reset viewable area to show selected keyframe range"
 msgstr "選択したキーフレームの範囲が収まるように 表示領域をリセットします"
-
-
-msgid "Stroke Mode"
-msgstr "ストロークモード"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "ペイントストローク時の動作"
-
-
-msgid "Apply brush normally"
-msgstr "ブラシを普通に適用"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "ストローク中にブラシの挙動を反転します"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "ストローク中にブラシをスムーズモードに切り替えます"
 
 
 msgctxt "Operator"
@@ -60356,6 +60799,19 @@ msgstr "透過にアルファチャンネルを使用します"
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLYをインポート"
+
+
+msgid "Load a PLY geometry file"
+msgstr "PLYジオメトリファイルを読み込みます"
+
+
+msgid "File path used for importing the PLY file"
+msgstr "PLYファイルのインポートに使用するファイルパス"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "STLをインポート"
 
@@ -60611,6 +61067,63 @@ msgstr ""
 "glTF フォーマットでは法線や UV、その他の頂点の属性が非連続でないといけません\n"
 "このオプションは、同じ位置の頂点を可能な場合に結合しようとします\n"
 "現在、違う法線の頂点は結合できません"
+
+
+msgctxt "Operator"
+msgid "Import OBJ"
+msgstr "OBJをインポート"
+
+
+msgid "Load a Wavefront OBJ File"
+msgstr "Wavefront OBJファイルを読み込みます"
+
+
+msgid "Clamp Size"
+msgstr "クランプサイズ"
+
+
+msgid "Clamp bounds under this value (zero to disable)"
+msgstr "この値未満の境界をクランプします（0で無効）"
+
+
+msgid "Split geometry, omits vertices unused by edges or faces"
+msgstr "形状を分割し、辺や面に使用していない頂点を削除します"
+
+
+msgid "Keep Vert Order"
+msgstr "頂点の順番を維持"
+
+
+msgid "Keep vertex order from file"
+msgstr "ファイルの頂点の順番を維持"
+
+
+msgid "Import lines and faces with 2 verts as edge"
+msgstr "LINEと2つの頂点を持つFACEを辺としてインポートします"
+
+
+msgid "Poly Groups"
+msgstr "ポリグループ"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "OBJグループを頂点グループとしてインポートします"
+
+
+msgid "Search subdirs for any associated images (Warning, may be slow)"
+msgstr "関連する画像のサブディレクトリを検索します（遅くなることがあります）"
+
+
+msgid "Surround smooth groups by sharp edges"
+msgstr "スムーズグループをシャープ辺で囲みます"
+
+
+msgid "Import OBJ Groups into Blender Objects"
+msgstr "OBJグループをBlenderオブジェクトにインポートします"
+
+
+msgid "Import OBJ Objects into Blender Objects"
+msgstr "OBJのオブジェクトをBlenderにインポートします"
 
 
 msgctxt "Operator"
@@ -61633,6 +62146,78 @@ msgstr "UVを比較"
 
 msgid "Compare VCols"
 msgstr "頂点色を比較"
+
+
+msgctxt "Operator"
+msgid "Add Edge Bevel Weight"
+msgstr "辺ベベルウェイトを追加"
+
+
+msgid "Add an edge bevel weight layer"
+msgstr "辺ベベルウェイトレイヤーを追加します"
+
+
+msgctxt "Operator"
+msgid "Clear Edge Bevel Weight"
+msgstr "辺ベベルウェイトをクリア"
+
+
+msgid "Clear the edge bevel weight layer"
+msgstr "辺ベベルウェイトレイヤーをクリアします"
+
+
+msgctxt "Operator"
+msgid "Add Vertex Bevel Weight"
+msgstr "頂点べベルウェイトを追加"
+
+
+msgid "Add a vertex bevel weight layer"
+msgstr "頂点ベベルウェイトレイヤーを追加します"
+
+
+msgctxt "Operator"
+msgid "Clear Vertex Bevel Weight"
+msgstr "頂点べベルウェイトをクリア"
+
+
+msgid "Clear the vertex bevel weight layer"
+msgstr "頂点ベベルウェイトレイヤーをクリアします"
+
+
+msgctxt "Operator"
+msgid "Add Edge Crease"
+msgstr "辺クリースを追加"
+
+
+msgid "Add an edge crease layer"
+msgstr "辺のクリースレイヤーを追加します"
+
+
+msgctxt "Operator"
+msgid "Clear Edge Crease"
+msgstr "辺クリースをクリア"
+
+
+msgid "Clear the edge crease layer"
+msgstr "辺のクリースレイヤーをクリアします"
+
+
+msgctxt "Operator"
+msgid "Add Vertex Crease"
+msgstr "頂点クリースを追加"
+
+
+msgid "Add a vertex crease layer"
+msgstr "頂点クリースレイヤーを追加します"
+
+
+msgctxt "Operator"
+msgid "Clear Vertex Crease"
+msgstr "頂点クリースをクリア"
+
+
+msgid "Clear the vertex crease layer"
+msgstr "頂点クリースレイヤーをクリアします"
 
 
 msgctxt "Operator"
@@ -63837,6 +64422,11 @@ msgstr "フラット/スムーズ"
 
 
 msgctxt "Mesh"
+msgid "Face Map"
+msgstr "フェイスマップ"
+
+
+msgctxt "Mesh"
 msgid "Freestyle Face Marks"
 msgstr "Freestyle面マーク"
 
@@ -65989,6 +66579,14 @@ msgid "Curve from Mesh or Text objects"
 msgstr "メッシュ/テキストからカーブ"
 
 
+msgid "Mesh from Curve, Surface, Metaball, or Text objects"
+msgstr "カーブ/サーフェス/メタボール/テキストからメッシュ"
+
+
+msgid "Grease Pencil from Curve or Mesh objects"
+msgstr "カーブ/メッシュからグリースペンシル"
+
+
 msgid "Curves from evaluated curve data"
 msgstr "評価済みカーブデータからカーブ"
 
@@ -66248,6 +66846,73 @@ msgstr "爆発モディファイアーのデータを更新します"
 
 
 msgctxt "Operator"
+msgid "Add Face Map"
+msgstr "フェイスマップを追加"
+
+
+msgid "Add a new face map to the active object"
+msgstr "アクティブオブジェクトに新規フェイスマップを追加します"
+
+
+msgctxt "Operator"
+msgid "Assign Face Map"
+msgstr "フェイスマップを割り当て"
+
+
+msgid "Assign faces to a face map"
+msgstr "面にフェイスマップを割り当てます"
+
+
+msgctxt "Operator"
+msgid "Deselect Face Map Faces"
+msgstr "フェイスマップの面を選択解除"
+
+
+msgid "Deselect faces belonging to a face map"
+msgstr "フェイスマップに属する面の選択を解除します"
+
+
+msgctxt "Operator"
+msgid "Move Face Map"
+msgstr "フェイスマップを移動"
+
+
+msgid "Move the active face map up/down in the list"
+msgstr "リスト内でアクティブフェイスマップを上下に移動します"
+
+
+msgid "Direction to move, up or down"
+msgstr "移動方向（上下）"
+
+
+msgctxt "Operator"
+msgid "Remove Face Map"
+msgstr "フェイスマップを削除"
+
+
+msgid "Remove a face map from the active object"
+msgstr "アクティブオブジェクトからフェイスマップを削除します"
+
+
+msgctxt "Operator"
+msgid "Remove from Face Map"
+msgstr "フェイスマップから除外"
+
+
+msgid "Remove faces from a face map"
+msgstr "フェイスマップから面を除外します"
+
+
+msgctxt "Operator"
+msgid "Select Face Map Faces"
+msgstr "フェイスマップの面を選択"
+
+
+msgid "Select faces belonging to a face map"
+msgstr "フェイスマップに属する面を選択します"
+
+
+msgctxt "Operator"
 msgid "Toggle Force Field"
 msgstr "フォースフィールド切り替え"
 
@@ -66285,6 +66950,15 @@ msgstr "ノードへ移動"
 
 msgid "Move inputs and outputs from in the modifier to a new node group"
 msgstr "入出力をモディファイアーから新規ノードグループに移動します"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "グリースペンシルを追加"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "グリースペンシルオブジェクトをシーンに追加します"
 
 
 msgid "Stroke offset for the line art modifier"
@@ -66439,15 +67113,6 @@ msgstr "グリースペンシルモディファイアーを削除"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "アクティブグリースペンシルオブジェクトからモディファイアーを削除します"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "グリースペンシルを追加"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "グリースペンシルオブジェクトをシーンに追加します"
 
 
 msgctxt "Operator"
@@ -68611,6 +69276,11 @@ msgid "Remove vertices which weight is below or equal to this limit"
 msgstr "ウェイトがこの限界以下の頂点を削除します"
 
 
+msgctxt "Operator"
+msgid "Copy Vertex Group"
+msgstr "頂点グループをコピー"
+
+
 msgid "Make a copy of the active vertex group"
 msgstr "アクティブな頂点グループをコピーします"
 
@@ -70145,6 +70815,26 @@ msgstr "画像ペイント"
 
 msgid "Paint a stroke into the image"
 msgstr "画像にストロークをペイント"
+
+
+msgid "Stroke Mode"
+msgstr "ストロークモード"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "ペイントストローク時の動作"
+
+
+msgid "Apply brush normally"
+msgstr "ブラシを普通に適用"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "ストローク中にブラシの挙動を反転します"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "ストローク中にブラシをスムーズモードに切り替えます"
 
 
 msgctxt "Operator"
@@ -73842,6 +74532,14 @@ msgid "Create Face Sets using Sharp Edges as boundaries"
 msgstr "シャープ辺を境界として利用し、面セットを生成します"
 
 
+msgid "Face Sets from Face Maps"
+msgstr "フェイスマップから面セットを作成"
+
+
+msgid "Create a Face Set per Face Map"
+msgstr "フェイスマップ毎に面セットを生成します"
+
+
 msgid "Face Sets from Face Set Boundaries"
 msgstr "面セット境界から面セットを作成"
 
@@ -75057,62 +75755,6 @@ msgid "Set render size and aspect from active sequence"
 msgstr "レンダリングサイズとアスペクト比をアクティブシーケンスから設定します"
 
 
-msgctxt "Operator"
-msgid "Add Retiming Handle"
-msgstr "リタイミングハンドルを追加"
-
-
-msgid "Add retiming Handle"
-msgstr "リタイミングハンドルを追加します"
-
-
-msgid "Timeline Frame"
-msgstr "タイムラインフレーム"
-
-
-msgid "Frame where handle will be added"
-msgstr "ハンドルを追加するフレーム"
-
-
-msgctxt "Operator"
-msgid "Move Retiming Handle"
-msgstr "リタイミングハンドルを移動"
-
-
-msgid "Move retiming handle"
-msgstr "リタイミングハンドルを移動します"
-
-
-msgid "Handle Index"
-msgstr "ハンドルインデックス"
-
-
-msgid "Index of handle to be moved"
-msgstr "移動するハンドルのインデックス"
-
-
-msgctxt "Operator"
-msgid "Remove Retiming Handle"
-msgstr "リタイミングハンドルを削除"
-
-
-msgid "Remove retiming handle"
-msgstr "リタイミングハンドルを削除します"
-
-
-msgid "Index of handle to be removed"
-msgstr "削除するハンドルのインデックス"
-
-
-msgctxt "Operator"
-msgid "Reset Retiming"
-msgstr "リタイミングをリセット"
-
-
-msgid "Reset strip retiming"
-msgstr "ストリップのリタイミングをリセットします"
-
-
 msgid "Use mouse to sample color in current frame"
 msgstr "現在のフレームで色を拾うのにマウスを使用します"
 
@@ -76094,10 +76736,6 @@ msgid "Line number to jump to"
 msgstr "ジャンプ先の行番号"
 
 
-msgid "Column"
-msgstr "列"
-
-
 msgctxt "Operator"
 msgid "Line Number"
 msgstr "行数"
@@ -76451,6 +77089,10 @@ msgid "Snap to Elements"
 msgstr "スナップする要素"
 
 
+msgid "Snap to increments of grid"
+msgstr "グリッドの大きさでスナップ"
+
+
 msgid "Snap to vertices"
 msgstr "頂点にスナップ"
 
@@ -76459,8 +77101,20 @@ msgid "Snap to edges"
 msgstr "辺にスナップ"
 
 
+msgid "Face Project"
+msgstr "面に投影"
+
+
 msgid "Snap by projecting onto faces"
 msgstr "面上に投影してスナップします"
+
+
+msgid "Face Nearest"
+msgstr "面上の最近点"
+
+
+msgid "Snap to nearest point on faces"
+msgstr "面上の一番近い点にスナップします"
 
 
 msgid "Snap to volume"
@@ -76481,18 +77135,6 @@ msgstr "辺と直交する点"
 
 msgid "Snap to the nearest point on an edge"
 msgstr "辺上の一番近い点にスナップします"
-
-
-msgid "Face Project"
-msgstr "面に投影"
-
-
-msgid "Face Nearest"
-msgstr "面上の最近点"
-
-
-msgid "Snap to nearest point on faces"
-msgstr "面上の一番近い点にスナップします"
 
 
 msgid "Snap With"
@@ -76693,14 +77335,6 @@ msgid "Align with Point Normal"
 msgstr "頂点の法線に揃える"
 
 
-msgid "Auto Merge & Split"
-msgstr "自動マージと分割"
-
-
-msgid "Forces the use of Auto Merge and Split"
-msgstr "強制的に「自動マージと分割」を使用します"
-
-
 msgid "Values"
 msgstr "値"
 
@@ -76712,6 +77346,14 @@ msgstr "移動"
 
 msgid "Transform Cursor"
 msgstr "カーソルを移動"
+
+
+msgid "Auto Merge & Split"
+msgstr "自動マージと分割"
+
+
+msgid "Forces the use of Auto Merge and Split"
+msgstr "強制的に「自動マージと分割」を使用します"
 
 
 msgctxt "Operator"
@@ -80798,10 +81440,6 @@ msgid "Export Material Groups"
 msgstr "マテリアルグループをエクスポート"
 
 
-msgid "Generate an OBJ group for each part of a geometry using a different material"
-msgstr "マテリアルで分けた形状の部分毎に OBJ グループを生成します"
-
-
 msgid "Export Materials"
 msgstr "マテリアルをエクスポート"
 
@@ -80927,10 +81565,6 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "この値にバウンディングボックスが収まるようオブジェクトをリサイズします。０で無効"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "OBJグループを頂点グループとしてインポートします"
-
-
 msgid "Split By Group"
 msgstr "グループで分離"
 
@@ -81038,11 +81672,6 @@ msgid "Open a path in a file browser"
 msgstr "ファイルブラウザーでパスを開きます"
 
 
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLYをエクスポート"
-
-
 msgid "Save the scene to a PLY file"
 msgstr "PLY ファイルへシーンを保存します"
 
@@ -81077,11 +81706,6 @@ msgstr "頂点の法線をエクスポート"
 
 msgid "Export specific vertex normals if available, export calculated normals otherwise"
 msgstr "可能であれば指定の頂点の法線をエクスポートします。無効時は計算した法線をエクスポートします"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLYをインポート"
 
 
 msgid "Import an PLY file as an object"
@@ -84135,11 +84759,6 @@ msgid "Blade"
 msgstr "ブレード"
 
 
-msgctxt "Operator"
-msgid "Retime"
-msgstr "リタイム"
-
-
 msgid "Feature Weights"
 msgstr "特性のウェイト"
 
@@ -85933,6 +86552,30 @@ msgid "Collection of point caches"
 msgstr "ポイントキャッシュの集合"
 
 
+msgid "Polygon Float Properties"
+msgstr "ポリゴンFloatプロパティ"
+
+
+msgid "Collection of float properties"
+msgstr "Floatプロパティの集合"
+
+
+msgid "Polygon Int Properties"
+msgstr "ポリゴンIntプロパティ"
+
+
+msgid "Collection of int properties"
+msgstr "Intプロパティの集合"
+
+
+msgid "Polygon String Properties"
+msgstr "ポリゴン文字列プロパティ"
+
+
+msgid "Collection of string properties"
+msgstr "文字列プロパティの集合"
+
+
 msgid "A collection of pose channels, including settings for animating bones"
 msgstr "ボーンのアニメーション設定などのポーズチャンネル集"
 
@@ -86848,6 +87491,14 @@ msgid "Enable Asset Browser editor and operators to manage regular data-blocks a
 msgstr ""
 "ポーズ以外に通常のデータブロックもアセットとして管理するために\n"
 "アセットブラウザーとオペレーターを有効にします"
+
+
+msgid "Full Frame Compositor"
+msgstr "フルフレームコンポジター"
+
+
+msgid "Enable compositor full frame execution mode option (no tiling, reduces execution time and memory usage)"
+msgstr "コンポジターのフルフレーム処理モードオプションを有効にします（タイリングなし。実行時間とメモリ消費量が減ります）"
 
 
 msgid "New Curves Tools"
@@ -92310,22 +92961,6 @@ msgid "Active index in render view array"
 msgstr "レンダービュー配列中のアクティブインデックス"
 
 
-msgid "Retiming Handle"
-msgstr "リタイミングハンドル"
-
-
-msgid "Handle mapped to particular frame that can be moved to change playback speed"
-msgstr "特定のフレームにマップされたハンドル。再生速度を変化できます"
-
-
-msgid "Position of retiming handle in timeline"
-msgstr "タイムライン上のリタイミングハンドルの位置"
-
-
-msgid "Collection of RetimingHandle"
-msgstr "リタイミングハンドルの集合"
-
-
 msgid "Constraint influencing Objects inside Rigid Body Simulation"
 msgstr "リジッドボディシミュレーション内部でオブジェクトにコンストレイントが影響します"
 
@@ -94509,6 +95144,10 @@ msgid "Sequence strip to load one or more images"
 msgstr "1枚または多数の画像を読み込むシーケンスストリップ"
 
 
+msgid "Multiply playback speed"
+msgstr "再生速度の乗数"
+
+
 msgid "Mask Sequence"
 msgstr "マスクシーケンス"
 
@@ -94571,10 +95210,6 @@ msgstr "動画シーケンス"
 
 msgid "Sequence strip to load a video"
 msgstr "ビデオを読み込むシーケンスストリップ"
-
-
-msgid "Retiming Handles"
-msgstr "リタイミングハンドル"
 
 
 msgid "Stream Index"
@@ -94656,10 +95291,6 @@ msgstr "ストリップ内に音声の波形を表示します"
 
 msgid "Sound data-block used by this sequence"
 msgstr "このシーケンスに使う音声データブロック"
-
-
-msgid "Multiply playback speed"
-msgstr "再生速度の乗数"
 
 
 msgid "Playback volume of the sound"
@@ -101496,10 +102127,6 @@ msgid "Snap UV Element"
 msgstr "スナップするUV要素"
 
 
-msgid "Snap to increments of grid"
-msgstr "グリッドの大きさでスナップ"
-
-
 msgid "Mesh Statistics Visualization"
 msgstr "メッシュ統計の視覚化"
 
@@ -101766,6 +102393,10 @@ msgstr "オブジェクト群全体にスナップ"
 
 msgid "Consider objects as whole when finding volume center"
 msgstr "ボリュームの中心を探す時、オブジェクト群を全体とみなします"
+
+
+msgid "Project individual elements on the surface of other objects (Always enabled with Face Nearest)"
+msgstr "各要素を他のオブジェクトの表面上に投影します（「面上の最近点」では常に有効）"
 
 
 msgid "Use Snap for Rotation"
@@ -102359,6 +102990,34 @@ msgid "Enable this light in solid shading mode"
 msgstr "ソリッドシェーディングモードでこのライトを有効にします"
 
 
+msgid "Vert Colors"
+msgstr "スカルプト頂点カラー"
+
+
+msgid "Collection of sculpt vertex colors"
+msgstr "スカルプト頂点カラーの集合"
+
+
+msgid "Active Sculpt Vertex Color Layer"
+msgstr "アクティブスカルプト頂点カラーレイヤー"
+
+
+msgid "Active sculpt vertex color layer"
+msgstr "アクティブスカルプト頂点カラーレイヤー"
+
+
+msgid "Active Sculpt Vertex Color Index"
+msgstr "アクティブスカルプト頂点カラーインデックス"
+
+
+msgid "Active sculpt vertex color index"
+msgstr "アクティブスカルプト頂点カラーインデックス"
+
+
+msgid "Vertex Float Properties"
+msgstr "頂点Floatプロパティ"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "頂点グループ。アーマチュア変形やその他の目的に使用されます"
 
@@ -102385,6 +103044,14 @@ msgstr "アクティブ頂点グループインデックス"
 
 msgid "Active index in vertex group array"
 msgstr "頂点グループ配列中のアクティブなインデックス"
+
+
+msgid "Vertex Int Properties"
+msgstr "頂点Intプロパティ"
+
+
+msgid "Vertex String Properties"
+msgstr "頂点文字列プロパティ"
 
 
 msgid "Scroll and zoom for a 2D region"
@@ -103526,6 +104193,10 @@ msgstr "ビューアーパスの要素"
 
 msgid "Type of the path element"
 msgstr "パス要素のタイプ"
+
+
+msgid "Node Name"
+msgstr "ノード名"
 
 
 msgid "Volume Display"
@@ -105120,11 +105791,6 @@ msgstr "フォント"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "グリースペンシル"
-
-
-msgctxt "WindowManager"
 msgid "Pose"
 msgstr "ポーズ"
 
@@ -106215,6 +106881,11 @@ msgstr "クリップドープシートエディター"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "グリースペンシル"
+
+
+msgctxt "WindowManager"
 msgid "Grease Pencil Stroke Curve Edit Mode"
 msgstr "グリースペンシルストロークカーブ編集モード"
 
@@ -107151,6 +107822,11 @@ msgstr "Cycles/EEVEE 互換のマテリアルを生成しましたが、%s エ�
 
 
 msgctxt "Operator"
+msgid "Stanford (.ply)"
+msgstr "スタンフォード (.ply)"
+
+
+msgctxt "Operator"
 msgid "Stl (.stl)"
 msgstr "Stl (.stl)"
 
@@ -107285,6 +107961,27 @@ msgstr "最初にバリアントを作成してください"
 msgctxt "Operator"
 msgid "Add a new Variant Slot"
 msgstr "新規バリアントスロットを追加"
+
+
+msgctxt "Operator"
+msgid "Wavefront (.obj) (legacy)"
+msgstr "Wavefront (.obj)（旧）"
+
+
+msgid "Objects as"
+msgstr "オブジェクト"
+
+
+msgid "Curves as NURBS"
+msgstr "カーブをNURBSに"
+
+
+msgid "Split by Object"
+msgstr "オブジェクトで分離"
+
+
+msgid "Split by Group"
+msgstr "グループで分離"
 
 
 msgctxt "Operator"
@@ -107478,6 +108175,11 @@ msgstr "散乱するオブジェクトと、ターゲットオブジェクトを
 
 
 msgctxt "Operator"
+msgid "Blend Pose"
+msgstr "ポーズをブレンド"
+
+
+msgctxt "Operator"
 msgid "Select Pose Bones"
 msgstr "ポーズボーンを選択"
 
@@ -107495,11 +108197,6 @@ msgstr "ポーズに適用"
 msgctxt "Operator"
 msgid "Apply Pose Flipped"
 msgstr "ポーズに適用(反転)"
-
-
-msgctxt "Operator"
-msgid "Blend Pose"
-msgstr "ポーズをブレンド"
 
 
 msgid "Action %s marked Fake User to prevent loss"
@@ -107571,6 +108268,10 @@ msgid "Search *.blend recursively"
 msgstr "*.blendを再帰的に検索"
 
 
+msgid "Writes: demo.py config text"
+msgstr "書き込み：demo.py 設定テキスト"
+
+
 msgid "Generate Settings:"
 msgstr "全般設定："
 
@@ -107581,6 +108282,10 @@ msgstr "アニメーション設定："
 
 msgid "Render Settings:"
 msgstr "レンダー設定："
+
+
+msgid "Can't load demo.py config, run: File -> Demo Mode (Setup)"
+msgstr "demo.py の設定が読み込みできません。「ファイル→デモモードの設定」を実行してください"
 
 
 msgid "Demo Mode:"
@@ -110574,8 +111279,8 @@ msgid "Enable the Color Ramp first"
 msgstr "先にカラーランプを有効にしてください"
 
 
-msgid "Tiles"
-msgstr "タイル数"
+msgid "Tiles Even"
+msgstr "偶数タイル"
 
 
 msgid "Odd"
@@ -111522,6 +112227,10 @@ msgstr "画像の上"
 
 msgid "Fixed Subdivisions"
 msgstr "分割数を固定"
+
+
+msgid "Tiles"
+msgstr "タイル数"
 
 
 msgctxt "Operator"
@@ -112869,6 +113578,11 @@ msgstr "Wavefront (.obj)"
 
 
 msgctxt "Operator"
+msgid "Stanford PLY (.ply) (experimental)"
+msgstr "スタンフォードPLY (.ply)（実験的機能）"
+
+
+msgctxt "Operator"
 msgid "STL (.stl) (experimental)"
 msgstr "STL (.stl)（実験的機能）"
 
@@ -113092,6 +113806,15 @@ msgstr "ミキシングバッファー"
 
 msgid "Sample Format"
 msgstr "サンプルフォーマット"
+
+
+msgid "Make this installation your default Blender"
+msgstr "この実行バイナリをデフォルトの Blender にします"
+
+
+msgctxt "Operator"
+msgid "Make Default"
+msgstr "デフォルト化"
 
 
 msgid "Undo Memory Limit"
@@ -113663,6 +114386,11 @@ msgstr "空"
 
 
 msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "グリースペンシル"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "スピーカー"
 
@@ -114127,6 +114855,11 @@ msgstr "シャープ辺で"
 
 
 msgctxt "Operator"
+msgid "By Face Maps"
+msgstr "フェイスマップで"
+
+
+msgctxt "Operator"
 msgid "Per Vertex"
 msgstr "頂点毎"
 
@@ -114258,6 +114991,16 @@ msgstr "辺を押し出し"
 msgctxt "Operator"
 msgid "Clear Sharp from Vertices"
 msgstr "頂点からシャープをクリア"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "面を押し出し"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "法線に沿って面を押し出し"
 
 
 msgctxt "Operator"
@@ -114576,11 +115319,6 @@ msgstr "ポイントクラウド"
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "グリースペンシル"
-
-
-msgctxt "Operator"
 msgid "Armature"
 msgstr "アーマチュア"
 
@@ -114792,16 +115530,6 @@ msgstr "シャープをクリア"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "頂点からシャープをマーク"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "面を押し出し"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "法線に沿って面を押し出し"
 
 
 msgctxt "Operator"
@@ -115077,14 +115805,6 @@ msgid "Fade Geometry"
 msgstr "形状をフェード"
 
 
-msgid "Target Selection"
-msgstr "ターゲットの選択"
-
-
-msgid "Exclude Non-Selectable"
-msgstr "選択不可を除く"
-
-
 msgid "Reference Point"
 msgstr "参照ポイント"
 
@@ -115179,16 +115899,12 @@ msgid "Specular Lighting"
 msgstr "スペキュラー照明"
 
 
-msgid "Include Active"
-msgstr "アクティブを含む"
+msgid "Target Selection"
+msgstr "ターゲットの選択"
 
 
-msgid "Include Edited"
-msgstr "編集中を含む"
-
-
-msgid "Include Non-Edited"
-msgstr "編集中以外を含む"
+msgid "Exclude Non-Selectable"
+msgstr "選択不可を除く"
 
 
 msgid "Custom Location"
@@ -115257,6 +115973,18 @@ msgstr "全グループから除外"
 
 msgid "Disable Studio Light Edit"
 msgstr "スタジオライトの編集を無効化"
+
+
+msgid "Include Active"
+msgstr "アクティブを含む"
+
+
+msgid "Include Edited"
+msgstr "編集中を含む"
+
+
+msgid "Include Non-Edited"
+msgstr "編集中以外を含む"
 
 
 msgid "Object Location"
@@ -116027,6 +116755,10 @@ msgstr "グリースペンシル"
 
 msgid "LightProbe"
 msgstr "ライトプローブ"
+
+
+msgid "FaceMap"
+msgstr "フェイスマップ"
 
 
 msgid "No new files have been packed"
@@ -118092,6 +118824,30 @@ msgid "Grease Pencil has no active paint tool"
 msgstr "グリースペンシルにアクティブペイントツールがありません"
 
 
+msgid "Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center, E: extrude"
+msgstr "ライン：Esc:キャンセル、LMB:ポイント設定、Enter/MMB:確定、ホイール:分割数の調整、Shift:整列、Alt:中心、E:押し出し"
+
+
+msgid "Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align"
+msgstr "ポリライン：Esc:キャンセル、LMB:ポイント設定、Enter/MMB:確定、ホイール:分割数の調整、Shift:整列"
+
+
+msgid "Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
+msgstr "矩形：Esc:キャンセル、LMB:ポイント設定、Enter/MMB:確定、ホイール:分割数の調整、Shift:正方形、Alt:中心"
+
+
+msgid "Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
+msgstr "円：Esc:キャンセル、Enter/MMB:確定、ホイール:分割数の調整、Shift:正円、Alt:中心"
+
+
+msgid "Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, M: Flip, E: extrude"
+msgstr "円弧：Esc:キャンセル、Enter/MMB:確定、ホイール:分割数の調整、Shift:縦横均等、Alt:中心、M:反転、E:押し出し"
+
+
+msgid "Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, E: extrude"
+msgstr "カーブ：Esc:キャンセル、Enter/MMB:確定、ホイール:分割数の調整、Shift:縦横均等、Alt:中心、E:押し出し"
+
+
 msgid "Primitives can only be added in Draw or Edit modes"
 msgstr "プリミティブはドローまたは編集モードでのみ追加可能です"
 
@@ -118433,6 +119189,14 @@ msgstr "有効なデータパスを計算できませんでした"
 
 msgid "Failed to create the override operation"
 msgstr "オーバーライド操作の作成に失敗しました"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "ファイル「%s」が開けません"
+
+
+msgid "See '%s' in the text editor"
+msgstr "テキストエディターで「%s」を見てください"
 
 
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
@@ -118885,6 +119649,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "リンクするパーティクル設定を閲覧"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "リンクするグリースペンシルを閲覧"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "リンクする動画クリップを閲覧"
 
@@ -118927,10 +119695,6 @@ msgstr "リンクするボリュームデータを閲覧"
 
 msgid "Browse Simulation to be linked"
 msgstr "リンクするシミュレーションを閲覧"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "リンクするグリースペンシルを閲覧"
 
 
 msgid "Browse ID data to be linked"
@@ -119120,12 +119884,16 @@ msgid "Method Quads"
 msgstr "四角面分割方法"
 
 
-msgid "No filepath given"
-msgstr "ファイルパスなし"
+msgid "No filename given"
+msgstr "ファイル名なし"
 
 
 msgid "Unable to determine ABC sequence length"
 msgstr "ABCシーケンス長を計測できません"
+
+
+msgid "No filepath given"
+msgstr "ファイルパスなし"
 
 
 msgid "Could not add a layer to the cache file"
@@ -119204,10 +119972,6 @@ msgid "Triangulated Mesh"
 msgstr "メッシュの三角面化"
 
 
-msgid "Curves as NURBS"
-msgstr "カーブをNURBSに"
-
-
 msgid "Grouping"
 msgstr "グループ化"
 
@@ -119216,20 +119980,8 @@ msgid "Object Groups"
 msgstr "オブジェクトグループ"
 
 
-msgid "Material Groups"
-msgstr "マテリアルグループ"
-
-
-msgid "Smooth Groups"
-msgstr "スムーズグループ"
-
-
 msgid "Smooth Group Bitflags"
 msgstr "スムーズグループビットフラグ"
-
-
-msgid "ASCII"
-msgstr "ASCII"
 
 
 msgid "File References"
@@ -121215,6 +121967,14 @@ msgid "Full Screen Area"
 msgstr "フルスクリーン化"
 
 
+msgid "Flip to Bottom"
+msgstr "下に移動"
+
+
+msgid "Flip to Top"
+msgstr "上に移動"
+
+
 msgid "Show Header"
 msgstr "ヘッダーを表示"
 
@@ -121233,14 +121993,6 @@ msgstr "右に切り替え"
 
 msgid "Flip to Left"
 msgstr "左に切り替え"
-
-
-msgid "Flip to Top"
-msgstr "上に移動"
-
-
-msgid "Flip to Bottom"
-msgstr "下に移動"
 
 
 msgid "Blender Preferences"
@@ -123620,18 +124372,6 @@ msgid "Select movie or image strips"
 msgstr "動画または画像ストリップを選択してください"
 
 
-msgid "No handle available"
-msgstr "利用可能なハンドルがありません"
-
-
-msgid "Can not create handle inside of speed transition"
-msgstr "スピードトランジション内にハンドルを作成できません"
-
-
-msgid "This strip type can not be retimed"
-msgstr "このストリップタイプはリタイミングできません"
-
-
 msgid "No active sequence!"
 msgstr "アクティブシーケンスがありません！"
 
@@ -123666,6 +124406,14 @@ msgstr ""
 
 msgid "Data Set"
 msgstr "データセット"
+
+
+msgid "Column"
+msgstr "列"
+
+
+msgid "Unknown column type"
+msgstr "未知の列タイプ"
 
 
 msgid "File Modified Outside and Inside Blender"
@@ -123742,14 +124490,6 @@ msgstr "「%s」の状態が取得できません: %s"
 
 msgid "Text not found: %s"
 msgstr "%s がありません"
-
-
-msgid "File '%s' cannot be opened"
-msgstr "ファイル「%s」が開けません"
-
-
-msgid "See '%s' in the text editor"
-msgstr "テキストエディターで「%s」を見てください"
 
 
 msgid "No Recent Files"
@@ -125786,6 +126526,18 @@ msgid "Index %d is invalid"
 msgstr "インデックス%dは無効です"
 
 
+msgid "Currently only single face map layers are supported"
+msgstr "現在、単一のフェイスマップレイヤーにのみ対応しています"
+
+
+msgid "Face map not in mesh"
+msgstr "フェイスマップがメッシュにありません"
+
+
+msgid "Error removing face map"
+msgstr "フェイスマップ削除エラー"
+
+
 msgid "UV map '%s' not found"
 msgstr "UVマップ「%s」が見つかりません"
 
@@ -125955,6 +126707,10 @@ msgid "Vertex not in group"
 msgstr "頂点がグループ内にありません"
 
 
+msgid "FaceMap.add(): cannot be called while object is in edit mode"
+msgstr "FaceMap.add(): オブジェクトが編集モード中は呼び出しできません"
+
+
 msgid "VertexGroup '%s' not found in object '%s'"
 msgstr "頂点グループ「%s」がオブジェクト「%s」にありません"
 
@@ -125981,6 +126737,10 @@ msgstr "%s は「%s」オブジェクトに未対応です"
 
 msgid "DeformGroup '%s' not in object '%s'"
 msgstr "デフォームグループ「%s」がオブジェクト「%s」にありません"
+
+
+msgid "Face map '%s' not in object '%s'"
+msgstr "フェイスマップ「%s」がオブジェクト「%s」にありません"
 
 
 msgid "Viewport not in local view"
@@ -127759,12 +128519,24 @@ msgid "Surface has no mesh"
 msgstr "サーフェスにメッシュがありません"
 
 
+msgid "Evaluated surface missing UV map: \"%s\""
+msgstr "評価済みサーフェスに UV マップ「%s」がありません"
+
+
+msgid "Original surface missing UV map: \"%s\""
+msgstr "オリジナル表面に UV マップ「%s」がありません"
+
+
 msgid "Evaluated surface missing attribute: \"rest_position\""
 msgstr "評価済みサーフェスに属性「rest_position」がありません"
 
 
 msgid "Curves are not attached to any UV map"
 msgstr "カーブがどの UV マップにも植え付けられていません"
+
+
+msgid "Invalid surface UVs on %d curves"
+msgstr "%d 個のカーブのサーフェスの UV が異常です"
 
 
 msgid "The parts of the geometry to be deleted"
@@ -128364,10 +129136,6 @@ msgid "Half the width of the narrow band in voxel units"
 msgstr "ナローバンドの半分の幅（ボクセル単位）"
 
 
-msgid "Which of the sorted corners to output"
-msgstr "どのソート後のコーナーを出力するか"
-
-
 msgid "Corner Index"
 msgstr "コーナーインデックス"
 
@@ -128378,6 +129146,10 @@ msgstr "データを取り出す面。デフォルトではコンテクストの
 
 msgid "Values used to sort the face's corners. Uses indices by default"
 msgstr "面のコーナーをソートするのに使用する値。デフォルトではインデックスを使用"
+
+
+msgid "Which of the sorted corners to output"
+msgstr "どのソート後のコーナーを出力するか"
 
 
 msgid "A corner of the face, chosen by the sort index"
@@ -128576,6 +129348,18 @@ msgid "Hit Distance"
 msgstr "ヒット距離"
 
 
+msgid "This node uses legacy behavior with regards to attributes on instances. The behavior can be changed in the node properties in the side bar. In most cases the new behavior is the same for files created in Blender 3.0"
+msgstr "このノードはインスタンス上の属性に対して古い挙動を使用しています。挙動はサイドバーのノードプロパティにて変更可能です。大抵の場合、新しい挙動は Blender 3.0で作成されたファイルと同じです"
+
+
+msgid "Attribute does not exist: \"%s\""
+msgstr "属性が存在しません:「%s」"
+
+
+msgid "Cannot delete built-in attribute with name \"%s\""
+msgstr "名前が「%s」のビルトイン属性は削除できません"
+
+
 msgid "Which element to retrieve a value from on the geometry"
 msgstr "ジオメトリ上の値を取得する要素"
 
@@ -128686,6 +129470,10 @@ msgstr "デルタタイム"
 
 msgid "Add a new simulation input and output nodes to the node tree"
 msgstr "新しいシミュレーション入出力ノードをノードツリーに追加します"
+
+
+msgid "Failed to write to attribute \"%s\" with domain \"%s\" and type \"%s\""
+msgstr "属性「%s」の書き込みに失敗しました（ドメイン「%s」、タイプ「%s」"
 
 
 msgid "Delimiter"
@@ -128840,16 +129628,16 @@ msgid "AO"
 msgstr "AO"
 
 
+msgid "Anisotropy"
+msgstr "異方性"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
-
-
-msgid "Anisotropy"
-msgstr "異方性"
 
 
 msgid "RoughnessU"
@@ -128902,6 +129690,10 @@ msgstr "サブサーフェス異方性"
 
 msgid "Specular Tint"
 msgstr "スペキュラーチント"
+
+
+msgid "Anisotropic"
+msgstr "異方性"
 
 
 msgid "Anisotropic Rotation"
@@ -130354,6 +131146,18 @@ msgid "Import SVG as curves"
 msgstr "SVG をカーブでインポート"
 
 
+msgid "Stanford PLY format"
+msgstr "Stanford PLYフォーマット"
+
+
+msgid "File > Import/Export"
+msgstr "ファイル→インポート/エクスポート"
+
+
+msgid "Import-Export PLY mesh data with UVs and vertex colors"
+msgstr "PLY メッシュデータと UV、頂点カラーをインポート・エクスポートします"
+
+
 msgid "UV Layout"
 msgstr "UV レイアウト"
 
@@ -130364,6 +131168,14 @@ msgstr "UVエディター→UV→UV配置をエクスポート"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "UV レイアウトを 2D グラフィックでエクスポートします"
+
+
+msgid "Wavefront OBJ format (legacy)"
+msgstr "Wavefront OBJフォーマット（旧）"
+
+
+msgid "Import-Export OBJ, Import OBJ mesh, UVs, materials and textures"
+msgstr "OBJ をインポート/エクスポート、OBJ メッシュや UV、マテリアル、テクスチャをインポートします"
 
 
 msgid "glTF 2.0 format"

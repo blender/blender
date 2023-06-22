@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1012,10 +1012,6 @@ msgstr "Ścieżka do pliku .blend"
 
 msgid "Vector Fonts"
 msgstr "Czcionki wektorowe"
-
-
-msgid "Grease Pencil"
-msgstr "Szkicownik"
 
 
 msgid "Images"
@@ -6040,6 +6036,10 @@ msgid "Size"
 msgstr "Rozmiar"
 
 
+msgid "Grease Pencil"
+msgstr "Szkicownik"
+
+
 msgid "Save"
 msgstr "Zapisz"
 
@@ -7648,6 +7648,14 @@ msgid "Active button not found"
 msgstr "Nie odnaleziono aktywnego przycisku"
 
 
+msgid "File '%s' cannot be opened"
+msgstr "Nie można otworzyć pliku '%s'"
+
+
+msgid "See '%s' in the text editor"
+msgstr "Patrz '%s' w edytorze tekstu"
+
+
 msgid "No valid po found for language '%s' under %s"
 msgstr "Nie odnaleziono prawidłowego 'po' dla języka '%s' pod '%s'"
 
@@ -7872,6 +7880,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Przeglądaj dane cząstek do powiązania"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Przeglądaj dane szkicownika do powiązania"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Przeglądaj klipy filmowe do powiązania"
 
@@ -7886,10 +7898,6 @@ msgstr "Przeglądaj dane palety do powiązania"
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "Przeglądaj dane krzywej malowania do powiązania"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Przeglądaj dane szkicownika do powiązania"
 
 
 msgid "Browse ID data to be linked"
@@ -7993,6 +8001,10 @@ msgstr "Nowy"
 
 msgid "%d items"
 msgstr "%d elementów"
+
+
+msgid "No filename given"
+msgstr "Nie podano nazwy pliku"
 
 
 msgid "Can't create export file"
@@ -8990,12 +9002,12 @@ msgid "Maximize Area"
 msgstr "Maksymalizuj Obszar"
 
 
-msgid "Flip to Top"
-msgstr "Przerzuć na górę"
-
-
 msgid "Flip to Bottom"
 msgstr "Przerzuć w dół"
+
+
+msgid "Flip to Top"
+msgstr "Przerzuć na górę"
 
 
 msgid "Can only scale region size from an action zone"
@@ -9805,14 +9817,6 @@ msgstr "Nie możliwe stat \"%s': %s"
 
 msgid "Text not found: %s"
 msgstr "Nie odnaleziono tekstu: %s"
-
-
-msgid "File '%s' cannot be opened"
-msgstr "Nie można otworzyć pliku '%s'"
-
-
-msgid "See '%s' in the text editor"
-msgstr "Patrz '%s' w edytorze tekstu"
 
 
 msgid "No Recent Files"
@@ -10894,12 +10898,12 @@ msgid "Val"
 msgstr "Val"
 
 
-msgid "BSDF"
-msgstr "BSDF"
-
-
 msgid "Anisotropy"
 msgstr "Anizotropia"
+
+
+msgid "BSDF"
+msgstr "BSDF"
 
 
 msgid "RoughnessU"

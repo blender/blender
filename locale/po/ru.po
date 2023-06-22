@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -1230,10 +1230,6 @@ msgid "Smaller integer with a range from -128 to 127"
 msgstr "Целое число в диапазоне от -128 до 127"
 
 
-msgid "Quaternion"
-msgstr "Кватернион"
-
-
 msgid "Domain"
 msgstr "Домен"
 
@@ -1826,10 +1822,6 @@ msgid "Vector font data-blocks"
 msgstr "Датаблоки векторных шрифтов"
 
 
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
 msgid "Hair Curves"
 msgstr "Кривые волос"
 
@@ -2004,10 +1996,6 @@ msgstr "Ключи формы"
 
 msgid "Shape Key data-blocks"
 msgstr "Датаблоки ключей формы"
-
-
-msgid "Simulations"
-msgstr "Симуляции"
 
 
 msgid "Sounds"
@@ -5184,10 +5172,6 @@ msgid "Collection of child collections"
 msgstr "Коллекция коллекций потомков"
 
 
-msgid "Include"
-msgstr "Включить"
-
-
 msgid "Collection Objects"
 msgstr "Объекты коллекции"
 
@@ -7839,6 +7823,10 @@ msgstr "Авто Эйлер"
 
 msgid "Euler using the rotation order of the target"
 msgstr "Углы Эйлера, использующие порядок осей целевого объекта"
+
+
+msgid "Quaternion"
+msgstr "Кватернион"
 
 
 msgid "Quaternion rotation"
@@ -11276,6 +11264,50 @@ msgid "Lower bound of envelope at this control-point"
 msgstr "Нижняя граница оболочки на этой контрольной точке"
 
 
+msgid "Face Map"
+msgstr "Карта граней"
+
+
+msgid "Group of faces, each face can only be part of one map"
+msgstr "Группа граней, каждая из которых может быть частью одной карты"
+
+
+msgid "Index number of the face map"
+msgstr "Порядковый номер карты граней"
+
+
+msgid "Face map name"
+msgstr "Имя карты граней"
+
+
+msgid "Face map selection state (for tools to use)"
+msgstr "Состояние выделения карты граней (используется для инструментов)"
+
+
+msgid "Face Maps"
+msgstr "Карты граней"
+
+
+msgid "Collection of face maps"
+msgstr "Коллекция карт граней"
+
+
+msgid "Active Face Map"
+msgstr "Активная карта граней"
+
+
+msgid "Face maps of the object"
+msgstr "Карты граней объекта"
+
+
+msgid "Active Face Map Index"
+msgstr "Индекс активной карты граней"
+
+
+msgid "Active index in face map array"
+msgstr "Активный индекс в массиве карты граней"
+
+
 msgid "Field Settings"
 msgstr "Параметры поля"
 
@@ -11740,6 +11772,10 @@ msgid "Show Font data-blocks"
 msgstr "Показать датаблоки шрифтов"
 
 
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
 msgid "Show Grease pencil data-blocks"
 msgstr "Показать датаблоки Grease Pencil"
 
@@ -11806,6 +11842,10 @@ msgstr "Показать/скрыть датаблоки облаков точе
 
 msgid "Show Scene data-blocks"
 msgstr "Показать датаблоки сцен"
+
+
+msgid "Simulations"
+msgstr "Симуляции"
 
 
 msgid "Show Simulation data-blocks"
@@ -18981,6 +19021,10 @@ msgid "Offset from the origin to use when instancing"
 msgstr "Смещение экземпляра от исходного объекта"
 
 
+msgid "Include"
+msgstr "Включить"
+
+
 msgid "Objects that are directly in this collection"
 msgstr "Объекты, непосредственно находящиеся в этой коллекции"
 
@@ -20211,10 +20255,6 @@ msgstr "Смещение поверхности"
 
 msgid "Offset amount when drawing in surface mode"
 msgstr "Величина смещения при рисовании в режиме поверхности"
-
-
-msgid "Grease Pencil data-block"
-msgstr "Датаблок Grease Pencil"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -21556,6 +21596,18 @@ msgid "Loops of the mesh (polygon corners)"
 msgstr "Циклы меша (углы полигонов)"
 
 
+msgid "Float Property Layers"
+msgstr "Слои нецелочисленных свойств"
+
+
+msgid "Int Property Layers"
+msgstr "Слои целочисленных свойств"
+
+
+msgid "String Property Layers"
+msgstr "Слои строковых свойств"
+
+
 msgid "Polygons"
 msgstr "Полигоны"
 
@@ -21910,6 +21962,10 @@ msgstr "Метка нодовой системы"
 
 msgid "Grease Pencil Data"
 msgstr "Данные Grease Pencil"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Датаблок Grease Pencil"
 
 
 msgid "Inputs"
@@ -22346,6 +22402,10 @@ msgstr "Показать переднюю/заднюю стороны"
 
 msgid "Both"
 msgstr "Оба(е)"
+
+
+msgid "Maps of faces of the object"
+msgstr "Карты граней объекта"
 
 
 msgid "Settings for using the object as a field in physics simulation"
@@ -22928,6 +22988,10 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "Количество частиц, незатронутых длиной пути потомков"
 
 
+msgid "Children Per Parent"
+msgstr "Потомков на родителя"
+
+
 msgid "Parting Factor"
 msgstr "Коэффициент разделения"
 
@@ -22950,10 +23014,6 @@ msgstr "Минимальное разделение"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "Минимальный угол от корня до концов (расстояние концов/расстояние корней для длинных волос)"
-
-
-msgid "Children Per Parent"
-msgstr "Потомков на родителя"
 
 
 msgid "Child Radius"
@@ -30003,6 +30063,18 @@ msgid "Edge in a Mesh data-block"
 msgstr "Ребро в датаблоке меша"
 
 
+msgid "Bevel Weight"
+msgstr "Вес фаски"
+
+
+msgid "Weight used by the Bevel modifier"
+msgstr "Веса, используемые для модификатора фаски"
+
+
+msgid "Weight used by the Subdivision Surface modifier for creasing"
+msgstr "Вес, используемый модификатором подразделения поверхности для создания складок"
+
+
 msgid "Index of this edge"
 msgstr "Индекс этого ребра"
 
@@ -30037,6 +30109,18 @@ msgstr "Рёбра меша"
 
 msgid "Collection of mesh edges"
 msgstr "Коллекция рёбер меша"
+
+
+msgid "Int Property"
+msgstr "Целочисленное свойство"
+
+
+msgid "Mesh Face Map Layer"
+msgstr "Слой карт граней меша"
+
+
+msgid "Per-face map index"
+msgstr "Индекс карты по граням"
 
 
 msgid "Mesh Loop"
@@ -30247,6 +30331,46 @@ msgid "Face mark for Freestyle line rendering"
 msgstr "Отметить грань для использования в рендере линий Freestyle"
 
 
+msgid "Mesh Polygon Float Property"
+msgstr "Нецелочисленное свойство полигона меша"
+
+
+msgid "Mesh Polygon Float Property Layer"
+msgstr "Слой нецелочисленных свойств полигона меша"
+
+
+msgid "Mesh Polygon Int Property"
+msgstr "Целочисленное свойство полигона меша"
+
+
+msgid "User defined integer number value in an integer properties layer"
+msgstr "Пользовательское целочисленное значение в слое целочисленных свойств"
+
+
+msgid "Mesh Polygon Int Property Layer"
+msgstr "Слой целочисленных свойств полигона меша"
+
+
+msgid "User defined layer of integer number values"
+msgstr "Пользовательский слой целочисленных значений"
+
+
+msgid "Mesh Polygon String Property"
+msgstr "Свойство-строка полигона меша"
+
+
+msgid "User defined string text value in a string properties layer"
+msgstr "Пользовательское строковое значение в слое строковых свойств"
+
+
+msgid "Mesh Polygon String Property Layer"
+msgstr "Слой свойств-строк полигона меша"
+
+
+msgid "User defined layer of string text values"
+msgstr "Пользовательский слой строковых значений"
+
+
 msgid "Mesh Polygons"
 msgstr "Полигоны меша"
 
@@ -30409,6 +30533,30 @@ msgstr "Недеформированное положение"
 
 msgid "For meshes with modifiers applied, the coordinate of the vertex with no deforming modifiers applied, as used for generated texture coordinates"
 msgstr "Координаты вершины до применения деформирующих модификаторов (используются в качестве сгенерированных текстурных координат)"
+
+
+msgid "Mesh Vertex Float Property"
+msgstr "Нецелочисленное свойство вершины меша"
+
+
+msgid "Mesh Vertex Float Property Layer"
+msgstr "Слой нецелочисленных свойств вершин меша"
+
+
+msgid "Mesh Vertex Int Property"
+msgstr "Целочисленное свойство вершины меша"
+
+
+msgid "Mesh Vertex Int Property Layer"
+msgstr "Слой целочисленных свойств вершин"
+
+
+msgid "Mesh Vertex String Property"
+msgstr "Строковое свойство вершины меша"
+
+
+msgid "Mesh Vertex String Property Layer"
+msgstr "Слой строковых свойств вершин меша"
 
 
 msgid "Mesh Vertices"
@@ -31273,10 +31421,6 @@ msgstr "UV-швы"
 
 msgid "Transfer UV seam mark"
 msgstr "Перенести метки UV-швов"
-
-
-msgid "Bevel Weight"
-msgstr "Вес фаски"
 
 
 msgid "Transfer bevel weights"
@@ -35363,6 +35507,10 @@ msgid "Width of the node"
 msgstr "Ширина ноды"
 
 
+msgid "Width Hidden"
+msgstr "Ширина при скрытии"
+
+
 msgid "Custom Group"
 msgstr "Особая группа"
 
@@ -36508,14 +36656,6 @@ msgid "Tracking Object"
 msgstr "Отслеживаемый объект"
 
 
-msgid "Smoothing"
-msgstr "Сглаживание"
-
-
-msgid "Anisotropic"
-msgstr "Анизотропность"
-
-
 msgid "Lens Distortion"
 msgstr "Искажение объектива"
 
@@ -37430,20 +37570,20 @@ msgid "Blackbody"
 msgstr "Тепловое излучение"
 
 
-msgid "Glossy BSDF"
-msgstr "Глянцевый BSDF"
+msgid "Anisotropic BSDF"
+msgstr "Анизотропный BSDF"
 
 
 msgid "Beckmann"
 msgstr "Бекман"
 
 
-msgid "Ashikhmin-Shirley"
-msgstr "Ашихмин-Ширли"
-
-
 msgid "Multiscatter GGX"
 msgstr "Multiscatter GGX"
+
+
+msgid "Ashikhmin-Shirley"
+msgstr "Ашихмин-Ширли"
 
 
 msgid "Diffuse BSDF"
@@ -37452,6 +37592,10 @@ msgstr "Диффузный BSDF"
 
 msgid "Glass BSDF"
 msgstr "BSDF стекла"
+
+
+msgid "Glossy BSDF"
+msgstr "Глянцевый BSDF"
 
 
 msgid "Hair BSDF"
@@ -43051,16 +43195,8 @@ msgstr "Преобразовать вращения по Эйлеру ZYX"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "Экспортировать STL"
-
-
-msgid "Ascii"
-msgstr "ASCII"
-
-
-msgid "Save the file in ASCII file format"
-msgstr "Сохранить файл в формате ASCII"
+msgid "Export PLY"
+msgstr "Экспортировать PLY"
 
 
 msgid "X Forward"
@@ -43107,6 +43243,39 @@ msgid "-Z Up"
 msgstr "Вверх по −Z"
 
 
+msgid "Export the active vertex color layer"
+msgstr "Экспортировать активный слой цветов вершин"
+
+
+msgid "Apply Modifiers"
+msgstr "Применить модификаторы"
+
+
+msgid "Apply Modifiers to the exported mesh"
+msgstr "Применить модификаторы в экспортируемом меше"
+
+
+msgid "Selection Only"
+msgstr "Только выделенное"
+
+
+msgid "Export selected objects only"
+msgstr "Экспортировать только выделенные объекты"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Экспортировать STL"
+
+
+msgid "Ascii"
+msgstr "ASCII"
+
+
+msgid "Save the file in ASCII file format"
+msgstr "Сохранить файл в формате ASCII"
+
+
 msgid "Batch Mode"
 msgstr "Пакетный режим"
 
@@ -43119,10 +43288,6 @@ msgid "Each object as a file"
 msgstr "Каждый объект в отдельном файле"
 
 
-msgid "Apply Modifiers"
-msgstr "Применить модификаторы"
-
-
 msgid "Apply the modifiers before saving"
 msgstr "Применить модификаторы перед сохранением"
 
@@ -43133,14 +43298,6 @@ msgstr "Единицы сцены"
 
 msgid "Apply current scene's unit (as defined by unit scale) to exported data"
 msgstr "Применить текущие единицы сцены (заданные масштабом единиц) к экспортируемым данным"
-
-
-msgid "Selection Only"
-msgstr "Только выделенное"
-
-
-msgid "Export selected objects only"
-msgstr "Экспортировать только выделенные объекты"
 
 
 msgctxt "Operator"
@@ -43318,6 +43475,10 @@ msgstr "Встроить текстуры в двоичный файл FBX (то
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Масштабировать все данные (некоторые импортёры не поддерживают масштабированные арматуры!)"
+
+
+msgid "Smoothing"
+msgstr "Сглаживание"
 
 
 msgid "Export smoothing information (prefer 'Normals Only' option if your target importer understand split normals)"
@@ -43711,6 +43872,87 @@ msgstr "Запомнить настройки экспорта"
 
 msgid "Store glTF export settings in the Blender project"
 msgstr "Сохранить настройки экспорта glTF в файле Blender"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "Экспортировать OBJ"
+
+
+msgid "Save a Wavefront OBJ File"
+msgstr "Сохранить файла в формате Wavefront OBJ"
+
+
+msgid "Material Groups"
+msgstr "Группы материалов"
+
+
+msgid "Keep Vertex Order"
+msgstr "Сохранить порядок вершин"
+
+
+msgid "Write out an OBJ for each frame"
+msgstr "Записать OBJ для каждого кадра"
+
+
+msgid "Include Edges"
+msgstr "Включая рёбра"
+
+
+msgid "Write Materials"
+msgstr "Записать материалы"
+
+
+msgid "Write out the MTL file"
+msgstr "Записать файл MTL"
+
+
+msgid "Apply modifiers"
+msgstr "Применить модификаторы"
+
+
+msgid "Write Normals"
+msgstr "Записывать нормали"
+
+
+msgid "Export one normal per vertex and per face, to represent flat faces and sharp edges"
+msgstr "Экспортировать нормали на вершины и грани для представления плоских граней и острых рёбер"
+
+
+msgid "Write Nurbs"
+msgstr "Записать NURBS"
+
+
+msgid "Write nurbs curves as OBJ nurbs rather than converting to geometry"
+msgstr "Записать кривые NURBS в OBJ NURBS, не преобразовывая их в геометрические объекты"
+
+
+msgid "Smooth Groups"
+msgstr "Группы сглаживания"
+
+
+msgid "Write sharp edges as smooth groups"
+msgstr "Записывать острые рёбра как группы сглаживания"
+
+
+msgid "Bitflag Smooth Groups"
+msgstr "Битовый флаг группы сглаживания"
+
+
+msgid "Same as 'Smooth Groups', but generate smooth groups IDs as bitflags (produces at most 32 different smooth groups, usually much less)"
+msgstr "То же, что и «Группы сглаживания», но генерировать идентификаторы групп сглаживания с помощью битовых флагов (даёт не больше 32 различных групп сглаживания, но обычно этого достаточно)"
+
+
+msgid "Include UVs"
+msgstr "Включить UV"
+
+
+msgid "Write out the active UV coordinates"
+msgstr "Записать активные UV-координаты"
+
+
+msgid "Polygroups"
+msgstr "Полигруппы"
 
 
 msgctxt "Operator"
@@ -46253,26 +46495,6 @@ msgid "Reset viewable area to show selected keyframe range"
 msgstr "Сбросить видимую область для отображения диапазона выделенных ключевых кадров"
 
 
-msgid "Stroke Mode"
-msgstr "Режим штриха"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "Действие, выполняемое при выполнении штриха"
-
-
-msgid "Apply brush normally"
-msgstr "Применить кисть стандартно"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Обратить действие кисти во время выполнения штриха"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Переключить кисть в режим сглаживания во время выполнения штриха"
-
-
 msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Добавить рендер слот"
@@ -46950,6 +47172,19 @@ msgstr "Использовать альфа-канал для прозрачно
 
 
 msgctxt "Operator"
+msgid "Import PLY"
+msgstr "Импортировать PLY"
+
+
+msgid "Load a PLY geometry file"
+msgstr "Загрузить файл геометрии PLY"
+
+
+msgid "File path used for importing the PLY file"
+msgstr "Путь к файлу, используемый при импорте файла PLY"
+
+
+msgctxt "Operator"
 msgid "Import STL"
 msgstr "Импортировать STL"
 
@@ -47130,6 +47365,59 @@ msgstr "Уровень логирования"
 
 msgid "The glTF format requires discontinuous normals, UVs, and other vertex attributes to be stored as separate vertices, as required for rendering on typical graphics hardware. This option attempts to combine co-located vertices where possible. Currently cannot combine verts with different normals"
 msgstr "Формат glTF требует, чтобы прерывистые нормали, UV и другие атрибуты вершин хранились как отдельные вершины, как это требуется для рендеринга на типичном графическом оборудовании. Эта опция пытается объединить совмещенные вершины, где это возможно. В настоящее время нельзя комбинировать вершины с разными нормалями"
+
+
+msgctxt "Operator"
+msgid "Import OBJ"
+msgstr "Импортировать OBJ"
+
+
+msgid "Load a Wavefront OBJ File"
+msgstr "Загрузить файл формата Wavefront OBJ"
+
+
+msgid "Clamp Size"
+msgstr "Ограничить размер"
+
+
+msgid "Clamp bounds under this value (zero to disable)"
+msgstr "Ограничить область этим значением (0 для отключения)"
+
+
+msgid "Keep Vert Order"
+msgstr "Сохранять порядок вершин"
+
+
+msgid "Keep vertex order from file"
+msgstr "Сохранять порядок вершин из файла"
+
+
+msgid "Import lines and faces with 2 verts as edge"
+msgstr "Импортировать линии и грани с двумя вершинами как рёбра"
+
+
+msgid "Poly Groups"
+msgstr "Полигруппы"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "Импортировать группы OBJ как группы вершин"
+
+
+msgid "Search subdirs for any associated images (Warning, may be slow)"
+msgstr "Искать связанные изображения в подпапках (предупреждение: может быть медленным)"
+
+
+msgid "Surround smooth groups by sharp edges"
+msgstr "Окружить группы сглаживания острыми рёбрами"
+
+
+msgid "Import OBJ Groups into Blender Objects"
+msgstr "Импортировать группы OBJ как объекты Blender"
+
+
+msgid "Import OBJ Objects into Blender Objects"
+msgstr "Импортировать объекты OBJ как объекты Blender"
 
 
 msgctxt "Operator"
@@ -49889,6 +50177,11 @@ msgid "Area"
 msgstr "Площадь"
 
 
+msgctxt "Mesh"
+msgid "Face Map"
+msgstr "Карта граней"
+
+
 msgctxt "Operator"
 msgid "Select Similar Regions"
 msgstr "Выделить схожие участки"
@@ -51733,12 +52026,79 @@ msgstr "Обновить данные в модификаторе взрыва"
 
 
 msgctxt "Operator"
+msgid "Add Face Map"
+msgstr "Добавить карту граней"
+
+
+msgid "Add a new face map to the active object"
+msgstr "Добавить новую карту граней на активный объект"
+
+
+msgctxt "Operator"
+msgid "Assign Face Map"
+msgstr "Назначить карту граней"
+
+
+msgid "Assign faces to a face map"
+msgstr "Назначить грани на карту граней"
+
+
+msgctxt "Operator"
+msgid "Deselect Face Map Faces"
+msgstr "Снять выделение с граней этой карты граней"
+
+
+msgid "Deselect faces belonging to a face map"
+msgstr "Снять выделение с граней, назначенных на карту граней"
+
+
+msgctxt "Operator"
+msgid "Move Face Map"
+msgstr "Переместить карту граней"
+
+
+msgid "Move the active face map up/down in the list"
+msgstr "Переместить активную карту граней вверх-вниз по списку"
+
+
+msgctxt "Operator"
+msgid "Remove Face Map"
+msgstr "Удалить карту граней"
+
+
+msgid "Remove a face map from the active object"
+msgstr "Удалить карту граней из активного объекта"
+
+
+msgid "Remove faces from a face map"
+msgstr "Удалить грани из карты граней"
+
+
+msgctxt "Operator"
+msgid "Select Face Map Faces"
+msgstr "Выделить грани карты граней"
+
+
+msgid "Select faces belonging to a face map"
+msgstr "Выделить грани, которые принадлежат карте граней"
+
+
+msgctxt "Operator"
 msgid "Toggle Force Field"
 msgstr "Переключить силовое поле"
 
 
 msgid "Toggle object's force field"
 msgstr "Включить/выключить силовое поле объекта"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Добавить Grease Pencil"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Добавить объект Grease Pencil в сцену"
 
 
 msgid "Create an empty grease pencil object"
@@ -51846,15 +52206,6 @@ msgstr "Удалить модификатор Grease Pencil"
 
 msgid "Remove a modifier from the active grease pencil object"
 msgstr "Удалить модификатор у активного объекта Grease Pencil"
-
-
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Добавить Grease Pencil"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Добавить объект Grease Pencil в сцену"
 
 
 msgctxt "Operator"
@@ -53393,6 +53744,11 @@ msgid "Remove vertices which weight is below or equal to this limit"
 msgstr "Удалить вершины с весом ниже или равным этому ограничению"
 
 
+msgctxt "Operator"
+msgid "Copy Vertex Group"
+msgstr "Копировать группу вершин"
+
+
 msgid "Make a copy of the active vertex group"
 msgstr "Создать копию активной группы вершин"
 
@@ -54560,6 +54916,26 @@ msgstr "Рисовать на изображении"
 
 msgid "Paint a stroke into the image"
 msgstr "Рисовать штрихи на изображении"
+
+
+msgid "Stroke Mode"
+msgstr "Режим штриха"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Действие, выполняемое при выполнении штриха"
+
+
+msgid "Apply brush normally"
+msgstr "Применить кисть стандартно"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Обратить действие кисти во время выполнения штриха"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "Переключить кисть в режим сглаживания во время выполнения штриха"
 
 
 msgid "Set mask to the level specified by the 'value' property"
@@ -58900,6 +59276,10 @@ msgid "Single Side"
 msgstr "Одна сторона"
 
 
+msgid "Snap to increments of grid"
+msgstr "Привязка к делениям сетки"
+
+
 msgid "Snap to vertices"
 msgstr "Привязка к вершинам"
 
@@ -62136,10 +62516,6 @@ msgid "Object Properties"
 msgstr "Настройки объекта"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "Импортировать группы OBJ как группы вершин"
-
-
 msgctxt "Operator"
 msgid "Open"
 msgstr "Открыть"
@@ -62206,16 +62582,6 @@ msgstr "Тег интерфейса"
 
 msgid "Open a path in a file browser"
 msgstr "Открыть путь в файловом менеджере"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "Экспортировать PLY"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "Импортировать PLY"
 
 
 msgctxt "Operator"
@@ -65649,6 +66015,30 @@ msgstr "Кэши точек"
 
 msgid "Collection of point caches"
 msgstr "Коллекция кэшей точек"
+
+
+msgid "Polygon Float Properties"
+msgstr "Нецелочисленное свойство полигона"
+
+
+msgid "Collection of float properties"
+msgstr "Коллекция нецелочисленных свойств"
+
+
+msgid "Polygon Int Properties"
+msgstr "Целочисленное свойство полигона"
+
+
+msgid "Collection of int properties"
+msgstr "Коллекция целочисленных свойств"
+
+
+msgid "Polygon String Properties"
+msgstr "Строковое свойство полигона"
+
+
+msgid "Collection of string properties"
+msgstr "Коллекция строковых свойств"
 
 
 msgid "A collection of pose channels, including settings for animating bones"
@@ -77240,10 +77630,6 @@ msgid "Snap UV Element"
 msgstr "Привязка UV-элементов"
 
 
-msgid "Snap to increments of grid"
-msgstr "Привязка к делениям сетки"
-
-
 msgid "Mesh Statistics Visualization"
 msgstr "Визуализация статистики меша"
 
@@ -77831,6 +78217,14 @@ msgid "Color of the light's specular highlight"
 msgstr "Цвет зеркального освещения (блика)"
 
 
+msgid "Collection of sculpt vertex colors"
+msgstr "Коллекция цветов скульптинга вершин"
+
+
+msgid "Vertex Float Properties"
+msgstr "Нецелочисленное свойство вершины"
+
+
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Группа вершин, используемая при деформировании арматуры и других целей"
 
@@ -77857,6 +78251,14 @@ msgstr "Индекс активной группы вершин"
 
 msgid "Active index in vertex group array"
 msgstr "Активный индекс в массиве группы вершин"
+
+
+msgid "Vertex Int Properties"
+msgstr "Целочисленные свойства вершин"
+
+
+msgid "Vertex String Properties"
+msgstr "Строковые свойства вершины"
 
 
 msgid "Scroll and zoom for a 2D region"
@@ -79000,11 +79402,6 @@ msgstr "Шрифт"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgctxt "WindowManager"
 msgid "Pose"
 msgstr "Поза"
 
@@ -79372,6 +79769,11 @@ msgstr "Редактор графов видеофрагментов"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "Редактор экспозиционного листа видеофрагмента"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
 
 
 msgctxt "WindowManager"
@@ -81534,6 +81936,10 @@ msgstr "Эксцентриситет"
 
 msgid "Enable the Color Ramp first"
 msgstr "Сначала активируйте градиентную карту"
+
+
+msgid "Tiles Even"
+msgstr "Чётные плитки"
 
 
 msgid "Odd"
@@ -83856,6 +84262,11 @@ msgstr "Импортировать OpenVDB…"
 
 
 msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "Operator"
 msgid "Speaker"
 msgstr "Источник звука"
 
@@ -84203,6 +84614,16 @@ msgstr "Очистить остроту из вершин"
 
 
 msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Экструдировать грани"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Экструдировать грани вдоль нормалей"
+
+
+msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Объёмность граней"
 
@@ -84450,11 +84871,6 @@ msgstr "Облако точек"
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgctxt "Operator"
 msgid "Armature"
 msgstr "Арматура"
 
@@ -84626,16 +85042,6 @@ msgstr "Очистить остроту"
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "Установить остроту из вершин"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Экструдировать грани"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Экструдировать грани вдоль нормалей"
 
 
 msgctxt "Operator"
@@ -85398,6 +85804,10 @@ msgstr "МСфера"
 
 msgid "GPencil"
 msgstr "Grease Pencil"
+
+
+msgid "FaceMap"
+msgstr "Карта граней"
 
 
 msgid "No new files have been packed"
@@ -86605,6 +87015,30 @@ msgid "Grease Pencil has no active paint tool"
 msgstr "Не выбран активный инструмент Grease Pencil для рисования"
 
 
+msgid "Line: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align, Alt to center, E: extrude"
+msgstr "Линия: Esc: отмены, ЛКМ: установить контрольные точки, Enter/СКМ: подтвердить, колесо мыши/±: настроить количество точек, Shift: выравнивание, Alt: из центрa, E: экструдировать"
+
+
+msgid "Polyline: ESC to cancel, LMB to set, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to align"
+msgstr "Полилиния: Esc: отмены, ЛКМ: установить, Enter/СКМ: подтвердить, колесо мыши/±: настроить подразделение, Shift: выравнивание"
+
+
+msgid "Rectangle: ESC to cancel, LMB set origin, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
+msgstr "Прямоугольник: Esc — отмена, ЛКМ — установить центр, Enter/СКМ — подтвердить, колесо мыши/+- — изменить количество подразделений, Shift — к квадрату, Alt — из центра"
+
+
+msgid "Circle: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center"
+msgstr "Круг: Esc: отмена, Enter/СКМ: подтвердить, колесо мыши/±: настроить подразделение, Shift: выравнивать по квадрату, Alt: из центра"
+
+
+msgid "Arc: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, M: Flip, E: extrude"
+msgstr "Дуга: Esc: отмена, Enter/СКМ: подтвердить, колесо мыши/±: настроить подразделение, Shift: выравнивать по квадрату, Alt: из центра, M: перевернуть, E: экструдировать"
+
+
+msgid "Curve: ESC to cancel, Enter/MMB to confirm, WHEEL/+- to adjust subdivision number, Shift to square, Alt to center, E: extrude"
+msgstr "Кривая: Esc: отмена, Enter/СКМ: подтвердить, колесо мыши/±: настроить подразделение, Shift: выравнивать по квадрату, Alt: из центра, E: экструдировать"
+
+
 msgid "Primitives can only be added in Draw or Edit modes"
 msgstr "Примитивы могут быть добавлены только в режимах рисования и редактирования"
 
@@ -86802,6 +87236,14 @@ msgstr "Установите путь к папке с ветвями перев
 
 msgid "Could not compute a valid data path"
 msgstr "Не удалось определить правильный путь к данным"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "Файл «%s» не может быть открыт"
+
+
+msgid "See '%s' in the text editor"
+msgstr "См. «%s» в текстовом редакторе"
 
 
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
@@ -87122,6 +87564,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Выбор связываемых настроек частиц"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Выбор связываемых данных Grease Pencil"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "Выбор связываемого видеофрагмента"
 
@@ -87148,10 +87594,6 @@ msgstr "Выбрать рабочее пространство для созда
 
 msgid "Browse LightProbe to be linked"
 msgstr "Выбор связываемого зонда освещения"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Выбор связываемых данных Grease Pencil"
 
 
 msgid "Browse ID data to be linked"
@@ -87316,6 +87758,10 @@ msgid "Method Quads"
 msgstr "Четырёхугольники"
 
 
+msgid "No filename given"
+msgstr "Не выбрано имя файла"
+
+
 msgid "Unable to determine ABC sequence length"
 msgstr "Невозможно определить длину последовательности ABC"
 
@@ -87342,14 +87788,6 @@ msgstr "Ошибка во время экспорта (смотрите конс
 
 msgid "Parsing errors in Document (see Blender Console)"
 msgstr "Ошибки парсинга документа (см. консоль Blender)"
-
-
-msgid "Material Groups"
-msgstr "Группы материалов"
-
-
-msgid "Smooth Groups"
-msgstr "Группы сглаживания"
 
 
 msgid "Mesh Data"
@@ -88658,6 +89096,14 @@ msgid "Maximize Area"
 msgstr "Развернуть на всё окно"
 
 
+msgid "Flip to Bottom"
+msgstr "Отображать панель снизу"
+
+
+msgid "Flip to Top"
+msgstr "Отображать панель сверху"
+
+
 msgid "Show Header"
 msgstr "Отображать заголовок"
 
@@ -88676,14 +89122,6 @@ msgstr "Отображать панель справа"
 
 msgid "Flip to Left"
 msgstr "Отображать панель слева"
-
-
-msgid "Flip to Top"
-msgstr "Отображать панель сверху"
-
-
-msgid "Flip to Bottom"
-msgstr "Отображать панель снизу"
 
 
 msgid "Blender Preferences"
@@ -90057,14 +90495,6 @@ msgid "Text not found: %s"
 msgstr "Текст не найден: %s"
 
 
-msgid "File '%s' cannot be opened"
-msgstr "Файл «%s» не может быть открыт"
-
-
-msgid "See '%s' in the text editor"
-msgstr "См. «%s» в текстовом редакторе"
-
-
 msgid "No Recent Files"
 msgstr "Нет недавних файлов"
 
@@ -91271,6 +91701,10 @@ msgid "Vertex not in group"
 msgstr "Вершина не в группе"
 
 
+msgid "FaceMap.add(): cannot be called while object is in edit mode"
+msgstr "FaceMap.add(): не может быть вызвано, пока объект находится в режиме редактирования"
+
+
 msgid "Constraint '%s' not found in object '%s'"
 msgstr "Ограничитель «%s» не найден для объекта «%s»"
 
@@ -91769,16 +92203,16 @@ msgid "AO"
 msgstr "AO"
 
 
+msgid "Anisotropy"
+msgstr "Анизотропия"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "Показатель преломления"
-
-
-msgid "Anisotropy"
-msgstr "Анизотропия"
 
 
 msgid "RoughnessU"
@@ -91823,6 +92257,10 @@ msgstr "Радиус подповерхностного рассеивания"
 
 msgid "Specular Tint"
 msgstr "Цветной блик"
+
+
+msgid "Anisotropic"
+msgstr "Анизотропность"
 
 
 msgid "Anisotropic Rotation"

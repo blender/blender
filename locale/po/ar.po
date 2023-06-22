@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -711,10 +711,6 @@ msgid "Boolean"
 msgstr "ﺔﻴﻘﻄﻨﻣ"
 
 
-msgid "Quaternion"
-msgstr "ﻲﻋﺎﺑﺭ"
-
-
 msgid "Domain"
 msgstr "ﻕﺎﻄﻧ"
 
@@ -1081,10 +1077,6 @@ msgstr "blend. ﻒﻠﻣ ﻰﻟﺇ ﺭﺎﺴﻤﻟﺍ"
 
 msgid "Vector Fonts"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﻁﻮﻄﺨﻟﺍ"
-
-
-msgid "Grease Pencil"
-msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Images"
@@ -4768,6 +4760,10 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Y ﺭﻮﺤﻤﻟﺍ ﻰﻠﻋ ﺭﺪﺼﻤﻟﺍ ﻙﺮﺤﺗ ﻕﺎﻄﻧ ﻰﻧﺩﺃ"
 
 
+msgid "Quaternion"
+msgstr "ﻲﻋﺎﺑﺭ"
+
+
 msgid "Map From"
 msgstr "ﻦﻣ ﻂﻄﺧ"
 
@@ -7399,6 +7395,10 @@ msgstr "ﻱﺩﻮﻤﻋ ﻞﻜﻟﺍ"
 
 msgid "Fonts"
 msgstr "ﻁﻮﻄﺨﻟﺍ"
+
+
+msgid "Grease Pencil"
+msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Freestyle Linestyles"
@@ -11783,6 +11783,18 @@ msgid "Loops of the mesh (polygon corners)"
 msgstr "(ﻪﺟﻮﻟﺍ ﺎﻳﺍﻭﺯ) ﻢﺴﺠﻤﻟﺍ ﺕﻼ﻿ﺴﻠﺴﺗ"
 
 
+msgid "Float Property Layers"
+msgstr "ﺔﻳﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
+
+
+msgid "Int Property Layers"
+msgstr "ﺔﺤﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
+
+
+msgid "String Property Layers"
+msgstr "ﺔﻴﺼﻧ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
+
+
 msgid "Polygons"
 msgstr "ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻣ"
 
@@ -12775,6 +12787,10 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "ﻉﺮﻔﻟﺍ ﺭﺎﺴﻣ ﻝﻮﻃ ﻞﺒﻗ ﻦﻣ ﺔﻛﻭﺮﺘﻤﻟﺍ ﺕﺎﺌﻳﺰﺠﻟﺍ ﺔﻴﻤﻛ"
 
 
+msgid "Children Per Parent"
+msgstr "ﻞﺻﺃ ﻞﻜﻟ ﻉﻭﺮﻔﻟﺍ"
+
+
 msgid "Parting Factor"
 msgstr "ﻕﺮﻔﺘﻟﺍ ﻞﻣﺎﻌﻣ"
 
@@ -12797,10 +12813,6 @@ msgstr "ﻕﺮﻔﺗ ﻞﻗﺍ"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "(ﻞﻳﻮﻄﻟﺍ ﺮﻌﺸﻠﻟ ﺭﺬﺠﻟﺍ ﺪﻌﺑ/ﺔﻤﻘﻟﺍ ﺪﻌﺑ) ﺔﻤﻘﻟﺍ ﻰﻟﺍ ﺭﺬﺠﻟﺍ ﻦﻣ ﺔﻳﻭﺍﺯ ﻞﻗﺃ"
-
-
-msgid "Children Per Parent"
-msgstr "ﻞﺻﺃ ﻞﻜﻟ ﻉﻭﺮﻔﻟﺍ"
 
 
 msgid "Child Radius"
@@ -17124,6 +17136,14 @@ msgid "Mesh Edge"
 msgstr "ﻢﺴﺠﻣ ﺔﻓﺎﺣ"
 
 
+msgid "Bevel Weight"
+msgstr "ﺔﻔﻄﺸﻟﺍ ﻥﺯﻭ"
+
+
+msgid "Weight used by the Bevel modifier"
+msgstr "ﺔﻔﻄﺸﻟﺍ ﺮﻴﻐﻣ ﻞﺒﻗ ﻦﻣ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻥﺯﻮﻟﺍ"
+
+
 msgid "Loose"
 msgstr "ﻖﻠﻄﻣ"
 
@@ -17214,6 +17234,46 @@ msgstr "ﻊﻠّﻀﻤﻟﺍ ﻢﻇﺎﻧ"
 
 msgid "Local space unit length normal vector for this polygon"
 msgstr "ﻪﺟﻮﻟﺍ ﺍﺬﻬﻟ ﻲﻠﺤﻤﻟﺍ ءﺎﻀﻔﻟﺍ ﻲﻓ ﺓﺪﺣﻮﻟﺍ ﻝﻮﻄﻟ ﻢﻇﺎﻨﻟﺍ ﻪﺠﺘﻣ"
+
+
+msgid "Mesh Polygon Float Property"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ"
+
+
+msgid "Mesh Polygon Float Property Layer"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
+
+
+msgid "Mesh Polygon Int Property"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ"
+
+
+msgid "User defined integer number value in an integer properties layer"
+msgstr " ﺔﺤﻴﺤﺻ ﺩﺍﺪﻋﺃ ﺹﺍﻮﺧ ﺔﻘﺒﻃ ﻲﻓ ﺓﺩﺪﺤﻤﻟﺍ ﺔﻳﺩﺪﻌﻟﺍ ﺔﻤﻴﻘﻟﺍ"
+
+
+msgid "Mesh Polygon Int Property Layer"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
+
+
+msgid "User defined layer of integer number values"
+msgstr "ﺓﺩﺪﺤﻤﻟﺍ ﺔﺤﻴﺤﺼﻟﺍ ﺩﺍﺪﻋﻷ﻿ﺍ ﻢﻴﻗ ﺔﻘﺒﻃ"
+
+
+msgid "Mesh Polygon String Property"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺺﻧ ﺔﻴﺻﺎﺧ"
+
+
+msgid "User defined string text value in a string properties layer"
+msgstr "ﺔﻴﺼﻧ ﺹﺍﻮﺧ ﺔﻘﺒﻃ ﻲﻓ ﺓﺩﺪﺤﻤﻟﺍ ﺔﻴﺼﻨﻟﺍ ﺔﻤﻴﻘﻟﺍ"
+
+
+msgid "Mesh Polygon String Property Layer"
+msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺺﻧ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
+
+
+msgid "User defined layer of string text values"
+msgstr "ﺹﻮﺼﻧ ﻢﻴﻗ ﻦﻣ ﺓﺩﺪﺤﻣ ﺔﻘﺒﻃ"
 
 
 msgid "Skin Vertex"
@@ -17314,6 +17374,30 @@ msgstr "ﺔﻄﻘﻨﻟﺍ ﻢﻇﺎﻧ"
 
 msgid "Undeformed Location"
 msgstr "ﻉﻮّﻄﻣ ﺮﻴﻏ ﻊﻗﻮﻣ"
+
+
+msgid "Mesh Vertex Float Property"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ"
+
+
+msgid "Mesh Vertex Float Property Layer"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
+
+
+msgid "Mesh Vertex Int Property"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ"
+
+
+msgid "Mesh Vertex Int Property Layer"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
+
+
+msgid "Mesh Vertex String Property"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺺﻧ ﺔﻴﺻﺎﺧ"
+
+
+msgid "Mesh Vertex String Property Layer"
+msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺺﻧ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
 
 
 msgid "Active Element"
@@ -17642,10 +17726,6 @@ msgstr "ﻪﻳﻮﺸﺘﻟﺍ ﻰﻨﺤﻨﻣ ﻦﺋﺎﻛ"
 
 msgid "Edge Data Types"
 msgstr "ﺔﻓﺎﺤﻟﺍ ﺕﺎﻧﺎﻴﺑ ﻉﺍﻮﻧﺃ"
-
-
-msgid "Bevel Weight"
-msgstr "ﺔﻔﻄﺸﻟﺍ ﻥﺯﻭ"
 
 
 msgid "Transfer bevel weights"
@@ -19584,6 +19664,10 @@ msgid "Width of the node"
 msgstr "ﻕﻭﺪﻨﺼﻟﺍ ﺽﺮﻋ"
 
 
+msgid "Width Hidden"
+msgstr "ﺽﺮﻌﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
 msgid "Custom Group"
 msgstr "ﺔﺼﺼﺨﻣ ﺔﻋﻮﻤﺠﻣ"
 
@@ -20281,14 +20365,6 @@ msgid "Tracking Object"
 msgstr "ﻦﺋﺎﻜﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 
-msgid "Smoothing"
-msgstr "ﺔﻣﻮﻌﻨﻟﺍ"
-
-
-msgid "Anisotropic"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
-
-
 msgid "Lens Distortion"
 msgstr ":ﺔﺳﺪﻌﻟﺍ ﻩﻮّﺸﺗ"
 
@@ -20651,6 +20727,10 @@ msgstr "ﺔﻤﺴﻟﺍ ﻢﺳﺍ"
 
 msgid "Background"
 msgstr "ﺔﻴﻔﻠﺧ"
+
+
+msgid "Anisotropic BSDF"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "Diffuse BSDF"
@@ -23228,8 +23308,8 @@ msgstr "(ZYX) ﺮﻟﻮﻳ"
 
 
 msgctxt "Operator"
-msgid "Export STL"
-msgstr "STL ﺭﺪّﺻ"
+msgid "Export PLY"
+msgstr "PLY ﺭﺪّﺻ"
 
 
 msgid "Z Forward"
@@ -23244,8 +23324,17 @@ msgid "-Y Up"
 msgstr "-Y ﻕﻮﻔﻟ"
 
 
+msgid "Export the active vertex color layer"
+msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﺔﻄﻘﻨﻟﺍ ﻥﻮﻟ ﺔﻘﺒﻃ ﺭﺪّﺻ"
+
+
 msgid "Apply Modifiers"
 msgstr "ﺕﺍﺮﻴّﻐﻤﻟﺍ ﻖﺒّﻃ"
+
+
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "STL ﺭﺪّﺻ"
 
 
 msgctxt "Operator"
@@ -23275,6 +23364,10 @@ msgstr "ﺔﺠﺴﻧﻷ﻿ﺍ ﻦﻤّﺿ"
 
 msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "(ﺔﻤﺠﺤﻤﻟﺍ ﻞﻛﺎﻴﻬﻟﺍ ﻢﻋﺪﺗ ﻻ﻿ ﺕﺍﺩﺭﻮﺘﺴﻤﻟﺍ ﺾﻌﺑ) ﺕﺎﻧﺎﻴﺒﻟﺍ ﻞﻛ ﻢﺠّﺣ"
+
+
+msgid "Smoothing"
+msgstr "ﺔﻣﻮﻌﻨﻟﺍ"
 
 
 msgid "Lamp"
@@ -23315,6 +23408,19 @@ msgstr "ﺔﺼﺼﺨﻣ ﺺﺋﺎﺼﺧ"
 
 msgid "Loose Edges"
 msgstr "ﺔﻘﻠﻄﻣ ﻑﺍﻮﺣ"
+
+
+msgctxt "Operator"
+msgid "Export OBJ"
+msgstr "OBJ ﺭﺪّﺻ"
+
+
+msgid "Write Normals"
+msgstr "ﻢﻇﺍﻮﻨﻟﺍ ﺐﺘﻛﺍ"
+
+
+msgid "Include UVs"
+msgstr "UV's ـﻟﺍ ﻦﻤّﺿ"
 
 
 msgid "Compress"
@@ -23972,14 +24078,6 @@ msgid "Bake Sound to F-Curves"
 msgstr "ﻞﻤﻌﻟﺍ ﺕﺎﻴﻨﺤﻨﻣ ﻲﻓ ﺕﻮﺼﻟﺍ ﻥﺰﺧ"
 
 
-msgid "Stroke Mode"
-msgstr "ﺐﻴﻄﺸﺘﻟﺍ ﻊﺿﻭ"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "ﺔﺒﻄﺸﻟﺍ ﺓﺪﻤﻟ ﺓﺎﺷﺮﻔﻟﺍ ﻞﻤﻋ ﺲﻜﻋﺍ"
-
-
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "ﺕﺎﻴﻨﺤﻨﻤﻟﺍ ﺔﻄﻘﻧ ﻊﺿ"
@@ -24165,6 +24263,11 @@ msgid "Shadeless"
 msgstr "ﻞﻠﻈﻣ ﺮﻴﻏ"
 
 
+msgctxt "Operator"
+msgid "Import PLY"
+msgstr "PLY ﺩﺭﻮﺘﺳﺍ"
+
+
 msgid "Load STL triangle mesh data"
 msgstr "STL ـﻟ ﻲﺜﻠﺜﻣ ﻢﺴﺠﻣ ﺕﺎﻧﺎﻴﺑ ﻞﻤّﺣ"
 
@@ -24196,6 +24299,18 @@ msgstr "ﻚﻳﺮﺤﺘﻟﺍ ﺩﺭﻮﺘﺳﺇ"
 
 msgid "Manual Orientation"
 msgstr "ﻱﻭﺪﻳ ﻪﻴﺟﻮﺗ"
+
+
+msgid "Clamp Size"
+msgstr "X ﻢﻠﻗ"
+
+
+msgid "Keep vertex order from file"
+msgstr "ﻒﻠﻤﻟﺍ ﻦﻣ ﻂﻘﻨﻟﺍ ﺐﻴﺗﺮﺗ ﻲﻘﺑﺍ"
+
+
+msgid "Import OBJ groups as vertex groups"
+msgstr "ﻂﻘﻧ ﺕﺎﻋﻮﻤﺠﻤﻛ OBJ ﺕﺎﻋﻮﻤﺠﻣ ﺩﺭﻮﺘﺳﺇ"
 
 
 msgctxt "Operator"
@@ -26691,6 +26806,11 @@ msgid "Assign the selected vertices to a new vertex group"
 msgstr "ﺓﺪﻳﺪﺟ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻤﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻂﻘﻨﻟﺍ ﺺﺼﺧ"
 
 
+msgctxt "Operator"
+msgid "Copy Vertex Group"
+msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
+
+
 msgid "Make a copy of the active vertex group"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
 
@@ -27116,6 +27236,14 @@ msgstr "ﺭﻮﺼﻟﺍ ﻢﺳﺭ"
 
 msgid "Paint a stroke into the image"
 msgstr "ﺓﺭﻮﺼﻟﺍ ﻰﻠﻋ ﺔﺒﻄﺷ ﻢﺳﺭﺍ"
+
+
+msgid "Stroke Mode"
+msgstr "ﺐﻴﻄﺸﺘﻟﺍ ﻊﺿﻭ"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "ﺔﺒﻄﺸﻟﺍ ﺓﺪﻤﻟ ﺓﺎﺷﺮﻔﻟﺍ ﻞﻤﻋ ﺲﻜﻋﺍ"
 
 
 msgid "Invert the mask"
@@ -29717,10 +29845,6 @@ msgid "Memory Statistics"
 msgstr "ﺓﺮﻛﺍﺬﻟﺍ ﺕﺎﻴﺋﺎﺼﺣﺍ"
 
 
-msgid "Import OBJ groups as vertex groups"
-msgstr "ﻂﻘﻧ ﺕﺎﻋﻮﻤﺠﻤﻛ OBJ ﺕﺎﻋﻮﻤﺠﻣ ﺩﺭﻮﺘﺳﺇ"
-
-
 msgid "Load UI"
 msgstr "ﺔﻬﺟﺍﻮﻟﺍ ﻞﻤّﺣ"
 
@@ -29741,16 +29865,6 @@ msgstr "ﻞﻣﺎﻌﻠﻟ ﻖﺒﺴﻣ ﺩﺍﺪﻋﺇ"
 
 msgid "Add or remove an Operator Preset"
 msgstr "ﻞﻣﺎﻌﻟ ﻖﺒﺴﻣ ﺩﺍﺪﻋﺇ ﻎﻟﺍ ﻭﺃ ﻒﺿﺍ"
-
-
-msgctxt "Operator"
-msgid "Export PLY"
-msgstr "PLY ﺭﺪّﺻ"
-
-
-msgctxt "Operator"
-msgid "Import PLY"
-msgstr "PLY ﺩﺭﻮﺘﺳﺍ"
 
 
 msgctxt "Operator"
@@ -36159,11 +36273,6 @@ msgstr "ﻂﺨﻟﺍ"
 
 
 msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ"
-
-
-msgctxt "WindowManager"
 msgid "Pose"
 msgstr "ﺔﻔﻗﻭ"
 
@@ -36381,6 +36490,11 @@ msgstr "ﺔﺻﺎﺼﻘﻠﻟ ﻲﻧﺎﻴﺒﻟﺍ ﺭﺮﺤﻤﻟﺍ"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "ﺔﺻﺎﺼﻘﻠﻟ ﻂﻴﻄﺨﺘﻟﺍ ﺔﻗﺭﻭ ﺭﺮﺤﻣ"
+
+
+msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ"
 
 
 msgctxt "WindowManager"
@@ -39010,6 +39124,10 @@ msgid "Browse Particle Settings to be linked"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﺌﻳﺰﺠﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ ﺢﻔﺼﺗ"
 
 
+msgid "Browse Grease Pencil Data to be linked"
+msgstr " ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
+
+
 msgid "Browse Movie Clip to be linked"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﻢﻠﻔﻟﺍ ﺔﺻﺎﺼﻗ ﻰﻟﺍ ﺢﻔﺼﺗ"
 
@@ -39024,10 +39142,6 @@ msgstr "ﻁﺎﺒﺗﺭﻺ﻿ﻟ ﺡﻮﻠّﻟﺍ ﺕﺎﻧﺎﻴﺑ ﺢﻔّ�
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "ﻁﺎﺒﺗﺭﻺ﻿ﻟ ﻢﺳﺮﻟﺍ ﻰﻨﺤﻨﻣ ﺕﺎﻧﺎﻴﺑ ﺢﻔّﺼﺗ"
-
-
-msgid "Browse Grease Pencil Data to be linked"
-msgstr " ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
 
 
 msgid "Browse ID data to be linked"
@@ -39486,12 +39600,12 @@ msgid "Maximize Area"
 msgstr "ﻪﺟﻮﻟﺍ ﺔﻘﻄﻨﻣ "
 
 
-msgid "Flip to Top"
-msgstr "ﻥﺍﻮﻟﻷ﻿ﺍ ﻢﻠﺳ ﺲﻜﻋﺍ"
-
-
 msgid "Flip to Bottom"
 msgstr "NDOF ﻞﻔﺳﺃ"
+
+
+msgid "Flip to Top"
+msgstr "ﻥﺍﻮﻟﻷ﻿ﺍ ﻢﻠﺳ ﺲﻜﻋﺍ"
 
 
 msgid "No more keyframes to jump to in this direction"
@@ -40222,16 +40336,16 @@ msgid "AO"
 msgstr "ﻡ.ﺇ"
 
 
+msgid "Anisotropy"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
+
+
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ ﻞﻣﺎﻌﻣ"
-
-
-msgid "Anisotropy"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "RoughnessU"
@@ -40244,6 +40358,10 @@ msgstr "V ﺔﻧﻮﺸﺧ"
 
 msgid "Subsurface"
 msgstr "ﻲﺤﻄﺳ-ﺖﺤﺗ"
+
+
+msgid "Anisotropic"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "View Vector"

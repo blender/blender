@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'58c6a278d3b0')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-21 15:21:42\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -115,10 +115,6 @@ msgstr "Egenskaper"
 
 msgid "Width"
 msgstr "Bredd"
-
-
-msgid "Quaternion"
-msgstr "Kvaternion"
 
 
 msgid "Edge"
@@ -491,6 +487,10 @@ msgstr "Enhetlig"
 
 msgid "Front"
 msgstr "Fram"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
 
 
 msgid "Location"
@@ -1415,10 +1415,6 @@ msgstr "Zooma"
 
 msgid "Shadow"
 msgstr "Skugga"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisk"
 
 
 msgid "Rotate"
@@ -2719,6 +2715,10 @@ msgstr "Gammal"
 
 msgid "IOR"
 msgstr "Brytningsindex"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropisk"
 
 
 msgid "Transparency"
