@@ -15,6 +15,9 @@
 #include "UI_interface.hh"
 #include "UI_tree_view.hh"
 
+#include "RNA_access.h"
+#include "RNA_prototypes.h"
+
 namespace blender::ui::greasepencil {
 
 using namespace blender::bke::greasepencil;
@@ -29,8 +32,12 @@ class LayerViewItem : public AbstractTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
+    build_layer_name(row);
+
     uiLayout *sub = uiLayoutRow(&row, true);
-    uiItemL(sub, IFACE_(layer_.name().c_str()), ICON_GREASEPENCIL);
+    uiLayoutSetPropDecorate(sub, false);
+
+    build_layer_buttons(*sub);
   }
 
   bool supports_collapsing() const override
@@ -70,6 +77,24 @@ class LayerViewItem : public AbstractTreeViewItem {
  private:
   GreasePencil &grease_pencil_;
   Layer &layer_;
+
+  void build_layer_name(uiLayout &row)
+  {
+    uiBut *but = uiItemL_ex(
+        &row, IFACE_(layer_.name().c_str()), ICON_OUTLINER_DATA_GP_LAYER, false, false);
+    if (layer_.is_locked()) {
+      UI_but_disable(but, "Layer is locked");
+    }
+  }
+
+  void build_layer_buttons(uiLayout &row)
+  {
+    PointerRNA layer_ptr;
+    RNA_pointer_create(&grease_pencil_.id, &RNA_GreasePencilLayer, &layer_, &layer_ptr);
+
+    uiItemR(&row, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, 0);
+    uiItemR(&row, &layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, 0);
+  }
 };
 
 class LayerGroupViewItem : public AbstractTreeViewItem {
