@@ -33,7 +33,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     uiItemL(sub, IFACE_(layer_.name().c_str()), ICON_GREASEPENCIL);
   }
 
-  bool supports_collapsing() const
+  bool supports_collapsing() const override
   {
     return false;
   }
@@ -46,7 +46,7 @@ class LayerViewItem : public AbstractTreeViewItem {
     return {};
   }
 
-  void on_activate()
+  void on_activate() override
   {
     this->grease_pencil_.set_active_layer(&layer_);
   }
@@ -74,8 +74,8 @@ class LayerViewItem : public AbstractTreeViewItem {
 
 class LayerGroupViewItem : public AbstractTreeViewItem {
  public:
-  LayerGroupViewItem(GreasePencil &grease_pencil, LayerGroup &group)
-      : grease_pencil_(grease_pencil), group_(group)
+  LayerGroupViewItem(/*GreasePencil &grease_pencil, */ LayerGroup &group)
+      : /*grease_pencil_(grease_pencil),*/ group_(group)
   {
     this->label_ = group_.name();
   }
@@ -87,7 +87,7 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   }
 
  private:
-  GreasePencil &grease_pencil_;
+  /* GreasePencil &grease_pencil_; */
   LayerGroup &group_;
 };
 
@@ -109,7 +109,7 @@ void LayerTreeView::build_tree_node_recursive(TreeNode &node)
     add_tree_item<LayerViewItem>(this->grease_pencil_, node.as_layer_for_write());
   }
   else if (node.is_group()) {
-    add_tree_item<LayerGroupViewItem>(this->grease_pencil_, node.as_group_for_write());
+    add_tree_item<LayerGroupViewItem>(/*this->grease_pencil_, */ node.as_group_for_write());
     LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
       build_tree_node_recursive(node_->wrap());
     }
