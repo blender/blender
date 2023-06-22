@@ -21,7 +21,7 @@ extern "C" {
 /* Blender patch version for bugfix releases. */
 #define BLENDER_VERSION_PATCH 0
 /** Blender release cycle stage: alpha/beta/rc/release. */
-#define BLENDER_VERSION_CYCLE beta
+#define BLENDER_VERSION_CYCLE rc
 
 /* Blender file format version. */
 #define BLENDER_FILE_VERSION BLENDER_VERSION
