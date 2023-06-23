@@ -825,13 +825,14 @@ static void area_actionzone_get_rect(AZone *az, rcti *rect)
     rcti scroller_vert = (az->direction == AZ_SCROLL_HOR) ? az->region->v2d.hor :
                                                             az->region->v2d.vert;
     BLI_rcti_translate(&scroller_vert, az->region->winrct.xmin, az->region->winrct.ymin);
-    rect->xmin = scroller_vert.xmin - ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
+    rect->xmin = scroller_vert.xmin -
+                 ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
     rect->ymin = scroller_vert.ymin -
-                  ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
+                 ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
     rect->xmax = scroller_vert.xmax +
-                  ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
+                 ((az->direction == AZ_SCROLL_VERT) ? V2D_SCROLL_HIDE_HEIGHT : 0);
     rect->ymax = scroller_vert.ymax +
-                  ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
+                 ((az->direction == AZ_SCROLL_HOR) ? V2D_SCROLL_HIDE_WIDTH : 0);
   }
   else {
     azone_clipped_rect_calc(az, rect);
@@ -845,8 +846,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
   for (az = area->actionzones.first; az; az = az->next) {
     rcti az_rect;
     area_actionzone_get_rect(az, &az_rect);
-    if (BLI_rcti_isect_pt_v(&az_rect, xy))
-    {
+    if (BLI_rcti_isect_pt_v(&az_rect, xy)) {
 
       if (az->type == AZONE_AREA) {
         break;

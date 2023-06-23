@@ -36,7 +36,9 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_vfont_types.h"
 
-static void freetype_outline_to_curves(FT_Outline ftoutline, ListBase *nurbsbase, const float scale)
+static void freetype_outline_to_curves(FT_Outline ftoutline,
+                                       ListBase *nurbsbase,
+                                       const float scale)
 {
   const float eps = 0.0001f;
   const float eps_sq = eps * eps;
@@ -69,8 +71,7 @@ static void freetype_outline_to_curves(FT_Outline ftoutline, ListBase *nurbsbase
       {
         const int l_next = (k < n - 1) ? (l + 1) : l_first;
         if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
-            ftoutline.tags[l_next] == FT_Curve_Tag_Conic)
-        {
+            ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
           onpoints[j]++;
         }
       }
@@ -104,8 +105,7 @@ static void freetype_outline_to_curves(FT_Outline ftoutline, ListBase *nurbsbase
       {
         const int l_next = (k < n - 1) ? (l + 1) : l_first;
         if (ftoutline.tags[l] == FT_Curve_Tag_Conic &&
-            ftoutline.tags[l_next] == FT_Curve_Tag_Conic)
-        {
+            ftoutline.tags[l_next] == FT_Curve_Tag_Conic) {
           dx = (ftoutline.points[l].x + ftoutline.points[l_next].x) * scale / 2.0f;
           dy = (ftoutline.points[l].y + ftoutline.points[l_next].y) * scale / 2.0f;
 
@@ -205,7 +205,7 @@ static void freetype_outline_to_curves(FT_Outline ftoutline, ListBase *nurbsbase
   MEM_freeN(onpoints);
 }
 
-static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, const VFontData* vfd)
+static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, const VFontData *vfd)
 {
   FT_UInt glyph_index = FT_Get_Char_Index(face, charcode);
   if (FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok) {
