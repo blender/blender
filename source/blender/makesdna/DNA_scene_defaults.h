@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "DNA_brush_defaults.h"
 #include "DNA_scene_enums.h"
 #include "DNA_view3d_defaults.h"
 
@@ -378,6 +379,15 @@
     .plane_axis = 2,\
   }
 
+#define _DNA_DEFAULT_Sculpt \
+  { \
+    .automasking_start_normal_limit = 0.34906585f, /* 20 / 180 * pi */ \
+    .automasking_start_normal_falloff = 0.25f, \
+    .automasking_view_normal_limit = 1.570796, /* 0.5 * pi */ \
+    .automasking_view_normal_falloff = 0.25f, \
+    .flags   = SCULPT_DYNTOPO_ENABLED,\
+    .dyntopo = _DNA_DEFAULT_DynTopoSettings,\
+  }\
 /* clang-format off */
 
 /** \} */

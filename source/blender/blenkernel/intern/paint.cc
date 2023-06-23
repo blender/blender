@@ -1142,12 +1142,12 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   }
   else if ((Sculpt **)r_paint == &ts->sculpt) {
     Sculpt *data = MEM_cnew<Sculpt>(__func__);
+    *data = *DNA_struct_default_get(Sculpt);
+
     paint = &data->paint;
 
     /* Turn on X plane mirror symmetry by default */
     paint->symmetry_flags |= PAINT_SYMM_X;
-
-    data->dyntopo = *DNA_struct_default_get(DynTopoSettings);
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_cnew<GpPaint>(__func__);
@@ -1180,6 +1180,8 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   paint->flags |= PAINT_SHOW_BRUSH;
 
   *r_paint = paint;
+
+  paint->tile_offset[0] = paint->tile_offset[1] = paint->tile_offset[2] = 1.0f;
 
   BKE_paint_runtime_init(ts, paint);
 
@@ -2571,20 +2573,11 @@ int BKE_sculpt_mask_layers_ensure(Depsgraph *depsgraph,
 
 void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
 {
+  bool exists = scene->toolsettings->sculpt;
+
   BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
 
   Sculpt *sd = scene->toolsettings->sculpt;
-  if (!sd->detail_size) {
-    sd->detail_size = 8.0f;
-  }
-
-  if (!sd->detail_percent) {
-    sd->detail_percent = 25;
-  }
-
-  if (!sd->dyntopo.constant_detail) {
-    sd->dyntopo = *DNA_struct_default_get(DynTopoSettings);
-  }
 
   if (!sd->automasking_start_normal_limit) {
     sd->automasking_start_normal_limit = 20.0f / 180.0f * M_PI;
@@ -2604,6 +2597,7 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   if (!sd->paint.tile_offset[2]) {
     sd->paint.tile_offset[2] = 1.0f;
   }
+
   if (!sd->automasking_cavity_curve || !sd->automasking_cavity_curve_op) {
     BKE_sculpt_check_cavity_curves(sd);
   }

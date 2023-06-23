@@ -4408,6 +4408,8 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         ds->flag |= DYNTOPO_COLLAPSE;
       }
 
+      ds->flag |= DYNTOPO_CLEANUP;
+
       if (sculpt->flags & SCULPT_DYNTOPO_DETAIL_CONSTANT) {
         ds->mode = DYNTOPO_DETAIL_CONSTANT;
       }
@@ -4419,13 +4421,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
       else {
         ds->mode = DYNTOPO_DETAIL_RELATIVE;
-      }
-
-      if (sculpt->flags & SCULPT_DYNTOPO_SUBDIVIDE) {
-        ds->flag |= DYNTOPO_SUBDIVIDE;
-      }
-      if (sculpt->flags & SCULPT_DYNTOPO_COLLAPSE) {
-        ds->flag |= DYNTOPO_COLLAPSE;
       }
     }
   }

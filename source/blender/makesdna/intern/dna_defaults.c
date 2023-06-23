@@ -213,6 +213,7 @@ SDNA_DEFAULT_DECL_STRUCT(PointCloud);
 /* DNA_scene_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Scene);
 SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
+SDNA_DEFAULT_DECL_STRUCT(Sculpt);
 
 /* DNA_simulation_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Simulation);
@@ -453,6 +454,9 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(MeshStatVis, ToolSettings.statvis),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Settings, ToolSettings.gp_sculpt),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Guide, ToolSettings.gp_sculpt.guide),
+
+    SDNA_DEFAULT_DECL(Sculpt),
+    SDNA_DEFAULT_DECL_EX(DynTopoSettings, Sculpt.dyntopo),
 
     /* DNA_simulation_defaults.h */
     SDNA_DEFAULT_DECL(Simulation),

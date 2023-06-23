@@ -20,9 +20,9 @@
 #define _DNA_DEFAULT_DynTopoSettings \
 {\
   .detail_percent = 25.0f,\
-  .detail_size = 12.0f,\
-  .constant_detail = 3.0f,\
-  .flag = DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE,\
+  .detail_size = 8.0f,\
+  .constant_detail = 16.0f,\
+  .flag = DYNTOPO_COLLAPSE|DYNTOPO_SUBDIVIDE|DYNTOPO_CLEANUP,\
   .mode = DYNTOPO_DETAIL_RELATIVE,\
   .inherit = DYNTOPO_INHERIT_BITMASK,\
   .spacing = 35,\
