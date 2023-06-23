@@ -457,13 +457,7 @@ void split_edges(Mesh &mesh,
 
   /* Build a map of old to new edges for transferring attributes. */
   Array<int> new_to_old_edges_map(new_edges.size());
-  auto index_mask_to_indices = [&](const IndexMask &mask, MutableSpan<int> indices) {
-    for (const int i : mask.index_range()) {
-      indices[i] = mask[i];
-    }
-  };
-  index_mask_to_indices(loose_edges,
-                        new_to_old_edges_map.as_mutable_span().take_back(loose_edges.size()));
+  loose_edges.to_indices(new_to_old_edges_map.as_mutable_span().take_back(loose_edges.size()));
   for (const int i : polys.index_range()) {
     const IndexRange poly = polys[i];
     for (const int corner : poly) {
