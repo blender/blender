@@ -1165,7 +1165,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
 
     if (ibuf != nullptr) {
       rect = ibuf->byte_buffer.data;
-      IMB_colormanagement_assign_rect_colorspace(ibuf, ima->colorspace_settings.name);
+      IMB_colormanagement_assign_byte_colorspace(ibuf, ima->colorspace_settings.name);
     }
 
     copy_v4_v4(fill_color, tile->gen_color);
@@ -1264,8 +1264,8 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   const char *colorspace_name = nullptr;
 
   if (ibuf->float_buffer.data) {
-    if (ibuf->float_colorspace) {
-      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_colorspace);
+    if (ibuf->float_buffer.colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_buffer.colorspace);
     }
     else {
       colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
@@ -1273,8 +1273,8 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   }
 
   if (ibuf->byte_buffer.data && !colorspace_name) {
-    if (ibuf->rect_colorspace) {
-      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->rect_colorspace);
+    if (ibuf->byte_buffer.colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->byte_buffer.colorspace);
     }
     else {
       colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
@@ -4442,7 +4442,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    */
   if (ibuf->byte_buffer.data != byte_buffer->data) {
     const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
-    IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
+    IMB_colormanagement_assign_byte_colorspace(ibuf, colorspace);
   }
 
   /* invalidate color managed buffers if render result changed */

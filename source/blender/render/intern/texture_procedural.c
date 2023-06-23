@@ -1064,7 +1064,8 @@ static int multitex_nodes_intern(Tex *tex,
         /* don't linearize float buffers, assumed to be linear */
         if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
             scene_color_manage) {
-          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
+          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba,
+                                                            ibuf->byte_buffer.colorspace);
         }
 
         BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);
@@ -1110,7 +1111,8 @@ static int multitex_nodes_intern(Tex *tex,
         /* don't linearize float buffers, assumed to be linear */
         if (ibuf != NULL && ibuf->float_buffer.data == NULL && (retval & TEX_RGB) &&
             scene_color_manage) {
-          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba, ibuf->rect_colorspace);
+          IMB_colormanagement_colorspace_to_scene_linear_v3(texres->trgba,
+                                                            ibuf->byte_buffer.colorspace);
         }
 
         BKE_image_pool_release_ibuf(tex->ima, ibuf, pool);

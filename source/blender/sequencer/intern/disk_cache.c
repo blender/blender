@@ -641,7 +641,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
   if (header.entry[entry_index].size_raw == size_char) {
     expected_size = size_char;
     ibuf = IMB_allocImBuf(key->context.rectx, key->context.recty, 32, IB_rect);
-    IMB_colormanagement_assign_rect_colorspace(ibuf, header.entry[entry_index].colorspace_name);
+    IMB_colormanagement_assign_byte_colorspace(ibuf, header.entry[entry_index].colorspace_name);
   }
   else if (header.entry[entry_index].size_raw == size_float) {
     expected_size = size_float;

@@ -327,7 +327,7 @@ static bool paint_brush_update(bContext *C,
           brush->mtex.tex->ima, &brush->mtex.tex->iuser, nullptr);
       if (tex_ibuf && tex_ibuf->float_buffer.data == nullptr) {
         ups->do_linear_conversion = true;
-        ups->colorspace = tex_ibuf->rect_colorspace;
+        ups->colorspace = tex_ibuf->byte_buffer.colorspace;
       }
       BKE_image_pool_release_ibuf(brush->mtex.tex->ima, tex_ibuf, nullptr);
     }

@@ -2872,8 +2872,8 @@ ImBuf *BKE_tracking_get_plane_imbuf(const ImBuf *frame_ibuf,
                                 &warped_position_y);
   }
 
-  plane_ibuf->rect_colorspace = frame_ibuf->rect_colorspace;
-  plane_ibuf->float_colorspace = frame_ibuf->float_colorspace;
+  plane_ibuf->byte_buffer.colorspace = frame_ibuf->byte_buffer.colorspace;
+  plane_ibuf->float_buffer.colorspace = frame_ibuf->float_buffer.colorspace;
 
   return plane_ibuf;
 }

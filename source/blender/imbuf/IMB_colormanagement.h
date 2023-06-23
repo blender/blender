@@ -44,7 +44,7 @@ const char *IMB_colormanagement_role_colorspace_name_get(int role);
 void IMB_colormanagement_check_is_data(struct ImBuf *ibuf, const char *name);
 void IMB_colormanagegent_copy_settings(struct ImBuf *ibuf_src, struct ImBuf *ibuf_dst);
 void IMB_colormanagement_assign_float_colorspace(struct ImBuf *ibuf, const char *name);
-void IMB_colormanagement_assign_rect_colorspace(struct ImBuf *ibuf, const char *name);
+void IMB_colormanagement_assign_byte_colorspace(struct ImBuf *ibuf, const char *name);
 
 const char *IMB_colormanagement_get_float_colorspace(struct ImBuf *ibuf);
 const char *IMB_colormanagement_get_rect_colorspace(struct ImBuf *ibuf);
