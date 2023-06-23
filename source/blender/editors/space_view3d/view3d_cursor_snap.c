@@ -79,8 +79,8 @@ typedef struct SnapCursorDataIntern {
 
 static SnapCursorDataIntern g_data_intern = {
     .state_default = {.flag = V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL,
-                      .color_point = {255, 255, 255, 255},
-                      .color_line = {255, 255, 255, 128},
+                      .target_color = {255, 255, 255, 255},
+                      .source_color = {255, 255, 255, 128},
                       .color_box = {255, 255, 255, 128},
                       .box_dimensions = {1.0f, 1.0f, 1.0f},
                       .draw_point = true}};
@@ -367,14 +367,14 @@ static void cursor_box_draw(const float dimensions[3], uchar color[4])
 }
 
 void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
-                                     const float loc_prev[3],
-                                     const float loc_curr[3],
-                                     const float normal[3],
-                                     const uchar color_line[4],
-                                     const uchar color_point[4],
-                                     const eSnapMode snap_elem_type)
+                                     const float source_loc[3],
+                                     const float target_loc[3],
+                                     const float target_normal[3],
+                                     const uchar source_color[4],
+                                     const uchar target_color[4],
+                                     const eSnapMode target_type)
 {
-  if (!loc_prev && !loc_curr) {
+  if (!source_loc && !target_loc) {
     return;
   }
 
@@ -388,20 +388,23 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  if (loc_curr) {
-    immUniformColor4ubv(color_point);
-    imm_drawcircball(loc_curr, ED_view3d_pixel_size(rv3d, loc_curr) * radius, view_inv, pos);
+  if (target_loc) {
+    immUniformColor4ubv(target_color);
+    imm_drawcircball(target_loc, ED_view3d_pixel_size(rv3d, target_loc) * radius, view_inv, pos);
 
     /* draw normal if needed */
-    if (normal) {
+    if (target_normal) {
       immBegin(GPU_PRIM_LINES, 2);
-      immVertex3fv(pos, loc_curr);
-      immVertex3f(pos, loc_curr[0] + normal[0], loc_curr[1] + normal[1], loc_curr[2] + normal[2]);
+      immVertex3fv(pos, target_loc);
+      immVertex3f(pos,
+                  target_loc[0] + target_normal[0],
+                  target_loc[1] + target_normal[1],
+                  target_loc[2] + target_normal[2]);
       immEnd();
     }
   }
 
-  if (loc_prev) {
+  if (source_loc) {
     /* Draw an "X" indicating where the previous snap point is.
      * This is useful for indicating perpendicular snap. */
 
@@ -411,7 +414,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
     /* Multiply by 0.75f so that the final size of the "X" is close to that of
      * the circle.
      * (A closer value is 0.7071f, but we don't need to be exact here). */
-    float x_size = 0.75f * radius * ED_view3d_pixel_size(rv3d, loc_prev);
+    float x_size = 0.75f * radius * ED_view3d_pixel_size(rv3d, source_loc);
 
     mul_v3_v3fl(vx, view_inv[0], x_size);
     mul_v3_v3fl(vy, view_inv[1], x_size);
@@ -421,12 +424,12 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
     negate_v3_v3(v3, v1);
     negate_v3_v3(v4, v2);
 
-    add_v3_v3(v1, loc_prev);
-    add_v3_v3(v2, loc_prev);
-    add_v3_v3(v3, loc_prev);
-    add_v3_v3(v4, loc_prev);
+    add_v3_v3(v1, source_loc);
+    add_v3_v3(v2, source_loc);
+    add_v3_v3(v3, source_loc);
+    add_v3_v3(v4, source_loc);
 
-    immUniformColor4ubv(color_line);
+    immUniformColor4ubv(source_color);
     immBegin(GPU_PRIM_LINES, 4);
     immVertex3fv(pos, v3);
     immVertex3fv(pos, v1);
@@ -434,7 +437,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
     immVertex3fv(pos, v2);
     immEnd();
 
-    if (loc_curr && (snap_elem_type & SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
+    if (target_loc && (target_type & SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
       /* Dashed line. */
       immUnbindProgram();
 
@@ -444,11 +447,11 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
       immUniform2f("viewport_size", viewport_size[2], viewport_size[3]);
       immUniform1f("dash_width", 6.0f * U.pixelsize);
       immUniform1f("udash_factor", 1.0f / 4.0f);
-      immUniformColor4ubv(color_line);
+      immUniformColor4ubv(source_color);
 
       immBegin(GPU_PRIM_LINES, 2);
-      immVertex3fv(pos, loc_prev);
-      immVertex3fv(pos, loc_curr);
+      immVertex3fv(pos, source_loc);
+      immVertex3fv(pos, target_loc);
       immEnd();
     }
   }
@@ -883,8 +886,8 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
                                     prev_point,
                                     snap_data->loc,
                                     NULL,
-                                    state->color_line,
-                                    state->color_point,
+                                    state->source_color,
+                                    state->target_color,
                                     snap_data->snap_elem);
   }
 

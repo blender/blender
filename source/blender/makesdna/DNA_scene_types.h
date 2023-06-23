@@ -2305,7 +2305,10 @@ typedef enum eSnapMode {
   SCE_SNAP_TO_NODE_Y = (1 << 1),
 
   /** #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
-  SCE_SNAP_TO_VERTEX = (1 << 0),
+  SCE_SNAP_TO_POINT = (1 << 0),
+  /* Even with the same value, there is a distinction between point and endpoint in the snap code.
+   * Therefore, use different enums for better code readability. */
+  SCE_SNAP_TO_EDGE_ENDPOINT = (1 << 0),
   SCE_SNAP_TO_EDGE = (1 << 1),
   SCE_SNAP_TO_FACE = (1 << 2),
   SCE_SNAP_TO_VOLUME = (1 << 3),
@@ -2323,6 +2326,8 @@ typedef enum eSnapMode {
 #ifdef ENUM_OPERATORS
 ENUM_OPERATORS(eSnapMode, SCE_SNAP_INDIVIDUAL_PROJECT)
 #endif
+
+#define SCE_SNAP_TO_VERTEX (SCE_SNAP_TO_POINT | SCE_SNAP_TO_EDGE_ENDPOINT)
 
 #define SCE_SNAP_TO_GEOM \
   (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_EDGE_PERPENDICULAR | \

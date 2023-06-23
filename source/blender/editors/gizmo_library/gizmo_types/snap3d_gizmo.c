@@ -214,7 +214,7 @@ static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
   snap_gizmo->snap_state->draw_point = true;
   snap_gizmo->snap_state->draw_plane = false;
 
-  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, snap_gizmo->gizmo.color);
+  rgba_float_to_uchar(snap_gizmo->snap_state->target_color, snap_gizmo->gizmo.color);
 
   snap_gizmo->snap_state->poll = snap_cursor_poll;
   snap_gizmo->snap_state->poll_data = snap_gizmo;

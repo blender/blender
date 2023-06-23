@@ -34,7 +34,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   bArmature *arm = static_cast<bArmature *>(ob_eval->data);
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  SnapData nearest2d(sctx, float4x4(obmat));
 
   const bool is_editmode = arm->edbo != nullptr;
 
@@ -104,7 +104,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
       float dist_px_sq_edge = nearest2d.nearest_point.dist_sq;
       nearest2d.nearest_point.dist_sq = sctx->ret.dist_px_sq;
       if (nearest2d.snap_point(head_vec) || nearest2d.snap_point(tail_vec)) {
-        retval = SCE_SNAP_TO_VERTEX;
+        retval = SCE_SNAP_TO_POINT;
       }
       else if (retval) {
         nearest2d.nearest_point.dist_sq = dist_px_sq_edge;

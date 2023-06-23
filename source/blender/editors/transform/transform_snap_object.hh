@@ -10,12 +10,16 @@
 
 #define MAX_CLIPPLANE_LEN 3
 
-struct SnapData_EditMesh;
+#define SNAP_TO_EDGE_ELEMENTS \
+  (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
+   SCE_SNAP_TO_EDGE_PERPENDICULAR)
+
+struct SnapCache_EditMesh;
 
 struct SnapObjectContext {
   struct Scene *scene;
 
-  blender::Map<const BMEditMesh *, std::unique_ptr<SnapData_EditMesh>> editmesh_caches;
+  blender::Map<const BMEditMesh *, std::unique_ptr<SnapCache_EditMesh>> editmesh_caches;
 
   /* Filter data, returns true to check this value */
   struct {
@@ -92,7 +96,7 @@ struct RayCastAll_Data {
   ListBase *hit_list;
 };
 
-class Nearest2dUserData {
+class SnapData {
  public:
   /* Read-only. */
   DistProjectedAABBPrecalc nearest_precalc;
@@ -107,8 +111,8 @@ class Nearest2dUserData {
 
  public:
   /* Constructor. */
-  Nearest2dUserData(SnapObjectContext *sctx,
-                    const blender::float4x4 &obmat = blender::float4x4::identity());
+  SnapData(SnapObjectContext *sctx,
+           const blender::float4x4 &obmat = blender::float4x4::identity());
 
   void clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane = false);
   bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
@@ -176,7 +180,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 
 /* transform_snap_object_editmesh.cc */
 
-struct SnapData_EditMesh {
+struct SnapCache_EditMesh {
   /* Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
@@ -189,7 +193,7 @@ struct SnapData_EditMesh {
 
   void clear();
 
-  ~SnapData_EditMesh()
+  ~SnapCache_EditMesh()
   {
     this->clear();
   }

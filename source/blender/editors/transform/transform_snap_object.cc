@@ -96,7 +96,7 @@ static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
   return test_projected_vert_dist(precalc, clip_plane, clip_plane_len, is_persp, near_co, nearest);
 }
 
-Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx, const float4x4 &obmat)
+SnapData::SnapData(SnapObjectContext *sctx, const float4x4 &obmat)
     : nearest_precalc(),
       obmat_(obmat),
       is_persp(sctx->runtime.rv3d ? sctx->runtime.rv3d->is_persp : false),
@@ -117,7 +117,7 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx, const float4x4 &ob
   copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
-void Nearest2dUserData::clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane)
+void SnapData::clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane)
 {
   float(*clip_planes)[4] = sctx->runtime.clip_plane;
   int clip_plane_len = sctx->runtime.clip_plane_len;
@@ -136,7 +136,7 @@ void Nearest2dUserData::clip_planes_enable(SnapObjectContext *sctx, bool skip_oc
   BLI_assert(this->clip_planes.size() == clip_plane_len);
 }
 
-bool Nearest2dUserData::snap_boundbox(const float3 &min, const float3 &max)
+bool SnapData::snap_boundbox(const float3 &min, const float3 &max)
 {
   /* In vertex and edges you need to get the pixel distance from ray to BoundBox,
    * see: #46099, #46816 */
@@ -162,7 +162,7 @@ bool Nearest2dUserData::snap_boundbox(const float3 &min, const float3 &max)
   return true;
 }
 
-bool Nearest2dUserData::snap_point(const float3 &co, int index)
+bool SnapData::snap_point(const float3 &co, int index)
 {
   if (test_projected_vert_dist(&this->nearest_precalc,
                                reinterpret_cast<const float(*)[4]>(this->clip_planes.data()),
@@ -177,7 +177,7 @@ bool Nearest2dUserData::snap_point(const float3 &co, int index)
   return false;
 }
 
-bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_index)
+bool SnapData::snap_edge(const float3 &va, const float3 &vb, int edge_index)
 {
   if (test_projected_edge_dist(&this->nearest_precalc,
                                reinterpret_cast<const float(*)[4]>(this->clip_planes.data()),
@@ -194,9 +194,9 @@ bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_i
   return false;
 }
 
-eSnapMode Nearest2dUserData::snap_edge_points_impl(SnapObjectContext *sctx,
-                                                   int edge_index,
-                                                   float dist_px_sq_orig)
+eSnapMode SnapData::snap_edge_points_impl(SnapObjectContext *sctx,
+                                          int edge_index,
+                                          float dist_px_sq_orig)
 {
   eSnapMode elem = SCE_SNAP_TO_EDGE;
 
@@ -220,7 +220,8 @@ eSnapMode Nearest2dUserData::snap_edge_points_impl(SnapObjectContext *sctx,
     this->nearest_point.dist_sq = dist_px_sq_orig;
 
     eSnapMode snap_to = sctx->runtime.snap_to_flag;
-    int e_mode_len = ((snap_to & SCE_SNAP_TO_EDGE) != 0) + ((snap_to & SCE_SNAP_TO_VERTEX) != 0) +
+    int e_mode_len = ((snap_to & SCE_SNAP_TO_EDGE) != 0) +
+                     ((snap_to & SCE_SNAP_TO_EDGE_ENDPOINT) != 0) +
                      ((snap_to & SCE_SNAP_TO_EDGE_MIDPOINT) != 0);
 
     float range = 1.0f / (2 * e_mode_len - 1);
@@ -256,12 +257,12 @@ eSnapMode Nearest2dUserData::snap_edge_points_impl(SnapObjectContext *sctx,
     }
 
     /* Leave this one for last so it doesn't change the normal. */
-    if (snap_to & SCE_SNAP_TO_VERTEX) {
+    if (snap_to & SCE_SNAP_TO_EDGE_ENDPOINT) {
       if (lambda < (range) || (1.0f - range) < lambda) {
         int v_id = lambda < 0.5f ? 0 : 1;
 
         if (this->snap_point(v_pair[v_id], v_id)) {
-          elem = SCE_SNAP_TO_VERTEX;
+          elem = SCE_SNAP_TO_EDGE_ENDPOINT;
           this->copy_vert_no(vindex[v_id], this->nearest_point.no);
         }
       }
@@ -271,9 +272,7 @@ eSnapMode Nearest2dUserData::snap_edge_points_impl(SnapObjectContext *sctx,
   return elem;
 }
 
-void Nearest2dUserData::register_result(SnapObjectContext *sctx,
-                                        Object *ob_eval,
-                                        const ID *id_eval)
+void SnapData::register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval)
 {
   BLI_assert(this->nearest_point.index != -2);
 
@@ -442,8 +441,7 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
     const bool is_object_active = (base == base_act);
     Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI ||
-        blender::bke::object_has_geometry_set_instances(*obj_eval))
-    {
+        blender::bke::object_has_geometry_set_instances(*obj_eval)) {
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);
       LISTBASE_FOREACH (DupliObject *, dupli_ob, lb) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));
@@ -604,11 +602,6 @@ static bool raycastObjects(SnapObjectContext *sctx)
 /** \name Surface Snap Functions
  * \{ */
 
-struct NearestWorldObjUserData {
-  const float *init_co;
-  const float *curr_co;
-};
-
 static void nearest_world_tree_co(BVHTree *tree,
                                   BVHTree_NearestPointCallback nearest_cb,
                                   void *treedata,
@@ -710,8 +703,7 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
   if (ob_data == nullptr) {
     if (ob_eval->type == OB_MESH) {
       if (snap_object_editmesh(
-              sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide))
-      {
+              sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide)) {
         retval = true;
       }
     }
@@ -768,7 +760,7 @@ void cb_snap_vert(void *userdata,
                   const int clip_plane_len,
                   BVHTreeNearest *nearest)
 {
-  Nearest2dUserData *data = static_cast<Nearest2dUserData *>(userdata);
+  SnapData *data = static_cast<SnapData *>(userdata);
 
   const float *co;
   data->get_vert_co(index, &co);
@@ -786,7 +778,7 @@ void cb_snap_edge(void *userdata,
                   const int clip_plane_len,
                   BVHTreeNearest *nearest)
 {
-  Nearest2dUserData *data = static_cast<Nearest2dUserData *>(userdata);
+  SnapData *data = static_cast<SnapData *>(userdata);
 
   int vindex[2];
   data->get_edge_verts_index(index, vindex);
@@ -862,11 +854,11 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
   }
 
   /* For now only vertex supported. */
-  if ((snap_to_flag & SCE_SNAP_TO_VERTEX) == 0) {
+  if ((snap_to_flag & SCE_SNAP_TO_POINT) == 0) {
     return SCE_SNAP_TO_NONE;
   }
 
-  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
+  SnapData nearest2d(sctx, float4x4(obmat));
 
   nearest2d.clip_planes_enable(sctx);
 
@@ -1349,16 +1341,11 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     }
   }
 
-  if (snap_to_flag & (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
-                      SCE_SNAP_TO_EDGE_PERPENDICULAR))
-  {
+  if (snap_to_flag & (SCE_SNAP_TO_POINT | SNAP_TO_EDGE_ELEMENTS)) {
     eSnapMode elem_test, elem = SCE_SNAP_TO_NONE;
 
-    /* First snap to edge instead of middle or perpendicular. */
-    sctx->runtime.snap_to_flag &= (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE);
-    if (snap_to_flag & (SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
-      sctx->runtime.snap_to_flag |= SCE_SNAP_TO_EDGE;
-    }
+    /* Remove what has already been computed. */
+    sctx->runtime.snap_to_flag &= ~(SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST);
 
     /* By convention we only snap to the original elements of a curve. */
     if (has_hit && sctx->ret.ob->type != OB_CURVES_LEGACY) {
@@ -1394,11 +1381,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       elem = elem_test;
     }
 
-    if ((elem == SCE_SNAP_TO_EDGE) &&
-        (snap_to_flag &
-         (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)))
-    {
-      sctx->runtime.snap_to_flag = snap_to_flag;
+    if ((elem == SCE_SNAP_TO_EDGE) && (snap_to_flag & SNAP_TO_EDGE_ELEMENTS)) {
       elem = snap_edge_points(sctx, square_f(*dist_px));
     }
 
