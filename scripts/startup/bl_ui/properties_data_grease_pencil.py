@@ -31,6 +31,7 @@ class DATA_PT_context_grease_pencil(DataButtonsPanel, Panel):
         elif grease_pencil:
             layout.template_ID(space, "pin_id")
 
+
 class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
     bl_label = "Layers"
 

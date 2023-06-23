@@ -254,6 +254,7 @@ void ForwardPipeline::render(View &view,
   // }
 
   inst_.shadows.set_view(view);
+  inst_.irradiance_cache.set_view(view);
 
   GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(opaque_ps_, view);
@@ -370,6 +371,7 @@ void DeferredLayer::end_sync()
     inst_.shadows.bind_resources(&eval_light_ps_);
     inst_.sampling.bind_resources(&eval_light_ps_);
     inst_.hiz_buffer.bind_resources(&eval_light_ps_);
+    inst_.irradiance_cache.bind_resources(&eval_light_ps_);
 
     eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     eval_light_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -412,6 +414,7 @@ void DeferredLayer::render(View &view,
 
   inst_.hiz_buffer.set_dirty();
   inst_.shadows.set_view(view);
+  inst_.irradiance_cache.set_view(view);
 
   inst_.gbuffer.acquire(extent, closure_bits_);
 
@@ -490,6 +493,39 @@ void DeferredPipeline::render(View &view,
   DRW_stats_group_start("Deferred.Refract");
   refraction_layer_.render(view, prepass_fb, combined_fb, extent);
   DRW_stats_group_end();
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Capture Pipeline
+ *
+ * \{ */
+
+void CapturePipeline::sync()
+{
+  surface_ps_.init();
+  /* Surfel output is done using a SSBO, so no need for a fragment shader output color or depth. */
+  /* WORKAROUND: Avoid rasterizer discard, but the shaders actually use no fragment output. */
+  surface_ps_.state_set(DRW_STATE_WRITE_STENCIL);
+  surface_ps_.framebuffer_set(&inst_.irradiance_cache.bake.empty_raster_fb_);
+
+  surface_ps_.bind_ssbo(SURFEL_BUF_SLOT, &inst_.irradiance_cache.bake.surfels_buf_);
+  surface_ps_.bind_ssbo(CAPTURE_BUF_SLOT, &inst_.irradiance_cache.bake.capture_info_buf_);
+
+  surface_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  /* TODO(fclem): Remove. There should be no view dependent behavior during capture. */
+  surface_ps_.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+}
+
+PassMain::Sub *CapturePipeline::surface_material_add(GPUMaterial *gpumat)
+{
+  return &surface_ps_.sub(GPU_material_get_name(gpumat));
+}
+
+void CapturePipeline::render(View &view)
+{
+  inst_.manager->submit(surface_ps_, view);
 }
 
 /** \} */

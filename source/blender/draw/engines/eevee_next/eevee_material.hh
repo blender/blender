@@ -34,6 +34,7 @@ enum eMaterialPipeline {
   MAT_PIPE_FORWARD_PREPASS_VELOCITY,
   MAT_PIPE_VOLUME,
   MAT_PIPE_SHADOW,
+  MAT_PIPE_CAPTURE,
 };
 
 enum eMaterialGeometry {
@@ -48,16 +49,16 @@ static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
                                                   eMaterialPipeline &pipeline_type,
                                                   eMaterialGeometry &geometry_type)
 {
-  const uint64_t geometry_mask = ((1u << 3u) - 1u);
-  const uint64_t pipeline_mask = ((1u << 3u) - 1u);
+  const uint64_t geometry_mask = ((1u << 4u) - 1u);
+  const uint64_t pipeline_mask = ((1u << 4u) - 1u);
   geometry_type = static_cast<eMaterialGeometry>(shader_uuid & geometry_mask);
-  pipeline_type = static_cast<eMaterialPipeline>((shader_uuid >> 3u) & pipeline_mask);
+  pipeline_type = static_cast<eMaterialPipeline>((shader_uuid >> 4u) & pipeline_mask);
 }
 
 static inline uint64_t shader_uuid_from_material_type(eMaterialPipeline pipeline_type,
                                                       eMaterialGeometry geometry_type)
 {
-  return geometry_type | (pipeline_type << 3);
+  return geometry_type | (pipeline_type << 4);
 }
 
 ENUM_OPERATORS(eClosureBits, CLOSURE_AMBIENT_OCCLUSION)
@@ -213,7 +214,7 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  MaterialPass shadow, shading, prepass;
+  MaterialPass shadow, shading, prepass, capture;
 };
 
 struct MaterialArray {

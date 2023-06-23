@@ -67,6 +67,21 @@ GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
     .additional_info("eevee_shared", "draw_view", "draw_view_culling", "eevee_light_data")
     .compute_source("eevee_shadow_tag_usage_comp.glsl");
 
+GPU_SHADER_CREATE_INFO(eevee_shadow_tag_usage_surfels)
+    .do_static_compilation(true)
+    .local_group_size(SURFEL_GROUP_SIZE)
+    .storage_buf(6, Qualifier::READ_WRITE, "ShadowTileMapData", "tilemaps_buf[]")
+    /* ShadowTileDataPacked is uint. But MSL translation need the real type. */
+    .storage_buf(7, Qualifier::READ_WRITE, "uint", "tiles_buf[]")
+    .push_constant(Type::INT, "directional_level")
+    .push_constant(Type::FLOAT, "tilemap_projection_ratio")
+    .additional_info("eevee_shared",
+                     "draw_view",
+                     "draw_view_culling",
+                     "eevee_light_data",
+                     "eevee_surfel_common")
+    .compute_source("eevee_shadow_tag_usage_surfels_comp.glsl");
+
 GPU_SHADER_INTERFACE_INFO(eevee_shadow_tag_transparent_iface, "interp")
     .smooth(Type::VEC3, "P")
     .smooth(Type::VEC3, "vP")

@@ -1146,4 +1146,113 @@ static void test_eevee_shadow_page_mask()
 }
 DRAW_TEST(eevee_shadow_page_mask)
 
+static void test_eevee_surfel_list()
+{
+  StorageArrayBuffer<int> list_start_buf = {"list_start_buf"};
+  StorageVectorBuffer<Surfel> surfel_buf = {"surfel_buf"};
+  CaptureInfoBuf capture_info_buf = {"capture_info_buf"};
+  SurfelListInfoBuf list_info_buf = {"list_info_buf"};
+
+  /**
+   * Simulate surfels on a 2x2 projection grid covering [0..2] on the Z axis.
+   */
+  {
+    Surfel surfel;
+    /* NOTE: Expected link assumes linear increasing processing order [0->5]. But this is
+     * multithreaded and we can't know the execution order in advance. */
+    /* 0: Project to (1, 0) = list 1. Unsorted Next = -1; Next = -1;  Prev = 3. */
+    surfel.position = {1.1f, 0.1f, 0.1f};
+    surfel_buf.append(surfel);
+    /* 1: Project to (1, 0) = list 1. Unsorted Next = 0; Next = 2; Prev = -1. */
+    surfel.position = {1.1f, 0.2f, 0.5f};
+    surfel_buf.append(surfel);
+    /* 2: Project to (1, 0) = list 1. Unsorted Next = 1; Next = 3; Prev = 1. */
+    surfel.position = {1.1f, 0.3f, 0.3f};
+    surfel_buf.append(surfel);
+    /* 3: Project to (1, 0) = list 1. Unsorted Next = 2; Next = 0; Prev = 2. */
+    surfel.position = {1.2f, 0.4f, 0.2f};
+    surfel_buf.append(surfel);
+    /* 4: Project to (1, 1) = list 3. Unsorted Next = -1; Next = -1;  Prev = -1. */
+    surfel.position = {1.0f, 1.0f, 0.5f};
+    surfel_buf.append(surfel);
+    /* 5: Project to (0, 1) = list 2. Unsorted Next = -1; Next = -1;  Prev = -1. */
+    surfel.position = {0.1f, 1.1f, 0.5f};
+    surfel_buf.append(surfel);
+
+    surfel_buf.push_update();
+  }
+  {
+    capture_info_buf.surfel_len = surfel_buf.size();
+    capture_info_buf.push_update();
+  }
+  {
+    list_info_buf.ray_grid_size = int2(2);
+    list_info_buf.list_max = list_info_buf.ray_grid_size.x * list_info_buf.ray_grid_size.y;
+    list_info_buf.push_update();
+  }
+  {
+    list_start_buf.resize(ceil_to_multiple_u(list_info_buf.list_max, 4u));
+    list_start_buf.push_update();
+    GPU_storagebuf_clear(list_start_buf, -1);
+  }
+
+  /* Top-down view. */
+  View view = {"RayProjectionView"};
+  view.sync(float4x4::identity(), math::projection::orthographic<float>(0, 2, 0, 2, 0, 1));
+
+  GPUShader *sh_build = GPU_shader_create_from_info_name("eevee_surfel_list_build");
+  GPUShader *sh_sort = GPU_shader_create_from_info_name("eevee_surfel_list_sort");
+
+  PassSimple pass("Build_and_Sort");
+  pass.shader_set(sh_build);
+  pass.bind_ssbo("list_start_buf", list_start_buf);
+  pass.bind_ssbo("surfel_buf", surfel_buf);
+  pass.bind_ssbo("capture_info_buf", capture_info_buf);
+  pass.bind_ssbo("list_info_buf", list_info_buf);
+  pass.dispatch(int3(1, 1, 1));
+  pass.barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  pass.shader_set(sh_sort);
+  pass.bind_ssbo("list_start_buf", list_start_buf);
+  pass.bind_ssbo("surfel_buf", surfel_buf);
+  pass.bind_ssbo("list_info_buf", list_info_buf);
+  pass.dispatch(int3(1, 1, 1));
+  pass.barrier(GPU_BARRIER_BUFFER_UPDATE);
+
+  Manager manager;
+  manager.submit(pass, view);
+
+  list_start_buf.read();
+  surfel_buf.read();
+
+  /* NOTE: All of these are unstable by definition (atomic + multithread).
+   * But should be consistent since we only dispatch one thread-group. */
+  /* Expect last added surfel index. It is the list start index before sorting. */
+  Vector<int> expect_list_start = {-1, 3, 5, 4};
+  /* Expect surfel list. */
+  Vector<int> expect_link_next = {-1, +2, +3, +0, -1, -1};
+  Vector<int> expect_link_prev = {+3, -1, +1, +2, -1, -1};
+
+  Vector<int> link_next, link_prev;
+  for (auto &surfel : Span<Surfel>(surfel_buf.data(), surfel_buf.size())) {
+    link_next.append(surfel.next);
+    link_prev.append(surfel.prev);
+  }
+
+#if 0 /* Useful for debugging */
+  // Span<int>(list_start_buf.data(), expect_list_start.size()).print_as_lines("list_start");
+  // link_next.as_span().print_as_lines("link_next");
+  // link_prev.as_span().print_as_lines("link_prev");
+#endif
+
+  EXPECT_EQ_ARRAY(list_start_buf.data(), expect_list_start.data(), expect_list_start.size());
+  EXPECT_EQ_ARRAY(link_next.data(), expect_link_next.data(), expect_link_next.size());
+  EXPECT_EQ_ARRAY(link_prev.data(), expect_link_prev.data(), expect_link_prev.size());
+
+  GPU_shader_free(sh_build);
+  GPU_shader_free(sh_sort);
+  DRW_shaders_free();
+}
+DRAW_TEST(eevee_surfel_list)
+
 }  // namespace blender::draw

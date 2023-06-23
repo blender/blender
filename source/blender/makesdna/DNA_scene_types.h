@@ -1792,6 +1792,7 @@ typedef struct SceneEEVEE {
   float gi_irradiance_smoothing;
   float gi_glossy_clamp;
   float gi_filter_quality;
+  char _pad0[4];
 
   float gi_cubemap_draw_size;
   float gi_irradiance_draw_size;
@@ -1843,7 +1844,6 @@ typedef struct SceneEEVEE {
   int shadow_cube_size;
   int shadow_cascade_size;
   int shadow_pool_size;
-  char _pad[4];
 
   struct LightCache *light_cache DNA_DEPRECATED;
   struct LightCache *light_cache_data;

@@ -156,6 +156,19 @@ static void rna_def_lightprobe(BlenderRNA *brna)
       prop, "Resolution Z", "Number of samples along the z axis of the volume");
   RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
+  prop = RNA_def_property(srna, "grid_bake_samples", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Bake Samples", "Number of ray directions to evaluate when baking");
+  RNA_def_property_range(prop, 1, INT_MAX);
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
+  prop = RNA_def_property(srna, "surfel_density", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_text(prop,
+                           "Surfel Density",
+                           "Number of surfels per unit distance (higher values improve quality)");
+  RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
+
   prop = RNA_def_property(srna, "visibility_buffer_bias", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, NULL, "vis_bias");
   RNA_def_property_range(prop, 0.001f, 9999.0f);
