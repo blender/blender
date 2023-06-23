@@ -161,6 +161,11 @@ void select_ends(bke::CurvesGeometry &curves, int amount_start, int amount_end);
 void select_linked(bke::CurvesGeometry &curves);
 
 /**
+ * Select alternated points in strokes with already selected points
+ */
+void select_alternate(bke::CurvesGeometry &curves, const bool deselect_ends);
+
+/**
  * (De)select all the adjacent points of the current selected points.
  */
 void select_adjacent(bke::CurvesGeometry &curves, bool deselect);

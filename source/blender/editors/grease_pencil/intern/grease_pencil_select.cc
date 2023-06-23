@@ -195,6 +195,45 @@ static void GREASE_PENCIL_OT_select_random(wmOperatorType *ot)
   WM_operator_properties_select_random(ot);
 }
 
+static int select_alternate_exec(bContext *C, wmOperator *op)
+{
+  const bool deselect_ends = RNA_boolean_get(op->ptr, "deselect_ends");
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+  eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
+
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*drawing_index*/, GreasePencilDrawing &drawing) {
+        blender::ed::curves::select_alternate(drawing.geometry.wrap(), deselect_ends);
+      });
+
+  /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+   * attribute for now. */
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_select_alternate(wmOperatorType *ot)
+{
+  ot->name = "Select Alternate";
+  ot->idname = "GREASE_PENCIL_OT_select_alternate";
+  ot->description = "Select alternated points in strokes with already selected points";
+
+  ot->exec = select_alternate_exec;
+  ot->poll = editable_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "deselect_ends",
+                  false,
+                  "Deselect Ends",
+                  "(De)select the first and last point of each stroke");
+}
+
 static int select_ends_exec(bContext *C, wmOperator *op)
 {
   const int amount_start = RNA_int_get(op->ptr, "amount_start");
@@ -275,5 +314,6 @@ void ED_operatortypes_grease_pencil_select(void)
   WM_operatortype_append(GREASE_PENCIL_OT_select_less);
   WM_operatortype_append(GREASE_PENCIL_OT_select_linked);
   WM_operatortype_append(GREASE_PENCIL_OT_select_random);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_alternate);
   WM_operatortype_append(GREASE_PENCIL_OT_select_ends);
 }
