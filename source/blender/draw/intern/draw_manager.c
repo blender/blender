@@ -2130,7 +2130,7 @@ void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *deps
   DRW_view_data_engine_data_get_ensure(DST.view_data_active, draw_engine_type);
 }
 
-void DRW_custom_pipeline_end()
+void DRW_custom_pipeline_end(void)
 {
   DST.buffer_finish_called = false;
 
