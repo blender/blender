@@ -27,6 +27,8 @@ void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, f
 
 void main()
 {
+  PASS_RESOURCE_ID
+
   float vert_strength;
   vec4 vert_color;
   vec3 vert_N;
