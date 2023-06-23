@@ -181,7 +181,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 /* transform_snap_object_editmesh.cc */
 
 struct SnapCache_EditMesh {
-  /* Verts, Edges. */
+  /* Loose Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
 

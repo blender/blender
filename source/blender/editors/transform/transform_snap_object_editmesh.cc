@@ -474,7 +474,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
     } while ((l_iter = l_iter->next) != l_first);
   }
   else {
-    elem = SCE_SNAP_TO_VERTEX;
+    elem = SCE_SNAP_TO_EDGE_ENDPOINT;
     BM_mesh_elem_index_ensure(em->bm, BM_VERT);
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
     do {
@@ -534,13 +534,17 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
 
     if (treedata.tree == nullptr) {
       if (sctx->callbacks.edit_mesh.test_vert_fn) {
+        auto test_looseverts_fn = [](BMElem *elem, void *user_data) {
+          SnapObjectContext *sctx_ = static_cast<SnapObjectContext *>(user_data);
+          BMVert *v = reinterpret_cast<BMVert *>(elem);
+          if (v->e) {
+            return false;
+          }
+          return sctx_->callbacks.edit_mesh.test_vert_fn(v, sctx_->callbacks.edit_mesh.user_data);
+        };
         blender::BitVector<> verts_mask(em->bm->totvert);
         const int verts_num_active = BM_iter_mesh_bitmap_from_filter(
-            BM_VERTS_OF_MESH,
-            em->bm,
-            verts_mask,
-            (bool (*)(BMElem *, void *))sctx->callbacks.edit_mesh.test_vert_fn,
-            sctx->callbacks.edit_mesh.user_data);
+            BM_VERTS_OF_MESH, em->bm, verts_mask, test_looseverts_fn, sctx);
 
         bvhtree_from_editmesh_verts_ex(&treedata, em, verts_mask, verts_num_active, 0.0f, 2, 6);
       }
@@ -548,7 +552,7 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
         BKE_bvhtree_from_editmesh_get(&treedata,
                                       em,
                                       2,
-                                      BVHTREE_FROM_EM_VERTS,
+                                      BVHTREE_FROM_EM_LOOSEVERTS,
                                       /* WORKAROUND: avoid updating while transforming. */
                                       G.moving ? nullptr : &em_cache->mesh_runtime->bvh_cache,
                                       &em_cache->mesh_runtime->eval_mutex);
@@ -558,7 +562,7 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_TO_EDGE) {
+  if (snap_to_flag & SNAP_TO_EDGE_ELEMENTS) {
     BVHTreeFromEditMesh treedata{};
     treedata.tree = em_cache->bvhtree[1];
 
