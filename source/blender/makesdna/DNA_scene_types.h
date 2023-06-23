@@ -1697,7 +1697,7 @@ typedef struct ToolSettings {
 
   struct SequencerToolSettings *sequencer_tool_settings;
 
-  short snap_mode_tools; /* If SCE_SNAP_MODE_NONE, use #ToolSettings::snap_mode. #eSnapMode. */
+  short snap_mode_tools; /* If SCE_SNAP_TO_NONE, use #ToolSettings::snap_mode. #eSnapMode. */
   char plane_axis;       /* X, Y or Z. */
   char plane_depth;      /* #eV3DPlaceDepth. */
   char plane_orient;     /* #eV3DPlaceOrient. */
@@ -2254,7 +2254,7 @@ typedef enum eSnapFlag {
   SCE_SNAP = (1 << 0),
   SCE_SNAP_ROTATE = (1 << 1),
   SCE_SNAP_PEEL_OBJECT = (1 << 2),
-  // SCE_SNAP_PROJECT = (1 << 3), /* DEPRECATED, see #SCE_SNAP_MODE_FACE_RAYCAST. */
+  // SCE_SNAP_PROJECT = (1 << 3), /* DEPRECATED, see #SCE_SNAP_INDIVIDUAL_PROJECT. */
   /** Was `SCE_SNAP_NO_SELF`, but self should be active. */
   SCE_SNAP_NOT_TO_ACTIVE = (1 << 4),
   SCE_SNAP_ABS_GRID = (1 << 5),
@@ -2298,37 +2298,35 @@ ENUM_OPERATORS(eSnapTargetOP, SCE_SNAP_TARGET_NOT_NONEDITED)
 
 /** #ToolSettings.snap_mode */
 typedef enum eSnapMode {
-  SCE_SNAP_MODE_NONE = 0,
-
-  SCE_SNAP_MODE_VERTEX = (1 << 0),
-  SCE_SNAP_MODE_EDGE = (1 << 1),
-  SCE_SNAP_MODE_FACE = (1 << 2),
-  SCE_SNAP_MODE_VOLUME = (1 << 3),
-  SCE_SNAP_MODE_EDGE_MIDPOINT = (1 << 4),
-  SCE_SNAP_MODE_EDGE_PERPENDICULAR = (1 << 5),
-
-  /* For snap individual elements. */
-  SCE_SNAP_MODE_FACE_NEAREST = (1 << 8),
-  /** Project individual elements instead of whole object. */
-  SCE_SNAP_MODE_FACE_RAYCAST = (1 << 9),
+  SCE_SNAP_TO_NONE = 0,
 
   /** #ToolSettings.snap_node_mode */
-  SCE_SNAP_MODE_NODE_X = (1 << 0),
-  SCE_SNAP_MODE_NODE_Y = (1 << 1),
+  SCE_SNAP_TO_NODE_X = (1 << 0),
+  SCE_SNAP_TO_NODE_Y = (1 << 1),
 
   /** #ToolSettings.snap_mode and #ToolSettings.snap_node_mode and #ToolSettings.snap_uv_mode */
-  SCE_SNAP_MODE_INCREMENT = (1 << 6),
-  SCE_SNAP_MODE_GRID = (1 << 7),
+  SCE_SNAP_TO_VERTEX = (1 << 0),
+  SCE_SNAP_TO_EDGE = (1 << 1),
+  SCE_SNAP_TO_FACE = (1 << 2),
+  SCE_SNAP_TO_VOLUME = (1 << 3),
+  SCE_SNAP_TO_EDGE_MIDPOINT = (1 << 4),
+  SCE_SNAP_TO_EDGE_PERPENDICULAR = (1 << 5),
+  SCE_SNAP_TO_INCREMENT = (1 << 6),
+  SCE_SNAP_TO_GRID = (1 << 7),
+
+  /** For snap individual elements. */
+  SCE_SNAP_INDIVIDUAL_NEAREST = (1 << 8),
+  SCE_SNAP_INDIVIDUAL_PROJECT = (1 << 9),
 } eSnapMode;
 /* Due to dependency conflicts with Cycles, header cannot directly include `BLI_utildefines.h`. */
 /* TODO: move this macro to a more general place. */
 #ifdef ENUM_OPERATORS
-ENUM_OPERATORS(eSnapMode, SCE_SNAP_MODE_FACE_RAYCAST)
+ENUM_OPERATORS(eSnapMode, SCE_SNAP_INDIVIDUAL_PROJECT)
 #endif
 
-#define SCE_SNAP_MODE_GEOM \
-  (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE | \
-   SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_EDGE_MIDPOINT)
+#define SCE_SNAP_TO_GEOM \
+  (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_EDGE_PERPENDICULAR | \
+   SCE_SNAP_TO_EDGE_MIDPOINT)
 
 /** #SequencerToolSettings.snap_mode */
 #define SEQ_SNAP_TO_STRIPS (1 << 0)

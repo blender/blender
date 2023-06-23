@@ -110,7 +110,7 @@ static void snapsource_confirm(TransInfo *t)
   transform_input_reset(t, mval);
 
   /* Remote individual snap projection since this mode does not use the new `snap_source`. */
-  t->tsnap.mode &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+  t->tsnap.mode &= ~(SCE_SNAP_INDIVIDUAL_PROJECT | SCE_SNAP_INDIVIDUAL_NEAREST);
 }
 
 static eRedrawFlag snapsource_handle_event_fn(TransInfo *t, const wmEvent *event)
@@ -188,15 +188,15 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
   t->tsnap.status &= ~SNAP_SOURCE_FOUND;
 
   customdata->snap_mode_confirm = t->tsnap.mode;
-  t->tsnap.mode &= ~(SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_FACE_RAYCAST |
-                     SCE_SNAP_MODE_FACE_NEAREST);
+  t->tsnap.mode &= ~(SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_INDIVIDUAL_PROJECT |
+                     SCE_SNAP_INDIVIDUAL_NEAREST);
 
-  if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
+  if ((t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) == 0) {
     /* Initialize snap modes for geometry. */
-    t->tsnap.mode &= ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID);
-    t->tsnap.mode |= SCE_SNAP_MODE_GEOM;
+    t->tsnap.mode &= ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID);
+    t->tsnap.mode |= SCE_SNAP_TO_GEOM;
 
-    if (!(customdata->snap_mode_confirm & SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    if (!(customdata->snap_mode_confirm & SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
       customdata->snap_mode_confirm = t->tsnap.mode;
     }
   }

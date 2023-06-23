@@ -25,9 +25,9 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
                        const float obmat[4][4],
                        bool is_object_active)
 {
-  eSnapMode retval = SCE_SNAP_MODE_NONE;
+  eSnapMode retval = SCE_SNAP_TO_NONE;
 
-  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE) {
+  if (sctx->runtime.snap_to_flag == SCE_SNAP_TO_FACE) {
     /* Currently only edge and vert. */
     return retval;
   }
@@ -95,16 +95,16 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
 
   if (nearest2d.nearest_point.index != -2) {
-    retval = sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE;
-    if (retval == SCE_SNAP_MODE_NONE) {
+    retval = sctx->runtime.snap_to_flag & SCE_SNAP_TO_EDGE;
+    if (retval == SCE_SNAP_TO_NONE) {
       nearest2d.nearest_point.index = -2;
     }
 
-    if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+    if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX) {
       float dist_px_sq_edge = nearest2d.nearest_point.dist_sq;
       nearest2d.nearest_point.dist_sq = sctx->ret.dist_px_sq;
       if (nearest2d.snap_point(head_vec) || nearest2d.snap_point(tail_vec)) {
-        retval = SCE_SNAP_MODE_VERTEX;
+        retval = SCE_SNAP_TO_VERTEX;
       }
       else if (retval) {
         nearest2d.nearest_point.dist_sq = dist_px_sq_edge;

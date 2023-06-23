@@ -27,8 +27,8 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
   bool has_snap = false;
 
   /* Only vertex snapping mode (eg control points and handles) supported for now). */
-  if ((sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) == 0) {
-    return SCE_SNAP_MODE_NONE;
+  if ((sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX) == 0) {
+    return SCE_SNAP_TO_NONE;
   }
 
   Curve *cu = static_cast<Curve *>(ob_eval->data);
@@ -41,7 +41,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
     /* Test BoundBox */
     BoundBox *bb = BKE_curve_boundbox_get(ob_eval);
     if (bb && !nearest2d.snap_boundbox(bb->vec[0], bb->vec[6])) {
-      return SCE_SNAP_MODE_NONE;
+      return SCE_SNAP_TO_NONE;
     }
   }
 
@@ -52,7 +52,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 
   LISTBASE_FOREACH (Nurb *, nu, (use_obedit ? &cu->editnurb->nurbs : &cu->nurb)) {
     for (int u = 0; u < nu->pntsu; u++) {
-      if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+      if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX) {
         if (use_obedit) {
           if (nu->bezt) {
             if (nu->bezt[u].hide) {
@@ -109,5 +109,5 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
     }
   }
 
-  return has_snap ? SCE_SNAP_MODE_VERTEX : SCE_SNAP_MODE_NONE;
+  return has_snap ? SCE_SNAP_TO_VERTEX : SCE_SNAP_TO_NONE;
 }

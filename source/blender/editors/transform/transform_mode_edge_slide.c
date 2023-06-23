@@ -1294,11 +1294,11 @@ static void edge_slide_snap_apply(TransInfo *t, float *value)
     side_index = t_snap >= t_mid;
   }
 
-  if (t->tsnap.snapElem & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE)) {
+  if (t->tsnap.snapElem & (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE)) {
     float co_dir[3];
     sub_v3_v3v3(co_dir, co_dest[side_index], co_orig);
     normalize_v3(co_dir);
-    if (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) {
+    if (t->tsnap.snapElem & SCE_SNAP_TO_EDGE) {
       transform_constraint_snap_axis_to_edge(t, co_dir, dvec);
     }
     else {

@@ -229,13 +229,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
-      if (ts->snap_mode_tools != SCE_SNAP_MODE_NONE) {
-        ts->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      if (ts->snap_mode_tools != SCE_SNAP_TO_NONE) {
+        ts->snap_mode_tools = SCE_SNAP_TO_GEOM;
       }
 
 #define SCE_SNAP_PROJECT (1 << 3)
       if (ts->snap_flag & SCE_SNAP_PROJECT) {
-        ts->snap_mode |= SCE_SNAP_MODE_FACE_RAYCAST;
+        ts->snap_mode |= SCE_SNAP_INDIVIDUAL_PROJECT;
       }
 #undef SCE_SNAP_PROJECT
     }

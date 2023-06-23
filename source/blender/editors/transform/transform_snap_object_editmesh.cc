@@ -196,16 +196,16 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapData_Edit
 
 static eSnapMode editmesh_snap_mode_supported(BMEditMesh *em)
 {
-  eSnapMode snap_mode_supported = SCE_SNAP_MODE_NONE;
+  eSnapMode snap_mode_supported = SCE_SNAP_TO_NONE;
   if (em->bm->totface) {
-    snap_mode_supported |= SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_FACE_NEAREST;
+    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST;
   }
   if (em->bm->totedge) {
-    snap_mode_supported |= SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
-                           SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+    snap_mode_supported |= SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
+                           SCE_SNAP_TO_EDGE_PERPENDICULAR;
   }
   if (em->bm->totvert) {
-    snap_mode_supported |= SCE_SNAP_MODE_VERTEX;
+    snap_mode_supported |= SCE_SNAP_TO_VERTEX;
   }
   return snap_mode_supported;
 }
@@ -225,7 +225,7 @@ static SnapData_EditMesh *editmesh_snapdata_init(SnapObjectContext *sctx,
   }
 
   eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em);
-  if (snap_mode_used == SCE_SNAP_MODE_NONE) {
+  if (snap_mode_used == SCE_SNAP_TO_NONE) {
     return nullptr;
   }
 
@@ -447,7 +447,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 eSnapMode snap_to_flag,
                                 int polygon)
 {
-  eSnapMode elem = SCE_SNAP_MODE_NONE;
+  eSnapMode elem = SCE_SNAP_TO_NONE;
 
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
   Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
@@ -461,8 +461,8 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   BMFace *f = BM_face_at_index(em->bm, polygon);
   BMLoop *l_iter, *l_first;
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-  if (snap_to_flag & SCE_SNAP_MODE_EDGE) {
-    elem = SCE_SNAP_MODE_EDGE;
+  if (snap_to_flag & SCE_SNAP_TO_EDGE) {
+    elem = SCE_SNAP_TO_EDGE;
     BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_EDGE);
     BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE);
     do {
@@ -475,7 +475,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
     } while ((l_iter = l_iter->next) != l_first);
   }
   else {
-    elem = SCE_SNAP_MODE_VERTEX;
+    elem = SCE_SNAP_TO_VERTEX;
     BM_mesh_elem_index_ensure(em->bm, BM_VERT);
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
     do {
@@ -493,7 +493,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
     return elem;
   }
 
-  return SCE_SNAP_MODE_NONE;
+  return SCE_SNAP_TO_NONE;
 }
 
 eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
@@ -515,16 +515,16 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
                               const float obmat[4][4],
                               eSnapMode snap_to_flag)
 {
-  BLI_assert(snap_to_flag != SCE_SNAP_MODE_FACE);
+  BLI_assert(snap_to_flag != SCE_SNAP_TO_FACE);
 
   Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
 
   /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!nearest2d.snap_boundbox(sod->min, sod->max)) {
-    return SCE_SNAP_MODE_NONE;
+    return SCE_SNAP_TO_NONE;
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+  if (snap_to_flag & SCE_SNAP_TO_VERTEX) {
     BVHTreeFromEditMesh treedata{};
     treedata.tree = sod->bvhtree[0];
 
@@ -554,7 +554,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
     }
   }
 
-  if (snap_to_flag & SCE_SNAP_MODE_EDGE) {
+  if (snap_to_flag & SCE_SNAP_TO_EDGE) {
     BVHTreeFromEditMesh treedata{};
     treedata.tree = sod->bvhtree[1];
 
@@ -590,9 +590,9 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
   nearest.index = -1;
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
-  eSnapMode elem = SCE_SNAP_MODE_VERTEX;
+  eSnapMode elem = SCE_SNAP_TO_VERTEX;
 
-  if (sod->bvhtree[0] && (snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
+  if (sod->bvhtree[0] && (snap_to_flag & SCE_SNAP_TO_VERTEX)) {
     BM_mesh_elem_table_ensure(em->bm, BM_VERT);
     BM_mesh_elem_index_ensure(em->bm, BM_VERT);
     BLI_bvhtree_find_nearest_projected(sod->bvhtree[0],
@@ -606,7 +606,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
                                        &nearest2d);
   }
 
-  if (sod->bvhtree[1] && (snap_to_flag & SCE_SNAP_MODE_EDGE)) {
+  if (sod->bvhtree[1] && (snap_to_flag & SCE_SNAP_TO_EDGE)) {
     int last_index = nearest.index;
     nearest.index = -1;
     BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
@@ -622,7 +622,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
                                        &nearest2d);
 
     if (nearest.index != -1) {
-      elem = SCE_SNAP_MODE_EDGE;
+      elem = SCE_SNAP_TO_EDGE;
     }
     else {
       nearest.index = last_index;
@@ -634,7 +634,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
     return elem;
   }
 
-  return SCE_SNAP_MODE_NONE;
+  return SCE_SNAP_TO_NONE;
 }
 
 /** \} */
@@ -646,7 +646,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                eSnapMode snap_to_flag,
                                bool /*use_hide*/)
 {
-  eSnapMode elem = SCE_SNAP_MODE_NONE;
+  eSnapMode elem = SCE_SNAP_TO_NONE;
 
   SnapData_EditMesh *sod = editmesh_snapdata_init(sctx, ob_eval, snap_to_flag);
   if (sod == nullptr) {
@@ -656,8 +656,8 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   BMEditMesh *em = sod->treedata_editmesh.em;
 
   eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em);
-  if (snap_mode_used & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
-                        SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_VERTEX))
+  if (snap_mode_used & (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
+                        SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_TO_VERTEX))
   {
     elem = snapEditMesh(sod, sctx, ob_eval, em, obmat, snap_to_flag);
     if (elem) {
@@ -665,17 +665,17 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
     }
   }
 
-  if (snap_mode_used & SCE_SNAP_MODE_FACE) {
+  if (snap_mode_used & SCE_SNAP_TO_FACE) {
     if (raycastEditMesh(sod, sctx, em, obmat, sctx->runtime.object_index++)) {
-      return SCE_SNAP_MODE_FACE;
+      return SCE_SNAP_TO_FACE;
     }
   }
 
-  if (snap_mode_used & SCE_SNAP_MODE_FACE_NEAREST) {
+  if (snap_mode_used & SCE_SNAP_INDIVIDUAL_NEAREST) {
     if (nearest_world_editmesh(sod, sctx, em, obmat)) {
-      return SCE_SNAP_MODE_FACE_NEAREST;
+      return SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }
 
-  return SCE_SNAP_MODE_NONE;
+  return SCE_SNAP_TO_NONE;
 }

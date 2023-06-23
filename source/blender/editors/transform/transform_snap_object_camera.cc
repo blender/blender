@@ -23,9 +23,9 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
                      const float obmat[4][4],
                      eSnapMode snap_to_flag)
 {
-  eSnapMode retval = SCE_SNAP_MODE_NONE;
+  eSnapMode retval = SCE_SNAP_TO_NONE;
 
-  if (!(sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX)) {
+  if (!(sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX)) {
     return retval;
   }
 
@@ -77,10 +77,10 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
 
       mul_m4_v3(vertex_obmat, bundle_pos);
       if (nearest2d.snap_point(bundle_pos)) {
-        retval = SCE_SNAP_MODE_VERTEX;
+        retval = SCE_SNAP_TO_VERTEX;
       }
     }
   }
 
-  return SCE_SNAP_MODE_NONE;
+  return SCE_SNAP_TO_NONE;
 }

@@ -3818,42 +3818,42 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         switch (scene->toolsettings->snap_mode) {
           case 0:
-            scene->toolsettings->snap_mode = (1 << 4); /* SCE_SNAP_MODE_INCREMENT */
+            scene->toolsettings->snap_mode = (1 << 4); /* SCE_SNAP_TO_INCREMENT */
             break;
           case 1:
-            scene->toolsettings->snap_mode = (1 << 0); /* SCE_SNAP_MODE_VERTEX */
+            scene->toolsettings->snap_mode = (1 << 0); /* SCE_SNAP_TO_VERTEX */
             break;
           case 2:
-            scene->toolsettings->snap_mode = (1 << 1); /* SCE_SNAP_MODE_EDGE */
+            scene->toolsettings->snap_mode = (1 << 1); /* SCE_SNAP_TO_EDGE */
             break;
           case 3:
-            scene->toolsettings->snap_mode = (1 << 2); /* SCE_SNAP_MODE_FACE_RAYCAST */
+            scene->toolsettings->snap_mode = (1 << 2); /* SCE_SNAP_INDIVIDUAL_PROJECT */
             break;
           case 4:
-            scene->toolsettings->snap_mode = (1 << 3); /* SCE_SNAP_MODE_VOLUME */
+            scene->toolsettings->snap_mode = (1 << 3); /* SCE_SNAP_TO_VOLUME */
             break;
         }
         switch (scene->toolsettings->snap_node_mode) {
           case 5:
-            scene->toolsettings->snap_node_mode = (1 << 5); /* SCE_SNAP_MODE_NODE_X */
+            scene->toolsettings->snap_node_mode = (1 << 5); /* SCE_SNAP_TO_NODE_X */
             break;
           case 6:
-            scene->toolsettings->snap_node_mode = (1 << 6); /* SCE_SNAP_MODE_NODE_Y */
+            scene->toolsettings->snap_node_mode = (1 << 6); /* SCE_SNAP_TO_NODE_Y */
             break;
           case 7:
             scene->toolsettings->snap_node_mode =
-                (1 << 5) | (1 << 6); /* SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y */
+                (1 << 5) | (1 << 6); /* SCE_SNAP_TO_NODE_X | SCE_SNAP_TO_NODE_Y */
             break;
           case 8:
-            scene->toolsettings->snap_node_mode = (1 << 7); /* SCE_SNAP_MODE_GRID */
+            scene->toolsettings->snap_node_mode = (1 << 7); /* SCE_SNAP_TO_GRID */
             break;
         }
         switch (scene->toolsettings->snap_uv_mode) {
           case 0:
-            scene->toolsettings->snap_uv_mode = (1 << 4); /* SCE_SNAP_MODE_INCREMENT */
+            scene->toolsettings->snap_uv_mode = (1 << 4); /* SCE_SNAP_TO_INCREMENT */
             break;
           case 1:
-            scene->toolsettings->snap_uv_mode = (1 << 0); /* SCE_SNAP_MODE_VERTEX */
+            scene->toolsettings->snap_uv_mode = (1 << 0); /* SCE_SNAP_TO_VERTEX */
             break;
         }
       }
@@ -5749,8 +5749,8 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 281, 15)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      if (scene->toolsettings->snap_node_mode == SCE_SNAP_MODE_NODE_X) {
-        scene->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
+      if (scene->toolsettings->snap_node_mode == SCE_SNAP_TO_NODE_X) {
+        scene->toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
       }
     }
 

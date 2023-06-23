@@ -371,7 +371,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           t->depsgraph,
                                                           t->region,
                                                           static_cast<const View3D *>(t->view),
-                                                          SCE_SNAP_MODE_FACE,
+                                                          SCE_SNAP_TO_FACE,
                                                           &snap_object_params,
                                                           nullptr,
                                                           mval_fl,
@@ -379,7 +379,7 @@ static bool applyFaceProject(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           nullptr,
                                                           loc,
                                                           no);
-  if (hit != SCE_SNAP_MODE_FACE) {
+  if (hit != SCE_SNAP_TO_FACE) {
     return false;
   }
 
@@ -436,7 +436,7 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           t->depsgraph,
                                                           t->region,
                                                           static_cast<const View3D *>(t->view),
-                                                          SCE_SNAP_MODE_FACE_NEAREST,
+                                                          SCE_SNAP_INDIVIDUAL_NEAREST,
                                                           &snap_object_params,
                                                           init_loc,
                                                           nullptr,
@@ -445,7 +445,7 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
                                                           snap_loc,
                                                           snap_no);
 
-  if (hit != SCE_SNAP_MODE_FACE_NEAREST) {
+  if (hit != SCE_SNAP_INDIVIDUAL_NEAREST) {
     return;
   }
 
@@ -454,7 +454,7 @@ static void applyFaceNearest(TransInfo *t, TransDataContainer *tc, TransData *td
   mul_m3_v3(td->smtx, tvec);
   add_v3_v3(td->loc, tvec);
 
-  /* TODO: support snap alignment similar to #SCE_SNAP_MODE_FACE_RAYCAST? */
+  /* TODO: support snap alignment similar to #SCE_SNAP_INDIVIDUAL_PROJECT? */
 }
 
 bool transform_snap_project_individual_is_active(const TransInfo *t)
@@ -463,7 +463,7 @@ bool transform_snap_project_individual_is_active(const TransInfo *t)
     return false;
   }
 
-  return (t->tsnap.mode & (SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST)) != 0;
+  return (t->tsnap.mode & (SCE_SNAP_INDIVIDUAL_PROJECT | SCE_SNAP_INDIVIDUAL_NEAREST)) != 0;
 }
 
 void transform_snap_project_individual_apply(TransInfo *t)
@@ -487,11 +487,11 @@ void transform_snap_project_individual_apply(TransInfo *t)
       /* If both face ray-cast and face nearest methods are enabled, start with face ray-cast and
        * fallback to face nearest ray-cast does not hit. */
       bool hit = false;
-      if (t->tsnap.mode & SCE_SNAP_MODE_FACE_RAYCAST) {
+      if (t->tsnap.mode & SCE_SNAP_INDIVIDUAL_PROJECT) {
         hit = applyFaceProject(t, tc, td);
       }
 
-      if (!hit && t->tsnap.mode & SCE_SNAP_MODE_FACE_NEAREST) {
+      if (!hit && t->tsnap.mode & SCE_SNAP_INDIVIDUAL_NEAREST) {
         applyFaceNearest(t, tc, td);
       }
 #if 0 /* TODO: support this? */
@@ -508,8 +508,8 @@ static bool transform_snap_mixed_is_active(const TransInfo *t)
   }
 
   return (t->tsnap.mode &
-          (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE | SCE_SNAP_MODE_VOLUME |
-           SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR)) != 0;
+          (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE | SCE_SNAP_TO_VOLUME |
+           SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR)) != 0;
 }
 
 void transform_snap_mixed_apply(TransInfo *t, float *vec)
@@ -518,7 +518,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
     return;
   }
 
-  if (t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) {
+  if (t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) {
     double current = PIL_check_seconds_timer();
 
     /* Time base quirky code to go around find-nearest slowness. */
@@ -543,8 +543,8 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
   t->tsnap.status = SNAP_RESETTED;
-  t->tsnap.snapElem = SCE_SNAP_MODE_NONE;
-  t->tsnap.mode = SCE_SNAP_MODE_NONE;
+  t->tsnap.snapElem = SCE_SNAP_TO_NONE;
+  t->tsnap.mode = SCE_SNAP_TO_NONE;
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
   t->tsnap.source_operation = SCE_SNAP_SOURCE_CLOSEST;
   t->tsnap.last = 0;
@@ -634,11 +634,11 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
 
   if (t->spacetype == SPACE_IMAGE) {
     eSnapMode snap_mode = eSnapMode(ts->snap_uv_mode);
-    if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
+    if ((snap_mode & SCE_SNAP_TO_INCREMENT) && (ts->snap_uv_flag & SCE_SNAP_ABS_GRID) &&
         (t->mode == TFM_TRANSLATION))
     {
-      snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
-      snap_mode |= SCE_SNAP_MODE_GRID;
+      snap_mode &= ~SCE_SNAP_TO_INCREMENT;
+      snap_mode |= SCE_SNAP_TO_GRID;
     }
     return snap_mode;
   }
@@ -649,16 +649,16 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
 
   if (t->spacetype == SPACE_VIEW3D) {
     if (t->options & (CTX_CAMERA | CTX_EDGE_DATA | CTX_PAINT_CURVE)) {
-      return SCE_SNAP_MODE_INCREMENT;
+      return SCE_SNAP_TO_INCREMENT;
     }
 
     eSnapMode snap_mode = eSnapMode(ts->snap_mode);
-    if ((snap_mode & SCE_SNAP_MODE_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
+    if ((snap_mode & SCE_SNAP_TO_INCREMENT) && (ts->snap_flag & SCE_SNAP_ABS_GRID) &&
         (t->mode == TFM_TRANSLATION))
     {
       /* Special case in which snap to increments is transformed to snap to grid. */
-      snap_mode &= ~SCE_SNAP_MODE_INCREMENT;
-      snap_mode |= SCE_SNAP_MODE_GRID;
+      snap_mode &= ~SCE_SNAP_TO_INCREMENT;
+      snap_mode |= SCE_SNAP_TO_GRID;
     }
     return snap_mode;
   }
@@ -668,7 +668,7 @@ static eSnapMode snap_mode_from_spacetype(TransInfo *t)
     return eSnapMode(0);
   }
 
-  return SCE_SNAP_MODE_INCREMENT;
+  return SCE_SNAP_TO_INCREMENT;
 }
 
 static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
@@ -757,15 +757,15 @@ static void initSnappingMode(TransInfo *t)
   }
 
   if (doForceIncrementSnap(t)) {
-    t->tsnap.mode = SCE_SNAP_MODE_INCREMENT;
+    t->tsnap.mode = SCE_SNAP_TO_INCREMENT;
   }
 
   if ((t->spacetype != SPACE_VIEW3D) || (t->flag & T_NO_PROJECT)) {
     /* Force project off when not supported. */
-    t->tsnap.mode &= ~(SCE_SNAP_MODE_FACE_RAYCAST | SCE_SNAP_MODE_FACE_NEAREST);
+    t->tsnap.mode &= ~(SCE_SNAP_INDIVIDUAL_PROJECT | SCE_SNAP_INDIVIDUAL_NEAREST);
   }
 
-  if (t->tsnap.mode & SCE_SNAP_MODE_EDGE_PERPENDICULAR) {
+  if (t->tsnap.mode & SCE_SNAP_TO_EDGE_PERPENDICULAR) {
     t->flag |= T_DRAW_SNAP_SOURCE;
   }
 
@@ -839,7 +839,7 @@ void initSnapping(TransInfo *t, wmOperator *op)
           RNA_property_is_set(op->ptr, prop))
       {
         SET_FLAG_FROM_TEST(
-            t->tsnap.mode, RNA_property_boolean_get(op->ptr, prop), SCE_SNAP_MODE_FACE_RAYCAST);
+            t->tsnap.mode, RNA_property_boolean_get(op->ptr, prop), SCE_SNAP_INDIVIDUAL_PROJECT);
       }
 
       /* use_snap_self is misnamed and should be use_snap_active */
@@ -1093,23 +1093,23 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
   float no[3];
   float mval[2];
   bool found = false;
-  eSnapMode snap_elem = SCE_SNAP_MODE_NONE;
+  eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
 
   mval[0] = t->mval[0];
   mval[1] = t->mval[1];
 
-  if (t->tsnap.mode & SCE_SNAP_MODE_GEOM) {
+  if (t->tsnap.mode & SCE_SNAP_TO_GEOM) {
     zero_v3(no); /* objects won't set this */
     snap_elem = snapObjectsTransform(t, mval, &dist_px, loc, no);
-    found = (snap_elem != SCE_SNAP_MODE_NONE);
+    found = (snap_elem != SCE_SNAP_TO_NONE);
   }
-  if ((found == false) && (t->tsnap.mode & SCE_SNAP_MODE_VOLUME)) {
+  if ((found == false) && (t->tsnap.mode & SCE_SNAP_TO_VOLUME)) {
     bool use_peel = (t->settings->snap_flag & SCE_SNAP_PEEL_OBJECT) != 0;
     found = peelObjectsTransform(t, mval, use_peel, loc, no, nullptr);
 
     if (found) {
-      snap_elem = SCE_SNAP_MODE_VOLUME;
+      snap_elem = SCE_SNAP_TO_VOLUME;
     }
   }
 
@@ -1129,7 +1129,7 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
 static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_IMAGE);
-  if (t->tsnap.mode & SCE_SNAP_MODE_VERTEX) {
+  if (t->tsnap.mode & SCE_SNAP_TO_VERTEX) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         t->scene, t->view_layer, nullptr, &objects_len);
@@ -1159,7 +1159,7 @@ static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)
 static void snap_target_node_fn(TransInfo *t, float * /*vec*/)
 {
   BLI_assert(t->spacetype == SPACE_NODE);
-  if (t->tsnap.mode & (SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y)) {
+  if (t->tsnap.mode & (SCE_SNAP_TO_NODE_X | SCE_SNAP_TO_NODE_Y)) {
     float loc[2];
     float dist_px = SNAP_MIN_DISTANCE; /* Use a user defined value here. */
     char node_border;
@@ -1513,10 +1513,10 @@ static bool snapNodeTest(View2D *v2d, bNode *node, eSnapTargetOP snap_target_sel
 static NodeBorder snapNodeBorder(eSnapMode snap_node_mode)
 {
   NodeBorder flag = NodeBorder(0);
-  if (snap_node_mode & SCE_SNAP_MODE_NODE_X) {
+  if (snap_node_mode & SCE_SNAP_TO_NODE_X) {
     flag |= NODE_LEFT | NODE_RIGHT;
   }
-  if (snap_node_mode & SCE_SNAP_MODE_NODE_Y) {
+  if (snap_node_mode & SCE_SNAP_TO_NODE_Y) {
     flag |= NODE_TOP | NODE_BOTTOM;
   }
   return flag;
@@ -1644,7 +1644,7 @@ static void snap_increment_apply(const TransInfo *t,
                                  const float increment_dist,
                                  float *r_val)
 {
-  BLI_assert(t->tsnap.mode & SCE_SNAP_MODE_INCREMENT);
+  BLI_assert(t->tsnap.mode & SCE_SNAP_TO_INCREMENT);
   BLI_assert(max_index <= 2);
 
   /* Early bailing out if no need to snap */
@@ -1678,7 +1678,7 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
     return false;
   }
 
-  if (!(t->tsnap.mode & SCE_SNAP_MODE_INCREMENT)) {
+  if (!(t->tsnap.mode & SCE_SNAP_TO_INCREMENT)) {
     return false;
   }
 
@@ -1710,8 +1710,7 @@ bool transform_snap_increment(const TransInfo *t, float *r_val)
 
 float transform_snap_increment_get(const TransInfo *t)
 {
-  if (transform_snap_is_active(t) &&
-      (t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)))
+  if (transform_snap_is_active(t) && (t->tsnap.mode & (SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)))
   {
     return (t->modifiers & MOD_PRECISION) ? t->snap[1] : t->snap[0];
   }
