@@ -2133,7 +2133,7 @@ void SCULPT_undo_ensure_bmlog(Object *ob)
 
   UndoSculpt *usculpt = sculpt_undosys_step_get_nodes(us);
 
-  if (!ss->bm && !(me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY)) {
+  if (!ss->bm && (!(me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) || ss->mode_type != OB_MODE_SCULPT)) {
     return;
   }
 

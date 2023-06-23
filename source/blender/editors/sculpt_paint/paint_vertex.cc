@@ -1660,6 +1660,11 @@ static void vwpaint_update_cache_invariants(
   cache->is_last_valid = false;
 
   cache->accum = true;
+
+  SCULPT_stroke_id_next(ob);
+  if (ss->pbvh) {
+    blender::bke::pbvh::on_stroke_start(ss->pbvh);
+  }
 }
 
 /* Initialize the stroke cache variants from operator properties */

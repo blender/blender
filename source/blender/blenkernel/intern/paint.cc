@@ -2902,7 +2902,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
   else {
     /* Detect if we are loading from an undo memfile step. */
     Mesh *mesh_orig = BKE_object_get_original_mesh(ob);
-    bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY);
+    bool is_dyntopo = (mesh_orig->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) &&
+                      ss->mode_type == OB_MODE_SCULPT;
 
     if (is_dyntopo) {
       BMesh *bm = BKE_sculptsession_empty_bmesh_create();
