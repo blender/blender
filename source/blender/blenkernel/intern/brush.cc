@@ -1958,7 +1958,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->tip_roundness = 1.0f;
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
-      disable_dyntopo = true;
+      disable_dyntopo = false;
       zero_v3(br->rgb);
       copy_v3_fl(br->secondary_rgb, 1.0f);
       break;
@@ -1968,6 +1968,7 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->flag &= ~BRUSH_ALPHA_PRESSURE;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       br->curve_preset = BRUSH_CURVE_SPHERE;
+      disable_dyntopo = true;
       break;
     case SCULPT_TOOL_DISPLACEMENT_SMEAR:
       br->alpha = 1.0f;
