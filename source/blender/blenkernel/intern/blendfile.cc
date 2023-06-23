@@ -167,9 +167,10 @@ static bool blendfile_or_libraries_versions_atleast(Main *bmain,
 
 static bool foreach_path_clean_cb(BPathForeachPathData * /*bpath_data*/,
                                   char *path_dst,
+                                  size_t path_dst_maxncpy,
                                   const char *path_src)
 {
-  strcpy(path_dst, path_src);
+  BLI_strncpy(path_dst, path_src, path_dst_maxncpy);
   BLI_path_slash_native(path_dst);
   return !STREQ(path_dst, path_src);
 }

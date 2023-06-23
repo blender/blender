@@ -97,7 +97,9 @@ void BKE_bpath_foreach_path_id(BPathForeachPathData *bpath_data, ID *id)
 
   if (id->library_weak_reference != NULL && (flag & BKE_BPATH_TRAVERSE_SKIP_WEAK_REFERENCES) == 0)
   {
-    BKE_bpath_foreach_path_fixed_process(bpath_data, id->library_weak_reference->library_filepath);
+    BKE_bpath_foreach_path_fixed_process(bpath_data,
+                                         id->library_weak_reference->library_filepath,
+                                         sizeof(id->library_weak_reference->library_filepath));
   }
 
   bNodeTree *embedded_node_tree = ntreeFromID(id);
@@ -128,7 +130,9 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data)
   FOREACH_MAIN_ID_END;
 }
 
-bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data, char *path)
+bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data,
+                                          char *path,
+                                          size_t path_maxncpy)
 {
   const char *absolute_base_path = bpath_data->absolute_base_path;
 
@@ -148,8 +152,8 @@ bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data, char
   /* so functions can check old value */
   STRNCPY(path_dst, path);
 
-  if (bpath_data->callback_function(bpath_data, path_dst, path_src)) {
-    BLI_strncpy(path, path_dst, FILE_MAX);
+  if (bpath_data->callback_function(bpath_data, path_dst, sizeof(path_dst), path_src)) {
+    BLI_strncpy(path, path_dst, path_maxncpy);
     bpath_data->is_path_modified = true;
     return true;
   }
@@ -159,7 +163,9 @@ bool BKE_bpath_foreach_path_fixed_process(BPathForeachPathData *bpath_data, char
 
 bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_data,
                                                   char *path_dir,
-                                                  char *path_file)
+                                                  size_t path_dir_maxncpy,
+                                                  char *path_file,
+                                                  size_t path_file_maxncpy)
 {
   const char *absolute_base_path = bpath_data->absolute_base_path;
 
@@ -175,8 +181,9 @@ bool BKE_bpath_foreach_path_dirfile_fixed_process(BPathForeachPathData *bpath_da
     BLI_path_abs(path_src, absolute_base_path);
   }
 
-  if (bpath_data->callback_function(bpath_data, path_dst, (const char *)path_src)) {
-    BLI_path_split_dir_file(path_dst, path_dir, FILE_MAXDIR, path_file, FILE_MAXFILE);
+  if (bpath_data->callback_function(
+          bpath_data, path_dst, sizeof(path_dst), (const char *)path_src)) {
+    BLI_path_split_dir_file(path_dst, path_dir, path_dir_maxncpy, path_file, path_file_maxncpy);
     bpath_data->is_path_modified = true;
     return true;
   }
@@ -201,7 +208,7 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
     path_src = *path;
   }
 
-  if (bpath_data->callback_function(bpath_data, path_dst, path_src)) {
+  if (bpath_data->callback_function(bpath_data, path_dst, sizeof(path_dst), path_src)) {
     MEM_freeN(*path);
     (*path) = BLI_strdup(path_dst);
     bpath_data->is_path_modified = true;
@@ -219,6 +226,8 @@ bool BKE_bpath_foreach_path_allocated_process(BPathForeachPathData *bpath_data, 
 
 static bool check_missing_files_foreach_path_cb(BPathForeachPathData *bpath_data,
                                                 char *UNUSED(path_dst),
+                                                size_t UNUSED(path_dst_maxncpy),
+
                                                 const char *path_src)
 {
   ReportList *reports = (ReportList *)bpath_data->user_data;
@@ -337,6 +346,7 @@ typedef struct BPathFind_Data {
 
 static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
                                                char *path_dst,
+                                               size_t path_dst_maxncpy,
                                                const char *path_src)
 {
   BPathFind_Data *data = (BPathFind_Data *)bpath_data->user_data;
@@ -371,15 +381,11 @@ static bool missing_files_find_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false;
   }
 
-  bool was_relative = BLI_path_is_rel(path_dst);
-
-  BLI_strncpy(path_dst, filepath_new, FILE_MAX);
-
   /* Keep the path relative if the previous one was relative. */
-  if (was_relative) {
-    BLI_path_rel(path_dst, data->basedir);
+  if (BLI_path_is_rel(path_dst)) {
+    BLI_path_rel(filepath_new, data->basedir);
   }
-
+  BLI_strncpy(path_dst, filepath_new, path_dst_maxncpy);
   return true;
 }
 
@@ -425,6 +431,7 @@ typedef struct BPathRebase_Data {
 
 static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
                                             char *path_dst,
+                                            size_t path_dst_maxncpy,
                                             const char *path_src)
 {
   BPathRebase_Data *data = (BPathRebase_Data *)bpath_data->user_data;
@@ -449,7 +456,7 @@ static bool relative_rebase_foreach_path_cb(BPathForeachPathData *bpath_data,
   /* This may fail, if so it's fine to leave absolute since the path is still valid. */
   BLI_path_rel(filepath, data->basedir_dst);
 
-  BLI_strncpy(path_dst, filepath, FILE_MAX);
+  BLI_strncpy(path_dst, filepath, path_dst_maxncpy);
   data->count_changed++;
   return true;
 }
@@ -500,6 +507,7 @@ typedef struct BPathRemap_Data {
 
 static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              char *path_dst,
+                                             size_t path_dst_maxncpy,
                                              const char *path_src)
 {
   BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
@@ -510,12 +518,12 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false; /* Already relative. */
   }
 
-  BLI_strncpy(path_dst, path_src, FILE_MAX);
-  BLI_path_rel(path_dst, data->basedir);
-  if (BLI_path_is_rel(path_dst)) {
-    data->count_changed++;
-  }
-  else {
+  char path_test[FILE_MAX];
+  STRNCPY(path_test, path_src);
+
+  BLI_path_rel(path_test, data->basedir);
+  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
+  if (!BLI_path_is_rel(path_test)) {
     const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
     const char *id_name = bpath_data->owner_id->name + 2;
     BKE_reportf(data->reports,
@@ -525,12 +533,16 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                 type_name,
                 id_name);
     data->count_failed++;
+    return true;
   }
+
+  data->count_changed++;
   return true;
 }
 
 static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                                              char *path_dst,
+                                             size_t path_dst_maxncpy,
                                              const char *path_src)
 {
   BPathRemap_Data *data = (BPathRemap_Data *)bpath_data->user_data;
@@ -541,12 +553,11 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
     return false; /* Already absolute. */
   }
 
-  BLI_strncpy(path_dst, path_src, FILE_MAX);
-  BLI_path_abs(path_dst, data->basedir);
-  if (BLI_path_is_rel(path_dst) == false) {
-    data->count_changed++;
-  }
-  else {
+  char path_test[FILE_MAX];
+  STRNCPY(path_test, path_src);
+  BLI_path_abs(path_test, data->basedir);
+  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
+  if (BLI_path_is_rel(path_test)) {
     const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
     const char *id_name = bpath_data->owner_id->name + 2;
     BKE_reportf(data->reports,
@@ -556,7 +567,10 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                 type_name,
                 id_name);
     data->count_failed++;
+    return true;
   }
+
+  data->count_changed++;
   return true;
 }
 
@@ -611,6 +625,7 @@ struct PathStore {
 
 static bool bpath_list_append(BPathForeachPathData *bpath_data,
                               char *UNUSED(path_dst),
+                              size_t UNUSED(path_dst_maxncpy),
                               const char *path_src)
 {
   ListBase *path_list = bpath_data->user_data;
@@ -627,6 +642,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
 
 static bool bpath_list_restore(BPathForeachPathData *bpath_data,
                                char *path_dst,
+                               size_t path_dst_maxncpy,
                                const char *path_src)
 {
   ListBase *path_list = bpath_data->user_data;
@@ -640,7 +656,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
   bool is_path_changed = false;
 
   if (!STREQ(path_src, filepath)) {
-    BLI_strncpy(path_dst, filepath, FILE_MAX);
+    BLI_strncpy(path_dst, filepath, path_dst_maxncpy);
     is_path_changed = true;
   }
 

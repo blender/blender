@@ -300,7 +300,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
         temp_path, udim_pattern, tile_format, ((ImageTile *)ima->tiles.first)->tile_number);
     MEM_SAFE_FREE(udim_pattern);
 
-    result = BKE_bpath_foreach_path_fixed_process(bpath_data, temp_path);
+    result = BKE_bpath_foreach_path_fixed_process(bpath_data, temp_path, sizeof(temp_path));
     if (result) {
       /* Put the filepath back together using the new directory and the original file name. */
       char new_dir[FILE_MAXDIR];
@@ -309,7 +309,8 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     }
   }
   else {
-    result = BKE_bpath_foreach_path_fixed_process(bpath_data, ima->filepath);
+    result = BKE_bpath_foreach_path_fixed_process(
+        bpath_data, ima->filepath, sizeof(ima->filepath));
   }
 
   if (result) {

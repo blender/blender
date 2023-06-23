@@ -121,7 +121,7 @@ static void vfont_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  BKE_bpath_foreach_path_fixed_process(bpath_data, vfont->filepath);
+  BKE_bpath_foreach_path_fixed_process(bpath_data, vfont->filepath, sizeof(vfont->filepath));
 }
 
 static void vfont_blend_write(BlendWriter *writer, ID *id, const void *id_address)

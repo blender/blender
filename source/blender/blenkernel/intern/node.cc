@@ -436,11 +436,11 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       for (bNode *node : ntree->all_nodes()) {
         if (node->type == SH_NODE_SCRIPT) {
           NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
-          BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath, sizeof(nss->filepath));
         }
         else if (node->type == SH_NODE_TEX_IES) {
           NodeShaderTexIES *ies = static_cast<NodeShaderTexIES *>(node->storage);
-          BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath, sizeof(ies->filepath));
         }
       }
       break;

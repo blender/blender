@@ -945,7 +945,11 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
     if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
-      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data, seq->strip->dirpath, se->filename);
+      BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
+                                                   seq->strip->dirpath,
+                                                   sizeof(seq->strip->dirpath),
+                                                   se->filename,
+                                                   sizeof(se->filename));
     }
     else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
@@ -958,13 +962,17 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
       }
 
       for (i = 0; i < len; i++, se++) {
-        BKE_bpath_foreach_path_dirfile_fixed_process(
-            bpath_data, seq->strip->dirpath, se->filename);
+        BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
+                                                     seq->strip->dirpath,
+                                                     sizeof(seq->strip->dirpath),
+                                                     se->filename,
+                                                     sizeof(se->filename));
       }
     }
     else {
       /* simple case */
-      BKE_bpath_foreach_path_fixed_process(bpath_data, seq->strip->dirpath);
+      BKE_bpath_foreach_path_fixed_process(
+          bpath_data, seq->strip->dirpath, sizeof(seq->strip->dirpath));
     }
   }
   return true;
