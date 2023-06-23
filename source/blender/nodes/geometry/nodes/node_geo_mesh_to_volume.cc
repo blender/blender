@@ -34,12 +34,21 @@ static void node_declare(NodeDeclarationBuilder &b)
       .max(FLT_MAX)
       .subtype(PROP_DISTANCE);
   b.add_input<decl::Float>("Voxel Amount").default_value(64.0f).min(0.0f).max(FLT_MAX);
+  b.add_input<decl::Float>(N_("Exterior Band Width"))
+      .default_value(0.1f)
+      .min(0.0f)
+      .max(FLT_MAX)
+      .subtype(PROP_DISTANCE)
+      .description(N_("Width of the volume outside of the mesh"));
   b.add_input<decl::Float>("Interior Band Width")
       .default_value(0.2f)
       .min(0.0001f)
       .max(FLT_MAX)
       .subtype(PROP_DISTANCE)
       .description("Width of the gradient inside of the mesh");
+  b.add_input<decl::Bool>(N_("Fill Volume"))
+      .default_value(true)
+      .description(N_("Initialize the density grid in every cell inside the enclosed volume"));
   b.add_output<decl::Geometry>("Volume").translation_context(BLT_I18NCONTEXT_ID_ID);
 }
 
@@ -79,7 +88,9 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
       *(const NodeGeometryMeshToVolume *)params.node().storage;
 
   const float density = params.get_input<float>("Density");
+  const float exterior_band_width = params.get_input<float>("Exterior Band Width");
   const float interior_band_width = params.get_input<float>("Interior Band Width");
+  const bool fill_volume = params.get_input<bool>("Fill Volume");
 
   geometry::MeshToVolumeResolution resolution;
   resolution.mode = (MeshToVolumeModifierResolutionMode)storage.resolution_mode;
@@ -110,8 +121,11 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
     r_max = max;
   };
 
-  const float voxel_size = geometry::volume_compute_voxel_size(
-      params.depsgraph(), bounds_fn, resolution, 0.0f, mesh_to_volume_space_transform);
+  const float voxel_size = geometry::volume_compute_voxel_size(params.depsgraph(),
+                                                               bounds_fn,
+                                                               resolution,
+                                                               exterior_band_width,
+                                                               mesh_to_volume_space_transform);
 
   Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
 
@@ -121,6 +135,8 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
                                           &mesh,
                                           mesh_to_volume_space_transform,
                                           voxel_size,
+                                          fill_volume,
+                                          exterior_band_width,
                                           interior_band_width,
                                           density);
 
