@@ -701,6 +701,9 @@ bool Custom::matches(const bNodeSocket &socket) const
   if (socket.type != SOCK_CUSTOM) {
     return false;
   }
+  if (!STREQ(socket.typeinfo->idname, idname_)) {
+    return false;
+  }
   return true;
 }
 
@@ -709,10 +712,12 @@ bool Custom::can_connect(const bNodeSocket &socket) const
   return sockets_can_connect(*this, socket) && STREQ(socket.idname, idname_);
 }
 
-bNodeSocket &Custom::update_or_build(bNodeTree & /*ntree*/,
-                                     bNode & /*node*/,
-                                     bNodeSocket &socket) const
+bNodeSocket &Custom::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &socket) const
 {
+  if (!STREQ(socket.typeinfo->idname, idname_)) {
+    return this->build(ntree, node);
+  }
+  this->set_common_flags(socket);
   return socket;
 }
 
