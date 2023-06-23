@@ -564,8 +564,6 @@ void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *scul
   ds_final->detail_percent = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_PERCENT ?
                                  ds2->detail_percent :
                                  ds1->detail_percent;
-  ds_final->detail_range = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_RANGE ? ds2->detail_range :
-                                                                              ds1->detail_range;
   ds_final->detail_size = ds_final->inherit & DYNTOPO_INHERIT_DETAIL_SIZE ? ds2->detail_size :
                                                                             ds1->detail_size;
   ds_final->mode = ds_final->inherit & DYNTOPO_INHERIT_MODE ? ds2->mode : ds1->mode;

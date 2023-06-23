@@ -4398,10 +4398,6 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       ds->detail_size = sculpt->detail_size;
       ds->constant_detail = sculpt->constant_detail;
 
-      if (sculpt->detail_range != 0.0f) {
-        ds->detail_range = sculpt->detail_range;
-      }
-
       sculpt->flags |= SCULPT_DYNTOPO_ENABLED;
 
       ds->flag = 0;

@@ -945,13 +945,6 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             expand=True
         )
 
-        UnifiedPaintPanel.prop_unified_dyntopo(
-            sub,
-            context,
-            brush,
-            "detail_range"
-        )
-
         #NotForPR
         if 0:
             scene = context.scene

@@ -676,6 +676,8 @@ typedef enum eBrushCurvesSculptDensityMode {
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
 
+#define DYNTOPO_DETAIL_RANGE 0.4f
+
 #ifdef __cplusplus
 }
 #endif

@@ -2578,15 +2578,6 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
     sd->detail_size = 8.0f;
   }
 
-  /* We check these flags here in case versioning code fails. */
-  if (!sd->detail_range || !sd->dyntopo.spacing) {
-    sd->flags |= SCULPT_DYNTOPO_ENABLED;
-  }
-
-  if (!sd->detail_range) {
-    sd->detail_range = 0.4f;
-  }
-
   if (!sd->detail_percent) {
     sd->detail_percent = 25;
   }

@@ -474,7 +474,6 @@ static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
     {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
     {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
-    {DYNTOPO_INHERIT_DETAIL_RANGE, "DETAIL_RANGE", ICON_NONE, "All", ""},
     {DYNTOPO_INHERIT_DETAIL_PERCENT, "DETAIL_PERCENT", ICON_NONE, "Percent", ""},
     {DYNTOPO_INHERIT_MODE, "MODE", ICON_NONE, "Mode", ""},
     {DYNTOPO_INHERIT_CONSTANT_DETAIL, "CONSTANT_DETAIL", ICON_NONE, "Constant Detail", ""},
@@ -1361,14 +1360,6 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0, 100.0);
   RNA_def_property_ui_range(prop, 0.0, 50.0, 0.1, 4);
   RNA_def_property_ui_text(prop, "Detail Size", "");
-  RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
-
-  prop = RNA_def_property(srna, "detail_range", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "detail_range");
-  RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_range(prop, 0.0, 1.0, 0.001, 4);
-  RNA_def_property_ui_text(
-      prop, "Detail Range", "Higher values are faster but produce lower quality topology");
   RNA_def_property_update(prop, 0, "rna_Brush_dyntopo_update");
 
   prop = RNA_def_property(srna, "constant_detail", PROP_FLOAT, PROP_NONE);

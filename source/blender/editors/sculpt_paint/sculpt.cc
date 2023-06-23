@@ -6406,19 +6406,19 @@ static void sculpt_stroke_update_step(bContext *C,
     float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                  mat4_to_scale(ob->object_to_world));
     blender::bke::dyntopo::detail_size_set(
-        ss->pbvh, object_space_constant_detail, ss->cached_dyntopo.detail_range);
+        ss->pbvh, object_space_constant_detail, DYNTOPO_DETAIL_RANGE);
   }
   else if (ss->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
     blender::bke::dyntopo::detail_size_set(ss->pbvh,
                                            ss->cache->radius * ss->cached_dyntopo.detail_percent /
                                                100.0f,
-                                           ss->cached_dyntopo.detail_range);
+                                           DYNTOPO_DETAIL_RANGE);
   }
   else { /* Relative mode. */
     blender::bke::dyntopo::detail_size_set(ss->pbvh,
                                            (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
                                                (ss->cached_dyntopo.detail_size * U.pixelsize),
-                                           ss->cached_dyntopo.detail_range);
+                                           DYNTOPO_DETAIL_RANGE);
   }
 
   float dyntopo_spacing = float(ss->cached_dyntopo.spacing) / 50.0f;

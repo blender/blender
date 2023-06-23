@@ -19,7 +19,6 @@
 
 #define _DNA_DEFAULT_DynTopoSettings \
 {\
-  .detail_range = 0.4f,\
   .detail_percent = 25.0f,\
   .detail_size = 12.0f,\
   .constant_detail = 3.0f,\

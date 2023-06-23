@@ -1083,7 +1083,6 @@ typedef struct Sculpt {
 
   /** Maximum edge length for dynamic topology sculpting (in pixels). */
   float detail_size DNA_DEPRECATED;
-  float detail_range DNA_DEPRECATED;
 
   /** Direction used for `SCULPT_OT_symmetrize` operator. */
   int symmetrize_direction;
@@ -1100,7 +1099,7 @@ typedef struct Sculpt {
   float dyntopo_radius_scale DNA_DEPRECATED;
   int automasking_cavity_blur_steps;
   float automasking_cavity_factor;
-  char _pad[4];
+  char _pad[8];
 
   float automasking_start_normal_limit, automasking_start_normal_falloff;
   float automasking_view_normal_limit, automasking_view_normal_falloff;

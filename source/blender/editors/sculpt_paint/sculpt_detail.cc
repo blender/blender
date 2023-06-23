@@ -116,7 +116,7 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
   }
 
   SCULPT_apply_dyntopo_settings(scene, ss, sd, brush);
-  float detail_range = ss->cached_dyntopo.detail_range;
+  float detail_range = DYNTOPO_DETAIL_RANGE;
 
   /* Update topology size. */
   float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
@@ -807,7 +807,7 @@ static void dyntopo_detail_size_parallel_lines_draw(uint pos3d,
    * where all edges have the exact maximum length, which never happens in practice. As the
    * minimum edge length for dyntopo is 0.4 * max_edge_length, this adjust the detail size to the
    * average between max and min edge length so the preview is more accurate. */
-  object_space_constant_detail *= 1.0f - cd->detail_range * 0.5f;
+  object_space_constant_detail *= 1.0f - DYNTOPO_DETAIL_RANGE * 0.5f;
 
   const float total_len = len_v3v3(cd->preview_tri[0], cd->preview_tri[1]);
   const int tot_lines = int(total_len / object_space_constant_detail) + 1;
@@ -1038,10 +1038,6 @@ static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wm
                             sd->dyntopo.constant_detail :
                             brush->dyntopo.constant_detail;
 
-  /* Initial operator Custom Data setup. */
-  cd->detail_range = brush->dyntopo.inherit & DYNTOPO_INHERIT_DETAIL_RANGE ?
-                         sd->dyntopo.detail_range :
-                         brush->dyntopo.detail_range;
   cd->draw_handle = ED_region_draw_cb_activate(
       region->type, dyntopo_detail_size_edit_draw, cd, REGION_DRAW_POST_VIEW);
   cd->active_object = active_object;

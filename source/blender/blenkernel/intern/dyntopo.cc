@@ -1709,8 +1709,8 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
      */
     BMEdge *e = v->e;
     do {
-      float len = calc_weighted_length(ectx, e->v1, e->v2, COLLAPSE);
-      if (sqrtf(len) > ectx->limit_len_max * 1.2f) {
+      float len = calc_weighted_length(ectx, e->v1, e->v2, SPLIT);
+      if (sqrtf(len) > ectx->limit_len_max * 1.5f) {
         bad = true;
         break;
       }

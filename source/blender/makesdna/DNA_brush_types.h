@@ -147,7 +147,6 @@ typedef struct BrushGpencilSettings {
 } BrushGpencilSettings;
 
 typedef struct DynTopoSettings {
-  float detail_range;
   float detail_percent;
   float detail_size;
   float constant_detail;
@@ -157,6 +156,7 @@ typedef struct DynTopoSettings {
   float radius_scale;
   int repeat;
   float quality;
+  int _pad[1];
 } DynTopoSettings;
 
 typedef struct BrushCurvesSculptSettings {
