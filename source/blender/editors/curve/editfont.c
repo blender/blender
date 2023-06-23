@@ -708,18 +708,18 @@ static void txt_add_object(bContext *C,
   s = cu->str;
 
   for (tmp = firstline, a = 0; cu->len < MAXTEXT && a < totline; tmp = tmp->next, a++) {
-    size_t nbytes_line;
+    size_t nchars_line_dummy, nbytes_line;
+    nchars_line_dummy = BLI_strlen_utf8_ex(tmp->line, &nbytes_line);
+    (void)nchars_line_dummy;
 
-    nbytes_line = BLI_strcpy_rlen(s, tmp->line);
-
+    memcpy(s, tmp->line, nbytes_line);
     s += nbytes_line;
     cu->len += nbytes_line;
 
     if (tmp->next) {
-      nbytes_line = BLI_strcpy_rlen(s, "\n");
-
-      s += nbytes_line;
-      cu->len += nbytes_line;
+      *s = '\n';
+      s += 1;
+      cu->len += 1;
     }
   }
 
