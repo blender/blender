@@ -53,7 +53,9 @@ static void initData(ModifierData *md)
   mvmd->resolution_mode = MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT;
   mvmd->voxel_size = 0.1f;
   mvmd->voxel_amount = 32;
-  mvmd->interior_band_width = 0.2f;
+  mvmd->fill_volume = true;
+  mvmd->interior_band_width = 0.1f;
+  mvmd->exterior_band_width = 0.1f;
   mvmd->density = 1.0f;
 }
 
@@ -89,7 +91,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   {
     uiLayout *col = uiLayoutColumn(layout, false);
-    uiItemR(col, ptr, "interior_band_width", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_fill_volume", 0, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "exterior_band_width", 0, nullptr, ICON_NONE);
+
+    uiLayout *subcol = uiLayoutColumn(col, false);
+    uiLayoutSetActive(subcol, !mvmd->fill_volume);
+    uiItemR(subcol, ptr, "interior_band_width", 0, nullptr, ICON_NONE);
   }
   {
     uiLayout *col = uiLayoutColumn(layout, false);
@@ -135,13 +142,13 @@ static Volume *mesh_to_volume(ModifierData *md,
   resolution.mode = (MeshToVolumeModifierResolutionMode)mvmd->resolution_mode;
   if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
     resolution.settings.voxel_amount = mvmd->voxel_amount;
-    if (resolution.settings.voxel_amount < 1.0f) {
+    if (resolution.settings.voxel_amount <= 0.0f) {
       return input_volume;
     }
   }
   else if (resolution.mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_SIZE) {
     resolution.settings.voxel_size = mvmd->voxel_size;
-    if (resolution.settings.voxel_size < 1e-5f) {
+    if (resolution.settings.voxel_size <= 0.0f) {
       return input_volume;
     }
   }
@@ -152,8 +159,11 @@ static Volume *mesh_to_volume(ModifierData *md,
     r_max = bb->vec[6];
   };
 
-  const float voxel_size = geometry::volume_compute_voxel_size(
-      ctx->depsgraph, bounds_fn, resolution, 0.0f, mesh_to_own_object_space_transform);
+  const float voxel_size = geometry::volume_compute_voxel_size(ctx->depsgraph,
+                                                               bounds_fn,
+                                                               resolution,
+                                                               mvmd->exterior_band_width,
+                                                               mesh_to_own_object_space_transform);
 
   /* Create a new volume. */
   Volume *volume;
@@ -170,6 +180,8 @@ static Volume *mesh_to_volume(ModifierData *md,
                                           mesh,
                                           mesh_to_own_object_space_transform,
                                           voxel_size,
+                                          mvmd->fill_volume,
+                                          mvmd->exterior_band_width,
                                           mvmd->interior_band_width,
                                           mvmd->density);
 

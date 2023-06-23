@@ -655,9 +655,6 @@ bool nearest_world_tree(SnapObjectContext *sctx,
   float imat[4][4];
   invert_m4_m4(imat, obmat);
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   /* compute offset between init co and prev co in local space */
   float init_co_local[3], curr_co_local[3];
   float delta_local[3];
@@ -699,7 +696,8 @@ bool nearest_world_tree(SnapObjectContext *sctx,
 
   mul_v3_m4v3(sctx->ret.loc, obmat, co_local);
 
-  mul_v3_m3v3(sctx->ret.no, timat, no_local);
+  copy_v3_v3(sctx->ret.no, no_local);
+  mul_mat3_m4_v3(obmat, sctx->ret.no);
   normalize_v3(sctx->ret.no);
 
   return true;

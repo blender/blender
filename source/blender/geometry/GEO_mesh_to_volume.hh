@@ -49,6 +49,8 @@ VolumeGrid *fog_volume_grid_add_from_mesh(Volume *volume,
                                           const Mesh *mesh,
                                           const float4x4 &mesh_to_volume_space_transform,
                                           float voxel_size,
+                                          bool fill_volume,
+                                          float exterior_band_width,
                                           float interior_band_width,
                                           float density);
 /**

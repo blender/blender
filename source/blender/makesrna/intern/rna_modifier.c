@@ -7106,6 +7106,17 @@ static void rna_def_modifier_mesh_to_volume(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, INT_MAX);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
+  prop = RNA_def_property(srna, "use_fill_volume", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "fill_volume", 1);
+  RNA_def_property_ui_text(
+      prop, "Fill Volume", "Initialize the density grid in every cell inside the enclosed volume");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "exterior_band_width", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Exterior Band Width", "Width of the volume outside of the mesh");
+  RNA_def_property_range(prop, 0.0, FLT_MAX);
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
   prop = RNA_def_property(srna, "interior_band_width", PROP_FLOAT, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "Interior Band Width", "Width of the gradient inside of the mesh");
