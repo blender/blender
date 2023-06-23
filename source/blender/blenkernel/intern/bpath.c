@@ -522,7 +522,6 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
   STRNCPY(path_test, path_src);
 
   BLI_path_rel(path_test, data->basedir);
-  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
   if (!BLI_path_is_rel(path_test)) {
     const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
     const char *id_name = bpath_data->owner_id->name + 2;
@@ -533,9 +532,10 @@ static bool relative_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                 type_name,
                 id_name);
     data->count_failed++;
-    return true;
+    return false;
   }
 
+  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
   data->count_changed++;
   return true;
 }
@@ -556,7 +556,6 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
   char path_test[FILE_MAX];
   STRNCPY(path_test, path_src);
   BLI_path_abs(path_test, data->basedir);
-  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
   if (BLI_path_is_rel(path_test)) {
     const char *type_name = BKE_idtype_get_info_from_id(bpath_data->owner_id)->name;
     const char *id_name = bpath_data->owner_id->name + 2;
@@ -567,9 +566,10 @@ static bool absolute_convert_foreach_path_cb(BPathForeachPathData *bpath_data,
                 type_name,
                 id_name);
     data->count_failed++;
-    return true;
+    return false;
   }
 
+  BLI_strncpy(path_dst, path_test, path_dst_maxncpy);
   data->count_changed++;
   return true;
 }
