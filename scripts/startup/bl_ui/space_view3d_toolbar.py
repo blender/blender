@@ -942,7 +942,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
             context,
             brush,
             "mode",
-            expand=True
+            expand=False
         )
 
         #NotForPR
