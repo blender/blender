@@ -434,10 +434,12 @@ void RE_current_scene_update_cb(struct Render *re,
                                 void *handle,
                                 void (*f)(void *handle, struct Scene *scene));
 
-void RE_system_gpu_context_create(Render *re);
-void RE_system_gpu_context_destroy(Render *re);
+void RE_system_gpu_context_ensure(Render *re);
+void RE_system_gpu_context_free(Render *re);
 void *RE_system_gpu_context_get(Render *re);
-void *RE_blender_gpu_context_get(Render *re);
+
+void *RE_blender_gpu_context_ensure(Render *re);
+void RE_blender_gpu_context_free(Render *re);
 
 /**
  * \param x: ranges from -1 to 1.
