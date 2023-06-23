@@ -532,7 +532,6 @@ struct RayCastAll_Data {
   BVHTree_RayCastCallback raycast_callback;
 
   const float (*obmat)[4];
-  const float (*timat)[3];
 
   float len_diff;
   float local_scale;
@@ -598,7 +597,7 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 
     /* World-space normal. */
     copy_v3_v3(normal, hit->no);
-    mul_m3_v3((float(*)[3])data->timat, normal);
+    mul_mat3_m4_v3(data->obmat, normal);
     normalize_v3(normal);
 
     SnapObjectHitDepth *hit_item = hit_depth_create(
@@ -747,9 +746,6 @@ static bool raycastMesh(const SnapObjectParams *params,
     return retval;
   }
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   BLI_assert(treedata.raycast_callback != nullptr);
   if (r_hit_list) {
     RayCastAll_Data data;
@@ -757,7 +753,6 @@ static bool raycastMesh(const SnapObjectParams *params,
     data.bvhdata = &treedata;
     data.raycast_callback = treedata.raycast_callback;
     data.obmat = obmat;
-    data.timat = timat;
     data.len_diff = len_diff;
     data.local_scale = local_scale;
     data.ob_eval = ob_eval;
@@ -796,7 +791,7 @@ static bool raycastMesh(const SnapObjectParams *params,
 
         if (r_no) {
           copy_v3_v3(r_no, hit.no);
-          mul_m3_v3(timat, r_no);
+          mul_mat3_m4_v3(obmat, r_no);
           normalize_v3(r_no);
         }
 
@@ -880,16 +875,12 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
     return retval;
   }
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   if (r_hit_list) {
     RayCastAll_Data data;
 
     data.bvhdata = treedata;
     data.raycast_callback = treedata->raycast_callback;
     data.obmat = obmat;
-    data.timat = timat;
     data.len_diff = len_diff;
     data.local_scale = local_scale;
     data.ob_eval = ob_eval;
@@ -933,7 +924,7 @@ static bool raycastEditMesh(SnapObjectContext *sctx,
 
         if (r_no) {
           copy_v3_v3(r_no, hit.no);
-          mul_m3_v3(timat, r_no);
+          mul_mat3_m4_v3(obmat, r_no);
           normalize_v3(r_no);
         }
 
@@ -1151,9 +1142,6 @@ static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
   float imat[4][4];
   invert_m4_m4(imat, obmat);
 
-  float timat[3][3]; /* transpose inverse matrix for normals */
-  transpose_m3_m4(timat, imat);
-
   /* compute offset between init co and prev co in local space */
   float init_co_local[3], curr_co_local[3];
   float delta_local[3];
@@ -1196,7 +1184,8 @@ static bool nearest_world_tree(SnapObjectContext * /*sctx*/,
   mul_v3_m4v3(r_loc, obmat, co_local);
 
   if (r_no) {
-    mul_v3_m3v3(r_no, timat, no_local);
+    copy_v3_v3(r_no, no_local);
+    mul_mat3_m4_v3(obmat, r_no);
     normalize_v3(r_no);
   }
 
@@ -1860,14 +1849,9 @@ static eSnapMode snap_mesh_polygon(SnapObjectContext *sctx,
     copy_v3_v3(sctx->ret.loc, nearest.co);
     mul_m4_v3(sctx->ret.obmat, sctx->ret.loc);
 
-    {
-      float imat[4][4];
-      invert_m4_m4(imat, sctx->ret.obmat);
-
-      copy_v3_v3(sctx->ret.no, nearest.no);
-      mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
-      normalize_v3(sctx->ret.no);
-    }
+    copy_v3_v3(sctx->ret.no, nearest.no);
+    mul_mat3_m4_v3(sctx->ret.obmat, sctx->ret.no);
+    normalize_v3(sctx->ret.no);
 
     sctx->ret.index = nearest.index;
     return elem;
@@ -1965,10 +1949,8 @@ static eSnapMode snap_mesh_edge_verts_mixed(SnapObjectContext *sctx,
           nearest.index = vindex[v_id];
           elem = SCE_SNAP_MODE_VERTEX;
           {
-            float imat[4][4];
-            invert_m4_m4(imat, sctx->ret.obmat);
             nearest2d.copy_vert_no(vindex[v_id], &nearest2d, sctx->ret.no);
-            mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
+            mul_mat3_m4_v3(sctx->ret.obmat, sctx->ret.no);
             normalize_v3(sctx->ret.no);
           }
         }
@@ -2670,11 +2652,8 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     mul_m4_v3(obmat, r_loc);
 
     if (r_no) {
-      float imat[4][4];
-      invert_m4_m4(imat, obmat);
-
       copy_v3_v3(r_no, nearest.no);
-      mul_transposed_mat3_m4_v3(imat, r_no);
+      mul_mat3_m4_v3(obmat, r_no);
       normalize_v3(r_no);
     }
     if (r_index) {
@@ -2845,12 +2824,10 @@ static eSnapMode snapEditMesh(SnapObjectContext *sctx,
 
     copy_v3_v3(r_loc, nearest.co);
     mul_m4_v3(obmat, r_loc);
-    if (r_no) {
-      float imat[4][4];
-      invert_m4_m4(imat, obmat);
 
+    if (r_no) {
       copy_v3_v3(r_no, nearest.no);
-      mul_transposed_mat3_m4_v3(imat, r_no);
+      mul_mat3_m4_v3(obmat, r_no);
       normalize_v3(r_no);
     }
     if (r_index) {
