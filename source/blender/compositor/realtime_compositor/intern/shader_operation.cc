@@ -71,6 +71,15 @@ void ShaderOperation::execute()
   GPU_shader_unbind();
 }
 
+void ShaderOperation::compute_preview()
+{
+  for (const DOutputSocket &output : preview_outputs_) {
+    Result &result = get_result(get_output_identifier_from_output_socket(output));
+    compute_preview_from_result(context(), output.node(), result);
+    result.release();
+  }
+}
+
 StringRef ShaderOperation::get_output_identifier_from_output_socket(DOutputSocket output_socket)
 {
   return output_sockets_to_output_identifiers_map_.lookup(output_socket);
@@ -84,13 +93,17 @@ Map<std::string, DOutputSocket> &ShaderOperation::get_inputs_to_linked_outputs_m
 void ShaderOperation::compute_results_reference_counts(const Schedule &schedule)
 {
   for (const auto item : output_sockets_to_output_identifiers_map_.items()) {
-    const int reference_count = number_of_inputs_linked_to_output_conditioned(
+    int reference_count = number_of_inputs_linked_to_output_conditioned(
         item.key, [&](DInputSocket input) {
           /* We only consider inputs that are not part of the shader operations, because inputs
            * that are part of the shader operations are internal and do not deal with the result
            * directly. */
           return schedule.contains(input.node()) && !compile_unit_.contains(input.node());
         });
+
+    if (preview_outputs_.contains(item.key)) {
+      reference_count++;
+    }
 
     get_result(item.value).set_initial_reference_count(reference_count);
   }
@@ -248,17 +261,41 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
   inputs_to_linked_outputs_map_.add_new(input_identifier, output_socket);
 }
 
+static DOutputSocket find_preview_output_socket(const DNode &node)
+{
+  if (!is_node_preview_needed(node)) {
+    return DOutputSocket();
+  }
+
+  for (const bNodeSocket *output : node->output_sockets()) {
+    if (output->is_logically_linked()) {
+      return DOutputSocket(node.context(), output);
+    }
+  }
+
+  return DOutputSocket();
+}
+
 void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *material)
 {
+  const DOutputSocket preview_output = find_preview_output_socket(node);
+
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
     /* If any of the nodes linked to the output are not part of the shader operation, then an
      * output result needs to be populated for it. */
-    const bool need_to_populate_result = is_output_linked_to_node_conditioned(
+    const bool is_operation_output = is_output_linked_to_node_conditioned(
         doutput, [&](DNode node) { return !compile_unit_.contains(node); });
 
-    if (need_to_populate_result) {
+    /* If the output is used as the node preview, then an output result needs to be populated for
+     * it, and we additionally keep track of that output to later compute the previes from. */
+    const bool is_preview_output = doutput == preview_output;
+    if (is_preview_output) {
+      preview_outputs_.add(doutput);
+    }
+
+    if (is_operation_output || is_preview_output) {
       populate_operation_result(doutput, material);
     }
   }
