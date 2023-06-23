@@ -3920,23 +3920,13 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
 
         if (hotkey_but->modifier_key) {
-          char *str = but->drawstr;
-          but->drawstr[0] = '\0';
-
-          if (hotkey_but->modifier_key & KM_SHIFT) {
-            str += BLI_strcpy_rlen(str, "Shift ");
-          }
-          if (hotkey_but->modifier_key & KM_CTRL) {
-            str += BLI_strcpy_rlen(str, "Ctrl ");
-          }
-          if (hotkey_but->modifier_key & KM_ALT) {
-            str += BLI_strcpy_rlen(str, "Alt ");
-          }
-          if (hotkey_but->modifier_key & KM_OSKEY) {
-            str += BLI_strcpy_rlen(str, "Cmd ");
-          }
-
-          (void)str; /* UNUSED */
+          /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
+          wmKeyMapItem kmi_dummy = {nullptr};
+          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_PRESS : KM_NOTHING;
+          WM_keymap_item_to_string(&kmi_dummy, true, but->drawstr, sizeof(but->drawstr));
         }
         else {
           STRNCPY_UTF8(but->drawstr, IFACE_("Press a key"));
