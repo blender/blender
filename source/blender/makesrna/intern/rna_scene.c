@@ -7582,7 +7582,8 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, NULL, "gi_irradiance_draw_size");
-  RNA_def_property_range(prop, 0.05f, 10.0f);
+  RNA_def_property_range(prop, 0.0f, FLT_MAX);
+  RNA_def_property_ui_range(prop, 0.01f, 1.0f, 1, 3);
   RNA_def_property_ui_text(prop,
                            "Irradiance Display Size",
                            "Size of the irradiance sample spheres to debug captured light");

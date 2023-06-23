@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -17192,20 +17192,12 @@ msgid "Gpencil Settings"
 msgstr "Устави Нарисного Олівця"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "Засіб Рисування Нарисним Олівцем"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "Пензель є з типу, що використовується для рисування штрихів"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "Пензель є з типу, що використовується для заповнення областей"
-
-
-msgid "Erase"
-msgstr "Стирання"
 
 
 msgid "The brush is used for erasing strokes"
@@ -17266,22 +17258,6 @@ msgstr "Шлях до піктограми пензля"
 
 msgid "File path to brush icon"
 msgstr "Шлях до файлу піктограми пензля"
-
-
-msgid "Image Paint Tool"
-msgstr "Інструмент малювання зображення"
-
-
-msgid "Soften"
-msgstr "М'якшення"
-
-
-msgid "Clone"
-msgstr "Клонування"
-
-
-msgid "Mask"
-msgstr "Маска"
 
 
 msgid "Invert Pressure for Density"
@@ -17538,86 +17514,6 @@ msgstr "Площина Y"
 
 msgid "Z Plane"
 msgstr "Площина Z"
-
-
-msgid "Sculpt Tool"
-msgstr "Інструмент ліплення"
-
-
-msgid "Draw Sharp"
-msgstr "Показати гострі"
-
-
-msgid "Clay"
-msgstr "Глина "
-
-
-msgid "Clay Strips"
-msgstr "Смужки Глини"
-
-
-msgid "Clay Thumb"
-msgstr "Глиняний Палюх"
-
-
-msgid "Blob"
-msgstr "Кулька"
-
-
-msgid "Flatten"
-msgstr "Сплощення"
-
-
-msgid "Scrape"
-msgstr "Шкрябання"
-
-
-msgid "Multi-plane Scrape"
-msgstr "Багато-площинне Шкрябання"
-
-
-msgid "Elastic Deform"
-msgstr "Еластична Деформа"
-
-
-msgid "Thumb"
-msgstr "Палюх"
-
-
-msgid "Pose"
-msgstr "Поза"
-
-
-msgid "Nudge"
-msgstr "Підштовх"
-
-
-msgid "Rotate"
-msgstr "Оберт"
-
-
-msgid "Slide Relax"
-msgstr "Розслаблення Ковзанням"
-
-
-msgid "Boundary"
-msgstr "Межа"
-
-
-msgid "Cloth"
-msgstr "Тканина"
-
-
-msgid "Draw Face Sets"
-msgstr "Рисувати Набори Граней"
-
-
-msgid "Multires Displacement Eraser"
-msgstr "Стирач Зміщення Багатороздільності"
-
-
-msgid "Multires Displacement Smear"
-msgstr "Розмазування Зміщення Багатороздільності"
 
 
 msgid "Secondary Color"
@@ -18242,6 +18138,10 @@ msgstr "Вжити Натиск для Продовжуваності Волог
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "Вжити натиск для модулювання продовжуваності вологості"
+
+
+msgid "Sculpt Tool"
+msgstr "Інструмент ліплення"
 
 
 msgid "Grab UVs"
@@ -21382,6 +21282,10 @@ msgid "Shader ball"
 msgstr "Куля шейдера"
 
 
+msgid "Cloth"
+msgstr "Тканина"
+
+
 msgid "Refraction Depth"
 msgstr "Глибина Заломлення"
 
@@ -22648,6 +22552,10 @@ msgstr "Індекси вершин у разі предків-вершин"
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "Номер індексу для проходу рендера \"Індекс Об'єкта\""
+
+
+msgid "Pose"
+msgstr "Поза"
 
 
 msgid "Current pose for armatures"
@@ -29671,6 +29579,10 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "Вимкнути трафарет та перекриття самоперетинів з альфа матеріалів"
 
 
+msgid "Mask"
+msgstr "Маска"
+
+
 msgid "Material slot in an object"
 msgstr "Гніздо матеріалу об'єкта"
 
@@ -35128,6 +35040,10 @@ msgid "Thickness factor"
 msgstr "Коефіцієнт товщини"
 
 
+msgid "Boundary"
+msgstr "Межа"
+
+
 msgid "Support face boundaries"
 msgstr "Підтримка меж граней"
 
@@ -37736,6 +37652,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Координата Y центра еліпса"
 
 
+msgid "Soften"
+msgstr "М'якшення"
+
+
 msgid "Laplace"
 msgstr "Лаплас"
 
@@ -38335,6 +38255,10 @@ msgstr "RGB в BW"
 
 msgid "Render Layers"
 msgstr "Шари Рендера"
+
+
+msgid "Rotate"
+msgstr "Оберт"
 
 
 msgid "Method to use to filter rotation"
@@ -49198,6 +49122,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "Замінити існуючі змінні драйвера замість простого прилучення при вставці у кінець списку"
 
 
+msgid "Flatten"
+msgstr "Сплощення"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "Фільтр розривів Ейлера"
@@ -49315,6 +49243,19 @@ msgstr "Вибрані Канали На Курсорі"
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "Вставити ключкадр для вибраних Ф-кривих у точці знаходження курсора"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Стрибок на Ключкадр"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Стрибнути на попередній/наступний ключкадр"
+
+
+msgid "Next Keyframe"
+msgstr "Наступний ключкадр"
 
 
 msgid "By Values Over Cursor Value"
@@ -58759,6 +58700,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "Якщо запитаного типу пензля не існує, створити новий пензель"
 
 
+msgid "Clone"
+msgstr "Клонування"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "Перемикати між двома пензлями, а не циклічно"
 
@@ -59668,10 +59613,6 @@ msgstr "Власні властивості"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "Ваговий фактор, для якого більш привілейований ключкадр"
-
-
-msgid "Next Keyframe"
-msgstr "Наступний ключкадр"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -61438,15 +61379,6 @@ msgstr "Показ Інфо Лог"
 
 msgid "Show info log in a separate window"
 msgstr "Показати інфо лог в окремому вікні"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Стрибок на Ключкадр"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Стрибнути на попередній/наступний ключкадр"
 
 
 msgctxt "Operator"
@@ -65563,10 +65495,6 @@ msgstr "Відстань між острівцями"
 
 msgid "Fraction"
 msgstr "Дробова частина"
-
-
-msgid "Pack"
-msgstr "Упакування"
 
 
 msgctxt "Operator"
@@ -69851,10 +69779,6 @@ msgstr "Клонування"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Маска"
-
-
-msgid "Brush Tip"
-msgstr "Кінчик пензля"
 
 
 msgid "Tiling"
@@ -87481,10 +87405,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "Не визначено жоден текст або файл у вузлі, нічого компілювати"
 
 
-msgid "OSL query failed to open "
-msgstr "Збій відкриття запиту OSL"
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "Зовнішній скрипт шейдера повинен мати розширення .osl чи .oso, або бути іменем модуля"
 
@@ -88159,10 +88079,6 @@ msgstr "%d сіть(ей) без жодного активного шару UV"
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "%d дублікатів знайдено у %d сіті(ях), дзеркалення може не завершитися"
-
-
-msgid "Node has no attribute "
-msgstr "Вузол не має жодного атрибута"
 
 
 msgid "No camera found"
@@ -91842,6 +91758,10 @@ msgstr "Додати Перехід"
 
 msgid "Unpack"
 msgstr "Розпакувати"
+
+
+msgid "Pack"
+msgstr "Упакування"
 
 
 msgid "Original frame range: %d-%d (%d)"

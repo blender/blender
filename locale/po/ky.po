@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "(b'0000000000000000000000000000000000000000')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2013-11-05 13:47+0600\n"
 "Last-Translator: Chyngyz Dzhumaliev <kyrgyzl10n@gmail.com>\n"
 "Language-Team: Kirghiz <kyrgyzl10n@gmail.com>\n"
@@ -932,10 +932,6 @@ msgid "Users"
 msgstr "Колдонуучулар"
 
 
-msgid "Mask"
-msgstr "Маска"
-
-
 msgid "Brush"
 msgstr "Чачы"
 
@@ -946,14 +942,6 @@ msgstr "Маска аспабы"
 
 msgid "Rate"
 msgstr "Жыштыгы"
-
-
-msgid "Rotate"
-msgstr "Айлантуу"
-
-
-msgid "Cloth"
-msgstr "Кездеме"
 
 
 msgid "Ramp"
@@ -1106,6 +1094,10 @@ msgstr "Күчөгөндүгү"
 
 msgid "Hair"
 msgstr "Чач"
+
+
+msgid "Cloth"
+msgstr "Кездеме"
 
 
 msgid "Opaque"
@@ -1393,6 +1385,10 @@ msgid "Mask Layers"
 msgstr "Маска каттары"
 
 
+msgid "Mask"
+msgstr "Маска"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Видеофрагмент"
@@ -1609,6 +1605,10 @@ msgstr "Көк каналы"
 
 msgid "Render Layers"
 msgstr "Визуалдаштыруу каттары"
+
+
+msgid "Rotate"
+msgstr "Айлантуу"
 
 
 msgid "Translate"

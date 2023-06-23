@@ -122,7 +122,7 @@ static bool ui_but_is_unit_radians(const uiBut *but)
 
 /* ************* window matrix ************** */
 
-void ui_block_to_region_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
+void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
   const int getsizey = BLI_rcti_size_y(&region->winrct) + 1;
@@ -141,14 +141,14 @@ void ui_block_to_region_fl(const ARegion *region, uiBlock *block, float *r_x, fl
                                            block->winmat[3][1]));
 }
 
-void ui_block_to_window_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
+void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
 {
   ui_block_to_region_fl(region, block, r_x, r_y);
   *r_x += region->winrct.xmin;
   *r_y += region->winrct.ymin;
 }
 
-void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_y)
+void ui_block_to_window(const ARegion *region, const uiBlock *block, int *r_x, int *r_y)
 {
   float fx = *r_x;
   float fy = *r_y;
@@ -160,7 +160,7 @@ void ui_block_to_window(const ARegion *region, uiBlock *block, int *r_x, int *r_
 }
 
 void ui_block_to_region_rctf(const ARegion *region,
-                             uiBlock *block,
+                             const uiBlock *block,
                              rctf *rct_dst,
                              const rctf *rct_src)
 {
@@ -170,7 +170,7 @@ void ui_block_to_region_rctf(const ARegion *region,
 }
 
 void ui_block_to_window_rctf(const ARegion *region,
-                             uiBlock *block,
+                             const uiBlock *block,
                              rctf *rct_dst,
                              const rctf *rct_src)
 {
@@ -179,7 +179,7 @@ void ui_block_to_window_rctf(const ARegion *region,
   ui_block_to_window_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-float ui_block_to_window_scale(const ARegion *region, uiBlock *block)
+float ui_block_to_window_scale(const ARegion *region, const uiBlock *block)
 {
   /* We could have function for this to avoid dummy arg. */
   float min_y = 0, max_y = 1;
@@ -190,7 +190,7 @@ float ui_block_to_window_scale(const ARegion *region, uiBlock *block)
   return max_y - min_y;
 }
 
-void ui_window_to_block_fl(const ARegion *region, uiBlock *block, float *r_x, float *r_y)
+void ui_window_to_block_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y)
 {
   const int getsizex = BLI_rcti_size_x(&region->winrct) + 1;
   const int getsizey = BLI_rcti_size_y(&region->winrct) + 1;
@@ -218,7 +218,7 @@ void ui_window_to_block_fl(const ARegion *region, uiBlock *block, float *r_x, fl
 }
 
 void ui_window_to_block_rctf(const ARegion *region,
-                             uiBlock *block,
+                             const uiBlock *block,
                              rctf *rct_dst,
                              const rctf *rct_src)
 {
@@ -227,7 +227,7 @@ void ui_window_to_block_rctf(const ARegion *region,
   ui_window_to_block_fl(region, block, &rct_dst->xmax, &rct_dst->ymax);
 }
 
-void ui_window_to_block(const ARegion *region, uiBlock *block, int *r_x, int *r_y)
+void ui_window_to_block(const ARegion *region, const uiBlock *block, int *r_x, int *r_y)
 {
   float fx = *r_x;
   float fy = *r_y;
@@ -3920,23 +3920,13 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         const uiButHotkeyEvent *hotkey_but = (uiButHotkeyEvent *)but;
 
         if (hotkey_but->modifier_key) {
-          char *str = but->drawstr;
-          but->drawstr[0] = '\0';
-
-          if (hotkey_but->modifier_key & KM_SHIFT) {
-            str += BLI_strcpy_rlen(str, "Shift ");
-          }
-          if (hotkey_but->modifier_key & KM_CTRL) {
-            str += BLI_strcpy_rlen(str, "Ctrl ");
-          }
-          if (hotkey_but->modifier_key & KM_ALT) {
-            str += BLI_strcpy_rlen(str, "Alt ");
-          }
-          if (hotkey_but->modifier_key & KM_OSKEY) {
-            str += BLI_strcpy_rlen(str, "Cmd ");
-          }
-
-          (void)str; /* UNUSED */
+          /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
+          wmKeyMapItem kmi_dummy = {nullptr};
+          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_PRESS : KM_NOTHING;
+          WM_keymap_item_to_string(&kmi_dummy, true, but->drawstr, sizeof(but->drawstr));
         }
         else {
           STRNCPY_UTF8(but->drawstr, IFACE_("Press a key"));

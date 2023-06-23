@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -13101,14 +13101,6 @@ msgid "Gpencil Settings"
 msgstr "Wachsstift Einstellungen"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "Wachsstift Zeichenwerkzeug"
-
-
-msgid "Erase"
-msgstr "Radieren"
-
-
 msgid "Grease Pencil Vertex Paint Tool"
 msgstr "Wachsstift-Eckpunkt Malwerkzeug"
 
@@ -13135,22 +13127,6 @@ msgstr "Pinselicon-Dateipfad"
 
 msgid "File path to brush icon"
 msgstr "Dateipfad zum Pinselicon"
-
-
-msgid "Image Paint Tool"
-msgstr "Bildmalwerkzeug"
-
-
-msgid "Soften"
-msgstr "Weichzeichnen"
-
-
-msgid "Clone"
-msgstr "Klonen"
-
-
-msgid "Mask"
-msgstr "Maske"
 
 
 msgid "Jitter the position of the brush while painting"
@@ -13255,66 +13231,6 @@ msgstr "Y-Ebene"
 
 msgid "Z Plane"
 msgstr "Z-Ebene"
-
-
-msgid "Sculpt Tool"
-msgstr "Skulpturwerkzeug"
-
-
-msgid "Draw Sharp"
-msgstr "Form"
-
-
-msgid "Clay"
-msgstr "Clay"
-
-
-msgid "Clay Strips"
-msgstr "Claystück"
-
-
-msgid "Blob"
-msgstr "Klecksen"
-
-
-msgid "Flatten"
-msgstr "Glätten"
-
-
-msgid "Scrape"
-msgstr "Kratzen"
-
-
-msgid "Elastic Deform"
-msgstr "Elastische Verformung"
-
-
-msgid "Thumb"
-msgstr "Daumen"
-
-
-msgid "Pose"
-msgstr "Pose"
-
-
-msgid "Nudge"
-msgstr "Anstoßen"
-
-
-msgid "Rotate"
-msgstr "Rotieren"
-
-
-msgid "Boundary"
-msgstr "Klang"
-
-
-msgid "Cloth"
-msgstr "Gewebe"
-
-
-msgid "Draw Face Sets"
-msgstr "Zeiche Oberflächensatz"
 
 
 msgid "Secondary Color"
@@ -13563,6 +13479,10 @@ msgstr "Weicher Strich"
 
 msgid "Use this brush in grease pencil vertex color mode"
 msgstr "Diesen Wachsstift im Eckpunktfarbmodus verwenden"
+
+
+msgid "Sculpt Tool"
+msgstr "Skulpturwerkzeug"
 
 
 msgid "Grab UVs"
@@ -15392,6 +15312,10 @@ msgid "Hair strands"
 msgstr "Haarsträhnen"
 
 
+msgid "Cloth"
+msgstr "Gewebe"
+
+
 msgid "Refraction Depth"
 msgstr "Brechungstiefe"
 
@@ -16162,6 +16086,10 @@ msgstr "3 Punkte"
 
 msgid "Parent Vertices"
 msgstr "Partikel"
+
+
+msgid "Pose"
+msgstr "Pose"
 
 
 msgid "Current pose for armatures"
@@ -20572,6 +20500,10 @@ msgid "Self Overlap"
 msgstr "Selbstüberlagerung"
 
 
+msgid "Mask"
+msgstr "Maske"
+
+
 msgid "Material slot in an object"
 msgstr "Materialsteckplatz in einem Objekt"
 
@@ -23445,6 +23377,10 @@ msgid "Thickness factor"
 msgstr "Dickenfaktor"
 
 
+msgid "Boundary"
+msgstr "Klang"
+
+
 msgid "Offset Relative"
 msgstr "Relative Pfade"
 
@@ -25197,6 +25133,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Y-Position vom Zentrum der Ellipse"
 
 
+msgid "Soften"
+msgstr "Weichzeichnen"
+
+
 msgid "Box Sharpen"
 msgstr "Box schärfen"
 
@@ -25645,6 +25585,10 @@ msgstr "RGB zu S/W"
 
 msgid "Render Layers"
 msgstr "Render-Ebenen"
+
+
+msgid "Rotate"
+msgstr "Rotieren"
 
 
 msgid "Offset image horizontally (factor of image size)"
@@ -32354,6 +32298,10 @@ msgid "Replace Existing"
 msgstr "Ersetzen Vorhandener"
 
 
+msgid "Flatten"
+msgstr "Glätten"
+
+
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
 msgstr "F-Kurven Modifikator hinzufügen"
@@ -32406,6 +32354,19 @@ msgstr "Aktive Kanäle am Cursor"
 
 msgid "Selected Channels at Cursor"
 msgstr "Ausgewählte Kanäle am Cursor"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Zu Schlüsselbild springen"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Zum vorherigen/nächsten Schlüsselbild springen"
+
+
+msgid "Next Keyframe"
+msgstr "Nächstes Schlüsselbild"
 
 
 msgid "By Values Over Cursor Value"
@@ -37429,6 +37390,10 @@ msgid "Create Missing"
 msgstr "Fehlendes erstellen"
 
 
+msgid "Clone"
+msgstr "Klonen"
+
+
 msgid "Change selection for all faces"
 msgstr "Auswahl für alle Flächen ändern"
 
@@ -37842,10 +37807,6 @@ msgstr "Nur Skalierung"
 
 msgid "Custom properties"
 msgstr "Benutzerdefinierte Eigenschaften"
-
-
-msgid "Next Keyframe"
-msgstr "Nächstes Schlüsselbild"
 
 
 msgid "Previous Keyframe"
@@ -38846,15 +38807,6 @@ msgstr "Zeitversatz"
 msgctxt "Operator"
 msgid "Expand/Collapse Header Menus"
 msgstr "Erweitern/Reduzieren von Headermenüs"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Zu Schlüsselbild springen"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Zum vorherigen/nächsten Schlüsselbild springen"
 
 
 msgctxt "Operator"
@@ -40856,10 +40808,6 @@ msgstr "Bild einpacken"
 
 msgid "Fraction"
 msgstr "Bruch"
-
-
-msgid "Pack"
-msgstr "Packen"
 
 
 msgctxt "Operator"
@@ -57566,6 +57514,10 @@ msgid "Unpack"
 msgstr "Entpacken"
 
 
+msgid "Pack"
+msgstr "Packen"
+
+
 msgid "Source Channel"
 msgstr "Quellkanal"
 
@@ -59971,10 +59923,6 @@ msgstr "Schrittweise"
 
 msgid "ID / Index"
 msgstr "ID / Index"
-
-
-msgid " from "
-msgstr " von "
 
 
 msgid "GP_Layer"
@@ -64502,10 +64450,6 @@ msgstr "Rest"
 
 msgid "Edge Crease"
 msgstr "Kantenfalte"
-
-
-msgid " node"
-msgstr " Knoten"
 
 
 msgid "Shader Editor"

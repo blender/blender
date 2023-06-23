@@ -131,6 +131,7 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.shading.sub_pass, geom, res_handle);
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
+    geometry_call(material.capture.sub_pass, geom, res_handle);
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;

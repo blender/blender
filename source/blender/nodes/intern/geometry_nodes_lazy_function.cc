@@ -1843,7 +1843,7 @@ struct GeometryNodesLazyFunctionGraphBuilder {
     }
 
     for (const int caller_propagation_index :
-         attribute_inferencing_.propagated_output_geometry_indices)
+         attribute_inferencing_.propagated_output_geometry_indices.index_range())
     {
       const int group_output_index =
           attribute_inferencing_.propagated_output_geometry_indices[caller_propagation_index];

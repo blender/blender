@@ -235,7 +235,7 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
     }
 
     if ((gpl->flag & GP_LAYER_ACTIVE) != 0) {
-      grease_pencil.active_layer = static_cast<GreasePencilLayer *>(&new_layer);
+      grease_pencil.set_active_layer(&new_layer);
     }
 
     /* TODO: Update drawing user counts. */

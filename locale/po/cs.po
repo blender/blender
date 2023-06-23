@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -8707,22 +8707,6 @@ msgid "File path to brush icon"
 msgstr "Typ filtru"
 
 
-msgid "Image Paint Tool"
-msgstr "Nástroj malování obrazu"
-
-
-msgid "Soften"
-msgstr "Zjemnit"
-
-
-msgid "Clone"
-msgstr "Klonovat"
-
-
-msgid "Mask"
-msgstr "Maska"
-
-
 msgid "Jitter the position of the brush while painting"
 msgstr "Počáteční pozice pro osu Y"
 
@@ -8805,70 +8789,6 @@ msgstr "Y Rovina"
 
 msgid "Z Plane"
 msgstr "Z Rovina"
-
-
-msgid "Sculpt Tool"
-msgstr "Nástroj sochařství"
-
-
-msgid "Draw Sharp"
-msgstr "Kreslení ostré"
-
-
-msgid "Clay"
-msgstr "Clay"
-
-
-msgid "Clay Strips"
-msgstr "Hliněné proužky"
-
-
-msgid "Clay Thumb"
-msgstr "Hliněný palec"
-
-
-msgid "Blob"
-msgstr "Blob"
-
-
-msgid "Flatten"
-msgstr "Zarovnat"
-
-
-msgid "Scrape"
-msgstr "Změnit velikost"
-
-
-msgid "Elastic Deform"
-msgstr "Elastická deformace"
-
-
-msgid "Thumb"
-msgstr "Thumb"
-
-
-msgid "Pose"
-msgstr "Póza"
-
-
-msgid "Nudge"
-msgstr "Posunout"
-
-
-msgid "Rotate"
-msgstr "Otočit"
-
-
-msgid "Slide Relax"
-msgstr "Uvolnit posunutím"
-
-
-msgid "Boundary"
-msgstr "Hranice"
-
-
-msgid "Cloth"
-msgstr "Tkanina"
 
 
 msgid "Radius of the brush in pixels"
@@ -9073,6 +8993,10 @@ msgstr "Obnovit Síť"
 
 msgid "Smooth Stroke"
 msgstr "Hladký Tah"
+
+
+msgid "Sculpt Tool"
+msgstr "Nástroj sochařství"
 
 
 msgid "Grab UVs"
@@ -10445,6 +10369,10 @@ msgid "Hair strands"
 msgstr "Zrušit vazby"
 
 
+msgid "Cloth"
+msgstr "Tkanina"
+
+
 msgid "Refraction Depth"
 msgstr "Hloubka lomu"
 
@@ -11087,6 +11015,10 @@ msgstr "Pridat objekt do nové skupiny"
 
 msgid "Parent Vertices"
 msgstr "Odstranit vertexy"
+
+
+msgid "Pose"
+msgstr "Póza"
 
 
 msgid "Current pose for armatures"
@@ -14377,6 +14309,10 @@ msgid "Mix Factor"
 msgstr "Činitel"
 
 
+msgid "Mask"
+msgstr "Maska"
+
+
 msgid "Material slot in an object"
 msgstr "Přivlastnit"
 
@@ -16481,6 +16417,10 @@ msgid "Face Area"
 msgstr "Velikost plošek"
 
 
+msgid "Boundary"
+msgstr "Hranice"
+
+
 msgid "Offset Relative"
 msgstr "Relativní Odsazení"
 
@@ -17589,6 +17529,10 @@ msgid "Ellipse Mask"
 msgstr "Maximalní X limitace"
 
 
+msgid "Soften"
+msgstr "Zjemnit"
+
+
 msgid "Laplace"
 msgstr "Nahradit"
 
@@ -17851,6 +17795,10 @@ msgstr "RGB do BW"
 
 msgid "Render Layers"
 msgstr "Vyberte renderovanou vrstvu"
+
+
+msgid "Rotate"
+msgstr "Otočit"
 
 
 msgid "Method to use to filter rotation"
@@ -23131,6 +23079,10 @@ msgid "Delete Invalid Drivers"
 msgstr "Smazat Neplatné Ovladače"
 
 
+msgid "Flatten"
+msgstr "Zarovnat"
+
+
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
 msgstr "Přidat modifikátor"
@@ -23187,6 +23139,19 @@ msgstr "Zrušit vazbu"
 msgctxt "Operator"
 msgid "Hide Curves"
 msgstr "Skrýt Křivky"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Skočit na Klíčový snímek"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Předchozí klíč"
+
+
+msgid "Next Keyframe"
+msgstr "Další klíč"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -27844,6 +27809,10 @@ msgid "Create Missing"
 msgstr "Vytvořit chybějící"
 
 
+msgid "Clone"
+msgstr "Klonovat"
+
+
 msgid "Hide selected faces"
 msgstr "Skrýt Vybrané Plochy"
 
@@ -28370,10 +28339,6 @@ msgstr "Pouze rotace"
 
 msgid "Custom properties"
 msgstr "Uživatelské vlastnosti"
-
-
-msgid "Next Keyframe"
-msgstr "Další klíč"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -29246,15 +29211,6 @@ msgstr "Určuje počáteční frame vlny"
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Zobrazit Informační Protokol"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Skočit na Klíčový snímek"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Předchozí klíč"
 
 
 msgctxt "Operator"
@@ -31028,10 +30984,6 @@ msgstr "Přibalit obrázek"
 
 msgid "Fraction"
 msgstr "Zlomek"
-
-
-msgid "Pack"
-msgstr "Zabalit"
 
 
 msgctxt "Operator"
@@ -33143,10 +33095,6 @@ msgstr "Klon"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Maska"
-
-
-msgid "Brush Tip"
-msgstr "Špička štětce"
 
 
 msgid "Tiling"
@@ -42728,6 +42676,10 @@ msgstr "Přidat přechod"
 
 msgid "Unpack"
 msgstr "Rozbalit"
+
+
+msgid "Pack"
+msgstr "Zabalit"
 
 
 msgid "Original frame range: %d-%d (%d)"

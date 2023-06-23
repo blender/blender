@@ -19,4 +19,41 @@
 +REM if errorlevel 1 exit /b
 +REM %MSBUILD% "%PCBUILD%\openssl.vcxproj" /p:Configuration=Release /p:Platform=ARM64
 +REM if errorlevel 1 exit /b
+
+diff -aurw Python-3.10.12/PCbuild/openssl.props external_python/PCbuild/openssl.props
+--- Python-3.10.12/PCbuild/openssl.props	2023-06-06 16:30:33 -0600
++++ external_python/PCbuild/openssl.props	2023-06-20 09:58:57 -0600
+@@ -10,7 +10,7 @@
+     </Link>
+   </ItemDefinitionGroup>
+   <PropertyGroup>
+-    <_DLLSuffix>-1_1</_DLLSuffix>
++    <_DLLSuffix>-3</_DLLSuffix>
+     <_DLLSuffix Condition="$(Platform) == 'ARM'">$(_DLLSuffix)-arm</_DLLSuffix>
+     <_DLLSuffix Condition="$(Platform) == 'ARM64'">$(_DLLSuffix)-arm64</_DLLSuffix>
+   </PropertyGroup>
+diff -aurw Python-3.10.12/PCbuild/openssl.vcxproj external_python/PCbuild/openssl.vcxproj
+--- Python-3.10.12/PCbuild/openssl.vcxproj	2023-06-06 16:30:33 -0600
++++ external_python/PCbuild/openssl.vcxproj	2023-06-20 08:50:43 -0600
+@@ -98,7 +98,7 @@
  
+   <Target Name="_CopyToOutput" AfterTargets="Build">
+     <ItemGroup>
+-      <_Built Include="$(opensslDir)\LICENSE" />
++      <_Built Include="$(opensslDir)\LICENSE.txt" />
+       <_Built Include="$(IntDir)\libcrypto.lib;$(IntDir)\libcrypto-*.dll;$(IntDir)\libcrypto-*.pdb" />
+       <_Built Include="$(IntDir)\libssl.lib;$(IntDir)\libssl-*.dll;$(IntDir)\libssl-*.pdb" />
+       <_AppLink Include="$(opensslDir)\ms\applink.c" />
+diff -aurw Python-3.10.12/PCbuild/regen.targets external_python/PCbuild/regen.targets
+--- Python-3.10.12/PCbuild/regen.targets	2023-06-06 16:30:33 -0600
++++ external_python/PCbuild/regen.targets	2023-06-20 09:37:17 -0600
+@@ -89,7 +89,7 @@
+     <_LicenseSources Include="$(PySourcePath)LICENSE;
+                               $(PySourcePath)PC\crtlicense.txt;
+                               $(bz2Dir)LICENSE;
+-                              $(opensslOutDir)LICENSE;
++                              $(opensslOutDir)LICENSE.txt;
+                               $(libffiDir)LICENSE;" />
+     <_LicenseSources Include="$(tcltkDir)tcllicense.terms;
+                               $(tcltkDir)tklicense.terms;
+

@@ -1061,9 +1061,7 @@ static void region_azone_scrollbar_init(ScrArea *area,
                                         ARegion *region,
                                         AZScrollDirection direction)
 {
-  rcti scroller_vert = (direction == AZ_SCROLL_VERT) ? region->v2d.vert : region->v2d.hor;
   AZone *az = static_cast<AZone *>(MEM_callocN(sizeof(*az), __func__));
-  float hide_width;
 
   BLI_addtail(&area->actionzones, az);
   az->type = AZONE_REGION_SCROLL;
@@ -1072,20 +1070,13 @@ static void region_azone_scrollbar_init(ScrArea *area,
 
   if (direction == AZ_SCROLL_VERT) {
     az->region->v2d.alpha_vert = 0;
-    hide_width = V2D_SCROLL_HIDE_HEIGHT;
   }
   else if (direction == AZ_SCROLL_HOR) {
     az->region->v2d.alpha_hor = 0;
-    hide_width = V2D_SCROLL_HIDE_WIDTH;
   }
 
-  BLI_rcti_translate(&scroller_vert, region->winrct.xmin, region->winrct.ymin);
-  az->x1 = scroller_vert.xmin - ((direction == AZ_SCROLL_VERT) ? hide_width : 0);
-  az->y1 = scroller_vert.ymin - ((direction == AZ_SCROLL_HOR) ? hide_width : 0);
-  az->x2 = scroller_vert.xmax + ((direction == AZ_SCROLL_VERT) ? hide_width : 0);
-  az->y2 = scroller_vert.ymax + ((direction == AZ_SCROLL_HOR) ? hide_width : 0);
-
-  BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
+  /* No need to specify rect for scrollbar az. For intersection we'll test against the area around
+   * the region's scroller instead, in `area_actionzone_get_rect`. */
 }
 
 static void region_azones_scrollbars_init(ScrArea *area, ARegion *region)
@@ -3131,11 +3122,14 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
   /* scrollers */
   bool use_mask = false;
   rcti mask;
-  if (region->runtime.category && (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT))
+  if (region->runtime.category &&
+      (RGN_ALIGN_ENUM_FROM_MASK(region->alignment) == RGN_ALIGN_RIGHT) &&
+      UI_panel_category_is_visible(region))
   {
     use_mask = true;
     UI_view2d_mask_from_win(v2d, &mask);
-    mask.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;
+    mask.xmax -= round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
+                                 UI_PANEL_CATEGORY_MARGIN_WIDTH);
   }
   bool use_full_hide = false;
   if (region->overlap) {

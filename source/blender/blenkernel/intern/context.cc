@@ -1187,7 +1187,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       case OB_CURVES:
         return CTX_MODE_EDIT_CURVES;
       case OB_GREASE_PENCIL:
-        return CTX_MODE_EDIT_GPENCIL;
+        return CTX_MODE_EDIT_GREASE_PENCIL;
     }
   }
   else {
@@ -1215,7 +1215,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_PAINT_GPENCIL;
       }
       if (object_mode & OB_MODE_EDIT_GPENCIL) {
-        return CTX_MODE_EDIT_GPENCIL;
+        return CTX_MODE_EDIT_GPENCIL_LEGACY;
       }
       if (object_mode & OB_MODE_SCULPT_GPENCIL) {
         return CTX_MODE_SCULPT_GPENCIL;
@@ -1256,6 +1256,7 @@ static const char *data_mode_strings[] = {
     "mball_edit",
     "lattice_edit",
     "curves_edit",
+    "grease_pencil_edit",
     "posemode",
     "sculpt_mode",
     "weightpaint",

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -5446,22 +5446,6 @@ msgid "File path to brush icon"
 msgstr "Putanja za upis datoteke"
 
 
-msgid "Image Paint Tool"
-msgstr "Alatke bojenja slike"
-
-
-msgid "Soften"
-msgstr "Umekšanje"
-
-
-msgid "Clone"
-msgstr "Kliniranje"
-
-
-msgid "Mask"
-msgstr "Maska"
-
-
 msgid "Brush"
 msgstr "Četkica"
 
@@ -5496,58 +5480,6 @@ msgstr "Y ploča"
 
 msgid "Z Plane"
 msgstr "Z ploča"
-
-
-msgid "Sculpt Tool"
-msgstr "Alatke vajanja"
-
-
-msgid "Draw Sharp"
-msgstr "Crtaj oštro"
-
-
-msgid "Clay"
-msgstr "Glina"
-
-
-msgid "Clay Strips"
-msgstr "Trake gline"
-
-
-msgid "Blob"
-msgstr "Grudvica"
-
-
-msgid "Flatten"
-msgstr "Izravnavanje"
-
-
-msgid "Scrape"
-msgstr "Ogrebotina"
-
-
-msgid "Thumb"
-msgstr "Palac"
-
-
-msgid "Pose"
-msgstr "Poza"
-
-
-msgid "Nudge"
-msgstr "Gurkanje"
-
-
-msgid "Rotate"
-msgstr "Rotiranje"
-
-
-msgid "Boundary"
-msgstr "Granica"
-
-
-msgid "Cloth"
-msgstr "Tkanina"
 
 
 msgid "Secondary Color"
@@ -5668,6 +5600,10 @@ msgstr "Koristi dodatnu providnost"
 
 msgid "Restore Mesh"
 msgstr "Vrati"
+
+
+msgid "Sculpt Tool"
+msgstr "Alatke vajanja"
 
 
 msgid "Relax"
@@ -6646,6 +6582,10 @@ msgid "Hair strands"
 msgstr "Niti kose"
 
 
+msgid "Cloth"
+msgstr "Tkanina"
+
+
 msgid "Roughness"
 msgstr "Hrapavost"
 
@@ -7212,6 +7152,10 @@ msgstr "Objekat je podređen kosti"
 
 msgid "Parent Vertices"
 msgstr "Roditeljska temena"
+
+
+msgid "Pose"
+msgstr "Poza"
 
 
 msgid "Current pose for armatures"
@@ -9233,6 +9177,10 @@ msgid "Mix Factor"
 msgstr "Faktor mešanja"
 
 
+msgid "Mask"
+msgstr "Maska"
+
+
 msgid "Material slot in an object"
 msgstr "Slot materijala u objektu"
 
@@ -10691,6 +10639,10 @@ msgid "Thickness factor"
 msgstr "Faktor debljine"
 
 
+msgid "Boundary"
+msgstr "Granica"
+
+
 msgid "Support face boundaries"
 msgstr "Podržava granice stranice"
 
@@ -11403,6 +11355,10 @@ msgid "Width of the ellipse"
 msgstr "Širina elipse"
 
 
+msgid "Soften"
+msgstr "Umekšanje"
+
+
 msgid "Sobel"
 msgstr "Sobel"
 
@@ -11581,6 +11537,10 @@ msgstr "RGB u CB"
 
 msgid "Render Layers"
 msgstr "Renderuj slojeve"
+
+
+msgid "Rotate"
+msgstr "Rotiranje"
 
 
 msgid "Offset image horizontally (factor of image size)"
@@ -15062,6 +15022,10 @@ msgid "Set Cursor"
 msgstr "Postavi kursor"
 
 
+msgid "Flatten"
+msgstr "Izravnavanje"
+
+
 msgctxt "Operator"
 msgid "Add F-Curve Modifier"
 msgstr "Dodaj modifikator F-krive"
@@ -15073,6 +15037,19 @@ msgstr "Samo aktivne"
 
 msgid "Sigma"
 msgstr "Sigma"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Skoči na kadar"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Skoči na prethodni/naredni ključni kadar"
+
+
+msgid "Next Keyframe"
+msgstr "Sledeći ključni kadar"
 
 
 msgctxt "Operator"
@@ -17806,6 +17783,10 @@ msgid "Brush Select"
 msgstr "Izbor četkice"
 
 
+msgid "Clone"
+msgstr "Kliniranje"
+
+
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "Sakrij izabrano"
@@ -18077,10 +18058,6 @@ msgstr "Poza koa početna"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Postavlja trenutnu pozu kao početnu"
-
-
-msgid "Next Keyframe"
-msgstr "Sledeći ključni kadar"
 
 
 msgid "Previous Keyframe"
@@ -18664,15 +18641,6 @@ msgstr "Poslednji kadar"
 msgctxt "Operator"
 msgid "Expand/Collapse Header Menus"
 msgstr "Proširi/skupi meni zaglavlja"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Skoči na kadar"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Skoči na prethodni/naredni ključni kadar"
 
 
 msgctxt "Operator"

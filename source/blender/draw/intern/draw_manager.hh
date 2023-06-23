@@ -179,6 +179,14 @@ class Manager {
     acquired_textures.append(texture);
   }
 
+  /**
+   * Return the number of resource handles allocated.
+   */
+  uint resource_handle_count() const
+  {
+    return resource_len_;
+  }
+
   /** TODO(fclem): The following should become private at some point. */
   void begin_sync();
   void end_sync();

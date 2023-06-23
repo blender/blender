@@ -7097,7 +7097,7 @@ void SCULPT_topology_islands_ensure(Object *ob)
 
       vertex_attr_set<uint8_t>(vertex2, ss->attrs.topology_island_key, island_nr);
 
-      SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex2, ni) {
+      SCULPT_VERTEX_DUPLICATES_AND_NEIGHBORS_ITER_BEGIN (ss, vertex2, ni) {
         if (visit.add(ni.vertex) && SCULPT_vertex_any_face_visible_get(ss, ni.vertex)) {
           stack.append(ni.vertex);
         }

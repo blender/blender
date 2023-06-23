@@ -2100,10 +2100,7 @@ void DRW_render_object_iter(
   drw_task_graph_deinit();
 }
 
-void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
-                         Depsgraph *depsgraph,
-                         void (*callback)(void *vedata, void *user_data),
-                         void *user_data)
+void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *depsgraph)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
@@ -2130,11 +2127,11 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   DRW_volume_init(DST.vmempool);
   DRW_smoke_init(DST.vmempool);
 
-  ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
-                                                                  draw_engine_type);
+  DRW_view_data_engine_data_get_ensure(DST.view_data_active, draw_engine_type);
+}
 
-  /* Execute the callback */
-  callback(data, user_data);
+void DRW_custom_pipeline_end()
+{
   DST.buffer_finish_called = false;
 
   DRW_smoke_exit(DST.vmempool);
@@ -2151,6 +2148,21 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
   }
 
   drw_manager_exit(&DST);
+}
+
+void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
+                         struct Depsgraph *depsgraph,
+                         void (*callback)(void *vedata, void *user_data),
+                         void *user_data)
+{
+  DRW_custom_pipeline_begin(draw_engine_type, depsgraph);
+
+  ViewportEngineData *data = DRW_view_data_engine_data_get_ensure(DST.view_data_active,
+                                                                  draw_engine_type);
+  /* Execute the callback. */
+  callback(data, user_data);
+
+  DRW_custom_pipeline_end();
 }
 
 void DRW_cache_restart(void)

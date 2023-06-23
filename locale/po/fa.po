@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -1652,10 +1652,6 @@ msgid "Subtract Color"
 msgstr "ﮓﻧﺭ ﻖﯾﺮﻔﺗ"
 
 
-msgid "Erase"
-msgstr "ﻥﺩﺮﮐ‌ﮎﺎﭘ"
-
-
 msgid "Brush"
 msgstr "ﻮﻣ ﻢﻠﻗ"
 
@@ -1666,14 +1662,6 @@ msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
 
 msgid "Sculpt Tool"
 msgstr "ﯼﺭﺎﺠﺣ ﺭﺍﺰﺑﺍ"
-
-
-msgid "Pose"
-msgstr "ﺖﺳﮊ"
-
-
-msgid "Rotate"
-msgstr "ﻥﺍﺭﻭﺩ"
 
 
 msgid "Relax"
@@ -1838,6 +1826,10 @@ msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ"
 
 msgid "Parent Vertices"
 msgstr "ﺪﻟﺍﻭ ﺱﻮﺋﺭ"
+
+
+msgid "Pose"
+msgstr "ﺖﺳﮊ"
 
 
 msgid "Euler Rotation"
@@ -2334,6 +2326,10 @@ msgstr "ﯽﺑﺁ ﻝﺎﻧﺎﮐ"
 
 msgid "Scene Size"
 msgstr "ﻪﻨﺤﺻ ﻩﺯﺍﺪﻧﺍ"
+
+
+msgid "Rotate"
+msgstr "ﻥﺍﺭﻭﺩ"
 
 
 msgid "Separate HSVA"
@@ -3104,10 +3100,6 @@ msgid "All UVs"
 msgstr "ﺎﻫUV ﻪﻤﻫ"
 
 
-msgid "Pack"
-msgstr "ﻪﺘﺴﺑ"
-
-
 msgctxt "Operator"
 msgid "Reset"
 msgstr "ﯽﻧﺎﺸﻧﺯﺎﺑ"
@@ -3763,6 +3755,10 @@ msgstr "ﺮﯾﻮﺼﺗ*"
 
 msgid "Aspect Ratio"
 msgstr "ﺮﯾﻮﺼﺗ ﺖﺒﺴﻧ"
+
+
+msgid "Pack"
+msgstr "ﻪﺘﺴﺑ"
 
 
 msgid "Text: External"

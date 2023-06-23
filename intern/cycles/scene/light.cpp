@@ -1282,15 +1282,14 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float invarea = (light->normalize && area != 0.0f) ? 1.0f / area : 1.0f;
       float3 dir = light->dir;
 
-      /* Clamp angles in (0, 0.1) to 0.1 to prevent zero intensity due to floating-point precision
-       * issues, but still handles spread = 0 */
-      const float min_spread = 0.1f * M_PI_F / 180.0f;
-      const float half_spread = light->spread == 0 ? 0.0f : 0.5f * max(light->spread, min_spread);
+      const float half_spread = 0.5f * light->spread;
       const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
       /* Normalization computed using:
        * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
        * Divided by tan_half_spread to simplify the attenuation computation in `area.h`. */
-      const float normalize_spread = 1.0f / (tan_half_spread - half_spread);
+      /* Using third-order Taylor expansion at small angles for better accuracy. */
+      const float normalize_spread = half_spread > 0.05f ? 1.0f / (tan_half_spread - half_spread) :
+                                                           3.0f / powf(half_spread, 3.0f);
 
       dir = safe_normalize(dir);
 
@@ -1322,7 +1321,7 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) :
                                                             1.0f;
       float cos_half_spot_angle = cosf(light->spot_angle * 0.5f);
-      float spot_smooth = (1.0f - cos_half_spot_angle) * light->spot_smooth;
+      float spot_smooth = 1.0f / ((1.0f - cos_half_spot_angle) * light->spot_smooth);
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;

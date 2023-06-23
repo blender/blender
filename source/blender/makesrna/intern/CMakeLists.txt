@@ -94,7 +94,7 @@ if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_GREASE_PENCIL_V3)
   list(APPEND DEFSRC
     rna_simulation.c
-    rna_grease_pencil.c
+    rna_grease_pencil.cc
   )
 endif()
 

@@ -401,40 +401,38 @@ static bool nearest_world_editmesh(SnapData_EditMesh *sod,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Callbacks
+/** \name Subclass for Snapping to Edges or Points of an EditMesh
  * \{ */
 
-static void cb_bvert_co_get(const int index, const Nearest2dUserData *data, const float **r_co)
-{
-  BMVert *eve = BM_vert_at_index(data->bm, index);
-  *r_co = eve->co;
-}
+class Nearest2dUserData_EditMesh : public Nearest2dUserData {
+ public:
+  BMesh *bm;
 
-static void cb_bvert_no_copy(const int index, const Nearest2dUserData *data, float r_no[3])
-{
-  BMVert *eve = BM_vert_at_index(data->bm, index);
+  Nearest2dUserData_EditMesh(SnapObjectContext *sctx,
+                             Object *ob_eval,
+                             BMesh *bm,
+                             const float4x4 &obmat)
+      : Nearest2dUserData(sctx, ob_eval, nullptr, obmat), bm(bm){};
 
-  copy_v3_v3(r_no, eve->no);
-}
+  void get_vert_co(const int index, const float **r_co)
+  {
+    BMVert *eve = BM_vert_at_index(this->bm, index);
+    *r_co = eve->co;
+  }
 
-static void cb_bedge_verts_get(const int index, const Nearest2dUserData *data, int r_v_index[2])
-{
-  BMEdge *eed = BM_edge_at_index(data->bm, index);
+  void get_edge_verts_index(const int index, int r_v_index[2])
+  {
+    BMEdge *eed = BM_edge_at_index(this->bm, index);
+    r_v_index[0] = BM_elem_index_get(eed->v1);
+    r_v_index[1] = BM_elem_index_get(eed->v2);
+  }
 
-  r_v_index[0] = BM_elem_index_get(eed->v1);
-  r_v_index[1] = BM_elem_index_get(eed->v2);
-}
-
-void nearest2d_data_init_editmesh(BMEditMesh *em, Nearest2dUserData *r_nearest2d)
-{
-  r_nearest2d->get_vert_co = cb_bvert_co_get;
-  r_nearest2d->get_edge_verts_index = cb_bedge_verts_get;
-  r_nearest2d->copy_vert_no = cb_bvert_no_copy;
-  r_nearest2d->get_tri_verts_index = nullptr;
-  r_nearest2d->get_tri_edges_index = nullptr;
-
-  r_nearest2d->bm = em->bm;
-}
+  void copy_vert_no(const int index, float r_no[3])
+  {
+    BMVert *eve = BM_vert_at_index(this->bm, index);
+    copy_v3_v3(r_no, eve->no);
+  }
+};
 
 /** \} */
 
@@ -444,23 +442,16 @@ void nearest2d_data_init_editmesh(BMEditMesh *em, Nearest2dUserData *r_nearest2d
 
 eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 Object *ob_eval,
-                                ID * /*id*/,
+                                const ID * /*id*/,
                                 const float obmat[4][4],
                                 eSnapMode snap_to_flag,
                                 int polygon)
 {
   eSnapMode elem = SCE_SNAP_MODE_NONE;
 
-  SnapData_EditMesh *sod = editmesh_snapdata_init(sctx, ob_eval, snap_to_flag);
-  if (sod == nullptr) {
-    return elem;
-  }
-
-  BMEditMesh *em = sod->treedata_editmesh.em;
-
-  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
-  nearest2d.clip_planes_get(sctx, float4x4(obmat));
-  nearest2d_data_init_editmesh(em, &nearest2d);
+  BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
+  nearest2d.clip_planes_enable();
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -498,36 +489,35 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   }
 
   if (nearest.index != -1) {
-    sctx->ret.dist_px_sq = nearest.dist_sq;
-
-    mul_m4_v3(obmat, nearest.co);
-    copy_v3_v3(sctx->ret.loc, nearest.co);
-
-    {
-      float imat[4][4];
-      invert_m4_m4(imat, obmat);
-      mul_transposed_mat3_m4_v3(imat, nearest.no);
-      normalize_v3(nearest.no);
-
-      copy_v3_v3(sctx->ret.no, nearest.no);
-    }
-
-    sctx->ret.index = nearest.index;
+    nearest2d.nearest_point = nearest;
     return elem;
   }
 
   return SCE_SNAP_MODE_NONE;
 }
 
+eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
+                                    Object *ob_eval,
+                                    const ID * /*id*/,
+                                    const float obmat[4][4],
+                                    float dist_pex_sq_orig,
+                                    int edge)
+{
+  BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
+  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
+  return nearest2d.snap_edge_points(edge, dist_pex_sq_orig);
+}
+
 static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
                               SnapObjectContext *sctx,
+                              Object *ob_eval,
                               BMEditMesh *em,
                               const float obmat[4][4],
                               eSnapMode snap_to_flag)
 {
   BLI_assert(snap_to_flag != SCE_SNAP_MODE_FACE);
 
-  Nearest2dUserData nearest2d(sctx, sctx->ret.dist_px_sq, float4x4(obmat));
+  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
 
   /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!nearest2d.snap_boundbox(sod->min, sod->max)) {
@@ -594,8 +584,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
     }
   }
 
-  nearest2d.clip_planes_get(sctx, float4x4(obmat));
-  nearest2d_data_init_editmesh(em, &nearest2d);
+  nearest2d.clip_planes_enable();
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -641,19 +630,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
   }
 
   if (nearest.index != -1) {
-    copy_v3_v3(sctx->ret.loc, nearest.co);
-    copy_v3_v3(sctx->ret.no, nearest.no);
-
-    mul_m4_v3(obmat, sctx->ret.loc);
-
-    float imat[4][4];
-    invert_m4_m4(imat, obmat);
-    mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
-    normalize_v3(sctx->ret.no);
-
-    sctx->ret.dist_px_sq = nearest.dist_sq;
-    sctx->ret.index = nearest.index;
-
+    nearest2d.nearest_point = nearest;
     return elem;
   }
 
@@ -664,7 +641,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,
-                               ID * /*id*/,
+                               const ID * /*id*/,
                                const float obmat[4][4],
                                eSnapMode snap_to_flag,
                                bool /*use_hide*/)
@@ -682,7 +659,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   if (snap_mode_used & (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT |
                         SCE_SNAP_MODE_EDGE_PERPENDICULAR | SCE_SNAP_MODE_VERTEX))
   {
-    elem = snapEditMesh(sod, sctx, em, obmat, snap_to_flag);
+    elem = snapEditMesh(sod, sctx, ob_eval, em, obmat, snap_to_flag);
     if (elem) {
       return elem;
     }

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -17955,20 +17955,12 @@ msgid "Gpencil Settings"
 msgstr "Настройки Grease Pencil"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "Инструмент рисования Grease Pencil "
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "Кисть этого типа используется для рисования штрихов"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "Кисть этого типа используется для заливки"
-
-
-msgid "Erase"
-msgstr "Ластик"
 
 
 msgid "The brush is used for erasing strokes"
@@ -18013,22 +18005,6 @@ msgstr "Путь к файлу значка кисти"
 
 msgid "File path to brush icon"
 msgstr "Путь к файлу значка кисти"
-
-
-msgid "Image Paint Tool"
-msgstr "Инструмент рисования изображения"
-
-
-msgid "Soften"
-msgstr "Смягчение"
-
-
-msgid "Clone"
-msgstr "Клонирование"
-
-
-msgid "Mask"
-msgstr "Маска"
 
 
 msgid "Jitter the position of the brush while painting"
@@ -18161,70 +18137,6 @@ msgstr "Плоскость Y"
 
 msgid "Z Plane"
 msgstr "Плоскость Z"
-
-
-msgid "Sculpt Tool"
-msgstr "Инструмент скульптинга"
-
-
-msgid "Draw Sharp"
-msgstr "Острые грани"
-
-
-msgid "Clay"
-msgstr "Глина"
-
-
-msgid "Clay Strips"
-msgstr "Полосы глины"
-
-
-msgid "Clay Thumb"
-msgstr "Мазок глины"
-
-
-msgid "Blob"
-msgstr "Капля"
-
-
-msgid "Flatten"
-msgstr "Выравнивание"
-
-
-msgid "Scrape"
-msgstr "Царапина"
-
-
-msgid "Multi-plane Scrape"
-msgstr "Многоплоскостной скребок"
-
-
-msgid "Elastic Deform"
-msgstr "Эластичная деформация"
-
-
-msgid "Thumb"
-msgstr "Палец"
-
-
-msgid "Pose"
-msgstr "Поза"
-
-
-msgid "Nudge"
-msgstr "Сдвиг"
-
-
-msgid "Rotate"
-msgstr "Вращение"
-
-
-msgid "Boundary"
-msgstr "Граница"
-
-
-msgid "Cloth"
-msgstr "Ткань"
 
 
 msgid "Secondary Color"
@@ -18649,6 +18561,10 @@ msgstr "Настроить величину интервалов"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Автоматическая регулировка интенсивности для поддержания согласованности результатов на разных интервалах"
+
+
+msgid "Sculpt Tool"
+msgstr "Инструмент скульптинга"
 
 
 msgid "Grab UVs"
@@ -21520,6 +21436,10 @@ msgid "Shader Ball"
 msgstr "Шейдер-шар"
 
 
+msgid "Cloth"
+msgstr "Ткань"
+
+
 msgid "Refraction Depth"
 msgstr "Глубина преломления"
 
@@ -22722,6 +22642,10 @@ msgstr "Индексы вершин в случае, если родство о�
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "Номер для рендеринга индексов объектов"
+
+
+msgid "Pose"
+msgstr "Поза"
 
 
 msgid "Current pose for armatures"
@@ -29501,6 +29425,10 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "Отключить трафарет и перекрытие самопересечений с помощью прозрачных материалов"
 
 
+msgid "Mask"
+msgstr "Маска"
+
+
 msgid "Material slot in an object"
 msgstr "Слот материала в объекте"
 
@@ -34057,6 +33985,10 @@ msgid "Thickness factor"
 msgstr "Коэфф. толщины"
 
 
+msgid "Boundary"
+msgstr "Граница"
+
+
 msgid "Support face boundaries"
 msgstr "Включить поддержку границ граней"
 
@@ -36487,6 +36419,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Положение по Y середины эллипса"
 
 
+msgid "Soften"
+msgstr "Смягчение"
+
+
 msgid "Laplace"
 msgstr "Лаплас"
 
@@ -37134,6 +37070,10 @@ msgstr "RGB в оттенки серого"
 
 msgid "Render Layers"
 msgstr "Рендер-слои"
+
+
+msgid "Rotate"
+msgstr "Вращение"
 
 
 msgid "Method to use to filter rotation"
@@ -46315,6 +46255,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "Заменить существующие переменные драйверов, вместо того чтобы добавить их в конец списка"
 
 
+msgid "Flatten"
+msgstr "Выравнивание"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "Удалить отсутствие непрерывности (фильтр Эйлера)"
@@ -46429,6 +46373,19 @@ msgstr "Вставить ключевые кадры для активной F-�
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "Вставить ключевые кадры для выбранных F-кривых на месте расположения курсора"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Перейти к ключевому кадру"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Перейти к предыдущему/следующему ключевому кадру"
+
+
+msgid "Next Keyframe"
+msgstr "Следующий ключевой кадр"
 
 
 msgid "By Values Over Cursor Value"
@@ -54855,6 +54812,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "Создать новую кисть, если запрашиваемая кисть не существует"
 
 
+msgid "Clone"
+msgstr "Клонирование"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "Переключить между двумя кистями, а не циклически"
 
@@ -55613,10 +55574,6 @@ msgstr "Особые свойства"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "Весовой коэффициент для определения предпочтительного ключевого кадра"
-
-
-msgid "Next Keyframe"
-msgstr "Следующий ключевой кадр"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -57264,15 +57221,6 @@ msgstr "Показать журнал сообщений"
 
 msgid "Show info log in a separate window"
 msgstr "Показать журнал сообщений в отдельном окне"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Перейти к ключевому кадру"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Перейти к предыдущему/следующему ключевому кадру"
 
 
 msgctxt "Operator"
@@ -60500,10 +60448,6 @@ msgstr "Пространство между островами"
 
 msgid "Fraction"
 msgstr "Дробная часть"
-
-
-msgid "Pack"
-msgstr "Упаковать"
 
 
 msgctxt "Operator"
@@ -80053,10 +79997,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "В ноде не задан текстовой блок или файл, нечего компилировать"
 
 
-msgid "OSL query failed to open "
-msgstr "Ошибка открытия OSL-запроса "
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "Внешний скрипт шейдера должен использовать расширение .osl или .oso или иметь модульное имя"
 
@@ -83375,6 +83315,10 @@ msgstr "Добавить переход"
 
 msgid "Unpack"
 msgstr "Распаковать"
+
+
+msgid "Pack"
+msgstr "Упаковать"
 
 
 msgid "Original frame range: %d-%d (%d)"

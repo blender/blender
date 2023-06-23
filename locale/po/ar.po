@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -9383,22 +9383,6 @@ msgid "File path to brush icon"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﺔﻧﻮﻘﻳﺍ ﻒﻠﻣ ﺭﺎﺴﻣ"
 
 
-msgid "Image Paint Tool"
-msgstr "ﺭﻮﺼﻟﺍ ﻢﺳﺭ ﺓﺍﺩﺍ"
-
-
-msgid "Soften"
-msgstr "ﻒﻄّﻟ"
-
-
-msgid "Clone"
-msgstr "ﺦﺴﻧﺍ"
-
-
-msgid "Mask"
-msgstr "ءﺎﻄﻏ"
-
-
 msgid "Jitter the position of the brush while painting"
 msgstr "ﻢﺳﺮﻟﺍ ﺪﻨﻋ ﺓﺎﺷﺮﻔﻠﻟ ﻲﺋﺍﻮﺸﻋ ﻊﻗﻮﻣ"
 
@@ -9497,58 +9481,6 @@ msgstr "Y ﺢﻄﺴﻣ"
 
 msgid "Z Plane"
 msgstr "Z ﺢﻄﺴﻣ"
-
-
-msgid "Sculpt Tool"
-msgstr "ﺖﺤﻨﻟﺍ ﺓﺍﺩﺍ"
-
-
-msgid "Draw Sharp"
-msgstr "ﺩﺎﺣ ﻢﺳﺭ"
-
-
-msgid "Clay"
-msgstr "ﻝﺎﺼﻠﺻ"
-
-
-msgid "Clay Strips"
-msgstr "ﺔﻴﻨﻴﻃ ﺔﻃﺮﺷﺍ"
-
-
-msgid "Blob"
-msgstr "ﺔﻌﻘﻓ"
-
-
-msgid "Flatten"
-msgstr "ﺢﻄّﺳ"
-
-
-msgid "Scrape"
-msgstr "ﻂﺸﻛﺍ"
-
-
-msgid "Thumb"
-msgstr "ﻡﺎﻬﺑﺍ"
-
-
-msgid "Pose"
-msgstr "ﺔﻔﻗﻭ"
-
-
-msgid "Nudge"
-msgstr "ﻊﻓﺩﺍ"
-
-
-msgid "Rotate"
-msgstr "ﺭﻭﺩ"
-
-
-msgid "Boundary"
-msgstr "ﺪﺤﻟﺍ"
-
-
-msgid "Cloth"
-msgstr "ﺵﺎﻤﻗ"
 
 
 msgid "Secondary Color"
@@ -9873,6 +9805,10 @@ msgstr "ﻢﻌﻧﺍ ﺭﺎﺴﻣ ﻊﺒﺘﺘﻟ ﺓﺭﺄﻔﻟﺍ ﻦﻋ ﺓ�
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "ﺔﻔﻠﺘﺨﻤﻟﺍ ﺕﺍﺪﻋﺎﺒﺘﻠﻟ ﺔﻘﺳﺎﻨﺘﻣ ﺞﺋﺎﺘﻧ ءﺎﻄﻋﻹ﻿ ﺎﻴﺗﺍﺫ ﺓﻮﻘﻟﺍ ﻝﺪّﻋ"
+
+
+msgid "Sculpt Tool"
+msgstr "ﺖﺤﻨﻟﺍ ﺓﺍﺩﺍ"
 
 
 msgid "Relax UVs"
@@ -11763,6 +11699,10 @@ msgid "Hair strands"
 msgstr "ﺮﻌﺸﻟﺍ ﻝﺎﺒﺣ"
 
 
+msgid "Cloth"
+msgstr "ﺵﺎﻤﻗ"
+
+
 msgid "Roughness"
 msgstr "ﺔﻧﻮﺸﺧ"
 
@@ -12613,6 +12553,10 @@ msgstr "ﻞﺻﻻ﻿ﺍ ﻂﻘﻧ"
 
 msgid "Indices of vertices in case of a vertex parenting relation"
 msgstr "ﺔﻄﻘﻨﻟ ﻉﺮﻔﺗ ﺔﻗﻼ﻿ﻋ ﺔﻟﺎﺣ ﻲﻓ ﻂﻘﻨﻟﺍ ﺕﺍﺮﺷﺆﻣ"
+
+
+msgid "Pose"
+msgstr "ﺔﻔﻗﻭ"
 
 
 msgid "Current pose for armatures"
@@ -16894,6 +16838,10 @@ msgid "Mix Factor"
 msgstr "ﺞﻣﺪﻟﺍ ﻞﻣﺎﻌﻣ"
 
 
+msgid "Mask"
+msgstr "ءﺎﻄﻏ"
+
+
 msgid "Material slot in an object"
 msgstr "ﻦﺋﺎﻛ ﻲﻓ ﺔﻣﺎﺧ ﺔﺤﺘﻓ"
 
@@ -18952,6 +18900,10 @@ msgid "Thickness factor"
 msgstr "ﺔﻛﺎﻤﺴﻟﺍ ﻞﻣﺎﻌﻣ"
 
 
+msgid "Boundary"
+msgstr "ﺪﺤﻟﺍ"
+
+
 msgid "Support face boundaries"
 msgstr "ﻪﺟﻮﻟﺍ ﺩﻭﺪﺣ ﻢﻋﺩﺇ"
 
@@ -20264,6 +20216,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "ﺺﻗﺎﻨﻟﺍ ﻊﻄﻘﻟﺍ ﻒﺼﺘﻨﻤﻟ Y ﻊﻗﻮﻣ"
 
 
+msgid "Soften"
+msgstr "ﻒﻄّﻟ"
+
+
 msgid "Sobel"
 msgstr "ﻞﺑﻮﺳ"
 
@@ -20535,6 +20491,10 @@ msgstr "ﺎﻔﻟﺍ ﺐﺗﺭ"
 
 msgid "Render Layers"
 msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺕﺎﻘﺒﻃ"
+
+
+msgid "Rotate"
+msgstr "ﺭﻭﺩ"
 
 
 msgid "Offset image horizontally (factor of image size)"
@@ -24039,6 +23999,10 @@ msgid "Set Cursor"
 msgstr "ﺮﺷﺆﻤﻟﺍ ﻊﺿ"
 
 
+msgid "Flatten"
+msgstr "ﺢﻄّﺳ"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "ﺮﻟﻮﻳ ﻉﺎﻄﻘﻧﺍ ﻲﻔﺼﻣ"
@@ -24092,6 +24056,11 @@ msgstr "ﺕﺎﻴﻨﺤﻨﻤﻟﺍ ﻒﺧﺇ"
 
 msgid "Hide unselected rather than selected curves"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ ﻦﻣ ﻻ﻿ﺪﺑ ﺓﺭﺎﺘﺨﻣ ﺮﻴﻐﻟﺍ ﺕﺎﻴﻨﺤﻨﻤﻟﺍ ﻒﺧﺇ"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "ﺡﺎﺘﻔﻤﻟﺍ ﻰﻟﺍ ﺰﻔﻗﺍ"
 
 
 msgctxt "Operator"
@@ -27199,6 +27168,10 @@ msgid "Create Missing"
 msgstr "ﺩﻮﻘﻔﻤﻟﺍ ﺊﺸﻧﺍ"
 
 
+msgid "Clone"
+msgstr "ﺦﺴﻧﺍ"
+
+
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "ﻪﺟﻮﻟﺍ ﺭﺎﻴﺘﺧﺍ ﻲﻔﺧﺍ"
@@ -28103,11 +28076,6 @@ msgstr "ﺔﻳﺎﻬﻨﻟﺍ ﺔﻄﻘﻧ ﻰﻟﺍ ﺰﻔﻗﺍ"
 msgctxt "Operator"
 msgid "Frame Offset"
 msgstr "ﺭﺎﻃﻻ﻿ﺍ ﺔﺣﺍﺯﺍ"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "ﺡﺎﺘﻔﻤﻟﺍ ﻰﻟﺍ ﺰﻔﻗﺍ"
 
 
 msgid "Next Marker"

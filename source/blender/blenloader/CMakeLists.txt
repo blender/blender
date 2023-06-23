@@ -49,7 +49,6 @@ set(SRC
   intern/versioning_300.cc
   intern/versioning_400.cc
   intern/versioning_common.cc
-  intern/versioning_cycles.c
   intern/versioning_defaults.cc
   intern/versioning_dna.c
   intern/versioning_legacy.c

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -19709,20 +19709,12 @@ msgid "Gpencil Settings"
 msgstr "蜡笔设置"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "蜡笔绘制工具"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "用于绘制描边笔刷的类型"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "用于填充区域笔刷的类型"
-
-
-msgid "Erase"
-msgstr "擦除"
 
 
 msgid "The brush is used for erasing strokes"
@@ -19783,22 +19775,6 @@ msgstr "笔刷图标文件路径"
 
 msgid "File path to brush icon"
 msgstr "笔刷图标的文件路径"
-
-
-msgid "Image Paint Tool"
-msgstr "图像绘制工具"
-
-
-msgid "Soften"
-msgstr "柔化"
-
-
-msgid "Clone"
-msgstr "克隆"
-
-
-msgid "Mask"
-msgstr "遮罩"
 
 
 msgid "Invert Pressure for Density"
@@ -20059,86 +20035,6 @@ msgstr "Y 平面"
 
 msgid "Z Plane"
 msgstr "Z 平面"
-
-
-msgid "Sculpt Tool"
-msgstr "雕刻工具"
-
-
-msgid "Draw Sharp"
-msgstr "绘制刻痕"
-
-
-msgid "Clay"
-msgstr "黏塑"
-
-
-msgid "Clay Strips"
-msgstr "黏条"
-
-
-msgid "Clay Thumb"
-msgstr "指推"
-
-
-msgid "Blob"
-msgstr "球体"
-
-
-msgid "Flatten"
-msgstr "平化"
-
-
-msgid "Scrape"
-msgstr "刮削"
-
-
-msgid "Multi-plane Scrape"
-msgstr "多平面刮削"
-
-
-msgid "Elastic Deform"
-msgstr "弹性变形"
-
-
-msgid "Thumb"
-msgstr "拇指"
-
-
-msgid "Pose"
-msgstr "姿态"
-
-
-msgid "Nudge"
-msgstr "推移"
-
-
-msgid "Rotate"
-msgstr "旋转"
-
-
-msgid "Slide Relax"
-msgstr "滑动松弛(拓扑)"
-
-
-msgid "Boundary"
-msgstr "边界范围"
-
-
-msgid "Cloth"
-msgstr "布料"
-
-
-msgid "Draw Face Sets"
-msgstr "绘制面组"
-
-
-msgid "Multires Displacement Eraser"
-msgstr "多精度置换橡皮擦"
-
-
-msgid "Multires Displacement Smear"
-msgstr "多精度置换涂抹"
 
 
 msgid "Secondary Color"
@@ -20819,6 +20715,10 @@ msgstr "对湿润持久使用压感"
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "使用压力调制湿润持久"
+
+
+msgid "Sculpt Tool"
+msgstr "雕刻工具"
 
 
 msgid "Grab UVs"
@@ -24295,6 +24195,10 @@ msgid "Shader ball"
 msgstr "着色球"
 
 
+msgid "Cloth"
+msgstr "布料"
+
+
 msgid "Refraction Depth"
 msgstr "折射深度"
 
@@ -25725,6 +25629,10 @@ msgstr "顶点编号, 用于顶点父子关系中"
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "用于物体编号渲染通道的编号数值"
+
+
+msgid "Pose"
+msgstr "姿态"
 
 
 msgid "Current pose for armatures"
@@ -33667,6 +33575,10 @@ msgid "Override object and collection intersection priority value"
 msgstr "重写物体和集合交叉优先级灵敏值"
 
 
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Material slot in an object"
 msgstr "物体上的材质槽"
 
@@ -39511,6 +39423,10 @@ msgid "Thickness factor"
 msgstr "厚度系数"
 
 
+msgid "Boundary"
+msgstr "边界范围"
+
+
 msgid "Support face boundaries"
 msgstr "支持面边界"
 
@@ -42341,6 +42257,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "椭圆遮罩中心点的 Y 向位置"
 
 
+msgid "Soften"
+msgstr "柔化"
+
+
 msgid "Box Sharpen"
 msgstr "盒形锐化"
 
@@ -43174,6 +43094,10 @@ msgstr "RGB -> BW"
 
 msgid "Render Layers"
 msgstr "渲染层"
+
+
+msgid "Rotate"
+msgstr "旋转"
 
 
 msgid "Method to use to filter rotation"
@@ -57931,6 +57855,10 @@ msgid "Ensure selected keyframes' handles have equal length, optionally making t
 msgstr "确保所选关键帧的控制柄具有相等的长度，可以选择使其水平、自动、自动钳制或矢量控制柄类型转换为对齐"
 
 
+msgid "Flatten"
+msgstr "平化"
+
+
 msgid "Make the values of the selected keyframes' handles the same as their respective keyframes"
 msgstr "使被选中关键帧的控制柄的数值与各自关键帧相同"
 
@@ -58076,6 +58004,19 @@ msgstr "光标位置选中的通道"
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "为选中的函数曲线在游标点位置添加一个关键帧"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "跳转到关键帧"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "跳转到上一个 / 下一个关键帧"
+
+
+msgid "Next Keyframe"
+msgstr "下一关键帧"
 
 
 msgid "By Values Over Cursor Value"
@@ -68619,6 +68560,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "若所需的笔刷类型不存在, 则新建笔刷"
 
 
+msgid "Clone"
+msgstr "克隆"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "在两个笔刷间切换, 而不是循环切换"
 
@@ -69676,10 +69621,6 @@ msgstr "自定义属性"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "关键帧更倾向的权重系数"
-
-
-msgid "Next Keyframe"
-msgstr "下一关键帧"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -71558,15 +71499,6 @@ msgstr "显示信息日志"
 
 msgid "Show info log in a separate window"
 msgstr "在单独的窗口中显示信息日志"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "跳转到关键帧"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "跳转到上一个 / 下一个关键帧"
 
 
 msgctxt "Operator"
@@ -76371,10 +76303,6 @@ msgstr "分数"
 
 msgid "Specify a precise fraction of final UV output"
 msgstr "指定最终UV输出的精确比例"
-
-
-msgid "Pack"
-msgstr "打包"
 
 
 msgid "Pack to"
@@ -81852,10 +81780,6 @@ msgstr "克隆"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "遮罩"
-
-
-msgid "Brush Tip"
-msgstr "笔刷提示"
 
 
 msgid "Tiling"
@@ -92122,6 +92046,10 @@ msgid "Sequence strip to load one or more images"
 msgstr "加载一个或多个图像的序列片段"
 
 
+msgid "Multiply playback speed"
+msgstr "倍速播放"
+
+
 msgid "Mask Sequence"
 msgstr "遮罩序列"
 
@@ -92257,10 +92185,6 @@ msgstr "在片段内显示音频波形"
 
 msgid "Sound data-block used by this sequence"
 msgstr "序列所使用的声音数据块"
-
-
-msgid "Multiply playback speed"
-msgstr "倍速播放"
 
 
 msgid "Playback volume of the sound"
@@ -104031,10 +103955,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "未在节点中指定文本或文件, 无可编译对象"
 
 
-msgid "OSL query failed to open "
-msgstr "未能打开OSL查询 "
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "外部着色器脚本扩展名须为 .osl 或 .oso, 或模块名"
 
@@ -105153,10 +105073,6 @@ msgstr "%d 无活动UV层的网格"
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "%d 个副本被发现位于 %d 个网格中，镜像可能不完整"
-
-
-msgid "Node has no attribute "
-msgstr "节点没有属性 "
 
 
 msgid "No camera found"
@@ -109421,6 +109337,10 @@ msgid "Unpack"
 msgstr "解包"
 
 
+msgid "Pack"
+msgstr "打包"
+
+
 msgid "Original frame range: %d-%d (%d)"
 msgstr "原始帧范围: %d-%d (%d)"
 
@@ -112807,16 +112727,8 @@ msgid "Stepped"
 msgstr "阶化"
 
 
-msgid " attribute from geometry"
-msgstr " 来自几何体的属性"
-
-
 msgid "ID / Index"
 msgstr "ID/编号"
-
-
-msgid " from "
-msgstr " 从 "
 
 
 msgid "GP_Layer"
@@ -124699,10 +124611,6 @@ msgstr "Z 轴上的体素数"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "大于阈值的值位于生成的网格内"
-
-
-msgid " node"
-msgstr " 节点"
 
 
 msgid "Missing Data-Block"

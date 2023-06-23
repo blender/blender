@@ -145,7 +145,8 @@ static void movie_clip_foreach_cache(ID *id,
 static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   MovieClip *movie_clip = (MovieClip *)id;
-  BKE_bpath_foreach_path_fixed_process(bpath_data, movie_clip->filepath);
+  BKE_bpath_foreach_path_fixed_process(
+      bpath_data, movie_clip->filepath, sizeof(movie_clip->filepath));
 }
 
 static void write_movieTracks(BlendWriter *writer, ListBase *tracks)

@@ -1449,7 +1449,7 @@ static void gpencil_interpolate_seq_ui(bContext *C, wmOperator *op)
   row = uiLayoutRow(layout, true);
   uiItemR(row, op->ptr, "layers", 0, NULL, ICON_NONE);
 
-  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL) {
+  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
     row = uiLayoutRow(layout, true);
     uiItemR(row, op->ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
   }

@@ -66,6 +66,7 @@ class Sampling {
   ~Sampling(){};
 
   void init(const Scene *scene);
+  void init(const Object &probe_object);
   void end_sync();
   void step();
 
@@ -123,9 +124,16 @@ class Sampling {
     return interactive_mode_;
   }
 
+  /* Target sample count. */
   uint64_t sample_count() const
   {
     return sample_count_;
+  }
+
+  /* 0 based current sample. Might not increase sequentially in viewport. */
+  uint64_t sample_index() const
+  {
+    return sample_;
   }
 
   /* Return true if we are starting a new motion blur step. We need to run sync again since
@@ -151,6 +159,20 @@ class Sampling {
    * Returns point in a disk of radius 1 and centered on the origin.
    */
   static float2 sample_disk(const float2 &rand);
+
+  /**
+   * Uniform hemisphere distribution.
+   * \a rand is 2 random float in the [0..1] range.
+   * Returns point on a Z positive hemisphere of radius 1 and centered on the origin.
+   */
+  static float3 sample_hemisphere(const float2 &rand);
+
+  /**
+   * Uniform sphere distribution.
+   * \a rand is 2 random float in the [0..1] range.
+   * Returns point on the sphere of radius 1 and centered on the origin.
+   */
+  static float3 sample_sphere(const float2 &rand);
 
   /**
    * Uniform disc distribution using Fibonacci spiral sampling.

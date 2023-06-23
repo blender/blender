@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19504,20 +19504,12 @@ msgid "Gpencil Settings"
 msgstr "ც-ფანქრის პარამეტრები"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "ცვილის ფანქრის ხატვის ხელსაწყო"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "ფუნჯი მონასმების დასახატად გამოყენებული ტიპისაა"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "ფუნჯი არეალების შესავსებად გამოყენებული ტიპისაა"
-
-
-msgid "Erase"
-msgstr "წაშლა"
 
 
 msgid "The brush is used for erasing strokes"
@@ -19578,22 +19570,6 @@ msgstr "ფუნჯის ხატულის მისამართი"
 
 msgid "File path to brush icon"
 msgstr "ფუნჯის ხატულიანი ფაილის მისამართი"
-
-
-msgid "Image Paint Tool"
-msgstr "გამოსახულების სახატავი ხელსაწყო"
-
-
-msgid "Soften"
-msgstr "შერბილება"
-
-
-msgid "Clone"
-msgstr "კლონირება"
-
-
-msgid "Mask"
-msgstr "ნიღაბი"
 
 
 msgid "Invert Pressure for Density"
@@ -19854,86 +19830,6 @@ msgstr "Y სიბრტყე"
 
 msgid "Z Plane"
 msgstr "Z სიბრტყე"
-
-
-msgid "Sculpt Tool"
-msgstr "ძერწვის ხელსაწყო"
-
-
-msgid "Draw Sharp"
-msgstr "მკვეთრად დახატვა"
-
-
-msgid "Clay"
-msgstr "თიხა"
-
-
-msgid "Clay Strips"
-msgstr "თიხის ზოლები"
-
-
-msgid "Clay Thumb"
-msgstr "ცერი თიხაზე"
-
-
-msgid "Blob"
-msgstr "დაბუშტვა"
-
-
-msgid "Flatten"
-msgstr "გაბრტყელება"
-
-
-msgid "Scrape"
-msgstr "მოფხეკა"
-
-
-msgid "Multi-plane Scrape"
-msgstr "მრავალსიბრტყიანი მოფხეკა"
-
-
-msgid "Elastic Deform"
-msgstr "რეზინით დეფორმირება"
-
-
-msgid "Thumb"
-msgstr "ცერი"
-
-
-msgid "Pose"
-msgstr "პოზირება"
-
-
-msgid "Nudge"
-msgstr "ბიძგი"
-
-
-msgid "Rotate"
-msgstr "ბრუნვა"
-
-
-msgid "Slide Relax"
-msgstr "გაცურებით მოშვება"
-
-
-msgid "Boundary"
-msgstr "ზღვარი"
-
-
-msgid "Cloth"
-msgstr "ქსოვილი"
-
-
-msgid "Draw Face Sets"
-msgstr "წახნაგთა ნაკრებების დახატვა"
-
-
-msgid "Multires Displacement Eraser"
-msgstr "მულტირეზ. გადანაცვლების საშლელი"
-
-
-msgid "Multires Displacement Smear"
-msgstr "მულტირეზ. გადანაცვლების გათხიპნა"
 
 
 msgid "Secondary Color"
@@ -20614,6 +20510,10 @@ msgstr "ზეწოლის გამოყენება სველი ს
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "ზეწოლის გამოყენება სველი სიმტკიცის მოდულაციისთვის"
+
+
+msgid "Sculpt Tool"
+msgstr "ძერწვის ხელსაწყო"
 
 
 msgid "Grab UVs"
@@ -24059,6 +23959,10 @@ msgid "Shader ball"
 msgstr "იერფერის ბურთი"
 
 
+msgid "Cloth"
+msgstr "ქსოვილი"
+
+
 msgid "Refraction Depth"
 msgstr "გარდატეხის სიღრმე"
 
@@ -25481,6 +25385,10 @@ msgstr "წვეროთა ინდექსები წვეროს დ
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "ინდექსის ნომერი სარენდერო გავლა \"ობიექტის ინდექსი\"-სთვის "
+
+
+msgid "Pose"
+msgstr "პოზირება"
 
 
 msgid "Current pose for armatures"
@@ -30854,6 +30762,10 @@ msgid "Effectiveness"
 msgstr "ეფექტურობა"
 
 
+msgid "Mask"
+msgstr "ნიღაბი"
+
+
 msgid "Material slot in an object"
 msgstr "მასალის სლოტი ობიექტში"
 
@@ -32164,6 +32076,10 @@ msgid "Face Area"
 msgstr "წახნაგის არეალი"
 
 
+msgid "Boundary"
+msgstr "ზღვარი"
+
+
 msgid "Offset Relative"
 msgstr "შეფარდებითი აცდენა"
 
@@ -32408,6 +32324,10 @@ msgid "Adjacent Only"
 msgstr "მხოლოდ მომიჯნავე"
 
 
+msgid "Soften"
+msgstr "შერბილება"
+
+
 msgid "Laplace"
 msgstr "ლაპლასი"
 
@@ -32458,6 +32378,10 @@ msgstr "ჩამკეტი"
 
 msgid "Motion Blur"
 msgstr "გადღაბნილი მოძრაობა"
+
+
+msgid "Rotate"
+msgstr "ბრუნვა"
 
 
 msgid "Translate"
@@ -34540,6 +34464,10 @@ msgstr "გამოიყენე თაგვი 3გ სარკმელ�
 msgctxt "Operator"
 msgid "Blend to Neighbor"
 msgstr "შერწყი მეზობელთან"
+
+
+msgid "Flatten"
+msgstr "გაბრტყელება"
 
 
 msgid "Selection to Cursor Value"
@@ -36927,6 +36855,10 @@ msgstr "ფაილის გასუფთავება ყველა გ
 
 msgid "Draw curve"
 msgstr "დახატე მრუდი"
+
+
+msgid "Clone"
+msgstr "კლონირება"
 
 
 msgctxt "Operator"
@@ -39798,10 +39730,6 @@ msgstr "კლონირება"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "ნიღაბი"
-
-
-msgid "Brush Tip"
-msgstr "ფუნჯის წვერი"
 
 
 msgid "Tiling"
@@ -47419,10 +47347,6 @@ msgstr "შეაფერადე გლუვად"
 
 msgid "Edge Crease"
 msgstr "წიბოს ნაკეცი"
-
-
-msgid " node"
-msgstr " კვანძი"
 
 
 msgid "Shader Editor"

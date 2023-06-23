@@ -3138,9 +3138,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   if (!main->is_read_invalid) {
     blo_do_versions_400(fd, lib, main);
   }
-  if (!main->is_read_invalid) {
-    blo_do_versions_cycles(fd, lib, main);
-  }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
   /* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
@@ -3184,9 +3181,6 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   if (!main->is_read_invalid) {
     do_versions_after_linking_400(fd, main);
   }
-  if (!main->is_read_invalid) {
-    do_versions_after_linking_cycles(main);
-  }
 
   main->is_locked_for_linking = false;
 }
@@ -3203,6 +3197,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
+    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
+
     if ((id->tag & (LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO)) !=
         0) {
       BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
@@ -3210,10 +3206,18 @@ static void lib_link_all(FileData *fd, Main *bmain)
        * current undo step, and old IDs re-use their old memory address, we do not need to liblink
        * it at all. */
       BLI_assert((id->tag & LIB_TAG_NEED_LINK) == 0);
+
+      /* Some data that should be persistent, like the 3DCursor or the tool settings, are
+       * stored in IDs affected by undo, like Scene. So this requires some specific handling. */
+      /* NOTE: even though the ID may have been detected as unchanged, the 'undo_preserve' may have
+       * to actually change some of its ID pointers, it's e.g. the case with Scene's toolsettings
+       * Brush/Palette pointers. This is the case where both new and old ID may be the same. */
+      if (id_type->blend_read_undo_preserve != nullptr) {
+        BLI_assert(fd->flags & FD_FLAGS_IS_MEMFILE);
+        id_type->blend_read_undo_preserve(&reader, id, id->orig_id ? id->orig_id : id);
+      }
       continue;
     }
-
-    const IDTypeInfo *id_type = BKE_idtype_get_info_from_id(id);
 
     if ((id->tag & LIB_TAG_NEED_LINK) != 0) {
       lib_link_id(&reader, id);
@@ -4704,6 +4708,11 @@ ID *BLO_read_get_new_id_address(BlendLibReader *reader,
                                 ID *id)
 {
   return static_cast<ID *>(newlibadr(reader->fd, self_id, is_linked_only, id));
+}
+
+ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+{
+  return BKE_main_idmap_lookup_uuid(reader->fd->new_idmap_uuid, session_uuid);
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader)

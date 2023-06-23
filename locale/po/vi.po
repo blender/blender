@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -19161,20 +19161,12 @@ msgid "Gpencil Settings"
 msgstr "Cài Đặt Bút Sáp"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "Dụng Cụ Vẽ Bút Sáp"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "Bút là loại sử dụng cho vẽ nét"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "Bút là loại sử dụng cho tô đầy khu vực"
-
-
-msgid "Erase"
-msgstr "Bôi"
 
 
 msgid "The brush is used for erasing strokes"
@@ -19235,22 +19227,6 @@ msgstr "Đường Dẫn Biểu Tượng Bút"
 
 msgid "File path to brush icon"
 msgstr "Đường dẫn tập tin đến biểu tượng bút"
-
-
-msgid "Image Paint Tool"
-msgstr "Dụng Cụ Sơn Ảnh"
-
-
-msgid "Soften"
-msgstr "Mềm Hóa"
-
-
-msgid "Clone"
-msgstr "Chép Lại"
-
-
-msgid "Mask"
-msgstr "Mặt Nạ"
 
 
 msgid "Invert Pressure for Density"
@@ -19511,86 +19487,6 @@ msgstr "Mặt Phẳng Y"
 
 msgid "Z Plane"
 msgstr "Mặt Phẳng Z"
-
-
-msgid "Sculpt Tool"
-msgstr "Dụng Cụ Khắc"
-
-
-msgid "Draw Sharp"
-msgstr "Vẽ Bén"
-
-
-msgid "Clay"
-msgstr "Đất Sét"
-
-
-msgid "Clay Strips"
-msgstr "Dãy Đất Sét"
-
-
-msgid "Clay Thumb"
-msgstr "Ngón Tay Cái Đất Sét"
-
-
-msgid "Blob"
-msgstr "Cầu Thể"
-
-
-msgid "Flatten"
-msgstr "Bằng Phẳng Hóa"
-
-
-msgid "Scrape"
-msgstr "Cào"
-
-
-msgid "Multi-plane Scrape"
-msgstr "Cào Đa-Mặt Phẳng"
-
-
-msgid "Elastic Deform"
-msgstr "Méo Hóa Dẻo"
-
-
-msgid "Thumb"
-msgstr "Ngon Tay Cái"
-
-
-msgid "Pose"
-msgstr "Dạng Đứng"
-
-
-msgid "Nudge"
-msgstr "Dời Chút"
-
-
-msgid "Rotate"
-msgstr "Xoay"
-
-
-msgid "Slide Relax"
-msgstr "Giãn Trơn Trượt"
-
-
-msgid "Boundary"
-msgstr "Ranh Giới"
-
-
-msgid "Cloth"
-msgstr "Vải"
-
-
-msgid "Draw Face Sets"
-msgstr "Vẽ Tập Hợp Mặt"
-
-
-msgid "Multires Displacement Eraser"
-msgstr "Đồ Bôi Dịch Đa Độ Phân Giải"
-
-
-msgid "Multires Displacement Smear"
-msgstr "Nhẹp Dịch Đa Độ Phân Giải"
 
 
 msgid "Secondary Color"
@@ -20223,6 +20119,10 @@ msgstr "Dùng Áp Suất Cho Cố Chấp Ướt"
 
 msgid "Use pressure to modulate wet persistence"
 msgstr "Dùng áp suất để biến dạng cố chấp ướt"
+
+
+msgid "Sculpt Tool"
+msgstr "Dụng Cụ Khắc"
 
 
 msgid "Grab UVs"
@@ -23628,6 +23528,10 @@ msgid "Shader ball"
 msgstr "Cầu bộ tô sắc"
 
 
+msgid "Cloth"
+msgstr "Vải"
+
+
 msgid "Refraction Depth"
 msgstr "Độ Sâu Khúc Xạ"
 
@@ -25018,6 +24922,10 @@ msgstr "Chỉ số của các đỉnh cho trường hợp có liên hệ phụ h
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "Chỉ số cho vòng kết xuất \"Chỉ Số Vật Liệu\""
+
+
+msgid "Pose"
+msgstr "Dạng Đứng"
 
 
 msgid "Current pose for armatures"
@@ -32828,6 +32736,10 @@ msgid "Override object and collection intersection priority value"
 msgstr "Vượt quyền giá trị ưu tiên của vật thể và giao cắt sưu tập"
 
 
+msgid "Mask"
+msgstr "Mặt Nạ"
+
+
 msgid "Material slot in an object"
 msgstr "Khe vật liệu trong một vật thể"
 
@@ -38517,6 +38429,10 @@ msgid "Thickness factor"
 msgstr "Hệ số độ dày"
 
 
+msgid "Boundary"
+msgstr "Ranh Giới"
+
+
 msgid "Support face boundaries"
 msgstr "Hỗ trợ ranh giới mặt"
 
@@ -41301,6 +41217,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Vị trí Y cho trung tâm elip"
 
 
+msgid "Soften"
+msgstr "Mềm Hóa"
+
+
 msgid "Box Sharpen"
 msgstr "Bén Hóa Hộp"
 
@@ -42125,6 +42045,10 @@ msgstr "RGB Sang Trắng Đen"
 
 msgid "Render Layers"
 msgstr "Lớp Kết Xuất"
+
+
+msgid "Rotate"
+msgstr "Xoay"
 
 
 msgid "Method to use to filter rotation"
@@ -56219,6 +56143,10 @@ msgid "Ensure selected keyframes' handles have equal length, optionally making t
 msgstr "Làm chắc những tay cầm của bức ảnh mẫu dài bằng nhau, tùy chọn làm chúng nó ngang. Tự Động Kẹp Lại, hay đổi loại tay cầm Vectơ sang Sắp Hàng"
 
 
+msgid "Flatten"
+msgstr "Bằng Phẳng Hóa"
+
+
 msgid "Make the values of the selected keyframes' handles the same as their respective keyframes"
 msgstr "Làm gía trị của tay cầm Bezier của các bức ảnh mẫu giống các bức ảnh mẫu liên quan"
 
@@ -56364,6 +56292,19 @@ msgstr "Các Kênh Được Chọn tại Con Trỏ"
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "Chén một bức ảnh mẫu cho các Cong-F được chọn tại điểm của con trỏ"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Nhảy Đến Bức Ảnh Mẫu"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Nhảy đến bức ảnh trước/tiếp"
+
+
+msgid "Next Keyframe"
+msgstr "Bức Ảnh Tiếp"
 
 
 msgid "By Values Over Cursor Value"
@@ -66534,6 +66475,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "Nếu không có loại bút yêu cầu, chế tạo một bút mới"
 
 
+msgid "Clone"
+msgstr "Chép Lại"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "Đổi giữa hai bút thay thế chu trình vòng"
 
@@ -67555,10 +67500,6 @@ msgstr "Đặc tính tự tạo"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "Quyền lượng cho hổ trợ bức ảnh mẫu nào hơn"
-
-
-msgid "Next Keyframe"
-msgstr "Bức Ảnh Tiếp"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -69413,15 +69354,6 @@ msgstr "Hiện Nhật Ký Thông Tin"
 
 msgid "Show info log in a separate window"
 msgstr "Hiện nhật ký thông tin trong một cửa sổ riêng"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Nhảy Đến Bức Ảnh Mẫu"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Nhảy đến bức ảnh trước/tiếp"
 
 
 msgctxt "Operator"
@@ -74018,10 +73950,6 @@ msgstr "Khoảng cách giữa đảo"
 
 msgid "Fraction"
 msgstr "Phân Số"
-
-
-msgid "Pack"
-msgstr "Gói Lại"
 
 
 msgid "Pack to"
@@ -79329,10 +79257,6 @@ msgstr "Chép Lại"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "Mặt Nạ"
-
-
-msgid "Brush Tip"
-msgstr "Đỉnh Bút"
 
 
 msgid "Tiling"
@@ -89223,6 +89147,10 @@ msgid "Sequence strip to load one or more images"
 msgstr "Đoạn trình tự cho nhập một ảnh trở lên"
 
 
+msgid "Multiply playback speed"
+msgstr "Nhân tốc độ hát lại"
+
+
 msgid "Mask Sequence"
 msgstr "Trình Tự Mặt Nạ"
 
@@ -89353,10 +89281,6 @@ msgstr "Hiển thị dạng sóng của âm thanh ở trong đoạn"
 
 msgid "Sound data-block used by this sequence"
 msgstr "Cục dữ liệu âm thanh được trình tự này dùng"
-
-
-msgid "Multiply playback speed"
-msgstr "Nhân tốc độ hát lại"
 
 
 msgid "Playback volume of the sound"
@@ -100512,10 +100436,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "Không xác định tập tin trong giao điểm, không có gì để biên dịch"
 
 
-msgid "OSL query failed to open "
-msgstr "Mở tham hỏi OSL bị thất bại"
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "Văn thảo bộ tô sắc ngoại phải có đuôi .osl hay .oso, hay là một mô đun "
 
@@ -101411,10 +101331,6 @@ msgstr "%d mạng lưới không có lớp UV hoạt động"
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "Tìm được %d bàn sao trong %d mạng lưới, có lẽ gương bị thiếu"
-
-
-msgid "Node has no attribute "
-msgstr "Giao điểm không có đặc điểm"
 
 
 msgid "No camera found"
@@ -105551,6 +105467,10 @@ msgid "Unpack"
 msgstr "Gỡ Gói"
 
 
+msgid "Pack"
+msgstr "Gói Lại"
+
+
 msgid "Original frame range: %d-%d (%d)"
 msgstr "Phạm vi bức ảnh ban đầu: %d-%d (%d)"
 
@@ -108798,16 +108718,8 @@ msgid "Stepped"
 msgstr "Bước"
 
 
-msgid " attribute from geometry"
-msgstr " đặc điểm từ hình dạng"
-
-
 msgid "ID / Index"
 msgstr "ID / Chỉ Số"
-
-
-msgid " from "
-msgstr " từ "
 
 
 msgid "GP_Layer"
@@ -119680,10 +119592,6 @@ msgstr "Số lượng thể tích tử trong trục Z"
 
 msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Giá trị lớn hơn ngưỡng được chế tạo trong mạng lưới"
-
-
-msgid " node"
-msgstr " giao điểm"
 
 
 msgid "Missing Data-Block"

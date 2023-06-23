@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -10621,10 +10621,6 @@ msgid "Introduce jitter/randomness into strokes"
 msgstr "Introduce del tremolio/casualità nei tratti"
 
 
-msgid "Erase"
-msgstr "Cancella"
-
-
 msgid "Gradient Fill Mode"
 msgstr "Modo Riempimento Gradiente"
 
@@ -10647,22 +10643,6 @@ msgstr "Percorso Icona Pennello"
 
 msgid "File path to brush icon"
 msgstr "Percorso dell'icona per il pennello"
-
-
-msgid "Image Paint Tool"
-msgstr "Strumento Pittura Immagine"
-
-
-msgid "Soften"
-msgstr "Ammorbidisci"
-
-
-msgid "Clone"
-msgstr "Clona"
-
-
-msgid "Mask"
-msgstr "Maschera"
 
 
 msgid "Jitter the position of the brush while painting"
@@ -10739,58 +10719,6 @@ msgstr "Piano Y"
 
 msgid "Z Plane"
 msgstr "Piano Z"
-
-
-msgid "Sculpt Tool"
-msgstr "Strumento Scultura"
-
-
-msgid "Draw Sharp"
-msgstr "Disegna Netti"
-
-
-msgid "Clay"
-msgstr "Argilla"
-
-
-msgid "Clay Strips"
-msgstr "Striscia d'Argilla"
-
-
-msgid "Blob"
-msgstr "Bolle"
-
-
-msgid "Flatten"
-msgstr "Appiattisci"
-
-
-msgid "Scrape"
-msgstr "Gratta"
-
-
-msgid "Thumb"
-msgstr "Premi & Spingi"
-
-
-msgid "Pose"
-msgstr "Posa"
-
-
-msgid "Nudge"
-msgstr "Deforma"
-
-
-msgid "Rotate"
-msgstr "Ruota"
-
-
-msgid "Boundary"
-msgstr "Confini"
-
-
-msgid "Cloth"
-msgstr "Stoffa"
 
 
 msgid "Secondary Color"
@@ -11003,6 +10931,10 @@ msgstr "Tratto Omogeneo"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Aggiusta automaticamente la forza per dare risultati consistenti per spaziature differenti"
+
+
+msgid "Sculpt Tool"
+msgstr "Strumento Scultura"
 
 
 msgid "Grab UVs"
@@ -12791,6 +12723,10 @@ msgid "Hair strands"
 msgstr "Filamenti Capelli"
 
 
+msgid "Cloth"
+msgstr "Stoffa"
+
+
 msgid "Refraction Depth"
 msgstr "Profondità Rifrazione"
 
@@ -13601,6 +13537,10 @@ msgstr "L'oggetto è imparentato ad un osso"
 
 msgid "Parent Vertices"
 msgstr "Vertici Imparentati"
+
+
+msgid "Pose"
+msgstr "Posa"
 
 
 msgid "Current pose for armatures"
@@ -18341,6 +18281,10 @@ msgid "Mix Factor"
 msgstr "Fattore Miscela"
 
 
+msgid "Mask"
+msgstr "Maschera"
+
+
 msgid "Material slot in an object"
 msgstr "Slot del materiale in un oggetto"
 
@@ -21792,6 +21736,10 @@ msgid "Thickness factor"
 msgstr "Fattore spessore"
 
 
+msgid "Boundary"
+msgstr "Confini"
+
+
 msgid "Support face boundaries"
 msgstr "Supporta le facce di confine"
 
@@ -23388,6 +23336,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "Posizione Y della metà dell'ellisse"
 
 
+msgid "Soften"
+msgstr "Ammorbidisci"
+
+
 msgid "Laplace"
 msgstr "Laplace"
 
@@ -23639,6 +23591,10 @@ msgstr "RGB a BN"
 
 msgid "Render Layers"
 msgstr "Livelli Render"
+
+
+msgid "Rotate"
+msgstr "Ruota"
 
 
 msgid "Offset image horizontally (factor of image size)"
@@ -29876,6 +29832,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "Sostituisce le variabili guida esistenti, anzichè semplicemente aggiungerle alla fine della lista esistente"
 
 
+msgid "Flatten"
+msgstr "Appiattisci"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "Filtro discontinuo di Eulero"
@@ -29973,6 +29933,19 @@ msgstr "Inserisce un fotogramma chiave per la Curva-F attiva nella posizione del
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "Inserisce un fotogramma chiave per le Curva-F selezionate nella posizione del cursore"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Salta al Fotogramma Chiave"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Salta a fotogramma chiave precedente/successivo"
+
+
+msgid "Next Keyframe"
+msgstr "Fotogramma Chiave Successivo"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -35840,6 +35813,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "Se il tipo di pennello richiesto non esiste, ne crea uno nuovo"
 
 
+msgid "Clone"
+msgstr "Clona"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "Alterna fra due pennelli anzichè ciclare"
 
@@ -36463,10 +36440,6 @@ msgstr "Proprietà di forma Osso Flessibile"
 
 msgid "Custom properties"
 msgstr "Proprietà personalizzate"
-
-
-msgid "Next Keyframe"
-msgstr "Fotogramma Chiave Successivo"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -37747,15 +37720,6 @@ msgstr "Espandi/Contrai Menù dell'Intestazione"
 
 msgid "Expand or collapse the header pulldown menus"
 msgstr "Espande o contrae i menù a discesa dell'intestazione"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Salta al Fotogramma Chiave"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Salta a fotogramma chiave precedente/successivo"
 
 
 msgctxt "Operator"
@@ -40024,10 +39988,6 @@ msgstr "Compatta Isole"
 
 msgid "Space between islands"
 msgstr "Spazio tra le isole"
-
-
-msgid "Pack"
-msgstr "Comprimi"
 
 
 msgctxt "Operator"
@@ -53533,6 +53493,10 @@ msgid "Unpack"
 msgstr "Estrai"
 
 
+msgid "Pack"
+msgstr "Comprimi"
+
+
 msgid "Original frame range: %d-%d (%d)"
 msgstr "Intervallo fotogrammi originale: %d-%d (%d)"
 
@@ -59322,10 +59286,6 @@ msgstr "Piega Spigolo"
 
 msgid "Rotate islands for best fit"
 msgstr "Ruota le isole per ottimizzare lo spazio"
-
-
-msgid " node"
-msgstr " nodo"
 
 
 msgid "Shader Editor"

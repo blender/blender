@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1957,32 +1957,12 @@ msgid "Projected"
 msgstr "Geprojecteerd"
 
 
-msgid "Erase"
-msgstr "Gummen"
-
-
 msgid "Repeat"
 msgstr "Herhaal"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
 msgid "Brush"
 msgstr "Kwast"
-
-
-msgid "Clay"
-msgstr "Klei"
-
-
-msgid "Rotate"
-msgstr "Roteren"
-
-
-msgid "Cloth"
-msgstr "Kleding"
 
 
 msgid "Elastic"
@@ -2254,6 +2234,10 @@ msgstr "Kubus"
 
 msgid "Hair"
 msgstr "Haar"
+
+
+msgid "Cloth"
+msgstr "Kleding"
 
 
 msgid "Roughness"
@@ -2703,6 +2687,10 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
+msgid "Mask"
+msgstr "Mask"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -3077,6 +3065,10 @@ msgstr "Bewegingsonscherpte"
 
 msgid "Render Layers"
 msgstr "Render Lagen"
+
+
+msgid "Rotate"
+msgstr "Roteren"
 
 
 msgid "Translate"
@@ -4317,6 +4309,10 @@ msgid "Hide Curves"
 msgstr "Verberg Krommes"
 
 
+msgid "Next Keyframe"
+msgstr "Volgende Sleutelframe"
+
+
 msgctxt "Operator"
 msgid "Reveal Curves"
 msgstr "Toon Krommes"
@@ -5371,10 +5367,6 @@ msgstr "Pas Pose als Rust Pose Toe"
 
 msgid "Rotation only"
 msgstr "Alleen Rotatie"
-
-
-msgid "Next Keyframe"
-msgstr "Volgende Sleutelframe"
 
 
 msgid "Previous Keyframe"
@@ -8805,10 +8797,6 @@ msgstr "Oppervlak"
 msgctxt "Action"
 msgid "var"
 msgstr "var"
-
-
-msgid " from "
-msgstr " van "
 
 
 msgid "%i frames found!"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -11600,22 +11600,6 @@ msgid "File path to brush icon"
 msgstr "筆刷圖示的檔案路徑"
 
 
-msgid "Image Paint Tool"
-msgstr "影像繪製工具"
-
-
-msgid "Soften"
-msgstr "柔化"
-
-
-msgid "Clone"
-msgstr "拓製"
-
-
-msgid "Mask"
-msgstr "遮罩"
-
-
 msgid "Jitter the position of the brush while painting"
 msgstr "繪製時抖動筆刷的位置"
 
@@ -11726,62 +11710,6 @@ msgstr "Y 平面"
 
 msgid "Z Plane"
 msgstr "Z 平面"
-
-
-msgid "Sculpt Tool"
-msgstr "雕塑工具"
-
-
-msgid "Draw Sharp"
-msgstr "描繪銳利"
-
-
-msgid "Clay"
-msgstr "黏土"
-
-
-msgid "Clay Strips"
-msgstr "黏土片段"
-
-
-msgid "Blob"
-msgstr "塗抹"
-
-
-msgid "Flatten"
-msgstr "弄平"
-
-
-msgid "Scrape"
-msgstr "刮削"
-
-
-msgid "Thumb"
-msgstr "縮圖"
-
-
-msgid "Pose"
-msgstr "姿勢"
-
-
-msgid "Nudge"
-msgstr "輕推"
-
-
-msgid "Rotate"
-msgstr "旋轉"
-
-
-msgid "Boundary"
-msgstr "邊界"
-
-
-msgid "Cloth"
-msgstr "布料"
-
-
-msgid "Draw Face Sets"
-msgstr "繪製面集"
 
 
 msgid "Secondary Color"
@@ -12134,6 +12062,10 @@ msgstr "筆刷遲滯在滑鼠之後並跟隨較平滑的路徑"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "自動調整強度以給予不同間隔一致的結果"
+
+
+msgid "Sculpt Tool"
+msgstr "雕塑工具"
 
 
 msgid "Grab UVs"
@@ -14054,6 +13986,10 @@ msgid "Hair strands"
 msgstr "毛髮線股"
 
 
+msgid "Cloth"
+msgstr "布料"
+
+
 msgid "Roughness"
 msgstr "粗糙度"
 
@@ -14928,6 +14864,10 @@ msgstr "親代頂點"
 
 msgid "Indices of vertices in case of a vertex parenting relation"
 msgstr "頂點親子關係案例中的頂點索引"
+
+
+msgid "Pose"
+msgstr "姿勢"
 
 
 msgid "Current pose for armatures"
@@ -19092,6 +19032,10 @@ msgid "Scale Factor for Texture"
 msgstr "紋理縮放係數"
 
 
+msgid "Mask"
+msgstr "遮罩"
+
+
 msgid "Material slot in an object"
 msgstr "物體中的材質槽"
 
@@ -22282,6 +22226,10 @@ msgid "Thickness factor"
 msgstr "厚度係數"
 
 
+msgid "Boundary"
+msgstr "邊界"
+
+
 msgid "Support face boundaries"
 msgstr "支援面邊界"
 
@@ -24350,6 +24298,10 @@ msgid "Width of the ellipse"
 msgstr "橢圓的寬"
 
 
+msgid "Soften"
+msgstr "柔化"
+
+
 msgid "Laplace"
 msgstr "拉普拉斯"
 
@@ -24777,6 +24729,10 @@ msgstr "RGB 至黑白"
 
 msgid "Render Layers"
 msgstr "算繪分層"
+
+
+msgid "Rotate"
+msgstr "旋轉"
 
 
 msgid "Method to use to filter rotation"
@@ -31170,6 +31126,10 @@ msgid "Replace Existing"
 msgstr "替換既有"
 
 
+msgid "Flatten"
+msgstr "弄平"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "非連續性尤拉過濾器"
@@ -31234,6 +31194,19 @@ msgstr "建立殘影曲線"
 
 msgid "Create snapshot (Ghosts) of selected F-Curves as background aid for active Graph Editor"
 msgstr "為所選 F 曲線建立快照 (殘影) 為背景來輔助作用中的圖表編輯器"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "跳到鍵幀"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "跳到上一個/下一個鍵幀"
+
+
+msgid "Next Keyframe"
+msgstr "下一鍵幀"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -36745,6 +36718,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "如果請求的筆刷類型不存在，便建立新的筆刷"
 
 
+msgid "Clone"
+msgstr "拓製"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "在兩個筆刷之間切換，而不是循環"
 
@@ -37407,10 +37384,6 @@ msgstr "僅縮放"
 
 msgid "Custom properties"
 msgstr "自訂屬性"
-
-
-msgid "Next Keyframe"
-msgstr "下一鍵幀"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -38864,15 +38837,6 @@ msgstr "框幀偏移"
 
 msgid "Move current frame forward/backward by a given number"
 msgstr "以給定的數目往前/往後移動目前的框幀"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "跳到鍵幀"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "跳到上一個/下一個鍵幀"
 
 
 msgctxt "Operator"
@@ -53424,10 +53388,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "節點中無指定文字或檔案，無可編譯"
 
 
-msgid "OSL query failed to open "
-msgstr "OSL 查詢無法開啟"
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "外部著色器指令稿必須有 .osl 或 .oso 副檔名，或者是一個模組名稱"
 
@@ -56294,14 +56254,6 @@ msgstr "內建函式"
 
 msgid "Stepped"
 msgstr "步進"
-
-
-msgid " attribute from geometry"
-msgstr " 幾何的屬性"
-
-
-msgid " from "
-msgstr " 來自 "
 
 
 msgid "Cannot pack multiview images from raw data currently..."

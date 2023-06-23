@@ -1436,7 +1436,8 @@ static bool rna_MeshEdge_is_loose_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const int index = rna_MeshEdge_index_get(ptr);
-  return ED_mesh_edge_is_loose(mesh, index);
+  const blender::bke::LooseEdgeCache &loose_edges = mesh->loose_edges();
+  return loose_edges.count > 0 && loose_edges.is_loose_bits[index];
 }
 
 static int rna_MeshLoopTriangle_material_index_get(PointerRNA *ptr)
@@ -1945,19 +1946,6 @@ static bool rna_Mesh_is_editmode_get(PointerRNA *ptr)
 {
   Mesh *me = rna_mesh(ptr);
   return (me->edit_mesh != nullptr);
-}
-
-/* only to quiet warnings */
-static void UNUSED_FUNCTION(rna_mesh_unused)(void)
-{
-  /* unused functions made by macros */
-  (void)rna_Mesh_skin_vertice_index_range;
-  (void)rna_Mesh_vertex_paint_mask_index_range;
-  (void)rna_Mesh_uv_layer_render_get;
-  (void)rna_Mesh_uv_layer_render_index_get;
-  (void)rna_Mesh_uv_layer_render_index_set;
-  (void)rna_Mesh_uv_layer_render_set;
-  /* end unused function block */
 }
 
 static bool rna_Mesh_materials_override_apply(Main *bmain,

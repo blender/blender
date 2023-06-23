@@ -436,11 +436,11 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
       for (bNode *node : ntree->all_nodes()) {
         if (node->type == SH_NODE_SCRIPT) {
           NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
-          BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath, sizeof(nss->filepath));
         }
         else if (node->type == SH_NODE_TEX_IES) {
           NodeShaderTexIES *ies = static_cast<NodeShaderTexIES *>(node->storage);
-          BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath);
+          BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath, sizeof(ies->filepath));
         }
       }
       break;
@@ -4439,12 +4439,7 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
     return;
   }
 
-  /* Kind of hacky and weak... Ideally would be better to use RNA here. :| */
-  const char *tmp = CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, node->typeinfo->ui_name);
-  if (tmp == node->typeinfo->ui_name) {
-    tmp = IFACE_(node->typeinfo->ui_name);
-  }
-  BLI_strncpy(label, tmp, label_maxncpy);
+  BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), label_maxncpy);
 }
 
 const char *nodeSocketLabel(const bNodeSocket *sock)

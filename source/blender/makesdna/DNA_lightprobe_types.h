@@ -55,6 +55,12 @@ typedef struct LightProbe {
   int grid_resolution_x;
   int grid_resolution_y;
   int grid_resolution_z;
+  /** Irradiance grid: number of directions to evaluate light transfer in. */
+  int grid_bake_samples;
+
+  /** Surface element density for scene surface cache. In surfel per unit distance. */
+  float surfel_density;
+
   char _pad1[4];
 
   /** Object to use as a parallax origin. */

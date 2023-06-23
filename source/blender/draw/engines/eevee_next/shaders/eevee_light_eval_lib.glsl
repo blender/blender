@@ -22,7 +22,7 @@ void light_eval_ex(ClosureDiffuse diffuse,
                    vec3 P,
                    vec3 Ng,
                    vec3 V,
-                   float vP_z,
+                   float vP_z, /* TODO(fclem): Remove, is unused. */
                    float thickness,
                    vec4 ltc_mat,
                    uint l_idx,
@@ -115,7 +115,11 @@ void light_eval(ClosureDiffuse diffuse,
   }
   LIGHT_FOREACH_END
 
+#ifdef GPU_FRAGMENT_SHADER
   vec2 px = gl_FragCoord.xy;
+#else
+  vec2 px = vec2(0.0);
+#endif
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
     light_eval_ex(diffuse,
                   reflection,

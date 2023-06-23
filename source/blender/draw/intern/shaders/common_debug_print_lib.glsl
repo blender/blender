@@ -400,3 +400,12 @@ void drw_print_value(mat4 value)
   drw_print("  ", value[3]);
   drw_print(")");
 }
+
+void drw_print_value(mat3 value)
+{
+  drw_print("mat3x3(");
+  drw_print("  ", value[0]);
+  drw_print("  ", value[1]);
+  drw_print("  ", value[2]);
+  drw_print(")");
+}

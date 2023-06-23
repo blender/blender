@@ -889,6 +889,7 @@ struct FileCheckCallbackInfo {
 
 static bool external_file_check_callback(BPathForeachPathData *bpath_data,
                                          char * /*path_dst*/,
+                                         size_t /*path_dst_maxncpy*/,
                                          const char *path_src)
 {
   FileCheckCallbackInfo *callback_info = static_cast<FileCheckCallbackInfo *>(

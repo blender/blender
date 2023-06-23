@@ -747,6 +747,15 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Does a constant time check to see if the pointer points to a value in the referenced array.
+   * Return true if it is, otherwise false.
+   */
+  constexpr bool contains_ptr(const T *ptr) const
+  {
+    return (this->begin() <= ptr) && (ptr < this->end());
+  }
+
+  /**
    * Copy all values from another span into this span. This invokes undefined behavior when the
    * destination contains uninitialized data and T is not trivially copy constructible.
    * The size of both spans is expected to be the same.

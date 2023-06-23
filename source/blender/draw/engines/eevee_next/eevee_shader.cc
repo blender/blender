@@ -102,6 +102,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_motion_blur_tiles_flatten_viewport";
     case DEBUG_SURFELS:
       return "eevee_debug_surfels";
+    case DISPLAY_PROBE_GRID:
+      return "eevee_display_probe_grid";
     case DOF_BOKEH_LUT:
       return "eevee_depth_of_field_bokeh_lut";
     case DOF_DOWNSAMPLE:
@@ -146,6 +148,12 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_light_culling_tile";
     case LIGHT_CULLING_ZBIN:
       return "eevee_light_culling_zbin";
+    case LIGHTPROBE_IRRADIANCE_BOUNDS:
+      return "eevee_lightprobe_irradiance_bounds";
+    case LIGHTPROBE_IRRADIANCE_RAY:
+      return "eevee_lightprobe_irradiance_ray";
+    case LIGHTPROBE_IRRADIANCE_LOAD:
+      return "eevee_lightprobe_irradiance_load";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:
@@ -170,10 +178,20 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_shadow_tag_update";
     case SHADOW_TILEMAP_TAG_USAGE_OPAQUE:
       return "eevee_shadow_tag_usage_opaque";
+    case SHADOW_TILEMAP_TAG_USAGE_SURFELS:
+      return "eevee_shadow_tag_usage_surfels";
     case SHADOW_TILEMAP_TAG_USAGE_TRANSPARENT:
       return "eevee_shadow_tag_usage_transparent";
     case SUBSURFACE_EVAL:
       return "eevee_subsurface_eval";
+    case SURFEL_LIGHT:
+      return "eevee_surfel_light";
+    case SURFEL_LIST_BUILD:
+      return "eevee_surfel_list_build";
+    case SURFEL_LIST_SORT:
+      return "eevee_surfel_list_sort";
+    case SURFEL_RAY:
+      return "eevee_surfel_ray";
     /* To avoid compiler warning about missing case. */
     case MAX_SHADER_TYPE:
       return "";
@@ -411,7 +429,6 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
       info.additional_info("eevee_geom_curves");
       break;
     case MAT_GEOM_MESH:
-    default:
       info.additional_info("eevee_geom_mesh");
       break;
   }
@@ -436,6 +453,9 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
         case MAT_PIPE_SHADOW:
           info.additional_info("eevee_surf_shadow");
           break;
+        case MAT_PIPE_CAPTURE:
+          info.additional_info("eevee_surf_capture");
+          break;
         case MAT_PIPE_DEFERRED:
           info.additional_info("eevee_surf_deferred");
           break;
@@ -443,7 +463,7 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
           info.additional_info("eevee_surf_forward");
           break;
         default:
-          BLI_assert(0);
+          BLI_assert_unreachable();
           break;
       }
       break;

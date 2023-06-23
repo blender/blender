@@ -32,6 +32,8 @@ const UserDef U_default = {
     .pref_flag = USER_PREF_FLAG_SAVE,
     .savetime = 2,
     .tempdir = "",
+    /* Overwritten by #BKE_appdir_font_folder_default(..)
+     * unless the system font's cannot be found. */
     .fontdir = "//",
     .renderdir = "//",
     .render_cachedir = "",

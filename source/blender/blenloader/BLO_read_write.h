@@ -282,14 +282,28 @@ struct BlendFileReadReport *BLO_read_data_reports(BlendDataReader *reader);
  * prevent linked data to point to local IDs.
  * \return the new address of the given ID pointer, or null if not found.
  */
-ID *BLO_read_get_new_id_address(BlendLibReader *reader,
-                                struct ID *self_id,
-                                const bool do_linked_only,
-                                struct ID *id) ATTR_NONNULL(2);
+struct ID *BLO_read_get_new_id_address(BlendLibReader *reader,
+                                       struct ID *self_id,
+                                       const bool do_linked_only,
+                                       struct ID *id) ATTR_NONNULL(2);
 
 #define BLO_read_id_address(reader, self_id, id_ptr_p) \
   *((void **)id_ptr_p) = (void *)BLO_read_get_new_id_address( \
       (reader), (self_id), (self_id) && ID_IS_LINKED(self_id), (ID *)*(id_ptr_p))
+
+/**
+ * Search for the new address of the ID for the given `session_uuid`.
+ *
+ * Only IDs existing in the newly read Main will be returned. If no matching `session_uuid` in new
+ * main can be found, `nullptr` is returned.
+ *
+ * This expected to be used during library-linking and/or 'undo_preserve' processes in undo case
+ * (i.e. memfile reading), typically to find a valid value (or nullptr) for ID pointers values
+ * coming from the previous, existing Main data, when it is preserved in newly read Main.
+ * See e.g. the #scene_undo_preserve code-path.
+ */
+struct ID *BLO_read_get_new_id_address_from_session_uuid(BlendLibReader *reader, uint session_uuid)
+    ATTR_NONNULL(1);
 
 /* Misc. */
 

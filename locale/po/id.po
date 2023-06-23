@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -9215,10 +9215,6 @@ msgid "Gpencil Settings"
 msgstr "Pengaturan PensilG"
 
 
-msgid "Erase"
-msgstr "Hapus"
-
-
 msgid "The brush is used for erasing strokes"
 msgstr "Kusa digunakan untuk menghapus stroke"
 
@@ -9237,14 +9233,6 @@ msgstr "Penjepit"
 
 msgid "Brush Height"
 msgstr "Tinggi Kuas"
-
-
-msgid "Image Paint Tool"
-msgstr "Penyunting Gambar"
-
-
-msgid "Clone"
-msgstr "Duplikasi"
 
 
 msgid "Brush"
@@ -9283,18 +9271,6 @@ msgid "Sculpt Plane"
 msgstr "Modus Pahat"
 
 
-msgid "Sculpt Tool"
-msgstr "Modus Pahat"
-
-
-msgid "Boundary"
-msgstr "Batas"
-
-
-msgid "Cloth"
-msgstr "Kain"
-
-
 msgid "Secondary Color"
 msgstr "Warna Sekunder"
 
@@ -9325,6 +9301,10 @@ msgstr "Gunakan Cat"
 
 msgid "Show texture in viewport"
 msgstr "Tampilkan tekstur di viewport"
+
+
+msgid "Sculpt Tool"
+msgstr "Modus Pahat"
 
 
 msgid "Grab UVs"
@@ -9846,6 +9826,10 @@ msgstr "Koleksi Visibilitas"
 
 msgid "Active Shape Index"
 msgstr "Tekstur"
+
+
+msgid "Cloth"
+msgstr "Kain"
 
 
 msgid "Edges"
@@ -12624,6 +12608,10 @@ msgstr "Area Wajah"
 
 msgid "Thickness factor"
 msgstr "Faktor ketebalan"
+
+
+msgid "Boundary"
+msgstr "Batas"
 
 
 msgid "Support face boundaries"
@@ -15935,6 +15923,11 @@ msgstr "Tekstur"
 
 
 msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Lompat ke Keyframe"
+
+
+msgctxt "Operator"
 msgid "Smooth Keys"
 msgstr "Semua Tampilan"
 
@@ -17819,6 +17812,10 @@ msgid "Create Missing"
 msgstr "Buat"
 
 
+msgid "Clone"
+msgstr "Duplikasi"
+
+
 msgctxt "Operator"
 msgid "Face Select Hide"
 msgstr "Modus Sunting"
@@ -18273,11 +18270,6 @@ msgstr "Offset Frame"
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Tampilkan Log Info"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Lompat ke Keyframe"
 
 
 msgctxt "Operator"
@@ -22436,10 +22428,6 @@ msgstr "Tidak dapat mencari gambar '%s'"
 
 msgid "Context incorrect, image not found"
 msgstr "Konteks salah, gambar tidak ditemukan"
-
-
-msgid "Node has no attribute "
-msgstr "Node tidak punya atribut "
 
 
 msgid "No camera found"

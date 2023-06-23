@@ -19,7 +19,7 @@ class DataButtonsPanel:
 class DATA_PT_context_lightprobe(DataButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE', 'BLENDER_RENDER', 'BLENDER_EEVEE_NEXT'}
 
     def draw(self, context):
         layout = self.layout
@@ -81,6 +81,42 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         if probe.type != 'PLANAR':
             sub.prop(probe, "clip_end", text="End")
+
+
+class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
+    bl_label = "Probe"
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        probe = context.lightprobe
+
+        if probe.type == 'GRID':
+            col = layout.column()
+
+            sub = col.column(align=True)
+            sub.prop(probe, "grid_resolution_x", text="Resolution X")
+            sub.prop(probe, "grid_resolution_y", text="Y")
+            sub.prop(probe, "grid_resolution_z", text="Z")
+
+            col.separator()
+
+            col.operator("object.lightprobe_cache_bake").subset = "ACTIVE"
+            col.operator("object.lightprobe_cache_free").subset = "ACTIVE"
+
+            col.separator()
+
+            col.prop(probe, "grid_bake_samples")
+            col.prop(probe, "surfel_density")
+
+        elif probe.type == 'PLANAR':
+            # Currently unsupported
+            pass
+        else:
+            # Currently unsupported
+            pass
 
 
 class DATA_PT_lightprobe_visibility(DataButtonsPanel, Panel):
@@ -169,6 +205,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
 classes = (
     DATA_PT_context_lightprobe,
     DATA_PT_lightprobe,
+    DATA_PT_lightprobe_eevee_next,
     DATA_PT_lightprobe_visibility,
     DATA_PT_lightprobe_parallax,
     DATA_PT_lightprobe_display,

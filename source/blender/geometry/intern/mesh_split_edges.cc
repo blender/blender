@@ -346,15 +346,6 @@ void split_edges(Mesh &mesh,
   });
 
   /* Step 1: Split the edges. */
-  threading::parallel_for(mask.index_range(), 512, [&](IndexRange range) {
-    for (const int mask_i : range) {
-      const int edge_i = mask[mask_i];
-      split_edge_per_poly(edge_i, edge_offsets[edge_i], edge_to_loop_map, corner_edges);
-    }
-  });
-
-  /* Step 1: Split the edges. */
-
   mask.foreach_index([&](const int edge_i) {
     split_edge_per_poly(edge_i, edge_offsets[edge_i], edge_to_loop_map, corner_edges);
   });

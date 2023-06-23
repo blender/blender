@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -14918,20 +14918,12 @@ msgid "Gpencil Settings"
 msgstr "GPencil 설정"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "그리스 펜슬 그리기 도구"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "브러시는 스트로크 그리기에 사용되는 유형입니다"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "브러시는 채우는 영역에 사용되는 유형입니다"
-
-
-msgid "Erase"
-msgstr "지우기"
 
 
 msgid "The brush is used for erasing strokes"
@@ -14976,22 +14968,6 @@ msgstr "브러시 아이콘 파일 경로"
 
 msgid "File path to brush icon"
 msgstr "브러시 아이콘에 파일 경로"
-
-
-msgid "Image Paint Tool"
-msgstr "이미지 페인트 도구"
-
-
-msgid "Soften"
-msgstr "부드럽게"
-
-
-msgid "Clone"
-msgstr "클론"
-
-
-msgid "Mask"
-msgstr "마스크"
 
 
 msgid "Invert to Scrape or Fill"
@@ -15152,62 +15128,6 @@ msgstr "Y 평면"
 
 msgid "Z Plane"
 msgstr "Z 평면"
-
-
-msgid "Sculpt Tool"
-msgstr "스컬프트 도구"
-
-
-msgid "Draw Sharp"
-msgstr "샤프를 그리기"
-
-
-msgid "Clay"
-msgstr "점토"
-
-
-msgid "Clay Strips"
-msgstr "점토 스트립"
-
-
-msgid "Blob"
-msgstr "얼룩"
-
-
-msgid "Flatten"
-msgstr "평평하게"
-
-
-msgid "Scrape"
-msgstr "긁어내기"
-
-
-msgid "Elastic Deform"
-msgstr "엘라스틱 변형"
-
-
-msgid "Thumb"
-msgstr "썸"
-
-
-msgid "Pose"
-msgstr "포즈"
-
-
-msgid "Nudge"
-msgstr "넛지"
-
-
-msgid "Rotate"
-msgstr "회전"
-
-
-msgid "Boundary"
-msgstr "경계"
-
-
-msgid "Cloth"
-msgstr "옷감"
 
 
 msgid "Secondary Color"
@@ -15648,6 +15568,10 @@ msgstr "간격에 대한 강도를 조정"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "다양한 간격에 대해 일관된 결과를 제공하도록 자동으로 강도를 조정합니다"
+
+
+msgid "Sculpt Tool"
+msgstr "스컬프트 도구"
 
 
 msgid "Grab UVs"
@@ -18488,6 +18412,10 @@ msgid "Shader Ball"
 msgstr "셰이더 볼"
 
 
+msgid "Cloth"
+msgstr "옷감"
+
+
 msgid "Refraction Depth"
 msgstr "굴절 깊이"
 
@@ -19678,6 +19606,10 @@ msgstr "버텍스 부모 지정 관계의 경우에서 버텍스의 지수"
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "\"오브젝트 인덱스\" 렌더 패스의 인덱스 번호"
+
+
+msgid "Pose"
+msgstr "포즈"
 
 
 msgid "Current pose for armatures"
@@ -26221,6 +26153,10 @@ msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "알파 매테리얼과 함께 스텐실 비활성화 및 자체 겹침"
 
 
+msgid "Mask"
+msgstr "마스크"
+
+
 msgid "Material slot in an object"
 msgstr "오브젝트에 매테리얼 슬롯"
 
@@ -30902,6 +30838,10 @@ msgid "Thickness factor"
 msgstr "두께 팩터"
 
 
+msgid "Boundary"
+msgstr "경계"
+
+
 msgid "Support face boundaries"
 msgstr "지원 페이스 경계"
 
@@ -33314,6 +33254,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "타원 중심의 Y 위치"
 
 
+msgid "Soften"
+msgstr "부드럽게"
+
+
 msgid "Laplace"
 msgstr "라플라스"
 
@@ -33881,6 +33825,10 @@ msgstr "RGB를 BW로 변환"
 
 msgid "Render Layers"
 msgstr "렌더 레이어"
+
+
+msgid "Rotate"
+msgstr "회전"
 
 
 msgid "Method to use to filter rotation"
@@ -42924,6 +42872,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "기존 목록의 끝에 추가하는 대신 기존 드라이버 변수를 바꿉니다"
 
 
+msgid "Flatten"
+msgstr "평평하게"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "오일러 불연속 필터"
@@ -43033,6 +42985,19 @@ msgstr "커서 포인트에서 활성 F-커브에 대한 키 프레임을 삽입
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "커서 포인트에서 선택된 F-커브에 대한 키 프레임을 삽입"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "키 프레임으로 이동"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "키 프레임 이전/다음으로 이동"
+
+
+msgid "Next Keyframe"
+msgstr "다음 키 프레임"
 
 
 msgid "By Values Over Cursor Value"
@@ -51381,6 +51346,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "요청한 브러시 유형이 없으면 새 브러시를 생성합니다"
 
 
+msgid "Clone"
+msgstr "클론"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "순환하는 대신 두 브러시 사이를 토글"
 
@@ -52139,10 +52108,6 @@ msgstr "커스텀 속성"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "키 프레임이 선호에 대한 가중치 펙터"
-
-
-msgid "Next Keyframe"
-msgstr "다음 키 프레임"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -53790,15 +53755,6 @@ msgstr "정보 로그를 표시"
 
 msgid "Show info log in a separate window"
 msgstr "별도의 창에 정보 로그를 표시"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "키 프레임으로 이동"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "키 프레임 이전/다음으로 이동"
 
 
 msgctxt "Operator"
@@ -56983,10 +56939,6 @@ msgstr "아일랜드 사이 공간"
 
 msgid "Fraction"
 msgstr "분수"
-
-
-msgid "Pack"
-msgstr "포장"
 
 
 msgctxt "Operator"
@@ -60680,10 +60632,6 @@ msgstr "클론"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "마스크"
-
-
-msgid "Brush Tip"
-msgstr "브러시 팁"
 
 
 msgid "Tiling"
@@ -76053,10 +76001,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "노드에서 지정된 텍스트 또는 파일이 없음, 컴파일 할 수 없음"
 
 
-msgid "OSL query failed to open "
-msgstr "OSL 쿼리를 열지 못했습니다 "
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "외부 쉐이더 스크립트는 .osl 또는 .oso 확장자를 가져야하며, 또는 모듈 이름이어야 합니다"
 
@@ -79312,6 +79256,10 @@ msgstr "전환을 추가"
 
 msgid "Unpack"
 msgstr "포장 해제"
+
+
+msgid "Pack"
+msgstr "포장"
 
 
 msgid "Original frame range: %d-%d (%d)"

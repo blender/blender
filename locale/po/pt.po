@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Beta (b'de4fb0e570b4')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-06-05 09:47:30\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -11325,22 +11325,6 @@ msgid "File path to brush icon"
 msgstr "Caminho de ficheiro para ícone de pincel."
 
 
-msgid "Image Paint Tool"
-msgstr "Ferramenta de pintura de imagem"
-
-
-msgid "Soften"
-msgstr "Atenuar"
-
-
-msgid "Clone"
-msgstr "Clonar"
-
-
-msgid "Mask"
-msgstr "Máscara"
-
-
 msgid "Jitter the position of the brush while painting"
 msgstr "Quantidade de tremulação na posição do pincel durante a pintura."
 
@@ -11451,58 +11435,6 @@ msgstr "Plano Y"
 
 msgid "Z Plane"
 msgstr "Plano Z"
-
-
-msgid "Sculpt Tool"
-msgstr "Ferramentas de escultura"
-
-
-msgid "Draw Sharp"
-msgstr "Desenhar ressaltos"
-
-
-msgid "Clay"
-msgstr "Argila"
-
-
-msgid "Clay Strips"
-msgstr "Faixas de argila"
-
-
-msgid "Blob"
-msgstr "Gotejar"
-
-
-msgid "Flatten"
-msgstr "Achatar"
-
-
-msgid "Scrape"
-msgstr "Arranhar"
-
-
-msgid "Thumb"
-msgstr "Miniatura"
-
-
-msgid "Pose"
-msgstr "Pose"
-
-
-msgid "Nudge"
-msgstr "Cutucar"
-
-
-msgid "Rotate"
-msgstr "Rotacionar"
-
-
-msgid "Boundary"
-msgstr "Extremidades"
-
-
-msgid "Cloth"
-msgstr "Tecido"
 
 
 msgid "Secondary Color"
@@ -11827,6 +11759,10 @@ msgstr "O pincel possui um atraso com relação ao rato e segue um caminho mais 
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Ajusta automaticamente a força para fornecer resultados consistentes para espaçamentos diferentes."
+
+
+msgid "Sculpt Tool"
+msgstr "Ferramentas de escultura"
 
 
 msgid "Grab UVs"
@@ -13897,6 +13833,10 @@ msgid "Hair strands"
 msgstr "Vertentes de cabelo."
 
 
+msgid "Cloth"
+msgstr "Tecido"
+
+
 msgid "Roughness"
 msgstr "Rugosidade"
 
@@ -14783,6 +14723,10 @@ msgstr "Índices dos vértices no caso de uma relação de parentesco de vértic
 
 msgid "Index number for the \"Object Index\" render pass"
 msgstr "Número de índice para o \"Índice de objeto\" no passo de renderização."
+
+
+msgid "Pose"
+msgstr "Pose"
 
 
 msgid "Current pose for armatures"
@@ -20604,6 +20548,10 @@ msgid "Mix Factor"
 msgstr "Fator de mistura"
 
 
+msgid "Mask"
+msgstr "Máscara"
+
+
 msgid "Material slot in an object"
 msgstr "Compartimentos de material dentro de um objeto."
 
@@ -24327,6 +24275,10 @@ msgid "Thickness factor"
 msgstr "Fator de espessura"
 
 
+msgid "Boundary"
+msgstr "Extremidades"
+
+
 msgid "Support face boundaries"
 msgstr "Suporta extremidades das faces."
 
@@ -26655,6 +26607,10 @@ msgid "Y position of the middle of the ellipse"
 msgstr "A posição Y do meio da elipse."
 
 
+msgid "Soften"
+msgstr "Atenuar"
+
+
 msgid "Laplace"
 msgstr "Laplace"
 
@@ -27066,6 +27022,10 @@ msgstr "Cores para preto e branco"
 
 msgid "Render Layers"
 msgstr "Camadas de renderização"
+
+
+msgid "Rotate"
+msgstr "Rotacionar"
 
 
 msgid "Method to use to filter rotation"
@@ -34315,6 +34275,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "Substitui as variáveis de controlador existentes, ao invés de simplesmente anexá-las ao final da lista existente."
 
 
+msgid "Flatten"
+msgstr "Achatar"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "Filtro de descontinuidade para Euler"
@@ -34424,6 +34388,19 @@ msgstr "Insere fotogramas chave para as curvas-f ativas no ponto de localizaçã
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "Insere fotogramas chave para as curvas-f selecionadas no ponto de localização do cursor."
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "Saltar para fotograma chave"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "Salta para o fotograma chave anterior ou posterior."
+
+
+msgid "Next Keyframe"
+msgstr "Próximo fotograma chave"
 
 
 msgid "Flip values of selected keyframes using the cursor value (Y/Horizontal component) as the mirror line"
@@ -40737,6 +40714,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "Caso o tipo de pincel requisitado não exista, criar um novo pincel."
 
 
+msgid "Clone"
+msgstr "Clonar"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "Alterna entre dois pincéis ao invés de usá-los em ciclo."
 
@@ -41469,10 +41450,6 @@ msgstr "Propriedades personalizadas"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "Fator de pesos de influência para nos quais os fotogramas-chave são mais favorecidos."
-
-
-msgid "Next Keyframe"
-msgstr "Próximo fotograma chave"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -42896,15 +42873,6 @@ msgstr "Expandir ou encolher os menus do cabeçalho"
 
 msgid "Expand or collapse the header pulldown menus"
 msgstr "Permite expandir ou encolher os menus de cabeçalho suspensos."
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "Saltar para fotograma chave"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "Salta para o fotograma chave anterior ou posterior."
 
 
 msgctxt "Operator"
@@ -58967,10 +58935,6 @@ msgstr "Falha de compilação de Script OSL, verifique os erros na linha de coma
 
 msgid "No text or file specified in node, nothing to compile"
 msgstr "Sem texto ou ficheiro especificado no nó, nada para compilar."
-
-
-msgid "OSL query failed to open "
-msgstr "Requisição de informação OSL falhou ao abrir."
 
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"

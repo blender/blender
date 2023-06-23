@@ -208,7 +208,8 @@ static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Brush *brush = (Brush *)id;
   if (brush->icon_filepath[0] != '\0') {
-    BKE_bpath_foreach_path_fixed_process(bpath_data, brush->icon_filepath);
+    BKE_bpath_foreach_path_fixed_process(
+        bpath_data, brush->icon_filepath, sizeof(brush->icon_filepath));
   }
 }
 
