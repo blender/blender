@@ -778,6 +778,7 @@ static void pbvh_bmesh_node_finalize(PBVH *pbvh,
           BM_ELEM_CD_SET_INT(v, cd_vert_node_offset, node_index);
         }
       }
+
       /* Update node bounding box */
       BB_expand(&n->vb, v->co);
       BB_expand(&n->orig_vb, BM_ELEM_CD_PTR<float *>(v, pbvh->cd_origco));

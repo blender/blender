@@ -1117,5 +1117,6 @@ float test_sharp_faces_mesh(int f1,
 
 blender::Span<blender::float3> get_poly_normals(const PBVH *pbvh);
 void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map);
+void on_stroke_start(PBVH *pbvh);
 }  // namespace blender::bke::pbvh
 #endif

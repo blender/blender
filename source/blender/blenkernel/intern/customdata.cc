@@ -69,6 +69,8 @@
 /* only for customdata_data_transfer_interp_normal_normals */
 #include "data_transfer_intern.h"
 
+#include <array>
+
 using blender::Array;
 using blender::float2;
 using blender::ImplicitSharingInfo;
@@ -2713,105 +2715,78 @@ void CustomData_free_typemask(CustomData *data, const int totelem, eCustomDataMa
   CustomData_reset(data);
 }
 
+static int customData_get_alignment(eCustomDataType type)
+{
+  /* Handle array types. */
+  if (ELEM(type,
+           CD_PROP_FLOAT2,
+           CD_PROP_FLOAT3,
+           CD_PROP_QUATERNION,
+           CD_PROP_COLOR,
+           CD_NORMAL,
+           CD_TANGENT,
+           CD_SHAPEKEY,
+           CD_ORIGSPACE_MLOOP,
+           CD_PROP_INT32_2D))
+  {
+    return 4;
+  }
+
+  if (ELEM(type, CD_TESSLOOPNORMAL)) {
+    return 2;
+  }
+
+  if (type == CD_PROP_BYTE_COLOR) {
+    return 1;
+  }
+
+  /* Derive the alignment from the element size. */
+  int size = CustomData_sizeof(type);
+
+  if (size >= 8) {
+    return 8;
+  }
+  if (size >= 4) {
+    return 4;
+  }
+  if (size >= 2) {
+    return 2;
+  }
+
+  return 1;
+}
+
+/* Update BMesh block offsets, respects alignment. */
 static void customData_update_offsets(CustomData *data)
 {
-  const LayerTypeInfo *typeInfo;
-  int offset = 0;
-
   if (data->totlayer == 0) {
     data->totsize = 0;
     CustomData_update_typemap(data);
     return;
   }
 
-  /* Sort by alignment. */
-  int aligns[] = {8, 4, 2, 1};
-  Array<bool> donemap(data->totlayer, false);
-  Array<int> alignmap(data->totlayer);
-
+  const std::array<int, 4> aligns = {8, 4, 2, 1};
   int max_alignment = 1;
 
-  /* Do large structs first. */
-  for (int j = 0; j < data->totlayer; j++) {
-    CustomDataLayer *layer = data->layers + j;
+  int offset = 0;
+  for (const int align : aligns) {
+    for (const int i : IndexRange(data->totlayer)) {
+      CustomDataLayer *layer = data->layers + i;
 
-    typeInfo = layerType_getInfo(eCustomDataType(layer->type));
-    int size = (int)typeInfo->size;
-
-    int alignment;
-
-    /* Float vectors get 4-byte alignment. */
-    if (ELEM(layer->type,
-             CD_PROP_COLOR,
-             CD_PROP_FLOAT2,
-             CD_PROP_FLOAT3,
-             CD_PROP_INT32_2D,
-             CD_CUSTOMLOOPNORMAL,
-             CD_NORMAL))
-    {
-      alignment = 4;
-    }
-    else if (size > 4) {
-      alignment = 8;
-    }
-    else if (size > 2) {
-      alignment = 4;
-    }
-    else if (size > 1) {
-      alignment = 2;
-    }
-    else {
-      alignment = 1;
-    }
-
-    max_alignment = max_ii(max_alignment, alignment);
-    alignmap[j] = alignment;
-
-    /* Detect large structures */
-    if (size > 8) {
-      donemap[j] = true;
-
-      /* Align to 8-byte boundary. */
-      if (size & 7) {
-        size += 8 - (size & 7);
-      }
-
-      layer->offset = offset;
-      offset += size;
-
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
-    }
-  }
-
-  for (int i = 0; i < ARRAY_SIZE(aligns) + 1; i++) {
-    for (int j = 0; j < data->totlayer; j++) {
-      CustomDataLayer *layer = data->layers + j;
-
-      if (donemap[j]) {
+      const int layer_align = customData_get_alignment(eCustomDataType(layer->type));
+      if (layer_align != align) {
         continue;
       }
 
-      typeInfo = layerType_getInfo(eCustomDataType(layer->type));
-      int size = (int)typeInfo->size;
-
-      if (i < ARRAY_SIZE(aligns) && aligns[i] != alignmap[j]) {
-        continue;
-      }
-
-      donemap[j] = true;
-
-      int align2 = aligns[i] - (offset % aligns[i]);
-      if (align2 != aligns[i]) {
-        offset += align2;
-      }
-
       layer->offset = offset;
+
+      int size = CustomData_sizeof(eCustomDataType(layer->type));
+      if (size % align != 0) {
+        size += align - (size % align);
+      }
+
       offset += size;
-#ifdef WITH_ASAN
-      offset += BM_ASAN_PAD;
-#endif
+      max_alignment = max_ii(max_alignment, align);
     }
   }
 
@@ -2819,12 +2794,7 @@ static void customData_update_offsets(CustomData *data)
     offset += max_alignment - (offset % max_alignment);
   }
 
-#ifdef WITH_ASAN
-  offset += BM_ASAN_PAD;
-#endif
-
   data->totsize = offset;
-
   CustomData_update_typemap(data);
 }
 

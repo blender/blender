@@ -3734,14 +3734,6 @@ const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
   return pbvh->vert_normals;
 }
 
-namespace blender::bke::pbvh {
-Span<float3> get_poly_normals(const PBVH *pbvh)
-{
-  BLI_assert(pbvh->header.type == PBVH_FACES);
-  return pbvh->poly_normals;
-}
-}  // namespace blender::bke::pbvh
-
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh)
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
@@ -4236,6 +4228,23 @@ void BKE_pbvh_set_symmetry(PBVH *pbvh, int symmetry)
 }
 
 namespace blender::bke::pbvh {
+
+Span<float3> get_poly_normals(const PBVH *pbvh)
+{
+  BLI_assert(pbvh->header.type == PBVH_FACES);
+  return pbvh->poly_normals;
+}
+
+void on_stroke_start(PBVH *pbvh)
+{
+  /* Load current node bounds into original bounds at stroke start.*/
+  for (int i : IndexRange(pbvh->totnode)) {
+    PBVHNode *node = &pbvh->nodes[i];
+
+    node->orig_vb = node->vb;
+  }
+}
+
 void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map)
 {
   pbvh->vert_boundary_map = vert_boundary_map;

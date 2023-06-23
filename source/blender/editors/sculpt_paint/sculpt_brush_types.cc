@@ -2696,6 +2696,10 @@ void SCULPT_do_displacement_eraser_brush(Sculpt *sd, Object *ob, Span<PBVHNode *
   Brush *brush = BKE_paint_brush(&sd->paint);
   BKE_curvemapping_init(brush->curve);
 
+  if (BKE_pbvh_type(ob->sculpt->pbvh) != PBVH_GRIDS) {
+    return;
+  }
+
   /* Threaded loop over nodes. */
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -2829,6 +2833,10 @@ void SCULPT_do_displacement_smear_brush(Sculpt *sd, Object *ob, Span<PBVHNode *>
 {
   Brush *brush = BKE_paint_brush(&sd->paint);
   SculptSession *ss = ob->sculpt;
+
+  if (BKE_pbvh_type(ss->pbvh) != PBVH_GRIDS) {
+    return;
+  }
 
   BKE_curvemapping_init(brush->curve);
 

@@ -6359,6 +6359,10 @@ static bool sculpt_stroke_test_start(bContext *C, wmOperator *op, const float mv
     SCULPT_stroke_id_next(ob);
     ss->cache->stroke_id = ss->stroke_id;
 
+    if (ss->pbvh) {
+      blender::bke::pbvh::on_stroke_start(ss->pbvh);
+    }
+
     SculptCursorGeometryInfo sgi;
     SCULPT_cursor_geometry_info_update(C, &sgi, mval, false, false);
 

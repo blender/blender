@@ -153,7 +153,7 @@ void SCULPT_filter_cache_init(bContext *C,
   data.filter_undo_type = undo_type;
 
   TaskParallelSettings settings;
-  BKE_pbvh_parallel_range_settings(&settings, true, ss->filter_cache->nodes.size());
+  BKE_pbvh_parallel_range_settings(&settings, !ss->bm, ss->filter_cache->nodes.size());
   BLI_task_parallel_range(
       0, ss->filter_cache->nodes.size(), &data, filter_cache_init_task_cb, &settings);
 
