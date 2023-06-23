@@ -54,7 +54,7 @@
 #include "RE_texture.h"
 
 #include "NOD_composite.h"
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_socket.h"
 
 #include "DEG_depsgraph.h"
@@ -574,7 +574,7 @@ static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
 
 #  include "NOD_common.h"
 #  include "NOD_composite.h"
-#  include "NOD_geometry.h"
+#  include "NOD_geometry.hh"
 #  include "NOD_shader.h"
 #  include "NOD_socket.h"
 #  include "NOD_texture.h"

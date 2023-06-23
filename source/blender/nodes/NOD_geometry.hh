@@ -6,10 +6,6 @@
 
 #include "BKE_node.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 extern struct bNodeTreeType *ntreeType_Geometry;
 
 void register_node_type_geo_custom_group(bNodeType *ntype);
@@ -81,7 +77,3 @@ void NOD_geometry_simulation_output_move_item(struct NodeGeometrySimulationOutpu
                                               int to_index);
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif
