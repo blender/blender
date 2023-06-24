@@ -36,7 +36,7 @@ class MTLShaderInterface;
 class MTLContext;
 
 /* Debug control. */
-#define MTL_SHADER_DEBUG_EXPORT_SOURCE 1
+#define MTL_SHADER_DEBUG_EXPORT_SOURCE 0
 #define MTL_SHADER_TRANSLATION_DEBUG_OUTPUT 0
 
 /* Separate print used only during development and debugging. */
