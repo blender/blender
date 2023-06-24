@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup sptopbar
@@ -64,11 +65,11 @@ static SpaceLink *topbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED
   return (SpaceLink *)stopbar;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void topbar_free(SpaceLink *UNUSED(sl)) {}
 
 /* spacetype; init callback */
-static void topbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void topbar_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *topbar_duplicate(SpaceLink *sl)
 {
@@ -96,7 +97,7 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
 
 static void topbar_operatortypes(void) {}
 
-static void topbar_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
+static void topbar_keymap(wmKeyConfig *UNUSED(keyconf)) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
@@ -188,7 +189,7 @@ static void topbar_header_region_message_subscribe(const wmRegionMessageSubscrib
 
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
-  struct RecentFile *recent;
+  RecentFile *recent;
   uiLayout *layout = menu->layout;
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   if (!BLI_listbase_is_empty(&G.recent_files)) {
@@ -211,9 +212,9 @@ static void recent_files_menu_register(void)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
-  strcpy(mt->idname, "TOPBAR_MT_file_open_recent");
-  strcpy(mt->label, N_("Open Recent"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "TOPBAR_MT_file_open_recent");
+  STRNCPY(mt->label, N_("Open Recent"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = recent_files_menu_draw;
   WM_menutype_add(mt);
 }
@@ -269,9 +270,9 @@ static void undo_history_menu_register(void)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), __func__);
-  strcpy(mt->idname, "TOPBAR_MT_undo_history");
-  strcpy(mt->label, N_("Undo History"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "TOPBAR_MT_undo_history");
+  STRNCPY(mt->label, N_("Undo History"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = undo_history_draw_menu;
   WM_menutype_add(mt);
 }

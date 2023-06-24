@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -45,7 +47,8 @@ class AbstractViewItem;
 class AbstractViewItemDropTarget;
 class AbstractViewItemDragController;
 
-/** The view drop target can share logic with the view item drop target for now, so just an alias.
+/**
+ * The view drop target can share logic with the view item drop target for now, so just an alias.
  */
 using AbstractViewDropTarget = AbstractViewItemDropTarget;
 
@@ -80,6 +83,13 @@ class AbstractView {
 
   /** Listen to a notifier, returning true if a redraw is needed. */
   virtual bool listen(const wmNotifier &) const;
+
+  /**
+   * Enable filtering. Typically used to enable a filter text button. Triggered on Ctrl+F by
+   * default.
+   * \return True when filtering was enabled successfully.
+   */
+  virtual bool begin_filtering(const bContext &C) const;
 
   /**
    * Makes \a item valid for display in this view. Behavior is undefined for items not registered
@@ -129,9 +139,13 @@ class AbstractViewItem {
    * If this wasn't done, the behavior of items is undefined.
    */
   AbstractView *view_ = nullptr;
+  bool is_activatable_ = true;
   bool is_interactive_ = true;
   bool is_active_ = false;
   bool is_renaming_ = false;
+
+  /** Cache filtered state here to avoid having to re-query. */
+  mutable std::optional<bool> is_filtered_visible_;
 
  public:
   virtual ~AbstractViewItem() = default;
@@ -171,6 +185,10 @@ class AbstractViewItem {
    */
   virtual std::unique_ptr<AbstractViewItemDropTarget> create_drop_target();
 
+  /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
+   * queried once per redraw. */
+  bool is_filtered_visible_cached() const;
+
   /** Get the view this item is registered for using #AbstractView::register_item(). */
   AbstractView &get_view() const;
 
@@ -178,6 +196,8 @@ class AbstractViewItem {
    * will be no mouse hover feedback for the view row. */
   void disable_interaction();
   bool is_interactive() const;
+
+  void disable_activatable();
 
   /**
    * Requires the view to have completed reconstruction, see #is_reconstructed(). Otherwise we
@@ -213,6 +233,12 @@ class AbstractViewItem {
    * \note Always call the base class implementation when overriding this!
    */
   virtual void update_from_old(const AbstractViewItem &old);
+
+  /**
+   * \note Do not call this directly to avoid constantly rechecking the filter state. Instead use
+   *       #is_filtered_visible_cached() for querying.
+   */
+  virtual bool is_filtered_visible() const;
 
   /**
    * Add a text button for renaming the item to \a block. This must be used for the built-in

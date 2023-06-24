@@ -1,10 +1,9 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #pragma once
 
@@ -78,8 +77,7 @@ ccl_device Spectrum bsdf_ashikhmin_velvet_eval(ccl_private const ShaderClosure *
 ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
                                             float3 Ng,
                                             float3 wi,
-                                            float randu,
-                                            float randv,
+                                            const float2 rand,
                                             ccl_private Spectrum *eval,
                                             ccl_private float3 *wo,
                                             ccl_private float *pdf)
@@ -90,7 +88,7 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
 
   // we are viewing the surface from above - send a ray out with uniform
   // distribution over the hemisphere
-  sample_uniform_hemisphere(N, randu, randv, wo, pdf);
+  sample_uniform_hemisphere(N, rand, wo, pdf);
 
   if (!(dot(Ng, *wo) > 0)) {
     *pdf = 0.0f;
@@ -105,7 +103,7 @@ ccl_device int bsdf_ashikhmin_velvet_sample(ccl_private const ShaderClosure *sc,
   float cosHI = fabsf(dot(wi, H));
   float cosNH = dot(N, H);
 
-  if (!(fabsf(cosNI) > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHI > 1e-5f)) {
+  if (!(cosNI > 1e-5f && fabsf(cosNH) < 1.0f - 1e-5f && cosHI > 1e-5f)) {
     *pdf = 0.0f;
     *eval = zero_spectrum();
     return LABEL_NONE;

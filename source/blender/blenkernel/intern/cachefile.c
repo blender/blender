@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -86,7 +87,8 @@ static void cache_file_free_data(ID *id)
 static void cache_file_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   CacheFile *cache_file = (CacheFile *)id;
-  BKE_bpath_foreach_path_fixed_process(bpath_data, cache_file->filepath);
+  BKE_bpath_foreach_path_fixed_process(
+      bpath_data, cache_file->filepath, sizeof(cache_file->filepath));
 }
 
 static void cache_file_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -188,7 +190,8 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
     case CACHEFILE_TYPE_ALEMBIC:
 #  ifdef WITH_ALEMBIC
       /* Open Alembic cache reader. */
-      *reader = CacheReader_open_alembic_object(cache_file->handle, *reader, object, object_path);
+      *reader = CacheReader_open_alembic_object(
+          cache_file->handle, *reader, object, object_path, cache_file->is_sequence);
 #  endif
       break;
     case CACHEFILE_TYPE_USD:

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Functions to initialize ShaderData given.
  *
@@ -155,12 +156,15 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
   sd->Ng = Ng;
   sd->wi = I;
   sd->shader = shader;
-  if (prim != PRIM_NONE)
-    sd->type = PRIMITIVE_TRIANGLE;
-  else if (lamp != LAMP_NONE)
+  if (lamp != LAMP_NONE) {
     sd->type = PRIMITIVE_LAMP;
-  else
+  }
+  else if (prim != PRIM_NONE) {
+    sd->type = PRIMITIVE_TRIANGLE;
+  }
+  else {
     sd->type = PRIMITIVE_NONE;
+  }
 
   /* primitive */
   sd->object = object;

@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (c) 2019 Stefano Quer.
- * Additional code, copyright 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Stefano Quer
+ * SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Originally 6846114 from https://github.com/stefanoquer/graphISO/blob/master/v3
  * graphISO: Tools to compute the Maximum Common Subgraph between two graphs.

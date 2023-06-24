@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -25,7 +27,7 @@
 #include "BPY_extern.h"
 
 void bpy_app_generic_callback(struct Main *main,
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg);
 
@@ -255,8 +257,8 @@ PyObject *BPY_app_handlers_struct(void)
   /* prevent user from creating new instances */
   BlenderAppCbType.tp_init = NULL;
   BlenderAppCbType.tp_new = NULL;
-  BlenderAppCbType.tp_hash = (hashfunc)
-      _Py_HashPointer; /* without this we can't do set(sys.modules) #29635. */
+  /* Without this we can't do `set(sys.modules)` #29635. */
+  BlenderAppCbType.tp_hash = (hashfunc)_Py_HashPointer;
 
   /* assign the C callbacks */
   if (ret) {
@@ -342,7 +344,7 @@ static PyObject *choose_arguments(PyObject *func, PyObject *args_all, PyObject *
 
 /* the actual callback - not necessarily called from py */
 void bpy_app_generic_callback(struct Main *UNUSED(main),
-                              struct PointerRNA **pointers,
+                              PointerRNA **pointers,
                               const int pointers_num,
                               void *arg)
 {

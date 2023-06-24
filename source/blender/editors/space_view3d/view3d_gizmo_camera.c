@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -429,7 +431,7 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 
   ARegion *region = CTX_wm_region(C);
   /* Drawing code should happen with fully evaluated graph. */
-  struct Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
+  Depsgraph *depsgraph = CTX_data_expect_evaluated_depsgraph(C);
   RegionView3D *rv3d = region->regiondata;
   if (rv3d->persp == RV3D_CAMOB) {
     Scene *scene = CTX_data_scene(C);
@@ -484,7 +486,7 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzg
 
     WM_gizmo_target_property_def_func(gz,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_render_border_prop_matrix_get,
                                           .value_set_fn = gizmo_render_border_prop_matrix_set,
                                           .range_get_fn = NULL,

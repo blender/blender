@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -646,7 +647,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
       if (has_valid_context == false) {
         /* pass */
       }
-      else if (BPY_run_string_as_string_and_size(
+      else if (BPY_run_string_as_string_and_len(
                    C, expr_imports, expr, nullptr, &expr_result, &expr_result_len))
       {
         /* pass. */
@@ -1150,7 +1151,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     uiTooltipField *field = &data->fields[i];
     uiTooltipField *field_next = (i + 1) != data->fields_len ? &data->fields[i + 1] : nullptr;
 
-    struct ResultBLF info;
+    ResultBLF info;
     int w, x_pos = 0;
     int font_id;
 
@@ -1336,7 +1337,7 @@ static ARegion *ui_tooltip_create_with_data(bContext *C,
     region->winrct.ymax = rect_i.ymax + margin;
   }
 
-  /* adds subwindow */
+  /* Adds sub-window. */
   ED_region_floating_init(region);
 
   /* notify change and redraw */

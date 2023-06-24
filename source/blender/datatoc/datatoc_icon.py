@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2014-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
+
 _IS_BIG_ENDIAN = (__import__("sys").byteorder != 'little')
 
 

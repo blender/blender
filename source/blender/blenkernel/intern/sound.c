@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -126,7 +127,7 @@ static void sound_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 
   /* FIXME: This does not check for empty path... */
-  BKE_bpath_foreach_path_fixed_process(bpath_data, sound->filepath);
+  BKE_bpath_foreach_path_fixed_process(bpath_data, sound->filepath, sizeof(sound->filepath));
 }
 
 static void sound_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -256,10 +257,10 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 {
   bSound *sound;
   const char *blendfile_path = BKE_main_blendfile_path(bmain);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, BLI_path_basename(filepath), 0);
   STRNCPY(sound->filepath, filepath);
@@ -284,17 +285,17 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
 bSound *BKE_sound_new_file_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   bSound *sound;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (sound = bmain->sounds.first; sound; sound = sound->id.next) {
-    STRNCPY(strtest, sound->filepath);
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &sound->id));
+    STRNCPY(filepath_test, sound->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &sound->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&sound->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
@@ -461,8 +462,7 @@ bSound *BKE_sound_new_buffer(Main *bmain, bSound *source)
   bSound *sound = NULL;
 
   char name[MAX_ID_NAME + 5];
-  strcpy(name, "buf_");
-  strcpy(name + 4, source->id.name);
+  BLI_string_join(name, sizeof(name), "buf_", source->id.name);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
@@ -479,8 +479,7 @@ bSound *BKE_sound_new_limiter(Main *bmain, bSound *source, float start, float en
   bSound *sound = NULL;
 
   char name[MAX_ID_NAME + 5];
-  strcpy(name, "lim_");
-  strcpy(name + 4, source->id.name);
+  BLI_string_join(name, sizeof(name), "lim_", source->id.name);
 
   sound = BKE_libblock_alloc(bmain, ID_SO, name);
 
@@ -1238,7 +1237,7 @@ static bool sound_info_from_playback_handle(void *playback_handle, SoundInfo *so
   return true;
 }
 
-bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *sound_info)
+bool BKE_sound_info_get(Main *main, bSound *sound, SoundInfo *sound_info)
 {
   if (sound->playback_handle != NULL) {
     return sound_info_from_playback_handle(sound->playback_handle, sound_info);
@@ -1252,21 +1251,21 @@ bool BKE_sound_info_get(struct Main *main, struct bSound *sound, SoundInfo *soun
   return result;
 }
 
-bool BKE_sound_stream_info_get(struct Main *main,
+bool BKE_sound_stream_info_get(Main *main,
                                const char *filepath,
                                int stream,
                                SoundStreamInfo *sound_info)
 {
   const char *blendfile_path = BKE_main_blendfile_path(main);
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
   AUD_Sound *sound;
   AUD_StreamInfo *stream_infos;
   int stream_count;
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, blendfile_path);
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, blendfile_path);
 
-  sound = AUD_Sound_file(str);
+  sound = AUD_Sound_file(filepath_abs);
   if (!sound) {
     return false;
   }
@@ -1433,7 +1432,7 @@ void BKE_sound_reset_scene_runtime(Scene *scene)
   scene->speaker_handles = NULL;
 }
 
-void BKE_sound_ensure_scene(struct Scene *scene)
+void BKE_sound_ensure_scene(Scene *scene)
 {
   if (scene->sound_scene != NULL) {
     return;

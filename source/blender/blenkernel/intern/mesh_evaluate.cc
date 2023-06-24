@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -73,22 +74,6 @@ float3 poly_center_calc(const Span<float3> vert_positions, const Span<int> poly_
   return poly_center_calc_ngon(vert_positions, poly_verts);
 }
 
-}  // namespace blender::bke::mesh
-
-void BKE_mesh_calc_poly_center(const int *poly_verts,
-                               const int poly_size,
-                               const float (*vert_positions)[3],
-                               const int verts_num,
-                               float r_cent[3])
-{
-  copy_v3_v3(r_cent,
-             blender::bke::mesh::poly_center_calc(
-                 {reinterpret_cast<const blender::float3 *>(vert_positions), verts_num},
-                 {poly_verts, poly_size}));
-}
-
-namespace blender::bke::mesh {
-
 float poly_area_calc(const Span<float3> vert_positions, const Span<int> poly_verts)
 {
   if (poly_verts.size() == 3) {
@@ -104,15 +89,6 @@ float poly_area_calc(const Span<float3> vert_positions, const Span<int> poly_ver
 }
 
 }  // namespace blender::bke::mesh
-
-float BKE_mesh_calc_poly_area(const int *poly_verts,
-                              const int poly_size,
-                              const float (*vert_positions)[3],
-                              const int verts_num)
-{
-  return blender::bke::mesh::poly_area_calc(
-      {reinterpret_cast<const float3 *>(vert_positions), verts_num}, {poly_verts, poly_size});
-}
 
 float BKE_mesh_calc_area(const Mesh *me)
 {
@@ -298,18 +274,6 @@ bool BKE_mesh_center_median_from_polys(const Mesh *me, float r_cent[3])
     mul_v3_fl(r_cent, 1.0f / float(tot));
   }
   return (me->totpoly != 0);
-}
-
-bool BKE_mesh_center_bounds(const Mesh *me, float r_cent[3])
-{
-  float min[3], max[3];
-  INIT_MINMAX(min, max);
-  if (BKE_mesh_minmax(me, min, max)) {
-    mid_v3_v3v3(r_cent, min, max);
-    return true;
-  }
-
-  return false;
 }
 
 bool BKE_mesh_center_of_surface(const Mesh *me, float r_cent[3])

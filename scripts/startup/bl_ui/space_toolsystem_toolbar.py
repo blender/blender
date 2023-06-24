@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # For documentation on tool definitions: see "bl_ui.space_toolsystem_common.ToolDef"
@@ -1970,6 +1972,13 @@ class _defs_gpencil_paint:
 
     @staticmethod
     def generate_from_brushes(context):
+        if context and context.preferences.experimental.use_grease_pencil_version3:
+            return tuple([ToolDef.from_dict(dict(
+                idname="builtin_brush.Draw",
+                label="Draw",
+                icon="brush.gpencil_draw.draw",
+                data_block='DRAW',
+            ))])
         return generate_from_enum_ex(
             context,
             idname_prefix="builtin_brush.",
@@ -2998,6 +3007,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_annotate,
             _defs_view3d_generic.ruler,
+        ],
+        'EDIT_GREASE_PENCIL': [
+            *_tools_select,
         ],
         'PARTICLE': [
             *_tools_select,

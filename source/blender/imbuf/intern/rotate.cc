@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -13,7 +14,7 @@
 #include "IMB_imbuf_types.h"
 #include "imbuf.h"
 
-void IMB_flipy(struct ImBuf *ibuf)
+void IMB_flipy(ImBuf *ibuf)
 {
   size_t x_size, y_size;
 
@@ -72,7 +73,7 @@ void IMB_flipy(struct ImBuf *ibuf)
   }
 }
 
-void IMB_flipx(struct ImBuf *ibuf)
+void IMB_flipx(ImBuf *ibuf)
 {
   int x, y, xr, xl, yi;
   float px_f[4];

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -144,7 +145,8 @@ static void movie_clip_foreach_cache(ID *id,
 static void movie_clip_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   MovieClip *movie_clip = (MovieClip *)id;
-  BKE_bpath_foreach_path_fixed_process(bpath_data, movie_clip->filepath);
+  BKE_bpath_foreach_path_fixed_process(
+      bpath_data, movie_clip->filepath, sizeof(movie_clip->filepath));
 }
 
 static void write_movieTracks(BlendWriter *writer, ListBase *tracks)
@@ -530,7 +532,7 @@ static void movieclip_convert_multilayer_add_pass(void *UNUSED(layer),
 
 #endif /* WITH_OPENEXR */
 
-void BKE_movieclip_convert_multilayer_ibuf(struct ImBuf *ibuf)
+void BKE_movieclip_convert_multilayer_ibuf(ImBuf *ibuf)
 {
   if (ibuf == NULL) {
     return;
@@ -562,7 +564,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
                                            int framenr,
                                            int flag)
 {
-  struct ImBuf *ibuf;
+  ImBuf *ibuf;
   char filepath[FILE_MAX];
   int loadflag;
   bool use_proxy = false;
@@ -601,14 +603,14 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip,
 
 static void movieclip_open_anim_file(MovieClip *clip)
 {
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
   if (!clip->anim) {
-    STRNCPY(str, clip->filepath);
-    BLI_path_abs(str, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
+    STRNCPY(filepath_abs, clip->filepath);
+    BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&clip->id));
 
     /* FIXME: make several stream accessible in image editor, too */
-    clip->anim = openanim(str, IB_rect, 0, clip->colorspace_settings.name);
+    clip->anim = openanim(filepath_abs, IB_rect, 0, clip->colorspace_settings.name);
 
     if (clip->anim) {
       if (clip->flag & MCLIP_USE_PROXY_CUSTOM_DIR) {
@@ -968,13 +970,13 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *filepath)
 {
   MovieClip *clip;
   int file;
-  char str[FILE_MAX];
+  char filepath_abs[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* exists? */
-  file = BLI_open(str, O_BINARY | O_RDONLY, 0);
+  file = BLI_open(filepath_abs, O_BINARY | O_RDONLY, 0);
   if (file == -1) {
     return NULL;
   }
@@ -1003,17 +1005,17 @@ MovieClip *BKE_movieclip_file_add(Main *bmain, const char *filepath)
 MovieClip *BKE_movieclip_file_add_exists_ex(Main *bmain, const char *filepath, bool *r_exists)
 {
   MovieClip *clip;
-  char str[FILE_MAX], strtest[FILE_MAX];
+  char filepath_abs[FILE_MAX], filepath_test[FILE_MAX];
 
-  STRNCPY(str, filepath);
-  BLI_path_abs(str, BKE_main_blendfile_path(bmain));
+  STRNCPY(filepath_abs, filepath);
+  BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
 
   /* first search an identical filepath */
   for (clip = bmain->movieclips.first; clip; clip = clip->id.next) {
-    STRNCPY(strtest, clip->filepath);
-    BLI_path_abs(strtest, ID_BLEND_PATH(bmain, &clip->id));
+    STRNCPY(filepath_test, clip->filepath);
+    BLI_path_abs(filepath_test, ID_BLEND_PATH(bmain, &clip->id));
 
-    if (BLI_path_cmp(strtest, str) == 0) {
+    if (BLI_path_cmp(filepath_test, filepath_abs) == 0) {
       id_us_plus(&clip->id); /* officially should not, it doesn't link here! */
       if (r_exists) {
         *r_exists = true;
@@ -1965,7 +1967,7 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip, const MovieClipUser *u
   return result;
 }
 
-static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+static void movieclip_eval_update_reload(Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   BKE_movieclip_reload(bmain, clip);
   if (DEG_is_active(depsgraph)) {
@@ -1974,7 +1976,7 @@ static void movieclip_eval_update_reload(struct Depsgraph *depsgraph, Main *bmai
   }
 }
 
-static void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip *clip)
+static void movieclip_eval_update_generic(Depsgraph *depsgraph, MovieClip *clip)
 {
   BKE_tracking_dopesheet_tag_update(&clip->tracking);
   if (DEG_is_active(depsgraph)) {
@@ -1983,7 +1985,7 @@ static void movieclip_eval_update_generic(struct Depsgraph *depsgraph, MovieClip
   }
 }
 
-void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
+void BKE_movieclip_eval_update(Depsgraph *depsgraph, Main *bmain, MovieClip *clip)
 {
   DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
   if (clip->id.recalc & ID_RECALC_SOURCE) {
@@ -2058,7 +2060,7 @@ GPUTexture *BKE_movieclip_get_gpu_texture(MovieClip *clip, MovieClipUser *cuser)
   return *tex;
 }
 
-void BKE_movieclip_free_gputexture(struct MovieClip *clip)
+void BKE_movieclip_free_gputexture(MovieClip *clip)
 {
   /* Number of gpu textures to keep around as cache.
    * We don't want to keep too many GPU textures for

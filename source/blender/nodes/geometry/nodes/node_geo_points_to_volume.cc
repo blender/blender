@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
@@ -85,8 +87,9 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
   Vector<float> radii;
   Field<float> radius_field = params.get_input<Field<float>>("Radius");
 
-  for (const GeometryComponentType type :
-       {GEO_COMPONENT_TYPE_MESH, GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_CURVE})
+  for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                             GeometryComponent::Type::PointCloud,
+                                             GeometryComponent::Type::Curve})
   {
     if (r_geometry_set.has(type)) {
       gather_point_data_from_component(
@@ -129,7 +132,7 @@ void initialize_volume_component_from_points(GeoNodeExecParams &params,
     blender::geometry::sdf_volume_grid_add_from_points(
         volume, "distance", positions, radii, voxel_size);
   }
-  r_geometry_set.keep_only_during_modify({GEO_COMPONENT_TYPE_VOLUME});
+  r_geometry_set.keep_only_during_modify({GeometryComponent::Type::Volume});
   r_geometry_set.replace_volume(volume);
 }
 }  // namespace blender::nodes

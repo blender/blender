@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edundo
@@ -70,9 +72,7 @@ static bool memfile_undosys_poll(bContext *C)
   return true;
 }
 
-static bool memfile_undosys_step_encode(struct bContext * /*C*/,
-                                        struct Main *bmain,
-                                        UndoStep *us_p)
+static bool memfile_undosys_step_encode(bContext * /*C*/, Main *bmain, UndoStep *us_p)
 {
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 
@@ -157,11 +157,8 @@ static void memfile_undosys_unfinished_id_previews_restart(ID *id)
   }
 }
 
-static void memfile_undosys_step_decode(struct bContext *C,
-                                        struct Main *bmain,
-                                        UndoStep *us_p,
-                                        const eUndoStepDir undo_direction,
-                                        bool /*is_final*/)
+static void memfile_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir undo_direction, bool /*is_final*/)
 {
   BLI_assert(undo_direction != STEP_INVALID);
 
@@ -283,7 +280,8 @@ static void memfile_undosys_step_decode(struct bContext *C,
 
     FOREACH_MAIN_ID_BEGIN (bmain, id) {
       /* Clear temporary tag. */
-      id->tag &= ~(LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE);
+      id->tag &= ~(LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED | LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO |
+                   LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE);
 
       /* We only start accumulating from this point, any tags set up to here
        * are already part of the current undo state. This is done in a second
@@ -353,13 +351,13 @@ void ED_memfile_undosys_type(UndoType *ut)
  * Ideally we wouldn't need to export global undo internals,
  * there are some cases where it's needed though.
  */
-static struct MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
+static MemFile *ed_undosys_step_get_memfile(UndoStep *us_p)
 {
   MemFileUndoStep *us = (MemFileUndoStep *)us_p;
   return &us->data->memfile;
 }
 
-struct MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
+MemFile *ED_undosys_stack_memfile_get_active(UndoStack *ustack)
 {
   UndoStep *us = BKE_undosys_stack_active_with_type(ustack, BKE_UNDOSYS_TYPE_MEMFILE);
   if (us) {

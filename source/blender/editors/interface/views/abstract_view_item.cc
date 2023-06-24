@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -165,6 +167,27 @@ void AbstractViewItem::build_context_menu(bContext & /*C*/, uiLayout & /*column*
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Filtering
+ * \{ */
+
+bool AbstractViewItem::is_filtered_visible() const
+{
+  return true;
+}
+
+bool AbstractViewItem::is_filtered_visible_cached() const
+{
+  if (is_filtered_visible_.has_value()) {
+    return *is_filtered_visible_;
+  }
+
+  is_filtered_visible_ = is_filtered_visible();
+  return *is_filtered_visible_;
+}
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Drag 'n Drop
  * \{ */
 
@@ -202,6 +225,11 @@ AbstractView &AbstractViewItem::get_view() const
         "Invalid state, item must be registered through AbstractView::register_item()");
   }
   return *view_;
+}
+
+void AbstractViewItem::disable_activatable()
+{
+  is_activatable_ = false;
 }
 
 void AbstractViewItem::disable_interaction()

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -12,10 +13,9 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
-#include "BLI_bitmap.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_customdata.h"
+#include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_subdiv.h"
@@ -34,16 +34,16 @@
 struct ConverterStorage {
   SubdivSettings settings;
   const Mesh *mesh;
-  const float (*vert_positions)[3];
+  blender::Span<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
 
   /* CustomData layer for vertex sharpnesses. */
-  const float *cd_vertex_crease;
+  blender::VArraySpan<float> cd_vertex_crease;
   /* CustomData layer for edge sharpness. */
-  const float *cd_edge_crease;
+  blender::VArraySpan<float> cd_edge_crease;
   /* Indexed by loop index, value denotes index of face-varying vertex
    * which corresponds to the UV coordinate.
    */
@@ -60,7 +60,7 @@ struct ConverterStorage {
   /* Indexed by vertex index from mesh, corresponds to whether this vertex has
    * infinite sharpness due to non-manifold topology.
    */
-  BLI_bitmap *infinite_sharp_vertices_map;
+  blender::BitVector<> infinite_sharp_vertices_map;
   /* Reverse mapping to above. */
   int *manifold_vertex_index_reverse;
   int *manifold_edge_index_reverse;
@@ -161,7 +161,7 @@ static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int manif
     return 10.0f;
   }
 #endif
-  if (storage->cd_edge_crease == nullptr) {
+  if (storage->cd_edge_crease.is_empty()) {
     return 0.0f;
   }
   const int edge_index = storage->manifold_edge_index_reverse[manifold_edge_index];
@@ -177,17 +177,17 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
     return true;
   }
 #endif
-  if (storage->infinite_sharp_vertices_map == nullptr) {
+  if (storage->infinite_sharp_vertices_map.is_empty()) {
     return false;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
-  return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map, vertex_index);
+  return storage->infinite_sharp_vertices_map[vertex_index];
 }
 
 static float get_vertex_sharpness(const OpenSubdiv_Converter *converter, int manifold_vertex_index)
 {
   ConverterStorage *storage = static_cast<ConverterStorage *>(converter->user_data);
-  if (storage->cd_vertex_crease == nullptr) {
+  if (storage->cd_vertex_crease.is_empty()) {
     return 0.0f;
   }
   const int vertex_index = storage->manifold_vertex_index_reverse[manifold_vertex_index];
@@ -266,10 +266,9 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
   ConverterStorage *user_data = static_cast<ConverterStorage *>(converter->user_data);
   MEM_SAFE_FREE(user_data->loop_uv_indices);
   MEM_freeN(user_data->manifold_vertex_index);
-  MEM_SAFE_FREE(user_data->infinite_sharp_vertices_map);
   MEM_freeN(user_data->manifold_vertex_index_reverse);
   MEM_freeN(user_data->manifold_edge_index_reverse);
-  MEM_freeN(user_data);
+  MEM_delete(user_data);
 }
 
 static void init_functions(OpenSubdiv_Converter *converter)
@@ -368,17 +367,14 @@ static void initialize_manifold_indices(ConverterStorage *storage)
   /* Initialize infinite sharp mapping. */
   if (loose_edges.count > 0) {
     const Span<int2> edges = storage->edges;
-    storage->infinite_sharp_vertices_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+    storage->infinite_sharp_vertices_map.resize(mesh->totvert, false);
     for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
       if (loose_edges.is_loose_bits[edge_index]) {
         const int2 edge = edges[edge_index];
-        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[0]);
-        BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge[1]);
+        storage->infinite_sharp_vertices_map[edge[0]].set();
+        storage->infinite_sharp_vertices_map[edge[1]].set();
       }
     }
-  }
-  else {
-    storage->infinite_sharp_vertices_map = nullptr;
   }
 }
 
@@ -386,19 +382,19 @@ static void init_user_data(OpenSubdiv_Converter *converter,
                            const SubdivSettings *settings,
                            const Mesh *mesh)
 {
+  using namespace blender;
   ConverterStorage *user_data = MEM_new<ConverterStorage>(__func__);
   user_data->settings = *settings;
   user_data->mesh = mesh;
-  user_data->vert_positions = BKE_mesh_vert_positions(mesh);
+  user_data->vert_positions = mesh->vert_positions();
   user_data->edges = mesh->edges();
   user_data->polys = mesh->polys();
   user_data->corner_verts = mesh->corner_verts();
   user_data->corner_edges = mesh->corner_edges();
   if (settings->use_creases) {
-    user_data->cd_vertex_crease = static_cast<const float *>(
-        CustomData_get_layer(&mesh->vdata, CD_CREASE));
-    user_data->cd_edge_crease = static_cast<const float *>(
-        CustomData_get_layer(&mesh->edata, CD_CREASE));
+    const bke::AttributeAccessor attributes = mesh->attributes();
+    user_data->cd_vertex_crease = *attributes.lookup<float>("crease_vert", ATTR_DOMAIN_POINT);
+    user_data->cd_edge_crease = *attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
   }
   user_data->loop_uv_indices = nullptr;
   initialize_manifold_indices(user_data);

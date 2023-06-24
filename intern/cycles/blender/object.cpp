@@ -1,6 +1,8 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
+#include "blender/light_linking.h"
 #include "blender/object_cull.h"
 #include "blender/sync.h"
 #include "blender/util.h"
@@ -348,8 +350,17 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
       object->set_random_id(hash_uint2(hash_string(object->name.c_str()), 0));
     }
 
-    /* lightgroup */
-    object->set_lightgroup(ustring(b_ob.lightgroup()));
+    /* Light group and linking. */
+    string lightgroup = b_ob.lightgroup();
+    if (lightgroup.empty()) {
+      lightgroup = b_parent.lightgroup();
+    }
+    object->set_lightgroup(ustring(lightgroup));
+
+    object->set_light_set_membership(BlenderLightLink::get_light_set_membership(b_parent, b_ob));
+    object->set_receiver_light_set(BlenderLightLink::get_receiver_light_set(b_parent, b_ob));
+    object->set_shadow_set_membership(BlenderLightLink::get_shadow_set_membership(b_parent, b_ob));
+    object->set_blocker_shadow_set(BlenderLightLink::get_blocker_shadow_set(b_parent, b_ob));
 
     object->tag_update(scene);
   }

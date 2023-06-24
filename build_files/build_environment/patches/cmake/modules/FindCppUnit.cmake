@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2016 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016 Blender Foundation.
 
 # - Find CPPUNIT library
 # Find the native CPPUNIT includes and library

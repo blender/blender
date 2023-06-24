@@ -124,6 +124,21 @@ vec3 normalize_and_get_length(vec3 vector, out float out_length);
 vec4 normalize_and_get_length(vec4 vector, out float out_length);
 
 /**
+ * Return normalized version of the `vector` or a default normalized vector if `vector` is invalid.
+ */
+vec2 safe_normalize(vec2 vector);
+vec3 safe_normalize(vec3 vector);
+vec4 safe_normalize(vec4 vector);
+
+/**
+ * Safe reciprocal function. Returns `1/a`.
+ * If `a` equal 0 the result will be 0.
+ */
+vec2 safe_rcp(vec2 a);
+vec3 safe_rcp(vec3 a);
+vec4 safe_rcp(vec4 a);
+
+/**
  * Per component linear interpolation.
  */
 vec2 interpolate(vec2 a, vec2 b, float t);
@@ -441,6 +456,72 @@ vec4 normalize_and_get_length(vec4 vector, out float out_length)
   /* Either the vector is small or one of it's values contained `nan`. */
   out_length = 0.0;
   return vec4(0.0);
+}
+
+vec2 safe_normalize_and_get_length(vec2 vector, out float out_length)
+{
+  out_length = length_squared(vector);
+  const float threshold = 1e-35f;
+  if (out_length > threshold) {
+    out_length = sqrt(out_length);
+    return vector / out_length;
+  }
+  /* Either the vector is small or one of it's values contained `nan`. */
+  out_length = 1.0;
+  return vec2(1.0, 0.0);
+}
+vec3 safe_normalize_and_get_length(vec3 vector, out float out_length)
+{
+  out_length = length_squared(vector);
+  const float threshold = 1e-35f;
+  if (out_length > threshold) {
+    out_length = sqrt(out_length);
+    return vector / out_length;
+  }
+  /* Either the vector is small or one of it's values contained `nan`. */
+  out_length = 1.0;
+  return vec3(1.0, 0.0, 0.0);
+}
+vec4 safe_normalize_and_get_length(vec4 vector, out float out_length)
+{
+  out_length = length_squared(vector);
+  const float threshold = 1e-35f;
+  if (out_length > threshold) {
+    out_length = sqrt(out_length);
+    return vector / out_length;
+  }
+  /* Either the vector is small or one of it's values contained `nan`. */
+  out_length = 1.0;
+  return vec4(1.0, 0.0, 0.0, 0.0);
+}
+
+vec2 safe_normalize(vec2 vector)
+{
+  float unused_length;
+  return safe_normalize_and_get_length(vector, unused_length);
+}
+vec3 safe_normalize(vec3 vector)
+{
+  float unused_length;
+  return safe_normalize_and_get_length(vector, unused_length);
+}
+vec4 safe_normalize(vec4 vector)
+{
+  float unused_length;
+  return safe_normalize_and_get_length(vector, unused_length);
+}
+
+vec2 safe_rcp(vec2 a)
+{
+  return select(vec2(0.0), (1.0 / a), notEqual(a, vec2(0.0)));
+}
+vec3 safe_rcp(vec3 a)
+{
+  return select(vec3(0.0), (1.0 / a), notEqual(a, vec3(0.0)));
+}
+vec4 safe_rcp(vec4 a)
+{
+  return select(vec4(0.0), (1.0 / a), notEqual(a, vec4(0.0)));
 }
 
 vec2 interpolate(vec2 a, vec2 b, float t)

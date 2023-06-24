@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -558,7 +559,9 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
 
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
-  for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan; _pchan = _pchan->next) { \
+  for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
+       _pchan = _pchan->next) \
+  { \
     if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone) && \
         ((_pchan)->bone->flag & BONE_SELECTED)) \
     {

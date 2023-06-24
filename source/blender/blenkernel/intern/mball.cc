@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -243,32 +244,7 @@ MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 BoundBox *BKE_mball_boundbox_get(Object *ob)
 {
   BLI_assert(ob->type == OB_MBALL);
-  if (ob->runtime.bb != nullptr && (ob->runtime.bb->flag & BOUNDBOX_DIRTY) == 0) {
-    return ob->runtime.bb;
-  }
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-
-  /* Expect that this function is only called for evaluated objects. */
-  const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  float min[3];
-  float max[3];
-  if (mesh_eval) {
-    INIT_MINMAX(min, max);
-    if (!BKE_mesh_minmax(mesh_eval, min, max)) {
-      copy_v3_fl(min, -1.0f);
-      copy_v3_fl(max, 1.0f);
-    }
-  }
-  else {
-    copy_v3_fl(min, 0.0f);
-    copy_v3_fl(max, 0.0f);
-  }
-
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
-  ob->runtime.bb->flag &= ~BOUNDBOX_DIRTY;
-
+  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
   return ob->runtime.bb;
 }
 
@@ -669,6 +645,8 @@ bool BKE_mball_select_swap_multi_ex(Base **bases, int bases_len)
 
 void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_MBALL);
 
   BKE_object_free_derived_caches(ob);
@@ -689,20 +667,17 @@ void BKE_mball_data_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
   if (ob->parent && ob->parent->type == OB_LATTICE && ob->partype == PARSKEL) {
     BKE_lattice_deform_coords(
-        ob->parent, ob, BKE_mesh_vert_positions_for_write(mesh), mesh->totvert, 0, nullptr, 1.0f);
+        ob->parent,
+        ob,
+        reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data()),
+        mesh->totvert,
+        0,
+        nullptr,
+        1.0f);
     BKE_mesh_tag_positions_changed(mesh);
   }
 
   ob->runtime.geometry_set_eval = new GeometrySet(GeometrySet::create_with_mesh(mesh));
 
-  if (ob->runtime.bb == nullptr) {
-    ob->runtime.bb = MEM_cnew<BoundBox>(__func__);
-  }
-  blender::float3 min(std::numeric_limits<float>::max());
-  blender::float3 max(-std::numeric_limits<float>::max());
-  if (!ob->runtime.geometry_set_eval->compute_boundbox_without_instances(&min, &max)) {
-    min = blender::float3(0);
-    max = blender::float3(0);
-  }
-  BKE_boundbox_init_from_minmax(ob->runtime.bb, min, max);
+  BKE_object_boundbox_calc_from_evaluated_geometry(ob);
 };

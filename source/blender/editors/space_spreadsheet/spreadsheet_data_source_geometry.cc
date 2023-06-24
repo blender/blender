@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_mask_ops.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_virtual_array.hh"
 
@@ -178,7 +179,7 @@ void GeometryDataSource::foreach_default_column_ids(
     return;
   }
 
-  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+  if (component_->type() == bke::GeometryComponent::Type::Instance) {
     fn({(char *)"Name"}, false);
   }
 
@@ -202,12 +203,12 @@ void GeometryDataSource::foreach_default_column_ids(
         return true;
       });
 
-  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+  if (component_->type() == bke::GeometryComponent::Type::Instance) {
     fn({(char *)"Rotation"}, false);
     fn({(char *)"Scale"}, false);
   }
-  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
-    const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
+  else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
+    const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get_for_read()) {
       add_mesh_debug_column_names(*mesh, domain_, fn);
     }
@@ -233,9 +234,9 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
     return extra_column_values;
   }
 
-  if (component_->type() == GEO_COMPONENT_TYPE_INSTANCES) {
+  if (component_->type() == bke::GeometryComponent::Type::Instance) {
     if (const bke::Instances *instances =
-            static_cast<const InstancesComponent &>(*component_).get_for_read())
+            static_cast<const bke::InstancesComponent &>(*component_).get_for_read())
     {
       if (STREQ(column_id.name, "Name")) {
         Span<int> reference_handles = instances->reference_handles();
@@ -262,8 +263,8 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
       }
     }
   }
-  else if (G.debug_value == 4001 && component_->type() == GEO_COMPONENT_TYPE_MESH) {
-    const MeshComponent &component = static_cast<const MeshComponent &>(*component_);
+  else if (G.debug_value == 4001 && component_->type() == bke::GeometryComponent::Type::Mesh) {
+    const bke::MeshComponent &component = static_cast<const bke::MeshComponent &>(*component_);
     if (const Mesh *mesh = component.get_for_read()) {
       if (std::unique_ptr<ColumnValues> values = build_mesh_debug_columns(
               *mesh, domain_, column_id.name))
@@ -303,7 +304,7 @@ bool GeometryDataSource::has_selection_filter() const
 {
   Object *object_orig = DEG_get_original_object(object_eval_);
   switch (component_->type()) {
-    case GEO_COMPONENT_TYPE_MESH: {
+    case bke::GeometryComponent::Type::Mesh: {
       if (object_orig->type != OB_MESH) {
         return false;
       }
@@ -312,7 +313,7 @@ bool GeometryDataSource::has_selection_filter() const
       }
       return true;
     }
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case bke::GeometryComponent::Type::Curve: {
       if (object_orig->type != OB_CURVES) {
         return false;
       }
@@ -326,7 +327,7 @@ bool GeometryDataSource::has_selection_filter() const
   }
 }
 
-IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) const
+IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) const
 {
   std::lock_guard lock{mutex_};
   const IndexMask full_range(this->tot_rows());
@@ -335,7 +336,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
   }
 
   switch (component_->type()) {
-    case GEO_COMPONENT_TYPE_MESH: {
+    case bke::GeometryComponent::Type::Mesh: {
       BLI_assert(object_eval_->type == OB_MESH);
       BLI_assert(object_eval_->mode == OB_MODE_EDIT);
       Object *object_orig = DEG_get_original_object(object_eval_);
@@ -363,8 +364,7 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                                   }),
             ATTR_DOMAIN_POINT,
             domain_);
-        return index_mask_ops::find_indices_from_virtual_array(
-            full_range, selection, 1024, indices);
+        return IndexMask::from_bools(selection, memory);
       }
 
       if (mesh_eval->totvert == bm->totvert) {
@@ -377,22 +377,20 @@ IndexMask GeometryDataSource::apply_selection_filter(Vector<int64_t> &indices) c
                                   }),
             ATTR_DOMAIN_POINT,
             domain_);
-        return index_mask_ops::find_indices_from_virtual_array(
-            full_range, selection, 2048, indices);
+        return IndexMask::from_bools(selection, memory);
       }
 
       return full_range;
     }
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case bke::GeometryComponent::Type::Curve: {
       BLI_assert(object_eval_->type == OB_CURVES);
-      BLI_assert(object_eval_->mode == OB_MODE_SCULPT_CURVES);
-      const CurveComponent &component = static_cast<const CurveComponent &>(*component_);
+      const bke::CurveComponent &component = static_cast<const bke::CurveComponent &>(*component_);
       const Curves &curves_id = *component.get_for_read();
       switch (domain_) {
         case ATTR_DOMAIN_POINT:
-          return curves::retrieve_selected_points(curves_id, indices);
+          return curves::retrieve_selected_points(curves_id, memory);
         case ATTR_DOMAIN_CURVE:
-          return curves::retrieve_selected_curves(curves_id, indices);
+          return curves::retrieve_selected_curves(curves_id, memory);
         default:
           BLI_assert_unreachable();
       }
@@ -474,14 +472,15 @@ int VolumeDataSource::tot_rows() const
   return BKE_volume_num_grids(volume);
 }
 
-GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
-                                                 Object *object_eval)
+bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspreadsheet,
+                                                      Object *object_eval)
 {
-  GeometrySet geometry_set;
+  bke::GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     Object *object_orig = DEG_get_original_object(object_eval);
     if (object_orig->type == OB_MESH) {
-      MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
+      bke::MeshComponent &mesh_component =
+          geometry_set.get_component_for_write<bke::MeshComponent>();
       if (object_orig->mode == OB_MODE_EDIT) {
         Mesh *mesh = (Mesh *)object_orig->data;
         BMEditMesh *em = mesh->edit_mesh;
@@ -491,36 +490,38 @@ GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *sspread
            * to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
           BM_mesh_bm_to_me_for_eval(em->bm, new_mesh, nullptr);
-          mesh_component.replace(new_mesh, GeometryOwnershipType::Owned);
+          mesh_component.replace(new_mesh, bke::GeometryOwnershipType::Owned);
         }
       }
       else {
         Mesh *mesh = (Mesh *)object_orig->data;
-        mesh_component.replace(mesh, GeometryOwnershipType::ReadOnly);
+        mesh_component.replace(mesh, bke::GeometryOwnershipType::ReadOnly);
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
       PointCloud *pointcloud = (PointCloud *)object_orig->data;
-      PointCloudComponent &pointcloud_component =
-          geometry_set.get_component_for_write<PointCloudComponent>();
-      pointcloud_component.replace(pointcloud, GeometryOwnershipType::ReadOnly);
+      bke::PointCloudComponent &pointcloud_component =
+          geometry_set.get_component_for_write<bke::PointCloudComponent>();
+      pointcloud_component.replace(pointcloud, bke::GeometryOwnershipType::ReadOnly);
     }
     else if (object_orig->type == OB_CURVES) {
       const Curves &curves_id = *(const Curves *)object_orig->data;
-      CurveComponent &curve_component = geometry_set.get_component_for_write<CurveComponent>();
-      curve_component.replace(&const_cast<Curves &>(curves_id), GeometryOwnershipType::ReadOnly);
+      bke::CurveComponent &curve_component =
+          geometry_set.get_component_for_write<bke::CurveComponent>();
+      curve_component.replace(&const_cast<Curves &>(curves_id),
+                              bke::GeometryOwnershipType::ReadOnly);
     }
   }
   else {
     if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
-      if (const GeometrySet *geometry_eval = object_eval->runtime.geometry_set_eval) {
+      if (const bke::GeometrySet *geometry_eval = object_eval->runtime.geometry_set_eval) {
         geometry_set = *geometry_eval;
       }
 
       if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
         if (Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval)) {
           BKE_mesh_wrapper_ensure_mdata(mesh);
-          geometry_set.replace_mesh(mesh, GeometryOwnershipType::ReadOnly);
+          geometry_set.replace_mesh(mesh, bke::GeometryOwnershipType::ReadOnly);
         }
       }
     }
@@ -540,14 +541,13 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   const eAttrDomain domain = (eAttrDomain)sspreadsheet->attribute_domain;
-  const GeometryComponentType component_type = GeometryComponentType(
-      sspreadsheet->geometry_component_type);
-  GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
+  const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
+  bke::GeometrySet geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet, object_eval);
   if (!geometry_set.has(component_type)) {
     return {};
   }
 
-  if (component_type == GEO_COMPONENT_TYPE_VOLUME) {
+  if (component_type == bke::GeometryComponent::Type::Volume) {
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
   return std::make_unique<GeometryDataSource>(

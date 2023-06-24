@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -488,12 +490,12 @@ static void cb_customdata_free(void *customdata)
   }
 }
 
-void BPY_callback_screen_free(struct ARegionType *art)
+void BPY_callback_screen_free(ARegionType *art)
 {
   ED_region_draw_cb_remove_by_type(art, cb_region_draw, cb_customdata_free);
 }
 
-void BPY_callback_wm_free(struct wmWindowManager *wm)
+void BPY_callback_wm_free(wmWindowManager *wm)
 {
   WM_paint_cursor_remove_by_type(wm, cb_wm_cursor_draw, cb_customdata_free);
 }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -38,7 +39,7 @@ static bool object_rand_transverts(TransVertStore *tvs,
                                    const uint seed)
 {
   bool use_normal = (normal_factor != 0.0f);
-  struct RNG *rng;
+  RNG *rng;
   TransVert *tv;
   int a;
 
@@ -129,7 +130,7 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
   return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot)
+void TRANSFORM_OT_vertex_random(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Randomize";

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -49,26 +50,36 @@ void VKUniformBuffer::bind(int slot, shader::ShaderCreateInfo::Resource::BindTyp
       shader_interface.descriptor_set_location(bind_type, slot);
   if (location) {
     VKDescriptorSetTracker &descriptor_set = shader->pipeline_get().descriptor_set_get();
-    descriptor_set.bind(*this, *location);
+    /* TODO: move to descriptor set. */
+    if (bind_type == shader::ShaderCreateInfo::Resource::BindType::UNIFORM_BUFFER) {
+      descriptor_set.bind(*this, *location);
+    }
+    else {
+      descriptor_set.bind_as_ssbo(*this, *location);
+    }
   }
 }
 
 void VKUniformBuffer::bind(int slot)
 {
-  /* Uniform buffers can be bound without an shader. */
   VKContext &context = *VKContext::get();
   context.state_manager_get().uniform_buffer_bind(this, slot);
 }
 
 void VKUniformBuffer::bind_as_ssbo(int slot)
 {
-  bind(slot, shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER);
+  VKContext &context = *VKContext::get();
+  context.state_manager_get().storage_buffer_bind(*this, slot);
 }
 
 void VKUniformBuffer::unbind()
 {
-  VKContext &context = *VKContext::get();
-  context.state_manager_get().uniform_buffer_unbind(this);
+  const VKContext *context = VKContext::get();
+  if (context != nullptr) {
+    VKStateManager &state_manager = context->state_manager_get();
+    state_manager.uniform_buffer_unbind(this);
+    state_manager.storage_buffer_unbind(*this);
+  }
 }
 
 }  // namespace blender::gpu

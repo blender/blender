@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -195,7 +197,7 @@ void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 
   /* don't do translations here yet */
 #if 0
-  /* Use i18n context from rna_ext.srna if possible (py gizmogroups). */
+  /* Use i18n context from rna_ext.srna if possible (py gizmo-groups). */
   if (gzgt->rna_ext.srna) {
     RNA_def_struct_translation_context(gzgt->srna, RNA_struct_translation_context(gzgt->rna_ext.srna));
   }

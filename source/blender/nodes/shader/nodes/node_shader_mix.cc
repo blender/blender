@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup shdnodes
@@ -24,7 +25,7 @@ NODE_STORAGE_FUNCS(NodeShaderMix)
 static void sh_node_mix_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  /** WARNING:
+  /* WARNING:
    * Input socket indices must be kept in sync with ntree_shader_disconnect_inactive_mix_branches
    */
   b.add_input<decl::Float>("Factor", "Factor_Float")
@@ -394,7 +395,7 @@ class MixColorFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float> &fac = params.readonly_single_input<float>(0, "Factor");
     const VArray<ColorGeometry4f> &col1 = params.readonly_single_input<ColorGeometry4f>(1, "A");
@@ -403,22 +404,21 @@ class MixColorFunction : public mf::MultiFunction {
         3, "Result");
 
     if (clamp_factor_) {
-      for (int64_t i : mask) {
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
         results[i] = col1[i];
         ramp_blend(blend_type_, results[i], std::clamp(fac[i], 0.0f, 1.0f), col2[i]);
-      }
+      });
     }
     else {
-      for (int64_t i : mask) {
+      mask.foreach_index_optimized<int64_t>([&](const int64_t i) {
         results[i] = col1[i];
         ramp_blend(blend_type_, results[i], fac[i], col2[i]);
-      }
+      });
     }
 
     if (clamp_result_) {
-      for (int64_t i : mask) {
-        clamp_v3(results[i], 0.0f, 1.0f);
-      }
+      mask.foreach_index_optimized<int64_t>(
+          [&](const int64_t i) { clamp_v3(results[i], 0.0f, 1.0f); });
     }
   }
 };

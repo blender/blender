@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -85,12 +86,12 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   }
 
   const int callback_return = data->callback(
-      &(struct LibraryIDLinkCallbackData){.user_data = data->user_data,
-                                          .bmain = data->bmain,
-                                          .owner_id = data->owner_id,
-                                          .self_id = data->self_id,
-                                          .id_pointer = id_pp,
-                                          .cb_flag = cb_flag});
+      &(LibraryIDLinkCallbackData){.user_data = data->user_data,
+                                   .bmain = data->bmain,
+                                   .owner_id = data->owner_id,
+                                   .self_id = data->self_id,
+                                   .id_pointer = id_pp,
+                                   .cb_flag = cb_flag});
   if (flag & IDWALK_READONLY) {
     BLI_assert(*(id_pp) == old_id);
   }
@@ -464,6 +465,8 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include
       return FILTER_ID_IM;
     case ID_GD_LEGACY:
       return FILTER_ID_MA;
+    case ID_GP:
+      return FILTER_ID_GP | FILTER_ID_MA;
     case ID_WS:
       return FILTER_ID_SCE;
     case ID_CV:

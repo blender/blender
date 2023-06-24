@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DEG_depsgraph_query.h"
 
@@ -28,7 +30,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>(CTX_N_(BLT_I18NCONTEXT_ID_ID, "Volume"))
       .translation_context(BLT_I18NCONTEXT_ID_ID)
-      .supported_type(GEO_COMPONENT_TYPE_VOLUME);
+      .supported_type(GeometryComponent::Type::Volume);
 
   std::string grid_socket_description = N_(
       "Expects a Named Attribute with the name of a Grid in the Volume");
@@ -66,6 +68,24 @@ static void search_node_add_ops(GatherAddNodeSearchParams &params)
   blender::nodes::search_node_add_ops_for_basic_node(params);
 }
 
+static std::optional<eCustomDataType> other_socket_type_to_grid_type(
+    const eNodeSocketDatatype type)
+{
+  switch (type) {
+    case SOCK_FLOAT:
+      return CD_PROP_FLOAT;
+    case SOCK_VECTOR:
+    case SOCK_RGBA:
+      return CD_PROP_FLOAT3;
+    case SOCK_BOOLEAN:
+      return CD_PROP_BOOL;
+    case SOCK_INT:
+      return CD_PROP_INT32;
+    default:
+      return std::nullopt;
+  }
+}
+
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
   if (!U.experimental.use_new_volume_nodes) {
@@ -75,16 +95,17 @@ static void search_link_ops(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_back(1));
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
-  const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
-  if (type && *type != CD_PROP_STRING) {
-    /* The input and output sockets have the same name. */
-    params.add_item(IFACE_("Grid"), [type](LinkSearchOpParams &params) {
-      bNode &node = params.add_node("GeometryNodeSampleVolume");
-      node_storage(node).grid_type = *type;
-      params.update_and_connect_available_socket(node, "Grid");
-    });
+  const std::optional<eCustomDataType> type = other_socket_type_to_grid_type(
+      eNodeSocketDatatype(params.other_socket().type));
+  if (!type) {
+    return;
   }
+  /* The input and output sockets have the same name. */
+  params.add_item(IFACE_("Grid"), [type](LinkSearchOpParams &params) {
+    bNode &node = params.add_node("GeometryNodeSampleVolume");
+    node_storage(node).grid_type = *type;
+    params.update_and_connect_available_socket(node, "Grid");
+  });
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -161,7 +182,7 @@ static const blender::CPPType *vdb_grid_type_to_cpp_type(const VolumeGridType gr
 template<typename GridT>
 void sample_grid(openvdb::GridBase::ConstPtr base_grid,
                  const Span<float3> positions,
-                 const IndexMask mask,
+                 const IndexMask &mask,
                  GMutableSpan dst,
                  const GeometryNodeSampleVolumeInterpolationMode interpolation_mode)
 {
@@ -229,7 +250,7 @@ class SampleVolumeFunction : public mf::MultiFunction {
     this->set_signature(&signature_);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArraySpan<float3> positions = params.readonly_single_input<float3>(0, "Position");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");

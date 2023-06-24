@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -548,10 +548,6 @@ msgstr "เครื่องหมาย"
 
 msgid "Smooth"
 msgstr "ราบเรียบ"
-
-
-msgid "Randomize"
-msgstr "สุ่ม"
 
 
 msgid "Path"
@@ -1363,24 +1359,12 @@ msgid "Repeat"
 msgstr "ทำซ้ำ"
 
 
-msgid "Mask"
-msgstr "หน้ากาก"
-
-
 msgid "Mask Texture"
 msgstr "พื้นผิวหน้ากาก"
 
 
 msgid "Sculpt Tool"
 msgstr "เครื่องแกะสลัก"
-
-
-msgid "Pose"
-msgstr "ท่าทาง"
-
-
-msgid "Rotate"
-msgstr "หมุน"
 
 
 msgid "Grab UVs"
@@ -1765,6 +1749,10 @@ msgid "Texture Paint"
 msgstr "วาดพื้นผิว"
 
 
+msgid "Pose"
+msgstr "ท่าทาง"
+
+
 msgid "Euler Rotation"
 msgstr "หมุน"
 
@@ -2059,6 +2047,10 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
+msgid "Mask"
+msgstr "หน้ากาก"
+
+
 msgid "Pivot Point"
 msgstr "จุดหมุน"
 
@@ -2285,6 +2277,10 @@ msgid "Percent"
 msgstr "ร้อยละ"
 
 
+msgid "Randomize"
+msgstr "สุ่ม"
+
+
 msgid "Ray Radius"
 msgstr "รัศมีรังสี"
 
@@ -2412,6 +2408,10 @@ msgstr "ช่องสีแดง"
 
 msgid "RGB to BW"
 msgstr "RGB ไปยัง BW"
+
+
+msgid "Rotate"
+msgstr "หมุน"
 
 
 msgid "Ray Length"
@@ -3734,10 +3734,6 @@ msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
 
 
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
-
-
 msgctxt "Sequence"
 msgid "Image"
 msgstr "ภาพ"
@@ -4018,31 +4014,6 @@ msgstr "วิวพอร์ตแรเงา"
 
 msgid "Method to display/shade objects in the 3D View"
 msgstr "วิธีที่จะแสดง/แรเงาวัตถุบนมุมมองสามมิติ"
-
-
-msgctxt "Operator"
-msgid "Action:"
-msgstr "กระทำ:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "ไซเคิล:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "หน้ากาก:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "การตั้งค่า:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "พื้นที่ใช้งาน:"
 
 
 msgid "Search"
@@ -5716,10 +5687,6 @@ msgid "Japanese (日本語)"
 msgstr "ภาษาญี่ปุ่น (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "ภาษาดัตช์ (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "ภาษาอิตาลี (Italiano)"
 
@@ -5832,10 +5799,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "ภาษาฮิบรู (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "ภาษาเอสโตเนีย (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "ภาษาเอสเปรันโต (Esperanto)"
 
@@ -5856,24 +5819,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "ภาษาอุซเบกซีริลลิก (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "ภาษาฮินดี (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "ภาษาเวียดนาม (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "ภาษาบาสก์ (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "ภาษาฮัวซา (Hausa)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "ภาษาคาซัค (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

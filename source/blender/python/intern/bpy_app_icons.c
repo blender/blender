@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -85,12 +87,12 @@ static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *a
 }
 
 PyDoc_STRVAR(bpy_app_icons_new_triangles_from_file_doc,
-             ".. function:: new_triangles_from_file(filename)\n"
+             ".. function:: new_triangles_from_file(filepath)\n"
              "\n"
              "   Create a new icon from triangle geometry.\n"
              "\n"
-             "   :arg filename: File path.\n"
-             "   :type filename: string.\n"
+             "   :arg filepath: File path.\n"
+             "   :type filepath: string.\n"
              "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
              "   :rtype: int\n");
 static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self),
@@ -98,20 +100,20 @@ static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self),
                                                        PyObject *kw)
 {
   /* bytes */
-  char *filename;
+  char *filepath;
 
-  static const char *_keywords[] = {"filename", NULL};
+  static const char *_keywords[] = {"filepath", NULL};
   static _PyArg_Parser _parser = {
-      "s" /* `filename` */
+      "s" /* `filepath` */
       ":new_triangles_from_file",
       _keywords,
       0,
   };
-  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filename)) {
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &filepath)) {
     return NULL;
   }
 
-  struct Icon_Geom *geom = BKE_icon_geom_from_file(filename);
+  struct Icon_Geom *geom = BKE_icon_geom_from_file(filepath);
   if (geom == NULL) {
     PyErr_SetString(PyExc_ValueError, "Unable to load from file");
     return NULL;
@@ -145,7 +147,7 @@ static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args, P
   Py_RETURN_NONE;
 }
 
-static struct PyMethodDef M_AppIcons_methods[] = {
+static PyMethodDef M_AppIcons_methods[] = {
     {"new_triangles",
      (PyCFunction)bpy_app_icons_new_triangles,
      METH_VARARGS | METH_KEYWORDS,
@@ -161,7 +163,7 @@ static struct PyMethodDef M_AppIcons_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_AppIcons_module_def = {
+static PyModuleDef M_AppIcons_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.app.icons",
     /*m_doc*/ NULL,

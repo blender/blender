@@ -1,4 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ * SPDX-FileCopyrightText: 2001 softSurfer (http://www.softsurfer.com)
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -251,7 +254,7 @@ static float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int 
     i_prev = i;
   }
 
-  return (area_best != FLT_MAX) ? atan2f(dvec_best[0], dvec_best[1]) : 0.0f;
+  return (area_best != FLT_MAX) ? (float)atan2(dvec_best[0], dvec_best[1]) : 0.0f;
 }
 
 float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int n)

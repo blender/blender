@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -63,7 +64,22 @@ static void pchan_deform_accumulate(const DualQuat *deform_dq,
   if (dq_accum) {
     BLI_assert(!co_accum);
 
-    add_weighted_dq_dq(dq_accum, deform_dq, weight);
+    if (deform_dq->scale_weight) {
+      /* FIX #32022. */
+      DualQuat mdq = *deform_dq;
+      float dst[3];
+      mul_v3_m4v3(dst, mdq.scale, co_in);
+      sub_v3_v3(dst, co_in);
+      mdq.trans[0] -= .5f * (mdq.quat[1] * dst[0] + mdq.quat[2] * dst[1] + mdq.quat[3] * dst[2]);
+      mdq.trans[1] += .5f * (mdq.quat[0] * dst[0] + mdq.quat[2] * dst[2] - mdq.quat[3] * dst[1]);
+      mdq.trans[2] += .5f * (mdq.quat[0] * dst[1] + mdq.quat[3] * dst[0] - mdq.quat[1] * dst[2]);
+      mdq.trans[3] += .5f * (mdq.quat[0] * dst[2] + mdq.quat[1] * dst[1] - mdq.quat[2] * dst[0]);
+      mdq.scale_weight = 0.0f;
+      add_weighted_dq_dq(dq_accum, &mdq, weight);
+    }
+    else {
+      add_weighted_dq_dq(dq_accum, deform_dq, weight);
+    }
   }
   else {
     float tmp[3];

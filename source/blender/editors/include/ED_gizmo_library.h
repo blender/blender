@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -50,11 +52,6 @@ void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
                                  float mat[4][4],
                                  int axis,
                                  int select_id);
-void ED_gizmo_draw_preset_facemap(const struct bContext *C,
-                                  const struct wmGizmo *gz,
-                                  struct Object *ob,
-                                  int facemap,
-                                  int select_id);
 
 /* -------------------------------------------------------------------- */
 /* 3D Arrow Gizmo */

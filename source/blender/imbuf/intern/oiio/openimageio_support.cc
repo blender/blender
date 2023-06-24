@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "openimageio_support.hh"
 #include <OpenImageIO/imagebuf.h>
@@ -178,11 +180,12 @@ static ImBuf *get_oiio_ibuf(ImageInput *in, const ReadContext &ctx, char colorsp
   const ImageSpec &spec = in->spec();
   const int width = spec.width;
   const int height = spec.height;
-  const int channels = spec.nchannels;
   const bool has_alpha = spec.alpha_channel != -1;
   const bool is_float = spec.format.basesize() > 1;
 
-  if (channels < 1 || channels > 4) {
+  /* Only a maximum of 4 channels are supported by ImBuf. */
+  const int channels = spec.nchannels <= 4 ? spec.nchannels : 4;
+  if (channels < 1) {
     return nullptr;
   }
 
@@ -307,25 +310,27 @@ bool imb_oiio_write(const WriteContext &ctx, const char *filepath, const ImageSp
     final_buf = std::move(orig_buf);
   }
 
-  bool ok = false;
+  bool write_ok = false;
+  bool close_ok = false;
   if (ctx.flags & IB_mem) {
-    /* This memory proxy must remain alive for the full duration of the write. */
+    /* This memory proxy must remain alive until the ImageOutput is finally closed. */
     ImBufMemWriter writer(ctx.ibuf);
 
     imb_addencodedbufferImBuf(ctx.ibuf);
     out->set_ioproxy(&writer);
     if (out->open("", file_spec)) {
-      ok = final_buf.write(out.get());
+      write_ok = final_buf.write(out.get());
+      close_ok = out->close();
     }
   }
   else {
     if (out->open(filepath, file_spec)) {
-      ok = final_buf.write(out.get());
+      write_ok = final_buf.write(out.get());
+      close_ok = out->close();
     }
   }
 
-  out->close();
-  return ok;
+  return write_ok && close_ok;
 }
 
 WriteContext imb_create_write_context(const char *file_format,

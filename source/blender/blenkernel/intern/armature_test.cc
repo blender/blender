@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_armature.hh"
 
@@ -354,9 +355,9 @@ class BKE_armature_find_selected_bones_test : public testing::Test {
 
   void SetUp() override
   {
-    strcpy(bone1.name, "bone1");
-    strcpy(bone2.name, "bone2");
-    strcpy(bone3.name, "bone3");
+    STRNCPY(bone1.name, "bone1");
+    STRNCPY(bone2.name, "bone2");
+    STRNCPY(bone3.name, "bone3");
 
     arm.bonebase = {nullptr, nullptr};
     bone1.childbase = {nullptr, nullptr};

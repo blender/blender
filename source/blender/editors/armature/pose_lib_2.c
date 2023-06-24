@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -86,8 +87,9 @@ typedef struct PoseBlendData {
   char headerstr[UI_MAX_DRAW_STR];
 } PoseBlendData;
 
-/** Return the bAction that should be blended.
- * This is either pbd->act or pbd->act_flipped, depending on is_flipped.
+/**
+ * Return the bAction that should be blended.
+ * This is either `pbd->act` or `pbd->act_flipped`, depending on `is_flipped`.
  */
 static bAction *poselib_action_to_blend(PoseBlendData *pbd)
 {
@@ -177,7 +179,7 @@ static void poselib_blend_apply(bContext *C, wmOperator *op)
   }
 
   /* Perform the actual blending. */
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, 0.0f);
   bAction *to_blend = poselib_action_to_blend(pbd);
   BKE_pose_apply_action_blend(pbd->ob, to_blend, &anim_eval_context, pbd->blend_factor);
@@ -495,10 +497,10 @@ static int poselib_blend_modal(bContext *C, wmOperator *op, const wmEvent *event
     ED_slider_status_string_get(pbd->slider, slider_string, sizeof(slider_string));
 
     if (pbd->state == POSE_BLEND_BLENDING) {
-      strcpy(tab_string, TIP_("[Tab] - Show original pose"));
+      STRNCPY(tab_string, TIP_("[Tab] - Show original pose"));
     }
     else {
-      strcpy(tab_string, TIP_("[Tab] - Show blended pose"));
+      STRNCPY(tab_string, TIP_("[Tab] - Show blended pose"));
     }
 
     SNPRINTF(status_string, "%s | %s | [Ctrl] - Flip Pose", tab_string, slider_string);

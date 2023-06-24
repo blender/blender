@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -847,7 +848,7 @@ void ED_view3d_cursor3d_position(bContext *C,
   }
 
   if (use_depth) { /* maybe this should be accessed some other way */
-    struct Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+    Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
     view3d_operator_needs_opengl(C);
     if (ED_view3d_autodist(depsgraph, region, v3d, mval, cursor_co, true, NULL)) {
@@ -901,7 +902,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
     float ray_no[3];
     float ray_co[3];
 
-    struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
+    SnapObjectContext *snap_context = ED_transform_snap_object_context_create(scene, 0);
 
     float obmat[4][4];
     Object *ob_dummy = NULL;
@@ -910,7 +911,7 @@ void ED_view3d_cursor3d_position_rotation(bContext *C,
                                                    CTX_data_ensure_evaluated_depsgraph(C),
                                                    region,
                                                    v3d,
-                                                   SCE_SNAP_MODE_FACE_RAYCAST,
+                                                   SCE_SNAP_MODE_FACE,
                                                    &(const struct SnapObjectParams){
                                                        .snap_target_select = SCE_SNAP_TARGET_ALL,
                                                        .edit_mode_type = SNAP_GEOM_FINAL,

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -38,17 +39,17 @@
 /********************** Track operator *********************/
 
 typedef struct TrackMarkersJob {
-  struct AutoTrackContext *context; /* Tracking context */
-  int sfra, efra, lastfra;          /* Start, end and recently tracked frames */
-  int backwards;                    /* Backwards tracking flag */
-  MovieClip *clip;                  /* Clip which is tracking */
-  float delay;                      /* Delay in milliseconds to allow
-                                     * tracking at fixed FPS */
+  AutoTrackContext *context; /* Tracking context */
+  int sfra, efra, lastfra;   /* Start, end and recently tracked frames */
+  int backwards;             /* Backwards tracking flag */
+  MovieClip *clip;           /* Clip which is tracking */
+  float delay;               /* Delay in milliseconds to allow
+                              * tracking at fixed FPS */
 
-  struct wmWindowManager *wm;
-  struct Main *main;
-  struct Scene *scene;
-  struct bScreen *screen;
+  wmWindowManager *wm;
+  Main *main;
+  Scene *scene;
+  bScreen *screen;
 } TrackMarkersJob;
 
 static bool track_markers_testbreak(void)

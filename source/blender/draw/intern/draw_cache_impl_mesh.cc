@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -272,7 +273,7 @@ static void mesh_cd_calc_active_mask_uv_layer(const Object *object,
 
 static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
                                                    const Mesh *me,
-                                                   struct GPUMaterial **gpumat_array,
+                                                   GPUMaterial **gpumat_array,
                                                    int gpumat_array_len,
                                                    DRW_Attributes *attributes)
 {
@@ -391,6 +392,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
         }
         case CD_PROP_BYTE_COLOR:
         case CD_PROP_COLOR:
+        case CD_PROP_QUATERNION:
         case CD_PROP_FLOAT3:
         case CD_PROP_BOOL:
         case CD_PROP_INT8:
@@ -418,7 +420,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object *object,
  * \{ */
 
 /** Reset the selection structure, deallocating heap memory as appropriate. */
-static void drw_mesh_weight_state_clear(struct DRW_MeshWeightState *wstate)
+static void drw_mesh_weight_state_clear(DRW_MeshWeightState *wstate)
 {
   MEM_SAFE_FREE(wstate->defgroup_sel);
   MEM_SAFE_FREE(wstate->defgroup_locked);
@@ -430,8 +432,8 @@ static void drw_mesh_weight_state_clear(struct DRW_MeshWeightState *wstate)
 }
 
 /** Copy selection data from one structure to another, including heap memory. */
-static void drw_mesh_weight_state_copy(struct DRW_MeshWeightState *wstate_dst,
-                                       const struct DRW_MeshWeightState *wstate_src)
+static void drw_mesh_weight_state_copy(DRW_MeshWeightState *wstate_dst,
+                                       const DRW_MeshWeightState *wstate_src)
 {
   MEM_SAFE_FREE(wstate_dst->defgroup_sel);
   MEM_SAFE_FREE(wstate_dst->defgroup_locked);
@@ -458,8 +460,8 @@ static bool drw_mesh_flags_equal(const bool *array1, const bool *array2, int siz
 }
 
 /** Compare two selection structures. */
-static bool drw_mesh_weight_state_compare(const struct DRW_MeshWeightState *a,
-                                          const struct DRW_MeshWeightState *b)
+static bool drw_mesh_weight_state_compare(const DRW_MeshWeightState *a,
+                                          const DRW_MeshWeightState *b)
 {
   return a->defgroup_active == b->defgroup_active && a->defgroup_len == b->defgroup_len &&
          a->flags == b->flags && a->alert_mode == b->alert_mode &&
@@ -469,11 +471,8 @@ static bool drw_mesh_weight_state_compare(const struct DRW_MeshWeightState *a,
          drw_mesh_flags_equal(a->defgroup_unlocked, b->defgroup_unlocked, a->defgroup_len);
 }
 
-static void drw_mesh_weight_state_extract(Object *ob,
-                                          Mesh *me,
-                                          const ToolSettings *ts,
-                                          bool paint_mode,
-                                          struct DRW_MeshWeightState *wstate)
+static void drw_mesh_weight_state_extract(
+    Object *ob, Mesh *me, const ToolSettings *ts, bool paint_mode, DRW_MeshWeightState *wstate)
 {
   /* Extract complete vertex weight group selection state and mode flags. */
   memset(wstate, 0, sizeof(*wstate));
@@ -627,7 +626,7 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 }
 
 static void mesh_batch_cache_check_vertex_group(MeshBatchCache *cache,
-                                                const struct DRW_MeshWeightState *wstate)
+                                                const DRW_MeshWeightState *wstate)
 {
   if (!drw_mesh_weight_state_compare(&cache->weight_state, wstate)) {
     FOREACH_MESH_BUFFER_CACHE (cache, mbc) {
@@ -957,7 +956,7 @@ GPUBatch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh *me)
 
 void DRW_mesh_get_attributes(Object *object,
                              Mesh *me,
-                             struct GPUMaterial **gpumat_array,
+                             GPUMaterial **gpumat_array,
                              int gpumat_array_len,
                              DRW_Attributes *r_attrs,
                              DRW_MeshCDMask *r_cd_needed)
@@ -978,7 +977,7 @@ void DRW_mesh_get_attributes(Object *object,
 
 GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(Object *object,
                                                    Mesh *me,
-                                                   struct GPUMaterial **gpumat_array,
+                                                   GPUMaterial **gpumat_array,
                                                    uint gpumat_array_len)
 {
   MeshBatchCache *cache = mesh_batch_cache_get(me);
@@ -1335,7 +1334,7 @@ static void drw_mesh_batch_cache_check_available(struct TaskGraph *task_graph, M
 }
 #endif
 
-void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
+void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
                                            Object *ob,
                                            Mesh *me,
                                            const Scene *scene,
@@ -1394,7 +1393,7 @@ void DRW_mesh_batch_cache_create_requested(struct TaskGraph *task_graph,
   if (batch_requested & MBC_SURFACE_WEIGHTS) {
     /* Check vertex weights. */
     if ((cache->batch.surface_weights != nullptr) && (ts != nullptr)) {
-      struct DRW_MeshWeightState wstate;
+      DRW_MeshWeightState wstate;
       BLI_assert(ob->type == OB_MESH);
       drw_mesh_weight_state_extract(ob, me, ts, is_paint_mode, &wstate);
       mesh_batch_cache_check_vertex_group(cache, &wstate);

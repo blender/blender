@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -31,9 +33,7 @@ TEST(curves_geometry, Empty)
 {
   CurvesGeometry empty(0, 0);
   empty.cyclic();
-  float3 min;
-  float3 max;
-  EXPECT_FALSE(empty.bounds_min_max(min, max));
+  EXPECT_FALSE(empty.bounds_min_max());
 }
 
 TEST(curves_geometry, Move)
@@ -50,9 +50,7 @@ TEST(curves_geometry, Move)
   EXPECT_EQ(curves.curve_offsets, nullptr); /* NOLINT: bugprone-use-after-move */
 
   /* Just a basic check that the new curves work okay. */
-  float3 min;
-  float3 max;
-  EXPECT_TRUE(other.bounds_min_max(min, max));
+  EXPECT_TRUE(other.bounds_min_max());
 
   curves = std::move(other);
 

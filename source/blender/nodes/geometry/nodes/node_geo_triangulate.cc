@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
@@ -17,7 +19,7 @@ namespace blender::nodes::node_geo_triangulate_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>("Minimum Vertices").default_value(4).min(4).max(10000);
   b.add_output<decl::Geometry>("Mesh").propagate_all();
@@ -38,7 +40,7 @@ static void geo_triangulate_init(bNodeTree * /*tree*/, bNode *node)
 static Mesh *triangulate_mesh_selection(const Mesh &mesh,
                                         const int quad_method,
                                         const int ngon_method,
-                                        const IndexMask selection,
+                                        const IndexMask &selection,
                                         const int min_vertices)
 {
   CustomData_MeshMasks cd_mask_extra = {
@@ -52,9 +54,9 @@ static Mesh *triangulate_mesh_selection(const Mesh &mesh,
 
   /* Tag faces to be triangulated from the selection mask. */
   BM_mesh_elem_table_ensure(bm, BM_FACE);
-  for (int i_face : selection) {
+  selection.foreach_index([&](const int i_face) {
     BM_elem_flag_set(BM_face_at_index(bm, i_face), BM_ELEM_TAG, true);
-  }
+  });
 
   BM_mesh_triangulate(bm, quad_method, ngon_method, min_vertices, true, nullptr, nullptr, nullptr);
   Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, &cd_mask_extra, &mesh);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -14,6 +16,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+
+#include "BLT_translation.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -1009,6 +1013,8 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
     const char *prop_id = BKE_paint_get_tool_prop_id_from_paintmode(paint_mode);
     prop = RNA_def_enum(
         ot->srna, prop_id, BKE_paint_get_tool_enum_from_paintmode(paint_mode), 0, prop_id, "");
+    RNA_def_property_translation_context(
+        prop, BKE_paint_get_tool_enum_translation_context_from_paintmode(paint_mode));
     RNA_def_property_flag(prop, PROP_HIDDEN);
   }
 
@@ -1538,6 +1544,7 @@ void ED_operatortypes_paint(void)
   WM_operatortype_append(PAINT_OT_face_select_more);
   WM_operatortype_append(PAINT_OT_face_select_less);
   WM_operatortype_append(PAINT_OT_face_select_hide);
+  WM_operatortype_append(PAINT_OT_face_select_loop);
 
   WM_operatortype_append(PAINT_OT_face_vert_reveal);
 

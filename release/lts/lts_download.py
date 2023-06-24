@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import datetime
@@ -26,10 +28,11 @@ class Version:
 
 
 def get_download_file_names(version: Version):
-    yield f"blender-{version}-linux-x64.tar.xz"
-    yield f"blender-{version}-macos-x64.dmg"
-    yield f"blender-{version}-windows-x64.msi"
-    yield f"blender-{version}-windows-x64.zip"
+    yield (f"blender-{version}-linux-x64.tar.xz", "Linux")
+    yield (f"blender-{version}-macos-x64.dmg", "macOS - Intel")
+    yield (f"blender-{version}-macos-arm64.dmg", "macOS - Apple Silicon")
+    yield (f"blender-{version}-windows-x64.msi", "Windows - Installer")
+    yield (f"blender-{version}-windows-x64.zip", "Windows - Portable (.zip)")
 
 
 def get_download_url(version: Version, file_name: str) -> str:
@@ -49,9 +52,9 @@ def generate_html(version: Version) -> str:
     lines.append(f"Released on {today.strftime(DATE_FORMAT)}.")
     lines.append("")
     lines.append("<ul>")
-    for file_name in get_download_file_names(version):
+    for file_name, display_name in get_download_file_names(version):
         download_url = get_download_url(version, file_name)
-        lines.append(f"  <li><a href=\"{download_url}\">{file_name}</a></li>")
+        lines.append(f"  <li><a href=\"{download_url}\">{display_name}</a></li>")
     lines.append("</ul>")
 
     return "\n".join(lines)

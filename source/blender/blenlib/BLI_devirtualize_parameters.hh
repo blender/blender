@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -44,7 +46,7 @@ namespace blender {
  * - Call `fn` with the devirtualized argument and return what `fn` returns.
  * - Don't call `fn` (because the devirtualization failed) and return false.
  *
- * Examples for devirtualizers: #BasicDevirtualizer, #IndexMaskDevirtualizer, #VArrayDevirtualizer.
+ * Examples for devirtualizers: #BasicDevirtualizer, #VArrayDevirtualizer.
  */
 template<typename Fn, typename... Devirtualizers>
 inline bool call_with_devirtualized_parameters(const std::tuple<Devirtualizers...> &devis,

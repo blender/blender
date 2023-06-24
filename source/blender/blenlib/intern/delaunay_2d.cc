@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -390,7 +392,7 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const SymEdge<T>
        << vertname(se.next->vert);
   }
   else {
-    os << vertname(se.vert) << "(" << se.vert->co << "->NULL)";
+    os << vertname(se.vert) << "(" << se.vert->co << "->null)";
   }
   return os;
 }
@@ -404,10 +406,10 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const SymEdge<T>
 template<typename T> std::string short_se_dump(const SymEdge<T> *se)
 {
   if (se == nullptr) {
-    return std::string("NULL");
+    return std::string("null");
   }
   return vertname(se->vert) +
-         (se->next == nullptr ? std::string("[NULL]") : vertname(se->next->vert));
+         (se->next == nullptr ? std::string("[null]") : vertname(se->next->vert));
 }
 
 template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<T> &cdt_state)
@@ -429,11 +431,11 @@ template<typename T> std::ostream &operator<<(std::ostream &os, const CDT_state<
       os << "  edges out:\n";
       do {
         if (se->next == nullptr) {
-          os << "    [NULL] next/rot symedge, se=" << trunc_ptr(se) << "\n";
+          os << "    [null] next/rot symedge, se=" << trunc_ptr(se) << "\n";
           break;
         }
         if (se->next->next == nullptr) {
-          os << "    [NULL] next-next/rot symedge, se=" << trunc_ptr(se) << "\n";
+          os << "    [null] next-next/rot symedge, se=" << trunc_ptr(se) << "\n";
           break;
         }
         const CDTVert<T> *vother = sym(se)->vert;
@@ -1153,7 +1155,7 @@ template<typename T> void CDTArrangement<T>::delete_edge(SymEdge<T> *se)
     v2->symedge = f;
   }
 
-  /* Mark SymEdge as deleted by setting all its pointers to NULL. */
+  /* Mark #SymEdge as deleted by setting all its pointers to null. */
   se->next = se->rot = nullptr;
   sesym->next = sesym->rot = nullptr;
   if (!v1_isolated && !v2_isolated && aface != bface) {
@@ -1563,16 +1565,16 @@ template<typename T> inline int tri_orient(const SymEdge<T> *t)
  * In general, lambda=0 indicates case a and lambda != 0 indicates case be.
  * The 'in' edge gives the destination attachment point of a diagonal from the previous crossing,
  * and the 'out' edge gives the origin attachment point of a diagonal to the next crossing.
- * But in some cases, 'in' and 'out' are undefined or not needed, and will be NULL.
+ * But in some cases, 'in' and 'out' are undefined or not needed, and will be null.
  *
  * For case (a), 'vert' will be the vertex, and lambda will be 0, and 'in' will be the #SymEdge
  * from 'vert' that has as face the one that you go through to get to this vertex. If you go
- * exactly along an edge then we set 'in' to NULL, since it won't be needed. The first crossing
- * will have 'in' = NULL. We set 'out' to the #SymEdge that has the face we go through to get to
+ * exactly along an edge then we set 'in' to null, since it won't be needed. The first crossing
+ * will have 'in' = null. We set 'out' to the #SymEdge that has the face we go through to get to
  * the next crossing, or, if the next crossing is a case (a), then it is the edge that goes to that
- * next vertex. 'out' will be NULL for the last one.
+ * next vertex. 'out' will be null for the last one.
  *
- * For case (b), vert will be NULL at first, and later filled in with the created split vertex,
+ * For case (b), vert will be null at first, and later filled in with the created split vertex,
  * and 'in' will be the #SymEdge that we go through, and lambda will be between 0 and 1,
  * the fraction from in's vert to in->next's vert to put the split vertex.
  * 'out' is not needed in this case, since the attachment point will be the sym of the first
@@ -1630,7 +1632,7 @@ bool get_next_crossing_from_vert(CDT_state<T> *cdt_state,
 /**
  * As part of finding crossings, we found a case where the next crossing goes through vert v.
  * If it came from a previous vert in cd, then cd_out is the edge that leads from that to v.
- * Else cd_out can be NULL, because it won't be used.
+ * Else cd_out can be null, because it won't be used.
  * Set *cd_next to indicate this. We can set 'in' but not 'out'.  We can set the 'out' of the
  * current cd.
  */
@@ -1878,7 +1880,7 @@ void dump_crossings(const Vector<CrossData<T>, inline_crossings_size> &crossings
  * and partial overlaps with existing cdt vertices and edges.
  * Each created #CDTEdge will have input_id added to its input_ids list.
  *
- * If \a r_edges is not NULL, the #CDTEdges generated or found that go from
+ * If \a r_edges is not null, the #CDTEdges generated or found that go from
  * v1 to v2 are put into that linked list, in order.
  *
  * Assumes that #blender_constrained_delaunay_get_output has not been called yet.

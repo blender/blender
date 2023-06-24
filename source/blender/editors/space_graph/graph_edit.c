@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spgraph
@@ -38,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_nla.h"
 #include "BKE_report.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph_build.h"
 
@@ -1086,24 +1088,24 @@ static int graphkeys_sound_bake_exec(bContext *C, wmOperator *op)
   Scene *scene = NULL;
   int start, end;
 
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  if (!BLI_is_file(path)) {
-    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", path);
+  if (!BLI_is_file(filepath)) {
+    BKE_reportf(op->reports, RPT_ERROR, "File not found '%s'", filepath);
     return OPERATOR_CANCELLED;
   }
 
   scene = ac.scene; /* Current scene. */
 
   /* Store necessary data for the baking steps. */
-  sbi.samples = AUD_readSoundBuffer(path,
+  sbi.samples = AUD_readSoundBuffer(filepath,
                                     RNA_float_get(op->ptr, "low"),
                                     RNA_float_get(op->ptr, "high"),
                                     RNA_float_get(op->ptr, "attack"),
@@ -2178,6 +2180,104 @@ void GRAPH_OT_frame_jump(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static bool find_closest_frame(const FCurve *fcu,
+                               const float frame,
+                               const bool next,
+                               float *r_closest_frame)
+{
+  bool replace;
+  int bezt_index = BKE_fcurve_bezt_binarysearch_index(fcu->bezt, frame, fcu->totvert, &replace);
+
+  BezTriple *bezt;
+  if (next) {
+    if (replace) {
+      bezt_index++;
+    }
+    if (bezt_index > fcu->totvert - 1) {
+      return false;
+    }
+    bezt = &fcu->bezt[bezt_index];
+  }
+  else {
+    if (bezt_index - 1 < 0) {
+      return false;
+    }
+    bezt = &fcu->bezt[bezt_index - 1];
+  }
+
+  *r_closest_frame = bezt->vec[1][0];
+  return true;
+}
+
+static int keyframe_jump_exec(bContext *C, wmOperator *op)
+{
+  bAnimContext ac;
+  Scene *scene = CTX_data_scene(C);
+
+  bool next = RNA_boolean_get(op->ptr, "next");
+
+  /* Get editor data. */
+  if (ANIM_animdata_get_context(C, &ac) == 0) {
+    return OPERATOR_CANCELLED;
+  }
+
+  ListBase anim_data = {NULL, NULL};
+  int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
+                ANIMFILTER_NODUPLIS);
+  if (U.animation_flag & USER_ANIM_ONLY_SHOW_SELECTED_CURVE_KEYS) {
+    filter |= ANIMFILTER_SEL;
+  }
+
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+
+  float closest_frame = next ? FLT_MAX : -FLT_MAX;
+  bool found = false;
+
+  const float current_frame = BKE_scene_frame_get(scene);
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    const FCurve *fcu = ale->key_data;
+    if (!fcu->bezt) {
+      continue;
+    }
+    float closest_fcu_frame;
+    if (!find_closest_frame(fcu, current_frame, next, &closest_fcu_frame)) {
+      continue;
+    }
+    if ((next && closest_fcu_frame < closest_frame) ||
+        (!next && closest_fcu_frame > closest_frame)) {
+      closest_frame = closest_fcu_frame;
+      found = true;
+    }
+  }
+
+  if (!found) {
+    BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_scene_frame_set(scene, closest_frame);
+
+  /* Set notifier that things have changed. */
+  WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);
+  return OPERATOR_FINISHED;
+}
+
+void GRAPH_OT_keyframe_jump(wmOperatorType *ot)
+{
+  ot->name = "Jump to Keyframe";
+  ot->description = "Jump to previous/next keyframe";
+  ot->idname = "GRAPH_OT_keyframe_jump";
+
+  ot->exec = keyframe_jump_exec;
+
+  ot->poll = graphkeys_framejump_poll;
+  ot->flag = OPTYPE_UNDO_GROUPED;
+  ot->undo_group = "Frame Change";
+
+  /* properties */
+  RNA_def_boolean(ot->srna, "next", true, "Next Keyframe", "");
+}
+
 /* snap 2D cursor value to the average value of selected keyframe */
 static int graphkeys_snap_cursor_value_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -2358,7 +2458,7 @@ static int graphkeys_snap_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static bool graph_has_selected_control_points(struct bContext *C)
+static bool graph_has_selected_control_points(bContext *C)
 {
   bAnimContext ac;
   ListBase anim_data = {NULL, NULL};
@@ -2388,9 +2488,9 @@ static bool graph_has_selected_control_points(struct bContext *C)
   return has_selected_control_points;
 }
 
-static int graphkeys_selected_control_points_invoke(struct bContext *C,
-                                                    struct wmOperator *op,
-                                                    const struct wmEvent *event)
+static int graphkeys_selected_control_points_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   if (!graph_has_selected_control_points(C)) {
     BKE_report(op->reports, RPT_ERROR, "No control points are selected");

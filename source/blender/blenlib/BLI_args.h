@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -15,6 +16,10 @@ extern "C" {
 struct bArgs;
 typedef struct bArgs bArgs;
 
+#include <stdarg.h> /* For `va_list`. */
+
+#include "BLI_compiler_attrs.h"
+
 /**
  * Returns the number of extra arguments consumed by the function.
  * -  0 is normal value,
@@ -24,6 +29,12 @@ typedef int (*BA_ArgCallback)(int argc, const char **argv, void *data);
 
 struct bArgs *BLI_args_create(int argc, const char **argv);
 void BLI_args_destroy(struct bArgs *ba);
+
+typedef void (*bArgPrintFn)(void *user_data, const char *format, va_list args);
+void BLI_args_printf(struct bArgs *ba, const char *format, ...);
+void BLI_args_print_fn_set(struct bArgs *ba,
+                           ATTR_PRINTF_FORMAT(2, 0) bArgPrintFn print_fn,
+                           void *user_data);
 
 /** The pass to use for #BLI_args_add. */
 void BLI_args_pass_set(struct bArgs *ba, int current_pass);

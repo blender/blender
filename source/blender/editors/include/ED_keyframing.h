@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -588,8 +589,7 @@ void ANIM_copy_as_driver(struct ID *target_id, const char *target_path, const ch
 
 /* Auto-Keying macros for use by various tools. */
 
-/** Check if auto-key-framing is enabled (per scene takes precedence).
- */
+/** Check if auto-key-framing is enabled (per scene takes precedence). */
 #define IS_AUTOKEY_ON(scene) \
   ((scene) ? ((scene)->toolsettings->autokey_mode & AUTOKEY_ON) : (U.autokey_mode & AUTOKEY_ON))
 /** Check the mode for auto-keyframing (per scene takes precedence). */

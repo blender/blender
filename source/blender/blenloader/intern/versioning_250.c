@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -631,10 +633,11 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void *user_data)
 {
   Main *bmain = (Main *)user_data;
   if (seq->type == SEQ_TYPE_SOUND_HD) {
-    char str[FILE_MAX];
-    BLI_path_join(str, sizeof(str), seq->strip->dirpath, seq->strip->stripdata->filename);
-    BLI_path_abs(str, BKE_main_blendfile_path(bmain));
-    seq->sound = BKE_sound_new_file(bmain, str);
+    char filepath_abs[FILE_MAX];
+    BLI_path_join(
+        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+    BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
+    seq->sound = BKE_sound_new_file(bmain, filepath_abs);
   }
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
@@ -713,7 +716,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
      */
     for (ma = bmain->materials.first; ma; ma = ma->id.next) {
       if (ma->nodetree && ma->nodetree->id.name[0] == '\0') {
-        strcpy(ma->nodetree->id.name, "NTShader Nodetree");
+        STRNCPY(ma->nodetree->id.name, "NTShader Nodetree");
       }
     }
 
@@ -721,7 +724,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     for (sce = bmain->scenes.first; sce; sce = sce->id.next) {
       enum { R_PANORAMA = (1 << 10) };
       if (sce->nodetree && sce->nodetree->id.name[0] == '\0') {
-        strcpy(sce->nodetree->id.name, "NTCompositing Nodetree");
+        STRNCPY(sce->nodetree->id.name, "NTCompositing Nodetree");
       }
 
       /* move to cameras */
@@ -745,7 +748,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
       if (tx->nodetree) {
         if (tx->nodetree->id.name[0] == '\0') {
-          strcpy(tx->nodetree->id.name, "NTTexture Nodetree");
+          STRNCPY(tx->nodetree->id.name, "NTTexture Nodetree");
         }
 
         /* which_output 0 is now "not specified" */
@@ -2312,7 +2315,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
 
     for (link = ngroup->links.first; link; link = link->next) {
       if (link->tonode == NULL && link->fromsock->own_index == old_index) {
-        strcpy(sock->identifier, link->fromsock->identifier);
+        STRNCPY(sock->identifier, link->fromsock->identifier);
         /* deprecated */
         sock->own_index = link->fromsock->own_index;
         sock->to_index = 0;
@@ -2324,7 +2327,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
 
     for (link = ngroup->links.first; link; link = link->next) {
       if (link->fromnode == NULL && link->tosock->own_index == old_index) {
-        strcpy(sock->identifier, link->tosock->identifier);
+        STRNCPY(sock->identifier, link->tosock->identifier);
         /* deprecated */
         sock->own_index = link->tosock->own_index;
         sock->to_index = 0;

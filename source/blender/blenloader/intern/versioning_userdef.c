@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -235,7 +237,7 @@ void blo_do_versions_userdef(UserDef *userdef)
   }
 
   if (!USER_VERSION_ATLEAST(192, 0)) {
-    strcpy(userdef->sounddir, "/");
+    STRNCPY(userdef->sounddir, "/");
   }
 
   /* patch to set Dupli Armature */
@@ -309,52 +311,52 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     for (km = userdef->user_keymaps.first; km; km = km->next) {
       if (STREQ(km->idname, "Armature_Sketch")) {
-        strcpy(km->idname, "Armature Sketch");
+        STRNCPY(km->idname, "Armature Sketch");
       }
       else if (STREQ(km->idname, "View3D")) {
-        strcpy(km->idname, "3D View");
+        STRNCPY(km->idname, "3D View");
       }
       else if (STREQ(km->idname, "View3D Generic")) {
-        strcpy(km->idname, "3D View Generic");
+        STRNCPY(km->idname, "3D View Generic");
       }
       else if (STREQ(km->idname, "EditMesh")) {
-        strcpy(km->idname, "Mesh");
+        STRNCPY(km->idname, "Mesh");
       }
       else if (STREQ(km->idname, "UVEdit")) {
-        strcpy(km->idname, "UV Editor");
+        STRNCPY(km->idname, "UV Editor");
       }
       else if (STREQ(km->idname, "Animation_Channels")) {
-        strcpy(km->idname, "Animation Channels");
+        STRNCPY(km->idname, "Animation Channels");
       }
       else if (STREQ(km->idname, "GraphEdit Keys")) {
-        strcpy(km->idname, "Graph Editor");
+        STRNCPY(km->idname, "Graph Editor");
       }
       else if (STREQ(km->idname, "GraphEdit Generic")) {
-        strcpy(km->idname, "Graph Editor Generic");
+        STRNCPY(km->idname, "Graph Editor Generic");
       }
       else if (STREQ(km->idname, "Action_Keys")) {
-        strcpy(km->idname, "Dopesheet");
+        STRNCPY(km->idname, "Dopesheet");
       }
       else if (STREQ(km->idname, "NLA Data")) {
-        strcpy(km->idname, "NLA Editor");
+        STRNCPY(km->idname, "NLA Editor");
       }
       else if (STREQ(km->idname, "Node Generic")) {
-        strcpy(km->idname, "Node Editor");
+        STRNCPY(km->idname, "Node Editor");
       }
       else if (STREQ(km->idname, "Logic Generic")) {
-        strcpy(km->idname, "Logic Editor");
+        STRNCPY(km->idname, "Logic Editor");
       }
       else if (STREQ(km->idname, "File")) {
-        strcpy(km->idname, "File Browser");
+        STRNCPY(km->idname, "File Browser");
       }
       else if (STREQ(km->idname, "FileMain")) {
-        strcpy(km->idname, "File Browser Main");
+        STRNCPY(km->idname, "File Browser Main");
       }
       else if (STREQ(km->idname, "FileButtons")) {
-        strcpy(km->idname, "File Browser Buttons");
+        STRNCPY(km->idname, "File Browser Buttons");
       }
       else if (STREQ(km->idname, "Buttons Generic")) {
-        strcpy(km->idname, "Property Editor");
+        STRNCPY(km->idname, "Property Editor");
       }
     }
   }
@@ -540,7 +542,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     userdef->flag &= ~(USER_FLAG_UNUSED_4);
 
-    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_UIFLAG_UNUSED_22);
+    userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_UIFLAG_UNUSED_12 | USER_REGISTER_ALL_USERS);
   }
 
   if (!USER_VERSION_ATLEAST(280, 41)) {
@@ -822,6 +824,12 @@ void blo_do_versions_userdef(UserDef *userdef)
     LISTBASE_FOREACH (bUserAssetLibrary *, asset_library, &userdef->asset_libraries) {
       asset_library->flag |= ASSET_LIBRARY_RELATIVE_PATH;
     }
+  }
+
+  if (!USER_VERSION_ATLEAST(400, 4)) {
+    /* obj and ply python addons were removed. */
+    BKE_addon_remove_safe(&userdef->addons, "io_mesh_ply");
+    BKE_addon_remove_safe(&userdef->addons, "io_scene_obj");
   }
 
   /**

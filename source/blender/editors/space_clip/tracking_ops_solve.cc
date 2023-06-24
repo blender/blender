@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -34,7 +35,7 @@
 /********************** solve camera operator *********************/
 
 typedef struct {
-  struct wmWindowManager *wm;
+  wmWindowManager *wm;
   Scene *scene;
   MovieClip *clip;
   MovieClipUser user;
@@ -43,7 +44,7 @@ typedef struct {
 
   char stats_message[256];
 
-  struct MovieReconstructContext *context;
+  MovieReconstructContext *context;
 } SolveCameraJob;
 
 static bool solve_camera_initjob(

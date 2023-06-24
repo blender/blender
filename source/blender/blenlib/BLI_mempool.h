@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -97,7 +98,8 @@ typedef struct BLI_mempool_iter {
 /** #BLI_mempool.flag */
 enum {
   BLI_MEMPOOL_NOP = 0,
-  /** allow iterating on this mempool.
+  /**
+   * Allow iterating on this mempool.
    *
    * \note this requires that the first four bytes of the elements
    * never begin with 'free' (#FREEWORD).

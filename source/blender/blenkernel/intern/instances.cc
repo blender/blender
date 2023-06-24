@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 #include "BLI_rand.hh"
@@ -65,21 +67,21 @@ void Instances::add_instance(const int instance_handle, const float4x4 &transfor
   attributes_.reallocate(this->instances_num());
 }
 
-blender::Span<int> Instances::reference_handles() const
+Span<int> Instances::reference_handles() const
 {
   return reference_handles_;
 }
 
-blender::MutableSpan<int> Instances::reference_handles()
+MutableSpan<int> Instances::reference_handles()
 {
   return reference_handles_;
 }
 
-blender::MutableSpan<blender::float4x4> Instances::transforms()
+MutableSpan<float4x4> Instances::transforms()
 {
   return transforms_;
 }
-blender::Span<blender::float4x4> Instances::transforms() const
+Span<float4x4> Instances::transforms() const
 {
   return transforms_;
 }
@@ -100,16 +102,16 @@ int Instances::add_reference(const InstanceReference &reference)
   return references_.index_of_or_add_as(reference);
 }
 
-blender::Span<InstanceReference> Instances::references() const
+Span<InstanceReference> Instances::references() const
 {
   return references_;
 }
 
-void Instances::remove(const IndexMask mask,
+void Instances::remove(const IndexMask &mask,
                        const AnonymousAttributePropagationInfo &propagation_info)
 {
-  using namespace blender;
-  if (mask.is_range() && mask.as_range().start() == 0) {
+  const std::optional<IndexRange> masked_range = mask.to_range();
+  if (masked_range.has_value() && masked_range->start() == 0) {
     /* Deleting from the end of the array can be much faster since no data has to be shifted. */
     this->resize(mask.size());
     this->remove_unused_references();
@@ -118,12 +120,12 @@ void Instances::remove(const IndexMask mask,
 
   const Span<int> old_handles = this->reference_handles();
   Vector<int> new_handles(mask.size());
-  array_utils::gather(old_handles, mask.indices(), new_handles.as_mutable_span());
+  array_utils::gather(old_handles, mask, new_handles.as_mutable_span());
   reference_handles_ = std::move(new_handles);
 
   const Span<float4x4> old_tansforms = this->transforms();
   Vector<float4x4> new_transforms(mask.size());
-  array_utils::gather(old_tansforms, mask.indices(), new_transforms.as_mutable_span());
+  array_utils::gather(old_tansforms, mask, new_transforms.as_mutable_span());
   transforms_ = std::move(new_transforms);
 
   const bke::CustomDataAttributes &src_attributes = attributes_;
@@ -140,7 +142,7 @@ void Instances::remove(const IndexMask mask,
         GSpan src = *src_attributes.get_for_read(id);
         dst_attributes.create(id, meta_data.data_type);
         GMutableSpan dst = *dst_attributes.get_for_write(id);
-        array_utils::gather(src, mask.indices(), dst);
+        array_utils::gather(src, mask, dst);
 
         return true;
       },
@@ -152,9 +154,6 @@ void Instances::remove(const IndexMask mask,
 
 void Instances::remove_unused_references()
 {
-  using namespace blender;
-  using namespace blender::bke;
-
   const int tot_instances = this->instances_num();
   const int tot_references_before = references_.size();
 
@@ -260,9 +259,8 @@ void Instances::ensure_owns_direct_data()
   }
 }
 
-static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
+static Array<int> generate_unique_instance_ids(Span<int> original_ids)
 {
-  using namespace blender;
   Array<int> unique_ids(original_ids.size());
 
   Set<int> used_unique_ids;
@@ -313,7 +311,7 @@ static blender::Array<int> generate_unique_instance_ids(Span<int> original_ids)
   return unique_ids;
 }
 
-blender::Span<int> Instances::almost_unique_ids() const
+Span<int> Instances::almost_unique_ids() const
 {
   std::lock_guard lock(almost_unique_ids_mutex_);
   std::optional<GSpan> instance_ids_gspan = attributes_.get_for_read("id");

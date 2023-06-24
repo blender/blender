@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2013-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Update "languages" text file used by Blender at runtime to build translations menu.

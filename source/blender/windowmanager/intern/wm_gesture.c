@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -436,7 +437,7 @@ void wm_gesture_draw(wmWindow *win)
 
   GPU_line_width(1.0f);
   for (; gt; gt = gt->next) {
-    /* all in subwindow space */
+    /* All in sub-window space. */
     wmViewport(&gt->winrct);
 
     if (gt->type == WM_GESTURE_RECT) {

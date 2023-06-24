@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
@@ -44,7 +46,7 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     const bke::MeshFieldContext context{mesh, ATTR_DOMAIN_EDGE};
     fn::FieldEvaluator evaluator{context, mesh.totedge};
@@ -54,13 +56,14 @@ class FaceSetFromBoundariesInput final : public bke::MeshFieldInput {
 
     const OffsetIndices polys = mesh.polys();
 
-    const Array<Vector<int, 2>> edge_to_face_map = bke::mesh_topology::build_edge_to_poly_map(
-        polys, mesh.corner_edges(), mesh.totedge);
+    Array<int> edge_to_face_offsets;
+    Array<int> edge_to_face_indices;
+    const GroupedSpan<int> edge_to_face_map = bke::mesh::build_edge_to_poly_map(
+        polys, mesh.corner_edges(), mesh.totedge, edge_to_face_offsets, edge_to_face_indices);
 
     AtomicDisjointSet islands(polys.size());
-    for (const int edge : non_boundary_edges) {
-      join_indices(islands, edge_to_face_map[edge]);
-    }
+    non_boundary_edges.foreach_index(
+        [&](const int edge) { join_indices(islands, edge_to_face_map[edge]); });
 
     Array<int> output(polys.size());
     islands.calc_reduced_ids(output);

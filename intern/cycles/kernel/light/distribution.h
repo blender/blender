@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -11,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 /* Simple CDF based sampling over all lights in the scene, without taking into
  * account shading position or normal. */
 
-ccl_device int light_distribution_sample(KernelGlobals kg, const float randn)
+ccl_device int light_distribution_sample(KernelGlobals kg, const float rand)
 {
   /* This is basically std::upper_bound as used by PBRT, to find a point light or
    * triangle to emit from, proportional to area. a good improvement would be to
@@ -19,13 +20,12 @@ ccl_device int light_distribution_sample(KernelGlobals kg, const float randn)
    * arbitrary shaders. */
   int first = 0;
   int len = kernel_data.integrator.num_distribution + 1;
-  float r = randn;
 
   do {
     int half_len = len >> 1;
     int middle = first + half_len;
 
-    if (r < kernel_data_fetch(light_distribution, middle).totarea) {
+    if (rand < kernel_data_fetch(light_distribution, middle).totarea) {
       len = half_len;
     }
     else {
@@ -43,20 +43,34 @@ ccl_device int light_distribution_sample(KernelGlobals kg, const float randn)
 
 template<bool in_volume_segment>
 ccl_device_noinline bool light_distribution_sample(KernelGlobals kg,
-                                                   const float randn,
-                                                   const float randu,
-                                                   const float randv,
+                                                   const float3 rand,
                                                    const float time,
                                                    const float3 P,
+                                                   const float3 N,
+                                                   const int object_receiver,
+                                                   const int shader_flags,
                                                    const int bounce,
                                                    const uint32_t path_flag,
                                                    ccl_private LightSample *ls)
 {
   /* Sample light index from distribution. */
-  const int index = light_distribution_sample(kg, randn);
+  /* The first two dimensions of the Sobol sequence have better stratification. */
+  const int index = light_distribution_sample(kg, rand.z);
   const float pdf_selection = kernel_data.integrator.distribution_pdf_lights;
-  return light_sample<in_volume_segment>(
-      kg, randu, randv, time, P, bounce, path_flag, index, 0, pdf_selection, ls);
+  const float2 rand_uv = float3_to_float2(rand);
+  return light_sample<in_volume_segment>(kg,
+                                         rand_uv,
+                                         time,
+                                         P,
+                                         N,
+                                         object_receiver,
+                                         shader_flags,
+                                         bounce,
+                                         path_flag,
+                                         index,
+                                         0,
+                                         pdf_selection,
+                                         ls);
 }
 
 ccl_device_inline float light_distribution_pdf_lamp(KernelGlobals kg)

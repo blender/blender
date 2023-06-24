@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -31,8 +32,9 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 
@@ -261,8 +263,12 @@ static void imapaint_tri_weights(float matrix[4][4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(
-    Mesh *me_eval, Scene *scene, Object *ob_eval, uint faceindex, const int xy[2], float uv[2])
+static void imapaint_pick_uv(const Mesh *me_eval,
+                             Scene *scene,
+                             Object *ob_eval,
+                             uint faceindex,
+                             const int xy[2],
+                             float uv[2])
 {
   int i, findex;
   float p[2], w[3], absw, minabsw;
@@ -274,8 +280,8 @@ static void imapaint_pick_uv(
   const int tottri = BKE_mesh_runtime_looptri_len(me_eval);
   const int *looptri_polys = BKE_mesh_runtime_looptri_polys_ensure(me_eval);
 
-  const float(*positions)[3] = BKE_mesh_vert_positions(me_eval);
-  const int *corner_verts = BKE_mesh_corner_verts(me_eval);
+  const blender::Span<blender::float3> positions = me_eval->vert_positions();
+  const blender::Span<int> corner_verts = me_eval->corner_verts();
   const int *index_mp_to_orig = static_cast<const int *>(
       CustomData_get_layer(&me_eval->pdata, CD_ORIGINDEX));
 
@@ -406,7 +412,7 @@ void paint_sample_color(
       CustomData_MeshMasks cddata_masks = CD_MASK_BAREMESH;
       cddata_masks.pmask |= CD_MASK_ORIGINDEX;
       Mesh *me = (Mesh *)ob->data;
-      Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, &cddata_masks);
+      const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
       const int *material_indices = (const int *)CustomData_get_layer_named(
           &me_eval->pdata, CD_PROP_INT32, "material_index");
 
@@ -759,6 +765,34 @@ void PAINT_OT_face_select_less(wmOperatorType *ot)
 
   RNA_def_boolean(
       ot->srna, "face_step", true, "Face Step", "Also deselect faces that only touch on a corner");
+}
+
+static int paintface_select_loop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+  const bool select = RNA_boolean_get(op->ptr, "select");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  if (!extend) {
+    paintface_deselect_all_visible(C, CTX_data_active_object(C), SEL_DESELECT, false);
+  }
+  view3d_operator_needs_opengl(C);
+  paintface_select_loop(C, CTX_data_active_object(C), event->mval, select);
+  ED_region_tag_redraw(CTX_wm_region(C));
+  return OPERATOR_FINISHED;
+}
+
+void PAINT_OT_face_select_loop(wmOperatorType *ot)
+{
+  ot->name = "Select Loop";
+  ot->description = "Select face loop under the cursor";
+  ot->idname = "PAINT_OT_face_select_loop";
+
+  ot->invoke = paintface_select_loop_invoke;
+  ot->poll = facemask_paint_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna, "select", true, "Select", "If false, faces will be deselected");
+  RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend the selection");
 }
 
 static int vert_select_all_exec(bContext *C, wmOperator *op)

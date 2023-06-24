@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <atomic>
 
@@ -17,7 +19,7 @@ NODE_STORAGE_FUNCS(NodeGeometrySetCurveHandlePositions)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Vector>("Position")
       .implicit_field_on_all([](const bNode &node, void *r_value) {
@@ -109,14 +111,11 @@ static void set_position_in_component(bke::CurvesGeometry &curves,
                                                    curves.handle_positions_right_for_write() :
                                                    curves.handle_positions_left_for_write();
 
-  threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
-    for (const int i : selection.slice(range)) {
+  selection.foreach_segment(GrainSize(2048), [&](const IndexMaskSegment segment) {
+    for (const int i : segment) {
       update_handle_types_for_movement(handle_types[i], handle_types_other[i]);
     }
-  });
-
-  threading::parallel_for(selection.index_range(), 2048, [&](IndexRange range) {
-    for (const int i : selection.slice(range)) {
+    for (const int i : segment) {
       bke::curves::bezier::set_handle_position(positions[i],
                                                HandleType(handle_types[i]),
                                                HandleType(handle_types_other[i]),

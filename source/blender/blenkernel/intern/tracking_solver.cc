@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -32,12 +33,12 @@
 #include "tracking_private.h"
 
 typedef struct MovieReconstructContext {
-  struct libmv_Tracks *tracks;
+  libmv_Tracks *tracks;
   bool select_keyframes;
   int keyframe1, keyframe2;
   int refine_flags;
 
-  struct libmv_Reconstruction *reconstruction;
+  libmv_Reconstruction *reconstruction;
 
   char object_name[MAX_NAME];
   short motion_flag;
@@ -63,14 +64,11 @@ typedef struct ReconstructProgressData {
 } ReconstructProgressData;
 
 /* Create new libmv Tracks structure from blender's tracks list. */
-static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
-                                             ListBase *tracksbase,
-                                             int width,
-                                             int height)
+static libmv_Tracks *libmv_tracks_new(MovieClip *clip, ListBase *tracksbase, int width, int height)
 {
   int tracknr = 0;
   MovieTrackingTrack *track;
-  struct libmv_Tracks *tracks = libmv_tracksNew();
+  libmv_Tracks *tracks = libmv_tracksNew();
 
   track = static_cast<MovieTrackingTrack *>(tracksbase->first);
   while (track) {
@@ -108,8 +106,8 @@ static struct libmv_Tracks *libmv_tracks_new(MovieClip *clip,
 static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *context,
                                                   MovieTracking *tracking)
 {
-  struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
-  struct libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(
+  libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
+  libmv_CameraIntrinsics *libmv_intrinsics = libmv_reconstructionExtractIntrinsics(
       libmv_reconstruction);
 
   libmv_CameraIntrinsicsOptions camera_intrinsics_options;
@@ -125,7 +123,7 @@ static void reconstruct_retrieve_libmv_intrinsics(MovieReconstructContext *conte
 static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
                                               MovieTracking *tracking)
 {
-  struct libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
+  libmv_Reconstruction *libmv_reconstruction = context->reconstruction;
   bool ok = true;
   bool origin_set = false;
   int sfra = context->sfra, efra = context->efra;

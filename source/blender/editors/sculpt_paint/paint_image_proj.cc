@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -11,6 +12,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <utility>
 
 #include "MEM_guardedalloc.h"
 
@@ -65,6 +67,7 @@
 #include "BKE_mesh_runtime.h"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -190,6 +193,8 @@ BLI_INLINE uchar f_to_char(const float val)
 /* to avoid locking in tile initialization */
 #define TILE_PENDING POINTER_FROM_INT(-1)
 
+struct ProjPaintState;
+
 /**
  * This is mainly a convenience struct used so we can keep an array of images we use -
  * their #ImBuf's, etc, in 1 array, When using threads this array is copied for each thread
@@ -217,7 +222,8 @@ struct ProjStrokeHandle {
   /* Support for painting from multiple views at once,
    * currently used to implement symmetry painting,
    * we can assume at least the first is set while painting. */
-  struct ProjPaintState *ps_views[8];
+  ProjPaintState *ps_views[8];
+
   int ps_views_tot;
   int symmetry_flags;
 
@@ -411,7 +417,7 @@ struct ProjPaintState {
   int totpoly_eval;
   int totvert_eval;
 
-  const float (*vert_positions_eval)[3];
+  blender::Span<blender::float3> vert_positions_eval;
   blender::Span<blender::float3> vert_normals;
   blender::Span<blender::int2> edges_eval;
   blender::OffsetIndices<int> polys_eval;
@@ -484,7 +490,7 @@ struct ProjPixel {
 };
 
 struct ProjPixelClone {
-  struct ProjPixel __pp;
+  ProjPixel __pp;
   PixelStore clonepx;
 };
 
@@ -498,7 +504,7 @@ struct TileInfo {
 };
 
 struct VertSeam {
-  struct VertSeam *next, *prev;
+  VertSeam *next, *prev;
   int tri;
   uint loop;
   float angle;
@@ -1832,7 +1838,7 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
   }
 
   if (generate_tile) {
-    struct PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
+    PaintTileMap *undo_tiles = ED_image_paint_tile_map_get();
     volatile void *undorect;
     if (tinf->masked) {
       undorect = ED_image_paint_tile_push(undo_tiles,
@@ -1934,7 +1940,7 @@ static ProjPixel *project_paint_uvpixel_init(const ProjPaintState *ps,
     zero_v4(projPixel->newColor.f);
   }
   else {
-    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x);
+    projPixel->pixel.ch_pt = ibuf->byte_buffer.data + (x_px + y_px * ibuf->x) * 4;
     projPixel->origColor.uint_pt = (uint *)projima->undoRect[tile_index] + tile_offset;
     projPixel->newColor.uint_ = 0;
   }
@@ -4065,26 +4071,11 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob = ps->ob;
 
-  Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-  if (scene_eval == nullptr || ob_eval == nullptr) {
+  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ps->me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+  if (!ps->me_eval) {
     return false;
   }
-
-  CustomData_MeshMasks cddata_masks = scene_eval->customdata_mask;
-  cddata_masks.fmask |= CD_MASK_MTFACE;
-  cddata_masks.lmask |= CD_MASK_PROP_FLOAT2;
-  cddata_masks.vmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.emask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.pmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  cddata_masks.lmask |= CD_MASK_PROP_ALL | CD_MASK_CREASE;
-  if (ps->do_face_sel) {
-    cddata_masks.vmask |= CD_MASK_ORIGINDEX;
-    cddata_masks.emask |= CD_MASK_ORIGINDEX;
-    cddata_masks.pmask |= CD_MASK_ORIGINDEX;
-  }
-  ps->me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &cddata_masks);
 
   if (!CustomData_has_layer(&ps->me_eval->ldata, CD_PROP_FLOAT2)) {
     ps->me_eval = nullptr;
@@ -4104,7 +4095,7 @@ static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *p
   }
   ps->mat_array[totmat - 1] = nullptr;
 
-  ps->vert_positions_eval = BKE_mesh_vert_positions(ps->me_eval);
+  ps->vert_positions_eval = ps->me_eval->vert_positions();
   ps->vert_normals = ps->me_eval->vert_normals();
   ps->edges_eval = ps->me_eval->edges();
   ps->polys_eval = ps->me_eval->polys();
@@ -4297,7 +4288,7 @@ static bool project_paint_winclip(const ProjPaintState *ps, const ProjPaintFaceC
 #endif /* PROJ_DEBUG_WINCLIP */
 
 struct PrepareImageEntry {
-  struct PrepareImageEntry *next, *prev;
+  PrepareImageEntry *next, *prev;
   Image *ima;
   ImageUser iuser;
 };
@@ -4869,7 +4860,7 @@ struct ProjectHandle {
   /* thread settings */
   int thread_index;
 
-  struct ImagePool *pool;
+  ImagePool *pool;
 };
 
 static void do_projectpaint_clone(ProjPaintState *ps, ProjPixel *projPixel, float mask)
@@ -5985,9 +5976,9 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ProjStrokeHandle *ps_handle;
   Scene *scene = CTX_data_scene(C);
   ToolSettings *settings = scene->toolsettings;
-  char symmetry_flag_views[ARRAY_SIZE(ps_handle->ps_views)] = {0};
+  char symmetry_flag_views[BOUNDED_ARRAY_TYPE_SIZE<decltype(ps_handle->ps_views)>()] = {0};
 
-  ps_handle = MEM_cnew<ProjStrokeHandle>("ProjStrokeHandle");
+  ps_handle = MEM_new<ProjStrokeHandle>("ProjStrokeHandle");
   ps_handle->scene = scene;
   ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
 
@@ -6637,9 +6628,13 @@ static void default_paint_slot_color_get(int layer_type, Material *ma, float col
     case LAYER_ROUGHNESS:
     case LAYER_METALLIC: {
       bNodeTree *ntree = nullptr;
-      ma->nodetree->ensure_topology_cache();
-      const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type("ShaderNodeBsdfPrincipled");
-      bNode *in_node = nodes.is_empty() ? nullptr : nodes.first();
+      bNode *in_node = nullptr;
+      if (ma && ma->nodetree) {
+        ma->nodetree->ensure_topology_cache();
+        const blender::Span<bNode *> nodes = ma->nodetree->nodes_by_type(
+            "ShaderNodeBsdfPrincipled");
+        in_node = nodes.is_empty() ? nullptr : nodes.first();
+      }
       if (!in_node) {
         /* An existing material or Principled BSDF node could not be found.
          * Copy default color values from a default Principled BSDF instead. */
@@ -6870,7 +6865,8 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C,
   get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
   RNA_string_set(op->ptr, "name", imagename);
 
-  /* Set default color. Copy the color from nodes, so it matches the existing material. */
+  /* Set default color. Copy the color from nodes, so it matches the existing material.
+   * Material could be null so we should have a default color. */
   float color[4];
   default_paint_slot_color_get(type, ma, color);
   RNA_float_set_array(op->ptr, "color", color);

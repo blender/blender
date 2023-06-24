@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 #include "usd_writer_abstract.h"
@@ -47,7 +48,6 @@ class USDGenericMeshWriter : public USDAbstractWriter {
                            const Mesh *mesh,
                            pxr::UsdGeomMesh usd_mesh,
                            bool as_point_groups);
-  void write_face_maps(const Object *ob, const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);

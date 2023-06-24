@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -26,11 +28,12 @@ struct ReportList;
  * \{ */
 
 typedef enum eBPathForeachFlag {
-  /** Flags controlling the behavior of the generic BPath API. */
-
-  /** Ensures the `absolute_base_path` member of #BPathForeachPathData is initialized properly with
+  /* Flags controlling the behavior of the generic BPath API. */
+  /**
+   * Ensures the `absolute_base_path` member of #BPathForeachPathData is initialized properly with
    * the path of the current .blend file. This can be used by the callbacks to convert relative
-   * paths to absolute ones. */
+   * paths to absolute ones.
+   */
   BKE_BPATH_FOREACH_PATH_ABSOLUTE = (1 << 0),
   /** Skip paths of linked IDs. */
   BKE_BPATH_FOREACH_PATH_SKIP_LINKED = (1 << 1),
@@ -66,13 +69,19 @@ struct BPathForeachPathData;
 
 /**
  * Callback used to iterate over an ID's file paths.
+ * \param path_dst: Optionally write to the path (for callbacks that manipulate the path).
+ * \note When #BKE_BPATH_FOREACH_PATH_ABSOLUTE us used, `path_src` will be absolute and `path_dst`
+ * can be used to access the original path.
+ * \param path_dst_maxncpy: The buffer size of `path_dst` including the null byte.
+ * \warning Actions such as #BLI_path_abs & #BLI_path_rel must not be called directly
+ * on `path_dst` as they assume #FILE_MAX size which may not be the case.
  *
- * \note `path`s parameters should be considered as having a maximal `FILE_MAX` string length.
- *
- * \return `true` if the path has been changed, and in that case, result should be written into
- * `r_path_dst`. */
+ * \return `true` if the path has been changed, and in that case,
+ * result must be written to `path_dst`.
+ */
 typedef bool (*BPathForeachPathFunctionCallback)(struct BPathForeachPathData *bpath_data,
-                                                 char *r_path_dst,
+                                                 char *path_dst,
+                                                 size_t path_dst_maxncpy,
                                                  const char *path_src);
 
 /** Storage for common data needed across the BPath 'foreach_path' code. */
@@ -93,7 +102,8 @@ typedef struct BPathForeachPathData {
   /** ID owning the path being processed. */
   struct ID *owner_id;
 
-  /** IDTypeInfo callbacks are responsible to set this boolean if they modified one or more  paths.
+  /**
+   * IDTypeInfo callbacks are responsible to set this boolean if they modified one or more paths.
    */
   bool is_path_modified;
 } BPathForeachPathData;
@@ -119,7 +129,9 @@ void BKE_bpath_foreach_path_main(BPathForeachPathData *bpath_data);
  *
  * \return true is \a path was modified, false otherwise.
  */
-bool BKE_bpath_foreach_path_fixed_process(struct BPathForeachPathData *bpath_data, char *path);
+bool BKE_bpath_foreach_path_fixed_process(struct BPathForeachPathData *bpath_data,
+                                          char *path,
+                                          size_t path_maxncpy);
 
 /**
  * Run the callback on a (directory + file) path, replacing the content of the two strings as
@@ -132,7 +144,9 @@ bool BKE_bpath_foreach_path_fixed_process(struct BPathForeachPathData *bpath_dat
  */
 bool BKE_bpath_foreach_path_dirfile_fixed_process(struct BPathForeachPathData *bpath_data,
                                                   char *path_dir,
-                                                  char *path_file);
+                                                  size_t path_dir_maxncpy,
+                                                  char *path_file,
+                                                  size_t path_file_maxncpy);
 
 /**
  * Run the callback on a path, replacing the content of the string as needed.

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spgraph
@@ -204,7 +205,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
       acf->name(ale, name);
     }
     else {
-      strcpy(name, IFACE_("<invalid>"));
+      STRNCPY(name, IFACE_("<invalid>"));
       icon = ICON_ERROR;
     }
 
@@ -724,6 +725,8 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void *U
 /* callback to reset the driver's flags */
 static void driver_update_flags_cb(bContext *UNUSED(C), void *fcu_v, void *UNUSED(arg))
 {
+  return;
+
   FCurve *fcu = (FCurve *)fcu_v;
   ChannelDriver *driver = fcu->driver;
 
@@ -1466,47 +1469,47 @@ void graph_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
-  strcpy(pt->idname, "GRAPH_PT_properties");
-  strcpy(pt->label, N_("Active F-Curve"));
-  strcpy(pt->category, "F-Curve");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_properties");
+  STRNCPY(pt->label, N_("Active F-Curve"));
+  STRNCPY(pt->category, "F-Curve");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_properties;
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel properties");
-  strcpy(pt->idname, "GRAPH_PT_key_properties");
-  strcpy(pt->label, N_("Active Keyframe"));
-  strcpy(pt->category, "F-Curve");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_key_properties");
+  STRNCPY(pt->label, N_("Active Keyframe"));
+  STRNCPY(pt->category, "F-Curve");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_key_properties;
   pt->poll = graph_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers driven");
-  strcpy(pt->idname, "GRAPH_PT_driven_property");
-  strcpy(pt->label, N_("Driven Property"));
-  strcpy(pt->category, "Drivers");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_driven_property");
+  STRNCPY(pt->label, N_("Driven Property"));
+  STRNCPY(pt->category, "Drivers");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_driven_property;
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
-  strcpy(pt->idname, "GRAPH_PT_drivers");
-  strcpy(pt->label, N_("Driver"));
-  strcpy(pt->category, "Drivers");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_drivers");
+  STRNCPY(pt->label, N_("Driver"));
+  STRNCPY(pt->category, "Drivers");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_drivers;
   pt->draw_header = graph_panel_drivers_header;
   pt->poll = graph_panel_drivers_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers popover");
-  strcpy(pt->idname, "GRAPH_PT_drivers_popover");
-  strcpy(pt->label, N_("Add/Edit Driver"));
-  strcpy(pt->category, "Drivers");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_drivers_popover");
+  STRNCPY(pt->label, N_("Add/Edit Driver"));
+  STRNCPY(pt->category, "Drivers");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_drivers_popover;
   pt->poll = graph_panel_drivers_popover_poll;
   BLI_addtail(&art->paneltypes, pt);
@@ -1515,10 +1518,10 @@ void graph_buttons_register(ARegionType *art)
   WM_paneltype_add(pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
-  strcpy(pt->idname, "GRAPH_PT_modifiers");
-  strcpy(pt->label, N_("Modifiers"));
-  strcpy(pt->category, "Modifiers");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_modifiers");
+  STRNCPY(pt->label, N_("Modifiers"));
+  STRNCPY(pt->category, "Modifiers");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->flag = PANEL_TYPE_NO_HEADER;
   pt->draw = graph_panel_modifiers;
   pt->poll = graph_panel_poll;
@@ -1528,10 +1531,10 @@ void graph_buttons_register(ARegionType *art)
   ANIM_modifier_panels_register_graph_only(art, GRAPH_FMODIFIER_PANEL_PREFIX, graph_panel_poll);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel view");
-  strcpy(pt->idname, "GRAPH_PT_view");
-  strcpy(pt->label, N_("Show Cursor"));
-  strcpy(pt->category, "View");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "GRAPH_PT_view");
+  STRNCPY(pt->label, N_("Show Cursor"));
+  STRNCPY(pt->category, "View");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = graph_panel_cursor;
   pt->draw_header = graph_panel_cursor_header;
   BLI_addtail(&art->paneltypes, pt);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __LIGHT_H__
 #define __LIGHT_H__
@@ -72,6 +73,8 @@ class Light : public Node {
   NODE_SOCKET_API(uint, random_id)
 
   NODE_SOCKET_API(ustring, lightgroup)
+  NODE_SOCKET_API(uint64_t, light_set_membership);
+  NODE_SOCKET_API(uint64_t, shadow_set_membership);
 
   NODE_SOCKET_API(bool, normalize)
 
@@ -79,6 +82,10 @@ class Light : public Node {
 
   /* Check whether the light has contribution the scene. */
   bool has_contribution(Scene *scene);
+
+  /* Check whether this light participates in light or shadow linking. */
+  bool has_light_linking() const;
+  bool has_shadow_linking() const;
 
   friend class LightManager;
   friend class LightTree;

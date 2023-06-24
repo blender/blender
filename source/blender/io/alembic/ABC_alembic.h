@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -104,7 +106,7 @@ bool ABC_import(struct bContext *C,
                 bool as_background_job);
 
 struct CacheArchiveHandle *ABC_create_handle(struct Main *bmain,
-                                             const char *filename,
+                                             const char *filepath,
                                              const struct CacheFileLayer *layers,
                                              struct ListBase *object_paths);
 
@@ -141,7 +143,8 @@ void ABC_CacheReader_free(struct CacheReader *reader);
 struct CacheReader *CacheReader_open_alembic_object(struct CacheArchiveHandle *handle,
                                                     struct CacheReader *reader,
                                                     struct Object *object,
-                                                    const char *object_path);
+                                                    const char *object_path,
+                                                    bool is_sequence);
 
 #ifdef __cplusplus
 }

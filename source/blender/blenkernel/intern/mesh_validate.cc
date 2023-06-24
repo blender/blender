@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1236,6 +1237,7 @@ void strip_loose_polysloops(Mesh *me, blender::BitSpan polys_to_remove)
 
     if (size >= 3 && !invalid) {
       if (a != b) {
+        poly_offsets[b] = poly_offsets[a];
         CustomData_copy_data(&me->pdata, &me->pdata, a, b, 1);
       }
       b++;

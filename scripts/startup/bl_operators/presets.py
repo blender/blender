@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import bpy
@@ -413,6 +415,24 @@ class AddPresetHairDynamics(AddPresetBase, Operator):
     ]
 
 
+class AddPresetTextEditor(AddPresetBase, Operator):
+    """Add or remove a Text Editor Preset"""
+    bl_idname = "text_editor.preset_add"
+    bl_label = "Add Text Editor Preset"
+    preset_menu = "USERPREF_PT_text_editor_presets"
+
+    preset_defines = [
+        "filepaths = bpy.context.preferences.filepaths"
+    ]
+
+    preset_values = [
+        "filepaths.text_editor",
+        "filepaths.text_editor_args"
+    ]
+
+    preset_subdir = "text_editor"
+
+
 class AddPresetTrackingCamera(AddPresetBase, Operator):
     """Add or remove a Tracking Camera Intrinsics Preset"""
     bl_idname = "clip.camera_preset_add"
@@ -692,6 +712,7 @@ classes = (
     AddPresetOperator,
     AddPresetRender,
     AddPresetCameraSafeAreas,
+    AddPresetTextEditor,
     AddPresetTrackingCamera,
     AddPresetTrackingSettings,
     AddPresetTrackingTrackColor,

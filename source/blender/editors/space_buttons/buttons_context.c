@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spbuttons
@@ -11,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -260,6 +262,9 @@ static bool buttons_context_path_data(ButsContextPath *path, int type)
   if (RNA_struct_is_a(ptr->type, &RNA_GreasePencil) && ELEM(type, -1, OB_GPENCIL_LEGACY)) {
     return true;
   }
+  if (RNA_struct_is_a(ptr->type, &RNA_GreasePencilv3) && ELEM(type, -1, OB_GREASE_PENCIL)) {
+    return true;
+  }
   if (RNA_struct_is_a(ptr->type, &RNA_Curves) && ELEM(type, -1, OB_CURVES)) {
     return true;
   }
@@ -299,6 +304,7 @@ static bool buttons_context_path_modifier(ButsContextPath *path)
              OB_SURF,
              OB_LATTICE,
              OB_GPENCIL_LEGACY,
+             OB_GREASE_PENCIL,
              OB_CURVES,
              OB_POINTCLOUD,
              OB_VOLUME))
@@ -836,6 +842,7 @@ const char *buttons_context_dir[] = {
     "line_style",
     "collection",
     "gpencil",
+    "grease_pencil",
     "curves",
 #ifdef WITH_POINT_CLOUD
     "pointcloud",
@@ -1163,6 +1170,10 @@ int /*eContextResult*/ buttons_context(const bContext *C,
     set_pointer_type(path, result, &RNA_GreasePencil);
     return CTX_RESULT_OK;
   }
+  if (CTX_data_equals(member, "grease_pencil")) {
+    set_pointer_type(path, result, &RNA_GreasePencilv3);
+    return CTX_RESULT_OK;
+  }
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
@@ -1253,9 +1264,9 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 void buttons_context_register(ARegionType *art)
 {
   PanelType *pt = MEM_callocN(sizeof(PanelType), "spacetype buttons panel context");
-  strcpy(pt->idname, "PROPERTIES_PT_context");
-  strcpy(pt->label, N_("Context")); /* XXX C panels unavailable through RNA bpy.types! */
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "PROPERTIES_PT_context");
+  STRNCPY(pt->label, N_("Context")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->poll = buttons_panel_context_poll;
   pt->draw = buttons_panel_context_draw;
   pt->flag = PANEL_TYPE_NO_HEADER | PANEL_TYPE_NO_SEARCH;

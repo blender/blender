@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup balembic
@@ -33,6 +35,7 @@ AbcObjectReader::AbcObjectReader(const IObject &object, ImportSettings &settings
     : m_object(nullptr),
       m_iobject(object),
       m_settings(&settings),
+      m_is_reading_a_file_sequence(settings.is_sequence),
       m_min_time(std::numeric_limits<chrono_t>::max()),
       m_max_time(std::numeric_limits<chrono_t>::min()),
       m_refcount(0),
@@ -132,12 +135,12 @@ Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
   return s0.getMatrix();
 }
 
-struct Mesh *AbcObjectReader::read_mesh(struct Mesh *existing_mesh,
-                                        const Alembic::Abc::ISampleSelector & /*sample_sel*/,
-                                        int /*read_flag*/,
-                                        const char * /*velocity_name*/,
-                                        const float /*velocity_scale*/,
-                                        const char ** /*err_str*/)
+Mesh *AbcObjectReader::read_mesh(Mesh *existing_mesh,
+                                 const Alembic::Abc::ISampleSelector & /*sample_sel*/,
+                                 int /*read_flag*/,
+                                 const char * /*velocity_name*/,
+                                 const float /*velocity_scale*/,
+                                 const char ** /*err_str*/)
 {
   return existing_mesh;
 }

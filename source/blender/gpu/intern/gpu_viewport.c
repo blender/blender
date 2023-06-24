@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -72,7 +73,7 @@ struct GPUViewport {
   ColorManagedDisplaySettings display_settings;
   CurveMapping *orig_curve_mapping;
   float dither;
-  /* TODO(fclem): the uvimage display use the viewport but do not set any view transform for the
+  /* TODO(@fclem): the UV-image display use the viewport but do not set any view transform for the
    * moment. The end goal would be to let the GPUViewport do the color management. */
   bool do_color_management;
   struct GPUViewportBatch batch;
@@ -193,7 +194,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   rect_size[0] = BLI_rcti_size_x(rect) + 1;
   rect_size[1] = BLI_rcti_size_y(rect) + 1;
 
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   if (!equals_v2v2_int(viewport->size, rect_size)) {
     copy_v2_v2_int(viewport->size, rect_size);
@@ -204,9 +205,7 @@ void GPU_viewport_bind(GPUViewport *viewport, int view, const rcti *rect)
   viewport->active_view = view;
 }
 
-void GPU_viewport_bind_from_offscreen(GPUViewport *viewport,
-                                      struct GPUOffScreen *ofs,
-                                      bool is_xr_surface)
+void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, bool is_xr_surface)
 {
   GPUTexture *color, *depth;
   GPUFrameBuffer *fb;
@@ -526,7 +525,7 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, int view, const rcti *re
 }
 
 void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
-                                        struct GPUOffScreen *ofs,
+                                        GPUOffScreen *ofs,
                                         bool display_colorspace,
                                         bool do_overlay_merge)
 {
@@ -563,7 +562,7 @@ void GPU_viewport_unbind_from_offscreen(GPUViewport *viewport,
 void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
 {
   GPU_framebuffer_restore();
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 }
 
 int GPU_viewport_active_view_get(GPUViewport *viewport)

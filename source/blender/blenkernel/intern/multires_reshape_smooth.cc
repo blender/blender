@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -490,8 +491,10 @@ static float get_effective_crease(const MultiresReshapeSmoothContext *reshape_sm
   if (!is_crease_supported(reshape_smooth_context)) {
     return 1.0f;
   }
-  const float *creases = reshape_smooth_context->reshape_context->cd_edge_crease;
-  return creases ? creases[base_edge_index] : 0.0f;
+  if (reshape_smooth_context->reshape_context->cd_edge_crease.is_empty()) {
+    return 0.0f;
+  }
+  return reshape_smooth_context->reshape_context->cd_edge_crease[base_edge_index];
 }
 
 static float get_effective_crease_float(const MultiresReshapeSmoothContext *reshape_smooth_context,
@@ -616,12 +619,11 @@ static void foreach_single_vertex(const SubdivForeachContext *foreach_context,
   }
 
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
-  const float *cd_vertex_crease = reshape_context->cd_vertex_crease;
-  if (cd_vertex_crease == nullptr) {
+  if (reshape_context->cd_vertex_crease.is_empty()) {
     return;
   }
 
-  float crease = cd_vertex_crease[coarse_vertex_index];
+  float crease = reshape_context->cd_vertex_crease[coarse_vertex_index];
   if (crease == 0.0f) {
     return;
   }

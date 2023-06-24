@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GHOST_SystemCocoa.hh"
 
@@ -429,8 +430,7 @@ extern "C" int GHOST_HACK_getFirstFile(char buf[FIRSTFILEBUFLG])
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
 #if 0
-  G.is_break = false; /* Let Cocoa perform the termination at the end. */
-  WM_exit(C);
+  WM_exit(C, EXIT_SUCCESS);
 #endif
 }
 
@@ -697,7 +697,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                                uint32_t width,
                                                uint32_t height,
                                                GHOST_TWindowState state,
-                                               GHOST_GLSettings glSettings,
+                                               GHOST_GPUSettings gpuSettings,
                                                const bool exclusive,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
@@ -726,9 +726,9 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                    width,
                                    height,
                                    state,
-                                   glSettings.context_type,
-                                   glSettings.flags & GHOST_glStereoVisual,
-                                   glSettings.flags & GHOST_glDebugContext,
+                                   gpuSettings.context_type,
+                                   gpuSettings.flags & GHOST_gpuStereoVisual,
+                                   gpuSettings.flags & GHOST_gpuDebugContext,
                                    is_dialog,
                                    (GHOST_WindowCocoa *)parentWindow);
 
@@ -756,11 +756,11 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  * Never explicitly delete the context, use #disposeContext() instead.
  * \return The new context (or 0 if creation failed).
  */
-GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
 #ifdef WITH_VULKAN_BACKEND
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
-    const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+    const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
     GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
     if (!context->initializeDrawingContext()) {
       delete context;
@@ -770,7 +770,7 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GLSettings glSet
   }
 #endif
 
-  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, glSettings.context_type);
+  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, gpuSettings.context_type);
   if (context->initializeDrawingContext())
     return context;
   else

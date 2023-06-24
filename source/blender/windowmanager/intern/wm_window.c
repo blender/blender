@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved. 2007 Blender Foundation.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -104,11 +105,20 @@ typedef enum eWinOverrideFlag {
  * These values are typically set by command line arguments.
  */
 static struct WMInitStruct {
-  /* window geometry */
+  /**
+   * Window geometry:
+   * - Defaults to the main screen-size.
+   * - May be set by the `--window-geometry` argument,
+   *   which also forces these values to be used by setting #WIN_OVERRIDE_GEOM.
+   * - When #wmWindow::size_x is zero, these values are used as a fallback,
+   *   needed so the #BLENDER_STARTUP_FILE loads at the size of the users main-screen
+   *   instead of the size stored in the factory startup.
+   *   Otherwise the window geometry saved in the blend-file is used and these values are ignored.
+   */
   int size_x, size_y;
   int start_x, start_y;
 
-  int windowstate;
+  GHOST_TWindowState windowstate;
   eWinOverrideFlag override_flag;
 
   bool window_focus;
@@ -206,7 +216,7 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
     wm->winactive = NULL;
   }
 
-  /* We need this window's opengl context active to discard it. */
+  /* We need this window's GPU context active to discard it. */
   GHOST_ActivateWindowDrawingContext(win->ghostwin);
   GPU_context_active_set(win->gpuctx);
 
@@ -660,17 +670,17 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                       bool is_dialog)
 {
   /* A new window is created when page-flip mode is required for a window. */
-  GHOST_GLSettings glSettings = {0};
+  GHOST_GPUSettings gpuSettings = {0};
   if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
-    glSettings.flags |= GHOST_glStereoVisual;
+    gpuSettings.flags |= GHOST_gpuStereoVisual;
   }
 
   if (G.debug & G_DEBUG_GPU) {
-    glSettings.flags |= GHOST_glDebugContext;
+    gpuSettings.flags |= GHOST_gpuDebugContext;
   }
 
   eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  glSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
 
   int scr_w, scr_h;
   wm_get_desktopsize(&scr_w, &scr_h);
@@ -689,7 +699,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
                                                    win->sizey,
                                                    (GHOST_TWindowState)win->windowstate,
                                                    is_dialog,
-                                                   glSettings);
+                                                   gpuSettings);
 
   if (ghostwin) {
     win->gpuctx = GPU_context_create(ghostwin, NULL);
@@ -734,7 +744,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm,
     /* Clear double buffer to avoids flickering of new windows on certain drivers. (See #97600) */
     GPU_clear_color(0.55f, 0.55f, 0.55f, 1.0f);
 
-    // GHOST_SetWindowState(ghostwin, GHOST_kWindowStateModified);
     GPU_render_end();
   }
   else {
@@ -793,14 +802,14 @@ static void wm_window_ghostwindow_ensure(wmWindowManager *wm, wmWindow *win, boo
   keymap = WM_keymap_ensure(wm->defaultconf, "Screen Editing", 0, 0);
   WM_event_add_keymap_handler(&win->modalhandlers, keymap);
 
-  /* add drop boxes */
+  /* Add drop boxes. */
   {
     ListBase *lb = WM_dropboxmap_find("Window", 0, 0);
     WM_event_add_dropbox_handler(&win->handlers, lb);
   }
   wm_window_title(wm, win);
 
-  /* add topbar */
+  /* Add top-bar. */
   ED_screen_global_areas_refresh(win);
 }
 
@@ -1234,7 +1243,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
     /* Ghost now can call this function for life resizes,
      * but it should return if WM didn't initialize yet.
      * Can happen on file read (especially full size window). */
-    if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
+    if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
       return true;
     }
     if (!ghostwin) {
@@ -1398,7 +1407,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
             WM_event_add_notifier(C, NC_WINDOW | NA_EDITED, NULL);
 
 #if defined(__APPLE__) || defined(WIN32)
-            /* OSX and Win32 don't return to the mainloop while resize */
+            /* MACOS and WIN32 don't return to the main-loop while resize. */
             wm_window_timer(C);
             wm_event_do_handlers(C);
             wm_event_do_notifiers(C);
@@ -1677,7 +1686,7 @@ void wm_ghost_init(bContext *C)
     /* GHOST will have reported the back-ends that failed to load. */
     fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
     /* This will leak memory, it's preferable to crashing. */
-    exit(1);
+    exit(EXIT_FAILURE);
   }
 #if !(defined(WIN32) || defined(__APPLE__))
   g_system_backend_id = GHOST_SystemBackend();
@@ -1769,9 +1778,7 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
   return GHOST_kDrawingContextTypeNone;
 }
 
-static uiBlock *block_create_opengl_usage_warning(struct bContext *C,
-                                                  struct ARegion *region,
-                                                  void *UNUSED(arg1))
+static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, void *UNUSED(arg1))
 {
   uiBlock *block = UI_block_begin(C, region, "autorun_warning_popup", UI_EMBOSS);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
@@ -2243,7 +2250,7 @@ wmWindow *WM_window_find_under_cursor(wmWindow *win, const int mval[2], int r_mv
   return win_other;
 }
 
-wmWindow *WM_window_find_by_area(wmWindowManager *wm, const struct ScrArea *area)
+wmWindow *WM_window_find_by_area(wmWindowManager *wm, const ScrArea *area)
 {
   LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
     bScreen *sc = WM_window_get_active_screen(win);
@@ -2625,10 +2632,10 @@ void wm_window_IME_end(wmWindow *win)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Direct OpenGL Context Management
+/** \name Direct GPU Context Management
  * \{ */
 
-void *WM_opengl_context_create(void)
+void *WM_system_gpu_context_create(void)
 {
   /* On Windows there is a problem creating contexts that share resources (almost any object,
    * including legacy display lists, but also textures) with a context which is current in another
@@ -2642,31 +2649,31 @@ void *WM_opengl_context_create(void)
   BLI_assert(BLI_thread_is_main());
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
 
-  GHOST_GLSettings glSettings = {0};
+  GHOST_GPUSettings gpuSettings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
-  glSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
+  gpuSettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   if (G.debug & G_DEBUG_GPU) {
-    glSettings.flags |= GHOST_glDebugContext;
+    gpuSettings.flags |= GHOST_gpuDebugContext;
   }
-  return GHOST_CreateOpenGLContext(g_system, glSettings);
+  return GHOST_CreateGPUContext(g_system, gpuSettings);
 }
 
-void WM_opengl_context_dispose(void *context)
+void WM_system_gpu_context_dispose(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_DisposeOpenGLContext(g_system, (GHOST_ContextHandle)context);
+  GHOST_DisposeGPUContext(g_system, (GHOST_ContextHandle)context);
 }
 
-void WM_opengl_context_activate(void *context)
+void WM_system_gpu_context_activate(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_ActivateOpenGLContext((GHOST_ContextHandle)context);
+  GHOST_ActivateGPUContext((GHOST_ContextHandle)context);
 }
 
-void WM_opengl_context_release(void *context)
+void WM_system_gpu_context_release(void *context)
 {
   BLI_assert(GPU_framebuffer_active_get() == GPU_framebuffer_back_get());
-  GHOST_ReleaseOpenGLContext((GHOST_ContextHandle)context);
+  GHOST_ReleaseGPUContext((GHOST_ContextHandle)context);
 }
 
 void WM_ghost_show_message_box(const char *title,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -11,6 +13,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "GHOST_C-api.h"
 
@@ -31,9 +34,7 @@
 static wmXrActionSet *action_set_create(const char *action_set_name)
 {
   wmXrActionSet *action_set = MEM_callocN(sizeof(*action_set), __func__);
-  action_set->name = MEM_mallocN(strlen(action_set_name) + 1, "XrActionSet_Name");
-  strcpy(action_set->name, action_set_name);
-
+  action_set->name = BLI_strdup(action_set_name);
   return action_set;
 }
 
@@ -68,8 +69,7 @@ static wmXrAction *action_create(const char *action_name,
                                  eXrHapticFlag haptic_flag)
 {
   wmXrAction *action = MEM_callocN(sizeof(*action), __func__);
-  action->name = MEM_mallocN(strlen(action_name) + 1, "XrAction_Name");
-  strcpy(action->name, action_name);
+  action->name = BLI_strdup(action_name);
   action->type = type;
 
   const uint count = (uint)BLI_listbase_count(user_paths);
@@ -79,9 +79,7 @@ static wmXrAction *action_create(const char *action_name,
   action->subaction_paths = MEM_mallocN(sizeof(*action->subaction_paths) * count,
                                         "XrAction_SubactionPaths");
   LISTBASE_FOREACH_INDEX (XrUserPath *, user_path, user_paths, subaction_idx) {
-    action->subaction_paths[subaction_idx] = MEM_mallocN(strlen(user_path->path) + 1,
-                                                         "XrAction_SubactionPath");
-    strcpy(action->subaction_paths[subaction_idx], user_path->path);
+    action->subaction_paths[subaction_idx] = BLI_strdup(user_path->path);
   }
 
   size_t size;
@@ -120,8 +118,7 @@ static wmXrAction *action_create(const char *action_name,
 
   if (haptic_name) {
     BLI_assert(is_button_action);
-    action->haptic_name = MEM_mallocN(strlen(haptic_name) + 1, "XrAction_HapticName");
-    strcpy(action->haptic_name, haptic_name);
+    action->haptic_name = BLI_strdup(haptic_name);
     action->haptic_duration = *haptic_duration;
     action->haptic_frequency = *haptic_frequency;
     action->haptic_amplitude = *haptic_amplitude;
@@ -335,7 +332,7 @@ bool WM_xr_action_binding_create(wmXrData *xr,
                                  const ListBase *component_paths,
                                  const float *float_thresholds,
                                  const eXrAxisFlag *axis_flags,
-                                 const struct wmXrPose *poses)
+                                 const wmXrPose *poses)
 {
   const uint count = (uint)BLI_listbase_count(user_paths);
   BLI_assert(count == (uint)BLI_listbase_count(component_paths));
@@ -402,7 +399,7 @@ bool WM_xr_active_action_set_set(wmXrData *xr, const char *action_set_name, bool
   if (delayed) {
     /* Save name to activate action set later, before next actions sync
      * (see #wm_xr_session_actions_update()). */
-    strcpy(xr->runtime->session_state.active_action_set_next, action_set_name);
+    STRNCPY(xr->runtime->session_state.active_action_set_next, action_set_name);
     return true;
   }
 

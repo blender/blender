@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
@@ -39,7 +41,6 @@
 #include "WM_api.h"
 
 #include "usd.h"
-#include "usd_tests_common.h"
 
 namespace blender::io::usd {
 
@@ -84,10 +85,6 @@ class UsdCurvesTest : public BlendfileLoadingBaseTest {
   virtual void SetUp() override
   {
     BlendfileLoadingBaseTest::SetUp();
-    std::string usd_plugin_path = register_usd_plugins_for_tests();
-    if (usd_plugin_path.empty()) {
-      FAIL();
-    }
   }
 
   virtual void TearDown() override
@@ -192,8 +189,8 @@ static void check_catmullRom_curve(const pxr::UsdPrim prim,
         << "Wrap token should be periodic for periodic curve";
   }
   else {
-    EXPECT_EQ(wrap_token, pxr::UsdGeomTokens->nonperiodic)
-        << "Wrap token should be nonperiodic for nonperiodic curve";
+    EXPECT_EQ(wrap_token, pxr::UsdGeomTokens->pinned)
+        << "Wrap token should be pinned for nonperiodic catmullRom curve";
   }
 
   pxr::UsdAttribute vert_count_attr = curve.GetCurveVertexCountsAttr();

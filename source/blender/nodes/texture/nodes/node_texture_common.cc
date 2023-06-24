@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup texnodes
@@ -108,10 +109,10 @@ static void group_copy_outputs(bNode *gnode, bNodeStack **out, bNodeStack *gstac
 
 static void group_execute(void *data,
                           int thread,
-                          struct bNode *node,
+                          bNode *node,
                           bNodeExecData *execdata,
-                          struct bNodeStack **in,
-                          struct bNodeStack **out)
+                          bNodeStack **in,
+                          bNodeStack **out)
 {
   bNodeTreeExec *exec = static_cast<bNodeTreeExec *>(execdata->data);
   bNodeThreadStack *nts;

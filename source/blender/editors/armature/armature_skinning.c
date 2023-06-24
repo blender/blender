@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -25,6 +26,7 @@
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_subsurf.h"
@@ -394,12 +396,12 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   if (wpmode) {
     /* if in weight paint mode, use final verts from evaluated mesh */
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-    Mesh *me_eval = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
-
-    BKE_mesh_foreach_mapped_vert_coords_get(me_eval, verts, mesh->totvert);
-    vertsfilled = 1;
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    if (me_eval) {
+      BKE_mesh_foreach_mapped_vert_coords_get(me_eval, verts, mesh->totvert);
+      vertsfilled = 1;
+    }
   }
   else if (BKE_modifiers_findby_type(ob, eModifierType_Subsurf)) {
     /* Is subdivision-surface on? Lets use the verts on the limit surface then.

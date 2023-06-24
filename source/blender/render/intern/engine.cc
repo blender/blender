@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -114,13 +115,6 @@ bool RE_engine_is_external(const Render *re)
   return (re->engine && re->engine->type && re->engine->type->render);
 }
 
-bool RE_engine_is_opengl(RenderEngineType *render_type)
-{
-  /* TODO: refine? Can we have OpenGL render engine without OpenGL render pipeline? */
-  return (render_type->draw_engine != nullptr) &&
-         DRW_engine_render_support(render_type->draw_engine);
-}
-
 bool RE_engine_supports_alembic_procedural(const RenderEngineType *render_type, Scene *scene)
 {
   if ((render_type->flag & RE_USE_ALEMBIC_PROCEDURAL) == 0) {
@@ -142,7 +136,7 @@ RenderEngine *RE_engine_create(RenderEngineType *type)
   engine->type = type;
 
   BLI_mutex_init(&engine->update_render_passes_mutex);
-  BLI_mutex_init(&engine->gpu_context_mutex);
+  BLI_mutex_init(&engine->blender_gpu_context_mutex);
 
   return engine;
 }
@@ -175,7 +169,7 @@ void RE_engine_free(RenderEngine *engine)
 
   engine_depsgraph_free(engine);
 
-  BLI_mutex_end(&engine->gpu_context_mutex);
+  BLI_mutex_end(&engine->blender_gpu_context_mutex);
   BLI_mutex_end(&engine->update_render_passes_mutex);
 
   MEM_freeN(engine);
@@ -222,8 +216,8 @@ static RenderResult *render_result_from_bake(
   /* Fill render passes from bake pixel array, to be read by the render engine. */
   for (int ty = 0; ty < h; ty++) {
     size_t offset = ty * w * 4;
-    float *primitive = primitive_pass->rect + offset;
-    float *differential = differential_pass->rect + offset;
+    float *primitive = primitive_pass->buffer.data + offset;
+    float *differential = differential_pass->buffer.data + offset;
 
     size_t bake_offset = (y + ty) * image->width + x;
     const BakePixel *bake_pixel = pixels + bake_offset;
@@ -290,7 +284,7 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
     const size_t offset = ty * w;
     const size_t bake_offset = (y + ty) * image->width + x;
 
-    const float *pass_rect = rpass->rect + offset * channels_num;
+    const float *pass_rect = rpass->buffer.data + offset * channels_num;
     const BakePixel *bake_pixel = pixels + bake_offset;
     float *bake_result = result + bake_offset * channels_num;
 
@@ -972,8 +966,8 @@ static void engine_render_view_layer(Render *re,
 
 /* Callback function for engine_render_create_result to add all render passes to the result. */
 static void engine_render_add_result_pass_cb(void *user_data,
-                                             struct Scene * /*scene*/,
-                                             struct ViewLayer *view_layer,
+                                             Scene * /*scene*/,
+                                             ViewLayer *view_layer,
                                              const char *name,
                                              int channels,
                                              const char *chanid,
@@ -1169,9 +1163,9 @@ bool RE_engine_render(Render *re, bool do_all)
   return true;
 }
 
-void RE_engine_update_render_passes(struct RenderEngine *engine,
-                                    struct Scene *scene,
-                                    struct ViewLayer *view_layer,
+void RE_engine_update_render_passes(RenderEngine *engine,
+                                    Scene *scene,
+                                    ViewLayer *view_layer,
                                     update_render_passes_cb_t callback,
                                     void *callback_data)
 {
@@ -1190,9 +1184,9 @@ void RE_engine_update_render_passes(struct RenderEngine *engine,
   BLI_mutex_unlock(&engine->update_render_passes_mutex);
 }
 
-void RE_engine_register_pass(struct RenderEngine *engine,
-                             struct Scene *scene,
-                             struct ViewLayer *view_layer,
+void RE_engine_register_pass(RenderEngine *engine,
+                             Scene *scene,
+                             ViewLayer *view_layer,
                              const char *name,
                              int channels,
                              const char *chanid,
@@ -1218,7 +1212,7 @@ void RE_engine_free_blender_memory(RenderEngine *engine)
   engine_depsgraph_free(engine);
 }
 
-struct RenderEngine *RE_engine_get(const Render *re)
+RenderEngine *RE_engine_get(const Render *re)
 {
   return re->engine;
 }
@@ -1270,7 +1264,7 @@ void RE_engine_tile_highlight_clear_all(RenderEngine *engine)
 }
 
 /* -------------------------------------------------------------------- */
-/** \name OpenGL context manipulation.
+/** \name GPU context manipulation.
  *
  * GPU context for engine to create and update GPU resources in its own thread,
  * without blocking the main thread. Used by Cycles' display driver to create
@@ -1281,7 +1275,7 @@ void RE_engine_tile_highlight_clear_all(RenderEngine *engine)
 bool RE_engine_gpu_context_create(RenderEngine *engine)
 {
   /* If the there already is a draw manager render context available, reuse it. */
-  engine->use_drw_render_context = (engine->re && RE_gl_context_get(engine->re));
+  engine->use_drw_render_context = (engine->re && RE_system_gpu_context_get(engine->re));
   if (engine->use_drw_render_context) {
     return true;
   }
@@ -1290,49 +1284,49 @@ bool RE_engine_gpu_context_create(RenderEngine *engine)
    * the main thread here to safely create a context. */
   BLI_assert(BLI_thread_is_main());
 
-  const bool drw_state = DRW_opengl_context_release();
-  engine->wm_gpu_context = WM_opengl_context_create();
+  const bool drw_state = DRW_gpu_context_release();
+  engine->wm_blender_gpu_context = WM_system_gpu_context_create();
 
-  if (engine->wm_gpu_context) {
-    /* Activate new OpenGL Context for GPUContext creation. */
-    WM_opengl_context_activate(engine->wm_gpu_context);
+  if (engine->wm_blender_gpu_context) {
+    /* Activate new GPU Context for GPUContext creation. */
+    WM_system_gpu_context_activate(engine->wm_blender_gpu_context);
     /* Requires GPUContext for usage of GPU Module for displaying results. */
-    engine->gpu_context = GPU_context_create(nullptr, engine->wm_gpu_context);
+    engine->blender_gpu_context = GPU_context_create(nullptr, engine->wm_blender_gpu_context);
     GPU_context_active_set(nullptr);
-    /* Deactivate newly created OpenGL Context, as it is not needed until
+    /* Deactivate newly created GPU Context, as it is not needed until
      * `RE_engine_gpu_context_enable` is called. */
-    WM_opengl_context_release(engine->wm_gpu_context);
+    WM_system_gpu_context_release(engine->wm_blender_gpu_context);
   }
   else {
-    engine->gpu_context = nullptr;
+    engine->blender_gpu_context = nullptr;
   }
 
-  DRW_opengl_context_activate(drw_state);
+  DRW_gpu_context_activate(drw_state);
 
-  return engine->wm_gpu_context != nullptr;
+  return engine->wm_blender_gpu_context != nullptr;
 }
 
 void RE_engine_gpu_context_destroy(RenderEngine *engine)
 {
-  if (!engine->wm_gpu_context) {
+  if (!engine->wm_blender_gpu_context) {
     return;
   }
 
-  const bool drw_state = DRW_opengl_context_release();
+  const bool drw_state = DRW_gpu_context_release();
 
-  WM_opengl_context_activate(engine->wm_gpu_context);
-  if (engine->gpu_context) {
+  WM_system_gpu_context_activate(engine->wm_blender_gpu_context);
+  if (engine->blender_gpu_context) {
     GPUContext *restore_context = GPU_context_active_get();
-    GPU_context_active_set(engine->gpu_context);
-    GPU_context_discard(engine->gpu_context);
-    if (restore_context != engine->gpu_context) {
+    GPU_context_active_set(engine->blender_gpu_context);
+    GPU_context_discard(engine->blender_gpu_context);
+    if (restore_context != engine->blender_gpu_context) {
       GPU_context_active_set(restore_context);
     }
-    engine->gpu_context = nullptr;
+    engine->blender_gpu_context = nullptr;
   }
-  WM_opengl_context_dispose(engine->wm_gpu_context);
+  WM_system_gpu_context_dispose(engine->wm_blender_gpu_context);
 
-  DRW_opengl_context_activate(drw_state);
+  DRW_gpu_context_activate(drw_state);
 }
 
 bool RE_engine_gpu_context_enable(RenderEngine *engine)
@@ -1342,16 +1336,16 @@ bool RE_engine_gpu_context_enable(RenderEngine *engine)
     DRW_render_context_enable(engine->re);
     return true;
   }
-  if (engine->wm_gpu_context) {
-    BLI_mutex_lock(&engine->gpu_context_mutex);
-    /* If a previous OpenGL/GPUContext was active (DST.gpu_context), we should later restore this
-     * when disabling the RenderEngine context. */
-    engine->gpu_restore_context = DRW_opengl_context_release();
+  if (engine->wm_blender_gpu_context) {
+    BLI_mutex_lock(&engine->blender_gpu_context_mutex);
+    /* If a previous GPU/GPUContext was active (DST.blender_gpu_context), we should later
+     * restore this when disabling the RenderEngine context. */
+    engine->gpu_restore_context = DRW_gpu_context_release();
 
-    /* Activate RenderEngine OpenGL and GPU Context. */
-    WM_opengl_context_activate(engine->wm_gpu_context);
-    if (engine->gpu_context) {
-      GPU_context_active_set(engine->gpu_context);
+    /* Activate RenderEngine System and Blender GPU Context. */
+    WM_system_gpu_context_activate(engine->wm_blender_gpu_context);
+    if (engine->blender_gpu_context) {
+      GPU_context_active_set(engine->blender_gpu_context);
       GPU_render_begin();
     }
     return true;
@@ -1365,15 +1359,15 @@ void RE_engine_gpu_context_disable(RenderEngine *engine)
     DRW_render_context_disable(engine->re);
   }
   else {
-    if (engine->wm_gpu_context) {
-      if (engine->gpu_context) {
+    if (engine->wm_blender_gpu_context) {
+      if (engine->blender_gpu_context) {
         GPU_render_end();
         GPU_context_active_set(nullptr);
       }
-      WM_opengl_context_release(engine->wm_gpu_context);
+      WM_system_gpu_context_release(engine->wm_blender_gpu_context);
       /* Restore DRW state context if previously active. */
-      DRW_opengl_context_activate(engine->gpu_restore_context);
-      BLI_mutex_unlock(&engine->gpu_context_mutex);
+      DRW_gpu_context_activate(engine->gpu_restore_context);
+      BLI_mutex_unlock(&engine->blender_gpu_context_mutex);
     }
   }
 }
@@ -1384,8 +1378,8 @@ void RE_engine_gpu_context_lock(RenderEngine *engine)
     /* Locking already handled by the draw manager. */
   }
   else {
-    if (engine->wm_gpu_context) {
-      BLI_mutex_lock(&engine->gpu_context_mutex);
+    if (engine->wm_blender_gpu_context) {
+      BLI_mutex_lock(&engine->blender_gpu_context_mutex);
     }
   }
 }
@@ -1396,8 +1390,8 @@ void RE_engine_gpu_context_unlock(RenderEngine *engine)
     /* Locking already handled by the draw manager. */
   }
   else {
-    if (engine->wm_gpu_context) {
-      BLI_mutex_unlock(&engine->gpu_context_mutex);
+    if (engine->wm_blender_gpu_context) {
+      BLI_mutex_unlock(&engine->blender_gpu_context_mutex);
     }
   }
 }

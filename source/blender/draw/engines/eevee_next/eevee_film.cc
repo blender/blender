@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -75,7 +75,7 @@ void Film::init_aovs()
   for (ViewLayerAOV *aov : aovs) {
     bool is_value = (aov->type == AOV_TYPE_VALUE);
     uint &index = is_value ? aovs_info.value_len : aovs_info.color_len;
-    uint &hash = is_value ? aovs_info.hash_value[index] : aovs_info.hash_color[index];
+    uint &hash = is_value ? aovs_info.hash_value[index].x : aovs_info.hash_color[index].x;
     hash = BLI_hash_string(aov->name);
     index++;
   }
@@ -86,14 +86,14 @@ float *Film::read_aov(ViewLayerAOV *aov)
   bool is_value = (aov->type == AOV_TYPE_VALUE);
   Texture &accum_tx = is_value ? value_accum_tx_ : color_accum_tx_;
 
-  Span<uint> aovs_hash(is_value ? aovs_info.hash_value : aovs_info.hash_color,
-                       is_value ? aovs_info.value_len : aovs_info.color_len);
+  Span<uint4> aovs_hash(is_value ? aovs_info.hash_value : aovs_info.hash_color,
+                        is_value ? aovs_info.value_len : aovs_info.color_len);
   /* Find AOV index. */
   uint hash = BLI_hash_string(aov->name);
   int aov_index = -1;
   int i = 0;
-  for (uint candidate_hash : aovs_hash) {
-    if (candidate_hash == hash) {
+  for (uint4 candidate_hash : aovs_hash) {
+    if (candidate_hash.x == hash) {
       aov_index = i;
       break;
     }
@@ -104,6 +104,8 @@ float *Film::read_aov(ViewLayerAOV *aov)
 
   int index = aov_index + (is_value ? data_.aov_value_id : data_.aov_color_id);
   GPUTexture *pass_tx = accum_tx.layer_view(index);
+
+  GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
 
   return (float *)GPU_texture_read(pass_tx, GPU_DATA_FLOAT, 0);
 }
@@ -431,18 +433,9 @@ void Film::sync()
   accumulate_ps_.bind_ubo("camera_next", &(*velocity.camera_steps[step_next]));
   accumulate_ps_.bind_texture("depth_tx", &rbuffers.depth_tx);
   accumulate_ps_.bind_texture("combined_tx", &combined_final_tx_);
-  accumulate_ps_.bind_texture("normal_tx", &rbuffers.normal_tx);
   accumulate_ps_.bind_texture("vector_tx", &rbuffers.vector_tx);
-  accumulate_ps_.bind_texture("light_tx", &rbuffers.light_tx);
-  accumulate_ps_.bind_texture("diffuse_color_tx", &rbuffers.diffuse_color_tx);
-  accumulate_ps_.bind_texture("specular_color_tx", &rbuffers.specular_color_tx);
-  accumulate_ps_.bind_texture("volume_light_tx", &rbuffers.volume_light_tx);
-  accumulate_ps_.bind_texture("emission_tx", &rbuffers.emission_tx);
-  accumulate_ps_.bind_texture("environment_tx", &rbuffers.environment_tx);
-  accumulate_ps_.bind_texture("shadow_tx", &rbuffers.shadow_tx);
-  accumulate_ps_.bind_texture("ambient_occlusion_tx", &rbuffers.ambient_occlusion_tx);
-  accumulate_ps_.bind_texture("aov_color_tx", &rbuffers.aov_color_tx);
-  accumulate_ps_.bind_texture("aov_value_tx", &rbuffers.aov_value_tx);
+  accumulate_ps_.bind_texture("rp_color_tx", &rbuffers.rp_color_tx);
+  accumulate_ps_.bind_texture("rp_value_tx", &rbuffers.rp_value_tx);
   accumulate_ps_.bind_texture("cryptomatte_tx", &rbuffers.cryptomatte_tx);
   /* NOTE(@fclem): 16 is the max number of sampled texture in many implementations.
    * If we need more, we need to pack more of the similar passes in the same textures as arrays or
@@ -455,6 +448,7 @@ void Film::sync()
   accumulate_ps_.bind_image("color_accum_img", &color_accum_tx_);
   accumulate_ps_.bind_image("value_accum_img", &value_accum_tx_);
   accumulate_ps_.bind_image("cryptomatte_img", &cryptomatte_tx_);
+  accumulate_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
   /* Sync with rendering passes. */
   accumulate_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
   if (use_compute) {

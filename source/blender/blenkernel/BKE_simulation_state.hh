@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -149,6 +151,9 @@ struct StatesAroundFrame {
 class ModifierSimulationCache {
  private:
   mutable std::mutex states_at_frames_mutex_;
+  /**
+   * All simulation states, sorted by frame.
+   */
   Vector<std::unique_ptr<ModifierSimulationStateAtFrame>> states_at_frames_;
   /**
    * Used for baking to deduplicate arrays when writing and writing from storage. Sharing info
@@ -162,7 +167,9 @@ class ModifierSimulationCache {
   CacheState cache_state_ = CacheState::Valid;
   bool failed_finding_bake_ = false;
 
-  void try_discover_bake(StringRefNull meta_dir, StringRefNull bdata_dir);
+  float last_fps_ = 0.0f;
+
+  void try_discover_bake(StringRefNull absolute_bake_dir);
 
   bool has_state_at_frame(const SubFrame &frame) const;
   bool has_states() const;
@@ -182,6 +189,14 @@ class ModifierSimulationCache {
 
   void reset();
   void clear_prev_states();
+};
+
+/**
+ * Wrap simulation cache in `std::shared_ptr` so that it can be owned by evaluated modifier even if
+ * the original modifier has been deleted.
+ */
+struct ModifierSimulationCachePtr {
+  std::shared_ptr<ModifierSimulationCache> ptr;
 };
 
 }  // namespace blender::bke::sim

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -107,13 +109,19 @@ void PyC_List_Fill(PyObject *list, PyObject *value);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
 PyObject *PyC_UnicodeFromBytes(const char *str);
+/**
+ * \param size: The length of the string: `strlen(str)`.
+ */
 PyObject *PyC_UnicodeFromBytesAndSize(const char *str, Py_ssize_t size);
-const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **r_coerce); /* coerce must be NULL */
 /**
  * String conversion, escape non-unicode chars
- * \param coerce: must be set to NULL.
+ * \param r_size: The string length (not including the null terminator).
+ * \note By convention Blender API's use len/length however Python API's use the term size,
+ * as this is an alternative to Python's #PyUnicode_AsUTF8AndSize, follow it's naming.
+ * \param r_coerce: must reference a pointer set to NULL.
  */
-const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyObject **r_coerce);
 
 /**
  * Description: This function creates a new Python dictionary object.
@@ -183,6 +191,9 @@ bool PyC_RunString_AsIntPtr(const char **imports,
                             const char *expr,
                             const char *filename,
                             intptr_t *r_value);
+/**
+ * \param r_value_size: The length of the string assigned: `strlen(*r_value)`.
+ */
 bool PyC_RunString_AsStringAndSize(const char **imports,
                                    const char *expr,
                                    const char *filename,

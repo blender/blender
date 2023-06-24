@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -12,10 +13,6 @@
 #ifdef __cplusplus
 #  include "BLI_resource_scope.hh"
 #  include "BLI_span.hh"
-#  include "BLI_vector.hh"
-
-#  include "DNA_customdata_types.h"
-#  include "DNA_meshdata_types.h"
 #endif
 
 struct CustomData;
@@ -24,10 +21,6 @@ struct MFace;
 
 #ifdef __cplusplus
 
-void BKE_mesh_legacy_convert_uvs_to_struct(
-    Mesh *mesh,
-    blender::ResourceScope &temp_mloopuv_for_convert,
-    blender::Vector<CustomDataLayer, 16> &loop_layers_to_write);
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);
 
 /**
@@ -39,6 +32,7 @@ void BKE_mesh_legacy_face_set_to_generic(struct Mesh *mesh);
  * Copy edge creases from edges to a separate layer.
  */
 void BKE_mesh_legacy_edge_crease_to_layers(struct Mesh *mesh);
+void BKE_mesh_legacy_crease_to_generic(struct Mesh *mesh);
 
 /**
  * Copy bevel weights from vertices and edges to separate layers.
@@ -82,6 +76,8 @@ void BKE_mesh_legacy_convert_edges_to_generic(Mesh *mesh);
 void BKE_mesh_legacy_convert_polys_to_offsets(Mesh *mesh);
 
 void BKE_mesh_legacy_convert_loops_to_corners(struct Mesh *mesh);
+
+void BKE_mesh_legacy_face_map_to_generic(struct Mesh *mesh);
 
 #endif
 

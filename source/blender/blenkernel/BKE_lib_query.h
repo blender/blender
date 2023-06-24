@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -131,11 +132,14 @@ typedef int (*LibraryIDLinkCallback)(LibraryIDLinkCallbackData *cb_data);
 /* Flags for the foreach function itself. */
 enum {
   IDWALK_NOP = 0,
-  /** The callback will never modify the ID pointers it processes.
+  /**
+   * The callback will never modify the ID pointers it processes.
    * WARNING: It is very important to pass this flag when valid, as it can lead to important
-   * optimizations and debug/assert code. */
+   * optimizations and debug/assert code.
+   */
   IDWALK_READONLY = (1 << 0),
-  /** Recurse into 'descendant' IDs.
+  /**
+   * Recurse into 'descendant' IDs.
    * Each ID is only processed once. Order of ID processing is not guaranteed.
    *
    * Also implies IDWALK_READONLY, and excludes IDWALK_DO_INTERNAL_RUNTIME_POINTERS.
@@ -198,30 +202,36 @@ int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeach
                                                            int cb_flag,
                                                            bool do_replace);
 
-#define BKE_LIB_FOREACHID_PROCESS_ID(_data, _id, _cb_flag) \
+#define BKE_LIB_FOREACHID_PROCESS_ID(data_, id_, cb_flag_) \
   { \
-    CHECK_TYPE_ANY((_id), ID *, void *); \
-    BKE_lib_query_foreachid_process((_data), (ID **)&(_id), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+    CHECK_TYPE_ANY((id_), ID *, void *); \
+    BKE_lib_query_foreachid_process((data_), (ID **)&(id_), (cb_flag_)); \
+    if (BKE_lib_query_foreachid_iter_stop((data_))) { \
       return; \
     } \
   } \
   ((void)0)
 
-#define BKE_LIB_FOREACHID_PROCESS_IDSUPER(_data, _id_super, _cb_flag) \
+#define BKE_LIB_FOREACHID_PROCESS_IDSUPER_P(data_, id_super_p_, cb_flag_) \
   { \
-    CHECK_TYPE(&((_id_super)->id), ID *); \
-    BKE_lib_query_foreachid_process((_data), (ID **)&(_id_super), (_cb_flag)); \
-    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+    CHECK_TYPE(&((*(id_super_p_))->id), ID *); \
+    BKE_lib_query_foreachid_process((data_), (ID **)(id_super_p_), (cb_flag_)); \
+    if (BKE_lib_query_foreachid_iter_stop((data_))) { \
       return; \
     } \
   } \
   ((void)0)
 
-#define BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(_data, _func_call) \
+#define BKE_LIB_FOREACHID_PROCESS_IDSUPER(data_, id_super_, cb_flag_) \
   { \
-    _func_call; \
-    if (BKE_lib_query_foreachid_iter_stop((_data))) { \
+    BKE_LIB_FOREACHID_PROCESS_IDSUPER_P(data_, &(id_super_), cb_flag_); \
+  } \
+  ((void)0)
+
+#define BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data_, func_call_) \
+  { \
+    func_call_; \
+    if (BKE_lib_query_foreachid_iter_stop((data_))) { \
       return; \
     } \
   } \

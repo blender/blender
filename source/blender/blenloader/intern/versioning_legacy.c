@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -323,7 +324,7 @@ static void customdata_version_242(Mesh *me)
     if (layer->type == CD_MTFACE) {
       if (layer->name[0] == 0) {
         if (mtfacen == 0) {
-          strcpy(layer->name, "UVMap");
+          STRNCPY(layer->name, "UVMap");
         }
         else {
           SNPRINTF(layer->name, "UVMap.%.3d", mtfacen);
@@ -334,7 +335,7 @@ static void customdata_version_242(Mesh *me)
     else if (layer->type == CD_MCOL) {
       if (layer->name[0] == 0) {
         if (mcoln == 0) {
-          strcpy(layer->name, "Col");
+          STRNCPY(layer->name, "Col");
         }
         else {
           SNPRINTF(layer->name, "Col.%.3d", mcoln);
@@ -841,8 +842,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 223) {
     VFont *vf;
     for (vf = bmain->fonts.first; vf; vf = vf->id.next) {
-      if (STREQ(vf->filepath + strlen(vf->filepath) - 6, ".Bfont")) {
-        strcpy(vf->filepath, FO_BUILTIN_NAME);
+      if (BLI_str_endswith(vf->filepath, ".Bfont")) {
+        STRNCPY(vf->filepath, FO_BUILTIN_NAME);
       }
     }
   }
@@ -1076,7 +1077,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 230) {
     bScreen *screen;
 
-    /* new variable blockscale, for panels in any area */
+    /* New variable block-scale, for panels in any area. */
     for (screen = bmain->screens.first; screen; screen = screen->id.next) {
       ScrArea *area;
 
@@ -1369,7 +1370,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     while (sce) {
       if (sce->toolsettings == NULL) {
-        sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
+        sce->toolsettings = MEM_callocN(sizeof(ToolSettings), "Tool Settings Struct");
         sce->toolsettings->doublimit = 0.001f;
       }
       sce = sce->id.next;
@@ -1475,7 +1476,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       for (kb = key->block.first; kb; kb = kb->next) {
         if (kb == key->refkey) {
           if (kb->name[0] == 0) {
-            strcpy(kb->name, "Basis");
+            STRNCPY(kb->name, "Basis");
           }
         }
         else {
@@ -1610,8 +1611,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       Image *ima;
       for (ima = bmain->images.first; ima; ima = ima->id.next) {
         if (STREQ(ima->filepath, "Compositor")) {
-          strcpy(ima->id.name + 2, "Viewer Node");
-          strcpy(ima->filepath, "Viewer Node");
+          BLI_strncpy(ima->id.name + 2, "Viewer Node", sizeof(ima->id.name) - 2);
+          STRNCPY(ima->filepath, "Viewer Node");
         }
       }
     }

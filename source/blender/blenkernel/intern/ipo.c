@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1164,7 +1165,7 @@ static char *get_rna_access(ID *id,
     else if ((blocktype == ID_KE) && STREQ(actname, "Shape")) {
       /* Actionified "Shape" IPO's -
        * these are forced onto object level via the action container there... */
-      strcpy(buf, "data.shape_keys");
+      STRNCPY(buf, "data.shape_keys");
     }
     else {
       /* Pose-Channel */

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -46,7 +48,7 @@
 /* Logging, use `ghost.wl.*` prefix. */
 #include "CLG_log.h"
 
-static const struct xdg_activation_token_v1_listener *xdg_activation_listener_get();
+static const xdg_activation_token_v1_listener *xdg_activation_listener_get();
 
 static constexpr size_t base_dpi = 96;
 
@@ -57,7 +59,7 @@ static constexpr size_t base_dpi = 96;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
 struct WGL_LibDecor_Window {
-  struct libdecor_frame *frame = nullptr;
+  libdecor_frame *frame = nullptr;
   bool configured = false;
 };
 
@@ -69,10 +71,21 @@ static void gwl_libdecor_window_destroy(WGL_LibDecor_Window *decor)
 #endif /* WITH_GHOST_WAYLAND_LIBDECOR */
 
 struct WGL_XDG_Decor_Window {
-  struct xdg_surface *surface = nullptr;
-  struct zxdg_toplevel_decoration_v1 *toplevel_decor = nullptr;
-  struct xdg_toplevel *toplevel = nullptr;
+  xdg_surface *surface = nullptr;
+  zxdg_toplevel_decoration_v1 *toplevel_decor = nullptr;
+  xdg_toplevel *toplevel = nullptr;
   enum zxdg_toplevel_decoration_v1_mode mode = (enum zxdg_toplevel_decoration_v1_mode)0;
+
+  /**
+   * Defer calling #xdg_surface_ack_configure.
+   * \note Accessing the members must lock on `win->frame_pending_mutex`.
+   */
+  struct {
+    /** When set, ACK configure is expected. */
+    bool ack_configure = false;
+    /** The serial to pass to ACK configure. */
+    uint32_t ack_configure_serial = 0;
+  } pending;
 };
 
 static void gwl_xdg_decor_window_destroy(WGL_XDG_Decor_Window *decor)
@@ -209,14 +222,14 @@ struct GWL_Window {
   std::vector<GWL_Output *> outputs;
 
   /** A temporary token used for the window to be notified of it's activation. */
-  struct xdg_activation_token_v1 *xdg_activation_token = nullptr;
+  xdg_activation_token_v1 *xdg_activation_token = nullptr;
 
-  struct wp_viewport *viewport = nullptr;
+  wp_viewport *viewport = nullptr;
   /**
    * When set, only respond to the #wp_fractional_scale_v1_listener::preferred_scale callback
    * and ignore updated scale based on #wl_surface_listener::enter & exit events.
    */
-  struct wp_fractional_scale_v1 *fractional_scale_handle = nullptr;
+  wp_fractional_scale_v1 *fractional_scale_handle = nullptr;
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
   WGL_LibDecor_Window *libdecor = nullptr;
@@ -288,7 +301,7 @@ static GHOST_TWindowState gwl_window_state_get(const GWL_Window *win)
 /**
  * \note Keep in sync with #gwl_window_state_set_for_xdg.
  */
-static bool gwl_window_state_set_for_libdecor(struct libdecor_frame *frame,
+static bool gwl_window_state_set_for_libdecor(libdecor_frame *frame,
                                               const GHOST_TWindowState state,
                                               const GHOST_TWindowState state_current)
 {
@@ -321,9 +334,6 @@ static bool gwl_window_state_set_for_libdecor(struct libdecor_frame *frame,
       libdecor_frame_set_fullscreen(frame, nullptr);
       break;
     }
-    case GHOST_kWindowStateEmbedded: {
-      return false;
-    }
   }
   return true;
 }
@@ -333,7 +343,7 @@ static bool gwl_window_state_set_for_libdecor(struct libdecor_frame *frame,
 /**
  * \note Keep in sync with #gwl_window_state_set_for_libdecor.
  */
-static bool gwl_window_state_set_for_xdg(struct xdg_toplevel *toplevel,
+static bool gwl_window_state_set_for_xdg(xdg_toplevel *toplevel,
                                          const GHOST_TWindowState state,
                                          const GHOST_TWindowState state_current)
 {
@@ -365,9 +375,6 @@ static bool gwl_window_state_set_for_xdg(struct xdg_toplevel *toplevel,
     case GHOST_kWindowStateFullScreen: {
       xdg_toplevel_set_fullscreen(toplevel, nullptr);
       break;
-    }
-    case GHOST_kWindowStateEmbedded: {
-      return false;
     }
   }
   return true;
@@ -441,7 +448,7 @@ static bool gwl_window_viewport_set(GWL_Window *win,
   if (win->viewport != nullptr) {
     return false;
   }
-  struct wp_viewporter *viewporter = win->ghost_system->wp_viewporter();
+  wp_viewporter *viewporter = win->ghost_system->wp_viewporter();
   if (viewporter == nullptr) {
     return false;
   }
@@ -536,7 +543,7 @@ static bool gwl_window_viewport_size_update(GWL_Window *win)
 static void gwl_window_activate(GWL_Window *win)
 {
   GHOST_SystemWayland *system = win->ghost_system;
-  struct xdg_activation_v1 *activation_manager = system->xdg_activation_manager();
+  xdg_activation_v1 *activation_manager = system->xdg_activation_manager();
   if (UNLIKELY(activation_manager == nullptr)) {
     return;
   }
@@ -555,7 +562,7 @@ static void gwl_window_activate(GWL_Window *win)
   /* The serial of the input device requesting activation. */
   {
     uint32_t serial = 0;
-    struct wl_seat *seat = system->wl_seat_active_get_with_input_serial(serial);
+    wl_seat *seat = system->wl_seat_active_get_with_input_serial(serial);
     if (seat) {
       xdg_activation_token_v1_set_serial(win->xdg_activation_token, serial, seat);
     }
@@ -566,7 +573,7 @@ static void gwl_window_activate(GWL_Window *win)
     GHOST_WindowWayland *ghost_window_active = static_cast<GHOST_WindowWayland *>(
         system->getWindowManager()->getActiveWindow());
     if (ghost_window_active) {
-      struct wl_surface *surface = ghost_window_active->wl_surface();
+      wl_surface *surface = ghost_window_active->wl_surface();
       if (surface) {
         xdg_activation_token_v1_set_surface(win->xdg_activation_token, surface);
       }
@@ -743,6 +750,18 @@ static void gwl_window_frame_update_from_pending_no_lock(GWL_Window *win)
 
   if (surface_needs_buffer_scale) {
     wl_surface_set_buffer_scale(win->wl_surface, win->frame.buffer_scale);
+  }
+
+  if (win->xdg_decor) {
+    WGL_XDG_Decor_Window &decor = *win->xdg_decor;
+    if (decor.pending.ack_configure) {
+      xdg_surface_ack_configure(decor.surface, decor.pending.ack_configure_serial);
+      /* The XDG spec states a commit event is required after ACK configure. */
+      surface_needs_commit = true;
+
+      decor.pending.ack_configure = false;
+      decor.pending.ack_configure_serial = 0;
+    }
   }
 
   if (surface_needs_commit) {
@@ -954,7 +973,7 @@ static const xdg_toplevel_listener xdg_toplevel_listener = {
  * \{ */
 
 static void xdg_activation_handle_done(void *data,
-                                       struct xdg_activation_token_v1 *xdg_activation_token_v1,
+                                       xdg_activation_token_v1 *xdg_activation_token_v1,
                                        const char *token)
 {
   GWL_Window *win = static_cast<GWL_Window *>(data);
@@ -963,17 +982,17 @@ static void xdg_activation_handle_done(void *data,
   }
 
   GHOST_SystemWayland *system = win->ghost_system;
-  struct xdg_activation_v1 *activation_manager = system->xdg_activation_manager();
+  xdg_activation_v1 *activation_manager = system->xdg_activation_manager();
   xdg_activation_v1_activate(activation_manager, token, win->wl_surface);
   xdg_activation_token_v1_destroy(win->xdg_activation_token);
   win->xdg_activation_token = nullptr;
 }
 
-static const struct xdg_activation_token_v1_listener xdg_activation_listener = {
+static const xdg_activation_token_v1_listener xdg_activation_listener = {
     /*done*/ xdg_activation_handle_done,
 };
 
-static const struct xdg_activation_token_v1_listener *xdg_activation_listener_get()
+static const xdg_activation_token_v1_listener *xdg_activation_listener_get()
 {
   return &xdg_activation_listener;
 }
@@ -990,7 +1009,7 @@ static CLG_LogRef LOG_WL_FRACTIONAL_SCALE = {"ghost.wl.handle.fractional_scale"}
 #define LOG (&LOG_WL_FRACTIONAL_SCALE)
 
 static void wp_fractional_scale_handle_preferred_scale(
-    void *data, struct wp_fractional_scale_v1 * /*wp_fractional_scale_v1*/, uint preferred_scale)
+    void *data, wp_fractional_scale_v1 * /*wp_fractional_scale_v1*/, uint preferred_scale)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
@@ -1008,7 +1027,7 @@ static void wp_fractional_scale_handle_preferred_scale(
   }
 }
 
-static const struct wp_fractional_scale_v1_listener wp_fractional_scale_listener = {
+static const wp_fractional_scale_v1_listener wp_fractional_scale_listener = {
     /*preferred_scale*/ wp_fractional_scale_handle_preferred_scale,
 };
 
@@ -1025,8 +1044,8 @@ static const struct wp_fractional_scale_v1_listener wp_fractional_scale_listener
 static CLG_LogRef LOG_WL_LIBDECOR_FRAME = {"ghost.wl.handle.libdecor_frame"};
 #  define LOG (&LOG_WL_LIBDECOR_FRAME)
 
-static void frame_handle_configure(struct libdecor_frame *frame,
-                                   struct libdecor_configuration *configuration,
+static void frame_handle_configure(libdecor_frame *frame,
+                                   libdecor_configuration *configuration,
                                    void *data)
 {
   CLOG_INFO(LOG, 2, "configure");
@@ -1075,7 +1094,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   /* Commit the changes. */
   {
     GWL_Window *win = static_cast<GWL_Window *>(data);
-    struct libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
+    libdecor_state *state = libdecor_state_new(UNPACK2(size_next));
     libdecor_frame_commit(frame, state, configuration);
     libdecor_state_free(state);
 
@@ -1099,7 +1118,7 @@ static void frame_handle_configure(struct libdecor_frame *frame,
   }
 }
 
-static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
+static void frame_handle_close(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "close");
 
@@ -1108,7 +1127,7 @@ static void frame_handle_close(struct libdecor_frame * /*frame*/, void *data)
   win->ghost_window->close();
 }
 
-static void frame_handle_commit(struct libdecor_frame * /*frame*/, void *data)
+static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 {
   CLOG_INFO(LOG, 2, "commit");
 
@@ -1141,9 +1160,7 @@ static CLG_LogRef LOG_WL_XDG_TOPLEVEL_DECORATION = {"ghost.wl.handle.xdg_topleve
 #define LOG (&LOG_WL_XDG_TOPLEVEL_DECORATION)
 
 static void xdg_toplevel_decoration_handle_configure(
-    void *data,
-    struct zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/,
-    const uint32_t mode)
+    void *data, zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/, const uint32_t mode)
 {
   CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
 
@@ -1180,6 +1197,12 @@ static void xdg_surface_handle_configure(void *data,
   CLOG_INFO(LOG, 2, "configure");
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
+  std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
+#endif
+  win->xdg_decor->pending.ack_configure = true;
+  win->xdg_decor->pending.ack_configure_serial = serial;
+
+#ifdef USE_EVENT_BACKGROUND_THREAD
   GHOST_SystemWayland *system = win->ghost_system;
   const bool is_main_thread = system->main_thread_id == std::this_thread::get_id();
   if (!is_main_thread) {
@@ -1190,10 +1213,8 @@ static void xdg_surface_handle_configure(void *data,
   else
 #endif
   {
-    gwl_window_frame_update_from_pending(win);
+    gwl_window_frame_update_from_pending_no_lock(win);
   }
-
-  xdg_surface_ack_configure(xdg_surface, serial);
 }
 
 static const xdg_surface_listener xdg_surface_listener = {
@@ -1211,9 +1232,7 @@ static const xdg_surface_listener xdg_surface_listener = {
 static CLG_LogRef LOG_WL_SURFACE = {"ghost.wl.handle.surface"};
 #define LOG (&LOG_WL_SURFACE)
 
-static void surface_handle_enter(void *data,
-                                 struct wl_surface * /*wl_surface*/,
-                                 struct wl_output *wl_output)
+static void surface_handle_enter(void *data, wl_surface * /*wl_surface*/, wl_output *wl_output)
 {
   if (!ghost_wl_output_own(wl_output)) {
     CLOG_INFO(LOG, 2, "enter (skipped)");
@@ -1228,9 +1247,7 @@ static void surface_handle_enter(void *data,
   }
 }
 
-static void surface_handle_leave(void *data,
-                                 struct wl_surface * /*wl_surface*/,
-                                 struct wl_output *wl_output)
+static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_output *wl_output)
 {
   if (!ghost_wl_output_own(wl_output)) {
     CLOG_INFO(LOG, 2, "leave (skipped)");
@@ -1329,8 +1346,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
   window_->egl_window = wl_egl_window_create(
       window_->wl_surface, int(window_->frame.size[0]), int(window_->frame.size[1]));
 
-  struct wp_fractional_scale_manager_v1 *fractional_scale_manager =
-      system->wp_fractional_scale_manager();
+  wp_fractional_scale_manager_v1 *fractional_scale_manager = system->wp_fractional_scale_manager();
   if (fractional_scale_manager) {
     window_->fractional_scale_handle = wp_fractional_scale_manager_v1_get_fractional_scale(
         fractional_scale_manager, window_->wl_surface);
@@ -1416,7 +1432,7 @@ GHOST_WindowWayland::GHOST_WindowWayland(GHOST_SystemWayland *system,
     /* NOTE: LIBDECOR requires the window to be created & configured before the state can be set.
      * Workaround this by using the underlying `xdg_toplevel` */
     WGL_LibDecor_Window &decor = *window_->libdecor;
-    struct xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
+    xdg_toplevel *toplevel = libdecor_frame_get_xdg_toplevel(decor.frame);
     gwl_window_state_set_for_xdg(toplevel, state, GHOST_kWindowStateNormal);
   }
   else
@@ -1804,7 +1820,7 @@ int GHOST_WindowWayland::scale() const
   return window_->frame.buffer_scale;
 }
 
-const struct GWL_WindowScaleParams &GHOST_WindowWayland::scale_params() const
+const GWL_WindowScaleParams &GHOST_WindowWayland::scale_params() const
 {
   /* NOTE(@ideasman42): This could be kept initialized,
    * since it's such a small struct it's not so important. */

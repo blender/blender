@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -163,23 +164,23 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
 
 static void extract_edge_fac_iter_loose_edge_bm(const MeshRenderData *mr,
                                                 const BMEdge * /*eed*/,
-                                                const int ledge_index,
+                                                const int loose_edge_i,
                                                 void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
-  data->vbo_data[mr->loop_len + (ledge_index * 2) + 0] = 0;
-  data->vbo_data[mr->loop_len + (ledge_index * 2) + 1] = 0;
+  data->vbo_data[mr->loop_len + (loose_edge_i * 2) + 0] = 0;
+  data->vbo_data[mr->loop_len + (loose_edge_i * 2) + 1] = 0;
 }
 
 static void extract_edge_fac_iter_loose_edge_mesh(const MeshRenderData *mr,
                                                   const int2 /*edge*/,
-                                                  const int ledge_index,
+                                                  const int loose_edge_i,
                                                   void *_data)
 {
   MeshExtract_EdgeFac_Data *data = static_cast<MeshExtract_EdgeFac_Data *>(_data);
 
-  data->vbo_data[mr->loop_len + ledge_index * 2 + 0] = 0;
-  data->vbo_data[mr->loop_len + ledge_index * 2 + 1] = 0;
+  data->vbo_data[mr->loop_len + loose_edge_i * 2 + 0] = 0;
+  data->vbo_data[mr->loop_len + loose_edge_i * 2 + 1] = 0;
 }
 
 static void extract_edge_fac_finish(const MeshRenderData *mr,

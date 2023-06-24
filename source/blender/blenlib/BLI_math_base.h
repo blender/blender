@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -113,7 +114,7 @@ MINLINE float scalenorm(float a, float b, float x);
  */
 MINLINE double scalenormd(double a, double b, double x);
 
-/* NOTE: Compilers will upcast all types smaller than int to int when performing arithmetic
+/* NOTE: Compilers will up-cast all types smaller than int to int when performing arithmetic
  * operation. */
 
 MINLINE int square_s(short a);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -217,7 +218,7 @@ static void window_manager_blend_read_data(BlendDataReader *reader, ID *id)
 
   wm->windrawable = NULL;
   wm->winactive = NULL;
-  wm->initialized = 0;
+  wm->init_flag = 0;
   wm->op_undo_depth = 0;
   wm->is_interface_locked = 0;
 }
@@ -330,7 +331,7 @@ void WM_operator_free(wmOperator *op)
   MEM_freeN(op);
 }
 
-void WM_operator_free_all_after(wmWindowManager *wm, struct wmOperator *op)
+void WM_operator_free_all_after(wmWindowManager *wm, wmOperator *op)
 {
   op = op->next;
   while (op != NULL) {
@@ -455,7 +456,7 @@ void WM_keyconfig_init(bContext *C)
   }
 
   /* Initialize only after python init is done, for keymaps that use python operators. */
-  if (CTX_py_init_get(C) && (wm->initialized & WM_KEYCONFIG_IS_INIT) == 0) {
+  if (CTX_py_init_get(C) && (wm->init_flag & WM_INIT_FLAG_KEYCONFIG) == 0) {
     /* create default key config, only initialize once,
      * it's persistent across sessions */
     if (!(wm->defaultconf->flag & KEYCONF_INIT_DEFAULT)) {
@@ -473,7 +474,7 @@ void WM_keyconfig_init(bContext *C)
     }
     WM_keyconfig_update(wm);
 
-    wm->initialized |= WM_KEYCONFIG_IS_INIT;
+    wm->init_flag |= WM_INIT_FLAG_KEYCONFIG;
   }
 }
 
@@ -499,7 +500,7 @@ void WM_check(bContext *C)
 
   if (!G.background) {
     /* Case: file-read. */
-    if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
+    if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
       WM_keyconfig_init(C);
       WM_file_autosave_init(wm);
     }
@@ -510,9 +511,9 @@ void WM_check(bContext *C)
 
   /* Case: file-read. */
   /* NOTE: this runs in background mode to set the screen context cb. */
-  if ((wm->initialized & WM_WINDOW_IS_INIT) == 0) {
+  if ((wm->init_flag & WM_INIT_FLAG_WINDOW) == 0) {
     ED_screens_init(bmain, wm);
-    wm->initialized |= WM_WINDOW_IS_INIT;
+    wm->init_flag |= WM_INIT_FLAG_WINDOW;
   }
 }
 
@@ -613,21 +614,6 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
   if (C && CTX_wm_manager(C) == wm) {
     CTX_wm_manager_set(C, NULL);
-  }
-}
-
-void wm_close_and_free_all(bContext *C, ListBase *wmlist)
-{
-  wmWindowManager *wm;
-  while ((wm = wmlist->first)) {
-    wm_close_and_free(C, wm);
-    BLI_remlink(wmlist, wm);
-    /* Don't handle user counts as this is only ever called once #G_MAIN has already been freed via
-     * #BKE_main_free so any ID's referenced by the window-manager (from ID properties) will crash.
-     * See: #100703. */
-    BKE_libblock_free_data(&wm->id, false);
-    BKE_libblock_free_data_py(&wm->id);
-    MEM_freeN(wm);
   }
 }
 

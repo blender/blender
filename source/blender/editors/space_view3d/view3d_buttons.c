@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -111,7 +112,7 @@ static TransformProperties *v3d_transform_props_ensure(View3D *v3d);
 /** \name Edit Mesh Partial Updates
  * \{ */
 
-static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
+static void *editmesh_partial_update_begin_fn(bContext *UNUSED(C),
                                               const struct uiBlockInteraction_Params *params,
                                               void *arg1)
 {
@@ -152,7 +153,7 @@ static void *editmesh_partial_update_begin_fn(struct bContext *UNUSED(C),
   return bmpinfo;
 }
 
-static void editmesh_partial_update_end_fn(struct bContext *UNUSED(C),
+static void editmesh_partial_update_end_fn(bContext *UNUSED(C),
                                            const struct uiBlockInteraction_Params *UNUSED(params),
                                            void *UNUSED(arg1),
                                            void *user_data)
@@ -165,7 +166,7 @@ static void editmesh_partial_update_end_fn(struct bContext *UNUSED(C),
 }
 
 static void editmesh_partial_update_update_fn(
-    struct bContext *C,
+    bContext *C,
     const struct uiBlockInteraction_Params *UNUSED(params),
     void *arg1,
     void *user_data)
@@ -307,11 +308,13 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
     const int cd_vert_bweight_offset = CustomData_get_offset_named(
         &bm->vdata, CD_PROP_FLOAT, "bevel_weight_vert");
-    const int cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
+    const int cd_vert_crease_offset = CustomData_get_offset_named(
+        &bm->vdata, CD_PROP_FLOAT, "crease_vert");
     const int cd_vert_skin_offset = CustomData_get_offset(&bm->vdata, CD_MVERT_SKIN);
     const int cd_edge_bweight_offset = CustomData_get_offset_named(
         &bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
-    const int cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+    const int cd_edge_crease_offset = CustomData_get_offset_named(
+        &bm->edata, CD_PROP_FLOAT, "crease_edge");
 
     has_skinradius = (cd_vert_skin_offset != -1);
 
@@ -1010,10 +1013,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         }
 
         if (median->v_crease) {
-          if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
-            BM_data_layer_add(bm, &bm->vdata, CD_CREASE);
+          if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert")) {
+            BM_data_layer_add_named(bm, &bm->vdata, CD_PROP_FLOAT, "crease_vert");
           }
-          cd_vert_crease_offset = CustomData_get_offset(&bm->vdata, CD_CREASE);
+          cd_vert_crease_offset = CustomData_get_offset_named(
+              &bm->vdata, CD_PROP_FLOAT, "crease_vert");
           BLI_assert(cd_vert_crease_offset != -1);
 
           scale_v_crease = compute_scale_factor(ve_median->v_crease, median->v_crease);
@@ -1081,10 +1085,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         }
 
         if (median->e_crease) {
-          if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
-            BM_data_layer_add(bm, &bm->edata, CD_CREASE);
+          if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "crease_edge")) {
+            BM_data_layer_add_named(bm, &bm->edata, CD_PROP_FLOAT, "crease_edge");
           }
-          cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+          cd_edge_crease_offset = CustomData_get_offset_named(
+              &bm->edata, CD_PROP_FLOAT, "crease_edge");
           BLI_assert(cd_edge_crease_offset != -1);
 
           scale_e_crease = compute_scale_factor(ve_median->e_crease, median->e_crease);
@@ -1794,19 +1799,19 @@ void view3d_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
-  strcpy(pt->idname, "VIEW3D_PT_transform");
-  strcpy(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
-  strcpy(pt->category, "Item");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "VIEW3D_PT_transform");
+  STRNCPY(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY(pt->category, "Item");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = view3d_panel_transform;
   pt->poll = view3d_panel_transform_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup");
-  strcpy(pt->idname, "VIEW3D_PT_vgroup");
-  strcpy(pt->label, N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
-  strcpy(pt->category, "Item");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "VIEW3D_PT_vgroup");
+  STRNCPY(pt->label, N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
+  STRNCPY(pt->category, "Item");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = view3d_panel_vgroup;
   pt->poll = view3d_panel_vgroup_poll;
   BLI_addtail(&art->paneltypes, pt);
@@ -1814,9 +1819,9 @@ void view3d_buttons_register(ARegionType *art)
   MenuType *mt;
 
   mt = MEM_callocN(sizeof(MenuType), "spacetype view3d menu collections");
-  strcpy(mt->idname, "VIEW3D_MT_collection");
-  strcpy(mt->label, N_("Collection"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "VIEW3D_MT_collection");
+  STRNCPY(mt->label, N_("Collection"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = hide_collections_menu_draw;
   WM_menutype_add(mt);
 }

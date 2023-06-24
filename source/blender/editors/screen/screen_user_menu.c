@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -117,8 +118,7 @@ bUserMenuItem_Op *ED_screen_user_menu_item_find_operator(ListBase *lb,
   return NULL;
 }
 
-struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *lb,
-                                                              const struct MenuType *mt)
+bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(ListBase *lb, const MenuType *mt)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_MENU) {
@@ -131,10 +131,10 @@ struct bUserMenuItem_Menu *ED_screen_user_menu_item_find_menu(struct ListBase *l
   return NULL;
 }
 
-struct bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(struct ListBase *lb,
-                                                              const char *context_data_path,
-                                                              const char *prop_id,
-                                                              int prop_index)
+bUserMenuItem_Prop *ED_screen_user_menu_item_find_prop(ListBase *lb,
+                                                       const char *context_data_path,
+                                                       const char *prop_id,
+                                                       int prop_index)
 {
   LISTBASE_FOREACH (bUserMenuItem *, umi, lb) {
     if (umi->type == USER_MENU_TYPE_PROP) {
@@ -328,9 +328,9 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 void ED_screen_user_menu_register(void)
 {
   MenuType *mt = MEM_callocN(sizeof(MenuType), __func__);
-  strcpy(mt->idname, "SCREEN_MT_user_menu");
-  strcpy(mt->label, N_("Quick Favorites"));
-  strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(mt->idname, "SCREEN_MT_user_menu");
+  STRNCPY(mt->label, N_("Quick Favorites"));
+  STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   mt->draw = screen_user_menu_draw;
   WM_menutype_add(mt);
 }

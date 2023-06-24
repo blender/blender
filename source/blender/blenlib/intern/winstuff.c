@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -27,154 +28,274 @@
 
 /* FILE_MAXDIR + FILE_MAXFILE */
 
-int BLI_windows_get_executable_dir(char *str)
+int BLI_windows_get_executable_dir(char r_dirpath[/*FILE_MAXDIR*/])
 {
-  char dir[FILE_MAXDIR];
+  char filepath[FILE_MAX];
+  char dir[FILE_MAX];
   int a;
   /* Change to utf support. */
-  GetModuleFileName(NULL, str, FILE_MAX);
-  BLI_path_split_dir_part(str, dir, sizeof(dir)); /* shouldn't be relative */
+  GetModuleFileName(NULL, filepath, sizeof(filepath));
+  BLI_path_split_dir_part(filepath, dir, sizeof(dir)); /* shouldn't be relative */
   a = strlen(dir);
   if (dir[a - 1] == '\\') {
     dir[a - 1] = 0;
   }
 
-  strcpy(str, dir);
+  BLI_strncpy(r_dirpath, dir, FILE_MAXDIR);
 
   return 1;
 }
 
-static void register_blend_extension_failed(HKEY root, const bool background)
+bool BLI_windows_is_store_install(void)
 {
-  printf("failed\n");
+  char install_dir[FILE_MAXDIR];
+  BLI_windows_get_executable_dir(install_dir);
+  return (BLI_strcasestr(install_dir, "\\WindowsApps\\") != NULL);
+}
+
+static void registry_error(HKEY root, const char *message)
+{
   if (root) {
     RegCloseKey(root);
   }
-  if (!background) {
-    MessageBox(0, "Could not register file extension.", "Blender error", MB_OK | MB_ICONERROR);
-  }
+  fprintf(stderr, "%s\n", message);
 }
 
-bool BLI_windows_register_blend_extension(const bool background)
+static bool open_registry_hive(bool all_users, HKEY *r_root)
+{
+  if (RegOpenKeyEx(all_users ? HKEY_LOCAL_MACHINE : HKEY_CURRENT_USER,
+                   "Software\\Classes",
+                   0,
+                   KEY_ALL_ACCESS,
+                   r_root) != ERROR_SUCCESS)
+  {
+    registry_error(*r_root, "Unable to open the registry with the required permissions");
+    return false;
+  }
+  return true;
+}
+
+static bool register_blender_prog_id(const char *prog_id,
+                                     const char *executable,
+                                     const char *friendly_name,
+                                     bool all_users)
 {
   LONG lresult;
-  HKEY hkey = 0;
   HKEY root = 0;
-  BOOL usr_mode = false;
-  DWORD dwd = 0;
+  HKEY hkey_progid = 0;
   char buffer[256];
+  DWORD dwd = 0;
 
-  char BlPath[MAX_PATH];
-  char MBox[256];
-
-  printf("Registering file extension...");
-  GetModuleFileName(0, BlPath, MAX_PATH);
-
-  /* Replace the actual app name with the wrapper. */
-  {
-    char *blender_app = strstr(BlPath, "blender.exe");
-    if (blender_app != NULL) {
-      strcpy(blender_app, "blender-launcher.exe");
-    }
-  }
-
-  /* root is HKLM by default */
-  lresult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
-  if (lresult != ERROR_SUCCESS) {
-    /* try HKCU on failure */
-    usr_mode = true;
-    lresult = RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Classes", 0, KEY_ALL_ACCESS, &root);
-    if (lresult != ERROR_SUCCESS) {
-      register_blend_extension_failed(0, background);
-      return false;
-    }
+  if (!open_registry_hive(all_users, &root)) {
+    return false;
   }
 
   lresult = RegCreateKeyEx(
-      root, "blendfile", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
+      root, prog_id, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+
   if (lresult == ERROR_SUCCESS) {
-    strcpy(buffer, "Blender File");
-    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
-    RegCloseKey(hkey);
+    lresult = RegSetValueEx(
+        hkey_progid, NULL, 0, REG_SZ, (BYTE *)friendly_name, strlen(friendly_name) + 1);
+  }
+  if (lresult == ERROR_SUCCESS) {
+    lresult = RegSetValueEx(
+        hkey_progid, "AppUserModelId", 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
   }
   if (lresult != ERROR_SUCCESS) {
-    register_blend_extension_failed(root, background);
+    registry_error(root, "Unable to register Blender App Id");
     return false;
   }
 
-  lresult = RegCreateKeyEx(root,
-                           "blendfile\\shell\\open\\command",
-                           0,
-                           NULL,
-                           REG_OPTION_NON_VOLATILE,
-                           KEY_ALL_ACCESS,
-                           NULL,
-                           &hkey,
-                           &dwd);
+  SNPRINTF(buffer, "%s\\shell\\open", prog_id);
+  lresult = RegCreateKeyEx(
+      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+
+  lresult = RegSetValueEx(
+      hkey_progid, "FriendlyAppName", 0, REG_SZ, (BYTE *)friendly_name, strlen(friendly_name) + 1);
+
+  SNPRINTF(buffer, "%s\\shell\\open\\command", prog_id);
+
+  lresult = RegCreateKeyEx(
+      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+
   if (lresult == ERROR_SUCCESS) {
-    SNPRINTF(buffer, "\"%s\" \"%%1\"", BlPath);
-    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
-    RegCloseKey(hkey);
+    SNPRINTF(buffer, "\"%s\" \"%%1\"", executable);
+    lresult = RegSetValueEx(hkey_progid, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
-    register_blend_extension_failed(root, background);
+    registry_error(root, "Unable to register Blender App Id");
     return false;
   }
 
-  lresult = RegCreateKeyEx(root,
-                           "blendfile\\DefaultIcon",
-                           0,
-                           NULL,
-                           REG_OPTION_NON_VOLATILE,
-                           KEY_ALL_ACCESS,
-                           NULL,
-                           &hkey,
-                           &dwd);
+  SNPRINTF(buffer, "%s\\DefaultIcon", prog_id);
+  lresult = RegCreateKeyEx(
+      root, buffer, 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey_progid, &dwd);
+
   if (lresult == ERROR_SUCCESS) {
-    SNPRINTF(buffer, "\"%s\", 1", BlPath);
-    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
-    RegCloseKey(hkey);
+    SNPRINTF(buffer, "\"%s\", 1", executable);
+    lresult = RegSetValueEx(hkey_progid, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    RegCloseKey(hkey_progid);
   }
   if (lresult != ERROR_SUCCESS) {
-    register_blend_extension_failed(root, background);
+    registry_error(root, "Unable to register Blender App Id");
+    return false;
+  }
+  return true;
+}
+
+bool BLI_windows_register_blend_extension(const bool all_users)
+{
+  if (BLI_windows_is_store_install()) {
+    fprintf(stderr, "Registration not possible from Microsoft Store installation.");
+    return false;
+  }
+
+  HKEY root = 0;
+  char blender_path[MAX_PATH];
+  char *blender_app;
+  HKEY hkey = 0;
+  LONG lresult;
+  DWORD dwd = 0;
+  const char *prog_id = BLENDER_WIN_APPID;
+  const char *friendly_name = BLENDER_WIN_APPID_FRIENDLY_NAME;
+
+  GetModuleFileName(0, blender_path, sizeof(blender_path));
+
+  /* Prevent overflow when we add -launcher to the executable name. */
+  if (strlen(blender_path) > (sizeof(blender_path) - 10))
+    return false;
+
+  /* Replace the actual app name with the wrapper. */
+  blender_app = strstr(blender_path, "blender.exe");
+  if (!blender_app) {
+    return false;
+  }
+  strcpy(blender_app, "blender-launcher.exe");
+
+  if (!open_registry_hive(all_users, &root)) {
+    return false;
+  }
+
+  if (!register_blender_prog_id(prog_id, blender_path, friendly_name, all_users)) {
+    registry_error(root, "Unable to register Blend document type");
     return false;
   }
 
   lresult = RegCreateKeyEx(
       root, ".blend", 0, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hkey, &dwd);
   if (lresult == ERROR_SUCCESS) {
-    strcpy(buffer, "blendfile");
-    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)buffer, strlen(buffer) + 1);
+    /* Set this instance the default. */
+    lresult = RegSetValueEx(hkey, NULL, 0, REG_SZ, (BYTE *)prog_id, strlen(prog_id) + 1);
+
+    if (lresult != ERROR_SUCCESS) {
+      registry_error(root, "Unable to register Blend document type");
+      RegCloseKey(hkey);
+      return false;
+    }
+    RegCloseKey(hkey);
+
+    lresult = RegCreateKeyEx(root,
+                             ".blend\\OpenWithProgids",
+                             0,
+                             NULL,
+                             REG_OPTION_NON_VOLATILE,
+                             KEY_ALL_ACCESS,
+                             NULL,
+                             &hkey,
+                             &dwd);
+
+    if (lresult != ERROR_SUCCESS) {
+      registry_error(root, "Unable to register Blend document type");
+      RegCloseKey(hkey);
+      return false;
+    }
+    lresult = RegSetValueEx(hkey, prog_id, 0, REG_NONE, NULL, 0);
     RegCloseKey(hkey);
   }
+
   if (lresult != ERROR_SUCCESS) {
-    register_blend_extension_failed(root, background);
+    registry_error(root, "Unable to register Blend document type");
     return false;
   }
 
 #  ifdef WITH_BLENDER_THUMBNAILER
   {
-    char RegCmd[MAX_PATH * 2];
-    char InstallDir[FILE_MAXDIR];
-    char SysDir[FILE_MAXDIR];
-    BLI_windows_get_executable_dir(InstallDir);
-    GetSystemDirectory(SysDir, FILE_MAXDIR);
-    const char *ThumbHandlerDLL = "BlendThumb.dll";
-    snprintf(
-        RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
-    system(RegCmd);
+    char reg_cmd[MAX_PATH * 2];
+    char install_dir[FILE_MAXDIR];
+    char system_dir[FILE_MAXDIR];
+    BLI_windows_get_executable_dir(install_dir);
+    GetSystemDirectory(system_dir, sizeof(system_dir));
+    const char *thumbnail_handler = "BlendThumb.dll";
+    SNPRINTF(reg_cmd, "%s\\regsvr32 /s \"%s\\%s\"", system_dir, install_dir, thumbnail_handler);
+    system(reg_cmd);
   }
 #  endif
 
   RegCloseKey(root);
-  printf("success (%s)\n", usr_mode ? "user" : "system");
-  if (!background) {
-    SNPRINTF(MBox,
-             "File extension registered for %s.",
-             usr_mode ? "the current user. To register for all users, run as an administrator" :
-                        "all users");
-    MessageBox(0, MBox, "Blender", MB_OK | MB_ICONINFORMATION);
+  char message[256];
+  SNPRINTF(message,
+           "Blend file extension registered for %s.",
+           all_users ? "all users" : "the current user");
+  printf("%s\n", message);
+
+  return true;
+}
+
+bool BLI_windows_unregister_blend_extension(const bool all_users)
+{
+  if (BLI_windows_is_store_install()) {
+    fprintf(stderr, "Unregistration not possible from Microsoft Store installation.");
+    return false;
   }
+
+  HKEY root = 0;
+  HKEY hkey = 0;
+  LONG lresult;
+
+  if (!open_registry_hive(all_users, &root)) {
+    return false;
+  }
+
+  /* Don't stop on failure. We want to allow unregister after unregister. */
+
+  RegDeleteTree(root, BLENDER_WIN_APPID);
+
+  lresult = RegOpenKeyEx(root, ".blend", 0, KEY_ALL_ACCESS, &hkey);
+  if (lresult == ERROR_SUCCESS) {
+    char buffer[256] = {0};
+    DWORD size = sizeof(buffer);
+    lresult = RegGetValueA(hkey, NULL, NULL, RRF_RT_REG_SZ, NULL, &buffer, &size);
+    if (lresult == ERROR_SUCCESS && STREQ(buffer, BLENDER_WIN_APPID)) {
+      RegSetValueEx(hkey, NULL, 0, REG_SZ, 0, 0);
+    }
+  }
+
+#  ifdef WITH_BLENDER_THUMBNAILER
+  {
+    char reg_cmd[MAX_PATH * 2];
+    char install_dir[FILE_MAXDIR];
+    char system_dir[FILE_MAXDIR];
+    BLI_windows_get_executable_dir(install_dir);
+    GetSystemDirectory(system_dir, sizeof(system_dir));
+    const char *thumbnail_handler = "BlendThumb.dll";
+    SNPRINTF(reg_cmd, "%s\\regsvr32 /u /s \"%s\\%s\"", system_dir, install_dir, thumbnail_handler);
+    system(reg_cmd);
+  }
+#  endif
+
+  lresult = RegOpenKeyEx(hkey, "OpenWithProgids", 0, KEY_ALL_ACCESS, &hkey);
+  if (lresult == ERROR_SUCCESS) {
+    RegDeleteValue(hkey, BLENDER_WIN_APPID);
+  }
+
+  RegCloseKey(root);
+  char message[256];
+  SNPRINTF(message,
+           "Blend file extension unregistered for %s.",
+           all_users ? "all users" : "the current user");
+  printf("%s\n", message);
+
   return true;
 }
 
@@ -233,6 +354,44 @@ bool BLI_windows_external_operation_execute(const char *filepath, const char *op
   shellinfo.nShow = SW_SHOW;
 
   return ShellExecuteExW(&shellinfo);
+}
+
+bool BLI_windows_execute_self(const char *parameters,
+                              const bool wait,
+                              const bool elevated,
+                              const bool silent)
+{
+  char blender_path[MAX_PATH];
+  GetModuleFileName(0, blender_path, MAX_PATH);
+
+  SHELLEXECUTEINFOA shellinfo = {0};
+  shellinfo.cbSize = sizeof(SHELLEXECUTEINFO);
+  shellinfo.fMask = wait ? SEE_MASK_NOCLOSEPROCESS : SEE_MASK_DEFAULT;
+  shellinfo.hwnd = NULL;
+  shellinfo.lpVerb = elevated ? "runas" : NULL;
+  shellinfo.lpFile = blender_path;
+  shellinfo.lpParameters = parameters;
+  shellinfo.lpDirectory = NULL;
+  shellinfo.nShow = silent ? SW_HIDE : SW_SHOW;
+  shellinfo.hInstApp = NULL;
+  shellinfo.hProcess = 0;
+
+  DWORD exitCode = 0;
+  if (!ShellExecuteExA(&shellinfo)) {
+    return false;
+  }
+  if (!wait) {
+    return true;
+  }
+
+  if (shellinfo.hProcess != 0) {
+    WaitForSingleObject(shellinfo.hProcess, INFINITE);
+    GetExitCodeProcess(shellinfo.hProcess, &exitCode);
+    CloseHandle(shellinfo.hProcess);
+    return (exitCode == 0);
+  }
+
+  return false;
 }
 
 void BLI_windows_get_default_root_dir(char root[4])

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -690,10 +692,10 @@ void Controller::ComputeSteerableViewMap()
     img[i] = new GrayImage(_pView->width(), _pView->height());
     for (unsigned int y = 0; y < img[i]->height(); ++y) {
       for (unsigned int x = 0; x < img[i]->width(); ++x) {
-        //img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)) / 255.0f);
-        img[i]->setPixel(x, y, (float)qGray(qimg.pixel(x, y)));
+        // img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))) / 255.0f);
+        img[i]->setPixel(x, y, float(qGray(qimg.pixel(x, y))));
         // float c = qGray(qimg.pixel(x, y));
-        //img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
+        // img[i]->setPixel(x, y, qGray(qimg.pixel(x, y)));
       }
     }
     offscreenBuffer.DetachNode(ng[i]);
@@ -936,7 +938,7 @@ void Controller::InsertStyleModule(uint index, const char *iName, const char *iB
   _Canvas->InsertStyleModule(index, sm);
 }
 
-void Controller::InsertStyleModule(uint index, const char *iName, struct Text *iText)
+void Controller::InsertStyleModule(uint index, const char *iName, Text *iText)
 {
   StyleModule *sm = new BlenderStyleModule(iText, iName, _inter);
   _Canvas->InsertStyleModule(index, sm);

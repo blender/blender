@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 by Nicholas Bishop. */
+/* SPDX-FileCopyrightText: 2011 by Nicholas Bishop.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -59,8 +60,8 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 {
   memset(input, 0, sizeof(DualConInput));
 
-  input->co = (DualConCo)BKE_mesh_vert_positions(mesh);
-  input->co_stride = sizeof(float[3]);
+  input->co = (DualConCo)mesh->vert_positions().data();
+  input->co_stride = sizeof(blender::float3);
   input->totco = mesh->totvert;
 
   input->mloop = (DualConLoop)mesh->corner_verts().data();
@@ -70,15 +71,16 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
   input->tri_stride = sizeof(MLoopTri);
   input->tottri = BKE_mesh_runtime_looptri_len(mesh);
 
-  INIT_MINMAX(input->min, input->max);
-  BKE_mesh_minmax(mesh, input->min, input->max);
+  const blender::Bounds<blender::float3> bounds = *mesh->bounds_min_max();
+  copy_v3_v3(input->min, bounds.min);
+  copy_v3_v3(input->max, bounds.max);
 }
 
 /* simple structure to hold the output: a CDDM and two counters to
  * keep track of the current elements */
 typedef struct {
   Mesh *mesh;
-  float (*vert_positions)[3];
+  blender::float3 *vert_positions;
   int *poly_offsets;
   int *corner_verts;
   int curvert, curface;
@@ -94,7 +96,7 @@ static void *dualcon_alloc_output(int totvert, int totquad)
   }
 
   output->mesh = BKE_mesh_new_nomain(totvert, 0, totquad, 4 * totquad);
-  output->vert_positions = BKE_mesh_vert_positions_for_write(output->mesh);
+  output->vert_positions = output->mesh->vert_positions_for_write().data();
   output->poly_offsets = output->mesh->poly_offsets_for_write().data();
   output->corner_verts = output->mesh->corner_verts_for_write().data();
 
@@ -188,7 +190,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, M
                                                   rmd->scale,
                                                   rmd->depth));
     BLI_mutex_unlock(&dualcon_mutex);
-    output->mesh->poly_offsets_for_write().last() = output->mesh->totloop;
     result = output->mesh;
     MEM_freeN(output);
   }

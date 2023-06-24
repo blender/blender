@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
-
-#include "BLI_index_mask_ops.hh"
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DNA_mesh_types.h"
 
@@ -25,13 +25,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Target Geometry")
       .only_realized_data()
-      .supported_type(GEO_COMPONENT_TYPE_MESH);
+      .supported_type(GeometryComponent::Type::Mesh);
 
   b.add_input<decl::Vector>("Attribute").hide_value().field_on_all();
   b.add_input<decl::Float>("Attribute", "Attribute_001").hide_value().field_on_all();
   b.add_input<decl::Color>("Attribute", "Attribute_002").hide_value().field_on_all();
   b.add_input<decl::Bool>("Attribute", "Attribute_003").hide_value().field_on_all();
   b.add_input<decl::Int>("Attribute", "Attribute_004").hide_value().field_on_all();
+  b.add_input<decl::Rotation>("Attribute", "Attribute_005").hide_value().field_on_all();
 
   b.add_input<decl::Vector>("Source Position").implicit_field(implicit_field_inputs::position);
   b.add_input<decl::Vector>("Ray Direction").default_value({0.0f, 0.0f, -1.0f}).supports_field();
@@ -41,16 +42,17 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .supports_field();
 
-  b.add_output<decl::Bool>("Is Hit").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>("Hit Position").dependent_field({6, 7, 8});
-  b.add_output<decl::Vector>("Hit Normal").dependent_field({6, 7, 8});
-  b.add_output<decl::Float>("Hit Distance").dependent_field({6, 7, 8});
+  b.add_output<decl::Bool>("Is Hit").dependent_field({7, 8, 9});
+  b.add_output<decl::Vector>("Hit Position").dependent_field({7, 8, 9});
+  b.add_output<decl::Vector>("Hit Normal").dependent_field({7, 8, 9});
+  b.add_output<decl::Float>("Hit Distance").dependent_field({7, 8, 9});
 
-  b.add_output<decl::Vector>("Attribute").dependent_field({6, 7, 8});
-  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({6, 7, 8});
-  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({6, 7, 8});
-  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({6, 7, 8});
-  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({6, 7, 8});
+  b.add_output<decl::Vector>("Attribute").dependent_field({7, 8, 9});
+  b.add_output<decl::Float>("Attribute", "Attribute_001").dependent_field({7, 8, 9});
+  b.add_output<decl::Color>("Attribute", "Attribute_002").dependent_field({7, 8, 9});
+  b.add_output<decl::Bool>("Attribute", "Attribute_003").dependent_field({7, 8, 9});
+  b.add_output<decl::Int>("Attribute", "Attribute_004").dependent_field({7, 8, 9});
+  b.add_output<decl::Rotation>("Attribute", "Attribute_005").dependent_field({7, 8, 9});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -77,24 +79,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *socket_color4f = socket_float->next;
   bNodeSocket *socket_boolean = socket_color4f->next;
   bNodeSocket *socket_int32 = socket_boolean->next;
+  bNodeSocket *socket_quat = socket_boolean->next;
 
   bke::nodeSetSocketAvailability(ntree, socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, socket_quat, data_type == CD_PROP_QUATERNION);
 
   bNodeSocket *out_socket_vector = static_cast<bNodeSocket *>(BLI_findlink(&node->outputs, 4));
   bNodeSocket *out_socket_float = out_socket_vector->next;
   bNodeSocket *out_socket_color4f = out_socket_float->next;
   bNodeSocket *out_socket_boolean = out_socket_color4f->next;
   bNodeSocket *out_socket_int32 = out_socket_boolean->next;
+  bNodeSocket *out_socket_quat = out_socket_boolean->next;
 
   bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, out_socket_boolean, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -105,7 +111,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.outputs.as_span().take_front(4));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
     params.add_item(IFACE_("Attribute"), [type](LinkSearchOpParams &params) {
@@ -116,7 +122,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-static void raycast_to_mesh(IndexMask mask,
+static void raycast_to_mesh(const IndexMask &mask,
                             const Mesh &mesh,
                             const VArray<float3> &ray_origins,
                             const VArray<float3> &ray_directions,
@@ -137,7 +143,7 @@ static void raycast_to_mesh(IndexMask mask,
   /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
   BLI_assert(tree_data.cached);
 
-  for (const int i : mask) {
+  mask.foreach_index([&](const int i) {
     const float ray_length = ray_lengths[i];
     const float3 ray_origin = ray_origins[i];
     const float3 ray_direction = ray_directions[i];
@@ -187,7 +193,7 @@ static void raycast_to_mesh(IndexMask mask,
         r_hit_distances[i] = ray_length;
       }
     }
-  }
+  });
 }
 
 class RaycastFunction : public mf::MultiFunction {
@@ -214,7 +220,7 @@ class RaycastFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     BLI_assert(target_.has_mesh());
     const Mesh &mesh = *target_.get_mesh_for_read();
@@ -260,6 +266,11 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
         return params.extract_input<Field<int>>("Attribute_004");
       }
       break;
+    case CD_PROP_QUATERNION:
+      if (params.output_is_required("Attribute_005")) {
+        return params.extract_input<Field<math::Quaternion>>("Attribute_005");
+      }
+      break;
     default:
       BLI_assert_unreachable();
   }
@@ -287,6 +298,10 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
     }
     case CD_PROP_INT32: {
       params.set_output("Attribute_004", Field<int>(field));
+      break;
+    }
+    case CD_PROP_QUATERNION: {
+      params.set_output("Attribute_005", Field<math::Quaternion>(field));
       break;
     }
     default:

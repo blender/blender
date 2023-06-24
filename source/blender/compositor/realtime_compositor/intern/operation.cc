@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <limits>
 #include <memory>
@@ -32,6 +34,8 @@ void Operation::evaluate()
   reset_results();
 
   execute();
+
+  compute_preview();
 
   release_inputs();
 
@@ -133,6 +137,8 @@ void Operation::add_and_evaluate_input_processor(StringRef identifier, SimpleOpe
 
   processor->evaluate();
 }
+
+void Operation::compute_preview(){};
 
 Result &Operation::get_input(StringRef identifier) const
 {

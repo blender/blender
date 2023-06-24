@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -75,7 +76,6 @@ static const EnumPropertyItem prop_similar_types[] = {
     {SIMFACE_NORMAL, "NORMAL", 0, "Normal", ""},
     {SIMFACE_COPLANAR, "COPLANAR", 0, "Coplanar", ""},
     {SIMFACE_SMOOTH, "SMOOTH", 0, "Flat/Smooth", ""},
-    {SIMFACE_FACEMAP, "FACE_MAP", 0, "Face Map", ""},
 #ifdef WITH_FREESTYLE
     {SIMFACE_FREESTYLE, "FREESTYLE_FACE", 0, "Freestyle Face Marks", ""},
 #endif
@@ -176,7 +176,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   KDTree_3d *tree_3d = NULL;
   KDTree_4d *tree_4d = NULL;
   GSet *gset = NULL;
-  GSet **gset_array = NULL;
   int face_data_value = SIMFACE_DATA_NONE;
 
   switch (type) {
@@ -194,10 +193,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     case SIMFACE_MATERIAL:
       gset = BLI_gset_ptr_new("Select similar face");
       break;
-    case SIMFACE_FACEMAP:
-      gset_array = MEM_callocN(sizeof(GSet *) * objects_len,
-                               "Select similar face: facemap gset array");
-      break;
   }
 
   int tree_index = 0;
@@ -207,7 +202,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     Material ***material_array = NULL;
     invert_m4_m4(ob->world_to_object, ob->object_to_world);
-    int custom_data_offset = 0;
 
     if (bm->totfacesel == 0) {
       continue;
@@ -230,13 +224,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
-        gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
       }
     }
 
@@ -300,12 +287,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             }
             break;
           }
-          case SIMFACE_FACEMAP: {
-            BLI_assert(custom_data_offset != -1);
-            int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            BLI_gset_add(gset_array[ob_index], face_map);
-            break;
-          }
         }
       }
     }
@@ -332,7 +313,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
     BMesh *bm = em->bm;
     bool changed = false;
     Material ***material_array = NULL;
-    int custom_data_offset;
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world);
@@ -352,12 +332,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
           continue;
         }
         break;
-      }
-      case SIMFACE_FACEMAP: {
-        custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
-        if (custom_data_offset == -1) {
-          continue;
-        }
       }
     }
 
@@ -466,18 +440,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
             }
             break;
           }
-          case SIMFACE_FACEMAP: {
-            const int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
-            GSetIterator gs_iter;
-            GSET_ITER (gs_iter, gset_array[ob_index]) {
-              const int *face_map_iter = BLI_gsetIterator_getKey(&gs_iter);
-              if (*face_map == *face_map_iter) {
-                select = true;
-                break;
-              }
-            }
-            break;
-          }
         }
 
         if (select) {
@@ -531,14 +493,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
   BLI_kdtree_4d_free(tree_4d);
   if (gset != NULL) {
     BLI_gset_free(gset, NULL);
-  }
-  if (gset_array != NULL) {
-    for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-      if (gset_array[ob_index] != NULL) {
-        BLI_gset_free(gset_array[ob_index], NULL);
-      }
-    }
-    MEM_freeN(gset_array);
   }
 
   return OPERATOR_FINISHED;
@@ -687,7 +641,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         break;
       }
       case SIMEDGE_CREASE: {
-        if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+        if (!CustomData_has_layer_named(&bm->edata, CD_PROP_FLOAT, "crease_edge")) {
           BLI_kdtree_1d_insert(tree_1d, tree_index++, (float[1]){0.0f});
           continue;
         }
@@ -705,7 +659,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     int custom_data_offset;
     switch (type) {
       case SIMEDGE_CREASE:
-        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        custom_data_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
         break;
       case SIMEDGE_BEVEL:
         custom_data_offset = CustomData_get_offset_named(
@@ -806,7 +760,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
         break;
       }
       case SIMEDGE_CREASE: {
-        has_custom_data_layer = CustomData_has_layer(&bm->edata, CD_CREASE);
+        has_custom_data_layer = CustomData_has_layer_named(
+            &bm->edata, CD_PROP_FLOAT, "crease_edge");
         ATTR_FALLTHROUGH;
       }
       case SIMEDGE_BEVEL: {
@@ -830,7 +785,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
     int custom_data_offset;
     switch (type) {
       case SIMEDGE_CREASE:
-        custom_data_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+        custom_data_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
         break;
       case SIMEDGE_BEVEL:
         custom_data_offset = CustomData_get_offset_named(
@@ -1048,6 +1003,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     BMEditMesh *em = BKE_editmesh_from_object(ob);
     BMesh *bm = em->bm;
     int cd_dvert_offset = -1;
+    int cd_crease_offset = -1;
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
@@ -1069,10 +1025,11 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       defbase_selected = BLI_BITMAP_NEW(defbase_len, __func__);
     }
     else if (type == SIMVERT_CREASE) {
-      if (!CustomData_has_layer(&bm->vdata, CD_CREASE)) {
+      if (!CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert")) {
         BLI_kdtree_1d_insert(tree_1d, tree_1d_index++, (float[1]){0.0f});
         continue;
       }
+      cd_crease_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
     }
 
     BMVert *vert; /* Mesh vertex. */
@@ -1110,7 +1067,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
             break;
           }
           case SIMVERT_CREASE: {
-            const float *value = CustomData_bmesh_get(&bm->vdata, vert->head.data, CD_CREASE);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             BLI_kdtree_1d_insert(tree_1d, tree_1d_index++, value);
             break;
           }
@@ -1159,6 +1116,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
     bool changed = false;
     bool has_crease_layer = false;
     int cd_dvert_offset = -1;
+    int cd_crease_offset = -1;
     BLI_bitmap *defbase_selected = NULL;
     int defbase_len = 0;
 
@@ -1193,7 +1151,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
       }
     }
     else if (type == SIMVERT_CREASE) {
-      has_crease_layer = CustomData_has_layer(&bm->vdata, CD_CREASE);
+      cd_crease_offset = CustomData_get_offset_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
+      has_crease_layer = CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT, "crease_vert");
       if (!has_crease_layer) {
         /* Proceed only if we have to select all the vertices that have custom data value of 0.0f.
          * In this case we will just select all the vertices.
@@ -1274,7 +1233,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
               select = true;
               break;
             }
-            const float *value = CustomData_bmesh_get(&bm->vdata, vert->head.data, CD_CREASE);
+            const float *value = BM_ELEM_CD_GET_FLOAT_P(vert, cd_crease_offset);
             if (ED_select_similar_compare_float_tree(tree_1d, *value, thresh, compare)) {
               select = true;
             }
@@ -1375,7 +1334,7 @@ static const EnumPropertyItem *select_similar_type_itemf(bContext *C,
 #ifdef WITH_FREESTYLE
       const int a_end = SIMFACE_FREESTYLE;
 #else
-      const int a_end = SIMFACE_FACEMAP;
+      const int a_end = SIMFACE_MATERIAL;
 #endif
       for (a = SIMFACE_MATERIAL; a <= a_end; a++) {
         RNA_enum_items_add_value(&item, &totitem, prop_similar_types, a);

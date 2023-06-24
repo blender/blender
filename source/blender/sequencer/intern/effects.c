@@ -1,7 +1,8 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2003-2009 Blender Foundation.
- *           2005-2006 Peter Schlaile <peter [at] schlaile [dot] de> */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2003-2009 Blender Foundation
+ * SPDX-FileCopyrightText: 2005-2006 Peter Schlaile <peter [at] schlaile [dot] de>
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -511,7 +512,6 @@ static void do_cross_effect(const SeqRenderData *context,
 /** \name Gamma Cross
  * \{ */
 
-/* copied code from initrender.c */
 static ushort gamtab[65536];
 static ushort igamtab1[256];
 static bool gamma_tabs_init = false;
@@ -710,10 +710,10 @@ static void do_gammacross_effect_float(
   }
 }
 
-static struct ImBuf *gammacross_init_execution(const SeqRenderData *context,
-                                               ImBuf *ibuf1,
-                                               ImBuf *ibuf2,
-                                               ImBuf *ibuf3)
+static ImBuf *gammacross_init_execution(const SeqRenderData *context,
+                                        ImBuf *ibuf1,
+                                        ImBuf *ibuf2,
+                                        ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
   build_gammatabs();
@@ -916,7 +916,7 @@ static void do_sub_effect(const SeqRenderData *context,
 /** \name Drop Effect
  * \{ */
 
-/* Must be > 0 or add precopy, etc to the function */
+/* Must be > 0 or add pre-copy, etc to the function. */
 #define XOFF 8
 #define YOFF 8
 
@@ -1980,7 +1980,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height, float blur, i
     return;
   }
 
-  /* Allocate memory for the tempmap and the blur filter matrix */
+  /* Allocate memory for the temp-map and the blur filter matrix. */
   temp = MEM_mallocN(sizeof(float[4]) * width * height, "blurbitmaptemp");
   if (!temp) {
     return;
@@ -3243,12 +3243,12 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     data->text_blf_id = BLF_load_mem(name, pf->data, pf->size);
   }
   else {
-    char path[FILE_MAX];
-    STRNCPY(path, vfont->filepath);
+    char filepath[FILE_MAX];
+    STRNCPY(filepath, vfont->filepath);
     BLI_assert(BLI_thread_is_main());
-    BLI_path_abs(path, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
 
-    data->text_blf_id = BLF_load(path);
+    data->text_blf_id = BLF_load(filepath);
   }
 }
 
@@ -3307,7 +3307,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   TextVars *data = seq->effectdata;
   int width = out->x;
   int height = out->y;
-  struct ColorManagedDisplay *display;
+  ColorManagedDisplay *display;
   const char *display_device;
   int font = blf_mono_font_render;
   int line_height;
@@ -3491,10 +3491,10 @@ static void get_default_fac_fade(const Scene *scene,
   *fac /= SEQ_time_strip_length_get(scene, seq);
 }
 
-static struct ImBuf *init_execution(const SeqRenderData *context,
-                                    ImBuf *ibuf1,
-                                    ImBuf *ibuf2,
-                                    ImBuf *ibuf3)
+static ImBuf *init_execution(const SeqRenderData *context,
+                             ImBuf *ibuf1,
+                             ImBuf *ibuf2,
+                             ImBuf *ibuf3)
 {
   ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 

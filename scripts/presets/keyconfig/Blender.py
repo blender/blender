@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2018-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import os
@@ -362,7 +364,14 @@ def load():
             use_v3d_tab_menu=kc_prefs.use_v3d_tab_menu,
             use_v3d_shade_ex_pie=kc_prefs.use_v3d_shade_ex_pie,
             use_gizmo_drag=(is_select_left and kc_prefs.gizmo_action == 'DRAG'),
-            use_fallback_tool=True if is_select_left else (kc_prefs.rmb_action == 'FALLBACK_TOOL'),
+            use_fallback_tool=True,
+            use_fallback_tool_select_handled=(
+                # LMB doesn't need additional selection fallback key-map items.
+                False if is_select_left else
+                # RMB is select and RMB must trigger the fallback tool.
+                # Otherwise LMB activates the fallback tool and RMB always tweak-selects.
+                (kc_prefs.rmb_action != 'FALLBACK_TOOL')
+            ),
             use_tweak_select_passthrough=(show_developer_ui and kc_prefs.use_tweak_select_passthrough),
             use_tweak_tool_lmb_interaction=(
                 False if is_select_left else
@@ -375,6 +384,7 @@ def load():
             use_alt_click_leader=kc_prefs.use_alt_click_leader,
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
             use_file_single_click=kc_prefs.use_file_single_click,
+            experimental=prefs.experimental,
             use_transform_navigation=kc_prefs.use_transform_navigation,
         ),
     )

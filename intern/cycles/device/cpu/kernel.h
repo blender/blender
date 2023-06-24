@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -33,11 +34,13 @@ class CPUKernels {
   IntegratorFunction integrator_intersect_shadow;
   IntegratorFunction integrator_intersect_subsurface;
   IntegratorFunction integrator_intersect_volume_stack;
+  IntegratorFunction integrator_intersect_dedicated_light;
   IntegratorShadeFunction integrator_shade_background;
   IntegratorShadeFunction integrator_shade_light;
   IntegratorShadeFunction integrator_shade_shadow;
   IntegratorShadeFunction integrator_shade_surface;
   IntegratorShadeFunction integrator_shade_volume;
+  IntegratorShadeFunction integrator_shade_dedicated_light;
   IntegratorShadeFunction integrator_megakernel;
 
   /* Shader evaluation. */

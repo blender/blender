@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -37,7 +38,8 @@ class GLStateManager : public StateManager {
   /** Limits. */
   float line_width_range_[2];
 
-  /** Texture state:
+  /**
+   * Texture state:
    * We keep the full stack of textures and sampler bounds to use multi bind, and to be able to
    * edit and restore texture binds on the fly without querying the context.
    * Also this allows us to keep track of textures bounds to many texture units.

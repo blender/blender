@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __INTEGRATOR_H__
 #define __INTEGRATOR_H__
@@ -54,6 +55,8 @@ class Integrator : public Node {
   NODE_SOCKET_API(bool, use_guiding_direct_light);
   NODE_SOCKET_API(bool, use_guiding_mis_weights);
   NODE_SOCKET_API(GuidingDistributionType, guiding_distribution_type);
+  NODE_SOCKET_API(GuidingDirectionalSamplingType, guiding_directional_sampling_type);
+  NODE_SOCKET_API(float, guiding_roughness_threshold);
 
   NODE_SOCKET_API(bool, caustics_reflective)
   NODE_SOCKET_API(bool, caustics_refractive)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -32,6 +33,7 @@
 #include "BLT_translation.h"
 
 #include "UI_resources.h"
+#include "UI_view2d.h"
 
 #include "transform.h"
 #include "transform_gizmo.h"
@@ -398,7 +400,7 @@ static void applyAxisConstraintVec(const TransInfo *t,
     if (transform_snap_is_active(t)) {
       if (validSnap(t)) {
         is_snap_to_edge = (t->tsnap.snapElem & SCE_SNAP_MODE_EDGE) != 0;
-        is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE_RAYCAST) != 0;
+        is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_MODE_FACE) != 0;
         is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
       }
       else if (t->tsnap.snapElem & SCE_SNAP_MODE_GRID) {
@@ -871,7 +873,7 @@ void drawConstraint(TransInfo *t)
   }
 }
 
-void drawPropCircle(const struct bContext *C, TransInfo *t)
+void drawPropCircle(const bContext *C, TransInfo *t)
 {
   if (t->flag & T_PROP_EDIT) {
     RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -896,13 +898,12 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
     }
     else if (ELEM(t->spacetype, SPACE_GRAPH, SPACE_ACTION)) {
       /* only scale y */
-      rcti *mask = &t->region->v2d.mask;
-      rctf *datamask = &t->region->v2d.cur;
-      float xsize = BLI_rctf_size_x(datamask);
-      float ysize = BLI_rctf_size_y(datamask);
-      float xmask = BLI_rcti_size_x(mask);
-      float ymask = BLI_rcti_size_y(mask);
-      GPU_matrix_scale_2f(1.0f, (ysize / xsize) * (xmask / ymask));
+      float xscale, yscale;
+      UI_view2d_scale_get(&t->region->v2d, &xscale, &yscale);
+
+      const float fac_scale = xscale / yscale;
+      GPU_matrix_scale_2f(1.0f, fac_scale);
+      GPU_matrix_translate_2f(0.0f, (t->center_global[1] / fac_scale) - t->center_global[1]);
     }
 
     eGPUDepthTest depth_test_enabled = GPU_depth_test_get();

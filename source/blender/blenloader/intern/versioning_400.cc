@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -8,15 +10,22 @@
 
 #include "CLG_log.h"
 
+#include "DNA_lightprobe_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
+
+#include "DNA_genfile.h"
 
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
+#include "BLI_string_ref.hh"
 
+#include "BKE_idprop.hh"
 #include "BKE_main.h"
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_tracking.h"
 
 #include "BLO_readfile.h"
@@ -27,9 +36,23 @@
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
-void do_versions_after_linking_400(FileData * /*fd*/, Main *bmain)
+void do_versions_after_linking_400(FileData * /*fd*/, Main * /*bmain*/)
 {
-  UNUSED_VARS(bmain);
+  /**
+   * Versioning code until next subversion bump goes here.
+   *
+   * \note Be sure to check when bumping the version:
+   * - #blo_do_versions_400 in this file.
+   * - "versioning_cycles.cc", #blo_do_versions_cycles
+   * - "versioning_cycles.cc", #do_versions_after_linking_cycles
+   * - "versioning_userdef.c", #blo_do_versions_userdef
+   * - "versioning_userdef.c", #do_versions_theme
+   *
+   * \note Keep this message at the bottom of the function.
+   */
+  {
+    /* Keep this block, even when empty. */
+  }
 }
 
 static void version_mesh_legacy_to_struct_of_array_format(Mesh &mesh)
@@ -99,7 +122,86 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
   }
 }
 
-void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
+static void version_mesh_crease_generic(Main &bmain)
+{
+  LISTBASE_FOREACH (Mesh *, mesh, &bmain.meshes) {
+    BKE_mesh_legacy_crease_to_generic(mesh);
+  }
+
+  LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
+    if (ntree->type == NTREE_GEOMETRY) {
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (STR_ELEM(node->idname,
+                     "GeometryNodeStoreNamedAttribute",
+                     "GeometryNodeInputNamedAttribute")) {
+          bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Name");
+          if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
+            STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");
+          }
+        }
+      }
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain.objects) {
+    LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      if (IDProperty *settings = reinterpret_cast<NodesModifierData *>(md)->settings.properties) {
+        LISTBASE_FOREACH (IDProperty *, prop, &settings->data.group) {
+          if (blender::StringRef(prop->name).endswith("_attribute_name")) {
+            if (STREQ(IDP_String(prop), "crease")) {
+              IDP_AssignString(prop, "crease_edge");
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (node->type == SH_NODE_BSDF_GLOSSY_LEGACY) {
+      STRNCPY(node->idname, "ShaderNodeBsdfAnisotropic");
+      node->type = SH_NODE_BSDF_GLOSSY;
+    }
+  }
+}
+
+static void versioning_remove_microfacet_sharp_distribution(bNodeTree *ntree)
+{
+  /* Find all glossy, glass and refraction BSDF nodes that have their distribution
+   * set to SHARP and set them to GGX, disconnect any link to the Roughness input
+   * and set its value to zero. */
+  LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+    if (!ELEM(node->type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION)) {
+      continue;
+    }
+    if (node->custom1 != SHD_GLOSSY_SHARP_DEPRECATED) {
+      continue;
+    }
+
+    node->custom1 = SHD_GLOSSY_GGX;
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      if (!STREQ(socket->identifier, "Roughness")) {
+        continue;
+      }
+
+      if (socket->link != nullptr) {
+        nodeRemLink(ntree, socket->link);
+      }
+      bNodeSocketValueFloat *socket_value = (bNodeSocketValueFloat *)socket->default_value;
+      socket_value->value = 0.0f;
+
+      break;
+    }
+  }
+}
+
+void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 1)) {
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
@@ -114,21 +216,69 @@ void blo_do_versions_400(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 3)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        version_geometry_nodes_add_realize_instance_nodes(ntree);
+      }
+    }
+  }
+
+  /* 400 4 did not require any do_version here. */
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *ts = scene->toolsettings;
+      if (ts->snap_mode_tools != SCE_SNAP_MODE_NONE) {
+        ts->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      }
+
+#define SCE_SNAP_PROJECT (1 << 3)
+      if (ts->snap_flag & SCE_SNAP_PROJECT) {
+        ts->snap_mode |= SCE_SNAP_MODE_FACE_RAYCAST;
+      }
+#undef SCE_SNAP_PROJECT
+    }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 6)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      BKE_mesh_legacy_face_map_to_generic(mesh);
+    }
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      versioning_replace_legacy_glossy_node(ntree);
+      versioning_remove_microfacet_sharp_distribution(ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 7)) {
+    LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
+      version_mesh_crease_generic(*bmain);
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
    * \note Be sure to check when bumping the version:
+   * - #do_versions_after_linking_400 in this file.
+   * - "versioning_cycles.cc", #blo_do_versions_cycles
+   * - "versioning_cycles.cc", #do_versions_after_linking_cycles
    * - "versioning_userdef.c", #blo_do_versions_userdef
    * - "versioning_userdef.c", #do_versions_theme
    *
    * \note Keep this message at the bottom of the function.
    */
   {
+    /* Convert anisotropic BSDF node to glossy BSDF. */
+
     /* Keep this block, even when empty. */
 
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
-      if (ntree->type == NTREE_GEOMETRY) {
-        version_geometry_nodes_add_realize_instance_nodes(ntree);
+    if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "int", "grid_bake_sample_count")) {
+      LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
+        lightprobe->grid_bake_samples = 2048;
+        lightprobe->surfel_density = 1.0f;
       }
     }
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef GPU_SHADER
 #  pragma once
@@ -173,9 +175,9 @@ struct ObjectInfos {
   float4 infos;
 #else
   /** Uploaded as center + size. Converted to mul+bias to local coord. */
-  float3 orco_add;
+  packed_float3 orco_add;
   uint object_attrs_offset;
-  float3 orco_mul;
+  packed_float3 orco_mul;
   uint object_attrs_len;
 
   float4 ob_color;

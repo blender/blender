@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_kdtree.h"
 #include "BLI_offset_indices.hh"
@@ -16,7 +18,7 @@ namespace blender::geometry {
 
 PointCloud *point_merge_by_distance(const PointCloud &src_points,
                                     const float merge_distance,
-                                    const IndexMask selection,
+                                    const IndexMask &selection,
                                     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const bke::AttributeAccessor src_attributes = src_points.attributes();
@@ -26,9 +28,8 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
   /* Create the KD tree based on only the selected points, to speed up merge detection and
    * balancing. */
   KDTree_3d *tree = BLI_kdtree_3d_new(selection.size());
-  for (const int i : selection.index_range()) {
-    BLI_kdtree_3d_insert(tree, i, positions[selection[i]]);
-  }
+  selection.foreach_index_optimized<int64_t>(
+      [&](const int64_t i, const int64_t pos) { BLI_kdtree_3d_insert(tree, pos, positions[i]); });
   BLI_kdtree_3d_balance(tree);
 
   /* Find the duplicates in the KD tree. Because the tree only contains the selected points, the
@@ -48,17 +49,15 @@ PointCloud *point_merge_by_distance(const PointCloud &src_points,
    * finding, converting from indices into the selection to indices into the full input point
    * cloud. */
   Array<int> merge_indices(src_size);
-  for (const int i : merge_indices.index_range()) {
-    merge_indices[i] = i;
-  }
-  for (const int i : selection_merge_indices.index_range()) {
-    const int merge_index = selection_merge_indices[i];
+  std::iota(merge_indices.begin(), merge_indices.end(), 0);
+
+  selection.foreach_index([&](const int src_index, const int pos) {
+    const int merge_index = selection_merge_indices[pos];
     if (merge_index != -1) {
       const int src_merge_index = selection[merge_index];
-      const int src_index = selection[i];
       merge_indices[src_index] = src_merge_index;
     }
-  }
+  });
 
   /* For every source index, find the corresponding index in the result by iterating through the
    * source indices and counting how many merges happened before that point. */

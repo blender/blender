@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -111,7 +112,7 @@ class WaveFunction : public mf::MultiFunction {
     this->set_signature(&signature);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<float> &scale = params.readonly_single_input<float>(1, "Scale");
@@ -125,8 +126,7 @@ class WaveFunction : public mf::MultiFunction {
         params.uninitialized_single_output_if_required<ColorGeometry4f>(7, "Color");
     MutableSpan<float> r_fac = params.uninitialized_single_output<float>(8, "Fac");
 
-    for (int64_t i : mask) {
-
+    mask.foreach_index([&](const int64_t i) {
       float3 p = vector[i] * scale[i];
       /* Prevent precision issues on unit coordinates. */
       p = (p + 0.000001f) * 0.999999f;
@@ -193,11 +193,11 @@ class WaveFunction : public mf::MultiFunction {
       }
 
       r_fac[i] = val;
-    }
+    });
     if (!r_color.is_empty()) {
-      for (int64_t i : mask) {
+      mask.foreach_index([&](const int64_t i) {
         r_color[i] = ColorGeometry4f(r_fac[i], r_fac[i], r_fac[i], 1.0f);
-      }
+      });
     }
   }
 };

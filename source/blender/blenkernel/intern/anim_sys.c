@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -754,8 +755,7 @@ static void animsys_blend_in_fcurves(PointerRNA *ptr,
 /* ***************************************** */
 /* Driver Evaluation */
 
-AnimationEvalContext BKE_animsys_eval_context_construct(struct Depsgraph *depsgraph,
-                                                        float eval_time)
+AnimationEvalContext BKE_animsys_eval_context_construct(Depsgraph *depsgraph, float eval_time)
 {
   AnimationEvalContext ctx = {
       .depsgraph = depsgraph,
@@ -2490,7 +2490,8 @@ static void nlaevalchan_combine_quaternion_get_inverted_lower_evalchan(
   BLI_bitmap_set_all(r_lower_necs->remap_domain.ptr, true, 4);
 }
 
-/** Based on blendmode and mix mode, solve for the lower values such that when lower blended or
+/**
+ * Based on blendmode and mix mode, solve for the lower values such that when lower blended or
  * combined with upper then we get blended values as a result.
  *
  * Only processes blended values in the remap domain. Successfully remapped lower values are placed
@@ -3002,7 +3003,7 @@ void nlasnapshot_blend_strip(PointerRNA *ptr,
                              ListBase *modifiers,
                              NlaEvalStrip *nes,
                              NlaEvalSnapshot *snapshot,
-                             const struct AnimationEvalContext *anim_eval_context,
+                             const AnimationEvalContext *anim_eval_context,
                              const bool flush_to_original)
 {
   nlastrip_evaluate(STRIP_EVAL_BLEND,
@@ -3021,7 +3022,7 @@ void nlasnapshot_blend_strip_get_inverted_lower_snapshot(
     ListBase *modifiers,
     NlaEvalStrip *nes,
     NlaEvalSnapshot *snapshot,
-    const struct AnimationEvalContext *anim_eval_context)
+    const AnimationEvalContext *anim_eval_context)
 {
   nlastrip_evaluate(STRIP_EVAL_BLEND_GET_INVERTED_LOWER_SNAPSHOT,
                     ptr,
@@ -3038,7 +3039,7 @@ void nlasnapshot_blend_strip_no_blend(PointerRNA *ptr,
                                       ListBase *modifiers,
                                       NlaEvalStrip *nes,
                                       NlaEvalSnapshot *snapshot,
-                                      const struct AnimationEvalContext *anim_eval_context)
+                                      const AnimationEvalContext *anim_eval_context)
 {
   nlastrip_evaluate(
       STRIP_EVAL_NOBLEND, ptr, channels, modifiers, nes, snapshot, anim_eval_context, false);
@@ -3250,8 +3251,8 @@ static void animsys_create_action_track_strip(const AnimData *adt,
    * and this setting doesn't work. */
   r_action_strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
 
-  /* Unless extendmode is Nothing (might be useful for flattening NLA evaluation), disable range.
-   * Extendmode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
+  /* Unless `extendmode` is Nothing (might be useful for flattening NLA evaluation), disable range.
+   * Extend-mode Nothing and Hold will behave as normal. Hold Forward will behave just like Hold.
    */
   if (r_action_strip->extendmode != NLASTRIP_EXTEND_NOTHING) {
     r_action_strip->flag |= NLASTRIP_FLAG_NO_TIME_MAP;
@@ -3496,10 +3497,9 @@ static void animsys_evaluate_nla_for_keyframing(PointerRNA *ptr,
     }
   }
 
-  /** NOTE: Although we early out, we can still keyframe to the non-pushed action since the
+  /* NOTE: Although we early out, we can still keyframe to the non-pushed action since the
    * keyframe remap function detects (r_context->strip.act == NULL) and will keyframe without
-   * remapping.
-   */
+   * remapping. */
   if (is_action_track_evaluated_without_nla(adt, has_strips)) {
     BLI_freelistN(&lower_estrips);
     return;
@@ -3693,10 +3693,7 @@ void nlasnapshot_blend_get_inverted_lower_snapshot(NlaEvalData *eval_data,
 /* ---------------------- */
 
 NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
-    struct ListBase *cache,
-    struct PointerRNA *ptr,
-    struct AnimData *adt,
-    const AnimationEvalContext *anim_eval_context)
+    ListBase *cache, PointerRNA *ptr, AnimData *adt, const AnimationEvalContext *anim_eval_context)
 {
   /* No remapping needed if NLA is off or no action. */
   if ((adt == NULL) || (adt->action == NULL) || (adt->nla_tracks.first == NULL) ||
@@ -3732,13 +3729,13 @@ NlaKeyframingContext *BKE_animsys_get_nla_keyframing_context(
   return ctx;
 }
 
-void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
-                                           struct PointerRNA *prop_ptr,
-                                           struct PropertyRNA *prop,
+void BKE_animsys_nla_remap_keyframe_values(NlaKeyframingContext *context,
+                                           PointerRNA *prop_ptr,
+                                           PropertyRNA *prop,
                                            float *values,
                                            int count,
                                            int index,
-                                           const struct AnimationEvalContext *anim_eval_context,
+                                           const AnimationEvalContext *anim_eval_context,
                                            bool *r_force_all,
                                            BLI_bitmap *r_successful_remaps)
 {
@@ -3860,7 +3857,7 @@ void BKE_animsys_nla_remap_keyframe_values(struct NlaKeyframingContext *context,
   MEM_freeN(remap_domain);
 }
 
-void BKE_animsys_free_nla_keyframing_context_cache(struct ListBase *cache)
+void BKE_animsys_free_nla_keyframing_context_cache(ListBase *cache)
 {
   LISTBASE_FOREACH (NlaKeyframingContext *, ctx, cache) {
     MEM_SAFE_FREE(ctx->eval_strip);

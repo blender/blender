@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/device.h"
 
@@ -1051,8 +1052,10 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
     case SocketType::CLOSURE:
     case SocketType::NODE:
     case SocketType::NODE_ARRAY:
+    case SocketType::UINT:
+    case SocketType::UINT64:
     case SocketType::UNDEFINED:
-    case SocketType::UINT: {
+    case SocketType::NUM_TYPES: {
       assert(0);
       break;
     }

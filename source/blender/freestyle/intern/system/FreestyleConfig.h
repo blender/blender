@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -15,8 +17,9 @@ namespace Freestyle {
 
 namespace Config {
 
-// Directory separators
-// TODO: Use Blender's stuff for such things!
+/* Directory separators. */
+
+/* TODO: Use Blender's stuff for such things! */
 #ifdef WIN32
 static const string DIR_SEP("\\");
 static const string PATH_SEP(";");

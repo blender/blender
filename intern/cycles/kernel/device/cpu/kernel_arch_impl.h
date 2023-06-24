@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Templated common implementation part of all CPU kernels.
  *
@@ -102,10 +103,12 @@ DEFINE_INTEGRATOR_INIT_KERNEL(init_from_bake)
 DEFINE_INTEGRATOR_SHADE_KERNEL(intersect_closest)
 DEFINE_INTEGRATOR_KERNEL(intersect_subsurface)
 DEFINE_INTEGRATOR_KERNEL(intersect_volume_stack)
+DEFINE_INTEGRATOR_KERNEL(intersect_dedicated_light)
 DEFINE_INTEGRATOR_SHADE_KERNEL(shade_background)
 DEFINE_INTEGRATOR_SHADE_KERNEL(shade_light)
 DEFINE_INTEGRATOR_SHADE_KERNEL(shade_surface)
 DEFINE_INTEGRATOR_SHADE_KERNEL(shade_volume)
+DEFINE_INTEGRATOR_SHADE_KERNEL(shade_dedicated_light)
 DEFINE_INTEGRATOR_SHADE_KERNEL(megakernel)
 DEFINE_INTEGRATOR_SHADOW_KERNEL(intersect_shadow)
 DEFINE_INTEGRATOR_SHADOW_SHADE_KERNEL(shade_shadow)

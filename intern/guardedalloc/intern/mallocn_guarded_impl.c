@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup intern_mem
@@ -147,8 +148,8 @@ static const char *check_memlist(MemHead *memh);
 static uint totblock = 0;
 static size_t mem_in_use = 0, peak_mem = 0;
 
-static volatile struct localListBase _membase;
-static volatile struct localListBase *membase = &_membase;
+static volatile localListBase _membase;
+static volatile localListBase *membase = &_membase;
 static void (*error_callback)(const char *) = NULL;
 
 static bool malloc_debug_memset = false;
@@ -923,7 +924,7 @@ void MEM_guarded_freeN(void *vmemh)
 
 static void addtail(volatile localListBase *listbase, void *vlink)
 {
-  struct localLink *link = vlink;
+  localLink *link = vlink;
 
   /* for a generic API error checks here is fine but
    * the limited use here they will never be NULL */
@@ -938,7 +939,7 @@ static void addtail(volatile localListBase *listbase, void *vlink)
   link->prev = listbase->last;
 
   if (listbase->last) {
-    ((struct localLink *)listbase->last)->next = link;
+    ((localLink *)listbase->last)->next = link;
   }
   if (listbase->first == NULL) {
     listbase->first = link;
@@ -948,7 +949,7 @@ static void addtail(volatile localListBase *listbase, void *vlink)
 
 static void remlink(volatile localListBase *listbase, void *vlink)
 {
-  struct localLink *link = vlink;
+  localLink *link = vlink;
 
   /* for a generic API error checks here is fine but
    * the limited use here they will never be NULL */
@@ -1127,7 +1128,7 @@ static const char *check_memlist(MemHead *memh)
       }
       else {
         forwok->next = NULL;
-        membase->last = (struct localLink *)&forwok->next;
+        membase->last = (localLink *)&forwok->next;
       }
     }
     else {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -463,7 +464,7 @@ void UI_but_func_identity_compare_set(uiBut *but, uiButIdentityCompareFunc cmp_f
 /* *** RNA collection search menu *** */
 
 struct CollItemSearch {
-  struct CollItemSearch *next, *prev;
+  CollItemSearch *next, *prev;
   void *data;
   char *name;
   int index;
@@ -489,8 +490,9 @@ static bool add_collection_search_item(CollItemSearch *cis,
      * removed). */
     BKE_id_full_name_ui_prefix_get(
         name_buf, static_cast<const ID *>(cis->data), false, UI_SEP_CHAR, &name_prefix_offset);
-    BLI_assert(strlen(name_buf) <= MEM_allocN_len(cis->name));
-    strcpy(cis->name, name_buf);
+    const int name_buf_len = strlen(name_buf);
+    BLI_assert(name_buf_len <= strlen(cis->name));
+    memcpy(cis->name, name_buf, name_buf_len + 1);
   }
 
   return UI_search_item_add(items,
@@ -613,7 +615,7 @@ void ui_rna_collection_search_update_fn(
         [](void *user_data, const StringPropertySearchVisitParams *visit_params) {
           const bool show_extra_info = (G.debug_value == 102);
 
-          SearchVisitUserData *search_data = (struct SearchVisitUserData *)user_data;
+          SearchVisitUserData *search_data = (SearchVisitUserData *)user_data;
           CollItemSearch *cis = MEM_cnew<CollItemSearch>(search_data->func_id);
           cis->data = nullptr;
           if (visit_params->info && show_extra_info) {
@@ -826,11 +828,11 @@ int UI_calc_float_precision(int prec, double value)
   return prec;
 }
 
-bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
+bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t str_maxncpy)
 {
   if (but->rnapoin.owner_id && but->rnapoin.data && but->rnaprop) {
     BLI_snprintf(r_str,
-                 maxlength,
+                 str_maxncpy,
                  "%s.%s",
                  RNA_struct_identifier(but->rnapoin.type),
                  RNA_property_identifier(but->rnaprop));
@@ -845,12 +847,12 @@ bool UI_but_online_manual_id(const uiBut *but, char *r_str, size_t maxlength)
   return false;
 }
 
-bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t maxlength)
+bool UI_but_online_manual_id_from_active(const bContext *C, char *r_str, size_t str_maxncpy)
 {
   uiBut *but = UI_context_active_but_get(C);
 
   if (but) {
-    return UI_but_online_manual_id(but, r_str, maxlength);
+    return UI_but_online_manual_id(but, r_str, str_maxncpy);
   }
 
   *r_str = '\0';
@@ -952,13 +954,13 @@ void UI_but_ensure_in_view(const bContext *C, ARegion *region, const uiBut *but)
  * \{ */
 
 struct uiButStore {
-  struct uiButStore *next, *prev;
+  uiButStore *next, *prev;
   uiBlock *block;
   ListBase items;
 };
 
 struct uiButStoreElem {
-  struct uiButStoreElem *next, *prev;
+  uiButStoreElem *next, *prev;
   uiBut **but_p;
 };
 

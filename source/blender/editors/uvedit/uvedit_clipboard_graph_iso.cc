@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-3.0-or-later
- * Copyright (c) 2019 Stefano Quer.
- * Additional code, copyright 2022 Blender Foundation
+/* SPDX-FileCopyrightText: 2019 Stefano Quer
+ * SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  *
  * Originally 6846114 from https://github.com/stefanoquer/graphISO/blob/master/v3
  * graphISO: Tools to compute the Maximum Common Subgraph between two graphs.
@@ -237,7 +238,7 @@ static uint8_t select_next_v(uint8_t *left, uint8_t *bd)
   return min;
 }
 
-static uint8_t find_min_value(uint8_t *arr, uint8_t start_idx, uint8_t len)
+static uint8_t find_min_value(const uint8_t *arr, uint8_t start_idx, uint8_t len)
 {
   uint8_t min_v = UINT8_MAX;
   for (int i = 0; i < len; i++) {
@@ -290,7 +291,7 @@ static void select_bidomain(
   }
 }
 
-static uint8_t select_next_w(uint8_t *right, uint8_t *bd)
+static uint8_t select_next_w(const uint8_t *right, uint8_t *bd)
 {
   uint8_t min = UINT8_MAX;
   uint8_t idx = UINT8_MAX;

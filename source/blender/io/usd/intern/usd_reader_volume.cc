@@ -1,7 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Tangent Animation. All rights reserved. */
+/* SPDX-FileCopyrightText: 2021 Tangent Animation. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_volume.h"
+
+#include "BLI_string.h"
 
 #include "BKE_object.h"
 #include "BKE_volume.h"
@@ -76,7 +79,7 @@ void USDVolumeReader::read_object_data(Main *bmain, const double motionSampleTim
 
       std::string filepath = fp.GetResolvedPath();
 
-      strcpy(volume->filepath, filepath.c_str());
+      STRNCPY(volume->filepath, filepath.c_str());
     }
   }
 

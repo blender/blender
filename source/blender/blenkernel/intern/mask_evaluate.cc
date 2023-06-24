@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -909,7 +910,7 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
   }
 }
 
-void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
+void BKE_mask_eval_animation(Depsgraph *depsgraph, Mask *mask)
 {
   float ctime = DEG_get_ctime(depsgraph);
   DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
@@ -918,7 +919,7 @@ void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
   }
 }
 
-void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
+void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
 {
   const bool is_depsgraph_active = DEG_is_active(depsgraph);
   float ctime = DEG_get_ctime(depsgraph);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -243,7 +244,7 @@ static void lineart_gpencil_bake_startjob(void *customdata,
     for (LinkNode *l = bj->objects; l; l = l->next) {
       Object *ob = l->link;
       if (lineart_gpencil_bake_single_target(bj, ob, frame)) {
-        DEG_id_tag_update((struct ID *)ob->data, ID_RECALC_GEOMETRY);
+        DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
         WM_event_add_notifier(bj->C, NC_GPENCIL | ND_DATA | NA_EDITED, ob);
       }
     }
@@ -367,7 +368,7 @@ static int lineart_gpencil_bake_strokes_exec(bContext *C, wmOperator *op)
 {
   return lineart_gpencil_bake_common(C, op, false, false);
 }
-static int lineart_gpencil_bake_strokes_commom_modal(bContext *C,
+static int lineart_gpencil_bake_strokes_common_modal(bContext *C,
                                                      wmOperator *op,
                                                      const wmEvent *UNUSED(event))
 {
@@ -405,7 +406,7 @@ static void lineart_gpencil_clear_strokes_exec_common(Object *ob)
 
     lmd->flags &= (~LRT_GPENCIL_IS_BAKED);
   }
-  DEG_id_tag_update((struct ID *)ob->data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update((ID *)ob->data, ID_RECALC_GEOMETRY);
 }
 
 static int lineart_gpencil_clear_strokes_exec(bContext *C, wmOperator *UNUSED(op))
@@ -439,7 +440,7 @@ void OBJECT_OT_lineart_bake_strokes(wmOperatorType *ot)
 
   ot->invoke = lineart_gpencil_bake_strokes_invoke;
   ot->exec = lineart_gpencil_bake_strokes_exec;
-  ot->modal = lineart_gpencil_bake_strokes_commom_modal;
+  ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
 void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
@@ -450,7 +451,7 @@ void OBJECT_OT_lineart_bake_strokes_all(wmOperatorType *ot)
 
   ot->invoke = lineart_gpencil_bake_strokes_all_invoke;
   ot->exec = lineart_gpencil_bake_strokes_all_exec;
-  ot->modal = lineart_gpencil_bake_strokes_commom_modal;
+  ot->modal = lineart_gpencil_bake_strokes_common_modal;
 }
 
 void OBJECT_OT_lineart_clear(wmOperatorType *ot)

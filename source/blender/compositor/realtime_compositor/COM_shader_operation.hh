@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -110,6 +112,9 @@ class ShaderOperation : public Operation {
    * the attribute that was created for it. This is used to share the same attribute with all
    * inputs that are linked to the same output socket. */
   Map<DOutputSocket, GPUNodeLink *> output_to_material_attribute_map_;
+  /* A vector set that stores all output sockets that are used as previews for nodes inside the
+   * shader operation. */
+  VectorSet<DOutputSocket> preview_outputs_;
 
  public:
   /* Construct and compile a GPU material from the given shader compile unit by calling
@@ -122,6 +127,13 @@ class ShaderOperation : public Operation {
   /* Allocate the output results, bind the shader and all its needed resources, then dispatch the
    * shader. */
   void execute() override;
+
+  /* Compute a node preview for all nodes in the shader operations if the node requires a preview.
+   *
+   * Previews are computed from results that are populated for outputs that are used to compute
+   * previews even if they are internally linked, and those outputs are stored and tracked in the
+   * preview_outputs_ vector set, see the populate_results_for_node method for more information. */
+  void compute_preview() override;
 
   /* Get the identifier of the operation output corresponding to the given output socket. This is
    * called by the compiler to identify the operation output that provides the result for an input
@@ -136,9 +148,14 @@ class ShaderOperation : public Operation {
 
   /* Compute and set the initial reference counts of all the results of the operation. The
    * reference counts of the results are the number of operations that use those results, which is
-   * computed as the number of inputs whose node is part of the schedule and is linked to the
-   * output corresponding to each of the results of the operation. The node execution schedule is
-   * given as an input. */
+   * computed as the number of inputs linked to the output corresponding to each of the results of
+   * the operation, but only the linked inputs whose node is part of the schedule but not part of
+   * the shader operation, since inputs that are part of the shader operations are internal links.
+   *
+   * Additionally, results that are used as node previews gets an extra reference count because
+   * they are referenced and released by the compute_preview method.
+   *
+   * The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
 
  private:
@@ -207,7 +224,8 @@ class ShaderOperation : public Operation {
                                GPUMaterial *material);
 
   /* Populate the output results of the shader operation for output sockets of the given node that
-   * are linked to nodes outside of the shader operation. */
+   * are linked to nodes outside of the shader operation or are used to compute a preview for the
+   * node. */
   void populate_results_for_node(DNode node, GPUMaterial *material);
 
   /* Given the output socket of a node that is part of the shader operation which is linked to an

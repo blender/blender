@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -7,8 +8,7 @@
 
 #pragma once
 
-#include "DNA_customdata_types.h"
-#include "DNA_listBase.h"
+#include "BLI_sys_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -213,12 +213,14 @@ typedef struct MVertSkin {
 } MVertSkin;
 
 typedef enum eMVertSkinFlag {
-  /** Marks a vertex as the edge-graph root, used for calculating rotations for all connected
+  /**
+   * Marks a vertex as the edge-graph root, used for calculating rotations for all connected
    * edges (recursively). Also used to choose a root when generating an armature.
    */
   MVERT_SKIN_ROOT = 1,
 
-  /** Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
+  /**
+   * Marks a branch vertex (vertex with more than two connected edges), so that its neighbors
    * are directly hulled together, rather than the default of generating intermediate frames.
    */
   MVERT_SKIN_LOOSE = 2,
@@ -330,16 +332,6 @@ enum {
 /** Number of tri's that make up this polygon once tessellated. */
 #define ME_POLY_TRI_TOT(size) (size - 2)
 
-/**
- * Check out-of-bounds material, note that this is nearly always prevented,
- * yet its still possible in rare cases.
- * So usage such as array lookup needs to check.
- */
-#define ME_MAT_NR_TEST(mat_nr, totmat) \
-  (CHECK_TYPE_ANY(mat_nr, short, const short), \
-   CHECK_TYPE_ANY(totmat, short, const short), \
-   (LIKELY(mat_nr < totmat) ? mat_nr : 0))
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -356,7 +348,7 @@ enum {
 typedef struct MEdge {
   /** Un-ordered vertex indices (cannot match). */
   unsigned int v1, v2;
-  /** Deprecated edge crease, now located in #CD_CREASE, except for file read and write. */
+  /** Deprecated edge crease, now located in `edge_crease`, except for file read and write. */
   char crease_legacy;
   /**
    * Deprecated bevel weight storage, now located in #CD_BWEIGHT, except for file read and write.
@@ -495,32 +487,14 @@ typedef struct MCol {
   unsigned char a, r, g, b;
 } MCol;
 
-#define MESH_MLOOPCOL_FROM_MCOL(_mloopcol, _mcol) \
-  { \
-    MLoopCol *mloopcol__tmp = _mloopcol; \
-    const MCol *mcol__tmp = _mcol; \
-    mloopcol__tmp->r = mcol__tmp->b; \
-    mloopcol__tmp->g = mcol__tmp->g; \
-    mloopcol__tmp->b = mcol__tmp->r; \
-    mloopcol__tmp->a = mcol__tmp->a; \
-  } \
-  (void)0
-
-#define MESH_MLOOPCOL_TO_MCOL(_mloopcol, _mcol) \
-  { \
-    const MLoopCol *mloopcol__tmp = _mloopcol; \
-    MCol *mcol__tmp = _mcol; \
-    mcol__tmp->b = mloopcol__tmp->r; \
-    mcol__tmp->g = mloopcol__tmp->g; \
-    mcol__tmp->r = mloopcol__tmp->b; \
-    mcol__tmp->a = mloopcol__tmp->a; \
-  } \
-  (void)0
+#ifdef DNA_DEPRECATED_ALLOW
 
 /** Old game engine recast navigation data, while unused 2.7x files may contain this. */
 typedef struct MRecast {
   int i;
 } MRecast;
+
+#endif
 
 /** \} */
 

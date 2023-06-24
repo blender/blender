@@ -1,10 +1,9 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #pragma once
 
@@ -143,8 +142,7 @@ ccl_device Spectrum bsdf_hair_transmission_eval(ccl_private const ShaderClosure 
 ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
                                            float3 Ng,
                                            float3 wi,
-                                           float randu,
-                                           float randv,
+                                           float2 rand,
                                            ccl_private Spectrum *eval,
                                            ccl_private float3 *wo,
                                            ccl_private float *pdf,
@@ -165,7 +163,7 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
   float a_R = fast_atan2f(((M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
   float b_R = fast_atan2f(((-M_PI_2_F + theta_r) * 0.5f - offset) * roughness1_inv, 1.0f);
 
-  float t = roughness1 * tanf(randu * (a_R - b_R) + b_R);
+  float t = roughness1 * tanf(rand.x * (a_R - b_R) + b_R);
 
   float theta_h = t + offset;
   float theta_i = 2 * theta_h - theta_r;
@@ -173,7 +171,7 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
   float costheta_i, sintheta_i;
   fast_sincosf(theta_i, &sintheta_i, &costheta_i);
 
-  float phi = 2 * safe_asinf(1 - 2 * randv) * roughness2;
+  float phi = 2 * safe_asinf(1 - 2 * rand.y) * roughness2;
 
   float phi_pdf = fast_cosf(phi * 0.5f) * 0.25f / roughness2;
 
@@ -196,8 +194,7 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc,
                                              float3 Ng,
                                              float3 wi,
-                                             float randu,
-                                             float randv,
+                                             float2 rand,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf,
@@ -219,7 +216,7 @@ ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc
   float b_TT = fast_atan2f(((-M_PI_2_F + theta_r) / 2 - offset) * roughness1_inv, 1.0f);
   float c_TT = 2 * fast_atan2f(M_PI_2_F / roughness2, 1.0f);
 
-  float t = roughness1 * tanf(randu * (a_TT - b_TT) + b_TT);
+  float t = roughness1 * tanf(rand.x * (a_TT - b_TT) + b_TT);
 
   float theta_h = t + offset;
   float theta_i = 2 * theta_h - theta_r;
@@ -227,7 +224,7 @@ ccl_device int bsdf_hair_transmission_sample(ccl_private const ShaderClosure *sc
   float costheta_i, sintheta_i;
   fast_sincosf(theta_i, &sintheta_i, &costheta_i);
 
-  float p = roughness2 * tanf(c_TT * (randv - 0.5f));
+  float p = roughness2 * tanf(c_TT * (rand.y - 0.5f));
   float phi = p + M_PI_F;
   float theta_pdf = roughness1 /
                     (2 * (t * t + roughness1 * roughness1) * (a_TT - b_TT) * costheta_i);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -2220,23 +2221,6 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
         vc.em->mat_nr = efa->mat_nr;
         WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
       }
-
-      /* Change active face-map on object. */
-      if (!BLI_listbase_is_empty(&vc.obedit->fmaps)) {
-        const int cd_fmap_offset = CustomData_get_offset(&vc.em->bm->pdata, CD_FACEMAP);
-        if (cd_fmap_offset != -1) {
-          int map = *((int *)BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset));
-          if ((map < -1) || (map > BLI_listbase_count_at_most(&vc.obedit->fmaps, map))) {
-            map = -1;
-          }
-          map += 1;
-          if (map != vc.obedit->actfmap) {
-            /* We may want to add notifiers later,
-             * currently select update handles redraw. */
-            vc.obedit->actfmap = map;
-          }
-        }
-      }
     }
 
     /* Changing active object is handy since it allows us to
@@ -2810,7 +2794,7 @@ bool EDBM_selectmode_disable_multi(bContext *C,
  * \{ */
 
 struct BMFaceLink {
-  struct BMFaceLink *next, *prev;
+  BMFaceLink *next, *prev;
   BMFace *face;
   float area;
 };

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -60,7 +61,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   {
     Material *ma = EEVEE_material_default_diffuse_get();
     GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
-    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+    GPUShader *sh = GPU_material_get_shader(gpumat);
 
     DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
@@ -71,7 +72,7 @@ static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerD
   {
     Material *ma = EEVEE_material_default_glossy_get();
     GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
-    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+    GPUShader *sh = GPU_material_get_shader(gpumat);
 
     DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
     grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
@@ -93,7 +94,7 @@ void EEVEE_lookdev_init(EEVEE_Data *vedata)
     /* Viewport / Spheres size. */
     const rcti *rect;
     rcti fallback_rect;
-    if (DRW_state_is_opengl_render()) {
+    if (DRW_state_is_viewport_image_render()) {
       const float *vp_size = DRW_viewport_size_get();
       fallback_rect.xmax = vp_size[0];
       fallback_rect.ymax = vp_size[1];

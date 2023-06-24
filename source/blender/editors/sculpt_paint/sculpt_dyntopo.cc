@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -69,10 +70,6 @@ void SCULPT_pbvh_clear(Object *ob)
     BKE_pbvh_free(ss->pbvh);
     ss->pbvh = nullptr;
   }
-
-  MEM_SAFE_FREE(ss->pmap);
-
-  MEM_SAFE_FREE(ss->pmap_mem);
 
   BKE_object_free_derived_caches(ob);
 
@@ -173,7 +170,7 @@ static void SCULPT_dynamic_topology_disable_ex(
     CustomData_free_layer_named(&me->pdata, ".sculpt_face_set", me->totpoly);
     me->face_sets_color_default = 1;
 
-    /* Sync the visibility to vertices manually as the pmap is still not initialized. */
+    /* Sync the visibility to vertices manually as the `pmap` is still not initialized. */
     bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
         &me->vdata, CD_PROP_BOOL, ".hide_vert", me->totvert);
     if (hide_vert != nullptr) {

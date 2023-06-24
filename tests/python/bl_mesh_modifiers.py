@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2012-2022 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Currently this script only generates images from different modifier

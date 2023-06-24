@@ -1,11 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
  */
-
-#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -34,9 +33,9 @@
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
 
-#include "data_transfer_intern.h"
+#include "DEG_depsgraph_query.h"
 
-static CLG_LogRef LOG = {"bke.data_transfer"};
+#include "data_transfer_intern.h"
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)
@@ -200,7 +199,7 @@ int BKE_object_data_transfer_dttype_to_cdtype(const int dtdata_type)
     case DT_TYPE_SEAM:
       return CD_FAKE_SEAM;
     case DT_TYPE_CREASE:
-      return CD_CREASE;
+      return CD_FAKE_CREASE;
     case DT_TYPE_BWEIGHT_EDGE:
       return CD_FAKE_BWEIGHT;
     case DT_TYPE_FREESTYLE_EDGE:
@@ -1171,8 +1170,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
   return false;
 }
 
-void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
-                                     Scene *scene,
+void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
                                      Object *ob_src,
                                      Object *ob_dst,
                                      const int data_types,
@@ -1180,20 +1178,17 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
                                      const int fromlayers_select[DT_MULTILAYER_INDEX_MAX],
                                      const int tolayers_select[DT_MULTILAYER_INDEX_MAX])
 {
-  Mesh *me_src;
   Mesh *me_dst;
 
   const bool use_create = true; /* We always create needed layers here. */
-
-  CustomData_MeshMasks me_src_mask = CD_MASK_BAREMESH;
 
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   me_dst = static_cast<Mesh *>(ob_dst->data);
 
   /* Get source evaluated mesh. */
-  BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
-  me_src = mesh_get_eval_final(depsgraph, scene, ob_src, &me_src_mask);
+  const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+  const Mesh *me_src = BKE_object_get_evaluated_mesh(ob_src_eval);
   if (!me_src) {
     return;
   }
@@ -1319,8 +1314,7 @@ void BKE_object_data_transfer_layout(struct Depsgraph *depsgraph,
   }
 }
 
-bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
-                                 Scene *scene,
+bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
                                  Object *ob_src,
                                  Object *ob_dst,
                                  Mesh *me_dst,
@@ -1367,8 +1361,6 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 
   const bool use_delete = false; /* We never delete data layers from destination here. */
 
-  CustomData_MeshMasks me_src_mask = CD_MASK_BAREMESH;
-
   BLI_assert((ob_src != ob_dst) && (ob_src->type == OB_MESH) && (ob_dst->type == OB_MESH));
 
   if (me_dst) {
@@ -1390,21 +1382,12 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
   }
 
   /* Get source evaluated mesh. */
-  BKE_object_data_transfer_dttypes_to_cdmask(data_types, &me_src_mask);
-  BKE_mesh_remap_calc_source_cddata_masks_from_map_modes(
-      map_vert_mode, map_edge_mode, map_loop_mode, map_poly_mode, &me_src_mask);
   if (is_modifier) {
     me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src);
-
-    if (me_src == nullptr ||
-        !CustomData_MeshMasks_are_matching(&ob_src->runtime.last_data_mask, &me_src_mask))
-    {
-      CLOG_WARN(&LOG, "Data Transfer: source mesh data is not ready - dependency cycle?");
-      return changed;
-    }
   }
   else {
-    me_src = mesh_get_eval_final(depsgraph, scene, ob_src, &me_src_mask);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    me_src = BKE_object_get_evaluated_mesh(ob_eval);
   }
   if (!me_src) {
     return changed;
@@ -1417,7 +1400,10 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     }
 
     BKE_mesh_remap_find_best_match_from_mesh(
-        BKE_mesh_vert_positions(me_dst), me_dst->totvert, me_src, space_transform);
+        reinterpret_cast<const float(*)[3]>(me_dst->vert_positions().data()),
+        me_dst->totvert,
+        me_src,
+        space_transform);
   }
 
   /* Check all possible data types.
@@ -1445,7 +1431,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
     }
 
     if (DT_DATATYPE_IS_VERT(dtdata_type)) {
-      float(*positions_dst)[3] = BKE_mesh_vert_positions_for_write(me_dst);
+      blender::MutableSpan<blender::float3> positions_dst = me_dst->vert_positions_for_write();
       const int num_verts_dst = me_dst->totvert;
 
       if (!geom_map_init[VDATA]) {
@@ -1480,16 +1466,17 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_verts_from_mesh(map_vert_mode,
-                                            space_transform,
-                                            max_distance,
-                                            ray_radius,
-                                            positions_dst,
-                                            num_verts_dst,
-                                            dirty_nors_dst,
-                                            me_src,
-                                            me_dst,
-                                            &geom_map[VDATA]);
+        BKE_mesh_remap_calc_verts_from_mesh(
+            map_vert_mode,
+            space_transform,
+            max_distance,
+            ray_radius,
+            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
+            num_verts_dst,
+            dirty_nors_dst,
+            me_src,
+            me_dst,
+            &geom_map[VDATA]);
         geom_map_init[VDATA] = true;
       }
 
@@ -1531,7 +1518,8 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_EDGE(dtdata_type)) {
-      const float(*positions_dst)[3] = BKE_mesh_vert_positions_for_write(me_dst);
+      blender::MutableSpan<blender::float3> positions_dst = me_dst->vert_positions_for_write();
+
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<blender::int2> edges_dst = me_dst->edges();
 
@@ -1560,18 +1548,19 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_edges_from_mesh(map_edge_mode,
-                                            space_transform,
-                                            max_distance,
-                                            ray_radius,
-                                            positions_dst,
-                                            num_verts_dst,
-                                            edges_dst.data(),
-                                            edges_dst.size(),
-                                            dirty_nors_dst,
-                                            me_src,
-                                            me_dst,
-                                            &geom_map[EDATA]);
+        BKE_mesh_remap_calc_edges_from_mesh(
+            map_edge_mode,
+            space_transform,
+            max_distance,
+            ray_radius,
+            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
+            num_verts_dst,
+            edges_dst.data(),
+            edges_dst.size(),
+            dirty_nors_dst,
+            me_src,
+            me_dst,
+            &geom_map[EDATA]);
         geom_map_init[EDATA] = true;
       }
 
@@ -1618,7 +1607,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_LOOP(dtdata_type)) {
-      const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
+      const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
       const int num_verts_dst = me_dst->totvert;
       const blender::Span<blender::int2> edges_dst = me_dst->edges();
       const blender::OffsetIndices polys_dst = me_dst->polys();
@@ -1654,27 +1643,28 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_loops_from_mesh(map_loop_mode,
-                                            space_transform,
-                                            max_distance,
-                                            ray_radius,
-                                            me_dst,
-                                            positions_dst,
-                                            num_verts_dst,
-                                            edges_dst.data(),
-                                            edges_dst.size(),
-                                            corner_verts_dst.data(),
-                                            corner_edges_dst.data(),
-                                            corner_verts_dst.size(),
-                                            polys_dst,
-                                            ldata_dst,
-                                            (me_dst->flag & ME_AUTOSMOOTH) != 0,
-                                            me_dst->smoothresh,
-                                            dirty_nors_dst,
-                                            me_src,
-                                            island_callback,
-                                            islands_handling_precision,
-                                            &geom_map[LDATA]);
+        BKE_mesh_remap_calc_loops_from_mesh(
+            map_loop_mode,
+            space_transform,
+            max_distance,
+            ray_radius,
+            me_dst,
+            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
+            num_verts_dst,
+            edges_dst.data(),
+            edges_dst.size(),
+            corner_verts_dst.data(),
+            corner_edges_dst.data(),
+            corner_verts_dst.size(),
+            polys_dst,
+            ldata_dst,
+            (me_dst->flag & ME_AUTOSMOOTH) != 0,
+            me_dst->smoothresh,
+            dirty_nors_dst,
+            me_src,
+            island_callback,
+            islands_handling_precision,
+            &geom_map[LDATA]);
         geom_map_init[LDATA] = true;
       }
 
@@ -1721,7 +1711,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
       }
     }
     if (DT_DATATYPE_IS_POLY(dtdata_type)) {
-      const float(*positions_dst)[3] = BKE_mesh_vert_positions(me_dst);
+      const blender::Span<blender::float3> positions_dst = me_dst->vert_positions();
       const int num_verts_dst = me_dst->totvert;
       const blender::OffsetIndices polys_dst = me_dst->polys();
       const blender::Span<int> corner_verts_dst = me_dst->corner_verts();
@@ -1751,17 +1741,18 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
           continue;
         }
 
-        BKE_mesh_remap_calc_polys_from_mesh(map_poly_mode,
-                                            space_transform,
-                                            max_distance,
-                                            ray_radius,
-                                            me_dst,
-                                            positions_dst,
-                                            num_verts_dst,
-                                            corner_verts_dst.data(),
-                                            polys_dst,
-                                            me_src,
-                                            &geom_map[PDATA]);
+        BKE_mesh_remap_calc_polys_from_mesh(
+            map_poly_mode,
+            space_transform,
+            max_distance,
+            ray_radius,
+            me_dst,
+            reinterpret_cast<const float(*)[3]>(positions_dst.data()),
+            num_verts_dst,
+            corner_verts_dst.data(),
+            polys_dst,
+            me_src,
+            &geom_map[PDATA]);
         geom_map_init[PDATA] = true;
       }
 
@@ -1826,8 +1817,7 @@ bool BKE_object_data_transfer_ex(struct Depsgraph *depsgraph,
 #undef DATAMAX
 }
 
-bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
-                                   Scene *scene,
+bool BKE_object_data_transfer_mesh(Depsgraph *depsgraph,
                                    Object *ob_src,
                                    Object *ob_dst,
                                    const int data_types,
@@ -1850,7 +1840,6 @@ bool BKE_object_data_transfer_mesh(struct Depsgraph *depsgraph,
                                    ReportList *reports)
 {
   return BKE_object_data_transfer_ex(depsgraph,
-                                     scene,
                                      ob_src,
                                      ob_dst,
                                      nullptr,

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -335,6 +337,9 @@ struct VolumeGrid {
       catch (const openvdb::IoError &e) {
         entry->error_msg = e.what();
       }
+      catch (...) {
+        entry->error_msg = "Unknown error reading VDB file";
+      }
     });
 
     std::atomic_thread_fence(std::memory_order_release);
@@ -580,7 +585,7 @@ static void volume_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath);
+  BKE_bpath_foreach_path_fixed_process(bpath_data, volume->filepath, sizeof(volume->filepath));
 }
 
 static void volume_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -879,7 +884,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
 
   try {
     /* Disable delay loading and file copying, this has poor performance
-     * on network drivers. */
+     * on network drives. */
     const bool delay_load = false;
     file.setCopyMaxBytes(0);
     file.open(delay_load);
@@ -890,8 +895,12 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
     grids.error_msg = e.what();
     CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
   }
+  catch (...) {
+    grids.error_msg = "Unknown error reading VDB file";
+    CLOG_INFO(&LOG, 1, "Volume %s: %s", volume_name, grids.error_msg.c_str());
+  }
 
-  /* Add grids read from file to own vector, filtering out any NULL pointers. */
+  /* Add grids read from file to own vector, filtering out any null pointers. */
   for (const openvdb::GridBase::Ptr &vdb_grid : vdb_grids) {
     if (vdb_grid) {
       VolumeFileCache::Entry template_entry(filepath, vdb_grid);
@@ -957,6 +966,10 @@ bool BKE_volume_save(const Volume *volume,
   }
   catch (const openvdb::IoError &e) {
     BKE_reportf(reports, RPT_ERROR, "Could not write volume: %s", e.what());
+    return false;
+  }
+  catch (...) {
+    BKE_reportf(reports, RPT_ERROR, "Could not write volume: Unknown error writing VDB file");
     return false;
   }
 
@@ -1073,10 +1086,10 @@ static void volume_update_simplify_level(Volume *volume, const Depsgraph *depsgr
 #endif
 }
 
-static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
-                                      struct Scene *scene,
+static void volume_evaluate_modifiers(Depsgraph *depsgraph,
+                                      Scene *scene,
                                       Object *object,
-                                      GeometrySet &geometry_set)
+                                      blender::bke::GeometrySet &geometry_set)
 {
   /* Modifier evaluation modes. */
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
@@ -1108,7 +1121,7 @@ static void volume_evaluate_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
+void BKE_volume_eval_geometry(Depsgraph *depsgraph, Volume *volume)
 {
   volume_update_simplify_level(volume, depsgraph);
 
@@ -1129,33 +1142,33 @@ void BKE_volume_eval_geometry(struct Depsgraph *depsgraph, Volume *volume)
   }
 }
 
-static Volume *take_volume_ownership_from_geometry_set(GeometrySet &geometry_set)
+static Volume *take_volume_ownership_from_geometry_set(blender::bke::GeometrySet &geometry_set)
 {
-  if (!geometry_set.has<VolumeComponent>()) {
+  if (!geometry_set.has<blender::bke::VolumeComponent>()) {
     return nullptr;
   }
-  VolumeComponent &volume_component = geometry_set.get_component_for_write<VolumeComponent>();
+  auto &volume_component = geometry_set.get_component_for_write<blender::bke::VolumeComponent>();
   Volume *volume = volume_component.release();
   if (volume != nullptr) {
     /* Add back, but only as read-only non-owning component. */
-    volume_component.replace(volume, GeometryOwnershipType::ReadOnly);
+    volume_component.replace(volume, blender::bke::GeometryOwnershipType::ReadOnly);
   }
   else {
     /* The component was empty, we can remove it. */
-    geometry_set.remove<VolumeComponent>();
+    geometry_set.remove<blender::bke::VolumeComponent>();
   }
   return volume;
 }
 
-void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Object *object)
+void BKE_volume_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
 {
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
 
   /* Evaluate modifiers. */
   Volume *volume = (Volume *)object->data;
-  GeometrySet geometry_set;
-  geometry_set.replace_volume(volume, GeometryOwnershipType::ReadOnly);
+  blender::bke::GeometrySet geometry_set;
+  geometry_set.replace_volume(volume, blender::bke::GeometryOwnershipType::ReadOnly);
   volume_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
   Volume *volume_eval = take_volume_ownership_from_geometry_set(geometry_set);
@@ -1168,7 +1181,7 @@ void BKE_volume_data_update(struct Depsgraph *depsgraph, struct Scene *scene, Ob
   /* Assign evaluated object. */
   const bool eval_is_owned = (volume != volume_eval);
   BKE_object_eval_assign_data(object, &volume_eval->id, eval_is_owned);
-  object->runtime.geometry_set_eval = new GeometrySet(std::move(geometry_set));
+  object->runtime.geometry_set_eval = new blender::bke::GeometrySet(std::move(geometry_set));
 }
 
 void BKE_volume_grids_backup_restore(Volume *volume, VolumeGridVector *grids, const char *filepath)
@@ -1517,7 +1530,7 @@ Volume *BKE_volume_new_for_eval(const Volume *volume_src)
   return volume_dst;
 }
 
-Volume *BKE_volume_copy_for_eval(Volume *volume_src)
+Volume *BKE_volume_copy_for_eval(const Volume *volume_src)
 {
   return reinterpret_cast<Volume *>(
       BKE_id_copy_ex(nullptr, &volume_src->id, nullptr, LIB_ID_COPY_LOCALIZE));

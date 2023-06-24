@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -36,7 +38,7 @@ namespace blender::geometry {
 using PHashKey = uintptr_t;
 
 struct PHashLink {
-  struct PHashLink *next;
+  PHashLink *next;
   PHashKey key;
 };
 
@@ -49,7 +51,7 @@ struct PHash {
 /* Simplices */
 
 struct PVert {
-  struct PVert *nextlink;
+  PVert *nextlink;
 
   union PVertUnion {
     PHashKey key;       /* Construct. */
@@ -64,25 +66,25 @@ struct PVert {
 };
 
 struct PEdge {
-  struct PEdge *nextlink;
+  PEdge *nextlink;
 
   union PEdgeUnion {
-    PHashKey key;               /* Construct. */
-    int id;                     /* ABF matrix index. */
-    HeapNode *heaplink;         /* Fill holes. */
-    struct PEdge *nextcollapse; /* Simplification. */
+    PHashKey key;        /* Construct. */
+    int id;              /* ABF matrix index. */
+    HeapNode *heaplink;  /* Fill holes. */
+    PEdge *nextcollapse; /* Simplification. */
   } u;
 
-  struct PVert *vert;
-  struct PEdge *pair;
-  struct PEdge *next;
+  PVert *vert;
+  PEdge *pair;
+  PEdge *next;
   struct PFace *face;
   float *orig_uv, old_uv[2];
   uint flag;
 };
 
 struct PFace {
-  struct PFace *nextlink;
+  PFace *nextlink;
 
   union PFaceUnion {
     PHashKey key; /* Construct. */
@@ -91,7 +93,7 @@ struct PFace {
     int id;       /* ABF matrix index. */
   } u;
 
-  struct PEdge *edge;
+  PEdge *edge;
   uint flag;
 };
 
@@ -3024,7 +3026,7 @@ static void p_chart_lscm_begin(PChart *chart, bool live, bool abf)
 
       p_chart_boundaries(chart, &outer);
 
-      /* Outer can be NULL with non-finite coords. */
+      /* Outer can be null with non-finite coordinates. */
       if (!(outer && p_chart_symmetry_pins(chart, outer, &pin1, &pin2))) {
         p_chart_extrema_verts(chart, &pin1, &pin2);
       }
@@ -3703,7 +3705,7 @@ void uv_parametrizer_delete(ParamHandle *phandle)
 }
 
 struct GeoUVPinIndex {
-  struct GeoUVPinIndex *next;
+  GeoUVPinIndex *next;
   float uv[2];
   ParamKey reindex;
 };
@@ -4113,7 +4115,7 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
   Vector<PackIsland *> pack_island_vector;
 
   UVPackIsland_Params params;
-  params.rotate = do_rotate;
+  params.rotate_method = do_rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
   params.margin = margin;
   params.margin_method = ED_UVPACK_MARGIN_SCALED;
 

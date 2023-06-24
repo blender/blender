@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 #include "node_util.hh"
@@ -26,6 +28,8 @@ std::optional<eCustomDataType> node_data_type_to_custom_data_type(const eNodeSoc
       return CD_PROP_COLOR;
     case SOCK_BOOLEAN:
       return CD_PROP_BOOL;
+    case SOCK_ROTATION:
+      return CD_PROP_QUATERNION;
     case SOCK_INT:
       return CD_PROP_INT32;
     case SOCK_STRING:

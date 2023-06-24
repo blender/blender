@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 
@@ -9,6 +11,7 @@
 #include "BKE_main.h"
 #include "BLI_fileops.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "DNA_scene_types.h"
 
@@ -32,7 +35,7 @@ class AlembicExportTest : public testing::Test {
     /* Fake a 25 FPS scene with a nonzero base (because that's sometimes forgotten) */
     scene.r.frs_sec = 50;
     scene.r.frs_sec_base = 2;
-    strcpy(scene.id.name, "SCTestScene");
+    STRNCPY(scene.id.name, "SCTestScene");
 
     bmain = BKE_main_new();
 

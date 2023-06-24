@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2017-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # CPE's are used to identify dependencies, for more information on what they
@@ -187,9 +189,9 @@ set(ROBINMAP_HASH c08ec4b1bf1c85eb0d6432244a6a89862229da1cb834f3f90fba8dc35d8c8e
 set(ROBINMAP_HASH_TYPE SHA256)
 set(ROBINMAP_FILE robinmap-${ROBINMAP_VERSION}.tar.gz)
 
-set(TIFF_VERSION 4.4.0)
+set(TIFF_VERSION 4.5.1)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
-set(TIFF_HASH 376f17f189e9d02280dfe709b2b2bbea)
+set(TIFF_HASH d08c5f9eee6350fffc239e5993d92779)
 set(TIFF_HASH_TYPE MD5)
 set(TIFF_FILE tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_CPE "cpe:2.3:a:libtiff:libtiff:${TIFF_VERSION}:*:*:*:*:*:*:*")
@@ -208,11 +210,11 @@ set(OSL_FILE OpenShadingLanguage-${OSL_VERSION}.tar.gz)
 # BZIP2, FFI, SQLITE and change the versions in this file as well. For compliance
 # reasons there can be no exceptions to this.
 
-set(PYTHON_VERSION 3.10.11)
+set(PYTHON_VERSION 3.10.12)
 set(PYTHON_SHORT_VERSION 3.10)
 set(PYTHON_SHORT_VERSION_NO_DOTS 310)
 set(PYTHON_URI https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz)
-set(PYTHON_HASH 1bf8481a683e0881e14d52e0f23633a6)
+set(PYTHON_HASH 49b0342476b984e106d308c25d657f12)
 set(PYTHON_HASH_TYPE MD5)
 set(PYTHON_FILE Python-${PYTHON_VERSION}.tar.xz)
 set(PYTHON_CPE "cpe:2.3:a:python:python:${PYTHON_VERSION}:-:*:*:*:*:*:*")
@@ -321,12 +323,6 @@ set(X264_HASH bb4f7da03936b5a030ed5827133b58eb3f701d7e5dce32cca4ba6df93797d42e)
 set(X264_HASH_TYPE SHA256)
 set(X264_FILE x264-${X264_VERSION}.tar.gz)
 
-set(XVIDCORE_VERSION 1.3.7)
-set(XVIDCORE_URI https://downloads.xvid.com/downloads/xvidcore-${XVIDCORE_VERSION}.tar.gz)
-set(XVIDCORE_HASH abbdcbd39555691dd1c9b4d08f0a031376a3b211652c0d8b3b8aa9be1303ce2d)
-set(XVIDCORE_HASH_TYPE SHA256)
-set(XVIDCORE_FILE xvidcore-${XVIDCORE_VERSION}.tar.gz)
-
 set(OPENJPEG_VERSION 2.5.0)
 set(OPENJPEG_SHORT_VERSION 2.5)
 set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/v${OPENJPEG_VERSION}.tar.gz)
@@ -380,9 +376,9 @@ set(JEMALLOC_HASH 3d41fbf006e6ebffd489bdb304d009ae)
 set(JEMALLOC_HASH_TYPE MD5)
 set(JEMALLOC_FILE jemalloc-${JEMALLOC_VERSION}.tar.bz2)
 
-set(XML2_VERSION 2.10.3)
+set(XML2_VERSION 2.10.4)
 set(XML2_URI https://download.gnome.org/sources/libxml2/2.10/libxml2-${XML2_VERSION}.tar.xz)
-set(XML2_HASH f9edac7fac232b3657a003fd9a5bbe42)
+set(XML2_HASH 76808c467a58c31e2dbd511e71d5fd13)
 set(XML2_HASH_TYPE MD5)
 set(XML2_FILE libxml2-${XML2_VERSION}.tar.xz)
 set(XML2_CPE "cpe:2.3:a:xmlsoft:libxml2:${XML2_VERSION}:*:*:*:*:*:*:*")
@@ -459,9 +455,9 @@ set(LZMA_HASH_TYPE SHA256)
 set(LZMA_FILE xz-${LZMA_VERSION}.tar.bz2)
 
 # NOTE: Python's build has been modified to use our ssl version.
-set(SSL_VERSION 1.1.1t)
+set(SSL_VERSION 3.0.9)
 set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
-set(SSL_HASH 8dee9b24bdb1dcbf0c3d1e9b02fb8f6bf22165e807f45adeb7c9677536859d3b)
+set(SSL_HASH eb1ab04781474360f77c318ab89d8c5a03abc38e63d65a603cabbf1b00a1dc90)
 set(SSL_HASH_TYPE SHA256)
 set(SSL_FILE openssl-${SSL_VERSION}.tar.gz)
 set(SSL_CPE "cpe:2.3:a:openssl:openssl:${SSL_VERSION}:*:*:*:*:*:*:*")

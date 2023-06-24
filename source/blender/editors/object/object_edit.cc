@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -686,8 +687,8 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
       ED_mball_editmball_free(obedit);
     }
   }
-  else if (obedit->type == OB_CURVES) {
-    /* Curves don't have specific edit mode data, so pass. */
+  else if (ELEM(obedit->type, OB_CURVES, OB_GREASE_PENCIL)) {
+    /* Object doesn't have specific edit mode data, so pass. */
   }
   else {
     return false;
@@ -877,6 +878,10 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
   else if (ob->type == OB_CURVES) {
     ok = true;
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_CURVES, scene);
+  }
+  else if (ob->type == OB_GREASE_PENCIL) {
+    ok = true;
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_GREASE_PENCIL, scene);
   }
 
   if (ok) {

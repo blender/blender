@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -200,7 +202,7 @@ class AppView {
 
   inline real GetFovyDegrees() const
   {
-    return _Fovy * 180.0 / M_PI;  // TODO: Use RAD2DEG here too?
+    return _Fovy * 180.0 / M_PI; /* TODO: Use RAD2DEG here too? */
   }
 
   BBox<Vec3r> scene3DBBox() const

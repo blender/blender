@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -42,7 +43,7 @@ struct bDeformGroup;
 struct wmKeyConfig;
 struct wmOperator;
 
-/* editmesh_utils.c */
+/* editmesh_utils.cc */
 
 /**
  * \param em: Edit-mesh used for generating mirror data.
@@ -142,8 +143,15 @@ struct UvElementMap *BM_uv_element_map_create(struct BMesh *bm,
                                               bool use_seams,
                                               bool do_islands);
 void BM_uv_element_map_free(struct UvElementMap *element_map);
+
+/**
+ * Return the #UvElement associated with a given #BMLoop, or NULL if no association exists.
+ *
+ * \param element_map: The #UvElementMap to look in.
+ * \param l: The loop to search for.
+ * \return The #UvElement associated with #l, or NULL if not found. (e.g. the vertex is hidden.)
+ */
 struct UvElement *BM_uv_element_get(const struct UvElementMap *element_map,
-                                    const struct BMFace *efa,
                                     const struct BMLoop *l);
 struct UvElement *BM_uv_element_get_head(struct UvElementMap *element_map,
                                          struct UvElement *child);
@@ -419,6 +427,8 @@ void paintface_select_linked(struct bContext *C,
                              struct Object *ob,
                              const int mval[2],
                              bool select);
+
+void paintface_select_loop(struct bContext *C, struct Object *ob, const int mval[2], bool select);
 /**
  * Grow the selection of faces.
  * \param face_step: If true will also select faces that only touch on the corner.
@@ -564,16 +574,12 @@ void ED_mesh_polys_remove(struct Mesh *mesh, struct ReportList *reports, int cou
 
 void ED_mesh_geometry_clear(struct Mesh *mesh);
 
-void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose);
-
 bool *ED_mesh_uv_map_vert_select_layer_ensure(struct Mesh *mesh, int uv_map_index);
 bool *ED_mesh_uv_map_edge_select_layer_ensure(struct Mesh *mesh, int uv_map_index);
 bool *ED_mesh_uv_map_pin_layer_ensure(struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_vert_select_layer_get(const struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_edge_select_layer_get(const struct Mesh *mesh, int uv_map_index);
 const bool *ED_mesh_uv_map_pin_layer_get(const struct Mesh *mesh, int uv_map_index);
-
-bool ED_mesh_edge_is_loose(const struct Mesh *mesh, int index);
 
 void ED_mesh_uv_ensure(struct Mesh *me, const char *name);
 int ED_mesh_uv_add(

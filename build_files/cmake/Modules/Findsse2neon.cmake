@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2020 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020 Blender Foundation.
 
 # - Find sse2neon library
 # Find the native sse2neon includes and library

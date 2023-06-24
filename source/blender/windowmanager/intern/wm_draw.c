@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -584,14 +585,12 @@ static const char *wm_area_name(ScrArea *area)
 typedef struct WindowDrawCB {
   struct WindowDrawCB *next, *prev;
 
-  void (*draw)(const struct wmWindow *, void *);
+  void (*draw)(const wmWindow *, void *);
   void *customdata;
 
 } WindowDrawCB;
 
-void *WM_draw_cb_activate(wmWindow *win,
-                          void (*draw)(const struct wmWindow *, void *),
-                          void *customdata)
+void *WM_draw_cb_activate(wmWindow *win, void (*draw)(const wmWindow *, void *), void *customdata)
 {
   WindowDrawCB *wdc = MEM_callocN(sizeof(*wdc), "WindowDrawCB");
 
@@ -675,15 +674,14 @@ static void wm_draw_region_buffer_create(ARegion *region, bool stereo, bool use_
 
   if (!region->draw_buffer) {
     if (use_viewport) {
-      /* Allocate viewport which includes an offscreen buffer with depth
-       * multisample, etc. */
+      /* Allocate viewport which includes an off-screen buffer with depth multi-sample, etc. */
       region->draw_buffer = MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer");
       region->draw_buffer->viewport = stereo ? GPU_viewport_stereo_create() :
                                                GPU_viewport_create();
     }
     else {
-      /* Allocate offscreen buffer if it does not exist. This one has no
-       * depth or multisample buffers. 3D view creates own buffers with
+      /* Allocate off-screen buffer if it does not exist. This one has no
+       * depth or multi-sample buffers. 3D view creates own buffers with
        * the data it needs. */
       GPUOffScreen *offscreen = GPU_offscreen_create(
           region->winx, region->winy, false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
@@ -1201,11 +1199,11 @@ static void wm_draw_surface(bContext *C, wmSurface *surface)
   wm_window_clear_drawable(CTX_wm_manager(C));
   wm_surface_make_drawable(surface);
 
-  GPU_context_begin_frame(surface->gpu_ctx);
+  GPU_context_begin_frame(surface->blender_gpu_context);
 
   surface->draw(C);
 
-  GPU_context_end_frame(surface->gpu_ctx);
+  GPU_context_end_frame(surface->blender_gpu_context);
 
   /* Avoid interference with window drawable */
   wm_surface_clear_drawable();
@@ -1299,7 +1297,7 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
    *
    * So provide an alternative to #WM_window_pixels_read that avoids using the front-buffer. */
 
-  /* Draw into an off-screen buffer and read it's contents. */
+  /* Draw into an off-screen buffer and read its contents. */
   r_size[0] = WM_window_pixels_x(win);
   r_size[1] = WM_window_pixels_y(win);
 

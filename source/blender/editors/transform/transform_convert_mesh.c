@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -37,15 +38,15 @@
 /** \name Container TransCustomData Creation
  * \{ */
 
-static void tc_mesh_customdata_free_fn(struct TransInfo *t,
-                                       struct TransDataContainer *tc,
-                                       struct TransCustomData *custom_data);
+static void tc_mesh_customdata_free_fn(TransInfo *t,
+                                       TransDataContainer *tc,
+                                       TransCustomData *custom_data);
 
 struct TransCustomDataLayer;
 static void tc_mesh_customdatacorrect_free(struct TransCustomDataLayer *tcld);
 
 struct TransCustomData_PartialUpdate {
-  struct BMPartialUpdate *cache;
+  BMPartialUpdate *cache;
 
   /** The size of proportional editing used for #BMPartialUpdate. */
   float prop_size;
@@ -122,9 +123,9 @@ static void tc_mesh_customdata_free(struct TransCustomDataMesh *tcmd)
   MEM_freeN(tcmd);
 }
 
-static void tc_mesh_customdata_free_fn(struct TransInfo *UNUSED(t),
-                                       struct TransDataContainer *UNUSED(tc),
-                                       struct TransCustomData *custom_data)
+static void tc_mesh_customdata_free_fn(TransInfo *UNUSED(t),
+                                       TransDataContainer *UNUSED(tc),
+                                       TransCustomData *custom_data)
 {
   struct TransCustomDataMesh *tcmd = custom_data->data;
   tc_mesh_customdata_free(tcmd);
@@ -139,15 +140,15 @@ static void tc_mesh_customdata_free_fn(struct TransInfo *UNUSED(t),
 
 struct TransCustomDataMergeGroup {
   /** map {BMVert: TransCustomDataLayerVert} */
-  struct LinkNode **cd_loop_groups;
+  LinkNode **cd_loop_groups;
 };
 
 struct TransCustomDataLayer {
   BMesh *bm;
-  struct MemArena *arena;
+  MemArena *arena;
 
-  struct GHash *origfaces;
-  struct BMesh *bm_origfaces;
+  GHash *origfaces;
+  BMesh *bm_origfaces;
 
   /* Special handle for multi-resolution. */
   int cd_loop_mdisp_offset;
@@ -155,7 +156,7 @@ struct TransCustomDataLayer {
   /* Optionally merge custom-data groups (this keeps UVs connected for example). */
   struct {
     /** map {BMVert: TransDataBasic} */
-    struct GHash *origverts;
+    GHash *origverts;
     struct TransCustomDataMergeGroup *data;
     int data_len;
     /** Array size of 'layer_math_map_len'
@@ -243,7 +244,7 @@ static BMFace *tc_mesh_customdatacorrect_face_substitute_get(BMFace *f_copy)
 #endif /* USE_FACE_SUBSTITUTE */
 
 static void tc_mesh_customdatacorrect_init_vert(struct TransCustomDataLayer *tcld,
-                                                struct TransDataBasic *td,
+                                                TransDataBasic *td,
                                                 const int index)
 {
   BMesh *bm = tcld->bm;
@@ -309,11 +310,11 @@ static void tc_mesh_customdatacorrect_init_container_generic(TransDataContainer 
 {
   BMesh *bm = tcld->bm;
 
-  struct GHash *origfaces = BLI_ghash_ptr_new(__func__);
-  struct BMesh *bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default,
-                                              &((struct BMeshCreateParams){
-                                                  .use_toolflags = false,
-                                              }));
+  GHash *origfaces = BLI_ghash_ptr_new(__func__);
+  BMesh *bm_origfaces = BM_mesh_create(&bm_mesh_allocsize_default,
+                                       &((struct BMeshCreateParams){
+                                           .use_toolflags = false,
+                                       }));
 
   /* We need to have matching loop custom-data. */
   BM_mesh_copy_init_customdata_all_layers(bm_origfaces, bm, BM_LOOP, NULL);
@@ -501,7 +502,7 @@ static const float *tc_mesh_vert_orig_co_get(struct TransCustomDataLayer *tcld, 
 }
 
 static void tc_mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tcld,
-                                                 struct TransDataBasic *td,
+                                                 TransDataBasic *td,
                                                  struct TransCustomDataMergeGroup *merge_data,
                                                  bool do_loop_mdisps)
 {
@@ -591,7 +592,7 @@ static void tc_mesh_customdatacorrect_apply_vert(struct TransCustomDataLayer *tc
   }
 
   if (tcld->use_merge_group) {
-    struct LinkNode **cd_loop_groups = merge_data->cd_loop_groups;
+    LinkNode **cd_loop_groups = merge_data->cd_loop_groups;
     if (tcld->merge_group.customdatalayer_map_len && cd_loop_groups) {
       if (do_loop_weight) {
         for (j = 0; j < tcld->merge_group.customdatalayer_map_len; j++) {
@@ -678,7 +679,7 @@ static void tc_mesh_customdatacorrect_apply(TransDataContainer *tc, bool is_fina
 /** \name CustomData Layer Correction Restore
  * \{ */
 
-static void tc_mesh_customdatacorrect_restore(struct TransInfo *t)
+static void tc_mesh_customdatacorrect_restore(TransInfo *t)
 {
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     struct TransCustomDataMesh *tcmd = tc->custom.type.data;
@@ -714,7 +715,7 @@ static void tc_mesh_customdatacorrect_restore(struct TransInfo *t)
 /** \name Island Creation
  * \{ */
 
-void transform_convert_mesh_islands_calc(struct BMEditMesh *em,
+void transform_convert_mesh_islands_calc(BMEditMesh *em,
                                          const bool calc_single_islands,
                                          const bool calc_island_center,
                                          const bool calc_island_axismtx,
@@ -990,7 +991,7 @@ static bool bmesh_test_loose_edge(BMEdge *edge)
   return true;
 }
 
-void transform_convert_mesh_connectivity_distance(struct BMesh *bm,
+void transform_convert_mesh_connectivity_distance(BMesh *bm,
                                                   const float mtx[3][3],
                                                   float *dists,
                                                   int *index)
@@ -1169,7 +1170,7 @@ static bool is_in_quadrant_v3(const float co[3], const int quadrant[3], const fl
   return true;
 }
 
-void transform_convert_mesh_mirrordata_calc(struct BMEditMesh *em,
+void transform_convert_mesh_mirrordata_calc(BMEditMesh *em,
                                             const bool use_select,
                                             const bool use_topology,
                                             const bool mirror_axis[3],
@@ -1301,8 +1302,8 @@ void transform_convert_mesh_mirrordata_free(struct TransMirrorData *mirror_data)
  * \{ */
 
 void transform_convert_mesh_crazyspace_detect(TransInfo *t,
-                                              struct TransDataContainer *tc,
-                                              struct BMEditMesh *em,
+                                              TransDataContainer *tc,
+                                              BMEditMesh *em,
                                               struct TransMeshDataCrazySpace *r_crazyspace_data)
 {
   float(*quats)[4] = NULL;
@@ -1356,7 +1357,7 @@ void transform_convert_mesh_crazyspace_transdata_set(const float mtx[3][3],
                                                      const float smtx[3][3],
                                                      const float defmat[3][3],
                                                      const float quat[4],
-                                                     struct TransData *r_td)
+                                                     TransData *r_td)
 {
   /* CrazySpace */
   if (quat || defmat) {

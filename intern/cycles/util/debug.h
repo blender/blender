@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_DEBUG_H__
 #define __UTIL_DEBUG_H__
@@ -100,6 +101,12 @@ class DebugFlags {
 
     /* Whether local atomic sorting is enabled or not. */
     bool use_local_atomic_sort = true;
+
+    /* Whether nanovdb is enabled or not. */
+    bool use_nanovdb = true;
+
+    /* Whether async PSO creation is enabled or not. */
+    bool use_async_pso_creation = true;
   };
 
   /* Get instance of debug flags registry. */

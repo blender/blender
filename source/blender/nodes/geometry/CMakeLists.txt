@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -18,6 +20,7 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
+  ../../../../extern/fmtlib/include
   ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -130,6 +133,7 @@ set(SRC
   nodes/node_geo_mesh_to_points.cc
   nodes/node_geo_mesh_to_sdf_volume.cc
   nodes/node_geo_mesh_to_volume.cc
+  nodes/node_geo_mesh_topology_corners_of_edge.cc
   nodes/node_geo_mesh_topology_corners_of_face.cc
   nodes/node_geo_mesh_topology_corners_of_vertex.cc
   nodes/node_geo_mesh_topology_edges_of_corner.cc
@@ -201,6 +205,7 @@ set(LIB
   bf_functions
   bf_geometry
   bf_nodes
+  extern_fmtlib
 )
 
 if(WITH_BULLET)

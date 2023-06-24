@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -254,7 +255,7 @@ static bool image_not_packed_poll(bContext *C)
   return (ima && BLI_listbase_is_empty(&ima->packedfiles));
 }
 
-static void image_view_all(struct SpaceImage *sima, struct ARegion *region, struct wmOperator *op)
+static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
 {
   float aspx, aspy, zoomx, zoomy, w, h;
   int width, height;
@@ -1736,23 +1737,23 @@ static int image_replace_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  char str[FILE_MAX];
+  char filepath[FILE_MAX];
 
   if (!sima->image) {
     return OPERATOR_CANCELLED;
   }
 
-  RNA_string_get(op->ptr, "filepath", str);
+  RNA_string_get(op->ptr, "filepath", filepath);
 
-  /* we can't do much if the str is longer than FILE_MAX :/ */
-  STRNCPY(sima->image->filepath, str);
+  /* we can't do much if the filepath is longer than FILE_MAX :/ */
+  STRNCPY(sima->image->filepath, filepath);
 
   if (sima->image->source == IMA_SRC_GENERATED) {
     sima->image->source = IMA_SRC_FILE;
     BKE_image_signal(bmain, sima->image, &sima->iuser, IMA_SIGNAL_SRC_CHANGE);
   }
 
-  if (BLI_path_extension_check_array(str, imb_ext_movie)) {
+  if (BLI_path_extension_check_array(filepath, imb_ext_movie)) {
     sima->image->source = IMA_SRC_MOVIE;
   }
   else {
@@ -2006,7 +2007,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render, true);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
@@ -3179,7 +3180,7 @@ static bool image_pack_test(bContext *C, wmOperator *op)
 
 static int image_pack_exec(bContext *C, wmOperator *op)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   Image *ima = image_from_context(C);
 
   if (!image_pack_test(C, op)) {
@@ -3322,10 +3323,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
 /** \name Sample Image Operator
  * \{ */
 
-bool ED_space_image_get_position(SpaceImage *sima,
-                                 struct ARegion *region,
-                                 int mval[2],
-                                 float fpos[2])
+bool ED_space_image_get_position(SpaceImage *sima, ARegion *region, int mval[2], float fpos[2])
 {
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, 0);
@@ -3379,7 +3377,7 @@ bool ED_space_image_color_sample(
     else if (ibuf->byte_buffer.data) {
       cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
-      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
+      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->byte_buffer.colorspace);
       ret = true;
     }
   }

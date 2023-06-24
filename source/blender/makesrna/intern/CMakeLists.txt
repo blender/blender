@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 if(CMAKE_COMPILER_IS_GNUCC)
   # add here so we fail early.
@@ -17,7 +18,7 @@ set(DEFSRC
   rna_action.c
   rna_animation.c
   rna_animviz.c
-  rna_armature.c
+  rna_armature.cc
   rna_asset.c
   rna_attribute.c
   rna_boid.c
@@ -29,9 +30,9 @@ set(DEFSRC
   rna_color.c
   rna_constraint.c
   rna_context.c
-  rna_curve.c
+  rna_curve.cc
   rna_curveprofile.c
-  rna_curves.c
+  rna_curves.cc
   rna_depsgraph.c
   rna_dynamicpaint.c
   rna_fcurve.c
@@ -40,27 +41,27 @@ set(DEFSRC
   rna_gpencil_legacy_modifier.c
   rna_image.c
   rna_key.c
-  rna_lattice.c
+  rna_lattice.cc
   rna_layer.c
   rna_light.c
   rna_lightprobe.c
   rna_linestyle.c
   rna_main.c
-  rna_mask.c
+  rna_mask.cc
   rna_material.c
-  rna_mesh.c
-  rna_meta.c
+  rna_mesh.cc
+  rna_meta.cc
   rna_modifier.c
   rna_movieclip.c
   rna_nla.c
-  rna_nodetree.c
-  rna_object.c
+  rna_nodetree.cc
+  rna_object.cc
   rna_object_force.c
   rna_packedfile.c
   rna_palette.c
   rna_particle.c
   rna_pointcloud.c
-  rna_pose.c
+  rna_pose.cc
   rna_render.c
   rna_rigidbody.c
   rna_rna.c
@@ -70,14 +71,14 @@ set(DEFSRC
   rna_sequencer.c
   rna_shader_fx.c
   rna_sound.c
-  rna_space.c
+  rna_space.cc
   rna_speaker.c
   rna_test.c
   rna_text.c
   rna_texture.c
   rna_timeline.c
   rna_tracking.c
-  rna_ui.c
+  rna_ui.cc
   rna_userdef.c
   rna_vfont.c
   rna_volume.c
@@ -90,33 +91,35 @@ set(DEFSRC
 
 if(WITH_EXPERIMENTAL_FEATURES)
   add_definitions(-DWITH_SIMULATION_DATABLOCK)
+  add_definitions(-DWITH_GREASE_PENCIL_V3)
   list(APPEND DEFSRC
     rna_simulation.c
+    rna_grease_pencil.cc
   )
 endif()
 
 set(APISRC
   rna_action_api.c
   rna_animation_api.c
-  rna_armature_api.c
+  rna_armature_api.cc
   rna_camera_api.c
-  rna_curve_api.c
+  rna_curve_api.cc
   rna_fcurve_api.c
   rna_image_api.c
-  rna_lattice_api.c
+  rna_lattice_api.cc
   rna_main_api.c
   rna_material_api.c
-  rna_mesh_api.c
+  rna_mesh_api.cc
   rna_meta_api.c
-  rna_object_api.c
+  rna_object_api.cc
   rna_pose_api.c
   rna_scene_api.c
   rna_sequencer_api.c
   rna_sound_api.c
-  rna_space_api.c
+  rna_space_api.cc
   rna_text_api.c
   rna_texture_api.c
-  rna_ui_api.c
+  rna_ui_api.cc
   rna_vfont_api.c
   rna_wm_api.c
   rna_wm_gizmo_api.c
@@ -134,21 +137,42 @@ set_source_files_properties(${GENSRC} PROPERTIES GENERATED TRUE)
 # CFLAGS for Generated Files
 #
 # less strict flags for generated source
+set(GENSRC_FLAGS)
 set(GENSRC_CFLAGS)
+set(GENSRC_CXXFLAGS)
 if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
   set(GENSRC_CFLAGS "-Wno-missing-prototypes")
+  set(GENSRC_CXXFLAGS "-Wno-missing-declarations")
 endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-  string(APPEND GENSRC_CFLAGS " -Wno-missing-variable-declarations")
+  string(APPEND GENSRC_FLAGS " -Wno-missing-variable-declarations")
 elseif(MSVC)
   # Restore warn C4100 (unreferenced formal parameter) back to w4
   remove_cc_flag(/w34100)
 endif()
 
-if(GENSRC_CFLAGS)
-  set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_CFLAGS}")
+set(GENSRC_C ${GENSRC})
+list(FILTER GENSRC_C INCLUDE REGEX ".*\.c$")
+set(GENSRC_CXX ${GENSRC})
+list(FILTER GENSRC_CXX INCLUDE REGEX ".*\.cc$")
+
+if(GENSRC_FLAGS)
+  set_source_files_properties(${GENSRC} PROPERTIES COMPILE_FLAGS "${GENSRC_FLAGS}")
 endif()
+
+if(GENSRC_CFLAGS)
+  set_source_files_properties(${GENSRC_C} PROPERTIES COMPILE_FLAGS "${GENSRC_CFLAGS}")
+endif()
+
+if(GENSRC_CXXFLAGS)
+  set_source_files_properties(${GENSRC_CXX} PROPERTIES COMPILE_FLAGS "${GENSRC_CXXFLAGS}")
+endif()
+
+unset(GENSRC_C)
+unset(GENSRC_CXX)
+unset(GENSRC_FLAGS)
 unset(GENSRC_CFLAGS)
+unset(GENSRC_CXXFLAGS)
 
 
 # NOTE: Disable clang-tidy because generated files are stored outside of the source,
@@ -377,6 +401,14 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
+if(WITH_VULKAN_METAL)
+  add_definitions(-DWITH_VULKAN_METAL)
+endif()
+
+if(WITH_VULKAN_BACKEND)
+  add_definitions(-DWITH_VULKAN_BACKEND)
+endif()
+
 if(WITH_GMP)
   add_definitions(-DWITH_GMP)
 endif()
@@ -418,7 +450,7 @@ set(SRC
   rna_access_internal.h
   rna_internal.h
   rna_internal_types.h
-  rna_mesh_utils.h
+  rna_mesh_utils.hh
 )
 
 set(LIB

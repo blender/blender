@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2019-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -374,7 +376,7 @@ def external_script_add_origin_if_needed(args: argparse.Namespace,
         #  - Rename remote "upstream" to "origin", which takes care of changing the names of
         #    remotes the local branches are tracking.
         #
-        #  - Change the URL to the "origin", which so was was still pointing to upstream.
+        #  - Change the URL to the "origin", which was still pointing to upstream.
         #
         #  - Re-introduce the "upstream" remote, with the same URL as it had prior to rename.
 
@@ -445,10 +447,17 @@ def external_scripts_update(args: argparse.Namespace,
                     # automatically and fails when the branch is available in multiple remotes.
                     if make_utils.git_local_branch_exists(args.git_command, submodule_branch):
                         call([args.git_command, "checkout", submodule_branch])
-                    elif make_utils.git_remote_exist(args.git_command, "origin"):
-                        call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
-                    elif make_utils.git_remote_exist(args.git_command, "upstream"):
-                        call([args.git_command, "checkout", "-t", f"upstream/{submodule_branch}"])
+                    else:
+                        if make_utils.git_remote_branch_exists(args.git_command, "origin", submodule_branch):
+                            call([args.git_command, "checkout", "-t", f"origin/{submodule_branch}"])
+                        elif make_utils.git_remote_exist(args.git_command, "upstream"):
+                            # For the Github style of upstream workflow create a local branch from
+                            # the upstream, but do not track it, so that we stick to the paradigm
+                            # that no local branches are tracking upstream, preventing possible
+                            # accidental commit to upstream.
+                            call([args.git_command, "checkout", "-b", submodule_branch,
+                                 f"upstream/{submodule_branch}", "--no-track"])
+
                 # Don't use extra fetch since all remotes of interest have been already fetched
                 # some lines above.
                 skip_msg += work_tree_update(args, use_fetch=False)

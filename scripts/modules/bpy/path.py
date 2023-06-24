@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -127,8 +129,10 @@ def clean_name(name, *, replace="_"):
     Returns a name with characters replaced that
     may cause problems under various circumstances,
     such as writing to a file.
+
     All characters besides A-Z/a-z, 0-9 are replaced with "_"
     or the *replace* argument if defined.
+
     :arg name: The path name.
     :type name: string or bytes
     :arg replace: The replacement for non-valid characters.
@@ -233,6 +237,7 @@ def display_name_to_filepath(name):
     """
     Performs the reverse of display_name using literal versions of characters
     which aren't supported in a filepath.
+
     :arg name: The display name to convert.
     :type name: string
     :return: The file path.
@@ -247,6 +252,7 @@ def display_name_from_filepath(name):
     """
     Returns the path stripped of directory and extension,
     ensured to be utf8 compatible.
+
     :arg name: The file path to convert.
     :type name: string
     :return: The display name.
@@ -262,6 +268,7 @@ def resolve_ncase(path):
     """
     Resolve a case insensitive path on a case sensitive system,
     returning a string with the path if found else return the original path.
+
     :arg path: The path name to resolve.
     :type path: string
     :return: The resolved path.
@@ -390,6 +397,7 @@ def basename(path):
     Equivalent to ``os.path.basename``, but skips a "//" prefix.
 
     Use for Windows compatibility.
+
     :return: The base name of the given path.
     :rtype: string
     """
@@ -399,6 +407,7 @@ def basename(path):
 def native_pathsep(path):
     """
     Replace the path separator with the systems native ``os.sep``.
+
     :arg path: The path to replace.
     :type path: string
     :return: The path with system native separators.

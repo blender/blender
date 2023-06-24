@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -160,7 +161,7 @@ static SpaceLink *image_create(const ScrArea *UNUSED(area), const Scene *UNUSED(
   return (SpaceLink *)simage;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void image_free(SpaceLink *sl)
 {
   SpaceImage *simage = (SpaceImage *)sl;
@@ -169,7 +170,7 @@ static void image_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback, add handlers */
-static void image_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void image_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -243,7 +244,7 @@ static void image_operatortypes(void)
   WM_operatortype_append(IMAGE_OT_tile_fill);
 }
 
-static void image_keymap(struct wmKeyConfig *keyconf)
+static void image_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Image Generic", SPACE_IMAGE, 0);
   WM_keymap_ensure(keyconf, "Image", SPACE_IMAGE, 0);
@@ -1116,7 +1117,7 @@ void ED_spacetype_image(void)
   art->listener = image_main_region_listener;
   BLI_addhead(&st->regiontypes, art);
 
-  /* regions: listview/buttons/scopes */
+  /* regions: list-view/buttons/scopes */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
@@ -1134,7 +1135,7 @@ void ED_spacetype_image(void)
   /* regions: tool(bar) */
   art = MEM_callocN(sizeof(ARegionType), "spacetype image region");
   art->regionid = RGN_TYPE_TOOLS;
-  art->prefsizex = 58; /* XXX */
+  art->prefsizex = (int)UI_TOOLBAR_WIDTH;
   art->prefsizey = 50; /* XXX */
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_tools_region_listener;

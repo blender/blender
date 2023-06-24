@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -50,7 +52,15 @@ AbstractTreeViewItem &TreeViewItemContainer::add_tree_item(
 void TreeViewItemContainer::foreach_item_recursive(ItemIterFn iter_fn, IterOptions options) const
 {
   for (const auto &child : children_) {
-    iter_fn(*child);
+    bool skip = false;
+    if (bool(options & IterOptions::SkipFiltered) && !child->is_filtered_visible_cached()) {
+      skip = true;
+    }
+
+    if (!skip) {
+      iter_fn(*child);
+    }
+
     if (bool(options & IterOptions::SkipCollapsed) && child->is_collapsed()) {
       continue;
     }
@@ -98,7 +108,7 @@ AbstractTreeViewItem *AbstractTreeView::find_matching_child(
     const AbstractTreeViewItem &lookup_item, const TreeViewOrItem &items)
 {
   for (const auto &iter_item : items.children_) {
-    if (lookup_item.matches_single(*iter_item)) {
+    if (lookup_item.matches(*iter_item)) {
       /* We have a matching item! */
       return iter_item.get();
     }
@@ -112,14 +122,26 @@ void AbstractTreeView::change_state_delayed()
   BLI_assert_msg(
       is_reconstructed(),
       "These state changes are supposed to be delayed until reconstruction is completed");
+
+/* Debug-only sanity check: Ensure only one item requests to be active. */
+#ifndef NDEBUG
+  bool has_active = false;
+  foreach_item([&has_active](AbstractTreeViewItem &item) {
+    if (item.should_be_active().value_or(false)) {
+      BLI_assert_msg(
+          !has_active,
+          "Only one view item should ever return true for its `should_be_active()` method");
+      has_active = true;
+    }
+  });
+#endif
+
   foreach_item([](AbstractTreeViewItem &item) { item.change_state_delayed(); });
 }
 
 /* ---------------------------------------------------------------------- */
 
-void AbstractTreeViewItem::tree_row_click_fn(struct bContext * /*C*/,
-                                             void *but_arg1,
-                                             void * /*arg2*/)
+void AbstractTreeViewItem::tree_row_click_fn(bContext * /*C*/, void *but_arg1, void * /*arg2*/)
 {
   uiButViewItem *item_but = (uiButViewItem *)but_arg1;
   AbstractTreeViewItem &tree_item = reinterpret_cast<AbstractTreeViewItem &>(*item_but->view_item);
@@ -159,7 +181,7 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
   UI_block_layout_set_current(block, &row);
 }
 
-void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
+void AbstractTreeViewItem::collapse_chevron_click_fn(bContext *C,
                                                      void * /*but_arg1*/,
                                                      void * /*arg2*/)
 {
@@ -168,7 +190,7 @@ void AbstractTreeViewItem::collapse_chevron_click_fn(struct bContext *C,
    * lookup the hovered item via context here. */
 
   const wmWindow *win = CTX_wm_window(C);
-  const ARegion *region = CTX_wm_region(C);
+  const ARegion *region = CTX_wm_menu(C) ? CTX_wm_menu(C) : CTX_wm_region(C);
   uiViewItemHandle *hovered_item_handle = UI_region_views_find_item_at(region,
                                                                        win->eventstate->xy);
 
@@ -293,6 +315,9 @@ void AbstractTreeViewItem::activate()
   BLI_assert_msg(get_tree_view().is_reconstructed(),
                  "Item activation can't be done until reconstruction is completed");
 
+  if (!is_activatable_) {
+    return;
+  }
   if (is_active()) {
     return;
   }
@@ -428,7 +453,8 @@ void TreeViewLayoutBuilder::build_from_tree(const AbstractTreeView &tree_view)
   uiLayoutColumn(box, false);
 
   tree_view.foreach_item([this](AbstractTreeViewItem &item) { build_row(item); },
-                         AbstractTreeView::IterOptions::SkipCollapsed);
+                         AbstractTreeView::IterOptions::SkipCollapsed |
+                             AbstractTreeView::IterOptions::SkipFiltered);
 
   UI_block_layout_set_current(&block(), &parent_layout);
 }
@@ -462,14 +488,16 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
     uiLayoutSetActive(overlap, false);
   }
 
-  uiLayoutRow(overlap, false);
+  uiLayout *row = uiLayoutRow(overlap, false);
+  /* Enable emboss for mouse hover highlight. */
+  uiLayoutSetEmboss(row, UI_EMBOSS);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
   /* After adding tree-row button (would disable hover highlighting). */
   UI_block_emboss_set(&block_, UI_EMBOSS_NONE);
 
-  uiLayout *row = uiLayoutRow(overlap, true);
+  row = uiLayoutRow(overlap, true);
   item.add_indent(*row);
   item.add_collapse_chevron(block_);
 
@@ -502,7 +530,7 @@ void TreeViewBuilder::ensure_min_rows_items(AbstractTreeView &tree_view)
   int tot_visible_items = 0;
   tree_view.foreach_item(
       [&tot_visible_items](AbstractTreeViewItem & /*item*/) { tot_visible_items++; },
-      AbstractTreeView::IterOptions::SkipCollapsed);
+      AbstractTreeView::IterOptions::SkipCollapsed | AbstractTreeView::IterOptions::SkipFiltered);
 
   if (tot_visible_items >= tree_view.min_rows_) {
     return;

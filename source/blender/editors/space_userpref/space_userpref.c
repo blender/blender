@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spuserpref
@@ -76,14 +77,14 @@ static SpaceLink *userpref_create(const ScrArea *area, const Scene *UNUSED(scene
   return (SpaceLink *)spref;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void userpref_free(SpaceLink *UNUSED(sl))
 {
   //  SpaceUserPref *spref = (SpaceUserPref *)sl;
 }
 
 /* spacetype; init callback */
-static void userpref_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void userpref_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
 
 static SpaceLink *userpref_duplicate(SpaceLink *sl)
 {
@@ -130,7 +131,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
 
 static void userpref_operatortypes(void) {}
 
-static void userpref_keymap(struct wmKeyConfig *UNUSED(keyconf)) {}
+static void userpref_keymap(wmKeyConfig *UNUSED(keyconf)) {}
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void userpref_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)

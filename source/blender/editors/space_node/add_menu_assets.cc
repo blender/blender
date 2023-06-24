@@ -1,9 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_catalog_tree.hh"
 #include "AS_asset_library.hh"
-#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "BLI_multi_value_map.hh"
 
@@ -45,14 +47,10 @@ static void node_add_menu_assets_listen_fn(const wmRegionListenerParams *params)
   }
 }
 
-struct LibraryAsset {
-  AssetLibraryReference library_ref;
-  AssetRepresentation &asset;
-};
-
 struct AssetItemTree {
   asset_system::AssetCatalogTree catalogs;
-  MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
+  MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
+      assets_per_path;
 };
 
 static AssetLibraryReference all_library_reference()
@@ -104,7 +102,8 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
   }
 
   /* Find all the matching node group assets for every catalog path. */
-  MultiValueMap<asset_system::AssetCatalogPath, LibraryAsset> assets_per_path;
+  MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
+      assets_per_path;
 
   AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
@@ -119,11 +118,11 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     return {};
   }
 
-  ED_assetlist_iterate(all_library_ref, [&](AssetHandle asset_handle) {
-    if (!ED_asset_filter_matches_asset(&type_filter, &asset_handle)) {
+  ED_assetlist_iterate(all_library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!ED_asset_filter_matches_asset(&type_filter, asset)) {
       return true;
     }
-    const AssetMetaData &meta_data = *ED_asset_handle_get_metadata(&asset_handle);
+    const AssetMetaData &meta_data = asset.get_metadata();
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
     if (tree_type == nullptr || IDP_Int(tree_type) != node_tree->type) {
       return true;
@@ -137,8 +136,7 @@ static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node
     if (catalog == nullptr) {
       return true;
     }
-    AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
-    assets_per_path.add(catalog->path, LibraryAsset{all_library_ref, *asset});
+    assets_per_path.add(catalog->path, &asset);
     return true;
   });
 
@@ -181,32 +179,25 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
   const asset_system::AssetCatalogPath &menu_path =
       *static_cast<const asset_system::AssetCatalogPath *>(menu_path_ptr.data);
 
-  const Span<LibraryAsset> asset_items = tree.assets_per_path.lookup(menu_path);
+  const Span<asset_system::AssetRepresentation *> assets = tree.assets_per_path.lookup(menu_path);
   asset_system::AssetCatalogTreeItem *catalog_item = tree.catalogs.find_item(menu_path);
   BLI_assert(catalog_item != nullptr);
 
-  if (asset_items.is_empty() && !catalog_item->has_children()) {
+  if (assets.is_empty() && !catalog_item->has_children()) {
     return;
   }
 
   uiLayout *layout = menu->layout;
   uiItemS(layout);
 
-  for (const LibraryAsset &item : asset_items) {
+  for (const asset_system::AssetRepresentation *asset : assets) {
     uiLayout *col = uiLayoutColumn(layout, false);
 
-    PointerRNA asset_ptr{nullptr, &RNA_AssetRepresentation, &item.asset};
+    PointerRNA asset_ptr{
+        nullptr, &RNA_AssetRepresentation, const_cast<asset_system::AssetRepresentation *>(asset)};
     uiLayoutSetContextPointer(col, "asset", &asset_ptr);
 
-    PointerRNA library_ptr{&screen.id,
-                           &RNA_AssetLibraryReference,
-                           const_cast<AssetLibraryReference *>(&item.library_ref)};
-    uiLayoutSetContextPointer(col, "asset_library_ref", &library_ptr);
-
-    uiItemO(col,
-            IFACE_(AS_asset_representation_name_get(&item.asset)),
-            ICON_NONE,
-            "NODE_OT_add_group_asset");
+    uiItemO(col, IFACE_(asset->get_name().c_str()), ICON_NONE, "NODE_OT_add_group_asset");
   }
 
   asset_system::AssetLibrary *all_library = get_all_library_once_available();

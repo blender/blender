@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2009-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -109,9 +111,7 @@ extern "C" char build_hash[];
 
 #include <cerrno>
 
-const char *bc_CustomData_get_layer_name(const struct CustomData *data,
-                                         const eCustomDataType type,
-                                         int n)
+const char *bc_CustomData_get_layer_name(const CustomData *data, const eCustomDataType type, int n)
 {
   int layer_index = CustomData_get_layer_index(data, type);
   if (layer_index < 0) {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -197,7 +198,7 @@ class BrickFunction : public mf::MultiFunction {
     return float2(tint, mortar);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<float3> &vector = params.readonly_single_input<float3>(0, "Vector");
     const VArray<ColorGeometry4f> &color1_values = params.readonly_single_input<ColorGeometry4f>(
@@ -220,7 +221,7 @@ class BrickFunction : public mf::MultiFunction {
     const bool store_fac = !r_fac.is_empty();
     const bool store_color = !r_color.is_empty();
 
-    for (int64_t i : mask) {
+    mask.foreach_index([&](const int64_t i) {
       const float2 f2 = brick(vector[i] * scale[i],
                               mortar_size[i],
                               mortar_smooth[i],
@@ -252,7 +253,7 @@ class BrickFunction : public mf::MultiFunction {
       if (store_fac) {
         r_fac[i] = f;
       }
-    }
+    });
   }
 };
 

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -22,8 +23,6 @@
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
-
-#include "BLT_translation.h"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"
@@ -165,11 +164,11 @@ void register_node_tree_type_sh()
   bNodeTreeType *tt = ntreeType_Shader = MEM_cnew<bNodeTreeType>("shader node tree type");
 
   tt->type = NTREE_SHADER;
-  strcpy(tt->idname, "ShaderNodeTree");
-  strcpy(tt->group_idname, "ShaderNodeGroup");
-  strcpy(tt->ui_name, N_("Shader Editor"));
+  STRNCPY(tt->idname, "ShaderNodeTree");
+  STRNCPY(tt->group_idname, "ShaderNodeGroup");
+  STRNCPY(tt->ui_name, N_("Shader Editor"));
   tt->ui_icon = ICON_NODE_MATERIAL;
-  strcpy(tt->ui_description, N_("Shader nodes"));
+  STRNCPY(tt->ui_description, N_("Shader nodes"));
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;
@@ -822,7 +821,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
   /* Recreate links between copied nodes. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->runtime->tmp_flag >= 0) {
-      /* Naming can be confusing here. We use original nodelink name for from/to prefix.
+      /* Naming can be confusing here. We use original node-link name for from/to prefix.
        * The final link is in reversed order. */
       int socket_index;
       LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->inputs, socket_index) {

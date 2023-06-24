@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
@@ -11,8 +13,6 @@
 #include "BKE_node.hh"
 #include "BKE_object.h"
 
-#include "BLT_translation.h"
-
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
@@ -21,6 +21,8 @@
 #include "RNA_prototypes.h"
 
 #include "UI_resources.h"
+
+#include "BLT_translation.h"
 
 #include "node_common.h"
 
@@ -96,6 +98,7 @@ static bool geometry_node_tree_socket_type_valid(bNodeTreeType * /*treetype*/,
                                                                    SOCK_VECTOR,
                                                                    SOCK_RGBA,
                                                                    SOCK_BOOLEAN,
+                                                                   SOCK_ROTATION,
                                                                    SOCK_INT,
                                                                    SOCK_STRING,
                                                                    SOCK_OBJECT,
@@ -111,11 +114,11 @@ void register_node_tree_type_geo()
   bNodeTreeType *tt = ntreeType_Geometry = static_cast<bNodeTreeType *>(
       MEM_callocN(sizeof(bNodeTreeType), "geometry node tree type"));
   tt->type = NTREE_GEOMETRY;
-  strcpy(tt->idname, "GeometryNodeTree");
-  strcpy(tt->group_idname, "GeometryNodeGroup");
-  strcpy(tt->ui_name, N_("Geometry Node Editor"));
+  STRNCPY(tt->idname, "GeometryNodeTree");
+  STRNCPY(tt->group_idname, "GeometryNodeGroup");
+  STRNCPY(tt->ui_name, N_("Geometry Node Editor"));
   tt->ui_icon = ICON_GEOMETRY_NODES;
-  strcpy(tt->ui_description, N_("Geometry nodes"));
+  STRNCPY(tt->ui_description, N_("Geometry nodes"));
   tt->rna_ext.srna = &RNA_GeometryNodeTree;
   tt->update = geometry_node_tree_update;
   tt->get_from_context = geometry_node_tree_get_from_context;

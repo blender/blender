@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0 */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "testing/testing.h"
 
@@ -90,7 +92,7 @@ TEST(string, StrCopyUTF8_TruncateEncoding)
 TEST(string, StrCopyUTF8_TerminateEncodingEarly)
 {
   /* A UTF8 sequence that has a null byte before the sequence ends.
-   * Ensure the the UTF8 sequence does not step over the null byte. */
+   * Ensure the UTF8 sequence does not step over the null byte. */
 #define STRNCPY_UTF8_TERMINATE_EARLY(byte_size, ...) \
   { \
     char src[] = {__VA_ARGS__, 0}; \
@@ -118,6 +120,33 @@ TEST(string, StrCopyUTF8_TerminateEncodingEarly)
   STRNCPY_UTF8_TERMINATE_EARLY(1, 96);
 
 #undef STRNCPY_UTF8_TERMINATE_EARLY
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name String Concatenate
+ * \{ */
+
+TEST(string, StrCat)
+{
+#define STR_N_CAT(dst_init, dst_size, src, result_expect) \
+  { \
+    char dst[dst_size + 1] = dst_init; \
+    dst[dst_size] = 0xff; \
+    BLI_strncat(dst, src, dst_size); \
+    EXPECT_STREQ(dst, result_expect); \
+    EXPECT_EQ(dst[dst_size], 0xff); \
+  }
+
+  STR_N_CAT("", 1, "", "");
+  STR_N_CAT("", 1, "Y", "");
+  STR_N_CAT("", 2, "Y", "Y");
+  STR_N_CAT("", 2, "YZ", "Y");
+  STR_N_CAT("X", 2, "YZ", "X");
+  STR_N_CAT("ABC", 4, "XYZ", "ABC");
+  STR_N_CAT("ABC", 7, "XYZ", "ABCXYZ");
+#undef STR_N_CAT
 }
 
 /** \} */
@@ -208,7 +237,7 @@ TEST(string, StrPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -218,7 +247,7 @@ TEST(string, StrPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -267,7 +296,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -277,7 +306,7 @@ TEST(string, StrRPartition)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -308,7 +337,7 @@ TEST(string, StrPartitionEx)
   {
     const char *str = "mate.rial";
 
-    /* "mate.rial" over "mate" -> "mate.rial", NULL, NULL, 4 */
+    /* "mate.rial" over "mate" -> "mate.rial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -357,7 +386,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -367,7 +396,7 @@ TEST(string, StrPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_partition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -416,7 +445,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "";
 
-    /* "" -> "", NULL, NULL, 0 */
+    /* "" -> "", nullptr, nullptr, 0 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 0);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -426,7 +455,7 @@ TEST(string, StrRPartitionUtf8)
   {
     const char *str = "material";
 
-    /* "material" -> "material", NULL, NULL, 8 */
+    /* "material" -> "material", nullptr, nullptr, 8 */
     pre_len = BLI_str_rpartition_utf8(str, delim, &sep, &suf);
     EXPECT_EQ(pre_len, 8);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -458,7 +487,7 @@ TEST(string, StrPartitionExUtf8)
   {
     const char *str = "mate\xe2\x98\xafrial";
 
-    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", NULL, NULL, 4 */
+    /* "mate\xe2\x98\xafrial" over "mate" -> "mate\xe2\x98\xafrial", nullptr, nullptr, 4 */
     pre_len = BLI_str_partition_ex_utf8(str, str + 4, delim, &sep, &suf, true);
     EXPECT_EQ(pre_len, 4);
     EXPECT_EQ(sep, (void *)nullptr);
@@ -1332,3 +1361,18 @@ TEST_F(StringEscape, Control)
 }
 
 /** \} */
+
+TEST(BLI_string, bounded_strcpy)
+{
+  {
+    char str[8];
+    STRNCPY(str, "Hello");
+    EXPECT_STREQ(str, "Hello");
+  }
+
+  {
+    char str[8];
+    STRNCPY(str, "Hello, World!");
+    EXPECT_STREQ(str, "Hello, ");
+  }
+}

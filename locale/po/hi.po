@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -671,26 +671,6 @@ msgid "Fill"
 msgstr "भरण"
 
 
-msgid "Smooth"
-msgstr "चिकना"
-
-
-msgid "Grab"
-msgstr "स्थानांतर"
-
-
-msgid "Push"
-msgstr "दबाव"
-
-
-msgid "Pinch"
-msgstr "चुटकी"
-
-
-msgid "Clone"
-msgstr "प्रतिरूप"
-
-
 msgid "Draw"
 msgstr "चित्रण"
 
@@ -701,6 +681,10 @@ msgstr "धुंधला"
 
 msgid "Smear"
 msgstr "धब्बा"
+
+
+msgid "Smooth"
+msgstr "चिकना"
 
 
 msgid "Iterations"
@@ -1814,14 +1798,6 @@ msgid "Box"
 msgstr "सन्दूक"
 
 
-msgid "Bend"
-msgstr "मोड"
-
-
-msgid "Expand"
-msgstr "विस्तृत करें"
-
-
 msgid "Loop"
 msgstr "कुण्डली"
 
@@ -1832,6 +1808,18 @@ msgstr "प्रतिरूप पारदर्शिता"
 
 msgid "Clone Image"
 msgstr "प्रतिरूप छवि"
+
+
+msgid "Push"
+msgstr "दबाव"
+
+
+msgid "Grab"
+msgstr "स्थानांतर"
+
+
+msgid "Expand"
+msgstr "विस्तृत करें"
 
 
 msgid "Local"
@@ -1850,6 +1838,10 @@ msgid "Add Color"
 msgstr "रंग जोड़ें"
 
 
+msgid "Pinch"
+msgstr "चुटकी"
+
+
 msgid "Puff"
 msgstr "कश"
 
@@ -1860,14 +1852,6 @@ msgstr "दोहराएँ"
 
 msgid "Clamp"
 msgstr "कीलक"
-
-
-msgid "Soften"
-msgstr "मॄदु"
-
-
-msgid "Mask"
-msgstr "आवरण"
 
 
 msgid "Brush"
@@ -1898,44 +1882,16 @@ msgid "View Plane"
 msgstr "दृश्य समतल"
 
 
-msgid "Sculpt Tool"
-msgstr "शिल्प यंत्र"
-
-
-msgid "Clay"
-msgstr "मिट्टी"
-
-
-msgid "Blob"
-msgstr "बूँद"
-
-
-msgid "Flatten"
-msgstr "समतल"
-
-
-msgid "Thumb"
-msgstr "अंगूठा"
-
-
-msgid "Pose"
-msgstr "मुद्रा"
-
-
-msgid "Rotate"
-msgstr "घूर्णन"
-
-
-msgid "Cloth"
-msgstr "कपड़ा"
-
-
 msgid "Dots"
 msgstr "बिन्दु्"
 
 
 msgid "Use Vertex"
 msgstr "शिरोबिन्दु का उपयोग करें"
+
+
+msgid "Sculpt Tool"
+msgstr "शिल्प यंत्र"
 
 
 msgid "Relax"
@@ -2234,6 +2190,10 @@ msgid "Hair"
 msgstr "बाल"
 
 
+msgid "Cloth"
+msgstr "कपड़ा"
+
+
 msgid "Edges"
 msgstr "किनारों"
 
@@ -2368,6 +2328,10 @@ msgstr "शिल्प रूप"
 
 msgid "Motion Path"
 msgstr "गति पथ"
+
+
+msgid "Pose"
+msgstr "मुद्रा"
 
 
 msgid "Rigid Body Constraint"
@@ -2843,6 +2807,10 @@ msgid "Flip"
 msgstr "पलटें"
 
 
+msgid "Mask"
+msgstr "आवरण"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "छांटन"
@@ -3097,10 +3065,6 @@ msgid "Dynamic Paint modifier"
 msgstr "गतिकी रंग संशोधक"
 
 
-msgid "Canvas"
-msgstr "चित्रपटी"
-
-
 msgid "Alive"
 msgstr "जीवित"
 
@@ -3258,10 +3222,6 @@ msgid "S"
 msgstr "एस"
 
 
-msgid "Jpeg"
-msgstr "जेपीईजी"
-
-
 msgid "To"
 msgstr "करने के लिए"
 
@@ -3288,6 +3248,10 @@ msgstr "चक्रण"
 
 msgid "Zoom"
 msgstr "निकट करें"
+
+
+msgid "Soften"
+msgstr "मॄदु"
 
 
 msgid "Shadow"
@@ -3328,6 +3292,10 @@ msgstr "लाल सरणि"
 
 msgid "Motion Blur"
 msgstr "गतिकीय धुंधलापन"
+
+
+msgid "Rotate"
+msgstr "घूर्णन"
 
 
 msgid "Translate"
@@ -3704,6 +3672,10 @@ msgid "Duplicate Curve"
 msgstr "अनुकृति वक्र"
 
 
+msgid "Bend"
+msgstr "मोड"
+
+
 msgid "Shrink/Fatten"
 msgstr "सिकोड़ें/मोटा करें"
 
@@ -3851,8 +3823,16 @@ msgid "Modifier"
 msgstr "संशोधक"
 
 
+msgid "Flatten"
+msgstr "समतल"
+
+
 msgid "Sigma"
 msgstr "सिग्मा"
+
+
+msgid "Next Keyframe"
+msgstr "अगले अनुबोधक चिन्ह"
 
 
 msgid "Create a new image"
@@ -4167,6 +4147,10 @@ msgid "Reset"
 msgstr "पूर्ववत करें"
 
 
+msgid "Clone"
+msgstr "प्रतिरूप"
+
+
 msgid "Fill the whole mask with a given value, or invert its values"
 msgstr "पूरे मुखौटा एक दिए गए मान के साथ भरने, या इसके मान पलटना"
 
@@ -4174,10 +4158,6 @@ msgstr "पूरे मुखौटा एक दिए गए मान के
 msgctxt "Operator"
 msgid "Remove Doubles"
 msgstr "युगल हटाएँ"
-
-
-msgid "Next Keyframe"
-msgstr "अगले अनुबोधक चिन्ह"
 
 
 msgctxt "Operator"
@@ -4677,6 +4657,10 @@ msgid "Shapes"
 msgstr "आकृतियाँ"
 
 
+msgid "Canvas"
+msgstr "चित्रपटी"
+
+
 msgid "Lock X"
 msgstr "तालाबंदी x"
 
@@ -4875,6 +4859,10 @@ msgid "New Window"
 msgstr "नई खिडकी"
 
 
+msgid "Base"
+msgstr "आधार"
+
+
 msgid "Case"
 msgstr "प्रकरण"
 
@@ -4989,10 +4977,6 @@ msgstr "रेखीय मोटर को सक्षम करें"
 
 msgid "Rigid Body Object"
 msgstr "कठोर वस्तु"
-
-
-msgid "Base"
-msgstr "आधार"
 
 
 msgid "Rest Density"
@@ -5420,10 +5404,6 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "कोई पाठ या संचिका निर्दिष्ट नोड में, संकलन के लिए कुछ भी नहीं"
 
 
-msgid "OSL query failed to open "
-msgstr "OSL क्वेरी को खोलने में विफल रहा "
-
-
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "बाह्य shader स्क्रिप्ट .osl या .oso एक्सटेंशन होना चाहिए, या एक मॉड्यूल का नाम हो"
 
@@ -5594,10 +5574,6 @@ msgstr "अक्ष"
 msgctxt "Operator"
 msgid "Remove"
 msgstr "हटाएँ"
-
-
-msgid "Out"
-msgstr "बाहर"
 
 
 msgctxt "Operator"
@@ -6402,6 +6378,10 @@ msgid "Scene not found"
 msgstr "दृश्य नहीं मिला"
 
 
+msgid "Out"
+msgstr "बाहर"
+
+
 msgid "<Unknown Modifier>"
 msgstr "< अज्ञात संशोधक >"
 
@@ -7135,10 +7115,6 @@ msgid "Japanese (日本語)"
 msgstr "जापानी (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "डच (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "इतालवी (Italiano)"
 
@@ -7243,10 +7219,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "हिब्रू (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "एस्टोनियाई (Eestlane)"
-
-
 msgid "Spanish from Spain (Español de España)"
 msgstr "स्पेनिश स्पेन से (Español de España)"
 
@@ -7261,10 +7233,6 @@ msgstr "उज़्बेक (Oʻzbek)"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "उज़्बेक सिरिलिक (Ўзбек)"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "हिन्दी (मानक हिन्दी)"
 
 
 msgid "Complete"

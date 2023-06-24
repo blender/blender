@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -99,7 +100,7 @@ static void filtcolumf(float *point, int y, int skip)
   }
 }
 
-void IMB_filtery(struct ImBuf *ibuf)
+void IMB_filtery(ImBuf *ibuf)
 {
   uchar *point = ibuf->byte_buffer.data;
   float *pointf = ibuf->float_buffer.data;
@@ -136,7 +137,7 @@ void IMB_filtery(struct ImBuf *ibuf)
   }
 }
 
-void imb_filterx(struct ImBuf *ibuf)
+void imb_filterx(ImBuf *ibuf)
 {
   uchar *point = ibuf->byte_buffer.data;
   float *pointf = ibuf->float_buffer.data;
@@ -290,7 +291,7 @@ static void imb_filterN(ImBuf *out, ImBuf *in)
   }
 }
 
-void IMB_filter(struct ImBuf *ibuf)
+void IMB_filter(ImBuf *ibuf)
 {
   IMB_filtery(ibuf);
   imb_filterx(ibuf);
@@ -396,7 +397,7 @@ static int check_pixel_assigned(
   return res;
 }
 
-void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
+void IMB_filter_extend(ImBuf *ibuf, char *mask, int filter)
 {
   const int width = ibuf->x;
   const int height = ibuf->y;

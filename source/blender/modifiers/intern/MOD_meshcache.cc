@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -25,7 +27,7 @@
 #include "BKE_deform.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_wrapper.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
@@ -180,9 +182,10 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_mesh_calc_relative_deform(
           BKE_mesh_poly_offsets(me),
           me->totpoly,
-          BKE_mesh_corner_verts(me),
+          me->corner_verts().data(),
           me->totvert,
-          BKE_mesh_vert_positions(me),       /* From the original Mesh. */
+          reinterpret_cast<const float(*)[3]>(
+              me->vert_positions().data()),  /* From the original Mesh. */
           (const float(*)[3])vertexCos_Real, /* the input we've been given (shape keys!) */
           (const float(*)[3])vertexCos,      /* The result of this modifier. */
           vertexCos_New                      /* The result of this function. */
@@ -283,7 +286,7 @@ static void deformVerts(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
   }
   meshcache_do(mcmd, scene, ctx->object, mesh_src, vertexCos, verts_num);
 
@@ -306,7 +309,7 @@ static void deformVertsEM(ModifierData *md,
 
   if (ctx->object->type == OB_MESH && mcmd->defgrp_name[0] != '\0') {
     /* `mesh_src` is only needed for vertex groups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
   }
   if (mesh_src != nullptr) {
     BKE_mesh_wrapper_ensure_mdata(mesh_src);

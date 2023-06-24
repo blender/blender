@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -532,6 +534,14 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Returns the number of bytes referenced by this Span.
+   */
+  constexpr int64_t size_in_bytes() const
+  {
+    return sizeof(T) * size_;
+  }
+
+  /**
    * Returns true if the size is zero.
    */
   constexpr bool is_empty() const
@@ -589,7 +599,8 @@ template<typename T> class MutableSpan {
 
   constexpr T &operator[](const int64_t index) const
   {
-    BLI_assert(index < this->size());
+    BLI_assert(index >= 0);
+    BLI_assert(index < size_);
     return data_[index];
   }
 
@@ -736,6 +747,15 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Does a constant time check to see if the pointer points to a value in the referenced array.
+   * Return true if it is, otherwise false.
+   */
+  constexpr bool contains_ptr(const T *ptr) const
+  {
+    return (this->begin() <= ptr) && (ptr < this->end());
+  }
+
+  /**
    * Copy all values from another span into this span. This invokes undefined behavior when the
    * destination contains uninitialized data and T is not trivially copy constructible.
    * The size of both spans is expected to be the same.
@@ -757,17 +777,5 @@ template<typename T> class MutableSpan {
     return MutableSpan<NewT>(reinterpret_cast<NewT *>(data_), new_size);
   }
 };
-
-/** This is defined here, because in `BLI_index_range.hh` `Span` is not yet defined. */
-inline Span<int64_t> IndexRange::as_span() const
-{
-  const int64_t min_required_size = start_ + size_;
-  const int64_t current_array_size = s_current_array_size.load(std::memory_order_acquire);
-  const int64_t *current_array = s_current_array.load(std::memory_order_acquire);
-  if (min_required_size <= current_array_size) {
-    return Span<int64_t>(current_array + start_, size_);
-  }
-  return this->as_span_internal();
-}
 
 } /* namespace blender */

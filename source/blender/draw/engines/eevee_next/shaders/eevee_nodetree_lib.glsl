@@ -237,18 +237,51 @@ float F_eta(float a, float b)
 {
   return a;
 }
+
+void output_renderpass_color(int id, vec4 color)
+{
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  if (id >= 0) {
+    ivec2 texel = ivec2(gl_FragCoord.xy);
+    imageStore(rp_color_img, ivec3(texel, id), color);
+  }
+#endif
+}
+
+void output_renderpass_value(int id, float value)
+{
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  if (id >= 0) {
+    ivec2 texel = ivec2(gl_FragCoord.xy);
+    imageStore(rp_value_img, ivec3(texel, id), vec4(value));
+  }
+#endif
+}
+
+void clear_aovs()
+{
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
+    output_renderpass_color(rp_buf.color_len + i, vec4(0));
+  }
+  for (int i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
+    output_renderpass_value(rp_buf.value_len + i, 0.0);
+  }
+#endif
+}
+
 void output_aov(vec4 color, float value, uint hash)
 {
-#if defined(MAT_AOV_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
-  for (uint i = 0; i < AOV_MAX && i < aov_buf.color_len; i++) {
-    if (aov_buf.hash_color[i] == hash) {
-      imageStore(aov_color_img, ivec3(ivec2(gl_FragCoord.xy), i), color);
+#if defined(MAT_RENDER_PASS_SUPPORT) && defined(GPU_FRAGMENT_SHADER)
+  for (uint i = 0; i < AOV_MAX && i < rp_buf.aovs.color_len; i++) {
+    if (rp_buf.aovs.hash_color[i].x == hash) {
+      imageStore(rp_color_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.color_len + i), color);
       return;
     }
   }
-  for (uint i = 0; i < AOV_MAX && i < aov_buf.value_len; i++) {
-    if (aov_buf.hash_value[i] == hash) {
-      imageStore(aov_value_img, ivec3(ivec2(gl_FragCoord.xy), i), vec4(value));
+  for (uint i = 0; i < AOV_MAX && i < rp_buf.aovs.value_len; i++) {
+    if (rp_buf.aovs.hash_value[i].x == hash) {
+      imageStore(rp_value_img, ivec3(ivec2(gl_FragCoord.xy), rp_buf.value_len + i), vec4(value));
       return;
     }
   }

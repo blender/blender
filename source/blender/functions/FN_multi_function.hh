@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -50,8 +52,8 @@ class MultiFunction {
    * - Automatic index mask offsetting to avoid large temporary intermediate arrays that are mostly
    *   unused.
    */
-  void call_auto(IndexMask mask, Params params, Context context) const;
-  virtual void call(IndexMask mask, Params params, Context context) const = 0;
+  void call_auto(const IndexMask &mask, Params params, Context context) const;
+  virtual void call(const IndexMask &mask, Params params, Context context) const = 0;
 
   virtual uint64_t hash() const
   {
@@ -135,11 +137,6 @@ class MultiFunction {
 
   virtual ExecutionHints get_execution_hints() const;
 };
-
-inline ParamsBuilder::ParamsBuilder(const MultiFunction &fn, int64_t mask_size)
-    : ParamsBuilder(fn.signature(), IndexMask(mask_size))
-{
-}
 
 inline ParamsBuilder::ParamsBuilder(const MultiFunction &fn, const IndexMask *mask)
     : ParamsBuilder(fn.signature(), *mask)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -352,7 +353,8 @@ typedef struct IDOverrideLibrary {
   /** List of IDOverrideLibraryProperty structs. */
   ListBase properties;
 
-  /** Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
+  /**
+   * Override hierarchy root ID. Usually the actual root of the hierarchy, but not always
    * in degenerated cases.
    *
    * All liboverrides of a same hierarchy (e.g. a character collection) share the same root.
@@ -709,6 +711,15 @@ enum {
    * was kept around (because e.g. detected as user-edited).
    */
   LIB_LIB_OVERRIDE_RESYNC_LEFTOVER = 1 << 13,
+  /**
+   * This `id` was explicitly copied as part of a clipboard copy operation.
+   * When reading the clipboard back, this can be used to check which ID's are
+   * intended to be part of the clipboard, compared with ID's that were indirectly referenced.
+   *
+   * While the flag is typically cleared, a saved file may have this set for some data-blocks,
+   * so it must be treated as dirty.
+   */
+  LIB_CLIPBOARD_MARK = 1 << 14,
 };
 
 /**
@@ -863,12 +874,23 @@ enum {
    */
   LIB_TAG_UNDO_OLD_ID_REUSED_UNCHANGED = 1 << 17,
   /**
-   * ID has be re-read in-place, the ID address is the same as in the old BMain, but the content is
+   * ID is being re-used from the old Main (instead of read from memfile), during memfile undo
+   * processing, because it is a 'NO_UNDO' type of ID.
+   *
+   * \note: Also means that such ID does not need to be lib-linked during undo readfile process. It
+   * does need to be relinked in a different way however, doing a `session_uuid`-based lookup into
+   * the newly read main database.
+   *
+   * RESET_AFTER_USE
+   */
+  LIB_TAG_UNDO_OLD_ID_REUSED_NOUNDO = 1 << 18,
+  /**
+   * ID has be re-read in-place, the ID address is the same as in the old main, but the content is
    * different.
    *
    * RESET_AFTER_USE
    */
-  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 18,
+  LIB_TAG_UNDO_OLD_ID_REREAD_IN_PLACE = 1 << 19,
 
   /* ------------------------------------------------------------------------------------------- */
   /**
@@ -1009,7 +1031,7 @@ typedef enum IDRecalcFlag {
    * changed, and the shader is to be recompiled.
    * For objects it means that the draw batch cache is to be redone. */
   ID_RECALC_SHADING = (1 << 7),
-  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMATERS
+  /* TODO(sergey): Consider adding an explicit ID_RECALC_SHADING_PARAMETERS
    * which can be used for cases when only socket value changed, to speed up
    * redraw update in that case. */
 
@@ -1071,11 +1093,13 @@ typedef enum IDRecalcFlag {
   /* The node tree has changed in a way that affects its output nodes. */
   ID_RECALC_NTREE_OUTPUT = (1 << 25),
 
+  /* Hierarchy of collection and object within collection changed. */
+  ID_RECALC_HIERARCHY = (1 << 26),
+
   /* Provisioned flags.
    *
    * Not for actual use. The idea of them is to have all bits of the `IDRecalcFlag` defined to a
    * known value, silencing sanitizer warnings when checking bits of the ID_RECALC_ALL. */
-  ID_RECALC_PROVISION_26 = (1 << 26),
   ID_RECALC_PROVISION_27 = (1 << 27),
   ID_RECALC_PROVISION_28 = (1 << 28),
   ID_RECALC_PROVISION_29 = (1 << 29),
@@ -1148,6 +1172,7 @@ typedef enum IDRecalcFlag {
 #define FILTER_ID_SCR (1ULL << 37)
 #define FILTER_ID_WM (1ULL << 38)
 #define FILTER_ID_LI (1ULL << 39)
+#define FILTER_ID_GP (1ULL << 40)
 
 #define FILTER_ID_ALL \
   (FILTER_ID_AC | FILTER_ID_AR | FILTER_ID_BR | FILTER_ID_CA | FILTER_ID_CU_LEGACY | \
@@ -1156,7 +1181,7 @@ typedef enum IDRecalcFlag {
    FILTER_ID_NT | FILTER_ID_OB | FILTER_ID_PA | FILTER_ID_PAL | FILTER_ID_PC | FILTER_ID_SCE | \
    FILTER_ID_SPK | FILTER_ID_SO | FILTER_ID_TE | FILTER_ID_TXT | FILTER_ID_VF | FILTER_ID_WO | \
    FILTER_ID_CF | FILTER_ID_WS | FILTER_ID_LP | FILTER_ID_CV | FILTER_ID_PT | FILTER_ID_VO | \
-   FILTER_ID_SIM | FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI)
+   FILTER_ID_SIM | FILTER_ID_KE | FILTER_ID_SCR | FILTER_ID_WM | FILTER_ID_LI | FILTER_ID_GP)
 
 /**
  * This enum defines the index assigned to each type of IDs in the array returned by
@@ -1188,7 +1213,7 @@ typedef enum IDRecalcFlag {
  * required to address all remaining relationship cases.
  * See e.g. how #BKE_library_unused_linked_data_set_tag is doing this.
  */
-enum {
+typedef enum eID_Index {
   /* Special case: Library, should never ever depend on any other type. */
   INDEX_ID_LI = 0,
 
@@ -1247,6 +1272,7 @@ enum {
   INDEX_ID_CA,
   INDEX_ID_SPK,
   INDEX_ID_LP,
+  INDEX_ID_GP,
 
   /* Collection and object types. */
   INDEX_ID_OB,
@@ -1268,8 +1294,9 @@ enum {
 
   /* Special values. */
   INDEX_ID_NULL,
-  INDEX_ID_MAX,
-};
+} eID_Index;
+
+#define INDEX_ID_MAX (INDEX_ID_NULL + 1)
 
 #ifdef __cplusplus
 }

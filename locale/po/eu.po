@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Ainhize & Miriam <agoenaga006@ikasle.ehu.eus>\n"
 "Language-Team: Euskara <agoenaga006@ikasle.ehu.eus>\n"
@@ -1719,6 +1719,10 @@ msgid "Continue"
 msgstr "Jarraitu"
 
 
+msgid "Temperature"
+msgstr "Tenperatura"
+
+
 msgctxt "Sequence"
 msgid "Type"
 msgstr "Mota"
@@ -1915,10 +1919,6 @@ msgstr "Altua"
 
 msgid "Refraction"
 msgstr "Errefrakzioa"
-
-
-msgid "Temperature"
-msgstr "Tenperatura"
 
 
 msgctxt "Image"
@@ -2400,10 +2400,6 @@ msgid "Japanese (日本語)"
 msgstr "Japoniera (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "Nederlandera (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "Italiera (Italiano)"
 
@@ -2512,10 +2508,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "Hebreera (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "Estoniera (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "Esperantoa (Esperanto)"
 
@@ -2534,14 +2526,6 @@ msgstr "Uzbekera (Oʻzbek)"
 
 msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "Uzbekera Zirilikoa (Ўзбек)"
-
-
-msgid "Hindi (मानक हिन्दी)"
-msgstr "Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "Vietnamera (tiếng Việt)"
 
 
 msgid "Complete"

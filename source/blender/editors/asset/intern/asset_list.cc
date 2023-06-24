@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edasset
@@ -29,7 +31,6 @@
 #include "../space_file/file_indexer.h"
 #include "../space_file/filelist.h"
 
-#include "ED_asset_handle.h"
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
@@ -107,6 +108,8 @@ class AssetList : NonCopyable {
   AssetList(AssetList &&other) = default;
   ~AssetList() = default;
 
+  static bool listen(const wmNotifier &notifier);
+
   void setup();
   void fetch(const bContext &C);
   void ensurePreviewsJob(const bContext *C);
@@ -117,8 +120,8 @@ class AssetList : NonCopyable {
   bool needsRefetch() const;
   bool isLoaded() const;
   asset_system::AssetLibrary *asset_library() const;
+  void iterate(AssetListHandleIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
-  bool listen(const wmNotifier &notifier) const;
   int size() const;
   void tagMainDataDirty() const;
   void remapID(ID *id_old, ID *id_new) const;
@@ -153,11 +156,11 @@ void AssetList::setup()
   const bool use_asset_indexer = !USER_EXPERIMENTAL_TEST(&U, no_asset_indexing);
   filelist_setindexer(files, use_asset_indexer ? &file_indexer_asset : &file_indexer_noop);
 
-  char path[FILE_MAXDIR] = "";
+  char dirpath[FILE_MAX_LIBEXTRA] = "";
   if (!asset_lib_path.empty()) {
-    STRNCPY(path, asset_lib_path.c_str());
+    STRNCPY(dirpath, asset_lib_path.c_str());
   }
-  filelist_setdir(files, path);
+  filelist_setdir(files, dirpath);
 }
 
 void AssetList::fetch(const bContext &C)
@@ -193,7 +196,7 @@ asset_system::AssetLibrary *AssetList::asset_library() const
   return reinterpret_cast<asset_system::AssetLibrary *>(filelist_asset_library(filelist_));
 }
 
-void AssetList::iterate(AssetListIterFn fn) const
+void AssetList::iterate(AssetListHandleIterFn fn) const
 {
   FileList *files = filelist_;
   int numfiles = filelist_files_ensure(files);
@@ -210,6 +213,16 @@ void AssetList::iterate(AssetListIterFn fn) const
       break;
     }
   }
+}
+
+void AssetList::iterate(AssetListIterFn fn) const
+{
+  iterate([&fn](AssetHandle handle) {
+    asset_system::AssetRepresentation &asset =
+        reinterpret_cast<blender::asset_system::AssetRepresentation &>(*handle.file_data->asset);
+
+    return fn(asset);
+  });
 }
 
 void AssetList::ensurePreviewsJob(const bContext *C)
@@ -257,7 +270,7 @@ AssetHandle AssetList::asset_get_by_index(int index) const
 /**
  * \return True if the asset-list needs a UI redraw.
  */
-bool AssetList::listen(const wmNotifier &notifier) const
+bool AssetList::listen(const wmNotifier &notifier)
 {
   switch (notifier.category) {
     case NC_ID: {
@@ -462,6 +475,14 @@ bool ED_assetlist_storage_has_list_for_library(const AssetLibraryReference *libr
   return AssetListStorage::lookup_list(*library_reference) != nullptr;
 }
 
+void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListHandleIterFn fn)
+{
+  AssetList *list = AssetListStorage::lookup_list(library_reference);
+  if (list) {
+    list->iterate(fn);
+  }
+}
+
 void ED_assetlist_iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
 {
   AssetList *list = AssetListStorage::lookup_list(library_reference);
@@ -480,11 +501,19 @@ asset_system::AssetLibrary *ED_assetlist_library_get_once_available(
   return list->asset_library();
 }
 
-AssetHandle ED_assetlist_asset_get_by_index(const AssetLibraryReference *library_reference,
-                                            int asset_index)
+AssetHandle ED_assetlist_asset_handle_get_by_index(const AssetLibraryReference *library_reference,
+                                                   int asset_index)
 {
   const AssetList *list = AssetListStorage::lookup_list(*library_reference);
   return list->asset_get_by_index(asset_index);
+}
+
+asset_system::AssetRepresentation *ED_assetlist_asset_get_by_index(
+    const AssetLibraryReference &library_reference, int asset_index)
+{
+  AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&library_reference,
+                                                                    asset_index);
+  return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
 }
 
 ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
@@ -497,14 +526,9 @@ ImBuf *ED_assetlist_asset_image_get(const AssetHandle *asset_handle)
   return filelist_geticon_image_ex(asset_handle->file_data);
 }
 
-bool ED_assetlist_listen(const AssetLibraryReference *library_reference,
-                         const wmNotifier *notifier)
+bool ED_assetlist_listen(const wmNotifier *notifier)
 {
-  AssetList *list = AssetListStorage::lookup_list(*library_reference);
-  if (list) {
-    return list->listen(*notifier);
-  }
-  return false;
+  return AssetList::listen(*notifier);
 }
 
 int ED_assetlist_size(const AssetLibraryReference *library_reference)

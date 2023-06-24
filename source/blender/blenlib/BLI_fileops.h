@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -38,7 +39,17 @@ extern "C" {
  * (most likely doesn't exist or no access).
  */
 int BLI_exists(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-int BLI_copy(const char *file, const char *to) ATTR_NONNULL();
+
+/**
+ * \return 0 on success.
+ */
+int BLI_copy(const char *path_src, const char *path_dst) ATTR_NONNULL();
+/**
+ * When `path_src` points to a directory, moves all its contents into `path_dst`,
+ * else rename `path_src` itself to `path_dst`.
+ * \return 0 on success.
+ */
+int BLI_path_move(const char *path_src, const char *path_dst) ATTR_NONNULL();
 
 /**
  * Rename a file or directory.
@@ -76,13 +87,8 @@ int BLI_delete(const char *path, bool dir, bool recursive) ATTR_NONNULL();
  * \return zero on success (matching 'remove' behavior).
  */
 int BLI_delete_soft(const char *filepath, const char **error_message) ATTR_NONNULL();
-/**
- * When `path` points to a directory, moves all its contents into `to`,
- * else rename `path` itself to `to`.
- */
-int BLI_path_move(const char *path, const char *to) ATTR_NONNULL();
 #if 0 /* Unused */
-int BLI_create_symlink(const char *path, const char *to) ATTR_NONNULL();
+int BLI_create_symlink(const char *path, const char *path_dst) ATTR_NONNULL();
 #endif
 
 /* Keep in sync with the definition of struct `direntry` in `BLI_fileops_types.h`. */
@@ -180,7 +186,7 @@ bool BLI_is_file(const char *path) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
  */
 bool BLI_dir_create_recursive(const char *dir) ATTR_NONNULL();
 /**
- * Returns the number of free bytes on the volume containing the specified pathname.
+ * Returns the number of free bytes on the volume containing the specified path.
  *
  * \note Not actually used anywhere.
  */
@@ -199,8 +205,8 @@ eFileAttributes BLI_file_attributes(const char *path);
  * Usage of this function is strongly discouraged as it is not thread safe. It will likely cause
  * issues if there is an operation on another thread that does not expect the current working
  * directory to change. This has been added to support USDZ export, which has a problematic
- * "feature" described in this issue https://projects.blender.org/blender/blender/issues/99807. It
- * will be removed if it is possible to resolve that issue upstream in the USD library.
+ * "feature" described in this issue #99807. It will be removed if it is possible to resolve
+ * that issue upstream in the USD library.
  *
  * \return true on success, false otherwise.
  */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -67,12 +68,12 @@ static void overlay_edit_curves_add_ob_to_pass(OVERLAY_PrivateData *pd, Object *
 
   if (pd->edit_curves.do_points) {
     DRWShadingGroup *point_shgrp = pd->edit_curves_points_grp[in_front];
-    struct GPUBatch *geom_points = DRW_curves_batch_cache_get_edit_points(curves);
+    GPUBatch *geom_points = DRW_curves_batch_cache_get_edit_points(curves);
     DRW_shgroup_call_no_cull(point_shgrp, geom_points, ob);
   }
 
   DRWShadingGroup *lines_shgrp = pd->edit_curves_lines_grp[in_front];
-  struct GPUBatch *geom_lines = DRW_curves_batch_cache_get_edit_lines(curves);
+  GPUBatch *geom_lines = DRW_curves_batch_cache_get_edit_lines(curves);
   DRW_shgroup_call_no_cull(lines_shgrp, geom_lines, ob);
 }
 

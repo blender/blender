@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -416,28 +417,6 @@ void IDP_AssignString(IDProperty *prop, const char *st)
   IDP_AssignStringMaxSize(prop, st, 0);
 }
 
-void IDP_ConcatStringC(IDProperty *prop, const char *st)
-{
-  BLI_assert(prop->type == IDP_STRING);
-
-  int newlen = prop->len + (int)strlen(st);
-  /* We have to remember that prop->len includes the null byte for strings.
-   * so there's no need to add +1 to the resize function. */
-  IDP_ResizeArray(prop, newlen);
-  strcat(prop->data.pointer, st);
-}
-
-void IDP_ConcatString(IDProperty *str1, IDProperty *append)
-{
-  BLI_assert(append->type == IDP_STRING);
-
-  /* Since ->len for strings includes the NULL byte, we have to subtract one or
-   * we'll get an extra null byte after each concatenation operation. */
-  int newlen = str1->len + append->len - 1;
-  IDP_ResizeArray(str1, newlen);
-  strcat(str1->data.pointer, append->data.pointer);
-}
-
 void IDP_FreeString(IDProperty *prop)
 {
   BLI_assert(prop->type == IDP_STRING);
@@ -812,7 +791,7 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
     /* NOTE(@ideasman42): Don't overwrite the data's name and type
      * some functions might need this if they
      * don't have a real ID, should be named elsewhere. */
-    // strcpy(id->name, "top_level_group");
+    // STRNCPY(id->name, "top_level_group");
   }
   return id->properties;
 }
@@ -1532,7 +1511,7 @@ void IDP_BlendReadLib(BlendLibReader *reader, ID *self_id, IDProperty *prop)
   }
 }
 
-void IDP_BlendReadExpand(struct BlendExpander *expander, IDProperty *prop)
+void IDP_BlendReadExpand(BlendExpander *expander, IDProperty *prop)
 {
   if (!prop) {
     return;

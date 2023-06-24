@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 /** \file
  * \ingroup DNA
  *
@@ -1944,7 +1945,7 @@ typedef struct SpaceSpreadsheet {
   /* eSpaceSpreadsheet_FilterFlag. */
   uint8_t filter_flag;
 
-  /* #GeometryComponentType. */
+  /* #GeometryComponent::Type. */
   uint8_t geometry_component_type;
   /* #eAttrDomain. */
   uint8_t attribute_domain;
@@ -2027,6 +2028,7 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_BYTE_COLOR = 8,
   SPREADSHEET_VALUE_TYPE_INT8 = 9,
   SPREADSHEET_VALUE_TYPE_INT32_2D = 10,
+  SPREADSHEET_VALUE_TYPE_QUATERNION = 11,
 } eSpreadsheetColumnValueType;
 
 /**

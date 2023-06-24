@@ -1,5 +1,7 @@
+# SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
-# Copyright 2011-2022 Blender Foundation
+
 from __future__ import annotations
 
 import bpy
@@ -207,6 +209,21 @@ enum_guiding_distribution = (
     ('PARALLAX_AWARE_VMM', "Parallax-Aware VMM", "Use Parallax-aware von Mises-Fisher models as directional distribution", 0),
     ('DIRECTIONAL_QUAD_TREE', "Directional Quad Tree", "Use Directional Quad Trees as directional distribution", 1),
     ('VMM', "VMM", "Use von Mises-Fisher models as directional distribution", 2),
+)
+
+enum_guiding_directional_sampling_types = (
+    ('MIS',
+     "Diffuse Product MIS",
+     "Guided diffuse BSDF component based on the incoming light distribution and the cosine product (closed form product)",
+     0),
+    ('RIS',
+     "Re-sampled Importance Sampling",
+     "Perform RIS sampling to guided based on the product of the incoming light distribution and the BSDF",
+     1),
+    ('ROUGHNESS',
+     "Roughness-based",
+     "Adjust the guiding probability based on the roughness of the material components",
+     2),
 )
 
 
@@ -568,6 +585,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='PARALLAX_AWARE_VMM',
     )
 
+    guiding_directional_sampling_type: EnumProperty(
+        name="Directional Sampling Type",
+        description="Type of the directional sampling used for guiding",
+        items=enum_guiding_directional_sampling_types,
+        default='RIS',
+    )
+
     use_surface_guiding: BoolProperty(
         name="Surface Guiding",
         description="Use guiding when sampling directions on a surface",
@@ -615,6 +639,13 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         name="Use MIS Weights",
         description="Use the MIS weight to weight the contribution of directly visible light sources during guiding",
         default=True,
+    )
+
+    guiding_roughness_threshold: FloatProperty(
+        name="Guiding Roughness Threshold",
+        description="The minimal roughness value of a material to apply guiding",
+        min=0.0, max=1.0,
+        default=0.05,
     )
 
     max_bounces: IntProperty(
@@ -1703,12 +1734,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "101.4032"
+                    driver_version = "101.4314"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "1.3.24931"
+                    driver_version = "1.3.25812"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
                     col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)

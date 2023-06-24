@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -503,13 +505,15 @@ static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(values, rpass->rect, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  memcpy(
+      values, rpass->buffer.data, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(rpass->rect, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  memcpy(
+      rpass->buffer.data, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 static RenderPass *rna_RenderPass_find_by_type(RenderLayer *rl, int passtype, const char *view)
@@ -997,7 +1001,7 @@ static void rna_def_render_result(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string_file_name(
       func,
-      "filename",
+      "filepath",
       NULL,
       FILE_MAX,
       "File Name",
@@ -1118,11 +1122,11 @@ static void rna_def_render_layer(BlenderRNA *brna)
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_string(
       func,
-      "filename",
+      "filepath",
       NULL,
       0,
-      "Filename",
-      "Filename to load into this render tile, must be no smaller than the renderlayer");
+      "File Path",
+      "File path to load into this render tile, must be no smaller than the renderlayer");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
   RNA_def_int(func,
               "x",

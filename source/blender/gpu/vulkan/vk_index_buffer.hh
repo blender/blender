@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -9,11 +10,12 @@
 
 #include "gpu_index_buffer_private.hh"
 
+#include "vk_bindable_resource.hh"
 #include "vk_buffer.hh"
 
 namespace blender::gpu {
 
-class VKIndexBuffer : public IndexBuf {
+class VKIndexBuffer : public IndexBuf, public VKBindableResource {
   VKBuffer buffer_;
 
  public:
@@ -21,6 +23,7 @@ class VKIndexBuffer : public IndexBuf {
 
   void bind_as_ssbo(uint binding) override;
   void bind(VKContext &context);
+  void bind(int binding, shader::ShaderCreateInfo::Resource::BindType bind_type) override;
 
   void read(uint32_t *data) const override;
 

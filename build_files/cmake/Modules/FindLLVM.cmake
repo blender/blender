@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2015 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015 Blender Foundation.
 
 # - Find LLVM library
 # Find the native LLVM includes and library
@@ -22,7 +23,7 @@ if(LLVM_ROOT_DIR)
   endif()
 else()
   if(DEFINED LLVM_VERSION)
-        message(running llvm-config-${LLVM_VERSION})
+    message(running llvm-config-${LLVM_VERSION})
     find_program(LLVM_CONFIG llvm-config-${LLVM_VERSION})
   endif()
   if(NOT LLVM_CONFIG)

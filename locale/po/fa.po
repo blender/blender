@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -604,16 +604,16 @@ msgid "Marker"
 msgstr "ﺮﮕﻧﺎﺸﻧ"
 
 
-msgid "Smooth"
-msgstr "ﻑﺎﺻ"
-
-
 msgid "Draw"
 msgstr "ﺩﺍﺯﺁ ﯽﺷﺎﻘﻧ"
 
 
 msgid "Blur"
 msgstr "ﯽﮔﺮﯿﺗ"
+
+
+msgid "Smooth"
+msgstr "ﻑﺎﺻ"
 
 
 msgid "Hue"
@@ -1400,6 +1400,10 @@ msgid "Modifiers"
 msgstr "ﺎﻫ‌ﺮﮕﺣﻼ﻿ﺻﺍ"
 
 
+msgid "Sample Rate"
+msgstr "ﻪﻧﻮﻤﻧ ﺖﻋﺮﺳ"
+
+
 msgid "MPEG-2"
 msgstr "MPEG-2"
 
@@ -1648,10 +1652,6 @@ msgid "Subtract Color"
 msgstr "ﮓﻧﺭ ﻖﯾﺮﻔﺗ"
 
 
-msgid "Erase"
-msgstr "ﻥﺩﺮﮐ‌ﮎﺎﭘ"
-
-
 msgid "Brush"
 msgstr "ﻮﻣ ﻢﻠﻗ"
 
@@ -1662,14 +1662,6 @@ msgstr "ﮓﻧﺭ ﯽﻨﺤﻨﻣ"
 
 msgid "Sculpt Tool"
 msgstr "ﯼﺭﺎﺠﺣ ﺭﺍﺰﺑﺍ"
-
-
-msgid "Pose"
-msgstr "ﺖﺳﮊ"
-
-
-msgid "Rotate"
-msgstr "ﻥﺍﺭﻭﺩ"
 
 
 msgid "Relax"
@@ -1730,10 +1722,6 @@ msgstr "ﻪﻄﻘﻧ ﻩﺯﺍﺪﻧﺍ"
 
 msgid "Cube"
 msgstr "ﺐﻌﮑﻣ"
-
-
-msgid "Wire Size"
-msgstr "ﻢﯿﺳ ﻩﺯﺍﺪﻧﺍ"
 
 
 msgid "Nodes"
@@ -1838,6 +1826,10 @@ msgstr "ﺖﮐﺮﺣ ﺮﯿﺴﻣ"
 
 msgid "Parent Vertices"
 msgstr "ﺪﻟﺍﻭ ﺱﻮﺋﺭ"
+
+
+msgid "Pose"
+msgstr "ﺖﺳﮊ"
 
 
 msgid "Euler Rotation"
@@ -2334,6 +2326,10 @@ msgstr "ﯽﺑﺁ ﻝﺎﻧﺎﮐ"
 
 msgid "Scene Size"
 msgstr "ﻪﻨﺤﺻ ﻩﺯﺍﺪﻧﺍ"
+
+
+msgid "Rotate"
+msgstr "ﻥﺍﺭﻭﺩ"
 
 
 msgid "Separate HSVA"
@@ -3705,10 +3701,6 @@ msgid "Pivot Offset"
 msgstr "ﺭﻮﺤﻣ ﺖﺴﻓﺍ"
 
 
-msgid "Out"
-msgstr "ﯽﺟﻭﺮﺧ"
-
-
 msgid "Not Set"
 msgstr "ﻩﺪﺸﻧ ﺺﺨﺸﻣ"
 
@@ -3731,10 +3723,6 @@ msgstr "ﻞﯾﺪﺒﺗ:"
 
 msgid "Date"
 msgstr "ﺦﯾﺭﺎﺗ"
-
-
-msgid "Sample Rate"
-msgstr "ﻪﻧﻮﻤﻧ ﺖﻋﺮﺳ"
 
 
 msgid "Roughness End"
@@ -3868,6 +3856,10 @@ msgstr "ﺶﯾﺍﺮﯾﻭ ﻥﺩﺮﮐ‌ﻝﺎﻌﻓ ﯼﺍﺮﺑ ﻪﻈﻓﺎ
 
 msgid "IK"
 msgstr "(IK) ﺱﻮﮑﻌﻣ ﺖﮐﺮﺣ"
+
+
+msgid "Out"
+msgstr "ﯽﺟﻭﺮﺧ"
 
 
 msgid "Nothing selected"
@@ -4210,10 +4202,6 @@ msgstr "(English) ﯽﺴﯿﻠﮕﻧﺍ"
 
 msgid "Japanese (日本語)"
 msgstr "(日本語) ﯽﻨﭘﺍﮊ"
-
-
-msgid "Dutch (Nederlandse taal)"
-msgstr "(Nederlandse taal) ﯼﺪﻨﻠﻫ"
 
 
 msgid "Italian (Italiano)"

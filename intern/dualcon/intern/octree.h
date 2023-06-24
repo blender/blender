@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #ifndef __OCTREE_H__
 #define __OCTREE_H__
@@ -1171,9 +1173,10 @@ class Octree {
     return nleaf;
   }
 
-  /** Locate a leaf
-   * WARNING: assuming this leaf already exists! */
-
+  /**
+   * Locate a leaf
+   * WARNING: assuming this leaf already exists!
+   */
   LeafNode *locateLeaf(int st[3])
   {
     Node *node = (Node *)root;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2018 Blender Foundation */
+/* SPDX-FileCopyrightText: 2018 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -44,7 +45,7 @@ using blender::Span;
 struct SubdivMeshContext {
   const SubdivToMeshSettings *settings;
   const Mesh *coarse_mesh;
-  const float (*coarse_positions)[3];
+  blender::Span<float3> coarse_positions;
   blender::Span<int2> coarse_edges;
   blender::OffsetIndices<int> coarse_polys;
   blender::Span<int> coarse_corner_verts;
@@ -79,8 +80,9 @@ struct SubdivMeshContext {
 
   /* Lazily initialize a map from vertices to connected edges. */
   std::mutex vert_to_edge_map_mutex;
-  int *vert_to_edge_buffer;
-  MeshElemMap *vert_to_edge_map;
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  blender::GroupedSpan<int> vert_to_edge_map;
 };
 
 static void subdiv_mesh_ctx_cache_uv_layers(SubdivMeshContext *ctx)
@@ -132,8 +134,6 @@ static void subdiv_mesh_prepare_accumulator(SubdivMeshContext *ctx, int num_vert
 static void subdiv_mesh_context_free(SubdivMeshContext *ctx)
 {
   MEM_SAFE_FREE(ctx->accumulated_counters);
-  MEM_SAFE_FREE(ctx->vert_to_edge_buffer);
-  MEM_SAFE_FREE(ctx->vert_to_edge_map);
 }
 
 /** \} */
@@ -525,10 +525,6 @@ static bool subdiv_mesh_topology_info(const SubdivForeachContext *foreach_contex
    * so don't try to preserve it and use memory. Crease values should also not be interpolated. */
   CustomData_MeshMasks mask = CD_MASK_EVERYTHING;
   mask.lmask &= ~CD_MASK_MULTIRES_GRIDS;
-  /* Propagate edge creases so they can be used in another subdivision modifier (maintaining
-   * existing behavior), but don't propagate vertex creases to avoid extra work when the result
-   * isn't useful anyway. */
-  mask.vmask &= ~CD_MASK_CREASE;
 
   SubdivMeshContext *subdiv_context = static_cast<SubdivMeshContext *>(foreach_context->user_data);
   subdiv_context->subdiv_mesh = BKE_mesh_new_nomain_from_template_ex(
@@ -951,7 +947,7 @@ static void subdiv_mesh_vertex_loose(const SubdivForeachContext *foreach_context
  * - neighbors[0] is an edge adjacent to edge->v1.
  * - neighbors[1] is an edge adjacent to edge->v2. */
 static void find_edge_neighbors(const int2 *coarse_edges,
-                                const MeshElemMap *vert_to_edge_map,
+                                const blender::GroupedSpan<int> vert_to_edge_map,
                                 const int edge_index,
                                 const int2 *neighbors[2])
 {
@@ -959,7 +955,7 @@ static void find_edge_neighbors(const int2 *coarse_edges,
   neighbors[0] = nullptr;
   neighbors[1] = nullptr;
   int neighbor_counters[2] = {0, 0};
-  for (const int i : Span(vert_to_edge_map[edge[0]].indices, vert_to_edge_map[edge[0]].count)) {
+  for (const int i : vert_to_edge_map[edge[0]]) {
     if (i == edge_index) {
       continue;
     }
@@ -968,7 +964,7 @@ static void find_edge_neighbors(const int2 *coarse_edges,
       ++neighbor_counters[0];
     }
   }
-  for (const int i : Span(vert_to_edge_map[edge[1]].indices, vert_to_edge_map[edge[1]].count)) {
+  for (const int i : vert_to_edge_map[edge[1]]) {
     if (i == edge_index) {
       continue;
     }
@@ -1026,7 +1022,7 @@ static void points_for_loose_edges_interpolation_get(const float (*coarse_positi
 
 void BKE_subdiv_mesh_interpolate_position_on_edge(const float (*coarse_positions)[3],
                                                   const blender::int2 *coarse_edges,
-                                                  const MeshElemMap *vert_to_edge_map,
+                                                  const blender::GroupedSpan<int> vert_to_edge_map,
                                                   const int coarse_edge_index,
                                                   const bool is_simple,
                                                   const float u,
@@ -1085,14 +1081,14 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
 
   /* Lazily initialize a vertex to edge map to avoid quadratic runtime when subdividing loose
    * edges. Do this here to avoid the cost in common cases when there are no loose edges at all. */
-  if (ctx->vert_to_edge_map == nullptr) {
+  if (ctx->vert_to_edge_map.is_empty()) {
     std::lock_guard lock{ctx->vert_to_edge_map_mutex};
-    if (ctx->vert_to_edge_map == nullptr) {
-      BKE_mesh_vert_edge_map_create(&ctx->vert_to_edge_map,
-                                    &ctx->vert_to_edge_buffer,
-                                    ctx->coarse_edges.data(),
-                                    coarse_mesh->totvert,
-                                    ctx->coarse_mesh->totedge);
+    if (ctx->vert_to_edge_map.is_empty()) {
+      ctx->vert_to_edge_map = blender::bke::mesh::build_vert_to_edge_map(
+          ctx->coarse_edges,
+          coarse_mesh->totvert,
+          ctx->vert_to_edge_offsets,
+          ctx->vert_to_edge_indices);
     }
   }
 
@@ -1102,13 +1098,14 @@ static void subdiv_mesh_vertex_of_loose_edge(const SubdivForeachContext *foreach
     subdiv_mesh_vertex_of_loose_edge_interpolate(ctx, coarse_edge, u, subdiv_vertex_index);
   }
   /* Interpolate coordinate. */
-  BKE_subdiv_mesh_interpolate_position_on_edge(ctx->coarse_positions,
-                                               ctx->coarse_edges.data(),
-                                               ctx->vert_to_edge_map,
-                                               coarse_edge_index,
-                                               is_simple,
-                                               u,
-                                               ctx->subdiv_positions[subdiv_vertex_index]);
+  BKE_subdiv_mesh_interpolate_position_on_edge(
+      reinterpret_cast<const float(*)[3]>(ctx->coarse_positions.data()),
+      ctx->coarse_edges.data(),
+      ctx->vert_to_edge_map,
+      coarse_edge_index,
+      is_simple,
+      u,
+      ctx->subdiv_positions[subdiv_vertex_index]);
 }
 
 /** \} */
@@ -1171,7 +1168,7 @@ Mesh *BKE_subdiv_to_mesh(Subdiv *subdiv,
   subdiv_context.settings = settings;
 
   subdiv_context.coarse_mesh = coarse_mesh;
-  subdiv_context.coarse_positions = BKE_mesh_vert_positions(coarse_mesh);
+  subdiv_context.coarse_positions = coarse_mesh->vert_positions();
   subdiv_context.coarse_edges = coarse_mesh->edges();
   subdiv_context.coarse_polys = coarse_mesh->polys();
   subdiv_context.coarse_corner_verts = coarse_mesh->corner_verts();

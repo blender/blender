@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -51,11 +52,11 @@
 typedef struct PrefetchJob {
   struct PrefetchJob *next, *prev;
 
-  struct Main *bmain;
-  struct Main *bmain_eval;
-  struct Scene *scene;
-  struct Scene *scene_eval;
-  struct Depsgraph *depsgraph;
+  Main *bmain;
+  Main *bmain_eval;
+  Scene *scene;
+  Scene *scene_eval;
+  Depsgraph *depsgraph;
 
   ThreadMutex prefetch_suspend_mutex;
   ThreadCondition prefetch_suspend_cond;
@@ -63,10 +64,10 @@ typedef struct PrefetchJob {
   ListBase threads;
 
   /* context */
-  struct SeqRenderData context;
-  struct SeqRenderData context_cpy;
-  struct ListBase *seqbasep;
-  struct ListBase *seqbasep_cpy;
+  SeqRenderData context;
+  SeqRenderData context_cpy;
+  ListBase *seqbasep;
+  ListBase *seqbasep_cpy;
 
   /* prefetch area */
   float cfra;

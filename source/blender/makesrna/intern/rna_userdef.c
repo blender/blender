@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -17,6 +19,9 @@
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_utildefines.h"
+#ifdef WIN32
+#  include "BLI_winstuff.h"
+#endif
 
 #include "BLT_translation.h"
 
@@ -261,7 +266,7 @@ static void rna_userdef_theme_update_icons(Main *bmain, Scene *scene, PointerRNA
 }
 
 /* also used by buffer swap switching */
-static void rna_userdef_dpi_update(Main *UNUSED(bmain),
+static void rna_userdef_gpu_update(Main *UNUSED(bmain),
                                    Scene *UNUSED(scene),
                                    PointerRNA *UNUSED(ptr))
 {
@@ -663,6 +668,14 @@ static void rna_UserDef_viewport_lights_update(Main *bmain, Scene *scene, Pointe
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_GPU, NULL);
   rna_userdef_update(bmain, scene, ptr);
+}
+
+static bool rna_userdef_is_microsoft_store_install_get(PointerRNA *UNUSED(ptr))
+{
+#  ifdef WIN32
+  return BLI_windows_is_store_install();
+#  endif
+  return false;
 }
 
 static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -1178,7 +1191,7 @@ static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)
   RNA_def_property_range(prop, 6.0f, 32.0f);
   RNA_def_property_ui_range(prop, 8.0f, 20.0f, 10.0f, 1);
   RNA_def_property_ui_text(prop, "Points", "Font size in points");
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "shadow", PROP_INT, PROP_PIXEL);
   RNA_def_property_range(prop, 0, 5);
@@ -1255,7 +1268,7 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Theme Widget Color Set", "Theme settings for widget color sets");
 
   prop = RNA_def_property(srna, "outline", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Outline", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -1837,7 +1850,7 @@ static void rna_def_userdef_theme_space_common(StructRNA *srna)
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
   prop = RNA_def_property(srna, "tab_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_array(prop, 3);
+  RNA_def_property_array(prop, 4);
   RNA_def_property_ui_text(prop, "Tab Outline", "");
   RNA_def_property_update(prop, 0, "rna_userdef_theme_update");
 
@@ -4629,7 +4642,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       prop, "UI Scale", "Changes the size of the fonts and widgets in the interface");
   RNA_def_property_range(prop, 0.25f, 4.0f);
   RNA_def_property_ui_range(prop, 0.5f, 2.0f, 1, 2);
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "ui_line_width", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, line_width);
@@ -4637,7 +4650,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
       prop,
       "UI Line Width",
       "Changes the thickness of widget outlines, lines and dots in the interface");
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   /* display */
   prop = RNA_def_property(srna, "show_tooltips", PROP_BOOLEAN, PROP_NONE);
@@ -4775,7 +4788,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, 1000);
   RNA_def_property_ui_text(prop,
                            "Tap Key Timeout",
-                           "Pie menu button held longer than this will dismiss menu on release."
+                           "Pie menu button held longer than this will dismiss menu on release "
                            "(in 1/100ths of sec)");
 
   prop = RNA_def_property(srna, "pie_animation_timeout", PROP_INT, PROP_NONE);
@@ -5639,7 +5652,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "gpu_flag", USER_GPU_FLAG_OVERLAY_SMOOTH_WIRE);
   RNA_def_property_ui_text(
       prop, "Overlay Smooth Wires", "Enable overlay smooth wires, reducing aliasing");
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "use_edit_mode_smooth_wire", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
@@ -5648,13 +5661,13 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       prop,
       "Edit Mode Smooth Wires",
       "Enable edit mode edge smoothing, reducing aliasing (requires restart)");
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "use_region_overlap", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "uiflag2", USER_REGION_OVERLAP);
   RNA_def_property_ui_text(
       prop, "Region Overlap", "Display tool/property regions over the main region");
-  RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+  RNA_def_property_update(prop, 0, "rna_userdef_gpu_update");
 
   prop = RNA_def_property(srna, "viewport_aa", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_userdef_viewport_aa_items);
@@ -5816,6 +5829,24 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_HIDDEN);
   RNA_def_property_ui_text(prop, "Legacy Compute Device Type", "For backwards compatibility only");
 #  endif
+
+  /* Registration and Unregistration */
+
+  prop = RNA_def_property(srna, "register_all_users", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_REGISTER_ALL_USERS);
+  RNA_def_property_ui_text(
+      prop,
+      "Register for All Users",
+      "Make this Blender version open blend files for all users. Requires elevated privileges");
+
+  prop = RNA_def_boolean(
+      srna,
+      "is_microsoft_store_install",
+      false,
+      "Is Microsoft Store Install",
+      "Whether this blender installation is a sandboxed Microsoft Store version");
+  RNA_def_property_boolean_funcs(prop, "rna_userdef_is_microsoft_store_install_get", NULL);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
 static void rna_def_userdef_input(BlenderRNA *brna)
@@ -6241,6 +6272,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "path", PROP_STRING, PROP_DIRPATH);
+  RNA_def_property_string_sdna(prop, NULL, "dirpath");
   RNA_def_property_ui_text(
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_string_funcs(prop, NULL, NULL, "rna_userdef_asset_library_path_set");
@@ -6292,6 +6324,22 @@ static void rna_def_userdef_script_directory(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+  /* NOTE(@ideasman42): Ideally, changing scripts directory would behave as if
+   * Blender were launched with different script directories (instead of requiring a restart).
+   * Editing could re-initialize Python's `sys.path`, however this isn't enough.
+   *
+   * - For adding new directories this would work for the most-part, duplicate modules between
+   *   directories might cause Python's state on restart to differ however that could
+   *   be considered a corner case as duplicate modules might cause bad/unexpected behavior anyway.
+   * - Support for removing/changing directories is more involved as there might be modules
+   *   loaded into memory which are no longer accessible.
+   *
+   * Properly supporting this would likely require unloading all Blender/Python modules,
+   * then re-initializing Python's state. This is already supported with `SCRIPT_OT_reload`,
+   * even then, there are cases that don't work well (especially if any Python operators are
+   * running at the time this runs). So accept the limitation having to restart
+   * before changes to script directories are taken into account. */
+
   prop = RNA_def_property(srna, "directory", PROP_STRING, PROP_DIRPATH);
   RNA_def_property_string_sdna(prop, NULL, "dir_path");
   RNA_def_property_ui_text(
@@ -6299,7 +6347,6 @@ static void rna_def_userdef_script_directory(BlenderRNA *brna)
       "Python Scripts Directory",
       "Alternate script path, matching the default layout with sub-directories: startup, add-ons, "
       "modules, and presets (requires restart)");
-  /* TODO: editing should reset sys.path! */
 }
 
 static void rna_def_userdef_script_directory_collection(BlenderRNA *brna, PropertyRNA *cprop)
@@ -6460,6 +6507,29 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_string_sdna(prop, NULL, "image_editor");
   RNA_def_property_ui_text(prop, "Image Editor", "Path to an image editor");
 
+  prop = RNA_def_property(srna, "text_editor", PROP_STRING, PROP_FILEPATH);
+  RNA_def_property_string_sdna(prop, NULL, "text_editor");
+  RNA_def_property_ui_text(prop,
+                           "Text Editor",
+                           "Command to launch the text editor, "
+                           "either a full path or a command in $PATH.\n"
+                           "Use the internal editor when left blank");
+
+  prop = RNA_def_property(srna, "text_editor_args", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, NULL, "text_editor_args");
+  RNA_def_property_ui_text(
+      prop,
+      "Text Editor Args",
+      "Defines the specific format of the arguments with which the text editor opens files. "
+      "The supported expansions are as follows:\n"
+      "\n"
+      "$filepath The absolute path of the file.\n"
+      "$line The line to open at (Optional).\n"
+      "$column The column to open from the beginning of the line (Optional).\n"
+      "$line0 & column0 start at zero."
+      "\n"
+      "Example: -f $filepath -l $line -c $column");
+
   prop = RNA_def_property(srna, "animation_player", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, NULL, "anim_player");
   RNA_def_property_ui_text(
@@ -6471,7 +6541,7 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Animation Player Preset", "Preset configs for external animation players");
 
-  /* Autosave. */
+  /* Auto-save. */
 
   prop = RNA_def_property(srna, "save_version", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "versions");
@@ -6580,12 +6650,13 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "New Point Cloud Type", "Enable the new point cloud type in the ui");
 
-  prop = RNA_def_property(srna, "use_full_frame_compositor", PROP_BOOLEAN, PROP_NONE);
+  prop = RNA_def_property(srna, "use_experimental_compositors", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "use_full_frame_compositor", 1);
-  RNA_def_property_ui_text(prop,
-                           "Full Frame Compositor",
-                           "Enable compositor full frame execution mode option (no tiling, "
-                           "reduces execution time and memory usage)");
+  RNA_def_property_ui_text(
+      prop,
+      "Experimental Compositors",
+      "Enable compositor full frame and realtime GPU execution mode options (no tiling, "
+      "reduces execution time and memory usage)");
   RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   prop = RNA_def_property(srna, "use_new_curves_tools", PROP_BOOLEAN, PROP_NONE);
@@ -6637,6 +6708,10 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, NULL, "enable_eevee_next", 1);
   RNA_def_property_ui_text(prop, "EEVEE Next", "Enable the new EEVEE codebase, requires restart");
 
+  prop = RNA_def_property(srna, "use_grease_pencil_version3", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "use_grease_pencil_version3", 1);
+  RNA_def_property_ui_text(prop, "Grease Pencil 3.0", "Enable the new grease pencil 3.0 codebase");
+
   prop = RNA_def_property(srna, "enable_workbench_next", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "enable_workbench_next", 1);
   RNA_def_property_ui_text(prop,
@@ -6652,6 +6727,11 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "pop-over");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
+  prop = RNA_def_property(srna, "enable_overlay_next", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "enable_overlay_next", 1);
+  RNA_def_property_ui_text(
+      prop, "Overlay Next", "Enable the new Overlay codebase, requires restart");
+
   prop = RNA_def_property(srna, "use_all_linked_data_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
@@ -6662,6 +6742,13 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_new_volume_nodes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop, "New Volume Nodes", "Enables visibility of the new Volume nodes in the UI");
+
+  prop = RNA_def_property(srna, "use_node_panels", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop, "Node Panels", "Enable node panels UI for grouping sockets in node groups");
+
+  prop = RNA_def_property(srna, "use_rotation_socket", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Rotation Socket", "Enable the new rotation node socket type");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

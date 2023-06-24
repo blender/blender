@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -32,7 +34,7 @@ static void view3d_smoothview_apply_with_interp(
  * may need to perform an undo push.
  *
  * In this case the smooth-view camera transformation is temporarily completed,
- * undo is pushed then the change is rewound, and smooth-view completes from it's timer.
+ * undo is pushed then the change is rewound, and smooth-view completes from its timer.
  * In the case smooth-view executed the change immediately - an undo push is called.
  *
  * NOTE(@ideasman42): While this is not ideal it's necessary as making the undo-push
@@ -366,7 +368,7 @@ void ED_view3d_smooth_view(bContext *C,
                            View3D *v3d,
                            ARegion *region,
                            const int smooth_viewtx,
-                           const struct V3D_SmoothParams *sview)
+                           const V3D_SmoothParams *sview)
 {
   const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -374,7 +376,7 @@ void ED_view3d_smooth_view(bContext *C,
   ScrArea *area = CTX_wm_area(C);
 
   /* #ED_view3d_smooth_view_ex asserts this is not set as it doesn't support undo. */
-  struct V3D_SmoothParams sview_no_undo = *sview;
+  V3D_SmoothParams sview_no_undo = *sview;
   sview_no_undo.undo_str = NULL;
   sview_no_undo.undo_grouped = false;
 

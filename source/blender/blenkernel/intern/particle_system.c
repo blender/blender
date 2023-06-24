@@ -1,6 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Janne Karhu. All rights reserved.
- *           2011-2012 AutoCRC (adaptive time step, Classical SPH). */
+/* SPDX-FileCopyrightText: 2007 Janne Karhu. All rights reserved.
+ * SPDX-FileCopyrightText: 2011-2012 AutoCRC (adaptive time step, Classical SPH).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1034,10 +1035,7 @@ void psys_get_birth_coords(
 }
 
 /* recursively evaluate emitter parent anim at cfra */
-static void evaluate_emitter_anim(struct Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  Object *ob,
-                                  float cfra)
+static void evaluate_emitter_anim(Depsgraph *depsgraph, Scene *scene, Object *ob, float cfra)
 {
   if (ob->parent) {
     evaluate_emitter_anim(depsgraph, scene, ob->parent, cfra);
@@ -1767,7 +1765,7 @@ static void sph_particle_courant(SPHData *sphdata, SPHRangeData *pfr)
       dist += len_v3(offset);
       add_v3_v3(flow, npa->prev_state.vel);
     }
-    dist += sphdata->psys[0]->part->fluid->radius;  // TODO: remove this? - z0r
+    dist += sphdata->psys[0]->part->fluid->radius; /* TODO(@z0r): remove this? */
     sphdata->element_size = dist / pfr->tot_neighbors;
     mul_v3_v3fl(sphdata->flow, flow, 1.0f / pfr->tot_neighbors);
   }
@@ -3451,7 +3449,6 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   EffectorWeights *clmd_effweights;
   int totpoint;
   int totedge;
-  float(*deformedVerts)[3];
   bool realloc_roots;
 
   if (!psys->clmd) {
@@ -3491,11 +3488,13 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
     }
   }
 
-  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
-
+  /* Free hair_out_mesh before modifying hair_in_mesh in hair_create_input_mesh() to avoid copying
+   * on write since they share some data */
   if (psys->hair_out_mesh) {
     BKE_id_free(NULL, psys->hair_out_mesh);
   }
+
+  hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh);
 
   psys->clmd->point_cache = psys->pointcache;
   /* for hair sim we replace the internal cloth effector weights temporarily
@@ -3505,12 +3504,14 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
   psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
   BKE_id_copy_ex(NULL, &psys->hair_in_mesh->id, (ID **)&psys->hair_out_mesh, LIB_ID_COPY_LOCALIZE);
-  deformedVerts = BKE_mesh_vert_coords_alloc(psys->hair_out_mesh, NULL);
-  clothModifier_do(
-      psys->clmd, sim->depsgraph, sim->scene, sim->ob, psys->hair_in_mesh, deformedVerts);
-  BKE_mesh_vert_coords_apply(psys->hair_out_mesh, deformedVerts);
 
-  MEM_freeN(deformedVerts);
+  clothModifier_do(psys->clmd,
+                   sim->depsgraph,
+                   sim->scene,
+                   sim->ob,
+                   psys->hair_in_mesh,
+                   BKE_mesh_vert_positions_for_write(psys->hair_out_mesh));
+  BKE_mesh_tag_positions_changed(psys->hair_out_mesh);
 
   /* restore cloth effector weights */
   psys->clmd->sim_parms->effector_weights = clmd_effweights;
@@ -4597,7 +4598,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
     }
 
     for (dframe = -totframesback; dframe <= 0; dframe++) {
-      /* simulate each subframe */
+      /* Simulate each sub-frame. */
       dt_frac = psys->dt_frac;
       for (t_frac = dt_frac; t_frac <= 1.0f; t_frac += dt_frac) {
         sim->courant_num = 0.0f;
@@ -4765,7 +4766,7 @@ static void particle_settings_free_local(ParticleSettings *particle_settings)
   MEM_freeN(particle_settings);
 }
 
-void particle_system_update(struct Depsgraph *depsgraph,
+void particle_system_update(Depsgraph *depsgraph,
                             Scene *scene,
                             Object *ob,
                             ParticleSystem *psys,
@@ -5005,6 +5006,8 @@ static void particlesystem_modifiersForeachIDLink(void *user_data,
 void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func, void *userdata)
 {
   ParticleTarget *pt;
+  LibraryForeachIDData *foreachid_data = userdata;
+  const int foreachid_data_flags = BKE_lib_query_foreachid_process_flags_get(foreachid_data);
 
   func(psys, (ID **)&psys->part, userdata, IDWALK_CB_USER | IDWALK_CB_NEVER_NULL);
   func(psys, (ID **)&psys->target_ob, userdata, IDWALK_CB_NOP);
@@ -5024,19 +5027,24 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
     func(psys, (ID **)&pt->ob, userdata, IDWALK_CB_NOP);
   }
 
-  /* Even though psys->part should never be NULL, this can happen as an exception during deletion.
-   * See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in BKE_library_remap. */
-  if (psys->part && psys->part->phystype == PART_PHYS_BOIDS) {
+  /* In case `psys->part` is NULL (See ID_REMAP_SKIP/FORCE/FLAG_NEVER_NULL_USAGE in
+   * #BKE_library_remap), or accessing it is forbidden, always handle particles for potential boids
+   * data. Unfortunate, but for now there is no other proper way to do this. */
+  if (!(psys->part && (foreachid_data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0) ||
+      psys->part->phystype == PART_PHYS_BOIDS)
+  {
     ParticleData *pa;
     int p;
 
     for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
-      func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      if (pa->boid != NULL) {
+        func(psys, (ID **)&pa->boid->ground, userdata, IDWALK_CB_NOP);
+      }
     }
   }
 }
 
-void BKE_particlesystem_reset_all(struct Object *object)
+void BKE_particlesystem_reset_all(Object *object)
 {
   for (ModifierData *md = object->modifiers.first; md != NULL; md = md->next) {
     if (md->type != eModifierType_ParticleSystem) {
@@ -5050,14 +5058,13 @@ void BKE_particlesystem_reset_all(struct Object *object)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_settings_eval_reset(struct Depsgraph *depsgraph,
-                                      ParticleSettings *particle_settings)
+void BKE_particle_settings_eval_reset(Depsgraph *depsgraph, ParticleSettings *particle_settings)
 {
   DEG_debug_print_eval(depsgraph, __func__, particle_settings->id.name, particle_settings);
   particle_settings->id.recalc |= ID_RECALC_PSYS_RESET;
 }
 
-void BKE_particle_system_eval_init(struct Depsgraph *depsgraph, Object *object)
+void BKE_particle_system_eval_init(Depsgraph *depsgraph, Object *object)
 {
   DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
   for (ParticleSystem *psys = object->particlesystem.first; psys != NULL; psys = psys->next) {

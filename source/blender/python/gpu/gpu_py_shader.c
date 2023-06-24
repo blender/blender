@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bpygpu
@@ -654,7 +656,7 @@ static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject *UNUSE
   return ret;
 }
 
-static struct PyMethodDef pygpu_shader__tp_methods[] = {
+static PyMethodDef pygpu_shader__tp_methods[] = {
     {"bind", (PyCFunction)pygpu_shader_bind, METH_NOARGS, pygpu_shader_bind_doc},
     {"uniform_from_name",
      (PyCFunction)pygpu_shader_uniform_from_name,
@@ -785,24 +787,6 @@ PyTypeObject BPyGPUShader_Type = {
 /** \name gpu.shader Module API
  * \{ */
 
-static int pyc_parse_buitinshader_w_backward_compatibility(PyObject *o, void *p)
-{
-  struct PyC_StringEnum *e = p;
-  const char *value = PyUnicode_AsUTF8(o);
-  if (value && ELEM(value[0], u'2', u'3')) {
-    /* Deprecated enums that start with "3D_" or "2D_". */
-    value += 3;
-    for (int i = 0; e->items[i].id; i++) {
-      if (STREQ(e->items[i].id, value)) {
-        e->value_found = e->items[i].value;
-        return 1;
-      }
-    }
-  }
-
-  return PyC_ParseStringEnum(o, p);
-}
-
 PyDoc_STRVAR(pygpu_shader_unbind_doc,
              ".. function:: unbind()\n"
              "\n"
@@ -851,7 +835,7 @@ static PyObject *pygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg
   if (!_PyArg_ParseTupleAndKeywordsFast(args,
                                         kwds,
                                         &_parser,
-                                        pyc_parse_buitinshader_w_backward_compatibility,
+                                        PyC_ParseStringEnum,
                                         &pygpu_bultinshader,
                                         PyC_ParseStringEnum,
                                         &pygpu_config))
@@ -897,7 +881,7 @@ static PyObject *pygpu_shader_create_from_info(BPyGPUShader *UNUSED(self),
   return BPyGPUShader_CreatePyObject(shader, false);
 }
 
-static struct PyMethodDef pygpu_shader_module__tp_methods[] = {
+static PyMethodDef pygpu_shader_module__tp_methods[] = {
     {"unbind", (PyCFunction)pygpu_shader_unbind, METH_NOARGS, pygpu_shader_unbind_doc},
     {"from_builtin",
      (PyCFunction)pygpu_shader_from_builtin,

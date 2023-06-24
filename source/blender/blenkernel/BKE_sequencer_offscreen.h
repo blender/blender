@@ -1,11 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
 /** \file
  * \ingroup bke
  */
+#include "IMB_imbuf_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,12 +16,11 @@ extern "C" {
 struct GPUOffScreen;
 
 enum eDrawType;
-enum eImBufFlags;
 
 typedef struct ImBuf *(*SequencerDrawView)(struct Depsgraph *depsgraph,
                                            struct Scene *scene,
                                            struct View3DShading *shading_override,
-                                           enum eDrawType drawtype,
+                                           eDrawType drawtype,
                                            struct Object *camera,
                                            int width,
                                            int height,

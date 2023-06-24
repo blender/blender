@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2019-2022 Blender Foundation
+#
 # SPDX-License-Identifier: Apache-2.0
 
 # Generate a HTML page that links to all test reports.

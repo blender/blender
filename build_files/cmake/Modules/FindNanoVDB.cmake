@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2020 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020 Blender Foundation.
 
 # - Find NanoVDB library
 # Find the native NanoVDB includes and library

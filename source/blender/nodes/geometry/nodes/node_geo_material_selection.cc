@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -22,7 +24,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
                                                   const Material *material,
-                                                  const IndexMask face_mask)
+                                                  const IndexMask &face_mask)
 {
   Vector<int> slots;
   for (const int slot_i : IndexRange(mesh.totcol)) {
@@ -45,12 +47,9 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
   const VArraySpan<int> material_indices_span(material_indices);
 
   Array<bool> face_selection(face_mask.min_array_size());
-  threading::parallel_for(face_mask.index_range(), 1024, [&](IndexRange range) {
-    for (const int i : range) {
-      const int face_index = face_mask[i];
-      const int slot_i = material_indices_span[face_index];
-      face_selection[face_index] = slots.contains(slot_i);
-    }
+  face_mask.foreach_index_optimized<int>(GrainSize(1024), [&](const int face_index) {
+    const int slot_i = material_indices_span[face_index];
+    face_selection[face_index] = slots.contains(slot_i);
   });
 
   return VArray<bool>::ForContainer(std::move(face_selection));
@@ -68,9 +67,9 @@ class MaterialSelectionFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
-    if (context.type() != GEO_COMPONENT_TYPE_MESH) {
+    if (context.type() != GeometryComponent::Type::Mesh) {
       return {};
     }
     const Mesh *mesh = context.mesh();

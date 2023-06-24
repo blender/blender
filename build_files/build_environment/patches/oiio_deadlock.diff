@@ -1,0 +1,62 @@
+diff -Naur orig/src/idiff/idiff.cpp external_openimageio/src/idiff/idiff.cpp
+--- orig/src/idiff/idiff.cpp	2023-06-07 07:47:42 -0600
++++ external_openimageio/src/idiff/idiff.cpp	2023-06-07 09:46:47 -0600
+@@ -399,5 +399,6 @@
+ 
+     imagecache->invalidate_all(true);
+     ImageCache::destroy(imagecache);
++    default_thread_pool()->resize(0);
+     return ret;
+ }
+diff -Naur orig/src/libutil/thread.cpp external_openimageio/src/libutil/thread.cpp
+--- orig/src/libutil/thread.cpp	2023-06-07 07:47:42 -0600
++++ external_openimageio/src/libutil/thread.cpp	2023-06-07 09:45:39 -0600
+@@ -151,9 +151,10 @@
+                     this->set_thread(i);
+                 }
+             } else {  // the number of threads is decreased
++                std::vector<std::unique_ptr<std::thread>> terminating_threads;
+                 for (int i = oldNThreads - 1; i >= nThreads; --i) {
+                     *this->flags[i] = true;  // this thread will finish
+-                    this->terminating_threads.push_back(
++                    terminating_threads.push_back(
+                         std::move(this->threads[i]));
+                     this->threads.erase(this->threads.begin() + i);
+                 }
+@@ -162,6 +163,11 @@
+                     std::unique_lock<std::mutex> lock(this->mutex);
+                     this->cv.notify_all();
+                 }
++                // wait for the terminated threads to finish
++                for (auto& thread : terminating_threads) {
++                    if (thread->joinable())
++                        thread->join();
++                }
+                 this->threads.resize(
+                     nThreads);  // safe to delete because the threads are detached
+                 this->flags.resize(
+@@ -238,16 +244,10 @@
+             if (thread->joinable())
+                 thread->join();
+         }
+-        // wait for the terminated threads to finish
+-        for (auto& thread : this->terminating_threads) {
+-            if (thread->joinable())
+-                thread->join();
+-        }
+         // if there were no threads in the pool but some functors in the queue, the functors are not deleted by the threads
+         // therefore delete them here
+         this->clear_queue();
+         this->threads.clear();
+-        this->terminating_threads.clear();
+         this->flags.clear();
+     }
+ 
+@@ -349,7 +349,6 @@
+     }
+ 
+     std::vector<std::unique_ptr<std::thread>> threads;
+-    std::vector<std::unique_ptr<std::thread>> terminating_threads;
+     std::vector<std::shared_ptr<std::atomic<bool>>> flags;
+     mutable pvt::ThreadsafeQueue<std::function<void(int id)>*> q;
+     std::atomic<bool> isDone;

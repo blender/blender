@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -77,7 +79,11 @@ class AbcObjectReader {
   Object *m_object;
   Alembic::Abc::IObject m_iobject;
 
+  /* XXX - TODO(kevindietrich) : this references stack memory... */
   ImportSettings *m_settings;
+  /* This is initialized from the ImportSettings above on construction. It will need to be removed
+   * once we fix the stack memory reference situation.  */
+  bool m_is_reading_a_file_sequence = false;
 
   chrono_t m_min_time;
   chrono_t m_max_time;

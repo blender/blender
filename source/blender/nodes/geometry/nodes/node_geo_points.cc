@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_pointcloud.h"
 #include "DNA_pointcloud_types.h"
@@ -41,7 +43,7 @@ class PointsFieldContext : public FieldContext {
   }
 
   GVArray get_varray_for_input(const FieldInput &field_input,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                ResourceScope & /*scope*/) const
   {
     const bke::IDAttributeFieldInput *id_field_input =

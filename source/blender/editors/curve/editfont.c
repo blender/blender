@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -480,7 +481,7 @@ static bool font_paste_wchar(Object *obedit,
                              const char32_t *str,
                              const size_t str_len,
                              /* optional */
-                             struct CharInfo *str_info)
+                             CharInfo *str_info)
 {
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;
@@ -662,7 +663,7 @@ static void txt_add_object(bContext *C,
   Curve *cu;
   Object *obedit;
   Object *object;
-  const struct TextLine *tmp;
+  const TextLine *tmp;
   int nchars = 0, nbytes = 0;
   char *s;
   int a;
@@ -707,18 +708,18 @@ static void txt_add_object(bContext *C,
   s = cu->str;
 
   for (tmp = firstline, a = 0; cu->len < MAXTEXT && a < totline; tmp = tmp->next, a++) {
-    size_t nbytes_line;
+    size_t nchars_line_dummy, nbytes_line;
+    nchars_line_dummy = BLI_strlen_utf8_ex(tmp->line, &nbytes_line);
+    (void)nchars_line_dummy;
 
-    nbytes_line = BLI_strcpy_rlen(s, tmp->line);
-
+    memcpy(s, tmp->line, nbytes_line);
     s += nbytes_line;
     cu->len += nbytes_line;
 
     if (tmp->next) {
-      nbytes_line = BLI_strcpy_rlen(s, "\n");
-
-      s += nbytes_line;
-      cu->len += nbytes_line;
+      *s = '\n';
+      s += 1;
+      cu->len += 1;
     }
   }
 
@@ -1900,7 +1901,7 @@ static int font_selection_set_modal(bContext *C, wmOperator *UNUSED(op), const w
   return OPERATOR_RUNNING_MODAL;
 }
 
-void FONT_OT_selection_set(struct wmOperatorType *ot)
+void FONT_OT_selection_set(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Set Selection";
@@ -2232,7 +2233,7 @@ static void font_open_cancel(bContext *UNUSED(C), wmOperator *op)
 
 static int font_open_exec(bContext *C, wmOperator *op)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   VFont *font;
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
@@ -2273,7 +2274,7 @@ static int font_open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
   VFont *vfont = NULL;
-  const char *filepath;
+  char filepath[FILE_MAX];
 
   PointerRNA idptr;
   PropertyPointerRNA *pprop;
@@ -2288,13 +2289,21 @@ static int open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event)
     vfont = (VFont *)idptr.owner_id;
   }
 
-  filepath = (vfont && !BKE_vfont_is_builtin(vfont)) ? vfont->filepath : U.fontdir;
-
-  if (RNA_struct_property_is_set(op->ptr, "filepath")) {
+  PropertyRNA *prop_filepath = RNA_struct_find_property(op->ptr, "filepath");
+  if (RNA_property_is_set(op->ptr, prop_filepath)) {
     return font_open_exec(C, op);
   }
 
-  RNA_string_set(op->ptr, "filepath", filepath);
+  if (vfont && !BKE_vfont_is_builtin(vfont)) {
+    STRNCPY(filepath, vfont->filepath);
+    BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+  }
+  else {
+    STRNCPY(filepath, U.fontdir);
+    BLI_path_slash_ensure(filepath, sizeof(filepath));
+  }
+  RNA_property_string_set(op->ptr, prop_filepath, filepath);
+
   WM_event_add_fileselect(C, op);
 
   return OPERATOR_RUNNING_MODAL;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -27,11 +28,11 @@
 /* *********** STATIC *********** */
 
 static struct {
-  struct GPUFrameBuffer *framebuffer_select_id;
-  struct GPUTexture *texture_u32;
+  GPUFrameBuffer *framebuffer_select_id;
+  GPUTexture *texture_u32;
 
   SELECTID_Shaders sh_data[GPU_SHADER_CFG_LEN];
-  struct SELECTID_Context context;
+  SELECTID_Context context;
   uint runtime_new_objects;
 } e_data = {NULL}; /* Engine data */
 
@@ -163,7 +164,7 @@ static void select_cache_init(void *vedata)
     }
     else {
       pd->shgrp_face_unif = DRW_shgroup_create(sh->select_id_uniform, psl->select_id_face_pass);
-      DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "id", 0);
+      DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "select_id", 0);
       DRW_shgroup_uniform_float_copy(pd->shgrp_face_unif, "retopologyOffset", retopology_offset);
     }
 
@@ -219,7 +220,7 @@ static void select_cache_populate(void *vedata, Object *ob)
                                     !XRAY_ENABLED(draw_ctx->v3d);
   if (retopology_occlusion && !DRW_object_is_in_edit_mode(ob)) {
     if (ob->dt >= OB_SOLID) {
-      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(ob->data);
+      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(ob->data);
       DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world);
     }
     return;
@@ -233,12 +234,12 @@ static void select_cache_populate(void *vedata, Object *ob)
      * Optimization: Most of the time this depth pass is not used. */
     struct Mesh *me = ob->data;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
-      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_faces, ob->object_to_world);
     }
     else if (ob->dt >= OB_SOLID) {
 #ifdef USE_CAGE_OCCLUSION
-      struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
+      GPUBatch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(me);
 #else
       struct GPUBatch *geom_faces = DRW_mesh_batch_cache_get_surface(me);
 #endif
@@ -246,12 +247,12 @@ static void select_cache_populate(void *vedata, Object *ob)
     }
 
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
-      struct GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
+      GPUBatch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(me);
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_edges, ob->object_to_world);
     }
 
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-      struct GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
+      GPUBatch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(me);
       DRW_shgroup_call_obmat(stl->g_data->shgrp_depth_only, geom_verts, ob->object_to_world);
     }
     return;
@@ -396,7 +397,7 @@ RenderEngineType DRW_engine_viewport_select_type = {
 /** \name Exposed `select_private.h` functions
  * \{ */
 
-struct SELECTID_Context *DRW_select_engine_context_get(void)
+SELECTID_Context *DRW_select_engine_context_get(void)
 {
   return &e_data.context;
 }

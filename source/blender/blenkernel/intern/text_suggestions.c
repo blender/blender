@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -205,43 +206,4 @@ SuggItem *texttool_suggest_selected(void)
 int *texttool_suggest_top(void)
 {
   return &suggestions.top;
-}
-
-/*************************/
-/* Documentation methods */
-/*************************/
-
-void texttool_docs_show(const char *docs)
-{
-  int len;
-
-  if (!docs) {
-    return;
-  }
-
-  len = strlen(docs);
-
-  MEM_SAFE_FREE(documentation);
-
-  /* Ensure documentation ends with a '\n' */
-  if (docs[len - 1] != '\n') {
-    documentation = MEM_mallocN(len + 2, "Documentation");
-    memcpy(documentation, docs, len);
-    documentation[len++] = '\n';
-  }
-  else {
-    documentation = MEM_mallocN(len + 1, "Documentation");
-    memcpy(documentation, docs, len);
-  }
-  documentation[len] = '\0';
-}
-
-char *texttool_docs_get(void)
-{
-  return documentation;
-}
-
-void texttool_docs_clear(void)
-{
-  txttl_free_docs();
 }

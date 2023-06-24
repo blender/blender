@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /* Use a define instead of `#pragma once` because of `BLI_memory_utils.h` */
 #ifndef __BLI_UTILDEFINES_H__
@@ -21,6 +22,9 @@
 #include "BLI_compiler_typecheck.h"
 
 #ifdef __cplusplus
+#  include <type_traits>
+#  include <utility>
+
 extern "C" {
 #endif
 
@@ -493,12 +497,15 @@ extern "C" {
   ((void)0)
 
 /* assuming a static array */
-#if defined(__GNUC__) && !defined(__cplusplus) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-#  define ARRAY_SIZE(arr) \
-    ((sizeof(struct { int isnt_array : ((const void *)&(arr) == &(arr)[0]); }) * 0) + \
-     (sizeof(arr) / sizeof(*(arr))))
-#else
-#  define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
+#ifndef __cplusplus
+#  if defined(__GNUC__) && !defined(__cplusplus) && !defined(__clang__) && \
+      !defined(__INTEL_COMPILER)
+#    define ARRAY_SIZE(arr) \
+      ((sizeof(struct { int isnt_array : ((const void *)&(arr) == &(arr)[0]); }) * 0) + \
+       (sizeof(arr) / sizeof(*(arr))))
+#  else
+#    define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(*(arr)))
+#  endif
 #endif
 
 /* ARRAY_SET_ITEMS#(v, ...): set indices of array 'v' */
@@ -867,6 +874,46 @@ extern bool BLI_memory_is_zero(const void *arr, size_t arr_size);
 
 #ifdef __cplusplus
 }
+
+namespace blender::blenlib_internal {
+
+/* A replacement for std::is_bounded_array_v until we go C++20. */
+template<class T> struct IsBoundedArray : std::false_type {
+};
+template<class T, std::size_t N> struct IsBoundedArray<T[N]> : std::true_type {
+};
+
+}  // namespace blender::blenlib_internal
+
+/**
+ * Size of a bounded array provided as an arg.
+ *
+ * The arg must be a bounded array, such as int[7] or MyType[11].
+ * Returns the number of elements in the array, known at the compile time.
+ */
+template<class T, size_t N> constexpr size_t ARRAY_SIZE(const T (&arg)[N]) noexcept
+{
+  (void)arg;
+  return N;
+}
+
+/**
+ * Number of elements in a type which defines a bounded array.
+ *
+ * For example,
+ *   struct MyType {
+ *     int array[12];
+ *   };
+ *
+ *   `BOUNDED_ARRAY_TYPE_SIZE<decltype(MyType::array)>` returns 12.
+ */
+template<class T>
+constexpr std::enable_if_t<blender::blenlib_internal::IsBoundedArray<T>::value, size_t>
+BOUNDED_ARRAY_TYPE_SIZE() noexcept
+{
+  return sizeof(std::declval<T>()) / sizeof(std::declval<T>()[0]);
+}
+
 #endif
 
 #endif /* __BLI_UTILDEFINES_H__ */

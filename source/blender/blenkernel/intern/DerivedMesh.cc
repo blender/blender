@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -71,6 +72,9 @@ using blender::float3;
 using blender::IndexRange;
 using blender::Span;
 using blender::VArray;
+using blender::bke::GeometryOwnershipType;
+using blender::bke::GeometrySet;
+using blender::bke::MeshComponent;
 
 /* very slow! enable for testing only! */
 //#define USE_MODIFIER_VALIDATE
@@ -590,7 +594,7 @@ static void set_rest_position(Mesh &mesh)
   }
 }
 
-static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
+static void mesh_calc_modifiers(Depsgraph *depsgraph,
                                 const Scene *scene,
                                 Object *ob,
                                 const bool use_deform,
@@ -632,12 +636,10 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
   const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm) && !use_render;
 
   /* Modifier evaluation contexts for different types of modifiers. */
-  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : (ModifierApplyFlag)0;
-  ModifierApplyFlag apply_cache = use_cache ? MOD_APPLY_USECACHE : (ModifierApplyFlag)0;
-  const ModifierEvalContext mectx = {
-      depsgraph, ob, (ModifierApplyFlag)(apply_render | apply_cache)};
-  const ModifierEvalContext mectx_orco = {
-      depsgraph, ob, (ModifierApplyFlag)(apply_render | MOD_APPLY_ORCO)};
+  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
+  ModifierApplyFlag apply_cache = use_cache ? MOD_APPLY_USECACHE : ModifierApplyFlag(0);
+  const ModifierEvalContext mectx = {depsgraph, ob, apply_render | apply_cache};
+  const ModifierEvalContext mectx_orco = {depsgraph, ob, apply_render | MOD_APPLY_ORCO};
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
    * are added as virtual modifiers before the user created modifiers. */
@@ -696,11 +698,12 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
           mesh_final = BKE_mesh_copy_for_eval(mesh_input);
           ASSERT_IS_VALID_MESH(mesh_final);
         }
-        BKE_modifier_deform_verts(md,
-                                  &mectx,
-                                  mesh_final,
-                                  BKE_mesh_vert_positions_for_write(mesh_final),
-                                  mesh_final->totvert);
+        BKE_modifier_deform_verts(
+            md,
+            &mectx,
+            mesh_final,
+            reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
+            mesh_final->totvert);
       }
       else {
         break;
@@ -785,11 +788,12 @@ static void mesh_calc_modifiers(struct Depsgraph *depsgraph,
         mesh_final = BKE_mesh_copy_for_eval(mesh_input);
         ASSERT_IS_VALID_MESH(mesh_final);
       }
-      BKE_modifier_deform_verts(md,
-                                &mectx,
-                                mesh_final,
-                                BKE_mesh_vert_positions_for_write(mesh_final),
-                                mesh_final->totvert);
+      BKE_modifier_deform_verts(
+          md,
+          &mectx,
+          mesh_final,
+          reinterpret_cast<float(*)[3]>(mesh_final->vert_positions_for_write().data()),
+          mesh_final->totvert);
     }
     else {
       bool check_for_needs_mapping = false;
@@ -1131,7 +1135,7 @@ static void editbmesh_calc_modifier_final_normals_or_defer(
   editbmesh_calc_modifier_final_normals(mesh_final, final_datamask);
 }
 
-static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
+static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
                                      const Scene *scene,
                                      Object *ob,
                                      BMEditMesh *em_input,
@@ -1166,9 +1170,8 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
 
   const bool use_render = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   /* Modifier evaluation contexts for different types of modifiers. */
-  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : (ModifierApplyFlag)0;
-  const ModifierEvalContext mectx = {
-      depsgraph, ob, (ModifierApplyFlag)(MOD_APPLY_USECACHE | apply_render)};
+  ModifierApplyFlag apply_render = use_render ? MOD_APPLY_RENDER : ModifierApplyFlag(0);
+  const ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_USECACHE | apply_render};
   const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
 
   /* Get effective list of modifiers to execute. Some effects like shape keys
@@ -1432,7 +1435,7 @@ static void editbmesh_calc_modifiers(struct Depsgraph *depsgraph,
   }
 }
 
-static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob, Mesh *mesh_eval)
+static void mesh_build_extra_data(Depsgraph *depsgraph, Object *ob, Mesh *mesh_eval)
 {
   uint32_t eval_flags = DEG_get_eval_flags_for_id(depsgraph, &ob->id);
 
@@ -1441,7 +1444,7 @@ static void mesh_build_extra_data(struct Depsgraph *depsgraph, Object *ob, Mesh 
   }
 }
 
-static void mesh_build_data(struct Depsgraph *depsgraph,
+static void mesh_build_data(Depsgraph *depsgraph,
                             const Scene *scene,
                             Object *ob,
                             const CustomData_MeshMasks *dataMask,
@@ -1506,7 +1509,7 @@ static void mesh_build_data(struct Depsgraph *depsgraph,
   mesh_build_extra_data(depsgraph, ob, mesh_eval);
 }
 
-static void editbmesh_build_data(struct Depsgraph *depsgraph,
+static void editbmesh_build_data(Depsgraph *depsgraph,
                                  const Scene *scene,
                                  Object *obedit,
                                  BMEditMesh *em,
@@ -1609,7 +1612,7 @@ static void object_get_datamask(const Depsgraph *depsgraph,
   }
 }
 
-void makeDerivedMesh(struct Depsgraph *depsgraph,
+void makeDerivedMesh(Depsgraph *depsgraph,
                      const Scene *scene,
                      Object *ob,
                      const CustomData_MeshMasks *dataMask)
@@ -1645,41 +1648,7 @@ void makeDerivedMesh(struct Depsgraph *depsgraph,
 
 /***/
 
-Mesh *mesh_get_eval_final(struct Depsgraph *depsgraph,
-                          const Scene *scene,
-                          Object *ob,
-                          const CustomData_MeshMasks *dataMask)
-{
-  /* This function isn't thread-safe and can't be used during evaluation. */
-  BLI_assert(DEG_is_evaluating(depsgraph) == false);
-
-  /* Evaluated meshes aren't supposed to be created on original instances. If you do,
-   * they aren't cleaned up properly on mode switch, causing crashes, e.g #58150. */
-  BLI_assert(ob->id.tag & LIB_TAG_COPIED_ON_WRITE);
-
-  /* if there's no evaluated mesh or the last data mask used doesn't include
-   * the data we need, rebuild the derived mesh
-   */
-  bool need_mapping;
-  CustomData_MeshMasks cddata_masks = *dataMask;
-  object_get_datamask(depsgraph, ob, &cddata_masks, &need_mapping);
-
-  Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  if ((mesh_eval == nullptr) ||
-      !CustomData_MeshMasks_are_matching(&(ob->runtime.last_data_mask), &cddata_masks) ||
-      (need_mapping && !ob->runtime.last_need_mapping))
-  {
-    CustomData_MeshMasks_update(&cddata_masks, &ob->runtime.last_data_mask);
-
-    makeDerivedMesh(depsgraph, scene, ob, dataMask);
-
-    mesh_eval = BKE_object_get_evaluated_mesh(ob);
-  }
-
-  return mesh_eval;
-}
-
-Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph,
+Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
                            const Scene *scene,
                            Object *ob,
                            const CustomData_MeshMasks *dataMask)
@@ -1755,7 +1724,7 @@ Mesh *mesh_create_eval_no_deform_render(Depsgraph *depsgraph,
 
 /***/
 
-Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
+Mesh *editbmesh_get_eval_cage(Depsgraph *depsgraph,
                               const Scene *scene,
                               Object *obedit,
                               BMEditMesh *em,
@@ -1777,7 +1746,7 @@ Mesh *editbmesh_get_eval_cage(struct Depsgraph *depsgraph,
   return obedit->runtime.editmesh_eval_cage;
 }
 
-Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
+Mesh *editbmesh_get_eval_cage_from_orig(Depsgraph *depsgraph,
                                         const Scene *scene,
                                         Object *obedit,
                                         const CustomData_MeshMasks *dataMask)

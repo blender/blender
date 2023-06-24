@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -20,6 +21,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
+#include "BKE_collection.h"
 
 #include "RNA_prototypes.h"
 
@@ -180,6 +182,14 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
       }
       if (GS(id_orig->name) == ID_NT) {
         flag |= ID_RECALC_NTREE_OUTPUT;
+      }
+    }
+    else {
+      /* Collection content might have changed (children collection might have been added or
+       * removed from the graph based on their inclusion and visibility flags). */
+      const ID_Type id_type = GS(id_node->id_cow->name);
+      if (id_type == ID_GR) {
+        BKE_collection_object_cache_free(reinterpret_cast<Collection *>(id_node->id_cow));
       }
     }
     /* Restore recalc flags from original ID, which could possibly contain recalc flags set by

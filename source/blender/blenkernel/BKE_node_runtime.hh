@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -31,9 +33,12 @@ struct RelationsInNode;
 }
 namespace aal = anonymous_attribute_lifetime;
 }  // namespace blender::nodes
-namespace blender::bke::node_tree_zones {
-class TreeZones;
+namespace blender::bke {
+class bNodeTreeZones;
 }
+namespace blender::bke::anonymous_attribute_inferencing {
+struct AnonymousAttributeInferencingResult;
+};
 
 namespace blender {
 
@@ -96,7 +101,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   NodeIDVectorSet nodes_by_id;
 
-  /** Execution data.
+  /**
+   * Execution data.
    *
    * XXX It would be preferable to completely move this data out of the underlying node tree,
    * so node tree execution could finally run independent of the tree itself.
@@ -118,7 +124,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
   /** Information about usage of anonymous attributes within the group. */
-  std::unique_ptr<nodes::aal::RelationsInNode> anonymous_attribute_relations;
+  std::unique_ptr<anonymous_attribute_inferencing::AnonymousAttributeInferencingResult>
+      anonymous_attribute_inferencing;
 
   /**
    * For geometry nodes, a lazy function graph with some additional info is cached. This is used to
@@ -142,7 +149,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   mutable std::atomic<int> allow_use_dirty_topology_cache = 0;
 
   CacheMutex tree_zones_cache_mutex;
-  std::unique_ptr<node_tree_zones::TreeZones> tree_zones;
+  std::unique_ptr<bNodeTreeZones> tree_zones;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
@@ -284,6 +291,9 @@ class bNodeRuntime : NonCopyable, NonMovable {
   bool has_available_linked_outputs = false;
   Vector<bNode *> direct_children_in_frame;
   bNodeTree *owner_tree = nullptr;
+  /** Can be used to toposort a subset of nodes. */
+  int toposort_left_to_right_index = -1;
+  int toposort_right_to_left_index = -1;
 };
 
 namespace node_tree_runtime {
@@ -346,11 +356,6 @@ inline bool topology_cache_is_available(const bNodeSocket &socket)
 namespace node_field_inferencing {
 bool update_field_inferencing(const bNodeTree &tree);
 }
-namespace anonymous_attribute_inferencing {
-Array<const nodes::aal::RelationsInNode *> get_relations_by_node(const bNodeTree &tree,
-                                                                 ResourceScope &scope);
-bool update_anonymous_attribute_relations(bNodeTree &tree);
-}  // namespace anonymous_attribute_inferencing
 }  // namespace blender::bke
 
 /* -------------------------------------------------------------------- */
@@ -511,6 +516,28 @@ inline blender::Span<bNode *> bNodeTree::root_frames() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->root_frames;
+}
+
+inline blender::Span<bNodeLink *> bNodeTree::all_links()
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->links;
+}
+
+inline blender::Span<const bNodeLink *> bNodeTree::all_links() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  return this->runtime->links;
+}
+
+inline blender::Span<const bNodePanel *> bNodeTree::panels() const
+{
+  return blender::Span(panels_array, panels_num);
+}
+
+inline blender::MutableSpan<bNodePanel *> bNodeTree::panels_for_write()
+{
+  return blender::MutableSpan(panels_array, panels_num);
 }
 
 /** \} */

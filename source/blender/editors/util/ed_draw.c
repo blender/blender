@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edutil
@@ -57,11 +58,11 @@
 #define OVERSHOOT_RANGE_DELTA 0.2f
 
 typedef struct tSlider {
-  struct Scene *scene;
-  struct ScrArea *area;
+  Scene *scene;
+  ScrArea *area;
 
   /** Header of the region used for drawing the slider. */
-  struct ARegion *region_header;
+  ARegion *region_header;
 
   /** Draw callback handler. */
   void *draw_handle;
@@ -243,7 +244,7 @@ static void draw_backdrop(const int fontid,
 /**
  * Draw an on screen Slider for a Pose Slide Operator.
  */
-static void slider_draw(const struct bContext *UNUSED(C), ARegion *region, void *arg)
+static void slider_draw(const bContext *UNUSED(C), ARegion *region, void *arg)
 {
   tSlider *slider = arg;
 
@@ -380,7 +381,7 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
   }
 }
 
-tSlider *ED_slider_create(struct bContext *C)
+tSlider *ED_slider_create(bContext *C)
 {
   tSlider *slider = MEM_callocN(sizeof(tSlider), "tSlider");
   slider->scene = CTX_data_scene(C);
@@ -416,7 +417,7 @@ tSlider *ED_slider_create(struct bContext *C)
   return slider;
 }
 
-void ED_slider_init(struct tSlider *slider, const wmEvent *event)
+void ED_slider_init(tSlider *slider, const wmEvent *event)
 {
   copy_v2fl_v2i(slider->last_cursor, event->xy);
 }
@@ -454,7 +455,7 @@ bool ED_slider_modal(tSlider *slider, const wmEvent *event)
   return event_handled;
 }
 
-void ED_slider_status_string_get(const struct tSlider *slider,
+void ED_slider_status_string_get(const tSlider *slider,
                                  char *status_string,
                                  const size_t size_of_status_string)
 {
@@ -502,7 +503,7 @@ void ED_slider_status_string_get(const struct tSlider *slider,
                increments_str);
 }
 
-void ED_slider_destroy(struct bContext *C, tSlider *slider)
+void ED_slider_destroy(bContext *C, tSlider *slider)
 {
   /* Remove draw callback. */
   if (slider->draw_handle) {
@@ -515,12 +516,12 @@ void ED_slider_destroy(struct bContext *C, tSlider *slider)
 
 /* Setters & Getters */
 
-float ED_slider_factor_get(struct tSlider *slider)
+float ED_slider_factor_get(tSlider *slider)
 {
   return slider->factor;
 }
 
-void ED_slider_factor_set(struct tSlider *slider, const float factor)
+void ED_slider_factor_set(tSlider *slider, const float factor)
 {
   slider->raw_factor = factor;
   slider->factor = factor;
@@ -529,23 +530,23 @@ void ED_slider_factor_set(struct tSlider *slider, const float factor)
   }
 }
 
-void ED_slider_allow_overshoot_set(struct tSlider *slider, const bool lower, const bool upper)
+void ED_slider_allow_overshoot_set(tSlider *slider, const bool lower, const bool upper)
 {
   slider->allow_overshoot_lower = lower;
   slider->allow_overshoot_upper = upper;
 }
 
-bool ED_slider_allow_increments_get(struct tSlider *slider)
+bool ED_slider_allow_increments_get(tSlider *slider)
 {
   return slider->allow_increments;
 }
 
-void ED_slider_allow_increments_set(struct tSlider *slider, const bool value)
+void ED_slider_allow_increments_set(tSlider *slider, const bool value)
 {
   slider->allow_increments = value;
 }
 
-void ED_slider_factor_bounds_set(struct tSlider *slider,
+void ED_slider_factor_bounds_set(tSlider *slider,
                                  float factor_bound_lower,
                                  float factor_bound_upper)
 {

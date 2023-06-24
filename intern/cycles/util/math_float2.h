@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_MATH_FLOAT2_H__
 #define __UTIL_MATH_FLOAT2_H__
@@ -223,6 +224,12 @@ ccl_device_inline float2 floor(const float2 a)
 }
 
 #endif /* !__KERNEL_METAL__ */
+
+/* Consistent name for this would be pow, but HIP compiler crashes in name mangling. */
+ccl_device_inline float2 power(float2 v, float e)
+{
+  return make_float2(powf(v.x, e), powf(v.y, e));
+}
 
 ccl_device_inline float2 safe_divide_float2_float(const float2 a, const float b)
 {

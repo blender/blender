@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/background.h"
 #include "scene/camera.h"
@@ -440,6 +441,13 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer, bool background)
     GuidingDistributionType guiding_distribution_type = (GuidingDistributionType)get_enum(
         cscene, "guiding_distribution_type", GUIDING_NUM_TYPES, GUIDING_TYPE_PARALLAX_AWARE_VMM);
     integrator->set_guiding_distribution_type(guiding_distribution_type);
+    GuidingDirectionalSamplingType guiding_directional_sampling_type =
+        (GuidingDirectionalSamplingType)get_enum(cscene,
+                                                 "guiding_directional_sampling_type",
+                                                 GUIDING_DIRECTIONAL_SAMPLING_NUM_TYPES,
+                                                 GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS);
+    integrator->set_guiding_directional_sampling_type(guiding_directional_sampling_type);
+    integrator->set_guiding_roughness_threshold(get_float(cscene, "guiding_roughness_threshold"));
   }
 
   DenoiseParams denoise_params = get_denoise_params(b_scene, b_view_layer, background);

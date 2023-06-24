@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_geometry_util.hh"
 
@@ -48,6 +50,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Material>("True", "True_010");
   b.add_input<decl::Image>("False", "False_011");
   b.add_input<decl::Image>("True", "True_011");
+  b.add_input<decl::Rotation>("False", "False_012").supports_field();
+  b.add_input<decl::Rotation>("True", "True_012").supports_field();
 
   b.add_output<decl::Float>("Output").dependent_field().reference_pass_all();
   b.add_output<decl::Int>("Output", "Output_001").dependent_field().reference_pass_all();
@@ -61,6 +65,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Texture>("Output", "Output_009");
   b.add_output<decl::Material>("Output", "Output_010");
   b.add_output<decl::Image>("Output", "Output_011");
+  b.add_output<decl::Rotation>("Output", "Output_012").propagate_all().reference_pass_all();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -82,8 +87,14 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *field_switch = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *non_field_switch = static_cast<bNodeSocket *>(field_switch->next);
 
-  const bool fields_type = ELEM(
-      storage.input_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_STRING);
+  const bool fields_type = ELEM(storage.input_type,
+                                SOCK_FLOAT,
+                                SOCK_INT,
+                                SOCK_BOOLEAN,
+                                SOCK_VECTOR,
+                                SOCK_RGBA,
+                                SOCK_STRING,
+                                SOCK_ROTATION);
 
   bke::nodeSetSocketAvailability(ntree, field_switch, fields_type);
   bke::nodeSetSocketAvailability(ntree, non_field_switch, !fields_type);
@@ -148,7 +159,8 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   {
     const NodeSwitch &storage = node_storage(node);
     const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.input_type);
-    can_be_field_ = ELEM(data_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA);
+    can_be_field_ = ELEM(
+        data_type, SOCK_FLOAT, SOCK_INT, SOCK_BOOLEAN, SOCK_VECTOR, SOCK_RGBA, SOCK_ROTATION);
 
     const bNodeSocketType *socket_type = nullptr;
     for (const bNodeSocket *socket : node.output_sockets()) {
@@ -234,20 +246,25 @@ class LazyFunctionForSwitchNode : public LazyFunction {
   const MultiFunction &get_switch_multi_function(const CPPType &type) const
   {
     const MultiFunction *switch_multi_function = nullptr;
-    type.to_static_type_tag<float, int, bool, float3, ColorGeometry4f, std::string>(
-        [&](auto type_tag) {
-          using T = typename decltype(type_tag)::type;
-          if constexpr (std::is_void_v<T>) {
-            BLI_assert_unreachable();
-          }
-          else {
-            static auto switch_fn = mf::build::SI3_SO<bool, T, T, T>(
-                "Switch", [](const bool condition, const T &false_value, const T &true_value) {
-                  return condition ? true_value : false_value;
-                });
-            switch_multi_function = &switch_fn;
-          }
-        });
+    type.to_static_type_tag<float,
+                            int,
+                            bool,
+                            float3,
+                            ColorGeometry4f,
+                            std::string,
+                            math::Quaternion>([&](auto type_tag) {
+      using T = typename decltype(type_tag)::type;
+      if constexpr (std::is_void_v<T>) {
+        BLI_assert_unreachable();
+      }
+      else {
+        static auto switch_fn = mf::build::SI3_SO<bool, T, T, T>(
+            "Switch", [](const bool condition, const T &false_value, const T &true_value) {
+              return condition ? true_value : false_value;
+            });
+        switch_multi_function = &switch_fn;
+      }
+    });
     BLI_assert(switch_multi_function != nullptr);
     return *switch_multi_function;
   }

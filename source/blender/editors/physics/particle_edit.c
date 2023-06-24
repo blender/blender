@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Janne Karhu. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Janne Karhu. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edphys
@@ -2348,7 +2349,7 @@ static void pe_select_cache_free_generic_userdata(void *data)
 
 static void pe_select_cache_init_with_generic_userdata(bContext *C, wmGenericUserData *wm_userdata)
 {
-  struct PEData *data = MEM_callocN(sizeof(*data), __func__);
+  PEData *data = MEM_callocN(sizeof(*data), __func__);
   wm_userdata->data = data;
   wm_userdata->free_fn = pe_select_cache_free_generic_userdata;
   wm_userdata->use_free = true;
@@ -4151,12 +4152,10 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   if (mesh == NULL) {
     psys_disable_all(ob);
 
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-
-    mesh = mesh_get_eval_final(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+    mesh = (Mesh *)BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh == NULL) {
-      mesh = mesh_get_eval_deform(depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+      return 0;
     }
 
     psys_enable_all(ob);
@@ -5696,7 +5695,7 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void PARTICLE_OT_unify_length(struct wmOperatorType *ot)
+void PARTICLE_OT_unify_length(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Unify Length";

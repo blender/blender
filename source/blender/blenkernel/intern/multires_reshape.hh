@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -11,6 +12,7 @@
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 #include "BLI_sys_types.h"
+#include "BLI_virtual_array.hh"
 
 #include "BKE_multires.h"
 
@@ -33,7 +35,7 @@ struct MultiresReshapeContext {
   /* Base mesh from original object.
    * NOTE: Does NOT include any leading modifiers in it. */
   Mesh *base_mesh;
-  const float (*base_positions)[3];
+  blender::Span<blender::float3> base_positions;
   blender::Span<blender::int2> base_edges;
   blender::OffsetIndices<int> base_polys;
   blender::Span<int> base_corner_verts;
@@ -99,10 +101,10 @@ struct MultiresReshapeContext {
    * to that base face. */
   int *face_ptex_offset;
 
-  /* Vertex crease custom data layer, null if none is present. */
-  const float *cd_vertex_crease;
-  /* Edge crease custom data layer, null if none is present. */
-  const float *cd_edge_crease;
+  /* Vertex crease custom data layer, empty if none is present. */
+  blender::VArraySpan<float> cd_vertex_crease;
+  /* Edge crease custom data layer, empty if none is present. */
+  blender::VArraySpan<float> cd_edge_crease;
 };
 
 /**

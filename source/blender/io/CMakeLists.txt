@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2020 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2020 Blender Foundation
 
 if(WITH_IO_WAVEFRONT_OBJ OR WITH_IO_PLY OR WITH_IO_STL OR WITH_IO_GPENCIL OR WITH_ALEMBIC OR WITH_USD)
   add_subdirectory(common)

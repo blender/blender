@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -790,8 +791,8 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
 
   INIT_MINMAX2(min, max);
   for (const bNode *node : nodes) {
-    float2 loc;
-    bke::nodeToView(node, node->offsetx, node->offsety, &loc.x, &loc.y);
+    const float2 node_offset = {node->offsetx, node->offsety};
+    float2 loc = bke::nodeToView(node, node_offset);
     math::min_max(loc, min, max);
     if (use_size) {
       loc.x += node->width;
@@ -913,16 +914,19 @@ static void node_group_make_insert_selected(const bContext &C,
           links_to_remove.add(link);
           continue;
         }
+        if (link->fromnode == gnode) {
+          links_to_remove.add(link);
+          continue;
+        }
         if (nodes_to_move.contains(link->fromnode)) {
           internal_links_to_move.add(link);
+          continue;
         }
-        else {
-          InputSocketInfo &info = input_links.lookup_or_add_default(link->fromsock);
-          info.from_node = link->fromnode;
-          info.links.append(link);
-          if (!info.interface_socket) {
-            info.interface_socket = add_interface_from_socket(ntree, group, *link->tosock);
-          }
+        InputSocketInfo &info = input_links.lookup_or_add_default(link->fromsock);
+        info.from_node = link->fromnode;
+        info.links.append(link);
+        if (!info.interface_socket) {
+          info.interface_socket = add_interface_from_socket(ntree, group, *link->tosock);
         }
       }
     }
@@ -932,12 +936,15 @@ static void node_group_make_insert_selected(const bContext &C,
           links_to_remove.add(link);
           continue;
         }
+        if (link->tonode == gnode) {
+          links_to_remove.add(link);
+          continue;
+        }
         if (nodes_to_move.contains(link->tonode)) {
           internal_links_to_move.add(link);
+          continue;
         }
-        else {
-          output_links.append({link, add_interface_from_socket(ntree, group, *link->fromsock)});
-        }
+        output_links.append({link, add_interface_from_socket(ntree, group, *link->fromsock)});
       }
     }
   }

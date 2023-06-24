@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -7,6 +9,7 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
+  ../../draw
   ../../gpu
   ../../imbuf
   ../../makesdna
@@ -15,6 +18,9 @@ set(INC
   ../../render
   ../../gpu/intern
   ../../../../intern/guardedalloc
+
+  # dna_type_offsets.h
+  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 set(INC_SYS
@@ -72,6 +78,7 @@ set(SRC
 
   cached_resources/intern/cached_mask.cc
   cached_resources/intern/cached_texture.cc
+  cached_resources/intern/distortion_grid.cc
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/ocio_color_space_conversion_shader.cc
   cached_resources/intern/smaa_precomputed_textures.cc
@@ -81,6 +88,7 @@ set(SRC
   cached_resources/COM_cached_mask.hh
   cached_resources/COM_cached_resource.hh
   cached_resources/COM_cached_texture.hh
+  cached_resources/COM_distortion_grid.hh
   cached_resources/COM_morphological_distance_feather_weights.hh
   cached_resources/COM_ocio_color_space_conversion_shader.hh
   cached_resources/COM_smaa_precomputed_textures.hh
@@ -104,6 +112,7 @@ set(GLSL_SRC
   shaders/compositor_blur_variable_size.glsl
   shaders/compositor_bokeh_image.glsl
   shaders/compositor_box_mask.glsl
+  shaders/compositor_compute_preview.glsl
   shaders/compositor_convert.glsl
   shaders/compositor_despeckle.glsl
   shaders/compositor_directional_blur.glsl
@@ -131,6 +140,7 @@ set(GLSL_SRC
   shaders/compositor_morphological_distance_feather.glsl
   shaders/compositor_morphological_distance_threshold.glsl
   shaders/compositor_morphological_step.glsl
+  shaders/compositor_movie_distortion.glsl
   shaders/compositor_normalize.glsl
   shaders/compositor_parallel_reduction.glsl
   shaders/compositor_plane_deform.glsl
@@ -143,6 +153,7 @@ set(GLSL_SRC
   shaders/compositor_smaa_edge_detection.glsl
   shaders/compositor_smaa_neighborhood_blending.glsl
   shaders/compositor_split_viewer.glsl
+  shaders/compositor_sun_beams.glsl
   shaders/compositor_symmetric_blur.glsl
   shaders/compositor_symmetric_blur_variable_size.glsl
   shaders/compositor_symmetric_separable_blur.glsl
@@ -216,6 +227,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_blur_variable_size_info.hh
   shaders/infos/compositor_bokeh_image_info.hh
   shaders/infos/compositor_box_mask_info.hh
+  shaders/infos/compositor_compute_preview_info.hh
   shaders/infos/compositor_convert_info.hh
   shaders/infos/compositor_despeckle_info.hh
   shaders/infos/compositor_directional_blur_info.hh
@@ -232,6 +244,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_morphological_distance_info.hh
   shaders/infos/compositor_morphological_distance_threshold_info.hh
   shaders/infos/compositor_morphological_step_info.hh
+  shaders/infos/compositor_movie_distortion_info.hh
   shaders/infos/compositor_normalize_info.hh
   shaders/infos/compositor_parallel_reduction_info.hh
   shaders/infos/compositor_plane_deform_info.hh
@@ -242,6 +255,7 @@ set(SRC_SHADER_CREATE_INFOS
   shaders/infos/compositor_screen_lens_distortion_info.hh
   shaders/infos/compositor_smaa_info.hh
   shaders/infos/compositor_split_viewer_info.hh
+  shaders/infos/compositor_sun_beams_info.hh
   shaders/infos/compositor_symmetric_blur_info.hh
   shaders/infos/compositor_symmetric_blur_variable_size_info.hh
   shaders/infos/compositor_symmetric_separable_blur_info.hh
@@ -286,3 +300,6 @@ if(WITH_OPENCOLORIO)
 endif()
 
 blender_add_lib(bf_realtime_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# Needed so we can use dna_type_offsets.h
+add_dependencies(bf_realtime_compositor bf_dna)

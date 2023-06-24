@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/device.h"
 
@@ -28,6 +29,8 @@
 #  include <OpenColorIO/OpenColorIO.h>
 namespace OCIO = OCIO_NAMESPACE;
 #endif
+
+#include "scene/shader.tables"
 
 CCL_NAMESPACE_BEGIN
 
@@ -564,6 +567,15 @@ void ShaderManager::device_update_common(Device * /*device*/,
 
   dscene->shaders.copy_to_device();
 
+  /* lookup tables */
+  KernelTables *ktables = &dscene->data.tables;
+  ktables->ggx_E = ensure_bsdf_table(dscene, scene, table_ggx_E);
+  ktables->ggx_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_Eavg);
+  ktables->ggx_glass_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_E);
+  ktables->ggx_glass_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_Eavg);
+  ktables->ggx_glass_inv_E = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_E);
+  ktables->ggx_glass_inv_Eavg = ensure_bsdf_table(dscene, scene, table_ggx_glass_inv_Eavg);
+
   /* integrator */
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   kintegrator->use_volumes = has_volumes;
@@ -583,8 +595,13 @@ void ShaderManager::device_update_common(Device * /*device*/,
   kfilm->is_rec709 = is_rec709;
 }
 
-void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene * /*scene*/)
+void ShaderManager::device_free_common(Device * /*device*/, DeviceScene *dscene, Scene *scene)
 {
+  for (auto &entry : bsdf_tables) {
+    scene->lookup_tables->remove_table(&entry.second);
+  }
+  bsdf_tables.clear();
+
   dscene->shaders.free();
 }
 
@@ -887,6 +904,19 @@ void ShaderManager::init_xyz_transforms()
   rec709_to_b = float4_to_float3(rec709_to_rgb.z);
   is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
 #endif
+}
+
+size_t ShaderManager::ensure_bsdf_table_impl(DeviceScene *dscene,
+                                             Scene *scene,
+                                             const float *table,
+                                             size_t n)
+{
+  /* Since the BSDF tables are static arrays, we can use their address to identify them. */
+  if (!(bsdf_tables.count(table))) {
+    vector<float> entries(table, table + n);
+    bsdf_tables[table] = scene->lookup_tables->add_table(dscene, entries);
+  }
+  return bsdf_tables[table];
 }
 
 CCL_NAMESPACE_END

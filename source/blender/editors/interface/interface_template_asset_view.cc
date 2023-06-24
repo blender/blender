@@ -1,8 +1,13 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
  */
+
+#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -31,6 +36,8 @@
 
 #include "interface_intern.hh"
 
+using namespace blender;
+
 struct AssetViewListData {
   AssetLibraryReference asset_library_ref;
   AssetFilterSettings filter_settings;
@@ -40,28 +47,20 @@ struct AssetViewListData {
 
 static void asset_view_item_but_drag_set(uiBut *but, AssetHandle *asset_handle)
 {
-  ID *id = ED_asset_handle_get_local_id(asset_handle);
+  AssetRepresentation *asset = ED_asset_handle_get_representation(asset_handle);
+
+  ID *id = AS_asset_representation_local_id_get(asset);
   if (id != nullptr) {
     UI_but_drag_set_id(but, id);
     return;
   }
 
-  char blend_path[FILE_MAX_LIBEXTRA];
-  ED_asset_handle_get_full_library_path(asset_handle, blend_path);
-
   const eAssetImportMethod import_method =
-      ED_asset_handle_get_import_method(asset_handle).value_or(ASSET_IMPORT_APPEND_REUSE);
+      AS_asset_representation_import_method_get(asset).value_or(ASSET_IMPORT_APPEND_REUSE);
 
-  if (blend_path[0]) {
-    ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
-    UI_but_drag_set_asset(but,
-                          asset_handle,
-                          BLI_strdup(blend_path),
-                          import_method,
-                          ED_asset_handle_get_preview_icon_id(asset_handle),
-                          imbuf,
-                          1.0f);
-  }
+  ImBuf *imbuf = ED_assetlist_asset_image_get(asset_handle);
+  UI_but_drag_set_asset(
+      but, asset, import_method, ED_asset_handle_get_preview_icon_id(asset_handle), imbuf, 1.0f);
 }
 
 static void asset_view_draw_item(uiList *ui_list,
@@ -77,7 +76,8 @@ static void asset_view_draw_item(uiList *ui_list,
 {
   AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
 
-  AssetHandle asset_handle = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
+  AssetHandle asset_handle = ED_assetlist_asset_handle_get_by_index(&list_data->asset_library_ref,
+                                                                    index);
 
   PointerRNA file_ptr;
   RNA_pointer_create(&list_data->screen->id,
@@ -130,8 +130,10 @@ static void asset_view_filter_items(uiList *ui_list,
       C,
       [&name_filter, list_data, &filter_settings](
           const PointerRNA &itemptr, blender::StringRefNull name, int index) {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+            list_data->asset_library_ref, index);
+
+        if (!ED_asset_filter_matches_asset(&filter_settings, *asset)) {
           return UI_LIST_ITEM_NEVER_SHOW;
         }
         return name_filter(itemptr, name, index);
@@ -139,14 +141,15 @@ static void asset_view_filter_items(uiList *ui_list,
       dataptr,
       propname,
       [list_data](const PointerRNA & /*itemptr*/, int index) -> std::string {
-        AssetHandle asset = ED_assetlist_asset_get_by_index(&list_data->asset_library_ref, index);
-        return ED_asset_handle_get_name(&asset);
+        asset_system::AssetRepresentation *asset = ED_assetlist_asset_get_by_index(
+            list_data->asset_library_ref, index);
+
+        return asset->get_name();
       });
 }
 
-static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
+static void asset_view_listener(uiList * /*ui_list*/, wmRegionListenerParams *params)
 {
-  AssetViewListData *list_data = (AssetViewListData *)ui_list->dyn_data->customdata;
   const wmNotifier *notifier = params->notifier;
 
   switch (notifier->category) {
@@ -158,7 +161,7 @@ static void asset_view_listener(uiList *ui_list, wmRegionListenerParams *params)
     }
   }
 
-  if (ED_assetlist_listen(&list_data->asset_library_ref, params->notifier)) {
+  if (ED_assetlist_listen(params->notifier)) {
     ED_region_tag_redraw(params->region);
   }
 }

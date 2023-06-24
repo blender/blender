@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -58,6 +59,36 @@ ccl_device_forceinline void integrator_state_read_shadow_ray(ConstIntegratorShad
   ray->time = INTEGRATOR_STATE(state, shadow_ray, time);
   ray->dP = INTEGRATOR_STATE(state, shadow_ray, dP);
   ray->dD = differential_zero_compact();
+}
+
+ccl_device_forceinline void integrator_state_write_shadow_ray_self(
+    KernelGlobals kg, IntegratorShadowState state, ccl_private const Ray *ccl_restrict ray)
+{
+  if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING) {
+    INTEGRATOR_STATE_WRITE(state, shadow_ray, self_light) = ray->self.light;
+  }
+
+  /* Save memory by storing the light and object indices in the shadow_isect. */
+  /* TODO(sergey): This optimization does not work on GPU where multiple iterations of intersection
+   * is needed if there are more than 4 transparent intersections. The indices starts to conflict
+   * with each other. */
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 0, object) = ray->self.object;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 0, prim) = ray->self.prim;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 1, object) = ray->self.light_object;
+  INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_isect, 1, prim) = ray->self.light_prim;
+}
+
+ccl_device_forceinline void integrator_state_read_shadow_ray_self(
+    KernelGlobals kg, ConstIntegratorShadowState state, ccl_private Ray *ccl_restrict ray)
+{
+  if (kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING) {
+    ray->self.light = INTEGRATOR_STATE(state, shadow_ray, self_light);
+  }
+
+  ray->self.object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, object);
+  ray->self.prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, prim);
+  ray->self.light_object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, object);
+  ray->self.light_prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 1, prim);
 }
 
 /* Intersection */

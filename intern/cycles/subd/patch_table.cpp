@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2014 DreamWorks Animation LLC. */
+/* SPDX-FileCopyrightText: 2014 DreamWorks Animation LLC
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /** \file
  * Based on code from OpenSubdiv.

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -48,11 +49,11 @@ typedef struct vec3d {
 typedef struct vec4i {
   int x, y, z, w;
 } vec4i;
-
+*/
 typedef struct vec4f {
   float x, y, z, w;
 } vec4f;
-
+/*
 typedef struct vec4d {
   double x, y, z, w;
 } vec4d;

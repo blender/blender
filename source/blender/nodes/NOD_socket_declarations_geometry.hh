@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -12,7 +14,7 @@ class GeometryBuilder;
 
 class Geometry : public SocketDeclaration {
  private:
-  blender::Vector<GeometryComponentType> supported_types_;
+  blender::Vector<bke::GeometryComponent::Type> supported_types_;
   bool only_realized_data_ = false;
   bool only_instances_ = false;
 
@@ -25,15 +27,15 @@ class Geometry : public SocketDeclaration {
   bool matches(const bNodeSocket &socket) const override;
   bool can_connect(const bNodeSocket &socket) const override;
 
-  Span<GeometryComponentType> supported_types() const;
+  Span<bke::GeometryComponent::Type> supported_types() const;
   bool only_realized_data() const;
   bool only_instances() const;
 };
 
 class GeometryBuilder : public SocketDeclarationBuilder<Geometry> {
  public:
-  GeometryBuilder &supported_type(GeometryComponentType supported_type);
-  GeometryBuilder &supported_type(blender::Vector<GeometryComponentType> supported_types);
+  GeometryBuilder &supported_type(bke::GeometryComponent::Type supported_type);
+  GeometryBuilder &supported_type(blender::Vector<bke::GeometryComponent::Type> supported_types);
   GeometryBuilder &only_realized_data(bool value = true);
   GeometryBuilder &only_instances(bool value = true);
 };

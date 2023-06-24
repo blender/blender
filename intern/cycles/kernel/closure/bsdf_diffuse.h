@@ -1,10 +1,9 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #pragma once
 
@@ -42,8 +41,7 @@ ccl_device Spectrum bsdf_diffuse_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
                                    float3 Ng,
                                    float3 wi,
-                                   float randu,
-                                   float randv,
+                                   float2 rand,
                                    ccl_private Spectrum *eval,
                                    ccl_private float3 *wo,
                                    ccl_private float *pdf)
@@ -52,7 +50,7 @@ ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
   float3 N = bsdf->N;
 
   // distribution over the hemisphere
-  sample_cos_hemisphere(N, randu, randv, wo, pdf);
+  sample_cos_hemisphere(N, rand, wo, pdf);
 
   if (dot(Ng, *wo) > 0.0f) {
     *eval = make_spectrum(*pdf);
@@ -88,8 +86,7 @@ ccl_device Spectrum bsdf_translucent_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
                                        float3 wi,
-                                       float randu,
-                                       float randv,
+                                       float2 rand,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)
@@ -99,7 +96,7 @@ ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
 
   // we are viewing the surface from the right side - send a ray out with cosine
   // distribution over the hemisphere
-  sample_cos_hemisphere(-N, randu, randv, wo, pdf);
+  sample_cos_hemisphere(-N, rand, wo, pdf);
   if (dot(Ng, *wo) < 0) {
     *eval = make_spectrum(*pdf);
   }

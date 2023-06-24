@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spbuttons
@@ -86,7 +87,7 @@ static SpaceLink *buttons_create(const ScrArea *UNUSED(area), const Scene *UNUSE
   return (SpaceLink *)sbuts;
 }
 
-/* not spacelink itself */
+/* Doesn't free the space-link itself. */
 static void buttons_free(SpaceLink *sl)
 {
   SpaceProperties *sbuts = (SpaceProperties *)sl;
@@ -108,7 +109,7 @@ static void buttons_free(SpaceLink *sl)
 }
 
 /* spacetype; init callback */
-static void buttons_init(struct wmWindowManager *UNUSED(wm), ScrArea *area)
+static void buttons_init(wmWindowManager *UNUSED(wm), ScrArea *area)
 {
   SpaceProperties *sbuts = (SpaceProperties *)area->spacedata.first;
 
@@ -316,7 +317,7 @@ const char *ED_buttons_search_string_get(SpaceProperties *sbuts)
   return sbuts->runtime->search_string;
 }
 
-int ED_buttons_search_string_length(struct SpaceProperties *sbuts)
+int ED_buttons_search_string_length(SpaceProperties *sbuts)
 {
   return BLI_strnlen(sbuts->runtime->search_string, sizeof(sbuts->runtime->search_string));
 }
@@ -531,7 +532,7 @@ static void buttons_operatortypes(void)
   WM_operatortype_append(BUTTONS_OT_directory_browse);
 }
 
-static void buttons_keymap(struct wmKeyConfig *keyconf)
+static void buttons_keymap(wmKeyConfig *keyconf)
 {
   WM_keymap_ensure(keyconf, "Property Editor", SPACE_PROPERTIES, 0);
 }

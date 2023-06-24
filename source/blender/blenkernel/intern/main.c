@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -72,118 +73,63 @@ void BKE_main_free(Main *mainvar)
 #if 1
       BKE_id_free_ex(mainvar, id, free_flag, false);
 #else
-      /* errors freeing ID's can be hard to track down,
-       * enable this so valgrind will give the line number in its error log */
-      switch (a) {
-        case 0:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 1:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 2:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 3:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 4:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 5:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 6:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 7:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 8:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 9:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 10:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 11:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 12:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 13:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 14:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 15:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 16:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 17:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 18:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 19:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 20:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 21:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 22:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 23:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 24:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 25:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 26:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 27:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 28:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 29:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 30:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 31:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 32:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 33:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        case 34:
-          BKE_id_free_ex(mainvar, id, free_flag, false);
-          break;
-        default:
+      /* Errors freeing ID's can be hard to track down,
+       * enable this so VALGRIND or ASAN will give the line number in its error log. */
+
+#  define CASE_ID_INDEX(id_index) \
+    case id_index: \
+      BKE_id_free_ex(mainvar, id, free_flag, false); \
+      break
+
+      switch ((eID_Index)a) {
+        CASE_ID_INDEX(INDEX_ID_LI);
+        CASE_ID_INDEX(INDEX_ID_IP);
+        CASE_ID_INDEX(INDEX_ID_AC);
+        CASE_ID_INDEX(INDEX_ID_GD_LEGACY);
+        CASE_ID_INDEX(INDEX_ID_NT);
+        CASE_ID_INDEX(INDEX_ID_VF);
+        CASE_ID_INDEX(INDEX_ID_TXT);
+        CASE_ID_INDEX(INDEX_ID_SO);
+        CASE_ID_INDEX(INDEX_ID_MSK);
+        CASE_ID_INDEX(INDEX_ID_IM);
+        CASE_ID_INDEX(INDEX_ID_MC);
+        CASE_ID_INDEX(INDEX_ID_TE);
+        CASE_ID_INDEX(INDEX_ID_MA);
+        CASE_ID_INDEX(INDEX_ID_LS);
+        CASE_ID_INDEX(INDEX_ID_WO);
+        CASE_ID_INDEX(INDEX_ID_CF);
+        CASE_ID_INDEX(INDEX_ID_SIM);
+        CASE_ID_INDEX(INDEX_ID_PA);
+        CASE_ID_INDEX(INDEX_ID_KE);
+        CASE_ID_INDEX(INDEX_ID_AR);
+        CASE_ID_INDEX(INDEX_ID_ME);
+        CASE_ID_INDEX(INDEX_ID_CU_LEGACY);
+        CASE_ID_INDEX(INDEX_ID_MB);
+        CASE_ID_INDEX(INDEX_ID_CV);
+        CASE_ID_INDEX(INDEX_ID_PT);
+        CASE_ID_INDEX(INDEX_ID_VO);
+        CASE_ID_INDEX(INDEX_ID_LT);
+        CASE_ID_INDEX(INDEX_ID_LA);
+        CASE_ID_INDEX(INDEX_ID_CA);
+        CASE_ID_INDEX(INDEX_ID_SPK);
+        CASE_ID_INDEX(INDEX_ID_LP);
+        CASE_ID_INDEX(INDEX_ID_OB);
+        CASE_ID_INDEX(INDEX_ID_GR);
+        CASE_ID_INDEX(INDEX_ID_PAL);
+        CASE_ID_INDEX(INDEX_ID_PC);
+        CASE_ID_INDEX(INDEX_ID_BR);
+        CASE_ID_INDEX(INDEX_ID_SCE);
+        CASE_ID_INDEX(INDEX_ID_SCR);
+        CASE_ID_INDEX(INDEX_ID_WS);
+        CASE_ID_INDEX(INDEX_ID_WM);
+        case INDEX_ID_NULL: {
           BLI_assert_unreachable();
           break;
+        }
       }
+
+#  undef CASE_ID_INDEX
+
 #endif
     }
     BLI_listbase_clear(lb);
@@ -207,7 +153,7 @@ void BKE_main_free(Main *mainvar)
   MEM_freeN(mainvar);
 }
 
-bool BKE_main_is_empty(struct Main *bmain)
+bool BKE_main_is_empty(Main *bmain)
 {
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
@@ -217,12 +163,12 @@ bool BKE_main_is_empty(struct Main *bmain)
   return true;
 }
 
-void BKE_main_lock(struct Main *bmain)
+void BKE_main_lock(Main *bmain)
 {
   BLI_spin_lock((SpinLock *)bmain->lock);
 }
 
-void BKE_main_unlock(struct Main *bmain)
+void BKE_main_unlock(Main *bmain)
 {
   BLI_spin_unlock((SpinLock *)bmain->lock);
 }
@@ -326,9 +272,7 @@ void BKE_main_relations_free(Main *bmain)
   }
 }
 
-void BKE_main_relations_tag_set(struct Main *bmain,
-                                const eMainIDRelationsEntryTags tag,
-                                const bool value)
+void BKE_main_relations_tag_set(Main *bmain, const eMainIDRelationsEntryTags tag, const bool value)
 {
   if (bmain->relations == NULL) {
     return;
@@ -548,7 +492,7 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
   return img;
 }
 
-void BKE_main_thumbnail_create(struct Main *bmain)
+void BKE_main_thumbnail_create(Main *bmain)
 {
   MEM_SAFE_FREE(bmain->blen_thumb);
 
@@ -628,6 +572,8 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->wm);
     case ID_GD_LEGACY:
       return &(bmain->gpencils);
+    case ID_GP:
+      return &(bmain->grease_pencils);
     case ID_MC:
       return &(bmain->movieclips);
     case ID_MSK:
@@ -671,6 +617,7 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
 
   /* Referenced by nodes, objects, view, scene etc, before to free after. */
   lb[INDEX_ID_GD_LEGACY] = &(bmain->gpencils);
+  lb[INDEX_ID_GP] = &(bmain->grease_pencils);
 
   lb[INDEX_ID_NT] = &(bmain->nodetrees);
   lb[INDEX_ID_IM] = &(bmain->images);

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_HIPRT
 
@@ -59,6 +60,8 @@ bool HIPRTDeviceQueue::enqueue(DeviceKernel kernel,
                                        const_cast<void **>(args_copy.values),
                                        0),
                  "enqueue");
+
+  debug_enqueue_end();
 
   return !(hiprt_device_->have_error());
 }

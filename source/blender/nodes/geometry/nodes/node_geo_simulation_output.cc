@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.hh"
 #include "BLI_string_utils.h"
@@ -59,6 +61,11 @@ static std::unique_ptr<SocketDeclaration> socket_declaration_for_simulation_item
       break;
     case SOCK_BOOLEAN:
       decl = std::make_unique<decl::Bool>();
+      decl->input_field_type = InputSocketFieldType::IsSupported;
+      decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
+      break;
+    case SOCK_ROTATION:
+      decl = std::make_unique<decl::Rotation>();
       decl->input_field_type = InputSocketFieldType::IsSupported;
       decl->output_field_dependency = OutputFieldDependency::ForPartiallyDependentField({index});
       break;
@@ -131,25 +138,41 @@ const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item)
   return get_simulation_item_cpp_type(eNodeSocketDatatype(item.socket_type));
 }
 
+static void remove_materials(Material ***materials, short *materials_num)
+{
+  MEM_SAFE_FREE(*materials);
+  *materials_num = 0;
+}
+
+/**
+ * Removes parts of the geometry that can't be stored in the simulation state:
+ * - Anonymous attributes can't be stored because it is not known which of them will or will not be
+ *   used in the future.
+ * - Materials can't be stored directly, because they are linked ID data blocks that can't be
+ *   restored from baked data currently.
+ */
 static void cleanup_geometry_for_simulation_state(GeometrySet &main_geometry)
 {
   main_geometry.modify_geometry_sets([&](GeometrySet &geometry) {
     if (Mesh *mesh = geometry.get_mesh_for_write()) {
       mesh->attributes_for_write().remove_anonymous();
+      remove_materials(&mesh->mat, &mesh->totcol);
     }
     if (Curves *curves = geometry.get_curves_for_write()) {
       curves->geometry.wrap().attributes_for_write().remove_anonymous();
+      remove_materials(&curves->mat, &curves->totcol);
     }
     if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
       pointcloud->attributes_for_write().remove_anonymous();
+      remove_materials(&pointcloud->mat, &pointcloud->totcol);
     }
     if (bke::Instances *instances = geometry.get_instances_for_write()) {
       instances->attributes_for_write().remove_anonymous();
     }
-    geometry.keep_only_during_modify({GEO_COMPONENT_TYPE_MESH,
-                                      GEO_COMPONENT_TYPE_CURVE,
-                                      GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                      GEO_COMPONENT_TYPE_INSTANCES});
+    geometry.keep_only_during_modify({GeometryComponent::Type::Mesh,
+                                      GeometryComponent::Type::Curve,
+                                      GeometryComponent::Type::PointCloud,
+                                      GeometryComponent::Type::Instance});
   });
 }
 
@@ -196,6 +219,7 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const fn::ValueOrFieldCPPType &value_or_field_type =
             *fn::ValueOrFieldCPPType::get_from_self(cpp_type);
@@ -250,10 +274,10 @@ void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_i
 
   /* Make some attributes anonymous. */
   for (GeometrySet *geometry : geometries) {
-    for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                             GEO_COMPONENT_TYPE_CURVE,
-                                             GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                             GEO_COMPONENT_TYPE_INSTANCES})
+    for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                               GeometryComponent::Type::Curve,
+                                               GeometryComponent::Type::PointCloud,
+                                               GeometryComponent::Type::Instance})
     {
       if (!geometry->has(type)) {
         continue;
@@ -293,6 +317,7 @@ void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_i
       case SOCK_VECTOR:
       case SOCK_INT:
       case SOCK_BOOLEAN:
+      case SOCK_ROTATION:
       case SOCK_RGBA: {
         const CPPType &type = get_simulation_item_cpp_type(item);
         const fn::ValueOrFieldCPPType &value_or_field_type =
@@ -598,6 +623,7 @@ static void mix_simulation_state(const NodeSimulationItem &item,
     case SOCK_VECTOR:
     case SOCK_INT:
     case SOCK_BOOLEAN:
+    case SOCK_ROTATION:
     case SOCK_RGBA: {
       const CPPType &type = get_simulation_item_cpp_type(item);
       const fn::ValueOrFieldCPPType &value_or_field_type = *fn::ValueOrFieldCPPType::get_from_self(
@@ -969,7 +995,7 @@ blender::Span<NodeSimulationItem> NodeGeometrySimulationOutput::items_span() con
   return blender::Span<NodeSimulationItem>(items, items_num);
 }
 
-blender::MutableSpan<NodeSimulationItem> NodeGeometrySimulationOutput::items_span_for_write()
+blender::MutableSpan<NodeSimulationItem> NodeGeometrySimulationOutput::items_span()
 {
   return blender::MutableSpan<NodeSimulationItem>(items, items_num);
 }
@@ -987,6 +1013,7 @@ bool NOD_geometry_simulation_output_item_socket_type_supported(
               SOCK_VECTOR,
               SOCK_RGBA,
               SOCK_BOOLEAN,
+              SOCK_ROTATION,
               SOCK_INT,
               SOCK_STRING,
               SOCK_GEOMETRY);
@@ -1050,7 +1077,7 @@ void NOD_geometry_simulation_output_set_active_item(NodeGeometrySimulationOutput
 NodeSimulationItem *NOD_geometry_simulation_output_find_item(NodeGeometrySimulationOutput *sim,
                                                              const char *name)
 {
-  for (NodeSimulationItem &item : sim->items_span_for_write()) {
+  for (NodeSimulationItem &item : sim->items_span()) {
     if (STREQ(item.name, name)) {
       return &item;
     }
@@ -1135,9 +1162,9 @@ void NOD_geometry_simulation_output_remove_item(NodeGeometrySimulationOutput *si
   MEM_SAFE_FREE(old_items);
 }
 
-void NOD_geometry_simulation_output_clear_items(struct NodeGeometrySimulationOutput *sim)
+void NOD_geometry_simulation_output_clear_items(NodeGeometrySimulationOutput *sim)
 {
-  for (NodeSimulationItem &item : sim->items_span_for_write()) {
+  for (NodeSimulationItem &item : sim->items_span()) {
     MEM_SAFE_FREE(item.name);
   }
   MEM_SAFE_FREE(sim->items);

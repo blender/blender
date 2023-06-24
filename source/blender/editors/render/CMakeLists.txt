@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -35,6 +37,7 @@ set(SRC
 )
 
 set(LIB
+  bf_draw
 )
 
 if(WITH_HEADLESS)

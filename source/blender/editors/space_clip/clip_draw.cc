@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spclip
@@ -272,7 +273,7 @@ static void draw_movieclip_notes(SpaceClip *sc, ARegion *region)
   }
   else {
     if (sc->flag & SC_LOCK_SELECTION) {
-      strcpy(str, "Locked");
+      STRNCPY(str, "Locked");
     }
   }
 
@@ -1081,16 +1082,16 @@ static void draw_marker_texts(SpaceClip *sc,
   pos[1] = pos[1] * zoomy - fontsize;
 
   if (marker->flag & MARKER_DISABLED) {
-    strcpy(state, "disabled");
+    STRNCPY(state, "disabled");
   }
   else if (marker->framenr != ED_space_clip_get_clip_frame_number(sc)) {
-    strcpy(state, "estimated");
+    STRNCPY(state, "estimated");
   }
   else if (marker->flag & MARKER_TRACKED) {
-    strcpy(state, "tracked");
+    STRNCPY(state, "tracked");
   }
   else {
-    strcpy(state, "keyframed");
+    STRNCPY(state, "keyframed");
   }
 
   if (state[0]) {

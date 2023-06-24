@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spaction
@@ -774,7 +775,7 @@ void timeline_draw_cache(const SpaceAction *saction, const Object *ob, const Sce
         continue;
       }
       timeline_cache_draw_simulation_nodes(
-          *scene, *nmd->simulation_cache, y_offset, cache_draw_height, pos_id);
+          *scene, *nmd->simulation_cache->ptr, y_offset, cache_draw_height, pos_id);
       y_offset += cache_draw_height;
     }
   }

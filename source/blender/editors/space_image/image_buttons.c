@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spimage
@@ -48,7 +49,7 @@
 #define B_NOP -1
 #define MAX_IMAGE_INFO_LEN 128
 
-struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
+ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {
   bNode *node;
 
@@ -127,10 +128,10 @@ static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
   RenderView *rv = RE_RenderViewGetById(rr, 0);
-  if (rv->rectf) {
+  if (rv->combined_buffer.data) {
     return IFACE_("Composite");
   }
-  if (rv->rect32) {
+  if (rv->byte_buffer.data) {
     return IFACE_("Sequence");
   }
   return NULL;
@@ -961,7 +962,10 @@ void uiTemplateImage(uiLayout *layout,
   UI_block_funcN_set(block, NULL, NULL, NULL);
 }
 
-void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
+void uiTemplateImageSettings(uiLayout *layout,
+                             PointerRNA *imfptr,
+                             bool color_management,
+                             bool show_z_buffer)
 {
   ImageFormatData *imf = imfptr->data;
   ID *id = imfptr->owner_id;
@@ -1013,7 +1017,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
     uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
   }
 
-  if (BKE_imtype_supports_zbuf(imf->imtype)) {
+  if (BKE_imtype_supports_zbuf(imf->imtype) && show_z_buffer) {
     uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
   }
 
@@ -1253,8 +1257,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     }
     else if (ima->source == IMA_SRC_SEQUENCE && ibuf) {
       /* Image sequence frame number + filename */
-      const char *filename = BLI_path_slash_rfind(ibuf->filepath);
-      filename = (filename == NULL) ? ibuf->filepath : filename + 1;
+      const char *filename = BLI_path_basename(ibuf->filepath);
       SNPRINTF(str, TIP_("Frame %d: %s"), framenr, filename);
     }
     else {
@@ -1293,10 +1296,10 @@ void image_buttons_register(ARegionType *art)
   PanelType *pt;
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype image panel metadata");
-  strcpy(pt->idname, "IMAGE_PT_metadata");
-  strcpy(pt->label, N_("Metadata"));
-  strcpy(pt->category, "Image");
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "IMAGE_PT_metadata");
+  STRNCPY(pt->label, N_("Metadata"));
+  STRNCPY(pt->category, "Image");
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->order = 10;
   pt->poll = metadata_panel_context_poll;
   pt->draw = metadata_panel_context_draw;

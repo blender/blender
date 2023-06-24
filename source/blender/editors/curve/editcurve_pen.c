@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edcurve
@@ -1129,7 +1130,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
  * Check if a spline segment is nearby.
  */
 static bool is_spline_nearby(ViewContext *vc,
-                             struct wmOperator *op,
+                             wmOperator *op,
                              const wmEvent *event,
                              const float sel_dist)
 {

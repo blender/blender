@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
@@ -12,7 +14,7 @@ namespace blender::nodes::node_geo_edge_paths_to_curves_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Start Vertices").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Int>("Next Vertex Index").default_value(-1).hide_value().field_on_all();
   b.add_output<decl::Geometry>("Curves").propagate_all();
@@ -20,20 +22,20 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static Curves *edge_paths_to_curves_convert(
     const Mesh &mesh,
-    const IndexMask start_verts_mask,
+    const IndexMask &start_verts_mask,
     const Span<int> next_indices,
     const AnonymousAttributePropagationInfo &propagation_info)
 {
   Vector<int> vert_indices;
   Vector<int> curve_offsets;
   Array<bool> visited(mesh.totvert, false);
-  for (const int first_vert : start_verts_mask) {
+  start_verts_mask.foreach_index([&](const int first_vert) {
     const int second_vert = next_indices[first_vert];
     if (first_vert == second_vert) {
-      continue;
+      return;
     }
     if (second_vert < 0 || second_vert >= mesh.totvert) {
-      continue;
+      return;
     }
 
     curve_offsets.append(vert_indices.size());
@@ -55,7 +57,7 @@ static Curves *edge_paths_to_curves_convert(
     for (const int vert_in_curve : vert_indices.as_span().take_back(points_in_curve_num)) {
       visited[vert_in_curve] = false;
     }
-  }
+  });
 
   if (vert_indices.is_empty()) {
     return nullptr;
@@ -72,7 +74,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   geometry_set.modify_geometry_sets([&](GeometrySet &geometry_set) {
     const Mesh *mesh = geometry_set.get_mesh_for_read();
     if (mesh == nullptr) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.keep_only({GeometryComponent::Type::Instance});
       return;
     }
 
@@ -85,13 +87,13 @@ static void node_geo_exec(GeoNodeExecParams params)
     IndexMask start_verts = evaluator.get_evaluated_as_mask(1);
 
     if (start_verts.is_empty()) {
-      geometry_set.keep_only({GEO_COMPONENT_TYPE_INSTANCES});
+      geometry_set.keep_only({GeometryComponent::Type::Instance});
       return;
     }
 
     geometry_set.replace_curves(edge_paths_to_curves_convert(
         *mesh, start_verts, next_vert, params.get_output_propagation_info("Curves")));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_CURVE, GEO_COMPONENT_TYPE_INSTANCES});
+    geometry_set.keep_only({GeometryComponent::Type::Curve, GeometryComponent::Type::Instance});
   });
 
   params.set_output("Curves", std::move(geometry_set));

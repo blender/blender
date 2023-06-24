@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -619,9 +620,6 @@ static void drw_shgroup_bone_envelope(ArmatureDrawContext *ctx,
 
 /* Custom (geometry) */
 
-extern "C" void drw_batch_cache_validate(Object *custom);
-extern "C" void drw_batch_cache_generate_requested_delayed(Object *custom);
-
 BLI_INLINE DRWCallBuffer *custom_bone_instance_shgroup(ArmatureDrawContext *ctx,
                                                        DRWShadingGroup *grp,
                                                        GPUBatch *custom_geom)
@@ -650,11 +648,11 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
 
   GPUBatch *surf = DRW_mesh_batch_cache_get_surface(mesh);
   GPUBatch *edges = DRW_mesh_batch_cache_get_edge_detection(mesh, nullptr);
-  GPUBatch *ledges = DRW_mesh_batch_cache_get_loose_edges(mesh);
+  GPUBatch *loose_edges = DRW_mesh_batch_cache_get_loose_edges(mesh);
   BoneInstanceData inst_data;
   DRWCallBuffer *buf;
 
-  if (surf || edges || ledges) {
+  if (surf || edges || loose_edges) {
     mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
   }
 
@@ -671,8 +669,8 @@ static void drw_shgroup_bone_custom_solid_mesh(ArmatureDrawContext *ctx,
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
   }
 
-  if (ledges) {
-    buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+  if (loose_edges) {
+    buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
     OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);
@@ -718,19 +716,19 @@ static void drw_shgroup_custom_bone_curve(ArmatureDrawContext *ctx,
 
   /* This only handles curves without any surface. The other curve types should have been converted
    * to meshes and rendered in the mesh drawing function. */
-  GPUBatch *ledges = nullptr;
+  GPUBatch *loose_edges = nullptr;
   if (custom->type == OB_FONT) {
-    ledges = DRW_cache_text_edge_wire_get(custom);
+    loose_edges = DRW_cache_text_edge_wire_get(custom);
   }
   else {
-    ledges = DRW_cache_curve_edge_wire_get(custom);
+    loose_edges = DRW_cache_curve_edge_wire_get(custom);
   }
 
-  if (ledges) {
+  if (loose_edges) {
     BoneInstanceData inst_data;
     mul_m4_m4m4(inst_data.mat, ctx->ob->object_to_world, bone_mat);
 
-    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, ledges);
+    DRWCallBuffer *buf = custom_bone_instance_shgroup(ctx, ctx->custom_wire, loose_edges);
     OVERLAY_bone_instance_data_set_color_hint(&inst_data, outline_color);
     OVERLAY_bone_instance_data_set_color(&inst_data, outline_color);
     DRW_buffer_add_entry_struct(buf, inst_data.mat);

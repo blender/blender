@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 #include "BLI_task.hh"
@@ -22,7 +24,7 @@ NODE_STORAGE_FUNCS(NodeGeometrySubdivisionSurface)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Int>("Level").default_value(1).min(0).max(6);
   b.add_input<decl::Float>("Edge Crease")
       .default_value(0.0f)
@@ -57,17 +59,16 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void write_vert_creases(Mesh &mesh, const VArray<float> &creases)
 {
-  CustomData_free_layers(&mesh.vdata, CD_CREASE, mesh.totvert);
-  float *layer = static_cast<float *>(
-      CustomData_add_layer(&mesh.vdata, CD_CREASE, CD_CONSTRUCT, mesh.totvert));
-  array_utils::copy(creases, {layer, mesh.totvert});
+  bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
+  attributes.remove("crease_vert");
+  attributes.add<float>("crease_vert", ATTR_DOMAIN_POINT, bke::AttributeInitVArray(creases));
 }
 
 static void write_edge_creases(Mesh &mesh, const VArray<float> &creases)
 {
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
-  attributes.remove("crease");
-  attributes.add<float>("crease", ATTR_DOMAIN_EDGE, bke::AttributeInitVArray(creases));
+  attributes.remove("crease_edge");
+  attributes.add<float>("crease_edge", ATTR_DOMAIN_EDGE, bke::AttributeInitVArray(creases));
 }
 
 static bool varray_is_single_zero(const VArray<float> &varray)
@@ -144,9 +145,10 @@ static Mesh *mesh_subsurf_calc(const Mesh *mesh,
 
   if (use_creases) {
     /* Remove the layer in case it was created by the node from the field input. The fact
-     * that this node uses #CD_CREASE to input creases to the subdivision code is meant to be
+     * that this node uses attributes to input creases to the subdivision code is meant to be
      * an implementation detail ideally. */
-    CustomData_free_layers(&result->edata, CD_CREASE, result->totedge);
+    result->attributes_for_write().remove("crease_vert");
+    result->attributes_for_write().remove("crease_edge");
   }
 
   if (mesh_copy) {

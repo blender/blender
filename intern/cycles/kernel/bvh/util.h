@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -251,6 +252,43 @@ ccl_device_inline bool intersection_skip_self_local(ccl_private const RaySelfPri
                                                     const int prim)
 {
   return (self.prim == prim);
+}
+
+#ifdef __SHADOW_LINKING__
+ccl_device_inline uint64_t ray_get_shadow_set_membership(KernelGlobals kg,
+                                                         ccl_private const Ray *ray)
+{
+  if (ray->self.light != LAMP_NONE) {
+    return kernel_data_fetch(lights, ray->self.light).shadow_set_membership;
+  }
+
+  if (ray->self.light_object != OBJECT_NONE) {
+    return kernel_data_fetch(objects, ray->self.light_object).shadow_set_membership;
+  }
+
+  return LIGHT_LINK_MASK_ALL;
+}
+#endif
+
+ccl_device_inline bool intersection_skip_shadow_link(KernelGlobals kg,
+                                                     ccl_private const Ray *ray,
+                                                     const int isect_object)
+{
+#ifdef __SHADOW_LINKING__
+  if (!(kernel_data.kernel_features & KERNEL_FEATURE_SHADOW_LINKING)) {
+    return false;
+  }
+
+  const uint64_t set_membership = ray_get_shadow_set_membership(kg, ray);
+  if (set_membership == LIGHT_LINK_MASK_ALL) {
+    return false;
+  }
+
+  const uint blocker_set = kernel_data_fetch(objects, isect_object).blocker_shadow_set;
+  return ((uint64_t(1) << uint64_t(blocker_set)) & set_membership) == 0;
+#else
+  return false;
+#endif
 }
 
 CCL_NAMESPACE_END

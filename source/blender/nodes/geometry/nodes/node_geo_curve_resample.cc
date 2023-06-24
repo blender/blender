@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GEO_resample_curves.hh"
 
@@ -15,7 +17,7 @@ NODE_STORAGE_FUNCS(NodeGeometryCurveResample)
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Curve").supported_type(GEO_COMPONENT_TYPE_CURVE);
+  b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_input<decl::Bool>("Selection").default_value(true).field_on_all().hide_value();
   b.add_input<decl::Int>("Count").default_value(10).min(1).max(100000).field_on_all();
   b.add_input<decl::Float>("Length").default_value(0.1f).min(0.01f).field_on_all().subtype(

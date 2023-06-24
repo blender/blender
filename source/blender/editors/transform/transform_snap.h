@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editors
@@ -42,6 +44,8 @@ void tranform_snap_target_median_calc(const TransInfo *t, float r_median[3]);
 bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float *r_val);
 bool transform_snap_increment(const TransInfo *t, float *val);
 float transform_snap_increment_get(const TransInfo *t);
+
+void tranform_snap_source_restore_context(TransInfo *t);
 
 void transform_snap_flag_from_modifiers_set(TransInfo *t);
 bool transform_snap_is_active(const TransInfo *t);

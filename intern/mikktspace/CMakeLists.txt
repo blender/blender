@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2006 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2006 Blender Foundation
 
 add_library(bf_intern_mikktspace INTERFACE)
 target_include_directories(bf_intern_mikktspace INTERFACE .)

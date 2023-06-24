@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
@@ -15,10 +17,10 @@ struct Tex;
 struct Image;
 struct Material;
 
-BLI_CPP_TYPE_MAKE(GeometrySet, CPPTypeFlags::Printable);
+BLI_CPP_TYPE_MAKE(blender::bke::GeometrySet, CPPTypeFlags::Printable);
 BLI_CPP_TYPE_MAKE(blender::bke::InstanceReference, CPPTypeFlags::None)
 
-BLI_VECTOR_CPP_TYPE_MAKE(GeometrySet);
+BLI_VECTOR_CPP_TYPE_MAKE(blender::bke::GeometrySet);
 
 BLI_CPP_TYPE_MAKE(Object *, CPPTypeFlags::BasicType)
 BLI_CPP_TYPE_MAKE(Collection *, CPPTypeFlags::BasicType)
@@ -35,10 +37,10 @@ void BKE_cpp_types_init()
   blender::register_cpp_types();
   FN_register_cpp_types();
 
-  BLI_CPP_TYPE_REGISTER(GeometrySet);
+  BLI_CPP_TYPE_REGISTER(blender::bke::GeometrySet);
   BLI_CPP_TYPE_REGISTER(blender::bke::InstanceReference);
 
-  BLI_VECTOR_CPP_TYPE_REGISTER(GeometrySet);
+  BLI_VECTOR_CPP_TYPE_REGISTER(blender::bke::GeometrySet);
 
   BLI_CPP_TYPE_REGISTER(Object *);
   BLI_CPP_TYPE_REGISTER(Collection *);

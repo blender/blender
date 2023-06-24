@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -59,40 +60,40 @@ typedef struct tGPDinterpolate_layer {
   struct tGPDinterpolate_layer *next, *prev;
 
   /** layer */
-  struct bGPDlayer *gpl;
+  bGPDlayer *gpl;
   /** frame before current frame (interpolate-from) */
-  struct bGPDframe *prevFrame;
+  bGPDframe *prevFrame;
   /** frame after current frame (interpolate-to) */
-  struct bGPDframe *nextFrame;
+  bGPDframe *nextFrame;
   /** interpolated frame */
-  struct bGPDframe *interFrame;
+  bGPDframe *interFrame;
   /** interpolate factor */
   float factor;
 
   /* List of strokes and Hash tablets to create temp relationship between strokes. */
-  struct ListBase selected_strokes;
-  struct GHash *used_strokes;
-  struct GHash *pair_strokes;
+  ListBase selected_strokes;
+  GHash *used_strokes;
+  GHash *pair_strokes;
 
 } tGPDinterpolate_layer;
 
 typedef struct tGPDinterpolate {
   /** Current depsgraph from context */
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
   /** current scene from context */
-  struct Scene *scene;
+  Scene *scene;
   /** area where painting originated */
-  struct ScrArea *area;
+  ScrArea *area;
   /** region where painting originated */
-  struct ARegion *region;
+  ARegion *region;
   /** current object */
-  struct Object *ob;
+  Object *ob;
   /** current GP datablock */
-  struct bGPdata *gpd;
+  bGPdata *gpd;
   /** current material */
   struct Material *mat;
   /* Space Conversion Data */
-  struct GP_SpaceConversion gsc;
+  GP_SpaceConversion gsc;
 
   /** current frame number */
   int cframe;
@@ -1448,7 +1449,7 @@ static void gpencil_interpolate_seq_ui(bContext *C, wmOperator *op)
   row = uiLayoutRow(layout, true);
   uiItemR(row, op->ptr, "layers", 0, NULL, ICON_NONE);
 
-  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL) {
+  if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
     row = uiLayoutRow(layout, true);
     uiItemR(row, op->ptr, "interpolate_selected_only", 0, NULL, ICON_NONE);
   }

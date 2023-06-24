@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 by Bastien Montagne. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 by Bastien Montagne. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -71,7 +72,9 @@
 
 struct Vert2GeomData {
   /* Read-only data */
-  float (*v_cos)[3];
+  blender::Span<blender::float3> positions;
+
+  const int *indices;
 
   const SpaceTransform *loc2trgt;
 
@@ -105,7 +108,7 @@ static void vert2geom_task_cb_ex(void *__restrict userdata,
   int i;
 
   /* Convert the vertex to tree coordinates. */
-  copy_v3_v3(tmp_co, data->v_cos[iter]);
+  copy_v3_v3(tmp_co, data->positions[data->indices ? data->indices[iter] : iter]);
   BLI_space_transform_apply(data->loc2trgt, tmp_co);
 
   for (i = 0; i < ARRAY_SIZE(data->dist); i++) {
@@ -144,7 +147,8 @@ static void vert2geom_task_cb_ex(void *__restrict userdata,
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
  */
 static void get_vert2geom_distance(int verts_num,
-                                   float (*v_cos)[3],
+                                   const blender::Span<blender::float3> positions,
+                                   const int *indices,
                                    float *dist_v,
                                    float *dist_e,
                                    float *dist_f,
@@ -183,7 +187,8 @@ static void get_vert2geom_distance(int verts_num,
     }
   }
 
-  data.v_cos = v_cos;
+  data.positions = positions;
+  data.indices = indices;
   data.loc2trgt = loc2trgt;
   data.treeData[0] = &treeData_v;
   data.treeData[1] = &treeData_e;
@@ -214,8 +219,12 @@ static void get_vert2geom_distance(int verts_num,
  * Returns the real distance between a vertex and another reference object.
  * Note that it works in final world space (i.e. with constraints etc. applied).
  */
-static void get_vert2ob_distance(
-    int verts_num, float (*v_cos)[3], float *dist, Object *ob, Object *obr)
+static void get_vert2ob_distance(int verts_num,
+                                 const blender::Span<blender::float3> positions,
+                                 const int *indices,
+                                 float *dist,
+                                 Object *ob,
+                                 Object *obr)
 {
   /* Vertex and ref object coordinates. */
   float v_wco[3];
@@ -223,7 +232,7 @@ static void get_vert2ob_distance(
 
   while (i-- > 0) {
     /* Get world-coordinates of the vertex (constraints and anim included). */
-    mul_v3_m4v3(v_wco, ob->object_to_world, v_cos[i]);
+    mul_v3_m4v3(v_wco, ob->object_to_world, positions[indices ? indices[i] : i]);
     /* Return distance between both coordinates. */
     dist[i] = len_v3v3(v_wco, obr->object_to_world[3]);
   }
@@ -420,7 +429,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
   MDeformWeight **dw, **tdw;
-  float(*v_cos)[3] = nullptr; /* The vertices coordinates. */
   Object *ob = ctx->object;
   Object *obr = nullptr; /* Our target object. */
   int defgrp_index;
@@ -514,17 +522,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   new_w = static_cast<float *>(MEM_malloc_arrayN(index_num, sizeof(float), __func__));
   MEM_freeN(tidx);
 
-  /* Get our vertex coordinates. */
-  if (index_num != verts_num) {
-    const float(*tv_cos)[3] = BKE_mesh_vert_positions(mesh);
-    v_cos = static_cast<float(*)[3]>(MEM_malloc_arrayN(index_num, sizeof(float[3]), __func__));
-    for (i = 0; i < index_num; i++) {
-      copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
-    }
-  }
-  else {
-    v_cos = BKE_mesh_vert_coords_alloc(mesh, nullptr);
-  }
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
 
   /* Compute wanted distances. */
   if (wmd->proximity_mode == MOD_WVG_PROXIMITY_OBJECT) {
@@ -561,7 +559,7 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 
         BLI_SPACE_TRANSFORM_SETUP(&loc2trgt, ob, obr);
         get_vert2geom_distance(
-            index_num, v_cos, dists_v, dists_e, dists_f, target_mesh, &loc2trgt);
+            index_num, positions, indices, dists_v, dists_e, dists_f, target_mesh, &loc2trgt);
         for (i = 0; i < index_num; i++) {
           new_w[i] = dists_v ? dists_v[i] : FLT_MAX;
           if (dists_e) {
@@ -578,11 +576,11 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
       }
       /* Else, fall back to default obj2vert behavior. */
       else {
-        get_vert2ob_distance(index_num, v_cos, new_w, ob, obr);
+        get_vert2ob_distance(index_num, positions, indices, new_w, ob, obr);
       }
     }
     else {
-      get_vert2ob_distance(index_num, v_cos, new_w, ob, obr);
+      get_vert2ob_distance(index_num, positions, indices, new_w, ob, obr);
     }
   }
 
@@ -631,7 +629,6 @@ static Mesh *modifyMesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
   MEM_freeN(org_w);
   MEM_freeN(new_w);
   MEM_freeN(dw);
-  MEM_freeN(v_cos);
   MEM_SAFE_FREE(indices);
 
 #ifdef USE_TIMEIT

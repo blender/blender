@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup nodes
@@ -109,10 +110,7 @@ static void node_init_output_index(bNodeSocket *sock, int *index)
 }
 
 /* basic preparation of socket stacks */
-static struct bNodeStack *setup_stack(bNodeStack *stack,
-                                      bNodeTree *ntree,
-                                      bNode *node,
-                                      bNodeSocket *sock)
+static bNodeStack *setup_stack(bNodeStack *stack, bNodeTree *ntree, bNode *node, bNodeSocket *sock)
 {
   bNodeStack *ns = node_get_socket_stack(stack, sock);
   if (!ns) {

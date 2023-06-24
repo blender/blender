@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -113,40 +114,23 @@ AnimData *BKE_animdata_ensure_id(ID *id)
   return NULL;
 }
 
-/* Action Setter --------------------------------------- */
-
-bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
+/* Action / `tmpact` Setter shared code -------------------------
+ *
+ * Both the action and `tmpact` setter functions have essentially
+ * identical semantics, because `tmpact` is just a place to temporarily
+ * store the main action during tweaking.  This function contains the
+ * shared code between those two setter functions, setting the action
+ * of the passed `act_slot` to `act`.
+ *
+ * Preconditions:
+ * - `id` and `act_slot` must be non-null (but the pointer `act_slot`
+ *   points to can be null).
+ * - `id` must have animation data.
+ * - `act_slot` must be a pointer to either the `action` or `tmpact`
+ *   field of `id`'s animation data.
+ */
+static bool animdata_set_action(ReportList *reports, ID *id, bAction **act_slot, bAction *act)
 {
-  AnimData *adt = BKE_animdata_from_id(id);
-
-  /* Animdata validity check. */
-  if (adt == NULL) {
-    BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
-    return false;
-  }
-
-  if (adt->action == act) {
-    /* Don't bother reducing and increasing the user count when there is nothing changing. */
-    return true;
-  }
-
-  if (!BKE_animdata_action_editable(adt)) {
-    /* Cannot remove, otherwise things turn to custard. */
-    BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
-    return false;
-  }
-
-  /* Reduce user-count for current action. */
-  if (adt->action) {
-    id_us_min((ID *)adt->action);
-  }
-
-  if (act == NULL) {
-    /* Just clearing the action. */
-    adt->action = NULL;
-    return true;
-  }
-
   /* Action must have same type as owner. */
   if (!BKE_animdata_action_ensure_idroot(id, act)) {
     /* Cannot set to this type. */
@@ -160,10 +144,57 @@ bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
     return false;
   }
 
-  adt->action = act;
-  id_us_plus((ID *)adt->action);
+  if (*act_slot == act) {
+    /* Don't bother reducing and increasing the user count when there is nothing changing. */
+    return true;
+  }
+
+  /* Unassign current action. */
+  if (*act_slot) {
+    id_us_min((ID *)*act_slot);
+    *act_slot = NULL;
+  }
+
+  if (act == NULL) {
+    return true;
+  }
+
+  *act_slot = act;
+  id_us_plus((ID *)*act_slot);
 
   return true;
+}
+
+/* Tmpact Setter --------------------------------------- */
+bool BKE_animdata_set_tmpact(ReportList *reports, ID *id, bAction *act)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+
+  if (adt == NULL) {
+    BKE_report(reports, RPT_WARNING, "No AnimData to set tmpact on");
+    return false;
+  }
+
+  return animdata_set_action(reports, id, &adt->tmpact, act);
+}
+
+/* Action Setter --------------------------------------- */
+bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
+{
+  AnimData *adt = BKE_animdata_from_id(id);
+
+  if (adt == NULL) {
+    BKE_report(reports, RPT_WARNING, "No AnimData to set action on");
+    return false;
+  }
+
+  if (!BKE_animdata_action_editable(adt)) {
+    /* Cannot remove, otherwise things turn to custard. */
+    BKE_report(reports, RPT_ERROR, "Cannot change action, as it is still being edited in NLA");
+    return false;
+  }
+
+  return animdata_set_action(reports, id, &adt->action, act);
 }
 
 bool BKE_animdata_action_editable(const AnimData *adt)
@@ -235,7 +266,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
   }
 }
 
-bool BKE_animdata_id_is_animated(const struct ID *id)
+bool BKE_animdata_id_is_animated(const ID *id)
 {
   if (id == NULL) {
     return false;
@@ -375,8 +406,8 @@ void BKE_animdata_copy_id_action(Main *bmain, ID *id)
   animdata_copy_id_action(bmain, id, false, !is_id_liboverride);
 }
 
-void BKE_animdata_duplicate_id_action(struct Main *bmain,
-                                      struct ID *id,
+void BKE_animdata_duplicate_id_action(Main *bmain,
+                                      ID *id,
                                       const /*eDupli_ID_Flags*/ uint duplicate_flags)
 {
   if (duplicate_flags & USER_DUP_ACT) {
@@ -1421,7 +1452,7 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
 
 /* .blend file API -------------------------------------------- */
 
-void BKE_animdata_blend_write(BlendWriter *writer, struct AnimData *adt)
+void BKE_animdata_blend_write(BlendWriter *writer, AnimData *adt)
 {
   /* firstly, just write the AnimData block */
   BLO_write_struct(writer, AnimData, adt);
@@ -1491,7 +1522,7 @@ void BKE_animdata_blend_read_lib(BlendLibReader *reader, ID *id, AnimData *adt)
   BKE_nla_blend_read_lib(reader, id, &adt->nla_tracks);
 }
 
-void BKE_animdata_blend_read_expand(struct BlendExpander *expander, AnimData *adt)
+void BKE_animdata_blend_read_expand(BlendExpander *expander, AnimData *adt)
 {
   /* own action */
   BLO_expand(expander, adt->action);

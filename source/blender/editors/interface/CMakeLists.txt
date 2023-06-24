@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
@@ -67,6 +69,8 @@ set(SRC
   interface_style.cc
   interface_template_asset_view.cc
   interface_template_attribute_search.cc
+  interface_template_light_linking.cc
+  interface_template_grease_pencil_layer_tree.cc
   interface_template_list.cc
   interface_template_search_menu.cc
   interface_template_search_operator.cc

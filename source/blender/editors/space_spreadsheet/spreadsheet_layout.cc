@@ -1,8 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <iomanip>
 #include <sstream>
 
+#include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_geometry_set.hh"
@@ -201,6 +204,10 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     else if (data.type().is<ColorGeometry4b>()) {
       const ColorGeometry4b value = data.get<ColorGeometry4b>(real_index);
       this->draw_byte_color(params, value);
+    }
+    else if (data.type().is<math::Quaternion>()) {
+      const float4 value = float4(data.get<math::Quaternion>(real_index));
+      this->draw_float_vector(params, Span(&value.x, 4));
     }
     else if (data.type().is<bke::InstanceReference>()) {
       const bke::InstanceReference value = data.get<bke::InstanceReference>(real_index);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -374,11 +376,8 @@ void EDBM_preselect_elem_update_from_single(struct EditMesh_PreSelElem *psel,
   }
 }
 
-void EDBM_preselect_elem_update_preview(struct EditMesh_PreSelElem *psel,
-                                        struct ViewContext *vc,
-                                        struct BMesh *bm,
-                                        struct BMElem *ele,
-                                        const int mval[2])
+void EDBM_preselect_elem_update_preview(
+    struct EditMesh_PreSelElem *psel, ViewContext *vc, BMesh *bm, BMElem *ele, const int mval[2])
 {
   EDBM_preselect_preview_clear(psel);
 

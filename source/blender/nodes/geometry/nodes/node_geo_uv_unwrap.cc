@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "GEO_uv_parametrizer.hh"
 
@@ -81,7 +83,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   Array<float3> uv(corner_verts.size(), float3(0));
 
   geometry::ParamHandle *handle = geometry::uv_parametrizer_construct_begin();
-  for (const int poly_index : selection) {
+  selection.foreach_index([&](const int poly_index) {
     const IndexRange poly = polys[poly_index];
     Array<geometry::ParamKey, 16> mp_vkeys(poly.size());
     Array<bool, 16> mp_pin(poly.size());
@@ -105,11 +107,13 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
                                        mp_uv.data(),
                                        mp_pin.data(),
                                        mp_select.data());
-  }
-  for (const int i : seam) {
+  });
+
+  seam.foreach_index([&](const int i) {
     geometry::ParamKey vkeys[2]{uint(edges[i][0]), uint(edges[i][1])};
     geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
-  }
+  });
+
   /* TODO: once field input nodes are able to emit warnings (#94039), emit a
    * warning if we fail to solve an island. */
   geometry::uv_parametrizer_construct_end(handle, fill_holes, false, nullptr);
@@ -153,7 +157,7 @@ class UnwrapFieldInput final : public bke::MeshFieldInput {
 
   GVArray get_varray_for_context(const Mesh &mesh,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return construct_uv_gvarray(mesh, selection_, seam_, fill_holes_, margin_, method_, domain);
   }

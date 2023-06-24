@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -40,7 +42,8 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_CU_LEGACY, "CURVE", ICON_CURVE_DATA, "Curve", ""},
     {ID_CV, "CURVES", ICON_CURVES_DATA, "Curves", ""},
     {ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
-    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
+    {ID_GD_LEGACY, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil (legacy)", ""},
+    {ID_GP, "GREASEPENCIL_V3", ICON_GREASEPENCIL, "Grease Pencil", ""},
     {ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
     {ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
     {ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
@@ -484,6 +487,9 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_Curve;
     case ID_GD_LEGACY:
       return &RNA_GreasePencil;
+    case ID_GP:
+      return &RNA_GreasePencilv3;
+      break;
     case ID_GR:
       return &RNA_Collection;
     case ID_CV:
@@ -717,6 +723,38 @@ static void rna_ID_asset_clear(ID *id)
     WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
     WM_main_add_notifier(NC_ASSET | NA_REMOVED, NULL);
   }
+}
+
+static void rna_ID_asset_data_set(PointerRNA *ptr, PointerRNA value, struct ReportList *reports)
+{
+  ID *destination = ptr->data;
+
+  /* Avoid marking as asset by assigning. This should be done with `.asset_mark()`.
+   * This is just for clarity of the API, and to accommodate future changes. */
+  if (destination->asset_data == NULL) {
+    BKE_report(reports,
+               RPT_ERROR,
+               "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset");
+    return;
+  }
+
+  const AssetMetaData *asset_data = value.data;
+  if (asset_data == NULL) {
+    /* Avoid clearing the asset data on assets. Un-marking as asset should be done with
+     * `.asset_clear()`. This is just for clarity of the API, and to accommodate future changes. */
+    BKE_report(reports, RPT_ERROR, "Asset data cannot be None");
+    return;
+  }
+
+  const bool assigned_ok = ED_asset_copy_to_id(asset_data, destination);
+  if (!assigned_ok) {
+    BKE_reportf(
+        reports, RPT_ERROR, "'%s' is of a type that cannot be an asset", destination->name + 2);
+    return;
+  }
+
+  WM_main_add_notifier(NC_ASSET | NA_EDITED, NULL);
+  WM_main_add_notifier(NC_ID | NA_EDITED, NULL);
 }
 
 static ID *rna_ID_override_create(ID *id, Main *bmain, bool remap_local_usages)
@@ -1013,6 +1051,8 @@ static void rna_ID_user_remap(ID *id, Main *bmain, ID *new_id)
     /* For now, do not allow remapping data in linked data from here... */
     BKE_libblock_remap(
         bmain, id, new_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
+
+    WM_main_add_notifier(NC_WINDOW, NULL);
   }
 }
 
@@ -1567,7 +1607,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  /* for mesh/mball/curve materials */
+  /* For mesh/meta-ball/curve materials. */
   srna = RNA_def_struct(brna, "IDMaterials", NULL);
   RNA_def_struct_sdna(srna, "ID");
   RNA_def_struct_ui_text(srna, "ID Materials", "Collection of materials");
@@ -2123,7 +2163,8 @@ static void rna_def_ID(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 
   prop = RNA_def_property(srna, "asset_data", PROP_POINTER, PROP_NONE);
-  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, NULL, "rna_ID_asset_data_set", NULL, NULL);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Asset Data", "Additional data for an asset data-block");
 

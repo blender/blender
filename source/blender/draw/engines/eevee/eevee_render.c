@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -32,7 +33,7 @@
 
 #include "eevee_private.h"
 
-bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *depsgraph)
+bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, Depsgraph *depsgraph)
 {
   EEVEE_Data *vedata = (EEVEE_Data *)ved;
   EEVEE_StorageList *stl = vedata->stl;
@@ -116,16 +117,14 @@ bool EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
   return true;
 }
 
-void EEVEE_render_modules_init(EEVEE_Data *vedata,
-                               RenderEngine *engine,
-                               struct Depsgraph *depsgraph)
+void EEVEE_render_modules_init(EEVEE_Data *vedata, RenderEngine *engine, Depsgraph *depsgraph)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_PrivateData *g_data = vedata->stl->g_data;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
+  Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
   EEVEE_render_view_sync(vedata, engine, depsgraph);
 
   /* `EEVEE_renderpasses_init` will set the active render passes used by `EEVEE_effects_init`.
@@ -137,14 +136,14 @@ void EEVEE_render_modules_init(EEVEE_Data *vedata,
   EEVEE_lightprobes_init(sldata, vedata);
 }
 
-void EEVEE_render_view_sync(EEVEE_Data *vedata, RenderEngine *engine, struct Depsgraph *depsgraph)
+void EEVEE_render_view_sync(EEVEE_Data *vedata, RenderEngine *engine, Depsgraph *depsgraph)
 {
   EEVEE_PrivateData *g_data = vedata->stl->g_data;
 
   /* Set the perspective & view matrix. */
   float winmat[4][4], viewmat[4][4], viewinv[4][4];
   /* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
-  struct Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
+  Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, g_data->cam_original_ob);
 
   RE_GetCameraWindow(engine->re, ob_camera_eval, winmat);
   RE_GetCameraWindowWithOverscan(engine->re, g_data->overscan, winmat);
@@ -176,10 +175,7 @@ void EEVEE_render_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   EEVEE_cryptomatte_cache_init(sldata, vedata);
 }
 
-void EEVEE_render_cache(void *vedata,
-                        struct Object *ob,
-                        struct RenderEngine *engine,
-                        struct Depsgraph *depsgraph)
+void EEVEE_render_cache(void *vedata, Object *ob, RenderEngine *engine, Depsgraph *depsgraph)
 {
   EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
   EEVEE_Data *data = vedata;
@@ -271,7 +267,7 @@ static void eevee_render_color_result(RenderLayer *rl,
                              num_channels,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->rect);
+                             rp->buffer.data);
 }
 
 static void eevee_render_result_combined(RenderLayer *rl,

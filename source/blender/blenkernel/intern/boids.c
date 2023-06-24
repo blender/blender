@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Janne Karhu. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Janne Karhu. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1656,7 +1657,7 @@ BoidState *boid_new_state(BoidSettings *boids)
     SNPRINTF(state->name, "State %i", state->id);
   }
   else {
-    strcpy(state->name, "State");
+    STRNCPY(state->name, "State");
   }
 
   state->rule_fuzziness = 0.5;

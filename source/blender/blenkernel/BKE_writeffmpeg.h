@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -64,7 +65,7 @@ int BKE_ffmpeg_append(void *context_v,
                       int recty,
                       const char *suffix,
                       struct ReportList *reports);
-void BKE_ffmpeg_filepath_get(char *filepath,
+void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
                              const struct RenderData *rd,
                              bool preview,
                              const char *suffix);

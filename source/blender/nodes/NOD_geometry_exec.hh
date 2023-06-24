@@ -1,6 +1,10 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
+
+#include "BLI_math_quaternion_types.hh"
 
 #include "FN_field.hh"
 #include "FN_lazy_function.hh"
@@ -27,11 +31,19 @@ using bke::AttributeKind;
 using bke::AttributeMetaData;
 using bke::AttributeReader;
 using bke::AttributeWriter;
+using bke::CurveComponent;
 using bke::GAttributeReader;
 using bke::GAttributeWriter;
+using bke::GeometryComponent;
+using bke::GeometryComponentEditData;
+using bke::GeometrySet;
 using bke::GSpanAttributeWriter;
+using bke::InstancesComponent;
+using bke::MeshComponent;
 using bke::MutableAttributeAccessor;
+using bke::PointCloudComponent;
 using bke::SpanAttributeWriter;
+using bke::VolumeComponent;
 using fn::Field;
 using fn::FieldContext;
 using fn::FieldEvaluator;
@@ -70,7 +82,7 @@ class GeoNodeExecParams {
 
   template<typename T>
   static inline constexpr bool is_field_base_type_v =
-      is_same_any_v<T, float, int, bool, ColorGeometry4f, float3, std::string>;
+      is_same_any_v<T, float, int, bool, ColorGeometry4f, float3, std::string, math::Quaternion>;
 
   /**
    * Get the input value for the input socket with the given identifier.

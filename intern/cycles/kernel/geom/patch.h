@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2013 Pixar. */
+/* SPDX-FileCopyrightText: 2013 Pixar
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /** \file
  * Based on code from OpenSubdiv.

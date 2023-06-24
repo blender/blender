@@ -1,9 +1,12 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <optional>
 
 #include "AS_asset_catalog.hh"
 #include "AS_asset_library.hh"
+#include "AS_asset_representation.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_string_search.h"
@@ -60,20 +63,19 @@ static void add_node_search_listen_fn(const wmRegionListenerParams *params, void
 }
 
 static void search_items_for_asset_metadata(const bNodeTree &node_tree,
-                                            const AssetHandle asset_handle,
+                                            const asset_system::AssetRepresentation &asset,
                                             nodes::GatherAddNodeSearchParams &params)
 {
-  const AssetMetaData &asset_data = *ED_asset_handle_get_metadata(&asset_handle);
+  const AssetMetaData &asset_data = asset.get_metadata();
   const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&asset_data, "type");
   if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
     return;
   }
 
-  const AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
   params.add_single_node_item(
-      IFACE_(ED_asset_handle_get_name(&asset_handle)),
+      IFACE_(asset.get_name().c_str()),
       asset_data.description == nullptr ? "" : IFACE_(asset_data.description),
-      [asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
+      [&asset](const bContext &C, bNodeTree &node_tree, bNode &node) {
         Main &bmain = *CTX_data_main(&C);
         node.flag &= ~NODE_OPTIONS;
         node.id = ED_asset_get_local_id_from_asset_or_append_and_reuse(&bmain, asset, ID_NT);
@@ -100,11 +102,11 @@ static void gather_search_items_for_all_assets(const bContext &C,
 
   ED_assetlist_storage_fetch(&library_ref, &C);
   ED_assetlist_ensure_previews_job(&library_ref, &C);
-  ED_assetlist_iterate(library_ref, [&](AssetHandle asset) {
-    if (!ED_asset_filter_matches_asset(&filter_settings, &asset)) {
+  ED_assetlist_iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
+    if (!ED_asset_filter_matches_asset(&filter_settings, asset)) {
       return true;
     }
-    if (!r_added_assets.add(ED_asset_handle_get_name(&asset))) {
+    if (!r_added_assets.add(asset.get_name())) {
       /* If an asset with the same name has already been added, skip this. */
       return true;
     }

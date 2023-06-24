@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_kdtree.h"
@@ -18,12 +20,11 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Bool>("Has Neighbor").field_source();
 }
 
-static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask mask)
+static KDTree_3d *build_kdtree(const Span<float3> positions, const IndexMask &mask)
 {
   KDTree_3d *tree = BLI_kdtree_3d_new(mask.size());
-  for (const int index : mask) {
-    BLI_kdtree_3d_insert(tree, index, positions[index]);
-  }
+  mask.foreach_index(
+      [&](const int index) { BLI_kdtree_3d_insert(tree, index, positions[index]); });
   BLI_kdtree_3d_balance(tree);
   return tree;
 }
@@ -38,13 +39,11 @@ static int find_nearest_non_self(const KDTree_3d &tree, const float3 &position, 
 
 static void find_neighbors(const KDTree_3d &tree,
                            const Span<float3> positions,
-                           const IndexMask mask,
+                           const IndexMask &mask,
                            MutableSpan<int> r_indices)
 {
-  threading::parallel_for(mask.index_range(), 1024, [&](const IndexRange range) {
-    for (const int index : mask.slice(range)) {
-      r_indices[index] = find_nearest_non_self(tree, positions[index], index);
-    }
+  mask.foreach_index(GrainSize(1024), [&](const int index) {
+    r_indices[index] = find_nearest_non_self(tree, positions[index], index);
   });
 }
 
@@ -62,7 +61,7 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     if (!context.attributes()) {
       return {};
@@ -87,58 +86,38 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
     const VArraySpan<int> group_ids_span(group_ids);
 
     VectorSet<int> group_indexing;
-    for (const int index : mask) {
+    for (const int index : IndexRange(domain_size)) {
       const int group_id = group_ids_span[index];
       group_indexing.add(group_id);
     }
+    const int groups_num = group_indexing.size();
 
-    /* Each group ID has two corresponding index masks. One that contains all the points
-     * in each group and one that contains all the points in the group that should be looked up
-     * (the intersection of the points in the group and `mask`). In many cases, both of these
-     * masks are the same or very similar, so there is not enough benefit for a separate mask
-     * for the lookups. */
-    const bool use_separate_lookup_indices = mask.size() < domain_size / 2;
+    IndexMaskMemory mask_memory;
+    Array<IndexMask> all_indices_by_group_id(groups_num);
+    Array<IndexMask> lookup_indices_by_group_id(groups_num);
 
-    Array<Vector<int64_t>> all_indices_by_group_id(group_indexing.size());
-    Array<Vector<int64_t>> lookup_indices_by_group_id;
-
-    if (use_separate_lookup_indices) {
-      result.reinitialize(mask.min_array_size());
-      lookup_indices_by_group_id.reinitialize(group_indexing.size());
-    }
-    else {
-      result.reinitialize(domain_size);
-    }
-
-    const auto build_group_masks = [&](const IndexMask mask,
-                                       MutableSpan<Vector<int64_t>> r_groups) {
-      for (const int index : mask) {
-        const int group_id = group_ids_span[index];
-        const int index_of_group = group_indexing.index_of_try(group_id);
-        if (index_of_group != -1) {
-          r_groups[index_of_group].append(index);
-        }
-      }
+    const auto get_group_index = [&](const int i) {
+      const int group_id = group_ids_span[i];
+      return group_indexing.index_of(group_id);
     };
 
-    threading::parallel_invoke(
-        domain_size > 1024 && use_separate_lookup_indices,
-        [&]() {
-          if (use_separate_lookup_indices) {
-            build_group_masks(mask, lookup_indices_by_group_id);
-          }
-        },
-        [&]() { build_group_masks(IndexMask(domain_size), all_indices_by_group_id); });
+    IndexMask::from_groups<int>(
+        IndexMask(domain_size), mask_memory, get_group_index, all_indices_by_group_id);
+
+    if (mask.size() == domain_size) {
+      lookup_indices_by_group_id = all_indices_by_group_id;
+    }
+    else {
+      IndexMask::from_groups<int>(mask, mask_memory, get_group_index, all_indices_by_group_id);
+    }
 
     /* The grain size should be larger as each tree gets smaller. */
     const int avg_tree_size = domain_size / group_indexing.size();
     const int grain_size = std::max(8192 / avg_tree_size, 1);
-    threading::parallel_for(group_indexing.index_range(), grain_size, [&](const IndexRange range) {
-      for (const int index : range) {
-        const IndexMask tree_mask = all_indices_by_group_id[index].as_span();
-        const IndexMask lookup_mask = use_separate_lookup_indices ?
-                                          IndexMask(lookup_indices_by_group_id[index]) :
-                                          tree_mask;
+    threading::parallel_for(IndexRange(groups_num), grain_size, [&](const IndexRange range) {
+      for (const int group_index : range) {
+        const IndexMask &tree_mask = all_indices_by_group_id[group_index];
+        const IndexMask &lookup_mask = lookup_indices_by_group_id[group_index];
         KDTree_3d *tree = build_kdtree(positions, tree_mask);
         find_neighbors(*tree, positions, lookup_mask, result);
         BLI_kdtree_3d_free(tree);
@@ -187,7 +166,7 @@ class HasNeighborFieldInput final : public bke::GeometryFieldInput {
   }
 
   GVArray get_varray_for_context(const bke::GeometryFieldContext &context,
-                                 const IndexMask mask) const final
+                                 const IndexMask &mask) const final
   {
     if (!context.attributes()) {
       return {};

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -447,7 +449,7 @@ class WXFaceLayer {
     if (iDotP > 0.0f) {
       ++_nPosDotP;
     }
-    if (iDotP == 0.0f) {  // TODO: this comparison is weak, check if it actually works
+    if (iDotP == 0.0f) { /* TODO: this comparison is weak, check if it actually works. */
       ++_nNullDotP;
     }
   }
@@ -466,7 +468,7 @@ class WXFaceLayer {
       if ((*d) > 0.0f) {
         ++_nPosDotP;
       }
-      if ((*d) == 0.0f) {  // TODO: ditto
+      if ((*d) == 0.0f) { /* TODO: ditto. */
         ++_nNullDotP;
       }
     }

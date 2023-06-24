@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -27,7 +29,7 @@ struct HeapNode_Chunk {
   struct HeapNode_Chunk *prev;
   uint size;
   uint bufsize;
-  struct HeapNode buf[0];
+  HeapNode buf[0];
 };
 
 /**
@@ -148,7 +150,7 @@ static struct HeapNode_Chunk *heap_node_alloc_chunk(uint nodes_num,
   return chunk;
 }
 
-static struct HeapNode *heap_node_alloc(Heap *heap)
+static HeapNode *heap_node_alloc(Heap *heap)
 {
   HeapNode *node;
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -268,7 +270,7 @@ static void edbm_intersect_ui(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-void MESH_OT_intersect(struct wmOperatorType *ot)
+void MESH_OT_intersect(wmOperatorType *ot)
 {
   static const EnumPropertyItem isect_mode_items[] = {
       {ISECT_SEL, "SELECT", 0, "Self Intersect", "Self intersect selected faces"},
@@ -432,7 +434,7 @@ static void edbm_intersect_boolean_ui(bContext *UNUSED(C), wmOperator *op)
   }
 }
 
-void MESH_OT_intersect_boolean(struct wmOperatorType *ot)
+void MESH_OT_intersect_boolean(wmOperatorType *ot)
 {
   static const EnumPropertyItem isect_boolean_operation_items[] = {
       {BMESH_ISECT_BOOLEAN_ISECT, "INTERSECT", 0, "Intersect", ""},
@@ -1084,7 +1086,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
   return OPERATOR_FINISHED;
 }
 
-void MESH_OT_face_split_by_edges(struct wmOperatorType *ot)
+void MESH_OT_face_split_by_edges(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Weld Edges into Faces";

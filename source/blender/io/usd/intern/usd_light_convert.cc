@@ -136,7 +136,7 @@ static bool node_search(bNode *fromnode, bNode *tonode, void *userdata, const bo
   else if (!res->env_tex_found && ELEM(fromnode->type, SH_NODE_TEX_ENVIRONMENT)) {
     /* Get env tex path. */
 
-    res->file_path = get_tex_image_asset_path(fromnode, res->stage, res->params);
+    res->file_path = get_tex_image_asset_filepath(fromnode, res->stage, res->params);
 
     if (!res->file_path.empty()) {
       /* Get the rotation. */

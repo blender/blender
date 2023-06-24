@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -55,7 +56,7 @@ typedef enum eGP_EyeMode {
 } eGP_EyeMode;
 
 struct EyedropperGPencil {
-  struct ColorManagedDisplay *display;
+  ColorManagedDisplay *display;
   /** color under cursor RGB */
   float color[3];
   /** Mode */

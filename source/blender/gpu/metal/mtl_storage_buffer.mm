@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -218,17 +219,38 @@ void MTLStorageBuf::clear(uint32_t clear_value)
   }
 
   if (ctx) {
-    id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
-    [blit_encoder fillBuffer:metal_buffer_->get_metal_buffer()
-                       range:NSMakeRange(0, size_in_bytes_)
-                       value:clear_value];
+    /* If all 4 bytes within clear value are equal, use the builtin fast-path for clearing. */
+    uint clear_byte = clear_value & 0xFF;
+    bool clear_value_bytes_equal = (clear_byte == ((clear_value >> 8) & 0xFF)) &&
+                                   (clear_byte == ((clear_value >> 16) & 0xFF)) &&
+                                   (clear_byte == ((clear_value >> 24) & 0xFF));
+    if (clear_value_bytes_equal) {
+      id<MTLBlitCommandEncoder> blit_encoder =
+          ctx->main_command_buffer.ensure_begin_blit_encoder();
+      [blit_encoder fillBuffer:metal_buffer_->get_metal_buffer()
+                         range:NSMakeRange(0, size_in_bytes_)
+                         value:clear_byte];
+    }
+    else {
+      /* We need a special compute routine to update 32 bit values efficiently. */
+      id<MTLComputePipelineState> pso = ctx->get_compute_utils().get_buffer_clear_pso();
+      id<MTLComputeCommandEncoder> compute_encoder =
+          ctx->main_command_buffer.ensure_begin_compute_encoder();
+
+      MTLComputeState &cs = ctx->main_command_buffer.get_compute_state();
+      cs.bind_pso(pso);
+      cs.bind_compute_bytes(&clear_value, sizeof(uint32_t), 0);
+      cs.bind_compute_buffer(metal_buffer_->get_metal_buffer(), 0, 1, true);
+      [compute_encoder dispatchThreads:MTLSizeMake(size_in_bytes_ / sizeof(uint32_t), 1, 1)
+                 threadsPerThreadgroup:MTLSizeMake(128, 1, 1)];
+    }
   }
 }
 
 void MTLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uint copy_size)
 {
   /* TODO(Metal): Support Copy sub operation. */
-  MTL_LOG_WARNING("MTLStorageBuf::copy_sub not yet supported.\n");
+  MTL_LOG_WARNING("MTLStorageBuf::copy_sub not yet supported.");
 }
 
 void MTLStorageBuf::read(void *data)
@@ -250,10 +272,10 @@ void MTLStorageBuf::read(void *data)
     /* Ensure GPU updates are flushed back to CPU. */
     id<MTLBlitCommandEncoder> blit_encoder = ctx->main_command_buffer.ensure_begin_blit_encoder();
     [blit_encoder synchronizeResource:metal_buffer_->get_metal_buffer()];
-
-    /* Ensure sync has occurred. */
-    GPU_finish();
   }
+
+  /* Ensure sync has occurred. */
+  GPU_finish();
 
   /* Read data. NOTE: Unless explicitly synchronized with GPU work, results may not be ready. */
   memcpy(data, metal_buffer_->get_host_ptr(), size_in_bytes_);
@@ -296,7 +318,7 @@ id<MTLBuffer> MTLStorageBuf::get_metal_buffer()
   return source_buffer->get_metal_buffer();
 }
 
-int MTLStorageBuf::get_size()
+size_t MTLStorageBuf::get_size()
 {
   BLI_assert(this);
   return size_in_bytes_;

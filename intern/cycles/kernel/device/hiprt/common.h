@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef __HIPRT__
 
@@ -52,7 +53,7 @@ struct LocalPayload {
 #  endif
 
 #  ifdef HIPRT_SHARED_STACK
-#    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE, RAY_TYPE) \
+#    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
       hiprtSceneTraversalAnyHitCustomStack<Stack> traversal(kernel_data.device_bvh, \
                                                             ray_hip, \
                                                             stack, \
@@ -60,10 +61,10 @@ struct LocalPayload {
                                                             hiprtTraversalHintDefault, \
                                                             &payload, \
                                                             kernel_params.FUNCTION_TABLE, \
-                                                            RAY_TYPE); \
-      hiprtSceneTraversalAnyHitCustomStack<Stack> traversal_simple( \
-          kernel_data.device_bvh, ray_hip, stack, visibility);
-#    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE, RAY_TYPE) \
+                                                            RAY_TYPE, \
+                                                            RAY_TIME);
+
+#    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE, RAY_TYPE, RAY_TIME) \
       hiprtSceneTraversalClosestCustomStack<Stack> traversal(kernel_data.device_bvh, \
                                                              ray_hip, \
                                                              stack, \
@@ -71,9 +72,8 @@ struct LocalPayload {
                                                              hiprtTraversalHintDefault, \
                                                              &payload, \
                                                              kernel_params.FUNCTION_TABLE, \
-                                                             RAY_TYPE); \
-      hiprtSceneTraversalClosestCustomStack<Stack> traversal_simple( \
-          kernel_data.device_bvh, ray_hip, stack, visibility);
+                                                             RAY_TYPE, \
+                                                             RAY_TIME);
 #  else
 #    define GET_TRAVERSAL_ANY_HIT(FUNCTION_TABLE) \
       hiprtSceneTraversalAnyHit traversal(kernel_data.device_bvh, \
@@ -81,16 +81,14 @@ struct LocalPayload {
                                           visibility, \
                                           FUNCTION_TABLE, \
                                           hiprtTraversalHintDefault, \
-                                          &payload); \
-      hiprtSceneTraversalAnyHit traversal_simple(kernel_data.device_bvh, ray_hip, visibility);
+                                          &payload);
 #    define GET_TRAVERSAL_CLOSEST_HIT(FUNCTION_TABLE) \
       hiprtSceneTraversalClosest traversal(kernel_data.device_bvh, \
                                            ray_hip, \
                                            visibility, \
                                            FUNCTION_TABLE, \
                                            hiprtTraversalHintDefault, \
-                                           &payload); \
-      hiprtSceneTraversalClosest traversal_simple(kernel_data.device_bvh, ray_hip, visibility);
+                                           &payload);
 #  endif
 
 ccl_device_inline void set_intersect_point(KernelGlobals kg,

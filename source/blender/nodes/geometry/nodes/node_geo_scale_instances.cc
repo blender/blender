@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -38,24 +40,21 @@ static void scale_instances(GeoNodeExecParams &params, bke::Instances &instances
 
   MutableSpan<float4x4> transforms = instances.transforms();
 
-  threading::parallel_for(selection.index_range(), 512, [&](IndexRange range) {
-    for (const int i_selection : range) {
-      const int i = selection[i_selection];
-      const float3 pivot = pivots[i];
-      float4x4 &instance_transform = transforms[i];
+  selection.foreach_index(GrainSize(512), [&](const int64_t i) {
+    const float3 pivot = pivots[i];
+    float4x4 &instance_transform = transforms[i];
 
-      if (local_spaces[i]) {
-        instance_transform *= math::from_location<float4x4>(pivot);
-        rescale_m4(instance_transform.ptr(), scales[i]);
-        instance_transform *= math::from_location<float4x4>(-pivot);
-      }
-      else {
-        const float4x4 original_transform = instance_transform;
-        instance_transform = math::from_location<float4x4>(pivot);
-        rescale_m4(instance_transform.ptr(), scales[i]);
-        instance_transform *= math::from_location<float4x4>(-pivot);
-        instance_transform *= original_transform;
-      }
+    if (local_spaces[i]) {
+      instance_transform *= math::from_location<float4x4>(pivot);
+      rescale_m4(instance_transform.ptr(), scales[i]);
+      instance_transform *= math::from_location<float4x4>(-pivot);
+    }
+    else {
+      const float4x4 original_transform = instance_transform;
+      instance_transform = math::from_location<float4x4>(pivot);
+      rescale_m4(instance_transform.ptr(), scales[i]);
+      instance_transform *= math::from_location<float4x4>(-pivot);
+      instance_transform *= original_transform;
     }
   });
 }

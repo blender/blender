@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -34,6 +34,7 @@ enum eMaterialPipeline {
   MAT_PIPE_FORWARD_PREPASS_VELOCITY,
   MAT_PIPE_VOLUME,
   MAT_PIPE_SHADOW,
+  MAT_PIPE_CAPTURE,
 };
 
 enum eMaterialGeometry {
@@ -48,16 +49,16 @@ static inline void material_type_from_shader_uuid(uint64_t shader_uuid,
                                                   eMaterialPipeline &pipeline_type,
                                                   eMaterialGeometry &geometry_type)
 {
-  const uint64_t geometry_mask = ((1u << 3u) - 1u);
-  const uint64_t pipeline_mask = ((1u << 3u) - 1u);
+  const uint64_t geometry_mask = ((1u << 4u) - 1u);
+  const uint64_t pipeline_mask = ((1u << 4u) - 1u);
   geometry_type = static_cast<eMaterialGeometry>(shader_uuid & geometry_mask);
-  pipeline_type = static_cast<eMaterialPipeline>((shader_uuid >> 3u) & pipeline_mask);
+  pipeline_type = static_cast<eMaterialPipeline>((shader_uuid >> 4u) & pipeline_mask);
 }
 
 static inline uint64_t shader_uuid_from_material_type(eMaterialPipeline pipeline_type,
                                                       eMaterialGeometry geometry_type)
 {
-  return geometry_type | (pipeline_type << 3);
+  return geometry_type | (pipeline_type << 4);
 }
 
 ENUM_OPERATORS(eClosureBits, CLOSURE_AMBIENT_OCCLUSION)
@@ -108,7 +109,7 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
 
 /** Unique key to identify each material in the hash-map. */
 struct MaterialKey {
-  Material *mat;
+  ::Material *mat;
   uint64_t options;
 
   MaterialKey(::Material *mat_, eMaterialGeometry geometry, eMaterialPipeline surface_pipeline)
@@ -145,10 +146,14 @@ struct ShaderKey {
   GPUShader *shader;
   uint64_t options;
 
-  ShaderKey(GPUMaterial *gpumat, eMaterialGeometry geometry, eMaterialPipeline pipeline)
+  ShaderKey(GPUMaterial *gpumat,
+            eMaterialGeometry geometry,
+            eMaterialPipeline pipeline,
+            char blend_flags)
   {
     shader = GPU_material_get_shader(gpumat);
-    options = shader_uuid_from_material_type(pipeline, geometry);
+    options = blend_flags;
+    options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
   }
 
@@ -209,7 +214,7 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  MaterialPass shadow, shading, prepass;
+  MaterialPass shadow, shading, prepass, capture;
 };
 
 struct MaterialArray {

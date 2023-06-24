@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -28,7 +30,7 @@ bool BKE_curves_attribute_required(const struct Curves *curves, const char *name
 
 /* Depsgraph */
 
-struct Curves *BKE_curves_copy_for_eval(struct Curves *curves_src);
+struct Curves *BKE_curves_copy_for_eval(const struct Curves *curves_src);
 
 void BKE_curves_data_update(struct Depsgraph *depsgraph,
                             struct Scene *scene,

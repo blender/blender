@@ -1,8 +1,11 @@
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
   ../include
   ../io
+  ../../asset_system
   ../../blenkernel
   ../../blenlib
   ../../gpu
@@ -17,7 +20,7 @@ set(INC_SYS
 )
 
 set(SRC
-  spacetypes.c
+  spacetypes.cc
 )
 
 set(LIB

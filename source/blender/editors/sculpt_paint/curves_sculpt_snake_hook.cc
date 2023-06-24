@@ -1,10 +1,11 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 
 #include "curves_sculpt_intern.hh"
 
-#include "BLI_index_mask_ops.hh"
 #include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
 #include "BLI_math_matrix_types.hh"
@@ -86,7 +87,7 @@ struct SnakeHookOperatorExecutor {
   CurvesGeometry *curves_ = nullptr;
 
   VArray<float> curve_factors_;
-  Vector<int64_t> selected_curve_indices_;
+  IndexMaskMemory selected_curve_memory_;
   IndexMask curve_selection_;
 
   CurvesSurfaceTransforms transforms_;
@@ -125,7 +126,7 @@ struct SnakeHookOperatorExecutor {
 
     curve_factors_ = *curves_->attributes().lookup_or_default(
         ".selection", ATTR_DOMAIN_CURVE, 1.0f);
-    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_indices_);
+    curve_selection_ = curves::retrieve_selected_curves(*curves_id_, selected_curve_memory_);
 
     brush_pos_prev_re_ = self.last_mouse_position_re_;
     brush_pos_re_ = stroke_extension.mouse_position;
@@ -187,9 +188,9 @@ struct SnakeHookOperatorExecutor {
     const float brush_radius_re = brush_radius_base_re_ * brush_radius_factor_;
     const float brush_radius_sq_re = pow2f(brush_radius_re);
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
       MoveAndResampleBuffers resample_buffer;
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];
@@ -273,9 +274,9 @@ struct SnakeHookOperatorExecutor {
     const float3 brush_diff_cu = brush_end_cu - brush_start_cu;
     const float brush_radius_sq_cu = pow2f(brush_radius_cu);
 
-    threading::parallel_for(curves_->curves_range(), 256, [&](const IndexRange curves_range) {
+    curve_selection_.foreach_segment(GrainSize(256), [&](const IndexMaskSegment segment) {
       MoveAndResampleBuffers resample_buffer;
-      for (const int curve_i : curves_range) {
+      for (const int curve_i : segment) {
         const IndexRange points = points_by_curve[curve_i];
         const int last_point_i = points.last();
         const float3 old_pos_cu = deformation.positions[last_point_i];

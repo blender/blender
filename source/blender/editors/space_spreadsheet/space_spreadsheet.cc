@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
 
@@ -180,7 +182,7 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
   }
 }
 
-ID *ED_spreadsheet_get_current_id(const struct SpaceSpreadsheet *sspreadsheet)
+ID *ED_spreadsheet_get_current_id(const SpaceSpreadsheet *sspreadsheet)
 {
   if (BLI_listbase_is_empty(&sspreadsheet->viewer_path.path)) {
     return nullptr;
@@ -344,6 +346,7 @@ static float get_default_column_width(const ColumnValues &values)
       return 3.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_COLOR:
     case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
+    case SPREADSHEET_VALUE_TYPE_QUATERNION:
       return 4.0f * float_width;
     case SPREADSHEET_VALUE_TYPE_INSTANCES:
       return 8.0f;
@@ -418,10 +421,6 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
-  if (G.is_rendering) {
-    return;
-  }
-
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context(C);
@@ -518,9 +517,6 @@ static void spreadsheet_header_region_init(wmWindowManager * /*wm*/, ARegion *re
 
 static void spreadsheet_header_region_draw(const bContext *C, ARegion *region)
 {
-  if (G.is_rendering) {
-    return;
-  }
   spreadsheet_update_context(C);
   ED_region_header(C, region);
 }
@@ -574,9 +570,6 @@ static void spreadsheet_footer_region_init(wmWindowManager * /*wm*/, ARegion *re
 
 static void spreadsheet_footer_region_draw(const bContext *C, ARegion *region)
 {
-  if (G.is_rendering) {
-    return;
-  }
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   SpaceSpreadsheet_Runtime *runtime = sspreadsheet->runtime;
   std::stringstream ss;
@@ -641,9 +634,6 @@ static void spreadsheet_dataset_region_listener(const wmRegionListenerParams *pa
 
 static void spreadsheet_dataset_region_draw(const bContext *C, ARegion *region)
 {
-  if (G.is_rendering) {
-    return;
-  }
   spreadsheet_update_context(C);
   ED_region_panels(C, region);
 }
@@ -736,6 +726,7 @@ void ED_spacetype_spreadsheet()
   art = MEM_cnew<ARegionType>("spacetype spreadsheet region");
   art->regionid = RGN_TYPE_WINDOW;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
+  art->lock = 1;
 
   art->init = spreadsheet_main_region_init;
   art->draw = spreadsheet_main_region_draw;
@@ -748,6 +739,7 @@ void ED_spacetype_spreadsheet()
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
+  art->lock = 1;
 
   art->init = spreadsheet_header_region_init;
   art->draw = spreadsheet_header_region_draw;
@@ -761,6 +753,7 @@ void ED_spacetype_spreadsheet()
   art->prefsizey = HEADERY;
   art->keymapflag = 0;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
+  art->lock = 1;
 
   art->init = spreadsheet_footer_region_init;
   art->draw = spreadsheet_footer_region_draw;
@@ -773,6 +766,7 @@ void ED_spacetype_spreadsheet()
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_SIDEBAR_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+  art->lock = 1;
 
   art->init = spreadsheet_sidebar_init;
   art->layout = ED_region_panels_layout;
@@ -788,6 +782,7 @@ void ED_spacetype_spreadsheet()
   art->regionid = RGN_TYPE_TOOLS;
   art->prefsizex = 150 + V2D_SCROLL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
+  art->lock = 1;
   art->init = ED_region_panels_init;
   art->draw = spreadsheet_dataset_region_draw;
   art->listener = spreadsheet_dataset_region_listener;

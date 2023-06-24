@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edrend
@@ -10,6 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_curve_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
@@ -23,12 +25,15 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_anim_data.h"
 #include "BKE_animsys.h"
+#include "BKE_appdir.h"
+#include "BKE_blender_copybuffer.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -37,6 +42,8 @@
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_lib_id.h"
+#include "BKE_lib_query.h"
+#include "BKE_lib_remap.h"
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
@@ -85,6 +92,7 @@
 #include "RE_pipeline.h"
 
 #include "engines/eevee/eevee_lightcache.h"
+#include "engines/eevee_next/eevee_lightcache.hh"
 
 #include "render_intern.hh" /* own include */
 
@@ -93,6 +101,11 @@ static bool object_materials_supported_poll_ex(bContext *C, const Object *ob);
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
  * \{ */
+
+static void material_copybuffer_filepath_get(char filepath[FILE_MAX], size_t filepath_maxncpy)
+{
+  BLI_path_join(filepath, filepath_maxncpy, BKE_tempdir_base(), "copybuffer_material.blend");
+}
 
 static bool object_array_for_shading_edit_mode_enabled_filter(const Object *ob, void *user_data)
 {
@@ -1408,7 +1421,9 @@ static int light_cache_bake_exec(bContext *C, wmOperator *op)
 
   bool stop = false, do_update;
   float progress; /* Not actually used. */
+  /* Do the job. */
   EEVEE_lightbake_job(rj, &stop, &do_update, &progress);
+  /* Free baking data. Result is already stored in the scene data. */
   EEVEE_lightbake_job_data_free(rj);
 
   /* No redraw needed, we leave state as we entered it. */
@@ -1502,7 +1517,8 @@ void SCENE_OT_light_cache_bake(wmOperatorType *ot)
 
 /* NOTE: New version destined to replace the old lightcache bake operator. */
 
-static void lightprobe_cache_bake_start(bContext *C, wmOperator *op)
+static blender::Vector<Object *> lightprobe_cache_irradiance_volume_subset_get(bContext *C,
+                                                                               wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Scene *scene = CTX_data_scene(C);
@@ -1512,10 +1528,13 @@ static void lightprobe_cache_bake_start(bContext *C, wmOperator *op)
            static_cast<LightProbe *>(ob->data)->type == LIGHTPROBE_TYPE_GRID;
   };
 
-  auto irradiance_volume_setup = [](Object *ob) {
+  blender::Vector<Object *> probes;
+
+  auto irradiance_volume_setup = [&](Object *ob) {
     BKE_lightprobe_cache_free(ob);
     BKE_lightprobe_cache_create(ob);
     DEG_id_tag_update(&ob->id, ID_RECALC_COPY_ON_WRITE);
+    probes.append(ob);
   };
 
   int subset = RNA_enum_get(op->ptr, "subset");
@@ -1564,20 +1583,36 @@ static void lightprobe_cache_bake_start(bContext *C, wmOperator *op)
       BLI_assert_unreachable();
       break;
   }
+
+  return probes;
 }
 
 static int lightprobe_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
+  wmWindowManager *wm = CTX_wm_manager(C);
+  wmWindow *win = CTX_wm_window(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
+  int delay = RNA_int_get(op->ptr, "delay");
 
-  lightprobe_cache_bake_start(C, op);
+  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+
+  if (probes.is_empty()) {
+    return OPERATOR_CANCELLED;
+  }
+
+  wmJob *wm_job = EEVEE_NEXT_lightbake_job_create(
+      wm, win, bmain, view_layer, scene, probes, scene->r.cfra, delay);
 
   WM_event_add_modal_handler(C, op);
 
-  /* store actual owner of job, so modal operator could check for it,
+  /* Store actual owner of job, so modal operator could check for it,
    * the reason of this is that active scene could change when rendering
    * several layers from compositor #31800. */
   op->customdata = scene;
+
+  WM_jobs_start(wm, wm_job);
 
   WM_cursor_wait(false);
 
@@ -1613,7 +1648,18 @@ static void lightprobe_cache_bake_cancel(bContext *C, wmOperator *op)
 /* Executes blocking bake. */
 static int lightprobe_cache_bake_exec(bContext *C, wmOperator *op)
 {
-  lightprobe_cache_bake_start(C, op);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Main *bmain = CTX_data_main(C);
+  Scene *scene = CTX_data_scene(C);
+
+  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+
+  /* TODO: abort if selected engine is not eevee. */
+  void *rj = EEVEE_NEXT_lightbake_job_data_alloc(bmain, view_layer, scene, probes, scene->r.cfra);
+  /* Do the job. */
+  EEVEE_NEXT_lightbake_job(rj, nullptr, nullptr, nullptr);
+  /* Free baking data. Result is already stored in the scene data. */
+  EEVEE_NEXT_lightbake_job_data_free(rj);
 
   return OPERATOR_FINISHED;
 }
@@ -1639,7 +1685,7 @@ void OBJECT_OT_lightprobe_cache_bake(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Bake Light Cache";
   ot->idname = "OBJECT_OT_lightprobe_cache_bake";
-  ot->description = "Bake the active view layer lighting";
+  ot->description = "Bake irradiance volume light cache";
 
   /* api callbacks */
   ot->invoke = lightprobe_cache_bake_invoke;
@@ -1714,29 +1760,23 @@ void SCENE_OT_light_cache_free(wmOperatorType *ot)
 
 /* NOTE: New version destined to replace the old lightcache bake operator. */
 
-static bool lightprobe_cache_free_poll(bContext *C)
-{
-  Object *object = CTX_data_active_object(C);
-
-  return object && object->lightprobe_cache != nullptr;
-}
-
-static int lightprobe_cache_free_exec(bContext *C, wmOperator * /*op*/)
+static int lightprobe_cache_free_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Object *object = CTX_data_active_object(C);
 
   /* Kill potential bake job first (see #57011). */
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
 
-  if (object->lightprobe_cache == nullptr) {
-    return OPERATOR_CANCELLED;
+  blender::Vector<Object *> probes = lightprobe_cache_irradiance_volume_subset_get(C, op);
+
+  for (Object *object : probes) {
+    if (object->lightprobe_cache == nullptr) {
+      continue;
+    }
+    BKE_lightprobe_cache_free(object);
+    DEG_id_tag_update(&object->id, ID_RECALC_COPY_ON_WRITE);
   }
-
-  BKE_lightprobe_cache_free(object);
-
-  DEG_id_tag_update(&object->id, ID_RECALC_COPY_ON_WRITE);
 
   WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, scene);
 
@@ -1745,14 +1785,40 @@ static int lightprobe_cache_free_exec(bContext *C, wmOperator * /*op*/)
 
 void OBJECT_OT_lightprobe_cache_free(wmOperatorType *ot)
 {
+  static const EnumPropertyItem lightprobe_subset_items[] = {
+      {LIGHTCACHE_SUBSET_ALL,
+       "ALL",
+       0,
+       "All Light Probes",
+       "Delete all light probes' baked lighting data"},
+      {LIGHTCACHE_SUBSET_SELECTED,
+       "SELECTED",
+       0,
+       "Selected Only",
+       "Only delete selected light probes' baked lighting data"},
+      {LIGHTCACHE_SUBSET_ACTIVE,
+       "ACTIVE",
+       0,
+       "Active Only",
+       "Only delete the active light probe's baked lighting data"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   /* identifiers */
   ot->name = "Delete Light Cache";
   ot->idname = "OBJECT_OT_lightprobe_cache_free";
   ot->description = "Delete cached indirect lighting";
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   /* api callbacks */
   ot->exec = lightprobe_cache_free_exec;
-  ot->poll = lightprobe_cache_free_poll;
+
+  ot->prop = RNA_def_enum(ot->srna,
+                          "subset",
+                          lightprobe_subset_items,
+                          LIGHTCACHE_SUBSET_SELECTED,
+                          "Subset",
+                          "Subset of probes to update");
 }
 
 /** \} */
@@ -2658,7 +2724,7 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
     MTex **mtex_ar, *mtexswap;
     short act;
     int type = RNA_enum_get(op->ptr, "type");
-    struct AnimData *adt = BKE_animdata_from_id(id);
+    AnimData *adt = BKE_animdata_from_id(id);
 
     give_active_mtex(id, &mtex_ar, &act);
 
@@ -2730,8 +2796,7 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 /** \name Material Copy Operator
  * \{ */
 
-/* material copy/paste */
-static int copy_material_exec(bContext *C, wmOperator * /*op*/)
+static int copy_material_exec(bContext *C, wmOperator *op)
 {
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
@@ -2740,7 +2805,19 @@ static int copy_material_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  BKE_material_copybuf_copy(CTX_data_main(C), ma);
+  char filepath[FILE_MAX];
+  Main *bmain = CTX_data_main(C);
+
+  /* Mark is the material to use (others may be expanded). */
+  BKE_copybuffer_copy_begin(bmain);
+
+  BKE_copybuffer_copy_tag_ID(&ma->id);
+
+  material_copybuffer_filepath_get(filepath, sizeof(filepath));
+  BKE_copybuffer_copy_end(bmain, filepath, op->reports);
+
+  /* We are all done! */
+  BKE_report(op->reports, RPT_INFO, "Copied material to internal clipboard");
 
   return OPERATOR_FINISHED;
 }
@@ -2766,16 +2843,185 @@ void MATERIAL_OT_copy(wmOperatorType *ot)
 /** \name Material Paste Operator
  * \{ */
 
-static int paste_material_exec(bContext *C, wmOperator * /*op*/)
+/**
+ * Clear ID's as freeing the data-block doesn't handle reference counting.
+ */
+static int paste_material_nodetree_ids_decref(LibraryIDLinkCallbackData *cb_data)
 {
+  if (cb_data->cb_flag & IDWALK_CB_USER) {
+    id_us_min(*cb_data->id_pointer);
+  }
+  *cb_data->id_pointer = nullptr;
+  return IDWALK_RET_NOP;
+}
+
+/**
+ * Re-map ID's from the clipboard to ID's in `bmain`, by name.
+ */
+static int paste_material_nodetree_ids_relink_or_clear(LibraryIDLinkCallbackData *cb_data)
+{
+  Main *bmain = static_cast<Main *>(cb_data->user_data);
+  ID **id_p = cb_data->id_pointer;
+  if (*id_p) {
+    if (cb_data->cb_flag & IDWALK_CB_USER) {
+      id_us_min(*id_p);
+    }
+    ListBase *lb = which_libbase(bmain, GS((*id_p)->name));
+    ID *id_local = static_cast<ID *>(
+        BLI_findstring(lb, (*id_p)->name + 2, offsetof(ID, name) + 2));
+    *id_p = id_local;
+    if (cb_data->cb_flag & IDWALK_CB_USER) {
+      id_us_plus(id_local);
+    }
+    else if (cb_data->cb_flag & IDWALK_CB_USER_ONE) {
+      id_us_ensure_real(id_local);
+    }
+    id_lib_extern(id_local);
+  }
+  return IDWALK_RET_NOP;
+}
+
+static int paste_material_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
   Material *ma = static_cast<Material *>(
       CTX_data_pointer_get_type(C, "material", &RNA_Material).data);
 
   if (ma == nullptr) {
+    BKE_report(op->reports, RPT_WARNING, "Cannot paste without a material");
     return OPERATOR_CANCELLED;
   }
 
-  BKE_material_copybuf_paste(CTX_data_main(C), ma);
+  /* Read copy buffer .blend file. */
+  char filepath[FILE_MAX];
+  Main *temp_bmain = BKE_main_new();
+
+  STRNCPY(temp_bmain->filepath, BKE_main_blendfile_path_from_global());
+
+  material_copybuffer_filepath_get(filepath, sizeof(filepath));
+
+  /* NOTE(@ideasman42) The node tree might reference different kinds of ID types.
+   * It's not clear-cut which ID types should be included, although it's unlikely
+   * users would want an entire scene & it's objects to be included.
+   * Filter a subset of ID types with some reasons for including them. */
+  const uint64_t ntree_filter = (
+      /* Material is necessary for reading the clipboard. */
+      FILTER_ID_MA |
+      /* Node-groups. */
+      FILTER_ID_NT |
+      /* Image textures. */
+      FILTER_ID_IM |
+      /* Internal text (scripts). */
+      FILTER_ID_TXT |
+      /* Texture coordinates may reference objects.
+       * Note that object data is *not* included. */
+      FILTER_ID_OB);
+
+  if (!BKE_copybuffer_read(temp_bmain, filepath, op->reports, ntree_filter)) {
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is empty");
+    BKE_main_free(temp_bmain);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* There may be multiple materials,
+   * check for a property that marks this as the active material. */
+  Material *ma_from = nullptr;
+  LISTBASE_FOREACH (Material *, ma_iter, &temp_bmain->materials) {
+    if (ma_iter->id.flag & LIB_CLIPBOARD_MARK) {
+      ma_from = ma_iter;
+      break;
+    }
+  }
+
+  /* Make sure data from this file is usable for material paste. */
+  if (ma_from == nullptr) {
+    BKE_report(op->reports, RPT_ERROR, "Internal clipboard is not from a material");
+    BKE_main_free(temp_bmain);
+    return OPERATOR_CANCELLED;
+  }
+
+  /* Keep animation by moving local animation to the paste node-tree. */
+  if (ma->nodetree && ma_from->nodetree) {
+    BLI_assert(ma_from->nodetree->adt == nullptr);
+    std::swap(ma->nodetree->adt, ma_from->nodetree->adt);
+  }
+
+  /* Needed to update #SpaceNode::nodetree else a stale pointer is used. */
+  if (ma->nodetree) {
+    bNodeTree *nodetree = ma->nodetree;
+    BKE_libblock_remap(bmain, ma->nodetree, ma_from->nodetree, ID_REMAP_FORCE_UI_POINTERS);
+
+    /* Free & clear data here, so user counts are handled, otherwise it's
+     * freed as part of #BKE_main_free which doesn't handle user-counts. */
+    /* Walk over all the embedded nodes ID's (non-recursively). */
+    BKE_library_foreach_ID_link(
+        bmain, &nodetree->id, paste_material_nodetree_ids_decref, nullptr, IDWALK_NOP);
+
+    ntreeFreeEmbeddedTree(nodetree);
+    MEM_freeN(nodetree);
+    ma->nodetree = nullptr;
+  }
+
+/* Swap data-block content, while swapping isn't always needed,
+ * it means memory is properly freed in the case of allocations.. */
+#define SWAP_MEMBER(member) std::swap(ma->member, ma_from->member)
+
+  /* Intentionally skip:
+   * - Texture painting slots.
+   * - Preview render.
+   * - Grease pencil styles (we could although they reference many ID's themselves).
+   */
+  SWAP_MEMBER(flag);
+  SWAP_MEMBER(r);
+  SWAP_MEMBER(g);
+  SWAP_MEMBER(b);
+  SWAP_MEMBER(a);
+  SWAP_MEMBER(specr);
+  SWAP_MEMBER(specg);
+  SWAP_MEMBER(specb);
+  SWAP_MEMBER(spec);
+  SWAP_MEMBER(roughness);
+  SWAP_MEMBER(metallic);
+  SWAP_MEMBER(use_nodes);
+  SWAP_MEMBER(index);
+  SWAP_MEMBER(nodetree);
+  SWAP_MEMBER(line_col);
+  SWAP_MEMBER(line_priority);
+  SWAP_MEMBER(vcol_alpha);
+
+  SWAP_MEMBER(alpha_threshold);
+  SWAP_MEMBER(refract_depth);
+  SWAP_MEMBER(blend_method);
+  SWAP_MEMBER(blend_shadow);
+  SWAP_MEMBER(blend_flag);
+
+  SWAP_MEMBER(lineart);
+
+#undef SWAP_MEMBER
+
+  /* The node-tree from the clipboard is now assigned to the local material,
+   * however the ID's it references are still part of `temp_bmain`.
+   * These data-blocks references must be cleared or replaces with references to `bmain`.
+   * TODO(@ideasman42): support merging indirectly referenced data-blocks besides the material,
+   * this would be useful for pasting materials with node-groups between files. */
+  if (ma->nodetree) {
+    /* This implicitly points to local data, assign after remapping. */
+    ma->nodetree->owner_id = nullptr;
+
+    /* Map remote ID's to local ones. */
+    BKE_library_foreach_ID_link(
+        bmain, &ma->nodetree->id, paste_material_nodetree_ids_relink_or_clear, bmain, IDWALK_NOP);
+
+    ma->nodetree->owner_id = &ma->id;
+  }
+  BKE_main_free(temp_bmain);
+
+  /* Important to run this when the embedded tree if freed,
+   * otherwise the depsgraph holds a reference to the (now freed) `ma->nodetree`.
+   * Also run this when a new node-tree is set to ensure it's accounted for.
+   * This also applies to animation data which is likely to be stored in the depsgraph.
+   * Always call instead of checking when it *might* be needed. */
+  DEG_relations_tag_update(bmain);
 
   DEG_id_tag_update(&ma->id, ID_RECALC_COPY_ON_WRITE);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
@@ -2865,7 +3111,22 @@ static void paste_mtex_copybuf(ID *id)
 
     **mtex = blender::dna::shallow_copy(mtexcopybuf);
 
-    id_us_plus((ID *)mtexcopybuf.tex);
+    /* NOTE(@ideasman42): the simple memory copy has no special handling for ID data-blocks.
+     * Ideally this would use `BKE_copybuffer_*` API's, however for common using
+     * copy-pasting between slots, the case a users expects to copy between files
+     * seems quite niche. So, do primitive ID validation. */
+
+    /* WARNING: This isn't a fool-proof solution as it's possible memory locations are reused,
+     * or that the ID was relocated in memory since it was copied.
+     * it does however guard against references to dangling pointers. */
+    if ((*mtex)->tex && (BLI_findindex(&G_MAIN->textures, (*mtex)->tex) == -1)) {
+      (*mtex)->tex = nullptr;
+    }
+    if ((*mtex)->object && (BLI_findindex(&G_MAIN->objects, (*mtex)->object) == -1)) {
+      (*mtex)->object = nullptr;
+    }
+    id_us_plus((ID *)(*mtex)->tex);
+    id_lib_extern((ID *)(*mtex)->object);
   }
 }
 

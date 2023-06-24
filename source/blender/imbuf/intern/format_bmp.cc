@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "oiio/openimageio_support.hh"
 
@@ -26,7 +28,7 @@ ImBuf *imb_load_bmp(const uchar *mem, size_t size, int flags, char colorspace[IM
   return imb_oiio_read(ctx, config, colorspace, spec);
 }
 
-bool imb_save_bmp(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_bmp(ImBuf *ibuf, const char *filepath, int flags)
 {
   const int file_channels = ibuf->planes >> 3;
   const TypeDesc data_format = TypeDesc::UINT8;

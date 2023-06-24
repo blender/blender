@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "oiio/openimageio_support.hh"
 
@@ -46,7 +48,7 @@ ImBuf *imb_load_tiff(const uchar *mem, size_t size, int flags, char colorspace[I
   return ibuf;
 }
 
-bool imb_save_tiff(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_save_tiff(ImBuf *ibuf, const char *filepath, int flags)
 {
   const bool is_16bit = ((ibuf->foptions.flag & TIF_16BIT) && ibuf->float_buffer.data);
   const int file_channels = ibuf->planes >> 3;

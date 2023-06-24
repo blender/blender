@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -60,7 +62,7 @@ static char *ui_view_drop_tooltip(bContext *C, wmDrag *drag, const int xy[2], wm
 /** \name Name Drag/Drop Callbacks
  * \{ */
 
-static bool ui_drop_name_poll(struct bContext *C, wmDrag *drag, const wmEvent * /*event*/)
+static bool ui_drop_name_poll(bContext *C, wmDrag *drag, const wmEvent * /*event*/)
 {
   return UI_but_active_drop_name(C) && (drag->type == WM_DRAG_ID);
 }
@@ -92,7 +94,7 @@ static void ui_drop_material_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *dro
 static char *ui_drop_material_tooltip(bContext *C,
                                       wmDrag *drag,
                                       const int /*xy*/[2],
-                                      struct wmDropBox * /*drop*/)
+                                      wmDropBox * /*drop*/)
 {
   PointerRNA rna_ptr = CTX_data_pointer_get_type(C, "object", &RNA_Object);
   Object *ob = (Object *)rna_ptr.data;

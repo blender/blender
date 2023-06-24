@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2020-2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -80,7 +82,8 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         self.assertEqualAngle(111.422, fcu_rot[1], 23)
         self.assertEqualAngle(76.5996, fcu_rot[2], 23)
 
-        bpy.ops.graph.euler_filter(self.get_context())
+        with bpy.context.temp_override(**self.get_context()):
+            bpy.ops.graph.euler_filter()
 
         # Keyframes before the "jump". These shouldn't be touched by the filter.
         self.assertEqualAngle(-87.5742, fcu_rot[0], 22)
@@ -105,7 +108,8 @@ class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):
         self.assertEqualAngle(720, fcu_rot[0], 16)
         self.assertEqualAngle(72, fcu_rot[1], 22)
 
-        bpy.ops.graph.euler_filter(self.get_context())
+        with bpy.context.temp_override(**self.get_context()):
+            bpy.ops.graph.euler_filter()
 
         # Keyframes before the "jump". These shouldn't be touched by the filter.
         self.assertEqualAngle(360, fcu_rot[0], 15)

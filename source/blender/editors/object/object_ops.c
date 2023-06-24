@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -89,6 +90,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_lightprobe_add);
   WM_operatortype_append(OBJECT_OT_drop_named_image);
   WM_operatortype_append(OBJECT_OT_gpencil_add);
+  WM_operatortype_append(OBJECT_OT_grease_pencil_add);
   WM_operatortype_append(OBJECT_OT_light_add);
   WM_operatortype_append(OBJECT_OT_camera_add);
   WM_operatortype_append(OBJECT_OT_speaker_add);
@@ -224,14 +226,6 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_vertex_weight_normalize_active_vertex);
   WM_operatortype_append(OBJECT_OT_vertex_weight_copy);
 
-  WM_operatortype_append(OBJECT_OT_face_map_add);
-  WM_operatortype_append(OBJECT_OT_face_map_remove);
-  WM_operatortype_append(OBJECT_OT_face_map_assign);
-  WM_operatortype_append(OBJECT_OT_face_map_remove_from);
-  WM_operatortype_append(OBJECT_OT_face_map_select);
-  WM_operatortype_append(OBJECT_OT_face_map_deselect);
-  WM_operatortype_append(OBJECT_OT_face_map_move);
-
   WM_operatortype_append(TRANSFORM_OT_vertex_warp);
 
   WM_operatortype_append(OBJECT_OT_move_to_collection);
@@ -282,6 +276,18 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_voxel_size_edit);
 
   WM_operatortype_append(OBJECT_OT_quadriflow_remesh);
+
+  /* Light linking. */
+
+  WM_operatortype_append(OBJECT_OT_light_linking_receiver_collection_new);
+  WM_operatortype_append(OBJECT_OT_light_linking_receivers_select);
+  WM_operatortype_append(OBJECT_OT_light_linking_receivers_link);
+
+  WM_operatortype_append(OBJECT_OT_light_linking_blocker_collection_new);
+  WM_operatortype_append(OBJECT_OT_light_linking_blockers_select);
+  WM_operatortype_append(OBJECT_OT_light_linking_blockers_link);
+
+  WM_operatortype_append(OBJECT_OT_light_linking_unlink_from_collection);
 }
 
 void ED_operatormacros_object(void)

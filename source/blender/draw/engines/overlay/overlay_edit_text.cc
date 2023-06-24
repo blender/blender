@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -86,7 +87,7 @@ static void edit_text_cache_populate_select(OVERLAY_Data *vedata, Object *ob)
   const Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   float final_mat[4][4], box[4][2];
-  struct GPUBatch *geom = DRW_cache_quad_get();
+  GPUBatch *geom = DRW_cache_quad_get();
 
   for (int i = 0; i < ef->selboxes_len; i++) {
     EditFontSelBox *sb = &ef->selboxes[i];
@@ -136,7 +137,7 @@ static void edit_text_cache_populate_cursor(OVERLAY_Data *vedata, Object *ob)
   v2_quad_corners_to_mat4(cursor, mat);
   mul_m4_m4m4(mat, ob->object_to_world, mat);
 
-  struct GPUBatch *geom = DRW_cache_quad_get();
+  GPUBatch *geom = DRW_cache_quad_get();
   DRW_shgroup_call_obmat(pd->edit_text_cursor_grp, geom, mat);
 }
 
@@ -174,7 +175,7 @@ static void edit_text_cache_populate_boxes(OVERLAY_Data *vedata, Object *ob)
 void OVERLAY_edit_text_cache_populate(OVERLAY_Data *vedata, Object *ob)
 {
   OVERLAY_PrivateData *pd = vedata->stl->pd;
-  struct GPUBatch *geom;
+  GPUBatch *geom;
   bool do_in_front = (ob->dtx & OB_DRAW_IN_FRONT) != 0;
 
   geom = DRW_cache_text_edge_wire_get(ob);

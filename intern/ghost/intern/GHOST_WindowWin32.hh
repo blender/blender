@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -362,6 +363,10 @@ class GHOST_WindowWin32 : public GHOST_Window {
                                             int hotX,
                                             int hotY,
                                             bool canInvertColor);
+
+  /* Registration of the AppModel Properties that govern the taskbar button and jump lists. */
+  void registerWindowAppUserModelProperties();
+  void unregisterWindowAppUserModelProperties();
 
   /** Pointer to system. */
   GHOST_SystemWin32 *m_system;

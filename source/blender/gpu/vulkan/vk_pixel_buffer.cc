@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -36,7 +37,7 @@ int64_t VKPixelBuffer::get_native_handle()
   return int64_t(buffer_.vk_handle());
 }
 
-uint VKPixelBuffer::get_size()
+size_t VKPixelBuffer::get_size()
 {
   return size_;
 }

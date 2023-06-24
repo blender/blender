@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pygen
@@ -940,7 +942,7 @@ PyObject *PyC_ExceptionBuffer(void)
   PySys_SetObject("stdout", stdout_backup);
   PySys_SetObject("stderr", stderr_backup);
 
-  Py_DECREF(stdout_backup); /* now sys owns the ref again */
+  Py_DECREF(stdout_backup); /* Now `sys` owns the reference again. */
   Py_DECREF(stderr_backup);
 
   Py_DECREF(string_io_mod);
@@ -1012,11 +1014,11 @@ PyObject *PyC_ExceptionBuffer_Simple(void)
  * In some cases we need to coerce strings, avoid doing this inline.
  * \{ */
 
-const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce)
+const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *r_size, PyObject **r_coerce)
 {
   const char *result;
 
-  result = PyUnicode_AsUTF8AndSize(py_str, size);
+  result = PyUnicode_AsUTF8AndSize(py_str, r_size);
 
   if (result) {
     /* 99% of the time this is enough but we better support non unicode
@@ -1027,19 +1029,19 @@ const char *PyC_UnicodeAsBytesAndSize(PyObject *py_str, Py_ssize_t *size, PyObje
   PyErr_Clear();
 
   if (PyBytes_Check(py_str)) {
-    *size = PyBytes_GET_SIZE(py_str);
+    *r_size = PyBytes_GET_SIZE(py_str);
     return PyBytes_AS_STRING(py_str);
   }
-  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-    *size = PyBytes_GET_SIZE(*coerce);
-    return PyBytes_AS_STRING(*coerce);
+  if ((*r_coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    *r_size = PyBytes_GET_SIZE(*r_coerce);
+    return PyBytes_AS_STRING(*r_coerce);
   }
 
   /* leave error raised from EncodeFS */
   return NULL;
 }
 
-const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
+const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **r_coerce)
 {
   const char *result;
 
@@ -1056,8 +1058,8 @@ const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
   if (PyBytes_Check(py_str)) {
     return PyBytes_AS_STRING(py_str);
   }
-  if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-    return PyBytes_AS_STRING(*coerce);
+  if ((*r_coerce = PyUnicode_EncodeFSDefault(py_str))) {
+    return PyBytes_AS_STRING(*r_coerce);
   }
 
   /* leave error raised from EncodeFS */
@@ -1096,7 +1098,7 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
   PyObject *builtins = PyEval_GetBuiltins();
   PyObject *mod_main = PyModule_New("__main__");
   PyDict_SetItemString(modules, "__main__", mod_main);
-  Py_DECREF(mod_main); /* sys.modules owns now */
+  Py_DECREF(mod_main); /* `sys.modules` owns now. */
   PyModule_AddStringConstant(mod_main, "__name__", "__main__");
   if (filename) {
     /* __file__ mainly for nice UI'ness

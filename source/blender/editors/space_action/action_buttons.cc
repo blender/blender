@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spaction
@@ -29,25 +30,25 @@ void action_buttons_register(ARegionType * /*art*/)
   /* TODO: AnimData / Actions List */
 
   pt = MEM_cnew<PanelType>("spacetype action panel properties");
-  strcpy(pt->idname, "ACTION_PT_properties");
-  strcpy(pt->label, N_("Active F-Curve"));
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "ACTION_PT_properties");
+  STRNCPY(pt->label, N_("Active F-Curve"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = action_anim_panel_properties;
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_cnew<PanelType>("spacetype action panel properties");
-  strcpy(pt->idname, "ACTION_PT_key_properties");
-  strcpy(pt->label, N_("Active Keyframe"));
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "ACTION_PT_key_properties");
+  STRNCPY(pt->label, N_("Active Keyframe"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = action_anim_panel_key_properties;
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);
 
   pt = MEM_callocN(sizeof(PanelType), "spacetype action panel modifiers");
-  strcpy(pt->idname, "ACTION_PT_modifiers");
-  strcpy(pt->label, N_("Modifiers"));
-  strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+  STRNCPY(pt->idname, "ACTION_PT_modifiers");
+  STRNCPY(pt->label, N_("Modifiers"));
+  STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
   pt->draw = action_anim_panel_modifiers;
   pt->poll = action_anim_panel_poll;
   BLI_addtail(&art->paneltypes, pt);

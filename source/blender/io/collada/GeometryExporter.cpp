@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -344,7 +346,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
   Material *ma = ob->totcol ? BKE_object_material_get(ob, material_index + 1) : nullptr;
   COLLADASW::PrimitivesBase *primitive_list = create_primitive_list(is_triangulated, mSW);
 
-  /* sets count attribute in <polylist> */
+  /* sets count attribute in `<polylist>`. */
   primitive_list->setCount(polygon_count);
 
   /* sets material name */
@@ -368,17 +370,16 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
 
   /* if mesh has uv coords writes <input> for TEXCOORD */
   int num_layers = CustomData_number_of_layers(&me->ldata, CD_PROP_FLOAT2);
-  int active_uv_index = CustomData_get_active_layer_index(&me->ldata, CD_PROP_FLOAT2);
+  int active_uv = CustomData_get_active_layer(&me->ldata, CD_PROP_FLOAT2);
   for (int i = 0; i < num_layers; i++) {
-    int layer_index = CustomData_get_layer_index_n(&me->ldata, CD_PROP_FLOAT2, i);
-    if (!this->export_settings.get_active_uv_only() || layer_index == active_uv_index) {
+    if (!this->export_settings.get_active_uv_only() || i == active_uv) {
 
       // char *name = CustomData_get_layer_name(&me->ldata, CD_PROP_FLOAT2, i);
       COLLADASW::Input texcoord_input(
           COLLADASW::InputSemantic::TEXCOORD,
           makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings.get_active_uv_only())),
           2, /* this is only until we have optimized UV sets */
-          (this->export_settings.get_active_uv_only()) ? 0 : layer_index - 1 /* set (0,1,2,...) */
+          (this->export_settings.get_active_uv_only()) ? 0 : i /* set (0,1,2,...) */
       );
       til.push_back(texcoord_input);
     }
@@ -616,7 +617,7 @@ void GeometryExporter::create_normals(std::vector<Normal> &normals,
   int last_normal_index = -1;
 
   const Span<float3> positions = me->vert_positions();
-  const float(*vert_normals)[3] = BKE_mesh_vert_normals_ensure(me);
+  const Span<float3> vert_normals = me->vert_normals();
   const blender::OffsetIndices polys = me->polys();
   const Span<int> corner_verts = me->corner_verts();
   const float(*lnors)[3] = nullptr;

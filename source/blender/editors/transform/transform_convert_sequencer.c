@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -44,7 +45,7 @@
 
 /** Used for sequencer transform. */
 typedef struct TransDataSeq {
-  struct Sequence *seq;
+  Sequence *seq;
   /** A copy of #Sequence.flag that may be modified for nested strips. */
   int flag;
   /** Use this so we can have transform data at the strips start,
@@ -403,7 +404,7 @@ static SeqCollection *query_time_dependent_strips_strips(TransInfo *t)
 
   /* Query dependent strips where used strips do not have handles selected.
    * If all inputs of any effect even indirectly(through another effect) points to selected strip,
-   * it's position will change. */
+   * its position will change. */
 
   SeqCollection *strips_no_handles = query_selected_strips_no_handles(seqbase);
   /* Selection is needed as reference for related strips. */

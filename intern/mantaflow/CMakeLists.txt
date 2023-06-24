@@ -1,7 +1,6 @@
+# SPDX-FileCopyrightText: 2019 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
-# Copyright 2019 Blender Foundation
-# The Original Code is: all of this file.
-# Contributor(s): Sebastian Barschkis (sebbas).
 
 add_definitions(-DWITH_FLUID=1)
 

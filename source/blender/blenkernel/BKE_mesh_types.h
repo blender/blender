@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -17,7 +18,6 @@
 #  include "BLI_implicit_sharing.hh"
 #  include "BLI_math_vector_types.hh"
 #  include "BLI_shared_cache.hh"
-#  include "BLI_span.hh"
 #  include "BLI_vector.hh"
 
 #  include "DNA_meshdata_types.h"

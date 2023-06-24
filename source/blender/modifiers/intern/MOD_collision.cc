@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -25,7 +26,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_lib_id.h"
-#include "BKE_mesh.h"
+#include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
@@ -89,7 +90,7 @@ static void deformVerts(ModifierData *md,
                         const ModifierEvalContext *ctx,
                         Mesh *mesh,
                         float (*vertexCos)[3],
-                        int verts_num)
+                        int /*verts_num*/)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
   Mesh *mesh_src;
@@ -106,7 +107,7 @@ static void deformVerts(ModifierData *md,
   }
 
   if (mesh == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr, verts_num, false);
+    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr);
   }
   else {
     /* Not possible to use get_mesh() in this case as we'll modify its vertices
@@ -116,7 +117,7 @@ static void deformVerts(ModifierData *md,
 
   if (mesh_src) {
     float current_time = 0;
-    uint mvert_num = 0;
+    int mvert_num = 0;
 
     BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
 
@@ -144,8 +145,7 @@ static void deformVerts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = static_cast<float(*)[3]>(
-          MEM_dupallocN(BKE_mesh_vert_positions(mesh_src))); /* frame start position */
+      collmd->x = BKE_mesh_vert_coords_alloc(mesh_src, &mvert_num); /* frame start position */
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
@@ -165,7 +165,7 @@ static void deformVerts(ModifierData *md,
         MVertTri *tri = static_cast<MVertTri *>(
             MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
         BKE_mesh_runtime_verttri_from_looptri(
-            tri, BKE_mesh_corner_verts(mesh_src), looptri, collmd->tri_num);
+            tri, mesh_src->corner_verts().data(), looptri, collmd->tri_num);
         collmd->tri = tri;
       }
 
@@ -183,7 +183,7 @@ static void deformVerts(ModifierData *md,
       collmd->xnew = temp;
       collmd->time_x = collmd->time_xnew;
 
-      memcpy(collmd->xnew, BKE_mesh_vert_positions(mesh_src), mvert_num * sizeof(float[3]));
+      memcpy(collmd->xnew, mesh_src->vert_positions().data(), mvert_num * sizeof(float[3]));
 
       bool is_static = true;
 

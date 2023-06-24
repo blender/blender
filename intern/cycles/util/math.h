@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __UTIL_MATH_H__
 #define __UTIL_MATH_H__
@@ -747,6 +748,12 @@ ccl_device_inline float cos_from_sin(const float s)
   return safe_sqrtf(1.0f - sqr(s));
 }
 
+ccl_device_inline float sin_sqr_to_one_minus_cos(const float s_sq)
+{
+  /* Using second-order Taylor expansion at small angles for better accuracy. */
+  return s_sq > 0.0004f ? 1.0f - safe_sqrtf(1.0f - s_sq) : 0.5f * s_sq;
+}
+
 ccl_device_inline float pow20(float a)
 {
   return sqr(sqr(sqr(sqr(a)) * a));
@@ -926,6 +933,12 @@ ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_
 ccl_device_inline float precise_angle(float3 a, float3 b)
 {
   return 2.0f * atan2f(len(a - b), len(a + b));
+}
+
+/* Tangent of the angle between vectors a and b. */
+ccl_device_inline float tan_angle(float3 a, float3 b)
+{
+  return len(cross(a, b)) / dot(a, b);
 }
 
 /* Return value which is greater than the given one and is a power of two. */

@@ -1,6 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation.
- */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eevee
@@ -23,6 +23,7 @@
 #include "eevee_hizbuffer.hh"
 #include "eevee_irradiance_cache.hh"
 #include "eevee_light.hh"
+#include "eevee_lightprobe.hh"
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
@@ -30,6 +31,7 @@
 #include "eevee_sampling.hh"
 #include "eevee_shader.hh"
 #include "eevee_shadow.hh"
+#include "eevee_subsurface.hh"
 #include "eevee_sync.hh"
 #include "eevee_view.hh"
 #include "eevee_world.hh"
@@ -48,6 +50,7 @@ class Instance {
   ShaderModule &shaders;
   SyncModule sync;
   MaterialModule materials;
+  SubsurfaceModule subsurface;
   PipelineModule pipelines;
   ShadowModule shadows;
   LightModule lights;
@@ -63,6 +66,7 @@ class Instance {
   RenderBuffers render_buffers;
   MainView main_view;
   World world;
+  LightProbeModule light_probes;
   IrradianceCache irradiance_cache;
 
   /** Input data. */
@@ -71,6 +75,7 @@ class Instance {
   /** Evaluated IDs. */
   Scene *scene;
   ViewLayer *view_layer;
+  /** Camera object if rendering through a camera. nullptr otherwise. */
   Object *camera_eval_object;
   Object *camera_orig_object;
   /** Only available when rendering for final render. */
@@ -83,6 +88,8 @@ class Instance {
 
   /** True if the grease pencil engine might be running. */
   bool gpencil_engine_enabled;
+  /** True if the instance is created for light baking. */
+  bool is_light_bake = false;
 
   /** Info string displayed at the top of the render / viewport. */
   std::string info = "";
@@ -94,6 +101,7 @@ class Instance {
       : shaders(*ShaderModule::module_get()),
         sync(*this),
         materials(*this),
+        subsurface(*this),
         pipelines(*this),
         shadows(*this),
         lights(*this),
@@ -108,14 +116,16 @@ class Instance {
         render_buffers(*this),
         main_view(*this),
         world(*this),
+        light_probes(*this),
         irradiance_cache(*this){};
   ~Instance(){};
 
+  /* Render & Viewport. */
+  /* TODO(fclem): Split for clarity. */
   void init(const int2 &output_res,
             const rcti *output_rect,
             RenderEngine *render,
             Depsgraph *depsgraph,
-            const LightProbe *light_probe_ = nullptr,
             Object *camera_object = nullptr,
             const RenderLayer *render_layer = nullptr,
             const DRWView *drw_view = nullptr,
@@ -126,17 +136,36 @@ class Instance {
   void object_sync(Object *ob);
   void end_sync();
 
+  /* Render. */
+
   void render_sync();
   void render_frame(RenderLayer *render_layer, const char *view_name);
   void store_metadata(RenderResult *render_result);
 
+  /* Viewport. */
+
   void draw_viewport(DefaultFramebufferList *dfbl);
+
+  /* Light bake. */
+
+  void init_light_bake(Depsgraph *depsgraph, draw::Manager *manager);
+  void light_bake_irradiance(
+      Object &probe,
+      FunctionRef<void()> context_enable,
+      FunctionRef<void()> context_disable,
+      FunctionRef<bool()> stop,
+      FunctionRef<void(LightProbeGridCacheFrame *, float progress)> result_update);
 
   static void update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer);
 
   bool is_viewport() const
   {
-    return render == nullptr;
+    return render == nullptr && !is_baking();
+  }
+
+  bool is_baking() const
+  {
+    return is_light_bake;
   }
 
   bool overlays_enabled() const

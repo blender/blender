@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bli
@@ -824,10 +825,10 @@ bool BLI_rcti_clamp(rcti *rect, const rcti *rect_bounds, int r_xy[2])
 
 bool BLI_rctf_compare(const rctf *rect_a, const rctf *rect_b, const float limit)
 {
-  if (fabsf(rect_a->xmin - rect_b->xmin) < limit) {
-    if (fabsf(rect_a->xmax - rect_b->xmax) < limit) {
-      if (fabsf(rect_a->ymin - rect_b->ymin) < limit) {
-        if (fabsf(rect_a->ymax - rect_b->ymax) < limit) {
+  if (fabsf(rect_a->xmin - rect_b->xmin) <= limit) {
+    if (fabsf(rect_a->xmax - rect_b->xmax) <= limit) {
+      if (fabsf(rect_a->ymin - rect_b->ymin) <= limit) {
+        if (fabsf(rect_a->ymax - rect_b->ymax) <= limit) {
           return true;
         }
       }

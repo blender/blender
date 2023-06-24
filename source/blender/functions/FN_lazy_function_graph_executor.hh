@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -90,6 +92,9 @@ class GraphExecutor : public LazyFunction {
 
   void *init_storage(LinearAllocator<> &allocator) const override;
   void destruct_storage(void *storage) const override;
+
+  std::string input_name(int index) const override;
+  std::string output_name(int index) const override;
 
  private:
   void execute_impl(Params &params, const Context &context) const override;

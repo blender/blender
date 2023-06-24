@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -277,13 +278,13 @@ static void foreachIDLink(GpencilModifierData *md, Object *ob, IDWalkFunc walk, 
   walk(userData, ob, (ID **)&mmd->material, IDWALK_CB_USER);
 }
 
-static void segment_list_item(struct uiList *UNUSED(ui_list),
-                              const struct bContext *UNUSED(C),
-                              struct uiLayout *layout,
-                              struct PointerRNA *UNUSED(idataptr),
-                              struct PointerRNA *itemptr,
+static void segment_list_item(uiList *UNUSED(ui_list),
+                              const bContext *UNUSED(C),
+                              uiLayout *layout,
+                              PointerRNA *UNUSED(idataptr),
+                              PointerRNA *itemptr,
                               int UNUSED(icon),
-                              struct PointerRNA *UNUSED(active_dataptr),
+                              PointerRNA *UNUSED(active_dataptr),
                               const char *UNUSED(active_propname),
                               int UNUSED(index),
                               int UNUSED(flt_flag))
@@ -365,7 +366,7 @@ static void panelRegister(ARegionType *region_type)
       region_type, "mask", "Influence", NULL, mask_panel_draw, panel_type);
 
   uiListType *list_type = MEM_callocN(sizeof(uiListType), "dash modifier segment uilist");
-  strcpy(list_type->idname, "MOD_UL_dash_segment");
+  STRNCPY(list_type->idname, "MOD_UL_dash_segment");
   list_type->draw_item = segment_list_item;
   WM_uilisttype_add(list_type);
 }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -189,7 +191,7 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
 
     WM_gizmo_target_property_def_func(gz,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_spot_blend_prop_matrix_get,
                                           .value_set_fn = gizmo_spot_blend_prop_matrix_set,
                                           .range_get_fn = NULL,
@@ -211,7 +213,7 @@ static void WIDGETGROUP_light_spot_setup(const bContext *C, wmGizmoGroup *gzgrou
 
     WM_gizmo_target_property_def_func(gz,
                                       "matrix",
-                                      &(const struct wmGizmoPropertyFnParams){
+                                      &(const wmGizmoPropertyFnParams){
                                           .value_get_fn = gizmo_light_radius_prop_matrix_get,
                                           .value_set_fn = gizmo_light_radius_prop_matrix_set,
                                           .range_get_fn = NULL,
@@ -337,7 +339,7 @@ static void WIDGETGROUP_light_point_setup(const bContext *C, wmGizmoGroup *gzgro
 
   WM_gizmo_target_property_def_func(gz,
                                     "matrix",
-                                    &(const struct wmGizmoPropertyFnParams){
+                                    &(const wmGizmoPropertyFnParams){
                                         .value_get_fn = gizmo_light_radius_prop_matrix_get,
                                         .value_set_fn = gizmo_light_radius_prop_matrix_set,
                                         .range_get_fn = NULL,
@@ -475,7 +477,7 @@ static void WIDGETGROUP_light_area_refresh(const bContext *C, wmGizmoGroup *gzgr
   /* need to set property here for undo. TODO: would prefer to do this in _init. */
   WM_gizmo_target_property_def_func(gz,
                                     "matrix",
-                                    &(const struct wmGizmoPropertyFnParams){
+                                    &(const wmGizmoPropertyFnParams){
                                         .value_get_fn = gizmo_area_light_prop_matrix_get,
                                         .value_set_fn = gizmo_area_light_prop_matrix_set,
                                         .range_get_fn = NULL,

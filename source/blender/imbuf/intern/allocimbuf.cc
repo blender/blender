@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -22,6 +23,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_implicit_sharing.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -65,12 +67,16 @@ void imb_mmap_unlock(void)
  * buffer to its defaults. */
 template<class BufferType> static void imb_free_buffer(BufferType &buffer)
 {
-  if (buffer.data) {
+  if (buffer.implicit_sharing) {
+    blender::implicit_sharing::free_shared_data(&buffer.data, &buffer.implicit_sharing);
+  }
+  else if (buffer.data) {
     switch (buffer.ownership) {
       case IB_DO_NOT_TAKE_OWNERSHIP:
         break;
 
       case IB_TAKE_OWNERSHIP:
+        BLI_assert(buffer.implicit_sharing == nullptr);
         MEM_freeN(buffer.data);
         break;
     }
@@ -79,6 +85,7 @@ template<class BufferType> static void imb_free_buffer(BufferType &buffer)
   /* Reset buffer to defaults. */
   buffer.data = nullptr;
   buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
+  buffer.implicit_sharing = nullptr;
 }
 
 /* Allocate pixel storage of the given buffer. The buffer owns the allocated memory.
@@ -94,6 +101,7 @@ bool imb_alloc_buffer(
   }
 
   buffer.ownership = IB_TAKE_OWNERSHIP;
+  buffer.implicit_sharing = nullptr;
 
   return true;
 }
@@ -110,6 +118,11 @@ template<class BufferType> void imb_make_writeable_buffer(BufferType &buffer)
     case IB_DO_NOT_TAKE_OWNERSHIP:
       buffer.data = static_cast<decltype(BufferType::data)>(MEM_dupallocN(buffer.data));
       buffer.ownership = IB_TAKE_OWNERSHIP;
+
+      if (buffer.implicit_sharing) {
+        buffer.implicit_sharing->remove_user_and_delete_if_last();
+        buffer.implicit_sharing = nullptr;
+      }
       break;
 
     case IB_TAKE_OWNERSHIP:
@@ -142,6 +155,30 @@ auto imb_steal_buffer_data(BufferType &buffer) -> decltype(BufferType::data)
   BLI_assert_unreachable();
 
   return nullptr;
+}
+
+/* Assign the new data of the buffer which is implicitly shared via the given handle.
+ * The old content of the buffer is freed using imb_free_buffer. */
+template<class BufferType>
+void imb_assign_shared_buffer(BufferType &buffer,
+                              decltype(BufferType::data) buffer_data,
+                              const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(buffer);
+
+  if (implicit_sharing) {
+    BLI_assert(buffer_data != nullptr);
+
+    blender::implicit_sharing::copy_shared_pointer(
+        buffer_data, implicit_sharing, &buffer.data, &buffer.implicit_sharing);
+  }
+  else {
+    BLI_assert(buffer_data == nullptr);
+    buffer.data = nullptr;
+    buffer.implicit_sharing = nullptr;
+  }
+
+  buffer.ownership = IB_DO_NOT_TAKE_OWNERSHIP;
 }
 
 void imb_freemipmapImBuf(ImBuf *ibuf)
@@ -381,6 +418,7 @@ bool imb_enlargeencodedbufferImBuf(ImBuf *ibuf)
 
   imb_free_buffer(ibuf->encoded_buffer);
 
+  ibuf->encoded_buffer = new_buffer;
   ibuf->encoded_buffer_size = newsize;
   ibuf->flags |= IB_mem;
 
@@ -483,6 +521,45 @@ void IMB_make_writable_float_buffer(ImBuf *ibuf)
   imb_make_writeable_buffer(ibuf->float_buffer);
 }
 
+void IMB_assign_shared_byte_buffer(ImBuf *ibuf,
+                                   uint8_t *buffer_data,
+                                   const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->byte_buffer);
+  ibuf->flags &= ~IB_rect;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->byte_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_rect;
+  }
+}
+
+void IMB_assign_shared_float_buffer(ImBuf *ibuf,
+                                    float *buffer_data,
+                                    const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->float_buffer);
+  ibuf->flags &= ~IB_rectfloat;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->float_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_rectfloat;
+  }
+}
+
+void IMB_assign_shared_float_z_buffer(ImBuf *ibuf,
+                                      float *buffer_data,
+                                      const ImplicitSharingInfoHandle *implicit_sharing)
+{
+  imb_free_buffer(ibuf->float_z_buffer);
+  ibuf->flags &= ~IB_zbuffloat;
+
+  if (buffer_data) {
+    imb_assign_shared_buffer(ibuf->float_z_buffer, buffer_data, implicit_sharing);
+    ibuf->flags |= IB_zbuffloat;
+  }
+}
+
 void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, const ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->byte_buffer);
@@ -509,7 +586,7 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
   }
 }
 
-void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
+void IMB_assign_z_buffer(ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->z_buffer);
   ibuf->flags &= ~IB_zbuf;
@@ -522,7 +599,7 @@ void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ow
   }
 }
 
-void IMB_assign_float_z_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
+void IMB_assign_float_z_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->float_z_buffer);
   ibuf->flags &= ~IB_zbuffloat;
@@ -561,7 +638,7 @@ ImBuf *IMB_allocFromBufferOwn(
   return ibuf;
 }
 
-struct ImBuf *IMB_allocFromBuffer(
+ImBuf *IMB_allocFromBuffer(
     const uint8_t *byte_buffer, const float *float_buffer, uint w, uint h, uint channels)
 {
   ImBuf *ibuf = nullptr;
@@ -607,7 +684,7 @@ ImBuf *IMB_allocImBuf(uint x, uint y, uchar planes, uint flags)
   return ibuf;
 }
 
-bool IMB_initImBuf(struct ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
+bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
 {
   memset(ibuf, 0, sizeof(ImBuf));
 
@@ -712,6 +789,9 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
     memcpy(ibuf2->encoded_buffer.data, ibuf1->encoded_buffer.data, ibuf1->encoded_size);
   }
+
+  ibuf2->byte_buffer.colorspace = ibuf1->byte_buffer.colorspace;
+  ibuf2->float_buffer.colorspace = ibuf1->float_buffer.colorspace;
 
   /* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
   tbuf = *ibuf1;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2010-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup collada
@@ -281,7 +283,7 @@ bool MeshImporter::is_nice_mesh(COLLADAFW::Mesh *mesh)
 
     const char *type_str = bc_primTypeToStr(type);
 
-    /* OpenCollada passes POLYGONS type for <polylist> */
+    /* OpenCollada passes POLYGONS type for `<polylist>`. */
     if (ELEM(type, COLLADAFW::MeshPrimitive::POLYLIST, COLLADAFW::MeshPrimitive::POLYGONS)) {
 
       COLLADAFW::Polygons *mpvc = (COLLADAFW::Polygons *)mp;
@@ -636,7 +638,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh,
 
     int collada_meshtype = mp->getPrimitiveType();
 
-    /* since we cannot set poly->mat_nr here, we store a portion of me->mpoly in Primitive */
+    /* Since we cannot set `poly->mat_nr` here, we store a portion of `me->mpoly` in Primitive. */
     Primitive prim = {poly_index, &material_indices[poly_index], 0};
 
     /* If MeshPrimitive is TRIANGLE_FANS we split it into triangles

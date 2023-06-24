@@ -124,7 +124,7 @@ Device_new(PyTypeObject* type, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_lock_doc,
-			 ".. classmethod:: lock()\n\n"
+			 ".. method:: lock()\n\n"
 			 "   Locks the device so that it's guaranteed, that no samples are\n"
 			 "   read from the streams until :meth:`unlock` is called.\n"
 			 "   This is useful if you want to do start/stop/pause/resume some\n"
@@ -152,7 +152,7 @@ Device_lock(Device* self)
 }
 
 PyDoc_STRVAR(M_aud_Device_play_doc,
-			 ".. classmethod:: play(sound, keep=False)\n\n"
+			 ".. method:: play(sound, keep=False)\n\n"
 			 "   Plays a sound.\n\n"
 			 "   :arg sound: The sound to play.\n"
 			 "   :type sound: :class:`Sound`\n"
@@ -212,7 +212,7 @@ Device_play(Device* self, PyObject* args, PyObject* kwds)
 }
 
 PyDoc_STRVAR(M_aud_Device_stopAll_doc,
-			 ".. classmethod:: stopAll()\n\n"
+			 ".. method:: stopAll()\n\n"
 			 "   Stops all playing and paused sounds.");
 
 static PyObject *
@@ -231,7 +231,7 @@ Device_stopAll(Device* self)
 }
 
 PyDoc_STRVAR(M_aud_Device_unlock_doc,
-			 ".. classmethod:: unlock()\n\n"
+			 ".. method:: unlock()\n\n"
 			 "   Unlocks the device after a lock call, see :meth:`lock` for\n"
 			 "   details.");
 

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -11,7 +13,7 @@ struct Mesh;
 namespace blender::geometry {
 
 void split_edges(Mesh &mesh,
-                 IndexMask mask,
+                 const IndexMask &mask,
                  const bke::AnonymousAttributePropagationInfo &propagation_info);
 
 }  // namespace blender::geometry

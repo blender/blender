@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -2016,7 +2017,7 @@ void RNA_def_main_paintcurves(BlenderRNA *brna, PropertyRNA *cprop)
   parm = RNA_def_boolean(func, "value", 0, "Value", "");
   RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
-void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_def_main_gpencil_legacy(BlenderRNA *brna, PropertyRNA *cprop)
 {
   StructRNA *srna;
   FunctionRNA *func;
@@ -2056,6 +2057,16 @@ void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop)
                   "Decrement user counter of all datablocks used by this grease pencil");
   RNA_def_boolean(
       func, "do_ui_user", true, "", "Make sure interface does not reference this grease pencil");
+}
+
+void RNA_def_main_grease_pencil(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+
+  RNA_def_property_srna(cprop, "BlendDataGreasePencilsV3");
+  srna = RNA_def_struct(brna, "BlendDataGreasePencilsV3", NULL);
+  RNA_def_struct_sdna(srna, "Main");
+  RNA_def_struct_ui_text(srna, "Main Grease Pencils", "Collection of grease pencils");
 }
 
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -224,9 +225,7 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, int new_level)
   md->hidden = subd;
 }
 
-Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
-                               Object *object,
-                               MultiresModifierData *mmd)
+Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
 {
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
@@ -246,10 +245,8 @@ Mesh *BKE_multires_create_mesh(struct Depsgraph *depsgraph,
   return result;
 }
 
-float (*BKE_multires_create_deformed_base_mesh_vert_coords(struct Depsgraph *depsgraph,
-                                                           struct Object *object,
-                                                           struct MultiresModifierData *mmd,
-                                                           int *r_num_deformed_verts))[3]
+float (*BKE_multires_create_deformed_base_mesh_vert_coords(
+    Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd, int *r_num_deformed_verts))[3]
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
@@ -471,9 +468,9 @@ void multires_force_sculpt_rebuild(Object *object)
     object->sculpt->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-
-  MEM_SAFE_FREE(ss->pmap_mem);
+  ss->vert_to_poly_indices = {};
+  ss->vert_to_poly_offsets = {};
+  ss->pmap = {};
 }
 
 void multires_force_external_reload(Object *object)
@@ -1046,7 +1043,7 @@ static void multiresModifier_disp_run(
   }
 }
 
-void multires_modifier_update_mdisps(struct DerivedMesh *dm, Scene *scene)
+void multires_modifier_update_mdisps(DerivedMesh *dm, Scene *scene)
 {
   CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
   Object *ob;
@@ -1410,7 +1407,7 @@ static void multires_apply_uniform_scale(Object *object, const float scale)
   }
 }
 
-static void multires_apply_smat(struct Depsgraph * /*depsgraph*/,
+static void multires_apply_smat(Depsgraph * /*depsgraph*/,
                                 Scene *scene,
                                 Object *object,
                                 const float smat[3][3])
@@ -1452,7 +1449,7 @@ int multires_mdisp_corners(const MDisps *s)
   return 0;
 }
 
-void multiresModifier_scale_disp(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
+void multiresModifier_scale_disp(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   float smat[3][3];
 
@@ -1462,10 +1459,7 @@ void multiresModifier_scale_disp(struct Depsgraph *depsgraph, Scene *scene, Obje
   multires_apply_smat(depsgraph, scene, ob, smat);
 }
 
-void multiresModifier_prepare_join(struct Depsgraph *depsgraph,
-                                   Scene *scene,
-                                   Object *ob,
-                                   Object *to_ob)
+void multiresModifier_prepare_join(Depsgraph *depsgraph, Scene *scene, Object *ob, Object *to_ob)
 {
   float smat[3][3], tmat[3][3], mat[3][3];
   multires_sync_levels(scene, to_ob, ob);
@@ -1515,7 +1509,7 @@ void multires_topology_changed(Mesh *me)
   }
 }
 
-void multires_ensure_external_read(struct Mesh *mesh, int top_level)
+void multires_ensure_external_read(Mesh *mesh, int top_level)
 {
   if (!CustomData_external_test(&mesh->ldata, CD_MDISPS)) {
     return;
@@ -1547,7 +1541,7 @@ void multires_ensure_external_read(struct Mesh *mesh, int top_level)
 
   CustomData_external_read(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
 }
-void multiresModifier_ensure_external_read(struct Mesh *mesh, const MultiresModifierData *mmd)
+void multiresModifier_ensure_external_read(Mesh *mesh, const MultiresModifierData *mmd)
 {
   multires_ensure_external_read(mesh, mmd->totlvl);
 }

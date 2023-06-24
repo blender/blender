@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -8,10 +9,8 @@
 #pragma once
 
 #include "GHOST_Event.hh"
-extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-};
 
 /**
  * Drag & drop event

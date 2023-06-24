@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2016 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -253,7 +254,7 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(struct Volume *volume,
 struct GPUBatch *DRW_cache_volume_face_wireframe_get(struct Object *ob);
 struct GPUBatch *DRW_cache_volume_selection_surface_get(struct Object *ob);
 
-/* GPencil */
+/* GPencil (legacy) */
 
 struct GPUBatch *DRW_cache_gpencil_get(struct Object *ob, int cfra);
 struct GPUVertBuf *DRW_cache_gpencil_position_buffer_get(struct Object *ob, int cfra);
@@ -275,6 +276,13 @@ struct bGPDstroke *DRW_cache_gpencil_sbuffer_stroke_data_get(struct Object *ob);
  * Sbuffer batches are temporary. We need to clear it after drawing.
  */
 void DRW_cache_gpencil_sbuffer_clear(struct Object *ob);
+
+/* Grease Pencil */
+
+struct GPUBatch *DRW_cache_grease_pencil_get(struct Object *ob, int cfra);
+struct GPUBatch *DRW_cache_grease_pencil_edit_points_get(struct Object *ob, int cfra);
+struct GPUVertBuf *DRW_cache_grease_pencil_position_buffer_get(struct Object *ob, int cfra);
+struct GPUVertBuf *DRW_cache_grease_pencil_color_buffer_get(struct Object *ob, int cfra);
 
 #ifdef __cplusplus
 }

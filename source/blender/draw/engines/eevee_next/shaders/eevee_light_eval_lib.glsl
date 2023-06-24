@@ -22,12 +22,13 @@ void light_eval_ex(ClosureDiffuse diffuse,
                    vec3 P,
                    vec3 Ng,
                    vec3 V,
-                   float vP_z,
+                   float vP_z, /* TODO(fclem): Remove, is unused. */
                    float thickness,
                    vec4 ltc_mat,
                    uint l_idx,
                    inout vec3 out_diffuse,
-                   inout vec3 out_specular)
+                   inout vec3 out_specular,
+                   inout float out_shadow)
 {
   LightData light = light_buf[l_idx];
   vec3 L;
@@ -46,7 +47,7 @@ void light_eval_ex(ClosureDiffuse diffuse,
 #ifdef SSS_TRANSMITTANCE
     /* Transmittance evaluation first to use initial visibility without shadow. */
     if (diffuse.sss_id != 0u && light.diffuse_power > 0.0) {
-      float delta = max(thickness, samp.occluder_delta + samp.bias);
+      float delta = max(thickness, -(samp.occluder_delta + samp.bias));
 
       vec3 intensity = visibility * light.transmit_power *
                        light_translucent(sss_transmittance_tx,
@@ -61,6 +62,7 @@ void light_eval_ex(ClosureDiffuse diffuse,
     }
 #endif
     visibility *= float(samp.occluder_delta + samp.bias >= 0.0);
+    out_shadow *= float(samp.occluder_delta + samp.bias >= 0.0);
   }
 
   if (visibility < 1e-6) {
@@ -89,7 +91,8 @@ void light_eval(ClosureDiffuse diffuse,
                 float vP_z,
                 float thickness,
                 inout vec3 out_diffuse,
-                inout vec3 out_specular)
+                inout vec3 out_specular,
+                inout float out_shadow)
 {
   vec2 uv = vec2(reflection.roughness, safe_sqrt(1.0 - dot(reflection.N, V)));
   uv = uv * UTIL_TEX_UV_SCALE + UTIL_TEX_UV_BIAS;
@@ -107,11 +110,16 @@ void light_eval(ClosureDiffuse diffuse,
                   ltc_mat,
                   l_idx,
                   out_diffuse,
-                  out_specular);
+                  out_specular,
+                  out_shadow);
   }
   LIGHT_FOREACH_END
 
+#ifdef GPU_FRAGMENT_SHADER
   vec2 px = gl_FragCoord.xy;
+#else
+  vec2 px = vec2(0.0);
+#endif
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
     light_eval_ex(diffuse,
                   reflection,
@@ -124,7 +132,8 @@ void light_eval(ClosureDiffuse diffuse,
                   ltc_mat,
                   l_idx,
                   out_diffuse,
-                  out_specular);
+                  out_specular,
+                  out_shadow);
   }
   LIGHT_FOREACH_END
 }

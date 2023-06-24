@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -630,11 +631,8 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
   return false;
 }
 
-bool ED_view3d_camera_autokey(const Scene *scene,
-                              ID *id_key,
-                              struct bContext *C,
-                              const bool do_rotate,
-                              const bool do_translate)
+bool ED_view3d_camera_autokey(
+    const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
   if (autokeyframe_cfra_can_key(scene, id_key)) {
     const float cfra = (float)scene->r.cfra;
@@ -649,11 +647,11 @@ bool ED_view3d_camera_autokey(const Scene *scene,
      *    TODO: need to check in future that frame changed before doing this
      */
     if (do_rotate) {
-      struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
+      KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
       ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
     if (do_translate) {
-      struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+      KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
       ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
     }
 
@@ -665,11 +663,8 @@ bool ED_view3d_camera_autokey(const Scene *scene,
   return false;
 }
 
-bool ED_view3d_camera_lock_autokey(View3D *v3d,
-                                   RegionView3D *rv3d,
-                                   struct bContext *C,
-                                   const bool do_rotate,
-                                   const bool do_translate)
+bool ED_view3d_camera_lock_autokey(
+    View3D *v3d, RegionView3D *rv3d, bContext *C, const bool do_rotate, const bool do_translate)
 {
   /* similar to ED_view3d_cameracontrol_update */
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -693,9 +688,7 @@ bool ED_view3d_camera_lock_autokey(View3D *v3d,
   return false;
 }
 
-bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
-                                     const RegionView3D *rv3d,
-                                     struct bContext *C)
+bool ED_view3d_camera_lock_undo_test(const View3D *v3d, const RegionView3D *rv3d, bContext *C)
 {
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
     if (ED_undo_is_memfile_compatible(C)) {
@@ -716,7 +709,7 @@ bool ED_view3d_camera_lock_undo_test(const View3D *v3d,
 static bool view3d_camera_lock_undo_ex(const char *str,
                                        const View3D *v3d,
                                        const RegionView3D *rv3d,
-                                       struct bContext *C,
+                                       bContext *C,
                                        const bool undo_group)
 {
   if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
@@ -1234,7 +1227,7 @@ float ED_view3d_radius_to_dist_ortho(const float lens, const float radius)
 
 float ED_view3d_radius_to_dist(const View3D *v3d,
                                const ARegion *region,
-                               const struct Depsgraph *depsgraph,
+                               const Depsgraph *depsgraph,
                                const char persp,
                                const bool use_aspect,
                                const float radius)

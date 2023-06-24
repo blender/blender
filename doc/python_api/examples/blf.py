@@ -37,7 +37,7 @@ def draw_callback_px(self, context):
     # BLF drawing routine
     font_id = font_info["font_id"]
     blf.position(font_id, 2, 80, 0)
-    blf.size(font_id, 50)
+    blf.size(font_id, 50.0)
     blf.draw(font_id, "Hello World")
 
 

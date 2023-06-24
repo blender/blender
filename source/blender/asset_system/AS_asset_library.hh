@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -36,8 +38,10 @@ class AssetStorage;
  */
 class AssetLibrary {
   eAssetLibraryType library_type_;
-  /** The name this asset library will be displayed in the UI as. Will also be used as a weak way
-   * to identify an asset library (e.g. by #AssetWeakReference). */
+  /**
+   * The name this asset library will be displayed in the UI as. Will also be used as a weak way
+   * to identify an asset library (e.g. by #AssetWeakReference).
+   */
   std::string name_;
   /** If this is an asset library on disk, the top-level directory path. Normalized using
    * #normalize_directory_path(). Shared pointer so assets can safely point to it, and don't have
@@ -45,7 +49,8 @@ class AssetLibrary {
    * optimization is used). With thousands of assets this might make a reasonable difference. */
   std::shared_ptr<std::string> root_path_;
 
-  /** Storage for assets (better said their representations) that are considered to be part of this
+  /**
+   * Storage for assets (better said their representations) that are considered to be part of this
    * library. Assets are not automatically loaded into this when loading an asset library. Assets
    * have to be loaded externally and added to this storage via #add_external_asset() or
    * #add_local_id_asset(). So this really is arbitrary storage as far as #AssetLibrary is
@@ -119,16 +124,19 @@ class AssetLibrary {
    */
   AssetRepresentation &add_external_asset(StringRef relative_asset_path,
                                           StringRef name,
+                                          int id_type,
                                           std::unique_ptr<AssetMetaData> metadata);
   /** See #AssetLibrary::add_external_asset(). */
   AssetRepresentation &add_local_id_asset(StringRef relative_asset_path, ID &id);
-  /** Remove an asset from the library that was added using #add_external_asset() or
+  /**
+   * Remove an asset from the library that was added using #add_external_asset() or
    * #add_local_id_asset(). Can usually be expected to be constant time complexity (worst case may
    * differ).
    * \note This is save to call if \a asset is freed (dangling reference), will not perform any
    *       change then.
    * \return True on success, false if the asset couldn't be found inside the library (also the
-   *         case when the reference is dangling). */
+   *         case when the reference is dangling).
+   */
   bool remove_asset(AssetRepresentation &asset);
 
   /**
@@ -143,7 +151,8 @@ class AssetLibrary {
    *
    * No-op if the catalog cannot be found. This could be the kind of "the
    * catalog definition file is corrupt/lost" scenario that the simple name is
-   * meant to help recover from. */
+   * meant to help recover from.
+   */
   void refresh_catalog_simplename(AssetMetaData *asset_data);
 
   void on_blend_save_handler_register();

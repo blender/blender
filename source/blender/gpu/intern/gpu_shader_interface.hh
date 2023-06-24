@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2016 by Mike Erwin. All rights reserved. */
+/* SPDX-FileCopyrightText: 2016 by Mike Erwin. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -77,7 +78,7 @@ class ShaderInterface {
   ShaderInterface();
   virtual ~ShaderInterface();
 
-  void debug_print();
+  void debug_print() const;
 
   inline const ShaderInput *attr_get(const char *name) const
   {

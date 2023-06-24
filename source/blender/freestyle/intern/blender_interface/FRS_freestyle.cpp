@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -51,7 +53,7 @@ using namespace Freestyle;
 
 extern "C" {
 
-struct FreestyleGlobals g_freestyle;
+FreestyleGlobals g_freestyle;
 
 // Freestyle configuration
 static bool freestyle_is_initialized = false;
@@ -63,8 +65,8 @@ static AppView *view = nullptr;
 static FreestyleLineSet lineset_buffer;
 static bool lineset_copied = false;
 
-static void load_post_callback(struct Main * /*main*/,
-                               struct PointerRNA ** /*pointers*/,
+static void load_post_callback(Main * /*main*/,
+                               PointerRNA ** /*pointers*/,
                                const int /*num_pointers*/,
                                void * /*arg*/)
 {
@@ -190,7 +192,7 @@ struct edge_type_condition {
 };
 
 // examines the conditions and returns true if the target edge type needs to be computed
-static bool test_edge_type_conditions(struct edge_type_condition *conditions,
+static bool test_edge_type_conditions(edge_type_condition *conditions,
                                       int num_edge_types,
                                       bool logical_and,
                                       int target,
@@ -330,7 +332,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
       int use_ridges_and_valleys = 0;
       int use_suggestive_contours = 0;
       int use_material_boundaries = 0;
-      struct edge_type_condition conditions[] = {
+      edge_type_condition conditions[] = {
           {FREESTYLE_FE_SILHOUETTE, 0},
           {FREESTYLE_FE_BORDER, 0},
           {FREESTYLE_FE_CREASE, 0},
@@ -445,12 +447,13 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
   RenderLayer *rl = RE_GetRenderLayer(re->result, view_layer->name);
   bool diffuse = false, z = false;
   for (RenderPass *rpass = (RenderPass *)rl->passes.first; rpass; rpass = rpass->next) {
+    float *rpass_buffer_data = rpass->buffer.data;
     if (STREQ(rpass->name, RE_PASSNAME_DIFFUSE_COLOR)) {
-      controller->setPassDiffuse(rpass->rect, rpass->rectx, rpass->recty);
+      controller->setPassDiffuse(rpass_buffer_data, rpass->rectx, rpass->recty);
       diffuse = true;
     }
     if (STREQ(rpass->name, RE_PASSNAME_Z)) {
-      controller->setPassZ(rpass->rect, rpass->rectx, rpass->recty);
+      controller->setPassZ(rpass_buffer_data, rpass->rectx, rpass->recty);
       z = true;
     }
   }
@@ -705,7 +708,7 @@ void FRS_copy_active_lineset(FreestyleConfig *config)
     lineset_buffer.edge_types = lineset->edge_types;
     lineset_buffer.exclude_edge_types = lineset->exclude_edge_types;
     lineset_buffer.group = lineset->group;
-    strcpy(lineset_buffer.name, lineset->name);
+    STRNCPY(lineset_buffer.name, lineset->name);
     lineset_copied = true;
   }
 }
@@ -741,7 +744,7 @@ void FRS_paste_active_lineset(FreestyleConfig *config)
       lineset->group = lineset_buffer.group;
       id_us_plus(&lineset->group->id);
     }
-    strcpy(lineset->name, lineset_buffer.name);
+    STRNCPY(lineset->name, lineset_buffer.name);
     BKE_freestyle_lineset_unique_name(config, lineset);
     lineset->flags |= FREESTYLE_LINESET_CURRENT;
   }
@@ -764,7 +767,7 @@ bool FRS_move_active_lineset(FreestyleConfig *config, int direction)
 
 // Testing
 
-Material *FRS_create_stroke_material(Main *bmain, struct FreestyleLineStyle *linestyle)
+Material *FRS_create_stroke_material(Main *bmain, FreestyleLineStyle *linestyle)
 {
   bNodeTree *nt = (linestyle->use_nodes) ? linestyle->nodetree : nullptr;
   Material *ma = BlenderStrokeRenderer::GetStrokeShader(bmain, nt, true);

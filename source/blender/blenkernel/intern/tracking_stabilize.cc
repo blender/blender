@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -1284,7 +1285,7 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
   discard_stabilization_working_context(ctx);
 }
 
-typedef void (*interpolation_func)(const struct ImBuf *, struct ImBuf *, float, float, int, int);
+typedef void (*interpolation_func)(const ImBuf *, ImBuf *, float, float, int, int);
 
 typedef struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;

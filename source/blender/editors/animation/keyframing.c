@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -160,7 +161,7 @@ bAction *ED_id_action_ensure(Main *bmain, ID *id)
   return adt->action;
 }
 
-FCurve *ED_action_fcurve_find(struct bAction *act, const char rna_path[], const int array_index)
+FCurve *ED_action_fcurve_find(bAction *act, const char rna_path[], const int array_index)
 {
   /* Sanity checks. */
   if (ELEM(NULL, act, rna_path)) {
@@ -169,10 +170,10 @@ FCurve *ED_action_fcurve_find(struct bAction *act, const char rna_path[], const 
   return BKE_fcurve_find(&act->curves, rna_path, array_index);
 }
 
-FCurve *ED_action_fcurve_ensure(struct Main *bmain,
-                                struct bAction *act,
+FCurve *ED_action_fcurve_ensure(Main *bmain,
+                                bAction *act,
                                 const char group[],
-                                struct PointerRNA *ptr,
+                                PointerRNA *ptr,
                                 const char rna_path[],
                                 const int array_index)
 {
@@ -1169,11 +1170,11 @@ static float *get_keyframe_values(ReportList *reports,
                                   PointerRNA ptr,
                                   PropertyRNA *prop,
                                   int index,
-                                  struct NlaKeyframingContext *nla_context,
+                                  NlaKeyframingContext *nla_context,
                                   eInsertKeyFlags flag,
                                   float *buffer,
                                   int buffer_size,
-                                  const struct AnimationEvalContext *anim_eval_context,
+                                  const AnimationEvalContext *anim_eval_context,
                                   int *r_count,
                                   bool *r_force_all,
                                   BLI_bitmap **r_successful_remaps)
@@ -1302,7 +1303,7 @@ bool insert_keyframe_direct(ReportList *reports,
                             FCurve *fcu,
                             const AnimationEvalContext *anim_eval_context,
                             eBezTriple_KeyframeType keytype,
-                            struct NlaKeyframingContext *nla_context,
+                            NlaKeyframingContext *nla_context,
                             eInsertKeyFlags flag)
 {
   float curval = 0.0f;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -10,6 +12,7 @@
 
 #include "COM_context.hh"
 #include "COM_operation.hh"
+#include "COM_result.hh"
 #include "COM_scheduler.hh"
 
 namespace blender::realtime_compositor {
@@ -42,6 +45,9 @@ class NodeOperation : public Operation {
   void compute_results_reference_counts(const Schedule &schedule);
 
  protected:
+  /* Compute a node preview using the result returned from the get_preview_result method. */
+  void compute_preview() override;
+
   /* Returns a reference to the derived node that this operation represents. */
   const DNode &node() const;
 
@@ -51,6 +57,13 @@ class NodeOperation : public Operation {
   /* Returns true if the output identified by the given identifier is needed and should be
    * computed, otherwise returns false. */
   bool should_compute_output(StringRef identifier);
+
+ private:
+  /* Get the result which will be previewed in the node, this is chosen as the first linked output
+   * of the node, if no outputs exist, then the first allocated input will be chosen. Nullptr is
+   * guaranteed not to be returned, since the node will always either have a linked output or an
+   * allocated input. */
+  Result *get_preview_result();
 };
 
 }  // namespace blender::realtime_compositor

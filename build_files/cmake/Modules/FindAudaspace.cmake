@@ -1,5 +1,6 @@
+# SPDX-FileCopyrightText: 2014 Blender Foundation
+#
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014 Blender Foundation.
 
 # - Try to find audaspace
 # Once done, this will define

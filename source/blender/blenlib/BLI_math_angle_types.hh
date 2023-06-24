@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -71,12 +73,6 @@ template<typename T> struct AngleRadianBase {
   }
 
   /** Methods. */
-
-  /* 'mod_inline(-3, 4)= 1', 'fmod(-3, 4)= -3' */
-  static float mod_inline(float a, float b)
-  {
-    return a - (b * floorf(a / b));
-  }
 
   /**
    * Return the angle wrapped inside [-pi..pi] interval. Basically `(angle + pi) % 2pi - pi`.

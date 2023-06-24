@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup datatoc
@@ -34,22 +36,11 @@
 /* -------------------------------------------------------------------- */
 /* Utility functions */
 
-static int path_ensure_slash(char *string)
+static bool path_test_extension(const char *filepath, const char *ext)
 {
-  int len = strlen(string);
-  if (len == 0 || string[len - 1] != SEP) {
-    string[len] = SEP;
-    string[len + 1] = '\0';
-    return len + 1;
-  }
-  return len;
-}
-
-static bool path_test_extension(const char *str, const char *ext)
-{
-  const size_t a = strlen(str);
+  const size_t a = strlen(filepath);
   const size_t b = strlen(ext);
-  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, str + a - b) == 0);
+  return !(a == 0 || b == 0 || b >= a) && (strcmp(ext, filepath + a - b) == 0);
 }
 
 static void endian_switch_uint32(uint *val)
@@ -58,10 +49,10 @@ static void endian_switch_uint32(uint *val)
   *val = (tval >> 24) | ((tval << 8) & 0x00ff0000) | ((tval >> 8) & 0x0000ff00) | (tval << 24);
 }
 
-static const char *path_slash_rfind(const char *string)
+static const char *path_slash_rfind(const char *path)
 {
-  const char *const lfslash = strrchr(string, '/');
-  const char *const lbslash = strrchr(string, '\\');
+  const char *const lfslash = strrchr(path, '/');
+  const char *const lbslash = strrchr(path, '\\');
 
   if (!lfslash) {
     return lbslash;
@@ -77,6 +68,25 @@ static const char *path_basename(const char *path)
 {
   const char *const filename = path_slash_rfind(path);
   return filename ? filename + 1 : path;
+}
+
+static bool path_join(char *filepath,
+                      size_t filepath_maxncpy,
+                      const char *dirpath,
+                      const char *filename)
+{
+  int dirpath_len = strlen(dirpath);
+  if (dirpath_len && dirpath[dirpath_len - 1] == SEP) {
+    dirpath_len--;
+  }
+  const int filename_len = strlen(filename);
+  if (dirpath_len + 1 + filename_len + 1 > filepath_maxncpy) {
+    return false;
+  }
+  memcpy(filepath, dirpath, dirpath_len);
+  filepath[dirpath_len] = SEP;
+  memcpy(filepath + dirpath_len + 1, filename, filename_len + 1);
+  return true;
 }
 
 /* -------------------------------------------------------------------- */
@@ -390,8 +400,6 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
   DIR *dir;
   const struct dirent *fname;
   char filepath[1024];
-  char *filename;
-  int path_str_len;
   int found = 0, fail = 0;
 
   struct IconMergeContext context;
@@ -409,15 +417,12 @@ static bool icondir_to_png(const char *path_src, const char *file_dst)
     return false;
   }
 
-  strcpy(filepath, path_src);
-  path_str_len = path_ensure_slash(filepath);
-  filename = &filepath[path_str_len];
-
   while ((fname = readdir(dir)) != NULL) {
     if (path_test_extension(fname->d_name, ".dat")) {
-
-      strcpy(filename, fname->d_name);
-
+      if (!path_join(filepath, sizeof(filepath), path_src, fname->d_name)) {
+        printf("%s: path is too long (%s, %s)\n", __func__, path_src, fname->d_name);
+        return false;
+      }
       if (icon_merge(&context, filepath, &pixels_canvas, &canvas_w, &canvas_h)) {
         found++;
       }

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmask
@@ -32,7 +33,7 @@
  * \{ */
 
 bool ED_mask_find_nearest_diff_point(const bContext *C,
-                                     struct Mask *mask_orig,
+                                     Mask *mask_orig,
                                      const float normal_co[2],
                                      int threshold,
                                      bool feather,

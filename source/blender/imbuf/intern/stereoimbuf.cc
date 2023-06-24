@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2015 Blender Foundation */
+/* SPDX-FileCopyrightText: 2015 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -28,10 +29,8 @@
 
 /* prototypes */
 struct Stereo3DData;
-static void imb_stereo3d_write_doit(struct Stereo3DData *s3d_data,
-                                    const struct Stereo3dFormat *s3d);
-static void imb_stereo3d_read_doit(struct Stereo3DData *s3d_data,
-                                   const struct Stereo3dFormat *s3d);
+static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
+static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
 
 typedef struct Stereo3DData {
   struct {
@@ -775,11 +774,11 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
 
   if (is_float) {
     imb_addrectfloatImBuf(ibuf_stereo, ibuf_left->channels);
-    ibuf_stereo->float_colorspace = ibuf_left->float_colorspace;
+    ibuf_stereo->float_buffer.colorspace = ibuf_left->float_buffer.colorspace;
   }
   else {
     imb_addrectImBuf(ibuf_stereo);
-    ibuf_stereo->rect_colorspace = ibuf_left->rect_colorspace;
+    ibuf_stereo->byte_buffer.colorspace = ibuf_left->byte_buffer.colorspace;
   }
 
   ibuf_stereo->flags = ibuf_left->flags;

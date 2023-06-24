@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2023 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifdef WITH_HIPRT
 
@@ -95,6 +96,8 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     set_error(string_printf("Failed to create HIPRT Function Table"));
     return;
   }
+
+  hiprtSetLogLevel(hiprtLogLevelNone);
 }
 
 HIPRTDevice::~HIPRTDevice()
@@ -260,8 +263,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   linker_options.append(" --offload-arch=").append(arch);
   linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
   string hiprt_ver(HIPRT_VERSION_STR);
-  string hiprt_bc;
-  hiprt_bc = hiprt_path + "\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
+  string hiprt_bc = hiprt_path + "\\dist\\bin\\Release\\hiprt" + hiprt_ver + "_amd_lib_win.bc";
 
   string linker_command = string_printf("clang++ %s \"%s\" %s -o \"%s\"",
                                         linker_options.c_str(),

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -453,7 +455,7 @@ static void merge_frame_corners(Frame **frames, int totframe)
 
 static Frame **collect_hull_frames(int v,
                                    SkinNode *frames,
-                                   const MeshElemMap *emap,
+                                   blender::GroupedSpan<int> emap,
                                    const blender::Span<blender::int2> edges,
                                    int *tothullframe)
 {
@@ -461,11 +463,11 @@ static Frame **collect_hull_frames(int v,
   Frame **hull_frames;
   int hull_frames_num, i;
 
-  (*tothullframe) = emap[v].count;
+  (*tothullframe) = emap[v].size();
   hull_frames = MEM_cnew_array<Frame *>(*tothullframe, __func__);
   hull_frames_num = 0;
-  for (i = 0; i < emap[v].count; i++) {
-    const blender::int2 &edge = edges[emap[v].indices[i]];
+  for (i = 0; i < emap[v].size(); i++) {
+    const blender::int2 &edge = edges[emap[v][i]];
     f = &frames[blender::bke::mesh::edge_other_vert(edge, v)];
     /* Can't have adjacent branch nodes yet */
     if (f->totframe) {
@@ -528,15 +530,15 @@ static float half_v2(const float v[2])
 
 static void end_node_frames(int v,
                             SkinNode *skin_nodes,
-                            const float (*vert_positions)[3],
+                            const blender::Span<blender::float3> vert_positions,
                             const MVertSkin *nodes,
-                            const MeshElemMap *emap,
+                            blender::GroupedSpan<int> emap,
                             EMat *emat)
 {
   const float *rad = nodes[v].radius;
   float mat[3][3];
 
-  if (emap[v].count == 0) {
+  if (emap[v].size() == 0) {
     float avg = half_v2(rad);
 
     /* For solitary nodes, just build a box (two frames) */
@@ -557,8 +559,8 @@ static void end_node_frames(int v,
     skin_nodes[v].flag |= CAP_START;
 
     /* Use incoming edge for orientation */
-    copy_m3_m3(mat, emat[emap[v].indices[0]].mat);
-    if (emat[emap[v].indices[0]].origin != v) {
+    copy_m3_m3(mat, emat[emap[v][0]].mat);
+    if (emat[emap[v][0]].origin != v) {
       negate_v3(mat[0]);
     }
 
@@ -578,13 +580,13 @@ static void end_node_frames(int v,
 }
 
 /* Returns 1 for seam, 0 otherwise */
-static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, EMat *emat)
+static int connection_node_mat(float mat[3][3], int v, blender::GroupedSpan<int> emap, EMat *emat)
 {
   float axis[3], angle, ine[3][3], oute[3][3];
   EMat *e1, *e2;
 
-  e1 = &emat[emap[v].indices[0]];
-  e2 = &emat[emap[v].indices[1]];
+  e1 = &emat[emap[v][0]];
+  e2 = &emat[emap[v][1]];
 
   if (e1->origin != v && e2->origin == v) {
     copy_m3_m3(ine, e1->mat);
@@ -613,9 +615,9 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
 
 static void connection_node_frames(int v,
                                    SkinNode *skin_nodes,
-                                   const float (*vert_positions)[3],
+                                   const blender::Span<blender::float3> vert_positions,
                                    const MVertSkin *nodes,
-                                   const MeshElemMap *emap,
+                                   blender::GroupedSpan<int> emap,
                                    EMat *emat)
 {
   const float *rad = nodes[v].radius;
@@ -626,8 +628,8 @@ static void connection_node_frames(int v,
     float avg = half_v2(rad);
 
     /* Get edges */
-    e1 = &emat[emap[v].indices[0]];
-    e2 = &emat[emap[v].indices[1]];
+    e1 = &emat[emap[v][0]];
+    e2 = &emat[emap[v][1]];
 
     /* Handle seam separately to avoid twisting */
     /* Create two frames, will be hulled to neighbors later */
@@ -639,14 +641,14 @@ static void connection_node_frames(int v,
       negate_v3(mat[0]);
     }
     create_frame(&skin_nodes[v].frames[0], vert_positions[v], rad, mat, avg);
-    skin_nodes[v].seam_edges[0] = emap[v].indices[0];
+    skin_nodes[v].seam_edges[0] = emap[v][0];
 
     copy_m3_m3(mat, e2->mat);
     if (e2->origin != v) {
       negate_v3(mat[0]);
     }
     create_frame(&skin_nodes[v].frames[1], vert_positions[v], rad, mat, avg);
-    skin_nodes[v].seam_edges[1] = emap[v].indices[1];
+    skin_nodes[v].seam_edges[1] = emap[v][1];
 
     return;
   }
@@ -656,10 +658,10 @@ static void connection_node_frames(int v,
   create_frame(&skin_nodes[v].frames[0], vert_positions[v], rad, mat, 0);
 }
 
-static SkinNode *build_frames(const float (*vert_positions)[3],
+static SkinNode *build_frames(const blender::Span<blender::float3> vert_positions,
                               int verts_num,
                               const MVertSkin *nodes,
-                              const MeshElemMap *emap,
+                              blender::GroupedSpan<int> emap,
                               EMat *emat)
 {
   int v;
@@ -667,10 +669,10 @@ static SkinNode *build_frames(const float (*vert_positions)[3],
   SkinNode *skin_nodes = MEM_cnew_array<SkinNode>(verts_num, __func__);
 
   for (v = 0; v < verts_num; v++) {
-    if (emap[v].count <= 1) {
+    if (emap[v].size() <= 1) {
       end_node_frames(v, skin_nodes, vert_positions, nodes, emap, emat);
     }
-    else if (emap[v].count == 2) {
+    else if (emap[v].size() == 2) {
       connection_node_frames(v, skin_nodes, vert_positions, nodes, emap, emat);
     }
     else {
@@ -721,10 +723,10 @@ struct EdgeStackElem {
 static void build_emats_stack(BLI_Stack *stack,
                               BLI_bitmap *visited_e,
                               EMat *emat,
-                              const MeshElemMap *emap,
+                              blender::GroupedSpan<int> emap,
                               const blender::Span<blender::int2> edges,
                               const MVertSkin *vs,
-                              const float (*vert_positions)[3])
+                              const blender::Span<blender::float3> vert_positions)
 {
   EdgeStackElem stack_elem;
   float axis[3], angle;
@@ -744,7 +746,7 @@ static void build_emats_stack(BLI_Stack *stack,
 
   /* Process edge */
 
-  parent_is_branch = ((emap[parent_v].count > 2) || (vs[parent_v].flag & MVERT_SKIN_ROOT));
+  parent_is_branch = ((emap[parent_v].size() > 2) || (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
   v = blender::bke::mesh::edge_other_vert(edges[e], parent_v);
   emat[e].origin = parent_v;
@@ -765,20 +767,20 @@ static void build_emats_stack(BLI_Stack *stack,
   }
 
   /* Add neighbors to stack */
-  for (i = 0; i < emap[v].count; i++) {
+  for (i = 0; i < emap[v].size(); i++) {
     /* Add neighbors to stack */
     copy_m3_m3(stack_elem.mat, emat[e].mat);
-    stack_elem.e = emap[v].indices[i];
+    stack_elem.e = emap[v][i];
     stack_elem.parent_v = v;
     BLI_stack_push(stack, &stack_elem);
   }
 }
 
 static EMat *build_edge_mats(const MVertSkin *vs,
-                             const float (*vert_positions)[3],
+                             const blender::Span<blender::float3> vert_positions,
                              const int verts_num,
                              const blender::Span<blender::int2> edges,
-                             const MeshElemMap *emap,
+                             blender::GroupedSpan<int> emap,
                              bool *has_valid_root)
 {
   BLI_Stack *stack;
@@ -796,16 +798,16 @@ static EMat *build_edge_mats(const MVertSkin *vs,
    * children to the stack */
   for (v = 0; v < verts_num; v++) {
     if (vs[v].flag & MVERT_SKIN_ROOT) {
-      if (emap[v].count >= 1) {
-        const blender::int2 &edge = edges[emap[v].indices[0]];
+      if (emap[v].size() >= 1) {
+        const blender::int2 &edge = edges[emap[v][0]];
         calc_edge_mat(stack_elem.mat,
                       vert_positions[v],
                       vert_positions[blender::bke::mesh::edge_other_vert(edge, v)]);
         stack_elem.parent_v = v;
 
         /* Add adjacent edges to stack */
-        for (i = 0; i < emap[v].count; i++) {
-          stack_elem.e = emap[v].indices[i];
+        for (i = 0; i < emap[v].size(); i++) {
+          stack_elem.e = emap[v][i];
           BLI_stack_push(stack, &stack_elem);
         }
 
@@ -836,7 +838,7 @@ static EMat *build_edge_mats(const MVertSkin *vs,
  * nodes, at least two intermediate frames are required. (This avoids
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
-static int calc_edge_subdivisions(const float (*vert_positions)[3],
+static int calc_edge_subdivisions(const blender::Span<blender::float3> vert_positions,
                                   const MVertSkin *nodes,
                                   const blender::int2 &edge,
                                   const blender::Span<int> degree)
@@ -901,7 +903,7 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   const MVertSkin *orignode = static_cast<const MVertSkin *>(
       CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN));
-  const float(*orig_vert_positions)[3] = BKE_mesh_vert_positions(orig);
+  const blender::Span<blender::float3> orig_vert_positions = orig->vert_positions();
   const blender::Span<blender::int2> orig_edges = orig->edges();
   const MDeformVert *origdvert = BKE_mesh_deform_verts(orig);
   int orig_vert_num = orig->totvert;
@@ -926,7 +928,7 @@ static Mesh *subdivide_base(const Mesh *orig)
   Mesh *result = BKE_mesh_new_nomain_from_template(
       orig, orig_vert_num + subd_num, orig_edge_num + subd_num, 0, 0);
 
-  float(*out_vert_positions)[3] = BKE_mesh_vert_positions_for_write(result);
+  blender::MutableSpan<blender::float3> out_vert_positions = result->vert_positions_for_write();
   blender::MutableSpan<blender::int2> result_edges = result->edges_for_write();
   MVertSkin *outnode = static_cast<MVertSkin *>(
       CustomData_get_layer_for_write(&result->vdata, CD_MVERT_SKIN, result->totvert));
@@ -1568,7 +1570,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes,
                                          int verts_num,
-                                         const MeshElemMap *emap,
+                                         blender::GroupedSpan<int> emap,
                                          const blender::Span<blender::int2> edges)
 {
   Frame **hull_frames;
@@ -1790,7 +1792,7 @@ static void skin_smooth_hulls(BMesh *bm,
 static bool skin_output_branch_hulls(SkinOutput *so,
                                      SkinNode *skin_nodes,
                                      int verts_num,
-                                     const MeshElemMap *emap,
+                                     blender::GroupedSpan<int> emap,
                                      const blender::Span<blender::int2> edges)
 {
   bool result = true;
@@ -1824,7 +1826,7 @@ ENUM_OPERATORS(eSkinErrorFlag, SKIN_ERROR_HULL);
 
 static BMesh *build_skin(SkinNode *skin_nodes,
                          int verts_num,
-                         const MeshElemMap *emap,
+                         blender::GroupedSpan<int> emap,
                          const blender::Span<blender::int2> edges,
                          const MDeformVert *input_dvert,
                          SkinModifierData *smd,
@@ -1913,31 +1915,30 @@ static Mesh *base_skin(Mesh *origmesh, SkinModifierData *smd, eSkinErrorFlag *r_
   BMesh *bm;
   EMat *emat;
   SkinNode *skin_nodes;
-  MeshElemMap *emap;
-  int *emapmem;
   const MDeformVert *dvert;
   bool has_valid_root = false;
 
   const MVertSkin *nodes = static_cast<const MVertSkin *>(
       CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN));
 
-  const float(*vert_positions)[3] = BKE_mesh_vert_positions(origmesh);
+  const blender::Span<blender::float3> vert_positions = origmesh->vert_positions();
   const blender::Span<blender::int2> edges = origmesh->edges();
   dvert = BKE_mesh_deform_verts(origmesh);
   const int verts_num = origmesh->totvert;
 
-  BKE_mesh_vert_edge_map_create(&emap, &emapmem, edges.data(), verts_num, edges.size());
+  blender::Array<int> vert_to_edge_offsets;
+  blender::Array<int> vert_to_edge_indices;
+  const blender::GroupedSpan<int> vert_to_edge = blender::bke::mesh::build_vert_to_edge_map(
+      edges, verts_num, vert_to_edge_offsets, vert_to_edge_indices);
 
-  emat = build_edge_mats(nodes, vert_positions, verts_num, edges, emap, &has_valid_root);
-  skin_nodes = build_frames(vert_positions, verts_num, nodes, emap, emat);
+  emat = build_edge_mats(nodes, vert_positions, verts_num, edges, vert_to_edge, &has_valid_root);
+  skin_nodes = build_frames(vert_positions, verts_num, nodes, vert_to_edge, emat);
   MEM_freeN(emat);
   emat = nullptr;
 
-  bm = build_skin(skin_nodes, verts_num, emap, edges, dvert, smd, r_error);
+  bm = build_skin(skin_nodes, verts_num, vert_to_edge, edges, dvert, smd, r_error);
 
   MEM_freeN(skin_nodes);
-  MEM_freeN(emap);
-  MEM_freeN(emapmem);
 
   if (!has_valid_root) {
     *r_error |= SKIN_ERROR_NO_VALID_ROOT;

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -950,7 +951,7 @@ static void multires_unsubdivide_prepare_original_bmesh_for_extract(
     BM_elem_flag_set(v, BM_ELEM_TAG, true);
   }
 
-  context->loop_to_face_map = blender::bke::mesh_topology::build_loop_to_poly_map(original_polys);
+  context->loop_to_face_map = blender::bke::mesh::build_loop_to_poly_map(original_polys);
 }
 
 /**

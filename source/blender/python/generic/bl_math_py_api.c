@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * \file
@@ -127,7 +129,7 @@ static PyMethodDef M_bl_math_methods[] = {
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyModuleDef M_bl_math_module_def = {
+static PyModuleDef M_bl_math_module_def = {
     PyModuleDef_HEAD_INIT,
     /*m_name*/ "bl_math",
     /*m_doc*/ M_bl_math_doc,

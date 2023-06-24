@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -297,16 +297,16 @@ msgid "Fill"
 msgstr "Fyll"
 
 
-msgid "Smooth"
-msgstr "Jämn"
+msgid "Hardness"
+msgstr "Hårdhet"
 
 
 msgid "Thickness"
 msgstr "Tjocklek"
 
 
-msgid "Hardness"
-msgstr "Hårdhet"
+msgid "Smooth"
+msgstr "Jämn"
 
 
 msgid "Saturation"
@@ -633,10 +633,6 @@ msgid "7.1 Surround"
 msgstr "7.1 Surround"
 
 
-msgid "Samplerate"
-msgstr "Samplingsfrekvens"
-
-
 msgid "Audio volume"
 msgstr "Ljudvolym"
 
@@ -905,14 +901,6 @@ msgid "Rate"
 msgstr "Frekvens"
 
 
-msgid "Rotate"
-msgstr "Rotera"
-
-
-msgid "Cloth"
-msgstr "Tyg"
-
-
 msgid "List of background images"
 msgstr "Lista på bakgrundsbilder"
 
@@ -1043,6 +1031,10 @@ msgstr "Diffus färg"
 
 msgid "Cube"
 msgstr "Kub"
+
+
+msgid "Cloth"
+msgstr "Tyg"
 
 
 msgid "Specular Color"
@@ -1423,6 +1415,10 @@ msgstr "Zooma"
 
 msgid "Shadow"
 msgstr "Skugga"
+
+
+msgid "Rotate"
+msgstr "Rotera"
 
 
 msgid "Convex Hull"
@@ -2232,6 +2228,10 @@ msgid "Translate Tooltips"
 msgstr "Översätt verktygstipsen"
 
 
+msgid "Base"
+msgstr "Bas"
+
+
 msgid "Find"
 msgstr "Sök"
 
@@ -2330,10 +2330,6 @@ msgstr "Stämpla sekvensremsan"
 
 msgid "Collision Margin"
 msgstr "Krockmarginal"
-
-
-msgid "Base"
-msgstr "Bas"
 
 
 msgid "Settings for particle fluids physics"
@@ -2735,10 +2731,6 @@ msgstr "Engelska (English)"
 
 msgid "Japanese (日本語)"
 msgstr "Japanska (日本語)"
-
-
-msgid "Dutch (Nederlandse taal)"
-msgstr "Nederländska (Nederlandse taal)"
 
 
 msgid "Italian (Italiano)"

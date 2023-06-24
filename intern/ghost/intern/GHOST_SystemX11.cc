@@ -1,7 +1,9 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved.
- *           2009 Nokia Corporation and/or its subsidiary(-ies).
- *                Part of this code has been taken from Qt, under LGPL license. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ * SPDX-FileCopyrightText: 2009 Nokia Corporation and/or its subsidiary(-ies).
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Part of this code from Nokia has been taken from Qt, under LGPL license. */
 
 /** \file
  * \ingroup GHOST
@@ -304,7 +306,7 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                              uint32_t width,
                                              uint32_t height,
                                              GHOST_TWindowState state,
-                                             GHOST_GLSettings glSettings,
+                                             GHOST_GPUSettings gpuSettings,
                                              const bool exclusive,
                                              const bool is_dialog,
                                              const GHOST_IWindow *parentWindow)
@@ -324,11 +326,11 @@ GHOST_IWindow *GHOST_SystemX11::createWindow(const char *title,
                                height,
                                state,
                                (GHOST_WindowX11 *)parentWindow,
-                               glSettings.context_type,
+                               gpuSettings.context_type,
                                is_dialog,
-                               ((glSettings.flags & GHOST_glStereoVisual) != 0),
+                               ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
                                exclusive,
-                               (glSettings.flags & GHOST_glDebugContext) != 0);
+                               (gpuSettings.flags & GHOST_gpuDebugContext) != 0);
 
   if (window) {
     /* Both are now handle in GHOST_WindowX11.cc
@@ -399,7 +401,7 @@ static GHOST_Context *create_glx_context(Display *display,
   return nullptr;
 }
 
-GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSettings)
+GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
   /* During development:
    *   try 4.x compatibility profile
@@ -411,11 +413,11 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GLSettings glSetti
    *   try 3.3 core profile
    *   no fall-backs. */
 
-  const bool debug_context = (glSettings.flags & GHOST_glDebugContext) != 0;
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
   GHOST_Context *context = nullptr;
 
 #ifdef WITH_VULKAN_BACKEND
-  if (glSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
+  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
     context = new GHOST_ContextVK(
         false, GHOST_kVulkanPlatformX11, 0, m_display, NULL, NULL, 1, 2, debug_context);
 
@@ -2188,12 +2190,14 @@ char *GHOST_SystemX11::getClipboard(bool selection) const
   owner = XGetSelectionOwner(m_display, sseln);
   if (owner == win) {
     if (sseln == m_atom.CLIPBOARD) {
-      sel_buf = (char *)malloc(strlen(txt_cut_buffer) + 1);
-      strcpy(sel_buf, txt_cut_buffer);
+      size_t sel_buf_size = strlen(txt_cut_buffer) + 1;
+      sel_buf = (char *)malloc(sel_buf_size);
+      memcpy(sel_buf, txt_cut_buffer, sel_buf_size);
       return sel_buf;
     }
-    sel_buf = (char *)malloc(strlen(txt_select_buffer) + 1);
-    strcpy(sel_buf, txt_select_buffer);
+    size_t sel_buf_size = strlen(txt_select_buffer) + 1;
+    sel_buf = (char *)malloc(sel_buf_size);
+    memcpy(sel_buf, txt_select_buffer, sel_buf_size);
     return sel_buf;
   }
   if (owner == None) {
@@ -2287,8 +2291,9 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
         free((void *)txt_cut_buffer);
       }
 
-      txt_cut_buffer = (char *)malloc(strlen(buffer) + 1);
-      strcpy(txt_cut_buffer, buffer);
+      size_t buffer_size = strlen(buffer) + 1;
+      txt_cut_buffer = (char *)malloc(buffer_size);
+      memcpy(txt_cut_buffer, buffer, buffer_size);
     }
     else {
       XSetSelectionOwner(m_display, m_atom.PRIMARY, m_window, CurrentTime);
@@ -2297,8 +2302,9 @@ void GHOST_SystemX11::putClipboard(const char *buffer, bool selection) const
         free((void *)txt_select_buffer);
       }
 
-      txt_select_buffer = (char *)malloc(strlen(buffer) + 1);
-      strcpy(txt_select_buffer, buffer);
+      size_t buffer_size = strlen(buffer) + 1;
+      txt_select_buffer = (char *)malloc(buffer_size);
+      memcpy(txt_select_buffer, buffer, buffer_size);
     }
 
     if (owner != m_window) {

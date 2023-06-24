@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -2297,7 +2298,7 @@ static bool gpencil_test_lasso(ARegion *region,
 
 static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 {
-  struct GP_SelectUserData data = {0};
+  GP_SelectUserData data = {0};
   data.lasso_coords = WM_gesture_lasso_path_to_array(C, op, &data.lasso_coords_len);
 
   /* Sanity check. */

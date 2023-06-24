@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <algorithm>
 
@@ -435,7 +437,7 @@ void report_invalid_uv_map(ReportList *reports)
 }
 
 void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,
-                                        const IndexMask curve_selection,
+                                        const IndexMask &curve_selection,
                                         const bool use_surface_collision)
 {
   use_surface_collision_ = use_surface_collision;
@@ -448,7 +450,7 @@ void CurvesConstraintSolver::initialize(const bke::CurvesGeometry &curves,
 }
 
 void CurvesConstraintSolver::solve_step(bke::CurvesGeometry &curves,
-                                        const IndexMask curve_selection,
+                                        const IndexMask &curve_selection,
                                         const Mesh *surface,
                                         const CurvesSurfaceTransforms &transforms)
 {

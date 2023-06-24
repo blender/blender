@@ -1,10 +1,40 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
+#include "BLI_math_quaternion.hh"
 
 #include "BKE_attribute_math.hh"
 
 namespace blender::bke::attribute_math {
+
+template<>
+math::Quaternion mix2(const float factor, const math::Quaternion &a, const math::Quaternion &b)
+{
+  return math::interpolate(a, b, factor);
+}
+
+template<>
+math::Quaternion mix3(const float3 &weights,
+                      const math::Quaternion &v0,
+                      const math::Quaternion &v1,
+                      const math::Quaternion &v2)
+{
+  const float3 expmap_mixed = mix3(weights, v0.expmap(), v1.expmap(), v2.expmap());
+  return math::Quaternion::expmap(expmap_mixed);
+}
+
+template<>
+math::Quaternion mix4(const float4 &weights,
+                      const math::Quaternion &v0,
+                      const math::Quaternion &v1,
+                      const math::Quaternion &v2,
+                      const math::Quaternion &v3)
+{
+  const float3 expmap_mixed = mix4(weights, v0.expmap(), v1.expmap(), v2.expmap(), v3.expmap());
+  return math::Quaternion::expmap(expmap_mixed);
+}
 
 ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
                                            ColorGeometry4f default_color)
@@ -13,7 +43,7 @@ ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
 }
 
 ColorGeometry4fMixer::ColorGeometry4fMixer(MutableSpan<ColorGeometry4f> buffer,
-                                           const IndexMask mask,
+                                           const IndexMask &mask,
                                            const ColorGeometry4f default_color)
     : buffer_(buffer), default_color_(default_color), total_weights_(buffer.size(), 0.0f)
 {
@@ -49,7 +79,7 @@ void ColorGeometry4fMixer::finalize()
   this->finalize(buffer_.index_range());
 }
 
-void ColorGeometry4fMixer::finalize(const IndexMask mask)
+void ColorGeometry4fMixer::finalize(const IndexMask &mask)
 {
   mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];
@@ -74,7 +104,7 @@ ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
 }
 
 ColorGeometry4bMixer::ColorGeometry4bMixer(MutableSpan<ColorGeometry4b> buffer,
-                                           const IndexMask mask,
+                                           const IndexMask &mask,
                                            const ColorGeometry4b default_color)
     : buffer_(buffer),
       default_color_(default_color),
@@ -111,7 +141,7 @@ void ColorGeometry4bMixer::finalize()
   this->finalize(buffer_.index_range());
 }
 
-void ColorGeometry4bMixer::finalize(const IndexMask mask)
+void ColorGeometry4bMixer::finalize(const IndexMask &mask)
 {
   mask.foreach_index([&](const int64_t i) {
     const float weight = total_weights_[i];

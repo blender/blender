@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -138,6 +139,18 @@ static bool gpencil_stroke_weightmode_poll_with_tool(bContext *C, const char gpe
 /* Poll callback for stroke painting (draw brush) */
 static bool gpencil_stroke_paintmode_draw_poll(bContext *C)
 {
+  if (U.experimental.use_grease_pencil_version3) {
+    Object *object = CTX_data_active_object(C);
+    if (object == NULL || object->type != OB_GREASE_PENCIL) {
+      return false;
+    }
+    ToolSettings *ts = CTX_data_tool_settings(C);
+    if (!ts || !ts->gp_paint) {
+      return false;
+    }
+    const Brush *brush = BKE_paint_brush_for_read(&ts->gp_paint->paint);
+    return WM_toolsystem_active_tool_is_brush(C) && brush->gpencil_tool == GPAINT_TOOL_DRAW;
+  }
   return gpencil_stroke_paintmode_poll_with_tool(C, GPAINT_TOOL_DRAW);
 }
 
@@ -499,7 +512,7 @@ static void ed_keymap_gpencil_weightpainting_smear(wmKeyConfig *keyconf)
 
 /* ==================== */
 
-void ED_keymap_gpencil(wmKeyConfig *keyconf)
+void ED_keymap_gpencil_legacy(wmKeyConfig *keyconf)
 {
   ed_keymap_gpencil_general(keyconf);
   ed_keymap_gpencil_curve_editing(keyconf);
@@ -534,7 +547,7 @@ void ED_keymap_gpencil(wmKeyConfig *keyconf)
 
 /* ****************************************** */
 
-void ED_operatortypes_gpencil(void)
+void ED_operatortypes_gpencil_legacy(void)
 {
   /* Annotations -------------------- */
 

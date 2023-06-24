@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup DNA
@@ -18,6 +20,8 @@
     .grid_resolution_x = 4, \
     .grid_resolution_y = 4, \
     .grid_resolution_z = 4, \
+    .grid_bake_samples = 2048, \
+    .surfel_density = 1.0f, \
     .distinf = 2.5f, \
     .distpar = 2.5f, \
     .falloff = 0.2f, \

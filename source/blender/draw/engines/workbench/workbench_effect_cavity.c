@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -49,7 +50,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
   return (float *)texels;
 }
 
-static struct GPUTexture *create_jitter_texture(int num_samples)
+static GPUTexture *create_jitter_texture(int num_samples)
 {
   float jitter[64 * 64][4];
   const float num_samples_inv = 1.0f / num_samples;
@@ -136,7 +137,7 @@ void workbench_cavity_cache_init(WORKBENCH_Data *data)
   WORKBENCH_PassList *psl = data->psl;
   WORKBENCH_PrivateData *wpd = data->stl->wpd;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-  struct GPUShader *sh;
+  GPUShader *sh;
   DRWShadingGroup *grp;
 
   if (CAVITY_ENABLED(wpd)) {

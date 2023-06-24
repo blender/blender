@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -855,19 +857,19 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_filepath_get(PointerRNA *ptr, char *value)
 {
   Sequence *seq = (Sequence *)(ptr->data);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-  strcpy(value, path);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+  strcpy(value, filepath);
 }
 
 static int rna_Sequence_filepath_length(PointerRNA *ptr)
 {
   Sequence *seq = (Sequence *)(ptr->data);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_path_join(path, sizeof(path), seq->strip->dirpath, seq->strip->stripdata->filename);
-  return strlen(path);
+  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+  return strlen(filepath);
 }
 
 static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
@@ -884,19 +886,19 @@ static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
 static void rna_Sequence_proxy_filepath_get(PointerRNA *ptr, char *value)
 {
   StripProxy *proxy = (StripProxy *)(ptr->data);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_path_join(path, sizeof(path), proxy->dirpath, proxy->filename);
-  strcpy(value, path);
+  BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
+  strcpy(value, filepath);
 }
 
 static int rna_Sequence_proxy_filepath_length(PointerRNA *ptr)
 {
   StripProxy *proxy = (StripProxy *)(ptr->data);
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
 
-  BLI_path_join(path, sizeof(path), proxy->dirpath, proxy->filename);
-  return strlen(path);
+  BLI_path_join(filepath, sizeof(filepath), proxy->dirpath, proxy->filename);
+  return strlen(filepath);
 }
 
 static void rna_Sequence_audio_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -1133,11 +1135,11 @@ static char *rna_SequenceColorBalance_path(const PointerRNA *ptr)
     BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
 
     if (!smd) {
-      /* path to old filter color balance */
+      /* Path to old filter color balance. */
       return BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].color_balance", name_esc);
     }
     else {
-      /* path to modifier */
+      /* Path to modifier. */
       char name_esc_smd[sizeof(smd->name) * 2];
 
       BLI_str_escape(name_esc_smd, smd->name, sizeof(name_esc_smd));
@@ -1326,13 +1328,14 @@ static void rna_SequenceModifier_name_set(PointerRNA *ptr, const char *value)
   /* fix all the animation data which may link to this */
   adt = BKE_animdata_from_id(&scene->id);
   if (adt) {
-    char path[1024];
+    char rna_path_prefix[1024];
 
     char seq_name_esc[(sizeof(seq->name) - 2) * 2];
     BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
 
-    SNPRINTF(path, "sequence_editor.sequences_all[\"%s\"].modifiers", seq_name_esc);
-    BKE_animdata_fix_paths_rename(&scene->id, adt, NULL, path, oldname, smd->name, 0, 0, 1);
+    SNPRINTF(rna_path_prefix, "sequence_editor.sequences_all[\"%s\"].modifiers", seq_name_esc);
+    BKE_animdata_fix_paths_rename(
+        &scene->id, adt, NULL, rna_path_prefix, oldname, smd->name, 0, 0, 1);
   }
 }
 

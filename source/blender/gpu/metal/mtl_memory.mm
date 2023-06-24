@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_global.h"
 
@@ -11,6 +13,12 @@
 using namespace blender;
 using namespace blender::gpu;
 
+/* Memory size in bytes macros, used as pool flushing frequency thresholds. */
+#define MEMORY_SIZE_2GB 2147483648LL
+#define MEMORY_SIZE_1GB 1073741824LL
+#define MEMORY_SIZE_512MB 536870912LL
+#define MEMORY_SIZE_256MB 268435456LL
+
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
@@ -19,18 +27,23 @@ namespace blender::gpu {
 
 void MTLBufferPool::init(id<MTLDevice> mtl_device)
 {
-  if (!ensure_initialised_) {
+  if (!initialized_) {
     BLI_assert(mtl_device);
-    ensure_initialised_ = true;
+    initialized_ = true;
     device_ = mtl_device;
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
     /* Debug statistics. */
     total_allocation_bytes_ = 0;
     per_frame_allocation_count_ = 0;
-    allocations_in_pool_ = 0;
     buffers_in_pool_ = 0;
 #endif
+    /* Track pool allocation size. */
+    allocations_in_pool_ = 0;
+
+    /* Live allocations list. */
+    allocations_list_base_ = nullptr;
+    allocations_list_size_ = 0;
 
     /* Free pools -- Create initial safe free pool */
     BLI_assert(current_free_list_ == nullptr);
@@ -46,17 +59,29 @@ MTLBufferPool::~MTLBufferPool()
 void MTLBufferPool::free()
 {
   buffer_pool_lock_.lock();
-  for (auto buffer : allocations_) {
-    BLI_assert(buffer);
-    delete buffer;
-  }
-  allocations_.clear();
 
+  /* Delete all existing allocations. */
+  allocations_list_delete_all();
+
+  /* Release safe free lists. */
+  for (int safe_pool_free_index = 0; safe_pool_free_index < completed_safelist_queue_.size();
+       safe_pool_free_index++)
+  {
+    delete completed_safelist_queue_[safe_pool_free_index];
+  }
+  completed_safelist_queue_.clear();
+  if (current_free_list_ != nullptr) {
+    delete current_free_list_;
+    current_free_list_ = nullptr;
+  }
+
+  /* Clear and release memory pools. */
   for (std::multiset<blender::gpu::MTLBufferHandle, blender::gpu::CompareMTLBuffer> *buffer_pool :
        buffer_pools_.values())
   {
     delete buffer_pool;
   }
+
   buffer_pools_.clear();
   buffer_pool_lock_.unlock();
 }
@@ -121,7 +146,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
           found_size <= (aligned_alloc_size * mtl_buffer_size_threshold_factor_))
       {
         MTL_LOG_INFO(
-            "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld\n",
+            "[MemoryAllocator] Suitable Buffer of size %lld found, for requested size: %lld",
             found_size,
             aligned_alloc_size);
 
@@ -134,8 +159,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
       else {
         MTL_LOG_INFO(
             "[MemoryAllocator] Buffer of size %lld found, but was incompatible with requested "
-            "size: "
-            "%lld\n",
+            "size: %lld",
             found_size,
             aligned_alloc_size);
         new_buffer = nullptr;
@@ -148,10 +172,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
     new_buffer = new gpu::MTLBuffer(device_, size, options, alignment);
 
     /* Track allocation in context. */
-    allocations_.append(new_buffer);
-#if MTL_DEBUG_MEMORY_STATISTICS == 1
-    total_allocation_bytes_ += aligned_alloc_size;
-#endif
+    allocations_list_insert(new_buffer);
   }
   else {
     /* Re-use suitable buffer. */
@@ -159,10 +180,12 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
     /* Debug. */
-    allocations_in_pool_ -= new_buffer->get_size();
     buffers_in_pool_--;
-    BLI_assert(allocations_in_pool_ >= 0);
 #endif
+
+    /* Decrement size of pool. */
+    BLI_assert(allocations_in_pool_ >= 0);
+    allocations_in_pool_ -= new_buffer->get_size();
 
     /* Ensure buffer memory is correctly backed. */
     BLI_assert(new_buffer->get_metal_buffer());
@@ -275,13 +298,68 @@ void MTLBufferPool::update_memory_pools()
     }
   }
 
+  /* Release memory allocations which have not been used in a while.
+   * This ensures memory pressure stays low for scenes with compounding complexity during
+   * animation.
+   * If memory is continually used, then we do not want to free this memory as it will be
+   * re-allocated during a short time period. */
+
+  const time_t time_now = std::time(nullptr);
+  for (auto buffer_pool_list : buffer_pools_.items()) {
+    MTLBufferPoolOrderedList *pool_allocations = buffer_pool_list.value;
+    MTLBufferPoolOrderedList::iterator pool_iterator = pool_allocations->begin();
+    while (pool_iterator != pool_allocations->end()) {
+
+      const MTLBufferHandle handle = *pool_iterator;
+      const time_t time_passed = time_now - handle.insert_time;
+
+      /* Free allocations if a certain amount of time has passed.
+       * Deletion frequency depends on how much excess memory
+       * the application is using. */
+      time_t deletion_time_threshold_s = 600;
+      /* Spare pool memory >= 2GB. */
+      if (allocations_in_pool_ >= MEMORY_SIZE_2GB) {
+        deletion_time_threshold_s = 2;
+      }
+      else
+          /* Spare pool memory >= 1GB. */
+          if (allocations_in_pool_ >= MEMORY_SIZE_1GB)
+      {
+        deletion_time_threshold_s = 4;
+      }
+      /* Spare pool memory >= 512MB.*/
+      else if (allocations_in_pool_ >= MEMORY_SIZE_512MB) {
+        deletion_time_threshold_s = 15;
+      }
+      /* Spare pool memory >= 256MB. */
+      else if (allocations_in_pool_ >= MEMORY_SIZE_256MB) {
+        deletion_time_threshold_s = 60;
+      }
+
+      if (time_passed > deletion_time_threshold_s) {
+
+        /* Remove buffer from global allocations list and release resource. */
+        allocations_list_delete(handle.buffer);
+
+        /* Remove buffer from pool and update pool statistics. */
+        pool_iterator = pool_allocations->erase(pool_iterator);
+        allocations_in_pool_ -= handle.buffer_size;
+#if MTL_DEBUG_MEMORY_STATISTICS == 1
+        buffers_in_pool_--;
+#endif
+        continue;
+      }
+      pool_iterator++;
+    }
+  }
+
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   printf("--- Allocation Stats ---\n");
   printf("  Num buffers processed in pool (this frame): %u\n", num_buffers_added);
 
   uint framealloc = (uint)per_frame_allocation_count_;
   printf("  Allocations in frame: %u\n", framealloc);
-  printf("  Total Buffers allocated: %u\n", (uint)allocations_.size());
+  printf("  Total Buffers allocated: %u\n", allocations_list_size_);
   printf("  Total Memory allocated: %u MB\n", (uint)total_allocation_bytes_ / (1024 * 1024));
 
   uint allocs = (uint)(allocations_in_pool_) / 1024 / 2024;
@@ -383,11 +461,85 @@ void MTLBufferPool::insert_buffer_into_pool(MTLResourceOptions options, gpu::MTL
 
   std::multiset<MTLBufferHandle, CompareMTLBuffer> *pool = buffer_pools_.lookup(options);
   pool->insert(MTLBufferHandle(buffer));
+  allocations_in_pool_ += buffer->get_size();
 
 #if MTL_DEBUG_MEMORY_STATISTICS == 1
   /* Debug statistics. */
-  allocations_in_pool_ += buffer->get_size();
   buffers_in_pool_++;
+#endif
+}
+
+void MTLBufferPool::allocations_list_insert(gpu::MTLBuffer *buffer)
+{
+  /* NOTE: Function should only be called while buffer_pool_lock_ is acquired. */
+  BLI_assert(initialized_);
+  BLI_assert(buffer != nullptr);
+
+  /* Insert buffer at base of allocations list. */
+  gpu::MTLBuffer *current_head = allocations_list_base_;
+  buffer->next = current_head;
+  buffer->prev = nullptr;
+
+  if (current_head != nullptr) {
+    current_head->prev = buffer;
+  }
+
+  allocations_list_base_ = buffer;
+  allocations_list_size_++;
+
+#if MTL_DEBUG_MEMORY_STATISTICS == 1
+  total_allocation_bytes_ += buffer->get_size();
+#endif
+}
+
+void MTLBufferPool::allocations_list_delete(gpu::MTLBuffer *buffer)
+{
+  /* NOTE: Function should only be called while buffer_pool_lock_ is acquired. */
+  /* Remove a buffer link in the allocations chain. */
+  BLI_assert(initialized_);
+  BLI_assert(buffer != nullptr);
+  BLI_assert(allocations_list_size_ >= 1);
+
+  gpu::MTLBuffer *next = buffer->next;
+  gpu::MTLBuffer *prev = buffer->prev;
+
+  if (prev != nullptr) {
+    BLI_assert(prev->next == buffer);
+    prev->next = next;
+  }
+
+  if (next != nullptr) {
+    BLI_assert(next->prev == buffer);
+    next->prev = prev;
+  }
+
+  if (allocations_list_base_ == buffer) {
+    allocations_list_base_ = next;
+    BLI_assert(prev == nullptr);
+  }
+  allocations_list_size_--;
+
+#if MTL_DEBUG_MEMORY_STATISTICS == 1
+  total_allocation_bytes_ -= buffer->get_size();
+#endif
+
+  /* Delete buffer. */
+  delete buffer;
+}
+
+void MTLBufferPool::allocations_list_delete_all()
+{
+  gpu::MTLBuffer *current = allocations_list_base_;
+  while (current != nullptr) {
+    gpu::MTLBuffer *next = current->next;
+    delete current;
+    current = next;
+  }
+  allocations_list_size_ = 0;
+  allocations_list_base_ = nullptr;
+
+#if MTL_DEBUG_MEMORY_STATISTICS == 1
+  total_allocation_bytes_ = 0;
 #endif
 }
 
@@ -503,6 +655,9 @@ MTLBuffer::MTLBuffer(id<MTLDevice> mtl_device,
   else {
     data_ = nullptr;
   }
+
+  /* Linked resources. */
+  next = prev = nullptr;
 }
 
 MTLBuffer::MTLBuffer(id<MTLBuffer> external_buffer)
@@ -522,6 +677,9 @@ MTLBuffer::MTLBuffer(id<MTLBuffer> external_buffer)
   this->set_usage_size(size_);
   data_ = [metal_buffer_ contents];
   in_use_ = true;
+
+  /* Linked resources. */
+  next = prev = nullptr;
 }
 
 gpu::MTLBuffer::~MTLBuffer()
@@ -724,7 +882,7 @@ void MTLScratchBufferManager::ensure_increment_scratch_buffer()
     active_scratch_buf = scratch_buffers_[current_scratch_buffer_];
     active_scratch_buf->reset();
     BLI_assert(&active_scratch_buf->own_context_ == &context_);
-    MTL_LOG_INFO("Scratch buffer %d reset - (ctx %p)(Frame index: %d)\n",
+    MTL_LOG_INFO("Scratch buffer %d reset - (ctx %p)(Frame index: %d)",
                  current_scratch_buffer_,
                  &context_,
                  context_.get_current_frame_index());
@@ -777,7 +935,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
 
   /* Ensure alignment of an allocation is aligned to compatible offset boundaries. */
   BLI_assert(alignment > 0);
-  alignment = max_ulul(alignment, 256);
+  alignment = max_uu(alignment, 256);
 
   /* Align current offset and allocation size to desired alignment */
   uint64_t aligned_current_offset = ceil_to_multiple_ul(current_offset_, alignment);
@@ -811,12 +969,11 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
          * maximum */
         if (aligned_alloc_size > MTLScratchBufferManager::mtl_scratch_buffer_max_size_) {
           new_size = aligned_alloc_size;
-          MTL_LOG_INFO("Temporarily growing Scratch buffer to %d MB\n",
-                       (int)new_size / 1024 / 1024);
+          MTL_LOG_INFO("Temporarily growing Scratch buffer to %d MB", (int)new_size / 1024 / 1024);
         }
         else {
           new_size = MTLScratchBufferManager::mtl_scratch_buffer_max_size_;
-          MTL_LOG_INFO("Shrinking Scratch buffer back to %d MB\n", (int)new_size / 1024 / 1024);
+          MTL_LOG_INFO("Shrinking Scratch buffer back to %d MB", (int)new_size / 1024 / 1024);
         }
       }
       BLI_assert(aligned_alloc_size <= new_size);
@@ -839,7 +996,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
     else {
       MTL_LOG_WARNING(
           "Performance Warning: Reached the end of circular buffer of size: %llu, but cannot "
-          "resize. Starting new buffer\n",
+          "resize. Starting new buffer",
           cbuffer_->get_size());
       BLI_assert(aligned_alloc_size <= new_size);
 
@@ -869,7 +1026,7 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
     if (G.debug & G_DEBUG_GPU) {
       cbuffer_->set_label(@"Circular Scratch Buffer");
     }
-    MTL_LOG_INFO("Resized Metal circular buffer to %llu bytes\n", new_size);
+    MTL_LOG_INFO("Resized Metal circular buffer to %llu bytes", new_size);
 
     /* Reset allocation Status. */
     aligned_current_offset = 0;
@@ -926,4 +1083,4 @@ void MTLCircularBuffer::reset()
 
 /** \} */
 
-}  // blender::gpu
+}  // namespace blender::gpu

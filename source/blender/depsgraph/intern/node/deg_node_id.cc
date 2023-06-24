@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2013 Blender Foundation */
+/* SPDX-FileCopyrightText: 2013 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -152,6 +153,7 @@ ComponentNode *IDNode::add_component(NodeType type, const char *name)
   ComponentNode *comp_node = find_component(type, name);
   if (!comp_node) {
     DepsNodeFactory *factory = type_get_factory(type);
+    BLI_assert(factory);
     comp_node = (ComponentNode *)factory->create_node(this->id_orig, "", name);
 
     /* Register. */

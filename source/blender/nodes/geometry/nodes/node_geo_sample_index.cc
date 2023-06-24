@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_task.hh"
 
@@ -16,20 +18,18 @@ namespace blender::nodes {
 template<typename T>
 void copy_with_checked_indices(const VArray<T> &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                MutableSpan<T> dst)
 {
   const IndexRange src_range = src.index_range();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        if (src_range.contains(index)) {
-          dst[i] = src[index];
-        }
-        else {
-          dst[i] = {};
-        }
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      if (src_range.contains(index)) {
+        dst[i] = src[index];
+      }
+      else {
+        dst[i] = {};
       }
     });
   });
@@ -37,7 +37,7 @@ void copy_with_checked_indices(const VArray<T> &src,
 
 void copy_with_checked_indices(const GVArray &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                GMutableSpan dst)
 {
   bke::attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
@@ -55,24 +55,26 @@ NODE_STORAGE_FUNCS(NodeGeometrySampleIndex);
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Geometry")
-      .supported_type({GEO_COMPONENT_TYPE_MESH,
-                       GEO_COMPONENT_TYPE_POINT_CLOUD,
-                       GEO_COMPONENT_TYPE_CURVE,
-                       GEO_COMPONENT_TYPE_INSTANCES});
+      .supported_type({GeometryComponent::Type::Mesh,
+                       GeometryComponent::Type::PointCloud,
+                       GeometryComponent::Type::Curve,
+                       GeometryComponent::Type::Instance});
 
   b.add_input<decl::Float>("Value", "Value_Float").hide_value().field_on_all();
   b.add_input<decl::Int>("Value", "Value_Int").hide_value().field_on_all();
   b.add_input<decl::Vector>("Value", "Value_Vector").hide_value().field_on_all();
   b.add_input<decl::Color>("Value", "Value_Color").hide_value().field_on_all();
   b.add_input<decl::Bool>("Value", "Value_Bool").hide_value().field_on_all();
+  b.add_input<decl::Rotation>("Value", "Value_Rotation").hide_value().field_on_all();
   b.add_input<decl::Int>("Index").supports_field().description(
       "Which element to retrieve a value from on the geometry");
 
-  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({6});
-  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({6});
-  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({6});
-  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({6});
-  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({6});
+  b.add_output<decl::Float>("Value", "Value_Float").dependent_field({7});
+  b.add_output<decl::Int>("Value", "Value_Int").dependent_field({7});
+  b.add_output<decl::Vector>("Value", "Value_Vector").dependent_field({7});
+  b.add_output<decl::Color>("Value", "Value_Color").dependent_field({7});
+  b.add_output<decl::Bool>("Value", "Value_Bool").dependent_field({7});
+  b.add_output<decl::Rotation>("Value", "Value_Rotation").dependent_field({7});
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -101,24 +103,28 @@ static void node_update(bNodeTree *ntree, bNode *node)
   bNodeSocket *in_socket_vector = in_socket_int32->next;
   bNodeSocket *in_socket_color4f = in_socket_vector->next;
   bNodeSocket *in_socket_bool = in_socket_color4f->next;
+  bNodeSocket *in_socket_quat = in_socket_bool->next;
 
   bke::nodeSetSocketAvailability(ntree, in_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, in_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, in_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, in_socket_bool, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, in_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, in_socket_quat, data_type == CD_PROP_QUATERNION);
 
   bNodeSocket *out_socket_float = static_cast<bNodeSocket *>(node->outputs.first);
   bNodeSocket *out_socket_int32 = out_socket_float->next;
   bNodeSocket *out_socket_vector = out_socket_int32->next;
   bNodeSocket *out_socket_color4f = out_socket_vector->next;
   bNodeSocket *out_socket_bool = out_socket_color4f->next;
+  bNodeSocket *out_socket_quat = out_socket_bool->next;
 
   bke::nodeSetSocketAvailability(ntree, out_socket_vector, data_type == CD_PROP_FLOAT3);
   bke::nodeSetSocketAvailability(ntree, out_socket_float, data_type == CD_PROP_FLOAT);
   bke::nodeSetSocketAvailability(ntree, out_socket_color4f, data_type == CD_PROP_COLOR);
   bke::nodeSetSocketAvailability(ntree, out_socket_bool, data_type == CD_PROP_BOOL);
   bke::nodeSetSocketAvailability(ntree, out_socket_int32, data_type == CD_PROP_INT32);
+  bke::nodeSetSocketAvailability(ntree, out_socket_quat, data_type == CD_PROP_QUATERNION);
 }
 
 static void node_gather_link_searches(GatherLinkSearchOpParams &params)
@@ -128,7 +134,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   search_link_ops_for_declarations(params, declaration.inputs.as_span().take_front(1));
 
   const std::optional<eCustomDataType> type = node_data_type_to_custom_data_type(
-      (eNodeSocketDatatype)params.other_socket().type);
+      eNodeSocketDatatype(params.other_socket().type));
   if (type && *type != CD_PROP_STRING) {
     /* The input and output sockets have the same name. */
     params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
@@ -140,7 +146,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 }
 
 static bool component_is_available(const GeometrySet &geometry,
-                                   const GeometryComponentType type,
+                                   const GeometryComponent::Type type,
                                    const eAttrDomain domain)
 {
   if (!geometry.has(type)) {
@@ -155,11 +161,12 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 {
   /* Choose the other component based on a consistent order, rather than some more complicated
    * heuristic. This is the same order visible in the spreadsheet and used in the ray-cast node. */
-  static const Array<GeometryComponentType> supported_types = {GEO_COMPONENT_TYPE_MESH,
-                                                               GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                                               GEO_COMPONENT_TYPE_CURVE,
-                                                               GEO_COMPONENT_TYPE_INSTANCES};
-  for (const GeometryComponentType src_type : supported_types) {
+  static const Array<GeometryComponent::Type> supported_types = {
+      GeometryComponent::Type::Mesh,
+      GeometryComponent::Type::PointCloud,
+      GeometryComponent::Type::Curve,
+      GeometryComponent::Type::Instance};
+  for (const GeometryComponent::Type src_type : supported_types) {
     if (component_is_available(geometry, src_type, domain)) {
       return geometry.get_component_for_read(src_type);
     }
@@ -171,16 +178,14 @@ static const GeometryComponent *find_source_component(const GeometrySet &geometr
 template<typename T>
 void copy_with_clamped_indices(const VArray<T> &src,
                                const VArray<int> &indices,
-                               const IndexMask mask,
+                               const IndexMask &mask,
                                MutableSpan<T> dst)
 {
   const int last_index = src.index_range().last();
   devirtualize_varray2(src, indices, [&](const auto src, const auto indices) {
-    threading::parallel_for(mask.index_range(), 4096, [&](IndexRange range) {
-      for (const int i : mask.slice(range)) {
-        const int index = indices[i];
-        dst[i] = src[std::clamp(index, 0, last_index)];
-      }
+    mask.foreach_index(GrainSize(4096), [&](const int i) {
+      const int index = indices[i];
+      dst[i] = src[std::clamp(index, 0, last_index)];
     });
   });
 }
@@ -236,7 +241,7 @@ class SampleIndexFunction : public mf::MultiFunction {
     src_data_ = &evaluator_->get_evaluated(0);
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     const VArray<int> &indices = params.readonly_single_input<int>(0, "Index");
     GMutableSpan dst = params.uninitialized_single_output(1, "Value");
@@ -272,6 +277,8 @@ static GField get_input_attribute_field(GeoNodeExecParams &params, const eCustom
       return params.extract_input<Field<bool>>("Value_Bool");
     case CD_PROP_INT32:
       return params.extract_input<Field<int>>("Value_Int");
+    case CD_PROP_QUATERNION:
+      return params.extract_input<Field<math::Quaternion>>("Value_Rotation");
     default:
       BLI_assert_unreachable();
   }
@@ -299,6 +306,10 @@ static void output_attribute_field(GeoNodeExecParams &params, GField field)
     }
     case CD_PROP_INT32: {
       params.set_output("Value_Int", Field<int>(field));
+      break;
+    }
+    case CD_PROP_QUATERNION: {
+      params.set_output("Value_Rotation", Field<math::Quaternion>(field));
       break;
     }
     default:

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2002-2009 Blender Foundation */
+/* SPDX-FileCopyrightText: 2002-2009 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -379,9 +380,8 @@ static void relaxation_iteration_uv(UvSculptData *sculptdata,
   const UvElement *storage = sculptdata->elementMap->storage;
   for (int j = 0; j < total_uvs; j++) {
     const UvElement *ele_curr = storage + j;
-    const BMFace *efa = ele_curr->l->f;
-    const UvElement *ele_next = BM_uv_element_get(sculptdata->elementMap, efa, ele_curr->l->next);
-    const UvElement *ele_prev = BM_uv_element_get(sculptdata->elementMap, efa, ele_curr->l->prev);
+    const UvElement *ele_next = BM_uv_element_get(sculptdata->elementMap, ele_curr->l->next);
+    const UvElement *ele_prev = BM_uv_element_get(sculptdata->elementMap, ele_curr->l->prev);
 
     const float *v_curr_co = ele_curr->l->v->co;
     const float *v_prev_co = ele_prev->l->v->co;
@@ -598,11 +598,13 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
   op->customdata = nullptr;
 }
 
-static int uv_element_offset_from_face_get(
-    UvElementMap *map, BMFace *efa, BMLoop *l, int island_index, const bool doIslands)
+static int uv_element_offset_from_face_get(UvElementMap *map,
+                                           BMLoop *l,
+                                           int island_index,
+                                           const bool do_islands)
 {
-  UvElement *element = BM_uv_element_get(map, efa, l);
-  if (!element || (doIslands && element->island != island_index)) {
+  UvElement *element = BM_uv_element_get(map, l);
+  if (!element || (do_islands && element->island != island_index)) {
     return -1;
   }
   return element - map->storage;
@@ -686,14 +688,15 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     /* Mouse coordinates, useful for some functions like grab and sculpt all islands */
     UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
-    /* we need to find the active island here */
+    /* We need to find the active island here. */
     if (do_island_optimization) {
-      UvElement *element;
       UvNearestHit hit = uv_nearest_hit_init_max(&region->v2d);
       uv_find_nearest_vert(scene, obedit, co, 0.0f, &hit);
 
-      element = BM_uv_element_get(data->elementMap, hit.efa, hit.l);
-      island_index = element->island;
+      UvElement *element = BM_uv_element_get(data->elementMap, hit.l);
+      if (element) {
+        island_index = element->island;
+      }
     }
 
     /* Count 'unique' UVs */
@@ -759,18 +762,18 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     counter = 0;
     BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-        int offset1, itmp1 = uv_element_offset_from_face_get(
-                         data->elementMap, efa, l, island_index, do_island_optimization);
-        int offset2, itmp2 = uv_element_offset_from_face_get(
-                         data->elementMap, efa, l->next, island_index, do_island_optimization);
+        int itmp1 = uv_element_offset_from_face_get(
+            data->elementMap, l, island_index, do_island_optimization);
+        int itmp2 = uv_element_offset_from_face_get(
+            data->elementMap, l->next, island_index, do_island_optimization);
 
         /* Skip edge if not found(unlikely) or not on valid island */
         if (itmp1 == -1 || itmp2 == -1) {
           continue;
         }
 
-        offset1 = uniqueUv[itmp1];
-        offset2 = uniqueUv[itmp2];
+        int offset1 = uniqueUv[itmp1];
+        int offset2 = uniqueUv[itmp2];
 
         /* Using an order policy, sort UVs according to address space.
          * This avoids having two different UvEdges with the same UVs on different positions. */

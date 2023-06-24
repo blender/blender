@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -19,8 +21,8 @@ extern "C" {
 typedef struct wmSurface {
   struct wmSurface *next, *prev;
 
-  GHOST_ContextHandle ghost_ctx;
-  struct GPUContext *gpu_ctx;
+  GHOST_ContextHandle system_gpu_context;
+  struct GPUContext *blender_gpu_context;
 
   void *customdata;
 

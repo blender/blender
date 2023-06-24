@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2023 Blender Foundation
+#
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
@@ -91,7 +93,7 @@ IDENTIFIER_CHARS = set(string.ascii_letters + "_" + string.digits)
 # -----------------------------------------------------------------------------
 # General Utilities
 
-# Note that we could use a hash, however there is no advantage, compare it's contents.
+# Note that we could use a hash, however there is no advantage, compare its contents.
 def file_as_bytes(filename: str) -> bytes:
     with open(filename, 'rb') as fh:
         return fh.read()
@@ -788,6 +790,28 @@ class edit_generators:
                     content_fail='__ALWAYS_FAIL__',
                 ))
 
+            return edits
+
+    class remove_struct_qualifier(EditGenerator):
+        """
+        Remove redundant struct qualifiers:
+
+        Replace:
+          struct Foo
+        With:
+          Foo
+        """
+        @staticmethod
+        def edit_list_from_file(_source: str, data: str, _shared_edit_data: Any) -> List[Edit]:
+            edits = []
+
+            # Remove `struct`
+            for match in re.finditer(r"\bstruct\b", data):
+                edits.append(Edit(
+                    span=match.span(),
+                    content=' ',
+                    content_fail=' __ALWAYS_FAIL__ ',
+                ))
             return edits
 
     class remove_return_parens(EditGenerator):

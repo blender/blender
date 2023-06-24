@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -565,7 +566,8 @@ static void ss_sync_ccg_from_derivedmesh(CCGSubSurf *ss,
   }
 
   index = (int *)dm->getEdgeDataArray(dm, CD_ORIGINDEX);
-  const float *creases = (const float *)dm->getEdgeDataArray(dm, CD_CREASE);
+  const float *creases = (const float *)CustomData_get_layer_named(
+      &dm->edgeData, CD_PROP_FLOAT, "crease_edge");
   for (i = 0; i < totedge; i++) {
     CCGEdge *e;
     float crease;
@@ -1568,7 +1570,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
                             loopindex2);
           loopindex2++;
 
-          /* Copy over poly data, e.g. #CD_FACEMAP. */
           CustomData_copy_data(&dm->polyData, &ccgdm->dm.polyData, origIndex, faceNum, 1);
 
           if (polyOrigIndex) {
@@ -1699,6 +1700,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
                    0,
                    ccgSubSurf_getNumFinalFaces(ss) * 4,
                    ccgSubSurf_getNumFinalFaces(ss));
+  CustomData_free_layer_named(&ccgdm->dm.vertData, "position", ccgSubSurf_getNumFinalVerts(ss));
+  CustomData_free_layer_named(&ccgdm->dm.edgeData, ".edge_verts", ccgSubSurf_getNumFinalEdges(ss));
   CustomData_free_layer_named(
       &ccgdm->dm.loopData, ".corner_vert", ccgSubSurf_getNumFinalFaces(ss) * 4);
   CustomData_free_layer_named(

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BKE_curves.hh"
 
@@ -13,14 +15,14 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 class ResolutionFieldInput final : public bke::CurvesFieldInput {
  public:
-  ResolutionFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "resolution")
+  ResolutionFieldInput() : bke::CurvesFieldInput(CPPType::get<int>(), "Resolution")
   {
     category_ = Category::NamedAttribute;
   }
 
   GVArray get_varray_for_context(const bke::CurvesGeometry &curves,
                                  const eAttrDomain domain,
-                                 const IndexMask /*mask*/) const final
+                                 const IndexMask & /*mask*/) const final
   {
     return curves.adapt_domain(curves.resolution(), ATTR_DOMAIN_CURVE, domain);
   }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -65,7 +67,7 @@ void BKE_mesh_foreach_mapped_vert(
     }
   }
   else {
-    const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+    const blender::Span<blender::float3> positions = mesh->vert_positions();
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX));
     blender::Span<blender::float3> vert_normals;
     if (flag & MESH_FOREACH_USE_NORMAL) {
@@ -121,7 +123,7 @@ void BKE_mesh_foreach_mapped_edge(
     }
   }
   else {
-    const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+    const blender::Span<blender::float3> positions = mesh->vert_positions();
     const blender::Span<blender::int2> edges = mesh->edges();
     const int *index = static_cast<const int *>(CustomData_get_layer(&mesh->edata, CD_ORIGINDEX));
 
@@ -197,7 +199,7 @@ void BKE_mesh_foreach_mapped_loop(Mesh *mesh,
           mesh->totloop};
     }
 
-    const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+    const blender::Span<blender::float3> positions = mesh->vert_positions();
     const blender::OffsetIndices polys = mesh->polys();
     const blender::Span<int> corner_verts = mesh->corner_verts();
     const int *v_index = static_cast<const int *>(
@@ -316,7 +318,7 @@ void BKE_mesh_foreach_mapped_subdiv_face_center(
     void *userData,
     MeshForeachFlag flag)
 {
-  const float(*positions)[3] = BKE_mesh_vert_positions(mesh);
+  const blender::Span<blender::float3> positions = mesh->vert_positions();
   const blender::OffsetIndices polys = mesh->polys();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   blender::Span<blender::float3> vert_normals;
@@ -379,7 +381,9 @@ static void get_vertexcos__mapFunc(void *user_data,
   }
 }
 
-void BKE_mesh_foreach_mapped_vert_coords_get(Mesh *me_eval, float (*r_cos)[3], const int totcos)
+void BKE_mesh_foreach_mapped_vert_coords_get(const Mesh *me_eval,
+                                             float (*r_cos)[3],
+                                             const int totcos)
 {
   MappedVCosData user_data;
   memset(r_cos, 0, sizeof(*r_cos) * totcos);

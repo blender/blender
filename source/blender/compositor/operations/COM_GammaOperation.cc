@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "COM_GammaOperation.h"
 
@@ -28,7 +29,7 @@ void GammaOperation::execute_pixel_sampled(float output[4], float x, float y, Pi
   input_program_->read_sampled(input_value, x, y, sampler);
   input_gamma_program_->read_sampled(input_gamma, x, y, sampler);
   const float gamma = input_gamma[0];
-  /* check for negative to avoid nan's */
+  /* check for negative to avoid NAN's */
   output[0] = input_value[0] > 0.0f ? powf(input_value[0], gamma) : input_value[0];
   output[1] = input_value[1] > 0.0f ? powf(input_value[1], gamma) : input_value[1];
   output[2] = input_value[2] > 0.0f ? powf(input_value[2], gamma) : input_value[2];
@@ -42,7 +43,7 @@ void GammaOperation::update_memory_buffer_row(PixelCursor &p)
     const float *in_value = p.ins[0];
     const float *in_gamma = p.ins[1];
     const float gamma = in_gamma[0];
-    /* Check for negative to avoid nan's. */
+    /* Check for negative to avoid NAN's. */
     p.out[0] = in_value[0] > 0.0f ? powf(in_value[0], gamma) : in_value[0];
     p.out[1] = in_value[1] > 0.0f ? powf(in_value[1], gamma) : in_value[1];
     p.out[2] = in_value[2] > 0.0f ? powf(in_value[2], gamma) : in_value[2];

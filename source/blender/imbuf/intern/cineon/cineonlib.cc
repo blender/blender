@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 1999-2001 David Hodson <hodsond@acm.org>. */
+/* SPDX-FileCopyrightText: 1999-2001 David Hodson <hodsond@acm.org>.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbcineon
@@ -40,7 +41,7 @@ static void fillCineonMainHeader(LogImageFile *cineon,
                                  const char *creator)
 {
   time_t fileClock;
-  struct tm *fileTime;
+  tm *fileTime;
   int i;
 
   memset(header, 0, sizeof(CineonMainHeader));

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2004 Blender Foundation */
+/* SPDX-FileCopyrightText: 2004 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -39,7 +40,6 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
-#include "BKE_object_facemap.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
@@ -272,23 +272,6 @@ static void join_mesh_single(Depsgraph *depsgraph,
     for (const int i : blender::IndexRange(me->totpoly)) {
       poly_offsets[i] = src_poly_offsets[i] + *loopofs;
     }
-
-    /* Face maps. */
-    int *fmap = (int *)CustomData_get_for_write(pdata, *polyofs, CD_FACEMAP, totpoly);
-    const int *fmap_src = (const int *)CustomData_get_for_write(
-        &me->pdata, 0, CD_FACEMAP, me->totpoly);
-
-    /* Remap to correct new face-map indices, if needed. */
-    if (fmap_src) {
-      BLI_assert(fmap != nullptr);
-      int *fmap_index_map;
-      int fmap_index_map_len;
-      fmap_index_map = BKE_object_facemap_index_map_create(ob_src, ob_dst, &fmap_index_map_len);
-      BKE_object_facemap_index_map_apply(fmap, me->totpoly, fmap_index_map, fmap_index_map_len);
-      if (fmap_index_map != nullptr) {
-        MEM_freeN(fmap_index_map);
-      }
-    }
   }
 
   /* these are used for relinking (cannot be set earlier, or else reattaching goes wrong) */
@@ -480,19 +463,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       if (!BLI_listbase_is_empty(&mesh_active->vertex_group_names) &&
           me->vertex_group_active_index == 0) {
         me->vertex_group_active_index = 1;
-      }
-
-      /* Join this object's face maps to the base one's. */
-      LISTBASE_FOREACH (bFaceMap *, fmap, &ob_iter->fmaps) {
-        /* See if this group exists in the object (if it doesn't, add it to the end) */
-        if (BKE_object_facemap_find_name(ob, fmap->name) == nullptr) {
-          bFaceMap *fmap_new = static_cast<bFaceMap *>(MEM_mallocN(sizeof(bFaceMap), __func__));
-          memcpy(fmap_new, fmap, sizeof(bFaceMap));
-          BLI_addtail(&ob->fmaps, fmap_new);
-        }
-      }
-      if (ob->fmaps.first && ob->actfmap == 0) {
-        ob->actfmap = 1;
       }
 
       mesh_join_offset_face_sets_ID(me, &face_set_id_offset);
@@ -1258,13 +1228,12 @@ bool ED_mesh_pick_face_vert(
   BLI_assert(me && GS(me->id.name) == ID_ME);
 
   if (ED_mesh_pick_face(C, ob, mval, dist_px, &poly_index)) {
-    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
+    if (!me_eval) {
+      return false;
+    }
     ARegion *region = CTX_wm_region(C);
-
-    /* derived mesh to find deformed locations */
-    Mesh *me_eval = mesh_get_eval_final(
-        depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH_ORIGINDEX);
 
     int v_idx_best = ORIGINDEX_NONE;
 
@@ -1393,11 +1362,8 @@ bool ED_mesh_pick_vert(
     (*r_index)--;
   }
   else {
-    Scene *scene_eval = DEG_get_evaluated_scene(vc.depsgraph);
-    Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
-
-    /* derived mesh to find deformed locations */
-    Mesh *me_eval = mesh_get_eval_final(vc.depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);
+    const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+    const Mesh *me_eval = BKE_object_get_evaluated_mesh(ob_eval);
     ARegion *region = vc.region;
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 

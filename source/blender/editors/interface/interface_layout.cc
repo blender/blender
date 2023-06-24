@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -791,7 +793,7 @@ static void ui_item_enum_expand_elem_exec(uiLayout *layout,
   }
 
   if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
-    /* If this is set, assert since we're clobbering someone elses callback. */
+    /* If this is set, assert since we're clobbering someone else's callback. */
     /* Buttons get their block's func by default, so we cannot assert in that case either. */
     BLI_assert(ELEM(but->func, nullptr, block->func));
     UI_but_func_set(but, ui_item_enum_expand_handle, but, POINTER_FROM_INT(value));
@@ -5634,7 +5636,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout)
   return layout->root->block;
 }
 
-int uiLayoutGetOperatorContext(uiLayout *layout)
+wmOperatorCallContext uiLayoutGetOperatorContext(uiLayout *layout)
 {
   return layout->root->opcontext;
 }

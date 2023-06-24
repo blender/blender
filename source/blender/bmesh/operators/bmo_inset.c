@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -764,7 +766,7 @@ void bmo_inset_region_exec(BMesh *bm, BMOperator *op)
     vert_coords = BLI_ghash_ptr_new(__func__);
   }
 
-  /* util macros */
+  /* Utility macros. */
 #define VERT_ORIG_STORE(_v) \
   { \
     float *_co = BLI_memarena_alloc(vert_coords_orig, sizeof(float[3])); \

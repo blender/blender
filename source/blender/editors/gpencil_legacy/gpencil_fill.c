@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -98,38 +99,38 @@ typedef struct tStroke {
 /* Temporary fill operation data `op->customdata`. */
 typedef struct tGPDfill {
   bContext *C;
-  struct Main *bmain;
-  struct Depsgraph *depsgraph;
+  Main *bmain;
+  Depsgraph *depsgraph;
   /** window where painting originated */
-  struct wmWindow *win;
+  wmWindow *win;
   /** current scene from context */
-  struct Scene *scene;
+  Scene *scene;
   /** current active gp object */
-  struct Object *ob;
+  Object *ob;
   /** area where painting originated */
-  struct ScrArea *area;
+  ScrArea *area;
   /** region where painting originated */
-  struct RegionView3D *rv3d;
+  RegionView3D *rv3d;
   /** view3 where painting originated */
-  struct View3D *v3d;
+  View3D *v3d;
   /** region where painting originated */
-  struct ARegion *region;
+  ARegion *region;
   /** Current GP data-block. */
-  struct bGPdata *gpd;
+  bGPdata *gpd;
   /** current material */
-  struct Material *mat;
+  Material *mat;
   /** current brush */
-  struct Brush *brush;
+  Brush *brush;
   /** layer */
-  struct bGPDlayer *gpl;
+  bGPDlayer *gpl;
   /** frame */
-  struct bGPDframe *gpf;
+  bGPDframe *gpf;
   /** Temp mouse position stroke. */
-  struct bGPDstroke *gps_mouse;
+  bGPDstroke *gps_mouse;
   /** Pointer to report messages. */
-  struct ReportList *reports;
+  ReportList *reports;
   /** For operations that require occlusion testing. */
-  struct ViewDepths *depths;
+  ViewDepths *depths;
   /** flags */
   int flag;
   /** avoid too fast events */
@@ -211,8 +212,8 @@ typedef struct tGPDfill {
 } tGPDfill;
 
 bool skip_layer_check(short fill_layer_mode, int gpl_active_index, int gpl_index);
-static void gpencil_draw_boundary_lines(const struct bContext *UNUSED(C), struct tGPDfill *tgpf);
-static void gpencil_fill_status_indicators(struct tGPDfill *tgpf);
+static void gpencil_draw_boundary_lines(const bContext *UNUSED(C), tGPDfill *tgpf);
+static void gpencil_fill_status_indicators(tGPDfill *tgpf);
 
 /* Free temp stroke array. */
 static void stroke_array_free(tGPDfill *tgpf)

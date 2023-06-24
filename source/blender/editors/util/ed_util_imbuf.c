@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edutil
@@ -82,7 +83,8 @@ static void image_sample_pixel_color_ubyte(const ImBuf *ibuf,
   const uchar *cp = ibuf->byte_buffer.data + 4 * (coord[1] * ibuf->x + coord[0]);
   copy_v4_v4_uchar(r_col, cp);
   rgba_uchar_to_float(r_col_linear, r_col);
-  IMB_colormanagement_colorspace_to_scene_linear_v4(r_col_linear, false, ibuf->rect_colorspace);
+  IMB_colormanagement_colorspace_to_scene_linear_v4(
+      r_col_linear, false, ibuf->byte_buffer.colorspace);
 }
 
 static void image_sample_pixel_color_float(ImBuf *ibuf, const int coord[2], float r_col[4])
@@ -341,7 +343,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
       copy_v4_v4(info->linearcol, info->colf);
       IMB_colormanagement_colorspace_to_scene_linear_v4(
-          info->linearcol, false, ibuf->rect_colorspace);
+          info->linearcol, false, ibuf->byte_buffer.colorspace);
 
       info->color_manage = true;
     }

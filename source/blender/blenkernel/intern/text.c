@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -2169,7 +2170,7 @@ bool txt_unindent(Text *text)
   return txt_select_unprefix(text, prefix, false);
 }
 
-void txt_move_lines(struct Text *text, const int direction)
+void txt_move_lines(Text *text, const int direction)
 {
   TextLine *line_other;
 

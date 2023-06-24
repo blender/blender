@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -10,8 +11,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight,
-                                            const float randu,
-                                            const float randv,
+                                            const float2 rand,
                                             ccl_private LightSample *ls)
 {
   /* distant light */
@@ -21,7 +21,7 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
   float invarea = klight->distant.invarea;
 
   if (radius > 0.0f) {
-    D = normalize(D + disk_light_sample(D, randu, randv) * radius);
+    D = normalize(D + disk_light_sample(D, rand) * radius);
   }
 
   ls->P = D;
@@ -32,6 +32,39 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
   float costheta = dot(lightD, D);
   ls->pdf = invarea / (costheta * costheta * costheta);
   ls->eval_fac = ls->pdf;
+
+  return true;
+}
+
+/* Special intersection check.
+ * Returns true if the distant_light_sample_from_intersection() for this light would return true.
+ *
+ * The intersection parameters t, u, v are optimized for the shadow ray towards a dedicated light:
+ * u = v = 0, t = FLT_MAX.
+ */
+ccl_device bool distant_light_intersect(const ccl_global KernelLight *klight,
+                                        const ccl_private Ray *ccl_restrict ray,
+                                        ccl_private float *t,
+                                        ccl_private float *u,
+                                        ccl_private float *v)
+{
+  kernel_assert(klight->type == LIGHT_DISTANT);
+
+  if (klight->distant.radius == 0.0f) {
+    return false;
+  }
+
+  const float3 lightD = klight->co;
+  const float costheta = dot(-lightD, ray->D);
+  const float cosangle = klight->distant.cosangle;
+
+  if (costheta < cosangle) {
+    return false;
+  }
+
+  *t = FLT_MAX;
+  *u = 0.0f;
+  *v = 0.0f;
 
   return true;
 }

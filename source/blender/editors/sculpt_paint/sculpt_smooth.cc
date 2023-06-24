@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsculpt
@@ -331,7 +332,6 @@ void SCULPT_smooth(
 
   const int max_iterations = 4;
   const float fract = 1.0f / max_iterations;
-  PBVHType type = BKE_pbvh_type(ss->pbvh);
   int iteration, count;
   float last;
 
@@ -339,11 +339,6 @@ void SCULPT_smooth(
 
   count = int(bstrength * max_iterations);
   last = max_iterations * (bstrength - count * fract);
-
-  if (type == PBVH_FACES && !ss->pmap) {
-    BLI_assert_msg(0, "sculpt smooth: pmap missing");
-    return;
-  }
 
   SCULPT_vertex_random_access_ensure(ss);
   SCULPT_boundary_info_ensure(ob);

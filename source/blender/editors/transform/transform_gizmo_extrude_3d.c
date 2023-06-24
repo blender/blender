@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edmesh
@@ -83,7 +85,7 @@ typedef struct GizmoExtrudeGroup {
   PropertyRNA *gzgt_axis_type_prop;
 } GizmoExtrudeGroup;
 
-static void gizmo_mesh_extrude_orientation_matrix_set(struct GizmoExtrudeGroup *ggd,
+static void gizmo_mesh_extrude_orientation_matrix_set(GizmoExtrudeGroup *ggd,
                                                       const float mat[3][3])
 {
   for (int i = 0; i < 3; i++) {
@@ -94,7 +96,7 @@ static void gizmo_mesh_extrude_orientation_matrix_set(struct GizmoExtrudeGroup *
   }
 }
 
-static void gizmo_mesh_extrude_orientation_matrix_set_for_adjust(struct GizmoExtrudeGroup *ggd,
+static void gizmo_mesh_extrude_orientation_matrix_set_for_adjust(GizmoExtrudeGroup *ggd,
                                                                  const float mat[3][3])
 {
   /* Set orientation without location. */
@@ -107,7 +109,7 @@ static void gizmo_mesh_extrude_orientation_matrix_set_for_adjust(struct GizmoExt
 
 static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct GizmoExtrudeGroup *ggd = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
+  GizmoExtrudeGroup *ggd = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
@@ -500,7 +502,7 @@ static void gizmo_mesh_extrude_message_subscribe(const bContext *C,
   }
 }
 
-void VIEW3D_GGT_xform_extrude(struct wmGizmoGroupType *gzgt)
+void VIEW3D_GGT_xform_extrude(wmGizmoGroupType *gzgt)
 {
   gzgt->name = "3D View Extrude";
   gzgt->idname = "VIEW3D_GGT_xform_extrude";

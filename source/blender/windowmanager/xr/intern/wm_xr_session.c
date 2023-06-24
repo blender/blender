@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -14,6 +16,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -1037,11 +1040,11 @@ static wmXrActionData *wm_xr_session_event_create(const char *action_set_name,
                                                   bool bimanual)
 {
   wmXrActionData *data = MEM_callocN(sizeof(wmXrActionData), __func__);
-  strcpy(data->action_set, action_set_name);
-  strcpy(data->action, action->name);
-  strcpy(data->user_path, action->subaction_paths[subaction_idx]);
+  STRNCPY(data->action_set, action_set_name);
+  STRNCPY(data->action, action->name);
+  STRNCPY(data->user_path, action->subaction_paths[subaction_idx]);
   if (bimanual) {
-    strcpy(data->user_path_other, action->subaction_paths[subaction_idx_other]);
+    STRNCPY(data->user_path_other, action->subaction_paths[subaction_idx_other]);
   }
   data->type = action->type;
 
@@ -1264,7 +1267,7 @@ void wm_xr_session_controller_data_populate(const wmXrAction *grip_action,
     wmXrController *controller = MEM_callocN(sizeof(*controller), __func__);
 
     BLI_assert(STREQ(grip_action->subaction_paths[i], aim_action->subaction_paths[i]));
-    strcpy(controller->subaction_path, grip_action->subaction_paths[i]);
+    STRNCPY(controller->subaction_path, grip_action->subaction_paths[i]);
 
     BLI_addtail(controllers, controller);
   }
@@ -1467,8 +1470,8 @@ static wmSurface *wm_xr_session_surface_create(void)
   surface->activate = DRW_xr_drawing_begin;
   surface->deactivate = DRW_xr_drawing_end;
 
-  surface->ghost_ctx = DRW_xr_opengl_context_get();
-  surface->gpu_ctx = DRW_xr_gpu_context_get();
+  surface->system_gpu_context = DRW_system_gpu_context_get();
+  surface->blender_gpu_context = DRW_xr_blender_gpu_context_get();
 
   data->controller_art->regionid = RGN_TYPE_XR;
   surface->customdata = data;
@@ -1488,7 +1491,7 @@ void *wm_xr_session_gpu_binding_context_create(void)
    * and running. */
   WM_main_add_notifier(NC_WM | ND_XR_DATA_CHANGED, NULL);
 
-  return surface->ghost_ctx;
+  return surface->system_gpu_context;
 }
 
 void wm_xr_session_gpu_binding_context_destroy(GHOST_ContextHandle UNUSED(context))

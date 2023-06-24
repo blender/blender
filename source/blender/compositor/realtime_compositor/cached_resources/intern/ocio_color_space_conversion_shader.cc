@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstdint>
 #include <memory>
@@ -86,7 +88,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   }
 
   /* This is ignored since we query using our own GPU capabilities system. */
-  void setTextureMaxWidth(unsigned max_width) override {}
+  void setTextureMaxWidth(unsigned /*max_width*/) override {}
 
   unsigned getTextureMaxWidth() const noexcept override
   {
@@ -255,7 +257,7 @@ class GPUShaderCreator : public OCIO::GpuShaderCreator {
   /* This gets called before the finalize() method to construct the shader code. We just
    * concatenate the code except for the declarations section. That's because the ShaderCreateInfo
    * will add the declaration itself. */
-  void createShaderText(const char *declarations,
+  void createShaderText(const char * /*declarations*/,
                         const char *helper_methods,
                         const char *function_header,
                         const char *function_body,

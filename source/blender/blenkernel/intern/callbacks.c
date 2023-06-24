@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -25,7 +27,7 @@ static bool callbacks_initialized = false;
                  "the callback system.")
 
 void BKE_callback_exec(struct Main *bmain,
-                       struct PointerRNA **pointers,
+                       PointerRNA **pointers,
                        const int num_pointers,
                        eCbEvent evt)
 {

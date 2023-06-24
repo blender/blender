@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -147,7 +148,7 @@ static void applyTimeSlide(TransInfo *t, const int mval[2])
   ED_area_status_text(t->area, str);
 }
 
-void initTimeSlide(TransInfo *t)
+static void initTimeSlide(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   /* this tool is only really available in the Action Editor... */
   if (t->spacetype == SPACE_ACTION) {
@@ -161,7 +162,6 @@ void initTimeSlide(TransInfo *t)
   }
 
   t->mode = TFM_TIME_SLIDE;
-  t->transform = applyTimeSlide;
 
   initMouseInputMode(t, &t->mouse, INPUT_NONE);
 
@@ -218,3 +218,14 @@ void initTimeSlide(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_timeslide = {
+    /*flags*/ T_NULL_ONE,
+    /*init_fn*/ initTimeSlide,
+    /*transform_fn*/ applyTimeSlide,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

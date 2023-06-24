@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2008-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup freestyle
@@ -102,7 +104,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   freestyle_scene->r.border.ymin = old_scene->r.border.ymin;
   freestyle_scene->r.border.xmax = old_scene->r.border.xmax;
   freestyle_scene->r.border.ymax = old_scene->r.border.ymax;
-  strcpy(freestyle_scene->r.pic, old_scene->r.pic);
+  STRNCPY(freestyle_scene->r.pic, old_scene->r.pic);
   freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
   STRNCPY(freestyle_scene->r.engine, old_scene->r.engine);
   if (G.debug & G_DEBUG_FREESTYLE) {

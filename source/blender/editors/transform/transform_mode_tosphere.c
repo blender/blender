@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -236,10 +237,9 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
   ED_area_status_text(t->area, str);
 }
 
-void initToSphere(TransInfo *t)
+static void initToSphere(TransInfo *t, struct wmOperator *UNUSED(op))
 {
   t->mode = TFM_TOSPHERE;
-  t->transform = applyToSphere;
 
   initMouseInputMode(t, &t->mouse, INPUT_HORIZONTAL_RATIO);
 
@@ -253,7 +253,6 @@ void initToSphere(TransInfo *t)
   t->num.unit_type[0] = B_UNIT_NONE;
 
   t->num.val_flag[0] |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
-  t->flag |= T_NO_CONSTRAINT;
 
   struct ToSphereInfo *data = MEM_callocN(sizeof(*data), __func__);
   t->custom.mode.data = data;
@@ -263,3 +262,14 @@ void initToSphere(TransInfo *t)
 }
 
 /** \} */
+
+TransModeInfo TransMode_tosphere = {
+    /*flags*/ T_NO_CONSTRAINT,
+    /*init_fn*/ initToSphere,
+    /*transform_fn*/ applyToSphere,
+    /*transform_matrix_fn*/ NULL,
+    /*handle_event_fn*/ NULL,
+    /*snap_distance_fn*/ NULL,
+    /*snap_apply_fn*/ NULL,
+    /*draw_fn*/ NULL,
+};

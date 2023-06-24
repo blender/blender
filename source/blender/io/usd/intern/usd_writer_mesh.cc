@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
@@ -489,63 +490,6 @@ void USDGenericMeshWriter::write_vertex_groups(const Object *ob,
   }
 }
 
-void USDGenericMeshWriter::write_face_maps(const Object *ob,
-                                           const Mesh *mesh,
-                                           pxr::UsdGeomMesh usd_mesh)
-{
-  if (!ob)
-    return;
-
-  pxr::UsdTimeCode timecode = get_export_time_code();
-
-  std::vector<pxr::UsdGeomPrimvar> pv_groups;
-  std::vector<pxr::VtArray<float>> pv_data;
-
-  int i;
-  size_t mpoly_len = mesh->totpoly;
-
-  pxr::UsdGeomPrimvarsAPI primvarsAPI = pxr::UsdGeomPrimvarsAPI(usd_mesh);
-
-  for (bFaceMap *fmap = (bFaceMap *)ob->fmaps.first; fmap; fmap = fmap->next) {
-    if (!fmap)
-      continue;
-    pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(fmap->name));
-    pxr::TfToken primvar_interpolation = pxr::UsdGeomTokens->uniform;
-    pv_groups.push_back(primvarsAPI.CreatePrimvar(
-        primvar_name, pxr::SdfValueTypeNames->FloatArray, primvar_interpolation));
-
-    pv_data.push_back(pxr::VtArray<float>(mpoly_len));
-
-    // Init data
-    for (i = 0; i < mpoly_len; i++) {
-      pv_data[pv_data.size() - 1][i] = 0.0f;
-    }
-  }
-
-  size_t num_groups = pv_groups.size();
-
-  if (num_groups == 0)
-    return;
-
-  const int *facemap_data = (int *)CustomData_get_layer(&mesh->pdata, CD_FACEMAP);
-
-  if (facemap_data) {
-    for (i = 0; i < mpoly_len; i++) {
-      if (facemap_data[i] >= 0) {
-        pv_data[facemap_data[i]][i] = 1.0f;
-      }
-    }
-  }
-
-  // Store data in usd
-  for (i = 0; i < num_groups; i++) {
-    pv_groups[i].Set(pv_data[i], timecode);
-
-    const pxr::UsdAttribute &vertex_colors_attr = pv_groups[i].GetAttr();
-    usd_value_writer_.SetAttribute(vertex_colors_attr, pxr::VtValue(pv_data[i]), timecode);
-  }
-}
-
 void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
 {
   pxr::UsdTimeCode timecode = get_mesh_export_time_code();
@@ -607,7 +551,6 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
                         mesh,
                         usd_mesh,
                         !usd_export_context_.export_params.vertex_data_as_face_varying);
-    write_face_maps(context.object, mesh, usd_mesh);
   }
 
   if (!usd_mesh_data.corner_indices.empty() &&
@@ -654,13 +597,12 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
   }
 
   /* Blender grows its bounds cache to cover animated meshes, so only author once. */
-  float bound_min[3];
-  float bound_max[3];
-  INIT_MINMAX(bound_min, bound_max);
-  BKE_mesh_minmax(mesh, bound_min, bound_max);
-  pxr::VtArray<pxr::GfVec3f> extent{pxr::GfVec3f{bound_min[0], bound_min[1], bound_min[2]},
-                                    pxr::GfVec3f{bound_max[0], bound_max[1], bound_max[2]}};
-  usd_mesh.CreateExtentAttr().Set(extent);
+  if (const std::optional<Bounds<float3>> bounds = mesh->bounds_min_max()) {
+    pxr::VtArray<pxr::GfVec3f> extent{
+        pxr::GfVec3f{bounds->min[0], bounds->min[1], bounds->min[2]},
+        pxr::GfVec3f{bounds->max[0], bounds->max[1], bounds->max[2]}};
+    usd_mesh.CreateExtentAttr().Set(extent);
+  }
 }
 
 static void get_vertices(const Mesh *mesh, USDMeshData &usd_mesh_data)
@@ -705,11 +647,12 @@ static void get_loops_polys(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
 static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->edata, CD_CREASE));
-  if (!creases) {
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeReader attribute = attributes.lookup<float>("crease_edge", ATTR_DOMAIN_EDGE);
+  if (!attribute) {
     return;
   }
-
+  const VArraySpan creases(*attribute);
   const Span<int2> edges = mesh->edges();
   for (const int i : edges.index_range()) {
     const float crease = creases[i];
@@ -728,13 +671,14 @@ static void get_edge_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 
 static void get_vert_creases(const Mesh *mesh, USDMeshData &usd_mesh_data)
 {
-  const float *creases = static_cast<const float *>(CustomData_get_layer(&mesh->vdata, CD_CREASE));
-
-  if (!creases) {
+  const bke::AttributeAccessor attributes = mesh->attributes();
+  const bke::AttributeReader attribute = attributes.lookup<float>("crease_vert",
+                                                                  ATTR_DOMAIN_POINT);
+  if (!attribute) {
     return;
   }
-
-  for (int i = 0, v = mesh->totvert; i < v; i++) {
+  const VArraySpan creases(*attribute);
+  for (const int i : creases.index_range()) {
     const float sharpness = creases[i];
 
     if (sharpness != 0.0f) {
@@ -908,7 +852,9 @@ Mesh *USDMeshWriter::get_export_mesh(Object *object_eval, bool & /*r_needsfree*/
   Scene *scene = DEG_get_evaluated_scene(usd_export_context_.depsgraph);
   // Assumed safe because the original depsgraph was nonconst in usd_capi...
   Depsgraph *dg = const_cast<Depsgraph *>(usd_export_context_.depsgraph);
-  return mesh_get_eval_final(dg, scene, object_eval, &CD_MASK_MESH);
+
+  const Object *ob_src_eval = DEG_get_evaluated_object(dg, object_eval);
+  return BKE_object_get_evaluated_mesh(ob_src_eval);
 }
 
 }  // namespace blender::io::usd

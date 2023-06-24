@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup depsgraph
@@ -37,7 +38,7 @@ namespace blender::deg {
  * get colored by individual types or classes.
  */
 #define COLOR_SCHEME_NODE_CLASS 1
-//#define COLOR_SCHEME_NODE_TYPE  2
+// #define COLOR_SCHEME_NODE_TYPE  2
 
 static const char *deg_debug_graphviz_fontname = "helvetica";
 static float deg_debug_graphviz_graph_label_size = 20.0f;
@@ -400,6 +401,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::PARTICLE_SETTINGS:
     case NodeType::COPY_ON_WRITE:
     case NodeType::OBJECT_FROM_LAYER:
+    case NodeType::HIERARCHY:
     case NodeType::BATCH_CACHE:
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2021 Blender Foundation */
+/* SPDX-FileCopyrightText: 2021 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -315,7 +316,7 @@ void UI_view2d_edge_pan_operator_properties(wmOperatorType *ot)
                                             /*zoom_influence*/ 0.0f);
 }
 
-void UI_view2d_edge_pan_operator_properties_ex(struct wmOperatorType *ot,
+void UI_view2d_edge_pan_operator_properties_ex(wmOperatorType *ot,
                                                float inside_pad,
                                                float outside_pad,
                                                float speed_ramp,

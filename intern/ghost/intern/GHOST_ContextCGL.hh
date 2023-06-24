@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -138,7 +139,6 @@ class GHOST_ContextCGL : public GHOST_Context {
   bool m_useMetalForRendering = false;
   NSView *m_metalView;
   CAMetalLayer *m_metalLayer;
-  MTLCommandQueue *m_metalCmdQueue;
   MTLRenderPipelineState *m_metalRenderPipeline;
   bool m_ownsMetalDevice;
 
@@ -181,6 +181,9 @@ class GHOST_ContextCGL : public GHOST_Context {
   /** The first created OpenGL context (for sharing display lists) */
   static NSOpenGLContext *s_sharedOpenGLContext;
   static int s_sharedCount;
+
+  /* Single device queue for multiple contexts. */
+  static MTLCommandQueue *s_sharedMetalCommandQueue;
 
   /* Metal functions */
   void metalInit();

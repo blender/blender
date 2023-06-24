@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -86,7 +88,7 @@ struct BufferBindingCached {
    * or an MTLBuffer. */
   bool is_bytes;
   id<MTLBuffer> metal_buffer;
-  int offset;
+  uint64_t offset;
 };
 
 /* Caching of CommandEncoder textures bindings. */
@@ -144,10 +146,10 @@ class MTLRenderPassState {
                              uint slot);
 
   /* Buffer binding (RenderCommandEncoder). */
-  void bind_vertex_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index);
-  void bind_fragment_buffer(id<MTLBuffer> buffer, uint buffer_offset, uint index);
-  void bind_vertex_bytes(void *bytes, uint length, uint index);
-  void bind_fragment_bytes(void *bytes, uint length, uint index);
+  void bind_vertex_buffer(id<MTLBuffer> buffer, uint64_t buffer_offset, uint index);
+  void bind_fragment_buffer(id<MTLBuffer> buffer, uint64_t buffer_offset, uint index);
+  void bind_vertex_bytes(void *bytes, uint64_t length, uint index);
+  void bind_fragment_bytes(void *bytes, uint64_t length, uint index);
 };
 
 /* Metal Context Compute Pass State -- Used to track active ComputeCommandEncoder state. */
@@ -182,10 +184,10 @@ class MTLComputeState {
                             uint slot);
   /* Buffer binding (ComputeCommandEncoder). */
   void bind_compute_buffer(id<MTLBuffer> buffer,
-                           uint buffer_offset,
+                           uint64_t buffer_offset,
                            uint index,
                            bool writeable = false);
-  void bind_compute_bytes(void *bytes, uint length, uint index);
+  void bind_compute_bytes(void *bytes, uint64_t length, uint index);
 };
 
 /* Depth Stencil State */
@@ -381,6 +383,21 @@ struct MTLContextTextureUtils {
   }
 };
 
+class MTLContextComputeUtils {
+ private:
+  id<MTLComputePipelineState> buffer_clear_pso_ = nil;
+
+ public:
+  id<MTLComputePipelineState> get_buffer_clear_pso();
+  void cleanup()
+  {
+    if (buffer_clear_pso_) {
+      [buffer_clear_pso_ release];
+      buffer_clear_pso_ = nil;
+    }
+  }
+};
+
 /* Combined sampler state configuration for Argument Buffer caching. */
 struct MTLSamplerArray {
   uint num_samplers;
@@ -536,10 +553,6 @@ class MTLCommandBufferManager {
   friend class MTLContext;
 
  public:
-  /* Event to coordinate sequential execution across all "main" command buffers. */
-  static id<MTLEvent> sync_event;
-  static uint64_t event_signal_val;
-
   /* Counter for active command buffers. */
   static int num_active_cmd_bufs;
 
@@ -578,6 +591,13 @@ class MTLCommandBufferManager {
   int encoder_count_ = 0;
   int vertex_submitted_count_ = 0;
   bool empty_ = true;
+
+  /** Debug groups. */
+  /* Stack tracking all calls to push_debug_group. */
+  std::vector<std::string> debug_group_stack;
+  /* Stack tracking calls resulting in active API calls to pushDebugGroup on the current command
+   * buffer. */
+  std::vector<std::string> debug_group_pushed_stack;
 
  public:
   MTLCommandBufferManager(MTLContext &context)
@@ -643,6 +663,9 @@ class MTLCommandBufferManager {
   id<MTLCommandBuffer> ensure_begin();
 
   void register_encoder_counters();
+
+  /* Debug group management. */
+  void unfold_pending_debug_groups();
 };
 
 /** MTLContext -- Core render loop and state management. **/
@@ -695,6 +718,7 @@ class MTLContext : public Context {
 
   /* Compute and specialization caches. */
   MTLContextTextureUtils texture_utils_;
+  MTLContextComputeUtils compute_utils_;
 
   /* Texture Samplers. */
   /* Cache of generated #MTLSamplerState objects based on permutations of the members of
@@ -855,6 +879,12 @@ class MTLContext : public Context {
   MTLContextTextureUtils &get_texture_utils()
   {
     return texture_utils_;
+  }
+
+  /* Compute utilities. */
+  MTLContextComputeUtils &get_compute_utils()
+  {
+    return compute_utils_;
   }
 
   bool get_active()

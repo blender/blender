@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #ifndef __OBJECT_H__
 #define __OBJECT_H__
@@ -68,6 +69,10 @@ class Object : public Node {
   NODE_SOCKET_API(float, ao_distance)
 
   NODE_SOCKET_API(ustring, lightgroup)
+  NODE_SOCKET_API(uint, receiver_light_set)
+  NODE_SOCKET_API(uint64_t, light_set_membership)
+  NODE_SOCKET_API(uint, blocker_shadow_set)
+  NODE_SOCKET_API(uint64_t, shadow_set_membership)
 
   /* Set during device update. */
   bool intersects_volume;
@@ -108,6 +113,11 @@ class Object : public Node {
 
   /* Check whether this object can be used as light-emissive. */
   bool usable_as_light() const;
+
+  /* Check whether the object participates in light or shadow linking, either as a receiver/blocker
+   * or emitter. */
+  bool has_light_linking() const;
+  bool has_shadow_linking() const;
 
  protected:
   /* Specifies the position of the object in scene->objects and

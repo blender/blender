@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -158,7 +160,7 @@ static const char *strdup_memarena_from_dynstr(MemArena *memarena, DynStr *dyn_s
 
 static bool menu_items_from_ui_create_item_from_button(MenuSearch_Data *data,
                                                        MemArena *memarena,
-                                                       struct MenuType *mt,
+                                                       MenuType *mt,
                                                        const char *drawstr_submenu,
                                                        uiBut *but,
                                                        MenuSearch_Context *wm_context)
@@ -1033,10 +1035,10 @@ static void menu_search_update_fn(const bContext * /*C*/,
  * a separate context menu just for the search, however this is fairly involved.
  * \{ */
 
-static bool ui_search_menu_create_context_menu(struct bContext *C,
+static bool ui_search_menu_create_context_menu(bContext *C,
                                                void *arg,
                                                void *active,
-                                               const struct wmEvent *event)
+                                               const wmEvent *event)
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
   MenuSearch_Item *item = (MenuSearch_Item *)active;
@@ -1077,11 +1079,8 @@ static bool ui_search_menu_create_context_menu(struct bContext *C,
 /** \name Tooltip
  * \{ */
 
-static struct ARegion *ui_search_menu_create_tooltip(struct bContext *C,
-                                                     struct ARegion *region,
-                                                     const rcti * /*item_rect*/,
-                                                     void *arg,
-                                                     void *active)
+static ARegion *ui_search_menu_create_tooltip(
+    bContext *C, ARegion *region, const rcti * /*item_rect*/, void *arg, void *active)
 {
   MenuSearch_Data *data = (MenuSearch_Data *)arg;
   MenuSearch_Item *item = (MenuSearch_Item *)active;

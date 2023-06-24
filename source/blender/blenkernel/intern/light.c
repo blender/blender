@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -215,7 +216,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
   return la;
 }
 
-void BKE_light_eval(struct Depsgraph *depsgraph, Light *la)
+void BKE_light_eval(Depsgraph *depsgraph, Light *la)
 {
   DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);
 }

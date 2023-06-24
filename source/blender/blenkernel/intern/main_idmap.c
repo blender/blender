@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <stdlib.h>
 #include <string.h>
@@ -52,9 +54,9 @@ struct IDNameLib_TypeMap {
  */
 struct IDNameLib_Map {
   struct IDNameLib_TypeMap type_maps[INDEX_ID_MAX];
-  struct GHash *uuid_map;
-  struct Main *bmain;
-  struct GSet *valid_id_pointers;
+  GHash *uuid_map;
+  Main *bmain;
+  GSet *valid_id_pointers;
   int idmap_types;
 
   /* For storage of keys for the #TypeMap #GHash, avoids many single allocations. */
@@ -74,9 +76,9 @@ static struct IDNameLib_TypeMap *main_idmap_from_idcode(struct IDNameLib_Map *id
   return NULL;
 }
 
-struct IDNameLib_Map *BKE_main_idmap_create(struct Main *bmain,
+struct IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
                                             const bool create_valid_ids_set,
-                                            struct Main *old_bmain,
+                                            Main *old_bmain,
                                             const int idmap_types)
 {
   struct IDNameLib_Map *id_map = MEM_mallocN(sizeof(*id_map), __func__);
@@ -179,7 +181,7 @@ void BKE_main_idmap_remove_id(struct IDNameLib_Map *id_map, ID *id)
   }
 }
 
-struct Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map)
+Main *BKE_main_idmap_main_get(struct IDNameLib_Map *id_map)
 {
   return id_map->bmain;
 }

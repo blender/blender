@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -549,9 +550,8 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
           cur->xmin -= temp;
           cur->xmax -= temp;
 
-          /* width does not get modified, as keepaspect here is just set to make
-           * sure visible area adjusts to changing view shape!
-           */
+          /* Width does not get modified, as keep-aspect here is just set to make
+           * sure visible area adjusts to changing view shape! */
         }
       }
       else {
@@ -1634,12 +1634,12 @@ void UI_view2d_listview_view_to_cell(float columnwidth,
 /** \name Coordinate Conversions
  * \{ */
 
-float UI_view2d_region_to_view_x(const struct View2D *v2d, float x)
+float UI_view2d_region_to_view_x(const View2D *v2d, float x)
 {
   return (v2d->cur.xmin +
           (BLI_rctf_size_x(&v2d->cur) * (x - v2d->mask.xmin) / BLI_rcti_size_x(&v2d->mask)));
 }
-float UI_view2d_region_to_view_y(const struct View2D *v2d, float y)
+float UI_view2d_region_to_view_y(const View2D *v2d, float y)
 {
   return (v2d->cur.ymin +
           (BLI_rctf_size_y(&v2d->cur) * (y - v2d->mask.ymin) / BLI_rcti_size_y(&v2d->mask)));
@@ -1916,7 +1916,7 @@ void UI_view2d_scale_get_inverse(const View2D *v2d, float *r_x, float *r_y)
   }
 }
 
-void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y)
+void UI_view2d_center_get(const View2D *v2d, float *r_x, float *r_y)
 {
   /* get center */
   if (r_x) {
@@ -1926,7 +1926,7 @@ void UI_view2d_center_get(const struct View2D *v2d, float *r_x, float *r_y)
     *r_y = BLI_rctf_cent_y(&v2d->cur);
   }
 }
-void UI_view2d_center_set(struct View2D *v2d, float x, float y)
+void UI_view2d_center_set(View2D *v2d, float x, float y)
 {
   BLI_rctf_recenter(&v2d->cur, x, y);
 
@@ -1934,7 +1934,7 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y)
   UI_view2d_curRect_validate(v2d);
 }
 
-void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
+void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
 {
   if (xfac != -1.0f) {
     const float xsize = BLI_rctf_size_x(&v2d->cur);
@@ -2032,7 +2032,7 @@ char UI_view2d_rect_in_scrollers(const ARegion *region, const View2D *v2d, const
  * \{ */
 
 struct View2DString {
-  struct View2DString *next;
+  View2DString *next;
   union {
     uchar ub[4];
     int pack;

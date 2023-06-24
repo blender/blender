@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edarmature
@@ -311,7 +312,7 @@ static bPoseChannel *pchan_duplicate_map(const bPose *pose,
   return pchan_dst;
 }
 
-void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
+void postEditBoneDuplicate(ListBase *editbones, Object *ob)
 {
   if (ob->pose == NULL) {
     return;
@@ -1508,12 +1509,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
             if (flipbone && forked_iter) { /* only set if mirror edit */
               if (strlen(newbone->name) < (MAXBONENAME - 2)) {
-                if (a == 0) {
-                  strcat(newbone->name, "_L");
-                }
-                else {
-                  strcat(newbone->name, "_R");
-                }
+                BLI_strncat(newbone->name, (a == 0) ? "_L" : "_R", sizeof(newbone->name));
               }
             }
             ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);

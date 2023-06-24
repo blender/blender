@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spview3d
@@ -380,7 +381,7 @@ void ED_view3d_draw_setup_view(const wmWindowManager *wm,
  * \{ */
 
 static void view3d_camera_border(const Scene *scene,
-                                 struct Depsgraph *depsgraph,
+                                 Depsgraph *depsgraph,
                                  const ARegion *region,
                                  const View3D *v3d,
                                  const RegionView3D *rv3d,
@@ -852,15 +853,15 @@ float ED_scene_grid_scale(const Scene *scene, const char **r_grid_unit)
   return 1.0f;
 }
 
-float ED_view3d_grid_scale(const Scene *scene, View3D *v3d, const char **r_grid_unit)
+float ED_view3d_grid_scale(const Scene *scene, const View3D *v3d, const char **r_grid_unit)
 {
   return v3d->grid * ED_scene_grid_scale(scene, r_grid_unit);
 }
 
 #define STEPS_LEN 8
 static void view3d_grid_steps_ex(const Scene *scene,
-                                 View3D *v3d,
-                                 RegionView3D *rv3d,
+                                 const View3D *v3d,
+                                 const RegionView3D *rv3d,
                                  float r_grid_steps[STEPS_LEN],
                                  void const **r_usys_pt,
                                  int *r_len)
@@ -912,8 +913,8 @@ static void view3d_grid_steps_ex(const Scene *scene,
 }
 
 void ED_view3d_grid_steps(const Scene *scene,
-                          View3D *v3d,
-                          RegionView3D *rv3d,
+                          const View3D *v3d,
+                          const RegionView3D *rv3d,
                           float r_grid_steps[STEPS_LEN])
 {
   view3d_grid_steps_ex(scene, v3d, rv3d, r_grid_steps, nullptr, nullptr);
@@ -1663,7 +1664,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
 
   /* Store `orig` variables. */
   struct {
-    struct bThemeState theme_state;
+    bThemeState theme_state;
 
     /* #View3D */
     eDrawType v3d_shading_type;
@@ -1677,7 +1678,7 @@ void ED_view3d_draw_offscreen(Depsgraph *depsgraph,
      * Needed so the value won't be left overwritten,
      * Without this the #wmPaintCursor can't use the pixel size & view matrices for drawing.
      */
-    struct RV3DMatrixStore *rv3d_mats;
+    RV3DMatrixStore *rv3d_mats;
   } orig{};
   orig.v3d_shading_type = eDrawType(v3d->shading.type);
   orig.region_winx = region->winx;
@@ -1898,7 +1899,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
   }
 
   const bool own_ofs = (ofs == nullptr);
-  DRW_opengl_context_enable();
+  DRW_gpu_context_enable();
 
   if (own_ofs) {
     /* bind */
@@ -1909,7 +1910,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
                                err_out);
     if (ofs == nullptr) {
-      DRW_opengl_context_disable();
+      DRW_gpu_context_disable();
       return nullptr;
     }
   }
@@ -2005,7 +2006,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
     GPU_offscreen_free(ofs);
   }
 
-  DRW_opengl_context_disable();
+  DRW_gpu_context_disable();
 
   if (old_fb) {
     GPU_framebuffer_bind(old_fb);
@@ -2162,7 +2163,7 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 /**
  * \note Only use in object mode.
  */
-static void validate_object_select_id(struct Depsgraph *depsgraph,
+static void validate_object_select_id(Depsgraph *depsgraph,
                                       const Scene *scene,
                                       ViewLayer *view_layer,
                                       ARegion *region,
@@ -2349,7 +2350,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
       return;
     }
   }
-  struct bThemeState theme_state;
+  bThemeState theme_state;
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
@@ -2513,9 +2514,9 @@ struct RV3DMatrixStore {
   float pixsize;
 };
 
-struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d)
+RV3DMatrixStore *ED_view3d_mats_rv3d_backup(RegionView3D *rv3d)
 {
-  struct RV3DMatrixStore *rv3dmat = static_cast<RV3DMatrixStore *>(
+  RV3DMatrixStore *rv3dmat = static_cast<RV3DMatrixStore *>(
       MEM_mallocN(sizeof(*rv3dmat), __func__));
   copy_m4_m4(rv3dmat->winmat, rv3d->winmat);
   copy_m4_m4(rv3dmat->viewmat, rv3d->viewmat);
@@ -2527,9 +2528,9 @@ struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d)
   return rv3dmat;
 }
 
-void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat_pt)
+void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt)
 {
-  struct RV3DMatrixStore *rv3dmat = rv3dmat_pt;
+  RV3DMatrixStore *rv3dmat = rv3dmat_pt;
   copy_m4_m4(rv3d->winmat, rv3dmat->winmat);
   copy_m4_m4(rv3d->viewmat, rv3dmat->viewmat);
   copy_m4_m4(rv3d->persmat, rv3dmat->persmat);

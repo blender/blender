@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edgpencil
@@ -134,7 +135,7 @@ typedef struct tGPsdata {
   Main *bmain;
   /** current scene from context. */
   Scene *scene;
-  struct Depsgraph *depsgraph;
+  Depsgraph *depsgraph;
 
   /** Current object. */
   Object *ob;

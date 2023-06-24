@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2020 Blender Foundation */
+/* SPDX-FileCopyrightText: 2020 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -139,13 +140,13 @@ class Texture {
                  int mip_len,
                  int layer_start,
                  int layer_len,
-                 bool cube_as_array);
+                 bool cube_as_array,
+                 bool use_stencil);
 
   virtual void generate_mipmap() = 0;
   virtual void copy_to(Texture *tex) = 0;
   virtual void clear(eGPUDataFormat format, const void *data) = 0;
   virtual void swizzle_set(const char swizzle_mask[4]) = 0;
-  virtual void stencil_texture_mode_set(bool use_stencil) = 0;
   virtual void mip_range_set(int min, int max) = 0;
   virtual void *read(int mip, eGPUDataFormat format) = 0;
 
@@ -313,7 +314,10 @@ class Texture {
  protected:
   virtual bool init_internal() = 0;
   virtual bool init_internal(GPUVertBuf *vbo) = 0;
-  virtual bool init_internal(GPUTexture *src, int mip_offset, int layer_offset) = 0;
+  virtual bool init_internal(GPUTexture *src,
+                             int mip_offset,
+                             int layer_offset,
+                             bool use_stencil) = 0;
 };
 
 /* Syntactic sugar. */
@@ -333,16 +337,16 @@ static inline const Texture *unwrap(const GPUTexture *vert)
 /* GPU pixel Buffer. */
 class PixelBuffer {
  protected:
-  uint size_ = 0;
+  size_t size_ = 0;
 
  public:
-  PixelBuffer(uint size) : size_(size){};
+  PixelBuffer(size_t size) : size_(size){};
   virtual ~PixelBuffer(){};
 
   virtual void *map() = 0;
   virtual void unmap() = 0;
   virtual int64_t get_native_handle() = 0;
-  virtual uint get_size() = 0;
+  virtual size_t get_size() = 0;
 };
 
 /* Syntactic sugar. */
@@ -751,7 +755,8 @@ inline size_t to_bytesize(eGPUTextureFormat tex_format, eGPUDataFormat data_form
    * Standard component len calculation does not apply, as the texture formats contain multiple
    * channels, but associated data format contains several compacted components. */
   if ((tex_format == GPU_R11F_G11F_B10F && data_format == GPU_DATA_10_11_11_REV) ||
-      (tex_format == GPU_RGB10_A2 && data_format == GPU_DATA_2_10_10_10_REV))
+      ((tex_format == GPU_RGB10_A2 || tex_format == GPU_RGB10_A2UI) &&
+       data_format == GPU_DATA_2_10_10_10_REV))
   {
     return 4;
   }

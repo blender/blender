@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "node_shader_util.hh"
 
@@ -195,7 +196,7 @@ class MusgraveFunction : public mf::MultiFunction {
     return signature;
   }
 
-  void call(IndexMask mask, mf::Params params, mf::Context /*context*/) const override
+  void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
     auto get_vector = [&](int param_index) -> VArray<float3> {
       return params.readonly_single_input<float3>(param_index, "Vector");
@@ -240,34 +241,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -275,13 +276,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -297,34 +298,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -332,13 +333,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_ridged_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -354,34 +355,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -389,13 +390,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_hybrid_multi_fractal(
                     position, dimension[i], lacunarity[i], detail[i], offset[i], gain[i]);
-              }
+              });
             }
             break;
           }
@@ -409,34 +410,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -444,13 +445,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_fBm(
                     position, dimension[i], lacunarity[i], detail[i]);
-              }
+              });
             }
             break;
           }
@@ -465,34 +466,34 @@ class MusgraveFunction : public mf::MultiFunction {
           case 1: {
             const VArray<float> &w = get_w(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float position = w[i] * scale[i];
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
           case 2: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float2 position = float2(pxyz[0], pxyz[1]);
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
           case 3: {
             const VArray<float3> &vector = get_vector(0);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 position = vector[i] * scale[i];
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }
@@ -500,13 +501,13 @@ class MusgraveFunction : public mf::MultiFunction {
             const VArray<float3> &vector = get_vector(0);
             const VArray<float> &w = get_w(1);
             if (compute_factor) {
-              for (int64_t i : mask) {
+              mask.foreach_index([&](const int64_t i) {
                 const float3 pxyz = vector[i] * scale[i];
                 const float pw = w[i] * scale[i];
                 const float4 position{pxyz[0], pxyz[1], pxyz[2], pw};
                 r_factor[i] = noise::musgrave_hetero_terrain(
                     position, dimension[i], lacunarity[i], detail[i], offset[i]);
-              }
+              });
             }
             break;
           }

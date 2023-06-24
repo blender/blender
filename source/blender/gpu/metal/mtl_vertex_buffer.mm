@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2022-2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -75,7 +77,7 @@ void MTLVertBuf::duplicate_data(VertBuf *dst_)
     BLI_assert(dst->vbo_ == nullptr);
 
     /* Allocate VBO for destination vertbuf. */
-    uint length = src->vbo_->get_size();
+    uint64_t length = src->vbo_->get_size();
     dst->vbo_ = MTLContext::get_global_memory_manager()->allocate(
         length, (dst->get_usage_type() != GPU_USAGE_DEVICE_ONLY));
     dst->alloc_size_ = length;
@@ -128,7 +130,7 @@ void MTLVertBuf::bind()
   uint64_t required_size = max_ulul(required_size_raw, 128);
 
   if (required_size_raw == 0) {
-    MTL_LOG_WARNING("Warning: Vertex buffer required_size = 0\n");
+    MTL_LOG_INFO("Vertex buffer required_size = 0");
   }
 
   /* If the vertex buffer has already been allocated, but new data is ready,
@@ -225,7 +227,7 @@ void MTLVertBuf::bind()
                sourceOffset:0
                    toBuffer:copy_new_buffer
           destinationOffset:0
-                       size:min_ii([copy_new_buffer length], [copy_prev_buffer length])];
+                       size:min_ulul([copy_new_buffer length], [copy_prev_buffer length])];
 
       /* Flush newly copied data back to host-side buffer, if one exists.
        * Ensures data and cache coherency for managed MTLBuffers. */
@@ -274,7 +276,7 @@ void MTLVertBuf::update_sub(uint start, uint len, const void *data)
   [scratch_allocation.metal_buffer
       didModifyRange:NSMakeRange(scratch_allocation.buffer_offset, len)];
   id<MTLBuffer> data_buffer = scratch_allocation.metal_buffer;
-  uint data_buffer_offset = scratch_allocation.buffer_offset;
+  uint64_t data_buffer_offset = scratch_allocation.buffer_offset;
 
   BLI_assert(vbo_ != nullptr && data != nullptr);
   BLI_assert((start + len) <= vbo_->get_size());
@@ -340,10 +342,60 @@ void MTLVertBuf::bind_as_texture(uint binding)
 
 void MTLVertBuf::read(void *data) const
 {
+  /* Fetch active context. */
+  MTLContext *ctx = MTLContext::get();
+  BLI_assert(ctx);
+
   BLI_assert(vbo_ != nullptr);
-  BLI_assert(usage_ != GPU_USAGE_DEVICE_ONLY);
-  void *host_ptr = vbo_->get_host_ptr();
-  memcpy(data, host_ptr, alloc_size_);
+
+  if (usage_ != GPU_USAGE_DEVICE_ONLY) {
+
+    /* Ensure data is flushed for host caches.  */
+    id<MTLBuffer> source_buffer = vbo_->get_metal_buffer();
+    if (source_buffer.storageMode == MTLStorageModeManaged) {
+      id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+      [enc synchronizeResource:source_buffer];
+    }
+
+    /* Ensure GPU has finished operating on commands which may modify data. */
+    GPU_finish();
+
+    /* Simple direct read. */
+    void *host_ptr = vbo_->get_host_ptr();
+    memcpy(data, host_ptr, alloc_size_);
+  }
+  else {
+    /* Copy private data into temporary staging buffer. */
+    gpu::MTLBuffer *dst_tmp_vbo_ = MTLContext::get_global_memory_manager()->allocate(alloc_size_,
+                                                                                     true);
+
+    id<MTLBuffer> source_buffer = vbo_->get_metal_buffer();
+    id<MTLBuffer> dest_buffer = dst_tmp_vbo_->get_metal_buffer();
+    BLI_assert(source_buffer != nil);
+    BLI_assert(dest_buffer != nil);
+
+    /* Ensure a blit command encoder is active for buffer copy operation. */
+    id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();
+    [enc copyFromBuffer:source_buffer
+             sourceOffset:0
+                 toBuffer:dest_buffer
+        destinationOffset:0
+                     size:min_ulul([dest_buffer length], [dest_buffer length])];
+
+    /* Flush newly copied data back to host-side buffer, if one exists.
+     * Ensures data and cache coherency for managed MTLBuffers. */
+    if (dest_buffer.storageMode == MTLStorageModeManaged) {
+      [enc synchronizeResource:dest_buffer];
+    }
+
+    /* wait for GPU. */
+    GPU_finish();
+
+    /* Simple direct read. */
+    void *host_ptr = dst_tmp_vbo_->get_host_ptr();
+    memcpy(data, host_ptr, alloc_size_);
+    dst_tmp_vbo_->free();
+  }
 }
 
 void MTLVertBuf::wrap_handle(uint64_t handle)

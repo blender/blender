@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -126,8 +127,8 @@ class Manager {
   ResourceHandle resource_handle(const float4x4 &model_matrix);
   /**
    * Get resource id for a loose matrix with bounds. The draw-calls for this resource handle will
-   * be culled bute there won't be any associated object info / bounds. Assumes correct handedness
-   * / winding.
+   * be culled but there won't be any associated object info / bounds.
+   * Assumes correct handedness / winding.
    */
   ResourceHandle resource_handle(const float4x4 &model_matrix,
                                  const float3 &bounds_center,
@@ -176,6 +177,14 @@ class Manager {
   {
     GPU_texture_ref(texture);
     acquired_textures.append(texture);
+  }
+
+  /**
+   * Return the number of resource handles allocated.
+   */
+  uint resource_handle_count() const
+  {
+    return resource_len_;
   }
 
   /** TODO(fclem): The following should become private at some point. */

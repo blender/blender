@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -11,6 +13,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
+#include "COM_context.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
@@ -18,107 +21,89 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
-/* Find the active context from the given context and its descendants contexts. The active context
- * is the one whose node instance key matches the active_viewer_key stored in the root node tree.
- * The instance key of each context is computed by calling BKE_node_instance_key given the key of
- * the parent as well as the group node making the context. */
-static const DTreeContext *find_active_context_recursive(const DTreeContext *context,
-                                                         bNodeInstanceKey key)
+/* Add the viewer node which is marked as NODE_DO_OUTPUT in the given context to the given stack.
+ * If multiple types of viewer nodes are marked, then the preference will be CMP_NODE_VIEWER >
+ * CMP_NODE_SPLITVIEWER. If no viewer nodes were found, composite nodes can be added as a fallback
+ * viewer node. */
+static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode> &node_stack)
 {
-  /* The instance key of the given context matches the active viewer instance key, so this is the
-   * active context, return it. */
-  if (key.value == context->derived_tree().root_context().btree().active_viewer_key.value) {
-    return context;
-  }
-
-  /* For each of the group nodes, compute their instance key and contexts and call this function
-   * recursively. */
-  for (const bNode *group_node : context->btree().group_nodes()) {
-    const bNodeInstanceKey child_key = BKE_node_instance_key(key, &context->btree(), group_node);
-    const DTreeContext *child_context = context->child_context(*group_node);
-    const DTreeContext *found_context = find_active_context_recursive(child_context, child_key);
-
-    /* If the found context is null, that means neither the child context nor one of its descendant
-     * contexts is active. */
-    if (!found_context) {
-      continue;
+  for (const bNode *node : context->btree().nodes_by_type("CompositorNodeViewer")) {
+    if (node->flag & NODE_DO_OUTPUT) {
+      node_stack.push(DNode(context, node));
+      return true;
     }
-
-    /* Otherwise, we have found our active context, return it. */
-    return found_context;
   }
 
-  /* Neither the given context nor one of its descendant contexts is active, so return null. */
-  return nullptr;
+  for (const bNode *node : context->btree().nodes_by_type("CompositorNodeSplitViewer")) {
+    if (node->flag & NODE_DO_OUTPUT) {
+      node_stack.push(DNode(context, node));
+      return true;
+    }
+  }
+
+  /* The active Composite node was already added, no need to add it again, see the next block. */
+  if (!node_stack.is_empty() && node_stack.peek()->type == CMP_NODE_COMPOSITE) {
+    return false;
+  }
+
+  /* No active viewers exist in this context, try to add the Composite node as a fallback viewer if
+   * it was not already added. */
+  for (const bNode *node : context->btree().nodes_by_type("CompositorNodeComposite")) {
+    if (node->flag & NODE_DO_OUTPUT) {
+      node_stack.push(DNode(context, node));
+      return true;
+    }
+  }
+
+  return false;
 }
 
-/* Find the active context for the given node tree. The active context represents the node tree
- * currently being edited. In most cases, that would be the top level node tree itself, but in the
- * case where the user is editing the node tree of a node group, the active context would be a
- * representation of the node tree of that node group. Note that the context also stores the group
- * node that the user selected to edit the node tree, so the context fully represents a particular
- * instance of the node group. */
-static const DTreeContext *find_active_context(const DerivedNodeTree &tree)
+/* Add the output nodes whose result should be computed to the given stack. This includes File
+ * Output, Composite, and Viewer nodes. Viewer nodes are a special case, as only the nodes that
+ * satisfies the requirements in the add_viewer_nodes_in_context function are added. First, the
+ * active context is searched for viewer nodes, if non were found, the root context is searched.
+ * For more information on what contexts mean here, see the DerivedNodeTree::active_context()
+ * function. */
+static void add_output_nodes(const Context &context,
+                             const DerivedNodeTree &tree,
+                             Stack<DNode> &node_stack)
 {
-  /* If the active viewer key is NODE_INSTANCE_KEY_NONE, that means it is not yet initialized and
-   * we return the root context in that case. See the find_active_context_recursive function. */
-  if (tree.root_context().btree().active_viewer_key.value == NODE_INSTANCE_KEY_NONE.value) {
-    return &tree.root_context();
-  }
+  const DTreeContext &root_context = tree.root_context();
 
-  /* The root context has an instance key of NODE_INSTANCE_KEY_BASE by definition. */
-  return find_active_context_recursive(&tree.root_context(), NODE_INSTANCE_KEY_BASE);
-}
-
-/* Return the output node which is marked as NODE_DO_OUTPUT. If multiple types of output nodes are
- * marked, then the preference will be CMP_NODE_VIEWER > CMP_NODE_SPLITVIEWER > CMP_NODE_COMPOSITE.
- * If no output node exists, a null node will be returned. */
-static DNode find_output_in_context(const DTreeContext *context)
-{
-  const bNodeTree &tree = context->btree();
-
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeViewer")) {
-    if (node->flag & NODE_DO_OUTPUT) {
-      return DNode(context, node);
+  /* Only add File Output nodes if the context supports them. */
+  if (context.use_file_output()) {
+    for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeOutputFile")) {
+      node_stack.push(DNode(&root_context, node));
     }
   }
 
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeSplitViewer")) {
-    if (node->flag & NODE_DO_OUTPUT) {
-      return DNode(context, node);
+  /* Only add the Composite output node if the context supports composite outputs. The active
+   * Composite node may still be added as a fallback viewer output below. */
+  if (context.use_composite_output()) {
+    for (const bNode *node : root_context.btree().nodes_by_type("CompositorNodeComposite")) {
+      if (node->flag & NODE_DO_OUTPUT) {
+        node_stack.push(DNode(&root_context, node));
+        break;
+      }
     }
   }
 
-  for (const bNode *node : tree.nodes_by_type("CompositorNodeComposite")) {
-    if (node->flag & NODE_DO_OUTPUT) {
-      return DNode(context, node);
-    }
+  const DTreeContext &active_context = tree.active_context();
+  const bool viewer_was_added = add_viewer_nodes_in_context(&active_context, node_stack);
+
+  /* An active viewer was added, no need to search further. */
+  if (viewer_was_added) {
+    return;
   }
 
-  return DNode();
-}
-
-/* Compute the output node whose result should be computed. This node is the output node that
- * satisfies the requirements in the find_output_in_context function. First, the active context is
- * searched for an output node, if non was found, the root context is search. For more information
- * on what contexts mean here, see the find_active_context function. */
-static DNode compute_output_node(const DerivedNodeTree &tree)
-{
-  const DTreeContext *active_context = find_active_context(tree);
-
-  const DNode node = find_output_in_context(active_context);
-  if (node) {
-    return node;
+  /* If the active context is the root one and no viewer nodes were found, we consider this node
+   * tree to have no viewer nodes, even if one of the non-active descendants have viewer nodes. */
+  if (active_context.is_root()) {
+    return;
   }
 
-  /* If the active context is the root one and no output node was found, we consider this node tree
-   * to have no output node, even if one of the non-active descendants have an output node. */
-  if (active_context->is_root()) {
-    return DNode();
-  }
-
-  /* The active context doesn't have an output node, search in the root context as a fallback. */
-  return find_output_in_context(&tree.root_context());
+  /* The active context doesn't have a viewer node, search in the root context as a fallback. */
+  add_viewer_nodes_in_context(&tree.root_context(), node_stack);
 }
 
 /* A type representing a mapping that associates each node with a heuristic estimation of the
@@ -175,12 +160,12 @@ using NeededBuffers = Map<DNode, int>;
  *   implementation because it rarely affects the output and is done by very few nodes.
  * - The compiler may decide to compiler the schedule differently depending on runtime information
  *   which we can merely speculate at scheduling-time as described above. */
-static NeededBuffers compute_number_of_needed_buffers(DNode output_node)
+static NeededBuffers compute_number_of_needed_buffers(Stack<DNode> &output_nodes)
 {
   NeededBuffers needed_buffers;
 
-  /* A stack of nodes used to traverse the node tree starting from the output node. */
-  Stack<DNode> node_stack = {output_node};
+  /* A stack of nodes used to traverse the node tree starting from the output nodes. */
+  Stack<DNode> node_stack = output_nodes;
 
   /* Traverse the node tree in a post order depth first manner and compute the number of needed
    * buffers for each node. Post order traversal guarantee that all the node dependencies of each
@@ -299,23 +284,23 @@ static NeededBuffers compute_number_of_needed_buffers(DNode output_node)
  * doesn't always guarantee an optimal evaluation order, as the optimal evaluation order is very
  * difficult to compute, however, this method works well in most cases. Moreover it assumes that
  * all buffers will have roughly the same size, which may not always be the case. */
-Schedule compute_schedule(const DerivedNodeTree &tree)
+Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree)
 {
   Schedule schedule;
 
-  /* Compute the output node whose result should be computed. */
-  const DNode output_node = compute_output_node(tree);
+  /* A stack of nodes used to traverse the node tree starting from the output nodes. */
+  Stack<DNode> node_stack;
 
-  /* No output node, the node tree has no effect, return an empty schedule. */
-  if (!output_node) {
+  /* Add the output nodes whose result should be computed to the stack. */
+  add_output_nodes(context, tree, node_stack);
+
+  /* No output nodes, the node tree has no effect, return an empty schedule. */
+  if (node_stack.is_empty()) {
     return schedule;
   }
 
-  /* Compute the number of buffers needed by each node connected to the output. */
-  const NeededBuffers needed_buffers = compute_number_of_needed_buffers(output_node);
-
-  /* A stack of nodes used to traverse the node tree starting from the output node. */
-  Stack<DNode> node_stack = {output_node};
+  /* Compute the number of buffers needed by each node connected to the outputs. */
+  const NeededBuffers needed_buffers = compute_number_of_needed_buffers(node_stack);
 
   /* Traverse the node tree in a post order depth first manner, scheduling the nodes in an order
    * informed by the number of buffers needed by each node. Post order traversal guarantee that all

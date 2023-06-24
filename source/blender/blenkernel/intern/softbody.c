@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright Blender Foundation */
+/* SPDX-FileCopyrightText: Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -972,7 +973,7 @@ static int query_external_colliders(Depsgraph *depsgraph, Collection *collection
 
 /* +++ the aabb "force" section. */
 static int sb_detect_aabb_collisionCached(float UNUSED(force[3]),
-                                          struct Object *vertexowner,
+                                          Object *vertexowner,
                                           float UNUSED(time))
 {
   Object *ob;
@@ -1035,7 +1036,7 @@ static int sb_detect_face_pointCached(const float face_v1[3],
                                       const float face_v3[3],
                                       float *damp,
                                       float force[3],
-                                      struct Object *vertexowner,
+                                      Object *vertexowner,
                                       float time)
 {
   Object *ob;
@@ -1134,7 +1135,7 @@ static int sb_detect_face_collisionCached(const float face_v1[3],
                                           const float face_v3[3],
                                           float *damp,
                                           float force[3],
-                                          struct Object *vertexowner,
+                                          Object *vertexowner,
                                           float time)
 {
   Object *ob;
@@ -1317,7 +1318,7 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
                                           const float edge_v2[3],
                                           float *damp,
                                           float force[3],
-                                          struct Object *vertexowner,
+                                          Object *vertexowner,
                                           float time)
 {
   Object *ob;
@@ -1429,7 +1430,7 @@ static int sb_detect_edge_collisionCached(const float edge_v1[3],
 }
 
 static void _scan_for_ext_spring_forces(
-    Scene *scene, Object *ob, float timenow, int ifirst, int ilast, struct ListBase *effectors)
+    Scene *scene, Object *ob, float timenow, int ifirst, int ilast, ListBase *effectors)
 {
   SoftBody *sb = ob->soft;
   int a;
@@ -1511,9 +1512,9 @@ static void *exec_scan_for_ext_spring_forces(void *data)
   return NULL;
 }
 
-static void sb_sfesf_threads_run(struct Depsgraph *depsgraph,
+static void sb_sfesf_threads_run(Depsgraph *depsgraph,
                                  Scene *scene,
-                                 struct Object *ob,
+                                 Object *ob,
                                  float timenow,
                                  int totsprings,
                                  int *UNUSED(ptr_to_break_func(void)))
@@ -1614,7 +1615,7 @@ static int sb_detect_vertex_collisionCached(float opco[3],
                                             float facenormal[3],
                                             float *damp,
                                             float force[3],
-                                            struct Object *vertexowner,
+                                            Object *vertexowner,
                                             float time,
                                             float vel[3],
                                             float *intrusion)
@@ -2194,7 +2195,7 @@ static void sb_cf_threads_run(Scene *scene,
                               float timenow,
                               int totpoint,
                               int *UNUSED(ptr_to_break_func(void)),
-                              struct ListBase *effectors,
+                              ListBase *effectors,
                               int do_deflector,
                               float fieldfactor,
                               float windfactor)
@@ -2257,7 +2258,7 @@ static void sb_cf_threads_run(Scene *scene,
 }
 
 static void softbody_calc_forces(
-    struct Depsgraph *depsgraph, Scene *scene, Object *ob, float forcetime, float timenow)
+    Depsgraph *depsgraph, Scene *scene, Object *ob, float forcetime, float timenow)
 {
   /* rule we never alter free variables :bp->vec bp->pos in here !
    * this will ruin adaptive stepsize AKA heun! (BM)
@@ -3346,7 +3347,7 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 }
 
 static void softbody_step(
-    struct Depsgraph *depsgraph, Scene *scene, Object *ob, SoftBody *sb, float dtime)
+    Depsgraph *depsgraph, Scene *scene, Object *ob, SoftBody *sb, float dtime)
 {
   /* the simulator */
   float forcetime;
@@ -3496,7 +3497,7 @@ static void softbody_step(
   }
 }
 
-static void sbStoreLastFrame(struct Depsgraph *depsgraph, Object *object, float framenr)
+static void sbStoreLastFrame(Depsgraph *depsgraph, Object *object, float framenr)
 {
   if (!DEG_is_active(depsgraph)) {
     return;
@@ -3506,7 +3507,7 @@ static void sbStoreLastFrame(struct Depsgraph *depsgraph, Object *object, float 
   object_orig->soft->last_frame = framenr;
 }
 
-void sbObjectStep(struct Depsgraph *depsgraph,
+void sbObjectStep(Depsgraph *depsgraph,
                   Scene *scene,
                   Object *ob,
                   float cfra,

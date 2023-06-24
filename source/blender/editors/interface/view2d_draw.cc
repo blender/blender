@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edinterface
@@ -446,8 +447,8 @@ static void view_to_string__value(
 /* Grid Resolution API
  **************************************************/
 
-float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
-                                                     const struct Scene *scene,
+float UI_view2d_grid_resolution_x__frames_or_seconds(const View2D *v2d,
+                                                     const Scene *scene,
                                                      bool display_seconds)
 {
   if (display_seconds) {
@@ -456,7 +457,7 @@ float UI_view2d_grid_resolution_x__frames_or_seconds(const struct View2D *v2d,
   return view2d_major_step_x__continuous(v2d);
 }
 
-float UI_view2d_grid_resolution_y__values(const struct View2D *v2d)
+float UI_view2d_grid_resolution_y__values(const View2D *v2d)
 {
   return view2d_major_step_y__continuous(v2d);
 }
@@ -567,10 +568,10 @@ void UI_view2d_draw_scale_y__block(const ARegion *region,
       region, v2d, 1.0f, 0.5f, rect, view_to_string__value, nullptr, colorid);
 }
 
-void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *region,
-                                                        const struct View2D *v2d,
-                                                        const struct rcti *rect,
-                                                        const struct Scene *scene,
+void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const ARegion *region,
+                                                        const View2D *v2d,
+                                                        const rcti *rect,
+                                                        const Scene *scene,
                                                         bool display_seconds,
                                                         int colorid)
 {
@@ -582,10 +583,10 @@ void UI_view2d_draw_scale_x__discrete_frames_or_seconds(const struct ARegion *re
   }
 }
 
-void UI_view2d_draw_scale_x__frames_or_seconds(const struct ARegion *region,
-                                               const struct View2D *v2d,
-                                               const struct rcti *rect,
-                                               const struct Scene *scene,
+void UI_view2d_draw_scale_x__frames_or_seconds(const ARegion *region,
+                                               const View2D *v2d,
+                                               const rcti *rect,
+                                               const Scene *scene,
                                                bool display_seconds,
                                                int colorid)
 {

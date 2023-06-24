@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Object Primitive
  *
@@ -197,8 +198,14 @@ ccl_device_inline void object_normal_transform(KernelGlobals kg,
   }
 #endif
 
-  Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
-  *N = normalize(transform_direction_transposed(&tfm, *N));
+  if (sd->object != OBJECT_NONE) {
+    Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+    *N = normalize(transform_direction_transposed(&tfm, *N));
+  }
+  else if (sd->type == PRIMITIVE_LAMP) {
+    Transform tfm = lamp_fetch_transform(kg, sd->lamp, true);
+    *N = normalize(transform_direction_transposed(&tfm, *N));
+  }
 }
 
 ccl_device_inline bool object_negative_scale_applied(const int object_flag)
@@ -288,7 +295,7 @@ ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
   return kernel_data_fetch(objects, object).pass_id;
 }
 
-/* Lightgroup of lamp */
+/* Light-group of lamp. */
 
 ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
 {
@@ -298,7 +305,7 @@ ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
   return kernel_data_fetch(lights, lamp).lightgroup;
 }
 
-/* Lightgroup of object */
+/* Light-group of object. */
 
 ccl_device_inline int object_lightgroup(KernelGlobals kg, int object)
 {

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -130,11 +131,12 @@ static void wm_block_splash_image_roundcorners_add(ImBuf *ibuf)
 
 static ImBuf *wm_block_splash_image(int width, int *r_height)
 {
+  ImBuf *ibuf = NULL;
+  int height = 0;
 #ifndef WITH_HEADLESS
   extern char datatoc_splash_png[];
   extern int datatoc_splash_png_size;
 
-  ImBuf *ibuf = NULL;
   if (U.app_template[0] != '\0') {
     char splash_filepath[FILE_MAX];
     char template_directory[FILE_MAX];
@@ -152,7 +154,6 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     ibuf = IMB_ibImageFromMemory(splash_data, splash_data_size, IB_rect, NULL, "<splash screen>");
   }
 
-  int height = 0;
   if (ibuf) {
     height = (width * ibuf->y) / ibuf->x;
     if (width != ibuf->x || height != ibuf->y) {
@@ -163,13 +164,11 @@ static ImBuf *wm_block_splash_image(int width, int *r_height)
     IMB_premultiply_alpha(ibuf);
   }
 
-  *r_height = height;
-
-  return ibuf;
 #else
-  UNUSED_VARS(width, r_height);
-  return NULL;
+  UNUSED_VARS(width);
 #endif
+  *r_height = height;
+  return ibuf;
 }
 
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSED(arg))
@@ -192,16 +191,18 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *region, void *UNUSE
   /* Would be nice to support caching this, so it only has to be re-read (and likely resized) on
    * first draw or if the image changed. */
   ImBuf *ibuf = wm_block_splash_image(splash_width, &splash_height);
+  /* This should never happen, if it does - don't crash. */
+  if (LIKELY(ibuf)) {
+    uiBut *but = uiDefButImage(
+        block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
 
-  uiBut *but = uiDefButImage(
-      block, ibuf, 0, 0.5f * U.widget_unit, splash_width, splash_height, NULL);
+    UI_but_func_set(but, wm_block_close, block, NULL);
 
-  UI_but_func_set(but, wm_block_close, block, NULL);
-
-  wm_block_splash_add_label(block,
-                            BKE_blender_version_string(),
-                            splash_width - 8.0 * UI_SCALE_FAC,
-                            splash_height - 13.0 * UI_SCALE_FAC);
+    wm_block_splash_add_label(block,
+                              BKE_blender_version_string(),
+                              splash_width - 8.0 * UI_SCALE_FAC,
+                              splash_height - 13.0 * UI_SCALE_FAC);
+  }
 
   const int layout_margin_x = UI_SCALE_FAC * 26;
   uiLayout *layout = UI_block_layout(block,

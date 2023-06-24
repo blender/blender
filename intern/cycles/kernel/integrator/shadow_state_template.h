@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /********************************* Shadow Path State **************************/
 
@@ -50,6 +51,7 @@ KERNEL_STRUCT_MEMBER(shadow_path,
 #else
 KERNEL_STRUCT_MEMBER(shadow_path, uint64_t, path_segment, KERNEL_FEATURE_PATH_GUIDING)
 #endif
+KERNEL_STRUCT_MEMBER(shadow_path, float, guiding_mis_weight, KERNEL_FEATURE_PATH_GUIDING)
 KERNEL_STRUCT_END(shadow_path)
 
 /********************************** Shadow Ray *******************************/
@@ -61,7 +63,7 @@ KERNEL_STRUCT_MEMBER(shadow_ray, float, tmin, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, tmax, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, time, KERNEL_FEATURE_PATH_TRACING)
 KERNEL_STRUCT_MEMBER(shadow_ray, float, dP, KERNEL_FEATURE_PATH_TRACING)
-KERNEL_STRUCT_MEMBER(shadow_ray, int, object, KERNEL_FEATURE_PATH_TRACING)
+KERNEL_STRUCT_MEMBER(shadow_ray, int, self_light, KERNEL_FEATURE_SHADOW_LINKING)
 KERNEL_STRUCT_END(shadow_ray)
 
 /*********************** Shadow Intersection result **************************/

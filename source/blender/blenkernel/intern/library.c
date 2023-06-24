@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -67,7 +68,7 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     return;
   }
 
-  if (BKE_bpath_foreach_path_fixed_process(bpath_data, lib->filepath)) {
+  if (BKE_bpath_foreach_path_fixed_process(bpath_data, lib->filepath, sizeof(lib->filepath))) {
     BKE_library_filepath_set(bpath_data->bmain, lib, lib->filepath);
   }
 }

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "testing/testing.h"
 
@@ -145,6 +147,22 @@ TEST_F(ply_import_test, PlyImportColorNotFull)
   Expectation expect = {4, 1, 4, 0, 37235, 0, float3(1, 0, 1), float3(-1, 0, 1)};
   import_and_check("color_not_full_a.ply", expect);
   import_and_check("color_not_full_b.ply", expect);
+}
+
+TEST_F(ply_import_test, PlyImportCustomDataElements)
+{
+  Expectation expect = {600,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        float3(-0.78193f, 0.40659f, -1),
+                        float3(-0.75537f, 1, -0.24777f),
+                        float3(0, 0, 0),
+                        float2(0, 0),
+                        float4(0.31373f, 0, 0, 1)};
+  import_and_check("custom_data_elements.ply", expect);
 }
 
 TEST_F(ply_import_test, PlyImportDoubleXYZ)

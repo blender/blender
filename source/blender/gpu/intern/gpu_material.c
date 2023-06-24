@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2006 Blender Foundation */
+/* SPDX-FileCopyrightText: 2006 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -586,9 +587,9 @@ bool GPU_material_sss_profile_create(GPUMaterial *material, float radii[3])
   return true;
 }
 
-struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
-                                                   int sample_len,
-                                                   GPUTexture **tex_profile)
+GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
+                                            int sample_len,
+                                            GPUTexture **tex_profile)
 {
   if (!material->sss_enabled) {
     return NULL;
@@ -629,7 +630,7 @@ struct GPUUniformBuf *GPU_material_sss_profile_get(GPUMaterial *material,
   return material->sss_profile;
 }
 
-struct GPUUniformBuf *GPU_material_create_sss_profile_ubo(void)
+GPUUniformBuf *GPU_material_create_sss_profile_ubo(void)
 {
   return GPU_uniformbuf_create(sizeof(GPUSssKernelData));
 }

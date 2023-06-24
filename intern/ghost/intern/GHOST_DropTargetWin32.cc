@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -269,10 +270,11 @@ void *GHOST_DropTargetWin32::getDropDataAsString(IDataObject *p_data_object)
   if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
     if (p_data_object->GetData(&fmtetc, &stgmed) == S_OK) {
       char *str = (char *)::GlobalLock(stgmed.hGlobal);
+      int str_size = ::strlen(str) + 1;
 
-      tmp_string = (char *)::malloc(::strlen(str) + 1);
+      tmp_string = (char *)::malloc(str_size);
       if (tmp_string) {
-        ::strcpy(tmp_string, str);
+        ::memcpy(tmp_string, str, str_size);
       }
       /* Free memory. */
       ::GlobalUnlock(stgmed.hGlobal);

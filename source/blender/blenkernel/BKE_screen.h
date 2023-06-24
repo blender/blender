@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
 /** \file
@@ -47,7 +48,7 @@ struct wmWindow;
 struct wmWindowManager;
 
 /* spacetype has everything stored to get an editor working, it gets initialized via
- * #ED_spacetypes_init() in `editors/space_api/spacetypes.c` */
+ * #ED_spacetypes_init() in `editors/space_api/spacetypes.cc` */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
 #define BKE_ST_MAXNAME 64
@@ -254,7 +255,7 @@ typedef struct PanelType {
 
   char idname[BKE_ST_MAXNAME]; /* unique name */
   char label[BKE_ST_MAXNAME];  /* for panel header */
-  char *description;           /* for panel tooltip */
+  const char *description;     /* for panel tooltip */
   char translation_context[BKE_ST_MAXNAME];
   char context[BKE_ST_MAXNAME];   /* for buttons window */
   char category[BKE_ST_MAXNAME];  /* for category tabs */

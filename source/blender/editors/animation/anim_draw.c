@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edanimation
@@ -559,7 +560,7 @@ float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short flag
   return 1.0f;
 }
 
-static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_prevfra)
+static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra)
 {
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -656,7 +657,7 @@ static bool find_prev_next_keyframes(struct bContext *C, int *r_nextfra, int *r_
   return false;
 }
 
-void ANIM_center_frame(struct bContext *C, int smooth_viewtx)
+void ANIM_center_frame(bContext *C, int smooth_viewtx)
 {
   ARegion *region = CTX_wm_region(C);
   Scene *scene = CTX_data_scene(C);

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
 #include "BLI_array_utils.hh"
@@ -204,7 +206,7 @@ BLI_NOINLINE static bke::CurvesGeometry edges_to_curves_convert(
 
 bke::CurvesGeometry mesh_to_curve_convert(
     const Mesh &mesh,
-    const IndexMask selection,
+    const IndexMask &selection,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
   const Span<int2> edges = mesh.edges();

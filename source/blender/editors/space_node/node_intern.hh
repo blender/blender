@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2008 Blender Foundation */
+/* SPDX-FileCopyrightText: 2008 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup spnode
@@ -182,7 +183,7 @@ void node_keymap(wmKeyConfig *keyconf);
 
 /* node_select.cc */
 
-rctf node_frame_rect_inside(const bNode &node);
+rctf node_frame_rect_inside(const SpaceNode &snode, const bNode &node);
 bool node_or_socket_isect_event(const bContext &C, const wmEvent &event);
 
 void node_deselect_all(bNodeTree &node_tree);
@@ -222,7 +223,10 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 /* drawnode.cc */
 
-NodeResizeDirection node_get_resize_direction(const bNode *node, int x, int y);
+NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
+                                              const bNode *node,
+                                              int x,
+                                              int y);
 
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);
@@ -290,6 +294,7 @@ void NODE_OT_group_edit(wmOperatorType *ot);
 /* node_relationships.cc */
 
 void update_multi_input_indices_for_removed_links(bNode &node);
+bool all_links_muted(const bNodeSocket &socket);
 
 void NODE_OT_link(wmOperatorType *ot);
 void NODE_OT_link_make(wmOperatorType *ot);
@@ -323,13 +328,15 @@ bool composite_node_active(bContext *C);
 bool composite_node_editable(bContext *C);
 
 bool node_has_hidden_sockets(bNode *node);
-void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set);
+void node_set_hidden_sockets(bNode *node, int set);
 int node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         const float2 &cursor,
                                         eNodeSocketInOut in_out);
 float node_link_dim_factor(const View2D &v2d, const bNodeLink &link);
 bool node_link_is_hidden_or_dimmed(const View2D &v2d, const bNodeLink &link);
+
+void remap_node_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &node_map);
 
 void NODE_OT_duplicate(wmOperatorType *ot);
 void NODE_OT_delete(wmOperatorType *ot);

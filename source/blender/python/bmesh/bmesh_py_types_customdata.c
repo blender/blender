@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pybmesh
@@ -87,9 +88,6 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__deform_doc,
 PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__shape_doc,
     "Vertex shapekey absolute location (as a 3D Vector).\n\n:type: :class:`BMLayerCollection`");
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__crease_doc,
-             "Crease for subdivision surface - float in [0 - 1].\n\n:type: "
-             ":class:`BMLayerCollection`");
 PyDoc_STRVAR(
     bpy_bmlayeraccess_collection__uv_doc,
     "Accessor for :class:`BMLoopUV` UV (as a 2D Vector).\n\ntype: :class:`BMLayerCollection`");
@@ -97,8 +95,6 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__skin_doc,
              "Accessor for skin layer.\n\ntype: :class:`BMLayerCollection`");
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__paint_mask_doc,
              "Accessor for paint mask layer.\n\ntype: :class:`BMLayerCollection`");
-PyDoc_STRVAR(bpy_bmlayeraccess_collection__face_map_doc,
-             "FaceMap custom-data layer.\n\ntype: :class:`BMLayerCollection`");
 #ifdef WITH_FREESTYLE
 PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_edge_doc,
              "Accessor for Freestyle edge layer.\n\ntype: :class:`BMLayerCollection`");
@@ -203,11 +199,6 @@ static PyGetSetDef bpy_bmlayeraccess_vert_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__shape_doc,
      (void *)CD_SHAPEKEY},
-    {"crease",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter)NULL,
-     bpy_bmlayeraccess_collection__crease_doc,
-     (void *)CD_CREASE},
     {"skin",
      (getter)bpy_bmlayeraccess_collection_get,
      (setter)NULL,
@@ -253,12 +244,6 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__string_doc,
      (void *)CD_PROP_STRING},
-
-    {"crease",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter)NULL,
-     bpy_bmlayeraccess_collection__crease_doc,
-     (void *)CD_CREASE},
 #ifdef WITH_FREESTYLE
     {"freestyle",
      (getter)bpy_bmlayeraccess_collection_get,
@@ -266,7 +251,6 @@ static PyGetSetDef bpy_bmlayeraccess_edge_getseters[] = {
      bpy_bmlayeraccess_collection__freestyle_edge_doc,
      (void *)CD_FREESTYLE_EDGE},
 #endif
-
     {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
@@ -301,11 +285,6 @@ static PyGetSetDef bpy_bmlayeraccess_face_getseters[] = {
      (setter)NULL,
      bpy_bmlayeraccess_collection__string_doc,
      (void *)CD_PROP_STRING},
-    {"face_map",
-     (getter)bpy_bmlayeraccess_collection_get,
-     (setter)NULL,
-     bpy_bmlayeraccess_collection__face_map_doc,
-     (void *)CD_FACEMAP},
 
 #ifdef WITH_FREESTYLE
     {"freestyle",
@@ -679,12 +658,12 @@ static PyObject *bpy_bmlayercollection_get(BPy_BMLayerCollection *self, PyObject
   return Py_INCREF_RET(def);
 }
 
-static struct PyMethodDef bpy_bmlayeritem_methods[] = {
+static PyMethodDef bpy_bmlayeritem_methods[] = {
     {"copy_from", (PyCFunction)bpy_bmlayeritem_copy_from, METH_O, bpy_bmlayeritem_copy_from_doc},
     {NULL, NULL, 0, NULL},
 };
 
-static struct PyMethodDef bpy_bmelemseq_methods[] = {
+static PyMethodDef bpy_bmelemseq_methods[] = {
     {"verify",
      (PyCFunction)bpy_bmlayercollection_verify,
      METH_NOARGS,
@@ -1114,8 +1093,7 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
       ret = PyFloat_FromDouble(*(float *)value);
       break;
     }
-    case CD_PROP_INT32:
-    case CD_FACEMAP: {
+    case CD_PROP_INT32: {
       ret = PyLong_FromLong(*(int *)value);
       break;
     }
@@ -1146,10 +1124,6 @@ PyObject *BPy_BMLayerItem_GetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer)
     }
     case CD_SHAPEKEY: {
       ret = Vector_CreatePyObject_wrap((float *)value, 3, NULL);
-      break;
-    }
-    case CD_CREASE: {
-      ret = PyFloat_FromDouble(*(float *)value);
       break;
     }
     case CD_MVERT_SKIN: {
@@ -1193,8 +1167,7 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       }
       break;
     }
-    case CD_PROP_INT32:
-    case CD_FACEMAP: {
+    case CD_PROP_INT32: {
       const int tmp_val = PyC_Long_AsI32(py_value);
       if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
         /* error is set */
@@ -1256,18 +1229,6 @@ int BPy_BMLayerItem_SetItem(BPy_BMElem *py_ele, BPy_BMLayerItem *py_layer, PyObj
       }
       else {
         copy_v3_v3((float *)value, tmp_val);
-      }
-      break;
-    }
-    case CD_CREASE: {
-      const float tmp_val = PyFloat_AsDouble(py_value);
-      if (UNLIKELY(tmp_val == -1 && PyErr_Occurred())) {
-        PyErr_Format(
-            PyExc_TypeError, "expected a float, not a %.200s", Py_TYPE(py_value)->tp_name);
-        ret = -1;
-      }
-      else {
-        *(float *)value = clamp_f(tmp_val, 0.0f, 1.0f);
       }
       break;
     }

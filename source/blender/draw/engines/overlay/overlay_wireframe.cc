@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2019 Blender Foundation. */
+/* SPDX-FileCopyrightText: 2019 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw_engine
@@ -153,7 +154,7 @@ static void wireframe_hair_cache_populate(OVERLAY_Data *vedata, Object *ob, Part
     unit_m4(dupli_mat);
   }
 
-  struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+  GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
 
   const bool use_coloring = true;
   DRWShadingGroup *shgrp = DRW_shgroup_create_sub(pd->wires_hair_grp[is_xray][use_coloring]);
@@ -213,7 +214,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
     float *color;
     DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-    struct GPUBatch *geom = nullptr;
+    GPUBatch *geom = nullptr;
     switch (ob->type) {
       case OB_CURVES_LEGACY:
         geom = DRW_cache_curve_edge_wire_get(ob);
@@ -272,7 +273,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
       OVERLAY_ExtraCallBuffers *cb = OVERLAY_extra_call_buffer_get(vedata, ob);
       DRW_object_wire_theme_get(ob, draw_ctx->view_layer, &color);
 
-      struct GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
+      GPUBatch *geom = DRW_cache_object_face_wireframe_get(ob);
       if (geom) {
         OVERLAY_extra_loose_points(cb, geom, ob->object_to_world, color);
       }
@@ -281,7 +282,7 @@ void OVERLAY_wireframe_cache_populate(OVERLAY_Data *vedata,
   }
 
   DRWShadingGroup *shgrp = nullptr;
-  struct GPUBatch *geom = nullptr;
+  GPUBatch *geom = nullptr;
 
   /* Don't do that in edit Mesh mode, unless there is a modifier preview. */
   if (use_wire && (!is_mesh || (!is_edit_mode || has_edit_mesh_cage))) {

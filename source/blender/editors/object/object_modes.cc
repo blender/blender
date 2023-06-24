@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edobj
@@ -82,6 +84,11 @@ static const char *object_mode_op_string(eObjectMode mode)
   if (mode == OB_MODE_EDIT_GPENCIL) {
     return "GPENCIL_OT_editmode_toggle";
   }
+  if (U.experimental.use_grease_pencil_version3) {
+    if (mode == OB_MODE_PAINT_GPENCIL) {
+      return "GREASE_PENCIL_OT_draw_mode_toggle";
+    }
+  }
   if (mode == OB_MODE_PAINT_GPENCIL) {
     return "GPENCIL_OT_paintmode_toggle";
   }
@@ -144,6 +151,11 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
       break;
     case OB_CURVES:
       if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT_CURVES)) {
+        return true;
+      }
+      break;
+    case OB_GREASE_PENCIL:
+      if (mode & (OB_MODE_EDIT | OB_MODE_PAINT_GPENCIL)) {
         return true;
       }
       break;

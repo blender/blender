@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edtransform
@@ -42,7 +43,7 @@
 #include "transform_convert.h"
 
 typedef struct BoneInitData {
-  struct EditBone *bone;
+  EditBone *bone;
   float tail[3];
   float rad_head;
   float rad_tail;
@@ -463,7 +464,7 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
 typedef struct PoseInitData_Mirror {
   /** Points to the bone which this info is initialized & restored to.
    * A NULL value is used to terminate the array. */
-  struct bPoseChannel *pchan;
+  bPoseChannel *pchan;
   struct {
     float loc[3];
     float size[3];
@@ -1716,7 +1717,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
         /* when running transform non-interactively (operator exec),
          * we need to update the pose otherwise no updates get called during
          * transform and the auto-ik is not applied. see #26164. */
-        struct Object *pose_ob = tc->poseobj;
+        Object *pose_ob = tc->poseobj;
         BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
       }
 
@@ -1740,7 +1741,7 @@ static void special_aftertrans_update__pose(bContext *C, TransInfo *t)
       }
 
       if (t->mode == TFM_TRANSLATION) {
-        struct Main *bmain = CTX_data_main(t->context);
+        Main *bmain = CTX_data_main(t->context);
         pose_grab_with_ik_clear(bmain, ob);
       }
 

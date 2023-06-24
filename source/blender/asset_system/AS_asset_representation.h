@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup asset_system
@@ -7,6 +9,8 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
+
+#include "DNA_ID_enums.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +24,8 @@ typedef struct AssetRepresentation AssetRepresentation;
 
 const char *AS_asset_representation_name_get(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
+ID_Type AS_asset_representation_id_type_get(const AssetRepresentation *asset)
+    ATTR_WARN_UNUSED_RESULT;
 AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
 struct ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset)
@@ -27,6 +33,9 @@ struct ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset
 bool AS_asset_representation_is_local_id(const AssetRepresentation *asset) ATTR_WARN_UNUSED_RESULT;
 bool AS_asset_representation_is_never_link(const AssetRepresentation *asset)
     ATTR_WARN_UNUSED_RESULT;
+
+bool AS_asset_representation_may_override_import_method(const AssetRepresentation *asset);
+bool AS_asset_representation_use_relative_path_get(const AssetRepresentation *asset);
 
 /**
  * C version of #AssetRepresentation::make_weak_reference. Returned pointer needs freeing with

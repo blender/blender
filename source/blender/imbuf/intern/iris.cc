@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup imbuf
@@ -200,7 +201,7 @@ static void readtab(MFileOffset *inf, uint *tab, int len)
   }
 }
 
-static void test_endian_zbuf(struct ImBuf *ibuf)
+static void test_endian_zbuf(ImBuf *ibuf)
 {
   int len;
   int *zval;
@@ -237,7 +238,7 @@ bool imb_is_a_iris(const uchar *mem, size_t size)
   return ((GS(mem) == IMAGIC) || (GSS(mem) == IMAGIC));
 }
 
-struct ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
+ImBuf *imb_loadiris(const uchar *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {
   uint *base, *lptr = nullptr;
   float *fbase, *fptr = nullptr;
@@ -960,7 +961,7 @@ static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int 
   return optr - (uchar *)rlebuf;
 }
 
-bool imb_saveiris(struct ImBuf *ibuf, const char *filepath, int flags)
+bool imb_saveiris(ImBuf *ibuf, const char *filepath, int flags)
 {
   short zsize;
 

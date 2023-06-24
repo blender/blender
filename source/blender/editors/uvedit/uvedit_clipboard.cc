@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup eduv
@@ -86,7 +87,7 @@ static int iso_index_for_loop(const BMLoop *loop,
                               UvElementMap *element_map,
                               const int island_index)
 {
-  UvElement *element = BM_uv_element_get(element_map, loop->f, loop);
+  UvElement *element = BM_uv_element_get(element_map, loop);
   if (!element) {
     return -1; /* Either unselected, or a different island. */
   }

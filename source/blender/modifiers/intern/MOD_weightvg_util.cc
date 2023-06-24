@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 by Bastien Montagne. All rights reserved. */
+/* SPDX-FileCopyrightText: 2011 by Bastien Montagne. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup modifiers
@@ -25,6 +26,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
+#include "BKE_scene.h"
 #include "BKE_texture.h" /* Texture masking. */
 
 #include "UI_interface.h"
@@ -159,11 +161,10 @@ void weightvg_do_mask(const ModifierEvalContext *ctx,
       int idx = indices ? indices[i] : i;
       TexResult texres;
       float hsv[3]; /* For HSV color space. */
-      bool do_color_manage;
+      bool do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT &&
+                             BKE_scene_check_color_management_enabled(scene);
 
-      do_color_manage = tex_use_channel != MOD_WVG_MASK_TEX_USE_INT;
-
-      BKE_texture_get_value(scene, texture, tex_co[idx], &texres, do_color_manage);
+      BKE_texture_get_value(texture, tex_co[idx], &texres, do_color_manage);
       /* Get the good channel value... */
       switch (tex_use_channel) {
         case MOD_WVG_MASK_TEX_USE_INT:

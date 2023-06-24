@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * This file implements the evaluation of a lazy-function graph. It's main objectives are:
@@ -1447,6 +1449,22 @@ void *GraphExecutor::init_storage(LinearAllocator<> &allocator) const
 void GraphExecutor::destruct_storage(void *storage) const
 {
   std::destroy_at(static_cast<Executor *>(storage));
+}
+
+std::string GraphExecutor::input_name(const int index) const
+{
+  const lf::OutputSocket &socket = *graph_inputs_[index];
+  std::stringstream ss;
+  ss << socket.node().name() << " - " << socket.name();
+  return ss.str();
+}
+
+std::string GraphExecutor::output_name(const int index) const
+{
+  const lf::InputSocket &socket = *graph_outputs_[index];
+  std::stringstream ss;
+  ss << socket.node().name() << " - " << socket.name();
+  return ss.str();
 }
 
 void GraphExecutorLogger::log_socket_value(const Socket &socket,

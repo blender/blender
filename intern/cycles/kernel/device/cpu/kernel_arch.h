@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /* Templated common declaration part of all CPU kernels. */
 
@@ -28,11 +29,13 @@ KERNEL_INTEGRATOR_SHADE_FUNCTION(intersect_closest);
 KERNEL_INTEGRATOR_FUNCTION(intersect_shadow);
 KERNEL_INTEGRATOR_FUNCTION(intersect_subsurface);
 KERNEL_INTEGRATOR_FUNCTION(intersect_volume_stack);
+KERNEL_INTEGRATOR_FUNCTION(intersect_dedicated_light);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_background);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_light);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_shadow);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_surface);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_volume);
+KERNEL_INTEGRATOR_SHADE_FUNCTION(shade_dedicated_light);
 KERNEL_INTEGRATOR_SHADE_FUNCTION(megakernel);
 
 #undef KERNEL_INTEGRATOR_FUNCTION

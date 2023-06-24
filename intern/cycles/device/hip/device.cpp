@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/hip/device.h"
 
@@ -155,6 +156,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
 
     info.has_nanovdb = true;
     info.has_light_tree = true;
+    info.has_mnee = true;
     info.denoisers = 0;
 
     info.has_gpu_queue = true;

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bmesh
@@ -159,7 +161,9 @@ void BM_mesh_wireframe(BMesh *bm,
   const float ofs_new = offset + ofs_orig;
   const float ofs_mid = (ofs_orig + ofs_new) / 2.0f;
   const float inset = offset / 2.0f;
-  int cd_edge_crease_offset = use_crease ? CustomData_get_offset(&bm->edata, CD_CREASE) : -1;
+  int cd_edge_crease_offset = use_crease ? CustomData_get_offset_named(
+                                               &bm->edata, CD_PROP_FLOAT, "crease_edge") :
+                                           -1;
   const int cd_dvert_offset = (defgrp_index != -1) ?
                                   CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT) :
                                   -1;
@@ -198,8 +202,8 @@ void BM_mesh_wireframe(BMesh *bm,
   int i;
 
   if (use_crease && cd_edge_crease_offset == -1) {
-    BM_data_layer_add(bm, &bm->edata, CD_CREASE);
-    cd_edge_crease_offset = CustomData_get_offset(&bm->edata, CD_CREASE);
+    BM_data_layer_add_named(bm, &bm->edata, CD_PROP_FLOAT, "crease_edge");
+    cd_edge_crease_offset = CustomData_get_offset_named(&bm->edata, CD_PROP_FLOAT, "crease_edge");
   }
 
   BM_ITER_MESH_INDEX (v_src, &iter, bm, BM_VERTS_OF_MESH, i) {

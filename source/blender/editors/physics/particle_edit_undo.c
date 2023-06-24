@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 by Janne Karhu. All rights reserved. */
+/* SPDX-FileCopyrightText: 2007 by Janne Karhu. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edphys
@@ -207,7 +208,7 @@ typedef struct ParticleUndoStep {
   PTCacheUndo data;
 } ParticleUndoStep;
 
-static bool particle_undosys_poll(struct bContext *C)
+static bool particle_undosys_poll(bContext *C)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   Scene *scene = CTX_data_scene(C);
@@ -219,9 +220,7 @@ static bool particle_undosys_poll(struct bContext *C)
   return (edit != NULL);
 }
 
-static bool particle_undosys_step_encode(struct bContext *C,
-                                         struct Main *UNUSED(bmain),
-                                         UndoStep *us_p)
+static bool particle_undosys_step_encode(bContext *C, struct Main *UNUSED(bmain), UndoStep *us_p)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;
@@ -234,7 +233,7 @@ static bool particle_undosys_step_encode(struct bContext *C,
   return true;
 }
 
-static void particle_undosys_step_decode(struct bContext *C,
+static void particle_undosys_step_decode(bContext *C,
                                          struct Main *UNUSED(bmain),
                                          UndoStep *us_p,
                                          const eUndoStepDir UNUSED(dir),

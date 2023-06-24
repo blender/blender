@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 Blender Foundation, Joshua Leung. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 Blender Foundation, Joshua Leung. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -348,8 +349,8 @@ NlaTrack *BKE_nlatrack_new(void)
 }
 
 void BKE_nlatrack_insert_before(ListBase *nla_tracks,
-                                struct NlaTrack *next,
-                                struct NlaTrack *new_track,
+                                NlaTrack *next,
+                                NlaTrack *new_track,
                                 bool is_liboverride)
 {
 
@@ -366,7 +367,7 @@ void BKE_nlatrack_insert_before(ListBase *nla_tracks,
   new_track->index = BLI_findindex(nla_tracks, new_track);
 
   /* Must have unique name, but we need to seed this. */
-  strcpy(new_track->name, "NlaTrack");
+  STRNCPY(new_track->name, "NlaTrack");
 
   BLI_uniquename(nla_tracks,
                  new_track,
@@ -377,8 +378,8 @@ void BKE_nlatrack_insert_before(ListBase *nla_tracks,
 }
 
 void BKE_nlatrack_insert_after(ListBase *nla_tracks,
-                               struct NlaTrack *prev,
-                               struct NlaTrack *new_track,
+                               NlaTrack *prev,
+                               NlaTrack *new_track,
                                const bool is_liboverride)
 {
   BLI_assert(nla_tracks);
@@ -417,7 +418,7 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
                  sizeof(new_track->name));
 }
 
-NlaTrack *BKE_nlatrack_new_before(ListBase *nla_tracks, struct NlaTrack *next, bool is_liboverride)
+NlaTrack *BKE_nlatrack_new_before(ListBase *nla_tracks, NlaTrack *next, bool is_liboverride)
 {
   NlaTrack *new_track = BKE_nlatrack_new();
 
@@ -426,7 +427,7 @@ NlaTrack *BKE_nlatrack_new_before(ListBase *nla_tracks, struct NlaTrack *next, b
   return new_track;
 }
 
-NlaTrack *BKE_nlatrack_new_after(ListBase *nla_tracks, struct NlaTrack *prev, bool is_liboverride)
+NlaTrack *BKE_nlatrack_new_after(ListBase *nla_tracks, NlaTrack *prev, bool is_liboverride)
 {
   NlaTrack *new_track = BKE_nlatrack_new();
 
@@ -578,13 +579,13 @@ void BKE_nla_strip_foreach_id(NlaStrip *strip, LibraryForeachIDData *data)
 
 /* Removing ------------------------------------------ */
 
-void BKE_nlatrack_remove(ListBase *tracks, struct NlaTrack *nlt)
+void BKE_nlatrack_remove(ListBase *tracks, NlaTrack *nlt)
 {
   BLI_assert(tracks);
   BLI_remlink(tracks, nlt);
 }
 
-void BKE_nlatrack_remove_and_free(ListBase *tracks, struct NlaTrack *nlt, bool do_id_user)
+void BKE_nlatrack_remove_and_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user)
 {
   BKE_nlatrack_remove(tracks, nlt);
   BKE_nlatrack_free(nlt, do_id_user);
@@ -1357,7 +1358,7 @@ float BKE_nlastrip_compute_frame_to_next_strip(NlaStrip *strip)
   return limit_next;
 }
 
-NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitions)
+NlaStrip *BKE_nlastrip_next_in_track(NlaStrip *strip, bool skip_transitions)
 {
   NlaStrip *next = strip->next;
   while (next != NULL) {
@@ -1371,7 +1372,7 @@ NlaStrip *BKE_nlastrip_next_in_track(struct NlaStrip *strip, bool skip_transitio
   return NULL;
 }
 
-NlaStrip *BKE_nlastrip_prev_in_track(struct NlaStrip *strip, bool skip_transitions)
+NlaStrip *BKE_nlastrip_prev_in_track(NlaStrip *strip, bool skip_transitions)
 {
   NlaStrip *prev = strip->prev;
   while (prev != NULL) {
@@ -2444,7 +2445,7 @@ void BKE_nla_blend_read_lib(BlendLibReader *reader, ID *id, ListBase *tracks)
   }
 }
 
-void BKE_nla_blend_read_expand(struct BlendExpander *expander, struct ListBase *tracks)
+void BKE_nla_blend_read_expand(BlendExpander *expander, ListBase *tracks)
 {
   /* nla-data - referenced actions */
   LISTBASE_FOREACH (NlaTrack *, nlt, tracks) {

@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -77,7 +79,7 @@ struct bContext {
     /**
      * Store values to dynamically to create the string (called when a tool-tip is shown).
      */
-    struct bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
+    bContextPollMsgDyn_Params operator_poll_msg_dyn_params;
   } wm;
 
   /* data context */
@@ -247,6 +249,8 @@ void CTX_py_state_pop(bContext *C, bContext_PyState *pystate)
 struct bContextDataResult {
   PointerRNA ptr;
   ListBase list;
+  PropertyRNA *prop;
+  int index;
   const char **dir;
   short type; /* 0: normal, 1: seq */
 };
@@ -496,8 +500,13 @@ ListBase CTX_data_collection_get(const bContext *C, const char *member)
   return list;
 }
 
-int /*eContextResult*/ CTX_data_get(
-    const bContext *C, const char *member, PointerRNA *r_ptr, ListBase *r_lb, short *r_type)
+int /*eContextResult*/ CTX_data_get(const bContext *C,
+                                    const char *member,
+                                    PointerRNA *r_ptr,
+                                    ListBase *r_lb,
+                                    PropertyRNA **r_prop,
+                                    int *r_index,
+                                    short *r_type)
 {
   bContextDataResult result;
   eContextResult ret = ctx_data_get((bContext *)C, member, &result);
@@ -505,6 +514,8 @@ int /*eContextResult*/ CTX_data_get(
   if (ret == CTX_RESULT_OK) {
     *r_ptr = result.ptr;
     *r_lb = result.list;
+    *r_prop = result.prop;
+    *r_index = result.index;
     *r_type = result.type;
   }
   else {
@@ -673,6 +684,12 @@ int ctx_data_list_count(const bContext *C, bool (*func)(const bContext *, ListBa
   }
 
   return 0;
+}
+
+void CTX_data_prop_set(bContextDataResult *result, PropertyRNA *prop, int index)
+{
+  result->prop = prop;
+  result->index = index;
 }
 
 void CTX_data_dir_set(bContextDataResult *result, const char **dir)
@@ -1169,6 +1186,8 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_EDIT_LATTICE;
       case OB_CURVES:
         return CTX_MODE_EDIT_CURVES;
+      case OB_GREASE_PENCIL:
+        return CTX_MODE_EDIT_GREASE_PENCIL;
     }
   }
   else {
@@ -1196,7 +1215,7 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
         return CTX_MODE_PAINT_GPENCIL;
       }
       if (object_mode & OB_MODE_EDIT_GPENCIL) {
-        return CTX_MODE_EDIT_GPENCIL;
+        return CTX_MODE_EDIT_GPENCIL_LEGACY;
       }
       if (object_mode & OB_MODE_SCULPT_GPENCIL) {
         return CTX_MODE_SCULPT_GPENCIL;
@@ -1237,6 +1256,7 @@ static const char *data_mode_strings[] = {
     "mball_edit",
     "lattice_edit",
     "curves_edit",
+    "grease_pencil_edit",
     "posemode",
     "sculpt_mode",
     "weightpaint",

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2009 by Nicholas Bishop. All rights reserved. */
+/* SPDX-FileCopyrightText: 2009 by Nicholas Bishop. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -455,6 +456,29 @@ const char *BKE_paint_get_tool_prop_id_from_paintmode(ePaintMode mode)
 
   /* Invalid paint mode. */
   return nullptr;
+}
+
+const char *BKE_paint_get_tool_enum_translation_context_from_paintmode(ePaintMode mode)
+{
+  switch (mode) {
+    case PAINT_MODE_SCULPT:
+    case PAINT_MODE_GPENCIL:
+    case PAINT_MODE_TEXTURE_2D:
+    case PAINT_MODE_TEXTURE_3D:
+      return BLT_I18NCONTEXT_ID_BRUSH;
+    case PAINT_MODE_VERTEX:
+    case PAINT_MODE_WEIGHT:
+    case PAINT_MODE_SCULPT_UV:
+    case PAINT_MODE_VERTEX_GPENCIL:
+    case PAINT_MODE_SCULPT_GPENCIL:
+    case PAINT_MODE_WEIGHT_GPENCIL:
+    case PAINT_MODE_SCULPT_CURVES:
+    case PAINT_MODE_INVALID:
+      break;
+  }
+
+  /* Invalid paint mode. */
+  return BLT_I18NCONTEXT_DEFAULT;
 }
 
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
@@ -1388,10 +1412,12 @@ void BKE_sculptsession_free_vwpaint_data(SculptSession *ss)
   else {
     return;
   }
-  MEM_SAFE_FREE(gmap->vert_to_loop);
-  MEM_SAFE_FREE(gmap->vert_map_mem);
-  MEM_SAFE_FREE(gmap->vert_to_poly);
-  MEM_SAFE_FREE(gmap->poly_map_mem);
+  gmap->vert_to_loop_offsets = {};
+  gmap->vert_to_loop_indices = {};
+  gmap->vert_to_loop = {};
+  gmap->vert_to_poly_offsets = {};
+  gmap->vert_to_poly_indices = {};
+  gmap->vert_to_poly = {};
 }
 
 /**
@@ -1442,14 +1468,15 @@ static void sculptsession_free_pbvh(Object *object)
     ss->pbvh = nullptr;
   }
 
-  MEM_SAFE_FREE(ss->pmap);
-  MEM_SAFE_FREE(ss->pmap_mem);
-
-  MEM_SAFE_FREE(ss->epmap);
-  MEM_SAFE_FREE(ss->epmap_mem);
-
-  MEM_SAFE_FREE(ss->vemap);
-  MEM_SAFE_FREE(ss->vemap_mem);
+  ss->vert_to_poly_offsets = {};
+  ss->vert_to_poly_indices = {};
+  ss->pmap = {};
+  ss->edge_to_poly_offsets = {};
+  ss->edge_to_poly_indices = {};
+  ss->epmap = {};
+  ss->vert_to_edge_offsets = {};
+  ss->vert_to_edge_indices = {};
+  ss->vemap = {};
 
   MEM_SAFE_FREE(ss->preview_vert_list);
   ss->preview_vert_count = 0;
@@ -1495,15 +1522,6 @@ void BKE_sculptsession_free(Object *ob)
 
     sculptsession_free_pbvh(ob);
 
-    MEM_SAFE_FREE(ss->pmap);
-    MEM_SAFE_FREE(ss->pmap_mem);
-
-    MEM_SAFE_FREE(ss->epmap);
-    MEM_SAFE_FREE(ss->epmap_mem);
-
-    MEM_SAFE_FREE(ss->vemap);
-    MEM_SAFE_FREE(ss->vemap_mem);
-
     if (ss->bm_log) {
       BM_log_free(ss->bm_log);
     }
@@ -1536,7 +1554,7 @@ void BKE_sculptsession_free(Object *ob)
 
     MEM_SAFE_FREE(ss->last_paint_canvas_key);
 
-    MEM_freeN(ss);
+    MEM_delete(ss);
 
     ob->sculpt = nullptr;
   }
@@ -1672,7 +1690,8 @@ static void sculpt_update_object(
 
   BLI_assert(me_eval != nullptr);
 
-  /* This is for handling a newly opened file with no object visible, causing me_eval==NULL. */
+  /* This is for handling a newly opened file with no object visible,
+   * causing `me_eval == nullptr`. */
   if (me_eval == nullptr) {
     return;
   }
@@ -1766,9 +1785,12 @@ static void sculpt_update_object(
   sculpt_attribute_update_refs(ob);
   sculpt_update_persistent_base(ob);
 
-  if (ob->type == OB_MESH && !ss->pmap) {
-    BKE_mesh_vert_poly_map_create(
-        &ss->pmap, &ss->pmap_mem, me->polys(), me->corner_verts().data(), me->totvert);
+  if (ob->type == OB_MESH && ss->pmap.is_empty()) {
+    ss->pmap = blender::bke::mesh::build_vert_to_poly_map(me->polys(),
+                                                          me->corner_verts(),
+                                                          me->totvert,
+                                                          ss->vert_to_poly_offsets,
+                                                          ss->vert_to_poly_indices);
   }
 
   if (ss->pbvh) {
@@ -1936,6 +1958,7 @@ void BKE_sculpt_color_layer_create_if_needed(Object *object)
   }
 
   BKE_id_attributes_active_color_set(&orig_me->id, unique_name);
+  BKE_id_attributes_default_color_set(&orig_me->id, unique_name);
   DEG_id_tag_update(&orig_me->id, ID_RECALC_GEOMETRY_ALL_MODES);
   BKE_mesh_tessface_clear(orig_me);
 
@@ -1954,8 +1977,11 @@ void BKE_sculpt_update_object_for_edit(
   sculpt_update_object(depsgraph, ob_orig, ob_eval, need_pmap, is_paint_tool);
 }
 
-int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
+int *BKE_sculpt_face_sets_ensure(Object *ob)
 {
+  SculptSession *ss = ob->sculpt;
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+
   using namespace blender;
   using namespace blender::bke;
   MutableAttributeAccessor attributes = mesh->attributes_for_write();
@@ -1967,8 +1993,14 @@ int *BKE_sculpt_face_sets_ensure(Mesh *mesh)
     face_sets.finish();
   }
 
-  return static_cast<int *>(CustomData_get_layer_named_for_write(
+  int *face_sets = static_cast<int *>(CustomData_get_layer_named_for_write(
       &mesh->pdata, CD_PROP_INT32, ".sculpt_face_set", mesh->totpoly));
+
+  if (ss->pbvh && ELEM(BKE_pbvh_type(ss->pbvh), PBVH_FACES, PBVH_GRIDS)) {
+    BKE_pbvh_face_sets_set(ss->pbvh, face_sets);
+  }
+
+  return face_sets;
 }
 
 bool *BKE_sculpt_hide_poly_ensure(Mesh *mesh)
@@ -2185,7 +2217,9 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
   const bool is_deformed = check_sculpt_object_deformed(ob, true);
   if (is_deformed && me_eval_deform != nullptr) {
     BKE_pbvh_vert_coords_apply(
-        pbvh, BKE_mesh_vert_positions(me_eval_deform), me_eval_deform->totvert);
+        pbvh,
+        reinterpret_cast<const float(*)[3]>(me_eval_deform->vert_positions().data()),
+        me_eval_deform->totvert);
   }
 
   return pbvh;
@@ -2354,9 +2388,10 @@ int BKE_sculptsession_vertex_count(const SculptSession *ss)
   return 0;
 }
 
-/** Returns pointer to a CustomData associated with a given domain, if
+/**
+ * Returns pointer to a CustomData associated with a given domain, if
  * one exists.  If not nullptr is returned (this may happen with e.g.
- * multires and ATTR_DOMAIN_POINT).
+ * multires and #ATTR_DOMAIN_POINT).
  */
 static CustomData *sculpt_get_cdata(Object *ob, eAttrDomain domain)
 {
@@ -2647,7 +2682,7 @@ static SculptAttribute *sculpt_alloc_attr(SculptSession *ss)
   return nullptr;
 }
 
-SculptAttribute *BKE_sculpt_attribute_get(struct Object *ob,
+SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
                                           eAttrDomain domain,
                                           eCustomDataType proptype,
                                           const char *name)

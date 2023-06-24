@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /**
  * Shared structures, enums & defines between C++ and GLSL.
@@ -51,7 +53,8 @@ enum eDebugMode : uint32_t {
   /**
    * Display IrradianceCache surfels.
    */
-  DEBUG_IRRADIANCE_CACHE_SURFELS = 3u,
+  DEBUG_IRRADIANCE_CACHE_SURFELS_NORMAL = 3u,
+  DEBUG_IRRADIANCE_CACHE_SURFELS_IRRADIANCE = 4u,
   /**
    * Show tiles depending on their status.
    */
@@ -217,7 +220,8 @@ struct FilmData {
   int2 offset;
   /** Extent used by the render buffers when rendering the main views. */
   int2 render_extent;
-  /** Sub-pixel offset applied to the window matrix.
+  /**
+   * Sub-pixel offset applied to the window matrix.
    * NOTE: In final film pixel unit.
    * NOTE: Positive values makes the view translate in the negative axes direction.
    * NOTE: The origin is the center of the lower left film pixel of the area covered by a render
@@ -306,18 +310,7 @@ static inline float film_filter_weight(float filter_radius, float sample_distanc
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Render passes
- * \{ */
-
-enum eRenderPassLayerIndex : uint32_t {
-  RENDER_PASS_LAYER_DIFFUSE_LIGHT = 0u,
-  RENDER_PASS_LAYER_SPECULAR_LIGHT = 1u,
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Arbitrary Output Variables
+/** \name RenderBuffers
  * \{ */
 
 /* Theoretical max is 128 as we are using texture array and VRAM usage.
@@ -325,10 +318,11 @@ enum eRenderPassLayerIndex : uint32_t {
  * If we find a way to avoid this we could bump this number up. */
 #define AOV_MAX 16
 
-/* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct AOVsInfoData {
-  uint hash_value[AOV_MAX];
-  uint hash_color[AOV_MAX];
+  /* Use uint4 to workaround std140 packing rules.
+   * Only the x value is used. */
+  uint4 hash_value[AOV_MAX];
+  uint4 hash_color[AOV_MAX];
   /* Length of used data. */
   uint color_len;
   uint value_len;
@@ -338,6 +332,25 @@ struct AOVsInfoData {
   bool1 display_is_value;
 };
 BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
+
+struct RenderBuffersInfoData {
+  AOVsInfoData aovs;
+  /* Color. */
+  int color_len;
+  int normal_id;
+  int diffuse_light_id;
+  int diffuse_color_id;
+  int specular_light_id;
+  int specular_color_id;
+  int volume_light_id;
+  int emission_id;
+  int environment_id;
+  /* Value */
+  int value_len;
+  int shadow_id;
+  int ambient_occlusion_id;
+};
+BLI_STATIC_ASSERT_ALIGN(RenderBuffersInfoData, 16)
 
 /** \} */
 
@@ -354,8 +367,8 @@ enum eVelocityStep : uint32_t {
 };
 
 struct VelocityObjectIndex {
-  /** Offset inside #VelocityObjectBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  /** Offset inside #VelocityObjectBuf for each time-step. Indexed using eVelocityStep. */
+  packed_int3 ofs;
   /** Temporary index to copy this to the #VelocityIndexBuf. */
   uint resource_id;
 
@@ -367,11 +380,11 @@ BLI_STATIC_ASSERT_ALIGN(VelocityObjectIndex, 16)
 
 struct VelocityGeometryIndex {
   /** Offset inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 ofs;
+  packed_int3 ofs;
   /** If true, compute deformation motion blur. */
   bool1 do_deform;
   /** Length of data inside #VelocityGeometryBuf for each timestep. Indexed using eVelocityStep. */
-  int3 len;
+  packed_int3 len;
 
   int _pad0;
 
@@ -826,17 +839,109 @@ static inline ShadowTileDataPacked shadow_tile_pack(ShadowTileData tile)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Debug
+/** \name Irradiance Cache
  * \{ */
 
-struct DebugSurfel {
-  packed_float3 position;
-  int _pad0;
-  packed_float3 normal;
-  int _pad1;
-  float4 color;
+struct SurfelRadiance {
+  float4 front;
+  float4 back;
 };
-BLI_STATIC_ASSERT_ALIGN(DebugSurfel, 16)
+BLI_STATIC_ASSERT_ALIGN(SurfelRadiance, 16)
+
+struct Surfel {
+  /** World position of the surfel. */
+  packed_float3 position;
+  /** Previous surfel index in the ray link-list. Only valid after sorting. */
+  int prev;
+  /** World orientation of the surface. */
+  packed_float3 normal;
+  /** Next surfel index in the ray link-list. */
+  int next;
+  /** Surface albedo to apply to incoming radiance. */
+  packed_float3 albedo_front;
+  /** Distance along the ray direction for sorting. */
+  float ray_distance;
+  /** Surface albedo to apply to incoming radiance. */
+  packed_float3 albedo_back;
+  int _pad3;
+  /** Surface radiance: Emission + Direct Lighting. */
+  SurfelRadiance radiance_direct;
+  /** Surface radiance: Indirect Lighting. Double buffered to avoid race conditions. */
+  SurfelRadiance radiance_indirect[2];
+};
+BLI_STATIC_ASSERT_ALIGN(Surfel, 16)
+
+struct CaptureInfoData {
+  /** Number of surfels inside the surfel buffer or the needed len. */
+  packed_int3 irradiance_grid_size;
+  /** True if the surface shader needs to write the surfel data. */
+  bool1 do_surfel_output;
+  /** True if the surface shader needs to increment the surfel_len. */
+  bool1 do_surfel_count;
+  /** Number of surfels inside the surfel buffer or the needed len. */
+  uint surfel_len;
+  /** Total number of a ray for light transportation. */
+  float sample_count;
+  /** 0 based sample index. */
+  float sample_index;
+  /** Transform of the lightprobe object. */
+  float4x4 irradiance_grid_local_to_world;
+  /** Transform vectors from world space to local space. Does not have location component. */
+  /** TODO(fclem): This could be a float3x4 or a float3x3 if padded correctly. */
+  float4x4 irradiance_grid_world_to_local_rotation;
+  /** Scene bounds. Stored as min & max and as int for atomic operations. */
+  int scene_bound_x_min;
+  int scene_bound_y_min;
+  int scene_bound_z_min;
+  int scene_bound_x_max;
+  int scene_bound_y_max;
+  int scene_bound_z_max;
+  int _pad0;
+  int _pad1;
+  int _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(CaptureInfoData, 16)
+
+struct SurfelListInfoData {
+  /** Size of the grid used to project the surfels into linked lists. */
+  int2 ray_grid_size;
+  /** Maximum number of list. Is equal to `ray_grid_size.x * ray_grid_size.y`. */
+  int list_max;
+
+  int _pad0;
+};
+BLI_STATIC_ASSERT_ALIGN(SurfelListInfoData, 16)
+
+struct IrradianceGridData {
+  /** World to non-normalized local grid space [0..size-1]. Stored transposed for compactness. */
+  float3x4 world_to_grid_transposed;
+  /** Number of bricks for this grid. */
+  packed_int3 grid_size;
+  /** Index in brick descriptor list of the first brick of this grid. */
+  int brick_offset;
+};
+BLI_STATIC_ASSERT_ALIGN(IrradianceGridData, 16)
+
+struct IrradianceBrick {
+  /* Offset in pixel to the start of the data inside the atlas texture. */
+  uint2 atlas_coord;
+};
+/** \note Stored packed as a uint. */
+#define IrradianceBrickPacked uint
+
+static inline IrradianceBrickPacked irradiance_brick_pack(IrradianceBrick brick)
+{
+  uint2 data = (uint2(brick.atlas_coord) & 0xFFFFu) << uint2(0u, 16u);
+  IrradianceBrickPacked brick_packed = data.x | data.y;
+  return brick_packed;
+}
+
+static inline IrradianceBrick irradiance_brick_unpack(IrradianceBrickPacked brick_packed)
+{
+  IrradianceBrick brick;
+  brick.atlas_coord = (uint2(brick_packed) >> uint2(0u, 16u)) & uint2(0xFFFFu);
+  return brick;
+}
 
 /** \} */
 
@@ -947,8 +1052,9 @@ using DepthOfFieldDataBuf = draw::UniformBuffer<DepthOfFieldData>;
 using DepthOfFieldScatterListBuf = draw::StorageArrayBuffer<ScatterRect, 16, true>;
 using DrawIndirectBuf = draw::StorageBuffer<DrawCommand, true>;
 using FilmDataBuf = draw::UniformBuffer<FilmData>;
-using DebugSurfelBuf = draw::StorageArrayBuffer<DebugSurfel, 64>;
 using HiZDataBuf = draw::UniformBuffer<HiZData>;
+using IrradianceGridDataBuf = draw::UniformArrayBuffer<IrradianceGridData, IRRADIANCE_GRID_MAX>;
+using IrradianceBrickBuf = draw::StorageVectorBuffer<IrradianceBrickPacked, 16>;
 using LightCullingDataBuf = draw::StorageBuffer<LightCullingData>;
 using LightCullingKeyBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
 using LightCullingTileBuf = draw::StorageArrayBuffer<uint, LIGHT_CHUNK, true>;
@@ -965,6 +1071,11 @@ using ShadowPageCacheBuf = draw::StorageArrayBuffer<uint2, SHADOW_MAX_PAGE, true
 using ShadowTileMapDataBuf = draw::StorageVectorBuffer<ShadowTileMapData, SHADOW_MAX_TILEMAP>;
 using ShadowTileMapClipBuf = draw::StorageArrayBuffer<ShadowTileMapClip, SHADOW_MAX_TILEMAP, true>;
 using ShadowTileDataBuf = draw::StorageArrayBuffer<ShadowTileDataPacked, SHADOW_MAX_TILE, true>;
+using SubsurfaceDataBuf = draw::UniformBuffer<SubsurfaceData>;
+using SurfelBuf = draw::StorageArrayBuffer<Surfel, 64>;
+using SurfelRadianceBuf = draw::StorageArrayBuffer<SurfelRadiance, 64>;
+using CaptureInfoBuf = draw::StorageBuffer<CaptureInfoData>;
+using SurfelListInfoBuf = draw::StorageBuffer<SurfelListInfoData>;
 using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;

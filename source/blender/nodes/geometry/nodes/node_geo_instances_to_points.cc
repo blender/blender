@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 
@@ -58,8 +60,8 @@ static void convert_instances_to_points(GeometrySet &geometry_set,
 
   const bke::AttributeAccessor src_attributes = instances.attributes();
   Map<AttributeIDRef, AttributeKind> attributes_to_propagate;
-  geometry_set.gather_attributes_for_propagation({GEO_COMPONENT_TYPE_INSTANCES},
-                                                 GEO_COMPONENT_TYPE_POINT_CLOUD,
+  geometry_set.gather_attributes_for_propagation({GeometryComponent::Type::Instance},
+                                                 GeometryComponent::Type::PointCloud,
                                                  false,
                                                  propagation_info,
                                                  attributes_to_propagate);
@@ -97,7 +99,7 @@ static void node_geo_exec(GeoNodeExecParams params)
                                 params.extract_input<Field<float>>("Radius"),
                                 params.extract_input<Field<bool>>("Selection"),
                                 params.get_output_propagation_info("Points"));
-    geometry_set.keep_only({GEO_COMPONENT_TYPE_POINT_CLOUD, GEO_COMPONENT_TYPE_EDIT});
+    geometry_set.keep_only({GeometryComponent::Type::PointCloud, GeometryComponent::Type::Edit});
     params.set_output("Points", std::move(geometry_set));
   }
   else {

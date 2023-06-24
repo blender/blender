@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edscr
@@ -450,9 +451,13 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
     immDrawPixelsTexSetupAttributes(&state);
 
     if (ibuf->float_buffer.data) {
-      if (ibuf->float_colorspace) {
-        ok = IMB_colormanagement_setup_glsl_draw_from_space(
-            view_settings, display_settings, ibuf->float_colorspace, ibuf->dither, true, false);
+      if (ibuf->float_buffer.colorspace) {
+        ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings,
+                                                            display_settings,
+                                                            ibuf->float_buffer.colorspace,
+                                                            ibuf->dither,
+                                                            true,
+                                                            false);
       }
       else {
         ok = IMB_colormanagement_setup_glsl_draw(
@@ -460,8 +465,12 @@ void ED_draw_imbuf_clipping(ImBuf *ibuf,
       }
     }
     else {
-      ok = IMB_colormanagement_setup_glsl_draw_from_space(
-          view_settings, display_settings, ibuf->rect_colorspace, ibuf->dither, false, false);
+      ok = IMB_colormanagement_setup_glsl_draw_from_space(view_settings,
+                                                          display_settings,
+                                                          ibuf->byte_buffer.colorspace,
+                                                          ibuf->dither,
+                                                          false,
+                                                          false);
     }
 
     if (ok) {

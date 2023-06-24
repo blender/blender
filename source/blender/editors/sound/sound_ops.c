@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2007 Blender Foundation */
+/* SPDX-FileCopyrightText: 2007 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup edsnd
@@ -72,14 +73,14 @@ static void sound_open_init(bContext *C, wmOperator *op)
 #ifdef WITH_AUDASPACE
 static int sound_open_exec(bContext *C, wmOperator *op)
 {
-  char path[FILE_MAX];
+  char filepath[FILE_MAX];
   bSound *sound;
   PropertyPointerRNA *pprop;
   PointerRNA idptr;
   Main *bmain = CTX_data_main(C);
 
-  RNA_string_get(op->ptr, "filepath", path);
-  sound = BKE_sound_new_file(bmain, path);
+  RNA_string_get(op->ptr, "filepath", filepath);
+  sound = BKE_sound_new_file(bmain, filepath);
 
   if (!op->customdata) {
     sound_open_init(C, op);
@@ -293,7 +294,7 @@ static int sound_bake_animation_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   /* NOTE: We will be forcefully evaluating dependency graph at every frame, so no need to ensure
    * current scene state is evaluated as it will be lost anyway. */
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   int oldfra = scene->r.cfra;
   int cfra;
 
@@ -329,8 +330,7 @@ static void SOUND_OT_bake_animation(wmOperatorType *ot)
 static int sound_mixdown_exec(bContext *C, wmOperator *op)
 {
 #ifdef WITH_AUDASPACE
-  char path[FILE_MAX];
-  char filename[FILE_MAX];
+  char filepath[FILE_MAX];
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Main *bmain = CTX_data_main(C);
@@ -345,7 +345,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 
   sound_bake_animation_exec(C, op);
 
-  RNA_string_get(op->ptr, "filepath", path);
+  RNA_string_get(op->ptr, "filepath", filepath);
   bitrate = RNA_int_get(op->ptr, "bitrate") * 1000;
   accuracy = RNA_int_get(op->ptr, "accuracy");
   specs.format = RNA_enum_get(op->ptr, "format");
@@ -355,8 +355,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
   specs.channels = scene_eval->r.ffcodecdata.audio_channels;
   specs.rate = scene_eval->r.ffcodecdata.audio_mixrate;
 
-  STRNCPY(filename, path);
-  BLI_path_abs(filename, BKE_main_blendfile_path(bmain));
+  BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
   const double fps = (((double)scene_eval->r.frs_sec) / (double)scene_eval->r.frs_sec_base);
   const int start_frame = scene_eval->r.sfra;
@@ -367,7 +366,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                                      start_frame * specs.rate / fps,
                                      (end_frame - start_frame + 1) * specs.rate / fps,
                                      accuracy,
-                                     filename,
+                                     filepath,
                                      specs,
                                      container,
                                      codec,
@@ -382,7 +381,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
                          start_frame * specs.rate / fps,
                          (end_frame - start_frame + 1) * specs.rate / fps,
                          accuracy,
-                         filename,
+                         filepath,
                          specs,
                          container,
                          codec,

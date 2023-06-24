@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup gpu
@@ -232,8 +233,8 @@ void VKFrameBuffer::attachment_set_loadstore_op(GPUAttachmentType /*type*/,
 
 void VKFrameBuffer::read(eGPUFrameBufferBits plane,
                          eGPUDataFormat format,
-                         const int /*area*/[4],
-                         int channel_len,
+                         const int area[4],
+                         int /*channel_len*/,
                          int slot,
                          void *r_data)
 {
@@ -243,30 +244,19 @@ void VKFrameBuffer::read(eGPUFrameBufferBits plane,
       texture = unwrap(unwrap(attachments_[GPU_FB_COLOR_ATTACHMENT0 + slot].tex));
       break;
 
+    case GPU_DEPTH_BIT:
+      texture = unwrap(unwrap(attachments_[GPU_FB_DEPTH_ATTACHMENT].tex));
+      break;
+
     default:
       BLI_assert_unreachable();
       return;
   }
 
   BLI_assert_msg(texture,
-                 "Trying to read back color texture from framebuffer, but no color texture is "
-                 "available in requested slot.");
-  void *data = texture->read(0, format);
-
-  /*
-   * TODO:
-   * - Add support for area.
-   * - Add support for channel_len.
-   * Best option would be to add this to VKTexture so we don't over-allocate and reduce number of
-   * times copies are made.
-   */
-  BLI_assert(format == GPU_DATA_FLOAT);
-  BLI_assert(channel_len == 4);
-  int mip_size[3] = {1, 1, 1};
-  texture->mip_size_get(0, mip_size);
-  const size_t mem_size = mip_size[0] * mip_size[1] * mip_size[2] * sizeof(float) * channel_len;
-  memcpy(r_data, data, mem_size);
-  MEM_freeN(data);
+                 "Trying to read back texture from framebuffer, but no texture is available in "
+                 "requested slot.");
+  texture->read_sub(0, format, area, r_data);
 }
 
 /** \} */
@@ -382,6 +372,8 @@ void VKFrameBuffer::render_pass_create()
   std::array<VkAttachmentDescription, GPU_FB_MAX_ATTACHMENT> attachment_descriptions;
   std::array<VkImageView, GPU_FB_MAX_ATTACHMENT> image_views;
   std::array<VkAttachmentReference, GPU_FB_MAX_ATTACHMENT> attachment_references;
+  image_views_.clear();
+
   bool has_depth_attachment = false;
   bool found_attachment = false;
   int depth_location = -1;
@@ -412,7 +404,8 @@ void VKFrameBuffer::render_pass_create()
       /* Ensure texture is allocated to ensure the image view. */
       VKTexture &texture = *static_cast<VKTexture *>(unwrap(attachment.tex));
       texture.ensure_allocated();
-      image_views[attachment_location] = texture.vk_image_view_handle();
+      image_views_.append(VKImageView(texture, attachment.layer, attachment.mip, name_));
+      image_views[attachment_location] = image_views_.last().vk_handle();
 
       VkAttachmentDescription &attachment_description =
           attachment_descriptions[attachment_location];
@@ -421,10 +414,10 @@ void VKFrameBuffer::render_pass_create()
       attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
       attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
       attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-      attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-      attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-      attachment_description.initialLayout = VK_IMAGE_LAYOUT_GENERAL;
-      attachment_description.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
+      attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+      attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
+      attachment_description.initialLayout = texture.current_layout_get();
+      attachment_description.finalLayout = texture.current_layout_get();
 
       /* Create the attachment reference. */
       const bool is_depth_attachment = ELEM(
@@ -451,7 +444,7 @@ void VKFrameBuffer::render_pass_create()
     size_set(size[0], size[1]);
   }
   else {
-    /* A framebuffer should at least be 1 by 1.*/
+    /* A frame-buffer should at least be 1 by 1. */
     this->size_set(1, 1);
   }
   viewport_reset();
@@ -507,6 +500,7 @@ void VKFrameBuffer::render_pass_free()
     vkDestroyRenderPass(device.device_get(), vk_render_pass_, vk_allocation_callbacks);
     vkDestroyFramebuffer(device.device_get(), vk_framebuffer_, vk_allocation_callbacks);
   }
+  image_views_.clear();
   vk_render_pass_ = VK_NULL_HANDLE;
   vk_framebuffer_ = VK_NULL_HANDLE;
 }

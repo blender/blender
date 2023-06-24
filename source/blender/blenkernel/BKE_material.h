@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -170,17 +171,6 @@ void BKE_id_material_eval_ensure_default_slot(struct ID *id);
  * \param fac: Zero for is no change.
  */
 void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Copy/Paste
- * \{ */
-
-void BKE_material_copybuf_clear(void);
-void BKE_material_copybuf_free(void);
-void BKE_material_copybuf_copy(struct Main *bmain, struct Material *ma);
-void BKE_material_copybuf_paste(struct Main *bmain, struct Material *ma);
 
 /** \} */
 

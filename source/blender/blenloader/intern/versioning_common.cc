@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup blenloader
@@ -17,6 +19,7 @@
 #include "BLI_string_ref.hh"
 
 #include "BKE_animsys.h"
+#include "BKE_idprop.h"
 #include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_main_namemap.h"
@@ -111,6 +114,11 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
   }
 }
 
+bool version_node_socket_is_used(bNodeSocket *sock)
+{
+  return sock->flag & SOCK_IS_LINKED;
+}
+
 void version_node_socket_id_delim(bNodeSocket *socket)
 {
   StringRef name = socket->name;
@@ -189,7 +197,7 @@ void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name
   for (bNode *node : ntree->all_nodes()) {
     if (node->type == node_type) {
       if (!STREQ(node->idname, new_name)) {
-        strcpy(node->idname, new_name);
+        STRNCPY(node->idname, new_name);
       }
     }
   }
@@ -322,4 +330,76 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
     link->fromnode = realize_node;
     link->fromsock = static_cast<bNodeSocket *>(realize_node->outputs.first);
   }
+}
+
+float *version_cycles_node_socket_float_value(bNodeSocket *socket)
+{
+  bNodeSocketValueFloat *socket_data = static_cast<bNodeSocketValueFloat *>(socket->default_value);
+  return &socket_data->value;
+}
+
+float *version_cycles_node_socket_rgba_value(bNodeSocket *socket)
+{
+  bNodeSocketValueRGBA *socket_data = static_cast<bNodeSocketValueRGBA *>(socket->default_value);
+  return socket_data->value;
+}
+
+float *version_cycles_node_socket_vector_value(bNodeSocket *socket)
+{
+  bNodeSocketValueVector *socket_data = static_cast<bNodeSocketValueVector *>(
+      socket->default_value);
+  return socket_data->value;
+}
+
+IDProperty *version_cycles_properties_from_ID(ID *id)
+{
+  IDProperty *idprop = IDP_GetProperties(id, false);
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
+}
+
+IDProperty *version_cycles_properties_from_view_layer(ViewLayer *view_layer)
+{
+  IDProperty *idprop = view_layer->id_properties;
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles", IDP_GROUP) : NULL;
+}
+
+float version_cycles_property_float(IDProperty *idprop, const char *name, float default_value)
+{
+  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_FLOAT);
+  return (prop) ? IDP_Float(prop) : default_value;
+}
+
+int version_cycles_property_int(IDProperty *idprop, const char *name, int default_value)
+{
+  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
+  return (prop) ? IDP_Int(prop) : default_value;
+}
+
+void version_cycles_property_int_set(IDProperty *idprop, const char *name, int value)
+{
+  IDProperty *prop = IDP_GetPropertyTypeFromGroup(idprop, name, IDP_INT);
+  if (prop) {
+    IDP_Int(prop) = value;
+  }
+  else {
+    IDPropertyTemplate val = {0};
+    val.i = value;
+    IDP_AddToGroup(idprop, IDP_New(IDP_INT, &val, name));
+  }
+}
+
+bool version_cycles_property_boolean(IDProperty *idprop, const char *name, bool default_value)
+{
+  return version_cycles_property_int(idprop, name, default_value);
+}
+
+void version_cycles_property_boolean_set(IDProperty *idprop, const char *name, bool value)
+{
+  version_cycles_property_int_set(idprop, name, value);
+}
+
+IDProperty *version_cycles_visibility_properties_from_ID(ID *id)
+{
+  IDProperty *idprop = IDP_GetProperties(id, false);
+  return (idprop) ? IDP_GetPropertyTypeFromGroup(idprop, "cycles_visibility", IDP_GROUP) : NULL;
 }

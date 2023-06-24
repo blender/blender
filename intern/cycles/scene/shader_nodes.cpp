@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/shader_nodes.h"
 #include "scene/colorspace.h"
@@ -1207,9 +1208,14 @@ NODE_DEFINE(VoronoiTextureNode)
   feature_enum.insert("n_sphere_radius", NODE_VORONOI_N_SPHERE_RADIUS);
   SOCKET_ENUM(feature, "Feature", feature_enum, NODE_VORONOI_F1);
 
+  SOCKET_BOOLEAN(use_normalize, "Normalize", false);
+
   SOCKET_IN_POINT(vector, "Vector", zero_float3(), SocketType::LINK_TEXTURE_GENERATED);
   SOCKET_IN_FLOAT(w, "W", 0.0f);
   SOCKET_IN_FLOAT(scale, "Scale", 5.0f);
+  SOCKET_IN_FLOAT(detail, "Detail", 0.0f);
+  SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
+  SOCKET_IN_FLOAT(lacunarity, "Lacunarity", 2.0f);
   SOCKET_IN_FLOAT(smoothness, "Smoothness", 5.0f);
   SOCKET_IN_FLOAT(exponent, "Exponent", 0.5f);
   SOCKET_IN_FLOAT(randomness, "Randomness", 1.0f);
@@ -1230,6 +1236,9 @@ void VoronoiTextureNode::compile(SVMCompiler &compiler)
   ShaderInput *vector_in = input("Vector");
   ShaderInput *w_in = input("W");
   ShaderInput *scale_in = input("Scale");
+  ShaderInput *detail_in = input("Detail");
+  ShaderInput *roughness_in = input("Roughness");
+  ShaderInput *lacunarity_in = input("Lacunarity");
   ShaderInput *smoothness_in = input("Smoothness");
   ShaderInput *exponent_in = input("Exponent");
   ShaderInput *randomness_in = input("Randomness");
@@ -1243,6 +1252,9 @@ void VoronoiTextureNode::compile(SVMCompiler &compiler)
   int vector_stack_offset = tex_mapping.compile_begin(compiler, vector_in);
   int w_in_stack_offset = compiler.stack_assign_if_linked(w_in);
   int scale_stack_offset = compiler.stack_assign_if_linked(scale_in);
+  int detail_stack_offset = compiler.stack_assign_if_linked(detail_in);
+  int roughness_stack_offset = compiler.stack_assign_if_linked(roughness_in);
+  int lacunarity_stack_offset = compiler.stack_assign_if_linked(lacunarity_in);
   int smoothness_stack_offset = compiler.stack_assign_if_linked(smoothness_in);
   int exponent_stack_offset = compiler.stack_assign_if_linked(exponent_in);
   int randomness_stack_offset = compiler.stack_assign_if_linked(randomness_in);
@@ -1255,19 +1267,21 @@ void VoronoiTextureNode::compile(SVMCompiler &compiler)
   compiler.add_node(NODE_TEX_VORONOI, dimensions, feature, metric);
   compiler.add_node(
       compiler.encode_uchar4(
-          vector_stack_offset, w_in_stack_offset, scale_stack_offset, smoothness_stack_offset),
-      compiler.encode_uchar4(exponent_stack_offset,
-                             randomness_stack_offset,
-                             distance_stack_offset,
-                             color_stack_offset),
-      compiler.encode_uchar4(position_stack_offset, w_out_stack_offset, radius_stack_offset),
-      __float_as_int(w));
+          vector_stack_offset, w_in_stack_offset, scale_stack_offset, detail_stack_offset),
+      compiler.encode_uchar4(roughness_stack_offset,
+                             lacunarity_stack_offset,
+                             smoothness_stack_offset,
+                             exponent_stack_offset),
+      compiler.encode_uchar4(
+          randomness_stack_offset, use_normalize, distance_stack_offset, color_stack_offset),
+      compiler.encode_uchar4(position_stack_offset, w_out_stack_offset, radius_stack_offset));
 
-  compiler.add_node(__float_as_int(scale),
+  compiler.add_node(
+      __float_as_int(w), __float_as_int(scale), __float_as_int(detail), __float_as_int(roughness));
+  compiler.add_node(__float_as_int(lacunarity),
                     __float_as_int(smoothness),
                     __float_as_int(exponent),
                     __float_as_int(randomness));
-
   tex_mapping.compile_end(compiler, vector_in, vector_stack_offset);
 }
 
@@ -1278,6 +1292,7 @@ void VoronoiTextureNode::compile(OSLCompiler &compiler)
   compiler.parameter(this, "dimensions");
   compiler.parameter(this, "feature");
   compiler.parameter(this, "metric");
+  compiler.parameter(this, "use_normalize");
   compiler.add(this, "node_voronoi_texture");
 }
 
@@ -2350,7 +2365,7 @@ NODE_DEFINE(GlossyBsdfNode)
   distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_ID);
   distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_ID);
   distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
   SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
 
   SOCKET_IN_VECTOR(tangent, "Tangent", zero_float3(), SocketType::LINK_TANGENT);
@@ -2444,6 +2459,7 @@ void GlossyBsdfNode::compile(SVMCompiler &compiler)
 
   if (closure == CLOSURE_BSDF_REFLECTION_ID)
     BsdfNode::compile(compiler, NULL, NULL);
+  /* TODO: Just use weight for legacy MultiGGX? Would also simplify OSL. */
   else if (closure == CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID)
     BsdfNode::compile(
         compiler, input("Roughness"), input("Anisotropy"), input("Rotation"), input("Color"));
@@ -2471,7 +2487,7 @@ NODE_DEFINE(GlassBsdfNode)
   distribution_enum.insert("sharp", CLOSURE_BSDF_SHARP_GLASS_ID);
   distribution_enum.insert("beckmann", CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID);
   distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.0f);
@@ -2749,8 +2765,8 @@ NODE_DEFINE(PrincipledBsdfNode)
   NodeType *type = NodeType::add("principled_bsdf", create, NodeType::SHADER);
 
   static NodeEnum distribution_enum;
-  distribution_enum.insert("GGX", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
-  distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
+  distribution_enum.insert("ggx", CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID);
+  distribution_enum.insert("multi_ggx", CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
   SOCKET_ENUM(
       distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID);
 
@@ -3527,10 +3543,8 @@ NODE_DEFINE(PrincipledHairBsdfNode)
   SOCKET_IN_FLOAT(melanin, "Melanin", 0.8f);
   SOCKET_IN_FLOAT(melanin_redness, "Melanin Redness", 1.0f);
   SOCKET_IN_COLOR(tint, "Tint", make_float3(1.f, 1.f, 1.f));
-  SOCKET_IN_VECTOR(absorption_coefficient,
-                   "Absorption Coefficient",
-                   make_float3(0.245531f, 0.52f, 1.365f),
-                   SocketType::VECTOR);
+  SOCKET_IN_VECTOR(
+      absorption_coefficient, "Absorption Coefficient", make_float3(0.245531f, 0.52f, 1.365f));
 
   SOCKET_IN_FLOAT(offset, "Offset", 2.f * M_PI_F / 180.f);
   SOCKET_IN_FLOAT(roughness, "Roughness", 0.3f);

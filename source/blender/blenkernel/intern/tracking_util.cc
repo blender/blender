@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -780,7 +781,7 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
   return final_ibuf;
 }
 
-static libmv_CacheKey accessor_get_image_callback(struct libmv_FrameAccessorUserData *user_data,
+static libmv_CacheKey accessor_get_image_callback(libmv_FrameAccessorUserData *user_data,
                                                   int clip_index,
                                                   int frame,
                                                   libmv_InputMode input_mode,

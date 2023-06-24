@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -104,7 +105,7 @@ static void armature_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src
 
   BLI_duplicatelist(&armature_dst->bonebase, &armature_src->bonebase);
 
-  /* Duplicate the childrens' lists */
+  /* Duplicate the children's lists. */
   bone_dst = armature_dst->bonebase.first;
   for (bone_src = armature_src->bonebase.first; bone_src; bone_src = bone_src->next) {
     bone_dst->parent = NULL;
@@ -126,7 +127,7 @@ static void armature_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src
 }
 
 /** Free (or release) any data used by this armature (does not free the armature itself). */
-static void armature_free_data(struct ID *id)
+static void armature_free_data(ID *id)
 {
   bArmature *armature = (bArmature *)id;
 
@@ -674,7 +675,7 @@ static void armature_refresh_layer_used_recursive(bArmature *arm, ListBase *bone
   }
 }
 
-void BKE_armature_refresh_layer_used(struct Depsgraph *depsgraph, struct bArmature *arm)
+void BKE_armature_refresh_layer_used(Depsgraph *depsgraph, bArmature *arm)
 {
   if (arm->edbo != NULL) {
     /* Don't perform this update when the armature is in edit mode. In that case it should be
@@ -702,7 +703,7 @@ bool bone_autoside_name(
 {
   uint len;
   char basename[MAXBONENAME] = "";
-  char extension[5] = "";
+  const char *extension = NULL;
 
   len = strlen(name);
   if (len == 0) {
@@ -722,18 +723,18 @@ bool bone_autoside_name(
     /* z-axis - vertical (top/bottom) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "Bot");
+        extension = "Bot";
       }
       else if (tail > 0) {
-        strcpy(extension, "Top");
+        extension = "Top";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "Bot");
+        extension = "Bot";
       }
       else {
-        strcpy(extension, "Top");
+        extension = "Top";
       }
     }
   }
@@ -741,18 +742,18 @@ bool bone_autoside_name(
     /* y-axis - depth (front/back) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "Fr");
+        extension = "Fr";
       }
       else if (tail > 0) {
-        strcpy(extension, "Bk");
+        extension = "Bk";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "Fr");
+        extension = "Fr";
       }
       else {
-        strcpy(extension, "Bk");
+        extension = "Bk";
       }
     }
   }
@@ -760,19 +761,19 @@ bool bone_autoside_name(
     /* x-axis - horizontal (left/right) */
     if (IS_EQF(head, 0.0f)) {
       if (tail < 0) {
-        strcpy(extension, "R");
+        extension = "R";
       }
       else if (tail > 0) {
-        strcpy(extension, "L");
+        extension = "L";
       }
     }
     else {
       if (head < 0) {
-        strcpy(extension, "R");
+        extension = "R";
         /* XXX Shouldn't this be simple else, as for z and y axes? */
       }
       else if (head > 0) {
-        strcpy(extension, "L");
+        extension = "L";
       }
     }
   }
@@ -781,7 +782,7 @@ bool bone_autoside_name(
    * - truncate if there is an extension and it wouldn't be able to fit
    * - otherwise, just append to end
    */
-  if (extension[0]) {
+  if (extension) {
     bool changed = true;
 
     while (changed) { /* remove extensions */
@@ -932,9 +933,9 @@ void BKE_pchan_bbone_handles_get(bPoseChannel *pchan, bPoseChannel **r_prev, bPo
   }
 }
 
-void BKE_pchan_bbone_spline_params_get(struct bPoseChannel *pchan,
+void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
                                        const bool rest,
-                                       struct BBoneSplineParameters *param)
+                                       BBoneSplineParameters *param)
 {
   bPoseChannel *next, *prev;
   Bone *bone = pchan->bone;
@@ -1812,30 +1813,30 @@ void BKE_bone_parent_transform_calc_from_matrices(int bone_flag,
   }
 }
 
-void BKE_bone_parent_transform_clear(struct BoneParentTransform *bpt)
+void BKE_bone_parent_transform_clear(BoneParentTransform *bpt)
 {
   unit_m4(bpt->rotscale_mat);
   unit_m4(bpt->loc_mat);
   copy_v3_fl(bpt->post_scale, 1.0f);
 }
 
-void BKE_bone_parent_transform_invert(struct BoneParentTransform *bpt)
+void BKE_bone_parent_transform_invert(BoneParentTransform *bpt)
 {
   invert_m4(bpt->rotscale_mat);
   invert_m4(bpt->loc_mat);
   invert_v3_safe(bpt->post_scale);
 }
 
-void BKE_bone_parent_transform_combine(const struct BoneParentTransform *in1,
-                                       const struct BoneParentTransform *in2,
-                                       struct BoneParentTransform *result)
+void BKE_bone_parent_transform_combine(const BoneParentTransform *in1,
+                                       const BoneParentTransform *in2,
+                                       BoneParentTransform *result)
 {
   mul_m4_m4m4(result->rotscale_mat, in1->rotscale_mat, in2->rotscale_mat);
   mul_m4_m4m4(result->loc_mat, in1->loc_mat, in2->loc_mat);
   mul_v3_v3v3(result->post_scale, in1->post_scale, in2->post_scale);
 }
 
-void BKE_bone_parent_transform_apply(const struct BoneParentTransform *bpt,
+void BKE_bone_parent_transform_apply(const BoneParentTransform *bpt,
                                      const float inmat[4][4],
                                      float outmat[4][4])
 {
@@ -1891,7 +1892,7 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
  * High level functions for transforming bones and reading the transform values.
  * \{ */
 
-void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph,
+void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
                                       Object *ob,
                                       bPoseChannel *pchan,
                                       const float inmat[4][4],
@@ -2474,7 +2475,7 @@ void BKE_pose_where_is_bone_tail(bPoseChannel *pchan)
   add_v3_v3v3(pchan->pose_tail, pchan->pose_head, vec);
 }
 
-void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
+void BKE_pose_where_is_bone(Depsgraph *depsgraph,
                             Scene *scene,
                             Object *ob,
                             bPoseChannel *pchan,
@@ -2493,7 +2494,7 @@ void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
   /* pose_mat(b) = pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
   BKE_armature_mat_bone_to_pose(pchan, pchan->chan_mat, pchan->pose_mat);
 
-  /* Only rootbones get the cyclic offset (unless user doesn't want that). */
+  /* Only root-bones get the cyclic offset (unless user doesn't want that). */
   /* XXX That could be a problem for snapping and other "reverse transform" features... */
   if (!pchan->parent) {
     if ((pchan->bone->flag & BONE_NO_CYCLICOFFSET) == 0) {
@@ -2538,7 +2539,7 @@ void BKE_pose_where_is_bone(struct Depsgraph *depsgraph,
   BKE_pose_where_is_bone_tail(pchan);
 }
 
-void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
+void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   bArmature *arm;
   Bone *bone;

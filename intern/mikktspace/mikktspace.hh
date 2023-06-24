@@ -1,11 +1,7 @@
-/* SPDX-License-Identifier: Apache-2.0
+/* SPDX-FileCopyrightText: 2011 Morten S. Mikkelsen
+ * SPDX-FileCopyrightText: 2022 Blender Foundation
  *
- * Original C code:
- * Copyright 2011 by Morten S. Mikkelsen.
- *
- * C++ rewrite:
- * Copyright 2022 Blender Foundation
- */
+ * SPDX-License-Identifier: Apache-2.0 */
 
 /** \file
  * \ingroup mikktspace

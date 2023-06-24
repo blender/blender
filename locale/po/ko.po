@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -3159,38 +3159,6 @@ msgid "Eraser Stroke"
 msgstr "지우게 스트로크"
 
 
-msgid "Smooth"
-msgstr "스무스"
-
-
-msgid "Thickness"
-msgstr "두께"
-
-
-msgid "Randomize"
-msgstr "랜덤화"
-
-
-msgid "Grab"
-msgstr "잡기"
-
-
-msgid "Push"
-msgstr "밀기"
-
-
-msgid "Twist"
-msgstr "비틀기"
-
-
-msgid "Pinch"
-msgstr "핀치"
-
-
-msgid "Clone"
-msgstr "클론"
-
-
 msgid "Draw"
 msgstr "그리기"
 
@@ -3215,8 +3183,16 @@ msgid "Material used for strokes drawn using this brush"
 msgstr "이 브러시를 사용하여 그려진 스트로크에 사용되는 매테리얼"
 
 
+msgid "Thickness"
+msgstr "두께"
+
+
 msgid "Jitter factor for new strokes"
 msgstr "새 스트로크를 위한 지터 팩터"
+
+
+msgid "Smooth"
+msgstr "스무스"
 
 
 msgid "Amount of smoothing to apply after finish newly created strokes, to reduce jitter/noise"
@@ -9335,12 +9311,8 @@ msgid "Vorbis"
 msgstr "보비스"
 
 
-msgid "Samplerate"
-msgstr "셈플레이트"
-
-
-msgid "Audio samplerate(samples/s)"
-msgstr "오디오 셈플레이트 (샘플/초)"
+msgid "Sample Rate"
+msgstr "샘플 비율"
 
 
 msgctxt "Sound"
@@ -14726,24 +14698,8 @@ msgid "Gaussian"
 msgstr "가우시안"
 
 
-msgid "Deformation"
-msgstr "변형"
-
-
 msgid "Deformation type that is used in the brush"
 msgstr "브러시에 사용되는 변형 유형"
-
-
-msgid "Bend"
-msgstr "굽히기"
-
-
-msgid "Expand"
-msgstr "확장"
-
-
-msgid "Inflate"
-msgstr "팽창"
 
 
 msgid "Loop"
@@ -14772,6 +14728,26 @@ msgstr "클론 도구에 대한 이미지"
 
 msgid "Clone Offset"
 msgstr "클론 오프셋"
+
+
+msgid "Deformation"
+msgstr "변형"
+
+
+msgid "Push"
+msgstr "밀기"
+
+
+msgid "Inflate"
+msgstr "팽창"
+
+
+msgid "Grab"
+msgstr "잡기"
+
+
+msgid "Expand"
+msgstr "확장"
 
 
 msgid "Snake Hook"
@@ -14840,6 +14816,10 @@ msgstr "편집 가능한 커브 감소"
 
 msgid "Comb"
 msgstr "빗"
+
+
+msgid "Pinch"
+msgstr "핀치"
 
 
 msgid "Puff"
@@ -14938,20 +14918,12 @@ msgid "Gpencil Settings"
 msgstr "GPencil 설정"
 
 
-msgid "Grease Pencil Draw Tool"
-msgstr "그리스 펜슬 그리기 도구"
-
-
 msgid "The brush is of type used for drawing strokes"
 msgstr "브러시는 스트로크 그리기에 사용되는 유형입니다"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "브러시는 채우는 영역에 사용되는 유형입니다"
-
-
-msgid "Erase"
-msgstr "지우기"
 
 
 msgid "The brush is used for erasing strokes"
@@ -14996,18 +14968,6 @@ msgstr "브러시 아이콘 파일 경로"
 
 msgid "File path to brush icon"
 msgstr "브러시 아이콘에 파일 경로"
-
-
-msgid "Image Paint Tool"
-msgstr "이미지 페인트 도구"
-
-
-msgid "Soften"
-msgstr "부드럽게"
-
-
-msgid "Mask"
-msgstr "마스크"
 
 
 msgid "Invert to Scrape or Fill"
@@ -15168,62 +15128,6 @@ msgstr "Y 평면"
 
 msgid "Z Plane"
 msgstr "Z 평면"
-
-
-msgid "Sculpt Tool"
-msgstr "스컬프트 도구"
-
-
-msgid "Draw Sharp"
-msgstr "샤프를 그리기"
-
-
-msgid "Clay"
-msgstr "점토"
-
-
-msgid "Clay Strips"
-msgstr "점토 스트립"
-
-
-msgid "Blob"
-msgstr "얼룩"
-
-
-msgid "Flatten"
-msgstr "평평하게"
-
-
-msgid "Scrape"
-msgstr "긁어내기"
-
-
-msgid "Elastic Deform"
-msgstr "엘라스틱 변형"
-
-
-msgid "Thumb"
-msgstr "썸"
-
-
-msgid "Pose"
-msgstr "포즈"
-
-
-msgid "Nudge"
-msgstr "넛지"
-
-
-msgid "Rotate"
-msgstr "회전"
-
-
-msgid "Boundary"
-msgstr "경계"
-
-
-msgid "Cloth"
-msgstr "옷감"
 
 
 msgid "Secondary Color"
@@ -15664,6 +15568,10 @@ msgstr "간격에 대한 강도를 조정"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "다양한 간격에 대해 일관된 결과를 제공하도록 자동으로 강도를 조정합니다"
+
+
+msgid "Sculpt Tool"
+msgstr "스컬프트 도구"
 
 
 msgid "Grab UVs"
@@ -17802,24 +17710,12 @@ msgid "U"
 msgstr "U"
 
 
-msgid "Point in U direction (can't be changed when there are shape keys)"
-msgstr "U 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
-
-
 msgid "V"
 msgstr "V"
 
 
-msgid "Point in V direction (can't be changed when there are shape keys)"
-msgstr "V 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
-
-
 msgid "W"
 msgstr "W"
-
-
-msgid "Point in W direction (can't be changed when there are shape keys)"
-msgstr "W 방향에서 포인트 (셰이프 키가 있는 경우 변경 될 수 없음)"
 
 
 msgid "Vertex group to apply the influence of the lattice"
@@ -18392,32 +18288,16 @@ msgid "Blend Mode for Transparent Faces"
 msgstr "투명 페이스에 대한 혼합 모드"
 
 
-msgid "Opaque"
-msgstr "불투명"
-
-
 msgid "Render surface without transparency"
 msgstr "투명도가없는 표면을 렌더"
-
-
-msgid "Alpha Clip"
-msgstr "알파 클립"
 
 
 msgid "Use the alpha threshold to clip the visibility (binary visibility)"
 msgstr "알파 임계 값을 사용하여 가시성을 클립합니다 (바이널리 가시성)"
 
 
-msgid "Alpha Hashed"
-msgstr "알파 해시드"
-
-
 msgid "Use noise to dither the binary visibility (works well with multi-samples)"
 msgstr "바이너리 가시성을 떨어트리기 위해 노이즈를 사용 (다중 샘플에서 잘 작동 함)"
-
-
-msgid "Alpha Blend"
-msgstr "알파 혼합"
 
 
 msgid "Render polygon transparent, depending on alpha channel of the texture"
@@ -18532,6 +18412,10 @@ msgid "Shader Ball"
 msgstr "셰이더 볼"
 
 
+msgid "Cloth"
+msgstr "옷감"
+
+
 msgid "Refraction Depth"
 msgstr "굴절 깊이"
 
@@ -18556,8 +18440,20 @@ msgid "Material will cast no shadow"
 msgstr "매테리얼은 섀도우를 캐스트하지 않습니다"
 
 
+msgid "Opaque"
+msgstr "불투명"
+
+
 msgid "Material will cast shadows without transparency"
 msgstr "투명도가없는 매테리얼로 섀도우가 생깁니다"
+
+
+msgid "Alpha Clip"
+msgstr "알파 클립"
+
+
+msgid "Alpha Hashed"
+msgstr "알파 해시드"
 
 
 msgid "Use noise to dither the binary visibility and use filtering to reduce the noise"
@@ -18900,20 +18796,12 @@ msgid "Vertices of the mesh"
 msgstr "메쉬의 버텍스"
 
 
-msgid "Metaball data-block to defined blobby surfaces"
-msgstr "방울진 표면을 정의하는 메타볼 데이터 블록"
-
-
 msgid "Render Size"
 msgstr "렌더 크기"
 
 
 msgid "Polygonization resolution in rendering"
 msgstr "렌더링에서 폴리고니제이션 해상도"
-
-
-msgid "Wire Size"
-msgstr "와이어 크기"
 
 
 msgid "Polygonization resolution in the 3D viewport"
@@ -19286,10 +19174,6 @@ msgstr "오브젝트 공간 좌표에서 오브젝트의 경계 박스, 사용�
 
 msgid "Settings for using the object as a collider in physics simulation"
 msgstr "피직스 시뮬레이션에서 오브젝트를 충돌체로 사용하기 위한 설정"
-
-
-msgid "Object color and alpha, used when faces have the ObColor mode enabled"
-msgstr "페이스에 ObColor 모드가 활성화된 경우 활성화된 오브젝트 컬러 및 알파"
 
 
 msgid "Constraints"
@@ -19724,6 +19608,10 @@ msgid "Index number for the \"Object Index\" render pass"
 msgstr "\"오브젝트 인덱스\" 렌더 패스의 인덱스 번호"
 
 
+msgid "Pose"
+msgstr "포즈"
+
+
 msgid "Current pose for armatures"
 msgstr "아마튜어에 대한 현재 포즈"
 
@@ -20025,10 +19913,6 @@ msgstr "글로벌 Y"
 
 msgid "Global Z"
 msgstr "글로벌 Z"
-
-
-msgid "Effect Children"
-msgstr "이펙트 자식"
 
 
 msgid "Apply effectors to children"
@@ -20697,6 +20581,10 @@ msgstr "트레일 개수"
 
 msgid "Number of trail particles"
 msgstr "트레일 파티클의 수"
+
+
+msgid "Twist"
+msgstr "비틀기"
 
 
 msgid "Number of turns around parent along the strand"
@@ -22997,10 +22885,6 @@ msgid "File format to save the rendered images as"
 msgstr "렌더링 이미지를 저장하는 파일 형식"
 
 
-msgid "Codec settings for Jpeg2000"
-msgstr "Jpeg2000에 대한 코덱 설정"
-
-
 msgid "Quality for image formats that support lossy compression"
 msgstr "손실 압축을 지원하는 이미지 포맷에 대한 품질"
 
@@ -23029,16 +22913,8 @@ msgid "Cinema (48)"
 msgstr "시네마 (48)"
 
 
-msgid "Use Openjpeg Cinema Preset (48fps)"
-msgstr "Openjpeg 시네마 프리셋을 사용 (48fps)"
-
-
 msgid "Cinema"
 msgstr "시네마"
-
-
-msgid "Use Openjpeg Cinema Preset"
-msgstr "Openjpeg 시네마 프리셋을 사용"
 
 
 msgid "YCC"
@@ -26133,10 +26009,6 @@ msgid "Color for filling region bounded by each stroke"
 msgstr "각 스트로크에 의해 경계가 채워진 채우기 지역의 컬러"
 
 
-msgid "Fill Style"
-msgstr "채우기 스타일"
-
-
 msgid "Select style used to fill strokes"
 msgstr "스트로크를 채우는 데 사용되는 스타일을 선택"
 
@@ -26245,10 +26117,6 @@ msgid "Show stroke lines of this material"
 msgstr "이 메테리얼의 스트로크를 표시"
 
 
-msgid "Stroke Style"
-msgstr "스트로크 스타일"
-
-
 msgid "Select style used to draw strokes"
 msgstr "스트로크 그리기에 사용되는 스타일을 선택"
 
@@ -26283,6 +26151,10 @@ msgstr "자체 겹침"
 
 msgid "Disable stencil and overlap self intersections with alpha materials"
 msgstr "알파 매테리얼과 함께 스텐실 비활성화 및 자체 겹침"
+
+
+msgid "Mask"
+msgstr "마스크"
 
 
 msgid "Material slot in an object"
@@ -27340,10 +27212,6 @@ msgid "Vertex in a Mesh data-block"
 msgstr "메쉬 데이터 블록에서 버텍스"
 
 
-msgid "Weight used by the Bevel modifier 'Only Vertices' option"
-msgstr "베벨 모디파이어 '버텍스 전용' 옵션에 사용되는 웨이트"
-
-
 msgid "Weights for the vertex groups this vertex is member of"
 msgstr "이 버텍스가 다음의 멤버인 버텍스 그룹에 대한 가중치"
 
@@ -27430,10 +27298,6 @@ msgstr "크기 Z"
 
 msgid "Stiffness defines how much of the element to fill"
 msgstr "채우는 요소의 얼마나 많은 강성 정의"
-
-
-msgid "Metaball types"
-msgstr "메타볼 유형"
 
 
 msgid "Ball"
@@ -28192,6 +28056,10 @@ msgid "Seed for random if used"
 msgstr "사용하는 경우 랜덤에 대한 씨드"
 
 
+msgid "Randomize"
+msgstr "랜덤화"
+
+
 msgid "Randomize the faces or edges during build"
 msgstr "빌드하는 동안 페이스 또는 에지를 랜덤화"
 
@@ -28286,10 +28154,6 @@ msgstr "변형으로 인한 왜곡 보정"
 
 msgid "Lambda Factor"
 msgstr "람다 팩터"
-
-
-msgid "Smooth factor effect"
-msgstr "스무스 팩터 이펙트"
 
 
 msgid "Bind current shape"
@@ -29018,10 +28882,6 @@ msgstr "다이나믹 페인트 모디파이어"
 
 msgid "Dynamic Paint modifier"
 msgstr "다이나믹 페인트 모디파이어"
-
-
-msgid "Canvas"
-msgstr "캔버스"
 
 
 msgid "EdgeSplit Modifier"
@@ -30013,16 +29873,22 @@ msgid "Deform around local axis"
 msgstr "로컬 축을 중심으로 변형"
 
 
+msgctxt "Operator"
+msgid "Twist"
+msgstr "비틀기"
+
+
 msgid "Rotate around the Z axis of the modifier space"
 msgstr "모디파이어 공간의 Z 축 주위에 회전"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "굽히기"
+
+
 msgid "Bend the mesh over the Z axis of the modifier space"
 msgstr "모디파이어 공간의 Z축을 넘어메쉬를 굽히기"
-
-
-msgid "Taper"
-msgstr "테이퍼"
 
 
 msgid "Linearly scale along Z axis of the modifier space"
@@ -30844,10 +30710,6 @@ msgid "Y coordinate of the start position"
 msgstr "시작 위치의 Y 좌표"
 
 
-msgid "Either the starting frame (for positive speed) or ending frame (for negative speed.)"
-msgstr "시작하는 프레임(양수 속력) 또는 종료하는 프레임(음수 속력)중 하나"
-
-
 msgid "Cyclic wave effect"
 msgstr "사이클 웨이브 이펙트"
 
@@ -30974,6 +30836,10 @@ msgstr "크리스 웨이트 (활성화된 경우)"
 
 msgid "Thickness factor"
 msgstr "두께 팩터"
+
+
+msgid "Boundary"
+msgstr "경계"
 
 
 msgid "Support face boundaries"
@@ -33036,10 +32902,6 @@ msgid "ITU 709"
 msgstr "ITU 709"
 
 
-msgid "Jpeg"
-msgstr "Jpeg"
-
-
 msgid "Combine YUVA"
 msgstr "결합 YUVA"
 
@@ -33390,6 +33252,10 @@ msgstr "타원 중심의 X 위치"
 
 msgid "Y position of the middle of the ellipse"
 msgstr "타원 중심의 Y 위치"
+
+
+msgid "Soften"
+msgstr "부드럽게"
 
 
 msgid "Laplace"
@@ -33959,6 +33825,10 @@ msgstr "RGB를 BW로 변환"
 
 msgid "Render Layers"
 msgstr "렌더 레이어"
+
+
+msgid "Rotate"
+msgstr "회전"
 
 
 msgid "Method to use to filter rotation"
@@ -35272,10 +35142,6 @@ msgstr "프린시플드 볼륨"
 
 msgid "Volume Scatter"
 msgstr "볼륨 산란"
-
-
-msgid "Pixel Size"
-msgstr "픽셀 크기"
 
 
 msgid "Use screen pixel size instead of world units"
@@ -39257,6 +39123,10 @@ msgid "Skin Resize"
 msgstr "스킨 크기 조정"
 
 
+msgid "Bend"
+msgstr "굽히기"
+
+
 msgid "Shrink/Fatten"
 msgstr "수축/팽창"
 
@@ -43002,6 +42872,10 @@ msgid "Replace existing driver variables, instead of just appending to the end o
 msgstr "기존 목록의 끝에 추가하는 대신 기존 드라이버 변수를 바꿉니다"
 
 
+msgid "Flatten"
+msgstr "평평하게"
+
+
 msgctxt "Operator"
 msgid "Euler Discontinuity Filter"
 msgstr "오일러 불연속 필터"
@@ -43111,6 +42985,19 @@ msgstr "커서 포인트에서 활성 F-커브에 대한 키 프레임을 삽입
 
 msgid "Insert a keyframe for selected F-Curves at the cursor point"
 msgstr "커서 포인트에서 선택된 F-커브에 대한 키 프레임을 삽입"
+
+
+msgctxt "Operator"
+msgid "Jump to Keyframe"
+msgstr "키 프레임으로 이동"
+
+
+msgid "Jump to previous/next keyframe"
+msgstr "키 프레임 이전/다음으로 이동"
+
+
+msgid "Next Keyframe"
+msgstr "다음 키 프레임"
 
 
 msgid "By Values Over Cursor Value"
@@ -48066,10 +47953,6 @@ msgid "Move a node to detach links"
 msgstr "연결을 분리하기 위해 노드를 이동"
 
 
-msgid "Insert Offset"
-msgstr "삽입 오프셋"
-
-
 msgid "Detach Links"
 msgstr "연결을 분리"
 
@@ -51463,6 +51346,10 @@ msgid "If the requested brush type does not exist, create a new brush"
 msgstr "요청한 브러시 유형이 없으면 새 브러시를 생성합니다"
 
 
+msgid "Clone"
+msgstr "클론"
+
+
 msgid "Toggle between two brushes rather than cycling"
 msgstr "순환하는 대신 두 브러시 사이를 토글"
 
@@ -52221,10 +52108,6 @@ msgstr "커스텀 속성"
 
 msgid "Weighting factor for which keyframe is favored more"
 msgstr "키 프레임이 선호에 대한 가중치 펙터"
-
-
-msgid "Next Keyframe"
-msgstr "다음 키 프레임"
 
 
 msgid "Frame number of keyframe immediately after the current frame"
@@ -53872,15 +53755,6 @@ msgstr "정보 로그를 표시"
 
 msgid "Show info log in a separate window"
 msgstr "별도의 창에 정보 로그를 표시"
-
-
-msgctxt "Operator"
-msgid "Jump to Keyframe"
-msgstr "키 프레임으로 이동"
-
-
-msgid "Jump to previous/next keyframe"
-msgstr "키 프레임 이전/다음으로 이동"
 
 
 msgctxt "Operator"
@@ -55775,11 +55649,6 @@ msgid "Transformation orientation"
 msgstr "변환 오리엔테이션"
 
 
-msgctxt "Operator"
-msgid "Bend"
-msgstr "굽히기"
-
-
 msgid "Bend selected items between the 3D cursor and the mouse"
 msgstr "3D 커서 및 마우스 사이에 선택한 항목을 굽히기"
 
@@ -57070,10 +56939,6 @@ msgstr "아일랜드 사이 공간"
 
 msgid "Fraction"
 msgstr "분수"
-
-
-msgid "Rotate islands for best fit"
-msgstr "최상의 맞추기에 대해 아일랜드를 회전"
 
 
 msgctxt "Operator"
@@ -60012,6 +59877,10 @@ msgid "Properties of image and texture painting mode"
 msgstr "이미지 및 텍스처 페인팅 모드의 속성"
 
 
+msgid "Canvas"
+msgstr "캔버스"
+
+
 msgid "Image used as canvas"
 msgstr "캔버스로 사용된 이미지"
 
@@ -60763,10 +60632,6 @@ msgstr "클론"
 msgctxt "Operator"
 msgid "Mask"
 msgstr "마스크"
-
-
-msgid "Brush Tip"
-msgstr "브러시 팁"
 
 
 msgid "Tiling"
@@ -61749,11 +61614,6 @@ msgstr "두께"
 msgctxt "Operator"
 msgid "Strength"
 msgstr "강도"
-
-
-msgctxt "Operator"
-msgid "Twist"
-msgstr "비틀기"
 
 
 msgctxt "Operator"
@@ -64349,10 +64209,6 @@ msgid "Tap Key Timeout"
 msgstr "탭 키 타임 아웃"
 
 
-msgid "Pie menu button held longer than this will dismiss menu on release.(in 1/100ths of sec)"
-msgstr "파이 메뉴 버튼을 길게 누르면 해제 시 메뉴가 사라집니다. (1/100 초 단위)"
-
-
 msgid "Render Display Type"
 msgstr "렌더 표시 유형"
 
@@ -64623,6 +64479,14 @@ msgstr "웨이트 컬러 범위"
 
 msgid "Color range used for weight visualization in weight painting mode"
 msgstr "웨이트 페인트 모드에서 웨이트 시각화를 위해 사용된 컬러 범위"
+
+
+msgid "Base"
+msgstr "베이스"
+
+
+msgid "Temperature"
+msgstr "온도"
 
 
 msgid "ID Property Group"
@@ -66457,6 +66321,10 @@ msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
 msgstr "수직 화면 비율 - 아나모픽 또는 비정방 픽셀 출력에 대해"
 
 
+msgid "Pixel Size"
+msgstr "픽셀 크기"
+
+
 msgid "Pixel size for viewport rendering"
 msgstr "뷰포트 렌더링을 위한 픽셀 크기"
 
@@ -67421,10 +67289,6 @@ msgid "Source of the mesh used to create collision shape"
 msgstr "충돌 셰이프를 만드는 데 사용되는 메쉬의 소스"
 
 
-msgid "Base"
-msgstr "베이스"
-
-
 msgid "Base mesh"
 msgstr "베이스 메쉬"
 
@@ -68123,10 +67987,6 @@ msgstr "YCbCr (ITU 601)"
 
 msgid "YCbCr (ITU 709)"
 msgstr "YCbCr (ITU 709)"
-
-
-msgid "YCbCr (Jpeg)"
-msgstr "YCbCr (Jpeg)"
 
 
 msgid "Sequence strip in the sequence editor"
@@ -75597,381 +75457,6 @@ msgid "WorkSpace UI Tags"
 msgstr "작업공간 UI 테그"
 
 
-msgctxt "Operator"
-msgid "Action:"
-msgstr "Action:"
-
-
-msgctxt "Operator"
-msgid "Anim:"
-msgstr "Anim:"
-
-
-msgctxt "Operator"
-msgid "Armature:"
-msgstr "Armature:"
-
-
-msgctxt "Operator"
-msgid "Blender_id:"
-msgstr "Blender_id:"
-
-
-msgctxt "Operator"
-msgid "Boid:"
-msgstr "Boid:"
-
-
-msgctxt "Operator"
-msgid "Brush:"
-msgstr "Brush:"
-
-
-msgctxt "Operator"
-msgid "Buttons:"
-msgstr "Buttons:"
-
-
-msgctxt "Operator"
-msgid "Cachefile:"
-msgstr "Cachefile:"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Camera:"
-
-
-msgctxt "Operator"
-msgid "Clip:"
-msgstr "Clip:"
-
-
-msgctxt "Operator"
-msgid "Cloth:"
-msgstr "Cloth:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Collection:"
-
-
-msgctxt "Operator"
-msgid "Console:"
-msgstr "Console:"
-
-
-msgctxt "Operator"
-msgid "Constraint:"
-msgstr "Constraint:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Curve:"
-
-
-msgctxt "Operator"
-msgid "Cycles:"
-msgstr "Cycles:"
-
-
-msgctxt "Operator"
-msgid "Dpaint:"
-msgstr "Dpaint:"
-
-
-msgctxt "Operator"
-msgid "Ed:"
-msgstr "Ed:"
-
-
-msgctxt "Operator"
-msgid "Export_animation:"
-msgstr "Export_animation:"
-
-
-msgctxt "Operator"
-msgid "Export_anim:"
-msgstr "Export_anim:"
-
-
-msgctxt "Operator"
-msgid "Export_mesh:"
-msgstr "Export_mesh:"
-
-
-msgctxt "Operator"
-msgid "Export_scene:"
-msgstr "Export_scene:"
-
-
-msgctxt "Operator"
-msgid "Export_shape:"
-msgstr "Export_shape:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "File:"
-
-
-msgctxt "Operator"
-msgid "Fluid:"
-msgstr "Fluid:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Font:"
-
-
-msgctxt "Operator"
-msgid "Gizmogroup:"
-msgstr "Gizmogroup:"
-
-
-msgctxt "Operator"
-msgid "Gpencil:"
-msgstr "Gpencil:"
-
-
-msgctxt "Operator"
-msgid "Graph:"
-msgstr "Graph:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Image:"
-
-
-msgctxt "Operator"
-msgid "Import_anim:"
-msgstr "Import_anim:"
-
-
-msgctxt "Operator"
-msgid "Import_curve:"
-msgstr "Import_curve:"
-
-
-msgctxt "Operator"
-msgid "Import_image:"
-msgstr "Import_image:"
-
-
-msgctxt "Operator"
-msgid "Import_mesh:"
-msgstr "Import_mesh:"
-
-
-msgctxt "Operator"
-msgid "Import_scene:"
-msgstr "Import_scene:"
-
-
-msgctxt "Operator"
-msgid "Import_shape:"
-msgstr "Import_shape:"
-
-
-msgctxt "Operator"
-msgid "Info:"
-msgstr "Info:"
-
-
-msgctxt "Operator"
-msgid "Lattice:"
-msgstr "Lattice:"
-
-
-msgctxt "Operator"
-msgid "Marker:"
-msgstr "Marker:"
-
-
-msgctxt "Operator"
-msgid "Mask:"
-msgstr "Mask:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Material:"
-
-
-msgctxt "Operator"
-msgid "Mathvis:"
-msgstr "Mathvis:"
-
-
-msgctxt "Operator"
-msgid "Mball:"
-msgstr "Mball:"
-
-
-msgctxt "Operator"
-msgid "Mesh:"
-msgstr "Mesh:"
-
-
-msgctxt "Operator"
-msgid "Nla:"
-msgstr "Nla:"
-
-
-msgctxt "Operator"
-msgid "Node:"
-msgstr "Node:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Object:"
-
-
-msgctxt "Operator"
-msgid "Outliner:"
-msgstr "Outliner:"
-
-
-msgctxt "Operator"
-msgid "Paintcurve:"
-msgstr "Paintcurve:"
-
-
-msgctxt "Operator"
-msgid "Paint:"
-msgstr "Paint:"
-
-
-msgctxt "Operator"
-msgid "Palette:"
-msgstr "Palette:"
-
-
-msgctxt "Operator"
-msgid "Particle:"
-msgstr "Particle:"
-
-
-msgctxt "Operator"
-msgid "Poselib:"
-msgstr "PoseLib:"
-
-
-msgctxt "Operator"
-msgid "Pose:"
-msgstr "Pose:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Preferences:"
-
-
-msgctxt "Operator"
-msgid "Ptcache:"
-msgstr "Ptcache:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Render:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Rigidbody:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Scene:"
-
-
-msgctxt "Operator"
-msgid "Screen:"
-msgstr "Screen:"
-
-
-msgctxt "Operator"
-msgid "Script:"
-msgstr "Script:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Sculpt:"
-
-
-msgctxt "Operator"
-msgid "Sequencer:"
-msgstr "Sequencer:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Sound:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Surface:"
-
-
-msgctxt "Operator"
-msgid "Texture:"
-msgstr "Texture:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Text:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Transform:"
-
-
-msgctxt "Operator"
-msgid "Ui:"
-msgstr "Ui:"
-
-
-msgctxt "Operator"
-msgid "Uv:"
-msgstr "Uv:"
-
-
-msgctxt "Operator"
-msgid "View2d:"
-msgstr "View2d:"
-
-
-msgctxt "Operator"
-msgid "View3d:"
-msgstr "View3d:"
-
-
-msgctxt "Operator"
-msgid "Wm:"
-msgstr "Wm:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Workspace:"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "World:"
-
-
 msgid "Search"
 msgstr "검색"
 
@@ -76514,10 +75999,6 @@ msgstr "OSL 스크립트 컴파일 실패, 오류에 대한 콘솔을 참조"
 
 msgid "No text or file specified in node, nothing to compile"
 msgstr "노드에서 지정된 텍스트 또는 파일이 없음, 컴파일 할 수 없음"
-
-
-msgid "OSL query failed to open "
-msgstr "OSL 쿼리를 열지 못했습니다 "
 
 
 msgid "External shader script must have .osl or .oso extension, or be a module name"
@@ -77138,10 +76619,6 @@ msgid "Curve Out X"
 msgstr "커브 Out X"
 
 
-msgid "Out"
-msgstr "Out"
-
-
 msgid "Start Handle"
 msgstr "시작 핸들"
 
@@ -77670,10 +77147,6 @@ msgstr "라벨을 포함"
 
 msgid "Buffer"
 msgstr "버퍼"
-
-
-msgid "Sample Rate"
-msgstr "샘플 비율"
 
 
 msgid "Custom (%.4g fps)"
@@ -78398,10 +77871,6 @@ msgstr "렌더 엔진"
 msgctxt "Operator"
 msgid "Bake Cubemap Only"
 msgstr "큐브맵 만 베이크"
-
-
-msgid "Temperature"
-msgstr "온도"
 
 
 msgid "General Override"
@@ -81845,10 +81314,6 @@ msgid "Total files %d | Changed %d | Failed %d"
 msgstr "전체 파일 %d | 바뀜 %d | 실패됨 %d"
 
 
-msgid "Path '%s' cannot be made relative"
-msgstr "경로 '%s'는 상대적으로 만들 수 없습니다"
-
-
 msgid "Scene Collection"
 msgstr "씬 컬렉션"
 
@@ -82574,6 +82039,10 @@ msgstr "RNA 경로가 지정된 ID에 유효하지 않으므로 복사할 드라
 
 msgid "Could not paste driver, as RNA path is invalid for the given ID (ID = %s, path = %s)"
 msgstr "주어진 ID에 대해 RNA 경로가 유효하지 않으므로 드라이버를 붙여 넣을 수 없습니다 (ID = %s, 경로 = %s)"
+
+
+msgid "Out"
+msgstr "Out"
 
 
 msgid "<Unknown Modifier>"
@@ -88156,6 +87625,10 @@ msgid "Edge Crease"
 msgstr "에지 크리스"
 
 
+msgid "Rotate islands for best fit"
+msgstr "최상의 맞추기에 대해 아일랜드를 회전"
+
+
 msgid "Shader Editor"
 msgstr "셰이더 에디터"
 
@@ -88909,10 +88382,6 @@ msgid "Japanese (日本語)"
 msgstr "일본어 (日本語)"
 
 
-msgid "Dutch (Nederlandse taal)"
-msgstr "네덜란드어 (Nederlandse taal)"
-
-
 msgid "Italian (Italiano)"
 msgstr "이탈리아어 (Italiano)"
 
@@ -89021,10 +88490,6 @@ msgid "Hebrew (תירִבְעִ)"
 msgstr "히브리어 (תירִבְעִ)"
 
 
-msgid "Estonian (Eestlane)"
-msgstr "에스토니아어 (Eestlane)"
-
-
 msgid "Esperanto (Esperanto)"
 msgstr "에스페란토어 (Esperanto)"
 
@@ -89045,24 +88510,12 @@ msgid "Uzbek Cyrillic (Ўзбек)"
 msgstr "우즈베크어 키릴문자 (Ўзбек)"
 
 
-msgid "Hindi (मानक हिन्दी)"
-msgstr "힌디어 (मानक हिन्दी)"
-
-
-msgid "Vietnamese (tiếng Việt)"
-msgstr "베트남 (tiếng Việt)"
-
-
 msgid "Basque (Euskara)"
 msgstr "바스크어 (Euskara)"
 
 
 msgid "Hausa (Hausa)"
 msgstr "하우사(하우사어)"
-
-
-msgid "Kazakh (қазақша)"
-msgstr "카자흐어 (қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

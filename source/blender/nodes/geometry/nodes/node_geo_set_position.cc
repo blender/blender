@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "DEG_depsgraph_query.h"
 
@@ -26,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void set_computed_position_and_offset(GeometryComponent &component,
                                              const VArray<float3> &in_positions,
                                              const VArray<float3> &in_offsets,
-                                             const IndexMask selection)
+                                             const IndexMask &selection)
 {
   MutableAttributeAccessor attributes = *component.attributes_for_write();
 
@@ -45,10 +47,10 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       }
     }
   }
-  const int grain_size = 10000;
+  const GrainSize grain_size{10000};
 
   switch (component.type()) {
-    case GEO_COMPONENT_TYPE_CURVE: {
+    case GeometryComponent::Type::Curve: {
       if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
         CurveComponent &curve_component = static_cast<CurveComponent &>(component);
         Curves &curves_id = *curve_component.get_for_write();
@@ -62,16 +64,13 @@ static void set_computed_position_and_offset(GeometryComponent &component,
         MutableVArraySpan<float3> out_positions_span = positions.varray;
         devirtualize_varray2(
             in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
-              threading::parallel_for(
-                  selection.index_range(), grain_size, [&](const IndexRange range) {
-                    for (const int i : selection.slice(range)) {
-                      const float3 new_position = in_positions[i] + in_offsets[i];
-                      const float3 delta = new_position - out_positions_span[i];
-                      handle_right_attribute.span[i] += delta;
-                      handle_left_attribute.span[i] += delta;
-                      out_positions_span[i] = new_position;
-                    }
-                  });
+              selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
+                const float3 new_position = in_positions[i] + in_offsets[i];
+                const float3 delta = new_position - out_positions_span[i];
+                handle_right_attribute.span[i] += delta;
+                handle_left_attribute.span[i] += delta;
+                out_positions_span[i] = new_position;
+              });
             });
 
         out_positions_span.save();
@@ -90,23 +89,16 @@ static void set_computed_position_and_offset(GeometryComponent &component,
       MutableVArraySpan<float3> out_positions_span = positions.varray;
       if (positions_are_original) {
         devirtualize_varray(in_offsets, [&](const auto in_offsets) {
-          threading::parallel_for(
-              selection.index_range(), grain_size, [&](const IndexRange range) {
-                for (const int i : selection.slice(range)) {
-                  out_positions_span[i] += in_offsets[i];
-                }
-              });
+          selection.foreach_index_optimized<int>(
+              grain_size, [&](const int i) { out_positions_span[i] += in_offsets[i]; });
         });
       }
       else {
         devirtualize_varray2(
             in_positions, in_offsets, [&](const auto in_positions, const auto in_offsets) {
-              threading::parallel_for(
-                  selection.index_range(), grain_size, [&](const IndexRange range) {
-                    for (const int i : selection.slice(range)) {
-                      out_positions_span[i] = in_positions[i] + in_offsets[i];
-                    }
-                  });
+              selection.foreach_index_optimized<int>(grain_size, [&](const int i) {
+                out_positions_span[i] = in_positions[i] + in_offsets[i];
+              });
             });
       }
       out_positions_span.save();
@@ -117,13 +109,13 @@ static void set_computed_position_and_offset(GeometryComponent &component,
 }
 
 static void set_position_in_component(GeometrySet &geometry,
-                                      GeometryComponentType component_type,
+                                      GeometryComponent::Type component_type,
                                       const Field<bool> &selection_field,
                                       const Field<float3> &position_field,
                                       const Field<float3> &offset_field)
 {
   const GeometryComponent &component = *geometry.get_component_for_read(component_type);
-  const eAttrDomain domain = component.type() == GEO_COMPONENT_TYPE_INSTANCES ?
+  const eAttrDomain domain = component.type() == GeometryComponent::Type::Instance ?
                                  ATTR_DOMAIN_INSTANCE :
                                  ATTR_DOMAIN_POINT;
   const int domain_size = component.attribute_domain_size(domain);
@@ -156,10 +148,10 @@ static void node_geo_exec(GeoNodeExecParams params)
   Field<float3> offset_field = params.extract_input<Field<float3>>("Offset");
   Field<float3> position_field = params.extract_input<Field<float3>>("Position");
 
-  for (const GeometryComponentType type : {GEO_COMPONENT_TYPE_MESH,
-                                           GEO_COMPONENT_TYPE_POINT_CLOUD,
-                                           GEO_COMPONENT_TYPE_CURVE,
-                                           GEO_COMPONENT_TYPE_INSTANCES})
+  for (const GeometryComponent::Type type : {GeometryComponent::Type::Mesh,
+                                             GeometryComponent::Type::PointCloud,
+                                             GeometryComponent::Type::Curve,
+                                             GeometryComponent::Type::Instance})
   {
     if (geometry.has(type)) {
       set_position_in_component(geometry, type, selection_field, position_field, offset_field);

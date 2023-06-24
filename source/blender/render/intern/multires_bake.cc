@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2012 Blender Foundation */
+/* SPDX-FileCopyrightText: 2012 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup render
@@ -361,6 +362,7 @@ struct MultiresBakeThread {
   MultiresBakeRender *bkr;
   Image *image;
   void *bake_data;
+  int num_total_faces;
 
   /* thread-specific data */
   MBakeRast bake_rast;
@@ -436,7 +438,7 @@ static void *do_multires_bake_thread(void *data_v)
 
     if (bkr->progress) {
       *bkr->progress = (float(bkr->baked_objects) +
-                        float(bkr->baked_faces) / handle->queue->tot_tri) /
+                        float(bkr->baked_faces) / handle->num_total_faces) /
                        bkr->tot_obj;
     }
     BLI_spin_unlock(&handle->queue->spin);
@@ -565,6 +567,7 @@ static void do_multires_bake(MultiresBakeRender *bkr,
 
     handle->bkr = bkr;
     handle->image = ima;
+    handle->num_total_faces = queue.tot_tri * BLI_listbase_count(&ima->tiles);
     handle->queue = &queue;
 
     handle->data.vert_positions = positions;

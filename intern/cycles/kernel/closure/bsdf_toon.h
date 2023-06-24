@@ -1,10 +1,9 @@
-/* SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-FileCopyrightText: 2009-2010 Sony Pictures Imageworks Inc., et al. All Rights Reserved.
+ * SPDX-FileCopyrightText: 2011-2022 Blender Foundation
  *
- * Adapted from Open Shading Language
- * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
- * All Rights Reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Modifications Copyright 2011-2022 Blender Foundation. */
+ * Adapted code from Open Shading Language. */
 
 #pragma once
 
@@ -79,8 +78,7 @@ ccl_device Spectrum bsdf_diffuse_toon_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
                                         float3 Ng,
                                         float3 wi,
-                                        float randu,
-                                        float randv,
+                                        float2 rand,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *wo,
                                         ccl_private float *pdf)
@@ -89,10 +87,10 @@ ccl_device int bsdf_diffuse_toon_sample(ccl_private const ShaderClosure *sc,
   float max_angle = bsdf->size * M_PI_2_F;
   float smooth = bsdf->smooth * M_PI_2_F;
   float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
-  float angle = sample_angle * randu;
+  float angle = sample_angle * rand.x;
 
   if (sample_angle > 0.0f) {
-    sample_uniform_cone(bsdf->N, sample_angle, randu, randv, wo, pdf);
+    sample_uniform_cone(bsdf->N, sample_angle, rand, wo, pdf);
 
     if (dot(Ng, *wo) > 0.0f) {
       *eval = make_spectrum(*pdf * bsdf_toon_get_intensity(max_angle, smooth, angle));
@@ -152,8 +150,7 @@ ccl_device Spectrum bsdf_glossy_toon_eval(ccl_private const ShaderClosure *sc,
 ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
                                        float3 Ng,
                                        float3 wi,
-                                       float randu,
-                                       float randv,
+                                       float2 rand,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)
@@ -168,9 +165,9 @@ ccl_device int bsdf_glossy_toon_sample(ccl_private const ShaderClosure *sc,
     float3 R = (2 * cosNI) * bsdf->N - wi;
 
     float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
-    float angle = sample_angle * randu;
+    float angle = sample_angle * rand.x;
 
-    sample_uniform_cone(R, sample_angle, randu, randv, wo, pdf);
+    sample_uniform_cone(R, sample_angle, rand, wo, pdf);
 
     if (dot(Ng, *wo) > 0.0f) {
       float cosNO = dot(bsdf->N, *wo);

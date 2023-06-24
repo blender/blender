@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup RNA
@@ -22,7 +24,7 @@
 #include "WM_types.h"
 
 /* Which part of bone(s) get baked */
-// TODO: icons?
+/* TODO: icons? */
 const EnumPropertyItem rna_enum_motionpath_bake_location_items[] = {
     {MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
     {0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},

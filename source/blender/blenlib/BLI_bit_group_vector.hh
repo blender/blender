@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -83,6 +85,20 @@ class BitGroupVector {
   IndexRange index_range() const
   {
     return IndexRange{this->size()};
+  }
+
+  /**
+   * Get all stored bits. Note that this may also contain padding bits. This can be used to e.g.
+   * mix multiple #BitGroupVector.
+   */
+  BoundedBitSpan all_bits() const
+  {
+    return data_;
+  }
+
+  MutableBoundedBitSpan all_bits()
+  {
+    return data_;
   }
 };
 

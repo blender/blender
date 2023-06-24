@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup bke
@@ -206,7 +208,8 @@ static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
   Brush *brush = (Brush *)id;
   if (brush->icon_filepath[0] != '\0') {
-    BKE_bpath_foreach_path_fixed_process(bpath_data, brush->icon_filepath);
+    BKE_bpath_foreach_path_fixed_process(
+        bpath_data, brush->icon_filepath, sizeof(brush->icon_filepath));
   }
 }
 
@@ -1666,7 +1669,7 @@ void BKE_brush_init_curves_sculpt_settings(Brush *brush)
   settings->curve_parameter_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-struct Brush *BKE_brush_first_search(struct Main *bmain, const eObjectMode ob_mode)
+Brush *BKE_brush_first_search(Main *bmain, const eObjectMode ob_mode)
 {
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
     if (brush->ob_mode & ob_mode) {
@@ -2058,8 +2061,7 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset)
   BKE_curvemapping_changed(cumap, false);
 }
 
-const struct MTex *BKE_brush_mask_texture_get(const struct Brush *brush,
-                                              const eObjectMode object_mode)
+const MTex *BKE_brush_mask_texture_get(const Brush *brush, const eObjectMode object_mode)
 {
   if (object_mode == OB_MODE_SCULPT) {
     return &brush->mtex;
@@ -2067,8 +2069,7 @@ const struct MTex *BKE_brush_mask_texture_get(const struct Brush *brush,
   return &brush->mask_mtex;
 }
 
-const struct MTex *BKE_brush_color_texture_get(const struct Brush *brush,
-                                               const eObjectMode object_mode)
+const MTex *BKE_brush_color_texture_get(const Brush *brush, const eObjectMode object_mode)
 {
   if (object_mode == OB_MODE_SCULPT) {
     return &brush->mask_mtex;
@@ -2082,7 +2083,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
                               const float point[3],
                               float rgba[4],
                               const int thread,
-                              struct ImagePool *pool)
+                              ImagePool *pool)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   float intensity = 1.0;
@@ -2200,7 +2201,7 @@ float BKE_brush_sample_tex_3d(const Scene *scene,
 }
 
 float BKE_brush_sample_masktex(
-    const Scene *scene, Brush *br, const float point[2], const int thread, struct ImagePool *pool)
+    const Scene *scene, Brush *br, const float point[2], const int thread, ImagePool *pool)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   MTex *mtex = &br->mask_mtex;
@@ -2327,19 +2328,19 @@ float BKE_brush_sample_masktex(
  * In any case, a better solution is needed to prevent
  * inconsistency. */
 
-const float *BKE_brush_color_get(const struct Scene *scene, const struct Brush *brush)
+const float *BKE_brush_color_get(const Scene *scene, const Brush *brush)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->rgb : brush->rgb;
 }
 
-const float *BKE_brush_secondary_color_get(const struct Scene *scene, const struct Brush *brush)
+const float *BKE_brush_secondary_color_get(const Scene *scene, const Brush *brush)
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
   return (ups->flag & UNIFIED_PAINT_COLOR) ? ups->secondary_rgb : brush->secondary_rgb;
 }
 
-void BKE_brush_color_set(struct Scene *scene, struct Brush *brush, const float color[3])
+void BKE_brush_color_set(Scene *scene, Brush *brush, const float color[3])
 {
   UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 
@@ -2617,7 +2618,7 @@ static bool brush_gen_texture(const Brush *br,
   return true;
 }
 
-struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
+ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool display_gradient)
 {
   ImBuf *im = MEM_cnew<ImBuf>("radial control texture");
   int side = 512;

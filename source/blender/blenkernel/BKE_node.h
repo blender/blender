@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2005 Blender Foundation */
+/* SPDX-FileCopyrightText: 2005 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -316,7 +317,8 @@ typedef struct bNodeType {
   bool (*poll)(const struct bNodeType *ntype,
                const struct bNodeTree *nodetree,
                const char **r_disabled_hint);
-  /** Can this node be added to a node tree?
+  /**
+   * Can this node be added to a node tree?
    * \param r_disabled_hint: See `poll()`.
    */
   bool (*poll_instance)(const struct bNode *node,
@@ -540,12 +542,61 @@ void ntreeBlendWrite(struct BlendWriter *writer, struct bNodeTree *ntree);
 /** \name Node Tree Interface
  * \{ */
 
+/** Run this after relevant changes to panels to ensure sockets remain sorted by panel. */
+void ntreeEnsureSocketInterfacePanelOrder(bNodeTree *ntree);
+
 void ntreeRemoveSocketInterface(bNodeTree *ntree, bNodeSocket *sock);
 
 struct bNodeSocket *ntreeAddSocketInterface(struct bNodeTree *ntree,
                                             eNodeSocketInOut in_out,
                                             const char *idname,
                                             const char *name);
+
+/** Set the panel of the interface socket. */
+void ntreeSetSocketInterfacePanel(bNodeTree *ntree, bNodeSocket *sock, bNodePanel *panel);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Node Tree Socket Panels
+ * \{ */
+
+/**
+ * Check if a panel is part of the node tree.
+ * \return True if the panel is part of the node tree.
+ */
+bool ntreeContainsPanel(const bNodeTree *ntree, const bNodePanel *panel);
+
+/**
+ * Index of a panel in the node tree.
+ * \return Index of the panel in the node tree or -1 if the tree does not contain the panel.
+ */
+int ntreeGetPanelIndex(const bNodeTree *ntree, const bNodePanel *panel);
+
+/**
+ * Add a new panel to the node tree.
+ * \param name: Name of the new panel.
+ */
+bNodePanel *ntreeAddPanel(bNodeTree *ntree, const char *name);
+
+/**
+ * Insert a new panel in the node tree.
+ * \param name: Name of the new panel.
+ * \param index: Index at which to insert the panel.
+ */
+bNodePanel *ntreeInsertPanel(bNodeTree *ntree, const char *name, int index);
+
+/** Remove a panel from the node tree. */
+void ntreeRemovePanel(bNodeTree *ntree, bNodePanel *panel);
+
+/** Remove all panels from the node tree. */
+void ntreeClearPanels(bNodeTree *ntree);
+
+/**
+ * Move a panel up or down in the node tree.
+ * \param index: Index to which to move the panel.
+ */
+void ntreeMovePanel(bNodeTree *ntree, bNodePanel *panel, int new_index);
 
 /** \} */
 
@@ -865,16 +916,16 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 
 /* NOTE: types are needed to restore callbacks, don't change values. */
 
-//#define SH_NODE_MATERIAL  100
+// #define SH_NODE_MATERIAL  100
 #define SH_NODE_RGB 101
 #define SH_NODE_VALUE 102
 #define SH_NODE_MIX_RGB_LEGACY 103
 #define SH_NODE_VALTORGB 104
 #define SH_NODE_RGBTOBW 105
 #define SH_NODE_SHADERTORGB 106
-//#define SH_NODE_TEXTURE       106
+// #define SH_NODE_TEXTURE       106
 #define SH_NODE_NORMAL 107
-//#define SH_NODE_GEOMETRY  108
+// #define SH_NODE_GEOMETRY  108
 #define SH_NODE_MAPPING 109
 #define SH_NODE_CURVE_VEC 110
 #define SH_NODE_CURVE_RGB 111
@@ -882,7 +933,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define SH_NODE_MATH 115
 #define SH_NODE_VECTOR_MATH 116
 #define SH_NODE_SQUEEZE 117
-//#define SH_NODE_MATERIAL_EXT  118
+// #define SH_NODE_MATERIAL_EXT  118
 #define SH_NODE_INVERT 119
 #define SH_NODE_SEPRGB_LEGACY 120
 #define SH_NODE_COMBRGB_LEGACY 121
@@ -1059,6 +1110,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define CMP_NODE_INPAINT 272
 #define CMP_NODE_DESPECKLE 273
 #define CMP_NODE_ANTIALIASING 274
+#define CMP_NODE_KUWAHARA 275
 
 #define CMP_NODE_GLARE 301
 #define CMP_NODE_TONEMAP 302
@@ -1307,6 +1359,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, i
 #define GEO_NODE_SIMULATION_OUTPUT 2101
 #define GEO_NODE_INPUT_SIGNED_DISTANCE 2102
 #define GEO_NODE_SAMPLE_VOLUME 2103
+#define GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_EDGE 2104
 
 /** \} */
 

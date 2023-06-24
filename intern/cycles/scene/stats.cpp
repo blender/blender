@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/stats.h"
 #include "scene/object.h"
@@ -238,6 +239,7 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
   kernel.add_entry("Intersect Shadow", prof.get_event(PROFILING_INTERSECT_SHADOW));
   kernel.add_entry("Intersect Subsurface", prof.get_event(PROFILING_INTERSECT_SUBSURFACE));
   kernel.add_entry("Intersect Volume Stack", prof.get_event(PROFILING_INTERSECT_VOLUME_STACK));
+  kernel.add_entry("Intersect Blocked Light", prof.get_event(PROFILING_INTERSECT_DEDICATED_LIGHT));
 
   NamedNestedSampleStats &surface = kernel.add_entry("Shade Surface", 0);
   surface.add_entry("Setup", prof.get_event(PROFILING_SHADE_SURFACE_SETUP));
@@ -257,6 +259,7 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
   shadow.add_entry("Setup", prof.get_event(PROFILING_SHADE_SHADOW_SETUP));
   shadow.add_entry("Surface", prof.get_event(PROFILING_SHADE_SHADOW_SURFACE));
   shadow.add_entry("Volume", prof.get_event(PROFILING_SHADE_SHADOW_VOLUME));
+  shadow.add_entry("Blocked Light", prof.get_event(PROFILING_SHADE_DEDICATED_LIGHT));
 
   NamedNestedSampleStats &light = kernel.add_entry("Shade Light", 0);
   light.add_entry("Setup", prof.get_event(PROFILING_SHADE_LIGHT_SETUP));

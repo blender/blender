@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/image_vdb.h"
 
@@ -71,6 +72,9 @@ struct ToNanoOp {
       }
       catch (const std::exception &e) {
         VLOG_WARNING << "Error converting OpenVDB to NanoVDB grid: " << e.what();
+      }
+      catch (...) {
+        VLOG_WARNING << "Error converting OpenVDB to NanoVDB grid: Unknown error";
       }
       return true;
     }

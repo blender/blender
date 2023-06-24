@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Alpha (b'51c2a0f81606')\n"
+"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-05-15 09:19:43\n"
+"POT-Creation-Date: 2023-06-22 15:00:05\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -678,16 +678,12 @@ msgid "Fill"
 msgstr "Vul"
 
 
-msgid "Smooth"
-msgstr "Glad"
-
-
-msgid "Twist"
-msgstr "Draai"
-
-
 msgid "Draw"
 msgstr "Potlood"
+
+
+msgid "Smooth"
+msgstr "Glad"
 
 
 msgid "Show Lines"
@@ -1917,10 +1913,6 @@ msgid "Box"
 msgstr "Doos"
 
 
-msgid "Bend"
-msgstr "Buig"
-
-
 msgid "Force Falloff"
 msgstr "Kracht Afvlakking"
 
@@ -1965,32 +1957,12 @@ msgid "Projected"
 msgstr "Geprojecteerd"
 
 
-msgid "Erase"
-msgstr "Gummen"
-
-
 msgid "Repeat"
 msgstr "Herhaal"
 
 
-msgid "Mask"
-msgstr "Mask"
-
-
 msgid "Brush"
 msgstr "Kwast"
-
-
-msgid "Clay"
-msgstr "Klei"
-
-
-msgid "Rotate"
-msgstr "Roteren"
-
-
-msgid "Cloth"
-msgstr "Kleding"
 
 
 msgid "Elastic"
@@ -2264,6 +2236,10 @@ msgid "Hair"
 msgstr "Haar"
 
 
+msgid "Cloth"
+msgstr "Kleding"
+
+
 msgid "Roughness"
 msgstr "Ruwheid"
 
@@ -2402,6 +2378,10 @@ msgstr "Nummer"
 
 msgid "Random Size"
 msgstr "Willekeurige Grootte"
+
+
+msgid "Twist"
+msgstr "Draai"
 
 
 msgid "Particle type"
@@ -2707,6 +2687,10 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
+msgid "Mask"
+msgstr "Mask"
+
+
 msgctxt "MovieClip"
 msgid "Clip"
 msgstr "Clip"
@@ -2946,6 +2930,11 @@ msgid "World"
 msgstr "Wereld"
 
 
+msgctxt "Operator"
+msgid "Bend"
+msgstr "Buig"
+
+
 msgid "Origin"
 msgstr "Origin"
 
@@ -3076,6 +3065,10 @@ msgstr "Bewegingsonscherpte"
 
 msgid "Render Layers"
 msgstr "Render Lagen"
+
+
+msgid "Rotate"
+msgstr "Roteren"
 
 
 msgid "Translate"
@@ -3768,6 +3761,10 @@ msgid "To Sphere"
 msgstr "Naar Bal"
 
 
+msgid "Bend"
+msgstr "Buig"
+
+
 msgid "Edge Slide"
 msgstr "Glij over Rand"
 
@@ -4310,6 +4307,10 @@ msgstr "Maak Spook Kromme"
 msgctxt "Operator"
 msgid "Hide Curves"
 msgstr "Verberg Krommes"
+
+
+msgid "Next Keyframe"
+msgstr "Volgende Sleutelframe"
 
 
 msgctxt "Operator"
@@ -5368,10 +5369,6 @@ msgid "Rotation only"
 msgstr "Alleen Rotatie"
 
 
-msgid "Next Keyframe"
-msgstr "Volgende Sleutelframe"
-
-
 msgid "Previous Keyframe"
 msgstr "Vorige Sleutelframe"
 
@@ -5951,11 +5948,6 @@ msgstr "Naar 3D Object"
 
 msgid "Split Lines"
 msgstr "Split Lijnen"
-
-
-msgctxt "Operator"
-msgid "Bend"
-msgstr "Buig"
 
 
 msgctxt "Operator"
@@ -6736,6 +6728,10 @@ msgid "Seconds"
 msgstr "Seconden"
 
 
+msgid "Temperature"
+msgstr "Temperatuur"
+
+
 msgid "Find/Replace"
 msgstr "Vind/Vervang"
 
@@ -7194,101 +7190,6 @@ msgstr "Teken Normalen"
 
 msgid "Show Weights"
 msgstr "Toon Gewichten"
-
-
-msgctxt "Operator"
-msgid "Camera:"
-msgstr "Camera:"
-
-
-msgctxt "Operator"
-msgid "Collection:"
-msgstr "Collectie:"
-
-
-msgctxt "Operator"
-msgid "Curve:"
-msgstr "Kromme:"
-
-
-msgctxt "Operator"
-msgid "File:"
-msgstr "Bestand:"
-
-
-msgctxt "Operator"
-msgid "Font:"
-msgstr "Lettertype:"
-
-
-msgctxt "Operator"
-msgid "Image:"
-msgstr "Afbeelding:"
-
-
-msgctxt "Operator"
-msgid "Material:"
-msgstr "Materiaal:"
-
-
-msgctxt "Operator"
-msgid "Object:"
-msgstr "Object:"
-
-
-msgctxt "Operator"
-msgid "Preferences:"
-msgstr "Instellingen:"
-
-
-msgctxt "Operator"
-msgid "Render:"
-msgstr "Render:"
-
-
-msgctxt "Operator"
-msgid "Rigidbody:"
-msgstr "Star Lichaam:"
-
-
-msgctxt "Operator"
-msgid "Scene:"
-msgstr "Scene:"
-
-
-msgctxt "Operator"
-msgid "Sculpt:"
-msgstr "Beeldhouwen:"
-
-
-msgctxt "Operator"
-msgid "Sound:"
-msgstr "Geluid:"
-
-
-msgctxt "Operator"
-msgid "Surface:"
-msgstr "Oppervlak:"
-
-
-msgctxt "Operator"
-msgid "Text:"
-msgstr "Tekst:"
-
-
-msgctxt "Operator"
-msgid "Transform:"
-msgstr "Transformeer:"
-
-
-msgctxt "Operator"
-msgid "Workspace:"
-msgstr "Werkomgeving:"
-
-
-msgctxt "Operator"
-msgid "World:"
-msgstr "Wereld:"
 
 
 msgid "Search"
@@ -7789,10 +7690,6 @@ msgstr "Seconde"
 
 msgid "Auto-Step"
 msgstr "Auto-Stap"
-
-
-msgid "Temperature"
-msgstr "Temperatuur"
 
 
 msgid "Paths:"
@@ -8902,10 +8799,6 @@ msgid "var"
 msgstr "var"
 
 
-msgid " from "
-msgstr " van "
-
-
 msgid "%i frames found!"
 msgstr "%i frames gevonden!"
 
@@ -9380,10 +9273,6 @@ msgstr "OK"
 
 msgid "Active Keyframe"
 msgstr "Actieve Sleutelframe"
-
-
-msgid "into"
-msgstr "in"
 
 
 msgid "Today"

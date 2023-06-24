@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup wm
@@ -90,14 +92,14 @@ static void wm_gizmotype_append__end(wmGizmoType *gzt)
   BLI_ghash_insert(global_gizmotype_hash, (void *)gzt->idname, gzt);
 }
 
-void WM_gizmotype_append(void (*gtfunc)(struct wmGizmoType *))
+void WM_gizmotype_append(void (*gtfunc)(wmGizmoType *))
 {
   wmGizmoType *gzt = wm_gizmotype_append__begin();
   gtfunc(gzt);
   wm_gizmotype_append__end(gzt);
 }
 
-void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void *userdata)
+void WM_gizmotype_append_ptr(void (*gtfunc)(wmGizmoType *, void *), void *userdata)
 {
   wmGizmoType *mt = wm_gizmotype_append__begin();
   gtfunc(mt, userdata);

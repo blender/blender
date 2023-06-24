@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2014 Blender Foundation */
+/* SPDX-FileCopyrightText: 2014 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -95,7 +96,7 @@ void BLI_astar_solution_init(BLI_AStarGraph *as_graph,
                              void *custom_data);
 /**
  * Clear given solution's data, but does not release its memory.
- * Avoids having to recreate/allocate a memarena in loops, e.g.
+ * Avoids having to recreate/allocate a memory-arena in loops, e.g.
  *
  * \note This *has to be called* between each path solving.
  */

@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2001-2002 NaN Holding BV. All rights reserved. */
+/* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -135,16 +136,16 @@ void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
   system->getAllDisplayDimensions(*width, *height);
 }
 
-GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle,
-                                              GHOST_GLSettings glSettings)
+GHOST_ContextHandle GHOST_CreateGPUContext(GHOST_SystemHandle systemhandle,
+                                           GHOST_GPUSettings gpuSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
-  return (GHOST_ContextHandle)system->createOffscreenContext(glSettings);
+  return (GHOST_ContextHandle)system->createOffscreenContext(gpuSettings);
 }
 
-GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
-                                          GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_DisposeGPUContext(GHOST_SystemHandle systemhandle,
+                                       GHOST_ContextHandle contexthandle)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
@@ -161,7 +162,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       uint32_t height,
                                       GHOST_TWindowState state,
                                       bool is_dialog,
-                                      GHOST_GLSettings glSettings)
+                                      GHOST_GPUSettings gpuSettings)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
 
@@ -171,7 +172,7 @@ GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                                   width,
                                                   height,
                                                   state,
-                                                  glSettings,
+                                                  gpuSettings,
                                                   false,
                                                   is_dialog,
                                                   (GHOST_IWindow *)parent_windowhandle);
@@ -583,13 +584,14 @@ char *GHOST_GetTitle(GHOST_WindowHandle windowhandle)
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
   std::string title = window->getTitle();
 
-  char *ctitle = (char *)malloc(title.size() + 1);
+  const size_t ctitle_size = title.size() + 1;
+  char *ctitle = (char *)malloc(ctitle_size);
 
   if (ctitle == nullptr) {
     return nullptr;
   }
 
-  strcpy(ctitle, title.c_str());
+  memcpy(ctitle, title.c_str(), ctitle_size);
 
   return ctitle;
 }
@@ -716,7 +718,7 @@ GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandl
   return window->activateDrawingContext();
 }
 
-GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_ActivateGPUContext(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
   if (context) {
@@ -726,21 +728,21 @@ GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
   return GHOST_kFailure;
 }
 
-GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle)
+GHOST_TSuccess GHOST_ReleaseGPUContext(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->releaseDrawingContext();
 }
 
-uint GHOST_GetContextDefaultOpenGLFramebuffer(GHOST_ContextHandle contexthandle)
+uint GHOST_GetContextDefaultGPUFramebuffer(GHOST_ContextHandle contexthandle)
 {
   GHOST_IContext *context = (GHOST_IContext *)contexthandle;
 
   return context->getDefaultFramebuffer();
 }
 
-uint GHOST_GetDefaultOpenGLFramebuffer(GHOST_WindowHandle windowhandle)
+uint GHOST_GetDefaultGPUFramebuffer(GHOST_WindowHandle windowhandle)
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
 

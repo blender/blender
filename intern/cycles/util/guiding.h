@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -18,11 +19,9 @@ static int guiding_device_type()
 #  if defined(__ARM_NEON)
   return 8;
 #  else
-#    if OPENPGL_VERSION_MINOR >= 4
   if (system_cpu_support_avx2()) {
     return 8;
   }
-#    endif
   if (system_cpu_support_sse41()) {
     return 4;
   }

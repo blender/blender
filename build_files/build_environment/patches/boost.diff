@@ -5,8 +5,24 @@
  #ifdef DEBUG_UNDEFINED_FROM_WRAP_PYTHON_H
  # undef DEBUG_UNDEFINED_FROM_WRAP_PYTHON_H
 -# define _DEBUG
-+// BLENDER: TBB excepts this to have a value.
++// BLENDER: TBB expects this to have a value.
 +# define _DEBUG 1
  # ifdef _CRT_NOFORCE_MANIFEST_DEFINED_FROM_WRAP_PYTHON_H
  #  undef _CRT_NOFORCE_MANIFEST_DEFINED_FROM_WRAP_PYTHON_H
  #  undef _CRT_NOFORCE_MANIFEST
+--- a/boost/config/stdlib/libcpp.hpp	2022-08-03 22:47:07.000000000 -0400
++++ b/boost/config/stdlib/libcpp.hpp	2022-09-16 22:16:17.044119011 -0400
+@@ -168,4 +168,13 @@
+ #  define BOOST_NO_CXX14_HDR_SHARED_MUTEX
+ #endif
+ 
++#if defined(_LIBCPP_VERSION) && _LIBCPP_VERSION >= 15000
++//
++// Unary function is now deprecated in C++11 and later:
++//
++#if __cplusplus >= 201103L
++#define BOOST_NO_CXX98_FUNCTION_BASE
++#endif
++#endif
++
+ //  --- end ---

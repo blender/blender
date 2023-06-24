@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup editorui
@@ -64,6 +66,7 @@ class TreeViewItemContainer {
   enum class IterOptions {
     None = 0,
     SkipCollapsed = 1 << 0,
+    SkipFiltered = 1 << 1,
 
     /* Keep ENUM_OPERATORS() below updated! */
   };

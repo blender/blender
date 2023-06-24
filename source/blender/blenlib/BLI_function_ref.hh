@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -111,7 +113,8 @@ template<typename Ret, typename... Params> class FunctionRef<Ret(Params...)> {
    */
   template<typename Callable,
            BLI_ENABLE_IF((
-               !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef>))>
+               !std::is_same_v<std::remove_cv_t<std::remove_reference_t<Callable>>, FunctionRef>)),
+           BLI_ENABLE_IF((std::is_invocable_r_v<Ret, Callable, Params...>))>
   FunctionRef(Callable &&callable)
       : callback_(callback_fn<typename std::remove_reference_t<Callable>>),
         callable_(intptr_t(&callable))

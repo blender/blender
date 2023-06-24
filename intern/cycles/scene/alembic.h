@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: Apache-2.0
- * Copyright 2011-2022 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
 
 #pragma once
 
@@ -397,6 +398,10 @@ class AlembicObject : public Node {
   void load_data_in_cache(CachedData &cached_data,
                           AlembicProcedural *proc,
                           const Alembic::AbcGeom::ICurvesSchema &schema,
+                          Progress &progress);
+  void load_data_in_cache(CachedData &cached_data,
+                          AlembicProcedural *proc,
+                          const Alembic::AbcGeom::IPointsSchema &schema,
                           Progress &progress);
 
   bool has_data_loaded() const;

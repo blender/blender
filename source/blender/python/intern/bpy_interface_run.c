@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup pythonintern
@@ -85,11 +87,8 @@ typedef struct {
  *
  * \note Share a function for this since setup/cleanup logic is the same.
  */
-static bool python_script_exec(bContext *C,
-                               const char *filepath,
-                               struct Text *text,
-                               struct ReportList *reports,
-                               const bool do_jump)
+static bool python_script_exec(
+    bContext *C, const char *filepath, Text *text, ReportList *reports, const bool do_jump)
 {
   Main *bmain_old = CTX_data_main(C);
   PyObject *main_mod = NULL;
@@ -224,12 +223,12 @@ static bool python_script_exec(bContext *C,
 /** \name Run Text / Filename / String
  * \{ */
 
-bool BPY_run_filepath(bContext *C, const char *filepath, struct ReportList *reports)
+bool BPY_run_filepath(bContext *C, const char *filepath, ReportList *reports)
 {
   return python_script_exec(C, filepath, NULL, reports, false);
 }
 
-bool BPY_run_text(bContext *C, struct Text *text, struct ReportList *reports, const bool do_jump)
+bool BPY_run_text(bContext *C, Text *text, ReportList *reports, const bool do_jump)
 {
   return python_script_exec(C, NULL, text, reports, do_jump);
 }
@@ -388,12 +387,12 @@ bool BPY_run_string_as_number(bContext *C,
   return ok;
 }
 
-bool BPY_run_string_as_string_and_size(bContext *C,
-                                       const char *imports[],
-                                       const char *expr,
-                                       struct BPy_RunErrInfo *err_info,
-                                       char **r_value,
-                                       size_t *r_value_size)
+bool BPY_run_string_as_string_and_len(bContext *C,
+                                      const char *imports[],
+                                      const char *expr,
+                                      struct BPy_RunErrInfo *err_info,
+                                      char **r_value,
+                                      size_t *r_value_len)
 {
   PyGILState_STATE gilstate;
   bool ok = true;
@@ -405,7 +404,7 @@ bool BPY_run_string_as_string_and_size(bContext *C,
 
   bpy_context_set(C, &gilstate);
 
-  ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_size);
+  ok = PyC_RunString_AsStringAndSize(imports, expr, "<expr as str>", r_value, r_value_len);
 
   if (ok == false) {
     run_string_handle_error(err_info);
@@ -422,8 +421,8 @@ bool BPY_run_string_as_string(bContext *C,
                               struct BPy_RunErrInfo *err_info,
                               char **r_value)
 {
-  size_t value_dummy_size;
-  return BPY_run_string_as_string_and_size(C, imports, expr, err_info, r_value, &value_dummy_size);
+  size_t value_dummy_len;
+  return BPY_run_string_as_string_and_len(C, imports, expr, err_info, r_value, &value_dummy_len);
 }
 
 bool BPY_run_string_as_intptr(bContext *C,

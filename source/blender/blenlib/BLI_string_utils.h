@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2017 Blender Foundation */
+/* SPDX-FileCopyrightText: 2017 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -88,7 +89,7 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * \param defname: To initialize name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name: Name to be ensured unique
- * \param name_len: Maximum length of name area
+ * \param name_maxncpy: Maximum length of name area
  * \return true if there if the name was changed
  */
 bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
@@ -96,7 +97,7 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
                        const char *defname,
                        char delim,
                        char *name,
-                       size_t name_len) ATTR_NONNULL(1, 3, 5);
+                       size_t name_maxncpy) ATTR_NONNULL(1, 3, 5);
 /**
  * Ensures that the specified block has a unique name within the containing list,
  * incrementing its numeric suffix as necessary. Returns true if name had to be adjusted.
@@ -106,14 +107,14 @@ bool BLI_uniquename_cb(UniquenameCheckCallback unique_check,
  * \param defname: To initialize block name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name_offset: Offset of name within block structure
- * \param name_len: Maximum length of name area
+ * \param name_maxncpy: Maximum length of name area
  */
 bool BLI_uniquename(struct ListBase *list,
                     void *vlink,
                     const char *defname,
                     char delim,
                     int name_offset,
-                    size_t name_len) ATTR_NONNULL(1, 3);
+                    size_t name_maxncpy) ATTR_NONNULL(1, 3);
 
 /* Expand array functions. */
 

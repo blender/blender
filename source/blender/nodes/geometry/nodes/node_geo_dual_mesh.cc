@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array_utils.hh"
 #include "BLI_task.hh"
@@ -16,7 +18,7 @@ namespace blender::nodes::node_geo_dual_mesh_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Geometry>("Mesh").supported_type(GEO_COMPONENT_TYPE_MESH);
+  b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
   b.add_input<decl::Bool>("Keep Boundaries")
       .default_value(false)
       .description(
@@ -534,7 +536,7 @@ static bool vertex_needs_dissolving(const int vertex,
                                     const int first_poly_index,
                                     const int second_poly_index,
                                     const Span<VertexType> vertex_types,
-                                    const Span<Vector<int>> vert_to_poly_map)
+                                    const GroupedSpan<int> vert_to_poly_map)
 {
   /* Order is guaranteed to be the same because 2poly verts that are not on the boundary are
    * ignored in `sort_vertex_polys`. */
@@ -553,7 +555,7 @@ static bool vertex_needs_dissolving(const int vertex,
 static void dissolve_redundant_verts(const Span<int2> edges,
                                      const OffsetIndices<int> polys,
                                      const Span<int> corner_edges,
-                                     const Span<Vector<int>> vert_to_poly_map,
+                                     const GroupedSpan<int> vert_to_poly_map,
                                      MutableSpan<VertexType> vertex_types,
                                      MutableSpan<int> old_to_new_edges_map,
                                      Vector<int2> &new_edges,
@@ -628,11 +630,19 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
   /* Stores the indices of the polygons connected to the vertex. Because the polygons are looped
    * over in order of their indices, the polygon's indices will be sorted in ascending order.
    * (This can change once they are sorted using `sort_vertex_polys`). */
-  Array<Vector<int>> vert_to_poly_map = bke::mesh_topology::build_vert_to_poly_map(
-      src_polys, src_corner_verts, src_positions.size());
+  Array<int> vert_to_poly_offset_data;
+  Array<int> vert_to_poly_indices;
+  const GroupedSpan<int> vert_to_poly_map = bke::mesh::build_vert_to_poly_map(
+      src_polys,
+      src_corner_verts,
+      src_positions.size(),
+      vert_to_poly_offset_data,
+      vert_to_poly_indices);
+  const OffsetIndices<int> vert_to_poly_offsets(vert_to_poly_offset_data);
+
   Array<Array<int>> vertex_shared_edges(src_mesh.totvert);
   Array<Array<int>> vertex_corners(src_mesh.totvert);
-  threading::parallel_for(vert_to_poly_map.index_range(), 512, [&](IndexRange range) {
+  threading::parallel_for(src_positions.index_range(), 512, [&](IndexRange range) {
     for (const int i : range) {
       if (vertex_types[i] == VertexType::Loose || vertex_types[i] >= VertexType::NonManifold ||
           (!keep_boundaries && vertex_types[i] == VertexType::Boundary))
@@ -640,7 +650,8 @@ static Mesh *calc_dual_mesh(const Mesh &src_mesh,
         /* Bad vertex that we can't work with. */
         continue;
       }
-      MutableSpan<int> loop_indices = vert_to_poly_map[i];
+      MutableSpan<int> loop_indices = vert_to_poly_indices.as_mutable_span().slice(
+          vert_to_poly_offsets[i]);
       Array<int> sorted_corners(loop_indices.size());
       bool vertex_ok = true;
       if (vertex_types[i] == VertexType::Normal) {

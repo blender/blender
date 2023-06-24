@@ -1,5 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later
- * Copyright 2011 Blender Foundation */
+/* SPDX-FileCopyrightText: 2011 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup GHOST
@@ -119,8 +120,23 @@ const char *GHOST_SystemPathsWin32::getBinaryDir() const
 
 void GHOST_SystemPathsWin32::addToSystemRecentFiles(const char *filepath) const
 {
-  /* SHARD_PATH resolves to SHARD_PATHA for non-UNICODE build */
   UTF16_ENCODE(filepath);
-  SHAddToRecentDocs(SHARD_PATHW, filepath_16);
+  UTF16_ENCODE(BLENDER_WIN_APPID);
+  SHARDAPPIDINFO info;
+  IShellItem *shell_item;
+
+  HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+  if (!SUCCEEDED(hr))
+    return;
+
+  hr = SHCreateItemFromParsingName(filepath_16, NULL, IID_PPV_ARGS(&shell_item));
+  if (SUCCEEDED(hr)) {
+    info.psi = shell_item;
+    info.pszAppID = BLENDER_WIN_APPID_16;
+    SHAddToRecentDocs(SHARD_APPIDINFO, &info);
+  }
+
+  CoUninitialize();
+  UTF16_UN_ENCODE(BLENDER_WIN_APPID);
   UTF16_UN_ENCODE(filepath);
 }
