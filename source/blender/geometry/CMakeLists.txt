@@ -40,11 +40,11 @@ set(SRC
   GEO_add_curves_on_mesh.hh
   GEO_curve_constraints.hh
   GEO_fillet_curves.hh
+  GEO_mesh_copy_selection.hh
   GEO_mesh_flip_faces.hh
   GEO_mesh_merge_by_distance.hh
   GEO_mesh_primitive_cuboid.hh
   GEO_mesh_split_edges.hh
-  GEO_mesh_copy_selection.hh
   GEO_mesh_to_curve.hh
   GEO_mesh_to_volume.hh
   GEO_point_merge_by_distance.hh

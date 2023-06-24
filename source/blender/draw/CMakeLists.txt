@@ -149,8 +149,8 @@ set(SRC
   engines/eevee_next/eevee_instance.cc
   engines/eevee_next/eevee_irradiance_cache.cc
   engines/eevee_next/eevee_light.cc
-  engines/eevee_next/eevee_lightprobe.cc
   engines/eevee_next/eevee_lightcache.cc
+  engines/eevee_next/eevee_lightprobe.cc
   engines/eevee_next/eevee_material.cc
   engines/eevee_next/eevee_motion_blur.cc
   engines/eevee_next/eevee_pipeline.cc
@@ -158,8 +158,8 @@ set(SRC
   engines/eevee_next/eevee_sampling.cc
   engines/eevee_next/eevee_shader.cc
   engines/eevee_next/eevee_shadow.cc
-  engines/eevee_next/eevee_sync.cc
   engines/eevee_next/eevee_subsurface.cc
+  engines/eevee_next/eevee_sync.cc
   engines/eevee_next/eevee_velocity.cc
   engines/eevee_next/eevee_view.cc
   engines/eevee_next/eevee_world.cc
@@ -291,6 +291,7 @@ set(SRC
   engines/eevee_next/eevee_irradiance_cache.hh
   engines/eevee_next/eevee_light.hh
   engines/eevee_next/eevee_lightcache.hh
+  engines/eevee_next/eevee_lightprobe.hh
   engines/eevee_next/eevee_material.hh
   engines/eevee_next/eevee_motion_blur.hh
   engines/eevee_next/eevee_pipeline.hh
@@ -298,8 +299,8 @@ set(SRC
   engines/eevee_next/eevee_sampling.hh
   engines/eevee_next/eevee_shader.hh
   engines/eevee_next/eevee_shadow.hh
-  engines/eevee_next/eevee_sync.hh
   engines/eevee_next/eevee_subsurface.hh
+  engines/eevee_next/eevee_sync.hh
   engines/eevee_next/eevee_velocity.hh
   engines/eevee_next/eevee_view.hh
   engines/eevee_next/eevee_world.hh
