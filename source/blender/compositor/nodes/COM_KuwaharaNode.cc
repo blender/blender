@@ -4,6 +4,7 @@
 
 #include "COM_KuwaharaNode.h"
 
+#include "COM_ConvertOperation.h"
 #include "COM_ConvolutionFilterOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "COM_KuwaharaAnisotropicOperation.h"
@@ -31,7 +32,11 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
     }
 
     case CMP_NODE_KUWAHARA_ANISOTROPIC: {
-      /* Edge detection */
+      /* Edge detection on luminance. */
+      auto rgb_to_lum = new ConvertColorToBWOperation();
+      converter.add_operation(rgb_to_lum);
+      converter.map_input_socket(get_input_socket(0), rgb_to_lum->get_input_socket(0));
+
       auto const_fact = new SetValueOperation();
       const_fact->set_value(1.0f);
       converter.add_operation(const_fact);
@@ -39,16 +44,16 @@ void KuwaharaNode::convert_to_operations(NodeConverter &converter,
       auto sobel_x = new ConvolutionFilterOperation();
       sobel_x->set3x3Filter(1, 0, -1, 2, 0, -2, 1, 0, -1);
       converter.add_operation(sobel_x);
-      converter.map_input_socket(get_input_socket(0), sobel_x->get_input_socket(0));
+      converter.add_link(rgb_to_lum->get_output_socket(0), sobel_x->get_input_socket(0));
       converter.add_link(const_fact->get_output_socket(0), sobel_x->get_input_socket(1));
 
       auto sobel_y = new ConvolutionFilterOperation();
       sobel_y->set3x3Filter(1, 2, 1, 0, 0, 0, -1, -2, -1);
       converter.add_operation(sobel_y);
-      converter.map_input_socket(get_input_socket(0), sobel_y->get_input_socket(0));
+      converter.add_link(rgb_to_lum->get_output_socket(0), sobel_y->get_input_socket(0));
       converter.add_link(const_fact->get_output_socket(0), sobel_y->get_input_socket(1));
 
-      /* Compute intensity of edges */
+      /* Compute intensity of edges. */
       auto sobel_xx = new MathMultiplyOperation();
       auto sobel_yy = new MathMultiplyOperation();
       auto sobel_xy = new MathMultiplyOperation();
