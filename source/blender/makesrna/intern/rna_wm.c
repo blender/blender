@@ -1306,7 +1306,7 @@ static bool rna_operator_poll_cb(bContext *C, wmOperatorType *ot)
   return visible;
 }
 
-static int rna_operator_execute_cb(bContext *C, wmOperator *op)
+static int rna_operator_exec_cb(bContext *C, wmOperator *op)
 {
   extern FunctionRNA rna_Operator_execute_func;
 
@@ -1600,7 +1600,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
   dummy_ot.rna_ext.free = free;
 
   dummy_ot.pyop_poll = (have_function[0]) ? rna_operator_poll_cb : NULL;
-  dummy_ot.exec = (have_function[1]) ? rna_operator_execute_cb : NULL;
+  dummy_ot.exec = (have_function[1]) ? rna_operator_exec_cb : NULL;
   dummy_ot.check = (have_function[2]) ? rna_operator_check_cb : NULL;
   dummy_ot.invoke = (have_function[3]) ? rna_operator_invoke_cb : NULL;
   dummy_ot.modal = (have_function[4]) ? rna_operator_modal_cb : NULL;
