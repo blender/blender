@@ -22,6 +22,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
@@ -1155,67 +1156,57 @@ int WM_keymap_item_raw_to_string(const short shift,
                                  const int result_maxncpy)
 {
   /* TODO: also support (some) value, like e.g. double-click? */
+  const char *result_array[12];
+  int i = 0;
 
-#define ADD_SEP \
-  if (p != buf) { \
-    *p++ = ' '; \
-  } \
-  (void)0
-
-  char buf[128];
-  char *p = buf;
-
-  buf[0] = '\0';
+  const char *space = " ";
 
   if (shift == KM_ANY && ctrl == KM_ANY && alt == KM_ANY && oskey == KM_ANY) {
     /* Don't show anything for any mapping. */
   }
   else {
     if (shift) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTSHIFTKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTSHIFTKEY, true);
+      result_array[i++] = space;
     }
-
     if (ctrl) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTCTRLKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTCTRLKEY, true);
+      result_array[i++] = space;
     }
-
     if (alt) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTALTKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTALTKEY, true);
+      result_array[i++] = space;
     }
-
     if (oskey) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_OSKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_OSKEY, true);
+      result_array[i++] = space;
     }
   }
 
   if (keymodifier) {
-    ADD_SEP;
-    p += BLI_strcpy_rlen(p, WM_key_event_string(keymodifier, compact));
+    result_array[i++] = WM_key_event_string(keymodifier, compact);
+    result_array[i++] = space;
   }
 
   if (type) {
-    ADD_SEP;
     if (val == KM_DBL_CLICK) {
-      p += BLI_strcpy_rlen(p, IFACE_("dbl-"));
+      result_array[i++] = IFACE_("dbl-");
     }
     else if (val == KM_CLICK_DRAG) {
-      p += BLI_strcpy_rlen(p, IFACE_("drag-"));
+      result_array[i++] = IFACE_("drag-");
     }
-    p += BLI_strcpy_rlen(p, WM_key_event_string(type, compact));
+    result_array[i++] = WM_key_event_string(type, compact);
   }
 
   /* We assume size of buf is enough to always store any possible shortcut,
    * but let's add a debug check about it! */
-  BLI_assert(p - buf < sizeof(buf));
+  BLI_assert(i < ARRAY_SIZE(result_array));
 
-  /* We need utf8 here, otherwise we may 'cut' some unicode chars like arrows... */
-  return BLI_strncpy_utf8_rlen(result, buf, result_maxncpy);
+  if (i > 0 && result_array[i - 1] == space) {
+    i--;
+  }
 
-#undef ADD_SEP
+  return BLI_string_join_array(result, result_maxncpy, result_array, i);
 }
 
 int WM_keymap_item_to_string(const wmKeyMapItem *kmi,

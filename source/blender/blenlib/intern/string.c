@@ -123,13 +123,6 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
   return srclen;
 }
 
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
-{
-  size_t srclen = strlen(src);
-  memcpy(dst, src, srclen + 1);
-  return srclen;
-}
-
 /* -------------------------------------------------------------------- */
 /** \name String Append
  * \{ */

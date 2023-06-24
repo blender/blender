@@ -108,9 +108,6 @@ size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
                         size_t dst_maxncpy) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1, 2);
 
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2);
-
 char *BLI_strncat(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
 

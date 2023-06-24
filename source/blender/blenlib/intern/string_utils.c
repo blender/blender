@@ -418,7 +418,9 @@ char *BLI_string_join_arrayN(const char *strings[], uint strings_num)
   char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
   char *c = result;
   for (uint i = 0; i < strings_num; i++) {
-    c += BLI_strcpy_rlen(c, strings[i]);
+    const size_t string_len = strlen(strings[i]);
+    memcpy(c, strings[i], string_len);
+    c += string_len;
   }
   /* Only needed when `strings_num == 0`. */
   *c = '\0';
@@ -439,7 +441,9 @@ char *BLI_string_join_array_by_sep_charN(char sep, const char *strings[], uint s
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {
-      c += BLI_strcpy_rlen(c, strings[i]);
+      const size_t string_len = strlen(strings[i]);
+      memcpy(c, strings[i], string_len);
+      c += string_len;
       *c = sep;
       c++;
     }
@@ -466,8 +470,11 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {
+      const size_t string_len = strlen(strings[i]);
+      memcpy(c, strings[i], string_len);
       table[i] = c; /* <-- only difference to BLI_string_join_array_by_sep_charN. */
-      c += BLI_strcpy_rlen(c, strings[i]);
+      memcpy(c, strings[i], string_len);
+      c += string_len;
       *c = sep;
       c++;
     }
