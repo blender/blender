@@ -222,7 +222,7 @@ static void GREASE_PENCIL_OT_select_alternate(wmOperatorType *ot)
   ot->description = "Select alternated points in strokes with already selected points";
 
   ot->exec = select_alternate_exec;
-  ot->poll = editable_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_point_selection_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
