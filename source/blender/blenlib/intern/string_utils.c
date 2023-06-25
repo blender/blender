@@ -388,7 +388,11 @@ size_t BLI_string_join_array(char *result,
   char *c_end = &result[result_maxncpy - 1];
   for (uint i = 0; i < strings_num; i++) {
     const char *p = strings[i];
-    while (*p && (c < c_end)) {
+    while (*p) {
+      if (UNLIKELY(!(c < c_end))) {
+        i = strings_num; /* Break outer loop. */
+        break;
+      }
       *c++ = *p++;
     }
   }
@@ -405,12 +409,17 @@ size_t BLI_string_join_array_by_sep_char(
   char *c_end = &result[result_maxncpy - 1];
   for (uint i = 0; i < strings_num; i++) {
     if (i != 0) {
-      if (c < c_end) {
-        *c++ = sep;
+      if (UNLIKELY(!(c < c_end))) {
+        break;
       }
+      *c++ = sep;
     }
     const char *p = strings[i];
-    while (*p && (c < c_end)) {
+    while (*p) {
+      if (UNLIKELY(!(c < c_end))) {
+        i = strings_num; /* Break outer loop. */
+        break;
+      }
       *c++ = *p++;
     }
   }
@@ -436,14 +445,8 @@ char *BLI_string_join_arrayN(const char *strings[], uint strings_num)
 
 char *BLI_string_join_array_by_sep_charN(char sep, const char *strings[], uint strings_num)
 {
-  uint result_size = 0;
-  for (uint i = 0; i < strings_num; i++) {
-    result_size += strlen(strings[i]) + 1;
-  }
-  if (result_size == 0) {
-    result_size = 1;
-  }
-
+  const uint result_size = BLI_string_len_array(strings, strings_num) +
+                           (strings_num ? strings_num - 1 : 0) + 1;
   char *result = MEM_mallocN(sizeof(char) * result_size, __func__);
   char *c = result;
   if (strings_num != 0) {
