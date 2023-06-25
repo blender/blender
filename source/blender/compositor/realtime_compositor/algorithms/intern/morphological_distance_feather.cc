@@ -8,6 +8,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
+#include "COM_algorithm_morphological_distance_feather.hh" /* Own include. */
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_context.hh"
 #include "COM_morphological_distance_feather_weights.hh"
@@ -16,7 +17,7 @@
 
 namespace blender::realtime_compositor {
 
-const char *get_shader_name(int distance)
+static const char *get_shader_name(int distance)
 {
   if (distance > 0) {
     return "compositor_morphological_distance_feather_dilate";
