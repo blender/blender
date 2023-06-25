@@ -873,6 +873,8 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
   Nearest2dUserData nearest2d(
       sctx, ob_eval, static_cast<const ID *>(ob_eval->data), float4x4(obmat));
 
+  nearest2d.clip_planes_enable();
+
   if (nearest2d.snap_point(float3(0.0f))) {
     return SCE_SNAP_TO_VERTEX;
   }
