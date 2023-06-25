@@ -3133,19 +3133,23 @@ void BKE_ptcache_quick_cache_all(Main *bmain, Scene *scene, ViewLayer *view_laye
   BKE_ptcache_bake(&baker);
 }
 
-static void ptcache_dt_to_str(char *str, double dtime)
+static void ptcache_dt_to_str(char *str, size_t str_maxncpy, double dtime)
 {
   if (dtime > 60.0) {
     if (dtime > 3600.0) {
-      BLI_sprintf(
-          str, "%ih %im %is", (int)(dtime / 3600), (int)(dtime / 60) % 60, ((int)dtime) % 60);
+      BLI_snprintf(str,
+                   str_maxncpy,
+                   "%ih %im %is",
+                   (int)(dtime / 3600),
+                   (int)(dtime / 60) % 60,
+                   ((int)dtime) % 60);
     }
     else {
-      BLI_sprintf(str, "%im %is", (int)(dtime / 60) % 60, ((int)dtime) % 60);
+      BLI_snprintf(str, str_maxncpy, "%im %is", (int)(dtime / 60) % 60, ((int)dtime) % 60);
     }
   }
   else {
-    BLI_sprintf(str, "%is", ((int)dtime) % 60);
+    BLI_snprintf(str, str_maxncpy, "%is", ((int)dtime) % 60);
   }
 }
 
@@ -3300,9 +3304,9 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
       if (use_timer || fetd > 60.0) {
         use_timer = true;
 
-        ptcache_dt_to_str(cur, ctime - ptime);
-        ptcache_dt_to_str(run, ctime - stime);
-        ptcache_dt_to_str(etd, fetd);
+        ptcache_dt_to_str(cur, sizeof(cur), ctime - ptime);
+        ptcache_dt_to_str(run, sizeof(run), ctime - stime);
+        ptcache_dt_to_str(etd, sizeof(etd), fetd);
 
         printf("Baked for %s, current frame: %i/%i (%.3fs), ETC: %s\r",
                run,
@@ -3325,7 +3329,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 
   if (use_timer) {
     /* start with newline because of \r above */
-    ptcache_dt_to_str(run, PIL_check_seconds_timer() - stime);
+    ptcache_dt_to_str(run, sizeof(run), PIL_check_seconds_timer() - stime);
     printf("\nBake %s %s (%i frames simulated).\n",
            (cancel ? "canceled after" : "finished in"),
            run,

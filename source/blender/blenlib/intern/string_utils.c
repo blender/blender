@@ -357,6 +357,15 @@ bool BLI_uniquename(ListBase *list,
                            name_maxncpy);
 }
 
+size_t BLI_string_len_array(const char *strings[], uint strings_num)
+{
+  size_t total_len = 0;
+  for (uint i = 0; i < strings_num; i++) {
+    total_len += strlen(strings[i]);
+  }
+  return total_len;
+}
+
 /* ------------------------------------------------------------------------- */
 /** \name Join Strings
  *
@@ -411,11 +420,8 @@ size_t BLI_string_join_array_by_sep_char(
 
 char *BLI_string_join_arrayN(const char *strings[], uint strings_num)
 {
-  uint total_len = 1;
-  for (uint i = 0; i < strings_num; i++) {
-    total_len += strlen(strings[i]);
-  }
-  char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
+  const uint result_size = BLI_string_len_array(strings, strings_num) + 1;
+  char *result = MEM_mallocN(sizeof(char) * result_size, __func__);
   char *c = result;
   for (uint i = 0; i < strings_num; i++) {
     const size_t string_len = strlen(strings[i]);
@@ -424,20 +430,21 @@ char *BLI_string_join_arrayN(const char *strings[], uint strings_num)
   }
   /* Only needed when `strings_num == 0`. */
   *c = '\0';
+  BLI_assert(result + result_size == c + 1);
   return result;
 }
 
 char *BLI_string_join_array_by_sep_charN(char sep, const char *strings[], uint strings_num)
 {
-  uint total_len = 0;
+  uint result_size = 0;
   for (uint i = 0; i < strings_num; i++) {
-    total_len += strlen(strings[i]) + 1;
+    result_size += strlen(strings[i]) + 1;
   }
-  if (total_len == 0) {
-    total_len = 1;
+  if (result_size == 0) {
+    result_size = 1;
   }
 
-  char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
+  char *result = MEM_mallocN(sizeof(char) * result_size, __func__);
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {
@@ -450,6 +457,7 @@ char *BLI_string_join_array_by_sep_charN(char sep, const char *strings[], uint s
     c--;
   }
   *c = '\0';
+  BLI_assert(result + result_size == c + 1);
   return result;
 }
 
@@ -458,15 +466,15 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
                                                     const char *strings[],
                                                     uint strings_num)
 {
-  uint total_len = 0;
+  uint result_size = 0;
   for (uint i = 0; i < strings_num; i++) {
-    total_len += strlen(strings[i]) + 1;
+    result_size += strlen(strings[i]) + 1;
   }
-  if (total_len == 0) {
-    total_len = 1;
+  if (result_size == 0) {
+    result_size = 1;
   }
 
-  char *result = MEM_mallocN(sizeof(char) * total_len, __func__);
+  char *result = MEM_mallocN(sizeof(char) * result_size, __func__);
   char *c = result;
   if (strings_num != 0) {
     for (uint i = 0; i < strings_num; i++) {
@@ -481,6 +489,7 @@ char *BLI_string_join_array_by_sep_char_with_tableN(char sep,
     c--;
   }
   *c = '\0';
+  BLI_assert(result + result_size == c + 1);
   return result;
 }
 

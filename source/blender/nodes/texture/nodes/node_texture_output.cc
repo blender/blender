@@ -84,7 +84,8 @@ static void unique_name(bNode *node)
       STRNCPY(new_name, name);
       name = new_name;
     }
-    BLI_sprintf(new_name + new_len - 4, ".%03d", ++suffix);
+    int name_ofs = new_len - 4;
+    BLI_snprintf(new_name + name_ofs, sizeof(new_name) - name_ofs, ".%03d", ++suffix);
   }
 
   if (new_name[0] != '\0') {

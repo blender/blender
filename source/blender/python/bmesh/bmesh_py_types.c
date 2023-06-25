@@ -9,6 +9,7 @@
 #include "BLI_math.h"
 #include "BLI_sort.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -4255,22 +4256,24 @@ int BPy_BMElem_CheckHType(PyTypeObject *type, const char htype)
 char *BPy_BMElem_StringFromHType_ex(const char htype, char ret[32])
 {
   /* zero to ensure string is always NULL terminated */
-  char *ret_ptr = ret;
+  const char *ret_array[4];
+  int i = 0;
   if (htype & BM_VERT) {
-    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMVert_Type.tp_name);
+    ret_array[i++] = BPy_BMVert_Type.tp_name;
   }
   if (htype & BM_EDGE) {
-    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMEdge_Type.tp_name);
+    ret_array[i++] = BPy_BMEdge_Type.tp_name;
   }
   if (htype & BM_FACE) {
-    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMFace_Type.tp_name);
+    ret_array[i++] = BPy_BMFace_Type.tp_name;
   }
   if (htype & BM_LOOP) {
-    ret_ptr += BLI_sprintf(ret_ptr, "/%s", BPy_BMLoop_Type.tp_name);
+    ret_array[i++] = BPy_BMLoop_Type.tp_name;
   }
   ret[0] = '(';
-  *ret_ptr++ = ')';
-  *ret_ptr = '\0';
+  int ret_ofs = BLI_string_join_array_by_sep_char(ret + 1, 30, '/', ret_array, i) + 1;
+  ret[ret_ofs] = ')';
+  ret[ret_ofs + 1] = '\0';
   return ret;
 }
 char *BPy_BMElem_StringFromHType(const char htype)

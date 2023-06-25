@@ -244,17 +244,6 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   return n;
 }
 
-int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
-{
-  va_list arg;
-
-  va_start(arg, format);
-  const int result = vsprintf(str, format, arg);
-  va_end(arg);
-
-  return result;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
