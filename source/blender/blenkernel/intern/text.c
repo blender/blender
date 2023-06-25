@@ -1733,7 +1733,7 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
   memcpy(s, linea->line, linea->len);
   s += linea->len;
   memcpy(s, lineb->line, lineb->len);
-  s += linea->len;
+  s += lineb->len;
   *s = '\0';
   (void)s;
 
