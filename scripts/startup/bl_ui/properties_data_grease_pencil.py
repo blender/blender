@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 import bpy
-from bpy.types import Panel
+from bpy.types import Panel, Menu
 
 
 class DataButtonsPanel:
@@ -32,6 +32,15 @@ class DATA_PT_context_grease_pencil(DataButtonsPanel, Panel):
             layout.template_ID(space, "pin_id")
 
 
+class GREASE_PENCIL_MT_grease_pencil_add_layer_extra(Menu):
+    bl_label = "Add Extra"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("grease_pencil.layer_group_add", text="Add Group")
+
+
 class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
     bl_label = "Layers"
 
@@ -42,13 +51,17 @@ class DATA_PT_grease_pencil_layers(DataButtonsPanel, Panel):
         row.template_grease_pencil_layer_tree()
 
         col = row.column()
-        col.operator("grease_pencil.layer_add", icon='ADD', text="")
+        sub = col.column(align=True)
+        sub.operator("grease_pencil.layer_add", icon='ADD', text="")
+        sub.menu("GREASE_PENCIL_MT_grease_pencil_add_layer_extra", icon='DOWNARROW_HLT', text="")
+
         col.operator("grease_pencil.layer_remove", icon='REMOVE', text="")
 
 
 classes = (
     DATA_PT_context_grease_pencil,
     DATA_PT_grease_pencil_layers,
+    GREASE_PENCIL_MT_grease_pencil_add_layer_extra,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -631,6 +631,23 @@ LayerGroup &LayerGroup::add_group(StringRefNull name)
   return this->add_group(new_group);
 }
 
+LayerGroup &LayerGroup::add_group_after(LayerGroup *group, TreeNode *link)
+{
+  BLI_assert(group != nullptr && link != nullptr);
+  BLI_insertlinkafter(&this->children,
+                      reinterpret_cast<GreasePencilLayerTreeNode *>(link),
+                      reinterpret_cast<GreasePencilLayerTreeNode *>(group));
+  group->base.parent = reinterpret_cast<GreasePencilLayerTreeGroup *>(this);
+  this->tag_nodes_cache_dirty();
+  return *group;
+}
+
+LayerGroup &LayerGroup::add_group_after(StringRefNull name, TreeNode *link)
+{
+  LayerGroup *new_group = MEM_new<LayerGroup>(__func__, name);
+  return this->add_group_after(new_group, link);
+}
+
 Layer &LayerGroup::add_layer(Layer *layer)
 {
   BLI_assert(layer != nullptr);
@@ -1245,7 +1262,7 @@ static blender::VectorSet<blender::StringRefNull> get_node_names(GreasePencil &g
   return names;
 }
 
-static bool check_unique_layer_cb(void *arg, const char *name)
+static bool check_unique_node_cb(void *arg, const char *name)
 {
   using namespace blender;
   VectorSet<StringRefNull> &names = *reinterpret_cast<VectorSet<StringRefNull> *>(arg);
@@ -1254,7 +1271,12 @@ static bool check_unique_layer_cb(void *arg, const char *name)
 
 static bool unique_layer_name(VectorSet<blender::StringRefNull> &names, char *name)
 {
-  return BLI_uniquename_cb(check_unique_layer_cb, &names, "GP_Layer", '.', name, MAX_NAME);
+  return BLI_uniquename_cb(check_unique_node_cb, &names, "GP_Layer", '.', name, MAX_NAME);
+}
+
+static bool unique_layer_group_name(VectorSet<blender::StringRefNull> &names, char *name)
+{
+  return BLI_uniquename_cb(check_unique_node_cb, &names, "GP_Group", '.', name, MAX_NAME);
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(
@@ -1282,6 +1304,34 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer_after(
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name)
 {
   return this->add_layer(this->root_group.wrap(), name);
+}
+
+blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
+    blender::bke::greasepencil::LayerGroup &group, const blender::StringRefNull name)
+{
+  using namespace blender;
+  VectorSet<StringRefNull> names = get_node_names(*this);
+  std::string unique_name(name.c_str());
+  unique_layer_group_name(names, unique_name.data());
+  return group.add_group(unique_name);
+}
+
+blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group_after(
+    blender::bke::greasepencil::LayerGroup &group,
+    blender::bke::greasepencil::TreeNode *node,
+    const blender::StringRefNull name)
+{
+  using namespace blender;
+  VectorSet<StringRefNull> names = get_node_names(*this);
+  std::string unique_name(name.c_str());
+  unique_layer_group_name(names, unique_name.data());
+  return group.add_group_after(unique_name, node);
+}
+
+blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
+    const blender::StringRefNull name)
+{
+  return this->add_layer_group(this->root_group.wrap(), name);
 }
 
 const blender::bke::greasepencil::Layer *GreasePencil::find_layer_by_name(

@@ -208,6 +208,12 @@ class Layer : public ::GreasePencilLayer {
   LayerGroup &parent_group() const;
 
   /**
+   * \returns the layer as a `TreeNode`.
+   */
+  const TreeNode &as_node() const;
+  TreeNode &as_node();
+
+  /**
    * \returns the frames mapping.
    */
   const Map<int, GreasePencilFrame> &frames() const;
@@ -288,6 +294,12 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   LayerGroup &add_group(StringRefNull name);
 
   /**
+   * Adds a layer group after \a link and returns it.
+   */
+  LayerGroup &add_group_after(LayerGroup *group, TreeNode *link);
+  LayerGroup &add_group_after(StringRefNull name, TreeNode *link);
+
+  /**
    * Adds a layer at the end of this group and returns it.
    */
   Layer &add_layer(Layer *layer);
@@ -357,6 +369,15 @@ inline StringRefNull Layer::name() const
 inline LayerGroup &Layer::parent_group() const
 {
   return this->base.parent->wrap();
+}
+
+inline const TreeNode &Layer::as_node() const
+{
+  return *reinterpret_cast<const TreeNode *>(this);
+}
+inline TreeNode &Layer::as_node()
+{
+  return *reinterpret_cast<TreeNode *>(this);
 }
 
 namespace convert {

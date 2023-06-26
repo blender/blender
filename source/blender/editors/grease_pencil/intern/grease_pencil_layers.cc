@@ -179,6 +179,57 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
       ot->srna, "location", prop_layer_reorder_location, LAYER_REORDER_ABOVE, "Location", "");
 }
 
+static int grease_pencil_layer_group_add_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender::bke::greasepencil;
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  int new_layer_group_name_length;
+  char *new_layer_group_name = RNA_string_get_alloc(
+      op->ptr, "new_layer_group_name", nullptr, 0, &new_layer_group_name_length);
+
+  if (grease_pencil.has_active_layer()) {
+    LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
+    grease_pencil.add_layer_group_after(active_group,
+                                        &grease_pencil.get_active_layer_for_write()->as_node(),
+                                        new_layer_group_name);
+  }
+  else {
+    grease_pencil.add_layer_group(new_layer_group_name);
+  }
+
+  MEM_SAFE_FREE(new_layer_group_name);
+
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Add New Layer Group";
+  ot->idname = "GREASE_PENCIL_OT_layer_group_add";
+  ot->description = "Add a new Grease Pencil layer group in the active object";
+
+  /* callbacks */
+  ot->exec = grease_pencil_layer_group_add_exec;
+  ot->poll = active_grease_pencil_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  PropertyRNA *prop = RNA_def_string(ot->srna,
+                                     "new_layer_group_name",
+                                     "GP_Group",
+                                     INT16_MAX,
+                                     "Name",
+                                     "Name of the new layer group");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  ot->prop = prop;
+}
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_layers(void)
@@ -187,4 +238,6 @@ void ED_operatortypes_grease_pencil_layers(void)
   WM_operatortype_append(GREASE_PENCIL_OT_layer_add);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_remove);
   WM_operatortype_append(GREASE_PENCIL_OT_layer_reorder);
+
+  WM_operatortype_append(GREASE_PENCIL_OT_layer_group_add);
 }
