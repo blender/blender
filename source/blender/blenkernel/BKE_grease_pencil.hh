@@ -61,8 +61,6 @@ class DrawingRuntime {
    * Triangle cache for all the strokes in the drawing.
    */
   mutable SharedCache<Vector<uint3>> triangles_cache;
-
-  StrokeCache stroke_cache;
 };
 
 class Drawing : public ::GreasePencilDrawing {
@@ -78,11 +76,6 @@ class Drawing : public ::GreasePencilDrawing {
    */
   Span<uint3> triangles() const;
   void tag_positions_changed();
-  /**
-   * A buffer for a single stroke while drawing.
-   */
-  Span<StrokePoint> stroke_buffer() const;
-  bool has_stroke_buffer() const;
 };
 
 class LayerGroup;
@@ -382,10 +375,17 @@ class GreasePencilRuntime {
    * Allocated and freed by the drawing code. See `DRW_grease_pencil_batch_cache_*` functions.
    */
   void *batch_cache = nullptr;
+  bke::greasepencil::StrokeCache stroke_cache;
 
  public:
   GreasePencilRuntime() {}
   ~GreasePencilRuntime() {}
+
+  /**
+   * A buffer for a single stroke while drawing.
+   */
+  Span<bke::greasepencil::StrokePoint> stroke_buffer() const;
+  bool has_stroke_buffer() const;
 };
 
 }  // namespace blender::bke

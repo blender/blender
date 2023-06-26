@@ -346,16 +346,6 @@ void Drawing::tag_positions_changed()
   this->runtime->triangles_cache.tag_dirty();
 }
 
-bool Drawing::has_stroke_buffer() const
-{
-  return this->runtime->stroke_cache.points.size() > 0;
-}
-
-Span<StrokePoint> Drawing::stroke_buffer() const
-{
-  return this->runtime->stroke_cache.points.as_span();
-}
-
 TreeNode::TreeNode()
 {
   this->next = this->prev = nullptr;
@@ -982,6 +972,23 @@ void BKE_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
   if (grease_pencil->runtime && grease_pencil->runtime->batch_cache) {
     BKE_grease_pencil_batch_cache_free_cb(grease_pencil);
   }
+}
+
+/** \} */
+
+/* ------------------------------------------------------------------- */
+/** \name Grease Pencil runtime API
+ * \{ */
+
+bool blender::bke::GreasePencilRuntime::has_stroke_buffer() const
+{
+  return this->stroke_cache.points.size() > 0;
+}
+
+blender::Span<blender::bke::greasepencil::StrokePoint> blender::bke::GreasePencilRuntime::
+    stroke_buffer() const
+{
+  return this->stroke_cache.points.as_span();
 }
 
 /** \} */
