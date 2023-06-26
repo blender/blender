@@ -275,7 +275,7 @@ void Nearest2dUserData::register_result(SnapObjectContext *sctx,
                                         Object *ob_eval,
                                         const ID *id_eval)
 {
-  BLI_assert(this->nearest_point.index == -2);
+  BLI_assert(this->nearest_point.index != -2);
 
   copy_v3_v3(sctx->ret.loc, this->nearest_point.co);
   copy_v3_v3(sctx->ret.no, this->nearest_point.no);
