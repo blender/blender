@@ -73,11 +73,13 @@ typedef struct Lattice {
 
 /* ***************** LATTICE ********************* */
 
-/* flag */
-#define LT_GRID 1
-#define LT_OUTSIDE 2
+/** #Lattice::flag */
+enum {
+  LT_GRID = 1 << 0,
+  LT_OUTSIDE = 1 << 1,
 
-#define LT_DS_EXPAND 4
+  LT_DS_EXPAND = 1 << 2,
+};
 
 #define LT_ACTBP_NONE -1
 

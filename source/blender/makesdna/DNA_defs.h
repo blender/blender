@@ -10,7 +10,7 @@
 
 #pragma once
 
-/* makesdna ignores */
+/* `makesdna` ignores. */
 #ifdef DNA_DEPRECATED_ALLOW
 /* allow use of deprecated items */
 #  define DNA_DEPRECATED

@@ -30,7 +30,7 @@ struct Material;
 struct Object;
 struct VFont;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevPoint {
@@ -42,7 +42,7 @@ typedef struct BevPoint {
   short dupe_tag;
 } BevPoint;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct BevList {
@@ -170,7 +170,7 @@ typedef struct TextBox {
   float x, y, w, h;
 } TextBox;
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two Lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct EditNurb {
@@ -611,7 +611,7 @@ enum {
 #define KEY_CU_EASE 3
 
 /* indicates point has been seen during surface duplication */
-#define SURF_SEEN 4
+#define SURF_SEEN (1 << 2)
 
 #ifdef __cplusplus
 }

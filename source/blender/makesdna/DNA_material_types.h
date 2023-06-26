@@ -243,64 +243,73 @@ typedef struct Material {
  * -1 because for active material we store the index + 1 */
 #define MAXMAT (32767 - 1)
 
-/* flag */
-/* for render */
-/* #define MA_IS_USED      (1 << 0) */ /* UNUSED */
-                                       /* for dopesheet */
-#define MA_DS_EXPAND (1 << 1)
-/* for dopesheet (texture stack expander)
- * NOTE: this must have the same value as other texture stacks,
- * otherwise anim-editors will not read correctly
- */
-#define MA_DS_SHOW_TEXS (1 << 2)
+/** #Material::flag */
+enum {
+  /** For render. */
+  MA_IS_USED = 1 << 0, /* UNUSED */
+  /** For dope-sheet. */
+  MA_DS_EXPAND = 1 << 1,
+  /**
+   * For dope-sheet (texture stack expander)
+   * NOTE: this must have the same value as other texture stacks,
+   * otherwise anim-editors will not read correctly.
+   */
+  MA_DS_SHOW_TEXS = 1 << 2,
+};
 
 /* ramps */
-#define MA_RAMP_BLEND 0
-#define MA_RAMP_ADD 1
-#define MA_RAMP_MULT 2
-#define MA_RAMP_SUB 3
-#define MA_RAMP_SCREEN 4
-#define MA_RAMP_DIV 5
-#define MA_RAMP_DIFF 6
-#define MA_RAMP_DARK 7
-#define MA_RAMP_LIGHT 8
-#define MA_RAMP_OVERLAY 9
-#define MA_RAMP_DODGE 10
-#define MA_RAMP_BURN 11
-#define MA_RAMP_HUE 12
-#define MA_RAMP_SAT 13
-#define MA_RAMP_VAL 14
-#define MA_RAMP_COLOR 15
-#define MA_RAMP_SOFT 16
-#define MA_RAMP_LINEAR 17
-#define MA_RAMP_EXCLUSION 18
+enum {
+  MA_RAMP_BLEND = 0,
+  MA_RAMP_ADD = 1,
+  MA_RAMP_MULT = 2,
+  MA_RAMP_SUB = 3,
+  MA_RAMP_SCREEN = 4,
+  MA_RAMP_DIV = 5,
+  MA_RAMP_DIFF = 6,
+  MA_RAMP_DARK = 7,
+  MA_RAMP_LIGHT = 8,
+  MA_RAMP_OVERLAY = 9,
+  MA_RAMP_DODGE = 10,
+  MA_RAMP_BURN = 11,
+  MA_RAMP_HUE = 12,
+  MA_RAMP_SAT = 13,
+  MA_RAMP_VAL = 14,
+  MA_RAMP_COLOR = 15,
+  MA_RAMP_SOFT = 16,
+  MA_RAMP_LINEAR = 17,
+  MA_RAMP_EXCLUSION = 18,
+};
 
-/* texco */
-#define TEXCO_ORCO (1 << 0)
-/* #define TEXCO_REFL      (1 << 1) */ /* deprecated */
-/* #define TEXCO_NORM      (1 << 2) */ /* deprecated */
-#define TEXCO_GLOB (1 << 3)
-#define TEXCO_UV (1 << 4)
-#define TEXCO_OBJECT (1 << 5)
-/* #define TEXCO_LAVECTOR  (1 << 6) */ /* deprecated */
-/* #define TEXCO_VIEW      (1 << 7) */ /* deprecated */
-/* #define TEXCO_STICKY   (1 << 8) */  /* deprecated */
-/* #define TEXCO_OSA       (1 << 9) */ /* deprecated */
-#define TEXCO_WINDOW (1 << 10)
-/* #define NEED_UV         (1 << 11) */ /* deprecated */
-/* #define TEXCO_TANGENT   (1 << 12) */ /* deprecated */
-/* still stored in vertex->accum, 1 D */
-#define TEXCO_STRAND (1 << 13)
-/** strand is used for normal materials, particle for halo materials */
-#define TEXCO_PARTICLE (1 << 13)
-/* #define TEXCO_STRESS    (1 << 14) */ /* deprecated */
-/* #define TEXCO_SPEED     (1 << 15) */ /* deprecated */
+/** #MTex::texco */
+enum {
+  TEXCO_ORCO = 1 << 0,
+  // TEXCO_REFL = 1 << 1, /* Deprecated. */
+  // TEXCO_NORM = 1 << 2, /* Deprecated. */
+  TEXCO_GLOB = 1 << 3,
+  TEXCO_UV = 1 << 4,
+  TEXCO_OBJECT = 1 << 5,
+  // TEXCO_LAVECTOR = 1 << 6, /* Deprecated. */
+  // TEXCO_VIEW = 1 << 7,     /* Deprecated. */
+  // TEXCO_STICKY = 1 << 8,   /* Deprecated. */
+  // TEXCO_OSA = 1 << 9,      /* Deprecated. */
+  TEXCO_WINDOW = 1 << 10,
+  // NEED_UV = 1 << 11,       /* Deprecated. */
+  // TEXCO_TANGENT = 1 << 12, /* Deprecated. */
+  /** still stored in `vertex->accum`, 1 D. */
+  TEXCO_STRAND = 1 << 13,
+  /** strand is used for normal materials, particle for halo materials */
+  TEXCO_PARTICLE = 1 << 13,
+  // TEXCO_STRESS = 1 << 14, /* Deprecated. */
+  // TEXCO_SPEED = 1 << 15,  /* Deprecated. */
+};
 
-/** #MTex.mapto */
-#define MAP_COL (1 << 0)
-#define MAP_ALPHA (1 << 7)
+/** #MTex::mapto */
+enum {
+  MAP_COL = 1 << 0,
+  MAP_ALPHA = 1 << 7,
+};
 
-/* pr_type */
+/** #Material::pr_type */
 typedef enum ePreviewType {
   MA_FLAT = 0,
   MA_SPHERE = 1,
@@ -316,10 +325,12 @@ typedef enum ePreviewType {
   MA_FLUID = 13,
 } ePreviewType;
 
-/* pr_flag */
-#define MA_PREVIEW_WORLD (1 << 0)
+/** #Material::pr_flag */
+enum {
+  MA_PREVIEW_WORLD = 1 << 0,
+};
 
-/* blend_method */
+/** #Material::blend_method */
 enum {
   MA_BM_SOLID = 0,
   // MA_BM_ADD = 1, /* deprecated */
@@ -329,7 +340,7 @@ enum {
   MA_BM_BLEND = 5,
 };
 
-/* blend_flag */
+/** #Material::blend_flag */
 enum {
   MA_BL_HIDE_BACKFACE = (1 << 0),
   MA_BL_SS_REFRACTION = (1 << 1),
@@ -337,7 +348,7 @@ enum {
   MA_BL_TRANSLUCENCY = (1 << 3),
 };
 
-/* blend_shadow */
+/** #Material::blend_shadow */
 enum {
   MA_BS_NONE = 0,
   MA_BS_SOLID = 1,

@@ -75,7 +75,7 @@ enum ReportListFlags {
   RPT_PRINT_HANDLED_BY_OWNER = (1 << 4),
 };
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct Report {
@@ -103,8 +103,8 @@ typedef struct ReportList {
   struct wmTimer *reporttimer;
 } ReportList;
 
-/* timer customdata to control reports display */
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* Timer custom-data to control reports display. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct ReportTimerInfo {
@@ -381,7 +381,7 @@ typedef struct wmWindow {
 #  undef ime_data
 #endif
 
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 /* should be something like DNA_EXCLUDE
  * but the preprocessor first removes all comments, spaces etc */
 #

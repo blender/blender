@@ -85,16 +85,20 @@ typedef struct bNodeStack {
 } bNodeStack;
 
 /** #bNodeStack.datatype (shade-tree only). */
-#define NS_OSA_VECTORS 1
-#define NS_OSA_VALUES 2
+enum {
+  NS_OSA_VECTORS = 1,
+  NS_OSA_VALUES = 2,
+};
 
 /* node socket/node socket type -b conversion rules */
-#define NS_CR_CENTER 0
-#define NS_CR_NONE 1
-#define NS_CR_FIT_WIDTH 2
-#define NS_CR_FIT_HEIGHT 3
-#define NS_CR_FIT 4
-#define NS_CR_STRETCH 5
+enum {
+  NS_CR_CENTER = 0,
+  NS_CR_NONE = 1,
+  NS_CR_FIT_WIDTH = 2,
+  NS_CR_FIT_HEIGHT = 3,
+  NS_CR_FIT = 4,
+  NS_CR_STRETCH = 5,
+};
 
 typedef struct bNodeSocket {
   struct bNodeSocket *next, *prev;
@@ -421,64 +425,75 @@ typedef struct bNode {
 #endif
 } bNode;
 
-/* node->flag */
-#define NODE_SELECT 1
-#define NODE_OPTIONS 2
-#define NODE_PREVIEW 4
-#define NODE_HIDDEN 8
-#define NODE_ACTIVE 16
-// #define NODE_ACTIVE_ID 32 /* deprecated */
-/* Used to indicate which group output node is used and which viewer node is active. */
-#define NODE_DO_OUTPUT 64
-#define __NODE_GROUP_EDIT 128 /* DEPRECATED */
-/* free test flag, undefined */
-#define NODE_TEST 256
-/* node is disabled */
-#define NODE_MUTED 512
-// #define NODE_CUSTOM_NAME 1024    /* deprecated! */
-// #define NODE_CONST_OUTPUT (1 << 11) /* deprecated */
-/* node is always behind others */
-#define NODE_BACKGROUND (1 << 12)
-/* automatic flag for nodes included in transforms */
-// #define NODE_TRANSFORM (1 << 13) /* deprecated */
-/* node is active texture */
+/** #bNode::flag */
+enum {
+  NODE_SELECT = 1 << 0,
+  NODE_OPTIONS = 1 << 1,
+  NODE_PREVIEW = 1 << 2,
+  NODE_HIDDEN = 1 << 3,
+  NODE_ACTIVE = 1 << 4,
+  // NODE_ACTIVE_ID = 1 << 5, /* Deprecated. */
+  /** Used to indicate which group output node is used and which viewer node is active. */
+  NODE_DO_OUTPUT = 1 << 6,
+  // NODE_GROUP_EDIT = 1 << 7, /* Deprecated, dirty. */
+  NODE_TEST = 1 << 8,
+  /** Node is disabled. */
+  NODE_MUTED = 1 << 9,
+  // NODE_CUSTOM_NAME = 1 << 10, /* Deprecated, dirty. */
+  // NODE_CONST_OUTPUT = 1 << 11, /* Deprecated, dirty. */
+  /** Node is always behind others. */
+  NODE_BACKGROUND = 1 << 12,
+  /** Automatic flag for nodes included in transforms */
+  // NODE_TRANSFORM = 1 << 13, /* Deprecated, dirty. */
 
-/* NOTE: take care with this flag since its possible it gets
- * `stuck` inside/outside the active group - which makes buttons
- * window texture not update, we try to avoid it by clearing the
- * flag when toggling group editing - Campbell */
-#define NODE_ACTIVE_TEXTURE (1 << 14)
-/* use a custom color for the node */
-#define NODE_CUSTOM_COLOR (1 << 15)
-/* Node has been initialized
- * This flag indicates the node->typeinfo->init function has been called.
- * In case of undefined type at creation time this can be delayed until
- * until the node type is registered.
- */
-#define NODE_INIT (1 << 16)
+  /**
+   * Node is active texture.
+   *
+   * NOTE(@ideasman42): take care with this flag since its possible it gets `stuck`
+   * inside/outside the active group - which makes buttons window texture not update,
+   * we try to avoid it by clearing the flag when toggling group editing.
+   */
+  NODE_ACTIVE_TEXTURE = 1 << 14,
+  /** Use a custom color for the node. */
+  NODE_CUSTOM_COLOR = 1 << 15,
+  /**
+   * Node has been initialized
+   * This flag indicates the `node->typeinfo->init` function has been called.
+   * In case of undefined type at creation time this can be delayed until
+   * until the node type is registered.
+   */
+  NODE_INIT = 1 << 16,
+  /**
+   * Do recalculation of output, used to skip recalculation of unwanted
+   * composite out nodes when editing tree
+   */
+  NODE_DO_OUTPUT_RECALC = 1 << 17,
+  /** A preview for the data in this node can be displayed in the spreadsheet editor. */
+  // NODE_ACTIVE_PREVIEW = 1 << 18, /* deprecated */
+  /** Active node that is used to paint on. */
+  NODE_ACTIVE_PAINT_CANVAS = 1 << 19,
+};
 
-/* do recalc of output, used to skip recalculation of unwanted
- * composite out nodes when editing tree
- */
-#define NODE_DO_OUTPUT_RECALC (1 << 17)
-/* A preview for the data in this node can be displayed in the spreadsheet editor. */
-#define __NODE_ACTIVE_PREVIEW (1 << 18) /* deprecated */
-/* Active node that is used to paint on. */
-#define NODE_ACTIVE_PAINT_CANVAS (1 << 19)
+/** bNode::update */
+enum {
+  /** Associated id data block has changed. */
+  NODE_UPDATE_ID = 1,
+  /** Node update triggered from update operator */
+  NODE_UPDATE_OPERATOR = 2,
+};
 
-/* node->update */
-#define NODE_UPDATE_ID 1       /* associated id data block has changed */
-#define NODE_UPDATE_OPERATOR 2 /* node update triggered from update operator */
-
-/* Unique hash key for identifying node instances
+/**
+ * Unique hash key for identifying node instances
  * Defined as a struct because DNA does not support other typedefs.
  */
 typedef struct bNodeInstanceKey {
   unsigned int value;
 } bNodeInstanceKey;
 
-/* Base struct for entries in node instance hash.
- * WARNING: pointers are cast to this struct internally,
+/**
+ * Base struct for entries in node instance hash.
+ *
+ * \warning pointers are cast to this struct internally,
  * it must be first member in hash entry structs!
  */
 #
@@ -486,7 +501,7 @@ typedef struct bNodeInstanceKey {
 typedef struct bNodeInstanceHashEntry {
   bNodeInstanceKey key;
 
-  /* tags for cleaning the cache */
+  /** Tags for cleaning the cache. */
   short tag;
 } bNodeInstanceHashEntry;
 
@@ -518,35 +533,47 @@ typedef struct bNodeLink {
 
 } bNodeLink;
 
-/* link->flag */
-#define NODE_LINKFLAG_HILITE (1 << 0) /* link has been successfully validated */
-#define NODE_LINK_VALID (1 << 1)
-#define NODE_LINK_TEST (1 << 2)           /* free test flag, undefined */
-#define NODE_LINK_TEMP_HIGHLIGHT (1 << 3) /* Link is highlighted for picking. */
-#define NODE_LINK_MUTED (1 << 4)          /* Link is muted. */
+/** #bNodeLink::flag */
+enum {
+  NODE_LINKFLAG_HILITE = 1 << 0, /** Link has been successfully validated. */
+  NODE_LINK_VALID = 1 << 1,
+  /** Free test flag, undefined. */
+  NODE_LINK_TEST = 1 << 2,
+  /** Link is highlighted for picking. */
+  NODE_LINK_TEMP_HIGHLIGHT = 1 << 3,
+  /** Link is muted. */
+  NODE_LINK_MUTED = 1 << 4,
+};
 
-/* tree->edit_quality/tree->render_quality */
-#define NTREE_QUALITY_HIGH 0
-#define NTREE_QUALITY_MEDIUM 1
-#define NTREE_QUALITY_LOW 2
+/** #bNodeTree::edit_quality & #bNodeTree::render_quality */
+enum {
+  NTREE_QUALITY_HIGH = 0,
+  NTREE_QUALITY_MEDIUM = 1,
+  NTREE_QUALITY_LOW = 2,
+};
 
-/* tree->chunksize */
-#define NTREE_CHUNKSIZE_32 32
-#define NTREE_CHUNKSIZE_64 64
-#define NTREE_CHUNKSIZE_128 128
-#define NTREE_CHUNKSIZE_256 256
-#define NTREE_CHUNKSIZE_512 512
-#define NTREE_CHUNKSIZE_1024 1024
+/** #bNodeTree::chunksize */
+enum {
+  NTREE_CHUNKSIZE_32 = 32,
+  NTREE_CHUNKSIZE_64 = 64,
+  NTREE_CHUNKSIZE_128 = 128,
+  NTREE_CHUNKSIZE_256 = 256,
+  NTREE_CHUNKSIZE_512 = 512,
+  NTREE_CHUNKSIZE_1024 = 1024,
+};
 
 /** Panel in node tree for grouping sockets. */
 typedef struct bNodePanel {
-  /* UI name of the panel (not unique) */
+  /** UI name of the panel (not unique). */
   char *name;
 } bNodePanel;
 
-/* the basis for a Node tree, all links and nodes reside internal here */
-/* only re-usable node trees are in the library though,
- * materials and textures allocate own tree struct */
+/**
+ * The basis for a Node tree, all links and nodes reside internal here.
+ *
+ * Only re-usable node trees are in the library though,
+ * materials and textures allocate own tree struct.
+ */
 typedef struct bNodeTree {
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
@@ -587,17 +614,20 @@ typedef struct bNodeTree {
 
   rctf viewer_border;
 
-  /* Lists of bNodeSocket to hold default values and own_index.
+  /**
+   * Lists of #bNodeSocket to hold default values and own_index.
    * Warning! Don't make links to these sockets, input/output nodes are used for that.
    * These sockets are used only for generating external interfaces.
    */
   ListBase inputs, outputs;
 
-  /* Node preview hash table
-   * Only available in base node trees (e.g. scene->node_tree)
+  /**
+   * Node preview hash table.
+   * Only available in base node trees (e.g. scene->node_tree).
    */
   struct bNodeInstanceHash *previews;
-  /* Defines the node tree instance to use for the "active" context,
+  /**
+   * Defines the node tree instance to use for the "active" context,
    * in case multiple different editors are used and make context ambiguous.
    */
   bNodeInstanceKey active_viewer_key;
@@ -688,23 +718,35 @@ typedef struct bNodeTree {
 
 /** #NodeTree.type, index */
 
-#define NTREE_UNDEFINED -2 /* Represents #NodeTreeTypeUndefined type. */
-#define NTREE_CUSTOM -1    /* for dynamically registered custom types */
-#define NTREE_SHADER 0
-#define NTREE_COMPOSIT 1
-#define NTREE_TEXTURE 2
-#define NTREE_GEOMETRY 3
+enum {
+  /** Represents #NodeTreeTypeUndefined type. */
+  NTREE_UNDEFINED = -2,
+  /** For dynamically registered custom types. */
+  NTREE_CUSTOM = -1,
+  NTREE_SHADER = 0,
+  NTREE_COMPOSIT = 1,
+  NTREE_TEXTURE = 2,
+  NTREE_GEOMETRY = 3,
+};
 
 /** #NodeTree.flag */
-#define NTREE_DS_EXPAND (1 << 0)            /* for animation editors */
-#define NTREE_COM_OPENCL (1 << 1)           /* Use OPENCL. */
-#define NTREE_TWO_PASS (1 << 2)             /* two pass */
-#define NTREE_COM_GROUPNODE_BUFFER (1 << 3) /* Use group-node buffers. */
-#define NTREE_VIEWER_BORDER (1 << 4)        /* use a border for viewer nodes */
-/* NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead. */
-
-/* tree is localized copy, free when deleting node groups */
-/* #define NTREE_IS_LOCALIZED           (1 << 5) */
+enum {
+  /** For animation editors. */
+  NTREE_DS_EXPAND = 1 << 0,
+  /** Use OPENCL. */
+  NTREE_COM_OPENCL = 1 << 1,
+  /** Two pass. */
+  NTREE_TWO_PASS = 1 << 2,
+  /** Use group-node buffers. */
+  NTREE_COM_GROUPNODE_BUFFER = 1 << 3,
+  /** Use a border for viewer nodes. */
+  NTREE_VIEWER_BORDER = 1 << 4,
+  /**
+   * Tree is localized copy, free when deleting node groups.
+   * NOTE: DEPRECATED, use (id->tag & LIB_TAG_LOCALIZED) instead.
+   */
+  // NTREE_IS_LOCALIZED = 1 << 5,
+};
 
 /* tree->execution_mode */
 typedef enum eNodeTreeExecutionMode {
@@ -811,7 +853,7 @@ typedef enum CMPNodeMaskFlags {
   CMP_NODE_MASK_FLAG_NO_FEATHER = (1 << 1),
   CMP_NODE_MASK_FLAG_MOTION_BLUR = (1 << 2),
 
-  /* We may want multiple aspect options, exposed as an rna enum. */
+  /** We may want multiple aspect options, exposed as an rna enum. */
   CMP_NODE_MASK_FLAG_SIZE_FIXED = (1 << 8),
   CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
 } CMPNodeMaskFlags;
@@ -882,7 +924,7 @@ typedef struct NodeEllipseMask {
 
 /** Layer info for image node outputs. */
 typedef struct NodeImageLayer {
-  /* index in the Image->layers->passes lists */
+  /** Index in the `image->layers->passes` lists. */
   int pass_index DNA_DEPRECATED;
   /* render pass name */
   /** Amount defined in IMB_openexr.h. */
@@ -1187,7 +1229,7 @@ typedef struct NodeShaderTexPointDensity {
   short interpolation;
   short color_source;
   short ob_color_source;
-  /* Used at runtime only by sampling RNA API. */
+  /** Used at runtime only by sampling RNA API. */
   PointDensity pd;
   int cached_resolution;
   /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
@@ -1301,9 +1343,9 @@ typedef struct CryptomatteLayer {
 } CryptomatteLayer;
 
 typedef struct NodeCryptomatte_Runtime {
-  /* Contains `CryptomatteLayer`. */
+  /** Contains #CryptomatteLayer. */
   ListBase layers;
-  /* Temp storage for the crypto-matte picker. */
+  /** Temp storage for the crypto-matte picker. */
   float add[3];
   float remove[3];
 } NodeCryptomatte_Runtime;
@@ -1316,16 +1358,16 @@ typedef struct NodeCryptomatte {
    */
   ImageUser iuser;
 
-  /* Contains `CryptomatteEntry`. */
+  /** Contains #CryptomatteEntry. */
   ListBase entries;
 
   /* MAX_NAME */
   char layer_name[64];
-  /* Stores `entries` as a string for opening in 2.80-2.91. */
+  /** Stores `entries` as a string for opening in 2.80-2.91. */
   char *matte_id;
 
-  /** Legacy attributes */
-  /* Number of input sockets. */
+  /* Legacy attributes. */
+  /** Number of input sockets. */
   int inputs_num;
 
   char _pad[4];
@@ -1338,24 +1380,24 @@ typedef struct NodeDenoise {
 } NodeDenoise;
 
 typedef struct NodeMapRange {
-  /* eCustomDataType */
+  /** #eCustomDataType */
   uint8_t data_type;
 
-  /* NodeMapRangeType. */
+  /** #NodeMapRangeType. */
   uint8_t interpolation_type;
   uint8_t clamp;
   char _pad[5];
 } NodeMapRange;
 
 typedef struct NodeRandomValue {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   uint8_t data_type;
 } NodeRandomValue;
 
 typedef struct NodeAccumulateField {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   uint8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   uint8_t domain;
 } NodeAccumulateField;
 
@@ -1380,183 +1422,183 @@ typedef struct NodeInputString {
 } NodeInputString;
 
 typedef struct NodeGeometryExtrudeMesh {
-  /* GeometryNodeExtrudeMeshMode */
+  /** #GeometryNodeExtrudeMeshMode */
   uint8_t mode;
 } NodeGeometryExtrudeMesh;
 
 typedef struct NodeGeometryObjectInfo {
-  /* GeometryNodeTransformSpace. */
+  /** #GeometryNodeTransformSpace. */
   uint8_t transform_space;
 } NodeGeometryObjectInfo;
 
 typedef struct NodeGeometryPointsToVolume {
-  /* GeometryNodePointsToVolumeResolutionMode */
+  /** #GeometryNodePointsToVolumeResolutionMode */
   uint8_t resolution_mode;
-  /* GeometryNodeAttributeInputMode */
+  /** #GeometryNodeAttributeInputMode */
   uint8_t input_type_radius;
 } NodeGeometryPointsToVolume;
 
 typedef struct NodeGeometryCollectionInfo {
-  /* GeometryNodeTransformSpace. */
+  /** #GeometryNodeTransformSpace. */
   uint8_t transform_space;
 } NodeGeometryCollectionInfo;
 
 typedef struct NodeGeometryProximity {
-  /* GeometryNodeProximityTargetType. */
+  /** #GeometryNodeProximityTargetType. */
   uint8_t target_element;
 } NodeGeometryProximity;
 
 typedef struct NodeGeometryVolumeToMesh {
-  /* VolumeToMeshResolutionMode */
+  /** #VolumeToMeshResolutionMode */
   uint8_t resolution_mode;
 } NodeGeometryVolumeToMesh;
 
 typedef struct NodeGeometryMeshToVolume {
-  /* MeshToVolumeModifierResolutionMode */
+  /** #MeshToVolumeModifierResolutionMode */
   uint8_t resolution_mode;
 } NodeGeometryMeshToVolume;
 
 typedef struct NodeGeometrySubdivisionSurface {
-  /* eSubsurfUVSmooth. */
+  /** #eSubsurfUVSmooth. */
   uint8_t uv_smooth;
-  /* eSubsurfBoundarySmooth. */
+  /** #eSubsurfBoundarySmooth. */
   uint8_t boundary_smooth;
 } NodeGeometrySubdivisionSurface;
 
 typedef struct NodeGeometryMeshCircle {
-  /* GeometryNodeMeshCircleFillType. */
+  /** #GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
 } NodeGeometryMeshCircle;
 
 typedef struct NodeGeometryMeshCylinder {
-  /* GeometryNodeMeshCircleFillType. */
+  /** #GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
 } NodeGeometryMeshCylinder;
 
 typedef struct NodeGeometryMeshCone {
-  /* GeometryNodeMeshCircleFillType. */
+  /** #GeometryNodeMeshCircleFillType. */
   uint8_t fill_type;
 } NodeGeometryMeshCone;
 
 typedef struct NodeGeometryMergeByDistance {
-  /* GeometryNodeMergeByDistanceMode. */
+  /** #GeometryNodeMergeByDistanceMode. */
   uint8_t mode;
 } NodeGeometryMergeByDistance;
 
 typedef struct NodeGeometryMeshLine {
-  /* GeometryNodeMeshLineMode. */
+  /** #GeometryNodeMeshLineMode. */
   uint8_t mode;
-  /* GeometryNodeMeshLineCountMode. */
+  /** #GeometryNodeMeshLineCountMode. */
   uint8_t count_mode;
 } NodeGeometryMeshLine;
 
 typedef struct NodeSwitch {
-  /* NodeSwitch. */
+  /** #NodeSwitch. */
   uint8_t input_type;
 } NodeSwitch;
 
 typedef struct NodeGeometryCurveSplineType {
-  /* GeometryNodeSplineType. */
+  /** #GeometryNodeSplineType. */
   uint8_t spline_type;
 } NodeGeometryCurveSplineType;
 
 typedef struct NodeGeometrySetCurveHandlePositions {
-  /* GeometryNodeCurveHandleMode. */
+  /** #GeometryNodeCurveHandleMode. */
   uint8_t mode;
 } NodeGeometrySetCurveHandlePositions;
 
 typedef struct NodeGeometryCurveSetHandles {
-  /* GeometryNodeCurveHandleType. */
+  /** #GeometryNodeCurveHandleType. */
   uint8_t handle_type;
-  /* GeometryNodeCurveHandleMode. */
+  /** #GeometryNodeCurveHandleMode. */
   uint8_t mode;
 } NodeGeometryCurveSetHandles;
 
 typedef struct NodeGeometryCurveSelectHandles {
-  /* GeometryNodeCurveHandleType. */
+  /** #GeometryNodeCurveHandleType. */
   uint8_t handle_type;
-  /* GeometryNodeCurveHandleMode. */
+  /** #GeometryNodeCurveHandleMode. */
   uint8_t mode;
 } NodeGeometryCurveSelectHandles;
 
 typedef struct NodeGeometryCurvePrimitiveArc {
-  /* GeometryNodeCurvePrimitiveArcMode. */
+  /** #GeometryNodeCurvePrimitiveArcMode. */
   uint8_t mode;
 } NodeGeometryCurvePrimitiveArc;
 
 typedef struct NodeGeometryCurvePrimitiveLine {
-  /* GeometryNodeCurvePrimitiveLineMode. */
+  /** #GeometryNodeCurvePrimitiveLineMode. */
   uint8_t mode;
 } NodeGeometryCurvePrimitiveLine;
 
 typedef struct NodeGeometryCurvePrimitiveBezierSegment {
-  /* GeometryNodeCurvePrimitiveBezierSegmentMode. */
+  /** #GeometryNodeCurvePrimitiveBezierSegmentMode. */
   uint8_t mode;
 } NodeGeometryCurvePrimitiveBezierSegment;
 
 typedef struct NodeGeometryCurvePrimitiveCircle {
-  /* GeometryNodeCurvePrimitiveMode. */
+  /** #GeometryNodeCurvePrimitiveMode. */
   uint8_t mode;
 } NodeGeometryCurvePrimitiveCircle;
 
 typedef struct NodeGeometryCurvePrimitiveQuad {
-  /* GeometryNodeCurvePrimitiveQuadMode. */
+  /** #GeometryNodeCurvePrimitiveQuadMode. */
   uint8_t mode;
 } NodeGeometryCurvePrimitiveQuad;
 
 typedef struct NodeGeometryCurveResample {
-  /* GeometryNodeCurveResampleMode. */
+  /** #GeometryNodeCurveResampleMode. */
   uint8_t mode;
 } NodeGeometryCurveResample;
 
 typedef struct NodeGeometryCurveFillet {
-  /* GeometryNodeCurveFilletMode. */
+  /** #GeometryNodeCurveFilletMode. */
   uint8_t mode;
 } NodeGeometryCurveFillet;
 
 typedef struct NodeGeometryCurveTrim {
-  /* GeometryNodeCurveSampleMode. */
+  /** #GeometryNodeCurveSampleMode. */
   uint8_t mode;
 } NodeGeometryCurveTrim;
 
 typedef struct NodeGeometryCurveToPoints {
-  /* GeometryNodeCurveResampleMode. */
+  /** #GeometryNodeCurveResampleMode. */
   uint8_t mode;
 } NodeGeometryCurveToPoints;
 
 typedef struct NodeGeometryCurveSample {
-  /* GeometryNodeCurveSampleMode. */
+  /** #GeometryNodeCurveSampleMode. */
   uint8_t mode;
   int8_t use_all_curves;
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
   char _pad[1];
 } NodeGeometryCurveSample;
 
 typedef struct NodeGeometryTransferAttribute {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
-  /* GeometryNodeAttributeTransferMode. */
+  /** #GeometryNodeAttributeTransferMode. */
   uint8_t mode;
   char _pad[1];
 } NodeGeometryTransferAttribute;
 
 typedef struct NodeGeometrySampleIndex {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
   int8_t clamp;
   char _pad[1];
 } NodeGeometrySampleIndex;
 
 typedef struct NodeGeometryRaycast {
-  /* GeometryNodeRaycastMapMode. */
+  /** #GeometryNodeRaycastMapMode. */
   uint8_t mapping;
 
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
 } NodeGeometryRaycast;
 
@@ -1565,54 +1607,54 @@ typedef struct NodeGeometryCurveFill {
 } NodeGeometryCurveFill;
 
 typedef struct NodeGeometryMeshToPoints {
-  /* GeometryNodeMeshToPointsMode */
+  /** #GeometryNodeMeshToPointsMode */
   uint8_t mode;
 } NodeGeometryMeshToPoints;
 
 typedef struct NodeGeometryAttributeCapture {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
 } NodeGeometryAttributeCapture;
 
 typedef struct NodeGeometryStoreNamedAttribute {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
 } NodeGeometryStoreNamedAttribute;
 
 typedef struct NodeGeometryInputNamedAttribute {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
 } NodeGeometryInputNamedAttribute;
 
 typedef struct NodeGeometryStringToCurves {
-  /* GeometryNodeStringToCurvesOverflowMode */
+  /** #GeometryNodeStringToCurvesOverflowMode */
   uint8_t overflow;
-  /* GeometryNodeStringToCurvesAlignXMode */
+  /** #GeometryNodeStringToCurvesAlignXMode */
   uint8_t align_x;
-  /* GeometryNodeStringToCurvesAlignYMode */
+  /** #GeometryNodeStringToCurvesAlignYMode */
   uint8_t align_y;
-  /* GeometryNodeStringToCurvesPivotMode */
+  /** #GeometryNodeStringToCurvesPivotMode */
   uint8_t pivot_mode;
 } NodeGeometryStringToCurves;
 
 typedef struct NodeGeometryDeleteGeometry {
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
-  /* GeometryNodeDeleteGeometryMode. */
+  /** #GeometryNodeDeleteGeometryMode. */
   int8_t mode;
 } NodeGeometryDeleteGeometry;
 
 typedef struct NodeGeometryDuplicateElements {
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
 } NodeGeometryDuplicateElements;
 
 typedef struct NodeGeometrySeparateGeometry {
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
 } NodeGeometrySeparateGeometry;
 
@@ -1622,14 +1664,14 @@ typedef struct NodeGeometryImageTexture {
 } NodeGeometryImageTexture;
 
 typedef struct NodeGeometryViewer {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t data_type;
-  /* eAttrDomain. */
+  /** #eAttrDomain. */
   int8_t domain;
 } NodeGeometryViewer;
 
 typedef struct NodeGeometryUVUnwrap {
-  /* GeometryNodeUVUnwrapMethod. */
+  /** #GeometryNodeUVUnwrapMethod. */
   uint8_t method;
 } NodeGeometryUVUnwrap;
 
@@ -1667,36 +1709,36 @@ typedef struct NodeGeometrySimulationOutput {
 } NodeGeometrySimulationOutput;
 
 typedef struct NodeGeometryDistributePointsInVolume {
-  /* GeometryNodePointDistributeVolumeMode. */
+  /** #GeometryNodePointDistributeVolumeMode. */
   uint8_t mode;
 } NodeGeometryDistributePointsInVolume;
 
 typedef struct NodeGeometrySampleVolume {
-  /* eCustomDataType. */
+  /** #eCustomDataType. */
   int8_t grid_type;
-  /* GeometryNodeSampleVolumeInterpolationMode */
+  /** #GeometryNodeSampleVolumeInterpolationMode */
   int8_t interpolation_mode;
 } NodeGeometrySampleVolume;
 
 typedef struct NodeFunctionCompare {
-  /* NodeCompareOperation */
+  /** #NodeCompareOperation */
   int8_t operation;
-  /* eNodeSocketDatatype */
+  /** #eNodeSocketDatatype */
   int8_t data_type;
-  /* NodeCompareMode */
+  /** #NodeCompareMode */
   int8_t mode;
   char _pad[1];
 } NodeFunctionCompare;
 
 typedef struct NodeCombSepColor {
-  /* NodeCombSepColorMode */
+  /** #NodeCombSepColorMode */
   int8_t mode;
 } NodeCombSepColor;
 
 typedef struct NodeShaderMix {
-  /* eNodeSocketDatatype */
+  /** #eNodeSocketDatatype */
   int8_t data_type;
-  /* NodeShaderMixMode */
+  /** #NodeShaderMixMode */
   int8_t factor_mode;
   int8_t clamp_factor;
   int8_t clamp_result;
@@ -1705,47 +1747,68 @@ typedef struct NodeShaderMix {
 } NodeShaderMix;
 
 /* script node mode */
-#define NODE_SCRIPT_INTERNAL 0
-#define NODE_SCRIPT_EXTERNAL 1
+enum {
+  NODE_SCRIPT_INTERNAL = 0,
+  NODE_SCRIPT_EXTERNAL = 1,
+};
 
 /* script node flag */
-#define NODE_SCRIPT_AUTO_UPDATE 1
+enum {
+  NODE_SCRIPT_AUTO_UPDATE = 1,
+};
 
 /* IES node mode. */
-#define NODE_IES_INTERNAL 0
-#define NODE_IES_EXTERNAL 1
+enum {
+  NODE_IES_INTERNAL = 0,
+  NODE_IES_EXTERNAL = 1,
+};
 
 /* Frame node flags. */
 
-#define NODE_FRAME_SHRINK 1     /* keep the bounding box minimal */
-#define NODE_FRAME_RESIZEABLE 2 /* test flag, if frame can be resized by user */
+enum {
+  /** Keep the bounding box minimal. */
+  NODE_FRAME_SHRINK = 1,
+  /** Test flag, if frame can be resized by user. */
+  NODE_FRAME_RESIZEABLE = 2,
+};
 
 /* Proxy node flags. */
 
-#define NODE_PROXY_AUTOTYPE 1 /* automatically change output type based on link */
+enum {
+  /** Automatically change output type based on link. */
+  NODE_PROXY_AUTOTYPE = 1,
+};
 
 /* Comp channel matte. */
 
-#define CMP_NODE_CHANNEL_MATTE_CS_RGB 1
-#define CMP_NODE_CHANNEL_MATTE_CS_HSV 2
-#define CMP_NODE_CHANNEL_MATTE_CS_YUV 3
-#define CMP_NODE_CHANNEL_MATTE_CS_YCC 4
+enum {
+  CMP_NODE_CHANNEL_MATTE_CS_RGB = 1,
+  CMP_NODE_CHANNEL_MATTE_CS_HSV = 2,
+  CMP_NODE_CHANNEL_MATTE_CS_YUV = 3,
+  CMP_NODE_CHANNEL_MATTE_CS_YCC = 4,
+};
 
 /* glossy distributions */
-#define SHD_GLOSSY_BECKMANN 0
-#define SHD_GLOSSY_SHARP_DEPRECATED 1 /* deprecated */
-#define SHD_GLOSSY_GGX 2
-#define SHD_GLOSSY_ASHIKHMIN_SHIRLEY 3
-#define SHD_GLOSSY_MULTI_GGX 4
+enum {
+  SHD_GLOSSY_BECKMANN = 0,
+  SHD_GLOSSY_SHARP_DEPRECATED = 1, /* deprecated */
+  SHD_GLOSSY_GGX = 2,
+  SHD_GLOSSY_ASHIKHMIN_SHIRLEY = 3,
+  SHD_GLOSSY_MULTI_GGX = 4,
+};
 
 /* vector transform */
-#define SHD_VECT_TRANSFORM_TYPE_VECTOR 0
-#define SHD_VECT_TRANSFORM_TYPE_POINT 1
-#define SHD_VECT_TRANSFORM_TYPE_NORMAL 2
+enum {
+  SHD_VECT_TRANSFORM_TYPE_VECTOR = 0,
+  SHD_VECT_TRANSFORM_TYPE_POINT = 1,
+  SHD_VECT_TRANSFORM_TYPE_NORMAL = 2,
+};
 
-#define SHD_VECT_TRANSFORM_SPACE_WORLD 0
-#define SHD_VECT_TRANSFORM_SPACE_OBJECT 1
-#define SHD_VECT_TRANSFORM_SPACE_CAMERA 2
+enum {
+  SHD_VECT_TRANSFORM_SPACE_WORLD = 0,
+  SHD_VECT_TRANSFORM_SPACE_OBJECT = 1,
+  SHD_VECT_TRANSFORM_SPACE_CAMERA = 2,
+};
 
 /** #NodeShaderAttribute.type */
 enum {
@@ -1756,39 +1819,51 @@ enum {
 };
 
 /* toon modes */
-#define SHD_TOON_DIFFUSE 0
-#define SHD_TOON_GLOSSY 1
+enum {
+  SHD_TOON_DIFFUSE = 0,
+  SHD_TOON_GLOSSY = 1,
+};
 
 /* hair components */
-#define SHD_HAIR_REFLECTION 0
-#define SHD_HAIR_TRANSMISSION 1
+enum {
+  SHD_HAIR_REFLECTION = 0,
+  SHD_HAIR_TRANSMISSION = 1,
+};
 
 /* principled hair parametrization */
-#define SHD_PRINCIPLED_HAIR_REFLECTANCE 0
-#define SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION 1
-#define SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION 2
+enum {
+  SHD_PRINCIPLED_HAIR_REFLECTANCE = 0,
+  SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION = 1,
+  SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION = 2,
+};
 
 /* blend texture */
-#define SHD_BLEND_LINEAR 0
-#define SHD_BLEND_QUADRATIC 1
-#define SHD_BLEND_EASING 2
-#define SHD_BLEND_DIAGONAL 3
-#define SHD_BLEND_RADIAL 4
-#define SHD_BLEND_QUADRATIC_SPHERE 5
-#define SHD_BLEND_SPHERICAL 6
+enum {
+  SHD_BLEND_LINEAR = 0,
+  SHD_BLEND_QUADRATIC = 1,
+  SHD_BLEND_EASING = 2,
+  SHD_BLEND_DIAGONAL = 3,
+  SHD_BLEND_RADIAL = 4,
+  SHD_BLEND_QUADRATIC_SPHERE = 5,
+  SHD_BLEND_SPHERICAL = 6,
+};
 
 /* noise basis for textures */
-#define SHD_NOISE_PERLIN 0
-#define SHD_NOISE_VORONOI_F1 1
-#define SHD_NOISE_VORONOI_F2 2
-#define SHD_NOISE_VORONOI_F3 3
-#define SHD_NOISE_VORONOI_F4 4
-#define SHD_NOISE_VORONOI_F2_F1 5
-#define SHD_NOISE_VORONOI_CRACKLE 6
-#define SHD_NOISE_CELL_NOISE 7
+enum {
+  SHD_NOISE_PERLIN = 0,
+  SHD_NOISE_VORONOI_F1 = 1,
+  SHD_NOISE_VORONOI_F2 = 2,
+  SHD_NOISE_VORONOI_F3 = 3,
+  SHD_NOISE_VORONOI_F4 = 4,
+  SHD_NOISE_VORONOI_F2_F1 = 5,
+  SHD_NOISE_VORONOI_CRACKLE = 6,
+  SHD_NOISE_CELL_NOISE = 7,
+};
 
-#define SHD_NOISE_SOFT 0
-#define SHD_NOISE_HARD 1
+enum {
+  SHD_NOISE_SOFT = 0,
+  SHD_NOISE_HARD = 1,
+};
 
 /* Voronoi Texture */
 
@@ -1808,15 +1883,19 @@ enum {
 };
 
 /* musgrave texture */
-#define SHD_MUSGRAVE_MULTIFRACTAL 0
-#define SHD_MUSGRAVE_FBM 1
-#define SHD_MUSGRAVE_HYBRID_MULTIFRACTAL 2
-#define SHD_MUSGRAVE_RIDGED_MULTIFRACTAL 3
-#define SHD_MUSGRAVE_HETERO_TERRAIN 4
+enum {
+  SHD_MUSGRAVE_MULTIFRACTAL = 0,
+  SHD_MUSGRAVE_FBM = 1,
+  SHD_MUSGRAVE_HYBRID_MULTIFRACTAL = 2,
+  SHD_MUSGRAVE_RIDGED_MULTIFRACTAL = 3,
+  SHD_MUSGRAVE_HETERO_TERRAIN = 4,
+};
 
 /* wave texture */
-#define SHD_WAVE_BANDS 0
-#define SHD_WAVE_RINGS 1
+enum {
+  SHD_WAVE_BANDS = 0,
+  SHD_WAVE_RINGS = 1,
+};
 
 enum {
   SHD_WAVE_BANDS_DIRECTION_X = 0,
@@ -1839,49 +1918,67 @@ enum {
 };
 
 /* sky texture */
-#define SHD_SKY_PREETHAM 0
-#define SHD_SKY_HOSEK 1
-#define SHD_SKY_NISHITA 2
+enum {
+  SHD_SKY_PREETHAM = 0,
+  SHD_SKY_HOSEK = 1,
+  SHD_SKY_NISHITA = 2,
+};
 
 /* environment texture */
-#define SHD_PROJ_EQUIRECTANGULAR 0
-#define SHD_PROJ_MIRROR_BALL 1
+enum {
+  SHD_PROJ_EQUIRECTANGULAR = 0,
+  SHD_PROJ_MIRROR_BALL = 1,
+};
 
-#define SHD_IMAGE_EXTENSION_REPEAT 0
-#define SHD_IMAGE_EXTENSION_EXTEND 1
-#define SHD_IMAGE_EXTENSION_CLIP 2
-#define SHD_IMAGE_EXTENSION_MIRROR 3
+enum {
+  SHD_IMAGE_EXTENSION_REPEAT = 0,
+  SHD_IMAGE_EXTENSION_EXTEND = 1,
+  SHD_IMAGE_EXTENSION_CLIP = 2,
+  SHD_IMAGE_EXTENSION_MIRROR = 3,
+};
 
 /* image texture */
-#define SHD_PROJ_FLAT 0
-#define SHD_PROJ_BOX 1
-#define SHD_PROJ_SPHERE 2
-#define SHD_PROJ_TUBE 3
+enum {
+  SHD_PROJ_FLAT = 0,
+  SHD_PROJ_BOX = 1,
+  SHD_PROJ_SPHERE = 2,
+  SHD_PROJ_TUBE = 3,
+};
 
 /* image texture interpolation */
-#define SHD_INTERP_LINEAR 0
-#define SHD_INTERP_CLOSEST 1
-#define SHD_INTERP_CUBIC 2
-#define SHD_INTERP_SMART 3
+enum {
+  SHD_INTERP_LINEAR = 0,
+  SHD_INTERP_CLOSEST = 1,
+  SHD_INTERP_CUBIC = 2,
+  SHD_INTERP_SMART = 3,
+};
 
 /* tangent */
-#define SHD_TANGENT_RADIAL 0
-#define SHD_TANGENT_UVMAP 1
+enum {
+  SHD_TANGENT_RADIAL = 0,
+  SHD_TANGENT_UVMAP = 1,
+};
 
 /* tangent */
-#define SHD_TANGENT_AXIS_X 0
-#define SHD_TANGENT_AXIS_Y 1
-#define SHD_TANGENT_AXIS_Z 2
+enum {
+  SHD_TANGENT_AXIS_X = 0,
+  SHD_TANGENT_AXIS_Y = 1,
+  SHD_TANGENT_AXIS_Z = 2,
+};
 
 /* normal map, displacement space */
-#define SHD_SPACE_TANGENT 0
-#define SHD_SPACE_OBJECT 1
-#define SHD_SPACE_WORLD 2
-#define SHD_SPACE_BLENDER_OBJECT 3
-#define SHD_SPACE_BLENDER_WORLD 4
+enum {
+  SHD_SPACE_TANGENT = 0,
+  SHD_SPACE_OBJECT = 1,
+  SHD_SPACE_WORLD = 2,
+  SHD_SPACE_BLENDER_OBJECT = 3,
+  SHD_SPACE_BLENDER_WORLD = 4,
+};
 
-#define SHD_AO_INSIDE 1
-#define SHD_AO_LOCAL 2
+enum {
+  SHD_AO_INSIDE = 1,
+  SHD_AO_LOCAL = 2,
+};
 
 /** Mapping node vector types. */
 enum {
@@ -1901,7 +1998,9 @@ enum {
 };
 
 /* math node clamp */
-#define SHD_MATH_CLAMP 1
+enum {
+  SHD_MATH_CLAMP = 1,
+};
 
 typedef enum NodeMathOperation {
   NODE_MATH_ADD = 0,
@@ -2039,8 +2138,10 @@ enum {
 };
 
 /* mix rgb node flags */
-#define SHD_MIXRGB_USE_ALPHA 1
-#define SHD_MIXRGB_CLAMP 2
+enum {
+  SHD_MIXRGB_USE_ALPHA = 1,
+  SHD_MIXRGB_CLAMP = 2,
+};
 
 /* Subsurface. */
 
@@ -2056,23 +2157,31 @@ enum {
 };
 
 /* blur node */
-#define CMP_NODE_BLUR_ASPECT_NONE 0
-#define CMP_NODE_BLUR_ASPECT_Y 1
-#define CMP_NODE_BLUR_ASPECT_X 2
+enum {
+  CMP_NODE_BLUR_ASPECT_NONE = 0,
+  CMP_NODE_BLUR_ASPECT_Y = 1,
+  CMP_NODE_BLUR_ASPECT_X = 2,
+};
 
 /* wrapping */
-#define CMP_NODE_WRAP_NONE 0
-#define CMP_NODE_WRAP_X 1
-#define CMP_NODE_WRAP_Y 2
-#define CMP_NODE_WRAP_XY 3
+enum {
+  CMP_NODE_WRAP_NONE = 0,
+  CMP_NODE_WRAP_X = 1,
+  CMP_NODE_WRAP_Y = 2,
+  CMP_NODE_WRAP_XY = 3,
+};
 
 #define CMP_NODE_MASK_MBLUR_SAMPLES_MAX 64
 
 /* image */
-#define CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT 1
+enum {
+  CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT = 1,
+};
 
 /* viewer and composite output. */
-#define CMP_NODE_OUTPUT_IGNORE_ALPHA 1
+enum {
+  CMP_NODE_OUTPUT_IGNORE_ALPHA = 1,
+};
 
 /** Split Viewer Node. Stored in `custom2`. */
 typedef enum CMPNodeSplitViewerAxis {
