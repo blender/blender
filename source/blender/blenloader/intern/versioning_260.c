@@ -2133,8 +2133,8 @@ if (!MAIN_VERSION_ATLEAST(bmain, 269, 3)) {
     }
 
     /* 'Increment' mode disabled for nodes, use true grid snapping instead */
-    if (scene->toolsettings->snap_node_mode == 0) { /* SCE_SNAP_MODE_INCREMENT */
-      scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_MODE_GRID */
+    if (scene->toolsettings->snap_node_mode == 0) { /* SCE_SNAP_TO_INCREMENT */
+      scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_TO_GRID */
     }
 
 #ifdef WITH_FFMPEG

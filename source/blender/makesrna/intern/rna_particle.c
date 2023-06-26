@@ -1168,7 +1168,9 @@ static void rna_ParticleSystem_active_particle_target_index_set(struct PointerRN
   }
 }
 
-static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *value)
+static size_t rna_ParticleTarget_name_get_impl(PointerRNA *ptr,
+                                               char *value,
+                                               const size_t value_maxncpy)
 {
   ParticleTarget *pt = ptr->data;
 
@@ -1184,29 +1186,32 @@ static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *value)
     }
 
     if (psys) {
+      int value_len;
       if (pt->ob) {
-        BLI_sprintf(value, "%s: %s", pt->ob->id.name + 2, psys->name);
+        value_len = BLI_snprintf_rlen(
+            value, value_maxncpy, "%s: %s", pt->ob->id.name + 2, psys->name);
       }
       else {
-        strcpy(value, psys->name);
+        value_len = BLI_strncpy_rlen(value, psys->name, value_maxncpy);
       }
-    }
-    else {
-      strcpy(value, TIP_("Invalid target!"));
+      return value_len;
     }
   }
-  else {
-    strcpy(value, TIP_("Invalid target!"));
-  }
+
+  return BLI_strncpy_rlen(value, TIP_("Invalid target!"), value_maxncpy);
+}
+
+static void rna_ParticleTarget_name_get(PointerRNA *ptr, char *value)
+{
+  char value_buf[MAX_ID_NAME + MAX_ID_NAME + 64];
+  const size_t value_buf_len = rna_ParticleTarget_name_get_impl(ptr, value_buf, sizeof(value_buf));
+  memcpy(value, value_buf, value_buf_len + 1);
 }
 
 static int rna_ParticleTarget_name_length(PointerRNA *ptr)
 {
-  char tvalue[MAX_ID_NAME + MAX_ID_NAME + 64];
-
-  rna_ParticleTarget_name_get(ptr, tvalue);
-
-  return strlen(tvalue);
+  char value_buf[MAX_ID_NAME + MAX_ID_NAME + 64];
+  return rna_ParticleTarget_name_get_impl(ptr, value_buf, sizeof(value_buf));
 }
 
 static int particle_id_check(const PointerRNA *ptr)
@@ -1304,7 +1309,9 @@ static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int
   }
 }
 
-static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *value)
+static size_t rna_ParticleDupliWeight_name_get_impl(PointerRNA *ptr,
+                                                    char *value,
+                                                    const size_t value_maxncpy)
 {
   ParticleSettings *part = (ParticleSettings *)ptr->owner_id;
   psys_find_group_weights(part);
@@ -1312,20 +1319,24 @@ static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *value)
   ParticleDupliWeight *dw = ptr->data;
 
   if (dw->ob) {
-    BLI_sprintf(value, "%s: %i", dw->ob->id.name + 2, dw->count);
+    return BLI_snprintf_rlen(value, value_maxncpy, "%s: %i", dw->ob->id.name + 2, dw->count);
   }
-  else {
-    strcpy(value, "No object");
-  }
+
+  return BLI_strncpy_rlen(value, "No object", value_maxncpy);
+}
+
+static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *value)
+{
+  char value_buf[MAX_ID_NAME + 64];
+  const size_t value_buf_len = rna_ParticleDupliWeight_name_get_impl(
+      ptr, value_buf, sizeof(value_buf));
+  memcpy(value, value_buf, value_buf_len + 1);
 }
 
 static int rna_ParticleDupliWeight_name_length(PointerRNA *ptr)
 {
-  char tvalue[MAX_ID_NAME + 64];
-
-  rna_ParticleDupliWeight_name_get(ptr, tvalue);
-
-  return strlen(tvalue);
+  char value_buf[MAX_ID_NAME + 64];
+  return rna_ParticleDupliWeight_name_get_impl(ptr, value_buf, sizeof(value_buf));
 }
 
 static const EnumPropertyItem *rna_Particle_type_itemf(bContext *UNUSED(C),
@@ -2849,6 +2860,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "kink", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, kink_type_items);
   RNA_def_property_ui_text(prop, "Kink", "Type of periodic offset on the path");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_PARTICLESETTINGS);
   RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
   prop = RNA_def_property(srna, "kink_axis", PROP_ENUM, PROP_NONE);

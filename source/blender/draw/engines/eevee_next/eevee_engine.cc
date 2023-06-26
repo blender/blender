@@ -85,8 +85,7 @@ static void eevee_engine_init(void *vedata)
     }
   }
 
-  ved->instance->init(
-      size, &rect, nullptr, depsgraph, nullptr, camera, nullptr, default_view, v3d, rv3d);
+  ved->instance->init(size, &rect, nullptr, depsgraph, camera, nullptr, default_view, v3d, rv3d);
 }
 
 static void eevee_draw_scene(void *vedata)
@@ -161,7 +160,7 @@ static void eevee_render_to_image(void *vedata,
   rcti rect;
   RE_GetViewPlane(render, &view_rect, &rect);
 
-  instance->init(size, &rect, engine, depsgraph, nullptr, camera_original_ob, layer);
+  instance->init(size, &rect, engine, depsgraph, camera_original_ob, layer);
   instance->render_frame(layer, viewname);
 
   EEVEE_Data *ved = static_cast<EEVEE_Data *>(vedata);

@@ -37,8 +37,8 @@ static int select_all_exec(bContext *C, wmOperator *op)
   eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_all(drawing.geometry.wrap(), selection_domain, action);
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_all(drawing.strokes_for_write(), selection_domain, action);
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -70,8 +70,8 @@ static int select_more_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_adjacent(drawing.geometry.wrap(), false);
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_adjacent(drawing.strokes_for_write(), false);
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -101,8 +101,8 @@ static int select_less_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_adjacent(drawing.geometry.wrap(), true);
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_adjacent(drawing.strokes_for_write(), true);
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -132,8 +132,8 @@ static int select_linked_exec(bContext *C, wmOperator * /*op*/)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_linked(drawing.geometry.wrap());
+      scene->r.cfra, [](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_linked(drawing.strokes_for_write());
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -166,8 +166,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
   eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_random(drawing.geometry.wrap(),
+      scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_random(drawing.strokes_for_write(),
                                            selection_domain,
                                            blender::get_default_hash_2<int>(seed, drawing_index),
                                            ratio);
@@ -195,6 +195,44 @@ static void GREASE_PENCIL_OT_select_random(wmOperatorType *ot)
   WM_operator_properties_select_random(ot);
 }
 
+static int select_alternate_exec(bContext *C, wmOperator *op)
+{
+  const bool deselect_ends = RNA_boolean_get(op->ptr, "deselect_ends");
+  Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        blender::ed::curves::select_alternate(drawing.strokes_for_write(), deselect_ends);
+      });
+
+  /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
+   * attribute for now. */
+  DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_select_alternate(wmOperatorType *ot)
+{
+  ot->name = "Select Alternate";
+  ot->idname = "GREASE_PENCIL_OT_select_alternate";
+  ot->description = "Select alternated points in strokes with already selected points";
+
+  ot->exec = select_alternate_exec;
+  ot->poll = editable_grease_pencil_point_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_boolean(ot->srna,
+                  "deselect_ends",
+                  false,
+                  "Deselect Ends",
+                  "(De)select the first and last point of each stroke");
+}
+
 static int select_ends_exec(bContext *C, wmOperator *op)
 {
   const int amount_start = RNA_int_get(op->ptr, "amount_start");
@@ -204,8 +242,27 @@ static int select_ends_exec(bContext *C, wmOperator *op)
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_ends(drawing.geometry.wrap(), amount_start, amount_end);
+      scene->r.cfra, [&](int /*drawing_index*/, blender::bke::greasepencil::Drawing &drawing) {
+        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+
+        IndexMaskMemory memory;
+        const IndexMask inverted_end_points_mask = ed::curves::end_points(
+            curves, amount_start, amount_end, true, memory);
+
+        const bool was_anything_selected = ed::curves::has_anything_selected(curves);
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+        if (!was_anything_selected) {
+          ed::curves::fill_selection_true(selection.span);
+        }
+
+        if (selection.span.type().is<bool>()) {
+          index_mask::masked_fill(selection.span.typed<bool>(), false, inverted_end_points_mask);
+        }
+        if (selection.span.type().is<float>()) {
+          index_mask::masked_fill(selection.span.typed<float>(), 0.0f, inverted_end_points_mask);
+        }
+        selection.finish();
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
@@ -275,5 +332,6 @@ void ED_operatortypes_grease_pencil_select(void)
   WM_operatortype_append(GREASE_PENCIL_OT_select_less);
   WM_operatortype_append(GREASE_PENCIL_OT_select_linked);
   WM_operatortype_append(GREASE_PENCIL_OT_select_random);
+  WM_operatortype_append(GREASE_PENCIL_OT_select_alternate);
   WM_operatortype_append(GREASE_PENCIL_OT_select_ends);
 }

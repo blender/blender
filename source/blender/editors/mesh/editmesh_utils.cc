@@ -1951,7 +1951,7 @@ void EDBM_project_snap_verts(
                                                     depsgraph,
                                                     region,
                                                     CTX_wm_view3d(C),
-                                                    SCE_SNAP_MODE_FACE,
+                                                    SCE_SNAP_TO_FACE,
                                                     &params,
                                                     nullptr,
                                                     mval,

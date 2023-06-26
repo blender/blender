@@ -16,6 +16,7 @@
 
 #include "BLI_threads.h"
 
+#include "RE_compositor.hh"
 #include "RE_pipeline.h"
 
 struct Depsgraph;
@@ -93,6 +94,10 @@ struct Render {
    * layer visibility and use for postprocessing (compositor and sequencer). */
   struct Depsgraph *pipeline_depsgraph;
   Scene *pipeline_scene_eval;
+
+  /* Realtime GPU Compositor. */
+  blender::render::RealtimeCompositor *gpu_compositor;
+  ThreadMutex gpu_compositor_mutex;
 
   /* callbacks */
   void (*display_init)(void *handle, RenderResult *rr);

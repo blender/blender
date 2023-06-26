@@ -774,11 +774,11 @@ ImBuf *IMB_stereo3d_ImBuf(const ImageFormatData *im_format, ImBuf *ibuf_left, Im
 
   if (is_float) {
     imb_addrectfloatImBuf(ibuf_stereo, ibuf_left->channels);
-    ibuf_stereo->float_colorspace = ibuf_left->float_colorspace;
+    ibuf_stereo->float_buffer.colorspace = ibuf_left->float_buffer.colorspace;
   }
   else {
     imb_addrectImBuf(ibuf_stereo);
-    ibuf_stereo->rect_colorspace = ibuf_left->rect_colorspace;
+    ibuf_stereo->byte_buffer.colorspace = ibuf_left->byte_buffer.colorspace;
   }
 
   ibuf_stereo->flags = ibuf_left->flags;

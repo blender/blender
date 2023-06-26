@@ -969,7 +969,8 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
   PointerRNA ptr;
   const char *name;
   const char *type_id = NULL;
-  char type_fmt[64] = "";
+  char type_lower[64];
+  char type_count[16];
   int type;
 
   PYRNA_PROP_CHECK_OBJ(self);
@@ -982,13 +983,10 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
     return NULL;
   }
 
-  /* This should never fail. */
+  STRNCPY(type_lower, type_id);
+  BLI_str_tolower_ascii(type_lower, sizeof(type_lower));
+
   int len = -1;
-  char *c = type_fmt;
-
-  while ((*c++ = tolower(*type_id++))) {
-  }
-
   if (type == PROP_COLLECTION) {
     len = pyrna_prop_collection_length(self);
   }
@@ -997,7 +995,10 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
   }
 
   if (len != -1) {
-    BLI_sprintf(--c, "[%d]", len);
+    SNPRINTF(type_count, "[%d]", len);
+  }
+  else {
+    type_count[0] = '\0';
   }
 
   /* If a pointer, try to print name of pointer target too. */
@@ -1006,8 +1007,9 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
     name = RNA_struct_name_get_alloc(&ptr, NULL, 0, NULL);
 
     if (name) {
-      ret = PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s(\"%.200s\")>",
-                                 type_fmt,
+      ret = PyUnicode_FromFormat("<bpy_%.200s%.200s, %.200s.%.200s(\"%.200s\")>",
+                                 type_lower,
+                                 type_count,
                                  RNA_struct_identifier(self->ptr.type),
                                  RNA_property_identifier(self->prop),
                                  name);
@@ -1019,12 +1021,13 @@ static PyObject *pyrna_prop_str(BPy_PropertyRNA *self)
     PointerRNA r_ptr;
     if (RNA_property_collection_type_get(&self->ptr, self->prop, &r_ptr)) {
       return PyUnicode_FromFormat(
-          "<bpy_%.200s, %.200s>", type_fmt, RNA_struct_identifier(r_ptr.type));
+          "<bpy_%.200s%.200s, %.200s>", type_lower, type_count, RNA_struct_identifier(r_ptr.type));
     }
   }
 
-  return PyUnicode_FromFormat("<bpy_%.200s, %.200s.%.200s>",
-                              type_fmt,
+  return PyUnicode_FromFormat("<bpy_%.200s%.200s, %.200s.%.200s>",
+                              type_lower,
+                              type_count,
                               RNA_struct_identifier(self->ptr.type),
                               RNA_property_identifier(self->prop));
 }

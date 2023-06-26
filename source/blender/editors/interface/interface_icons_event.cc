@@ -79,12 +79,12 @@ void icon_draw_rect_input(
     icon_draw_rect_input_text(&rect, color, str, event_type > EVT_F9KEY ? 8.5f : 11.5f, 0.0f);
   }
   else if (event_type == EVT_LEFTSHIFTKEY) { /* Right Shift has already been converted to left. */
-    const char str[] = {0xe2, 0x87, 0xa7, 0x0};
+    const char str[] = BLI_STR_UTF8_UPWARDS_WHITE_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
   }
   else if (event_type == EVT_LEFTCTRLKEY) { /* Right Shift has already been converted to left. */
     if (platform == MACOS) {
-      const char str[] = {0xe2, 0x8c, 0x83, 0x0};
+      const char str[] = BLI_STR_UTF8_UP_ARROWHEAD;
       icon_draw_rect_input_text(&rect, color, str, 21.0f, -8.0f);
     }
     else {
@@ -93,7 +93,7 @@ void icon_draw_rect_input(
   }
   else if (event_type == EVT_LEFTALTKEY) { /* Right Alt has already been converted to left. */
     if (platform == MACOS) {
-      const char str[] = {0xe2, 0x8c, 0xa5, 0x0};
+      const char str[] = BLI_STR_UTF8_OPTION_KEY;
       icon_draw_rect_input_text(&rect, color, str, 13.0f, 0.0f);
     }
     else {
@@ -102,11 +102,11 @@ void icon_draw_rect_input(
   }
   else if (event_type == EVT_OSKEY) {
     if (platform == MACOS) {
-      const char str[] = {0xe2, 0x8c, 0x98, 0x0};
+      const char str[] = BLI_STR_UTF8_PLACE_OF_INTEREST_SIGN;
       icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
     }
     else if (platform == MSWIN) {
-      const char str[] = {0xe2, 0x9d, 0x96, 0x0};
+      const char str[] = BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X;
       icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
     }
     else {
@@ -117,7 +117,7 @@ void icon_draw_rect_input(
     icon_draw_rect_input_text(&rect, color, "Del", 9.0f, 0.0f);
   }
   else if (event_type == EVT_TABKEY) {
-    const char str[] = {0xe2, 0xad, 0xbe, 0x0};
+    const char str[] = BLI_STR_UTF8_HORIZONTAL_TAB_KEY;
     icon_draw_rect_input_text(&rect, color, str, 18.0f, -1.5f);
   }
   else if (event_type == EVT_HOMEKEY) {
@@ -127,12 +127,12 @@ void icon_draw_rect_input(
     icon_draw_rect_input_text(&rect, color, "End", 8.0f, 0.0f);
   }
   else if (event_type == EVT_RETKEY) {
-    const char str[] = {0xe2, 0x8f, 0x8e, 0x0};
+    const char str[] = BLI_STR_UTF8_RETURN_SYMBOL;
     icon_draw_rect_input_text(&rect, color, str, 17.0f, -1.0f);
   }
   else if (event_type == EVT_ESCKEY) {
     if (platform == MACOS) {
-      const char str[] = {0xe2, 0x8e, 0x8b, 0x0};
+      const char str[] = BLI_STR_UTF8_BROKEN_CIRCLE_WITH_NORTHWEST_ARROW;
       icon_draw_rect_input_text(&rect, color, str, 21.0f, -1.0f);
     }
     else {
@@ -140,31 +140,31 @@ void icon_draw_rect_input(
     }
   }
   else if (event_type == EVT_PAGEUPKEY) {
-    const char str[] = {'P', 0xe2, 0x86, 0x91, 0x0};
+    const char str[] = "P" BLI_STR_UTF8_UPWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 12.0f, 0.0f);
   }
   else if (event_type == EVT_PAGEDOWNKEY) {
-    const char str[] = {'P', 0xe2, 0x86, 0x93, 0x0};
+    const char str[] = "P" BLI_STR_UTF8_DOWNWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 12.0f, 0.0f);
   }
   else if (event_type == EVT_LEFTARROWKEY) {
-    const char str[] = {0xe2, 0x86, 0x90, 0x0};
+    const char str[] = BLI_STR_UTF8_LEFTWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 18.0f, -1.5f);
   }
   else if (event_type == EVT_UPARROWKEY) {
-    const char str[] = {0xe2, 0x86, 0x91, 0x0};
+    const char str[] = BLI_STR_UTF8_UPWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
   }
   else if (event_type == EVT_RIGHTARROWKEY) {
-    const char str[] = {0xe2, 0x86, 0x92, 0x0};
+    const char str[] = BLI_STR_UTF8_RIGHTWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 18.0f, -1.5f);
   }
   else if (event_type == EVT_DOWNARROWKEY) {
-    const char str[] = {0xe2, 0x86, 0x93, 0x0};
+    const char str[] = BLI_STR_UTF8_DOWNWARDS_ARROW;
     icon_draw_rect_input_text(&rect, color, str, 16.0f, 0.0f);
   }
   else if (event_type == EVT_SPACEKEY) {
-    const char str[] = {0xe2, 0x90, 0xa3, 0x0};
+    const char str[] = BLI_STR_UTF8_OPEN_BOX;
     icon_draw_rect_input_text(&rect, color, str, 20.0f, 2.0f);
   }
 }

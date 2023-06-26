@@ -19,7 +19,6 @@ class TreeElementIDCurve final : public TreeElementID {
   TreeElementIDCurve(TreeElement &legacy_te, Curve &curve);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
   void expandMaterials(SpaceOutliner &) const;

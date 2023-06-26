@@ -66,7 +66,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "NOD_composite.h"
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_shader.h"
 #include "NOD_socket.h"
 #include "NOD_texture.h"
@@ -250,7 +250,7 @@ static void compo_initjob(void *cjv)
   }
 
   cj->re = RE_NewSceneRender(scene);
-  RE_system_gpu_context_create(cj->re);
+  RE_system_gpu_context_ensure(cj->re);
 }
 
 /* Called before redraw notifiers, it moves finished previews over. */
@@ -308,8 +308,6 @@ static void compo_startjob(void *cjv,
       ntreeCompositExecTree(cj->re, cj->scene, ntree, &cj->scene->r, false, true, srv->name);
     }
   }
-
-  RE_system_gpu_context_destroy(cj->re);
 
   ntree->runtime->test_break = nullptr;
   ntree->runtime->stats_draw = nullptr;

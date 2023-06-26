@@ -230,7 +230,7 @@ static int wm_ply_import_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return WM_operator_filesel(C, op, event);
 }
 
-static int wm_ply_import_execute(bContext *C, wmOperator *op)
+static int wm_ply_import_exec(bContext *C, wmOperator *op)
 {
   PLYImportParams params{};
   params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
@@ -283,7 +283,7 @@ void WM_OT_ply_import(wmOperatorType *ot)
   ot->idname = "WM_OT_ply_import";
 
   ot->invoke = wm_ply_import_invoke;
-  ot->exec = wm_ply_import_execute;
+  ot->exec = wm_ply_import_exec;
   ot->poll = WM_operator_winactive;
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_PRESET;
 

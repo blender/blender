@@ -36,15 +36,12 @@ static void translate_instances(GeoNodeExecParams &params, bke::Instances &insta
 
   MutableSpan<float4x4> transforms = instances.transforms();
 
-  threading::parallel_for(selection.index_range(), 1024, [&](IndexRange range) {
-    for (const int i_selection : range) {
-      const int i = selection[i_selection];
-      if (local_spaces[i]) {
-        transforms[i] *= math::from_location<float4x4>(translations[i]);
-      }
-      else {
-        transforms[i].location() += translations[i];
-      }
+  selection.foreach_index(GrainSize(1024), [&](const int64_t i) {
+    if (local_spaces[i]) {
+      transforms[i] *= math::from_location<float4x4>(translations[i]);
+    }
+    else {
+      transforms[i].location() += translations[i];
     }
   });
 }

@@ -96,14 +96,13 @@ ccl_device float area_light_spread_attenuation(const float3 D,
 {
   /* Model a soft-box grid, computing the ratio of light not hidden by the
    * slats of the grid at a given angle. (see D10594). */
-  const float cos_a = -dot(D, lightNg);
+  const float tan_a = tan_angle(-D, lightNg);
+
   if (tan_half_spread == 0.0f) {
-    /* cos(0.05°) ≈ 0.9999997 */
     /* The factor M_PI_F comes from integrating the radiance over the hemisphere */
-    return (cos_a > 0.9999997f) ? M_PI_F : 0.0f;
+    return (tan_a > 1e-5f) ? 0.0f : M_PI_F;
   }
-  const float sin_a = sin_from_cos(cos_a);
-  const float tan_a = sin_a / cos_a;
+
   return max((tan_half_spread - tan_a) * normalize_spread, 0.0f);
 }
 
@@ -119,9 +118,9 @@ ccl_device bool area_light_spread_clamp_light(const float3 P,
                                               const float tan_half_spread,
                                               ccl_private bool *sample_rectangle)
 {
-  /* Closest point in area light plane and distance to that plane. */
-  const float3 closest_P = P - dot(lightNg, P - *lightP) * lightNg;
-  const float t = len(closest_P - P);
+  /* Distance from shading point to area light plane and the closest point on that plane. */
+  const float t = dot(lightNg, P - *lightP);
+  const float3 closest_P = P - t * lightNg;
 
   /* Radius of circle on area light that actually affects the shading point. */
   const float r_spread = t * tan_half_spread;

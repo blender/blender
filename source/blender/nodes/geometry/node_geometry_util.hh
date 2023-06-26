@@ -17,7 +17,7 @@
 
 #include "BKE_node.hh"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_geometry_exec.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"

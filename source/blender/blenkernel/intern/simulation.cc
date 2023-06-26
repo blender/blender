@@ -40,7 +40,7 @@
 #include "BKE_simulation.h"
 #include "BKE_simulation_state.hh"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 
 #include "BLI_map.hh"
 #include "BLT_translation.h"

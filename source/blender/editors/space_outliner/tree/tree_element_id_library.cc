@@ -23,11 +23,6 @@ TreeElementIDLibrary::TreeElementIDLibrary(TreeElement &legacy_te, Library &libr
   legacy_te.name = library.filepath;
 }
 
-bool TreeElementIDLibrary::isExpandValid() const
-{
-  return true;
-}
-
 StringRefNull TreeElementIDLibrary::getWarning() const
 {
   Library &library = reinterpret_cast<Library &>(id_);

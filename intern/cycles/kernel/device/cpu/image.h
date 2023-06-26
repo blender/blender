@@ -258,6 +258,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     int nix, niy;
     const float tx = frac(x * (float)width - 0.5f, &ix);
     const float ty = frac(y * (float)height - 0.5f, &iy);
+    const TexT *data = (const TexT *)info.data;
 
     switch (info.extension) {
       case EXTENSION_REPEAT:
@@ -274,7 +275,10 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         }
         nix = ix + 1;
         niy = iy + 1;
-        break;
+        return (1.0f - ty) * (1.0f - tx) * read_clip(data, ix, iy, width, height) +
+               (1.0f - ty) * tx * read_clip(data, nix, iy, width, height) +
+               ty * (1.0f - tx) * read_clip(data, ix, niy, width, height) +
+               ty * tx * read_clip(data, nix, niy, width, height);
       case EXTENSION_EXTEND:
         nix = wrap_clamp(ix + 1, width);
         ix = wrap_clamp(ix, width);
@@ -292,11 +296,10 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
         return zero();
     }
 
-    const TexT *data = (const TexT *)info.data;
-    return (1.0f - ty) * (1.0f - tx) * read_clip(data, ix, iy, width, height) +
-           (1.0f - ty) * tx * read_clip(data, nix, iy, width, height) +
-           ty * (1.0f - tx) * read_clip(data, ix, niy, width, height) +
-           ty * tx * read_clip(data, nix, niy, width, height);
+    return (1.0f - ty) * (1.0f - tx) * read(data, ix, iy, width, height) +
+           (1.0f - ty) * tx * read(data, nix, iy, width, height) +
+           ty * (1.0f - tx) * read(data, ix, niy, width, height) +
+           ty * tx * read(data, nix, niy, width, height);
   }
 
   static ccl_always_inline OutT interp_cubic(const TextureInfo &info, float x, float y)

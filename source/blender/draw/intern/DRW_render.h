@@ -839,6 +839,11 @@ void DRW_custom_pipeline(DrawEngineType *draw_engine_type,
                          struct Depsgraph *depsgraph,
                          void (*callback)(void *vedata, void *user_data),
                          void *user_data);
+/**
+ * Same as `DRW_custom_pipeline` but allow better code-flow than a callback.
+ */
+void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, struct Depsgraph *depsgraph);
+void DRW_custom_pipeline_end(void);
 
 /**
  * Used when the render engine want to redo another cache populate inside the same render frame.

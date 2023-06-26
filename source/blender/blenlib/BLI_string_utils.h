@@ -118,6 +118,9 @@ bool BLI_uniquename(struct ListBase *list,
 
 /* Expand array functions. */
 
+size_t BLI_string_len_array(const char *strings[], uint strings_num) ATTR_WARN_UNUSED_RESULT
+    ATTR_NONNULL();
+
 /* Intentionally no comma after `_BLI_STRING_ARGS_0` to allow it to be empty. */
 #define _BLI_STRING_ARGS_1 _BLI_STRING_ARGS_0 const char *a
 #define _BLI_STRING_ARGS_2 _BLI_STRING_ARGS_1, const char *b

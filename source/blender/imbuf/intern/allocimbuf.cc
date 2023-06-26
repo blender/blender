@@ -790,6 +790,9 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     memcpy(ibuf2->encoded_buffer.data, ibuf1->encoded_buffer.data, ibuf1->encoded_size);
   }
 
+  ibuf2->byte_buffer.colorspace = ibuf1->byte_buffer.colorspace;
+  ibuf2->float_buffer.colorspace = ibuf1->float_buffer.colorspace;
+
   /* silly trick to copy the entire contents of ibuf1 struct over to ibuf */
   tbuf = *ibuf1;
 

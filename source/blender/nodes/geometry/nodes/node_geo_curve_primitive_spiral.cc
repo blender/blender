@@ -19,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Rotations")
       .default_value(2.0f)
       .min(0.0f)
-      .description("Number of times the spiral makes a full rotation");
+      .description("Number of times the spiral makes a full rotation")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
   b.add_input<decl::Float>("Start Radius")
       .default_value(1.0f)
       .subtype(PROP_DISTANCE)

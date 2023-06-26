@@ -89,6 +89,7 @@ static PyObject *bpy_script_paths(PyObject *UNUSED(self))
 
 static bool bpy_blend_foreach_path_cb(BPathForeachPathData *bpath_data,
                                       char *UNUSED(path_dst),
+                                      size_t UNUSED(path_dst_maxncpy),
                                       const char *path_src)
 {
   PyObject *py_list = bpath_data->user_data;

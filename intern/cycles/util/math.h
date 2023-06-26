@@ -935,6 +935,12 @@ ccl_device_inline float precise_angle(float3 a, float3 b)
   return 2.0f * atan2f(len(a - b), len(a + b));
 }
 
+/* Tangent of the angle between vectors a and b. */
+ccl_device_inline float tan_angle(float3 a, float3 b)
+{
+  return len(cross(a, b)) / dot(a, b);
+}
+
 /* Return value which is greater than the given one and is a power of two. */
 ccl_device_inline uint next_power_of_two(uint x)
 {

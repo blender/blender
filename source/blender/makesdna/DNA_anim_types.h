@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
 #include "DNA_ID.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
@@ -1052,7 +1054,10 @@ typedef enum eInsertKeyFlags {
   INSERTKEY_CYCLE_AWARE = (1 << 9),
   /** don't create new F-Curves (implied by INSERTKEY_REPLACE) */
   INSERTKEY_AVAILABLE = (1 << 10),
+  /* Keep last. */
+  INSERTKEY_MAX,
 } eInsertKeyFlags;
+ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_MAX);
 
 /* ************************************************ */
 /* Animation Data */

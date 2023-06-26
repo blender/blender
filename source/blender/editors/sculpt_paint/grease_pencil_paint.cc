@@ -72,7 +72,7 @@ struct PaintOperationExecutor {
     bke::greasepencil::StrokePoint new_point{
         proj_pos, stroke_extension.pressure * 100.0f, 1.0f, float4(1.0f)};
 
-    drawing.runtime->stroke_cache.points.append(std::move(new_point));
+    grease_pencil.runtime->stroke_cache.points.append(std::move(new_point));
 
     BKE_grease_pencil_batch_cache_dirty_tag(&grease_pencil, BKE_GREASEPENCIL_BATCH_DIRTY_ALL);
   }
@@ -101,12 +101,13 @@ void PaintOperation::on_stroke_done(const bContext &C)
   int index_eval = active_layer_eval.drawing_index_at(scene->r.cfra);
   BLI_assert(index_orig != -1 && index_eval != -1);
 
-  GreasePencilDrawing &drawing_orig = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil_orig.drawings()[index_orig]);
-  GreasePencilDrawing &drawing_eval = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil_eval.drawings()[index_eval]);
+  bke::greasepencil::Drawing &drawing_orig =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings()[index_orig])->wrap();
+  bke::greasepencil::Drawing &drawing_eval =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_eval.drawings()[index_eval])->wrap();
 
-  const Span<bke::greasepencil::StrokePoint> stroke_points = drawing_eval.stroke_buffer();
+  const Span<bke::greasepencil::StrokePoint> stroke_points =
+      grease_pencil_eval.runtime->stroke_buffer();
   CurvesGeometry &curves = drawing_orig.geometry.wrap();
 
   int num_old_curves = curves.curves_num();
@@ -162,7 +163,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
         return true;
       });
 
-  drawing_eval.runtime->stroke_cache.clear();
+  grease_pencil_eval.runtime->stroke_cache.clear();
   drawing_orig.tag_positions_changed();
 
   radii.finish();

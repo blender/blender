@@ -498,6 +498,7 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_wave", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SHADOW_USE_WAVE);
   RNA_def_property_ui_text(prop, "Wave", "Use wave effect");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, NC_OBJECT | ND_SHADERFX, "rna_ShaderFx_update");
 
   RNA_define_lib_overridable(false);

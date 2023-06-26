@@ -434,7 +434,7 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
     immVertex3fv(pos, v2);
     immEnd();
 
-    if (loc_curr && (snap_elem_type & SCE_SNAP_MODE_EDGE_PERPENDICULAR)) {
+    if (loc_curr && (snap_elem_type & SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
       /* Dashed line. */
       immUnbindProgram();
 
@@ -550,8 +550,8 @@ static bool v3d_cursor_is_snap_invert(SnapCursorDataIntern *data_intern, const w
 
 static eSnapMode v3d_cursor_snap_elements(ToolSettings *tool_settings)
 {
-  return tool_settings->snap_mode_tools == SCE_SNAP_MODE_NONE ? tool_settings->snap_mode :
-                                                                tool_settings->snap_mode_tools;
+  return tool_settings->snap_mode_tools == SCE_SNAP_TO_NONE ? tool_settings->snap_mode :
+                                                              tool_settings->snap_mode_tools;
 }
 
 static void v3d_cursor_snap_context_ensure(Scene *scene)
@@ -597,7 +597,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   const bool calc_plane_omat = v3d_cursor_snap_calc_plane();
 
   float co[3], no[3], face_nor[3], obmat[4][4], omat[3][3];
-  eSnapMode snap_elem = SCE_SNAP_MODE_NONE;
+  eSnapMode snap_elem = SCE_SNAP_TO_NONE;
   eSnapMode snap_elements = v3d_cursor_snap_elements(tool_settings);
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
@@ -610,10 +610,10 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   if (use_surface_nor || use_surface_co) {
     v3d_cursor_snap_context_ensure(scene);
 
-    data_intern->snap_elem_hidden = SCE_SNAP_MODE_NONE;
-    if (calc_plane_omat && !(snap_elements & SCE_SNAP_MODE_FACE)) {
-      data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
-      snap_elements |= SCE_SNAP_MODE_FACE;
+    data_intern->snap_elem_hidden = SCE_SNAP_TO_NONE;
+    if (calc_plane_omat && !(snap_elements & SCE_SNAP_TO_FACE)) {
+      data_intern->snap_elem_hidden = SCE_SNAP_TO_FACE;
+      snap_elements |= SCE_SNAP_TO_FACE;
     }
 
     snap_data->is_enabled = true;
@@ -625,21 +625,21 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       if (snap_data->is_snap_invert != !(ts->snap_flag & SCE_SNAP)) {
         snap_data->is_enabled = false;
         if (!calc_plane_omat) {
-          snap_data->snap_elem = SCE_SNAP_MODE_NONE;
+          snap_data->snap_elem = SCE_SNAP_TO_NONE;
           return;
         }
-        snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_MODE_FACE;
+        snap_elements = data_intern->snap_elem_hidden = SCE_SNAP_TO_FACE;
       }
     }
 #endif
 
-    if (snap_elements & SCE_SNAP_MODE_GEOM) {
+    if (snap_elements & SCE_SNAP_TO_GEOM) {
       float prev_co[3] = {0.0f};
       if (state->prevpoint) {
         copy_v3_v3(prev_co, state->prevpoint);
       }
       else {
-        snap_elements &= ~SCE_SNAP_MODE_EDGE_PERPENDICULAR;
+        snap_elements &= ~SCE_SNAP_TO_EDGE_PERPENDICULAR;
       }
 
       eSnapEditType edit_mode_type = (state->flag & V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL) ?
@@ -684,7 +684,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   if (calc_plane_omat) {
     RegionView3D *rv3d = region->regiondata;
-    bool orient_surface = use_surface_nor && (snap_elem != SCE_SNAP_MODE_NONE);
+    bool orient_surface = use_surface_nor && (snap_elem != SCE_SNAP_TO_NONE);
     if (orient_surface) {
       copy_m3_m4(omat, obmat);
     }
@@ -713,7 +713,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
         /* Negate the face normal according to the view. */
         float ray_dir[3];
         if (rv3d->is_persp) {
-          BLI_assert_msg(snap_elem != SCE_SNAP_MODE_NONE,
+          BLI_assert_msg(snap_elem != SCE_SNAP_TO_NONE,
                          "Use of variable `co` without it being computed");
 
           sub_v3_v3v3(ray_dir, co, rv3d->viewinv[3]); /* No need to normalize. */
@@ -737,12 +737,12 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   }
 
   if (!use_surface_co) {
-    snap_elem = SCE_SNAP_MODE_NONE;
+    snap_elem = SCE_SNAP_TO_NONE;
   }
 
-  float *co_depth = (snap_elem != SCE_SNAP_MODE_NONE) ? co : scene->cursor.location;
+  float *co_depth = (snap_elem != SCE_SNAP_TO_NONE) ? co : scene->cursor.location;
   snap_elem &= ~data_intern->snap_elem_hidden;
-  if (snap_elem == SCE_SNAP_MODE_NONE) {
+  if (snap_elem == SCE_SNAP_TO_NONE) {
     RegionView3D *rv3d = region->regiondata;
     const float *plane_normal = omat[tool_settings->plane_axis];
     bool do_plane_isect = (tool_settings->plane_depth != V3D_PLACE_DEPTH_CURSOR_VIEW) &&
@@ -759,19 +759,19 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
       ED_view3d_win_to_3d(v3d, region, co_depth, mval_fl, co);
     }
 
-    if (snap_data->is_enabled && (snap_elements & SCE_SNAP_MODE_INCREMENT)) {
+    if (snap_data->is_enabled && (snap_elements & SCE_SNAP_TO_INCREMENT)) {
       v3d_cursor_snap_calc_incremental(scene, v3d, region, state->prevpoint, co);
     }
   }
-  else if (snap_elem == SCE_SNAP_MODE_VERTEX) {
+  else if (snap_elem == SCE_SNAP_TO_VERTEX) {
     snap_elem_index[0] = index;
   }
   else if (snap_elem &
-           (SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_EDGE_MIDPOINT | SCE_SNAP_MODE_EDGE_PERPENDICULAR))
+           (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT | SCE_SNAP_TO_EDGE_PERPENDICULAR))
   {
     snap_elem_index[1] = index;
   }
-  else if (snap_elem == SCE_SNAP_MODE_FACE) {
+  else if (snap_elem == SCE_SNAP_TO_FACE) {
     snap_elem_index[2] = index;
   }
 
@@ -853,7 +853,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
   }
 
   const bool draw_plane = state->draw_plane || state->draw_box;
-  if (snap_data->snap_elem == SCE_SNAP_MODE_NONE && !draw_plane) {
+  if (snap_data->snap_elem == SCE_SNAP_TO_NONE && !draw_plane) {
     return;
   }
 
@@ -871,8 +871,8 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void *UNUSED(cust
     v3d_cursor_plane_draw(rv3d, scene->toolsettings->plane_axis, matrix);
   }
 
-  if (snap_data->snap_elem != SCE_SNAP_MODE_NONE && (state->draw_point || state->draw_box)) {
-    const float *prev_point = (snap_data->snap_elem & SCE_SNAP_MODE_EDGE_PERPENDICULAR) ?
+  if (snap_data->snap_elem != SCE_SNAP_TO_NONE && (state->draw_point || state->draw_box)) {
+    const float *prev_point = (snap_data->snap_elem & SCE_SNAP_TO_EDGE_PERPENDICULAR) ?
                                   state->prevpoint :
                                   NULL;
 

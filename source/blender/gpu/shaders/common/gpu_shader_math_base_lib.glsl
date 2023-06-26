@@ -140,6 +140,15 @@ float safe_divide(float a, float b)
 }
 
 /**
+ * Safe reciprocal function. Returns `1/a`.
+ * If `a` equal 0 the result will be 0.
+ */
+float safe_rcp(float a)
+{
+  return (a != 0.0) ? (1.0 / a) : 0.0;
+}
+
+/**
  * Return true if the difference between`a` and `b` is below the `epsilon` value.
  */
 bool is_equal(float a, float b, const float epsilon)

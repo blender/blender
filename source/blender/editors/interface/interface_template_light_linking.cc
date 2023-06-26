@@ -131,13 +131,8 @@ class CollectionViewItem : public BasicTreeViewItem {
     return ICON_NONE;
   }
 
-  static void link_state_toggle_cb(bContext * /*C*/,
-                                   void * /*collection_v*/,
-                                   void *collection_light_linking_v)
+  static void link_state_toggle(CollectionLightLinking &collection_light_linking)
   {
-    CollectionLightLinking &collection_light_linking = *static_cast<CollectionLightLinking *>(
-        collection_light_linking_v);
-
     switch (collection_light_linking.link_state) {
       case COLLECTION_LIGHT_LINKING_STATE_INCLUDE:
         collection_light_linking.link_state = COLLECTION_LIGHT_LINKING_STATE_EXCLUDE;
@@ -178,7 +173,7 @@ class CollectionViewItem : public BasicTreeViewItem {
                                   0.0f,
                                   nullptr);
 
-    UI_but_func_set(button, link_state_toggle_cb, &collection_, &collection_light_linking_);
+    UI_but_func_set(button, [this](bContext &) { link_state_toggle(collection_light_linking_); });
   }
 
   void build_remove_button(uiLayout &row)

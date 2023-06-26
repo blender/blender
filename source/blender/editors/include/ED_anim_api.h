@@ -861,7 +861,7 @@ bool ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, bool replace, struct FC
  * and return the icon used for the struct that this property refers to
  *
  * \warning name buffer we're writing to cannot exceed 256 chars
- * (check anim_channels_defines.c for details).
+ * (check anim_channels_defines.cc for details).
  */
 int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 

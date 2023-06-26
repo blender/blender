@@ -313,6 +313,8 @@ static void ruler_state_set(RulerInfo *ruler_info, int state)
 
   if (state == RULER_STATE_NORMAL) {
     WM_gizmo_set_flag(ruler_info->snap_data.gizmo, WM_GIZMO_DRAW_VALUE, false);
+    RNA_property_float_set_array(
+        ruler_info->snap_data.gizmo->ptr, ruler_info->snap_data.prop_prevpoint, nullptr);
   }
   else if (state == RULER_STATE_DRAG) {
     memset(&ruler_info->drag_state_prev, 0x0, sizeof(ruler_info->drag_state_prev));
@@ -374,7 +376,7 @@ static bool view3d_ruler_item_mousemove(const bContext *C,
                                                               depsgraph,
                                                               ruler_info->region,
                                                               v3d,
-                                                              SCE_SNAP_MODE_FACE,
+                                                              SCE_SNAP_TO_FACE,
                                                               &snap_object_params,
                                                               nullptr,
                                                               mval_fl,

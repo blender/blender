@@ -718,7 +718,7 @@ void wm_event_do_notifiers(bContext *C)
 
   wm_event_do_refresh_wm_and_depsgraph(C);
 
-  RE_FreeGPUTextureCaches(true);
+  RE_FreeUnusedGPUResources();
 
   /* Status bar. */
   if (wm->winactive) {

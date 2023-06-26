@@ -4345,6 +4345,8 @@ void GPENCIL_OT_stroke_outline(wmOperatorType *ot)
 
   /* properties */
   ot->prop = RNA_def_enum(ot->srna, "view_mode", view_mode, GP_PERIMETER_VIEW, "View", "");
+  RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_EDITOR_VIEW3D);
+
   RNA_def_enum(ot->srna,
                "material_mode",
                material_mode,

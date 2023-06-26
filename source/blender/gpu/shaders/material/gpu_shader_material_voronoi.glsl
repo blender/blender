@@ -17,6 +17,17 @@
  * as explained in https://www.shadertoy.com/view/llG3zy.
  */
 
+#define SHD_VORONOI_EUCLIDEAN 0
+#define SHD_VORONOI_MANHATTAN 1
+#define SHD_VORONOI_CHEBYCHEV 2
+#define SHD_VORONOI_MINKOWSKI 3
+
+#define SHD_VORONOI_F1 0
+#define SHD_VORONOI_F2 1
+#define SHD_VORONOI_SMOOTH_F1 2
+#define SHD_VORONOI_DISTANCE_TO_EDGE 3
+#define SHD_VORONOI_N_SPHERE_RADIUS 4
+
 struct VoronoiParams {
   float scale;
   float detail;
@@ -46,20 +57,16 @@ float voronoi_distance(float a, float b)
 
 float voronoi_distance(vec2 a, vec2 b, VoronoiParams params)
 {
-  if (params.metric == 0)  // SHD_VORONOI_EUCLIDEAN
-  {
+  if (params.metric == SHD_VORONOI_EUCLIDEAN) {
     return distance(a, b);
   }
-  else if (params.metric == 1)  // SHD_VORONOI_MANHATTAN
-  {
+  else if (params.metric == SHD_VORONOI_MANHATTAN) {
     return abs(a.x - b.x) + abs(a.y - b.y);
   }
-  else if (params.metric == 2)  // SHD_VORONOI_CHEBYCHEV
-  {
+  else if (params.metric == SHD_VORONOI_CHEBYCHEV) {
     return max(abs(a.x - b.x), abs(a.y - b.y));
   }
-  else if (params.metric == 3)  // SHD_VORONOI_MINKOWSKI
-  {
+  else if (params.metric == SHD_VORONOI_MINKOWSKI) {
     return pow(pow(abs(a.x - b.x), params.exponent) + pow(abs(a.y - b.y), params.exponent),
                1.0 / params.exponent);
   }
@@ -70,20 +77,16 @@ float voronoi_distance(vec2 a, vec2 b, VoronoiParams params)
 
 float voronoi_distance(vec3 a, vec3 b, VoronoiParams params)
 {
-  if (params.metric == 0)  // SHD_VORONOI_EUCLIDEAN
-  {
+  if (params.metric == SHD_VORONOI_EUCLIDEAN) {
     return distance(a, b);
   }
-  else if (params.metric == 1)  // SHD_VORONOI_MANHATTAN
-  {
+  else if (params.metric == SHD_VORONOI_MANHATTAN) {
     return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z);
   }
-  else if (params.metric == 2)  // SHD_VORONOI_CHEBYCHEV
-  {
+  else if (params.metric == SHD_VORONOI_CHEBYCHEV) {
     return max(abs(a.x - b.x), max(abs(a.y - b.y), abs(a.z - b.z)));
   }
-  else if (params.metric == 3)  // SHD_VORONOI_MINKOWSKI
-  {
+  else if (params.metric == SHD_VORONOI_MINKOWSKI) {
     return pow(pow(abs(a.x - b.x), params.exponent) + pow(abs(a.y - b.y), params.exponent) +
                    pow(abs(a.z - b.z), params.exponent),
                1.0 / params.exponent);
@@ -95,20 +98,16 @@ float voronoi_distance(vec3 a, vec3 b, VoronoiParams params)
 
 float voronoi_distance(vec4 a, vec4 b, VoronoiParams params)
 {
-  if (params.metric == 0)  // SHD_VORONOI_EUCLIDEAN
-  {
+  if (params.metric == SHD_VORONOI_EUCLIDEAN) {
     return distance(a, b);
   }
-  else if (params.metric == 1)  // SHD_VORONOI_MANHATTAN
-  {
+  else if (params.metric == SHD_VORONOI_MANHATTAN) {
     return abs(a.x - b.x) + abs(a.y - b.y) + abs(a.z - b.z) + abs(a.w - b.w);
   }
-  else if (params.metric == 2)  // SHD_VORONOI_CHEBYCHEV
-  {
+  else if (params.metric == SHD_VORONOI_CHEBYCHEV) {
     return max(abs(a.x - b.x), max(abs(a.y - b.y), max(abs(a.z - b.z), abs(a.w - b.w))));
   }
-  else if (params.metric == 3)  // SHD_VORONOI_MINKOWSKI
-  {
+  else if (params.metric == SHD_VORONOI_MINKOWSKI) {
     return pow(pow(abs(a.x - b.x), params.exponent) + pow(abs(a.y - b.y), params.exponent) +
                    pow(abs(a.z - b.z), params.exponent) + pow(abs(a.w - b.w), params.exponent),
                1.0 / params.exponent);

@@ -293,7 +293,7 @@ static void rna_AssetMetaData_catalog_id_get(PointerRNA *ptr, char *value)
 
 static int rna_AssetMetaData_catalog_id_length(PointerRNA *UNUSED(ptr))
 {
-  return UUID_STRING_LEN - 1;
+  return UUID_STRING_SIZE - 1;
 }
 
 static void rna_AssetMetaData_catalog_id_set(PointerRNA *ptr, const char *value)

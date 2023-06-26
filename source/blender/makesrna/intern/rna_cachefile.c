@@ -167,6 +167,7 @@ static void rna_def_alembic_object_path(BlenderRNA *brna)
 
   PropertyRNA *prop = RNA_def_property(srna, "path", PROP_STRING, PROP_NONE);
   RNA_def_property_ui_text(prop, "Path", "Object path");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_struct_name_property(srna, prop);
 
   RNA_define_lib_overridable(false);

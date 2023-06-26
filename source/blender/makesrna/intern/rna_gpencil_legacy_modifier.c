@@ -1195,7 +1195,7 @@ static void rna_def_modifier_gpencilsmooth(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "step");
   RNA_def_property_range(prop, 1, 1000);
   RNA_def_property_ui_text(
-      prop, "Step", "Number of times to apply smooth (high numbers can reduce fps)");
+      prop, "Steps", "Number of times to apply smooth (high numbers can reduce fps)");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "use_keep_shape", PROP_BOOLEAN, PROP_NONE);
@@ -4090,8 +4090,7 @@ static void rna_def_modifier_gpencillength(BlenderRNA *brna)
   prop = RNA_def_property(srna, "step", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, NULL, "step");
   RNA_def_property_range(prop, 1, 100);
-  RNA_def_property_ui_text(
-      prop, "Step", "Number of frames before recalculate random values again");
+  RNA_def_property_ui_text(prop, "Step", "Number of frames between randomization steps");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   prop = RNA_def_property(srna, "overshoot_factor", PROP_FLOAT, PROP_FACTOR);
@@ -4509,7 +4508,7 @@ static void rna_def_modifier_gpencilshrinkwrap(BlenderRNA *brna)
   RNA_def_property_int_sdna(prop, NULL, "smooth_step");
   RNA_def_property_range(prop, 1, 10);
   RNA_def_property_ui_text(
-      prop, "Step", "Number of times to apply smooth (high numbers can reduce FPS)");
+      prop, "Steps", "Number of times to apply smooth (high numbers can reduce FPS)");
   RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
   RNA_define_lib_overridable(false);

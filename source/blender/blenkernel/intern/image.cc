@@ -300,7 +300,7 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
         temp_path, udim_pattern, tile_format, ((ImageTile *)ima->tiles.first)->tile_number);
     MEM_SAFE_FREE(udim_pattern);
 
-    result = BKE_bpath_foreach_path_fixed_process(bpath_data, temp_path);
+    result = BKE_bpath_foreach_path_fixed_process(bpath_data, temp_path, sizeof(temp_path));
     if (result) {
       /* Put the filepath back together using the new directory and the original file name. */
       char new_dir[FILE_MAXDIR];
@@ -309,7 +309,8 @@ static void image_foreach_path(ID *id, BPathForeachPathData *bpath_data)
     }
   }
   else {
-    result = BKE_bpath_foreach_path_fixed_process(bpath_data, ima->filepath);
+    result = BKE_bpath_foreach_path_fixed_process(
+        bpath_data, ima->filepath, sizeof(ima->filepath));
   }
 
   if (result) {
@@ -1164,7 +1165,7 @@ static ImBuf *add_ibuf_for_tile(Image *ima, ImageTile *tile)
 
     if (ibuf != nullptr) {
       rect = ibuf->byte_buffer.data;
-      IMB_colormanagement_assign_rect_colorspace(ibuf, ima->colorspace_settings.name);
+      IMB_colormanagement_assign_byte_colorspace(ibuf, ima->colorspace_settings.name);
     }
 
     copy_v4_v4(fill_color, tile->gen_color);
@@ -1263,8 +1264,8 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   const char *colorspace_name = nullptr;
 
   if (ibuf->float_buffer.data) {
-    if (ibuf->float_colorspace) {
-      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_colorspace);
+    if (ibuf->float_buffer.colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->float_buffer.colorspace);
     }
     else {
       colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_FLOAT);
@@ -1272,8 +1273,8 @@ static void image_colorspace_from_imbuf(Image *image, const ImBuf *ibuf)
   }
 
   if (ibuf->byte_buffer.data && !colorspace_name) {
-    if (ibuf->rect_colorspace) {
-      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->rect_colorspace);
+    if (ibuf->byte_buffer.colorspace) {
+      colorspace_name = IMB_colormanagement_colorspace_get_name(ibuf->byte_buffer.colorspace);
     }
     else {
       colorspace_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
@@ -3634,12 +3635,12 @@ void BKE_image_set_filepath_from_tile_number(char *filepath,
   }
 
   if (tile_format == UDIM_TILE_FORMAT_UDIM) {
-    BLI_sprintf(filepath, pattern, tile_number);
+    BLI_snprintf(filepath, FILE_MAX, pattern, tile_number);
   }
   else if (tile_format == UDIM_TILE_FORMAT_UVTILE) {
     int u = ((tile_number - 1001) % 10);
     int v = ((tile_number - 1001) / 10);
-    BLI_sprintf(filepath, pattern, u + 1, v + 1);
+    BLI_snprintf(filepath, FILE_MAX, pattern, u + 1, v + 1);
   }
 }
 
@@ -4441,7 +4442,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
    */
   if (ibuf->byte_buffer.data != byte_buffer->data) {
     const char *colorspace = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
-    IMB_colormanagement_assign_rect_colorspace(ibuf, colorspace);
+    IMB_colormanagement_assign_byte_colorspace(ibuf, colorspace);
   }
 
   /* invalidate color managed buffers if render result changed */

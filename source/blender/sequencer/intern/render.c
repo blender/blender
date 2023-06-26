@@ -91,7 +91,7 @@ void seq_imbuf_assign_spaces(Scene *scene, ImBuf *ibuf)
 #if 0
   /* Byte buffer is supposed to be in sequencer working space already. */
   if (ibuf->rect != NULL) {
-    IMB_colormanagement_assign_rect_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
+    IMB_colormanagement_assign_byte_colorspace(ibuf, scene->sequencer_colorspace_settings.name);
   }
 #endif
   if (ibuf->float_buffer.data != NULL) {

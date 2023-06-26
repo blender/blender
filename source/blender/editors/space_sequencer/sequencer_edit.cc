@@ -2741,9 +2741,9 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
  * \{ */
 
 static const EnumPropertyItem prop_change_effect_input_types[] = {
-    {0, "A_B", 0, "A -> B", ""},
-    {1, "B_C", 0, "B -> C", ""},
-    {2, "A_C", 0, "A -> C", ""},
+    {0, "A_B", 0, "A " BLI_STR_UTF8_RIGHTWARDS_ARROW " B", ""},
+    {1, "B_C", 0, "B " BLI_STR_UTF8_RIGHTWARDS_ARROW " C", ""},
+    {2, "A_C", 0, "A " BLI_STR_UTF8_RIGHTWARDS_ARROW " C", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

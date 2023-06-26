@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -133,6 +134,33 @@ void Result::pass_through(Result &target)
   target.master_ = this;
 }
 
+void Result::steal_data(Result &source)
+{
+  BLI_assert(type_ == source.type_);
+  BLI_assert(!is_allocated() && source.is_allocated());
+  BLI_assert(master_ == nullptr && source.master_ == nullptr);
+
+  is_single_value_ = source.is_single_value_;
+  texture_ = source.texture_;
+  texture_pool_ = source.texture_pool_;
+  domain_ = source.domain_;
+
+  switch (type_) {
+    case ResultType::Float:
+      float_value_ = source.float_value_;
+      break;
+    case ResultType::Vector:
+      vector_value_ = source.vector_value_;
+      break;
+    case ResultType::Color:
+      color_value_ = source.color_value_;
+      break;
+  }
+
+  source.texture_ = nullptr;
+  source.texture_pool_ = nullptr;
+}
+
 void Result::transform(const float3x3 &transformation)
 {
   domain_.transform(transformation);
@@ -235,6 +263,7 @@ void Result::release()
   reference_count_--;
   if (reference_count_ == 0) {
     texture_pool_->release(texture_);
+    texture_ = nullptr;
   }
 }
 

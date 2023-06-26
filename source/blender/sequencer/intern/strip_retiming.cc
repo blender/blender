@@ -305,7 +305,9 @@ static void seq_retiming_offset_linear_handle(const Scene *scene,
    * length.
    * Alternative solution is to find where in arc segment the `y` value is closest to `handle`
    * retiming factor, then trim transition to that point. This would change transition length. */
-  if (SEQ_retiming_handle_is_transition_type(handle - 2)) {
+  if (SEQ_retiming_handle_index_get(seq, handle) > 1 &&
+      SEQ_retiming_handle_is_transition_type(handle - 2))
+  {
     SeqRetimingHandle *transition_handle = handle - 2;
 
     const int transition_offset = transition_handle->strip_frame_index -

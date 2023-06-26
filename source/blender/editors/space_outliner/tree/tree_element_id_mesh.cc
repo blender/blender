@@ -21,11 +21,6 @@ TreeElementIDMesh::TreeElementIDMesh(TreeElement &legacy_te_, Mesh &mesh)
 {
 }
 
-bool TreeElementIDMesh::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDMesh::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, mesh_.adt);

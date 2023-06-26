@@ -151,8 +151,8 @@ set(SRC
   intern/gpencil_legacy.c
   intern/gpencil_modifier_legacy.c
   intern/gpencil_update_cache_legacy.c
-  intern/grease_pencil_convert_legacy.cc
   intern/grease_pencil.cc
+  intern/grease_pencil_convert_legacy.cc
   intern/icons.cc
   intern/icons_rasterize.c
   intern/idprop.c
@@ -833,6 +833,7 @@ if(WITH_GTESTS)
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
     intern/fcurve_test.cc
+    intern/grease_pencil_test.cc
     intern/idprop_serialize_test.cc
     intern/image_partial_update_test.cc
     intern/image_test.cc
@@ -843,7 +844,6 @@ if(WITH_GTESTS)
     intern/lib_remap_test.cc
     intern/nla_test.cc
     intern/tracking_test.cc
-    intern/grease_pencil_test.cc
   )
   set(TEST_INC
     ../editors/include

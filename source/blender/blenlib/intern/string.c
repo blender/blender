@@ -123,13 +123,6 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
   return srclen;
 }
 
-size_t BLI_strcpy_rlen(char *__restrict dst, const char *__restrict src)
-{
-  size_t srclen = strlen(src);
-  memcpy(dst, src, srclen + 1);
-  return srclen;
-}
-
 /* -------------------------------------------------------------------- */
 /** \name String Append
  * \{ */
@@ -249,17 +242,6 @@ char *BLI_sprintfN(const char *__restrict format, ...)
   va_end(arg);
 
   return n;
-}
-
-int BLI_sprintf(char *__restrict str, const char *__restrict format, ...)
-{
-  va_list arg;
-
-  va_start(arg, format);
-  const int result = vsprintf(str, format, arg);
-  va_end(arg);
-
-  return result;
 }
 
 /** \} */

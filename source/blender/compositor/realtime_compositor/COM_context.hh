@@ -84,7 +84,9 @@ class Context {
 
   /* Get the texture where the given render pass is stored. This should be called by the Render
    * Layer node to populate its outputs. */
-  virtual GPUTexture *get_input_texture(int view_layer, const char *pass_name) = 0;
+  virtual GPUTexture *get_input_texture(const Scene *scene,
+                                        int view_layer,
+                                        const char *pass_name) = 0;
 
   /* Get the name of the view currently being rendered. */
   virtual StringRef get_view_name() = 0;

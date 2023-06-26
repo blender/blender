@@ -25,16 +25,16 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
                        const float obmat[4][4],
                        bool is_object_active)
 {
-  eSnapMode retval = SCE_SNAP_MODE_NONE;
+  eSnapMode retval = SCE_SNAP_TO_NONE;
 
-  if (sctx->runtime.snap_to_flag == SCE_SNAP_MODE_FACE) {
+  if (sctx->runtime.snap_to_flag == SCE_SNAP_TO_FACE) {
     /* Currently only edge and vert. */
     return retval;
   }
 
   bArmature *arm = static_cast<bArmature *>(ob_eval->data);
 
-  Nearest2dUserData nearest2d(sctx, ob_eval, &arm->id, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
 
   const bool is_editmode = arm->edbo != nullptr;
 
@@ -45,7 +45,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
-  nearest2d.clip_planes_enable();
+  nearest2d.clip_planes_enable(sctx);
 
   const float *head_vec = nullptr, *tail_vec = nullptr;
 
@@ -95,16 +95,16 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   }
 
   if (nearest2d.nearest_point.index != -2) {
-    retval = sctx->runtime.snap_to_flag & SCE_SNAP_MODE_EDGE;
-    if (retval == SCE_SNAP_MODE_NONE) {
+    retval = sctx->runtime.snap_to_flag & SCE_SNAP_TO_EDGE;
+    if (retval == SCE_SNAP_TO_NONE) {
       nearest2d.nearest_point.index = -2;
     }
 
-    if (sctx->runtime.snap_to_flag & SCE_SNAP_MODE_VERTEX) {
+    if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX) {
       float dist_px_sq_edge = nearest2d.nearest_point.dist_sq;
       nearest2d.nearest_point.dist_sq = sctx->ret.dist_px_sq;
       if (nearest2d.snap_point(head_vec) || nearest2d.snap_point(tail_vec)) {
-        retval = SCE_SNAP_MODE_VERTEX;
+        retval = SCE_SNAP_TO_VERTEX;
       }
       else if (retval) {
         nearest2d.nearest_point.dist_sq = dist_px_sq_edge;
@@ -112,5 +112,8 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
+  if (retval) {
+    nearest2d.register_result(sctx, ob_eval, &arm->id);
+  }
   return retval;
 }

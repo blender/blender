@@ -78,7 +78,7 @@ GPU_SHADER_CREATE_INFO(gpencil_geometry_next)
     .fragment_out(0, Type::VEC4, "fragColor")
     .fragment_out(1, Type::VEC4, "revealColor")
     .vertex_out(gpencil_geometry_iface)
-    .vertex_source("gpencil_vert.glsl")
+    .vertex_source("grease_pencil_vert.glsl")
     .fragment_source("gpencil_frag.glsl")
     .additional_info("draw_gpencil_new")
     .depth_write(DepthWrite::ANY);

@@ -21,11 +21,6 @@ TreeElementIDCollection::TreeElementIDCollection(TreeElement &legacy_te, Collect
 {
 }
 
-bool TreeElementIDCollection::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDCollection::expand(SpaceOutliner &space_outliner) const
 {
   /* Don't expand for instances, creates too many elements. */

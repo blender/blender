@@ -48,11 +48,6 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
   }
 }
 
-bool TreeElementIDArmature::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDArmature::expandEditBones(SpaceOutliner &space_outiner) const
 {
   int a = 0;

@@ -15,6 +15,8 @@
 #include "ED_view3d.h"
 #include "GPU_capabilities.h"
 
+#include "draw_sculpt.hh"
+
 #include "workbench_private.hh"
 
 #include "workbench_engine.h" /* Own include. */
@@ -128,6 +130,7 @@ class Instance {
      * when switching from eevee to workbench).
      */
     if (ob_ref.object->sculpt && ob_ref.object->sculpt->pbvh) {
+      /* TODO(Miguel Pozo): Could this me moved to sculpt_batches_get()? */
       BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
     }
 
@@ -180,7 +183,10 @@ class Instance {
       return;
     }
 
-    if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
+    if (object_state.sculpt_pbvh) {
+      sculpt_sync(manager, ob_ref, object_state);
+    }
+    else if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
       mesh_sync(manager, ob_ref, object_state);
     }
     else if (ob->type == OB_CURVES) {
@@ -206,72 +212,65 @@ class Instance {
     ResourceHandle handle = manager.resource_handle(ob_ref);
     bool has_transparent_material = false;
 
-    if (object_state.sculpt_pbvh) {
-#if 0 /* TODO(@pragma37): */
-      workbench_cache_sculpt_populate(wpd, ob, object_state.color_type);
-#endif
+    if (object_state.use_per_material_batches) {
+      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
+
+      GPUBatch **batches;
+      if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+        batches = DRW_cache_mesh_surface_texpaint_get(ob_ref.object);
+      }
+      else {
+        batches = DRW_cache_object_surface_material_get(
+            ob_ref.object, get_dummy_gpu_materials(material_count), material_count);
+      }
+
+      if (batches) {
+        for (auto i : IndexRange(material_count)) {
+          if (batches[i] == nullptr) {
+            continue;
+          }
+
+          Material mat = get_material(ob_ref, object_state.color_type, i);
+          has_transparent_material = has_transparent_material || mat.is_transparent();
+
+          ::Image *image = nullptr;
+          ImageUser *iuser = nullptr;
+          GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
+          if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+            get_material_image(ob_ref.object, i + 1, image, iuser, sampler_state);
+          }
+
+          draw_mesh(ob_ref, mat, batches[i], handle, image, sampler_state, iuser);
+        }
+      }
     }
     else {
-      if (object_state.use_per_material_batches) {
-        const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
-
-        GPUBatch **batches;
-        if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-          batches = DRW_cache_mesh_surface_texpaint_get(ob_ref.object);
+      GPUBatch *batch;
+      if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+        batch = DRW_cache_mesh_surface_texpaint_single_get(ob_ref.object);
+      }
+      else if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
+        if (ob_ref.object->mode & OB_MODE_VERTEX_PAINT) {
+          batch = DRW_cache_mesh_surface_vertpaint_get(ob_ref.object);
         }
         else {
-          batches = DRW_cache_object_surface_material_get(
-              ob_ref.object, get_dummy_gpu_materials(material_count), material_count);
-        }
-
-        if (batches) {
-          for (auto i : IndexRange(material_count)) {
-            if (batches[i] == nullptr) {
-              continue;
-            }
-
-            Material mat = get_material(ob_ref, object_state.color_type, i);
-            has_transparent_material = has_transparent_material || mat.is_transparent();
-
-            ::Image *image = nullptr;
-            ImageUser *iuser = nullptr;
-            GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
-            if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-              get_material_image(ob_ref.object, i + 1, image, iuser, sampler_state);
-            }
-
-            draw_mesh(ob_ref, mat, batches[i], handle, image, sampler_state, iuser);
-          }
+          batch = DRW_cache_mesh_surface_sculptcolors_get(ob_ref.object);
         }
       }
       else {
-        GPUBatch *batch;
-        if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-          batch = DRW_cache_mesh_surface_texpaint_single_get(ob_ref.object);
-        }
-        else if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
-          if (ob_ref.object->mode & OB_MODE_VERTEX_PAINT) {
-            batch = DRW_cache_mesh_surface_vertpaint_get(ob_ref.object);
-          }
-          else {
-            batch = DRW_cache_mesh_surface_sculptcolors_get(ob_ref.object);
-          }
-        }
-        else {
-          batch = DRW_cache_object_surface_get(ob_ref.object);
-        }
+        batch = DRW_cache_object_surface_get(ob_ref.object);
+      }
 
-        if (batch) {
-          Material mat = get_material(ob_ref, object_state.color_type);
-          has_transparent_material = has_transparent_material || mat.is_transparent();
+      if (batch) {
+        Material mat = get_material(ob_ref, object_state.color_type);
+        has_transparent_material = has_transparent_material || mat.is_transparent();
 
-          draw_mesh(ob_ref,
-                    mat,
-                    batch,
-                    handle,
-                    object_state.image_paint_override,
-                    object_state.override_sampler_state);
-        }
+        draw_mesh(ob_ref,
+                  mat,
+                  batch,
+                  handle,
+                  object_state.image_paint_override,
+                  object_state.override_sampler_state);
       }
     }
 
@@ -316,6 +315,54 @@ class Instance {
       }
       else {
         draw(opaque_ps.gbuffer_ps_);
+      }
+    }
+  }
+
+  void sculpt_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  {
+    /* Disable frustum culling for sculpt meshes. */
+    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+
+    if (object_state.use_per_material_batches) {
+      const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
+      for (SculptBatch &batch : sculpt_batches_per_material_get(
+               ob_ref.object, {get_dummy_gpu_materials(material_count), material_count}))
+      {
+        Material mat = get_material(ob_ref, object_state.color_type, batch.material_slot);
+        if (SCULPT_DEBUG_DRAW) {
+          mat.base_color = batch.debug_color();
+        }
+
+        draw_mesh(ob_ref,
+                  mat,
+                  batch.batch,
+                  handle,
+                  object_state.image_paint_override,
+                  object_state.override_sampler_state);
+      }
+    }
+    else {
+      Material mat = get_material(ob_ref, object_state.color_type);
+      SculptBatchFeature features = SCULPT_BATCH_DEFAULT;
+      if (object_state.color_type == V3D_SHADING_VERTEX_COLOR) {
+        features = SCULPT_BATCH_VERTEX_COLOR;
+      }
+      else if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+        features = SCULPT_BATCH_UV;
+      }
+
+      for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, features)) {
+        if (SCULPT_DEBUG_DRAW) {
+          mat.base_color = batch.debug_color();
+        }
+
+        draw_mesh(ob_ref,
+                  mat,
+                  batch.batch,
+                  handle,
+                  object_state.image_paint_override,
+                  object_state.override_sampler_state);
       }
     }
   }

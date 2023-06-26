@@ -700,7 +700,7 @@ void Transform_Properties(wmOperatorType *ot, int flags)
       prop = RNA_def_enum(ot->srna,
                           "snap_elements",
                           rna_enum_snap_element_items,
-                          SCE_SNAP_MODE_INCREMENT,
+                          SCE_SNAP_TO_INCREMENT,
                           "Snap to Elements",
                           "");
       RNA_def_property_flag(prop, PROP_HIDDEN | PROP_ENUM_FLAG);

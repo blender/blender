@@ -202,11 +202,10 @@ void KuwaharaAnisotropicOperation::update_memory_buffer_partial(MemoryBuffer *ou
     const int x = it.x;
     const int y = it.y;
 
-    /* For now use green channel to compute orientation. */
-    /* TODO: convert to HSV and compute orientation and strength on luminance channel. */
-    const float a = s_xx->get_value(x, y, 1);
-    const float b = s_xy->get_value(x, y, 1);
-    const float c = s_yy->get_value(x, y, 1);
+    /* All channels are identical. Take first channel for simplicity. */
+    const float a = s_xx->get_value(x, y, 0);
+    const float b = s_xy->get_value(x, y, 0);
+    const float c = s_yy->get_value(x, y, 0);
 
     /* Compute egenvalues of structure tensor */
     const double tr = a + c;

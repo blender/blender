@@ -40,7 +40,7 @@ static void imb_handle_alpha(ImBuf *ibuf,
       /* byte buffer is never internally converted to some standard space,
        * store pointer to its color space descriptor instead
        */
-      ibuf->rect_colorspace = colormanage_colorspace_get_named(effective_colorspace);
+      ibuf->byte_buffer.colorspace = colormanage_colorspace_get_named(effective_colorspace);
     }
 
     BLI_strncpy(colorspace, effective_colorspace, IM_MAX_SPACE);

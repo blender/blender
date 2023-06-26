@@ -82,16 +82,7 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
         const GreasePencilDrawing *src_drawing = reinterpret_cast<const GreasePencilDrawing *>(
             src_drawing_base);
         grease_pencil_dst->drawing_array[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-            MEM_cnew<GreasePencilDrawing>(__func__));
-        GreasePencilDrawing *dst_drawing = reinterpret_cast<GreasePencilDrawing *>(
-            grease_pencil_dst->drawing_array[i]);
-
-        dst_drawing->base.type = src_drawing->base.type;
-        dst_drawing->base.flag = src_drawing->base.flag;
-
-        new (&dst_drawing->geometry) bke::CurvesGeometry(src_drawing->geometry.wrap());
-        dst_drawing->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
-        dst_drawing->runtime->triangles_cache = src_drawing->runtime->triangles_cache;
+            MEM_new<bke::greasepencil::Drawing>(__func__, src_drawing->wrap()));
         break;
       }
       case GP_DRAWING_REFERENCE: {
@@ -141,8 +132,7 @@ static void grease_pencil_foreach_id(ID *id, LibraryForeachIDData *data)
   for (int i = 0; i < grease_pencil->material_array_num; i++) {
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, grease_pencil->material_array[i], IDWALK_CB_USER);
   }
-  for (int i = 0; i < grease_pencil->drawing_array_num; i++) {
-    GreasePencilDrawingBase *drawing_base = grease_pencil->drawing_array[i];
+  for (GreasePencilDrawingBase *drawing_base : grease_pencil->drawings()) {
     if (drawing_base->type == GP_DRAWING_REFERENCE) {
       GreasePencilDrawingReference *drawing_reference =
           reinterpret_cast<GreasePencilDrawingReference *>(drawing_base);
@@ -234,7 +224,7 @@ IDTypeInfo IDType_ID_GP = {
     /*main_listbase_index*/ INDEX_ID_GP,
     /*struct_size*/ sizeof(GreasePencil),
     /*name*/ "GreasePencil",
-    /*name_plural*/ "grease_pencils_new",
+    /*name_plural*/ "grease_pencils_v3",
     /*translation_context*/ BLT_I18NCONTEXT_ID_GPENCIL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
@@ -259,6 +249,102 @@ IDTypeInfo IDType_ID_GP = {
 };
 
 namespace blender::bke::greasepencil {
+
+Drawing::Drawing()
+{
+  this->base.type = GP_DRAWING;
+  this->base.flag = 0;
+
+  new (&this->geometry) bke::CurvesGeometry();
+  /* Initialize runtime data. */
+  this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
+}
+
+Drawing::Drawing(const Drawing &other) : Drawing()
+{
+  this->base.flag = other.base.flag;
+
+  new (&this->geometry) bke::CurvesGeometry(other.geometry.wrap());
+  this->runtime->triangles_cache = other.runtime->triangles_cache;
+}
+
+Drawing::~Drawing()
+{
+  this->geometry.wrap().~CurvesGeometry();
+  MEM_delete(this->runtime);
+  this->runtime = nullptr;
+}
+
+Span<uint3> Drawing::triangles() const
+{
+  this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
+    MemArena *pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
+
+    const CurvesGeometry &curves = this->geometry.wrap();
+    const Span<float3> positions = curves.positions();
+    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+
+    int total_triangles = 0;
+    Array<int> tris_offests(curves.curves_num());
+    for (int curve_i : curves.curves_range()) {
+      IndexRange points = points_by_curve[curve_i];
+      if (points.size() > 2) {
+        tris_offests[curve_i] = total_triangles;
+        total_triangles += points.size() - 2;
+      }
+    }
+
+    r_data.resize(total_triangles);
+
+    /* TODO: use threading. */
+    for (const int curve_i : curves.curves_range()) {
+      const IndexRange points = points_by_curve[curve_i];
+
+      if (points.size() < 3) {
+        continue;
+      }
+
+      const int num_triangles = points.size() - 2;
+      MutableSpan<uint3> r_tris = r_data.as_mutable_span().slice(tris_offests[curve_i],
+                                                                 num_triangles);
+
+      float(*projverts)[2] = static_cast<float(*)[2]>(
+          BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
+
+      /* TODO: calculate axis_mat properly. */
+      float3x3 axis_mat;
+      axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
+
+      for (const int i : IndexRange(points.size())) {
+        mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
+      }
+
+      BLI_polyfill_calc_arena(
+          projverts, points.size(), 0, reinterpret_cast<uint32_t(*)[3]>(r_tris.data()), pf_arena);
+      BLI_memarena_clear(pf_arena);
+    }
+
+    BLI_memarena_free(pf_arena);
+  });
+
+  return this->runtime->triangles_cache.data().as_span();
+}
+
+const bke::CurvesGeometry &Drawing::strokes() const
+{
+  return this->geometry.wrap();
+}
+
+bke::CurvesGeometry &Drawing::strokes_for_write()
+{
+  return this->geometry.wrap();
+}
+
+void Drawing::tag_positions_changed()
+{
+  this->geometry.wrap().tag_positions_changed();
+  this->runtime->triangles_cache.tag_dirty();
+}
 
 TreeNode::TreeNode()
 {
@@ -605,17 +691,11 @@ int64_t LayerGroup::num_nodes_total() const
   return this->runtime->nodes_cache_.size();
 }
 
-void LayerGroup::remove_child(int64_t index)
-{
-  BLI_assert(index >= 0 && index < this->num_direct_nodes());
-  BLI_remlink(&this->children, BLI_findlink(&this->children, index));
-  this->tag_nodes_cache_dirty();
-}
-
 bool LayerGroup::unlink_layer(Layer *link)
 {
   if (BLI_remlink_safe(&this->children, link)) {
     this->tag_nodes_cache_dirty();
+    link->base.parent = nullptr;
     return true;
   }
   return false;
@@ -897,80 +977,18 @@ void BKE_grease_pencil_batch_cache_free(GreasePencil *grease_pencil)
 /** \} */
 
 /* ------------------------------------------------------------------- */
-/** \name Grease Pencil Drawing API
+/** \name Grease Pencil runtime API
  * \{ */
 
-blender::Span<blender::uint3> GreasePencilDrawing::triangles() const
+bool blender::bke::GreasePencilRuntime::has_stroke_buffer() const
 {
-  using namespace blender;
-  const bke::greasepencil::DrawingRuntime &runtime = *this->runtime;
-  runtime.triangles_cache.ensure([&](Vector<uint3> &r_data) {
-    MemArena *pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
-
-    const bke::CurvesGeometry &curves = this->geometry.wrap();
-    const Span<float3> positions = curves.positions();
-    const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-
-    int total_triangles = 0;
-    Array<int> tris_offests(curves.curves_num());
-    for (int curve_i : curves.curves_range()) {
-      IndexRange points = points_by_curve[curve_i];
-      if (points.size() > 2) {
-        tris_offests[curve_i] = total_triangles;
-        total_triangles += points.size() - 2;
-      }
-    }
-
-    r_data.resize(total_triangles);
-
-    /* TODO: use threading. */
-    for (const int curve_i : curves.curves_range()) {
-      const IndexRange points = points_by_curve[curve_i];
-
-      if (points.size() < 3) {
-        continue;
-      }
-
-      const int num_trinagles = points.size() - 2;
-      MutableSpan<uint3> r_tris = r_data.as_mutable_span().slice(tris_offests[curve_i],
-                                                                 num_trinagles);
-
-      float(*projverts)[2] = static_cast<float(*)[2]>(
-          BLI_memarena_alloc(pf_arena, sizeof(*projverts) * size_t(points.size())));
-
-      /* TODO: calculate axis_mat properly. */
-      float3x3 axis_mat;
-      axis_dominant_v3_to_m3(axis_mat.ptr(), float3(0.0f, -1.0f, 0.0f));
-
-      for (const int i : IndexRange(points.size())) {
-        mul_v2_m3v3(projverts[i], axis_mat.ptr(), positions[points[i]]);
-      }
-
-      BLI_polyfill_calc_arena(
-          projverts, points.size(), 0, reinterpret_cast<uint32_t(*)[3]>(r_tris.data()), pf_arena);
-      BLI_memarena_clear(pf_arena);
-    }
-
-    BLI_memarena_free(pf_arena);
-  });
-
-  return this->runtime->triangles_cache.data().as_span();
+  return this->stroke_cache.points.size() > 0;
 }
 
-void GreasePencilDrawing::tag_positions_changed()
+blender::Span<blender::bke::greasepencil::StrokePoint> blender::bke::GreasePencilRuntime::
+    stroke_buffer() const
 {
-  this->geometry.wrap().tag_positions_changed();
-  this->runtime->triangles_cache.tag_dirty();
-}
-
-bool GreasePencilDrawing::has_stroke_buffer() const
-{
-  return this->runtime->stroke_cache.points.size() > 0;
-}
-
-blender::Span<blender::bke::greasepencil::StrokePoint> GreasePencilDrawing::stroke_buffer() const
-{
-  return this->runtime->stroke_cache.points.as_span();
+  return this->stroke_cache.points.as_span();
 }
 
 /** \} */
@@ -1024,10 +1042,7 @@ void GreasePencil::add_empty_drawings(const int add_num)
       prev_num);
   for (const int i : new_drawings.index_range()) {
     new_drawings[i] = reinterpret_cast<GreasePencilDrawingBase *>(
-        MEM_new<GreasePencilDrawing>(__func__));
-    GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(new_drawings[i]);
-    new (&drawing->geometry) bke::CurvesGeometry();
-    drawing->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
+        MEM_new<blender::bke::greasepencil::Drawing>(__func__));
   }
 
   /* TODO: Update drawing user counts. */
@@ -1072,10 +1087,7 @@ void GreasePencil::remove_drawing(const int index_to_remove)
     case GP_DRAWING: {
       GreasePencilDrawing *drawing_to_remove = reinterpret_cast<GreasePencilDrawing *>(
           drawing_base_to_remove);
-      drawing_to_remove->geometry.wrap().~CurvesGeometry();
-      MEM_delete(drawing_to_remove->runtime);
-      drawing_to_remove->runtime = nullptr;
-      MEM_freeN(drawing_to_remove);
+      MEM_delete(&drawing_to_remove->wrap());
       break;
     }
     case GP_DRAWING_REFERENCE: {
@@ -1106,10 +1118,11 @@ enum ForeachDrawingMode {
   EDITABLE,
 };
 
-static void foreach_drawing_ex(GreasePencil &grease_pencil,
-                               int frame,
-                               ForeachDrawingMode mode,
-                               blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
+static void foreach_drawing_ex(
+    GreasePencil &grease_pencil,
+    int frame,
+    ForeachDrawingMode mode,
+    blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
 {
   using namespace blender::bke::greasepencil;
 
@@ -1137,7 +1150,7 @@ static void foreach_drawing_ex(GreasePencil &grease_pencil,
     GreasePencilDrawingBase *drawing_base = drawings[index];
     if (drawing_base->type == GP_DRAWING) {
       GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-      function(index, *drawing);
+      function(index, drawing->wrap());
     }
     else if (drawing_base->type == GP_DRAWING_REFERENCE) {
       /* TODO */
@@ -1146,13 +1159,13 @@ static void foreach_drawing_ex(GreasePencil &grease_pencil,
 }
 
 void GreasePencil::foreach_visible_drawing(
-    int frame, blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
+    int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
 {
   foreach_drawing_ex(*this, frame, VISIBLE, function);
 }
 
 void GreasePencil::foreach_editable_drawing(
-    int frame, blender::FunctionRef<void(int, GreasePencilDrawing &)> function)
+    int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function)
 {
   foreach_drawing_ex(*this, frame, EDITABLE, function);
 }
@@ -1400,10 +1413,7 @@ void GreasePencil::free_drawing_array()
     switch (drawing_base->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        drawing->geometry.wrap().~CurvesGeometry();
-        MEM_delete(drawing->runtime);
-        drawing->runtime = nullptr;
-        MEM_freeN(drawing);
+        MEM_delete(&drawing->wrap());
         break;
       }
       case GP_DRAWING_REFERENCE: {

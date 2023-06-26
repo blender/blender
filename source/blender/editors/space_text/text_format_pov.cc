@@ -17,62 +17,688 @@
 
 #include "text_format.hh"
 
-/* *** POV Keywords (for format_line) *** */
+/* -------------------------------------------------------------------- */
+/** \name Local Literal Definitions
+ * \{ */
+
+/** Language Directives */
+static const char *text_format_pov_literals_keyword_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "append",
+    "break",
+    "case",
+    "debug",
+    "declare",
+    "default",
+    "deprecated",
+    "else",
+    "elseif",
+    "end",
+    "error",
+    "fclose",
+    "fopen",
+    "for",
+    "if",
+    "ifdef",
+    "ifndef",
+    "include",
+    "local",
+    "macro",
+    "patch",
+    "persistent",
+    "range",
+    "read",
+    "render",
+    "statistics",
+    "switch",
+    "undef",
+    "version",
+    "warning",
+    "while",
+    "write",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_pov_literals_keyword(
+    text_format_pov_literals_keyword_data, ARRAY_SIZE(text_format_pov_literals_keyword_data));
+
+/* POV-Ray Built-in Variables
+ * list is from...
+ * http://www.povray.org/documentation/view/3.7.0/212/
+ */
+
+/** Float Functions */
+static const char *text_format_pov_literals_reserved_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format on */
+    "SRGB",
+    "abs",
+    "acos",
+    "acosh",
+    "albedo",
+    "altitude",
+    "angle",
+    "asc",
+    "asin",
+    "asinh",
+    "atan",
+    "atan2",
+    "atand",
+    "atanh",
+    "bitwise_and",
+    "bitwise_or",
+    "bitwise_xor",
+    "blink",
+    "blue",
+    "ceil",
+    "child",
+    "chr",
+    "clipped_by",
+    "collect",
+    "concat",
+    "conserve_energy",
+    "cos",
+    "cosh",
+    "crand",
+    "datetime",
+    "defined",
+    "degrees",
+    "dimension_size",
+    "dimensions",
+    "direction",
+    "div",
+    "evaluate",
+    "exp",
+    "file_exists",
+    "file_time",
+    "filter",
+    "floor",
+    "form",
+    "function",
+    "gamma",
+    "gray",
+    "green",
+    "gts_load",
+    "gts_save",
+    "hsl",
+    "hsv",
+    "inside",
+    "int",
+    "inverse",
+    "jitter",
+    "ln",
+    "load_file",
+    "location",
+    "log",
+    "look_at",
+    "matrix",
+    "max",
+    "max_extent",
+    "max_intersections",
+    "max_trace",
+    "metallic",
+    "min",
+    "min_extent",
+    "mod",
+    "phong_size",
+    "pov",
+    "pow",
+    "precompute",
+    "prod",
+    "pwr",
+    "quaternion",
+    "radians",
+    "rand",
+    "reciprocal",
+    "red",
+    "rgb",
+    "rgbf",
+    "rgbft",
+    "rgbt",
+    "right",
+    "rotate",
+    "roughness",
+    "sRGB",
+    "save_file",
+    "scale",
+    "seed",
+    "select",
+    "shadowless",
+    "sin",
+    "sinh",
+    "sky",
+    "sqr",
+    "sqrt",
+    "srgb",
+    "srgbf",
+    "srgbft",
+    "srgbt",
+    "str",
+    "strcmp",
+    "strlen",
+    "strlwr",
+    "strupr",
+    "sturm",
+    "substr",
+    "sum",
+    "tan",
+    "tanh",
+    "target",
+    "tessel",
+    "tesselate",
+    "trace",
+    "transform",
+    "translate",
+    "transmit",
+    "turb_depth",
+    "up",
+    "val",
+    "vaxis_rotate",
+    "vcross",
+    "vdot",
+    "vlength",
+    "vnormalize",
+    "vrotate",
+    "vstr",
+    "vturbulence",
+    "warp",
+    "with",
+    "xyl",
+    "xyv",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_pov_literals_reserved(
+    text_format_pov_literals_reserved_data, ARRAY_SIZE(text_format_pov_literals_reserved_data));
+
+/* POV-Ray Built-in Variables
+ * list is from...
+ * http://www.povray.org/documentation/view/3.7.0/212/
+ */
+
+/* Language Keywords */
+static const char *text_format_pov_literals_builtins_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "aa_threshold",
+    "absorption",
+    "agate",
+    "akima_spline",
+    "all",
+    "all_intersections",
+    "alpha",
+    "ambient",
+    "aoi",
+    "arc_angle",
+    "area_illumination",
+    "array",
+    "average",
+    "b_spline",
+    "background",
+    "basic_x_spline",
+    "bend",
+    "bezier_spline",
+    "bicubic_patch",
+    "binary",
+    "black_hole",
+    "blob",
+    "box",
+    "boxed",
+    "bozo",
+    "brick",
+    "brilliance",
+    "bump_map",
+    "bumps",
+    "camera",
+    "cells",
+    "checker",
+    "clock",
+    "clock_delta",
+    "clock_on",
+    "color",
+    "color_space",
+    "colour",
+    "colour_space",
+    "component",
+    "composite",
+    "cone",
+    "conic_sweep",
+    "coords",
+    "crackle",
+    "cube",
+    "cubic",
+    "cubic",
+    "cubic_spline",
+    "cubic_spline",
+    "cutaway_textures",
+    "cylinder",
+    "cylindrical",
+    "density_file",
+    "dents",
+    "difference",
+    "diffuse",
+    "disc",
+    "displace",
+    "dist_exp",
+    "emission",
+    "extended_x_spline",
+    "exterior",
+    "facets",
+    "falloff_angle",
+    "file_gamma",
+    "final_clock",
+    "final_frame",
+    "flatness",
+    "flip",
+    "fog",
+    "frame_number",
+    "galley",
+    "general_x_spline",
+    "global_settings",
+    "gradient",
+    "granite",
+    "height_field",
+    "hexagon",
+    "hierarchy",
+    "hypercomplex",
+    "image_height",
+    "image_map",
+    "image_pattern",
+    "image_width",
+    "initial_clock",
+    "initial_frame",
+    "input_file_name",
+    "interior",
+    "intermerge",
+    "internal",
+    "intersection",
+    "interunion",
+    "irid",
+    "iridescence",
+    "isosurface",
+    "julia",
+    "julia_fractal",
+    "keep",
+    "lathe",
+    "lemon",
+    "leopard",
+    "light_group",
+    "light_source",
+    "linear_spline",
+    "linear_sweep",
+    "lommel_seeliger",
+    "look_at",
+    "magnet",
+    "major_radius",
+    "mandel",
+    "marble",
+    "masonry",
+    "material",
+    "max_distance",
+    "max_extent",
+    "max_iteration",
+    "media",
+    "merge",
+    "mesh",
+    "mesh2",
+    "metric",
+    "minnaert",
+    "move",
+    "natural_spline",
+    "now",
+    "object",
+    "offset",
+    "onion",
+    "oren_nayar",
+    "orientation",
+    "ovus",
+    "parametric",
+    "pattern",
+    "pavement",
+    "phong",
+    "photons",
+    "pigment_pattern",
+    "planar",
+    "plane",
+    "planet",
+    "poly",
+    "polygon",
+    "polynomial",
+    "pot",
+    "precision",
+    "prism",
+    "proportion",
+    "proximity",
+    "quadratic_spline",
+    "quadric",
+    "quartic",
+    "quilted",
+    "radial",
+    "radiosity",
+    "rainbow",
+    "reflection",
+    "reflection_exponent",
+    "refraction",
+    "repeat",
+    "ripples",
+    "roll",
+    "scattering",
+    "screw",
+    "size",
+    "sky_sphere",
+    "slice",
+    "slope",
+    "smooth",
+    "smooth_triangle",
+    "solid",
+    "sor",
+    "sor_spline",
+    "specular",
+    "sphere",
+    "sphere_sweep",
+    "spherical",
+    "spiral1",
+    "spiral2",
+    "spline",
+    "spotted",
+    "square",
+    "subsurface",
+    "superellipsoid",
+    "t",
+    "tcb_spline",
+    "text",
+    "texture",
+    "tile2",
+    "tiles",
+    "tiling",
+    "tolerance",
+    "toroidal",
+    "torus",
+    "triangle",
+    "triangular",
+    "type",
+    "u",
+    "union",
+    "v",
+    "voronoi",
+    "water_level",
+    "waves",
+    "width",
+    "wood",
+    "wrinkles",
+    "x",
+    "y",
+    "z",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_pov_literals_builtins(
+    text_format_pov_literals_builtins_data, ARRAY_SIZE(text_format_pov_literals_builtins_data));
 
 /**
- * Checks the specified source string for a POV keyword (minus boolean & 'nil').
- * This name must start at the beginning of the source string and must be
- * followed by a non-identifier (see #text_check_identifier(char)) or null char.
- *
- * If a keyword is found, the length of the matching word is returned.
- * Otherwise, -1 is returned.
- *
+ * POV modifiers.
  * See:
  * http://www.povray.org/documentation/view/3.7.0/212/
  */
+static const char *text_format_pov_literals_specialvar_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "aa_level",
+    "accuracy",
+    "accuracy",
+    "adaptive",
+    "adc_bailout",
+    "agate_turb",
+    "aitoff_hammer",
+    "albinos",
+    "always_sample",
+    "ambient_light",
+    "amount",
+    "aperture",
+    "area_light",
+    "assumed_gamma",
+    "autostop",
+    "balthasart",
+    "behrmann",
+    "blur_samples",
+    "bounded_by",
+    "brick_size",
+    "brightness",
+    "bump_size",
+    "camera_direction",
+    "camera_location",
+    "camera_right",
+    "camera_type",
+    "camera_up",
+    "caustics",
+    "charset",
+    "circular",
+    "color_map",
+    "colour_map",
+    "confidence",
+    "contained_by",
+    "control0",
+    "control1",
+    "count",
+    "cubic",
+    "cubic_wave",
+    "density",
+    "density_map",
+    "dispersion",
+    "dispersion_samples",
+    "distance",
+    "double_illuminate",
+    "eccentricity",
+    "eckert_iv",
+    "eckert_vi",
+    "edwards",
+    "error_bound",
+    "expand_thresholds",
+    "exponent",
+    "extinction",
+    "face_indices",
+    "fade_color",
+    "fade_colour",
+    "fade_distance",
+    "fade_power",
+    "fade_power",
+    "falloff",
+    "finish",
+    "fisheye",
+    "fixed",
+    "focal_point",
+    "fog_alt",
+    "fog_offset",
+    "fog_type",
+    "frequency",
+    "fresnel",
+    "gall",
+    "gather",
+    "global_lights",
+    "gray_threshold",
+    "hf_gray_16",
+    "hobo_dyer",
+    "hollow",
+    "icosa",
+    "importance",
+    "inbound",
+    "inner",
+    "inside_point",
+    "inside_vector",
+    "interior_texture",
+    "interpolate",
+    "intervals",
+    "ior",
+    "irid_wavelength",
+    "lambda",
+    "lambert_azimuthal",
+    "lambert_cylindrical",
+    "looks_like",
+    "low_error_factor",
+    "map_type",
+    "material_map",
+    "max_gradient",
+    "max_sample",
+    "max_trace_level",
+    "maximal",
+    "maximum_reuse",
+    "media_attenuation",
+    "media_interaction",
+    "mercator",
+    "mesh_camera",
+    "method",
+    "miller_cylindrical",
+    "minimal",
+    "minimum_reuse",
+    "mm_per_unit",
+    "modulation",
+    "mollweide",
+    "mortar",
+    "nearest_count",
+    "no_bump_scale",
+    "no_cache",
+    "no_image",
+    "no_radiosity",
+    "no_reflection",
+    "no_shadow",
+    "noise_generator",
+    "normal",
+    "normal_indices",
+    "normal_map",
+    "normal_vectors",
+    "number_of_waves",
+    "octa",
+    "octaves",
+    "offset",
+    "omega",
+    "omni_directional_stereo",
+    "omnimax",
+    "once",
+    "open",
+    "orient",
+    "origin",
+    "original",
+    "orthographic",
+    "outbound",
+    "outside",
+    "panoramic",
+    "parallaxe",
+    "parallel",
+    "pass_through",
+    "perspective",
+    "peters",
+    "phase",
+    "pigment",
+    "pigment_map",
+    "plate_carree",
+    "point_at",
+    "polarity",
+    "poly_wave",
+    "precision",
+    "pretrace_end",
+    "pretrace_start",
+    "projected_through",
+    "quick_color",
+    "quick_colour",
+    "radius",
+    "ramp_wave",
+    "ratio",
+    "recursion_limit",
+    "samples",
+    "scallop_wave",
+    "sine_wave",
+    "slope_map",
+    "smyth_craster",
+    "spacing",
+    "split_union",
+    "spotlight",
+    "stereo",
+    "strength",
+    "tetra",
+    "texture_list",
+    "texture_map",
+    "thickness",
+    "threshold",
+    "tightness",
+    "translucency",
+    "triangle_wave",
+    "turbulence",
+    "u_steps",
+    "ultra_wide_angle",
+    "use_alpha",
+    "use_color",
+    "use_colour",
+    "use_index",
+    "uv_indices",
+    "uv_mapping",
+    "uv_vectors",
+    "v_steps",
+    "van_der_grinten",
+    "variance",
+    "vertex_vectors",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_pov_literals_specialvar(
+    text_format_pov_literals_specialvar_data,
+    ARRAY_SIZE(text_format_pov_literals_specialvar_data));
+
+/** POV Built-in Constants. */
+static const char *text_format_pov_literals_bool_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "ascii",
+    "bt2020",
+    "bt709",
+    "df3",
+    "exr",
+    "false",
+    "gif",
+    "hdr",
+    "iff",
+    "jpeg",
+    "no",
+    "off",
+    "on",
+    "pgm",
+    "pi",
+    "png",
+    "ppm",
+    "sint16be",
+    "sint16le",
+    "sint32be",
+    "sint32le",
+    "sint8",
+    "sys",
+    "tau",
+    "tga",
+    "tiff",
+    "true",
+    "ttf",
+    "uint16be",
+    "uint16le",
+    "uint8",
+    "unofficial",
+    "utf8",
+    "yes",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_pov_literals_bool(
+    text_format_pov_literals_bool_data, ARRAY_SIZE(text_format_pov_literals_bool_data));
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Functions (for #TextFormatType::format_line)
+ * \{ */
+
+/**
+ * POV keyword (minus boolean & 'nil').
+ * See:
+ * http://www.povray.org/documentation/view/3.7.0/212/
+ */
+
 static int txtfmt_pov_find_keyword(const char *string)
 {
-  /* Keep aligned args for readability. */
-  /* clang-format off */
 
-  int i, len;
-  /* Language Directives */
-  if        (STR_LITERAL_STARTSWITH(string, "deprecated",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "persistent",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "statistics",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "version",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "warning",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "declare",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "default",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "include",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "append",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "elseif",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "debug",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "break",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "else",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "error",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fclose",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fopen",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ifndef",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ifdef",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "patch",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "local",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "macro",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "range",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "read",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "render",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "switch",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "undef",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "while",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "write",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "case",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "end",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "for",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "if",          len)) { i = len;
-  } else                                                         { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_pov_literals_keyword, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -80,160 +706,7 @@ static int txtfmt_pov_find_keyword(const char *string)
 
 static int txtfmt_pov_find_reserved_keywords(const char *string)
 {
-  int i, len;
-  /* POV-Ray Built-in Variables
-   * list is from...
-   * http://www.povray.org/documentation/view/3.7.0/212/
-   */
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-  MSVC_WORKAROUND_INIT(i);
-
-  /* Float Functions */
-  if        (STR_LITERAL_STARTSWITH(string, "conserve_energy",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_intersections",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "dimension_size",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bitwise_and",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bitwise_or",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bitwise_xor",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "file_exists",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "precompute",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "dimensions",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "clipped_by",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "shadowless",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "turb_depth",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "reciprocal",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quaternion",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "phong_size",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tesselate",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "save_file",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "load_file",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_trace",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "transform",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "translate",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "direction",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "roughness",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "metallic",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gts_load",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gts_save",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "location",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "altitude",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "function",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "evaluate",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inverse",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "collect",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "target",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "albedo",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rotate",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "matrix",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "look_at",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "jitter",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "angle",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "right",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "scale",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "child",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "crand",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "blink",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "defined",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "degrees",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inside",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "radians",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vlength",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "select",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "floor",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "strcmp",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "strlen",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tessel",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sturm",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "abs",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "acosh",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "prod",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "with",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "acos",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "asc",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "asinh",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "asin",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "atan2",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "atand",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "atanh",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "atan",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ceil",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "warp",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cosh",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "log",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "min",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mod",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pow",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rand",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "seed",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "form",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sinh",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sqrt",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tanh",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vdot",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sin",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sqr",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sum",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pwr",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tan",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "val",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cos",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "div",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "exp",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "int",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sky",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "up",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ln",                 len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Color Identifiers */
-  } else if (STR_LITERAL_STARTSWITH(string, "transmit",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "filter",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "srgbft",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "srgbf",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "srgbt",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rgbft",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gamma",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "green",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "blue",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gray",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "srgb",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sRGB",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "SRGB",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rgbf",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rgbt",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rgb",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "red",                 len)) { i = len;
-  /* Color Spaces */
-  } else if (STR_LITERAL_STARTSWITH(string, "pov",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hsl",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hsv",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "xyl",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "xyv",                 len)) { i = len;
-  /* Vector Functions */
-  } else if (STR_LITERAL_STARTSWITH(string, "vaxis_rotate",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vturbulence",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "min_extent",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vnormalize",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_extent",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vrotate",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vcross",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "trace",              len)) { i = len;
-  /* String Functions */
-  } else if (STR_LITERAL_STARTSWITH(string, "file_time",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "datetime",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "concat",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "strlwr",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "strupr",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "substr",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vstr",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "chr",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "str",                len)) { i = len;
-  } else                                                                { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_pov_literals_reserved, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -241,467 +714,15 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 
 static int txtfmt_pov_find_reserved_builtins(const char *string)
 {
-  int i, len;
-
-  /* POV-Ray Built-in Variables
-   * list is from...
-   * http://www.povray.org/documentation/view/3.7.0/212/
-   */
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-  MSVC_WORKAROUND_INIT(i);
-
-  /* Language Keywords */
-  if        (STR_LITERAL_STARTSWITH(string, "reflection_exponent", len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "area_illumination",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "all_intersections",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cutaway_textures",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "smooth_triangle",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lommel_seeliger",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "falloff_angle",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "aa_threshold",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hypercomplex",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "major_radius",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_distance",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_iteration",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "colour_space",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "color_space",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "iridescence",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "subsurface",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "scattering",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "absorption",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "water_level",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "reflection",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_extent",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "oren_nayar",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "refraction",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hierarchy",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "radiosity",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tolerance",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "interior",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "toroidal",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "emission",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "material",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "internal",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "photons",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "arc_angle",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "minnaert",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "texture",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "array",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "black_hole",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "component",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "composite",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "coords",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cube",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "dist_exp",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "exterior",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "file_gamma",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "flatness",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "planet",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "screw",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "keep",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "flip",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "move",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "roll",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "look_at",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "metric",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "offset",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "orientation",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pattern",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "precision",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "width",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "repeat",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bend",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "size",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "alpha",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "slice",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "smooth",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "solid",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "all",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "now",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pot",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "type",                len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Animation Options */
-  } else if (STR_LITERAL_STARTSWITH(string, "global_settings",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "input_file_name",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "initial_clock",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "initial_frame",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "frame_number",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "image_height",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "image_width",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "final_clock",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "final_frame",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "clock_delta",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "clock_on",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "clock",               len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Spline Identifiers */
-  } else if (STR_LITERAL_STARTSWITH(string, "extended_x_spline",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "general_x_spline",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quadratic_spline",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "basic_x_spline",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "natural_spline",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "linear_spline",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bezier_spline",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "akima_spline",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic_spline",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sor_spline",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tcb_spline",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "linear_sweep",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "conic_sweep",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "b_spline",            len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Patterns */
-  } else if (STR_LITERAL_STARTSWITH(string, "pigment_pattern",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "image_pattern",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "density_file",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cylindrical",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "proportion",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "triangular",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "image_map",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "proximity",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spherical",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bump_map",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "wrinkles",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "average",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "voronoi",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "masonry",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "binary",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "boxed",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bozo",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "brick",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bumps",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cells",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "checker",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "crackle",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "dents",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "facets",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gradient",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "granite",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hexagon",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "julia",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "leopard",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "magnet",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mandel",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "marble",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "onion",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pavement",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "planar",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quilted",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "radial",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ripples",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "slope",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spiral1",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spiral2",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spotted",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "square",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tile2",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tiling",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tiles",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "waves",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "wood",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "agate",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "aoi",                 len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Objects */
-  } else if (STR_LITERAL_STARTSWITH(string, "superellipsoid",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bicubic_patch",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "julia_fractal",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "height_field",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic_spline",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sphere_sweep",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "light_group",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "light_source",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "intersection",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "isosurface",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "background",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sky_sphere",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cylinder",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "difference",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "brilliance",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "parametric",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "interunion",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "intermerge",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "polynomial",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "displace",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "specular",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ambient",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "diffuse",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "polygon",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quadric",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quartic",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "rainbow",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sphere",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spline",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "prism",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "galley",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "phong",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cone",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "blob",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "box",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "disc",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fog",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lathe",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "merge",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mesh2",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mesh",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "object",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ovus",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lemon",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "plane",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "poly",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "irid",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sor",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "text",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "torus",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "triangle",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "union",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "colour",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "color",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "media",               len)) { i = len;
-  /* Built-in Vectors */
-  } else if (STR_LITERAL_STARTSWITH(string, "t",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "u",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "v",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "x",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "y",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) { i = len;
-  } else                                                                 { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_pov_literals_builtins, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
-/**
- * Checks the specified source string for a POV modifiers. This
- * name must start at the beginning of the source string and must be followed
- * by a non-identifier (see #text_check_identifier(char)) or null character.
- *
- * If a special name is found, the length of the matching name is returned.
- * Otherwise, -1 is returned.
- *
- * See:
- * http://www.povray.org/documentation/view/3.7.0/212/
- */
 static int txtfmt_pov_find_specialvar(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-  MSVC_WORKAROUND_INIT(i);
-
-  /* Modifiers */
-  if        (STR_LITERAL_STARTSWITH(string, "dispersion_samples", len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "projected_through",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "double_illuminate",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "expand_thresholds",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "media_interaction",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "media_attenuation",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "low_error_factor",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "recursion_limit",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "interior_texture",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_trace_level",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gray_threshold",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pretrace_start",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "normal_indices",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "normal_vectors",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vertex_vectors",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "noise_generator",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "irid_wavelength",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "number_of_waves",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ambient_light",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inside_vector",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "face_indices",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "texture_list",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_gradient",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uv_indices",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uv_vectors",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fade_distance",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "global_lights",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_bump_scale",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pretrace_end",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_radiosity",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_reflection",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "assumed_gamma",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "scallop_wave",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "triangle_wave",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "nearest_count",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "maximum_reuse",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "minimum_reuse",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "always_sample",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "translucency",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "eccentricity",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "contained_by",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inside_point",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "adc_bailout",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "density_map",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "split_union",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mm_per_unit",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "agate_turb",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bounded_by",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "brick_size",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hf_gray_16",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "dispersion",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "extinction",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "thickness",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "color_map",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "colour_map",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic_wave",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fade_colour",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fade_power",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fade_color",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "normal_map",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pigment_map",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quick_color",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "quick_colour",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "material_map",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pass_through",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "interpolate",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "texture_map",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "error_bound",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "brightness",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "use_color",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "use_alpha",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "use_colour",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "use_index",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uv_mapping",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "importance",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "max_sample",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "intervals",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sine_wave",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "slope_map",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "poly_wave",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_shadow",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ramp_wave",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "precision",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "original",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "accuracy",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "map_type",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_image",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "distance",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "autostop",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "caustics",           len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  } else if (STR_LITERAL_STARTSWITH(string, "octaves",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "aa_level",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "frequency",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fog_offset",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "modulation",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "outbound",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no_cache",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pigment",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "charset",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inbound",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "outside",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inner",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "turbulence",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "threshold",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "accuracy",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "polarity",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bump_size",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "circular",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "control0",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "control1",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "maximal",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "minimal",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fog_type",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fog_alt",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "samples",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "origin",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "amount",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "adaptive",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "exponent",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "strength",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "density",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fresnel",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "albinos",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "finish",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "method",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "omega",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fixed",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spacing",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "u_steps",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "v_steps",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "offset",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hollow",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gather",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lambda",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mortar",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "cubic",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "count",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "once",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "orient",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "normal",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "phase",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ratio",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "open",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ior",                len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Light Types and options. */
-  } else if (STR_LITERAL_STARTSWITH(string, "area_light",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "looks_like",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fade_power",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tightness",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "spotlight",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "parallel",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "point_at",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "falloff",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "radius",             len)) { i = len;
-  MSVC_WORKAROUND_BREAK(i)
-  /* Camera Types and options. */
-  } else if (STR_LITERAL_STARTSWITH(string, "omni_directional_stereo",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lambert_cylindrical",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "miller_cylindrical",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lambert_azimuthal",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ultra_wide_angle",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera_direction",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera_location ",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "van_der_grinten",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "aitoff_hammer",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "smyth_craster",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "orthographic",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera_right",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "blur_samples",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "plate_carree",             len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera_type",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "perspective",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mesh_camera",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "focal_point",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "balthasart",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "confidence",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "parallaxe",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hobo_dyer",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "camera_up",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "panoramic",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "eckert_vi",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "eckert_iv",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mollweide",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "aperture",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "behrmann",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "variance",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "stereo",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "icosa",                    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tetra",                    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "octa",                     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "mercator",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "omnimax",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "fisheye",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "edwards",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "peters",                   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gall",                     len)) { i = len;
-  } else                                                                      { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_pov_literals_specialvar, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -709,52 +730,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
 
 static int txtfmt_pov_find_bool(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  /* Built-in Constants. */
-  if        (STR_LITERAL_STARTSWITH(string, "unofficial",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "false",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "no",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "off",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "true",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "yes",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "on",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pi",                  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tau",                 len)) { i = len;
-  /* Encodings. */
-  } else if (STR_LITERAL_STARTSWITH(string, "sint16be",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sint16le",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sint32be",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sint32le",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uint16be",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uint16le",            len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bt2020",              len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "bt709",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sint8",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uint8",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ascii",               len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "utf8",                len)) { i = len;
-  /* File-types. */
-  } else if (STR_LITERAL_STARTSWITH(string, "tiff",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "df3",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "exr",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "gif",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "hdr",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "iff",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "jpeg",                len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pgm",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "png",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ppm",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sys",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "tga",                 len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "ttf",                 len)) { i = len;
-  } else                                                                 { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_pov_literals_bool, string);
 
   /* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
   return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
@@ -778,6 +754,12 @@ static char txtfmt_pov_format_identifier(const char *str)
 
   return fmt;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Format Line Implementation (#TextFormatType::format_line)
+ * \{ */
 
 static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_next)
 {
@@ -947,6 +929,12 @@ static void txtfmt_pov_format_line(SpaceText *st, TextLine *line, const bool do_
   flatten_string_free(&fs);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
+
 void ED_text_format_register_pov()
 {
   static TextFormatType tft = {nullptr};
@@ -958,4 +946,12 @@ void ED_text_format_register_pov()
   tft.comment_line = "//";
 
   ED_text_format_register(&tft);
+
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_pov_literals_keyword));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_pov_literals_reserved));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_pov_literals_builtins));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_pov_literals_specialvar));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_pov_literals_bool));
 }
+
+/** \} */

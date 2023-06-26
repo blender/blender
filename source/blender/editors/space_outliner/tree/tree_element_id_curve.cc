@@ -21,11 +21,6 @@ TreeElementIDCurve::TreeElementIDCurve(TreeElement &legacy_te, Curve &curve)
 {
 }
 
-bool TreeElementIDCurve::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDCurve::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, curve_.adt);

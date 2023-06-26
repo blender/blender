@@ -264,6 +264,13 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
     deferred = false;
   }
 
+  /* Avoid crashes with RenderDoc on Windows + Nvidia. */
+  if (G.debug & G_DEBUG_GPU_RENDERDOC &&
+      GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_OFFICIAL))
+  {
+    deferred = false;
+  }
+
   if (!deferred) {
     DRW_deferred_shader_remove(mat);
     /* Shaders could already be compiling. Have to wait for compilation to finish. */
