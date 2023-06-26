@@ -1188,14 +1188,14 @@ static bool do_lasso_select_grease_pencil(ViewContext *vc,
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
-      vc->scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
+      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                 ob_eval, *vc->obedit, drawing_index);
 
         changed = ed::curves::select_lasso(
             *vc,
-            drawing.geometry.wrap(),
+            drawing.strokes_for_write(),
             deformation.positions,
             selection_domain,
             Span<int2>(reinterpret_cast<const int2 *>(mcoords), mcoords_len),
@@ -3143,7 +3143,7 @@ static bool ed_curves_select_pick(bContext &C, const int mval[2], const SelectPi
 }
 
 struct ClosestGreasePencilDrawing {
-  GreasePencilDrawing *drawing = nullptr;
+  blender::bke::greasepencil::Drawing *drawing = nullptr;
   blender::ed::curves::FindClosestData elem = {};
 };
 
@@ -3165,13 +3165,13 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   /* Collect editable drawings. */
   const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, const_cast<Object *>(vc.obedit));
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obedit->data);
-  Vector<GreasePencilDrawing *> drawings;
+  Vector<blender::bke::greasepencil::Drawing *> drawings;
   Vector<int> drawing_indices;
-  grease_pencil.foreach_editable_drawing(vc.scene->r.cfra,
-                                         [&](int drawing_index, GreasePencilDrawing &drawing) {
-                                           drawings.append(&drawing);
-                                           drawing_indices.append(drawing_index);
-                                         });
+  grease_pencil.foreach_editable_drawing(
+      vc.scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+        drawings.append(&drawing);
+        drawing_indices.append(drawing_index);
+      });
 
   /* Get selection domain from tool settings. */
   const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
@@ -3190,7 +3190,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
           std::optional<ed::curves::FindClosestData> new_closest_elem =
               ed::curves::closest_elem_find_screen_space(vc,
                                                          *vc.obedit,
-                                                         drawings[i]->geometry.wrap(),
+                                                         drawings[i]->strokes_for_write(),
                                                          deformation.positions,
                                                          selection_domain,
                                                          mval,
@@ -3234,7 +3234,7 @@ static bool ed_grease_pencil_select_pick(bContext *C,
   }
 
   bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-      closest.drawing->geometry.wrap(), selection_domain, CD_PROP_BOOL);
+      closest.drawing->strokes_for_write(), selection_domain, CD_PROP_BOOL);
   ed::curves::apply_selection_operation_at_index(
       selection.span, closest.elem.index, params.sel_op);
   selection.finish();
@@ -4194,12 +4194,16 @@ static bool do_grease_pencil_box_select(ViewContext *vc, const rcti *rect, const
 
   bool changed = false;
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, GreasePencilDrawing &drawing) {
+      scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
         bke::crazyspace::GeometryDeformation deformation =
             bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
                 ob_eval, *vc->obedit, drawing_index);
-        changed |= ed::curves::select_box(
-            *vc, drawing.geometry.wrap(), deformation.positions, selection_domain, *rect, sel_op);
+        changed |= ed::curves::select_box(*vc,
+                                          drawing.strokes_for_write(),
+                                          deformation.positions,
+                                          selection_domain,
+                                          *rect,
+                                          sel_op);
       });
 
   if (changed) {
