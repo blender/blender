@@ -227,34 +227,6 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
   }
 }
 
-void select_ends(bke::CurvesGeometry &curves, int amount_start, int amount_end)
-{
-  const bool was_anything_selected = has_anything_selected(curves);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
-  if (!was_anything_selected) {
-    fill_selection_true(selection.span);
-  }
-  selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_void_v<T>) {
-      BLI_assert_unreachable();
-    }
-    else {
-      MutableSpan<T> selection_typed = selection.span.typed<T>();
-      threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
-        for (const int curve_i : range) {
-          selection_typed
-              .slice(points_by_curve[curve_i].drop_front(amount_start).drop_back(amount_end))
-              .fill(T(0));
-        }
-      });
-    }
-  });
-  selection.finish();
-}
-
 void select_linked(bke::CurvesGeometry &curves)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();

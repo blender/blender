@@ -243,7 +243,26 @@ static int select_ends_exec(bContext *C, wmOperator *op)
 
   grease_pencil.foreach_editable_drawing(
       scene->r.cfra, [&](int /*drawing_index*/, GreasePencilDrawing &drawing) {
-        blender::ed::curves::select_ends(drawing.geometry.wrap(), amount_start, amount_end);
+        bke::CurvesGeometry &curves = drawing.geometry.wrap();
+
+        IndexMaskMemory memory;
+        const IndexMask inverted_end_points_mask = ed::curves::end_points(
+            curves, amount_start, amount_end, true, memory);
+
+        const bool was_anything_selected = ed::curves::has_anything_selected(curves);
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+        if (!was_anything_selected) {
+          ed::curves::fill_selection_true(selection.span);
+        }
+
+        if (selection.span.type().is<bool>()) {
+          index_mask::masked_fill(selection.span.typed<bool>(), false, inverted_end_points_mask);
+        }
+        if (selection.span.type().is<float>()) {
+          index_mask::masked_fill(selection.span.typed<float>(), 0.0f, inverted_end_points_mask);
+        }
+        selection.finish();
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
