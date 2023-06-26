@@ -367,10 +367,9 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
 
 static GSpan evaluated_attribute_if_necessary(const GVArray &src,
                                               const CurvesGeometry &curves,
-                                              const std::array<int, CURVE_TYPES_NUM> &type_counts,
                                               Vector<std::byte> &buffer)
 {
-  if (type_counts[CURVE_TYPE_POLY] == curves.curves_num() && src.is_span()) {
+  if (curves.is_single_type(CURVE_TYPE_POLY) && src.is_span()) {
     return src.get_internal_span();
   }
   buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
@@ -476,16 +475,68 @@ static void copy_main_point_data_to_mesh_faces(const Span<T> src,
   }
 }
 
+static bool try_sharing_point_data(const CurvesGeometry &main,
+                                   const AttributeIDRef &id,
+                                   const GAttributeReader &src,
+                                   MutableAttributeAccessor mesh_attributes)
+{
+  if (mesh_attributes.domain_size(ATTR_DOMAIN_POINT) != main.points_num()) {
+    return false;
+  }
+  if (!src.sharing_info || !src.varray.is_span()) {
+    return false;
+  }
+  return mesh_attributes.add(
+      id,
+      ATTR_DOMAIN_POINT,
+      bke::cpp_type_to_custom_data_type(src.varray.type()),
+      AttributeInitShared(src.varray.get_internal_span().data(), *src.sharing_info));
+}
+
+static bool try_direct_evaluate_point_data(const CurvesGeometry &main,
+                                           const GAttributeReader &src,
+                                           GMutableSpan dst)
+{
+  if (dst.size() != main.evaluated_points_num()) {
+    return false;
+  }
+  if (!src.varray.is_span()) {
+    return false;
+  }
+  main.interpolate_to_evaluated(src.varray.get_internal_span(), dst);
+  return true;
+}
+
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
+                                                     const AttributeIDRef &id,
                                                      const ResultOffsets &offsets,
                                                      const eAttrDomain dst_domain,
-                                                     const GSpan src_all,
-                                                     GMutableSpan dst_all)
+                                                     const GAttributeReader &src_attribute,
+                                                     Vector<std::byte> &eval_buffer,
+                                                     MutableAttributeAccessor mesh_attributes)
 {
-  attribute_math::convert_to_static_type(src_all.type(), [&](auto dummy) {
+  if (dst_domain == ATTR_DOMAIN_POINT) {
+    if (try_sharing_point_data(curves_info.main, id, src_attribute, mesh_attributes)) {
+      return;
+    }
+  }
+  GSpanAttributeWriter dst_attribute = mesh_attributes.lookup_or_add_for_write_only_span(
+      id, dst_domain, bke::cpp_type_to_custom_data_type(src_attribute.varray.type()));
+  if (!dst_attribute) {
+    return;
+  }
+  if (dst_domain == ATTR_DOMAIN_POINT) {
+    if (try_direct_evaluate_point_data(curves_info.main, src_attribute, dst_attribute.span)) {
+      dst_attribute.finish();
+      return;
+    }
+  }
+  const GSpan src_all = evaluated_attribute_if_necessary(
+      *src_attribute, curves_info.main, eval_buffer);
+  attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     const Span<T> src = src_all.typed<T>();
-    MutableSpan<T> dst = dst_all.typed<T>();
+    MutableSpan<T> dst = dst_attribute.span.typed<T>();
     switch (dst_domain) {
       case ATTR_DOMAIN_POINT:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
@@ -755,7 +806,6 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
       radii = evaluated_attribute_if_necessary(
                   *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
                   main,
-                  main.curve_type_counts(),
                   eval_buffer)
                   .typed<float>();
     }
@@ -816,29 +866,23 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    const GVArray src = *main_attributes.lookup(id, src_domain, type);
-
+    const GAttributeReader src = main_attributes.lookup(id, src_domain, type);
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
-    GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
-        id, dst_domain, type);
-    if (!dst) {
-      return true;
-    }
 
     if (src_domain == ATTR_DOMAIN_POINT) {
       copy_main_point_domain_attribute_to_mesh(
-          curves_info,
-          offsets,
-          dst_domain,
-          evaluated_attribute_if_necessary(src, main, main.curve_type_counts(), eval_buffer),
-          dst.span);
+          curves_info, id, offsets, dst_domain, src, eval_buffer, mesh_attributes);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
-      copy_curve_domain_attribute_to_mesh(
-          offsets, offsets.main_indices, dst_domain, src, dst.span);
+      GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
+          id, dst_domain, type);
+      if (dst) {
+        copy_curve_domain_attribute_to_mesh(
+            offsets, offsets.main_indices, dst_domain, *src, dst.span);
+      }
+      dst.finish();
     }
 
-    dst.finish();
     return true;
   });
 
@@ -867,7 +911,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
           curves_info,
           offsets,
           dst_domain,
-          evaluated_attribute_if_necessary(src, profile, profile.curve_type_counts(), eval_buffer),
+          evaluated_attribute_if_necessary(src, profile, eval_buffer),
           dst.span);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
