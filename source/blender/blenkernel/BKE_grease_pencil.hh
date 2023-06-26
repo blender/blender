@@ -303,12 +303,6 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   int64_t num_nodes_total() const;
 
   /**
-   * Removes a child from the group by index. Does not free the memory.
-   * \note: Assumes the removed child is not the active layer.
-   */
-  void remove_child(int64_t index);
-
-  /**
    * Tries to unlink the layer from the list of nodes in this group.
    * \returns true, if the layer was successfully unlinked.
    */
