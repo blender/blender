@@ -1937,7 +1937,7 @@ struct Panel *UI_panel_add_instanced(const struct bContext *C,
  */
 void UI_panels_free_instanced(const struct bContext *C, struct ARegion *region);
 
-#define INSTANCED_PANEL_UNIQUE_STR_LEN 16
+#define INSTANCED_PANEL_UNIQUE_STR_SIZE 16
 /**
  * Find a unique key to append to the #PanelType.idname for the lookup to the panel's #uiBlock.
  * Needed for instanced panels, where there can be multiple with the same type and identifier.

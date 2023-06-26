@@ -3350,7 +3350,7 @@ static void rna_FileAssetSelectParams_catalog_id_get(PointerRNA *ptr, char *valu
 
 static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA * /*ptr*/)
 {
-  return UUID_STRING_LEN - 1;
+  return UUID_STRING_SIZE - 1;
 }
 
 static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char *value)

@@ -2695,7 +2695,7 @@ static void ed_panel_draw(const bContext *C,
   const uiStyle *style = UI_style_get_dpi();
 
   /* Draw panel. */
-  char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_LEN];
+  char block_name[BKE_ST_MAXNAME + INSTANCED_PANEL_UNIQUE_STR_SIZE];
   if (unique_panel_str) {
     /* Instanced panels should have already been added at this point. */
     BLI_string_join(block_name, sizeof(block_name), pt->idname, unique_panel_str);
@@ -3019,7 +3019,7 @@ void ED_region_panels_layout_ex(const bContext *C,
 
       /* Use a unique identifier for instanced panels, otherwise an old block for a different
        * panel of the same type might be found. */
-      char unique_panel_str[INSTANCED_PANEL_UNIQUE_STR_LEN];
+      char unique_panel_str[INSTANCED_PANEL_UNIQUE_STR_SIZE];
       UI_list_panel_unique_str(panel, unique_panel_str);
       ed_panel_draw(C,
                     region,

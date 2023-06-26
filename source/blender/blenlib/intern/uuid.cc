@@ -90,7 +90,7 @@ void BLI_uuid_format(char *buffer, const bUUID uuid)
 {
   const size_t buffer_len_unclamped = BLI_snprintf(
       buffer,
-      UUID_STRING_LEN,
+      UUID_STRING_SIZE,
       "%08x-%04x-%04x-%02x%02x-%02x%02x%02x%02x%02x%02x",
       uuid.time_low,
       uuid.time_mid,
@@ -105,7 +105,7 @@ void BLI_uuid_format(char *buffer, const bUUID uuid)
       uuid.node[5]);
 
   /* Assert the string length is not clamped. */
-  BLI_assert(buffer_len_unclamped == UUID_STRING_LEN - 1);
+  BLI_assert(buffer_len_unclamped == UUID_STRING_SIZE - 1);
   UNUSED_VARS_NDEBUG(buffer_len_unclamped);
 }
 
