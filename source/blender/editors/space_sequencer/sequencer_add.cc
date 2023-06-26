@@ -972,6 +972,7 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   }
 
   if (SEQ_collection_len(movie_strips) == 0) {
+    sequencer_add_cancel(C, op);
     SEQ_collection_free(movie_strips);
     return OPERATOR_CANCELLED;
   }
