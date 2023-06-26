@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -736,36 +737,39 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     sharp_faces.finish();
   }
 
-  const Span<float3> main_positions = main.evaluated_positions();
-  const Span<float3> tangents = main.evaluated_tangents();
-  const Span<float3> normals = main.evaluated_normals();
-  const Span<float3> profile_positions = profile.evaluated_positions();
-
   Vector<std::byte> eval_buffer;
 
   const AttributeAccessor main_attributes = main.attributes();
   const AttributeAccessor profile_attributes = profile.attributes();
 
-  Span<float> radii = {};
-  if (main_attributes.contains("radius")) {
-    radii = evaluated_attribute_if_necessary(
-                *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
-                main,
-                main.curve_type_counts(),
-                eval_buffer)
-                .typed<float>();
+  const Span<float3> main_positions = main.evaluated_positions();
+  const Span<float3> profile_positions = profile.evaluated_positions();
+  if (profile_positions.size() == 1 && math::is_equal(profile_positions.first(), float3(0.0f))) {
+    array_utils::copy(main_positions, mesh->vert_positions_for_write());
   }
-
-  foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
-    fill_mesh_positions(info.main_points.size(),
-                        info.profile_points.size(),
-                        main_positions.slice(info.main_points),
-                        profile_positions.slice(info.profile_points),
-                        tangents.slice(info.main_points),
-                        normals.slice(info.main_points),
-                        radii.is_empty() ? radii : radii.slice(info.main_points),
-                        positions.slice(info.vert_range));
-  });
+  else {
+    const Span<float3> tangents = main.evaluated_tangents();
+    const Span<float3> normals = main.evaluated_normals();
+    Span<float> radii = {};
+    if (main_attributes.contains("radius")) {
+      radii = evaluated_attribute_if_necessary(
+                  *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
+                  main,
+                  main.curve_type_counts(),
+                  eval_buffer)
+                  .typed<float>();
+    }
+    foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
+      fill_mesh_positions(info.main_points.size(),
+                          info.profile_points.size(),
+                          main_positions.slice(info.main_points),
+                          profile_positions.slice(info.profile_points),
+                          tangents.slice(info.main_points),
+                          normals.slice(info.main_points),
+                          radii.is_empty() ? radii : radii.slice(info.main_points),
+                          positions.slice(info.vert_range));
+    });
+  }
 
   if (!offsets.any_single_point_main) {
     /* If there are no single point curves, every combination will have at least loose edges. */
@@ -882,7 +886,7 @@ static CurvesGeometry get_curve_single_vert()
 {
   CurvesGeometry curves(1, 1);
   curves.offsets_for_write().last() = 1;
-  curves.positions_for_write().fill(float3(0));
+  curves.positions_for_write().fill(float3(0.0f));
   curves.fill_curve_types(CURVE_TYPE_POLY);
 
   return curves;
