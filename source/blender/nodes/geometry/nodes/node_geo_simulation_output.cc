@@ -1036,6 +1036,7 @@ bool NOD_geometry_simulation_output_item_set_unique_name(NodeGeometrySimulationO
                                               '.',
                                               unique_name,
                                               ARRAY_SIZE(unique_name));
+  MEM_delete(item->name);
   item->name = BLI_strdup(unique_name);
   return name_changed;
 }
