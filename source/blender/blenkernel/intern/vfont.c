@@ -792,7 +792,7 @@ static float vfont_descent(const VFontData *vfd)
 
 static bool vfont_to_curve(Object *ob,
                            Curve *cu,
-                           int mode,
+                           const eEditFontMode mode,
                            VFontToCurveIter *iter_data,
                            VFontCursor_Params *cursor_params,
                            ListBase *r_nubase,
@@ -1501,6 +1501,12 @@ static bool vfont_to_curve(Object *ob,
         case FO_PAGEDOWN:
           lnr = ct->linenr + 10;
           break;
+          /* Ignored. */
+        case FO_EDIT:
+        case FO_CURS:
+        case FO_DUPLI:
+        case FO_SELCHANGE:
+          break;
       }
       cnr = ct->charnr;
       /* Seek for char with `lnr` & `cnr`. */
@@ -1826,7 +1832,7 @@ finally:
 
 bool BKE_vfont_to_curve_ex(Object *ob,
                            Curve *cu,
-                           int mode,
+                           const eEditFontMode mode,
                            ListBase *r_nubase,
                            const char32_t **r_text,
                            int *r_text_len,
@@ -1880,14 +1886,14 @@ int BKE_vfont_cursor_to_text_index(Object *ob, float cursor_location[2])
 #undef FONT_TO_CURVE_SCALE_ITERATIONS
 #undef FONT_TO_CURVE_SCALE_THRESHOLD
 
-bool BKE_vfont_to_curve_nubase(Object *ob, int mode, ListBase *r_nubase)
+bool BKE_vfont_to_curve_nubase(Object *ob, const eEditFontMode mode, ListBase *r_nubase)
 {
   BLI_assert(ob->type == OB_FONT);
 
   return BKE_vfont_to_curve_ex(ob, ob->data, mode, r_nubase, NULL, NULL, NULL, NULL);
 }
 
-bool BKE_vfont_to_curve(Object *ob, int mode)
+bool BKE_vfont_to_curve(Object *ob, const eEditFontMode mode)
 {
   Curve *cu = ob->data;
 
