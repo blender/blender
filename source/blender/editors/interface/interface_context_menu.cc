@@ -31,6 +31,7 @@
 #include "ED_screen.h"
 
 #include "UI_interface.h"
+#include "UI_interface.hh"
 
 #include "interface_intern.hh"
 
@@ -276,15 +277,8 @@ static void menu_add_shortcut_cancel(bContext *C, void *arg1)
   WM_keymap_remove_item(km, kmi);
 }
 
-static void popup_change_shortcut_func(bContext *C, void *arg1, void * /*arg2*/)
+static void remove_shortcut_func(bContext *C, uiBut *but)
 {
-  uiBut *but = (uiBut *)arg1;
-  UI_popup_block_invoke(C, menu_change_shortcut, but, nullptr);
-}
-
-static void remove_shortcut_func(bContext *C, void *arg1, void * /*arg2*/)
-{
-  uiBut *but = (uiBut *)arg1;
   IDProperty *prop;
   const char *idname = shortcut_get_operator_property(C, but, &prop);
 
@@ -303,12 +297,6 @@ static void remove_shortcut_func(bContext *C, void *arg1, void * /*arg2*/)
 
   shortcut_free_operator_property(prop);
   but_shortcut_name_func(C, but, 0);
-}
-
-static void popup_add_shortcut_func(bContext *C, void *arg1, void * /*arg2*/)
-{
-  uiBut *but = (uiBut *)arg1;
-  UI_popup_block_ex(C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
 }
 
 static bool ui_but_is_user_menu_compatible(bContext *C, uiBut *but)
@@ -442,22 +430,6 @@ static void ui_but_user_menu_add(bContext *C, uiBut *but, bUserMenu *um)
                                           RNA_property_identifier(prop),
                                           but->opcontext);
   }
-}
-
-static void popup_user_menu_add_or_replace_func(bContext *C, void *arg1, void * /*arg2*/)
-{
-  uiBut *but = static_cast<uiBut *>(arg1);
-  bUserMenu *um = ED_screen_user_menu_ensure(C);
-  U.runtime.is_dirty = true;
-  ui_but_user_menu_add(C, but, um);
-}
-
-static void popup_user_menu_remove_func(bContext * /*C*/, void *arg1, void *arg2)
-{
-  bUserMenu *um = static_cast<bUserMenu *>(arg1);
-  bUserMenuItem *umi = static_cast<bUserMenuItem *>(arg2);
-  U.runtime.is_dirty = true;
-  ED_screen_user_menu_item_remove(&um->items, umi);
 }
 
 static void ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop)
@@ -1043,8 +1015,10 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             0,
             0,
             "");
-        UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
-        item_found = true;
+        UI_but_func_set(but2, [um, umi](bContext &) {
+          U.runtime.is_dirty = true;
+          ED_screen_user_menu_item_remove(&um->items, umi);
+        });
       }
     }
     if (um_array) {
@@ -1068,7 +1042,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           0,
           0,
           "Add to a user defined context menu (stored in the user preferences)");
-      UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, nullptr);
+      UI_but_func_set(but2, [but](bContext &C) {
+        bUserMenu *um = ED_screen_user_menu_ensure(&C);
+        U.runtime.is_dirty = true;
+        ui_but_user_menu_add(&C, but, um);
+      });
     }
 
     uiItemS(layout);
@@ -1117,7 +1095,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
             0,
             0,
             "");
-        UI_but_func_set(but2, popup_change_shortcut_func, but, nullptr);
+        UI_but_func_set(but2, [but](bContext &C) {
+          UI_popup_block_invoke(&C, menu_change_shortcut, but, nullptr);
+        });
       }
       else {
         uiBut *but2 = uiDefIconTextBut(block,
@@ -1155,7 +1135,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           0,
           0,
           "");
-      UI_but_func_set(but2, remove_shortcut_func, but, nullptr);
+      UI_but_func_set(but2, [but](bContext &C) { remove_shortcut_func(&C, but); });
     }
     /* only show 'assign' if there's a suitable key map for it to go in */
     else if (WM_keymap_guess_opname(C, idname)) {
@@ -1175,7 +1155,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           0,
           0,
           "");
-      UI_but_func_set(but2, popup_add_shortcut_func, but, nullptr);
+      UI_but_func_set(but2, [but](bContext &C) {
+        UI_popup_block_ex(&C, menu_add_shortcut, nullptr, menu_add_shortcut_cancel, but, nullptr);
+      });
     }
 
     shortcut_free_operator_property(prop);
