@@ -249,12 +249,10 @@ class Nearest2dUserData_Mesh : public Nearest2dUserData {
   const MLoopTri *looptris;
 
   Nearest2dUserData_Mesh(SnapObjectContext *sctx,
-                         Object *ob_eval,
-                         const ID *id_eval,
+                         const Mesh *mesh_eval,
                          const float4x4 &obmat)
-      : Nearest2dUserData(sctx, ob_eval, id_eval, obmat)
+      : Nearest2dUserData(sctx, obmat)
   {
-    const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id_eval);
     this->vert_positions = mesh_eval->vert_positions().data();
     this->vert_normals = mesh_eval->vert_normals().data();
     this->edges = mesh_eval->edges().data();
@@ -412,8 +410,8 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
-  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, id, float4x4(obmat));
-  nearest2d.clip_planes_enable();
+  Nearest2dUserData_Mesh nearest2d(sctx, mesh_eval, float4x4(obmat));
+  nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -449,6 +447,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 
   if (nearest.index != -1) {
     nearest2d.nearest_point = nearest;
+    nearest2d.register_result(sctx, ob_eval, id);
     return elem;
   }
 
@@ -462,8 +461,12 @@ eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
                                 float dist_pex_sq_orig,
                                 int edge)
 {
-  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, id, float4x4(obmat));
-  return nearest2d.snap_edge_points(edge, dist_pex_sq_orig);
+  Nearest2dUserData_Mesh nearest2d(sctx, reinterpret_cast<const Mesh *>(id), float4x4(obmat));
+  eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge, dist_pex_sq_orig);
+  if (nearest2d.nearest_point.index != -2) {
+    nearest2d.register_result(sctx, ob_eval, id);
+  }
+  return elem;
 }
 
 static eSnapMode snapMesh(SnapObjectContext *sctx,
@@ -480,7 +483,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     return SCE_SNAP_TO_NONE;
   }
 
-  Nearest2dUserData_Mesh nearest2d(sctx, ob_eval, &me_eval->id, float4x4(obmat));
+  Nearest2dUserData_Mesh nearest2d(sctx, me_eval, float4x4(obmat));
 
   if (ob_eval->data == me_eval) {
     const BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
@@ -500,7 +503,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     BLI_assert(treedata_dummy.cached);
   }
 
-  nearest2d.clip_planes_enable();
+  nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -591,6 +594,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
   if (nearest.index != -1) {
     nearest2d.nearest_point = nearest;
+    nearest2d.register_result(sctx, ob_eval, &me_eval->id);
     return elem;
   }
 

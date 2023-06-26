@@ -409,10 +409,9 @@ class Nearest2dUserData_EditMesh : public Nearest2dUserData {
   BMesh *bm;
 
   Nearest2dUserData_EditMesh(SnapObjectContext *sctx,
-                             Object *ob_eval,
                              BMesh *bm,
                              const float4x4 &obmat)
-      : Nearest2dUserData(sctx, ob_eval, nullptr, obmat), bm(bm){};
+      : Nearest2dUserData(sctx, obmat), bm(bm){};
 
   void get_vert_co(const int index, const float **r_co)
   {
@@ -450,8 +449,8 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
   eSnapMode elem = SCE_SNAP_TO_NONE;
 
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
-  nearest2d.clip_planes_enable();
+  Nearest2dUserData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
+  nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -490,6 +489,7 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
 
   if (nearest.index != -1) {
     nearest2d.nearest_point = nearest;
+    nearest2d.register_result(sctx, ob_eval, nullptr);
     return elem;
   }
 
@@ -504,8 +504,12 @@ eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
                                     int edge)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
-  return nearest2d.snap_edge_points(edge, dist_pex_sq_orig);
+  Nearest2dUserData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
+  eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge, dist_pex_sq_orig);
+  if (nearest2d.nearest_point.index != -2) {
+    nearest2d.register_result(sctx, ob_eval, nullptr);
+  }
+  return elem;
 }
 
 static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
@@ -517,7 +521,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
 {
   BLI_assert(snap_to_flag != SCE_SNAP_TO_FACE);
 
-  Nearest2dUserData_EditMesh nearest2d(sctx, ob_eval, em->bm, float4x4(obmat));
+  Nearest2dUserData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
 
   /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!nearest2d.snap_boundbox(sod->min, sod->max)) {
@@ -584,7 +588,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
     }
   }
 
-  nearest2d.clip_planes_enable();
+  nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
@@ -631,6 +635,7 @@ static eSnapMode snapEditMesh(SnapData_EditMesh *sod,
 
   if (nearest.index != -1) {
     nearest2d.nearest_point = nearest;
+    nearest2d.register_result(sctx, ob_eval, nullptr);
     return elem;
   }
 

@@ -34,7 +34,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   bArmature *arm = static_cast<bArmature *>(ob_eval->data);
 
-  Nearest2dUserData nearest2d(sctx, ob_eval, &arm->id, float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
 
   const bool is_editmode = arm->edbo != nullptr;
 
@@ -45,7 +45,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
-  nearest2d.clip_planes_enable();
+  nearest2d.clip_planes_enable(sctx);
 
   const float *head_vec = nullptr, *tail_vec = nullptr;
 
@@ -112,5 +112,8 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
     }
   }
 
+  if (retval) {
+    nearest2d.register_result(sctx, ob_eval, &arm->id);
+  }
   return retval;
 }

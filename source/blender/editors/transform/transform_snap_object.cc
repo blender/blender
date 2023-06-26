@@ -96,19 +96,11 @@ static bool test_projected_edge_dist(const DistProjectedAABBPrecalc *precalc,
   return test_projected_vert_dist(precalc, clip_plane, clip_plane_len, is_persp, near_co, nearest);
 }
 
-Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
-                                     Object *ob_eval,
-                                     const ID *id_eval,
-                                     const float4x4 &obmat)
+Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx, const float4x4 &obmat)
     : nearest_precalc(),
+      obmat_(obmat),
       is_persp(sctx->runtime.rv3d ? sctx->runtime.rv3d->is_persp : false),
-      use_backface_culling(sctx->runtime.params.use_backface_culling),
-
-      /* To register the result. */
-      sctx_(sctx),
-      ob_(ob_eval),
-      id_(id_eval),
-      obmat_(obmat)
+      use_backface_culling(sctx->runtime.params.use_backface_culling)
 {
   if (sctx->runtime.rv3d) {
     this->pmat_local = float4x4(sctx->runtime.rv3d->persmat) * obmat;
@@ -125,32 +117,8 @@ Nearest2dUserData::Nearest2dUserData(SnapObjectContext *sctx,
   copy_v3_fl3(this->nearest_point.no, 0.0f, 0.0f, 1.0f);
 }
 
-Nearest2dUserData::~Nearest2dUserData()
+void Nearest2dUserData::clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane)
 {
-  if (this->nearest_point.index == -2) {
-    return;
-  }
-
-  SnapObjectContext *sctx = this->sctx_;
-
-  copy_v3_v3(sctx->ret.loc, this->nearest_point.co);
-  copy_v3_v3(sctx->ret.no, this->nearest_point.no);
-  sctx->ret.index = this->nearest_point.index;
-  copy_m4_m4(sctx->ret.obmat, this->obmat_.ptr());
-  sctx->ret.ob = this->ob_;
-  sctx->ret.data = this->id_;
-  sctx->ret.dist_px_sq = this->nearest_point.dist_sq;
-
-  /* Global space. */
-  mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
-  mul_mat3_m4_v3(this->obmat_.ptr(), sctx->ret.no);
-  normalize_v3(sctx->ret.no);
-}
-
-void Nearest2dUserData::clip_planes_enable(bool skip_occlusion_plane)
-{
-  SnapObjectContext *sctx = this->sctx_;
-
   float(*clip_planes)[4] = sctx->runtime.clip_plane;
   int clip_plane_len = sctx->runtime.clip_plane_len;
 
@@ -226,10 +194,11 @@ bool Nearest2dUserData::snap_edge(const float3 &va, const float3 &vb, int edge_i
   return false;
 }
 
-eSnapMode Nearest2dUserData::snap_edge_points(int edge_index, float dist_px_sq_orig)
+eSnapMode Nearest2dUserData::snap_edge_points_impl(SnapObjectContext *sctx,
+                                                   int edge_index,
+                                                   float dist_px_sq_orig)
 {
   eSnapMode elem = SCE_SNAP_TO_EDGE;
-  SnapObjectContext *sctx = this->sctx_;
 
   int vindex[2];
   this->get_edge_verts_index(edge_index, vindex);
@@ -300,6 +269,31 @@ eSnapMode Nearest2dUserData::snap_edge_points(int edge_index, float dist_px_sq_o
   }
 
   return elem;
+}
+
+void Nearest2dUserData::register_result(SnapObjectContext *sctx,
+                                        Object *ob_eval,
+                                        const ID *id_eval)
+{
+  BLI_assert(this->nearest_point.index == -2);
+
+  copy_v3_v3(sctx->ret.loc, this->nearest_point.co);
+  copy_v3_v3(sctx->ret.no, this->nearest_point.no);
+  sctx->ret.index = this->nearest_point.index;
+  copy_m4_m4(sctx->ret.obmat, this->obmat_.ptr());
+  sctx->ret.ob = ob_eval;
+  sctx->ret.data = id_eval;
+  sctx->ret.dist_px_sq = this->nearest_point.dist_sq;
+
+  /* Global space. */
+  mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
+  mul_mat3_m4_v3(this->obmat_.ptr(), sctx->ret.no);
+  normalize_v3(sctx->ret.no);
+
+#if DEBUG
+  /* Make sure this is only called once. */
+  this->nearest_point.index = -2;
+#endif
 }
 
 /* -------------------------------------------------------------------- */
@@ -448,7 +442,8 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
     const bool is_object_active = (base == base_act);
     Object *obj_eval = DEG_get_evaluated_object(sctx->runtime.depsgraph, base->object);
     if (obj_eval->transflag & OB_DUPLI ||
-        blender::bke::object_has_geometry_set_instances(*obj_eval)) {
+        blender::bke::object_has_geometry_set_instances(*obj_eval))
+    {
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);
       LISTBASE_FOREACH (DupliObject *, dupli_ob, lb) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));
@@ -715,7 +710,8 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
   if (ob_data == nullptr) {
     if (ob_eval->type == OB_MESH) {
       if (snap_object_editmesh(
-              sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide)) {
+              sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide))
+      {
         retval = true;
       }
     }
@@ -870,12 +866,12 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
     return SCE_SNAP_TO_NONE;
   }
 
-  Nearest2dUserData nearest2d(
-      sctx, ob_eval, static_cast<const ID *>(ob_eval->data), float4x4(obmat));
+  Nearest2dUserData nearest2d(sctx, float4x4(obmat));
 
-  nearest2d.clip_planes_enable();
+  nearest2d.clip_planes_enable(sctx);
 
   if (nearest2d.snap_point(float3(0.0f))) {
+    nearest2d.register_result(sctx, ob_eval, static_cast<const ID *>(ob_eval->data));
     return SCE_SNAP_TO_VERTEX;
   }
 
