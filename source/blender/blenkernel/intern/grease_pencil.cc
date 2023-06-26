@@ -609,6 +609,7 @@ bool LayerGroup::unlink_layer(Layer *link)
 {
   if (BLI_remlink_safe(&this->children, link)) {
     this->tag_nodes_cache_dirty();
+    link->base.parent = nullptr;
     return true;
   }
   return false;
