@@ -94,8 +94,8 @@
 /* Draw Backdrop ---------------------------------- */
 
 /* get backdrop color for top-level widgets (Scene and Object only) */
-static void acf_generic_root_color(bAnimContext *UNUSED(ac),
-                                   bAnimListElem *UNUSED(ale),
+static void acf_generic_root_color(bAnimContext * /*ac*/,
+                                   bAnimListElem * /*ale*/,
                                    float r_color[3])
 {
   /* darker blue for top-level widgets */
@@ -120,22 +120,18 @@ static void acf_generic_root_backdrop(bAnimContext *ac,
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set((expanded) ? UI_CNR_TOP_LEFT :
                                            (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fv_alpha(
-      &(const rctf){
-          .xmin = offset,
-          .xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD,
-          .ymin = yminc,
-          .ymax = ymaxc,
-      },
-      true,
-      8,
-      color,
-      1.0f);
+
+  rctf box;
+  box.xmin = offset;
+  box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
+  box.ymin = yminc;
+  box.ymax = ymaxc;
+  UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* get backdrop color for data expanders under top-level Scene/Object */
-static void acf_generic_dataexpand_color(bAnimContext *UNUSED(ac),
-                                         bAnimListElem *UNUSED(ale),
+static void acf_generic_dataexpand_color(bAnimContext * /*ac*/,
+                                         bAnimListElem * /*ale*/,
                                          float r_color[3])
 {
   /* lighter color than top-level widget */
@@ -177,7 +173,7 @@ static bool acf_show_channel_colors(void)
 static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
 {
   const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-  bActionGroup *grp = NULL;
+  bActionGroup *grp = nullptr;
   short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
   bool showGroupColors = acf_show_channel_colors();
 
@@ -259,11 +255,11 @@ static void acf_generic_channel_backdrop(bAnimContext *ac,
 /* Indentation + Offset ------------------------------------------- */
 
 /* indentation level is always the value in the name */
-static short acf_generic_indentation_0(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+static short acf_generic_indentation_0(bAnimContext * /*ac*/, bAnimListElem * /*ale*/)
 {
   return 0;
 }
-static short acf_generic_indentation_1(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+static short acf_generic_indentation_1(bAnimContext * /*ac*/, bAnimListElem * /*ale*/)
 {
   return 1;
 }
@@ -275,7 +271,7 @@ static short acf_generic_indentation_2(bAnimContext *ac, bAnimListElem *ale)
 #endif
 
 /* indentation which varies with the grouping status */
-static short acf_generic_indentation_flexible(bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static short acf_generic_indentation_flexible(bAnimContext * /*ac*/, bAnimListElem *ale)
 {
   short indent = 0;
 
@@ -376,37 +372,27 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 /* name property for ID block entries */
 static bool acf_generic_idblock_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
-  RNA_id_pointer_create(ale->data, ptr);
+  RNA_id_pointer_create(static_cast<ID *>(ale->data), ptr);
   *prop = RNA_struct_name_property(ptr->type);
 
-  return (*prop != NULL);
+  return (*prop != nullptr);
 }
 
 /* name property for ID block entries which are just subheading "fillers" */
 static bool acf_generic_idfill_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
 {
   /* actual ID we're representing is stored in ale->data not ale->id, as id gives the owner */
-  RNA_id_pointer_create(ale->data, ptr);
+  RNA_id_pointer_create(static_cast<ID *>(ale->data), ptr);
   *prop = RNA_struct_name_property(ptr->type);
 
-  return (*prop != NULL);
+  return (*prop != nullptr);
 }
 
 /* Settings ------------------------------------------- */
 
-#if 0
-/* channel type has no settings */
-static bool acf_generic_none_setting_valid(bAnimContext *ac,
-                                           bAnimListElem *ale,
-                                           eAnimChannel_Settings setting)
-{
-  return false;
-}
-#endif
-
 /* check if some setting exists for this object-based data-expander (datablock only) */
 static bool acf_generic_dataexpand_setting_valid(bAnimContext *ac,
-                                                 bAnimListElem *UNUSED(ale),
+                                                 bAnimListElem * /*ale*/,
                                                  eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -437,9 +423,7 @@ static bool acf_generic_dataexpand_setting_valid(bAnimContext *ac,
 /* Animation Summary ----------------------------------- */
 
 /* get backdrop color for summary widget */
-static void acf_summary_color(bAnimContext *UNUSED(ac),
-                              bAnimListElem *UNUSED(ale),
-                              float r_color[3])
+static void acf_summary_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
   /* reddish color - same as the 'action' line in NLA */
   UI_GetThemeColor3fv(TH_ANIM_ACTIVE, r_color);
@@ -460,21 +444,17 @@ static void acf_summary_backdrop(bAnimContext *ac, bAnimListElem *ale, float ymi
    * - special hack: make the top a bit higher, since we are first...
    */
   UI_draw_roundbox_corner_set(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
-  UI_draw_roundbox_3fv_alpha(
-      &(const rctf){
-          .xmin = 0,
-          .xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD,
-          .ymin = yminc - 2,
-          .ymax = ymaxc,
-      },
-      true,
-      8,
-      color,
-      1.0f);
+
+  rctf box;
+  box.xmin = 0;
+  box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
+  box.ymin = yminc - 2;
+  box.ymax = ymaxc;
+  UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* name for summary entries */
-static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
+static void acf_summary_name(bAnimListElem * /*ale*/, char *name)
 {
   if (name) {
     BLI_strncpy_utf8(name, IFACE_("Summary"), ANIM_CHAN_NAME_SIZE);
@@ -482,8 +462,8 @@ static void acf_summary_name(bAnimListElem *UNUSED(ale), char *name)
 }
 
 /* check if some setting exists for this channel */
-static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac),
-                                      bAnimListElem *UNUSED(ale),
+static bool acf_summary_setting_valid(bAnimContext * /*ac*/,
+                                      bAnimListElem * /*ale*/,
                                       eAnimChannel_Settings setting)
 {
   /* only expanded is supported, as it is used for hiding all stuff which the summary covers */
@@ -491,7 +471,7 @@ static bool acf_summary_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_summary_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_summary_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -526,7 +506,7 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale,
 
   /* can't return anything useful - unsupported */
   *type = 0;
-  return NULL;
+  return nullptr;
 }
 
 /** All animation summary (dope-sheet only) type define. */
@@ -537,11 +517,11 @@ static bAnimChannelType ACF_SUMMARY = {
     /*get_backdrop_color*/ acf_summary_color,
     /*draw_backdrop*/ acf_summary_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
-    /*get_offset*/ NULL,
+    /*get_offset*/ nullptr,
 
     /*name*/ acf_summary_name,
-    /*name_prop*/ NULL,
-    /*icon*/ NULL,
+    /*name_prop*/ nullptr,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_summary_setting_valid,
     /*setting_flag*/ acf_summary_setting_flag,
@@ -551,14 +531,14 @@ static bAnimChannelType ACF_SUMMARY = {
 /* Scene ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_scene_icon(bAnimListElem *UNUSED(ale))
+static int acf_scene_icon(bAnimListElem * /*ale*/)
 {
   return ICON_SCENE_DATA;
 }
 
 /* check if some setting exists for this channel */
 static bool acf_scene_setting_valid(bAnimContext *ac,
-                                    bAnimListElem *UNUSED(ale),
+                                    bAnimListElem * /*ale*/,
                                     eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -584,9 +564,7 @@ static bool acf_scene_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_scene_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_scene_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -631,10 +609,10 @@ static void *acf_scene_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (scene->adt) {
         return GET_ACF_FLAG_PTR(scene->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -646,7 +624,7 @@ static bAnimChannelType ACF_SCENE = {
     /*get_backdrop_color*/ acf_generic_root_color,
     /*draw_backdrop*/ acf_generic_root_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
-    /*get_offset*/ NULL,
+    /*get_offset*/ nullptr,
 
     /*name*/ acf_generic_idblock_name,
     /*name_prop*/ acf_generic_idblock_name_prop,
@@ -723,7 +701,7 @@ static bool acf_object_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
   RNA_id_pointer_create(ale->id, ptr);
   *prop = RNA_struct_name_property(ptr->type);
 
-  return (*prop != NULL);
+  return (*prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
@@ -757,9 +735,7 @@ static bool acf_object_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_object_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_object_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -809,10 +785,10 @@ static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
       if (ob->adt) {
         return GET_ACF_FLAG_PTR(ob->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -824,7 +800,7 @@ static bAnimChannelType ACF_OBJECT = {
     /*get_backdrop_color*/ acf_generic_root_color,
     /*draw_backdrop*/ acf_generic_root_backdrop,
     /*get_indent_level*/ acf_generic_indentation_0,
-    /*get_offset*/ NULL,
+    /*get_offset*/ nullptr,
 
     /*name*/ acf_object_name,
     /*name_prop*/ acf_object_name_prop,
@@ -838,7 +814,7 @@ static bAnimChannelType ACF_OBJECT = {
 /* Group ------------------------------------------- */
 
 /* get backdrop color for group widget */
-static void acf_group_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+static void acf_group_color(bAnimContext * /*ac*/, bAnimListElem *ale, float r_color[3])
 {
   bActionGroup *agrp = (bActionGroup *)ale->data;
   bool showGroupColors = acf_show_channel_colors();
@@ -882,17 +858,13 @@ static void acf_group_backdrop(bAnimContext *ac, bAnimListElem *ale, float yminc
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fv_alpha(
-      &(const rctf){
-          .xmin = offset,
-          .xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD,
-          .ymin = yminc,
-          .ymax = ymaxc,
-      },
-      true,
-      8,
-      color,
-      1.0f);
+
+  rctf box;
+  box.xmin = offset;
+  box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
+  box.ymin = yminc;
+  box.ymax = ymaxc;
+  UI_draw_roundbox_3fv_alpha(&box, true, 8, color, 1.0f);
 }
 
 /* name for group entries */
@@ -912,12 +884,12 @@ static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA
   RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data, ptr);
   *prop = RNA_struct_name_property(ptr->type);
 
-  return (*prop != NULL);
+  return (*prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
 static bool acf_group_setting_valid(bAnimContext *ac,
-                                    bAnimListElem *UNUSED(ale),
+                                    bAnimListElem * /*ale*/,
                                     eAnimChannel_Settings setting)
 {
   /* for now, all settings are supported, though some are only conditionally */
@@ -984,7 +956,7 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
 
 /* get pointer to the setting */
 static void *acf_group_setting_ptr(bAnimListElem *ale,
-                                   eAnimChannel_Settings UNUSED(setting),
+                                   eAnimChannel_Settings /*setting*/,
                                    short *type)
 {
   bActionGroup *agrp = (bActionGroup *)ale->data;
@@ -1005,7 +977,7 @@ static bAnimChannelType ACF_GROUP = {
 
     /*name*/ acf_group_name,
     /*name_prop*/ acf_group_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_group_setting_valid,
     /*setting_flag*/ acf_group_setting_flag,
@@ -1017,7 +989,7 @@ static bAnimChannelType ACF_GROUP = {
 /* name for fcurve entries */
 static void acf_fcurve_name(bAnimListElem *ale, char *name)
 {
-  getname_anim_fcurve(name, ale->id, ale->data);
+  getname_anim_fcurve(name, ale->id, static_cast<FCurve *>(ale->data));
 }
 
 /* "name" property for fcurve entries */
@@ -1035,10 +1007,10 @@ static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
   }
   else {
     /* for "normal" F-Curves - no editable name, but *prop may not be set properly yet... */
-    *prop = NULL;
+    *prop = nullptr;
   }
 
-  return (*prop != NULL);
+  return (*prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
@@ -1077,9 +1049,7 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_fcurve_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -1108,7 +1078,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_fcurve_setting_ptr(bAnimListElem *ale,
-                                    eAnimChannel_Settings UNUSED(setting),
+                                    eAnimChannel_Settings /*setting*/,
                                     short *type)
 {
   FCurve *fcu = (FCurve *)ale->data;
@@ -1130,7 +1100,7 @@ static bAnimChannelType ACF_FCURVE = {
 
     /*name*/ acf_fcurve_name,
     /*name_prop*/ acf_fcurve_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_fcurve_setting_valid,
     /*setting_flag*/ acf_fcurve_setting_flag,
@@ -1140,8 +1110,8 @@ static bAnimChannelType ACF_FCURVE = {
 /* NLA Control FCurves Expander ----------------------- */
 
 /* get backdrop color for nla controls widget */
-static void acf_nla_controls_color(bAnimContext *UNUSED(ac),
-                                   bAnimListElem *UNUSED(ale),
+static void acf_nla_controls_color(bAnimContext * /*ac*/,
+                                   bAnimListElem * /*ale*/,
                                    float r_color[3])
 {
   /* TODO: give this its own theme setting? */
@@ -1165,28 +1135,24 @@ static void acf_nla_controls_backdrop(bAnimContext *ac,
 
   /* rounded corners on LHS only - top only when expanded, but bottom too when collapsed */
   UI_draw_roundbox_corner_set(expanded ? UI_CNR_TOP_LEFT : (UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT));
-  UI_draw_roundbox_3fv_alpha(
-      &(const rctf){
-          .xmin = offset,
-          .xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD,
-          .ymin = yminc,
-          .ymax = ymaxc,
-      },
-      true,
-      5,
-      color,
-      1.0f);
+
+  rctf box;
+  box.xmin = offset;
+  box.xmax = v2d->cur.xmax + EXTRA_SCROLL_PAD;
+  box.ymin = yminc;
+  box.ymax = ymaxc;
+  UI_draw_roundbox_3fv_alpha(&box, true, 5, color, 1.0f);
 }
 
 /* name for nla controls expander entries */
-static void acf_nla_controls_name(bAnimListElem *UNUSED(ale), char *name)
+static void acf_nla_controls_name(bAnimListElem * /*ale*/, char *name)
 {
   BLI_strncpy_utf8(name, IFACE_("NLA Strip Controls"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
-static bool acf_nla_controls_setting_valid(bAnimContext *UNUSED(ac),
-                                           bAnimListElem *UNUSED(ale),
+static bool acf_nla_controls_setting_valid(bAnimContext * /*ac*/,
+                                           bAnimListElem * /*ale*/,
                                            eAnimChannel_Settings setting)
 {
   /* for now, all settings are supported, though some are only conditionally */
@@ -1203,7 +1169,7 @@ static bool acf_nla_controls_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_nla_controls_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_nla_controls_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
                                          bool *neg)
 {
@@ -1223,7 +1189,7 @@ static int acf_nla_controls_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_nla_controls_setting_ptr(bAnimListElem *ale,
-                                          eAnimChannel_Settings UNUSED(setting),
+                                          eAnimChannel_Settings /*setting*/,
                                           short *type)
 {
   AnimData *adt = (AnimData *)ale->data;
@@ -1232,7 +1198,7 @@ static void *acf_nla_controls_setting_ptr(bAnimListElem *ale,
   return GET_ACF_FLAG_PTR(adt->flag, type);
 }
 
-static int acf_nla_controls_icon(bAnimListElem *UNUSED(ale))
+static int acf_nla_controls_icon(bAnimListElem * /*ale*/)
 {
   return ICON_NLA;
 }
@@ -1248,7 +1214,7 @@ static bAnimChannelType ACF_NLACONTROLS = {
     /*get_offset*/ acf_generic_group_offset,
 
     /*name*/ acf_nla_controls_name,
-    /*name_prop*/ NULL,
+    /*name_prop*/ nullptr,
     /*icon*/ acf_nla_controls_icon,
 
     /*has_setting*/ acf_nla_controls_setting_valid,
@@ -1261,8 +1227,8 @@ static bAnimChannelType ACF_NLACONTROLS = {
 /* name for nla control fcurve entries */
 static void acf_nla_curve_name(bAnimListElem *ale, char *name)
 {
-  NlaStrip *strip = ale->owner;
-  FCurve *fcu = ale->data;
+  NlaStrip *strip = static_cast<NlaStrip *>(ale->owner);
+  FCurve *fcu = static_cast<FCurve *>(ale->data);
   PropertyRNA *prop;
 
   /* try to get RNA property that this shortened path (relative to the strip) refers to */
@@ -1289,7 +1255,7 @@ static bAnimChannelType ACF_NLACURVE = {
 
     /*name*/ acf_nla_curve_name,
     /*name_prop*/ acf_fcurve_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_fcurve_setting_valid,
     /*setting_flag*/ acf_fcurve_setting_flag,
@@ -1299,14 +1265,14 @@ static bAnimChannelType ACF_NLACURVE = {
 /* Object Action Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_fillactd_icon(bAnimListElem *UNUSED(ale))
+static int acf_fillactd_icon(bAnimListElem * /*ale*/)
 {
   return ICON_ACTION;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac),
-                                       bAnimListElem *UNUSED(ale),
+static bool acf_fillactd_setting_valid(bAnimContext * /*ac*/,
+                                       bAnimListElem * /*ale*/,
                                        eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -1321,7 +1287,7 @@ static bool acf_fillactd_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_fillactd_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_fillactd_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
@@ -1357,13 +1323,13 @@ static void *acf_fillactd_setting_ptr(bAnimListElem *ale,
       if (adt) {
         return GET_ACF_FLAG_PTR(adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
       return GET_ACF_FLAG_PTR(act->flag, type);
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1389,20 +1355,20 @@ static bAnimChannelType ACF_FILLACTD = {
 /* Drivers Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_filldrivers_icon(bAnimListElem *UNUSED(ale))
+static int acf_filldrivers_icon(bAnimListElem * /*ale*/)
 {
   return ICON_DRIVER;
 }
 
-static void acf_filldrivers_name(bAnimListElem *UNUSED(ale), char *name)
+static void acf_filldrivers_name(bAnimListElem * /*ale*/, char *name)
 {
   BLI_strncpy_utf8(name, IFACE_("Drivers"), ANIM_CHAN_NAME_SIZE);
 }
 
 /* check if some setting exists for this channel */
 /* TODO: this could be made more generic */
-static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac),
-                                          bAnimListElem *UNUSED(ale),
+static bool acf_filldrivers_setting_valid(bAnimContext * /*ac*/,
+                                          bAnimListElem * /*ale*/,
                                           eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -1416,7 +1382,7 @@ static bool acf_filldrivers_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_filldrivers_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_filldrivers_setting_flag(bAnimContext * /*ac*/,
                                         eAnimChannel_Settings setting,
                                         bool *neg)
 {
@@ -1448,7 +1414,7 @@ static void *acf_filldrivers_setting_ptr(bAnimListElem *ale,
       return GET_ACF_FLAG_PTR(adt->flag, type);
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1463,7 +1429,7 @@ static bAnimChannelType ACF_FILLDRIVERS = {
     /*get_offset*/ acf_generic_basic_offset,
 
     /*name*/ acf_filldrivers_name,
-    /*name_prop*/ NULL,
+    /*name_prop*/ nullptr,
     /*icon*/ acf_filldrivers_icon,
 
     /*has_setting*/ acf_filldrivers_setting_valid,
@@ -1474,15 +1440,13 @@ static bAnimChannelType ACF_FILLDRIVERS = {
 /* Material Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsmat_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsmat_icon(bAnimListElem * /*ale*/)
 {
   return ICON_MATERIAL_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmat_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dsmat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -1524,10 +1488,10 @@ static void *acf_dsmat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (ma->adt) {
         return GET_ACF_FLAG_PTR(ma->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1553,13 +1517,13 @@ static bAnimChannelType ACF_DSMAT = {
 /* Light Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dslight_icon(bAnimListElem *UNUSED(ale))
+static int acf_dslight_icon(bAnimListElem * /*ale*/)
 {
   return ICON_LIGHT_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dslight_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dslight_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -1605,10 +1569,10 @@ static void *acf_dslight_setting_ptr(bAnimListElem *ale,
       if (la->adt) {
         return GET_ACF_FLAG_PTR(la->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1634,22 +1598,20 @@ static bAnimChannelType ACF_DSLIGHT = {
 /* Texture Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dstex_icon(bAnimListElem *UNUSED(ale))
+static int acf_dstex_icon(bAnimListElem * /*ale*/)
 {
   return ICON_TEXTURE_DATA;
 }
 
 /* offset for texture expanders */
 /* FIXME: soon to be obsolete? */
-static short acf_dstex_offset(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale))
+static short acf_dstex_offset(bAnimContext * /*ac*/, bAnimListElem * /*ale*/)
 {
   return 14; /* XXX: simply include this in indentation instead? */
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dstex_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dstex_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -1691,10 +1653,10 @@ static void *acf_dstex_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (tex->adt) {
         return GET_ACF_FLAG_PTR(tex->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1774,10 +1736,10 @@ static void *acf_dscachefile_setting_ptr(bAnimListElem *ale,
         return GET_ACF_FLAG_PTR(cache_file->adt->flag, type);
       }
 
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1803,15 +1765,13 @@ static bAnimChannelType ACF_DSCACHEFILE = {
 /* Camera Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dscam_icon(bAnimListElem *UNUSED(ale))
+static int acf_dscam_icon(bAnimListElem * /*ale*/)
 {
   return ICON_CAMERA_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscam_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dscam_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -1857,10 +1817,10 @@ static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (ca->adt) {
         return GET_ACF_FLAG_PTR(ca->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1902,9 +1862,7 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscur_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dscur_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -1946,10 +1904,10 @@ static void *acf_dscur_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (cu->adt) {
         return GET_ACF_FLAG_PTR(cu->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -1975,14 +1933,14 @@ static bAnimChannelType ACF_DSCUR = {
 /* Shape Key Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsskey_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsskey_icon(bAnimListElem * /*ale*/)
 {
   return ICON_SHAPEKEY_DATA;
 }
 
 /* check if some setting exists for this channel */
 static bool acf_dsskey_setting_valid(bAnimContext *ac,
-                                     bAnimListElem *UNUSED(ale),
+                                     bAnimListElem * /*ale*/,
                                      eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -2000,9 +1958,7 @@ static bool acf_dsskey_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsskey_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_dsskey_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2044,10 +2000,10 @@ static void *acf_dsskey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
       if (key->adt) {
         return GET_ACF_FLAG_PTR(key->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2073,15 +2029,13 @@ static bAnimChannelType ACF_DSSKEY = {
 /* World Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dswor_icon(bAnimListElem *UNUSED(ale))
+static int acf_dswor_icon(bAnimListElem * /*ale*/)
 {
   return ICON_WORLD_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dswor_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dswor_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2123,10 +2077,10 @@ static void *acf_dswor_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (wo->adt) {
         return GET_ACF_FLAG_PTR(wo->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2152,15 +2106,13 @@ static bAnimChannelType ACF_DSWOR = {
 /* Particle Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dspart_icon(bAnimListElem *UNUSED(ale))
+static int acf_dspart_icon(bAnimListElem * /*ale*/)
 {
   return ICON_PARTICLE_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dspart_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_dspart_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2202,10 +2154,10 @@ static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
       if (part->adt) {
         return GET_ACF_FLAG_PTR(part->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2231,13 +2183,13 @@ static bAnimChannelType ACF_DSPART = {
 /* MetaBall Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsmball_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsmball_icon(bAnimListElem * /*ale*/)
 {
   return ICON_META_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmball_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dsmball_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -2283,10 +2235,10 @@ static void *acf_dsmball_setting_ptr(bAnimListElem *ale,
       if (mb->adt) {
         return GET_ACF_FLAG_PTR(mb->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2312,15 +2264,13 @@ static bAnimChannelType ACF_DSMBALL = {
 /* Armature Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsarm_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsarm_icon(bAnimListElem * /*ale*/)
 {
   return ICON_ARMATURE_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsarm_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dsarm_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2362,10 +2312,10 @@ static void *acf_dsarm_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (arm->adt) {
         return GET_ACF_FLAG_PTR(arm->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2391,7 +2341,7 @@ static bAnimChannelType ACF_DSARM = {
 /* NodeTree Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsntree_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsntree_icon(bAnimListElem * /*ale*/)
 {
   return ICON_NODETREE;
 }
@@ -2408,7 +2358,7 @@ static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsntree_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dsntree_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -2454,10 +2404,10 @@ static void *acf_dsntree_setting_ptr(bAnimListElem *ale,
       if (ntree->adt) {
         return GET_ACF_FLAG_PTR(ntree->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2483,13 +2433,13 @@ static bAnimChannelType ACF_DSNTREE = {
 /* LineStyle Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dslinestyle_icon(bAnimListElem *UNUSED(ale))
+static int acf_dslinestyle_icon(bAnimListElem * /*ale*/)
 {
   return ICON_LINE_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dslinestyle_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dslinestyle_setting_flag(bAnimContext * /*ac*/,
                                         eAnimChannel_Settings setting,
                                         bool *neg)
 {
@@ -2535,10 +2485,10 @@ static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale,
       if (linestyle->adt) {
         return GET_ACF_FLAG_PTR(linestyle->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2564,15 +2514,13 @@ static bAnimChannelType ACF_DSLINESTYLE = {
 /* Mesh Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsmesh_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsmesh_icon(bAnimListElem * /*ale*/)
 {
   return ICON_MESH_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmesh_setting_flag(bAnimContext *UNUSED(ac),
-                                   eAnimChannel_Settings setting,
-                                   bool *neg)
+static int acf_dsmesh_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2614,10 +2562,10 @@ static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings se
       if (me->adt) {
         return GET_ACF_FLAG_PTR(me->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2644,15 +2592,13 @@ static bAnimChannelType ACF_DSMESH = {
 /* Lattice Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dslat_icon(bAnimListElem *UNUSED(ale))
+static int acf_dslat_icon(bAnimListElem * /*ale*/)
 {
   return ICON_LATTICE_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dslat_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dslat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2694,10 +2640,10 @@ static void *acf_dslat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (lt->adt) {
         return GET_ACF_FLAG_PTR(lt->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2724,15 +2670,13 @@ static bAnimChannelType ACF_DSLAT = {
 /* Speaker Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsspk_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsspk_icon(bAnimListElem * /*ale*/)
 {
   return ICON_SPEAKER;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsspk_setting_flag(bAnimContext *UNUSED(ac),
-                                  eAnimChannel_Settings setting,
-                                  bool *neg)
+static int acf_dsspk_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -2774,10 +2718,10 @@ static void *acf_dsspk_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings set
       if (spk->adt) {
         return GET_ACF_FLAG_PTR(spk->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2803,13 +2747,13 @@ static bAnimChannelType ACF_DSSPK = {
 /* Curves Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dscurves_icon(bAnimListElem *UNUSED(ale))
+static int acf_dscurves_icon(bAnimListElem * /*ale*/)
 {
   return ICON_CURVES_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscurves_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dscurves_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
@@ -2855,10 +2799,10 @@ static void *acf_dscurves_setting_ptr(bAnimListElem *ale,
       if (curves->adt) {
         return GET_ACF_FLAG_PTR(curves->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2883,13 +2827,13 @@ static bAnimChannelType ACF_DSCURVES = {
 /* PointCloud Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dspointcloud_icon(bAnimListElem *UNUSED(ale))
+static int acf_dspointcloud_icon(bAnimListElem * /*ale*/)
 {
   return ICON_POINTCLOUD_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dspointcloud_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dspointcloud_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
                                          bool *neg)
 {
@@ -2935,10 +2879,10 @@ static void *acf_dspointcloud_setting_ptr(bAnimListElem *ale,
       if (pointcloud->adt) {
         return GET_ACF_FLAG_PTR(pointcloud->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -2963,13 +2907,13 @@ static bAnimChannelType ACF_DSPOINTCLOUD = {
 /* Volume Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsvolume_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsvolume_icon(bAnimListElem * /*ale*/)
 {
   return ICON_VOLUME_DATA;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsvolume_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dsvolume_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
@@ -3015,10 +2959,10 @@ static void *acf_dsvolume_setting_ptr(bAnimListElem *ale,
       if (volume->adt) {
         return GET_ACF_FLAG_PTR(volume->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3042,13 +2986,13 @@ static bAnimChannelType ACF_DSVOLUME = {
 
 /* Simulation Expander ----------------------------------------- */
 
-static int acf_dssimulation_icon(bAnimListElem *UNUSED(ale))
+static int acf_dssimulation_icon(bAnimListElem * /*ale*/)
 {
   /* TODO: Use correct icon. */
   return ICON_PHYSICS;
 }
 
-static int acf_dssimulation_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dssimulation_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
                                          bool *neg)
 {
@@ -3093,10 +3037,10 @@ static void *acf_dssimulation_setting_ptr(bAnimListElem *ale,
       if (simulation->adt) {
         return GET_ACF_FLAG_PTR(simulation->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3121,13 +3065,13 @@ static bAnimChannelType ACF_DSSIMULATION = {
 /* GPencil Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsgpencil_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsgpencil_icon(bAnimListElem * /*ale*/)
 {
   return ICON_OUTLINER_DATA_GREASEPENCIL;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsgpencil_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dsgpencil_setting_flag(bAnimContext * /*ac*/,
                                       eAnimChannel_Settings setting,
                                       bool *neg)
 {
@@ -3173,10 +3117,10 @@ static void *acf_dsgpencil_setting_ptr(bAnimListElem *ale,
       if (gpd->adt) {
         return GET_ACF_FLAG_PTR(gpd->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3202,13 +3146,13 @@ static bAnimChannelType ACF_DSGPENCIL = {
 /* World Expander  ------------------------------------------- */
 
 /* TODO: just get this from RNA? */
-static int acf_dsmclip_icon(bAnimListElem *UNUSED(ale))
+static int acf_dsmclip_icon(bAnimListElem * /*ale*/)
 {
   return ICON_SEQUENCE;
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmclip_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_dsmclip_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -3251,13 +3195,13 @@ static void *acf_dsmclip_setting_ptr(bAnimListElem *ale,
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
-      if (clip->adt != NULL) {
+      if (clip->adt != nullptr) {
         return GET_ACF_FLAG_PTR(clip->adt->flag, type);
       }
-      return NULL;
+      return nullptr;
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3309,15 +3253,15 @@ static bool acf_shapekey_name_prop(bAnimListElem *ale, PointerRNA *ptr, Property
     RNA_pointer_create(ale->id, &RNA_ShapeKey, kb, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
-    return (*prop != NULL);
+    return (*prop != nullptr);
   }
 
   return false;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac),
-                                       bAnimListElem *UNUSED(ale),
+static bool acf_shapekey_setting_valid(bAnimContext * /*ac*/,
+                                       bAnimListElem * /*ale*/,
                                        eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -3333,7 +3277,7 @@ static bool acf_shapekey_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_shapekey_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_shapekey_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
@@ -3372,7 +3316,7 @@ static void *acf_shapekey_setting_ptr(bAnimListElem *ale,
       return GET_ACF_FLAG_PTR(kb->flag, type);
 
     default: /* unsupported */
-      return NULL;
+      return nullptr;
   }
 }
 
@@ -3388,7 +3332,7 @@ static bAnimChannelType ACF_SHAPEKEY = {
 
     /*name*/ acf_shapekey_name,
     /*name_prop*/ acf_shapekey_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_shapekey_setting_valid,
     /*setting_flag*/ acf_shapekey_setting_flag,
@@ -3398,21 +3342,21 @@ static bAnimChannelType ACF_SHAPEKEY = {
 /* GPencil Datablock ------------------------------------------- */
 
 /* get backdrop color for gpencil datablock widget */
-static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_gpd_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
   /* these are ID-blocks, but not exactly standalone... */
   UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
 }
 
 /* TODO: just get this from RNA? */
-static int acf_gpd_icon(bAnimListElem *UNUSED(ale))
+static int acf_gpd_icon(bAnimListElem * /*ale*/)
 {
   return ICON_OUTLINER_OB_GREASEPENCIL;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac),
-                                  bAnimListElem *UNUSED(ale),
+static bool acf_gpd_setting_valid(bAnimContext * /*ac*/,
+                                  bAnimListElem * /*ale*/,
                                   eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -3427,7 +3371,7 @@ static bool acf_gpd_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
+static int acf_gpd_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -3447,7 +3391,7 @@ static int acf_gpd_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings 
 
 /* get pointer to the setting */
 static void *acf_gpd_setting_ptr(bAnimListElem *ale,
-                                 eAnimChannel_Settings UNUSED(setting),
+                                 eAnimChannel_Settings /*setting*/,
                                  short *type)
 {
   bGPdata *gpd = (bGPdata *)ale->data;
@@ -3494,15 +3438,15 @@ static bool acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA *
     RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
-    return (*prop != NULL);
+    return (*prop != nullptr);
   }
 
   return false;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac),
-                                  bAnimListElem *UNUSED(ale),
+static bool acf_gpl_setting_valid(bAnimContext * /*ac*/,
+                                  bAnimListElem * /*ale*/,
                                   eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -3520,7 +3464,7 @@ static bool acf_gpl_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings setting, bool *neg)
+static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -3546,7 +3490,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings 
 
 /* get pointer to the setting */
 static void *acf_gpl_setting_ptr(bAnimListElem *ale,
-                                 eAnimChannel_Settings UNUSED(setting),
+                                 eAnimChannel_Settings /*setting*/,
                                  short *type)
 {
   bGPDlayer *gpl = (bGPDlayer *)ale->data;
@@ -3567,7 +3511,7 @@ static bAnimChannelType ACF_GPL = {
 
     /*name*/ acf_gpl_name,
     /*name_prop*/ acf_gpl_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_gpl_setting_valid,
     /*setting_flag*/ acf_gpl_setting_flag,
@@ -3577,21 +3521,21 @@ static bAnimChannelType ACF_GPL = {
 /* Mask Datablock ------------------------------------------- */
 
 /* get backdrop color for mask datablock widget */
-static void acf_mask_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_mask_color(bAnimContext * /*ac*/, bAnimListElem * /*ale*/, float r_color[3])
 {
   /* these are ID-blocks, but not exactly standalone... */
   UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
 }
 
 /* TODO: just get this from RNA? */
-static int acf_mask_icon(bAnimListElem *UNUSED(ale))
+static int acf_mask_icon(bAnimListElem * /*ale*/)
 {
   return ICON_MOD_MASK;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac),
-                                   bAnimListElem *UNUSED(ale),
+static bool acf_mask_setting_valid(bAnimContext * /*ac*/,
+                                   bAnimListElem * /*ale*/,
                                    eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -3606,9 +3550,7 @@ static bool acf_mask_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_mask_setting_flag(bAnimContext *UNUSED(ac),
-                                 eAnimChannel_Settings setting,
-                                 bool *neg)
+static int acf_mask_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
 {
   /* clear extra return data first */
   *neg = false;
@@ -3628,7 +3570,7 @@ static int acf_mask_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_mask_setting_ptr(bAnimListElem *ale,
-                                  eAnimChannel_Settings UNUSED(setting),
+                                  eAnimChannel_Settings /*setting*/,
                                   short *type)
 {
   Mask *mask = (Mask *)ale->data;
@@ -3675,15 +3617,15 @@ static bool acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyR
     RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
-    return (*prop != NULL);
+    return (*prop != nullptr);
   }
 
   return false;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac),
-                                      bAnimListElem *UNUSED(ale),
+static bool acf_masklay_setting_valid(bAnimContext * /*ac*/,
+                                      bAnimListElem * /*ale*/,
                                       eAnimChannel_Settings setting)
 {
   switch (setting) {
@@ -3703,7 +3645,7 @@ static bool acf_masklay_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_masklay_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
                                     bool *neg)
 {
@@ -3724,7 +3666,7 @@ static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_masklay_setting_ptr(bAnimListElem *ale,
-                                     eAnimChannel_Settings UNUSED(setting),
+                                     eAnimChannel_Settings /*setting*/,
                                      short *type)
 {
   MaskLayer *masklay = (MaskLayer *)ale->data;
@@ -3745,7 +3687,7 @@ static bAnimChannelType ACF_MASKLAYER = {
 
     /*name*/ acf_masklay_name,
     /*name_prop*/ acf_masklay_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_masklay_setting_valid,
     /*setting_flag*/ acf_masklay_setting_flag,
@@ -3755,7 +3697,7 @@ static bAnimChannelType ACF_MASKLAYER = {
 /* NLA Track ----------------------------------------------- */
 
 /* get backdrop color for nla track channels */
-static void acf_nlatrack_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+static void acf_nlatrack_color(bAnimContext * /*ac*/, bAnimListElem *ale, float r_color[3])
 {
   NlaTrack *nlt = (NlaTrack *)ale->data;
   AnimData *adt = ale->adt;
@@ -3790,14 +3732,14 @@ static bool acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *ptr, Property
     RNA_pointer_create(ale->id, &RNA_NlaTrack, ale->data, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
-    return (*prop != NULL);
+    return (*prop != nullptr);
   }
 
   return false;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac),
+static bool acf_nlatrack_setting_valid(bAnimContext * /*ac*/,
                                        bAnimListElem *ale,
                                        eAnimChannel_Settings setting)
 {
@@ -3839,7 +3781,7 @@ static bool acf_nlatrack_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_nlatrack_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
@@ -3866,7 +3808,7 @@ static int acf_nlatrack_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_nlatrack_setting_ptr(bAnimListElem *ale,
-                                      eAnimChannel_Settings UNUSED(setting),
+                                      eAnimChannel_Settings /*setting*/,
                                       short *type)
 {
   NlaTrack *nlt = (NlaTrack *)ale->data;
@@ -3885,7 +3827,7 @@ static bAnimChannelType ACF_NLATRACK = {
 
     /*name*/ acf_nlatrack_name,
     /*name_prop*/ acf_nlatrack_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_nlatrack_setting_valid,
     /*setting_flag*/ acf_nlatrack_setting_flag,
@@ -3911,7 +3853,7 @@ static int acf_nlaaction_icon(bAnimListElem *ale)
  * Although this can't be used directly for NLA Action drawing,
  * it is still needed for use behind the RHS toggles
  */
-static void acf_nlaaction_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+static void acf_nlaaction_color(bAnimContext * /*ac*/, bAnimListElem *ale, float r_color[3])
 {
   float color[4];
 
@@ -3960,16 +3902,12 @@ static void acf_nlaaction_backdrop(bAnimContext *ac, bAnimListElem *ale, float y
   /* draw slightly shifted up vertically to look like it has more separation from other channels,
    * but we then need to slightly shorten it so that it doesn't look like it overlaps
    */
-  UI_draw_roundbox_4fv(
-      &(const rctf){
-          .xmin = offset,
-          .xmax = (float)v2d->cur.xmax,
-          .ymin = yminc + NLACHANNEL_SKIP,
-          .ymax = ymaxc + NLACHANNEL_SKIP - 1,
-      },
-      true,
-      8,
-      color);
+  rctf box;
+  box.xmin = offset;
+  box.xmax = (float)v2d->cur.xmax;
+  box.ymin = yminc + NLACHANNEL_SKIP;
+  box.ymax = ymaxc + NLACHANNEL_SKIP - 1;
+  UI_draw_roundbox_4fv(&box, true, 8, color);
 }
 
 /* name for nla action entries */
@@ -3995,14 +3933,14 @@ static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *ptr, Propert
     RNA_pointer_create(ale->fcurve_owner_id, &RNA_Action, ale->data, ptr);
     *prop = RNA_struct_name_property(ptr->type);
 
-    return (*prop != NULL);
+    return (*prop != nullptr);
   }
 
   return false;
 }
 
 /* check if some setting exists for this channel */
-static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
+static bool acf_nlaaction_setting_valid(bAnimContext * /*ac*/,
                                         bAnimListElem *ale,
                                         eAnimChannel_Settings setting)
 {
@@ -4029,7 +3967,7 @@ static bool acf_nlaaction_setting_valid(bAnimContext *UNUSED(ac),
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
+static int acf_nlaaction_setting_flag(bAnimContext * /*ac*/,
                                       eAnimChannel_Settings setting,
                                       bool *neg)
 {
@@ -4051,7 +3989,7 @@ static int acf_nlaaction_setting_flag(bAnimContext *UNUSED(ac),
 
 /* get pointer to the setting */
 static void *acf_nlaaction_setting_ptr(bAnimListElem *ale,
-                                       eAnimChannel_Settings UNUSED(setting),
+                                       eAnimChannel_Settings /*setting*/,
                                        short *type)
 {
   AnimData *adt = ale->adt;
@@ -4097,9 +4035,9 @@ static void ANIM_init_channel_typeinfo_data(void)
     /* NOTE: need to keep the order of these synchronized with the definition of
      * channel types (eAnim_ChannelType) in ED_anim_api.h
      */
-    animchannelTypeInfo[type++] = NULL; /* None */
-    animchannelTypeInfo[type++] = NULL; /* AnimData */
-    animchannelTypeInfo[type++] = NULL; /* Special */
+    animchannelTypeInfo[type++] = nullptr; /* None */
+    animchannelTypeInfo[type++] = nullptr; /* AnimData */
+    animchannelTypeInfo[type++] = nullptr; /* Special */
 
     animchannelTypeInfo[type++] = &ACF_SUMMARY; /* Motion Summary */
 
@@ -4153,8 +4091,8 @@ static void ANIM_init_channel_typeinfo_data(void)
 const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
 {
   /* Sanity checks. */
-  if (ale == NULL) {
-    return NULL;
+  if (ale == nullptr) {
+    return nullptr;
   }
 
   /* init the typeinfo if not available yet... */
@@ -4165,7 +4103,7 @@ const bAnimChannelType *ANIM_channel_get_typeinfo(bAnimListElem *ale)
     return animchannelTypeInfo[ale->type];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* --------------------------- */
@@ -4198,7 +4136,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
     printf("ChanType: <Unknown - %d>\n", ale->type);
   }
   else {
-    printf("<Invalid channel - NULL>\n");
+    printf("<Invalid channel - nullptr>\n");
   }
 }
 
@@ -4216,7 +4154,7 @@ bAction *ANIM_channel_action_get(const bAnimListElem *ale)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* --------------------------- */
@@ -4432,7 +4370,7 @@ void ANIM_channel_draw(
   float y, ymid, ytext;
 
   /* sanity checks - don't draw anything */
-  if (ELEM(NULL, acf, ale)) {
+  if (ELEM(nullptr, acf, ale)) {
     return;
   }
 
@@ -4686,9 +4624,9 @@ void ANIM_channel_draw(
 /* ------------------ */
 
 /* callback for (normal) widget settings - send notifiers */
-static void achannel_setting_widget_cb(bContext *C, void *UNUSED(arg1), void *UNUSED(arg2))
+static void achannel_setting_widget_cb(bContext *C, void * /*arg1*/, void * /*arg2*/)
 {
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 }
 
 /* callback for widget settings that need flushing */
@@ -4696,13 +4634,13 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 {
   bAnimListElem *ale_setting = (bAnimListElem *)ale_npoin;
   bAnimContext ac;
-  ListBase anim_data = {NULL, NULL};
+  ListBase anim_data = {nullptr, nullptr};
   int filter;
   int setting = POINTER_AS_INT(setting_wrap);
   short on = 0;
 
   /* send notifiers before doing anything else... */
-  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
 
   /* verify that we have a channel to operate on. */
   if (!ale_setting) {
@@ -4717,7 +4655,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
     }
 
     /* UI updates */
-    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   }
 
   /* Tag for full animation update, so that the settings will have an effect. */
@@ -4735,7 +4673,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
   }
 
   /* check if the setting is on... */
-  on = ANIM_channel_setting_get(&ac, ale_setting, setting);
+  on = ANIM_channel_setting_get(&ac, ale_setting, eAnimChannel_Settings(setting));
 
   /* on == -1 means setting not found... */
   if (on == -1) {
@@ -4744,21 +4682,23 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 
   /* get all channels that can possibly be chosen - but ignore hierarchy */
   filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
-  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+  ANIM_animdata_filter(
+      &ac, &anim_data, eAnimFilter_Flags(filter), ac.data, eAnimCont_Types(ac.datatype));
 
   /* call API method to flush the setting */
-  ANIM_flush_setting_anim_channels(&ac, &anim_data, ale_setting, setting, on);
+  ANIM_flush_setting_anim_channels(
+      &ac, &anim_data, ale_setting, eAnimChannel_Settings(setting), eAnimChannels_SetFlag(on));
 
   /* free temp data */
   ANIM_animdata_freelist(&anim_data);
 }
 
 /* callback for wrapping NLA Track "solo" toggle logic */
-static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *UNUSED(arg2))
+static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void * /*arg2*/)
 {
-  bAnimListElem *ale = ale_poin;
+  bAnimListElem *ale = static_cast<bAnimListElem *>(ale_poin);
   AnimData *adt = ale->adt;
-  NlaTrack *nlt = ale->data;
+  NlaTrack *nlt = static_cast<NlaTrack *>(ale->data);
 
   /* Toggle 'solo' mode. There are several complications here which need explaining:
    * - The method call is needed to perform a few additional validation operations
@@ -4772,7 +4712,7 @@ static void achannel_nlatrack_solo_widget_cb(bContext *C, void *ale_poin, void *
 
   /* send notifiers */
   DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
-  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
+  WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, nullptr);
 }
 
 /* callback for widget sliders - insert keyframes */
@@ -4786,10 +4726,10 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ToolSettings *ts = scene->toolsettings;
-  ListBase nla_cache = {NULL, NULL};
+  ListBase nla_cache = {nullptr, nullptr};
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
-  eInsertKeyFlags flag = 0;
+  eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
   bool done = false;
   float cfra;
 
@@ -4816,15 +4756,21 @@ static void achannel_setting_slider_cb(bContext *C, void *id_poin, void *fcu_poi
     }
 
     /* insert a keyframe for this F-Curve */
-    done = insert_keyframe_direct(
-        reports, ptr, prop, fcu, &anim_eval_context, ts->keyframe_type, nla_context, flag);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &anim_eval_context,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
+                                  nla_context,
+                                  flag);
 
     if (done) {
-      if (adt->action != NULL) {
+      if (adt->action != nullptr) {
         DEG_id_tag_update(&adt->action->id, ID_RECALC_ANIMATION_NO_FLUSH);
       }
       DEG_id_tag_update(id, ID_RECALC_ANIMATION_NO_FLUSH);
-      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
     }
   }
 
@@ -4843,10 +4789,10 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
   Scene *scene = CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ToolSettings *ts = scene->toolsettings;
-  ListBase nla_cache = {NULL, NULL};
+  ListBase nla_cache = {nullptr, nullptr};
   PointerRNA id_ptr, ptr;
   PropertyRNA *prop;
-  eInsertKeyFlags flag = 0;
+  eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
   bool done = false;
 
   /* Get RNA pointer */
@@ -4870,7 +4816,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
     /* find or create new F-Curve */
     /* XXX is the group name for this ok? */
     bAction *act = ED_id_action_ensure(bmain, (ID *)key);
-    FCurve *fcu = ED_action_fcurve_ensure(bmain, act, NULL, &ptr, rna_path, 0);
+    FCurve *fcu = ED_action_fcurve_ensure(bmain, act, nullptr, &ptr, rna_path, 0);
 
     /* set the special 'replace' flag if on a keyframe */
     if (fcurve_frame_has_keyframe(fcu, remapped_frame)) {
@@ -4885,12 +4831,12 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
                                   prop,
                                   fcu,
                                   &remapped_anim_eval_context,
-                                  ts->keyframe_type,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
                                   nla_context,
                                   flag);
 
     if (done) {
-      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
     }
   }
 
@@ -4903,9 +4849,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 }
 
 /* callback for NLA Control Curve widget sliders - insert keyframes */
-static void achannel_setting_slider_nla_curve_cb(bContext *C,
-                                                 void *UNUSED(id_poin),
-                                                 void *fcu_poin)
+static void achannel_setting_slider_nla_curve_cb(bContext *C, void * /*id_poin*/, void *fcu_poin)
 {
   /* ID *id = (ID *)id_poin; */
   FCurve *fcu = (FCurve *)fcu_poin;
@@ -4917,7 +4861,7 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
   ReportList *reports = CTX_wm_reports(C);
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = scene->toolsettings;
-  eInsertKeyFlags flag = 0;
+  eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
   bool done = false;
   float cfra;
 
@@ -4941,11 +4885,17 @@ static void achannel_setting_slider_nla_curve_cb(bContext *C,
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                       cfra);
-    done = insert_keyframe_direct(
-        reports, ptr, prop, fcu, &anim_eval_context, ts->keyframe_type, NULL, flag);
+    done = insert_keyframe_direct(reports,
+                                  ptr,
+                                  prop,
+                                  fcu,
+                                  &anim_eval_context,
+                                  eBezTriple_KeyframeType(ts->keyframe_type),
+                                  nullptr,
+                                  flag);
 
     if (done) {
-      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
     }
   }
 }
@@ -5062,12 +5012,12 @@ static void draw_setting_widget(bAnimContext *ac,
       }
       else {
         /* TODO: there are no other tools which require the 'pinning' concept yet */
-        tooltip = NULL;
+        tooltip = nullptr;
       }
       break;
 
     default:
-      tooltip = NULL;
+      tooltip = nullptr;
       icon = 0;
       break;
   }
@@ -5092,7 +5042,7 @@ static void draw_setting_widget(bAnimContext *ac,
   }
 
   /* draw button for setting */
-  uiBut *but = NULL;
+  uiBut *but = nullptr;
   switch (ptrsize) {
     case sizeof(int): /* integer pointer for setting */
       but = uiDefIconButBitI(block,
@@ -5104,7 +5054,7 @@ static void draw_setting_widget(bAnimContext *ac,
                              ypos,
                              ICON_WIDTH,
                              ICON_WIDTH,
-                             ptr,
+                             static_cast<int *>(ptr),
                              0,
                              0,
                              0,
@@ -5122,7 +5072,7 @@ static void draw_setting_widget(bAnimContext *ac,
                              ypos,
                              ICON_WIDTH,
                              ICON_WIDTH,
-                             ptr,
+                             static_cast<short *>(ptr),
                              0,
                              0,
                              0,
@@ -5140,7 +5090,7 @@ static void draw_setting_widget(bAnimContext *ac,
                              ypos,
                              ICON_WIDTH,
                              ICON_WIDTH,
-                             ptr,
+                             static_cast<char *>(ptr),
                              0,
                              0,
                              0,
@@ -5167,19 +5117,20 @@ static void draw_setting_widget(bAnimContext *ac,
 
     /* settings needing special attention */
     case ACHANNEL_SETTING_SOLO: /* NLA Tracks - Solo toggle */
-      UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), NULL);
+      UI_but_funcN_set(but, achannel_nlatrack_solo_widget_cb, MEM_dupallocN(ale), nullptr);
       break;
 
     /* no flushing */
     case ACHANNEL_SETTING_EXPAND: /* expanding - cannot flush,
                                    * otherwise all would open/close at once */
     default:
-      UI_but_func_set(but, achannel_setting_widget_cb, NULL, NULL);
+      UI_but_func_set(but, achannel_setting_widget_cb, nullptr, nullptr);
       break;
   }
 
-  if ((ale->fcurve_owner_id != NULL && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
-      (ale->fcurve_owner_id == NULL && ale->id != NULL && !BKE_id_is_editable(ac->bmain, ale->id)))
+  if ((ale->fcurve_owner_id != nullptr && !BKE_id_is_editable(ac->bmain, ale->fcurve_owner_id)) ||
+      (ale->fcurve_owner_id == nullptr && ale->id != nullptr &&
+       !BKE_id_is_editable(ac->bmain, ale->id)))
   {
     if (setting != ACHANNEL_SETTING_EXPAND) {
       UI_but_disable(but, TIP_("Can't edit this property from a linked data-block"));
@@ -5201,7 +5152,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
   const bool is_being_renamed = achannel_is_being_renamed(ac, acf, channel_index);
 
   /* sanity checks - don't draw anything */
-  if (ELEM(NULL, acf, ale, block)) {
+  if (ELEM(nullptr, acf, ale, block)) {
     return;
   }
 
@@ -5259,8 +5210,8 @@ void ANIM_channel_draw_widgets(const bContext *C,
 
   /* step 4) draw text - check if renaming widget is in use... */
   if (is_being_renamed) {
-    PointerRNA ptr = {NULL};
-    PropertyRNA *prop = NULL;
+    PointerRNA ptr = {nullptr};
+    PropertyRNA *prop = nullptr;
 
     /* draw renaming widget if we can get RNA pointer for it
      * NOTE: property may only be available in some cases, even if we have
@@ -5288,14 +5239,14 @@ void ANIM_channel_draw_widgets(const bContext *C,
                       0,
                       -1,
                       -1,
-                      NULL);
+                      nullptr);
 
       /* copy what outliner does here, see outliner_buttons */
       if (UI_but_active_only(C, ac->region, block, but) == false) {
         ac->ads->renameIndex = 0;
 
         /* send notifiers */
-        WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, NULL);
+        WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_RENAME, nullptr);
       }
 
       UI_block_emboss_set(block, UI_EMBOSS_NONE);
@@ -5305,7 +5256,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
        * so that this doesn't hang around, and the name can be drawn normally - #47492
        */
       ac->ads->renameIndex = 0;
-      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
+      WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, nullptr);
     }
   }
 
@@ -5393,7 +5344,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                             ymid,
                             UI_UNIT_X,
                             UI_UNIT_X,
-                            NULL);
+                            nullptr);
 
         opptr_b = UI_but_operator_ptr_get(but);
         RNA_int_set(opptr_b, "channel_index", channel_index);
@@ -5463,7 +5414,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
       else if (ale->id) { /* Slider using RNA Access --------------- */
         PointerRNA id_ptr, ptr;
         PropertyRNA *prop;
-        char *rna_path = NULL;
+        char *rna_path = nullptr;
         int array_index = 0;
         short free_path = 0;
 
@@ -5484,11 +5435,11 @@ void ANIM_channel_draw_widgets(const bContext *C,
         /* Special for Grease Pencil Layer. */
         else if (ale->type == ANIMTYPE_GPLAYER) {
           bGPdata *gpd = (bGPdata *)ale->id;
-          if ((gpd != NULL) && ((gpd->flag & GP_DATA_ANNOTATIONS) == 0)) {
+          if ((gpd != nullptr) && ((gpd->flag & GP_DATA_ANNOTATIONS) == 0)) {
             /* Reset slider offset, in order to add special gp icons. */
             offset += SLIDER_WIDTH;
 
-            char *gp_rna_path = NULL;
+            char *gp_rna_path = nullptr;
             bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
             /* Create the RNA pointers. */
