@@ -752,6 +752,12 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   if (but->func != oldbut->func) {
     return false;
   }
+  /* Compares the contained function pointers. Buttons with different apply functions can be
+   * considered to do different things, and as such do not equal each other. */
+  if (but->apply_func.target<void(bContext &)>() != oldbut->apply_func.target<void(bContext &)>())
+  {
+    return false;
+  }
   if (but->funcN != oldbut->funcN) {
     return false;
   }
@@ -6046,6 +6052,11 @@ void UI_but_func_set(uiBut *but, uiButHandleFunc func, void *arg1, void *arg2)
   but->func = func;
   but->func_arg1 = arg1;
   but->func_arg2 = arg2;
+}
+
+void UI_but_func_set(uiBut *but, std::function<void(bContext &)> func)
+{
+  but->apply_func = std::move(func);
 }
 
 void UI_but_funcN_set(uiBut *but, uiButHandleNFunc funcN, void *argN, void *arg2)
