@@ -42,7 +42,6 @@ struct PaintOperationExecutor {
   {
     using namespace blender::bke;
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-    Scene *scene = CTX_data_scene(&C);
     ARegion *region = CTX_wm_region(&C);
     Object *obact = CTX_data_active_object(&C);
     Object *ob_eval = DEG_get_evaluated_object(depsgraph, obact);
@@ -58,12 +57,6 @@ struct PaintOperationExecutor {
       BLI_assert_unreachable();
       // grease_pencil.runtime->set_active_layer_index(0);
     }
-    const bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-    int index = active_layer.drawing_index_at(scene->r.cfra);
-    BLI_assert(index != -1);
-
-    GreasePencilDrawing &drawing = *reinterpret_cast<GreasePencilDrawing *>(
-        grease_pencil.drawings()[index]);
 
     float4 plane{0.0f, -1.0f, 0.0f, 0.0f};
     float3 proj_pos;
@@ -103,8 +96,6 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   bke::greasepencil::Drawing &drawing_orig =
       reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings()[index_orig])->wrap();
-  bke::greasepencil::Drawing &drawing_eval =
-      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_eval.drawings()[index_eval])->wrap();
 
   const Span<bke::greasepencil::StrokePoint> stroke_points =
       grease_pencil_eval.runtime->stroke_buffer();
