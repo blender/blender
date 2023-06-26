@@ -88,7 +88,7 @@ int SEQ_retiming_handles_count(const Sequence *seq)
   return seq->retiming_handle_num;
 }
 
-void SEQ_retiming_data_ensure(Sequence *seq)
+void SEQ_retiming_data_ensure(const Scene *scene, Sequence *seq)
 {
   if (!SEQ_retiming_is_allowed(seq)) {
     return;
@@ -104,6 +104,8 @@ void SEQ_retiming_data_ensure(Sequence *seq)
   handle->strip_frame_index = seq->len;
   handle->retiming_factor = 1.0f;
   seq->retiming_handle_num = 2;
+
+  SEQ_retiming_add_handle(scene, seq, SEQ_time_right_handle_frame_get(scene, seq));
 }
 
 void SEQ_retiming_data_clear(Sequence *seq)

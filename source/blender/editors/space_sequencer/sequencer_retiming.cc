@@ -325,7 +325,7 @@ static int sequesequencer_retiming_handle_add_exec(bContext *C, wmOperator *op)
   const Editing *ed = SEQ_editing_get(scene);
   Sequence *seq = ed->act_seq;
 
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
 
   float timeline_frame;
   if (RNA_struct_property_is_set(op->ptr, "timeline_frame")) {

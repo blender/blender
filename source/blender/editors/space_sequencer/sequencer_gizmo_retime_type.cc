@@ -429,7 +429,7 @@ static void gizmo_retime_handle_draw(const bContext *C, wmGizmo *gz)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(CTX_data_scene(C), seq);
   MutableSpan handles = SEQ_retiming_handles_get(seq);
 
   for (const SeqRetimingHandle &handle : handles) {
@@ -454,7 +454,7 @@ static int gizmo_retime_handle_test_select(bContext *C, wmGizmo *gz, const int m
   gizmo->mouse_over_seq = nullptr;
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
   const SeqRetimingHandle *handle = mouse_over_handle_get(
       scene, seq, UI_view2d_fromcontext(C), mval);
   const int handle_index = SEQ_retiming_handle_index_get(seq, handle);
@@ -531,7 +531,7 @@ static int gizmo_retime_remove_test_select(bContext *C, wmGizmo *gz, const int m
   Scene *scene = CTX_data_scene(C);
   Sequence *seq = active_seq_from_context(C);
 
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
   const SeqRetimingHandle *handle = mouse_over_handle_get(
       scene, seq, UI_view2d_fromcontext(C), mval);
   const int handle_index = SEQ_retiming_handle_index_get(seq, handle);
@@ -690,7 +690,7 @@ static void gizmo_retime_speed_set_draw(const bContext *C, wmGizmo * /* gz */)
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(CTX_data_scene(C), seq);
   MutableSpan handles = SEQ_retiming_handles_get(seq);
 
   for (const SeqRetimingHandle &handle : handles) {
@@ -711,7 +711,7 @@ static int gizmo_retime_speed_set_test_select(bContext *C, wmGizmo *gz, const in
   const View2D *v2d = UI_view2d_fromcontext(C);
 
   Sequence *seq = active_seq_from_context(C);
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
 
   for (const SeqRetimingHandle &handle : SEQ_retiming_handles_get(seq)) {
     if (SEQ_retiming_handle_is_transition_type(&handle)) {
