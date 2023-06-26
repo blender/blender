@@ -174,7 +174,7 @@ void drawSnapping(const bContext *C, TransInfo *t)
     return;
   }
 
-  const bool draw_source = (t->tsnap.status & SNAP_SOURCE_FOUND) && (t->flag & T_DRAW_SNAP_SOURCE);
+  const bool draw_source = (t->flag & T_DRAW_SNAP_SOURCE) && (t->tsnap.status & (SNAP_SOURCE_FOUND | SNAP_MULTI_POINTS));
   const bool draw_target = (t->tsnap.status & (SNAP_TARGET_FOUND | SNAP_MULTI_POINTS));
 
   if (!(draw_source || draw_target)) {

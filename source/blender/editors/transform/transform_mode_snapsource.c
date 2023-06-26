@@ -75,7 +75,6 @@ static void snapsource_confirm(TransInfo *t)
   getSnapPoint(t, t->tsnap.snap_source);
   t->tsnap.snap_source_fn = NULL;
   t->tsnap.status |= SNAP_SOURCE_FOUND;
-  t->flag |= T_DRAW_SNAP_SOURCE;
 
   struct SnapSouceCustomData *customdata = t->custom.mode.data;
   t->tsnap.mode = customdata->snap_mode_confirm;
@@ -152,6 +151,9 @@ static void snapsource_transform_fn(TransInfo *t, const int UNUSED(mval[2]))
   BLI_assert(t->modifiers & MOD_EDIT_SNAP_SOURCE);
 
   t->tsnap.snap_target_fn(t, NULL);
+  if (t->tsnap.status & SNAP_MULTI_POINTS) {
+    getSnapPoint(t, t->tsnap.snap_source);
+  }
   t->redraw |= TREDRAW_SOFT;
 }
 
@@ -184,6 +186,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
   }
 
   t->mode_info = &TransMode_snapsource;
+  t->flag |= T_DRAW_SNAP_SOURCE;
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
   t->tsnap.status &= ~SNAP_SOURCE_FOUND;
 
