@@ -566,6 +566,14 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Magnitud en que la acción activa contribuye al resultado de la lista de ANL"
 
 
+msgid "Tweak Mode Action Storage"
+msgstr "Almacenamiento de acción de modo de retoque"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "Contenedor para almacenar temporalmente la acción principal, mientras se encuentra activo el modo de retoque"
+
+
 msgid "Drivers"
 msgstr "Controladores"
 
@@ -19963,16 +19971,41 @@ msgid "Gpencil Settings"
 msgstr "Opciones de lápiz de cera"
 
 
+msgctxt "Brush"
+msgid "Grease Pencil Draw Tool"
+msgstr "Herramienta dibujar (lápiz de cera)"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "Dibujar"
+
+
 msgid "The brush is of type used for drawing strokes"
 msgstr "El pincel es del tipo usado para dibujar trazos"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "Rellenar"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "El pincel es del tipo usado para rellenar áreas"
 
 
+msgctxt "Brush"
+msgid "Erase"
+msgstr "Borrar"
+
+
 msgid "The brush is used for erasing strokes"
 msgstr "El pincel es usado para borrar trazos"
+
+
+msgctxt "Brush"
+msgid "Tint"
+msgstr "Teñir"
 
 
 msgid "The brush is of type used for tinting strokes"
@@ -20065,6 +20098,31 @@ msgstr "Ruta archivo ícono"
 
 msgid "File path to brush icon"
 msgstr "Ruta al archivo del ícono del pincel"
+
+
+msgctxt "Brush"
+msgid "Image Paint Tool"
+msgstr "Herramienta pintar (imágenes)"
+
+
+msgctxt "Brush"
+msgid "Soften"
+msgstr "Suavizar"
+
+
+msgctxt "Brush"
+msgid "Smear"
+msgstr "Manchar"
+
+
+msgctxt "Brush"
+msgid "Clone"
+msgstr "Clonar"
+
+
+msgctxt "Brush"
+msgid "Mask"
+msgstr "Enmascarar"
 
 
 msgid "Invert Pressure for Density"
@@ -20325,6 +20383,136 @@ msgstr "Plano Y"
 
 msgid "Z Plane"
 msgstr "Plano Z"
+
+
+msgctxt "Brush"
+msgid "Sculpt Tool"
+msgstr "Herramienta de esculpido"
+
+
+msgctxt "Brush"
+msgid "Draw Sharp"
+msgstr "Dibujar (definido)"
+
+
+msgctxt "Brush"
+msgid "Clay"
+msgstr "Arcilla"
+
+
+msgctxt "Brush"
+msgid "Clay Strips"
+msgstr "Arcilla (rastro)"
+
+
+msgctxt "Brush"
+msgid "Clay Thumb"
+msgstr "Arcilla (pulgar)"
+
+
+msgctxt "Brush"
+msgid "Layer"
+msgstr "Capa"
+
+
+msgctxt "Brush"
+msgid "Blob"
+msgstr "Glóbulo"
+
+
+msgctxt "Brush"
+msgid "Crease"
+msgstr "Plegar"
+
+
+msgctxt "Brush"
+msgid "Flatten"
+msgstr "Aplanar"
+
+
+msgctxt "Brush"
+msgid "Scrape"
+msgstr "Raspar"
+
+
+msgctxt "Brush"
+msgid "Multi-plane Scrape"
+msgstr "Raspar (multiplano)"
+
+
+msgctxt "Brush"
+msgid "Pinch"
+msgstr "Pellizcar"
+
+
+msgctxt "Brush"
+msgid "Elastic Deform"
+msgstr "Deformación elástica"
+
+
+msgctxt "Brush"
+msgid "Snake Hook"
+msgstr "Gancho de serpiente"
+
+
+msgctxt "Brush"
+msgid "Thumb"
+msgstr "Pulgar"
+
+
+msgctxt "Brush"
+msgid "Pose"
+msgstr "Posar"
+
+
+msgctxt "Brush"
+msgid "Nudge"
+msgstr "Empujar"
+
+
+msgctxt "Brush"
+msgid "Rotate"
+msgstr "Rotar"
+
+
+msgctxt "Brush"
+msgid "Slide Relax"
+msgstr "Deslizar y distender"
+
+
+msgctxt "Brush"
+msgid "Boundary"
+msgstr "Límite"
+
+
+msgctxt "Brush"
+msgid "Cloth"
+msgstr "Ropa"
+
+
+msgctxt "Brush"
+msgid "Simplify"
+msgstr "Simplificar"
+
+
+msgctxt "Brush"
+msgid "Draw Face Sets"
+msgstr "Dibujar conjuntos de caras"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Eraser"
+msgstr "Borrar (desplazam multires)"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Smear"
+msgstr "Manchar (desplazam multires)"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "Pintar"
 
 
 msgid "Secondary Color"
@@ -27916,11 +28104,11 @@ msgstr "La reproducción de audio desde el editor de secuencias será silenciada
 
 
 msgid "Audio Scrubbing"
-msgstr "Arrastre de audio"
+msgstr "Recorrer audio"
 
 
 msgid "Play audio from Sequence Editor while scrubbing"
-msgstr "Reproduce el audio desde el editor de secuencias al arrastrar"
+msgstr "Reproduce el audio desde el editor de secuencias al recorrer el tiempo arrastrando"
 
 
 msgid "Global Gravity"
@@ -28029,11 +28217,11 @@ msgstr "La reproducción de animación está activa"
 
 
 msgid "User is Scrubbing"
-msgstr "El usuario se encuentra arrastrando"
+msgstr "El usuario se encuentra recorriendo"
 
 
 msgid "True when the user is scrubbing through time"
-msgstr "Verdadero cuando el usuario se encuentre arrastrando a través del tiempo"
+msgstr "Verdadero cuando el usuario se encuentre recorriendo a través del tiempo"
 
 
 msgid "An area is maximized, filling this screen"
@@ -33740,6 +33928,11 @@ msgstr "Colección de puntos"
 
 msgid "Make this spline a closed loop"
 msgstr "Hace esta curva un bucle cerrado"
+
+
+msgctxt "Mask"
+msgid "Fill"
+msgstr "Rellenar"
 
 
 msgid "Make this spline filled"
@@ -63435,6 +63628,11 @@ msgid "Disconnect vertex or edges from connected geometry"
 msgstr "Desconecta vértices o bordes de la geometría conectada"
 
 
+msgctxt "Mesh"
+msgid "Fill"
+msgstr "Rellenar"
+
+
 msgid "Fill the ripped region"
 msgstr "Rellena la región arrancada"
 
@@ -73499,6 +73697,11 @@ msgid "Applies a filter to modify the active color attribute"
 msgstr "Aplica un filtro para modificar el atributo de color activo"
 
 
+msgctxt "Mesh"
+msgid "Fill Color"
+msgstr "Color de relleno"
+
+
 msgid "Fill with a specific color"
 msgstr "Rellenar con un color específico"
 
@@ -77924,12 +78127,28 @@ msgid "Overlapping islands stick together"
 msgstr "Fusiona las islas que se solapen"
 
 
+msgid "Lock Pinned Islands"
+msgstr "Bloquear islas fijas"
+
+
+msgid "Constrain islands containing any pinned UV's"
+msgstr "Restringe las islas que contengan alguna UV fija"
+
+
+msgid "Pin Method"
+msgstr "Método de ajuste"
+
+
 msgid "Pinned islands won't rescale"
 msgstr "Las islas fijas no serán redimensionadas"
 
 
 msgid "Pinned islands won't rotate"
 msgstr "Las islas fijas no serán rotadas"
+
+
+msgid "Rotation and Scale"
+msgstr "Rotación y escala"
 
 
 msgid "Pinned islands will translate only"
@@ -78242,6 +78461,26 @@ msgstr "Selecciona todos los vértices UV fijos"
 
 msgid "Select similar UVs by property types"
 msgstr "Selecciona UV similares por tipo de propiedad"
+
+
+msgid "Length 3D"
+msgstr "Longitud 3D"
+
+
+msgid "Area 3D"
+msgstr "Área 3D"
+
+
+msgid "Polygon Sides"
+msgstr "Lados del polígono"
+
+
+msgid "Winding"
+msgstr "Devanado"
+
+
+msgid "Amount of Faces in Island"
+msgstr "Cantidad de caras en la isla"
 
 
 msgctxt "Operator"
@@ -97680,7 +97919,7 @@ msgstr "Usar reemplazos"
 
 
 msgid "Use optimized files for faster scrubbing when available"
-msgstr "Usa archivos optimizados para un arrastre más ágil cuando sea posible"
+msgstr "Usar archivos optimizados (cuando se encuentren disponibles) para poder recorrer ágilmente a través del tiempo"
 
 
 msgid "Zoom to Fit"
@@ -99393,7 +99632,7 @@ msgstr "Línea de marcador seleccionada"
 
 
 msgid "Scrubbing/Markers Region"
-msgstr "Región de marcadores/arrastre"
+msgstr "Región de marcadores/para recorrer"
 
 
 msgid "Theme Collection Color"
@@ -102837,7 +103076,7 @@ msgstr "Usa el tema como color de fondo"
 
 msgctxt "View3D"
 msgid "World"
-msgstr "Global"
+msgstr "Entorno"
 
 
 msgid "Use the world for background color"
@@ -106567,6 +106806,10 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "No se especificó ningún texto o archivo en el nodo, nada que compilar"
 
 
+msgid "OSL query failed to open %s"
+msgstr "Falla al abrir consulta OSL %s"
+
+
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "El script sombreador OSL externo debe tener una extensión .osl o .oso, o ser el nombre de un módulo"
 
@@ -106944,8 +107187,16 @@ msgid "Limit to"
 msgstr "Limitar a"
 
 
+msgid "%s could not be set out of Edit Mode, so cannot be exported"
+msgstr "%s no pudo ser sacado del modo Edición, por lo tanto no podrá ser exportado"
+
+
 msgid "Mesh '%s' has polygons with more than 4 vertices, cannot compute/export tangent space for it"
 msgstr "La malla '%s' contiene polígonos con más de 4 vértices, no es posible calcular/exportar un espacio tangencial para ésta"
+
+
+msgid "%s in %s could not be set out of Edit Mode, so cannot be exported"
+msgstr "%s en %s no pudo ser sacado del modo Edición, por lo tanto no podrá ser exportado"
 
 
 msgid "ASCII FBX files are not supported %r"
@@ -107838,6 +108089,10 @@ msgstr "%d malla(s) sin capa activa de UV"
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "Se encontraron %d duplicados en %d malla(s), la simetría puede no ser completa"
+
+
+msgid "Node has no attribute %s"
+msgstr "El nodo no contiene un atributo %s"
 
 
 msgid "No camera found"
@@ -112382,7 +112637,7 @@ msgstr "Saltar al marcador anterior"
 
 
 msgid "Scrubbing"
-msgstr "Arrastre"
+msgstr "Recorrer"
 
 
 msgid "Limit to Frame Range"
@@ -115367,6 +115622,10 @@ msgid "Not supported in sculpt mode"
 msgstr "No soportado en modo de esculpido"
 
 
+msgid "No AnimData to set tmpact on"
+msgstr "Ningún dato de animación en donde definir tmpact"
+
+
 msgid "No AnimData to set action on"
 msgstr "Ningún dato de animación para definir acción"
 
@@ -115725,8 +115984,16 @@ msgid "Spline Length node"
 msgstr "Nodo Longitud de spline"
 
 
+msgid "\"{}\" attribute from geometry"
+msgstr "\"{}\" atributo de la geometría"
+
+
 msgid "ID / Index"
 msgstr "ID / Identificador"
+
+
+msgid "\"{}\" from {}"
+msgstr "\"{}\" desde {}"
 
 
 msgid "GP_Layer"
@@ -118647,6 +118914,10 @@ msgid "Show in Info Log"
 msgstr "Mostrar registro de información"
 
 
+msgid "Only Alembic Procedurals supported"
+msgstr "Sólo se soportan procedimentales de Alembic"
+
+
 msgid "The Cycles Alembic Procedural is only available with the experimental feature set"
 msgstr "El procedimental Alembic de Cycles sólo se encuentra disponible dentro del conjunto de características experimentales"
 
@@ -119803,6 +120074,14 @@ msgstr "Problema al capturar desde el objeto \"%s\""
 
 msgid "Problem baking object \"%s\""
 msgstr "Problema al capturar el objeto \"%s\""
+
+
+msgid "Bake directory of object %s, modifier %s is empty, setting default path"
+msgstr "El directorio de captura del objeto %s, modificador %s, se encuentra vacío, se usará la ruta predefinida"
+
+
+msgid "Path conflict: %d caches set to path %s"
+msgstr "Conflicto en la ruta: cachés de %d definidos a la ruta %s"
 
 
 msgid "Failed to remove bake directory %s"
@@ -121017,8 +121296,16 @@ msgid "No active line style in the current scene"
 msgstr "No hay un estilo de línea activo en la escena actual"
 
 
+msgid "Copied material to internal clipboard"
+msgstr "Se copió el material al portapapeles interno"
+
+
 msgid "Cannot paste without a material"
 msgstr "No es posible pegar sin un material"
+
+
+msgid "Internal clipboard is not from a material"
+msgstr "El contenido del portapapeles interno no corresponde a un material"
 
 
 msgid "Removed %d slots"
@@ -122643,6 +122930,30 @@ msgid "Adding node groups isn't supported for custom (Python defined) node trees
 msgstr "Agregar grupos de nodos no es soportado en árboles de nodos personalizados (definidos mediante Python)"
 
 
+msgid "{} (String)"
+msgstr "{} (Cadena)"
+
+
+msgid "{} (Integer)"
+msgstr "{} (Entero)"
+
+
+msgid "{} (Float)"
+msgstr "{} (Decimal)"
+
+
+msgid "({}, {}, {}) (Vector)"
+msgstr "({}, {}, {}) (Vector)"
+
+
+msgid "({}, {}, {}, {}) (Color)"
+msgstr "({}, {}, {}, {}) (Color)"
+
+
+msgid "{} (Boolean)"
+msgstr "{} (Booleana)"
+
+
 msgid "True"
 msgstr "Verdadero"
 
@@ -123086,6 +123397,10 @@ msgstr "La ruta '%s' de la biblioteca no existe, corregirla antes de guardar"
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "La ruta '%s' es válida ahora, por favor recargar la biblioteca"
+
+
+msgid "Purging %d unused data-blocks ("
+msgstr "Purgando %d bloques de datos no usados ("
 
 
 msgid "). Click here to proceed..."
@@ -124506,6 +124821,10 @@ msgid "Stitching only works with less than %i objects selected (%u selected)"
 msgstr "Unir sólo funciona con menos de %i objetos seleccionados (hay %u seleccionados)"
 
 
+msgid "Lock Method"
+msgstr "Método de bloqueo"
+
+
 msgid "Minimize Stretch. Blend %.2f"
 msgstr "Minimizar estiramiento. Fundido %.2f"
 
@@ -124749,6 +125068,62 @@ msgstr "Todos los objetos de arte lineal se encuentran ahora limpios"
 
 msgid "No active object or active object isn't a GPencil object"
 msgstr "No hay ningún objeto activo o el objeto activo no es un objeto de Lápiz de cera"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia una Cámara al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to Camera."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia una Cámara."
+
+
+msgid "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia Curvas al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to Curves."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia Curvas."
+
+
+msgid "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia una Malla poligonal al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to PolyMesh."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia una Malla poligonal."
+
+
+msgid "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia una Superficie de subdivisión al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to SubD."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia una Superficie de subdivisión."
+
+
+msgid "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia NURBS al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to NURBS."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia NURBS."
+
+
+msgid "Object type mismatch, Alembic object path pointed to Points when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia Puntos al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to Points."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia Puntos."
+
+
+msgid "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apuntaba hacia XForm al ser importado, pero ya no lo hace."
+
+
+msgid "Object type mismatch, Alembic object path points to XForm."
+msgstr "Tipo de objeto no coincidente, la ruta del objeto Alembic apunta hacia XForm."
 
 
 msgid "Could not open Alembic archive for reading, see console for detail"
@@ -128654,6 +129029,18 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "Valores más grandes que el umbral se encontrarán dentro de la malla generada"
 
 
+msgid "{} node"
+msgstr "{} nodo"
+
+
+msgid "Group '{}' ({})"
+msgstr "Grupo '{}' ({})"
+
+
+msgid "'{}' input is used"
+msgstr "entrada '{}' usada"
+
+
 msgid "Missing Data-Block"
 msgstr "Bloque de datos faltante"
 
@@ -129170,6 +129557,18 @@ msgid "%s: failed to load '%s'"
 msgstr "%s: falla al cargar '%s'"
 
 
+msgid "reading render result: dimensions don't match, expected %dx%d"
+msgstr "leyendo resultado del procesamiento: las dimensiones no coinciden, se esperaba %dx%d"
+
+
+msgid "reading render result: expected channel \"%s.%s\" or \"%s\" not found"
+msgstr "leyendo resultado del procesamiento: no se encontraron los canales esperados \"%s.%s\" o \"%s\""
+
+
+msgid "reading render result: expected channel \"%s.%s\" not found"
+msgstr "leyendo resultado del procesamiento: no se encontró el canal esperado \"%s.%s\""
+
+
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Balance de color"
@@ -129234,6 +129633,18 @@ msgstr "No es posible mover el clip a otra escena"
 
 msgid "Recursion detected in video sequencer. Strip %s at frame %d will not be rendered"
 msgstr "Se ha detectado una recursión en el editor de video. En el clip %s el fotograma %d no será procesado"
+
+
+msgid "Mul"
+msgstr "Mul"
+
+
+msgid "Multicam"
+msgstr "Multicámara"
+
+
+msgid "Adjustment"
+msgstr "Ajuste"
 
 
 msgid "Colorize"
@@ -129837,7 +130248,7 @@ msgstr "H264 en Matroska"
 
 
 msgid "H264 in Matroska for scrubbing"
-msgstr "H264 en Matroska para permitir arrastre"
+msgstr "H264 en Matroska para permitir recorrer"
 
 
 msgid "Ogg Theora"

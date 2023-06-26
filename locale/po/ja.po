@@ -568,7 +568,15 @@ msgstr "アクションの影響"
 
 
 msgid "Amount the Active Action contributes to the result of the NLA stack"
-msgstr "NLAスタックの結果へアクティブアクションが寄与する量"
+msgstr "NLA スタックの結果へアクティブアクションが寄与する量"
+
+
+msgid "Tweak Mode Action Storage"
+msgstr "調整モードアクションストレージ"
+
+
+msgid "Slot to temporarily hold the main action while in tweak mode"
+msgstr "調整モード中、一時的にメインアクションを保持しておくスロット"
 
 
 msgid "Drivers"
@@ -20217,16 +20225,41 @@ msgid "Gpencil Settings"
 msgstr "グリースペンシル設定"
 
 
+msgctxt "Brush"
+msgid "Grease Pencil Draw Tool"
+msgstr "グリースペンシルドローツール"
+
+
+msgctxt "Brush"
+msgid "Draw"
+msgstr "ドロー"
+
+
 msgid "The brush is of type used for drawing strokes"
 msgstr "ストロークのドロー中に使用されるブラシのタイプ"
+
+
+msgctxt "Brush"
+msgid "Fill"
+msgstr "フィル"
 
 
 msgid "The brush is of type used for filling areas"
 msgstr "領域を塗りつぶすのに使用されるブラシのタイプ"
 
 
+msgctxt "Brush"
+msgid "Erase"
+msgstr "消しゴム"
+
+
 msgid "The brush is used for erasing strokes"
 msgstr "ストロークを消すのに使用されるブラシ"
+
+
+msgctxt "Brush"
+msgid "Tint"
+msgstr "チント"
 
 
 msgid "The brush is of type used for tinting strokes"
@@ -20319,6 +20352,31 @@ msgstr "ブラシアイコンのファイルパス"
 
 msgid "File path to brush icon"
 msgstr "ブラシアイコンのファイルパス"
+
+
+msgctxt "Brush"
+msgid "Image Paint Tool"
+msgstr "画像ペイントツール"
+
+
+msgctxt "Brush"
+msgid "Soften"
+msgstr "ぼかし"
+
+
+msgctxt "Brush"
+msgid "Smear"
+msgstr "スミア"
+
+
+msgctxt "Brush"
+msgid "Clone"
+msgstr "クローン"
+
+
+msgctxt "Brush"
+msgid "Mask"
+msgstr "マスク"
 
 
 msgid "Invert Pressure for Density"
@@ -20585,6 +20643,136 @@ msgstr "Y平面"
 
 msgid "Z Plane"
 msgstr "Z平面"
+
+
+msgctxt "Brush"
+msgid "Sculpt Tool"
+msgstr "スカルプトツール"
+
+
+msgctxt "Brush"
+msgid "Draw Sharp"
+msgstr "ドローシャープ"
+
+
+msgctxt "Brush"
+msgid "Clay"
+msgstr "クレイ"
+
+
+msgctxt "Brush"
+msgid "Clay Strips"
+msgstr "クレイストリップ"
+
+
+msgctxt "Brush"
+msgid "Clay Thumb"
+msgstr "クレイサム"
+
+
+msgctxt "Brush"
+msgid "Layer"
+msgstr "レイヤー"
+
+
+msgctxt "Brush"
+msgid "Blob"
+msgstr "ブロブ"
+
+
+msgctxt "Brush"
+msgid "Crease"
+msgstr "クリース"
+
+
+msgctxt "Brush"
+msgid "Flatten"
+msgstr "フラット化"
+
+
+msgctxt "Brush"
+msgid "Scrape"
+msgstr "削り取り"
+
+
+msgctxt "Brush"
+msgid "Multi-plane Scrape"
+msgstr "削り取り（マルチプレーン）"
+
+
+msgctxt "Brush"
+msgid "Pinch"
+msgstr "ピンチ"
+
+
+msgctxt "Brush"
+msgid "Elastic Deform"
+msgstr "エラスティック変形"
+
+
+msgctxt "Brush"
+msgid "Snake Hook"
+msgstr "スネークフック"
+
+
+msgctxt "Brush"
+msgid "Thumb"
+msgstr "サム"
+
+
+msgctxt "Brush"
+msgid "Pose"
+msgstr "ポーズ"
+
+
+msgctxt "Brush"
+msgid "Nudge"
+msgstr "ナッジ"
+
+
+msgctxt "Brush"
+msgid "Rotate"
+msgstr "回転"
+
+
+msgctxt "Brush"
+msgid "Slide Relax"
+msgstr "スライドリラックス"
+
+
+msgctxt "Brush"
+msgid "Boundary"
+msgstr "境界"
+
+
+msgctxt "Brush"
+msgid "Cloth"
+msgstr "クロス"
+
+
+msgctxt "Brush"
+msgid "Simplify"
+msgstr "簡略化"
+
+
+msgctxt "Brush"
+msgid "Draw Face Sets"
+msgstr "面セットドロー"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Eraser"
+msgstr "マルチレゾディスプレイスメント消しゴム"
+
+
+msgctxt "Brush"
+msgid "Multires Displacement Smear"
+msgstr "マルチレゾディスプレイスメントスミア"
+
+
+msgctxt "Brush"
+msgid "Paint"
+msgstr "ペイント"
 
 
 msgid "Secondary Color"
@@ -23936,7 +24124,7 @@ msgstr "UVテスト"
 
 
 msgid "Render Result"
-msgstr "レンダリング結果"
+msgstr "レンダーリザルト"
 
 
 msgid "Compositing"
@@ -34114,6 +34302,11 @@ msgstr "ポイントの集合"
 
 msgid "Make this spline a closed loop"
 msgstr "スプラインを閉じたループにします"
+
+
+msgctxt "Mask"
+msgid "Fill"
+msgstr "フィル"
 
 
 msgid "Make this spline filled"
@@ -45236,7 +45429,9 @@ msgstr "旧法線"
 
 
 msgid "Output the normal and rotation values that have been output before the node started taking smooth normals into account"
-msgstr "ノードがスムーズ法線を考慮する以前に出力されていた法線と回転値を出力します"
+msgstr ""
+"ノードがスムーズ法線を考慮するようになる以前の\n"
+"法線と回転値を出力します"
 
 
 msgid "Dual Mesh"
@@ -64030,6 +64225,11 @@ msgid "Disconnect vertex or edges from connected geometry"
 msgstr "つながっている形状から頂点もしくは辺を切断"
 
 
+msgctxt "Mesh"
+msgid "Fill"
+msgstr "フィル"
+
+
 msgid "Fill the ripped region"
 msgstr "引き裂いた領域を埋めます"
 
@@ -74147,6 +74347,11 @@ msgid "Applies a filter to modify the active color attribute"
 msgstr "アクティブカラー属性にフィルターを適用します"
 
 
+msgctxt "Mesh"
+msgid "Fill Color"
+msgstr "フィルカラー"
+
+
 msgid "Fill with a specific color"
 msgstr "指定の色でフィルします"
 
@@ -78593,12 +78798,28 @@ msgid "Overlapping islands stick together"
 msgstr "重複するアイランドを一緒にくっつけます"
 
 
+msgid "Lock Pinned Islands"
+msgstr "ピン止めアイランドをロック"
+
+
+msgid "Constrain islands containing any pinned UV's"
+msgstr "ピン止め UV を含むアイランドのトランスフォームを制限します"
+
+
+msgid "Pin Method"
+msgstr "ピン止め方法"
+
+
 msgid "Pinned islands won't rescale"
-msgstr "ピン止めアイランドのスケールは変更されません"
+msgstr "ピン止めアイランドのスケールを変更しません"
 
 
 msgid "Pinned islands won't rotate"
-msgstr "ピン止めアイランドは回転されません"
+msgstr "ピン止めアイランドを回転しません"
+
+
+msgid "Rotation and Scale"
+msgstr "回転とスケール"
 
 
 msgid "Pinned islands will translate only"
@@ -78606,7 +78827,7 @@ msgstr "ピン止めアイランドの移動のみ行います"
 
 
 msgid "Pinned islands are locked in place"
-msgstr "ピン止めアイランドの位置が固定されます"
+msgstr "ピン止めアイランドの位置を固定します"
 
 
 msgid "Rotate islands to improve layout"
@@ -78911,6 +79132,26 @@ msgstr "ピン止めされた UV 頂点をすべて選択します"
 
 msgid "Select similar UVs by property types"
 msgstr "プロパティタイプで UV を類似選択します"
+
+
+msgid "Length 3D"
+msgstr "長さ（3D）"
+
+
+msgid "Area 3D"
+msgstr "面積（3D）"
+
+
+msgid "Polygon Sides"
+msgstr "辺の数"
+
+
+msgid "Winding"
+msgstr "面の向き"
+
+
+msgid "Amount of Faces in Island"
+msgstr "アイランド内の面数"
 
 
 msgctxt "Operator"
@@ -87704,7 +87945,7 @@ msgstr "レンダーキャッシュパス"
 
 
 msgid "Where to cache raw render results"
-msgstr "未加工のレンダリング結果をキャッシュするパス"
+msgstr "未加工のレンダーリザルトをキャッシュするパス"
 
 
 msgid "Render Output Directory"
@@ -92191,7 +92432,7 @@ msgstr "レンダーパスの集合"
 
 
 msgid "Result of rendering, including all layers and passes"
-msgstr "すべてのレイヤーとパスを含むレンダリング結果"
+msgstr "すべてのレイヤーとパスを含むレンダーリザルト"
 
 
 msgid "Rendering settings for a Scene data-block"
@@ -92678,7 +92919,7 @@ msgstr "ユーザーが指定したレンダー領域を、フレームサイズ
 
 
 msgid "Process the render result through the compositing pipeline, if compositing nodes are enabled"
-msgstr "コンポジティングノード有効時、レンダリング結果をコンポジティングパイプラインで処理します"
+msgstr "コンポジティングノード有効時、レンダーリザルトをコンポジティングパイプラインで処理します"
 
 
 msgid "Crop to Render Region"
@@ -107457,6 +107698,10 @@ msgid "No text or file specified in node, nothing to compile"
 msgstr "ノードにテキストやファイルが未指定でコンパイルできません"
 
 
+msgid "OSL query failed to open %s"
+msgstr "OSL クエリが「%s」を開くのに失敗しました"
+
+
 msgid "External shader script must have .osl or .oso extension, or be a module name"
 msgstr "外部シェーダースクリプトは拡張子が .osl または .oso であるか、モジュール名でないといけません"
 
@@ -107840,8 +108085,16 @@ msgid "Limit to"
 msgstr "対象"
 
 
+msgid "%s could not be set out of Edit Mode, so cannot be exported"
+msgstr "「%s」を編集モード外に設定できず、エクスポートできません"
+
+
 msgid "Mesh '%s' has polygons with more than 4 vertices, cannot compute/export tangent space for it"
-msgstr "メッシュ「%s」に5頂点以上のポリゴンがあり、そのタンジェントスペースの計算・エクスポートができません"
+msgstr "メッシュ「%s」に5つ以上の頂点のポリゴンがあり、そのタンジェントスペースの計算/エクスポートができません"
+
+
+msgid "%s in %s could not be set out of Edit Mode, so cannot be exported"
+msgstr "%s（%s 内）が編集モード外に設定できず、エクスポートできません"
 
 
 msgid "ASCII FBX files are not supported %r"
@@ -108736,6 +108989,10 @@ msgstr "%d個のメッシュにアクティブ UV レイヤーがありません
 
 msgid "%d duplicates found in %d mesh(es), mirror may be incomplete"
 msgstr "%d個の複製が %d個のメッシュにあるため、ミラーは不完全です"
+
+
+msgid "Node has no attribute %s"
+msgstr "ノードに属性「%s」がありません"
 
 
 msgid "No camera found"
@@ -116265,6 +116522,10 @@ msgid "Not supported in sculpt mode"
 msgstr "スカルプトモードでは未対応です"
 
 
+msgid "No AnimData to set tmpact on"
+msgstr "一時アクションを設定するアニメデータがありません"
+
+
 msgid "No AnimData to set action on"
 msgstr "アクションを設定するアニメデータがありません"
 
@@ -116623,8 +116884,16 @@ msgid "Spline Length node"
 msgstr "スプライン長さノード"
 
 
+msgid "\"{}\" attribute from geometry"
+msgstr "ジオメトリの「{}」属性"
+
+
 msgid "ID / Index"
 msgstr "ID/インデックス"
+
+
+msgid "\"{}\" from {}"
+msgstr "「{}」（{}）"
 
 
 msgid "GP_Layer"
@@ -116656,7 +116925,7 @@ msgstr "タイル画像保存時、パス「%s」には有効な UDIM マーカ�
 
 
 msgid "Error writing render result, %s (see console)"
-msgstr "Render Result書き込みエラー。%s（コンソールに表示）"
+msgstr "レンダーリザルト書き込みエラー。%s（コンソールに表示）"
 
 
 msgid "Render error (%s) cannot save: '%s'"
@@ -119553,6 +119822,10 @@ msgid "Show in Info Log"
 msgstr "情報ログ内に表示"
 
 
+msgid "Only Alembic Procedurals supported"
+msgstr "Alembic プロシージャルのみ対応"
+
+
 msgid "The Cycles Alembic Procedural is only available with the experimental feature set"
 msgstr "Cycles Alembic プロシージャルは実験的機能有効時のみ利用可能です"
 
@@ -120709,6 +120982,14 @@ msgstr "オブジェクト「%s」からのベイクにエラーが発生しま�
 
 msgid "Problem baking object \"%s\""
 msgstr "オブジェクト「%s」のベイクに問題が発生しました"
+
+
+msgid "Bake directory of object %s, modifier %s is empty, setting default path"
+msgstr "オブジェクト「%s」（モディファイアー「%s」）のベイクディレクトリが空なので、デフォルトパスを設定します"
+
+
+msgid "Path conflict: %d caches set to path %s"
+msgstr "パスが衝突：%d 個のキャッシュが同じパス「%s」に設定されています"
 
 
 msgid "Failed to remove bake directory %s"
@@ -121927,12 +122208,20 @@ msgid "No active line style in the current scene"
 msgstr "アクティブラインスタイルが現在のシーンにありません"
 
 
+msgid "Copied material to internal clipboard"
+msgstr "内部クリップボードにマテリアルをコピーしました"
+
+
 msgid "Cannot paste without a material"
 msgstr "マテリアルがないので貼り付けできません"
 
 
+msgid "Internal clipboard is not from a material"
+msgstr "内部クリップボードがマテリアルではありません"
+
+
 msgid "Removed %d slots"
-msgstr "%d個のスロットを削除しました"
+msgstr "%d 個のスロットを削除しました"
 
 
 msgid "Blender Render"
@@ -123555,6 +123844,30 @@ msgid "Adding node groups isn't supported for custom (Python defined) node trees
 msgstr "ノードグループ追加はカスタム（Python 定義の）ノードツリーには未対応です"
 
 
+msgid "{} (String)"
+msgstr "{}（文字列）"
+
+
+msgid "{} (Integer)"
+msgstr "{}（整数）"
+
+
+msgid "{} (Float)"
+msgstr "{}（Float）"
+
+
+msgid "({}, {}, {}) (Vector)"
+msgstr "({}, {}, {})（ベクトル）"
+
+
+msgid "({}, {}, {}, {}) (Color)"
+msgstr "({}, {}, {}, {})（カラー）"
+
+
+msgid "{} (Boolean)"
+msgstr "{}（ブーリアン）"
+
+
 msgid "True"
 msgstr "True"
 
@@ -123998,6 +124311,10 @@ msgstr "ライブラリパス「%s」がありません。保存前に修正し�
 
 msgid "Library path '%s' is now valid, please reload the library"
 msgstr "ライブラリパス「%s」が有効になりました。ライブラリをリロードしてください"
+
+
+msgid "Purging %d unused data-blocks ("
+msgstr "%d 個の未使用データブロックを消去（"
 
 
 msgid "). Click here to proceed..."
@@ -125418,6 +125735,10 @@ msgid "Stitching only works with less than %i objects selected (%u selected)"
 msgstr "スティッチは選択中のオブジェクトが %i 個未満で働きます（現在 %u 個選択中）"
 
 
+msgid "Lock Method"
+msgstr "ロック方法"
+
+
 msgid "Minimize Stretch. Blend %.2f"
 msgstr "ストレッチ最小化。ブレンド %.2f"
 
@@ -125661,6 +125982,62 @@ msgstr "全ラインアートオブジェクトがクリアされました"
 
 msgid "No active object or active object isn't a GPencil object"
 msgstr "アクティブオブジェクトなし、またはグリースペンシルオブジェクトではありません"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Camera を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to Camera."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Camera を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Curves を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to Curves."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Curves を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは PolyMesh を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to PolyMesh."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは PolyMesh を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは SubD を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to SubD."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは SubD を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは NURBS を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to NURBS."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは NURBS を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Points when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Points を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to Points."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Points を指しています"
+
+
+msgid "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more."
+msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは XForm を指していましたが、今は違います"
+
+
+msgid "Object type mismatch, Alembic object path points to XForm."
+msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスが XForm を指しています"
 
 
 msgid "Could not open Alembic archive for reading, see console for detail"
@@ -129580,6 +129957,18 @@ msgid "Values larger than the threshold are inside the generated mesh"
 msgstr "しきい値より大きい値は生成メッシュの内部"
 
 
+msgid "{} node"
+msgstr "{} ノード"
+
+
+msgid "Group '{}' ({})"
+msgstr "グループ「{}」({})"
+
+
+msgid "'{}' input is used"
+msgstr "「{}」入力は使用中"
+
+
 msgid "Missing Data-Block"
 msgstr "データブロックなし"
 
@@ -130021,7 +130410,7 @@ msgstr "GPU を初期化できませんでした"
 
 
 msgid "Failed allocate render result, out of memory"
-msgstr "Render Result のメモリの確保に失敗しました"
+msgstr "レンダーリザルト用のメモリが足りず、割り当てに失敗しました"
 
 
 msgid "Fra:%d Mem:%.2fM (Peak %.2fM) "
@@ -130096,6 +130485,18 @@ msgid "%s: failed to load '%s'"
 msgstr "%s:「%s」の読み込みに失敗しました"
 
 
+msgid "reading render result: dimensions don't match, expected %dx%d"
+msgstr "レンダーリザルト読込：寸法が合いません（予定：%d×%d）"
+
+
+msgid "reading render result: expected channel \"%s.%s\" or \"%s\" not found"
+msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」や「%s」が見つかりません"
+
+
+msgid "reading render result: expected channel \"%s.%s\" not found"
+msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」が見つかりません"
+
+
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "カラーバランス"
@@ -130162,6 +130563,18 @@ msgid "Recursion detected in video sequencer. Strip %s at frame %d will not be r
 msgstr "ビデオシーケンサー内に再帰を探知、ストリップ「%s」（フレーム %d）はレンダリングしません "
 
 
+msgid "Mul"
+msgstr "乗算"
+
+
+msgid "Multicam"
+msgstr "マルチカム"
+
+
+msgid "Adjustment"
+msgstr "調整"
+
+
 msgid "Colorize"
 msgstr "カラーライズ"
 
@@ -130171,7 +130584,7 @@ msgstr "ブラー X"
 
 
 msgid "Rim"
-msgstr "ふち"
+msgstr "リム"
 
 
 msgid "Object Pivot"
