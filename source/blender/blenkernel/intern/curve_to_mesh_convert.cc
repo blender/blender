@@ -854,15 +854,12 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   }
   sharp_edges.finish();
 
-  Set<AttributeIDRef> main_attributes_set;
-
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
             main_attributes, mesh_attributes, id, meta_data, propagation_info))
     {
       return true;
     }
-    main_attributes_set.add_new(id);
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
