@@ -150,7 +150,7 @@ static Vector<SculptBatch> sculpt_batches_get_ex(
 
 Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features)
 {
-  PBVHAttrReq attrs[16] = {0};
+  PBVHAttrReq attrs[16] = {};
   int attrs_len = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
@@ -203,7 +203,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
 
   DRW_mesh_get_attributes(ob, mesh, materials.data(), materials.size(), &draw_attrs, &cd_needed);
 
-  PBVHAttrReq attrs[16] = {0};
+  PBVHAttrReq attrs[16] = {};
   int attrs_len = 0;
 
   /* NOTE: these are NOT #eCustomDataType, they are extended values, ASAN may warn about this. */
