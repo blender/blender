@@ -194,7 +194,7 @@ void transform_mode_snap_source_init(TransInfo *t, wmOperator *UNUSED(op))
   if ((t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) == 0) {
     /* Initialize snap modes for geometry. */
     t->tsnap.mode &= ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID);
-    t->tsnap.mode |= SCE_SNAP_TO_GEOM;
+    t->tsnap.mode |= SCE_SNAP_TO_GEOM & ~SCE_SNAP_TO_EDGE_PERPENDICULAR;
 
     if (!(customdata->snap_mode_confirm & SCE_SNAP_TO_EDGE_PERPENDICULAR)) {
       customdata->snap_mode_confirm = t->tsnap.mode;
