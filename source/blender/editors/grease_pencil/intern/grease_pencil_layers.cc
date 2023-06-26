@@ -54,7 +54,7 @@ static void GREASE_PENCIL_OT_layer_add(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Add New Layer";
   ot->idname = "GREASE_PENCIL_OT_layer_add";
-  ot->description = "Add new a new Grease Pencil layer in the active object";
+  ot->description = "Add a new Grease Pencil layer in the active object";
 
   /* callbacks */
   ot->exec = grease_pencil_layer_add_exec;
