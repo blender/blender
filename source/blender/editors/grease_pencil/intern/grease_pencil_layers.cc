@@ -165,8 +165,12 @@ static void GREASE_PENCIL_OT_layer_reorder(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  PropertyRNA *prop = RNA_def_string(
-      ot->srna, "target_layer_name", "GP_Layer", INT16_MAX, "Target Name", "Name of the target layer");
+  PropertyRNA *prop = RNA_def_string(ot->srna,
+                                     "target_layer_name",
+                                     "GP_Layer",
+                                     INT16_MAX,
+                                     "Target Name",
+                                     "Name of the target layer");
   RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 
   RNA_def_enum(

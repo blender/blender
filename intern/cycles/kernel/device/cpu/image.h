@@ -274,11 +274,11 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
           return zero();
         }
         nix = ix + 1;
-        niy = iy + 1;        
+        niy = iy + 1;
         return (1.0f - ty) * (1.0f - tx) * read_clip(data, ix, iy, width, height) +
-              (1.0f - ty) * tx * read_clip(data, nix, iy, width, height) +
-              ty * (1.0f - tx) * read_clip(data, ix, niy, width, height) +
-              ty * tx * read_clip(data, nix, niy, width, height);
+               (1.0f - ty) * tx * read_clip(data, nix, iy, width, height) +
+               ty * (1.0f - tx) * read_clip(data, ix, niy, width, height) +
+               ty * tx * read_clip(data, nix, niy, width, height);
       case EXTENSION_EXTEND:
         nix = wrap_clamp(ix + 1, width);
         ix = wrap_clamp(ix, width);
