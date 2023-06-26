@@ -45,15 +45,16 @@
                 <p>New features:</p>
                 <ul>
                     <li>Simulation Nodes</li>
-                    <li>Cycles Hardware Raytracing on AMD and Intel graphics cards</li>
                     <li>New transparent Render Pass</li>
+                    <li>Animation: A new Gaussian Smooth operator for keyframe data was added.</li>
                 </ul>
                 <p>Enhancements:</p>
                 <ul>
+                    <li> PLY I/O:About 4x-20x faster export, 8x-30x faster import</li>
                     <li>Improved UV packing</li>
                     <li>Python API: Custom script directories</li>
                     <li>USD Curves/Hair export</li>
-                    <li>Major improvements to the resyncing process of Library Overrides</li>
+                    <li>Major improvements to the Library Overrides resyncing process</li>
                 </ul>
             </description>
         </release>
