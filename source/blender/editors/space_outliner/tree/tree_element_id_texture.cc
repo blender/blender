@@ -21,11 +21,6 @@ TreeElementIDTexture::TreeElementIDTexture(TreeElement &legacy_te, Tex &texture)
 {
 }
 
-bool TreeElementIDTexture::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDTexture::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, texture_.adt);

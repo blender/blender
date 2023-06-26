@@ -31,11 +31,6 @@ void TreeElementIDLineStyle::expand(SpaceOutliner &space_outliner) const
   expandTextures(space_outliner);
 }
 
-bool TreeElementIDLineStyle::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDLineStyle::expandTextures(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < MAX_MTEX; a++) {

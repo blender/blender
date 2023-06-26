@@ -19,7 +19,6 @@ class TreeElementIDObject final : public TreeElementID {
   TreeElementIDObject(TreeElement &legacy_te, Object &object);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
   void expandData(SpaceOutliner &) const;

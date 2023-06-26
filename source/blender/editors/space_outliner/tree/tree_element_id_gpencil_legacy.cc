@@ -31,11 +31,6 @@ void TreeElementIDGPLegacy::expand(SpaceOutliner &space_outliner) const
   expandLayers(space_outliner);
 }
 
-bool TreeElementIDGPLegacy::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDGPLegacy::expandLayers(SpaceOutliner &space_outliner) const
 {
   int index = 0;
