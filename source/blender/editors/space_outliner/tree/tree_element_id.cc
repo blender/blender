@@ -12,6 +12,7 @@
 #include "BLI_listbase_wrapper.hh"
 #include "BLI_utildefines.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_lib_override.h"
 
 #include "BLT_translation.h"
@@ -122,6 +123,15 @@ bool TreeElementID::expandPoll(const SpaceOutliner &space_outliner) const
 {
   const TreeStoreElem *tsepar = legacy_te_.parent ? TREESTORE(legacy_te_.parent) : nullptr;
   return (tsepar == nullptr || tsepar->type != TSE_ID_BASE || space_outliner.filter_id_type);
+}
+
+void TreeElementID::expand(SpaceOutliner &space_outliner) const
+{
+  /* Not all IDs support animation data. Will be null then. */
+  const AnimData *anim_data = BKE_animdata_from_id(&id_);
+  if (anim_data) {
+    expand_animation_data(space_outliner, anim_data);
+  }
 }
 
 void TreeElementID::expand_animation_data(SpaceOutliner &space_outliner,

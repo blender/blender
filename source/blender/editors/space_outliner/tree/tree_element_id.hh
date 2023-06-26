@@ -34,8 +34,9 @@ class TreeElementID : public AbstractTreeElement {
    */
   bool isExpandValid() const override
   {
-    return false;
+    return true;
   }
+  void expand(SpaceOutliner &) const override;
 
   ID &get_ID()
   {

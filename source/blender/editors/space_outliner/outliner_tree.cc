@@ -11,21 +11,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_cachefile_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
-#include "DNA_curves_types.h"
-#include "DNA_key_types.h"
-#include "DNA_light_types.h"
-#include "DNA_lightprobe_types.h"
-#include "DNA_material_types.h"
-#include "DNA_pointcloud_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
-#include "DNA_speaker_types.h"
-#include "DNA_volume_types.h"
-#include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_fnmatch.h"
@@ -229,118 +215,6 @@ static void outliner_add_line_styles(SpaceOutliner *space_outliner,
   }
 }
 #endif
-/* Can be inlined if necessary. */
-static void outliner_add_id_contents(SpaceOutliner *space_outliner, TreeElement *te, ID *id)
-{
-  /* expand specific data always */
-  switch (GS(id->name)) {
-    case ID_LI:
-    case ID_SCE:
-    case ID_ME:
-    case ID_CU_LEGACY:
-    case ID_MB:
-    case ID_TE:
-    case ID_LS:
-    case ID_GD_LEGACY:
-    case ID_GR:
-    case ID_AR:
-    case ID_OB:
-      BLI_assert_msg(0, "ID type expected to be expanded through new tree-element design");
-      break;
-    case ID_MA: {
-      Material *ma = (Material *)id;
-      if (outliner_animdata_test(ma->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_CA: {
-      Camera *ca = (Camera *)id;
-      if (outliner_animdata_test(ca->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, ca, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_CF: {
-      CacheFile *cache_file = (CacheFile *)id;
-      if (outliner_animdata_test(cache_file->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, cache_file, te, TSE_ANIM_DATA, 0);
-      }
-
-      break;
-    }
-    case ID_LA: {
-      Light *la = (Light *)id;
-      if (outliner_animdata_test(la->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, la, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_SPK: {
-      Speaker *spk = (Speaker *)id;
-      if (outliner_animdata_test(spk->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, spk, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_LP: {
-      LightProbe *prb = (LightProbe *)id;
-      if (outliner_animdata_test(prb->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, prb, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_WO: {
-      World *wrld = (World *)id;
-      if (outliner_animdata_test(wrld->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_KE: {
-      Key *key = (Key *)id;
-      if (outliner_animdata_test(key->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, key, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_AC: {
-      /* XXX do we want to be exposing the F-Curves here? */
-      /* bAction *act = (bAction *)id; */
-      break;
-    }
-    case ID_CV: {
-      Curves *curves = (Curves *)id;
-      if (outliner_animdata_test(curves->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, curves, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_PT: {
-      PointCloud *pointcloud = (PointCloud *)id;
-      if (outliner_animdata_test(pointcloud->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, pointcloud, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_VO: {
-      Volume *volume = (Volume *)id;
-      if (outliner_animdata_test(volume->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, volume, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    case ID_SIM: {
-      Simulation *simulation = (Simulation *)id;
-      if (outliner_animdata_test(simulation->adt)) {
-        outliner_add_element(space_outliner, &te->subtree, simulation, te, TSE_ANIM_DATA, 0);
-      }
-      break;
-    }
-    default:
-      break;
-  }
-}
 
 TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
                                   ListBase *lb,
@@ -452,12 +326,6 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   }
   else if (te->abstract_element && te->abstract_element->isExpandValid()) {
     tree_element_expand(*te->abstract_element, *space_outliner);
-  }
-  else if (type == TSE_SOME_ID) {
-    /* ID types not (fully) ported to new design yet. */
-    if (te->abstract_element->expandPoll(*space_outliner)) {
-      outliner_add_id_contents(space_outliner, te, id);
-    }
   }
   else if (ELEM(type,
                 TSE_ANIM_DATA,
