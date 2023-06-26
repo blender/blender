@@ -101,10 +101,10 @@ void PaintOperation::on_stroke_done(const bContext &C)
   int index_eval = active_layer_eval.drawing_index_at(scene->r.cfra);
   BLI_assert(index_orig != -1 && index_eval != -1);
 
-  GreasePencilDrawing &drawing_orig = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil_orig.drawings()[index_orig]);
-  GreasePencilDrawing &drawing_eval = *reinterpret_cast<GreasePencilDrawing *>(
-      grease_pencil_eval.drawings()[index_eval]);
+  bke::greasepencil::Drawing &drawing_orig =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings()[index_orig])->wrap();
+  bke::greasepencil::Drawing &drawing_eval =
+      reinterpret_cast<GreasePencilDrawing *>(grease_pencil_eval.drawings()[index_eval])->wrap();
 
   const Span<bke::greasepencil::StrokePoint> stroke_points = drawing_eval.stroke_buffer();
   CurvesGeometry &curves = drawing_orig.geometry.wrap();

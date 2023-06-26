@@ -189,6 +189,7 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
 
 static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfra)
 {
+  using namespace blender::bke::greasepencil;
   BLI_assert(grease_pencil.runtime != nullptr);
   GreasePencilBatchCache *cache = static_cast<GreasePencilBatchCache *>(
       grease_pencil.runtime->batch_cache);
@@ -202,10 +203,9 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   BLI_assert(cache->geom_batch == nullptr);
 
   /* Get the visible drawings. */
-  Vector<const GreasePencilDrawing *> drawings;
+  Vector<Drawing *> drawings;
   grease_pencil.foreach_visible_drawing(
-      cfra,
-      [&](int /*drawing_index*/, GreasePencilDrawing &drawing) { drawings.append(&drawing); });
+      cfra, [&](int /*drawing_index*/, Drawing &drawing) { drawings.append(&drawing); });
 
   /* First, count how many vertices and triangles are needed for the whole object. Also record the
    * offsets into the curves for the vertices and triangles. */
@@ -215,15 +215,14 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   int v_offset = 0;
   Vector<Array<int>> verts_start_offsets_per_visible_drawing;
   Vector<Array<int>> tris_start_offsets_per_visible_drawing;
-  for (const int drawing_i : drawings.index_range()) {
-    const GreasePencilDrawing &drawing = *drawings[drawing_i];
-    const bke::CurvesGeometry &curves = drawing.geometry.wrap();
+  for (const Drawing *drawing : drawings) {
+    const bke::CurvesGeometry &curves = drawing->strokes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const VArray<bool> cyclic = curves.cyclic();
 
     int verts_start_offsets_size = curves.curves_num();
     int tris_start_offsets_size = curves.curves_num();
-    if (drawing.has_stroke_buffer()) {
+    if (drawing->has_stroke_buffer()) {
       verts_start_offsets_size++;
       /* TODO: triangles for stroke buffer. */
       // tris_start_offsets_size++;
@@ -257,10 +256,10 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
      * vertex.*/
     total_verts_num += curves.points_num() + num_cyclic + curves.curves_num() * 2;
     total_triangles_num += (curves.points_num() + num_cyclic) * 2;
-    total_triangles_num += drawing.triangles().size();
+    total_triangles_num += drawing->triangles().size();
 
-    if (drawing.has_stroke_buffer()) {
-      const int num_buffer_points = drawing.stroke_buffer().size();
+    if (drawing->has_stroke_buffer()) {
+      const int num_buffer_points = drawing->stroke_buffer().size();
       total_verts_num += 1 + num_buffer_points + 1;
       total_triangles_num += num_buffer_points * 2;
       verts_start_offsets[curves.curves_range().size()] = v_offset;
@@ -317,8 +316,8 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
   /* Fill buffers with data. */
   int drawing_start_offset = 0;
   for (const int drawing_i : drawings.index_range()) {
-    const GreasePencilDrawing &drawing = *drawings[drawing_i];
-    const bke::CurvesGeometry &curves = drawing.geometry.wrap();
+    const Drawing &drawing = *drawings[drawing_i];
+    const bke::CurvesGeometry &curves = drawing.strokes();
     const bke::AttributeAccessor attributes = curves.attributes();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const Span<float3> positions = curves.positions();
