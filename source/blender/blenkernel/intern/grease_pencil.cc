@@ -224,7 +224,7 @@ IDTypeInfo IDType_ID_GP = {
     /*main_listbase_index*/ INDEX_ID_GP,
     /*struct_size*/ sizeof(GreasePencil),
     /*name*/ "GreasePencil",
-    /*name_plural*/ "grease_pencils_new",
+    /*name_plural*/ "grease_pencils_v3",
     /*translation_context*/ BLT_I18NCONTEXT_ID_GPENCIL,
     /*flags*/ IDTYPE_FLAGS_APPEND_IS_REUSABLE,
     /*asset_type_info*/ nullptr,
