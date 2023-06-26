@@ -146,6 +146,8 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
       BLI_assert_unreachable();
   }
 
+  MEM_SAFE_FREE(target_layer_name);
+
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
 
