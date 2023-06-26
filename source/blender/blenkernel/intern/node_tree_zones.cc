@@ -8,6 +8,7 @@
 
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_span_ops.hh"
+#include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
 
@@ -109,13 +110,14 @@ static Vector<ZoneRelation> get_direct_zone_relations(
   return zone_relations;
 }
 
-static void update_zone_per_node(const Span<const bNode *> all_nodes,
+static bool update_zone_per_node(const Span<const bNode *> all_nodes,
                                  const Span<std::unique_ptr<bNodeTreeZone>> all_zones,
                                  const BitGroupVector<> &depend_on_input_flag_array,
                                  const Map<const bNode *, bNodeTreeZone *> &zone_by_inout_node,
                                  Map<int, int> &r_zone_by_node_id,
                                  Vector<const bNode *> &r_node_outside_zones)
 {
+  bool found_node_in_multiple_zones = false;
   for (const int node_i : all_nodes.index_range()) {
     const bNode &node = *all_nodes[node_i];
     const BoundedBitSpan depend_on_input_flags = depend_on_input_flag_array[node_i];
@@ -125,9 +127,27 @@ static void update_zone_per_node(const Span<const bNode *> all_nodes,
       if (ELEM(&node, zone->input_node, zone->output_node)) {
         return;
       }
-      if (parent_zone == nullptr || zone->depth > parent_zone->depth) {
+      if (parent_zone == nullptr) {
         parent_zone = zone;
+        return;
       }
+      for (bNodeTreeZone *iter_zone = zone->parent_zone; iter_zone;
+           iter_zone = iter_zone->parent_zone) {
+        if (iter_zone == parent_zone) {
+          /* This zone is nested in the parent zone, so it becomes the new parent of the node. */
+          parent_zone = zone;
+          return;
+        }
+      }
+      for (bNodeTreeZone *iter_zone = parent_zone->parent_zone; iter_zone;
+           iter_zone = iter_zone->parent_zone)
+      {
+        if (iter_zone == zone) {
+          /* This zone is a parent of the current parent of the node, do nothing. */
+          return;
+        }
+      }
+      found_node_in_multiple_zones = true;
     });
     if (parent_zone == nullptr) {
       if (!zone_by_inout_node.contains(&node)) {
@@ -141,6 +161,7 @@ static void update_zone_per_node(const Span<const bNode *> all_nodes,
   for (const MapItem<const bNode *, bNodeTreeZone *> item : zone_by_inout_node.items()) {
     r_zone_by_node_id.add_overwrite(item.key->identifier, item.value->index);
   }
+  return found_node_in_multiple_zones;
 }
 
 static void update_zone_border_links(const bNodeTree &tree, bNodeTreeZones &tree_zones)
@@ -242,6 +263,17 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
     relation.child->parent_zone = relation.parent;
   }
 
+  Set<const bNodeTreeZone *> found_zones;
+  for (std::unique_ptr<bNodeTreeZone> &main_zone : tree_zones->zones) {
+    found_zones.clear();
+    for (bNodeTreeZone *zone = main_zone.get(); zone; zone = zone->parent_zone) {
+      if (!found_zones.add(zone)) {
+        /* Found cyclic parent relationships between zones. */
+        return {};
+      }
+    }
+  }
+
   /* Update depths. */
   for (std::unique_ptr<bNodeTreeZone> &zone : tree_zones->zones) {
     update_zone_depths(*zone);
@@ -253,12 +285,15 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
     }
   }
 
-  update_zone_per_node(all_nodes,
-                       tree_zones->zones,
-                       depend_on_input_flag_array,
-                       zone_by_inout_node,
-                       tree_zones->zone_by_node_id,
-                       tree_zones->nodes_outside_zones);
+  const bool found_node_in_multiple_zones = update_zone_per_node(all_nodes,
+                                                                 tree_zones->zones,
+                                                                 depend_on_input_flag_array,
+                                                                 zone_by_inout_node,
+                                                                 tree_zones->zone_by_node_id,
+                                                                 tree_zones->nodes_outside_zones);
+  if (found_node_in_multiple_zones) {
+    return {};
+  }
 
   for (const int node_i : all_nodes.index_range()) {
     const bNode *node = all_nodes[node_i];
