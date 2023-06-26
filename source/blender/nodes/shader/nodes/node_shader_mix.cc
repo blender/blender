@@ -8,6 +8,8 @@
 
 #include <algorithm>
 
+#include "BLI_math_quaternion.hh"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -62,26 +64,37 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
 
+  b.add_input<decl::Rotation>("A", "A_Rotation")
+      .is_default_link_socket()
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+  b.add_input<decl::Rotation>("B", "B_Rotation").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+
   b.add_output<decl::Float>("Result", "Result_Float");
   b.add_output<decl::Vector>("Result", "Result_Vector");
   b.add_output<decl::Color>("Result", "Result_Color");
+  b.add_output<decl::Rotation>("Result", "Result_Rotation");
 };
 
 static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeShaderMix &data = node_storage(*static_cast<const bNode *>(ptr->data));
   uiItemR(layout, ptr, "data_type", 0, "", ICON_NONE);
-  if (data.data_type == SOCK_VECTOR) {
-    uiItemR(layout, ptr, "factor_mode", 0, "", ICON_NONE);
+  switch (data.data_type) {
+    case SOCK_FLOAT:
+      break;
+    case SOCK_VECTOR:
+      uiItemR(layout, ptr, "factor_mode", 0, "", ICON_NONE);
+      break;
+    case SOCK_RGBA:
+      uiItemR(layout, ptr, "blend_type", 0, "", ICON_NONE);
+      uiItemR(layout, ptr, "clamp_result", 0, nullptr, ICON_NONE);
+      break;
+    case SOCK_ROTATION:
+      break;
+    default:
+      BLI_assert_unreachable();
   }
-  if (data.data_type == SOCK_RGBA) {
-    uiItemR(layout, ptr, "blend_type", 0, "", ICON_NONE);
-    uiItemR(layout, ptr, "clamp_result", 0, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "clamp_factor", 0, nullptr, ICON_NONE);
-  }
-  else {
-    uiItemR(layout, ptr, "clamp_factor", 0, nullptr, ICON_NONE);
-  }
+  uiItemR(layout, ptr, "clamp_factor", 0, nullptr, ICON_NONE);
 }
 
 static void sh_node_mix_label(const bNodeTree * /*ntree*/,
@@ -167,6 +180,9 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
     case SOCK_RGBA:
       type = SOCK_RGBA;
       break;
+    case SOCK_ROTATION:
+      type = SOCK_ROTATION;
+      break;
     default:
       return;
   }
@@ -210,15 +226,21 @@ static void node_mix_gather_link_searches(GatherLinkSearchOpParams &params)
           weight);
       weight--;
     }
-    params.add_item(
-        IFACE_("Factor"),
-        [type](LinkSearchOpParams &params) {
-          bNode &node = params.add_node("ShaderNodeMix");
-          node_storage(node).data_type = type;
-          params.update_and_connect_available_socket(node, "Factor");
-        },
-        weight);
-    weight--;
+    if (type != SOCK_ROTATION) {
+      params.add_item(
+          IFACE_("Factor"),
+          [type](LinkSearchOpParams &params) {
+            bNode &node = params.add_node("ShaderNodeMix");
+            node_storage(node).data_type = type;
+            params.update_and_connect_available_socket(node, "Factor");
+          },
+          weight);
+      weight--;
+    }
+  }
+
+  if (type == SOCK_ROTATION) {
+    return;
   }
 
   if (type != SOCK_RGBA) {
@@ -309,6 +331,8 @@ static const char *gpu_shader_get_name(eNodeSocketDatatype data_type,
           BLI_assert_unreachable();
           return nullptr;
       }
+    case SOCK_ROTATION:
+      return nullptr;
     default:
       BLI_assert_unreachable();
       return nullptr;
@@ -478,6 +502,26 @@ static const mf::MultiFunction *get_multi_function(const bNode &node)
               });
           return &fn;
         }
+      }
+    }
+    case SOCK_ROTATION: {
+      if (clamp_factor) {
+        static auto fn =
+            mf::build::SI3_SO<float, math::Quaternion, math::Quaternion, math::Quaternion>(
+                "Clamp Mix Rotation",
+                [](const float t, const math::Quaternion &a, const math::Quaternion &b) {
+                  return math::interpolate(a, b, math::clamp(t, 0.0f, 1.0f));
+                });
+        return &fn;
+      }
+      else {
+        static auto fn =
+            mf::build::SI3_SO<float, math::Quaternion, math::Quaternion, math::Quaternion>(
+                "Mix Rotation",
+                [](const float t, const math::Quaternion &a, const math::Quaternion &b) {
+                  return math::interpolate(a, b, t);
+                });
+        return &fn;
       }
     }
   }
