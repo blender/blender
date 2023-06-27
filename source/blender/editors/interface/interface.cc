@@ -755,7 +755,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
   /* Compares the contained function pointers. Buttons with different apply functions can be
    * considered to do different things, and as such do not equal each other. */
 
-  /* XXX clang-cl bug? Have to de-const to access target methods.*/
+  /* NotForPR: XXX clang-cl bug? Have to de-const to access target methods.*/
   uiBut *nonconst_but = const_cast<uiBut *>(but);
   uiBut *onconst_oldbut = const_cast<uiBut *>(oldbut);
 

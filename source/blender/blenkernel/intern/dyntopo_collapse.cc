@@ -37,6 +37,7 @@
 #include "dyntopo_intern.hh"
 #include "pbvh_intern.hh"
 
+#include <array>
 #include <cstdio>
 #include <functional>
 
@@ -212,8 +213,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
   const float limit = 0.005;
   BMLoop *l = e->l;
 
-  for (int step = 0; step < 2; step++) {
-    BMVert *v = step ? e->v2 : e->v1;
+  for (BMVert *v : std::array<BMVert *, 2>({e->v1, e->v2})) {
     BMEdge *e2 = v->e;
 
     if (!e2) {
@@ -547,25 +547,27 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
 
   pbvh_bmesh_check_nodes(pbvh);
 
-#if 0
   /* Destroy wire edges */
-  Vector<BMEdge *, 16> es;
-  e2 = v_conn->e;
-  do {
-    if (!e2->l) {
-      es.append(e2);
+  if (v_conn->e) {
+    Vector<BMEdge *, 16> es;
+    BMEdge *e2 = v_conn->e;
+
+    do {
+      if (!e2->l) {
+        es.append(e2);
+      }
+    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
+
+    for (BMEdge *e2 : es) {
+      BMVert *v2 = BM_edge_other_vert(e2, v_conn);
+
+      BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e2);
+      BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e2), true);
+      BM_edge_kill(pbvh->header.bm, e2);
+
+      dyntopo_add_flag(pbvh, v2, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+      BKE_sculpt_boundary_flag_update<PBVHVertRef>(ss, {reinterpret_cast<intptr_t>(v2)});
     }
-  } while ((e2 = BM_DISK_EDGE_NEXT(e2, v_conn)) != v_conn->e);
-
-  for (BMEdge *e2 : es) {
-    BMVert *v2 = BM_edge_other_vert(e2, v_conn);
-
-    BM_log_edge_removed(pbvh->header.bm, pbvh->bm_log, e2);
-    BM_idmap_release(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e2), true);
-    BM_edge_kill(pbvh->header.bm, e2);
-
-    dyntopo_add_flag(pbvh, v2, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
-    BKE_sculpt_boundary_flag_update(ss, {reinterpret_cast<intptr_t>(v2)});
   }
 
   if (!v_conn->e) {
@@ -580,7 +582,6 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
 
     return nullptr;
   }
-#endif
 
   if (BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_vert_node_offset) == DYNTOPO_NODE_NONE) {
     printf("%s: error: failed to remove vert from pbvh?  v_conn->e: %p v_conn->e->l: %p\n",
