@@ -1475,6 +1475,9 @@ void BKE_mesh_legacy_edge_crease_from_layers(Mesh *mesh)
 void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
 {
   using namespace blender;
+  if (!mesh->medge) {
+    return;
+  }
   if (CustomData_has_layer(&mesh->edata, CD_CREASE)) {
     return;
   }
