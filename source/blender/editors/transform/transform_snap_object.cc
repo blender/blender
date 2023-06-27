@@ -289,7 +289,7 @@ void SnapData::register_result(SnapObjectContext *sctx, Object *ob_eval, const I
   mul_mat3_m4_v3(this->obmat_.ptr(), sctx->ret.no);
   normalize_v3(sctx->ret.no);
 
-#if DEBUG
+#ifdef DEBUG
   /* Make sure this is only called once. */
   this->nearest_point.index = -2;
 #endif
