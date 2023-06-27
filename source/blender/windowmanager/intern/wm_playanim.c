@@ -89,6 +89,7 @@ static CLG_LogRef LOG = {"wm.playanim"};
 
 struct PlayState;
 static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
+static bool playanim_window_font_scale_from_dpi(struct PlayState *ps);
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -193,6 +194,7 @@ typedef struct PlayState {
   int ibufx, ibufy;
   /** Mono-space font ID. */
   int fontid;
+  int font_size;
 
   /** Restarts player for file drop (drag & drop). */
   char dropped_file[FILE_MAX];
@@ -1338,6 +1340,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       ps->go = false;
       break;
     }
+    case GHOST_kEventWindowDPIHintChanged: {
+      /* Rely on frame-change to redraw. */
+      playanim_window_font_scale_from_dpi(ps);
+      break;
+    }
     case GHOST_kEventDraggingDropDone: {
       GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
 
@@ -1405,6 +1412,19 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   /* ofsy -= sizey / 2; */ /* UNUSED */
   // window_set_position(g_WS.ghost_window, sizex, sizey);
   GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+}
+
+static bool playanim_window_font_scale_from_dpi(PlayState *ps)
+{
+  const float scale = (GHOST_GetDPIHint(g_WS.ghost_window) / 96.0f);
+  const float font_size_base = 11.0f; /* Font size un-scaled. */
+  const int font_size = (int)(font_size_base * scale) + 0.5f;
+  if (ps->font_size != font_size) {
+    BLF_size(ps->fontid, font_size);
+    ps->font_size = font_size;
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -1590,7 +1610,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   BLF_init();
   BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
-  BLF_size(ps.fontid, 11.0f);
+
+  ps.font_size = -1; /* Force update. */
+  playanim_window_font_scale_from_dpi(&ps);
 
   ps.ibufx = ibuf->x;
   ps.ibufy = ibuf->y;
