@@ -255,7 +255,11 @@ SeqRetimingHandle *SEQ_retiming_add_handle(const Scene *scene,
   float value = seq_retiming_evaluate(seq, frame_index);
 
   const SeqRetimingHandle *start_handle = SEQ_retiming_find_segment_start_handle(seq, frame_index);
-  if (start_handle->strip_frame_index == frame_index) {
+  const SeqRetimingHandle *last_handle = SEQ_retiming_last_handle_get(seq);
+
+  if (start_handle->strip_frame_index == frame_index ||
+      last_handle->strip_frame_index == frame_index)
+  {
     return nullptr; /* Retiming handle already exists. */
   }
 
