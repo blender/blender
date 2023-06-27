@@ -35,8 +35,10 @@ static const aal::RelationsInNode &get_relations_in_node(const bNode &node, Reso
       if (!ntreeIsRegistered(group)) {
         return scope.construct<aal::RelationsInNode>();
       }
-
-      BLI_assert(group->runtime->anonymous_attribute_inferencing);
+      /* It's possible that the inferencing failed on the group. */
+      if (!group->runtime->anonymous_attribute_inferencing) {
+        return scope.construct<aal::RelationsInNode>();
+      }
       return group->runtime->anonymous_attribute_inferencing->tree_relations;
     }
   }
