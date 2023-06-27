@@ -12,6 +12,7 @@
  * this could be made into its own module, alongside creator.
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
+
+#include "CLG_log.h"
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
@@ -82,8 +85,57 @@ static AUD_Device *audio_device = NULL;
 #  define PLAY_FRAME_CACHE_MAX 30
 #endif
 
+static CLG_LogRef LOG = {"wm.playanim"};
+
 struct PlayState;
 static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
+
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+/**
+ * \param filepath: The file path to read into memory.
+ * \param r_mem: Optional, when NULL, don't allocate memory (just set the size).
+ * \param r_size: The file-size of `filepath`.
+ */
+static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_size)
+{
+  errno = 0;
+  const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+  if (UNLIKELY(file == -1)) {
+    CLOG_WARN(&LOG, "failure '%s' to open file '%s'", strerror(errno), filepath);
+    return false;
+  }
+
+  bool success = false;
+  uchar *mem = NULL;
+  const size_t size = BLI_file_descriptor_size(file);
+  if (UNLIKELY(size == (size_t)-1)) {
+    CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
+  }
+  else if (r_mem && UNLIKELY(!(mem = MEM_mallocN(size, __func__)))) {
+    CLOG_WARN(&LOG, "error allocating buffer for '%s'", filepath);
+  }
+  else if (r_mem && UNLIKELY(read(file, mem, size) != size)) {
+    CLOG_WARN(&LOG, "error '%s' while reading '%s'", strerror(errno), filepath);
+  }
+  else {
+    close(file);
+    *r_size = size;
+    if (r_mem) {
+      *r_mem = mem;
+      mem = NULL; /* `r_mem` owns, don't free on exit. */
+    }
+    success = true;
+  }
+
+  MEM_SAFE_FREE(mem);
+  close(file);
+  return success;
+}
+
+/** \} */
 
 /**
  * The current state of the player.
@@ -655,7 +707,7 @@ static void build_pict_list_ex(
       }
     }
     else {
-      printf("couldn't open anim %s\n", filepath_first);
+      CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
     }
   }
   else {
@@ -687,60 +739,22 @@ static void build_pict_list_ex(
     pupdate_time();
     ptottime = 1.0;
 
-    while (IMB_ispic(filepath) && totframes) {
+    while (totframes && IMB_ispic(filepath)) {
       bool has_event;
-      size_t size;
-      int file;
 
-      file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
-      if (file < 0) {
-        /* print errno? */
+      void *mem = NULL;
+      size_t size = -1;
+      if (!buffer_from_filepath(filepath, fromdisk ? NULL : &mem, &size)) {
+        /* A warning will have been logged. */
         return;
       }
 
       PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
-      if (picture == NULL) {
-        printf("Not enough memory for pict struct '%s'\n", filepath);
-        close(file);
-        return;
-      }
-      size = BLI_file_descriptor_size(file);
-
-      if (size < 1) {
-        close(file);
-        MEM_freeN(picture);
-        return;
-      }
-
       picture->size = size;
       picture->IB_flags = IB_rect;
-
-      uchar *mem;
-      if (fromdisk == false) {
-        mem = MEM_mallocN(size, "build pic list");
-        if (mem == NULL) {
-          printf("Couldn't get memory\n");
-          close(file);
-          MEM_freeN(picture);
-          return;
-        }
-
-        if (read(file, mem, size) != size) {
-          printf("Error while reading %s\n", filepath);
-          close(file);
-          MEM_freeN(picture);
-          MEM_freeN(mem);
-          return;
-        }
-      }
-      else {
-        mem = NULL;
-      }
-
       picture->mem = mem;
       picture->filepath = BLI_strdup(filepath);
       picture->frame = count;
-      close(file);
       BLI_addtail(&picsbase, picture);
       count++;
 
@@ -1554,7 +1568,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
     if (UNLIKELY(g_WS.ghost_system == NULL)) {
       /* GHOST will have reported the back-ends that failed to load. */
-      fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
+      CLOG_WARN(&LOG, "GHOST: unable to initialize, exiting!");
       /* This will leak memory, it's preferable to crashing. */
       exit(EXIT_FAILURE);
     }
