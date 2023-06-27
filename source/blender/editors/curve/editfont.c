@@ -394,7 +394,7 @@ static int insert_into_textbuf(Object *obedit, uintptr_t c)
   return 0;
 }
 
-static void text_update_edited(bContext *C, Object *obedit, int mode)
+static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode mode)
 {
   Curve *cu = obedit->data;
   EditFont *ef = cu->editfont;

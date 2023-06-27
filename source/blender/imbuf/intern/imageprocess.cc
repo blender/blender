@@ -489,7 +489,8 @@ void IMB_sampleImageAtLocation(ImBuf *ibuf, float x, float y, bool make_linear_r
     nearest_interpolation_color(ibuf, byte_color, nullptr, x, y);
     rgba_uchar_to_float(color, byte_color);
     if (make_linear_rgb) {
-      IMB_colormanagement_colorspace_to_scene_linear_v4(color, false, ibuf->rect_colorspace);
+      IMB_colormanagement_colorspace_to_scene_linear_v4(
+          color, false, ibuf->byte_buffer.colorspace);
     }
   }
 }

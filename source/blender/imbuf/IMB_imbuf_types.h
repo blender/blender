@@ -191,12 +191,16 @@ typedef struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
   const ImplicitSharingInfoHandle *implicit_sharing;
+
+  struct ColorSpace *colorspace;
 } ImBufByteBuffer;
 
 typedef struct ImBufFloatBuffer {
   float *data;
   ImBufOwnership ownership;
   const ImplicitSharingInfoHandle *implicit_sharing;
+
+  struct ColorSpace *colorspace;
 } ImBufFloatBuffer;
 
 /** \} */
@@ -289,10 +293,6 @@ typedef struct ImBuf {
   unsigned int encoded_buffer_size;
 
   /* color management */
-  /** color space of byte buffer */
-  struct ColorSpace *rect_colorspace;
-  /** color space of float buffer, used by sequencer only */
-  struct ColorSpace *float_colorspace;
   /** array of per-display display buffers dirty flags */
   unsigned int *display_buffer_flags;
   /** cache used by color management */

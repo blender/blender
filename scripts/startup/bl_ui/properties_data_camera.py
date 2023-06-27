@@ -391,7 +391,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                     col.prop(bg, "rotation")
                     col.prop(bg, "scale")
 
-                    col = box.column(heading="Flip")
+                    col = box.column(heading="Flip", heading_ctxt=i18n_contexts.id_image)
                     col.prop(bg, "use_flip_x", text="X")
                     col.prop(bg, "use_flip_y", text="Y")
 

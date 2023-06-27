@@ -301,7 +301,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               &props);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
-  char catalog_id_str_buffer[UUID_STRING_LEN] = "";
+  char catalog_id_str_buffer[UUID_STRING_SIZE] = "";
   BLI_uuid_format(catalog_id_str_buffer, catalog_item_.get_catalog_id());
   uiItemFullO(&column,
               "ASSET_OT_catalog_delete",

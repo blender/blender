@@ -113,7 +113,7 @@ typedef struct KeyframeEdit_CircleData {
 } KeyframeEdit_CircleData;
 
 /* ************************************************ */
-/* Non-Destructive Editing API (keyframes_edit.c) */
+/* Non-Destructive Editing API (keyframes_edit.cc) */
 
 /* -------------------------------------------------------------------- */
 /** \name Defines for 'OK' polls + KeyframeEditData Flags
@@ -121,6 +121,7 @@ typedef struct KeyframeEdit_CircleData {
 
 /* which verts of a keyframe is active (after polling) */
 typedef enum eKeyframeVertOk {
+  KEYFRAME_NONE = 0,
   /* 'key' itself is ok */
   KEYFRAME_OK_KEY = (1 << 0),
   /* 'handle 1' is ok */

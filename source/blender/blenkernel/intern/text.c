@@ -1730,8 +1730,11 @@ static void txt_combine_lines(Text *text, TextLine *linea, TextLine *lineb)
   tmp = MEM_mallocN(linea->len + lineb->len + 1, "textline_string");
 
   s = tmp;
-  s += BLI_strcpy_rlen(s, linea->line);
-  s += BLI_strcpy_rlen(s, lineb->line);
+  memcpy(s, linea->line, linea->len);
+  s += linea->len;
+  memcpy(s, lineb->line, lineb->len);
+  s += lineb->len;
+  *s = '\0';
   (void)s;
 
   make_new_line(linea, tmp);

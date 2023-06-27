@@ -520,7 +520,7 @@ bool ED_space_node_color_sample(
     else if (ibuf->byte_buffer.data) {
       cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
-      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
+      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->byte_buffer.colorspace);
       ret = true;
     }
   }
@@ -593,7 +593,7 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 
       copy_v4_v4(info->linearcol, info->colf);
       IMB_colormanagement_colorspace_to_scene_linear_v4(
-          info->linearcol, false, ibuf->rect_colorspace);
+          info->linearcol, false, ibuf->byte_buffer.colorspace);
 
       info->color_manage = true;
     }

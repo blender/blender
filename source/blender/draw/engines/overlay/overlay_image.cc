@@ -401,7 +401,8 @@ void OVERLAY_image_empty_cache_populate(OVERLAY_Data *vedata, Object *ob)
   }
 
   /* Use the actual depth if we are doing depth tests to determine the distance to the object */
-  char depth_mode = DRW_state_is_depth() ? OB_EMPTY_IMAGE_DEPTH_DEFAULT : ob->empty_image_depth;
+  char depth_mode = DRW_state_is_depth() ? char(OB_EMPTY_IMAGE_DEPTH_DEFAULT) :
+                                           ob->empty_image_depth;
   DRWPass *pass = nullptr;
   if ((ob->dtx & OB_DRAW_IN_FRONT) != 0) {
     /* Object In Front overrides image empty depth mode. */

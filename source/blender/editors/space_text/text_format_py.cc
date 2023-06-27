@@ -17,85 +17,110 @@
 
 #include "text_format.hh"
 
-/* *** Local Functions (for format_line) *** */
+/* -------------------------------------------------------------------- */
+/** \name Local Literal Definitions
+ * \{ */
 
 /**
- * Checks the specified source string for a Python built-in function name. This
- * name must start at the beginning of the source string and must be followed by
- * a non-identifier (see #text_check_identifier(char)) or null character.
+ * The following items are derived from this list:
+ * \code{.py}
+ * ", ".join(['"%s"' % kw
+ *            for kw in sorted(__import__("keyword").kwlist + __import__("keyword").softkwlist)
+ *            if kw not in {"False", "None", "True", "def", "class", "_"}])
+ * \endcode
  *
- * If a built-in function is found, the length of the matching name is returned.
- * Otherwise, -1 is returned.
+ * The code below can be re-generated using:
+ * \code{.py}
+ * import keyword
+ * ignore = {"False", "None", "True", "def", "class", "_"}
+ * keywords = sorted(set(keyword.kwlist + keyword.softkwlist) - ignore)
+ * longest = max(len(kw) for kw in keywords)
+ * first  = 'if        (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
+ * middle = '} else if (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
+ * last   = '} else                                         %s       { i = 0;'
+ * print("\n".join([(first if i==0 else middle) % (kw, ' '*(longest - len(kw)))
+ *                 for (i, kw) in enumerate(keywords)]) + "\n" +
+ *       last % (' '*(longest-2)) + "\n" +
+ *       "}")
+ * \endcode
  *
+ * Python built-in function name.
  * See:
  * http://docs.python.org/py3k/reference/lexical_analysis.html#keywords
  */
+static const char *text_format_py_literals_builtinfunc_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "and",
+    "as",
+    "assert",
+    "async",
+    "await",
+    "break",
+    "case",
+    "continue",
+    "del",
+    "elif",
+    "else",
+    "except",
+    "finally",
+    "for",
+    "from",
+    "global",
+    "if",
+    "import",
+    "in",
+    "is",
+    "lambda",
+    "match",
+    "nonlocal",
+    "not",
+    "or",
+    "pass",
+    "raise",
+    "return",
+    "try",
+    "while",
+    "with",
+    "yield",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_py_literals_builtinfunc(
+    text_format_py_literals_builtinfunc_data,
+    ARRAY_SIZE(text_format_py_literals_builtinfunc_data));
+
+/** Python special name.*/
+static const char *text_format_py_literals_specialvar_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "class",
+    "def",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_py_literals_specialvar(
+    text_format_py_literals_specialvar_data, ARRAY_SIZE(text_format_py_literals_specialvar_data));
+
+/** Python bool values.*/
+static const char *text_format_py_literals_bool_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "False",
+    "None",
+    "True",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_py_literals_bool(
+    text_format_py_literals_bool_data, ARRAY_SIZE(text_format_py_literals_bool_data));
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Functions (for #TextFormatType::format_line)
+ * \{ */
+
 static int txtfmt_py_find_builtinfunc(const char *string)
 {
-  int i, len;
-  /**
-   * The following items are derived from this list:
-   * \code{.py}
-   * ", ".join(['"%s"' % kw
-   *            for kw in sorted(__import__("keyword").kwlist + __import__("keyword").softkwlist)
-   *            if kw not in {"False", "None", "True", "def", "class", "_"}])
-   * \endcode
-   *
-   * The code below can be re-generated using:
-   * \code{.py}
-   * import keyword
-   * ignore = {"False", "None", "True", "def", "class", "_"}
-   * keywords = sorted(set(keyword.kwlist + keyword.softkwlist) - ignore)
-   * longest = max(len(kw) for kw in keywords)
-   * first  = 'if        (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
-   * middle = '} else if (STR_LITERAL_STARTSWITH(string, "%s",%s len)) { i = len;'
-   * last   = '} else                                         %s       { i = 0;'
-   * print("\n".join([(first if i==0 else middle) % (kw, ' '*(longest - len(kw)))
-   *                 for (i, kw) in enumerate(keywords)]) + "\n" +
-   *       last % (' '*(longest-2)) + "\n" +
-   *       "}")
-   * \endcode
-   */
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  if        (STR_LITERAL_STARTSWITH(string, "and",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "assert",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "async",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "as",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "await",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "break",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "case",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "continue", len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "del",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "elif",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "else",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "except",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "finally",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "for",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "from",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "global",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "if",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "import",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "in",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "is",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "lambda",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "match",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "nonlocal", len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "not",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "or",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "pass",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "raise",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "return",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "try",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "while",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "with",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "yield",    len)) { i = len;
-  } else                                                      { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_py_literals_builtinfunc, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -104,26 +129,9 @@ static int txtfmt_py_find_builtinfunc(const char *string)
   return i;
 }
 
-/* Checks the specified source string for a Python special name. This name must
- * start at the beginning of the source string and must be followed by a non-
- * identifier (see text_check_identifier(char)) or null character.
- *
- * If a special name is found, the length of the matching name is returned.
- * Otherwise, -1 is returned. */
-
 static int txtfmt_py_find_specialvar(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  if        (STR_LITERAL_STARTSWITH(string, "def", len))   { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "class", len)) { i = len;
-  } else                                                   { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_py_literals_specialvar, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -154,18 +162,7 @@ static int txtfmt_py_find_decorator(const char *string)
 
 static int txtfmt_py_find_bool(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  if        (STR_LITERAL_STARTSWITH(string, "None",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "True",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "False", len)) { i = len;
-  } else                                                   { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_py_literals_bool, string);
 
   /* If next source char is an identifier (eg. 'i' in "Nonetheless") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -329,6 +326,12 @@ static char txtfmt_py_format_identifier(const char *str)
   /* clang-format on */
   return fmt;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Format Line Implementation (#TextFormatType::format_line)
+ * \{ */
 
 static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_next)
 {
@@ -546,6 +549,12 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
   flatten_string_free(&fs);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
+
 void ED_text_format_register_py()
 {
   static TextFormatType tft = {nullptr};
@@ -557,4 +566,10 @@ void ED_text_format_register_py()
   tft.comment_line = "#";
 
   ED_text_format_register(&tft);
+
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_py_literals_builtinfunc));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_py_literals_specialvar));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_py_literals_bool));
 }
+
+/** \} */

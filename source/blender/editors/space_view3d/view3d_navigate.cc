@@ -1768,7 +1768,7 @@ static int vieworbit_exec(bContext *C, wmOperator *op)
 
   /* support for switching to the opposite view (even when in locked views) */
   view_opposite = (fabsf(angle) == float(M_PI)) ? ED_view3d_axis_view_opposite(rv3d->view) :
-                                                  RV3D_VIEW_USER;
+                                                  char(RV3D_VIEW_USER);
   orbitdir = RNA_enum_get(op->ptr, "type");
 
   if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {

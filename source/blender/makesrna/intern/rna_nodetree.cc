@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "BLI_function_ref.hh"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -54,7 +55,7 @@
 #include "RE_texture.h"
 
 #include "NOD_composite.h"
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_socket.h"
 
 #include "DEG_depsgraph.h"
@@ -513,6 +514,14 @@ static const EnumPropertyItem rna_node_combsep_color_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_mix_data_type_items[] = {
+    {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
+    {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
+    {SOCK_RGBA, "RGBA", 0, "Color", ""},
+    {SOCK_ROTATION, "ROTATION", 0, "Rotation", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifndef RNA_RUNTIME
 static const EnumPropertyItem node_sampler_type_items[] = {
     {0, "NEAREST", 0, "Nearest", ""},
@@ -574,7 +583,7 @@ static EnumPropertyItem rna_node_geometry_mesh_circle_fill_type_items[] = {
 
 #  include "NOD_common.h"
 #  include "NOD_composite.h"
-#  include "NOD_geometry.h"
+#  include "NOD_geometry.hh"
 #  include "NOD_shader.h"
 #  include "NOD_socket.h"
 #  include "NOD_texture.h"
@@ -2062,7 +2071,7 @@ static StructRNA *rna_Node_register(Main *bmain,
 
 static const EnumPropertyItem *itemf_function_check(
     const EnumPropertyItem *original_item_array,
-    bool (*value_supported)(const EnumPropertyItem *item))
+    blender::FunctionRef<bool(const EnumPropertyItem *item)> value_supported)
 {
   EnumPropertyItem *item_array = nullptr;
   int items_len = 0;
@@ -3793,6 +3802,27 @@ static const EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
   return item;
 }
 
+static const EnumPropertyItem *rna_ShaderNodeMix_data_type_itemf(bContext * /*C*/,
+                                                                 PointerRNA *ptr,
+                                                                 PropertyRNA * /*prop*/,
+                                                                 bool *r_free)
+{
+  *r_free = true;
+
+  const auto rotation_supported_mix = [&](const EnumPropertyItem *item) -> bool {
+    const eNodeSocketDatatype data_type = eNodeSocketDatatype(item->value);
+    if (U.experimental.use_rotation_socket && data_type == SOCK_ROTATION) {
+      const bNodeTree *tree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+      if (tree->type == NTREE_GEOMETRY) {
+        return true;
+      }
+    }
+    return ELEM(data_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+  };
+
+  return itemf_function_check(rna_enum_mix_data_type_items, rotation_supported_mix);
+}
+
 static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext * /*C*/,
                                                           PointerRNA *ptr,
                                                           PropertyRNA * /*prop*/,
@@ -5206,13 +5236,6 @@ static void def_compare(StructRNA *srna)
 
 static void def_sh_mix(StructRNA *srna)
 {
-  static const EnumPropertyItem rna_enum_mix_data_type_items[] = {
-      {SOCK_FLOAT, "FLOAT", 0, "Float", ""},
-      {SOCK_VECTOR, "VECTOR", 0, "Vector", ""},
-      {SOCK_RGBA, "RGBA", 0, "Color", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem rna_enum_mix_mode_items[] = {
       {NODE_MIX_MODE_UNIFORM, "UNIFORM", 0, "Uniform", "Use a single factor for all components"},
       {NODE_MIX_MODE_NON_UNIFORM, "NON_UNIFORM", 0, "Non-Uniform", "Per component factor"},
@@ -5224,6 +5247,7 @@ static void def_sh_mix(StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeShaderMix", "storage");
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_ShaderNodeMix_data_type_itemf");
   RNA_def_property_enum_items(prop, rna_enum_mix_data_type_items);
   RNA_def_property_enum_default(prop, SOCK_FLOAT);
   RNA_def_property_ui_text(prop, "Data Type", "");
@@ -7230,6 +7254,7 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_NodeOutputFileSlotFile_path_set");
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_ui_text(prop, "Path", "Subpath used for this slot");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 }
 static void rna_def_cmp_output_file_slot_layer(BlenderRNA *brna)
@@ -7352,7 +7377,7 @@ static void def_cmp_dilate_erode(StructRNA *srna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem mode_items[] = {
-      {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, "Step", ""},
+      {CMP_NODE_DILATE_ERODE_STEP, "STEP", 0, "Steps", ""},
       {CMP_NODE_DILATE_ERODE_DISTANCE_THRESHOLD, "THRESHOLD", 0, "Threshold", ""},
       {CMP_NODE_DILATE_ERODE_DISTANCE, "DISTANCE", 0, "Distance", ""},
       {CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER, "FEATHER", 0, "Feather", ""},
@@ -7377,6 +7402,7 @@ static void def_cmp_dilate_erode(StructRNA *srna)
   RNA_def_property_float_sdna(prop, nullptr, "custom3");
   RNA_def_property_range(prop, -100, 100);
   RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeDilateErode", "storage");
@@ -12879,7 +12905,8 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
 
   prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_MUTED);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_MUTED);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Mute", "");
   RNA_def_property_update(prop, 0, "rna_Node_update");
 

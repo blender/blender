@@ -98,6 +98,9 @@ float occlusion_pow(float a, float b)
 #endif
 
 /* Return horizon angle cosine. */
+#if (defined(GPU_METAL) && defined(GPU_ATI))
+__attribute__((noinline))
+#endif
 float search_horizon(vec3 vI,
                      vec3 vP,
                      float noise,
@@ -118,10 +121,12 @@ float search_horizon(vec3 vI,
   }
 
   float prev_time, time = 0.0;
-  for (float iter = 0.0; time < ssray.max_time && iter < sample_count; iter++) {
+  int i_sample_count = int(sample_count);
+  for (int iter = 0; time < ssray.max_time && iter < i_sample_count; iter++) {
     prev_time = time;
     /* Gives us good precision at center and ensure we cross at least one pixel per iteration. */
-    time = 1.0 + iter + sqr((iter + noise) / sample_count) * ssray.max_time;
+    float fl_iter = float(iter);
+    time = 1.0 + fl_iter + sqr((fl_iter + noise) / sample_count) * ssray.max_time;
     float stride = time - prev_time;
     float lod = (log2(stride) - noise) / (1.0 + aoQuality);
 

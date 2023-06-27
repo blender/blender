@@ -453,20 +453,6 @@ static EnumPropertyItem rna_enum_brush_dyntopo_mode[] = {
     {0, NULL, 0, NULL, NULL},
 };
 
-static EnumPropertyItem rna_enum_brush_dyntopo_flag[] = {
-    {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
-    {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
-    {DYNTOPO_DISABLED, "DISABLED", ICON_NONE, "Disable", ""},
-    {DYNTOPO_LOCAL_COLLAPSE, "LOCAL_COLLAPSE", ICON_NONE, "Local Collapse", ""},
-    {DYNTOPO_LOCAL_SUBDIVIDE, "LOCAL_SUBDIVIDE", ICON_NONE, "Local Subdivide", ""},
-    {DYNTOPO_CLEANUP,
-     "CLEANUP",
-     ICON_NONE,
-     "Cleanup",
-     "Cleanup 3 and 4 pole vertices (development option)"},
-    {0, NULL, 0, NULL, NULL},
-};
-
 static EnumPropertyItem rna_enum_brush_dyntopo_inherit[] = {
     {DYNTOPO_SUBDIVIDE, "SUBDIVIDE", ICON_NONE, "Subdivide", ""},
     {DYNTOPO_COLLAPSE, "COLLAPSE", ICON_NONE, "Collapse", ""},
@@ -3453,7 +3439,6 @@ static void rna_def_brush(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "hard_corner_pin", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "hard_corner_pin");
-  RNA_def_property_float_default(prop, 0);
   RNA_def_property_range(prop, -2.0f, 2.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(prop, "Corner Pin", "How much to pin corners in hard edge mode.");

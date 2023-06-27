@@ -10,10 +10,11 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_search.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_timeit.hh"
 
 /* Right arrow, keep in sync with #UI_MENU_ARROW_SEP in `UI_interface.h`. */
-#define UI_MENU_ARROW_SEP "\xe2\x96\xb8"
+#define UI_MENU_ARROW_SEP BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
 #define UI_MENU_ARROW_SEP_UNICODE 0x25b8
 
 namespace blender::string_search {

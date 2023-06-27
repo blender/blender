@@ -6,7 +6,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 
 #include "BKE_context.h"
 #include "BKE_layer.h"

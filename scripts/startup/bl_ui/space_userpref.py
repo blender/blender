@@ -1372,7 +1372,7 @@ class USERPREF_PT_file_paths_script_directories(FilePathsPanel, Panel):
 
         row = path_col.row(align=True)  # Padding
         row.separator()
-        row.label(text="Path")
+        row.label(text="Path", text_ctxt=i18n_contexts.editor_filebrowser)
 
         row.operator("preferences.script_directory_add", text="", icon='ADD', emboss=False)
 

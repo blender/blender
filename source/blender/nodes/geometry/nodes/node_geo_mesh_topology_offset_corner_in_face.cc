@@ -55,18 +55,16 @@ class OffsetCornerInFaceFieldInput final : public bke::MeshFieldInput {
     Array<int> loop_to_poly_map = bke::mesh::build_loop_to_poly_map(polys);
 
     Array<int> offset_corners(mask.min_array_size());
-    threading::parallel_for(mask.index_range(), 2048, [&](const IndexRange range) {
-      for (const int selection_i : range) {
-        const int corner_i = corner_indices[selection_i];
-        const int offset = offsets[selection_i];
-        if (!corner_range.contains(corner_i)) {
-          offset_corners[selection_i] = 0;
-          continue;
-        }
-
-        const IndexRange poly = polys[loop_to_poly_map[corner_i]];
-        offset_corners[selection_i] = apply_offset_in_cyclic_range(poly, corner_i, offset);
+    mask.foreach_index_optimized<int>(GrainSize(2048), [&](const int selection_i) {
+      const int corner_i = corner_indices[selection_i];
+      const int offset = offsets[selection_i];
+      if (!corner_range.contains(corner_i)) {
+        offset_corners[selection_i] = 0;
+        return;
       }
+
+      const IndexRange poly = polys[loop_to_poly_map[corner_i]];
+      offset_corners[selection_i] = apply_offset_in_cyclic_range(poly, corner_i, offset);
     });
 
     return VArray<int>::ForContainer(std::move(offset_corners));

@@ -662,7 +662,7 @@ ePaintMode BKE_paintmode_get_from_tool(const bToolRef *tref)
 
 Brush *BKE_paint_brush(Paint *p)
 {
-  return p ? (p->brush_eval ? p->brush_eval : p->brush) : nullptr;
+  return p->brush;
 }
 
 const Brush *BKE_paint_brush_for_read(const Paint *p)

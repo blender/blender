@@ -23,7 +23,6 @@ class TreeElementIDArmature final : public TreeElementID {
   TreeElementIDArmature(TreeElement &legacy_te, bArmature &arm);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
   void expandEditBones(SpaceOutliner &) const;

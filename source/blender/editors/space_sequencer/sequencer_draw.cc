@@ -1769,9 +1769,9 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
       display_buffer = nullptr;
     }
 
-    if (ibuf->float_colorspace) {
+    if (ibuf->float_buffer.colorspace) {
       *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
-          C, ibuf->float_colorspace, ibuf->dither, true);
+          C, ibuf->float_buffer.colorspace, ibuf->dither, true);
     }
     else {
       *r_glsl_used = IMB_colormanagement_setup_glsl_draw_ctx(C, ibuf->dither, true);
@@ -1781,7 +1781,7 @@ static void *sequencer_OCIO_transform_ibuf(const bContext *C,
     display_buffer = ibuf->byte_buffer.data;
 
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space_ctx(
-        C, ibuf->rect_colorspace, ibuf->dither, false);
+        C, ibuf->byte_buffer.colorspace, ibuf->dither, false);
   }
   else {
     display_buffer = nullptr;

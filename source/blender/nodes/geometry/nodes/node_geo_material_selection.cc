@@ -47,12 +47,9 @@ static VArray<bool> select_mesh_faces_by_material(const Mesh &mesh,
   const VArraySpan<int> material_indices_span(material_indices);
 
   Array<bool> face_selection(face_mask.min_array_size());
-  threading::parallel_for(face_mask.index_range(), 1024, [&](IndexRange range) {
-    for (const int i : range) {
-      const int face_index = face_mask[i];
-      const int slot_i = material_indices_span[face_index];
-      face_selection[face_index] = slots.contains(slot_i);
-    }
+  face_mask.foreach_index_optimized<int>(GrainSize(1024), [&](const int face_index) {
+    const int slot_i = material_indices_span[face_index];
+    face_selection[face_index] = slots.contains(slot_i);
   });
 
   return VArray<bool>::ForContainer(std::move(face_selection));

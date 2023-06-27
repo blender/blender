@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_array.hh"
+#include "BLI_array_utils.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -364,12 +365,11 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
   return true;
 }
 
-static GSpan evaluated_attribute_if_necessary(const GVArray &src,
-                                              const CurvesGeometry &curves,
-                                              const std::array<int, CURVE_TYPES_NUM> &type_counts,
-                                              Vector<std::byte> &buffer)
+static GSpan evaluate_attribute(const GVArray &src,
+                                const CurvesGeometry &curves,
+                                Vector<std::byte> &buffer)
 {
-  if (type_counts[CURVE_TYPE_POLY] == curves.curves_num() && src.is_span()) {
+  if (curves.is_single_type(CURVE_TYPE_POLY) && src.is_span()) {
     return src.get_internal_span();
   }
   buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
@@ -438,6 +438,51 @@ static void foreach_curve_combination(const CurvesInfo &info,
   });
 }
 
+static void build_mesh_positions(const CurvesInfo &curves_info,
+                                 const ResultOffsets &offsets,
+                                 Vector<std::byte> &eval_buffer,
+                                 Mesh &mesh)
+{
+  BLI_assert(!mesh.attributes().contains("position"));
+  const Span<float3> profile_positions = curves_info.profile.evaluated_positions();
+  const bool ignore_profile_position = profile_positions.size() == 1 &&
+                                       math::is_equal(profile_positions.first(), float3(0.0f));
+  if (ignore_profile_position) {
+    if (mesh.totvert == curves_info.main.points_num()) {
+      const GAttributeReader src = curves_info.main.attributes().lookup("position");
+      if (src.sharing_info && src.varray.is_span()) {
+        const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
+        if (mesh.attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, init)) {
+          return;
+        }
+      }
+    }
+  }
+  const Span<float3> main_positions = curves_info.main.evaluated_positions();
+  mesh.attributes_for_write().add<float3>("position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
+  MutableSpan<float3> positions = mesh.vert_positions_for_write();
+  if (ignore_profile_position) {
+    array_utils::copy(main_positions, positions);
+    return;
+  }
+  const Span<float3> tangents = curves_info.main.evaluated_tangents();
+  const Span<float3> normals = curves_info.main.evaluated_normals();
+  Span<float> radii_eval = {};
+  if (const GVArray radii = *curves_info.main.attributes().lookup("radius", ATTR_DOMAIN_POINT)) {
+    radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
+  }
+  foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
+    fill_mesh_positions(info.main_points.size(),
+                        info.profile_points.size(),
+                        main_positions.slice(info.main_points),
+                        profile_positions.slice(info.profile_points),
+                        tangents.slice(info.main_points),
+                        normals.slice(info.main_points),
+                        radii_eval.is_empty() ? radii_eval : radii_eval.slice(info.main_points),
+                        positions.slice(info.vert_range));
+  });
+}
+
 template<typename T>
 static void copy_main_point_data_to_mesh_verts(const Span<T> src,
                                                const int profile_point_num,
@@ -475,16 +520,67 @@ static void copy_main_point_data_to_mesh_faces(const Span<T> src,
   }
 }
 
+static bool try_sharing_point_data(const CurvesGeometry &main,
+                                   const AttributeIDRef &id,
+                                   const GAttributeReader &src,
+                                   MutableAttributeAccessor mesh_attributes)
+{
+  if (mesh_attributes.domain_size(ATTR_DOMAIN_POINT) != main.points_num()) {
+    return false;
+  }
+  if (!src.sharing_info || !src.varray.is_span()) {
+    return false;
+  }
+  return mesh_attributes.add(
+      id,
+      ATTR_DOMAIN_POINT,
+      bke::cpp_type_to_custom_data_type(src.varray.type()),
+      AttributeInitShared(src.varray.get_internal_span().data(), *src.sharing_info));
+}
+
+static bool try_direct_evaluate_point_data(const CurvesGeometry &main,
+                                           const GAttributeReader &src,
+                                           GMutableSpan dst)
+{
+  if (dst.size() != main.evaluated_points_num()) {
+    return false;
+  }
+  if (!src.varray.is_span()) {
+    return false;
+  }
+  main.interpolate_to_evaluated(src.varray.get_internal_span(), dst);
+  return true;
+}
+
 static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_info,
+                                                     const AttributeIDRef &id,
                                                      const ResultOffsets &offsets,
                                                      const eAttrDomain dst_domain,
-                                                     const GSpan src_all,
-                                                     GMutableSpan dst_all)
+                                                     const GAttributeReader &src_attribute,
+                                                     Vector<std::byte> &eval_buffer,
+                                                     MutableAttributeAccessor mesh_attributes)
 {
-  attribute_math::convert_to_static_type(src_all.type(), [&](auto dummy) {
+  if (dst_domain == ATTR_DOMAIN_POINT) {
+    if (try_sharing_point_data(curves_info.main, id, src_attribute, mesh_attributes)) {
+      return;
+    }
+  }
+  GSpanAttributeWriter dst_attribute = mesh_attributes.lookup_or_add_for_write_only_span(
+      id, dst_domain, bke::cpp_type_to_custom_data_type(src_attribute.varray.type()));
+  if (!dst_attribute) {
+    return;
+  }
+  if (dst_domain == ATTR_DOMAIN_POINT) {
+    if (try_direct_evaluate_point_data(curves_info.main, src_attribute, dst_attribute.span)) {
+      dst_attribute.finish();
+      return;
+    }
+  }
+  const GSpan src_all = evaluate_attribute(*src_attribute, curves_info.main, eval_buffer);
+  attribute_math::convert_to_static_type(src_attribute.varray.type(), [&](auto dummy) {
     using T = decltype(dummy);
     const Span<T> src = src_all.typed<T>();
-    MutableSpan<T> dst = dst_all.typed<T>();
+    MutableSpan<T> dst = dst_attribute.span.typed<T>();
     switch (dst_domain) {
       case ATTR_DOMAIN_POINT:
         foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
@@ -517,6 +613,7 @@ static void copy_main_point_domain_attribute_to_mesh(const CurvesInfo &curves_in
         break;
     }
   });
+  dst_attribute.finish();
 }
 
 template<typename T>
@@ -692,11 +789,14 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     return nullptr;
   }
 
+  /* Add the position attribute later so it can be shared in some cases.*/
   Mesh *mesh = BKE_mesh_new_nomain(
-      offsets.vert.last(), offsets.edge.last(), offsets.poly.last(), offsets.loop.last());
+      0, offsets.edge.last(), offsets.poly.last(), offsets.loop.last());
+  CustomData_free_layer_named(&mesh->vdata, "position", 0);
+  mesh->totvert = offsets.vert.last();
+
   mesh->flag |= ME_AUTOSMOOTH;
   mesh->smoothresh = DEG2RADF(180.0f);
-  MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
@@ -736,36 +836,9 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     sharp_faces.finish();
   }
 
-  const Span<float3> main_positions = main.evaluated_positions();
-  const Span<float3> tangents = main.evaluated_tangents();
-  const Span<float3> normals = main.evaluated_normals();
-  const Span<float3> profile_positions = profile.evaluated_positions();
-
   Vector<std::byte> eval_buffer;
 
-  const AttributeAccessor main_attributes = main.attributes();
-  const AttributeAccessor profile_attributes = profile.attributes();
-
-  Span<float> radii = {};
-  if (main_attributes.contains("radius")) {
-    radii = evaluated_attribute_if_necessary(
-                *main_attributes.lookup_or_default<float>("radius", ATTR_DOMAIN_POINT, 1.0f),
-                main,
-                main.curve_type_counts(),
-                eval_buffer)
-                .typed<float>();
-  }
-
-  foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
-    fill_mesh_positions(info.main_points.size(),
-                        info.profile_points.size(),
-                        main_positions.slice(info.main_points),
-                        profile_positions.slice(info.profile_points),
-                        tangents.slice(info.main_points),
-                        normals.slice(info.main_points),
-                        radii.is_empty() ? radii : radii.slice(info.main_points),
-                        positions.slice(info.vert_range));
-  });
+  build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
 
   if (!offsets.any_single_point_main) {
     /* If there are no single point curves, every combination will have at least loose edges. */
@@ -800,44 +873,37 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   }
   sharp_edges.finish();
 
-  Set<AttributeIDRef> main_attributes_set;
-
+  const AttributeAccessor main_attributes = main.attributes();
   main_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (!should_add_attribute_to_mesh(
             main_attributes, mesh_attributes, id, meta_data, propagation_info))
     {
       return true;
     }
-    main_attributes_set.add_new(id);
 
     const eAttrDomain src_domain = meta_data.domain;
     const eCustomDataType type = meta_data.data_type;
-    const GVArray src = *main_attributes.lookup(id, src_domain, type);
-
+    const GAttributeReader src = main_attributes.lookup(id, src_domain, type);
     const eAttrDomain dst_domain = get_attribute_domain_for_mesh(mesh_attributes, id);
-    GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
-        id, dst_domain, type);
-    if (!dst) {
-      return true;
-    }
 
     if (src_domain == ATTR_DOMAIN_POINT) {
       copy_main_point_domain_attribute_to_mesh(
-          curves_info,
-          offsets,
-          dst_domain,
-          evaluated_attribute_if_necessary(src, main, main.curve_type_counts(), eval_buffer),
-          dst.span);
+          curves_info, id, offsets, dst_domain, src, eval_buffer, mesh_attributes);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
-      copy_curve_domain_attribute_to_mesh(
-          offsets, offsets.main_indices, dst_domain, src, dst.span);
+      GSpanAttributeWriter dst = mesh_attributes.lookup_or_add_for_write_only_span(
+          id, dst_domain, type);
+      if (dst) {
+        copy_curve_domain_attribute_to_mesh(
+            offsets, offsets.main_indices, dst_domain, *src, dst.span);
+      }
+      dst.finish();
     }
 
-    dst.finish();
     return true;
   });
 
+  const AttributeAccessor profile_attributes = profile.attributes();
   profile_attributes.for_all([&](const AttributeIDRef &id, const AttributeMetaData meta_data) {
     if (main_attributes.contains(id)) {
       return true;
@@ -859,12 +925,11 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     }
 
     if (src_domain == ATTR_DOMAIN_POINT) {
-      copy_profile_point_domain_attribute_to_mesh(
-          curves_info,
-          offsets,
-          dst_domain,
-          evaluated_attribute_if_necessary(src, profile, profile.curve_type_counts(), eval_buffer),
-          dst.span);
+      copy_profile_point_domain_attribute_to_mesh(curves_info,
+                                                  offsets,
+                                                  dst_domain,
+                                                  evaluate_attribute(src, profile, eval_buffer),
+                                                  dst.span);
     }
     else if (src_domain == ATTR_DOMAIN_CURVE) {
       copy_curve_domain_attribute_to_mesh(
@@ -882,7 +947,7 @@ static CurvesGeometry get_curve_single_vert()
 {
   CurvesGeometry curves(1, 1);
   curves.offsets_for_write().last() = 1;
-  curves.positions_for_write().fill(float3(0));
+  curves.positions_for_write().fill(float3(0.0f));
   curves.fill_curve_types(CURVE_TYPE_POLY);
 
   return curves;

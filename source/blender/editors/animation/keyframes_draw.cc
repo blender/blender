@@ -168,7 +168,7 @@ void draw_keyframe_shape(float x,
 }
 
 /* Common attributes shared between the draw calls. */
-typedef struct DrawKeylistUIData {
+struct DrawKeylistUIData {
   float alpha;
   float icon_size;
   float half_icon_size;
@@ -185,7 +185,7 @@ typedef struct DrawKeylistUIData {
 
   /* Show interpolation and handle type? */
   bool show_ipo;
-} DrawKeylistUIData;
+};
 
 static void draw_keylist_ui_data_init(DrawKeylistUIData *ctx,
                                       View2D *v2d,
@@ -240,72 +240,64 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
     default:
       break;
   }
+
+  rctf box;
+  box.xmin = ab->cfra;
+  box.xmax = min_ff(ab->next->cfra - (ctx->screenspace_margin * size), ab->next->cfra);
+  box.ymin = ypos - ctx->gpencil_size;
+  box.ymax = ypos + ctx->gpencil_size;
+
   UI_draw_roundbox_4fv(
-      &(const rctf){
-          .xmin = ab->cfra,
-          .xmax = min_ff(ab->next->cfra - (ctx->screenspace_margin * size), ab->next->cfra),
-          .ymin = ypos - ctx->gpencil_size,
-          .ymax = ypos + ctx->gpencil_size,
-      },
-      true,
-      0.25f * (float)UI_UNIT_X,
-      (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+      &box, true, 0.25f * (float)UI_UNIT_X, (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
 }
 
 static void draw_keylist_block_moving_hold(const DrawKeylistUIData *ctx,
                                            const ActKeyColumn *ab,
                                            float ypos)
 {
+  rctf box;
+  box.xmin = ab->cfra;
+  box.xmax = ab->next->cfra;
+  box.ymin = ypos - ctx->smaller_size;
+  box.ymax = ypos + ctx->smaller_size;
 
-  UI_draw_roundbox_4fv(
-      &(const rctf){
-          .xmin = ab->cfra,
-          .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->smaller_size,
-          .ymax = ypos + ctx->smaller_size,
-      },
-      true,
-      3.0f,
-      (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+  UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
 }
 
 static void draw_keylist_block_standard(const DrawKeylistUIData *ctx,
                                         const ActKeyColumn *ab,
                                         float ypos)
 {
-  UI_draw_roundbox_4fv(
-      &(const rctf){
-          .xmin = ab->cfra,
-          .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->half_icon_size,
-          .ymax = ypos + ctx->half_icon_size,
-      },
-      true,
-      3.0f,
-      (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
+  rctf box;
+  box.xmin = ab->cfra;
+  box.xmax = ab->next->cfra;
+  box.ymin = ypos - ctx->half_icon_size;
+  box.ymax = ypos + ctx->half_icon_size;
+
+  UI_draw_roundbox_4fv(&box, true, 3.0f, (ab->block.sel) ? ctx->sel_color : ctx->unsel_color);
 }
 
 static void draw_keylist_block_interpolation_line(const DrawKeylistUIData *ctx,
                                                   const ActKeyColumn *ab,
                                                   float ypos)
 {
-  UI_draw_roundbox_4fv(
-      &(const rctf){
-          .xmin = ab->cfra,
-          .xmax = ab->next->cfra,
-          .ymin = ypos - ctx->ipo_size,
-          .ymax = ypos + ctx->ipo_size,
-      },
-      true,
-      3.0f,
-      (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ctx->ipo_color_mix : ctx->ipo_color);
+  rctf box;
+  box.xmin = ab->cfra;
+  box.xmax = ab->next->cfra;
+  box.ymin = ypos - ctx->ipo_size;
+  box.ymax = ypos + ctx->ipo_size;
+
+  UI_draw_roundbox_4fv(&box,
+                       true,
+                       3.0f,
+                       (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ctx->ipo_color_mix :
+                                                                            ctx->ipo_color);
 }
 
 static void draw_keylist_block(const DrawKeylistUIData *ctx, const ActKeyColumn *ab, float ypos)
 {
-
   /* Draw grease pencil bars between keyframes. */
-  if ((ab->next != NULL) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
+  if ((ab->next != nullptr) && (ab->block.flag & ACTKEYBLOCK_FLAG_GPENCIL)) {
     draw_keylist_block_gpencil(ctx, ab, ypos);
   }
   else {
@@ -382,7 +374,7 @@ static void draw_keylist_keys(const DrawKeylistUIData *ctx,
 }
 
 /* *************************** Drawing Stack *************************** */
-typedef enum eAnimKeylistDrawListElemType {
+enum eAnimKeylistDrawListElemType {
   ANIM_KEYLIST_SUMMARY,
   ANIM_KEYLIST_SCENE,
   ANIM_KEYLIST_OBJECT,
@@ -391,9 +383,9 @@ typedef enum eAnimKeylistDrawListElemType {
   ANIM_KEYLIST_AGROUP,
   ANIM_KEYLIST_GP_LAYER,
   ANIM_KEYLIST_MASK_LAYER,
-} eAnimKeylistDrawListElemType;
+};
 
-typedef struct AnimKeylistDrawListElem {
+struct AnimKeylistDrawListElem {
   struct AnimKeylistDrawListElem *next, *prev;
   struct AnimKeylist *keylist;
   eAnimKeylistDrawListElemType type;
@@ -413,8 +405,7 @@ typedef struct AnimKeylistDrawListElem {
   bActionGroup *agrp;
   bGPDlayer *gpl;
   MaskLayer *masklay;
-
-} AnimKeylistDrawListElem;
+};
 
 static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *elem)
 {
@@ -481,13 +472,13 @@ static void ED_keylist_draw_list_elem_prepare_for_drawing(AnimKeylistDrawListEle
   ED_keylist_prepare_for_direct_access(elem->keylist);
 }
 
-typedef struct AnimKeylistDrawList {
+struct AnimKeylistDrawList {
   ListBase /*AnimKeylistDrawListElem*/ channels;
-} AnimKeylistDrawList;
+};
 
 AnimKeylistDrawList *ED_keylist_draw_list_create(void)
 {
-  return MEM_callocN(sizeof(AnimKeylistDrawList), __func__);
+  return static_cast<AnimKeylistDrawList *>(MEM_callocN(sizeof(AnimKeylistDrawList), __func__));
 }
 
 static void ED_keylist_draw_list_build_keylists(AnimKeylistDrawList *draw_list)
@@ -600,7 +591,8 @@ static AnimKeylistDrawListElem *ed_keylist_draw_list_add_elem(
     float yscale_fac,
     eSAction_Flag saction_flag)
 {
-  AnimKeylistDrawListElem *draw_elem = MEM_callocN(sizeof(AnimKeylistDrawListElem), __func__);
+  AnimKeylistDrawListElem *draw_elem = static_cast<AnimKeylistDrawListElem *>(
+      MEM_callocN(sizeof(AnimKeylistDrawListElem), __func__));
   BLI_addtail(&draw_list->channels, draw_elem);
   draw_elem->type = elem_type;
   draw_elem->keylist = ED_keylist_create();
@@ -620,7 +612,7 @@ void draw_summary_channel(AnimKeylistDrawList *draw_list,
 {
   saction_flag &= ~SACTION_SHOW_EXTREMES;
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_SUMMARY, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_SUMMARY, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->ac = ac;
 }
 
@@ -633,7 +625,7 @@ void draw_scene_channel(AnimKeylistDrawList *draw_list,
 {
   saction_flag &= ~SACTION_SHOW_EXTREMES;
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_SCENE, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_SCENE, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->ads = ads;
   draw_elem->sce = sce;
 }
@@ -647,7 +639,7 @@ void draw_object_channel(AnimKeylistDrawList *draw_list,
 {
   saction_flag &= ~SACTION_SHOW_EXTREMES;
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_OBJECT, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_OBJECT, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->ads = ads;
   draw_elem->ob = ob;
 }
@@ -665,7 +657,7 @@ void draw_fcurve_channel(AnimKeylistDrawList *draw_list,
                        (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_FCURVE, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_FCURVE, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->adt = adt;
   draw_elem->fcu = fcu;
   draw_elem->channel_locked = locked;
@@ -683,7 +675,7 @@ void draw_agroup_channel(AnimKeylistDrawList *draw_list,
                  (ID_IS_LINKED(adt->action) || ID_IS_OVERRIDE_LIBRARY(adt->action)));
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_AGROUP, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_AGROUP, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->adt = adt;
   draw_elem->agrp = agrp;
   draw_elem->channel_locked = locked;
@@ -700,7 +692,7 @@ void draw_action_channel(AnimKeylistDrawList *draw_list,
   saction_flag &= ~SACTION_SHOW_EXTREMES;
 
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_ACTION, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_ACTION, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->adt = adt;
   draw_elem->act = act;
   draw_elem->channel_locked = locked;
@@ -715,7 +707,7 @@ void draw_gpl_channel(AnimKeylistDrawList *draw_list,
 {
   bool locked = (gpl->flag & GP_LAYER_LOCKED) != 0;
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_GP_LAYER, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_GP_LAYER, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->ads = ads;
   draw_elem->gpl = gpl;
   draw_elem->channel_locked = locked;
@@ -730,7 +722,7 @@ void draw_masklay_channel(AnimKeylistDrawList *draw_list,
 {
   bool locked = (masklay->flag & MASK_LAYERFLAG_LOCKED) != 0;
   AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
-      draw_list, ANIM_KEYLIST_MASK_LAYER, ypos, yscale_fac, saction_flag);
+      draw_list, ANIM_KEYLIST_MASK_LAYER, ypos, yscale_fac, eSAction_Flag(saction_flag));
   draw_elem->ads = ads;
   draw_elem->masklay = masklay;
   draw_elem->channel_locked = locked;

@@ -384,7 +384,7 @@ static void translate_snap_grid_apply(TransInfo *t,
 
   float in[3];
   if (t->con.mode & CON_APPLY) {
-    BLI_assert(t->tsnap.snapElem == SCE_SNAP_MODE_NONE);
+    BLI_assert(t->tsnap.target_type == SCE_SNAP_TO_NONE);
     t->con.applyVec(t, NULL, NULL, loc, in);
   }
   else {
@@ -403,7 +403,7 @@ static bool translate_snap_grid(TransInfo *t, float *val)
     return false;
   }
 
-  if (!(t->tsnap.mode & SCE_SNAP_MODE_GRID) || validSnap(t)) {
+  if (!(t->tsnap.mode & SCE_SNAP_TO_GRID) || validSnap(t)) {
     /* Don't do grid snapping if there is a valid snap point. */
     return false;
   }
@@ -429,7 +429,7 @@ static bool translate_snap_grid(TransInfo *t, float *val)
   }
 
   translate_snap_grid_apply(t, t->idx_max, grid_dist, val, val);
-  t->tsnap.snapElem = SCE_SNAP_MODE_GRID;
+  t->tsnap.target_type = SCE_SNAP_TO_GRID;
   return true;
 }
 
@@ -627,7 +627,7 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
 
       /* Test for mixed snap with grid. */
       float snap_dist_sq = FLT_MAX;
-      if (t->tsnap.snapElem != SCE_SNAP_MODE_NONE) {
+      if (t->tsnap.target_type != SCE_SNAP_TO_NONE) {
         snap_dist_sq = len_squared_v3v3(t->values, global_dir);
       }
       if ((snap_dist_sq == FLT_MAX) || (len_squared_v3v3(global_dir, incr_dir) < snap_dist_sq)) {

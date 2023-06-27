@@ -227,34 +227,6 @@ void select_all(bke::CurvesGeometry &curves, const eAttrDomain selection_domain,
   }
 }
 
-void select_ends(bke::CurvesGeometry &curves, int amount_start, int amount_end)
-{
-  const bool was_anything_selected = has_anything_selected(curves);
-  const OffsetIndices points_by_curve = curves.points_by_curve();
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
-  if (!was_anything_selected) {
-    fill_selection_true(selection.span);
-  }
-  selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_void_v<T>) {
-      BLI_assert_unreachable();
-    }
-    else {
-      MutableSpan<T> selection_typed = selection.span.typed<T>();
-      threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
-        for (const int curve_i : range) {
-          selection_typed
-              .slice(points_by_curve[curve_i].drop_front(amount_start).drop_back(amount_end))
-              .fill(T(0));
-        }
-      });
-    }
-  });
-  selection.finish();
-}
-
 void select_linked(bke::CurvesGeometry &curves)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
@@ -269,6 +241,52 @@ void select_linked(bke::CurvesGeometry &curves)
       }
     }
   });
+  selection.finish();
+}
+
+void select_alternate(bke::CurvesGeometry &curves, const bool deselect_ends)
+{
+  if (!has_anything_selected(curves)) {
+    return;
+  }
+
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+      curves, ATTR_DOMAIN_POINT, CD_PROP_BOOL);
+  const VArray<bool> cyclic = curves.cyclic();
+
+  MutableSpan<bool> selection_typed = selection.span.typed<bool>();
+  threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange range) {
+    for (const int curve_i : range) {
+      const IndexRange points = points_by_curve[curve_i];
+
+      if (!has_anything_selected(selection.span.slice(points))) {
+        continue;
+      }
+
+      for (const int index : points.index_range()) {
+        selection_typed[points[index]] = deselect_ends ? index % 2 : !(index % 2);
+      }
+
+      if (cyclic[curve_i]) {
+        if (deselect_ends) {
+          selection_typed[points.last()] = false;
+        }
+        else {
+          selection_typed[points.last()] = true;
+          if (points.size() > 2) {
+            selection_typed[points.last() - 1] = false;
+          }
+        }
+      }
+      else {
+        if (deselect_ends) {
+          selection_typed[points.last()] = false;
+        }
+      }
+    }
+  });
+
   selection.finish();
 }
 

@@ -21,7 +21,6 @@ class TreeElementIDMetaBall final : public TreeElementID {
   TreeElementIDMetaBall(TreeElement &legacy_te, MetaBall &metaball);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 
  private:
   void expandMaterials(SpaceOutliner &) const;

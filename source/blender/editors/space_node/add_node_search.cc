@@ -222,7 +222,7 @@ static void add_node_search_exec_fn(bContext *C, void *arg1, void *arg2)
   }
 
   node_deselect_all(node_tree);
-  Vector<bNode *> new_nodes = item->add_fn(*C, node_tree, storage.cursor);
+  item->add_fn(*C, node_tree, storage.cursor);
 
   /* Ideally it would be possible to tag the node tree in some way so it updates only after the
    * translate operation is finished, but normally moving nodes around doesn't cause updates. */

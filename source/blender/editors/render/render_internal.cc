@@ -15,6 +15,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_rect.h"
+#include "BLI_string_utils.h"
 #include "BLI_threads.h"
 #include "BLI_timecode.h"
 #include "BLI_utildefines.h"
@@ -402,17 +403,25 @@ static void render_freejob(void *rjv)
   MEM_freeN(rj);
 }
 
-/* str is IMA_MAX_RENDER_TEXT in size */
 static void make_renderinfo_string(const RenderStats *rs,
                                    const Scene *scene,
                                    const bool v3d_override,
                                    const char *error,
-                                   char *str)
+                                   char ret[IMA_MAX_RENDER_TEXT_SIZE])
 {
-  char info_time_str[32]; /* used to be extern to header_info.c */
+  const char *info_space = " ";
+  const char *info_sep = "| ";
+  struct {
+    char time_last[32];
+    char time_elapsed[32];
+    char frame[16];
+    char statistics[64];
+  } info_buffers;
+
   uintptr_t mem_in_use, peak_memory;
   float megs_used_memory, megs_peak_memory;
-  char *spos = str;
+  const char *ret_array[32];
+  int i = 0;
 
   mem_in_use = MEM_get_memory_in_use();
   peak_memory = MEM_get_peak_memory();
@@ -422,65 +431,96 @@ static void make_renderinfo_string(const RenderStats *rs,
 
   /* local view */
   if (rs->localview) {
-    spos += BLI_sprintf(spos, "%s | ", TIP_("3D Local View"));
+    ret_array[i++] = TIP_("3D Local View ");
+    ret_array[i++] = info_sep;
   }
   else if (v3d_override) {
-    spos += BLI_sprintf(spos, "%s | ", TIP_("3D View"));
+    ret_array[i++] = TIP_("3D View ");
+    ret_array[i++] = info_sep;
   }
 
   /* frame number */
-  spos += BLI_sprintf(spos, TIP_("Frame:%d "), (scene->r.cfra));
+  SNPRINTF(info_buffers.frame, "%d ", scene->r.cfra);
+  ret_array[i++] = TIP_("Frame:");
+  ret_array[i++] = info_buffers.frame;
 
-  /* previous and elapsed time */
-  BLI_timecode_string_from_time_simple(info_time_str, sizeof(info_time_str), rs->lastframetime);
+  /* Previous and elapsed time. */
+  const char *info_time = info_buffers.time_last;
+  BLI_timecode_string_from_time_simple(
+      info_buffers.time_last, sizeof(info_buffers.time_last), rs->lastframetime);
 
+  ret_array[i++] = info_sep;
   if (rs->infostr && rs->infostr[0]) {
     if (rs->lastframetime != 0.0) {
-      spos += BLI_sprintf(spos, TIP_("| Last:%s "), info_time_str);
+      ret_array[i++] = "Last:";
+      ret_array[i++] = info_buffers.time_last;
+      ret_array[i++] = info_space;
+    }
+
+    info_time = info_buffers.time_elapsed;
+    BLI_timecode_string_from_time_simple(info_buffers.time_elapsed,
+                                         sizeof(info_buffers.time_elapsed),
+                                         PIL_check_seconds_timer() - rs->starttime);
+  }
+
+  ret_array[i++] = TIP_("Time:");
+  ret_array[i++] = info_time;
+  ret_array[i++] = info_space;
+
+  /* Statistics. */
+  {
+    const char *info_statistics = nullptr;
+    if (rs->statstr) {
+      if (rs->statstr[0]) {
+        info_statistics = rs->statstr;
+      }
     }
     else {
-      spos += BLI_sprintf(spos, "| ");
+      if (rs->mem_peak == 0.0f) {
+        SNPRINTF(info_buffers.statistics,
+                 TIP_("Mem:%.2fM (Peak %.2fM)"),
+                 megs_used_memory,
+                 megs_peak_memory);
+      }
+      else {
+        SNPRINTF(
+            info_buffers.statistics, TIP_("Mem:%.2fM, Peak: %.2fM"), rs->mem_used, rs->mem_peak);
+      }
+      info_statistics = info_buffers.statistics;
     }
 
-    BLI_timecode_string_from_time_simple(
-        info_time_str, sizeof(info_time_str), PIL_check_seconds_timer() - rs->starttime);
-  }
-  else {
-    spos += BLI_sprintf(spos, "| ");
-  }
-
-  spos += BLI_sprintf(spos, TIP_("Time:%s "), info_time_str);
-
-  /* statistics */
-  if (rs->statstr) {
-    if (rs->statstr[0]) {
-      spos += BLI_sprintf(spos, "| %s ", rs->statstr);
-    }
-  }
-  else {
-    if (rs->mem_peak == 0.0f) {
-      spos += BLI_sprintf(
-          spos, TIP_("| Mem:%.2fM (Peak %.2fM) "), megs_used_memory, megs_peak_memory);
-    }
-    else {
-      spos += BLI_sprintf(spos, TIP_("| Mem:%.2fM, Peak: %.2fM "), rs->mem_used, rs->mem_peak);
+    if (info_statistics) {
+      ret_array[i++] = info_sep;
+      ret_array[i++] = info_statistics;
+      ret_array[i++] = info_space;
     }
   }
 
-  /* extra info */
-  if (rs->infostr && rs->infostr[0]) {
-    spos += BLI_sprintf(spos, "| %s ", rs->infostr);
-  }
-  else if (error && error[0]) {
-    spos += BLI_sprintf(spos, "| %s ", error);
+  /* Extra info. */
+  {
+    const char *info_extra = nullptr;
+    if (rs->infostr && rs->infostr[0]) {
+      info_extra = rs->infostr;
+    }
+    else if (error && error[0]) {
+      info_extra = error;
+    }
+
+    if (info_extra) {
+      ret_array[i++] = info_sep;
+      ret_array[i++] = info_extra;
+      ret_array[i++] = info_space;
+    }
   }
 
-  /* very weak... but 512 characters is quite safe */
-  if (spos >= str + IMA_MAX_RENDER_TEXT) {
-    if (G.debug & G_DEBUG) {
+  if (G.debug & G_DEBUG) {
+    if (BLI_string_len_array(ret_array, i) >= IMA_MAX_RENDER_TEXT_SIZE) {
       printf("WARNING! renderwin text beyond limit\n");
     }
   }
+
+  BLI_assert(i < int(BOUNDED_ARRAY_TYPE_SIZE<decltype(ret_array)>()));
+  BLI_string_join_array(ret, IMA_MAX_RENDER_TEXT_SIZE, ret_array, i);
 }
 
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)
@@ -493,7 +533,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
   if (rr) {
     /* malloc OK here, stats_draw is not in tile threads */
     if (rr->text == nullptr) {
-      rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext"));
+      rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT_SIZE, "rendertext"));
     }
 
     make_renderinfo_string(rs, rj->scene, rj->v3d_override, rr->error, rr->text);
@@ -1088,7 +1128,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
   RE_current_scene_update_cb(re, rj, current_scene_update);
   RE_stats_draw_cb(re, rj, image_renderinfo_cb);
   RE_progress_cb(re, rj, render_progress_update);
-  RE_system_gpu_context_create(re);
+  RE_system_gpu_context_ensure(re);
 
   rj->re = re;
   G.is_break = false;

@@ -87,7 +87,7 @@
 #include "ED_undo.h"
 #include "ED_viewer_path.hh"
 
-#include "NOD_geometry.h"
+#include "NOD_geometry.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"

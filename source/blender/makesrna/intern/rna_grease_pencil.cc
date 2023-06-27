@@ -93,35 +93,28 @@ static void rna_GreasePencilLayer_name_set(PointerRNA *ptr, const char *value)
   grease_pencil->rename_layer(layer->wrap(), value);
 }
 
-#else
-
-static void rna_def_grease_pencil_data(BlenderRNA *brna)
+static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
 {
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "GreasePencilv3", "ID");
-  RNA_def_struct_sdna(srna, "GreasePencil");
-  RNA_def_struct_ui_text(srna, "Grease Pencil", "Grease Pencil data-block");
-  RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_GREASEPENCIL);
-
-  /* Animation Data */
-  rna_def_animdata_common(srna);
-
-  /* Layers */
-  prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_struct_type(prop, "GreasePencilLayer");
-  RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_grease_pencil_layers_begin",
-                                    "rna_iterator_array_next",
-                                    "rna_iterator_array_end",
-                                    "rna_iterator_array_dereference_get",
-                                    "rna_iterator_grease_pencil_layers_length",
-                                    nullptr, /* TODO */
-                                    nullptr, /* TODO */
-                                    nullptr);
-  RNA_def_property_ui_text(prop, "Layers", "Grease Pencil layers");
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  if (grease_pencil->has_active_layer()) {
+    return rna_pointer_inherit_refine(
+        ptr,
+        &RNA_GreasePencilLayer,
+        static_cast<void *>(grease_pencil->get_active_layer_for_write()));
+  }
+  return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
 }
+
+static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
+                                              PointerRNA value,
+                                              struct ReportList * /*reports*/)
+{
+  GreasePencil *grease_pencil = rna_grease_pencil(ptr);
+  grease_pencil->set_active_layer(static_cast<blender::bke::greasepencil::Layer *>(value.data));
+  WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
+#else
 
 static void rna_def_grease_pencil_layer(BlenderRNA *brna)
 {
@@ -158,6 +151,54 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Locked", "Protect layer from further editing and/or frame changes");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+}
+
+static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  RNA_def_property_srna(cprop, "GreasePencilv3Layers");
+  srna = RNA_def_struct(brna, "GreasePencilv3Layers", NULL);
+  RNA_def_struct_sdna(srna, "GreasePencil");
+  RNA_def_struct_ui_text(srna, "Grease Pencil Layers", "Collection of Grease Pencil layers");
+
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "GreasePencilLayer");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_GreasePencil_active_layer_get", "rna_GreasePencil_active_layer_set", NULL, NULL);
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Active Layer", "Active Grease Pencil layer");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_SELECTED, NULL);
+}
+
+static void rna_def_grease_pencil_data(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "GreasePencilv3", "ID");
+  RNA_def_struct_sdna(srna, "GreasePencil");
+  RNA_def_struct_ui_text(srna, "Grease Pencil", "Grease Pencil data-block");
+  RNA_def_struct_ui_icon(srna, ICON_OUTLINER_DATA_GREASEPENCIL);
+
+  /* Animation Data */
+  rna_def_animdata_common(srna);
+
+  /* Layers */
+  prop = RNA_def_property(srna, "layers", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "GreasePencilLayer");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_grease_pencil_layers_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_grease_pencil_layers_length",
+                                    nullptr, /* TODO */
+                                    nullptr, /* TODO */
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Layers", "Grease Pencil layers");
+  rna_def_grease_pencil_layers_api(brna, prop);
 }
 
 void RNA_def_grease_pencil(BlenderRNA *brna)

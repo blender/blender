@@ -543,22 +543,28 @@ typedef struct SequencerScopes {
 
 #define MAXSEQ 128
 
-/** #Editor.overlay_frame_flag */
-#define SEQ_EDIT_OVERLAY_FRAME_SHOW 1
-#define SEQ_EDIT_OVERLAY_FRAME_ABS 2
+/** #Editor::overlay_frame_flag */
+enum {
+  SEQ_EDIT_OVERLAY_FRAME_SHOW = 1,
+  SEQ_EDIT_OVERLAY_FRAME_ABS = 2,
+};
 
 #define SEQ_STRIP_OFSBOTTOM 0.05f
 #define SEQ_STRIP_OFSTOP 0.95f
 
-/* Editor->proxy_storage */
-/* store proxies in project directory */
-#define SEQ_EDIT_PROXY_DIR_STORAGE 1
+/** #Editor::proxy_storage */
+enum {
+  /** Store proxies in project directory. */
+  SEQ_EDIT_PROXY_DIR_STORAGE = 1,
+};
 
-/* SpeedControlVars->flags */
-#define SEQ_SPEED_UNUSED_2 (1 << 0) /* cleared */
-#define SEQ_SPEED_UNUSED_1 (1 << 1) /* cleared */
-#define SEQ_SPEED_UNUSED_3 (1 << 2) /* cleared */
-#define SEQ_SPEED_USE_INTERPOLATION (1 << 3)
+/** #SpeedControlVars::flags */
+enum {
+  SEQ_SPEED_UNUSED_2 = 1 << 0, /* cleared */
+  SEQ_SPEED_UNUSED_1 = 1 << 1, /* cleared */
+  SEQ_SPEED_UNUSED_3 = 1 << 2, /* cleared */
+  SEQ_SPEED_USE_INTERPOLATION = 1 << 3,
+};
 
 /** \} */
 
@@ -626,26 +632,36 @@ enum {
 /* Deprecated, don't use a flag anymore. */
 // #define SEQ_ACTIVE 1048576
 
-#define SEQ_COLOR_BALANCE_INVERSE_GAIN 1
-#define SEQ_COLOR_BALANCE_INVERSE_GAMMA 2
-#define SEQ_COLOR_BALANCE_INVERSE_LIFT 4
-#define SEQ_COLOR_BALANCE_INVERSE_SLOPE 8
-#define SEQ_COLOR_BALANCE_INVERSE_OFFSET 16
-#define SEQ_COLOR_BALANCE_INVERSE_POWER 32
+enum {
+  SEQ_COLOR_BALANCE_INVERSE_GAIN = 1 << 0,
+  SEQ_COLOR_BALANCE_INVERSE_GAMMA = 1 << 1,
+  SEQ_COLOR_BALANCE_INVERSE_LIFT = 1 << 2,
+  SEQ_COLOR_BALANCE_INVERSE_SLOPE = 1 << 3,
+  SEQ_COLOR_BALANCE_INVERSE_OFFSET = 1 << 4,
+  SEQ_COLOR_BALANCE_INVERSE_POWER = 1 << 5,
+};
 
-/* !!! has to be same as IMB_imbuf.h IMB_PROXY_... and IMB_TC_... */
+/**
+ * \warning has to be same as `IMB_imbuf.h`: `IMB_PROXY_*` and `IMB_TC_*`.
+ */
+enum {
+  SEQ_PROXY_IMAGE_SIZE_25 = 1 << 0,
+  SEQ_PROXY_IMAGE_SIZE_50 = 1 << 1,
+  SEQ_PROXY_IMAGE_SIZE_75 = 1 << 2,
+  SEQ_PROXY_IMAGE_SIZE_100 = 1 << 3,
+};
 
-#define SEQ_PROXY_IMAGE_SIZE_25 1
-#define SEQ_PROXY_IMAGE_SIZE_50 2
-#define SEQ_PROXY_IMAGE_SIZE_75 4
-#define SEQ_PROXY_IMAGE_SIZE_100 8
-
-#define SEQ_PROXY_TC_NONE 0
-#define SEQ_PROXY_TC_RECORD_RUN 1
-#define SEQ_PROXY_TC_FREE_RUN 2
-#define SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN 4
-#define SEQ_PROXY_TC_RECORD_RUN_NO_GAPS 8
-#define SEQ_PROXY_TC_ALL 15
+/**
+ * \warning has to be same as `IMB_imbuf.h`: `IMB_TC_*`.
+ */
+enum {
+  SEQ_PROXY_TC_NONE = 0,
+  SEQ_PROXY_TC_RECORD_RUN = 1 << 0,
+  SEQ_PROXY_TC_FREE_RUN = 1 << 1,
+  SEQ_PROXY_TC_INTERP_REC_DATE_FREE_RUN = 1 << 2,
+  SEQ_PROXY_TC_RECORD_RUN_NO_GAPS = 1 << 3,
+  SEQ_PROXY_TC_ALL = (1 << 4) - 1,
+};
 
 /** SeqProxy.build_flags */
 enum {
@@ -717,10 +733,14 @@ enum {
   SEQ_TYPE_MAX = 60,
 };
 
-#define SEQ_MOVIECLIP_RENDER_UNDISTORTED (1 << 0)
-#define SEQ_MOVIECLIP_RENDER_STABILIZED (1 << 1)
+enum {
+  SEQ_MOVIECLIP_RENDER_UNDISTORTED = 1 << 0,
+  SEQ_MOVIECLIP_RENDER_STABILIZED = 1 << 1,
+};
 
-#define SEQ_BLEND_REPLACE 0
+enum {
+  SEQ_BLEND_REPLACE = 0,
+};
 /* all other BLEND_MODEs are simple SEQ_TYPE_EFFECT ids and therefore identical
  * to the table above. (Only those effects that handle _exactly_ two inputs,
  * otherwise, you can't really blend, right :) !)

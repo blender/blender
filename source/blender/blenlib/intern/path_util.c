@@ -666,7 +666,6 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
 
   const char *lslash;
   char temp[FILE_MAX];
-  char res[FILE_MAX];
 
   /* If path is already relative, bail out. */
   if (BLI_path_is_rel(path)) {
@@ -739,7 +738,6 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
      * This is replaced by the two slashes at the beginning. */
     const char *p = temp;
     const char *q = path;
-    char *r = res;
 
 #ifdef WIN32
     while (tolower(*p) == tolower(*q))
@@ -771,7 +769,8 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
       }
     }
 
-    r += BLI_strcpy_rlen(r, "//");
+    char res[FILE_MAX] = "//";
+    char *r = res + 2;
 
     /* `p` now points to the slash that is at the beginning of the part
      * where the path is different from the relative path.
@@ -782,13 +781,13 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
     }
     while (p && p < lslash) {
       if (*p == '/') {
-        r += BLI_strcpy_rlen(r, "../");
+        r += BLI_strncpy_rlen(r, "../", sizeof(res) - (r - res));
       }
       p++;
     }
 
     /* Don't copy the slash at the beginning. */
-    r += BLI_strncpy_rlen(r, q + 1, FILE_MAX - (r - res));
+    r += BLI_strncpy_rlen(r, q + 1, sizeof(res) - (r - res));
 
 #ifdef WIN32
     BLI_str_replace_char(res + 2, '/', '\\');

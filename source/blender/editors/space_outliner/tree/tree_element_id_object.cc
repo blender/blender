@@ -51,11 +51,6 @@ void TreeElementIDObject::expand(SpaceOutliner &space_outliner) const
   expandDuplicatedGroup(space_outliner);
 }
 
-bool TreeElementIDObject::isExpandValid() const
-{
-  return true;
-}
-
 void TreeElementIDObject::expandData(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(

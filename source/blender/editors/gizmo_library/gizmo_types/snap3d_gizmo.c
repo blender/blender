@@ -214,7 +214,7 @@ static void snap_cursor_init(SnapGizmo3D *snap_gizmo)
   snap_gizmo->snap_state->draw_point = true;
   snap_gizmo->snap_state->draw_plane = false;
 
-  rgba_float_to_uchar(snap_gizmo->snap_state->color_point, snap_gizmo->gizmo.color);
+  rgba_float_to_uchar(snap_gizmo->snap_state->target_color, snap_gizmo->gizmo.color);
 
   snap_gizmo->snap_state->poll = snap_cursor_poll;
   snap_gizmo->snap_state->poll_data = snap_gizmo;
@@ -266,7 +266,7 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, x, y);
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
 
-  if (snap_data->snap_elem != SCE_SNAP_MODE_NONE) {
+  if (snap_data->snap_elem != SCE_SNAP_TO_NONE) {
     return 0;
   }
   return -1;

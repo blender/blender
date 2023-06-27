@@ -44,7 +44,7 @@ bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags)
    * cases where we do not have a specific desired output colorspace. */
   if (!(type->flag & IM_FTYPE_FLOAT)) {
     if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data) {
-      ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
+      ibuf->byte_buffer.colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
       IMB_rect_from_float(ibuf);
     }
   }

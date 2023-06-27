@@ -3350,7 +3350,7 @@ static void rna_FileAssetSelectParams_catalog_id_get(PointerRNA *ptr, char *valu
 
 static int rna_FileAssetSelectParams_catalog_id_length(PointerRNA * /*ptr*/)
 {
-  return UUID_STRING_LEN - 1;
+  return UUID_STRING_SIZE - 1;
 }
 
 static void rna_FileAssetSelectParams_catalog_id_set(PointerRNA *ptr, const char *value)
@@ -7037,6 +7037,7 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
                                 "rna_FileBrowser_FSMenuEntry_path_length",
                                 "rna_FileBrowser_FSMenuEntry_path_set");
   RNA_def_property_ui_text(prop, "Path", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
 
   /* Use #PROP_FILENAME sub-type so the UI can manipulate non-UTF8 names. */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_FILENAME);
@@ -7332,6 +7333,7 @@ static void rna_def_space_node_path_api(BlenderRNA *brna, PropertyRNA *cprop)
       prop, "rna_SpaceNodeEditor_path_get", "rna_SpaceNodeEditor_path_length", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_struct_ui_text(srna, "Path", "Get the node tree path as a string");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
 
   func = RNA_def_function(srna, "clear", "rna_SpaceNodeEditor_path_clear");
   RNA_def_function_ui_description(func, "Reset the node tree path");

@@ -23,6 +23,7 @@ class GreasePencilRuntime;
 class GreasePencilDrawingRuntime;
 namespace greasepencil {
 class DrawingRuntime;
+class Drawing;
 class TreeNode;
 class Layer;
 class LayerRuntime;
@@ -107,16 +108,8 @@ typedef struct GreasePencilDrawing {
    */
   GreasePencilDrawingRuntimeHandle *runtime;
 #ifdef __cplusplus
-  /**
-   * The triangles for all the fills in the geometry.
-   */
-  blender::Span<blender::uint3> triangles() const;
-  void tag_positions_changed();
-  /**
-   * A buffer for a single stroke while drawing.
-   */
-  blender::Span<blender::bke::greasepencil::StrokePoint> stroke_buffer() const;
-  bool has_stroke_buffer() const;
+  blender::bke::greasepencil::Drawing &wrap();
+  const blender::bke::greasepencil::Drawing &wrap() const;
 #endif
 } GreasePencilDrawing;
 
@@ -457,6 +450,14 @@ typedef struct GreasePencil {
                                                      blender::bke::greasepencil::Layer *layer,
                                                      blender::StringRefNull name);
 
+  blender::bke::greasepencil::LayerGroup &add_layer_group(
+      blender::bke::greasepencil::LayerGroup &group, blender::StringRefNull name);
+  blender::bke::greasepencil::LayerGroup &add_layer_group(blender::StringRefNull name);
+  blender::bke::greasepencil::LayerGroup &add_layer_group_after(
+      blender::bke::greasepencil::LayerGroup &group,
+      blender::bke::greasepencil::TreeNode *node,
+      blender::StringRefNull name);
+
   const blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name) const;
   blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name);
 
@@ -467,10 +468,10 @@ typedef struct GreasePencil {
   void add_empty_drawings(int add_num);
   void remove_drawing(int index);
 
-  void foreach_visible_drawing(int frame,
-                               blender::FunctionRef<void(int, GreasePencilDrawing &)> function);
-  void foreach_editable_drawing(int frame,
-                                blender::FunctionRef<void(int, GreasePencilDrawing &)> function);
+  void foreach_visible_drawing(
+      int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function);
+  void foreach_editable_drawing(
+      int frame, blender::FunctionRef<void(int, blender::bke::greasepencil::Drawing &)> function);
 
   std::optional<blender::Bounds<blender::float3>> bounds_min_max() const;
 

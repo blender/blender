@@ -370,24 +370,28 @@ typedef struct View3D {
   View3D_Runtime runtime;
 } View3D;
 
-/** #View3D.stereo3d_flag */
-#define V3D_S3D_DISPCAMERAS (1 << 0)
-#define V3D_S3D_DISPPLANE (1 << 1)
-#define V3D_S3D_DISPVOLUME (1 << 2)
+/** #View3D::stereo3d_flag */
+enum {
+  V3D_S3D_DISPCAMERAS = 1 << 0,
+  V3D_S3D_DISPPLANE = 1 << 1,
+  V3D_S3D_DISPVOLUME = 1 << 2,
+};
 
-/** #View3D.flag */
-#define V3D_LOCAL_COLLECTIONS (1 << 0)
-#define V3D_FLAG_UNUSED_1 (1 << 1) /* cleared */
-#define V3D_HIDE_HELPLINES (1 << 2)
-#define V3D_FLAG_UNUSED_2 (1 << 3) /* cleared */
-#define V3D_XR_SESSION_MIRROR (1 << 4)
-#define V3D_XR_SESSION_SURFACE (1 << 5)
+/** #View3D::flag */
+enum {
+  V3D_LOCAL_COLLECTIONS = 1 << 0,
+  V3D_FLAG_UNUSED_1 = 1 << 1, /* cleared */
+  V3D_HIDE_HELPLINES = 1 << 2,
+  V3D_FLAG_UNUSED_2 = 1 << 3, /* cleared */
+  V3D_XR_SESSION_MIRROR = 1 << 4,
+  V3D_XR_SESSION_SURFACE = 1 << 5,
 
-#define V3D_FLAG_UNUSED_10 (1 << 10) /* cleared */
-#define V3D_SELECT_OUTLINE (1 << 11)
-#define V3D_FLAG_UNUSED_12 (1 << 12) /* cleared */
-#define V3D_GLOBAL_STATS (1 << 13)
-#define V3D_DRAW_CENTERS (1 << 15)
+  V3D_FLAG_UNUSED_10 = 1 << 10, /* cleared */
+  V3D_SELECT_OUTLINE = 1 << 11,
+  V3D_FLAG_UNUSED_12 = 1 << 12, /* cleared */
+  V3D_GLOBAL_STATS = 1 << 13,
+  V3D_DRAW_CENTERS = 1 << 15,
+};
 
 /** #View3D_Runtime.flag */
 enum {
@@ -397,22 +401,26 @@ enum {
   V3D_RUNTIME_DEPTHBUF_OVERRIDDEN = (1 << 1),
 };
 
-/** #RegionView3D.persp */
-#define RV3D_ORTHO 0
-#define RV3D_PERSP 1
-#define RV3D_CAMOB 2
+/** #RegionView3D::persp */
+enum {
+  RV3D_ORTHO = 0,
+  RV3D_PERSP = 1,
+  RV3D_CAMOB = 2,
+};
 
-/** #RegionView3D.rflag */
-#define RV3D_CLIPPING (1 << 2)
-#define RV3D_NAVIGATING (1 << 3)
-#define RV3D_GPULIGHT_UPDATE (1 << 4)
-#define RV3D_PAINTING (1 << 5)
-/*#define RV3D_IS_GAME_ENGINE       (1 << 5) */ /* UNUSED */
-/**
- * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
- * Use when precise surface depth is needed and picking bias isn't, see #45434).
- */
-#define RV3D_ZOFFSET_DISABLED 64
+/** #RegionView3D::rflag */
+enum {
+  RV3D_CLIPPING = 1 << 2,
+  RV3D_NAVIGATING = 1 << 3,
+  RV3D_GPULIGHT_UPDATE = 1 << 4,
+  RV3D_PAINTING = 1 << 5,
+  // RV3D_IS_GAME_ENGINE = 1 << 5, /* UNUSED */
+  /**
+   * Disable Z-buffer offset, skip calls to #ED_view3d_polygon_offset.
+   * Use when precise surface depth is needed and picking bias isn't, see #45434).
+   */
+  RV3D_ZOFFSET_DISABLED = 1 << 6,
+};
 
 /** #RegionView3D.viewlock */
 enum {
@@ -428,18 +436,22 @@ enum {
 /** Bit-wise OR of the regular lock-flags with runtime only lock-flags. */
 #define RV3D_LOCK_FLAGS(rv3d) ((rv3d)->viewlock | ((rv3d)->runtime_viewlock))
 
-/** #RegionView3D.viewlock_quad */
-#define RV3D_VIEWLOCK_INIT (1 << 7)
+/** #RegionView3D::viewlock_quad */
+enum {
+  RV3D_VIEWLOCK_INIT = 1 << 7,
+};
 
-/** #RegionView3D.view */
-#define RV3D_VIEW_USER 0
-#define RV3D_VIEW_FRONT 1
-#define RV3D_VIEW_BACK 2
-#define RV3D_VIEW_LEFT 3
-#define RV3D_VIEW_RIGHT 4
-#define RV3D_VIEW_TOP 5
-#define RV3D_VIEW_BOTTOM 6
-#define RV3D_VIEW_CAMERA 8
+/** #RegionView3D::view */
+enum {
+  RV3D_VIEW_USER = 0,
+  RV3D_VIEW_FRONT = 1,
+  RV3D_VIEW_BACK = 2,
+  RV3D_VIEW_LEFT = 3,
+  RV3D_VIEW_RIGHT = 4,
+  RV3D_VIEW_TOP = 5,
+  RV3D_VIEW_BOTTOM = 6,
+  RV3D_VIEW_CAMERA = 8,
+};
 
 #define RV3D_VIEW_IS_AXIS(view) (((view) >= RV3D_VIEW_FRONT) && ((view) <= RV3D_VIEW_BOTTOM))
 
@@ -459,35 +471,47 @@ enum {
   ((rv3d) && (v3d) && ((rv3d)->rflag & RV3D_CLIPPING) && \
    ELEM((v3d)->shading.type, OB_WIRE, OB_SOLID) && (rv3d)->clipbb)
 
-/** #View3D.flag2 (int) */
-#define V3D_HIDE_OVERLAYS (1 << 2)
-#define V3D_SHOW_VIEWER (1 << 3)
-#define V3D_SHOW_ANNOTATION (1 << 4)
-#define V3D_LOCK_CAMERA (1 << 5)
-#define V3D_FLAG2_UNUSED_6 (1 << 6) /* cleared */
-#define V3D_SHOW_RECONSTRUCTION (1 << 7)
-#define V3D_SHOW_CAMERAPATH (1 << 8)
-#define V3D_SHOW_BUNDLENAME (1 << 9)
-#define V3D_FLAG2_UNUSED_10 (1 << 10) /* cleared */
-#define V3D_RENDER_BORDER (1 << 11)
-#define V3D_FLAG2_UNUSED_12 (1 << 12) /* cleared */
-#define V3D_FLAG2_UNUSED_13 (1 << 13) /* cleared */
-#define V3D_FLAG2_UNUSED_14 (1 << 14) /* cleared */
-#define V3D_FLAG2_UNUSED_15 (1 << 15) /* cleared */
-#define V3D_XR_SHOW_CONTROLLERS (1 << 16)
-#define V3D_XR_SHOW_CUSTOM_OVERLAYS (1 << 17)
+/** #View3D::flag2 (int) */
+enum {
+  V3D_HIDE_OVERLAYS = 1 << 2,
+  V3D_SHOW_VIEWER = 1 << 3,
+  V3D_SHOW_ANNOTATION = 1 << 4,
+  V3D_LOCK_CAMERA = 1 << 5,
+  V3D_FLAG2_UNUSED_6 = 1 << 6, /* cleared */
+  V3D_SHOW_RECONSTRUCTION = 1 << 7,
+  V3D_SHOW_CAMERAPATH = 1 << 8,
+  V3D_SHOW_BUNDLENAME = 1 << 9,
+  V3D_FLAG2_UNUSED_10 = 1 << 10, /* cleared */
+  V3D_RENDER_BORDER = 1 << 11,
+  V3D_FLAG2_UNUSED_12 = 1 << 12, /* cleared */
+  V3D_FLAG2_UNUSED_13 = 1 << 13, /* cleared */
+  V3D_FLAG2_UNUSED_14 = 1 << 14, /* cleared */
+  V3D_FLAG2_UNUSED_15 = 1 << 15, /* cleared */
+  V3D_XR_SHOW_CONTROLLERS = 1 << 16,
+  V3D_XR_SHOW_CUSTOM_OVERLAYS = 1 << 17,
+};
 
-/** #View3D.gp_flag (short) */
-#define V3D_GP_FADE_OBJECTS (1 << 0) /* Fade all non GP objects */
-#define V3D_GP_SHOW_GRID (1 << 1)    /* Activate paper grid */
-#define V3D_GP_SHOW_EDIT_LINES (1 << 2)
-#define V3D_GP_SHOW_MULTIEDIT_LINES (1 << 3)
-#define V3D_GP_SHOW_ONION_SKIN (1 << 4)       /* main switch at view level */
-#define V3D_GP_FADE_NOACTIVE_LAYERS (1 << 5)  /* fade layers not active */
-#define V3D_GP_FADE_NOACTIVE_GPENCIL (1 << 6) /* Fade other GPencil objects */
-#define V3D_GP_SHOW_STROKE_DIRECTION (1 << 7) /* Show Strokes Directions */
-#define V3D_GP_SHOW_MATERIAL_NAME (1 << 8)    /* Show Material names */
-#define V3D_GP_SHOW_GRID_XRAY (1 << 9)        /* Show Canvas Grid on Top */
+/** #View3D::gp_flag (short) */
+enum {
+  /** Fade all non GP objects. */
+  V3D_GP_FADE_OBJECTS = 1 << 0,
+  /** Activate paper grid. */
+  V3D_GP_SHOW_GRID = 1 << 1,
+  V3D_GP_SHOW_EDIT_LINES = 1 << 2,
+  V3D_GP_SHOW_MULTIEDIT_LINES = 1 << 3,
+  /** main switch at view level. */
+  V3D_GP_SHOW_ONION_SKIN = 1 << 4,
+  /** fade layers not active. */
+  V3D_GP_FADE_NOACTIVE_LAYERS = 1 << 5,
+  /** Fade other GPencil objects. */
+  V3D_GP_FADE_NOACTIVE_GPENCIL = 1 << 6,
+  /** Show Strokes Directions. */
+  V3D_GP_SHOW_STROKE_DIRECTION = 1 << 7,
+  /** Show Material names. */
+  V3D_GP_SHOW_MATERIAL_NAME = 1 << 8,
+  /** Show Canvas Grid on Top. */
+  V3D_GP_SHOW_GRID_XRAY = 1 << 9,
+};
 
 /** #View3DShading.flag */
 enum {
@@ -622,11 +646,13 @@ enum {
 };
 
 /** #View3D.gridflag */
-#define V3D_SHOW_FLOOR (1 << 0)
-#define V3D_SHOW_X (1 << 1)
-#define V3D_SHOW_Y (1 << 2)
-#define V3D_SHOW_Z (1 << 3)
-#define V3D_SHOW_ORTHO_GRID (1 << 4)
+enum {
+  V3D_SHOW_FLOOR = 1 << 0,
+  V3D_SHOW_X = 1 << 1,
+  V3D_SHOW_Y = 1 << 2,
+  V3D_SHOW_Z = 1 << 3,
+  V3D_SHOW_ORTHO_GRID = 1 << 4,
+};
 
 /** #TransformOrientationSlot.type */
 enum {

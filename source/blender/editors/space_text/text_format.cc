@@ -240,3 +240,32 @@ bool ED_text_is_syntax_highlight_supported(Text *text)
   /* The filename has a non-numerical extension that we could not highlight. */
   return false;
 }
+
+int text_format_string_literal_find(const Span<const char *> string_literals, const char *text)
+{
+  auto cmp_fn = [](const char *text, const char *string_literal) {
+    return strcmp(text, string_literal) < 0;
+  };
+  const char *const *string_literal_p = std::upper_bound(
+      std::begin(string_literals), std::end(string_literals), text, cmp_fn);
+
+  if (string_literal_p != std::begin(string_literals)) {
+    const char *string = *(string_literal_p - 1);
+    const size_t string_len = strlen(string);
+    if (strncmp(string, text, string_len) == 0) {
+      return string_len;
+    }
+  }
+
+  return -1;
+}
+
+#ifndef NDEBUG
+const bool text_format_string_literals_check_sorted_array(
+    const Span<const char *> &string_literals)
+{
+  return std::is_sorted(string_literals.begin(),
+                        string_literals.end(),
+                        [](const char *a, const char *b) { return strcmp(a, b) < 0; });
+}
+#endif

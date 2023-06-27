@@ -1991,6 +1991,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
         layout.separator()
 
         layout.operator("grease_pencil.select_linked", text="Linked")
+        layout.operator("grease_pencil.select_alternate", text="Alternated")
         layout.operator("grease_pencil.select_random", text="Random")
 
         layout.separator()
@@ -5352,7 +5353,8 @@ class VIEW3D_MT_edit_gpencil_stroke(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("gpencil.stroke_join", "type", text="Join")
+        layout.operator_menu_enum("gpencil.stroke_join", "type", text="Join",
+                                  text_ctxt=i18n_contexts.id_gpencil)
 
         layout.separator()
 
@@ -7658,7 +7660,9 @@ class VIEW3D_MT_gpencil_edit_context_menu(Menu):
 
             # Removal Operators
             col.operator("gpencil.stroke_merge_by_distance").use_unselected = True
-            col.operator_menu_enum("gpencil.stroke_join", "type", text="Join")
+            col.operator_menu_enum("gpencil.stroke_join", "type", text="Join",
+                                   text_ctxt=i18n_contexts.id_gpencil)
+
             col.operator("gpencil.stroke_split", text="Split")
             col.operator("gpencil.stroke_separate", text="Separate").mode = 'STROKE'
 

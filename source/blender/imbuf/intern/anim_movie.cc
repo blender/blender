@@ -488,7 +488,7 @@ static ImBuf *avi_fetchibuf(anim *anim, int position)
     MEM_freeN(tmp);
   }
 
-  ibuf->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  ibuf->byte_buffer.colorspace = colormanage_colorspace_get_named(anim->colorspace);
 
   return ibuf;
 }
@@ -1469,7 +1469,8 @@ static ImBuf *ffmpeg_fetchibuf(anim *anim, int position, IMB_Timecode_Type tc)
       MEM_mallocN_aligned(size_t(4) * anim->x * anim->y, 32, "ffmpeg ibuf"));
   IMB_assign_byte_buffer(anim->cur_frame_final, buffer_data, IB_TAKE_OWNERSHIP);
 
-  anim->cur_frame_final->rect_colorspace = colormanage_colorspace_get_named(anim->colorspace);
+  anim->cur_frame_final->byte_buffer.colorspace = colormanage_colorspace_get_named(
+      anim->colorspace);
 
   AVFrame *final_frame = ffmpeg_frame_by_pts_get(anim, pts_to_search);
   if (final_frame == nullptr) {

@@ -651,8 +651,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
     /* Post Process */
     EEVEE_draw_effects(sldata, vedata);
 
-    /* XXX Seems to fix TDR issue with NVidia drivers on linux. */
-    GPU_finish();
+    /* NOTE(@fclem): Seems to fix TDR issue with NVidia drivers. */
+    if (GPU_type_matches_ex(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+      GPU_finish();
+    }
 
     /* Perform render step between samples to allow
      * flushing of freed GPUBackend resources. */

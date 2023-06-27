@@ -14,7 +14,10 @@ from bpy.props import (
     PointerProperty,
     StringProperty,
 )
-from bpy.app.translations import pgettext_iface as iface_
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+    pgettext_iface as iface_
+)
 
 from math import pi
 
@@ -1105,6 +1108,7 @@ class CyclesMaterialSettings(bpy.types.PropertyGroup):
     emission_sampling: EnumProperty(
         name="Emission Sampling",
         description="Sampling strategy for emissive surfaces",
+        translation_context=i18n_contexts.id_light,
         items=enum_emission_sampling,
         default="AUTO",
     )
@@ -1734,12 +1738,12 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "101.4032"
+                    driver_version = "101.4314"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "1.3.24931"
+                    driver_version = "1.3.25812"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
                     col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)

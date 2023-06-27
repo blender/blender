@@ -54,6 +54,20 @@ mat2 rot2_from_angle(float a)
   return mat2(c, -s, s, c);
 }
 
+/* Computes the full argmax of the given vector, that is, the index of the greatest component will
+ * be in the returned x component, the index of the smallest component will be in the returned z
+ * component, and the index of the middle component will be in the returned y component.
+ *
+ * This is computed by utilizing the fact that booleans are converted to the integers 0 and 1 for
+ * false and true respectively. So if we compare every component to all other components using the
+ * greaterThan comparator, we get 0 for the greatest component, because no other component is
+ * greater, 1 for the middle component, and 2 for the smallest component. */
+ivec3 argmax(vec3 v)
+{
+  return ivec3(greaterThan(v, v.xxx)) + ivec3(greaterThan(v, v.yyy)) +
+         ivec3(greaterThan(v, v.zzz));
+}
+
 #define min3(a, b, c) min(a, min(b, c))
 #define min4(a, b, c, d) min(a, min3(b, c, d))
 #define min5(a, b, c, d, e) min(a, min4(b, c, d, e))

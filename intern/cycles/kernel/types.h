@@ -1350,14 +1350,15 @@ typedef struct KernelCurveSegment {
 static_assert_align(KernelCurveSegment, 8);
 
 typedef struct KernelSpotLight {
-  packed_float3 axis_u;
+  packed_float3 scaled_axis_u;
   float radius;
-  packed_float3 axis_v;
+  packed_float3 scaled_axis_v;
   float invarea;
   packed_float3 dir;
   float cos_half_spot_angle;
-  packed_float3 len;
+  float inv_len_z;
   float spot_smooth;
+  float pad[2];
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */

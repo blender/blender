@@ -1185,6 +1185,7 @@ context_type_map = {
     "fluid": ("FluidSimulationModifier", False),
     "gpencil": ("GreasePencil", False),
     "gpencil_data": ("GreasePencil", False),
+    "grease_pencil": ("GreasePencilv3", False),
     "gpencil_data_owner": ("ID", False),
     "curves": ("Hair Curves", False),
     "id": ("ID", False),

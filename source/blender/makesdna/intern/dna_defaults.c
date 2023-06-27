@@ -366,7 +366,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     /* DNA_brush_defaults.h */
     SDNA_DEFAULT_DECL(Brush),
     SDNA_DEFAULT_DECL(DynTopoSettings),
-    SDNA_DEFAULT_DECL_EX(DynTopoSettings, Brush.dyntopo),
 
     /* DNA_cachefile_defaults.h */
     SDNA_DEFAULT_DECL(CacheFile),
@@ -456,7 +455,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Guide, ToolSettings.gp_sculpt.guide),
 
     SDNA_DEFAULT_DECL(Sculpt),
-    SDNA_DEFAULT_DECL_EX(DynTopoSettings, Sculpt.dyntopo),
 
     /* DNA_simulation_defaults.h */
     SDNA_DEFAULT_DECL(Simulation),

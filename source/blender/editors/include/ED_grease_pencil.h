@@ -21,6 +21,11 @@ struct wmKeyConfig;
 extern "C" {
 #endif
 
+enum {
+  LAYER_REORDER_ABOVE,
+  LAYER_REORDER_BELOW,
+};
+
 /* -------------------------------------------------------------------- */
 /** \name C Wrappers
  * \{ */

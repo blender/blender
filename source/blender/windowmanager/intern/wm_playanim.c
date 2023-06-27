@@ -12,6 +12,7 @@
  * this could be made into its own module, alongside creator.
  */
 
+#include <errno.h>
 #include <fcntl.h>
 #include <math.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "PIL_time.h"
+
+#include "CLG_log.h"
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
@@ -82,8 +85,58 @@ static AUD_Device *audio_device = NULL;
 #  define PLAY_FRAME_CACHE_MAX 30
 #endif
 
+static CLG_LogRef LOG = {"wm.playanim"};
+
 struct PlayState;
 static void playanim_window_zoom(struct PlayState *ps, const float zoom_offset);
+static bool playanim_window_font_scale_from_dpi(struct PlayState *ps);
+
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
+/**
+ * \param filepath: The file path to read into memory.
+ * \param r_mem: Optional, when NULL, don't allocate memory (just set the size).
+ * \param r_size: The file-size of `filepath`.
+ */
+static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_size)
+{
+  errno = 0;
+  const int file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
+  if (UNLIKELY(file == -1)) {
+    CLOG_WARN(&LOG, "failure '%s' to open file '%s'", strerror(errno), filepath);
+    return false;
+  }
+
+  bool success = false;
+  uchar *mem = NULL;
+  const size_t size = BLI_file_descriptor_size(file);
+  if (UNLIKELY(size == (size_t)-1)) {
+    CLOG_WARN(&LOG, "failure '%s' to access size '%s'", strerror(errno), filepath);
+  }
+  else if (r_mem && UNLIKELY(!(mem = MEM_mallocN(size, __func__)))) {
+    CLOG_WARN(&LOG, "error allocating buffer for '%s'", filepath);
+  }
+  else if (r_mem && UNLIKELY(read(file, mem, size) != size)) {
+    CLOG_WARN(&LOG, "error '%s' while reading '%s'", strerror(errno), filepath);
+  }
+  else {
+    close(file);
+    *r_size = size;
+    if (r_mem) {
+      *r_mem = mem;
+      mem = NULL; /* `r_mem` owns, don't free on exit. */
+    }
+    success = true;
+  }
+
+  MEM_SAFE_FREE(mem);
+  close(file);
+  return success;
+}
+
+/** \} */
 
 /**
  * The current state of the player.
@@ -141,6 +194,7 @@ typedef struct PlayState {
   int ibufx, ibufy;
   /** Mono-space font ID. */
   int fontid;
+  int font_size;
 
   /** Restarts player for file drop (drag & drop). */
   char dropped_file[FILE_MAX];
@@ -424,10 +478,10 @@ static void *ocio_transform_ibuf(PlayState *ps,
       *r_format = GPU_RGB16F;
     }
 
-    if (ibuf->float_colorspace) {
+    if (ibuf->float_buffer.colorspace) {
       *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
                                                                     &ps->display_settings,
-                                                                    ibuf->float_colorspace,
+                                                                    ibuf->float_buffer.colorspace,
                                                                     ibuf->dither,
                                                                     false,
                                                                     false);
@@ -441,7 +495,7 @@ static void *ocio_transform_ibuf(PlayState *ps,
     display_buffer = ibuf->byte_buffer.data;
     *r_glsl_used = IMB_colormanagement_setup_glsl_draw_from_space(&ps->view_settings,
                                                                   &ps->display_settings,
-                                                                  ibuf->rect_colorspace,
+                                                                  ibuf->byte_buffer.colorspace,
                                                                   ibuf->dither,
                                                                   false,
                                                                   false);
@@ -631,176 +685,143 @@ static void playanim_toscreen(
   GHOST_SwapWindowBuffers(g_WS.ghost_window);
 }
 
-static void build_pict_list_ex(
-    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
+static void build_pict_list_from_anim(PlayState *ps, const char *filepath_first, const int fstep)
 {
-  if (IMB_isanim(filepath_first)) {
-    /* OCIO_TODO: support different input color space */
-    struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
-    if (anim) {
-      int pic;
-      ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
-      if (ibuf) {
-        playanim_toscreen(ps, NULL, ibuf, fontid, fstep);
-        IMB_freeImBuf(ibuf);
-      }
-
-      for (pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
-        PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
-        picture->anim = anim;
-        picture->frame = pic;
-        picture->IB_flags = IB_rect;
-        picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
-        BLI_addtail(&picsbase, picture);
-      }
-    }
-    else {
-      printf("couldn't open anim %s\n", filepath_first);
-    }
+  /* OCIO_TODO: support different input color space */
+  struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
+  if (anim == NULL) {
+    CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
+    return;
   }
-  else {
-    /* Load images into cache until the cache is full,
-     * this resolves choppiness for images that are slow to load, see: #81751. */
+
+  ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  if (ibuf) {
+    playanim_toscreen(ps, NULL, ibuf, ps->fontid, fstep);
+    IMB_freeImBuf(ibuf);
+  }
+
+  for (int pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
+    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
+    picture->anim = anim;
+    picture->frame = pic;
+    picture->IB_flags = IB_rect;
+    picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
+    BLI_addtail(&picsbase, picture);
+  }
+}
+
+static void build_pict_list_from_image_sequence(PlayState *ps,
+                                                const char *filepath_first,
+                                                const int totframes,
+                                                const int fstep)
+{
+  /* Load images into cache until the cache is full,
+   * this resolves choppiness for images that are slow to load, see: #81751. */
 #ifdef USE_FRAME_CACHE_LIMIT
-    bool fill_cache = true;
+  bool fill_cache = true;
 #else
-    bool fill_cache = false;
+  bool fill_cache = false;
 #endif
 
-    int count = 0;
+  int fp_framenr;
+  struct {
+    char head[FILE_MAX], tail[FILE_MAX];
+    ushort digits;
+  } fp_decoded;
 
-    int fp_framenr;
-    struct {
-      char head[FILE_MAX], tail[FILE_MAX];
-      ushort digits;
-    } fp_decoded;
+  char filepath[FILE_MAX];
+  STRNCPY(filepath, filepath_first);
+  fp_framenr = BLI_path_sequence_decode(filepath,
+                                        fp_decoded.head,
+                                        sizeof(fp_decoded.head),
+                                        fp_decoded.tail,
+                                        sizeof(fp_decoded.tail),
+                                        &fp_decoded.digits);
 
-    char filepath[FILE_MAX];
-    STRNCPY(filepath, filepath_first);
-    fp_framenr = BLI_path_sequence_decode(filepath,
-                                          fp_decoded.head,
-                                          sizeof(fp_decoded.head),
-                                          fp_decoded.tail,
-                                          sizeof(fp_decoded.tail),
-                                          &fp_decoded.digits);
+  pupdate_time();
+  ptottime = 1.0;
+
+  for (int pic = 0; pic < totframes; pic++) {
+    if (!IMB_ispic(filepath)) {
+      break;
+    }
+
+    void *mem = NULL;
+    size_t size = -1;
+    if (!buffer_from_filepath(filepath, fromdisk ? NULL : &mem, &size)) {
+      /* A warning will have been logged. */
+      break;
+    }
+
+    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
+    picture->size = size;
+    picture->IB_flags = IB_rect;
+    picture->mem = mem;
+    picture->filepath = BLI_strdup(filepath);
+    picture->frame = pic;
+    BLI_addtail(&picsbase, picture);
 
     pupdate_time();
-    ptottime = 1.0;
 
-    while (IMB_ispic(filepath) && totframes) {
-      bool has_event;
-      size_t size;
-      int file;
+    const bool display_imbuf = ptottime > 1.0;
 
-      file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
-      if (file < 0) {
-        /* print errno? */
-        return;
-      }
+    if (display_imbuf || fill_cache) {
+      /* OCIO_TODO: support different input color space */
+      ImBuf *ibuf = ibuf_from_picture(picture);
 
-      PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
-      if (picture == NULL) {
-        printf("Not enough memory for pict struct '%s'\n", filepath);
-        close(file);
-        return;
-      }
-      size = BLI_file_descriptor_size(file);
-
-      if (size < 1) {
-        close(file);
-        MEM_freeN(picture);
-        return;
-      }
-
-      picture->size = size;
-      picture->IB_flags = IB_rect;
-
-      uchar *mem;
-      if (fromdisk == false) {
-        mem = MEM_mallocN(size, "build pic list");
-        if (mem == NULL) {
-          printf("Couldn't get memory\n");
-          close(file);
-          MEM_freeN(picture);
-          return;
-        }
-
-        if (read(file, mem, size) != size) {
-          printf("Error while reading %s\n", filepath);
-          close(file);
-          MEM_freeN(picture);
-          MEM_freeN(mem);
-          return;
-        }
-      }
-      else {
-        mem = NULL;
-      }
-
-      picture->mem = mem;
-      picture->filepath = BLI_strdup(filepath);
-      picture->frame = count;
-      close(file);
-      BLI_addtail(&picsbase, picture);
-      count++;
-
-      pupdate_time();
-
-      const bool display_imbuf = ptottime > 1.0;
-
-      if (display_imbuf || fill_cache) {
-        /* OCIO_TODO: support different input color space */
-        ImBuf *ibuf = ibuf_from_picture(picture);
-
-        if (ibuf) {
-          if (display_imbuf) {
-            playanim_toscreen(ps, picture, ibuf, fontid, fstep);
-          }
-#ifdef USE_FRAME_CACHE_LIMIT
-          if (fill_cache) {
-            picture->ibuf = ibuf;
-            frame_cache_add(picture);
-            fill_cache = !frame_cache_limit_exceeded();
-          }
-          else
-#endif
-          {
-            IMB_freeImBuf(ibuf);
-          }
-        }
-
+      if (ibuf) {
         if (display_imbuf) {
-          pupdate_time();
-          ptottime = 0.0;
+          playanim_toscreen(ps, picture, ibuf, ps->fontid, fstep);
+        }
+#ifdef USE_FRAME_CACHE_LIMIT
+        if (fill_cache) {
+          picture->ibuf = ibuf;
+          frame_cache_add(picture);
+          fill_cache = !frame_cache_limit_exceeded();
+        }
+        else
+#endif
+        {
+          IMB_freeImBuf(ibuf);
         }
       }
 
-      /* create a new filepath each time */
-      fp_framenr += fstep;
-      BLI_path_sequence_encode(filepath,
-                               sizeof(filepath),
-                               fp_decoded.head,
-                               fp_decoded.tail,
-                               fp_decoded.digits,
-                               fp_framenr);
-
-      while ((has_event = GHOST_ProcessEvents(g_WS.ghost_system, false))) {
-        GHOST_DispatchEvents(g_WS.ghost_system);
-        if (ps->loading == false) {
-          return;
-        }
+      if (display_imbuf) {
+        pupdate_time();
+        ptottime = 0.0;
       }
+    }
 
-      totframes--;
+    /* Create a new file-path each time. */
+    fp_framenr += fstep;
+    BLI_path_sequence_encode(filepath,
+                             sizeof(filepath),
+                             fp_decoded.head,
+                             fp_decoded.tail,
+                             fp_decoded.digits,
+                             fp_framenr);
+
+    while (GHOST_ProcessEvents(g_WS.ghost_system, false)) {
+      GHOST_DispatchEvents(g_WS.ghost_system);
+      if (ps->loading == false) {
+        break;
+      }
     }
   }
 }
 
-static void build_pict_list(
-    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
+static void build_pict_list(PlayState *ps,
+                            const char *filepath_first,
+                            const int totframes,
+                            const int fstep)
 {
   ps->loading = true;
-  build_pict_list_ex(ps, filepath_first, totframes, fstep, fontid);
+  if (IMB_isanim(filepath_first)) {
+    build_pict_list_from_anim(ps, filepath_first, fstep);
+  }
+  else {
+    build_pict_list_from_image_sequence(ps, filepath_first, totframes, fstep);
+  }
   ps->loading = false;
 }
 
@@ -1324,6 +1345,11 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       ps->go = false;
       break;
     }
+    case GHOST_kEventWindowDPIHintChanged: {
+      /* Rely on frame-change to redraw. */
+      playanim_window_font_scale_from_dpi(ps);
+      break;
+    }
     case GHOST_kEventDraggingDropDone: {
       GHOST_TEventDragnDropData *ddd = GHOST_GetEventData(evt);
 
@@ -1391,6 +1417,19 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   /* ofsy -= sizey / 2; */ /* UNUSED */
   // window_set_position(g_WS.ghost_window, sizex, sizey);
   GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+}
+
+static bool playanim_window_font_scale_from_dpi(PlayState *ps)
+{
+  const float scale = (GHOST_GetDPIHint(g_WS.ghost_window) / 96.0f);
+  const float font_size_base = 11.0f; /* Font size un-scaled. */
+  const int font_size = (int)(font_size_base * scale) + 0.5f;
+  if (ps->font_size != font_size) {
+    BLF_size(ps->fontid, font_size);
+    ps->font_size = font_size;
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -1554,7 +1593,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
     if (UNLIKELY(g_WS.ghost_system == NULL)) {
       /* GHOST will have reported the back-ends that failed to load. */
-      fprintf(stderr, "GHOST: unable to initialize, exiting!\n");
+      CLOG_WARN(&LOG, "GHOST: unable to initialize, exiting!");
       /* This will leak memory, it's preferable to crashing. */
       exit(EXIT_FAILURE);
     }
@@ -1576,7 +1615,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   BLF_init();
   BLF_load_font_stack();
   ps.fontid = BLF_load_mono_default(false);
-  BLF_size(ps.fontid, 11.0f);
+
+  ps.font_size = -1; /* Force update. */
+  playanim_window_font_scale_from_dpi(&ps);
 
   ps.ibufx = ibuf->x;
   ps.ibufy = ibuf->y;
@@ -1607,7 +1648,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     efra = MAXFRAME;
   }
 
-  build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
+  build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep);
 
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
@@ -1628,7 +1669,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   for (i = 2; i < argc; i++) {
     STRNCPY(filepath, argv[i]);
-    build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
+    build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep);
   }
 
   IMB_freeImBuf(ibuf);

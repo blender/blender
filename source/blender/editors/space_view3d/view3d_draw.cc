@@ -1316,21 +1316,28 @@ static void draw_selected_name(
   const int cfra = scene->r.cfra;
   const char *msg_pin = " (Pinned)";
   const char *msg_sep = " : ";
+  const char *msg_space = " ";
 
   const int font_id = BLF_default();
 
-  char info[300];
-  char *s = info;
+  const char *info_array[16];
+  int i = 0;
 
-  s += BLI_sprintf(s, "(%d)", cfra);
+  struct {
+    char frame[16];
+  } info_buffers;
+
+  SNPRINTF(info_buffers.frame, "(%d)", cfra);
+  info_array[i++] = info_buffers.frame;
 
   if ((ob == nullptr) || (ob->mode == OB_MODE_OBJECT)) {
     BKE_view_layer_synced_ensure(scene, view_layer);
     LayerCollection *layer_collection = BKE_view_layer_active_collection_get(view_layer);
-    s += BLI_sprintf(s,
-                     " %s%s",
-                     BKE_collection_ui_name_get(layer_collection->collection),
-                     (ob == nullptr) ? "" : " |");
+    info_array[i++] = msg_space;
+    info_array[i++] = BKE_collection_ui_name_get(layer_collection->collection);
+    if (ob != nullptr) {
+      info_array[i++] = " |";
+    }
   }
 
   /* Info can contain:
@@ -1347,8 +1354,8 @@ static void draw_selected_name(
 
   /* check if there is an object */
   if (ob) {
-    *s++ = ' ';
-    s += BLI_strcpy_rlen(s, ob->id.name + 2);
+    info_array[i++] = msg_space;
+    info_array[i++] = ob->id.name + 2;
 
     /* name(s) to display depends on type of object */
     if (ob->type == OB_ARMATURE) {
@@ -1357,16 +1364,16 @@ static void draw_selected_name(
       /* show name of active bone too (if possible) */
       if (arm->edbo) {
         if (arm->act_edbone) {
-          s += BLI_strcpy_rlen(s, msg_sep);
-          s += BLI_strcpy_rlen(s, arm->act_edbone->name);
+          info_array[i++] = msg_sep;
+          info_array[i++] = arm->act_edbone->name;
         }
       }
       else if (ob->mode & OB_MODE_POSE) {
         if (arm->act_bone) {
 
           if (arm->act_bone->layer & arm->layer) {
-            s += BLI_strcpy_rlen(s, msg_sep);
-            s += BLI_strcpy_rlen(s, arm->act_bone->name);
+            info_array[i++] = msg_sep;
+            info_array[i++] = arm->act_bone->name;
           }
         }
       }
@@ -1380,8 +1387,8 @@ static void draw_selected_name(
           bArmature *arm = static_cast<bArmature *>(armobj->data);
           if (arm->act_bone) {
             if (arm->act_bone->layer & arm->layer) {
-              s += BLI_strcpy_rlen(s, msg_sep);
-              s += BLI_strcpy_rlen(s, arm->act_bone->name);
+              info_array[i++] = msg_sep;
+              info_array[i++] = arm->act_bone->name;
             }
           }
         }
@@ -1391,10 +1398,10 @@ static void draw_selected_name(
       if (key) {
         KeyBlock *kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
         if (kb) {
-          s += BLI_strcpy_rlen(s, msg_sep);
-          s += BLI_strcpy_rlen(s, kb->name);
+          info_array[i++] = msg_sep;
+          info_array[i++] = kb->name;
           if (ob->shapeflag & OB_SHAPE_LOCK) {
-            s += BLI_strcpy_rlen(s, IFACE_(msg_pin));
+            info_array[i++] = IFACE_(msg_pin);
           }
         }
       }
@@ -1422,14 +1429,20 @@ static void draw_selected_name(
   }
 
   if (markern) {
-    s += BLI_sprintf(s, " <%s>", markern);
+    info_array[i++] = " <";
+    info_array[i++] = markern;
+    info_array[i++] = ">";
   }
 
   if (v3d->flag2 & V3D_SHOW_VIEWER) {
     if (!BLI_listbase_is_empty(&v3d->viewer_path.path)) {
-      s += BLI_sprintf(s, "%s", IFACE_(" (Viewer)"));
+      info_array[i++] = IFACE_(" (Viewer)");
     }
   }
+
+  BLI_assert(i < (int)ARRAY_SIZE(info_array));
+  char info[300];
+  BLI_string_join_array(info, sizeof(info), info_array, i);
 
   BLF_enable(font_id, BLF_SHADOW);
   BLF_shadow(font_id, 5, float4{0.0f, 0.0f, 0.0f, 1.0f});

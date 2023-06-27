@@ -672,7 +672,7 @@ static bool do_versions_sequencer_init_retiming_tool_data(Sequence *seq, void *u
 
   const int content_length = SEQ_time_strip_length_get(scene, seq);
 
-  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_data_ensure(scene, seq);
 
   SeqRetimingHandle *handle = &seq->retiming_handles[seq->retiming_handle_num - 1];
   handle->strip_frame_index = round_fl_to_int(content_length / seq->speed_factor);
@@ -2525,22 +2525,22 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       tool_settings->snap_node_mode &= ~((1 << 5) | (1 << 6));
       tool_settings->snap_uv_mode &= ~(1 << 4);
       if (snap_mode & (1 << 4)) {
-        tool_settings->snap_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+        tool_settings->snap_mode |= (1 << 6); /* SCE_SNAP_TO_INCREMENT */
       }
       if (snap_mode & (1 << 5)) {
-        tool_settings->snap_mode |= (1 << 4); /* SCE_SNAP_MODE_EDGE_MIDPOINT */
+        tool_settings->snap_mode |= (1 << 4); /* SCE_SNAP_TO_EDGE_MIDPOINT */
       }
       if (snap_mode & (1 << 6)) {
-        tool_settings->snap_mode |= (1 << 5); /* SCE_SNAP_MODE_EDGE_PERPENDICULAR */
+        tool_settings->snap_mode |= (1 << 5); /* SCE_SNAP_TO_EDGE_PERPENDICULAR */
       }
       if (snap_node_mode & (1 << 5)) {
-        tool_settings->snap_node_mode |= (1 << 0); /* SCE_SNAP_MODE_NODE_X */
+        tool_settings->snap_node_mode |= (1 << 0); /* SCE_SNAP_TO_NODE_X */
       }
       if (snap_node_mode & (1 << 6)) {
-        tool_settings->snap_node_mode |= (1 << 1); /* SCE_SNAP_MODE_NODE_Y */
+        tool_settings->snap_node_mode |= (1 << 1); /* SCE_SNAP_TO_NODE_Y */
       }
       if (snap_uv_mode & (1 << 4)) {
-        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_TO_INCREMENT */
       }
 
       SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
@@ -2584,7 +2584,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *tool_settings = scene->toolsettings;
       if (tool_settings->snap_uv_mode & (1 << 4)) {
-        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_MODE_INCREMENT */
+        tool_settings->snap_uv_mode |= (1 << 6); /* SCE_SNAP_TO_INCREMENT */
         tool_settings->snap_uv_mode &= ~(1 << 4);
       }
     }
@@ -4641,7 +4641,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 306, 10)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       /* Set default values for new members. */
-      scene->toolsettings->snap_mode_tools = SCE_SNAP_MODE_GEOM;
+      scene->toolsettings->snap_mode_tools = SCE_SNAP_TO_GEOM;
       scene->toolsettings->plane_axis = 2;
     }
   }

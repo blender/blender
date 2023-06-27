@@ -64,25 +64,9 @@ void ED_sculpt_init_transform(bContext *C, Object *ob, const int mval[2], const 
 
   SCULPT_filter_cache_init(C, ob, sd, SCULPT_UNDO_COORDS, mval, 5.0, 1.0f);
 
-  switch (sd->transform_deform_target) {
-    case SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY:
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
-      break;
-    case SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM:
-      BKE_sculpt_update_object_for_edit(depsgraph, ob, true, true, false);
-      ss->filter_cache->cloth_sim = SCULPT_cloth_brush_simulation_create(
-          ob, 1.0f, 1.0f, 0.0f, true, false);
-      SCULPT_cloth_brush_simulation_init(ss, ss->filter_cache->cloth_sim);
-      SCULPT_cloth_brush_store_simulation_state(ss, ss->filter_cache->cloth_sim);
-      SCULPT_cloth_brush_ensure_nodes_constraints(
-          sd, ob, ss->filter_cache->nodes, ss->filter_cache->cloth_sim, ss->pivot_pos, FLT_MAX);
+  BKE_sculpt_update_object_for_edit(depsgraph, ob, false, false, false);
 
-      break;
-  }
-
-  if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC ||
-      sd->transform_deform_target == SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM)
-  {
+  if (sd->transform_mode == SCULPT_TRANSFORM_MODE_RADIUS_ELASTIC) {
     ss->filter_cache->transform_displacement_mode = SCULPT_TRANSFORM_DISPLACEMENT_INCREMENTAL;
   }
   else {
@@ -193,14 +177,7 @@ static void sculpt_transform_task_cb(void *__restrict userdata,
     sub_v3_v3v3(disp, transformed_co, start_co);
     mul_v3_fl(disp, 1.0f - fade);
 
-    switch (data->sd->transform_deform_target) {
-      case SCULPT_TRANSFORM_DEFORM_TARGET_GEOMETRY:
-        add_v3_v3v3(vd.co, start_co, disp);
-        break;
-      case SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM:
-        add_v3_v3v3(ss->filter_cache->cloth_sim->pos[vd.index], start_co, disp);
-        break;
-    }
+    add_v3_v3v3(vd.co, start_co, disp);
 
     if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(ss->pbvh, vd.vertex);
@@ -359,12 +336,6 @@ void ED_sculpt_update_modal_transform(bContext *C, Object *ob)
   copy_v3_v3(ss->prev_pivot_pos, ss->pivot_pos);
   copy_v4_v4(ss->prev_pivot_rot, ss->pivot_rot);
   copy_v3_v3(ss->prev_pivot_scale, ss->pivot_scale);
-
-  if (sd->transform_deform_target == SCULPT_TRANSFORM_DEFORM_TARGET_CLOTH_SIM) {
-    SCULPT_cloth_sim_activate_nodes(ss->filter_cache->cloth_sim, ss->filter_cache->nodes);
-    SCULPT_cloth_brush_do_simulation_step(
-        sd, ob, ss->filter_cache->cloth_sim, ss->filter_cache->nodes);
-  }
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);

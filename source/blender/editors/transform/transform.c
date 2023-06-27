@@ -577,7 +577,7 @@ static bool transform_modal_item_poll(const wmOperator *op, int value)
       if (t->spacetype != SPACE_VIEW3D) {
         return false;
       }
-      if ((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) == 0) {
+      if ((t->tsnap.mode & ~(SCE_SNAP_TO_INCREMENT | SCE_SNAP_TO_GRID)) == 0) {
         return false;
       }
       if (value == TFM_MODAL_ADD_SNAP) {
@@ -1659,7 +1659,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
     if ((prop = RNA_struct_find_property(op->ptr, "snap_elements"))) {
       RNA_property_enum_set(op->ptr, prop, t->tsnap.mode);
       RNA_boolean_set(
-          op->ptr, "use_snap_project", (t->tsnap.mode & SCE_SNAP_MODE_FACE_RAYCAST) != 0);
+          op->ptr, "use_snap_project", (t->tsnap.mode & SCE_SNAP_INDIVIDUAL_PROJECT) != 0);
       RNA_enum_set(op->ptr, "snap_target", t->tsnap.source_operation);
 
       eSnapTargetOP target = t->tsnap.target_operation;

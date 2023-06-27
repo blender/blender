@@ -1309,13 +1309,12 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     else if (light->light_type == LIGHT_SPOT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      float3 len;
-      float3 axis_u = normalize_len(light->axisu, &len.x);
-      float3 axis_v = normalize_len(light->axisv, &len.y);
-      float3 dir = normalize_len(light->dir, &len.z);
-      if (len.z == 0.0f) {
-        dir = zero_float3();
-      }
+      /* Scale axes to accommodate non-uniform scaling. */
+      float3 scaled_axis_u = light->axisu / len_squared(light->axisu);
+      float3 scaled_axis_v = light->axisv / len_squared(light->axisv);
+      float len_z;
+      /* Keep direction normalized. */
+      float3 dir = safe_normalize_len(light->dir, &len_z);
 
       float radius = light->size;
       float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_PI_F * radius * radius) :
@@ -1327,13 +1326,13 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
         shader_id |= SHADER_USE_MIS;
 
       klights[light_index].co = co;
-      klights[light_index].spot.axis_u = axis_u;
+      klights[light_index].spot.scaled_axis_u = scaled_axis_u;
       klights[light_index].spot.radius = radius;
-      klights[light_index].spot.axis_v = axis_v;
+      klights[light_index].spot.scaled_axis_v = scaled_axis_v;
       klights[light_index].spot.invarea = invarea;
       klights[light_index].spot.dir = dir;
       klights[light_index].spot.cos_half_spot_angle = cos_half_spot_angle;
-      klights[light_index].spot.len = len;
+      klights[light_index].spot.inv_len_z = 1.0f / len_z;
       klights[light_index].spot.spot_smooth = spot_smooth;
     }
 

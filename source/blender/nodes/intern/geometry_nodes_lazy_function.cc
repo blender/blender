@@ -3345,6 +3345,10 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
   if (btree.has_available_link_cycle()) {
     return nullptr;
   }
+  const bNodeTreeZones *tree_zones = btree.zones();
+  if (tree_zones == nullptr) {
+    return nullptr;
+  }
   if (const ID *id_orig = DEG_get_original_id(const_cast<ID *>(&btree.id))) {
     if (id_orig->tag & LIB_TAG_MISSING) {
       return nullptr;

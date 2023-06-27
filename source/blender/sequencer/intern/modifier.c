@@ -1312,8 +1312,8 @@ static void tonemapmodifier_apply(SequenceModifierData *smd, ImBuf *ibuf, ImBuf 
   SequencerTonemapModifierData *tmmd = (SequencerTonemapModifierData *)smd;
   AvgLogLum data;
   data.tmmd = tmmd;
-  data.colorspace = (ibuf->float_buffer.data != NULL) ? ibuf->float_colorspace :
-                                                        ibuf->rect_colorspace;
+  data.colorspace = (ibuf->float_buffer.data != NULL) ? ibuf->float_buffer.colorspace :
+                                                        ibuf->byte_buffer.colorspace;
   float lsum = 0.0f;
   int p = ibuf->x * ibuf->y;
   float *fp = ibuf->float_buffer.data;

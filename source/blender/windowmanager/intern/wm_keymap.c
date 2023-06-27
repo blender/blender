@@ -22,6 +22,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.h"
@@ -1072,7 +1073,7 @@ const char *WM_key_event_string(const short type, const bool compact)
       case EVT_LEFTSHIFTKEY:
       case EVT_RIGHTSHIFTKEY: {
         if (platform == MACOS) {
-          single_glyph = "\xe2\x87\xa7";
+          single_glyph = BLI_STR_UTF8_UPWARDS_WHITE_ARROW;
         }
         return key_event_glyph_or_text(
             font_id, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, "Shift"), single_glyph);
@@ -1080,48 +1081,50 @@ const char *WM_key_event_string(const short type, const bool compact)
       case EVT_LEFTCTRLKEY:
       case EVT_RIGHTCTRLKEY:
         if (platform == MACOS) {
-          return key_event_glyph_or_text(font_id, "^", "\xe2\x8c\x83");
+          return key_event_glyph_or_text(font_id, "^", BLI_STR_UTF8_UP_ARROWHEAD);
         }
         return IFACE_("Ctrl");
       case EVT_LEFTALTKEY:
       case EVT_RIGHTALTKEY: {
         if (platform == MACOS) {
           /* Option symbol on Mac keyboard. */
-          single_glyph = "\xe2\x8c\xa5";
+          single_glyph = BLI_STR_UTF8_OPTION_KEY;
         }
         return key_event_glyph_or_text(font_id, IFACE_("Alt"), single_glyph);
       }
       case EVT_OSKEY: {
         if (platform == MACOS) {
-          return key_event_glyph_or_text(font_id, IFACE_("Cmd"), "\xe2\x8c\x98");
+          return key_event_glyph_or_text(
+              font_id, IFACE_("Cmd"), BLI_STR_UTF8_PLACE_OF_INTEREST_SIGN);
         }
         if (platform == MSWIN) {
-          return key_event_glyph_or_text(font_id, IFACE_("Win"), "\xe2\x9d\x96");
+          return key_event_glyph_or_text(
+              font_id, IFACE_("Win"), BLI_STR_UTF8_BLACK_DIAMOND_MINUS_WHITE_X);
         }
         return IFACE_("OS");
       } break;
       case EVT_TABKEY:
         return key_event_glyph_or_text(
-            font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), "\xe2\xad\xbe");
+            font_id, CTX_N_(BLT_I18NCONTEXT_UI_EVENTS, "Tab"), BLI_STR_UTF8_HORIZONTAL_TAB_KEY);
       case EVT_BACKSPACEKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Bksp"), "\xe2\x8c\xab");
+        return key_event_glyph_or_text(font_id, IFACE_("Bksp"), BLI_STR_UTF8_ERASE_TO_THE_LEFT);
       case EVT_ESCKEY:
         if (platform == MACOS) {
-          single_glyph = "\xe2\x8e\x8b";
+          single_glyph = BLI_STR_UTF8_BROKEN_CIRCLE_WITH_NORTHWEST_ARROW;
         }
         return key_event_glyph_or_text(font_id, IFACE_("Esc"), single_glyph);
       case EVT_RETKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Enter"), "\xe2\x86\xb5");
+        return key_event_glyph_or_text(font_id, IFACE_("Enter"), BLI_STR_UTF8_RETURN_SYMBOL);
       case EVT_SPACEKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Space"), "\xe2\x90\xa3");
+        return key_event_glyph_or_text(font_id, IFACE_("Space"), BLI_STR_UTF8_OPEN_BOX);
       case EVT_LEFTARROWKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Left"), "\xe2\x86\x90");
+        return key_event_glyph_or_text(font_id, IFACE_("Left"), BLI_STR_UTF8_LEFTWARDS_ARROW);
       case EVT_UPARROWKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Up"), "\xe2\x86\x91");
+        return key_event_glyph_or_text(font_id, IFACE_("Up"), BLI_STR_UTF8_UPWARDS_ARROW);
       case EVT_RIGHTARROWKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Right"), "\xe2\x86\x92");
+        return key_event_glyph_or_text(font_id, IFACE_("Right"), BLI_STR_UTF8_RIGHTWARDS_ARROW);
       case EVT_DOWNARROWKEY:
-        return key_event_glyph_or_text(font_id, IFACE_("Down"), "\xe2\x86\x93");
+        return key_event_glyph_or_text(font_id, IFACE_("Down"), BLI_STR_UTF8_DOWNWARDS_ARROW);
     }
   }
 
@@ -1155,67 +1158,57 @@ int WM_keymap_item_raw_to_string(const short shift,
                                  const int result_maxncpy)
 {
   /* TODO: also support (some) value, like e.g. double-click? */
+  const char *result_array[12];
+  int i = 0;
 
-#define ADD_SEP \
-  if (p != buf) { \
-    *p++ = ' '; \
-  } \
-  (void)0
-
-  char buf[128];
-  char *p = buf;
-
-  buf[0] = '\0';
+  const char *space = " ";
 
   if (shift == KM_ANY && ctrl == KM_ANY && alt == KM_ANY && oskey == KM_ANY) {
     /* Don't show anything for any mapping. */
   }
   else {
     if (shift) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTSHIFTKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTSHIFTKEY, true);
+      result_array[i++] = space;
     }
-
     if (ctrl) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTCTRLKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTCTRLKEY, true);
+      result_array[i++] = space;
     }
-
     if (alt) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_LEFTALTKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_LEFTALTKEY, true);
+      result_array[i++] = space;
     }
-
     if (oskey) {
-      ADD_SEP;
-      p += BLI_strcpy_rlen(p, WM_key_event_string(EVT_OSKEY, true));
+      result_array[i++] = WM_key_event_string(EVT_OSKEY, true);
+      result_array[i++] = space;
     }
   }
 
   if (keymodifier) {
-    ADD_SEP;
-    p += BLI_strcpy_rlen(p, WM_key_event_string(keymodifier, compact));
+    result_array[i++] = WM_key_event_string(keymodifier, compact);
+    result_array[i++] = space;
   }
 
   if (type) {
-    ADD_SEP;
     if (val == KM_DBL_CLICK) {
-      p += BLI_strcpy_rlen(p, IFACE_("dbl-"));
+      result_array[i++] = IFACE_("dbl-");
     }
     else if (val == KM_CLICK_DRAG) {
-      p += BLI_strcpy_rlen(p, IFACE_("drag-"));
+      result_array[i++] = IFACE_("drag-");
     }
-    p += BLI_strcpy_rlen(p, WM_key_event_string(type, compact));
+    result_array[i++] = WM_key_event_string(type, compact);
   }
 
   /* We assume size of buf is enough to always store any possible shortcut,
    * but let's add a debug check about it! */
-  BLI_assert(p - buf < sizeof(buf));
+  BLI_assert(i < ARRAY_SIZE(result_array));
 
-  /* We need utf8 here, otherwise we may 'cut' some unicode chars like arrows... */
-  return BLI_strncpy_utf8_rlen(result, buf, result_maxncpy);
+  if (i > 0 && result_array[i - 1] == space) {
+    i--;
+  }
 
-#undef ADD_SEP
+  return BLI_string_join_array(result, result_maxncpy, result_array, i);
 }
 
 int WM_keymap_item_to_string(const wmKeyMapItem *kmi,

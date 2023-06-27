@@ -19,7 +19,6 @@ class TreeElementIDCollection final : public TreeElementID {
   TreeElementIDCollection(TreeElement &legacy_te, Collection &collection);
 
   void expand(SpaceOutliner &) const override;
-  bool isExpandValid() const override;
 };
 
 }  // namespace blender::ed::outliner

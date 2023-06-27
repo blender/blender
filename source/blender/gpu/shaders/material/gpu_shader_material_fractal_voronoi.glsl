@@ -18,14 +18,14 @@
 \
     for (int i = 0; i <= ceil(params.detail); ++i) { \
       VoronoiOutput octave; \
-      if (params.feature == 0) /* SHD_VORONOI_F1 */ { \
-        octave = voronoi_f1(params, coord * scale); \
+      if (params.feature == SHD_VORONOI_F2) { \
+        octave = voronoi_f2(params, coord * scale); \
       } \
-      else if (params.feature == 2) /* SHD_VORONOI_SMOOTH_F1 */ { \
+      else if (params.feature == SHD_VORONOI_SMOOTH_F1 && params.smoothness != 0.0) { \
         octave = voronoi_smooth_f1(params, coord * scale); \
       } \
       else { \
-        octave = voronoi_f2(params, coord * scale); \
+        octave = voronoi_f1(params, coord * scale); \
       } \
 \
       if (zero_input) { \

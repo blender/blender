@@ -302,7 +302,7 @@ typedef struct TransSnap {
   short face_nearest_steps;
   eTSnap status;
   /* Snapped Element Type (currently for objects only). */
-  eSnapMode snapElem;
+  eSnapMode target_type;
   /** snapping from this point (in global-space). */
   float snap_source[3];
   /** to this point (in global-space). */

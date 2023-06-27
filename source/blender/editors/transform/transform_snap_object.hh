@@ -10,12 +10,16 @@
 
 #define MAX_CLIPPLANE_LEN 3
 
-struct SnapData_EditMesh;
+#define SNAP_TO_EDGE_ELEMENTS \
+  (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
+   SCE_SNAP_TO_EDGE_PERPENDICULAR)
+
+struct SnapCache_EditMesh;
 
 struct SnapObjectContext {
   struct Scene *scene;
 
-  blender::Map<const BMEditMesh *, std::unique_ptr<SnapData_EditMesh>> editmesh_caches;
+  blender::Map<const BMEditMesh *, std::unique_ptr<SnapCache_EditMesh>> editmesh_caches;
 
   /* Filter data, returns true to check this value */
   struct {
@@ -92,12 +96,13 @@ struct RayCastAll_Data {
   ListBase *hit_list;
 };
 
-class Nearest2dUserData {
+class SnapData {
  public:
   /* Read-only. */
   DistProjectedAABBPrecalc nearest_precalc;
   blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
   blender::float4x4 pmat_local;
+  blender::float4x4 obmat_;
   const bool is_persp;
   const bool use_backface_culling;
 
@@ -106,31 +111,21 @@ class Nearest2dUserData {
 
  public:
   /* Constructor. */
-  Nearest2dUserData(SnapObjectContext *sctx,
-                    Object *ob_eval,
-                    const ID *id_eval,
-                    const blender::float4x4 &obmat = blender::float4x4::identity());
+  SnapData(SnapObjectContext *sctx,
+           const blender::float4x4 &obmat = blender::float4x4::identity());
 
-  /* Destructor. */
-  ~Nearest2dUserData();
-
-  void clip_planes_enable(bool skip_occlusion_plane = false);
+  void clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane = false);
   bool snap_boundbox(const blender::float3 &min, const blender::float3 &max);
   bool snap_point(const blender::float3 &co, int index = -1);
   bool snap_edge(const blender::float3 &va, const blender::float3 &vb, int edge_index = -1);
-  eSnapMode snap_edge_points(int edge_index, float dist_px_sq_orig);
+  eSnapMode snap_edge_points_impl(SnapObjectContext *sctx, int edge_index, float dist_px_sq_orig);
+  void register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval);
 
   virtual void get_vert_co(const int /*index*/, const float ** /*r_co*/){};
   virtual void get_edge_verts_index(const int /*index*/, int /*r_v_index*/[2]){};
   virtual void get_tri_verts_index(const int /*index*/, int /*r_v_index*/[3]){};
   virtual void get_tri_edges_index(const int /*index*/, int /*r_e_index*/[3]){};
   virtual void copy_vert_no(const int /*index*/, float /*r_no*/[3]){};
-
- protected:
-  SnapObjectContext *sctx_;
-  Object *ob_;
-  const ID *id_;
-  const blender::float4x4 &obmat_;
 };
 
 /* transform_snap_object.cc */
@@ -185,8 +180,8 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 
 /* transform_snap_object_editmesh.cc */
 
-struct SnapData_EditMesh {
-  /* Verts, Edges. */
+struct SnapCache_EditMesh {
+  /* Loose Verts, Edges. */
   BVHTree *bvhtree[2];
   bool cached[2];
 
@@ -198,7 +193,7 @@ struct SnapData_EditMesh {
 
   void clear();
 
-  ~SnapData_EditMesh()
+  ~SnapCache_EditMesh()
   {
     this->clear();
   }

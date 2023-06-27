@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+
+using blender::Span;
+
 struct Text;
 
 /* *** Flatten String *** */
@@ -115,24 +119,21 @@ void ED_text_format_register_osl();
 void ED_text_format_register_pov();
 void ED_text_format_register_pov_ini();
 
-#define STR_LITERAL_STARTSWITH(str, str_literal, len_var) \
-  (strncmp(str, str_literal, len_var = (sizeof(str_literal) - 1)) == 0)
-
-/* Workaround `C1061` with MSVC (looks like a bug),
- * this can be removed if the issue is resolved.
+/**
+ * Checks the specified source string #text for a string literal in #string_literals array.
+ * This string literal must start at the beginning of the source string.
  *
- * Add #MSVC_WORKAROUND_BREAK to break up else-if's blocks to be under 128.
- * `_keep_me` just ensures #MSVC_WORKAROUND_BREAK follows an #MSVC_WORKAROUND_INIT. */
-#ifdef _MSC_VER
-#  define MSVC_WORKAROUND_INIT(i) \
-    char _keep_me = 0; \
-    i = -1; \
-    ((void)0)
-#  define MSVC_WORKAROUND_BREAK(i) \
-    } \
-    ((void)_keep_me); \
-    if (i != -1) {
-#else
-#  define MSVC_WORKAROUND_INIT(i) ((void)0)
-#  define MSVC_WORKAROUND_BREAK(i)
+ * If a string literal is found, the length of the string literal is returned.
+ * Otherwise, -1.
+ */
+int text_format_string_literal_find(const Span<const char *> string_literals, const char *text);
+
+#ifndef NDEBUG
+/**
+ * Check if #string_literals array is shorted. This validation is required since text formatters do
+ * binary search on these string literals arrays. Used only for assertions.
+ */
+const bool text_format_string_literals_check_sorted_array(
+    const Span<const char *> &string_literals);
+
 #endif

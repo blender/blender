@@ -184,31 +184,35 @@ typedef struct SpaceProperties {
 /* button defines (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
 /* WARNING: the values of these defines are used in SpaceProperties.tabs[8] */
-/* SpaceProperties.mainb new */
-#  define CONTEXT_SCENE 0
-#  define CONTEXT_OBJECT 1
-// #define CONTEXT_TYPES   2
-#  define CONTEXT_SHADING 3
-#  define CONTEXT_EDITING 4
-// #define CONTEXT_SCRIPT  5
-// #define CONTEXT_LOGIC   6
+/** #SpaceProperties::mainb new */
+enum {
+  CONTEXT_SCENE = 0,
+  CONTEXT_OBJECT = 1,
+  // CONTEXT_TYPES = 2,
+  CONTEXT_SHADING = 3,
+  CONTEXT_EDITING = 4,
+  // CONTEXT_SCRIPT = 5,
+  // CONTEXT_LOGIC = 6,
+};
 
-/* SpaceProperties.mainb old (deprecated) */
-// #define BUTS_VIEW           0
-#  define BUTS_LAMP 1
-#  define BUTS_MAT 2
-#  define BUTS_TEX 3
-#  define BUTS_ANIM 4
-#  define BUTS_WORLD 5
-#  define BUTS_RENDER 6
-#  define BUTS_EDIT 7
-// #define BUTS_GAME           8
-#  define BUTS_FPAINT 9
-#  define BUTS_RADIO 10
-#  define BUTS_SCRIPT 11
-// #define BUTS_SOUND          12
-#  define BUTS_CONSTRAINT 13
-// #define BUTS_EFFECTS        14
+/** #SpaceProperties::mainb old (deprecated) */
+enum {
+  // BUTS_VIEW = 0,
+  BUTS_LAMP = 1,
+  BUTS_MAT = 2,
+  BUTS_TEX = 3,
+  BUTS_ANIM = 4,
+  BUTS_WORLD = 5,
+  BUTS_RENDER = 6,
+  BUTS_EDIT = 7,
+  // BUTS_GAME = 8,
+  BUTS_FPAINT = 9,
+  BUTS_RADIO = 10,
+  BUTS_SCRIPT = 11,
+  // BUTS_SOUND = 12,
+  BUTS_CONSTRAINT = 13,
+  // BUTS_EFFECTS = 14,
+};
 #endif /* DNA_DEPRECATED_ALLOW */
 
 /** #SpaceProperties.mainb new */

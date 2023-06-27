@@ -1758,12 +1758,10 @@ static ExrHandle *imb_exr_begin_read_mem(IStream &file_stream,
 static void exr_printf(const char *fmt, ...)
 {
 #if 0
-  char output[1024];
   va_list args;
   va_start(args, fmt);
-  std::vsprintf(output, fmt, args);
+  vprintf(fmt, args);
   va_end(args);
-  printf("%s", output);
 #else
   (void)fmt;
 #endif

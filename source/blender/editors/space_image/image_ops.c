@@ -3377,7 +3377,7 @@ bool ED_space_image_color_sample(
     else if (ibuf->byte_buffer.data) {
       cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
       rgb_uchar_to_float(r_col, cp);
-      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->rect_colorspace);
+      IMB_colormanagement_colorspace_to_scene_linear_v3(r_col, ibuf->byte_buffer.colorspace);
       ret = true;
     }
   }

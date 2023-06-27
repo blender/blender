@@ -284,9 +284,9 @@ static void extrude_mesh_vertices(Mesh &mesh,
   const IndexRange new_edge_range{orig_edge_size, selection.size()};
 
   MutableSpan<int2> new_edges = mesh.edges_for_write().slice(new_edge_range);
-  for (const int i_selection : selection.index_range()) {
-    new_edges[i_selection] = int2(selection[i_selection], new_vert_range[i_selection]);
-  }
+  selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
+    new_edges[i_selection] = int2(index, new_vert_range[i_selection]);
+  });
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
@@ -309,10 +309,8 @@ static void extrude_mesh_vertices(Mesh &mesh,
 
   MutableSpan<float3> positions = mesh.vert_positions_for_write();
   MutableSpan<float3> new_positions = positions.slice(new_vert_range);
-  threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i : range) {
-      new_positions[i] = positions[selection[i]] + offsets[selection[i]];
-    }
+  selection.foreach_index_optimized<int>(GrainSize(1024), [&](const int index, const int i) {
+    new_positions[i] = positions[index] + offsets[index];
   });
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
@@ -504,9 +502,7 @@ static void extrude_mesh_edges(Mesh &mesh,
     duplicate_edges[i] = int2(new_vert_range[i_new_vert_1], new_vert_range[i_new_vert_2]);
   }
 
-  for (const int i : edge_selection.index_range()) {
-    const int orig_edge_index = edge_selection[i];
-
+  edge_selection.foreach_index([&](const int64_t orig_edge_index, const int64_t i) {
     const int2 &duplicate_edge = duplicate_edges[i];
     const int new_vert_1 = duplicate_edge[0];
     const int new_vert_2 = duplicate_edge[1];
@@ -537,7 +533,7 @@ static void extrude_mesh_edges(Mesh &mesh,
                                    connect_edge_range[extrude_index_1],
                                    duplicate_edge_range[i],
                                    connect_edge_range[extrude_index_2]);
-  }
+  });
 
   /* Create a map of indices in the extruded vertices array to all of the indices of edges
    * in the duplicate edges array that connect to that vertex. This can be used to simplify the
@@ -591,58 +587,55 @@ static void extrude_mesh_edges(Mesh &mesh,
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(new_loop_range);
-          threading::parallel_for(edge_selection.index_range(), 256, [&](const IndexRange range) {
-            for (const int i_edge_selection : range) {
-              const int orig_edge_index = edge_selection[i_edge_selection];
+          edge_selection.foreach_index(
+              GrainSize(256), [&](const int64_t orig_edge_index, const int64_t i_edge_selection) {
+                const Span<int> connected_polys = edge_to_poly_map[orig_edge_index];
+                if (connected_polys.is_empty()) {
+                  /* If there are no connected polygons, there is no corner data to
+                   * interpolate. */
+                  new_data.slice(4 * i_edge_selection, 4).fill(T());
+                  return;
+                }
 
-              const Span<int> connected_polys = edge_to_poly_map[orig_edge_index];
-              if (connected_polys.is_empty()) {
-                /* If there are no connected polygons, there is no corner data to
-                 * interpolate. */
-                new_data.slice(4 * i_edge_selection, 4).fill(T());
-                continue;
-              }
+                /* Both corners on each vertical edge of the side polygon get the same value,
+                 * so there are only two unique values to mix. */
+                Array<T> side_poly_corner_data(2);
+                bke::attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
 
-              /* Both corners on each vertical edge of the side polygon get the same value,
-               * so there are only two unique values to mix. */
-              Array<T> side_poly_corner_data(2);
-              bke::attribute_math::DefaultPropagationMixer<T> mixer{side_poly_corner_data};
+                const int2 &duplicate_edge = duplicate_edges[i_edge_selection];
+                const int new_vert_1 = duplicate_edge[0];
+                const int new_vert_2 = duplicate_edge[1];
+                const int orig_vert_1 = new_vert_indices[new_vert_1 - orig_vert_size];
+                const int orig_vert_2 = new_vert_indices[new_vert_2 - orig_vert_size];
 
-              const int2 &duplicate_edge = duplicate_edges[i_edge_selection];
-              const int new_vert_1 = duplicate_edge[0];
-              const int new_vert_2 = duplicate_edge[1];
-              const int orig_vert_1 = new_vert_indices[new_vert_1 - orig_vert_size];
-              const int orig_vert_2 = new_vert_indices[new_vert_2 - orig_vert_size];
-
-              /* Average the corner data from the corners that share a vertex from the
-               * polygons that share an edge with the extruded edge. */
-              for (const int i_connected_poly : connected_polys.index_range()) {
-                const IndexRange connected_poly = polys[connected_polys[i_connected_poly]];
-                for (const int i_loop : IndexRange(connected_poly)) {
-                  if (corner_verts[i_loop] == orig_vert_1) {
-                    mixer.mix_in(0, data[i_loop]);
+                /* Average the corner data from the corners that share a vertex from the
+                 * polygons that share an edge with the extruded edge. */
+                for (const int i_connected_poly : connected_polys.index_range()) {
+                  const IndexRange connected_poly = polys[connected_polys[i_connected_poly]];
+                  for (const int i_loop : IndexRange(connected_poly)) {
+                    if (corner_verts[i_loop] == orig_vert_1) {
+                      mixer.mix_in(0, data[i_loop]);
+                    }
+                    if (corner_verts[i_loop] == orig_vert_2) {
+                      mixer.mix_in(1, data[i_loop]);
+                    }
                   }
-                  if (corner_verts[i_loop] == orig_vert_2) {
-                    mixer.mix_in(1, data[i_loop]);
+                }
+
+                mixer.finalize();
+
+                /* Instead of replicating the order in #fill_quad_consistent_direction here, it's
+                 * simpler (though probably slower) to just match the corner data based on the
+                 * vertex indices. */
+                for (const int i : IndexRange(4 * i_edge_selection, 4)) {
+                  if (ELEM(new_corner_verts[i], new_vert_1, orig_vert_1)) {
+                    new_data[i] = side_poly_corner_data.first();
+                  }
+                  else if (ELEM(new_corner_verts[i], new_vert_2, orig_vert_2)) {
+                    new_data[i] = side_poly_corner_data.last();
                   }
                 }
-              }
-
-              mixer.finalize();
-
-              /* Instead of replicating the order in #fill_quad_consistent_direction here, it's
-               * simpler (though probably slower) to just match the corner data based on the vertex
-               * indices. */
-              for (const int i : IndexRange(4 * i_edge_selection, 4)) {
-                if (ELEM(new_corner_verts[i], new_vert_1, orig_vert_1)) {
-                  new_data[i] = side_poly_corner_data.first();
-                }
-                else if (ELEM(new_corner_verts[i], new_vert_2, orig_vert_2)) {
-                  new_data[i] = side_poly_corner_data.last();
-                }
-              }
-            }
-          });
+              });
         });
         break;
       }
@@ -1143,10 +1136,11 @@ static void extrude_individual_mesh_faces(
    * all polygons. */
   int extrude_corner_size = 0;
   Array<int> group_per_face_data(poly_selection.size() + 1);
-  for (const int i_selection : poly_selection.index_range()) {
+  poly_selection.foreach_index_optimized<int>([&](const int index, const int i_selection) {
     group_per_face_data[i_selection] = extrude_corner_size;
-    extrude_corner_size += orig_polys[poly_selection[i_selection]].size();
-  }
+    extrude_corner_size += orig_polys[index].size();
+  });
+
   group_per_face_data.last() = extrude_corner_size;
   const OffsetIndices<int> group_per_face(group_per_face_data);
 
@@ -1187,54 +1181,53 @@ static void extrude_individual_mesh_faces(
    * separate loops, which may or may not be faster, but would involve more duplication. */
   Array<int> new_vert_indices(extrude_corner_size);
   Array<int> duplicate_edge_indices(extrude_corner_size);
-  threading::parallel_for(poly_selection.index_range(), 256, [&](const IndexRange range) {
-    for (const int i_selection : range) {
-      const IndexRange extrude_range = group_per_face[i_selection];
+  poly_selection.foreach_index(
+      GrainSize(256), [&](const int64_t index, const int64_t i_selection) {
+        const IndexRange extrude_range = group_per_face[i_selection];
 
-      const IndexRange poly = polys[poly_selection[i_selection]];
-      MutableSpan<int> poly_verts = corner_verts.slice(poly);
-      MutableSpan<int> poly_edges = corner_edges.slice(poly);
+        const IndexRange poly = polys[index];
+        MutableSpan<int> poly_verts = corner_verts.slice(poly);
+        MutableSpan<int> poly_edges = corner_edges.slice(poly);
 
-      for (const int i : IndexRange(poly.size())) {
-        const int i_extrude = extrude_range[i];
-        new_vert_indices[i_extrude] = poly_verts[i];
-        duplicate_edge_indices[i_extrude] = poly_edges[i];
+        for (const int i : IndexRange(poly.size())) {
+          const int i_extrude = extrude_range[i];
+          new_vert_indices[i_extrude] = poly_verts[i];
+          duplicate_edge_indices[i_extrude] = poly_edges[i];
 
-        poly_verts[i] = new_vert_range[i_extrude];
-        poly_edges[i] = duplicate_edge_range[i_extrude];
-      }
+          poly_verts[i] = new_vert_range[i_extrude];
+          poly_edges[i] = duplicate_edge_range[i_extrude];
+        }
 
-      for (const int i : IndexRange(poly.size())) {
-        const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
-        const int i_extrude = extrude_range[i];
-        const int i_extrude_next = extrude_range[i_next];
+        for (const int i : IndexRange(poly.size())) {
+          const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
+          const int i_extrude = extrude_range[i];
+          const int i_extrude_next = extrude_range[i_next];
 
-        const int i_duplicate_edge = duplicate_edge_range[i_extrude];
-        const int new_vert = new_vert_range[i_extrude];
-        const int new_vert_next = new_vert_range[i_extrude_next];
+          const int i_duplicate_edge = duplicate_edge_range[i_extrude];
+          const int new_vert = new_vert_range[i_extrude];
+          const int new_vert_next = new_vert_range[i_extrude_next];
 
-        const int orig_edge = duplicate_edge_indices[i_extrude];
+          const int orig_edge = duplicate_edge_indices[i_extrude];
 
-        const int orig_vert = new_vert_indices[i_extrude];
-        const int orig_vert_next = new_vert_indices[i_extrude_next];
+          const int orig_vert = new_vert_indices[i_extrude];
+          const int orig_vert_next = new_vert_indices[i_extrude_next];
 
-        duplicate_edges[i_extrude] = int2(new_vert, new_vert_next);
+          duplicate_edges[i_extrude] = int2(new_vert, new_vert_next);
 
-        MutableSpan<int> side_poly_verts = corner_verts.slice(side_loop_range[i_extrude * 4], 4);
-        MutableSpan<int> side_poly_edges = corner_edges.slice(side_loop_range[i_extrude * 4], 4);
-        side_poly_verts[0] = new_vert_next;
-        side_poly_edges[0] = i_duplicate_edge;
-        side_poly_verts[1] = new_vert;
-        side_poly_edges[1] = connect_edge_range[i_extrude];
-        side_poly_verts[2] = orig_vert;
-        side_poly_edges[2] = orig_edge;
-        side_poly_verts[3] = orig_vert_next;
-        side_poly_edges[3] = connect_edge_range[i_extrude_next];
+          MutableSpan<int> side_poly_verts = corner_verts.slice(side_loop_range[i_extrude * 4], 4);
+          MutableSpan<int> side_poly_edges = corner_edges.slice(side_loop_range[i_extrude * 4], 4);
+          side_poly_verts[0] = new_vert_next;
+          side_poly_edges[0] = i_duplicate_edge;
+          side_poly_verts[1] = new_vert;
+          side_poly_edges[1] = connect_edge_range[i_extrude];
+          side_poly_verts[2] = orig_vert;
+          side_poly_edges[2] = orig_edge;
+          side_poly_verts[3] = orig_vert_next;
+          side_poly_edges[3] = connect_edge_range[i_extrude_next];
 
-        connect_edges[i_extrude] = int2(orig_vert, new_vert);
-      }
-    }
-  });
+          connect_edges[i_extrude] = int2(orig_vert, new_vert);
+        }
+      });
 
   MutableAttributeAccessor attributes = mesh.attributes_for_write();
 
@@ -1263,31 +1256,30 @@ static void extrude_individual_mesh_faces(
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> connect_data = data.slice(connect_edge_range);
-          threading::parallel_for(poly_selection.index_range(), 512, [&](const IndexRange range) {
-            for (const int i_selection : range) {
-              const IndexRange poly = polys[poly_selection[i_selection]];
-              const IndexRange extrude_range = group_per_face[i_selection];
+          poly_selection.foreach_index(
+              GrainSize(512), [&](const int64_t index, const int64_t i_selection) {
+                const IndexRange poly = polys[index];
+                const IndexRange extrude_range = group_per_face[i_selection];
 
-              /* For the extruded edges, mix the data from the two neighboring original edges of
-               * the extruded polygon. */
-              for (const int i : IndexRange(poly.size())) {
-                const int i_prev = (i == 0) ? poly.size() - 1 : i - 1;
-                const int i_extrude = extrude_range[i];
-                const int i_extrude_prev = extrude_range[i_prev];
+                /* For the extruded edges, mix the data from the two neighboring original edges of
+                 * the extruded polygon. */
+                for (const int i : IndexRange(poly.size())) {
+                  const int i_prev = (i == 0) ? poly.size() - 1 : i - 1;
+                  const int i_extrude = extrude_range[i];
+                  const int i_extrude_prev = extrude_range[i_prev];
 
-                const int orig_edge = duplicate_edge_indices[i_extrude];
-                const int orig_edge_prev = duplicate_edge_indices[i_extrude_prev];
-                if constexpr (std::is_same_v<T, bool>) {
-                  /* Propagate selections with "or" instead of "at least half". */
-                  connect_data[i_extrude] = data[orig_edge] || data[orig_edge_prev];
+                  const int orig_edge = duplicate_edge_indices[i_extrude];
+                  const int orig_edge_prev = duplicate_edge_indices[i_extrude_prev];
+                  if constexpr (std::is_same_v<T, bool>) {
+                    /* Propagate selections with "or" instead of "at least half". */
+                    connect_data[i_extrude] = data[orig_edge] || data[orig_edge_prev];
+                  }
+                  else {
+                    connect_data[i_extrude] = bke::attribute_math::mix2(
+                        0.5f, data[orig_edge], data[orig_edge_prev]);
+                  }
                 }
-                else {
-                  connect_data[i_extrude] = bke::attribute_math::mix2(
-                      0.5f, data[orig_edge], data[orig_edge_prev]);
-                }
-              }
-            }
-          });
+              });
         });
         break;
       }
@@ -1297,13 +1289,11 @@ static void extrude_individual_mesh_faces(
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_poly_range);
-          threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
-            for (const int i_selection : range) {
-              const int poly_index = poly_selection[i_selection];
-              const IndexRange extrude_range = group_per_face[i_selection];
-              new_data.slice(extrude_range).fill(data[poly_index]);
-            }
-          });
+          poly_selection.foreach_index(
+              GrainSize(1024), [&](const int64_t poly_index, const int64_t i_selection) {
+                const IndexRange extrude_range = group_per_face[i_selection];
+                new_data.slice(extrude_range).fill(data[poly_index]);
+              });
         });
         break;
       }
@@ -1314,28 +1304,27 @@ static void extrude_individual_mesh_faces(
           using T = decltype(dummy);
           MutableSpan<T> data = attribute.span.typed<T>();
           MutableSpan<T> new_data = data.slice(side_loop_range);
-          threading::parallel_for(poly_selection.index_range(), 256, [&](const IndexRange range) {
-            for (const int i_selection : range) {
-              const IndexRange poly = polys[poly_selection[i_selection]];
-              const Span<T> poly_loop_data = data.slice(poly);
-              const IndexRange extrude_range = group_per_face[i_selection];
+          poly_selection.foreach_index(
+              GrainSize(256), [&](const int64_t index, const int64_t i_selection) {
+                const IndexRange poly = polys[index];
+                const Span<T> poly_loop_data = data.slice(poly);
+                const IndexRange extrude_range = group_per_face[i_selection];
 
-              for (const int i : IndexRange(poly.size())) {
-                const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
-                const int i_extrude = extrude_range[i];
+                for (const int i : IndexRange(poly.size())) {
+                  const int i_next = (i == poly.size() - 1) ? 0 : i + 1;
+                  const int i_extrude = extrude_range[i];
 
-                MutableSpan<T> side_loop_data = new_data.slice(i_extrude * 4, 4);
+                  MutableSpan<T> side_loop_data = new_data.slice(i_extrude * 4, 4);
 
-                /* The two corners on each side of the side polygon get the data from the matching
-                 * corners of the extruded polygon. This order depends on the loop filling the loop
-                 * indices. */
-                side_loop_data[0] = poly_loop_data[i_next];
-                side_loop_data[1] = poly_loop_data[i];
-                side_loop_data[2] = poly_loop_data[i];
-                side_loop_data[3] = poly_loop_data[i_next];
-              }
-            }
-          });
+                  /* The two corners on each side of the side polygon get the data from the
+                   * matching corners of the extruded polygon. This order depends on the loop
+                   * filling the loop indices. */
+                  side_loop_data[0] = poly_loop_data[i_next];
+                  side_loop_data[1] = poly_loop_data[i];
+                  side_loop_data[2] = poly_loop_data[i];
+                  side_loop_data[3] = poly_loop_data[i_next];
+                }
+              });
         });
         break;
       }
@@ -1348,14 +1337,13 @@ static void extrude_individual_mesh_faces(
   });
 
   /* Offset the new vertices. */
-  threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
-    for (const int i_selection : range) {
-      const IndexRange extrude_range = group_per_face[i_selection];
-      for (float3 &position : new_positions.slice(extrude_range)) {
-        position += poly_offset[poly_selection[i_selection]];
-      }
-    }
-  });
+  poly_selection.foreach_index(GrainSize(1025),
+                               [&](const int64_t index, const int64_t i_selection) {
+                                 const IndexRange extrude_range = group_per_face[i_selection];
+                                 for (float3 &position : new_positions.slice(extrude_range)) {
+                                   position += poly_offset[index];
+                                 }
+                               });
 
   MutableSpan<int> vert_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_POINT);
   if (!vert_orig_indices.is_empty()) {
@@ -1375,13 +1363,11 @@ static void extrude_individual_mesh_faces(
   MutableSpan<int> poly_orig_indices = get_orig_index_layer(mesh, ATTR_DOMAIN_FACE);
   if (!poly_orig_indices.is_empty()) {
     MutableSpan<int> new_poly_orig_indices = poly_orig_indices.slice(side_poly_range);
-    threading::parallel_for(poly_selection.index_range(), 1024, [&](const IndexRange range) {
-      for (const int selection_i : range) {
-        const int poly_i = poly_selection[selection_i];
-        const IndexRange extrude_range = group_per_face[selection_i];
-        new_poly_orig_indices.slice(extrude_range).fill(poly_orig_indices[poly_i]);
-      }
-    });
+    poly_selection.foreach_index(
+        GrainSize(1024), [&](const int64_t poly_i, const int64_t selection_i) {
+          const IndexRange extrude_range = group_per_face[selection_i];
+          new_poly_orig_indices.slice(extrude_range).fill(poly_orig_indices[poly_i]);
+        });
   }
 
   if (attribute_outputs.top_id) {

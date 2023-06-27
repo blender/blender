@@ -17,46 +17,120 @@
 
 #include "text_format.hh"
 
-/* *** Local Functions (for format_line) *** */
+/* -------------------------------------------------------------------- */
+/** \name Local Literal Definitions
+ * \{ */
+
+/**
+ * OSL builtin function.
+ * list is from
+ * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
+ */
+static const char *text_format_osl_literals_builtinfunc_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "break",
+    "closure",
+    "color",
+    "continue",
+    "do",
+    "else",
+    "emit",
+    "float",
+    "for",
+    "if",
+    "illuminance",
+    "illuminate",
+    "int",
+    "matrix",
+    "normal",
+    "output",
+    "point",
+    "public",
+    "return",
+    "string",
+    "struct",
+    "vector",
+    "void",
+    "while",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_osl_literals_builtinfunc(
+    text_format_osl_literals_builtinfunc_data,
+    ARRAY_SIZE(text_format_osl_literals_builtinfunc_data));
+
+/**
+ * OSL reserved keywords
+ * See:
+ * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
+ */
+static const char *text_format_osl_literals_reserved_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "bool",
+    "case",
+    "catch",
+    "char",
+    "const",
+    "default",
+    "delete",
+    "double",
+    "enum",
+    "extern",
+    "false",
+    "friend",
+    "goto",
+    "inline",
+    "long",
+    "new",
+    "operator",
+    "private",
+    "protected",
+    "short",
+    "signed",
+    "sizeof",
+    "static",
+    "switch",
+    "template",
+    "this",
+    "throw",
+    "true",
+    "try",
+    "typedef",
+    "uniform",
+    "union",
+    "unsigned",
+    "varying",
+    "virtual",
+    "volatile",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_osl_literals_reserved(
+    text_format_osl_literals_reserved_data, ARRAY_SIZE(text_format_osl_literals_reserved_data));
+
+/* OSL shader types */
+static const char *text_format_osl_literals_specialvar_data[]{
+    /* Force single column, sorted list. */
+    /* clang-format off */
+    "displacement",
+    "shader",
+    "surface",
+    "volume",
+    /* clang-format on */
+};
+static const Span<const char *> text_format_osl_literals_specialvar(
+    text_format_osl_literals_specialvar_data,
+    ARRAY_SIZE(text_format_osl_literals_specialvar_data));
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Functions (for #TextFormatType::format_line)
+ * \{ */
 
 static int txtfmt_osl_find_builtinfunc(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  /* list is from
-   * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
-   */
-  if        (STR_LITERAL_STARTSWITH(string, "break",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "closure",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "color",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "continue",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "do",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "else",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "emit",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "float",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "for",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "if",           len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "illuminance",  len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "illuminate",   len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "int",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "matrix",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "normal",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "output",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "point",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "public",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "return",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "string",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "struct",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "vector",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "void",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "while",        len)) { i = len;
-  } else                                                          { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_osl_literals_builtinfunc, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -67,54 +141,7 @@ static int txtfmt_osl_find_builtinfunc(const char *string)
 
 static int txtfmt_osl_find_reserved(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  /* list is from...
-   * https://github.com/imageworks/OpenShadingLanguage/raw/master/src/doc/osl-languagespec.pdf
-   */
-  if        (STR_LITERAL_STARTSWITH(string, "bool",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "case",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "catch",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "char",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "const",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "delete",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "default",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "double",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "enum",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "extern",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "false",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "friend",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "goto",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "inline",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "long",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "new",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "operator",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "private",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "protected",    len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "short",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "signed",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "sizeof",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "static",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "switch",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "template",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "this",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "throw",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "true",         len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "try",          len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "typedef",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "uniform",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "union",        len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "unsigned",     len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "varying",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "virtual",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "volatile",     len)) { i = len;
-  } else                                                          { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_osl_literals_reserved, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -123,29 +150,9 @@ static int txtfmt_osl_find_reserved(const char *string)
   return i;
 }
 
-/* Checks the specified source string for a OSL special name. This name must
- * start at the beginning of the source string and must be followed by a non-
- * identifier (see text_check_identifier(char)) or null character.
- *
- * If a special name is found, the length of the matching name is returned.
- * Otherwise, -1 is returned. */
-
 static int txtfmt_osl_find_specialvar(const char *string)
 {
-  int i, len;
-
-  /* Keep aligned args for readability. */
-  /* clang-format off */
-
-  /* OSL shader types */
-  if        (STR_LITERAL_STARTSWITH(string, "shader",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "surface",      len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "volume",       len)) { i = len;
-  } else if (STR_LITERAL_STARTSWITH(string, "displacement", len)) { i = len;
-  } else                                                          { i = 0;
-  }
-
-  /* clang-format on */
+  const int i = text_format_string_literal_find(text_format_osl_literals_specialvar, string);
 
   /* If next source char is an identifier (eg. 'i' in "definite") no match */
   if (i == 0 || text_check_identifier(string[i])) {
@@ -189,6 +196,12 @@ static char txtfmt_osl_format_identifier(const char *str)
 
   return fmt;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Format Line Implementation (#TextFormatType::format_line)
+ * \{ */
 
 static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_next)
 {
@@ -319,7 +332,6 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
         } else if ((i = txtfmt_osl_find_reserved(str))     != -1) { prev = FMT_TYPE_RESERVED;
         } else if ((i = txtfmt_osl_find_preprocessor(str)) != -1) { prev = FMT_TYPE_DIRECTIVE;
         }
-
         /* clang-format on */
 
         if (i > 0) {
@@ -354,6 +366,12 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
   flatten_string_free(&fs);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
+
 void ED_text_format_register_osl()
 {
   static TextFormatType tft = {nullptr};
@@ -365,4 +383,10 @@ void ED_text_format_register_osl()
   tft.comment_line = "//";
 
   ED_text_format_register(&tft);
+
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_osl_literals_builtinfunc));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_osl_literals_reserved));
+  BLI_assert(text_format_string_literals_check_sorted_array(text_format_osl_literals_specialvar));
 }
+
+/** \} */

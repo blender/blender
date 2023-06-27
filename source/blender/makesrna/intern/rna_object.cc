@@ -3439,6 +3439,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "empty_image_visibility_flag");
   RNA_def_property_enum_items(prop, prop_empty_image_side_items);
   RNA_def_property_ui_text(prop, "Empty Image Side", "Show front/back side");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_IMAGE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   prop = RNA_def_property(srna, "add_rest_position_attribute", PROP_BOOLEAN, PROP_NONE);

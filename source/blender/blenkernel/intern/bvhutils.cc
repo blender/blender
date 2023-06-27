@@ -618,7 +618,7 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
       r_data->nearest_callback = mesh_looptri_nearest_point;
       r_data->raycast_callback = mesh_looptri_spherecast;
       break;
-    case BVHTREE_FROM_EM_VERTS:
+    case BVHTREE_FROM_EM_LOOSEVERTS:
     case BVHTREE_FROM_EM_EDGES:
     case BVHTREE_FROM_EM_LOOPTRI:
     case BVHTREE_MAX_ITEM:
@@ -639,7 +639,7 @@ static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
   r_data->em = em;
 
   switch (bvh_cache_type) {
-    case BVHTREE_FROM_EM_VERTS:
+    case BVHTREE_FROM_EM_LOOSEVERTS:
       r_data->nearest_callback = nullptr;
       r_data->raycast_callback = editmesh_verts_spherecast;
       break;
@@ -754,7 +754,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
   bvhtree_balance(tree, false);
 
   if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_VERTS, em, data);
+    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOSEVERTS, em, data);
   }
 
   return tree;
@@ -1223,7 +1223,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
           0.0f, tree_type, 6, positions, corner_verts.data(), looptris, {}, -1);
       break;
     }
-    case BVHTREE_FROM_EM_VERTS:
+    case BVHTREE_FROM_EM_LOOSEVERTS:
     case BVHTREE_FROM_EM_EDGES:
     case BVHTREE_FROM_EM_LOOPTRI:
     case BVHTREE_MAX_ITEM:
@@ -1253,6 +1253,25 @@ BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
   return data->tree;
 }
 
+static BitVector<> bmverts_loose_map_get(BMesh *bm, int *r_bmvert_active_len)
+{
+  BitVector<> bmvert_mask(bm->totvert);
+
+  int i, bmvert_loose_len = 0;
+  BMIter iter;
+  BMVert *v;
+  BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+    if (v->e == nullptr) {
+      bmvert_mask[i].set();
+      bmvert_loose_len++;
+    }
+  }
+
+  *r_bmvert_active_len = bmvert_loose_len;
+
+  return bmvert_mask;
+}
+
 BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
                                        BMEditMesh *em,
                                        const int tree_type,
@@ -1275,9 +1294,13 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
   }
 
   switch (bvh_cache_type) {
-    case BVHTREE_FROM_EM_VERTS:
-      data->tree = bvhtree_from_editmesh_verts_create_tree(0.0f, tree_type, 6, em, {}, -1);
+    case BVHTREE_FROM_EM_LOOSEVERTS: {
+      int mask_bits_act_len = -1;
+      const BitVector<> mask = bmverts_loose_map_get(em->bm, &mask_bits_act_len);
+      data->tree = bvhtree_from_editmesh_verts_create_tree(
+          0.0f, tree_type, 6, em, mask, mask_bits_act_len);
       break;
+    }
     case BVHTREE_FROM_EM_EDGES:
       data->tree = bvhtree_from_editmesh_edges_create_tree(0.0f, tree_type, 6, em, {}, -1);
       break;
