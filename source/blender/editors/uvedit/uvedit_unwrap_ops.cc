@@ -1555,7 +1555,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_islands_endjob(pid);
   pack_islands_freejob(pid);
 
-  MEM_freeN(pid);
   return OPERATOR_FINISHED;
 }
 
