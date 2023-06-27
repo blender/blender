@@ -120,17 +120,18 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
+  if (!grease_pencil.has_active_layer()) {
+    return OPERATOR_CANCELLED;
+  }
+
   int target_layer_name_length;
   char *target_layer_name = RNA_string_get_alloc(
       op->ptr, "target_layer_name", nullptr, 0, &target_layer_name_length);
   const int reorder_location = RNA_enum_get(op->ptr, "location");
 
-  if (!grease_pencil.has_active_layer()) {
-    return OPERATOR_CANCELLED;
-  }
-
   Layer *target_layer = grease_pencil.find_layer_by_name(target_layer_name);
   if (!target_layer) {
+    MEM_SAFE_FREE(target_layer_name);
     return OPERATOR_CANCELLED;
   }
 
