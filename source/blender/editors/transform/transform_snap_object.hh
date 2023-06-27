@@ -119,6 +119,11 @@ class SnapData {
   bool snap_point(const blender::float3 &co, int index = -1);
   bool snap_edge(const blender::float3 &va, const blender::float3 &vb, int edge_index = -1);
   eSnapMode snap_edge_points_impl(SnapObjectContext *sctx, int edge_index, float dist_px_sq_orig);
+  static void register_result(SnapObjectContext *sctx,
+                              Object *ob_eval,
+                              const ID *id_eval,
+                              const blender::float4x4 &obmat,
+                              BVHTreeNearest *r_nearest);
   void register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval);
 
   virtual void get_vert_co(const int /*index*/, const float ** /*r_co*/){};
@@ -152,8 +157,10 @@ void cb_snap_edge(void *userdata,
 bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
+                        const blender::float3 &init_co,
+                        const blender::float3 &curr_co,
                         void *treedata,
-                        const float (*obmat)[4]);
+                        BVHTreeNearest *r_nearest);
 
 eSnapMode snap_object_center(SnapObjectContext *sctx,
                              Object *ob_eval,

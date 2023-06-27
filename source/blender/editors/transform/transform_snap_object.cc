@@ -272,27 +272,36 @@ eSnapMode SnapData::snap_edge_points_impl(SnapObjectContext *sctx,
   return elem;
 }
 
-void SnapData::register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval)
+void SnapData::register_result(SnapObjectContext *sctx,
+                               Object *ob_eval,
+                               const ID *id_eval,
+                               const float4x4 &obmat,
+                               BVHTreeNearest *r_nearest)
 {
-  BLI_assert(this->nearest_point.index != -2);
+  BLI_assert(r_nearest->index != -2);
 
-  copy_v3_v3(sctx->ret.loc, this->nearest_point.co);
-  copy_v3_v3(sctx->ret.no, this->nearest_point.no);
-  sctx->ret.index = this->nearest_point.index;
-  copy_m4_m4(sctx->ret.obmat, this->obmat_.ptr());
+  copy_v3_v3(sctx->ret.loc, r_nearest->co);
+  copy_v3_v3(sctx->ret.no, r_nearest->no);
+  sctx->ret.index = r_nearest->index;
+  copy_m4_m4(sctx->ret.obmat, obmat.ptr());
   sctx->ret.ob = ob_eval;
   sctx->ret.data = id_eval;
-  sctx->ret.dist_px_sq = this->nearest_point.dist_sq;
+  sctx->ret.dist_px_sq = r_nearest->dist_sq;
 
   /* Global space. */
-  mul_m4_v3(this->obmat_.ptr(), sctx->ret.loc);
-  mul_mat3_m4_v3(this->obmat_.ptr(), sctx->ret.no);
+  mul_m4_v3(obmat.ptr(), sctx->ret.loc);
+  mul_mat3_m4_v3(obmat.ptr(), sctx->ret.no);
   normalize_v3(sctx->ret.no);
 
 #ifdef DEBUG
   /* Make sure this is only called once. */
-  this->nearest_point.index = -2;
+  r_nearest->index = -2;
 #endif
+}
+
+void SnapData::register_result(SnapObjectContext *sctx, Object *ob_eval, const ID *id_eval)
+{
+  this->register_result(sctx, ob_eval, id_eval, this->obmat_, &this->nearest_point);
 }
 
 /* -------------------------------------------------------------------- */
@@ -605,89 +614,57 @@ static bool raycastObjects(SnapObjectContext *sctx)
 static void nearest_world_tree_co(BVHTree *tree,
                                   BVHTree_NearestPointCallback nearest_cb,
                                   void *treedata,
-                                  float co[3],
-                                  float r_co[3],
-                                  float r_no[3],
-                                  int *r_index,
-                                  float *r_dist_sq)
+                                  const float3 &co,
+                                  BVHTreeNearest *r_nearest)
 {
-  BVHTreeNearest nearest = {};
-  nearest.index = -1;
-  copy_v3_fl(nearest.co, FLT_MAX);
-  nearest.dist_sq = FLT_MAX;
+  r_nearest->index = -1;
+  copy_v3_fl(r_nearest->co, FLT_MAX);
+  r_nearest->dist_sq = FLT_MAX;
 
-  BLI_bvhtree_find_nearest(tree, co, &nearest, nearest_cb, treedata);
+  BLI_bvhtree_find_nearest(tree, co, r_nearest, nearest_cb, treedata);
 
-  if (r_co) {
-    copy_v3_v3(r_co, nearest.co);
-  }
-  if (r_no) {
-    copy_v3_v3(r_no, nearest.no);
-  }
-  if (r_index) {
-    *r_index = nearest.index;
-  }
-  if (r_dist_sq) {
-    float diff[3];
-    sub_v3_v3v3(diff, co, nearest.co);
-    *r_dist_sq = len_squared_v3(diff);
-  }
+  float diff[3];
+  sub_v3_v3v3(diff, co, r_nearest->co);
+  r_nearest->dist_sq = len_squared_v3(diff);
 }
 
 bool nearest_world_tree(SnapObjectContext *sctx,
                         BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
+                        const float3 &init_co,
+                        const float3 &curr_co,
                         void *treedata,
-                        const float (*obmat)[4])
+                        BVHTreeNearest *r_nearest)
 {
-  float imat[4][4];
-  invert_m4_m4(imat, obmat);
-
-  /* compute offset between init co and prev co in local space */
-  float init_co_local[3], curr_co_local[3];
-  float delta_local[3];
-  mul_v3_m4v3(init_co_local, imat, sctx->runtime.init_co);
-  mul_v3_m4v3(curr_co_local, imat, sctx->runtime.curr_co);
-  sub_v3_v3v3(delta_local, curr_co_local, init_co_local);
-
-  float dist_sq;
+  BVHTreeNearest nearest{};
   if (sctx->runtime.params.keep_on_same_target) {
-    nearest_world_tree_co(
-        tree, nearest_cb, treedata, init_co_local, nullptr, nullptr, nullptr, &dist_sq);
+    nearest_world_tree_co(tree, nearest_cb, treedata, init_co, &nearest);
   }
   else {
     /* NOTE: when `params->face_nearest_steps == 1`, the return variables of function below contain
      * the answer.  We could return immediately after updating r_loc, r_no, r_index, but that would
      * also complicate the code. Foregoing slight optimization for code clarity. */
-    nearest_world_tree_co(
-        tree, nearest_cb, treedata, curr_co_local, nullptr, nullptr, nullptr, &dist_sq);
+    nearest_world_tree_co(tree, nearest_cb, treedata, curr_co, &nearest);
   }
-  if (sctx->ret.dist_px_sq <= dist_sq) {
+
+  if (r_nearest->dist_sq <= nearest.dist_sq) {
     return false;
   }
-  sctx->ret.dist_px_sq = dist_sq;
 
-  /* scale to make `snap_face_nearest_steps` steps */
+  /* Scale to make `snap_face_nearest_steps` steps. */
   float step_scale_factor = 1.0f / max_ff(1.0f, float(sctx->runtime.params.face_nearest_steps));
-  mul_v3_fl(delta_local, step_scale_factor);
 
-  float co_local[3];
-  float no_local[3];
+  /* Compute offset between init co and prev co. */
+  float3 delta = (curr_co - init_co) * step_scale_factor;
 
-  copy_v3_v3(co_local, init_co_local);
-
+  float3 co = init_co;
   for (int i = 0; i < sctx->runtime.params.face_nearest_steps; i++) {
-    add_v3_v3(co_local, delta_local);
-    nearest_world_tree_co(
-        tree, nearest_cb, treedata, co_local, co_local, no_local, &sctx->ret.index, nullptr);
+    co += delta;
+    nearest_world_tree_co(tree, nearest_cb, treedata, co, &nearest);
+    co = nearest.co;
   }
 
-  mul_v3_m4v3(sctx->ret.loc, obmat, co_local);
-
-  copy_v3_v3(sctx->ret.no, no_local);
-  mul_mat3_m4_v3(obmat, sctx->ret.no);
-  normalize_v3(sctx->ret.no);
-
+  *r_nearest = nearest;
   return true;
 }
 
@@ -864,7 +841,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
 
   if (nearest2d.snap_point(float3(0.0f))) {
     nearest2d.register_result(sctx, ob_eval, static_cast<const ID *>(ob_eval->data));
-    return SCE_SNAP_TO_VERTEX;
+    return SCE_SNAP_TO_POINT;
   }
 
   return SCE_SNAP_TO_NONE;

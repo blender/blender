@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math.h"
-#include "BLI_math_matrix_types.hh"
+#include "BLI_math_matrix.hh"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
@@ -196,18 +196,18 @@ static BVHTreeFromEditMesh *snap_object_data_editmesh_treedata_get(SnapCache_Edi
 /** \name Snap Object Data
  * \{ */
 
-static eSnapMode editmesh_snap_mode_supported(BMEditMesh *em)
+static eSnapMode editmesh_snap_mode_supported(BMesh *bm)
 {
   eSnapMode snap_mode_supported = SCE_SNAP_TO_NONE;
-  if (em->bm->totface) {
-    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST;
+  if (bm->totface) {
+    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS |
+                           SCE_SNAP_TO_POINT;
   }
-  if (em->bm->totedge) {
-    snap_mode_supported |= SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
-                           SCE_SNAP_TO_EDGE_PERPENDICULAR;
+  else if (bm->totedge) {
+    snap_mode_supported |= SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT;
   }
-  if (em->bm->totvert) {
-    snap_mode_supported |= SCE_SNAP_TO_VERTEX;
+  else if (bm->totvert) {
+    snap_mode_supported |= SCE_SNAP_TO_POINT;
   }
   return snap_mode_supported;
 }
@@ -226,7 +226,7 @@ static SnapCache_EditMesh *editmesh_snapdata_init(SnapObjectContext *sctx,
     return em_cache;
   }
 
-  eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em);
+  eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em->bm);
   if (snap_mode_used == SCE_SNAP_TO_NONE) {
     return nullptr;
   }
@@ -389,15 +389,27 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
 
 static bool nearest_world_editmesh(SnapCache_EditMesh *em_cache,
                                    SnapObjectContext *sctx,
+                                   Object *ob_eval,
                                    BMEditMesh *em,
-                                   const float (*obmat)[4])
+                                   const float4x4 &obmat)
 {
   BVHTreeFromEditMesh *treedata = snap_object_data_editmesh_treedata_get(em_cache, sctx, em);
   if (treedata == nullptr) {
     return false;
   }
 
-  return nearest_world_tree(sctx, treedata->tree, treedata->nearest_callback, treedata, obmat);
+  float3 init_co = math::transform_point(obmat, float3(sctx->runtime.init_co));
+  float3 curr_co = math::transform_point(obmat, float3(sctx->runtime.curr_co));
+
+  BVHTreeNearest nearest{};
+  nearest.dist_sq = sctx->ret.dist_px_sq;
+  if (nearest_world_tree(
+          sctx, treedata->tree, treedata->nearest_callback, init_co, curr_co, treedata, &nearest))
+  {
+    SnapData::register_result(sctx, ob_eval, nullptr, obmat, &nearest);
+    return true;
+  }
+  return false;
 }
 
 /** \} */
@@ -664,9 +676,9 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
 
   BMEditMesh *em = em_cache->treedata_editmesh.em;
 
-  eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em);
+  eSnapMode snap_mode_used = snap_to_flag & editmesh_snap_mode_supported(em->bm);
   if (snap_mode_used & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT)) {
-    elem = snapEditMesh(em_cache, sctx, ob_eval, em, obmat, snap_to_flag);
+    elem = snapEditMesh(em_cache, sctx, ob_eval, em, obmat, snap_mode_used);
     if (elem) {
       return elem;
     }
@@ -679,7 +691,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   }
 
   if (snap_mode_used & SCE_SNAP_INDIVIDUAL_NEAREST) {
-    if (nearest_world_editmesh(em_cache, sctx, em, obmat)) {
+    if (nearest_world_editmesh(em_cache, sctx, ob_eval, em, float4x4(obmat))) {
       return SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }

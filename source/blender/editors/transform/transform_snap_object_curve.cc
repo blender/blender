@@ -108,7 +108,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
   }
   if (has_snap) {
     nearest2d.register_result(sctx, ob_eval, &cu->id);
-    return SCE_SNAP_TO_VERTEX;
+    return SCE_SNAP_TO_POINT;
   }
   return SCE_SNAP_TO_NONE;
 }
