@@ -464,6 +464,9 @@ typedef struct GreasePencil {
   const blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name) const;
   blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name);
 
+  const blender::bke::greasepencil::LayerGroup *find_group_by_name(blender::StringRefNull name) const;
+  blender::bke::greasepencil::LayerGroup *find_group_by_name(blender::StringRefNull name);
+
   void rename_layer(blender::bke::greasepencil::Layer &layer, blender::StringRefNull new_name);
   void rename_group(blender::bke::greasepencil::LayerGroup &group,
                     blender::StringRefNull new_name);

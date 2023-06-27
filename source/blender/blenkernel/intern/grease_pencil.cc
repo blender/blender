@@ -797,6 +797,26 @@ Layer *LayerGroup::find_layer_by_name(const StringRefNull name)
   return nullptr;
 }
 
+const LayerGroup *LayerGroup::find_group_by_name(StringRefNull name) const
+{
+  for (const LayerGroup *group : this->groups()) {
+    if (StringRef(group->name()) == StringRef(name)) {
+      return group;
+    }
+  }
+  return nullptr;
+}
+
+LayerGroup *LayerGroup::find_group_by_name(StringRefNull name)
+{
+  for (LayerGroup *group : this->groups_for_write()) {
+    if (StringRef(group->name()) == StringRef(name)) {
+      return group;
+    }
+  }
+  return nullptr;
+}
+
 void LayerGroup::print_nodes(StringRefNull header) const
 {
   std::cout << header << std::endl;
@@ -1396,6 +1416,18 @@ blender::bke::greasepencil::Layer *GreasePencil::find_layer_by_name(
     const blender::StringRefNull name)
 {
   return this->root_group.wrap().find_layer_by_name(name);
+}
+
+const blender::bke::greasepencil::LayerGroup *GreasePencil::find_group_by_name(
+    blender::StringRefNull name) const
+{
+  return this->root_group.wrap().find_group_by_name(name);
+}
+
+blender::bke::greasepencil::LayerGroup *GreasePencil::find_group_by_name(
+    blender::StringRefNull name)
+{
+  return this->root_group.wrap().find_group_by_name(name);
 }
 
 void GreasePencil::rename_layer(blender::bke::greasepencil::Layer &layer,

@@ -363,6 +363,12 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   Layer *find_layer_by_name(StringRefNull name);
 
   /**
+   * Returns a pointer to the group with \a name. If no such group was found, returns nullptr.
+   */
+  const LayerGroup *find_group_by_name(StringRefNull name) const;
+  LayerGroup *find_group_by_name(StringRefNull name);
+
+  /**
    * Print the nodes. For debugging purposes.
    */
   void print_nodes(StringRefNull header) const;
