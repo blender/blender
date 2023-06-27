@@ -2444,7 +2444,6 @@ static void data_device_handle_drop(void *data, wl_data_device * /*wl_data_devic
         if (UNLIKELY(end == std::string::npos)) {
           /* Note that most well behaved file managers will add a trailing newline,
            * Gnome's web browser (44.3) doesn't, so support reading up until the last byte. */
-          /* Account for 'CRLF' case. */
           end = data.size();
         }
         /* Account for 'CRLF' case. */
