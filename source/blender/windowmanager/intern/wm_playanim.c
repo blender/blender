@@ -685,138 +685,143 @@ static void playanim_toscreen(
   GHOST_SwapWindowBuffers(g_WS.ghost_window);
 }
 
-static void build_pict_list_ex(
-    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
+static void build_pict_list_from_anim(PlayState *ps, const char *filepath_first, const int fstep)
 {
-  if (IMB_isanim(filepath_first)) {
-    /* OCIO_TODO: support different input color space */
-    struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
-    if (anim) {
-      int pic;
-      ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
-      if (ibuf) {
-        playanim_toscreen(ps, NULL, ibuf, fontid, fstep);
-        IMB_freeImBuf(ibuf);
-      }
-
-      for (pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
-        PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
-        picture->anim = anim;
-        picture->frame = pic;
-        picture->IB_flags = IB_rect;
-        picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
-        BLI_addtail(&picsbase, picture);
-      }
-    }
-    else {
-      CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
-    }
+  /* OCIO_TODO: support different input color space */
+  struct anim *anim = IMB_open_anim(filepath_first, IB_rect, 0, NULL);
+  if (anim == NULL) {
+    CLOG_WARN(&LOG, "couldn't open anim '%s'", filepath_first);
+    return;
   }
-  else {
-    /* Load images into cache until the cache is full,
-     * this resolves choppiness for images that are slow to load, see: #81751. */
+
+  ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  if (ibuf) {
+    playanim_toscreen(ps, NULL, ibuf, ps->fontid, fstep);
+    IMB_freeImBuf(ibuf);
+  }
+
+  for (int pic = 0; pic < IMB_anim_get_duration(anim, IMB_TC_NONE); pic++) {
+    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "Pict");
+    picture->anim = anim;
+    picture->frame = pic;
+    picture->IB_flags = IB_rect;
+    picture->filepath = BLI_sprintfN("%s : %4.d", filepath_first, pic + 1);
+    BLI_addtail(&picsbase, picture);
+  }
+}
+
+static void build_pict_list_from_image_sequence(PlayState *ps,
+                                                const char *filepath_first,
+                                                const int totframes,
+                                                const int fstep)
+{
+  /* Load images into cache until the cache is full,
+   * this resolves choppiness for images that are slow to load, see: #81751. */
 #ifdef USE_FRAME_CACHE_LIMIT
-    bool fill_cache = true;
+  bool fill_cache = true;
 #else
-    bool fill_cache = false;
+  bool fill_cache = false;
 #endif
 
-    int count = 0;
+  int fp_framenr;
+  struct {
+    char head[FILE_MAX], tail[FILE_MAX];
+    ushort digits;
+  } fp_decoded;
 
-    int fp_framenr;
-    struct {
-      char head[FILE_MAX], tail[FILE_MAX];
-      ushort digits;
-    } fp_decoded;
+  char filepath[FILE_MAX];
+  STRNCPY(filepath, filepath_first);
+  fp_framenr = BLI_path_sequence_decode(filepath,
+                                        fp_decoded.head,
+                                        sizeof(fp_decoded.head),
+                                        fp_decoded.tail,
+                                        sizeof(fp_decoded.tail),
+                                        &fp_decoded.digits);
 
-    char filepath[FILE_MAX];
-    STRNCPY(filepath, filepath_first);
-    fp_framenr = BLI_path_sequence_decode(filepath,
-                                          fp_decoded.head,
-                                          sizeof(fp_decoded.head),
-                                          fp_decoded.tail,
-                                          sizeof(fp_decoded.tail),
-                                          &fp_decoded.digits);
+  pupdate_time();
+  ptottime = 1.0;
+
+  for (int pic = 0; pic < totframes; pic++) {
+    if (!IMB_ispic(filepath)) {
+      break;
+    }
+
+    void *mem = NULL;
+    size_t size = -1;
+    if (!buffer_from_filepath(filepath, fromdisk ? NULL : &mem, &size)) {
+      /* A warning will have been logged. */
+      break;
+    }
+
+    PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
+    picture->size = size;
+    picture->IB_flags = IB_rect;
+    picture->mem = mem;
+    picture->filepath = BLI_strdup(filepath);
+    picture->frame = pic;
+    BLI_addtail(&picsbase, picture);
 
     pupdate_time();
-    ptottime = 1.0;
 
-    while (totframes && IMB_ispic(filepath)) {
-      bool has_event;
+    const bool display_imbuf = ptottime > 1.0;
 
-      void *mem = NULL;
-      size_t size = -1;
-      if (!buffer_from_filepath(filepath, fromdisk ? NULL : &mem, &size)) {
-        /* A warning will have been logged. */
-        return;
-      }
+    if (display_imbuf || fill_cache) {
+      /* OCIO_TODO: support different input color space */
+      ImBuf *ibuf = ibuf_from_picture(picture);
 
-      PlayAnimPict *picture = (PlayAnimPict *)MEM_callocN(sizeof(PlayAnimPict), "picture");
-      picture->size = size;
-      picture->IB_flags = IB_rect;
-      picture->mem = mem;
-      picture->filepath = BLI_strdup(filepath);
-      picture->frame = count;
-      BLI_addtail(&picsbase, picture);
-      count++;
-
-      pupdate_time();
-
-      const bool display_imbuf = ptottime > 1.0;
-
-      if (display_imbuf || fill_cache) {
-        /* OCIO_TODO: support different input color space */
-        ImBuf *ibuf = ibuf_from_picture(picture);
-
-        if (ibuf) {
-          if (display_imbuf) {
-            playanim_toscreen(ps, picture, ibuf, fontid, fstep);
-          }
-#ifdef USE_FRAME_CACHE_LIMIT
-          if (fill_cache) {
-            picture->ibuf = ibuf;
-            frame_cache_add(picture);
-            fill_cache = !frame_cache_limit_exceeded();
-          }
-          else
-#endif
-          {
-            IMB_freeImBuf(ibuf);
-          }
-        }
-
+      if (ibuf) {
         if (display_imbuf) {
-          pupdate_time();
-          ptottime = 0.0;
+          playanim_toscreen(ps, picture, ibuf, ps->fontid, fstep);
+        }
+#ifdef USE_FRAME_CACHE_LIMIT
+        if (fill_cache) {
+          picture->ibuf = ibuf;
+          frame_cache_add(picture);
+          fill_cache = !frame_cache_limit_exceeded();
+        }
+        else
+#endif
+        {
+          IMB_freeImBuf(ibuf);
         }
       }
 
-      /* create a new filepath each time */
-      fp_framenr += fstep;
-      BLI_path_sequence_encode(filepath,
-                               sizeof(filepath),
-                               fp_decoded.head,
-                               fp_decoded.tail,
-                               fp_decoded.digits,
-                               fp_framenr);
-
-      while ((has_event = GHOST_ProcessEvents(g_WS.ghost_system, false))) {
-        GHOST_DispatchEvents(g_WS.ghost_system);
-        if (ps->loading == false) {
-          return;
-        }
+      if (display_imbuf) {
+        pupdate_time();
+        ptottime = 0.0;
       }
+    }
 
-      totframes--;
+    /* Create a new file-path each time. */
+    fp_framenr += fstep;
+    BLI_path_sequence_encode(filepath,
+                             sizeof(filepath),
+                             fp_decoded.head,
+                             fp_decoded.tail,
+                             fp_decoded.digits,
+                             fp_framenr);
+
+    while (GHOST_ProcessEvents(g_WS.ghost_system, false)) {
+      GHOST_DispatchEvents(g_WS.ghost_system);
+      if (ps->loading == false) {
+        break;
+      }
     }
   }
 }
 
-static void build_pict_list(
-    PlayState *ps, const char *filepath_first, int totframes, int fstep, int fontid)
+static void build_pict_list(PlayState *ps,
+                            const char *filepath_first,
+                            const int totframes,
+                            const int fstep)
 {
   ps->loading = true;
-  build_pict_list_ex(ps, filepath_first, totframes, fstep, fontid);
+  if (IMB_isanim(filepath_first)) {
+    build_pict_list_from_anim(ps, filepath_first, fstep);
+  }
+  else {
+    build_pict_list_from_image_sequence(ps, filepath_first, totframes, fstep);
+  }
   ps->loading = false;
 }
 
@@ -1643,7 +1648,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     efra = MAXFRAME;
   }
 
-  build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
+  build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep);
 
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
@@ -1664,7 +1669,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   for (i = 2; i < argc; i++) {
     STRNCPY(filepath, argv[i]);
-    build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep, ps.fontid);
+    build_pict_list(&ps, filepath, (efra - sfra) + 1, ps.fstep);
   }
 
   IMB_freeImBuf(ibuf);
