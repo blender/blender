@@ -513,8 +513,6 @@ class _defs_view3d_add:
             row.label(text="Orientation:")
             row = layout.row()
             row.prop(tool_settings, "plane_orientation", text="")
-            row = layout.row()
-            row.prop(tool_settings, "snap_elements_tool")
 
             region_is_header = bpy.context.region.type == 'TOOL_HEADER'
             if region_is_header:
