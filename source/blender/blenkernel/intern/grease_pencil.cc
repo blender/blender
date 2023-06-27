@@ -760,6 +760,18 @@ Span<Layer *> LayerGroup::layers_for_write()
   return this->runtime->layer_cache_.as_span();
 }
 
+Span<const LayerGroup *> LayerGroup::groups() const
+{
+  this->ensure_nodes_cache();
+  return this->runtime->layer_group_cache_.as_span();
+}
+
+Span<LayerGroup *> LayerGroup::groups_for_write()
+{
+  this->ensure_nodes_cache();
+  return this->runtime->layer_group_cache_.as_span();
+}
+
 const Layer *LayerGroup::find_layer_by_name(const StringRefNull name) const
 {
   for (const Layer *layer : this->layers()) {
@@ -813,6 +825,7 @@ void LayerGroup::ensure_nodes_cache() const
   this->runtime->nodes_cache_mutex_.ensure([&]() {
     this->runtime->nodes_cache_.clear_and_shrink();
     this->runtime->layer_cache_.clear_and_shrink();
+    this->runtime->layer_group_cache_.clear_and_shrink();
 
     LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child_, &this->children) {
       TreeNode *node = reinterpret_cast<TreeNode *>(child_);
@@ -823,10 +836,14 @@ void LayerGroup::ensure_nodes_cache() const
           break;
         }
         case GP_LAYER_TREE_GROUP: {
+          this->runtime->layer_group_cache_.append(&node->as_group_for_write());
           for (TreeNode *child : node->as_group_for_write().nodes_for_write()) {
             this->runtime->nodes_cache_.append(child);
             if (child->is_layer()) {
               this->runtime->layer_cache_.append(&child->as_layer_for_write());
+            }
+            else if (child->is_group()) {
+              this->runtime->layer_group_cache_.append(&child->as_group_for_write());
             }
           }
           break;
@@ -1230,6 +1247,12 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() c
   return bounds;
 }
 
+blender::Span<const blender::bke::greasepencil::TreeNode *> GreasePencil::nodes() const
+{
+  BLI_assert(this->runtime != nullptr);
+  return this->root_group.wrap().nodes();
+}
+
 blender::Span<const blender::bke::greasepencil::Layer *> GreasePencil::layers() const
 {
   BLI_assert(this->runtime != nullptr);
@@ -1242,10 +1265,16 @@ blender::Span<blender::bke::greasepencil::Layer *> GreasePencil::layers_for_writ
   return this->root_group.wrap().layers_for_write();
 }
 
-blender::Span<const blender::bke::greasepencil::TreeNode *> GreasePencil::nodes() const
+blender::Span<const blender::bke::greasepencil::LayerGroup *> GreasePencil::groups() const
 {
   BLI_assert(this->runtime != nullptr);
-  return this->root_group.wrap().nodes();
+  return this->root_group.wrap().groups();
+}
+
+blender::Span<blender::bke::greasepencil::LayerGroup *> GreasePencil::groups_for_write()
+{
+  BLI_assert(this->runtime != nullptr);
+  return this->root_group.wrap().groups_for_write();
 }
 
 const blender::bke::greasepencil::Layer *GreasePencil::get_active_layer() const

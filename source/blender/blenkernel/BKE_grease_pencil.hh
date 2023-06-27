@@ -269,6 +269,10 @@ class LayerGroupRuntime {
    * Caches all the layers in this group in a single pre-ordered vector.
    */
   mutable Vector<Layer *> layer_cache_;
+  /**
+   * Caches all the layer groups in this group in a single pre-ordered vector.
+   */
+  mutable Vector<LayerGroup *> layer_group_cache_;
 };
 
 /**
@@ -347,6 +351,12 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
    */
   Span<const Layer *> layers() const;
   Span<Layer *> layers_for_write();
+
+  /**
+   * Returns a `Span` of pointers to all the `LayerGroups`s in this group.
+   */
+  Span<const LayerGroup *> groups() const;
+  Span<LayerGroup *> groups_for_write();
 
   /**
    * Returns a pointer to the layer with \a name. If no such layer was found, returns nullptr.
