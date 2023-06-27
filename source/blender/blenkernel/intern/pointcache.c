@@ -675,7 +675,7 @@ static void ptcache_dynamicpaint_error(const ID *UNUSED(owner_id),
 static int ptcache_dynamicpaint_write(PTCacheFile *pf, void *dp_v)
 {
   DynamicPaintSurface *surface = (DynamicPaintSurface *)dp_v;
-  int cache_compress = 1;
+  int cache_compress = PTCACHE_COMPRESS_LZO;
 
   /* version header */
   ptcache_file_write(pf, DPAINT_CACHE_VERSION, 1, sizeof(char[4]));
@@ -1560,7 +1560,7 @@ static int ptcache_file_compressed_write(
 
 #ifdef WITH_LZO
   out_len = LZO_OUT_LEN(in_len);
-  if (mode == 1) {
+  if (mode == PTCACHE_COMPRESS_LZO) {
     LZO_HEAP_ALLOC(wrkmem, LZO1X_MEM_COMPRESS);
 
     r = lzo1x_1_compress(in, (lzo_uint)in_len, out, (lzo_uint *)&out_len, wrkmem);
@@ -1573,7 +1573,7 @@ static int ptcache_file_compressed_write(
   }
 #endif
 #ifdef WITH_LZMA
-  if (mode == 2) {
+  if (mode == PTCACHE_COMPRESS_LZMA) {
 
     r = LzmaCompress(out,
                      &out_len,
