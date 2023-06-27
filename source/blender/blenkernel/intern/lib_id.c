@@ -502,10 +502,16 @@ void BKE_lib_id_make_local_generic(Main *bmain, ID *id, const int flags)
 
   if (force_local) {
     BKE_lib_id_clear_library_data(bmain, id, flags);
+    if ((flags & LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR) != 0) {
+      BKE_lib_override_library_make_local(id);
+    }
     BKE_lib_id_expand_local(bmain, id, flags);
   }
   else if (force_copy) {
-    ID *id_new = BKE_id_copy(bmain, id);
+    const int copy_flags =
+        (LIB_ID_COPY_DEFAULT |
+         ((flags & LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR) != 0 ? LIB_ID_COPY_NO_LIB_OVERRIDE : 0));
+    ID *id_new = BKE_id_copy_ex(bmain, id, NULL, copy_flags);
 
     /* Should not fail in expected use cases,
      * but a few ID types cannot be copied (LIB, WM, SCR...). */
