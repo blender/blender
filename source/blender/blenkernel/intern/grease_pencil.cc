@@ -490,12 +490,12 @@ Map<int, GreasePencilFrame> &Layer::frames_for_write()
 
 bool Layer::is_visible() const
 {
-  return (this->base.flag & GP_LAYER_TREE_NODE_HIDE) == 0;
+  return this->parent_group().is_visible() && (this->base.flag & GP_LAYER_TREE_NODE_HIDE) == 0;
 }
 
 bool Layer::is_locked() const
 {
-  return (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
+  return this->parent_group().is_locked() || (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
 }
 
 bool Layer::insert_frame(int frame_number, const GreasePencilFrame &frame)
@@ -614,6 +614,24 @@ LayerGroup::~LayerGroup()
 
   MEM_delete(this->runtime);
   this->runtime = nullptr;
+}
+
+bool LayerGroup::is_visible() const
+{
+  if (this->base.parent) {
+    return this->base.parent->wrap().is_visible() &&
+           (this->base.flag & GP_LAYER_TREE_NODE_HIDE) == 0;
+  }
+  return (this->base.flag & GP_LAYER_TREE_NODE_HIDE) == 0;
+}
+
+bool LayerGroup::is_locked() const
+{
+  if (this->base.parent) {
+    return this->base.parent->wrap().is_locked() ||
+           (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
+  }
+  return (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
 }
 
 LayerGroup &LayerGroup::add_group(LayerGroup *group)

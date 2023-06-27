@@ -287,6 +287,9 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
     return this->base.name;
   }
 
+  bool is_visible() const;
+  bool is_locked() const;
+
   /**
    * Adds a group at the end of this group.
    */
