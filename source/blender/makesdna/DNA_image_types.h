@@ -273,8 +273,8 @@ enum {
   IMA_GENTYPE_GRID_COLOR = 2,
 };
 
-/* render */
-#define IMA_MAX_RENDER_TEXT (1 << 9)
+/** Size of allocated string #RenderResult::text. */
+#define IMA_MAX_RENDER_TEXT_SIZE 512
 
 /** #Image.gen_flag */
 enum {

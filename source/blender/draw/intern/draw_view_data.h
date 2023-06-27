@@ -11,7 +11,7 @@
 
 #pragma once
 
-#define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT */
+#define GPU_INFO_SIZE 512 /* IMA_MAX_RENDER_TEXT_SIZE */
 
 #ifdef __cplusplus
 extern "C" {
