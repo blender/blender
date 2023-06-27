@@ -3483,7 +3483,7 @@ static bool sculpt_attr_update(Object *ob, SculptAttribute *attr)
 
   /* Check if we are a coerced simple array and shouldn't be. */
   bad |= (attr->simple_array && !attr->params.simple_array) &&
-         !(BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && attr->domain == ATTR_DOMAIN_POINT);
+         !(ss->pbvh && BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS && attr->domain == ATTR_DOMAIN_POINT);
 
   CustomData *cdata = sculpt_get_cdata(ob, attr->domain);
   if (cdata && !attr->simple_array) {
@@ -3641,9 +3641,9 @@ SculptAttribute *BKE_sculpt_attribute_get(Object *ob,
 
       attr = sculpt_alloc_attr(ss);
 
-      if (BKE_pbvh_type(ss->pbvh) == PBVH_FACES ||
-          (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS &&
-           ELEM(domain, ATTR_DOMAIN_FACE, ATTR_DOMAIN_EDGE)))
+      if (ss->pbvh && (BKE_pbvh_type(ss->pbvh) == PBVH_FACES ||
+                       (BKE_pbvh_type(ss->pbvh) == PBVH_GRIDS &&
+                        ELEM(domain, ATTR_DOMAIN_FACE, ATTR_DOMAIN_EDGE))))
       {
         attr->data = CustomData_get_layer_named_for_write(
             cdata, attr->proptype, attr->name, totelem);
