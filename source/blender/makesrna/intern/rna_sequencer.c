@@ -19,6 +19,7 @@
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_string_utils.h"
 
 #include "BLT_translation.h"
@@ -1649,8 +1650,8 @@ static const EnumPropertyItem transform_filter_items[] = {
     {SEQ_TRANSFORM_FILTER_NEAREST_3x3,
      "SUBSAMPLING_3x3",
      0,
-     "Subsampling (3x3)",
-     "Use nearest with 3x3 subsamples during rendering"},
+     "Subsampling (3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3)",
+     "Use nearest with 3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3 subsamples during rendering"},
     {0, NULL, 0, NULL, NULL},
 };
 

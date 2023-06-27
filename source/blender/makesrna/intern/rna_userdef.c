@@ -18,6 +18,7 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_utildefines.h"
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -5454,10 +5455,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 
   static const EnumPropertyItem anisotropic_items[] = {
       {1, "FILTER_0", 0, "Off", ""},
-      {2, "FILTER_2", 0, "2x", ""},
-      {4, "FILTER_4", 0, "4x", ""},
-      {8, "FILTER_8", 0, "8x", ""},
-      {16, "FILTER_16", 0, "16x", ""},
+      {2, "FILTER_2", 0, "2" BLI_STR_UTF8_MULTIPLICATION_SIGN, ""},
+      {4, "FILTER_4", 0, "4" BLI_STR_UTF8_MULTIPLICATION_SIGN, ""},
+      {8, "FILTER_8", 0, "8" BLI_STR_UTF8_MULTIPLICATION_SIGN, ""},
+      {16, "FILTER_16", 0, "16" BLI_STR_UTF8_MULTIPLICATION_SIGN, ""},
       {0, NULL, 0, NULL, NULL},
   };
 

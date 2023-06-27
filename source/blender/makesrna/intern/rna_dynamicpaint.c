@@ -12,6 +12,8 @@
 #include "BKE_dynamicpaint.h"
 #include "BKE_modifier.h"
 
+#include "BLI_string_utf8_symbols.h"
+
 #include "BLT_translation.h"
 
 #include "DNA_dynamicpaint_types.h"
@@ -461,7 +463,10 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_antialiasing", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_boolean_sdna(prop, NULL, "flags", MOD_DPAINT_ANTIALIAS);
-  RNA_def_property_ui_text(prop, "Anti-Aliasing", "Use 5x multisampling to smooth paint edges");
+  RNA_def_property_ui_text(prop,
+                           "Anti-Aliasing",
+                           "Use 5" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           " multisampling to smooth paint edges");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaintSurface_reset");
 
   prop = RNA_def_property(srna, "brush_influence_scale", PROP_FLOAT, PROP_FACTOR);

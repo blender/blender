@@ -20,6 +20,7 @@
 #include "BKE_volume.h"
 
 #include "BLI_math_base.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -418,7 +419,7 @@ static void rna_def_volume_display(BlenderRNA *brna)
        "FINE",
        0,
        "Fine",
-       "Display box for each leaf node containing 8x8 voxels"},
+       "Display box for each leaf node containing 8" BLI_STR_UTF8_MULTIPLICATION_SIGN "8 voxels"},
       {0, NULL, 0, NULL, NULL},
   };
 

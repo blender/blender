@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -1226,14 +1227,17 @@ static void rna_def_bone(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "bone_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Bone Matrix", "3x3 bone matrix");
+  RNA_def_property_ui_text(
+      prop, "Bone Matrix", "3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3 bone matrix");
 
   prop = RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_float_sdna(prop, nullptr, "arm_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Bone Armature-Relative Matrix", "4x4 bone matrix relative to armature");
+  RNA_def_property_ui_text(prop,
+                           "Bone Armature-Relative Matrix",
+                           "4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 bone matrix relative to armature");
 
   prop = RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, nullptr, "tail");

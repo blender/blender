@@ -3388,7 +3388,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   BKE_reportf(op->reports,
               RPT_WARNING,
-              "%d x %s: %.4f ms, average: %.8f ms",
+              "%d \u00D7 %s: %.4f ms, average: %.8f ms",
               iter_steps,
               infostr,
               time_delta,

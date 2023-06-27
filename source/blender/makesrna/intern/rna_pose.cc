@@ -21,6 +21,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -1145,7 +1146,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Channel Matrix",
-                           "4x4 matrix of the bone's location/rotation/scale channels (including "
+                           "4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 matrix of the bone's location/rotation/scale channels (including "
                            "animation and drivers) and the effect of bone constraints");
 
   /* writable because it touches loc/scale/rot directly */
@@ -1165,10 +1167,11 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "pose_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_float_funcs(prop, nullptr, "rna_PoseChannel_matrix_set", nullptr);
-  RNA_def_property_ui_text(
-      prop,
-      "Pose Matrix",
-      "Final 4x4 matrix after constraints and drivers are applied, in the armature object space");
+  RNA_def_property_ui_text(prop,
+                           "Pose Matrix",
+                           "Final 4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 matrix after constraints and drivers are applied, in "
+                           "the armature object space");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   /* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */
