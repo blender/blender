@@ -159,31 +159,60 @@ function(absolute_include_dirs
 
   set(_ALL_INCS "")
   foreach(_INC ${ARGN})
-    get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
-    list(APPEND _ALL_INCS ${_ABS_INC})
-    # for checking for invalid includes, disable for regular use
-    # if(NOT EXISTS "${_ABS_INC}/")
-    #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
-    # endif()
+    # Pass any scoping keywords as is
+    if(("${_INC}" STREQUAL "PUBLIC") OR
+       ("${_INC}" STREQUAL "PRIVATE") OR
+       ("${_INC}" STREQUAL "INTERFACE"))
+      list(APPEND _ALL_INCS ${_INC})
+    else()
+      get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
+      list(APPEND _ALL_INCS ${_ABS_INC})
+      # for checking for invalid includes, disable for regular use
+      # if(NOT EXISTS "${_ABS_INC}/")
+      #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
+      # endif()
+    endif()
   endforeach()
 
   set(${includes_absolute} ${_ALL_INCS} PARENT_SCOPE)
 endfunction()
 
-function(blender_target_include_dirs
-  name
+function(blender_target_include_dirs_impl
+  target
+  system
+  includes
   )
+  set(next_interface_mode "PRIVATE")
+  foreach(_INC ${includes})
+    if(("${_INC}" STREQUAL "PUBLIC") OR
+       ("${_INC}" STREQUAL "PRIVATE") OR
+       ("${_INC}" STREQUAL "INTERFACE"))
+      set(next_interface_mode "${_INC}")
+    else()
+      if(system)
+        target_include_directories(${target} SYSTEM ${next_interface_mode} ${_INC})
+      else()
+        target_include_directories(${target} ${next_interface_mode} ${_INC})
+      endif()
+      set(next_interface_mode "PRIVATE")
+    endif()
+  endforeach()
+endfunction()
 
+# Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
+# use it instead of target_include_directories()
+function(blender_target_include_dirs
+  target
+  )
   absolute_include_dirs(_ALL_INCS ${ARGN})
-  target_include_directories(${name} PRIVATE ${_ALL_INCS})
+  blender_target_include_dirs_impl(${target} FALSE "${_ALL_INCS}")
 endfunction()
 
 function(blender_target_include_dirs_sys
-  name
+  target
   )
-
   absolute_include_dirs(_ALL_INCS ${ARGN})
-  target_include_directories(${name} SYSTEM PRIVATE ${_ALL_INCS})
+  blender_target_include_dirs_impl(${target} TRUE "${_ALL_INCS}")
 endfunction()
 
 # Set include paths for header files included with "*.h" syntax.
@@ -277,22 +306,10 @@ macro(add_cc_flags_custom_test
 
 endmacro()
 
-
-# only MSVC uses SOURCE_GROUP
-function(blender_add_lib__impl
-  name
-  sources
-  includes
-  includes_sys
+function(blender_link_libraries
+  target
   library_deps
   )
-
-  # message(STATUS "Configuring library ${name}")
-
-  add_library(${name} ${sources})
-
-  blender_target_include_dirs(${name} ${includes})
-  blender_target_include_dirs_sys(${name} ${includes_sys})
 
   # On Windows certain libraries have two sets of binaries: one for debug builds and one for
   # release builds. The root of this requirement goes into ABI, I believe, but that's outside
@@ -331,22 +348,48 @@ function(blender_add_lib__impl
   # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
+    set(next_interface_mode "PRIVATE")
     foreach(library ${library_deps})
       string(TOLOWER "${library}" library_lower)
       if(("${library_lower}" STREQUAL "optimized") OR
          ("${library_lower}" STREQUAL "debug"))
         set(next_library_mode "${library_lower}")
+      elseif(("${library}" STREQUAL "PUBLIC") OR
+             ("${library}" STREQUAL "PRIVATE") OR
+             ("${library}" STREQUAL "INTERFACE"))
+        set(next_interface_mode "${library}")
       else()
         if("${next_library_mode}" STREQUAL "optimized")
-          target_link_libraries(${name} INTERFACE optimized ${library})
+          target_link_libraries(${target} ${next_interface_mode} optimized ${library})
         elseif("${next_library_mode}" STREQUAL "debug")
-          target_link_libraries(${name} INTERFACE debug ${library})
+          target_link_libraries(${target} ${next_interface_mode} debug ${library})
         else()
-          target_link_libraries(${name} INTERFACE ${library})
+          target_link_libraries(${target} ${next_interface_mode} ${library})
         endif()
         set(next_library_mode "")
       endif()
     endforeach()
+  endif()
+endfunction()
+
+# only MSVC uses SOURCE_GROUP
+function(blender_add_lib__impl
+  name
+  sources
+  includes
+  includes_sys
+  library_deps
+  )
+
+  # message(STATUS "Configuring library ${name}")
+
+  add_library(${name} ${sources})
+
+  blender_target_include_dirs(${name} ${includes})
+  blender_target_include_dirs_sys(${name} ${includes_sys})
+
+  if(library_deps)
+    blender_link_libraries(${name} "${library_deps}")
   endif()
 
   # works fine without having the includes
@@ -477,8 +520,9 @@ endfunction()
 # To be used for smaller isolated libraries, that do not have many dependencies.
 # For libraries that do drag in many other Blender libraries and would create a
 # very large executable, blender_add_test_lib() should be used instead.
-function(blender_add_test_executable
+function(blender_add_test_executable_impl
   name
+  add_test_suite
   sources
   includes
   includes_sys
@@ -496,14 +540,48 @@ function(blender_add_test_executable
     EXTRA_LIBS "${library_deps}"
     SKIP_ADD_TEST
   )
-
+  if(add_test_suite)
+    blender_add_test_suite(
+      TARGET ${name}_test
+      SUITE_NAME ${name}
+      SOURCES "${sources}"
+    )
+  endif()
   blender_target_include_dirs(${name}_test ${includes})
   blender_target_include_dirs_sys(${name}_test ${includes_sys})
+endfunction()
 
-  blender_add_test_suite(
-    TARGET ${name}_test
-    SUITE_NAME ${name}
-    SOURCES "${sources}"
+function(blender_add_test_executable
+  name
+  sources
+  includes
+  includes_sys
+  library_deps
+  )
+  blender_add_test_executable_impl(
+    "${name}"
+    TRUE
+    "${sources}"
+    "${includes}"
+    "${includes_sys}"
+    "${library_deps}"
+   )
+endfunction()
+
+function(blender_add_performancetest_executable
+  name
+  sources
+  includes
+  includes_sys
+  library_deps
+  )
+  blender_add_test_executable_impl(
+    "${name}"
+    FALSE
+    "${sources}"
+    "${includes}"
+    "${includes_sys}"
+    "${library_deps}"
   )
 endfunction()
 
@@ -547,17 +625,17 @@ function(setup_platform_linker_libs
   )
   # jemalloc must be early in the list, to be before pthread (see #57998).
   if(WITH_MEM_JEMALLOC)
-    target_link_libraries(${target} ${JEMALLOC_LIBRARIES})
+    target_link_libraries(${target} PRIVATE ${JEMALLOC_LIBRARIES})
   endif()
 
   if(WIN32 AND NOT UNIX)
     if(DEFINED PTHREADS_LIBRARIES)
-      target_link_libraries(${target} ${PTHREADS_LIBRARIES})
+      target_link_libraries(${target} PRIVATE ${PTHREADS_LIBRARIES})
     endif()
   endif()
 
   # target_link_libraries(${target} ${PLATFORM_LINKLIBS} ${CMAKE_DL_LIBS})
-  target_link_libraries(${target} ${PLATFORM_LINKLIBS})
+  target_link_libraries(${target} PRIVATE ${PLATFORM_LINKLIBS})
 endfunction()
 
 macro(TEST_SSE_SUPPORT
