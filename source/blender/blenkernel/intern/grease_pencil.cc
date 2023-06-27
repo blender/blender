@@ -616,6 +616,11 @@ LayerGroup::~LayerGroup()
   this->runtime = nullptr;
 }
 
+void LayerGroup::set_name(StringRefNull new_name)
+{
+  this->base.name = BLI_strdup(new_name.c_str());
+}
+
 bool LayerGroup::is_visible() const
 {
   if (this->base.parent) {
@@ -1404,6 +1409,19 @@ void GreasePencil::rename_layer(blender::bke::greasepencil::Layer &layer,
   std::string unique_name(new_name.c_str());
   unique_layer_name(names, unique_name.data());
   layer.set_name(unique_name);
+}
+
+void GreasePencil::rename_group(blender::bke::greasepencil::LayerGroup &group,
+                                blender::StringRefNull new_name)
+{
+  using namespace blender;
+  if (group.name() == new_name) {
+    return;
+  }
+  VectorSet<StringRefNull> names = get_node_names(*this);
+  std::string unique_name(new_name.c_str());
+  unique_layer_group_name(names, unique_name.data());
+  group.set_name(unique_name);
 }
 
 void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)

@@ -286,10 +286,8 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   ~LayerGroup();
 
  public:
-  StringRefNull name() const
-  {
-    return this->base.name;
-  }
+  StringRefNull name() const;
+  void set_name(StringRefNull new_name);
 
   bool is_visible() const;
   bool is_locked() const;
@@ -374,6 +372,15 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   void tag_nodes_cache_dirty() const;
 };
 
+inline const TreeNode &Layer::as_node() const
+{
+  return *reinterpret_cast<const TreeNode *>(this);
+}
+inline TreeNode &Layer::as_node()
+{
+  return *reinterpret_cast<TreeNode *>(this);
+}
+
 inline StringRefNull Layer::name() const
 {
   return this->base.name;
@@ -384,13 +391,9 @@ inline LayerGroup &Layer::parent_group() const
   return this->base.parent->wrap();
 }
 
-inline const TreeNode &Layer::as_node() const
+inline StringRefNull LayerGroup::name() const
 {
-  return *reinterpret_cast<const TreeNode *>(this);
-}
-inline TreeNode &Layer::as_node()
-{
-  return *reinterpret_cast<TreeNode *>(this);
+  return this->base.name;
 }
 
 namespace convert {

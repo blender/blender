@@ -99,9 +99,10 @@ class LayerViewItem : public AbstractTreeViewItem {
 
 class LayerGroupViewItem : public AbstractTreeViewItem {
  public:
-  LayerGroupViewItem(/*GreasePencil &grease_pencil, */ LayerGroup &group)
-      : /*grease_pencil_(grease_pencil),*/ group_(group)
+  LayerGroupViewItem(GreasePencil &grease_pencil, LayerGroup &group)
+      : grease_pencil_(grease_pencil), group_(group)
   {
+    this->disable_activatable();
     this->label_ = group_.name();
   }
 
@@ -111,8 +112,29 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     uiItemL(sub, IFACE_(group_.name().c_str()), ICON_FILE_FOLDER);
   }
 
+  bool supports_collapsing() const override
+  {
+    return true;
+  }
+
+  bool supports_renaming() const override
+  {
+    return true;
+  }
+
+  bool rename(StringRefNull new_name) override
+  {
+    grease_pencil_.rename_group(group_, new_name);
+    return true;
+  }
+
+  StringRef get_rename_string() const override
+  {
+    return group_.name();
+  }
+
  private:
-  /* GreasePencil &grease_pencil_; */
+  GreasePencil &grease_pencil_;
   LayerGroup &group_;
 };
 
@@ -134,7 +156,9 @@ void LayerTreeView::build_tree_node_recursive(TreeNode &node)
     add_tree_item<LayerViewItem>(this->grease_pencil_, node.as_layer_for_write());
   }
   else if (node.is_group()) {
-    add_tree_item<LayerGroupViewItem>(/*this->grease_pencil_, */ node.as_group_for_write());
+    LayerGroupViewItem &group_item = parent.add_tree_item<LayerGroupViewItem>(
+        this->grease_pencil_, node.as_group_for_write());
+    group_item.set_collapsed(false);
     LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &node.as_group().children) {
       build_tree_node_recursive(node_->wrap());
     }
