@@ -136,28 +136,7 @@ enum {
   OB_FLUIDSIM_CONTROL = 1 << 7,
 };
 
-#define OB_TYPEFLAG_START 7
-#define OB_FSGEO_THIN (1 << (OB_TYPEFLAG_START + 1))
-#define OB_FSBND_NOSLIP (1 << (OB_TYPEFLAG_START + 2))
-#define OB_FSBND_PARTSLIP (1 << (OB_TYPEFLAG_START + 3))
-#define OB_FSBND_FREESLIP (1 << (OB_TYPEFLAG_START + 4))
-#define OB_FSINFLOW_LOCALCOORD (1 << (OB_TYPEFLAG_START + 5))
-
-/* surface generation flag (part of enabling chapter 6 of
- * "Free Surface Flows with Moving and Deforming Objects for LBM") */
-#define OB_FSSG_NOOBS (1 << (OB_TYPEFLAG_START + 6))
-
-// guiDisplayMode particle flags
-#define OB_FSDOM_GEOM 1
-#define OB_FSDOM_PREVIEW 2
-#define OB_FSDOM_FINAL 3
-#define OB_FSPART_BUBBLE (1 << 1)
-#define OB_FSPART_DROP (1 << 2)
-#define OB_FSPART_NEWPART (1 << 3)
-#define OB_FSPART_FLOAT (1 << 4)
-#define OB_FSPART_TRACER (1 << 5)
-
-// new fluid bit flags for fss->flags
+/** #FluidsimSettings::flags. */
 enum {
   OB_FLUIDSIM_REVERSE = 1 << 0,
   OB_FLUIDSIM_ACTIVE = 1 << 1,

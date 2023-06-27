@@ -16,8 +16,6 @@ extern "C" {
 
 /* Don't forget, new effects also in `writefile.c` for DNA! */
 
-#define PAF_MAXMULT 4
-
 /** #PartEff::flag. */
 enum {
   // PAF_UNUSED_0 = 1 << 0, /* DEPRECATED, dirty. */
