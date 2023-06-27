@@ -34,7 +34,7 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
 
   grease_pencil.add_empty_drawings(1);
-  GreasePencilFrame frame{grease_pencil.drawings().size() - 1, 0, BEZT_KEYTYPE_KEYFRAME};
+  GreasePencilFrame frame{int(grease_pencil.drawings().size() - 1), 0, BEZT_KEYTYPE_KEYFRAME};
 
   if (grease_pencil.has_active_layer()) {
     LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
