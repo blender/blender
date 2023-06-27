@@ -1217,7 +1217,7 @@ static void sculpt_gesture_trim_geometry_generate(SculptGestureContext *sgcontex
 
   const float(*ob_imat)[4] = vc->obact->world_to_object;
 
-  /* Write vertices coordinatesSCULPT_GESTURE_TRIM_DIFFERENCE for the front face. */
+  /* Write vertices coordinates for the front face. */
   float(*positions)[3] = BKE_mesh_vert_positions_for_write(trim_operation->mesh);
   float depth_point[3];
 

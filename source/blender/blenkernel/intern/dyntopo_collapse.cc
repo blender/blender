@@ -203,7 +203,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
 
     PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v_conn)};
     blender::bke::sculpt::interp_face_corners(
-        pbvh, vertex, Span<BMLoop *>(ls, 2), Span<float>(ws, 2), 1.0f);
+        pbvh, vertex, Span<BMLoop *>(ls, 2), Span<float>(ws, 2), 1.0f, pbvh->cd_boundary_flag);
 #  endif
   } while ((l = l->radial_next) != e->l);
 
@@ -449,9 +449,8 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   bool corner1 = (boundflag1 & SCULPTVERT_ALL_CORNER) || w1 >= 0.85;
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
 
-  /* We allow two corners of the example sampe type[s] to collapse */
-  if ((boundflag1 & SCULPTVERT_ALL_CORNER) &&
-      (boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER))
+  /* We allow two corners of the same type[s] to collapse */
+  if ((boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER))
   {
     return nullptr;
   }

@@ -770,6 +770,7 @@ static int sculpt_face_set_init_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_end(ob);
 
   if (ss->bm) {
+    SCULPT_vertex_random_access_ensure(ss);
     SCULPT_face_random_access_ensure(ss);
     BKE_sculpt_face_sets_ensure(ob);
 

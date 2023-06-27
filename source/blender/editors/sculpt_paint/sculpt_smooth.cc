@@ -190,9 +190,10 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
     }
 
-    const eSculptBoundary smooth_types = !ss->hard_edge_mode ? SCULPT_BOUNDARY_FACE_SET | uvflag |
-                                                                   SCULPT_BOUNDARY_SEAM :
-                                                               uvflag | SCULPT_BOUNDARY_SEAM;
+    const eSculptBoundary smooth_types = (!ss->hard_edge_mode ?
+                                              SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM :
+                                              SCULPT_BOUNDARY_SEAM) |
+                                         uvflag;
 
     if (is_boundary2) {
       totboundary++;
@@ -275,7 +276,8 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
   if constexpr (smooth_face_corners) {
     if (is_bmesh && !smooth_origco) {
-      blender::bke::sculpt::interp_face_corners(ss->pbvh, vertex, loops, ws, factor);
+      blender::bke::sculpt::interp_face_corners(
+          ss->pbvh, vertex, loops, ws, factor, ss->attrs.boundary_flags->bmesh_cd_offset);
     }
   }
 
@@ -714,7 +716,8 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
       ws[i] /= totw;
     }
 
-    blender::bke::sculpt::interp_face_corners(ss->pbvh, vertex, loops, ws, factor);
+    blender::bke::sculpt::interp_face_corners(
+        ss->pbvh, vertex, loops, ws, factor, ss->attrs.boundary_flags->bmesh_cd_offset);
   }
 
   eSculptCorner corner_type = SCULPT_CORNER_MESH | SCULPT_CORNER_SHARP_MARK;
@@ -722,7 +725,7 @@ void SCULPT_bmesh_four_neighbor_average(SculptSession *ss,
     corner_type |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (corner != SCULPT_CORNER_NONE) {
+  if (corner & corner_type) {
     interp_v3_v3v3(avg, avg, SCULPT_vertex_co_get(ss, vertex), hard_corner_pin);
   }
 

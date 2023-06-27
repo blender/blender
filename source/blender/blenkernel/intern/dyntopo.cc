@@ -226,7 +226,7 @@ static void surface_smooth_v_safe(
   /* Reproject attributes. */
   if (reproject_cdata) {
     BKE_sculpt_reproject_cdata(ss, vertex, startco, startno, false);
-    blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac);
+    blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac, pbvh->cd_boundary_flag);
   }
 
   PBVH_CHECK_NAN(v->co);
@@ -2123,7 +2123,7 @@ void EdgeQueueContext::start()
 
 bool EdgeQueueContext::done()
 {
-  if (edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr) {
+  if (edge_heap.empty() || edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr) {
     return true;
   }
 

@@ -4468,7 +4468,175 @@ float calc_uv_snap_limit(BMLoop *l, int cd_uv)
   }
 }
 
-bool loop_is_corner(BMLoop *l, int cd_uv, float limit)
+/* Angle test. loop_is_corner calls this if the chart count test fails. */
+static bool loop_is_corner_angle(
+    BMLoop *l, int cd_offset, const float limit, const float angle_limit, const CustomData *ldata)
+{
+  BMVert *v = l->v;
+  BMEdge *e = v->e;
+
+  float2 uv_value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
+
+  BMLoop *outer1 = nullptr, *outer2 = nullptr;
+  float2 outer1_value;
+  int cd_pin = -1, cd_sel = -1;
+
+#ifdef TEST_UV_CORNER_CALC
+  bool test_mode = false;
+  // test_mode = l->v->head.hflag & BM_ELEM_SELECT;
+
+  if (ldata && test_mode) {
+    char name[512];
+    for (int i = 0; i < ldata->totlayer; i++) {
+      CustomDataLayer *layer = ldata->layers + i;
+      if (layer->offset == cd_offset) {
+        sprintf(name, ".pn.%s", layer->name);
+        cd_pin = CustomData_get_offset_named(ldata, CD_PROP_BOOL, name);
+
+        sprintf(name, ".vs.%s", layer->name);
+        cd_sel = CustomData_get_offset_named(ldata, CD_PROP_BOOL, name);
+      }
+    }
+
+    if (cd_sel != -1) {
+      test_mode = BM_ELEM_CD_GET_BOOL(l, cd_sel);
+    }
+  }
+
+  if (test_mode) {
+    printf("%s: start\n", __func__);
+  }
+#endif
+
+  do {
+    BMLoop *l2 = e->l;
+    if (!l2) {
+      continue;
+    }
+
+    do {
+      BMLoop *uv_l2 = l2->v == v ? l2 : l2->next;
+      float2 uv_value2 = *BM_ELEM_CD_PTR<float2 *>(uv_l2, cd_offset);
+
+      BMLoop *other_uv_l2 = l2->v == v ? l2->next : l2;
+      float2 other_uv_value2 = *BM_ELEM_CD_PTR<float2 *>(other_uv_l2, cd_offset);
+
+      if (!prop_eq(uv_value, uv_value2, limit)) {
+        continue;
+      }
+
+      bool outer = l2 == l2->radial_next;
+
+      BMLoop *l3 = l2->radial_next;
+      while (l3 != l2) {
+        BMLoop *other_uv_l3 = l3->v == v ? l3->next : l3;
+        float2 other_uv_value3 = *BM_ELEM_CD_PTR<float2 *>(other_uv_l3, cd_offset);
+
+        if (!prop_eq(other_uv_value2, other_uv_value3, limit)) {
+#ifdef TEST_UV_CORNER_CALC
+          if (test_mode && cd_pin != -1) {
+            // BM_ELEM_CD_SET_BOOL(other_uv_l2, cd_pin, true);
+            // BM_ELEM_CD_SET_BOOL(other_uv_l3, cd_pin, true);
+          }
+#endif
+
+          BMLoop *uv_l3 = l3->v == v ? l3 : l3->next;
+          float2 uv_value3 = *BM_ELEM_CD_PTR<float2 *>(uv_l3, cd_offset);
+
+          /* other_uv_value might be valid for one of the two arms, check. */
+          if (prop_eq(uv_value, uv_value3, limit)) {
+#ifdef TEST_UV_CORNER_CALC
+            if (test_mode) {
+              printf("%s: case 1\n", __func__);
+            }
+#endif
+
+            outer1 = other_uv_l2;
+            outer2 = other_uv_l3;
+            goto outer_break;
+          }
+
+          outer = true;
+          break;
+        }
+
+        l3 = l3->radial_next;
+      }
+
+      if (outer) {
+#ifdef TEST_UV_CORNER_CALC
+        if (test_mode && cd_pin != -1) {
+          // BM_ELEM_CD_SET_BOOL(other_uv_l2, cd_pin, true);
+        }
+#endif
+
+        if (!outer1) {
+          outer1 = other_uv_l2;
+          outer1_value = other_uv_value2;
+        }
+        else if (other_uv_l2 != outer2 && !prop_eq(outer1_value, other_uv_value2, limit)) {
+          outer2 = other_uv_l2;
+
+#ifdef TEST_UV_CORNER_CALC
+          if (test_mode) {
+            printf("%s: case 2\n", __func__);
+          }
+#endif
+          goto outer_break;
+        }
+      }
+    } while ((l2 = l2->radial_next) != e->l);
+  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
+
+outer_break:
+
+#ifdef TEST_UV_CORNER_CALC
+  if (test_mode) {
+    printf("%s: l: %p, l->v: %p, outer1: %p, outer2: %p\n", __func__, l, l->v, outer1, outer2);
+  }
+#endif
+
+  if (!outer1 || !outer2) {
+    return false;
+  }
+
+#ifdef TEST_UV_CORNER_CALC
+  if (test_mode && cd_pin != -1) {
+    // BM_ELEM_CD_SET_BOOL(outer1, cd_pin, true);
+    // BM_ELEM_CD_SET_BOOL(outer2, cd_pin, true);
+  }
+#endif
+
+  float2 t1 = *BM_ELEM_CD_PTR<float2 *>(outer1, cd_offset) - uv_value;
+  float2 t2 = *BM_ELEM_CD_PTR<float2 *>(outer2, cd_offset) - uv_value;
+
+  normalize_v2(t1);
+  normalize_v2(t2);
+
+  if (dot_v2v2(t1, t2) < 0.0f) {
+    negate_v2(t2);
+  }
+
+  float angle = saacos(dot_v2v2(t1, t2));
+
+#ifdef TEST_UV_CORNER_CALC
+  if (test_mode) {
+    printf("%s: angle: %.5f\n", __func__, angle);
+  }
+#endif
+
+  bool ret = angle > angle_limit;
+
+#ifdef TEST_UV_CORNER_CALC
+  if (ret) {
+    // l->v->head.hflag |= BM_ELEM_SELECT;
+  }
+#endif
+
+  return ret;
+}
+
+bool loop_is_corner(BMLoop *l, int cd_uv, float limit, const CustomData *ldata)
 {
   BMVert *v = l->v;
 
@@ -4508,78 +4676,20 @@ bool loop_is_corner(BMLoop *l, int cd_uv, float limit)
 
   bool ret = keys.size() > 2;
 
-  return ret;
-}
+  if (!ret) {
+    float angle_limit = 60.0f / 180.0f * M_PI;
 
-#if 0
-/* Angle test */
-bool loop_is_corner(BMLoop *l, int cd_offset)
-{
-  BMVert *v = l->v;
-  BMEdge *e = v->e;
-
-  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
-  float limit = 0.01;
-
-  BMLoop *outer1 = nullptr, *outer2 = nullptr;
-  do {
-    BMLoop *l2 = e->l;
-    if (!l2) {
-      continue;
-    }
-
-    do {
-      BMLoop *l3 = l2->v == v ? l2 : l2->next;
-      float2 value3 = *BM_ELEM_CD_PTR<float2 *>(l3, cd_offset);
-
-      if (!prop_eq(value, value3, limit)) {
-        continue;
-      }
-
-      bool outer = true;
-
-      BMLoop *l4 = l2->radial_next;
-      while (l4 != l2) {
-        BMLoop *l5 = l4->v == v ? l4 : l4->next;
-        float2 value5 = *BM_ELEM_CD_PTR<float2 *>(l5, cd_offset);
-
-        if (prop_eq(value, value5, limit)) {
-          outer = false;
-          break;
-        }
-        l4 = l4->radial_next;
-      }
-
-      if (outer) {
-        BMLoop *l3 = l2->v == v ? l2->next : l2;
-
-        if (!outer1) {
-          outer1 = l3;
-        }
-        else if (!outer2 && l3 != outer2) {
-          outer2 = l3;
-        }
-
-        break;
-      }
-    } while ((l2 = l2->radial_next) != e->l);
-  } while ((e = BM_DISK_EDGE_NEXT(e, v)) != l->e);
-
-  if (!outer1 || !outer2) {
-    return outer1 != nullptr;
+    return loop_is_corner_angle(l, cd_uv, limit, angle_limit, ldata);
   }
 
-  float2 t1 = *BM_ELEM_CD_PTR<float2 *>(outer1, cd_offset) - value;
-  float2 t2 = *BM_ELEM_CD_PTR<float2 *>(outer2, cd_offset) - value;
-
-  normalize_v2(t1);
-  normalize_v2(t2);
-  float angle_limit = 110.0f / 180.0f * M_PI;
-  float angle = saacos(dot_v2v2(t1, t2));
-
-  return angle < angle_limit;
-}
+#ifdef TEST_UV_CORNER_CALC
+  if (ret) {
+    // l->v->head.hflag |= BM_ELEM_SELECT;
+  }
 #endif
+
+  return ret;
+}
 
 template<typename T = float>
 static void corner_interp(CustomDataLayer *layer,
@@ -4597,8 +4707,10 @@ static void corner_interp(CustomDataLayer *layer,
 
   float limit;
   if (layer->type == CD_PROP_FLOAT2) {
-    // limit = 0.01;
-    limit = calc_uv_snap_limit(loops[0], cd_offset);
+    /* Apparently 1/10th of average uv edge length is too small,
+     * muliply it to 1/2
+     */
+    limit = calc_uv_snap_limit(loops[0], cd_offset) * 4.0f;
   }
   else {
     /* Do not restrict to islands for non-UVs */
@@ -4610,7 +4722,7 @@ static void corner_interp(CustomDataLayer *layer,
     BMLoop *l3 = l2->next->v == l->v ? l2->next : l2->prev;
     T value3 = *BM_ELEM_CD_PTR<T *>(l3, cd_offset);
 
-    if (prop_eq(value, value3, 0.01)) {
+    if (prop_eq(value, value3, limit)) {
       T value2 = *BM_ELEM_CD_PTR<T *>(l2, cd_offset);
       sum += value2 * ws[i];
       totsum += ws[i];
@@ -4629,8 +4741,12 @@ static void corner_interp(CustomDataLayer *layer,
 /* Interpolates loops surrounding a vertex, splitting any UV map by
  * island as appropriate and enforcing proper boundary conditions.
  */
-void interp_face_corners(
-    PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor)
+void interp_face_corners(PBVH *pbvh,
+                         PBVHVertRef vertex,
+                         Span<BMLoop *> loops,
+                         Span<float> ws,
+                         float factor,
+                         int cd_vert_boundary)
 {
   if (BKE_pbvh_type(pbvh) != PBVH_BMESH) {
     return; /* Only for PBVH_BMESH. */
@@ -4694,14 +4810,20 @@ void interp_face_corners(
 
   /* Interpolate. */
   if (loops.size() > 1) {
+    Vector<bool, 24> corners;
     VertLoopSnapper corner_snap = {Span<BMLoop *>(ls), Span<CustomDataLayer *>(layers)};
 
     for (CustomDataLayer *layer : layers) {
-      Vector<bool, 16> corners;
+      corners.clear();
 
       if (layer->type == CD_PROP_FLOAT2) {
         for (BMLoop *l : ls) {
-          corners.append(loop_is_corner(l, layer->offset));
+          /* Do not calculate corner here, use the stored corner flag. */
+          bool corner = false;
+          // corner |= loop_is_corner(l, layer->offset);
+          corner |= BM_ELEM_CD_GET_INT(v, cd_vert_boundary) & SCULPT_CORNER_UV;
+
+          corners.append(corner);
         }
       }
 

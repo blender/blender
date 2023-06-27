@@ -6428,6 +6428,7 @@ static void sculpt_stroke_update_step(bContext *C,
   if (dyntopo_spacing > 0.0f) {
     do_dyntopo = do_dyntopo &&
                  (ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t) > dyntopo_spacing;
+    do_dyntopo = do_dyntopo || ss->cache->stroke_distance_t == 0.0f;
   }
 
   if (do_dyntopo) {

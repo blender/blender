@@ -102,10 +102,17 @@ BLI_INLINE bool test_sculpt_flag(SculptSession *ss, PBVHVertRef vertex, uint8_t 
   return blender::bke::paint::vertex_attr_get<uint8_t>(vertex, ss->attrs.flags) & flag;
 }
 
-void interp_face_corners(
-    PBVH *pbvh, PBVHVertRef vertex, Span<BMLoop *> loops, Span<float> ws, float factor);
+/* Interpolates loops surrounding a vertex, splitting any UV map by
+ * island as appropriate and enforcing proper boundary conditions.
+ */
+void interp_face_corners(PBVH *pbvh,
+                         PBVHVertRef vertex,
+                         Span<BMLoop *> loops,
+                         Span<float> ws,
+                         float factor,
+                         int cd_vert_boundary);
 float calc_uv_snap_limit(BMLoop *l, int cd_uv);
-bool loop_is_corner(BMLoop *l, int cd_uv, float limit = 0.01);
+bool loop_is_corner(BMLoop *l, int cd_uv, float limit = 0.01, const CustomData *ldata = nullptr);
 
 /* NotForPR: TODO: find attribute API substitute for these prop_eq helper functions. */
 static bool prop_eq(float a, float b, float limit)
@@ -114,7 +121,7 @@ static bool prop_eq(float a, float b, float limit)
 }
 static bool prop_eq(float2 a, float2 b, float limit)
 {
-  return prop_eq(a[0], b[0], limit) && prop_eq(a[1], b[1], limit);
+  return (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) <= limit * limit;
 }
 static bool prop_eq(float3 a, float3 b, float limit)
 {

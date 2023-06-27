@@ -2026,6 +2026,15 @@ void update_edge_boundary_bmesh(BMEdge *e,
     oldflag = BM_ELEM_CD_GET_INT(e, cd_edge_boundary);
   }
 
+#if 0
+  if (BM_ELEM_CD_GET_INT(e, cd_edge_boundary) & SCULPT_BOUNDARY_UV) {
+    e->head.hflag |= BM_ELEM_SELECT;
+  }
+  else {
+    e->head.hflag &= ~BM_ELEM_SELECT;
+  }
+#endif
+
   if (oldflag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
     if (e->l && e->l != e->l->radial_next &&
         test_sharp_faces_bmesh(e->l->f, e->l->radial_next->f, sharp_angle_limit))
@@ -2062,7 +2071,10 @@ void update_edge_boundary_bmesh(BMEdge *e,
 }
 }  // namespace blender::bke::pbvh
 
-static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v, int cd_boundary, int cd_uv)
+static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v,
+                                                 int cd_boundary,
+                                                 int cd_uv,
+                                                 const CustomData *ldata)
 {
   int *boundflag = BM_ELEM_CD_PTR<int *>(v, cd_boundary);
 
@@ -2078,7 +2090,7 @@ static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v, int cd_boundary, int
     }
 
     float snap_limit = blender::bke::sculpt::calc_uv_snap_limit(l, cd_uv);
-    snap_limit *= snap_limit;
+    float snap_limit_sqr = snap_limit * snap_limit;
 
     float2 uv1a = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l : l->next, cd_uv);
     float2 uv1b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
@@ -2087,13 +2099,14 @@ static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v, int cd_boundary, int
       float2 uv2a = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l : l->next, cd_uv);
       float2 uv2b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
 
-      if (len_squared_v2v2(uv1a, uv2a) > snap_limit || len_squared_v2v2(uv1b, uv2b) > snap_limit) {
+      if (len_squared_v2v2(uv1a, uv2a) > snap_limit_sqr ||
+          len_squared_v2v2(uv1b, uv2b) > snap_limit_sqr) {
         *boundflag |= SCULPT_BOUNDARY_UV;
       }
 
       /* Corners are calculated from the number of distinct charts. */
       BMLoop *l2 = l->v == v ? l : l->next;
-      if (blender::bke::sculpt::loop_is_corner(l2, cd_uv)) {
+      if (blender::bke::sculpt::loop_is_corner(l2, cd_uv, snap_limit, ldata)) {
         *boundflag |= SCULPT_CORNER_UV;
         *boundflag |= SCULPT_BOUNDARY_UV;
       }
@@ -2121,7 +2134,7 @@ static void pbvh_bmesh_update_uv_boundary(BMVert *v, int cd_boundary, const Cust
       continue;
     }
 
-    pbvh_bmesh_update_uv_boundary_intern(v, cd_boundary, ldata->layers[i].offset);
+    pbvh_bmesh_update_uv_boundary_intern(v, cd_boundary, ldata->layers[i].offset, ldata);
   }
 }
 
@@ -2143,6 +2156,15 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
   if (BM_ELEM_CD_GET_INT(v, cd_boundary_flag) & SCULPT_BOUNDARY_UPDATE_UV) {
     pbvh_bmesh_update_uv_boundary(v, cd_boundary_flag, ldata);
   }
+
+#if 0
+  if (BM_ELEM_CD_GET_INT(v, cd_boundary_flag) & SCULPT_BOUNDARY_UV) {
+    v->head.hflag |= BM_ELEM_SELECT;
+  }
+  else {
+    v->head.hflag &= ~BM_ELEM_SELECT;
+  }
+#endif
 
   int boundflag = BM_ELEM_CD_GET_INT(v, cd_boundary_flag) &
                   (SCULPT_BOUNDARY_UV | SCULPT_CORNER_UV);
