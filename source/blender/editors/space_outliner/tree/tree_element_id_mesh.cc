@@ -25,17 +25,17 @@ void TreeElementIDMesh::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, mesh_.adt);
 
-  expandKey(space_outliner);
-  expandMaterials(space_outliner);
+  expand_key(space_outliner);
+  expand_materials(space_outliner);
 }
 
-void TreeElementIDMesh::expandKey(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_key(SpaceOutliner &space_outliner) const
 {
   outliner_add_element(
       &space_outliner, &legacy_te_.subtree, mesh_.key, &legacy_te_, TSE_SOME_ID, 0);
 }
 
-void TreeElementIDMesh::expandMaterials(SpaceOutliner &space_outliner) const
+void TreeElementIDMesh::expand_materials(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < mesh_.totcol; a++) {
     outliner_add_element(

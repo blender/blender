@@ -23,7 +23,7 @@ class TreeElementIDLineStyle final : public TreeElementID {
   void expand(SpaceOutliner &) const override;
 
  private:
-  void expandTextures(SpaceOutliner &) const;
+  void expand_textures(SpaceOutliner &) const;
 };
 
 }  // namespace blender::ed::outliner
