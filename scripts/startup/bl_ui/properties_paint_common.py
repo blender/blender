@@ -122,29 +122,32 @@ class UnifiedPaintPanel:
     def get_dyntopo_prop(context, brush, prop_name):
         sculpt = context.tool_settings.sculpt
 
-        if prop_name.upper() in brush.dyntopo.inherit:
+        if not getattr(brush.dyntopo, "is_" + prop_name + "_overridden"):
             return getattr(sculpt.dyntopo, prop_name)
         else:
             return getattr(brush.dyntopo, prop_name)
 
     @staticmethod
     def prop_unified_dyntopo(
-        layout, context, brush, prop_name, text=None, show_inherit=True, expand=False
+        layout, context, brush, prop_name, text=None, expand=False
     ):
         sculpt = context.tool_settings.sculpt
 
-        if prop_name.upper() in brush.dyntopo.inherit:
+        override_name = "is_" + prop_name + "_overridden"
+        inherit = not getattr(brush.dyntopo, override_name)
+
+        if inherit:
             final_dyntopo = sculpt.dyntopo
         else:
             final_dyntopo = brush.dyntopo
 
-        if show_inherit:
-            layout = layout.row(align=True)
-
+        layout = layout.row(align=True)
         layout.prop(final_dyntopo, prop_name, text=text, expand=expand)
 
-        if show_inherit:
-            layout.prop_enum(brush.dyntopo, "inherit", prop_name.upper(), text="")
+        if not inherit:
+            layout.prop(
+                brush.dyntopo, override_name, text="", icon="ERROR", emboss=False
+            )
 
     @staticmethod
     def prop_unified_color(parent, context, brush, prop_name, *, text=None):

@@ -499,42 +499,9 @@ void SCULPT_ensure_persistent_layers(SculptSession *ss, Object *ob)
   }
 }
 
-namespace blender::bke::dyntopo {
-extern float dyntopo_params[5];
-}
-
 void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *sculpt, Brush *brush)
 {
   using namespace blender::bke::dyntopo;
-  if (scene->id.properties) {
-    auto load_prop = [&](const char *name, int index) {
-      IDProperty *prop = IDP_GetPropertyFromGroup(scene->id.properties, name);
-      if (prop) {
-        float val = 0.0f;
-        if (prop->type == IDP_FLOAT) {
-          val = IDP_Float(prop);
-        }
-        else if (prop->type == IDP_DOUBLE) {
-          val = float(IDP_Double(prop));
-        }
-        else {
-          return prop;
-        }
-
-        printf("%s: Found %s (%.5f)\n", __func__, name, val);
-
-        dyntopo_params[index] = val;
-      }
-
-      return prop;
-    };
-
-    IDProperty *prop1 = load_prop("dparam1", 0);
-    load_prop("dparam2", 1);
-    load_prop("dparam3", 2);
-    load_prop("dparam4", 3);
-    load_prop("dparam5", 4);
-  }
 
   if (!brush) {
     ss->cached_dyntopo = sculpt->dyntopo;
@@ -546,7 +513,7 @@ void SCULPT_apply_dyntopo_settings(Scene *scene, SculptSession *ss, Sculpt *scul
 
   DynTopoSettings *ds_final = &ss->cached_dyntopo;
 
-  ds_final->inherit = ds1->inherit;
+  ds_final->inherit = BKE_brush_dyntopo_inherit_flags(brush);
   ds_final->flag = 0;
 
   for (int i = 0; i < DYNTOPO_MAX_FLAGS; i++) {

@@ -230,8 +230,6 @@ static void pbvh_bmesh_verify(PBVH *pbvh);
 
 struct EdgeQueue;
 
-extern float dyntopo_params[5];
-
 struct EdgeQueueContext {
   blender::bke::dyntopo::BrushTester *brush_tester;
   SculptSession *ss;

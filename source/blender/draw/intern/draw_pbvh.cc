@@ -922,7 +922,6 @@ struct PBVHBatches {
         if (args->show_orig) {
           int cd_origco = CustomData_get_offset_named(
               &args->bm->vdata, CD_PROP_FLOAT3, ".sculpt_orig_co");
-          printf("cd_orig_co: %d\n", cd_origco);
 
           foreach_bmesh([&](BMLoop *l) {
             *static_cast<float3 *>(GPU_vertbuf_raw_step(&access)) = *BM_ELEM_CD_PTR<float3 *>(

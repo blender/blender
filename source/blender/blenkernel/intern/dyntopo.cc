@@ -2392,8 +2392,6 @@ bool remesh_topology(BrushTester *brush_tester,
   return eq_ctx.modified;
 }
 
-float dyntopo_params[5] = {5.0f, 1.0f, 4.0f};
-
 void detail_size_set(PBVH *pbvh, float detail_size, float detail_range)
 {
   detail_range = max_ff(detail_range, 0.1f);

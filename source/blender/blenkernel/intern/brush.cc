@@ -1884,9 +1884,6 @@ void BKE_brush_sculpt_reset(Brush *br)
     case SCULPT_TOOL_SNAKE_HOOK:
       br->alpha = 1.0f;
       br->rake_factor = 1.0f;
-      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE |
-                              DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_RADIUS_SCALE |
-                              DYNTOPO_INHERIT_REPEAT | DYNTOPO_INHERIT_CLEANUP);
       br->dyntopo.flag |= DYNTOPO_SUBDIVIDE | DYNTOPO_COLLAPSE | DYNTOPO_CLEANUP;
       br->dyntopo.spacing = 0;
       br->dyntopo.radius_scale = 1.25;
@@ -1979,8 +1976,6 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->curve_preset = BRUSH_CURVE_SMOOTHER;
       break;
     case SCULPT_TOOL_SIMPLIFY:
-      br->dyntopo.inherit = ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE |
-                              DYNTOPO_INHERIT_CLEANUP);
       br->dyntopo.flag |= DYNTOPO_COLLAPSE | DYNTOPO_SUBDIVIDE | DYNTOPO_CLEANUP;
       break;
     case SCULPT_TOOL_MASK:
@@ -1989,6 +1984,8 @@ void BKE_brush_sculpt_reset(Brush *br)
     default:
       break;
   }
+
+  br->dyntopo.inherit = BKE_brush_dyntopo_inherit_flags(br);
 
   /* Cursor colors */
 
@@ -2738,4 +2735,24 @@ float BKE_brush_hard_corner_pin_get(const Scene *scene, const Brush *brush)
   }
 
   return brush->hard_corner_pin;
+}
+
+int BKE_brush_dyntopo_inherit_flags(Brush *brush)
+{
+  if (!brush) {
+    return DYNTOPO_INHERIT_BITMASK;
+  }
+
+  if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
+    return ~(DYNTOPO_INHERIT_COLLAPSE | DYNTOPO_INHERIT_SUBDIVIDE | DYNTOPO_INHERIT_CLEANUP |
+             DYNTOPO_INHERIT_DISABLED);
+  }
+  if (brush->sculpt_tool == SCULPT_TOOL_SNAKE_HOOK) {
+    return ~(DYNTOPO_INHERIT_SPACING | DYNTOPO_INHERIT_SUBDIVIDE | DYNTOPO_INHERIT_COLLAPSE |
+             DYNTOPO_INHERIT_RADIUS_SCALE | DYNTOPO_INHERIT_REPEAT | DYNTOPO_INHERIT_CLEANUP |
+             DYNTOPO_INHERIT_DISABLED | DYNTOPO_INHERIT_QUALITY);
+  }
+
+  /* Inherit everything from scene defaults */
+  return DYNTOPO_INHERIT_BITMASK & ~DYNTOPO_INHERIT_DISABLED;
 }

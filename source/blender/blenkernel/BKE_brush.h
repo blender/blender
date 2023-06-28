@@ -67,6 +67,12 @@ struct Brush *BKE_brush_first_search(struct Main *bmain, eObjectMode ob_mode);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 
+/* Which dyntopo settings are inherited by this brush from scene
+ * defaults.  In most cases this is everything except for the
+ * local dyntopo disable flag.
+ */
+int BKE_brush_dyntopo_inherit_flags(struct Brush *brush);
+
 /**
  * Create a set of grease pencil Drawing presets.
  */

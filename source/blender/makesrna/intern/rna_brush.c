@@ -6,6 +6,8 @@
  * \ingroup RNA
  */
 
+#include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "DNA_brush_types.h"
@@ -1244,6 +1246,32 @@ static char *rna_BrushCurvesSculptSettings_path(const PointerRNA *UNUSED(ptr))
   return BLI_strdup("curves_sculpt_settings");
 }
 
+static int rna_DynTopoSettings_inherit_get(PointerRNA *ptr)
+{
+  Brush *brush;
+
+  if (GS(ptr->owner_id->name) == ID_BR) {
+    brush = (Brush *)ptr->owner_id;
+  }
+  else if (GS(ptr->owner_id->name) == ID_SCE) {
+    /* Try and fetch the active brush. */
+    Scene *scene = (Scene *)ptr->owner_id;
+    if (scene->toolsettings && scene->toolsettings->sculpt) {
+      brush = scene->toolsettings->sculpt->paint.brush;
+    }
+  }
+  else {
+    BLI_assert_unreachable();
+    return 0;
+  }
+
+  if (!brush) {
+    /* No brush, scene defines all settings. */
+    return DYNTOPO_INHERIT_BITMASK;
+  }
+
+  return BKE_brush_dyntopo_inherit_flags(brush);
+}
 #else
 
 static void rna_def_brush_texture_slot(BlenderRNA *brna)
@@ -1412,12 +1440,31 @@ static void rna_def_dyntopo_settings(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Mode", "Detail Mode");
 
-  prop = RNA_def_property(srna, "inherit", PROP_ENUM, 0);
-  RNA_def_property_enum_sdna(prop, NULL, "inherit");
-  RNA_def_property_enum_items(prop, rna_enum_brush_dyntopo_inherit);
-  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-  RNA_def_property_ui_text(prop, "Inherit", "Which default dyntopo settings to use");
+  /* Auto-generate is_XXX_overridden members. */
+  EnumPropertyItem *item = rna_enum_brush_dyntopo_inherit;
+  while (item->identifier) {
+    char identifier[128];
+    char name[128];
+
+    /* Makesrna does not compile with BLI_snprintf. */
+    sprintf(identifier, "is_%s_overridden", item->identifier);
+    sprintf(name, "Overridden");
+
+    /* Makesrna does not compile with BLI_str_tolower_ascii. */
+    char *c = identifier;
+    while (*c) {
+      *c = tolower(*c);
+      c++;
+    }
+
+    /* Use strdup to avoid memory leak warnings; identifier and name are global constants. */
+    prop = RNA_def_property(srna, strdup(identifier), PROP_BOOLEAN, 0);
+    RNA_def_property_boolean_negative_sdna(prop, NULL, "inherit", item->value);
+    RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE); /* Read-only. */
+    RNA_def_property_ui_text(prop, strdup(name), "Brush overrides this setting.");
+
+    item++;
+  }
 
   prop = RNA_def_property(srna, "radius_scale", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, NULL, "radius_scale");
@@ -3368,8 +3415,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, NULL, "autosmooth_projection");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
-  RNA_def_property_ui_text(
-      prop, "Preserve Volume", "How much autosmooth should preserve volume.");
+  RNA_def_property_ui_text(prop, "Preserve Volume", "How much autosmooth should preserve volume.");
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "sharp_angle_limit", PROP_FLOAT, PROP_ANGLE);
