@@ -614,6 +614,7 @@ typedef enum ObjectType {
         OB_LATTICE, \
         OB_ARMATURE, \
         OB_CURVES, \
+        OB_POINTCLOUD, \
         OB_GREASE_PENCIL))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
   (ELEM(_type, OB_MESH, OB_SURF, OB_CURVES_LEGACY, OB_LATTICE))

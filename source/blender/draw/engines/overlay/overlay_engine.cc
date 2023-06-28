@@ -211,6 +211,7 @@ static void OVERLAY_cache_init(void *vedata)
     case CTX_MODE_SCULPT_CURVES:
       OVERLAY_sculpt_curves_cache_init(data);
       break;
+    case CTX_MODE_EDIT_POINT_CLOUD:
     case CTX_MODE_OBJECT:
       break;
     default:

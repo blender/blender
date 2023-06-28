@@ -2102,6 +2102,13 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
         layout.operator("paint.vert_select_linked", text="Select Linked")
 
 
+class VIEW3D_MT_select_edit_point_cloud(Menu):
+    bl_label = "Select"
+
+    def draw(_self, _context):
+        pass
+
+
 class VIEW3D_MT_edit_curves_select_more_less(Menu):
     bl_label = "Select More/Less"
 
@@ -5478,6 +5485,13 @@ class VIEW3D_MT_edit_curves(Menu):
         layout.operator("curves.delete")
 
 
+class VIEW3D_MT_edit_pointcloud(Menu):
+    bl_label = "Point Cloud"
+
+    def draw(_self, _context):
+        pass
+
+
 class VIEW3D_MT_object_mode_pie(Menu):
     bl_label = "Mode"
 
@@ -8220,6 +8234,7 @@ classes = (
     VIEW3D_MT_select_edit_gpencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
+    VIEW3D_MT_select_edit_point_cloud,
     VIEW3D_MT_edit_curves_select_more_less,
     VIEW3D_MT_select_edit_curves,
     VIEW3D_MT_select_sculpt_curves,
@@ -8347,6 +8362,7 @@ classes = (
     VIEW3D_MT_edit_armature_delete,
     VIEW3D_MT_edit_gpencil_transform,
     VIEW3D_MT_edit_curves,
+    VIEW3D_MT_edit_pointcloud,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
     VIEW3D_MT_transform_gizmo_pie,

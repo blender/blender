@@ -109,6 +109,9 @@ wmKeyMap *WM_keymap_guess_from_context(const bContext *C)
       case CTX_MODE_EDIT_GREASE_PENCIL:
         km_id = "Grease Pencil Edit Mode";
         break;
+      case CTX_MODE_EDIT_POINT_CLOUD:
+        km_id = "Point Cloud Edit Mode";
+        break;
       case CTX_MODE_POSE:
         km_id = "Pose";
         break;

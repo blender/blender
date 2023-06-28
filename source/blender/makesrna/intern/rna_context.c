@@ -31,6 +31,7 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
     {CTX_MODE_EDIT_METABALL, "EDIT_METABALL", 0, "Metaball Edit", ""},
     {CTX_MODE_EDIT_LATTICE, "EDIT_LATTICE", 0, "Lattice Edit", ""},
     {CTX_MODE_EDIT_GREASE_PENCIL, "EDIT_GREASE_PENCIL", 0, "Grease Pencil Edit", ""},
+    {CTX_MODE_EDIT_POINT_CLOUD, "EDIT_POINT_CLOUD", 0, "Point Cloud Edit", ""},
     {CTX_MODE_POSE, "POSE", 0, "Pose", ""},
     {CTX_MODE_SCULPT, "SCULPT", 0, "Sculpt", ""},
     {CTX_MODE_PAINT_WEIGHT, "PAINT_WEIGHT", 0, "Weight Paint", ""},

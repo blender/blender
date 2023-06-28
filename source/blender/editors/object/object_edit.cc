@@ -687,7 +687,7 @@ static bool ED_object_editmode_load_free_ex(Main *bmain,
       ED_mball_editmball_free(obedit);
     }
   }
-  else if (ELEM(obedit->type, OB_CURVES, OB_GREASE_PENCIL)) {
+  else if (ELEM(obedit->type, OB_CURVES, OB_GREASE_PENCIL, OB_POINTCLOUD)) {
     /* Object doesn't have specific edit mode data, so pass. */
   }
   else {
@@ -882,6 +882,10 @@ bool ED_object_editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag
   else if (ob->type == OB_GREASE_PENCIL) {
     ok = true;
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_GREASE_PENCIL, scene);
+  }
+  else if (ob->type == OB_POINTCLOUD) {
+    ok = true;
+    WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_POINT_CLOUD, scene);
   }
 
   if (ok) {
