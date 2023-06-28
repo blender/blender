@@ -124,7 +124,7 @@ void ED_text_format_register_pov_ini();
  * This string literal must start at the beginning of the source string.
  *
  * If a string literal is found, the length of the string literal is returned.
- * Otherwise, -1.
+ * Otherwise, 0.
  */
 int text_format_string_literal_find(const Span<const char *> string_literals, const char *text);
 
