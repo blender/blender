@@ -111,7 +111,7 @@ static void GREASE_PENCIL_OT_layer_remove(wmOperatorType *ot)
 static const EnumPropertyItem prop_layer_reorder_location[] = {
     {LAYER_REORDER_ABOVE, "ABOVE", 0, "Above", ""},
     {LAYER_REORDER_BELOW, "BELOW", 0, "Below", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)

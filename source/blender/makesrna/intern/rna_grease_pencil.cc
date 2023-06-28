@@ -216,17 +216,20 @@ static void rna_def_grease_pencil_layers_api(BlenderRNA *brna, PropertyRNA *cpro
   PropertyRNA *prop;
 
   RNA_def_property_srna(cprop, "GreasePencilv3Layers");
-  srna = RNA_def_struct(brna, "GreasePencilv3Layers", NULL);
+  srna = RNA_def_struct(brna, "GreasePencilv3Layers", nullptr);
   RNA_def_struct_sdna(srna, "GreasePencil");
   RNA_def_struct_ui_text(srna, "Grease Pencil Layers", "Collection of Grease Pencil layers");
 
   prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "GreasePencilLayer");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_GreasePencil_active_layer_get", "rna_GreasePencil_active_layer_set", NULL, NULL);
+  RNA_def_property_pointer_funcs(prop,
+                                 "rna_GreasePencil_active_layer_get",
+                                 "rna_GreasePencil_active_layer_set",
+                                 nullptr,
+                                 nullptr);
   RNA_def_property_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Active Layer", "Active Grease Pencil layer");
-  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_SELECTED, NULL);
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_SELECTED, nullptr);
 }
 
 static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)

@@ -108,7 +108,7 @@ static int an_stringdec(const char *filepath,
   ushort num_beg = 0;
   ushort num_end = len;
 
-  for (short i = (short)len - 1; i >= 0; i--) {
+  for (short i = short(len) - 1; i >= 0; i--) {
     if (filepath[i] == SEP) {
       break;
     }

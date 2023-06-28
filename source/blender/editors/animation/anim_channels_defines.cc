@@ -4565,7 +4565,7 @@ void ANIM_channel_draw(
       GPU_line_width(2.0f);
 
       immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, (float)offset, yminc);
+      immVertex2f(pos, float(offset), yminc);
       immVertex2f(pos, (float)v2d->cur.xmax, yminc);
       immEnd();
 
@@ -4672,7 +4672,7 @@ void ANIM_channel_draw(
      * - Ends past the space that might be reserved for a scroller.
      */
     immRectf(pos,
-             v2d->cur.xmax - (float)offset,
+             v2d->cur.xmax - float(offset),
              yminc + ymin_ofs,
              v2d->cur.xmax + EXTRA_SCROLL_PAD,
              ymaxc);
@@ -5590,7 +5590,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 &ptr,
                                 prop,
                                 array_index,
-                                RNA_property_type(prop) == PROP_ENUM ? NULL : "",
+                                RNA_property_type(prop) == PROP_ENUM ? nullptr : "",
                                 ICON_NONE,
                                 offset,
                                 rect->ymin,
