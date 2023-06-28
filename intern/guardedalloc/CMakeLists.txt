@@ -9,7 +9,6 @@ endif()
 set(INC
   .
   ..
-  ../atomic
 )
 
 set(INC_SYS
@@ -36,6 +35,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf_intern_atomic
 )
 
 if(WIN32 AND NOT UNIX)

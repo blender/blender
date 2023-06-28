@@ -7,7 +7,6 @@ set(INC
   ..
   ../..
   ../../../makesdna
-  ../../../../../intern/atomic
   ../../../../../intern/guardedalloc
 )
 

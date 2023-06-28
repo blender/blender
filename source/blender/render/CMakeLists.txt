@@ -22,7 +22,6 @@ set(INC
   ../sequencer
   ../simulation
   ../windowmanager
-  ../../../intern/atomic
   ../../../intern/guardedalloc
   ../../../intern/mikktspace
   ../../../intern/mantaflow/extern
@@ -62,6 +61,7 @@ set(SRC
 
 set(LIB
   bf_realtime_compositor
+  PRIVATE bf_intern_atomic
 )
 
 if(WITH_PYTHON)

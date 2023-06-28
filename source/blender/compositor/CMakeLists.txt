@@ -24,7 +24,6 @@ if(WITH_COMPOSITOR_CPU)
     ../render
     ../render/intern
     ../../../extern/clew/include
-    ../../../intern/atomic
     ../../../intern/clog
     ../../../intern/guardedalloc
 
@@ -603,6 +602,7 @@ if(WITH_COMPOSITOR_CPU)
     bf_blenkernel
     bf_blenlib
     extern_clew
+    PRIVATE bf_intern_atomic
   )
 
   list(APPEND INC

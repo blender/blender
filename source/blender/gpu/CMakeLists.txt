@@ -38,7 +38,6 @@ set(INC
   # For node muting stuff.
   ../nodes
 
-  ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/ghost
   ../../../intern/guardedalloc
@@ -327,6 +326,7 @@ set(METAL_SRC
 )
 
 set(LIB
+  PRIVATE bf_intern_atomic
   ${Epoxy_LIBRARIES}
 )
 

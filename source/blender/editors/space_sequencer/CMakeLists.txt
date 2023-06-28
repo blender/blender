@@ -17,7 +17,6 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/atomic
   ../../../../intern/guardedalloc
 
   # dna_type_offsets.h
@@ -56,6 +55,7 @@ set(SRC
 set(LIB
   bf_editor_interface
   bf_editor_util
+  PRIVATE bf_intern_atomic
 )
 
 if(WITH_AUDASPACE)
