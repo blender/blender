@@ -1203,6 +1203,12 @@ static void vwpaint_init_stroke(Depsgraph *depsgraph, Object *ob)
   if (!ss->cache) {
     ss->cache = (StrokeCache *)MEM_callocN(sizeof(StrokeCache), "stroke cache");
   }
+
+  SCULPT_stroke_id_next(ob);
+  if (ss->pbvh) {
+    BKE_pbvh_update_bounds(ss->pbvh, PBVH_UpdateBB);
+    blender::bke::pbvh::on_stroke_start(ss->pbvh);
+  }
 }
 
 static void vertex_paint_init_stroke(Scene *scene, Depsgraph *depsgraph, Object *ob)
@@ -1660,11 +1666,6 @@ static void vwpaint_update_cache_invariants(
   cache->is_last_valid = false;
 
   cache->accum = true;
-
-  SCULPT_stroke_id_next(ob);
-  if (ss->pbvh) {
-    blender::bke::pbvh::on_stroke_start(ss->pbvh);
-  }
 }
 
 /* Initialize the stroke cache variants from operator properties */

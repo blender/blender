@@ -5,21 +5,21 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 
+#include "BLI_alloca.h"
 #include "BLI_array.hh"
 #include "BLI_asan.h"
 #include "BLI_buffer.h"
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
 #include "BLI_index_range.hh"
 #include "BLI_map.hh"
+#include "BLI_math.h"
+#include "BLI_math_vector.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
 #include "BLI_timeit.hh"
-#include "BLI_vector.hh"
-
-#include "BLI_alloca.h"
-#include "BLI_compiler_attrs.h"
-#include "BLI_compiler_compat.h"
-#include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "PIL_time.h"
 #include "atomic_ops.h"
@@ -40,6 +40,7 @@
 #include <array>
 #include <cstdio>
 #include <functional>
+#include <type_traits>
 
 using blender::float2;
 using blender::float3;
@@ -98,30 +99,189 @@ static bool vert_is_nonmanifold(BMVert *v)
   return false;
 }
 
+template<typename T, typename SumT = T>
+static void snap_corner_data(
+    BMesh *bm, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_uv, bool snap_midpoint)
+{
+  using namespace blender;
+
+  Vector<Vector<void *, 24>, 4> blocks;
+  Vector<Vector<float, 24>, 4> weights;
+  Vector<Vector<BMLoop *, 24>, 4> loops;
+  Vector<BMLoop *> final_loops;
+  int cur_set = 0;
+
+  for (int i : ls.index_range()) {
+    ls[i]->head.index = -1;
+    ls[i]->next->head.index = -1; /* So we can test l->next without checking if it's inside ls.*/
+  }
+
+  /* Build snapping sets (of UV vertices). */
+  for (BMLoop *l1 : ls) {
+    if (!snap_midpoint && l1->v == v_del) {
+      continue;
+    }
+
+    if (l1->head.index != -1) {
+      continue;
+    }
+
+    l1->head.index = cur_set;
+
+    blocks.resize(cur_set + 1);
+    weights.resize(cur_set + 1);
+    loops.resize(cur_set + 1);
+
+    final_loops.append(l1);
+
+    blocks[cur_set].append(l1->head.data);
+    weights[cur_set].append(1.0f);
+    loops[cur_set].append(l1);
+
+    T uv1 = *BM_ELEM_CD_PTR<T *>(l1, cd_uv);
+
+    T uvnext = *BM_ELEM_CD_PTR<T *>(l1->next, cd_uv);
+    float limit = max_ff(math::distance_squared(uv1, uvnext) * 0.1f, 0.000025f);
+
+    for (BMLoop *l2 : ls) {
+      T uv2 = *BM_ELEM_CD_PTR<T *>(l2, cd_uv);
+
+      if (l2 == l1 || l2->head.index != -1) {
+        continue;
+      }
+
+      if (math::distance_squared(uv1, uv2) < limit) {
+        float w = 1.0;
+        if (!snap_midpoint && l2->v == v_del) {
+          w = 0.0f;
+        }
+
+        l2->head.index = cur_set;
+        blocks[cur_set].append(l2->head.data);
+        weights[cur_set].append(w);
+        loops[cur_set].append(l2);
+      }
+    }
+
+    cur_set++;
+  }
+
+  /* Merge sets */
+  for (int i : final_loops.index_range()) {
+    if (!final_loops[i]) {
+      continue;
+    }
+
+    BMLoop *final_l = final_loops[i];
+    BMLoop *next_l = final_l->next;
+
+    if (final_l->e != e || next_l->head.index == -1 || next_l->head.index == i) {
+      continue;
+    }
+
+    int set = next_l->head.index;
+
+    blocks[i].append(next_l->head.data);
+    weights[i].append(1.0f);
+
+    for (void *block : blocks[set]) {
+      blocks[i].append(block);
+    }
+    for (float w : weights[set]) {
+      weights[i].append(w);
+    }
+
+    for (BMLoop *l : loops[set]) {
+      l->head.index = i;
+    }
+
+    /* Flag set as deleted. */
+    final_loops[set] = nullptr;
+  }
+
+  /* Perform final UV snapping. */
+  for (int i : final_loops.index_range()) {
+    BMLoop *final_l = final_loops[i];
+
+    if (!final_l) {
+      continue;
+    }
+
+    float totw = 0.0f;
+    for (float w : weights[i]) {
+      totw += w;
+    }
+
+    if (totw == 0.0f) {
+      BLI_assert_unreachable();
+
+      /* You never know with topology; this could happen. . .in that case
+       * just use uniform weights.
+       */
+
+      for (int j : weights[i].index_range()) {
+        weights[i][j] = 1.0f;
+      }
+
+      totw = float(weights[i].size());
+    }
+
+    totw = 1.0f / totw;
+    for (int j : weights[i].index_range()) {
+      weights[i][j] *= totw;
+    }
+
+    SumT sum = {};
+
+    for (int j : blocks[i].index_range()) {
+      void *ptr = POINTER_OFFSET(blocks[i][j], cd_uv);
+      T value = *static_cast<T *>(ptr);
+
+      if (std::is_same_v<T, uchar4>) {
+        sum[0] += float(value[0]) * weights[i][j];
+        sum[1] += float(value[1]) * weights[i][j];
+        sum[2] += float(value[2]) * weights[i][j];
+        sum[3] += float(value[3]) * weights[i][j];
+      }
+      else {
+        sum += value * weights[i][j];
+      }
+    }
+
+    if constexpr (std::is_same_v<T, SumT>) {
+      *BM_ELEM_CD_PTR<T *>(final_l, cd_uv) = sum;
+    }
+    else if constexpr (std::is_same_v<T, uchar4>) {
+      *BM_ELEM_CD_PTR<T *>(final_l,
+                           cd_uv) = {uchar(sum[0]), uchar(sum[1]), uchar(sum[2]), uchar(sum[3])};
+    }
+  }
+
+  /* Copy snapped UVs to all loops. */
+  for (BMLoop *l : ls) {
+    if (l->head.index == -1) {
+      printf("%s: Error: invalid uv set for loop\n", __func__);
+      continue;
+    }
+
+    int set = l->head.index;
+
+    if (final_loops[set] && l != final_loops[set]) {
+      *BM_ELEM_CD_PTR<T *>(l, cd_uv) = *BM_ELEM_CD_PTR<T *>(final_loops[set], cd_uv);
+    }
+  }
+}
+
 bool pbvh_bmesh_collapse_edge_uvs(
     PBVH *pbvh, BMEdge *e, BMVert *v_conn, BMVert *v_del, EdgeQueueContext *eq_ctx)
 {
+  BMesh *bm = pbvh->header.bm;
+
   pbvh_check_vert_boundary_bmesh(pbvh, v_conn);
   pbvh_check_vert_boundary_bmesh(pbvh, v_del);
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
-
-  int uvidx = pbvh->header.bm->ldata.typemap[CD_PROP_FLOAT2];
-  CustomDataLayer *uv_layer = nullptr;
-  int totuv = 0;
-
-  if (uvidx >= 0) {
-    uv_layer = pbvh->header.bm->ldata.layers + uvidx;
-    totuv = 0;
-
-    while (uvidx < pbvh->header.bm->ldata.totlayer &&
-           pbvh->header.bm->ldata.layers[uvidx].type == CD_PROP_FLOAT2)
-    {
-      uvidx++;
-      totuv++;
-    }
-  }
 
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
@@ -149,7 +309,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
     eCustomDataMask typemask = CD_MASK_PROP_ALL;
 
     CustomData_bmesh_interp_ex(
-        &pbvh->header.bm->vdata, v_blocks, v_ws, nullptr, 2, v_conn->head.data, typemask);
+        &bm->vdata, v_blocks, v_ws, nullptr, 2, v_conn->head.data, typemask);
 
     /* Restore node index. */
     BM_ELEM_CD_SET_INT(v_conn, pbvh->cd_vert_node_offset, ni_conn);
@@ -163,156 +323,63 @@ bool pbvh_bmesh_collapse_edge_uvs(
     }
   }
 
-#if 0
   if (!e->l) {
     return snap;
   }
 
-  /* Deal with UVs. */
+  Vector<BMLoop *, 32> ls;
+
+  /* Append loops around edge first. */
   BMLoop *l = e->l;
-  float ws[2];
-  BMLoop *ls[2];
-  const void *blocks[2];
-
   do {
-    if (l->v == v_conn) {
-      ls[0] = l;
-      ls[1] = l->next;
-    }
-    else {
-      ls[0] = l->next;
-      ls[1] = l;
-    }
-
-    if (snap) {
-      ws[0] = ws[1] = 0.5f;
-    }
-    else {
-      ws[0] = l->v == v_conn ? 1.0f : 0.0f;
-      ws[1] = l->v == v_conn ? 0.0f : 0.0f;
-    }
-
-    blocks[0] = ls[0]->head.data;
-    blocks[1] = ls[1]->head.data;
-
-#  if 0
-    CustomData_bmesh_interp(&bm->ldata, blocks, ws, nullptr, 2, l->head.data);
-    CustomData_bmesh_copy_data(
-        &bm->ldata, &pbvh->header.bm->ldata, l->head.data, &l->next->head.data);
-#  else
-
-    PBVHVertRef vertex = {reinterpret_cast<intptr_t>(v_conn)};
-    blender::bke::sculpt::interp_face_corners(
-        pbvh, vertex, Span<BMLoop *>(ls, 2), Span<float>(ws, 2), 1.0f, pbvh->cd_boundary_flag);
-#  endif
+    ls.append_non_duplicates(l);
   } while ((l = l->radial_next) != e->l);
 
-  return snap;
-#endif
-
-  const float limit = 0.005;
-  BMLoop *l = e->l;
-
+  /* Now find loops around e->v1 and e->v2. */
   for (BMVert *v : std::array<BMVert *, 2>({e->v1, e->v2})) {
-    BMEdge *e2 = v->e;
-
-    if (!e2) {
-      continue;
-    }
-
+    BMEdge *e = v->e;
     do {
-      BMLoop *l2 = e2->l;
+      BMLoop *l = e->l;
 
-      if (!l2) {
+      if (!l) {
         continue;
       }
 
       do {
-        BMLoop *l3 = l2->v != v ? l2->next : l2;
+        BMLoop *uv_l = l->v == v ? l : l->next;
 
-        /* store visit bits for each uv layer in l3->head.index */
-        l3->head.index = 0;
-      } while ((l2 = l2->radial_next) != e2->l);
-    } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
+        ls.append_non_duplicates(uv_l);
+      } while ((l = l->radial_next) != e->l);
+    } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
   }
 
-  float(*uv)[2] = static_cast<float(*)[2]>(BLI_array_alloca(uv, 4 * totuv));
+  for (int i : IndexRange(bm->ldata.totlayer)) {
+    CustomDataLayer *layer = &bm->ldata.layers[i];
 
-  l = e->l;
-  if (!l) {
-    return snap;
+    if (layer->flag & CD_FLAG_ELEM_NOINTERP) {
+      continue;
+    }
+
+    switch (layer->type) {
+      case CD_PROP_FLOAT:
+        snap_corner_data<VecBase<float, 1>>(bm, e, v_del, ls, layer->offset, snap);
+        break;
+      case CD_PROP_FLOAT2:
+        snap_corner_data<float2>(bm, e, v_del, ls, layer->offset, snap);
+        break;
+      case CD_PROP_FLOAT3:
+        snap_corner_data<float3>(bm, e, v_del, ls, layer->offset, snap);
+        break;
+      case CD_PROP_COLOR:
+        snap_corner_data<float4>(bm, e, v_del, ls, layer->offset, snap);
+        break;
+      case CD_PROP_BYTE_COLOR:
+        snap_corner_data<uchar4>(bm, e, v_del, ls, layer->offset, snap);
+        break;
+      default:
+        break;
+    }
   }
-
-  do {
-    const void *ls2[2] = {l->head.data, l->next->head.data};
-    float ws2[2] = {0.5f, 0.5f};
-
-    if (!snap) {
-      const int axis = l->v == v_del ? 0 : 1;
-
-      ws2[axis] = 0.0f;
-      ws2[axis ^ 1] = 1.0f;
-    }
-
-    for (int step = 0; uv_layer && step < 2; step++) {
-      BMLoop *l1 = step ? l : l->next;
-
-      for (int k = 0; k < totuv; k++) {
-        float *luv = (float *)BM_ELEM_CD_GET_VOID_P(l1, uv_layer[k].offset);
-
-        copy_v2_v2(uv[k * 2 + step], luv);
-      }
-    }
-
-    CustomData_bmesh_interp(&pbvh->header.bm->ldata, ls2, ws2, nullptr, 2, l->head.data);
-    CustomData_bmesh_copy_data(
-        &pbvh->header.bm->ldata, &pbvh->header.bm->ldata, l->head.data, &l->next->head.data);
-
-    for (int step = 0; totuv >= 0 && step < 2; step++) {
-      BMVert *v = step ? l->next->v : l->v;
-      BMLoop *l1 = step ? l->next : l;
-      BMEdge *e2 = v->e;
-
-      do {
-        BMLoop *l2 = e2->l;
-
-        if (!l2) {
-          continue;
-        }
-
-        do {
-          BMLoop *l3 = l2->v != v ? l2->next : l2;
-
-          if (!l3 || l3 == l1 || l3 == l || l3 == l->next) {
-            continue;
-          }
-
-          for (int k = 0; k < totuv; k++) {
-            const int flag = 1 << k;
-
-            if (l3->head.index & flag) {
-              continue;
-            }
-
-            const int cd_uv = uv_layer[k].offset;
-
-            float *luv1 = (float *)BM_ELEM_CD_GET_VOID_P(l1, cd_uv);
-            float *luv2 = (float *)BM_ELEM_CD_GET_VOID_P(l3, cd_uv);
-
-            float dx = luv2[0] - uv[k * 2 + step][0];
-            float dy = luv2[1] - uv[k * 2 + step][1];
-
-            float delta = dx * dx + dy * dy;
-
-            if (delta < limit) {
-              l3->head.index |= flag;
-              copy_v2_v2(luv2, luv1);
-            }
-          }
-        } while ((l2 = l2->radial_next) != e2->l);
-      } while ((e2 = BM_DISK_EDGE_NEXT(e2, v)) != v->e);
-    }
-  } while ((l = l->radial_next) != e->l);
 
   return snap;
 }
@@ -437,9 +504,14 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v1, pbvh->cd_boundary_flag);
   int boundflag2 = BM_ELEM_CD_GET_INT(v2, pbvh->cd_boundary_flag);
+  int e_boundflag = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary);
 
   /* Don't collapse across boundaries. */
   if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (boundflag2 & SCULPTVERT_ALL_BOUNDARY)) {
+    return nullptr;
+  }
+
+  if ((boundflag1 & SCULPTVERT_ALL_BOUNDARY) != (e_boundflag & SCULPTVERT_ALL_BOUNDARY)) {
     return nullptr;
   }
 
@@ -450,8 +522,7 @@ BMVert *EdgeQueueContext::collapse_edge(PBVH *pbvh, BMEdge *e, BMVert *v1, BMVer
   bool corner2 = (boundflag2 & SCULPTVERT_ALL_CORNER) || w2 >= 0.85;
 
   /* We allow two corners of the same type[s] to collapse */
-  if ((boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER))
-  {
+  if ((boundflag1 & SCULPTVERT_ALL_CORNER) != (boundflag2 & SCULPTVERT_ALL_CORNER)) {
     return nullptr;
   }
 

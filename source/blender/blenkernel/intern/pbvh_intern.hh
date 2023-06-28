@@ -422,7 +422,7 @@ void pbvh_bmesh_check_nodes_simple(PBVH *pbvh);
 void bke_pbvh_insert_face_finalize(PBVH *pbvh, BMFace *f, const int ni);
 void bke_pbvh_insert_face(PBVH *pbvh, struct BMFace *f);
 
-BLI_INLINE bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, struct BMVert *v)
+inline bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, struct BMVert *v)
 {
   int flag = BM_ELEM_CD_GET_INT(v, pbvh->cd_boundary_flag);
 
@@ -442,6 +442,26 @@ BLI_INLINE bool pbvh_check_vert_boundary_bmesh(PBVH *pbvh, struct BMVert *v)
   else if (flag & SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE) {
     blender::bke::pbvh::update_sharp_vertex_bmesh(
         v, pbvh->cd_boundary_flag, pbvh->sharp_angle_limit);
+  }
+
+  return false;
+}
+
+inline bool pbvh_check_edge_boundary_bmesh(PBVH *pbvh, struct BMEdge *e)
+{
+  int flag = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary);
+
+  if (flag & (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV |
+              SCULPT_BOUNDARY_UPDATE_SHARP_ANGLE))
+  {
+    blender::bke::pbvh::update_edge_boundary_bmesh(e,
+                                                   pbvh->cd_faceset_offset,
+                                                   pbvh->cd_edge_boundary,
+                                                   pbvh->cd_flag,
+                                                   pbvh->cd_valence,
+                                                   &pbvh->header.bm->ldata,
+                                                   pbvh->sharp_angle_limit);
+    return true;
   }
 
   return false;

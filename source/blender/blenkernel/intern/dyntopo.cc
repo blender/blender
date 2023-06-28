@@ -226,7 +226,8 @@ static void surface_smooth_v_safe(
   /* Reproject attributes. */
   if (reproject_cdata) {
     BKE_sculpt_reproject_cdata(ss, vertex, startco, startno, false);
-    blender::bke::sculpt::interp_face_corners(pbvh, vertex, loops, ws, fac, pbvh->cd_boundary_flag);
+    blender::bke::sculpt::interp_face_corners(
+        pbvh, vertex, loops, ws, fac, pbvh->cd_boundary_flag);
   }
 
   PBVH_CHECK_NAN(v->co);
@@ -1709,7 +1710,17 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
      */
     BMEdge *e = v->e;
     do {
+      BMLoop *l2 = e->l;
+
+      /* Double check edge boundary flags, in addition to the vertex boundary flag test above. */
+      pbvh_check_edge_boundary_bmesh(pbvh, e);
+      if (BM_ELEM_CD_GET_INT(e, ectx->pbvh->cd_edge_boundary) & SCULPTVERT_ALL_BOUNDARY) {
+        bad = true;
+        break;
+      }
+
       float len = calc_weighted_length(ectx, e->v1, e->v2, SPLIT);
+
       if (sqrtf(len) > ectx->limit_len_max * 1.5f) {
         bad = true;
         break;
@@ -2123,7 +2134,9 @@ void EdgeQueueContext::start()
 
 bool EdgeQueueContext::done()
 {
-  if (edge_heap.empty() || edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr) {
+  if (edge_heap.empty() ||
+      edge_heap.min_weight() > limit_len_min_sqr && edge_heap.max_weight() < limit_len_max_sqr)
+  {
     return true;
   }
 
@@ -2518,6 +2531,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
 
   dyntopo_add_flag(pbvh, e->v1, SCULPTFLAG_NEED_VALENCE);
   dyntopo_add_flag(pbvh, e->v2, SCULPTFLAG_NEED_VALENCE);
+
   pbvh_boundary_update_bmesh(pbvh, e->v1);
   pbvh_boundary_update_bmesh(pbvh, e->v2);
   pbvh_boundary_update_bmesh(pbvh, e);
@@ -2544,6 +2558,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   }
   else {
     *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) |= SCULPT_BOUNDARY_UV;
+    *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~SCULPT_CORNER_UV;
   }
 
   /* Propagate current stroke id. */
@@ -3383,6 +3398,7 @@ template<typename T, typename SumT = T>
 static void interp_prop_data(
     const void **src_blocks, const float *weights, int count, void *dst_block, int cd_offset)
 {
+  using namespace blender;
   SumT sum;
 
   if constexpr (std::is_same_v<SumT, float>) {
@@ -3393,13 +3409,28 @@ static void interp_prop_data(
   }
 
   for (int i = 0; i < count; i++) {
-    const T *value = static_cast<const T *>(POINTER_OFFSET(src_blocks[i], cd_offset));
-    sum += (*value) * weights[i];
+    const T value = *static_cast<const T *>(POINTER_OFFSET(src_blocks[i], cd_offset));
+
+    if constexpr (std::is_same_v<T, uchar4>) {
+      sum[0] += float(value[0]) * weights[0];
+      sum[1] += float(value[1]) * weights[1];
+      sum[2] += float(value[2]) * weights[2];
+      sum[3] += float(value[3]) * weights[3];
+    }
+    else {
+      sum += value * weights[i];
+    }
   }
 
   if (count > 0) {
     T *dest = static_cast<T *>(POINTER_OFFSET(dst_block, cd_offset));
-    *dest = sum;
+
+    if constexpr (std::is_same_v<T, uchar4>) {
+      *dest = {uchar(sum[0]), uchar(sum[1]), uchar(sum[2]), uchar(sum[3])};
+    }
+    else {
+      *dest = sum;
+    }
   }
 }
 
@@ -3436,9 +3467,9 @@ void reproject_interp_data(CustomData *data,
       case CD_PROP_COLOR:
         interp_prop_data<float4>(src_blocks, weights, count, dst_block, layer->offset);
         break;
-        // case CD_PROP_BYTE_COLOR:
-        // interp_prop_data<uchar4, float4>(src_blocks, weights, count, dst_block, layer->offset);
-        // break;
+      case CD_PROP_BYTE_COLOR:
+        interp_prop_data<uchar4, float4>(src_blocks, weights, count, dst_block, layer->offset);
+        break;
     }
   }
 }
@@ -3675,7 +3706,7 @@ void BKE_sculpt_reproject_cdata(
   int cur_vblock = 0;
 
   eCustomDataMask typemask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
-                             CD_MASK_PROP_BYTE_COLOR | CD_MASK_PROP_COLOR;
+                             CD_MASK_PROP_COLOR | CD_PROP_BYTE_COLOR;
 
   if (!do_uvs) {
     typemask &= ~CD_MASK_PROP_FLOAT2;

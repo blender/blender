@@ -2720,7 +2720,19 @@ static PBVH *build_pbvh_from_regular_mesh(Object *ob, Mesh *me_eval_deform)
 
   PBVH *pbvh = ob->sculpt->pbvh = BKE_pbvh_new(PBVH_FACES);
 
+  BKE_sculpt_ensure_sculpt_layers(ob);
   BKE_sculpt_init_flags_valence(ob, pbvh, me->totvert, true);
+  BKE_sculpt_ensure_origco(ob);
+
+  Mesh *mesh = static_cast<Mesh *>(ob->data);
+  Span<float3> positions = mesh->vert_positions();
+  Span<float3> normals = mesh->vert_normals();
+
+  for (int i = 0; i < mesh->totvert; i++) {
+    blender::bke::paint::vertex_attr_set<float3>({i}, ss->attrs.orig_co, positions[i]);
+    blender::bke::paint::vertex_attr_set<float3>({i}, ss->attrs.orig_no, normals[i]);
+  }
+
   sculpt_check_face_areas(ob, pbvh);
   BKE_sculptsession_update_attr_refs(ob);
 
@@ -4752,8 +4764,7 @@ void interp_face_corners(PBVH *pbvh,
     return; /* Only for PBVH_BMESH. */
   }
 
-  eCustomDataMask mask = CD_MASK_PROP_FLOAT | CD_MASK_PROP_FLOAT2 | CD_MASK_PROP_FLOAT3 |
-                         CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR;
+  eCustomDataMask mask = CD_MASK_PROP_FLOAT2;
 
   BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
   BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
