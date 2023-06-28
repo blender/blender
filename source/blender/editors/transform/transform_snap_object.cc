@@ -1213,14 +1213,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
 
-  bool use_occlusion_test = params->use_occlusion_test;
-  if (use_occlusion_test && XRAY_ENABLED(v3d)) {
-    if (snap_to_flag != SCE_SNAP_TO_FACE) {
-      /* In theory everything is visible in X-Ray except faces. */
-      snap_to_flag &= ~SCE_SNAP_TO_FACE;
-      use_occlusion_test = false;
-    }
-  }
+  bool use_occlusion_test = params->use_occlusion_test && !XRAY_ENABLED(v3d);
 
   if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     if (!ED_view3d_win_to_ray_clipped_ex(depsgraph,
@@ -1290,7 +1283,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     }
   }
 
-  if ((snap_to_flag & SCE_SNAP_TO_FACE) || sctx->runtime.params.use_occlusion_test) {
+  if (use_occlusion_test || (snap_to_flag & SCE_SNAP_TO_FACE)) {
     has_hit = raycastObjects(sctx);
 
     if (has_hit) {
@@ -1324,8 +1317,10 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
     /* Remove what has already been computed. */
     sctx->runtime.snap_to_flag &= ~(SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST);
 
-    /* By convention we only snap to the original elements of a curve. */
-    if (has_hit && sctx->ret.ob->type != OB_CURVES_LEGACY) {
+    if (use_occlusion_test && has_hit &&
+        /* By convention we only snap to the original elements of a curve. */
+        sctx->ret.ob->type != OB_CURVES_LEGACY)
+    {
       /* Compute the new clip_pane but do not add it yet. */
       float new_clipplane[4];
       BLI_ASSERT_UNIT_V3(sctx->ret.no);
