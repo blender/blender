@@ -150,7 +150,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 
   float total = 0.0f;
-  int totboundary = 0, totsharp = 0;
+  int totboundary = 0;
 
   Vector<float, 32> ws;
   Vector<BMLoop *, 32> loops;
@@ -176,6 +176,61 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
     } while ((l = l->radial_next) != e->l);
   };
 
+#if 0
+  if (weighted && ss->bm && ss->bm->ldata.typemap[CD_PROP_FLOAT2] != -1) {
+    SculptVertexNeighborIter ni;
+    BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
+    int cd_uv = ss->bm->ldata.layers[ss->bm->ldata.typemap[CD_PROP_FLOAT2]].offset;
+    float totarea = 0.0f;
+    int count = 0;
+    float(*points)[2] = (float(*)[2])BLI_array_alloca(points, valence * 4);
+    float *weights = (float *)BLI_array_alloca(weights, valence * 2);
+    float2 v_uv = {};
+
+    SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
+      BMEdge *e = reinterpret_cast<BMEdge *>(ni.edge.i);
+
+      BMLoop *l = e->l;
+      if (l->v == v) {
+        l = l->radial_next;
+      }
+
+      BMLoop *l1 = l->v == v ? l : l->next;
+      BMLoop *other_l1 = l->v == v ? l->next : l;
+
+      v_uv += *BM_ELEM_CD_PTR<float2 *>(l1, cd_uv);
+      copy_v2_v2(points[count], BM_ELEM_CD_PTR<float *>(other_l1, cd_uv));
+      count++;
+    }
+    SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
+
+    if (count == 0) {
+      return;
+    }
+
+    v_uv /= float(count);
+    interp_weights_poly_v2(weights, points, count, v_uv);
+
+    totarea = 0.0f;
+    for (int i = 0; i < count; i++) {
+      float w = weights[i];
+      w = min_ff(max_ff(w, 0.0f), 1.0f);
+      totarea += w;
+      areas[i] = w;
+    }
+
+    for (int i = 0; i < count; i++) {
+      // break;
+      if (totarea != 0.0f) {
+        areas[i] /= totarea;
+      }
+      else {
+        areas[i] = 1.0f / float(count);
+      }
+    }
+  }
+#endif
+
   SculptVertexNeighborIter ni;
   SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN (ss, vertex, ni) {
     bool project_ok;
@@ -197,10 +252,6 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
 
     if (is_boundary2) {
       totboundary++;
-    }
-
-    if (is_boundary2 & hard_flags) {
-      totsharp++;
     }
 
     /* Boundary vertices use only other boundary vertices. */
