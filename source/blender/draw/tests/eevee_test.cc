@@ -1160,22 +1160,22 @@ static void test_eevee_surfel_list()
     Surfel surfel;
     /* NOTE: Expected link assumes linear increasing processing order [0->5]. But this is
      * multithreaded and we can't know the execution order in advance. */
-    /* 0: Project to (1, 0) = list 1. Unsorted Next = -1; Next = -1;  Prev = 3. */
+    /* 0: Project to (1, 0) = list 1. Unsorted Next = -1; Next = -1; Previous = 3. */
     surfel.position = {1.1f, 0.1f, 0.1f};
     surfel_buf.append(surfel);
-    /* 1: Project to (1, 0) = list 1. Unsorted Next = 0; Next = 2; Prev = -1. */
+    /* 1: Project to (1, 0) = list 1. Unsorted Next = 0; Next = 2; Previous = -1. */
     surfel.position = {1.1f, 0.2f, 0.5f};
     surfel_buf.append(surfel);
-    /* 2: Project to (1, 0) = list 1. Unsorted Next = 1; Next = 3; Prev = 1. */
+    /* 2: Project to (1, 0) = list 1. Unsorted Next = 1; Next = 3; Previous = 1. */
     surfel.position = {1.1f, 0.3f, 0.3f};
     surfel_buf.append(surfel);
-    /* 3: Project to (1, 0) = list 1. Unsorted Next = 2; Next = 0; Prev = 2. */
+    /* 3: Project to (1, 0) = list 1. Unsorted Next = 2; Next = 0; Previous = 2. */
     surfel.position = {1.2f, 0.4f, 0.2f};
     surfel_buf.append(surfel);
-    /* 4: Project to (1, 1) = list 3. Unsorted Next = -1; Next = -1;  Prev = -1. */
+    /* 4: Project to (1, 1) = list 3. Unsorted Next = -1; Next = -1; Previous = -1. */
     surfel.position = {1.0f, 1.0f, 0.5f};
     surfel_buf.append(surfel);
-    /* 5: Project to (0, 1) = list 2. Unsorted Next = -1; Next = -1;  Prev = -1. */
+    /* 5: Project to (0, 1) = list 2. Unsorted Next = -1; Next = -1; Previous = -1. */
     surfel.position = {0.1f, 1.1f, 0.5f};
     surfel_buf.append(surfel);
 
@@ -1225,7 +1225,7 @@ static void test_eevee_surfel_list()
   list_start_buf.read();
   surfel_buf.read();
 
-  /* NOTE: All of these are unstable by definition (atomic + multithread).
+  /* NOTE: All of these are unstable by definition (atomic + multi-thread).
    * But should be consistent since we only dispatch one thread-group. */
   /* Expect last added surfel index. It is the list start index before sorting. */
   Vector<int> expect_list_start = {-1, 3, 5, 4};

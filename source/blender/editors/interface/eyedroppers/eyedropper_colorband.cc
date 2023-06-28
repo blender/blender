@@ -223,7 +223,7 @@ static int eyedropper_colorband_modal(bContext *C, wmOperator *op, const wmEvent
         return is_undo ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
       }
       case EYE_MODAL_SAMPLE_BEGIN:
-        /* enable accum and make first sample */
+        /* Enable accumulate and make first sample. */
         eye->sample_start = true;
         eyedropper_colorband_sample_point(C, eye, event->xy);
         eyedropper_colorband_apply(C, op);

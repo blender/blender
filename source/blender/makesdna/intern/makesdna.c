@@ -5,7 +5,7 @@
 /** \file
  * \ingroup DNA
  *
- * \brief Struct muncher for making SDNA.
+ * \brief Struct parser for generating SDNA.
  *
  * \section aboutmakesdnac About makesdna tool
  *

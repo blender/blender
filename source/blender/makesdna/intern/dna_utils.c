@@ -5,7 +5,7 @@
 /** \file
  * \ingroup DNA
  *
- * Utilities for stand-alone makesdna.c and Blender to share.
+ * Utilities for stand-alone `makesdna.c` and Blender to share.
  */
 
 #include <string.h>

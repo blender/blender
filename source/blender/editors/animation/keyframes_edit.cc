@@ -119,7 +119,7 @@ short ANIM_fcurve_keyframes_loop(KeyframeEditData *ked,
     }
   }
 
-  /* unset the F-Curve from the editdata now that it's done */
+  /* Unset the F-Curve from the edit-data now that it's done. */
   if (ked) {
     ked->fcu = nullptr;
     ked->curIndex = 0;

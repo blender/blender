@@ -549,7 +549,7 @@ static void sound_load_audio(Main *bmain, bSound *sound, bool free_waveform)
     /* load sound */
     PackedFile *pf = sound->packedfile;
 
-    /* don't modify soundact->sound->filepath, only change a copy */
+    /* Don't modify `sound->filepath`, only change a copy. */
     STRNCPY(fullpath, sound->filepath);
     BLI_path_abs(fullpath, ID_BLEND_PATH(bmain, &sound->id));
 

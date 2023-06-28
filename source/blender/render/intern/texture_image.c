@@ -846,7 +846,7 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
   const float D = (EWA_MAXIDX + 1) * 0.25f * (du * du + dv * dv) / (AFD->majrad * AFD->majrad);
   float d; /* TXF alpha: cw = 0.0f; */
   int n;   /* TXF alpha: clip = 0; */
-  /* have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D calc.) */
+  /* Have to use same scaling for du/dv here as for Ux/Vx/Uy/Vy (*after* D is calculated.) */
   du *= AFD->dusc;
   dv *= AFD->dvsc;
   d = texr->trgba[0] = texr->trgba[2] = texr->trgba[1] = texr->trgba[3] = 0.0f;

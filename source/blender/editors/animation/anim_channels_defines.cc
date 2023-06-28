@@ -497,9 +497,8 @@ static void *acf_summary_setting_ptr(bAnimListElem *ale,
 {
   bAnimContext *ac = (bAnimContext *)ale->data;
 
-  /* if data is valid, return pointer to active dopesheet's relevant flag
-   * - this is restricted to DopeSheet/Action Editor only
-   */
+  /* If data is valid, return pointer to active dope-sheet's relevant flag
+   * - this is restricted to DopeSheet/Action Editor only. */
   if ((ac->sl) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
     SpaceAction *saction = (SpaceAction *)ac->sl;
     bDopeSheet *ads = &saction->ads;
@@ -3828,7 +3827,7 @@ static bool acf_nlatrack_setting_valid(bAnimContext * /*ac*/,
           return false;
         }
 
-        /* ok - no tracks are solo'd, and this isn't being tweaked */
+        /* Ok - no tracks are soloed, and this isn't being tweaked. */
         return true;
       }
       /* unsupported - this track is being tweaked */
@@ -5416,7 +5415,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
     /* Draw slider:
      * - Even if we can draw sliders for this view, we must also check that the channel-type
      *   supports them (only F-Curves really can support them for now).
-     * - To make things easier, we use RNA-autobuts for this so that changes are
+     * - To make things easier, we use RNA-auto-buttons for this so that changes are
      *   reflected immediately, wherever they occurred.
      *   BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
      *   and wouldn't be able to auto-keyframe.

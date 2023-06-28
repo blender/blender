@@ -328,7 +328,7 @@ struct AOVsInfoData {
   uint value_len;
   /** Id of the AOV to be displayed (from the start of the AOV array). -1 for combined. */
   int display_id;
-  /** True if the AOV to be displayed is from the value accum buffer. */
+  /** True if the AOV to be displayed is from the value accumulation buffer. */
   bool1 display_is_value;
 };
 BLI_STATIC_ASSERT_ALIGN(AOVsInfoData, 16)
@@ -884,7 +884,7 @@ struct CaptureInfoData {
   float sample_count;
   /** 0 based sample index. */
   float sample_index;
-  /** Transform of the lightprobe object. */
+  /** Transform of the light-probe object. */
   float4x4 irradiance_grid_local_to_world;
   /** Transform vectors from world space to local space. Does not have location component. */
   /** TODO(fclem): This could be a float3x4 or a float3x3 if padded correctly. */

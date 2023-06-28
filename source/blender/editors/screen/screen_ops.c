@@ -822,7 +822,7 @@ static bool azone_clipped_rect_calc(const AZone *az, rcti *r_rect_clip)
 static void area_actionzone_get_rect(AZone *az, rcti *rect)
 {
   if (az->type == AZONE_REGION_SCROLL) {
-    /* For scroll azones use the area around the region's scrollbar location. */
+    /* For scroll azones use the area around the region's scroll-bar location. */
     rcti scroller_vert = (az->direction == AZ_SCROLL_HOR) ? az->region->v2d.hor :
                                                             az->region->v2d.vert;
     BLI_rcti_translate(&scroller_vert, az->region->winrct.xmin, az->region->winrct.ymin);

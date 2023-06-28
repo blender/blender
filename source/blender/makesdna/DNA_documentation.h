@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup DNA
- * \page makesdna makesdna
+ * \page makesdna Make Struct DNA (`makesdna`)
  *
  * \section aboutdna About the DNA module
  *
