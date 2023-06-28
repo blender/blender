@@ -1787,17 +1787,66 @@ static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
   return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
-
-          (!ss->cache || (!ss->cache->alt_smooth)) &&
-
-          /* Requires mesh restore, which doesn't work with
-           * dynamic-topology. */
-          !(brush->flag & BRUSH_ANCHORED) && !(brush->flag & BRUSH_DRAG_DOT) &&
-
           SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
 /** \} */
+
+static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
+                                                            Sculpt *sd,
+                                                            const Brush *brush,
+                                                            bool use_original,
+                                                            float radius,
+                                                            PBVHNodeFlags flag)
+{
+  SculptSession *ss = ob->sculpt;
+  Vector<PBVHNode *> nodes;
+  PBVHNodeFlags leaf_flag = PBVH_Leaf;
+
+  if (flag & PBVH_TexLeaf) {
+    leaf_flag = PBVH_TexLeaf;
+  }
+
+  /* Build a list of all nodes that are potentially within the cursor or brush's area of influence.
+   */
+  if (!ss->cache || brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+    SculptSearchSphereData data{};
+    data.ss = ss;
+    data.sd = sd;
+    data.radius_squared = square_f(radius);
+    data.original = use_original;
+    data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
+    data.center = nullptr;
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, leaf_flag);
+  }
+  else {
+    DistRayAABB_Precalc dist_ray_to_aabb_precalc;
+    dist_squared_ray_to_aabb_v3_precalc(
+        &dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
+    SculptSearchCircleData data{};
+    data.ss = ss;
+    data.sd = sd;
+    data.radius_squared = square_f(radius);
+    data.original = use_original;
+    data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
+    data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
+    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, leaf_flag);
+  }
+
+  return nodes;
+}
+
+static Vector<PBVHNode *> sculpt_pbvh_gather_generic(
+    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius)
+{
+  return sculpt_pbvh_gather_generic_intern(ob, sd, brush, use_original, radius, PBVH_Leaf);
+}
+
+static Vector<PBVHNode *> sculpt_pbvh_gather_texpaint(
+    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius)
+{
+  return sculpt_pbvh_gather_generic_intern(ob, sd, brush, use_original, radius, PBVH_TexLeaf);
+}
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Paint Mesh
@@ -1828,19 +1877,6 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
       break;
   }
 
-  SculptUndoNode *unode;
-
-  if (ss->bm) {
-    unode = SCULPT_undo_push_node(data->ob, data->nodes[n], type);
-  }
-  else {
-    unode = SCULPT_undo_get_node(data->nodes[n], type);
-  }
-
-  if (!unode) {
-    return;
-  }
-
   switch (type) {
     case SCULPT_UNDO_MASK:
       BKE_pbvh_node_mark_update_mask(data->nodes[n]);
@@ -1862,7 +1898,9 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
 
   bool modified = false;
 
-  if (unode->type == SCULPT_UNDO_FACE_SETS) {
+  if (!ss->bm && type & SCULPT_UNDO_FACE_SETS) {
+    SculptUndoNode *unode = SCULPT_undo_get_node(data->nodes[n], SCULPT_UNDO_FACE_SETS);
+
     SculptOrigFaceData orig_face_data;
     SCULPT_orig_face_data_unode_init(&orig_face_data, data->ob, unode);
 
@@ -1876,7 +1914,10 @@ static void paint_mesh_restore_co_task_cb(void *__restrict userdata,
     }
 
     BKE_pbvh_face_iter_end(fd);
-    return;
+
+    if (!(type & ~SCULPT_UNDO_FACE_SETS)) {
+      return;
+    }
   }
 
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
@@ -1939,7 +1980,15 @@ static void paint_mesh_restore_co(Sculpt *sd, Object *ob)
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
 
-  Vector<PBVHNode *> nodes = blender::bke::pbvh::search_gather(ss->pbvh, nullptr, nullptr);
+  float radius = (brush->flag & BRUSH_ANCHORED) ?
+                     1.25 * max_ff(ss->cache->last_anchored_radius, ss->cache->radius) :
+                     ss->cache->radius;
+
+  if (brush->flag & BRUSH_DRAG_DOT) {
+    radius = max_ff(radius, ss->cache->initial_radius) * 1.25f;
+  }
+
+  Vector<PBVHNode *> nodes = sculpt_pbvh_gather_generic(ob, sd, brush, true, radius);
 
   SculptThreadedTaskData data{};
   data.sd = sd;
@@ -3205,64 +3254,6 @@ static Vector<PBVHNode *> sculpt_pbvh_gather_cursor_update(Object *ob,
   return blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data);
 }
 
-static Vector<PBVHNode *> sculpt_pbvh_gather_generic_intern(Object *ob,
-                                                            Sculpt *sd,
-                                                            const Brush *brush,
-                                                            bool use_original,
-                                                            float radius_scale,
-                                                            PBVHNodeFlags flag)
-{
-  SculptSession *ss = ob->sculpt;
-  Vector<PBVHNode *> nodes;
-  PBVHNodeFlags leaf_flag = PBVH_Leaf;
-
-  if (flag & PBVH_TexLeaf) {
-    leaf_flag = PBVH_TexLeaf;
-  }
-
-  /* Build a list of all nodes that are potentially within the cursor or brush's area of influence.
-   */
-  if (brush->falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
-    SculptSearchSphereData data{};
-    data.ss = ss;
-    data.sd = sd;
-    data.radius_squared = square_f(ss->cache->radius * radius_scale);
-    data.original = use_original;
-    data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
-    data.center = nullptr;
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_sphere_cb, &data, leaf_flag);
-  }
-  else {
-    DistRayAABB_Precalc dist_ray_to_aabb_precalc;
-    dist_squared_ray_to_aabb_v3_precalc(
-        &dist_ray_to_aabb_precalc, ss->cache->location, ss->cache->view_normal);
-    SculptSearchCircleData data{};
-    data.ss = ss;
-    data.sd = sd;
-    data.radius_squared = ss->cache ? square_f(ss->cache->radius * radius_scale) :
-                                      ss->cursor_radius;
-    data.original = use_original;
-    data.dist_ray_to_aabb_precalc = &dist_ray_to_aabb_precalc;
-    data.ignore_fully_ineffective = brush->sculpt_tool != SCULPT_TOOL_MASK;
-    nodes = blender::bke::pbvh::search_gather(ss->pbvh, SCULPT_search_circle_cb, &data, leaf_flag);
-  }
-
-  return nodes;
-}
-
-static Vector<PBVHNode *> sculpt_pbvh_gather_generic(
-    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius_scale)
-{
-  return sculpt_pbvh_gather_generic_intern(ob, sd, brush, use_original, radius_scale, PBVH_Leaf);
-}
-
-static Vector<PBVHNode *> sculpt_pbvh_gather_texpaint(
-    Object *ob, Sculpt *sd, const Brush *brush, bool use_original, float radius_scale)
-{
-  return sculpt_pbvh_gather_generic_intern(
-      ob, sd, brush, use_original, radius_scale, PBVH_TexLeaf);
-}
-
 /* Calculate primary direction of movement for many brushes. */
 static void calc_sculpt_normal(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float r_area_no[3])
 {
@@ -3962,12 +3953,6 @@ static void sculpt_topology_update(Sculpt *sd,
     mode |= PBVH_Cleanup;
   }
 
-  /* Force both subdivide and collapse for simplify brush. */
-  // XXX done with inherit flags now
-  if (brush->sculpt_tool == SCULPT_TOOL_SIMPLIFY) {
-    // mode |= PBVH_Collapse | PBVH_Subdivide;
-  }
-
   SculptSearchSphereData sdata{};
   sdata.ss = ss, sdata.sd = sd, sdata.ob = ob;
   sdata.radius_squared = square_f(ss->cache->radius * radius_scale * 1.25f);
@@ -4129,11 +4114,12 @@ static void do_brush_action(Sculpt *sd,
   const bool use_original = sculpt_tool_needs_original(brush->sculpt_tool) || !ss->cache->accum;
   const bool use_pixels = sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob);
   bool needs_original = use_original || SCULPT_automasking_needs_original(sd, brush);
+  needs_original |= (brush->flag & (BRUSH_ANCHORED | BRUSH_DRAG_DOT));
 
   if (sculpt_needs_pbvh_pixels(paint_mode_settings, brush, ob)) {
     sculpt_pbvh_update_pixels(paint_mode_settings, ss, ob);
 
-    texnodes = sculpt_pbvh_gather_texpaint(ob, sd, brush, use_original, 1.0f);
+    texnodes = sculpt_pbvh_gather_texpaint(ob, sd, brush, use_original, ss->cache->radius);
 
     if (texnodes.is_empty()) {
       return;
@@ -4162,7 +4148,8 @@ static void do_brush_action(Sculpt *sd,
     if (brush->sculpt_tool == SCULPT_TOOL_DRAW && brush->flag & BRUSH_ORIGINAL_NORMAL) {
       radius_scale = 2.0f;
     }
-    nodes = sculpt_pbvh_gather_generic(ob, sd, brush, use_original, radius_scale);
+    nodes = sculpt_pbvh_gather_generic(
+        ob, sd, brush, use_original, ss->cache->radius * radius_scale);
   }
 
   /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
@@ -5582,20 +5569,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
     }
   }
 
-  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT))
-  {
-    cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
-    cache->dyntopo_pixel_radius = sculpt_brush_dynamic_size_get(
-        brush, cache, ups->initial_pixel_radius);
-  }
-  else {
-    cache->radius = cache->initial_radius;
-    cache->dyntopo_pixel_radius = ups->initial_pixel_radius;
-  }
-
   sculpt_update_cache_paint_variants(cache, brush);
-
-  cache->radius_squared = cache->radius * cache->radius;
 
   if (brush->flag & BRUSH_ANCHORED) {
     /* True location has been calculated as part of the stroke system already here. */
@@ -5603,12 +5577,32 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob, Po
       RNA_float_get_array(ptr, "location", cache->true_location);
     }
 
+    cache->last_anchored_radius = cache->radius;
+
     cache->radius = paint_calc_object_space_radius(
         cache->vc, cache->true_location, ups->pixel_radius);
-    cache->radius_squared = cache->radius * cache->radius;
 
     copy_v3_v3(cache->anchored_location, cache->true_location);
   }
+  else if (BKE_brush_use_size_pressure(brush) &&
+           paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT))
+  {
+    cache->radius = sculpt_brush_dynamic_size_get(brush, cache, cache->initial_radius);
+  }
+  else {
+    cache->radius = cache->initial_radius;
+  }
+
+  if (BKE_brush_use_size_pressure(brush) && paint_supports_dynamic_size(brush, PAINT_MODE_SCULPT))
+  {
+    cache->dyntopo_pixel_radius = sculpt_brush_dynamic_size_get(
+        brush, cache, ups->initial_pixel_radius);
+  }
+  else {
+    cache->dyntopo_pixel_radius = ups->initial_pixel_radius;
+  }
+
+  cache->radius_squared = cache->radius * cache->radius;
 
   sculpt_update_brush_delta(ups, ob, brush);
 
@@ -6402,6 +6396,11 @@ static void sculpt_stroke_update_step(bContext *C,
   }
   cache->stroke_distance_t += stroke_delta;
 
+  float radius = ss->cache->radius;
+  if (brush->flag & BRUSH_ANCHORED) {
+    radius = SCULPT_calc_radius(cache->vc, brush, CTX_data_scene(C), cache->true_location);
+  }
+
   if (ELEM(ss->cached_dyntopo.mode, DYNTOPO_DETAIL_CONSTANT, DYNTOPO_DETAIL_MANUAL)) {
     float object_space_constant_detail = 1.0f / (ss->cached_dyntopo.constant_detail *
                                                  mat4_to_scale(ob->object_to_world));
@@ -6409,14 +6408,12 @@ static void sculpt_stroke_update_step(bContext *C,
         ss->pbvh, object_space_constant_detail, DYNTOPO_DETAIL_RANGE);
   }
   else if (ss->cached_dyntopo.mode == DYNTOPO_DETAIL_BRUSH) {
-    blender::bke::dyntopo::detail_size_set(ss->pbvh,
-                                           ss->cache->radius * ss->cached_dyntopo.detail_percent /
-                                               100.0f,
-                                           DYNTOPO_DETAIL_RANGE);
+    blender::bke::dyntopo::detail_size_set(
+        ss->pbvh, radius * ss->cached_dyntopo.detail_percent / 100.0f, DYNTOPO_DETAIL_RANGE);
   }
   else { /* Relative mode. */
     blender::bke::dyntopo::detail_size_set(ss->pbvh,
-                                           (ss->cache->radius / ss->cache->dyntopo_pixel_radius) *
+                                           (radius / ss->cache->dyntopo_pixel_radius) *
                                                (ss->cached_dyntopo.detail_size * U.pixelsize),
                                            DYNTOPO_DETAIL_RANGE);
   }
@@ -6425,7 +6422,8 @@ static void sculpt_stroke_update_step(bContext *C,
 
   bool do_dyntopo = SCULPT_stroke_is_dynamic_topology(ss, brush);
 
-  if (dyntopo_spacing > 0.0f) {
+  bool has_spacing = !(brush->flag & BRUSH_ANCHORED);
+  if (has_spacing && dyntopo_spacing > 0.0f) {
     do_dyntopo = do_dyntopo &&
                  (ss->cache->stroke_distance_t == 0.0f ||
                   ss->cache->stroke_distance_t - ss->cache->last_dyntopo_t > dyntopo_spacing);

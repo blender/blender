@@ -672,6 +672,7 @@ struct StrokeCache {
   float initial_mouse[2];
 
   /* Variants */
+  float last_anchored_radius; /* Used by paint_mesh_restore_co. */
   float radius;
   float radius_squared;
   float true_location[3];
