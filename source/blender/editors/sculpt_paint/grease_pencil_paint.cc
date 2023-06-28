@@ -52,11 +52,6 @@ struct PaintOperationExecutor {
      * original object.
      */
     GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob_eval->data);
-    if (!grease_pencil.has_active_layer()) {
-      /* TODO: create a new layer. */
-      BLI_assert_unreachable();
-      // grease_pencil.runtime->set_active_layer_index(0);
-    }
 
     float4 plane{0.0f, -1.0f, 0.0f, 0.0f};
     float3 proj_pos;
@@ -87,12 +82,9 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   GreasePencil &grease_pencil_orig = *static_cast<GreasePencil *>(obact->data);
   GreasePencil &grease_pencil_eval = *static_cast<GreasePencil *>(ob_eval->data);
-  BLI_assert(grease_pencil_orig.has_active_layer() && grease_pencil_eval.has_active_layer());
+  BLI_assert(grease_pencil_orig.has_active_layer());
   const bke::greasepencil::Layer &active_layer_orig = *grease_pencil_orig.get_active_layer();
-  const bke::greasepencil::Layer &active_layer_eval = *grease_pencil_eval.get_active_layer();
   int index_orig = active_layer_orig.drawing_index_at(scene->r.cfra);
-  int index_eval = active_layer_eval.drawing_index_at(scene->r.cfra);
-  BLI_assert(index_orig != -1 && index_eval != -1);
 
   bke::greasepencil::Drawing &drawing_orig =
       reinterpret_cast<GreasePencilDrawing *>(grease_pencil_orig.drawings()[index_orig])->wrap();
