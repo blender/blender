@@ -184,7 +184,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   }
   copy_v2_v2_int(t->mval, mval);
   copy_v2_v2_int(t->mouse.imval, mval);
-  copy_v2_v2_int(t->con.imval, mval);
 
   t->mode_info = NULL;
 

@@ -330,9 +330,6 @@ typedef struct TransCon {
   char text[50];
   /** Projection constraint matrix (same as #imtx with some axis == 0). */
   float pmtx[3][3];
-  /** Initial mouse value for visual calculation
-   * the one in #TransInfo is not guarantee to stay the same (Rotates change it). */
-  int imval[2];
   /** Mode flags of the constraint. */
   eTConstraint mode;
   void (*drawExtra)(struct TransInfo *t);
