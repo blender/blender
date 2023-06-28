@@ -1441,54 +1441,97 @@ static void id_override_library_reset_fn(bContext *C,
   }
 }
 
-static void id_override_library_clear_single_fn(bContext *C,
+static void id_override_library_clear_single_process(bContext *C,
+                                                     ReportList * /*reports*/,
+                                                     OutlinerLibOverrideData &data)
+{
+  Main *bmain = CTX_data_main(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Scene *scene = CTX_data_scene(C);
+
+  /* TODO: At some point this likely needs to be re-written as a BKE function instead, with better
+   * handling of hierarchies among other things. */
+
+  /* Try to process all potential leaves first (deleting some liboverride leaves will turn other
+   * liboverrides into leaves as well). */
+  bool do_process_leaves = true;
+  while (!data.id_hierarchy_roots.is_empty()) {
+    bool has_found_leaves = false;
+
+    for (auto &&id : data.id_hierarchy_roots.keys()) {
+      if (do_process_leaves) {
+        if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
+          /* If given ID is not using any other override (it's a 'leaf' in the override hierarchy),
+           * delete it and remap its usages to its linked reference. Otherwise, keep it as a reset
+           * system override. */
+          bool do_remap_active = false;
+          BKE_view_layer_synced_ensure(scene, view_layer);
+          if (BKE_view_layer_active_object_get(view_layer) == reinterpret_cast<Object *>(id)) {
+            BLI_assert(GS(id->name) == ID_OB);
+            do_remap_active = true;
+          }
+          BKE_libblock_remap(
+              bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
+          if (do_remap_active) {
+            Object *ref_object = reinterpret_cast<Object *>(id->override_library->reference);
+            Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
+            if (basact != nullptr) {
+              view_layer->basact = basact;
+            }
+            DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
+          }
+
+          BKE_id_delete(bmain, id);
+          data.id_hierarchy_roots.remove(id);
+          has_found_leaves = true;
+        }
+      }
+      else {
+        BLI_assert(!BKE_lib_override_library_is_hierarchy_leaf(bmain, id));
+        BKE_lib_override_library_id_reset(bmain, id, true);
+        data.id_hierarchy_roots.remove(id);
+      }
+    }
+
+    do_process_leaves = has_found_leaves;
+  }
+  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
+}
+
+static void id_override_library_clear_single_fn(bContext * /*C*/,
                                                 ReportList *reports,
-                                                Scene *scene,
+                                                Scene * /*scene*/,
                                                 TreeElement * /*te*/,
                                                 TreeStoreElem * /*tsep*/,
                                                 TreeStoreElem *tselem,
-                                                void * /*user_data*/)
+                                                void *user_data)
 {
+  OutlinerLibOverrideData *data = reinterpret_cast<OutlinerLibOverrideData *>(user_data);
+
   BLI_assert(TSE_IS_REAL_ID(tselem));
-  Main *bmain = CTX_data_main(C);
-  ViewLayer *view_layer = CTX_data_view_layer(C);
   ID *id = tselem->id;
 
-  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id) || ID_IS_LINKED(id)) {
+  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
+    return;
+  }
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     BKE_reportf(reports,
                 RPT_WARNING,
-                "Cannot clear embedded library override id '%s', only overrides of real "
-                "data-blocks can be directly deleted",
+                "Cannot clear embedded library override '%s', only overrides of real data-blocks "
+                "can be directly cleared",
                 id->name);
     return;
   }
-
-  /* If given ID is not using any other override (it's a 'leaf' in the override hierarchy),
-   * delete it and remap its usages to its linked reference. Otherwise, keep it as a reset system
-   * override. */
-  if (BKE_lib_override_library_is_hierarchy_leaf(bmain, id)) {
-    bool do_remap_active = false;
-    BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
-    if (BKE_view_layer_active_object_get(view_layer) == reinterpret_cast<Object *>(id)) {
-      BLI_assert(GS(id->name) == ID_OB);
-      do_remap_active = true;
-    }
-    BKE_libblock_remap(bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
-    if (do_remap_active) {
-      Object *ref_object = reinterpret_cast<Object *>(id->override_library->reference);
-      Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
-      if (basact != nullptr) {
-        view_layer->basact = basact;
-      }
-      DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-    }
-    BKE_id_delete(bmain, id);
-  }
-  else {
-    BKE_lib_override_library_id_reset(bmain, id, true);
+  if (ID_IS_LINKED(id)) {
+    BKE_reportf(
+        reports,
+        RPT_WARNING,
+        "Cannot clear linked library override '%s', only local overrides can be directly cleared",
+        id->name);
+    return;
   }
 
-  DEG_id_tag_update(&scene->id, ID_RECALC_BASE_FLAGS | ID_RECALC_COPY_ON_WRITE);
+  data->id_root_set(id);
 }
 
 static void id_override_library_resync_fn(bContext * /*C*/,
@@ -1895,14 +1938,21 @@ static int outliner_liboverride_operation_exec(bContext *C, wmOperator *op)
       break;
     }
     case OUTLINER_LIBOVERRIDE_OP_CLEAR_SINGLE: {
+      OutlinerLibOverrideData override_data{};
+      override_data.do_hierarchy = false;
+      override_data.do_fully_editable = false;
+
       outliner_do_libdata_operation_selection_set(C,
                                                   op->reports,
                                                   scene,
                                                   space_outliner,
                                                   id_override_library_clear_single_fn,
                                                   selection_set,
-                                                  nullptr,
+                                                  &override_data,
                                                   false);
+
+      id_override_library_clear_single_process(C, op->reports, override_data);
+
       ED_undo_push(C, "Clear Overridden Data");
       break;
     }
