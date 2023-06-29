@@ -35,7 +35,6 @@ class ReflectionProbeModule {
    * Must be a power of two; intension to be used as a cubemap atlas.
    */
   static constexpr int max_resolution_ = 2048;
-  static constexpr int max_mipmap_levels_ = log(max_resolution_) + 1;
 
   Instance &instance_;
 
