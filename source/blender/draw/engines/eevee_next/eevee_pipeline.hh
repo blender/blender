@@ -23,19 +23,19 @@ namespace blender::eevee {
 class Instance;
 
 /* -------------------------------------------------------------------- */
-/** \name World Pipeline
+/** \name World Background Pipeline
  *
- * Render world values.
+ * Render world background values.
  * \{ */
 
-class WorldPipeline {
+class BackgroundPipeline {
  private:
   Instance &inst_;
 
   PassSimple world_ps_ = {"World.Background"};
 
  public:
-  WorldPipeline(Instance &inst) : inst_(inst){};
+  BackgroundPipeline(Instance &inst) : inst_(inst){};
 
   void sync(GPUMaterial *gpumat);
   void render(View &view);
@@ -287,7 +287,7 @@ class UtilityTexture : public Texture {
 
 class PipelineModule {
  public:
-  WorldPipeline world;
+  BackgroundPipeline background;
   DeferredPipeline deferred;
   ForwardPipeline forward;
   ShadowPipeline shadow;
@@ -297,7 +297,7 @@ class PipelineModule {
 
  public:
   PipelineModule(Instance &inst)
-      : world(inst), deferred(inst), forward(inst), shadow(inst), capture(inst){};
+      : background(inst), deferred(inst), forward(inst), shadow(inst), capture(inst){};
 
   void begin_sync()
   {

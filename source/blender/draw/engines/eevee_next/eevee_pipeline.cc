@@ -22,7 +22,7 @@ namespace blender::eevee {
  * Used to draw background.
  * \{ */
 
-void WorldPipeline::sync(GPUMaterial *gpumat)
+void BackgroundPipeline::sync(GPUMaterial *gpumat)
 {
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
@@ -49,7 +49,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
-void WorldPipeline::render(View &view)
+void BackgroundPipeline::render(View &view)
 {
   inst_.manager->submit(world_ps_, view);
 }

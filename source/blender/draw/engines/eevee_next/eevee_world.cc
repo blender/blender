@@ -108,7 +108,7 @@ void World::sync()
 
   inst_.manager->register_layer_attributes(gpumat);
 
-  inst_.pipelines.world.sync(gpumat);
+  inst_.pipelines.background.sync(gpumat);
 }
 
 /** \} */
