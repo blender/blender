@@ -208,7 +208,10 @@ GPU_SHADER_CREATE_INFO(eevee_volume_deferred)
 #ifdef DEBUG
 
 /* Stub functions defined by the material evaluation. */
-GPU_SHADER_CREATE_INFO(eevee_material_stub).define("EEVEE_MATERIAL_STUBS");
+GPU_SHADER_CREATE_INFO(eevee_material_stub)
+    .define("EEVEE_MATERIAL_STUBS")
+    /* Dummy uniform buffer to detect overlap with material node-tree. */
+    .uniform_buf(0, "int", "node_tree");
 
 #  define EEVEE_MAT_FINAL_VARIATION(name, ...) \
     GPU_SHADER_CREATE_INFO(name).additional_info(__VA_ARGS__).do_static_compilation(true);

@@ -459,7 +459,7 @@ void GPUCodegen::generate_resources()
     }
     ss << "};\n\n";
 
-    info.uniform_buf(1, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
+    info.uniform_buf(GPU_NODE_TREE_UBO_SLOT, "NodeTree", GPU_UBO_BLOCK_NAME, Frequency::BATCH);
   }
 
   if (!BLI_listbase_is_empty(&graph.uniform_attrs.list)) {
