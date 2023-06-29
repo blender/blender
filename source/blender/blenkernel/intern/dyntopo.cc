@@ -50,7 +50,7 @@
 #include <chrono>
 #include <cstdio>
 
-//#define CLEAR_TAGS_IN_THREAD
+// #define CLEAR_TAGS_IN_THREAD
 
 #define EDGE_QUEUE_FLAG BM_ELEM_TAG
 
@@ -2383,7 +2383,7 @@ bool remesh_topology(BrushTester *brush_tester,
   using TimePoint = std::chrono::time_point<Clock, std::chrono::milliseconds>;
 
   quality *= quality;
-  int time_limit = 8 * (1.0 - quality) + 550 * quality;
+  int time_limit = int(8.0f * (1.0f - quality) + 550.0f * quality);
 
   auto time = Clock::now();
   Clock::duration limit = std::chrono::duration_cast<Clock::duration>(

@@ -2307,7 +2307,8 @@ static void sculpt_update_object(
     if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
       char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
       if (ss->last_paint_canvas_key == nullptr ||
-          !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+          !STREQ(paint_canvas_key, ss->last_paint_canvas_key))
+      {
         MEM_SAFE_FREE(ss->last_paint_canvas_key);
         ss->last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
@@ -2322,7 +2323,8 @@ static void sculpt_update_object(
       if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
         char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
         if (ss->last_paint_canvas_key == nullptr ||
-            !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
+            !STREQ(paint_canvas_key, ss->last_paint_canvas_key))
+        {
           MEM_SAFE_FREE(ss->last_paint_canvas_key);
           ss->last_paint_canvas_key = paint_canvas_key;
           BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
@@ -3578,7 +3580,8 @@ static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
     SculptAttribute *attr = ss->temp_attributes + i;
 
     if (attr->used && STREQ(attr->name, name) && attr->proptype == proptype &&
-        attr->domain == domain) {
+        attr->domain == domain)
+    {
 
       return attr;
     }

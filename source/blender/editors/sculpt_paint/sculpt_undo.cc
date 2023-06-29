@@ -89,7 +89,7 @@
 using blender::bke::dyntopo::DyntopoSet;
 
 /* Uncomment to print the undo stack in the console on push/undo/redo. */
-//#define SCULPT_UNDO_DEBUG
+// #define SCULPT_UNDO_DEBUG
 
 /* Implementation of undo system for objects in sculpt mode.
  *
@@ -1433,7 +1433,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
     if (first_unode->type != SCULPT_UNDO_GEOMETRY &&
-        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN) {
+        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN)
+    {
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
     }
 
@@ -2304,10 +2305,8 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
   return unode;
 }
 
-bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
-                                     PBVHNode *node,
-                                     SculptUndoType type,
-                                     int extraType)
+bool SCULPT_ensure_dyntopo_node_undo(
+    Object *ob, PBVHNode *node, SculptUndoType type, int extraType, SculptUndoType force_push_mask)
 {
   SculptSession *ss = ob->sculpt;
 
@@ -2354,7 +2353,7 @@ bool SCULPT_ensure_dyntopo_node_undo(Object *ob,
     unode->nodemap_size = newsize;
   }
 
-  bool check = !((type | extraType) & (SCULPT_UNDO_COORDS | SCULPT_UNDO_COLOR | SCULPT_UNDO_MASK));
+  bool check = !((type | extraType) & force_push_mask);
   if (check && unode->nodemap[n] & (1 << type)) {
     return false;
   }

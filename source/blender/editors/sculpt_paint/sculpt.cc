@@ -1786,8 +1786,7 @@ static void sculpt_rake_data_update(SculptRakeData *srd, const float co[3])
 
 bool SCULPT_stroke_is_dynamic_topology(const SculptSession *ss, const Brush *brush)
 {
-  return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) &&
-          SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
+  return ((BKE_pbvh_type(ss->pbvh) == PBVH_BMESH) && SCULPT_TOOL_HAS_DYNTOPO(brush->sculpt_tool));
 }
 
 /** \} */
@@ -3786,9 +3785,8 @@ static void topology_undopush_cb(PBVHNode *node, void *data)
       node,
       SCULPT_get_tool(sdata->ob->sculpt, sdata->brush) == SCULPT_TOOL_MASK ? SCULPT_UNDO_MASK :
                                                                              SCULPT_UNDO_COORDS,
-      0);
-
-  BKE_pbvh_node_mark_update(node);
+      0,
+      SCULPT_UNDO_NO_TYPE);
 }
 
 int SCULPT_get_symmetry_pass(const SculptSession *ss)
@@ -4244,7 +4242,8 @@ static void do_brush_action(Sculpt *sd,
     }
 
     if (ss->cache->supports_gravity && sd->gravity_factor > 0.0f &&
-        undo_type != SCULPT_UNDO_COORDS) {
+        undo_type != SCULPT_UNDO_COORDS)
+    {
       extra_type = int(SCULPT_UNDO_COORDS);
     }
 
@@ -5286,7 +5285,8 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
+      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB)
+  {
     return true;
   }
   return false;
@@ -6893,7 +6893,8 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
    * recalculated.
    */
   if (ss->fake_neighbors.fake_neighbor_index &&
-      ss->fake_neighbors.current_max_distance == max_dist) {
+      ss->fake_neighbors.current_max_distance == max_dist)
+  {
     return;
   }
 

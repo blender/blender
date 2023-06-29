@@ -4408,12 +4408,53 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
   }
 }
 
+static void CustomData_bmesh_copy_data_simple(CustomData *data, void *src_block, void **dest_block)
+{
+  bool was_new = false;
+
+  if (*dest_block == nullptr) {
+    CustomData_bmesh_alloc_block(data, dest_block, 0);
+
+    if (*dest_block) {
+      CustomData_bmesh_unpoison(data, *dest_block);
+      memset(*dest_block, 0, data->totsize);
+      CustomData_bmesh_poison(data, *dest_block);
+
+      was_new = true;
+    }
+  }
+
+  for (int i = 0; i < data->totlayer; i++) {
+    CustomDataLayer *layer = data->layers + i;
+
+    if (layer->flag & CD_FLAG_ELEM_NOCOPY) {
+      continue;
+    }
+
+    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(data->layers[i].type));
+    if (typeInfo->copy) {
+      typeInfo->copy(
+          POINTER_OFFSET(src_block, layer->offset), POINTER_OFFSET(*dest_block, layer->offset), 1);
+    }
+    else {
+      memcpy(POINTER_OFFSET(*dest_block, layer->offset),
+             POINTER_OFFSET(src_block, layer->offset),
+             typeInfo->size);
+    }
+  }
+}
+
 void CustomData_bmesh_copy_data(const CustomData *source,
                                 CustomData *dest,
                                 void *src_block,
                                 void **dest_block)
 {
-  CustomData_bmesh_copy_data_exclude_by_type(source, dest, src_block, dest_block, 0);
+  if (dest == source) {
+    CustomData_bmesh_copy_data_simple(dest, src_block, dest_block);
+  }
+  else {
+    CustomData_bmesh_copy_data_exclude_by_type(source, dest, src_block, dest_block, 0);
+  }
 }
 
 void *CustomData_bmesh_get(const CustomData *data, void *block, const eCustomDataType type)
