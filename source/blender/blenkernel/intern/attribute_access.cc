@@ -8,10 +8,10 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_geometry_set.hh"
+#include "BKE_global.h"
 #include "BKE_mesh.hh"
 #include "BKE_pointcloud.h"
 #include "BKE_type_conversions.hh"
-#include "BKE_global.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"

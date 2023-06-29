@@ -1262,8 +1262,7 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
-       neighbor_iterator.i++) \
-  { \
+       neighbor_iterator.i++) { \
     neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
                                  PBVH_REF_NONE; \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
@@ -1288,8 +1287,7 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
   } \
   if (!neighbor_iterator.no_free && \
-      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) \
-  { \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
     MEM_freeN(neighbor_iterator.neighbors); \
     MEM_freeN(neighbor_iterator.neighbor_indices); \
   } \

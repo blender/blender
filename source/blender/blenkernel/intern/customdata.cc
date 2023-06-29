@@ -4413,7 +4413,7 @@ static void CustomData_bmesh_copy_data_simple(CustomData *data, void *src_block,
   bool was_new = false;
 
   if (*dest_block == nullptr) {
-    CustomData_bmesh_alloc_block(data, dest_block, 0);
+    CustomData_bmesh_alloc_block(data, dest_block);
 
     if (*dest_block) {
       CustomData_bmesh_unpoison(data, *dest_block);
@@ -5684,8 +5684,6 @@ void CustomData_blend_write(BlendWriter *writer,
       writer, CustomDataLayer, data->totlayer, data->layers, layers_to_write.data());
 
   for (const CustomDataLayer &layer : layers_to_write) {
-    const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer.type));
-
     switch (layer.type) {
       case CD_MDEFORMVERT:
         BKE_defvert_blend_write(writer, count, static_cast<const MDeformVert *>(layer.data));

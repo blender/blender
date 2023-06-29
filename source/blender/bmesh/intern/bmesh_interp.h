@@ -65,7 +65,7 @@ void BM_data_interp_face_vert_edge(
 
 typedef struct BMCustomLayerReq {
   int type;
-  const char *name;  /* Can be NULL. */
+  const char *name; /* Can be NULL. */
   int flag;
 } BMCustomLayerReq;
 void BM_data_layers_ensure(BMesh *bm, CustomData *data, BMCustomLayerReq *layers, int totlayer);

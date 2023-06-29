@@ -607,7 +607,8 @@ void bmo_extrude_face_region_exec(BMesh *bm, BMOperator *op)
       BMEdge *e_other = BM_DISK_EDGE_NEXT(e, v);
       if ((e_other == e) || (BM_DISK_EDGE_NEXT(e_other, v) == e)) {
         /* Loose edge or BMVert is edge pair. */
-        BM_edge_collapse(bm, BMO_elem_flag_test(bm, e, EXT_TAG) ? e : e_other, v, true, true, true, true);
+        BM_edge_collapse(
+            bm, BMO_elem_flag_test(bm, e, EXT_TAG) ? e : e_other, v, true, true, true, true);
       }
       else {
         BLI_assert(!BM_vert_is_edge_pair(v));

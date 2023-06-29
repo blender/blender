@@ -92,7 +92,7 @@
 
 /* NotForPR: Needed for debugging but already been rejected in
  * a standalone PR.
- * Disable optimization for a function (for debugging use only!) 
+ * Disable optimization for a function (for debugging use only!)
  */
 #ifdef __clang__
 #  define ATTR_NO_OPT __attribute__((optnone))

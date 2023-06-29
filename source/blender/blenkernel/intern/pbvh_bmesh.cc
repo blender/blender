@@ -1439,8 +1439,7 @@ bool pbvh_bmesh_node_raycast(SculptSession *ss,
         madd_v3_v3v3fl(location, ray_start, ray_normal, *depth);
         for (int j = 0; j < 3; j++) {
           if (j == 0 ||
-              len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co))
-          {
+              len_squared_v3v3(location, cos[j]) < len_squared_v3v3(location, nearest_vertex_co)) {
             copy_v3_v3(nearest_vertex_co, cos[j]);
             r_active_vertex->i = (intptr_t)verts[j];
           }
@@ -2101,8 +2100,7 @@ static void pbvh_bmesh_update_uv_boundary_intern(BMVert *v,
       float2 uv2b = *BM_ELEM_CD_PTR<float2 *>(l->v == v ? l->next : l, cd_uv);
 
       if (len_squared_v2v2(uv1a, uv2a) > snap_limit_sqr ||
-          len_squared_v2v2(uv1b, uv2b) > snap_limit_sqr)
-      {
+          len_squared_v2v2(uv1b, uv2b) > snap_limit_sqr) {
         *boundflag |= SCULPT_BOUNDARY_UV;
       }
 
@@ -2202,8 +2200,7 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
 
     if (e->l && e->l != e->l->radial_next) {
       if (blender::bke::pbvh::test_sharp_faces_bmesh(
-              e->l->f, e->l->radial_next->f, sharp_angle_limit))
-      {
+              e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
         boundflag |= SCULPT_BOUNDARY_SHARP_ANGLE;
         sharp_angle_num++;
       }
@@ -2225,8 +2222,7 @@ void update_vert_boundary_bmesh(int cd_faceset_offset,
 
     if (e->l) {
       if ((e->l->f->head.hflag & BM_ELEM_HIDDEN) ||
-          (e->l->radial_next->f->head.hflag & BM_ELEM_HIDDEN))
-      {
+          (e->l->radial_next->f->head.hflag & BM_ELEM_HIDDEN)) {
         newflag |= SCULPTFLAG_VERT_FSET_HIDDEN;
       }
 
@@ -3972,8 +3968,7 @@ void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float shar
     }
 
     if (blender::bke::pbvh::test_sharp_faces_bmesh(
-            e->l->f, e->l->radial_next->f, sharp_angle_limit))
-    {
+            e->l->f, e->l->radial_next->f, sharp_angle_limit)) {
       flag |= SCULPT_BOUNDARY_SHARP_ANGLE;
       sharp_num++;
     }

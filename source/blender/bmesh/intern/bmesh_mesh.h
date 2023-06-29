@@ -158,10 +158,7 @@ int BM_mesh_elem_count(BMesh *bm, char htype);
  * \warning Be careful if you keep pointers to affected BM elements,
  * or arrays, when using this func!
  */
-void BM_mesh_remap(BMesh *bm,
-                   const uint *vert_idx,
-                   const uint *edge_idx,
-                   const uint *face_idx);
+void BM_mesh_remap(BMesh *bm, const uint *vert_idx, const uint *edge_idx, const uint *face_idx);
 
 /**
  * Use new memory pools for this mesh.

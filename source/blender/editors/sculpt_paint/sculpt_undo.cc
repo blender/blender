@@ -1433,8 +1433,7 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
     if (first_unode->type != SCULPT_UNDO_GEOMETRY &&
-        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN)
-    {
+        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN) {
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
     }
 

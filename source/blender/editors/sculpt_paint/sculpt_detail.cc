@@ -196,15 +196,8 @@ static int sculpt_detail_flood_fill_run(Scene *scene,
       BKE_pbvh_node_mark_topology_update(nodes[j]);
     }
 
-    EdgeQueueContext remesher(tester,
-                              ob,
-                              ss->pbvh,
-                              mode,
-                              false,
-                              float3(0.0f, 0.0f, 1.0f),
-                              false,
-                              mask_cb,
-                              mask_cb_data);
+    EdgeQueueContext remesher(
+        tester, ob, ss->pbvh, mode, false, float3(0.0f, 0.0f, 1.0f), false, mask_cb, mask_cb_data);
 
     remesher.surface_smooth_fac = 0.25;
     remesher.start();

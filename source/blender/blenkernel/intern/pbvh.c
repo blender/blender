@@ -2067,7 +2067,8 @@ static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
 
   BMVert *v;
 
-  TGSET_ITER (v, unique) {
+  TGSET_ITER(v, unique)
+  {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
@@ -2075,7 +2076,8 @@ static void pbvh_bmesh_node_visibility_update(PBVHNode *node)
   }
   TGSET_ITER_END
 
-  TGSET_ITER (v, other) {
+  TGSET_ITER(v, other)
+  {
     if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
       BKE_pbvh_node_fully_hidden_set(node, false);
       return;
@@ -4415,7 +4417,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
       BMFace *f;
       const int cd_face_area = pbvh->cd_face_area;
 
-      TGSET_ITER (f, node->bm_faces) {
+      TGSET_ITER(f, node->bm_faces)
+      {
         float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
         areabuf[cur_i] = 0.0f;
       }
@@ -4433,7 +4436,8 @@ void BKE_pbvh_check_tri_areas(PBVH *pbvh, PBVHNode *node)
         areabuf[cur_i] += area_tri_v3(v1->co, v2->co, v3->co);
       }
 
-      TGSET_ITER (f, node->bm_faces) {
+      TGSET_ITER(f, node->bm_faces)
+      {
         float *areabuf = BM_ELEM_CD_GET_VOID_P(f, cd_face_area);
 
         /* sanity check on read side of read write buffer */

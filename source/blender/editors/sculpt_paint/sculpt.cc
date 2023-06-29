@@ -4242,8 +4242,7 @@ static void do_brush_action(Sculpt *sd,
     }
 
     if (ss->cache->supports_gravity && sd->gravity_factor > 0.0f &&
-        undo_type != SCULPT_UNDO_COORDS)
-    {
+        undo_type != SCULPT_UNDO_COORDS) {
       extra_type = int(SCULPT_UNDO_COORDS);
     }
 
@@ -5285,8 +5284,7 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB)
-  {
+      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
     return true;
   }
   return false;
@@ -6893,8 +6891,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
    * recalculated.
    */
   if (ss->fake_neighbors.fake_neighbor_index &&
-      ss->fake_neighbors.current_max_distance == max_dist)
-  {
+      ss->fake_neighbors.current_max_distance == max_dist) {
     return;
   }
 

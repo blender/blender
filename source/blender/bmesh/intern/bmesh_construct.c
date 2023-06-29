@@ -659,7 +659,7 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
   int i;
   const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_BM(bm_old);
   struct BMeshCreateParams params = {0};
-  
+
   params.use_toolflags = bm_old->use_toolflags;
 
   /* allocate a bmesh */

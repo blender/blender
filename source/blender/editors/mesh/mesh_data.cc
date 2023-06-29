@@ -44,9 +44,9 @@
 #include "ED_object.h"
 #include "ED_paint.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_uvedit.h"
 #include "ED_view3d.h"
-#include "ED_sculpt.h"
 
 #include "GEO_mesh_split_edges.hh"
 
@@ -467,7 +467,6 @@ static bool layers_poll(bContext *C)
   return (ob && !ID_IS_LINKED(ob) && !ID_IS_OVERRIDE_LIBRARY(ob) && ob->type == OB_MESH && data &&
           !ID_IS_LINKED(data) && !ID_IS_OVERRIDE_LIBRARY(data));
 }
-
 
 /*********************** UV texture operators ************************/
 
