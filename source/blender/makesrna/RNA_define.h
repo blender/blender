@@ -384,6 +384,10 @@ void RNA_def_property_array(PropertyRNA *prop, int length);
 void RNA_def_property_multi_array(PropertyRNA *prop, int dimension, const int length[]);
 void RNA_def_property_range(PropertyRNA *prop, double min, double max);
 
+/**
+ * \param item: An array of enum properties terminated by null members.
+ * \warning take care not to reference stack memory as the reference to `item` is held by `prop`.
+ */
 void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item);
 void RNA_def_property_enum_native_type(PropertyRNA *prop, const char *native_enum_type);
 void RNA_def_property_string_maxlength(PropertyRNA *prop, int maxlength);
