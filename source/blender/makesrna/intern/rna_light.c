@@ -107,7 +107,7 @@ static void rna_def_light(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  static float default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  static const float default_color[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 
   srna = RNA_def_struct(brna, "Light", "ID");
   RNA_def_struct_sdna(srna, "Light");

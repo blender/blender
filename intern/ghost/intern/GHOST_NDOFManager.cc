@@ -527,14 +527,14 @@ void GHOST_NDOFManager::setDeadZone(float dz)
   CLOG_INFO(LOG, 2, "dead zone set to %.2f%s", dz, (dz > 0.5f) ? " (unexpectedly high)" : "");
 }
 
-static bool atHomePosition(GHOST_TEventNDOFMotionData *ndof)
+static bool atHomePosition(const GHOST_TEventNDOFMotionData *ndof)
 {
 #define HOME(foo) (ndof->foo == 0.0f)
   return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
 #undef HOME
 }
 
-static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
+static bool nearHomePosition(const GHOST_TEventNDOFMotionData *ndof, float threshold)
 {
   if (threshold == 0.0f) {
     return atHomePosition(ndof);

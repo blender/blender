@@ -216,7 +216,7 @@ bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windo
 }
 
 GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
-                                         GHOST_DisplaySetting *setting,
+                                         const GHOST_DisplaySetting *setting,
                                          const bool stereoVisual)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -409,7 +409,7 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    GHOST_TGrabCursorMode mode,
                                    GHOST_TAxisFlag wrap_axis,
-                                   int bounds[4],
+                                   const int bounds[4],
                                    const int mouse_ungrab_xy[2])
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
@@ -781,7 +781,7 @@ int32_t GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle)
 void GHOST_GetRectangle(
     GHOST_RectangleHandle rectanglehandle, int32_t *l, int32_t *t, int32_t *r, int32_t *b)
 {
-  GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
+  const GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
 
   *l = rect->m_l;
   *t = rect->m_t;

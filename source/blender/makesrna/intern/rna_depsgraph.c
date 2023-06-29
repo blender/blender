@@ -677,7 +677,7 @@ static void rna_def_depsgraph(BlenderRNA *brna)
   PropertyRNA *parm;
   PropertyRNA *prop;
 
-  static EnumPropertyItem enum_depsgraph_mode_items[] = {
+  static const EnumPropertyItem enum_depsgraph_mode_items[] = {
       {DAG_EVAL_VIEWPORT, "VIEWPORT", 0, "Viewport", "Viewport non-rendered mode"},
       {DAG_EVAL_RENDER, "RENDER", 0, "Render", "Render"},
       {0, NULL, 0, NULL, NULL},

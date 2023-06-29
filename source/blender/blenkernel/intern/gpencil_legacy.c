@@ -1573,7 +1573,7 @@ bGPDlayer *BKE_gpencil_layer_active_get(bGPdata *gpd)
   return NULL;
 }
 
-bGPDlayer *BKE_gpencil_layer_get_by_name(bGPdata *gpd, char *name, int first_if_not_found)
+bGPDlayer *BKE_gpencil_layer_get_by_name(bGPdata *gpd, const char *name, int first_if_not_found)
 {
   bGPDlayer *gpl;
 

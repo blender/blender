@@ -89,7 +89,7 @@ static bool calc_curve_deform(
       }
     }
     else {
-      CurveCache *cc = ob_curve->runtime.curve_cache;
+      const CurveCache *cc = ob_curve->runtime.curve_cache;
       float totdist = BKE_anim_path_get_length(cc);
       if (LIKELY(totdist > FLT_EPSILON)) {
         fac = -(co[index] - cd->dmax[index]) / totdist;
@@ -111,7 +111,7 @@ static bool calc_curve_deform(
       }
     }
     else {
-      CurveCache *cc = ob_curve->runtime.curve_cache;
+      const CurveCache *cc = ob_curve->runtime.curve_cache;
       float totdist = BKE_anim_path_get_length(cc);
       if (LIKELY(totdist > FLT_EPSILON)) {
         fac = +(co[index] - cd->dmin[index]) / totdist;

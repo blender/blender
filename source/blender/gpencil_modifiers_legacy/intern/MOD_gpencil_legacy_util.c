@@ -141,7 +141,7 @@ bool is_stroke_affected_by_modifier(Object *ob,
   return true;
 }
 
-float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
+float get_modifier_point_weight(const MDeformVert *dvert, bool inverse, int def_nr)
 {
   float weight = 1.0f;
 

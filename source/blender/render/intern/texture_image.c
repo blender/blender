@@ -407,7 +407,7 @@ static void clipy_rctf_swap(rctf *stack, short *count, float y1, float y2)
   }
 }
 
-static float square_rctf(rctf *rf)
+static float square_rctf(const rctf *rf)
 {
   float x, y;
 
@@ -461,7 +461,7 @@ static float clipy_rctf(rctf *rf, float y1, float y2)
   return 1.0;
 }
 
-static void boxsampleclip(ImBuf *ibuf, rctf *rf, TexResult *texres)
+static void boxsampleclip(ImBuf *ibuf, const rctf *rf, TexResult *texres)
 {
   /* Sample box, is clipped already, and minx etc. have been set at ibuf size.
    * Enlarge with anti-aliased edges of the pixels. */
@@ -881,8 +881,13 @@ static void feline_eval(TexResult *texr, ImBuf *ibuf, float fx, float fy, afdata
 }
 #undef EWA_MAXIDX
 
-static void alpha_clip_aniso(
-    ImBuf *ibuf, float minx, float miny, float maxx, float maxy, int extflag, TexResult *texres)
+static void alpha_clip_aniso(const ImBuf *ibuf,
+                             float minx,
+                             float miny,
+                             float maxx,
+                             float maxy,
+                             int extflag,
+                             TexResult *texres)
 {
   float alphaclip;
   rctf rf;
