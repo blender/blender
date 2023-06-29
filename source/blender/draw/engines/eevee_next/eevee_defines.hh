@@ -120,15 +120,15 @@
 #define GBUF_COLOR_SLOT 4
 
 /* Uniform Buffers. */
+#define CAMERA_BUF_SLOT 0
+#define RBUFS_BUF_SLOT 1
+/* Only during surface shading (forward and deferred eval). */
+#define HIZ_BUF_SLOT 2
 #define IRRADIANCE_GRID_BUF_SLOT 3
-#define HIZ_BUF_SLOT 5
 /* Only during pre-pass. */
-#define VELOCITY_CAMERA_PREV_BUF 3
-#define VELOCITY_CAMERA_CURR_BUF 4
-#define VELOCITY_CAMERA_NEXT_BUF 5
-
-#define CAMERA_BUF_SLOT 6
-#define RBUFS_BUF_SLOT 7
+#define VELOCITY_CAMERA_PREV_BUF 2
+#define VELOCITY_CAMERA_CURR_BUF 3
+#define VELOCITY_CAMERA_NEXT_BUF 4
 
 /* Storage Buffers. */
 #define LIGHT_CULL_BUF_SLOT 0

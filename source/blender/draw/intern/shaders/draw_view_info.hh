@@ -57,7 +57,10 @@ GPU_SHADER_CREATE_INFO(draw_view_culling)
     .typedef_source("draw_shader_shared.h");
 
 GPU_SHADER_CREATE_INFO(draw_modelmat)
-    .uniform_buf(8, "ObjectMatrices", "drw_matrices[DRW_RESOURCE_CHUNK_LEN]", Frequency::BATCH)
+    .uniform_buf(DRW_OBJ_MAT_UBO_SLOT,
+                 "ObjectMatrices",
+                 "drw_matrices[DRW_RESOURCE_CHUNK_LEN]",
+                 Frequency::BATCH)
     .define("ModelMatrix", "(drw_matrices[resource_id].model)")
     .define("ModelMatrixInverse", "(drw_matrices[resource_id].model_inverse)")
     .additional_info("draw_view");

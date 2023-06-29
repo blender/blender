@@ -108,7 +108,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_material_iface, "")
 
 GPU_SHADER_CREATE_INFO(workbench_material)
     .uniform_buf(WB_WORLD_SLOT, "WorldData", "world_data")
-    .uniform_buf(5, "vec4", "materials_data[4096]")
+    .uniform_buf(WB_MATERIAL_UBO_SLOT, "vec4", "materials_data[4096]")
     .push_constant(Type::INT, "materialIndex")
     .push_constant(Type::BOOL, "useMatcap")
     .vertex_out(workbench_material_iface);
