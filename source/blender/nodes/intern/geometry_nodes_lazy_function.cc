@@ -3463,6 +3463,9 @@ Vector<const lf::FunctionNode *> GeometryNodesLazyFunctionSideEffectProvider::
 {
   GeoNodesLFUserData *user_data = dynamic_cast<GeoNodesLFUserData *>(context.user_data);
   BLI_assert(user_data != nullptr);
+  if (!user_data->modifier_data) {
+    return {};
+  }
   const ComputeContextHash &context_hash = user_data->compute_context->hash();
   const GeoNodesModifierData &modifier_data = *user_data->modifier_data;
   return modifier_data.side_effect_nodes->lookup(context_hash);
@@ -3520,6 +3523,10 @@ destruct_ptr<lf::LocalUserData> GeoNodesLFUserData::get_local(LinearAllocator<> 
 
 GeoNodesLFLocalUserData::GeoNodesLFLocalUserData(GeoNodesLFUserData &user_data)
 {
+  if (user_data.modifier_data == nullptr) {
+    this->tree_logger = nullptr;
+    return;
+  }
   if (user_data.modifier_data->eval_log != nullptr) {
     this->tree_logger = &user_data.modifier_data->eval_log->get_local_tree_logger(
         *user_data.compute_context);

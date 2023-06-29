@@ -51,6 +51,7 @@
 #include "BKE_viewer_path.h"
 #include "BKE_workspace.h"
 
+#include "ED_geometry.h"
 #include "ED_object.h"
 #include "ED_outliner.h"
 #include "ED_render.h"
@@ -2221,6 +2222,9 @@ void ED_spacetype_view3d()
   art = MEM_cnew<ARegionType>("spacetype view3d xr region");
   art->regionid = RGN_TYPE_XR;
   BLI_addhead(&st->regiontypes, art);
+
+  WM_menutype_add(
+      MEM_new<MenuType>(__func__, blender::ed::geometry::node_group_operator_assets_menu()));
 
   BKE_spacetype_register(st);
 }

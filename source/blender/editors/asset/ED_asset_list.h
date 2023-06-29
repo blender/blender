@@ -24,6 +24,7 @@ struct AssetLibraryReference;
 struct ID;
 struct bContext;
 struct wmNotifier;
+struct wmRegionListenerParams;
 
 /**
  * Invoke asset list reading, potentially in a parallel job. Won't wait until the job is done,
@@ -79,4 +80,14 @@ int ED_assetlist_size(const struct AssetLibraryReference *library_reference);
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::asset {
+
+void asset_reading_region_listen_fn(const wmRegionListenerParams *params);
+
+}  // namespace blender::ed::asset
+
 #endif

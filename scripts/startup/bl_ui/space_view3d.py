@@ -1018,6 +1018,7 @@ class VIEW3D_MT_editor_menus(Menu):
             if mode_string == 'SCULPT_CURVES':
                 layout.menu("VIEW3D_MT_select_sculpt_curves")
                 layout.menu("VIEW3D_MT_sculpt_curves")
+                layout.template_node_operator_asset_root_items()
 
         else:
             layout.menu("VIEW3D_MT_object")
@@ -2152,6 +2153,8 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
         layout.operator("sculpt_curves.select_random", text="Random")
         layout.operator("curves.select_ends", text="Endpoints")
         layout.operator("sculpt_curves.select_grow", text="Grow")
+
+        layout.template_node_operator_asset_menu_items(catalog_path="Select")
 
 
 class VIEW3D_MT_mesh_add(Menu):
@@ -3407,6 +3410,8 @@ class VIEW3D_MT_sculpt_curves(Menu):
         layout.operator("curves.snap_curves_to_surface", text="Snap to Nearest Surface").attach_mode = 'NEAREST'
         layout.separator()
         layout.operator("curves.convert_to_particle_system", text="Convert to Particle System")
+
+        layout.template_node_operator_asset_menu_items(catalog_path="Curves")
 
 
 class VIEW3D_MT_mask(Menu):

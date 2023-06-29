@@ -93,9 +93,7 @@ static void gather_search_items_for_all_assets(const bContext &C,
   const bNodeType &group_node_type = *nodeTypeFind(node_tree.typeinfo->group_idname);
   nodes::GatherAddNodeSearchParams params(C, group_node_type, node_tree, search_items);
 
-  AssetLibraryReference library_ref{};
-  library_ref.custom_library_index = -1;
-  library_ref.type = ASSET_LIBRARY_ALL;
+  const AssetLibraryReference library_ref = asset_system::all_library_reference();
 
   AssetFilterSettings filter_settings{};
   filter_settings.id_types = FILTER_ID_NT;
