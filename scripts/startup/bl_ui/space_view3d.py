@@ -4223,10 +4223,8 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("view3d.edit_mesh_extrude_move_normal",
-                         text="Extrude Faces").release_confirm = False
-            col.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                         text="Extrude Faces Along Normals").release_confirm = False
+            col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+            col.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
             col.operator("mesh.extrude_faces_move",
                          text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
 
@@ -4288,15 +4286,12 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
         mesh = context.object.data
 
         if mesh.total_face_sel:
-            layout.operator("view3d.edit_mesh_extrude_move_normal",
-                            text="Extrude Faces").release_confirm = False
-            layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                            text="Extrude Faces Along Normals").release_confirm = False
+            layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+            layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
             layout.operator(
                 "mesh.extrude_faces_move",
                 text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
-            layout.operator("view3d.edit_mesh_extrude_manifold_normal",
-                            text="Extrude Manifold").release_confirm = False
+            layout.operator("view3d.edit_mesh_extrude_manifold_normal", text="Extrude Manifold")
 
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
             layout.operator("mesh.extrude_edges_move",
@@ -4461,10 +4456,8 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("view3d.edit_mesh_extrude_move_normal",
-                        text="Extrude Faces").release_confirm = False
-        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                        text="Extrude Faces Along Normals").release_confirm = False
+        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
         layout.operator(
             "mesh.extrude_faces_move",
             text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
