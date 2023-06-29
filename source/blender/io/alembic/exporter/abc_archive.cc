@@ -156,7 +156,7 @@ static void get_frames(double scene_fps,
 ABCArchive::ABCArchive(const Main *bmain,
                        const Scene *scene,
                        AlembicExportParams params,
-                       std::string filepath)
+                       const std::string &filepath)
     : archive(nullptr)
 {
   double scene_fps = FPS;
