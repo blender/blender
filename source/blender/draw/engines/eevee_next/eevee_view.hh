@@ -142,4 +142,22 @@ class MainView {
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Capture View
+ *
+ * View for capturing cubemap renders outside a ShadingView.
+ * \{ */
+
+class CaptureView {
+ private:
+  Instance &inst_;
+  Framebuffer capture_fb_ = {"World.Capture"};
+
+ public:
+  CaptureView(Instance &inst) : inst_(inst) {}
+  void render();
+};
+
+/** \} */
+
 }  // namespace blender::eevee

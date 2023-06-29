@@ -108,6 +108,7 @@
 #define SHADOW_ATLAS_TEX_SLOT 5
 #define SSS_TRANSMITTANCE_TEX_SLOT 6
 #define IRRADIANCE_ATLAS_TEX_SLOT 7
+#define REFLECTION_PROBE_TEX_SLOT 8
 /* Only during shadow rendering. */
 #define SHADOW_RENDER_MAP_SLOT 4
 

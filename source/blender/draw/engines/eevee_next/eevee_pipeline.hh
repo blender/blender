@@ -44,6 +44,34 @@ class BackgroundPipeline {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name World Probe Pipeline
+ *
+ * Renders a single side for the world reflection probe.
+ * \{ */
+
+class WorldPipeline {
+ private:
+  Instance &inst_;
+
+  /* Dummy textures: required to reuse background shader and avoid another shader variation. */
+  Texture dummy_renderpass_tx_;
+  Texture dummy_cryptomatte_tx_;
+  Texture dummy_aov_color_tx_;
+  Texture dummy_aov_value_tx_;
+
+  PassSimple cubemap_face_ps_ = {"World.Probe"};
+
+ public:
+  WorldPipeline(Instance &inst) : inst_(inst){};
+
+  void sync(GPUMaterial *gpumat);
+  void render(View &view);
+
+};  // namespace blender::eevee
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Shadow Pass
  *
  * \{ */
@@ -288,6 +316,7 @@ class UtilityTexture : public Texture {
 class PipelineModule {
  public:
   BackgroundPipeline background;
+  WorldPipeline world;
   DeferredPipeline deferred;
   ForwardPipeline forward;
   ShadowPipeline shadow;
@@ -297,7 +326,12 @@ class PipelineModule {
 
  public:
   PipelineModule(Instance &inst)
-      : background(inst), deferred(inst), forward(inst), shadow(inst), capture(inst){};
+      : background(inst),
+        world(inst),
+        deferred(inst),
+        forward(inst),
+        shadow(inst),
+        capture(inst){};
 
   void begin_sync()
   {

@@ -9,6 +9,7 @@
 #pragma BLENDER_REQUIRE(eevee_gbuffer_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_light_eval_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_lightprobe_eval_lib.glsl)
 
 void main()
@@ -54,6 +55,7 @@ void main()
   vec3 reflection_light = vec3(0.0);
   float shadow = 1.0;
 
+  light_world_eval(reflection_data, P, V, reflection_light);
   lightprobe_eval(diffuse_data, reflection_data, P, Ng, V, diffuse_light, reflection_light);
 
   light_eval(diffuse_data,

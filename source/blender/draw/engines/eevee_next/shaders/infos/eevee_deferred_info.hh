@@ -36,7 +36,9 @@ GPU_SHADER_CREATE_INFO(eevee_deferred_light)
     .sampler(1, ImageType::FLOAT_2D_ARRAY, "gbuffer_color_tx")
     .additional_info("eevee_shared",
                      "eevee_utility_texture",
+                     "eevee_sampling_data",
                      "eevee_light_data",
+                     "eevee_reflection_probe_data",
                      "eevee_lightprobe_data",
                      "eevee_shadow_data",
                      "eevee_deferred_base",

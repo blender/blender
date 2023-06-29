@@ -5,6 +5,7 @@
  **/
 
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
+#pragma BLENDER_REQUIRE(common_math_geom_lib.glsl)
 
 /* -------------------------------------------------------------------- */
 /** \name Sampling data.
@@ -99,6 +100,89 @@ vec3 sample_cylinder(vec2 rand)
   float cos_phi = cos(phi);
   float sin_phi = sqrt(1.0 - sqr(cos_phi)) * sign(phi);
   return vec3(theta, cos_phi, sin_phi);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Microfacet GGX distribution
+ * \{ */
+
+#define USE_VISIBLE_NORMAL 1
+
+float D_ggx_opti(float NH, float a2)
+{
+  float tmp = (NH * a2 - NH) * NH + 1.0;
+  return M_PI * tmp * tmp; /* Doing RCP and mul a2 at the end */
+}
+
+float G1_Smith_GGX_opti(float NX, float a2)
+{
+  /* Using Brian Karis approach and refactoring by NX/NX
+   * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
+   * Rcp is done on the whole G later
+   * Note that this is not convenient for the transmission formula */
+  return NX + sqrt(NX * (NX - NX * a2) + a2);
+  /* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
+}
+
+float pdf_ggx_reflect(float NH, float NV, float VH, float alpha)
+{
+  float a2 = sqr(alpha);
+#if USE_VISIBLE_NORMAL
+  float D = a2 / D_ggx_opti(NH, a2);
+  float G1 = NV * 2.0 / G1_Smith_GGX_opti(NV, a2);
+  return G1 * VH * D / NV;
+#else
+  return NH * a2 / D_ggx_opti(NH, a2);
+#endif
+}
+
+vec3 sample_ggx(vec3 rand, float alpha, vec3 Vt)
+{
+#if USE_VISIBLE_NORMAL
+  /* From:
+   * "A Simpler and Exact Sampling Routine for the GGXDistribution of Visible Normals"
+   * by Eric Heitz.
+   * http://jcgt.org/published/0007/04/01/slides.pdf
+   * View vector is expected to be in tangent space. */
+
+  /* Stretch view. */
+  vec3 Th, Bh, Vh = normalize(vec3(alpha * Vt.xy, Vt.z));
+  make_orthonormal_basis(Vh, Th, Bh);
+  /* Sample point with polar coordinates (r, phi). */
+  float r = sqrt(rand.x);
+  float x = r * rand.y;
+  float y = r * rand.z;
+  float s = 0.5 * (1.0 + Vh.z);
+  y = (1.0 - s) * sqrt(1.0 - x * x) + s * y;
+  float z = sqrt(saturate(1.0 - x * x - y * y));
+  /* Compute normal. */
+  vec3 Hh = x * Th + y * Bh + z * Vh;
+  /* Unstretch. */
+  vec3 Ht = normalize(vec3(alpha * Hh.xy, saturate(Hh.z)));
+  /* Microfacet Normal. */
+  return Ht;
+#else
+  /* Theta is the cone angle. */
+  float z = sqrt((1.0 - rand.x) / (1.0 + sqr(alpha) * rand.x - rand.x)); /* cos theta */
+  float r = sqrt(max(0.0, 1.0 - z * z));                                 /* sin theta */
+  float x = r * rand.y;
+  float y = r * rand.z;
+  /* Microfacet Normal */
+  return vec3(x, y, z);
+#endif
+}
+
+vec3 sample_ggx(vec3 rand, float alpha, vec3 V, vec3 N, vec3 T, vec3 B, out float pdf)
+{
+  vec3 Vt = world_to_tangent(V, N, T, B);
+  vec3 Ht = sample_ggx(rand, alpha, Vt);
+  float NH = saturate(Ht.z);
+  float NV = saturate(Vt.z);
+  float VH = saturate(dot(Vt, Ht));
+  pdf = pdf_ggx_reflect(NH, NV, VH, alpha);
+  return tangent_to_world(Ht, N, T, B);
 }
 
 /** \} */

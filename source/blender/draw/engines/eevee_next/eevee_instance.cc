@@ -70,6 +70,7 @@ void Instance::init(const int2 &output_res,
   motion_blur.init();
   main_view.init();
   irradiance_cache.init();
+  reflection_probes.init();
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -290,6 +291,7 @@ void Instance::render_sample()
 
   sampling.step();
 
+  capture_view.render();
   main_view.render();
 
   motion_blur.step();

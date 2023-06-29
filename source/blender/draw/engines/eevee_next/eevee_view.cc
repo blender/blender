@@ -125,8 +125,6 @@ void ShadingView::render()
 
   inst_.pipelines.deferred.render(render_view_new_, prepass_fb_, combined_fb_, extent_);
 
-  // inst_.lightprobes.draw_cache_display();
-
   // inst_.lookdev.render_overlay(view_fb_);
 
   inst_.pipelines.forward.render(render_view_new_, prepass_fb_, combined_fb_, rbufs.combined_tx);
@@ -187,6 +185,37 @@ void ShadingView::update_view()
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
 
   render_view_new_.sync(viewmat, winmat);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Capture View
+ * \{ */
+
+void CaptureView::render()
+{
+  if (!inst_.reflection_probes.do_world_update_get()) {
+    return;
+  }
+  inst_.reflection_probes.do_world_update_set(false);
+
+  GPU_debug_group_begin("World.Capture");
+  View view = {"World.Capture.View"};
+
+  for (int face : IndexRange(6)) {
+    capture_fb_.ensure(
+        GPU_ATTACHMENT_NONE,
+        GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemaps_tx_, face));
+    GPU_framebuffer_bind(capture_fb_);
+
+    float4x4 view_m4 = cubeface_mat(face);
+    float4x4 win_m4 = math::projection::perspective(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f);
+    view.sync(view_m4, win_m4);
+    inst_.pipelines.world.render(view);
+  }
+  GPU_texture_update_mipmap_chain(inst_.reflection_probes.cubemaps_tx_);
+  GPU_debug_group_end();
 }
 
 /** \} */
