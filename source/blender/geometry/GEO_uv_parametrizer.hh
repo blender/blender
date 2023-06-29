@@ -18,7 +18,7 @@ struct RNG;
 namespace blender::geometry {
 
 struct PChart;
-class PHash;
+struct PHash;
 
 using ParamKey = uintptr_t; /* Key (hash) for identifying verts and faces. */
 #define PARAM_KEY_MAX UINTPTR_MAX
