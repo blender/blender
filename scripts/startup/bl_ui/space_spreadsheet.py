@@ -110,6 +110,8 @@ class SPREADSHEET_HT_header(bpy.types.Header):
             return obj.mode == 'EDIT'
         if obj.type == 'CURVES':
             return obj.mode in {'SCULPT_CURVES', 'EDIT'}
+        if obj.type == 'POINTCLOUD':
+            return obj.mode == 'EDIT'
         return False
 
 
