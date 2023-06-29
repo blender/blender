@@ -136,6 +136,10 @@ class bNodeTreeToDotOptionsForAnonymousAttributeInferencing : public bNodeTreeTo
       ss << socket.identifier << " [";
       bits::foreach_1_index(result_.required_fields_by_geometry_socket[socket.index_in_tree()],
                             [&](const int i) { ss << i << ","; });
+      ss << "] [";
+      bits::foreach_1_index(
+          result_.propagate_to_output_by_geometry_socket[socket.index_in_tree()],
+          [&](const int i) { ss << result_.propagated_output_geometry_indices[i] << ","; });
       ss << "]";
       return ss.str();
     }
