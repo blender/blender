@@ -2542,6 +2542,8 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   int bf2 = BM_ELEM_CD_GET_INT(e->v2, pbvh->cd_boundary_flag);
 
   bool uv_boundary = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary) & SCULPT_BOUNDARY_UV;
+  bool sharp_angle_boundary = BM_ELEM_CD_GET_INT(e, pbvh->cd_edge_boundary) &
+                              SCULPT_BOUNDARY_SHARP_ANGLE;
 
   BMVert *newv = BM_edge_split(bm, e, e->v1, &newe, 0.5f);
 
@@ -2561,6 +2563,16 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   else {
     *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) |= SCULPT_BOUNDARY_UV;
     *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~SCULPT_CORNER_UV;
+  }
+
+  /* Do not allow sharp angle boundary flags to propagate across non-boundary edges. */
+  if (!sharp_angle_boundary) {
+    *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~(SCULPT_BOUNDARY_SHARP_ANGLE |
+                                                              SCULPT_CORNER_SHARP_ANGLE);
+  }
+  else {
+    *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) |= SCULPT_BOUNDARY_SHARP_ANGLE;
+    *BM_ELEM_CD_PTR<int *>(newv, pbvh->cd_boundary_flag) &= ~SCULPT_CORNER_SHARP_ANGLE;
   }
 
   /* Propagate current stroke id. */
@@ -2592,6 +2604,7 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   BM_log_edge_added(bm, pbvh->bm_log, newe);
 
   dyntopo_add_flag(pbvh, newv, SCULPTFLAG_NEED_VALENCE | SCULPTFLAG_NEED_TRIANGULATE);
+
   pbvh_boundary_update_bmesh(pbvh, newv);
   pbvh_boundary_update_bmesh(pbvh, newe);
 
