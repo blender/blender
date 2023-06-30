@@ -1424,6 +1424,9 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
   }
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+  SCULPT_tag_uveditor_update(C, depsgraph, ob);
+#endif
 
   sculpt_undo_print_nodes(ob, nullptr);
 
@@ -1433,7 +1436,8 @@ static void sculpt_undo_restore_list(bContext *C, Depsgraph *depsgraph, ListBase
      * ensure object is updated after the node is handled. */
     const SculptUndoNode *first_unode = (const SculptUndoNode *)lb->first;
     if (first_unode->type != SCULPT_UNDO_GEOMETRY &&
-        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN) {
+        first_unode->type != SCULPT_UNDO_DYNTOPO_BEGIN)
+    {
       BKE_sculpt_update_object_for_edit(depsgraph, ob, false, need_mask, false);
     }
 

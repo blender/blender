@@ -45,6 +45,7 @@
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 #include "BKE_subdiv_modifier.h"
+#include "BKE_sculpt.h" //NotForPR
 
 #include "atomic_ops.h"
 
@@ -1385,7 +1386,8 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph *task_graph,
                            DRW_object_is_in_edit_mode(ob);
 
   /* This could be set for paint mode too, currently it's only used for edit-mode. */
-  const bool is_mode_active = is_editmode && DRW_object_is_in_edit_mode(ob);
+  const bool is_mode_active = (is_editmode && DRW_object_is_in_edit_mode(ob)) ||
+                              ((ob->mode == OB_MODE_SCULPT) && ob->sculpt && ob->sculpt->bm);
 
   DRWBatchFlag batch_requested = cache->batch_requested;
   cache->batch_requested = (DRWBatchFlag)0;

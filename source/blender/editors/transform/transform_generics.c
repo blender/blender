@@ -284,7 +284,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
   else if (t->spacetype == SPACE_IMAGE) {
     SpaceImage *sima = area->spacedata.first;
     BKE_view_layer_synced_ensure(t->scene, t->view_layer);
-    if (ED_space_image_show_uvedit(sima, BKE_view_layer_active_object_get(t->view_layer))) {
+    if (ED_space_image_show_uvedit(sima,
+                                   BKE_view_layer_active_object_get(t->view_layer),
+                                   CTX_data_active_object(C),
+                                   false))
+    {
       /* UV transform */
     }
     else if (sima->mode == SI_MODE_MASK) {

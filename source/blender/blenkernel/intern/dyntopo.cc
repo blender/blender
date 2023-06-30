@@ -2051,7 +2051,7 @@ EdgeQueueContext::EdgeQueueContext(BrushTester *brush_tester_,
   mask_cb_data = mask_cb_data_;
   view_normal = view_normal_;
 
-  ignore_loop_data = !bm->ldata.totlayer || !ss->reproject_smooth;
+  ignore_loop_data = !bm->ldata.totlayer;
   updatePBVH = updatePBVH_;
   cd_vert_mask_offset = pbvh->cd_vert_mask_offset;
   cd_vert_node_offset = pbvh->cd_vert_node_offset;

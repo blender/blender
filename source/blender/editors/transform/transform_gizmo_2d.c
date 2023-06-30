@@ -76,7 +76,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
     case SPACE_IMAGE: {
       const SpaceImage *sima = area->spacedata.first;
       Object *obedit = CTX_data_edit_object(C);
-      if (!ED_space_image_show_uvedit(sima, obedit)) {
+      if (!ED_space_image_show_uvedit(sima, obedit, CTX_data_active_object(C), false)) {
         return false;
       }
       break;

@@ -101,7 +101,7 @@ void ED_space_image_auto_set(const bContext *C, SpaceImage *sima)
 
   /* Track image assigned to active face in edit mode. */
   Object *ob = CTX_data_active_object(C);
-  if (!(ob && (ob->mode & OB_MODE_EDIT) && ED_space_image_show_uvedit(sima, ob))) {
+  if (!(ob && (ob->mode & OB_MODE_EDIT) && ED_space_image_show_uvedit(sima, ob, ob, false))) {
     return;
   }
 
@@ -459,33 +459,10 @@ bool ED_space_image_show_paint(const SpaceImage *sima)
   return (sima->mode == SI_MODE_PAINT);
 }
 
-bool ED_space_image_show_uvedit(const SpaceImage *sima, Object *obedit)
-{
-  if (sima) {
-    if (ED_space_image_show_render(sima)) {
-      return false;
-    }
-    if (sima->mode != SI_MODE_UV) {
-      return false;
-    }
-  }
-
-  if (obedit && obedit->type == OB_MESH) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    bool ret;
-
-    ret = EDBM_uv_check(em);
-
-    return ret;
-  }
-
-  return false;
-}
-
 bool ED_space_image_check_show_maskedit(SpaceImage *sima, Object *obedit)
 {
   /* check editmode - this is reserved for UV editing */
-  if (obedit && ED_space_image_show_uvedit(sima, obedit)) {
+  if (obedit && ED_space_image_show_uvedit(sima, obedit, NULL, false)) {
     return false;
   }
 

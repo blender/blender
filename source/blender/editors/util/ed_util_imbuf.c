@@ -544,7 +544,7 @@ bool ED_imbuf_sample_poll(bContext *C)
       if (obedit) {
         /* Disable when UV editing so it doesn't swallow all click events
          * (use for setting cursor). */
-        if (ED_space_image_show_uvedit(sima, obedit)) {
+        if (ED_space_image_show_uvedit(sima, obedit, CTX_data_active_object(C), false)) {
           return false;
         }
       }

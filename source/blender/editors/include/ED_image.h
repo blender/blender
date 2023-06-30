@@ -132,7 +132,12 @@ bool ED_image_slot_cycle(struct Image *image, int direction);
 
 bool ED_space_image_show_render(const struct SpaceImage *sima);
 bool ED_space_image_show_paint(const struct SpaceImage *sima);
-bool ED_space_image_show_uvedit(const struct SpaceImage *sima, struct Object *obedit);
+
+/* NotForPR: show uv edges in sculpt dynamic topology mode. */
+bool ED_space_image_show_uvedit(const struct SpaceImage *sima,
+                                struct Object *obedit,
+                                struct Object *obact,
+                                bool is_operator_poll);
 
 bool ED_space_image_paint_curve(const struct bContext *C);
 

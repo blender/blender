@@ -57,12 +57,16 @@
 #include "BKE_pbvh.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph.h"
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+#  include "DEG_depsgraph_query.h"
+#endif
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -6086,6 +6090,18 @@ void SCULPT_update_object_bounding_box(Object *ob)
   }
 }
 
+void SCULPT_tag_uveditor_update(bContext *C, Depsgraph *depsgraph, Object *ob)
+{
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+  Object *obedit_eval = DEG_get_evaluated_object(depsgraph, ob);
+  BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
+                                 BKE_MESH_BATCH_DIRTY_UVEDIT_ALL);
+
+  DEG_id_tag_update(&ob->id, ID_RECALC_EDITORS | ID_RECALC_SELECT);
+  WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+#endif
+}
+
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
   using namespace blender;
@@ -6114,6 +6130,10 @@ void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
       return;
     }
   }
+
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+  SCULPT_tag_uveditor_update(C, depsgraph, ob);
+#endif
 
   DEG_id_tag_update(&ob->id, ID_RECALC_SHADING);
 

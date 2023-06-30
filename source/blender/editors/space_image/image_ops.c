@@ -952,7 +952,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 
   /* get bounds */
   float min[2], max[2];
-  if (ED_space_image_show_uvedit(sima, obedit)) {
+  if (ED_space_image_show_uvedit(sima, obedit, NULL, false)) {
     uint objects_len = 0;
     Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
         scene, view_layer, ((View3D *)NULL), &objects_len);

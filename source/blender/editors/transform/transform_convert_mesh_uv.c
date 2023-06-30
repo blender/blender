@@ -265,7 +265,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
     int count = 0, countsel = 0;
     const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
-    if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
+    if (!ED_space_image_show_uvedit(sima, tc->obedit, CTX_data_active_object(C), false)) {
       continue;
     }
 

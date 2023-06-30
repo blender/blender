@@ -649,7 +649,7 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   image_main_region_set_view2d(sima, region);
 
   /* check for mask (delay draw) */
-  if (!ED_space_image_show_uvedit(sima, obedit) && sima->mode == SI_MODE_MASK) {
+  if (!ED_space_image_show_uvedit(sima, obedit, NULL, false) && sima->mode == SI_MODE_MASK) {
     mask = ED_space_image_get_mask(sima);
   }
 

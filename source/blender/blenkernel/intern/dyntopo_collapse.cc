@@ -101,7 +101,7 @@ static bool vert_is_nonmanifold(BMVert *v)
 
 template<typename T, typename SumT = T>
 static void snap_corner_data(
-    BMesh *bm, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_uv, bool snap_midpoint)
+    BMesh *bm, BMEdge *e, BMVert *v_del, Span<BMLoop *> ls, int cd_offset, bool snap_midpoint)
 {
   using namespace blender;
 
@@ -116,12 +116,10 @@ static void snap_corner_data(
     ls[i]->next->head.index = -1; /* So we can test l->next without checking if it's inside ls.*/
   }
 
+  // XXX todo: preserve UV pins
+
   /* Build snapping sets (of UV vertices). */
   for (BMLoop *l1 : ls) {
-    if (!snap_midpoint && l1->v == v_del) {
-      continue;
-    }
-
     if (l1->head.index != -1) {
       continue;
     }
@@ -135,30 +133,25 @@ static void snap_corner_data(
     final_loops.append(l1);
 
     blocks[cur_set].append(l1->head.data);
-    weights[cur_set].append(1.0f);
+    weights[cur_set].append(l1->v == v_del && !snap_midpoint ? 0.0f : 1.0f);
     loops[cur_set].append(l1);
 
-    T uv1 = *BM_ELEM_CD_PTR<T *>(l1, cd_uv);
+    T uv1 = *BM_ELEM_CD_PTR<T *>(l1, cd_offset);
 
-    T uvnext = *BM_ELEM_CD_PTR<T *>(l1->next, cd_uv);
-    float limit = max_ff(math::distance_squared(uv1, uvnext) * 0.1f, 0.000025f);
+    T uvnext = *BM_ELEM_CD_PTR<T *>(l1->next, cd_offset);
+    float limit = max_ff(math::distance_squared(uv1, uvnext) * 0.1f, 0.00001f);
 
     for (BMLoop *l2 : ls) {
-      T uv2 = *BM_ELEM_CD_PTR<T *>(l2, cd_uv);
+      T uv2 = *BM_ELEM_CD_PTR<T *>(l2, cd_offset);
 
       if (l2 == l1 || l2->head.index != -1) {
         continue;
       }
 
       if (math::distance_squared(uv1, uv2) < limit) {
-        float w = 1.0;
-        if (!snap_midpoint && l2->v == v_del) {
-          w = 0.0f;
-        }
-
         l2->head.index = cur_set;
         blocks[cur_set].append(l2->head.data);
-        weights[cur_set].append(w);
+        weights[cur_set].append(l2->v == v_del && !snap_midpoint ? 0.0f : 1.0f);
         loops[cur_set].append(l2);
       }
     }
@@ -167,48 +160,45 @@ static void snap_corner_data(
   }
 
   /* Merge sets */
-  for (int i : final_loops.index_range()) {
-    if (!final_loops[i]) {
+  for (int set1 : final_loops.index_range()) {
+    if (!final_loops[set1]) {
       continue;
     }
 
-    BMLoop *final_l = final_loops[i];
+    BMLoop *final_l = final_loops[set1];
     BMLoop *next_l = final_l->next;
 
-    if (final_l->e != e || next_l->head.index == -1 || next_l->head.index == i) {
+    if (final_l->e != e || next_l->head.index == -1 || next_l->head.index == set1) {
       continue;
     }
 
-    int set = next_l->head.index;
+    int set2 = next_l->head.index;
 
-    blocks[i].append(next_l->head.data);
-    weights[i].append(1.0f);
-
-    for (void *block : blocks[set]) {
-      blocks[i].append(block);
+    for (void *block : blocks[set2]) {
+      blocks[set1].append(block);
     }
-    for (float w : weights[set]) {
-      weights[i].append(w);
+    for (float w : weights[set2]) {
+      weights[set1].append(w);
     }
 
-    for (BMLoop *l : loops[set]) {
-      l->head.index = i;
+    for (BMLoop *l : loops[set2]) {
+      l->head.index = set1;
     }
 
     /* Flag set as deleted. */
-    final_loops[set] = nullptr;
+    final_loops[set2] = nullptr;
   }
 
   /* Perform final UV snapping. */
-  for (int i : final_loops.index_range()) {
-    BMLoop *final_l = final_loops[i];
+  for (int set : final_loops.index_range()) {
+    BMLoop *final_l = final_loops[set];
 
     if (!final_l) {
       continue;
     }
 
     float totw = 0.0f;
-    for (float w : weights[i]) {
+    for (float w : weights[set]) {
       totw += w;
     }
 
@@ -219,41 +209,76 @@ static void snap_corner_data(
        * just use uniform weights.
        */
 
-      for (int j : weights[i].index_range()) {
-        weights[i][j] = 1.0f;
+      for (int i : weights[set].index_range()) {
+        weights[set][i] = 1.0f;
       }
 
-      totw = float(weights[i].size());
+      totw = float(weights[set].size());
     }
 
     totw = 1.0f / totw;
-    for (int j : weights[i].index_range()) {
-      weights[i][j] *= totw;
+    for (int i : weights[set].index_range()) {
+      weights[set][i] *= totw;
     }
 
     SumT sum = {};
 
-    for (int j : blocks[i].index_range()) {
-      void *ptr = POINTER_OFFSET(blocks[i][j], cd_uv);
-      T value = *static_cast<T *>(ptr);
+    /* TODO: port this code to a BMesh library function and use it in the collapse_uvs BMesh
+     * operator. */
 
-      if (std::is_same_v<T, uchar4>) {
-        sum[0] += float(value[0]) * weights[i][j];
-        sum[1] += float(value[1]) * weights[i][j];
-        sum[2] += float(value[2]) * weights[i][j];
-        sum[3] += float(value[3]) * weights[i][j];
+    /* Use minmax centroid.  Seems like the edge weights should have summed so their centroid
+     * is the same as a minmax centroid,but apparently not, and this is how editmode does it.
+     */
+#if 1
+    SumT min = {}, max = {};
+
+    for (int i = 0; i < SumT::type_length; i++) {
+      min[i] = FLT_MAX;
+      max[i] = FLT_MIN;
+    }
+
+    for (int i : blocks[set].index_range()) {
+      T value1 = *static_cast<T *>(POINTER_OFFSET(blocks[set][i], cd_offset));
+      SumT value;
+
+      if (weights[set][i] == 0.0f) {
+        continue;
+      }
+
+      if constexpr (std::is_same_v<T, uchar4>) {
+        value = SumT(value1[0], value1[1], value1[2], value1[3]);
       }
       else {
-        sum += value * weights[i][j];
+        value = value1;
       }
+
+      min = math::min(value, min);
+      max = math::max(value, max);
     }
 
+    sum = (min + max) * 0.5f;
+#else /* Original centroid version. */
+    for (int i : blocks[set].index_range()) {
+      T value = *static_cast<T *>(POINTER_OFFSET(blocks[set][i], cd_offset));
+
+      if (std::is_same_v<T, uchar4>) {
+        sum[0] += float(value[0]) * weights[set][i];
+        sum[1] += float(value[1]) * weights[set][i];
+        sum[2] += float(value[2]) * weights[set][i];
+        sum[3] += float(value[3]) * weights[set][i];
+      }
+      else {
+        sum += value * weights[set][i];
+      }
+    }
+#endif
+
     if constexpr (std::is_same_v<T, SumT>) {
-      *BM_ELEM_CD_PTR<T *>(final_l, cd_uv) = sum;
+      *BM_ELEM_CD_PTR<T *>(final_l, cd_offset) = sum;
     }
     else if constexpr (std::is_same_v<T, uchar4>) {
-      *BM_ELEM_CD_PTR<T *>(final_l,
-                           cd_uv) = {uchar(sum[0]), uchar(sum[1]), uchar(sum[2]), uchar(sum[3])};
+      *BM_ELEM_CD_PTR<T *>(final_l, cd_offset) = {
+          uchar(sum[0]), uchar(sum[1]), uchar(sum[2]), uchar(sum[3])};
     }
   }
 
@@ -267,7 +292,7 @@ static void snap_corner_data(
     int set = l->head.index;
 
     if (final_loops[set] && l != final_loops[set]) {
-      *BM_ELEM_CD_PTR<T *>(l, cd_uv) = *BM_ELEM_CD_PTR<T *>(final_loops[set], cd_uv);
+      *BM_ELEM_CD_PTR<T *>(l, cd_offset) = *BM_ELEM_CD_PTR<T *>(final_loops[set], cd_offset);
     }
   }
 }
@@ -281,7 +306,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
   pbvh_check_vert_boundary_bmesh(pbvh, v_del);
 
   int boundflag1 = BM_ELEM_CD_GET_INT(v_conn, pbvh->cd_boundary_flag);
-  int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
+  // int boundflag2 = BM_ELEM_CD_GET_INT(v_del, pbvh->cd_boundary_flag);
 
   /*have to check edge flags directly, vertex flag test above isn't specific enough and
     can sometimes let bad edges through*/
@@ -332,7 +357,7 @@ bool pbvh_bmesh_collapse_edge_uvs(
   /* Append loops around edge first. */
   BMLoop *l = e->l;
   do {
-    ls.append_non_duplicates(l);
+    ls.append(l);
   } while ((l = l->radial_next) != e->l);
 
   /* Now find loops around e->v1 and e->v2. */

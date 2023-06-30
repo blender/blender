@@ -22,6 +22,8 @@
 #include "BLI_vector.hh"
 
 #include "BKE_editmesh.h"
+#include "BKE_paint.h"   //NotForPR, show uv edges in sculpt mode
+#include "BKE_sculpt.h"  //NotForPR show uv edges in sculpt mode
 
 #include "GPU_capabilities.h"
 
@@ -381,11 +383,46 @@ BLI_INLINE void extract_task_range_run_iter(const MeshRenderData *mr,
   ExtractorIterData range_data;
   range_data.mr = mr;
 
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+  Vector<BMLoop *> looptris;
+#endif
+
   TaskParallelRangeFunc func;
   int stop;
   switch (iter_type) {
     case MR_ITER_LOOPTRI:
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+      if (is_mesh || mr->edit_bmesh) {
+        range_data.elems = is_mesh ? mr->looptris.data() : (void *)mr->edit_bmesh->looptris;
+      }
+      else {
+        /* Generate triangles ad-hoc. */
+        BMIter iter;
+        BMFace *f;
+        BM_ITER_MESH (f, &iter, mr->bm, BM_FACES_OF_MESH) {
+          BMLoop *l = f->l_first;
+
+          switch (f->len) {
+            case 4:
+              looptris.append(l);
+              looptris.append(l->next->next);
+              looptris.append(l->next->next->next);
+            case 3:
+              looptris.append(l);
+              looptris.append(l->next);
+              looptris.append(l->next->next);
+              break;
+            default:
+              /* Unsupported. */
+              break;
+          }
+        }
+
+        range_data.elems = static_cast<void *>(looptris.data());
+      }
+#else
       range_data.elems = is_mesh ? mr->looptris.data() : (void *)mr->edit_bmesh->looptris;
+#endif
       func = is_mesh ? extract_range_iter_looptri_mesh : extract_range_iter_looptri_bm;
       stop = mr->tri_len;
       break;

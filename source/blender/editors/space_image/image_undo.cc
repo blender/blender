@@ -41,6 +41,7 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_paint.h"
+#include "BKE_sculpt.h" /* for DEBUG_SHOW_SCULPT_BM_UV_EDGES */
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -1164,3 +1165,46 @@ void ED_image_undo_push_end(void)
 }
 
 /** \} */
+
+/* NotForPR: shows uv edges in sculpt mode.  Moved to image_undo.cc for easier reversion (it needs
+ * C++ to read .bm from ob->sculpt).
+ */
+
+#include "BKE_editmesh.h"
+
+#include "ED_image.h"
+#include "ED_mesh.h"
+
+extern "C" bool ED_space_image_show_uvedit(const SpaceImage *sima,
+                                           Object *obedit,
+                                           Object *obact,
+                                           bool is_operator_poll)
+{
+  if (sima) {
+    if (ED_space_image_show_render(sima)) {
+      return false;
+    }
+    if (sima->mode != SI_MODE_UV) {
+      return false;
+    }
+  }
+
+  if (obedit && obedit->type == OB_MESH) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool ret;
+
+    ret = EDBM_uv_check(em);
+
+    return ret;
+  }
+
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
+  if (obact && obact->type == OB_MESH && obact->mode == OB_MODE_SCULPT && obact->sculpt &&
+      obact->sculpt->bm)
+  {
+    return true;
+  }
+#endif
+
+  return false;
+}

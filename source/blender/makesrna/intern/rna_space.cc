@@ -1704,7 +1704,7 @@ static bool rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
     BKE_view_layer_synced_ensure(scene, view_layer);
     obedit = BKE_view_layer_edit_object_get(view_layer);
   }
-  return ED_space_image_show_uvedit(sima, obedit);
+  return ED_space_image_show_uvedit(sima, obedit, NULL, false);
 }
 
 static bool rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
