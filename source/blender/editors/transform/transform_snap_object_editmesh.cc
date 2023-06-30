@@ -121,8 +121,7 @@ static SnapCache_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx
       if (em_cache->mesh_runtime != snap_object_data_editmesh_runtime_get(ob_eval)) {
         if (G.moving) {
           /* WORKAROUND: avoid updating while transforming. */
-          BLI_assert(!em_cache->treedata_editmesh.cached && !em_cache->cached[0] &&
-                     !em_cache->cached[1]);
+          BLI_assert(!em_cache->cached[0] && !em_cache->cached[1] && !em_cache->cached[2]);
           em_cache->mesh_runtime = snap_object_data_editmesh_runtime_get(ob_eval);
         }
         else {
