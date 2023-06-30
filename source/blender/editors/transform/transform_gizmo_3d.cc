@@ -1039,8 +1039,6 @@ static bool gizmo_3d_calc_pos(const bContext *C,
                               const short pivot_type,
                               float r_pivot_pos[3])
 {
-  zero_v3(r_pivot_pos);
-
   switch (pivot_type) {
     case V3D_AROUND_CURSOR:
       copy_v3_v3(r_pivot_pos, scene->cursor.location);
@@ -1083,8 +1081,9 @@ static bool gizmo_3d_calc_pos(const bContext *C,
         return true;
       }
 
+      float co_sum[3] = {0.0f, 0.0f, 0.0f};
       const auto gizmo_3d_calc_center_fn = [&](const blender::float3 &co) {
-        add_v3_v3(r_pivot_pos, co);
+        add_v3_v3(co_sum, co);
       };
       const float(*r_mat)[4] = nullptr;
       int totsel;
@@ -1096,7 +1095,7 @@ static bool gizmo_3d_calc_pos(const bContext *C,
                                          &r_mat,
                                          nullptr);
       if (totsel) {
-        mul_v3_fl(r_pivot_pos, 1.0f / float(totsel));
+        mul_v3_v3fl(r_pivot_pos, co_sum, 1.0f / float(totsel));
         if (r_mat) {
           mul_m4_v3(r_mat, r_pivot_pos);
         }
