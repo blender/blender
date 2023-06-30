@@ -45,8 +45,13 @@ GPU_SHADER_CREATE_INFO(workbench_next_mesh)
     .additional_info("draw_modelmat_new_with_custom_id", "draw_resource_handle_new");
 
 GPU_SHADER_CREATE_INFO(workbench_next_curves)
-    /* TODO Adding workbench_next_mesh to avoid shader compilation errors */
-    .additional_info("workbench_next_mesh");
+    .sampler(WB_CURVES_COLOR_SLOT, ImageType::FLOAT_BUFFER, "ac", Frequency::BATCH)
+    .sampler(WB_CURVES_UV_SLOT, ImageType::FLOAT_BUFFER, "au", Frequency::BATCH)
+    .push_constant(Type::INT, "emitter_object_id")
+    .vertex_source("workbench_prepass_hair_vert.glsl")
+    .additional_info("draw_modelmat_new_with_custom_id",
+                     "draw_resource_handle_new",
+                     "draw_hair_new");
 
 GPU_SHADER_CREATE_INFO(workbench_next_pointcloud)
     /* TODO Adding workbench_next_mesh to avoid shader compilation errors */
@@ -108,7 +113,7 @@ GPU_SHADER_INTERFACE_INFO(workbench_material_iface, "")
 
 GPU_SHADER_CREATE_INFO(workbench_material)
     .uniform_buf(WB_WORLD_SLOT, "WorldData", "world_data")
-    .uniform_buf(WB_MATERIAL_UBO_SLOT, "vec4", "materials_data[4096]")
+    .uniform_buf(WB_MATERIAL_SLOT, "vec4", "materials_data[4096]")
     .push_constant(Type::INT, "materialIndex")
     .push_constant(Type::BOOL, "useMatcap")
     .vertex_out(workbench_material_iface);
@@ -134,9 +139,9 @@ GPU_SHADER_CREATE_INFO(workbench_color_texture)
     .define("WORKBENCH_TEXTURE_IMAGE_ARRAY")
     .define("WORKBENCH_COLOR_MATERIAL")
     .storage_buf(WB_MATERIAL_SLOT, Qualifier::READ, "vec4", "materials_data[]")
-    .sampler(1, ImageType::FLOAT_2D, "imageTexture", Frequency::BATCH)
-    .sampler(2, ImageType::FLOAT_2D_ARRAY, "imageTileArray", Frequency::BATCH)
-    .sampler(3, ImageType::FLOAT_1D_ARRAY, "imageTileData", Frequency::BATCH)
+    .sampler(2, ImageType::FLOAT_2D, "imageTexture", Frequency::BATCH)
+    .sampler(3, ImageType::FLOAT_2D_ARRAY, "imageTileArray", Frequency::BATCH)
+    .sampler(4, ImageType::FLOAT_1D_ARRAY, "imageTileData", Frequency::BATCH)
     .push_constant(Type::BOOL, "isImageTile")
     .push_constant(Type::BOOL, "imagePremult")
     .push_constant(Type::FLOAT, "imageTransparencyCutoff");

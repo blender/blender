@@ -249,6 +249,7 @@ set(SRC
   intern/draw_color_management.h
   intern/draw_command.hh
   intern/draw_common.h
+  intern/draw_common.hh
   intern/draw_common_shader_shared.h
   intern/draw_curves_private.hh
   intern/draw_debug.h

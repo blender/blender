@@ -120,6 +120,20 @@ GPU_SHADER_CREATE_INFO(draw_hair)
     .push_constant(Type::MAT4, "hairDupliMatrix")
     .additional_info("draw_modelmat", "draw_resource_id");
 
+GPU_SHADER_CREATE_INFO(draw_hair_new)
+    .define("HAIR_SHADER")
+    .define("DRW_HAIR_INFO")
+    .sampler(0, ImageType::FLOAT_BUFFER, "hairPointBuffer")
+    /* TODO(@fclem): Pack these into one UBO. */
+    .push_constant(Type::INT, "hairStrandsRes")
+    .push_constant(Type::INT, "hairThicknessRes")
+    .push_constant(Type::FLOAT, "hairRadRoot")
+    .push_constant(Type::FLOAT, "hairRadTip")
+    .push_constant(Type::FLOAT, "hairRadShape")
+    .push_constant(Type::BOOL, "hairCloseTip")
+    .push_constant(Type::INT, "hairStrandOffset")
+    .push_constant(Type::MAT4, "hairDupliMatrix");
+
 GPU_SHADER_CREATE_INFO(draw_pointcloud)
     .sampler(0, ImageType::FLOAT_BUFFER, "ptcloud_pos_rad_tx", Frequency::BATCH)
     .define("POINTCLOUD_SHADER")

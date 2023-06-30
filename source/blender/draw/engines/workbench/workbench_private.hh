@@ -183,13 +183,10 @@ class MeshPass : public PassMain {
                       bool clip,
                       ShaderCache &shaders);
 
-  void draw(ObjectRef &ref,
-            GPUBatch *batch,
-            ResourceHandle handle,
-            uint material_index,
-            ::Image *image = nullptr,
-            GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
-            ImageUser *iuser = nullptr);
+  PassMain::Sub &get_subpass(eGeometryType geometry_type,
+                             ::Image *image = nullptr,
+                             GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
+                             ImageUser *iuser = nullptr);
 };
 
 class OpaquePass {
