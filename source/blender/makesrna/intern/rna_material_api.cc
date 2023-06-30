@@ -21,7 +21,7 @@
 
 #else
 
-void RNA_api_material(StructRNA *UNUSED(srna))
+void RNA_api_material(StructRNA * /*srna*/)
 {
   // FunctionRNA *func;
   // PropertyRNA *parm;

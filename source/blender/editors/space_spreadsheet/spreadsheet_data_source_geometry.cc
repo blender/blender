@@ -18,6 +18,7 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"

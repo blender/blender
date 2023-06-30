@@ -27,7 +27,7 @@ set(DEFSRC
   rna_camera.c
   rna_cloth.c
   rna_collection.c
-  rna_color.c
+  rna_color.cc
   rna_constraint.c
   rna_context.c
   rna_curve.cc
@@ -39,7 +39,7 @@ set(DEFSRC
   rna_fluid.c
   rna_gpencil_legacy.c
   rna_gpencil_legacy_modifier.c
-  rna_image.c
+  rna_image.cc
   rna_key.c
   rna_lattice.cc
   rna_layer.c
@@ -48,7 +48,7 @@ set(DEFSRC
   rna_linestyle.c
   rna_main.c
   rna_mask.cc
-  rna_material.c
+  rna_material.cc
   rna_mesh.cc
   rna_meta.cc
   rna_modifier.cc
@@ -62,10 +62,10 @@ set(DEFSRC
   rna_particle.c
   rna_pointcloud.c
   rna_pose.cc
-  rna_render.c
+  rna_render.cc
   rna_rigidbody.c
   rna_rna.c
-  rna_scene.c
+  rna_scene.cc
   rna_screen.c
   rna_sculpt_paint.c
   rna_sequencer.c
@@ -105,15 +105,15 @@ set(APISRC
   rna_camera_api.c
   rna_curve_api.cc
   rna_fcurve_api.c
-  rna_image_api.c
+  rna_image_api.cc
   rna_lattice_api.cc
   rna_main_api.c
-  rna_material_api.c
+  rna_material_api.cc
   rna_mesh_api.cc
   rna_meta_api.c
   rna_object_api.cc
   rna_pose_api.c
-  rna_scene_api.c
+  rna_scene_api.cc
   rna_sequencer_api.c
   rna_sound_api.c
   rna_space_api.cc
@@ -382,6 +382,15 @@ if(WITH_OPENSUBDIV)
     ../../../../intern/opensubdiv
   )
   add_definitions(-DWITH_OPENSUBDIV)
+endif()
+if(WITH_OPENVDB)
+  list(APPEND INC
+    ../../../../intern/openvdb
+  )
+  list(APPEND INC_SYS
+    ${OPENVDB_INCLUDE_DIRS}
+  )
+  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
 endif()
 
 if(WITH_OPENVDB)

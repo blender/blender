@@ -58,20 +58,20 @@ static void rna_Image_save_render(Image *image,
 {
   Main *bmain = CTX_data_main(C);
 
-  if (scene == NULL) {
+  if (scene == nullptr) {
     scene = CTX_data_scene(C);
   }
 
   ImageSaveOptions opts;
 
-  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, true)) {
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, nullptr, false, true)) {
     opts.save_copy = true;
     STRNCPY(opts.filepath, path);
     if (quality != 0) {
       opts.im_format.quality = clamp_i(quality, 0, 100);
     }
 
-    if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
+    if (!BKE_image_save(reports, bmain, image, nullptr, &opts)) {
       BKE_reportf(
           reports, RPT_ERROR, "Image '%s' could not be saved to '%s'", image->id.name + 2, path);
     }
@@ -95,14 +95,14 @@ static void rna_Image_save(Image *image,
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
 
-  if (BKE_image_save_options_init(&opts, bmain, scene, image, NULL, false, false)) {
+  if (BKE_image_save_options_init(&opts, bmain, scene, image, nullptr, false, false)) {
     if (path && path[0]) {
       STRNCPY(opts.filepath, path);
     }
     if (quality != 0) {
       opts.im_format.quality = clamp_i(quality, 0, 100);
     }
-    if (!BKE_image_save(reports, bmain, image, NULL, &opts)) {
+    if (!BKE_image_save(reports, bmain, image, nullptr, &opts)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Image '%s' could not be saved to '%s'",
@@ -125,7 +125,8 @@ static void rna_Image_pack(
   BKE_image_free_packedfiles(image);
 
   if (data) {
-    char *data_dup = MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__);
+    char *data_dup = static_cast<char *>(
+        MEM_mallocN(sizeof(*data_dup) * (size_t)data_len, __func__));
     memcpy(data_dup, data, (size_t)data_len);
     BKE_image_packfiles_from_mem(reports, image, data_dup, (size_t)data_len);
   }
@@ -150,21 +151,21 @@ static void rna_Image_unpack(Image *image, Main *bmain, ReportList *reports, int
   }
   else {
     /* reports its own error on failure */
-    BKE_packedfile_unpack_image(bmain, reports, image, method);
+    BKE_packedfile_unpack_image(bmain, reports, image, ePF_FileStatus(method));
   }
 }
 
 static void rna_Image_reload(Image *image, Main *bmain)
 {
-  BKE_image_signal(bmain, image, NULL, IMA_SIGNAL_RELOAD);
+  BKE_image_signal(bmain, image, nullptr, IMA_SIGNAL_RELOAD);
   WM_main_add_notifier(NC_IMAGE | NA_EDITED, image);
 }
 
 static void rna_Image_update(Image *image, ReportList *reports)
 {
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, NULL, NULL);
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, nullptr, nullptr);
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
     return;
   }
@@ -176,7 +177,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_partial_update_mark_full_update(image);
 
-  BKE_image_release_ibuf(image, ibuf, NULL);
+  BKE_image_release_ibuf(image, ibuf, nullptr);
 }
 
 static void rna_Image_scale(Image *image, ReportList *reports, int width, int height)
@@ -197,13 +198,13 @@ static int rna_Image_gl_load(
   iuser.framenr = frame;
   iuser.layer = layer_index;
   iuser.pass = pass_index;
-  if (image->rr != NULL) {
+  if (image->rr != nullptr) {
     BKE_image_multilayer_index(image->rr, &iuser);
   }
 
-  GPUTexture *tex = BKE_image_get_gpu_texture(image, &iuser, NULL);
+  GPUTexture *tex = BKE_image_get_gpu_texture(image, &iuser, nullptr);
 
-  if (tex == NULL) {
+  if (tex == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "Failed to load image texture '%s'", image->id.name + 2);
     /* TODO(fclem): this error code makes no sense for vulkan. */
     return 0x0502; /* GL_INVALID_OPERATION */
@@ -219,7 +220,7 @@ static int rna_Image_gl_touch(
 
   BKE_image_tag_time(image);
 
-  if (image->gputexture[TEXTARGET_2D][0] == NULL) {
+  if (image->gputexture[TEXTARGET_2D][0] == nullptr) {
     error = rna_Image_gl_load(image, reports, frame, layer_index, pass_index);
   }
 
@@ -264,8 +265,8 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_ui_description(func,
                                   "Save image to a specific path using a scenes render settings");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-  parm = RNA_def_string_file_path(func, "filepath", NULL, 0, "", "Output path");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_string_file_path(func, "filepath", nullptr, 0, "", "Output path");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");
   RNA_def_int(func,
               "quality",
@@ -283,7 +284,7 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
   RNA_def_string_file_path(func,
                            "filepath",
-                           NULL,
+                           nullptr,
                            0,
                            "",
                            "Output path, uses image data-block filepath if not specified");
@@ -331,9 +332,9 @@ void RNA_api_image(StructRNA *srna)
   RNA_def_function_ui_description(func, "Scale the buffer of the image, in pixels");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_int(func, "width", 1, 1, INT_MAX, "", "Width", 1, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   parm = RNA_def_int(func, "height", 1, 1, INT_MAX, "", "Height", 1, INT_MAX);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
 
   func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");
   RNA_def_function_ui_description(
@@ -408,11 +409,12 @@ void RNA_api_image(StructRNA *srna)
       func, "image_user", "ImageUser", "", "Image user of the image to get filepath for");
   parm = RNA_def_string_file_path(func,
                                   "filepath",
-                                  NULL,
+                                  nullptr,
                                   FILE_MAX,
                                   "File Path",
                                   "The resulting filepath from the image and its user");
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
+  RNA_def_parameter_flags(
+      parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
 
   func = RNA_def_function(srna, "buffers_free", "rna_Image_buffers_free");

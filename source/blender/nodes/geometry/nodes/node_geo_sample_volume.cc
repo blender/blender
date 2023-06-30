@@ -6,6 +6,7 @@
 
 #include "BKE_type_conversions.hh"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "BLI_virtual_array.hh"
 

@@ -13,6 +13,7 @@
 
 #include "BKE_pointcloud.h"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

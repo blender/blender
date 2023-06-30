@@ -55,7 +55,8 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
   BPy_BEGIN_ALLOW_THREADS;
 #  endif
 
-  for (ViewLayer *view_layer = scene->view_layers.first; view_layer != NULL;
+  for (ViewLayer *view_layer = static_cast<ViewLayer *>(scene->view_layers.first);
+       view_layer != nullptr;
        view_layer = view_layer->next)
   {
     Depsgraph *depsgraph = BKE_scene_ensure_depsgraph(bmain, scene, view_layer);
@@ -67,7 +68,9 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 #  endif
 
   if (BKE_scene_camera_switch_update(scene)) {
-    for (bScreen *screen = bmain->screens.first; screen; screen = screen->id.next) {
+    for (bScreen *screen = static_cast<bScreen *>(bmain->screens.first); screen;
+         screen = static_cast<bScreen *>(screen->id.next))
+    {
       BKE_screen_view3d_scene_sync(screen, scene);
     }
   }
@@ -80,11 +83,11 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
     // WM_main_add_notifier(NC_SCENE|ND_FRAME, scene);
 
     /* instead just redraw the views */
-    WM_main_add_notifier(NC_WINDOW, NULL);
+    WM_main_add_notifier(NC_WINDOW, nullptr);
   }
 }
 
-static void rna_Scene_uvedit_aspect(Scene *UNUSED(scene), Object *ob, float aspect[2])
+static void rna_Scene_uvedit_aspect(Scene * /*scene*/, Object *ob, float aspect[2])
 {
   if ((ob->type == OB_MESH) && (ob->mode == OB_MODE_EDIT)) {
     BMEditMesh *em;
@@ -103,7 +106,7 @@ static void rna_SceneRender_get_frame_path(
 {
   const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
-  /* avoid NULL pointer */
+  /* avoid nullptr pointer */
   if (!suffix) {
     suffix = "";
   }
@@ -138,12 +141,13 @@ static void rna_Scene_ray_cast(Scene *scene,
   normalize_v3(direction);
   SnapObjectContext *sctx = ED_transform_snap_object_context_create(scene, 0);
 
+  SnapObjectParams snap_object_params{};
+  snap_object_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+
   bool ret = ED_transform_snap_object_project_ray_ex(sctx,
                                                      depsgraph,
-                                                     NULL,
-                                                     &(const struct SnapObjectParams){
-                                                         .snap_target_select = SCE_SNAP_TARGET_ALL,
-                                                     },
+                                                     nullptr,
+                                                     &snap_object_params,
                                                      origin,
                                                      direction,
                                                      &ray_dist,
@@ -155,7 +159,7 @@ static void rna_Scene_ray_cast(Scene *scene,
 
   ED_transform_snap_object_context_destroy(sctx);
 
-  if (r_ob != NULL && *r_ob != NULL) {
+  if (r_ob != nullptr && *r_ob != nullptr) {
     *r_ob = DEG_get_original_object(*r_ob);
   }
 
@@ -210,34 +214,33 @@ static void rna_Scene_alembic_export(Scene *scene,
   BPy_BEGIN_ALLOW_THREADS;
 #    endif
 
-  const struct AlembicExportParams params = {
-      .frame_start = frame_start,
-      .frame_end = frame_end,
+  AlembicExportParams params{};
+  params.frame_start = frame_start;
+  params.frame_end = frame_end;
 
-      .frame_samples_xform = xform_samples,
-      .frame_samples_shape = geom_samples,
+  params.frame_samples_xform = xform_samples;
+  params.frame_samples_shape = geom_samples;
 
-      .shutter_open = shutter_open,
-      .shutter_close = shutter_close,
+  params.shutter_open = shutter_open;
+  params.shutter_close = shutter_close;
 
-      .selected_only = selected_only,
-      .uvs = uvs,
-      .normals = normals,
-      .vcolors = vcolors,
-      .apply_subdiv = apply_subdiv,
-      .flatten_hierarchy = flatten_hierarchy,
-      .visible_objects_only = visible_objects_only,
-      .face_sets = face_sets,
-      .use_subdiv_schema = use_subdiv_schema,
-      .export_hair = export_hair,
-      .export_particles = export_particles,
-      .packuv = packuv,
-      .triangulate = triangulate,
-      .quad_method = quad_method,
-      .ngon_method = ngon_method,
+  params.selected_only = selected_only;
+  params.uvs = uvs;
+  params.normals = normals;
+  params.vcolors = vcolors;
+  params.apply_subdiv = apply_subdiv;
+  params.flatten_hierarchy = flatten_hierarchy;
+  params.visible_objects_only = visible_objects_only;
+  params.face_sets = face_sets;
+  params.use_subdiv_schema = use_subdiv_schema;
+  params.export_hair = export_hair;
+  params.export_particles = export_particles;
+  params.packuv = packuv;
+  params.triangulate = triangulate;
+  params.quad_method = quad_method;
+  params.ngon_method = ngon_method;
 
-      .global_scale = scale,
-  };
+  params.global_scale = scale;
 
   ABC_export(scene, C, filepath, &params, true);
 
@@ -259,7 +262,7 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_function_ui_description(func, "Set scene frame updating all objects immediately");
   parm = RNA_def_int(
       func, "frame", 0, MINAFRAME, MAXFRAME, "", "Frame number to set", MINAFRAME, MAXFRAME);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_float(
       func, "subframe", 0.0, 0.0, 1.0, "", "Subframe time, between 0.0 and 1.0", 0.0, 1.0);
   RNA_def_function_flag(func, FUNC_USE_MAIN);
@@ -268,8 +271,9 @@ void RNA_api_scene(StructRNA *srna)
   RNA_def_function_ui_description(func, "Get uv aspect for current object");
   parm = RNA_def_pointer(func, "object", "Object", "", "Object");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-  parm = RNA_def_float_vector(func, "result", 2, NULL, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
+  parm = RNA_def_float_vector(
+      func, "result", 2, nullptr, 0.0f, FLT_MAX, "", "aspect", 0.0f, FLT_MAX);
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_function_output(func, parm);
 
   /* Ray Cast */
@@ -279,10 +283,10 @@ void RNA_api_scene(StructRNA *srna)
   parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "The current dependency graph");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
   /* ray start and end */
-  parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-  parm = RNA_def_float_vector(func, "direction", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+  parm = RNA_def_float_vector(func, "origin", 3, nullptr, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
+  parm = RNA_def_float_vector(func, "direction", 3, nullptr, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_float(func,
                 "distance",
                 BVH_RAYCAST_DIST_MAX,
@@ -298,40 +302,40 @@ void RNA_api_scene(StructRNA *srna)
   parm = RNA_def_float_vector(func,
                               "location",
                               3,
-                              NULL,
+                              nullptr,
                               -FLT_MAX,
                               FLT_MAX,
                               "Location",
                               "The hit location of this ray cast",
                               -1e4,
                               1e4);
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_function_output(func, parm);
   parm = RNA_def_float_vector(func,
                               "normal",
                               3,
-                              NULL,
+                              nullptr,
                               -FLT_MAX,
                               FLT_MAX,
                               "Normal",
                               "The face normal at the ray cast hit location",
                               -1e4,
                               1e4);
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
+  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, ParameterFlag(0));
   RNA_def_function_output(func, parm);
   parm = RNA_def_int(
       func, "index", 0, 0, 0, "", "The face index, -1 when original data isn't available", 0, 0);
   RNA_def_function_output(func, parm);
   parm = RNA_def_pointer(func, "object", "Object", "", "Ray cast object");
   RNA_def_function_output(func, parm);
-  parm = RNA_def_float_matrix(func, "matrix", 4, 4, NULL, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
+  parm = RNA_def_float_matrix(func, "matrix", 4, 4, nullptr, 0.0f, 0.0f, "", "Matrix", 0.0f, 0.0f);
   RNA_def_function_output(func, parm);
 
   /* Sequencer. */
   func = RNA_def_function(srna, "sequence_editor_create", "SEQ_editing_ensure");
   RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
   parm = RNA_def_pointer(
-      func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or NULL");
+      func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or nullptr");
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "sequence_editor_clear", "rna_Scene_sequencer_editing_free");
@@ -344,8 +348,8 @@ void RNA_api_scene(StructRNA *srna)
       func, "Export to Alembic file (deprecated, use the Alembic export operator)");
 
   parm = RNA_def_string(
-      func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Alembic file");
-  RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+      func, "filepath", nullptr, FILE_MAX, "File Path", "File path to write Alembic file");
+  RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
   RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
 
   RNA_def_int(func, "frame_start", 1, INT_MIN, INT_MAX, "Start", "Start Frame", INT_MIN, INT_MAX);
@@ -430,17 +434,18 @@ void RNA_api_scene_render(StructRNA *srna)
   RNA_def_boolean(func, "preview", 0, "Preview", "Use preview range");
   RNA_def_string_file_path(func,
                            "view",
-                           NULL,
+                           nullptr,
                            FILE_MAX,
                            "View",
                            "The name of the view to use to replace the \"%\" chars");
   parm = RNA_def_string_file_path(func,
                                   "filepath",
-                                  NULL,
+                                  nullptr,
                                   FILE_MAX,
                                   "File Path",
                                   "The resulting filepath from the scenes render settings");
-  RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
+  RNA_def_parameter_flags(
+      parm, PROP_THICK_WRAP, ParameterFlag(0)); /* needed for string return value */
   RNA_def_function_output(func, parm);
 }
 
