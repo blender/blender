@@ -447,6 +447,7 @@ static void swap_wm_data_for_blendfile(ReuseOldBMainData *reuse_data, const bool
   else {
     swap_old_bmain_data_for_blendfile(reuse_data, ID_WM);
     old_wm->init_flag &= ~WM_INIT_FLAG_WINDOW;
+    reuse_data->wm_setup_data->old_wm = old_wm;
   }
 }
 

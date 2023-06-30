@@ -293,10 +293,14 @@ static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
  */
 static void wm_file_read_setup_wm_keep_old(const bContext *C,
                                            Main *bmain,
-                                           BlendFileReadWMSetupData * /*wm_setup_data*/,
+                                           BlendFileReadWMSetupData *wm_setup_data,
                                            wmWindowManager *wm,
                                            const bool load_ui)
 {
+  /* This data is not needed here, besides detecting that old WM has been kept (in caller code).
+   * Since `old_wm` is kept, do not free it, just clear the pointer as clean-up. */
+  wm_setup_data->old_wm = nullptr;
+
   if (!load_ui) {
     /* When loading without UI (i.e. keeping existing UI), no matching needed.
      *
