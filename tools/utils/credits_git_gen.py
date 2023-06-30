@@ -11,6 +11,7 @@ Example use:
 
 from git_log import GitCommitIter
 import unicodedata as ud
+import re
 
 # -----------------------------------------------------------------------------
 # Lookup Table to clean up the credits
@@ -91,6 +92,15 @@ author_table = {
     "Yiming Wu": "YimingWu",
 }
 
+# Mapping from a comit hash to additional authors.
+# Fully overwrite authors gathered from git commit info.
+# Intended usage: Correction of info stored in git commit itself.
+# Note that the names of the authors here are assumed fully valid and usable as-is.
+commit_authors_overwrite = {
+    # Format: {full_git_hash: (tuple, of, authors),}.
+    # Example:
+    # b"a60c1e5bb814078411ce105b7cf347afac6f2afd": ("Blender Foundation",  "Suzanne", "Ton"),
+}
 
 # -----------------------------------------------------------------------------
 # Class for generating credits
@@ -111,23 +121,40 @@ class Credits:
         "users",
     )
 
+    # Expected to cover the following formats (the e-mail address is not captured if present):
+    #    `Co-authored-by: Blender Foundation`
+    #    `Co-authored-by: Blender Foundation <foundation@blender.org>`
+    #    `Co-authored-by: Blender Foundation <Suzanne>`
+    GIT_COMMIT_COAUTHORS_RE = re.compile(r"^Co-authored-by:[ \t]*(?P<author>[ \w\t]*\w)(?:$|[ \t]*<)", re.MULTILINE)
+
     def __init__(self):
         self.users = {}
 
-    def process_commit(self, c):
-        # Normalize author string into canonical form, prevents duplicate credit users
-        author = ud.normalize('NFC', c.author)
-        author = author_table.get(author, author)
-        year = c.date.year
-        cu = self.users.get(author)
-        if cu is None:
-            cu = self.users[author] = CreditUser()
-            cu.year_min = year
-            cu.year_max = year
+    @classmethod
+    def commit_authors_get(cls, c):
+        authors = commit_authors_overwrite.get(c.sha1, None)
+        if authors is not None:
+            # Ignore git commit info for these having an entry in commit_authors_overwrite.
+            return [author_table.get(author, author) for author in authors]
 
-        cu.commit_total += 1
-        cu.year_min = min(cu.year_min, year)
-        cu.year_max = max(cu.year_max, year)
+        authors = [c.author] + cls.GIT_COMMIT_COAUTHORS_RE.findall(c.body)
+        # Normalize author string into canonical form, prevents duplicate credit users
+        authors = [ud.normalize('NFC', author) for author in authors]
+        return [author_table.get(author, author) for author in authors]
+
+    def process_commit(self, c):
+        authors = self.commit_authors_get(c)
+        year = c.date.year
+        for author in authors:
+            cu = self.users.get(author)
+            if cu is None:
+                cu = self.users[author] = CreditUser()
+                cu.year_min = year
+                cu.year_max = year
+
+            cu.commit_total += 1
+            cu.year_min = min(cu.year_min, year)
+            cu.year_max = max(cu.year_max, year)
 
     def process(self, commit_iter):
         for i, c in enumerate(commit_iter):
