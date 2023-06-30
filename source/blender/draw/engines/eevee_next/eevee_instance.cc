@@ -100,6 +100,7 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   shadows.init();
   main_view.init();
   irradiance_cache.init();
+  reflection_probes.init();
 }
 
 void Instance::set_time(float time)
@@ -515,6 +516,8 @@ void Instance::light_bake_irradiance(
     manager->begin_sync();
     render_sync();
     manager->end_sync();
+
+    capture_view.render();
 
     irradiance_cache.bake.surfels_create(probe);
     irradiance_cache.bake.surfels_lights_eval();
