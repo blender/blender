@@ -1256,7 +1256,7 @@ void SCULPT_smooth(
 void SCULPT_smooth(
     Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask)
 {
-  SCOPED_TIMER(__func__);
+  //SCOPED_TIMER(__func__);
 
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);
