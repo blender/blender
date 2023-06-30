@@ -237,10 +237,10 @@ class NewGeometryNodeTreeAssign(Operator):
         return geometry_modifier_poll(context)
 
     def execute(self, context):
-        snode = context.space_data
-        if snode and snode.geometry_nodes_type == 'OPERATOR':
+        space = context.space_data
+        if space and space.type == 'NODE_EDITOR' and space.geometry_nodes_type == 'OPERATOR':
             group = geometry_node_group_empty_new()
-            snode.node_tree = group
+            space.node_tree = group
             return {'FINISHED'}
         else:
             modifier = get_context_modifier(context)
