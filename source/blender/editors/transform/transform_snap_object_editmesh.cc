@@ -416,8 +416,9 @@ static bool nearest_world_editmesh(SnapCache_EditMesh *em_cache,
     return false;
   }
 
-  float3 init_co = math::transform_point(obmat, float3(sctx->runtime.init_co));
-  float3 curr_co = math::transform_point(obmat, float3(sctx->runtime.curr_co));
+  float4x4 imat = math::invert(obmat);
+  float3 init_co = math::transform_point(imat, float3(sctx->runtime.init_co));
+  float3 curr_co = math::transform_point(imat, float3(sctx->runtime.curr_co));
 
   BVHTreeNearest nearest{};
   nearest.dist_sq = sctx->ret.dist_px_sq;
