@@ -100,7 +100,8 @@ bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
 
   a.layers = b.layers = nullptr;
   a.pool = b.pool = nullptr;
-
+  a.maxlayer = b.maxlayer;
+  
   if (memcmp((void *)&a, (void *)&b, sizeof(CustomData)) != 0) {
     return false;
   }
@@ -110,6 +111,8 @@ bool CustomData_layout_is_same(const CustomData *_a, const CustomData *_b)
     CustomDataLayer clb = _b->layers[i];
 
     cla.data = clb.data = nullptr;
+    cla.anonymous_id = clb.anonymous_id = nullptr;
+    cla.sharing_info = clb.sharing_info = nullptr;
 
     if (memcmp((void *)&cla, (void *)&clb, sizeof(CustomDataLayer)) != 0) {
       return false;
@@ -4136,7 +4139,7 @@ void CustomData_bmesh_free_block(CustomData *data, void **block)
   *block = nullptr;
 }
 
-void CustomData_bmesh_free_block_data(CustomData *data, void *block)
+ATTR_NO_OPT void CustomData_bmesh_free_block_data(CustomData *data, void *block)
 {
   if (block == nullptr) {
     return;

@@ -221,7 +221,7 @@ struct BMLogFace : public BMLogElem<BMFace> {
   Vector<void *, 5> loop_customdata;
   // int material_index;
 
-  void free(CustomData *domain, CustomData *loop_domain)
+  ATTR_NO_OPT void free(CustomData *domain, CustomData *loop_domain)
   {
     BMLogElem<BMFace>::free(domain);
 
@@ -471,6 +471,8 @@ struct BMLogEntry {
   BMLog *log = nullptr;
   bool dead = false;
 
+  bool cd_layout_changed = false;
+
   BMLogEntry(BMIdMap *_idmap,
              CustomData *src_vdata,
              CustomData *src_edata,
@@ -505,6 +507,22 @@ struct BMLogEntry {
     CustomData_bmesh_init_pool(&edata, 0, BM_EDGE);
     CustomData_bmesh_init_pool(&ldata, 0, BM_LOOP);
     CustomData_bmesh_init_pool(&pdata, 0, BM_FACE);
+  }
+
+  void copy_custom_data(CustomData *source, CustomData *dest, void *src_block, void **dest_block)
+  {
+    if (!*dest_block) {
+      *dest_block = BLI_mempool_calloc(dest->pool);
+    }
+
+#ifdef USE_SIMPLE_CD_COPY
+    /* Signal simple copy by using bm->XXXdata for dest. */
+    if (!cd_layout_changed) {
+      dest = source;
+    }
+#endif
+
+    CustomData_bmesh_copy_data(source, dest, src_block, dest_block);
   }
 
   ~BMLogEntry()
@@ -648,14 +666,7 @@ struct BMLogEntry {
 
   void update_logvert(BMesh *bm, BMVert *v, BMLogVert *lv)
   {
-    if (vdata.pool) {
-#ifdef USE_SIMPLE_CD_COPY
-      /* Signal simple copy by using bm->vdata for dest. */
-      CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v->head.data, &lv->customdata);
-#else
-      CustomData_bmesh_copy_data(&bm->vdata, &vdata, v->head.data, &lv->customdata);
-#endif
-    }
+    copy_custom_data(&bm->vdata, &vdata, v->head.data, &lv->customdata);
 
     lv->co = v->co;
     lv->no = v->no;
@@ -759,12 +770,7 @@ struct BMLogEntry {
   void update_logedge(BMesh *bm, BMEdge *e, BMLogEdge *le)
   {
     le->flag = e->head.hflag;
-#ifdef USE_SIMPLE_CD_COPY
-    /* Signal simple copy by using bm->edata for dest. */
-    CustomData_bmesh_copy_data(&bm->edata, &bm->edata, e->head.data, &le->customdata);
-#else
-    CustomData_bmesh_copy_data(&bm->edata, &edata, e->head.data, &le->customdata);
-#endif
+    copy_custom_data(&bm->edata, &edata, e->head.data, &le->customdata);
   }
 
   void free_logedge(BMesh * /*bm*/, BMLogEdge *le)
@@ -784,12 +790,7 @@ struct BMLogEntry {
     lf->id = get_elem_id<BMFace>(bm, f);
     lf->flag = f->head.hflag;
 
-#ifdef USE_SIMPLE_CD_COPY
-    /* Signal simple copy by using bm->pdata for dest. */
-    CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, f->head.data, &lf->customdata);
-#else
-    CustomData_bmesh_copy_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
-#endif
+    copy_custom_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
 
     BMLoop *l = f->l_first;
     do {
@@ -797,12 +798,7 @@ struct BMLogEntry {
       void *loop_customdata = nullptr;
 
       if (l->head.data) {
-#ifdef USE_SIMPLE_CD_COPY
-        /* Signal simple copy by using bm->ldata for dest. */
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l->head.data, &loop_customdata);
-#else
-        CustomData_bmesh_copy_data(&bm->ldata, &ldata, l->head.data, &loop_customdata);
-#endif
+        copy_custom_data(&bm->ldata, &ldata, l->head.data, &loop_customdata);
       }
 
       lf->loop_customdata.append(loop_customdata);
@@ -815,12 +811,7 @@ struct BMLogEntry {
   {
     lf->flag = f->head.hflag;
 
-#ifdef USE_SIMPLE_CD_COPY
-    /* Signal simple copy by using bm->ldata for dest. */
-    CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, f->head.data, &lf->customdata);
-#else
-    CustomData_bmesh_copy_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
-#endif
+    copy_custom_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
 
     if (f->len != lf->verts.size()) {
       printf("%s: error: face length changed.\n", __func__);
@@ -830,18 +821,11 @@ struct BMLogEntry {
     BMLoop *l = f->l_first;
     int i = 0;
     do {
-      void *loop_customdata = nullptr;
-
       if (l->head.data) {
-#ifdef USE_SIMPLE_CD_COPY
-        /* Signal simple copy by using bm->ldata for dest. */
-        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l->head.data, &loop_customdata);
-#else
-        CustomData_bmesh_copy_data(&bm->ldata, &ldata, l->head.data, &loop_customdata);
-#endif
+        copy_custom_data(&bm->ldata, &ldata, l->head.data, &lf->loop_customdata[i]);
       }
 
-      lf->loop_customdata[i++] = loop_customdata;
+      i++;
     } while ((l = l->next) != f->l_first);
   }
 
@@ -1727,7 +1711,7 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
   if (!entry) {
     fprintf(stdout, "no current entry; creating...\n");
     fflush(stdout);
-    return BM_log_entry_add_ex(bm, log, false);
+    return BM_log_entry_add_ex(bm, log, true);
   }
 
   CustomData *cd1[4] = {&bm->vdata, &bm->edata, &bm->ldata, &bm->pdata};
@@ -1737,7 +1721,9 @@ BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
     if (!CustomData_layout_is_same(cd1[i], cd2[i])) {
       fprintf(stdout, "Customdata changed for undo\n");
       fflush(stdout);
-      return BM_log_entry_add_ex(bm, log, false);
+
+      entry->cd_layout_changed = true;
+      return BM_log_entry_add_ex(bm, log, true);
     }
   }
 

@@ -2373,6 +2373,8 @@ bool remesh_topology(BrushTester *brush_tester,
                      void *mask_cb_data,
                      float quality)
 {
+  BM_log_entry_check_customdata(pbvh->header.bm, pbvh->bm_log);
+
   EdgeQueueContext eq_ctx(
       brush_tester, ob, pbvh, mode, use_frontface, view_normal, updatePBVH, mask_cb, mask_cb_data);
   eq_ctx.start();
