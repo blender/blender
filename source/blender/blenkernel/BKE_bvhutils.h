@@ -39,8 +39,6 @@ typedef struct BVHTreeFromEditMesh {
   BVHTree_NearestPointCallback nearest_callback;
   BVHTree_RayCastCallback raycast_callback;
 
-  struct BMEditMesh *em;
-
   /* Private data */
   bool cached;
 

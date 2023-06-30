@@ -300,8 +300,7 @@ static void editmesh_looptri_nearest_point(void *userdata,
                                            const float co[3],
                                            BVHTreeNearest *nearest)
 {
-  const BVHTreeFromEditMesh *data = (const BVHTreeFromEditMesh *)userdata;
-  BMEditMesh *em = data->em;
+  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
   const BMLoop **ltri = (const BMLoop **)em->looptris[index];
 
   const float *t0, *t1, *t2;
@@ -405,8 +404,7 @@ static void editmesh_looptri_spherecast(void *userdata,
                                         const BVHTreeRay *ray,
                                         BVHTreeRayHit *hit)
 {
-  const BVHTreeFromEditMesh *data = (BVHTreeFromEditMesh *)userdata;
-  BMEditMesh *em = data->em;
+  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
   const BMLoop **ltri = (const BMLoop **)em->looptris[index];
 
   const float *t0, *t1, *t2;
@@ -492,8 +490,8 @@ static void editmesh_verts_spherecast(void *userdata,
                                       const BVHTreeRay *ray,
                                       BVHTreeRayHit *hit)
 {
-  const BVHTreeFromEditMesh *data = (const BVHTreeFromEditMesh *)userdata;
-  BMVert *eve = BM_vert_at_index(data->em->bm, index);
+  BMEditMesh *em = static_cast<BMEditMesh *>(userdata);
+  BMVert *eve = BM_vert_at_index(em->bm, index);
 
   mesh_verts_spherecast_do(index, eve->co, ray, hit);
 }
@@ -629,14 +627,11 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
 
 static void bvhtree_from_editmesh_setup_data(BVHTree *tree,
                                              const BVHCacheType bvh_cache_type,
-                                             BMEditMesh *em,
                                              BVHTreeFromEditMesh *r_data)
 {
   memset(r_data, 0, sizeof(*r_data));
 
   r_data->tree = tree;
-
-  r_data->em = em;
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_EM_LOOSEVERTS:
@@ -754,7 +749,7 @@ BVHTree *bvhtree_from_editmesh_verts_ex(BVHTreeFromEditMesh *data,
   bvhtree_balance(tree, false);
 
   if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOSEVERTS, em, data);
+    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOSEVERTS, data);
   }
 
   return tree;
@@ -870,7 +865,7 @@ BVHTree *bvhtree_from_editmesh_edges_ex(BVHTreeFromEditMesh *data,
   bvhtree_balance(tree, false);
 
   if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_EDGES, em, data);
+    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_EDGES, data);
   }
 
   return tree;
@@ -1047,7 +1042,7 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(BVHTreeFromEditMesh *data,
   bvhtree_balance(tree, false);
 
   if (data) {
-    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOPTRI, em, data);
+    bvhtree_from_editmesh_setup_data(tree, BVHTREE_FROM_EM_LOOPTRI, data);
   }
   return tree;
 }
@@ -1281,7 +1276,7 @@ BVHTree *BKE_bvhtree_from_editmesh_get(BVHTreeFromEditMesh *data,
 {
   bool lock_started = false;
 
-  bvhtree_from_editmesh_setup_data(nullptr, bvh_cache_type, em, data);
+  bvhtree_from_editmesh_setup_data(nullptr, bvh_cache_type, data);
 
   if (bvh_cache_p) {
     data->cached = bvhcache_find(
