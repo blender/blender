@@ -108,7 +108,7 @@ static void snap_corner_data(
   Vector<Vector<void *, 24>, 4> blocks;
   Vector<Vector<float, 24>, 4> weights;
   Vector<Vector<BMLoop *, 24>, 4> loops;
-  Vector<BMLoop *> final_loops;
+  Vector<BMLoop *, 24> final_loops;
   int cur_set = 0;
 
   for (int i : ls.index_range()) {
