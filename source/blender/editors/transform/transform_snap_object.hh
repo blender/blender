@@ -19,7 +19,10 @@ struct SnapCache_EditMesh;
 struct SnapObjectContext {
   struct Scene *scene;
 
-  blender::Map<const BMEditMesh *, std::unique_ptr<SnapCache_EditMesh>> editmesh_caches;
+  struct SnapCache {
+    virtual ~SnapCache(){};
+  };
+  blender::Map<const BMEditMesh *, std::unique_ptr<SnapCache>> editmesh_caches;
 
   /* Filter data, returns true to check this value */
   struct {
@@ -184,29 +187,6 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
 eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[4][4]);
 
 /* transform_snap_object_editmesh.cc */
-
-struct SnapCache_EditMesh {
-  /* Loose Verts, Edges. */
-  BVHTree *bvhtree[2];
-  bool cached[2];
-
-  /* BVH tree from #BMEditMesh.looptris. */
-  BVHTreeFromEditMesh treedata_editmesh;
-
-  blender::bke::MeshRuntime *mesh_runtime;
-  float min[3], max[3];
-
-  void clear();
-
-  ~SnapCache_EditMesh()
-  {
-    this->clear();
-  }
-
-#ifdef WITH_CXX_GUARDEDALLOC
-  MEM_CXX_CLASS_ALLOC_FUNCS("SnapData_EditMesh")
-#endif
-};
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,

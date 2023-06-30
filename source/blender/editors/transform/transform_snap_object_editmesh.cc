@@ -27,16 +27,37 @@ using namespace blender;
 /** \name Snap Object Data
  * \{ */
 
-void SnapCache_EditMesh::clear()
-{
-  for (int i = 0; i < ARRAY_SIZE(this->bvhtree); i++) {
-    if (!this->cached[i]) {
-      BLI_bvhtree_free(this->bvhtree[i]);
+struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
+  /* Loose Verts, Edges. */
+  BVHTree *bvhtree[2];
+  bool cached[2];
+
+  /* BVH tree from #BMEditMesh.looptris. */
+  BVHTreeFromEditMesh treedata_editmesh;
+
+  blender::bke::MeshRuntime *mesh_runtime;
+  float min[3], max[3];
+
+  void clear()
+  {
+    for (int i = 0; i < ARRAY_SIZE(this->bvhtree); i++) {
+      if (!this->cached[i]) {
+        BLI_bvhtree_free(this->bvhtree[i]);
+      }
+      this->bvhtree[i] = nullptr;
     }
-    this->bvhtree[i] = nullptr;
+    free_bvhtree_from_editmesh(&this->treedata_editmesh);
   }
-  free_bvhtree_from_editmesh(&this->treedata_editmesh);
-}
+
+  ~SnapCache_EditMesh()
+  {
+    this->clear();
+  }
+
+#ifdef WITH_CXX_GUARDEDALLOC
+  MEM_CXX_CLASS_ALLOC_FUNCS("SnapData_EditMesh")
+#endif
+};
 
 /**
  * Calculate the minimum and maximum coordinates of the box that encompasses this mesh.
@@ -85,8 +106,10 @@ static SnapCache_EditMesh *snap_object_data_editmesh_get(SnapObjectContext *sctx
   SnapCache_EditMesh *em_cache = nullptr;
   bool init = false;
 
-  if (std::unique_ptr<SnapCache_EditMesh> *em_cache_p = sctx->editmesh_caches.lookup_ptr(em)) {
-    em_cache = em_cache_p->get();
+  if (std::unique_ptr<SnapObjectContext::SnapCache> *em_cache_p = sctx->editmesh_caches.lookup_ptr(
+          em))
+  {
+    em_cache = static_cast<SnapCache_EditMesh *>(em_cache_p->get());
     bool is_dirty = false;
     /* Check if the geometry has changed. */
     if (em_cache->treedata_editmesh.em != em) {
