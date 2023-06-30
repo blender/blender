@@ -31,6 +31,8 @@ extern "C" {
 #include <functional>
 #include <type_traits>
 
+#define USE_SIMPLE_CD_COPY
+
 extern "C" void bm_log_message(const char *fmt, ...)
 {
   char msg[64];
@@ -458,6 +460,11 @@ struct BMLogEntry {
   LogElemAlloc<BMLogEdge> epool;
   LogElemAlloc<BMLogFace> fpool;
 
+  /* Contains all faces from all differential subsets. */
+  Set<BMID<BMVert>> verts;
+  Set<BMID<BMEdge>> edges;
+  Set<BMID<BMFace>> faces;
+
   CustomData vdata, edata, ldata, pdata;
   BMIdMap *idmap = nullptr;
 
@@ -471,10 +478,28 @@ struct BMLogEntry {
              CustomData *src_pdata)
       : idmap(_idmap)
   {
+#if 1
     CustomData_copy_all_layout(src_vdata, &vdata);
     CustomData_copy_all_layout(src_edata, &edata);
     CustomData_copy_all_layout(src_ldata, &ldata);
     CustomData_copy_all_layout(src_pdata, &pdata);
+#else
+    vdata = *src_vdata;
+    edata = *src_edata;
+    ldata = *src_ldata;
+    pdata = *src_pdata;
+
+    vdata.layers = static_cast<CustomDataLayer *>(
+        MEM_dupallocN(static_cast<void *>(vdata.layers)));
+    edata.layers = static_cast<CustomDataLayer *>(
+        MEM_dupallocN(static_cast<void *>(edata.layers)));
+    ldata.layers = static_cast<CustomDataLayer *>(
+        MEM_dupallocN(static_cast<void *>(ldata.layers)));
+    pdata.layers = static_cast<CustomDataLayer *>(
+        MEM_dupallocN(static_cast<void *>(pdata.layers)));
+
+    vdata.pool = edata.pool = ldata.pool = pdata.pool = nullptr;
+#endif
 
     CustomData_bmesh_init_pool(&vdata, 0, BM_VERT);
     CustomData_bmesh_init_pool(&edata, 0, BM_EDGE);
@@ -624,7 +649,12 @@ struct BMLogEntry {
   void update_logvert(BMesh *bm, BMVert *v, BMLogVert *lv)
   {
     if (vdata.pool) {
+#ifdef USE_SIMPLE_CD_COPY
+      /* Signal simple copy by using bm->vdata for dest. */
+      CustomData_bmesh_copy_data(&bm->vdata, &bm->vdata, v->head.data, &lv->customdata);
+#else
       CustomData_bmesh_copy_data(&bm->vdata, &vdata, v->head.data, &lv->customdata);
+#endif
     }
 
     lv->co = v->co;
@@ -719,6 +749,8 @@ struct BMLogEntry {
     le->v1 = get_elem_id<BMVert>(bm, e->v1);
     le->v2 = get_elem_id<BMVert>(bm, e->v2);
 
+    edges.add(le->id);
+
     update_logedge(bm, e, le);
 
     return le;
@@ -727,7 +759,12 @@ struct BMLogEntry {
   void update_logedge(BMesh *bm, BMEdge *e, BMLogEdge *le)
   {
     le->flag = e->head.hflag;
+#ifdef USE_SIMPLE_CD_COPY
+    /* Signal simple copy by using bm->edata for dest. */
+    CustomData_bmesh_copy_data(&bm->edata, &bm->edata, e->head.data, &le->customdata);
+#else
     CustomData_bmesh_copy_data(&bm->edata, &edata, e->head.data, &le->customdata);
+#endif
   }
 
   void free_logedge(BMesh * /*bm*/, BMLogEdge *le)
@@ -746,7 +783,13 @@ struct BMLogEntry {
 
     lf->id = get_elem_id<BMFace>(bm, f);
     lf->flag = f->head.hflag;
+
+#ifdef USE_SIMPLE_CD_COPY
+    /* Signal simple copy by using bm->pdata for dest. */
+    CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, f->head.data, &lf->customdata);
+#else
     CustomData_bmesh_copy_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
+#endif
 
     BMLoop *l = f->l_first;
     do {
@@ -754,7 +797,12 @@ struct BMLogEntry {
       void *loop_customdata = nullptr;
 
       if (l->head.data) {
+#ifdef USE_SIMPLE_CD_COPY
+        /* Signal simple copy by using bm->ldata for dest. */
+        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l->head.data, &loop_customdata);
+#else
         CustomData_bmesh_copy_data(&bm->ldata, &ldata, l->head.data, &loop_customdata);
+#endif
       }
 
       lf->loop_customdata.append(loop_customdata);
@@ -766,7 +814,13 @@ struct BMLogEntry {
   void update_logface(BMesh *bm, BMLogFace *lf, BMFace *f)
   {
     lf->flag = f->head.hflag;
+
+#ifdef USE_SIMPLE_CD_COPY
+    /* Signal simple copy by using bm->ldata for dest. */
+    CustomData_bmesh_copy_data(&bm->pdata, &bm->pdata, f->head.data, &lf->customdata);
+#else
     CustomData_bmesh_copy_data(&bm->pdata, &pdata, f->head.data, &lf->customdata);
+#endif
 
     if (f->len != lf->verts.size()) {
       printf("%s: error: face length changed.\n", __func__);
@@ -779,7 +833,12 @@ struct BMLogEntry {
       void *loop_customdata = nullptr;
 
       if (l->head.data) {
+#ifdef USE_SIMPLE_CD_COPY
+        /* Signal simple copy by using bm->ldata for dest. */
+        CustomData_bmesh_copy_data(&bm->ldata, &bm->ldata, l->head.data, &loop_customdata);
+#else
         CustomData_bmesh_copy_data(&bm->ldata, &ldata, l->head.data, &loop_customdata);
+#endif
       }
 
       lf->loop_customdata[i++] = loop_customdata;
@@ -818,6 +877,15 @@ struct BMLogEntry {
     current_diff_set(bm)->modify_vert(bm, v);
   }
 
+  void modify_if_vert(BMesh *bm, BMVert *v)
+  {
+    BMID<BMVert> id = get_elem_id(bm, v);
+
+    if (!verts.contains(id)) {
+      current_diff_set(bm)->modify_vert(bm, v);
+    }
+  }
+
   void add_edge(BMesh *bm, BMEdge *e)
   {
     current_diff_set(bm)->add_edge(bm, e);
@@ -849,22 +917,9 @@ struct BMLogEntry {
   {
     BMID<BMFace> id = get_elem_id(bm, f);
 
-    for (int i = sets.size() - 1; i >= 0; i--) {
-      BMLogSetBase *set = sets[i];
-
-      if (set->type != LOG_SET_DIFF) {
-        continue;
-      }
-
-      BMLogSetDiff *diff = static_cast<BMLogSetDiff *>(set);
-      if (diff->modified_faces.contains(id) || diff->removed_faces.contains(id) ||
-          diff->added_faces.contains(id))
-      {
-        return;
-      }
+    if (!faces.contains(id)) {
+      current_diff_set(bm)->modify_face(bm, f);
     }
-
-    first_diff_set(bm)->modify_face(bm, f);
   }
 
   void undo(BMesh *bm, BMLogCallbacks *callbacks)
@@ -1025,6 +1080,12 @@ struct BMLog {
     current_entry->modify_vert(bm, v);
   }
 
+  void modify_if_vert(BMesh *bm, BMVert *v)
+  {
+    ensure_entry(bm);
+    current_entry->modify_if_vert(bm, v);
+  }
+
   void add_edge(BMesh *bm, BMEdge *e)
   {
     ensure_entry(bm);
@@ -1146,6 +1207,7 @@ void BMLogSetDiff::modify_vert(BMesh *bm, BMVert *v)
     return;
   }
 
+  entry->verts.add(id);
   modified_verts.add(id, entry->alloc_logvert(bm, v));
 }
 
@@ -1240,7 +1302,9 @@ void BMLogSetDiff::modify_face(BMesh *bm, BMFace *f)
   }
   else {
     lf = entry->alloc_logface(bm, f);
+
     modified_faces.add(id, lf);
+    entry->faces.add(lf->id);
   }
 }
 
@@ -1653,7 +1717,7 @@ void BM_log_vert_removed(BMesh *bm, BMLog *log, BMVert *v)
 
 void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v)
 {
-  log->modify_vert(bm, v);
+  log->modify_if_vert(bm, v);
 }
 
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)

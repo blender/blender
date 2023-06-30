@@ -471,6 +471,7 @@ set(SRC
   BKE_particle.h
   BKE_pbvh.h
   BKE_pbvh_pixels.hh
+  BKE_pbvh_iter.hh
   BKE_pointcache.h
   BKE_pointcloud.h
   BKE_pose_backup.h

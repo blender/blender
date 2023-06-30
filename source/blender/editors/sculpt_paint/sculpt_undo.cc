@@ -2273,7 +2273,7 @@ static SculptUndoNode *sculpt_undo_bmesh_push(Object *ob, PBVHNode *node, Sculpt
         DyntopoSet<BMFace> *faces = BKE_pbvh_bmesh_node_faces(node);
 
         for (BMFace *f : *faces) {
-          BM_log_face_modified(ss->bm, ss->bm_log, f);
+          BM_log_face_if_modified(ss->bm, ss->bm_log, f);
         }
 
         break;

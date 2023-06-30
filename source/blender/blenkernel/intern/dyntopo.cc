@@ -2579,11 +2579,13 @@ void EdgeQueueContext::split_edge(BMEdge *e)
   *BM_ELEM_CD_PTR<StrokeID *>(newv, ss->attrs.stroke_id->bmesh_cd_offset) = stroke_id;
 
   BM_ELEM_CD_SET_INT(newv, pbvh->cd_vert_node_offset, DYNTOPO_NODE_NONE);
+
   BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newv));
   BM_log_vert_added(bm, pbvh->bm_log, newv);
 
   BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(e));
   BM_log_edge_added(bm, pbvh->bm_log, e);
+
   BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(newe));
   BM_log_edge_added(bm, pbvh->bm_log, newe);
 
