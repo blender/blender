@@ -452,8 +452,7 @@ static CustomData *get_loop_customdata(Object *ob, Mesh *me)
     return &ob->sculpt->bm->ldata;
   }
 #endif
-  ;
-  //return nullptr;
+  return nullptr;
 }
 
 static void overlay_edit_uv_cache_populate(OVERLAY_Data *vedata, Object *ob)
