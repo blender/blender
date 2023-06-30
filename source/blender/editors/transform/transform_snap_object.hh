@@ -128,8 +128,6 @@ class SnapData {
 
   virtual void get_vert_co(const int /*index*/, const float ** /*r_co*/){};
   virtual void get_edge_verts_index(const int /*index*/, int /*r_v_index*/[2]){};
-  virtual void get_tri_verts_index(const int /*index*/, int /*r_v_index*/[3]){};
-  virtual void get_tri_edges_index(const int /*index*/, int /*r_e_index*/[3]){};
   virtual void copy_vert_no(const int /*index*/, float /*r_no*/[3]){};
 };
 

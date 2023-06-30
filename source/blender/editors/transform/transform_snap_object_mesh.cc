@@ -283,34 +283,6 @@ class SnapData_Mesh : public SnapData {
     r_v_index[1] = edge[1];
   }
 
-  void get_tri_verts_index(const int index, int r_v_index[3])
-  {
-    const int *corner_verts = this->corner_verts;
-    const MLoopTri *looptri = &this->looptris[index];
-    r_v_index[0] = corner_verts[looptri->tri[0]];
-    r_v_index[1] = corner_verts[looptri->tri[1]];
-    r_v_index[2] = corner_verts[looptri->tri[2]];
-  }
-
-  void get_tri_edges_index(const int index, int r_e_index[3])
-  {
-    const blender::int2 *edges = this->edges;
-    const int *corner_verts = this->corner_verts;
-    const int *corner_edges = this->corner_edges;
-    const MLoopTri *lt = &this->looptris[index];
-    for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-      const blender::int2 &edge = edges[corner_edges[lt->tri[j]]];
-      const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
-      if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
-        // printf("real edge found\n");
-        r_e_index[j] = corner_edges[lt->tri[j]];
-      }
-      else {
-        r_e_index[j] = -1;
-      }
-    }
-  }
-
   void copy_vert_no(const int index, float r_no[3])
   {
     copy_v3_v3(r_no, this->vert_normals[index]);
@@ -347,13 +319,17 @@ static void cb_snap_tri_verts(void *userdata,
   SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
 
   int vindex[3];
-  data->get_tri_verts_index(index, vindex);
+  const int *corner_verts = data->corner_verts;
+  const MLoopTri *lt = &data->looptris[index];
+  vindex[0] = corner_verts[lt->tri[0]];
+  vindex[1] = corner_verts[lt->tri[1]];
+  vindex[2] = corner_verts[lt->tri[2]];
 
   if (data->use_backface_culling) {
-    const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0);
-    data->get_vert_co(vindex[1], &t1);
-    data->get_vert_co(vindex[2], &t2);
+    const float3 *vert_positions = data->vert_positions;
+    const float3 &t0 = vert_positions[vindex[0]];
+    const float3 &t1 = vert_positions[vindex[1]];
+    const float3 &t2 = vert_positions[vindex[2]];
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -376,29 +352,31 @@ static void cb_snap_tri_edges(void *userdata,
                               BVHTreeNearest *nearest)
 {
   SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
+  const int *corner_verts = data->corner_verts;
+  const MLoopTri *lt = &data->looptris[index];
 
   if (data->use_backface_culling) {
-    int vindex[3];
-    data->get_tri_verts_index(index, vindex);
-
-    const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0);
-    data->get_vert_co(vindex[1], &t1);
-    data->get_vert_co(vindex[2], &t2);
+    const float3 *vert_positions = data->vert_positions;
+    const float3 &t0 = vert_positions[corner_verts[lt->tri[0]]];
+    const float3 &t1 = vert_positions[corner_verts[lt->tri[1]]];
+    const float3 &t2 = vert_positions[corner_verts[lt->tri[2]]];
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
     }
   }
 
-  int eindex[3];
-  data->get_tri_edges_index(index, eindex);
-  for (int i = 3; i--;) {
-    if (eindex[i] != -1) {
-      if (eindex[i] == nearest->index) {
+  const int2 *edges = data->edges;
+  const int *corner_edges = data->corner_edges;
+  for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
+    int eindex = corner_edges[lt->tri[j]];
+    const int2 &edge = edges[eindex];
+    const int2 tri_edge = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
+    if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
+      if (eindex == nearest->index) {
         continue;
       }
-      cb_snap_edge(userdata, eindex[i], precalc, clip_plane, clip_plane_len, nearest);
+      cb_snap_edge(userdata, eindex, precalc, clip_plane, clip_plane_len, nearest);
     }
   }
 }
