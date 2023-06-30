@@ -511,6 +511,10 @@ struct BMLogEntry {
 
   void copy_custom_data(CustomData *source, CustomData *dest, void *src_block, void **dest_block)
   {
+    if (!dest->pool) {
+      return;
+    }
+
     if (!*dest_block) {
       *dest_block = BLI_mempool_calloc(dest->pool);
     }
