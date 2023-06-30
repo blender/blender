@@ -26,7 +26,9 @@ namespace blender::eevee {
 
 /* Keep alphabetical order and clean prefix. */
 enum eShaderType {
-  FILM_FRAG = 0,
+  AMBIENT_OCCLUSION_PASS = 0,
+
+  FILM_FRAG,
   FILM_COMP,
   FILM_CRYPTOMATTE_POST,
 

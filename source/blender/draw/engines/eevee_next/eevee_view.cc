@@ -123,6 +123,7 @@ void ShadingView::render()
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
 
+  /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(render_view_new_, prepass_fb_, combined_fb_, extent_);
 
   // inst_.lookdev.render_overlay(view_fb_);
@@ -134,8 +135,9 @@ void ShadingView::render()
   inst_.shadows.debug_draw(render_view_new_, combined_fb_);
   inst_.irradiance_cache.viewport_draw(render_view_new_, combined_fb_);
 
-  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
+  inst_.ambient_occlusion.render_pass(render_view_new_);
 
+  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
   inst_.film.accumulate(sub_view_, combined_final_tx);
 
   rbufs.release();

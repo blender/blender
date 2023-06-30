@@ -200,6 +200,8 @@ void ForwardPipeline::sync()
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.shadows.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
+      inst_.hiz_buffer.bind_resources(&opaque_ps_);
+      inst_.ambient_occlusion.bind_resources(&opaque_ps_);
       inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
 
@@ -227,6 +229,8 @@ void ForwardPipeline::sync()
     inst_.lights.bind_resources(&sub);
     inst_.shadows.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);
+    inst_.hiz_buffer.bind_resources(&sub);
+    inst_.ambient_occlusion.bind_resources(&sub);
   }
 }
 
@@ -380,6 +384,8 @@ void DeferredLayer::begin_sync()
       gbuffer_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
       inst_.sampling.bind_resources(&gbuffer_ps_);
+      inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
+      inst_.ambient_occlusion.bind_resources(&gbuffer_ps_);
       inst_.cryptomatte.bind_resources(&gbuffer_ps_);
     }
 
@@ -421,6 +427,7 @@ void DeferredLayer::end_sync()
     inst_.shadows.bind_resources(&eval_light_ps_);
     inst_.sampling.bind_resources(&eval_light_ps_);
     inst_.hiz_buffer.bind_resources(&eval_light_ps_);
+    inst_.ambient_occlusion.bind_resources(&eval_light_ps_);
     inst_.reflection_probes.bind_resources(&eval_light_ps_);
     inst_.irradiance_cache.bind_resources(&eval_light_ps_);
 

@@ -98,14 +98,16 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_RAYTRACE_U = 15u,
   SAMPLING_RAYTRACE_V = 16u,
   SAMPLING_RAYTRACE_W = 17u,
-  SAMPLING_RAYTRACE_X = 18u
+  SAMPLING_RAYTRACE_X = 18u,
+  SAMPLING_AO_U = 19u,
+  SAMPLING_AO_V = 20u,
 };
 
 /**
  * IMPORTANT: Make sure the array can contain all sampling dimensions.
  * Also note that it needs to be multiple of 4.
  */
-#define SAMPLING_DIMENSION_COUNT 20
+#define SAMPLING_DIMENSION_COUNT 24
 
 /* NOTE(@fclem): Needs to be used in #StorageBuffer because of arrays of scalar. */
 struct SamplingData {
@@ -980,6 +982,19 @@ enum eClosureBits : uint32_t {
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Ambient Occlussion
+ * \{ */
+
+struct AOData {
+  float distance;
+  float quality;
+  float2 pixel_size;
+};
+BLI_STATIC_ASSERT_ALIGN(AOData, 16)
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Subsurface
  * \{ */
 
@@ -1080,6 +1095,7 @@ using VelocityGeometryBuf = draw::StorageArrayBuffer<float4, 16, true>;
 using VelocityIndexBuf = draw::StorageArrayBuffer<VelocityIndex, 16>;
 using VelocityObjectBuf = draw::StorageArrayBuffer<float4x4, 16>;
 using CryptomatteObjectBuf = draw::StorageArrayBuffer<float2, 16>;
+using AODataBuf = draw::UniformBuffer<AOData>;
 
 }  // namespace blender::eevee
 #endif
