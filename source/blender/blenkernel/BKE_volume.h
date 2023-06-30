@@ -167,7 +167,6 @@ bool BKE_volume_save(const struct Volume *volume,
 
 #  include "BLI_math_vector_types.hh"
 
-
 bool BKE_volume_min_max(const Volume *volume, blender::float3 &r_min, blender::float3 &r_max);
 
 #endif
