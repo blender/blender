@@ -83,8 +83,8 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *bmain,
     ScrArea *area;
     SpaceLink *sl;
 
-    for (area = static_cast<ScrArea*>(screen->areabase.first); area; area = area->next) {
-      for (sl = static_cast<SpaceLink*>(area->spacedata.first); sl; sl = sl->next) {
+    for (area = static_cast<ScrArea *>(screen->areabase.first); area; area = area->next) {
+      for (sl = static_cast<SpaceLink *>(area->spacedata.first); sl; sl = sl->next) {
         if (sl->spacetype == SPACE_CLIP) {
           SpaceClip *sc = (SpaceClip *)sl;
 
@@ -217,7 +217,8 @@ static void rna_def_movieclip_proxy(BlenderRNA *brna)
       prop, "75%", "Build proxy resolution 75% of the original undistorted footage dimension");
 
   prop = RNA_def_property(srna, "build_undistorted_100", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_100);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "build_size_flag", MCLIP_PROXY_UNDISTORTED_SIZE_100);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "100%", "Build proxy resolution 100% of the original undistorted footage dimension");

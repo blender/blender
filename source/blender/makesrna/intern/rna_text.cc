@@ -75,10 +75,10 @@ static int rna_Text_current_line_index_get(PointerRNA *ptr)
 
 static void rna_Text_current_line_index_set(PointerRNA *ptr, int value)
 {
-  Text *text = static_cast<Text*>(ptr->data);
-  TextLine *line = static_cast<TextLine*>(BLI_findlink(&text->lines, value));
+  Text *text = static_cast<Text *>(ptr->data);
+  TextLine *line = static_cast<TextLine *>(BLI_findlink(&text->lines, value));
   if (line == nullptr) {
-    line = static_cast<TextLine*>(text->lines.last);
+    line = static_cast<TextLine *>(text->lines.last);
   }
   text->curl = line;
   text->curc = 0;
@@ -86,16 +86,16 @@ static void rna_Text_current_line_index_set(PointerRNA *ptr, int value)
 
 static int rna_Text_select_end_line_index_get(PointerRNA *ptr)
 {
-  Text *text = static_cast<Text*>(ptr->data);
+  Text *text = static_cast<Text *>(ptr->data);
   return BLI_findindex(&text->lines, text->sell);
 }
 
 static void rna_Text_select_end_line_index_set(PointerRNA *ptr, int value)
 {
-  Text *text = static_cast<Text*>(ptr->data);
-  TextLine *line = static_cast<TextLine*>(BLI_findlink(&text->lines, value));
+  Text *text = static_cast<Text *>(ptr->data);
+  TextLine *line = static_cast<TextLine *>(BLI_findlink(&text->lines, value));
   if (line == nullptr) {
-    line = static_cast<TextLine*>(text->lines.last);
+    line = static_cast<TextLine *>(text->lines.last);
   }
   text->sell = line;
   text->selc = 0;
@@ -103,13 +103,13 @@ static void rna_Text_select_end_line_index_set(PointerRNA *ptr, int value)
 
 static int rna_Text_current_character_get(PointerRNA *ptr)
 {
-  Text *text = static_cast<Text*>(ptr->data);
+  Text *text = static_cast<Text *>(ptr->data);
   return BLI_str_utf8_offset_to_index(text->curl->line, text->curc);
 }
 
 static void rna_Text_current_character_set(PointerRNA *ptr, int index)
 {
-  Text *text = static_cast<Text*>(ptr->data);
+  Text *text = static_cast<Text *>(ptr->data);
   TextLine *line = text->curl;
   const int len_utf8 = BLI_strlen_utf8(line->line);
   CLAMP_MAX(index, len_utf8);
@@ -118,13 +118,13 @@ static void rna_Text_current_character_set(PointerRNA *ptr, int index)
 
 static int rna_Text_select_end_character_get(PointerRNA *ptr)
 {
-  Text *text = static_cast<Text*>(ptr->data);
+  Text *text = static_cast<Text *>(ptr->data);
   return BLI_str_utf8_offset_to_index(text->sell->line, text->selc);
 }
 
 static void rna_Text_select_end_character_set(PointerRNA *ptr, int index)
 {
-  Text *text = static_cast<Text*>(ptr->data);
+  Text *text = static_cast<Text *>(ptr->data);
   TextLine *line = text->sell;
   const int len_utf8 = BLI_strlen_utf8(line->line);
   CLAMP_MAX(index, len_utf8);
@@ -158,7 +158,7 @@ static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
     MEM_freeN(line->line);
   }
 
-  line->line = static_cast<char*>(MEM_mallocN((len + 1) * sizeof(char), "rna_text_body"));
+  line->line = static_cast<char *>(MEM_mallocN((len + 1) * sizeof(char), "rna_text_body"));
   line->len = len;
   memcpy(line->line, value, len + 1);
 

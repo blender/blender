@@ -35,9 +35,7 @@ static int rna_VectorFont_filepath_editable(PointerRNA *ptr, const char ** /*r_i
   return PROP_EDITABLE;
 }
 
-static void rna_VectorFont_reload_update(Main * /*bmain*/,
-                                         Scene * /*scene*/,
-                                         PointerRNA *ptr)
+static void rna_VectorFont_reload_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   VFont *vf = (VFont *)ptr->owner_id;
   BKE_vfont_free_data(vf);

@@ -97,7 +97,7 @@ static void rna_Camera_background_images_remove(Camera *cam,
                                                 ReportList *reports,
                                                 PointerRNA *bgpic_ptr)
 {
-  CameraBGImage *bgpic = static_cast<CameraBGImage*>(bgpic_ptr->data);
+  CameraBGImage *bgpic = static_cast<CameraBGImage *>(bgpic_ptr->data);
   if (BLI_findindex(&cam->bg_images, bgpic) == -1) {
     BKE_report(reports, RPT_ERROR, "Background image cannot be removed");
   }
@@ -117,7 +117,7 @@ static void rna_Camera_background_images_clear(Camera *cam)
 
 static char *rna_Camera_background_image_path(const PointerRNA *ptr)
 {
-  const CameraBGImage *bgpic = static_cast<const CameraBGImage*>(ptr->data);
+  const CameraBGImage *bgpic = static_cast<const CameraBGImage *>(ptr->data);
   Camera *camera = (Camera *)ptr->owner_id;
 
   const int bgpic_index = BLI_findindex(&camera->bg_images, bgpic);
@@ -131,7 +131,7 @@ static char *rna_Camera_background_image_path(const PointerRNA *ptr)
 
 char *rna_CameraBackgroundImage_image_or_movieclip_user_path(const PointerRNA *ptr)
 {
-  const char *user = static_cast<const char*>(ptr->data);
+  const char *user = static_cast<const char *>(ptr->data);
   Camera *camera = (Camera *)ptr->owner_id;
 
   int bgpic_index = BLI_findindex(&camera->bg_images, user - offsetof(CameraBGImage, iuser));
@@ -154,9 +154,9 @@ static bool rna_Camera_background_images_override_apply(Main *bmain,
                                                         PropertyRNA *prop_dst,
                                                         PropertyRNA * /*prop_src*/,
                                                         PropertyRNA * /*prop_storage*/,
-                                                        const int  /*len_dst*/,
-                                                        const int  /*len_src*/,
-                                                        const int  /*len_storage*/,
+                                                        const int /*len_dst*/,
+                                                        const int /*len_src*/,
+                                                        const int /*len_storage*/,
                                                         PointerRNA * /*ptr_item_dst*/,
                                                         PointerRNA * /*ptr_item_src*/,
                                                         PointerRNA * /*ptr_item_storage*/,
@@ -171,10 +171,12 @@ static bool rna_Camera_background_images_override_apply(Main *bmain,
   /* Remember that insertion operations are defined and stored in correct order, which means that
    * even if we insert several items in a row, we always insert first one, then second one, etc.
    * So we should always find 'anchor' constraint in both _src *and* _dst. */
-  CameraBGImage *bgpic_anchor = static_cast<CameraBGImage*>(BLI_findlink(&cam_dst->bg_images, opop->subitem_reference_index));
+  CameraBGImage *bgpic_anchor = static_cast<CameraBGImage *>(
+      BLI_findlink(&cam_dst->bg_images, opop->subitem_reference_index));
 
   /* If `bgpic_anchor` is nullptr, `bgpic_src` will be inserted in first position. */
-  CameraBGImage *bgpic_src = static_cast<CameraBGImage*>(BLI_findlink(&cam_src->bg_images, opop->subitem_local_index));
+  CameraBGImage *bgpic_src = static_cast<CameraBGImage *>(
+      BLI_findlink(&cam_src->bg_images, opop->subitem_local_index));
 
   if (bgpic_src == nullptr) {
     BLI_assert(bgpic_src != nullptr);
@@ -833,7 +835,8 @@ void RNA_def_camera(BlenderRNA *brna)
   RNA_def_property_struct_type(prop, "CameraBackgroundImage");
   RNA_def_property_ui_text(prop, "Background Images", "List of background images");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_LIBRARY_INSERTION | PROPOVERRIDE_NO_PROP_NAME);
-  RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Camera_background_images_override_apply");
+  RNA_def_property_override_funcs(
+      prop, nullptr, nullptr, "rna_Camera_background_images_override_apply");
   RNA_def_property_update(prop, NC_CAMERA | ND_DRAW_RENDER_VIEWPORT, nullptr);
 
   RNA_define_lib_overridable(false);

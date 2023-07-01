@@ -110,8 +110,8 @@ static char *rna_NlaStrip_path(const PointerRNA *ptr)
     NlaTrack *nlt;
     NlaStrip *nls;
 
-    for (nlt = static_cast<NlaTrack*>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
-      for (nls = static_cast<NlaStrip*>(nlt->strips.first); nls; nls = nls->next) {
+    for (nlt = static_cast<NlaTrack *>(adt->nla_tracks.first); nlt; nlt = nlt->next) {
+      for (nls = static_cast<NlaStrip *>(nlt->strips.first); nls; nls = nls->next) {
         if (nls == strip) {
           /* XXX but if we animate like this, the control will never work... */
           char name_esc_nlt[sizeof(nlt->name) * 2];
@@ -591,7 +591,7 @@ static NlaStrip *rna_NlaStrip_new(ID *id,
 static void rna_NlaStrip_remove(
     ID *id, NlaTrack *track, Main *bmain, bContext *C, ReportList *reports, PointerRNA *strip_ptr)
 {
-  NlaStrip *strip = static_cast<NlaStrip*>(strip_ptr->data);
+  NlaStrip *strip = static_cast<NlaStrip *>(strip_ptr->data);
   if (BLI_findindex(&track->strips, strip) == -1) {
     BKE_reportf(
         reports, RPT_ERROR, "NLA strip '%s' not found in track '%s'", strip->name, track->name);
@@ -908,14 +908,16 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   /* XXX: Update temporarily disabled so that the property can be edited at all!
    * Even auto-key only applies after the curves have been re-evaluated,
    * causing the unkeyed values to be lost. */
-  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ nullptr);
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ nullptr);
 
   prop = RNA_def_property(srna, "strip_time", PROP_FLOAT, PROP_TIME);
   RNA_def_property_ui_text(prop, "Strip Time", "Frame of referenced Action to evaluate");
   /* XXX: Update temporarily disabled so that the property can be edited at all!
    * Even auto-key only applies after the curves have been re-evaluated,
    * causing the unkeyed values to be lost. */
-  RNA_def_property_update(prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ nullptr);
+  RNA_def_property_update(
+      prop, NC_ANIMATION | ND_NLA | NA_EDITED, /*"rna_NlaStrip_update"*/ nullptr);
 
   /* TODO: should the animated_influence/time settings be animatable themselves? */
   prop = RNA_def_property(srna, "use_animated_influence", PROP_BOOLEAN, PROP_NONE);

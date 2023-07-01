@@ -23,13 +23,11 @@
 
 static IDProperty **rna_TimelineMarker_idprops(PointerRNA *ptr)
 {
-  TimeMarker *marker = static_cast<TimeMarker*>(ptr->data);
+  TimeMarker *marker = static_cast<TimeMarker *>(ptr->data);
   return &marker->prop;
 }
 
-static void rna_TimelineMarker_update(Main * /*bmain*/,
-                                      Scene * /*scene*/,
-                                      PointerRNA * /*ptr*/)
+static void rna_TimelineMarker_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA * /*ptr*/)
 {
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
