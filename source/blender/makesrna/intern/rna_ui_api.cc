@@ -126,7 +126,7 @@ static void rna_uiItemR(uiLayout *layout,
 }
 
 static void rna_uiItemR_with_popover(uiLayout *layout,
-                                     struct PointerRNA *ptr,
+                                     PointerRNA *ptr,
                                      const char *propname,
                                      const char *name,
                                      const char *text_ctxt,
@@ -158,7 +158,7 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
 }
 
 static void rna_uiItemR_with_menu(uiLayout *layout,
-                                  struct PointerRNA *ptr,
+                                  PointerRNA *ptr,
                                   const char *propname,
                                   const char *name,
                                   const char *text_ctxt,
@@ -187,7 +187,7 @@ static void rna_uiItemR_with_menu(uiLayout *layout,
 }
 
 static void rna_uiItemMenuEnumR(uiLayout *layout,
-                                struct PointerRNA *ptr,
+                                PointerRNA *ptr,
                                 const char *propname,
                                 const char *name,
                                 const char *text_ctxt,
@@ -208,9 +208,9 @@ static void rna_uiItemMenuEnumR(uiLayout *layout,
 
 static void rna_uiItemTabsEnumR(uiLayout *layout,
                                 bContext *C,
-                                struct PointerRNA *ptr,
+                                PointerRNA *ptr,
                                 const char *propname,
-                                struct PointerRNA *ptr_highlight,
+                                PointerRNA *ptr_highlight,
                                 const char *propname_highlight,
                                 bool icon_only)
 {
@@ -253,7 +253,7 @@ static void rna_uiItemTabsEnumR(uiLayout *layout,
 }
 
 static void rna_uiItemEnumR_string(uiLayout *layout,
-                                   struct PointerRNA *ptr,
+                                   PointerRNA *ptr,
                                    const char *propname,
                                    const char *value,
                                    const char *name,
@@ -275,9 +275,9 @@ static void rna_uiItemEnumR_string(uiLayout *layout,
 }
 
 static void rna_uiItemPointerR(uiLayout *layout,
-                               struct PointerRNA *ptr,
+                               PointerRNA *ptr,
                                const char *propname,
-                               struct PointerRNA *searchptr,
+                               PointerRNA *searchptr,
                                const char *searchpropname,
                                const char *name,
                                const char *text_ctxt,
@@ -519,12 +519,12 @@ static void rna_uiTemplateAnyID(uiLayout *layout,
 }
 
 void rna_uiTemplateList(uiLayout *layout,
-                        struct bContext *C,
+                        bContext *C,
                         const char *listtype_name,
                         const char *list_id,
-                        struct PointerRNA *dataptr,
+                        PointerRNA *dataptr,
                         const char *propname,
-                        struct PointerRNA *active_dataptr,
+                        PointerRNA *active_dataptr,
                         const char *active_propname,
                         const char *item_dyntip_propname,
                         const int rows,

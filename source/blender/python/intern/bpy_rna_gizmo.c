@@ -339,7 +339,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
 
   /* NOTE: this is a counter-part to functions:
    * 'Gizmo.target_set_prop & target_set_operator'
-   * (see: rna_wm_gizmo_api.c). conventions should match. */
+   * (see: rna_wm_gizmo_api.cc). conventions should match. */
   static const char *const _keywords[] = {"self", "target", "get", "set", "range", NULL};
   static _PyArg_Parser _parser = {
       "O&" /* `self` */

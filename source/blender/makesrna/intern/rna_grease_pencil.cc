@@ -107,7 +107,7 @@ static PointerRNA rna_GreasePencil_active_layer_get(PointerRNA *ptr)
 
 static void rna_GreasePencil_active_layer_set(PointerRNA *ptr,
                                               PointerRNA value,
-                                              struct ReportList * /*reports*/)
+                                              ReportList * /*reports*/)
 {
   GreasePencil *grease_pencil = rna_grease_pencil(ptr);
   grease_pencil->set_active_layer(static_cast<blender::bke::greasepencil::Layer *>(value.data));

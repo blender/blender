@@ -434,9 +434,7 @@ static PointerRNA rna_Curve_bevelObject_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
 }
 
-static void rna_Curve_bevelObject_set(PointerRNA *ptr,
-                                      PointerRNA value,
-                                      struct ReportList * /*reports*/)
+static void rna_Curve_bevelObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   Object *ob = static_cast<Object *>(value.data);
@@ -509,9 +507,7 @@ static PointerRNA rna_Curve_taperObject_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, nullptr, nullptr);
 }
 
-static void rna_Curve_taperObject_set(PointerRNA *ptr,
-                                      PointerRNA value,
-                                      struct ReportList * /*reports*/)
+static void rna_Curve_taperObject_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
   Object *ob = static_cast<Object *>(value.data);
@@ -759,7 +755,7 @@ static PointerRNA rna_Curve_active_spline_get(PointerRNA *ptr)
 
 static void rna_Curve_active_spline_set(PointerRNA *ptr,
                                         PointerRNA value,
-                                        struct ReportList * /*reports*/)
+                                        ReportList * /*reports*/)
 {
   Curve *cu = static_cast<Curve *>(ptr->data);
   Nurb *nu = static_cast<Nurb *>(value.data);

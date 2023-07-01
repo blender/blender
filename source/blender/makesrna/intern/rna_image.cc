@@ -461,9 +461,7 @@ static PointerRNA rna_Image_active_tile_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_UDIMTile, tile);
 }
 
-static void rna_Image_active_tile_set(PointerRNA *ptr,
-                                      PointerRNA value,
-                                      struct ReportList * /*reports*/)
+static void rna_Image_active_tile_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Image *image = (Image *)ptr->data;
   ImageTile *tile = (ImageTile *)value.data;
@@ -577,7 +575,7 @@ static int rna_Image_frame_duration_get(PointerRNA *ptr)
   }
 
   if (BKE_image_has_anim(ima)) {
-    struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+    anim *anim = ((ImageAnim *)ima->anims.first)->anim;
     if (anim) {
       duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
     }
@@ -734,7 +732,7 @@ static PointerRNA rna_render_slots_active_get(PointerRNA *ptr)
 
 static void rna_render_slots_active_set(PointerRNA *ptr,
                                         PointerRNA value,
-                                        struct ReportList * /*reports*/)
+                                        ReportList * /*reports*/)
 {
   Image *image = (Image *)ptr->owner_id;
   if (value.owner_id == &image->id) {

@@ -155,7 +155,7 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
   Material *ma = (Material *)ptr->owner_id;
 
   if (ma->use_nodes && ma->nodetree) {
-    struct bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
+    bNode *node = BKE_texpaint_slot_material_find_node(ma, ma->paint_active_slot);
 
     if (node) {
       nodeSetActive(ma->nodetree, node);
@@ -202,7 +202,7 @@ static void rna_Material_use_nodes_update(bContext *C, PointerRNA *ptr)
   rna_Material_draw_update(bmain, CTX_data_scene(C), ptr);
 }
 
-MTex *rna_mtex_texture_slots_add(ID *self_id, struct bContext *C, ReportList *reports)
+MTex *rna_mtex_texture_slots_add(ID *self_id, bContext *C, ReportList *reports)
 {
   MTex *mtex = BKE_texture_mtex_add_id(self_id, -1);
   if (mtex == nullptr) {
@@ -216,10 +216,7 @@ MTex *rna_mtex_texture_slots_add(ID *self_id, struct bContext *C, ReportList *re
   return mtex;
 }
 
-MTex *rna_mtex_texture_slots_create(ID *self_id,
-                                    struct bContext *C,
-                                    ReportList *reports,
-                                    int index)
+MTex *rna_mtex_texture_slots_create(ID *self_id, bContext *C, ReportList *reports, int index)
 {
   MTex *mtex;
 
@@ -236,7 +233,7 @@ MTex *rna_mtex_texture_slots_create(ID *self_id,
   return mtex;
 }
 
-void rna_mtex_texture_slots_clear(ID *self_id, struct bContext *C, ReportList *reports, int index)
+void rna_mtex_texture_slots_clear(ID *self_id, bContext *C, ReportList *reports, int index)
 {
   MTex **mtex_ar;
   short act;
@@ -372,24 +369,24 @@ static bool rna_GpencilColorData_is_fill_visible_get(PointerRNA *ptr)
 
 static void rna_GpencilColorData_stroke_image_set(PointerRNA *ptr,
                                                   PointerRNA value,
-                                                  struct ReportList * /*reports*/)
+                                                  ReportList * /*reports*/)
 {
   MaterialGPencilStyle *pcolor = static_cast<MaterialGPencilStyle *>(ptr->data);
   ID *id = static_cast<ID *>(value.data);
 
   id_us_plus(id);
-  pcolor->sima = (struct Image *)id;
+  pcolor->sima = (Image *)id;
 }
 
 static void rna_GpencilColorData_fill_image_set(PointerRNA *ptr,
                                                 PointerRNA value,
-                                                struct ReportList * /*reports*/)
+                                                ReportList * /*reports*/)
 {
   MaterialGPencilStyle *pcolor = (MaterialGPencilStyle *)ptr->data;
   ID *id = static_cast<ID *>(value.data);
 
   id_us_plus(id);
-  pcolor->ima = (struct Image *)id;
+  pcolor->ima = (Image *)id;
 }
 
 #else

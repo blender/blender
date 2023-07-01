@@ -219,7 +219,7 @@ static IDProperty **rna_PoseBone_idprops(PointerRNA *ptr)
   return &pchan->prop;
 }
 
-static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
+static void rna_Pose_ik_solver_set(PointerRNA *ptr, int value)
 {
   bPose *pose = (bPose *)ptr->data;
 
@@ -349,7 +349,7 @@ static StructRNA *rna_IKParam_refine(PointerRNA *ptr)
   }
 }
 
-static PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
+static PointerRNA rna_Pose_ikparam_get(PointerRNA *ptr)
 {
   bPose *pose = (bPose *)ptr->data;
   return rna_pointer_inherit_refine(ptr, &RNA_IKParam, pose->ikparam);
@@ -427,7 +427,7 @@ static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
 
 static void rna_PoseChannel_bone_group_set(PointerRNA *ptr,
                                            PointerRNA value,
-                                           struct ReportList * /*reports*/)
+                                           ReportList * /*reports*/)
 {
   Object *ob = (Object *)ptr->owner_id;
   bPose *pose = (ob) ? ob->pose : nullptr;
@@ -472,7 +472,7 @@ static PointerRNA rna_Pose_active_bone_group_get(PointerRNA *ptr)
 
 static void rna_Pose_active_bone_group_set(PointerRNA *ptr,
                                            PointerRNA value,
-                                           struct ReportList * /*reports*/)
+                                           ReportList * /*reports*/)
 {
   bPose *pose = (bPose *)ptr->data;
   pose->active_group = BLI_findindex(&pose->agroups, value.data) + 1;
@@ -568,7 +568,7 @@ static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
 
 static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr,
                                                   PointerRNA value,
-                                                  struct ReportList * /*reports*/)
+                                                  ReportList * /*reports*/)
 {
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   BKE_constraints_active_set(&pchan->constraints, (bConstraint *)value.data);
@@ -855,7 +855,7 @@ static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob,
 
 static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
                                                        PointerRNA value,
-                                                       struct ReportList * /*reports*/)
+                                                       ReportList * /*reports*/)
 {
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;

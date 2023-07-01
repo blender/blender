@@ -106,9 +106,7 @@ static void rna_Mask_update_parent(Main *bmain, Scene *scene, PointerRNA *ptr)
 }
 
 /* NOTE: this function exists only to avoid id reference-counting. */
-static void rna_MaskParent_id_set(PointerRNA *ptr,
-                                  PointerRNA value,
-                                  struct ReportList * /*reports*/)
+static void rna_MaskParent_id_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   MaskParent *mpar = (MaskParent *)ptr->data;
 
@@ -184,9 +182,7 @@ static PointerRNA rna_Mask_layer_active_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_MaskLayer, masklay);
 }
 
-static void rna_Mask_layer_active_set(PointerRNA *ptr,
-                                      PointerRNA value,
-                                      struct ReportList * /*reports*/)
+static void rna_Mask_layer_active_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Mask *mask = (Mask *)ptr->owner_id;
   MaskLayer *masklay = (MaskLayer *)value.data;
@@ -223,7 +219,7 @@ static PointerRNA rna_MaskLayer_active_spline_get(PointerRNA *ptr)
 
 static void rna_MaskLayer_active_spline_set(PointerRNA *ptr,
                                             PointerRNA value,
-                                            struct ReportList * /*reports*/)
+                                            ReportList * /*reports*/)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline = (MaskSpline *)value.data;
@@ -246,7 +242,7 @@ static PointerRNA rna_MaskLayer_active_spline_point_get(PointerRNA *ptr)
 
 static void rna_MaskLayer_active_spline_point_set(PointerRNA *ptr,
                                                   PointerRNA value,
-                                                  struct ReportList * /*reports*/)
+                                                  ReportList * /*reports*/)
 {
   MaskLayer *masklay = (MaskLayer *)ptr->data;
   MaskSpline *spline;

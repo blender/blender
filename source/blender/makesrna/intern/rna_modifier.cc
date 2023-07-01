@@ -696,7 +696,7 @@ static void rna_UVProject_projectors_begin(CollectionPropertyIterator *iter, Poi
       iter, (void *)uvp->projectors, sizeof(Object *), uvp->projectors_num, 0, nullptr);
 }
 
-static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Modifier_refine(PointerRNA *ptr)
 {
   ModifierData *md = (ModifierData *)ptr->data;
   const ModifierTypeInfo *modifier_type = BKE_modifier_get_info(ModifierType(md->type));
@@ -871,7 +871,7 @@ static void modifier_object_set(Object *self, Object **ob_p, int type, PointerRN
 
 #  define RNA_MOD_OBJECT_SET(_type, _prop, _obtype) \
     static void rna_##_type##Modifier_##_prop##_set( \
-        PointerRNA *ptr, PointerRNA value, struct ReportList * /*reports*/) \
+        PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/) \
     { \
       _type##ModifierData *tmd = (_type##ModifierData *)ptr->data; \
       modifier_object_set((Object *)ptr->owner_id, &tmd->_prop, _obtype, value); \
@@ -895,7 +895,7 @@ RNA_MOD_OBJECT_SET(SurfaceDeform, target, OB_MESH);
 
 static void rna_HookModifier_object_set(PointerRNA *ptr,
                                         PointerRNA value,
-                                        struct ReportList * /*reports*/)
+                                        ReportList * /*reports*/)
 {
   Object *owner = (Object *)ptr->owner_id;
   HookModifierData *hmd = static_cast<HookModifierData *>(ptr->data);
@@ -1020,9 +1020,7 @@ static PointerRNA rna_UVProjector_object_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_Object, *ob);
 }
 
-static void rna_UVProjector_object_set(PointerRNA *ptr,
-                                       PointerRNA value,
-                                       struct ReportList * /*reports*/)
+static void rna_UVProjector_object_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Object **ob_p = (Object **)ptr->data;
   Object *ob = (Object *)value.data;
@@ -1114,7 +1112,7 @@ static int rna_ShrinkwrapModifier_face_cull_get(PointerRNA *ptr)
   return swm->shrinkOpts & MOD_SHRINKWRAP_CULL_TARGET_MASK;
 }
 
-static void rna_ShrinkwrapModifier_face_cull_set(struct PointerRNA *ptr, int value)
+static void rna_ShrinkwrapModifier_face_cull_set(PointerRNA *ptr, int value)
 {
   ShrinkwrapModifierData *swm = (ShrinkwrapModifierData *)ptr->data;
   swm->shrinkOpts = (swm->shrinkOpts & ~MOD_SHRINKWRAP_CULL_TARGET_MASK) | value;
@@ -1267,7 +1265,7 @@ static void rna_DataTransferModifier_data_types_update(Main *bmain, Scene *scene
   rna_Modifier_dependency_update(bmain, scene, ptr);
 }
 
-static void rna_DataTransferModifier_verts_data_types_set(struct PointerRNA *ptr, int value)
+static void rna_DataTransferModifier_verts_data_types_set(PointerRNA *ptr, int value)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
 
@@ -1275,7 +1273,7 @@ static void rna_DataTransferModifier_verts_data_types_set(struct PointerRNA *ptr
   dtmd->data_types |= value;
 }
 
-static void rna_DataTransferModifier_edges_data_types_set(struct PointerRNA *ptr, int value)
+static void rna_DataTransferModifier_edges_data_types_set(PointerRNA *ptr, int value)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
 
@@ -1283,7 +1281,7 @@ static void rna_DataTransferModifier_edges_data_types_set(struct PointerRNA *ptr
   dtmd->data_types |= value;
 }
 
-static void rna_DataTransferModifier_loops_data_types_set(struct PointerRNA *ptr, int value)
+static void rna_DataTransferModifier_loops_data_types_set(PointerRNA *ptr, int value)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
 
@@ -1291,7 +1289,7 @@ static void rna_DataTransferModifier_loops_data_types_set(struct PointerRNA *ptr
   dtmd->data_types |= value;
 }
 
-static void rna_DataTransferModifier_polys_data_types_set(struct PointerRNA *ptr, int value)
+static void rna_DataTransferModifier_polys_data_types_set(PointerRNA *ptr, int value)
 {
   DataTransferModifierData *dtmd = (DataTransferModifierData *)ptr->data;
 
@@ -1647,7 +1645,7 @@ static PointerRNA rna_ParticleInstanceModifier_particle_system_get(PointerRNA *p
 
 static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr,
                                                              const PointerRNA value,
-                                                             struct ReportList * /*reports*/)
+                                                             ReportList * /*reports*/)
 {
   ParticleInstanceModifierData *psmd = static_cast<ParticleInstanceModifierData *>(ptr->data);
 

@@ -181,7 +181,7 @@ static void engine_render_frame_finish(RenderEngine *engine)
   RNA_parameter_list_free(&list);
 }
 
-static void engine_draw(RenderEngine *engine, const struct bContext *context, Depsgraph *depsgraph)
+static void engine_draw(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
   extern FunctionRNA rna_RenderEngine_draw_func;
   PointerRNA ptr;
@@ -200,8 +200,8 @@ static void engine_draw(RenderEngine *engine, const struct bContext *context, De
 }
 
 static void engine_bake(RenderEngine *engine,
-                        struct Depsgraph *depsgraph,
-                        struct Object *object,
+                        Depsgraph *depsgraph,
+                        Object *object,
                         const int pass_type,
                         const int pass_filter,
                         const int width,
@@ -227,9 +227,7 @@ static void engine_bake(RenderEngine *engine,
   RNA_parameter_list_free(&list);
 }
 
-static void engine_view_update(RenderEngine *engine,
-                               const struct bContext *context,
-                               Depsgraph *depsgraph)
+static void engine_view_update(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
   extern FunctionRNA rna_RenderEngine_view_update_func;
   PointerRNA ptr;
@@ -247,9 +245,7 @@ static void engine_view_update(RenderEngine *engine,
   RNA_parameter_list_free(&list);
 }
 
-static void engine_view_draw(RenderEngine *engine,
-                             const struct bContext *context,
-                             Depsgraph *depsgraph)
+static void engine_view_draw(RenderEngine *engine, const bContext *context, Depsgraph *depsgraph)
 {
   extern FunctionRNA rna_RenderEngine_view_draw_func;
   PointerRNA ptr;
@@ -267,9 +263,7 @@ static void engine_view_draw(RenderEngine *engine,
   RNA_parameter_list_free(&list);
 }
 
-static void engine_update_script_node(RenderEngine *engine,
-                                      struct bNodeTree *ntree,
-                                      struct bNode *node)
+static void engine_update_script_node(RenderEngine *engine, bNodeTree *ntree, bNode *node)
 {
   extern FunctionRNA rna_RenderEngine_update_script_node_func;
   PointerRNA ptr, nodeptr;
@@ -287,9 +281,7 @@ static void engine_update_script_node(RenderEngine *engine,
   RNA_parameter_list_free(&list);
 }
 
-static void engine_update_render_passes(RenderEngine *engine,
-                                        struct Scene *scene,
-                                        struct ViewLayer *view_layer)
+static void engine_update_render_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)
 {
   extern FunctionRNA rna_RenderEngine_update_render_passes_func;
   PointerRNA ptr;

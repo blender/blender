@@ -345,14 +345,12 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
   }
 }
 
-static void rna_ColorRamp_eval(struct ColorBand *coba, float position, float color[4])
+static void rna_ColorRamp_eval(ColorBand *coba, float position, float color[4])
 {
   BKE_colorband_evaluate(coba, position, color);
 }
 
-static CBData *rna_ColorRampElement_new(struct ColorBand *coba,
-                                        ReportList *reports,
-                                        float position)
+static CBData *rna_ColorRampElement_new(ColorBand *coba, ReportList *reports, float position)
 {
   CBData *element = BKE_colorband_element_add(coba, position);
 
@@ -363,7 +361,7 @@ static CBData *rna_ColorRampElement_new(struct ColorBand *coba,
   return element;
 }
 
-static void rna_ColorRampElement_remove(struct ColorBand *coba,
+static void rna_ColorRampElement_remove(ColorBand *coba,
                                         ReportList *reports,
                                         PointerRNA *element_ptr)
 {
@@ -394,14 +392,14 @@ static void rna_Scopes_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *p
   s->ok = 0;
 }
 
-static int rna_ColorManagedDisplaySettings_display_device_get(struct PointerRNA *ptr)
+static int rna_ColorManagedDisplaySettings_display_device_get(PointerRNA *ptr)
 {
   ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *)ptr->data;
 
   return IMB_colormanagement_display_get_named_index(display->display_device);
 }
 
-static void rna_ColorManagedDisplaySettings_display_device_set(struct PointerRNA *ptr, int value)
+static void rna_ColorManagedDisplaySettings_display_device_set(PointerRNA *ptr, int value)
 {
   ColorManagedDisplaySettings *display = (ColorManagedDisplaySettings *)ptr->data;
   const char *name = IMB_colormanagement_display_get_indexed_name(value);
@@ -545,14 +543,14 @@ static char *rna_ColorManagedViewSettings_path(const PointerRNA * /*ptr*/)
   return BLI_strdup("view_settings");
 }
 
-static bool rna_ColorManagedColorspaceSettings_is_data_get(struct PointerRNA *ptr)
+static bool rna_ColorManagedColorspaceSettings_is_data_get(PointerRNA *ptr)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
   const char *data_name = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA);
   return STREQ(colorspace->name, data_name);
 }
 
-static void rna_ColorManagedColorspaceSettings_is_data_set(struct PointerRNA *ptr, bool value)
+static void rna_ColorManagedColorspaceSettings_is_data_set(PointerRNA *ptr, bool value)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
   if (value) {
@@ -561,14 +559,14 @@ static void rna_ColorManagedColorspaceSettings_is_data_set(struct PointerRNA *pt
   }
 }
 
-static int rna_ColorManagedColorspaceSettings_colorspace_get(struct PointerRNA *ptr)
+static int rna_ColorManagedColorspaceSettings_colorspace_get(PointerRNA *ptr)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
 
   return IMB_colormanagement_colorspace_get_named_index(colorspace->name);
 }
 
-static void rna_ColorManagedColorspaceSettings_colorspace_set(struct PointerRNA *ptr, int value)
+static void rna_ColorManagedColorspaceSettings_colorspace_set(PointerRNA *ptr, int value)
 {
   ColorManagedColorspaceSettings *colorspace = (ColorManagedColorspaceSettings *)ptr->data;
   const char *name = IMB_colormanagement_colorspace_get_indexed_name(value);
@@ -592,10 +590,10 @@ static const EnumPropertyItem *rna_ColorManagedColorspaceSettings_colorspace_ite
   return items;
 }
 
-typedef struct Seq_colorspace_cb_data {
+struct Seq_colorspace_cb_data {
   ColorManagedColorspaceSettings *colorspace_settings;
   Sequence *r_seq;
-} Seq_colorspace_cb_data;
+};
 
 static bool seq_find_colorspace_settings_cb(Sequence *seq, void *user_data)
 {
@@ -701,9 +699,9 @@ static void rna_ColorManagement_update(Main * /*bmain*/, Scene * /*scene*/, Poin
 }
 
 /* this function only exists because #BKE_curvemap_evaluateF uses a 'const' qualifier */
-static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
+static float rna_CurveMapping_evaluateF(CurveMapping *cumap,
                                         ReportList *reports,
-                                        struct CurveMap *cuma,
+                                        CurveMap *cuma,
                                         float value)
 {
   if (&cumap->cm[0] != cuma && &cumap->cm[1] != cuma && &cumap->cm[2] != cuma &&
@@ -719,7 +717,7 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
   return BKE_curvemap_evaluateF(cumap, cuma, value);
 }
 
-static void rna_CurveMap_initialize(struct CurveMapping *cumap)
+static void rna_CurveMap_initialize(CurveMapping *cumap)
 {
   BKE_curvemapping_init(cumap);
 }
