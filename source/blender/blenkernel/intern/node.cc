@@ -253,6 +253,13 @@ static void ntree_copy_data(Main * /*bmain*/, ID *id_dst, const ID *id_src, cons
     }
   }
 
+  if (ntree_src->nested_node_refs) {
+    ntree_dst->nested_node_refs = static_cast<bNestedNodeRef *>(
+        MEM_malloc_arrayN(ntree_src->nested_node_refs_num, sizeof(bNestedNodeRef), __func__));
+    uninitialized_copy_n(
+        ntree_src->nested_node_refs, ntree_src->nested_node_refs_num, ntree_dst->nested_node_refs);
+  }
+
   if (flag & LIB_ID_COPY_NO_PREVIEW) {
     ntree_dst->preview = nullptr;
   }
@@ -314,6 +321,10 @@ static void ntree_free_data(ID *id)
 
   if (ntree->id.tag & LIB_TAG_LOCALIZED) {
     BKE_libblock_free_data(&ntree->id, true);
+  }
+
+  if (ntree->nested_node_refs) {
+    MEM_freeN(ntree->nested_node_refs);
   }
 
   BKE_previewimg_free(&ntree->preview);
@@ -684,6 +695,9 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
     BLO_write_string(writer, panel->name);
   }
 
+  BLO_write_struct_array(
+      writer, bNestedNodeRef, ntree->nested_node_refs_num, ntree->nested_node_refs);
+
   BKE_previewimg_blend_write(writer, ntree->preview);
 }
 
@@ -910,6 +924,8 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
     BLO_read_data_address(reader, &ntree->panels_array[i]);
     BLO_read_data_address(reader, &ntree->panels_array[i]->name);
   }
+
+  BLO_read_data_address(reader, &ntree->nested_node_refs);
 
   /* TODO: should be dealt by new generic cache handling of IDs... */
   ntree->previews = nullptr;

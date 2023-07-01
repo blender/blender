@@ -554,3 +554,53 @@ void bNodeTree::ensure_topology_cache() const
 {
   blender::bke::node_tree_runtime::ensure_topology_cache(*this);
 }
+
+const bNestedNodeRef *bNodeTree::find_nested_node_ref(const int32_t nested_node_id) const
+{
+  for (const bNestedNodeRef &ref : this->nested_node_refs_span()) {
+    if (ref.id == nested_node_id) {
+      return &ref;
+    }
+  }
+  return nullptr;
+}
+
+const bNestedNodeRef *bNodeTree::nested_node_ref_from_node_id_path(
+    const blender::Span<int32_t> node_ids) const
+{
+  if (node_ids.is_empty()) {
+    return nullptr;
+  }
+  for (const bNestedNodeRef &ref : this->nested_node_refs_span()) {
+    blender::Vector<int> current_node_ids;
+    if (this->node_id_path_from_nested_node_ref(ref.id, current_node_ids)) {
+      if (current_node_ids.as_span() == node_ids) {
+        return &ref;
+      }
+    }
+  }
+  return nullptr;
+}
+
+bool bNodeTree::node_id_path_from_nested_node_ref(const int32_t nested_node_id,
+                                                  blender::Vector<int> &r_node_ids) const
+{
+  const bNestedNodeRef *ref = this->find_nested_node_ref(nested_node_id);
+  if (ref == nullptr) {
+    return false;
+  }
+  const int32_t node_id = ref->path.node_id;
+  const bNode *node = this->node_by_id(node_id);
+  if (node == nullptr) {
+    return false;
+  }
+  r_node_ids.append(node_id);
+  if (!node->is_group()) {
+    return true;
+  }
+  const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id);
+  if (group == nullptr) {
+    return false;
+  }
+  return group->node_id_path_from_nested_node_ref(ref->path.id_in_node, r_node_ids);
+}

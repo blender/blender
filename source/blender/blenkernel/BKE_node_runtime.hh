@@ -540,6 +540,16 @@ inline blender::MutableSpan<bNodePanel *> bNodeTree::panels_for_write()
   return blender::MutableSpan(panels_array, panels_num);
 }
 
+inline blender::MutableSpan<bNestedNodeRef> bNodeTree::nested_node_refs_span()
+{
+  return {this->nested_node_refs, this->nested_node_refs_num};
+}
+
+inline blender::Span<bNestedNodeRef> bNodeTree::nested_node_refs_span() const
+{
+  return {this->nested_node_refs, this->nested_node_refs_num};
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

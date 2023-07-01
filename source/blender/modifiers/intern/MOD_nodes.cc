@@ -737,14 +737,14 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
   const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
       current_frame);
   if (sim_states.current) {
-    sim_states.current->state.ensure_bake_loaded();
+    sim_states.current->state.ensure_bake_loaded(*nmd.node_group);
     exec_data.current_simulation_state = &sim_states.current->state;
   }
   if (sim_states.prev) {
-    sim_states.prev->state.ensure_bake_loaded();
+    sim_states.prev->state.ensure_bake_loaded(*nmd.node_group);
     exec_data.prev_simulation_state = &sim_states.prev->state;
     if (sim_states.next) {
-      sim_states.next->state.ensure_bake_loaded();
+      sim_states.next->state.ensure_bake_loaded(*nmd.node_group);
       exec_data.next_simulation_state = &sim_states.next->state;
       exec_data.simulation_state_mix_factor =
           (float(current_frame) - float(sim_states.prev->frame)) /

@@ -15,6 +15,8 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+#  include <BLI_vector.hh>
+
 namespace blender {
 template<typename T> class Span;
 template<typename T> class MutableSpan;
@@ -568,6 +570,27 @@ typedef struct bNodePanel {
   char *name;
 } bNodePanel;
 
+typedef struct bNestedNodePath {
+  /** ID of the node that is or contains the nested node. */
+  int32_t node_id;
+  /** Unused if the node is the final nested node, otherwise an id inside of the (group) node. */
+  int32_t id_in_node;
+
+#ifdef __cplusplus
+  uint64_t hash() const;
+  friend bool operator==(const bNestedNodePath &a, const bNestedNodePath &b);
+#endif
+} bNestedNodePath;
+
+typedef struct bNestedNodeRef {
+  /** Identifies a potentially nested node. This ID remains stable even if the node is moved into
+   * and out of node groups. */
+  int32_t id;
+  char _pad[4];
+  /** Where to find the nested node in the current node tree. */
+  bNestedNodePath path;
+} bNestedNodeRef;
+
 /**
  * The basis for a Node tree, all links and nodes reside internal here.
  *
@@ -632,7 +655,12 @@ typedef struct bNodeTree {
    */
   bNodeInstanceKey active_viewer_key;
 
-  char _pad[4];
+  /**
+   * Used to maintain stable IDs for a subset of nested nodes. For example, every simulation zone
+   * that is in the node tree has a unique entry here.
+   */
+  int nested_node_refs_num;
+  bNestedNodeRef *nested_node_refs;
 
   /** Image representing what the node group does. */
   struct PreviewImage *preview;
@@ -653,6 +681,15 @@ typedef struct bNodeTree {
   /** Retrieve a node based on its persistent integer identifier. */
   struct bNode *node_by_id(int32_t identifier);
   const struct bNode *node_by_id(int32_t identifier) const;
+
+  blender::MutableSpan<bNestedNodeRef> nested_node_refs_span();
+  blender::Span<bNestedNodeRef> nested_node_refs_span() const;
+
+  const bNestedNodeRef *find_nested_node_ref(int32_t nested_node_id) const;
+  /** Conversions between node id paths and their corresponding nested node ref. */
+  const bNestedNodeRef *nested_node_ref_from_node_id_path(blender::Span<int> node_ids) const;
+  [[nodiscard]] bool node_id_path_from_nested_node_ref(const int32_t nested_node_id,
+                                                       blender::Vector<int32_t> &r_node_ids) const;
 
   /**
    * Update a run-time cache for the node tree based on it's current state. This makes many methods
