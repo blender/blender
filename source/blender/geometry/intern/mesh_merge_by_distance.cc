@@ -1101,7 +1101,8 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
 
       weld_poly_split_recursive(vert_dest_map,
 #ifdef USE_WELD_DEBUG
-                                mloop,
+                                corner_verts,
+                                corner_edges,
 #endif
                                 ctx_verts_len,
                                 &wp,
@@ -1115,8 +1116,12 @@ static void weld_poly_loop_ctx_setup_collapsed_and_split(
   r_weld_mesh->loop_kill_len = loop_kill_len;
 
 #ifdef USE_WELD_DEBUG
-  weld_assert_poly_and_loop_kill_len(
-      r_weld_mesh, mloop, polys, r_weld_mesh->poly_kill_len, r_weld_mesh->loop_kill_len);
+  weld_assert_poly_and_loop_kill_len(r_weld_mesh,
+                                     corner_verts,
+                                     corner_edges,
+                                     polys,
+                                     r_weld_mesh->poly_kill_len,
+                                     r_weld_mesh->loop_kill_len);
 #endif
 }
 
@@ -1362,8 +1367,12 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
   }
 
 #ifdef USE_WELD_DEBUG
-  weld_assert_poly_and_loop_kill_len(
-      r_weld_mesh, mloop, polys, r_weld_mesh->poly_kill_len, r_weld_mesh->loop_kill_len);
+  weld_assert_poly_and_loop_kill_len(r_weld_mesh,
+                                     corner_verts,
+                                     corner_edges,
+                                     polys,
+                                     r_weld_mesh->poly_kill_len,
+                                     r_weld_mesh->loop_kill_len);
 #endif
 }
 
