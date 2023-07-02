@@ -511,7 +511,6 @@ static int paint_mask_slice_exec(bContext *C, wmOperator *op)
 
     Mesh *new_mesh = static_cast<Mesh *>(new_ob->data);
     BKE_mesh_nomain_to_mesh(new_ob_mesh, new_mesh, new_ob);
-    BKE_mesh_copy_parameters_for_eval(new_mesh, mesh);
     WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, new_ob);
     BKE_mesh_batch_cache_dirty_tag(new_mesh, BKE_MESH_BATCH_DIRTY_ALL);
     DEG_relations_tag_update(bmain);
