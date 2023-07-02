@@ -126,14 +126,12 @@ static void extract_edge_fac_iter_poly_mesh(const MeshRenderData *mr,
       MEdgeDataPrev *medata = &data->edge_pdata[edge];
 
       uint8_t corner_count = data->edge_loop_count[edge];
+      data->vbo_data[ml_index] = 0;
       if (corner_count < 4) {
         if (corner_count == 0) {
           /* Prepare to calculate the factor. */
           medata->corner_a = ml_index;
           medata->data = poly_index;
-
-          /* Consider boundary edge while second corner is not detected. Always visible. */
-          data->vbo_data[ml_index] = 0;
         }
         else if (corner_count == 1) {
           /* Calculate the factor for both corners. */
