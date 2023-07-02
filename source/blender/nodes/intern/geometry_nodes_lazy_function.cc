@@ -981,7 +981,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     GeoNodesLFUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
-    if (user_data->modifier_data->socket_log_contexts) {
+    if (user_data->modifier_data && user_data->modifier_data->socket_log_contexts) {
       group_user_data.log_socket_values = user_data->modifier_data->socket_log_contexts->contains(
           compute_context.hash());
     }
