@@ -34,7 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "FN_field.hh"
 

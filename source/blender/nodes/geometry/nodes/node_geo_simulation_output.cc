@@ -17,7 +17,7 @@
 #include "UI_interface.h"
 
 #include "NOD_common.h"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "FN_field_cpp_type.hh"
 

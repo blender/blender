@@ -28,7 +28,7 @@
 #include "MOD_nodes.h"
 
 #include "NOD_node_declaration.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_texture.h"
 
 #include "DEG_depsgraph_query.h"
