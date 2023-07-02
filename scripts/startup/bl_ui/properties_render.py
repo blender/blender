@@ -159,7 +159,7 @@ class RENDER_PT_eevee_next_ambient_occlusion(RenderButtonsPanel, Panel):
         layout.use_property_split = True
         scene = context.scene
         props = scene.eevee
-        
+
         col = layout.column()
         col.prop(props, "gtao_distance")
         col.prop(props, "gtao_quality")
