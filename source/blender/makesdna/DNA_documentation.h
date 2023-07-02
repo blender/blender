@@ -60,7 +60,7 @@
  *
  * PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
  *
- * intern/dna_genfile.c
+ * intern/dna_genfile.cc
  * (ton)
  */
 

@@ -56,7 +56,7 @@ static const char *includefiles[] = {
 /** \name Variables
  * \{ */
 
-static MemArena *mem_arena = NULL;
+static MemArena *mem_arena = nullptr;
 
 static int max_data_size = 500000, max_array_len = 50000;
 static int names_len = 0;
@@ -90,7 +90,7 @@ static struct {
   GHash *struct_map_static_from_alias;
   GHash *elem_map_alias_from_static;
   GHash *elem_map_static_from_alias;
-} g_version_data = {NULL};
+} g_version_data = {nullptr};
 
 /**
  * Variable to control debug output of makesdna.
@@ -213,8 +213,9 @@ static bool match_identifier_and_advance(char **str_ptr, const char *identifier)
 
 static const char *version_struct_static_from_alias(const char *str)
 {
-  const char *str_test = BLI_ghash_lookup(g_version_data.struct_map_static_from_alias, str);
-  if (str_test != NULL) {
+  const char *str_test = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.struct_map_static_from_alias, str));
+  if (str_test != nullptr) {
     return str_test;
   }
   return str;
@@ -222,8 +223,9 @@ static const char *version_struct_static_from_alias(const char *str)
 
 static const char *version_struct_alias_from_static(const char *str)
 {
-  const char *str_test = BLI_ghash_lookup(g_version_data.struct_map_alias_from_static, str);
-  if (str_test != NULL) {
+  const char *str_test = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.struct_map_alias_from_static, str));
+  if (str_test != nullptr) {
     return str_test;
   }
   return str;
@@ -232,11 +234,12 @@ static const char *version_struct_alias_from_static(const char *str)
 static const char *version_elem_static_from_alias(const int strct, const char *elem_alias_full)
 {
   const uint elem_alias_full_len = strlen(elem_alias_full);
-  char *elem_alias = alloca(elem_alias_full_len + 1);
+  char *elem_alias = static_cast<char *>(alloca(elem_alias_full_len + 1));
   const int elem_alias_len = DNA_elem_id_strip_copy(elem_alias, elem_alias_full);
   const char *str_pair[2] = {types[strct], elem_alias};
-  const char *elem_static = BLI_ghash_lookup(g_version_data.elem_map_static_from_alias, str_pair);
-  if (elem_static != NULL) {
+  const char *elem_static = static_cast<const char *>(
+      BLI_ghash_lookup(g_version_data.elem_map_static_from_alias, str_pair));
+  if (elem_static != nullptr) {
     return DNA_elem_id_rename(mem_arena,
                               elem_alias,
                               elem_alias_len,
@@ -256,7 +259,7 @@ static const char *version_elem_static_from_alias(const int strct, const char *e
 static bool is_name_legal(const char *name)
 {
   const int name_size = strlen(name) + 1;
-  char *name_strip = alloca(name_size);
+  char *name_strip = static_cast<char *>(alloca(name_size));
   DNA_elem_id_strip_copy(name_strip, name);
 
   const char prefix[] = {'p', 'a', 'd'};
@@ -322,7 +325,7 @@ static int add_type(const char *str, int size)
 
   /* append new type */
   const int str_size = strlen(str) + 1;
-  char *cp = BLI_memarena_alloc(mem_arena, str_size);
+  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, str_size));
   memcpy(cp, str, str_size);
   types[types_len] = cp;
   types_size_native[types_len] = size;
@@ -361,7 +364,7 @@ static int add_name(const char *str)
      * `void (*function)(...)` and `float (*array)[..]`. the array case
      * name is still converted to (array *)() though because it is that
      * way in old DNA too, and works correct with #DNA_elem_size_nr. */
-    int isfuncptr = (strchr(str + 1, '(')) != NULL;
+    int isfuncptr = (strchr(str + 1, '(')) != nullptr;
 
     DEBUG_PRINTF(3, "\t\t\t\t*** Function pointer or multidim array pointer found\n");
     /* function-pointer: transform the type (sometimes). */
@@ -471,7 +474,7 @@ static int add_name(const char *str)
 
   /* Append new name. */
   const int name_size = strlen(name) + 1;
-  char *cp = BLI_memarena_alloc(mem_arena, name_size);
+  char *cp = static_cast<char *>(BLI_memarena_alloc(mem_arena, name_size));
   memcpy(cp, name, name_size);
   names[names_len] = cp;
 
@@ -538,7 +541,7 @@ static bool match_preproc_prefix(const char *__restrict str, const char *__restr
 }
 
 /**
- * \return The point in `str` that starts with `start` or NULL when not found.
+ * \return The point in `str` that starts with `start` or nullptr when not found.
  *
  */
 static char *match_preproc_strstr(char *__restrict str, const char *__restrict start)
@@ -552,14 +555,14 @@ static char *match_preproc_strstr(char *__restrict str, const char *__restrict s
       return str;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static int preprocess_include(char *maindata, const int maindata_len)
 {
   /* NOTE: len + 1, last character is a dummy to prevent
    * comparisons using uninitialized memory */
-  char *temp = MEM_mallocN(maindata_len + 1, "preprocess_include");
+  char *temp = static_cast<char *>(MEM_mallocN(maindata_len + 1, "preprocess_include"));
   temp[maindata_len] = ' ';
 
   memcpy(temp, maindata, maindata_len);
@@ -633,7 +636,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
     else if (match_preproc_prefix(cp, cpp_block_start)) {
       char *end_ptr = match_preproc_strstr(cp, cpp_block_end);
 
-      if (end_ptr == NULL) {
+      if (end_ptr == nullptr) {
         fprintf(stderr, "Error: '%s' block must end with '%s'\n", cpp_block_start, cpp_block_end);
       }
       else {
@@ -665,7 +668,7 @@ static void *read_file_data(const char *filepath, int *r_len)
 
   if (!fp) {
     *r_len = -1;
-    return NULL;
+    return nullptr;
   }
 
   fseek(fp, 0L, SEEK_END);
@@ -674,21 +677,21 @@ static void *read_file_data(const char *filepath, int *r_len)
 
   if (*r_len == -1) {
     fclose(fp);
-    return NULL;
+    return nullptr;
   }
 
   data = MEM_mallocN(*r_len, "read_file_data");
   if (!data) {
     *r_len = -1;
     fclose(fp);
-    return NULL;
+    return nullptr;
   }
 
   if (fread(data, *r_len, 1, fp) != 1) {
     *r_len = -1;
     MEM_freeN(data);
     fclose(fp);
-    return NULL;
+    return nullptr;
   }
 
   fclose(fp);
@@ -702,7 +705,7 @@ static int convert_include(const char *filepath)
    */
 
   int maindata_len;
-  char *maindata = read_file_data(filepath, &maindata_len);
+  char *maindata = static_cast<char *>(read_file_data(filepath, &maindata_len));
   char *md = maindata;
   if (maindata_len == -1) {
     fprintf(stderr, "Can't read file %s\n", filepath);
@@ -794,6 +797,14 @@ static int convert_include(const char *filepath)
               }
 
               /* we've got a type! */
+              if (STREQ(md1, "long") || STREQ(md1, "ulong")) {
+                /* Forbid using long/ulong because those can be either 32 or 64 bit. */
+                fprintf(stderr,
+                        "File '%s' contains use of \"%s\" in DNA struct which is not allowed\n",
+                        filepath,
+                        md1);
+                return -1;
+              }
               const int type = add_type(md1, 0);
               if (type == -1) {
                 fprintf(
@@ -831,7 +842,7 @@ static int convert_include(const char *filepath)
                     sp[0] = type;
                     sp[1] = name;
 
-                    if (names[name] != NULL) {
+                    if (names[name] != nullptr) {
                       DEBUG_PRINTF(1, "%s |", names[name]);
                     }
 
@@ -854,7 +865,7 @@ static int convert_include(const char *filepath)
 
                   sp[0] = type;
                   sp[1] = name;
-                  if (names[name] != NULL) {
+                  if (names[name] != nullptr) {
                     DEBUG_PRINTF(1, "%s ||", names[name]);
                   }
 
@@ -972,8 +983,8 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
 
             DNA_elem_id_strip_copy(name_static, cp);
             const char *str_pair[2] = {types[structtype], name_static};
-            const char *name_alias = BLI_ghash_lookup(g_version_data.elem_map_alias_from_static,
-                                                      str_pair);
+            const char *name_alias = static_cast<const char *>(
+                BLI_ghash_lookup(g_version_data.elem_map_alias_from_static, str_pair));
             fprintf(file_verify,
                     "BLI_STATIC_ASSERT(offsetof(struct %s, %s) == %d, \"DNA member offset "
                     "verify\");\n",
@@ -1239,18 +1250,23 @@ static int make_structDNA(const char *base_directory,
   mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
   /* the longest known struct is 50k, so we assume 100k is sufficient! */
-  structdata = MEM_callocN(max_data_size, "structdata");
+  structdata = static_cast<short *>(MEM_callocN(max_data_size, "structdata"));
 
   /* a maximum of 5000 variables, must be sufficient? */
-  names = MEM_callocN(sizeof(char *) * max_array_len, "names");
-  types = MEM_callocN(sizeof(char *) * max_array_len, "types");
-  types_size_native = MEM_callocN(sizeof(short) * max_array_len, "types_size_native");
-  types_size_32 = MEM_callocN(sizeof(short) * max_array_len, "types_size_32");
-  types_size_64 = MEM_callocN(sizeof(short) * max_array_len, "types_size_64");
-  types_align_32 = MEM_callocN(sizeof(short) * max_array_len, "types_size_32");
-  types_align_64 = MEM_callocN(sizeof(short) * max_array_len, "types_size_64");
+  names = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "names"));
+  types = static_cast<char **>(MEM_callocN(sizeof(char *) * max_array_len, "types"));
+  types_size_native = static_cast<short *>(
+      MEM_callocN(sizeof(short) * max_array_len, "types_size_native"));
+  types_size_32 = static_cast<short *>(
+      MEM_callocN(sizeof(short) * max_array_len, "types_size_32"));
+  types_size_64 = static_cast<short *>(
+      MEM_callocN(sizeof(short) * max_array_len, "types_size_64"));
+  types_align_32 = static_cast<short *>(
+      MEM_callocN(sizeof(short) * max_array_len, "types_size_32"));
+  types_align_64 = static_cast<short *>(
+      MEM_callocN(sizeof(short) * max_array_len, "types_size_64"));
 
-  structs = MEM_callocN(sizeof(short *) * max_array_len, "structs");
+  structs = static_cast<short **>(MEM_callocN(sizeof(short *) * max_array_len, "structs"));
 
   /* Build versioning data */
   DNA_alias_maps(DNA_RENAME_ALIAS_FROM_STATIC,
@@ -1453,9 +1469,9 @@ static int make_structDNA(const char *base_directory,
           return 1;
         }
       }
-      BLI_gset_clear(names_unique, NULL);
+      BLI_gset_clear(names_unique, nullptr);
     }
-    BLI_gset_free(names_unique, NULL);
+    BLI_gset_free(names_unique, nullptr);
   }
 
   MEM_freeN(structdata);
@@ -1470,10 +1486,10 @@ static int make_structDNA(const char *base_directory,
 
   BLI_memarena_free(mem_arena);
 
-  BLI_ghash_free(g_version_data.struct_map_alias_from_static, NULL, NULL);
-  BLI_ghash_free(g_version_data.struct_map_static_from_alias, NULL, NULL);
-  BLI_ghash_free(g_version_data.elem_map_static_from_alias, MEM_freeN, NULL);
-  BLI_ghash_free(g_version_data.elem_map_alias_from_static, MEM_freeN, NULL);
+  BLI_ghash_free(g_version_data.struct_map_alias_from_static, nullptr, nullptr);
+  BLI_ghash_free(g_version_data.struct_map_static_from_alias, nullptr, nullptr);
+  BLI_ghash_free(g_version_data.elem_map_static_from_alias, MEM_freeN, nullptr);
+  BLI_ghash_free(g_version_data.elem_map_alias_from_static, MEM_freeN, nullptr);
 
   DEBUG_PRINTF(0, "done.\n");
 
@@ -1536,7 +1552,7 @@ int main(int argc, char **argv)
         base_directory = BASE_HEADER;
       }
 
-      /* NOTE: #init_structDNA() in dna_genfile.c expects `sdna->data` is 4-bytes aligned.
+      /* NOTE: #init_structDNA() in dna_genfile.cc expects `sdna->data` is 4-bytes aligned.
        * `DNAstr[]` buffer written by `makesdna` is used for this data, so make `DNAstr` forcefully
        * 4-bytes aligned. */
 #ifdef __GNUC__
@@ -1551,7 +1567,7 @@ int main(int argc, char **argv)
       if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify)) {
         /* error */
         fclose(file_dna);
-        file_dna = NULL;
+        file_dna = nullptr;
         make_bad_file(argv[1], __LINE__);
         return_status = 1;
       }
@@ -1588,19 +1604,6 @@ int main(int argc, char **argv)
 #  endif
 
 #endif /* if 0 */
-
-/**
- * Disable types:
- *
- * - 'long': even though DNA supports, 'long' shouldn't be used since it can be either 32 or 64bit,
- *   use int, int32_t or int64_t instead.
- *
- * Only valid use would be as a runtime variable if an API expected a long,
- * but so far we don't have this happening.
- */
-#ifdef __GNUC__
-#  pragma GCC poison long
-#endif
 
 /* The include file below is automatically generated from the `SRC_DNA_INC`
  * variable in 'source/blender/CMakeLists.txt'. */

@@ -27,7 +27,7 @@ typedef struct LinkData {
   void *data;
 } LinkData;
 
-/** Never change the size of this! dna_genfile.c detects pointer_size with it. */
+/** Never change the size of this! dna_genfile.cc detects pointer_size with it. */
 typedef struct ListBase {
   void *first, *last;
 } ListBase;

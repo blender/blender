@@ -5,7 +5,7 @@
 /** \file
  * \ingroup DNA
  *
- * Utilities for stand-alone `makesdna.c` and Blender to share.
+ * Utilities for stand-alone `makesdna.cc` and Blender to share.
  */
 
 #include <string.h>
@@ -142,7 +142,7 @@ char *DNA_elem_id_rename(MemArena *mem_arena,
   UNUSED_VARS_NDEBUG(elem_src);
 
   const int elem_final_len = (elem_src_full_len - elem_src_len) + elem_dst_len;
-  char *elem_dst_full = BLI_memarena_alloc(mem_arena, elem_final_len + 1);
+  char *elem_dst_full = static_cast<char *>(BLI_memarena_alloc(mem_arena, elem_final_len + 1));
   uint i = 0;
   if (elem_src_full_offset_len != 0) {
     memcpy(elem_dst_full, elem_src_full, elem_src_full_offset_len);
@@ -168,20 +168,20 @@ char *DNA_elem_id_rename(MemArena *mem_arena,
 
 static uint strhash_pair_p(const void *ptr)
 {
-  const char *const *pair = ptr;
+  const char *const *pair = static_cast<const char *const *>(ptr);
   return (BLI_ghashutil_strhash_p(pair[0]) ^ BLI_ghashutil_strhash_p(pair[1]));
 }
 
 static bool strhash_pair_cmp(const void *a, const void *b)
 {
-  const char *const *pair_a = a;
-  const char *const *pair_b = b;
+  const char *const *pair_a = static_cast<const char *const *>(a);
+  const char *const *pair_b = static_cast<const char *const *>(b);
   return (STREQ(pair_a[0], pair_b[0]) && STREQ(pair_a[1], pair_b[1])) ? false : true;
 }
 
 void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash **r_elem_map)
 {
-  GHash *struct_map_local = NULL;
+  GHash *struct_map_local = nullptr;
   if (r_struct_map) {
     const char *data[][2] = {
 #define DNA_STRUCT_RENAME(old, new) {#old, #new},
@@ -227,7 +227,7 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
     }
   }
 
-  if (r_elem_map != NULL) {
+  if (r_elem_map != nullptr) {
     const char *data[][3] = {
 #define DNA_STRUCT_RENAME(old, new)
 #define DNA_STRUCT_RENAME_ELEM(struct_name, old, new) {#struct_name, #old, #new},
@@ -248,8 +248,10 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
     GHash *elem_map = BLI_ghash_new_ex(
         strhash_pair_p, strhash_pair_cmp, __func__, ARRAY_SIZE(data));
     for (int i = 0; i < ARRAY_SIZE(data); i++) {
-      const char **str_pair = MEM_mallocN(sizeof(char *) * 2, __func__);
-      str_pair[0] = BLI_ghash_lookup_default(struct_map_local, data[i][0], (void *)data[i][0]);
+      const char **str_pair = static_cast<const char **>(
+          MEM_mallocN(sizeof(char *) * 2, __func__));
+      str_pair[0] = static_cast<const char *>(
+          BLI_ghash_lookup_default(struct_map_local, data[i][0], (void *)data[i][0]));
       str_pair[1] = data[i][elem_key];
       BLI_ghash_insert(elem_map, (void *)str_pair, (void *)data[i][elem_val]);
     }
@@ -257,7 +259,7 @@ void DNA_alias_maps(enum eDNA_RenameDir version_dir, GHash **r_struct_map, GHash
   }
 
   if (struct_map_local) {
-    BLI_ghash_free(struct_map_local, NULL, NULL);
+    BLI_ghash_free(struct_map_local, nullptr, nullptr);
   }
 }
 
@@ -314,14 +316,14 @@ const char *DNA_struct_rename_legacy_hack_alias_from_static(const char *name)
 /** \name Internal helpers for C++
  * \{ */
 
-void _DNA_internal_memcpy(void *dst, const void *src, size_t size);
-void _DNA_internal_memcpy(void *dst, const void *src, const size_t size)
+extern "C" void _DNA_internal_memcpy(void *dst, const void *src, size_t size);
+extern "C" void _DNA_internal_memcpy(void *dst, const void *src, const size_t size)
 {
   memcpy(dst, src, size);
 }
 
-void _DNA_internal_memzero(void *dst, size_t size);
-void _DNA_internal_memzero(void *dst, const size_t size)
+extern "C" void _DNA_internal_memzero(void *dst, size_t size);
+extern "C" void _DNA_internal_memzero(void *dst, const size_t size)
 {
   memset(dst, 0, size);
 }
