@@ -204,7 +204,7 @@ struct MaskRasterHandle {
 /* alloc / free functions                                                */
 /* --------------------------------------------------------------------- */
 
-MaskRasterHandle *BKE_maskrasterize_handle_new(void)
+MaskRasterHandle *BKE_maskrasterize_handle_new()
 {
   MaskRasterHandle *mr_handle;
 

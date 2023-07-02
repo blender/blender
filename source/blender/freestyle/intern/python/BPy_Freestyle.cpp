@@ -527,7 +527,7 @@ static PyModuleDef module_definition = {
 };
 
 //-------------------MODULE INITIALIZATION--------------------------------
-PyObject *Freestyle_Init(void)
+PyObject *Freestyle_Init()
 {
   PyObject *module;
 

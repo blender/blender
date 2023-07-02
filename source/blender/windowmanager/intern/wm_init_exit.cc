@@ -161,7 +161,7 @@ void WM_init_state_start_with_console_set(bool value)
  */
 static bool gpu_is_init = false;
 
-void WM_init_gpu(void)
+void WM_init_gpu()
 {
   /* Must be called only once. */
   BLI_assert(gpu_is_init == false);
@@ -415,7 +415,7 @@ void WM_init_splash(bContext *C)
 }
 
 /* free strings of open recent files */
-static void free_openrecent(void)
+static void free_openrecent()
 {
   LISTBASE_FOREACH (RecentFile *, recent, &G.recent_files) {
     MEM_freeN(recent->filepath);
@@ -426,7 +426,7 @@ static void free_openrecent(void)
 
 #ifdef WIN32
 /* Read console events until there is a key event. Also returns on any error. */
-static void wait_for_console_key(void)
+static void wait_for_console_key()
 {
   HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
 
@@ -728,7 +728,7 @@ void WM_exit(bContext *C, const int exit_code)
   exit(exit_code);
 }
 
-void WM_script_tag_reload(void)
+void WM_script_tag_reload()
 {
   UI_interface_tag_script_reload();
 }

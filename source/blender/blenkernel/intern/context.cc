@@ -101,7 +101,7 @@ struct bContext {
 
 /* context */
 
-bContext *CTX_create(void)
+bContext *CTX_create()
 {
   bContext *C = MEM_cnew<bContext>(__func__);
 

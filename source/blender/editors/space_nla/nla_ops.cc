@@ -80,7 +80,7 @@ bool nlaedit_is_tweakmode_on(bAnimContext *ac)
 
 /* ************************** registration - operator types **********************************/
 
-void nla_operatortypes(void)
+void nla_operatortypes()
 {
   /* channels */
   WM_operatortype_append(NLA_OT_channels_click);
@@ -141,7 +141,7 @@ void nla_operatortypes(void)
   WM_operatortype_append(NLA_OT_fmodifier_paste);
 }
 
-void ED_operatormacros_nla(void)
+void ED_operatormacros_nla()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

@@ -52,7 +52,7 @@ struct TrackMarkersJob {
   bScreen *screen;
 };
 
-static bool track_markers_testbreak(void)
+static bool track_markers_testbreak()
 {
   return G.is_break;
 }

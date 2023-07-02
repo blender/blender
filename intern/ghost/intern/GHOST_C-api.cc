@@ -23,7 +23,7 @@
 #include "intern/GHOST_CallbackEventConsumer.hh"
 #include "intern/GHOST_XrException.hh"
 
-GHOST_SystemHandle GHOST_CreateSystem(void)
+GHOST_SystemHandle GHOST_CreateSystem()
 {
   GHOST_ISystem::createSystem(true, false);
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -31,7 +31,7 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
-GHOST_SystemHandle GHOST_CreateSystemBackground(void)
+GHOST_SystemHandle GHOST_CreateSystemBackground()
 {
   GHOST_ISystem::createSystemBackground();
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -885,7 +885,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-GHOST_TSuccess GHOST_hasClipboardImage(void)
+GHOST_TSuccess GHOST_hasClipboardImage()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->hasClipboardImage();
@@ -909,13 +909,13 @@ bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
   return system->setConsoleWindowState(action);
 }
 
-bool GHOST_UseNativePixels(void)
+bool GHOST_UseNativePixels()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useNativePixel();
 }
 
-GHOST_TCapabilityFlag GHOST_GetCapabilities(void)
+GHOST_TCapabilityFlag GHOST_GetCapabilities()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->getCapabilities();

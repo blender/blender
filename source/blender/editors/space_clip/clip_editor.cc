@@ -687,7 +687,7 @@ struct PrefetchQueue {
 };
 
 /* check whether pre-fetching is allowed */
-static bool check_prefetch_break(void)
+static bool check_prefetch_break()
 {
   return G.is_break;
 }

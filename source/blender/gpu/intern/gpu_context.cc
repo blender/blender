@@ -248,12 +248,12 @@ void GPU_backend_type_selection_set_override(const eGPUBackendType backend_type)
   g_backend_type_override = backend_type;
 }
 
-bool GPU_backend_type_selection_is_overridden(void)
+bool GPU_backend_type_selection_is_overridden()
 {
   return g_backend_type_override.has_value();
 }
 
-bool GPU_backend_type_selection_detect(void)
+bool GPU_backend_type_selection_detect()
 {
   blender::Vector<eGPUBackendType> backends_to_check;
   if (GPU_backend_type_selection_is_overridden()) {

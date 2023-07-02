@@ -1850,7 +1850,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
   g_live_unwrap.len++;
 }
 
-void ED_uvedit_live_unwrap_re_solve(void)
+void ED_uvedit_live_unwrap_re_solve()
 {
   if (g_live_unwrap.handles) {
     for (int i = 0; i < g_live_unwrap.len; i++) {

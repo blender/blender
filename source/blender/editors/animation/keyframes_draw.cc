@@ -476,7 +476,7 @@ struct AnimKeylistDrawList {
   ListBase /*AnimKeylistDrawListElem*/ channels;
 };
 
-AnimKeylistDrawList *ED_keylist_draw_list_create(void)
+AnimKeylistDrawList *ED_keylist_draw_list_create()
 {
   return static_cast<AnimKeylistDrawList *>(MEM_callocN(sizeof(AnimKeylistDrawList), __func__));
 }

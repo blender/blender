@@ -101,7 +101,7 @@ bool text_do_suggest_select(SpaceText *st, ARegion *region, const int mval[2])
   return 1;
 }
 
-void text_pop_suggest_list(void)
+void text_pop_suggest_list()
 {
   SuggItem *item, *sel;
   int *top, i;

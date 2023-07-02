@@ -1442,7 +1442,7 @@ static void BRUSH_OT_stencil_reset_transform(wmOperatorType *ot)
 
 /**************************** registration **********************************/
 
-void ED_operatormacros_paint(void)
+void ED_operatormacros_paint()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;
@@ -1458,7 +1458,7 @@ void ED_operatormacros_paint(void)
   RNA_boolean_set(otmacro->ptr, "select", false);
 }
 
-void ED_operatortypes_paint(void)
+void ED_operatortypes_paint()
 {
   /* palette */
   WM_operatortype_append(PALETTE_OT_new);

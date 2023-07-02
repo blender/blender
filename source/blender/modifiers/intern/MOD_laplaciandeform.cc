@@ -78,7 +78,7 @@ struct LaplacianSystem {
   MeshElemMap *ringv_map;   /* Map of vertex per vertex */
 };
 
-static LaplacianSystem *newLaplacianSystem(void)
+static LaplacianSystem *newLaplacianSystem()
 {
   LaplacianSystem *sys = MEM_cnew<LaplacianSystem>(__func__);
 

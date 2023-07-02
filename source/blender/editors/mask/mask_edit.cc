@@ -97,7 +97,7 @@ bool ED_maskedit_mask_visible_splines_poll(bContext *C)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_mask(void)
+void ED_operatortypes_mask()
 {
   WM_operatortype_append(MASK_OT_new);
 
@@ -167,7 +167,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
   keymap->poll = ED_maskedit_poll;
 }
 
-void ED_operatormacros_mask(void)
+void ED_operatormacros_mask()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

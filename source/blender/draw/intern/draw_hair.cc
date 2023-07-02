@@ -73,7 +73,7 @@ static GPUShader *hair_refine_shader_get(ParticleRefineShader refinement)
   return DRW_shader_hair_refine_get(refinement, drw_hair_shader_type_get());
 }
 
-void DRW_hair_init(void)
+void DRW_hair_init()
 {
   if (GPU_transform_feedback_support() || GPU_compute_shader_support()) {
     g_tf_pass = DRW_pass_create("Update Hair Pass", DRW_STATE_NO_DRAW);
@@ -428,7 +428,7 @@ void DRW_hair_update()
   }
 }
 
-void DRW_hair_free(void)
+void DRW_hair_free()
 {
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
   MEM_delete(g_dummy_curves_info);

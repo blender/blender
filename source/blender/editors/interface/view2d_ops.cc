@@ -2257,7 +2257,7 @@ static void VIEW2D_OT_reset(wmOperatorType *ot)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_view2d(void)
+void ED_operatortypes_view2d()
 {
   WM_operatortype_append(VIEW2D_OT_pan);
   WM_operatortype_append(VIEW2D_OT_edge_pan);

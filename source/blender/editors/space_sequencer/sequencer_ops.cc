@@ -20,7 +20,7 @@
 
 /* ************************** registration **********************************/
 
-void sequencer_operatortypes(void)
+void sequencer_operatortypes()
 {
   /* sequencer_edit.c */
   WM_operatortype_append(SEQUENCER_OT_split);
@@ -133,7 +133,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Sequencer Channels", SPACE_SEQ, 0);
 }
 
-void ED_operatormacros_sequencer(void)
+void ED_operatormacros_sequencer()
 {
   wmOperatorType *ot;
 

@@ -139,7 +139,7 @@ void DRW_stats_query_start(const char *name)
   drw_stats_timer_start_ex(name, true);
 }
 
-void DRW_stats_query_end(void)
+void DRW_stats_query_end()
 {
   GPU_debug_group_end();
   if (DTP.is_recording) {

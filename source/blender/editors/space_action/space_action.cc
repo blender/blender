@@ -885,7 +885,7 @@ static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *r
   action_clamp_scroll(region);
 }
 
-void ED_spacetype_action(void)
+void ED_spacetype_action()
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype action");
   ARegionType *art;

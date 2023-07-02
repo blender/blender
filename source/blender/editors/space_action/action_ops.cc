@@ -23,7 +23,7 @@
 
 /* ************************** registration - operator types **********************************/
 
-void action_operatortypes(void)
+void action_operatortypes()
 {
   /* keyframes */
   /* selection */
@@ -73,7 +73,7 @@ void action_operatortypes(void)
   WM_operatortype_append(ACTION_OT_markers_make_local);
 }
 
-void ED_operatormacros_action(void)
+void ED_operatormacros_action()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

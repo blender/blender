@@ -485,7 +485,7 @@ static void GIZMO_GT_mesh_preselect_edgering_3d(wmGizmoType *gzt)
 /** \name Gizmo API
  * \{ */
 
-void ED_gizmotypes_preselect_3d(void)
+void ED_gizmotypes_preselect_3d()
 {
   WM_gizmotype_append(GIZMO_GT_mesh_preselect_elem_3d);
   WM_gizmotype_append(GIZMO_GT_mesh_preselect_edgering_3d);

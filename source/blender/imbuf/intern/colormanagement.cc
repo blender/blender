@@ -587,7 +587,7 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   invert_m3_m3(imbuf_scene_linear_to_aces, imbuf_aces_to_scene_linear);
 }
 
-static void colormanage_free_config(void)
+static void colormanage_free_config()
 {
   ColorSpace *colorspace;
   ColorManagedDisplay *display;
@@ -647,7 +647,7 @@ static void colormanage_free_config(void)
   OCIO_exit();
 }
 
-void colormanagement_init(void)
+void colormanagement_init()
 {
   const char *ocio_env;
   const char *configdir;
@@ -704,7 +704,7 @@ void colormanagement_init(void)
   BLI_init_srgb_conversion();
 }
 
-void colormanagement_exit(void)
+void colormanagement_exit()
 {
   OCIO_gpuCacheFree();
 
@@ -1401,7 +1401,7 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_scene_linear(void)
+const float *IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return &imbuf_xyz_to_scene_linear[0][0];
 }
@@ -2807,7 +2807,7 @@ void IMB_display_buffer_release(void *cache_handle)
 /** \name Display Functions
  * \{ */
 
-const char *colormanage_display_get_default_name(void)
+const char *colormanage_display_get_default_name()
 {
   OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
   const char *display_name;
@@ -2819,7 +2819,7 @@ const char *colormanage_display_get_default_name(void)
   return display_name;
 }
 
-ColorManagedDisplay *colormanage_display_get_default(void)
+ColorManagedDisplay *colormanage_display_get_default()
 {
   const char *display_name = colormanage_display_get_default_name();
 
@@ -2895,7 +2895,7 @@ const char *IMB_colormanagement_display_get_indexed_name(int index)
   return nullptr;
 }
 
-const char *IMB_colormanagement_display_get_default_name(void)
+const char *IMB_colormanagement_display_get_default_name()
 {
   ColorManagedDisplay *display = colormanage_display_get_default();
 
@@ -2907,7 +2907,7 @@ ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name)
   return colormanage_display_get_named(name);
 }
 
-const char *IMB_colormanagement_display_get_none_name(void)
+const char *IMB_colormanagement_display_get_none_name()
 {
   if (colormanage_display_get_named("None") != nullptr) {
     return "None";
@@ -4105,7 +4105,7 @@ bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bo
   return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, nullptr, dither, predivide);
 }
 
-void IMB_colormanagement_finish_glsl_draw(void)
+void IMB_colormanagement_finish_glsl_draw()
 {
   if (global_gpu_state.gpu_shader_bound) {
     OCIO_gpuDisplayShaderUnbind();

@@ -164,7 +164,7 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac,
 }
 
 /* helper method to test if group colors should be drawn */
-static bool acf_show_channel_colors(void)
+static bool acf_show_channel_colors()
 {
   return (U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS) != 0;
 }
@@ -4083,7 +4083,7 @@ static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT = 1; /* when non-zero, the list needs to be updated */
 
 /* Initialize type info definitions */
-static void ANIM_init_channel_typeinfo_data(void)
+static void ANIM_init_channel_typeinfo_data()
 {
   int type = 0;
 
@@ -4373,7 +4373,7 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
-float ANIM_UI_get_keyframe_scale_factor(void)
+float ANIM_UI_get_keyframe_scale_factor()
 {
   bTheme *btheme = UI_GetTheme();
   const float yscale_fac = btheme->space_action.keyframe_scale_fac;
@@ -4385,12 +4385,12 @@ float ANIM_UI_get_keyframe_scale_factor(void)
   return yscale_fac;
 }
 
-float ANIM_UI_get_channel_height(void)
+float ANIM_UI_get_channel_height()
 {
   return 0.8f * ANIM_UI_get_keyframe_scale_factor() * U.widget_unit;
 }
 
-float ANIM_UI_get_channel_skip(void)
+float ANIM_UI_get_channel_skip()
 {
   return 0.1f * U.widget_unit;
 }
@@ -4400,7 +4400,7 @@ float ANIM_UI_get_first_channel_top(View2D *v2d)
   return UI_view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y - ANIM_UI_get_channel_skip();
 }
 
-float ANIM_UI_get_channel_step(void)
+float ANIM_UI_get_channel_step()
 {
   return ANIM_UI_get_channel_height() + ANIM_UI_get_channel_skip();
 }
@@ -4410,12 +4410,12 @@ float ANIM_UI_get_channels_total_height(View2D *v2d, const int item_count)
   return -ANIM_UI_get_first_channel_top(v2d) + ANIM_UI_get_channel_step() * (item_count + 1);
 }
 
-float ANIM_UI_get_channel_name_width(void)
+float ANIM_UI_get_channel_name_width()
 {
   return 10 * U.widget_unit;
 }
 
-float ANIM_UI_get_channel_button_width(void)
+float ANIM_UI_get_channel_button_width()
 {
   return 0.8f * U.widget_unit;
 }

@@ -498,7 +498,7 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
   return is_set;
 }
 
-static eViewOpsFlag viewops_flag_from_prefs(void)
+static eViewOpsFlag viewops_flag_from_prefs()
 {
   const bool use_select = (U.uiflag & USER_ORBIT_SELECTION) != 0;
   const bool use_depth = (U.uiflag & USER_DEPTH_NAVIGATE) != 0;

@@ -3423,13 +3423,13 @@ void ED_region_header_init(ARegion *region)
   UI_view2d_region_reinit(&region->v2d, V2D_COMMONVIEW_HEADER, region->winx, region->winy);
 }
 
-int ED_area_headersize(void)
+int ED_area_headersize()
 {
   /* Accommodate widget and padding. */
   return U.widget_unit + int(UI_SCALE_FAC * HEADER_PADDING_Y);
 }
 
-int ED_area_footersize(void)
+int ED_area_footersize()
 {
   return ED_area_headersize();
 }
@@ -3514,7 +3514,7 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area)
   return static_cast<ScrArea *>(screen->areabase.first);
 }
 
-int ED_region_global_size_y(void)
+int ED_region_global_size_y()
 {
   return ED_area_headersize(); /* same size as header */
 }

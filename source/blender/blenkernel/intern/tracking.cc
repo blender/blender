@@ -170,7 +170,7 @@ struct TrackingCopyContext {
   GHash *old_to_new_plane_track_map;
 };
 
-static TrackingCopyContext tracking_copy_context_new(void)
+static TrackingCopyContext tracking_copy_context_new()
 {
   TrackingCopyContext ctx = {};
   ctx.old_to_new_track_map = BLI_ghash_ptr_new(__func__);
@@ -436,7 +436,7 @@ void BKE_tracking_get_projection_matrix(MovieTracking *tracking,
  * Clipboard.
  */
 
-void BKE_tracking_clipboard_free(void)
+void BKE_tracking_clipboard_free()
 {
   MovieTrackingTrack *track = static_cast<MovieTrackingTrack *>(tracking_clipboard.tracks.first),
                      *next_track;
@@ -469,7 +469,7 @@ void BKE_tracking_clipboard_copy_tracks(MovieTracking * /*tracking*/,
   }
 }
 
-bool BKE_tracking_clipboard_has_tracks(void)
+bool BKE_tracking_clipboard_has_tracks()
 {
   return (BLI_listbase_is_empty(&tracking_clipboard.tracks) == false);
 }

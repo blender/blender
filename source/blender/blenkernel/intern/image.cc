@@ -4831,7 +4831,7 @@ struct ImagePool {
   ThreadMutex mutex;
 };
 
-ImagePool *BKE_image_pool_new(void)
+ImagePool *BKE_image_pool_new()
 {
   ImagePool *pool = MEM_cnew<ImagePool>("Image Pool");
   pool->memory_pool = BLI_mempool_create(sizeof(ImagePoolItem), 0, 128, BLI_MEMPOOL_NOP);

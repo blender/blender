@@ -751,7 +751,7 @@ static void sequencer_preview_dropboxes_add_to_lb(ListBase *lb)
                  nullptr);
 }
 
-void sequencer_dropboxes(void)
+void sequencer_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_WINDOW);
   sequencer_dropboxes_add_to_lb(lb);

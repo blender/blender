@@ -924,7 +924,7 @@ void GPU_pass_release(GPUPass *pass)
   BLI_spin_unlock(&pass_cache_spin);
 }
 
-void GPU_pass_cache_garbage_collect(void)
+void GPU_pass_cache_garbage_collect()
 {
   const int shadercollectrate = 60; /* hardcoded for now. */
   int ctime = int(PIL_check_seconds_timer());
@@ -947,12 +947,12 @@ void GPU_pass_cache_garbage_collect(void)
   BLI_spin_unlock(&pass_cache_spin);
 }
 
-void GPU_pass_cache_init(void)
+void GPU_pass_cache_init()
 {
   BLI_spin_init(&pass_cache_spin);
 }
 
-void GPU_pass_cache_free(void)
+void GPU_pass_cache_free()
 {
   BLI_spin_lock(&pass_cache_spin);
   while (pass_cache) {
@@ -973,7 +973,7 @@ void GPU_pass_cache_free(void)
 
 void gpu_codegen_init(void) {}
 
-void gpu_codegen_exit(void)
+void gpu_codegen_exit()
 {
   BKE_material_defaults_free_gpu();
   GPU_shader_free_builtin_shaders();

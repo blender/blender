@@ -1870,7 +1870,7 @@ void CLIP_OT_lock_selection_toggle(wmOperatorType *ot)
 /** \name Macros
  * \{ */
 
-void ED_operatormacros_clip(void)
+void ED_operatormacros_clip()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

@@ -203,7 +203,7 @@ static void rna_userdef_version_get(PointerRNA *ptr, int *value)
 /** Mark the preferences as being changed so they are saved on exit. */
 #  define USERDEF_TAG_DIRTY rna_userdef_is_dirty_update_impl()
 
-void rna_userdef_is_dirty_update_impl(void)
+void rna_userdef_is_dirty_update_impl()
 {
   /* We can't use 'ptr->data' because this update function
    * is used for themes and other nested data. */
@@ -366,7 +366,7 @@ static void rna_userdef_script_directory_name_set(PointerRNA *ptr, const char *v
                  sizeof(script_dir->name));
 }
 
-static bUserScriptDirectory *rna_userdef_script_directory_new(void)
+static bUserScriptDirectory *rna_userdef_script_directory_new()
 {
   bUserScriptDirectory *script_dir = static_cast<bUserScriptDirectory *>(
       MEM_callocN(sizeof(*script_dir), __func__));
@@ -682,7 +682,7 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
       return USER_EXPERIMENTAL_TEST(userdef, member); \
     }
 
-static bAddon *rna_userdef_addon_new(void)
+static bAddon *rna_userdef_addon_new()
 {
   ListBase *addons_list = &U.addons;
   bAddon *addon = BKE_addon_new();
@@ -705,7 +705,7 @@ static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
   USERDEF_TAG_DIRTY;
 }
 
-static bPathCompare *rna_userdef_pathcompare_new(void)
+static bPathCompare *rna_userdef_pathcompare_new()
 {
   bPathCompare *path_cmp = static_cast<bPathCompare *>(
       MEM_callocN(sizeof(bPathCompare), "bPathCompare"));
@@ -1144,7 +1144,7 @@ static const EnumPropertyItem *rna_preference_gpu_backend_itemf(bContext * /*C*/
  */
 
 /* Get maximum addressable memory in megabytes, */
-static size_t max_memory_in_megabytes(void)
+static size_t max_memory_in_megabytes()
 {
   /* Maximum addressable bytes on this platform. */
   const size_t limit_bytes = (((size_t)1) << (sizeof(size_t[8]) - 1));
@@ -1153,7 +1153,7 @@ static size_t max_memory_in_megabytes(void)
 }
 
 /* Same as above, but clipped to int capacity. */
-static int max_memory_in_megabytes_int(void)
+static int max_memory_in_megabytes_int()
 {
   const size_t limit_megabytes = max_memory_in_megabytes();
   /* NOTE: The result will fit into integer. */

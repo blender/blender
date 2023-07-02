@@ -826,7 +826,7 @@ static void makecubetable()
   }
 }
 
-void BKE_mball_cubeTable_free(void)
+void BKE_mball_cubeTable_free()
 {
   for (int i = 0; i < 256; i++) {
     INTLISTS *lists = cubetable[i];

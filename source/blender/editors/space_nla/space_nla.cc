@@ -591,7 +591,7 @@ static void nla_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   }
 }
 
-void ED_spacetype_nla(void)
+void ED_spacetype_nla()
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype nla");
   ARegionType *art;

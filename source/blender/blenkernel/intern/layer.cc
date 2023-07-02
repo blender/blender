@@ -778,12 +778,12 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
 
 static bool no_resync = false;
 
-void BKE_layer_collection_resync_forbid(void)
+void BKE_layer_collection_resync_forbid()
 {
   no_resync = true;
 }
 
-void BKE_layer_collection_resync_allow(void)
+void BKE_layer_collection_resync_allow()
 {
   no_resync = false;
 }

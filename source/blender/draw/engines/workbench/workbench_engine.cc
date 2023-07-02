@@ -580,7 +580,7 @@ static void workbench_id_update(void *vedata, ID *id)
 
 /* RENDER */
 
-static bool workbench_render_framebuffers_init(void)
+static bool workbench_render_framebuffers_init()
 {
   /* For image render, allocate own buffers because we don't have a viewport. */
   const float2 viewport_size = DRW_viewport_size_get();

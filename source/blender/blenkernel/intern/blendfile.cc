@@ -1175,7 +1175,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *filebuf,
   return userdef;
 }
 
-UserDef *BKE_blendfile_userdef_from_defaults(void)
+UserDef *BKE_blendfile_userdef_from_defaults()
 {
   UserDef *userdef = static_cast<UserDef *>(MEM_callocN(sizeof(UserDef), __func__));
   *userdef = blender::dna::shallow_copy(U_default);

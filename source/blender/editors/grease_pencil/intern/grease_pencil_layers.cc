@@ -241,7 +241,7 @@ static void GREASE_PENCIL_OT_layer_group_add(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-void ED_operatortypes_grease_pencil_layers(void)
+void ED_operatortypes_grease_pencil_layers()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_layer_add);

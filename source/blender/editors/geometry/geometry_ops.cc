@@ -14,7 +14,7 @@
 
 /**************************** registration **********************************/
 
-void ED_operatortypes_geometry(void)
+void ED_operatortypes_geometry()
 {
   using namespace blender::ed::geometry;
 

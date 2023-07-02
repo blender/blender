@@ -565,7 +565,7 @@ static void outliner_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 }  // namespace blender::ed::outliner
 
-void ED_spacetype_outliner(void)
+void ED_spacetype_outliner()
 {
   using namespace blender::ed::outliner;
 

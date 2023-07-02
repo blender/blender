@@ -594,7 +594,7 @@ static void rna_WindowManager_print_undo_steps(wmWindowManager *wm)
   BKE_undosys_print(wm->undo_stack);
 }
 
-static void rna_WindowManager_tag_script_reload(void)
+static void rna_WindowManager_tag_script_reload()
 {
   WM_script_tag_reload();
   WM_main_add_notifier(NC_WINDOW, nullptr);
