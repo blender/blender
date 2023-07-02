@@ -2,6 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+// #define USE_WELD_DEBUG
+// #define USE_WELD_DEBUG_TIME
+
 #include "BLI_array.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_index_mask.hh"
@@ -19,7 +22,13 @@
 
 #include "GEO_mesh_merge_by_distance.hh"
 
-// #define USE_WELD_DEBUG
+#ifdef USE_WELD_DEBUG_TIME
+#  include "BLI_timeit.hh"
+
+#  if WIN32 and NDEBUG
+#    pragma optimize("O", on)
+#  endif
+#endif
 
 namespace blender::geometry {
 
@@ -1558,6 +1567,10 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
                                 MutableSpan<int> vert_dest_map,
                                 const int removed_vertex_count)
 {
+#ifdef USE_WELD_DEBUG_TIME
+  SCOPED_TIMER(__func__);
+#endif
+
   const OffsetIndices src_polys = mesh.polys();
   const Span<int> src_corner_verts = mesh.corner_verts();
   const Span<int> src_corner_edges = mesh.corner_edges();
