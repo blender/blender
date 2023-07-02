@@ -361,60 +361,29 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
   geometry_extract_props(ot->srna);
 }
 
-static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static int face_set_extract_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ED_workspace_status_text(C, TIP_("Click on the mesh to select a Face Set"));
-  WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
-  WM_event_add_modal_handler(C, op);
-  return OPERATOR_RUNNING_MODAL;
-}
+  if (!CTX_wm_region_view3d(C)) {
+    return OPERATOR_CANCELLED;
+  }
+  ARegion *region = CTX_wm_region(C);
 
-static int face_set_extract_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  switch (event->type) {
-    case LEFTMOUSE:
-      if (event->val == KM_PRESS) {
-        WM_cursor_modal_restore(CTX_wm_window(C));
-        ED_workspace_status_text(C, nullptr);
+  const float mval[2] = {float(event->xy[0] - region->winrct.xmin),
+                         float(event->xy[1] - region->winrct.ymin)};
 
-        /* This modal operator uses and eyedropper to pick a Face Set from the mesh. This ensures
-         * that the mouse clicked in a viewport region and its coordinates can be used to ray-cast
-         * the PBVH and update the active Face Set ID. */
-        bScreen *screen = CTX_wm_screen(C);
-        ARegion *region = BKE_screen_find_main_region_at_xy(screen, SPACE_VIEW3D, event->xy);
-
-        if (!region) {
-          return OPERATOR_CANCELLED;
-        }
-
-        const float mval[2] = {float(event->xy[0] - region->winrct.xmin),
-                               float(event->xy[1] - region->winrct.ymin)};
-
-        Object *ob = CTX_data_active_object(C);
-        const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
-        if (face_set_id == SCULPT_FACE_SET_NONE) {
-          return OPERATOR_CANCELLED;
-        }
-
-        GeometryExtractParams params;
-        params.active_face_set = face_set_id;
-        params.num_smooth_iterations = 0;
-        params.add_boundary_loop = false;
-        params.apply_shrinkwrap = true;
-        params.add_solidify = true;
-        return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
-      }
-      break;
-    case EVT_ESCKEY:
-    case RIGHTMOUSE: {
-      WM_cursor_modal_restore(CTX_wm_window(C));
-      ED_workspace_status_text(C, nullptr);
-
-      return OPERATOR_CANCELLED;
-    }
+  Object *ob = CTX_data_active_object(C);
+  const int face_set_id = ED_sculpt_face_sets_active_update_and_get(C, ob, mval);
+  if (face_set_id == SCULPT_FACE_SET_NONE) {
+    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_RUNNING_MODAL;
+  GeometryExtractParams params;
+  params.active_face_set = face_set_id;
+  params.num_smooth_iterations = 0;
+  params.add_boundary_loop = false;
+  params.apply_shrinkwrap = true;
+  params.add_solidify = true;
+  return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
 }
 
 void MESH_OT_face_set_extract(wmOperatorType *ot)
@@ -427,9 +396,8 @@ void MESH_OT_face_set_extract(wmOperatorType *ot)
   /* api callbacks */
   ot->poll = geometry_extract_poll;
   ot->invoke = face_set_extract_invoke;
-  ot->modal = face_set_extract_modal;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
   geometry_extract_props(ot->srna);
 }
