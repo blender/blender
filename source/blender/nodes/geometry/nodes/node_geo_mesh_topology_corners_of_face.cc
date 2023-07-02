@@ -160,10 +160,7 @@ class CornersOfFaceCountInput final : public bke::MeshFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const CornersOfFaceCountInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const CornersOfFaceCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final

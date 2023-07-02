@@ -160,10 +160,7 @@ class CurvePointCountInput final : public bke::CurvesFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const CurvePointCountInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const CurvePointCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
@@ -211,10 +208,7 @@ class CurveStartPointInput final : public bke::CurvesFieldInput {
 
   bool is_equal_to(const fn::FieldNode &other) const final
   {
-    if (dynamic_cast<const CurveStartPointInput *>(&other)) {
-      return true;
-    }
-    return false;
+    return dynamic_cast<const CurveStartPointInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const bke::CurvesGeometry & /*curves*/) const final
