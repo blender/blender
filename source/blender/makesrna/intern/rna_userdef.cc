@@ -1147,7 +1147,7 @@ static const EnumPropertyItem *rna_preference_gpu_backend_itemf(bContext * /*C*/
 static size_t max_memory_in_megabytes()
 {
   /* Maximum addressable bytes on this platform. */
-  const size_t limit_bytes = (((size_t)1) << (sizeof(size_t[8]) - 1));
+  const size_t limit_bytes = size_t(1) << (sizeof(size_t[8]) - 1);
   /* Convert it to megabytes and return. */
   return (limit_bytes >> 20);
 }
@@ -1157,7 +1157,7 @@ static int max_memory_in_megabytes_int()
 {
   const size_t limit_megabytes = max_memory_in_megabytes();
   /* NOTE: The result will fit into integer. */
-  return (int)min_zz(limit_megabytes, (size_t)INT_MAX);
+  return int(min_zz(limit_megabytes, size_t(INT_MAX)));
 }
 
 static void rna_def_userdef_theme_ui_font_style(BlenderRNA *brna)

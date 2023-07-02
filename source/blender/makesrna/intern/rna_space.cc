@@ -7504,11 +7504,11 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
 
   prop = RNA_def_property(srna, "geometry_nodes_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, NULL, "geometry_nodes_type");
+  RNA_def_property_enum_sdna(prop, nullptr, "geometry_nodes_type");
   RNA_def_property_enum_items(prop, geometry_nodes_type_items);
   RNA_def_property_ui_text(prop, "Geometry Nodes Type", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_ID);
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, NULL);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
 
   prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

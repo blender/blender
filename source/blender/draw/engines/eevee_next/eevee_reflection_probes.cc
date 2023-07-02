@@ -14,7 +14,7 @@ void ReflectionProbeModule::init()
                                    max_resolution_,
                                    max_probes_,
                                    GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT,
-                                   NULL,
+                                   nullptr,
                                    max_mipmap_levels);
     GPU_texture_mipmap_mode(cubemaps_tx_, true, true);
     initialized_ = true;

@@ -928,9 +928,7 @@ BoundBox *BKE_grease_pencil_boundbox_get(Object *ob)
   return ob->runtime.bb;
 }
 
-void BKE_grease_pencil_data_update(struct Depsgraph * /*depsgraph*/,
-                                   struct Scene * /*scene*/,
-                                   Object *object)
+void BKE_grease_pencil_data_update(Depsgraph * /*depsgraph*/, Scene * /*scene*/, Object *object)
 {
   /* Free any evaluated data and restore original data. */
   BKE_object_free_derived_caches(object);
