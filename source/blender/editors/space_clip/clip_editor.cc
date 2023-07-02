@@ -655,7 +655,7 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 /** \name Pre-Fetching Functions
  * \{ */
 
-typedef struct PrefetchJob {
+struct PrefetchJob {
   /** Clip into which cache the frames will be pre-fetched into. */
   MovieClip *clip;
 
@@ -668,9 +668,9 @@ typedef struct PrefetchJob {
 
   int start_frame, current_frame, end_frame;
   short render_size, render_flag;
-} PrefetchJob;
+};
 
-typedef struct PrefetchQueue {
+struct PrefetchQueue {
   int initial_frame, current_frame, start_frame, end_frame;
   short render_size, render_flag;
 
@@ -684,7 +684,7 @@ typedef struct PrefetchQueue {
   bool *stop;
   bool *do_update;
   float *progress;
-} PrefetchQueue;
+};
 
 /* check whether pre-fetching is allowed */
 static bool check_prefetch_break(void)

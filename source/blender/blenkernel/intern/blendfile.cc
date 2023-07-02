@@ -227,7 +227,7 @@ static void setup_app_userdef(BlendFileData *bfd)
  * NOTE: this is only used when actually loading a real `.blend` file,
  * loading of memfile undo steps does not need it.
  */
-typedef struct ReuseOldBMainData {
+struct ReuseOldBMainData {
   Main *new_bmain;
   Main *old_bmain;
 
@@ -245,7 +245,7 @@ typedef struct ReuseOldBMainData {
   /** Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
    * from old main. */
   IDNameLib_Map *id_map;
-} ReuseOldBMainData;
+};
 
 /** Search for all libraries in `old_bmain` that are also in `new_bmain` (i.e. different Library
  * IDs having the same absolute filepath), and create a remapping rule for these.

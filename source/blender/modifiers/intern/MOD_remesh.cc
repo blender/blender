@@ -78,13 +78,13 @@ static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 
 /* simple structure to hold the output: a CDDM and two counters to
  * keep track of the current elements */
-typedef struct {
+struct DualConOutput {
   Mesh *mesh;
   blender::float3 *vert_positions;
   int *poly_offsets;
   int *corner_verts;
   int curvert, curface;
-} DualConOutput;
+};
 
 /* allocate and initialize a DualConOutput */
 static void *dualcon_alloc_output(int totvert, int totquad)

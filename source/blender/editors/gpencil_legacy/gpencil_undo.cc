@@ -32,12 +32,12 @@
 
 #include "gpencil_intern.h"
 
-typedef struct bGPundonode {
+struct bGPundonode {
   bGPundonode *next, *prev;
 
   char name[BKE_UNDO_STR_MAX];
   bGPdata *gpd;
-} bGPundonode;
+};
 
 static ListBase undo_nodes = {nullptr, nullptr};
 static bGPundonode *cur_node = nullptr;

@@ -405,7 +405,7 @@ static void bm_loop_flip_disp(const float source_axis_x[3],
   disp[1] = (mat[0][0] * b[1] - b[0] * mat[1][0]) / d;
 }
 
-typedef struct BMLoopInterpMultiresData {
+struct BMLoopInterpMultiresData {
   BMLoop *l_dst;
   BMLoop *l_src_first;
   int cd_loop_mdisp_offset;
@@ -419,7 +419,7 @@ typedef struct BMLoopInterpMultiresData {
 
   int res;
   float d;
-} BMLoopInterpMultiresData;
+};
 
 static void loop_interp_multires_cb(void *__restrict userdata,
                                     const int ix,

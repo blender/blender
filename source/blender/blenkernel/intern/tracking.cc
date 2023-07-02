@@ -54,13 +54,13 @@
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct MovieDistortion {
+struct MovieDistortion {
   libmv_CameraIntrinsics *intrinsics;
   /* Parameters needed for coordinates normalization. */
   float principal_px[2];
   float pixel_aspect;
   float focal;
-} MovieDistortion;
+};
 
 static struct {
   ListBase tracks;
@@ -164,11 +164,11 @@ void BKE_tracking_free(MovieTracking *tracking)
   tracking_dopesheet_free(&tracking->dopesheet);
 }
 
-typedef struct TrackingCopyContext {
+struct TrackingCopyContext {
   /* Map from point and plane track pointer from the source object to the destination object. */
   GHash *old_to_new_track_map;
   GHash *old_to_new_plane_track_map;
-} TrackingCopyContext;
+};
 
 static TrackingCopyContext tracking_copy_context_new(void)
 {
@@ -1077,11 +1077,11 @@ static bGPDlayer *track_mask_gpencil_layer_get(const MovieTrackingTrack *track)
   return nullptr;
 }
 
-typedef struct TrackMaskSetPixelData {
+struct TrackMaskSetPixelData {
   float *mask;
   int mask_width;
   int mask_height;
-} TrackMaskSetPixelData;
+};
 
 static void track_mask_set_pixel_cb(int x, int x_end, int y, void *user_data)
 {

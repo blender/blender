@@ -1273,7 +1273,7 @@ void psys_interpolate_particle(
   }
 }
 
-typedef struct ParticleInterpolationData {
+struct ParticleInterpolationData {
   HairKey *hkey[2];
 
   Mesh *mesh;
@@ -1292,7 +1292,7 @@ typedef struct ParticleInterpolationData {
   /** Die on this frame, see #ParticleData.dietime for details. */
   float dietime;
   int bspline;
-} ParticleInterpolationData;
+};
 /**
  * Assumes pointcache->mem_cache exists, so for disk cached particles
  * call #psys_make_temp_pointcache() before use.
@@ -3569,14 +3569,14 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
   }
 }
 
-typedef struct CacheEditrPathsIterData {
+struct CacheEditrPathsIterData {
   Object *object;
   PTCacheEdit *edit;
   ParticleSystemModifierData *psmd;
   ParticleData *pa;
   int segments;
   bool use_weight;
-} CacheEditrPathsIterData;
+};
 
 static void psys_cache_edit_paths_iter(void *__restrict iter_data_v,
                                        const int iter,

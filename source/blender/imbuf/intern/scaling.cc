@@ -1773,7 +1773,7 @@ bool IMB_scalefastImBuf(ImBuf *ibuf, uint newx, uint newy)
 
 /* ******** threaded scaling ******** */
 
-typedef struct ScaleTreadInitData {
+struct ScaleTreadInitData {
   ImBuf *ibuf;
 
   uint newx;
@@ -1781,9 +1781,9 @@ typedef struct ScaleTreadInitData {
 
   uchar *byte_buffer;
   float *float_buffer;
-} ScaleTreadInitData;
+};
 
-typedef struct ScaleThreadData {
+struct ScaleThreadData {
   ImBuf *ibuf;
 
   uint newx;
@@ -1794,7 +1794,7 @@ typedef struct ScaleThreadData {
 
   uchar *byte_buffer;
   float *float_buffer;
-} ScaleThreadData;
+};
 
 static void scale_thread_init(void *data_v, int start_line, int tot_line, void *init_data_v)
 {

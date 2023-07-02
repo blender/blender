@@ -68,10 +68,10 @@ BLI_STATIC_ASSERT(sizeof(IMAGE) == HEADER_SIZE, "Invalid header size");
 // #define RLE_NOP         0x00
 
 /* local struct for mem access */
-typedef struct MFileOffset {
+struct MFileOffset {
   const uchar *_file_data;
   uint _file_offset;
-} MFileOffset;
+};
 
 #define MFILE_DATA(inf) ((void)0, ((inf)->_file_data + (inf)->_file_offset))
 #define MFILE_STEP(inf, step) \

@@ -282,9 +282,9 @@ TreeElement *outliner_add_collection_recursive(SpaceOutliner *space_outliner,
 bool outliner_requires_rebuild_on_select_or_active_change(
     const struct SpaceOutliner *space_outliner);
 
-typedef struct IDsSelectedData {
+struct IDsSelectedData {
   struct ListBase selected_array;
-} IDsSelectedData;
+};
 
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);

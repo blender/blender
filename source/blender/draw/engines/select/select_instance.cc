@@ -23,7 +23,7 @@ using namespace blender::draw;
 
 using Instance = overlay::Instance;
 
-typedef struct SELECT_NextData {
+struct SELECT_NextData {
   void *engine_type;
   DRWViewportEmptyList *fbl;
   DRWViewportEmptyList *txl;
@@ -31,7 +31,7 @@ typedef struct SELECT_NextData {
   DRWViewportEmptyList *stl;
 
   Instance *instance;
-} SELECT_NextData;
+};
 
 static void SELECT_next_engine_init(void *vedata)
 {

@@ -28,7 +28,7 @@ static const char J2K_HEAD[] = {0xFF, 0x4F, 0xFF, 0x51, 0x00};
 
 /* We only need this because of how the presets are set */
 /* this typedef is copied from 'openjpeg-1.5.0/applications/codec/image_to_j2k.c' */
-typedef struct img_folder {
+struct img_fol_t {
   /** The directory path of the folder containing input images. */
   char *imgdirpath;
   /** Output format. */
@@ -39,7 +39,7 @@ typedef struct img_folder {
   char set_out_format;
   /** User specified rate stored in case of cinema option. */
   float *rates;
-} img_fol_t;
+};
 
 static bool check_jp2(const uchar *mem, const size_t size) /* J2K_CFMT */
 {

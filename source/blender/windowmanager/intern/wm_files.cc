@@ -2714,10 +2714,10 @@ static void set_next_operator_state(wmOperator *op, int state)
   RNA_int_set(op->ptr, "state", state);
 }
 
-typedef struct OperatorDispatchTarget {
+struct OperatorDispatchTarget {
   int state;
   int (*run)(bContext *C, wmOperator *op);
-} OperatorDispatchTarget;
+};
 
 static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatchTarget *targets)
 {

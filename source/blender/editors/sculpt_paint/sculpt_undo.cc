@@ -126,20 +126,20 @@
 
 #define NO_ACTIVE_LAYER ATTR_DOMAIN_AUTO
 
-typedef struct UndoSculpt {
+struct UndoSculpt {
   ListBase nodes;
 
   size_t undo_size;
-} UndoSculpt;
+};
 
-typedef struct SculptAttrRef {
+struct SculptAttrRef {
   eAttrDomain domain;
   eCustomDataType type;
   char name[MAX_CUSTOMDATA_LAYER_NAME];
   bool was_set;
-} SculptAttrRef;
+};
 
-typedef struct SculptUndoStep {
+struct SculptUndoStep {
   UndoStep step;
   /* NOTE: will split out into list for multi-object-sculpt-mode. */
   UndoSculpt data;
@@ -155,7 +155,7 @@ typedef struct SculptUndoStep {
 #ifdef SCULPT_UNDO_DEBUG
   int id;
 #endif
-} SculptUndoStep;
+};
 
 static UndoSculpt *sculpt_undo_get_nodes(void);
 static bool sculpt_attribute_ref_equals(SculptAttrRef *a, SculptAttrRef *b);

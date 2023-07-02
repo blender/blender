@@ -166,19 +166,19 @@ static bool mouse_is_inside_box(const rctf *box, const int mval[2])
 /** \name Retiming Add Handle Gizmo
  * \{ */
 
-typedef struct RetimeButtonGizmo {
+struct RetimeButtonGizmo {
   wmGizmo gizmo;
   int icon_id;
   const Sequence *seq_under_mouse;
   bool is_mouse_over_gizmo;
-} RetimeButtonGizmo;
+};
 
-typedef struct ButtonDimensions {
+struct ButtonDimensions {
   float height;
   float width;
   float x;
   float y;
-} ButtonDimensions;
+};
 
 static ButtonDimensions button_dimensions_get(const bContext *C, const RetimeButtonGizmo *gizmo)
 {
@@ -329,12 +329,12 @@ enum eHandleMoveOperation {
   MAKE_FREEZE_FRAME,
 };
 
-typedef struct RetimeHandleMoveGizmo {
+struct RetimeHandleMoveGizmo {
   wmGizmo gizmo;
   const Sequence *mouse_over_seq;
   int mouse_over_handle_x;
   eHandleMoveOperation operation;
-} RetimeHandleMoveGizmo;
+};
 
 static void retime_handle_draw(const bContext *C,
                                const RetimeHandleMoveGizmo *gizmo,

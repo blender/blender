@@ -65,7 +65,7 @@ void text_format_fill(const char **str_p, char **fmt_p, char type, int len);
 void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len);
 
 /* *** Generalize Formatting *** */
-typedef struct TextFormatType {
+struct TextFormatType {
   struct TextFormatType *next, *prev;
 
   char (*format_identifier)(const char *string);
@@ -85,7 +85,7 @@ typedef struct TextFormatType {
 
   /** The prefix of a single-line line comment (without trailing space). */
   const char *comment_line;
-} TextFormatType;
+};
 
 enum {
   /** White-space */

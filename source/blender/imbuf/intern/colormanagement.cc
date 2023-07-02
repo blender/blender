@@ -90,11 +90,11 @@ float imbuf_aces_to_scene_linear[3][3] = {{0.0f}};
  */
 static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
 
-typedef struct ColormanageProcessor {
+struct ColormanageProcessor {
   OCIO_ConstCPUProcessorRcPtr *cpu_processor;
   CurveMapping *curve_mapping;
   bool is_data_result;
-} ColormanageProcessor;
+};
 
 static struct global_gpu_state {
   /* GPU shader currently bound. */
@@ -185,7 +185,7 @@ static struct global_color_picking_state {
  *       requiring to pass all variables which affects on display buffer
  *       to color management cache system and keeps calls small and nice.
  */
-typedef struct ColormanageCacheViewSettings {
+struct ColormanageCacheViewSettings {
   int flag;
   int look;
   int view;
@@ -193,18 +193,18 @@ typedef struct ColormanageCacheViewSettings {
   float gamma;
   float dither;
   CurveMapping *curve_mapping;
-} ColormanageCacheViewSettings;
+};
 
-typedef struct ColormanageCacheDisplaySettings {
+struct ColormanageCacheDisplaySettings {
   int display;
-} ColormanageCacheDisplaySettings;
+};
 
-typedef struct ColormanageCacheKey {
+struct ColormanageCacheKey {
   int view;    /* view transformation used for display buffer */
   int display; /* display device name */
-} ColormanageCacheKey;
+};
 
-typedef struct ColormanageCacheData {
+struct ColormanageCacheData {
   int flag;                    /* view flags of cached buffer */
   int look;                    /* Additional artistic transform. */
   float exposure;              /* exposure value cached buffer is calculated with */
@@ -212,13 +212,13 @@ typedef struct ColormanageCacheData {
   float dither;                /* dither value cached buffer is calculated with */
   CurveMapping *curve_mapping; /* curve mapping used for cached buffer */
   int curve_mapping_timestamp; /* time stamp of curve mapping used for cached buffer */
-} ColormanageCacheData;
+};
 
-typedef struct ColormanageCache {
+struct ColormanageCache {
   MovieCache *moviecache;
 
   ColormanageCacheData *data;
-} ColormanageCache;
+};
 
 static MovieCache *colormanage_moviecache_get(const ImBuf *ibuf)
 {
@@ -1412,7 +1412,7 @@ const float *IMB_colormanagement_get_xyz_to_scene_linear(void)
 /** \name Threaded Display Buffer Transform Routines
  * \{ */
 
-typedef struct DisplayBufferThread {
+struct DisplayBufferThread {
   ColormanageProcessor *cm_processor;
 
   const float *buffer;
@@ -1432,9 +1432,9 @@ typedef struct DisplayBufferThread {
 
   const char *byte_colorspace;
   const char *float_colorspace;
-} DisplayBufferThread;
+};
 
-typedef struct DisplayBufferInitData {
+struct DisplayBufferInitData {
   ImBuf *ibuf;
   ColormanageProcessor *cm_processor;
   const float *buffer;
@@ -1447,7 +1447,7 @@ typedef struct DisplayBufferInitData {
 
   const char *byte_colorspace;
   const char *float_colorspace;
-} DisplayBufferInitData;
+};
 
 static void display_buffer_init_handle(void *handle_v,
                                        int start_line,
@@ -1784,7 +1784,7 @@ static void colormanage_display_buffer_process(ImBuf *ibuf,
 /** \name Threaded Processor Transform Routines
  * \{ */
 
-typedef struct ProcessorTransformThread {
+struct ProcessorTransformThread {
   ColormanageProcessor *cm_processor;
   uchar *byte_buffer;
   float *float_buffer;
@@ -1794,9 +1794,9 @@ typedef struct ProcessorTransformThread {
   int channels;
   bool predivide;
   bool float_from_byte;
-} ProcessorTransformThread;
+};
 
-typedef struct ProcessorTransformInit {
+struct ProcessorTransformInitData {
   ColormanageProcessor *cm_processor;
   uchar *byte_buffer;
   float *float_buffer;
@@ -1805,7 +1805,7 @@ typedef struct ProcessorTransformInit {
   int channels;
   bool predivide;
   bool float_from_byte;
-} ProcessorTransformInitData;
+};
 
 static void processor_transform_init_handle(void *handle_v,
                                             int start_line,
@@ -2223,14 +2223,14 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
   }
 }
 
-typedef struct ImbufByteToFloatData {
+struct ImbufByteToFloatData {
   OCIO_ConstCPUProcessorRcPtr *processor;
   int width;
   int offset, stride;
   const uchar *in_buffer;
   float *out_buffer;
   bool use_premultiply;
-} ImbufByteToFloatData;
+};
 
 static void imbuf_byte_to_float_cb(void *__restrict userdata,
                                    const int y,
@@ -3519,7 +3519,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
   }
 }
 
-typedef struct PartialThreadData {
+struct PartialThreadData {
   ImBuf *ibuf;
   uchar *display_buffer;
   const float *linear_buffer;
@@ -3529,7 +3529,7 @@ typedef struct PartialThreadData {
   int linear_offset_x, linear_offset_y;
   ColormanageProcessor *cm_processor;
   int xmin, ymin, xmax;
-} PartialThreadData;
+};
 
 static void partial_buffer_update_rect_thread_do(void *data_v, int scanline)
 {
