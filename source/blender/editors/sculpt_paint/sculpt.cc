@@ -591,7 +591,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
       int face_set = 0;
       for (const int poly_index : ss->pmap[vertex.i]) {
         if (ss->face_sets[poly_index] > face_set) {
-          face_set = abs(ss->face_sets[poly_index]);
+          face_set = ss->face_sets[poly_index];
         }
       }
       return face_set;
@@ -737,7 +737,7 @@ static bool sculpt_check_unique_face_set_for_edge_in_base_mesh(SculptSession *ss
   }
 
   if (p1 != -1 && p2 != -1) {
-    return abs(ss->face_sets[p1]) == (ss->face_sets[p2]);
+    return ss->face_sets[p1] == ss->face_sets[p2];
   }
   return true;
 }

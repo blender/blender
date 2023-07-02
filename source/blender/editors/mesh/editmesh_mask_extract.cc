@@ -273,8 +273,8 @@ static void geometry_extract_tag_face_set(BMesh *bm, GeometryExtractParams *para
   BMFace *f;
   BMIter iter;
   BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-    const int face_set_id = abs(BM_ELEM_CD_GET_INT(f, cd_face_sets_offset));
-    BM_elem_flag_set(f, BM_ELEM_TAG, face_set_id != tag_face_set_id);
+    const int face_set = BM_ELEM_CD_GET_INT(f, cd_face_sets_offset);
+    BM_elem_flag_set(f, BM_ELEM_TAG, face_set != tag_face_set_id);
   }
 }
 
