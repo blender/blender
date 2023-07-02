@@ -205,7 +205,7 @@ void ED_draw_imbuf_ctx_clipping(const struct bContext *C,
                                 float zoom_x,
                                 float zoom_y);
 
-int ED_draw_imbuf_method(struct ImBuf *ibuf);
+int ED_draw_imbuf_method(const struct ImBuf *ibuf);
 
 /**
  * Don't move to `GPU_immediate_util.h` because this uses user-prefs and isn't very low level.
