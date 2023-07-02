@@ -531,7 +531,7 @@ static int rna_Sequence_frame_editable(PointerRNA *ptr, const char ** /*r_info*/
 {
   Sequence *seq = (Sequence *)ptr->data;
   /* Effect sequences' start frame and length must be readonly! */
-  return (SEQ_effect_get_num_inputs(seq->type)) ? 0 : PROP_EDITABLE;
+  return (SEQ_effect_get_num_inputs(seq->type)) ? PropertyFlag(0) : PROP_EDITABLE;
 }
 
 static void rna_Sequence_channel_set(PointerRNA *ptr, int value)

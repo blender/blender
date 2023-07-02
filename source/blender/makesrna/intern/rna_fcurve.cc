@@ -365,7 +365,7 @@ static StructRNA *rna_DriverTarget_id_typef(PointerRNA *ptr)
 static int rna_DriverTarget_id_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   DriverTarget *dtar = (DriverTarget *)ptr->data;
-  return (dtar->idtype) ? PROP_EDITABLE : 0;
+  return (dtar->idtype) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static int rna_DriverTarget_id_type_editable(PointerRNA *ptr, const char ** /*r_info*/)

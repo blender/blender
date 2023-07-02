@@ -132,7 +132,7 @@ static void rna_AnimData_dependency_update(Main *bmain, Scene *scene, PointerRNA
 static int rna_AnimData_action_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   AnimData *adt = (AnimData *)ptr->data;
-  return BKE_animdata_action_editable(adt) ? PROP_EDITABLE : 0;
+  return BKE_animdata_action_editable(adt) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static void rna_AnimData_action_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
@@ -398,7 +398,7 @@ static StructRNA *rna_ksPath_id_typef(PointerRNA *ptr)
 static int rna_ksPath_id_editable(PointerRNA *ptr, const char ** /*r_info*/)
 {
   KS_Path *ksp = (KS_Path *)ptr->data;
-  return (ksp->idtype) ? PROP_EDITABLE : 0;
+  return (ksp->idtype) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static void rna_ksPath_id_type_set(PointerRNA *ptr, int value)
@@ -496,7 +496,7 @@ static int rna_KeyingSet_active_ksPath_editable(PointerRNA *ptr, const char ** /
   KeyingSet *ks = (KeyingSet *)ptr->data;
 
   /* only editable if there are some paths to change to */
-  return (BLI_listbase_is_empty(&ks->paths) == false) ? PROP_EDITABLE : 0;
+  return (BLI_listbase_is_empty(&ks->paths) == false) ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static PointerRNA rna_KeyingSet_active_ksPath_get(PointerRNA *ptr)

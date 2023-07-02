@@ -60,7 +60,7 @@ int rna_AssetMetaData_editable(PointerRNA *ptr, const char **r_info)
 
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, asset_data, r_info) ?
              PROP_EDITABLE :
-             0;
+             PropertyFlag(0);
 }
 
 static char *rna_AssetTag_path(const PointerRNA *ptr)
@@ -83,7 +83,7 @@ static int rna_AssetTag_editable(PointerRNA *ptr, const char **r_info)
 
   return rna_AssetMetaData_editable_from_owner_id(ptr->owner_id, owner_id->asset_data, r_info) ?
              PROP_EDITABLE :
-             0;
+             PropertyFlag(0);
 }
 
 static AssetTag *rna_AssetMetaData_tag_new(

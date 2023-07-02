@@ -478,7 +478,7 @@ static int rna_ClothSettings_internal_editable(PointerRNA *ptr, const char **r_i
     return 0;
   }
 
-  return sim ? PROP_EDITABLE : 0;
+  return sim ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 #else

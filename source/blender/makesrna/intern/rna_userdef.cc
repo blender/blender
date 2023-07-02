@@ -1102,7 +1102,7 @@ static void rna_UserDef_studiolight_light_ambient_get(PointerRNA *ptr, float *va
 
 int rna_show_statusbar_vram_editable(PointerRNA * /*ptr*/, const char ** /*r_info*/)
 {
-  return GPU_mem_stats_supported() ? PROP_EDITABLE : 0;
+  return GPU_mem_stats_supported() ? PROP_EDITABLE : PropertyFlag(0);
 }
 
 static const EnumPropertyItem *rna_preference_gpu_backend_itemf(bContext * /*C*/,
