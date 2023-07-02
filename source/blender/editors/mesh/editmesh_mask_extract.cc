@@ -347,7 +347,7 @@ void MESH_OT_paint_mask_extract(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_float(
+  RNA_def_float_factor(
       ot->srna,
       "mask_threshold",
       0.5f,
