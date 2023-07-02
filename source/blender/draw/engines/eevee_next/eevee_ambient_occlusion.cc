@@ -21,8 +21,6 @@
  *   lobe present in the shader using the correct normal.
  */
 
-#pragma once
-
 #include "eevee_ambient_occlusion.hh"
 #include "eevee_instance.hh"
 
