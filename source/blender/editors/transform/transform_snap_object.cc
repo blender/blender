@@ -1047,6 +1047,12 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
                         sctx->runtime.clip_plane[1]);
 
     sctx->runtime.clip_plane_len = 2;
+
+    if (rv3d->rflag & RV3D_CLIPPING) {
+      memcpy(&sctx->runtime.clip_plane[2], rv3d->clip, 4 * sizeof(rv3d->clip[0]));
+      sctx->runtime.clip_plane_len = 6;
+    }
+
     sctx->runtime.rv3d = rv3d;
   }
 
@@ -1325,7 +1331,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       float new_clipplane[4];
       BLI_ASSERT_UNIT_V3(sctx->ret.no);
       plane_from_point_normal_v3(new_clipplane, sctx->ret.loc, sctx->ret.no);
-      if (dot_v3v3(sctx->runtime.clip_plane[0], new_clipplane) > 0.0f) {
+      if (dot_v3v3(sctx->runtime.ray_dir, new_clipplane) > 0.0f) {
         /* The plane is facing the wrong direction. */
         negate_v4(new_clipplane);
       }

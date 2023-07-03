@@ -145,7 +145,7 @@ typedef struct BVHNearestProjectedData {
   const BVHTree *tree;
   struct DistProjectedAABBPrecalc precalc;
   bool closest_axis[3];
-  float clip_plane[6][4];
+  float clip_plane[7][4];
   int clip_plane_len;
   BVHTree_NearestProjectedCallback callback;
   void *userdata;
