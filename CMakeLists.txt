@@ -1567,6 +1567,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_c_compiler_flag(C_WARNINGS C_WARN_STRICT_PROTOTYPES  -Wstrict-prototypes)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_MISSING_PROTOTYPES -Wmissing-prototypes)
   add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_PARAMETER -Wunused-parameter)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNDEF -Wundef)
+  add_check_c_compiler_flag(C_WARNINGS C_WARN_UNDEF_PREFIX -Wundef-prefix)
 
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_ALL -Wall)
   # Using C++20 features while having C++17 as the project language isn't allowed by MSVC.
@@ -1580,6 +1582,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF    -Wno-invalid-offsetof)
   # Apple Clang (tested on version 12) doesn't support this flag while LLVM Clang 11 does.
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE    -Wno-suggest-override)
+
+  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
 
   # gives too many unfixable warnings
   # add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
@@ -1625,6 +1630,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_MISLEADING_INDENTATION    -Wno-misleading-indentation)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_BITWISE_INSTEAD_OF_LOGICAL -Wno-bitwise-instead-of-logical)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEF -Wno-undef)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEF -Wno-undef-prefix)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 
