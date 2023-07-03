@@ -177,16 +177,16 @@ struct GPUSource {
 
     /* TODO Use clog. */
 
-    std::cout << fullpath << ":" << line_number << ":" << char_number;
+    std::cerr << fullpath << ":" << line_number << ":" << char_number;
 
-    std::cout << " error: " << message << "\n";
-    std::cout << std::setw(5) << line_number << " | "
+    std::cerr << " error: " << message << "\n";
+    std::cerr << std::setw(5) << line_number << " | "
               << input.substr(line_start, line_end - line_start) << "\n";
-    std::cout << "      | ";
+    std::cerr << "      | ";
     for (int64_t i = 0; i < char_number - 1; i++) {
-      std::cout << " ";
+      std::cerr << " ";
     }
-    std::cout << "^\n";
+    std::cerr << "^\n";
   }
 
 #define CHECK(test_value, str, ofs, msg) \
