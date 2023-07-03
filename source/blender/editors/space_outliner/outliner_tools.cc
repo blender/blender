@@ -2608,9 +2608,12 @@ static TreeTraversalAction outliner_collect_objects_to_delete(TreeElement *te, v
   if (te_parent != nullptr && outliner_is_collection_tree_element(te_parent)) {
     TreeStoreElem *tselem_parent = TREESTORE(te_parent);
     ID *id_parent = tselem_parent->id;
-    BLI_assert(GS(id_parent->name) == ID_GR);
-    if (ID_IS_OVERRIDE_LIBRARY_REAL(id_parent)) {
-      return TRAVERSE_SKIP_CHILDS;
+    /* It's not possible to remove an object from an overridden collection (and potentially scene,
+     * through the master collection). */
+    if ((ELEM(GS(id_parent->name), ID_GR, ID_SCE))) {
+      if (ID_IS_OVERRIDE_LIBRARY_REAL(id_parent)) {
+        return TRAVERSE_SKIP_CHILDS;
+      }
     }
   }
 
