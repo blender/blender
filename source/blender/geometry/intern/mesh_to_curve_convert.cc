@@ -20,6 +20,26 @@
 
 namespace blender::geometry {
 
+static bool indices_are_full_ordered_copy(const Span<int> indices)
+{
+  return threading::parallel_reduce(
+      indices.index_range(),
+      4096,
+      true,
+      [&](const IndexRange range, const bool init) {
+        if (!init) {
+          return false;
+        }
+        for (const int i : range) {
+          if (indices[i] != i) {
+            return false;
+          }
+        }
+        return true;
+      },
+      [](const bool a, const bool b) { return a && b; });
+}
+
 BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
     const bke::AttributeAccessor &mesh_attributes,
     const Span<int> vert_indices,
@@ -35,38 +55,48 @@ BLI_NOINLINE bke::CurvesGeometry create_curve_from_vert_indices(
   bke::MutableAttributeAccessor curves_attributes = curves.attributes_for_write();
 
   if (!cyclic_curves.is_empty()) {
-    bke::SpanAttributeWriter cyclic = curves_attributes.lookup_or_add_for_write_span<bool>(
-        "cyclic", ATTR_DOMAIN_CURVE);
-    cyclic.span.slice(cyclic_curves).fill(true);
-    cyclic.finish();
+    curves.cyclic_for_write().slice(cyclic_curves).fill(true);
   }
 
-  Set<bke::AttributeIDRef> source_attribute_ids = mesh_attributes.all_ids();
-
-  for (const bke::AttributeIDRef &attribute_id : source_attribute_ids) {
-    if (mesh_attributes.is_builtin(attribute_id) && !curves_attributes.is_builtin(attribute_id)) {
-      /* Don't copy attributes that are built-in on meshes but not on curves. */
-      continue;
-    }
-
-    if (attribute_id.is_anonymous() && !propagation_info.propagate(attribute_id.anonymous_id())) {
-      continue;
-    }
-
-    const GVArray src = *mesh_attributes.lookup(attribute_id, ATTR_DOMAIN_POINT);
-    /* Some attributes might not exist if they were builtin attribute on domains that don't
-     * have any elements, i.e. a face attribute on the output of the line primitive node. */
-    if (!src) {
-      continue;
-    }
-    const eCustomDataType type = bke::cpp_type_to_custom_data_type(src.type());
-
-    /* Copy attribute based on the map for this curve. */
-    bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
-        attribute_id, ATTR_DOMAIN_POINT, type);
-    bke::attribute_math::gather(src, vert_indices, dst.span);
-    dst.finish();
+  const bool share_vert_data = indices_are_full_ordered_copy(vert_indices);
+  if (share_vert_data) {
+    bke::copy_attributes(
+        mesh_attributes, ATTR_DOMAIN_POINT, propagation_info, {}, curves_attributes);
   }
+
+  mesh_attributes.for_all(
+      [&](const bke::AttributeIDRef &id, const bke::AttributeMetaData meta_data) {
+        if (share_vert_data) {
+          if (meta_data.domain == ATTR_DOMAIN_POINT) {
+            return true;
+          }
+        }
+
+        if (mesh_attributes.is_builtin(id) && !curves_attributes.is_builtin(id)) {
+          /* Don't copy attributes that are built-in on meshes but not on curves. */
+          return true;
+        }
+        if (id.is_anonymous() && !propagation_info.propagate(id.anonymous_id())) {
+          return true;
+        }
+
+        const bke::GAttributeReader src = mesh_attributes.lookup(id, ATTR_DOMAIN_POINT);
+        /* Some attributes might not exist if they were builtin on domains that don't have
+         * any elements, i.e. a face attribute on the output of the line primitive node. */
+        if (!src) {
+          return true;
+        }
+        bke::GSpanAttributeWriter dst = curves_attributes.lookup_or_add_for_write_only_span(
+            id, ATTR_DOMAIN_POINT, meta_data.data_type);
+        if (share_vert_data) {
+          array_utils::copy(*src, dst.span);
+        }
+        else {
+          bke::attribute_math::gather(*src, vert_indices, dst.span);
+        }
+        dst.finish();
+        return true;
+      });
 
   return curves;
 }
@@ -158,7 +188,8 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
   /* All curves added after this are cyclic. */
   const int cyclic_start = curve_offsets.size();
 
-  /* All remaining edges are part of cyclic curves (we skipped vertices with two edges before). */
+  /* All remaining edges are part of cyclic curves because
+   * we skipped starting at vertices with two edges before. */
   for (const int start_vert : IndexRange(verts_num)) {
     if (unused_edges[start_vert] != 2) {
       continue;
