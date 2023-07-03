@@ -1390,7 +1390,9 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
 }
 
 /** Useful function when debugging the reconstruct steps. */
-static void print_reconstruct_step(ReconstructStep *step, const SDNA *oldsdna, const SDNA *newsdna)
+[[maybe_unused]] static void print_reconstruct_step(ReconstructStep *step,
+                                                    const SDNA *oldsdna,
+                                                    const SDNA *newsdna)
 {
   switch (step->type) {
     case RECONSTRUCT_STEP_INIT_ZERO: {
@@ -1561,7 +1563,6 @@ DNA_ReconstructInfo *DNA_reconstruct_info_create(const SDNA *oldsdna,
       printf("\n");
     }
 #endif
-    UNUSED_VARS(print_reconstruct_step);
   }
 
   return reconstruct_info;
