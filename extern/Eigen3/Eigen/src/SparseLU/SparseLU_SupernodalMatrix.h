@@ -75,12 +75,12 @@ class MappedSuperNodalMatrix
     /**
      * Number of rows
      */
-    Index rows() { return m_row; }
+    Index rows() const { return m_row; }
     
     /**
      * Number of columns
      */
-    Index cols() { return m_col; }
+    Index cols() const { return m_col; }
     
     /**
      * Return the array of nonzero values packed by column
@@ -156,6 +156,9 @@ class MappedSuperNodalMatrix
     class InnerIterator; 
     template<typename Dest>
     void solveInPlace( MatrixBase<Dest>&X) const;
+    template<bool Conjugate, typename Dest>
+    void solveTransposedInPlace( MatrixBase<Dest>&X) const;
+
     
       
       
@@ -293,6 +296,77 @@ void MappedSuperNodalMatrix<Scalar,Index_>::solveInPlace( MatrixBase<Dest>&X) co
       }
     } 
 }
+
+template<typename Scalar, typename Index_>
+template<bool Conjugate, typename Dest>
+void MappedSuperNodalMatrix<Scalar,Index_>::solveTransposedInPlace( MatrixBase<Dest>&X) const
+{
+    using numext::conj;
+  Index n    = int(X.rows());
+  Index nrhs = Index(X.cols());
+  const Scalar * Lval = valuePtr();                 // Nonzero values
+  Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor> work(n, nrhs);     // working vector
+  work.setZero();
+  for (Index k = nsuper(); k >= 0; k--)
+  {
+    Index fsupc = supToCol()[k];                    // First column of the current supernode
+    Index istart = rowIndexPtr()[fsupc];            // Pointer index to the subscript of the current column
+    Index nsupr = rowIndexPtr()[fsupc+1] - istart;  // Number of rows in the current supernode
+    Index nsupc = supToCol()[k+1] - fsupc;          // Number of columns in the current supernode
+    Index nrow = nsupr - nsupc;                     // Number of rows in the non-diagonal part of the supernode
+    Index irow;                                     //Current index row
+
+    if (nsupc == 1 )
+    {
+      for (Index j = 0; j < nrhs; j++)
+      {
+        InnerIterator it(*this, fsupc);
+        ++it; // Skip the diagonal element
+        for (; it; ++it)
+        {
+          irow = it.row();
+          X(fsupc,j) -= X(irow, j) * (Conjugate?conj(it.value()):it.value());
+        }
+      }
+    }
+    else
+    {
+      // The supernode has more than one column
+      Index luptr = colIndexPtr()[fsupc];
+      Index lda = colIndexPtr()[fsupc+1] - luptr;
+
+      //Begin Gather
+      for (Index j = 0; j < nrhs; j++)
+      {
+        Index iptr = istart + nsupc;
+        for (Index i = 0; i < nrow; i++)
+        {
+          irow = rowIndex()[iptr];
+          work.topRows(nrow)(i,j)= X(irow,j); // Gather operation
+          iptr++;
+        }
+      }
+
+      // Matrix-vector product with transposed submatrix
+      Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > A( &(Lval[luptr+nsupc]), nrow, nsupc, OuterStride<>(lda) );
+      Map< Matrix<Scalar,Dynamic,Dest::ColsAtCompileTime, ColMajor>, 0, OuterStride<> > U (&(X(fsupc,0)), nsupc, nrhs, OuterStride<>(n) );
+      if(Conjugate)
+        U = U - A.adjoint() * work.topRows(nrow);
+      else
+        U = U - A.transpose() * work.topRows(nrow);
+
+      // Triangular solve (of transposed diagonal block)
+      new (&A) Map<const Matrix<Scalar,Dynamic,Dynamic, ColMajor>, 0, OuterStride<> > ( &(Lval[luptr]), nsupc, nsupc, OuterStride<>(lda) );
+      if(Conjugate)
+        U = A.adjoint().template triangularView<UnitUpper>().solve(U);
+      else
+        U = A.transpose().template triangularView<UnitUpper>().solve(U);
+
+    }
+
+  }
+}
+
 
 } // end namespace internal
 

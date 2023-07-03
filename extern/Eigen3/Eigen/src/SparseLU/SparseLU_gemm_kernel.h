@@ -215,7 +215,7 @@ void sparselu_gemm(Index m, Index n, Index d, const Scalar* A, Index lda, const 
         if(RK==4){ a3 = pload<Packet>(A3+i+(I+1)*PacketSize);  }\
                    pstore(C0+i+(I)*PacketSize, c0);
         
-        // agressive vectorization and peeling
+        // aggressive vectorization and peeling
         for(Index i=0; i<actual_b_end1; i+=PacketSize*8)
         {
           EIGEN_ASM_COMMENT("SPARSELU_GEMML_KERNEL2");

@@ -21,7 +21,7 @@
   * it does not correspond to the number of iterations or the number of instructions
   */
 #ifndef EIGEN_UNROLLING_LIMIT
-#define EIGEN_UNROLLING_LIMIT 100
+#define EIGEN_UNROLLING_LIMIT 110
 #endif
 
 /** Defines the threshold between a "small" and a "large" matrix.

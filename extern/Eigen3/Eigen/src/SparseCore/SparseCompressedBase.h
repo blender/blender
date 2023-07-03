@@ -128,6 +128,28 @@ class SparseCompressedBase
   protected:
     /** Default constructor. Do nothing. */
     SparseCompressedBase() {}
+
+    /** \internal return the index of the coeff at (row,col) or just before if it does not exist.
+      * This is an analogue of std::lower_bound.
+      */
+    internal::LowerBoundIndex lower_bound(Index row, Index col) const
+    {
+      eigen_internal_assert(row>=0 && row<this->rows() && col>=0 && col<this->cols());
+
+      const Index outer = Derived::IsRowMajor ? row : col;
+      const Index inner = Derived::IsRowMajor ? col : row;
+
+      Index start = this->outerIndexPtr()[outer];
+      Index end = this->isCompressed() ? this->outerIndexPtr()[outer+1] : this->outerIndexPtr()[outer] + this->innerNonZeroPtr()[outer];
+      eigen_assert(end>=start && "you are using a non finalized sparse matrix or written coefficient does not exist");
+      internal::LowerBoundIndex p;
+      p.value = std::lower_bound(this->innerIndexPtr()+start, this->innerIndexPtr()+end,inner) - this->innerIndexPtr();
+      p.found = (p.value<end) && (this->innerIndexPtr()[p.value]==inner);
+      return p;
+    }
+
+    friend struct internal::evaluator<SparseCompressedBase<Derived> >;
+
   private:
     template<typename OtherDerived> explicit SparseCompressedBase(const SparseCompressedBase<OtherDerived>&);
 };
@@ -185,6 +207,14 @@ class SparseCompressedBase<Derived>::InnerIterator
     }
 
     inline InnerIterator& operator++() { m_id++; return *this; }
+    inline InnerIterator& operator+=(Index i) { m_id += i ; return *this; }
+
+    inline InnerIterator operator+(Index i) 
+    { 
+        InnerIterator result = *this;
+        result += i;
+        return result;
+    }
 
     inline const Scalar& value() const { return m_values[m_id]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id]); }
@@ -245,6 +275,14 @@ class SparseCompressedBase<Derived>::ReverseInnerIterator
     }
 
     inline ReverseInnerIterator& operator--() { --m_id; return *this; }
+    inline ReverseInnerIterator& operator-=(Index i) { m_id -= i; return *this; }
+
+    inline ReverseInnerIterator operator-(Index i) 
+    {
+        ReverseInnerIterator result = *this;
+        result -= i;
+        return result;
+    }
 
     inline const Scalar& value() const { return m_values[m_id-1]; }
     inline Scalar& valueRef() { return const_cast<Scalar&>(m_values[m_id-1]); }
@@ -317,17 +355,8 @@ protected:
 
   Index find(Index row, Index col) const
   {
-    eigen_internal_assert(row>=0 && row<m_matrix->rows() && col>=0 && col<m_matrix->cols());
-
-    const Index outer = Derived::IsRowMajor ? row : col;
-    const Index inner = Derived::IsRowMajor ? col : row;
-
-    Index start = m_matrix->outerIndexPtr()[outer];
-    Index end = m_matrix->isCompressed() ? m_matrix->outerIndexPtr()[outer+1] : m_matrix->outerIndexPtr()[outer] + m_matrix->innerNonZeroPtr()[outer];
-    eigen_assert(end>=start && "you are using a non finalized sparse matrix or written coefficient does not exist");
-    const Index p = std::lower_bound(m_matrix->innerIndexPtr()+start, m_matrix->innerIndexPtr()+end,inner) - m_matrix->innerIndexPtr();
-
-    return ((p<end) && (m_matrix->innerIndexPtr()[p]==inner)) ? p : Dynamic;
+    internal::LowerBoundIndex p = m_matrix->lower_bound(row,col);
+    return p.found ? p.value : Dynamic;
   }
 
   const Derived *m_matrix;

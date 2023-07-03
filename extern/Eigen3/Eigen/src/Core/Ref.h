@@ -10,7 +10,7 @@
 #ifndef EIGEN_REF_H
 #define EIGEN_REF_H
 
-namespace Eigen { 
+namespace Eigen {
 
 namespace internal {
 
@@ -28,12 +28,13 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
 
   template<typename Derived> struct match {
     enum {
+      IsVectorAtCompileTime = PlainObjectType::IsVectorAtCompileTime || Derived::IsVectorAtCompileTime,
       HasDirectAccess = internal::has_direct_access<Derived>::ret,
-      StorageOrderMatch = PlainObjectType::IsVectorAtCompileTime || Derived::IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
+      StorageOrderMatch = IsVectorAtCompileTime || ((PlainObjectType::Flags&RowMajorBit)==(Derived::Flags&RowMajorBit)),
       InnerStrideMatch = int(StrideType::InnerStrideAtCompileTime)==int(Dynamic)
                       || int(StrideType::InnerStrideAtCompileTime)==int(Derived::InnerStrideAtCompileTime)
                       || (int(StrideType::InnerStrideAtCompileTime)==0 && int(Derived::InnerStrideAtCompileTime)==1),
-      OuterStrideMatch = Derived::IsVectorAtCompileTime
+      OuterStrideMatch = IsVectorAtCompileTime
                       || int(StrideType::OuterStrideAtCompileTime)==int(Dynamic) || int(StrideType::OuterStrideAtCompileTime)==int(Derived::OuterStrideAtCompileTime),
       // NOTE, this indirection of evaluator<Derived>::Alignment is needed
       // to workaround a very strange bug in MSVC related to the instantiation
@@ -47,7 +48,7 @@ struct traits<Ref<_PlainObjectType, _Options, _StrideType> >
     };
     typedef typename internal::conditional<MatchAtCompileTime,internal::true_type,internal::false_type>::type type;
   };
-  
+
 };
 
 template<typename Derived>
@@ -66,12 +67,12 @@ public:
   typedef MapBase<Derived> Base;
   EIGEN_DENSE_PUBLIC_INTERFACE(RefBase)
 
-  EIGEN_DEVICE_FUNC inline Index innerStride() const
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR inline Index innerStride() const
   {
     return StrideType::InnerStrideAtCompileTime != 0 ? m_stride.inner() : 1;
   }
 
-  EIGEN_DEVICE_FUNC inline Index outerStride() const
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR inline Index outerStride() const
   {
     return StrideType::OuterStrideAtCompileTime != 0 ? m_stride.outer()
          : IsVectorAtCompileTime ? this->size()
@@ -85,36 +86,122 @@ public:
       m_stride(StrideType::OuterStrideAtCompileTime==Dynamic?0:StrideType::OuterStrideAtCompileTime,
                StrideType::InnerStrideAtCompileTime==Dynamic?0:StrideType::InnerStrideAtCompileTime)
   {}
-  
+
   EIGEN_INHERIT_ASSIGNMENT_OPERATORS(RefBase)
 
 protected:
 
   typedef Stride<StrideType::OuterStrideAtCompileTime,StrideType::InnerStrideAtCompileTime> StrideBase;
 
-  template<typename Expression>
-  EIGEN_DEVICE_FUNC void construct(Expression& expr)
-  {
-    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(PlainObjectType,Expression);
+  // Resolves inner stride if default 0.
+  static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR Index resolveInnerStride(Index inner) {
+    return inner == 0 ? 1 : inner;
+  }
 
+  // Resolves outer stride if default 0.
+  static EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR Index resolveOuterStride(Index inner, Index outer, Index rows, Index cols, bool isVectorAtCompileTime, bool isRowMajor) {
+    return outer == 0 ? isVectorAtCompileTime ? inner * rows * cols : isRowMajor ? inner * cols : inner * rows : outer;
+  }
+
+  // Returns true if construction is valid, false if there is a stride mismatch,
+  // and fails if there is a size mismatch.
+  template<typename Expression>
+  EIGEN_DEVICE_FUNC bool construct(Expression& expr)
+  {
+    // Check matrix sizes.  If this is a compile-time vector, we do allow
+    // implicitly transposing.
+    EIGEN_STATIC_ASSERT(
+      EIGEN_PREDICATE_SAME_MATRIX_SIZE(PlainObjectType, Expression)
+      // If it is a vector, the transpose sizes might match.
+      || ( PlainObjectType::IsVectorAtCompileTime
+            && ((int(PlainObjectType::RowsAtCompileTime)==Eigen::Dynamic
+              || int(Expression::ColsAtCompileTime)==Eigen::Dynamic
+              || int(PlainObjectType::RowsAtCompileTime)==int(Expression::ColsAtCompileTime))
+            &&  (int(PlainObjectType::ColsAtCompileTime)==Eigen::Dynamic
+              || int(Expression::RowsAtCompileTime)==Eigen::Dynamic
+              || int(PlainObjectType::ColsAtCompileTime)==int(Expression::RowsAtCompileTime)))),
+      YOU_MIXED_MATRICES_OF_DIFFERENT_SIZES
+    )
+
+    // Determine runtime rows and columns.
+    Index rows = expr.rows();
+    Index cols = expr.cols();
     if(PlainObjectType::RowsAtCompileTime==1)
     {
       eigen_assert(expr.rows()==1 || expr.cols()==1);
-      ::new (static_cast<Base*>(this)) Base(expr.data(), 1, expr.size());
+      rows = 1;
+      cols = expr.size();
     }
     else if(PlainObjectType::ColsAtCompileTime==1)
     {
       eigen_assert(expr.rows()==1 || expr.cols()==1);
-      ::new (static_cast<Base*>(this)) Base(expr.data(), expr.size(), 1);
+      rows = expr.size();
+      cols = 1;
     }
-    else
-      ::new (static_cast<Base*>(this)) Base(expr.data(), expr.rows(), expr.cols());
-    
-    if(Expression::IsVectorAtCompileTime && (!PlainObjectType::IsVectorAtCompileTime) && ((Expression::Flags&RowMajorBit)!=(PlainObjectType::Flags&RowMajorBit)))
-      ::new (&m_stride) StrideBase(expr.innerStride(), StrideType::InnerStrideAtCompileTime==0?0:1);
-    else
-      ::new (&m_stride) StrideBase(StrideType::OuterStrideAtCompileTime==0?0:expr.outerStride(),
-                                   StrideType::InnerStrideAtCompileTime==0?0:expr.innerStride());    
+    // Verify that the sizes are valid.
+    eigen_assert(
+      (PlainObjectType::RowsAtCompileTime == Dynamic) || (PlainObjectType::RowsAtCompileTime == rows));
+    eigen_assert(
+      (PlainObjectType::ColsAtCompileTime == Dynamic) || (PlainObjectType::ColsAtCompileTime == cols));
+
+
+    // If this is a vector, we might be transposing, which means that stride should swap.
+    const bool transpose = PlainObjectType::IsVectorAtCompileTime && (rows != expr.rows());
+    // If the storage format differs, we also need to swap the stride.
+    const bool row_major = ((PlainObjectType::Flags)&RowMajorBit) != 0;
+    const bool expr_row_major = (Expression::Flags&RowMajorBit) != 0;
+    const bool storage_differs =  (row_major != expr_row_major);
+
+    const bool swap_stride = (transpose != storage_differs);
+
+    // Determine expr's actual strides, resolving any defaults if zero.
+    const Index expr_inner_actual = resolveInnerStride(expr.innerStride());
+    const Index expr_outer_actual = resolveOuterStride(expr_inner_actual,
+                                                       expr.outerStride(),
+                                                       expr.rows(),
+                                                       expr.cols(),
+                                                       Expression::IsVectorAtCompileTime != 0,
+                                                       expr_row_major);
+
+    // If this is a column-major row vector or row-major column vector, the inner-stride
+    // is arbitrary, so set it to either the compile-time inner stride or 1.
+    const bool row_vector = (rows == 1);
+    const bool col_vector = (cols == 1);
+    const Index inner_stride =
+        ( (!row_major && row_vector) || (row_major && col_vector) ) ?
+            ( StrideType::InnerStrideAtCompileTime > 0 ? Index(StrideType::InnerStrideAtCompileTime) : 1)
+            : swap_stride ? expr_outer_actual : expr_inner_actual;
+
+    // If this is a column-major column vector or row-major row vector, the outer-stride
+    // is arbitrary, so set it to either the compile-time outer stride or vector size.
+    const Index outer_stride =
+      ( (!row_major && col_vector) || (row_major && row_vector) ) ?
+          ( StrideType::OuterStrideAtCompileTime > 0 ? Index(StrideType::OuterStrideAtCompileTime) : rows * cols * inner_stride)
+          : swap_stride ? expr_inner_actual : expr_outer_actual;
+
+    // Check if given inner/outer strides are compatible with compile-time strides.
+    const bool inner_valid = (StrideType::InnerStrideAtCompileTime == Dynamic)
+        || (resolveInnerStride(Index(StrideType::InnerStrideAtCompileTime)) == inner_stride);
+    if (!inner_valid) {
+      return false;
+    }
+
+    const bool outer_valid = (StrideType::OuterStrideAtCompileTime == Dynamic)
+        || (resolveOuterStride(
+              inner_stride,
+              Index(StrideType::OuterStrideAtCompileTime),
+              rows, cols, PlainObjectType::IsVectorAtCompileTime != 0,
+              row_major)
+            == outer_stride);
+    if (!outer_valid) {
+      return false;
+    }
+
+    ::new (static_cast<Base*>(this)) Base(expr.data(), rows, cols);
+    ::new (&m_stride) StrideBase(
+      (StrideType::OuterStrideAtCompileTime == 0) ? 0 : outer_stride,
+      (StrideType::InnerStrideAtCompileTime == 0) ? 0 : inner_stride );
+    return true;
   }
 
   StrideBase m_stride;
@@ -186,6 +273,8 @@ protected:
   * void foo(const Ref<MatrixXf,0,Stride<> >& A) { foo_impl(A); }
   * \endcode
   *
+  * See also the following stackoverflow questions for further references:
+  *  - <a href="http://stackoverflow.com/questions/21132538/correct-usage-of-the-eigenref-class">Correct usage of the Eigen::Ref<> class</a>
   *
   * \sa PlainObjectBase::Map(), \ref TopicStorageOrders
   */
@@ -209,7 +298,10 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
                                  typename internal::enable_if<bool(Traits::template match<Derived>::MatchAtCompileTime),Derived>::type* = 0)
     {
       EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
-      Base::construct(expr.derived());
+      // Construction must pass since we will not create temprary storage in the non-const case.
+      const bool success = Base::construct(expr.derived());
+      EIGEN_UNUSED_VARIABLE(success)
+      eigen_assert(success);
     }
     template<typename Derived>
     EIGEN_DEVICE_FUNC inline Ref(const DenseBase<Derived>& expr,
@@ -223,7 +315,10 @@ template<typename PlainObjectType, int Options, typename StrideType> class Ref
       EIGEN_STATIC_ASSERT(bool(internal::is_lvalue<Derived>::value), THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
       EIGEN_STATIC_ASSERT(bool(Traits::template match<Derived>::MatchAtCompileTime), STORAGE_LAYOUT_DOES_NOT_MATCH);
       EIGEN_STATIC_ASSERT(!Derived::IsPlainObjectBase,THIS_EXPRESSION_IS_NOT_A_LVALUE__IT_IS_READ_ONLY);
-      Base::construct(expr.const_cast_derived());
+      // Construction must pass since we will not create temporary storage in the non-const case.
+      const bool success = Base::construct(expr.const_cast_derived());
+      EIGEN_UNUSED_VARIABLE(success)
+      eigen_assert(success);
     }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Ref)
@@ -264,7 +359,10 @@ template<typename TPlainObjectType, int Options, typename StrideType> class Ref<
     template<typename Expression>
     EIGEN_DEVICE_FUNC void construct(const Expression& expr,internal::true_type)
     {
-      Base::construct(expr);
+      // Check if we can use the underlying expr's storage directly, otherwise call the copy version.
+      if (!Base::construct(expr)) {
+        construct(expr, internal::false_type());
+      }
     }
 
     template<typename Expression>

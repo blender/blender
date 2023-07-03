@@ -3,6 +3,7 @@
 //
 // Copyright (C) 2008-2015 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2007-2009 Benoit Jacob <jacob.benoit.1@gmail.com>
+// Copyright (C) 2020, Arm Limited and Contributors
 //
 // This Source Code Form is subject to the terms of the Mozilla
 // Public License v. 2.0. If a copy of the MPL was not distributed
@@ -24,6 +25,10 @@ const int Dynamic = -1;
   * has to be specified at runtime.
   */
 const int DynamicIndex = 0xffffff;
+
+/** This value means that the increment to go from one value to another in a sequence is not constant for each step.
+  */
+const int UndefinedIncr = 0xfffffe;
 
 /** This value means +Infinity; it is currently used only as the p parameter to MatrixBase::lpNorm<int>().
   * The value Infinity there means the L-infinity norm.
@@ -152,7 +157,7 @@ const unsigned int DirectAccessBit = 0x40;
 /** \deprecated \ingroup flags
   *
   * means the first coefficient packet is guaranteed to be aligned.
-  * An expression cannot has the AlignedBit without the PacketAccessBit flag.
+  * An expression cannot have the AlignedBit without the PacketAccessBit flag.
   * In other words, this means we are allow to perform an aligned packet access to the first element regardless
   * of the expression kind:
   * \code
@@ -251,12 +256,6 @@ enum AlignmentType {
 };
 
 /** \ingroup enums
- * Enum used by DenseBase::corner() in Eigen2 compatibility mode. */
-// FIXME after the corner() API change, this was not needed anymore, except by AlignedBox
-// TODO: find out what to do with that. Adapt the AlignedBox API ?
-enum CornerType { TopLeft, TopRight, BottomLeft, BottomRight };
-
-/** \ingroup enums
   * Enum containing possible values for the \p Direction parameter of
   * Reverse, PartialReduxExpr and VectorwiseOp. */
 enum DirectionType { 
@@ -330,9 +329,20 @@ enum StorageOptions {
   * Enum for specifying whether to apply or solve on the left or right. */
 enum SideType {
   /** Apply transformation on the left. */
-  OnTheLeft = 1,  
+  OnTheLeft = 1,
   /** Apply transformation on the right. */
-  OnTheRight = 2  
+  OnTheRight = 2
+};
+
+/** \ingroup enums
+ * Enum for specifying NaN-propagation behavior, e.g. for coeff-wise min/max. */
+enum NaNPropagationOptions {
+  /**  Implementation defined behavior if NaNs are present. */
+  PropagateFast = 0,
+  /**  Always propagate NaNs. */
+  PropagateNaN,
+  /**  Always propagate not-NaNs. */
+  PropagateNumbers
 };
 
 /* the following used to be written as:
@@ -464,6 +474,8 @@ namespace Architecture
     AltiVec = 0x2,
     VSX = 0x3,
     NEON = 0x4,
+    MSA = 0x5,
+    SVE = 0x6,
 #if defined EIGEN_VECTORIZE_SSE
     Target = SSE
 #elif defined EIGEN_VECTORIZE_ALTIVEC
@@ -472,6 +484,10 @@ namespace Architecture
     Target = VSX
 #elif defined EIGEN_VECTORIZE_NEON
     Target = NEON
+#elif defined EIGEN_VECTORIZE_SVE
+    Target = SVE
+#elif defined EIGEN_VECTORIZE_MSA
+    Target = MSA
 #else
     Target = Generic
 #endif
