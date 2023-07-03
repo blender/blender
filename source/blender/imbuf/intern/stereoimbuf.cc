@@ -32,7 +32,7 @@ struct Stereo3DData;
 static void imb_stereo3d_write_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
 static void imb_stereo3d_read_doit(Stereo3DData *s3d_data, const Stereo3dFormat *s3d);
 
-typedef struct Stereo3DData {
+struct Stereo3DData {
   struct {
     float *left, *right, *stereo;
   } rectf;
@@ -41,7 +41,7 @@ typedef struct Stereo3DData {
   } rect;
   size_t x, y, channels;
   bool is_float;
-} Stereo3DData;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Local Functions

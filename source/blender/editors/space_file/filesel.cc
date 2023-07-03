@@ -957,7 +957,7 @@ float file_string_width(const char *str)
   return BLF_width(style->widget.uifont_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
-float file_font_pointsize(void)
+float file_font_pointsize()
 {
 #if 0
   float s;

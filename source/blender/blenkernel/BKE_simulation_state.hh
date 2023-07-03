@@ -9,6 +9,8 @@
 #include "BLI_map.hh"
 #include "BLI_sub_frame.hh"
 
+struct bNodeTree;
+
 namespace blender::bke::sim {
 
 class BDataSharing;
@@ -89,17 +91,17 @@ class SimulationZoneState {
 
 /** Identifies a simulation zone (input and output node pair) used by a modifier. */
 struct SimulationZoneID {
-  /** Every node identifier in the hierarchy of compute contexts. */
-  Vector<int> node_ids;
+  /** ID of the #bNestedNodeRef that references the output node of the zone. */
+  int32_t nested_node_id;
 
   uint64_t hash() const
   {
-    return get_default_hash(this->node_ids);
+    return this->nested_node_id;
   }
 
   friend bool operator==(const SimulationZoneID &a, const SimulationZoneID &b)
   {
-    return a.node_ids == b.node_ids;
+    return a.nested_node_id == b.nested_node_id;
   }
 };
 
@@ -122,7 +124,7 @@ class ModifierSimulationState {
 
   const SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id) const;
   SimulationZoneState &get_zone_state_for_write(const SimulationZoneID &zone_id);
-  void ensure_bake_loaded() const;
+  void ensure_bake_loaded(const bNodeTree &ntree) const;
 };
 
 struct ModifierSimulationStateAtFrame {

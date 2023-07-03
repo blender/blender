@@ -691,7 +691,7 @@ class Texture : NonCopyable {
                          float *data = nullptr,
                          int mip_len = 1)
   {
-    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, false, true);
+    return ensure_impl(extent, extent, layers, mip_len, format, usage, data, true, true);
   }
 
   /**

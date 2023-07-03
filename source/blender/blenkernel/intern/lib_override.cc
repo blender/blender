@@ -4699,7 +4699,7 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
  * exact same data as "desired" ones (kind of "baked" data-blocks).
  */
 
-OverrideLibraryStorage *BKE_lib_override_library_operations_store_init(void)
+OverrideLibraryStorage *BKE_lib_override_library_operations_store_init()
 {
   return BKE_main_new();
 }

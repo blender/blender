@@ -417,6 +417,11 @@ static void file_draw_preview(const FileList *files,
     document_img_col[3] *= 0.3f;
   }
 
+  if (!is_icon && file->typeflag & FILE_TYPE_IMAGE) {
+    /* Draw checker pattern behind image previews in case they have transparency. */
+    imm_draw_box_checker_2d(float(xco), float(yco), float(xco + ex), float(yco + ey));
+  }
+
   if (!is_icon && file->typeflag & FILE_TYPE_BLENDERLIB) {
     /* Datablock preview images use premultiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);

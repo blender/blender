@@ -49,6 +49,7 @@ void GPU_uniformbuf_clear_to_zero(GPUUniformBuf *ubo);
 #define GPU_UBO_BLOCK_NAME "node_tree"
 #define GPU_ATTRIBUTE_UBO_BLOCK_NAME "unf_attrs"
 #define GPU_LAYER_ATTRIBUTE_UBO_BLOCK_NAME "drw_layer_attrs"
+#define GPU_NODE_TREE_UBO_SLOT 0
 
 #ifdef __cplusplus
 }

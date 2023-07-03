@@ -480,7 +480,7 @@ static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
     density = RNA_float_get(op->ptr, "density");
   }
 
-  /* apply this to all selected objects (with rigidbodies)... */
+  /* Apply this to all selected objects (with rigid-bodies). */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     if (ob->rigidbody_object) {
       PointerRNA ptr;

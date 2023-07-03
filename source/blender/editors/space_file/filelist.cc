@@ -1097,7 +1097,7 @@ void filelist_setlibrary(FileList *filelist, const AssetLibraryReference *asset_
 
 /* ********** Icon/image helpers ********** */
 
-void filelist_init_icons(void)
+void filelist_init_icons()
 {
   short x, y, k;
   ImBuf *bbuf;
@@ -1136,7 +1136,7 @@ void filelist_init_icons(void)
   }
 }
 
-void filelist_free_icons(void)
+void filelist_free_icons()
 {
   BLI_assert(G.background == false);
 

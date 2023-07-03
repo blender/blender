@@ -174,7 +174,8 @@ void drawSnapping(const bContext *C, TransInfo *t)
     return;
   }
 
-  const bool draw_source = (t->flag & T_DRAW_SNAP_SOURCE) && (t->tsnap.status & (SNAP_SOURCE_FOUND | SNAP_MULTI_POINTS));
+  const bool draw_source = (t->flag & T_DRAW_SNAP_SOURCE) &&
+                           (t->tsnap.status & (SNAP_SOURCE_FOUND | SNAP_MULTI_POINTS));
   const bool draw_target = (t->tsnap.status & (SNAP_TARGET_FOUND | SNAP_MULTI_POINTS));
 
   if (!(draw_source || draw_target)) {
@@ -197,9 +198,9 @@ void drawSnapping(const bContext *C, TransInfo *t)
   }
 
   if (t->spacetype == SPACE_VIEW3D) {
-    const float *loc_cur = nullptr;
-    const float *loc_prev = nullptr;
-    const float *normal = nullptr;
+    const float *source_loc = nullptr;
+    const float *target_loc = nullptr;
+    const float *target_normal = nullptr;
 
     GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -233,19 +234,19 @@ void drawSnapping(const bContext *C, TransInfo *t)
 
     /* draw normal if needed */
     if (usingSnappingNormal(t) && validSnappingNormal(t)) {
-      normal = t->tsnap.snapNormal;
+      target_normal = t->tsnap.snapNormal;
     }
 
     if (draw_source) {
-      loc_prev = t->tsnap.snap_source;
+      source_loc = t->tsnap.snap_source;
     }
 
     if (t->tsnap.status & SNAP_TARGET_FOUND) {
-      loc_cur = t->tsnap.snap_target;
+      target_loc = t->tsnap.snap_target;
     }
 
     ED_view3d_cursor_snap_draw_util(
-        rv3d, loc_prev, loc_cur, normal, col, activeCol, t->tsnap.snapElem);
+        rv3d, source_loc, target_loc, target_normal, col, activeCol, t->tsnap.target_type);
 
     GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
   }
@@ -543,7 +544,7 @@ void transform_snap_mixed_apply(TransInfo *t, float *vec)
 void resetSnapping(TransInfo *t)
 {
   t->tsnap.status = SNAP_RESETTED;
-  t->tsnap.snapElem = SCE_SNAP_TO_NONE;
+  t->tsnap.target_type = SCE_SNAP_TO_NONE;
   t->tsnap.mode = SCE_SNAP_TO_NONE;
   t->tsnap.target_operation = SCE_SNAP_TARGET_ALL;
   t->tsnap.source_operation = SCE_SNAP_SOURCE_CLOSEST;
@@ -1123,7 +1124,7 @@ static void snap_target_view3d_fn(TransInfo *t, float * /*vec*/)
     t->tsnap.status &= ~SNAP_TARGET_FOUND;
   }
 
-  t->tsnap.snapElem = snap_elem;
+  t->tsnap.target_type = snap_elem;
 }
 
 static void snap_target_uv_fn(TransInfo *t, float * /*vec*/)

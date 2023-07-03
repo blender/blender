@@ -257,7 +257,7 @@ int text_format_string_literal_find(const Span<const char *> string_literals, co
     }
   }
 
-  return -1;
+  return 0;
 }
 
 #ifndef NDEBUG

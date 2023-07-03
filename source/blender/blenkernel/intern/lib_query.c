@@ -61,7 +61,7 @@ typedef struct LibraryForeachIDData {
   BLI_LINKSTACK_DECLARE(ids_todo, ID *);
 } LibraryForeachIDData;
 
-bool BKE_lib_query_foreachid_iter_stop(LibraryForeachIDData *data)
+bool BKE_lib_query_foreachid_iter_stop(const LibraryForeachIDData *data)
 {
   return (data->status & IDWALK_STOP) != 0;
 }
@@ -107,7 +107,7 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   }
 }
 
-int BKE_lib_query_foreachid_process_flags_get(LibraryForeachIDData *data)
+int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
 {
   return data->flag;
 }

@@ -1575,7 +1575,7 @@ endif()
 # Setup link libraries
 
 add_dependencies(blender makesdna)
-target_link_libraries(blender ${LIB})
+target_link_libraries(blender PRIVATE ${LIB})
 unset(LIB)
 
 setup_platform_linker_flags(blender)

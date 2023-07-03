@@ -11,12 +11,9 @@
 #include "BLI_array.hh"
 #include "BLI_convexhull_2d.h"
 #include "BLI_ghash.h"
-#include "BLI_heap.h"
-#include "BLI_memarena.h"
 #include "BLI_polyfill_2d.h"
 #include "BLI_polyfill_2d_beautify.h"
 #include "BLI_rand.h"
-#include "BLI_vector.hh"
 
 #include "GEO_uv_pack.hh"
 
@@ -153,37 +150,6 @@ struct PChart {
   bool has_pins;
 };
 
-enum PHandleState {
-  PHANDLE_STATE_ALLOCATED,
-  PHANDLE_STATE_CONSTRUCTED,
-  PHANDLE_STATE_LSCM,
-  PHANDLE_STATE_STRETCH,
-};
-
-class ParamHandle {
- public:
-  enum PHandleState state;
-  MemArena *arena;
-  MemArena *polyfill_arena;
-  Heap *polyfill_heap;
-
-  PChart *construction_chart;
-  PHash *hash_verts;
-  PHash *hash_edges;
-  PHash *hash_faces;
-
-  GHash *pin_hash;
-  int unique_pin_count;
-
-  PChart **charts;
-  int ncharts;
-
-  float aspect_y;
-
-  RNG *rng;
-  float blend;
-};
-
 /* PHash
  * - special purpose hash that keeps all its elements in a single linked list.
  * - after construction, this hash is thrown away, and the list remains.
@@ -216,12 +182,14 @@ static PHash *phash_new(PHashLink **list, int sizehint)
   return ph;
 }
 
-static void phash_delete(PHash *ph)
+static void phash_safe_delete(PHash **pph)
 {
-  if (ph) {
-    MEM_SAFE_FREE(ph->buckets);
-    MEM_freeN(ph);
+  if (!*pph) {
+    return;
   }
+  MEM_SAFE_FREE((*pph)->buckets);
+  MEM_freeN(*pph);
+  *pph = nullptr;
 }
 
 static int phash_size(PHash *ph)
@@ -3643,65 +3611,64 @@ static void p_chart_rotate_fit_aabb(PChart *chart)
   }
 }
 
-/* Exported */
-
-ParamHandle *uv_parametrizer_construct_begin()
+ParamHandle::ParamHandle()
 {
-  ParamHandle *handle = new ParamHandle();
-  handle->construction_chart = (PChart *)MEM_callocN(sizeof(PChart), "PChart");
-  handle->state = PHANDLE_STATE_ALLOCATED;
-  handle->arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
-  handle->polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
-  handle->polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
-  handle->aspect_y = 1.0f;
+  state = PHANDLE_STATE_ALLOCATED;
+  arena = BLI_memarena_new(MEM_SIZE_OPTIMAL(1 << 16), "param construct arena");
+  polyfill_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "param polyfill arena");
+  polyfill_heap = BLI_heap_new_ex(BLI_POLYFILL_ALLOC_NGON_RESERVE);
 
-  handle->hash_verts = phash_new((PHashLink **)&handle->construction_chart->verts, 1);
-  handle->hash_edges = phash_new((PHashLink **)&handle->construction_chart->edges, 1);
-  handle->hash_faces = phash_new((PHashLink **)&handle->construction_chart->faces, 1);
+  construction_chart = (PChart *)MEM_callocN(sizeof(PChart), "PChart");
 
-  return handle;
+  hash_verts = phash_new((PHashLink **)&construction_chart->verts, 1);
+  hash_edges = phash_new((PHashLink **)&construction_chart->edges, 1);
+  hash_faces = phash_new((PHashLink **)&construction_chart->faces, 1);
+
+  pin_hash = nullptr;
+  unique_pin_count = 0;
+
+  charts = nullptr;
+  ncharts = 0;
+
+  aspect_y = 1.0f;
+
+  rng = nullptr;
+  blend = 0.0f;
+}
+
+ParamHandle::~ParamHandle()
+{
+  BLI_memarena_free(arena);
+  arena = nullptr;
+  BLI_memarena_free(polyfill_arena);
+  polyfill_arena = nullptr;
+  BLI_heap_free(polyfill_heap, nullptr);
+  polyfill_heap = nullptr;
+
+  MEM_SAFE_FREE(construction_chart);
+
+  phash_safe_delete(&hash_verts);
+  phash_safe_delete(&hash_edges);
+  phash_safe_delete(&hash_faces);
+
+  if (pin_hash) {
+    BLI_ghash_free(pin_hash, nullptr, nullptr);
+    pin_hash = nullptr;
+  }
+
+  for (int i = 0; i < ncharts; i++) {
+    MEM_SAFE_FREE(charts[i]);
+  }
+  MEM_SAFE_FREE(charts);
+
+  BLI_rng_free(rng);
+  rng = nullptr;
 }
 
 void uv_parametrizer_aspect_ratio(ParamHandle *phandle, const float aspect_y)
 {
   BLI_assert(aspect_y > 0.0f);
   phandle->aspect_y = aspect_y;
-}
-
-void uv_parametrizer_delete(ParamHandle *phandle)
-{
-  if (!phandle) {
-    return;
-  }
-  param_assert(ELEM(phandle->state, PHANDLE_STATE_ALLOCATED, PHANDLE_STATE_CONSTRUCTED));
-
-  for (int i = 0; i < phandle->ncharts; i++) {
-    MEM_SAFE_FREE(phandle->charts[i]);
-  }
-
-  MEM_SAFE_FREE(phandle->charts);
-
-  if (phandle->pin_hash) {
-    BLI_ghash_free(phandle->pin_hash, nullptr, nullptr);
-    phandle->pin_hash = nullptr;
-  }
-
-  MEM_SAFE_FREE(phandle->construction_chart);
-
-  phash_delete(phandle->hash_verts);
-  phash_delete(phandle->hash_edges);
-  phash_delete(phandle->hash_faces);
-
-  BLI_memarena_free(phandle->arena);
-  BLI_memarena_free(phandle->polyfill_arena);
-  BLI_heap_free(phandle->polyfill_heap, nullptr);
-
-  if (phandle->rng) {
-    BLI_rng_free(phandle->rng);
-    phandle->rng = nullptr;
-  }
-
-  delete phandle;
 }
 
 struct GeoUVPinIndex {
@@ -3950,12 +3917,9 @@ void uv_parametrizer_construct_end(ParamHandle *phandle,
   MEM_freeN(phandle->construction_chart);
   phandle->construction_chart = nullptr;
 
-  phash_delete(phandle->hash_verts);
-  phandle->hash_verts = nullptr;
-  phash_delete(phandle->hash_edges);
-  phandle->hash_edges = nullptr;
-  phash_delete(phandle->hash_faces);
-  phandle->hash_faces = nullptr;
+  phash_safe_delete(&phandle->hash_verts);
+  phash_safe_delete(&phandle->hash_edges);
+  phash_safe_delete(&phandle->hash_faces);
 
   for (i = j = 0; i < phandle->ncharts; i++) {
     PChart *chart = phandle->charts[i];

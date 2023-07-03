@@ -113,6 +113,9 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
   /* Shader evaluation kernels seems to use some amount of shared memory, so better
    * to avoid usage of maximum work group sizes for them. */
   const static size_t preferred_work_group_size_shader_evaluation = 256;
+  /* NOTE(@nsirgien): 1024 currently may lead to issues with cryptomatte kernels, so
+   * for now their work-group size is restricted to 512. */
+  const static size_t preferred_work_group_size_cryptomatte = 512;
   const static size_t preferred_work_group_size_default = 1024;
 
   size_t preferred_work_group_size = 0;
@@ -158,6 +161,10 @@ size_t oneapi_kernel_preferred_local_size(SyclQueue *queue,
 
     case DEVICE_KERNEL_PREFIX_SUM:
       preferred_work_group_size = GPU_PARALLEL_PREFIX_SUM_DEFAULT_BLOCK_SIZE;
+      break;
+
+    case DEVICE_KERNEL_CRYPTOMATTE_POSTPROCESS:
+      preferred_work_group_size = preferred_work_group_size_cryptomatte;
       break;
 
     case DEVICE_KERNEL_SHADER_EVAL_DISPLACE:

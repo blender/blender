@@ -1,4 +1,6 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
  * \ingroup draw
@@ -29,8 +31,10 @@ enum SculptBatchFeature {
 };
 ENUM_OPERATORS(SculptBatchFeature, SCULPT_BATCH_UV);
 
+/** Used by engines that don't use GPUMaterials, like the Workbench and Overlay engines. */
 Vector<SculptBatch> sculpt_batches_get(Object *ob, SculptBatchFeature features);
 
+/** Used by EEVEE. */
 Vector<SculptBatch> sculpt_batches_per_material_get(Object *ob,
                                                     MutableSpan<GPUMaterial *> materials);
 

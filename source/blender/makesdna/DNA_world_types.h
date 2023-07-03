@@ -83,28 +83,34 @@ typedef struct World {
 
 /* **************** WORLD ********************* */
 
-/* mode */
-#define WO_MIST (1 << 0)
-#define WO_MODE_UNUSED_1 (1 << 1) /* cleared */
-#define WO_MODE_UNUSED_2 (1 << 2) /* cleared */
-#define WO_MODE_UNUSED_3 (1 << 3) /* cleared */
-#define WO_MODE_UNUSED_4 (1 << 4) /* cleared */
-#define WO_MODE_UNUSED_5 (1 << 5) /* cleared */
-#define WO_AMB_OCC (1 << 6)
-#define WO_MODE_UNUSED_7 (1 << 7) /* cleared */
+/** #World::mode */
+enum {
+  WO_MIST = 1 << 0,
+  WO_MODE_UNUSED_1 = 1 << 1, /* cleared */
+  WO_MODE_UNUSED_2 = 1 << 2, /* cleared */
+  WO_MODE_UNUSED_3 = 1 << 3, /* cleared */
+  WO_MODE_UNUSED_4 = 1 << 4, /* cleared */
+  WO_MODE_UNUSED_5 = 1 << 5, /* cleared */
+  WO_AMB_OCC = 1 << 6,
+  WO_MODE_UNUSED_7 = 1 << 7, /* cleared */
+};
 
+/** #World::mistype */
 enum {
   WO_MIST_QUADRATIC = 0,
   WO_MIST_LINEAR = 1,
   WO_MIST_INVERSE_QUADRATIC = 2,
 };
 
-/* flag */
-#define WO_DS_EXPAND (1 << 0)
-/* NOTE: this must have the same value as MA_DS_SHOW_TEXS,
- * otherwise anim-editors will not read correctly
- */
-#define WO_DS_SHOW_TEXS (1 << 2)
+/** #World::flag */
+enum {
+  WO_DS_EXPAND = 1 << 0,
+  /**
+   * NOTE: this must have the same value as #MA_DS_SHOW_TEXS,
+   * otherwise anim-editors will not read correctly.
+   */
+  WO_DS_SHOW_TEXS = 1 << 2,
+};
 
 #ifdef __cplusplus
 }

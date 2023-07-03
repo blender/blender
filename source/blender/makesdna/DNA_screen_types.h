@@ -239,7 +239,7 @@ typedef struct PanelCategoryStack {
 typedef void (*uiListFreeRuntimeDataFunc)(struct uiList *ui_list);
 
 /* uiList dynamic data... */
-/* These two Lines with # tell makesdna this struct can be excluded. */
+/* These two lines with # tell `makesdna` this struct can be excluded. */
 #
 #
 typedef struct uiListDyn {

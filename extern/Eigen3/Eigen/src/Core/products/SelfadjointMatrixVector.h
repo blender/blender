@@ -15,7 +15,7 @@ namespace Eigen {
 namespace internal {
 
 /* Optimized selfadjoint matrix * vector product:
- * This algorithm processes 2 columns at onces that allows to both reduce
+ * This algorithm processes 2 columns at once that allows to both reduce
  * the number of load/stores of the result by a factor 2 and to reduce
  * the instruction dependency.
  */
@@ -27,7 +27,8 @@ template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool Conju
 struct selfadjoint_matrix_vector_product
 
 {
-static EIGEN_DONT_INLINE void run(
+static EIGEN_DONT_INLINE EIGEN_DEVICE_FUNC
+void run(
   Index size,
   const Scalar*  lhs, Index lhsStride,
   const Scalar*  rhs,
@@ -36,7 +37,8 @@ static EIGEN_DONT_INLINE void run(
 };
 
 template<typename Scalar, typename Index, int StorageOrder, int UpLo, bool ConjugateLhs, bool ConjugateRhs, int Version>
-EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Version>::run(
+EIGEN_DONT_INLINE EIGEN_DEVICE_FUNC
+void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrder,UpLo,ConjugateLhs,ConjugateRhs,Version>::run(
   Index size,
   const Scalar*  lhs, Index lhsStride,
   const Scalar*  rhs,
@@ -62,8 +64,7 @@ EIGEN_DONT_INLINE void selfadjoint_matrix_vector_product<Scalar,Index,StorageOrd
 
   Scalar cjAlpha = ConjugateRhs ? numext::conj(alpha) : alpha;
 
-
-  Index bound = (std::max)(Index(0),size-8) & 0xfffffffe;
+  Index bound = numext::maxi(Index(0), size-8) & 0xfffffffe;
   if (FirstTriangular)
     bound = size - bound;
 
@@ -175,7 +176,8 @@ struct selfadjoint_product_impl<Lhs,LhsMode,false,Rhs,0,true>
   enum { LhsUpLo = LhsMode&(Upper|Lower) };
 
   template<typename Dest>
-  static void run(Dest& dest, const Lhs &a_lhs, const Rhs &a_rhs, const Scalar& alpha)
+  static EIGEN_DEVICE_FUNC
+  void run(Dest& dest, const Lhs &a_lhs, const Rhs &a_rhs, const Scalar& alpha)
   {
     typedef typename Dest::Scalar ResScalar;
     typedef typename Rhs::Scalar RhsScalar;

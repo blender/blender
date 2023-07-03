@@ -173,6 +173,8 @@ class AssetLibrary {
 
 Vector<AssetLibraryReference> all_valid_asset_library_refs();
 
+AssetLibraryReference all_library_reference();
+
 }  // namespace blender::asset_system
 
 /**

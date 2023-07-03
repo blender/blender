@@ -251,7 +251,7 @@ GPUShader *workbench_shader_cavity_get(bool cavity, bool curvature)
   return *shader;
 }
 
-GPUShader *workbench_shader_outline_get(void)
+GPUShader *workbench_shader_outline_get()
 {
   if (e_data.outline_sh == nullptr) {
     e_data.outline_sh = GPU_shader_create_from_info_name("workbench_effect_outline");
@@ -286,7 +286,7 @@ void workbench_shader_depth_of_field_get(GPUShader **prepare_sh,
   *resolve_sh = e_data.dof_resolve_sh;
 }
 
-GPUShader *workbench_shader_antialiasing_accumulation_get(void)
+GPUShader *workbench_shader_antialiasing_accumulation_get()
 {
   if (e_data.aa_accum_sh == nullptr) {
     e_data.aa_accum_sh = GPU_shader_create_from_info_name("workbench_taa");
@@ -331,7 +331,7 @@ GPUShader *workbench_shader_volume_get(bool slice,
 /** \name Cleanup
  * \{ */
 
-void workbench_shader_free(void)
+void workbench_shader_free()
 {
   for (int j = 0; j < sizeof(e_data.opaque_prepass_sh_cache) / sizeof(void *); j++) {
     GPUShader **sh_array = &e_data.opaque_prepass_sh_cache[0][0][0];

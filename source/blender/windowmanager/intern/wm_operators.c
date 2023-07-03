@@ -1800,7 +1800,7 @@ static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 
 static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  /* Exception for launching via spacebar */
+  /* Exception for launching via space-bar. */
   if (event->type == EVT_SPACEKEY) {
     bool ok = true;
     ScrArea *area = CTX_wm_area(C);
@@ -1810,14 +1810,14 @@ static int wm_search_menu_invoke(bContext *C, wmOperator *op, const wmEvent *eve
         ok = false;
       }
       else if (area->spacetype == SPACE_TEXT) {
-        /* So we can use the spacebar in the text editor. */
+        /* So we can use the space-bar in the text editor. */
         ok = false;
       }
     }
     else {
       Object *editob = CTX_data_edit_object(C);
       if (editob && editob->type == OB_FONT) {
-        /* So we can use the spacebar for entering text. */
+        /* So we can use the space-bar for entering text. */
         ok = false;
       }
     }
@@ -3388,7 +3388,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   BKE_reportf(op->reports,
               RPT_WARNING,
-              "%d x %s: %.4f ms, average: %.8f ms",
+              "%d \u00D7 %s: %.4f ms, average: %.8f ms",
               iter_steps,
               infostr,
               time_delta,

@@ -14,21 +14,57 @@ set(INC_SYS
 if(NOT WITH_SYSTEM_EIGEN3)
   set(EIGEN3_HEADERS
     # until we have another user...
+    ../../extern/Eigen3/Eigen/Cholesky
+    ../../extern/Eigen3/Eigen/CholmodSupport
+    ../../extern/Eigen3/Eigen/Core
+    ../../extern/Eigen3/Eigen/Dense
+    ../../extern/Eigen3/Eigen/Eigen
+    ../../extern/Eigen3/Eigen/Eigenvalues
+    ../../extern/Eigen3/Eigen/Geometry
+    ../../extern/Eigen3/Eigen/Householder
+    ../../extern/Eigen3/Eigen/IterativeLinearSolvers
+    ../../extern/Eigen3/Eigen/Jacobi
+    ../../extern/Eigen3/Eigen/KLUSupport
+    ../../extern/Eigen3/Eigen/LU
+    ../../extern/Eigen3/Eigen/MetisSupport
+    ../../extern/Eigen3/Eigen/OrderingMethods
+    ../../extern/Eigen3/Eigen/PaStiXSupport
+    ../../extern/Eigen3/Eigen/PardisoSupport
+    ../../extern/Eigen3/Eigen/QR
+    ../../extern/Eigen3/Eigen/QtAlignedMalloc
+    ../../extern/Eigen3/Eigen/SPQRSupport
+    ../../extern/Eigen3/Eigen/SVD
+    ../../extern/Eigen3/Eigen/Sparse
+    ../../extern/Eigen3/Eigen/SparseCholesky
+    ../../extern/Eigen3/Eigen/SparseCore
+    ../../extern/Eigen3/Eigen/SparseLU
+    ../../extern/Eigen3/Eigen/SparseQR
+    ../../extern/Eigen3/Eigen/StdDeque
+    ../../extern/Eigen3/Eigen/StdList
+    ../../extern/Eigen3/Eigen/StdVector
+    ../../extern/Eigen3/Eigen/SuperLUSupport
+    ../../extern/Eigen3/Eigen/UmfPackSupport
     ../../extern/Eigen3/Eigen/src/Cholesky/LDLT.h
     ../../extern/Eigen3/Eigen/src/Cholesky/LLT.h
-    ../../extern/Eigen3/Eigen/src/Cholesky/LLT_MKL.h
+    ../../extern/Eigen3/Eigen/src/Cholesky/LLT_LAPACKE.h
     ../../extern/Eigen3/Eigen/src/CholmodSupport/CholmodSupport.h
+    ../../extern/Eigen3/Eigen/src/Core/ArithmeticSequence.h
     ../../extern/Eigen3/Eigen/src/Core/Array.h
     ../../extern/Eigen3/Eigen/src/Core/ArrayBase.h
     ../../extern/Eigen3/Eigen/src/Core/ArrayWrapper.h
     ../../extern/Eigen3/Eigen/src/Core/Assign.h
+    ../../extern/Eigen3/Eigen/src/Core/AssignEvaluator.h
     ../../extern/Eigen3/Eigen/src/Core/Assign_MKL.h
     ../../extern/Eigen3/Eigen/src/Core/BandMatrix.h
     ../../extern/Eigen3/Eigen/src/Core/Block.h
     ../../extern/Eigen3/Eigen/src/Core/BooleanRedux.h
     ../../extern/Eigen3/Eigen/src/Core/CommaInitializer.h
+    ../../extern/Eigen3/Eigen/src/Core/ConditionEstimator.h
+    ../../extern/Eigen3/Eigen/src/Core/CoreEvaluators.h
+    ../../extern/Eigen3/Eigen/src/Core/CoreIterators.h
     ../../extern/Eigen3/Eigen/src/Core/CwiseBinaryOp.h
     ../../extern/Eigen3/Eigen/src/Core/CwiseNullaryOp.h
+    ../../extern/Eigen3/Eigen/src/Core/CwiseTernaryOp.h
     ../../extern/Eigen3/Eigen/src/Core/CwiseUnaryOp.h
     ../../extern/Eigen3/Eigen/src/Core/CwiseUnaryView.h
     ../../extern/Eigen3/Eigen/src/Core/DenseBase.h
@@ -39,36 +75,43 @@ if(NOT WITH_SYSTEM_EIGEN3)
     ../../extern/Eigen3/Eigen/src/Core/DiagonalProduct.h
     ../../extern/Eigen3/Eigen/src/Core/Dot.h
     ../../extern/Eigen3/Eigen/src/Core/EigenBase.h
-    ../../extern/Eigen3/Eigen/src/Core/Flagged.h
     ../../extern/Eigen3/Eigen/src/Core/ForceAlignedAccess.h
-    ../../extern/Eigen3/Eigen/src/Core/Functors.h
     ../../extern/Eigen3/Eigen/src/Core/Fuzzy.h
     ../../extern/Eigen3/Eigen/src/Core/GeneralProduct.h
     ../../extern/Eigen3/Eigen/src/Core/GenericPacketMath.h
     ../../extern/Eigen3/Eigen/src/Core/GlobalFunctions.h
     ../../extern/Eigen3/Eigen/src/Core/IO.h
+    ../../extern/Eigen3/Eigen/src/Core/IndexedView.h
+    ../../extern/Eigen3/Eigen/src/Core/Inverse.h
     ../../extern/Eigen3/Eigen/src/Core/Map.h
     ../../extern/Eigen3/Eigen/src/Core/MapBase.h
     ../../extern/Eigen3/Eigen/src/Core/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/MathFunctionsImpl.h
     ../../extern/Eigen3/Eigen/src/Core/Matrix.h
     ../../extern/Eigen3/Eigen/src/Core/MatrixBase.h
     ../../extern/Eigen3/Eigen/src/Core/NestByValue.h
     ../../extern/Eigen3/Eigen/src/Core/NoAlias.h
     ../../extern/Eigen3/Eigen/src/Core/NumTraits.h
+    ../../extern/Eigen3/Eigen/src/Core/PartialReduxEvaluator.h
     ../../extern/Eigen3/Eigen/src/Core/PermutationMatrix.h
     ../../extern/Eigen3/Eigen/src/Core/PlainObjectBase.h
     ../../extern/Eigen3/Eigen/src/Core/Product.h
-    ../../extern/Eigen3/Eigen/src/Core/ProductBase.h
+    ../../extern/Eigen3/Eigen/src/Core/ProductEvaluators.h
     ../../extern/Eigen3/Eigen/src/Core/Random.h
     ../../extern/Eigen3/Eigen/src/Core/Redux.h
+    ../../extern/Eigen3/Eigen/src/Core/Ref.h
     ../../extern/Eigen3/Eigen/src/Core/Replicate.h
+    ../../extern/Eigen3/Eigen/src/Core/Reshaped.h
     ../../extern/Eigen3/Eigen/src/Core/ReturnByValue.h
     ../../extern/Eigen3/Eigen/src/Core/Reverse.h
     ../../extern/Eigen3/Eigen/src/Core/Select.h
     ../../extern/Eigen3/Eigen/src/Core/SelfAdjointView.h
     ../../extern/Eigen3/Eigen/src/Core/SelfCwiseBinaryOp.h
+    ../../extern/Eigen3/Eigen/src/Core/Solve.h
     ../../extern/Eigen3/Eigen/src/Core/SolveTriangular.h
+    ../../extern/Eigen3/Eigen/src/Core/SolverBase.h
     ../../extern/Eigen3/Eigen/src/Core/StableNorm.h
+    ../../extern/Eigen3/Eigen/src/Core/StlIterators.h
     ../../extern/Eigen3/Eigen/src/Core/Stride.h
     ../../extern/Eigen3/Eigen/src/Core/Swap.h
     ../../extern/Eigen3/Eigen/src/Core/Transpose.h
@@ -77,85 +120,112 @@ if(NOT WITH_SYSTEM_EIGEN3)
     ../../extern/Eigen3/Eigen/src/Core/VectorBlock.h
     ../../extern/Eigen3/Eigen/src/Core/VectorwiseOp.h
     ../../extern/Eigen3/Eigen/src/Core/Visitor.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX512/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX512/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX512/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AVX512/TypeCasting.h
     ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/MatrixProduct.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/MatrixProductCommon.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/MatrixProductMMA.h
     ../../extern/Eigen3/Eigen/src/Core/arch/AltiVec/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/CUDA/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/BFloat16.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/ConjHelper.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/GenericPacketMathFunctionsFwd.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/Half.h
     ../../extern/Eigen3/Eigen/src/Core/arch/Default/Settings.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/Default/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/GPU/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/GPU/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/GPU/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/HIP/hcc/math_constants.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/MSA/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/MSA/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/MSA/PacketMath.h
     ../../extern/Eigen3/Eigen/src/Core/arch/NEON/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/NEON/GeneralBlockPanelKernel.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/NEON/MathFunctions.h
     ../../extern/Eigen3/Eigen/src/Core/arch/NEON/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/NEON/TypeCasting.h
     ../../extern/Eigen3/Eigen/src/Core/arch/SSE/Complex.h
     ../../extern/Eigen3/Eigen/src/Core/arch/SSE/MathFunctions.h
     ../../extern/Eigen3/Eigen/src/Core/arch/SSE/PacketMath.h
-    ../../extern/Eigen3/Eigen/src/Core/products/CoeffBasedProduct.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SSE/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SVE/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SVE/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SVE/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SYCL/InteropHeaders.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SYCL/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SYCL/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SYCL/SyclMemoryModel.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/SYCL/TypeCasting.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/ZVector/Complex.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/ZVector/MathFunctions.h
+    ../../extern/Eigen3/Eigen/src/Core/arch/ZVector/PacketMath.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/AssignmentFunctors.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/BinaryFunctors.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/NullaryFunctors.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/StlFunctors.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/TernaryFunctors.h
+    ../../extern/Eigen3/Eigen/src/Core/functors/UnaryFunctors.h
     ../../extern/Eigen3/Eigen/src/Core/products/GeneralBlockPanelKernel.h
     ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrix.h
     ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular.h
-    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_MKL.h
-    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrixTriangular_BLAS.h
+    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixMatrix_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixVector.h
-    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixVector_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/GeneralMatrixVector_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/Parallelizer.h
     ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix.h
-    ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixMatrix_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixVector.h
-    ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointMatrixVector_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointProduct.h
     ../../extern/Eigen3/Eigen/src/Core/products/SelfadjointRank2Update.h
     ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixMatrix.h
-    ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixMatrix_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixVector.h
-    ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixVector_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/TriangularMatrixVector_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/TriangularSolverMatrix.h
-    ../../extern/Eigen3/Eigen/src/Core/products/TriangularSolverMatrix_MKL.h
+    ../../extern/Eigen3/Eigen/src/Core/products/TriangularSolverMatrix_BLAS.h
     ../../extern/Eigen3/Eigen/src/Core/products/TriangularSolverVector.h
     ../../extern/Eigen3/Eigen/src/Core/util/BlasUtil.h
+    ../../extern/Eigen3/Eigen/src/Core/util/ConfigureVectorization.h
     ../../extern/Eigen3/Eigen/src/Core/util/Constants.h
     ../../extern/Eigen3/Eigen/src/Core/util/DisableStupidWarnings.h
     ../../extern/Eigen3/Eigen/src/Core/util/ForwardDeclarations.h
+    ../../extern/Eigen3/Eigen/src/Core/util/IndexedViewHelper.h
+    ../../extern/Eigen3/Eigen/src/Core/util/IntegralConstant.h
+    ../../extern/Eigen3/Eigen/src/Core/util/MKL_support.h
     ../../extern/Eigen3/Eigen/src/Core/util/Macros.h
     ../../extern/Eigen3/Eigen/src/Core/util/Memory.h
     ../../extern/Eigen3/Eigen/src/Core/util/Meta.h
-    ../../extern/Eigen3/Eigen/src/Core/util/MKL_support.h
     ../../extern/Eigen3/Eigen/src/Core/util/NonMPL2.h
     ../../extern/Eigen3/Eigen/src/Core/util/ReenableStupidWarnings.h
+    ../../extern/Eigen3/Eigen/src/Core/util/ReshapedHelper.h
     ../../extern/Eigen3/Eigen/src/Core/util/StaticAssert.h
+    ../../extern/Eigen3/Eigen/src/Core/util/SymbolicIndex.h
     ../../extern/Eigen3/Eigen/src/Core/util/XprHelper.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Block.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Cwise.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/CwiseOperators.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Lazy.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/LeastSquares.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/LU.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Macros.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/MathFunctions.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Memory.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Meta.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Minor.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/QR.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/SVD.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/TriangularSolver.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/VectorBlock.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/AlignedBox.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/All.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/AngleAxis.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Hyperplane.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/ParametrizedLine.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Quaternion.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Rotation2D.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/RotationBase.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Scaling.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Transform.h
-    ../../extern/Eigen3/Eigen/src/Eigen2Support/Geometry/Translation.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/ComplexEigenSolver.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/ComplexSchur.h
-    ../../extern/Eigen3/Eigen/src/Eigenvalues/ComplexSchur_MKL.h
+    ../../extern/Eigen3/Eigen/src/Eigenvalues/ComplexSchur_LAPACKE.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/EigenSolver.h
+    ../../extern/Eigen3/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/HessenbergDecomposition.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h
+    ../../extern/Eigen3/Eigen/src/Eigenvalues/RealQZ.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/RealSchur.h
-    ../../extern/Eigen3/Eigen/src/Eigenvalues/RealSchur_MKL.h
+    ../../extern/Eigen3/Eigen/src/Eigenvalues/RealSchur_LAPACKE.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h
-    ../../extern/Eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_MKL.h
+    ../../extern/Eigen3/Eigen/src/Eigenvalues/SelfAdjointEigenSolver_LAPACKE.h
     ../../extern/Eigen3/Eigen/src/Eigenvalues/Tridiagonalization.h
     ../../extern/Eigen3/Eigen/src/Geometry/AlignedBox.h
     ../../extern/Eigen3/Eigen/src/Geometry/AngleAxis.h
@@ -171,62 +241,69 @@ if(NOT WITH_SYSTEM_EIGEN3)
     ../../extern/Eigen3/Eigen/src/Geometry/Transform.h
     ../../extern/Eigen3/Eigen/src/Geometry/Translation.h
     ../../extern/Eigen3/Eigen/src/Geometry/Umeyama.h
-    ../../extern/Eigen3/Eigen/src/Geometry/arch/Geometry_SSE.h
+    ../../extern/Eigen3/Eigen/src/Geometry/arch/Geometry_SIMD.h
     ../../extern/Eigen3/Eigen/src/Householder/BlockHouseholder.h
     ../../extern/Eigen3/Eigen/src/Householder/Householder.h
     ../../extern/Eigen3/Eigen/src/Householder/HouseholderSequence.h
     ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/BasicPreconditioners.h
     ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/BiCGSTAB.h
     ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/ConjugateGradient.h
+    ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/IncompleteCholesky.h
     ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/IncompleteLUT.h
     ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/IterativeSolverBase.h
+    ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/LeastSquareConjugateGradient.h
+    ../../extern/Eigen3/Eigen/src/IterativeLinearSolvers/SolveWithGuess.h
     ../../extern/Eigen3/Eigen/src/Jacobi/Jacobi.h
+    ../../extern/Eigen3/Eigen/src/KLUSupport/KLUSupport.h
     ../../extern/Eigen3/Eigen/src/LU/Determinant.h
     ../../extern/Eigen3/Eigen/src/LU/FullPivLU.h
-    ../../extern/Eigen3/Eigen/src/LU/Inverse.h
+    ../../extern/Eigen3/Eigen/src/LU/InverseImpl.h
     ../../extern/Eigen3/Eigen/src/LU/PartialPivLU.h
-    ../../extern/Eigen3/Eigen/src/LU/PartialPivLU_MKL.h
-    ../../extern/Eigen3/Eigen/src/LU/arch/Inverse_SSE.h
-    ../../extern/Eigen3/Eigen/src/misc/blas.h
-    ../../extern/Eigen3/Eigen/src/misc/Image.h
-    ../../extern/Eigen3/Eigen/src/misc/Kernel.h
-    ../../extern/Eigen3/Eigen/src/misc/Solve.h
-    ../../extern/Eigen3/Eigen/src/misc/SparseSolve.h
+    ../../extern/Eigen3/Eigen/src/LU/PartialPivLU_LAPACKE.h
+    ../../extern/Eigen3/Eigen/src/LU/arch/InverseSize4.h
+    ../../extern/Eigen3/Eigen/src/MetisSupport/MetisSupport.h
     ../../extern/Eigen3/Eigen/src/OrderingMethods/Amd.h
-    ../../extern/Eigen3/Eigen/src/PardisoSupport/PardisoSupport.h
+    ../../extern/Eigen3/Eigen/src/OrderingMethods/Eigen_Colamd.h
+    ../../extern/Eigen3/Eigen/src/OrderingMethods/Ordering.h
     ../../extern/Eigen3/Eigen/src/PaStiXSupport/PaStiXSupport.h
-    ../../extern/Eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h
-    ../../extern/Eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h
-    ../../extern/Eigen3/Eigen/src/plugins/BlockMethods.h
-    ../../extern/Eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h
-    ../../extern/Eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h
-    ../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
-    ../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
+    ../../extern/Eigen3/Eigen/src/PardisoSupport/PardisoSupport.h
     ../../extern/Eigen3/Eigen/src/QR/ColPivHouseholderQR.h
-    ../../extern/Eigen3/Eigen/src/QR/ColPivHouseholderQR_MKL.h
+    ../../extern/Eigen3/Eigen/src/QR/ColPivHouseholderQR_LAPACKE.h
+    ../../extern/Eigen3/Eigen/src/QR/CompleteOrthogonalDecomposition.h
     ../../extern/Eigen3/Eigen/src/QR/FullPivHouseholderQR.h
     ../../extern/Eigen3/Eigen/src/QR/HouseholderQR.h
-    ../../extern/Eigen3/Eigen/src/QR/HouseholderQR_MKL.h
+    ../../extern/Eigen3/Eigen/src/QR/HouseholderQR_LAPACKE.h
+    ../../extern/Eigen3/Eigen/src/SPQRSupport/SuiteSparseQRSupport.h
+    ../../extern/Eigen3/Eigen/src/SVD/BDCSVD.h
+    ../../extern/Eigen3/Eigen/src/SVD/JacobiSVD.h
+    ../../extern/Eigen3/Eigen/src/SVD/JacobiSVD_LAPACKE.h
+    ../../extern/Eigen3/Eigen/src/SVD/SVDBase.h
+    ../../extern/Eigen3/Eigen/src/SVD/UpperBidiagonalization.h
     ../../extern/Eigen3/Eigen/src/SparseCholesky/SimplicialCholesky.h
+    ../../extern/Eigen3/Eigen/src/SparseCholesky/SimplicialCholesky_impl.h
     ../../extern/Eigen3/Eigen/src/SparseCore/AmbiVector.h
     ../../extern/Eigen3/Eigen/src/SparseCore/CompressedStorage.h
     ../../extern/Eigen3/Eigen/src/SparseCore/ConservativeSparseSparseProduct.h
-    ../../extern/Eigen3/Eigen/src/SparseCore/CoreIterators.h
     ../../extern/Eigen3/Eigen/src/SparseCore/MappedSparseMatrix.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseAssign.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseBlock.h
+    ../../extern/Eigen3/Eigen/src/SparseCore/SparseColEtree.h
+    ../../extern/Eigen3/Eigen/src/SparseCore/SparseCompressedBase.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseCwiseBinaryOp.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseCwiseUnaryOp.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseDenseProduct.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseDiagonalProduct.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseDot.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseFuzzy.h
+    ../../extern/Eigen3/Eigen/src/SparseCore/SparseMap.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseMatrix.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseMatrixBase.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparsePermutation.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseProduct.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseRedux.h
+    ../../extern/Eigen3/Eigen/src/SparseCore/SparseRef.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseSelfAdjointView.h
+    ../../extern/Eigen3/Eigen/src/SparseCore/SparseSolverBase.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseSparseProductWithPruning.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseTranspose.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseTriangularView.h
@@ -234,15 +311,46 @@ if(NOT WITH_SYSTEM_EIGEN3)
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseVector.h
     ../../extern/Eigen3/Eigen/src/SparseCore/SparseView.h
     ../../extern/Eigen3/Eigen/src/SparseCore/TriangularSolver.h
-    ../../extern/Eigen3/Eigen/src/StlSupport/details.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLUImpl.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_Memory.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_Structs.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_SupernodalMatrix.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_Utils.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_column_bmod.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_column_dfs.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_copy_to_ucol.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_gemm_kernel.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_heap_relax_snode.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_kernel_bmod.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_panel_bmod.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_panel_dfs.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_pivotL.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_pruneL.h
+    ../../extern/Eigen3/Eigen/src/SparseLU/SparseLU_relax_snode.h
+    ../../extern/Eigen3/Eigen/src/SparseQR/SparseQR.h
     ../../extern/Eigen3/Eigen/src/StlSupport/StdDeque.h
     ../../extern/Eigen3/Eigen/src/StlSupport/StdList.h
     ../../extern/Eigen3/Eigen/src/StlSupport/StdVector.h
+    ../../extern/Eigen3/Eigen/src/StlSupport/details.h
     ../../extern/Eigen3/Eigen/src/SuperLUSupport/SuperLUSupport.h
-    ../../extern/Eigen3/Eigen/src/SVD/JacobiSVD.h
-    ../../extern/Eigen3/Eigen/src/SVD/JacobiSVD_MKL.h
-    ../../extern/Eigen3/Eigen/src/SVD/UpperBidiagonalization.h
     ../../extern/Eigen3/Eigen/src/UmfPackSupport/UmfPackSupport.h
+    ../../extern/Eigen3/Eigen/src/misc/Image.h
+    ../../extern/Eigen3/Eigen/src/misc/Kernel.h
+    ../../extern/Eigen3/Eigen/src/misc/RealSvd2x2.h
+    ../../extern/Eigen3/Eigen/src/misc/blas.h
+    ../../extern/Eigen3/Eigen/src/misc/lapack.h
+    ../../extern/Eigen3/Eigen/src/misc/lapacke.h
+    ../../extern/Eigen3/Eigen/src/misc/lapacke_mangling.h
+    ../../extern/Eigen3/Eigen/src/plugins/ArrayCwiseBinaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/ArrayCwiseUnaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/BlockMethods.h
+    ../../extern/Eigen3/Eigen/src/plugins/CommonCwiseBinaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/CommonCwiseUnaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/IndexedViewMethods.h
+    ../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseBinaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/MatrixCwiseUnaryOps.h
+    ../../extern/Eigen3/Eigen/src/plugins/ReshapedMethods.h
   )
 endif()
 

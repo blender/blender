@@ -1442,6 +1442,9 @@ void BKE_mesh_legacy_bevel_weight_to_generic(Mesh *mesh)
 void BKE_mesh_legacy_edge_crease_to_layers(Mesh *mesh)
 {
   using namespace blender;
+  if (!mesh->medge) {
+    return;
+  }
   if (CustomData_has_layer(&mesh->edata, CD_CREASE)) {
     return;
   }

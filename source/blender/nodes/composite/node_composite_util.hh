@@ -15,7 +15,7 @@
 #include "node_util.hh"
 
 #include "NOD_composite.h"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 
 #define CMP_SCALE_MAX 12000

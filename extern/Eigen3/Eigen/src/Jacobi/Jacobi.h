@@ -11,7 +11,7 @@
 #ifndef EIGEN_JACOBI_H
 #define EIGEN_JACOBI_H
 
-namespace Eigen { 
+namespace Eigen {
 
 /** \ingroup Jacobi_Module
   * \jacobi_module
@@ -37,17 +37,20 @@ template<typename Scalar> class JacobiRotation
     typedef typename NumTraits<Scalar>::Real RealScalar;
 
     /** Default constructor without any initialization. */
+    EIGEN_DEVICE_FUNC
     JacobiRotation() {}
 
     /** Construct a planar rotation from a cosine-sine pair (\a c, \c s). */
+    EIGEN_DEVICE_FUNC
     JacobiRotation(const Scalar& c, const Scalar& s) : m_c(c), m_s(s) {}
 
-    Scalar& c() { return m_c; }
-    Scalar c() const { return m_c; }
-    Scalar& s() { return m_s; }
-    Scalar s() const { return m_s; }
+    EIGEN_DEVICE_FUNC Scalar& c() { return m_c; }
+    EIGEN_DEVICE_FUNC Scalar c() const { return m_c; }
+    EIGEN_DEVICE_FUNC Scalar& s() { return m_s; }
+    EIGEN_DEVICE_FUNC Scalar s() const { return m_s; }
 
     /** Concatenates two planar rotation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation operator*(const JacobiRotation& other)
     {
       using numext::conj;
@@ -56,19 +59,26 @@ template<typename Scalar> class JacobiRotation
     }
 
     /** Returns the transposed transformation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation transpose() const { using numext::conj; return JacobiRotation(m_c, -conj(m_s)); }
 
     /** Returns the adjoint transformation */
+    EIGEN_DEVICE_FUNC
     JacobiRotation adjoint() const { using numext::conj; return JacobiRotation(conj(m_c), -m_s); }
 
     template<typename Derived>
+    EIGEN_DEVICE_FUNC
     bool makeJacobi(const MatrixBase<Derived>&, Index p, Index q);
+    EIGEN_DEVICE_FUNC
     bool makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z);
 
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* r=0);
 
   protected:
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::true_type);
+    EIGEN_DEVICE_FUNC
     void makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::false_type);
 
     Scalar m_c, m_s;
@@ -80,10 +90,12 @@ template<typename Scalar> class JacobiRotation
   * \sa MatrixBase::makeJacobi(const MatrixBase<Derived>&, Index, Index), MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, const RealScalar& z)
 {
   using std::sqrt;
   using std::abs;
+
   RealScalar deno = RealScalar(2)*abs(y);
   if(deno < (std::numeric_limits<RealScalar>::min)())
   {
@@ -123,6 +135,7 @@ bool JacobiRotation<Scalar>::makeJacobi(const RealScalar& x, const Scalar& y, co
   */
 template<typename Scalar>
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, Index p, Index q)
 {
   return makeJacobi(numext::real(m.coeff(p,p)), m.coeff(p,q), numext::real(m.coeff(q,q)));
@@ -145,6 +158,7 @@ inline bool JacobiRotation<Scalar>::makeJacobi(const MatrixBase<Derived>& m, Ind
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r)
 {
   makeGivens(p, q, r, typename internal::conditional<NumTraits<Scalar>::IsComplex, internal::true_type, internal::false_type>::type());
@@ -153,12 +167,13 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 // specialization for complexes
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::true_type)
 {
   using std::sqrt;
   using std::abs;
   using numext::conj;
-  
+
   if(q==Scalar(0))
   {
     m_c = numext::real(p)<0 ? Scalar(-1) : Scalar(1);
@@ -212,6 +227,7 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 // specialization for reals
 template<typename Scalar>
+EIGEN_DEVICE_FUNC
 void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar* r, internal::false_type)
 {
   using std::sqrt;
@@ -257,12 +273,13 @@ void JacobiRotation<Scalar>::makeGivens(const Scalar& p, const Scalar& q, Scalar
 
 namespace internal {
 /** \jacobi_module
-  * Applies the clock wise 2D rotation \a j to the set of 2D vectors of cordinates \a x and \a y:
+  * Applies the clock wise 2D rotation \a j to the set of 2D vectors of coordinates \a x and \a y:
   * \f$ \left ( \begin{array}{cc} x \\ y \end{array} \right )  =  J \left ( \begin{array}{cc} x \\ y \end{array} \right ) \f$
   *
   * \sa MatrixBase::applyOnTheLeft(), MatrixBase::applyOnTheRight()
   */
 template<typename VectorX, typename VectorY, typename OtherScalar>
+EIGEN_DEVICE_FUNC
 void apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x, DenseBase<VectorY>& xpr_y, const JacobiRotation<OtherScalar>& j);
 }
 
@@ -274,6 +291,7 @@ void apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x, DenseBase<VectorY>& 
   */
 template<typename Derived>
 template<typename OtherScalar>
+EIGEN_DEVICE_FUNC
 inline void MatrixBase<Derived>::applyOnTheLeft(Index p, Index q, const JacobiRotation<OtherScalar>& j)
 {
   RowXpr x(this->row(p));
@@ -289,6 +307,7 @@ inline void MatrixBase<Derived>::applyOnTheLeft(Index p, Index q, const JacobiRo
   */
 template<typename Derived>
 template<typename OtherScalar>
+EIGEN_DEVICE_FUNC
 inline void MatrixBase<Derived>::applyOnTheRight(Index p, Index q, const JacobiRotation<OtherScalar>& j)
 {
   ColXpr x(this->col(p));
@@ -302,7 +321,8 @@ template<typename Scalar, typename OtherScalar,
          int SizeAtCompileTime, int MinAlignment, bool Vectorizable>
 struct apply_rotation_in_the_plane_selector
 {
-  static inline void run(Scalar *x, Index incrx, Scalar *y, Index incry, Index size, OtherScalar c, OtherScalar s)
+  static EIGEN_DEVICE_FUNC
+  inline void run(Scalar *x, Index incrx, Scalar *y, Index incry, Index size, OtherScalar c, OtherScalar s)
   {
     for(Index i=0; i<size; ++i)
     {
@@ -429,10 +449,11 @@ struct apply_rotation_in_the_plane_selector<Scalar,OtherScalar,SizeAtCompileTime
 };
 
 template<typename VectorX, typename VectorY, typename OtherScalar>
+EIGEN_DEVICE_FUNC
 void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x, DenseBase<VectorY>& xpr_y, const JacobiRotation<OtherScalar>& j)
 {
   typedef typename VectorX::Scalar Scalar;
-  const bool Vectorizable =    (VectorX::Flags & VectorY::Flags & PacketAccessBit)
+  const bool Vectorizable =    (int(VectorX::Flags) & int(VectorY::Flags) & PacketAccessBit)
                             && (int(packet_traits<Scalar>::size) == int(packet_traits<OtherScalar>::size));
 
   eigen_assert(xpr_x.size() == xpr_y.size());
@@ -442,7 +463,7 @@ void /*EIGEN_DONT_INLINE*/ apply_rotation_in_the_plane(DenseBase<VectorX>& xpr_x
 
   Scalar* EIGEN_RESTRICT x = &xpr_x.derived().coeffRef(0);
   Scalar* EIGEN_RESTRICT y = &xpr_y.derived().coeffRef(0);
-  
+
   OtherScalar c = j.c();
   OtherScalar s = j.s();
   if (c==OtherScalar(1) && s==OtherScalar(0))

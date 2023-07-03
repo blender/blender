@@ -17,6 +17,7 @@
 #include "AS_asset_library.hh"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
 
 #include "BLI_map.hh"
 #include "BLI_utility_mixins.hh"
@@ -34,6 +35,7 @@
 #include "ED_asset_indexer.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
+#include "ED_screen.h"
 #include "asset_library_reference.hh"
 
 namespace blender::ed::asset {
@@ -425,6 +427,20 @@ AssetListStorage::AssetListMap &AssetListStorage::global_storage()
 }
 
 /** \} */
+
+void asset_reading_region_listen_fn(const wmRegionListenerParams *params)
+{
+  const wmNotifier *wmn = params->notifier;
+  ARegion *region = params->region;
+
+  switch (wmn->category) {
+    case NC_ASSET:
+      if (wmn->data == ND_ASSET_LIST_READING) {
+        ED_region_tag_refresh_ui(region);
+      }
+      break;
+  }
+}
 
 }  // namespace blender::ed::asset
 

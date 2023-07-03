@@ -18,7 +18,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

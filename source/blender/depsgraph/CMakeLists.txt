@@ -14,7 +14,6 @@ set(INC
   ../modifiers
   ../sequencer
   ../windowmanager
-  ../../../intern/atomic
   ../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -156,6 +155,7 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf_intern_atomic
 )
 
 if(WITH_PYTHON)

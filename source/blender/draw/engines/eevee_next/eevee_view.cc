@@ -118,14 +118,13 @@ void ShadingView::render()
   GPU_framebuffer_bind(combined_fb_);
   GPU_framebuffer_clear_color_depth(combined_fb_, clear_color, 1.0f);
 
-  inst_.pipelines.world.render(render_view_new_);
+  inst_.pipelines.background.render(render_view_new_);
 
   /* TODO(fclem): Move it after the first prepass (and hiz update) once pipeline is stabilized. */
   inst_.lights.set_view(render_view_new_, extent_);
 
+  /* TODO(Miguel Pozo): Deferred and forward prepass should happen before the GBuffer pass. */
   inst_.pipelines.deferred.render(render_view_new_, prepass_fb_, combined_fb_, extent_);
-
-  // inst_.lightprobes.draw_cache_display();
 
   // inst_.lookdev.render_overlay(view_fb_);
 
@@ -136,8 +135,9 @@ void ShadingView::render()
   inst_.shadows.debug_draw(render_view_new_, combined_fb_);
   inst_.irradiance_cache.viewport_draw(render_view_new_, combined_fb_);
 
-  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
+  inst_.ambient_occlusion.render_pass(render_view_new_);
 
+  GPUTexture *combined_final_tx = render_postfx(rbufs.combined_tx);
   inst_.film.accumulate(sub_view_, combined_final_tx);
 
   rbufs.release();
@@ -187,6 +187,36 @@ void ShadingView::update_view()
   DRW_view_update_sub(render_view_, viewmat.ptr(), winmat.ptr());
 
   render_view_new_.sync(viewmat, winmat);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Capture View
+ * \{ */
+
+void CaptureView::render()
+{
+  if (!inst_.reflection_probes.do_world_update_get()) {
+    return;
+  }
+  inst_.reflection_probes.do_world_update_set(false);
+
+  GPU_debug_group_begin("World.Capture");
+  View view = {"World.Capture.View"};
+
+  for (int face : IndexRange(6)) {
+    capture_fb_.ensure(GPU_ATTACHMENT_NONE,
+                       GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+    GPU_framebuffer_bind(capture_fb_);
+
+    float4x4 view_m4 = cubeface_mat(face);
+    float4x4 win_m4 = math::projection::perspective(-1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 10.0f);
+    view.sync(view_m4, win_m4);
+    inst_.pipelines.world.render(view);
+  }
+  inst_.reflection_probes.remap_to_octahedral_projection();
+  GPU_debug_group_end();
 }
 
 /** \} */

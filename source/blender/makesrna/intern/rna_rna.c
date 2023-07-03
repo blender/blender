@@ -2944,7 +2944,7 @@ static void rna_def_property(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
-  EnumPropertyItem dummy_prop_tags[] = {
+  static const EnumPropertyItem dummy_prop_tags[] = {
       {0, NULL, 0, NULL, NULL},
   };
 

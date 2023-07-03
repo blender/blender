@@ -60,11 +60,11 @@ bool imb_is_a_jpeg(const uchar *mem, const size_t size)
  * JPG ERROR HANDLING
  *---------------------------------------------------------- */
 
-typedef struct my_error_mgr {
+struct my_error_mgr {
   jpeg_error_mgr pub; /* "public" fields */
 
   jmp_buf setjmp_buffer; /* for return to caller */
-} my_error_mgr;
+};
 
 typedef my_error_mgr *my_error_ptr;
 

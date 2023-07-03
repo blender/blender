@@ -138,7 +138,7 @@ static const blender::bke::id::remapper::IDRemapper *unwrap(const IDRemapper *re
 
 extern "C" {
 
-IDRemapper *BKE_id_remapper_create(void)
+IDRemapper *BKE_id_remapper_create()
 {
   blender::bke::id::remapper::IDRemapper *remapper =
       MEM_new<blender::bke::id::remapper::IDRemapper>(__func__);

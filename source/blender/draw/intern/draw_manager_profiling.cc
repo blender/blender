@@ -30,13 +30,13 @@
 #define MIM_RANGE_LEN 8
 #define GPU_TIMER_FALLOFF 0.1
 
-typedef struct DRWTimer {
+struct DRWTimer {
   uint32_t query[2];
   uint64_t time_average;
   char name[MAX_TIMER_NAME];
   int lvl;       /* Hierarchy level for nested timer. */
   bool is_query; /* Does this timer actually perform queries or is it just a group. */
-} DRWTimer;
+};
 
 static struct DRWTimerPool {
   DRWTimer *timers;
@@ -139,7 +139,7 @@ void DRW_stats_query_start(const char *name)
   drw_stats_timer_start_ex(name, true);
 }
 
-void DRW_stats_query_end(void)
+void DRW_stats_query_end()
 {
   GPU_debug_group_end();
   if (DTP.is_recording) {

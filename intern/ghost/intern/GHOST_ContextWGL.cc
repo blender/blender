@@ -351,7 +351,7 @@ struct DummyContextWGL {
         0,
         0,
         0,
-        0,              /* accum bits (ignored) */
+        0,              /* Accumulation bits (ignored). */
         0,              /* depth buffer */
         0,              /* stencil buffer */
         0,              /* no auxiliary buffers */

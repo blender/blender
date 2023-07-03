@@ -267,9 +267,7 @@ static void rna_Curves_normals_begin(CollectionPropertyIterator *iter, PointerRN
   rna_iterator_array_begin(iter, positions, sizeof(float[3]), size, true, nullptr);
 }
 
-static void rna_Curves_update_data(struct Main * /*bmain*/,
-                                   struct Scene * /*scene*/,
-                                   PointerRNA *ptr)
+static void rna_Curves_update_data(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   ID *id = ptr->owner_id;
   /* Avoid updates for importers creating curves. */

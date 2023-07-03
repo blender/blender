@@ -895,6 +895,11 @@ static char *glsl_patch_compute_get()
   STR_CONCAT(patch, slen, "#version 430\n");
   STR_CONCAT(patch, slen, "#extension GL_ARB_compute_shader :enable\n");
 
+  if (GLContext::texture_cube_map_array_support) {
+    STR_CONCAT(patch, slen, "#extension GL_ARB_texture_cube_map_array : enable\n");
+    STR_CONCAT(patch, slen, "#define GPU_ARB_texture_cube_map_array\n");
+  }
+
   /* Array compat. */
   STR_CONCAT(patch, slen, "#define gpu_Array(_type) _type[]\n");
 

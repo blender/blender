@@ -733,7 +733,7 @@ static bool rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings
 #    include "BKE_mesh_runtime.h"
 
 void rna_Object_me_eval_info(
-    struct Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
+    Object *ob, bContext *C, int type, PointerRNA *rnaptr_depsgraph, char *result)
 {
   Mesh *me_eval = nullptr;
   char *ret = nullptr;
@@ -771,7 +771,7 @@ void rna_Object_me_eval_info(
   }
 }
 #  else
-void rna_Object_me_eval_info(struct Object * /*ob*/,
+void rna_Object_me_eval_info(Object * /*ob*/,
                              bContext * /*C*/,
                              int /*type*/,
                              PointerRNA * /*rnaptr_depsgraph*/,

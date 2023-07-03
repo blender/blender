@@ -14,7 +14,6 @@
  * \todo document
  */
 
-/* dna-savable wmStructs here */
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "DNA_windowmanager_types.h"

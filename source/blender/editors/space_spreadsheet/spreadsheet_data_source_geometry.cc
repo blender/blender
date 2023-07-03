@@ -18,10 +18,12 @@
 #include "BKE_mesh_wrapper.h"
 #include "BKE_modifier.h"
 #include "BKE_volume.h"
+#include "BKE_volume_openvdb.hh"
 
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 
@@ -322,6 +324,15 @@ bool GeometryDataSource::has_selection_filter() const
       }
       return true;
     }
+    case bke::GeometryComponent::Type::PointCloud: {
+      if (object_orig->type != OB_POINTCLOUD) {
+        return false;
+      }
+      if (object_orig->mode != OB_MODE_EDIT) {
+        return false;
+      }
+      return true;
+    }
     default:
       return false;
   }
@@ -395,6 +406,13 @@ IndexMask GeometryDataSource::apply_selection_filter(IndexMaskMemory &memory) co
           BLI_assert_unreachable();
       }
       return full_range;
+    }
+    case bke::GeometryComponent::Type::PointCloud: {
+      BLI_assert(object_eval_->type == OB_POINTCLOUD);
+      const bke::AttributeAccessor attributes = *component_->attributes();
+      const VArray<bool> &selection = *attributes.lookup_or_default(
+          ".selection", ATTR_DOMAIN_POINT, false);
+      return IndexMask::from_bools(selection, memory);
     }
     default:
       return full_range;

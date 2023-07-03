@@ -33,7 +33,7 @@ static void exec(void *data,
   }
 }
 
-void register_node_type_tex_viewer(void)
+void register_node_type_tex_viewer()
 {
   static bNodeType ntype;
 

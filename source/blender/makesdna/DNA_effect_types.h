@@ -16,45 +16,56 @@ extern "C" {
 
 /* Don't forget, new effects also in `writefile.c` for DNA! */
 
-#define PAF_MAXMULT 4
+/** #PartEff::flag. */
+enum {
+  // PAF_UNUSED_0 = 1 << 0, /* DEPRECATED, dirty. */
+  PAF_BSPLINE = 1 << 1,
+  PAF_STATIC = 1 << 2,
+  PAF_FACE = 1 << 3,
+  PAF_ANIMATED = 1 << 4,
+  /** Show particles before they're emitted. */
+  PAF_UNBORN = 1 << 5,
+  /** Emit only from faces. */
+  PAF_OFACE = 1 << 6,
+  /** show emitter (don't hide actual mesh). */
+  PAF_SHOWE = 1 << 7,
+  /** True random emit from faces (not just ordered jitter). */
+  PAF_TRAND = 1 << 8,
+  /** even distribution in face emission based on face areas. */
+  PAF_EDISTR = 1 << 9,
+  /** Show particles after they've died. */
+  PAF_DIED = 1 << 11,
+};
 
-/* paf->flag (keep bit 0 free for compatibility). */
-#define PAF_BSPLINE 2
-#define PAF_STATIC 4
-#define PAF_FACE 8
-#define PAF_ANIMATED 16
-/* show particles before they're emitted. */
-#define PAF_UNBORN 32
-/* Emit only from faces. */
-#define PAF_OFACE 64
-/* show emitter (don't hide actual mesh). */
-#define PAF_SHOWE 128
-/* true random emit from faces (not just ordered jitter). */
-#define PAF_TRAND 256
-/* even distribution in face emission based on face areas. */
-#define PAF_EDISTR 512
-/* Show particles after they've died. */
-#define PAF_DIED 2048
+/** #PartEff::flag2, for pos/neg #PartEff::flag2neg. */
+enum {
+  PAF_TEXTIME = 1, /* Texture timing. */
+};
 
-/* `paf->flag2` for pos/neg `paf->flag2neg`. */
-#define PAF_TEXTIME 1 /* Texture timing. */
+/** #PartEff::type. */
+enum {
+  EFF_BUILD = 0,
+  EFF_PARTICLE = 1,
+  EFF_WAVE = 2,
+};
 
-/* eff->type */
-#define EFF_BUILD 0
-#define EFF_PARTICLE 1
-#define EFF_WAVE 2
+/** #PartEff::flag. */
+enum {
+  EFF_SELECT = 1,
+};
 
-/* eff->flag */
-#define EFF_SELECT 1
+/** #PartEff::stype. */
+enum {
+  PAF_NORMAL = 0,
+  PAF_VECT = 1,
+};
 
-/* paf->stype */
-#define PAF_NORMAL 0
-#define PAF_VECT 1
-
-/* paf->texmap */
-#define PAF_TEXINT 0
-#define PAF_TEXRGB 1
-#define PAF_TEXGRAD 2
+/** #PartEff::texmap. */
+enum {
+  PAF_TEXINT = 0,
+  PAF_TEXRGB = 1,
+  PAF_TEXGRAD = 2,
+};
 
 typedef struct Effect {
   struct Effect *next, *prev;

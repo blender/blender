@@ -461,7 +461,7 @@ void BKE_gpencil_layer_mask_cleanup_all_layers(struct bGPdata *gpd);
 void BKE_gpencil_layer_frames_sort(struct bGPDlayer *gpl, bool *r_has_duplicate_frames);
 
 struct bGPDlayer *BKE_gpencil_layer_get_by_name(struct bGPdata *gpd,
-                                                char *name,
+                                                const char *name,
                                                 int first_if_not_found);
 
 /* Brush */

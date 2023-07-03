@@ -329,7 +329,7 @@ void rna_def_object_type_visibility_flags_common(StructRNA *srna,
 int rna_object_type_visibility_icon_get_common(int object_type_exclude_viewport,
                                                const int *object_type_exclude_select);
 
-/* ViewLayer related functions defined in rna_scene.c but required in rna_layer.c */
+/* ViewLayer related functions defined in rna_scene.cc but required in rna_layer.cc */
 void rna_def_freestyle_settings(struct BlenderRNA *brna);
 struct PointerRNA rna_FreestyleLineSet_linestyle_get(struct PointerRNA *ptr);
 void rna_FreestyleLineSet_linestyle_set(struct PointerRNA *ptr,

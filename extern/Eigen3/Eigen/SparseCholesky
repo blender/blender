@@ -30,16 +30,8 @@
   * \endcode
   */
 
-#ifdef EIGEN_MPL2_ONLY
-#error The SparseCholesky module has nothing to offer in MPL2 only mode
-#endif
-
 #include "src/SparseCholesky/SimplicialCholesky.h"
-
-#ifndef EIGEN_MPL2_ONLY
 #include "src/SparseCholesky/SimplicialCholesky_impl.h"
-#endif
-
 #include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_SPARSECHOLESKY_MODULE_H

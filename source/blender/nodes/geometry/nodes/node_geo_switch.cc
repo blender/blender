@@ -172,6 +172,7 @@ class LazyFunctionForSwitchNode : public LazyFunction {
     BLI_assert(socket_type != nullptr);
     const CPPType &cpp_type = *socket_type->geometry_nodes_cpp_type;
 
+    debug_name_ = node.name;
     inputs_.append_as("Condition", CPPType::get<ValueOrField<bool>>());
     inputs_.append_as("False", cpp_type, lf::ValueUsage::Maybe);
     inputs_.append_as("True", cpp_type, lf::ValueUsage::Maybe);

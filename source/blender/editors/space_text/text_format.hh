@@ -65,7 +65,7 @@ void text_format_fill(const char **str_p, char **fmt_p, char type, int len);
 void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len);
 
 /* *** Generalize Formatting *** */
-typedef struct TextFormatType {
+struct TextFormatType {
   struct TextFormatType *next, *prev;
 
   char (*format_identifier)(const char *string);
@@ -85,7 +85,7 @@ typedef struct TextFormatType {
 
   /** The prefix of a single-line line comment (without trailing space). */
   const char *comment_line;
-} TextFormatType;
+};
 
 enum {
   /** White-space */
@@ -124,7 +124,7 @@ void ED_text_format_register_pov_ini();
  * This string literal must start at the beginning of the source string.
  *
  * If a string literal is found, the length of the string literal is returned.
- * Otherwise, -1.
+ * Otherwise, 0.
  */
 int text_format_string_literal_find(const Span<const char *> string_literals, const char *text);
 

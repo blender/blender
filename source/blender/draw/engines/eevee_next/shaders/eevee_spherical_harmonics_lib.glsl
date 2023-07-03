@@ -237,20 +237,20 @@ void spherical_harmonics_L2_rotate(mat3x3 rotation, inout SphericalHarmonicBandL
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL0 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb;
-  return radiance;
+  return max(vec3(0.0), radiance);
 }
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL1 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb +
                   spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0 / 3.0);
-  return radiance;
+  return max(vec3(0.0), radiance);
 }
 vec3 spherical_harmonics_evaluate_lambert(vec3 N, SphericalHarmonicL2 sh)
 {
   vec3 radiance = spherical_harmonics_L0_evaluate(N, sh.L0).rgb +
                   spherical_harmonics_L1_evaluate(N, sh.L1).rgb * (2.0 / 3.0) +
                   spherical_harmonics_L2_evaluate(N, sh.L2).rgb * (1.0 / 4.0);
-  return radiance;
+  return max(vec3(0.0), radiance);
 }
 
 /**
@@ -264,7 +264,7 @@ float spherical_harmonics_evaluate_non_linear(vec3 N, float R0, vec3 R1)
   R1 /= 2.0;
 
   float R1_len;
-  vec3 R1_dir = safe_normalize_and_get_length(R1, R1_len);
+  vec3 R1_dir = normalize_and_get_length(R1, R1_len);
   float rcp_R0 = safe_rcp(R0);
 
   float q = (1.0 + dot(R1_dir, N)) / 2.0;

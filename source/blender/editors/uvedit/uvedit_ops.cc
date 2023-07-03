@@ -2034,7 +2034,7 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 /** \name Operator Registration & Keymap
  * \{ */
 
-void ED_operatortypes_uvedit(void)
+void ED_operatortypes_uvedit()
 {
   /* uvedit_select.c */
   WM_operatortype_append(UV_OT_select_all);
@@ -2089,7 +2089,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_cursor_set);
 }
 
-void ED_operatormacros_uvedit(void)
+void ED_operatormacros_uvedit()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

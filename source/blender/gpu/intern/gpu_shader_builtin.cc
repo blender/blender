@@ -154,7 +154,7 @@ GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
   return GPU_shader_get_builtin_shader_with_config(shader, GPU_SHADER_CFG_DEFAULT);
 }
 
-void GPU_shader_free_builtin_shaders(void)
+void GPU_shader_free_builtin_shaders()
 {
   for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
     for (int j = 0; j < GPU_SHADER_BUILTIN_LEN; j++) {

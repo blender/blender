@@ -274,13 +274,13 @@ void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, Cu
   }
 }
 
-void BKE_paint_invalidate_overlay_all(void)
+void BKE_paint_invalidate_overlay_all()
 {
   overlay_flags |= (PAINT_OVERLAY_INVALID_TEXTURE_SECONDARY |
                     PAINT_OVERLAY_INVALID_TEXTURE_PRIMARY | PAINT_OVERLAY_INVALID_CURVE);
 }
 
-ePaintOverlayControlFlags BKE_paint_get_overlay_flags(void)
+ePaintOverlayControlFlags BKE_paint_get_overlay_flags()
 {
   return overlay_flags;
 }

@@ -17,6 +17,14 @@
 #include "DNA_ID_enums.h"
 #include "DNA_asset_types.h"
 
+#include "RNA_types.h"
+
+#ifdef __cplusplus
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,4 +45,14 @@ void ED_asset_handle_get_full_library_path(
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+
+namespace blender::ed::asset {
+
+PointerRNA create_asset_rna_ptr(const asset_system::AssetRepresentation *asset);
+
+}
+
 #endif

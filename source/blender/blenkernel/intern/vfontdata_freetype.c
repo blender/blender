@@ -212,7 +212,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, const VFont
     return NULL;
   }
 
-  VChar *che = (VChar *)MEM_callocN(sizeof(struct VChar), "objfnt_char");
+  VChar *che = (VChar *)MEM_callocN(sizeof(VChar), "objfnt_char");
   freetype_outline_to_curves(face->glyph->outline, &che->nurbsbase, vfd->scale);
   che->index = charcode;
   che->width = face->glyph->advance.x * vfd->scale;

@@ -19,7 +19,6 @@
 #include "BLT_translation.h"
 
 #include "RNA_access.h"
-#include "RNA_prototypes.h"
 
 #include "ED_asset.h"
 #include "ED_screen.h"
@@ -33,129 +32,25 @@ static bool node_add_menu_poll(const bContext *C, MenuType * /*mt*/)
   return CTX_wm_space_node(C);
 }
 
-static void node_add_menu_assets_listen_fn(const wmRegionListenerParams *params)
-{
-  const wmNotifier *wmn = params->notifier;
-  ARegion *region = params->region;
-
-  switch (wmn->category) {
-    case NC_ASSET:
-      if (wmn->data == ND_ASSET_LIST_READING) {
-        ED_region_tag_refresh_ui(region);
-      }
-      break;
-  }
-}
-
-struct AssetItemTree {
-  asset_system::AssetCatalogTree catalogs;
-  MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
-      assets_per_path;
-};
-
-static AssetLibraryReference all_library_reference()
-{
-  AssetLibraryReference all_library_ref{};
-  all_library_ref.custom_library_index = -1;
-  all_library_ref.type = ASSET_LIBRARY_ALL;
-  return all_library_ref;
-}
-
 static bool all_loading_finished()
 {
-  AssetLibraryReference all_library_ref = all_library_reference();
+  AssetLibraryReference all_library_ref = asset_system::all_library_reference();
   return ED_assetlist_is_loaded(&all_library_ref);
 }
 
-static asset_system::AssetLibrary *get_all_library_once_available()
+static asset::AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree &node_tree)
 {
-  const AssetLibraryReference all_library_ref = all_library_reference();
-  return ED_assetlist_library_get_once_available(all_library_ref);
-}
-
-/**
- * The menus want to pass catalog paths to context and for this they need persistent pointers to
- * the paths. Rather than keeping some local path storage, get a pointer into the asset system
- * directly, which is persistent until the library is reloaded and can safely be held by context.
- */
-static PointerRNA persistent_catalog_path_rna_pointer(
-    bScreen &owner_screen,
-    const asset_system::AssetLibrary &library,
-    const asset_system::AssetCatalogTreeItem &item)
-{
-  const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog_by_path(
-      item.catalog_path());
-  if (!catalog) {
-    return PointerRNA_NULL;
-  }
-
-  const asset_system::AssetCatalogPath &path = catalog->path;
-  return {&owner_screen.id,
-          &RNA_AssetCatalogPath,
-          const_cast<asset_system::AssetCatalogPath *>(&path)};
-}
-
-static AssetItemTree build_catalog_tree(const bContext &C, const bNodeTree *node_tree)
-{
-  if (!node_tree) {
-    return {};
-  }
-
-  /* Find all the matching node group assets for every catalog path. */
-  MultiValueMap<asset_system::AssetCatalogPath, asset_system::AssetRepresentation *>
-      assets_per_path;
-
   AssetFilterSettings type_filter{};
   type_filter.id_types = FILTER_ID_NT;
-
-  const AssetLibraryReference all_library_ref = all_library_reference();
-
-  ED_assetlist_storage_fetch(&all_library_ref, &C);
-  ED_assetlist_ensure_previews_job(&all_library_ref, &C);
-
-  asset_system::AssetLibrary *all_library = get_all_library_once_available();
-  if (!all_library) {
-    return {};
-  }
-
-  ED_assetlist_iterate(all_library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (!ED_asset_filter_matches_asset(&type_filter, asset)) {
-      return true;
-    }
-    const AssetMetaData &meta_data = asset.get_metadata();
+  auto meta_data_filter = [&](const AssetMetaData &meta_data) {
     const IDProperty *tree_type = BKE_asset_metadata_idprop_find(&meta_data, "type");
-    if (tree_type == nullptr || IDP_Int(tree_type) != node_tree->type) {
-      return true;
+    if (tree_type == nullptr || IDP_Int(tree_type) != node_tree.type) {
+      return false;
     }
-    if (BLI_uuid_is_nil(meta_data.catalog_id)) {
-      return true;
-    }
-
-    const asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
-        meta_data.catalog_id);
-    if (catalog == nullptr) {
-      return true;
-    }
-    assets_per_path.add(catalog->path, &asset);
     return true;
-  });
-
-  /* Build an own tree without any of the catalogs that don't have proper node group assets. */
-  asset_system::AssetCatalogTree catalogs_with_node_assets;
-  asset_system::AssetCatalogTree &catalog_tree = *all_library->catalog_service->get_catalog_tree();
-  catalog_tree.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
-    if (assets_per_path.lookup(item.catalog_path()).is_empty()) {
-      return;
-    }
-    asset_system::AssetCatalog *catalog = all_library->catalog_service->find_catalog(
-        item.get_catalog_id());
-    if (catalog == nullptr) {
-      return;
-    }
-    catalogs_with_node_assets.insert_item(*catalog);
-  });
-
-  return {std::move(catalogs_with_node_assets), std::move(assets_per_path)};
+  };
+  const AssetLibraryReference library = asset_system::all_library_reference();
+  return asset::build_filtered_all_catalog_tree(library, C, type_filter, meta_data_filter);
 }
 
 static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
@@ -166,7 +61,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
     BLI_assert_unreachable();
     return;
   }
-  AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   const bNodeTree *edit_tree = snode.edittree;
   if (!edit_tree) {
     return;
@@ -192,21 +87,20 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 
   for (const asset_system::AssetRepresentation *asset : assets) {
     uiLayout *col = uiLayoutColumn(layout, false);
-
-    PointerRNA asset_ptr{
-        nullptr, &RNA_AssetRepresentation, const_cast<asset_system::AssetRepresentation *>(asset)};
+    PointerRNA asset_ptr = asset::create_asset_rna_ptr(asset);
     uiLayoutSetContextPointer(col, "asset", &asset_ptr);
-
     uiItemO(col, IFACE_(asset->get_name().c_str()), ICON_NONE, "NODE_OT_add_group_asset");
   }
 
-  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+      asset_system::all_library_reference());
   if (!all_library) {
     return;
   }
 
   catalog_item->foreach_child([&](asset_system::AssetCatalogTreeItem &child_item) {
-    PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, child_item);
+    PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(
+        screen, *all_library, child_item);
     if (path_ptr.data == nullptr) {
       return;
     }
@@ -222,15 +116,18 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 {
   bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-  const bNodeTree *edit_tree = snode.edittree;
   uiLayout *layout = menu->layout;
+  const bNodeTree *edit_tree = snode.edittree;
+  if (!edit_tree) {
+    return;
+  }
 
-  snode.runtime->assets_for_menu = std::make_shared<AssetItemTree>(
-      build_catalog_tree(*C, edit_tree));
+  snode.runtime->assets_for_menu = std::make_shared<asset::AssetItemTree>(
+      build_catalog_tree(*C, *edit_tree));
 
   const bool loading_finished = all_loading_finished();
 
-  AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   if (tree.catalogs.is_empty() && loading_finished) {
     return;
   }
@@ -275,7 +172,8 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     return menus;
   }();
 
-  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+      asset_system::all_library_reference());
   if (!all_library) {
     return;
   }
@@ -284,7 +182,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     if (all_builtin_menus.contains(item.get_name())) {
       return;
     }
-    PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, item);
+    PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(screen, *all_library, item);
     if (path_ptr.data == nullptr) {
       return;
     }
@@ -300,7 +198,7 @@ MenuType add_catalog_assets_menu_type()
   STRNCPY(type.idname, "NODE_MT_node_add_catalog_assets");
   type.poll = node_add_menu_poll;
   type.draw = node_add_catalog_assets_draw;
-  type.listener = node_add_menu_assets_listen_fn;
+  type.listener = asset::asset_reading_region_listen_fn;
   return type;
 }
 
@@ -310,40 +208,36 @@ MenuType add_root_catalogs_menu_type()
   STRNCPY(type.idname, "NODE_MT_node_add_root_catalogs");
   type.poll = node_add_menu_poll;
   type.draw = add_root_catalogs_draw;
-  type.listener = node_add_menu_assets_listen_fn;
+  type.listener = asset::asset_reading_region_listen_fn;
   return type;
 }
 
 }  // namespace blender::ed::space_node
 
-/* Note: This is only necessary because Python can't set an asset catalog path context item. */
 void uiTemplateNodeAssetMenuItems(uiLayout *layout, bContext *C, const char *catalog_path)
 {
   using namespace blender;
+  using namespace blender::ed;
   using namespace blender::ed::space_node;
   bScreen &screen = *CTX_wm_screen(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
-
   if (snode.runtime->assets_for_menu == nullptr) {
     return;
   }
-
-  AssetItemTree &tree = *snode.runtime->assets_for_menu;
+  asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
   const asset_system::AssetCatalogTreeItem *item = tree.catalogs.find_root_item(catalog_path);
   if (!item) {
     return;
   }
-
-  asset_system::AssetLibrary *all_library = get_all_library_once_available();
+  asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(
+      asset_system::all_library_reference());
   if (!all_library) {
     return;
   }
-
-  PointerRNA path_ptr = persistent_catalog_path_rna_pointer(screen, *all_library, *item);
+  PointerRNA path_ptr = asset::persistent_catalog_path_rna_pointer(screen, *all_library, *item);
   if (path_ptr.data == nullptr) {
     return;
   }
-
   uiItemS(layout);
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetContextPointer(col, "asset_catalog_path", &path_ptr);

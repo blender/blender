@@ -407,7 +407,7 @@ static void make_renderinfo_string(const RenderStats *rs,
                                    const Scene *scene,
                                    const bool v3d_override,
                                    const char *error,
-                                   char ret[IMA_MAX_RENDER_TEXT])
+                                   char ret[IMA_MAX_RENDER_TEXT_SIZE])
 {
   const char *info_space = " ";
   const char *info_sep = "| ";
@@ -514,13 +514,13 @@ static void make_renderinfo_string(const RenderStats *rs,
   }
 
   if (G.debug & G_DEBUG) {
-    if (BLI_string_len_array(ret_array, i) >= IMA_MAX_RENDER_TEXT) {
+    if (BLI_string_len_array(ret_array, i) >= IMA_MAX_RENDER_TEXT_SIZE) {
       printf("WARNING! renderwin text beyond limit\n");
     }
   }
 
   BLI_assert(i < int(BOUNDED_ARRAY_TYPE_SIZE<decltype(ret_array)>()));
-  BLI_string_join_array(ret, IMA_MAX_RENDER_TEXT, ret_array, i);
+  BLI_string_join_array(ret, IMA_MAX_RENDER_TEXT_SIZE, ret_array, i);
 }
 
 static void image_renderinfo_cb(void *rjv, RenderStats *rs)
@@ -533,7 +533,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
   if (rr) {
     /* malloc OK here, stats_draw is not in tile threads */
     if (rr->text == nullptr) {
-      rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT, "rendertext"));
+      rr->text = static_cast<char *>(MEM_callocN(IMA_MAX_RENDER_TEXT_SIZE, "rendertext"));
     }
 
     make_renderinfo_string(rs, rj->scene, rj->v3d_override, rr->error, rr->text);

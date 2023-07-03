@@ -621,7 +621,7 @@ void ED_draw_imbuf_ctx(
   ED_draw_imbuf_ctx_clipping(C, ibuf, x, y, use_filter, 0.0f, 0.0f, 0.0f, 0.0f, zoom_x, zoom_y);
 }
 
-int ED_draw_imbuf_method(ImBuf *ibuf)
+int ED_draw_imbuf_method(const ImBuf *ibuf)
 {
   if (U.image_draw_method == IMAGE_DRAW_METHOD_AUTO) {
     /* Use faster GLSL when CPU to GPU transfer is unlikely to be a bottleneck,

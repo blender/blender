@@ -164,7 +164,7 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac,
 }
 
 /* helper method to test if group colors should be drawn */
-static bool acf_show_channel_colors(void)
+static bool acf_show_channel_colors()
 {
   return (U.animation_flag & USER_ANIM_SHOW_CHANNEL_GROUP_COLORS) != 0;
 }
@@ -370,22 +370,26 @@ static void acf_generic_idblock_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for ID block entries */
-static bool acf_generic_idblock_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_generic_idblock_name_prop(bAnimListElem *ale,
+                                          PointerRNA *r_ptr,
+                                          PropertyRNA **r_prop)
 {
-  RNA_id_pointer_create(static_cast<ID *>(ale->data), ptr);
-  *prop = RNA_struct_name_property(ptr->type);
+  RNA_id_pointer_create(static_cast<ID *>(ale->data), r_ptr);
+  *r_prop = RNA_struct_name_property(r_ptr->type);
 
-  return (*prop != nullptr);
+  return (*r_prop != nullptr);
 }
 
 /* name property for ID block entries which are just subheading "fillers" */
-static bool acf_generic_idfill_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_generic_idfill_name_prop(bAnimListElem *ale,
+                                         PointerRNA *r_ptr,
+                                         PropertyRNA **r_prop)
 {
   /* actual ID we're representing is stored in ale->data not ale->id, as id gives the owner */
-  RNA_id_pointer_create(static_cast<ID *>(ale->data), ptr);
-  *prop = RNA_struct_name_property(ptr->type);
+  RNA_id_pointer_create(static_cast<ID *>(ale->data), r_ptr);
+  *r_prop = RNA_struct_name_property(r_ptr->type);
 
-  return (*prop != nullptr);
+  return (*r_prop != nullptr);
 }
 
 /* Settings ------------------------------------------- */
@@ -473,39 +477,38 @@ static bool acf_summary_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_summary_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
   if (setting == ACHANNEL_SETTING_EXPAND) {
     /* expanded */
-    *neg = true;
+    *r_neg = true;
     return ADS_FLAG_SUMMARY_COLLAPSED;
   }
 
   /* unsupported */
-  *neg = false;
+  *r_neg = false;
   return 0;
 }
 
 /* get pointer to the setting */
 static void *acf_summary_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings setting,
-                                     short *type)
+                                     short *r_type)
 {
   bAnimContext *ac = (bAnimContext *)ale->data;
 
-  /* if data is valid, return pointer to active dopesheet's relevant flag
-   * - this is restricted to DopeSheet/Action Editor only
-   */
+  /* If data is valid, return pointer to active dope-sheet's relevant flag
+   * - this is restricted to DopeSheet/Action Editor only. */
   if ((ac->sl) && (ac->spacetype == SPACE_ACTION) && (setting == ACHANNEL_SETTING_EXPAND)) {
     SpaceAction *saction = (SpaceAction *)ac->sl;
     bDopeSheet *ads = &saction->ads;
 
     /* return pointer to DopeSheet's flag */
-    return GET_ACF_FLAG_PTR(ads->flag, type);
+    return GET_ACF_FLAG_PTR(ads->flag, r_type);
   }
 
   /* can't return anything useful - unsupported */
-  *type = 0;
+  *r_type = 0;
   return nullptr;
 }
 
@@ -564,24 +567,26 @@ static bool acf_scene_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_scene_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_scene_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
       return SCE_DS_SELECTED;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      *neg = true;
+      *r_neg = true;
       return SCE_DS_COLLAPSED;
 
     case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     default: /* unsupported */
@@ -590,24 +595,26 @@ static int acf_scene_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_scene_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_scene_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Scene *scene = (Scene *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
-      return GET_ACF_FLAG_PTR(scene->flag, type);
+      return GET_ACF_FLAG_PTR(scene->flag, r_type);
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(scene->flag, type);
+      return GET_ACF_FLAG_PTR(scene->flag, r_type);
 
     case ACHANNEL_SETTING_MUTE:    /* mute (only in NLA) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (scene->adt) {
-        return GET_ACF_FLAG_PTR(scene->adt->flag, type);
+        return GET_ACF_FLAG_PTR(scene->adt->flag, r_type);
       }
       return nullptr;
 
@@ -696,12 +703,12 @@ static void acf_object_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for object */
-static bool acf_object_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_object_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-  RNA_id_pointer_create(ale->id, ptr);
-  *prop = RNA_struct_name_property(ptr->type);
+  RNA_id_pointer_create(ale->id, r_ptr);
+  *r_prop = RNA_struct_name_property(r_ptr->type);
 
-  return (*prop != nullptr);
+  return (*r_prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
@@ -735,24 +742,26 @@ static bool acf_object_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_object_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_object_setting_flag(bAnimContext * /*ac*/,
+                                   eAnimChannel_Settings setting,
+                                   bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
       return BASE_SELECTED;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      *neg = 1;
+      *r_neg = true;
       return OB_ADS_COLLAPSED;
 
     case ACHANNEL_SETTING_MUTE: /* mute (only in NLA) */
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
@@ -764,26 +773,28 @@ static int acf_object_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
 }
 
 /* get pointer to the setting */
-static void *acf_object_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_object_setting_ptr(bAnimListElem *ale,
+                                    eAnimChannel_Settings setting,
+                                    short *r_type)
 {
   Base *base = (Base *)ale->data;
   Object *ob = base->object;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
-      return GET_ACF_FLAG_PTR(base->flag, type);
+      return GET_ACF_FLAG_PTR(base->flag, r_type);
 
-    case ACHANNEL_SETTING_EXPAND:                 /* expanded */
-      return GET_ACF_FLAG_PTR(ob->nlaflag, type); /* XXX */
+    case ACHANNEL_SETTING_EXPAND:                   /* expanded */
+      return GET_ACF_FLAG_PTR(ob->nlaflag, r_type); /* XXX */
 
     case ACHANNEL_SETTING_MUTE:    /* mute (only in NLA) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
       if (ob->adt) {
-        return GET_ACF_FLAG_PTR(ob->adt->flag, type);
+        return GET_ACF_FLAG_PTR(ob->adt->flag, r_type);
       }
       return nullptr;
 
@@ -879,12 +890,12 @@ static void acf_group_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for group entries */
-static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_group_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
-  RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data, ptr);
-  *prop = RNA_struct_name_property(ptr->type);
+  RNA_pointer_create(ale->fcurve_owner_id, &RNA_ActionGroup, ale->data, r_ptr);
+  *r_prop = RNA_struct_name_property(r_ptr->type);
 
-  return (*prop != nullptr);
+  return (*r_prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
@@ -912,10 +923,10 @@ static bool acf_group_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
+static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -935,14 +946,14 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
       return AGRP_MUTED;
 
     case ACHANNEL_SETTING_MOD_OFF: /* muted */
-      *neg = 1;
+      *r_neg = true;
       return AGRP_MODIFIERS_OFF;
 
     case ACHANNEL_SETTING_PROTECT: /* protected */
       return AGRP_PROTECTED;
 
     case ACHANNEL_SETTING_VISIBLE: /* visibility - graph editor */
-      *neg = 1;
+      *r_neg = true;
       return AGRP_NOTVISIBLE;
 
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
@@ -957,12 +968,12 @@ static int acf_group_setting_flag(bAnimContext *ac, eAnimChannel_Settings settin
 /* get pointer to the setting */
 static void *acf_group_setting_ptr(bAnimListElem *ale,
                                    eAnimChannel_Settings /*setting*/,
-                                   short *type)
+                                   short *r_type)
 {
   bActionGroup *agrp = (bActionGroup *)ale->data;
 
   /* all flags are just in agrp->flag for now... */
-  return GET_ACF_FLAG_PTR(agrp->flag, type);
+  return GET_ACF_FLAG_PTR(agrp->flag, r_type);
 }
 
 /** Group type define. */
@@ -993,7 +1004,7 @@ static void acf_fcurve_name(bAnimListElem *ale, char *name)
 }
 
 /* "name" property for fcurve entries */
-static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   FCurve *fcu = (FCurve *)ale->data;
 
@@ -1002,15 +1013,15 @@ static bool acf_fcurve_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRN
    * as our "name" so that user can perform quick fixes
    */
   if (fcu->flag & FCURVE_DISABLED) {
-    RNA_pointer_create(ale->fcurve_owner_id, &RNA_FCurve, ale->data, ptr);
-    *prop = RNA_struct_find_property(ptr, "data_path");
+    RNA_pointer_create(ale->fcurve_owner_id, &RNA_FCurve, ale->data, r_ptr);
+    *r_prop = RNA_struct_find_property(r_ptr, "data_path");
   }
   else {
     /* for "normal" F-Curves - no editable name, but *prop may not be set properly yet... */
-    *prop = nullptr;
+    *r_prop = nullptr;
   }
 
-  return (*prop != nullptr);
+  return (*r_prop != nullptr);
 }
 
 /* check if some setting exists for this channel */
@@ -1049,10 +1060,12 @@ static bool acf_fcurve_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_fcurve_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_fcurve_setting_flag(bAnimContext * /*ac*/,
+                                   eAnimChannel_Settings setting,
+                                   bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1068,7 +1081,7 @@ static int acf_fcurve_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
       return FCURVE_VISIBLE;
 
     case ACHANNEL_SETTING_MOD_OFF:
-      *neg = 1;
+      *r_neg = true;
       return FCURVE_MOD_OFF;
 
     default: /* unsupported */
@@ -1079,12 +1092,12 @@ static int acf_fcurve_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
 /* get pointer to the setting */
 static void *acf_fcurve_setting_ptr(bAnimListElem *ale,
                                     eAnimChannel_Settings /*setting*/,
-                                    short *type)
+                                    short *r_type)
 {
   FCurve *fcu = (FCurve *)ale->data;
 
   /* all flags are just in agrp->flag for now... */
-  return GET_ACF_FLAG_PTR(fcu->flag, type);
+  return GET_ACF_FLAG_PTR(fcu->flag, r_type);
 }
 
 /** F-Curve type define. */
@@ -1171,14 +1184,14 @@ static bool acf_nla_controls_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_nla_controls_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
-                                         bool *neg)
+                                         bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      *neg = true;
+      *r_neg = true;
       return ADT_NLA_SKEYS_COLLAPSED;
 
     default:
@@ -1190,12 +1203,12 @@ static int acf_nla_controls_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_nla_controls_setting_ptr(bAnimListElem *ale,
                                           eAnimChannel_Settings /*setting*/,
-                                          short *type)
+                                          short *r_type)
 {
   AnimData *adt = (AnimData *)ale->data;
 
   /* all flags are just in adt->flag for now... */
-  return GET_ACF_FLAG_PTR(adt->flag, type);
+  return GET_ACF_FLAG_PTR(adt->flag, r_type);
 }
 
 static int acf_nla_controls_icon(bAnimListElem * /*ale*/)
@@ -1289,17 +1302,17 @@ static bool acf_fillactd_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_fillactd_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
-                                     bool *neg)
+                                     bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
       return ADT_UI_SELECTED;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      *neg = true;
+      *r_neg = true;
       return ACT_COLLAPSED;
 
     default: /* unsupported */
@@ -1310,23 +1323,23 @@ static int acf_fillactd_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_fillactd_setting_ptr(bAnimListElem *ale,
                                       eAnimChannel_Settings setting,
-                                      short *type)
+                                      short *r_type)
 {
   bAction *act = (bAction *)ale->data;
   AnimData *adt = ale->adt;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
       if (adt) {
-        return GET_ACF_FLAG_PTR(adt->flag, type);
+        return GET_ACF_FLAG_PTR(adt->flag, r_type);
       }
       return nullptr;
 
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(act->flag, type);
+      return GET_ACF_FLAG_PTR(act->flag, r_type);
 
     default: /* unsupported */
       return nullptr;
@@ -1384,14 +1397,14 @@ static bool acf_filldrivers_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_filldrivers_setting_flag(bAnimContext * /*ac*/,
                                         eAnimChannel_Settings setting,
-                                        bool *neg)
+                                        bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      *neg = true;
+      *r_neg = true;
       return ADT_DRIVERS_COLLAPSED;
 
     default: /* unsupported */
@@ -1402,16 +1415,16 @@ static int acf_filldrivers_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_filldrivers_setting_ptr(bAnimListElem *ale,
                                          eAnimChannel_Settings setting,
-                                         short *type)
+                                         short *r_type)
 {
   AnimData *adt = (AnimData *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(adt->flag, type);
+      return GET_ACF_FLAG_PTR(adt->flag, r_type);
 
     default: /* unsupported */
       return nullptr;
@@ -1446,10 +1459,12 @@ static int acf_dsmat_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dsmat_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1459,7 +1474,7 @@ static int acf_dsmat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1471,22 +1486,24 @@ static int acf_dsmat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dsmat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dsmat_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Material *ma = (Material *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(ma->flag, type);
+      return GET_ACF_FLAG_PTR(ma->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (ma->adt) {
-        return GET_ACF_FLAG_PTR(ma->adt->flag, type);
+        return GET_ACF_FLAG_PTR(ma->adt->flag, r_type);
       }
       return nullptr;
 
@@ -1525,10 +1542,10 @@ static int acf_dslight_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dslight_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1538,7 +1555,7 @@ static int acf_dslight_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1552,22 +1569,22 @@ static int acf_dslight_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dslight_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings setting,
-                                     short *type)
+                                     short *r_type)
 {
   Light *la = (Light *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(la->flag, type);
+      return GET_ACF_FLAG_PTR(la->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (la->adt) {
-        return GET_ACF_FLAG_PTR(la->adt->flag, type);
+        return GET_ACF_FLAG_PTR(la->adt->flag, r_type);
       }
       return nullptr;
 
@@ -1611,10 +1628,12 @@ static short acf_dstex_offset(bAnimContext * /*ac*/, bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dstex_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dstex_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1624,7 +1643,7 @@ static int acf_dstex_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1636,22 +1655,24 @@ static int acf_dstex_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dstex_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dstex_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Tex *tex = (Tex *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(tex->flag, type);
+      return GET_ACF_FLAG_PTR(tex->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (tex->adt) {
-        return GET_ACF_FLAG_PTR(tex->adt->flag, type);
+        return GET_ACF_FLAG_PTR(tex->adt->flag, r_type);
       }
       return nullptr;
 
@@ -1689,10 +1710,12 @@ static int acf_dscachefile_icon(bAnimListElem *ale)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscachefile_setting_flag(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg)
+static int acf_dscachefile_setting_flag(bAnimContext *ac,
+                                        eAnimChannel_Settings setting,
+                                        bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1702,7 +1725,7 @@ static int acf_dscachefile_setting_flag(bAnimContext *ac, eAnimChannel_Settings 
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1718,22 +1741,22 @@ static int acf_dscachefile_setting_flag(bAnimContext *ac, eAnimChannel_Settings 
 /* get pointer to the setting */
 static void *acf_dscachefile_setting_ptr(bAnimListElem *ale,
                                          eAnimChannel_Settings setting,
-                                         short *type)
+                                         short *r_type)
 {
   CacheFile *cache_file = (CacheFile *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(cache_file->flag, type);
+      return GET_ACF_FLAG_PTR(cache_file->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (cache_file->adt) {
-        return GET_ACF_FLAG_PTR(cache_file->adt->flag, type);
+        return GET_ACF_FLAG_PTR(cache_file->adt->flag, r_type);
       }
 
       return nullptr;
@@ -1771,10 +1794,12 @@ static int acf_dscam_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscam_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dscam_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1784,7 +1809,7 @@ static int acf_dscam_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1799,23 +1824,25 @@ static int acf_dscam_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dscam_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dscam_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Camera *ca = (Camera *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(ca->flag, type);
+      return GET_ACF_FLAG_PTR(ca->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
     case ACHANNEL_SETTING_ALWAYS_VISIBLE:
       if (ca->adt) {
-        return GET_ACF_FLAG_PTR(ca->adt->flag, type);
+        return GET_ACF_FLAG_PTR(ca->adt->flag, r_type);
       }
       return nullptr;
 
@@ -1862,10 +1889,12 @@ static int acf_dscur_icon(bAnimListElem *ale)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dscur_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dscur_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1875,7 +1904,7 @@ static int acf_dscur_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1887,22 +1916,24 @@ static int acf_dscur_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dscur_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dscur_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Curve *cu = (Curve *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(cu->flag, type);
+      return GET_ACF_FLAG_PTR(cu->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (cu->adt) {
-        return GET_ACF_FLAG_PTR(cu->adt->flag, type);
+        return GET_ACF_FLAG_PTR(cu->adt->flag, r_type);
       }
       return nullptr;
 
@@ -1958,10 +1989,12 @@ static bool acf_dsskey_setting_valid(bAnimContext *ac,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsskey_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dsskey_setting_flag(bAnimContext * /*ac*/,
+                                   eAnimChannel_Settings setting,
+                                   bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -1971,7 +2004,7 @@ static int acf_dsskey_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -1983,22 +2016,24 @@ static int acf_dsskey_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
 }
 
 /* get pointer to the setting */
-static void *acf_dsskey_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dsskey_setting_ptr(bAnimListElem *ale,
+                                    eAnimChannel_Settings setting,
+                                    short *r_type)
 {
   Key *key = (Key *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(key->flag, type);
+      return GET_ACF_FLAG_PTR(key->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (key->adt) {
-        return GET_ACF_FLAG_PTR(key->adt->flag, type);
+        return GET_ACF_FLAG_PTR(key->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2035,10 +2070,12 @@ static int acf_dswor_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dswor_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dswor_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2048,7 +2085,7 @@ static int acf_dswor_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2060,22 +2097,24 @@ static int acf_dswor_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dswor_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dswor_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   World *wo = (World *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(wo->flag, type);
+      return GET_ACF_FLAG_PTR(wo->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (wo->adt) {
-        return GET_ACF_FLAG_PTR(wo->adt->flag, type);
+        return GET_ACF_FLAG_PTR(wo->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2112,10 +2151,12 @@ static int acf_dspart_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dspart_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dspart_setting_flag(bAnimContext * /*ac*/,
+                                   eAnimChannel_Settings setting,
+                                   bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2125,7 +2166,7 @@ static int acf_dspart_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2137,22 +2178,24 @@ static int acf_dspart_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
 }
 
 /* get pointer to the setting */
-static void *acf_dspart_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dspart_setting_ptr(bAnimListElem *ale,
+                                    eAnimChannel_Settings setting,
+                                    short *r_type)
 {
   ParticleSettings *part = (ParticleSettings *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(part->flag, type);
+      return GET_ACF_FLAG_PTR(part->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (part->adt) {
-        return GET_ACF_FLAG_PTR(part->adt->flag, type);
+        return GET_ACF_FLAG_PTR(part->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2191,10 +2234,10 @@ static int acf_dsmball_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmball_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2204,7 +2247,7 @@ static int acf_dsmball_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2218,22 +2261,22 @@ static int acf_dsmball_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dsmball_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings setting,
-                                     short *type)
+                                     short *r_type)
 {
   MetaBall *mb = (MetaBall *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(mb->flag2, type);
+      return GET_ACF_FLAG_PTR(mb->flag2, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (mb->adt) {
-        return GET_ACF_FLAG_PTR(mb->adt->flag, type);
+        return GET_ACF_FLAG_PTR(mb->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2270,10 +2313,12 @@ static int acf_dsarm_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsarm_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dsarm_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2283,7 +2328,7 @@ static int acf_dsarm_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2295,22 +2340,24 @@ static int acf_dsarm_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dsarm_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dsarm_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   bArmature *arm = (bArmature *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(arm->flag, type);
+      return GET_ACF_FLAG_PTR(arm->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (arm->adt) {
-        return GET_ACF_FLAG_PTR(arm->adt->flag, type);
+        return GET_ACF_FLAG_PTR(arm->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2360,10 +2407,10 @@ static short acf_dsntree_offset(bAnimContext *ac, bAnimListElem *ale)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsntree_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2373,7 +2420,7 @@ static int acf_dsntree_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2387,22 +2434,22 @@ static int acf_dsntree_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dsntree_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings setting,
-                                     short *type)
+                                     short *r_type)
 {
   bNodeTree *ntree = (bNodeTree *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(ntree->flag, type);
+      return GET_ACF_FLAG_PTR(ntree->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (ntree->adt) {
-        return GET_ACF_FLAG_PTR(ntree->adt->flag, type);
+        return GET_ACF_FLAG_PTR(ntree->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2441,10 +2488,10 @@ static int acf_dslinestyle_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dslinestyle_setting_flag(bAnimContext * /*ac*/,
                                         eAnimChannel_Settings setting,
-                                        bool *neg)
+                                        bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2454,7 +2501,7 @@ static int acf_dslinestyle_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2468,22 +2515,22 @@ static int acf_dslinestyle_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dslinestyle_setting_ptr(bAnimListElem *ale,
                                          eAnimChannel_Settings setting,
-                                         short *type)
+                                         short *r_type)
 {
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(linestyle->flag, type);
+      return GET_ACF_FLAG_PTR(linestyle->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (linestyle->adt) {
-        return GET_ACF_FLAG_PTR(linestyle->adt->flag, type);
+        return GET_ACF_FLAG_PTR(linestyle->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2520,10 +2567,12 @@ static int acf_dsmesh_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsmesh_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dsmesh_setting_flag(bAnimContext * /*ac*/,
+                                   eAnimChannel_Settings setting,
+                                   bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2533,7 +2582,7 @@ static int acf_dsmesh_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2545,22 +2594,24 @@ static int acf_dsmesh_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings 
 }
 
 /* get pointer to the setting */
-static void *acf_dsmesh_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dsmesh_setting_ptr(bAnimListElem *ale,
+                                    eAnimChannel_Settings setting,
+                                    short *r_type)
 {
   Mesh *me = (Mesh *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(me->flag, type);
+      return GET_ACF_FLAG_PTR(me->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (me->adt) {
-        return GET_ACF_FLAG_PTR(me->adt->flag, type);
+        return GET_ACF_FLAG_PTR(me->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2598,10 +2649,12 @@ static int acf_dslat_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dslat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dslat_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2611,7 +2664,7 @@ static int acf_dslat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2623,22 +2676,24 @@ static int acf_dslat_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dslat_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dslat_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Lattice *lt = (Lattice *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(lt->flag, type);
+      return GET_ACF_FLAG_PTR(lt->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (lt->adt) {
-        return GET_ACF_FLAG_PTR(lt->adt->flag, type);
+        return GET_ACF_FLAG_PTR(lt->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2676,10 +2731,12 @@ static int acf_dsspk_icon(bAnimListElem * /*ale*/)
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_dsspk_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_dsspk_setting_flag(bAnimContext * /*ac*/,
+                                  eAnimChannel_Settings setting,
+                                  bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2689,7 +2746,7 @@ static int acf_dsspk_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2701,22 +2758,24 @@ static int acf_dsspk_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings s
 }
 
 /* get pointer to the setting */
-static void *acf_dsspk_setting_ptr(bAnimListElem *ale, eAnimChannel_Settings setting, short *type)
+static void *acf_dsspk_setting_ptr(bAnimListElem *ale,
+                                   eAnimChannel_Settings setting,
+                                   short *r_type)
 {
   Speaker *spk = (Speaker *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(spk->flag, type);
+      return GET_ACF_FLAG_PTR(spk->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (spk->adt) {
-        return GET_ACF_FLAG_PTR(spk->adt->flag, type);
+        return GET_ACF_FLAG_PTR(spk->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2755,10 +2814,10 @@ static int acf_dscurves_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dscurves_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
-                                     bool *neg)
+                                     bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2768,7 +2827,7 @@ static int acf_dscurves_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2782,22 +2841,22 @@ static int acf_dscurves_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dscurves_setting_ptr(bAnimListElem *ale,
                                       eAnimChannel_Settings setting,
-                                      short *type)
+                                      short *r_type)
 {
   Curves *curves = (Curves *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(curves->flag, type);
+      return GET_ACF_FLAG_PTR(curves->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (curves->adt) {
-        return GET_ACF_FLAG_PTR(curves->adt->flag, type);
+        return GET_ACF_FLAG_PTR(curves->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2835,10 +2894,10 @@ static int acf_dspointcloud_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dspointcloud_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
-                                         bool *neg)
+                                         bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2848,7 +2907,7 @@ static int acf_dspointcloud_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2862,22 +2921,22 @@ static int acf_dspointcloud_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dspointcloud_setting_ptr(bAnimListElem *ale,
                                           eAnimChannel_Settings setting,
-                                          short *type)
+                                          short *r_type)
 {
   PointCloud *pointcloud = (PointCloud *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(pointcloud->flag, type);
+      return GET_ACF_FLAG_PTR(pointcloud->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (pointcloud->adt) {
-        return GET_ACF_FLAG_PTR(pointcloud->adt->flag, type);
+        return GET_ACF_FLAG_PTR(pointcloud->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2915,10 +2974,10 @@ static int acf_dsvolume_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsvolume_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
-                                     bool *neg)
+                                     bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -2928,7 +2987,7 @@ static int acf_dsvolume_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -2942,22 +3001,22 @@ static int acf_dsvolume_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dsvolume_setting_ptr(bAnimListElem *ale,
                                       eAnimChannel_Settings setting,
-                                      short *type)
+                                      short *r_type)
 {
   Volume *volume = (Volume *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(volume->flag, type);
+      return GET_ACF_FLAG_PTR(volume->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (volume->adt) {
-        return GET_ACF_FLAG_PTR(volume->adt->flag, type);
+        return GET_ACF_FLAG_PTR(volume->adt->flag, r_type);
       }
       return nullptr;
 
@@ -2994,10 +3053,10 @@ static int acf_dssimulation_icon(bAnimListElem * /*ale*/)
 
 static int acf_dssimulation_setting_flag(bAnimContext * /*ac*/,
                                          eAnimChannel_Settings setting,
-                                         bool *neg)
+                                         bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -3007,7 +3066,7 @@ static int acf_dssimulation_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3020,22 +3079,22 @@ static int acf_dssimulation_setting_flag(bAnimContext * /*ac*/,
 
 static void *acf_dssimulation_setting_ptr(bAnimListElem *ale,
                                           eAnimChannel_Settings setting,
-                                          short *type)
+                                          short *r_type)
 {
   Simulation *simulation = (Simulation *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(simulation->flag, type);
+      return GET_ACF_FLAG_PTR(simulation->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (simulation->adt) {
-        return GET_ACF_FLAG_PTR(simulation->adt->flag, type);
+        return GET_ACF_FLAG_PTR(simulation->adt->flag, r_type);
       }
       return nullptr;
 
@@ -3073,10 +3132,10 @@ static int acf_dsgpencil_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsgpencil_setting_flag(bAnimContext * /*ac*/,
                                       eAnimChannel_Settings setting,
-                                      bool *neg)
+                                      bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -3086,7 +3145,7 @@ static int acf_dsgpencil_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3100,22 +3159,22 @@ static int acf_dsgpencil_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dsgpencil_setting_ptr(bAnimListElem *ale,
                                        eAnimChannel_Settings setting,
-                                       short *type)
+                                       short *r_type)
 {
   bGPdata *gpd = (bGPdata *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(gpd->flag, type);
+      return GET_ACF_FLAG_PTR(gpd->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (gpd->adt) {
-        return GET_ACF_FLAG_PTR(gpd->adt->flag, type);
+        return GET_ACF_FLAG_PTR(gpd->adt->flag, r_type);
       }
       return nullptr;
 
@@ -3154,10 +3213,10 @@ static int acf_dsmclip_icon(bAnimListElem * /*ale*/)
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_dsmclip_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
@@ -3167,7 +3226,7 @@ static int acf_dsmclip_setting_flag(bAnimContext * /*ac*/,
       return ADT_NLA_EVAL_OFF;
 
     case ACHANNEL_SETTING_VISIBLE: /* visible (only in Graph Editor) */
-      *neg = true;
+      *r_neg = true;
       return ADT_CURVES_NOT_VISIBLE;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3181,22 +3240,22 @@ static int acf_dsmclip_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_dsmclip_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings setting,
-                                     short *type)
+                                     short *r_type)
 {
   MovieClip *clip = (MovieClip *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_EXPAND: /* expanded */
-      return GET_ACF_FLAG_PTR(clip->flag, type);
+      return GET_ACF_FLAG_PTR(clip->flag, r_type);
 
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted (for NLA only) */
     case ACHANNEL_SETTING_VISIBLE: /* visible (for Graph Editor only) */
       if (clip->adt != nullptr) {
-        return GET_ACF_FLAG_PTR(clip->adt->flag, type);
+        return GET_ACF_FLAG_PTR(clip->adt->flag, r_type);
       }
       return nullptr;
 
@@ -3244,16 +3303,16 @@ static void acf_shapekey_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for ShapeKey entries */
-static bool acf_shapekey_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_shapekey_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   KeyBlock *kb = (KeyBlock *)ale->data;
 
   /* if the KeyBlock had a name, use it, otherwise use the index */
   if (kb && kb->name[0]) {
-    RNA_pointer_create(ale->id, &RNA_ShapeKey, kb, ptr);
-    *prop = RNA_struct_name_property(ptr->type);
+    RNA_pointer_create(ale->id, &RNA_ShapeKey, kb, r_ptr);
+    *r_prop = RNA_struct_name_property(r_ptr->type);
 
-    return (*prop != nullptr);
+    return (*r_prop != nullptr);
   }
 
   return false;
@@ -3279,10 +3338,10 @@ static bool acf_shapekey_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_shapekey_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
-                                     bool *neg)
+                                     bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_MUTE: /* mute */
@@ -3302,18 +3361,18 @@ static int acf_shapekey_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_shapekey_setting_ptr(bAnimListElem *ale,
                                       eAnimChannel_Settings setting,
-                                      short *type)
+                                      short *r_type)
 {
   KeyBlock *kb = (KeyBlock *)ale->data;
 
-  /* clear extra return data first */
-  *type = 0;
+  /* Clear extra return data first. */
+  *r_type = 0;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT:  /* selected */
     case ACHANNEL_SETTING_MUTE:    /* muted */
     case ACHANNEL_SETTING_PROTECT: /* protected */
-      return GET_ACF_FLAG_PTR(kb->flag, type);
+      return GET_ACF_FLAG_PTR(kb->flag, r_type);
 
     default: /* unsupported */
       return nullptr;
@@ -3371,10 +3430,10 @@ static bool acf_gpd_setting_valid(bAnimContext * /*ac*/,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpd_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_gpd_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3392,12 +3451,12 @@ static int acf_gpd_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings set
 /* get pointer to the setting */
 static void *acf_gpd_setting_ptr(bAnimListElem *ale,
                                  eAnimChannel_Settings /*setting*/,
-                                 short *type)
+                                 short *r_type)
 {
   bGPdata *gpd = (bGPdata *)ale->data;
 
   /* all flags are just in gpd->flag for now... */
-  return GET_ACF_FLAG_PTR(gpd->flag, type);
+  return GET_ACF_FLAG_PTR(gpd->flag, r_type);
 }
 
 /** Grease-pencil data-block type define. */
@@ -3432,13 +3491,13 @@ static void acf_gpl_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for grease pencil layer entries */
-static bool acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_gpl_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, ptr);
-    *prop = RNA_struct_name_property(ptr->type);
+    RNA_pointer_create(ale->id, &RNA_GPencilLayer, ale->data, r_ptr);
+    *r_prop = RNA_struct_name_property(r_ptr->type);
 
-    return (*prop != nullptr);
+    return (*r_prop != nullptr);
   }
 
   return false;
@@ -3464,10 +3523,10 @@ static bool acf_gpl_setting_valid(bAnimContext * /*ac*/,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3477,7 +3536,7 @@ static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings set
       return GP_LAYER_FRAMELOCK;
 
     case ACHANNEL_SETTING_VISIBLE: /* visibility of the layers (NOT muting) */
-      *neg = true;
+      *r_neg = true;
       return GP_LAYER_HIDE;
 
     case ACHANNEL_SETTING_PROTECT: /* protected */
@@ -3491,12 +3550,12 @@ static int acf_gpl_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings set
 /* get pointer to the setting */
 static void *acf_gpl_setting_ptr(bAnimListElem *ale,
                                  eAnimChannel_Settings /*setting*/,
-                                 short *type)
+                                 short *r_type)
 {
   bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
   /* all flags are just in gpl->flag for now... */
-  return GET_ACF_FLAG_PTR(gpl->flag, type);
+  return GET_ACF_FLAG_PTR(gpl->flag, r_type);
 }
 
 /** Grease-pencil layer type define. */
@@ -3550,10 +3609,10 @@ static bool acf_mask_setting_valid(bAnimContext * /*ac*/,
 }
 
 /* Get the appropriate flag(s) for the setting when it is valid. */
-static int acf_mask_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *neg)
+static int acf_mask_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings setting, bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3571,12 +3630,12 @@ static int acf_mask_setting_flag(bAnimContext * /*ac*/, eAnimChannel_Settings se
 /* get pointer to the setting */
 static void *acf_mask_setting_ptr(bAnimListElem *ale,
                                   eAnimChannel_Settings /*setting*/,
-                                  short *type)
+                                  short *r_type)
 {
   Mask *mask = (Mask *)ale->data;
 
   /* all flags are just in mask->flag for now... */
-  return GET_ACF_FLAG_PTR(mask->flag, type);
+  return GET_ACF_FLAG_PTR(mask->flag, r_type);
 }
 
 /** Mask data-block type define. */
@@ -3611,13 +3670,13 @@ static void acf_masklay_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for grease pencil layer entries */
-static bool acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, ptr);
-    *prop = RNA_struct_name_property(ptr->type);
+    RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, r_ptr);
+    *r_prop = RNA_struct_name_property(r_ptr->type);
 
-    return (*prop != nullptr);
+    return (*r_prop != nullptr);
   }
 
   return false;
@@ -3647,10 +3706,10 @@ static bool acf_masklay_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_masklay_setting_flag(bAnimContext * /*ac*/,
                                     eAnimChannel_Settings setting,
-                                    bool *neg)
+                                    bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3667,12 +3726,12 @@ static int acf_masklay_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_masklay_setting_ptr(bAnimListElem *ale,
                                      eAnimChannel_Settings /*setting*/,
-                                     short *type)
+                                     short *r_type)
 {
   MaskLayer *masklay = (MaskLayer *)ale->data;
 
   /* all flags are just in masklay->flag for now... */
-  return GET_ACF_FLAG_PTR(masklay->flag, type);
+  return GET_ACF_FLAG_PTR(masklay->flag, r_type);
 }
 
 /** Mask layer type define. */
@@ -3726,13 +3785,13 @@ static void acf_nlatrack_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for nla track entries */
-static bool acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_nlatrack_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    RNA_pointer_create(ale->id, &RNA_NlaTrack, ale->data, ptr);
-    *prop = RNA_struct_name_property(ptr->type);
+    RNA_pointer_create(ale->id, &RNA_NlaTrack, ale->data, r_ptr);
+    *r_prop = RNA_struct_name_property(r_ptr->type);
 
-    return (*prop != nullptr);
+    return (*r_prop != nullptr);
   }
 
   return false;
@@ -3768,7 +3827,7 @@ static bool acf_nlatrack_setting_valid(bAnimContext * /*ac*/,
           return false;
         }
 
-        /* ok - no tracks are solo'd, and this isn't being tweaked */
+        /* Ok - no tracks are soloed, and this isn't being tweaked. */
         return true;
       }
       /* unsupported - this track is being tweaked */
@@ -3785,7 +3844,7 @@ static int acf_nlatrack_setting_flag(bAnimContext * /*ac*/,
                                      eAnimChannel_Settings setting,
                                      bool *neg)
 {
-  /* clear extra return data first */
+  /* Clear extra return data first. */
   *neg = false;
 
   switch (setting) {
@@ -3809,10 +3868,10 @@ static int acf_nlatrack_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_nlatrack_setting_ptr(bAnimListElem *ale,
                                       eAnimChannel_Settings /*setting*/,
-                                      short *type)
+                                      short *r_type)
 {
   NlaTrack *nlt = (NlaTrack *)ale->data;
-  return GET_ACF_FLAG_PTR(nlt->flag, type);
+  return GET_ACF_FLAG_PTR(nlt->flag, r_type);
 }
 
 /** NLA track type define. */
@@ -3927,13 +3986,13 @@ static void acf_nlaaction_name(bAnimListElem *ale, char *name)
 }
 
 /* name property for nla action entries */
-static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+static bool acf_nlaaction_name_prop(bAnimListElem *ale, PointerRNA *r_ptr, PropertyRNA **r_prop)
 {
   if (ale->data) {
-    RNA_pointer_create(ale->fcurve_owner_id, &RNA_Action, ale->data, ptr);
-    *prop = RNA_struct_name_property(ptr->type);
+    RNA_pointer_create(ale->fcurve_owner_id, &RNA_Action, ale->data, r_ptr);
+    *r_prop = RNA_struct_name_property(r_ptr->type);
 
-    return (*prop != nullptr);
+    return (*r_prop != nullptr);
   }
 
   return false;
@@ -3960,7 +4019,7 @@ static bool acf_nlaaction_setting_valid(bAnimContext * /*ac*/,
     case ACHANNEL_SETTING_SELECT: /* selected */
       return true;
 
-    /* unsupported */
+      /* unsupported */
     default:
       return false;
   }
@@ -3969,14 +4028,14 @@ static bool acf_nlaaction_setting_valid(bAnimContext * /*ac*/,
 /* Get the appropriate flag(s) for the setting when it is valid. */
 static int acf_nlaaction_setting_flag(bAnimContext * /*ac*/,
                                       eAnimChannel_Settings setting,
-                                      bool *neg)
+                                      bool *r_neg)
 {
-  /* clear extra return data first */
-  *neg = false;
+  /* Clear extra return data first. */
+  *r_neg = false;
 
   switch (setting) {
     case ACHANNEL_SETTING_PINNED: /* pinned - map/unmap */
-      *neg = true;                /* XXX */
+      *r_neg = true;              /* XXX */
       return ADT_NLA_EDIT_NOMAP;
 
     case ACHANNEL_SETTING_SELECT: /* selected */
@@ -3990,10 +4049,10 @@ static int acf_nlaaction_setting_flag(bAnimContext * /*ac*/,
 /* get pointer to the setting */
 static void *acf_nlaaction_setting_ptr(bAnimListElem *ale,
                                        eAnimChannel_Settings /*setting*/,
-                                       short *type)
+                                       short *r_type)
 {
   AnimData *adt = ale->adt;
-  return GET_ACF_FLAG_PTR(adt->flag, type);
+  return GET_ACF_FLAG_PTR(adt->flag, r_type);
 }
 
 /* nla action type define */
@@ -4024,7 +4083,7 @@ static bAnimChannelType *animchannelTypeInfo[ANIMTYPE_NUM_TYPES];
 static short ACF_INIT = 1; /* when non-zero, the list needs to be updated */
 
 /* Initialize type info definitions */
-static void ANIM_init_channel_typeinfo_data(void)
+static void ANIM_init_channel_typeinfo_data()
 {
   int type = 0;
 
@@ -4314,7 +4373,7 @@ static bool achannel_is_being_renamed(const bAnimContext *ac,
   return false;
 }
 
-float ANIM_UI_get_keyframe_scale_factor(void)
+float ANIM_UI_get_keyframe_scale_factor()
 {
   bTheme *btheme = UI_GetTheme();
   const float yscale_fac = btheme->space_action.keyframe_scale_fac;
@@ -4326,12 +4385,12 @@ float ANIM_UI_get_keyframe_scale_factor(void)
   return yscale_fac;
 }
 
-float ANIM_UI_get_channel_height(void)
+float ANIM_UI_get_channel_height()
 {
   return 0.8f * ANIM_UI_get_keyframe_scale_factor() * U.widget_unit;
 }
 
-float ANIM_UI_get_channel_skip(void)
+float ANIM_UI_get_channel_skip()
 {
   return 0.1f * U.widget_unit;
 }
@@ -4341,7 +4400,7 @@ float ANIM_UI_get_first_channel_top(View2D *v2d)
   return UI_view2d_scale_get_y(v2d) * -UI_TIME_SCRUB_MARGIN_Y - ANIM_UI_get_channel_skip();
 }
 
-float ANIM_UI_get_channel_step(void)
+float ANIM_UI_get_channel_step()
 {
   return ANIM_UI_get_channel_height() + ANIM_UI_get_channel_skip();
 }
@@ -4351,12 +4410,12 @@ float ANIM_UI_get_channels_total_height(View2D *v2d, const int item_count)
   return -ANIM_UI_get_first_channel_top(v2d) + ANIM_UI_get_channel_step() * (item_count + 1);
 }
 
-float ANIM_UI_get_channel_name_width(void)
+float ANIM_UI_get_channel_name_width()
 {
   return 10 * U.widget_unit;
 }
 
-float ANIM_UI_get_channel_button_width(void)
+float ANIM_UI_get_channel_button_width()
 {
   return 0.8f * U.widget_unit;
 }
@@ -4505,7 +4564,7 @@ void ANIM_channel_draw(
       GPU_line_width(2.0f);
 
       immBegin(GPU_PRIM_LINES, 2);
-      immVertex2f(pos, (float)offset, yminc);
+      immVertex2f(pos, float(offset), yminc);
       immVertex2f(pos, (float)v2d->cur.xmax, yminc);
       immEnd();
 
@@ -4559,6 +4618,12 @@ void ANIM_channel_draw(
     /* check if there's enough space for the toggles if the sliders are drawn too */
     if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
     {
+      /* solo... */
+      if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
+        /* A touch of padding because the star icon is so wide. */
+        offset += (short)(1.2f * ICON_WIDTH);
+      }
+
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset += ICON_WIDTH;
@@ -4612,7 +4677,7 @@ void ANIM_channel_draw(
      * - Ends past the space that might be reserved for a scroller.
      */
     immRectf(pos,
-             v2d->cur.xmax - (float)offset,
+             v2d->cur.xmax - float(offset),
              yminc + ymin_ofs,
              v2d->cur.xmax + EXTRA_SCROLL_PAD,
              ymaxc);
@@ -5356,7 +5421,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
     /* Draw slider:
      * - Even if we can draw sliders for this view, we must also check that the channel-type
      *   supports them (only F-Curves really can support them for now).
-     * - To make things easier, we use RNA-autobuts for this so that changes are
+     * - To make things easier, we use RNA-auto-buttons for this so that changes are
      *   reflected immediately, wherever they occurred.
      *   BUT, we don't use the layout engine, otherwise we'd get wrong alignment,
      *   and wouldn't be able to auto-keyframe.
@@ -5530,7 +5595,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
                                 &ptr,
                                 prop,
                                 array_index,
-                                "",
+                                RNA_property_type(prop) == PROP_ENUM ? nullptr : "",
                                 ICON_NONE,
                                 offset,
                                 rect->ymin,

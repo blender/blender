@@ -8948,7 +8948,7 @@ static PyObject *pyrna_register_class(PyObject *UNUSED(self), PyObject *py_class
                  bpy_class_free);
 
   if (!BLI_listbase_is_empty(&reports.list)) {
-    const bool has_error = BPy_reports_to_error(&reports, PyExc_RuntimeError, false);
+    const bool has_error = (BPy_reports_to_error(&reports, PyExc_RuntimeError, false) == -1);
     if (!has_error) {
       BPy_reports_write_stdout(&reports, error_prefix);
     }

@@ -226,22 +226,100 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
   return n;
 }
 
+char *BLI_sprintfN_with_buffer(
+    char *fixed_buf, size_t fixed_buf_size, size_t *result_len, const char *__restrict format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args);
+  va_end(args);
+  if (UNLIKELY(retval < 0)) {
+    /* Return an empty string as there was an error there is no valid output. */
+    *result_len = 0;
+    if (UNLIKELY(fixed_buf_size == 0)) {
+      return MEM_callocN(sizeof(char), __func__);
+    }
+    *fixed_buf = '\0';
+    return fixed_buf;
+  }
+  *result_len = (size_t)retval;
+  if (retval < fixed_buf_size) {
+    return fixed_buf;
+  }
+
+  /* `retval` doesn't include null terminator. */
+  const size_t size = (size_t)retval + 1;
+  char *result = MEM_mallocN(sizeof(char) * size, __func__);
+  va_start(args, format);
+  retval = vsnprintf(result, size, format, args);
+  va_end(args);
+  BLI_assert(retval + 1 == size);
+  return result;
+}
+
+char *BLI_vsprintfN_with_buffer(char *fixed_buf,
+                                size_t fixed_buf_size,
+                                size_t *result_len,
+                                const char *__restrict format,
+                                va_list args)
+{
+  va_list args_copy;
+  va_copy(args_copy, args);
+  int retval = vsnprintf(fixed_buf, fixed_buf_size, format, args_copy);
+  va_end(args_copy);
+  if (UNLIKELY(retval < 0)) {
+    /* Return an empty string as there was an error there is no valid output. */
+    *result_len = 0;
+    if (UNLIKELY(fixed_buf_size == 0)) {
+      return MEM_callocN(sizeof(char), __func__);
+    }
+    *fixed_buf = '\0';
+    return fixed_buf;
+  }
+  *result_len = (size_t)retval;
+  if (retval < fixed_buf_size) {
+    return fixed_buf;
+  }
+
+  /* `retval` doesn't include null terminator. */
+  const size_t size = (size_t)retval + 1;
+  char *result = MEM_mallocN(sizeof(char) * size, __func__);
+  retval = vsnprintf(result, size, format, args);
+  BLI_assert(retval + 1 == size);
+  return result;
+}
+
 char *BLI_sprintfN(const char *__restrict format, ...)
 {
-  DynStr *ds;
-  va_list arg;
-  char *n;
+  char fixed_buf[256];
+  size_t result_len;
+  va_list args;
+  va_start(args, format);
+  char *result = BLI_vsprintfN_with_buffer(
+      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  va_end(args);
+  if (result != fixed_buf) {
+    return result;
+  }
+  size_t size = result_len + 1;
+  result = MEM_mallocN(sizeof(char) * size, __func__);
+  memcpy(result, fixed_buf, size);
+  return result;
+}
 
-  va_start(arg, format);
-
-  ds = BLI_dynstr_new();
-  BLI_dynstr_vappendf(ds, format, arg);
-  n = BLI_dynstr_get_cstring(ds);
-  BLI_dynstr_free(ds);
-
-  va_end(arg);
-
-  return n;
+char *BLI_vsprintfN(const char *__restrict format, va_list args)
+{
+  char fixed_buf[256];
+  size_t result_len;
+  char *result = BLI_vsprintfN_with_buffer(
+      fixed_buf, sizeof(fixed_buf), &result_len, format, args);
+  if (result != fixed_buf) {
+    return result;
+  }
+  size_t size = result_len + 1;
+  result = MEM_mallocN(sizeof(char) * size, __func__);
+  memcpy(result, fixed_buf, size);
+  return result;
 }
 
 /** \} */

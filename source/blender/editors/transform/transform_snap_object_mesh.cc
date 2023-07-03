@@ -7,7 +7,7 @@
  */
 
 #include "BLI_math.h"
-#include "BLI_math_matrix_types.hh"
+#include "BLI_math_matrix.hh"
 
 #include "BKE_bvhutils.h"
 #include "BKE_editmesh.h"
@@ -20,7 +20,7 @@
 
 #ifdef DEBUG_SNAP_TIME
 #  if WIN32 and NDEBUG
-#    pragma optimize("O", on)
+#    pragma optimize("t", on)
 #  endif
 #endif
 
@@ -220,8 +220,9 @@ static bool raycastMesh(SnapObjectContext *sctx,
  * \{ */
 
 static bool nearest_world_mesh(SnapObjectContext *sctx,
+                               Object *ob_eval,
                                const Mesh *me_eval,
-                               const float (*obmat)[4],
+                               const float4x4 obmat,
                                bool use_hide)
 {
   BVHTreeFromMesh treedata;
@@ -230,7 +231,19 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
     return false;
   }
 
-  return nearest_world_tree(sctx, treedata.tree, treedata.nearest_callback, &treedata, obmat);
+  float4x4 imat = math::invert(obmat);
+  float3 init_co = math::transform_point(imat, float3(sctx->runtime.init_co));
+  float3 curr_co = math::transform_point(imat, float3(sctx->runtime.curr_co));
+
+  BVHTreeNearest nearest{};
+  nearest.dist_sq = sctx->ret.dist_px_sq;
+  if (nearest_world_tree(
+          sctx, treedata.tree, treedata.nearest_callback, init_co, curr_co, &treedata, &nearest))
+  {
+    SnapData::register_result(sctx, ob_eval, &me_eval->id, obmat, &nearest);
+    return true;
+  }
+  return false;
 }
 
 /** \} */
@@ -239,7 +252,7 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
 /** \name Subclass for Snapping to Edges or Points of a Mesh
  * \{ */
 
-class Nearest2dUserData_Mesh : public Nearest2dUserData {
+class SnapData_Mesh : public SnapData {
  public:
   const float3 *vert_positions;
   const float3 *vert_normals;
@@ -248,10 +261,8 @@ class Nearest2dUserData_Mesh : public Nearest2dUserData {
   const int *corner_edges;
   const MLoopTri *looptris;
 
-  Nearest2dUserData_Mesh(SnapObjectContext *sctx,
-                         const Mesh *mesh_eval,
-                         const float4x4 &obmat)
-      : Nearest2dUserData(sctx, obmat)
+  SnapData_Mesh(SnapObjectContext *sctx, const Mesh *mesh_eval, const float4x4 &obmat)
+      : SnapData(sctx, obmat)
   {
     this->vert_positions = mesh_eval->vert_positions().data();
     this->vert_normals = mesh_eval->vert_normals().data();
@@ -273,34 +284,6 @@ class Nearest2dUserData_Mesh : public Nearest2dUserData {
     r_v_index[1] = edge[1];
   }
 
-  void get_tri_verts_index(const int index, int r_v_index[3])
-  {
-    const int *corner_verts = this->corner_verts;
-    const MLoopTri *looptri = &this->looptris[index];
-    r_v_index[0] = corner_verts[looptri->tri[0]];
-    r_v_index[1] = corner_verts[looptri->tri[1]];
-    r_v_index[2] = corner_verts[looptri->tri[2]];
-  }
-
-  void get_tri_edges_index(const int index, int r_e_index[3])
-  {
-    const blender::int2 *edges = this->edges;
-    const int *corner_verts = this->corner_verts;
-    const int *corner_edges = this->corner_edges;
-    const MLoopTri *lt = &this->looptris[index];
-    for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
-      const blender::int2 &edge = edges[corner_edges[lt->tri[j]]];
-      const int tri_edge[2] = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
-      if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
-        // printf("real edge found\n");
-        r_e_index[j] = corner_edges[lt->tri[j]];
-      }
-      else {
-        r_e_index[j] = -1;
-      }
-    }
-  }
-
   void copy_vert_no(const int index, float r_no[3])
   {
     copy_v3_v3(r_no, this->vert_normals[index]);
@@ -314,7 +297,7 @@ static void cb_snap_edge_verts(void *userdata,
                                const int clip_plane_len,
                                BVHTreeNearest *nearest)
 {
-  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
+  SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
 
   int vindex[2];
   data->get_edge_verts_index(index, vindex);
@@ -334,16 +317,20 @@ static void cb_snap_tri_verts(void *userdata,
                               const int clip_plane_len,
                               BVHTreeNearest *nearest)
 {
-  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
+  SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
 
   int vindex[3];
-  data->get_tri_verts_index(index, vindex);
+  const int *corner_verts = data->corner_verts;
+  const MLoopTri *lt = &data->looptris[index];
+  vindex[0] = corner_verts[lt->tri[0]];
+  vindex[1] = corner_verts[lt->tri[1]];
+  vindex[2] = corner_verts[lt->tri[2]];
 
   if (data->use_backface_culling) {
-    const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0);
-    data->get_vert_co(vindex[1], &t1);
-    data->get_vert_co(vindex[2], &t2);
+    const float3 *vert_positions = data->vert_positions;
+    const float3 &t0 = vert_positions[vindex[0]];
+    const float3 &t1 = vert_positions[vindex[1]];
+    const float3 &t2 = vert_positions[vindex[2]];
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
@@ -365,30 +352,32 @@ static void cb_snap_tri_edges(void *userdata,
                               const int clip_plane_len,
                               BVHTreeNearest *nearest)
 {
-  Nearest2dUserData_Mesh *data = static_cast<Nearest2dUserData_Mesh *>(userdata);
+  SnapData_Mesh *data = static_cast<SnapData_Mesh *>(userdata);
+  const int *corner_verts = data->corner_verts;
+  const MLoopTri *lt = &data->looptris[index];
 
   if (data->use_backface_culling) {
-    int vindex[3];
-    data->get_tri_verts_index(index, vindex);
-
-    const float *t0, *t1, *t2;
-    data->get_vert_co(vindex[0], &t0);
-    data->get_vert_co(vindex[1], &t1);
-    data->get_vert_co(vindex[2], &t2);
+    const float3 *vert_positions = data->vert_positions;
+    const float3 &t0 = vert_positions[corner_verts[lt->tri[0]]];
+    const float3 &t1 = vert_positions[corner_verts[lt->tri[1]]];
+    const float3 &t2 = vert_positions[corner_verts[lt->tri[2]]];
     float dummy[3];
     if (raycast_tri_backface_culling_test(precalc->ray_direction, t0, t1, t2, dummy)) {
       return;
     }
   }
 
-  int eindex[3];
-  data->get_tri_edges_index(index, eindex);
-  for (int i = 3; i--;) {
-    if (eindex[i] != -1) {
-      if (eindex[i] == nearest->index) {
+  const int2 *edges = data->edges;
+  const int *corner_edges = data->corner_edges;
+  for (int j = 2, j_next = 0; j_next < 3; j = j_next++) {
+    int eindex = corner_edges[lt->tri[j]];
+    const int2 &edge = edges[eindex];
+    const int2 tri_edge = {corner_verts[lt->tri[j]], corner_verts[lt->tri[j_next]]};
+    if (ELEM(edge[0], tri_edge[0], tri_edge[1]) && ELEM(edge[1], tri_edge[0], tri_edge[1])) {
+      if (eindex == nearest->index) {
         continue;
       }
-      cb_snap_edge(userdata, eindex[i], precalc, clip_plane, clip_plane_len, nearest);
+      cb_snap_edge(userdata, eindex, precalc, clip_plane, clip_plane_len, nearest);
     }
   }
 }
@@ -410,7 +399,7 @@ eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
 
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
-  Nearest2dUserData_Mesh nearest2d(sctx, mesh_eval, float4x4(obmat));
+  SnapData_Mesh nearest2d(sctx, mesh_eval, float4x4(obmat));
   nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
@@ -461,7 +450,7 @@ eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
                                 float dist_pex_sq_orig,
                                 int edge)
 {
-  Nearest2dUserData_Mesh nearest2d(sctx, reinterpret_cast<const Mesh *>(id), float4x4(obmat));
+  SnapData_Mesh nearest2d(sctx, reinterpret_cast<const Mesh *>(id), float4x4(obmat));
   eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge, dist_pex_sq_orig);
   if (nearest2d.nearest_point.index != -2) {
     nearest2d.register_result(sctx, ob_eval, id);
@@ -469,21 +458,28 @@ eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
   return elem;
 }
 
+static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
+{
+  eSnapMode snap_mode_supported = mesh->loose_verts().count ? SCE_SNAP_TO_POINT : SCE_SNAP_TO_NONE;
+  if (mesh->totpoly) {
+    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST | SNAP_TO_EDGE_ELEMENTS;
+  }
+  else if (mesh->totedge) {
+    snap_mode_supported |= SNAP_TO_EDGE_ELEMENTS;
+  }
+
+  return snap_mode_supported;
+}
+
 static eSnapMode snapMesh(SnapObjectContext *sctx,
                           Object *ob_eval,
                           const Mesh *me_eval,
                           const float obmat[4][4],
-                          bool use_hide)
+                          bool use_hide,
+                          eSnapMode snap_to)
 {
-  BLI_assert(sctx->runtime.snap_to_flag != SCE_SNAP_TO_FACE);
-  if (me_eval->totvert == 0) {
-    return SCE_SNAP_TO_NONE;
-  }
-  if (me_eval->totedge == 0 && !(sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX)) {
-    return SCE_SNAP_TO_NONE;
-  }
-
-  Nearest2dUserData_Mesh nearest2d(sctx, me_eval, float4x4(obmat));
+  BLI_assert(snap_to != SCE_SNAP_TO_FACE);
+  SnapData_Mesh nearest2d(sctx, me_eval, float4x4(obmat));
 
   if (ob_eval->data == me_eval) {
     const BoundBox *bb = BKE_mesh_boundbox_get(ob_eval);
@@ -492,13 +488,18 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
   }
 
+  snap_to &= mesh_snap_mode_supported(me_eval) & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT);
+  if (snap_to == SCE_SNAP_TO_NONE) {
+    return SCE_SNAP_TO_NONE;
+  }
+
   BVHTreeFromMesh treedata, treedata_dummy;
   snap_object_data_mesh_get(me_eval, use_hide, &treedata);
 
   BVHTree *bvhtree[2] = {nullptr};
   bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy, me_eval, BVHTREE_FROM_LOOSEEDGES, 2);
   BLI_assert(treedata_dummy.cached);
-  if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX) {
+  if (snap_to & SCE_SNAP_TO_POINT) {
     bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy, me_eval, BVHTREE_FROM_LOOSEVERTS, 2);
     BLI_assert(treedata_dummy.cached);
   }
@@ -510,10 +511,10 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   nearest.dist_sq = sctx->ret.dist_px_sq;
 
   int last_index = nearest.index;
-  eSnapMode elem = SCE_SNAP_TO_VERTEX;
+  eSnapMode elem = SCE_SNAP_TO_POINT;
 
   if (bvhtree[1]) {
-    BLI_assert(sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX);
+    BLI_assert(snap_to & SCE_SNAP_TO_POINT);
     /* snap to loose verts */
     BLI_bvhtree_find_nearest_projected(bvhtree[1],
                                        nearest2d.pmat_local.ptr(),
@@ -528,7 +529,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     last_index = nearest.index;
   }
 
-  if (sctx->runtime.snap_to_flag & SCE_SNAP_TO_EDGE) {
+  if (snap_to & (SNAP_TO_EDGE_ELEMENTS & ~SCE_SNAP_TO_EDGE_ENDPOINT)) {
     if (bvhtree[0]) {
       /* Snap to loose edges. */
       BLI_bvhtree_find_nearest_projected(
@@ -562,7 +563,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     }
   }
   else {
-    BLI_assert(sctx->runtime.snap_to_flag & SCE_SNAP_TO_VERTEX);
+    BLI_assert(snap_to & SCE_SNAP_TO_EDGE_ENDPOINT);
     if (bvhtree[0]) {
       /* Snap to loose edge verts. */
       BLI_bvhtree_find_nearest_projected(
@@ -603,22 +604,6 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
 
 /** \} */
 
-static eSnapMode mesh_snap_mode_supported(const Mesh *mesh)
-{
-  eSnapMode snap_mode_supported = SCE_SNAP_TO_NONE;
-  if (mesh->totpoly) {
-    snap_mode_supported |= SCE_SNAP_TO_FACE | SCE_SNAP_INDIVIDUAL_NEAREST;
-  }
-  if (mesh->totedge) {
-    snap_mode_supported |= SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
-                           SCE_SNAP_TO_EDGE_PERPENDICULAR;
-  }
-  if (mesh->totvert) {
-    snap_mode_supported |= SCE_SNAP_TO_VERTEX;
-  }
-  return snap_mode_supported;
-}
-
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            Object *ob_eval,
                            const ID *id,
@@ -627,27 +612,23 @@ eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            bool use_hide)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
-
   const Mesh *mesh_eval = reinterpret_cast<const Mesh *>(id);
 
-  eSnapMode snap_mode_used = snap_to_flag & mesh_snap_mode_supported(mesh_eval);
-  if (snap_mode_used & (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_MIDPOINT |
-                        SCE_SNAP_TO_EDGE_PERPENDICULAR | SCE_SNAP_TO_VERTEX))
-  {
-    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, use_hide);
+  if (snap_to_flag & (SNAP_TO_EDGE_ELEMENTS | SCE_SNAP_TO_POINT)) {
+    elem = snapMesh(sctx, ob_eval, mesh_eval, obmat, use_hide, snap_to_flag);
     if (elem) {
       return elem;
     }
   }
 
-  if (snap_mode_used & SCE_SNAP_TO_FACE) {
+  if (snap_to_flag & SCE_SNAP_TO_FACE) {
     if (raycastMesh(sctx, ob_eval, mesh_eval, obmat, sctx->runtime.object_index++, use_hide)) {
       return SCE_SNAP_TO_FACE;
     }
   }
 
-  if (snap_mode_used & SCE_SNAP_INDIVIDUAL_NEAREST) {
-    if (nearest_world_mesh(sctx, mesh_eval, obmat, use_hide)) {
+  if (snap_to_flag & SCE_SNAP_INDIVIDUAL_NEAREST) {
+    if (nearest_world_mesh(sctx, ob_eval, mesh_eval, float4x4(obmat), use_hide)) {
       return SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }

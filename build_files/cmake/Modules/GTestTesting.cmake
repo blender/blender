@@ -47,17 +47,17 @@ macro(BLENDER_SRC_GTEST_EX)
     target_compile_definitions(${TARGET_NAME} PRIVATE ${GLOG_DEFINES})
     target_include_directories(${TARGET_NAME} PUBLIC "${TEST_INC}")
     target_include_directories(${TARGET_NAME} SYSTEM PUBLIC "${TEST_INC_SYS}")
-    target_link_libraries(${TARGET_NAME} ${ARG_EXTRA_LIBS} ${PLATFORM_LINKLIBS})
+    blender_link_libraries(${TARGET_NAME} "${ARG_EXTRA_LIBS};${PLATFORM_LINKLIBS}")
     if(WITH_TBB)
       # Force TBB libraries to be in front of MKL (part of OpenImageDenoise), so
       # that it is initialized before MKL and static library initialization order
       # issues are avoided.
-      target_link_libraries(${TARGET_NAME} ${TBB_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} PRIVATE ${TBB_LIBRARIES})
       if(WITH_OPENIMAGEDENOISE)
-        target_link_libraries(${TARGET_NAME} ${OPENIMAGEDENOISE_LIBRARIES})
+        target_link_libraries(${TARGET_NAME} PRIVATE ${OPENIMAGEDENOISE_LIBRARIES})
       endif()
     endif()
-    target_link_libraries(${TARGET_NAME}
+    target_link_libraries(${TARGET_NAME} PRIVATE
                           bf_testing_main
                           bf_intern_eigen
                           bf_intern_guardedalloc
@@ -68,16 +68,16 @@ macro(BLENDER_SRC_GTEST_EX)
                           ${GLOG_LIBRARIES}
                           ${GFLAGS_LIBRARIES})
     if(WITH_OPENMP_STATIC)
-      target_link_libraries(${TARGET_NAME} ${OpenMP_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} PRIVATE ${OpenMP_LIBRARIES})
     endif()
     if(UNIX AND NOT APPLE)
-      target_link_libraries(${TARGET_NAME} bf_intern_libc_compat)
+      target_link_libraries(${TARGET_NAME} PRIVATE bf_intern_libc_compat)
     endif()
     if(WITH_TBB)
-      target_link_libraries(${TARGET_NAME} ${TBB_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} PRIVATE ${TBB_LIBRARIES})
     endif()
     if(WITH_GMP)
-      target_link_libraries(${TARGET_NAME} ${GMP_LIBRARIES})
+      target_link_libraries(${TARGET_NAME} PRIVATE ${GMP_LIBRARIES})
     endif()
 
     GET_BLENDER_TEST_INSTALL_DIR(TEST_INSTALL_DIR)
@@ -108,26 +108,4 @@ macro(BLENDER_SRC_GTEST_EX)
     unset(TEST_INC_SYS)
     unset(TARGET_NAME)
   endif()
-endmacro()
-
-macro(BLENDER_SRC_GTEST NAME SRC EXTRA_LIBS)
-  BLENDER_SRC_GTEST_EX(
-    NAME "${NAME}"
-    SRC "${SRC}"
-    EXTRA_LIBS "${EXTRA_LIBS}")
-endmacro()
-
-macro(BLENDER_TEST NAME EXTRA_LIBS)
-  BLENDER_SRC_GTEST_EX(
-    NAME "${NAME}"
-    SRC "${NAME}_test.cc"
-    EXTRA_LIBS "${EXTRA_LIBS}")
-endmacro()
-
-macro(BLENDER_TEST_PERFORMANCE NAME EXTRA_LIBS)
-  BLENDER_SRC_GTEST_EX(
-    NAME "${NAME}"
-    SRC "${NAME}_test.cc"
-    EXTRA_LIBS "${EXTRA_LIBS}"
-    SKIP_ADD_TEST)
 endmacro()

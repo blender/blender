@@ -398,10 +398,10 @@ void IMB_processor_apply_threaded(
   BLI_task_pool_free(task_pool);
 }
 
-typedef struct ScanlineGlobalData {
+struct ScanlineGlobalData {
   void *custom_data;
   ScanlineThreadFunc do_thread;
-} ScanlineGlobalData;
+};
 
 static void processor_apply_parallel(void *__restrict userdata,
                                      const int scanline,

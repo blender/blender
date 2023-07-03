@@ -324,7 +324,7 @@ eAttrDomain ED_grease_pencil_selection_domain_get(bContext *C)
   return ATTR_DOMAIN_POINT;
 }
 
-void ED_operatortypes_grease_pencil_select(void)
+void ED_operatortypes_grease_pencil_select()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_select_all);

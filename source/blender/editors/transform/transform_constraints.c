@@ -399,11 +399,11 @@ static void applyAxisConstraintVec(const TransInfo *t,
 
     if (transform_snap_is_active(t)) {
       if (validSnap(t)) {
-        is_snap_to_edge = (t->tsnap.snapElem & SCE_SNAP_TO_EDGE) != 0;
-        is_snap_to_face = (t->tsnap.snapElem & SCE_SNAP_TO_FACE) != 0;
+        is_snap_to_edge = (t->tsnap.target_type & SCE_SNAP_TO_EDGE) != 0;
+        is_snap_to_face = (t->tsnap.target_type & SCE_SNAP_TO_FACE) != 0;
         is_snap_to_point = !is_snap_to_edge && !is_snap_to_face;
       }
-      else if (t->tsnap.snapElem & SCE_SNAP_TO_GRID) {
+      else if (t->tsnap.target_type & SCE_SNAP_TO_GRID) {
         is_snap_to_point = true;
       }
     }
@@ -823,7 +823,7 @@ void drawConstraint(TransInfo *t)
     if (tc->mode & CON_SELECT) {
       float vec[3];
 
-      convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
+      convertViewVec(t, vec, (t->mval[0] - t->mouse.imval[0]), (t->mval[1] - t->mouse.imval[1]));
       add_v3_v3(vec, t->center_global);
 
       drawLine(t, t->center_global, t->spacemtx[0], 'X', 0);
@@ -1071,7 +1071,7 @@ static void setNearestAxis2d(TransInfo *t)
   t->con.mode &= ~(CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
 
   /* no correction needed... just use whichever one is lower */
-  if (abs(t->mval[0] - t->con.imval[0]) < abs(t->mval[1] - t->con.imval[1])) {
+  if (abs(t->mval[0] - t->mouse.imval[0]) < abs(t->mval[1] - t->mouse.imval[1])) {
     t->con.mode |= CON_AXIS1;
     STRNCPY(t->con.text, TIP_(" along Y axis"));
   }
@@ -1092,8 +1092,8 @@ static void setNearestAxis3d(TransInfo *t)
   int i;
 
   /* calculate mouse movement */
-  mvec[0] = (float)(t->mval[0] - t->con.imval[0]);
-  mvec[1] = (float)(t->mval[1] - t->con.imval[1]);
+  mvec[0] = (float)(t->mval[0] - t->mouse.imval[0]);
+  mvec[1] = (float)(t->mval[1] - t->mouse.imval[1]);
   mvec[2] = 0.0f;
 
   /* We need to correct axis length for the current zoom-level of view,

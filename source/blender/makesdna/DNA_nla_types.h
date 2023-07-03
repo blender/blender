@@ -33,9 +33,11 @@ typedef struct bActionModifier {
   struct Object *ob;
 } bActionModifier;
 
-/* NLA-Modifier Types (UNUSED) */
-// #define ACTSTRIP_MOD_DEFORM      0
-// #define ACTSTRIP_MOD_NOISE       1
+// /* NLA-Modifier Types (UNUSED) */
+// enum {
+// 	ACTSTRIP_MOD_DEFORM = 0,
+// 	ACTSTRIP_MOD_NOISE = 1,
+// };
 
 typedef struct bActionStrip {
   struct bActionStrip *next, *prev;
@@ -76,9 +78,11 @@ typedef struct bActionStrip {
   ListBase modifiers;
 } bActionStrip;
 
-/* strip->mode (these defines aren't really used, but are here for reference) */
-#define ACTSTRIPMODE_BLEND 0
-#define ACTSTRIPMODE_ADD 1
+/** #Strip::mode (these defines aren't really used, but are here for reference) */
+enum {
+  ACTSTRIPMODE_BLEND = 0,
+  ACTSTRIPMODE_ADD = 1,
+};
 
 /** #bActionStrip.flag */
 typedef enum eActStrip_Flag {

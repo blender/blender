@@ -347,10 +347,10 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 
 /********************** box select operator *********************/
 
-typedef struct BoxSelectuserData {
+struct BoxSelectuserData {
   rctf rect;
   bool select, extend, changed;
-} BoxSelectuserData;
+};
 
 static void box_select_cb(void *userdata,
                           MovieTrackingTrack * /*track*/,

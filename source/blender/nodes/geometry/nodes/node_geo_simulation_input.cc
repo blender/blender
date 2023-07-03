@@ -11,7 +11,7 @@
 #include "UI_resources.h"
 
 #include "NOD_geometry.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "node_geometry_util.hh"
 
@@ -70,8 +70,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       params.set_output(0, fn::ValueOrField<float>(delta_time));
     }
 
-    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(*user_data.compute_context,
-                                                                      output_node_id_);
+    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(user_data, output_node_id_);
 
     const bke::sim::SimulationZoneState *prev_zone_state =
         modifier_data.prev_simulation_state == nullptr ?

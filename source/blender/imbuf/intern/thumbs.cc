@@ -296,7 +296,7 @@ static bool thumbpath_from_uri(const char *uri, char *path, const int path_maxnc
   return thumbpathname_from_uri(uri, path, path_maxncpy, nullptr, 0, size);
 }
 
-void IMB_thumb_makedirs(void)
+void IMB_thumb_makedirs()
 {
   char tpath[FILE_MAX];
 #if 0 /* UNUSED */
@@ -649,7 +649,7 @@ static struct IMBThumbLocks {
   ThreadCondition cond;
 } thumb_locks = {0};
 
-void IMB_thumb_locks_acquire(void)
+void IMB_thumb_locks_acquire()
 {
   BLI_thread_lock(LOCK_IMAGE);
 
@@ -665,7 +665,7 @@ void IMB_thumb_locks_acquire(void)
   BLI_thread_unlock(LOCK_IMAGE);
 }
 
-void IMB_thumb_locks_release(void)
+void IMB_thumb_locks_release()
 {
   BLI_thread_lock(LOCK_IMAGE);
   BLI_assert((thumb_locks.locked_paths != nullptr) && (thumb_locks.lock_counter > 0));

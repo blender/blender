@@ -1030,7 +1030,7 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
   view2d_totRect_set_resize(v2d, width, height, false);
 }
 
-void UI_view2d_zoom_cache_reset(void)
+void UI_view2d_zoom_cache_reset()
 {
   /* TODO(sergey): This way we avoid threading conflict with sequencer rendering
    * text strip. But ideally we want to make glyph cache to be fully safe

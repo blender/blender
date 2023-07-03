@@ -449,7 +449,7 @@ static ParamHandle *construct_param_handle(const Scene *scene,
   BMIter iter;
   int i;
 
-  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
+  ParamHandle *handle = new blender::geometry::ParamHandle();
 
   if (options->correct_aspect) {
     blender::geometry::uv_parametrizer_aspect_ratio(handle, ED_uvedit_get_aspect_y(ob));
@@ -491,7 +491,7 @@ static ParamHandle *construct_param_handle_multi(const Scene *scene,
   BMIter iter;
   int i;
 
-  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
+  ParamHandle *handle = new blender::geometry::ParamHandle();
 
   if (options->correct_aspect) {
     Object *ob = objects[0];
@@ -615,7 +615,7 @@ static ParamHandle *construct_param_handle_subsurfed(const Scene *scene,
 
   const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
 
-  ParamHandle *handle = blender::geometry::uv_parametrizer_construct_begin();
+  ParamHandle *handle = new blender::geometry::ParamHandle();
 
   if (options->correct_aspect) {
     blender::geometry::uv_parametrizer_aspect_ratio(handle, ED_uvedit_get_aspect_y(ob));
@@ -881,7 +881,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
   }
 
   blender::geometry::uv_parametrizer_stretch_end(ms->handle);
-  blender::geometry::uv_parametrizer_delete(ms->handle);
+  delete (ms->handle);
 
   for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
     Object *obedit = ms->objects_edit[ob_index];
@@ -1555,7 +1555,6 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
   pack_islands_endjob(pid);
   pack_islands_freejob(pid);
 
-  MEM_freeN(pid);
   return OPERATOR_FINISHED;
 }
 
@@ -1760,7 +1759,7 @@ static int average_islands_scale_exec(bContext *C, wmOperator *op)
   ParamHandle *handle = construct_param_handle_multi(scene, objects, objects_len, &options);
   blender::geometry::uv_parametrizer_average(handle, false, scale_uv, shear);
   blender::geometry::uv_parametrizer_flush(handle);
-  blender::geometry::uv_parametrizer_delete(handle);
+  delete (handle);
 
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
@@ -1851,7 +1850,7 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
   g_live_unwrap.len++;
 }
 
-void ED_uvedit_live_unwrap_re_solve(void)
+void ED_uvedit_live_unwrap_re_solve()
 {
   if (g_live_unwrap.handles) {
     for (int i = 0; i < g_live_unwrap.len; i++) {
@@ -1869,7 +1868,7 @@ void ED_uvedit_live_unwrap_end(short cancel)
       if (cancel) {
         blender::geometry::uv_parametrizer_flush_restore(g_live_unwrap.handles[i]);
       }
-      blender::geometry::uv_parametrizer_delete(g_live_unwrap.handles[i]);
+      delete (g_live_unwrap.handles[i]);
     }
     MEM_freeN(g_live_unwrap.handles);
     g_live_unwrap.handles = nullptr;
@@ -2405,7 +2404,7 @@ static void uvedit_unwrap(const Scene *scene,
 
   blender::geometry::uv_parametrizer_flush(handle);
 
-  blender::geometry::uv_parametrizer_delete(handle);
+  delete (handle);
 }
 
 static void uvedit_unwrap_multi(const Scene *scene,

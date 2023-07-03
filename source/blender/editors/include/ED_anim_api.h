@@ -574,7 +574,7 @@ typedef struct bAnimChannelType {
   /** Get name (for channel lists). */
   void (*name)(bAnimListElem *ale, char *name);
   /** Get RNA property+pointer for editing the name. */
-  bool (*name_prop)(bAnimListElem *ale, struct PointerRNA *ptr, struct PropertyRNA **prop);
+  bool (*name_prop)(bAnimListElem *ale, struct PointerRNA *r_ptr, struct PropertyRNA **r_prop);
   /** Get icon (for channel lists). */
   int (*icon)(bAnimListElem *ale);
 
@@ -582,13 +582,13 @@ typedef struct bAnimChannelType {
   /** Check if the given setting is valid in the current context. */
   bool (*has_setting)(bAnimContext *ac, bAnimListElem *ale, eAnimChannel_Settings setting);
   /** Get the flag used for this setting. */
-  int (*setting_flag)(bAnimContext *ac, eAnimChannel_Settings setting, bool *neg);
+  int (*setting_flag)(bAnimContext *ac, eAnimChannel_Settings setting, bool *r_neg);
   /**
    * Get the pointer to int/short where data is stored,
    * with type being `sizeof(ptr_data)` which should be fine for runtime use.
    * - assume that setting has been checked to be valid for current context.
    */
-  void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *type);
+  void *(*setting_ptr)(bAnimListElem *ale, eAnimChannel_Settings setting, short *r_type);
 } bAnimChannelType;
 
 /** \} */

@@ -15,6 +15,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DRW_render.h"
 
+#include "eevee_ambient_occlusion.hh"
 #include "eevee_camera.hh"
 #include "eevee_cryptomatte.hh"
 #include "eevee_depth_of_field.hh"
@@ -27,6 +28,7 @@
 #include "eevee_material.hh"
 #include "eevee_motion_blur.hh"
 #include "eevee_pipeline.hh"
+#include "eevee_reflection_probes.hh"
 #include "eevee_renderbuffers.hh"
 #include "eevee_sampling.hh"
 #include "eevee_shader.hh"
@@ -54,6 +56,8 @@ class Instance {
   PipelineModule pipelines;
   ShadowModule shadows;
   LightModule lights;
+  AmbientOcclusion ambient_occlusion;
+  ReflectionProbeModule reflection_probes;
   VelocityModule velocity;
   MotionBlurModule motion_blur;
   DepthOfField depth_of_field;
@@ -65,6 +69,7 @@ class Instance {
   Film film;
   RenderBuffers render_buffers;
   MainView main_view;
+  CaptureView capture_view;
   World world;
   LightProbeModule light_probes;
   IrradianceCache irradiance_cache;
@@ -105,6 +110,8 @@ class Instance {
         pipelines(*this),
         shadows(*this),
         lights(*this),
+        ambient_occlusion(*this),
+        reflection_probes(*this),
         velocity(*this),
         motion_blur(*this),
         depth_of_field(*this),
@@ -115,6 +122,7 @@ class Instance {
         film(*this),
         render_buffers(*this),
         main_view(*this),
+        capture_view(*this),
         world(*this),
         light_probes(*this),
         irradiance_cache(*this){};

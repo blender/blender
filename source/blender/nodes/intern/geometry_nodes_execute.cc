@@ -564,6 +564,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(
 
   nodes::GeoNodesLFUserData user_data;
   fill_user_data(user_data);
+  user_data.root_ntree = &btree;
   user_data.compute_context = &base_compute_context;
 
   LinearAllocator<> allocator;

@@ -32,17 +32,17 @@
 
 #include "gpencil_intern.h"
 
-typedef struct bGPundonode {
+struct bGPundonode {
   bGPundonode *next, *prev;
 
   char name[BKE_UNDO_STR_MAX];
   bGPdata *gpd;
-} bGPundonode;
+};
 
 static ListBase undo_nodes = {nullptr, nullptr};
 static bGPundonode *cur_node = nullptr;
 
-int ED_gpencil_session_active(void)
+int ED_gpencil_session_active()
 {
   return (BLI_listbase_is_empty(&undo_nodes) == false);
 }
@@ -162,7 +162,7 @@ void gpencil_undo_push(bGPdata *gpd)
   BLI_addtail(&undo_nodes, undo_node);
 }
 
-void gpencil_undo_finish(void)
+void gpencil_undo_finish()
 {
   bGPundonode *undo_node = static_cast<bGPundonode *>(undo_nodes.first);
 

@@ -43,7 +43,7 @@ class IrradianceBake {
   Framebuffer empty_raster_fb_ = {"empty_raster_fb_"};
   /** Evaluate light object contribution and store result to surfel. */
   PassSimple surfel_light_eval_ps_ = {"LightEval"};
-  /** Create linked list of surfel to emulated raycast. */
+  /** Create linked list of surfel to emulated ray-cast. */
   PassSimple surfel_ray_build_ps_ = {"RayBuild"};
   /** Propagate light from surfel to surfel. */
   PassSimple surfel_light_propagate_ps_ = {"LightPropagate"};

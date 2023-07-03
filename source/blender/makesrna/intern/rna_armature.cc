@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -66,9 +67,7 @@ static void rna_Armature_dependency_update(Main *bmain, Scene * /*scene*/, Point
   WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
-static void rna_Armature_act_bone_set(PointerRNA *ptr,
-                                      PointerRNA value,
-                                      struct ReportList * /*reports*/)
+static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   bArmature *arm = (bArmature *)ptr->data;
 
@@ -92,7 +91,7 @@ static void rna_Armature_act_bone_set(PointerRNA *ptr,
 
 static void rna_Armature_act_edit_bone_set(PointerRNA *ptr,
                                            PointerRNA value,
-                                           struct ReportList * /*reports*/)
+                                           ReportList * /*reports*/)
 {
   bArmature *arm = (bArmature *)ptr->data;
 
@@ -425,9 +424,7 @@ static PointerRNA rna_EditBone_parent_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_EditBone, data->parent);
 }
 
-static void rna_EditBone_parent_set(PointerRNA *ptr,
-                                    PointerRNA value,
-                                    struct ReportList * /*reports*/)
+static void rna_EditBone_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *pbone, *parbone = (EditBone *)value.data;
@@ -525,7 +522,7 @@ static PointerRNA rna_EditBone_bbone_prev_get(PointerRNA *ptr)
 
 static void rna_EditBone_bbone_prev_set(PointerRNA *ptr,
                                         PointerRNA value,
-                                        struct ReportList * /*reports*/)
+                                        ReportList * /*reports*/)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *hbone = (EditBone *)value.data;
@@ -536,9 +533,7 @@ static void rna_EditBone_bbone_prev_set(PointerRNA *ptr,
   }
 }
 
-static void rna_Bone_bbone_prev_set(PointerRNA *ptr,
-                                    PointerRNA value,
-                                    struct ReportList * /*reports*/)
+static void rna_Bone_bbone_prev_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Bone *bone = (Bone *)ptr->data;
   Bone *hbone = (Bone *)value.data;
@@ -557,7 +552,7 @@ static PointerRNA rna_EditBone_bbone_next_get(PointerRNA *ptr)
 
 static void rna_EditBone_bbone_next_set(PointerRNA *ptr,
                                         PointerRNA value,
-                                        struct ReportList * /*reports*/)
+                                        ReportList * /*reports*/)
 {
   EditBone *ebone = (EditBone *)(ptr->data);
   EditBone *hbone = (EditBone *)value.data;
@@ -568,9 +563,7 @@ static void rna_EditBone_bbone_next_set(PointerRNA *ptr,
   }
 }
 
-static void rna_Bone_bbone_next_set(PointerRNA *ptr,
-                                    PointerRNA value,
-                                    struct ReportList * /*reports*/)
+static void rna_Bone_bbone_next_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
 {
   Bone *bone = (Bone *)ptr->data;
   Bone *hbone = (Bone *)value.data;
@@ -1226,14 +1219,17 @@ static void rna_def_bone(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "bone_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(prop, "Bone Matrix", "3x3 bone matrix");
+  RNA_def_property_ui_text(
+      prop, "Bone Matrix", "3" BLI_STR_UTF8_MULTIPLICATION_SIGN "3 bone matrix");
 
   prop = RNA_def_property(srna, "matrix_local", PROP_FLOAT, PROP_MATRIX);
   RNA_def_property_float_sdna(prop, nullptr, "arm_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-  RNA_def_property_ui_text(
-      prop, "Bone Armature-Relative Matrix", "4x4 bone matrix relative to armature");
+  RNA_def_property_ui_text(prop,
+                           "Bone Armature-Relative Matrix",
+                           "4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 bone matrix relative to armature");
 
   prop = RNA_def_property(srna, "tail", PROP_FLOAT, PROP_TRANSLATION);
   RNA_def_property_float_sdna(prop, nullptr, "tail");

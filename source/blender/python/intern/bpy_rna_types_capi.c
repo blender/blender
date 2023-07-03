@@ -8,7 +8,7 @@
  * This file extends RNA types from `bpy.types` with C/Python API methods and attributes.
  *
  * We should avoid adding code here, and prefer:
- * - `source/blender/makesrna/intern/rna_context.c` using the RNA C API.
+ * - `source/blender/makesrna/intern/rna_context.cc` using the RNA C API.
  * - `scripts/modules/bpy_types.py` when additions c an be written in Python.
  *
  * Otherwise functions can be added here as a last resort.

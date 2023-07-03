@@ -6,7 +6,7 @@
 
 /** \file
  * \ingroup freestyle
- * \brief Interface to 0D elts
+ * \brief Interface to 0D elements.
  */
 
 #include <iostream>

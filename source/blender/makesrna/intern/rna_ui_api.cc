@@ -37,6 +37,8 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 
 #  include "DNA_asset_types.h"
 
+#  include "ED_geometry.h"
+
 const char *rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate)
 {
@@ -124,7 +126,7 @@ static void rna_uiItemR(uiLayout *layout,
 }
 
 static void rna_uiItemR_with_popover(uiLayout *layout,
-                                     struct PointerRNA *ptr,
+                                     PointerRNA *ptr,
                                      const char *propname,
                                      const char *name,
                                      const char *text_ctxt,
@@ -156,7 +158,7 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
 }
 
 static void rna_uiItemR_with_menu(uiLayout *layout,
-                                  struct PointerRNA *ptr,
+                                  PointerRNA *ptr,
                                   const char *propname,
                                   const char *name,
                                   const char *text_ctxt,
@@ -185,7 +187,7 @@ static void rna_uiItemR_with_menu(uiLayout *layout,
 }
 
 static void rna_uiItemMenuEnumR(uiLayout *layout,
-                                struct PointerRNA *ptr,
+                                PointerRNA *ptr,
                                 const char *propname,
                                 const char *name,
                                 const char *text_ctxt,
@@ -206,9 +208,9 @@ static void rna_uiItemMenuEnumR(uiLayout *layout,
 
 static void rna_uiItemTabsEnumR(uiLayout *layout,
                                 bContext *C,
-                                struct PointerRNA *ptr,
+                                PointerRNA *ptr,
                                 const char *propname,
-                                struct PointerRNA *ptr_highlight,
+                                PointerRNA *ptr_highlight,
                                 const char *propname_highlight,
                                 bool icon_only)
 {
@@ -251,7 +253,7 @@ static void rna_uiItemTabsEnumR(uiLayout *layout,
 }
 
 static void rna_uiItemEnumR_string(uiLayout *layout,
-                                   struct PointerRNA *ptr,
+                                   PointerRNA *ptr,
                                    const char *propname,
                                    const char *value,
                                    const char *name,
@@ -273,9 +275,9 @@ static void rna_uiItemEnumR_string(uiLayout *layout,
 }
 
 static void rna_uiItemPointerR(uiLayout *layout,
-                               struct PointerRNA *ptr,
+                               PointerRNA *ptr,
                                const char *propname,
-                               struct PointerRNA *searchptr,
+                               PointerRNA *searchptr,
                                const char *searchpropname,
                                const char *name,
                                const char *text_ctxt,
@@ -517,12 +519,12 @@ static void rna_uiTemplateAnyID(uiLayout *layout,
 }
 
 void rna_uiTemplateList(uiLayout *layout,
-                        struct bContext *C,
+                        bContext *C,
                         const char *listtype_name,
                         const char *list_id,
-                        struct PointerRNA *dataptr,
+                        PointerRNA *dataptr,
                         const char *propname,
-                        struct PointerRNA *active_dataptr,
+                        PointerRNA *active_dataptr,
                         const char *active_propname,
                         const char *item_dyntip_propname,
                         const int rows,
@@ -730,6 +732,19 @@ static uiLayout *rna_uiLayoutColumnWithHeading(
   /* Get translated heading. */
   heading = rna_translate_ui_text(heading, heading_ctxt, nullptr, nullptr, translate);
   return uiLayoutColumnWithHeading(layout, align, heading);
+}
+
+static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layout,
+                                                                 bContext *C,
+                                                                 const char *catalog_path)
+{
+  blender::ed::geometry::ui_template_node_operator_asset_menu_items(
+      *layout, *C, blender::StringRef(catalog_path));
+}
+
+static void rna_uiLayout_template_node_operator_root_items(uiLayout *layout, bContext *C)
+{
+  blender::ed::geometry::ui_template_node_operator_asset_root_items(*layout, *C);
 }
 
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)
@@ -1804,6 +1819,17 @@ void RNA_api_ui_layout(StructRNA *srna)
   func = RNA_def_function(srna, "template_node_asset_menu_items", "uiTemplateNodeAssetMenuItems");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);
   parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
+
+  func = RNA_def_function(srna,
+                          "template_node_operator_asset_menu_items",
+                          "rna_uiLayout_template_node_operator_asset_menu_items");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+  parm = RNA_def_string(func, "catalog_path", nullptr, 0, "", "");
+
+  func = RNA_def_function(srna,
+                          "template_node_operator_asset_root_items",
+                          "rna_uiLayout_template_node_operator_root_items");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
   func = RNA_def_function(srna, "template_texture_user", "uiTemplateTextureUser");
   RNA_def_function_flag(func, FUNC_USE_CONTEXT);

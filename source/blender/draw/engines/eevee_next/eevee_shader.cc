@@ -80,6 +80,8 @@ ShaderModule::~ShaderModule()
 const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_type)
 {
   switch (shader_type) {
+    case AMBIENT_OCCLUSION_PASS:
+      return "eevee_ambient_occlusion_pass";
     case FILM_FRAG:
       return "eevee_film_frag";
     case FILM_COMP:
@@ -154,6 +156,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_lightprobe_irradiance_ray";
     case LIGHTPROBE_IRRADIANCE_LOAD:
       return "eevee_lightprobe_irradiance_load";
+    case REFLECTION_PROBE_REMAP:
+      return "eevee_reflection_probe_remap";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:
@@ -257,6 +261,13 @@ void ShaderModule::material_create_info_ammend(GPUMaterial *gpumat, GPUCodegenOu
   /* WORKAROUND: Needed because node_tree isn't present in test shaders. */
   if (pipeline_type == MAT_PIPE_DEFERRED) {
     info.additional_info("eevee_render_pass_out");
+  }
+
+  if (GPU_material_flag_get(gpumat, GPU_MATFLAG_AO) &&
+      ELEM(pipeline_type, MAT_PIPE_FORWARD, MAT_PIPE_DEFERRED) &&
+      ELEM(geometry_type, MAT_GEOM_MESH, MAT_GEOM_CURVES))
+  {
+    info.define("MAT_AMBIENT_OCCLUSION");
   }
 
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_TRANSPARENT)) {

@@ -159,6 +159,16 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     return VArray<int>::ForContainer(std::move(counts));
   }
 
+  uint64_t hash() const final
+  {
+    return 2345897985577;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const final
+  {
+    return dynamic_cast<const CornersOfEdgeCountInput *>(&other) != nullptr;
+  }
+
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final
   {
     return ATTR_DOMAIN_EDGE;

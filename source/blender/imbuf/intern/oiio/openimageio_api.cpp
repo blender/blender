@@ -13,7 +13,7 @@ OIIO_NAMESPACE_USING
 
 extern "C" {
 
-int OIIO_getVersionHex(void)
+int OIIO_getVersionHex()
 {
   return openimageio_version();
 }

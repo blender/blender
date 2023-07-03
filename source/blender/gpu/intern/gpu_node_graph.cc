@@ -347,13 +347,14 @@ static char attr_prefix_get(GPUMaterialAttribute *attr)
   if (attr->is_default_color) {
     return 'c';
   }
+  if (attr->is_hair_length) {
+    return 'l';
+  }
   switch (attr->type) {
     case CD_TANGENT:
       return 't';
     case CD_AUTO_FROM_NAME:
       return 'a';
-    case CD_HAIRLENGTH:
-      return 'l';
     default:
       BLI_assert_msg(0, "GPUVertAttr Prefix type not found : This should not happen!");
       return '\0';
@@ -549,6 +550,21 @@ GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat)
     return GPU_constant(zero_data);
   }
   attr->is_default_color = true;
+  GPUNodeLink *link = gpu_node_link_create();
+  link->link_type = GPU_NODE_LINK_ATTR;
+  link->attr = attr;
+  return link;
+}
+
+GPUNodeLink *GPU_attribute_hair_length(GPUMaterial *mat)
+{
+  GPUNodeGraph *graph = gpu_material_node_graph(mat);
+  GPUMaterialAttribute *attr = gpu_node_graph_add_attribute(graph, CD_AUTO_FROM_NAME, "", true);
+  if (attr == nullptr) {
+    static const float zero_data[GPU_MAX_CONSTANT_DATA] = {0.0f};
+    return GPU_constant(zero_data);
+  }
+  attr->is_hair_length = true;
   GPUNodeLink *link = gpu_node_link_create();
   link->link_type = GPU_NODE_LINK_ATTR;
   link->attr = attr;

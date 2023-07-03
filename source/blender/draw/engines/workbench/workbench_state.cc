@@ -206,7 +206,6 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   draw_shadow = false;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Mesh *me = (ob->type == OB_MESH) ? static_cast<Mesh *>(ob->data) : nullptr;
   const bool is_active = (ob == draw_ctx->obact);
   /* TODO(@pragma37): Is the double check needed?
    * If it is, wouldn't be needed for sculpt_pbvh too? */
@@ -215,17 +214,6 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
   color_type = (eV3DShadingColorType)scene_state.shading.color_type;
   if (!(is_active && DRW_object_use_hide_faces(ob))) {
     draw_shadow = (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 && scene_state.draw_shadows;
-  }
-  if (me == nullptr) {
-    if (color_type == V3D_SHADING_TEXTURE_COLOR) {
-      color_type = V3D_SHADING_MATERIAL_COLOR;
-    }
-    else if (color_type == V3D_SHADING_VERTEX_COLOR) {
-      color_type = V3D_SHADING_OBJECT_COLOR;
-    }
-    use_per_material_batches = color_type == V3D_SHADING_MATERIAL_COLOR;
-    /* Early return */
-    return;
   }
 
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
@@ -250,7 +238,8 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
           C, &scene_state.scene->toolsettings->paint_mode, ob, color_type);
     }
   }
-  else {
+  else if (ob->type == OB_MESH) {
+    const Mesh *me = static_cast<Mesh *>(ob->data);
     const CustomData *cd_vdata = get_vert_custom_data(me);
     const CustomData *cd_ldata = get_loop_custom_data(me);
 
@@ -293,6 +282,14 @@ ObjectState::ObjectState(const SceneState &scene_state, Object *ob)
                                                               use_linear_filter);
         }
       }
+    }
+  }
+  else {
+    if (color_type == V3D_SHADING_TEXTURE_COLOR) {
+      color_type = V3D_SHADING_MATERIAL_COLOR;
+    }
+    else if (color_type == V3D_SHADING_VERTEX_COLOR) {
+      color_type = V3D_SHADING_OBJECT_COLOR;
     }
   }
 

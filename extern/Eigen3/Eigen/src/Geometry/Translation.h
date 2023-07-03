@@ -70,18 +70,18 @@ public:
   /** Constructs and initialize the translation transformation from a vector of translation coefficients */
   EIGEN_DEVICE_FUNC explicit inline Translation(const VectorType& vector) : m_coeffs(vector) {}
 
-  /** \brief Retruns the x-translation by value. **/
+  /** \brief Returns the x-translation by value. **/
   EIGEN_DEVICE_FUNC inline Scalar x() const { return m_coeffs.x(); }
-  /** \brief Retruns the y-translation by value. **/
+  /** \brief Returns the y-translation by value. **/
   EIGEN_DEVICE_FUNC inline Scalar y() const { return m_coeffs.y(); }
-  /** \brief Retruns the z-translation by value. **/
+  /** \brief Returns the z-translation by value. **/
   EIGEN_DEVICE_FUNC inline Scalar z() const { return m_coeffs.z(); }
 
-  /** \brief Retruns the x-translation as a reference. **/
+  /** \brief Returns the x-translation as a reference. **/
   EIGEN_DEVICE_FUNC inline Scalar& x() { return m_coeffs.x(); }
-  /** \brief Retruns the y-translation as a reference. **/
+  /** \brief Returns the y-translation as a reference. **/
   EIGEN_DEVICE_FUNC inline Scalar& y() { return m_coeffs.y(); }
-  /** \brief Retruns the z-translation as a reference. **/
+  /** \brief Returns the z-translation as a reference. **/
   EIGEN_DEVICE_FUNC inline Scalar& z() { return m_coeffs.z(); }
 
   EIGEN_DEVICE_FUNC const VectorType& vector() const { return m_coeffs; }
@@ -137,12 +137,6 @@ public:
 
   /** \returns the inverse translation (opposite) */
   Translation inverse() const { return Translation(-m_coeffs); }
-
-  Translation& operator=(const Translation& other)
-  {
-    m_coeffs = other.m_coeffs;
-    return *this;
-  }
 
   static const Translation Identity() { return Translation(VectorType::Zero()); }
 

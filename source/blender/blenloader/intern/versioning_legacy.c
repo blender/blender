@@ -61,14 +61,13 @@
 #include "BKE_mesh.h" /* for ME_ defines (patching) */
 #include "BKE_mesh_legacy_convert.h"
 #include "BKE_modifier.h"
+#include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
 #include "SEQ_iterator.h"
 #include "SEQ_sequencer.h"
-
-#include "NOD_socket.h"
 
 #include "BLO_readfile.h"
 
@@ -1512,7 +1511,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       }
     }
 
-    /* updating stepsize for ghost drawing */
     for (arm = bmain->armatures.first; arm; arm = arm->id.next) {
       bone_version_239(&arm->bonebase);
       if (arm->layer == 0) {

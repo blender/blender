@@ -308,7 +308,7 @@ static void draw_channel_headers(const SeqChannelDrawContext *context)
   GPU_matrix_pop();
 }
 
-static void draw_background(void)
+static void draw_background()
 {
   UI_ThemeClearColor(TH_BACK);
 }

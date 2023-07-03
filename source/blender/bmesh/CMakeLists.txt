@@ -9,7 +9,6 @@ set(INC
   ../blentranslation
   ../depsgraph
   ../makesdna
-  ../../../intern/atomic
   ../../../intern/clog
   ../../../intern/eigen
   ../../../intern/guardedalloc
@@ -173,6 +172,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   extern_rangetree
+  PRIVATE bf_intern_atomic
 )
 
 if(WITH_BULLET)

@@ -10,16 +10,57 @@
  * \ingroup geo
  */
 
+struct GHash;
+struct Heap;
+struct MemArena;
+struct RNG;
+
 namespace blender::geometry {
 
-class ParamHandle;          /* A collection of charts. */
+struct PChart;
+struct PHash;
+
 using ParamKey = uintptr_t; /* Key (hash) for identifying verts and faces. */
 #define PARAM_KEY_MAX UINTPTR_MAX
+
+enum PHandleState {
+  PHANDLE_STATE_ALLOCATED,
+  PHANDLE_STATE_CONSTRUCTED,
+  PHANDLE_STATE_LSCM,
+  PHANDLE_STATE_STRETCH,
+};
+
+class ParamHandle {
+ public:
+  ParamHandle();
+  ~ParamHandle();
+
+  PHandleState state;
+  MemArena *arena;
+  MemArena *polyfill_arena;
+  Heap *polyfill_heap;
+
+  PChart *construction_chart;
+  PHash *hash_verts;
+  PHash *hash_edges;
+  PHash *hash_faces;
+
+  GHash *pin_hash;
+  int unique_pin_count;
+
+  PChart **charts;
+  int ncharts;
+
+  float aspect_y;
+
+  RNG *rng;
+  float blend;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name Chart Construction:
  *
- * Faces and seams may only be added between #geometry::uv_parametrizer_construct_begin and
+ * Faces and seams may only be added between #ParamHandle::ParamHandle() and
  * #geometry::uv_parametrizer_construct_end.
  *
  * The pointers to `co` and `uv` are stored, rather than being copied. Vertices are implicitly
@@ -30,8 +71,6 @@ using ParamKey = uintptr_t; /* Key (hash) for identifying verts and faces. */
  * output will be written to the `uv` pointers.
  *
  * \{ */
-
-ParamHandle *uv_parametrizer_construct_begin();
 
 void uv_parametrizer_aspect_ratio(ParamHandle *handle, float aspect_y);
 
@@ -54,7 +93,6 @@ void uv_parametrizer_construct_end(ParamHandle *handle,
                                    bool fill_holes,
                                    bool topology_from_uvs,
                                    int *r_count_failed = nullptr);
-void uv_parametrizer_delete(ParamHandle *handle);
 
 /** \} */
 

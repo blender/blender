@@ -956,7 +956,7 @@ void IMB_rectblend(ImBuf *dbuf,
   }
 }
 
-typedef struct RectBlendThreadData {
+struct RectBlendThreadData {
   ImBuf *dbuf;
   const ImBuf *obuf, *sbuf;
   ushort *dmask;
@@ -966,7 +966,7 @@ typedef struct RectBlendThreadData {
   int srcx, srcy, width;
   IMB_BlendMode mode;
   bool accumulate;
-} RectBlendThreadData;
+};
 
 static void rectblend_thread_do(void *data_v, int scanline)
 {

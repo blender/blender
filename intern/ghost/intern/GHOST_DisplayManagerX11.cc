@@ -67,7 +67,7 @@ GHOST_TSuccess GHOST_DisplayManagerX11::getNumDisplaySettings(uint8_t display,
 
 /* from SDL2 */
 #ifdef WITH_X11_XF86VMODE
-static int calculate_rate(XF86VidModeModeInfo *info)
+static int calculate_rate(const XF86VidModeModeInfo *info)
 {
   return (info->htotal && info->vtotal) ? (1000 * info->dotclock / (info->htotal * info->vtotal)) :
                                           0;

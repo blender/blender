@@ -202,7 +202,7 @@ SimulationZoneState &ModifierSimulationState::get_zone_state_for_write(
                                         []() { return std::make_unique<SimulationZoneState>(); });
 }
 
-void ModifierSimulationState::ensure_bake_loaded() const
+void ModifierSimulationState::ensure_bake_loaded(const bNodeTree &ntree) const
 {
   std::scoped_lock lock{mutex_};
   if (bake_loaded_) {
@@ -223,7 +223,8 @@ void ModifierSimulationState::ensure_bake_loaded() const
   }
 
   const DiskBDataReader bdata_reader{*bdata_dir_};
-  deserialize_modifier_simulation_state(*io_root,
+  deserialize_modifier_simulation_state(ntree,
+                                        *io_root,
                                         bdata_reader,
                                         *owner_->bdata_sharing_,
                                         const_cast<ModifierSimulationState &>(*this));

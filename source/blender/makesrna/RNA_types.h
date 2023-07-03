@@ -574,6 +574,7 @@ typedef enum eStringPropertySearchFlag {
    */
   PROP_STRING_SEARCH_SUGGESTION = (1 << 2),
 } eStringPropertySearchFlag;
+ENUM_OPERATORS(eStringPropertySearchFlag, PROP_STRING_SEARCH_SUGGESTION)
 
 /**
  * Visit string search candidates, `text` may be freed once this callback has finished,

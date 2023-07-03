@@ -11,15 +11,18 @@ GPU_SHADER_CREATE_INFO(draw_object_infos)
     .define("OrcoTexCoFactors", "(drw_infos[resource_id].orco_mul_bias)")
     .define("ObjectInfo", "(drw_infos[resource_id].infos)")
     .define("ObjectColor", "(drw_infos[resource_id].ob_color)")
-    .uniform_buf(1, "ObjectInfos", "drw_infos[DRW_RESOURCE_CHUNK_LEN]", Frequency::BATCH);
+    .uniform_buf(DRW_OBJ_INFOS_UBO_SLOT,
+                 "ObjectInfos",
+                 "drw_infos[DRW_RESOURCE_CHUNK_LEN]",
+                 Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_volume_infos)
     .typedef_source("draw_shader_shared.h")
-    .uniform_buf(3, "VolumeInfos", "drw_volume", Frequency::BATCH);
+    .uniform_buf(DRW_OBJ_DATA_INFO_UBO_SLOT, "VolumeInfos", "drw_volume", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_curves_infos)
     .typedef_source("draw_shader_shared.h")
-    .uniform_buf(3, "CurvesInfos", "drw_curves", Frequency::BATCH);
+    .uniform_buf(DRW_OBJ_DATA_INFO_UBO_SLOT, "CurvesInfos", "drw_curves", Frequency::BATCH);
 
 GPU_SHADER_CREATE_INFO(draw_layer_attributes)
     .typedef_source("draw_shader_shared.h")

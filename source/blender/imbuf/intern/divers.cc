@@ -24,9 +24,9 @@
 /** \name Floyd-Steinberg dithering
  * \{ */
 
-typedef struct DitherContext {
+struct DitherContext {
   float dither;
-} DitherContext;
+};
 
 static DitherContext *create_dither_context(float dither)
 {
@@ -504,7 +504,7 @@ void IMB_buffer_float_from_float(float *rect_to,
   }
 }
 
-typedef struct FloatToFloatThreadData {
+struct FloatToFloatThreadData {
   float *rect_to;
   const float *rect_from;
   int channels_from;
@@ -514,7 +514,7 @@ typedef struct FloatToFloatThreadData {
   int width;
   int stride_to;
   int stride_from;
-} FloatToFloatThreadData;
+};
 
 static void imb_buffer_float_from_float_thread_do(void *data_v, int scanline)
 {

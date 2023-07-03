@@ -155,6 +155,10 @@ GPUNodeLink *GPU_attribute(GPUMaterial *mat, eCustomDataType type, const char *n
  * The name, type, and domain are unknown and do not depend on the material.
  */
 GPUNodeLink *GPU_attribute_default_color(GPUMaterial *mat);
+/**
+ * Add a GPU attribute that refers to the approximate length of curves/hairs.
+ */
+GPUNodeLink *GPU_attribute_hair_length(GPUMaterial *mat);
 GPUNodeLink *GPU_attribute_with_default(GPUMaterial *mat,
                                         eCustomDataType type,
                                         const char *name,
@@ -344,6 +348,10 @@ typedef struct GPUMaterialAttribute {
    * valid here.
    */
   bool is_default_color;
+  /**
+   * If true, the attribute is the length of hair particles and curves.
+   */
+  bool is_hair_length;
 } GPUMaterialAttribute;
 
 typedef struct GPUMaterialTexture {

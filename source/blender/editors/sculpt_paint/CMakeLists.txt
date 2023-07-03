@@ -20,7 +20,6 @@ set(INC
   ../../nodes
   ../../render
   ../../windowmanager
-  ../../../../intern/atomic
   ../../../../intern/clog
   ../../../../intern/eigen
   ../../../../intern/guardedalloc
@@ -98,6 +97,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf_intern_atomic
 )
 
 if(WITH_TBB)

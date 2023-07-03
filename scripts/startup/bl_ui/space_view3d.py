@@ -1018,6 +1018,7 @@ class VIEW3D_MT_editor_menus(Menu):
             if mode_string == 'SCULPT_CURVES':
                 layout.menu("VIEW3D_MT_select_sculpt_curves")
                 layout.menu("VIEW3D_MT_sculpt_curves")
+                layout.template_node_operator_asset_root_items()
 
         else:
             layout.menu("VIEW3D_MT_object")
@@ -1049,14 +1050,10 @@ class VIEW3D_MT_transform_base:
     # TODO: get rid of the custom text strings?
     def draw(self, context):
         layout = self.layout
-        allow_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_transform_navigation",
-            False)
 
-        layout.operator("transform.translate").allow_navigation = allow_navigation
-        layout.operator("transform.rotate").allow_navigation = allow_navigation
-        layout.operator("transform.resize", text="Scale").allow_navigation = allow_navigation
+        layout.operator("transform.translate").release_confirm = False
+        layout.operator("transform.rotate").release_confirm = False
+        layout.operator("transform.resize", text="Scale").release_confirm = False
 
         layout.separator()
 
@@ -1076,18 +1073,13 @@ class VIEW3D_MT_transform_base:
 # Generic transform menu - geometry types
 class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
     def draw(self, context):
-        allow_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_transform_navigation",
-            False)
-
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
 
         # generic...
         layout = self.layout
         if context.mode == 'EDIT_MESH':
-            layout.operator("transform.shrink_fatten", text="Shrink/Fatten").allow_navigation = allow_navigation
+            layout.operator("transform.shrink_fatten", text="Shrink/Fatten").release_confirm = False
             layout.operator("transform.skin_resize")
         elif context.mode == 'EDIT_CURVE':
             layout.operator("transform.transform", text="Radius").mode = 'CURVE_SHRINKFATTEN'
@@ -1096,10 +1088,11 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base, Menu):
             layout.separator()
             props = layout.operator("transform.translate", text="Move Texture Space")
             props.texture_space = True
-            props.allow_navigation = allow_navigation
+            props.release_confirm = False
+
             props = layout.operator("transform.resize", text="Scale Texture Space")
             props.texture_space = True
-            props.allow_navigation = allow_navigation
+            props.release_confirm = False
 
 
 # Object-specific extensions to Transform menu
@@ -2113,6 +2106,13 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
         layout.operator("paint.vert_select_linked", text="Select Linked")
 
 
+class VIEW3D_MT_select_edit_point_cloud(Menu):
+    bl_label = "Select"
+
+    def draw(_self, _context):
+        pass
+
+
 class VIEW3D_MT_edit_curves_select_more_less(Menu):
     bl_label = "Select More/Less"
 
@@ -2156,6 +2156,8 @@ class VIEW3D_MT_select_sculpt_curves(Menu):
         layout.operator("sculpt_curves.select_random", text="Random")
         layout.operator("curves.select_ends", text="Endpoints")
         layout.operator("sculpt_curves.select_grow", text="Grow")
+
+        layout.template_node_operator_asset_menu_items(catalog_path="Select")
 
 
 class VIEW3D_MT_mesh_add(Menu):
@@ -3412,6 +3414,8 @@ class VIEW3D_MT_sculpt_curves(Menu):
         layout.separator()
         layout.operator("curves.convert_to_particle_system", text="Convert to Particle System")
 
+        layout.template_node_operator_asset_menu_items(catalog_path="Curves")
+
 
 class VIEW3D_MT_mask(Menu):
     bl_label = "Mask"
@@ -4212,11 +4216,6 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
             col.operator("mesh.delete", text="Delete Edges").type = 'EDGE'
 
         if is_face_mode:
-            allow_navigation = getattr(
-                context.window_manager.keyconfigs.active.preferences,
-                "use_transform_navigation",
-                False)
-
             col = row.column(align=True)
 
             col.label(text="Face Context Menu", icon='FACESEL')
@@ -4227,12 +4226,10 @@ class VIEW3D_MT_edit_mesh_context_menu(Menu):
 
             col.separator()
 
-            col.operator("view3d.edit_mesh_extrude_move_normal",
-                         text="Extrude Faces").allow_navigation = allow_navigation
-            col.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                         text="Extrude Faces Along Normals").allow_navigation = allow_navigation
+            col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+            col.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
             col.operator("mesh.extrude_faces_move",
-                         text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.allow_navigation = allow_navigation
+                         text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
 
             col.operator("mesh.inset")
             col.operator("mesh.poke")
@@ -4284,11 +4281,6 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
     def draw(self, context):
         from math import pi
 
-        allow_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_transform_navigation",
-            False)
-
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -4297,23 +4289,20 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
         mesh = context.object.data
 
         if mesh.total_face_sel:
-            layout.operator("view3d.edit_mesh_extrude_move_normal",
-                            text="Extrude Faces").allow_navigation = allow_navigation
-            layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                            text="Extrude Faces Along Normals").allow_navigation = allow_navigation
+            layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+            layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
             layout.operator(
                 "mesh.extrude_faces_move",
-                text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.allow_navigation = allow_navigation
-            layout.operator("view3d.edit_mesh_extrude_manifold_normal",
-                            text="Extrude Manifold").allow_navigation = allow_navigation
+                text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
+            layout.operator("view3d.edit_mesh_extrude_manifold_normal", text="Extrude Manifold")
 
         if mesh.total_edge_sel and (select_mode[0] or select_mode[1]):
             layout.operator("mesh.extrude_edges_move",
-                            text="Extrude Edges").TRANSFORM_OT_translate.allow_navigation = allow_navigation
+                            text="Extrude Edges").TRANSFORM_OT_translate.release_confirm = False
 
         if mesh.total_vert_sel and select_mode[0]:
             layout.operator("mesh.extrude_vertices_move",
-                            text="Extrude Vertices").TRANSFORM_OT_translate.allow_navigation = allow_navigation
+                            text="Extrude Vertices").TRANSFORM_OT_translate.release_confirm = False
 
         layout.separator()
 
@@ -4466,22 +4455,15 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
     def draw(self, context):
-        allow_navigation = getattr(
-            context.window_manager.keyconfigs.active.preferences,
-            "use_transform_navigation",
-            False)
-
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("view3d.edit_mesh_extrude_move_normal",
-                        text="Extrude Faces").allow_navigation = allow_navigation
-        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten",
-                        text="Extrude Faces Along Normals").allow_navigation = allow_navigation
+        layout.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Faces")
+        layout.operator("view3d.edit_mesh_extrude_move_shrink_fatten", text="Extrude Faces Along Normals")
         layout.operator(
             "mesh.extrude_faces_move",
-            text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.allow_navigation = allow_navigation
+            text="Extrude Individual Faces").TRANSFORM_OT_shrink_fatten.release_confirm = False
 
         layout.separator()
 
@@ -5502,6 +5484,13 @@ class VIEW3D_MT_edit_curves(Menu):
         layout.menu("VIEW3D_MT_transform")
         layout.separator()
         layout.operator("curves.delete")
+
+
+class VIEW3D_MT_edit_pointcloud(Menu):
+    bl_label = "Point Cloud"
+
+    def draw(_self, _context):
+        pass
 
 
 class VIEW3D_MT_object_mode_pie(Menu):
@@ -8266,6 +8255,7 @@ classes = (
     VIEW3D_MT_select_edit_gpencil,
     VIEW3D_MT_select_paint_mask,
     VIEW3D_MT_select_paint_mask_vertex,
+    VIEW3D_MT_select_edit_point_cloud,
     VIEW3D_MT_edit_curves_select_more_less,
     VIEW3D_MT_select_edit_curves,
     VIEW3D_MT_select_sculpt_curves,
@@ -8393,6 +8383,7 @@ classes = (
     VIEW3D_MT_edit_armature_delete,
     VIEW3D_MT_edit_gpencil_transform,
     VIEW3D_MT_edit_curves,
+    VIEW3D_MT_edit_pointcloud,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
     VIEW3D_MT_transform_gizmo_pie,

@@ -133,7 +133,7 @@ static void copy(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node)
   assign_index(dest_node);
 }
 
-void register_node_type_tex_output(void)
+void register_node_type_tex_output()
 {
   static bNodeType ntype;
 

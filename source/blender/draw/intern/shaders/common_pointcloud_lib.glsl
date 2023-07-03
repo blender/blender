@@ -4,22 +4,9 @@
 #ifdef POINTCLOUD_SHADER
 #  define COMMON_POINTCLOUD_LIB
 
-#  ifndef USE_GPU_SHADER_CREATE_INFO
-#    ifndef DRW_SHADER_SHARED_H
-
-in vec4 pos; /* Position and radius. */
-
-/* ---- Instanced attribs ---- */
-
-in vec3 pos_inst;
-in vec3 nor;
-
-#    endif
-#  else
-#    ifndef DRW_POINTCLOUD_INFO
-#      error Ensure createInfo includes draw_pointcloud.
-#    endif
-#  endif /* !USE_GPU_SHADER_CREATE_INFO */
+#  ifndef DRW_POINTCLOUD_INFO
+#    error Ensure createInfo includes draw_pointcloud.
+#  endif
 
 int pointcloud_get_point_id()
 {
