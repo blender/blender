@@ -1470,6 +1470,7 @@ static void id_override_library_clear_single_process(bContext *C,
           BKE_libblock_remap(
               bmain, id, id->override_library->reference, ID_REMAP_SKIP_INDIRECT_USAGE);
           if (do_remap_active) {
+            BKE_view_layer_synced_ensure(scene, view_layer);
             Object *ref_object = reinterpret_cast<Object *>(id->override_library->reference);
             Base *basact = BKE_view_layer_base_find(view_layer, ref_object);
             if (basact != nullptr) {
