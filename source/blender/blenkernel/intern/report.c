@@ -15,6 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -109,7 +110,6 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
 
 void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...)
 {
-  DynStr *ds;
   Report *report;
   va_list args;
   const char *format = TIP_(_format);
@@ -126,15 +126,11 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
     report = MEM_callocN(sizeof(Report), "Report");
 
-    ds = BLI_dynstr_new();
     va_start(args, _format);
-    BLI_dynstr_vappendf(ds, format, args);
+    report->message = BLI_vsprintfN(format, args);
     va_end(args);
 
-    report->message = BLI_dynstr_get_cstring(ds);
-    report->len = BLI_dynstr_get_len(ds);
-    BLI_dynstr_free(ds);
-
+    report->len = strlen(report->message);
     report->type = type;
     report->typestr = BKE_report_type_str(type);
 

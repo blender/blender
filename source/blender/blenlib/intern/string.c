@@ -228,20 +228,29 @@ size_t BLI_snprintf_rlen(char *__restrict dst,
 
 char *BLI_sprintfN(const char *__restrict format, ...)
 {
-  DynStr *ds;
+  DynStr *ds = BLI_dynstr_new();
   va_list arg;
-  char *n;
 
   va_start(arg, format);
-
-  ds = BLI_dynstr_new();
   BLI_dynstr_vappendf(ds, format, arg);
-  n = BLI_dynstr_get_cstring(ds);
-  BLI_dynstr_free(ds);
-
   va_end(arg);
 
-  return n;
+  char *result = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+
+  return result;
+}
+
+char *BLI_vsprintfN(const char *__restrict format, va_list args)
+{
+  DynStr *ds = BLI_dynstr_new();
+
+  BLI_dynstr_vappendf(ds, format, args);
+
+  char *result = BLI_dynstr_get_cstring(ds);
+  BLI_dynstr_free(ds);
+
+  return result;
 }
 
 /** \} */

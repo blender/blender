@@ -242,6 +242,9 @@ size_t BLI_vsnprintf_rlen(char *__restrict dst,
  */
 char *BLI_sprintfN(const char *__restrict format, ...) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1) ATTR_MALLOC ATTR_PRINTF_FORMAT(1, 2);
+/** A version of #BLI_sprintfN that takes a #va_list. */
+char *BLI_vsprintfN(const char *__restrict format, va_list args) ATTR_NONNULL(1, 2)
+    ATTR_PRINTF_FORMAT(1, 0);
 
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
