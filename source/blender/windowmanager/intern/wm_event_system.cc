@@ -29,7 +29,6 @@
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_math.h"
 #include "BLI_timer.h"
@@ -942,17 +941,10 @@ void WM_reportf(eReportType type, const char *format, ...)
   va_list args;
 
   format = TIP_(format);
-
-  DynStr *ds = BLI_dynstr_new();
   va_start(args, format);
-  BLI_dynstr_vappendf(ds, format, args);
-  va_end(args);
-
-  char *str = BLI_dynstr_get_cstring(ds);
+  char *str = BLI_vsprintfN(format, args);
   WM_report(type, str);
   MEM_freeN(str);
-
-  BLI_dynstr_free(ds);
 }
 
 /** \} */
