@@ -7,7 +7,9 @@
  */
 
 #include "BLI_math_matrix.hh"
+
 #include "BLI_math_rotation.hh"
+#include "BLI_simd.h"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -25,7 +27,7 @@ template<> float4x4 float4x4::operator*(const float4x4 &b) const
   const float4x4 &a = *this;
   float4x4 result;
 
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 A0 = _mm_load_ps(a[0]);
   __m128 A1 = _mm_load_ps(a[1]);
   __m128 A2 = _mm_load_ps(a[2]);
