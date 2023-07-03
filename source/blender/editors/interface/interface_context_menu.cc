@@ -478,8 +478,6 @@ static void set_layout_context_from_button(bContext *C, uiLayout *layout, uiBut 
   }
   uiLayoutContextCopy(layout, but->context);
   CTX_store_set(C, uiLayoutGetContextStore(layout));
-
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 }
 
 bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *event)
@@ -506,6 +504,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     set_layout_context_from_button(C, layout, but);
+    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   }
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED;
