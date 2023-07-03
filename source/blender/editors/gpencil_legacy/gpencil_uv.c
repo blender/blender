@@ -338,7 +338,7 @@ static bool gpencil_transform_fill_poll(bContext *C)
 
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
 
-  if ((gpl == NULL) || (ob->mode != OB_MODE_EDIT_GPENCIL)) {
+  if ((gpl == NULL) || (ob->mode != OB_MODE_EDIT_GPENCIL_LEGACY)) {
     return false;
   }
 
