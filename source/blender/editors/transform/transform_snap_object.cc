@@ -675,14 +675,12 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
                                          bool is_object_active,
                                          bool use_hide)
 {
-  bool retval = false;
+  eSnapMode retval = SCE_SNAP_TO_NONE;
 
   if (ob_data == nullptr) {
     if (ob_eval->type == OB_MESH) {
-      if (snap_object_editmesh(
-              sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide)) {
-        retval = true;
-      }
+      retval = snap_object_editmesh(
+          sctx, ob_eval, nullptr, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide);
     }
     else {
       return SCE_SNAP_TO_NONE;
@@ -694,18 +692,12 @@ static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
   else if (is_object_active && ELEM(ob_eval->type, OB_CURVES_LEGACY, OB_SURF, OB_FONT)) {
     return SCE_SNAP_TO_NONE;
   }
-  else if (snap_object_mesh(sctx, ob_eval, ob_data, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide))
-  {
-    retval = true;
+  else {
+    retval = snap_object_mesh(
+        sctx, ob_eval, ob_data, obmat, SCE_SNAP_INDIVIDUAL_NEAREST, use_hide);
   }
 
-  if (retval) {
-    copy_m4_m4(sctx->ret.obmat, obmat);
-    sctx->ret.ob = ob_eval;
-    sctx->ret.data = ob_data;
-    return SCE_SNAP_INDIVIDUAL_NEAREST;
-  }
-  return SCE_SNAP_TO_NONE;
+  return retval;
 }
 
 /**
