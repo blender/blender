@@ -54,8 +54,10 @@ GPU_SHADER_CREATE_INFO(workbench_next_curves)
                      "draw_hair_new");
 
 GPU_SHADER_CREATE_INFO(workbench_next_pointcloud)
-    /* TODO Adding workbench_next_mesh to avoid shader compilation errors */
-    .additional_info("workbench_next_mesh");
+    .vertex_source("workbench_prepass_pointcloud_vert.glsl")
+    .additional_info("draw_modelmat_new_with_custom_id",
+                     "draw_resource_handle_new",
+                     "draw_pointcloud_new");
 
 /** \} */
 

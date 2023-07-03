@@ -96,3 +96,51 @@ void DRW_pointcloud_free()
 {
   GPU_VERTBUF_DISCARD_SAFE(g_dummy_vbo);
 }
+
+#include "draw_common.hh"
+namespace blender::draw {
+
+template<typename PassT>
+GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
+                                                    Object *object,
+                                                    GPUMaterial *gpu_material)
+{
+  BLI_assert(object->type == OB_POINTCLOUD);
+  PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
+
+  /* Fix issue with certain driver not drawing anything if there is no texture bound to
+   * "ac", "au", "u" or "c". */
+  sub_ps.bind_texture("u", g_dummy_vbo);
+  sub_ps.bind_texture("au", g_dummy_vbo);
+  sub_ps.bind_texture("c", g_dummy_vbo);
+  sub_ps.bind_texture("ac", g_dummy_vbo);
+
+  GPUVertBuf *pos_rad_buf = pointcloud_position_and_radius_get(&pointcloud);
+  sub_ps.bind_texture("ptcloud_pos_rad_tx", pos_rad_buf);
+
+  if (gpu_material != nullptr) {
+    /* Only single material supported for now. */
+    GPUBatch **geom = pointcloud_surface_shaded_get(&pointcloud, &gpu_material, 1);
+    return geom[0];
+  }
+  else {
+    GPUBatch *geom = pointcloud_surface_get(&pointcloud);
+    return geom;
+  }
+}
+
+GPUBatch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                     Object *object,
+                                     GPUMaterial *gpu_material)
+{
+  return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
+}
+
+GPUBatch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                     Object *object,
+                                     GPUMaterial *gpu_material)
+{
+  return point_cloud_sub_pass_setup_implementation(sub_ps, object, gpu_material);
+}
+
+}  // namespace blender::draw

@@ -163,10 +163,13 @@ class Instance {
         sculpt_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
       }
-      else if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
+      else if (ob->type == OB_MESH) {
         ResourceHandle handle = manager.resource_handle(ob_ref);
         mesh_sync(ob_ref, handle, object_state);
         emitter_handle = handle;
+      }
+      else if (ob->type == OB_POINTCLOUD) {
+        point_cloud_sync(manager, ob_ref, object_state);
       }
       else if (ob->type == OB_CURVES) {
         curves_sync(manager, ob_ref, object_state);
@@ -361,6 +364,22 @@ class Instance {
                   object_state.override_sampler_state);
       }
     }
+  }
+
+  void point_cloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  {
+    ResourceHandle handle = manager.resource_handle(ob_ref);
+
+    Material mat = get_material(ob_ref, object_state.color_type);
+    resources.material_buf.append(mat);
+    int material_index = resources.material_buf.size() - 1;
+
+    PassMain::Sub &pass = get_mesh_pass(ob_ref, mat.is_transparent())
+                              .get_subpass(eGeometryType::POINTCLOUD)
+                              .sub("Point Cloud SubPass");
+
+    GPUBatch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
+    pass.draw(batch, handle, material_index);
   }
 
   void hair_sync(Manager &manager,

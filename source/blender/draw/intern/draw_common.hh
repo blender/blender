@@ -36,4 +36,12 @@ GPUBatch *curves_sub_pass_setup(PassSimple::Sub &ps,
                                 Object *ob,
                                 GPUMaterial *gpu_material = nullptr);
 
+GPUBatch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,
+                                     Object *object,
+                                     GPUMaterial *gpu_material = nullptr);
+
+GPUBatch *point_cloud_sub_pass_setup(PassSimple::Sub &sub_ps,
+                                     Object *object,
+                                     GPUMaterial *gpu_material = nullptr);
+
 }  // namespace blender::draw
