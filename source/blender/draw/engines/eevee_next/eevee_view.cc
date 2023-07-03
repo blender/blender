@@ -206,9 +206,8 @@ void CaptureView::render()
   View view = {"World.Capture.View"};
 
   for (int face : IndexRange(6)) {
-    capture_fb_.ensure(
-        GPU_ATTACHMENT_NONE,
-        GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemaps_tx_, face));
+    capture_fb_.ensure(GPU_ATTACHMENT_NONE,
+                       GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
     GPU_framebuffer_bind(capture_fb_);
 
     float4x4 view_m4 = cubeface_mat(face);
@@ -216,7 +215,7 @@ void CaptureView::render()
     view.sync(view_m4, win_m4);
     inst_.pipelines.world.render(view);
   }
-  GPU_texture_update_mipmap_chain(inst_.reflection_probes.cubemaps_tx_);
+  inst_.reflection_probes.remap_to_octahedral_projection();
   GPU_debug_group_end();
 }
 
