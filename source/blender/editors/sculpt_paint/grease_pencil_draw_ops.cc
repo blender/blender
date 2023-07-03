@@ -188,7 +188,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   GpPaint *grease_pencil_paint = scene->toolsettings->gp_paint;
   BKE_paint_ensure(scene->toolsettings, (Paint **)&grease_pencil_paint);
 
-  ob->mode = OB_MODE_PAINT_GPENCIL;
+  ob->mode = OB_MODE_PAINT_GPENCIL_LEGACY;
 
   /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
   /* TODO: Call ED_paint_cursor_start(...) */
@@ -212,10 +212,10 @@ static int grease_pencil_draw_mode_toggle_exec(bContext *C, wmOperator *op)
   Object *ob = CTX_data_active_object(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
 
-  const bool is_mode_set = ob->mode == OB_MODE_PAINT_GPENCIL;
+  const bool is_mode_set = ob->mode == OB_MODE_PAINT_GPENCIL_LEGACY;
 
   if (is_mode_set) {
-    if (!ED_object_mode_compat_set(C, ob, OB_MODE_PAINT_GPENCIL, op->reports)) {
+    if (!ED_object_mode_compat_set(C, ob, OB_MODE_PAINT_GPENCIL_LEGACY, op->reports)) {
       return OPERATOR_CANCELLED;
     }
   }

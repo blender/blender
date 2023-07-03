@@ -160,7 +160,7 @@ void OVERLAY_edit_gpencil_legacy_cache_init(OVERLAY_Data *vedata)
   /* control points for primitives and speed guide */
   const bool is_cppoint = (gpd->runtime.tot_cp_points > 0);
   const bool is_speed_guide = (ts->gp_sculpt.guide.use_guide &&
-                               (draw_ctx->object_mode == OB_MODE_PAINT_GPENCIL));
+                               (draw_ctx->object_mode == OB_MODE_PAINT_GPENCIL_LEGACY));
   const bool is_show_gizmo = (((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) &&
                               ((v3d->gizmo_flag & V3D_GIZMO_HIDE_TOOL) == 0));
 
@@ -442,7 +442,7 @@ void OVERLAY_gpencil_legacy_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   /* don't show object extras in set's */
   if ((ob->base_flag & (BASE_FROM_SET | BASE_FROM_DUPLI)) == 0) {
-    if ((v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && (ob->mode == OB_MODE_EDIT_GPENCIL) &&
+    if ((v3d->gp_flag & V3D_GP_SHOW_MATERIAL_NAME) && (ob->mode == OB_MODE_EDIT_GPENCIL_LEGACY) &&
         DRW_state_show_text())
     {
       OVERLAY_gpencil_color_names(ob);

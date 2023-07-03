@@ -1213,20 +1213,20 @@ enum eContextObjectMode CTX_data_mode_enum_ex(const Object *obedit,
       if (object_mode & OB_MODE_PARTICLE_EDIT) {
         return CTX_MODE_PARTICLE;
       }
-      if (object_mode & OB_MODE_PAINT_GPENCIL) {
-        return CTX_MODE_PAINT_GPENCIL;
+      if (object_mode & OB_MODE_PAINT_GPENCIL_LEGACY) {
+        return CTX_MODE_PAINT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_EDIT_GPENCIL) {
+      if (object_mode & OB_MODE_EDIT_GPENCIL_LEGACY) {
         return CTX_MODE_EDIT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_SCULPT_GPENCIL) {
-        return CTX_MODE_SCULPT_GPENCIL;
+      if (object_mode & OB_MODE_SCULPT_GPENCIL_LEGACY) {
+        return CTX_MODE_SCULPT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_WEIGHT_GPENCIL) {
-        return CTX_MODE_WEIGHT_GPENCIL;
+      if (object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) {
+        return CTX_MODE_WEIGHT_GPENCIL_LEGACY;
       }
-      if (object_mode & OB_MODE_VERTEX_GPENCIL) {
-        return CTX_MODE_VERTEX_GPENCIL;
+      if (object_mode & OB_MODE_VERTEX_GPENCIL_LEGACY) {
+        return CTX_MODE_VERTEX_GPENCIL_LEGACY;
       }
       if (object_mode & OB_MODE_SCULPT_CURVES) {
         return CTX_MODE_SCULPT_CURVES;

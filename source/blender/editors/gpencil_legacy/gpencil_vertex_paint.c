@@ -702,8 +702,8 @@ static bool gpencil_vertexpaint_brush_init(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
   Object *ob = CTX_data_active_object(C);
-  Paint *paint = ob->mode == OB_MODE_VERTEX_GPENCIL ? &ts->gp_vertexpaint->paint :
-                                                      &ts->gp_paint->paint;
+  Paint *paint = ob->mode == OB_MODE_VERTEX_GPENCIL_LEGACY ? &ts->gp_vertexpaint->paint :
+                                                             &ts->gp_paint->paint;
 
   /* set the brush using the tool */
   tGP_BrushVertexpaintData *gso;
@@ -990,8 +990,8 @@ static bool gpencil_vertexpaint_brush_do_frame(bContext *C,
                                                const float bound_mat[4][4])
 {
   Object *ob = CTX_data_active_object(C);
-  const char tool = ob->mode == OB_MODE_VERTEX_GPENCIL ? gso->brush->gpencil_vertex_tool :
-                                                         gso->brush->gpencil_tool;
+  const char tool = ob->mode == OB_MODE_VERTEX_GPENCIL_LEGACY ? gso->brush->gpencil_vertex_tool :
+                                                                gso->brush->gpencil_tool;
   const int radius = (gso->brush->flag & GP_BRUSH_USE_PRESSURE) ?
                          gso->brush->size * gso->pressure :
                          gso->brush->size;

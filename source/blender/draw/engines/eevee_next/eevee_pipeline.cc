@@ -22,7 +22,7 @@ namespace blender::eevee {
  * Used to draw background.
  * \{ */
 
-void BackgroundPipeline::sync(GPUMaterial *gpumat)
+void BackgroundPipeline::sync(GPUMaterial *gpumat, const float background_opacity)
 {
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
@@ -32,7 +32,7 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat)
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
   world_ps_.material_set(manager, gpumat);
-  world_ps_.push_constant("world_opacity_fade", inst_.film.background_opacity_get());
+  world_ps_.push_constant("world_opacity_fade", background_opacity);
   world_ps_.bind_texture("utility_tx", inst_.pipelines.utility_tx);
   /* RenderPasses & AOVs. Cleared by background (even if bad practice). */
   world_ps_.bind_image("rp_color_img", &rbufs.rp_color_tx);
