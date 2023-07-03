@@ -4618,6 +4618,12 @@ void ANIM_channel_draw(
     /* check if there's enough space for the toggles if the sliders are drawn too */
     if (!(draw_sliders) || (BLI_rcti_size_x(&v2d->mask) > ANIM_UI_get_channel_button_width() / 2))
     {
+      /* solo... */
+      if ((ac->spacetype == SPACE_NLA) && acf->has_setting(ac, ale, ACHANNEL_SETTING_SOLO)) {
+        /* A touch of padding because the star icon is so wide. */
+        offset += (short)(1.2f * ICON_WIDTH);
+      }
+
       /* protect... */
       if (acf->has_setting(ac, ale, ACHANNEL_SETTING_PROTECT)) {
         offset += ICON_WIDTH;
