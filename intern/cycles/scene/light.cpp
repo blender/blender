@@ -1152,9 +1152,13 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
       if (light->ellipse) {
-        area *= -M_PI_4_F;
+        area *= M_PI_4_F;
       }
       float invarea = (area != 0.0f) ? 1.0f / area : 1.0f;
+      if (light->ellipse) {
+        /* Negative inverse area indicates ellipse. */
+        invarea = -invarea;
+      }
       float3 dir = light->dir;
 
       dir = safe_normalize(dir);
@@ -1215,10 +1219,12 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
 
       float radius = light->size;
 
-      float invarea = (light->normalize && radius > 0.0f) ? 1.0f / (M_4PI_F * radius * radius) :
-                                                            1.0f;
+      float invarea = (radius == 0.0f)   ? 1.0f / 4.0f :
+                      (light->normalize) ? 1.0f / (4.0f * M_PI_F * radius * radius) :
+                                           1.0f;
+
       /* Convert radiant flux to radiance or radiant intensity. */
-      float eval_fac = (radius > 0) ? invarea * M_1_PI_F : 0.25f * M_1_PI_F;
+      float eval_fac = invarea * M_1_PI_F;
 
       if (light->use_mis && radius > 0.0f)
         shader_id |= SHADER_USE_MIS;
@@ -1278,9 +1284,13 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
       if (light->ellipse) {
-        area *= -M_PI_4_F;
+        area *= M_PI_4_F;
       }
       float invarea = (light->normalize && area != 0.0f) ? 1.0f / area : 1.0f;
+      if (light->ellipse) {
+        /* Negative inverse area indicates ellipse. */
+        invarea = -invarea;
+      }
       float3 dir = light->dir;
 
       const float half_spread = 0.5f * light->spread;

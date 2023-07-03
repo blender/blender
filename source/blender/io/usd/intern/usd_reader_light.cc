@@ -4,6 +4,8 @@
 
 #include "usd_reader_light.h"
 
+#include "BLI_math_rotation.h"
+
 #include "BKE_light.h"
 #include "BKE_object.h"
 
@@ -80,7 +82,15 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
   if (pxr::UsdAttribute intensity_attr = light_api.GetIntensityAttr()) {
     float intensity = 0.0f;
     if (intensity_attr.Get(&intensity, motionSampleTime)) {
-      blight->energy = intensity * this->import_params_.light_intensity_scale;
+      if (blight->type == LA_SUN) {
+        /* Unclear why, but approximately matches Karma. */
+        blight->energy = intensity * 4.0f;
+      }
+      else {
+        /* Convert from intensity to radiant flux. */
+        blight->energy = intensity * M_PI;
+      }
+      blight->energy *= this->import_params_.light_intensity_scale;
     }
   }
 
@@ -165,22 +175,6 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
       }
       break;
     case LA_LOCAL:
-      if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
-
-        pxr::UsdLuxSphereLight sphere_light(prim_);
-
-        if (!sphere_light) {
-          break;
-        }
-
-        if (pxr::UsdAttribute radius_attr = sphere_light.GetRadiusAttr()) {
-          float radius = 0.0f;
-          if (radius_attr.Get(&radius, motionSampleTime)) {
-            blight->radius = radius;
-          }
-        }
-      }
-      break;
     case LA_SPOT:
       if (prim_.IsA<pxr::UsdLuxSphereLight>()) {
 
@@ -190,28 +184,32 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
           break;
         }
 
-        if (pxr::UsdAttribute radius_attr = sphere_light.GetRadiusAttr()) {
+        pxr::UsdAttribute treatAsPoint_attr = sphere_light.GetTreatAsPointAttr();
+        bool treatAsPoint;
+        if (treatAsPoint_attr && treatAsPoint_attr.Get(&treatAsPoint, motionSampleTime) &&
+            treatAsPoint) {
+          blight->radius = 0.0f;
+        }
+        else if (pxr::UsdAttribute radius_attr = sphere_light.GetRadiusAttr()) {
           float radius = 0.0f;
           if (radius_attr.Get(&radius, motionSampleTime)) {
             blight->radius = radius;
           }
         }
 
-        if (!shaping_api) {
-          break;
-        }
-
-        if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
-          float cone_angle = 0.0f;
-          if (cone_angle_attr.Get(&cone_angle, motionSampleTime)) {
-            blight->spotsize = cone_angle * (float(M_PI) / 180.0f) * 2.0f;
+        if (blight->type == LA_SPOT && shaping_api) {
+          if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
+            float cone_angle = 0.0f;
+            if (cone_angle_attr.Get(&cone_angle, motionSampleTime)) {
+              blight->spotsize = DEG2RADF(cone_angle) * 2.0f;
+            }
           }
-        }
 
-        if (pxr::UsdAttribute cone_softness_attr = shaping_api.GetShapingConeSoftnessAttr()) {
-          float cone_softness = 0.0f;
-          if (cone_softness_attr.Get(&cone_softness, motionSampleTime)) {
-            blight->spotblend = cone_softness;
+          if (pxr::UsdAttribute cone_softness_attr = shaping_api.GetShapingConeSoftnessAttr()) {
+            float cone_softness = 0.0f;
+            if (cone_softness_attr.Get(&cone_softness, motionSampleTime)) {
+              blight->spotblend = cone_softness;
+            }
           }
         }
       }
