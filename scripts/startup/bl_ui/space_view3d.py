@@ -967,7 +967,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_select_paint_mask")
             elif mesh.use_paint_mask_vertex and mode_string in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
                 layout.menu("VIEW3D_MT_select_paint_mask_vertex")
-        elif mode_string not in {'SCULPT', 'SCULPT_CURVES'}:
+        elif mode_string not in {'SCULPT', 'SCULPT_CURVES', 'PAINT_GREASE_PENCIL'}:
             layout.menu("VIEW3D_MT_select_%s" % mode_string.lower())
 
         if gp_edit:
@@ -2000,6 +2000,12 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
 
         layout.operator("grease_pencil.select_more")
         layout.operator("grease_pencil.select_less")
+
+class VIEW3D_MT_paint_grease_pencil(Menu):
+    bl_label = "Paint"
+
+    def draw(self, _context):
+        pass
 
 
 class VIEW3D_MT_paint_gpencil(Menu):
@@ -8327,6 +8333,7 @@ classes = (
     VIEW3D_MT_edit_mesh_merge,
     VIEW3D_MT_edit_mesh_split,
     VIEW3D_MT_edit_mesh_showhide,
+    VIEW3D_MT_paint_grease_pencil,
     VIEW3D_MT_paint_gpencil,
     VIEW3D_MT_draw_gpencil,
     VIEW3D_MT_assign_material,
