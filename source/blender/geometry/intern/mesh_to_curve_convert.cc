@@ -83,10 +83,6 @@ struct CurveFromEdgesOutput {
 BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int verts_num,
                                                                       const Span<int2> edges)
 {
-  Vector<int> vert_indices;
-  vert_indices.reserve(edges.size());
-  Vector<int> curve_offsets;
-
   /* Compute the number of edges connecting to each vertex. */
   Array<int> neighbor_offsets_data(verts_num + 1, 0);
   for (const int vert : edges.cast<int>()) {
@@ -108,11 +104,15 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
     used_slots[v2]++;
   }
 
-  /* Now use the neighbor group offsets calculated above as a count used edges at each vertex. */
+  Vector<int> vert_indices;
+  vert_indices.reserve(edges.size());
+  Vector<int> curve_offsets;
+
+  /* Now use the neighbor group offsets calculated above to count used edges at each vertex. */
   Array<int> unused_edges = std::move(used_slots);
 
   for (const int start_vert : IndexRange(verts_num)) {
-    /* The vertex will be part of a cyclic curve. */
+    /* Don't start at vertices with two neighbors, which may become part of cyclic curves. */
     if (neighbor_offsets[start_vert].size() == 2) {
       continue;
     }
