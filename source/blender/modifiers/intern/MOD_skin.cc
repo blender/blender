@@ -42,6 +42,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLI_array_utils.hh"
 #include "BLI_bitmap.h"
 #include "BLI_heap_simple.h"
 #include "BLI_math.h"
@@ -911,10 +912,7 @@ static Mesh *subdivide_base(const Mesh *orig)
 
   /* Get degree of all vertices */
   blender::Array<int> degree(orig_vert_num, 0);
-  for (i = 0; i < orig_edge_num; i++) {
-    degree[orig_edges[i][0]]++;
-    degree[orig_edges[i][1]]++;
-  }
+  blender::array_utils::count_indices(orig_edges.cast<int>(), degree);
 
   /* Per edge, store how many subdivisions are needed */
   blender::Array<int> edge_subd(orig_edge_num, 0);

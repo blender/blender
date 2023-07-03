@@ -1133,20 +1133,13 @@ static void build_vertex_face_adjacency_maps(DRWSubdivCache *cache)
   cache->subdiv_vertex_face_adjacency_offsets = gpu_vertbuf_create_from_format(
       get_origindex_format(), cache->num_subdiv_verts + 1);
 
-  int *vertex_offsets = (int *)GPU_vertbuf_get_data(cache->subdiv_vertex_face_adjacency_offsets);
-  memset(vertex_offsets, 0, sizeof(int) * cache->num_subdiv_verts + 1);
+  blender::MutableSpan<int> vertex_offsets(
+      static_cast<int *>(GPU_vertbuf_get_data(cache->subdiv_vertex_face_adjacency_offsets)),
+      cache->num_subdiv_verts + 1);
+  vertex_offsets.fill(0);
 
-  for (int i = 0; i < cache->num_subdiv_loops; i++) {
-    vertex_offsets[cache->subdiv_loop_subdiv_vert_index[i]]++;
-  }
-
-  int ofs = vertex_offsets[0];
-  vertex_offsets[0] = 0;
-  for (uint i = 1; i < cache->num_subdiv_verts + 1; i++) {
-    int tmp = vertex_offsets[i];
-    vertex_offsets[i] = ofs;
-    ofs += tmp;
-  }
+  blender::offset_indices::build_reverse_offsets(
+      {cache->subdiv_loop_subdiv_vert_index, cache->num_subdiv_loops}, vertex_offsets);
 
   cache->subdiv_vertex_face_adjacency = gpu_vertbuf_create_from_format(get_origindex_format(),
                                                                        cache->num_subdiv_loops);

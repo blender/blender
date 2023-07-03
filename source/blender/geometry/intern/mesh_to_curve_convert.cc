@@ -115,10 +115,7 @@ BLI_NOINLINE static CurveFromEdgesOutput edges_to_curve_point_indices(const int 
 {
   /* Compute the number of edges connecting to each vertex. */
   Array<int> neighbor_offsets_data(verts_num + 1, 0);
-  for (const int vert : edges.cast<int>()) {
-    neighbor_offsets_data[vert]++;
-  }
-  offset_indices::accumulate_counts_to_offsets(neighbor_offsets_data);
+  offset_indices::build_reverse_offsets(edges.cast<int>(), neighbor_offsets_data);
   const OffsetIndices<int> neighbor_offsets(neighbor_offsets_data);
 
   /* Use as an index into the "neighbor group" for each vertex. */

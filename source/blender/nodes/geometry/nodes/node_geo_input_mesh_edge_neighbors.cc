@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include "BLI_array_utils.hh"
 
 #include "BKE_mesh.hh"
 
@@ -30,14 +29,10 @@ class EdgeNeighborCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    const Span<int> corner_edges = mesh.corner_edges();
-    Array<int> face_count(mesh.totedge, 0);
-    for (const int edge : corner_edges) {
-      face_count[edge]++;
-    }
-
+    Array<int> counts(mesh.totedge, 0);
+    array_utils::count_indices(mesh.corner_edges(), counts);
     return mesh.attributes().adapt_domain<int>(
-        VArray<int>::ForContainer(std::move(face_count)), ATTR_DOMAIN_EDGE, domain);
+        VArray<int>::ForContainer(std::move(counts)), ATTR_DOMAIN_EDGE, domain);
   }
 
   uint64_t hash() const override

@@ -5,7 +5,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
-#include "BLI_task.hh"
+#include "BLI_array_utils.hh"
 
 #include "node_geometry_util.hh"
 
@@ -160,12 +160,8 @@ class EdgesOfVertCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_POINT) {
       return {};
     }
-    const Span<int2> edges = mesh.edges();
     Array<int> counts(mesh.totvert, 0);
-    for (const int i : edges.index_range()) {
-      counts[edges[i][0]]++;
-      counts[edges[i][1]]++;
-    }
+    array_utils::count_indices(mesh.edges().cast<int>(), counts);
     return VArray<int>::ForContainer(std::move(counts));
   }
 

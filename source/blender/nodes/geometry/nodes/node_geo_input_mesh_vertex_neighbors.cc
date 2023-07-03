@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
+#include "BLI_array_utils.hh"
 
 #include "BKE_mesh.hh"
 
@@ -23,20 +22,6 @@ static void node_declare(NodeDeclarationBuilder &b)
       .description("Number of faces that contain the vertex");
 }
 
-static VArray<int> construct_vertex_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
-{
-  const Span<int2> edges = mesh.edges();
-  if (domain == ATTR_DOMAIN_POINT) {
-    Array<int> counts(mesh.totvert, 0);
-    for (const int i : edges.index_range()) {
-      counts[edges[i][0]]++;
-      counts[edges[i][1]]++;
-    }
-    return VArray<int>::ForContainer(std::move(counts));
-  }
-  return {};
-}
-
 class VertexCountFieldInput final : public bke::MeshFieldInput {
  public:
   VertexCountFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Vertex Count Field")
@@ -48,7 +33,12 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    return construct_vertex_count_gvarray(mesh, domain);
+    if (domain != ATTR_DOMAIN_POINT) {
+      return {};
+    }
+    Array<int> counts(mesh.totvert, 0);
+    array_utils::count_indices(mesh.edges().cast<int>(), counts);
+    return VArray<int>::ForContainer(std::move(counts));
   }
 
   uint64_t hash() const override
@@ -68,19 +58,6 @@ class VertexCountFieldInput final : public bke::MeshFieldInput {
   }
 };
 
-static VArray<int> construct_face_count_gvarray(const Mesh &mesh, const eAttrDomain domain)
-{
-  const Span<int> corner_verts = mesh.corner_verts();
-  if (domain == ATTR_DOMAIN_POINT) {
-    Array<int> vertices(mesh.totvert, 0);
-    for (const int vert : corner_verts) {
-      vertices[vert]++;
-    }
-    return VArray<int>::ForContainer(std::move(vertices));
-  }
-  return {};
-}
-
 class VertexFaceCountFieldInput final : public bke::MeshFieldInput {
  public:
   VertexFaceCountFieldInput() : bke::MeshFieldInput(CPPType::get<int>(), "Vertex Face Count Field")
@@ -92,7 +69,12 @@ class VertexFaceCountFieldInput final : public bke::MeshFieldInput {
                                  const eAttrDomain domain,
                                  const IndexMask & /*mask*/) const final
   {
-    return construct_face_count_gvarray(mesh, domain);
+    if (domain != ATTR_DOMAIN_POINT) {
+      return {};
+    }
+    Array<int> counts(mesh.totvert, 0);
+    array_utils::count_indices(mesh.corner_verts(), counts);
+    return VArray<int>::ForContainer(std::move(counts));
   }
 
   uint64_t hash() const override
