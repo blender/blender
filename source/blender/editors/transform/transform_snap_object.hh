@@ -14,8 +14,6 @@
   (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
    SCE_SNAP_TO_EDGE_PERPENDICULAR)
 
-struct SnapCache_EditMesh;
-
 struct SnapObjectContext {
   struct Scene *scene;
 
@@ -42,16 +40,16 @@ struct SnapObjectContext {
     eSnapMode snap_to_flag;
     SnapObjectParams params;
 
-    float ray_start[3];
-    float ray_dir[3];
-    float mval[2];
+    blender::float3 ray_start;
+    blender::float3 ray_dir;
 
-    float init_co[3];
-    float curr_co[3];
+    blender::float3 init_co;
+    blender::float3 curr_co;
 
-    float win_size[2]; /* win x and y */
-    float clip_plane[MAX_CLIPPLANE_LEN][4];
-    int clip_plane_len;
+    blender::float2 win_size; /* win x and y */
+    blender::float2 mval;
+
+    blender::Vector<blender::float4, MAX_CLIPPLANE_LEN> clip_planes;
 
     /* read/write */
     uint object_index;
@@ -63,13 +61,13 @@ struct SnapObjectContext {
   /* Output. */
   struct {
     /* Location of snapped point on target surface. */
-    float loc[3];
+    blender::float3 loc;
     /* Normal of snapped point on target surface. */
-    float no[3];
+    blender::float3 no;
     /* Index of snapped element on target object (-1 when no valid index is found). */
     int index;
     /* Matrix of target object (may not be #Object.object_to_world with dupli-instances). */
-    float obmat[4][4];
+    blender::float4x4 obmat;
     /* List of #SnapObjectHitDepth (caller must free). */
     ListBase *hit_list;
     /* Snapped object. */
@@ -88,7 +86,7 @@ struct RayCastAll_Data {
   /* internal vars for adding depths */
   BVHTree_RayCastCallback raycast_callback;
 
-  const float (*obmat)[4];
+  const blender::float4x4 *obmat;
 
   float len_diff;
   float local_scale;
@@ -165,47 +163,47 @@ bool nearest_world_tree(SnapObjectContext *sctx,
 
 eSnapMode snap_object_center(SnapObjectContext *sctx,
                              Object *ob_eval,
-                             const float obmat[4][4],
+                             const blender::float4x4 &obmat,
                              eSnapMode snap_to_flag);
 
 /* transform_snap_object_armature.cc */
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
                        Object *ob_eval,
-                       const float obmat[4][4],
+                       const blender::float4x4 &obmat,
                        bool is_object_active);
 
 /* transform_snap_object_camera.cc */
 
 eSnapMode snapCamera(SnapObjectContext *sctx,
                      Object *object,
-                     const float obmat[4][4],
+                     const blender::float4x4 &obmat,
                      eSnapMode snap_to_flag);
 
 /* transform_snap_object_curve.cc */
 
-eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[4][4]);
+eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const blender::float4x4 &obmat);
 
 /* transform_snap_object_editmesh.cc */
 
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,
                                const ID *id,
-                               const float obmat[4][4],
+                               const blender::float4x4 &obmat,
                                eSnapMode snap_to_flag,
                                bool use_hide);
 
 eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 Object *ob_eval,
                                 const ID *id,
-                                const float obmat[4][4],
+                                const blender::float4x4 &obmat,
                                 eSnapMode snap_to_flag,
                                 int polygon);
 
 eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
                                     Object *ob_eval,
                                     const ID *id,
-                                    const float obmat[4][4],
+                                    const blender::float4x4 &obmat,
                                     float dist_px_sq_orig,
                                     int edge);
 
@@ -214,20 +212,20 @@ eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
 eSnapMode snap_object_mesh(SnapObjectContext *sctx,
                            Object *ob_eval,
                            const ID *id,
-                           const float obmat[4][4],
+                           const blender::float4x4 &obmat,
                            eSnapMode snap_to_flag,
                            bool use_hide);
 
 eSnapMode snap_polygon_mesh(SnapObjectContext *sctx,
                             Object *ob_eval,
                             const ID *id,
-                            const float obmat[4][4],
+                            const blender::float4x4 &obmat,
                             eSnapMode snap_to_flag,
                             int polygon);
 
 eSnapMode snap_edge_points_mesh(SnapObjectContext *sctx,
                                 Object *ob_eval,
                                 const ID *id,
-                                const float obmat[4][4],
+                                const blender::float4x4 &obmat,
                                 float dist_px_sq_orig,
                                 int edge);

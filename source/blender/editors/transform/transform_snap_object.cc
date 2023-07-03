@@ -119,8 +119,8 @@ SnapData::SnapData(SnapObjectContext *sctx, const float4x4 &obmat)
 
 void SnapData::clip_planes_enable(SnapObjectContext *sctx, bool skip_occlusion_plane)
 {
-  float(*clip_planes)[4] = sctx->runtime.clip_plane;
-  int clip_plane_len = sctx->runtime.clip_plane_len;
+  float(*clip_planes)[4] = reinterpret_cast<float(*)[4]>(sctx->runtime.clip_planes.data());
+  int clip_plane_len = sctx->runtime.clip_planes.size();
 
   if (skip_occlusion_plane && sctx->runtime.has_occlusion_plane) {
     /* We snap to vertices even if occluded. */
@@ -283,15 +283,14 @@ void SnapData::register_result(SnapObjectContext *sctx,
   copy_v3_v3(sctx->ret.loc, r_nearest->co);
   copy_v3_v3(sctx->ret.no, r_nearest->no);
   sctx->ret.index = r_nearest->index;
-  copy_m4_m4(sctx->ret.obmat, obmat.ptr());
+  sctx->ret.obmat = obmat;
   sctx->ret.ob = ob_eval;
   sctx->ret.data = id_eval;
   sctx->ret.dist_px_sq = r_nearest->dist_sq;
 
   /* Global space. */
-  mul_m4_v3(obmat.ptr(), sctx->ret.loc);
-  mul_mat3_m4_v3(obmat.ptr(), sctx->ret.no);
-  normalize_v3(sctx->ret.no);
+  sctx->ret.loc = math::transform_point(obmat, sctx->ret.loc);
+  sctx->ret.no = math::normalize(math::transform_direction(obmat, sctx->ret.no));
 
 #ifdef DEBUG
   /* Make sure this is only called once. */
@@ -368,7 +367,7 @@ static ID *data_for_snap(Object *ob_eval, eSnapEditType edit_mode_type, bool *r_
 using IterSnapObjsCallback = eSnapMode (*)(SnapObjectContext *sctx,
                                            Object *ob_eval,
                                            ID *ob_data,
-                                           const float obmat[4][4],
+                                           const float4x4 &obmat,
                                            bool is_object_active,
                                            bool use_hide);
 
@@ -454,9 +453,12 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
       ListBase *lb = object_duplilist(sctx->runtime.depsgraph, sctx->scene, obj_eval);
       LISTBASE_FOREACH (DupliObject *, dupli_ob, lb) {
         BLI_assert(DEG_is_evaluated_object(dupli_ob->ob));
-        if ((tmp = sob_callback(
-                 sctx, dupli_ob->ob, dupli_ob->ob_data, dupli_ob->mat, is_object_active, false)) !=
-            SCE_SNAP_TO_NONE)
+        if ((tmp = sob_callback(sctx,
+                                dupli_ob->ob,
+                                dupli_ob->ob_data,
+                                float4x4(dupli_ob->mat),
+                                is_object_active,
+                                false)) != SCE_SNAP_TO_NONE)
         {
           ret = tmp;
         }
@@ -466,9 +468,12 @@ static eSnapMode iter_snap_objects(SnapObjectContext *sctx, IterSnapObjsCallback
 
     bool use_hide = false;
     ID *ob_data = data_for_snap(obj_eval, sctx->runtime.params.edit_mode_type, &use_hide);
-    if ((tmp = sob_callback(
-             sctx, obj_eval, ob_data, obj_eval->object_to_world, is_object_active, use_hide)) !=
-        SCE_SNAP_TO_NONE)
+    if ((tmp = sob_callback(sctx,
+                            obj_eval,
+                            ob_data,
+                            float4x4(obj_eval->object_to_world),
+                            is_object_active,
+                            use_hide)) != SCE_SNAP_TO_NONE)
     {
       ret = tmp;
     }
@@ -543,7 +548,7 @@ bool raycast_tri_backface_culling_test(
 static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
                                 Object *ob_eval,
                                 ID *ob_data,
-                                const float obmat[4][4],
+                                const float4x4 &obmat,
                                 bool is_object_active,
                                 bool use_hide)
 {
@@ -578,7 +583,7 @@ static eSnapMode raycast_obj_fn(SnapObjectContext *sctx,
   }
 
   if (retval) {
-    copy_m4_m4(sctx->ret.obmat, obmat);
+    sctx->ret.obmat = obmat;
     sctx->ret.ob = ob_eval;
     sctx->ret.data = ob_data;
     return SCE_SNAP_TO_FACE;
@@ -671,7 +676,7 @@ bool nearest_world_tree(SnapObjectContext *sctx,
 static eSnapMode nearest_world_object_fn(SnapObjectContext *sctx,
                                          Object *ob_eval,
                                          ID *ob_data,
-                                         const float obmat[4][4],
+                                         const float4x4 &obmat,
                                          bool is_object_active,
                                          bool use_hide)
 {
@@ -815,7 +820,7 @@ static eSnapMode snap_edge_points(SnapObjectContext *sctx, const float dist_px_s
 /* May extend later (for now just snaps to empty or camera center). */
 eSnapMode snap_object_center(SnapObjectContext *sctx,
                              Object *ob_eval,
-                             const float obmat[4][4],
+                             const float4x4 &obmat,
                              eSnapMode snap_to_flag)
 {
   if (ob_eval->transflag & OB_DUPLI) {
@@ -827,7 +832,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
     return SCE_SNAP_TO_NONE;
   }
 
-  SnapData nearest2d(sctx, float4x4(obmat));
+  SnapData nearest2d(sctx, obmat);
 
   nearest2d.clip_planes_enable(sctx);
 
@@ -845,7 +850,7 @@ eSnapMode snap_object_center(SnapObjectContext *sctx,
 static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
                              Object *ob_eval,
                              ID *ob_data,
-                             const float obmat[4][4],
+                             const float4x4 &obmat,
                              bool is_object_active,
                              bool use_hide)
 {
@@ -1030,29 +1035,25 @@ static bool snap_object_context_runtime_init(SnapObjectContext *sctx,
     sctx->runtime.win_size[0] = region->winx;
     sctx->runtime.win_size[1] = region->winy;
 
+    sctx->runtime.clip_planes.resize(2);
+
     planes_from_projmat(rv3d->persmat,
                         nullptr,
                         nullptr,
                         nullptr,
                         nullptr,
-                        sctx->runtime.clip_plane[0],
-                        sctx->runtime.clip_plane[1]);
-
-    sctx->runtime.clip_plane_len = 2;
+                        sctx->runtime.clip_planes[0],
+                        sctx->runtime.clip_planes[1]);
 
     if (rv3d->rflag & RV3D_CLIPPING) {
-      memcpy(&sctx->runtime.clip_plane[2], rv3d->clip, 4 * sizeof(rv3d->clip[0]));
-      sctx->runtime.clip_plane_len = 6;
+      sctx->runtime.clip_planes.extend_unchecked(reinterpret_cast<const float4 *>(rv3d->clip), 4);
     }
 
     sctx->runtime.rv3d = rv3d;
   }
 
   sctx->ret.ray_depth_max = ray_depth;
-  zero_v3(sctx->ret.loc);
-  zero_v3(sctx->ret.no);
   sctx->ret.index = -1;
-  zero_m4(sctx->ret.obmat);
   sctx->ret.hit_list = hit_list;
   sctx->ret.ob = nullptr;
   sctx->ret.data = nullptr;
@@ -1106,7 +1107,7 @@ bool ED_transform_snap_object_project_ray_ex(SnapObjectContext *sctx,
       *r_ob = sctx->ret.ob;
     }
     if (r_obmat) {
-      copy_m4_m4(r_obmat, sctx->ret.obmat);
+      copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
     }
     if (ray_depth) {
       *ray_depth = sctx->ret.ray_depth_max;
@@ -1273,7 +1274,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
         *r_ob = sctx->ret.ob;
       }
       if (r_obmat) {
-        copy_m4_m4(r_obmat, sctx->ret.obmat);
+        copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
       }
       if (r_index) {
         *r_index = sctx->ret.index;
@@ -1300,7 +1301,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
           *r_ob = sctx->ret.ob;
         }
         if (r_obmat) {
-          copy_m4_m4(r_obmat, sctx->ret.obmat);
+          copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
         }
         if (r_index) {
           *r_index = sctx->ret.index;
@@ -1338,11 +1339,7 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
       }
 
       /* Add the new clip plane to the beginning of the list. */
-      for (int i = sctx->runtime.clip_plane_len; i != 0; i--) {
-        copy_v4_v4(sctx->runtime.clip_plane[i], sctx->runtime.clip_plane[i - 1]);
-      }
-      copy_v4_v4(sctx->runtime.clip_plane[0], new_clipplane);
-      sctx->runtime.clip_plane_len++;
+      sctx->runtime.clip_planes.prepend(new_clipplane);
       sctx->runtime.has_occlusion_plane = true;
     }
 
@@ -1366,13 +1363,15 @@ eSnapMode ED_transform_snap_object_project_view3d_ex(SnapObjectContext *sctx,
         *r_ob = sctx->ret.ob;
       }
       if (r_obmat) {
-        copy_m4_m4(r_obmat, sctx->ret.obmat);
+        copy_m4_m4(r_obmat, sctx->ret.obmat.ptr());
       }
       if (r_index) {
         *r_index = sctx->ret.index;
       }
 
-      *dist_px = blender::math::sqrt(sctx->ret.dist_px_sq);
+      if (dist_px) {
+        *dist_px = math::sqrt(sctx->ret.dist_px_sq);
+      }
     }
   }
 
