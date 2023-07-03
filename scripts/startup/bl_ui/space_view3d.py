@@ -6145,14 +6145,17 @@ class VIEW3D_PT_shading_lighting(Panel):
                 split = layout.split(factor=0.9)
                 col = split.column()
 
+                engine = context.scene.render.engine
                 row = col.row()
-                row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
-                row = row.row()
+                if engine != 'BLENDER_EEVEE_NEXT':
+                    row.prop(shading, "use_studiolight_view_rotation", text="", icon='WORLD', toggle=True)
+                    row = row.row()
                 row.prop(shading, "studiolight_rotate_z", text="Rotation")
 
                 col.prop(shading, "studiolight_intensity")
                 col.prop(shading, "studiolight_background_alpha")
-                col.prop(shading, "studiolight_background_blur")
+                if engine != 'BLENDER_EEVEE_NEXT':
+                    col.prop(shading, "studiolight_background_blur")
                 col = split.column()  # to align properly with above
 
         elif shading.type == 'RENDERED':
@@ -6176,7 +6179,9 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col.prop(shading, "studiolight_rotate_z", text="Rotation")
                 col.prop(shading, "studiolight_intensity")
                 col.prop(shading, "studiolight_background_alpha")
-                col.prop(shading, "studiolight_background_blur")
+                engine = context.scene.render.engine
+                if engine != 'BLENDER_EEVEE_NEXT':
+                    col.prop(shading, "studiolight_background_blur")
                 col = split.column()  # to align properly with above
 
 
