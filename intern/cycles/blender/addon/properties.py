@@ -1738,15 +1738,15 @@ class CyclesPreferences(bpy.types.AddonPreferences):
             elif device_type == 'ONEAPI':
                 import sys
                 if sys.platform.startswith("win"):
-                    driver_version = "101.4314"
+                    driver_version = "XX.X.101.4314"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture", icon='BLANK1')
                     col.label(text=iface_("and Windows driver version %s or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "1.3.25812"
+                    driver_version = "XX.XX.25812.14"
                     col.label(text="Requires Intel GPU with Xe-HPG architecture and", icon='BLANK1')
-                    col.label(text=iface_("  - intel-level-zero-gpu version %s or newer") % driver_version,
-                              icon='BLANK1', translate=False)
+                    col.label(text="  - intel-level-zero-gpu or intel-compute-runtime version", icon='BLANK1')
+                    col.label(text=iface_("    %s or newer") % driver_version, icon='BLANK1', translate=False)
                     col.label(text="  - oneAPI Level-Zero Loader", icon='BLANK1')
             elif device_type == 'METAL':
                 silicon_mac_version = "12.2"
