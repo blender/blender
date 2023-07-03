@@ -51,17 +51,19 @@ with tempfile.TemporaryDirectory() as tmp_dir:
         # Unzip.
         with zipfile.ZipFile(filepath, "r") as zipf:
             zipf.extractall(path=tmp_dir)
+    print("")
 
-    wheels = glob.glob(tmp_dir / "*.whl")
+    wheels = glob.glob(str(tmp_dir / "*.whl"))
     print("Wheels:")
     print("\n".join(wheels))
 
     if len(platforms) != len(wheels):
         sys.stderr.write("Unexpected number of whl files.")
         sys.exit(1)
+    print("")
 
     # Check and upload.
     print("Twine:")
-    subprocess.run(["twine", "check", " ".join(wheels)], check=True)
+    subprocess.run(["twine", "check"] + wheels, check=True)
     if not args.check:
-        subprocess.run(["twine", "upload", "--repository", "bpy", "--verbose", " ".join(wheels)], check=True)
+        subprocess.run(["twine", "upload", "--repository", "bpy", "--verbose"] + wheels, check=True)

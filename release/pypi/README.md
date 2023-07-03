@@ -1,4 +1,4 @@
-# PyPi Release Publishing
+# PyPI Release Publishing
 
 ### Setup
 
@@ -28,8 +28,8 @@ Check download page for Git hash.
 
 Run checks:
 
-    ./upload-release.py --version X.X.X --hash abcd1234 --check
+    ./upload-release.py --version X.X.X --git-hash abcd1234 --check
 
 Upload:
 
-    ./upload-release.py --version X.X.X --hash abcd1234
+    ./upload-release.py --version X.X.X --git-hash abcd1234
