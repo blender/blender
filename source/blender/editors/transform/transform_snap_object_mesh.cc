@@ -20,7 +20,7 @@
 
 #ifdef DEBUG_SNAP_TIME
 #  if WIN32 and NDEBUG
-#    pragma optimize("O", on)
+#    pragma optimize("t", on)
 #  endif
 #endif
 

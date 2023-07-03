@@ -30,7 +30,7 @@
 #  include "BLI_timeit.hh"
 
 #  if WIN32 and NDEBUG
-#    pragma optimize("O", on)
+#    pragma optimize("t", on)
 #  endif
 
 static int64_t total_count_ = 0;
