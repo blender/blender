@@ -1099,6 +1099,18 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
     return;
   }
 
+  /* Only process a given ID once. Otherwise, all kind of weird things can happen if e.g. a
+   * selected sub-collection is part of more than one override hierarchies. */
+  if (data->selected_id_uid.contains(id_root_reference->session_uuid)) {
+    return;
+  }
+  data->selected_id_uid.add(id_root_reference->session_uuid);
+
+  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
+    id_root_reference->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
+    return;
+  }
+
   if (!ID_IS_OVERRIDABLE_LIBRARY_HIERARCHY(id_root_reference)) {
     if (ID_IS_LINKED(id_root_reference)) {
       BKE_reportf(
@@ -1114,18 +1126,6 @@ static void id_override_library_create_hierarchy_pre_process_fn(bContext *C,
 
   BLI_assert(do_hierarchy);
   UNUSED_VARS_NDEBUG(do_hierarchy);
-
-  /* Only process a given ID once. Otherwise, all kind of weird things can happen if e.g. a
-   * selected sub-collection is part of more than one override hierarchies. */
-  if (data->selected_id_uid.contains(id_root_reference->session_uuid)) {
-    return;
-  }
-  data->selected_id_uid.add(id_root_reference->session_uuid);
-
-  if (ID_IS_OVERRIDE_LIBRARY_REAL(id_root_reference) && !ID_IS_LINKED(id_root_reference)) {
-    id_root_reference->override_library->flag &= ~LIBOVERRIDE_FLAG_SYSTEM_DEFINED;
-    return;
-  }
 
   if (GS(id_root_reference->name) == ID_GR && (tselem->flag & TSE_CLOSED) != 0) {
     /* If selected element is a (closed) collection, check all of its objects recursively, and also
