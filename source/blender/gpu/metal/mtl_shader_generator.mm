@@ -1464,6 +1464,9 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   /** Generate Compute shader stage. **/
   std::stringstream ss_compute;
 
+  ss_compute << "#define GPU_ARB_texture_cube_map_array 1\n"
+                "#define GPU_ARB_shader_draw_parameters 1\n";
+
 #ifndef NDEBUG
   extract_global_scope_constants(shd_builder_->glsl_compute_source_, ss_compute);
 #endif

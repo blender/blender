@@ -39,7 +39,7 @@ void light_world_eval(ClosureReflection reflection, vec3 P, vec3 V, inout vec3 o
     /* http://http.developer.nvidia.com/GPUGems3/gpugems3_ch20.html : Equation 13 */
     /* TODO: lod_factor should be precalculated and stored inside the reflection probe data. */
     const float bias = 0.0;
-    const float lod_factor = bias + 0.5 * log(float(square_i(texture_size.x))) / log(2);
+    const float lod_factor = bias + 0.5 * log(float(square_i(texture_size.x))) / log(2.0);
     /* -2: Don't use LOD levels that are smaller than 4x4 pixels. */
     float lod = clamp(lod_factor - 0.5 * log2(pdf * dist), 0.0, lod_cube_max - 2.0);
 
