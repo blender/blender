@@ -46,6 +46,25 @@ static bool view2d_poll(bContext *C)
   return (region != nullptr) && (region->v2d.flag & V2D_IS_INIT);
 }
 
+/**
+ * Calculate a scrolling delta that is the closest to a multiple of the page size (as returned by
+ * #view2d_page_size_y). So when scrolling for more than half a page size, a delta to the next page
+ * is returned. No scrolling change should be applied when this returns 0.
+ */
+static float view2d_scroll_delta_y_snap_page_size(const View2D &v2d, const float delta_y)
+{
+  const float page_size = view2d_page_size_y(v2d);
+  const int delta_pages = int((delta_y - page_size * 0.5f) / page_size);
+
+  /* Apply no change, don't update last coordinates. */
+  if (abs(delta_pages) < 1) {
+    return 0.0f;
+  }
+
+  /* Snap the delta to a multiple of a page size. */
+  return delta_pages * page_size;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -260,18 +279,32 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   v2dViewPanData *vpd = static_cast<v2dViewPanData *>(op->customdata);
+  View2D *v2d = vpd->v2d;
 
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
       /* calculate new delta transform, then store mouse-coordinates for next-time */
-      RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->xy[0]));
-      RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->xy[1]));
+      int deltax = vpd->lastx - event->xy[0];
+      int deltay = vpd->lasty - event->xy[1];
 
-      vpd->lastx = event->xy[0];
-      vpd->lasty = event->xy[1];
+      /* Page snapping: When panning for more than half a page size, snap to the next page. */
+      if (v2d->flag & V2D_SNAP_TO_PAGESIZE_Y) {
+        deltay = view2d_scroll_delta_y_snap_page_size(*v2d, deltay);
+      }
 
-      view_pan_apply(C, op);
+      if (deltax != 0) {
+        RNA_int_set(op->ptr, "deltax", deltax);
+        vpd->lastx = event->xy[0];
+      }
+      if (deltay != 0) {
+        RNA_int_set(op->ptr, "deltay", deltay);
+        vpd->lasty = event->xy[1];
+      }
+
+      if (deltax || deltay) {
+        view_pan_apply(C, op);
+      }
       break;
     }
     /* XXX: Mode switching isn't implemented. See comments in 36818.
@@ -506,9 +539,13 @@ static int view_scrolldown_exec(bContext *C, wmOperator *op)
   RNA_int_set(op->ptr, "deltay", -40);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
-  if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-    ARegion *region = CTX_wm_region(C);
-    RNA_int_set(op->ptr, "deltay", region->v2d.mask.ymin - region->v2d.mask.ymax);
+  const bool use_page_size = (vpd->v2d->flag & V2D_SNAP_TO_PAGESIZE_Y) ||
+                             (RNA_property_is_set(op->ptr, prop) &&
+                              RNA_property_boolean_get(op->ptr, prop));
+  if (use_page_size) {
+    const ARegion *region = CTX_wm_region(C);
+    const int page_size = view2d_page_size_y(region->v2d);
+    RNA_int_set(op->ptr, "deltay", -page_size);
   }
 
   /* apply movement, then we're done */
@@ -557,9 +594,13 @@ static int view_scrollup_exec(bContext *C, wmOperator *op)
   RNA_int_set(op->ptr, "deltay", 40);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
-  if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
-    ARegion *region = CTX_wm_region(C);
-    RNA_int_set(op->ptr, "deltay", BLI_rcti_size_y(&region->v2d.mask));
+  const bool use_page_size = (vpd->v2d->flag & V2D_SNAP_TO_PAGESIZE_Y) ||
+                             (RNA_property_is_set(op->ptr, prop) &&
+                              RNA_property_boolean_get(op->ptr, prop));
+  if (use_page_size) {
+    const ARegion *region = CTX_wm_region(C);
+    const int page_size = view2d_page_size_y(region->v2d);
+    RNA_int_set(op->ptr, "deltay", page_size);
   }
 
   /* apply movement, then we're done */
@@ -2000,21 +2041,24 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   v2dScrollerMove *vsm = static_cast<v2dScrollerMove *>(op->customdata);
+  const bool use_page_size_y = vsm->v2d->flag & V2D_SNAP_TO_PAGESIZE_Y;
 
   /* execute the events */
   switch (event->type) {
     case MOUSEMOVE: {
+      float delta = 0.0f;
+
       /* calculate new delta transform, then store mouse-coordinates for next-time */
       if (ELEM(vsm->zone, SCROLLHANDLE_BAR, SCROLLHANDLE_MAX)) {
         /* if using bar (i.e. 'panning') or 'max' zoom widget */
         switch (vsm->scroller) {
           case 'h': /* horizontal scroller - so only horizontal movement
                      * ('cur' moves opposite to mouse) */
-            vsm->delta = float(event->xy[0] - vsm->lastx);
+            delta = float(event->xy[0] - vsm->lastx);
             break;
           case 'v': /* vertical scroller - so only vertical movement
                      * ('cur' moves opposite to mouse) */
-            vsm->delta = float(event->xy[1] - vsm->lasty);
+            delta = float(event->xy[1] - vsm->lasty);
             break;
         }
       }
@@ -2023,15 +2067,25 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
         switch (vsm->scroller) {
           case 'h': /* horizontal scroller - so only horizontal movement
                      * ('cur' moves with mouse) */
-            vsm->delta = float(vsm->lastx - event->xy[0]);
+            delta = float(vsm->lastx - event->xy[0]);
             break;
           case 'v': /* vertical scroller - so only vertical movement
                      * ('cur' moves with to mouse) */
-            vsm->delta = float(vsm->lasty - event->xy[1]);
+            delta = float(vsm->lasty - event->xy[1]);
             break;
         }
       }
 
+      /* Page snapping: When panning for more than half a page size, snap to the next page. */
+      if (use_page_size_y && (vsm->scroller == 'v')) {
+        delta = view2d_scroll_delta_y_snap_page_size(*vsm->v2d, delta * vsm->fac) / vsm->fac;
+      }
+
+      if (IS_EQF(delta, 0.0f)) {
+        break;
+      }
+
+      vsm->delta = delta;
       /* store previous coordinates */
       vsm->lastx = event->xy[0];
       vsm->lasty = event->xy[1];
