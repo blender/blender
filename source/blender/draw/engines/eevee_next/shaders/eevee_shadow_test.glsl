@@ -44,6 +44,8 @@ void main()
     light.type = LIGHT_SUN_ORTHO;
     light.clipmap_lod_min = 2;
     light.clipmap_lod_max = 8;
+    light._clipmap_origin_x = 0.0;
+    light._clipmap_origin_y = 0.0;
     float half_size = exp2(float(light.clipmap_lod_min - 1));
     light._clipmap_lod_bias = light.clipmap_lod_min - 1;
     float fac = float(SHADOW_TILEMAP_RES - 1) / float(SHADOW_TILEMAP_RES);
@@ -68,6 +70,10 @@ void main()
     light.clipmap_lod_max = 2; /* Range [-2..2]. */
     light.tilemap_index = light.clipmap_lod_min;
     light._position = vec3(0.0);
+    light._clipmap_origin_x = 0.0;
+    light._clipmap_origin_y = 0.0;
+    light._clipmap_lod_bias = 0;
+
     float lod_min_tile_size = exp2(float(light.clipmap_lod_min)) / float(SHADOW_TILEMAP_RES);
     float lod_max_half_size = exp2(float(light.clipmap_lod_max)) / 2.0;
 
@@ -300,6 +306,8 @@ void main()
     light.clip_near = floatBitsToInt(near);
     light.clip_far = floatBitsToInt(far);
     light.clipmap_lod_min = 0;
+    light._clipmap_origin_x = 0.0;
+    light._clipmap_origin_y = 0.0;
 
     /* Position has no effect for directionnal. */
     vec3 lP = vec3(0.0);
@@ -353,6 +361,8 @@ void main()
     light.type = LIGHT_SPOT;
     light.normal_mat_packed.x = normal_mat[3][2];
     light.normal_mat_packed.y = normal_mat[3][3];
+    light._clipmap_origin_x = 0.0;
+    light._clipmap_origin_y = 0.0;
 
     vec2 atlas_size = vec2(SHADOW_TILEMAP_RES);
     {

@@ -17,4 +17,12 @@ void DrawOpenGLTest::SetUp()
   DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
 }
 
+#ifdef WITH_METAL_BACKEND
+void DrawMetalTest::SetUp()
+{
+  GPUMetalTest::SetUp();
+  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
+}
+#endif
+
 }  // namespace blender::draw
