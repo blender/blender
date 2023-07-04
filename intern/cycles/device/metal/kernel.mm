@@ -15,9 +15,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* limit to 2 MTLCompiler instances */
-int max_mtlcompiler_threads = 2;
-
 const char *kernel_type_as_string(MetalPipelineType pso_type)
 {
   switch (pso_type) {
@@ -292,6 +289,18 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
     /* create compiler threads on first run */
     thread_scoped_lock lock(cache_mutex);
     if (compile_threads.empty()) {
+      /* Limit to 2 MTLCompiler instances by default. In macOS >= 13.3 we can query the upper
+       * limit. */
+      int max_mtlcompiler_threads = 2;
+
+#  if defined(MAC_OS_VERSION_13_3)
+      if (@available(macOS 13.3, *)) {
+        /* Subtract one to avoid contention with the real-time GPU module. */
+        max_mtlcompiler_threads = max(2, int([mtlDevice maximumConcurrentCompilationTaskCount]) - 1);
+      }
+#  endif
+
+      metal_printf("Spawning %d Cycles kernel compilation threads\n", max_mtlcompiler_threads);
       for (int i = 0; i < max_mtlcompiler_threads; i++) {
         compile_threads.push_back(std::thread([&] { compile_thread_func(i); }));
       }
