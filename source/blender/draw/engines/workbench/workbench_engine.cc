@@ -212,15 +212,11 @@ class Instance {
     if (scene_state.xray_mode || is_transparent) {
       if (in_front) {
         draw_callback(transparent_ps.accumulation_in_front_ps_);
-        if (scene_state.draw_transparent_depth) {
-          draw_callback(transparent_depth_ps.in_front_ps_);
-        }
+        draw_callback(transparent_depth_ps.in_front_ps_);
       }
       else {
         draw_callback(transparent_ps.accumulation_ps_);
-        if (scene_state.draw_transparent_depth) {
-          draw_callback(transparent_depth_ps.main_ps_);
-        }
+        draw_callback(transparent_depth_ps.main_ps_);
       }
     }
     else {
@@ -472,12 +468,8 @@ class Instance {
       }
     }
 
-    opaque_ps.draw(manager,
-                   view,
-                   resources,
-                   resolution,
-                   &shadow_ps,
-                   transparent_ps.accumulation_ps_.is_empty());
+    opaque_ps.draw(
+        manager, view, resources, resolution, scene_state.draw_shadows ? &shadow_ps : nullptr);
     transparent_ps.draw(manager, view, resources, resolution);
     transparent_depth_ps.draw(manager, view, resources);
 

@@ -173,7 +173,6 @@ void SceneState::init(Object *camera_ob /*= nullptr*/)
   draw_dof = camera && camera->dof.flag & CAM_DOF_ENABLED &&
              shading.flag & V3D_SHADING_DEPTH_OF_FIELD;
 
-  draw_transparent_depth = draw_outline || draw_dof;
   draw_object_id = draw_outline || draw_curvature;
 };
 
