@@ -681,7 +681,7 @@ const char *DNA_struct_get_compareflags(const SDNA *oldsdna, const SDNA *newsdna
     BLI_assert(compare_flags[a] != SDNA_CMP_UNKNOWN);
   }
 
-  /* First struct in `util.h` is struct Link, this is skipped in compare_flags (als # 0).
+  /* First struct is `struct Link`, this is skipped in compare_flags (at index `0`).
    * was a bug, and this way dirty patched! Solve this later. */
   compare_flags[0] = SDNA_CMP_EQUAL;
 
