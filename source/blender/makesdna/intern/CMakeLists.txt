@@ -42,16 +42,32 @@ file(GENERATE OUTPUT ${dna_header_string_file} CONTENT "${DNA_FILE_LIST}")
 
 # -----------------------------------------------------------------------------
 # Build makesdna executable
-set(SRC
-  dna_utils.cc
-  makesdna.cc
+
+# Subset of blenlib used by makesdna.
+set(SRC_BLENLIB
   ../../blenlib/intern/BLI_assert.c
   ../../blenlib/intern/BLI_ghash.c
   ../../blenlib/intern/BLI_ghash_utils.c
+  ../../blenlib/intern/BLI_linklist.c
   ../../blenlib/intern/BLI_memarena.c
   ../../blenlib/intern/BLI_mempool.c
-  ../../blenlib/intern/hash_mm2a.c  # needed by 'BLI_ghash_utils.c', not used directly.
+  ../../blenlib/intern/endian_switch.c
+  ../../blenlib/intern/listbase.cc
   ../../blenlib/intern/string.c
+
+  # Dependency of BLI_ghash.c
+  ../../blenlib/intern/hash_mm2a.c
+
+  # Dependencies of BLI_mempool.c when ASAN is enabled.
+  ../../blenlib/intern/gsqueue.c
+  ../../blenlib/intern/threads.cc
+  ../../blenlib/intern/time.c
+)
+
+set(SRC
+  dna_utils.cc
+  makesdna.cc
+  ${SRC_BLENLIB}
   ../../../../intern/guardedalloc/intern/leak_detector.cc
   ../../../../intern/guardedalloc/intern/mallocn.c
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
@@ -65,10 +81,6 @@ set(SRC
 # compiling in address sanitizer mode.
 if(WITH_COMPILER_ASAN)
   list(APPEND SRC
-    ../../blenlib/intern/gsqueue.c
-    ../../blenlib/intern/listbase.cc
-    ../../blenlib/intern/threads.cc
-    ../../blenlib/intern/time.c
   )
 endif()
 
@@ -78,6 +90,7 @@ add_cc_flags_custom_test(makesdna)
 
 add_executable(makesdna ${SRC} ${SRC_DNA_INC})
 setup_platform_linker_flags(makesdna)
+setup_platform_linker_libs(makesdna)
 blender_target_include_dirs(makesdna ${INC})
 blender_target_include_dirs_sys(makesdna ${INC_SYS})
 target_link_libraries(makesdna PRIVATE bf_intern_atomic)
@@ -142,29 +155,12 @@ set(INC_SYS
 )
 
 set(SRC
-  ../../blenlib/intern/BLI_assert.c
-  ../../blenlib/intern/BLI_ghash.c
-  ../../blenlib/intern/BLI_ghash_utils.c
-  ../../blenlib/intern/BLI_linklist.c
-  ../../blenlib/intern/BLI_memarena.c
-  ../../blenlib/intern/BLI_mempool.c
-  ../../blenlib/intern/endian_switch.c
-  ../../blenlib/intern/hash_mm2a.c
-  ../../blenlib/intern/listbase.cc
-
+  ${SRC_BLENLIB}
   ${SRC_DNA_DEFAULTS_INC}
 )
 
 set(LIB
   PRIVATE bf_intern_atomic
 )
-
-if(WITH_COMPILER_ASAN)
-  list(APPEND SRC
-    ../../blenlib/intern/gsqueue.c
-    ../../blenlib/intern/threads.cc
-    ../../blenlib/intern/time.c
-  )
-endif()
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
