@@ -367,7 +367,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
             num_verts + 1);
         assert(verts_buffer);
         if (verts_buffer) {
-          for (size_t i = (size_t)0; i < num_verts + 1; ++i) {
+          for (size_t i = (size_t)0; i < num_verts; ++i) {
             verts_buffer[i].x = verts[i].x;
             verts_buffer[i].y = verts[i].y;
             verts_buffer[i].z = verts[i].z;
