@@ -2001,6 +2001,7 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
         layout.operator("grease_pencil.select_more")
         layout.operator("grease_pencil.select_less")
 
+
 class VIEW3D_MT_paint_grease_pencil(Menu):
     bl_label = "Paint"
 

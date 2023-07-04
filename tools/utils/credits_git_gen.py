@@ -45,7 +45,7 @@ author_table = {
     "unclezeiv": "Davide Vercelli",
     "dilithjay": "Dilith Jayakody",
     "gaiaclary": "Gaia Clary",
-    "DESKTOP-ON14TH5\Sonny Campbell": "Sonny Campbell",
+    "DESKTOP-ON14TH5\\Sonny Campbell": "Sonny Campbell",
     "demeterdzadik@gmail.com": "Demeter Dzadik",
     "Diego Hernan Borghetti": "Diego Borghetti",
     "Dotsnov Valentin": "Dontsov Valentin",
