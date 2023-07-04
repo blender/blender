@@ -31,9 +31,9 @@ class ReflectionProbeModule {
   static constexpr int max_probes_ = 1;
 
   /**
-   * The maximum resolution of a cubemap side.
+   * The maximum resolution of a cube-map side.
    *
-   * Must be a power of two; intension to be used as a cubemap atlas.
+   * Must be a power of two; intention to be used as a cube-map atlas.
    */
   static constexpr int max_resolution_ = 2048;
 
@@ -73,7 +73,7 @@ class ReflectionProbeModule {
 
   void remap_to_octahedral_projection();
 
-  /* Capture View requires access to the cubemaps texture for framebuffer configuration. */
+  /* Capture View requires access to the cubemaps texture for frame-buffer configuration. */
   friend class CaptureView;
 };
 

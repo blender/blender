@@ -28,7 +28,7 @@ using namespace blender;
  * \{ */
 
 struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
-  /* Loose Verts, Edges, Tris. */
+  /* Loose Verts, Edges, Triangles. */
   BVHTree *bvhtree[3];
   bool cached[3];
 

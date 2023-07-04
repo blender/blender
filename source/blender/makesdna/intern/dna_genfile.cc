@@ -960,7 +960,7 @@ static int elem_offset(const SDNA *sdna,
                        const char *name,
                        const SDNA_Struct *old)
 {
-  /* without arraypart, so names can differ: return old namenr and type */
+  /* Without array-part, so names can differ: return old `namenr` and type. */
 
   /* in old is the old struct */
   int offset = 0;

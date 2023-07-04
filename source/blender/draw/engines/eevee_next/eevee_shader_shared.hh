@@ -982,7 +982,7 @@ enum eClosureBits : uint32_t {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Ambient Occlussion
+/** \name Ambient Occlusion
  * \{ */
 
 struct AOData {

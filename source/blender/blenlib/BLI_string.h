@@ -64,13 +64,11 @@ char *BLI_strdupcat(const char *__restrict str1,
     ATTR_NONNULL(1, 2) ATTR_MALLOC;
 
 /**
- * Like strncpy but ensures dst is always
- * '\0' terminated.
+ * Like `strncpy` but ensures dst is always `\0` terminated.
  *
- * \param dst: Destination for copy
- * \param src: Source string to copy
- * \param dst_maxncpy: Maximum number of characters to copy (generally
- * the size of dst)
+ * \param dst: Destination for copy.
+ * \param src: Source string to copy.
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
  * \retval Returns dst
  */
 char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
@@ -78,12 +76,12 @@ char *BLI_strncpy(char *__restrict dst, const char *__restrict src, size_t dst_m
 
 /**
  * Like BLI_strncpy but ensures dst is always padded by given char,
- * on both sides (unless src is empty).
+ * on both sides (unless `src` is empty).
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
  * \param pad: the char to use for padding
- * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst)
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
  * \retval Returns dst
  */
 char *BLI_strncpy_ensure_pad(char *__restrict dst,
@@ -92,17 +90,15 @@ char *BLI_strncpy_ensure_pad(char *__restrict dst,
                              size_t dst_maxncpy) ATTR_NONNULL(1, 2);
 
 /**
- * Like strncpy but ensures dst is always
- * '\0' terminated.
+ * Like `strncpy` but ensures dst is always `\0` terminated.
  *
  * \note This is a duplicate of #BLI_strncpy that returns bytes copied.
- * And is a drop in replacement for 'snprintf(str, sizeof(str), "%s", arg);'
+ * And is a drop in replacement for `snprintf(str, sizeof(str), "%s", arg);`
  *
  * \param dst: Destination for copy
  * \param src: Source string to copy
- * \param dst_maxncpy: Maximum number of characters to copy (generally
- * the size of dst)
- * \retval The number of bytes copied (The only difference from BLI_strncpy).
+ * \param dst_maxncpy: Maximum number of characters to copy (generally the size of dst).
+ * \retval The number of bytes copied (The only difference from #BLI_strncpy).
  */
 size_t BLI_strncpy_rlen(char *__restrict dst,
                         const char *__restrict src,
@@ -162,7 +158,7 @@ bool BLI_str_quoted_substr(const char *__restrict str,
                            size_t result_maxncpy);
 
 /**
- * Portable replacement for #snprintf
+ * Portable replacement for `snprintf`.
  */
 size_t BLI_snprintf(char *__restrict dst, size_t dst_maxncpy, const char *__restrict format, ...)
     ATTR_NONNULL(1, 3) ATTR_PRINTF_FORMAT(3, 4);
@@ -236,7 +232,7 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t d
  * \param src: The escaped source string.
  * \param src_maxncpy: The maximum number of bytes allowable to copy from `src`.
  * \param dst_maxncpy: The maximum number of bytes allowable to copy into `dst`.
- * \param r_is_complete: Set to true when
+ * \param r_is_complete: Set to true when.
  */
 size_t BLI_str_unescape_ex(char *__restrict dst,
                            const char *__restrict src,
@@ -268,11 +264,11 @@ size_t BLI_str_unescape(char *__restrict dst, const char *__restrict src, size_t
 const char *BLI_str_escape_find_quote(const char *str) ATTR_NONNULL(1);
 
 /**
- * Format ints with decimal grouping.
+ * Format integers with decimal grouping.
  * 1000 -> 1,000
  *
- * \param dst: The resulting string
- * \param num: Number to format
+ * \param dst: The resulting string.
+ * \param num: Number to format.
  * \return The length of \a dst
  */
 size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], int num)
@@ -281,9 +277,9 @@ size_t BLI_str_format_int_grouped(char dst[BLI_STR_FORMAT_INT32_GROUPED_SIZE], i
  * Format uint64_t with decimal grouping.
  * 1000 -> 1,000
  *
- * \param dst: The resulting string
- * \param num: Number to format
- * \return The length of \a dst
+ * \param dst: The resulting string.
+ * \param num: Number to format.
+ * \return The length of \a dst.
  */
 size_t BLI_str_format_uint64_grouped(char dst[BLI_STR_FORMAT_UINT64_GROUPED_SIZE], uint64_t num)
     ATTR_NONNULL(1);
@@ -301,7 +297,7 @@ void BLI_str_format_byte_unit(char dst[BLI_STR_FORMAT_INT64_BYTE_UNIT_SIZE],
                               long long int bytes,
                               bool base_10) ATTR_NONNULL(1);
 /**
- * Format a count to up to 6 places (plus '\0' terminator) string using long number
+ * Format a count to up to 6 places (plus `\0` terminator) string using long number
  * names abbreviations. Used to produce a compact representation of large numbers.
  *
  * 1 -> 1
@@ -369,7 +365,7 @@ int BLI_strcasecmp_natural(const char *s1, const char *s2) ATTR_WARN_UNUSED_RESU
     ATTR_NONNULL(1, 2);
 /**
  * Like `strcmp`, but will ignore any heading/trailing pad char for comparison.
- * So e.g. if pad is '*', '*world' and 'world*' will compare equal.
+ * So e.g. if pad is `*`, `*world` and `world*` will compare equal.
  */
 int BLI_strcmp_ignore_pad(const char *str1, const char *str2, char pad) ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL(1, 2);
@@ -395,8 +391,8 @@ char BLI_toupper_ascii(const char c) ATTR_WARN_UNUSED_RESULT;
 void BLI_str_rstrip(char *str) ATTR_NONNULL(1);
 /**
  * Strip trailing zeros from a float, eg:
- *   0.0000 -> 0.0
- *   2.0010 -> 2.001
+ * - 0.0000 -> 0.0
+ * - 2.0010 -> 2.001
  *
  * \param str:
  * \param pad:
@@ -406,7 +402,7 @@ int BLI_str_rstrip_float_zero(char *str, char pad) ATTR_NONNULL(1);
 
 /**
  * Strip trailing digits.
- *   ABC123 -> ABC
+ * - ABC123 -> ABC
  *
  * \param str:
  * \return The number of digits stripped.
@@ -629,4 +625,4 @@ template<size_t N> inline char *STRNCPY(char (&dst)[N], const char *src)
   return BLI_strncpy(dst, src, N);
 }
 
-#endif
+#endif /* __cplusplus */

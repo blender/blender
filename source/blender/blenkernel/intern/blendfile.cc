@@ -247,7 +247,8 @@ struct ReuseOldBMainData {
   IDNameLib_Map *id_map;
 };
 
-/** Search for all libraries in `old_bmain` that are also in `new_bmain` (i.e. different Library
+/**
+ * Search for all libraries in `old_bmain` that are also in `new_bmain` (i.e. different Library
  * IDs having the same absolute filepath), and create a remapping rule for these.
  *
  * NOTE: The case where the `old_bmain` would be a library in the newly read one is not handled

@@ -61,8 +61,8 @@ MALWAYS_INLINE __m128 _bli_math_improve_5throot_solution(const __m128 old_result
 /** Calculate `powf(x, 2.4)`. Working domain: `1e-10 < x < 1e+10`. */
 MALWAYS_INLINE __m128 _bli_math_fastpow24(const __m128 arg)
 {
-  /* max, avg and |avg| errors were calculated in gcc without FMA instructions
-   * The final precision should be better than powf in glibc */
+  /* max, avg and |avg| errors were calculated in GCC without FMA instructions
+   * The final precision should be better than `powf` in GLIBC. */
 
   /* Calculate x^4/5, coefficient 0.994 was constructed manually to minimize
    * avg error.
