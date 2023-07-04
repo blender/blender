@@ -170,6 +170,13 @@ if(WIN32)
   )
 endif()
 
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+  # This changes the default value from Off to On, but will still allow people to manually change
+  # this setting through their CMakeCache.txt if they desire to do so.
+  set(CMAKE_OPTIMIZE_DEPENDENCIES ON CACHE INTERNAL "")
+endif()
+
 # -----------------------------------------------------------------------------
 # Declare Options
 
