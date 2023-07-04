@@ -528,7 +528,7 @@ void AbstractHierarchyIterator::determine_export_paths(const HierarchyContext *p
 }
 
 void AbstractHierarchyIterator::determine_duplication_references(
-    const HierarchyContext *parent_context, std::string indent)
+    const HierarchyContext *parent_context, const std::string &indent)
 {
   ExportChildren children = graph_children(parent_context);
 

@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup DNA
- * \page makesdna makesdna
+ * \page makesdna Make Struct DNA (`makesdna`)
  *
  * \section aboutdna About the DNA module
  *
@@ -60,7 +60,7 @@
  *
  * PLEASE READ INSTRUCTIONS ABOUT ADDING VARIABLES IN 'DNA' STRUCTS IN
  *
- * intern/dna_genfile.c
+ * intern/dna_genfile.cc
  * (ton)
  */
 

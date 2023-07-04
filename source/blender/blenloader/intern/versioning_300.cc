@@ -464,7 +464,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
             }
           }
           if (substr) {
-            char *new_path = BLI_str_replaceN(fcu->rna_path, "speed_factor", substr);
+            char *new_path = BLI_string_replaceN(fcu->rna_path, "speed_factor", substr);
             MEM_freeN(fcu->rna_path);
             fcu->rna_path = new_path;
           }

@@ -63,7 +63,7 @@ static float EPSILON_WEIGHT = 0.005f;
  * This struct with private working data is associated to the local call context
  * via `StabContext::private_track_data`
  */
-typedef struct TrackStabilizationBase {
+struct TrackStabilizationBase {
   float stabilization_offset_base[2];
 
   /* measured relative to translated pivot */
@@ -74,19 +74,19 @@ typedef struct TrackStabilizationBase {
 
   bool is_init_for_stabilization;
   FCurve *track_weight_curve;
-} TrackStabilizationBase;
+};
 
 /* Tracks are reordered for initialization, starting as close as possible to
  * anchor_frame
  */
-typedef struct TrackInitOrder {
+struct TrackInitOrder {
   int sort_value;
   int reference_frame;
   MovieTrackingTrack *data;
-} TrackInitOrder;
+};
 
 /* Per frame private working data, for accessing possibly animated values. */
-typedef struct StabContext {
+struct StabContext {
   MovieClip *clip;
   MovieTracking *tracking;
   MovieTrackingStabilization *stab;
@@ -98,7 +98,7 @@ typedef struct StabContext {
   FCurve *target_rot;
   FCurve *target_scale;
   bool use_animation;
-} StabContext;
+};
 
 static TrackStabilizationBase *access_stabilization_baseline_data(StabContext *ctx,
                                                                   MovieTrackingTrack *track)
@@ -1287,13 +1287,13 @@ void BKE_tracking_stabilization_data_get(MovieClip *clip,
 
 typedef void (*interpolation_func)(const ImBuf *, ImBuf *, float, float, int, int);
 
-typedef struct TrackingStabilizeFrameInterpolationData {
+struct TrackingStabilizeFrameInterpolationData {
   ImBuf *ibuf;
   ImBuf *tmpibuf;
   float (*mat)[4];
 
   interpolation_func interpolation;
-} TrackingStabilizeFrameInterpolationData;
+};
 
 static void tracking_stabilize_frame_interpolation_cb(void *__restrict userdata,
                                                       const int j,

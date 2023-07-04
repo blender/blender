@@ -15,6 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -109,7 +110,6 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
 
 void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...)
 {
-  DynStr *ds;
   Report *report;
   va_list args;
   const char *format = TIP_(_format);
@@ -126,15 +126,11 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
     report = MEM_callocN(sizeof(Report), "Report");
 
-    ds = BLI_dynstr_new();
     va_start(args, _format);
-    BLI_dynstr_vappendf(ds, format, args);
+    report->message = BLI_vsprintfN(format, args);
     va_end(args);
 
-    report->message = BLI_dynstr_get_cstring(ds);
-    report->len = BLI_dynstr_get_len(ds);
-    BLI_dynstr_free(ds);
-
+    report->len = strlen(report->message);
     report->type = type;
     report->typestr = BKE_report_type_str(type);
 
@@ -142,55 +138,44 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   }
 }
 
-void BKE_reports_prepend(ReportList *reports, const char *_prepend)
+/**
+ * Shared logic behind #BKE_reports_prepend & #BKE_reports_prependf.
+ */
+static void reports_prepend_impl(ReportList *reports, const char *prepend)
 {
-  Report *report;
-  DynStr *ds;
-  const char *prepend = TIP_(_prepend);
-
-  if (!reports) {
-    return;
-  }
-
-  for (report = reports->list.first; report; report = report->next) {
-    ds = BLI_dynstr_new();
-
-    BLI_dynstr_append(ds, prepend);
-    BLI_dynstr_append(ds, report->message);
+  /* Caller must ensure. */
+  BLI_assert(reports && reports->list.first);
+  const size_t prefix_len = strlen(prepend);
+  for (Report *report = reports->list.first; report; report = report->next) {
+    char *message = BLI_string_joinN(prepend, report->message);
     MEM_freeN((void *)report->message);
-
-    report->message = BLI_dynstr_get_cstring(ds);
-    report->len = BLI_dynstr_get_len(ds);
-
-    BLI_dynstr_free(ds);
+    report->message = message;
+    report->len += prefix_len;
+    BLI_assert(report->len == strlen(message));
   }
 }
 
-void BKE_reports_prependf(ReportList *reports, const char *_prepend, ...)
+void BKE_reports_prepend(ReportList *reports, const char *prepend)
 {
-  Report *report;
-  DynStr *ds;
-  va_list args;
-  const char *prepend = TIP_(_prepend);
-
-  if (!reports) {
+  if (!reports || !reports->list.first) {
     return;
   }
+  reports_prepend_impl(reports, TIP_(prepend));
+}
 
-  for (report = reports->list.first; report; report = report->next) {
-    ds = BLI_dynstr_new();
-    va_start(args, _prepend);
-    BLI_dynstr_vappendf(ds, prepend, args);
-    va_end(args);
-
-    BLI_dynstr_append(ds, report->message);
-    MEM_freeN((void *)report->message);
-
-    report->message = BLI_dynstr_get_cstring(ds);
-    report->len = BLI_dynstr_get_len(ds);
-
-    BLI_dynstr_free(ds);
+void BKE_reports_prependf(ReportList *reports, const char *prepend_format, ...)
+{
+  if (!reports || !reports->list.first) {
+    return;
   }
+  va_list args;
+  va_start(args, prepend_format);
+  char *prepend = BLI_vsprintfN(TIP_(prepend_format), args);
+  va_end(args);
+
+  reports_prepend_impl(reports, prepend);
+
+  MEM_freeN(prepend);
 }
 
 eReportType BKE_report_print_level(ReportList *reports)

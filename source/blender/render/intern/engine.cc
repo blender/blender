@@ -59,7 +59,7 @@
 
 ListBase R_engines = {nullptr, nullptr};
 
-void RE_engines_init(void)
+void RE_engines_init()
 {
   DRW_engines_register();
 }
@@ -69,7 +69,7 @@ void RE_engines_init_experimental()
   DRW_engines_register_experimental();
 }
 
-void RE_engines_exit(void)
+void RE_engines_exit()
 {
   RenderEngineType *type, *next;
 

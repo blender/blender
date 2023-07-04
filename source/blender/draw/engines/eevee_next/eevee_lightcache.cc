@@ -63,7 +63,7 @@ class LightBake {
   /** Manager used for command submission. Created and freed in the worker thread. */
   draw::Manager *manager_ = nullptr;
 
-  /** Lightprobe original objects to bake. */
+  /** Light-probe original objects to bake. */
   Vector<Object *> original_probes_;
   /** Frame to copy to original objects during update. This is needed to avoid race conditions. */
   Vector<LightProbeGridCacheFrame *> bake_result_;
@@ -245,7 +245,7 @@ class LightBake {
     /* Bind context without GPU_render_begin(). */
     context_enable(false);
 
-    /* Free GPU data (Textures, Framebuffers, etc...).  */
+    /* Free GPU data (Textures, Frame-buffers, etc...). */
     delete instance_;
     delete manager_;
 

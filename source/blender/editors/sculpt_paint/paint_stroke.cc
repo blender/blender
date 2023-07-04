@@ -1051,6 +1051,11 @@ bool paint_space_stroke_enabled(Brush *br, ePaintMode mode)
     return false;
   }
 
+  if (mode == PAINT_MODE_GPENCIL) {
+    /* No spacing needed for now. */
+    return false;
+  }
+
   return paint_supports_dynamic_size(br, mode);
 }
 

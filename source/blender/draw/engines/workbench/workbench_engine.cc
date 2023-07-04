@@ -15,6 +15,7 @@
 #include "ED_view3d.h"
 #include "GPU_capabilities.h"
 
+#include "draw_common.hh"
 #include "draw_sculpt.hh"
 
 #include "workbench_private.hh"
@@ -103,7 +104,7 @@ class Instance {
       case V3D_SHADING_VERTEX_COLOR:
         return scene_state.material_attribute_color;
       case V3D_SHADING_MATERIAL_COLOR:
-        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot + 1)) {
+        if (::Material *_mat = BKE_object_material_get_eval(ob_ref.object, slot)) {
           return Material(*_mat);
         }
         ATTR_FALLTHROUGH;
@@ -134,8 +135,57 @@ class Instance {
       BKE_pbvh_is_drawing_set(ob_ref.object->sculpt->pbvh, object_state.sculpt_pbvh);
     }
 
-    if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
+    bool is_object_data_visible = (DRW_object_visibility_in_active_context(ob) &
+                                   OB_VISIBLE_SELF) &&
+                                  (ob->dt >= OB_SOLID || DRW_state_is_scene_render());
 
+    if (!(ob->base_flag & BASE_FROM_DUPLI)) {
+      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
+      if (md && BKE_modifier_is_enabled(scene_state.scene, md, eModifierMode_Realtime)) {
+        FluidModifierData *fmd = (FluidModifierData *)md;
+        if (fmd->domain) {
+          volume_ps.object_sync_modifier(manager, resources, scene_state, ob_ref, md);
+
+          if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
+            /* Do not draw solid in this case. */
+            is_object_data_visible = false;
+          }
+        }
+      }
+    }
+
+    ResourceHandle emitter_handle(0);
+
+    if (is_object_data_visible) {
+      if (object_state.sculpt_pbvh) {
+        /* Disable frustum culling for sculpt meshes. */
+        ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+        sculpt_sync(ob_ref, handle, object_state);
+        emitter_handle = handle;
+      }
+      else if (ob->type == OB_MESH) {
+        ResourceHandle handle = manager.resource_handle(ob_ref);
+        mesh_sync(ob_ref, handle, object_state);
+        emitter_handle = handle;
+      }
+      else if (ob->type == OB_POINTCLOUD) {
+        point_cloud_sync(manager, ob_ref, object_state);
+      }
+      else if (ob->type == OB_CURVES) {
+        curves_sync(manager, ob_ref, object_state);
+      }
+      else if (ob->type == OB_VOLUME) {
+        if (scene_state.shading.type != OB_WIRE) {
+          volume_ps.object_sync_volume(manager,
+                                       resources,
+                                       scene_state,
+                                       ob_ref,
+                                       get_material(ob_ref, object_state.color_type).base_color);
+        }
+      }
+    }
+
+    if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type != eModifierType_ParticleSystem) {
           continue;
@@ -148,68 +198,58 @@ class Instance {
         const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
         if (draw_as == PART_DRAW_PATH) {
-#if 0 /* TODO(@pragma37): */
-          workbench_cache_hair_populate(wpd,
-                                        ob,
-                                        psys,
-                                        md,
-                                        object_state.color_type,
-                                        object_state.texture_paint_mode,
-                                        part->omat);
-#endif
+          hair_sync(manager, ob_ref, emitter_handle, object_state, psys, md);
         }
-      }
-    }
-
-    if (!(ob->base_flag & BASE_FROM_DUPLI)) {
-      ModifierData *md = BKE_modifiers_findby_type(ob, eModifierType_Fluid);
-      if (md && BKE_modifier_is_enabled(scene_state.scene, md, eModifierMode_Realtime)) {
-        FluidModifierData *fmd = (FluidModifierData *)md;
-        if (fmd->domain) {
-          volume_ps.object_sync_modifier(manager, resources, scene_state, ob_ref, md);
-
-          if (fmd->domain->type == FLUID_DOMAIN_TYPE_GAS) {
-            return; /* Do not draw solid in this case. */
-          }
-        }
-      }
-    }
-
-    if (!(DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF)) {
-      return;
-    }
-
-    if ((ob->dt < OB_SOLID) && !DRW_state_is_scene_render()) {
-      return;
-    }
-
-    if (object_state.sculpt_pbvh) {
-      sculpt_sync(manager, ob_ref, object_state);
-    }
-    else if (ELEM(ob->type, OB_MESH, OB_POINTCLOUD)) {
-      mesh_sync(manager, ob_ref, object_state);
-    }
-    else if (ob->type == OB_CURVES) {
-#if 0 /* TODO(@pragma37): */
-      DRWShadingGroup *grp = workbench_material_hair_setup(
-          wpd, ob, CURVES_MATERIAL_NR, object_state.color_type);
-      DRW_shgroup_curves_create_sub(ob, grp, nullptr);
-#endif
-    }
-    else if (ob->type == OB_VOLUME) {
-      if (scene_state.shading.type != OB_WIRE) {
-        volume_ps.object_sync_volume(manager,
-                                     resources,
-                                     scene_state,
-                                     ob_ref,
-                                     get_material(ob_ref, object_state.color_type).base_color);
       }
     }
   }
 
-  void mesh_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  MeshPass &get_mesh_pass(ObjectRef &ob_ref, bool is_transparent)
   {
-    ResourceHandle handle = manager.resource_handle(ob_ref);
+    const bool in_front = (ob_ref.object->dtx & OB_DRAW_IN_FRONT) != 0;
+
+    if (scene_state.xray_mode || is_transparent) {
+      if (in_front) {
+        return transparent_ps.accumulation_in_front_ps_;
+        if (scene_state.draw_transparent_depth) {
+          return transparent_depth_ps.in_front_ps_;
+        }
+      }
+      else {
+        return transparent_ps.accumulation_ps_;
+        if (scene_state.draw_transparent_depth) {
+          return transparent_depth_ps.main_ps_;
+        }
+      }
+    }
+    else {
+      if (in_front) {
+        return opaque_ps.gbuffer_in_front_ps_;
+      }
+      else {
+        return opaque_ps.gbuffer_ps_;
+      }
+    }
+  }
+
+  void draw_mesh(ObjectRef &ob_ref,
+                 Material &material,
+                 GPUBatch *batch,
+                 ResourceHandle handle,
+                 ::Image *image = nullptr,
+                 GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
+                 ImageUser *iuser = nullptr)
+  {
+    resources.material_buf.append(material);
+    int material_index = resources.material_buf.size() - 1;
+
+    get_mesh_pass(ob_ref, material.is_transparent())
+        .get_subpass(eGeometryType::MESH, image, sampler_state, iuser)
+        .draw(batch, handle, material_index);
+  }
+
+  void mesh_sync(ObjectRef &ob_ref, ResourceHandle handle, const ObjectState &object_state)
+  {
     bool has_transparent_material = false;
 
     if (object_state.use_per_material_batches) {
@@ -230,14 +270,16 @@ class Instance {
             continue;
           }
 
-          Material mat = get_material(ob_ref, object_state.color_type, i);
+          /* Material slots start from 1. */
+          int material_slot = i + 1;
+          Material mat = get_material(ob_ref, object_state.color_type, material_slot);
           has_transparent_material = has_transparent_material || mat.is_transparent();
 
           ::Image *image = nullptr;
           ImageUser *iuser = nullptr;
           GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
           if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
-            get_material_image(ob_ref.object, i + 1, image, iuser, sampler_state);
+            get_material_image(ob_ref.object, material_slot, image, iuser, sampler_state);
           }
 
           draw_mesh(ob_ref, mat, batches[i], handle, image, sampler_state, iuser);
@@ -279,51 +321,8 @@ class Instance {
     }
   }
 
-  void draw_mesh(ObjectRef &ob_ref,
-                 Material &material,
-                 GPUBatch *batch,
-                 ResourceHandle handle,
-                 ::Image *image = nullptr,
-                 GPUSamplerState sampler_state = GPUSamplerState::default_sampler(),
-                 ImageUser *iuser = nullptr)
+  void sculpt_sync(ObjectRef &ob_ref, ResourceHandle handle, const ObjectState &object_state)
   {
-    const bool in_front = (ob_ref.object->dtx & OB_DRAW_IN_FRONT) != 0;
-    resources.material_buf.append(material);
-    int material_index = resources.material_buf.size() - 1;
-
-    auto draw = [&](MeshPass &pass) {
-      pass.draw(ob_ref, batch, handle, material_index, image, sampler_state, iuser);
-    };
-
-    if (scene_state.xray_mode || material.is_transparent()) {
-      if (in_front) {
-        draw(transparent_ps.accumulation_in_front_ps_);
-        if (scene_state.draw_transparent_depth) {
-          draw(transparent_depth_ps.in_front_ps_);
-        }
-      }
-      else {
-        draw(transparent_ps.accumulation_ps_);
-        if (scene_state.draw_transparent_depth) {
-          draw(transparent_depth_ps.main_ps_);
-        }
-      }
-    }
-    else {
-      if (in_front) {
-        draw(opaque_ps.gbuffer_in_front_ps_);
-      }
-      else {
-        draw(opaque_ps.gbuffer_ps_);
-      }
-    }
-  }
-
-  void sculpt_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
-  {
-    /* Disable frustum culling for sculpt meshes. */
-    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
-
     if (object_state.use_per_material_batches) {
       const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
       for (SculptBatch &batch : sculpt_batches_per_material_get(
@@ -365,6 +364,68 @@ class Instance {
                   object_state.override_sampler_state);
       }
     }
+  }
+
+  void point_cloud_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  {
+    ResourceHandle handle = manager.resource_handle(ob_ref);
+
+    Material mat = get_material(ob_ref, object_state.color_type);
+    resources.material_buf.append(mat);
+    int material_index = resources.material_buf.size() - 1;
+
+    PassMain::Sub &pass = get_mesh_pass(ob_ref, mat.is_transparent())
+                              .get_subpass(eGeometryType::POINTCLOUD)
+                              .sub("Point Cloud SubPass");
+
+    GPUBatch *batch = point_cloud_sub_pass_setup(pass, ob_ref.object);
+    pass.draw(batch, handle, material_index);
+  }
+
+  void hair_sync(Manager &manager,
+                 ObjectRef &ob_ref,
+                 ResourceHandle emitter_handle,
+                 const ObjectState &object_state,
+                 ParticleSystem *psys,
+                 ModifierData *md)
+  {
+    /* Skip frustum culling. */
+    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+
+    Material mat = get_material(ob_ref, object_state.color_type, psys->part->omat);
+    ::Image *image = nullptr;
+    ImageUser *iuser = nullptr;
+    GPUSamplerState sampler_state = GPUSamplerState::default_sampler();
+    if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
+      get_material_image(ob_ref.object, psys->part->omat, image, iuser, sampler_state);
+    }
+    resources.material_buf.append(mat);
+    int material_index = resources.material_buf.size() - 1;
+
+    PassMain::Sub &pass = get_mesh_pass(ob_ref, mat.is_transparent())
+                              .get_subpass(eGeometryType::CURVES, image, sampler_state, iuser)
+                              .sub("Hair SubPass");
+
+    pass.push_constant("emitter_object_id", int(emitter_handle.raw));
+    GPUBatch *batch = hair_sub_pass_setup(pass, scene_state.scene, ob_ref.object, psys, md);
+    pass.draw(batch, handle, material_index);
+  }
+
+  void curves_sync(Manager &manager, ObjectRef &ob_ref, const ObjectState &object_state)
+  {
+    /* Skip frustum culling. */
+    ResourceHandle handle = manager.resource_handle(float4x4(ob_ref.object->object_to_world));
+
+    Material mat = get_material(ob_ref, object_state.color_type);
+    resources.material_buf.append(mat);
+    int material_index = resources.material_buf.size() - 1;
+
+    PassMain::Sub &pass = get_mesh_pass(ob_ref, mat.is_transparent())
+                              .get_subpass(eGeometryType::CURVES)
+                              .sub("Curves SubPass");
+
+    GPUBatch *batch = curves_sub_pass_setup(pass, scene_state.scene, ob_ref.object);
+    pass.draw(batch, handle, material_index);
   }
 
   void draw(Manager &manager, GPUTexture *depth_tx, GPUTexture *color_tx)
@@ -538,7 +599,7 @@ static void workbench_id_update(void *vedata, ID *id)
 
 /* RENDER */
 
-static bool workbench_render_framebuffers_init(void)
+static bool workbench_render_framebuffers_init()
 {
   /* For image render, allocate own buffers because we don't have a viewport. */
   const float2 viewport_size = DRW_viewport_size_get();

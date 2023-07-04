@@ -38,7 +38,7 @@
 
 /********************** Track operator *********************/
 
-typedef struct TrackMarkersJob {
+struct TrackMarkersJob {
   AutoTrackContext *context; /* Tracking context */
   int sfra, efra, lastfra;   /* Start, end and recently tracked frames */
   int backwards;             /* Backwards tracking flag */
@@ -50,9 +50,9 @@ typedef struct TrackMarkersJob {
   Main *main;
   Scene *scene;
   bScreen *screen;
-} TrackMarkersJob;
+};
 
-static bool track_markers_testbreak(void)
+static bool track_markers_testbreak()
 {
   return G.is_break;
 }

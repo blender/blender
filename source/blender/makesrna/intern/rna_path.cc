@@ -746,13 +746,12 @@ const char *RNA_path_array_index_token_find(const char *rna_path, const Property
 
 /* generic path search func
  * if its needed this could also reference the IDProperty direct */
-typedef struct IDP_Chain {
+struct IDP_Chain {
   IDP_Chain *up; /* parent member, reverse and set to child for path conversion. */
 
   const char *name;
   int index;
-
-} IDP_Chain;
+};
 
 static char *rna_idp_path_create(IDP_Chain *child_link)
 {

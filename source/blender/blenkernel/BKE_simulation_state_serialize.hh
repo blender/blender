@@ -163,7 +163,8 @@ void serialize_modifier_simulation_state(const ModifierSimulationState &state,
  * Fill the simulation state by parsing the provided #DictionaryValue which also contains
  * references to external binary data that is read using #bdata_reader.
  */
-void deserialize_modifier_simulation_state(const DictionaryValue &io_root,
+void deserialize_modifier_simulation_state(const bNodeTree &ntree,
+                                           const DictionaryValue &io_root,
                                            const BDataReader &bdata_reader,
                                            const BDataSharing &bdata_sharing,
                                            ModifierSimulationState &r_state);

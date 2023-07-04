@@ -68,7 +68,7 @@
 
 #include "NOD_common.h"
 #include "NOD_composite.h"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "readfile.h"
 
@@ -364,10 +364,10 @@ static char *replace_bbone_easing_rnapath(char *old_path)
    * which happen be named after the bbone property id's
    */
   if (strstr(old_path, "bbone_in")) {
-    new_path = BLI_str_replaceN(old_path, "bbone_in", "bbone_easein");
+    new_path = BLI_string_replaceN(old_path, "bbone_in", "bbone_easein");
   }
   else if (strstr(old_path, "bbone_out")) {
-    new_path = BLI_str_replaceN(old_path, "bbone_out", "bbone_easeout");
+    new_path = BLI_string_replaceN(old_path, "bbone_out", "bbone_easeout");
   }
 
   if (new_path) {

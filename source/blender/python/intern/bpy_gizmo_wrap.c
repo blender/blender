@@ -7,7 +7,7 @@
  *
  * This file is so Python can define widget-group's that C can call into.
  * The generic callback functions for Python widget-group are defines in
- * 'rna_wm.c', some calling into functions here to do python specific
+ * 'rna_wm.cc', some calling into functions here to do python specific
  * functionality.
  *
  * \note This follows 'bpy_operator_wrap.c' very closely.

@@ -42,7 +42,7 @@
 /** \name Point track marker picking.
  * \{ */
 
-BLI_INLINE PointTrackPick point_track_pick_make_null(void)
+BLI_INLINE PointTrackPick point_track_pick_make_null()
 {
   PointTrackPick pick = {nullptr};
 
@@ -355,7 +355,7 @@ bool ed_tracking_point_track_pick_can_slide(const SpaceClip *space_clip,
 /** \name Plane track marker picking.
  * \{ */
 
-BLI_INLINE PlaneTrackPick plane_track_pick_make_null(void)
+BLI_INLINE PlaneTrackPick plane_track_pick_make_null()
 {
   PlaneTrackPick result = {nullptr};
 
@@ -458,7 +458,7 @@ bool ed_tracking_plane_track_pick_can_slide(const PlaneTrackPick *pick)
 /** \name Pick closest point or plane track.
  * \{ */
 
-BLI_INLINE TrackingPick tracking_pick_make_null(void)
+BLI_INLINE TrackingPick tracking_pick_make_null()
 {
   TrackingPick result;
 

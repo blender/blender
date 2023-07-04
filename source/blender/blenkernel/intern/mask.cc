@@ -2004,7 +2004,7 @@ static void mask_clipboard_free_ex(bool final_free)
   }
 }
 
-void BKE_mask_clipboard_free(void)
+void BKE_mask_clipboard_free()
 {
   mask_clipboard_free_ex(true);
 }
@@ -2041,7 +2041,7 @@ void BKE_mask_clipboard_copy_from_layer(MaskLayer *mask_layer)
   }
 }
 
-bool BKE_mask_clipboard_is_empty(void)
+bool BKE_mask_clipboard_is_empty()
 {
   return BLI_listbase_is_empty(&mask_clipboard.splines);
 }

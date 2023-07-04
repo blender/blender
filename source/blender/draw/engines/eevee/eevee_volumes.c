@@ -642,7 +642,7 @@ void EEVEE_volumes_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
   EEVEE_EffectsInfo *effects = vedata->stl->effects;
 
   if (fbl->volumetric_accum_fb != NULL) {
-    /* Accum pass */
+    /* Accumulation pass. */
     GPU_framebuffer_bind(fbl->volumetric_accum_fb);
 
     /* Clear texture. */

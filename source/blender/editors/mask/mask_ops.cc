@@ -198,7 +198,7 @@ enum {
   SLIDE_ACTION_SPLINE = 4,
 };
 
-typedef struct SlidePointData {
+struct SlidePointData {
   /* Generic fields. */
   short event_invoke_type;
   int action;
@@ -235,7 +235,7 @@ typedef struct SlidePointData {
   /* Feather sliding. */
   float prev_feather_coord[2];
   float weight, weight_scalar;
-} SlidePointData;
+};
 
 static void mask_point_undistort_pos(SpaceClip *sc, float r_co[2], const float co[2])
 {
@@ -937,7 +937,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 
 /******************** slide spline curvature *********************/
 
-typedef struct SlideSplineCurvatureData {
+struct SlideSplineCurvatureData {
   short event_invoke_type;
 
   Mask *mask;
@@ -954,7 +954,7 @@ typedef struct SlideSplineCurvatureData {
   float prev_spline_coord[2];
 
   float P0[2], P1[2], P2[2], P3[3];
-} SlideSplineCurvatureData;
+};
 
 static void cancel_slide_spline_curvature(SlideSplineCurvatureData *slide_data)
 {

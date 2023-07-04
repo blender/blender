@@ -7,7 +7,6 @@
  */
 
 #include "BKE_global.h"
-#include "BLI_dynstr.h"
 #include "CLG_log.h"
 
 #include "vk_backend.hh"
@@ -389,17 +388,9 @@ void raise_message(int32_t id_number,
   const VKDevice &device = VKBackend::get().device_get();
   const VKDebuggingTools &debugging_tools = device.debugging_tools_get();
   if (debugging_tools.enabled) {
-    DynStr *ds = nullptr;
     va_list arg;
-    char *info = nullptr;
-
     va_start(arg, format);
-
-    ds = BLI_dynstr_new();
-    BLI_dynstr_vappendf(ds, format, arg);
-    info = BLI_dynstr_get_cstring(ds);
-    BLI_dynstr_free(ds);
-
+    char *info = BLI_vsprintfN(format, arg);
     va_end(arg);
 
     static VkDebugUtilsMessengerCallbackDataEXT vk_call_back_data;

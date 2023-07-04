@@ -22,7 +22,7 @@ namespace blender::eevee {
  * Used to draw background.
  * \{ */
 
-void WorldPipeline::sync(GPUMaterial *gpumat)
+void BackgroundPipeline::sync(GPUMaterial *gpumat, const float background_opacity)
 {
   Manager &manager = *inst_.manager;
   RenderBuffers &rbufs = inst_.render_buffers;
@@ -32,7 +32,7 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.init();
   world_ps_.state_set(DRW_STATE_WRITE_COLOR);
   world_ps_.material_set(manager, gpumat);
-  world_ps_.push_constant("world_opacity_fade", inst_.film.background_opacity_get());
+  world_ps_.push_constant("world_opacity_fade", background_opacity);
   world_ps_.bind_texture("utility_tx", inst_.pipelines.utility_tx);
   /* RenderPasses & AOVs. Cleared by background (even if bad practice). */
   world_ps_.bind_image("rp_color_img", &rbufs.rp_color_tx);
@@ -49,9 +49,59 @@ void WorldPipeline::sync(GPUMaterial *gpumat)
   world_ps_.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
 }
 
-void WorldPipeline::render(View &view)
+void BackgroundPipeline::render(View &view)
 {
   inst_.manager->submit(world_ps_, view);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name World Probe Pipeline
+ * \{ */
+
+void WorldPipeline::sync(GPUMaterial *gpumat)
+{
+  const int2 extent(1);
+  constexpr eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_WRITE;
+  dummy_cryptomatte_tx_.ensure_2d(GPU_RGBA32F, extent, usage);
+  dummy_renderpass_tx_.ensure_2d(GPU_RGBA16F, extent, usage);
+  dummy_aov_color_tx_.ensure_2d_array(GPU_RGBA16F, extent, 1, usage);
+  dummy_aov_value_tx_.ensure_2d_array(GPU_R16F, extent, 1, usage);
+
+  PassSimple &pass = cubemap_face_ps_;
+  pass.init();
+  pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS);
+
+  Manager &manager = *inst_.manager;
+  ResourceHandle handle = manager.resource_handle(float4x4::identity());
+  pass.material_set(manager, gpumat);
+  pass.push_constant("world_opacity_fade", 1.0f);
+
+  pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
+  pass.bind_ubo(CAMERA_BUF_SLOT, inst_.camera.ubo_get());
+  pass.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
+  pass.bind_image("rp_normal_img", dummy_renderpass_tx_);
+  pass.bind_image("rp_light_img", dummy_renderpass_tx_);
+  pass.bind_image("rp_diffuse_color_img", dummy_renderpass_tx_);
+  pass.bind_image("rp_specular_color_img", dummy_renderpass_tx_);
+  pass.bind_image("rp_emission_img", dummy_renderpass_tx_);
+  pass.bind_image("rp_cryptomatte_img", dummy_cryptomatte_tx_);
+  pass.bind_image("rp_color_img", dummy_aov_color_tx_);
+  pass.bind_image("rp_value_img", dummy_aov_value_tx_);
+  /* Required by validation layers. */
+  inst_.cryptomatte.bind_resources(&pass);
+
+  pass.bind_image("aov_color_img", dummy_aov_color_tx_);
+  pass.bind_image("aov_value_img", dummy_aov_value_tx_);
+  pass.bind_ssbo("aov_buf", &inst_.film.aovs_info);
+
+  pass.draw(DRW_cache_fullscreen_quad_get(), handle);
+}
+
+void WorldPipeline::render(View &view)
+{
+  inst_.manager->submit(cubemap_face_ps_, view);
 }
 
 /** \} */
@@ -150,6 +200,8 @@ void ForwardPipeline::sync()
       inst_.lights.bind_resources(&opaque_ps_);
       inst_.shadows.bind_resources(&opaque_ps_);
       inst_.sampling.bind_resources(&opaque_ps_);
+      inst_.hiz_buffer.bind_resources(&opaque_ps_);
+      inst_.ambient_occlusion.bind_resources(&opaque_ps_);
       inst_.cryptomatte.bind_resources(&opaque_ps_);
     }
 
@@ -177,6 +229,8 @@ void ForwardPipeline::sync()
     inst_.lights.bind_resources(&sub);
     inst_.shadows.bind_resources(&sub);
     inst_.sampling.bind_resources(&sub);
+    inst_.hiz_buffer.bind_resources(&sub);
+    inst_.ambient_occlusion.bind_resources(&sub);
   }
 }
 
@@ -330,6 +384,8 @@ void DeferredLayer::begin_sync()
       gbuffer_ps_.bind_ubo(RBUFS_BUF_SLOT, &inst_.render_buffers.data);
 
       inst_.sampling.bind_resources(&gbuffer_ps_);
+      inst_.hiz_buffer.bind_resources(&gbuffer_ps_);
+      inst_.ambient_occlusion.bind_resources(&gbuffer_ps_);
       inst_.cryptomatte.bind_resources(&gbuffer_ps_);
     }
 
@@ -371,6 +427,8 @@ void DeferredLayer::end_sync()
     inst_.shadows.bind_resources(&eval_light_ps_);
     inst_.sampling.bind_resources(&eval_light_ps_);
     inst_.hiz_buffer.bind_resources(&eval_light_ps_);
+    inst_.ambient_occlusion.bind_resources(&eval_light_ps_);
+    inst_.reflection_probes.bind_resources(&eval_light_ps_);
     inst_.irradiance_cache.bind_resources(&eval_light_ps_);
 
     eval_light_ps_.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);

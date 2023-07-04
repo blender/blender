@@ -1790,7 +1790,7 @@ static void rigidbody_update_simulation(Depsgraph *depsgraph,
           rigidbody_validate_sim_shape(rbw, ob, true);
           /* now tell RB sim about it */
           /* XXX: we assume that this can only get applied for active/passive shapes
-           * that will be included as rigidbodies. */
+           * that will be included as rigid-bodies. */
           if (rbo->shared->physics_object != NULL && rbo->shared->physics_shape != NULL) {
             RB_body_set_collision_shape(rbo->shared->physics_object, rbo->shared->physics_shape);
           }

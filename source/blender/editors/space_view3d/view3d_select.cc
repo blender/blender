@@ -106,7 +106,7 @@
 /** \name Public Utilities
  * \{ */
 
-float ED_view3d_select_dist_px(void)
+float ED_view3d_select_dist_px()
 {
   return 75.0f * U.pixelsize;
 }

@@ -207,6 +207,22 @@ class CompressedStorage
       return m_values[id];
     }
 
+    void moveChunk(Index from, Index to, Index chunkSize)
+    {
+      eigen_internal_assert(to+chunkSize <= m_size);
+      if(to>from && from+chunkSize>to)
+      {
+        // move backward
+        internal::smart_memmove(m_values+from,  m_values+from+chunkSize,  m_values+to);
+        internal::smart_memmove(m_indices+from, m_indices+from+chunkSize, m_indices+to);
+      }
+      else
+      {
+        internal::smart_copy(m_values+from,  m_values+from+chunkSize,  m_values+to);
+        internal::smart_copy(m_indices+from, m_indices+from+chunkSize, m_indices+to);
+      }
+    }
+
     void prune(const Scalar& reference, const RealScalar& epsilon = NumTraits<RealScalar>::dummy_precision())
     {
       Index k = 0;

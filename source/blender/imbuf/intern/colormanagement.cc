@@ -90,11 +90,11 @@ float imbuf_aces_to_scene_linear[3][3] = {{0.0f}};
  */
 static pthread_mutex_t processor_lock = BLI_MUTEX_INITIALIZER;
 
-typedef struct ColormanageProcessor {
+struct ColormanageProcessor {
   OCIO_ConstCPUProcessorRcPtr *cpu_processor;
   CurveMapping *curve_mapping;
   bool is_data_result;
-} ColormanageProcessor;
+};
 
 static struct global_gpu_state {
   /* GPU shader currently bound. */
@@ -185,7 +185,7 @@ static struct global_color_picking_state {
  *       requiring to pass all variables which affects on display buffer
  *       to color management cache system and keeps calls small and nice.
  */
-typedef struct ColormanageCacheViewSettings {
+struct ColormanageCacheViewSettings {
   int flag;
   int look;
   int view;
@@ -193,18 +193,18 @@ typedef struct ColormanageCacheViewSettings {
   float gamma;
   float dither;
   CurveMapping *curve_mapping;
-} ColormanageCacheViewSettings;
+};
 
-typedef struct ColormanageCacheDisplaySettings {
+struct ColormanageCacheDisplaySettings {
   int display;
-} ColormanageCacheDisplaySettings;
+};
 
-typedef struct ColormanageCacheKey {
+struct ColormanageCacheKey {
   int view;    /* view transformation used for display buffer */
   int display; /* display device name */
-} ColormanageCacheKey;
+};
 
-typedef struct ColormanageCacheData {
+struct ColormanageCacheData {
   int flag;                    /* view flags of cached buffer */
   int look;                    /* Additional artistic transform. */
   float exposure;              /* exposure value cached buffer is calculated with */
@@ -212,13 +212,13 @@ typedef struct ColormanageCacheData {
   float dither;                /* dither value cached buffer is calculated with */
   CurveMapping *curve_mapping; /* curve mapping used for cached buffer */
   int curve_mapping_timestamp; /* time stamp of curve mapping used for cached buffer */
-} ColormanageCacheData;
+};
 
-typedef struct ColormanageCache {
+struct ColormanageCache {
   MovieCache *moviecache;
 
   ColormanageCacheData *data;
-} ColormanageCache;
+};
 
 static MovieCache *colormanage_moviecache_get(const ImBuf *ibuf)
 {
@@ -587,7 +587,7 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
   invert_m3_m3(imbuf_scene_linear_to_aces, imbuf_aces_to_scene_linear);
 }
 
-static void colormanage_free_config(void)
+static void colormanage_free_config()
 {
   ColorSpace *colorspace;
   ColorManagedDisplay *display;
@@ -647,7 +647,7 @@ static void colormanage_free_config(void)
   OCIO_exit();
 }
 
-void colormanagement_init(void)
+void colormanagement_init()
 {
   const char *ocio_env;
   const char *configdir;
@@ -704,7 +704,7 @@ void colormanagement_init(void)
   BLI_init_srgb_conversion();
 }
 
-void colormanagement_exit(void)
+void colormanagement_exit()
 {
   OCIO_gpuCacheFree();
 
@@ -1401,7 +1401,7 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
-const float *IMB_colormanagement_get_xyz_to_scene_linear(void)
+const float *IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return &imbuf_xyz_to_scene_linear[0][0];
 }
@@ -1412,7 +1412,7 @@ const float *IMB_colormanagement_get_xyz_to_scene_linear(void)
 /** \name Threaded Display Buffer Transform Routines
  * \{ */
 
-typedef struct DisplayBufferThread {
+struct DisplayBufferThread {
   ColormanageProcessor *cm_processor;
 
   const float *buffer;
@@ -1432,9 +1432,9 @@ typedef struct DisplayBufferThread {
 
   const char *byte_colorspace;
   const char *float_colorspace;
-} DisplayBufferThread;
+};
 
-typedef struct DisplayBufferInitData {
+struct DisplayBufferInitData {
   ImBuf *ibuf;
   ColormanageProcessor *cm_processor;
   const float *buffer;
@@ -1447,7 +1447,7 @@ typedef struct DisplayBufferInitData {
 
   const char *byte_colorspace;
   const char *float_colorspace;
-} DisplayBufferInitData;
+};
 
 static void display_buffer_init_handle(void *handle_v,
                                        int start_line,
@@ -1784,7 +1784,7 @@ static void colormanage_display_buffer_process(ImBuf *ibuf,
 /** \name Threaded Processor Transform Routines
  * \{ */
 
-typedef struct ProcessorTransformThread {
+struct ProcessorTransformThread {
   ColormanageProcessor *cm_processor;
   uchar *byte_buffer;
   float *float_buffer;
@@ -1794,9 +1794,9 @@ typedef struct ProcessorTransformThread {
   int channels;
   bool predivide;
   bool float_from_byte;
-} ProcessorTransformThread;
+};
 
-typedef struct ProcessorTransformInit {
+struct ProcessorTransformInitData {
   ColormanageProcessor *cm_processor;
   uchar *byte_buffer;
   float *float_buffer;
@@ -1805,7 +1805,7 @@ typedef struct ProcessorTransformInit {
   int channels;
   bool predivide;
   bool float_from_byte;
-} ProcessorTransformInitData;
+};
 
 static void processor_transform_init_handle(void *handle_v,
                                             int start_line,
@@ -2223,14 +2223,14 @@ void IMB_colormanagement_imbuf_to_byte_texture(uchar *out_buffer,
   }
 }
 
-typedef struct ImbufByteToFloatData {
+struct ImbufByteToFloatData {
   OCIO_ConstCPUProcessorRcPtr *processor;
   int width;
   int offset, stride;
   const uchar *in_buffer;
   float *out_buffer;
   bool use_premultiply;
-} ImbufByteToFloatData;
+};
 
 static void imbuf_byte_to_float_cb(void *__restrict userdata,
                                    const int y,
@@ -2807,7 +2807,7 @@ void IMB_display_buffer_release(void *cache_handle)
 /** \name Display Functions
  * \{ */
 
-const char *colormanage_display_get_default_name(void)
+const char *colormanage_display_get_default_name()
 {
   OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
   const char *display_name;
@@ -2819,7 +2819,7 @@ const char *colormanage_display_get_default_name(void)
   return display_name;
 }
 
-ColorManagedDisplay *colormanage_display_get_default(void)
+ColorManagedDisplay *colormanage_display_get_default()
 {
   const char *display_name = colormanage_display_get_default_name();
 
@@ -2895,7 +2895,7 @@ const char *IMB_colormanagement_display_get_indexed_name(int index)
   return nullptr;
 }
 
-const char *IMB_colormanagement_display_get_default_name(void)
+const char *IMB_colormanagement_display_get_default_name()
 {
   ColorManagedDisplay *display = colormanage_display_get_default();
 
@@ -2907,7 +2907,7 @@ ColorManagedDisplay *IMB_colormanagement_display_get_named(const char *name)
   return colormanage_display_get_named(name);
 }
 
-const char *IMB_colormanagement_display_get_none_name(void)
+const char *IMB_colormanagement_display_get_none_name()
 {
   if (colormanage_display_get_named("None") != nullptr) {
     return "None";
@@ -3519,7 +3519,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
   }
 }
 
-typedef struct PartialThreadData {
+struct PartialThreadData {
   ImBuf *ibuf;
   uchar *display_buffer;
   const float *linear_buffer;
@@ -3529,7 +3529,7 @@ typedef struct PartialThreadData {
   int linear_offset_x, linear_offset_y;
   ColormanageProcessor *cm_processor;
   int xmin, ymin, xmax;
-} PartialThreadData;
+};
 
 static void partial_buffer_update_rect_thread_do(void *data_v, int scanline)
 {
@@ -4105,7 +4105,7 @@ bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bo
   return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, nullptr, dither, predivide);
 }
 
-void IMB_colormanagement_finish_glsl_draw(void)
+void IMB_colormanagement_finish_glsl_draw()
 {
   if (global_gpu_state.gpu_shader_bound) {
     OCIO_gpuDisplayShaderUnbind();

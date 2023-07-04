@@ -7,7 +7,6 @@
  * \ingroup wm
  */
 
-/* dna-savable wmStructs here */
 #include "BLI_compiler_attrs.h"
 
 #ifdef __cplusplus

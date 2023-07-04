@@ -123,7 +123,7 @@ static void dt_add_vcol_layers(const CustomData *cdata,
     }
   }
 }
-/* NOTE: #rna_enum_dt_layers_select_src_items enum is from rna_modifier.c. */
+/* NOTE: #rna_enum_dt_layers_select_src_items enum is from rna_modifier.cc. */
 static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
                                                           PointerRNA *ptr,
                                                           PropertyRNA *UNUSED(prop),
@@ -238,7 +238,7 @@ static const EnumPropertyItem *dt_layers_select_src_itemf(bContext *C,
   return item;
 }
 
-/* NOTE: #rna_enum_dt_layers_select_dst_items enum is from `rna_modifier.c`. */
+/* NOTE: #rna_enum_dt_layers_select_dst_items enum is from `rna_modifier.cc`. */
 static const EnumPropertyItem *dt_layers_select_dst_itemf(bContext *C,
                                                           PointerRNA *ptr,
                                                           PropertyRNA *UNUSED(prop),
@@ -292,7 +292,7 @@ static const EnumPropertyItem *dt_layers_select_itemf(bContext *C,
   return dt_layers_select_src_itemf(C, ptr, prop, r_free);
 }
 
-/* NOTE: rna_enum_dt_mix_mode_items enum is from `rna_modifier.c`. */
+/* NOTE: rna_enum_dt_mix_mode_items enum is from `rna_modifier.cc`. */
 static const EnumPropertyItem *dt_mix_mode_itemf(bContext *C,
                                                  PointerRNA *ptr,
                                                  PropertyRNA *UNUSED(prop),

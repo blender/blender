@@ -432,11 +432,14 @@ typedef struct GreasePencil {
   blender::Span<GreasePencilDrawingBase *> drawings() const;
   blender::MutableSpan<GreasePencilDrawingBase *> drawings_for_write();
 
+  blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
+
   /* Layers read/write access. */
   blender::Span<const blender::bke::greasepencil::Layer *> layers() const;
   blender::Span<blender::bke::greasepencil::Layer *> layers_for_write();
 
-  blender::Span<const blender::bke::greasepencil::TreeNode *> nodes() const;
+  blender::Span<const blender::bke::greasepencil::LayerGroup *> groups() const;
+  blender::Span<blender::bke::greasepencil::LayerGroup *> groups_for_write();
 
   bool has_active_layer() const;
   const blender::bke::greasepencil::Layer *get_active_layer() const;
@@ -461,7 +464,13 @@ typedef struct GreasePencil {
   const blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name) const;
   blender::bke::greasepencil::Layer *find_layer_by_name(blender::StringRefNull name);
 
+  const blender::bke::greasepencil::LayerGroup *find_group_by_name(
+      blender::StringRefNull name) const;
+  blender::bke::greasepencil::LayerGroup *find_group_by_name(blender::StringRefNull name);
+
   void rename_layer(blender::bke::greasepencil::Layer &layer, blender::StringRefNull new_name);
+  void rename_group(blender::bke::greasepencil::LayerGroup &group,
+                    blender::StringRefNull new_name);
 
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 

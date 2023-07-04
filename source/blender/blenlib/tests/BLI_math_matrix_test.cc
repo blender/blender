@@ -328,6 +328,36 @@ TEST(math_matrix, MatrixCompareTest)
   EXPECT_FALSE(is_negative(m6));
 }
 
+TEST(math_matrix, MatrixMultiply)
+{
+
+  {
+    const float4x4 matrix_a = {
+        {1.0, 2.0, 3.0, 4.0},
+        {5.0, 6.0, 7.0, 8.0},
+        {9.0, 10.0, 11.0, 12.0},
+        {13.0, 14.0, 15.0, 16.0},
+    };
+    const float4x4 matrix_b = {
+        {0.1f, 0.2f, 0.3f, 0.4f},
+        {0.5f, 0.6f, 0.7f, 0.8f},
+        {0.9f, 1.0f, 1.1f, 1.2f},
+        {1.3f, 1.4f, 1.5f, 1.6f},
+    };
+
+    const float4x4 expected = {
+        {9.0f, 10.0f, 11.0f, 12.0f},
+        {20.2f, 22.8f, 25.4f, 28.0f},
+        {31.4f, 35.6f, 39.8f, 44.0f},
+        {42.6f, 48.4f, 54.2f, 60.0f},
+    };
+
+    const float4x4 result = matrix_a * matrix_b;
+
+    EXPECT_M4_NEAR(result, expected, 1e-5f);
+  }
+}
+
 TEST(math_matrix, MatrixToNearestEuler)
 {
   EulerXYZ eul1 = EulerXYZ(225.08542, -1.12485, -121.23738);

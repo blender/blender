@@ -541,7 +541,7 @@ void BKE_workspace_tool_id_replace_table(WorkSpace *workspace,
       }
       idname_suffix += idname_prefix_len;
     }
-    BLI_str_replace_table_exact(
+    BLI_string_replace_table_exact(
         idname_suffix, idname_suffix_len, replace_table, replace_table_num);
   }
 }

@@ -13,6 +13,7 @@
 
 #include "BLI_dynstr.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "GPU_platform.h"
 
@@ -45,8 +46,8 @@ static char *create_key(eGPUSupportLevel support_level,
 
   char *support_key = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
-  BLI_str_replace_char(support_key, '\n', ' ');
-  BLI_str_replace_char(support_key, '\r', ' ');
+  BLI_string_replace_char(support_key, '\n', ' ');
+  BLI_string_replace_char(support_key, '\r', ' ');
   return support_key;
 }
 
@@ -57,8 +58,8 @@ static char *create_gpu_name(const char *vendor, const char *renderer, const cha
 
   char *gpu_name = BLI_dynstr_get_cstring(ds);
   BLI_dynstr_free(ds);
-  BLI_str_replace_char(gpu_name, '\n', ' ');
-  BLI_str_replace_char(gpu_name, '\r', ' ');
+  BLI_string_replace_char(gpu_name, '\n', ' ');
+  BLI_string_replace_char(gpu_name, '\r', ' ');
   return gpu_name;
 }
 

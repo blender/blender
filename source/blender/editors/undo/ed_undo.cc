@@ -472,7 +472,7 @@ bool ED_undo_is_legacy_compatible_for_property(bContext *C, ID *id)
   return true;
 }
 
-UndoStack *ED_undo_stack_get(void)
+UndoStack *ED_undo_stack_get()
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   return wm->undo_stack;

@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_alloca.h"
+#include "BLI_array_utils.hh"
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
 #include "BLI_ghash.h"
@@ -826,7 +827,7 @@ int SCULPT_vertex_face_set_get(SculptSession *ss, PBVHVertRef vertex)
       int face_set = 0;
       for (const int poly_index : ss->pmap[vertex.i]) {
         if (ss->face_sets[poly_index] > face_set) {
-          face_set = abs(ss->face_sets[poly_index]);
+          face_set = ss->face_sets[poly_index];
         }
       }
       return face_set;
@@ -6896,6 +6897,21 @@ void SCULPT_ensure_epmap(SculptSession *ss)
                                                            ss->totedges,
                                                            ss->edge_to_poly_offsets,
                                                            ss->edge_to_poly_indices);
+=======
+  Mesh *base_mesh = BKE_mesh_from_object(object);
+
+  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
+  Array<int> adjacent_faces_edge_count(base_mesh->totedge, 0);
+  array_utils::count_indices(base_mesh->corner_edges(), adjacent_faces_edge_count);
+
+  const blender::Span<int2> edges = base_mesh->edges();
+  for (const int e : edges.index_range()) {
+    if (adjacent_faces_edge_count[e] < 2) {
+      const int2 &edge = edges[e];
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
+      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
+    }
+>>>>>>> main
   }
 }
 

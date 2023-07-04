@@ -81,7 +81,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
     /* no exception met? then don't draw cursor! */
     return false;
   }
-  if (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL) {
+  if (draw_ctx->object_mode & OB_MODE_WEIGHT_GPENCIL_LEGACY) {
     /* grease pencil hide always in some modes */
     return false;
   }

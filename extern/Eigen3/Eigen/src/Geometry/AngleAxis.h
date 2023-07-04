@@ -169,8 +169,8 @@ template<typename Scalar>
 template<typename QuatDerived>
 EIGEN_DEVICE_FUNC AngleAxis<Scalar>& AngleAxis<Scalar>::operator=(const QuaternionBase<QuatDerived>& q)
 {
-  EIGEN_USING_STD_MATH(atan2)
-  EIGEN_USING_STD_MATH(abs)
+  EIGEN_USING_STD(atan2)
+  EIGEN_USING_STD(abs)
   Scalar n = q.vec().norm();
   if(n<NumTraits<Scalar>::epsilon())
     n = q.vec().stableNorm();
@@ -217,8 +217,8 @@ template<typename Scalar>
 typename AngleAxis<Scalar>::Matrix3
 EIGEN_DEVICE_FUNC AngleAxis<Scalar>::toRotationMatrix(void) const
 {
-  EIGEN_USING_STD_MATH(sin)
-  EIGEN_USING_STD_MATH(cos)
+  EIGEN_USING_STD(sin)
+  EIGEN_USING_STD(cos)
   Matrix3 res;
   Vector3 sin_axis  = sin(m_angle) * m_axis;
   Scalar c = cos(m_angle);

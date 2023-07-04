@@ -64,12 +64,12 @@ static CLG_LogRef LOG = {"ed.image.undo"};
  * paint operation, but for now just give a public interface */
 static SpinLock paint_tiles_lock;
 
-void ED_image_paint_tile_lock_init(void)
+void ED_image_paint_tile_lock_init()
 {
   BLI_spin_init(&paint_tiles_lock);
 }
 
-void ED_image_paint_tile_lock_end(void)
+void ED_image_paint_tile_lock_end()
 {
   BLI_spin_end(&paint_tiles_lock);
 }
@@ -1084,7 +1084,7 @@ void ED_image_undosys_type(UndoType *ut)
  * - So operators can access the pixel-data before the stroke was applied, at run-time.
  * \{ */
 
-PaintTileMap *ED_image_paint_tile_map_get(void)
+PaintTileMap *ED_image_paint_tile_map_get()
 {
   UndoStack *ustack = ED_undo_stack_get();
   UndoStep *us_prev = ustack->step_init;
@@ -1156,7 +1156,7 @@ void ED_image_undo_push_begin_with_image(const char *name,
   }
 }
 
-void ED_image_undo_push_end(void)
+void ED_image_undo_push_end()
 {
   UndoStack *ustack = ED_undo_stack_get();
   BKE_undosys_step_push(ustack, nullptr, nullptr);

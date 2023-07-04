@@ -337,7 +337,7 @@ static void clip_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void clip_operatortypes(void)
+static void clip_operatortypes()
 {
   /* ** clip_ops.c ** */
   WM_operatortype_append(CLIP_OT_open);
@@ -538,7 +538,7 @@ static void clip_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 }
 
 /* area+region dropbox definition */
-static void clip_dropboxes(void)
+static void clip_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Clip", SPACE_CLIP, 0);
 
@@ -577,7 +577,7 @@ static void CLIP_GGT_navigate(wmGizmoGroupType *gzgt)
   VIEW2D_GGT_navigate_impl(gzgt, "CLIP_GGT_navigate");
 }
 
-static void clip_gizmos(void)
+static void clip_gizmos()
 {
   const wmGizmoMapType_Params gizmo_params{SPACE_CLIP, RGN_TYPE_WINDOW};
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gizmo_params);
@@ -1143,7 +1143,7 @@ static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceClip, sl);
 }
 
-void ED_spacetype_clip(void)
+void ED_spacetype_clip()
 {
   SpaceType *st = MEM_cnew<SpaceType>("spacetype clip");
   ARegionType *art;

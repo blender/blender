@@ -17,7 +17,7 @@
 #include "BKE_node_tree_update.h"
 #include "BKE_screen.h"
 
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 #include "NOD_socket_search_link.hh"
 
 #include "BLT_translation.h"

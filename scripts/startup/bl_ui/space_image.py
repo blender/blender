@@ -428,6 +428,7 @@ class IMAGE_MT_uvs(Menu):
 
         layout.operator("uv.pin").clear = False
         layout.operator("uv.pin", text="Unpin").clear = True
+        layout.operator("uv.pin", text="Invert Pins").invert = True
 
         layout.separator()
 

@@ -21,6 +21,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -218,7 +219,7 @@ static IDProperty **rna_PoseBone_idprops(PointerRNA *ptr)
   return &pchan->prop;
 }
 
-static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
+static void rna_Pose_ik_solver_set(PointerRNA *ptr, int value)
 {
   bPose *pose = (bPose *)ptr->data;
 
@@ -348,7 +349,7 @@ static StructRNA *rna_IKParam_refine(PointerRNA *ptr)
   }
 }
 
-static PointerRNA rna_Pose_ikparam_get(struct PointerRNA *ptr)
+static PointerRNA rna_Pose_ikparam_get(PointerRNA *ptr)
 {
   bPose *pose = (bPose *)ptr->data;
   return rna_pointer_inherit_refine(ptr, &RNA_IKParam, pose->ikparam);
@@ -426,7 +427,7 @@ static PointerRNA rna_PoseChannel_bone_group_get(PointerRNA *ptr)
 
 static void rna_PoseChannel_bone_group_set(PointerRNA *ptr,
                                            PointerRNA value,
-                                           struct ReportList * /*reports*/)
+                                           ReportList * /*reports*/)
 {
   Object *ob = (Object *)ptr->owner_id;
   bPose *pose = (ob) ? ob->pose : nullptr;
@@ -471,7 +472,7 @@ static PointerRNA rna_Pose_active_bone_group_get(PointerRNA *ptr)
 
 static void rna_Pose_active_bone_group_set(PointerRNA *ptr,
                                            PointerRNA value,
-                                           struct ReportList * /*reports*/)
+                                           ReportList * /*reports*/)
 {
   bPose *pose = (bPose *)ptr->data;
   pose->active_group = BLI_findindex(&pose->agroups, value.data) + 1;
@@ -567,7 +568,7 @@ static PointerRNA rna_PoseChannel_active_constraint_get(PointerRNA *ptr)
 
 static void rna_PoseChannel_active_constraint_set(PointerRNA *ptr,
                                                   PointerRNA value,
-                                                  struct ReportList * /*reports*/)
+                                                  ReportList * /*reports*/)
 {
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   BKE_constraints_active_set(&pchan->constraints, (bConstraint *)value.data);
@@ -854,7 +855,7 @@ static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob,
 
 static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr,
                                                        PointerRNA value,
-                                                       struct ReportList * /*reports*/)
+                                                       ReportList * /*reports*/)
 {
   bPoseChannel *pchan = (bPoseChannel *)ptr->data;
   Object *ob = (Object *)ptr->owner_id;
@@ -1145,7 +1146,8 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop,
                            "Channel Matrix",
-                           "4x4 matrix of the bone's location/rotation/scale channels (including "
+                           "4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 matrix of the bone's location/rotation/scale channels (including "
                            "animation and drivers) and the effect of bone constraints");
 
   /* writable because it touches loc/scale/rot directly */
@@ -1165,10 +1167,11 @@ static void rna_def_pose_channel(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "pose_mat");
   RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
   RNA_def_property_float_funcs(prop, nullptr, "rna_PoseChannel_matrix_set", nullptr);
-  RNA_def_property_ui_text(
-      prop,
-      "Pose Matrix",
-      "Final 4x4 matrix after constraints and drivers are applied, in the armature object space");
+  RNA_def_property_ui_text(prop,
+                           "Pose Matrix",
+                           "Final 4" BLI_STR_UTF8_MULTIPLICATION_SIGN
+                           "4 matrix after constraints and drivers are applied, in "
+                           "the armature object space");
   RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
   /* Head/Tail Coordinates (in Pose Space) - Automatically calculated... */

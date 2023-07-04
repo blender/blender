@@ -123,6 +123,7 @@ class PardisoImpl : public SparseSolverBase<Derived>
     };
 
     PardisoImpl()
+      : m_analysisIsOk(false), m_factorizationIsOk(false)
     {
       eigen_assert((sizeof(StorageIndex) >= sizeof(_INTEGER_t) && sizeof(StorageIndex) <= 8) && "Non-supported index type");
       m_iparm.setZero();
@@ -140,7 +141,7 @@ class PardisoImpl : public SparseSolverBase<Derived>
   
     /** \brief Reports whether previous computation was successful.
       *
-      * \returns \c Success if computation was succesful,
+      * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix appears to be negative.
       */
     ComputationInfo info() const
@@ -385,13 +386,14 @@ class PardisoLU : public PardisoImpl< PardisoLU<MatrixType> >
 {
   protected:
     typedef PardisoImpl<PardisoLU> Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLU<MatrixType> >;
 
   public:
+
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
 
     using Base::compute;
     using Base::solve;
@@ -440,14 +442,14 @@ class PardisoLLT : public PardisoImpl< PardisoLLT<MatrixType,_UpLo> >
 {
   protected:
     typedef PardisoImpl< PardisoLLT<MatrixType,_UpLo> > Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLLT<MatrixType,_UpLo> >;
 
   public:
 
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     typedef typename Base::StorageIndex StorageIndex;
     enum { UpLo = _UpLo };
     using Base::compute;
@@ -503,14 +505,14 @@ class PardisoLDLT : public PardisoImpl< PardisoLDLT<MatrixType,Options> >
 {
   protected:
     typedef PardisoImpl< PardisoLDLT<MatrixType,Options> > Base;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::RealScalar RealScalar;
     using Base::pardisoInit;
     using Base::m_matrix;
     friend class PardisoImpl< PardisoLDLT<MatrixType,Options> >;
 
   public:
 
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::RealScalar RealScalar;
     typedef typename Base::StorageIndex StorageIndex;
     using Base::compute;
     enum { UpLo = Options&(Upper|Lower) };

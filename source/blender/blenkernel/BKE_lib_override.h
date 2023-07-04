@@ -317,9 +317,10 @@ bool BKE_lib_override_library_property_search_and_delete(struct IDOverrideLibrar
  *
  * No-op if the property override cannot be found.
  *
- * \param from_rna_path The RNA path of the property to change.
- * \param to_rna_path The new RNA path. The library override system will copy the string to its own
- * memory; the caller will retain ownership of the passed pointer.
+ * \param from_rna_path: The RNA path of the property to change.
+ * \param to_rna_path: The new RNA path.
+ * The library override system will copy the string to its own memory;
+ * the caller will retain ownership of the passed pointer.
  * \return True if the property was found (and thus changed), false if it wasn't found.
  */
 bool BKE_lib_override_library_property_rna_path_change(IDOverrideLibrary *liboverride,

@@ -486,7 +486,6 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   }
 
   const bke::GeometryFieldContext field_context{component, domain};
-  const IndexMask mask{IndexMask(domain_size)};
   const bke::AttributeValidator validator = attributes.lookup_validator(attribute_id);
 
   const std::optional<AttributeMetaData> meta_data = attributes.lookup_meta_data(attribute_id);
@@ -496,10 +495,8 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   /* We are writing to an attribute that exists already with the correct domain and type. */
   if (attribute_matches) {
     if (GSpanAttributeWriter dst_attribute = attributes.lookup_for_write_span(attribute_id)) {
-      const IndexMask mask{IndexMask(domain_size)};
-
       const bke::GeometryFieldContext field_context{component, domain};
-      fn::FieldEvaluator evaluator{field_context, &mask};
+      fn::FieldEvaluator evaluator{field_context, domain_size};
       evaluator.add(validator.validate_field_if_necessary(field));
       evaluator.set_selection(selection);
       evaluator.evaluate();
@@ -528,7 +525,7 @@ bool try_capture_field_on_geometry(GeometryComponent &component,
   if (!selection_is_full) {
     type.value_initialize_n(buffer, domain_size);
   }
-  fn::FieldEvaluator evaluator{field_context, &mask};
+  fn::FieldEvaluator evaluator{field_context, domain_size};
   evaluator.add_with_destination(validator.validate_field_if_necessary(field),
                                  GMutableSpan{type, buffer, domain_size});
   evaluator.set_selection(selection);

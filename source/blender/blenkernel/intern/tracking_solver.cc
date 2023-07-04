@@ -32,7 +32,7 @@
 #include "libmv-capi.h"
 #include "tracking_private.h"
 
-typedef struct MovieReconstructContext {
+struct MovieReconstructContext {
   libmv_Tracks *tracks;
   bool select_keyframes;
   int keyframe1, keyframe2;
@@ -53,15 +53,15 @@ typedef struct MovieReconstructContext {
 
   /* Details about reconstruction error, reported by Libmv. */
   char error_message[1024];
-} MovieReconstructContext;
+};
 
-typedef struct ReconstructProgressData {
+struct ReconstructProgressData {
   bool *stop;
   bool *do_update;
   float *progress;
   char *stats_message;
   int message_size;
-} ReconstructProgressData;
+};
 
 /* Create new libmv Tracks structure from blender's tracks list. */
 static libmv_Tracks *libmv_tracks_new(MovieClip *clip, ListBase *tracksbase, int width, int height)

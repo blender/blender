@@ -42,11 +42,11 @@ static CLG_LogRef LOG = {"ed.undo.armature"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct UndoArmature {
+struct UndoArmature {
   EditBone *act_edbone;
   ListBase lb;
   size_t undo_size;
-} UndoArmature;
+};
 
 static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 {
@@ -119,17 +119,17 @@ static Object *editarm_object_from_context(bContext *C)
  * \note This is similar for all edit-mode types.
  * \{ */
 
-typedef struct ArmatureUndoStep_Elem {
+struct ArmatureUndoStep_Elem {
   ArmatureUndoStep_Elem *next, *prev;
   UndoRefID_Object obedit_ref;
   UndoArmature data;
-} ArmatureUndoStep_Elem;
+};
 
-typedef struct ArmatureUndoStep {
+struct ArmatureUndoStep {
   UndoStep step;
   ArmatureUndoStep_Elem *elems;
   uint elems_len;
-} ArmatureUndoStep;
+};
 
 static bool armature_undosys_poll(bContext *C)
 {

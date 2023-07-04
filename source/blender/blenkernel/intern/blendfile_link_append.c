@@ -125,9 +125,21 @@ typedef struct BlendfileLinkAppendContextCallBack {
   BlendfileLinkAppendContextItem *item;
   ReportList *reports;
 
+  /** Whether the currently evaluated usage is within some liboverride dependency context. Note
+   * that this include liboverride reference itself, but also e.g. if a linked Mesh is used by the
+   * reference of an overridden object.
+   *
+   * Mutually exclusive with #is_liboverride_dependency_only. */
+  bool is_liboverride_dependency;
+  /** Whether the currently evaluated usage is exclusively within some liboverride dependency
+   * context, i.e. the full all usages of this data so far have only been a part of liboverride
+   * references and their dependencies.
+   *
+   * Mutually exclusive with #is_liboverride_dependency. */
+  bool is_liboverride_dependency_only;
 } BlendfileLinkAppendContextCallBack;
 
-/* Actions to apply to an item (i.e. linked ID). */
+/** Actions to apply to an item (i.e. linked ID). */
 enum {
   LINK_APPEND_ACT_UNSET = 0,
   LINK_APPEND_ACT_KEEP_LINKED,
@@ -136,10 +148,25 @@ enum {
   LINK_APPEND_ACT_COPY_LOCAL,
 };
 
-/* Various status info about an item (i.e. linked ID). */
+/** Various status info about an item (i.e. linked ID). */
 enum {
-  /* An indirectly linked ID. */
+  /** An indirectly linked ID. */
   LINK_APPEND_TAG_INDIRECT = 1 << 0,
+  /**
+   * An ID also used as liboverride dependency (either directly, as a liboverride reference, or
+   * indirectly, as data used by a liboverride reference). It should never be directly made local.
+   *
+   * Mutually exclusive with #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY.
+   */
+  LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY = 1 << 1,
+  /**
+   * An ID only used as liboverride dependency (either directly or indirectly, see
+   * #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY for precisions). It should not be considered during
+   * the 'make local' process, and remain purely linked data.
+   *
+   * Mutually exclusive with #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY.
+   */
+  LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY = 1 << 2,
 };
 
 static BlendHandle *link_append_context_library_blohandle_ensure(
@@ -929,7 +956,7 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
   /* NOTE: It is important to also skip liboverride references here, as those should never be made
    * local. */
   if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING | IDWALK_CB_INTERNAL |
-                          IDWALK_CB_LOOPBACK | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE))
+                          IDWALK_CB_LOOPBACK))
   {
     return IDWALK_RET_NOP;
   }
@@ -983,7 +1010,7 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
         data->lapp_context, id->name, GS(id->name), NULL);
     item->new_id = id;
     item->source_library = id->lib;
-    /* Since we did not have an item for that ID yet, we know user did not selected it explicitly,
+    /* Since we did not have an item for that ID yet, we know user did not select it explicitly,
      * it was rather linked indirectly. This info is important for instantiation of collections. */
     item->tag |= LINK_APPEND_TAG_INDIRECT;
     /* In linking case we already know what we want to do with those items. */
@@ -991,6 +1018,54 @@ static int foreach_libblock_link_append_callback(LibraryIDLinkCallbackData *cb_d
       item->action = LINK_APPEND_ACT_KEEP_LINKED;
     }
     new_id_to_item_mapping_add(data->lapp_context, id, item);
+
+    if ((cb_data->cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0 ||
+        data->is_liboverride_dependency_only)
+    {
+      /* New item, (currently) detected as only used as a liboverride linked dependency. */
+      item->tag |= LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY;
+    }
+    else if (data->is_liboverride_dependency) {
+      /* New item, (currently) detected as used as a liboverride linked dependency, among
+       * others. */
+      item->tag |= LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY;
+    }
+  }
+  else {
+    if ((cb_data->cb_flag & IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE) != 0 ||
+        data->is_liboverride_dependency_only)
+    {
+      /* Existing item, here only used as a liboverride reference dependency. If it was not tagged
+       * as such before, it is also used by non-liboverride reference data. */
+      if ((item->tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) == 0) {
+        item->tag |= LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY;
+        /* In case that item was already processed, and marked to be directly made local, its
+         * action needs to be changed to copying instead, since no liboverride reference (or their
+         * dependencies) should ever be made local. */
+        if (item->action == LINK_APPEND_ACT_MAKE_LOCAL) {
+          CLOG_INFO(
+              &LOG,
+              3,
+              "Appended ID '%s' is also used as a liboverride linked dependency, duplicating it.",
+              id->name);
+          item->action = LINK_APPEND_ACT_COPY_LOCAL;
+        }
+      }
+    }
+    else if ((item->tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) != 0) {
+      /* Existing item, here used in a non-liboverride dependency context. If it was
+       * tagged as a liboverride dependency only, its tag and action need to be updated. */
+      item->tag |= LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY;
+      item->tag &= ~LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY;
+      if (item->action == LINK_APPEND_ACT_KEEP_LINKED) {
+        CLOG_INFO(
+            &LOG,
+            3,
+            "Appended ID '%s' is also used as a liboverride linked dependency, duplicating it.",
+            id->name);
+        item->action = LINK_APPEND_ACT_COPY_LOCAL;
+      }
+    }
   }
 
   /* NOTE: currently there is no need to do anything else here, but in the future this would be
@@ -1044,11 +1119,16 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   const bool do_reuse_local_id = (lapp_context->params->flag &
                                   BLO_LIBLINK_APPEND_LOCAL_ID_REUSE) != 0;
 
-  const int make_local_common_flags = LIB_ID_MAKELOCAL_FULL_LIBRARY |
-                                      ((lapp_context->params->flag &
-                                        BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) != 0 ?
-                                           LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
-                                           0);
+  const int make_local_common_flags =
+      LIB_ID_MAKELOCAL_FULL_LIBRARY |
+      ((lapp_context->params->flag & BLO_LIBLINK_APPEND_ASSET_DATA_CLEAR) != 0 ?
+           LIB_ID_MAKELOCAL_ASSET_DATA_CLEAR :
+           0) |
+      /* In recursive case (i.e. everything becomes local), clear liboverrides. Otherwise (i.e.
+       * only data from immediately linked libraries is made local), preserve liboverrides. */
+      ((lapp_context->params->flag & BLO_LIBLINK_APPEND_RECURSIVE) != 0 ?
+           LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR :
+           0);
 
   LinkNode *itemlink;
 
@@ -1072,29 +1152,61 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
                                     id->lib->filepath,
                                     id->name) :
                                 NULL;
+    const bool is_liboverride_dependency = (item->tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY) !=
+                                           0;
+    const bool is_liboverride_dependency_only = (item->tag &
+                                                 LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) != 0;
+    /* These two flags are mutually exclusive. */
+    BLI_assert(!(is_liboverride_dependency && is_liboverride_dependency_only));
 
     if (item->action != LINK_APPEND_ACT_UNSET) {
       /* Already set, pass. */
     }
+    else if (item->tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY) {
+      CLOG_INFO(
+          &LOG,
+          3,
+          "Appended ID '%s' is only used as a liboverride linked dependency, keeping it linked.",
+          id->name);
+      item->action = LINK_APPEND_ACT_KEEP_LINKED;
+    }
     else if (do_reuse_local_id && existing_local_id != NULL) {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it...", id->name);
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' as a matching local one, re-using it.", id->name);
       item->action = LINK_APPEND_ACT_REUSE_LOCAL;
       item->userdata = existing_local_id;
     }
     else if (id->tag & LIB_TAG_PRE_EXISTING) {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' was already linked, need to copy it...", id->name);
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' was already linked, duplicating it.", id->name);
+      item->action = LINK_APPEND_ACT_COPY_LOCAL;
+    }
+    else if (item->tag & LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY) {
+      CLOG_INFO(
+          &LOG,
+          3,
+          "Appended ID '%s' is also used as a liboverride linked dependency, duplicating it.",
+          id->name);
       item->action = LINK_APPEND_ACT_COPY_LOCAL;
     }
     else {
-      CLOG_INFO(&LOG, 3, "Appended ID '%s' will be made local...", id->name);
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' will be made local.", id->name);
       item->action = LINK_APPEND_ACT_MAKE_LOCAL;
     }
 
-    /* Only check dependencies if we are not keeping linked data, nor re-using existing local data.
+    /* Only check dependencies if linked data are not kept, nor existing local data are re-used,
+     * and if the item is not used for liboverride dependencies.
+     *
+     * NOTE: liboverride dependencies require complete check of all usages of the ID, as this may
+     * change the status and action of its item (see #foreach_libblock_link_append_callback code).
      */
-    if (!ELEM(item->action, LINK_APPEND_ACT_KEEP_LINKED, LINK_APPEND_ACT_REUSE_LOCAL)) {
+    if (!ELEM(item->action, LINK_APPEND_ACT_KEEP_LINKED, LINK_APPEND_ACT_REUSE_LOCAL) ||
+        is_liboverride_dependency || is_liboverride_dependency_only)
+    {
       BlendfileLinkAppendContextCallBack cb_data = {
-          .lapp_context = lapp_context, .item = item, .reports = reports};
+          .lapp_context = lapp_context,
+          .item = item,
+          .reports = reports,
+          .is_liboverride_dependency = is_liboverride_dependency,
+          .is_liboverride_dependency_only = is_liboverride_dependency_only};
       BKE_library_foreach_ID_link(
           bmain, id, foreach_libblock_link_append_callback, &cb_data, IDWALK_NOP);
     }
@@ -1217,6 +1329,12 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
 
     /* Do NOT delete a linked data that was already linked before this append. */
     if (id->tag & LIB_TAG_PRE_EXISTING) {
+      continue;
+    }
+    /* Do NOT delete a linked data that is (also) used a liboverride dependency. */
+    if (item->tag &
+        (LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY | LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY))
+    {
       continue;
     }
 

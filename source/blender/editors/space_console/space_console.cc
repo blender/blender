@@ -322,7 +322,7 @@ static void console_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceConsole, sl);
 }
 
-void ED_spacetype_console(void)
+void ED_spacetype_console()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype console"));
   ARegionType *art;

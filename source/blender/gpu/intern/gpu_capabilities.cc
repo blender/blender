@@ -34,7 +34,7 @@ int GPU_max_texture_size()
   return GCaps.max_texture_size;
 }
 
-int GPU_max_texture_3d_size(void)
+int GPU_max_texture_3d_size()
 {
   return GCaps.max_texture_3d_size;
 }
@@ -192,12 +192,12 @@ int GPU_max_compute_shader_storage_blocks()
   return GCaps.max_compute_shader_storage_blocks;
 }
 
-int GPU_minimum_per_vertex_stride(void)
+int GPU_minimum_per_vertex_stride()
 {
   return GCaps.minimum_per_vertex_stride;
 }
 
-bool GPU_transform_feedback_support(void)
+bool GPU_transform_feedback_support()
 {
   return GCaps.transform_feedback_support;
 }

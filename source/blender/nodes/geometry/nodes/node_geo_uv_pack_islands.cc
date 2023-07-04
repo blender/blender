@@ -53,7 +53,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   evaluator.add_with_destination(uv_field, uv.as_mutable_span());
   evaluator.evaluate();
 
-  geometry::ParamHandle *handle = geometry::uv_parametrizer_construct_begin();
+  geometry::ParamHandle *handle = new geometry::ParamHandle();
   selection.foreach_index([&](const int poly_index) {
     const IndexRange poly = polys[poly_index];
     Array<geometry::ParamKey, 16> mp_vkeys(poly.size());
@@ -83,7 +83,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
 
   geometry::uv_parametrizer_pack(handle, margin, rotate, true);
   geometry::uv_parametrizer_flush(handle);
-  geometry::uv_parametrizer_delete(handle);
+  delete (handle);
 
   return mesh.attributes().adapt_domain<float3>(
       VArray<float3>::ForContainer(std::move(uv)), ATTR_DOMAIN_CORNER, domain);

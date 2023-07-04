@@ -75,5 +75,5 @@ void lightprobe_eval(ClosureDiffuse diffuse,
 {
   SphericalHarmonicL1 irradiance = lightprobe_irradiance_sample(irradiance_atlas_tx, P);
 
-  out_diffuse += spherical_harmonics_evaluate_lambert_non_linear(diffuse.N, irradiance);
+  out_diffuse += spherical_harmonics_evaluate_lambert(diffuse.N, irradiance);
 }

@@ -34,7 +34,7 @@ vec3 burley_eval(vec3 d, float r)
   /* Slide 33. */
   vec3 exp_r_3_d = exp(-r / (3.0 * d));
   vec3 exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
-  /** NOTE:
+  /* NOTE:
    * - Surface albedo is applied at the end.
    * - This is normalized diffuse model, so the equation is multiplied
    *   by 2*pi, which also matches cdf().

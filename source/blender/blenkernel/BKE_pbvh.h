@@ -129,4 +129,3 @@ void BKE_pbvh_draw_debug_cb(PBVH *pbvh,
 #ifdef __cplusplus
 }
 #endif /* extern "C" */
-

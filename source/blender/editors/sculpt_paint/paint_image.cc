@@ -77,7 +77,7 @@
  */
 static ImagePaintPartialRedraw imapaintpartial = {{0}};
 
-ImagePaintPartialRedraw *get_imapaintpartial(void)
+ImagePaintPartialRedraw *get_imapaintpartial()
 {
   return &imapaintpartial;
 }
@@ -89,7 +89,7 @@ void set_imapaintpartial(ImagePaintPartialRedraw *ippr)
 
 /* Image paint Partial Redraw & Dirty Region. */
 
-void ED_imapaint_clear_partial_redraw(void)
+void ED_imapaint_clear_partial_redraw()
 {
   BLI_rcti_init_minmax(&imapaintpartial.dirty_region);
 }

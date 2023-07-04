@@ -22,7 +22,7 @@
 
 using blender::float4x4;
 
-eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[4][4])
+eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float4x4 &obmat)
 {
   bool has_snap = false;
 
@@ -33,7 +33,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
 
   Curve *cu = static_cast<Curve *>(ob_eval->data);
 
-  SnapData nearest2d(sctx, float4x4(obmat));
+  SnapData nearest2d(sctx, obmat);
 
   const bool use_obedit = BKE_object_is_in_editmode(ob_eval);
 
@@ -108,7 +108,7 @@ eSnapMode snapCurve(SnapObjectContext *sctx, Object *ob_eval, const float obmat[
   }
   if (has_snap) {
     nearest2d.register_result(sctx, ob_eval, &cu->id);
-    return SCE_SNAP_TO_VERTEX;
+    return SCE_SNAP_TO_POINT;
   }
   return SCE_SNAP_TO_NONE;
 }

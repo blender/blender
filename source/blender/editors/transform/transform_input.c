@@ -255,6 +255,27 @@ void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[
 /** \name Setup & Handle Mouse Input
  * \{ */
 
+void transform_input_reset(TransInfo *t, const int mval[2])
+{
+  MouseInput *mi = &t->mouse;
+
+  mi->imval[0] = mval[0];
+  mi->imval[1] = mval[1];
+
+  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
+    float delta[3] = {mval[0] - mi->center[0], mval[1] - mi->center[1]};
+    ED_view3d_win_to_delta(t->region, delta, t->zfac, delta);
+    add_v3_v3v3(mi->imval_unproj, t->center_global, delta);
+  }
+
+  if (mi->data && ELEM(mi->apply, InputAngle, InputAngleSpring)) {
+    struct InputAngle_Data *data = mi->data;
+    data->mval_prev[0] = mi->imval[0];
+    data->mval_prev[1] = mi->imval[1];
+    data->angle = 0.0f;
+  }
+}
+
 void initMouseInput(
     TransInfo *t, MouseInput *mi, const float center[2], const int mval[2], const bool precision)
 {
@@ -264,16 +285,9 @@ void initMouseInput(
   mi->center[0] = center[0];
   mi->center[1] = center[1];
 
-  mi->imval[0] = mval[0];
-  mi->imval[1] = mval[1];
-
-  if ((t->spacetype == SPACE_VIEW3D) && (t->region->regiontype == RGN_TYPE_WINDOW)) {
-    float delta[3] = {mval[0] - center[0], mval[1] - center[1]};
-    ED_view3d_win_to_delta(t->region, delta, t->zfac, delta);
-    add_v3_v3v3(mi->imval_unproj, t->center_global, delta);
-  }
-
   mi->post = NULL;
+
+  transform_input_reset(t, mval);
 }
 
 static void calcSpringFactor(MouseInput *mi)
@@ -507,18 +521,6 @@ void transform_input_virtual_mval_reset(TransInfo *t)
   }
   else {
     memset(&mi->virtual_mval, 0, sizeof(mi->virtual_mval));
-  }
-}
-
-void transform_input_reset(TransInfo *t, const int mval[2])
-{
-  MouseInput *mi = &t->mouse;
-  copy_v2_v2_int(mi->imval, mval);
-  if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {
-    struct InputAngle_Data *data = mi->data;
-    data->mval_prev[0] = mi->imval[0];
-    data->mval_prev[1] = mi->imval[1];
-    data->angle = 0.0f;
   }
 }
 

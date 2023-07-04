@@ -17,7 +17,7 @@ enum eTextViewContext_LineFlag {
 };
 ENUM_OPERATORS(eTextViewContext_LineFlag, TVC_LINE_ICON_BG)
 
-typedef struct TextViewContext {
+struct TextViewContext {
   /** Font size scaled by the interface size. */
   int lheight;
   /** Text selection, when a selection range is in use. */
@@ -59,8 +59,7 @@ typedef struct TextViewContext {
   int iter_char_end;
   /** Internal iterator use. */
   int iter_tmp;
-
-} TextViewContext;
+};
 
 /**
  * \param r_mval_pick_item: The resulting item clicked on using \a mval_init.

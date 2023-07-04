@@ -171,12 +171,12 @@ void OVERLAY_outline_cache_init(OVERLAY_Data *vedata)
   }
 }
 
-typedef struct iterData {
+struct iterData {
   Object *ob;
   DRWShadingGroup *stroke_grp;
   int cfra;
   float plane[4];
-} iterData;
+};
 
 static void gpencil_layer_cache_populate(bGPDlayer *gpl,
                                          bGPDframe * /*gpf*/,

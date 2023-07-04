@@ -289,7 +289,7 @@ void ShaderOperation::populate_results_for_node(DNode node, GPUMaterial *materia
         doutput, [&](DNode node) { return !compile_unit_.contains(node); });
 
     /* If the output is used as the node preview, then an output result needs to be populated for
-     * it, and we additionally keep track of that output to later compute the previes from. */
+     * it, and we additionally keep track of that output to later compute the previews from. */
     const bool is_preview_output = doutput == preview_output;
     if (is_preview_output) {
       preview_outputs_.add(doutput);

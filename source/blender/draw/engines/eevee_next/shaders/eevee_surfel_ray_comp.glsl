@@ -10,6 +10,7 @@
 
 #pragma BLENDER_REQUIRE(gpu_shader_utildefines_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_math_base_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_reflection_probe_lib.glsl)
 #pragma BLENDER_REQUIRE(common_view_lib.glsl)
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 
@@ -62,10 +63,14 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
   radiance_transfer(receiver, radiance, L);
 }
 
+vec3 radiance_sky_sample(vec3 R)
+{
+  return light_world_sample(R, 0.0);
+}
+
 void radiance_transfer_world(inout Surfel receiver, vec3 sky_L)
 {
-  /* TODO(fclem): Sky radiance. */
-  vec3 radiance = vec3(0.0);
+  vec3 radiance = radiance_sky_sample(-sky_L);
   radiance_transfer(receiver, radiance, -sky_L);
 }
 

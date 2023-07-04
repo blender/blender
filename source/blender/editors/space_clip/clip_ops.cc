@@ -357,13 +357,13 @@ void CLIP_OT_reload(wmOperatorType *ot)
 /** \name View Pan Operator
  * \{ */
 
-typedef struct ViewPanData {
+struct ViewPanData {
   float x, y;
   float xof, yof, xorig, yorig;
   int launch_event;
   bool own_cursor;
   float *vec;
-} ViewPanData;
+};
 
 static void view_pan_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -530,7 +530,7 @@ void CLIP_OT_view_pan(wmOperatorType *ot)
 /** \name View Zoom Operator
  * \{ */
 
-typedef struct ViewZoomData {
+struct ViewZoomData {
   float x, y;
   float zoom;
   int launch_event;
@@ -538,7 +538,7 @@ typedef struct ViewZoomData {
   wmTimer *timer;
   double timer_lastdraw;
   bool own_cursor;
-} ViewZoomData;
+};
 
 static void view_zoom_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1168,14 +1168,14 @@ void CLIP_OT_change_frame(wmOperatorType *ot)
 /** \name Rebuild Proxies Operator
  * \{ */
 
-typedef struct ProxyBuildJob {
+struct ProxyJob {
   Scene *scene;
   Main *main;
   MovieClip *clip;
   int clip_flag;
   bool stop;
   IndexBuildContext *index_context;
-} ProxyJob;
+};
 
 static void proxy_freejob(void *pjv)
 {
@@ -1280,7 +1280,7 @@ static void do_movie_proxy(void *pjv,
  * thread for maximal speed
  */
 
-typedef struct ProxyQueue {
+struct ProxyQueue {
   int cfra;
   int sfra;
   int efra;
@@ -1289,14 +1289,14 @@ typedef struct ProxyQueue {
   const bool *stop;
   bool *do_update;
   float *progress;
-} ProxyQueue;
+};
 
-typedef struct ProxyThread {
+struct ProxyThread {
   MovieClip *clip;
   MovieDistortion *distortion;
   int *build_sizes, build_count;
   int *build_undistort_sizes, build_undistort_count;
-} ProxyThread;
+};
 
 static uchar *proxy_thread_next_frame(ProxyQueue *queue,
                                       MovieClip *clip,
@@ -1870,7 +1870,7 @@ void CLIP_OT_lock_selection_toggle(wmOperatorType *ot)
 /** \name Macros
  * \{ */
 
-void ED_operatormacros_clip(void)
+void ED_operatormacros_clip()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

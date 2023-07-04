@@ -153,7 +153,7 @@ static ScanFillVert *scanfill_vert_add_v2_with_depth(ScanFillContext *sf_ctx,
  *
  * \note internal use only.
  */
-typedef struct MaskRasterLayer {
+struct MaskRasterLayer {
   /* geometry */
   uint face_tot;
   uint (*face_array)[4];   /* access coords tri/quad */
@@ -175,10 +175,9 @@ typedef struct MaskRasterLayer {
   char blend;
   char blend_flag;
   char falloff;
+};
 
-} MaskRasterLayer;
-
-typedef struct MaskRasterSplineInfo {
+struct MaskRasterSplineInfo {
   /* body of the spline */
   uint vertex_offset;
   uint vertex_total;
@@ -188,7 +187,7 @@ typedef struct MaskRasterSplineInfo {
   uint vertex_total_cap_tail;
 
   bool is_cyclic;
-} MaskRasterSplineInfo;
+};
 
 /**
  * opaque local struct for mask pixel lookup, each MaskLayer needs one of these
@@ -205,7 +204,7 @@ struct MaskRasterHandle {
 /* alloc / free functions                                                */
 /* --------------------------------------------------------------------- */
 
-MaskRasterHandle *BKE_maskrasterize_handle_new(void)
+MaskRasterHandle *BKE_maskrasterize_handle_new()
 {
   MaskRasterHandle *mr_handle;
 
@@ -1424,14 +1423,14 @@ float BKE_maskrasterize_handle_sample(MaskRasterHandle *mr_handle, const float x
   return value;
 }
 
-typedef struct MaskRasterizeBufferData {
+struct MaskRasterizeBufferData {
   MaskRasterHandle *mr_handle;
   float x_inv, y_inv;
   float x_px_ofs, y_px_ofs;
   uint width;
 
   float *buffer;
-} MaskRasterizeBufferData;
+};
 
 static void maskrasterize_buffer_cb(void *__restrict userdata,
                                     const int y,

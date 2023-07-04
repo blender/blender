@@ -79,6 +79,11 @@ BLI_INLINE void clamp_rctf_to_rcti(rcti *dst, const rctf *src)
   dst->ymax = clamp_float_to_int(src->ymax);
 }
 
+float view2d_page_size_y(const View2D &v2d)
+{
+  return v2d.page_size_y ? v2d.page_size_y : BLI_rcti_size_y(&v2d.mask);
+}
+
 /* XXX still unresolved: scrolls hide/unhide vs region mask handling */
 /* XXX there's V2D_SCROLL_HORIZONTAL_HIDE and V2D_SCROLL_HORIZONTAL_FULLR ... */
 
@@ -1025,7 +1030,7 @@ void UI_view2d_totRect_set(View2D *v2d, int width, int height)
   view2d_totRect_set_resize(v2d, width, height, false);
 }
 
-void UI_view2d_zoom_cache_reset(void)
+void UI_view2d_zoom_cache_reset()
 {
   /* TODO(sergey): This way we avoid threading conflict with sequencer rendering
    * text strip. But ideally we want to make glyph cache to be fully safe
@@ -1953,6 +1958,17 @@ void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
     v2d->cur.ymin = (ymin * (1.0f - yfac)) + (ymax * yfac);
     v2d->cur.ymax = v2d->cur.ymin + ysize;
   }
+
+  UI_view2d_curRect_validate(v2d);
+}
+
+void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d)
+{
+  const float cur_size_y = BLI_rctf_size_y(&v2d->cur);
+  const float page_size_y = view2d_page_size_y(*v2d);
+
+  v2d->cur.ymax = roundf(v2d->cur.ymax / page_size_y) * page_size_y;
+  v2d->cur.ymin = v2d->cur.ymax - cur_size_y;
 
   UI_view2d_curRect_validate(v2d);
 }

@@ -305,8 +305,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_CUDA
   if (mask & DEVICE_MASK_CUDA) {
     if (device_cuda_init()) {
-      capabilities += "\nCUDA device capabilities:\n";
-      capabilities += device_cuda_capabilities();
+      const string device_capabilities = device_cuda_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nCUDA device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -314,8 +317,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_HIP
   if (mask & DEVICE_MASK_HIP) {
     if (device_hip_init()) {
-      capabilities += "\nHIP device capabilities:\n";
-      capabilities += device_hip_capabilities();
+      const string device_capabilities = device_hip_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nHIP device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -323,8 +329,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_ONEAPI
   if (mask & DEVICE_MASK_ONEAPI) {
     if (device_oneapi_init()) {
-      capabilities += "\noneAPI device capabilities:\n";
-      capabilities += device_oneapi_capabilities();
+      const string device_capabilities = device_oneapi_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\noneAPI device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif
@@ -332,8 +341,11 @@ string Device::device_capabilities(uint mask)
 #ifdef WITH_METAL
   if (mask & DEVICE_MASK_METAL) {
     if (device_metal_init()) {
-      capabilities += "\nMetal device capabilities:\n";
-      capabilities += device_metal_capabilities();
+      const string device_capabilities = device_metal_capabilities();
+      if (!device_capabilities.empty()) {
+        capabilities += "\nMetal device capabilities:\n";
+        capabilities += device_capabilities;
+      }
     }
   }
 #endif

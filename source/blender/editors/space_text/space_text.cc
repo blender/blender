@@ -155,7 +155,7 @@ static void text_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void text_operatortypes(void)
+static void text_operatortypes()
 {
   WM_operatortype_append(TEXT_OT_new);
   WM_operatortype_append(TEXT_OT_open);
@@ -335,7 +335,7 @@ static void text_drop_paste(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 }
 
 /* this region dropbox definition */
-static void text_dropboxes(void)
+static void text_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Text", SPACE_TEXT, RGN_TYPE_WINDOW);
 
@@ -415,7 +415,7 @@ static void text_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 /********************* registration ********************/
 
-void ED_spacetype_text(void)
+void ED_spacetype_text()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype text"));
   ARegionType *art;

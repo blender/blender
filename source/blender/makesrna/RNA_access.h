@@ -817,6 +817,7 @@ typedef enum eRNAOverrideMatch {
   /** Tag for restoration of property's value(s) to reference ones, if needed and possible. */
   RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE = 1 << 18,
 } eRNAOverrideMatch;
+ENUM_OPERATORS(eRNAOverrideMatch, RNA_OVERRIDE_COMPARE_TAG_FOR_RESTORE)
 
 typedef enum eRNAOverrideMatchResult {
   RNA_OVERRIDE_MATCH_RESULT_INIT = 0,
@@ -834,6 +835,7 @@ typedef enum eRNAOverrideMatchResult {
   /** Some properties were reset to reference values. */
   RNA_OVERRIDE_MATCH_RESULT_RESTORED = 1 << 2,
 } eRNAOverrideMatchResult;
+ENUM_OPERATORS(eRNAOverrideMatchResult, RNA_OVERRIDE_MATCH_RESULT_RESTORED)
 
 typedef enum eRNAOverrideStatus {
   /** The property is overridable. */
@@ -845,6 +847,7 @@ typedef enum eRNAOverrideStatus {
   /** The override status of this property is locked. */
   RNA_OVERRIDE_STATUS_LOCKED = 1 << 3,
 } eRNAOverrideStatus;
+ENUM_OPERATORS(eRNAOverrideStatus, RNA_OVERRIDE_STATUS_LOCKED)
 
 /**
  * Check whether reference and local overridden data match (are the same),

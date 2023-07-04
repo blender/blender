@@ -23,7 +23,7 @@
 #include "intern/GHOST_CallbackEventConsumer.hh"
 #include "intern/GHOST_XrException.hh"
 
-GHOST_SystemHandle GHOST_CreateSystem(void)
+GHOST_SystemHandle GHOST_CreateSystem()
 {
   GHOST_ISystem::createSystem(true, false);
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -31,7 +31,7 @@ GHOST_SystemHandle GHOST_CreateSystem(void)
   return (GHOST_SystemHandle)system;
 }
 
-GHOST_SystemHandle GHOST_CreateSystemBackground(void)
+GHOST_SystemHandle GHOST_CreateSystemBackground()
 {
   GHOST_ISystem::createSystemBackground();
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
@@ -216,7 +216,7 @@ bool GHOST_ValidWindow(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windo
 }
 
 GHOST_WindowHandle GHOST_BeginFullScreen(GHOST_SystemHandle systemhandle,
-                                         GHOST_DisplaySetting *setting,
+                                         const GHOST_DisplaySetting *setting,
                                          const bool stereoVisual)
 {
   GHOST_ISystem *system = (GHOST_ISystem *)systemhandle;
@@ -409,7 +409,7 @@ GHOST_TSuccess GHOST_SetCursorPosition(GHOST_SystemHandle systemhandle,
 GHOST_TSuccess GHOST_SetCursorGrab(GHOST_WindowHandle windowhandle,
                                    GHOST_TGrabCursorMode mode,
                                    GHOST_TAxisFlag wrap_axis,
-                                   int bounds[4],
+                                   const int bounds[4],
                                    const int mouse_ungrab_xy[2])
 {
   GHOST_IWindow *window = (GHOST_IWindow *)windowhandle;
@@ -781,7 +781,7 @@ int32_t GHOST_GetHeightRectangle(GHOST_RectangleHandle rectanglehandle)
 void GHOST_GetRectangle(
     GHOST_RectangleHandle rectanglehandle, int32_t *l, int32_t *t, int32_t *r, int32_t *b)
 {
-  GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
+  const GHOST_Rect *rect = (GHOST_Rect *)rectanglehandle;
 
   *l = rect->m_l;
   *t = rect->m_t;
@@ -885,7 +885,7 @@ void GHOST_putClipboard(const char *buffer, bool selection)
   system->putClipboard(buffer, selection);
 }
 
-GHOST_TSuccess GHOST_hasClipboardImage(void)
+GHOST_TSuccess GHOST_hasClipboardImage()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->hasClipboardImage();
@@ -909,13 +909,13 @@ bool GHOST_setConsoleWindowState(GHOST_TConsoleWindowState action)
   return system->setConsoleWindowState(action);
 }
 
-bool GHOST_UseNativePixels(void)
+bool GHOST_UseNativePixels()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->useNativePixel();
 }
 
-GHOST_TCapabilityFlag GHOST_GetCapabilities(void)
+GHOST_TCapabilityFlag GHOST_GetCapabilities()
 {
   GHOST_ISystem *system = GHOST_ISystem::getSystem();
   return system->getCapabilities();

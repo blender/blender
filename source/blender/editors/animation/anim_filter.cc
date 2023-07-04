@@ -2359,7 +2359,7 @@ static size_t animdata_filter_ds_materials(
 /* ............ */
 
 /* Temporary context for modifier linked-data channel extraction */
-typedef struct tAnimFilterModifiersContext {
+struct tAnimFilterModifiersContext {
   bAnimContext *ac; /* anim editor context */
   bDopeSheet *ads;  /* dopesheet filtering settings */
 
@@ -2367,7 +2367,7 @@ typedef struct tAnimFilterModifiersContext {
   size_t items;      /* number of channels created */
 
   int filter_mode; /* flags for stuff we want to filter */
-} tAnimFilterModifiersContext;
+};
 
 /* dependency walker callback for modifier dependencies */
 static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin, int /*cb_flag*/)

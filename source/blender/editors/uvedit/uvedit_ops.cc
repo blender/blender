@@ -1343,6 +1343,7 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
   BMIter iter, liter;
   const ToolSettings *ts = scene->toolsettings;
   const bool clear = RNA_boolean_get(op->ptr, "clear");
+  const bool invert = RNA_boolean_get(op->ptr, "invert");
   const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
   uint objects_len = 0;
@@ -1371,7 +1372,12 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
         if (uvedit_uv_select_test(scene, l, offsets)) {
           changed = true;
-          BM_ELEM_CD_SET_BOOL(l, offsets.pin, !clear);
+          if (invert) {
+            BM_ELEM_CD_SET_BOOL(l, offsets.pin, !BM_ELEM_CD_GET_BOOL(l, offsets.pin));
+          }
+          else {
+            BM_ELEM_CD_SET_BOOL(l, offsets.pin, !clear);
+          }
         }
       }
     }
@@ -1402,6 +1408,11 @@ static void UV_OT_pin(wmOperatorType *ot)
   /* properties */
   RNA_def_boolean(
       ot->srna, "clear", false, "Clear", "Clear pinning for the selection instead of setting it");
+  RNA_def_boolean(ot->srna,
+                  "invert",
+                  false,
+                  "Invert",
+                  "Invert pinning for the selection instead of setting it");
 }
 
 /** \} */
@@ -2034,7 +2045,7 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
 /** \name Operator Registration & Keymap
  * \{ */
 
-void ED_operatortypes_uvedit(void)
+void ED_operatortypes_uvedit()
 {
   /* uvedit_select.c */
   WM_operatortype_append(UV_OT_select_all);
@@ -2089,7 +2100,7 @@ void ED_operatortypes_uvedit(void)
   WM_operatortype_append(UV_OT_cursor_set);
 }
 
-void ED_operatormacros_uvedit(void)
+void ED_operatormacros_uvedit()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

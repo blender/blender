@@ -80,7 +80,7 @@ static CLG_LogRef LOG = {"bke.modifier"};
 static ModifierTypeInfo *modifier_types[NUM_MODIFIER_TYPES] = {nullptr};
 static VirtualModifierData virtualModifierCommonData;
 
-void BKE_modifier_init(void)
+void BKE_modifier_init()
 {
   ModifierData *md;
 

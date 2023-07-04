@@ -32,7 +32,7 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
   expand_animation_data(space_outliner, arm_.adt);
 
   if (arm_.edbo) {
-    expandEditBones(space_outliner);
+    expand_edit_bones(space_outliner);
   }
   else {
     /* do not extend Armature when we have posemode */
@@ -43,12 +43,12 @@ void TreeElementIDArmature::expand(SpaceOutliner &space_outliner) const
       /* pass */
     }
     else {
-      expandBones(space_outliner);
+      expand_bones(space_outliner);
     }
   }
 }
 
-void TreeElementIDArmature::expandEditBones(SpaceOutliner &space_outiner) const
+void TreeElementIDArmature::expand_edit_bones(SpaceOutliner &space_outiner) const
 {
   int a = 0;
   LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
@@ -94,7 +94,7 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
   }
 }
 
-void TreeElementIDArmature::expandBones(SpaceOutliner &space_outliner) const
+void TreeElementIDArmature::expand_bones(SpaceOutliner &space_outliner) const
 {
   int a = 0;
   LISTBASE_FOREACH (Bone *, bone, &arm_.bonebase) {

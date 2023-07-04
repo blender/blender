@@ -181,7 +181,8 @@ typedef enum eCustomDataType {
   CD_PROP_FLOAT2 = 49,
   CD_PROP_BOOL = 50,
 
-  CD_HAIRLENGTH = 51,
+  /* CD_HAIRLENGTH = 51, */ /* UNUSED */
+
   CD_PROP_QUATERNION = 52,
   CD_TOOLFLAGS = 53,
 
@@ -227,9 +228,7 @@ typedef enum eCustomDataType {
 #define CD_MASK_PROP_INT8 (1ULL << CD_PROP_INT8)
 #define CD_MASK_PROP_INT32_2D (1ULL << CD_PROP_INT32_2D)
 #define CD_MASK_PROP_QUATERNION (1ULL << CD_PROP_QUATERNION)
-
 #define CD_MASK_TOOLFLAGS (1ULL << CD_TOOLFLAGS)
-#define CD_MASK_HAIRLENGTH (1ULL << CD_HAIRLENGTH)
 
 /** Multi-resolution loop data. */
 #define CD_MASK_MULTIRES_GRIDS (CD_MASK_MDISPS | CD_GRID_PAINT_MASK)

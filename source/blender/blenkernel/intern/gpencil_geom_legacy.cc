@@ -25,6 +25,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
+#include "BLI_string_utils.h"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_gpencil_modifier_types.h"
@@ -2686,7 +2687,7 @@ static void make_element_name(const char *obname, const char *name, const int ma
   SNPRINTF(str, "%s_%s", obname, name);
 
   /* Replace any point by underscore. */
-  BLI_str_replace_char(str, '.', '_');
+  BLI_string_replace_char(str, '.', '_');
 
   BLI_strncpy_utf8(r_name, str, maxlen);
 }

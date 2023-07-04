@@ -11,6 +11,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_path_util.h"
 #include "BLI_serialize.hh"
+#include "BLI_string_utils.h"
 #include "BLI_vector.hh"
 
 #include "PIL_time.h"
@@ -286,7 +287,7 @@ static void bake_simulation_job_startjob(void *customdata,
 
     char frame_file_c_str[64];
     SNPRINTF(frame_file_c_str, "%011.5f", double(frame));
-    BLI_str_replace_char(frame_file_c_str, '.', '_');
+    BLI_string_replace_char(frame_file_c_str, '.', '_');
     const StringRefNull frame_file_str = frame_file_c_str;
 
     BKE_scene_graph_update_for_newframe(job.depsgraph);

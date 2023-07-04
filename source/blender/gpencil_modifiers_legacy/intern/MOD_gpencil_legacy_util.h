@@ -36,7 +36,7 @@ bool is_stroke_affected_by_modifier(struct Object *ob,
 /**
  * Verify if valid vertex group *and return weight.
  */
-float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
+float get_modifier_point_weight(const struct MDeformVert *dvert, bool inverse, int def_nr);
 /**
  * Generic bake function for deformStroke.
  */

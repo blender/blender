@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 struct BMesh;
+struct BMLog;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
@@ -43,9 +44,8 @@ struct IsectRayPrecalc;
 struct MLoopTri;
 struct Mesh;
 struct PBVH;
-struct MEdge;
-struct PBVHBatches;
 struct PBVHNode;
+struct PBVHBatches;
 struct PBVH_GPU_Args;
 struct SculptSession;
 struct SubdivCCG;
@@ -71,6 +71,22 @@ struct PBVHTriBuf {
 
   float min[3], max[3];
 };
+
+/*
+ * These structs represent logical verts/edges/faces.
+ * for PBVH_GRIDS and PBVH_FACES they store integer
+ * offsets, PBVH_BMESH stores pointers.
+ *
+ * The idea is to enforce stronger type checking by encapsulating
+ * intptr_t's in structs.
+ */
+
+/* A generic PBVH vertex.
+ *
+ * NOTE: in PBVH_GRIDS we consider the final grid points
+ * to be vertices.  This is not true of edges or faces which are pulled from
+ * the base mesh.
+ */
 
 struct PBVHProxyNode {
   float (*co)[3];
@@ -214,7 +230,6 @@ PBVH *BKE_pbvh_new(PBVHType type);
 /**
  * Do a full rebuild with on Mesh data structure.
  */
-
 void BKE_pbvh_build_mesh(PBVH *pbvh, Mesh *mesh);
 void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh);
 
@@ -866,6 +881,7 @@ void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh);
 #include "BLI_math_vector.hh"
 
 namespace blender::bke::pbvh {
+
 void set_flags_valence(PBVH *pbvh, uint8_t *flags, int *valence);
 void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno);
 void update_vert_boundary_bmesh(int cd_faceset_offset,
@@ -962,4 +978,5 @@ float test_sharp_faces_mesh(int f1,
 blender::Span<blender::float3> get_poly_normals(const PBVH *pbvh);
 void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map);
 void on_stroke_start(PBVH *pbvh);
+
 }  // namespace blender::bke::pbvh

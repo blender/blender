@@ -145,6 +145,26 @@ class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
         col.prop(props, "use_gtao_bounce")
 
 
+class RENDER_PT_eevee_next_ambient_occlusion(RenderButtonsPanel, Panel):
+    bl_label = "Ambient Occlusion"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        scene = context.scene
+        props = scene.eevee
+
+        col = layout.column()
+        col.prop(props, "gtao_distance")
+        col.prop(props, "gtao_quality")
+
+
 class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):
     bl_label = "Motion Blur"
     bl_options = {'DEFAULT_CLOSED'}
@@ -935,6 +955,7 @@ classes = (
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_next_sampling,
     RENDER_PT_eevee_ambient_occlusion,
+    RENDER_PT_eevee_next_ambient_occlusion,
     RENDER_PT_eevee_bloom,
     RENDER_PT_eevee_depth_of_field,
     RENDER_PT_eevee_next_depth_of_field,

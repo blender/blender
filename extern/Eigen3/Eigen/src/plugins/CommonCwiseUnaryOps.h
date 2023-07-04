@@ -76,6 +76,20 @@ conjugate() const
   return ConjugateReturnType(derived());
 }
 
+/// \returns an expression of the complex conjugate of \c *this if Cond==true, returns derived() otherwise.
+///
+EIGEN_DOC_UNARY_ADDONS(conjugate,complex conjugate)
+///
+/// \sa conjugate()
+template<bool Cond>
+EIGEN_DEVICE_FUNC
+inline typename internal::conditional<Cond,ConjugateReturnType,const Derived&>::type
+conjugateIf() const
+{
+  typedef typename internal::conditional<Cond,ConjugateReturnType,const Derived&>::type ReturnType;
+  return ReturnType(derived());
+}
+
 /// \returns a read-only expression of the real part of \c *this.
 ///
 EIGEN_DOC_UNARY_ADDONS(real,real part function)

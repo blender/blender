@@ -1629,7 +1629,7 @@ static void sculpt_face_set_edit_modify_face_sets(Object *ob,
   for (PBVHNode *node : nodes) {
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_FACE_SETS);
   }
-  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, modify_hidden);
+  sculpt_face_set_apply_edit(ob, active_face_set, mode, modify_hidden);
   SCULPT_undo_push_end(ob);
   face_set_edit_do_post_visibility_updates(ob, nodes);
 }
@@ -1653,7 +1653,7 @@ static void sculpt_face_set_edit_modify_coordinates(bContext *C,
     BKE_pbvh_node_mark_update(node);
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COORDS);
   }
-  sculpt_face_set_apply_edit(ob, abs(active_face_set), mode, false, strength);
+  sculpt_face_set_apply_edit(ob, active_face_set, mode, false, strength);
 
   if (ss->deform_modifiers_active || ss->shapekey_active) {
     SCULPT_flush_stroke_deform(sd, ob, true);

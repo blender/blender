@@ -7,7 +7,7 @@
  *
  * This file exposes functionality for defining to define operators that C can call into.
  * The generic callback functions for python operators are defines in
- * 'rna_wm.c', some calling into functions here to do python specific
+ * 'rna_wm.cc', some calling into functions here to do python specific
  * functionality.
  */
 

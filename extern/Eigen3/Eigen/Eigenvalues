@@ -10,13 +10,13 @@
 
 #include "Core"
 
-#include "src/Core/util/DisableStupidWarnings.h"
-
 #include "Cholesky"
 #include "Jacobi"
 #include "Householder"
 #include "LU"
 #include "Geometry"
+
+#include "src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup Eigenvalues_Module Eigenvalues module
   *
@@ -58,4 +58,3 @@
 #include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_EIGENVALUES_MODULE_H
-/* vim: set filetype=cpp et sw=2 ts=2 ai: */

@@ -24,7 +24,7 @@ class BlurBaseOperation : public MultiThreadedOperation, public QualityStepHelpe
  protected:
   BlurBaseOperation(DataType data_type8);
   float *make_gausstab(float rad, int size);
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 *convert_gausstab_sse(const float *gausstab, int size);
 #endif
   /**

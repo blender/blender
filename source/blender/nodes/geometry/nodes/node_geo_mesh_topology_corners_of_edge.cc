@@ -5,7 +5,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 
-#include "BLI_task.hh"
+#include "BLI_array_utils.hh"
 
 #include "node_geometry_util.hh"
 
@@ -151,12 +151,19 @@ class CornersOfEdgeCountInput final : public bke::MeshFieldInput {
     if (domain != ATTR_DOMAIN_EDGE) {
       return {};
     }
-    const Span<int> corner_edges = mesh.corner_edges();
     Array<int> counts(mesh.totedge, 0);
-    for (const int i : corner_edges.index_range()) {
-      counts[corner_edges[i]]++;
-    }
+    array_utils::count_indices(mesh.corner_edges(), counts);
     return VArray<int>::ForContainer(std::move(counts));
+  }
+
+  uint64_t hash() const final
+  {
+    return 2345897985577;
+  }
+
+  bool is_equal_to(const fn::FieldNode &other) const final
+  {
+    return dynamic_cast<const CornersOfEdgeCountInput *>(&other) != nullptr;
   }
 
   std::optional<eAttrDomain> preferred_domain(const Mesh & /*mesh*/) const final

@@ -162,7 +162,7 @@ TEST(string, StrReplaceRange)
 #define STR_REPLACE_RANGE(src, size, beg, end, dst, result_expect) \
   { \
     char string[size] = src; \
-    BLI_str_replace_range(string, sizeof(string), beg, end, dst); \
+    BLI_string_replace_range(string, sizeof(string), beg, end, dst); \
     EXPECT_STREQ(string, result_expect); \
   }
 

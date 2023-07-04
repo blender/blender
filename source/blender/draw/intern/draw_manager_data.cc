@@ -2324,12 +2324,12 @@ void DRW_view_update(DRWView *view,
 #endif
 }
 
-const DRWView *DRW_view_default_get(void)
+const DRWView *DRW_view_default_get()
 {
   return DST.view_default;
 }
 
-void DRW_view_reset(void)
+void DRW_view_reset()
 {
   DST.view_default = nullptr;
   DST.view_active = nullptr;

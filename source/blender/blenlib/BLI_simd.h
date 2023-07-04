@@ -16,9 +16,11 @@
 #  define SSE2NEON_PRECISE_DIV 1
 #  define SSE2NEON_PRECISE_SQRT 1
 #  include <sse2neon.h>
-#  define BLI_HAVE_SSE2
+#  define BLI_HAVE_SSE2 1
 #elif defined(__SSE2__)
 /* Native SSE2 on Intel/AMD. */
 #  include <emmintrin.h>
-#  define BLI_HAVE_SSE2
+#  define BLI_HAVE_SSE2 1
+#else
+#  define BLI_HAVE_SSE2 0
 #endif

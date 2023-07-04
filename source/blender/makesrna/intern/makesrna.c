@@ -76,6 +76,22 @@ static int file_older(const char *file1, const char *file2)
 }
 static const char *makesrna_path = NULL;
 
+static const char *path_basename(const char *path)
+{
+  const char *lfslash, *lbslash;
+
+  lfslash = strrchr(path, '/');
+  lbslash = strrchr(path, '\\');
+  if (lbslash) {
+    lbslash++;
+  }
+  if (lfslash) {
+    lfslash++;
+  }
+
+  return MAX3(path, lfslash, lbslash);
+}
+
 /* forward declarations */
 static void rna_generate_static_parameter_prototypes(FILE *f,
                                                      StructRNA *srna,
@@ -139,9 +155,12 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   char *arr_new, *arr_org;
   int cmp;
 
+  const char *makesrna_source_filepath = __FILE__;
+  const char *makesrna_source_filename = path_basename(makesrna_source_filepath);
+
   char orgfile[4096];
 
-  strcpy(orgfile, tmpfile);
+  STRNCPY(orgfile, tmpfile);
   orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
 
   fp_org = fopen(orgfile, "rb");
@@ -161,7 +180,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   if (1) {
     /* First check if `makesrna.c` is newer than generated files.
      * For development on `makesrna.c` you may want to disable this. */
-    if (file_older(orgfile, __FILE__)) {
+    if (file_older(orgfile, makesrna_source_filepath)) {
       REN_IF_DIFF;
     }
 
@@ -173,13 +192,13 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {
-        const char from_path[4096] = __FILE__;
-        char *p1, *p2;
-
+        char from_path[4096];
         /* Only the directory (base-name). */
-        p1 = strrchr(from_path, '/');
-        p2 = strrchr(from_path, '\\');
-        strcpy((p1 > p2 ? p1 : p2) + 1, dep_files[pass]);
+        SNPRINTF(from_path,
+                 "%.*s%s",
+                 (int)(makesrna_source_filename - makesrna_source_filepath),
+                 makesrna_source_filepath,
+                 dep_files[pass]);
         /* Account for build dependencies, if `makesrna.c` (this file) is newer. */
         if (file_older(orgfile, from_path)) {
           REN_IF_DIFF;
@@ -3860,18 +3879,19 @@ static void rna_generate_struct_prototypes(FILE *f)
 static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, PropertyRNA *prop)
 {
   char *strnest = (char *)"", *errnest = (char *)"";
-  int len, freenest = 0;
+  bool freenest = 0;
 
   if (nest != NULL) {
-    len = strlen(nest);
+    int len = strlen(nest);
 
-    strnest = MEM_mallocN(sizeof(char) * (len + 2), "rna_generate_property -> strnest");
-    errnest = MEM_mallocN(sizeof(char) * (len + 2), "rna_generate_property -> errnest");
+    strnest = MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> strnest");
+    errnest = MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> errnest");
 
-    strcpy(strnest, "_");
-    strcat(strnest, nest);
-    strcpy(errnest, ".");
-    strcat(errnest, nest);
+    strnest[0] = '_';
+    memcpy(strnest + 1, nest, len + 1);
+
+    errnest[0] = '.';
+    memcpy(errnest + 1, nest, len + 1);
 
     freenest = 1;
   }
@@ -4548,81 +4568,81 @@ typedef struct RNAProcessItem {
 static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_rna.c", NULL, RNA_def_rna},
     {"rna_ID.c", NULL, RNA_def_ID},
-    {"rna_texture.c", "rna_texture_api.c", RNA_def_texture},
-    {"rna_action.c", "rna_action_api.c", RNA_def_action},
-    {"rna_animation.c", "rna_animation_api.c", RNA_def_animation},
-    {"rna_animviz.c", NULL, RNA_def_animviz},
+    {"rna_texture.cc", "rna_texture_api.cc", RNA_def_texture},
+    {"rna_action.cc", "rna_action_api.cc", RNA_def_action},
+    {"rna_animation.cc", "rna_animation_api.cc", RNA_def_animation},
+    {"rna_animviz.cc", NULL, RNA_def_animviz},
     {"rna_armature.cc", "rna_armature_api.cc", RNA_def_armature},
-    {"rna_attribute.c", NULL, RNA_def_attribute},
-    {"rna_asset.c", NULL, RNA_def_asset},
-    {"rna_boid.c", NULL, RNA_def_boid},
-    {"rna_brush.c", NULL, RNA_def_brush},
-    {"rna_cachefile.c", NULL, RNA_def_cachefile},
-    {"rna_camera.c", "rna_camera_api.c", RNA_def_camera},
-    {"rna_cloth.c", NULL, RNA_def_cloth},
-    {"rna_collection.c", NULL, RNA_def_collections},
-    {"rna_color.c", NULL, RNA_def_color},
-    {"rna_constraint.c", NULL, RNA_def_constraint},
-    {"rna_context.c", NULL, RNA_def_context},
+    {"rna_attribute.cc", NULL, RNA_def_attribute},
+    {"rna_asset.cc", NULL, RNA_def_asset},
+    {"rna_boid.cc", NULL, RNA_def_boid},
+    {"rna_brush.cc", NULL, RNA_def_brush},
+    {"rna_cachefile.cc", NULL, RNA_def_cachefile},
+    {"rna_camera.cc", "rna_camera_api.cc", RNA_def_camera},
+    {"rna_cloth.cc", NULL, RNA_def_cloth},
+    {"rna_collection.cc", NULL, RNA_def_collections},
+    {"rna_color.cc", NULL, RNA_def_color},
+    {"rna_constraint.cc", NULL, RNA_def_constraint},
+    {"rna_context.cc", NULL, RNA_def_context},
     {"rna_curve.cc", "rna_curve_api.cc", RNA_def_curve},
-    {"rna_dynamicpaint.c", NULL, RNA_def_dynamic_paint},
-    {"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
-    {"rna_gpencil_legacy.c", NULL, RNA_def_gpencil},
+    {"rna_dynamicpaint.cc", NULL, RNA_def_dynamic_paint},
+    {"rna_fcurve.cc", "rna_fcurve_api.cc", RNA_def_fcurve},
+    {"rna_gpencil_legacy.cc", NULL, RNA_def_gpencil},
     {"rna_grease_pencil.cc", NULL, RNA_def_grease_pencil},
     {"rna_curves.cc", NULL, RNA_def_curves},
-    {"rna_image.c", "rna_image_api.c", RNA_def_image},
-    {"rna_key.c", NULL, RNA_def_key},
-    {"rna_light.c", NULL, RNA_def_light},
+    {"rna_image.cc", "rna_image_api.cc", RNA_def_image},
+    {"rna_key.cc", NULL, RNA_def_key},
+    {"rna_light.cc", NULL, RNA_def_light},
     {"rna_lattice.cc", "rna_lattice_api.cc", RNA_def_lattice},
-    {"rna_layer.c", NULL, RNA_def_view_layer},
-    {"rna_linestyle.c", NULL, RNA_def_linestyle},
-    {"rna_main.c", "rna_main_api.c", RNA_def_main},
-    {"rna_fluid.c", NULL, RNA_def_fluid},
-    {"rna_material.c", "rna_material_api.c", RNA_def_material},
+    {"rna_layer.cc", NULL, RNA_def_view_layer},
+    {"rna_linestyle.cc", NULL, RNA_def_linestyle},
+    {"rna_main.cc", "rna_main_api.cc", RNA_def_main},
+    {"rna_fluid.cc", NULL, RNA_def_fluid},
+    {"rna_material.cc", "rna_material_api.cc", RNA_def_material},
     {"rna_mesh.cc", "rna_mesh_api.cc", RNA_def_mesh},
-    {"rna_meta.cc", "rna_meta_api.c", RNA_def_meta},
-    {"rna_modifier.c", NULL, RNA_def_modifier},
-    {"rna_gpencil_legacy_modifier.c", NULL, RNA_def_greasepencil_modifier},
-    {"rna_shader_fx.c", NULL, RNA_def_shader_fx},
-    {"rna_nla.c", NULL, RNA_def_nla},
+    {"rna_meta.cc", "rna_meta_api.cc", RNA_def_meta},
+    {"rna_modifier.cc", NULL, RNA_def_modifier},
+    {"rna_gpencil_legacy_modifier.cc", NULL, RNA_def_greasepencil_modifier},
+    {"rna_shader_fx.cc", NULL, RNA_def_shader_fx},
+    {"rna_nla.cc", NULL, RNA_def_nla},
     {"rna_nodetree.cc", NULL, RNA_def_nodetree},
     {"rna_object.cc", "rna_object_api.cc", RNA_def_object},
-    {"rna_object_force.c", NULL, RNA_def_object_force},
-    {"rna_depsgraph.c", NULL, RNA_def_depsgraph},
-    {"rna_packedfile.c", NULL, RNA_def_packedfile},
-    {"rna_palette.c", NULL, RNA_def_palette},
-    {"rna_particle.c", NULL, RNA_def_particle},
-    {"rna_pointcloud.c", NULL, RNA_def_pointcloud},
-    {"rna_pose.cc", "rna_pose_api.c", RNA_def_pose},
-    {"rna_curveprofile.c", NULL, RNA_def_profile},
-    {"rna_lightprobe.c", NULL, RNA_def_lightprobe},
-    {"rna_render.c", NULL, RNA_def_render},
+    {"rna_object_force.cc", NULL, RNA_def_object_force},
+    {"rna_depsgraph.cc", NULL, RNA_def_depsgraph},
+    {"rna_packedfile.cc", NULL, RNA_def_packedfile},
+    {"rna_palette.cc", NULL, RNA_def_palette},
+    {"rna_particle.cc", NULL, RNA_def_particle},
+    {"rna_pointcloud.cc", NULL, RNA_def_pointcloud},
+    {"rna_pose.cc", "rna_pose_api.cc", RNA_def_pose},
+    {"rna_curveprofile.cc", NULL, RNA_def_profile},
+    {"rna_lightprobe.cc", NULL, RNA_def_lightprobe},
+    {"rna_render.cc", NULL, RNA_def_render},
     {"rna_rigidbody.c", NULL, RNA_def_rigidbody},
-    {"rna_scene.c", "rna_scene_api.c", RNA_def_scene},
-    {"rna_screen.c", NULL, RNA_def_screen},
-    {"rna_sculpt_paint.c", NULL, RNA_def_sculpt_paint},
-    {"rna_sequencer.c", "rna_sequencer_api.c", RNA_def_sequencer},
+    {"rna_scene.cc", "rna_scene_api.cc", RNA_def_scene},
+    {"rna_screen.cc", NULL, RNA_def_screen},
+    {"rna_sculpt_paint.cc", NULL, RNA_def_sculpt_paint},
+    {"rna_sequencer.cc", "rna_sequencer_api.cc", RNA_def_sequencer},
 #ifdef WITH_SIMULATION_DATABLOCK
-    {"rna_simulation.c", NULL, RNA_def_simulation},
+    {"rna_simulation.cc", NULL, RNA_def_simulation},
 #endif
     {"rna_space.cc", "rna_space_api.cc", RNA_def_space},
-    {"rna_speaker.c", NULL, RNA_def_speaker},
+    {"rna_speaker.cc", NULL, RNA_def_speaker},
     {"rna_test.c", NULL, RNA_def_test},
-    {"rna_text.c", "rna_text_api.c", RNA_def_text},
-    {"rna_timeline.c", NULL, RNA_def_timeline_marker},
-    {"rna_sound.c", "rna_sound_api.c", RNA_def_sound},
+    {"rna_text.cc", "rna_text_api.cc", RNA_def_text},
+    {"rna_timeline.cc", NULL, RNA_def_timeline_marker},
+    {"rna_sound.cc", "rna_sound_api.cc", RNA_def_sound},
     {"rna_ui.cc", "rna_ui_api.cc", RNA_def_ui},
-    {"rna_userdef.c", NULL, RNA_def_userdef},
-    {"rna_vfont.c", "rna_vfont_api.c", RNA_def_vfont},
-    {"rna_volume.c", NULL, RNA_def_volume},
-    {"rna_wm.c", "rna_wm_api.c", RNA_def_wm},
-    {"rna_wm_gizmo.c", "rna_wm_gizmo_api.c", RNA_def_wm_gizmo},
-    {"rna_workspace.c", "rna_workspace_api.c", RNA_def_workspace},
-    {"rna_world.c", NULL, RNA_def_world},
-    {"rna_movieclip.c", NULL, RNA_def_movieclip},
-    {"rna_tracking.c", NULL, RNA_def_tracking},
+    {"rna_userdef.cc", NULL, RNA_def_userdef},
+    {"rna_vfont.cc", "rna_vfont_api.cc", RNA_def_vfont},
+    {"rna_volume.cc", NULL, RNA_def_volume},
+    {"rna_wm.cc", "rna_wm_api.cc", RNA_def_wm},
+    {"rna_wm_gizmo.cc", "rna_wm_gizmo_api.cc", RNA_def_wm_gizmo},
+    {"rna_workspace.cc", "rna_workspace_api.cc", RNA_def_workspace},
+    {"rna_world.cc", NULL, RNA_def_world},
+    {"rna_movieclip.cc", NULL, RNA_def_movieclip},
+    {"rna_tracking.cc", NULL, RNA_def_tracking},
     {"rna_mask.cc", NULL, RNA_def_mask},
-    {"rna_xr.c", NULL, RNA_def_xr},
+    {"rna_xr.cc", NULL, RNA_def_xr},
     {NULL, NULL},
 };
 
@@ -5361,8 +5381,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   status = (DefRNA.error != 0);
 
   /* Create external rna struct prototype header file RNA_prototypes.h. */
-  strcpy(deffile, public_header_outfile);
-  strcat(deffile, "RNA_prototypes.h" TMP_EXT);
+  SNPRINTF(deffile, "%s%s", public_header_outfile, "RNA_prototypes.h" TMP_EXT);
   if (status) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5390,8 +5409,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   }
 
   /* create internal rna struct prototype header file */
-  strcpy(deffile, outfile);
-  strcat(deffile, "rna_prototypes_gen.h");
+  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h");
   if (status) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5411,19 +5429,17 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     status = (DefRNA.error != 0);
   }
 
-  /* create rna_gen_*.c files */
+  /* Create `rna_gen_*.c` & `rna_gen_*.cc` files. */
   for (i = 0; PROCESS_ITEMS[i].filename; i++) {
-    strcpy(deffile, outfile);
-    strcat(deffile, PROCESS_ITEMS[i].filename);
-    if (deffile[strlen(deffile) - 3] == '.') {
-      deffile[strlen(deffile) - 3] = '\0';
-      strcat(deffile, "_gen.cc" TMP_EXT);
-    }
-    else {
-      deffile[strlen(deffile) - 2] = '\0';
-      strcat(deffile, "_gen.c" TMP_EXT);
-    }
-
+    const bool is_cc = BLI_str_endswith(PROCESS_ITEMS[i].filename, ".cc");
+    const int ext_len = is_cc ? 3 : 2;
+    const int filename_len = strlen(PROCESS_ITEMS[i].filename);
+    SNPRINTF(deffile,
+             "%s%.*s%s" TMP_EXT,
+             outfile,
+             (filename_len - ext_len),
+             PROCESS_ITEMS[i].filename,
+             is_cc ? "_gen.cc" : "_gen.c");
     if (status) {
       make_bad_file(deffile, __LINE__);
     }
@@ -5449,9 +5465,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     replace_if_different(deffile, deps);
   }
 
-  /* create RNA_blender_cpp.h */
-  strcpy(deffile, outfile);
-  strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
+  /* Create `RNA_blender_cpp.h`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender_cpp.h" TMP_EXT);
 
   if (status) {
     make_bad_file(deffile, __LINE__);
@@ -5474,9 +5489,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
   rna_sort(brna);
 
-  /* create RNA_blender.h */
-  strcpy(deffile, outfile);
-  strcat(deffile, "RNA_blender.h" TMP_EXT);
+  /* Create `RNA_blender.h`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender.h" TMP_EXT);
 
   if (status) {
     make_bad_file(deffile, __LINE__);

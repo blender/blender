@@ -544,13 +544,8 @@ typedef enum eGPUTextureUsage {
    * OR, uses swizzle access masks. Mip-map base layer adjustment and texture channel swizzling
    * requires a texture view under-the-hood. */
   GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW = (1 << 3),
-  /* Whether a texture can be allocated without any backing memory. It is used as an
-   * attachment to store data, but is not needed by any future passes.
-   * This usage mode should be used in scenarios where an attachment has no previous
-   * contents and is not stored after a render pass. */
-  GPU_TEXTURE_USAGE_MEMORYLESS = (1 << 4),
   /* Whether the texture needs to be read from by the CPU. */
-  GPU_TEXTURE_USAGE_HOST_READ = (1 << 5),
+  GPU_TEXTURE_USAGE_HOST_READ = (1 << 4),
   /* Create a texture whose usage cannot be defined prematurely.
    * This is unoptimized and should not be used. */
   GPU_TEXTURE_USAGE_GENERAL = 0xFF,

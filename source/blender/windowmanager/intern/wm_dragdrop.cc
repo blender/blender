@@ -125,7 +125,7 @@ wmDropBox *WM_dropbox_add(ListBase *lb,
   return drop;
 }
 
-void wm_dropbox_free(void)
+void wm_dropbox_free()
 {
 
   LISTBASE_FOREACH (wmDropBoxMap *, dm, &dropboxes) {

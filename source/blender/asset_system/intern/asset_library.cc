@@ -359,4 +359,12 @@ Vector<AssetLibraryReference> all_valid_asset_library_refs()
   return result;
 }
 
+AssetLibraryReference all_library_reference()
+{
+  AssetLibraryReference all_library_ref{};
+  all_library_ref.custom_library_index = -1;
+  all_library_ref.type = ASSET_LIBRARY_ALL;
+  return all_library_ref;
+}
+
 }  // namespace blender::asset_system

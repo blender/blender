@@ -33,12 +33,12 @@
 /* Own include. */
 #include "sequencer_intern.h"
 
-typedef struct GizmoGroup_retime {
+struct GizmoGroup_retime {
   wmGizmo *add_handle_gizmo;
   wmGizmo *move_handle_gizmo;
   wmGizmo *remove_handle_gizmo;
   wmGizmo *speed_set_gizmo;
-} GizmoGroup_retime;
+};
 
 static bool gizmogroup_retime_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {

@@ -193,11 +193,11 @@ typedef struct LibraryForeachIDData LibraryForeachIDData;
  * Check whether current iteration over ID usages should be stopped or not.
  * \return true if the iteration should be stopped, false otherwise.
  */
-bool BKE_lib_query_foreachid_iter_stop(struct LibraryForeachIDData *data);
+bool BKE_lib_query_foreachid_iter_stop(const struct LibraryForeachIDData *data);
 void BKE_lib_query_foreachid_process(struct LibraryForeachIDData *data,
                                      struct ID **id_pp,
                                      int cb_flag);
-int BKE_lib_query_foreachid_process_flags_get(struct LibraryForeachIDData *data);
+int BKE_lib_query_foreachid_process_flags_get(const struct LibraryForeachIDData *data);
 int BKE_lib_query_foreachid_process_callback_flag_override(struct LibraryForeachIDData *data,
                                                            int cb_flag,
                                                            bool do_replace);

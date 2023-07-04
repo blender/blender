@@ -347,7 +347,7 @@ void BKE_texture_mapping_init(TexMapping *texmap)
   }
 }
 
-ColorMapping *BKE_texture_colormapping_add(void)
+ColorMapping *BKE_texture_colormapping_add()
 {
   ColorMapping *colormap = MEM_cnew<ColorMapping>("ColorMapping");
 
@@ -407,7 +407,7 @@ void BKE_texture_mtex_default(MTex *mtex)
 
 /* ------------------------------------------------------------------------- */
 
-MTex *BKE_texture_mtex_add(void)
+MTex *BKE_texture_mtex_add()
 {
   MTex *mtex;
 
@@ -635,7 +635,7 @@ void BKE_texture_pointdensity_init_data(PointDensity *pd)
   BKE_curvemapping_changed(pd->falloff_curve, false);
 }
 
-PointDensity *BKE_texture_pointdensity_add(void)
+PointDensity *BKE_texture_pointdensity_add()
 {
   PointDensity *pd = static_cast<PointDensity *>(
       MEM_callocN(sizeof(PointDensity), "pointdensity"));

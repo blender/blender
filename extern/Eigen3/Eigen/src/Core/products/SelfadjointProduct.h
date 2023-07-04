@@ -109,10 +109,10 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,false>
     internal::general_matrix_matrix_triangular_product<Index,
       Scalar, OtherIsRowMajor ? RowMajor : ColMajor,   OtherBlasTraits::NeedToConjugate  && NumTraits<Scalar>::IsComplex,
       Scalar, OtherIsRowMajor ? ColMajor : RowMajor, (!OtherBlasTraits::NeedToConjugate) && NumTraits<Scalar>::IsComplex,
-      IsRowMajor ? RowMajor : ColMajor, UpLo>
+      IsRowMajor ? RowMajor : ColMajor, MatrixType::InnerStrideAtCompileTime, UpLo>
       ::run(size, depth,
-            &actualOther.coeffRef(0,0), actualOther.outerStride(), &actualOther.coeffRef(0,0), actualOther.outerStride(),
-            mat.data(), mat.outerStride(), actualAlpha, blocking);
+            actualOther.data(), actualOther.outerStride(), actualOther.data(), actualOther.outerStride(),
+            mat.data(), mat.innerStride(), mat.outerStride(), actualAlpha, blocking);
   }
 };
 
@@ -120,7 +120,7 @@ struct selfadjoint_product_selector<MatrixType,OtherType,UpLo,false>
 
 template<typename MatrixType, unsigned int UpLo>
 template<typename DerivedU>
-SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
+EIGEN_DEVICE_FUNC SelfAdjointView<MatrixType,UpLo>& SelfAdjointView<MatrixType,UpLo>
 ::rankUpdate(const MatrixBase<DerivedU>& u, const Scalar& alpha)
 {
   selfadjoint_product_selector<MatrixType,DerivedU,UpLo>::run(_expression().const_cast_derived(), u.derived(), alpha);

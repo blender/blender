@@ -416,6 +416,11 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
 /**
+ * Scrolls the view so that the upper edge is at a multiple of the page size.
+ */
+void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d);
+
+/**
  * Check if mouse is within scrollers
  *
  * \param xy: Mouse coordinates in screen (not region) space.

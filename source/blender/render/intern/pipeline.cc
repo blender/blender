@@ -614,7 +614,7 @@ void RE_FreeRender(Render *re)
   MEM_freeN(re);
 }
 
-void RE_FreeAllRender(void)
+void RE_FreeAllRender()
 {
   while (RenderGlobal.renderlist.first) {
     RE_FreeRender(static_cast<Render *>(RenderGlobal.renderlist.first));
@@ -626,7 +626,7 @@ void RE_FreeAllRender(void)
 #endif
 }
 
-void RE_FreeAllRenderResults(void)
+void RE_FreeAllRenderResults()
 {
   LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
     render_result_free(re->result);
@@ -638,7 +638,7 @@ void RE_FreeAllRenderResults(void)
   }
 }
 
-void RE_FreeAllPersistentData(void)
+void RE_FreeAllPersistentData()
 {
   LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
     if (re->engine != nullptr) {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "NOD_register.hh"
-#include "NOD_socket.h"
+#include "NOD_socket.hh"
 
 #include "BKE_node.hh"
 

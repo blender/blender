@@ -28,10 +28,10 @@ void TreeElementIDGPLegacy::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, gpd_.adt);
 
-  expandLayers(space_outliner);
+  expand_layers(space_outliner);
 }
 
-void TreeElementIDGPLegacy::expandLayers(SpaceOutliner &space_outliner) const
+void TreeElementIDGPLegacy::expand_layers(SpaceOutliner &space_outliner) const
 {
   int index = 0;
   LISTBASE_FOREACH_BACKWARD (bGPDlayer *, gpl, &gpd_.layers) {

@@ -35,3 +35,9 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
 void view2d_totRect_set_resize(View2D *v2d, int width, int height, bool resize);
 
 bool view2d_edge_pan_poll(bContext *C);
+
+/**
+ * For paginated scrolling, get the page height to scroll. This may be a custom height
+ * (#View2D.page_size_y) but defaults to the #View2D.mask height.
+ */
+float view2d_page_size_y(const View2D &v2d);

@@ -22,6 +22,7 @@
 #include <string>
 
 #include "BLI_array.hh"
+#include "BLI_string_utils.h"
 
 #include "CLG_log.h"
 
@@ -3586,11 +3587,11 @@ char *BKE_image_get_tile_strformat(const char *filepath, eUDIM_TILE_FORMAT *r_ti
 
   if (strstr(filepath, "<UDIM>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UDIM;
-    return BLI_str_replaceN(filepath, "<UDIM>", "%d");
+    return BLI_string_replaceN(filepath, "<UDIM>", "%d");
   }
   if (strstr(filepath, "<UVTILE>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UVTILE;
-    return BLI_str_replaceN(filepath, "<UVTILE>", "u%d_v%d");
+    return BLI_string_replaceN(filepath, "<UVTILE>", "u%d_v%d");
   }
 
   *r_tile_format = UDIM_TILE_FORMAT_NONE;
@@ -4831,7 +4832,7 @@ struct ImagePool {
   ThreadMutex mutex;
 };
 
-ImagePool *BKE_image_pool_new(void)
+ImagePool *BKE_image_pool_new()
 {
   ImagePool *pool = MEM_cnew<ImagePool>("Image Pool");
   pool->memory_pool = BLI_mempool_create(sizeof(ImagePoolItem), 0, 128, BLI_MEMPOOL_NOP);

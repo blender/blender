@@ -1049,6 +1049,9 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
   FS_UDIR_PATH(U.fontdir, ICON_FILE_FONT)
   FS_UDIR_PATH(U.textudir, ICON_FILE_IMAGE)
   LISTBASE_FOREACH (bUserScriptDirectory *, script_dir, &U.script_directories) {
+    if (UNLIKELY(script_dir->dir_path[0] == '\0')) {
+      continue;
+    }
     fsmenu_insert_entry(fsmenu,
                         FS_CATEGORY_OTHER,
                         script_dir->dir_path,

@@ -26,7 +26,9 @@ namespace blender::eevee {
 
 /* Keep alphabetical order and clean prefix. */
 enum eShaderType {
-  FILM_FRAG = 0,
+  AMBIENT_OCCLUSION_PASS = 0,
+
+  FILM_FRAG,
   FILM_COMP,
   FILM_CRYPTOMATTE_POST,
 
@@ -71,6 +73,8 @@ enum eShaderType {
   MOTION_BLUR_TILE_DILATE,
   MOTION_BLUR_TILE_FLATTEN_RENDER,
   MOTION_BLUR_TILE_FLATTEN_VIEWPORT,
+
+  REFLECTION_PROBE_REMAP,
 
   SHADOW_CLIPMAP_CLEAR,
   SHADOW_DEBUG,

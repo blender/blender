@@ -183,16 +183,16 @@ static Object *editcurve_object_from_context(bContext *C)
  * \note This is similar for all edit-mode types.
  * \{ */
 
-typedef struct CurveUndoStep_Elem {
+struct CurveUndoStep_Elem {
   UndoRefID_Object obedit_ref;
   UndoCurve data;
-} CurveUndoStep_Elem;
+};
 
-typedef struct CurveUndoStep {
+struct CurveUndoStep {
   UndoStep step;
   CurveUndoStep_Elem *elems;
   uint elems_len;
-} CurveUndoStep;
+};
 
 static bool curve_undosys_poll(bContext *C)
 {

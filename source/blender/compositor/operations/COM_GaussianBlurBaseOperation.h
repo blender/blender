@@ -11,7 +11,7 @@ namespace blender::compositor {
 class GaussianBlurBaseOperation : public BlurBaseOperation {
  protected:
   float *gausstab_;
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   __m128 *gausstab_sse_;
 #endif
   int filtersize_;

@@ -17,7 +17,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/atomic
   ../../../../intern/guardedalloc
   ../../../../extern/fmtlib/include
 
@@ -52,6 +51,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   extern_fmtlib
+  PRIVATE bf_intern_atomic
 )
 
 if(WIN32)

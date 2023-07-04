@@ -59,7 +59,7 @@ struct DRWTextStore {
   BLI_memiter *cache_strings;
 };
 
-DRWTextStore *DRW_text_cache_create(void)
+DRWTextStore *DRW_text_cache_create()
 {
   DRWTextStore *dt = MEM_cnew<DRWTextStore>(__func__);
   dt->cache_strings = BLI_memiter_create(1 << 14); /* 16kb */

@@ -24,7 +24,7 @@ struct unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>
     class InnerIterator;
     
     enum {
-      CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<UnaryOp>::Cost,
+      CoeffReadCost = int(evaluator<ArgType>::CoeffReadCost) + int(functor_traits<UnaryOp>::Cost),
       Flags = XprType::Flags
     };
     
@@ -49,6 +49,7 @@ template<typename UnaryOp, typename ArgType>
 class unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::InnerIterator
     : public unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalIterator
 {
+  protected:
     typedef typename XprType::Scalar Scalar;
     typedef typename unary_evaluator<CwiseUnaryOp<UnaryOp,ArgType>, IteratorBased>::EvalIterator Base;
   public:
@@ -78,7 +79,7 @@ struct unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>
     class InnerIterator;
     
     enum {
-      CoeffReadCost = evaluator<ArgType>::CoeffReadCost + functor_traits<ViewOp>::Cost,
+      CoeffReadCost = int(evaluator<ArgType>::CoeffReadCost) + int(functor_traits<ViewOp>::Cost),
       Flags = XprType::Flags
     };
     
@@ -99,6 +100,7 @@ template<typename ViewOp, typename ArgType>
 class unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::InnerIterator
     : public unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalIterator
 {
+  protected:
     typedef typename XprType::Scalar Scalar;
     typedef typename unary_evaluator<CwiseUnaryView<ViewOp,ArgType>, IteratorBased>::EvalIterator Base;
   public:

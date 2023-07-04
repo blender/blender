@@ -10,11 +10,11 @@
 
 #include "Core"
 
-#include "src/Core/util/DisableStupidWarnings.h"
-
 #include "Cholesky"
 #include "Jacobi"
 #include "Householder"
+
+#include "src/Core/util/DisableStupidWarnings.h"
 
 /** \defgroup QR_Module QR module
   *
@@ -48,4 +48,3 @@
 #include "src/Core/util/ReenableStupidWarnings.h"
 
 #endif // EIGEN_QR_MODULE_H
-/* vim: set filetype=cpp et sw=2 ts=2 ai: */

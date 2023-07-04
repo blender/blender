@@ -51,10 +51,10 @@
 /** \name Implements ED Undo System
  * \{ */
 
-typedef struct MemFileUndoStep {
+struct MemFileUndoStep {
   UndoStep step;
   MemFileUndoData *data;
-} MemFileUndoStep;
+};
 
 MemFileUndoData *memfile_get_step_data(MemFileUndoStep *us)
 {

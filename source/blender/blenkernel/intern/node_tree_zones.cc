@@ -295,6 +295,13 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
     return {};
   }
 
+  for (const bNode *node : tree.nodes_by_type("NodeGroupOutput")) {
+    if (tree_zones->zone_by_node_id.contains(node->identifier)) {
+      /* Group output nodes must not be in a zone. */
+      return {};
+    }
+  }
+
   for (const int node_i : all_nodes.index_range()) {
     const bNode *node = all_nodes[node_i];
     const int zone_i = tree_zones->zone_by_node_id.lookup_default(node->identifier, -1);

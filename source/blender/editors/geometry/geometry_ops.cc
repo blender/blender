@@ -14,7 +14,7 @@
 
 /**************************** registration **********************************/
 
-void ED_operatortypes_geometry(void)
+void ED_operatortypes_geometry()
 {
   using namespace blender::ed::geometry;
 
@@ -27,4 +27,5 @@ void ED_operatortypes_geometry(void)
   WM_operatortype_append(GEOMETRY_OT_color_attribute_duplicate);
   WM_operatortype_append(GEOMETRY_OT_attribute_convert);
   WM_operatortype_append(GEOMETRY_OT_color_attribute_convert);
+  WM_operatortype_append(GEOMETRY_OT_execute_node_group);
 }

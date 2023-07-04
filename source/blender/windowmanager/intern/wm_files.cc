@@ -10,10 +10,10 @@
  */
 
 /* Placed up here because of crappy WINSOCK stuff. */
-#include <errno.h>
-#include <fcntl.h> /* for open flags (O_BINARY, O_RDONLY). */
-#include <stddef.h>
-#include <string.h>
+#include <cerrno>
+#include <cstddef>
+#include <cstring>
+#include <fcntl.h> /* For open flags (#O_BINARY, #O_RDONLY). */
 
 #ifdef WIN32
 /* Need to include windows.h so _WIN32_IE is defined. */
@@ -140,9 +140,9 @@
 
 static RecentFile *wm_file_history_find(const char *filepath);
 static void wm_history_file_free(RecentFile *recent);
-static void wm_history_files_free(void);
-static void wm_history_file_update(void);
-static void wm_history_file_write(void);
+static void wm_history_files_free();
+static void wm_history_file_update();
+static void wm_history_file_write();
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
 
@@ -152,7 +152,7 @@ static CLG_LogRef LOG = {"wm.files"};
 /** \name Misc Utility Functions
  * \{ */
 
-void WM_file_tag_modified(void)
+void WM_file_tag_modified()
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
   if (wm->file_saved) {
@@ -296,10 +296,14 @@ static void wm_file_read_setup_wm_substitute_old_window(wmWindowManager *oldwm,
  */
 static void wm_file_read_setup_wm_keep_old(const bContext *C,
                                            Main *bmain,
-                                           BlendFileReadWMSetupData * /*wm_setup_data*/,
+                                           BlendFileReadWMSetupData *wm_setup_data,
                                            wmWindowManager *wm,
                                            const bool load_ui)
 {
+  /* This data is not needed here, besides detecting that old WM has been kept (in caller code).
+   * Since `old_wm` is kept, do not free it, just clear the pointer as clean-up. */
+  wm_setup_data->old_wm = nullptr;
+
   if (!load_ui) {
     /* When loading without UI (i.e. keeping existing UI), no matching needed.
      *
@@ -453,7 +457,7 @@ static void wm_file_read_setup_wm_finalize(bContext *C,
 /** \name Preferences Initialization & Versioning
  * \{ */
 
-static void wm_gpu_backend_override_from_userdef(void)
+static void wm_gpu_backend_override_from_userdef()
 {
   /* Check if GPU backend is already set from the command line arguments. The command line
    * arguments have higher priority than user preferences. */
@@ -1116,7 +1120,7 @@ void WM_init_state_app_template_set(const char *app_template)
   }
 }
 
-const char *WM_init_state_app_template_get(void)
+const char *WM_init_state_app_template_get()
 {
   return wm_init_state_app_template.override ? wm_init_state_app_template.app_template : nullptr;
 }
@@ -1501,7 +1505,7 @@ void wm_homefile_read_post(bContext *C, const wmFileReadPost_Params *params_file
 /** \name Blend-File History API
  * \{ */
 
-void wm_history_file_read(void)
+void wm_history_file_read()
 {
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
   if (!cfgdir) {
@@ -1547,7 +1551,7 @@ static void wm_history_file_free(RecentFile *recent)
   BLI_freelinkN(&G.recent_files, recent);
 }
 
-static void wm_history_files_free(void)
+static void wm_history_files_free()
 {
   LISTBASE_FOREACH_MUTABLE (RecentFile *, recent, &G.recent_files) {
     wm_history_file_free(recent);
@@ -1564,7 +1568,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
  * Write #BLENDER_HISTORY_FILE as-is, without checking the environment
  * (that's handled by #wm_history_file_update).
  */
-static void wm_history_file_write(void)
+static void wm_history_file_write()
 {
   const char *user_config_dir;
   char filepath[FILE_MAX];
@@ -1590,7 +1594,7 @@ static void wm_history_file_write(void)
 /**
  * Run after saving a file to refresh the #BLENDER_HISTORY_FILE list.
  */
-static void wm_history_file_update(void)
+static void wm_history_file_update()
 {
   RecentFile *recent;
   const char *blendfile_path = BKE_main_blendfile_path_from_global();
@@ -1824,7 +1828,7 @@ static ImBuf *blend_file_thumb_from_camera(const bContext *C,
 /** \name Write Main Blend-File (internal)
  * \{ */
 
-bool write_crash_blend(void)
+bool write_crash_blend()
 {
   char filepath[FILE_MAX];
 
@@ -2176,7 +2180,7 @@ void wm_autosave_timer(Main *bmain, wmWindowManager *wm, wmTimer * /*wt*/)
   wm_autosave_timer_begin(wm);
 }
 
-void wm_autosave_delete(void)
+void wm_autosave_delete()
 {
   char filepath[FILE_MAX];
 
@@ -2754,10 +2758,10 @@ static void set_next_operator_state(wmOperator *op, int state)
   RNA_int_set(op->ptr, "state", state);
 }
 
-typedef struct OperatorDispatchTarget {
+struct OperatorDispatchTarget {
   int state;
   int (*run)(bContext *C, wmOperator *op);
-} OperatorDispatchTarget;
+};
 
 static int operator_state_dispatch(bContext *C, wmOperator *op, OperatorDispatchTarget *targets)
 {
@@ -3820,15 +3824,28 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
 static void wm_block_file_close_cancel_button(uiBlock *block, wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+      block, UI_BTYPE_BUT, 0, 0, IFACE_("Cancel"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
   UI_but_func_set(but, wm_block_file_close_cancel, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
 
 static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback *post_action)
 {
-  uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Don't Save"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+  uiBut *but = uiDefIconTextBut(block,
+                                UI_BTYPE_BUT,
+                                0,
+                                0,
+                                IFACE_("Don't Save"),
+                                0,
+                                0,
+                                0,
+                                UI_UNIT_Y,
+                                nullptr,
+                                0,
+                                0,
+                                0,
+                                0,
+                                "");
   UI_but_func_set(but, wm_block_file_close_discard, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
 }
@@ -3836,7 +3853,7 @@ static void wm_block_file_close_discard_button(uiBlock *block, wmGenericCallback
 static void wm_block_file_close_save_button(uiBlock *block, wmGenericCallback *post_action)
 {
   uiBut *but = uiDefIconTextBut(
-      block, UI_BTYPE_BUT, 0, 0, IFACE_("Save"), 0, 0, 0, UI_UNIT_Y, 0, 0, 0, 0, 0, "");
+      block, UI_BTYPE_BUT, 0, 0, IFACE_("Save"), 0, 0, 0, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
   UI_but_func_set(but, wm_block_file_close_save, block, post_action);
   UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
   UI_but_flag_enable(but, UI_BUT_ACTIVE_DEFAULT);

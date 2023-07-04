@@ -130,7 +130,7 @@ using blender::Vector;
 /** \name Local Enum Declarations
  * \{ */
 
-/* This is an exact copy of the define in `rna_light.c`
+/* This is an exact copy of the define in `rna_light.cc`
  * kept here because of linking order.
  * Icons are only defined here. */
 
@@ -142,7 +142,7 @@ const EnumPropertyItem rna_enum_light_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-/* copy from rna_object_force.c */
+/* copy from rna_object_force.cc */
 static const EnumPropertyItem field_type_items[] = {
     {PFIELD_FORCE, "FORCE", ICON_FORCE_FORCE, "Force", ""},
     {PFIELD_WIND, "WIND", ICON_FORCE_WIND, "Wind", ""},

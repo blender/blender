@@ -2015,32 +2015,32 @@ static void material_default_holdout_init(Material *ma)
   nodeSetActive(ntree, output);
 }
 
-Material *BKE_material_default_empty(void)
+Material *BKE_material_default_empty()
 {
   return &default_material_empty;
 }
 
-Material *BKE_material_default_holdout(void)
+Material *BKE_material_default_holdout()
 {
   return &default_material_holdout;
 }
 
-Material *BKE_material_default_surface(void)
+Material *BKE_material_default_surface()
 {
   return &default_material_surface;
 }
 
-Material *BKE_material_default_volume(void)
+Material *BKE_material_default_volume()
 {
   return &default_material_volume;
 }
 
-Material *BKE_material_default_gpencil(void)
+Material *BKE_material_default_gpencil()
 {
   return &default_material_gpencil;
 }
 
-void BKE_material_defaults_free_gpu(void)
+void BKE_material_defaults_free_gpu()
 {
   for (int i = 0; default_materials[i]; i++) {
     Material *ma = default_materials[i];
@@ -2052,7 +2052,7 @@ void BKE_material_defaults_free_gpu(void)
 
 /* Module functions called on startup and exit. */
 
-void BKE_materials_init(void)
+void BKE_materials_init()
 {
   for (int i = 0; default_materials[i]; i++) {
     material_init_data(&default_materials[i]->id);
@@ -2064,7 +2064,7 @@ void BKE_materials_init(void)
   material_default_gpencil_init(&default_material_gpencil);
 }
 
-void BKE_materials_exit(void)
+void BKE_materials_exit()
 {
   for (int i = 0; default_materials[i]; i++) {
     material_free_data(&default_materials[i]->id);

@@ -28,10 +28,10 @@ void TreeElementIDLineStyle::expand(SpaceOutliner &space_outliner) const
 {
   expand_animation_data(space_outliner, linestyle_.adt);
 
-  expandTextures(space_outliner);
+  expand_textures(space_outliner);
 }
 
-void TreeElementIDLineStyle::expandTextures(SpaceOutliner &space_outliner) const
+void TreeElementIDLineStyle::expand_textures(SpaceOutliner &space_outliner) const
 {
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_.mtex[a]) {

@@ -1995,7 +1995,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
      nullptr,
      nullptr,
      nullptr},
-    /* 51: CD_HAIRLENGTH */
+    /* 51: CD_HAIRLENGTH */ /* DEPRECATED */ /* UNUSED */
     {sizeof(float), "float", 1, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr},
     /* 52: CD_PROP_QUATERNION */
     {sizeof(float[4]),

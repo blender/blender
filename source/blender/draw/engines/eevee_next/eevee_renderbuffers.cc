@@ -31,15 +31,15 @@ void RenderBuffers::sync()
   data.color_len = 0;
   data.value_len = 0;
 
-  auto pass_index_get = [&](eViewLayerEEVEEPassType pass_type) {
-    if (enabled_passes & pass_type) {
-      return inst_.film.pass_storage_type(pass_type) == PASS_STORAGE_COLOR ? data.color_len++ :
-                                                                             data.value_len++;
+  auto pass_index_get = [&](eViewLayerEEVEEPassType pass_type, int dependent_passes = 0) {
+    if (enabled_passes & (pass_type | dependent_passes)) {
+      return pass_storage_type(pass_type) == PASS_STORAGE_COLOR ? data.color_len++ :
+                                                                  data.value_len++;
     }
     return -1;
   };
 
-  data.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL);
+  data.normal_id = pass_index_get(EEVEE_RENDER_PASS_NORMAL, EEVEE_RENDER_PASS_AO);
   data.diffuse_light_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_LIGHT);
   data.diffuse_color_id = pass_index_get(EEVEE_RENDER_PASS_DIFFUSE_COLOR);
   data.specular_light_id = pass_index_get(EEVEE_RENDER_PASS_SPECULAR_LIGHT);

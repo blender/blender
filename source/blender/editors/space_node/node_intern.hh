@@ -35,9 +35,11 @@ extern "C" {
 extern const char *node_context_dir[];
 };
 
-namespace blender::ed::space_node {
-
+namespace blender::ed::asset {
 struct AssetItemTree;
+}
+
+namespace blender::ed::space_node {
 
 /** Temporary data used in node link drag modal operator. */
 struct bNodeLinkDrag {
@@ -112,7 +114,7 @@ struct SpaceNode_Runtime {
    *
    * Stored with a shared pointer so that it can be forward declared.
    */
-  std::shared_ptr<AssetItemTree> assets_for_menu;
+  std::shared_ptr<asset::AssetItemTree> assets_for_menu;
 };
 
 enum NodeResizeDirection {
