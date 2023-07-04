@@ -221,6 +221,7 @@ class Layer : public ::GreasePencilLayer {
 
   bool is_visible() const;
   bool is_locked() const;
+  bool is_editable() const;
 
   /**
    * Inserts the frame into the layer frames map. Will not overwrite existing frames at \a

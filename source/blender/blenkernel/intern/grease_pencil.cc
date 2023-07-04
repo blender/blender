@@ -498,6 +498,11 @@ bool Layer::is_locked() const
   return this->parent_group().is_locked() || (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
 }
 
+bool Layer::is_editable() const
+{
+  return !this->is_locked() && this->is_visible();
+}
+
 bool Layer::insert_frame(const int frame_number, const GreasePencilFrame &frame)
 {
   BLI_assert(!frame.is_null());
@@ -1168,6 +1173,20 @@ void GreasePencil::add_empty_drawings(const int add_num)
   /* TODO: Update drawing user counts. */
 }
 
+bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
+                                      int frame_number,
+                                      int duration,
+                                      eBezTriple_KeyframeType keytype)
+{
+  using namespace blender;
+  GreasePencilFrame frame{static_cast<int>(this->drawings().size()), 0, keytype};
+  if (!layer.insert_frame(frame_number, duration, frame)) {
+    return false;
+  }
+  this->add_empty_drawings(1);
+  return true;
+}
+
 void GreasePencil::remove_drawing(const int index_to_remove)
 {
   using namespace blender::bke::greasepencil;
@@ -1256,7 +1275,7 @@ static void foreach_drawing_ex(
         break;
       }
       case EDITABLE: {
-        if (!layer->is_visible() || layer->is_locked()) {
+        if (!layer->is_editable()) {
           continue;
         }
         break;
