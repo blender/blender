@@ -148,6 +148,10 @@ typedef struct GreasePencilFrame {
    */
   int8_t type;
   char _pad[3];
+#ifdef __cplusplus
+  static GreasePencilFrame null();
+  bool is_null() const;
+#endif
 } GreasePencilFrame;
 
 typedef enum GreasePencilLayerFramesMapStorageFlag {

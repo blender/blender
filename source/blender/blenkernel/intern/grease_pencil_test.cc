@@ -179,4 +179,99 @@ TEST(greasepencil, layer_tree_node_types)
   }
 }
 
+/* --------------------------------------------------------------------------------------------- */
+/* Frames Tests. */
+
+struct GreasePencilLayerFramesExample {
+  /**
+   *               | | | | | | | | | | |1|1|1|1|1|1|1|
+   * Scene Frame:  |0|1|2|3|4|5|6|7|8|9|0|1|2|3|4|5|6|...
+   * Drawing:      [#0       ][#1      ]   [#2     ]
+   */
+  const int sorted_keys[5] = {0, 5, 10, 12, 16};
+  GreasePencilFrame sorted_values[5] = {{0}, {1}, {-1}, {2}, {-1}};
+  Layer layer;
+
+  GreasePencilLayerFramesExample()
+  {
+    for (int i = 0; i < 5; i++) {
+      layer.frames_for_write().add(this->sorted_keys[i], this->sorted_values[i]);
+    }
+  }
+};
+
+TEST(greasepencil, frame_is_null)
+{
+  GreasePencilLayerFramesExample ex;
+  EXPECT_TRUE(ex.layer.frames().lookup(10).is_null());
+}
+
+TEST(greasepencil, drawing_index_at)
+{
+  GreasePencilLayerFramesExample ex;
+  EXPECT_EQ(ex.layer.drawing_index_at(-100), -1);
+  EXPECT_EQ(ex.layer.drawing_index_at(100), -1);
+  EXPECT_EQ(ex.layer.drawing_index_at(0), 0);
+  EXPECT_EQ(ex.layer.drawing_index_at(1), 0);
+  EXPECT_EQ(ex.layer.drawing_index_at(5), 1);
+}
+
+TEST(greasepencil, insert_frame)
+{
+  GreasePencilLayerFramesExample ex;
+  GreasePencilFrame frame{3, 0, 0};
+  EXPECT_FALSE(ex.layer.insert_frame(0, frame));
+  EXPECT_TRUE(ex.layer.insert_frame(10, frame));
+  EXPECT_EQ(ex.layer.drawing_index_at(10), 3);
+  EXPECT_EQ(ex.layer.drawing_index_at(11), 3);
+  EXPECT_EQ(ex.layer.drawing_index_at(12), 2);
+}
+
+TEST(greasepencil, insert_frame_duration_fail)
+{
+  GreasePencilLayerFramesExample ex;
+  GreasePencilFrame frame{3, 0, 0};
+  EXPECT_FALSE(ex.layer.insert_frame(0, 10, frame));
+}
+
+TEST(greasepencil, insert_frame_duration_override_start_null_frame)
+{
+  GreasePencilLayerFramesExample ex;
+  GreasePencilFrame frame{3, 0, 0};
+  EXPECT_TRUE(ex.layer.insert_frame(10, 2, frame));
+  EXPECT_EQ(ex.layer.drawing_index_at(10), 3);
+  EXPECT_EQ(ex.layer.drawing_index_at(11), 3);
+  EXPECT_EQ(ex.layer.drawing_index_at(12), 2);
+}
+
+TEST(greasepencil, insert_frame_duration_check_duration)
+{
+  GreasePencilLayerFramesExample ex;
+  GreasePencilFrame frame{3, 0, 0};
+  EXPECT_TRUE(ex.layer.insert_frame(17, 10, frame));
+  Span<int> sorted_keys = ex.layer.sorted_keys();
+  EXPECT_EQ(sorted_keys.size(), 7);
+  EXPECT_EQ(sorted_keys[6] - sorted_keys[5], 10);
+}
+
+TEST(greasepencil, insert_frame_duration_override_null_frames)
+{
+  Layer layer;
+  layer.frames_for_write().add(0, {1});
+  layer.frames_for_write().add(1, {-1});
+  layer.frames_for_write().add(2, {-1});
+  layer.frames_for_write().add(3, {-1});
+
+  GreasePencilFrame frame{3, 0, 0};
+  EXPECT_TRUE(layer.insert_frame(1, 10, frame));
+  EXPECT_EQ(layer.drawing_index_at(0), 1);
+  EXPECT_EQ(layer.drawing_index_at(1), 3);
+  EXPECT_EQ(layer.drawing_index_at(11), -1);
+  Span<int> sorted_keys = layer.sorted_keys();
+  EXPECT_EQ(sorted_keys.size(), 3);
+  EXPECT_EQ(sorted_keys[0], 0);
+  EXPECT_EQ(sorted_keys[1], 1);
+  EXPECT_EQ(sorted_keys[2], 11);
+}
+
 }  // namespace blender::bke::greasepencil::tests

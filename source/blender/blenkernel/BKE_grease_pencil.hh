@@ -223,10 +223,20 @@ class Layer : public ::GreasePencilLayer {
   bool is_locked() const;
 
   /**
-   * Inserts the frame into the layer. Fails if there exists a frame at \a frame_number already.
+   * Inserts the frame into the layer frames map. Will not overwrite existing frames at \a
+   * frame_number, except null-frames.
    * \returns true on success.
    */
   bool insert_frame(int frame_number, const GreasePencilFrame &frame);
+
+  /**
+   * Inserts the frame into the layer frames map. Will not overwrite existing frames at \a
+   * frame_number, except null-frames.
+   * Inserts an additional null-frame at \a frame_number + \a duration, if necessary, to indicate
+   * the end of the inserted frame.
+   * \returns true on success.
+   */
+  bool insert_frame(int frame_number, int duration, const GreasePencilFrame &frame);
 
   /**
    * Inserts the frame into the layer. If there exists a frame at \a frame_number already, it is
@@ -440,6 +450,16 @@ inline blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap()
 inline const blender::bke::greasepencil::Drawing &GreasePencilDrawing::wrap() const
 {
   return *reinterpret_cast<const blender::bke::greasepencil::Drawing *>(this);
+}
+
+inline GreasePencilFrame GreasePencilFrame::null()
+{
+  return GreasePencilFrame{-1, 0, 0};
+}
+
+inline bool GreasePencilFrame::is_null() const
+{
+  return this->drawing_index == -1;
 }
 
 inline blender::bke::greasepencil::TreeNode &GreasePencilLayerTreeNode::wrap()

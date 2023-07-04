@@ -498,10 +498,55 @@ bool Layer::is_locked() const
   return this->parent_group().is_locked() || (this->base.flag & GP_LAYER_TREE_NODE_LOCKED) != 0;
 }
 
-bool Layer::insert_frame(int frame_number, const GreasePencilFrame &frame)
+bool Layer::insert_frame(const int frame_number, const GreasePencilFrame &frame)
 {
-  this->tag_frames_map_changed();
-  return this->frames_for_write().add(frame_number, frame);
+  BLI_assert(!frame.is_null());
+  if (!this->frames().contains(frame_number)) {
+    this->frames_for_write().add(frame_number, frame);
+    this->tag_frames_map_keys_changed();
+    return true;
+  }
+  /* Overwrite null-frames. */
+  if (this->frames().lookup(frame_number).is_null()) {
+    this->frames_for_write().add_overwrite(frame_number, frame);
+    this->tag_frames_map_changed();
+    return true;
+  }
+  return false;
+}
+
+bool Layer::insert_frame(const int frame_number,
+                         const int duration,
+                         const GreasePencilFrame &frame)
+{
+  BLI_assert(duration > 0);
+  if (!this->insert_frame(frame_number, frame)) {
+    return false;
+  }
+  Span<int> sorted_keys = this->sorted_keys();
+  const int end_frame_number = frame_number + duration;
+  /* Finds the next greater frame_number that is stored in the map. */
+  auto next_frame_number_it = std::upper_bound(
+      sorted_keys.begin(), sorted_keys.end(), frame_number);
+  /* If the next frame we found is at the end of the frame we're inserting, then we are done. */
+  if (next_frame_number_it != sorted_keys.end() && *next_frame_number_it == end_frame_number) {
+    return true;
+  }
+  /* While the next frame is a null frame, remove it. */
+  while (next_frame_number_it != sorted_keys.end() &&
+         this->frames().lookup(*next_frame_number_it).is_null())
+  {
+    this->frames_for_write().remove(*next_frame_number_it);
+    this->tag_frames_map_keys_changed();
+    next_frame_number_it = std::next(next_frame_number_it);
+  }
+  /* If the next frame comes after the end of the frame we're inserting (or if there are no more
+   * frames), add a null-frame. */
+  if (next_frame_number_it == sorted_keys.end() || *next_frame_number_it > end_frame_number) {
+    this->frames_for_write().add(end_frame_number, GreasePencilFrame::null());
+    this->tag_frames_map_keys_changed();
+  }
+  return true;
 }
 
 bool Layer::overwrite_frame(int frame_number, const GreasePencilFrame &frame)
