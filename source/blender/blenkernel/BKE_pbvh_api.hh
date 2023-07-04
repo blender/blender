@@ -698,7 +698,6 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
                                   float (*colors)[4]);
 
 bool BKE_pbvh_is_drawing(const PBVH *pbvh);
-void BKE_pbvh_is_drawing_set(PBVH *pbvh, bool val);
 
 /* Do not call in PBVH_GRIDS mode */
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
