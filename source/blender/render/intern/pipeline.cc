@@ -399,15 +399,6 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
             }
           }
         }
-
-        if (rv->z_buffer.data == nullptr) {
-          LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-            RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_Z, rview->name);
-            if (buffer) {
-              rview->z_buffer = *buffer;
-            }
-          }
-        }
       }
 
       rr->layers = re->result->layers;
@@ -451,7 +442,6 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
        *
        * The thread safety is ensured via the  re->resultmutex. */
       rr->combined_buffer = rv->combined_buffer;
-      rr->z_buffer = rv->z_buffer;
       rr->byte_buffer = rv->byte_buffer;
 
       /* active layer */
@@ -462,13 +452,6 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
           RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_COMBINED, rv->name);
           if (buffer) {
             rr->combined_buffer = *buffer;
-          }
-        }
-
-        if (rv->z_buffer.data == nullptr) {
-          RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_Z, rv->name);
-          if (buffer) {
-            rr->z_buffer = *buffer;
           }
         }
       }
