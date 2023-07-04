@@ -45,8 +45,6 @@ eSnapMode snapCamera(SnapObjectContext *sctx,
   float4x4 orig_camera_mat;
   BKE_tracking_get_camera_object_matrix(object, orig_camera_mat.ptr());
 
-  float4x4 orig_camera_imat = math::invert(orig_camera_mat);
-
   SnapData nearest2d(sctx);
   nearest2d.clip_planes_enable(sctx);
 
