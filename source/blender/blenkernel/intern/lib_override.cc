@@ -2244,6 +2244,30 @@ static bool lib_override_library_resync(Main *bmain,
       RNA_id_pointer_create(id_override_old, &rnaptr_src);
       RNA_id_pointer_create(id_override_new, &rnaptr_dst);
 
+      /* In case the parent of the liboverride object matches hierarchy-wise the parent of its
+       * linked reference, also enforce clearing any override of the other related parenting
+       * settings.
+       *
+       * While this may break some rare use-cases, in almost all situations the best behavior here
+       * is to follow the values from the reference data (especially when it comes to the invert
+       * parent matrix). */
+      bool do_clear_parenting_override = false;
+      if (GS(id_override_new->name) == ID_OB) {
+        Object *ob_old = reinterpret_cast<Object *>(id_override_old);
+        Object *ob_new = reinterpret_cast<Object *>(id_override_new);
+        if (ob_new->parent && ob_new->parent != ob_old->parent &&
+            /* Parent is not a liboverride. */
+            (ob_new->parent ==
+                 reinterpret_cast<Object *>(ob_new->id.override_library->reference)->parent ||
+             /* Parent is a hierarchy-matching liboverride. */
+             (ID_IS_OVERRIDE_LIBRARY_REAL(ob_new->parent) &&
+              reinterpret_cast<Object *>(ob_new->parent->id.override_library->reference) ==
+                  reinterpret_cast<Object *>(ob_new->id.override_library->reference)->parent)))
+        {
+          do_clear_parenting_override = true;
+        }
+      }
+
       /* We remove any operation tagged with `LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE`,
        * that way the potentially new pointer will be properly kept, when old one is still valid
        * too (typical case: assigning new ID to some usage, while old one remains used elsewhere
@@ -2259,6 +2283,20 @@ static bool lib_override_library_resync(Main *bmain,
         }
         if (BLI_listbase_is_empty(&op->operations)) {
           BKE_lib_override_library_property_delete(id_override_new->override_library, op);
+        }
+        else if (do_clear_parenting_override) {
+          if (strstr(op->rna_path, "matrix_parent_inverse") ||
+              strstr(op->rna_path, "parent_type") || strstr(op->rna_path, "parent_bone") ||
+              strstr(op->rna_path, "parent_vertices"))
+          {
+            CLOG_INFO(&LOG,
+                      2,
+                      "Deleting liboverride property '%s' from object %s, as its parent pointer "
+                      "matches the reference data hierarchy wise",
+                      id_override_new->name + 2,
+                      op->rna_path);
+            BKE_lib_override_library_property_delete(id_override_new->override_library, op);
+          }
         }
       }
 
