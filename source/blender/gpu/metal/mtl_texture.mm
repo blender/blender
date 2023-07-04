@@ -1807,22 +1807,12 @@ uint gpu::MTLTexture::gl_bindcode_get() const
 
 bool gpu::MTLTexture::init_internal()
 {
-  if (format_ == GPU_DEPTH24_STENCIL8) {
-    /* Apple Silicon requires GPU_DEPTH32F_STENCIL8 instead of GPU_DEPTH24_STENCIL8. */
-    format_ = GPU_DEPTH32F_STENCIL8;
-  }
-
   this->prepare_internal();
   return true;
 }
 
 bool gpu::MTLTexture::init_internal(GPUVertBuf *vbo)
 {
-  if (this->format_ == GPU_DEPTH24_STENCIL8) {
-    /* Apple Silicon requires GPU_DEPTH32F_STENCIL8 instead of GPU_DEPTH24_STENCIL8. */
-    this->format_ = GPU_DEPTH32F_STENCIL8;
-  }
-
   MTLPixelFormat mtl_format = gpu_texture_format_to_metal(this->format_);
   mtl_max_mips_ = 1;
   mipmaps_ = 0;
