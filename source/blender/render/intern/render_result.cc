@@ -1003,7 +1003,6 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   /* if not exists, BKE_imbuf_write makes one */
   IMB_assign_shared_byte_buffer(ibuf, rv->byte_buffer.data, rv->byte_buffer.sharing_info);
   IMB_assign_shared_float_buffer(ibuf, rv->combined_buffer.data, rv->combined_buffer.sharing_info);
-  IMB_assign_shared_float_z_buffer(ibuf, rv->z_buffer.data, rv->z_buffer.sharing_info);
 
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;

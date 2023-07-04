@@ -196,16 +196,6 @@ bool BKE_imtype_is_movie(const char imtype)
   return false;
 }
 
-bool BKE_imtype_supports_zbuf(const char imtype)
-{
-  switch (imtype) {
-    case R_IMF_IMTYPE_IRIZ:
-    case R_IMF_IMTYPE_OPENEXR: /* but not R_IMF_IMTYPE_MULTILAYER */
-      return true;
-  }
-  return false;
-}
-
 bool BKE_imtype_supports_compress(const char imtype)
 {
   switch (imtype) {
@@ -642,11 +632,6 @@ void BKE_image_format_to_imbuf(ImBuf *ibuf, const ImageFormatData *imf)
       ibuf->foptions.flag |= OPENEXR_HALF;
     }
     ibuf->foptions.flag |= (imf->exr_codec & OPENEXR_COMPRESS);
-
-    if (!(imf->flag & R_IMF_FLAG_ZBUF)) {
-      /* Signal for exr saving. */
-      IMB_freezbuffloatImBuf(ibuf);
-    }
   }
 #endif
 #ifdef WITH_CINEON
@@ -799,9 +784,6 @@ void BKE_image_format_from_imbuf(ImageFormatData *im_format, const ImBuf *imbuf)
     }
     if (custom_flags & OPENEXR_COMPRESS) {
       im_format->exr_codec = R_IMF_EXR_CODEC_ZIP; /* Can't determine compression */
-    }
-    if (imbuf->float_z_buffer.data) {
-      im_format->flag |= R_IMF_FLAG_ZBUF;
     }
   }
 #endif

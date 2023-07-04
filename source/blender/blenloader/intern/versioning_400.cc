@@ -13,6 +13,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_scene_types.h"
 
 #include "DNA_genfile.h"
 
@@ -276,6 +277,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (LightProbe *, lightprobe, &bmain->lightprobes) {
         lightprobe->grid_bake_samples = 2048;
         lightprobe->surfel_density = 1.0f;
+      }
+    }
+
+    /* Clear removed "Z Buffer" flag. */
+    {
+      const int R_IMF_FLAG_ZBUF_LEGACY = 1 << 0;
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        scene->r.im_format.flag &= ~R_IMF_FLAG_ZBUF_LEGACY;
       }
     }
   }

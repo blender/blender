@@ -2007,7 +2007,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
   /* Image format settings. */
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &isd->opts.im_format, &imf_ptr);
-  uiTemplateImageSettings(layout, &imf_ptr, save_as_render, true);
+  uiTemplateImageSettings(layout, &imf_ptr, save_as_render);
 
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
@@ -2258,7 +2258,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
     ibuf = IMB_moviecacheIter_getImBuf(iter);
 
     if (ibuf != NULL && ibuf->userflags & IB_BITMAPDIRTY) {
-      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_rect | IB_zbuf | IB_zbuffloat)) {
+      if (0 == IMB_saveiff(ibuf, ibuf->filepath, IB_rect)) {
         BKE_reportf(op->reports, RPT_ERROR, "Could not write image: %s", strerror(errno));
         break;
       }

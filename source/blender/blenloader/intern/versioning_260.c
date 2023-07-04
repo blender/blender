@@ -178,9 +178,6 @@ static void do_versions_image_settings_2_60(Scene *sce)
       if (rd->subimtype & R_PREVIEW_JPG) {
         imf->flag |= R_IMF_FLAG_PREVIEW_JPG;
       }
-      if (rd->subimtype & R_OPENEXR_ZBUF) {
-        imf->flag |= R_IMF_FLAG_ZBUF;
-      }
       break;
     case R_IMF_IMTYPE_TIFF:
       if (rd->subimtype & R_TIFF_16BIT) {

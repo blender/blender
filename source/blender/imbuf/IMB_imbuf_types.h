@@ -133,10 +133,8 @@ typedef struct ImbFormatOptions {
 typedef enum eImBufFlags {
   IB_rect = 1 << 0,
   IB_test = 1 << 1,
-  IB_zbuf = 1 << 3,
   IB_mem = 1 << 4,
   IB_rectfloat = 1 << 5,
-  IB_zbuffloat = 1 << 6,
   IB_multilayer = 1 << 7,
   IB_metadata = 1 << 8,
   IB_animdeinterlace = 1 << 9,
@@ -246,12 +244,6 @@ typedef struct ImBuf {
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];
-
-  /* zbuffer */
-  /** z buffer data, original zbuffer */
-  ImBufIntBuffer z_buffer;
-  /** z buffer data, camera coordinates */
-  ImBufFloatBuffer float_z_buffer;
 
   /* parameters used by conversion between byte and float */
   /** random dither value, for conversion from float -> byte rect */

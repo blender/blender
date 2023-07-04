@@ -301,8 +301,6 @@ static void image_save_post(ReportList *reports,
      * created. */
     imb_freerectImBuf(ibuf);
     imb_freerectfloatImBuf(ibuf);
-    IMB_freezbufImBuf(ibuf);
-    IMB_freezbuffloatImBuf(ibuf);
   }
   if (ELEM(ima->source, IMA_SRC_GENERATED, IMA_SRC_VIEWER)) {
     ima->source = IMA_SRC_FILE;
@@ -717,7 +715,6 @@ bool BKE_image_render_write_exr(ReportList *reports,
   void *exrhandle = IMB_exr_get_handle();
   const bool half_float = (imf && imf->depth == R_IMF_CHAN_DEPTH_16);
   const bool multi_layer = !(imf && imf->imtype == R_IMF_IMTYPE_OPENEXR);
-  const bool write_z = !multi_layer && (imf && (imf->flag & R_IMF_FLAG_ZBUF));
   const int channels = (!multi_layer && imf && imf->planes == R_IMF_PLANES_RGB) ? 3 : 4;
   Vector<float *> tmp_output_rects;
 
@@ -782,12 +779,6 @@ bool BKE_image_render_write_exr(ReportList *reports,
         IMB_exr_add_channel(
             exrhandle, layname, passname, viewname, 4, 4 * rr->rectx, output_rect + a, half_float);
       }
-
-      if (write_z && rview->z_buffer.data) {
-        const char *layname = (multi_layer) ? "Composite" : "";
-        IMB_exr_add_channel(
-            exrhandle, layname, "Z", viewname, 1, rr->rectx, rview->z_buffer.data, false);
-      }
     }
   }
 
@@ -803,9 +794,7 @@ bool BKE_image_render_write_exr(ReportList *reports,
 
     LISTBASE_FOREACH (RenderPass *, rp, &rl->passes) {
       /* Skip non-RGBA and Z passes if not using multi layer. */
-      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, "") ||
-                            (STREQ(rp->name, RE_PASSNAME_Z) && write_z)))
-      {
+      if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) || STREQ(rp->name, ""))) {
         continue;
       }
 

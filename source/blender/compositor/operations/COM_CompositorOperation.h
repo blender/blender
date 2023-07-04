@@ -32,11 +32,6 @@ class CompositorOperation : public MultiThreadedOperation {
   float *output_buffer_;
 
   /**
-   * \brief reference to the output depth float buffer
-   */
-  float *depth_buffer_;
-
-  /**
    * \brief local reference to the input image operation
    */
   SocketReader *image_input_;
@@ -45,11 +40,6 @@ class CompositorOperation : public MultiThreadedOperation {
    * \brief local reference to the input alpha operation
    */
   SocketReader *alpha_input_;
-
-  /**
-   * \brief local reference to the depth operation
-   */
-  SocketReader *depth_input_;
 
   /**
    * \brief Ignore any alpha input

@@ -330,7 +330,6 @@ class Context : public realtime_compositor::Context {
     if (image_buffer->x != render_size.x || image_buffer->y != render_size.y) {
       imb_freerectImBuf(image_buffer);
       imb_freerectfloatImBuf(image_buffer);
-      IMB_freezbuffloatImBuf(image_buffer);
       image_buffer->x = render_size.x;
       image_buffer->y = render_size.y;
       imb_addrectfloatImBuf(image_buffer, 4);

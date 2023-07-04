@@ -5907,13 +5907,6 @@ static void rna_def_scene_image_format_data(BlenderRNA *brna)
                            "100 = maximum lossless compression with slow file output");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
-  /* flag */
-  prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", R_IMF_FLAG_ZBUF);
-  RNA_def_property_ui_text(
-      prop, "Z Buffer", "Save the z-depth per pixel (32-bit unsigned integer z-buffer)");
-  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
-
   prop = RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", R_IMF_FLAG_PREVIEW_JPG);
   RNA_def_property_ui_text(
