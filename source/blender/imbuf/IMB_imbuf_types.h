@@ -179,12 +179,6 @@ typedef enum ImBufOwnership {
  * ownership is set to IB_DO_NOT_TAKE_OWNERSHIP. */
 /* TODO(sergey): Once everything is C++ replace with a template. */
 
-typedef struct ImBufIntBuffer {
-  int *data;
-  ImBufOwnership ownership;
-  const ImplicitSharingInfoHandle *implicit_sharing;
-} ImBufIntBuffer;
-
 typedef struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
