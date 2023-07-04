@@ -12,7 +12,7 @@
 #include "overlay_private.hh"
 
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 void OVERLAY_sculpt_cache_init(OVERLAY_Data *vedata)

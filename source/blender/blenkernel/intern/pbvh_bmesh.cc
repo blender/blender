@@ -18,7 +18,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_ccg.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "DRW_pbvh.hh"
 

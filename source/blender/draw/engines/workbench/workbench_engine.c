@@ -20,7 +20,6 @@
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
-#include "BKE_pbvh.h"
 
 #include "DNA_curves_types.h"
 #include "DNA_fluid_types.h"

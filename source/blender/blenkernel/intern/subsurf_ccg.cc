@@ -40,7 +40,6 @@
 #include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
 

@@ -28,7 +28,7 @@
 #include "BKE_context.h"
 #include "BKE_kelvinlet.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "ED_view3d.h"
 
