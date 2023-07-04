@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-04 16:07:54\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -870,6 +870,10 @@ msgid "Boolean"
 msgstr "Booleano"
 
 
+msgid "Quaternion"
+msgstr "Quaternione"
+
+
 msgid "Domain"
 msgstr "Dominio"
 
@@ -1276,6 +1280,10 @@ msgstr "Font Vettoriali"
 
 msgid "Vector font data-blocks"
 msgstr "Blocchi-dati Caratteri vettoriali"
+
+
+msgid "Grease Pencil"
+msgstr "Matita"
 
 
 msgid "Images"
@@ -2414,16 +2422,8 @@ msgid "Bone Matrix"
 msgstr "Matrice Osso"
 
 
-msgid "3x3 bone matrix"
-msgstr "Matrice osso 3x3"
-
-
 msgid "Bone Armature-Relative Matrix"
 msgstr "Matrice Osso Relativa-Armatura"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "Matrice 4x4 dell'osso relativa all'armatura"
 
 
 msgid "Parent"
@@ -2892,10 +2892,6 @@ msgstr "Percorso Oggetto"
 
 msgid "Path of an object inside of an Alembic archive"
 msgstr "Percorso di un oggetto nell'archivio Alembic"
-
-
-msgid "Path"
-msgstr "Percorso"
 
 
 msgid "Object path"
@@ -5567,10 +5563,6 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Valore più basso dell'intervallo origine del movimento sull'asse X"
 
 
-msgid "Quaternion"
-msgstr "Quaternione"
-
-
 msgid "Map From"
 msgstr "Mappa Da"
 
@@ -6742,26 +6734,6 @@ msgid "Multiplier for wave influence of this brush"
 msgstr "Moltiplicatore per l'influenza delle onde di questo pennello"
 
 
-msgid "Wave Type"
-msgstr "Tipo Onda"
-
-
-msgid "Depth Change"
-msgstr "Cambia Profondità"
-
-
-msgid "Obstacle"
-msgstr "Ostacolo"
-
-
-msgid "Force"
-msgstr "Forza"
-
-
-msgid "Reflect Only"
-msgstr "Rifletti Soltanto"
-
-
 msgid "Canvas Settings"
 msgstr "Impostazioni Tela"
 
@@ -6982,10 +6954,6 @@ msgid "Anti-Aliasing"
 msgstr "Anti-Aliasing"
 
 
-msgid "Use 5x multisampling to smooth paint edges"
-msgstr "Usa multisampling 5x per levigare la pittura spigoli"
-
-
 msgid "Enable to make surface changes disappear over time"
 msgstr "Premette che i cambi della superfice scompaiano nel tempo"
 
@@ -7168,6 +7136,10 @@ msgstr "Trascina"
 
 msgid "Drag effector weight"
 msgstr "Peso dell'effettore trascinamento"
+
+
+msgid "Force"
+msgstr "Forza"
 
 
 msgid "Force effector weight"
@@ -8094,28 +8066,8 @@ msgid "Adjust the offset to the beginning/end"
 msgstr "Regola lo scostamento per l'inizio/fine"
 
 
-msgid "Kink"
-msgstr "Annoda"
-
-
 msgid "Type of periodic offset on the curve"
 msgstr "Tipo di scostamento periodico sulla curva"
-
-
-msgid "Braid"
-msgstr "Treccia"
-
-
-msgid "Curl"
-msgstr "Ricciolo"
-
-
-msgid "Radial"
-msgstr "Radiale"
-
-
-msgid "Wave"
-msgstr "Onda"
 
 
 msgid "The distance from which particles are affected fully"
@@ -8228,6 +8180,10 @@ msgstr "Texture da usare come forza"
 
 msgid "Texture Mode"
 msgstr "Modalità Texture"
+
+
+msgid "Curl"
+msgstr "Ricciolo"
 
 
 msgid "Gradient"
@@ -8384,10 +8340,6 @@ msgstr "Entrambe Z"
 
 msgid "Fonts"
 msgstr "Caratteri"
-
-
-msgid "Grease Pencil"
-msgstr "Matita"
 
 
 msgid "Freestyle Linestyles"
@@ -8776,6 +8728,10 @@ msgstr "Gravità nelle direzioni X, Y e Z"
 
 msgid "Fluid"
 msgstr "Fluido"
+
+
+msgid "Obstacle"
+msgstr "Ostacolo"
 
 
 msgid "Outflow"
@@ -9536,6 +9492,10 @@ msgstr "Spaziatura"
 
 msgid "Circular"
 msgstr "Circolare"
+
+
+msgid "Radial"
+msgstr "Radiale"
 
 
 msgid "Grid"
@@ -11413,6 +11373,10 @@ msgid "Map Taper"
 msgstr "Mappa Rastrematura"
 
 
+msgid "Path"
+msgstr "Percorso"
+
+
 msgid "Enable the curve to become a translation path"
 msgstr "Abilita la curva a diventare un percorso di traslazione"
 
@@ -11939,6 +11903,10 @@ msgstr "Modalità Modifica Tratto"
 
 msgid "Edit Grease Pencil strokes instead of viewport data"
 msgstr "Modifica i tratti Matita anziché i dati della vista"
+
+
+msgid "Grease Pencil data-block"
+msgstr "Blocco-dati Matita"
 
 
 msgid "Image data-block referencing an external or packed image"
@@ -13023,10 +12991,6 @@ msgid "Grease Pencil Data"
 msgstr "Dati Matita"
 
 
-msgid "Grease Pencil data-block"
-msgstr "Blocco-dati Matita"
-
-
 msgid "Inputs"
 msgstr "Ingressi"
 
@@ -13077,54 +13041,6 @@ msgstr "Dimensione Parti"
 
 msgid "Max size of a tile (smaller values gives better distribution of multiple threads, but more overhead)"
 msgstr "Dimensione max tasselli (valori bassi danno una miglior distribuzione in processi multipli, ma più overhead)"
-
-
-msgid "32x32"
-msgstr "32x32"
-
-
-msgid "Chunksize of 32x32"
-msgstr "Dimensione Parti 32x32"
-
-
-msgid "64x64"
-msgstr "64x64"
-
-
-msgid "Chunksize of 64x64"
-msgstr "Dimensione Parti 64x64"
-
-
-msgid "128x128"
-msgstr "128x128"
-
-
-msgid "Chunksize of 128x128"
-msgstr "Dimensione Parti 128x128"
-
-
-msgid "256x256"
-msgstr "256x256"
-
-
-msgid "Chunksize of 256x256"
-msgstr "Dimensione Parti 256x256"
-
-
-msgid "512x512"
-msgstr "512x512"
-
-
-msgid "Chunksize of 512x512"
-msgstr "Dimensione Parti 512x512"
-
-
-msgid "1024x1024"
-msgstr "1024x1024"
-
-
-msgid "Chunksize of 1024x1024"
-msgstr "Dimensione Parti 1024x1024"
 
 
 msgid "Edit Quality"
@@ -13397,10 +13313,6 @@ msgstr "Cerchio"
 
 msgid "Origin Offset"
 msgstr "Scostamento Origine"
-
-
-msgid "Both"
-msgstr "Entrambi"
 
 
 msgid "Settings for using the object as a field in physics simulation"
@@ -13794,10 +13706,6 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "Quantità di particelle lasciate intatte per la lunghezza del percorso figlio"
 
 
-msgid "Children Per Parent"
-msgstr "Figli Per Genitore"
-
-
 msgid "Parting Factor"
 msgstr "Fattore Separazione"
 
@@ -13808,6 +13716,10 @@ msgstr "Separazione Massima"
 
 msgid "Parting Minimum"
 msgstr "Separazione Minima"
+
+
+msgid "Children Per Parent"
+msgstr "Figli Per Genitore"
 
 
 msgid "Child Radius"
@@ -14044,10 +13956,6 @@ msgstr "Passo Chiavi"
 
 msgid "Type of periodic offset on the path"
 msgstr "Tipo di scostamento periodico nel percorso"
-
-
-msgid "Spiral"
-msgstr "Spirale"
 
 
 msgid "Amplitude Clump"
@@ -16176,10 +16084,6 @@ msgid "When rendering animations, save JPG preview images in same directory"
 msgstr "Quando renderizza le animazioni, salva un JPG di anteprima nella stessa cartella"
 
 
-msgid "Z Buffer"
-msgstr "Buffer Z"
-
-
 msgid "Format of multiview media"
 msgstr "Formato del media multivista"
 
@@ -16934,17 +16838,9 @@ msgid "Media Play/Pause"
 msgstr "Media Play/Pausa"
 
 
-msgid ">/||"
-msgstr ">/||"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Media Stop"
 msgstr "Media Stop"
-
-
-msgid "Stop"
-msgstr "Stop"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -16952,17 +16848,9 @@ msgid "Media First"
 msgstr "Media Primo |<"
 
 
-msgid "|<<"
-msgstr "|<<"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Media Last"
 msgstr "Media Ultimo >|"
-
-
-msgid ">>|"
-msgstr ">>|"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -18736,18 +18624,6 @@ msgid "Edge in a Mesh data-block"
 msgstr "Spigolo in un blocco-dati Mesh"
 
 
-msgid "Bevel Weight"
-msgstr "Peso Smusso"
-
-
-msgid "Weight used by the Bevel modifier"
-msgstr "Peso usato dal modificatore Smusso"
-
-
-msgid "Weight used by the Subdivision Surface modifier for creasing"
-msgstr "Peso usato del modificatore Suddivisione Superficie per la piegatura"
-
-
 msgid "Index of this edge"
 msgstr "Indice di questo spigolo"
 
@@ -19178,6 +19054,10 @@ msgstr "Deforma Superficie"
 
 msgid "Warp"
 msgstr "Distorci"
+
+
+msgid "Wave"
+msgstr "Onda"
 
 
 msgid "Dynamic Paint"
@@ -19650,6 +19530,10 @@ msgstr "Cucitura UV"
 
 msgid "Transfer UV seam mark"
 msgstr "Trasferisce la marcatura Cucitura UV"
+
+
+msgid "Bevel Weight"
+msgstr "Peso Smusso"
 
 
 msgid "Transfer bevel weights"
@@ -22640,10 +22524,6 @@ msgid "Width of the node"
 msgstr "Larghezza del nodo"
 
 
-msgid "Width Hidden"
-msgstr "Larghezza da Nascosto"
-
-
 msgid "Custom Group"
 msgstr "Gruppo Personalizzato"
 
@@ -23461,6 +23341,14 @@ msgid "Tracking Object"
 msgstr "Oggetto Tracciamento"
 
 
+msgid "Smoothing"
+msgstr "Levigatura"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropico"
+
+
 msgid "Lens Distortion"
 msgstr "Distorsione Lente"
 
@@ -23918,20 +23806,20 @@ msgid "Blackbody"
 msgstr "Corpo Nero"
 
 
-msgid "Anisotropic BSDF"
-msgstr "Anisotropico BSDF"
+msgid "Glossy BSDF"
+msgstr "Lucido BSDF"
 
 
 msgid "Beckmann"
 msgstr "Beckmann"
 
 
-msgid "Multiscatter GGX"
-msgstr "Multiscatter GGX"
-
-
 msgid "Ashikhmin-Shirley"
 msgstr "Ashikhmin-Shirley"
+
+
+msgid "Multiscatter GGX"
+msgstr "Multiscatter GGX"
 
 
 msgid "Diffuse BSDF"
@@ -23940,10 +23828,6 @@ msgstr "Diffuso BSDF"
 
 msgid "Glass BSDF"
 msgstr "Vetro BSDF"
-
-
-msgid "Glossy BSDF"
-msgstr "Lucido BSDF"
 
 
 msgid "Hair BSDF"
@@ -24388,6 +24272,10 @@ msgstr "Usa un profilo seno standard"
 
 msgid "Use a sawtooth profile"
 msgstr "Usa un profilo a dente di sega"
+
+
+msgid "Wave Type"
+msgstr "Tipo Onda"
 
 
 msgid "Use standard wave texture in bands"
@@ -28376,10 +28264,6 @@ msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "Scala tutti i dati (Alcuni importatori non supportano le armature scalate!)"
 
 
-msgid "Smoothing"
-msgstr "Levigatura"
-
-
 msgid "Normals Only"
 msgstr "Solo Normali"
 
@@ -29615,6 +29499,10 @@ msgid "Send to Back"
 msgstr "Porta in Fondo"
 
 
+msgid "Both"
+msgstr "Entrambi"
+
+
 msgctxt "Operator"
 msgid "Change Stroke Color"
 msgstr "Cambia Colore Tratto"
@@ -30001,6 +29889,26 @@ msgstr "Soglia Quadra"
 
 msgid "Reset viewable area to show selected keyframe range"
 msgstr "Ripristina l'area visibile per mostrare tutti i fotogrammi chiave selezionati"
+
+
+msgid "Stroke Mode"
+msgstr "Modalità Tratto"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Azione intrapresa quando viene fatto un tratto di pittura"
+
+
+msgid "Apply brush normally"
+msgstr "Applica il pennello normalmente"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Inverte l'azione del pennello per la durata del tratto"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 
 msgctxt "Operator"
@@ -35052,11 +34960,6 @@ msgid "Remove vertices which weight is below or equal to this limit"
 msgstr "Rimuove i vertici i cui peso è sotto o uguale a questo limite"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "Copia Gruppo Vertici"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "Crea una copia del gruppo vertici attivo"
 
@@ -35917,26 +35820,6 @@ msgstr "Pittura Immagine"
 
 msgid "Paint a stroke into the image"
 msgstr "Dipinge un tratto in una immagine"
-
-
-msgid "Stroke Mode"
-msgstr "Modalità Tratto"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "Azione intrapresa quando viene fatto un tratto di pittura"
-
-
-msgid "Apply brush normally"
-msgstr "Applica il pennello normalmente"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Inverte l'azione del pennello per la durata del tratto"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 
 msgid "Value Inverted"
@@ -37987,18 +37870,6 @@ msgid "The effect inputs to swap"
 msgstr "Gli effetti in ingresso da scambiare"
 
 
-msgid "A -> B"
-msgstr "A -> B"
-
-
-msgid "B -> C"
-msgstr "B -> C"
-
-
-msgid "A -> C"
-msgstr "A -> C"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Cambia Tipo di Effetto"
@@ -39212,10 +39083,6 @@ msgstr "Corregge le coordinate UV durante la trasformazione"
 
 msgid "Single Side"
 msgstr "Lato Singolo"
-
-
-msgid "Snap to increments of grid"
-msgstr "Snap agli incrementi di griglia"
 
 
 msgid "Snap to vertices"
@@ -42430,6 +42297,10 @@ msgid "Boid Brain"
 msgstr "Cervello Stormo"
 
 
+msgid "Kink"
+msgstr "Annoda"
+
+
 msgid "Parting"
 msgstr "Separato"
 
@@ -44497,22 +44368,6 @@ msgid "The name of the active key configuration"
 msgstr "Nome della chiave di configurazione attiva"
 
 
-msgid "2x"
-msgstr "2x"
-
-
-msgid "4x"
-msgstr "4x"
-
-
-msgid "8x"
-msgstr "8x"
-
-
-msgid "16x"
-msgstr "16x"
-
-
 msgid "Audio Device"
 msgstr "Dispositivo Audio"
 
@@ -46127,10 +45982,6 @@ msgstr "Dimensione Pixel"
 
 msgid "Pixel size for viewport rendering"
 msgstr "Dimensione pixel per il rendering nella vista"
-
-
-msgid "1x"
-msgstr "1x"
 
 
 msgid "Render at full resolution"
@@ -50622,6 +50473,10 @@ msgid "Snap UV Element"
 msgstr "Snap Elemento UV"
 
 
+msgid "Snap to increments of grid"
+msgstr "Snap agli incrementi di griglia"
+
+
 msgid "Mesh Statistics Visualization"
 msgstr "Visualizzazione Statistiche Mesh"
 
@@ -50946,10 +50801,6 @@ msgid "Color of the light's specular highlight"
 msgstr "Colore della luce speculare brillante"
 
 
-msgid "Vertex Float Properties"
-msgstr "Proprietà Float Vertice"
-
-
 msgid "Group of vertices, used for armature deform and other purposes"
 msgstr "Gruppo di vertici, usato per deformare l'armatura e per altri usi"
 
@@ -50972,14 +50823,6 @@ msgstr "Gruppo Vertici Attivo"
 
 msgid "Active Vertex Group Index"
 msgstr "Indice Gruppo Vertici Attivo"
-
-
-msgid "Vertex Int Properties"
-msgstr "Proprietà Int. Vertice"
-
-
-msgid "Vertex String Properties"
-msgstr "Proprietà Stringa Vertice"
 
 
 msgid "Grid Lines"
@@ -51345,6 +51188,11 @@ msgstr "Carattere"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Matita"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "Posa"
 
@@ -51537,11 +51385,6 @@ msgstr "Clip Editor Grafi"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "Clip Editor DopeSheet"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Matita"
 
 
 msgctxt "WindowManager"
@@ -54462,16 +54305,6 @@ msgstr "Estrudi Spigoli"
 
 
 msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "Estrudi Facce"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "Estrudi Facce Lungo Le Normali"
-
-
-msgctxt "Operator"
 msgid "Solidify Faces"
 msgstr "Solidifica Facce"
 
@@ -54772,6 +54605,16 @@ msgstr "Ruota Spigolo in Senso Antiorario"
 msgctxt "Operator"
 msgid "Clear Sharp"
 msgstr "Smarca come Netto"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "Estrudi Facce"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "Estrudi Facce Lungo Le Normali"
 
 
 msgctxt "Operator"
@@ -56053,14 +55896,6 @@ msgid "Active button not found"
 msgstr "Bottone attivo non trovato"
 
 
-msgid "File '%s' cannot be opened"
-msgstr "Il file '%s' non può essere aperto"
-
-
-msgid "See '%s' in the text editor"
-msgstr "Vedi '%s' nell'editor testi"
-
-
 msgid "Could not find operator '%s'! Please enable ui_translate add-on in the User Preferences"
 msgstr "Impossibile trovare l'operatore '%s'! Per favore abilita l'addon ui_translate nelle Preferenze Utente"
 
@@ -56319,10 +56154,6 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Naviga Impostazioni Particella del Mondo da collegare"
 
 
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Naviga Dati della Matita da collegare"
-
-
 msgid "Browse Movie Clip to be linked"
 msgstr "Naviga Filmato da collegare"
 
@@ -56341,6 +56172,10 @@ msgstr "Naviga Dati Pittura Curva da collegare"
 
 msgid "Browse Cache Files to be linked"
 msgstr "Naviga File Cache da collegare"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Naviga Dati della Matita da collegare"
 
 
 msgid "Browse ID data to be linked"
@@ -56476,10 +56311,6 @@ msgstr "Opzioni Scena"
 
 msgid "Object Options"
 msgstr "Opzioni Oggetto"
-
-
-msgid "No filename given"
-msgstr "Nessun nome file"
 
 
 msgid "No objects selected -- Created empty export file"
@@ -57278,26 +57109,6 @@ msgid "Timber"
 msgstr "Legname"
 
 
-msgid "3D Local View"
-msgstr "Vista Locale 3D"
-
-
-msgid "Frame:%d "
-msgstr "Fotogramma:%d "
-
-
-msgid "| Last:%s "
-msgstr "| Ultimo:%s "
-
-
-msgid "Time:%s "
-msgstr "Tempo:%s "
-
-
-msgid "| Mem:%.2fM, Peak: %.2fM "
-msgstr "| Mem:%.2fM, Picco: %.2fM "
-
-
 msgid "Scene has no camera"
 msgstr "La scena non ha camere"
 
@@ -57342,12 +57153,12 @@ msgid "Full Screen Area"
 msgstr "Area a Schermo Intero"
 
 
-msgid "Flip to Bottom"
-msgstr "Sposta sotto la vista"
-
-
 msgid "Flip to Top"
 msgstr "Sposta sopra la vista"
+
+
+msgid "Flip to Bottom"
+msgstr "Sposta sotto la vista"
 
 
 msgid "Blender Preferences"
@@ -57740,10 +57551,6 @@ msgid "Can't Load Image"
 msgstr "Impossibile Caricare Immagine"
 
 
-msgid " + Z"
-msgstr " + Z"
-
-
 msgid "Frame %d / %d"
 msgstr "Fotogramma %d / %d"
 
@@ -58039,6 +57846,14 @@ msgstr "Impossibile salvare '%s': %s"
 
 msgid "Text not found: %s"
 msgstr "Testo non trovato: %s"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "Il file '%s' non può essere aperto"
+
+
+msgid "See '%s' in the text editor"
+msgstr "Vedi '%s' nell'editor testi"
 
 
 msgid "No Recent Files"
@@ -59296,16 +59111,16 @@ msgid "AO"
 msgstr "OA"
 
 
-msgid "Anisotropy"
-msgstr "Anisotropia"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "Indice Di Rifrazione"
+
+
+msgid "Anisotropy"
+msgstr "Anisotropia"
 
 
 msgid "RoughnessU"
@@ -59334,10 +59149,6 @@ msgstr "Raggio Subsuperficie"
 
 msgid "Specular Tint"
 msgstr "Tinta Speculare"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropico"
 
 
 msgid "Anisotropic Rotation"

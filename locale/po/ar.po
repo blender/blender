@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-04 16:07:54\n"
 "PO-Revision-Date: 2016-04-23 22:41+0300\n"
 "Last-Translator: Yousef Harfoush <bat3a@msn.com>\n"
 "Language-Team: Yousef Harfoush, Amine Moussaoui <bat3a@msn.com>\n"
@@ -711,6 +711,10 @@ msgid "Boolean"
 msgstr "ﺔﻴﻘﻄﻨﻣ"
 
 
+msgid "Quaternion"
+msgstr "ﻲﻋﺎﺑﺭ"
+
+
 msgid "Domain"
 msgstr "ﻕﺎﻄﻧ"
 
@@ -1077,6 +1081,10 @@ msgstr "blend. ﻒﻠﻣ ﻰﻟﺇ ﺭﺎﺴﻤﻟﺍ"
 
 msgid "Vector Fonts"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﻁﻮﻄﺨﻟﺍ"
+
+
+msgid "Grease Pencil"
+msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Images"
@@ -1795,16 +1803,8 @@ msgid "Bone Matrix"
 msgstr "ﺔﻤﻈﻋ ﺔﻓﻮﻔﺼﻣ"
 
 
-msgid "3x3 bone matrix"
-msgstr "3*3 ﺔﻤﻈﻋ ﺔﻓﻮﻔﺼﻣ"
-
-
 msgid "Bone Armature-Relative Matrix"
 msgstr "ﺔﻴﺒﺴﻧ ﺔﻓﻮﻔﺼﻣ-ﻢﻈﻌﻟﺍ ﻞﻜﻴﻫ"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "ﻞﻜﻴﻬﻠﻟ ﺔﻴﺒﺴﻧ 4*4 ﺔﻤﻈﻋ ﺔﻓﻮﻔﺼﻣ"
 
 
 msgid "Parent"
@@ -2137,10 +2137,6 @@ msgstr "ﺭﺎﻃﺍ"
 
 msgid "Active Layer"
 msgstr "ﺔﻟﺎﻌّﻔﻟﺍ ﺔﻘﺒﻄﻟﺍ"
-
-
-msgid "Path"
-msgstr "ﺭﺎﺴﻤﻟﺍ"
 
 
 msgid "Background Image"
@@ -4760,10 +4756,6 @@ msgid "Bottom range of Z axis source motion"
 msgstr "Y ﺭﻮﺤﻤﻟﺍ ﻰﻠﻋ ﺭﺪﺼﻤﻟﺍ ﻙﺮﺤﺗ ﻕﺎﻄﻧ ﻰﻧﺩﺃ"
 
 
-msgid "Quaternion"
-msgstr "ﻲﻋﺎﺑﺭ"
-
-
 msgid "Map From"
 msgstr "ﻦﻣ ﻂﻄﺧ"
 
@@ -5708,26 +5700,6 @@ msgid "Multiplier for wave influence of this brush"
 msgstr "ﺓﺎﺷﺮﻔﻟﺍ ﻩﺬﻬﻟ ﺔﺟﻮﻤﻟﺍ ﺮﻴﺛﺎﺘﻠﻟ ﻒﻋﺎﻀﻣ"
 
 
-msgid "Wave Type"
-msgstr "ﺔﺟﻮﻤﻟﺍ ﻉﻮﻧ"
-
-
-msgid "Depth Change"
-msgstr "ﻖﻤﻌﻟﺍ ﺮﻴﻴﻐﺗ"
-
-
-msgid "Obstacle"
-msgstr "ﻡﺩﺎﺼﺗ"
-
-
-msgid "Force"
-msgstr "ﺓﻮﻗ"
-
-
-msgid "Reflect Only"
-msgstr "ﻂﻘﻓ ﺲﻜﻋﺍ"
-
-
 msgid "Canvas Settings"
 msgstr "ﺢﻄﺴﻟﺍ ﺕﺍﺩﺍﺪﻋﺍ"
 
@@ -5976,10 +5948,6 @@ msgid "Anti-Aliasing"
 msgstr "ﺭﻮﻠﺒﺘﻟﺍ-ﺪﺿ"
 
 
-msgid "Use 5x multisampling to smooth paint edges"
-msgstr "ﻢﺳﺮﻟﺍ ﻑﺍﻮﺣ ﻢﻴﻌﻨﺘﻟ ﺕﺍﺮﻣ 5ﺏ  ﺩﺪﻌﺘﻣ ﺔﻨﻳﺎﻌﻣ ﻡﺪﺨﺘﺳﺇ"
-
-
 msgid "Enable to make surface changes disappear over time"
 msgstr "ﺖﻗﻮﻟﺍ ﻊﻣ ﻲﻘﺘﺨﺗ ﺢﻄﺴﻟﺍ ﺕﺍﺮﻴﻐﺗ ﻞﻌﺠﻟ ﻞﻌّﻓ"
 
@@ -6182,6 +6150,10 @@ msgstr "ﺮﺟ"
 
 msgid "Drag effector weight"
 msgstr "ﺮﺠﻟﺍ ﺐﻴﺠﺘﺴﻣ ﻥﺯﻭ"
+
+
+msgid "Force"
+msgstr "ﺓﻮﻗ"
 
 
 msgid "Force effector weight"
@@ -7109,28 +7081,8 @@ msgid "Adjust the offset to the beginning/end"
 msgstr "ﺔﻳﺎﻬﻨﻟﺍ/ﺔﻳﺍﺪﺒﻟﺍ ﻰﻟﺇ ﺔﺣﺍﺯﻹ﻿ﺍ ﺪﻳﺪﺤﺗ"
 
 
-msgid "Kink"
-msgstr "ﺞﻨّﺷ"
-
-
 msgid "Type of periodic offset on the curve"
 msgstr "ﻰﻨﺤﻨﻤﻟﺍ ﻰﻠﻋ ﺔﻳﺭﻭﺪﻟﺍ ﺔﺣﺍﺯﻹ﻿ﺍ ﻉﻮﻧ"
-
-
-msgid "Braid"
-msgstr "ﺔﻠﻳﺪﺟ"
-
-
-msgid "Curl"
-msgstr "ﺪﻌّﺟ"
-
-
-msgid "Radial"
-msgstr "ﻲﻋﺎﻌﺷ"
-
-
-msgid "Wave"
-msgstr "ﺔﺟﻮﻣ"
 
 
 msgid "The distance from which particles are affected fully"
@@ -7247,6 +7199,10 @@ msgstr "ﺓﻮﻘﻛ ﻡﺪﺨﺘﺴﻤﻟﺍ ﺞﻴﺴﻨﻟﺍ"
 
 msgid "Texture Mode"
 msgstr "ﺞﻴﺴﻨﻟﺍ ﻂﻤﻧ"
+
+
+msgid "Curl"
+msgstr "ﺪﻌّﺟ"
 
 
 msgid "Gradient"
@@ -7395,10 +7351,6 @@ msgstr "ﻱﺩﻮﻤﻋ ﻞﻜﻟﺍ"
 
 msgid "Fonts"
 msgstr "ﻁﻮﻄﺨﻟﺍ"
-
-
-msgid "Grease Pencil"
-msgstr "ﺕﺎﻈﺣﻼ﻿ﻣ ﻢﻠﻗ"
 
 
 msgid "Freestyle Linestyles"
@@ -7707,6 +7659,10 @@ msgstr "ﺔﻳﺩﻮﻣﺎﻌﻟﺍ ﻭ ﺔﻳﺩﻮﻤﻌﻟﺍ ﻭ ﺔﻴﻘ�
 
 msgid "Fluid"
 msgstr "ﻞﺋﺎﺳ"
+
+
+msgid "Obstacle"
+msgstr "ﻡﺩﺎﺼﺗ"
 
 
 msgid "Outflow"
@@ -8527,6 +8483,10 @@ msgstr "ﺪﻋﺎﺒﺘﻟﺍ"
 
 msgid "Circular"
 msgstr "ﻱﺮﺋﺍﺩ"
+
+
+msgid "Radial"
+msgstr "ﻲﻋﺎﻌﺷ"
 
 
 msgid "Grid"
@@ -10251,6 +10211,10 @@ msgid "Map Taper"
 msgstr "ﺭﺎﺼﺘﺧﻹ﻿ﺍ ﻉﻮﻧ"
 
 
+msgid "Path"
+msgstr "ﺭﺎﺴﻤﻟﺍ"
+
+
 msgid "Enable the curve to become a translation path"
 msgstr "ﺔﻛﺮﺤﻠﻟ ﺭﺎﺴﻣ ﺢﺒﺼﻴﻟ ﻰﻨﺤﻨﻤﻟﺍ ﻞﻌﻓ"
 
@@ -11783,18 +11747,6 @@ msgid "Loops of the mesh (polygon corners)"
 msgstr "(ﻪﺟﻮﻟﺍ ﺎﻳﺍﻭﺯ) ﻢﺴﺠﻤﻟﺍ ﺕﻼ﻿ﺴﻠﺴﺗ"
 
 
-msgid "Float Property Layers"
-msgstr "ﺔﻳﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
-
-
-msgid "Int Property Layers"
-msgstr "ﺔﺤﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
-
-
-msgid "String Property Layers"
-msgstr "ﺔﻴﺼﻧ ﺔﻴﺻﺎﺧ ﺕﺎﻘﺒﻃ"
-
-
 msgid "Polygons"
 msgstr "ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻣ"
 
@@ -12115,54 +12067,6 @@ msgid "Max size of a tile (smaller values gives better distribution of multiple 
 msgstr "(ﺱﺍﺮﻟﺍ ﻰﻠﻋ ﻢﺣﺍﺰﺗ ﺮﺜﻛﺍ ﻦﻜﻟ ,ﺓﺩﺪﻌﺘﻣ ﺐﻌﺸﻟ ﻞﻀﻓﺍ ﻊﻳﺯﻮﺗ ﻲﻄﻌﺗ ﻞﻗﺍ ﻢﻴﻗ) ﺔﻨﺒﻠﻟ ﻢﺠﺣ ﺮﺒﻛﺍ"
 
 
-msgid "32x32"
-msgstr "32x32"
-
-
-msgid "Chunksize of 32x32"
-msgstr "32*32 ﺔﻨﺒﻠﻟﺍ ﻢﺠﺣ"
-
-
-msgid "64x64"
-msgstr "64x64"
-
-
-msgid "Chunksize of 64x64"
-msgstr "64*64 ﺔﻨﺒﻠﻟﺍ ﻢﺠﺣ"
-
-
-msgid "128x128"
-msgstr "128x128"
-
-
-msgid "Chunksize of 128x128"
-msgstr "128*128 ﺔﻨﺒﻠﻟﺍ ﻢﺠﺣ"
-
-
-msgid "256x256"
-msgstr "256x256"
-
-
-msgid "Chunksize of 256x256"
-msgstr "256*256 ﺔﻨﺒﻠﻟﺍ ﻢﺠﺣ"
-
-
-msgid "512x512"
-msgstr "512x512"
-
-
-msgid "Chunksize of 512x512"
-msgstr "512*512 ﺔﻨﺒﻠﻟﺍ ﻢﺠﺣ"
-
-
-msgid "1024x1024"
-msgstr "1024x1024"
-
-
-msgid "Chunksize of 1024x1024"
-msgstr "1024x1024 ﺔﻌﻄﻗ ﻢﺠﺣ"
-
-
 msgid "Edit Quality"
 msgstr "ﺓﺩﻮﺠﻟﺍ ﺭﺮﺣ"
 
@@ -12405,10 +12309,6 @@ msgstr "ﻞﺻﻻ﻿ﺍ ﻦﻋ ﺔﺣﺍﺯﻹ﻿ﺍ"
 
 msgid "Origin offset distance"
 msgstr "ﻞﺻﻻ﻿ﺍ ﻦﻋ ﺔﺣﺍﺯﻹ﻿ﺍ ﺔﻓﺎﺴﻣ"
-
-
-msgid "Both"
-msgstr "ﺎﻤﻫﻼ﻿ﻛ"
 
 
 msgid "Settings for using the object as a field in physics simulation"
@@ -12787,10 +12687,6 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "ﻉﺮﻔﻟﺍ ﺭﺎﺴﻣ ﻝﻮﻃ ﻞﺒﻗ ﻦﻣ ﺔﻛﻭﺮﺘﻤﻟﺍ ﺕﺎﺌﻳﺰﺠﻟﺍ ﺔﻴﻤﻛ"
 
 
-msgid "Children Per Parent"
-msgstr "ﻞﺻﺃ ﻞﻜﻟ ﻉﻭﺮﻔﻟﺍ"
-
-
 msgid "Parting Factor"
 msgstr "ﻕﺮﻔﺘﻟﺍ ﻞﻣﺎﻌﻣ"
 
@@ -12813,6 +12709,10 @@ msgstr "ﻕﺮﻔﺗ ﻞﻗﺍ"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "(ﻞﻳﻮﻄﻟﺍ ﺮﻌﺸﻠﻟ ﺭﺬﺠﻟﺍ ﺪﻌﺑ/ﺔﻤﻘﻟﺍ ﺪﻌﺑ) ﺔﻤﻘﻟﺍ ﻰﻟﺍ ﺭﺬﺠﻟﺍ ﻦﻣ ﺔﻳﻭﺍﺯ ﻞﻗﺃ"
+
+
+msgid "Children Per Parent"
+msgstr "ﻞﺻﺃ ﻞﻜﻟ ﻉﻭﺮﻔﻟﺍ"
 
 
 msgid "Child Radius"
@@ -13057,10 +12957,6 @@ msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﻡﺪﻘﺗ"
 
 msgid "Type of periodic offset on the path"
 msgstr "ﺭﺎﺴﻤﻟﺍ ﻰﻠﻋ ﺔﻳﺭﻭﺪﻟﺍ ﺔﺣﺍﺯﻹ﻿ﺍ ﻉﻮﻧ"
-
-
-msgid "Spiral"
-msgstr "ﻲﻧﻭﺰﻠﺣ"
 
 
 msgid "Amplitude Clump"
@@ -15289,10 +15185,6 @@ msgid "When rendering animations, save JPG preview images in same directory"
 msgstr "ﺪﻠﺠﻤﻟﺍ ﺲﻔﻧ ﻲﻓ JPG ﺔﻨﻳﺎﻌﻣ ﺭﻮﺻ ﻞﺠﺳ ،ﺕﺎﻜﻳﺮﺤﺘﻟﺍ ﺮﻴﻴﺼﺗ ﺪﻨﻋ"
 
 
-msgid "Z Buffer"
-msgstr "Z ﻥﺰﺨﻣ"
-
-
 msgid "Icon Pixels"
 msgstr "ﺔﻧﻮﻘﻳﻷ﻿ﺍ ﻂﻘﻧ"
 
@@ -15859,10 +15751,6 @@ msgstr "ﺓﺩﺎﻤﻟﺍ ﻖﻠّﻋ/ﺽﺮﻋﺍ"
 msgctxt "UI_Events_KeyMaps"
 msgid "Media Stop"
 msgstr "ﺓﺩﺎﻤﻟﺍ ﻒﻗﻭﺃ"
-
-
-msgid "Stop"
-msgstr "ﻒﻗ"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -17136,14 +17024,6 @@ msgid "Mesh Edge"
 msgstr "ﻢﺴﺠﻣ ﺔﻓﺎﺣ"
 
 
-msgid "Bevel Weight"
-msgstr "ﺔﻔﻄﺸﻟﺍ ﻥﺯﻭ"
-
-
-msgid "Weight used by the Bevel modifier"
-msgstr "ﺔﻔﻄﺸﻟﺍ ﺮﻴﻐﻣ ﻞﺒﻗ ﻦﻣ ﻡﺪﺨﺘﺴﻤﻟﺍ ﻥﺯﻮﻟﺍ"
-
-
 msgid "Loose"
 msgstr "ﻖﻠﻄﻣ"
 
@@ -17234,46 +17114,6 @@ msgstr "ﻊﻠّﻀﻤﻟﺍ ﻢﻇﺎﻧ"
 
 msgid "Local space unit length normal vector for this polygon"
 msgstr "ﻪﺟﻮﻟﺍ ﺍﺬﻬﻟ ﻲﻠﺤﻤﻟﺍ ءﺎﻀﻔﻟﺍ ﻲﻓ ﺓﺪﺣﻮﻟﺍ ﻝﻮﻄﻟ ﻢﻇﺎﻨﻟﺍ ﻪﺠﺘﻣ"
-
-
-msgid "Mesh Polygon Float Property"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ"
-
-
-msgid "Mesh Polygon Float Property Layer"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
-
-
-msgid "Mesh Polygon Int Property"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ"
-
-
-msgid "User defined integer number value in an integer properties layer"
-msgstr " ﺔﺤﻴﺤﺻ ﺩﺍﺪﻋﺃ ﺹﺍﻮﺧ ﺔﻘﺒﻃ ﻲﻓ ﺓﺩﺪﺤﻤﻟﺍ ﺔﻳﺩﺪﻌﻟﺍ ﺔﻤﻴﻘﻟﺍ"
-
-
-msgid "Mesh Polygon Int Property Layer"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
-
-
-msgid "User defined layer of integer number values"
-msgstr "ﺓﺩﺪﺤﻤﻟﺍ ﺔﺤﻴﺤﺼﻟﺍ ﺩﺍﺪﻋﻷ﻿ﺍ ﻢﻴﻗ ﺔﻘﺒﻃ"
-
-
-msgid "Mesh Polygon String Property"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺺﻧ ﺔﻴﺻﺎﺧ"
-
-
-msgid "User defined string text value in a string properties layer"
-msgstr "ﺔﻴﺼﻧ ﺹﺍﻮﺧ ﺔﻘﺒﻃ ﻲﻓ ﺓﺩﺪﺤﻤﻟﺍ ﺔﻴﺼﻨﻟﺍ ﺔﻤﻴﻘﻟﺍ"
-
-
-msgid "Mesh Polygon String Property Layer"
-msgstr "ﻢﺴﺠﻤﻠﻟ ﻉﻼ﻿ﺿﻻ﻿ﺍ ﺩﺪﻌﺘﻤﻟ ﺺﻧ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
-
-
-msgid "User defined layer of string text values"
-msgstr "ﺹﻮﺼﻧ ﻢﻴﻗ ﻦﻣ ﺓﺩﺪﺤﻣ ﺔﻘﺒﻃ"
 
 
 msgid "Skin Vertex"
@@ -17374,30 +17214,6 @@ msgstr "ﺔﻄﻘﻨﻟﺍ ﻢﻇﺎﻧ"
 
 msgid "Undeformed Location"
 msgstr "ﻉﻮّﻄﻣ ﺮﻴﻏ ﻊﻗﻮﻣ"
-
-
-msgid "Mesh Vertex Float Property"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ"
-
-
-msgid "Mesh Vertex Float Property Layer"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺮﺴﻛ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
-
-
-msgid "Mesh Vertex Int Property"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ"
-
-
-msgid "Mesh Vertex Int Property Layer"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺢﻴﺤﺻ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
-
-
-msgid "Mesh Vertex String Property"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺺﻧ ﺔﻴﺻﺎﺧ"
-
-
-msgid "Mesh Vertex String Property Layer"
-msgstr "ﻢﺴﺠﻤﻟﺍ ﺔﻄﻘﻨﻟ ﺺﻧ ﺔﻴﺻﺎﺧ ﺔﻘﺒﻃ"
 
 
 msgid "Active Element"
@@ -17526,6 +17342,10 @@ msgstr "ﻂﻴﺴﺑ ﻞﻳﻮﺤﺗ"
 
 msgid "Warp"
 msgstr "ﻞﺘﻓﺇ"
+
+
+msgid "Wave"
+msgstr "ﺔﺟﻮﻣ"
 
 
 msgid "Dynamic Paint"
@@ -17726,6 +17546,10 @@ msgstr "ﻪﻳﻮﺸﺘﻟﺍ ﻰﻨﺤﻨﻣ ﻦﺋﺎﻛ"
 
 msgid "Edge Data Types"
 msgstr "ﺔﻓﺎﺤﻟﺍ ﺕﺎﻧﺎﻴﺑ ﻉﺍﻮﻧﺃ"
+
+
+msgid "Bevel Weight"
+msgstr "ﺔﻔﻄﺸﻟﺍ ﻥﺯﻭ"
 
 
 msgid "Transfer bevel weights"
@@ -19664,10 +19488,6 @@ msgid "Width of the node"
 msgstr "ﻕﻭﺪﻨﺼﻟﺍ ﺽﺮﻋ"
 
 
-msgid "Width Hidden"
-msgstr "ﺽﺮﻌﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
 msgid "Custom Group"
 msgstr "ﺔﺼﺼﺨﻣ ﺔﻋﻮﻤﺠﻣ"
 
@@ -20365,6 +20185,14 @@ msgid "Tracking Object"
 msgstr "ﻦﺋﺎﻜﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 
+msgid "Smoothing"
+msgstr "ﺔﻣﻮﻌﻨﻟﺍ"
+
+
+msgid "Anisotropic"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
+
+
 msgid "Lens Distortion"
 msgstr ":ﺔﺳﺪﻌﻟﺍ ﻩﻮّﺸﺗ"
 
@@ -20729,10 +20557,6 @@ msgid "Background"
 msgstr "ﺔﻴﻔﻠﺧ"
 
 
-msgid "Anisotropic BSDF"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
-
-
 msgid "Diffuse BSDF"
 msgstr "BSDF ﺭﺎﺸﺘﻧﺇ"
 
@@ -21055,6 +20879,10 @@ msgstr "ﻲﻧﻭﺭﻮﻓ ﺞﻴﺴﻧ"
 
 msgid "Wave Texture"
 msgstr "ﻲﺟﻮﻣ ﺞﻴﺴﻧ"
+
+
+msgid "Wave Type"
+msgstr "ﺔﺟﻮﻤﻟﺍ ﻉﻮﻧ"
 
 
 msgid "Use standard wave texture in bands"
@@ -23366,10 +23194,6 @@ msgid "Scale all data (Some importers do not support scaled armatures!)"
 msgstr "(ﺔﻤﺠﺤﻤﻟﺍ ﻞﻛﺎﻴﻬﻟﺍ ﻢﻋﺪﺗ ﻻ﻿ ﺕﺍﺩﺭﻮﺘﺴﻤﻟﺍ ﺾﻌﺑ) ﺕﺎﻧﺎﻴﺒﻟﺍ ﻞﻛ ﻢﺠّﺣ"
 
 
-msgid "Smoothing"
-msgstr "ﺔﻣﻮﻌﻨﻟﺍ"
-
-
 msgid "Lamp"
 msgstr "ﺡﺎﺒﺼﻣ"
 
@@ -23920,6 +23744,10 @@ msgid "Snap Selection to Grid"
 msgstr "ﺔﻜﺒﺸﻠﻟ ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻱﺫﺎﺣ"
 
 
+msgid "Both"
+msgstr "ﺎﻤﻫﻼ﻿ﻛ"
+
+
 msgctxt "Operator"
 msgid "Unlock All Layers"
 msgstr "ﺕﺎﻘﺒﻄﻟﺍ ﻞﻛ ﻖﻠﻃﺍ"
@@ -24076,6 +23904,14 @@ msgstr "ﺢﻴﺗﺎﻔﻤﻟﺍ ﻢﻌّﻧ"
 msgctxt "Operator"
 msgid "Bake Sound to F-Curves"
 msgstr "ﻞﻤﻌﻟﺍ ﺕﺎﻴﻨﺤﻨﻣ ﻲﻓ ﺕﻮﺼﻟﺍ ﻥﺰﺧ"
+
+
+msgid "Stroke Mode"
+msgstr "ﺐﻴﻄﺸﺘﻟﺍ ﻊﺿﻭ"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "ﺔﺒﻄﺸﻟﺍ ﺓﺪﻤﻟ ﺓﺎﺷﺮﻔﻟﺍ ﻞﻤﻋ ﺲﻜﻋﺍ"
 
 
 msgctxt "Operator"
@@ -26806,11 +26642,6 @@ msgid "Assign the selected vertices to a new vertex group"
 msgstr "ﺓﺪﻳﺪﺟ ﻂﻘﻧ ﺔﻋﻮﻤﺠﻤﻟ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻂﻘﻨﻟﺍ ﺺﺼﺧ"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﻂﻘﻨﻟﺍ ﺔﻋﻮﻤﺠﻣ ﺦﺴﻧﺍ"
 
@@ -27236,14 +27067,6 @@ msgstr "ﺭﻮﺼﻟﺍ ﻢﺳﺭ"
 
 msgid "Paint a stroke into the image"
 msgstr "ﺓﺭﻮﺼﻟﺍ ﻰﻠﻋ ﺔﺒﻄﺷ ﻢﺳﺭﺍ"
-
-
-msgid "Stroke Mode"
-msgstr "ﺐﻴﻄﺸﺘﻟﺍ ﻊﺿﻭ"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "ﺔﺒﻄﺸﻟﺍ ﺓﺪﻤﻟ ﺓﺎﺷﺮﻔﻟﺍ ﻞﻤﻋ ﺲﻜﻋﺍ"
 
 
 msgid "Invert the mask"
@@ -28237,14 +28060,6 @@ msgstr "UV'sـﻟﺍ ﺖﺤﻧﺍ"
 msgctxt "Operator"
 msgid "Change Effect Input"
 msgstr "ﺮﻴﻴﻐﺘﻟﺍ ﺮﺛﺆﻣ ﻞﺧﺩ"
-
-
-msgid "B -> C"
-msgstr "B -> C"
-
-
-msgid "A -> C"
-msgstr "A -> C"
 
 
 msgctxt "Operator"
@@ -30399,6 +30214,10 @@ msgstr "ﻕﺮﻔﺑ ﺔﺣﺍﺯﺇ"
 
 msgid "Boid Brain"
 msgstr "ءﻱﺰﺠﻟﺍ ءﺎﻛﺫ"
+
+
+msgid "Kink"
+msgstr "ﺞﻨّﺷ"
 
 
 msgid "Parting"
@@ -36273,6 +36092,11 @@ msgstr "ﻂﺨﻟﺍ"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "ﺔﻔﻗﻭ"
 
@@ -36490,11 +36314,6 @@ msgstr "ﺔﺻﺎﺼﻘﻠﻟ ﻲﻧﺎﻴﺒﻟﺍ ﺭﺮﺤﻤﻟﺍ"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "ﺔﺻﺎﺼﻘﻠﻟ ﻂﻴﻄﺨﺘﻟﺍ ﺔﻗﺭﻭ ﺭﺮﺤﻣ"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ"
 
 
 msgctxt "WindowManager"
@@ -39124,10 +38943,6 @@ msgid "Browse Particle Settings to be linked"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﺌﻳﺰﺠﻟﺍ ﺕﺍﺩﺍﺪﻋﺇ ﺢﻔﺼﺗ"
 
 
-msgid "Browse Grease Pencil Data to be linked"
-msgstr " ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
-
-
 msgid "Browse Movie Clip to be linked"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﻢﻠﻔﻟﺍ ﺔﺻﺎﺼﻗ ﻰﻟﺍ ﺢﻔﺼﺗ"
 
@@ -39142,6 +38957,10 @@ msgstr "ﻁﺎﺒﺗﺭﻺ﻿ﻟ ﺡﻮﻠّﻟﺍ ﺕﺎﻧﺎﻴﺑ ﺢﻔّ�
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "ﻁﺎﺒﺗﺭﻺ﻿ﻟ ﻢﺳﺮﻟﺍ ﻰﻨﺤﻨﻣ ﺕﺎﻧﺎﻴﺑ ﺢﻔّﺼﺗ"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr " ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﺕﺎﻈﺣﻼ﻿ﻤﻟﺍ ﻢﻠﻗ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
 
 
 msgid "Browse ID data to be linked"
@@ -39576,18 +39395,6 @@ msgid "Timber"
 msgstr "ﺐﺸﺧ"
 
 
-msgid "3D Local View"
-msgstr "ﻲﺛﻼ﻿ﺛ ﻲﻠّﺤﻣ ﺮﻈﻨﻣ"
-
-
-msgid "Frame:%d "
-msgstr "‬%d‪:ﺭﺎﻃﺍ"
-
-
-msgid "Time:%s "
-msgstr " ‬%s‪:ﺖﻗﻮﻟﺍ"
-
-
 msgid "Scene has no camera"
 msgstr "ﺔﻟﺎﻌﻔﻟﺍ ﺍﺮﻴﻤﻜﻟﺍ ﺮﺘﺧﺍ"
 
@@ -39600,12 +39407,12 @@ msgid "Maximize Area"
 msgstr "ﻪﺟﻮﻟﺍ ﺔﻘﻄﻨﻣ "
 
 
-msgid "Flip to Bottom"
-msgstr "NDOF ﻞﻔﺳﺃ"
-
-
 msgid "Flip to Top"
 msgstr "ﻥﺍﻮﻟﻷ﻿ﺍ ﻢﻠﺳ ﺲﻜﻋﺍ"
+
+
+msgid "Flip to Bottom"
+msgstr "NDOF ﻞﻔﺳﺃ"
 
 
 msgid "No more keyframes to jump to in this direction"
@@ -39854,10 +39661,6 @@ msgstr "RGBA ﺖﻳﺎﺑ"
 
 msgid " RGB byte"
 msgstr "RGB ﺖﻳﺎﺑ"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "unsupported image format"
@@ -40336,16 +40139,16 @@ msgid "AO"
 msgstr "ﻡ.ﺇ"
 
 
-msgid "Anisotropy"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "ﺭﺎﺴﻜﻧﻻ﻿ﺍ ﻞﻣﺎﻌﻣ"
+
+
+msgid "Anisotropy"
+msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "RoughnessU"
@@ -40358,10 +40161,6 @@ msgstr "V ﺔﻧﻮﺸﺧ"
 
 msgid "Subsurface"
 msgstr "ﻲﺤﻄﺳ-ﺖﺤﺗ"
-
-
-msgid "Anisotropic"
-msgstr "ﺱﺎﻜﻌﻧﻹ﻿ﺍ ﻞﻜﺸﺗ"
 
 
 msgid "View Vector"

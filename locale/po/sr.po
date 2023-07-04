@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-04 16:07:54\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -767,6 +767,10 @@ msgid "Vector Fonts"
 msgstr "Фонтови"
 
 
+msgid "Grease Pencil"
+msgstr "Скицирање"
+
+
 msgid "Images"
 msgstr "Слике"
 
@@ -1163,10 +1167,6 @@ msgid "Bone Matrix"
 msgstr "Матрица кости"
 
 
-msgid "3x3 bone matrix"
-msgstr "3x3 матрица кости"
-
-
 msgid "Parent"
 msgstr "Родитељ"
 
@@ -1401,10 +1401,6 @@ msgstr "Засићеност"
 
 msgid "Active Layer"
 msgstr "Активни слој"
-
-
-msgid "Path"
-msgstr "Путања"
 
 
 msgid "Background Image"
@@ -3436,26 +3432,6 @@ msgid "Factor"
 msgstr "Фактор"
 
 
-msgid "Wave Type"
-msgstr "Врста таласа"
-
-
-msgid "Depth Change"
-msgstr "Промена дубине"
-
-
-msgid "Obstacle"
-msgstr "Препрека"
-
-
-msgid "Force"
-msgstr "Сила"
-
-
-msgid "Reflect Only"
-msgstr "Само изабрано"
-
-
 msgid "Canvas Settings"
 msgstr "Подешавање папира"
 
@@ -3742,6 +3718,10 @@ msgstr "Повлачење"
 
 msgid "Drag effector weight"
 msgstr "Јачина ефектора повлачења"
+
+
+msgid "Force"
+msgstr "Сила"
 
 
 msgid "Global gravity weight"
@@ -4129,22 +4109,6 @@ msgid "Frequency"
 msgstr "Фреквенција"
 
 
-msgid "Kink"
-msgstr "Грч"
-
-
-msgid "Curl"
-msgstr "Увијање"
-
-
-msgid "Radial"
-msgstr "Радијално"
-
-
-msgid "Wave"
-msgstr "Талас"
-
-
 msgid "Linear Drag"
 msgstr "Линеарно повлачење"
 
@@ -4183,6 +4147,10 @@ msgstr "Користи текстуру као силу"
 
 msgid "Texture Mode"
 msgstr "Мод текстуре"
+
+
+msgid "Curl"
+msgstr "Увијање"
 
 
 msgid "Gradient"
@@ -4251,10 +4219,6 @@ msgstr "Обе Z"
 
 msgid "Fonts"
 msgstr "Фонтови"
-
-
-msgid "Grease Pencil"
-msgstr "Скицирање"
 
 
 msgid "File Select Parameters"
@@ -4455,6 +4419,10 @@ msgstr "Брзина"
 
 msgid "Fluid"
 msgstr "Течност"
+
+
+msgid "Obstacle"
+msgstr "Препрека"
 
 
 msgid "Velocity Factor"
@@ -4879,6 +4847,10 @@ msgstr "Размак"
 
 msgid "Circular"
 msgstr "Кружно"
+
+
+msgid "Radial"
+msgstr "Радијално"
 
 
 msgid "Grid"
@@ -5878,6 +5850,10 @@ msgid "Fill caps for beveled curves"
 msgstr "Попуни крајеве искошене криве"
 
 
+msgid "Path"
+msgstr "Путања"
+
+
 msgid "Follow"
 msgstr "Прати"
 
@@ -6622,10 +6598,6 @@ msgid "Loops of the mesh (polygon corners)"
 msgstr "Одређује тврдоћу сјаја"
 
 
-msgid "String Property Layers"
-msgstr "Слојеви текстуалне особине"
-
-
 msgid "Polygons of the mesh"
 msgstr "Одређује тврдоћу сјаја"
 
@@ -6814,54 +6786,6 @@ msgid "Chunksize"
 msgstr "Величина плочице"
 
 
-msgid "32x32"
-msgstr "32x32"
-
-
-msgid "Chunksize of 32x32"
-msgstr "Величина плочице 32x32"
-
-
-msgid "64x64"
-msgstr "64x64"
-
-
-msgid "Chunksize of 64x64"
-msgstr "Величина плочице 64x64"
-
-
-msgid "128x128"
-msgstr "128x128"
-
-
-msgid "Chunksize of 128x128"
-msgstr "Величина плочице 128x128"
-
-
-msgid "256x256"
-msgstr "256x256"
-
-
-msgid "Chunksize of 256x256"
-msgstr "Величина плочице 256x256"
-
-
-msgid "512x512"
-msgstr "512x512"
-
-
-msgid "Chunksize of 512x512"
-msgstr "Величина плочице 512x512"
-
-
-msgid "1024x1024"
-msgstr "1024x1024"
-
-
-msgid "Chunksize of 1024x1024"
-msgstr "Величина плочице 1024x1024"
-
-
 msgid "Edit Quality"
 msgstr "Квалитет уређења"
 
@@ -7032,10 +6956,6 @@ msgstr "Једна стрелица"
 
 msgid "Circle"
 msgstr "Круг"
-
-
-msgid "Both"
-msgstr "Обе"
 
 
 msgid "Settings for using the object as a field in physics simulation"
@@ -8588,10 +8508,6 @@ msgid "Log"
 msgstr "Дневник рада"
 
 
-msgid "Z Buffer"
-msgstr "Z бафер"
-
-
 msgid "Image Preview"
 msgstr "Увећање слике"
 
@@ -9467,10 +9383,6 @@ msgid "Splash"
 msgstr "Уводни прозор"
 
 
-msgid "Bevel Weight"
-msgstr "Тежина искошавања"
-
-
 msgid "Freestyle Edge Mark"
 msgstr "Слободоручне ознаке ивица"
 
@@ -9727,6 +9639,10 @@ msgid "Warp"
 msgstr "Кривљење"
 
 
+msgid "Wave"
+msgstr "Талас"
+
+
 msgid "Dynamic Paint"
 msgstr "Динамичко бојење"
 
@@ -9909,6 +9825,10 @@ msgstr "Модификатор деформације криве"
 
 msgid "Deform Axis"
 msgstr "Оса деформације"
+
+
+msgid "Bevel Weight"
+msgstr "Тежина искошавања"
 
 
 msgid "Freestyle"
@@ -11427,6 +11347,10 @@ msgid "Tracking Object"
 msgstr "Објекат за праћење"
 
 
+msgid "Smoothing"
+msgstr "Умекшање"
+
+
 msgid "Lens Distortion"
 msgstr "Изобличавање сочива"
 
@@ -11763,8 +11687,8 @@ msgid "Background"
 msgstr "Позадина"
 
 
-msgid "Anisotropic BSDF"
-msgstr "Анизотропно BSDF"
+msgid "Glossy BSDF"
+msgstr "Сјајно BSDF"
 
 
 msgid "Diffuse BSDF"
@@ -11773,10 +11697,6 @@ msgstr "Дифузно BSDF"
 
 msgid "Glass BSDF"
 msgstr "Стакло BSDF"
-
-
-msgid "Glossy BSDF"
-msgstr "Сјајно BSDF"
 
 
 msgid "Hair BSDF"
@@ -11981,6 +11901,10 @@ msgstr "Смер сунца"
 
 msgid "Wave Texture"
 msgstr "Текстура таласа"
+
+
+msgid "Wave Type"
+msgstr "Врста таласа"
 
 
 msgid "Lower half of the texture is for tips of the stroke"
@@ -14204,10 +14128,6 @@ msgid "Each scene as a file"
 msgstr "Свака сцена као датотека"
 
 
-msgid "Smoothing"
-msgstr "Умекшање"
-
-
 msgid "Write face smoothing"
 msgstr "Уписуј умекшање страна"
 
@@ -14939,6 +14859,10 @@ msgstr "Изабор за курсор"
 msgctxt "Operator"
 msgid "Snap Selection to Grid"
 msgstr "Изабрано за мрежу"
+
+
+msgid "Both"
+msgstr "Обе"
 
 
 msgctxt "Operator"
@@ -18791,18 +18715,6 @@ msgid "The effect inputs to swap"
 msgstr "Замена улазног ефекта"
 
 
-msgid "A -> B"
-msgstr "A -> B"
-
-
-msgid "B -> C"
-msgstr "B -> C"
-
-
-msgid "A -> C"
-msgstr "A -> C"
-
-
 msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Измени врсту ефеката"
@@ -20938,6 +20850,10 @@ msgid "Delta Transform"
 msgstr "Делта трансформација"
 
 
+msgid "Kink"
+msgstr "Грч"
+
+
 msgid "Hair Dynamics"
 msgstr "Динамика косе"
 
@@ -21833,22 +21749,6 @@ msgstr "Лутка"
 
 msgid "Walk Navigation"
 msgstr "Навигација шетње"
-
-
-msgid "2x"
-msgstr "2x"
-
-
-msgid "4x"
-msgstr "4x"
-
-
-msgid "8x"
-msgstr "8x"
-
-
-msgid "16x"
-msgstr "16x"
 
 
 msgid "Audio Device"
@@ -26897,10 +26797,6 @@ msgid "%d items"
 msgstr "%d ставки"
 
 
-msgid "No filename given"
-msgstr "Без имена датотеке"
-
-
 msgctxt "Mesh"
 msgid "Plane"
 msgstr "Плоча"
@@ -27212,22 +27108,6 @@ msgid "Timber"
 msgstr "Дрво"
 
 
-msgid "3D Local View"
-msgstr "3D локални поглед"
-
-
-msgid "Frame:%d "
-msgstr "Кадар:%d "
-
-
-msgid "| Last:%s "
-msgstr "| Последњи:%s "
-
-
-msgid "Time:%s "
-msgstr "Време:%s "
-
-
 msgid "Scene has no camera"
 msgstr "Сцена не садржи камеру"
 
@@ -27236,12 +27116,12 @@ msgid "Blender Render"
 msgstr "Blender рендеринг"
 
 
-msgid "Flip to Bottom"
-msgstr "Обрни ка дну"
-
-
 msgid "Flip to Top"
 msgstr "Обрни ка врху"
+
+
+msgid "Flip to Bottom"
+msgstr "Обрни ка дну"
 
 
 msgid "No active camera set"
@@ -27378,10 +27258,6 @@ msgstr "Изабери пролаз"
 
 msgid "Can't Load Image"
 msgstr "Не могу да учитам слику"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "unsupported image format"
@@ -27763,16 +27639,16 @@ msgid "Edge Crease"
 msgstr "Набор ивице"
 
 
-msgid "Anisotropy"
-msgstr "Анизотропно"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "Анизотропно"
 
 
 msgid "RoughnessU"
