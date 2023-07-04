@@ -342,6 +342,11 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
     }
     else {
       if (!rtc_device_is_sycl) {
+        /* NOTE(sirgienko) Embree requires padding for VERTEX layout as last buffer element
+         * must be readable using 16-byte SSE load instructions. Because of this, we are
+         * artificially increasing shared buffer size by 1 - it shouldn't cause any memory
+         * access violation as this last element is not accessed directly since no triangle
+         * can reference it. */
         rtcSetSharedGeometryBuffer(geom_id,
                                    RTC_BUFFER_TYPE_VERTEX,
                                    t,
@@ -357,13 +362,15 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
          * of making a shared geometry buffer - a new Embree buffer will be created and data
          * will be copied. */
         /* As float3 is packed on GPU side, we map it to packed_float3. */
+        /* There is no need for additional padding in rtcSetNewGeometryBuffer since Embree 3.6:
+         * "Fixed automatic vertex buffer padding when using rtcSetNewGeometry API function". */
         packed_float3 *verts_buffer = (packed_float3 *)rtcSetNewGeometryBuffer(
             geom_id,
             RTC_BUFFER_TYPE_VERTEX,
             t,
             RTC_FORMAT_FLOAT3,
             sizeof(packed_float3),
-            num_verts + 1);
+            num_verts);
         assert(verts_buffer);
         if (verts_buffer) {
           for (size_t i = (size_t)0; i < num_verts + 1; ++i) {
