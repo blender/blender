@@ -43,7 +43,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_modifier.h"
 #include "BKE_sculpt.h" //NotForPR
 

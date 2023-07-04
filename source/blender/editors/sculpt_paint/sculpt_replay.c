@@ -11,7 +11,7 @@
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 
@@ -37,7 +37,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "paint_intern.h"
 #include "sculpt_intern.h"

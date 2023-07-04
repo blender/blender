@@ -113,7 +113,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
-#  include "BKE_pbvh.h"
 #  include "BKE_pointcache.h"
 
 #  include "DEG_depsgraph.h"

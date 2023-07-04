@@ -22,7 +22,7 @@
 
 #include "BKE_brush.h"
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "bmesh.h"

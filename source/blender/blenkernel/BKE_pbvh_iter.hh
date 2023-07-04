@@ -19,7 +19,7 @@
 #include "BLI_vector.hh"
 #include "BLI_timeit.hh"
 
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "intern/pbvh_intern.hh"
 
 #include <functional>

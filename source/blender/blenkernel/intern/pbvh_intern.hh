@@ -18,7 +18,7 @@
 
 #include "BKE_attribute.h"
 #include "BKE_paint.h" /* for SCULPT_BOUNDARY_NEEDS_UPDATE */
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "../../bmesh/intern/bmesh_idmap.h"
 #include "bmesh.h"

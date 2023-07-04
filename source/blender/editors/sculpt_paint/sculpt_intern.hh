@@ -18,7 +18,7 @@
 #include "BKE_attribute.h"
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.h"
 #include "BKE_sculpt.hh"
 

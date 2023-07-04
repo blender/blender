@@ -9,7 +9,7 @@
  */
 
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "BLI_math.h"
 #include "BLI_math_vector_types.hh"

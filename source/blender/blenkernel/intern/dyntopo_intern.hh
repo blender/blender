@@ -2,7 +2,7 @@
 
 #include "BKE_dyntopo.hh"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_sculpt.hh"
 
 #include "BLI_asan.h"

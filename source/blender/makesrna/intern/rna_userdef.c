@@ -168,7 +168,6 @@ static const EnumPropertyItem rna_enum_preference_gpu_backend_items[] = {
 #  include "BKE_mesh_runtime.h"
 #  include "BKE_object.h"
 #  include "BKE_paint.h"
-#  include "BKE_pbvh.h"
 #  include "BKE_preferences.h"
 #  include "BKE_screen.h"
 
@@ -553,7 +552,8 @@ static const EnumPropertyItem *rna_UseDef_active_section_itemf(bContext *UNUSED(
   int totitem = 0;
 
   for (const EnumPropertyItem *it = rna_enum_preference_section_items; it->identifier != NULL;
-       it++) {
+       it++)
+  {
     if (it->value == USER_SECTION_EXPERIMENTAL) {
       continue;
     }

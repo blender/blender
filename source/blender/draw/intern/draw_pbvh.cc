@@ -39,7 +39,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "GPU_batch.h"

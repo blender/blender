@@ -61,7 +61,7 @@ Topology rake:
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "DRW_pbvh.hh"
 
@@ -273,12 +273,12 @@ ATTR_NO_OPT void pbvh_bmesh_check_nodes(PBVH *pbvh)
   }
 }
 
-extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
+void BKE_pbvh_bmesh_check_nodes(PBVH *pbvh)
 {
   pbvh_bmesh_check_nodes(pbvh);
 }
 #else
-extern "C" void BKE_pbvh_bmesh_check_nodes(PBVH * /*pbvh*/) {}
+void BKE_pbvh_bmesh_check_nodes(PBVH * /*pbvh*/) {}
 #endif
 
 /** \} */
@@ -2353,7 +2353,7 @@ void BKE_pbvh_set_idmap(PBVH *pbvh, BMIdMap *idmap)
 #if 0
 PBVH *global_debug_pbvh = nullptr;
 
-extern "C" void debug_pbvh_on_vert_kill(BMVert *v)
+void debug_pbvh_on_vert_kill(BMVert *v)
 {
   PBVH *pbvh = global_debug_pbvh;
 
@@ -2750,7 +2750,7 @@ static uintptr_t tri_loopkey(
  * (currently just raycast), store the node's triangles and vertices.
  *
  * Skips triangles that are hidden. */
-bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
+ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 {
   BMesh *bm = pbvh->header.bm;
 
@@ -2778,6 +2778,8 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     BKE_pbvh_bmesh_free_tris(pbvh, node);
   }
 
+  blender::Map<void *, int> vertmap;
+
   node->tribuf = MEM_new<PBVHTriBuf>("node->tribuf");
   pbvh_init_tribuf(node, node->tribuf);
 
@@ -2796,7 +2798,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
 
   int ni = int(node - pbvh->nodes);
 
-  auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max, ni](
+  auto add_tri_verts = [cd_uvs, totuv, pbvh, &min, &max, ni, &vertmap](
                            PBVHTriBuf *tribuf, PBVHTri &tri, BMLoop *l, int mat_nr, int j) {
     int tri_v;
 
@@ -2811,7 +2813,7 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
       void *loopkey = reinterpret_cast<void *>(
           tri_loopkey(l, mat_nr, pbvh->cd_faceset_offset, cd_uvs, totuv, pbvh->cd_boundary_flag));
 
-      tri_v = tribuf->vertmap.lookup_or_add(loopkey, tribuf->verts.size());
+      tri_v = vertmap.lookup_or_add(loopkey, tribuf->verts.size());
     }
     else { /* Flat shaded faces. */
       tri_v = tribuf->verts.size();
@@ -2918,6 +2920,60 @@ bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   else {
     zero_v3(node->tribuf->min);
     zero_v3(node->tribuf->max);
+  }
+
+  /* Compact memory, does a simple copy. */
+  auto compact_vector = [&](auto &vector) {
+    if (vector.capacity() < size_t(double(vector.size()) * 1.25)) {
+      return;
+    }
+
+    if (vector.size() == 0) {
+      vector.clear_and_shrink();
+      return;
+    }
+
+    using Type = std::remove_reference_t<decltype(*vector.data())>;
+
+#if 1
+    size_t count = vector.size();
+
+    printf("c1: %d\n", int(vector.capacity()));
+
+    Vector<Type> cpy;
+    cpy.reserve(count);
+    cpy.extend_unchecked(vector.data(), count);
+
+    vector = std::move(cpy);
+    printf("c2: %d\n", int(vector.capacity()));
+
+#else
+    size_t count = vector.size();
+    size_t size = sizeof(*vector.data()) * count;
+
+    Type *mem = static_cast<Type *>(MEM_mallocN(size, "temp"));
+    memcpy(static_cast<void *>(mem), static_cast<void *>(vector.data()), size);
+
+    vector.clear_and_shrink();
+    vector.reserve(count);
+    vector.extend_unchecked(mem, count);
+
+    MEM_freeN(static_cast<void *>(mem));
+#endif
+    //
+  };
+
+  auto compact_tribuf = [&compact_vector](PBVHTriBuf *tribuf) {
+    compact_vector(tribuf->verts);
+    compact_vector(tribuf->edges);
+    compact_vector(tribuf->loops);
+    compact_vector(tribuf->tris);
+  };
+
+  compact_tribuf(node->tribuf);
+
+  for (PBVHTriBuf &tribuf : *tribufs) {
+    compact_tribuf(&tribuf);
   }
 
   return true;

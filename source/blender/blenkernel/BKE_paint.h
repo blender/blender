@@ -8,16 +8,16 @@
  * \ingroup bke
  */
 
-#include "BKE_attribute.h"
-#include "BKE_pbvh.h"
-
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
+#include "BLI_utildefines.h"
 #ifdef __cplusplus
 #  include "BLI_array.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_offset_indices.hh"
+
+#  include "DNA_brush_types.h"
 #endif
-#include "BLI_utildefines.h"
 
 #include "DNA_brush_enums.h"
 #include "DNA_customdata_types.h"
@@ -27,6 +27,7 @@
 #include "BKE_attribute.h"
 #include "BKE_pbvh.h"
 
+#include "bmesh.h"
 #include "bmesh_log.h"
 
 #ifdef __cplusplus
@@ -650,9 +651,6 @@ typedef struct SculptAttributePointers {
 } SculptAttributePointers;
 
 #ifdef __cplusplus
-#  include "BLI_math_vector_types.hh"
-#  include "DNA_brush_types.h"
-
 struct SculptSession {
   /* Mesh data (not copied) can come either directly from a Mesh, or from a MultiresDM */
   struct { /* Special handling for multires meshes */

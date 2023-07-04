@@ -20,7 +20,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "DNA_userdef_types.h"

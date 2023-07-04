@@ -12,7 +12,7 @@
 #include "draw_pbvh.h"
 
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "DRW_pbvh.hh"
 
 namespace blender::draw {
