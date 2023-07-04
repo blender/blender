@@ -535,7 +535,7 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#  include "AS_asset_representation.h"
+#  include "AS_asset_representation.hh"
 
 #  include "DNA_anim_types.h"
 #  include "DNA_asset_types.h"
@@ -2789,14 +2789,14 @@ static PointerRNA rna_FileBrowser_FileSelectEntry_asset_data_get(PointerRNA *ptr
     return PointerRNA_NULL;
   }
 
-  AssetMetaData *asset_data = AS_asset_representation_metadata_get(entry->asset);
+  AssetMetaData *asset_data = &entry->asset->get_metadata();
 
   /* Note that the owning ID of the RNA pointer (`ptr->owner_id`) has to be set carefully:
    * Local IDs (`entry->id`) own their asset metadata themselves. Asset metadata from other blend
    * files are owned by the file browser (`entry`). Only if this is set correctly, we can tell from
    * the metadata RNA pointer if the metadata is stored locally and can thus be edited or not. */
 
-  if (AS_asset_representation_is_local_id(entry->asset)) {
+  if (entry->asset->is_local_id()) {
     PointerRNA id_ptr;
     RNA_id_pointer_create(entry->id, &id_ptr);
     return rna_pointer_inherit_refine(&id_ptr, &RNA_AssetMetaData, asset_data);

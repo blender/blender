@@ -14,7 +14,6 @@
 
 #include "AS_asset_identifier.hh"
 #include "AS_asset_library.hh"
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
 namespace blender::asset_system {
@@ -143,101 +142,3 @@ const AssetLibrary &AssetRepresentation::owner_asset_library() const
 }
 
 }  // namespace blender::asset_system
-
-using namespace blender;
-
-const StringRefNull AS_asset_representation_library_relative_identifier_get(
-    const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  const asset_system::AssetIdentifier &identifier = asset->get_identifier();
-  return identifier.library_relative_identifier();
-}
-
-std::string AS_asset_representation_full_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  const asset_system::AssetIdentifier &identifier = asset->get_identifier();
-  return identifier.full_path();
-}
-
-std::string AS_asset_representation_full_library_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_identifier().full_library_path();
-}
-
-std::optional<eAssetImportMethod> AS_asset_representation_import_method_get(
-    const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_import_method();
-}
-
-bool AS_asset_representation_may_override_import_method(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->may_override_import_method();
-}
-
-bool AS_asset_representation_use_relative_path_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_use_relative_path();
-}
-
-/* ---------------------------------------------------------------------- */
-/** \name C-API
- * \{ */
-
-const char *AS_asset_representation_name_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_name().c_str();
-}
-
-ID_Type AS_asset_representation_id_type_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->get_id_type();
-}
-
-AssetMetaData *AS_asset_representation_metadata_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return &asset->get_metadata();
-}
-
-ID *AS_asset_representation_local_id_get(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->local_id();
-}
-
-bool AS_asset_representation_is_local_id(const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  return asset->is_local_id();
-}
-
-AssetWeakReference *AS_asset_representation_weak_reference_create(
-    const AssetRepresentation *asset_handle)
-{
-  const asset_system::AssetRepresentation *asset =
-      reinterpret_cast<const asset_system::AssetRepresentation *>(asset_handle);
-  std::unique_ptr<AssetWeakReference> weak_ref = asset->make_weak_reference();
-  return MEM_new<AssetWeakReference>(__func__, std::move(*weak_ref));
-}
-
-/** \} */

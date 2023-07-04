@@ -5,7 +5,6 @@
 #include "asset_library_service.hh"
 #include "asset_library_test_common.hh"
 
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
 #include "DNA_asset_types.h"
@@ -47,16 +46,6 @@ TEST_F(AssetRepresentationTest, weak_reference__current_file)
     EXPECT_EQ(weak_ref->asset_library_type, ASSET_LIBRARY_LOCAL);
     EXPECT_EQ(weak_ref->asset_library_identifier, nullptr);
     EXPECT_STREQ(weak_ref->relative_asset_identifier, "path/to/an/asset");
-  }
-
-  {
-    /* Also test the C-API, it moves memory, so worth testing. */
-    AssetWeakReference *c_weak_ref = AS_asset_representation_weak_reference_create(
-        reinterpret_cast<::AssetRepresentation *>(&asset));
-    EXPECT_EQ(c_weak_ref->asset_library_type, ASSET_LIBRARY_LOCAL);
-    EXPECT_EQ(c_weak_ref->asset_library_identifier, nullptr);
-    EXPECT_STREQ(c_weak_ref->relative_asset_identifier, "path/to/an/asset");
-    MEM_delete(c_weak_ref);
   }
 }
 

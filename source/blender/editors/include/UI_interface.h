@@ -1809,16 +1809,20 @@ void UI_but_drag_set_id(uiBut *but, struct ID *id);
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  */
 void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
+
+#ifdef __cplusplus
 /**
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
  */
 void UI_but_drag_set_asset(uiBut *but,
-                           const struct AssetRepresentation *asset,
+                           const blender::asset_system::AssetRepresentation *asset,
                            int import_type, /* eAssetImportType */
                            int icon,
                            struct ImBuf *imb,
                            float scale);
+#endif
+
 void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
 /**
  * Enable dragging a path from this button.

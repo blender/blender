@@ -61,7 +61,7 @@
 #include "UI_interface_icons.h"
 #include "UI_view2d.h"
 
-#include "AS_asset_representation.h"
+#include "AS_asset_representation.hh"
 #include "AS_essentials_library.hh"
 
 #include "file_intern.h"
@@ -513,16 +513,15 @@ int ED_fileselect_asset_import_method_get(const SpaceFile *sfile, const FileDirE
   }
 
   /* First handle the case where the asset system dictates a certain import method. */
-  if (AS_asset_representation_may_override_import_method(file->asset) == false) {
-    BLI_assert(AS_asset_representation_import_method_get(file->asset).has_value());
-
-    return *AS_asset_representation_import_method_get(file->asset);
+  if (file->asset->may_override_import_method() == false) {
+    BLI_assert(file->asset->get_import_method().has_value());
+    return *file->asset->get_import_method();
   }
 
   const FileAssetSelectParams *params = ED_fileselect_get_asset_params(sfile);
 
   if (params->import_type == FILE_ASSET_IMPORT_FOLLOW_PREFS) {
-    std::optional import_method = AS_asset_representation_import_method_get(file->asset);
+    std::optional import_method = file->asset->get_import_method();
     return import_method ? *import_method : -1;
   }
 
