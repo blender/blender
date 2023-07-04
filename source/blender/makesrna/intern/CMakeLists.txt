@@ -206,6 +206,7 @@ set(SRC
   ../../../../intern/guardedalloc/intern/mallocn_guarded_impl.c
   ../../../../intern/guardedalloc/intern/mallocn_lockfree_impl.c
   ../../../../intern/guardedalloc/intern/memory_usage.cc
+  ../../blenlib/intern/string.c
 
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
