@@ -1179,7 +1179,7 @@ bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
                                       eBezTriple_KeyframeType keytype)
 {
   using namespace blender;
-  GreasePencilFrame frame{static_cast<int>(this->drawings().size()), 0, keytype};
+  GreasePencilFrame frame{int(this->drawings().size()), 0, int8_t(keytype)};
   if (!layer.insert_frame(frame_number, duration, frame)) {
     return false;
   }
