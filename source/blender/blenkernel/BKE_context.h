@@ -405,7 +405,7 @@ const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
 #ifdef __cplusplus
-struct blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
+class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
 #endif
 
 bool CTX_wm_interface_locked(const bContext *C);
