@@ -241,7 +241,7 @@ static bool uri_from_filename(const char *path, char *uri)
     /* Not a correct absolute path with a drive letter or UNC prefix. */
     return false;
   }
-  BLI_str_replace_char(orig_uri, '\\', '/');
+  BLI_string_replace_char(orig_uri, '\\', '/');
 #else
   SNPRINTF(orig_uri, "file://%s", path);
 #endif

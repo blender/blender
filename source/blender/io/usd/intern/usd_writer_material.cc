@@ -22,6 +22,7 @@
 #include "BLI_memory_utils.hh"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 #include "DNA_material_types.h"
 
@@ -659,7 +660,7 @@ static std::string get_tex_image_asset_filepath(bNode *node,
       BLI_path_split_dir_part(stage_path.c_str(), dir_path, FILE_MAX);
       BLI_path_join(exp_path, FILE_MAX, dir_path, "textures", file_path);
     }
-    BLI_str_replace_char(exp_path, '\\', '/');
+    BLI_string_replace_char(exp_path, '\\', '/');
     return exp_path;
   }
 
@@ -678,7 +679,7 @@ static std::string get_tex_image_asset_filepath(bNode *node,
     if (!BLI_path_is_rel(rel_path)) {
       return path;
     }
-    BLI_str_replace_char(rel_path, '\\', '/');
+    BLI_string_replace_char(rel_path, '\\', '/');
     return rel_path + 2;
   }
 

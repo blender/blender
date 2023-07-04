@@ -8,6 +8,7 @@
 
 #include "BLI_array_utils.h"
 #include "BLI_memiter.h"
+#include "BLI_string_utils.h"
 
 #include "BLI_ressource_strings.h"
 #include "BLI_string.h"
@@ -100,7 +101,7 @@ static void memiter_words10k_test(const char split_char, const int chunk_size)
 {
   const int words_len = sizeof(words10k) - 1;
   char *words = BLI_strdupn(words10k, words_len);
-  BLI_str_replace_char(words, split_char, '\0');
+  BLI_string_replace_char(words, split_char, '\0');
 
   BLI_memiter *mi = BLI_memiter_create(chunk_size);
 

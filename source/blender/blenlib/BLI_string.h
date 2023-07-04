@@ -160,53 +160,6 @@ bool BLI_str_quoted_substr(const char *__restrict str,
                            const char *__restrict prefix,
                            char *result,
                            size_t result_maxncpy);
-/**
- * string with all instances of substr_old replaced with substr_new,
- * Returns a copy of the c-string \a str into a newly #MEM_mallocN'd
- * and returns it.
- *
- * \note A rather wasteful string-replacement utility, though this shall do for now.
- * Feel free to replace this with an even safe + nicer alternative
- *
- * \param str: The string to replace occurrences of substr_old in
- * \param substr_old: The text in the string to find and replace
- * \param substr_new: The text in the string to find and replace
- * \retval Returns the duplicated string
- */
-char *BLI_str_replaceN(const char *__restrict str,
-                       const char *__restrict substr_old,
-                       const char *__restrict substr_new) ATTR_WARN_UNUSED_RESULT
-    ATTR_NONNULL(1, 2, 3) ATTR_MALLOC;
-
-/**
- * In-place replace every \a src to \a dst in \a str.
- *
- * \param str: The string to operate on.
- * \param src: The character to replace.
- * \param dst: The character to replace with.
- */
-void BLI_str_replace_char(char *str, char src, char dst) ATTR_NONNULL(1);
-
-/**
- * Simple exact-match string replacement.
- *
- * \param replace_table: Array of source, destination pairs.
- *
- * \note Larger tables should use a hash table.
- */
-bool BLI_str_replace_table_exact(char *string,
-                                 size_t string_len,
-                                 const char *replace_table[][2],
-                                 int replace_table_len);
-
-/**
- * Write `dst` into the range between `src_beg` & `src_end`,
- * resize within `string_maxncpy` limits, ensure null terminated.
- *
- * \return the length of `string`.
- */
-size_t BLI_str_replace_range(
-    char *string, size_t string_maxncpy, int src_beg, int src_end, const char *dst);
 
 /**
  * Portable replacement for #snprintf

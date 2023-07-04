@@ -15,6 +15,7 @@
 #include "BLI_fileops.hh"
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
+#include "BLI_string_utils.h"
 
 namespace blender::bke::sim {
 
@@ -78,7 +79,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bak
       }
       char modified_file_name[FILE_MAX];
       STRNCPY(modified_file_name, dir_entry.relname);
-      BLI_str_replace_char(modified_file_name, '_', '.');
+      BLI_string_replace_char(modified_file_name, '_', '.');
 
       const SubFrame frame = std::stof(modified_file_name);
 

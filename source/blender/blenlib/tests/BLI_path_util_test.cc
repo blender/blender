@@ -9,6 +9,7 @@
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -25,7 +26,7 @@ static void str_replace_char_with_relative_exception(char *str, char src, char d
       }
     }
   }
-  BLI_str_replace_char(str, src, dst);
+  BLI_string_replace_char(str, src, dst);
 }
 
 static char *str_replace_char_strdup(const char *str, char src, char dst)
@@ -34,7 +35,7 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
     return nullptr;
   }
   char *str_dupe = strdup(str);
-  BLI_str_replace_char(str_dupe, src, dst);
+  BLI_string_replace_char(str_dupe, src, dst);
   return str_dupe;
 }
 
@@ -52,7 +53,7 @@ static char *str_replace_char_strdup(const char *str, char src, char dst)
     } \
     const int path_len_test = BLI_path_normalize(path); \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '\\', '/'); \
+      BLI_string_replace_char(path, '\\', '/'); \
     } \
     EXPECT_STREQ(path, output_expect); \
     EXPECT_EQ(path_len_test, strlen(path)); \
@@ -190,11 +191,11 @@ TEST(path_util, CompareNormalized)
   { \
     char path[FILE_MAX] = input; \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '/', '\\'); \
+      BLI_string_replace_char(path, '/', '\\'); \
     } \
     BLI_path_parent_dir(path); \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '\\', '/'); \
+      BLI_string_replace_char(path, '\\', '/'); \
     } \
     EXPECT_STREQ(path, output_expect); \
   } \
@@ -251,7 +252,7 @@ TEST(path_util, ParentDir_Complex)
     char path[] = str_input; \
     /* Test input assumes forward slash, support back-slash on WIN32. */ \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '/', '\\'); \
+      BLI_string_replace_char(path, '/', '\\'); \
     } \
     const char *expect = str_expect; \
     int index_output, len_output; \
@@ -469,7 +470,7 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
     char *input_back_slash[ARRAY_SIZE(input_forward_slash)] = {nullptr}; \
     for (int i = 0; i < ARRAY_SIZE(input_forward_slash); i++) { \
       input_back_slash[i] = strdup(input_forward_slash[i]); \
-      BLI_str_replace_char(input_back_slash[i], '/', '\\'); \
+      BLI_string_replace_char(input_back_slash[i], '/', '\\'); \
     } \
     /* Check we don't write past the last byte. */ \
     result[out_size] = '\0'; \
@@ -477,7 +478,7 @@ TEST(path_util, NameAtIndex_NoneComplexNeg)
                         out_size, \
                         const_cast<const char **>(input_back_slash), \
                         ARRAY_SIZE(input_back_slash)); \
-    BLI_str_replace_char(result, '\\', '/'); \
+    BLI_string_replace_char(result, '\\', '/'); \
     EXPECT_STREQ(result, expect); \
     EXPECT_EQ(result[out_size], '\0'); \
     for (int i = 0; i < ARRAY_SIZE(input_forward_slash); i++) { \
@@ -599,12 +600,12 @@ TEST(path_util, JoinRelativePrefix)
     char filename_native[] = filename; \
     /* Check we don't write past the last byte. */ \
     if (SEP == '\\') { \
-      BLI_str_replace_char(filename_native, '/', '\\'); \
-      BLI_str_replace_char(result, '/', '\\'); \
+      BLI_string_replace_char(filename_native, '/', '\\'); \
+      BLI_string_replace_char(result, '/', '\\'); \
     } \
     BLI_path_append(result, size, filename_native); \
     if (SEP == '\\') { \
-      BLI_str_replace_char(result, '\\', '/'); \
+      BLI_string_replace_char(result, '\\', '/'); \
     } \
     EXPECT_STREQ(result, expect); \
   } \
@@ -1215,12 +1216,12 @@ TEST(path_util, Suffix)
     const char *ref_path_test = ref_path; \
     STRNCPY(path, abs_path); \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '/', '\\'); \
+      BLI_string_replace_char(path, '/', '\\'); \
       ref_path_test = str_replace_char_strdup(ref_path_test, '/', '\\'); \
     } \
     BLI_path_rel(path, ref_path_test); \
     if (SEP == '\\') { \
-      BLI_str_replace_char(path, '\\', '/'); \
+      BLI_string_replace_char(path, '\\', '/'); \
       free((void *)ref_path_test); \
     } \
     EXPECT_STREQ(path, rel_path_expect); \

@@ -26,6 +26,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -1144,7 +1145,7 @@ static int view_layer_add_lightgroup_exec(bContext *C, wmOperator *op)
   if (RNA_struct_property_is_set(op->ptr, "name")) {
     RNA_string_get(op->ptr, "name", name);
     /* Ensure that there are no dots in the name. */
-    BLI_str_replace_char(name, '.', '_');
+    BLI_string_replace_char(name, '.', '_');
     LISTBASE_FOREACH (ViewLayerLightgroup *, lightgroup, &view_layer->lightgroups) {
       if (STREQ(lightgroup->name, name)) {
         return OPERATOR_CANCELLED;
