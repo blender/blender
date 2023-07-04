@@ -30,7 +30,6 @@
 #include <stdint.h>
 
 struct BMesh;
-struct BMLog;
 struct BMVert;
 struct BMEdge;
 struct BMFace;
@@ -54,9 +53,9 @@ struct Image;
 struct ImageUser;
 
 struct PBVHTri {
-  int v[3];       // references into PBVHTriBuf->verts
-  int eflag;      // bitmask of which edges in the tri are real edges in the mesh
-  intptr_t l[3];  // loops
+  int v[3];      /* References into PBVHTriBuf->verts. */
+  int eflag;     /* Bitmask of which edges in the tri are real edges in the mesh. */
+  intptr_t l[3]; /* Loops, currently just BMLoop pointers for now. */
   PBVHFaceRef f;
   float no[3];
 };

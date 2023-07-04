@@ -6897,21 +6897,6 @@ void SCULPT_ensure_epmap(SculptSession *ss)
                                                            ss->totedges,
                                                            ss->edge_to_poly_offsets,
                                                            ss->edge_to_poly_indices);
-=======
-  Mesh *base_mesh = BKE_mesh_from_object(object);
-
-  ss->vertex_info.boundary = BLI_BITMAP_NEW(base_mesh->totvert, "Boundary info");
-  Array<int> adjacent_faces_edge_count(base_mesh->totedge, 0);
-  array_utils::count_indices(base_mesh->corner_edges(), adjacent_faces_edge_count);
-
-  const blender::Span<int2> edges = base_mesh->edges();
-  for (const int e : edges.index_range()) {
-    if (adjacent_faces_edge_count[e] < 2) {
-      const int2 &edge = edges[e];
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[0], true);
-      BLI_BITMAP_SET(ss->vertex_info.boundary, edge[1], true);
-    }
->>>>>>> main
   }
 }
 

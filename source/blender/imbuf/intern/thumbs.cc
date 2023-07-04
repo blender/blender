@@ -20,6 +20,7 @@
 #include "BLI_string.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 #include BLI_SYSTEM_PID_H
 

@@ -807,7 +807,7 @@ static void rna_Brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
   // WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 }
 
-static void rna_Brush_dyntopo_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr) {}
+static void rna_Brush_dyntopo_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr) {}
 
 static void rna_Brush_material_update(bContext * /*C*/, PointerRNA * /*ptr*/)
 {

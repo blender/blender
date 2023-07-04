@@ -2787,8 +2787,6 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
   Vector<blender::uint3, 128> loops_idx;
   Vector<PBVHTriBuf> *tribufs = MEM_new<Vector<PBVHTriBuf>>("PBVHTriBuf tribufs");
 
-  tribufs->reserve(MAXMAT);
-
   node->flag &= ~PBVH_UpdateTris;
 
   const int edgeflag = BM_ELEM_TAG_ALT;
@@ -2934,18 +2932,14 @@ ATTR_NO_OPT bool BKE_pbvh_bmesh_check_tris(PBVH *pbvh, PBVHNode *node)
     }
 
     using Type = std::remove_reference_t<decltype(*vector.data())>;
-
 #if 1
     size_t count = vector.size();
-
-    printf("c1: %d\n", int(vector.capacity()));
 
     Vector<Type> cpy;
     cpy.reserve(count);
     cpy.extend_unchecked(vector.data(), count);
 
     vector = std::move(cpy);
-    printf("c2: %d\n", int(vector.capacity()));
 
 #else
     size_t count = vector.size();

@@ -137,7 +137,7 @@ struct UndoSculpt {
 
   size_t undo_size;
   BMLog *bm_restore;
-} UndoSculpt;
+};
 
 struct SculptAttrRef {
   eAttrDomain domain;

@@ -348,7 +348,7 @@ function(blender_link_libraries
   # NOT: "optimized libfoo libbar debug libfoo_d libbar_d"
   if(NOT "${library_deps}" STREQUAL "")
     set(next_library_mode "")
-    set(next_interface_mode "INTERFACE")
+    set(next_interface_mode "PRIVATE")
     foreach(library ${library_deps})
       string(TOLOWER "${library}" library_lower)
       if(("${library_lower}" STREQUAL "optimized") OR
