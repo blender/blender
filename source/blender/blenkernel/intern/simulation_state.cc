@@ -92,7 +92,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bak
     }
 
     bdata_sharing_ = std::make_unique<BDataSharing>();
-    cache_state_ = CacheState::Baked;
+    this->cache_state = CacheState::Baked;
   }
 }
 
@@ -246,7 +246,7 @@ void ModifierSimulationCache::reset()
   std::lock_guard lock(states_at_frames_mutex_);
   states_at_frames_.clear();
   bdata_sharing_.reset();
-  cache_state_ = CacheState::Valid;
+  this->cache_state = CacheState::Valid;
 }
 
 }  // namespace blender::bke::sim

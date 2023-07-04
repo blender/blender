@@ -165,11 +165,10 @@ class ModifierSimulationCache {
 
   friend ModifierSimulationState;
 
- public:
-  CacheState cache_state_ = CacheState::Valid;
   bool failed_finding_bake_ = false;
 
-  float last_fps_ = 0.0f;
+ public:
+  CacheState cache_state = CacheState::Valid;
 
   void try_discover_bake(StringRefNull absolute_bake_dir);
 
@@ -181,12 +180,7 @@ class ModifierSimulationCache {
 
   void invalidate()
   {
-    cache_state_ = CacheState::Invalid;
-  }
-
-  CacheState cache_state() const
-  {
-    return cache_state_;
+    this->cache_state = CacheState::Invalid;
   }
 
   void reset();
