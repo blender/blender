@@ -671,10 +671,9 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
-
-    if (key->type & invalidate_source && key->seq == seq &&
-        key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
-        key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed))
+    else if (key->type & invalidate_source && key->seq == seq &&
+             key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
+             key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed))
     {
       if (key->link_next || key->link_prev) {
         seq_cache_relink_keys(key->link_next, key->link_prev);
