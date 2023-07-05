@@ -1339,31 +1339,6 @@ void IMB_ImBufFromStereo3d(const Stereo3dFormat *s3d,
 
   imb_stereo3d_read_doit(&s3d_data, s3d);
 
-  if (ibuf_stereo3d->flags & (IB_zbuf | IB_zbuffloat)) {
-    if (is_float) {
-      addzbuffloatImBuf(ibuf_left);
-      addzbuffloatImBuf(ibuf_right);
-    }
-    else {
-      addzbufImBuf(ibuf_left);
-      addzbufImBuf(ibuf_right);
-    }
-
-    imb_stereo3d_data_init(&s3d_data,
-                           is_float,
-                           ibuf_left->x,
-                           ibuf_left->y,
-                           1,
-                           ibuf_left->z_buffer.data,
-                           ibuf_right->z_buffer.data,
-                           ibuf_stereo3d->z_buffer.data,
-                           ibuf_left->float_z_buffer.data,
-                           ibuf_right->float_z_buffer.data,
-                           ibuf_stereo3d->float_z_buffer.data);
-
-    imb_stereo3d_read_doit(&s3d_data, s3d);
-  }
-
   IMB_freeImBuf(ibuf_stereo3d);
 
   *r_ibuf_left = ibuf_left;

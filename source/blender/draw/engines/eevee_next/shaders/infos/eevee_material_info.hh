@@ -42,7 +42,7 @@ GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_GPENCIL")
     .vertex_source("eevee_geom_gpencil_vert.glsl")
-    .additional_info("draw_gpencil", "draw_resource_id_varying", "draw_resource_id_new");
+    .additional_info("draw_gpencil_new", "draw_resource_id_varying", "draw_resource_id_new");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .additional_info("eevee_shared")

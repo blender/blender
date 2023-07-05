@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-04 16:07:54\n"
 "PO-Revision-Date: 2017-08-26 11:13+0200\n"
 "Last-Translator: Mikołaj Juda <mikolaj.juda@gmail.com>\n"
 "Language: pl\n"
@@ -1014,6 +1014,10 @@ msgid "Vector Fonts"
 msgstr "Czcionki wektorowe"
 
 
+msgid "Grease Pencil"
+msgstr "Szkicownik"
+
+
 msgid "Images"
 msgstr "Obrazy"
 
@@ -1702,16 +1706,8 @@ msgid "Bone Matrix"
 msgstr "Macierz kości"
 
 
-msgid "3x3 bone matrix"
-msgstr "Macierz kości o rozmiarach 3x3"
-
-
 msgid "Bone Armature-Relative Matrix"
 msgstr "Macierz lokalna kości szkieletowych"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "Macierz 4x4 kości względna do szkieletu"
 
 
 msgid "Parent"
@@ -5191,26 +5187,6 @@ msgid "Multiplier for wave influence of this brush"
 msgstr "Mnożnik wpływu fali dla tego pędzla"
 
 
-msgid "Wave Type"
-msgstr "Rodzaj fali"
-
-
-msgid "Depth Change"
-msgstr "Zmiana głębi"
-
-
-msgid "Obstacle"
-msgstr "Przeszkoda"
-
-
-msgid "Force"
-msgstr "Siła"
-
-
-msgid "Reflect Only"
-msgstr "Tylko odbicie"
-
-
 msgid "Acceleration"
 msgstr "Przyspieszenie"
 
@@ -5309,6 +5285,10 @@ msgstr "Wciąganie"
 
 msgid "Drag effector weight"
 msgstr "Siła oddziaływania takiego jak wciąganie lub zasysanie"
+
+
+msgid "Force"
+msgstr "Siła"
 
 
 msgid "Force effector weight"
@@ -6036,12 +6016,12 @@ msgid "Size"
 msgstr "Rozmiar"
 
 
-msgid "Grease Pencil"
-msgstr "Szkicownik"
-
-
 msgid "Save"
 msgstr "Zapisz"
+
+
+msgid "Obstacle"
+msgstr "Przeszkoda"
 
 
 msgid "Time"
@@ -6379,6 +6359,10 @@ msgstr "Oś Y"
 
 msgid "Z axis"
 msgstr "Oś Z"
+
+
+msgid "Wave Type"
+msgstr "Rodzaj fali"
 
 
 msgid "Z Axis"
@@ -7648,14 +7632,6 @@ msgid "Active button not found"
 msgstr "Nie odnaleziono aktywnego przycisku"
 
 
-msgid "File '%s' cannot be opened"
-msgstr "Nie można otworzyć pliku '%s'"
-
-
-msgid "See '%s' in the text editor"
-msgstr "Patrz '%s' w edytorze tekstu"
-
-
 msgid "No valid po found for language '%s' under %s"
 msgstr "Nie odnaleziono prawidłowego 'po' dla języka '%s' pod '%s'"
 
@@ -7880,10 +7856,6 @@ msgid "Browse Particle Settings to be linked"
 msgstr "Przeglądaj dane cząstek do powiązania"
 
 
-msgid "Browse Grease Pencil Data to be linked"
-msgstr "Przeglądaj dane szkicownika do powiązania"
-
-
 msgid "Browse Movie Clip to be linked"
 msgstr "Przeglądaj klipy filmowe do powiązania"
 
@@ -7898,6 +7870,10 @@ msgstr "Przeglądaj dane palety do powiązania"
 
 msgid "Browse Paint Curve Data to be linked"
 msgstr "Przeglądaj dane krzywej malowania do powiązania"
+
+
+msgid "Browse Grease Pencil Data to be linked"
+msgstr "Przeglądaj dane szkicownika do powiązania"
 
 
 msgid "Browse ID data to be linked"
@@ -8001,10 +7977,6 @@ msgstr "Nowy"
 
 msgid "%d items"
 msgstr "%d elementów"
-
-
-msgid "No filename given"
-msgstr "Nie podano nazwy pliku"
 
 
 msgid "Can't create export file"
@@ -8914,26 +8886,6 @@ msgid "Rigid Body World has no associated physics data to export"
 msgstr "Świat Brył Sztywnych nie posiada powiązanych danych fizyki do eksportu"
 
 
-msgid "3D Local View"
-msgstr "Widok 3D Lokalny"
-
-
-msgid "Frame:%d "
-msgstr "Klatka:%d "
-
-
-msgid "| Last:%s "
-msgstr "| Ostatni:%s "
-
-
-msgid "Time:%s "
-msgstr "Czas:%s "
-
-
-msgid "| Mem:%.2fM, Peak: %.2fM "
-msgstr "| Pamięć:%.2fM, Szczyt: %.2fM "
-
-
 msgid "Cannot write a single file with an animation format selected"
 msgstr "Nie można zapisać pojedynczego pliku z wybranym formatem animacji"
 
@@ -9002,12 +8954,12 @@ msgid "Maximize Area"
 msgstr "Maksymalizuj Obszar"
 
 
-msgid "Flip to Bottom"
-msgstr "Przerzuć w dół"
-
-
 msgid "Flip to Top"
 msgstr "Przerzuć na górę"
+
+
+msgid "Flip to Bottom"
+msgstr "Przerzuć w dół"
 
 
 msgid "Can only scale region size from an action zone"
@@ -9514,10 +9466,6 @@ msgid " RGB byte"
 msgstr " bit RGB"
 
 
-msgid " + Z"
-msgstr " + Z"
-
-
 msgid "unsupported image format"
 msgstr "Nie obsługiwany format obrazu"
 
@@ -9817,6 +9765,14 @@ msgstr "Nie możliwe stat \"%s': %s"
 
 msgid "Text not found: %s"
 msgstr "Nie odnaleziono tekstu: %s"
+
+
+msgid "File '%s' cannot be opened"
+msgstr "Nie można otworzyć pliku '%s'"
+
+
+msgid "See '%s' in the text editor"
+msgstr "Patrz '%s' w edytorze tekstu"
 
 
 msgid "No Recent Files"
@@ -10898,12 +10854,12 @@ msgid "Val"
 msgstr "Val"
 
 
-msgid "Anisotropy"
-msgstr "Anizotropia"
-
-
 msgid "BSDF"
 msgstr "BSDF"
+
+
+msgid "Anisotropy"
+msgstr "Anizotropia"
 
 
 msgid "RoughnessU"

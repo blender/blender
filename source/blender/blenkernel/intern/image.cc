@@ -22,6 +22,7 @@
 #include <string>
 
 #include "BLI_array.hh"
+#include "BLI_string_utils.h"
 
 #include "CLG_log.h"
 
@@ -2549,7 +2550,7 @@ int BKE_imbuf_write(ImBuf *ibuf, const char *filepath, const ImageFormatData *im
 
   BLI_file_ensure_parent_dir_exists(filepath);
 
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect | IB_zbuf | IB_zbuffloat);
+  const bool ok = IMB_saveiff(ibuf, filepath, IB_rect);
   if (ok == 0) {
     perror(filepath);
   }
@@ -3586,11 +3587,11 @@ char *BKE_image_get_tile_strformat(const char *filepath, eUDIM_TILE_FORMAT *r_ti
 
   if (strstr(filepath, "<UDIM>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UDIM;
-    return BLI_str_replaceN(filepath, "<UDIM>", "%d");
+    return BLI_string_replaceN(filepath, "<UDIM>", "%d");
   }
   if (strstr(filepath, "<UVTILE>") != nullptr) {
     *r_tile_format = UDIM_TILE_FORMAT_UVTILE;
-    return BLI_str_replaceN(filepath, "<UVTILE>", "u%d_v%d");
+    return BLI_string_replaceN(filepath, "<UVTILE>", "u%d_v%d");
   }
 
   *r_tile_format = UDIM_TILE_FORMAT_NONE;
@@ -4319,7 +4320,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
 {
   Render *re;
   RenderView *rv;
-  RenderBuffer *combined_buffer, *z_buffer;
+  RenderBuffer *combined_buffer;
   RenderByteBuffer *byte_buffer;
   float dither;
   int channels, layer, pass;
@@ -4381,12 +4382,10 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   if (rv == nullptr) {
     byte_buffer = &rres.byte_buffer;
     combined_buffer = &rres.combined_buffer;
-    z_buffer = &rres.z_buffer;
   }
   else {
     byte_buffer = &rv->byte_buffer;
     combined_buffer = &rv->combined_buffer;
-    z_buffer = &rv->z_buffer;
   }
 
   dither = iuser->scene->r.dither_intensity;
@@ -4413,12 +4412,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
         if (pass != 0) {
           channels = rpass->channels;
           dither = 0.0f; /* don't dither passes */
-        }
-      }
-
-      for (rpass = static_cast<RenderPass *>(rl->passes.first); rpass; rpass = rpass->next) {
-        if (STREQ(rpass->name, RE_PASSNAME_Z) && rpass->view_id == actview) {
-          z_buffer = &rpass->buffer;
         }
       }
     }
@@ -4471,13 +4464,6 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser, void **r_loc
   }
   else {
     IMB_assign_float_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
-  }
-
-  if (z_buffer) {
-    IMB_assign_shared_float_z_buffer(ibuf, z_buffer->data, z_buffer->sharing_info);
-  }
-  else {
-    IMB_assign_float_z_buffer(ibuf, nullptr, IB_DO_NOT_TAKE_OWNERSHIP);
   }
 
   /* TODO(sergey): Make this faster by either simply referencing the stamp

@@ -13,7 +13,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_image_wrappers.hh"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "pbvh_intern.hh"

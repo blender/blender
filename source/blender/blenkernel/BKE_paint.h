@@ -22,6 +22,8 @@
 #include "BKE_attribute.h"
 #include "BKE_pbvh.h"
 
+#include "bmesh.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

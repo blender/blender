@@ -252,6 +252,15 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
+    use_transform_navigation: BoolProperty(
+        name="Navigate during Transform",
+        description=(
+            "Enable view navigation while using transform operators. "
+            "Proportional Influence, Automatic Constraints and Auto IK Chain Length shortcuts will require holding Alt key"),
+        default=False,
+        update=update_fn,
+    )
+
     def draw(self, layout):
         from bpy import context
 
@@ -315,6 +324,7 @@ class Prefs(bpy.types.KeyConfigPreferences):
         sub.prop(self, "use_v3d_tab_menu")
         sub.prop(self, "use_pie_click_drag")
         sub.prop(self, "use_v3d_shade_ex_pie")
+        sub.prop(self, "use_transform_navigation")
 
         # File Browser settings.
         col = layout.column()
@@ -375,6 +385,7 @@ def load():
             use_pie_click_drag=kc_prefs.use_pie_click_drag,
             use_file_single_click=kc_prefs.use_file_single_click,
             experimental=prefs.experimental,
+            use_transform_navigation=kc_prefs.use_transform_navigation,
         ),
     )
 

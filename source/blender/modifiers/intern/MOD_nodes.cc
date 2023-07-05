@@ -665,7 +665,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
   {
     /* Try to use baked data. */
     const StringRefNull bmain_path = BKE_main_blendfile_path(bmain);
-    if (simulation_cache.cache_state() != bke::sim::CacheState::Baked && !bmain_path.is_empty()) {
+    if (simulation_cache.cache_state != bke::sim::CacheState::Baked && !bmain_path.is_empty()) {
       if (!StringRef(nmd.simulation_bake_directory).is_empty()) {
         if (const char *base_path = ID_BLEND_PATH(bmain, &ctx.object->id)) {
           char absolute_bake_dir[FILE_MAX];
@@ -682,7 +682,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
     {
       /* Invalidate cached data on user edits. */
       if (nmd.modifier.flag & eModifierFlag_UserModified) {
-        if (simulation_cache.cache_state() != bke::sim::CacheState::Baked) {
+        if (simulation_cache.cache_state != bke::sim::CacheState::Baked) {
           simulation_cache.invalidate();
         }
       }
@@ -692,7 +692,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
       /* Reset cached data if necessary. */
       const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
           current_frame);
-      if (simulation_cache.cache_state() == bke::sim::CacheState::Invalid &&
+      if (simulation_cache.cache_state == bke::sim::CacheState::Invalid &&
           (current_frame == start_frame ||
            (sim_states.current == nullptr && sim_states.prev == nullptr &&
             sim_states.next != nullptr)))
@@ -703,7 +703,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
     /* Decide if a new simulation state should be created in this evaluation. */
     const bke::sim::StatesAroundFrame sim_states = simulation_cache.get_states_around_frame(
         current_frame);
-    if (simulation_cache.cache_state() != bke::sim::CacheState::Baked) {
+    if (simulation_cache.cache_state != bke::sim::CacheState::Baked) {
       if (sim_states.current == nullptr) {
         if (is_start_frame || !simulation_cache.has_states()) {
           bke::sim::ModifierSimulationState &current_sim_state =

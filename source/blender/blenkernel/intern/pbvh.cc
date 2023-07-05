@@ -29,7 +29,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "DRW_pbvh.hh"
@@ -41,6 +41,8 @@
 #include "atomic_ops.h"
 
 #include "pbvh_intern.hh"
+
+#include <cmath>
 
 using blender::float3;
 using blender::MutableSpan;
@@ -2689,8 +2691,9 @@ void BKE_pbvh_raycast_project_ray_root(
     float bb_min_root[3], bb_max_root[3], bb_center[3], bb_diff[3];
     IsectRayAABB_Precalc ray;
     float ray_normal_inv[3];
-    float offset = 1.0f + 1e-3f;
-    const float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
+    const float margin = 1e-3;
+    float offset = 1.0f + margin;
+    const float offset_vec[3] = {margin, margin, margin};
 
     if (original) {
       BKE_pbvh_node_get_original_BB(pbvh->nodes, bb_min_root, bb_max_root);
@@ -2721,6 +2724,20 @@ void BKE_pbvh_raycast_project_ray_root(
     /* unlikely to fail exiting if entering succeeded, still keep this here */
     if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_end)) {
       return;
+    }
+
+    if (rootmin_end <= rootmin_start) {
+      /* Small object sizes can led to floating-point overflow
+       * when trying to add a reasonably small margin, e.g. 1e-3.
+       * This happens when initializing rays by the viewport clipping
+       * bounds, which are then divided by the object's scale.
+       * So if the clip end if 10000 and we divide by 0.00001 we
+       * get a really large number that we canned add 1e-3 (0.001) to.
+       *
+       * To solve this, we compute a margin using the next possible floating
+       * point value after ray start. */
+      float epsilon = std::nextafterf(rootmin_start, rootmin_start + 1.0f) - rootmin_start;
+      rootmin_end = rootmin_start + epsilon * 500.0f;
     }
 
     madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);

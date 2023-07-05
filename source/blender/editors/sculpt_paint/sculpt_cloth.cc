@@ -29,7 +29,7 @@
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

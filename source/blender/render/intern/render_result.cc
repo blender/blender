@@ -56,7 +56,6 @@ static void render_result_views_free(RenderResult *rr)
 
     RE_RenderByteBuffer_data_free(&rv->byte_buffer);
     RE_RenderBuffer_data_free(&rv->combined_buffer);
-    RE_RenderBuffer_data_free(&rv->z_buffer);
 
     MEM_freeN(rv);
   }
@@ -88,7 +87,6 @@ void render_result_free(RenderResult *rr)
 
   RE_RenderByteBuffer_data_free(&rr->byte_buffer);
   RE_RenderBuffer_data_free(&rr->combined_buffer);
-  RE_RenderBuffer_data_free(&rr->z_buffer);
 
   if (rr->text) {
     MEM_freeN(rr->text);
@@ -146,7 +144,6 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
     STRNCPY(rv->name, rview->name);
 
     rv->combined_buffer = rview->combined_buffer;
-    rv->z_buffer = rview->z_buffer;
     rv->byte_buffer = rview->byte_buffer;
   }
 }
@@ -1003,7 +1000,6 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   /* if not exists, BKE_imbuf_write makes one */
   IMB_assign_shared_byte_buffer(ibuf, rv->byte_buffer.data, rv->byte_buffer.sharing_info);
   IMB_assign_shared_float_buffer(ibuf, rv->combined_buffer.data, rv->combined_buffer.sharing_info);
-  IMB_assign_shared_float_z_buffer(ibuf, rv->z_buffer.data, rv->z_buffer.sharing_info);
 
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;
@@ -1207,17 +1203,11 @@ static RenderView *duplicate_render_view(RenderView *rview)
 
   /* Reset buffers, they are not supposed to be shallow-coped. */
   new_rview->combined_buffer = {};
-  new_rview->z_buffer = {};
   new_rview->byte_buffer = {};
 
   if (rview->combined_buffer.data != nullptr) {
     RE_RenderBuffer_assign_data(&new_rview->combined_buffer,
                                 static_cast<float *>(MEM_dupallocN(rview->combined_buffer.data)));
-  }
-
-  if (rview->z_buffer.data != nullptr) {
-    RE_RenderBuffer_assign_data(&new_rview->z_buffer,
-                                static_cast<float *>(MEM_dupallocN(rview->z_buffer.data)));
   }
 
   if (rview->byte_buffer.data != nullptr) {
@@ -1245,16 +1235,11 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
 
   /* Reset buffers, they are not supposed to be shallow-coped. */
   new_rr->combined_buffer = {};
-  new_rr->z_buffer = {};
   new_rr->byte_buffer = {};
 
   if (rr->combined_buffer.data) {
     RE_RenderBuffer_assign_data(&new_rr->combined_buffer,
                                 static_cast<float *>(MEM_dupallocN(rr->combined_buffer.data)));
-  }
-  if (rr->z_buffer.data) {
-    RE_RenderBuffer_assign_data(&new_rr->z_buffer,
-                                static_cast<float *>(MEM_dupallocN(rr->z_buffer.data)));
   }
   if (rr->byte_buffer.data) {
     RE_RenderByteBuffer_assign_data(&new_rr->byte_buffer,

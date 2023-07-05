@@ -50,10 +50,32 @@ bool editable_grease_pencil_point_selection_poll(bContext *C)
   return (ts->gpencil_selectmode_edit != GP_SELECTMODE_STROKE);
 }
 
+bool grease_pencil_painting_poll(bContext *C)
+{
+  if (!active_grease_pencil_poll(C)) {
+    return false;
+  }
+  Object *object = CTX_data_active_object(C);
+  if ((object->mode & OB_MODE_PAINT_GREASE_PENCIL) == 0) {
+    return false;
+  }
+  ToolSettings *ts = CTX_data_tool_settings(C);
+  if (!ts || !ts->gp_paint) {
+    return false;
+  }
+  return true;
+}
+
 static void keymap_grease_pencil_editing(wmKeyConfig *keyconf)
 {
   wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Edit Mode", 0, 0);
   keymap->poll = editable_grease_pencil_poll;
+}
+
+static void keymap_grease_pencil_painting(wmKeyConfig *keyconf)
+{
+  wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Paint Mode", 0, 0);
+  keymap->poll = grease_pencil_painting_poll;
 }
 
 }  // namespace blender::ed::greasepencil
@@ -62,4 +84,5 @@ void ED_keymap_grease_pencil(wmKeyConfig *keyconf)
 {
   using namespace blender::ed::greasepencil;
   keymap_grease_pencil_editing(keyconf);
+  keymap_grease_pencil_painting(keyconf);
 }

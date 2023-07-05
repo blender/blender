@@ -5027,6 +5027,45 @@ static bool mball_circle_select(ViewContext *vc,
   return data.is_changed;
 }
 
+static bool grease_pencil_circle_select(ViewContext *vc,
+                                        const eSelectOp sel_op,
+                                        const int mval[2],
+                                        const float rad)
+{
+  using namespace blender;
+  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph,
+                                                   const_cast<Object *>(vc->obedit));
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc->obedit->data);
+
+  /* Get selection domain from tool settings. */
+  const eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(vc->C);
+
+  bool changed = false;
+  grease_pencil.foreach_editable_drawing(
+      vc->scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
+        bke::crazyspace::GeometryDeformation deformation =
+            bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+                ob_eval, *vc->obedit, drawing_index);
+
+        changed = ed::curves::select_circle(*vc,
+                                            drawing.strokes_for_write(),
+                                            deformation.positions,
+                                            selection_domain,
+                                            int2(mval),
+                                            rad,
+                                            sel_op);
+      });
+
+  if (changed) {
+    /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a
+     * generic attribute for now. */
+    DEG_id_tag_update(static_cast<ID *>(vc->obedit->data), ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(vc->C, NC_GEOM | ND_DATA, vc->obedit->data);
+  }
+
+  return changed;
+}
+
 /**
  * Callbacks for circle selection in Editmode
  */
@@ -5080,6 +5119,9 @@ static bool obedit_circle_select(bContext *C,
       }
       break;
     }
+    case OB_GREASE_PENCIL:
+      changed = grease_pencil_circle_select(vc, sel_op, mval, rad);
+      break;
 
     default:
       BLI_assert(0);

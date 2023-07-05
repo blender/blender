@@ -927,7 +927,7 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
 
     for (const int i : input_tooltips.index_range()) {
       const blender::StringRef tooltip = input_tooltips[i];
-      ss << "\u2022 " << TIP_(tooltip.data());
+      ss << fmt::format(TIP_("\u2022 {}"), TIP_(tooltip.data()));
       if (i < input_tooltips.size() - 1) {
         ss << ".\n";
       }
@@ -1920,7 +1920,7 @@ static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
     const geo_log::NamedAttributeUsage usage = attribute.usage;
-    ss << "  \u2022 \"" << name << "\": ";
+    ss << fmt::format(TIP_("  \u2022 \"{}\": "), std::string_view(name));
     Vector<std::string> usages;
     if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
       usages.append(TIP_("read"));

@@ -463,6 +463,7 @@ set(SRC
   BKE_paint.h
   BKE_particle.h
   BKE_pbvh.h
+  BKE_pbvh_api.hh
   BKE_pbvh_pixels.hh
   BKE_pointcache.h
   BKE_pointcloud.h

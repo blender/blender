@@ -25,7 +25,8 @@ std::map<int, MetalDevice *> MetalDevice::active_device_ids;
 
 /* Thread-safe device access for async work. Calling code must pass an appropriately scoped lock
  * to existing_devices_mutex to safeguard against destruction of the returned instance. */
-MetalDevice *MetalDevice::get_device_by_ID(int ID, thread_scoped_lock &existing_devices_mutex_lock)
+MetalDevice *MetalDevice::get_device_by_ID(int ID,
+                                           thread_scoped_lock & /*existing_devices_mutex_lock*/)
 {
   auto it = active_device_ids.find(ID);
   if (it != active_device_ids.end()) {
@@ -288,12 +289,12 @@ MetalDevice::~MetalDevice()
   texture_info.free();
 }
 
-bool MetalDevice::support_device(const uint kernel_features /*requested_features*/)
+bool MetalDevice::support_device(const uint /*kernel_features*/)
 {
   return true;
 }
 
-bool MetalDevice::check_peer_access(Device *peer_device)
+bool MetalDevice::check_peer_access(Device * /*peer_device*/)
 {
   assert(0);
   /* does peer access make sense? */
@@ -913,7 +914,9 @@ void MetalDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr MetalDevice::mem_alloc_sub_ptr(device_memory & /*mem*/,
+                                          size_t /*offset*/,
+                                          size_t /*size*/)
 {
   /* METAL_WIP - revive if necessary */
   assert(0);

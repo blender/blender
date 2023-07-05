@@ -18,7 +18,7 @@ if(WIN32)
   # Some files in extern are being included which brings up a bunch of
   # "unreferenced formal parameter" warnings.
   # So restore warn C4100 (unreferenced formal parameter) back to w4
-  remove_cc_flag(/w34100)
+  remove_cc_flag("/w34100")
 endif()
 
 

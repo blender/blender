@@ -18,6 +18,7 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
 #include "BLI_system.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -241,7 +242,7 @@ static bool uri_from_filename(const char *path, char *uri)
     /* Not a correct absolute path with a drive letter or UNC prefix. */
     return false;
   }
-  BLI_str_replace_char(orig_uri, '\\', '/');
+  BLI_string_replace_char(orig_uri, '\\', '/');
 #else
   SNPRINTF(orig_uri, "file://%s", path);
 #endif

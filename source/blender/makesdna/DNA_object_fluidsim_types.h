@@ -69,7 +69,7 @@ typedef struct FluidsimSettings {
   char surfdataPath[1024];
 
   /* store start coords of axis aligned bounding box together with size */
-  /* values are inited during derived mesh display */
+  /* values are initialized during derived mesh display. */
   float bbStart[3], bbSize[3];
 
   /* animated params */

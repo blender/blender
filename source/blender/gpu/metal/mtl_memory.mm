@@ -204,7 +204,7 @@ gpu::MTLBuffer *MTLBufferPool::allocate_aligned(uint64_t size,
 }
 
 gpu::MTLBuffer *MTLBufferPool::allocate_aligned_with_data(uint64_t size,
-                                                          uint32_t alignment,
+                                                          uint32_t /*alignment*/,
                                                           bool cpu_visible,
                                                           const void *data)
 {

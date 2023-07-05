@@ -120,8 +120,8 @@ ccl_device_forceinline float3 microfacet_beckmann_sample_vndf(const float3 wi,
     /* Sample slope X.
      *
      * Compute a coarse approximation using the approximation:
-     *   exp(-ierf(x)^2) ~= 1 - x * x
-     *   solve y = 1 + b + K * (1 - b * b)
+     * `exp(-ierf(x)^2) ~= 1 - x * x`
+     * `solve y = 1 + b + K * (1 - b * b)`
      */
     const float K = tan_theta_i * SQRT_PI_INV;
     const float y_approx = rand.x * (1.0f + erf_a + K * (1 - erf_a * erf_a));

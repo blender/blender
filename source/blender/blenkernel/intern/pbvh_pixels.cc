@@ -6,7 +6,7 @@
 #include "BKE_customdata.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_pbvh_pixels.hh"
 
 #include "DNA_image_types.h"

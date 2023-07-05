@@ -308,7 +308,7 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 
   /*  Surface format */
   static const EnumPropertyItem prop_dynamicpaint_surface_format[] = {
-      /*{MOD_DPAINT_SURFACE_F_PTEX, "PTEX", ICON_TEXTURE_SHADED, "Ptex", ""}, */
+      // {MOD_DPAINT_SURFACE_F_PTEX, "PTEX", ICON_TEXTURE_SHADED, "Ptex", ""},
       {MOD_DPAINT_SURFACE_F_VERTEX, "VERTEX", ICON_OUTLINER_DATA_MESH, "Vertex", ""},
       {MOD_DPAINT_SURFACE_F_IMAGESEQ, "IMAGE", ICON_FILE_IMAGE, "Image Sequence", ""},
       {0, nullptr, 0, nullptr, nullptr},

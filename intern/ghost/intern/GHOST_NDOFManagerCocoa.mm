@@ -153,7 +153,7 @@ static void unload_driver()
   dlclose(module);
 }
 
-static void DeviceAdded(uint32_t unused)
+static void DeviceAdded(uint32_t /*unused*/)
 {
 #if DEBUG_NDOF_DRIVER
   printf("ndof: device added\n");
@@ -168,14 +168,14 @@ static void DeviceAdded(uint32_t unused)
   ndof_manager->setDevice(vendorID, productID);
 }
 
-static void DeviceRemoved(uint32_t unused)
+static void DeviceRemoved(uint32_t /*unused*/)
 {
 #if DEBUG_NDOF_DRIVER
   printf("ndof: device removed\n");
 #endif
 }
 
-static void DeviceEvent(uint32_t unused, uint32_t msg_type, void *msg_arg)
+static void DeviceEvent(uint32_t /*unused*/, uint32_t msg_type, void *msg_arg)
 {
   if (msg_type == kConnexionMsgDeviceState) {
     ConnexionDeviceState *s = (ConnexionDeviceState *)msg_arg;

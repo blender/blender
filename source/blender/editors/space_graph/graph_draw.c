@@ -835,8 +835,9 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
   return min_ii(resolution, max_bez_resolution);
 }
 
-/** Draw a segment from \param prevbezt to \param bezt at the given \param resolution.
- * immBeginAtMost is expected to be called with enough space for this function to run.
+/**
+ * Draw a segment from `prevbezt` to `bezt` at the given `resolution`.
+ * #immBeginAtMost is expected to be called with enough space for this function to run.
  */
 static void draw_bezt(BezTriple *bezt, BezTriple *prevbezt, int resolution, uint pos)
 {

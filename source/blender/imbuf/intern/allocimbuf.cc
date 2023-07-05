@@ -237,34 +237,10 @@ static void freeencodedbufferImBuf(ImBuf *ibuf)
   ibuf->flags &= ~IB_mem;
 }
 
-void IMB_freezbufImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return;
-  }
-
-  imb_free_buffer(ibuf->z_buffer);
-
-  ibuf->flags &= ~IB_zbuf;
-}
-
-void IMB_freezbuffloatImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return;
-  }
-
-  imb_free_buffer(ibuf->float_z_buffer);
-
-  ibuf->flags &= ~IB_zbuffloat;
-}
-
 void imb_freerectImbuf_all(ImBuf *ibuf)
 {
   imb_freerectImBuf(ibuf);
   imb_freerectfloatImBuf(ibuf);
-  IMB_freezbufImBuf(ibuf);
-  IMB_freezbuffloatImBuf(ibuf);
   freeencodedbufferImBuf(ibuf);
 }
 
@@ -329,40 +305,6 @@ ImBuf *IMB_makeSingleUser(ImBuf *ibuf)
   IMB_freeImBuf(ibuf);
 
   return rval;
-}
-
-bool addzbufImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  IMB_freezbufImBuf(ibuf);
-
-  if (!imb_alloc_buffer(ibuf->z_buffer, ibuf->x, ibuf->y, 1, sizeof(uint))) {
-    return false;
-  }
-
-  ibuf->flags |= IB_zbuf;
-
-  return false;
-}
-
-bool addzbuffloatImBuf(ImBuf *ibuf)
-{
-  if (ibuf == nullptr) {
-    return false;
-  }
-
-  IMB_freezbuffloatImBuf(ibuf);
-
-  if (!imb_alloc_buffer(ibuf->float_z_buffer, ibuf->x, ibuf->y, 1, sizeof(float))) {
-    return false;
-  }
-
-  ibuf->flags |= IB_zbuffloat;
-
-  return true;
 }
 
 bool imb_addencodedbufferImBuf(ImBuf *ibuf)
@@ -478,10 +420,6 @@ bool imb_addrectImBuf(ImBuf *ibuf)
 
   ibuf->flags |= IB_rect;
 
-  if (ibuf->planes > 32) {
-    return addzbufImBuf(ibuf);
-  }
-
   return true;
 }
 
@@ -547,19 +485,6 @@ void IMB_assign_shared_float_buffer(ImBuf *ibuf,
   }
 }
 
-void IMB_assign_shared_float_z_buffer(ImBuf *ibuf,
-                                      float *buffer_data,
-                                      const ImplicitSharingInfoHandle *implicit_sharing)
-{
-  imb_free_buffer(ibuf->float_z_buffer);
-  ibuf->flags &= ~IB_zbuffloat;
-
-  if (buffer_data) {
-    imb_assign_shared_buffer(ibuf->float_z_buffer, buffer_data, implicit_sharing);
-    ibuf->flags |= IB_zbuffloat;
-  }
-}
-
 void IMB_assign_byte_buffer(ImBuf *ibuf, uint8_t *buffer_data, const ImBufOwnership ownership)
 {
   imb_free_buffer(ibuf->byte_buffer);
@@ -583,32 +508,6 @@ void IMB_assign_float_buffer(ImBuf *ibuf, float *buffer_data, const ImBufOwnersh
     ibuf->float_buffer.ownership = ownership;
 
     ibuf->flags |= IB_rectfloat;
-  }
-}
-
-void IMB_assign_z_buffer(ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership)
-{
-  imb_free_buffer(ibuf->z_buffer);
-  ibuf->flags &= ~IB_zbuf;
-
-  if (buffer_data) {
-    ibuf->z_buffer.ownership = ownership;
-    ibuf->z_buffer.data = buffer_data;
-
-    ibuf->flags |= IB_zbuf;
-  }
-}
-
-void IMB_assign_float_z_buffer(ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership)
-{
-  imb_free_buffer(ibuf->float_z_buffer);
-  ibuf->flags &= ~IB_zbuffloat;
-
-  if (buffer_data) {
-    ibuf->float_z_buffer.ownership = ownership;
-    ibuf->float_z_buffer.data = buffer_data;
-
-    ibuf->flags |= IB_zbuffloat;
   }
 }
 
@@ -711,18 +610,6 @@ bool IMB_initImBuf(ImBuf *ibuf, uint x, uint y, uchar planes, uint flags)
     }
   }
 
-  if (flags & IB_zbuf) {
-    if (addzbufImBuf(ibuf) == false) {
-      return false;
-    }
-  }
-
-  if (flags & IB_zbuffloat) {
-    if (addzbuffloatImBuf(ibuf) == false) {
-      return false;
-    }
-  }
-
   /* assign default spaces */
   colormanage_imbuf_set_default_spaces(ibuf);
 
@@ -747,12 +634,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   if (ibuf1->float_buffer.data) {
     flags |= IB_rectfloat;
   }
-  if (ibuf1->z_buffer.data) {
-    flags |= IB_zbuf;
-  }
-  if (ibuf1->float_z_buffer.data) {
-    flags |= IB_zbuffloat;
-  }
 
   x = ibuf1->x;
   y = ibuf1->y;
@@ -770,14 +651,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
     memcpy(ibuf2->float_buffer.data,
            ibuf1->float_buffer.data,
            size_t(ibuf1->channels) * x * y * sizeof(float));
-  }
-
-  if (flags & IB_zbuf) {
-    memcpy(ibuf2->z_buffer.data, ibuf1->z_buffer.data, size_t(x) * y * sizeof(int));
-  }
-
-  if (flags & IB_zbuffloat) {
-    memcpy(ibuf2->float_buffer.data, ibuf1->float_buffer.data, size_t(x) * y * sizeof(float));
   }
 
   if (ibuf1->encoded_buffer.data) {
@@ -800,8 +673,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
   tbuf.byte_buffer = ibuf2->byte_buffer;
   tbuf.float_buffer = ibuf2->float_buffer;
   tbuf.encoded_buffer = ibuf2->encoded_buffer;
-  tbuf.z_buffer = ibuf2->z_buffer;
-  tbuf.float_z_buffer = ibuf2->float_z_buffer;
   for (a = 0; a < IMB_MIPMAP_LEVELS; a++) {
     tbuf.mipmap[a] = nullptr;
   }

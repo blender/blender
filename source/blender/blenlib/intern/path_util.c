@@ -18,6 +18,7 @@
 #include "BLI_path_util.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
 
 #ifdef WIN32
@@ -723,8 +724,8 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
   STRNCPY(temp, basepath);
 #endif
 
-  BLI_str_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
-  BLI_str_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
+  BLI_string_replace_char(temp + BLI_path_unc_prefix_len(temp), '\\', '/');
+  BLI_string_replace_char(path + BLI_path_unc_prefix_len(path), '\\', '/');
 
   /* Remove `/./` which confuse the following slash counting. */
   BLI_path_normalize(path);
@@ -790,7 +791,7 @@ void BLI_path_rel(char path[FILE_MAX], const char *basepath)
     r += BLI_strncpy_rlen(r, q + 1, sizeof(res) - (r - res));
 
 #ifdef WIN32
-    BLI_str_replace_char(res + 2, '/', '\\');
+    BLI_string_replace_char(res + 2, '/', '\\');
 #endif
     BLI_strncpy(path, res, FILE_MAX);
   }
@@ -964,7 +965,7 @@ bool BLI_path_frame(char *path, size_t path_maxncpy, int frame, int digits)
     char frame_str[FILENAME_FRAME_CHARS_MAX + 1]; /* One for null. */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
     SNPRINTF(frame_str, "%.*d", ch_span, frame);
-    BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
+    BLI_string_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
   return false;
@@ -984,7 +985,7 @@ bool BLI_path_frame_range(char *path, size_t path_maxncpy, int sta, int end, int
     char frame_str[(FILENAME_FRAME_CHARS_MAX * 2) + 1 + 1]; /* One for null, one for the '-' */
     const int ch_span = MIN2(ch_end - ch_sta, FILENAME_FRAME_CHARS_MAX);
     SNPRINTF(frame_str, "%.*d-%.*d", ch_span, sta, ch_span, end);
-    BLI_str_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
+    BLI_string_replace_range(path, path_maxncpy, ch_sta, ch_end, frame_str);
     return true;
   }
   return false;
@@ -1066,7 +1067,7 @@ void BLI_path_to_display_name(char *display_name, int display_name_maxncpy, cons
   BLI_strncpy(display_name, name + strip_offset, display_name_maxncpy);
 
   /* Replace underscores with spaces. */
-  BLI_str_replace_char(display_name, '_', ' ');
+  BLI_string_replace_char(display_name, '_', ' ');
 
   BLI_path_extension_strip(display_name);
 
@@ -1150,7 +1151,7 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
    * NOTE(@elubie): For UNC paths the first characters containing the UNC prefix
    * shouldn't be switched as we need to distinguish them from
    * paths relative to the `.blend` file. */
-  BLI_str_replace_char(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
+  BLI_string_replace_char(tmp + BLI_path_unc_prefix_len(tmp), '\\', '/');
 
   /* Paths starting with `//` will get the blend file as their base,
    * this isn't standard in any OS but is used in blender all over the place. */
@@ -1161,7 +1162,7 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
     /* File component is ignored, so don't bother with the trailing slash. */
     BLI_path_normalize(base);
     lslash = BLI_path_slash_rfind(base);
-    BLI_str_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
+    BLI_string_replace_char(base + BLI_path_unc_prefix_len(base), '\\', '/');
 
     if (lslash) {
       /* Length up to and including last `/`. */
@@ -1187,7 +1188,7 @@ bool BLI_path_abs(char path[FILE_MAX], const char *basepath)
   /* NOTE(@jesterking): Skip first two chars, which in case of absolute path will
    * be `drive:/blabla` and in case of `relpath` `//blabla/`.
    * So `relpath` `//` will be retained, rest will be nice and shiny WIN32 backward slashes. */
-  BLI_str_replace_char(path + 2, '/', '\\');
+  BLI_string_replace_char(path + 2, '/', '\\');
 #endif
 
   /* Ensure this is after correcting for path switch. */
@@ -1968,10 +1969,10 @@ void BLI_path_slash_native(char *path)
 {
 #ifdef WIN32
   if (path && BLI_strnlen(path, 3) > 2) {
-    BLI_str_replace_char(path + 2, ALTSEP, SEP);
+    BLI_string_replace_char(path + 2, ALTSEP, SEP);
   }
 #else
-  BLI_str_replace_char(path + BLI_path_unc_prefix_len(path), ALTSEP, SEP);
+  BLI_string_replace_char(path + BLI_path_unc_prefix_len(path), ALTSEP, SEP);
 #endif
 }
 

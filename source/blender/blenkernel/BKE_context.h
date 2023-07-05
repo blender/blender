@@ -105,6 +105,10 @@ struct bContextStore {
   bool used = false;
 };
 
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+
 #endif
 
 /* for the context's rna mode enum
@@ -133,8 +137,9 @@ typedef enum eContextObjectMode {
   CTX_MODE_WEIGHT_GPENCIL_LEGACY,
   CTX_MODE_VERTEX_GPENCIL_LEGACY,
   CTX_MODE_SCULPT_CURVES,
+  CTX_MODE_PAINT_GREASE_PENCIL,
 } eContextObjectMode;
-#define CTX_MODE_NUM (CTX_MODE_SCULPT_CURVES + 1)
+#define CTX_MODE_NUM (CTX_MODE_PAINT_GREASE_PENCIL + 1)
 
 /* Context */
 
@@ -399,7 +404,9 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
-struct AssetRepresentation *CTX_wm_asset(const bContext *C);
+#ifdef __cplusplus
+class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
+#endif
 
 bool CTX_wm_interface_locked(const bContext *C);
 

@@ -28,13 +28,13 @@ using namespace blender;
  * \{ */
 
 struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
-  /* Loose Verts, Edges, Tris. */
+  /* Loose Verts, Edges, Triangles. */
   BVHTree *bvhtree[3];
   bool cached[3];
 
   struct BMEditMesh *em;
 
-  /** Default callbacks to BVH nearest and ray-cast used only for tris. */
+  /** Default callbacks to BVH nearest and ray-cast used only for triangles. */
   BVHTree_NearestPointCallback nearest_callback;
   BVHTree_RayCastCallback raycast_callback;
 
@@ -291,25 +291,19 @@ static void editmesh_looptri_raycast_backface_culling_cb(void *userdata,
 static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
                             SnapObjectContext *sctx,
                             BMEditMesh *em,
-                            const float obmat[4][4],
+                            const float4x4 &obmat,
                             const uint ob_index)
 {
   bool retval = false;
 
-  float imat[4][4];
-  float ray_start_local[3], ray_normal_local[3];
+  float4x4 imat = math::invert(obmat);
+  float3 ray_start_local = math::transform_point(imat, sctx->runtime.ray_start);
+  float3 ray_normal_local = math::transform_direction(imat, sctx->runtime.ray_dir);
   float local_scale, local_depth, len_diff = 0.0f;
 
-  invert_m4_m4(imat, obmat);
-
-  copy_v3_v3(ray_start_local, sctx->runtime.ray_start);
-  copy_v3_v3(ray_normal_local, sctx->runtime.ray_dir);
-
-  mul_m4_v3(imat, ray_start_local);
-  mul_mat3_m4_v3(imat, ray_normal_local);
-
   /* local scale in normal direction */
-  local_scale = normalize_v3(ray_normal_local);
+  ray_normal_local = math::normalize_and_get_length(ray_normal_local, local_scale);
+
   local_depth = sctx->ret.ray_depth_max;
   if (local_depth != BVH_RAYCAST_DIST_MAX) {
     local_depth *= local_scale;
@@ -345,7 +339,7 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
 
     data.bvhdata = em;
     data.raycast_callback = em_cache->raycast_callback;
-    data.obmat = obmat;
+    data.obmat = &obmat;
     data.len_diff = len_diff;
     data.local_scale = local_scale;
     data.ob_uuid = ob_index;
@@ -380,13 +374,8 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
       hit.dist += len_diff;
       hit.dist /= local_scale;
       if (hit.dist <= sctx->ret.ray_depth_max) {
-        copy_v3_v3(sctx->ret.loc, hit.co);
-        copy_v3_v3(sctx->ret.no, hit.no);
-
-        mul_m4_v3(obmat, sctx->ret.loc);
-
-        mul_transposed_mat3_m4_v3(imat, sctx->ret.no);
-        normalize_v3(sctx->ret.no);
+        sctx->ret.loc = math::transform_point(obmat, float3(hit.co));
+        sctx->ret.no = math::normalize(math::transform_direction(obmat, float3(hit.no)));
 
         sctx->ret.ray_depth_max = hit.dist;
 
@@ -472,14 +461,14 @@ class SnapData_EditMesh : public SnapData {
 eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
                                 Object *ob_eval,
                                 const ID * /*id*/,
-                                const float obmat[4][4],
+                                const float4x4 &obmat,
                                 eSnapMode snap_to_flag,
                                 int polygon)
 {
   eSnapMode elem = SCE_SNAP_TO_NONE;
 
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-  SnapData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
+  SnapData_EditMesh nearest2d(sctx, em->bm, obmat);
   nearest2d.clip_planes_enable(sctx);
 
   BVHTreeNearest nearest{};
@@ -529,12 +518,12 @@ eSnapMode snap_polygon_editmesh(SnapObjectContext *sctx,
 eSnapMode snap_edge_points_editmesh(SnapObjectContext *sctx,
                                     Object *ob_eval,
                                     const ID * /*id*/,
-                                    const float obmat[4][4],
+                                    const float4x4 &obmat,
                                     float dist_pex_sq_orig,
                                     int edge)
 {
   BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-  SnapData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
+  SnapData_EditMesh nearest2d(sctx, em->bm, obmat);
   eSnapMode elem = nearest2d.snap_edge_points_impl(sctx, edge, dist_pex_sq_orig);
   if (nearest2d.nearest_point.index != -2) {
     nearest2d.register_result(sctx, ob_eval, nullptr);
@@ -546,12 +535,12 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
                               SnapObjectContext *sctx,
                               Object *ob_eval,
                               BMEditMesh *em,
-                              const float obmat[4][4],
+                              const float4x4 &obmat,
                               eSnapMode snap_to_flag)
 {
   BLI_assert(snap_to_flag != SCE_SNAP_TO_FACE);
 
-  SnapData_EditMesh nearest2d(sctx, em->bm, float4x4(obmat));
+  SnapData_EditMesh nearest2d(sctx, em->bm, obmat);
 
   /* Was BKE_boundbox_ray_hit_check, see: cf6ca226fa58. */
   if (!nearest2d.snap_boundbox(em_cache->min, em_cache->max)) {
@@ -681,7 +670,7 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
 eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
                                Object *ob_eval,
                                const ID * /*id*/,
-                               const float obmat[4][4],
+                               const float4x4 &obmat,
                                eSnapMode snap_to_flag,
                                bool /*use_hide*/)
 {
@@ -708,7 +697,7 @@ eSnapMode snap_object_editmesh(SnapObjectContext *sctx,
   }
 
   if (snap_mode_used & SCE_SNAP_INDIVIDUAL_NEAREST) {
-    if (nearest_world_editmesh(em_cache, sctx, ob_eval, em, float4x4(obmat))) {
+    if (nearest_world_editmesh(em_cache, sctx, ob_eval, em, obmat)) {
       return SCE_SNAP_INDIVIDUAL_NEAREST;
     }
   }

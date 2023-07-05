@@ -2577,7 +2577,9 @@ static uint dupliobject_instancer_hash(const void *ptr)
   return hash;
 }
 
-/* Compare function that matches dupliobject_hash */
+/**
+ * Compare function that matches #dupliobject_hash.
+ */
 static bool dupliobject_cmp(const void *a_, const void *b_)
 {
   const DupliObject *a = static_cast<const DupliObject *>(a_);

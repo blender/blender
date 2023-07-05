@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_listBase.h"
 
@@ -128,6 +129,9 @@ typedef struct GreasePencilDrawingReference {
  */
 typedef enum GreasePencilFrameFlag {
   GP_FRAME_SELECTED = (1 << 0),
+  /* When set, the frame is implicitly held until the next frame. E.g. it doesn't have a fixed
+   * duration. */
+  GP_FRAME_IMPLICIT_HOLD = (1 << 1),
 } GreasePencilFrameFlag;
 
 /**
@@ -148,6 +152,11 @@ typedef struct GreasePencilFrame {
    */
   int8_t type;
   char _pad[3];
+#ifdef __cplusplus
+  static GreasePencilFrame null();
+  bool is_null() const;
+  bool is_implicit_hold() const;
+#endif
 } GreasePencilFrame;
 
 typedef enum GreasePencilLayerFramesMapStorageFlag {
@@ -475,6 +484,11 @@ typedef struct GreasePencil {
   void remove_layer(blender::bke::greasepencil::Layer &layer);
 
   void add_empty_drawings(int add_num);
+  bool insert_blank_frame(blender::bke::greasepencil::Layer &layer,
+                          int frame_number,
+                          int duration,
+                          eBezTriple_KeyframeType keytype);
+
   void remove_drawing(int index);
 
   void foreach_visible_drawing(

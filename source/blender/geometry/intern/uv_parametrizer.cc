@@ -3661,8 +3661,10 @@ ParamHandle::~ParamHandle()
   }
   MEM_SAFE_FREE(charts);
 
-  BLI_rng_free(rng);
-  rng = nullptr;
+  if (rng) {
+    BLI_rng_free(rng);
+    rng = nullptr;
+  }
 }
 
 void uv_parametrizer_aspect_ratio(ParamHandle *phandle, const float aspect_y)

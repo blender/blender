@@ -63,7 +63,7 @@ static void node_composit_init_keying(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_keying(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  /* bNode *node = (bNode*)ptr->data; */ /* UNUSED */
+  // bNode *node = (bNode*)ptr->data; /* UNUSED */
 
   uiItemR(layout, ptr, "blur_pre", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "screen_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);

@@ -76,6 +76,22 @@ static int file_older(const char *file1, const char *file2)
 }
 static const char *makesrna_path = NULL;
 
+static const char *path_basename(const char *path)
+{
+  const char *lfslash, *lbslash;
+
+  lfslash = strrchr(path, '/');
+  lbslash = strrchr(path, '\\');
+  if (lbslash) {
+    lbslash++;
+  }
+  if (lfslash) {
+    lfslash++;
+  }
+
+  return MAX3(path, lfslash, lbslash);
+}
+
 /* forward declarations */
 static void rna_generate_static_parameter_prototypes(FILE *f,
                                                      StructRNA *srna,
@@ -139,9 +155,12 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   char *arr_new, *arr_org;
   int cmp;
 
+  const char *makesrna_source_filepath = __FILE__;
+  const char *makesrna_source_filename = path_basename(makesrna_source_filepath);
+
   char orgfile[4096];
 
-  strcpy(orgfile, tmpfile);
+  STRNCPY(orgfile, tmpfile);
   orgfile[strlen(orgfile) - strlen(TMP_EXT)] = '\0'; /* Strip `.tmp`. */
 
   fp_org = fopen(orgfile, "rb");
@@ -161,7 +180,7 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
   if (1) {
     /* First check if `makesrna.c` is newer than generated files.
      * For development on `makesrna.c` you may want to disable this. */
-    if (file_older(orgfile, __FILE__)) {
+    if (file_older(orgfile, makesrna_source_filepath)) {
       REN_IF_DIFF;
     }
 
@@ -173,13 +192,13 @@ static int replace_if_different(const char *tmpfile, const char *dep_files[])
     if (dep_files) {
       int pass;
       for (pass = 0; dep_files[pass]; pass++) {
-        const char from_path[4096] = __FILE__;
-        char *p1, *p2;
-
+        char from_path[4096];
         /* Only the directory (base-name). */
-        p1 = strrchr(from_path, '/');
-        p2 = strrchr(from_path, '\\');
-        strcpy((p1 > p2 ? p1 : p2) + 1, dep_files[pass]);
+        SNPRINTF(from_path,
+                 "%.*s%s",
+                 (int)(makesrna_source_filename - makesrna_source_filepath),
+                 makesrna_source_filepath,
+                 dep_files[pass]);
         /* Account for build dependencies, if `makesrna.c` (this file) is newer. */
         if (file_older(orgfile, from_path)) {
           REN_IF_DIFF;
@@ -3860,18 +3879,19 @@ static void rna_generate_struct_prototypes(FILE *f)
 static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, PropertyRNA *prop)
 {
   char *strnest = (char *)"", *errnest = (char *)"";
-  int len, freenest = 0;
+  bool freenest = 0;
 
   if (nest != NULL) {
-    len = strlen(nest);
+    int len = strlen(nest);
 
-    strnest = MEM_mallocN(sizeof(char) * (len + 2), "rna_generate_property -> strnest");
-    errnest = MEM_mallocN(sizeof(char) * (len + 2), "rna_generate_property -> errnest");
+    strnest = MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> strnest");
+    errnest = MEM_mallocN(sizeof(char) * len + 2, "rna_generate_property -> errnest");
 
-    strcpy(strnest, "_");
-    strcat(strnest, nest);
-    strcpy(errnest, ".");
-    strcat(errnest, nest);
+    strnest[0] = '_';
+    memcpy(strnest + 1, nest, len + 1);
+
+    errnest[0] = '.';
+    memcpy(errnest + 1, nest, len + 1);
 
     freenest = 1;
   }
@@ -4686,6 +4706,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"\n\n");
 #endif
 
+#if defined(__clang__)
+  /* TODO(@ideasman42): ideally this workaround would not be needed,
+   * could use some further investigation as these are intended to be declared.  */
+  fprintf(f, "#pragma GCC diagnostic ignored \"-Wmissing-variable-declarations\"\n\n");
+#endif
+
   fprintf(f, "/* Auto-generated Functions. */\n\n");
 
   for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
@@ -5361,8 +5387,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   status = (DefRNA.error != 0);
 
   /* Create external rna struct prototype header file RNA_prototypes.h. */
-  strcpy(deffile, public_header_outfile);
-  strcat(deffile, "RNA_prototypes.h" TMP_EXT);
+  SNPRINTF(deffile, "%s%s", public_header_outfile, "RNA_prototypes.h" TMP_EXT);
   if (status) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5390,8 +5415,7 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
   }
 
   /* create internal rna struct prototype header file */
-  strcpy(deffile, outfile);
-  strcat(deffile, "rna_prototypes_gen.h");
+  SNPRINTF(deffile, "%s%s", outfile, "rna_prototypes_gen.h");
   if (status) {
     make_bad_file(deffile, __LINE__);
   }
@@ -5411,19 +5435,17 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     status = (DefRNA.error != 0);
   }
 
-  /* create rna_gen_*.c files */
+  /* Create `rna_gen_*.c` & `rna_gen_*.cc` files. */
   for (i = 0; PROCESS_ITEMS[i].filename; i++) {
-    strcpy(deffile, outfile);
-    strcat(deffile, PROCESS_ITEMS[i].filename);
-    if (deffile[strlen(deffile) - 3] == '.') {
-      deffile[strlen(deffile) - 3] = '\0';
-      strcat(deffile, "_gen.cc" TMP_EXT);
-    }
-    else {
-      deffile[strlen(deffile) - 2] = '\0';
-      strcat(deffile, "_gen.c" TMP_EXT);
-    }
-
+    const bool is_cc = BLI_str_endswith(PROCESS_ITEMS[i].filename, ".cc");
+    const int ext_len = is_cc ? 3 : 2;
+    const int filename_len = strlen(PROCESS_ITEMS[i].filename);
+    SNPRINTF(deffile,
+             "%s%.*s%s" TMP_EXT,
+             outfile,
+             (filename_len - ext_len),
+             PROCESS_ITEMS[i].filename,
+             is_cc ? "_gen.cc" : "_gen.c");
     if (status) {
       make_bad_file(deffile, __LINE__);
     }
@@ -5449,9 +5471,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
     replace_if_different(deffile, deps);
   }
 
-  /* create RNA_blender_cpp.h */
-  strcpy(deffile, outfile);
-  strcat(deffile, "RNA_blender_cpp.h" TMP_EXT);
+  /* Create `RNA_blender_cpp.h`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender_cpp.h" TMP_EXT);
 
   if (status) {
     make_bad_file(deffile, __LINE__);
@@ -5474,9 +5495,8 @@ static int rna_preprocess(const char *outfile, const char *public_header_outfile
 
   rna_sort(brna);
 
-  /* create RNA_blender.h */
-  strcpy(deffile, outfile);
-  strcat(deffile, "RNA_blender.h" TMP_EXT);
+  /* Create `RNA_blender.h`. */
+  SNPRINTF(deffile, "%s%s", outfile, "RNA_blender.h" TMP_EXT);
 
   if (status) {
     make_bad_file(deffile, __LINE__);

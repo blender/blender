@@ -158,6 +158,7 @@ static void GREASE_PENCIL_OT_select_linked(wmOperatorType *ot)
 
 static int select_random_exec(bContext *C, wmOperator *op)
 {
+  using namespace blender;
   const float ratio = RNA_float_get(op->ptr, "ratio");
   const int seed = WM_operator_properties_select_random_seed_increment_get(op);
   Scene *scene = CTX_data_scene(C);
@@ -166,11 +167,26 @@ static int select_random_exec(bContext *C, wmOperator *op)
   eAttrDomain selection_domain = ED_grease_pencil_selection_domain_get(C);
 
   grease_pencil.foreach_editable_drawing(
-      scene->r.cfra, [&](int drawing_index, blender::bke::greasepencil::Drawing &drawing) {
-        blender::ed::curves::select_random(drawing.strokes_for_write(),
-                                           selection_domain,
-                                           blender::get_default_hash_2<int>(seed, drawing_index),
-                                           ratio);
+      scene->r.cfra, [&](int drawing_index, bke::greasepencil::Drawing &drawing) {
+        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+
+        IndexMaskMemory memory;
+        const IndexMask random_elements = ed::curves::random_mask(
+            curves,
+            selection_domain,
+            blender::get_default_hash_2<int>(seed, drawing_index),
+            ratio,
+            memory);
+
+        const bool was_anything_selected = ed::curves::has_anything_selected(curves);
+        bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+            curves, selection_domain, CD_PROP_BOOL);
+        if (!was_anything_selected) {
+          curves::fill_selection_true(selection.span);
+        }
+
+        curves::fill_selection_false(selection.span, random_elements);
+        selection.finish();
       });
 
   /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic

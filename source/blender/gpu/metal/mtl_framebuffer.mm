@@ -624,7 +624,7 @@ void MTLFrameBuffer::mark_do_clear()
   has_pending_clear_ = true;
 }
 
-void MTLFrameBuffer::update_attachments(bool update_viewport)
+void MTLFrameBuffer::update_attachments(bool /*update_viewport*/)
 {
   if (!dirty_attachments_) {
     return;

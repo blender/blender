@@ -22,7 +22,7 @@ using blender::float4x4;
 
 eSnapMode snapArmature(SnapObjectContext *sctx,
                        Object *ob_eval,
-                       const float obmat[4][4],
+                       const float4x4 &obmat,
                        bool is_object_active)
 {
   eSnapMode retval = SCE_SNAP_TO_NONE;
@@ -34,7 +34,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   bArmature *arm = static_cast<bArmature *>(ob_eval->data);
 
-  SnapData nearest2d(sctx, float4x4(obmat));
+  SnapData nearest2d(sctx, obmat);
 
   const bool is_editmode = arm->edbo != nullptr;
 

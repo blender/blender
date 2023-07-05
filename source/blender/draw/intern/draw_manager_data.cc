@@ -19,7 +19,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_object.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_volume.h"
 
 /* For debug cursor position. */

@@ -168,7 +168,7 @@ static void gather_add_node_operations(const bContext &C,
 
   /* Use a set to avoid adding items for node groups that are also assets. Using data-block
    * names is a crutch, since different assets may have the same name. However, an alternative
-   * using #ED_asset_handle_get_local_id didn't work in this case. */
+   * using #AssetRepresentation::local_id() didn't work in this case. */
   Set<std::string> added_assets;
   gather_search_items_for_all_assets(C, node_tree, added_assets, r_search_items);
   gather_search_items_for_node_groups(C, node_tree, added_assets, r_search_items);

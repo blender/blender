@@ -95,61 +95,6 @@ static void free_anim_movie(anim * /*anim*/)
   /* pass */
 }
 
-static int an_stringdec(const char *filepath,
-                        char *head,
-                        size_t head_maxncpy,
-                        char *tail,
-                        size_t tail_maxncpy,
-                        ushort *r_numlen)
-{
-  const ushort len = strlen(filepath);
-  bool found = false;
-
-  ushort num_beg = 0;
-  ushort num_end = len;
-
-  for (short i = short(len) - 1; i >= 0; i--) {
-    if (filepath[i] == SEP) {
-      break;
-    }
-    if (isdigit(filepath[i])) {
-      if (found) {
-        num_beg = i;
-      }
-      else {
-        num_end = i;
-        num_beg = i;
-        found = true;
-      }
-    }
-    else {
-      if (found) {
-        break;
-      }
-    }
-  }
-  if (found) {
-    BLI_strncpy(tail, &filepath[num_end + 1], MIN2(num_beg + 1, tail_maxncpy));
-    BLI_strncpy(head, filepath, head_maxncpy);
-    *r_numlen = num_end - num_beg + 1;
-    return int(atoi(&(filepath)[num_beg]));
-  }
-  tail[0] = '\0';
-  BLI_strncpy(head, filepath, head_maxncpy);
-  *r_numlen = 0;
-  return true;
-}
-
-static void an_stringenc(char *filepath,
-                         const size_t string_maxncpy,
-                         const char *head,
-                         const char *tail,
-                         ushort numlen,
-                         int pic)
-{
-  BLI_path_sequence_encode(filepath, string_maxncpy, head, tail, numlen, pic);
-}
-
 #ifdef WITH_AVI
 static void free_anim_avi(anim *anim)
 {
@@ -1633,10 +1578,10 @@ ImBuf *IMB_anim_absolute(anim *anim,
       constexpr size_t filepath_size = BOUNDED_ARRAY_TYPE_SIZE<decltype(anim->filepath_first)>();
       char head[filepath_size], tail[filepath_size];
       ushort digits;
-      const int pic = an_stringdec(
+      const int pic = BLI_path_sequence_decode(
                           anim->filepath_first, head, sizeof(head), tail, sizeof(tail), &digits) +
                       position;
-      an_stringenc(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
+      BLI_path_sequence_encode(anim->filepath, sizeof(anim->filepath), head, tail, digits, pic);
       ibuf = IMB_loadiffname(anim->filepath, IB_rect, anim->colorspace);
       if (ibuf) {
         anim->cur_position = position;

@@ -567,7 +567,7 @@ void BLI_ewa_imp2radangle(
       *b = sqrtf(F2 / d);
       *ecc = *a / *b;
     }
-    /* incr theta by 0.5*pi (angle of major axis) */
+    /* Increase theta by `0.5 * pi` (angle of major axis). */
     *th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
   }
 }

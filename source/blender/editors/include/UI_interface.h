@@ -1809,16 +1809,20 @@ void UI_but_drag_set_id(uiBut *but, struct ID *id);
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  */
 void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
+
+#ifdef __cplusplus
 /**
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  * \param asset: May be passed from a temporary variable, drag data only stores a copy of this.
  */
 void UI_but_drag_set_asset(uiBut *but,
-                           const struct AssetRepresentation *asset,
+                           const blender::asset_system::AssetRepresentation *asset,
                            int import_type, /* eAssetImportType */
                            int icon,
                            struct ImBuf *imb,
                            float scale);
+#endif
+
 void UI_but_drag_set_rna(uiBut *but, struct PointerRNA *ptr);
 /**
  * Enable dragging a path from this button.
@@ -2415,10 +2419,7 @@ void uiTemplateImage(uiLayout *layout,
                      struct PointerRNA *userptr,
                      bool compact,
                      bool multiview);
-void uiTemplateImageSettings(uiLayout *layout,
-                             struct PointerRNA *imfptr,
-                             bool color_management,
-                             bool show_z_buffer);
+void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, bool color_management);
 void uiTemplateImageStereo3d(uiLayout *layout, struct PointerRNA *stereo3d_format_ptr);
 void uiTemplateImageViews(uiLayout *layout, struct PointerRNA *imaptr);
 void uiTemplateImageFormatViews(uiLayout *layout,

@@ -266,6 +266,8 @@ bool imb_savewebp(struct ImBuf *ibuf, const char *filepath, int flags);
 /** \name Format: DDS (#IMB_FTYPE_DDS)
  * \{ */
 
+void imb_init_dds();
+
 bool imb_is_a_dds(const unsigned char *buf, size_t size);
 
 struct ImBuf *imb_load_dds(const unsigned char *mem,

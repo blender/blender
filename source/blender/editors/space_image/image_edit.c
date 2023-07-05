@@ -198,7 +198,7 @@ int ED_space_image_get_display_channel_mask(ImBuf *ibuf)
 
   const bool color = ibuf->channels >= 3;
   const bool alpha = ibuf->channels == 4;
-  const bool zbuf = ibuf->z_buffer.data || ibuf->float_z_buffer.data || (ibuf->channels == 1);
+  const bool zbuf = ibuf->channels == 1;
 
   if (!alpha) {
     result &= ~(SI_USE_ALPHA | SI_SHOW_ALPHA);

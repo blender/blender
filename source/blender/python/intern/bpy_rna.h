@@ -32,7 +32,7 @@
 
 #endif /* !WITH_PYTHON_SAFETY */
 
-/* sanity checks on above defs */
+/* Sanity checks on above defines. */
 #if defined(USE_PYRNA_INVALIDATE_WEAKREF) && !defined(USE_WEAKREFS)
 #  define USE_WEAKREFS
 #endif

@@ -26,7 +26,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.h"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "PIL_time.h"
@@ -143,7 +143,6 @@ static void pbvh_vertex_color_set(PBVH &pbvh, PBVHVertRef vertex, const float co
 
 }  // namespace blender::bke
 
-extern "C" {
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4])
 {
   blender::bke::to_static_color_type(eCustomDataType(pbvh->color_layer->type), [&](auto dummy) {
@@ -206,5 +205,4 @@ void BKE_pbvh_store_colors_vertex(PBVH *pbvh,
       }
     });
   }
-}
 }

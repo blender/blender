@@ -164,9 +164,6 @@ void IMB_assign_shared_byte_buffer(struct ImBuf *ibuf,
 void IMB_assign_shared_float_buffer(struct ImBuf *ibuf,
                                     float *buffer_data,
                                     const ImplicitSharingInfoHandle *implicit_sharing);
-void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
-                                      float *buffer_data,
-                                      const ImplicitSharingInfoHandle *implicit_sharing);
 
 /**
  * Assign the content of the corresponding buffer with the given data and ownership.
@@ -177,8 +174,6 @@ void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
  */
 void IMB_assign_byte_buffer(struct ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ownership);
 void IMB_assign_float_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
-void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership);
-void IMB_assign_float_z_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
 
 /**
  * Make corresponding buffers available for modification.
@@ -211,12 +206,6 @@ struct ImBuf *IMB_makeSingleUser(struct ImBuf *ibuf);
  * \attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_dupImBuf(const struct ImBuf *ibuf1);
-
-/**
- * \attention Defined in allocimbuf.c
- */
-bool addzbufImBuf(struct ImBuf *ibuf);
-bool addzbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  * Approximate size of ImBuf in memory
@@ -776,12 +765,6 @@ void IMB_flipy(struct ImBuf *ibuf);
 
 void IMB_premultiply_alpha(struct ImBuf *ibuf);
 void IMB_unpremultiply_alpha(struct ImBuf *ibuf);
-
-/**
- * \attention Defined in allocimbuf.c
- */
-void IMB_freezbufImBuf(struct ImBuf *ibuf);
-void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  * \attention Defined in rectop.c

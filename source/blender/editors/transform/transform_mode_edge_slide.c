@@ -1617,7 +1617,7 @@ void transform_mode_edge_slide_reproject_input(TransInfo *t)
 /** \} */
 
 TransModeInfo TransMode_edgeslide = {
-    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*flags*/ T_NO_CONSTRAINT,
     /*init_fn*/ initEdgeSlide,
     /*transform_fn*/ applyEdgeSlide,
     /*transform_matrix_fn*/ edge_slide_transform_matrix_fn,

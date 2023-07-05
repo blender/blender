@@ -1109,7 +1109,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
   grid_data = hidm->getGridData(hidm);
   hidm->getGridKey(hidm, &key);
 
-  /* face_side = (grid_size << 1) - 1; */ /* UNUSED */
+  // face_side = (grid_size << 1) - 1; /* UNUSED */
   faces_num = grids_num * (grid_size - 1) * (grid_size - 1);
 
   raytree = ao_data->raytree = RE_rayobject_create(

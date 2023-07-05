@@ -10,7 +10,7 @@ GaussianBlurBaseOperation::GaussianBlurBaseOperation(eDimension dim)
     : BlurBaseOperation(DataType::Color)
 {
   gausstab_ = nullptr;
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   gausstab_sse_ = nullptr;
 #endif
   filtersize_ = 0;
@@ -33,7 +33,7 @@ void GaussianBlurBaseOperation::init_execution()
   BlurBaseOperation::init_execution();
   if (execution_model_ == eExecutionModel::FullFrame) {
     gausstab_ = BlurBaseOperation::make_gausstab(rad_, filtersize_);
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
     gausstab_sse_ = BlurBaseOperation::convert_gausstab_sse(gausstab_, filtersize_);
 #endif
   }
@@ -47,7 +47,7 @@ void GaussianBlurBaseOperation::deinit_execution()
     MEM_freeN(gausstab_);
     gausstab_ = nullptr;
   }
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
   if (gausstab_sse_) {
     MEM_freeN(gausstab_sse_);
     gausstab_sse_ = nullptr;
@@ -117,7 +117,7 @@ void GaussianBlurBaseOperation::update_memory_buffer_partial(MemoryBuffer *outpu
     const int in_stride = elem_stride * step;
     int gauss_idx = (coord_min - coord) + filtersize_;
     const int gauss_end = gauss_idx + (coord_max - coord_min);
-#ifdef BLI_HAVE_SSE2
+#if BLI_HAVE_SSE2
     __m128 accum_r = _mm_load_ps(color_accum);
     for (; gauss_idx < gauss_end; in += in_stride, gauss_idx += step) {
       __m128 reg_a = _mm_load_ps(in);

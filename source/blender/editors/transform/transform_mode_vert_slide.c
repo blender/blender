@@ -725,7 +725,7 @@ void transform_mode_vert_slide_reproject_input(TransInfo *t)
 /** \} */
 
 TransModeInfo TransMode_vertslide = {
-    /*flags*/ T_NO_CONSTRAINT | T_NO_PROJECT,
+    /*flags*/ T_NO_CONSTRAINT,
     /*init_fn*/ initVertSlide,
     /*transform_fn*/ applyVertSlide,
     /*transform_matrix_fn*/ vert_slide_transform_matrix_fn,

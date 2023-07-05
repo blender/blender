@@ -152,13 +152,15 @@ enum {
 enum {
   /** An indirectly linked ID. */
   LINK_APPEND_TAG_INDIRECT = 1 << 0,
-  /** An ID also used as liboverride dependency (either directly, as a liboverride reference, or
+  /**
+   * An ID also used as liboverride dependency (either directly, as a liboverride reference, or
    * indirectly, as data used by a liboverride reference). It should never be directly made local.
    *
    * Mutually exclusive with #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY_ONLY.
    */
   LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY = 1 << 1,
-  /** An ID only used as liboverride dependency (either directly or indirectly, see
+  /**
+   * An ID only used as liboverride dependency (either directly or indirectly, see
    * #LINK_APPEND_TAG_LIBOVERRIDE_DEPENDENCY for precisions). It should not be considered during
    * the 'make local' process, and remain purely linked data.
    *

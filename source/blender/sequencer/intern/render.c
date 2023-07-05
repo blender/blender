@@ -1581,11 +1581,6 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
         IMB_assign_shared_float_buffer(
             ibufs_arr[view_id], rres.combined_buffer.data, rres.combined_buffer.sharing_info);
 
-        if (rres.z_buffer.data) {
-          IMB_assign_shared_float_z_buffer(
-              ibufs_arr[view_id], rres.z_buffer.data, rres.z_buffer.sharing_info);
-        }
-
         /* float buffers in the sequencer are not linear */
         seq_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }

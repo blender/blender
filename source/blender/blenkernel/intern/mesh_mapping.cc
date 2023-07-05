@@ -301,10 +301,7 @@ namespace blender::bke::mesh {
 static Array<int> create_reverse_offsets(const Span<int> indices, const int items_num)
 {
   Array<int> offsets(items_num + 1, 0);
-  for (const int i : indices) {
-    offsets[i]++;
-  }
-  offset_indices::accumulate_counts_to_offsets(offsets);
+  offset_indices::build_reverse_offsets(indices, offsets);
   return offsets;
 }
 

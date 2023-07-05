@@ -113,7 +113,6 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #  include "BKE_gpencil_legacy.h"
 #  include "BKE_object.h"
 #  include "BKE_particle.h"
-#  include "BKE_pbvh.h"
 #  include "BKE_pointcache.h"
 
 #  include "DEG_depsgraph.h"
@@ -345,7 +344,12 @@ static bool rna_Brush_mode_with_tool_poll(PointerRNA *ptr, PointerRNA value)
     if (slot_index != brush->gpencil_tool) {
       return false;
     }
-    mode = OB_MODE_PAINT_GPENCIL_LEGACY;
+    if (U.experimental.use_grease_pencil_version3) {
+      mode = OB_MODE_PAINT_GREASE_PENCIL;
+    }
+    else {
+      mode = OB_MODE_PAINT_GPENCIL_LEGACY;
+    }
   }
   else if (paint_contains_brush_slot(&ts->gp_vertexpaint->paint, tslot, &slot_index)) {
     if (slot_index != brush->gpencil_vertex_tool) {

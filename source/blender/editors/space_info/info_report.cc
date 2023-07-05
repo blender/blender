@@ -130,7 +130,7 @@ void INFO_OT_report_replay(wmOperatorType *ot)
   ot->exec = report_replay_exec;
 
   /* flags */
-  /* ot->flag = OPTYPE_REGISTER; */
+  // ot->flag = OPTYPE_REGISTER;
 
   /* properties */
 }
@@ -186,7 +186,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   ot->exec = select_report_pick_exec;
 
   /* flags */
-  /* ot->flag = OPTYPE_REGISTER; */
+  // ot->flag = OPTYPE_REGISTER;
 
   /* properties */
   PropertyRNA *prop;
@@ -307,7 +307,7 @@ void INFO_OT_select_box(wmOperatorType *ot)
   ot->poll = ED_operator_info_active;
 
   /* flags */
-  /* ot->flag = OPTYPE_REGISTER; */
+  // ot->flag = OPTYPE_REGISTER;
 
   /* properties */
   WM_operator_properties_gesture_box(ot);

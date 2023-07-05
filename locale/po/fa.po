@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-04 16:07:54\n"
 "PO-Revision-Date: 2012-10-31 17:00-0800\n"
 "Last-Translator: Amin Babaeipanah <translate@leomoon.com>\n"
 "Language-Team: LeoMoon Studios <blender@leomoon.com>\n"
@@ -428,6 +428,10 @@ msgid "Weight"
 msgstr "ﻥﺯﻭ"
 
 
+msgid "Grease Pencil"
+msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
+
+
 msgid "Particles"
 msgstr "ﺕﺍﺭﺫ"
 
@@ -622,10 +626,6 @@ msgstr "ﮓﻧﺭ"
 
 msgid "Saturation"
 msgstr "ﻉﺎﺒﺷﺍ"
-
-
-msgid "Path"
-msgstr "ﺮﯿﺴﻣ"
 
 
 msgid "Background Image"
@@ -1324,10 +1324,6 @@ msgid "Rotational Difference"
 msgstr "ﯽﺸﺧﺮﭼ ﺕﻭﺎﻔﺗ"
 
 
-msgid "Force"
-msgstr "ﺭﻭﺯ‌ﻪﺑ"
-
-
 msgid "Max Displace"
 msgstr "ﯽﯾﺎﺠﺑﺎﺟ ﻪﻨﯿﺸﯿﺑ"
 
@@ -1386,6 +1382,10 @@ msgstr "ﻥﺪﯿﺘﻠﻏ"
 
 msgid "Bone rotation around head-tail axis"
 msgstr "ﻡﺩ ﻪﺑ ﺮﺳ ﺭﻮﺤﻣ ﻑﺍﺮﻃﺍ ﻥﺍﻮﺨﺘﺳﺍ ﺶﺧﺮﭼ"
+
+
+msgid "Force"
+msgstr "ﺭﻭﺯ‌ﻪﺑ"
 
 
 msgid "Wind"
@@ -1478,10 +1478,6 @@ msgstr "ﻪﻧﺍﺩ"
 
 msgid "Size"
 msgstr "ﻩﺯﺍﺪﻧﺍ"
-
-
-msgid "Grease Pencil"
-msgstr "ﯽﻨﻏﻭﺭ ﺩﺍﺪﻣ"
 
 
 msgid "Save"
@@ -1680,6 +1676,10 @@ msgid "Dimensions"
 msgstr "ﺩﺎﻌﺑﺍ"
 
 
+msgid "Path"
+msgstr "ﺮﯿﺴﻣ"
+
+
 msgid "Text on Curve"
 msgstr "ﯽﻨﺤﻨﻣ ﯼﻭﺭ ﺮﺑ ﻦﺘﻣ"
 
@@ -1758,10 +1758,6 @@ msgstr "ﻪﺤﻔﺻ ﯼﺎﻫ ﺭﻮﺤﻣ"
 
 msgid "Circle"
 msgstr "ﻩﺮﯾﺍﺩ"
-
-
-msgid "Both"
-msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgid "Lock Location"
@@ -2797,6 +2793,10 @@ msgstr "ﻥﺩﺮﮐ ﺩﻭﺪﺤﻣ"
 
 msgid "Mouse location"
 msgstr "ﺱﻭﺎﻣ ﻥﺎﮑﻣ"
+
+
+msgid "Both"
+msgstr "ﻭﺩ ﺮﻫ"
 
 
 msgid "Join"
@@ -4130,10 +4130,6 @@ msgstr "RGBA ﺖﯾﺎﺑ"
 
 msgid " RGB byte"
 msgstr "RGB ﺖﯾﺎﺑ"
-
-
-msgid " + Z"
-msgstr " + Z"
 
 
 msgid "No images have been changed"

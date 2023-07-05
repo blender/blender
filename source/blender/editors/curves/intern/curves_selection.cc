@@ -126,6 +126,26 @@ void fill_selection_true(GMutableSpan selection)
   }
 }
 
+void fill_selection_false(GMutableSpan selection, const IndexMask &mask)
+{
+  if (selection.type().is<bool>()) {
+    index_mask::masked_fill(selection.typed<bool>(), false, mask);
+  }
+  else if (selection.type().is<float>()) {
+    index_mask::masked_fill(selection.typed<float>(), 0.0f, mask);
+  }
+}
+
+void fill_selection_true(GMutableSpan selection, const IndexMask &mask)
+{
+  if (selection.type().is<bool>()) {
+    index_mask::masked_fill(selection.typed<bool>(), true, mask);
+  }
+  else if (selection.type().is<float>()) {
+    index_mask::masked_fill(selection.typed<float>(), 1.0f, mask);
+  }
+}
+
 static bool contains(const VArray<bool> &varray, const IndexRange range_to_check, const bool value)
 {
   const CommonVArrayInfo info = varray.common_info();
@@ -366,55 +386,6 @@ void select_adjacent(bke::CurvesGeometry &curves, const bool deselect)
     invert_selection(selection.span);
   }
 
-  selection.finish();
-}
-
-void select_random(bke::CurvesGeometry &curves,
-                   const eAttrDomain selection_domain,
-                   uint32_t random_seed,
-                   float probability)
-{
-  RandomNumberGenerator rng{random_seed};
-  const auto next_bool_random_value = [&]() { return rng.get_float() <= probability; };
-
-  const bool was_anything_selected = has_anything_selected(curves);
-  bke::GSpanAttributeWriter selection = ensure_selection_attribute(
-      curves, selection_domain, CD_PROP_BOOL);
-  if (!was_anything_selected) {
-    curves::fill_selection_true(selection.span);
-  }
-  selection.span.type().to_static_type_tag<bool, float>([&](auto type_tag) {
-    using T = typename decltype(type_tag)::type;
-    if constexpr (std::is_void_v<T>) {
-      BLI_assert_unreachable();
-    }
-    else {
-      MutableSpan<T> selection_typed = selection.span.typed<T>();
-      switch (selection_domain) {
-        case ATTR_DOMAIN_POINT: {
-          for (const int point_i : selection_typed.index_range()) {
-            const bool random_value = next_bool_random_value();
-            if (!random_value) {
-              selection_typed[point_i] = T(0);
-            }
-          }
-
-          break;
-        }
-        case ATTR_DOMAIN_CURVE: {
-          for (const int curve_i : curves.curves_range()) {
-            const bool random_value = next_bool_random_value();
-            if (!random_value) {
-              selection_typed[curve_i] = T(0);
-            }
-          }
-          break;
-        }
-        default:
-          BLI_assert_unreachable();
-      }
-    }
-  });
   selection.finish();
 }
 

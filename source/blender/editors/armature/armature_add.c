@@ -504,7 +504,7 @@ static void updateDuplicateActionConstraintSettings(
 
       char *old_path = new_curve->rna_path;
 
-      new_curve->rna_path = BLI_str_replaceN(old_path, orig_bone->name, dup_bone->name);
+      new_curve->rna_path = BLI_string_replaceN(old_path, orig_bone->name, dup_bone->name);
       MEM_freeN(old_path);
 
       /* Flip the animation */

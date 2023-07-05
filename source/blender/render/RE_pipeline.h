@@ -75,7 +75,6 @@ typedef struct RenderView {
 
   /* if this exists, result of composited layers */
   RenderBuffer combined_buffer;
-  RenderBuffer z_buffer;
 
   /* optional, 32 bits version of picture, used for sequencer, OpenGL render and image curves */
   RenderByteBuffer byte_buffer;
@@ -135,7 +134,6 @@ typedef struct RenderResult {
 
   /* if this exists, a copy of one of layers, or result of composited layers */
   RenderBuffer combined_buffer;
-  RenderBuffer z_buffer;
 
   /* coordinates within final image (after cropping) */
   rcti tilerect;

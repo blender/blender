@@ -20,7 +20,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_paint.h"
-#include "BKE_pbvh.h"
+#include "BKE_pbvh_api.hh"
 #include "BKE_subdiv_ccg.h"
 
 #include "DNA_userdef_types.h"
@@ -198,22 +198,6 @@ bool CustomData_has_layer(const struct CustomData * /*data*/, eCustomDataType /*
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Stubs of BKE_pbvh.h
- * \{ */
-
-int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
-                              const int * /*grid_indices*/,
-                              int /*totgrid*/,
-                              int /*gridsize*/,
-                              int /*display_gridsize*/)
-{
-  BLI_assert_unreachable();
-  return 0;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Stubs of BKE_subdiv_ccg.h
  * \{ */
 int BKE_subdiv_ccg_grid_to_face_index(const SubdivCCG * /*subdiv_ccg*/, const int /*grid_index*/)
@@ -304,3 +288,19 @@ bool IMB_saveiff(struct ImBuf * /*ibuf*/, const char * /*filepath*/, int /*flags
 
 /** \} */
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Stubs of BKE_pbvh.hh
+ * \{ */
+
+int BKE_pbvh_count_grid_quads(BLI_bitmap ** /*grid_hidden*/,
+                              const int * /*grid_indices*/,
+                              int /*totgrid*/,
+                              int /*gridsize*/,
+                              int /*display_gridsize*/)
+{
+  BLI_assert_unreachable();
+  return 0;
+}
+
+/** \} */

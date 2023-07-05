@@ -103,11 +103,10 @@ MTLPixelFormat gpu_texture_format_to_metal(eGPUTextureFormat tex_format)
       return MTLPixelFormatRGB10A2Uint;
     case GPU_R11F_G11F_B10F:
       return MTLPixelFormatRG11B10Float;
+    case GPU_DEPTH24_STENCIL8:
+      /* NOTE(fclem): DEPTH24_STENCIL8 not supported by Apple Silicon. Fallback to Depth32F8S. */
     case GPU_DEPTH32F_STENCIL8:
       return MTLPixelFormatDepth32Float_Stencil8;
-    case GPU_DEPTH24_STENCIL8:
-      BLI_assert_msg(false, "GPU_DEPTH24_STENCIL8 not supported by Apple Silicon.");
-      return MTLPixelFormatDepth24Unorm_Stencil8;
     case GPU_SRGB8_A8:
       return MTLPixelFormatRGBA8Unorm_sRGB;
     /* Texture only formats. */
