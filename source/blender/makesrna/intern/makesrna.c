@@ -4706,6 +4706,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
   fprintf(f, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"\n\n");
 #endif
 
+#if defined(__clang__)
+  /* TODO(@ideasman42): ideally this workaround would not be needed,
+   * could use some further investigation as these are intended to be declared.  */
+  fprintf(f, "#pragma GCC diagnostic ignored \"-Wmissing-variable-declarations\"\n\n");
+#endif
+
   fprintf(f, "/* Auto-generated Functions. */\n\n");
 
   for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
