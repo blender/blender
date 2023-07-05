@@ -224,27 +224,17 @@ class Layer : public ::GreasePencilLayer {
   bool is_editable() const;
 
   /**
-   * Inserts the frame into the layer frames map. Will not overwrite existing frames at \a
-   * frame_number, except null-frames.
-   * \returns true on success.
+   * Adds a new frame into the layer frames map.
+   * Fails if there already exists a frame at \a frame_number that is not a null-frame.
+   * Null-frame at \a frame_number and subsequent null-frames are removed.
+   *
+   * If \a duration is 0, the frame is marked as an implicit hold (see `GP_FRAME_IMPLICIT_HOLD`).
+   * Otherwise adds an additional null-frame at \a frame_number + \a duration, if necessary, to
+   * indicate the end of the added frame.
+   *
+   * \returns a pointer to the added frame on success, otherwise nullptr.
    */
-  bool insert_frame(int frame_number, const GreasePencilFrame &frame);
-
-  /**
-   * Inserts the frame into the layer frames map. Will not overwrite existing frames at \a
-   * frame_number, except null-frames.
-   * Inserts an additional null-frame at \a frame_number + \a duration, if necessary, to indicate
-   * the end of the inserted frame.
-   * \returns true on success.
-   */
-  bool insert_frame(int frame_number, int duration, const GreasePencilFrame &frame);
-
-  /**
-   * Inserts the frame into the layer. If there exists a frame at \a frame_number already, it is
-   * overwritten.
-   * \returns true on success.
-   */
-  bool overwrite_frame(int frame_number, const GreasePencilFrame &frame);
+  GreasePencilFrame *add_frame(int frame_number, int drawing_index, int duration = 0);
 
   /**
    * Returns the sorted (start) frame numbers of the frames of this layer.
@@ -264,6 +254,9 @@ class Layer : public ::GreasePencilLayer {
    * added, removed or updated.
    */
   void tag_frames_map_keys_changed();
+
+ private:
+  GreasePencilFrame *add_frame_internal(int frame_number, int drawing_index);
 };
 
 class LayerGroupRuntime {
@@ -461,6 +454,11 @@ inline GreasePencilFrame GreasePencilFrame::null()
 inline bool GreasePencilFrame::is_null() const
 {
   return this->drawing_index == -1;
+}
+
+inline bool GreasePencilFrame::is_implicit_hold() const
+{
+  return (this->flag & GP_FRAME_IMPLICIT_HOLD) != 0;
 }
 
 inline blender::bke::greasepencil::TreeNode &GreasePencilLayerTreeNode::wrap()

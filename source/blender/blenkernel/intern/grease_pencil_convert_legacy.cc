@@ -226,11 +226,11 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
       /* Convert the frame to a drawing. */
       legacy_gpencil_frame_to_grease_pencil_drawing(*gpf, drawing);
 
-      GreasePencilFrame new_frame;
-      new_frame.drawing_index = i;
-      new_frame.type = gpf->key_type;
-      SET_FLAG_FROM_TEST(new_frame.flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
-      new_layer.insert_frame(gpf->framenum, std::move(new_frame));
+      /* Add the frame to the layer. */
+      if (GreasePencilFrame *new_frame = new_layer.add_frame(gpf->framenum, i)) {
+        new_frame->type = gpf->key_type;
+        SET_FLAG_FROM_TEST(new_frame->flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
+      }
       i++;
     }
 

@@ -503,30 +503,35 @@ bool Layer::is_editable() const
   return !this->is_locked() && this->is_visible();
 }
 
-bool Layer::insert_frame(const int frame_number, const GreasePencilFrame &frame)
+GreasePencilFrame *Layer::add_frame_internal(const int frame_number, const int drawing_index)
 {
-  BLI_assert(!frame.is_null());
+  BLI_assert(drawing_index != -1);
   if (!this->frames().contains(frame_number)) {
+    GreasePencilFrame frame{};
+    frame.drawing_index = drawing_index;
     this->frames_for_write().add(frame_number, frame);
     this->tag_frames_map_keys_changed();
-    return true;
+    return this->frames_for_write().lookup_ptr(frame_number);
   }
   /* Overwrite null-frames. */
   if (this->frames().lookup(frame_number).is_null()) {
+    GreasePencilFrame frame{};
+    frame.drawing_index = drawing_index;
     this->frames_for_write().add_overwrite(frame_number, frame);
     this->tag_frames_map_changed();
-    return true;
+    return this->frames_for_write().lookup_ptr(frame_number);
   }
-  return false;
+  return nullptr;
 }
 
-bool Layer::insert_frame(const int frame_number,
-                         const int duration,
-                         const GreasePencilFrame &frame)
+GreasePencilFrame *Layer::add_frame(const int frame_number,
+                                    const int drawing_index,
+                                    const int duration)
 {
-  BLI_assert(duration > 0);
-  if (!this->insert_frame(frame_number, frame)) {
-    return false;
+  BLI_assert(duration >= 0);
+  GreasePencilFrame *frame = this->add_frame_internal(frame_number, drawing_index);
+  if (frame == nullptr) {
+    return nullptr;
   }
   Span<int> sorted_keys = this->sorted_keys();
   const int end_frame_number = frame_number + duration;
@@ -535,7 +540,7 @@ bool Layer::insert_frame(const int frame_number,
       sorted_keys.begin(), sorted_keys.end(), frame_number);
   /* If the next frame we found is at the end of the frame we're inserting, then we are done. */
   if (next_frame_number_it != sorted_keys.end() && *next_frame_number_it == end_frame_number) {
-    return true;
+    return frame;
   }
   /* While the next frame is a null frame, remove it. */
   while (next_frame_number_it != sorted_keys.end() &&
@@ -545,19 +550,18 @@ bool Layer::insert_frame(const int frame_number,
     this->tag_frames_map_keys_changed();
     next_frame_number_it = std::next(next_frame_number_it);
   }
+  /* If the duration is set to 0, the frame is marked as an implicit hold.*/
+  if (duration == 0) {
+    frame->flag |= GP_FRAME_IMPLICIT_HOLD;
+    return frame;
+  }
   /* If the next frame comes after the end of the frame we're inserting (or if there are no more
    * frames), add a null-frame. */
   if (next_frame_number_it == sorted_keys.end() || *next_frame_number_it > end_frame_number) {
     this->frames_for_write().add(end_frame_number, GreasePencilFrame::null());
     this->tag_frames_map_keys_changed();
   }
-  return true;
-}
-
-bool Layer::overwrite_frame(int frame_number, const GreasePencilFrame &frame)
-{
-  this->tag_frames_map_changed();
-  return this->frames_for_write().add_overwrite(frame_number, frame);
+  return frame;
 }
 
 Span<int> Layer::sorted_keys() const
@@ -1179,10 +1183,11 @@ bool GreasePencil::insert_blank_frame(blender::bke::greasepencil::Layer &layer,
                                       eBezTriple_KeyframeType keytype)
 {
   using namespace blender;
-  GreasePencilFrame frame{int(this->drawings().size()), 0, int8_t(keytype)};
-  if (!layer.insert_frame(frame_number, duration, frame)) {
+  GreasePencilFrame *frame = layer.add_frame(frame_number, int(this->drawings().size()), duration);
+  if (frame == nullptr) {
     return false;
   }
+  frame->type = int8_t(keytype);
   this->add_empty_drawings(1);
   return true;
 }

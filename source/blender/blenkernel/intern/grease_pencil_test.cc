@@ -66,13 +66,11 @@ TEST(greasepencil, remove_drawing)
   Layer &layer1 = grease_pencil.root_group.wrap().add_layer("Layer1");
   Layer &layer2 = grease_pencil.root_group.wrap().add_layer("Layer2");
 
-  layer1.insert_frame(0, GreasePencilFrame{0});
-  layer1.insert_frame(10, GreasePencilFrame{1});
-  layer1.insert_frame(20, GreasePencilFrame{2});
-  layer1.tag_frames_map_keys_changed();
+  layer1.add_frame(0, 0);
+  layer1.add_frame(10, 1);
+  layer1.add_frame(20, 2);
 
-  layer2.insert_frame(0, GreasePencilFrame{1});
-  layer2.tag_frames_map_keys_changed();
+  layer2.add_frame(0, 1);
 
   grease_pencil.remove_drawing(1);
   EXPECT_EQ(grease_pencil.drawings().size(), 2);
@@ -87,19 +85,6 @@ TEST(greasepencil, remove_drawing)
             expected_frames_pairs_layer0[0][1]);
   EXPECT_EQ(layers[0]->frames().lookup(expected_frames_pairs_layer0[1][0]).drawing_index,
             expected_frames_pairs_layer0[1][1]);
-}
-
-TEST(greasepencil, overwrite_frame)
-{
-  Layer layer1("Layer1");
-
-  layer1.insert_frame(0, GreasePencilFrame{0});
-  layer1.tag_frames_map_keys_changed();
-
-  EXPECT_EQ(layer1.frames().lookup(0).drawing_index, 0);
-
-  layer1.overwrite_frame(0, GreasePencilFrame{42});
-  EXPECT_EQ(layer1.frames().lookup(0).drawing_index, 42);
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -216,45 +201,41 @@ TEST(greasepencil, drawing_index_at)
   EXPECT_EQ(ex.layer.drawing_index_at(5), 1);
 }
 
-TEST(greasepencil, insert_frame)
+TEST(greasepencil, add_frame)
 {
   GreasePencilLayerFramesExample ex;
-  GreasePencilFrame frame{3, 0, 0};
-  EXPECT_FALSE(ex.layer.insert_frame(0, frame));
-  EXPECT_TRUE(ex.layer.insert_frame(10, frame));
+  EXPECT_FALSE(ex.layer.add_frame(0, 3));
+  EXPECT_TRUE(ex.layer.add_frame(10, 3));
   EXPECT_EQ(ex.layer.drawing_index_at(10), 3);
   EXPECT_EQ(ex.layer.drawing_index_at(11), 3);
   EXPECT_EQ(ex.layer.drawing_index_at(12), 2);
 }
 
-TEST(greasepencil, insert_frame_duration_fail)
+TEST(greasepencil, add_frame_duration_fail)
 {
   GreasePencilLayerFramesExample ex;
-  GreasePencilFrame frame{3, 0, 0};
-  EXPECT_FALSE(ex.layer.insert_frame(0, 10, frame));
+  EXPECT_FALSE(ex.layer.add_frame(0, 3, 10));
 }
 
-TEST(greasepencil, insert_frame_duration_override_start_null_frame)
+TEST(greasepencil, add_frame_duration_override_start_null_frame)
 {
   GreasePencilLayerFramesExample ex;
-  GreasePencilFrame frame{3, 0, 0};
-  EXPECT_TRUE(ex.layer.insert_frame(10, 2, frame));
+  EXPECT_TRUE(ex.layer.add_frame(10, 3, 2));
   EXPECT_EQ(ex.layer.drawing_index_at(10), 3);
   EXPECT_EQ(ex.layer.drawing_index_at(11), 3);
   EXPECT_EQ(ex.layer.drawing_index_at(12), 2);
 }
 
-TEST(greasepencil, insert_frame_duration_check_duration)
+TEST(greasepencil, add_frame_duration_check_duration)
 {
   GreasePencilLayerFramesExample ex;
-  GreasePencilFrame frame{3, 0, 0};
-  EXPECT_TRUE(ex.layer.insert_frame(17, 10, frame));
+  EXPECT_TRUE(ex.layer.add_frame(17, 3, 10));
   Span<int> sorted_keys = ex.layer.sorted_keys();
   EXPECT_EQ(sorted_keys.size(), 7);
   EXPECT_EQ(sorted_keys[6] - sorted_keys[5], 10);
 }
 
-TEST(greasepencil, insert_frame_duration_override_null_frames)
+TEST(greasepencil, add_frame_duration_override_null_frames)
 {
   Layer layer;
   layer.frames_for_write().add(0, {1});
@@ -262,8 +243,7 @@ TEST(greasepencil, insert_frame_duration_override_null_frames)
   layer.frames_for_write().add(2, {-1});
   layer.frames_for_write().add(3, {-1});
 
-  GreasePencilFrame frame{3, 0, 0};
-  EXPECT_TRUE(layer.insert_frame(1, 10, frame));
+  EXPECT_TRUE(layer.add_frame(1, 3, 10));
   EXPECT_EQ(layer.drawing_index_at(0), 1);
   EXPECT_EQ(layer.drawing_index_at(1), 3);
   EXPECT_EQ(layer.drawing_index_at(11), -1);
