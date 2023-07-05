@@ -133,6 +133,7 @@ AntiAliasingPass::~AntiAliasingPass()
   DRW_SHADER_FREE_SAFE(smaa_edge_detect_sh_);
   DRW_SHADER_FREE_SAFE(smaa_aa_weight_sh_);
   DRW_SHADER_FREE_SAFE(smaa_resolve_sh_);
+  DRW_SHADER_FREE_SAFE(overlay_depth_sh_);
 }
 
 void AntiAliasingPass::init(const SceneState &scene_state)
