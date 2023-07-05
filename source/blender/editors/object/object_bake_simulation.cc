@@ -171,7 +171,7 @@ static int calculate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent 
   wmJob *wm_job = WM_jobs_get(wm,
                               CTX_wm_window(C),
                               CTX_data_scene(C),
-                              "Bake Simulation Nodes",
+                              "Calculate Simulation",
                               WM_JOB_PROGRESS,
                               WM_JOB_TYPE_CALCULATE_SIMULATION_NODES);
 
