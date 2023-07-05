@@ -24,23 +24,23 @@ set(INC_SYS
 
 set(SRC
   anim_channels_defines.cc
-  anim_channels_edit.c
-  anim_deps.c
-  anim_draw.c
+  anim_channels_edit.cc
+  anim_deps.cc
+  anim_draw.cc
   anim_filter.cc
-  anim_ipo_utils.c
-  anim_markers.c
-  anim_motion_paths.c
-  anim_ops.c
-  drivers.c
-  fmodifier_ui.c
+  anim_ipo_utils.cc
+  anim_markers.cc
+  anim_motion_paths.cc
+  anim_ops.cc
+  drivers.cc
+  fmodifier_ui.cc
   keyframes_draw.cc
   keyframes_edit.cc
-  keyframes_general.c
+  keyframes_general.cc
   keyframes_keylist.cc
-  keyframing.c
-  keyingsets.c
-  time_scrub_ui.c
+  keyframing.cc
+  keyingsets.cc
+  time_scrub_ui.cc
 
   anim_intern.h
 )

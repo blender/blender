@@ -1024,6 +1024,7 @@ typedef enum eKS_Settings {
   /** Keyingset does not depend on context info (i.e. paths are absolute). */
   KEYINGSET_ABSOLUTE = (1 << 1),
 } eKS_Settings;
+ENUM_OPERATORS(eKS_Settings, KEYINGSET_ABSOLUTE)
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {

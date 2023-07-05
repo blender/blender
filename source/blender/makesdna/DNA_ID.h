@@ -682,7 +682,7 @@ typedef struct PreviewImage {
    (void *)((ID *)(_id))->newid)
 #define ID_NEW_REMAP(a) \
   if ((a) && (a)->id.newid) { \
-    (a) = (void *)(a)->id.newid; \
+    *(void **)&(a) = (a)->id.newid; \
   } \
   ((void)0)
 

@@ -12,6 +12,7 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
+  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -19,7 +20,7 @@ set(INC_SYS
 )
 
 set(SRC
-  scene_edit.c
+  scene_edit.cc
 )
 
 set(LIB
