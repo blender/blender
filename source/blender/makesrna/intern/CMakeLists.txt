@@ -147,8 +147,10 @@ endif()
 if(CMAKE_C_COMPILER_ID MATCHES "Clang")
   string(APPEND GENSRC_FLAGS " -Wno-missing-variable-declarations")
 elseif(MSVC)
-  # Restore warn C4100 (unreferenced formal parameter) back to w4
-  remove_cc_flag(/w34100)
+  remove_cc_flag(
+    # Restore warn C4100 (unreferenced formal parameter) back to w4.
+    "/w34100"
+  )
 endif()
 
 set(GENSRC_C ${GENSRC})
