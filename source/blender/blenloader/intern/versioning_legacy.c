@@ -1545,7 +1545,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
   if (bmain->versionfile <= 241) {
     Object *ob;
     Scene *sce;
-    Light *la;
     bArmature *arm;
     bNodeTree *ntree;
 
@@ -1588,12 +1587,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 
     for (ntree = bmain->nodetrees.first; ntree; ntree = ntree->id.next) {
       ntree_version_241(ntree);
-    }
-
-    for (la = bmain->lights.first; la; la = la->id.next) {
-      if (la->buffers == 0) {
-        la->buffers = 1;
-      }
     }
 
     /* for empty drawsize and drawtype */
@@ -1921,7 +1914,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     Scene *sce;
     Object *ob;
     Image *ima;
-    Light *la;
     Material *ma;
     ParticleSettings *part;
     bNodeTree *ntree;
@@ -2034,17 +2026,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
             clmd->point_cache = BKE_ptcache_add(&clmd->ptcaches);
             clmd->point_cache->step = 1;
           }
-        }
-      }
-    }
-
-    if (bmain->versionfile != 245 || bmain->subversionfile < 1) {
-      for (la = bmain->lights.first; la; la = la->id.next) {
-        la->falloff_type = LA_FALLOFF_INVLINEAR;
-
-        if (la->curfalloff == NULL) {
-          la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-          BKE_curvemapping_init(la->curfalloff);
         }
       }
     }

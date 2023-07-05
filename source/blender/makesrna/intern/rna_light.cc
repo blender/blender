@@ -36,15 +36,6 @@
 #  include "WM_api.h"
 #  include "WM_types.h"
 
-static void rna_Light_buffer_size_set(PointerRNA *ptr, int value)
-{
-  Light *la = (Light *)ptr->data;
-
-  CLAMP(value, 128, 10240);
-  la->bufsize = value;
-  la->bufsize &= (~15); /* round to multiple of 16 */
-}
-
 static StructRNA *rna_Light_refine(PointerRNA *ptr)
 {
   Light *la = (Light *)ptr->data;
@@ -237,63 +228,6 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
   }
 }
 
-static void rna_def_light_falloff(StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  static const EnumPropertyItem prop_fallofftype_items[] = {
-      {LA_FALLOFF_CONSTANT, "CONSTANT", 0, "Constant", ""},
-      {LA_FALLOFF_INVLINEAR, "INVERSE_LINEAR", 0, "Inverse Linear", ""},
-      {LA_FALLOFF_INVSQUARE, "INVERSE_SQUARE", 0, "Inverse Square", ""},
-      {LA_FALLOFF_INVCOEFFICIENTS, "INVERSE_COEFFICIENTS", 0, "Inverse Coefficients", ""},
-      {LA_FALLOFF_CURVE, "CUSTOM_CURVE", 0, "Custom Curve", ""},
-      {LA_FALLOFF_SLIDERS, "LINEAR_QUADRATIC_WEIGHTED", 0, "Lin/Quad Weighted", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, prop_fallofftype_items);
-  RNA_def_property_ui_text(prop, "Falloff Type", "Intensity Decay with distance");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "curfalloff");
-  RNA_def_property_ui_text(prop, "Falloff Curve", "Custom light falloff curve");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "linear_attenuation", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "att1");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Linear Attenuation", "Linear distance attenuation");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
-  prop = RNA_def_property(srna, "quadratic_attenuation", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "att2");
-  RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Quadratic Attenuation", "Quadratic distance attenuation");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
-  prop = RNA_def_property(srna, "constant_coefficient", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "coeff_const");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(
-      prop, "Constant Coefficient", "Constant distance attenuation coefficient");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
-  prop = RNA_def_property(srna, "linear_coefficient", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "coeff_lin");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(prop, "Linear Coefficient", "Linear distance attenuation coefficient");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
-  prop = RNA_def_property(srna, "quadratic_coefficient", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "coeff_quad");
-  RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(
-      prop, "Quadratic Coefficient", "Quadratic distance attenuation coefficient");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-}
-
 static void rna_def_light_shadow(StructRNA *srna, bool sun)
 {
   PropertyRNA *prop;
@@ -301,16 +235,6 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "mode", LA_SHADOW);
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
-  prop = RNA_def_property(srna, "shadow_buffer_size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "bufsize");
-  RNA_def_property_range(prop, 128, 10240);
-  RNA_def_property_ui_text(prop,
-                           "Shadow Buffer Size",
-                           "Resolution of the shadow buffer, higher values give crisper shadows "
-                           "but use more memory");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_Light_buffer_size_set", nullptr);
-  RNA_def_property_update(prop, 0, "rna_Light_update");
 
   prop = RNA_def_property(srna, "shadow_buffer_clip_start", PROP_FLOAT, PROP_DISTANCE);
   RNA_def_property_float_sdna(prop, nullptr, "clipsta");
@@ -326,12 +250,6 @@ static void rna_def_light_shadow(StructRNA *srna, bool sun)
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
   RNA_def_property_ui_text(prop, "Shadow Buffer Bias", "Bias for reducing self shadowing");
-  RNA_def_property_update(prop, 0, "rna_Light_update");
-
-  prop = RNA_def_property(srna, "shadow_buffer_samples", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "samp");
-  RNA_def_property_range(prop, 1, 16);
-  RNA_def_property_ui_text(prop, "Samples", "Number of shadow buffer samples");
   RNA_def_property_update(prop, 0, "rna_Light_update");
 
   prop = RNA_def_property(srna, "shadow_color", PROP_FLOAT, PROP_COLOR);
@@ -425,7 +343,6 @@ static void rna_def_point_light(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_LIGHT_POINT);
 
   rna_def_light_energy(srna, LA_LOCAL);
-  rna_def_light_falloff(srna);
   rna_def_light_shadow(srna, false);
 }
 
@@ -449,7 +366,6 @@ static void rna_def_area_light(BlenderRNA *brna)
 
   rna_def_light_energy(srna, LA_AREA);
   rna_def_light_shadow(srna, false);
-  rna_def_light_falloff(srna);
 
   prop = RNA_def_property(srna, "shape", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "area_shape");
@@ -496,7 +412,6 @@ static void rna_def_spot_light(BlenderRNA *brna)
   RNA_def_struct_ui_icon(srna, ICON_LIGHT_SPOT);
 
   rna_def_light_energy(srna, LA_SPOT);
-  rna_def_light_falloff(srna);
   rna_def_light_shadow(srna, false);
 
   prop = RNA_def_property(srna, "use_square", PROP_BOOLEAN, PROP_NONE);
