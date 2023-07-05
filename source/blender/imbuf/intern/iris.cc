@@ -931,7 +931,7 @@ static int compressrow(const uchar *lbuf, uchar *rlebuf, const int z, const int 
   return optr - (uchar *)rlebuf;
 }
 
-bool imb_saveiris(ImBuf *ibuf, const char *filepath, int flags)
+bool imb_saveiris(ImBuf *ibuf, const char *filepath, int /*flags*/)
 {
   const short zsize = (ibuf->planes + 7) >> 3;
 
