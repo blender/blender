@@ -37,7 +37,7 @@ typedef struct Light {
 
   /* Color and energy. */
   float r, g, b;
-  float energy, dist;
+  float energy;
 
   /* Point light. */
   float radius;
@@ -79,6 +79,7 @@ typedef struct Light {
 
   float diff_fac, volume_fac;
   float spec_fac, att_dist;
+  float _pad0;
 
   /* Preview */
   struct PreviewImage *preview;

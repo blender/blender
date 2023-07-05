@@ -113,16 +113,6 @@ static void rna_def_light(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_LIGHT);
   RNA_def_property_update(prop, 0, "rna_Light_draw_update");
 
-  prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
-  RNA_def_property_float_sdna(prop, nullptr, "dist");
-  RNA_def_property_range(prop, 0, INT_MAX);
-  RNA_def_property_ui_range(prop, 0, 1000, 1, 3);
-  RNA_def_property_ui_text(
-      prop,
-      "Distance",
-      "Falloff distance - the light is at half the original intensity at this point");
-  RNA_def_property_update(prop, 0, "rna_Light_draw_update");
-
   prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
   RNA_def_property_float_sdna(prop, nullptr, "r");
   RNA_def_property_array(prop, 3);

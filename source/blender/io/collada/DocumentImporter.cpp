@@ -1007,7 +1007,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
     et->setData("shadow_g", &(lamp->shdwg));
     et->setData("shadow_b", &(lamp->shdwb));
     et->setData("energy", &(lamp->energy));
-    et->setData("dist", &(lamp->dist));
     et->setData("spotsize", &(lamp->spotsize));
     lamp->spotsize = DEG2RADF(lamp->spotsize);
     et->setData("spotblend", &(lamp->spotblend));
