@@ -124,21 +124,22 @@ class TextureMarginMap {
     TextureMarginMap *m = static_cast<TextureMarginMap *>(map);
     if (m->mask_) {
       if (m->write_mask_) {
-       /* if there is a mask and write_mask_ is true, write to the mask */
+        /* if there is a mask and write_mask_ is true, write to the mask */
         m->mask_[y * m->w_ + x] = 1;
         m->set_pixel(x, y, m->value_to_store_);
-      } else {
-       /* if there is a mask and write_mask_ is false, read the mask
-        * to decide if the map needs to be written
-        */
-       if (m->mask_[y*m->w_ + x] != 0 ) {
+      }
+      else {
+        /* if there is a mask and write_mask_ is false, read the mask
+         * to decide if the map needs to be written
+         */
+        if (m->mask_[y * m->w_ + x] != 0) {
           m->set_pixel(x, y, m->value_to_store_);
         }
       }
-    } else {
+    }
+    else {
       m->set_pixel(x, y, m->value_to_store_);
     }
-
   }
 
 /* The map contains 2 kinds of pixels: DijkstraPixels and polygon indices. The top bit determines
