@@ -1590,8 +1590,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   # Apple Clang (tested on version 12) doesn't support this flag while LLVM Clang 11 does.
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE    -Wno-suggest-override)
 
-  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
-  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
 
   # gives too many unfixable warnings
   # add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
