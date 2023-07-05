@@ -89,7 +89,7 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
 
 static void rna_Mesh_calc_looptri(Mesh *mesh)
 {
-  BKE_mesh_runtime_looptri_ensure(mesh);
+  mesh->looptris();
 }
 
 static void rna_Mesh_calc_smooth_groups(
