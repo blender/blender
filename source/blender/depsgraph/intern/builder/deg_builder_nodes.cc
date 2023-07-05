@@ -703,6 +703,7 @@ void DepsgraphNodeBuilder::build_collection(LayerCollection *from_layer_collecti
     id_node->is_visible_on_build = is_collection_visible;
 
     build_idproperties(collection->id.properties);
+    build_parameters(&collection->id);
     add_operation_node(&collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE);
   }
   if (from_layer_collection != nullptr) {
