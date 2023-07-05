@@ -621,6 +621,8 @@ void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
 
 struct PathStore {
   struct PathStore *next, *prev;
+  /** Over allocate. */
+  char filepath[0];
 };
 
 static bool bpath_list_append(BPathForeachPathData *bpath_data,
@@ -633,7 +635,8 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
   struct PathStore *path_store = MEM_mallocN(sizeof(struct PathStore) + path_size, __func__);
-  char *filepath = (char *)(path_store + 1);
+
+  char *filepath = path_store->filepath;
 
   memcpy(filepath, path_src, path_size);
   BLI_addtail(path_list, path_store);
@@ -652,7 +655,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
   BLI_assert(!BLI_listbase_is_empty(path_list));
 
   struct PathStore *path_store = path_list->first;
-  const char *filepath = (char *)(path_store + 1);
+  const char *filepath = path_store->filepath;
   bool is_path_changed = false;
 
   if (!STREQ(path_src, filepath)) {
