@@ -278,6 +278,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
   const bool export_vertices = RNA_boolean_get(op->ptr, "export_vertices");
   const bool export_vertex_colors = RNA_boolean_get(op->ptr, "export_vertex_colors");
   const bool export_vertex_groups = RNA_boolean_get(op->ptr, "export_vertex_groups");
+  const bool export_mesh_attributes = RNA_boolean_get(op->ptr, "export_mesh_attributes");
   const bool export_uvmaps = RNA_boolean_get(op->ptr, "export_uvmaps");
   const bool export_normals = RNA_boolean_get(op->ptr, "export_normals");
   const bool export_transforms = RNA_boolean_get(op->ptr, "export_transforms");
@@ -384,6 +385,7 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
                                    export_vertex_groups,
                                    export_uvmaps,
                                    export_normals,
+                                   export_mesh_attributes,
                                    export_transforms,
                                    export_materials,
                                    export_meshes,
@@ -625,6 +627,11 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   true,
                   "Normals",
                   "Include normals of exported meshes in the export");
+  RNA_def_boolean(ot->srna,
+                  "export_mesh_attributes",
+                  true,
+                  "Mesh Attributes",
+                  "Include Generic Attributes of exported meshes in the export");
   RNA_def_boolean(
       ot->srna,
       "export_transforms",
@@ -1021,6 +1028,7 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   const bool read_mesh_uvs = RNA_boolean_get(op->ptr, "read_mesh_uvs");
   const bool read_mesh_colors = RNA_boolean_get(op->ptr, "read_mesh_colors");
+  const bool read_mesh_attributes = RNA_boolean_get(op->ptr, "read_mesh_attributes");
 
   char mesh_read_flag = MOD_MESHSEQ_READ_VERT | MOD_MESHSEQ_READ_POLY;
   if (read_mesh_uvs) {
@@ -1028,6 +1036,9 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   }
   if (read_mesh_colors) {
     mesh_read_flag |= MOD_MESHSEQ_READ_COLOR;
+  }
+  if (read_mesh_attributes) {
+    mesh_read_flag |= MOD_MESHSEQ_READ_ATTRIBUTES;
   }
 
   const bool import_cameras = RNA_boolean_get(op->ptr, "import_cameras");
@@ -1268,6 +1279,12 @@ void WM_OT_usd_import(wmOperatorType *ot)
   RNA_def_boolean(
       ot->srna, "read_mesh_colors", true, "Color Attributes", "Read mesh color attributes");
 
+  RNA_def_boolean(ot->srna,
+                  "read_mesh_attributes",
+                  true,
+                  "Mesh Attributes",
+                  "Read USD Primvars as Mesh Attributes");
+
   RNA_def_string(ot->srna,
                  "prim_path_mask",
                  nullptr,
@@ -1465,6 +1482,7 @@ static void usd_export_panel_geometry_draw(const bContext *C, Panel *panel) {
   uiItemR(col, ptr, "export_vertex_colors", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_vertex_groups", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_normals", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "export_mesh_attributes", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "export_uvmaps", 0, nullptr, ICON_NONE);
   if (RNA_boolean_get(ptr, "export_uvmaps")) {
     uiItemR(col, ptr, "convert_uv_to_st", 0, nullptr, ICON_NONE);
@@ -1841,6 +1859,7 @@ static void usd_import_panel_geometry_draw(const bContext *C, Panel *panel)
 
   uiItemR(col, ptr, "read_mesh_uvs", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "read_mesh_colors", 0, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "read_mesh_attributes", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "validate_meshes", 0, nullptr, ICON_NONE);
   uiItemR(col, ptr, "import_subdiv", 0, nullptr, ICON_NONE);
 }

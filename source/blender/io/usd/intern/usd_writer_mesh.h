@@ -53,6 +53,15 @@ class USDGenericMeshWriter : public USDAbstractWriter {
   void write_surface_velocity(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
 
   void write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh);
+  void write_generic_data(const Mesh *mesh,
+                          pxr::UsdGeomMesh usd_mesh,
+                          const bke::AttributeIDRef &attribute_id,
+                          const bke::AttributeMetaData &meta_data);
+  void write_uv_data(const Mesh *mesh,
+                     pxr::UsdGeomMesh usd_mesh,
+                     const bke::AttributeIDRef &attribute_id,
+                     const bke::AttributeMetaData &meta_data,
+                     const char *active_set_name);
   void write_color_data(const Mesh *mesh,
                         pxr::UsdGeomMesh usd_mesh,
                         const bke::AttributeIDRef &attribute_id,
@@ -60,6 +69,15 @@ class USDGenericMeshWriter : public USDAbstractWriter {
 
  protected:
   ModifierData *m_subsurf_mod;
+
+  template <typename T, typename U>
+  void copy_blender_buffer_to_prim(const VArray<T>& buffer, const pxr::UsdTimeCode timecode, pxr::UsdGeomPrimvar attribute_pv);
+  template <typename T, typename U>
+  void copy_blender_buffer_to_prim2(const VArray<T>& buffer, const pxr::UsdTimeCode timecode, pxr::UsdGeomPrimvar attribute_pv);
+  template <typename T, typename U>
+  void copy_blender_buffer_to_prim3(const VArray<T>& buffer, const pxr::UsdTimeCode timecode, pxr::UsdGeomPrimvar attribute_pv);
+  template <typename T, typename U>
+  void copy_blender_buffer_to_prim_quat(const VArray<T>& buffer, const pxr::UsdTimeCode timecode, pxr::UsdGeomPrimvar attribute_pv);
 };
 
 class USDMeshWriter : public USDGenericMeshWriter {

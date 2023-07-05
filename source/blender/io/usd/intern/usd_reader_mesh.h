@@ -69,8 +69,6 @@ class USDMeshReader : public USDGeomReader {
                                            std::map<pxr::SdfPath, int> *r_mat_map);
 
   void read_mpolys(Mesh *mesh);
-  void read_uvs(Mesh *mesh, double motionSampleTime, bool load_uvs = false);
-
   void read_vertex_creases(Mesh *mesh, double motionSampleTime);
 
   void read_mesh_sample(ImportSettings *settings,
@@ -88,10 +86,15 @@ class USDMeshReader : public USDGeomReader {
 
   void read_custom_data(const ImportSettings *settings, Mesh *mesh, double motionSampleTime);
 
-  void read_color_data_all_primvars(Mesh *mesh, const double motionSampleTime);
   void read_color_data_primvar(Mesh *mesh,
-                               const pxr::UsdGeomPrimvar &color_primvar,
+                               const pxr::UsdGeomPrimvar &primvar,
                                const double motionSampleTime);
+  void read_uv_data_primvar(Mesh *mesh,
+                            const pxr::UsdGeomPrimvar &primvar,
+                            const double motionSampleTime);
+  void read_generic_data_primvar(Mesh *mesh,
+                                 const pxr::UsdGeomPrimvar &primvar,
+                                 const double motionSampleTime);
 };
 
 }  // namespace blender::io::usd

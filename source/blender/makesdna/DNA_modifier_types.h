@@ -2232,6 +2232,8 @@ enum {
    * the mesh topology changes, but this heuristic sometimes fails. In these cases, users can
    * disable interpolation with this flag. */
   MOD_MESHSEQ_INTERPOLATE_VERTICES = (1 << 4),
+
+  MOD_MESHSEQ_READ_ATTRIBUTES = (1 << 5),
 };
 
 typedef struct SDefBind {

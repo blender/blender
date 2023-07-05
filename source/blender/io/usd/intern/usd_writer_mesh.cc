@@ -4,14 +4,12 @@
 #include "usd_writer_mesh.h"
 #include "usd_hierarchy_iterator.h"
 
-#include <pxr/usd/usdGeom/bboxCache.h>
 #include <pxr/usd/usdGeom/mesh.h>
 #include <pxr/usd/usdGeom/primvarsAPI.h>
 #include <pxr/usd/usdShade/material.h>
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 
 #include "BLI_assert.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
 #include "BKE_attribute.h"
@@ -31,7 +29,6 @@
 #include "DEG_depsgraph.h"
 #include "DNA_layer_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
@@ -42,6 +39,8 @@
 #include <iostream>
 
 namespace blender::io::usd {
+
+const pxr::TfToken empty_token;
 
 /* TfToken objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -196,17 +195,268 @@ void USDGenericMeshWriter::write_custom_data(const Mesh *mesh, pxr::UsdGeomMesh 
 {
   const bke::AttributeAccessor attributes = mesh->attributes();
 
+  char *active_set_name = nullptr;
+  const int active_uv_set_index = CustomData_get_render_layer_index(&mesh->ldata, CD_PROP_FLOAT2);
+  if (active_uv_set_index != -1) {
+    active_set_name = mesh->ldata.layers[active_uv_set_index].name;
+  }
+
   attributes.for_all(
       [&](const bke::AttributeIDRef &attribute_id, const bke::AttributeMetaData &meta_data) {
+        /* Skipping "internal" Blender properties. Also skipping
+         * material_index as it's dealt with elsewhere. */
+        if (attribute_id.name()[0] == '.' ||
+            ELEM(attribute_id.name(), "position", "material_index")) {
+          return true;
+        }
+
+        /* UV Data. */
+        if (meta_data.domain == ATTR_DOMAIN_CORNER && meta_data.data_type == CD_PROP_FLOAT2) {
+          if (usd_export_context_.export_params.export_uvmaps) {
+            write_uv_data(mesh, usd_mesh, attribute_id, meta_data, active_set_name);
+          }
+        }
+
         /* Color data. */
-        if (ELEM(meta_data.domain, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_POINT) &&
-            ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
+        else if (ELEM(meta_data.domain, ATTR_DOMAIN_CORNER, ATTR_DOMAIN_POINT) &&
+                 ELEM(meta_data.data_type, CD_PROP_BYTE_COLOR, CD_PROP_COLOR))
         {
-          write_color_data(mesh, usd_mesh, attribute_id, meta_data);
+          if (usd_export_context_.export_params.export_vertex_colors) {
+            write_color_data(mesh, usd_mesh, attribute_id, meta_data);
+          }
+        }
+
+        else {
+          if (usd_export_context_.export_params.export_mesh_attributes) {
+            write_generic_data(mesh, usd_mesh, attribute_id, meta_data);
+          }
         }
 
         return true;
       });
+}
+
+static pxr::SdfValueTypeName convert_blender_type_to_usd(const eCustomDataType blender_type)
+{
+  switch (blender_type) {
+    case CD_PROP_FLOAT:
+      return pxr::SdfValueTypeNames->FloatArray;
+    case CD_PROP_INT8:
+    case CD_PROP_INT32:
+      return pxr::SdfValueTypeNames->IntArray;
+    case CD_PROP_FLOAT2:
+      return pxr::SdfValueTypeNames->Float2Array;
+    case CD_PROP_FLOAT3:
+      return pxr::SdfValueTypeNames->Float3Array;
+    case CD_PROP_STRING:
+      return pxr::SdfValueTypeNames->StringArray;
+    case CD_PROP_BOOL:
+      return pxr::SdfValueTypeNames->BoolArray;
+    case CD_PROP_QUATERNION:
+      return pxr::SdfValueTypeNames->QuatfArray;
+    default:
+      WM_reportf(RPT_WARNING, "Unsupported domain for mesh data.");
+      return pxr::SdfValueTypeNames->Opaque;
+  }
+}
+
+static const pxr::TfToken convert_blender_domain_to_usd(const eAttrDomain blender_domain)
+{
+  switch (blender_domain) {
+    case ATTR_DOMAIN_CORNER:
+      return pxr::UsdGeomTokens->faceVarying;
+    case ATTR_DOMAIN_POINT:
+      return pxr::UsdGeomTokens->vertex;
+    case ATTR_DOMAIN_FACE:
+      return pxr::UsdGeomTokens->uniform;
+
+    /* Notice: Edge types are not supported in USD! */
+    default:
+      WM_reportf(RPT_WARNING, "Unsupported domain for mesh data.");
+      return pxr::TfToken();
+  }
+}
+
+template<typename T>
+const VArray<T> get_attribute_buffer(const Mesh *mesh,
+                                     const bke::AttributeIDRef &attribute_id,
+                                     const bke::AttributeMetaData &meta_data,
+                                     const T default_value)
+{
+  return *mesh->attributes().lookup_or_default<T>(attribute_id, meta_data.domain, default_value);
+}
+
+template<typename T, typename U>
+void USDGenericMeshWriter::copy_blender_buffer_to_prim(const VArray<T> &buffer,
+                                                       const pxr::UsdTimeCode timecode,
+                                                       pxr::UsdGeomPrimvar attribute_pv)
+{
+  pxr::VtArray<U> data;
+  for (const auto index : buffer.index_range()) {
+    U value = buffer.get(index);
+    data.push_back(value);
+  }
+  attribute_pv.Set(data, timecode);
+
+  const pxr::UsdAttribute &prim_attr = attribute_pv.GetAttr();
+  usd_value_writer_.SetAttribute(prim_attr, pxr::VtValue(data), timecode);
+}
+
+template<typename T, typename U>
+void USDGenericMeshWriter::copy_blender_buffer_to_prim2(const VArray<T> &buffer,
+                                                        const pxr::UsdTimeCode timecode,
+                                                        pxr::UsdGeomPrimvar attribute_pv)
+{
+  pxr::VtArray<U> data;
+  for (const auto index : buffer.index_range()) {
+    T value = buffer.get(index);
+    data.push_back({value.x, value.y});
+  }
+  if (!attribute_pv.HasValue()) {
+    attribute_pv.Set(data, pxr::UsdTimeCode::Default());
+  }
+  attribute_pv.Set(data, timecode);
+
+  const pxr::UsdAttribute &prim_attr = attribute_pv.GetAttr();
+  usd_value_writer_.SetAttribute(prim_attr, pxr::VtValue(data), timecode);
+}
+
+template<typename T, typename U>
+void USDGenericMeshWriter::copy_blender_buffer_to_prim3(const VArray<T> &buffer,
+                                                        const pxr::UsdTimeCode timecode,
+                                                        pxr::UsdGeomPrimvar attribute_pv)
+{
+  pxr::VtArray<U> data;
+  for (const auto index : buffer.index_range()) {
+    T buffer_value = buffer.get(index);
+    /* Colors store as rgb, so recast */
+    float3 value = static_cast<float3>(buffer_value);
+    data.push_back({value.x, value.y, value.z});
+  }
+  attribute_pv.Set(data, timecode);
+
+  const pxr::UsdAttribute &prim_attr = attribute_pv.GetAttr();
+  usd_value_writer_.SetAttribute(prim_attr, pxr::VtValue(data), timecode);
+}
+
+template<typename T, typename U>
+void USDGenericMeshWriter::copy_blender_buffer_to_prim_quat(const VArray<T> &buffer,
+                                                            const pxr::UsdTimeCode timecode,
+                                                            pxr::UsdGeomPrimvar attribute_pv)
+{
+  pxr::VtArray<U> data;
+  for (const auto index : buffer.index_range()) {
+    T value = buffer.get(index);
+    /* Note for the future: We may need a separate _prim4 function as
+     * this function deliberately puts the W value first. */
+    data.push_back({value.w, value.x, value.y, value.z});
+  }
+  attribute_pv.Set(data, timecode);
+
+  const pxr::UsdAttribute &prim_attr = attribute_pv.GetAttr();
+  usd_value_writer_.SetAttribute(prim_attr, pxr::VtValue(data), timecode);
+}
+
+void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
+                                              pxr::UsdGeomMesh usd_mesh,
+                                              const bke::AttributeIDRef &attribute_id,
+                                              const bke::AttributeMetaData &meta_data)
+{
+  pxr::UsdTimeCode timecode = get_export_time_code();
+  const std::string name = attribute_id.name();
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
+  const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
+  /* Varying type depends on original domain. */
+  const pxr::TfToken prim_varying = convert_blender_domain_to_usd(meta_data.domain);
+  const pxr::SdfValueTypeName prim_attr_type = convert_blender_type_to_usd(meta_data.data_type);
+
+  if (prim_varying == empty_token || prim_attr_type == pxr::SdfValueTypeNames->Opaque) {
+    WM_reportf(RPT_WARNING,
+               "Mesh %s, Attribute %s cannot be converted to USD.",
+               &mesh->id.name[2],
+               attribute_id.name().data());
+    return;
+  }
+
+  pxr::UsdGeomPrimvar attribute_pv = pvApi.CreatePrimvar(
+      primvar_name, prim_attr_type, prim_varying);
+
+  switch (meta_data.data_type) {
+    case CD_PROP_FLOAT: {
+      auto buffer = get_attribute_buffer<float>(mesh, attribute_id, meta_data, 0);
+      copy_blender_buffer_to_prim<float, float>(buffer, timecode, attribute_pv);
+      break;
+    }
+    case CD_PROP_INT8: {
+      auto buffer = get_attribute_buffer<int8_t>(mesh, attribute_id, meta_data, 0);
+      copy_blender_buffer_to_prim<int8_t, int>(buffer, timecode, attribute_pv);
+      break;
+    }
+    case CD_PROP_INT32: {
+      auto buffer = get_attribute_buffer<int32_t>(mesh, attribute_id, meta_data, 0);
+      copy_blender_buffer_to_prim<int32_t, int32_t>(buffer, timecode, attribute_pv);
+      break;
+    }
+    case CD_PROP_FLOAT2: {
+      auto buffer = get_attribute_buffer<float2>(mesh, attribute_id, meta_data, {0.0f, 0.0f});
+      copy_blender_buffer_to_prim2<float2, pxr::GfVec2f>(buffer, timecode, attribute_pv);
+      break;
+    }
+    case CD_PROP_FLOAT3: {
+      auto buffer = get_attribute_buffer<float3>(
+          mesh, attribute_id, meta_data, {0.0f, 0.0f, 0.0f});
+      copy_blender_buffer_to_prim3<float3, pxr::GfVec3f>(buffer, timecode, attribute_pv);
+      break;
+    }
+    case CD_PROP_BOOL: {
+      auto buffer = get_attribute_buffer<bool>(mesh, attribute_id, meta_data, false);
+      copy_blender_buffer_to_prim<bool, bool>(buffer, timecode, attribute_pv);
+      break;
+    }
+    /*
+     * // This seems to be unsupported so far?
+    case CD_PROP_QUATERNION: {
+      auto buffer = get_attribute_buffer<float4>(
+          // Note that GfQuatf takes in values in wxyz order.
+          mesh, attribute_id, meta_data, {1.0f, 0.0f, 0.0f, 0.0f});
+      copy_blender_buffer_to_prim_quat<float4, pxr::GfQuatf>(buffer, timecode, attribute_pv);
+      break;
+    }
+    */
+    default:
+      BLI_assert_msg(0, "Unsupported domain for mesh data.");
+  }
+}
+
+void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
+                                         pxr::UsdGeomMesh usd_mesh,
+                                         const bke::AttributeIDRef &attribute_id,
+                                         const bke::AttributeMetaData &meta_data,
+                                         const char *active_set_name)
+{
+  static blender::StringRef default_active_name = "st";
+
+  pxr::UsdTimeCode timecode = get_export_time_code();
+  const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
+
+  const blender::StringRef active_ref(active_set_name);
+
+  /* Because primvars don't have a notion of "active" for data like
+   * UVs, but a specific UV set may be considered "active" by target
+   * applications, the [ ---- ] is to name the active set "st". */
+  const std::string name = active_set_name && (active_ref == attribute_id.name()) ?
+                               "st" :
+                               attribute_id.name();
+
+  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
+
+  pxr::UsdGeomPrimvar uv_pv = pvApi.CreatePrimvar(
+      primvar_name, pxr::SdfValueTypeNames->TexCoord2dArray, pxr::UsdGeomTokens->faceVarying);
+
+  const VArray<float2> buffer = *mesh->attributes().lookup_or_default<float2>(
+      attribute_id, meta_data.domain, {0.0f, 0.0f});
+  copy_blender_buffer_to_prim2<float2, pxr::GfVec2d>(buffer, timecode, uv_pv);
 }
 
 void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
@@ -227,36 +477,19 @@ void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
   pxr::UsdGeomPrimvar colors_pv = pvApi.CreatePrimvar(
       primvar_name, pxr::SdfValueTypeNames->Color3fArray, prim_varying);
 
-  const VArray<ColorGeometry4f> attribute = *mesh->attributes().lookup_or_default<ColorGeometry4f>(
-      attribute_id, meta_data.domain, {0.0f, 0.0f, 0.0f, 1.0f});
+  const VArray<ColorGeometry4f> buffer = get_attribute_buffer<ColorGeometry4f>(
+      mesh, attribute_id, meta_data, {0.0f, 0.0f, 0.0f, 1.0f});
 
-  pxr::VtArray<pxr::GfVec3f> colors_data;
-
-  /* TODO: Thread the copy, like the obj exporter. */
   switch (meta_data.domain) {
     case ATTR_DOMAIN_CORNER:
-      for (size_t loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-        const ColorGeometry4f color = attribute.get(loop_idx);
-        colors_data.push_back(pxr::GfVec3f(color.r, color.g, color.b));
-      }
-      break;
-
     case ATTR_DOMAIN_POINT:
-      for (const int point_index : attribute.index_range()) {
-        const ColorGeometry4f color = attribute.get(point_index);
-        colors_data.push_back(pxr::GfVec3f(color.r, color.g, color.b));
-      }
+      copy_blender_buffer_to_prim3<ColorGeometry4f, pxr::GfVec3f>(buffer, timecode, colors_pv);
       break;
 
     default:
       BLI_assert_msg(0, "Invalid domain for mesh color data.");
       return;
   }
-
-  colors_pv.Set(colors_data, timecode);
-
-  const pxr::UsdAttribute &prim_colors_attr = colors_pv.GetAttr();
-  usd_value_writer_.SetAttribute(prim_colors_attr, pxr::VtValue(colors_data), timecode);
 }
 
 void USDGenericMeshWriter::free_export_mesh(Mesh *mesh)
@@ -297,101 +530,6 @@ struct USDMeshData {
   /* The per-vertex sharpnesses. The lengths of this array must match that of `corner_indices`. */
   pxr::VtFloatArray corner_sharpnesses;
 };
-
-void USDGenericMeshWriter::write_uv_maps(const Mesh *mesh, pxr::UsdGeomMesh usd_mesh)
-{
-  pxr::UsdTimeCode timecode = get_export_time_code();
-
-  pxr::UsdGeomPrimvarsAPI primvarsAPI(usd_mesh.GetPrim());
-
-  const CustomData *ldata = &mesh->ldata;
-
-  /* Index of the UV layer to be renamed "st", set to the active UV layer index if
-   * the convert_uv_to_st option is enabled and set to -1 otherwise. */
-  const int st_layer_idx = usd_export_context_.export_params.convert_uv_to_st ?
-                               CustomData_get_active_layer_index(ldata, CD_PROP_FLOAT2) :
-                               -1;
-
-  for (int layer_idx = 0; layer_idx < ldata->totlayer; layer_idx++) {
-    const CustomDataLayer *layer = &ldata->layers[layer_idx];
-    if (layer->type != CD_PROP_FLOAT2) {
-      continue;
-    }
-
-    /* UV coordinates are stored in a Primvar on the Mesh, and can be referenced from materials.
-     * The primvar name is the same as the UV Map name. This is to allow the standard name "st"
-     * for texture coordinates by naming the UV Map as such, without having to guess which UV Map
-     * is the "standard" one. */
-    pxr::TfToken primvar_name((layer_idx == st_layer_idx) ? "st" : pxr::TfMakeValidIdentifier(layer->name));
-    pxr::UsdGeomPrimvar uv_coords_primvar = primvarsAPI.CreatePrimvar(
-        primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
-
-    const float2 *mloopuv = static_cast<const float2 *>(layer->data);
-    pxr::VtArray<pxr::GfVec2f> uv_coords;
-    for (int loop_idx = 0; loop_idx < mesh->totloop; loop_idx++) {
-      uv_coords.push_back(pxr::GfVec2f(mloopuv[loop_idx].x, mloopuv[loop_idx].y));
-    }
-
-    if (!uv_coords_primvar.HasValue()) {
-      uv_coords_primvar.Set(uv_coords, pxr::UsdTimeCode::Default());
-    }
-    const pxr::UsdAttribute &uv_coords_attr = uv_coords_primvar.GetAttr();
-    usd_value_writer_.SetAttribute(uv_coords_attr, pxr::VtValue(uv_coords), timecode);
-
-    if (usd_export_context_.export_params.author_blender_name) {
-      /* Store original layer name in Blender as custom data on the USD mesh. */
-      usd_mesh.GetPrim()
-          .CreateAttribute(pxr::TfToken(usdtokens::blenderNameNS.GetString() +
-                                        usdtokens::blenderDataNS.GetString() +
-                                        primvar_name.GetString()),
-                           pxr::SdfValueTypeNames->String,
-                           true)
-          .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
-    }
-  }
-}
-
-void USDGenericMeshWriter::write_vertex_colors(const Mesh *mesh,
-                                               pxr::UsdGeomMesh usd_mesh,
-                                               const CustomDataLayer *layer)
-{
-  pxr::UsdTimeCode timecode = get_export_time_code();
-  pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(layer->name));
-
-  const float cscale = 1.0f / 255.0f;
-
-  if (usd_export_context_.export_params.author_blender_name) {
-    // Store original layer name in blender
-    usd_mesh.GetPrim()
-        .CreateAttribute(pxr::TfToken(usdtokens::blenderNameNS.GetString() +
-                                      usdtokens::blenderDataNS.GetString() +
-                                      primvar_name.GetString()),
-                         pxr::SdfValueTypeNames->String,
-                         true)
-        .Set(std::string(layer->name), pxr::UsdTimeCode::Default());
-  }
-
-  pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
-
-  // TODO: Allow option of vertex varying primvar
-  pxr::UsdGeomPrimvar vertex_colors_pv = pvApi.CreatePrimvar(
-      primvar_name, pxr::SdfValueTypeNames->Color3fArray, pxr::UsdGeomTokens->faceVarying);
-
-  MLoopCol *vertCol = static_cast<MLoopCol *>(layer->data);
-  pxr::VtArray<pxr::GfVec3f> vertex_colors;
-
-  for (int loop_idx = 0; loop_idx < mesh->totloop; ++loop_idx) {
-    pxr::GfVec3f col = pxr::GfVec3f(vertCol[loop_idx].r * cscale,
-                                    vertCol[loop_idx].g * cscale,
-                                    vertCol[loop_idx].b * cscale);
-    vertex_colors.push_back(col);
-  }
-
-  vertex_colors_pv.Set(vertex_colors, timecode);
-
-  const pxr::UsdAttribute &vertex_colors_attr = vertex_colors_pv.GetAttr();
-  usd_value_writer_.SetAttribute(vertex_colors_attr, pxr::VtValue(vertex_colors), timecode);
-}
 
 void USDGenericMeshWriter::write_vertex_groups(const Object *ob,
                                                const Mesh *mesh,
@@ -569,10 +707,6 @@ void USDGenericMeshWriter::write_mesh(HierarchyContext &context, Mesh *mesh)
         attr_corner_indices, pxr::VtValue(usd_mesh_data.corner_indices), timecode);
     usd_value_writer_.SetAttribute(
         attr_corner_sharpnesses, pxr::VtValue(usd_mesh_data.crease_sharpnesses), timecode);
-  }
-
-  if (usd_export_context_.export_params.export_uvmaps) {
-    write_uv_maps(mesh, usd_mesh);
   }
 
   write_custom_data(mesh, usd_mesh);
@@ -812,10 +946,9 @@ void USDGenericMeshWriter::write_normals(const Mesh *mesh, pxr::UsdGeomMesh usd_
   }
 
   pxr::UsdAttribute attr_normals = usd_mesh.CreateNormalsAttr(pxr::VtValue(), true);
-
-  // NOTE (Marcelo Sercheli): Code to set values at default time was removed since
-  // `timecode` will be default time in case of non-animation exports. For animated
-  // exports, USD will inter/extrapolate values linearly.
+  if (!attr_normals.HasValue()) {
+    attr_normals.Set(loop_normals, pxr::UsdTimeCode::Default());
+  }
   usd_value_writer_.SetAttribute(attr_normals, pxr::VtValue(loop_normals), timecode);
   usd_mesh.SetNormalsInterpolation(pxr::UsdGeomTokens->faceVarying);
 }

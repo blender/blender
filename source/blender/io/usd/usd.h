@@ -106,6 +106,7 @@ struct USDExportParams {
   bool export_vertex_groups;
   bool export_uvmaps;
   bool export_normals;
+  bool export_mesh_attributes;
   bool export_transforms;
   bool export_materials;
   bool export_meshes;
