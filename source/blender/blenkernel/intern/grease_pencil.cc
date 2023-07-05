@@ -260,11 +260,15 @@ Drawing::Drawing()
   this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
 }
 
-Drawing::Drawing(const Drawing &other) : Drawing()
+Drawing::Drawing(const Drawing &other)
 {
+  this->base.type = GP_DRAWING;
   this->base.flag = other.base.flag;
 
   new (&this->geometry) bke::CurvesGeometry(other.geometry.wrap());
+  /* Initialize runtime data. */
+  this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
+
   this->runtime->triangles_cache = other.runtime->triangles_cache;
 }
 
