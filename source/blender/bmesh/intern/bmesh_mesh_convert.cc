@@ -1149,7 +1149,7 @@ static void bm_face_loop_table_build(BMesh &bm,
                                      bool &need_hide_poly,
                                      bool &need_sharp_face,
                                      bool &need_material_index,
-                                     Vector<int> &ldata_layers_marked_nocopy)
+                                     Vector<int> &loop_layers_not_to_copy)
 {
   const CustomData &ldata = bm.ldata;
   Vector<int> vert_sel_layers;
@@ -1224,20 +1224,17 @@ static void bm_face_loop_table_build(BMesh &bm,
 
   for (const int i : vert_sel_layers.index_range()) {
     if (!need_vert_sel[i]) {
-      ldata.layers[vert_sel_layers[i]].flag |= CD_FLAG_NOCOPY;
-      ldata_layers_marked_nocopy.append(vert_sel_layers[i]);
+      loop_layers_not_to_copy.append(vert_sel_layers[i]);
     }
   }
   for (const int i : edge_sel_layers.index_range()) {
     if (!need_edge_sel[i]) {
-      ldata.layers[edge_sel_layers[i]].flag |= CD_FLAG_NOCOPY;
-      ldata_layers_marked_nocopy.append(edge_sel_layers[i]);
+      loop_layers_not_to_copy.append(edge_sel_layers[i]);
     }
   }
   for (const int i : pin_layers.index_range()) {
     if (!need_pin[i]) {
-      ldata.layers[pin_layers[i]].flag |= CD_FLAG_NOCOPY;
-      ldata_layers_marked_nocopy.append(pin_layers[i]);
+      loop_layers_not_to_copy.append(pin_layers[i]);
     }
   }
 }
@@ -1417,15 +1414,6 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   me->totpoly = bm->totface;
   me->act_face = -1;
 
-  {
-    CustomData_MeshMasks mask = CD_MASK_MESH;
-    CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
-    CustomData_copy_layout(&bm->vdata, &me->vdata, mask.vmask, CD_SET_DEFAULT, me->totvert);
-    CustomData_copy_layout(&bm->edata, &me->edata, mask.emask, CD_SET_DEFAULT, me->totedge);
-    CustomData_copy_layout(&bm->ldata, &me->ldata, mask.lmask, CD_SET_DEFAULT, me->totloop);
-    CustomData_copy_layout(&bm->pdata, &me->pdata, mask.pmask, CD_SET_DEFAULT, me->totpoly);
-  }
-
   bool need_select_vert = false;
   bool need_select_edge = false;
   bool need_select_poly = false;
@@ -1440,7 +1428,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
   Array<const BMEdge *> edge_table;
   Array<const BMFace *> face_table;
   Array<const BMLoop *> loop_table;
-  Vector<int> ldata_layers_marked_nocopy;
+  Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
       me->totface > 1024,
       [&]() {
@@ -1462,9 +1450,21 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
                                  need_hide_poly,
                                  need_sharp_face,
                                  need_material_index,
-                                 ldata_layers_marked_nocopy);
+                                 loop_layers_not_to_copy);
+        for (const int i : loop_layers_not_to_copy) {
+          bm->ldata.layers[i].flag |= CD_FLAG_NOCOPY;
+        }
       });
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP);
+
+  {
+    CustomData_MeshMasks mask = CD_MASK_MESH;
+    CustomData_MeshMasks_update(&mask, &params->cd_mask_extra);
+    CustomData_copy_layout(&bm->vdata, &me->vdata, mask.vmask, CD_CONSTRUCT, me->totvert);
+    CustomData_copy_layout(&bm->edata, &me->edata, mask.emask, CD_CONSTRUCT, me->totedge);
+    CustomData_copy_layout(&bm->ldata, &me->ldata, mask.lmask, CD_CONSTRUCT, me->totloop);
+    CustomData_copy_layout(&bm->pdata, &me->pdata, mask.pmask, CD_CONSTRUCT, me->totpoly);
+  }
 
   /* Add optional mesh attributes before parallel iteration. */
   assert_bmesh_has_no_mesh_only_attributes(*bm);
@@ -1546,7 +1546,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const struct BMeshToMesh
         bm_to_mesh_loops(*bm, loop_table, *me);
         /* Topology could be changed, ensure #CD_MDISPS are ok. */
         multires_topology_changed(me);
-        for (const int i : ldata_layers_marked_nocopy) {
+        for (const int i : loop_layers_not_to_copy) {
           bm->ldata.layers[i].flag &= ~CD_FLAG_NOCOPY;
         }
       },
@@ -1628,18 +1628,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   me->totloop = bm->totloop;
   me->totpoly = bm->totface;
 
-  /* Don't process shape-keys. We only feed them through the modifier stack as needed,
-   * e.g. for applying modifiers or the like. */
-  CustomData_MeshMasks mask = CD_MASK_DERIVEDMESH;
-  if (cd_mask_extra != nullptr) {
-    CustomData_MeshMasks_update(&mask, cd_mask_extra);
-  }
-  mask.vmask &= ~CD_MASK_SHAPEKEY;
-  CustomData_merge_layout(&bm->vdata, &me->vdata, mask.vmask, CD_CONSTRUCT, me->totvert);
-  CustomData_merge_layout(&bm->edata, &me->edata, mask.emask, CD_CONSTRUCT, me->totedge);
-  CustomData_merge_layout(&bm->ldata, &me->ldata, mask.lmask, CD_CONSTRUCT, me->totloop);
-  CustomData_merge_layout(&bm->pdata, &me->pdata, mask.pmask, CD_CONSTRUCT, me->totpoly);
-
   me->runtime->deformed_only = true;
 
   /* In a first pass, update indices of BMesh elements and build tables for easy iteration later.
@@ -1659,7 +1647,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   Array<const BMEdge *> edge_table;
   Array<const BMFace *> face_table;
   Array<const BMLoop *> loop_table;
-  Vector<int> ldata_layers_marked_nocopy;
+  Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
       me->totface > 1024,
       [&]() {
@@ -1681,9 +1669,24 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
                                  need_hide_poly,
                                  need_sharp_face,
                                  need_material_index,
-                                 ldata_layers_marked_nocopy);
+                                 loop_layers_not_to_copy);
+        for (const int i : loop_layers_not_to_copy) {
+          bm->ldata.layers[i].flag |= CD_FLAG_NOCOPY;
+        }
       });
   bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE | BM_LOOP);
+
+  /* Don't process shape-keys. We only feed them through the modifier stack as needed,
+   * e.g. for applying modifiers or the like. */
+  CustomData_MeshMasks mask = CD_MASK_DERIVEDMESH;
+  if (cd_mask_extra != nullptr) {
+    CustomData_MeshMasks_update(&mask, cd_mask_extra);
+  }
+  mask.vmask &= ~CD_MASK_SHAPEKEY;
+  CustomData_merge_layout(&bm->vdata, &me->vdata, mask.vmask, CD_CONSTRUCT, me->totvert);
+  CustomData_merge_layout(&bm->edata, &me->edata, mask.emask, CD_CONSTRUCT, me->totedge);
+  CustomData_merge_layout(&bm->ldata, &me->ldata, mask.lmask, CD_CONSTRUCT, me->totloop);
+  CustomData_merge_layout(&bm->pdata, &me->pdata, mask.pmask, CD_CONSTRUCT, me->totpoly);
 
   /* Add optional mesh attributes before parallel iteration. */
   assert_bmesh_has_no_mesh_only_attributes(*bm);
@@ -1754,7 +1757,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
       },
       [&]() {
         bm_to_mesh_loops(*bm, loop_table, *me);
-        for (const int i : ldata_layers_marked_nocopy) {
+        for (const int i : loop_layers_not_to_copy) {
           bm->ldata.layers[i].flag &= ~CD_FLAG_NOCOPY;
         }
       });
