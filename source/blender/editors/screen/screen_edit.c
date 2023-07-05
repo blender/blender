@@ -767,6 +767,7 @@ static void screen_regions_poll(bContext *C, const wmWindow *win, bScreen *scree
   if (any_changed) {
     screen->do_refresh = true;
   }
+
   CTX_wm_area_set(C, prev_area);
   CTX_wm_region_set(C, prev_region);
 }
