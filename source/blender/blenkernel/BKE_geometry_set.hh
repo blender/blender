@@ -388,10 +388,7 @@ struct GeometrySet {
 
 /**
  * A geometry component that can store a mesh, using the #Mesh data-block.
- *
- * Attributes are stored, on any of the four attribute domains. Generic attributes are stored in
- * contiguous arrays, but often built-in attributes are stored in an array of structs fashion for
- * historical reasons, requiring more complex attribute access.
+ * Attributes are stored on any of the four attribute domains.
  */
 class MeshComponent : public GeometryComponent {
  private:
