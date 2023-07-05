@@ -1592,6 +1592,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
 
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNUSED_PARAMETER -Wunused-parameter)
 
   # gives too many unfixable warnings
   # add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
