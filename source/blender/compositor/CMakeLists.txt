@@ -625,9 +625,6 @@ if(WITH_COMPOSITOR_CPU)
     COMMAND "$<TARGET_FILE:smaa_areatex>" ${GENSRC}
     DEPENDS smaa_areatex
   )
-  add_custom_target(smaa_areatex_header
-    SOURCES ${GENSRC}
-  )
   list(APPEND SRC
     ${GENSRC}
   )
@@ -661,8 +658,6 @@ if(WITH_COMPOSITOR_CPU)
   if(CXX_WARN_NO_SUGGEST_OVERRIDE)
     target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
   endif()
-
-  add_dependencies(bf_compositor smaa_areatex_header)
 
   if(WITH_GTESTS)
     set(TEST_SRC
