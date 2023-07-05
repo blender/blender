@@ -369,7 +369,7 @@ const float (*BKE_mesh_vert_normals_ensure(const Mesh *mesh))[3]
 
 const float (*BKE_mesh_poly_normals_ensure(const Mesh *mesh))[3]
 {
-  return reinterpret_cast<const float(*)[3]>(mesh->vert_normals().data());
+  return reinterpret_cast<const float(*)[3]>(mesh->poly_normals().data());
 }
 
 void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
