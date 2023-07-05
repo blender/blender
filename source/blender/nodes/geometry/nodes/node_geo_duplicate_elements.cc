@@ -68,14 +68,8 @@ static OffsetIndices<int> accumulate_counts_to_offsets(const IndexMask &selectio
                                                        Array<int> &r_offset_data)
 {
   r_offset_data.reinitialize(selection.size() + 1);
-  if (counts.is_single()) {
-    const int count = counts.get_internal_single();
-    threading::parallel_for(selection.index_range(), 1024, [&](const IndexRange range) {
-      for (const int64_t i : range) {
-        r_offset_data[i] = count * i;
-      }
-    });
-    r_offset_data.last() = count * selection.size();
+  if (const std::optional<int> count = counts.get_if_single()) {
+    offset_indices::fill_constant_group_size(*count, 0, r_offset_data);
   }
   else {
     array_utils::gather(counts, selection, r_offset_data.as_mutable_span().drop_back(1), 1024);

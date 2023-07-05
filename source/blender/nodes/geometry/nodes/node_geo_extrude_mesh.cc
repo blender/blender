@@ -487,8 +487,7 @@ static void extrude_mesh_edges(Mesh &mesh,
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
   MutableSpan<int> new_corner_edges = corner_edges.slice(new_loop_range);
 
-  new_poly_offsets.fill(4);
-  offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
   const OffsetIndices polys = mesh.polys();
 
   for (const int i : connect_edges.index_range()) {
@@ -848,8 +847,7 @@ static void extrude_mesh_face_regions(Mesh &mesh,
 
   /* Initialize the new side polygons. */
   if (!new_poly_offsets.is_empty()) {
-    new_poly_offsets.fill(4);
-    offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+    offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
   }
   const OffsetIndices polys = mesh.polys();
 
@@ -1169,8 +1167,7 @@ static void extrude_individual_mesh_faces(
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
   MutableSpan<int> corner_edges = mesh.corner_edges_for_write();
 
-  new_poly_offsets.fill(4);
-  offset_indices::accumulate_counts_to_offsets(new_poly_offsets, orig_loop_size);
+  offset_indices::fill_constant_group_size(4, orig_loop_size, new_poly_offsets);
   const OffsetIndices polys = mesh.polys();
 
   /* For every selected polygon, change it to use the new extruded vertices and the duplicate
