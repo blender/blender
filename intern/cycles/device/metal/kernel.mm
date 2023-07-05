@@ -168,7 +168,7 @@ void ShaderCache::wait_for_all()
   }
 }
 
-void ShaderCache::compile_thread_func(int thread_index)
+void ShaderCache::compile_thread_func(int /*thread_index*/)
 {
   while (running) {
 
@@ -711,7 +711,7 @@ void MetalKernelPipeline::compile()
           newComputePipelineStateWithDescriptor:computePipelineStateDescriptor
                                         options:pipelineOptions
                               completionHandler:^(id<MTLComputePipelineState> computePipelineState,
-                                                  MTLComputePipelineReflection *reflection,
+                                                  MTLComputePipelineReflection * /*reflection*/,
                                                   NSError *error) {
                                 pipeline = computePipelineState;
 

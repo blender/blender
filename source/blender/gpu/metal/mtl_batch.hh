@@ -83,10 +83,10 @@ class MTLBatch : public Batch {
 
   void draw(int v_first, int v_count, int i_first, int i_count) override;
   void draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset) override;
-  void multi_draw_indirect(GPUStorageBuf *indirect_buf,
-                           int count,
-                           intptr_t offset,
-                           intptr_t stride) override
+  void multi_draw_indirect(GPUStorageBuf * /*indirect_buf*/,
+                           int /*count*/,
+                           intptr_t /*offset*/,
+                           intptr_t /*stride*/) override
   {
     /* TODO(Metal): Support indirect draw commands. */
   }

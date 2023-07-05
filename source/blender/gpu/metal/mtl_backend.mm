@@ -256,7 +256,7 @@ void MTLBackend::platform_exit()
  * \{ */
 MTLCapabilities MTLBackend::capabilities = {};
 
-static const char *mtl_extensions_get_null(int i)
+static const char *mtl_extensions_get_null(int /*i*/)
 {
   return nullptr;
 }

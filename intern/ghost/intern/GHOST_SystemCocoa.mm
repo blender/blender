@@ -698,7 +698,7 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
                                                uint32_t height,
                                                GHOST_TWindowState state,
                                                GHOST_GPUSettings gpuSettings,
-                                               const bool exclusive,
+                                               const bool /*exclusive*/,
                                                const bool is_dialog,
                                                const GHOST_IWindow *parentWindow)
 {
@@ -914,7 +914,7 @@ GHOST_TCapabilityFlag GHOST_SystemCocoa::getCapabilities() const
 /**
  * The event queue polling function
  */
-bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
+bool GHOST_SystemCocoa::processEvents(bool /*waitForEvent*/)
 {
   bool anyProcessed = false;
   NSEvent *event;
@@ -1953,7 +1953,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
 #pragma mark Clipboard get/set
 
-char *GHOST_SystemCocoa::getClipboard(bool selection) const
+char *GHOST_SystemCocoa::getClipboard(bool /*selection*/) const
 {
   char *temp_buff;
   size_t pastedTextSize;

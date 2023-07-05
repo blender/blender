@@ -1490,6 +1490,7 @@ void gpu::MTLTexture::read_internal(int mip,
   }
   /* DEBUG check that the allocated data size matches the bytes we expect. */
   BLI_assert(total_bytes <= debug_data_size);
+  UNUSED_VARS_NDEBUG(debug_data_size);
 
   /* Fetch allocation from scratch buffer. */
   gpu::MTLBuffer *dest_buf = MTLContext::get_global_memory_manager()->allocate_aligned(
