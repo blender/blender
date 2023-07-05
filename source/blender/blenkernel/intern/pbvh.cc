@@ -2732,12 +2732,10 @@ void BKE_pbvh_raycast_project_ray_root(
        * This happens when initializing rays by the viewport clipping
        * bounds, which are then divided by the object's scale.
        * So if the clip end if 10000 and we divide by 0.00001 we
-       * get a really large number that we cannd add 1e-3 (0.001) to.
+       * get a really large number that we canned add 1e-3 (0.001) to.
        *
        * To solve this, we compute a margin using the next possible floating
-       * point value after ray start.
-       */
-
+       * point value after ray start. */
       float epsilon = std::nextafterf(rootmin_start, rootmin_start + 1.0f) - rootmin_start;
       rootmin_end = rootmin_start + epsilon * 500.0f;
     }

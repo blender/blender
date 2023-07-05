@@ -1786,7 +1786,7 @@ static bool render_init_from_main(Render *re,
     return false;
   }
 
-  /* initstate makes new result, have to send changed tags around */
+  /* Init-state makes new result, have to send changed tags around. */
   ntreeCompositTagRender(re->scene);
 
   re->display_init(re->dih, re->result);

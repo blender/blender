@@ -391,7 +391,7 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         NodeImageLayer *output = MEM_cnew<NodeImageLayer>("node image layer");
 
-        /* take pass index both from current storage ptr (actually an int) */
+        /* Take pass index both from current storage pointer (actually an int). */
         output->pass_index = POINTER_AS_INT(sock->storage);
 
         /* replace socket data pointer */
@@ -678,7 +678,7 @@ LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
 }
 
 {
-  /* support old particle dupliobject rotation settings */
+  /* Support old particle dupli-object rotation settings. */
   LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
     if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
       part->draw |= PART_DRAW_ROTATE_OB;
@@ -1330,7 +1330,7 @@ if (!MAIN_VERSION_ATLEAST(bmain, 263, 14)) {
   }
   FOREACH_NODETREE_END;
 
-  /* keep compatibility for dupliobject particle size */
+  /* Keep compatibility for dupli-object particle size. */
   LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
     if (ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)) {
       if ((part->draw & PART_DRAW_ROTATE_OB) == 0) {
@@ -1810,11 +1810,15 @@ if (bmain->versionfile < 267) {
     }
   }
 
-  /* TIP: to initialize new variables added, use the new function
-   * DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")
-   * example:
-   * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit"))
+  /**
+   * TIP: to initialize new variables added, use the new function:
+   * `DNA_struct_elem_find(fd->filesdna, "structname", "typename", "varname")`, example:
+   *
+   * \code{.cc}
+   * if (!DNA_struct_elem_find(fd->filesdna, "UserDef", "short", "image_gpubuffer_limit")) {
    *     user->image_gpubuffer_limit = 10;
+   * }
+   * \endcode
    */
 }
 

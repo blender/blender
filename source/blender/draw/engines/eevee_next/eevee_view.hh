@@ -145,7 +145,7 @@ class MainView {
 /* -------------------------------------------------------------------- */
 /** \name Capture View
  *
- * View for capturing cubemap renders outside a ShadingView.
+ * View for capturing cube-map renders outside a ShadingView.
  * \{ */
 
 class CaptureView {

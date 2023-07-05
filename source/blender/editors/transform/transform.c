@@ -1075,7 +1075,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
           }
         }
 
-        /* Need to reinit after mode change. */
+        /* Need to reinitialize after mode change. */
         initSnapping(t, NULL);
         applyMouseInput(t, &t->mouse, t->mval, t->values);
         t->redraw |= TREDRAW_HARD;

@@ -73,7 +73,7 @@ class ReflectionProbeModule {
 
   void remap_to_octahedral_projection();
 
-  /* Capture View requires access to the cubemaps texture for frame-buffer configuration. */
+  /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
   friend class CaptureView;
 };
 

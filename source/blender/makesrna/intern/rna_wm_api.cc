@@ -1109,8 +1109,8 @@ void RNA_api_macro(StructRNA *srna)
 
 void RNA_api_keyconfig(StructRNA * /*srna*/)
 {
-  /* FunctionRNA *func; */
-  /* PropertyRNA *parm; */
+  // FunctionRNA *func;
+  // PropertyRNA *parm;
 }
 
 void RNA_api_keymap(StructRNA *srna)

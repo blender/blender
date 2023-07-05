@@ -231,7 +231,7 @@ static void rna_Image_gl_free(Image *image)
 {
   BKE_image_free_gputextures(image);
 
-  /* remove the nocollect flag, image is available for garbage collection again */
+  /* Remove the no-collect flag, image is available for garbage collection again. */
   image->flag &= ~IMA_NOCOLLECT;
 }
 

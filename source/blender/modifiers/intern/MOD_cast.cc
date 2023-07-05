@@ -417,7 +417,7 @@ static void cuboid_do(CastModifierData *cmd,
       coord = 1;
     }
     if (d[2] > dmax) {
-      /* dmax = d[2]; */ /* commented, we don't need it */
+      // dmax = d[2]; /* commented, we don't need it */
       coord = 2;
     }
 

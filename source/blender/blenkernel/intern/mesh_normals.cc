@@ -1421,7 +1421,7 @@ static void mesh_normals_loop_custom_set(Span<float3> positions,
 {
   /* We *may* make that poor #bke::mesh::normals_calc_loop() even more complex by making it
    * handling that feature too, would probably be more efficient in absolute. However, this
-   * function *is not* performance-critical, since it is mostly expected to be called by io add-ons
+   * function *is not* performance-critical, since it is mostly expected to be called by IO add-ons
    * when importing custom normals, and modifier (and perhaps from some editing tools later?). So
    * better to keep some simplicity here, and just call #bke::mesh::normals_calc_loop() twice! */
   CornerNormalSpaceArray lnors_spacearr;

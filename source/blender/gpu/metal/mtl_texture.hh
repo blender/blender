@@ -588,7 +588,7 @@ inline MTLPixelFormat mtl_format_get_writeable_view_format(MTLPixelFormat format
        * manual data upload */
       return MTLPixelFormatInvalid;
     case MTLPixelFormatDepth24Unorm_Stencil8:
-      /* No direct format, but we'll just mirror the bytes -- Uint
+      /* No direct format, but we'll just mirror the bytes -- `Uint`
        * should ensure bytes are not re-normalized or manipulated */
       /* return MTLPixelFormatR32Uint; */
       return MTLPixelFormatInvalid;

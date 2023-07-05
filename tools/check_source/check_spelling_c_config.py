@@ -303,6 +303,7 @@ dict_custom = {
     "skippable",
     "sortable",
     "stepsize",
+    "stepwise",
     "stitchable",
     "subclass",
     "subclasses",
@@ -489,6 +490,7 @@ dict_custom = {
     "coord",
     "coords",
     "ctrl",  # control (modifier key).
+    "ie",
     "init",
     "iter",  # iteration.
     "multi",
@@ -516,6 +518,7 @@ dict_custom = {
     "decimator",
     "decref",
     "decrefed",
+    "decrefing",
     "diff",
     "diffs",
     "endian",
@@ -528,6 +531,7 @@ dict_custom = {
     "http",
     "incref",
     "increfed",
+    "increfing",
     "intelisense",
     "jitter",
     "jittered",

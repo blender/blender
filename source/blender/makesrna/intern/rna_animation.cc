@@ -168,12 +168,14 @@ static void rna_AnimData_tweakmode_set(PointerRNA *ptr, const bool value)
   }
 }
 
-/* This is used to avoid the check for NLA tracks when enabling tweak
- * mode while loading overrides.  This is necessary because the normal
+/**
+ * This is used to avoid the check for NLA tracks when enabling tweak
+ * mode while loading overrides. This is necessary because the normal
  * RNA tweak-mode setter refuses to enable tweak mode if there are no
  * NLA tracks since that's normally an invalid state... but the
- * overriden NLA tracks are only added *after* setting the tweak mode
- * override. */
+ * overridden NLA tracks are only added *after* setting the tweak mode
+ * override.
+ */
 bool rna_AnimData_tweakmode_override_apply(Main * /*bmain*/,
                                            PointerRNA *ptr_dst,
                                            PointerRNA *ptr_src,

@@ -2216,34 +2216,34 @@ void vec_apply_track(float vec[3], short axis)
 
   switch (axis) {
     case 0: /* pos-x */
-      /* vec[0] =  0.0; */
+      // vec[0] =  0.0;
       vec[1] = tvec[2];
       vec[2] = -tvec[1];
       break;
     case 1: /* pos-y */
-      /* vec[0] = tvec[0]; */
-      /* vec[1] =  0.0; */
-      /* vec[2] = tvec[2]; */
+      // vec[0] = tvec[0];
+      // vec[1] =  0.0;
+      // vec[2] = tvec[2];
       break;
     case 2: /* pos-z */
-      /* vec[0] = tvec[0]; */
-      /* vec[1] = tvec[1]; */
-      /* vec[2] =  0.0; */
+      // vec[0] = tvec[0];
+      // vec[1] = tvec[1];
+      // vec[2] =  0.0;
       break;
     case 3: /* neg-x */
-      /* vec[0] =  0.0; */
+      // vec[0] =  0.0;
       vec[1] = tvec[2];
       vec[2] = -tvec[1];
       break;
     case 4: /* neg-y */
       vec[0] = -tvec[2];
-      /* vec[1] =  0.0; */
+      // vec[1] =  0.0;
       vec[2] = tvec[0];
       break;
     case 5: /* neg-z */
       vec[0] = -tvec[0];
       vec[1] = -tvec[1];
-      /* vec[2] =  0.0; */
+      // vec[2] =  0.0;
       break;
   }
 }

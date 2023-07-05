@@ -475,7 +475,7 @@ static void rna_def_view2d_api(StructRNA *srna)
 static void rna_def_view2d(BlenderRNA *brna)
 {
   StructRNA *srna;
-  /* PropertyRNA *prop; */
+  // PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "View2D", nullptr);
   RNA_def_struct_ui_text(srna, "View2D", "Scroll and zoom for a 2D region");

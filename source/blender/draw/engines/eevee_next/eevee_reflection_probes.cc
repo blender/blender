@@ -21,7 +21,7 @@ void ReflectionProbeModule::init()
                                max_mipmap_levels);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
 
-    /* Cubemap is half of the resolution of the octahedral map. */
+    /* Cube-map is half of the resolution of the octahedral map. */
     cubemap_tx_.ensure_cube(
         GPU_RGBA16F, max_resolution_ / 2, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr, 1);
     GPU_texture_mipmap_mode(cubemap_tx_, false, true);

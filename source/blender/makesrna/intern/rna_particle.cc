@@ -380,7 +380,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     return;
   }
 
-  /* get uvco & mcol */
+  /* Get UV-coordinate & color. */
   int num = particle->num_dmcache;
   int from = modifier->psys->part->from;
 
@@ -396,7 +396,7 @@ static void rna_Particle_uv_on_emitter(ParticleData *particle,
     }
   }
 
-  /* get uvco */
+  /* Get UV-coordinate. */
   if (r_uv && ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME) &&
       !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD))
   {

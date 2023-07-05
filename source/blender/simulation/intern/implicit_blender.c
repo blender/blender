@@ -805,7 +805,7 @@ static int cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z,
 
     conjgrad_loopcount++;
   }
-  /* conjgrad_lasterror = s; */ /* UNUSED */
+  // conjgrad_lasterror = s; /* UNUSED */
 
   del_lfvector(q);
   del_lfvector(d);
