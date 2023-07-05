@@ -2019,7 +2019,7 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const float *vertex_crease = static_cast<const float *>(
       CustomData_get_layer(&mesh->vdata, CD_CREASE));
   float *result_edge_crease = nullptr;
-  if (vertex_crease) {
+  if (vertex_crease || orig_edge_crease) {
     result_edge_crease = (float *)CustomData_add_layer(
         &result->edata, CD_CREASE, CD_SET_DEFAULT, result->totedge);
     /* delete all vertex creases in the result if a rim is used. */
