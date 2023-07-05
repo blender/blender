@@ -7,7 +7,6 @@
  */
 
 #include "AS_asset_library.hh"
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
 #include "BKE_screen.h"
@@ -76,10 +75,10 @@ class AssetViewItem : public ui::PreviewGridItem {
 };
 
 class AssetDragController : public ui::AbstractViewItemDragController {
-  AssetRepresentation &asset_;
+  asset_system::AssetRepresentation &asset_;
 
  public:
-  AssetDragController(ui::AbstractGridView &view, AssetRepresentation &asset);
+  AssetDragController(ui::AbstractGridView &view, asset_system::AssetRepresentation &asset);
 
   eWM_DragDataType get_drag_type() const override;
   void *create_drag_data(bContext &C) const override;
@@ -109,18 +108,19 @@ void AssetView::build_items()
       return true;
     }
 
-    const AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_handle);
-    const AssetMetaData *asset_data = AS_asset_representation_metadata_get(asset);
+    const asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(
+        &asset_handle);
+    const AssetMetaData &asset_data = asset->get_metadata();
 
-    if (catalog_filter_ && !catalog_filter_->contains(asset_data->catalog_id)) {
+    if (catalog_filter_ && !catalog_filter_->contains(asset_data.catalog_id)) {
       /* Skip this asset. */
       return true;
     }
 
     const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
-    const StringRef identifier = AS_asset_representation_library_relative_identifier_get(asset);
-    const StringRef name = show_names ? AS_asset_representation_name_get(asset) : "";
+    const StringRef identifier = asset->get_identifier().library_relative_identifier();
+    const StringRef name = show_names ? asset->get_name() : "";
     const int preview_id = ED_asset_handle_get_preview_icon_id(&asset_handle);
 
     AssetViewItem &item = add_item<AssetViewItem>(asset_handle, identifier, name, preview_id);
@@ -216,8 +216,8 @@ bool AssetViewItem::is_filtered_visible() const
     return true;
   }
 
-  const char *asset_name = ED_asset_handle_get_name(&asset_);
-  return fnmatch(asset_view.search_string, asset_name, FNM_CASEFOLD) == 0;
+  const StringRefNull asset_name = ED_asset_handle_get_representation(&asset_)->get_name();
+  return fnmatch(asset_view.search_string, asset_name.c_str(), FNM_CASEFOLD) == 0;
 }
 
 std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_controller() const
@@ -225,7 +225,7 @@ std::unique_ptr<ui::AbstractViewItemDragController> AssetViewItem::create_drag_c
   if (!allow_asset_drag_) {
     return nullptr;
   }
-  AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_);
+  asset_system::AssetRepresentation *asset = ED_asset_handle_get_representation(&asset_);
   return std::make_unique<AssetDragController>(get_view(), *asset);
 }
 
@@ -263,26 +263,26 @@ void build_asset_view(uiLayout &layout,
 /* ---------------------------------------------------------------------- */
 /* Dragging. */
 
-AssetDragController::AssetDragController(ui::AbstractGridView &view, AssetRepresentation &asset)
+AssetDragController::AssetDragController(ui::AbstractGridView &view,
+                                         asset_system::AssetRepresentation &asset)
     : ui::AbstractViewItemDragController(view), asset_(asset)
 {
 }
 
 eWM_DragDataType AssetDragController::get_drag_type() const
 {
-  const ID *local_id = AS_asset_representation_local_id_get(&asset_);
-  return local_id ? WM_DRAG_ID : WM_DRAG_ASSET;
+  return asset_.is_local_id() ? WM_DRAG_ID : WM_DRAG_ASSET;
 }
 
 void *AssetDragController::create_drag_data(bContext &C) const
 {
-  ID *local_id = AS_asset_representation_local_id_get(&asset_);
+  ID *local_id = asset_.local_id();
   if (local_id) {
     return static_cast<void *>(local_id);
   }
 
-  const eAssetImportMethod import_method =
-      AS_asset_representation_import_method_get(&asset_).value_or(ASSET_IMPORT_APPEND_REUSE);
+  const eAssetImportMethod import_method = asset_.get_import_method().value_or(
+      ASSET_IMPORT_APPEND_REUSE);
 
   return WM_drag_create_asset_data(&asset_, import_method, &C);
 }
