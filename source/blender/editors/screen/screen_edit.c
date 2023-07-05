@@ -737,7 +737,6 @@ static bool region_poll(const bContext *C,
 
 static void screen_regions_poll(bContext *C, const wmWindow *win, bScreen *screen)
 {
-
   ScrArea *prev_area = CTX_wm_area(C);
   ARegion *prev_region = CTX_wm_region(C);
 
