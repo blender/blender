@@ -161,7 +161,8 @@ typedef struct RegionPollParams {
   const struct ScrArea *area;
   const struct ARegion *region;
 
-  /* For now only WM context members here, could add the scene or even #bContext if needed. */
+  /** Full context, if WM context above is not enough. */
+  const struct bContext *context;
 } RegionPollParams;
 
 typedef struct ARegionType {
