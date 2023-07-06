@@ -295,13 +295,11 @@ static void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
     const IndexRange poly = polys[poly_index];
 
     /* For every edge, mix values from the two adjacent corners (the current and next corner). */
-    for (const int i : IndexRange(poly.size())) {
-      const int next_i = (i + 1) % poly.size();
-      const int loop_i = poly.start() + i;
-      const int next_loop_i = poly.start() + next_i;
-      const int edge_index = corner_edges[loop_i];
-      mixer.mix_in(edge_index, old_values[loop_i]);
-      mixer.mix_in(edge_index, old_values[next_loop_i]);
+    for (const int corner : poly) {
+      const int next_corner = mesh::poly_corner_next(poly, corner);
+      const int edge_index = corner_edges[corner];
+      mixer.mix_in(edge_index, old_values[corner]);
+      mixer.mix_in(edge_index, old_values[next_corner]);
     }
   }
 
@@ -322,13 +320,10 @@ void adapt_mesh_domain_corner_to_edge_impl(const Mesh &mesh,
   for (const int poly_index : polys.index_range()) {
     const IndexRange poly = polys[poly_index];
 
-    for (const int i : IndexRange(poly.size())) {
-      const int next_i = (i + 1) % poly.size();
-      const int loop_i = poly[i];
-      const int next_loop_i = poly[next_i];
-      const int edge_index = corner_edges[loop_i];
-
-      if (!old_values[loop_i] || !old_values[next_loop_i]) {
+    for (const int corner : poly) {
+      const int next_corner = mesh::poly_corner_next(poly, corner);
+      const int edge_index = corner_edges[corner];
+      if (!old_values[corner] || !old_values[next_corner]) {
         r_values[edge_index] = false;
       }
     }
