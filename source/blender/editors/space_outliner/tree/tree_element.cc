@@ -18,6 +18,7 @@
 #include "BLT_translation.h"
 
 #include "tree_element_anim_data.hh"
+#include "tree_element_bone.hh"
 #include "tree_element_collection.hh"
 #include "tree_element_driver.hh"
 #include "tree_element_gpencil_layer.hh"
@@ -102,6 +103,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
     case TSE_SEQUENCE_DUP:
       return std::make_unique<TreeElementSequenceStripDuplicate>(legacy_te,
                                                                  *static_cast<Sequence *>(idv));
+    case TSE_BONE: {
+      BoneElementCreateData *bone_data = static_cast<BoneElementCreateData *>(idv);
+      return std::make_unique<TreeElementBone>(
+          legacy_te, *bone_data->armature_id, *bone_data->bone);
+    }
     default:
       break;
   }

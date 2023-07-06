@@ -53,6 +53,7 @@ set(SRC
   tree/tree_display_view_layer.cc
   tree/tree_element.cc
   tree/tree_element_anim_data.cc
+  tree/tree_element_bone.cc
   tree/tree_element_collection.cc
   tree/tree_element_driver.cc
   tree/tree_element_gpencil_layer.cc
@@ -82,6 +83,7 @@ set(SRC
   tree/tree_display.hh
   tree/tree_element.hh
   tree/tree_element_anim_data.hh
+  tree/tree_element_bone.hh
   tree/tree_element_collection.hh
   tree/tree_element_driver.hh
   tree/tree_element_gpencil_layer.hh
