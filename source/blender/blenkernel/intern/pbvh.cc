@@ -42,8 +42,6 @@
 
 #include "pbvh_intern.hh"
 
-#include <cmath>
-
 using blender::float3;
 using blender::MutableSpan;
 using blender::Span;
@@ -2691,15 +2689,48 @@ void BKE_pbvh_raycast_project_ray_root(
     float bb_min_root[3], bb_max_root[3], bb_center[3], bb_diff[3];
     IsectRayAABB_Precalc ray;
     float ray_normal_inv[3];
-    const float margin = 1e-3;
-    float offset = 1.0f + margin;
-    const float offset_vec[3] = {margin, margin, margin};
+    float offset = 1.0f + 1e-3f;
+    const float offset_vec[3] = {1e-3f, 1e-3f, 1e-3f};
 
     if (original) {
       BKE_pbvh_node_get_original_BB(pbvh->nodes, bb_min_root, bb_max_root);
     }
     else {
       BKE_pbvh_node_get_BB(pbvh->nodes, bb_min_root, bb_max_root);
+    }
+
+    /* Calc rough clipping to avoid overflow later. See #109555. */
+    float mat[3][3];
+    axis_dominant_v3_to_m3(mat, ray_normal);
+    float a[3], b[3], min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
+
+    /* Compute AABB bounds rotated along ray_normal.*/
+    copy_v3_v3(a, bb_min_root);
+    copy_v3_v3(b, bb_max_root);
+    mul_m3_v3(mat, a);
+    mul_m3_v3(mat, b);
+    minmax_v3v3_v3(min, max, a);
+    minmax_v3v3_v3(min, max, b);
+
+    float cent[3], vec[3];
+    float ray_start_new[3], ray_end_new[3];
+
+    float dist = max[2] - min[2];
+
+    /* Build ray interval from z dimen of bounds. */
+    mid_v3_v3v3(cent, bb_min_root, bb_max_root);
+    madd_v3_v3v3fl(ray_start_new, cent, ray_normal, -dist);
+    madd_v3_v3v3fl(ray_end_new, cent, ray_normal, dist);
+
+    /* Don't go behind existing ray_start. */
+    sub_v3_v3v3(vec, ray_end_new, ray_start);
+    if (dot_v3v3(vec, ray_normal) > 0.0f) {
+      copy_v3_v3(ray_end, ray_end_new);
+    }
+
+    sub_v3_v3v3(vec, ray_start_new, ray_start);
+    if (dot_v3v3(vec, ray_normal) > 0.0f) {
+      copy_v3_v3(ray_start, ray_start_new);
     }
 
     /* Slightly offset min and max in case we have a zero width node
@@ -2726,18 +2757,17 @@ void BKE_pbvh_raycast_project_ray_root(
       return;
     }
 
-    if (rootmin_end <= rootmin_start) {
-      /* Small object sizes can led to floating-point overflow
-       * when trying to add a reasonably small margin, e.g. 1e-3.
-       * This happens when initializing rays by the viewport clipping
-       * bounds, which are then divided by the object's scale.
-       * So if the clip end if 10000 and we divide by 0.00001 we
-       * get a really large number that we canned add 1e-3 (0.001) to.
-       *
-       * To solve this, we compute a margin using the next possible floating
-       * point value after ray start. */
-      float epsilon = std::nextafterf(rootmin_start, rootmin_start + 1.0f) - rootmin_start;
-      rootmin_end = rootmin_start + epsilon * 500.0f;
+    /* Small object sizes or small clip starts can lead to floating-point
+     * overflow. To solve this, we compute a margin using the next
+     * possible floating point value after ray start. See #109555.
+     */
+
+    float epsilon = (std::nextafter(rootmin_start, rootmin_start + 1000.0f) - rootmin_start) *
+                    +5000.0f;
+
+    if (rootmin_start == rootmin_end) {
+      rootmin_start -= epsilon;
+      rootmin_end += epsilon;
     }
 
     madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);
