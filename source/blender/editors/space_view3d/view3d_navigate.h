@@ -113,9 +113,27 @@ typedef struct ViewOpsData {
 
   /** Viewport state on initialization, don't change afterwards. */
   struct {
-    float dist;
-    float camzoom;
-    float quat[4];
+
+    /** These variables reflect the same in #RegionView3D. */
+
+    float ofs[3];        /* DOLLY, MOVE, ROTATE and ZOOM. */
+    float ofs_lock[2];   /* MOVE. */
+    float camdx, camdy;  /* MOVE and ZOOM. */
+    float camzoom;       /* ZOOM. */
+    float dist;          /* ROTATE and ZOOM. */
+    float quat[4];       /* ROLL and ROTATE. */
+    char persp;          /* ROTATE. */
+    char view;           /* ROTATE. */
+    char view_axis_roll; /* ROTATE. */
+
+    /**
+     * #RegionView3D.persp set after auto-perspective is applied.
+     * If we want the value before running the operator, add a separate member.
+     */
+    char persp_with_auto_persp_applied;
+
+    /** The ones below are unrelated to the state of the 3D view. */
+
     /** #wmEvent.xy. */
     int event_xy[2];
     /** Offset to use when #VIEWOPS_FLAG_USE_MOUSE_INIT is not set.
@@ -123,31 +141,14 @@ typedef struct ViewOpsData {
     int event_xy_offset[2];
     /** #wmEvent.type that triggered the operator. */
     int event_type;
-    float ofs[3];
-    /** #RegionView3D.ofs_lock */
-    float ofs_lock[2];
+
     /** Initial distance to 'ofs'. */
     float zfac;
-
-    /** Camera offset. */
-    float camdx, camdy;
 
     /** Trackball rotation only. */
     float trackvec[3];
     /** Dolly only. */
     float mousevec[3];
-
-    /**
-     * #RegionView3D.persp set after auto-perspective is applied.
-     * If we want the value before running the operator, add a separate member.
-     */
-    char persp_with_auto_persp_applied;
-    /** #RegionView3D.persp set after before auto-perspective is applied. */
-    char persp;
-    /** #RegionView3D.view */
-    char view;
-    /** #RegionView3D.view_axis_roll */
-    char view_axis_roll;
 
     /** Used for roll */
     struct Dial *dial;
@@ -212,7 +213,6 @@ void view3d_navigate_cancel_fn(struct bContext *C, struct wmOperator *op);
 
 void calctrackballvec(const struct rcti *rect, const int event_xy[2], float r_dir[3]);
 void viewmove_apply(ViewOpsData *vod, int x, int y);
-void viewmove_apply_reset(ViewOpsData *vod);
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float ofs_old[3],
                                 const float viewquat_old[4],
@@ -235,6 +235,7 @@ ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
                                  const eV3D_OpMode nav_type,
                                  const bool use_cursor_init);
+void viewops_data_state_restore(ViewOpsData *vod);
 
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
