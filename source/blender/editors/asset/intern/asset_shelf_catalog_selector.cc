@@ -49,6 +49,13 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
   void build_tree() override
   {
+    if (catalog_tree_.is_empty()) {
+      auto &item = add_tree_item<ui::BasicTreeViewItem>(TIP_("No applicable assets found"),
+                                                        ICON_INFO);
+      item.disable_interaction();
+      return;
+    }
+
     catalog_tree_.foreach_root_item([this](asset_system::AssetCatalogTreeItem &catalog_item) {
       build_catalog_items_recursive(*this, catalog_item);
     });
