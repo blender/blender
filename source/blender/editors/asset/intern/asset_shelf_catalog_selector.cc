@@ -17,6 +17,7 @@
 
 #include "BLT_translation.h"
 
+#include "ED_asset_filter.hh"
 #include "ED_asset_list.hh"
 
 #include "UI_interface.h"
@@ -30,27 +31,25 @@
 namespace blender::ed::asset::shelf {
 
 class AssetCatalogSelectorTree : public ui::AbstractTreeView {
-  asset_system::AssetLibrary &library_;
-  asset_system::AssetCatalogTree *catalog_tree_;
+  AssetShelf &shelf_;
   AssetShelfSettings &shelf_settings_;
+  asset_system::AssetCatalogTree catalog_tree_;
 
  public:
   class Item;
 
-  AssetCatalogSelectorTree(asset_system::AssetLibrary &library, AssetShelfSettings &shelf_settings)
-      : library_(library), shelf_settings_(shelf_settings)
+  AssetCatalogSelectorTree(asset_system::AssetLibrary &library, AssetShelf &shelf)
+      : shelf_(shelf), shelf_settings_(shelf_.settings)
   {
-    asset_system::AssetCatalogService *catalog_service = library_.catalog_service.get();
-    catalog_tree_ = catalog_service->get_catalog_tree();
+    catalog_tree_ = build_filtered_catalog_tree(
+        library, asset_system::all_library_reference(), [this](const AssetHandle asset_handle) {
+          return (!shelf_.type->asset_poll || shelf_.type->asset_poll(shelf_.type, &asset_handle));
+        });
   }
 
   void build_tree() override
   {
-    if (!catalog_tree_) {
-      return;
-    }
-
-    catalog_tree_->foreach_root_item([this](asset_system::AssetCatalogTreeItem &catalog_item) {
+    catalog_tree_.foreach_root_item([this](asset_system::AssetCatalogTreeItem &catalog_item) {
       build_catalog_items_recursive(*this, catalog_item);
     });
   }
@@ -158,7 +157,7 @@ static void catalog_selector_panel_draw(const bContext *C, Panel *panel)
   ui::AbstractTreeView *tree_view = UI_block_add_view(
       *block,
       "asset catalog tree view",
-      std::make_unique<AssetCatalogSelectorTree>(*library, shelf->settings));
+      std::make_unique<AssetCatalogSelectorTree>(*library, *shelf));
 
   ui::TreeViewBuilder::build_tree_view(*tree_view, *layout);
 }

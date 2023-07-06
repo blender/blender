@@ -19,6 +19,7 @@
 #include "AS_asset_library.hh"
 
 #include "ED_asset_filter.hh"
+#include "ED_asset_handle.h"
 #include "ED_asset_library.h"
 #include "ED_asset_list.h"
 #include "ED_asset_list.hh"
@@ -50,6 +51,53 @@ bool ED_asset_filter_matches_asset(const AssetFilterSettings *filter,
 }
 
 namespace blender::ed::asset {
+
+asset_system::AssetCatalogTree build_filtered_catalog_tree(
+    const asset_system::AssetLibrary &library,
+    const AssetLibraryReference &library_ref,
+    const blender::FunctionRef<bool(const AssetHandle &)> is_asset_visible_fn)
+{
+  Set<StringRef> known_paths;
+
+  /* Collect paths containing assets. */
+  ED_assetlist_iterate(library_ref, [&](AssetHandle asset_handle) {
+    if (!is_asset_visible_fn(asset_handle)) {
+      return true;
+    }
+
+    asset_system::AssetRepresentation &asset = *ED_asset_handle_get_representation(&asset_handle);
+    const AssetMetaData &meta_data = asset.get_metadata();
+    if (BLI_uuid_is_nil(meta_data.catalog_id)) {
+      return true;
+    }
+
+    const asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog(
+        meta_data.catalog_id);
+    if (catalog == nullptr) {
+      return true;
+    }
+    known_paths.add(catalog->path.str());
+    return true;
+  });
+
+  /* Build catalog tree. */
+  asset_system::AssetCatalogTree filtered_tree;
+  asset_system::AssetCatalogTree &full_tree = *library.catalog_service->get_catalog_tree();
+  full_tree.foreach_item([&](asset_system::AssetCatalogTreeItem &item) {
+    if (!known_paths.contains(item.catalog_path().str())) {
+      return;
+    }
+
+    asset_system::AssetCatalog *catalog = library.catalog_service->find_catalog(
+        item.get_catalog_id());
+    if (catalog == nullptr) {
+      return;
+    }
+    filtered_tree.insert_item(*catalog);
+  });
+
+  return filtered_tree;
+}
 
 AssetItemTree build_filtered_all_catalog_tree(
     const AssetLibraryReference &library_ref,
