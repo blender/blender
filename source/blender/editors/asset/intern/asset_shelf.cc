@@ -384,22 +384,22 @@ void ED_asset_shelf_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(&region->v2d, nullptr);
 }
 
-void ED_asset_shelf_footer_region_listen(const wmRegionListenerParams *params)
+void ED_asset_shelf_settings_region_listen(const wmRegionListenerParams *params)
 {
   asset_shelf_region_listen(params);
 }
 
-void ED_asset_shelf_footer_region_init(wmWindowManager * /*wm*/, ARegion *region)
+void ED_asset_shelf_settings_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
 
-void ED_asset_shelf_footer_region(const bContext *C, ARegion *region)
+void ED_asset_shelf_settings_region(const bContext *C, ARegion *region)
 {
   ED_region_header(C, region);
 }
 
-int ED_asset_shelf_footer_size()
+int ED_asset_shelf_settings_region_size()
 {
   /* A little smaller than a regular header. */
   return ED_area_headersize() * 0.85f;
@@ -513,7 +513,7 @@ static uiBut *add_tab_button(uiBlock &block, StringRefNull name)
                         0,
                         "Enable catalog, making contained assets visible in the asset shelf");
 
-  UI_but_drawflag_enable(but, UI_BUT_ALIGN_TOP);
+  UI_but_drawflag_enable(but, UI_BUT_ALIGN_DOWN);
   UI_but_flag_disable(but, UI_BUT_UNDO);
 
   return but;
@@ -555,12 +555,12 @@ static void add_catalog_toggle_buttons(AssetShelfSettings &shelf_settings, uiLay
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Asset Shelf Footer
+/** \name Asset Shelf Settings Region
  *
- * Implemented as HeaderType for #RGN_TYPE_ASSET_SHELF_FOOTER.
+ * Implemented as HeaderType for #RGN_TYPE_ASSET_SHELF_SETTINGS.
  * \{ */
 
-static void asset_shelf_footer_draw(const bContext *C, Header *header)
+static void asset_shelf_settings_draw(const bContext *C, Header *header)
 {
   uiLayout *layout = header->layout;
   uiBlock *block = uiLayoutGetBlock(layout);
@@ -587,13 +587,13 @@ static void asset_shelf_footer_draw(const bContext *C, Header *header)
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
 }
 
-void ED_asset_shelf_footer_register(ARegionType *region_type, const int space_type)
+void ED_asset_shelf_settings_regiontype_register(ARegionType *region_type, const int space_type)
 {
   HeaderType *ht = MEM_cnew<HeaderType>(__func__);
-  STRNCPY(ht->idname, "ASSETSHELF_HT_footer");
+  STRNCPY(ht->idname, "ASSETSHELF_HT_settings");
   ht->space_type = space_type;
-  ht->region_type = RGN_TYPE_ASSET_SHELF_FOOTER;
-  ht->draw = asset_shelf_footer_draw;
+  ht->region_type = RGN_TYPE_ASSET_SHELF_SETTINGS;
+  ht->draw = asset_shelf_settings_draw;
   ht->poll = [](const bContext *C, HeaderType *) {
     return asset_shelf_space_poll(C, CTX_wm_space_data(C));
   };

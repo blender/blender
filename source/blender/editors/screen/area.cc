@@ -1246,7 +1246,7 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
                RGN_TYPE_FOOTER,
                RGN_TYPE_TOOL_HEADER,
                RGN_TYPE_ASSET_SHELF,
-               RGN_TYPE_ASSET_SHELF_FOOTER))
+               RGN_TYPE_ASSET_SHELF_SETTINGS))
       {
         return true;
       }
@@ -1326,8 +1326,8 @@ static void region_rect_recursive(
     prefsizey = region->sizey > 1 ? (UI_SCALE_FAC * (region->sizey + 0.5f)) :
                                     ED_asset_shelf_region_prefsizey();
   }
-  else if (region->regiontype == RGN_TYPE_ASSET_SHELF_FOOTER) {
-    prefsizey = ED_asset_shelf_footer_size();
+  else if (region->regiontype == RGN_TYPE_ASSET_SHELF_SETTINGS) {
+    prefsizey = ED_asset_shelf_settings_region_size();
   }
   else if (ED_area_is_global(area)) {
     prefsizey = ED_region_global_size_y();

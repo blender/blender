@@ -311,21 +311,21 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
           ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
                                                                  &sl->regionbase;
 
-          if (ARegion *new_asset_shelf_footer = do_versions_add_region_if_not_found(
-                  regionbase,
-                  RGN_TYPE_ASSET_SHELF_FOOTER,
-                  "asset shelf footer for view3d (versioning)",
-                  RGN_TYPE_UI))
-          {
-            new_asset_shelf_footer->alignment = RGN_ALIGN_BOTTOM;
-          }
-          if (ARegion *new_asset_shelf = do_versions_add_region_if_not_found(
+          if (ARegion *new_shelf_region = do_versions_add_region_if_not_found(
                   regionbase,
                   RGN_TYPE_ASSET_SHELF,
                   "asset shelf for view3d (versioning)",
-                  RGN_TYPE_ASSET_SHELF_FOOTER))
+                  RGN_TYPE_UI))
           {
-            new_asset_shelf->alignment = RGN_ALIGN_BOTTOM;
+            new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
+          }
+          if (ARegion *new_settings_region = do_versions_add_region_if_not_found(
+                  regionbase,
+                  RGN_TYPE_ASSET_SHELF_SETTINGS,
+                  "asset shelf settings region for view3d (versioning)",
+                  RGN_TYPE_ASSET_SHELF))
+          {
+            new_settings_region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
           }
         }
       }
