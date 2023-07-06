@@ -1432,7 +1432,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const BMeshToMeshParams 
   Array<const BMLoop *> loop_table;
   Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
-      me->totface > 1024,
+      (me->totpoly + me->totedge) > 1024,
       [&]() {
         vert_table.reinitialize(bm->totvert);
         bm_vert_table_build(*bm, vert_table, need_select_vert, need_hide_vert);
@@ -1515,7 +1515,7 @@ void BM_mesh_bm_to_me(Main *bmain, BMesh *bm, Mesh *me, const BMeshToMeshParams 
 
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
-      me->totvert > 1024,
+      (me->totpoly + me->totedge) > 1024,
       [&]() {
         bm_to_mesh_verts(*bm, vert_table, *me, select_vert.span, hide_vert.span);
         if (me->key) {
@@ -1651,7 +1651,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
   Array<const BMLoop *> loop_table;
   Vector<int> loop_layers_not_to_copy;
   threading::parallel_invoke(
-      me->totface > 1024,
+      (me->totpoly + me->totedge) > 1024,
       [&]() {
         vert_table.reinitialize(bm->totvert);
         bm_vert_table_build(*bm, vert_table, need_select_vert, need_hide_vert);
@@ -1737,7 +1737,7 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const CustomData_MeshMasks *
 
   /* Loop over all elements in parallel, copying attributes and building the Mesh topology. */
   threading::parallel_invoke(
-      me->totvert > 1024,
+      (me->totpoly + me->totedge) > 1024,
       [&]() { bm_to_mesh_verts(*bm, vert_table, *me, select_vert.span, hide_vert.span); },
       [&]() {
         bm_to_mesh_edges(*bm,
