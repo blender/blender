@@ -147,6 +147,7 @@ void node_tex_voronoi_distance_to_edge_1d(vec3 coord,
 
   w *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, w);
 }
 
@@ -292,6 +293,7 @@ void node_tex_voronoi_distance_to_edge_2d(vec3 coord,
 
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, coord.xy);
 }
 
@@ -437,6 +439,7 @@ void node_tex_voronoi_distance_to_edge_3d(vec3 coord,
 
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, coord);
 }
 
@@ -589,6 +592,7 @@ void node_tex_voronoi_distance_to_edge_4d(vec3 coord,
   w *= scale;
   coord *= scale;
 
+  params.max_distance = 0.5 + 0.5 * params.randomness;
   outDistance = fractal_voronoi_distance_to_edge(params, vec4(coord, w));
 }
 
