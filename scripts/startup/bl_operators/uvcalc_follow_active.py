@@ -16,7 +16,7 @@ STATUS_ERR_MISSING_UV_LAYER = (1 << 4)
 STATUS_ERR_NO_FACES_SELECTED = (1 << 5)
 
 
-def extend(obj, EXTEND_MODE):
+def extend(obj, EXTEND_MODE, use_uv_selection):
     import bmesh
     from .uvcalc_transform import is_face_uv_selected
 
@@ -38,7 +38,11 @@ def extend(obj, EXTEND_MODE):
     uv_act = bm.loops.layers.uv.active  # Always use the active UV layer.
 
     # Construct a set of selected quads.
-    faces = {f for f in bm.faces if len(f.verts) == 4 and is_face_uv_selected(f, uv_act, False)}
+    faces = {f for f in bm.faces if len(f.verts) == 4 and f.select}
+    if use_uv_selection:
+        # Filter `faces` to extract only UV selected quads.
+        faces = {f for f in faces if is_face_uv_selected(f, uv_act, False)}
+
     if not faces:
         return STATUS_ERR_NO_FACES_SELECTED
 
@@ -214,6 +218,11 @@ def extend(obj, EXTEND_MODE):
 
 
 def main(context, operator):
+    use_uv_selection = True
+    view = context.space_data
+    if context.space_data and context.space_data.type == 'VIEW_3D':
+        use_uv_selection = False  # When called from the 3D editor, UV selection is ignored.
+
     num_meshes = 0
     num_errors = 0
     status = 0
@@ -222,7 +231,7 @@ def main(context, operator):
     for ob in ob_list:
         num_meshes += 1
 
-        ret = extend(ob, operator.properties.mode)
+        ret = extend(ob, operator.properties.mode, use_uv_selection)
         if ret != STATUS_OK:
             num_errors += 1
             status |= ret
