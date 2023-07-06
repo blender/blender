@@ -573,7 +573,7 @@ bool ANIM_remove_driver(
 /* Copy/Paste Buffer for Driver Data... */
 static FCurve *channeldriver_copypaste_buf = nullptr;
 
-void ANIM_drivers_copybuf_free(void)
+void ANIM_drivers_copybuf_free()
 {
   /* free the buffer F-Curve if it exists, as if it were just another F-Curve */
   if (channeldriver_copypaste_buf) {
@@ -582,7 +582,7 @@ void ANIM_drivers_copybuf_free(void)
   channeldriver_copypaste_buf = nullptr;
 }
 
-bool ANIM_driver_can_paste(void)
+bool ANIM_driver_can_paste()
 {
   return (channeldriver_copypaste_buf != nullptr);
 }
@@ -694,7 +694,7 @@ bool ANIM_paste_driver(
 /* Copy/Paste Buffer for Driver Variables... */
 static ListBase driver_vars_copybuf = {nullptr, nullptr};
 
-void ANIM_driver_vars_copybuf_free(void)
+void ANIM_driver_vars_copybuf_free()
 {
   /* Free the driver variables kept in the buffer */
   if (driver_vars_copybuf.first) {
@@ -710,7 +710,7 @@ void ANIM_driver_vars_copybuf_free(void)
   BLI_listbase_clear(&driver_vars_copybuf);
 }
 
-bool ANIM_driver_vars_can_paste(void)
+bool ANIM_driver_vars_can_paste()
 {
   return (BLI_listbase_is_empty(&driver_vars_copybuf) == false);
 }

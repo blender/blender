@@ -122,7 +122,7 @@ struct EditMesh_PreSelEdgeRing {
   int verts_len;
 };
 
-struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void)
+struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create()
 {
   struct EditMesh_PreSelEdgeRing *psel = static_cast<EditMesh_PreSelEdgeRing *>(
       MEM_callocN(sizeof(*psel), __func__));
@@ -185,7 +185,7 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
     /* Same size as an edit mode vertex */
     immUniform1f("size",
                  2.0 * U.pixelsize *
-                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
+                     max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * float(M_SQRT2) / 2.0f));
 
     immBegin(GPU_PRIM_POINTS, psel->verts_len);
 
@@ -221,7 +221,7 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(
   edgering_vcos_get_pair(&eed_start->v1, v_cos, coords);
 
   for (i = 1; i <= previewlines; i++) {
-    const float fac = (i / ((float)previewlines + 1));
+    const float fac = (i / (float(previewlines) + 1));
     interp_v3_v3v3(verts[tot], v_cos[0], v_cos[1], fac);
     tot++;
   }
@@ -291,7 +291,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
       eve_last = v[0][0];
 
       for (i = 1; i <= previewlines; i++) {
-        const float fac = (i / ((float)previewlines + 1));
+        const float fac = (i / (float(previewlines) + 1));
         float v_cos[2][2][3];
 
         edgering_vcos_get(v, v_cos, coords);
@@ -318,7 +318,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
     edgering_find_order(eed_last, eed_start, eve_last, v);
 
     for (i = 1; i <= previewlines; i++) {
-      const float fac = (i / ((float)previewlines + 1));
+      const float fac = (i / (float(previewlines) + 1));
       float v_cos[2][2][3];
 
       if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {

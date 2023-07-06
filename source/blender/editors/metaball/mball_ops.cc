@@ -18,7 +18,7 @@
 
 #include "mball_intern.h"
 
-void ED_operatortypes_metaball(void)
+void ED_operatortypes_metaball()
 {
   WM_operatortype_append(MBALL_OT_delete_metaelems);
   WM_operatortype_append(MBALL_OT_duplicate_metaelems);
@@ -31,7 +31,7 @@ void ED_operatortypes_metaball(void)
   WM_operatortype_append(MBALL_OT_select_random_metaelems);
 }
 
-void ED_operatormacros_metaball(void)
+void ED_operatormacros_metaball()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

@@ -83,7 +83,7 @@ eEditMesh_PreSelPreviewAction EDBM_preselect_action_get(struct EditMesh_PreSelEl
   return psel->preview_action;
 }
 
-struct EditMesh_PreSelElem *EDBM_preselect_elem_create(void)
+struct EditMesh_PreSelElem *EDBM_preselect_elem_create()
 {
   struct EditMesh_PreSelElem *psel = static_cast<EditMesh_PreSelElem *>(
       MEM_callocN(sizeof(*psel), __func__));

@@ -1219,7 +1219,7 @@ static void dna_write(FILE *file, const void *pntr, const int size)
   }
 }
 
-void print_struct_sizes(void)
+void print_struct_sizes()
 {
   int unknown = structs_len;
   printf("\n\n*** All detected structs:\n");
@@ -1622,7 +1622,7 @@ int main(int argc, char **argv)
  *
  * \{ */
 
-static void UNUSED_FUNCTION(dna_rename_defs_ensure)(void)
+static void UNUSED_FUNCTION(dna_rename_defs_ensure)()
 {
 #define DNA_STRUCT_RENAME(old, new) (void)sizeof(new);
 #define DNA_STRUCT_RENAME_ELEM(struct_name, old, new) (void)offsetof(struct_name, new);

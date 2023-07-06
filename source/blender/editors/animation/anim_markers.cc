@@ -1028,7 +1028,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
       value = TIME2FRA(value);
     }
 
-    RNA_int_set(op->ptr, "frames", (int)value);
+    RNA_int_set(op->ptr, "frames", int(value));
     ed_marker_move_apply(C, op);
     ed_marker_move_update_header(C, op);
   }
@@ -1078,7 +1078,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
                             0.1 * FPS,
                             0);
 
-            RNA_int_set(op->ptr, "frames", (int)fac);
+            RNA_int_set(op->ptr, "frames", int(fac));
             ed_marker_move_apply(C, op);
             ed_marker_move_update_header(C, op);
           }
@@ -1094,7 +1094,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
         value = TIME2FRA(value);
       }
 
-      RNA_int_set(op->ptr, "frames", (int)value);
+      RNA_int_set(op->ptr, "frames", int(value));
       ed_marker_move_apply(C, op);
       ed_marker_move_update_header(C, op);
     }
@@ -1897,7 +1897,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_marker(void)
+void ED_operatortypes_marker()
 {
   WM_operatortype_append(MARKER_OT_add);
   WM_operatortype_append(MARKER_OT_move);

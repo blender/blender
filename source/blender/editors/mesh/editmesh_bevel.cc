@@ -582,7 +582,7 @@ static void edbm_bevel_numinput_set_value(wmOperator *op)
   CLAMP(value, value_clamp_min[vmode], value_clamp_max[vmode]);
   if (vmode == SEGMENTS_VALUE) {
     opdata->segments = value;
-    RNA_int_set(op->ptr, "segments", (int)value);
+    RNA_int_set(op->ptr, "segments", int(value));
   }
   else {
     RNA_float_set(op->ptr, value_rna_name[vmode], value);

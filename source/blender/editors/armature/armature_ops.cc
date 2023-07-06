@@ -18,7 +18,7 @@
 
 /* ************************** registration **********************************/
 
-void ED_operatortypes_armature(void)
+void ED_operatortypes_armature()
 {
   /* Both operators `ARMATURE_OT_*` and `POSE_OT_*` are registered here. */
 
@@ -127,7 +127,7 @@ void ED_operatortypes_armature(void)
   WM_operatortype_append(POSE_OT_blend_to_neighbors);
 }
 
-void ED_operatormacros_armature(void)
+void ED_operatormacros_armature()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

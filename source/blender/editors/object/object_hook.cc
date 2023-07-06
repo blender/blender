@@ -87,7 +87,7 @@ static int return_editmesh_indexar(BMEditMesh *em,
     nr++;
   }
 
-  mul_v3_fl(r_cent, 1.0f / (float)indexar_num);
+  mul_v3_fl(r_cent, 1.0f / float(indexar_num));
 
   return indexar_num;
 }
@@ -120,7 +120,7 @@ static bool return_editmesh_vgroup(Object *obedit, BMEditMesh *em, char *r_name,
       const ListBase *defbase = BKE_object_defgroup_list(obedit);
       bDeformGroup *dg = static_cast<bDeformGroup *>(BLI_findlink(defbase, defgrp_index));
       BLI_strncpy(r_name, dg->name, sizeof(dg->name));
-      mul_v3_fl(r_cent, 1.0f / (float)indexar_num);
+      mul_v3_fl(r_cent, 1.0f / float(indexar_num));
       return true;
     }
   }
@@ -197,7 +197,7 @@ static int return_editlattice_indexar(Lattice *editlatt,
     nr++;
   }
 
-  mul_v3_fl(r_cent, 1.0f / (float)indexar_num);
+  mul_v3_fl(r_cent, 1.0f / float(indexar_num));
 
   return indexar_num;
 }
@@ -313,7 +313,7 @@ static int return_editcurve_indexar(Object *obedit,
     }
   }
 
-  mul_v3_fl(r_cent, 1.0f / (float)indexar_num);
+  mul_v3_fl(r_cent, 1.0f / float(indexar_num));
 
   return indexar_num;
 }

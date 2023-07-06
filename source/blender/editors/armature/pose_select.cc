@@ -49,7 +49,7 @@
 #include "armature_intern.h"
 
 /* utility macros for storing a temp int in the bone (selection flag) */
-#define PBONE_PREV_FLAG_GET(pchan) ((void)0, (POINTER_AS_INT((pchan)->temp)))
+#define PBONE_PREV_FLAG_GET(pchan) ((void)0, POINTER_AS_INT((pchan)->temp))
 #define PBONE_PREV_FLAG_SET(pchan, val) ((pchan)->temp = POINTER_FROM_INT(val))
 
 /* ***************** Pose Select Utilities ********************* */

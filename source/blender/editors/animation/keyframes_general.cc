@@ -397,7 +397,7 @@ void ED_ANIM_get_1d_gauss_kernel(const float sigma, const int kernel_size, doubl
   double sum = 0.0;
 
   for (int i = 0; i < kernel_size; i++) {
-    const double normalized_index = (double)i / (kernel_size - 1);
+    const double normalized_index = double(i) / (kernel_size - 1);
     r_kernel[i] = exp(-normalized_index * normalized_index / sigma_sq);
     if (i == 0) {
       sum += r_kernel[i];
@@ -433,7 +433,7 @@ void smooth_fcurve_segment(FCurve *fcu,
       filter_result += samples[sample_index + j] * kernel_value;
       filter_result += samples[sample_index - j] * kernel_value;
     }
-    const float key_y_value = interpf((float)filter_result, samples[sample_index], factor);
+    const float key_y_value = interpf(float(filter_result), samples[sample_index], factor);
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
@@ -862,7 +862,7 @@ struct tAnimCopybufItem {
   bool is_bone;  /* special flag for armature bones */
 };
 
-void ANIM_fcurves_copybuf_free(void)
+void ANIM_fcurves_copybuf_free()
 {
   tAnimCopybufItem *aci, *acn;
 

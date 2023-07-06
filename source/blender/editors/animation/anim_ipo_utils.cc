@@ -237,7 +237,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
    * However, only a range of 0.3 to 1.0 is really usable to avoid clashing
    * with some other stuff
    */
-  fac = ((float)cur / (float)tot) * 0.7f;
+  fac = (float(cur) / float(tot)) * 0.7f;
 
   /* the base color can get offset a bit so that the colors aren't so identical */
   hsv[0] += fac * HSV_BANDWIDTH;

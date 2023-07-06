@@ -15,7 +15,7 @@
 
 #include "lattice_intern.h"
 
-void ED_operatortypes_lattice(void)
+void ED_operatortypes_lattice()
 {
   WM_operatortype_append(LATTICE_OT_select_all);
   WM_operatortype_append(LATTICE_OT_select_more);

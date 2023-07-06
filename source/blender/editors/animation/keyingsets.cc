@@ -616,7 +616,7 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
   BLI_freelinkN(&keyingset_type_infos, ksi);
 }
 
-void ANIM_keyingset_infos_exit(void)
+void ANIM_keyingset_infos_exit()
 {
   KeyingSetInfo *ksi, *next;
 

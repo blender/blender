@@ -1700,7 +1700,7 @@ static void select_similar_direction(bContext *C, const float thresh)
         float dir[3];
         bone_direction_worldspace_get(ob, ebone, dir);
 
-        if (angle_v3v3(dir_act, dir) / (float)M_PI < (thresh + FLT_EPSILON)) {
+        if (angle_v3v3(dir_act, dir) / float(M_PI) < (thresh + FLT_EPSILON)) {
           ED_armature_ebone_select_set(ebone, true);
           changed = true;
         }

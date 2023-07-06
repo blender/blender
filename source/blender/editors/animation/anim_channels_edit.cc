@@ -4219,7 +4219,7 @@ static void ANIM_OT_channel_view_pick(wmOperatorType *ot)
 /** \name Operator Registration
  * \{ */
 
-void ED_operatortypes_animchannels(void)
+void ED_operatortypes_animchannels()
 {
   WM_operatortype_append(ANIM_OT_channels_select_all);
   WM_operatortype_append(ANIM_OT_channels_select_box);

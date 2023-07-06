@@ -136,7 +136,7 @@ void ED_armature_origin_set(
         add_v3_v3(cent, ebone->tail);
       }
       if (total) {
-        mul_v3_fl(cent, 1.0f / (float)total);
+        mul_v3_fl(cent, 1.0f / float(total));
       }
     }
   }
@@ -190,7 +190,7 @@ float ED_armature_ebone_roll_to_vector(const EditBone *bone,
   sub_v3_v3v3(align_axis_proj, align_axis, vec);
 
   if (axis_only) {
-    if (angle_v3v3(align_axis_proj, mat[2]) > (float)(M_PI_2)) {
+    if (angle_v3v3(align_axis_proj, mat[2]) > float(M_PI_2)) {
       negate_v3(align_axis_proj);
     }
   }

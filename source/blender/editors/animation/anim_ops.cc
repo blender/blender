@@ -653,7 +653,7 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_anim(void)
+void ED_operatortypes_anim()
 {
   /* Animation Editors only -------------------------- */
   WM_operatortype_append(ANIM_OT_change_frame);

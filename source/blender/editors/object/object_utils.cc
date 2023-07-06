@@ -161,7 +161,7 @@ struct XFormObjectSkipChild {
   int mode;
 };
 
-struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create(void)
+struct XFormObjectSkipChild_Container *ED_object_xform_skip_child_container_create()
 {
   struct XFormObjectSkipChild_Container *xcs = static_cast<XFormObjectSkipChild_Container *>(
       MEM_callocN(sizeof(*xcs), __func__));
@@ -409,7 +409,7 @@ static void trans_obdata_in_obmode_free_elem(void *xf_p)
   MEM_freeN(xf);
 }
 
-struct XFormObjectData_Container *ED_object_data_xform_container_create(void)
+struct XFormObjectData_Container *ED_object_data_xform_container_create()
 {
   struct XFormObjectData_Container *xds = static_cast<XFormObjectData_Container *>(
       MEM_callocN(sizeof(*xds), __func__));

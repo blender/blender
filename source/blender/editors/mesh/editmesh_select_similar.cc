@@ -583,7 +583,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
   const int type = RNA_enum_get(op->ptr, "type");
   const float thresh = RNA_float_get(op->ptr, "threshold");
-  const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
+  const float thresh_radians = thresh * float(M_PI) + FLT_EPSILON;
   const int compare = RNA_enum_get(op->ptr, "compare");
 
   int tot_edges_selected_all = 0;
@@ -961,7 +961,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
   /* get the type from RNA */
   const int type = RNA_enum_get(op->ptr, "type");
   const float thresh = RNA_float_get(op->ptr, "threshold");
-  const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
+  const float thresh_radians = thresh * float(M_PI) + FLT_EPSILON;
   const int compare = RNA_enum_get(op->ptr, "compare");
 
   int tot_verts_selected_all = 0;

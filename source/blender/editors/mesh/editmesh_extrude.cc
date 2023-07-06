@@ -740,16 +740,16 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       }
     }
 
-    mul_v3_fl(local_center, 1.0f / (float)local_verts_len);
+    mul_v3_fl(local_center, 1.0f / float(local_verts_len));
     mul_m4_v3(vc.obedit->object_to_world, local_center);
-    mul_v3_fl(local_center, (float)local_verts_len);
+    mul_v3_fl(local_center, float(local_verts_len));
 
     add_v3_v3(center, local_center);
     verts_len += local_verts_len;
   }
 
   if (verts_len != 0) {
-    mul_v3_fl(center, 1.0f / (float)verts_len);
+    mul_v3_fl(center, 1.0f / float(verts_len));
   }
 
   /* Then we process the meshes. */

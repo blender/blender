@@ -301,7 +301,7 @@ static bool mball_select_similar_type(Object *obedit,
         BKE_object_rot_to_mat3(obedit, rmat, true);
         mul_m3_v3(rmat, dir);
 
-        float thresh_cos = cosf(thresh * (float)M_PI_2);
+        float thresh_cos = cosf(thresh * float(M_PI_2));
 
         KDTreeNearest_3d nearest;
         if (BLI_kdtree_3d_find_nearest(tree_3d, dir, &nearest) != -1) {

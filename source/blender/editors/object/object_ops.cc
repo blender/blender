@@ -26,7 +26,7 @@
 
 /* ************************** registration **********************************/
 
-void ED_operatortypes_object(void)
+void ED_operatortypes_object()
 {
   WM_operatortype_append(OBJECT_OT_location_clear);
   WM_operatortype_append(OBJECT_OT_rotation_clear);
@@ -290,7 +290,7 @@ void ED_operatortypes_object(void)
   WM_operatortype_append(OBJECT_OT_light_linking_unlink_from_collection);
 }
 
-void ED_operatormacros_object(void)
+void ED_operatormacros_object()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

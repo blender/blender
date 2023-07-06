@@ -428,7 +428,7 @@ static void SCENE_OT_delete(wmOperatorType *ot)
 /** \name Registration
  * \{ */
 
-void ED_operatortypes_scene(void)
+void ED_operatortypes_scene()
 {
   WM_operatortype_append(SCENE_OT_new);
   WM_operatortype_append(SCENE_OT_delete);

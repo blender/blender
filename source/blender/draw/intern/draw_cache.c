@@ -2466,7 +2466,7 @@ static float x_axis_name[4][2] = {
     {-0.9f * S_X, 1.0f * S_Y},
     {1.0f * S_X, -1.0f * S_Y},
 };
-#define X_LEN (ARRAY_SIZE(x_axis_name))
+#define X_LEN ARRAY_SIZE(x_axis_name)
 #undef S_X
 #undef S_Y
 
@@ -2480,7 +2480,7 @@ static float y_axis_name[6][2] = {
     {0.0f * S_X, -0.1f * S_Y},
     {0.0f * S_X, -1.0f * S_Y},
 };
-#define Y_LEN (ARRAY_SIZE(y_axis_name))
+#define Y_LEN ARRAY_SIZE(y_axis_name)
 #undef S_X
 #undef S_Y
 
@@ -2498,7 +2498,7 @@ static float z_axis_name[10][2] = {
     {-1.00f * S_X, -1.00f * S_Y},
     {1.00f * S_X, -1.00f * S_Y},
 };
-#define Z_LEN (ARRAY_SIZE(z_axis_name))
+#define Z_LEN ARRAY_SIZE(z_axis_name)
 #undef S_X
 #undef S_Y
 
@@ -2525,7 +2525,7 @@ static float axis_marker[8][2] = {
     {-S_X, 0.0f}
 #endif
 };
-#define MARKER_LEN (ARRAY_SIZE(axis_marker))
+#define MARKER_LEN ARRAY_SIZE(axis_marker)
 #define MARKER_FILL_LAYER 6
 #undef S_X
 #undef S_Y

@@ -81,7 +81,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator * /*op*/, const wmEvent 
         cent_tot += 1;
       }
     }
-    mul_v2_fl(cent_sco, 1.0f / (float)cent_tot);
+    mul_v2_fl(cent_sco, 1.0f / float(cent_tot));
 
     /* not essential, but gives more expected results with edge selection */
     if (bm->totedgesel) {

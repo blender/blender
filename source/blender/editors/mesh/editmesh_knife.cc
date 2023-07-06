@@ -644,7 +644,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
   }
   else {
     BKE_unit_value_as_string(
-        numstr, sizeof(numstr), (double)angle, angle_precision, B_UNIT_ROTATION, unit, false);
+        numstr, sizeof(numstr), double(angle), angle_precision, B_UNIT_ROTATION, unit, false);
   }
 
   BLF_enable(blf_mono_font, BLF_ROTATION);
@@ -2350,10 +2350,10 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
     if (!f || kfe->e) {
       continue;
     }
-    list = static_cast<ListBase *>(BLI_smallhash_lookup(fhash, (uintptr_t)f));
+    list = static_cast<ListBase *>(BLI_smallhash_lookup(fhash, uintptr_t(f)));
     if (!list) {
       list = knife_empty_list(kcd);
-      BLI_smallhash_insert(fhash, (uintptr_t)f, list);
+      BLI_smallhash_insert(fhash, uintptr_t(f), list);
     }
     knife_append_list(kcd, list, kfe);
   }
@@ -2372,10 +2372,10 @@ static void knife_make_cuts(KnifeTool_OpData *kcd, Object *ob)
       if (!e) {
         continue;
       }
-      list = static_cast<ListBase *>(BLI_smallhash_lookup(ehash, (uintptr_t)e));
+      list = static_cast<ListBase *>(BLI_smallhash_lookup(ehash, uintptr_t(e)));
       if (!list) {
         list = knife_empty_list(kcd);
-        BLI_smallhash_insert(ehash, (uintptr_t)e, list);
+        BLI_smallhash_insert(ehash, uintptr_t(e), list);
       }
       /* There can be more than one kfe in kfv's list with same e. */
       if (!find_ref(list, kfv)) {
@@ -2958,12 +2958,12 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       continue;
     }
     /* For faces, store index of lowest hit looptri in hash. */
-    if (BLI_smallhash_haskey(&faces, (uintptr_t)f)) {
+    if (BLI_smallhash_haskey(&faces, uintptr_t(f))) {
       continue;
     }
     /* Don't care what the value is except that it is non-null, for iterator. */
-    BLI_smallhash_insert(&faces, (uintptr_t)f, f);
-    BLI_smallhash_insert(&fobs, (uintptr_t)f, (void *)(uintptr_t)ob_index);
+    BLI_smallhash_insert(&faces, uintptr_t(f), f);
+    BLI_smallhash_insert(&fobs, uintptr_t(f), (void *)uintptr_t(ob_index));
 
     list = knife_get_face_kedges(kcd, ob, ob_index, f);
     for (ref = static_cast<Ref *>(list->first); ref; ref = ref->next) {
@@ -2971,14 +2971,14 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
       if (kfe->is_invalid) {
         continue;
       }
-      if (BLI_smallhash_haskey(&kfes, (uintptr_t)kfe)) {
+      if (BLI_smallhash_haskey(&kfes, uintptr_t(kfe))) {
         continue;
       }
-      BLI_smallhash_insert(&kfes, (uintptr_t)kfe, kfe);
+      BLI_smallhash_insert(&kfes, uintptr_t(kfe), kfe);
       v = kfe->v1;
-      BLI_smallhash_reinsert(&kfvs, (uintptr_t)v, v);
+      BLI_smallhash_reinsert(&kfvs, uintptr_t(v), v);
       v = kfe->v2;
-      BLI_smallhash_reinsert(&kfvs, (uintptr_t)v, v);
+      BLI_smallhash_reinsert(&kfvs, uintptr_t(v), v);
     }
   }
 
@@ -3141,7 +3141,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     {
       float p[3], p_cage[3];
 
-      uint ob_index = (uint)(uintptr_t)BLI_smallhash_lookup(&fobs, (uintptr_t)f);
+      uint ob_index = (uint)(uintptr_t)BLI_smallhash_lookup(&fobs, uintptr_t(f));
       ob = kcd->objects[ob_index];
 
       if (use_hit_prev &&
@@ -3346,7 +3346,7 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
         kcd, maxsize * 2.0f, kcd->curr.ob, kcd->curr.ob_index, kcd->curr.bmface, kcd->curr.cage);
   }
 
-  return density ? min_ff(maxsize / ((float)density * 0.5f), maxsize) : maxsize;
+  return density ? min_ff(maxsize / (float(density) * 0.5f), maxsize) : maxsize;
 }
 
 /* Snap to edge when in a constrained mode.

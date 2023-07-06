@@ -20,7 +20,7 @@
 
 /**************************** registration **********************************/
 
-void ED_operatortypes_mesh(void)
+void ED_operatortypes_mesh()
 {
   WM_operatortype_append(MESH_OT_select_all);
   WM_operatortype_append(MESH_OT_select_interior_faces);
@@ -205,7 +205,7 @@ static int ED_operator_editmesh_face_select(bContext *C)
 }
 #endif
 
-void ED_operatormacros_mesh(void)
+void ED_operatormacros_mesh()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

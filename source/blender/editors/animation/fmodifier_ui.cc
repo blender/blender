@@ -950,7 +950,7 @@ static ListBase fmodifier_copypaste_buf = {nullptr, nullptr};
 
 /* ---------- */
 
-void ANIM_fmodifiers_copybuf_free(void)
+void ANIM_fmodifiers_copybuf_free()
 {
   /* just free the whole buffer */
   free_fmodifiers(&fmodifier_copypaste_buf);

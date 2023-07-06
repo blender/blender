@@ -173,7 +173,7 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
       copy_v3_v3(mpv->co, ob_eval->object_to_world[3]);
     }
 
-    float mframe = (float)(cframe);
+    float mframe = float(cframe);
 
     /* Tag if it's a keyframe */
     if (ED_keylist_find_exact(mpt->keylist, mframe)) {
