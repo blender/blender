@@ -234,7 +234,7 @@ void ED_asset_shelf_region_init(wmWindowManager *wm, ARegion *region)
   wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
   WM_event_add_keymap_handler(&region->handlers, keymap);
 
-  region->v2d.scroll = V2D_SCROLL_RIGHT;
+  region->v2d.scroll = V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
   region->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
   region->v2d.keepofs |= V2D_KEEPOFS_Y;
   region->v2d.keeptot |= V2D_KEEPTOT_STRICT;
