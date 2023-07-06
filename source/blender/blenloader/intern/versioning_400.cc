@@ -315,7 +315,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
                   regionbase,
                   RGN_TYPE_ASSET_SHELF,
                   "asset shelf for view3d (versioning)",
-                  RGN_TYPE_UI))
+                  RGN_TYPE_TOOL_HEADER))
           {
             new_shelf_region->alignment = RGN_ALIGN_BOTTOM;
           }

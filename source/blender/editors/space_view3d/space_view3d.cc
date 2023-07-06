@@ -280,6 +280,19 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
   region->flag = RGN_FLAG_HIDDEN | RGN_FLAG_HIDDEN_BY_USER;
 
+  /* asset shelf */
+  region = MEM_cnew<ARegion>("asset shelf for view3d");
+
+  BLI_addtail(&v3d->regionbase, region);
+  region->regiontype = RGN_TYPE_ASSET_SHELF;
+  region->alignment = RGN_ALIGN_BOTTOM;
+
+  /* asset shelf settings region */
+  region = MEM_cnew<ARegion>("asset shelf settings region for view3d");
+  BLI_addtail(&v3d->regionbase, region);
+  region->regiontype = RGN_TYPE_ASSET_SHELF_SETTINGS;
+  region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+
   /* tool shelf */
   region = MEM_cnew<ARegion>("toolshelf for view3d");
 
@@ -295,19 +308,6 @@ static SpaceLink *view3d_create(const ScrArea * /*area*/, const Scene *scene)
   region->regiontype = RGN_TYPE_UI;
   region->alignment = RGN_ALIGN_RIGHT;
   region->flag = RGN_FLAG_HIDDEN;
-
-  /* asset shelf */
-  region = MEM_cnew<ARegion>("asset shelf for view3d");
-
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_ASSET_SHELF;
-  region->alignment = RGN_ALIGN_BOTTOM;
-
-  /* asset shelf settings region */
-  region = MEM_cnew<ARegion>("asset shelf settings region for view3d");
-  BLI_addtail(&v3d->regionbase, region);
-  region->regiontype = RGN_TYPE_ASSET_SHELF_SETTINGS;
-  region->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 
   /* main region */
   region = MEM_cnew<ARegion>("main region for view3d");
