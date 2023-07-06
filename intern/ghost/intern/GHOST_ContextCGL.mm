@@ -894,27 +894,4 @@ void GHOST_ContextCGL::initClear()
     glClearColor(0.000, 0.000, 0.000, 0.000);
 #endif
   }
-  else {
-#if WITH_METAL
-    // TODO (mg_gpusw_apple) this path is never taken, this is legacy left from inital integration
-    // of metal and gl, the whole file should be cleaned up and stripped of the legacy path
-    id<MTLCommandBuffer> cmdBuffer = [s_sharedMetalCommandQueue commandBuffer];
-    MTLRenderPassDescriptor *passDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-    {
-      auto attachment = [passDescriptor.colorAttachments objectAtIndexedSubscript:0];
-      attachment.texture = m_defaultFramebufferMetalTexture[current_swapchain_index].texture;
-      attachment.loadAction = MTLLoadActionClear;
-      attachment.clearColor = MTLClearColorMake(0.294, 0.294, 0.294, 1.000);
-      attachment.storeAction = MTLStoreActionStore;
-    }
-
-    // encoding
-    {
-      id<MTLRenderCommandEncoder> enc = [cmdBuffer
-          renderCommandEncoderWithDescriptor:passDescriptor];
-      [enc endEncoding];
-    }
-    [cmdBuffer commit];
-#endif
-  }
 }
