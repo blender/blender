@@ -286,6 +286,11 @@ class ViewItemAPIWrapper {
     return a.matches(b);
   }
 
+  static void swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
+  {
+    std::swap(a.view_item_but_, b.view_item_but_);
+  }
+
   static bool can_rename(const AbstractViewItem &item)
   {
     const AbstractView &view = item.get_view();
@@ -333,6 +338,16 @@ bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHand
   const AbstractViewItem &a = reinterpret_cast<const AbstractViewItem &>(*a_handle);
   const AbstractViewItem &b = reinterpret_cast<const AbstractViewItem &>(*b_handle);
   return ViewItemAPIWrapper::matches(a, b);
+}
+
+void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle)
+{
+  if (!a_handle || !b_handle) {
+    return;
+  }
+  AbstractViewItem &a = reinterpret_cast<AbstractViewItem &>(*a_handle);
+  AbstractViewItem &b = reinterpret_cast<AbstractViewItem &>(*b_handle);
+  ViewItemAPIWrapper::swap_button_pointers(a, b);
 }
 
 bool UI_view_item_can_rename(const uiViewItemHandle *item_handle)

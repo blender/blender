@@ -83,6 +83,11 @@ bool AbstractView::begin_filtering(const bContext & /*C*/) const
   return false;
 }
 
+void AbstractView::draw_overlays(const ARegion & /*region*/) const
+{
+  /* Nothing by default. */
+}
+
 /** \} */
 
 /* ---------------------------------------------------------------------- */

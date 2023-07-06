@@ -80,10 +80,6 @@
 using blender::Vector;
 
 /* prototypes. */
-static void ui_but_to_pixelrect(rcti *rect,
-                                const ARegion *region,
-                                uiBlock *block,
-                                const uiBut *but);
 static void ui_def_but_rna__menu(bContext * /*C*/, uiLayout *layout, void *but_p);
 static void ui_def_but_rna__panel_type(bContext * /*C*/, uiLayout *layout, void *but_p);
 static void ui_def_but_rna__menu_type(bContext * /*C*/, uiLayout *layout, void *but_p);
@@ -912,6 +908,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     case UI_BTYPE_VIEW_ITEM: {
       uiButViewItem *view_item_oldbut = (uiButViewItem *)oldbut;
       uiButViewItem *view_item_newbut = (uiButViewItem *)but;
+      ui_view_item_swap_button_pointers(view_item_newbut->view_item, view_item_oldbut->view_item);
       std::swap(view_item_newbut->view_item, view_item_oldbut->view_item);
       break;
     }
@@ -2069,11 +2066,7 @@ void ui_fontscale(float *points, float aspect)
   *points /= aspect;
 }
 
-/* Project button or block (but==nullptr) to pixels in region-space. */
-static void ui_but_to_pixelrect(rcti *rect,
-                                const ARegion *region,
-                                uiBlock *block,
-                                const uiBut *but)
+void ui_but_to_pixelrect(rcti *rect, const ARegion *region, const uiBlock *block, const uiBut *but)
 {
   rctf rectf;
 
@@ -2168,6 +2161,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
   UI_widgetbase_draw_cache_end();
   UI_icon_draw_cache_end();
   BLF_batch_draw_end();
+
+  ui_block_views_draw_overlays(region, block);
 
   /* restore matrix */
   GPU_matrix_pop_projection();

@@ -26,7 +26,6 @@
 struct bContext;
 struct uiBlock;
 struct uiBut;
-struct uiButViewItem;
 struct uiLayout;
 
 namespace blender::ui {
@@ -119,6 +118,8 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
  public:
   virtual ~AbstractTreeView() = default;
 
+  void draw_overlays(const ARegion &region) const override;
+
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
 
   /** Visual feature: Define a number of item rows the view will always show at minimum. If there
@@ -143,6 +144,11 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
    * the actual state changes are done in a delayed manner through this function.
    */
   void change_state_delayed();
+  void draw_hierarchy_lines(const ARegion &region) const;
+  void draw_hierarchy_lines_recursive(const ARegion &region,
+                                      const TreeViewOrItem &parent,
+                                      uint pos) const;
+  AbstractTreeViewItem *find_last_visible_descendant(const AbstractTreeViewItem &parent) const;
 };
 
 /** \} */
@@ -170,8 +176,6 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
  protected:
   /** This label is used as the default way to identifying an item within its parent. */
   std::string label_{};
-  /** Every visible item gets a button of type #UI_BTYPE_VIEW_ITEM during the layout building. */
-  uiButViewItem *view_item_but_ = nullptr;
 
  public:
   virtual ~AbstractTreeViewItem() = default;
@@ -247,7 +251,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   void ensure_parents_uncollapsed();
 
-  uiButViewItem *view_item_button();
+  uiButViewItem *view_item_button() const;
 
  private:
   static void tree_row_click_fn(struct bContext *, void *, void *);
@@ -258,6 +262,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
   void change_state_delayed();
 
   void add_treerow_button(uiBlock &block);
+  int indent_width() const;
   void add_indent(uiLayout &row) const;
   void add_collapse_chevron(uiBlock &block) const;
   void add_rename_button(uiLayout &row);
