@@ -88,7 +88,6 @@ struct SceneState {
   bool draw_aa = false;
 
   bool draw_object_id = false;
-  bool draw_transparent_depth = false;
 
   int sample = 0;
   int samples_len = 0;
@@ -207,8 +206,7 @@ class OpaquePass {
             View &view,
             SceneResources &resources,
             int2 resolution,
-            class ShadowPass *shadow_pass,
-            bool accumulation_ps_is_empty);
+            class ShadowPass *shadow_pass);
   bool is_empty() const;
 };
 
@@ -455,6 +453,7 @@ class AntiAliasingPass {
   float weights_sum_ = 0;
 
   Texture sample0_depth_tx_ = {"sample0_depth_tx"};
+  GPUTexture *stencil_tx_ = nullptr;
 
   Texture taa_accumulation_tx_ = {"taa_accumulation_tx"};
   Texture smaa_search_tx_ = {"smaa_search_tx"};
@@ -466,6 +465,7 @@ class AntiAliasingPass {
   Framebuffer smaa_edge_fb_ = {"smaa_edge_fb"};
   Framebuffer smaa_weight_fb_ = {"smaa_weight_fb"};
   Framebuffer smaa_resolve_fb_ = {"smaa_resolve_fb"};
+  Framebuffer overlay_depth_fb_ = {"overlay_depth_fb"};
 
   float4 smaa_viewport_metrics_ = float4(0);
   float smaa_mix_factor_ = 0;
@@ -474,11 +474,13 @@ class AntiAliasingPass {
   GPUShader *smaa_edge_detect_sh_ = nullptr;
   GPUShader *smaa_aa_weight_sh_ = nullptr;
   GPUShader *smaa_resolve_sh_ = nullptr;
+  GPUShader *overlay_depth_sh_ = nullptr;
 
   PassSimple taa_accumulation_ps_ = {"TAA.Accumulation"};
   PassSimple smaa_edge_detect_ps_ = {"SMAA.EdgeDetect"};
   PassSimple smaa_aa_weight_ps_ = {"SMAA.BlendWeights"};
   PassSimple smaa_resolve_ps_ = {"SMAA.Resolve"};
+  PassSimple overlay_depth_ps_ = {"Overlay Depth"};
 
  public:
   AntiAliasingPass();

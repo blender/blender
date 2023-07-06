@@ -116,7 +116,7 @@
 #  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
 #else
 /* Little Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
+#  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
 #endif
 
 /* ************************* DIV ********************** */
@@ -296,7 +296,7 @@ int DNA_struct_alias_find_nr(const SDNA *sdna, const char *str)
 
 BLI_INLINE const char *pad_up_4(const char *ptr)
 {
-  return (const char *)((((uintptr_t)ptr) + 3) & ~3);
+  return (const char *)((uintptr_t(ptr) + 3) & ~3);
 }
 
 /**
@@ -563,18 +563,18 @@ SDNA *DNA_sdna_from_data(const void *data,
  */
 static SDNA *g_sdna = nullptr;
 
-void DNA_sdna_current_init(void)
+void DNA_sdna_current_init()
 {
   g_sdna = DNA_sdna_from_data(DNAstr, DNAlen, false, false, nullptr);
 }
 
-const SDNA *DNA_sdna_current_get(void)
+const SDNA *DNA_sdna_current_get()
 {
   BLI_assert(g_sdna != nullptr);
   return g_sdna;
 }
 
-void DNA_sdna_current_free(void)
+void DNA_sdna_current_free()
 {
   DNA_sdna_free(g_sdna);
   g_sdna = nullptr;

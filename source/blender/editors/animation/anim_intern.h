@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* KeyingSets/Keyframing Interface ------------- */
 
 /* list of builtin KeyingSets (defined in keyingsets.c) */
@@ -92,3 +96,7 @@ void ANIM_OT_copy_driver_button(struct wmOperatorType *ot);
 void ANIM_OT_paste_driver_button(struct wmOperatorType *ot);
 
 /** \} */
+
+#ifdef __cplusplus
+}
+#endif

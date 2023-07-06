@@ -921,7 +921,7 @@ static void rna_def_action(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_float_sdna(prop, nullptr, "frame_start");
   RNA_def_property_float_funcs(prop, nullptr, "rna_Action_start_frame_set", nullptr);
-  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 100, 2);
+  RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
   RNA_def_property_ui_text(
       prop, "Start Frame", "The start frame of the manually set intended playback range");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);
@@ -930,7 +930,7 @@ static void rna_def_action(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_float_sdna(prop, nullptr, "frame_end");
   RNA_def_property_float_funcs(prop, nullptr, "rna_Action_end_frame_set", nullptr);
-  RNA_def_property_ui_range(prop, MINFRAME, MAXFRAME, 100, 2);
+  RNA_def_property_range(prop, MINAFRAMEF, MAXFRAMEF);
   RNA_def_property_ui_text(
       prop, "End Frame", "The end frame of the manually set intended playback range");
   RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, nullptr);

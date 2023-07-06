@@ -1474,7 +1474,7 @@ static size_t animfilter_action(bAnimContext *ac,
 
   /* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
   if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
-    FCurve *firstfcu = (lastchan) ? (lastchan->next) : static_cast<FCurve *>((act->curves.first));
+    FCurve *firstfcu = (lastchan) ? (lastchan->next) : static_cast<FCurve *>(act->curves.first);
     items += animfilter_fcurves(
         anim_data, ads, firstfcu, ANIMTYPE_FCURVE, filter_mode, nullptr, owner_id, &act->id);
   }

@@ -3386,7 +3386,7 @@ static void calchandlesNurb_intern(Nurb *nu, eBezTriple_Flag handle_sel_flag, bo
         next = nullptr;
       }
     }
-    else {
+    else if (next != nullptr) {
       next++;
     }
 

@@ -2021,9 +2021,13 @@ Mesh *MOD_solidify_nonmanifold_modifyMesh(ModifierData *md,
   const float *vertex_crease = static_cast<const float *>(
       CustomData_get_layer_named(&mesh->vdata, CD_PROP_FLOAT, "crease_vert"));
   float *result_edge_crease = nullptr;
-  if (vertex_crease) {
-    result_edge_crease = (float *)CustomData_add_layer_named(
-        &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
+  if (vertex_crease || orig_edge_crease) {
+    result_edge_crease = static_cast<float *>(CustomData_get_layer_named_for_write(
+        &result->edata, CD_PROP_FLOAT, "crease_edge", result->totedge));
+    if (!result_edge_crease) {
+      result_edge_crease = (float *)CustomData_add_layer_named(
+          &result->edata, CD_PROP_FLOAT, CD_SET_DEFAULT, result->totedge, "crease_edge");
+    }
     /* delete all vertex creases in the result if a rim is used. */
     if (do_rim) {
       CustomData_free_layer_named(&result->vdata, "crease_vert", result->totvert);

@@ -28,36 +28,36 @@ set(INC
 
 set(SRC
   editface.cc
-  editmesh_add.c
-  editmesh_add_gizmo.c
+  editmesh_add.cc
+  editmesh_add_gizmo.cc
   editmesh_attribute.cc
-  editmesh_automerge.c
-  editmesh_bevel.c
-  editmesh_bisect.c
-  editmesh_extrude.c
-  editmesh_extrude_screw.c
-  editmesh_extrude_spin.c
-  editmesh_extrude_spin_gizmo.c
-  editmesh_inset.c
-  editmesh_intersect.c
-  editmesh_knife.c
+  editmesh_automerge.cc
+  editmesh_bevel.cc
+  editmesh_bisect.cc
+  editmesh_extrude.cc
+  editmesh_extrude_screw.cc
+  editmesh_extrude_spin.cc
+  editmesh_extrude_spin_gizmo.cc
+  editmesh_inset.cc
+  editmesh_intersect.cc
+  editmesh_knife.cc
   editmesh_knife_project.cc
-  editmesh_loopcut.c
+  editmesh_loopcut.cc
   editmesh_mask_extract.cc
-  editmesh_path.c
-  editmesh_polybuild.c
-  editmesh_preselect_edgering.c
-  editmesh_preselect_elem.c
-  editmesh_rip.c
-  editmesh_rip_edge.c
+  editmesh_path.cc
+  editmesh_polybuild.cc
+  editmesh_preselect_edgering.cc
+  editmesh_preselect_elem.cc
+  editmesh_rip.cc
+  editmesh_rip_edge.cc
   editmesh_select.cc
-  editmesh_select_similar.c
+  editmesh_select_similar.cc
   editmesh_tools.cc
   editmesh_undo.cc
   editmesh_utils.cc
   mesh_data.cc
   mesh_mirror.cc
-  mesh_ops.c
+  mesh_ops.cc
   meshtools.cc
 
   mesh_intern.h

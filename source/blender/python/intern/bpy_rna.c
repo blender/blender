@@ -5287,10 +5287,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                               int *r_attr_tot,
                               bool *r_attr_signed)
 {
-#if 0
   int array_tot;
   int target_tot;
-#endif
 
   *r_size = *r_attr_tot = 0;
   *r_attr_signed = false;
@@ -5312,6 +5310,19 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
   *r_tot = PySequence_Size(*r_seq);
 
   if (*r_tot > 0) {
+    if (RNA_property_type(self->prop) == PROP_COLLECTION) {
+      array_tot = RNA_property_collection_length(&self->ptr, self->prop);
+    }
+    else {
+      array_tot = RNA_property_array_length(&self->ptr, self->prop);
+    }
+    if (array_tot == 0) {
+      PyErr_Format(PyExc_TypeError,
+                   "foreach_get(attr, sequence) sequence length mismatch given %d, needed 0",
+                   *r_tot);
+      return -1;
+    }
+
     if (!foreach_attr_type(self, *r_attr, r_raw_type, r_attr_tot, r_attr_signed)) {
       PyErr_Format(PyExc_AttributeError,
                    "foreach_get/set '%.200s.%200s[...]' elements have no attribute '%.200s'",
@@ -5322,17 +5333,8 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
     }
     *r_size = RNA_raw_type_sizeof(*r_raw_type);
 
-#if 0 /* Works fine, but not strictly needed. \
-       * we could allow RNA_property_collection_raw_* to do the checks */
     if ((*r_attr_tot) < 1) {
       *r_attr_tot = 1;
-    }
-
-    if (RNA_property_type(self->prop) == PROP_COLLECTION) {
-      array_tot = RNA_property_collection_length(&self->ptr, self->prop);
-    }
-    else {
-      array_tot = RNA_property_array_length(&self->ptr, self->prop);
     }
 
     target_tot = array_tot * (*r_attr_tot);
@@ -5345,7 +5347,6 @@ static int foreach_parse_args(BPy_PropertyRNA *self,
                    target_tot);
       return -1;
     }
-#endif
   }
 
   /* Check 'r_attr_tot' otherwise we don't know if any values were set.

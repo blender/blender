@@ -990,12 +990,6 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
   }
   FOREACH_NODETREE_END;
 
-  LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-    if (light->curfalloff) {
-      callback(light->curfalloff);
-    }
-  }
-
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
     if (brush->curve) {
       callback(brush->curve);

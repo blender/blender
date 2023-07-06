@@ -49,26 +49,11 @@ void LightsExporter::operator()(Object *ob)
   std::string la_id(get_light_id(ob));
   std::string la_name(id_name(la));
   COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
-  float d, constatt, linatt, quadatt;
-
-  d = la->dist;
-
-  constatt = 1.0f;
-
-  if (la->falloff_type == LA_FALLOFF_INVLINEAR) {
-    linatt = 1.0f / d;
-    quadatt = 0.0f;
-  }
-  else {
-    linatt = 0.0f;
-    quadatt = 1.0f / (d * d);
-  }
 
   /* sun */
   if (la->type == LA_SUN) {
     COLLADASW::DirectionalLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
-    cla.setConstantAttenuation(constatt);
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
@@ -79,9 +64,6 @@ void LightsExporter::operator()(Object *ob)
     cla.setColor(col, false, "color");
     cla.setFallOffAngle(RAD2DEGF(la->spotsize), false, "fall_off_angle");
     cla.setFallOffExponent(la->spotblend, false, "fall_off_exponent");
-    cla.setConstantAttenuation(constatt);
-    cla.setLinearAttenuation(linatt);
-    cla.setQuadraticAttenuation(quadatt);
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
@@ -89,9 +71,6 @@ void LightsExporter::operator()(Object *ob)
   else if (la->type == LA_LOCAL) {
     COLLADASW::PointLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
-    cla.setConstantAttenuation(constatt);
-    cla.setLinearAttenuation(linatt);
-    cla.setQuadraticAttenuation(quadatt);
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
@@ -100,9 +79,6 @@ void LightsExporter::operator()(Object *ob)
   else {
     COLLADASW::PointLight cla(mSW, la_id, la_name);
     cla.setColor(col, false, "color");
-    cla.setConstantAttenuation(constatt);
-    cla.setLinearAttenuation(linatt);
-    cla.setQuadraticAttenuation(quadatt);
     exportBlenderProfile(cla, la);
     addLight(cla);
   }
@@ -113,7 +89,6 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Light *la)
   cla.addExtraTechniqueParameter("blender", "type", la->type);
   cla.addExtraTechniqueParameter("blender", "flag", la->flag);
   cla.addExtraTechniqueParameter("blender", "mode", la->mode);
-  cla.addExtraTechniqueParameter("blender", "gamma", la->k, "blender_gamma");
   cla.addExtraTechniqueParameter("blender", "red", la->r);
   cla.addExtraTechniqueParameter("blender", "green", la->g);
   cla.addExtraTechniqueParameter("blender", "blue", la->b);
@@ -121,19 +96,11 @@ bool LightsExporter::exportBlenderProfile(COLLADASW::Light &cla, Light *la)
   cla.addExtraTechniqueParameter("blender", "shadow_g", la->shdwg, "blender_shadow_g");
   cla.addExtraTechniqueParameter("blender", "shadow_b", la->shdwb, "blender_shadow_b");
   cla.addExtraTechniqueParameter("blender", "energy", la->energy, "blender_energy");
-  cla.addExtraTechniqueParameter("blender", "dist", la->dist, "blender_dist");
   cla.addExtraTechniqueParameter("blender", "spotsize", RAD2DEGF(la->spotsize));
   cla.addExtraTechniqueParameter("blender", "spotblend", la->spotblend);
-  cla.addExtraTechniqueParameter("blender", "att1", la->att1);
-  cla.addExtraTechniqueParameter("blender", "att2", la->att2);
-  /* \todo figure out how we can have falloff curve supported here */
-  cla.addExtraTechniqueParameter("blender", "falloff_type", la->falloff_type);
   cla.addExtraTechniqueParameter("blender", "clipsta", la->clipsta);
   cla.addExtraTechniqueParameter("blender", "clipend", la->clipend);
   cla.addExtraTechniqueParameter("blender", "bias", la->bias);
-  cla.addExtraTechniqueParameter("blender", "bufsize", la->bufsize);
-  cla.addExtraTechniqueParameter("blender", "samp", la->samp);
-  cla.addExtraTechniqueParameter("blender", "buffers", la->buffers);
   cla.addExtraTechniqueParameter("blender", "radius", la->radius);
   cla.addExtraTechniqueParameter("blender", "area_shape", la->area_shape);
   cla.addExtraTechniqueParameter("blender", "area_size", la->area_size);

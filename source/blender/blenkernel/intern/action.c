@@ -1470,8 +1470,8 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
       max += 1.0f;
     }
 
-    *start = min;
-    *end = max;
+    *start = max_ff(min, MINAFRAMEF);
+    *end = min_ff(max, MAXFRAMEF);
   }
   else {
     *start = 0.0f;

@@ -40,7 +40,7 @@ struct HeapNode_Chunk {
  * \note keep type in sync with nodes_num in heap_node_alloc_chunk.
  */
 #define HEAP_CHUNK_DEFAULT_NUM \
-  ((uint)((MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk))) / sizeof(HeapNode)))
+  (uint)(MEM_SIZE_OPTIMAL((1 << 16) - sizeof(struct HeapNode_Chunk)) / sizeof(HeapNode))
 
 struct Heap {
   uint size;

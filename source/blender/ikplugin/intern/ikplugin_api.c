@@ -53,7 +53,7 @@ static IKPlugin ikplugin_tab[] = {
 
 static IKPlugin *get_plugin(bPose *pose)
 {
-  if (!pose || pose->iksolver < 0 || pose->iksolver >= ((ARRAY_SIZE(ikplugin_tab)) - 1)) {
+  if (!pose || pose->iksolver < 0 || pose->iksolver >= (ARRAY_SIZE(ikplugin_tab) - 1)) {
     return NULL;
   }
 

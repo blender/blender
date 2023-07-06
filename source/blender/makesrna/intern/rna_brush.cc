@@ -542,11 +542,11 @@ static bool rna_BrushCapabilitiesSculpt_has_plane_offset_get(PointerRNA *ptr)
 static bool rna_BrushCapabilitiesSculpt_has_random_texture_angle_get(PointerRNA *ptr)
 {
   Brush *br = (Brush *)ptr->data;
-  return (!ELEM(br->sculpt_tool,
-                SCULPT_TOOL_GRAB,
-                SCULPT_TOOL_ROTATE,
-                SCULPT_TOOL_SNAKE_HOOK,
-                SCULPT_TOOL_THUMB));
+  return !ELEM(br->sculpt_tool,
+               SCULPT_TOOL_GRAB,
+               SCULPT_TOOL_ROTATE,
+               SCULPT_TOOL_SNAKE_HOOK,
+               SCULPT_TOOL_THUMB);
 }
 
 static bool rna_TextureCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
