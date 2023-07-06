@@ -790,6 +790,22 @@ static float vfont_descent(const VFontData *vfd)
   return vfd->em_height - vfont_ascent(vfd);
 }
 
+/**
+ * Track additional information when using the cursor to select with multiple text boxes.
+ * This gives a more predictable result when the user moves the cursor outside the text-box.
+ */
+typedef struct TextBoxBounds_ForCursor {
+  /**
+   * Describes the minimum rectangle that contains all characters in a text-box,
+   * values are compatible with #TextBox.
+   */
+  rctf bounds;
+  /**
+   * The last character in this text box or -1 when unfilled.
+   */
+  int char_index_last;
+} TextBoxBounds_ForCursor;
+
 static bool vfont_to_curve(Object *ob,
                            Curve *cu,
                            const eEditFontMode mode,
@@ -933,6 +949,23 @@ static bool vfont_to_curve(Object *ob,
     custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK | CU_CHINFO_OVERFLOW);
   }
 
+  TextBoxBounds_ForCursor *tb_bounds_for_cursor = NULL;
+  if (cursor_params != NULL) {
+    if (cu->textoncurve == NULL && (cu->totbox > 1) && (slen > 0)) {
+      tb_bounds_for_cursor = MEM_malloc_arrayN(
+          cu->totbox, sizeof(TextBoxBounds_ForCursor), "TextboxBounds_Cursor");
+      for (curbox = 0; curbox < cu->totbox; curbox++) {
+        TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
+        tb_bounds->char_index_last = -1;
+        tb_bounds->bounds.xmin = FLT_MAX;
+        tb_bounds->bounds.xmax = -FLT_MAX;
+        tb_bounds->bounds.ymin = FLT_MAX;
+        tb_bounds->bounds.ymax = -FLT_MAX;
+      }
+    }
+    curbox = 0;
+  }
+
   i = 0;
   while (i <= slen) {
     /* Characters in the list */
@@ -1071,6 +1104,10 @@ static bool vfont_to_curve(Object *ob,
       lineinfo[lnr].wspace_nr = wsnr;
 
       CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
+
+      if (tb_bounds_for_cursor != NULL) {
+        tb_bounds_for_cursor[curbox].char_index_last = i;
+      }
 
       if ((tb_scale.h != 0.0f) && (-(yof - tb_scale.y) > (tb_scale.h - linedist) - yof_scale)) {
         if (cu->totbox > (curbox + 1)) {
@@ -1329,6 +1366,44 @@ static bool vfont_to_curve(Object *ob,
         ct->yof += yoff;
         ct++;
       }
+    }
+  }
+  if (tb_bounds_for_cursor != NULL) {
+    int char_beg_next = 0;
+    for (curbox = 0; curbox < cu->totbox; curbox++) {
+      TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
+      if (tb_bounds->char_index_last == -1) {
+        continue;
+      }
+      const int char_beg = char_beg_next;
+      const int char_end = tb_bounds->char_index_last;
+
+      struct TempLineInfo *line_beg = &lineinfo[chartransdata[char_beg].linenr];
+      struct TempLineInfo *line_end = &lineinfo[chartransdata[char_end].linenr];
+
+      int char_idx_offset = char_beg;
+
+      rctf *bounds = &tb_bounds->bounds;
+      /* In a text-box with no curves, 'yof' only decrements over lines, 'ymax' and 'ymin'
+       * can be obtained from any character in the first and last line of the text-box. */
+      bounds->ymax = chartransdata[char_beg].yof;
+      bounds->ymin = chartransdata[char_end].yof;
+
+      for (struct TempLineInfo *line = line_beg; line <= line_end; line++) {
+        const struct CharTrans *first_char_line = &chartransdata[char_idx_offset];
+        const struct CharTrans *last_char_line = &chartransdata[char_idx_offset + line->char_nr];
+
+        bounds->xmin = min_ff(bounds->xmin, first_char_line->xof);
+        bounds->xmax = max_ff(bounds->xmax, last_char_line->xof);
+        char_idx_offset += line->char_nr + 1;
+      }
+      /* Move the bounds into a space compatible with `cursor_location`. */
+      bounds->xmin *= font_size;
+      bounds->xmax *= font_size;
+      bounds->ymin *= font_size;
+      bounds->ymax *= font_size;
+
+      char_beg_next = tb_bounds->char_index_last + 1;
     }
   }
 
@@ -1748,35 +1823,104 @@ static bool vfont_to_curve(Object *ob,
   }
 
   if (cursor_params) {
-    cursor_params->r_string_offset = -1;
-    for (i = 0; i <= slen; i++, ct++) {
-      info = &custrinfo[i];
-      ascii = mem[i];
-      if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
-        ascii = towupper(ascii);
-      }
-      ct = &chartransdata[i];
-      che = find_vfont_char(vfd, ascii);
-      float charwidth = char_width(cu, che, info);
-      float charhalf = (charwidth / 2.0f);
-      if (cursor_params->cursor_location[1] >= (ct->yof - (0.25f * linedist)) * font_size &&
-          cursor_params->cursor_location[1] <= (ct->yof + (0.75f * linedist)) * font_size)
-      {
-        /* On this row. */
-        if (cursor_params->cursor_location[0] >= (ct->xof * font_size) &&
-            cursor_params->cursor_location[0] <= ((ct->xof + charhalf) * font_size))
-        {
-          /* Left half of character. */
-          cursor_params->r_string_offset = i;
-        }
-        else if (cursor_params->cursor_location[0] >= ((ct->xof + charhalf) * font_size) &&
-                 cursor_params->cursor_location[0] <= ((ct->xof + charwidth) * font_size))
-        {
-          /* Right half of character. */
-          cursor_params->r_string_offset = i + 1;
-        }
-      }
+    const float *cursor_location = cursor_params->cursor_location;
+    /* Erasing all text could give slen = 0 */
+    if (slen == 0) {
+      cursor_params->r_string_offset = -1;
     }
+    else if (cu->textoncurve != NULL) {
+
+      int closest_char = -1;
+      float closest_dist_sq = FLT_MAX;
+
+      for (i = 0; i <= slen; i++) {
+        const float char_location[2] = {
+            chartransdata[i].xof * font_size,
+            chartransdata[i].yof * font_size,
+        };
+        const float test_dist_sq = len_squared_v2v2(cursor_location, char_location);
+        if (closest_dist_sq > test_dist_sq) {
+          closest_char = i;
+          closest_dist_sq = test_dist_sq;
+        }
+      }
+
+      cursor_params->r_string_offset = closest_char;
+    }
+    else {
+      /* Find the first box closest to `cursor_location`. */
+      int char_beg = 0;
+      int char_end = slen;
+
+      if (tb_bounds_for_cursor != NULL) {
+        /* Search for the closest box. */
+        int closest_box = -1;
+        float closest_dist_sq = FLT_MAX;
+        for (curbox = 0; curbox < cu->totbox; curbox++) {
+          const TextBoxBounds_ForCursor *tb_bounds = &tb_bounds_for_cursor[curbox];
+          if (tb_bounds->char_index_last == -1) {
+            continue;
+          }
+          /* The closest point in the box to the `cursor_location`
+           * by clamping it to the bounding box. */
+          const float cursor_location_clamped[2] = {
+              clamp_f(cursor_location[0], tb_bounds->bounds.xmin, tb_bounds->bounds.xmax),
+              clamp_f(cursor_location[1], tb_bounds->bounds.ymin, tb_bounds->bounds.ymax),
+          };
+
+          const float test_dist_sq = len_squared_v2v2(cursor_location, cursor_location_clamped);
+          if (test_dist_sq < closest_dist_sq) {
+            closest_dist_sq = test_dist_sq;
+            closest_box = curbox;
+          }
+        }
+        if (closest_box != -1) {
+          if (closest_box != 0) {
+            char_beg = tb_bounds_for_cursor[closest_box - 1].char_index_last + 1;
+          }
+          char_end = tb_bounds_for_cursor[closest_box].char_index_last;
+        }
+        MEM_freeN(tb_bounds_for_cursor);
+        tb_bounds_for_cursor = NULL; /* Safety only. */
+      }
+      const float interline_offset = ((linedist - 0.5f) / 2.0f) * font_size;
+      /* Loop until find the line where `cursor_location` is over. */
+      for (i = char_beg; i <= char_end; i++) {
+        if (cursor_location[1] >= ((chartransdata[i].yof * font_size) - interline_offset)) {
+          break;
+        }
+      }
+
+      i = min_ii(i, char_end);
+      const float char_yof = chartransdata[i].yof;
+
+      /* Loop back until find the first character of the line, this because `cursor_location` can
+       * be positioned further below the text, so #i can be the last character of the last line. */
+      for (; i >= char_beg + 1 && chartransdata[i - 1].yof == char_yof; i--) {
+      }
+      /* Loop until find the first character to the right of `cursor_location`
+       * (using the character midpoint on the x-axis as a reference). */
+      for (; i <= char_end && char_yof == chartransdata[i].yof; i++) {
+        info = &custrinfo[i];
+        ascii = info->flag & CU_CHINFO_SMALLCAPS_CHECK ? towupper(mem[i]) : mem[i];
+        che = find_vfont_char(vfd, ascii);
+        const float charwidth = char_width(cu, che, info);
+        const float charhalf = (charwidth / 2.0f);
+        if (cursor_location[0] <= ((chartransdata[i].xof + charhalf) * font_size)) {
+          break;
+        }
+      }
+      i = min_ii(i, char_end);
+
+      /* If there is no character to the right of the cursor we are on the next line, go back to
+       * the last character of the previous line. */
+      if (i > char_beg && chartransdata[i].yof != char_yof) {
+        i -= 1;
+      }
+      cursor_params->r_string_offset = i;
+    }
+    /* Must be cleared & freed. */
+    BLI_assert(tb_bounds_for_cursor == NULL);
   }
 
   /* Scale to fit only works for single text box layouts. */
