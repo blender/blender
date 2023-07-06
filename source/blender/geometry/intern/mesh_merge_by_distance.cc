@@ -87,6 +87,7 @@ struct WeldPoly {
 
 struct WeldMesh {
   /* Group of vertices to be merged. */
+  Array<int> vert_group_map; /* Maps the vertex group offset from the target vert index. */
   Array<int> vert_groups_offs;
   Array<int> vert_groups_buffer;
 
@@ -356,14 +357,15 @@ static Vector<int> weld_vert_ctx_alloc_and_setup(MutableSpan<int> vert_dest_map,
 static void weld_vert_groups_setup(Span<int> wvert,
                                    Span<int> vert_dest_map,
                                    const int vert_kill_len,
-                                   MutableSpan<int> r_vert_groups_map,
+                                   Array<int> &r_vert_groups_map,
                                    Array<int> &r_vert_groups_buffer,
                                    Array<int> &r_vert_groups_offs)
 {
+  r_vert_groups_map.reinitialize(vert_dest_map.size());
   r_vert_groups_map.fill(OUT_OF_CONTEXT);
-  const int vert_groups_len = wvert.size() - vert_kill_len;
 
   /* Add +1 to allow calculation of the length of the last group. */
+  const int vert_groups_len = wvert.size() - vert_kill_len;
   r_vert_groups_offs.reinitialize(vert_groups_len + 1);
   r_vert_groups_offs.fill(0);
 
@@ -1374,7 +1376,7 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
 static void weld_mesh_context_create(const Mesh &mesh,
                                      MutableSpan<int> vert_dest_map,
                                      const int vert_kill_len,
-                                     MutableSpan<int> r_vert_group_map,
+                                     const bool do_vert_group,
                                      WeldMesh *r_weld_mesh)
 {
   const Span<int2> edges = mesh.edges();
@@ -1417,12 +1419,14 @@ static void weld_mesh_context_create(const Mesh &mesh,
                          edges.size(),
                          r_weld_mesh);
 
-  weld_vert_groups_setup(wvert,
-                         vert_dest_map,
-                         vert_kill_len,
-                         r_vert_group_map,
-                         r_weld_mesh->vert_groups_buffer,
-                         r_weld_mesh->vert_groups_offs);
+  if (do_vert_group) {
+    weld_vert_groups_setup(wvert,
+                           vert_dest_map,
+                           vert_kill_len,
+                           r_weld_mesh->vert_group_map,
+                           r_weld_mesh->vert_groups_buffer,
+                           r_weld_mesh->vert_groups_offs);
+  }
 
   weld_edge_groups_setup(edges.size(),
                          r_weld_mesh->edge_kill_len,
@@ -1545,7 +1549,8 @@ static void customdata_weld(
 
 static Mesh *create_merged_mesh(const Mesh &mesh,
                                 MutableSpan<int> vert_dest_map,
-                                const int removed_vertex_count)
+                                const int removed_vertex_count,
+                                const bool do_mix_vert_data)
 {
 #ifdef USE_WELD_DEBUG_TIME
   SCOPED_TIMER(__func__);
@@ -1557,10 +1562,9 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int totvert = mesh.totvert;
   const int totedge = mesh.totedge;
 
-  Array<int> vert_group_map(totvert);
-
   WeldMesh weld_mesh;
-  weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, vert_group_map, &weld_mesh);
+  weld_mesh_context_create(
+      mesh, vert_dest_map, removed_vertex_count, do_mix_vert_data, &weld_mesh);
 
   const int result_nverts = totvert - weld_mesh.vert_kill_len;
   const int result_nedges = totedge - weld_mesh.edge_kill_len;
@@ -1576,15 +1580,23 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Vertices. */
 
-  /* Be careful when setting values to this array as it uses the same buffer as #vert_group_map.
-   * This map will be used to adjust edges and loops to point to new vertex indices. */
-  MutableSpan<int> vert_final_map = vert_group_map;
+  MutableSpan<int> vert_final_map;
+  Array<int> vert_final_map_local;
+  if (!weld_mesh.vert_group_map.is_empty()) {
+    /* Be careful when setting values to this array as it uses the same buffer as #vert_group_map.
+     * This map will be used to adjust edges and loops to point to new vertex indices. */
+    vert_final_map = weld_mesh.vert_group_map;
+  }
+  else {
+    vert_final_map_local.reinitialize(totvert);
+    vert_final_map = vert_final_map_local;
+  }
 
   int dest_index = 0;
   for (int i = 0; i < totvert; i++) {
     int source_index = i;
     int count = 0;
-    while (i < totvert && vert_group_map[i] == OUT_OF_CONTEXT) {
+    while (i < totvert && vert_dest_map[i] == OUT_OF_CONTEXT) {
       vert_final_map[i] = dest_index + count;
       count++;
       i++;
@@ -1596,15 +1608,16 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
     if (i == totvert) {
       break;
     }
-    if (vert_group_map[i] != ELEM_MERGED) {
-      int *src_indices;
-      int count;
-      {
-        int *wgroup = &weld_mesh.vert_groups_offs[vert_group_map[i]];
-        src_indices = &weld_mesh.vert_groups_buffer[*wgroup];
-        count = *(wgroup + 1) - *wgroup;
+    if (vert_dest_map[i] == i) {
+      if (do_mix_vert_data) {
+        int *group_offs = &weld_mesh.vert_groups_offs[weld_mesh.vert_group_map[i]];
+        int *src_indices = &weld_mesh.vert_groups_buffer[*group_offs];
+        int count = *(group_offs + 1) - *group_offs;
+        customdata_weld(&mesh.vdata, &result->vdata, src_indices, count, dest_index);
       }
-      customdata_weld(&mesh.vdata, &result->vdata, src_indices, count, dest_index);
+      else {
+        CustomData_copy_data(&mesh.vdata, &result->vdata, i, dest_index, 1);
+      }
       vert_final_map[i] = dest_index;
       dest_index++;
     }
@@ -1770,7 +1783,7 @@ std::optional<Mesh *> mesh_merge_by_distance_all(const Mesh &mesh,
     return std::nullopt;
   }
 
-  return create_merged_mesh(mesh, vert_dest_map, vert_kill_len);
+  return create_merged_mesh(mesh, vert_dest_map, vert_kill_len, true);
 }
 
 struct WeldVertexCluster {
@@ -1869,12 +1882,15 @@ std::optional<Mesh *> mesh_merge_by_distance_connected(const Mesh &mesh,
     }
   }
 
-  return create_merged_mesh(mesh, vert_dest_map, vert_kill_len);
+  return create_merged_mesh(mesh, vert_dest_map, vert_kill_len, true);
 }
 
-Mesh *mesh_merge_verts(const Mesh &mesh, MutableSpan<int> vert_dest_map, int vert_dest_map_len)
+Mesh *mesh_merge_verts(const Mesh &mesh,
+                       MutableSpan<int> vert_dest_map,
+                       int vert_dest_map_len,
+                       const bool do_mix_vert_data)
 {
-  return create_merged_mesh(mesh, vert_dest_map, vert_dest_map_len);
+  return create_merged_mesh(mesh, vert_dest_map, vert_dest_map_len, do_mix_vert_data);
 }
 
 /** \} */

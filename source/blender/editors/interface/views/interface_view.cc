@@ -142,6 +142,13 @@ void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *l
   }
 }
 
+void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block)
+{
+  LISTBASE_FOREACH (ViewLink *, view_link, &block->views) {
+    view_link->view->draw_overlays(*region);
+  }
+}
+
 uiViewHandle *UI_region_view_find_at(const ARegion *region, const int xy[2], const int pad)
 {
   /* NOTE: Similar to #ui_but_find_mouse_over_ex(). */
