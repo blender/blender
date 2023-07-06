@@ -188,7 +188,7 @@ using uchar = unsigned char;
 using sycl::half;
 
 /* math functions */
-ccl_device_forceinline float __uint_as_float(uint x)
+ccl_device_forceinline float __uint_as_float(unsigned int x)
 {
   return sycl::bit_cast<float>(x);
 }
