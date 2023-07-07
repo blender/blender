@@ -1230,22 +1230,23 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
     else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
+      float3 dir = safe_normalize(light->dir);
       float angle = light->angle / 2.0f;
-      float radius = tanf(angle);
-      float cosangle = cosf(angle);
-      float area = M_PI_F * radius * radius;
-      float invarea = (light->normalize && area > 0.0f) ? 1.0f / area : 1.0f;
-      float3 dir = light->dir;
 
-      dir = safe_normalize(dir);
-
-      if (light->use_mis && area > 0.0f)
+      if (light->use_mis && angle > 0.0f) {
         shader_id |= SHADER_USE_MIS;
+      }
+
+      const float one_minus_cosangle = 2.0f * sqr(sinf(0.5f * angle));
+      const float pdf = (angle > 0.0f) ? (M_1_2PI_F / one_minus_cosangle) : 1.0f;
 
       klights[light_index].co = dir;
-      klights[light_index].distant.invarea = invarea;
-      klights[light_index].distant.radius = radius;
-      klights[light_index].distant.cosangle = cosangle;
+      klights[light_index].distant.angle = angle;
+      klights[light_index].distant.one_minus_cosangle = one_minus_cosangle;
+      klights[light_index].distant.pdf = pdf;
+      klights[light_index].distant.eval_fac = (light->normalize && angle > 0) ?
+                                                  M_1_PI_F / sqr(sinf(angle)) :
+                                                  1.0f;
     }
     else if (light->light_type == LIGHT_BACKGROUND) {
       uint visibility = scene->background->get_visibility();

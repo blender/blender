@@ -133,14 +133,35 @@ ccl_device_inline void sample_uniform_cone_concentric(const float3 N,
                                                       ccl_private float *pdf)
 {
   if (one_minus_cos_angle > 0) {
-    /* Map random number from 2D to 1D. */
+    /* Remap radius to get a uniform distribution w.r.t. solid angle on the cone.
+     * The logic to derive this mapping is as follows:
+     *
+     * Sampling a cone is comparable to sampling the hemisphere, we just restrict theta. Therefore,
+     * the same trick of first sampling the unit disk and the projecting the result up towards the
+     * hemisphere by calculating the appropriate z coordinate still works.
+     *
+     * However, by itself this results in cosine-weighted hemisphere sampling, so we need some kind
+     * of remapping. Cosine-weighted hemisphere and uniform cone sampling have the same conditional
+     * PDF for phi (both are constant), so we only need to think about theta, which corresponds
+     * directly to the radius.
+     *
+     * To find this mapping, we consider the simplest sampling strategies for cosine-weighted
+     * hemispheres and uniform cones. In both, phi is chosen as 2pi * random(). For the former,
+     * r_disk(rand) = sqrt(rand). This is just naive disk sampling, since the projection to the
+     * hemisphere doesn't change the radius. For the latter, r_cone(rand) =
+     * sin_from_cos(mix(cos_angle, 1, rand)).
+     *
+     * So, to remap, we just invert r_disk (-> rand(r_disk) = r_disk^2) and insert it into r_cone:
+     * r_cone(r_disk) = r_cone(rand(r_disk)) = sin_from_cos(mix(cos_angle, 1, r_disk^2)). In
+     * practise, we need to replace `rand` with `1 - rand` to preserve the stratification, but
+     * since it's uniform, that's fine. */
     float2 xy = concentric_sample_disk(rand);
     const float r2 = len_squared(xy);
 
     /* Equivalent to `mix(cos_angle, 1.0f, 1.0f - r2)` */
     *cos_theta = 1.0f - r2 * one_minus_cos_angle;
 
-    /* Equivalent to `xy *= sin_theta / sqrt(r2); */
+    /* Remap disk radius to cone radius, equivalent to `xy *= sin_theta / sqrt(r2); */
     xy *= safe_sqrtf(one_minus_cos_angle * (2.0f - one_minus_cos_angle * r2));
 
     float3 T, B;
