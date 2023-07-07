@@ -558,8 +558,8 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
       for (const int i : polys.index_range()) {
         const IndexRange poly = polys[i];
         for (int j = 0; j < poly.size(); j++) {
-          const int rev_index = poly.size() - 1 - j;
-          uv_data.span[j] = float2(usd_uvs[rev_index][0], usd_uvs[rev_index][1]);
+          const int rev_index = poly.start() + poly.size() - 1 - j;
+          uv_data.span[poly.start() + j] = float2(usd_uvs[rev_index][0], usd_uvs[rev_index][1]);
         }
       }
     }
