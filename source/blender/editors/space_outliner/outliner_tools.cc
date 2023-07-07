@@ -1397,8 +1397,10 @@ static void id_override_library_create_hierarchy_process(bContext *C,
     if (ID_IS_LINKED(id_iter) || !ID_IS_OVERRIDE_LIBRARY_REAL(id_iter)) {
       continue;
     }
-    if (!data.id_hierarchy_roots_uid.contains(
-            id_iter->override_library->hierarchy_root->session_uuid)) {
+    if (id_iter->override_library->hierarchy_root != nullptr &&
+        !data.id_hierarchy_roots_uid.contains(
+            id_iter->override_library->hierarchy_root->session_uuid))
+    {
       continue;
     }
     if (data.selected_id_uid.contains(id_iter->override_library->reference->session_uuid) ||
