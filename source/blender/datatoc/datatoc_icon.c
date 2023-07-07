@@ -345,7 +345,7 @@ static bool icon_merge(struct IconMergeContext *context,
     return false;
   }
 
-  struct IconInfo *read_icon_info = icon_merge_context_info_for_icon_head(context, &head);
+  const struct IconInfo *read_icon_info = icon_merge_context_info_for_icon_head(context, &head);
   if (read_icon_info != NULL) {
     printf(
         "Conflicting icon files %s and %s\n", path_basename(file_src), read_icon_info->file_name);

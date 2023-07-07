@@ -97,8 +97,12 @@ GHOST_TSuccess GHOST_DisplayManager::findMatch(uint8_t display,
   GHOST_ASSERT(m_settingsInitialized,
                "GHOST_DisplayManager::findMatch(): m_settingsInitialized=false");
 
-  int criteria[4] = {
-      int(setting.xPixels), int(setting.yPixels), int(setting.bpp), int(setting.frequency)};
+  const int criteria[4] = {
+      int(setting.xPixels),
+      int(setting.yPixels),
+      int(setting.bpp),
+      int(setting.frequency),
+  };
   int capabilities[4];
   double field, score;
   double best = 1e12; /* A big number. */

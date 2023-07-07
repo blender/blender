@@ -429,7 +429,7 @@ static void make_histogram_view_from_ibuf_byte_fn(void *__restrict userdata,
                                                   const int y,
                                                   const TaskParallelTLS *__restrict tls)
 {
-  MakeHistogramViewData *data = static_cast<MakeHistogramViewData *>(userdata);
+  const MakeHistogramViewData *data = static_cast<MakeHistogramViewData *>(userdata);
   const ImBuf *ibuf = data->ibuf;
   const uchar *src = ibuf->byte_buffer.data;
 
