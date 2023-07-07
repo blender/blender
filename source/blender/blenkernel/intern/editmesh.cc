@@ -18,7 +18,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_iterators.h"

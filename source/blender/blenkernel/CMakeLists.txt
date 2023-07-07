@@ -379,7 +379,7 @@ set(SRC
   BKE_editlattice.h
   BKE_editmesh.h
   BKE_editmesh_bvh.h
-  BKE_editmesh_cache.h
+  BKE_editmesh_cache.hh
   BKE_editmesh_tangent.h
   BKE_effect.h
   BKE_fcurve.h

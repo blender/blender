@@ -19,7 +19,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_mesh.h"
 
 #include "draw_cache_extract.hh"

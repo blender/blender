@@ -36,7 +36,7 @@
 #include "BKE_colorband.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_key.h"
