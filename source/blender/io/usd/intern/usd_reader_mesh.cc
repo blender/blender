@@ -519,13 +519,23 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
 {
   const StringRef primvar_name(primvar.StripPrimvarsName(primvar.GetName()).GetString());
 
-  pxr::VtArray<pxr::GfVec2d> usd_uvs;
-  if (!primvar.ComputeFlattened(&usd_uvs, motionSampleTime)) {
+  pxr::VtValue usd_uvs_val;
+  if (!primvar.ComputeFlattened(&usd_uvs_val, motionSampleTime)) {
     WM_reportf(RPT_WARNING,
                "USD Import: couldn't compute values for uv attribute '%s'",
                primvar.GetName().GetText());
     return;
   }
+
+  if (!usd_uvs_val.CanCast<pxr::VtVec2fArray>()) {
+    WM_reportf(RPT_WARNING,
+               "USD Import: can't cast uv attribute '%s' to float2 array",
+               primvar.GetName().GetText());
+    return;
+  }
+
+  pxr::VtVec2fArray usd_uvs =
+      usd_uvs_val.Cast<pxr::VtVec2fArray>().UncheckedGet<pxr::VtVec2fArray>();
 
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<float2> uv_data;
@@ -538,9 +548,36 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
     return;
   }
 
-  for (int i = 0; i < usd_uvs.size(); i++) {
-    uv_data.span[i] = float2(usd_uvs[i][0], usd_uvs[i][1]);
-    ;
+  const pxr::TfToken varying_type = primvar.GetInterpolation();
+  BLI_assert(ELEM(varying_type, pxr::UsdGeomTokens->vertex, pxr::UsdGeomTokens->faceVarying));
+
+  if (varying_type == pxr::UsdGeomTokens->faceVarying) {
+    if (is_left_handed_) {
+      /* Reverse the index order. */
+      const OffsetIndices polys = mesh->polys();
+      for (const int i : polys.index_range()) {
+        const IndexRange poly = polys[i];
+        for (int j = 0; j < poly.size(); j++) {
+          const int rev_index = poly.size() - 1 - j;
+          uv_data.span[j] = float2(usd_uvs[rev_index][0], usd_uvs[rev_index][1]);
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < uv_data.span.size(); ++i) {
+        uv_data.span[i] = float2(usd_uvs[i][0], usd_uvs[i][1]);
+      }
+    }
+  }
+  else {
+    /* Handle vertex interpolation. */
+    const Span<int> corner_verts = mesh->corner_verts();
+    BLI_assert(mesh->totvert == usd_uvs.size());
+    for (int i = 0; i < uv_data.span.size(); ++i) {
+      /* Get the vertex index for this corner. */
+      int vi = corner_verts[i];
+      uv_data.span[i] = float2(usd_uvs[vi][0], usd_uvs[vi][1]);
+    }
   }
 
   uv_data.finish();
@@ -955,7 +992,7 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
     }
 
     /* Read UV primvars. */
-    else if ((varying_type == pxr::UsdGeomTokens->faceVarying) &&
+    else if (ELEM(varying_type, pxr::UsdGeomTokens->vertex, pxr::UsdGeomTokens->faceVarying) &&
              ELEM(type,
                   pxr::SdfValueTypeNames->TexCoord2dArray,
                   pxr::SdfValueTypeNames->TexCoord2fArray,
