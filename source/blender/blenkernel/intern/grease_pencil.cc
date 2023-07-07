@@ -401,6 +401,11 @@ Layer &TreeNode::as_layer_for_write()
   return *reinterpret_cast<Layer *>(this);
 }
 
+LayerGroup *TreeNode::parent_group() const
+{
+  return &this->parent->wrap();
+}
+
 LayerMask::LayerMask()
 {
   this->layer_name = nullptr;
@@ -738,7 +743,7 @@ Layer &LayerGroup::add_layer(Layer *layer)
   return *layer;
 }
 
-Layer &LayerGroup::add_layer_before(Layer *layer, Layer *link)
+Layer &LayerGroup::add_layer_before(Layer *layer, TreeNode *link)
 {
   BLI_assert(layer != nullptr && link != nullptr);
   BLI_insertlinkbefore(&this->children,
@@ -749,7 +754,7 @@ Layer &LayerGroup::add_layer_before(Layer *layer, Layer *link)
   return *layer;
 }
 
-Layer &LayerGroup::add_layer_after(Layer *layer, Layer *link)
+Layer &LayerGroup::add_layer_after(Layer *layer, TreeNode *link)
 {
   BLI_assert(layer != nullptr && link != nullptr);
   BLI_insertlinkafter(&this->children,
@@ -766,13 +771,13 @@ Layer &LayerGroup::add_layer(StringRefNull name)
   return this->add_layer(new_layer);
 }
 
-Layer &LayerGroup::add_layer_before(StringRefNull name, Layer *link)
+Layer &LayerGroup::add_layer_before(StringRefNull name, TreeNode *link)
 {
   Layer *new_layer = MEM_new<Layer>(__func__, name);
   return this->add_layer_before(new_layer, link);
 }
 
-Layer &LayerGroup::add_layer_after(StringRefNull name, Layer *link)
+Layer &LayerGroup::add_layer_after(StringRefNull name, TreeNode *link)
 {
   Layer *new_layer = MEM_new<Layer>(__func__, name);
   return this->add_layer_after(new_layer, link);
@@ -789,11 +794,11 @@ int64_t LayerGroup::num_nodes_total() const
   return this->runtime->nodes_cache_.size();
 }
 
-bool LayerGroup::unlink_layer(Layer *link)
+bool LayerGroup::unlink_node(TreeNode *link)
 {
   if (BLI_remlink_safe(&this->children, link)) {
     this->tag_nodes_cache_dirty();
-    link->base.parent = nullptr;
+    link->parent = nullptr;
     return true;
   }
   return false;
@@ -1434,14 +1439,14 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer_after(
     blender::bke::greasepencil::LayerGroup &group,
-    blender::bke::greasepencil::Layer *layer,
+    blender::bke::greasepencil::TreeNode *link,
     const blender::StringRefNull name)
 {
   using namespace blender;
   VectorSet<StringRefNull> names = get_node_names(*this);
   std::string unique_name(name.c_str());
   unique_layer_name(names, unique_name.data());
-  return group.add_layer_after(unique_name, layer);
+  return group.add_layer_after(unique_name, link);
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name)
@@ -1551,7 +1556,7 @@ void GreasePencil::remove_layer(blender::bke::greasepencil::Layer &layer)
   }
 
   /* Unlink the layer from the parent group. */
-  layer.parent_group().unlink_layer(&layer);
+  layer.parent_group().unlink_node(&layer.as_node());
 
   /* Remove drawings. */
   /* TODO: In the future this should only remove drawings when the user count hits zero. */
