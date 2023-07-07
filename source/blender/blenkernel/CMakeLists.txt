@@ -47,7 +47,7 @@ set(INC
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
 
-  # For `vfontdata_freetype.c`.
+  # For `vfontdata_freetype.cc`.
   ${FREETYPE_INCLUDE_DIRS}
 )
 
@@ -306,8 +306,8 @@ set(SRC
   intern/type_conversions.cc
   intern/undo_system.cc
   intern/unit.c
-  intern/vfont.c
-  intern/vfontdata_freetype.c
+  intern/vfont.cc
+  intern/vfontdata_freetype.cc
   intern/viewer_path.cc
   intern/volume.cc
   intern/volume_render.cc
