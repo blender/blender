@@ -10,6 +10,7 @@
 
 #include "CLG_log.h"
 
+#include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
@@ -38,8 +39,18 @@
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
 
-void do_versions_after_linking_400(FileData * /*fd*/, Main * /*bmain*/)
+void do_versions_after_linking_400(FileData * /*fd*/, Main *bmain)
 {
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 9)) {
+    /* Fix area light scaling. */
+    LISTBASE_FOREACH (Light *, light, &bmain->lights) {
+      light->energy = light->energy_deprecated;
+      if (light->type == LA_AREA) {
+        light->energy *= M_PI_4;
+      }
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *
@@ -133,7 +144,8 @@ static void version_mesh_crease_generic(Main &bmain)
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
         if (STR_ELEM(node->idname,
                      "GeometryNodeStoreNamedAttribute",
-                     "GeometryNodeInputNamedAttribute")) {
+                     "GeometryNodeInputNamedAttribute"))
+        {
           bNodeSocket *socket = nodeFindSocket(node, SOCK_IN, "Name");
           if (STREQ(socket->default_value_typed<bNodeSocketValueString>()->value, "crease")) {
             STRNCPY(socket->default_value_typed<bNodeSocketValueString>()->value, "crease_edge");

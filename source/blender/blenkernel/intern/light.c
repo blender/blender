@@ -117,6 +117,12 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Light *la = (Light *)id;
 
+  /* Forward compatibility for energy. */
+  la->energy_deprecated = la->energy;
+  if (la->type == LA_AREA) {
+    la->energy_deprecated /= M_PI_4;
+  }
+
   /* write LibData */
   BLO_write_id_struct(writer, Light, id_address, &la->id);
   BKE_id_blend_write(writer, &la->id);
