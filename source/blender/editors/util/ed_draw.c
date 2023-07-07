@@ -414,7 +414,7 @@ tSlider *ED_slider_create(bContext *C)
   slider->factor_bounds[0] = 0;
   slider->factor_bounds[1] = 1;
 
-  slider->unit_string[0] = "%";
+  slider->unit_string[0] = '%';
 
   slider->slider_mode = SLIDER_MODE_PERCENT;
 
