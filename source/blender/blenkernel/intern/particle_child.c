@@ -55,12 +55,6 @@ static void psys_path_iter_get(ParticlePathIterator *iter,
   }
 }
 
-typedef struct ParticlePathModifier {
-  struct ParticlePathModifier *next, *prev;
-
-  void (*apply)(ParticleCacheKey *keys, int totkeys, ParticleCacheKey *parent_keys);
-} ParticlePathModifier;
-
 /* ------------------------------------------------------------------------- */
 
 static void do_kink_spiral_deform(ParticleKey *state,
@@ -303,13 +297,11 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
   const bool draw_col_ma = (part->draw_col == PART_DRAW_COL_MAT);
   const bool use_length_check = !ELEM(part->kink, PART_KINK_SPIRAL);
 
-  // ParticlePathModifier *mod;
   ParticleCacheKey *key;
   int totkeys, k;
   float max_length;
 
-  /* TODO: for the future: use true particle modifiers that work on the whole curve.
-   * `modifiers` & `mod` are unused. */
+  /* TODO: for the future: use true particle modifiers that work on the whole curve. */
 
   if (part->kink == PART_KINK_SPIRAL) {
     do_kink_spiral(
