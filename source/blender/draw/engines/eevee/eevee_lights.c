@@ -90,14 +90,9 @@ static float light_shape_radiance_get(const Light *la, const EEVEE_Light *evli)
     }
     default:
     case LA_SUN: {
-      /* Disk area. */
-      float area = (float)M_PI * square_f(evli->radius);
-      /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
-       * we cannot reproduce so we account for that by scaling the light power. This function is
-       * the result of a rough manual fitting. */
-      float sun_scaling = 1.0f + square_f(evli->radius) / 2.0f;
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return sun_scaling / area;
+      float inv_sin_sq = 1.0f + 1.0f / square_f(evli->radius);
+      /* Convert irradiance to radiance. */
+      return (float)M_1_PI * inv_sin_sq;
     }
   }
 }
@@ -131,7 +126,6 @@ static float light_volume_radiance_factor_get(const Light *la,
     }
     default:
     case LA_SUN: {
-      /* NOTE: Missing a factor of PI here to match Cycles. */
       /* Do nothing. */
       break;
     }

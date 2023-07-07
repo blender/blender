@@ -190,14 +190,9 @@ float Light::shape_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* Disk area. */
-      float area = float(M_PI) * square_f(_radius);
-      /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
-       * we cannot reproduce so we account for that by scaling the light power. This function is
-       * the result of a rough manual fitting. */
-      float sun_scaling = 1.0f + square_f(_radius) / 2.0f;
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return sun_scaling / area;
+      float inv_sin_sq = 1.0f + 1.0f / square_f(_radius);
+      /* Convert irradiance to radiance. */
+      return float(M_1_PI) * inv_sin_sq;
     }
   }
 }
@@ -223,7 +218,6 @@ float Light::point_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* NOTE: Missing a factor of PI here to match Cycles. */
       return 1.0f;
     }
   }
