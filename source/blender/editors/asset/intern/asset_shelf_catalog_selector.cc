@@ -112,25 +112,26 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
         uiItemL(&row, nullptr, ICON_BLANK1);
       }
 
-      uiBut *but = uiDefButC(block,
-                             UI_BTYPE_CHECKBOX,
-                             0,
-                             catalog_item_.get_name().c_str(),
-                             0,
-                             0,
-                             UI_UNIT_X * 10,
-                             UI_UNIT_Y,
-                             (char *)&catalog_path_enabled_,
-                             0,
-                             0,
-                             0,
-                             0,
-                             TIP_("Toggle catalog visibility in the asset shelf"));
-      UI_but_func_set(but, [&tree](bContext &C) {
+      uiItemL(&row, catalog_item_.get_name().c_str(), ICON_NONE);
+      uiBut *toggle_but = uiDefButC(block,
+                                    UI_BTYPE_CHECKBOX,
+                                    0,
+                                    "",
+                                    0,
+                                    0,
+                                    UI_UNIT_X,
+                                    UI_UNIT_Y,
+                                    (char *)&catalog_path_enabled_,
+                                    0,
+                                    0,
+                                    0,
+                                    0,
+                                    TIP_("Toggle catalog visibility in the asset shelf"));
+      UI_but_func_set(toggle_but, [&tree](bContext &C) {
         tree.update_shelf_settings_from_enabled_catalogs();
         send_redraw_notifier(C);
       });
-      UI_but_flag_disable(but, UI_BUT_UNDO);
+      UI_but_flag_disable(toggle_but, UI_BUT_UNDO);
     }
   };
 };
