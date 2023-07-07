@@ -16,7 +16,7 @@ struct BMEditMesh;
 
 typedef struct EditMeshData {
   /** when set, \a vertexNos, polyNos are lazy initialized */
-  const float (*vertexCos)[3];
+  float (*vertexCos)[3];
 
   /** lazy initialize (when \a vertexCos is set) */
   float const (*vertexNos)[3];

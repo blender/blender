@@ -17,6 +17,7 @@
 #include "BKE_editmesh_cache.h"
 #include "BKE_global.h"
 #include "BKE_mesh.hh"
+#include "BKE_mesh_wrapper.h"
 #include "BKE_unit.h"
 
 #include "DNA_mesh_types.h"
@@ -236,8 +237,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
   float clip_planes[4][4];
   /* allow for displaying shape keys and deform mods */
   BMIter iter;
-  const float(*vert_coords)[3] = (me->runtime->edit_data ? me->runtime->edit_data->vertexCos :
-                                                           nullptr);
+  const float(*vert_coords)[3] = BKE_mesh_wrapper_vert_coords(me);
   const bool use_coords = (vert_coords != nullptr);
 
   /* when 2 or more edge-info options are enabled, space apart */
@@ -344,8 +344,7 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
     const float(*poly_normals)[3] = nullptr;
     if (use_coords) {
       BM_mesh_elem_index_ensure(em->bm, BM_VERT | BM_FACE);
-      BKE_editmesh_cache_ensure_poly_normals(em, me->runtime->edit_data);
-      poly_normals = me->runtime->edit_data->polyNos;
+      poly_normals = BKE_mesh_wrapper_poly_normals(me);
     }
 
     BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {

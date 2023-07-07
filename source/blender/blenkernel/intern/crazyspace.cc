@@ -247,7 +247,8 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
   ModifierData *md;
   Mesh *me_input = static_cast<Mesh *>(ob->data);
   Mesh *me = nullptr;
-  int i, a, modifiers_left_num = 0, verts_num = 0;
+  int i, a, modifiers_left_num = 0;
+  const int verts_num = em->bm->totvert;
   int cageIndex = BKE_modifiers_get_cage_index(scene, ob, nullptr, true);
   float(*defmats)[3][3] = nullptr, (*deformedVerts)[3] = nullptr;
   VirtualModifierData virtualModifierData;
@@ -276,8 +277,8 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
         cd_mask_extra = datamasks->mask;
         BLI_linklist_free((LinkNode *)datamasks, nullptr);
 
-        me = BKE_mesh_wrapper_from_editmesh_with_coords(em, &cd_mask_extra, nullptr, me_input);
-        deformedVerts = editbmesh_vert_coords_alloc(em, &verts_num);
+        me = BKE_mesh_wrapper_from_editmesh(em, &cd_mask_extra, me_input);
+        deformedVerts = editbmesh_vert_coords_alloc(em);
         defmats = static_cast<float(*)[3][3]>(
             MEM_mallocN(sizeof(*defmats) * verts_num, "defmats"));
 

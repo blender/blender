@@ -93,7 +93,6 @@ static void deformVerts(ModifierData *md,
                         int /*verts_num*/)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
-  Mesh *mesh_src;
   Object *ob = ctx->object;
 
   /* If collision is disabled, free the stale data and exit. */
@@ -106,20 +105,11 @@ static void deformVerts(ModifierData *md,
     return;
   }
 
-  if (mesh == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ob, nullptr, nullptr, nullptr);
-  }
-  else {
-    /* Not possible to use get_mesh() in this case as we'll modify its vertices
-     * and get_mesh() would return 'mesh' directly. */
-    mesh_src = (Mesh *)BKE_id_copy_ex(nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
-  }
-
-  if (mesh_src) {
+  if (mesh) {
     float current_time = 0;
     int mvert_num = 0;
 
-    BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
+    BKE_mesh_vert_coords_apply(mesh, vertexCos);
 
     current_time = DEG_get_ctime(ctx->depsgraph);
 
@@ -127,7 +117,7 @@ static void deformVerts(ModifierData *md,
       printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
     }
 
-    mvert_num = mesh_src->totvert;
+    mvert_num = mesh->totvert;
 
     if (current_time < collmd->time_xnew) {
       freeData((ModifierData *)collmd);
@@ -145,7 +135,7 @@ static void deformVerts(ModifierData *md,
 
     if (collmd->time_xnew == -1000) { /* first time */
 
-      collmd->x = BKE_mesh_vert_coords_alloc(mesh_src, &mvert_num); /* frame start position */
+      collmd->x = BKE_mesh_vert_coords_alloc(mesh, &mvert_num); /* frame start position */
 
       for (uint i = 0; i < mvert_num; i++) {
         /* we save global positions */
@@ -160,12 +150,12 @@ static void deformVerts(ModifierData *md,
       collmd->mvert_num = mvert_num;
 
       {
-        const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh_src);
-        collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh_src);
+        const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+        collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh);
         MVertTri *tri = static_cast<MVertTri *>(
             MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__));
         BKE_mesh_runtime_verttri_from_looptri(
-            tri, mesh_src->corner_verts().data(), looptri, collmd->tri_num);
+            tri, mesh->corner_verts().data(), looptri, collmd->tri_num);
         collmd->tri = tri;
       }
 
@@ -183,7 +173,7 @@ static void deformVerts(ModifierData *md,
       collmd->xnew = temp;
       collmd->time_x = collmd->time_xnew;
 
-      memcpy(collmd->xnew, mesh_src->vert_positions().data(), mvert_num * sizeof(float[3]));
+      memcpy(collmd->xnew, mesh->vert_positions().data(), mvert_num * sizeof(float[3]));
 
       bool is_static = true;
 
@@ -228,10 +218,6 @@ static void deformVerts(ModifierData *md,
     else if (mvert_num != collmd->mvert_num) {
       freeData((ModifierData *)collmd);
     }
-  }
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
   }
 }
 

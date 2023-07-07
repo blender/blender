@@ -462,57 +462,12 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   CastModifierData *cmd = (CastModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (ctx->object->type == OB_MESH && cmd->defgrp_name[0] != '\0') {
-    /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-  }
 
   if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-    cuboid_do(cmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
+    cuboid_do(cmd, ctx, ctx->object, mesh, vertexCos, verts_num);
   }
   else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-    sphere_do(cmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
-  }
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  CastModifierData *cmd = (CastModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (cmd->defgrp_name[0] != '\0') {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
-  }
-
-  if (mesh && BKE_mesh_wrapper_type(mesh) == ME_WRAPPER_TYPE_MDATA) {
-    BLI_assert(mesh->totvert == verts_num);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-    cuboid_do(cmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
-  }
-  else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-    sphere_do(cmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
-  }
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
+    sphere_do(cmd, ctx, ctx->object, mesh, vertexCos, verts_num);
   }
 }
 
@@ -570,7 +525,7 @@ ModifierTypeInfo modifierType_Cast = {
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
+    /*deformVertsEM*/ nullptr,
     /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ nullptr,
     /*modifyGeometrySet*/ nullptr,

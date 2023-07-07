@@ -15,11 +15,6 @@ struct Mesh;
 extern "C" {
 #endif
 
-struct Mesh *BKE_mesh_wrapper_from_editmesh_with_coords(
-    struct BMEditMesh *em,
-    const struct CustomData_MeshMasks *cd_mask_extra,
-    const float (*vert_coords)[3],
-    const struct Mesh *me_settings);
 struct Mesh *BKE_mesh_wrapper_from_editmesh(struct BMEditMesh *em,
                                             const struct CustomData_MeshMasks *cd_mask_extra,
                                             const struct Mesh *me_settings);
@@ -30,6 +25,21 @@ int BKE_mesh_wrapper_vert_len(const struct Mesh *me);
 int BKE_mesh_wrapper_edge_len(const struct Mesh *me);
 int BKE_mesh_wrapper_loop_len(const struct Mesh *me);
 int BKE_mesh_wrapper_poly_len(const struct Mesh *me);
+
+/**
+ * Return a contiguous array of vertex position values, if available.
+ * Otherwise, vertex positions are stored in BMesh vertices.
+ */
+const float (*BKE_mesh_wrapper_vert_coords(const struct Mesh *mesh))[3];
+
+
+/**
+ * Return a contiguous array of face normal values, if available.
+ * Otherwise, normals are stored in BMesh faces.
+ */
+const float (*BKE_mesh_wrapper_poly_normals(struct Mesh *mesh))[3];
+
+void BKE_mesh_wrapper_tag_positions_changed(struct Mesh *mesh);
 
 void BKE_mesh_wrapper_vert_coords_copy(const struct Mesh *me,
                                        float (*vert_coords)[3],

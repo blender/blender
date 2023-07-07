@@ -446,45 +446,7 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
-    /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-  }
-
-  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  SimpleDeformModifierData *sdmd = (SimpleDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (ctx->object->type == OB_MESH && sdmd->vgroup_name[0] != '\0') {
-    /* mesh_src is only needed for vgroups. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+  SimpleDeformModifier_do(sdmd, ctx, ctx->object, mesh, vertexCos, verts_num);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -576,7 +538,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
+    /*deformVertsEM*/ nullptr,
     /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ nullptr,
     /*modifyGeometrySet*/ nullptr,
