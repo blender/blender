@@ -21,6 +21,7 @@
 #include "BLI_math.h"
 #include "BLI_math_base_safe.h"
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_threads.h"
@@ -1398,10 +1399,7 @@ static bool vfont_to_curve(Object *ob,
         char_idx_offset += line->char_nr + 1;
       }
       /* Move the bounds into a space compatible with `cursor_location`. */
-      bounds->xmin *= font_size;
-      bounds->xmax *= font_size;
-      bounds->ymin *= font_size;
-      bounds->ymax *= font_size;
+      BLI_rctf_mul(bounds, font_size);
 
       char_beg_next = tb_bounds->char_index_last + 1;
     }
