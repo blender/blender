@@ -181,7 +181,6 @@ const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3]
   return nullptr;
 }
 
-
 const float (*BKE_mesh_wrapper_poly_normals(Mesh *mesh))[3]
 {
   switch (mesh->runtime->wrapper_type) {

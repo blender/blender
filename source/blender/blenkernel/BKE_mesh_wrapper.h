@@ -32,7 +32,6 @@ int BKE_mesh_wrapper_poly_len(const struct Mesh *me);
  */
 const float (*BKE_mesh_wrapper_vert_coords(const struct Mesh *mesh))[3];
 
-
 /**
  * Return a contiguous array of face normal values, if available.
  * Otherwise, normals are stored in BMesh faces.
