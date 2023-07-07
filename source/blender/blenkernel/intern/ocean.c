@@ -881,22 +881,22 @@ bool BKE_ocean_init(Ocean *o,
     o->_Lz = 0.001f;
   }
 
-  /* the +ve components and DC */
+  /* The +VE components and DC. */
   for (i = 0; i <= o->_M / 2; i++) {
     o->_kx[i] = 2.0f * (float)M_PI * i / o->_Lx;
   }
 
-  /* the -ve components */
+  /* The -VE components. */
   for (i = o->_M - 1, ii = 0; i > o->_M / 2; i--, ii++) {
     o->_kx[i] = -2.0f * (float)M_PI * ii / o->_Lx;
   }
 
-  /* the +ve components and DC */
+  /* The +VE components and DC. */
   for (i = 0; i <= o->_N / 2; i++) {
     o->_kz[i] = 2.0f * (float)M_PI * i / o->_Lz;
   }
 
-  /* the -ve components */
+  /* The -VE components. */
   for (i = o->_N - 1, ii = 0; i > o->_N / 2; i--, ii++) {
     o->_kz[i] = -2.0f * (float)M_PI * ii / o->_Lz;
   }

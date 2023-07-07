@@ -486,7 +486,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                     (enmd->mix_factor == 1.0f) && (enmd->defgrp_name[0] == '\0') &&
                                     (enmd->mix_limit == float(M_PI)));
 
-  /* Do not run that modifier at all if autosmooth is disabled! */
+  /* Do not run that modifier at all if auto-smooth is disabled! */
   if (!is_valid_target_with_error(ctx->object, enmd) || mesh->totloop == 0) {
     return mesh;
   }

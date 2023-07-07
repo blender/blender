@@ -1439,7 +1439,7 @@ static int followpath_get_tars(bConstraint *con, ListBase *list)
     bFollowPathConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;
@@ -3787,7 +3787,7 @@ static int clampto_get_tars(bConstraint *con, ListBase *list)
     bClampToConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;
@@ -4609,7 +4609,7 @@ static int splineik_get_tars(bConstraint *con, ListBase *list)
     bSplineIKConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;

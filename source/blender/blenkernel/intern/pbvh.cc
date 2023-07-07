@@ -2717,7 +2717,7 @@ void BKE_pbvh_raycast_project_ray_root(
 
     float dist = max[2] - min[2];
 
-    /* Build ray interval from z dimen of bounds. */
+    /* Build ray interval from z dimension of bounds. */
     mid_v3_v3v3(cent, bb_min_root, bb_max_root);
     madd_v3_v3v3fl(ray_start_new, cent, ray_normal, -dist);
     madd_v3_v3v3fl(ray_end_new, cent, ray_normal, dist);

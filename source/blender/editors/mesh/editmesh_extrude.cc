@@ -862,7 +862,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
         EDBM_op_callf(
             vc.em, op, "rotate verts=%hv cent=%v matrix=%m3", BM_ELEM_SELECT, local_center, mat);
 
-        /* also project the source, for retopo workflow */
+        /* Also project the source, for retopology workflow. */
         if (use_proj) {
           EDBM_project_snap_verts(C, depsgraph, vc.region, vc.obedit, vc.em);
         }

@@ -1679,7 +1679,7 @@ static void knife_add_to_vert_edges(KnifeTool_OpData *kcd, KnifeEdge *kfe)
   knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
-/* Add faces of an edge to a KnifeVert's faces list.  No checks for dups. */
+/* Add faces of an edge to a KnifeVert's faces list. No checks for duplicates. */
 static void knife_add_edge_faces_to_vert(KnifeTool_OpData *kcd, KnifeVert *kfv, BMEdge *e)
 {
   BMIter bmiter;

@@ -338,7 +338,7 @@ static bool edbm_bevel_calc(wmOperator *op)
     Mesh *me = static_cast<Mesh *>(obedit->data);
 
     if (harden_normals && !(me->flag & ME_AUTOSMOOTH)) {
-      /* harden_normals only has a visible effect if autosmooth is on, so turn it on */
+      /* `harden_normals` only has a visible effect if auto-smooth is on, so turn it on. */
       me->flag |= ME_AUTOSMOOTH;
     }
 
@@ -446,7 +446,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 
   edbm_bevel_exit(C, op);
 
-  /* need to force redisplay or we may still view the modified result */
+  /* Need to force re-display or we may still view the modified result. */
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 

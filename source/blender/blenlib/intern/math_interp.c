@@ -487,7 +487,7 @@ void BLI_bilinear_interpolation_wrap_char(const uchar *buffer,
  * by Ned Greene and Paul S. Heckbert (1986)
  ***************************************************************************/
 
-/* Table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
+/* Table of `(exp(ar) - exp(a)) / (1 - exp(a))` for `r` in range [0, 1] and `a = -2`.
  * used instead of actual gaussian,
  * otherwise at high texture magnifications circular artifacts are visible. */
 #define EWA_MAXIDX 255

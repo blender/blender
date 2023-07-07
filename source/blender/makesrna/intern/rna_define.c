@@ -765,7 +765,7 @@ void RNA_define_fallback_property_update(int noteflag, const char *updatefunc)
 void RNA_struct_free_extension(StructRNA *srna, ExtensionRNA *rna_ext)
 {
 #ifdef RNA_RUNTIME
-  rna_ext->free(rna_ext->data);            /* decref's the PyObject that the srna owns */
+  rna_ext->free(rna_ext->data);            /* Decrefs the PyObject that the `srna` owns. */
   RNA_struct_blender_type_set(srna, NULL); /* FIXME: this gets accessed again. */
 
   /* NULL the srna's value so RNA_struct_free won't complain of a leak */

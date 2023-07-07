@@ -598,8 +598,8 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
 
   for (curBone = static_cast<Bone *>(bonelist->first); curBone; curBone = curBone->next) {
     /* Set bone's local head/tail.
-     * Note that it's important to use final parent's restpose (arm_mat) here,
-     * instead of setting those values from editbone's matrix (see #46010). */
+     * Note that it's important to use final parent's rest-pose (arm_mat) here,
+     * instead of setting those values from edit-bone's matrix (see #46010). */
     if (curBone->parent) {
       float parmat_inv[4][4];
 
@@ -617,7 +617,7 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
       copy_v3_v3(curBone->tail, curBone->arm_tail);
     }
 
-    /* Set local matrix and arm_mat (restpose).
+    /* Set local matrix and arm_mat (rest-pose).
      * Do not recurse into children here, armature_finalize_restpose() is already recursive. */
     BKE_armature_where_is_bone(curBone, curBone->parent, false);
 
@@ -772,7 +772,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
     }
   }
 
-  /* Finalize definition of restpose data (roll, bone_mat, arm_mat, head/tail...). */
+  /* Finalize definition of rest-pose data (roll, bone_mat, arm_mat, head/tail...). */
   armature_finalize_restpose(&arm->bonebase, arm->edbo);
 
   BKE_armature_bone_hash_make(arm);

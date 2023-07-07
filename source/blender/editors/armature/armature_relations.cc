@@ -109,7 +109,7 @@ static void joined_armature_fix_links_constraints(Main *bmain,
   }
 }
 
-/* userdata for joined_armature_fix_animdata_cb() */
+/** User-data for #joined_armature_fix_animdata_cb(). */
 struct tJoinArmature_AdtFixData {
   Main *bmain;
 

@@ -8026,7 +8026,7 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
     Py_DECREF(args_fake); /* Free's py_srna_cobject too. */
   }
   else {
-    /* _must_ print before decreffing args_fake. */
+    /* _must_ print before decrefing args_fake. */
     PyErr_Print();
     PyErr_Clear();
 
