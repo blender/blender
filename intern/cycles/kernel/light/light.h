@@ -147,7 +147,7 @@ ccl_device_inline bool light_sample(KernelGlobals kg,
     ls->eval_fac = 1.0f;
   }
   else if (type == LIGHT_SPOT) {
-    if (!spot_light_sample<in_volume_segment>(klight, rand, P, ls)) {
+    if (!spot_light_sample<in_volume_segment>(klight, rand, P, N, shader_flags, ls)) {
       return false;
     }
   }
@@ -469,7 +469,7 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->group = lamp_lightgroup(kg, lamp);
 
   if (type == LIGHT_SPOT) {
-    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, ls)) {
+    if (!spot_light_sample_from_intersection(klight, isect, ray_P, ray_D, N, path_flag, ls)) {
       return false;
     }
   }
