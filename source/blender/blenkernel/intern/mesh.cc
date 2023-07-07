@@ -78,7 +78,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata);
 
 static void mesh_init_data(ID *id)
 {
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
 
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mesh, id));
 
@@ -97,8 +97,8 @@ static void mesh_init_data(ID *id)
 
 static void mesh_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int flag)
 {
-  Mesh *mesh_dst = (Mesh *)id_dst;
-  const Mesh *mesh_src = (const Mesh *)id_src;
+  Mesh *mesh_dst = reinterpret_cast<Mesh *>(id_dst);
+  const Mesh *mesh_src = reinterpret_cast<const Mesh *>(id_src);
 
   mesh_dst->runtime = new blender::bke::MeshRuntime();
   mesh_dst->runtime->deformed_only = mesh_src->runtime->deformed_only;
@@ -197,7 +197,7 @@ void BKE_mesh_free_editmesh(Mesh *mesh)
 
 static void mesh_free_data(ID *id)
 {
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
 
   BKE_mesh_free_editmesh(mesh);
 
@@ -209,7 +209,7 @@ static void mesh_free_data(ID *id)
 
 static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->texcomesh, IDWALK_CB_NEVER_SELF);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, mesh->key, IDWALK_CB_USER);
   for (int i = 0; i < mesh->totcol; i++) {
@@ -219,7 +219,7 @@ static void mesh_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Mesh *me = (Mesh *)id;
+  Mesh *me = reinterpret_cast<Mesh *>(id);
   if (me->ldata.external) {
     BKE_bpath_foreach_path_fixed_process(
         bpath_data, me->ldata.external->filepath, sizeof(me->ldata.external->filepath));
@@ -229,16 +229,15 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
   Vector<CustomDataLayer, 16> vert_layers;
   Vector<CustomDataLayer, 16> edge_layers;
   Vector<CustomDataLayer, 16> loop_layers;
   Vector<CustomDataLayer, 16> poly_layers;
-  blender::ResourceScope temp_arrays_for_legacy_format;
 
-  /* cache only - don't write */
+  /* Cache only - don't write. */
   mesh->mface = nullptr;
   mesh->totface = 0;
   memset(&mesh->fdata, 0, sizeof(mesh->fdata));
@@ -270,7 +269,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   BLO_write_id_struct(writer, Mesh, id_address, &mesh->id);
   BKE_id_blend_write(writer, &mesh->id);
 
-  /* direct data */
   if (mesh->adt) {
     BKE_animdata_blend_write(writer, mesh->adt);
   }
@@ -286,7 +284,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       writer, &mesh->vdata, vert_layers, mesh->totvert, CD_MASK_MESH.vmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->edata, edge_layers, mesh->totedge, CD_MASK_MESH.emask, &mesh->id);
-  /* fdata is really a dummy - written so slots align */
+  /* `fdata` is cleared above but written so slots align. */
   CustomData_blend_write(writer, &mesh->fdata, {}, mesh->totface, CD_MASK_MESH.fmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->ldata, loop_layers, mesh->totloop, CD_MASK_MESH.lmask, &mesh->id);
@@ -300,7 +298,7 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
 
 static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Mesh *mesh = (Mesh *)id;
+  Mesh *mesh = reinterpret_cast<Mesh *>(id);
   BLO_read_pointer_array(reader, (void **)&mesh->mat);
 
   /* Deprecated pointers to custom data layers are read here for backward compatibility
@@ -315,7 +313,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_data_address(reader, &mesh->mselect);
 
-  /* animdata */
   BLO_read_data_address(reader, &mesh->adt);
   BKE_animdata_blend_read_data(reader, mesh->adt);
 
@@ -345,7 +342,6 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
         mesh->poly_offset_indices);
   }
 
-  /* happens with old files */
   if (mesh->mselect == nullptr) {
     mesh->totselect = 0;
   }
@@ -360,8 +356,8 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 
 static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
 {
-  Mesh *me = (Mesh *)id;
-  /* this check added for python created meshes */
+  Mesh *me = reinterpret_cast<Mesh *>(id);
+  /* This check added for python created meshes. */
   if (me->mat) {
     for (int i = 0; i < me->totcol; i++) {
       BLO_read_id_address(reader, id, &me->mat[i]);
@@ -378,7 +374,7 @@ static void mesh_blend_read_lib(BlendLibReader *reader, ID *id)
 
 static void mesh_read_expand(BlendExpander *expander, ID *id)
 {
-  Mesh *me = (Mesh *)id;
+  Mesh *me = reinterpret_cast<Mesh *>(id);
   for (int a = 0; a < me->totcol; a++) {
     BLO_expand(expander, me->mat[a]);
   }
@@ -911,9 +907,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
-  Mesh *me = (Mesh *)BKE_id_new(bmain, ID_ME, name);
-
-  return me;
+  return static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, name));
 }
 
 void BKE_mesh_poly_offsets_ensure_alloc(Mesh *mesh)
@@ -1045,7 +1039,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   /* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
   const bool do_tessface = (tessface_num || ((me_src->totface != 0) && (me_src->totpoly == 0)));
 
-  Mesh *me_dst = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
+  Mesh *me_dst = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
@@ -1139,7 +1133,7 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
                                  const Mesh *me_settings)
 {
   BLI_assert(params->calc_object_remap == false);
-  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
+  Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
   BM_mesh_bm_to_me(nullptr, bm, mesh, params);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;
@@ -1149,7 +1143,7 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
                                           const CustomData_MeshMasks *cd_mask_extra,
                                           const Mesh *me_settings)
 {
-  Mesh *mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
+  Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
   BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;
@@ -1182,7 +1176,7 @@ BoundBox *BKE_mesh_boundbox_get(Object *ob)
   /* This is Object-level data access,
    * DO NOT touch to Mesh's bb, would be totally thread-unsafe. */
   if (ob->runtime.bb == nullptr || ob->runtime.bb->flag & BOUNDBOX_DIRTY) {
-    Mesh *me = (Mesh *)ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     float min[3], max[3];
 
     INIT_MINMAX(min, max);
@@ -1279,7 +1273,7 @@ void BKE_mesh_texspace_get_reference(Mesh *me,
 
 float (*BKE_mesh_orco_verts_get(Object *ob))[3]
 {
-  Mesh *me = (Mesh *)ob->data;
+  Mesh *me = static_cast<Mesh *>(ob->data);
   Mesh *tme = me->texcomesh ? me->texcomesh : me;
 
   /* Get appropriate vertex coordinates */
@@ -1335,7 +1329,7 @@ Mesh *BKE_mesh_from_object(Object *ob)
     return nullptr;
   }
   if (ob->type == OB_MESH) {
-    return (Mesh *)ob->data;
+    return static_cast<Mesh *>(ob->data);
   }
 
   return nullptr;
@@ -1352,7 +1346,7 @@ void BKE_mesh_assign_object(Main *bmain, Object *ob, Mesh *me)
   multires_force_sculpt_rebuild(ob);
 
   if (ob->type == OB_MESH) {
-    old = (Mesh *)ob->data;
+    old = static_cast<Mesh *>(ob->data);
     if (old) {
       id_us_min(&old->id);
     }
@@ -1841,7 +1835,7 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph, Mesh *mesh)
     mesh->runtime->mesh_eval = nullptr;
   }
   if (DEG_is_active(depsgraph)) {
-    Mesh *mesh_orig = (Mesh *)DEG_get_original_id(&mesh->id);
+    Mesh *mesh_orig = reinterpret_cast<Mesh *>(DEG_get_original_id(&mesh->id));
     if (mesh->texspace_flag & ME_TEXSPACE_FLAG_AUTO_EVALUATED) {
       mesh_orig->texspace_flag |= ME_TEXSPACE_FLAG_AUTO_EVALUATED;
       copy_v3_v3(mesh_orig->texspace_location, mesh->texspace_location);
