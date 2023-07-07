@@ -356,4 +356,16 @@ void SyncModule::sync_curves(Object *ob,
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Light Probes
+ * \{ */
+
+void SyncModule::sync_light_probe(Object *ob, ObjectHandle &ob_handle)
+{
+  inst_.light_probes.sync_probe(ob, ob_handle);
+  inst_.reflection_probes.sync_object(ob, ob_handle);
+}
+
+/** \} */
+
 }  // namespace blender::eevee

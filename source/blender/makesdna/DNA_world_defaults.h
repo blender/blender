@@ -27,6 +27,8 @@
     .preview = NULL, \
     .miststa = 5.0f, \
     .mistdist = 25.0f, \
+  \
+    .probe_resolution = LIGHT_PROBE_RESOLUTION_1024, \
   }
 
 /** \} */

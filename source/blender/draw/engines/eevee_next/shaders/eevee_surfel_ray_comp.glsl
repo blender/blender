@@ -65,7 +65,7 @@ void radiance_transfer_surfel(inout Surfel receiver, Surfel sender)
 
 vec3 radiance_sky_sample(vec3 R)
 {
-  return light_world_sample(R, 0.0);
+  return reflection_probes_world_sample(R, 0.0).rgb;
 }
 
 void radiance_transfer_world(inout Surfel receiver, vec3 sky_L)

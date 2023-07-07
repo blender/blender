@@ -31,6 +31,7 @@
     .vis_blur = 0.2f, \
     .intensity = 1.0f, \
     .flag = LIGHTPROBE_FLAG_SHOW_INFLUENCE, \
+    .resolution = LIGHT_PROBE_RESOLUTION_1024, \
   }
 
 /** \} */
