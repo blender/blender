@@ -242,7 +242,8 @@ static void draw_locked_keyframe_vertices(FCurve *fcu,
     BezTriple *bezt = &fcu->bezt[i];
     if (!IN_RANGE(bezt->vec[1][0],
                   (v2d->cur.xmin - correction_factor),
-                  (v2d->cur.xmax + correction_factor))) {
+                  (v2d->cur.xmax + correction_factor)))
+    {
       continue;
     }
     float position[2] = {bezt->vec[1][0], bezt->vec[1][1]};
