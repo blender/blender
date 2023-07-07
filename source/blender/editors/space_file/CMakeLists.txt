@@ -51,7 +51,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   extern_fmtlib
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WIN32)

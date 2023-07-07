@@ -602,7 +602,7 @@ if(WITH_COMPOSITOR_CPU)
     bf_blenkernel
     bf_blenlib
     extern_clew
-    PRIVATE bf_intern_atomic
+    PRIVATE bf::intern::atomic
   )
 
   list(APPEND INC

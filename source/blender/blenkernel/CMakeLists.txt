@@ -557,7 +557,7 @@ set(LIB
   bf_shader_fx
   bf_simulation
   extern_fmtlib
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
   # For `vfontdata_freetype.c`.
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )

@@ -93,7 +93,7 @@ setup_platform_linker_flags(makesdna)
 setup_platform_linker_libs(makesdna)
 blender_target_include_dirs(makesdna ${INC})
 blender_target_include_dirs_sys(makesdna ${INC_SYS})
-target_link_libraries(makesdna PRIVATE bf_intern_atomic)
+target_link_libraries(makesdna PRIVATE bf::intern::atomic)
 
 if(WIN32 AND NOT UNIX)
   if(DEFINED PTHREADS_LIBRARIES)
@@ -160,7 +160,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
