@@ -390,20 +390,14 @@ bool GeometrySet::is_empty() const
 GeometrySet GeometrySet::create_with_mesh(Mesh *mesh, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  if (mesh != nullptr) {
-    MeshComponent &component = geometry_set.get_component_for_write<MeshComponent>();
-    component.replace(mesh, ownership);
-  }
+  geometry_set.replace_mesh(mesh, ownership);
   return geometry_set;
 }
 
 GeometrySet GeometrySet::create_with_volume(Volume *volume, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  if (volume != nullptr) {
-    VolumeComponent &component = geometry_set.get_component_for_write<VolumeComponent>();
-    component.replace(volume, ownership);
-  }
+  geometry_set.replace_volume(volume, ownership);
   return geometry_set;
 }
 
@@ -411,20 +405,14 @@ GeometrySet GeometrySet::create_with_pointcloud(PointCloud *pointcloud,
                                                 GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  if (pointcloud != nullptr) {
-    PointCloudComponent &component = geometry_set.get_component_for_write<PointCloudComponent>();
-    component.replace(pointcloud, ownership);
-  }
+  geometry_set.replace_pointcloud(pointcloud, ownership);
   return geometry_set;
 }
 
 GeometrySet GeometrySet::create_with_curves(Curves *curves, GeometryOwnershipType ownership)
 {
   GeometrySet geometry_set;
-  if (curves != nullptr) {
-    CurveComponent &component = geometry_set.get_component_for_write<CurveComponent>();
-    component.replace(curves, ownership);
-  }
+  geometry_set.replace_curves(curves, ownership);
   return geometry_set;
 }
 

@@ -495,39 +495,32 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
 {
   bke::GeometrySet geometry_set;
   if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
-    Object *object_orig = DEG_get_original_object(object_eval);
+    const Object *object_orig = DEG_get_original_object(object_eval);
     if (object_orig->type == OB_MESH) {
-      bke::MeshComponent &mesh_component =
-          geometry_set.get_component_for_write<bke::MeshComponent>();
+      const Mesh *mesh = static_cast<const Mesh *>(object_orig->data);
       if (object_orig->mode == OB_MODE_EDIT) {
-        Mesh *mesh = (Mesh *)object_orig->data;
-        BMEditMesh *em = mesh->edit_mesh;
-        if (em != nullptr) {
+        if (const BMEditMesh *em = mesh->edit_mesh) {
           Mesh *new_mesh = (Mesh *)BKE_id_new_nomain(ID_ME, nullptr);
           /* This is a potentially heavy operation to do on every redraw. The best solution here is
            * to display the data directly from the bmesh without a conversion, which can be
            * implemented a bit later. */
           BM_mesh_bm_to_me_for_eval(em->bm, new_mesh, nullptr);
-          mesh_component.replace(new_mesh, bke::GeometryOwnershipType::Owned);
+          geometry_set.replace_mesh(new_mesh, bke::GeometryOwnershipType::Owned);
         }
       }
       else {
-        Mesh *mesh = (Mesh *)object_orig->data;
-        mesh_component.replace(mesh, bke::GeometryOwnershipType::ReadOnly);
+        geometry_set.replace_mesh(const_cast<Mesh *>(mesh), bke::GeometryOwnershipType::ReadOnly);
       }
     }
     else if (object_orig->type == OB_POINTCLOUD) {
-      PointCloud *pointcloud = (PointCloud *)object_orig->data;
-      bke::PointCloudComponent &pointcloud_component =
-          geometry_set.get_component_for_write<bke::PointCloudComponent>();
-      pointcloud_component.replace(pointcloud, bke::GeometryOwnershipType::ReadOnly);
+      const PointCloud *pointcloud = static_cast<const PointCloud *>(object_orig->data);
+      geometry_set.replace_pointcloud(const_cast<PointCloud *>(pointcloud),
+                                      bke::GeometryOwnershipType::ReadOnly);
     }
     else if (object_orig->type == OB_CURVES) {
-      const Curves &curves_id = *(const Curves *)object_orig->data;
-      bke::CurveComponent &curve_component =
-          geometry_set.get_component_for_write<bke::CurveComponent>();
-      curve_component.replace(&const_cast<Curves &>(curves_id),
-                              bke::GeometryOwnershipType::ReadOnly);
+      const Curves &curves_id = *static_cast<const Curves *>(object_orig->data);
+      geometry_set.replace_curves(&const_cast<Curves &>(curves_id),
+                                  bke::GeometryOwnershipType::ReadOnly);
     }
   }
   else {

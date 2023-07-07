@@ -543,12 +543,10 @@ static Mesh *modifier_modify_mesh_and_geometry_set(ModifierData *md,
      * some point. */
     BKE_mesh_wrapper_ensure_mdata(input_mesh);
 
-    /* Adds a new mesh component to the geometry set based on the #input_mesh. */
-    MeshComponent &mesh_component = geometry_set.get_component_for_write<MeshComponent>();
     /* Replace only the mesh rather than the whole component, because the entire #MeshComponent
      * might have been replaced by data from a different object in the node tree, which means the
      * component contains vertex group name data for that object that should not be removed. */
-    mesh_component.replace(input_mesh, GeometryOwnershipType::Editable);
+    geometry_set.replace_mesh(input_mesh, GeometryOwnershipType::Editable);
 
     /* Let the modifier change the geometry set. */
     mti->modifyGeometrySet(md, &mectx, &geometry_set);
