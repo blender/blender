@@ -1384,27 +1384,43 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
       /* Get AABBs for each motion step. */
       for (size_t step = 0; step < num_motion_steps; ++step) {
         /* The center step for motion vertices is not stored in the attribute. */
-        const float3 *points = pointcloud->get_points().data();
-        const float *radius = pointcloud->get_radius().data();
         size_t center_step = (num_motion_steps - 1) / 2;
-        if (step != center_step) {
-          size_t attr_offset = (step > center_step) ? step - 1 : step;
-          /* Technically this is a float4 array, but sizeof(float3) == sizeof(float4). */
-          points = motion_points->data_float3() + attr_offset * num_points;
+
+        if (step == center_step) {
+          const float3 *points = pointcloud->get_points().data();
+          const float *radius = pointcloud->get_radius().data();
+
+          for (size_t i = 0; i < num_points; ++i) {
+            const PointCloud::Point point = pointcloud->get_point(i);
+            BoundBox bounds = BoundBox::empty;
+            point.bounds_grow(points, radius, bounds);
+
+            const size_t index = step * num_points + i;
+            aabb_data[index].minX = bounds.min.x;
+            aabb_data[index].minY = bounds.min.y;
+            aabb_data[index].minZ = bounds.min.z;
+            aabb_data[index].maxX = bounds.max.x;
+            aabb_data[index].maxY = bounds.max.y;
+            aabb_data[index].maxZ = bounds.max.z;
+          }
         }
+        else {
+          size_t attr_offset = (step > center_step) ? step - 1 : step;
+          const float4 *points = motion_points->data_float4() + attr_offset * num_points;
 
-        for (size_t i = 0; i < num_points; ++i) {
-          const PointCloud::Point point = pointcloud->get_point(i);
-          BoundBox bounds = BoundBox::empty;
-          point.bounds_grow(points, radius, bounds);
+          for (size_t i = 0; i < num_points; ++i) {
+            const PointCloud::Point point = pointcloud->get_point(i);
+            BoundBox bounds = BoundBox::empty;
+            point.bounds_grow(points[i], bounds);
 
-          const size_t index = step * num_points + i;
-          aabb_data[index].minX = bounds.min.x;
-          aabb_data[index].minY = bounds.min.y;
-          aabb_data[index].minZ = bounds.min.z;
-          aabb_data[index].maxX = bounds.max.x;
-          aabb_data[index].maxY = bounds.max.y;
-          aabb_data[index].maxZ = bounds.max.z;
+            const size_t index = step * num_points + i;
+            aabb_data[index].minX = bounds.min.x;
+            aabb_data[index].minY = bounds.min.y;
+            aabb_data[index].minZ = bounds.min.z;
+            aabb_data[index].maxX = bounds.max.x;
+            aabb_data[index].maxY = bounds.max.y;
+            aabb_data[index].maxZ = bounds.max.z;
+          }
         }
       }
 

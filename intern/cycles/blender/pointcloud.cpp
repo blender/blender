@@ -30,7 +30,8 @@ static void attr_create_motion(PointCloud *pointcloud,
   const int num_points = pointcloud->get_points().size();
 
   /* Find or add attribute */
-  float3 *P = &pointcloud->get_points()[0];
+  float3 *P = pointcloud->get_points().data();
+  float *radius = pointcloud->get_radius().data();
   Attribute *attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -41,10 +42,11 @@ static void attr_create_motion(PointCloud *pointcloud,
   float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
-    float3 *mP = attr_mP->data_float3() + step * num_points;
+    float4 *mP = attr_mP->data_float4() + step * num_points;
 
     for (int i = 0; i < num_points; i++) {
-      mP[i] = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+      float3 Pi = P[i] + get_float3(b_vector_attribute.data[i].vector()) * relative_time;
+      mP[i] = make_float4(Pi.x, Pi.y, Pi.z, radius[i]);
     }
   }
 }

@@ -470,20 +470,6 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
   }
 }
 
-/**
- * Pack the motion points into a float4 as [x y z radius]
- */
-template<typename T>
-void pack_motion_points(size_t num_points, const T *verts, const float *radius, float4 *rtc_verts)
-{
-  for (size_t j = 0; j < num_points; ++j) {
-    rtc_verts[j].x = verts[j].x;
-    rtc_verts[j].y = verts[j].y;
-    rtc_verts[j].z = verts[j].z;
-    rtc_verts[j].w = radius[j];
-  }
-}
-
 void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
                                         const PointCloud *pointcloud,
                                         const bool update)
@@ -519,13 +505,20 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
     assert(rtc_verts);
     if (rtc_verts) {
       if (t == t_mid || attr_mP == NULL) {
+        /* Pack the motion points into a float4 as [x y z radius]. */
         const float3 *verts = pointcloud->get_points().data();
-        pack_motion_points<float3>(num_points, verts, radius, rtc_verts);
+        for (size_t j = 0; j < num_points; ++j) {
+          rtc_verts[j].x = verts[j].x;
+          rtc_verts[j].y = verts[j].y;
+          rtc_verts[j].z = verts[j].z;
+          rtc_verts[j].w = radius[j];
+        }
       }
       else {
+        /* Motion blur is already packed as [x y z radius]. */
         int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
-        pack_motion_points<float4>(num_points, verts, radius, rtc_verts);
+        memcpy(rtc_verts, verts, sizeof(float4) * num_points);
       }
     }
 
