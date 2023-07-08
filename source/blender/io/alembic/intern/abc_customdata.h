@@ -49,12 +49,8 @@ struct CDStreamConfig {
   Mesh *mesh;
   void *(*add_customdata_cb)(Mesh *mesh, const char *name, int data_type);
 
-  double weight;
   Alembic::Abc::chrono_t time;
   int timesample_index;
-  bool use_vertex_interpolation;
-  Alembic::AbcGeom::index_t index;
-  Alembic::AbcGeom::index_t ceil_index;
 
   const char **modifier_error_message;
 
@@ -80,10 +76,7 @@ struct CDStreamConfig {
         pack_uvs(false),
         mesh(NULL),
         add_customdata_cb(NULL),
-        weight(0.0),
         time(0.0),
-        index(0),
-        ceil_index(0),
         modifier_error_message(NULL)
   {
   }

@@ -116,36 +116,35 @@ bool has_property(const Alembic::Abc::ICompoundProperty &prop, const std::string
 
 using index_time_pair_t = std::pair<Alembic::AbcCoreAbstract::index_t, Alembic::AbcGeom::chrono_t>;
 
-double get_weight_and_index(Alembic::AbcGeom::chrono_t time,
-                            const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
-                            int samples_number,
-                            Alembic::AbcGeom::index_t &i0,
-                            Alembic::AbcGeom::index_t &i1)
+std::optional<SampleInterpolationSettings> get_sample_interpolation_settings(
+    const Alembic::AbcGeom::ISampleSelector &selector,
+    const Alembic::AbcCoreAbstract::TimeSamplingPtr &time_sampling,
+    size_t samples_number)
 {
-  samples_number = std::max(samples_number, 1);
+  const chrono_t time = selector.getRequestedTime();
+  samples_number = std::max(samples_number, size_t(1));
 
   index_time_pair_t t0 = time_sampling->getFloorIndex(time, samples_number);
-  i0 = i1 = t0.first;
+  Alembic::AbcCoreAbstract::index_t i0 = t0.first;
 
   if (samples_number == 1 || (fabs(time - t0.second) < 0.0001)) {
-    return 0.0;
+    return {};
   }
 
   index_time_pair_t t1 = time_sampling->getCeilIndex(time, samples_number);
-  i1 = t1.first;
+  Alembic::AbcCoreAbstract::index_t i1 = t1.first;
 
   if (i0 == i1) {
-    return 0.0;
+    return {};
   }
 
   const double bias = (time - t0.second) / (t1.second - t0.second);
 
   if (fabs(1.0 - bias) < 0.0001) {
-    i0 = i1;
-    return 0.0;
+    return {};
   }
 
-  return bias;
+  return SampleInterpolationSettings{i0, i1, bias};
 }
 
 //#define USE_NURBS

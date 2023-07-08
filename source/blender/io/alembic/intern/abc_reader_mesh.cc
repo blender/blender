@@ -118,6 +118,9 @@ struct AbcMeshData {
   Int32ArraySamplePtr face_indices;
   Int32ArraySamplePtr face_counts;
 
+  /* Optional settings for reading interpolated vertices. If present, `ceil_positions` has to be
+   * valid. */
+  std::optional<SampleInterpolationSettings> interpolation_settings;
   P3fArraySamplePtr positions;
   P3fArraySamplePtr ceil_positions;
 
@@ -146,10 +149,13 @@ static void read_mverts(CDStreamConfig &config, const AbcMeshData &mesh_data)
   float3 *vert_positions = config.positions;
   const P3fArraySamplePtr &positions = mesh_data.positions;
 
-  if (config.use_vertex_interpolation && config.weight != 0.0f &&
-      mesh_data.ceil_positions != nullptr && mesh_data.ceil_positions->size() == positions->size())
-  {
-    read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, config.weight);
+  if (mesh_data.interpolation_settings.has_value()) {
+    BLI_assert_msg(
+        mesh_data.ceil_positions != nullptr,
+        "AbcMeshData does not have ceil positions although it has some interpolation settings.");
+
+    const double weight = mesh_data.interpolation_settings->weight;
+    read_mverts_interp(vert_positions, positions, mesh_data.ceil_positions, weight);
     BKE_mesh_tag_positions_changed(config.mesh);
     return;
   }
@@ -398,18 +404,6 @@ static void *add_customdata_cb(Mesh *mesh, const char *name, int data_type)
   return cd_ptr;
 }
 
-static void get_weight_and_index(CDStreamConfig &config,
-                                 Alembic::AbcCoreAbstract::TimeSamplingPtr time_sampling,
-                                 size_t samples_number)
-{
-  Alembic::AbcGeom::index_t i0, i1;
-
-  config.weight = get_weight_and_index(config.time, time_sampling, samples_number, i0, i1);
-
-  config.index = i0;
-  config.ceil_index = i1;
-}
-
 static V3fArraySamplePtr get_velocity_prop(const ICompoundProperty &schema,
                                            const ISampleSelector &selector,
                                            const std::string &name)
@@ -513,14 +507,18 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   abc_mesh_data.face_indices = sample.getFaceIndices();
   abc_mesh_data.positions = sample.getPositions();
 
-  get_weight_and_index(config, schema.getTimeSampling(), schema.getNumSamples());
+  const std::optional<SampleInterpolationSettings> interpolation_settings =
+      get_sample_interpolation_settings(
+          selector, schema.getTimeSampling(), schema.getNumSamples());
 
-  if (config.weight != 0.0f) {
+  const bool use_vertex_interpolation = settings->read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
+  if (use_vertex_interpolation && interpolation_settings.has_value()) {
     Alembic::AbcGeom::IPolyMeshSchema::Sample ceil_sample;
-    schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
+    schema.get(ceil_sample, Alembic::Abc::ISampleSelector(interpolation_settings->ceil_index));
     if (samples_have_same_topology(sample, ceil_sample)) {
       /* Only set interpolation data if the samples are compatible. */
       abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+      abc_mesh_data.interpolation_settings = interpolation_settings;
     }
   }
 
@@ -550,7 +548,7 @@ static void read_mesh_sample(const std::string &iobject_full_name,
   }
 }
 
-CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
+CDStreamConfig get_config(Mesh *mesh)
 {
   CDStreamConfig config;
   config.mesh = mesh;
@@ -562,7 +560,6 @@ CDStreamConfig get_config(Mesh *mesh, const bool use_vertex_interpolation)
   config.totpoly = mesh->totpoly;
   config.loopdata = &mesh->ldata;
   config.add_customdata_cb = add_customdata_cb;
-  config.use_vertex_interpolation = use_vertex_interpolation;
 
   return config;
 }
@@ -823,8 +820,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   }
 
   Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
-  const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
-  CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
+  CDStreamConfig config = get_config(mesh_to_export);
   config.time = sample_sel.getRequestedTime();
   config.modifier_error_message = err_str;
 
@@ -921,14 +917,18 @@ static void read_subd_sample(const std::string &iobject_full_name,
   abc_mesh_data.face_indices = sample.getFaceIndices();
   abc_mesh_data.positions = sample.getPositions();
 
-  get_weight_and_index(config, schema.getTimeSampling(), schema.getNumSamples());
+  const std::optional<SampleInterpolationSettings> interpolation_settings =
+      get_sample_interpolation_settings(
+          selector, schema.getTimeSampling(), schema.getNumSamples());
 
-  if (config.weight != 0.0f) {
+  const bool use_vertex_interpolation = settings->read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
+  if (use_vertex_interpolation && interpolation_settings.has_value()) {
     Alembic::AbcGeom::ISubDSchema::Sample ceil_sample;
-    schema.get(ceil_sample, Alembic::Abc::ISampleSelector(config.ceil_index));
+    schema.get(ceil_sample, Alembic::Abc::ISampleSelector(interpolation_settings->ceil_index));
     if (samples_have_same_topology(sample, ceil_sample)) {
       /* Only set interpolation data if the samples are compatible. */
       abc_mesh_data.ceil_positions = ceil_sample.getPositions();
+      abc_mesh_data.interpolation_settings = interpolation_settings;
     }
   }
 
@@ -1161,8 +1161,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
 
   /* Only read point data when streaming meshes, unless we need to create new ones. */
   Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
-  const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
-  CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
+  CDStreamConfig config = get_config(mesh_to_export);
   config.time = sample_sel.getRequestedTime();
   config.modifier_error_message = err_str;
   read_subd_sample(m_iobject.getFullName(), &settings, m_schema, sample_sel, config);

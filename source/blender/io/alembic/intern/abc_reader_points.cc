@@ -113,7 +113,7 @@ void read_points_sample(const IPointsSchema &schema,
 
 Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
                                  const ISampleSelector &sample_sel,
-                                 int read_flag,
+                                 int /*read_flag*/,
                                  const char * /*velocity_name*/,
                                  const float /*velocity_scale*/,
                                  const char **err_str)
@@ -141,8 +141,7 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
   }
 
   Mesh *mesh_to_export = new_mesh ? new_mesh : existing_mesh;
-  const bool use_vertex_interpolation = read_flag & MOD_MESHSEQ_INTERPOLATE_VERTICES;
-  CDStreamConfig config = get_config(mesh_to_export, use_vertex_interpolation);
+  CDStreamConfig config = get_config(mesh_to_export);
   read_points_sample(m_schema, sample_sel, config);
 
   return mesh_to_export;

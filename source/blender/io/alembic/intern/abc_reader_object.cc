@@ -119,20 +119,23 @@ static Imath::M44d blend_matrices(const Imath::M44d &m0,
 
 Imath::M44d get_matrix(const IXformSchema &schema, const chrono_t time)
 {
-  Alembic::AbcGeom::index_t i0, i1;
-  Alembic::AbcGeom::XformSample s0, s1;
+  Alembic::AbcGeom::ISampleSelector selector(time);
 
-  const double weight = get_weight_and_index(
-      time, schema.getTimeSampling(), schema.getNumSamples(), i0, i1);
+  const std::optional<SampleInterpolationSettings> interpolation_settings =
+      get_sample_interpolation_settings(
+          selector, schema.getTimeSampling(), schema.getNumSamples());
 
-  schema.get(s0, Alembic::AbcGeom::ISampleSelector(i0));
-
-  if (i0 != i1) {
-    schema.get(s1, Alembic::AbcGeom::ISampleSelector(i1));
-    return blend_matrices(s0.getMatrix(), s1.getMatrix(), weight);
+  if (!interpolation_settings.has_value()) {
+    /* No interpolation, just read the current time. */
+    Alembic::AbcGeom::XformSample s0;
+    schema.get(s0, selector);
+    return s0.getMatrix();
   }
 
-  return s0.getMatrix();
+  Alembic::AbcGeom::XformSample s0, s1;
+  schema.get(s0, Alembic::AbcGeom::ISampleSelector(interpolation_settings->index));
+  schema.get(s1, Alembic::AbcGeom::ISampleSelector(interpolation_settings->ceil_index));
+  return blend_matrices(s0.getMatrix(), s1.getMatrix(), interpolation_settings->weight);
 }
 
 Mesh *AbcObjectReader::read_mesh(Mesh *existing_mesh,
