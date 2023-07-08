@@ -72,6 +72,7 @@
 #endif
 
 static CLG_LogRef LOG = {"bke.liboverride"};
+static CLG_LogRef LOG_RESYNC = {"bke.liboverride_resync"};
 
 static void lib_override_library_property_copy(IDOverrideLibraryProperty *op_dst,
                                                IDOverrideLibraryProperty *op_src);
@@ -1930,7 +1931,7 @@ static bool lib_override_library_resync(Main *bmain,
     BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_resync_root));
 
     if ((id_resync_root->tag & LIB_TAG_NO_MAIN) != 0) {
-      CLOG_ERROR(&LOG,
+      CLOG_ERROR(&LOG_RESYNC,
                  "While dealing with root '%s', resync root ID '%s' (%p) found to be alreaady "
                  "resynced.\n",
                  id_root->name,
@@ -2127,7 +2128,7 @@ static bool lib_override_library_resync(Main *bmain,
         BLI_assert(id_override_old == nullptr || id_override_old->lib == id_override_new->lib);
         if (id_override_old != nullptr) {
           BLI_ghash_insert(linkedref_to_old_override, id, id_override_old);
-          CLOG_INFO(&LOG,
+          CLOG_INFO(&LOG_RESYNC,
                     2,
                     "Found missing linked old override best-match %s for new linked override %s",
                     id_override_old->name,
@@ -2290,7 +2291,7 @@ static bool lib_override_library_resync(Main *bmain,
               strstr(op->rna_path, "parent_type") || strstr(op->rna_path, "parent_bone") ||
               strstr(op->rna_path, "parent_vertices"))
           {
-            CLOG_INFO(&LOG,
+            CLOG_INFO(&LOG_RESYNC,
                       2,
                       "Deleting liboverride property '%s' from object %s, as its parent pointer "
                       "matches the reference data hierarchy wise",
@@ -2386,7 +2387,7 @@ static bool lib_override_library_resync(Main *bmain,
       else if (!BKE_lib_override_library_is_user_edited(id)) {
         /* If user never edited them, we can delete them. */
         do_delete = true;
-        CLOG_INFO(&LOG, 2, "Old override %s is being deleted", id->name);
+        CLOG_INFO(&LOG_RESYNC, 2, "Old override %s is being deleted", id->name);
       }
 #if 0
       else {
@@ -2395,15 +2396,16 @@ static bool lib_override_library_resync(Main *bmain,
         do_delete = false;
         id_fake_user_set(id);
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
-        CLOG_INFO(&LOG, 2, "Old override %s is being kept around as it was user-edited", id->name);
+        CLOG_INFO(&LOG_RESYNC, 2, "Old override %s is being kept around as it was user-edited", id->name);
       }
 #else
       else {
         /* Delete them nevertheless, with fat warning, user needs to decide whether they want to
          * save that version of the file (and accept the loss), or not. */
         do_delete = true;
-        CLOG_WARN(
-            &LOG, "Old override %s is being deleted even though it was user-edited", id->name);
+        CLOG_WARN(&LOG_RESYNC,
+                  "Old override %s is being deleted even though it was user-edited",
+                  id->name);
         user_edited_overrides_deletion_count++;
       }
 #endif
@@ -2690,8 +2692,11 @@ static void lib_override_resync_tagging_finalize_recurse(Main *bmain,
       /* This ID (and its whole sub-tree of dependencies) is now considered as processed. If it is
        * tagged for resync, but its 'calling parent' is not, it is a potential partial resync root.
        */
-      CLOG_INFO(
-          &LOG, 4, "Potential root for partial resync: %s (%p)", id_root->name, id_root->lib);
+      CLOG_INFO(&LOG_RESYNC,
+                4,
+                "Potential root for partial resync: %s (%p)",
+                id_root->name,
+                id_root->lib);
       entry->tags |= MAINIDRELATIONS_ENTRY_TAGS_DOIT;
     }
   }
@@ -2886,7 +2891,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
       {
         BLI_assert((id_iter->override_library->runtime->tag &
                     LIBOVERRIDE_TAG_RESYNC_ISOLATED_FROM_ROOT) == 0);
-        CLOG_INFO(&LOG,
+        CLOG_INFO(&LOG_RESYNC,
                   4,
                   "ID %s (%p) detected as only related to its hierarchy root by 'reversed' "
                   "relationship(s) (e.g. object parenting), tagging it as needing "
@@ -2896,7 +2901,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
       }
       else {
         CLOG_INFO(
-            &LOG,
+            &LOG_RESYNC,
             4,
             "ID %s (%p) detected as 'isolated' from its hierarchy root, tagging it as needing "
             "resync",
@@ -2933,7 +2938,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
     BLI_assert(hierarchy_root->lib == id_iter->lib);
 
     if (id_iter != hierarchy_root) {
-      CLOG_INFO(&LOG,
+      CLOG_INFO(&LOG_RESYNC,
                 4,
                 "Found root ID '%s' for partial resync root ID '%s'",
                 hierarchy_root->name,
@@ -3026,7 +3031,8 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     }
 
     if (id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
-      CLOG_INFO(&LOG, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
+      CLOG_INFO(
+          &LOG_RESYNC, 4, "ID %s (%p) was already tagged as needing resync", id->name, id->lib);
       if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
         override_library_runtime_ensure(id->override_library)->tag |=
             LIBOVERRIDE_TAG_NEED_RESYNC_ORIGINAL;
@@ -3048,7 +3054,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
 
       /* Case where this ID pointer was to a linked ID, that now needs to be overridden. */
       if (ID_IS_LINKED(id_to) && (id_to->lib != id->lib) && (id_to->tag & LIB_TAG_DOIT) != 0) {
-        CLOG_INFO(&LOG,
+        CLOG_INFO(&LOG_RESYNC,
                   3,
                   "ID %s (%p) now tagged as needing resync because they use linked %s (%p) that "
                   "now needs to be overridden",
@@ -3078,15 +3084,17 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       ID *id_root = static_cast<ID *>(BLI_ghashIterator_getKey(id_roots_iter));
       LinkNodePair *id_resync_roots = static_cast<LinkNodePair *>(
           BLI_ghashIterator_getValue(id_roots_iter));
-      CLOG_INFO(
-          &LOG, 2, "Checking validity of computed TODO data for root '%s'... \n", id_root->name);
+      CLOG_INFO(&LOG_RESYNC,
+                2,
+                "Checking validity of computed TODO data for root '%s'... \n",
+                id_root->name);
 
       if (id_root->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) {
         LinkNode *id_resync_root_iter = id_resync_roots->list;
         ID *id_resync_root = static_cast<ID *>(id_resync_root_iter->link);
 
         if (id_resync_roots->list != id_resync_roots->last_node || id_resync_root != id_root) {
-          CLOG_ERROR(&LOG,
+          CLOG_ERROR(&LOG_RESYNC,
                      "Hierarchy root ID is tagged for resync, yet it is not the only partial "
                      "resync roots, this should not happen."
                      "\n\tRoot ID: %s"
@@ -3106,7 +3114,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
           if (id_resync_root_iter != id_resync_roots->list ||
               id_resync_root_iter != id_resync_roots->last_node)
           {
-            CLOG_ERROR(&LOG,
+            CLOG_ERROR(&LOG_RESYNC,
                        "Resync root ID is same as root ID of the override hierarchy, yet other "
                        "resync root IDs are also defined, this should not happen at this point."
                        "\n\tRoot ID: %s"
@@ -3140,7 +3148,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       id_root->lib->tag |= LIBRARY_TAG_RESYNC_REQUIRED;
     }
 
-    CLOG_INFO(&LOG,
+    CLOG_INFO(&LOG_RESYNC,
               2,
               "Resyncing all dependencies under root %s (%p), first one being '%s'...",
               id_root->name,
@@ -3156,7 +3164,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
                                                      false,
                                                      false,
                                                      reports);
-    CLOG_INFO(&LOG, 2, "\tSuccess: %d", success);
+    CLOG_INFO(&LOG_RESYNC, 2, "\tSuccess: %d", success);
     if (success) {
       reports->count.resynced_lib_overrides++;
       if (library_indirect_level > 0 && reports->do_resynced_lib_overrides_libraries_list &&
@@ -3201,7 +3209,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     if (need_resync && is_isolated_from_root) {
       if (!BKE_lib_override_library_is_user_edited(id)) {
         CLOG_WARN(
-            &LOG,
+            &LOG_RESYNC,
             "Deleting unused ID override %s from library level %d, still found as needing "
             "resync, and being isolated from its hierarchy root. This can happen when its "
             "otherwise unchanged linked reference was moved around in the library file (e.g. if "
@@ -3212,7 +3220,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
       }
       else {
         CLOG_WARN(
-            &LOG,
+            &LOG_RESYNC,
             "Keeping user-edited ID override %s from library level %d still found as "
             "needing resync, and being isolated from its hierarchy root. This can happen when its "
             "otherwise unchanged linked reference was moved around in the library file (e.g. if "
@@ -3225,7 +3233,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     }
     else if (need_resync) {
       if (need_reseync_original) {
-        CLOG_INFO(&LOG,
+        CLOG_INFO(&LOG_RESYNC,
                   2,
                   "ID override %s from library level %d still found as needing resync after "
                   "tackling library level %d. Since it was originally tagged as such by "
@@ -3242,7 +3250,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
         /* If it was only tagged for resync as part of resync process itself, it means it was
          * originally inside of a resync hierarchy, but not in the matching reference hierarchy
          * anymore. So it did not actually need to be resynced, simply clear the tag. */
-        CLOG_INFO(&LOG,
+        CLOG_INFO(&LOG_RESYNC,
                   4,
                   "ID override %s from library level %d still found as needing resync after "
                   "tackling library level %d. However, it was not tagged as such by "
@@ -3259,7 +3267,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
     }
     else if (is_isolated_from_root) {
       CLOG_ERROR(
-          &LOG,
+          &LOG_RESYNC,
           "ID override %s from library level %d still tagged as isolated from its hierarchy root, "
           "it should have been either properly resynced or removed at that point.",
           id->name,
@@ -3297,7 +3305,7 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
     const int owner_library_indirect_level = ID_IS_LINKED(id_owner) ? id_owner->lib->temp_index :
                                                                       0;
     if (owner_library_indirect_level > 100) {
-      CLOG_ERROR(&LOG,
+      CLOG_ERROR(&LOG_RESYNC,
                  "Levels of indirect usages of libraries is way too high, there are most likely "
                  "dependency loops, skipping further building loops (involves at least '%s' from "
                  "'%s' and '%s' from '%s')",
@@ -3309,7 +3317,7 @@ static int lib_override_sort_libraries_func(LibraryIDLinkCallbackData *cb_data)
     }
     if (owner_library_indirect_level > 90) {
       CLOG_WARN(
-          &LOG,
+          &LOG_RESYNC,
           "Levels of indirect usages of libraries is suspiciously too high, there are most likely "
           "dependency loops (involves at least '%s' from '%s' and '%s' from '%s')",
           id_owner->name,
@@ -3413,7 +3421,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
       level_reprocess_count++;
       if (level_reprocess_count > 100) {
         CLOG_WARN(
-            &LOG,
+            &LOG_RESYNC,
             "Need to reprocess resync for library level %d more than %d times, aborting. This is "
             "either caused by extremely complex liboverride hierarchies, or a bug",
             library_indirect_level,
@@ -3421,7 +3429,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
         break;
       }
       else {
-        CLOG_INFO(&LOG,
+        CLOG_INFO(&LOG_RESYNC,
                   4,
                   "Applying reprocess %d for resyncing at library level %d",
                   level_reprocess_count,
@@ -3450,7 +3458,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
 
   LISTBASE_FOREACH (Library *, library, &bmain->libraries) {
     if (library->tag & LIBRARY_TAG_RESYNC_REQUIRED) {
-      CLOG_INFO(&LOG,
+      CLOG_INFO(&LOG_RESYNC,
                 2,
                 "library '%s' contains some linked overrides that required recursive resync, "
                 "consider updating it",
