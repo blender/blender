@@ -1268,7 +1268,11 @@ int transformEvent(TransInfo *t, const wmEvent *event)
         }
         break;
       case TFM_MODAL_PRECISION:
-        if (event->prev_val == KM_PRESS) {
+        if (is_navigating) {
+          /* WORKAROUND: During navigation, due to key conflicts, precision may be unintentionally
+           * enabled. */
+        }
+        else if (event->prev_val == KM_PRESS) {
           t->modifiers |= MOD_PRECISION;
           /* Shift is modifier for higher precision transform. */
           t->mouse.precision = 1;
@@ -1390,7 +1394,7 @@ int transformEvent(TransInfo *t, const wmEvent *event)
     WM_window_status_area_tag_redraw(CTX_wm_window(t->context));
   }
 
-  if (handled || t->redraw) {
+  if (!is_navigating && (handled || t->redraw)) {
     return 0;
   }
   return OPERATOR_PASS_THROUGH;

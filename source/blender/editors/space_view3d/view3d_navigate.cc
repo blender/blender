@@ -2129,6 +2129,9 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
       }
       else {
         viewops_data_end_navigation(C, vod);
+        /* Postpone the navigation confirmation to the next call.
+         * This avoids constant updating of the transform operation for example. */
+        vod->rv3d->rflag |= RV3D_NAVIGATING;
       }
       break;
     }
@@ -2142,6 +2145,12 @@ bool ED_view3d_navigation_do(bContext *C, ViewOpsData *vod, const wmEvent *event
 
     return true;
   }
+  else if (vod->rv3d->rflag & RV3D_NAVIGATING) {
+    /* Add a fake confirmation. */
+    vod->rv3d->rflag &= ~RV3D_NAVIGATING;
+    return true;
+  }
+
   return false;
 }
 
