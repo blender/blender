@@ -4668,6 +4668,43 @@ bool BKE_lib_override_library_id_is_user_deletable(Main *bmain, ID *id)
   return true;
 }
 
+void BKE_lib_override_debug_print(IDOverrideLibrary *override, const char *intro_txt)
+{
+  const char *line_prefix = "";
+  if (intro_txt != nullptr) {
+    std::cout << intro_txt << "\n";
+    line_prefix = "\t";
+  }
+
+  LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &override->properties) {
+    std::cout << line_prefix << op->rna_path << " [";
+    if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+      std::cout << " UNUSED ";
+    }
+    std::cout << "]\n";
+
+    LISTBASE_FOREACH (IDOverrideLibraryPropertyOperation *, opop, &op->operations) {
+      std::cout << line_prefix << line_prefix << opop->operation << " [";
+      if (opop->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+        std::cout << " UNUSED ";
+      }
+      if (opop->flag & LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) {
+        std::cout << " MATCH_REF ";
+      }
+      std::cout << "] ";
+      if (opop->subitem_reference_name || opop->subitem_local_name) {
+        std::cout << "(" << opop->subitem_reference_name << " -> " << opop->subitem_local_name
+                  << ")";
+      }
+      else if (opop->subitem_reference_index >= 0 || opop->subitem_local_index >= 0) {
+        std::cout << "(" << opop->subitem_reference_index << " -> " << opop->subitem_local_index
+                  << ")";
+      }
+      std::cout << "\n";
+    }
+  }
+}
+
 /**
  * Storage (how to store overriding data into `.blend` files).
  *
