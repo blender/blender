@@ -1453,6 +1453,7 @@ static int rna_property_override_diff_propptr(Main *bmain,
                                                                       rna_itemindex_a,
                                                                       true,
                                                                       NULL);
+              opop->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
               BLI_assert(opop != NULL);
             }
 

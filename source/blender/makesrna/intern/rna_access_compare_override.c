@@ -817,7 +817,16 @@ bool RNA_struct_override_matches(Main *bmain,
       IDOverrideLibraryPropertyOperation *opop = op ? op->operations.first : NULL;
 
       if (op != NULL) {
-        BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
+        /* Only set all operations from this property as used (via
+         * #BKE_lib_override_library_operations_tag) if the property itself is still tagged as
+         * unused.
+         *
+         * In case the property itself is already tagged as used, in means lower-level diffing code
+         * took care of this property (as is needed for e.g. collections of items, since then some
+         * operations may be valid, while others may need to be purged). */
+        if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
+          BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
+        }
       }
 
       if ((do_restore || do_tag_for_restore) &&
