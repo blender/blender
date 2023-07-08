@@ -2681,7 +2681,7 @@ bool BKE_pbvh_node_raycast(PBVH *pbvh,
   return hit;
 }
 
-void BKE_pbvh_raycast_project_ray_root(
+void BKE_pbvh_clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3])
 {
   if (pbvh->nodes) {
@@ -2712,58 +2712,49 @@ void BKE_pbvh_raycast_project_ray_root(
     minmax_v3v3_v3(min, max, a);
     minmax_v3v3_v3(min, max, b);
 
-    float cent[3], vec[3];
-    float ray_start_new[3], ray_end_new[3];
+    float cent[3];
 
-    float dist = max[2] - min[2];
-
-    /* Build ray interval from z dimension of bounds. */
+    /* Find midpoint of aabb on ray. */
     mid_v3_v3v3(cent, bb_min_root, bb_max_root);
-    madd_v3_v3v3fl(ray_start_new, cent, ray_normal, -dist);
-    madd_v3_v3v3fl(ray_end_new, cent, ray_normal, dist);
+    float t = line_point_factor_v3(cent, ray_start, ray_end);
+    interp_v3_v3v3(cent, ray_start, ray_end, t);
 
-    /* Don't go behind existing ray_start. */
-    sub_v3_v3v3(vec, ray_end_new, ray_start);
-    if (dot_v3v3(vec, ray_normal) > 0.0f) {
-      copy_v3_v3(ray_end, ray_end_new);
-    }
-
-    sub_v3_v3v3(vec, ray_start_new, ray_start);
-    if (dot_v3v3(vec, ray_normal) > 0.0f) {
-      copy_v3_v3(ray_start, ray_start_new);
-    }
+    /* Compute rough interval. */
+    float dist = max[2] - min[2];
+    madd_v3_v3v3fl(ray_start, cent, ray_normal, -dist);
+    madd_v3_v3v3fl(ray_end, cent, ray_normal, dist);
 
     /* Slightly offset min and max in case we have a zero width node
      * (due to a plane mesh for instance), or faces very close to the bounding box boundary. */
     mid_v3_v3v3(bb_center, bb_max_root, bb_min_root);
-    /* diff should be same for both min/max since it's calculated from center */
+    /* Diff should be same for both min/max since it's calculated from center. */
     sub_v3_v3v3(bb_diff, bb_max_root, bb_center);
-    /* handles case of zero width bb */
+    /* Handles case of zero width bb. */
     add_v3_v3(bb_diff, offset_vec);
     madd_v3_v3v3fl(bb_max_root, bb_center, bb_diff, offset);
     madd_v3_v3v3fl(bb_min_root, bb_center, bb_diff, -offset);
 
-    /* first project start ray */
+    /* Final projection of start ray. */
     isect_ray_aabb_v3_precalc(&ray, ray_start, ray_normal);
     if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_start)) {
       return;
     }
 
-    /* then the end ray */
+    /* Final projection of end ray. */
     mul_v3_v3fl(ray_normal_inv, ray_normal, -1.0);
     isect_ray_aabb_v3_precalc(&ray, ray_end, ray_normal_inv);
-    /* unlikely to fail exiting if entering succeeded, still keep this here */
+    /* Unlikely to fail exiting if entering succeeded, still keep this here. */
     if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_end)) {
       return;
     }
 
-    /* Small object sizes or small clip starts can lead to floating-point
-     * overflow. To solve this, we compute a margin using the next
-     * possible floating point value after ray start. See #109555.
+    /*
+     * As a last-ditch effort to correct floating point overflow compute
+     * and add an epsilon if rootmin_start == rootmin_end.
      */
 
     float epsilon = (std::nextafter(rootmin_start, rootmin_start + 1000.0f) - rootmin_start) *
-                    +5000.0f;
+                    5000.0f;
 
     if (rootmin_start == rootmin_end) {
       rootmin_start -= epsilon;
