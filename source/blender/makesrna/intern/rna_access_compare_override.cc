@@ -823,7 +823,9 @@ bool RNA_struct_override_matches(Main *bmain,
           op ? op->operations.first : nullptr);
 
       if (op != nullptr) {
-        BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);
+        /* Do not use #BKE_lib_override_library_operations_tag here, in collection case some of the
+         * operations may still be unused. */
+        op->tag &= ~LIBOVERRIDE_PROP_OP_TAG_UNUSED;
       }
 
       if ((do_restore || do_tag_for_restore) &&
