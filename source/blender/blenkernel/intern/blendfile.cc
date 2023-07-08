@@ -337,15 +337,10 @@ static void swap_old_bmain_data_for_blendfile(ReuseOldBMainData *reuse_data, con
 
   SWAP(ListBase, *new_lb, *old_lb);
 
-  /* Since all IDs here are supposed to be local, no need to call #BKE_main_namemap_clear. */
   /* TODO: Could add per-IDType control over namemaps clearing, if this becomes a performances
    * concern. */
-  if (old_bmain->name_map != nullptr) {
-    BKE_main_namemap_destroy(&old_bmain->name_map);
-  }
-  if (new_bmain->name_map != nullptr) {
-    BKE_main_namemap_destroy(&new_bmain->name_map);
-  }
+  BKE_main_namemap_clear(old_bmain);
+  BKE_main_namemap_clear(new_bmain);
 
   /* Original 'new' IDs have been moved into the old listbase and will be discarded (deleted).
    * Original 'old' IDs have been moved into the new listbase and are being reused (kept).

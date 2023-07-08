@@ -1625,7 +1625,7 @@ bool BKE_id_new_name_validate(
     BLI_str_utf8_invalid_strip(name, strlen(name));
   }
 
-  result = BKE_main_namemap_get_name(bmain, id, name);
+  result = BKE_main_namemap_get_name(bmain, id, name, false);
 
   BLI_strncpy(id->name + 2, name, sizeof(id->name) - 2);
   id_sort_by_name(lb, id, NULL);
