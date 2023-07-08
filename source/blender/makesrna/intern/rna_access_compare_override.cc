@@ -1240,6 +1240,77 @@ static void rna_property_override_apply_ex(Main *bmain,
   }
 }
 
+/* Workaround for broken overrides, non-matching ID pointers override operations that replace a
+ * non-NULL value are then assumed as 'mistakes', and ignored (not applied). */
+static bool override_apply_property_check_skip(Main *bmain,
+                                               PointerRNA *ptr_dst,
+                                               PointerRNA *ptr_src,
+                                               PointerRNA *data_dst,
+                                               PointerRNA *data_src,
+                                               PropertyRNA *prop_dst,
+                                               PropertyRNA *prop_src,
+                                               IDOverrideLibraryProperty *op,
+                                               const eRNAOverrideApplyFlag flag)
+{
+  if ((flag & RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS) == 0) {
+    return false;
+  }
+
+  if (!RNA_struct_is_ID(RNA_property_pointer_type(data_dst, prop_dst))) {
+    BLI_assert(!RNA_struct_is_ID(RNA_property_pointer_type(data_src, prop_src)));
+    return false;
+  }
+
+  /* IDProperties case. */
+  if (prop_dst->magic != RNA_MAGIC) {
+    CLOG_INFO(&LOG,
+              2,
+              "%s: Ignoring local override on ID pointer custom property '%s', as requested by "
+              "RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
+              ptr_dst->owner_id->name,
+              op->rna_path);
+    return true;
+  }
+
+  switch (op->rna_prop_type) {
+    case PROP_POINTER: {
+      if ((((IDOverrideLibraryPropertyOperation *)op->operations.first)->flag &
+           LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0)
+      {
+        BLI_assert(ptr_src->owner_id ==
+                   rna_property_override_property_real_id_owner(bmain, data_src, NULL, NULL));
+        BLI_assert(ptr_dst->owner_id ==
+                   rna_property_override_property_real_id_owner(bmain, data_dst, NULL, NULL));
+
+        CLOG_INFO(&LOG,
+                  2,
+                  "%s: Ignoring local override on ID pointer property '%s', as requested by "
+                  "RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
+                  ptr_dst->owner_id->name,
+                  op->rna_path);
+        return true;
+      }
+      break;
+    }
+    case PROP_COLLECTION: {
+      /* For collections of ID pointers just completely skip the override ops here... A tad brutal,
+       * but this is a backup 'fix the mess' tool, and in practice this should never be an issue.
+       * Can always be refined later if needed. */
+      CLOG_INFO(&LOG,
+                2,
+                "%s: Ignoring all local override on ID pointer collection property '%s', as "
+                "requested by RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
+                ptr_dst->owner_id->name,
+                op->rna_path);
+      return true;
+    }
+    default:
+      break;
+  }
+
+  return false;
+}
+
 void RNA_struct_override_apply(Main *bmain,
                                PointerRNA *ptr_dst,
                                PointerRNA *ptr_src,
@@ -1351,38 +1422,10 @@ void RNA_struct_override_apply(Main *bmain,
         }
       }
 
-      /* Workaround for older broken overrides, we then assume that non-matching ID pointers
-       * override operations that replace a non-nullptr value are 'mistakes', and ignore (do not
-       * apply) them. */
-      if ((flag & RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS) != 0 &&
-          op->rna_prop_type == PROP_POINTER &&
-          (((IDOverrideLibraryPropertyOperation *)op->operations.first)->flag &
-           LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) == 0)
+      if (override_apply_property_check_skip(
+              bmain, ptr_dst, ptr_src, &data_dst, &data_src, prop_dst, prop_src, op, flag))
       {
-        BLI_assert(ptr_src->owner_id == rna_property_override_property_real_id_owner(
-                                            bmain, &data_src, nullptr, nullptr));
-        BLI_assert(ptr_dst->owner_id == rna_property_override_property_real_id_owner(
-                                            bmain, &data_dst, nullptr, nullptr));
-
-        PointerRNA prop_ptr_dst = RNA_property_pointer_get(&data_dst, prop_dst);
-        if (prop_ptr_dst.type != nullptr && RNA_struct_is_ID(prop_ptr_dst.type)) {
-#ifndef NDEBUG
-          PointerRNA prop_ptr_src = RNA_property_pointer_get(&data_src, prop_src);
-          BLI_assert(prop_ptr_src.type == nullptr || RNA_struct_is_ID(prop_ptr_src.type));
-#endif
-          ID *id_dst = rna_property_override_property_real_id_owner(
-              bmain, &prop_ptr_dst, nullptr, nullptr);
-
-          if (id_dst != nullptr) {
-            CLOG_INFO(&LOG,
-                      4,
-                      "%s: Ignoring local override on ID pointer property '%s', as requested by "
-                      "RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS flag",
-                      ptr_dst->owner_id->name,
-                      op->rna_path);
-            continue;
-          }
-        }
+        continue;
       }
 
       rna_property_override_apply_ex(bmain,
