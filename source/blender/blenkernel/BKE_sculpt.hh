@@ -12,6 +12,7 @@
 #include "BKE_pbvh.h"
 
 #include "BLI_compiler_compat.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 #include "BLI_vector.hh"
@@ -43,8 +44,11 @@ enum StrokeIDUser {
 };
 ENUM_OPERATORS(StrokeIDUser, STROKEID_USER_LAYER_BRUSH);
 
-void BKE_sculpt_reproject_cdata(
-    SculptSession *ss, PBVHVertRef vertex, float startco[3], float startno[3], bool do_uvs = true);
+void BKE_sculpt_reproject_cdata(SculptSession *ss,
+                                PBVHVertRef vertex,
+                                float startco[3],
+                                float startno[3],
+                                eAttrCorrectMode undistort_mode);
 
 namespace blender::bke::sculpt {
 void sculpt_vert_boundary_ensure(Object *ob);
@@ -121,7 +125,8 @@ static bool prop_eq(float a, float b, float limit)
 }
 static bool prop_eq(float2 a, float2 b, float limit)
 {
-  return (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) <= limit * limit;
+  return blender::math::distance_squared(a, b) <= limit * limit;
+  //  return (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) <= limit * limit;
 }
 static bool prop_eq(float3 a, float3 b, float limit)
 {
@@ -162,6 +167,10 @@ struct VertLoopSnapper {
 
   VertLoopSnapper(Span<BMLoop *> ls_, Span<CustomDataLayer *> layers_) : layers(layers_), ls(ls_)
   {
+    if (ls.size() == 0) {
+      return;
+    }
+
     snap_sets.resize(ls.size());
     for (auto &snap_set : snap_sets) {
       for (int i = 0; i < layers.size(); i++) {
@@ -213,19 +222,19 @@ struct VertLoopSnapper {
     CustomDataLayer *layer = layers[layer_i];
     int idx_base = 1;
 
-    float limit = 0.001;
+    limit = 0.001f;
 
     if constexpr (std::is_same_v<T, float2>) {
       /* Set UV snap limit as 1/10th the average uv edge length. */
-      limit = 0.1;
-      float len = 0.0;
+      limit = 0.1f;
+      float len = 0.0f;
 
       for (BMLoop *l : ls) {
         T value1 = *BM_ELEM_CD_PTR<T *>(l, layer->offset);
         T value2 = *BM_ELEM_CD_PTR<T *>(l->next, layer->offset);
 
-        len += fabsf(value1[0] - value2[0]) * 0.5;
-        len += fabsf(value1[1] - value2[1]) * 0.5;
+        len += fabsf(value1[0] - value2[0]) * 0.5f;
+        len += fabsf(value1[1] - value2[1]) * 0.5f;
       }
 
       len /= ls.size();

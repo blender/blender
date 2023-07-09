@@ -18,6 +18,7 @@
 #include "BLI_vector.hh"
 
 #include "DNA_customdata_types.h"
+#include "DNA_brush_enums.h" /* for eAttrCorrectMode */
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
@@ -865,7 +866,7 @@ void BKE_pbvh_pmap_to_edges(PBVH *pbvh,
                             bool *heap_alloc,
                             int **r_polys);
 
-void BKE_pbvh_reproject_smooth_set(PBVH *pbvh, bool value);
+void BKE_pbvh_distort_correction_set(PBVH *pbvh, eAttrCorrectMode value);
 
 void BKE_pbvh_set_face_areas(PBVH *pbvh, float *face_areas);
 void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm);

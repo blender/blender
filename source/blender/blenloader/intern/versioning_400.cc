@@ -14,6 +14,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
 
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 
 #include "BLI_assert.h"
@@ -254,6 +255,18 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 7)) {
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
       version_mesh_crease_generic(*bmain);
+    }
+  }
+
+  if (!DNA_struct_elem_find(
+          fd->filesdna, "UnifiedPaintSettings", "char", "distort_correction_mode")) {
+    UnifiedPaintSettings defaults = *DNA_struct_default_get(UnifiedPaintSettings);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (scene->toolsettings) {
+        scene->toolsettings->unified_paint_settings.distort_correction_mode =
+            defaults.distort_correction_mode;
+      }
     }
   }
 

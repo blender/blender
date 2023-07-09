@@ -262,7 +262,7 @@ struct EdgeQueueContext {
   float limit_len_max_sqr;
 
   PBVHTopologyUpdateMode mode;
-  bool reproject_cdata;
+  eAttrCorrectMode distort_correction_mode;
   bool surface_relax;
 
   bool updatePBVH = false;

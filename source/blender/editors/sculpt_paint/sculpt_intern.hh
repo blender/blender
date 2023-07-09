@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "DNA_brush_enums.h" /* For eAttrCorrectMode. */
 #include "DNA_brush_types.h"
 #include "DNA_key_types.h"
 #include "DNA_listBase.h"
@@ -1262,8 +1263,7 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_BEGIN(ss, v_index, neighbor_iterator) \
   SCULPT_vertex_neighbors_get(ss, v_index, false, &neighbor_iterator); \
   for (neighbor_iterator.i = 0; neighbor_iterator.i < neighbor_iterator.size; \
-       neighbor_iterator.i++) \
-  { \
+       neighbor_iterator.i++) { \
     neighbor_iterator.has_edge = neighbor_iterator.neighbors[neighbor_iterator.i].edge.i != \
                                  PBVH_REF_NONE; \
     neighbor_iterator.vertex = neighbor_iterator.neighbors[neighbor_iterator.i].vertex; \
@@ -1288,8 +1288,7 @@ void SCULPT_vertex_neighbors_get(const struct SculptSession *ss,
 #define SCULPT_VERTEX_NEIGHBORS_ITER_END(neighbor_iterator) \
   } \
   if (!neighbor_iterator.no_free && \
-      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) \
-  { \
+      neighbor_iterator.neighbors != neighbor_iterator.neighbors_fixed) { \
     MEM_freeN(neighbor_iterator.neighbors); \
     MEM_freeN(neighbor_iterator.neighbor_indices); \
   } \
@@ -1924,10 +1923,9 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
                                              bool smooth_origco = false,
                                              float factor = 1.0f);
 
-BLI_INLINE bool SCULPT_need_reproject(const SculptSession *ss)
+BLI_INLINE eAttrCorrectMode SCULPT_need_reproject(const SculptSession *ss)
 {
-  return ss->reproject_smooth &&
-         ss->bm;  // && CustomData_has_layer(&ss->bm->ldata, CD_PROP_FLOAT2);
+  return ss->bm ? ss->distort_correction_mode : UNDISTORT_NONE;
 }
 
 int SCULPT_vertex_island_get(SculptSession *ss, PBVHVertRef vertex);

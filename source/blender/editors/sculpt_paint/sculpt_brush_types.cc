@@ -2548,7 +2548,7 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
   SCULPT_automasking_node_begin(
       data->ob, ss, ss->cache->automasking, &automask_data, data->nodes[n]);
 
-  bool do_reproject = SCULPT_need_reproject(ss);
+  eAttrCorrectMode distort_correction_mode = SCULPT_need_reproject(ss);
   bool weighted = brush->flag2 & BRUSH_SMOOTH_USE_AREA_WEIGHT;
 
   if (weighted) {
@@ -2587,8 +2587,8 @@ static void do_topology_relax_task_cb_ex(void *__restrict userdata,
     interp_v3_v3v3(vd.co, vd.co, avg, fade);
     BKE_sculpt_sharp_boundary_flag_update(ss, vd.vertex);
 
-    if (do_reproject) {
-      BKE_sculpt_reproject_cdata(ss, vd.vertex, startco, startno, false);
+    if (distort_correction_mode & ~UNDISTORT_RELAX_UVS) {
+      BKE_sculpt_reproject_cdata(ss, vd.vertex, startco, startno, ss->distort_correction_mode);
     }
 
     if (vd.is_mesh) {
@@ -2901,7 +2901,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
 
   const bool use_curvature = brush->flag2 & BRUSH_CURVATURE_RAKE;
-  const bool do_reproject = SCULPT_need_reproject(ss);
+  const eAttrCorrectMode distort_correction_mode = SCULPT_need_reproject(ss);
   float hard_corner_pin = BKE_brush_hard_corner_pin_get(ss->scene, brush);
 
   float direction[3];
@@ -2984,7 +2984,7 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
                                        true,
                                        false,
                                        fade,
-                                       do_reproject);
+                                       distort_correction_mode & UNDISTORT_RELAX_UVS);
 
     sub_v3_v3v3(val, avg, vd.co);
     madd_v3_v3v3fl(val, vd.co, val, fade);
@@ -3009,9 +3009,8 @@ static void do_topology_rake_bmesh_task_cb_ex(void *__restrict userdata,
       interp_v3_v3v3(origco, origco, origco_avg, fade);
     }
 
-    if (do_reproject) {
-      /* Use interp_face_corners instead. */
-      // BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno);
+    if (distort_correction_mode & ~UNDISTORT_RELAX_UVS) {
+      BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, ss->distort_correction_mode);
     }
 
     if (vd.is_mesh) {

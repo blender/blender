@@ -114,8 +114,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   }
 #endif
 
-  eSculptBoundary uvflag = ss->reproject_smooth ? SCULPT_BOUNDARY_UV : SCULPT_BOUNDARY_NONE;
-
+  eSculptBoundary uvflag = ss->distort_correction_mode ? SCULPT_BOUNDARY_UV : SCULPT_BOUNDARY_NONE;
   eSculptBoundary hard_flags = SCULPT_BOUNDARY_SHARP_MARK | SCULPT_BOUNDARY_SHARP_ANGLE |
                                SCULPT_BOUNDARY_MESH;
 
@@ -246,10 +245,10 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       is_boundary2 = SCULPT_vertex_is_boundary(ss, ni.vertex, bound_type);
     }
 
-    const eSculptBoundary smooth_types = (!ss->hard_edge_mode ?
-                                              SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM :
-                                              SCULPT_BOUNDARY_SEAM) |
-                                         uvflag;
+    eSculptBoundary smooth_types = (!ss->hard_edge_mode ?
+                                        SCULPT_BOUNDARY_FACE_SET | SCULPT_BOUNDARY_SEAM :
+                                        SCULPT_BOUNDARY_SEAM) |
+                                   uvflag;
 
     if (is_boundary2) {
       totboundary++;
@@ -299,7 +298,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
   SCULPT_VERTEX_NEIGHBORS_ITER_END(ni);
 
   /* Ensure open strings of boundary edges don't shrink at the endpoints. */
-  if (totboundary == 1) {
+  if (is_boundary && totboundary == 1) {
     total = 0.0;
     zero_v3(avg);
 
@@ -313,6 +312,7 @@ static void SCULPT_neighbor_coords_average_interior_ex(SculptSession *ss,
       float w = weighted ? areas[ni.i] : 1.0f;
       avg += float3(vertex_co_get(ss, ni.vertex)) * w;
       total += w;
+
       if constexpr (smooth_face_corners) {
         addblock(ni.vertex, ni.edge, w);
       }
@@ -367,7 +367,7 @@ void SCULPT_neighbor_coords_average_interior(SculptSession *ss,
     corner_type |= SCULPT_CORNER_FACE_SET;
   }
 
-  if (ss->reproject_smooth) {
+  if (ss->distort_correction_mode & UNDISTORT_RELAX_UVS) {
     SCULPT_neighbor_coords_average_interior_ex<true>(ss,
                                                      result,
                                                      vertex,
@@ -1079,7 +1079,7 @@ static void do_smooth_brush_task_cb_ex(void *__restrict userdata,
       SCULPT_clip(sd, ss, vd.co, val);
 
       if (do_reproject) {
-        BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, false);
+        BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, ss->distort_correction_mode);
       }
 
       if (vd.is_mesh) {
@@ -1110,7 +1110,7 @@ void SCULPT_smooth_undo_push(Object *ob, Span<PBVHNode *> nodes)
   }
 }
 
-#if 0 //NotForPR, see comment in BKE_pbvh_iter.hh
+#if 0  // NotForPR, see comment in BKE_pbvh_iter.hh
 #  include "BKE_mesh_mapping.h"
 #  include "BKE_pbvh_iter.hh"
 
@@ -1238,7 +1238,7 @@ void SCULPT_smooth(
               SCULPT_clip(sd, ss, vd.co, val);
 
               if (do_reproject) {
-                BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, false);
+                BKE_sculpt_reproject_cdata(ss, vd.vertex, oldco, oldno, ss->distort_correction_mode);
               }
 
               if (vd.is_mesh) {
@@ -1256,7 +1256,7 @@ void SCULPT_smooth(
 void SCULPT_smooth(
     Sculpt *sd, Object *ob, Span<PBVHNode *> nodes, float bstrength, const bool smooth_mask)
 {
-  //SCOPED_TIMER(__func__);
+  // SCOPED_TIMER(__func__);
 
   SculptSession *ss = ob->sculpt;
   Brush *brush = BKE_paint_brush(&sd->paint);

@@ -4247,8 +4247,7 @@ static void do_brush_action(Sculpt *sd,
     }
 
     if (ss->cache->supports_gravity && sd->gravity_factor > 0.0f &&
-        undo_type != SCULPT_UNDO_COORDS)
-    {
+        undo_type != SCULPT_UNDO_COORDS) {
       extra_type = int(SCULPT_UNDO_COORDS);
     }
 
@@ -5090,8 +5089,7 @@ static void sculpt_update_cache_invariants(
   ss->hard_edge_mode = ups->hard_edge_mode;
   ss->smooth_boundary_flag = eSculptBoundary(ups->smooth_boundary_flag);
 
-  Mesh *me = BKE_object_get_original_mesh(ob);
-  BKE_sculptsession_reproject_smooth_set(ob, !(me->flag & ME_SCULPT_IGNORE_UVS));
+  BKE_sculpt_distort_correction_set(ob, eAttrCorrectMode(ups->distort_correction_mode));
 
   ss->cache = cache;
 
@@ -5285,8 +5283,7 @@ static bool sculpt_needs_delta_from_anchored_origin(Brush *brush)
     return true;
   }
   if (brush->sculpt_tool == SCULPT_TOOL_CLOTH &&
-      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB)
-  {
+      brush->cloth_deform_type == BRUSH_CLOTH_DEFORM_GRAB) {
     return true;
   }
   return false;
@@ -6091,17 +6088,17 @@ void SCULPT_update_object_bounding_box(Object *ob)
   }
 }
 
+#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
 void SCULPT_tag_uveditor_update(bContext *C, Depsgraph *depsgraph, Object *ob)
 {
-#ifdef DEBUG_SHOW_SCULPT_BM_UV_EDGES
   Object *obedit_eval = DEG_get_evaluated_object(depsgraph, ob);
   BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
                                  BKE_MESH_BATCH_DIRTY_UVEDIT_ALL);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_EDITORS | ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
-#endif
 }
+#endif
 
 void SCULPT_flush_update_step(bContext *C, SculptUpdateType update_flags)
 {
@@ -6909,8 +6906,7 @@ void SCULPT_fake_neighbors_ensure(Sculpt *sd, Object *ob, const float max_dist)
    * recalculated.
    */
   if (ss->fake_neighbors.fake_neighbor_index &&
-      ss->fake_neighbors.current_max_distance == max_dist)
-  {
+      ss->fake_neighbors.current_max_distance == max_dist) {
     return;
   }
 

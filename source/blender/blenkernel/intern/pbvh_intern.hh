@@ -160,6 +160,7 @@ struct DMFlagMat;
 struct PBVH {
   PBVHPublic header;
   PBVHFlags flags;
+  eAttrCorrectMode distort_correction_mode;
 
   int idgen;
 

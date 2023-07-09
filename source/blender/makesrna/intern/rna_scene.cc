@@ -3963,6 +3963,24 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
+  static EnumPropertyItem distort_correction_items[] = {
+      {UNDISTORT_NONE,
+       "DISABLED",
+       0,
+       "Disabled",
+       "Disable attribute distortion correction\nto increase performance."},
+      {UNDISTORT_REPROJECT_VERTS | UNDISTORT_REPROJECT_CORNERS,
+       "REPROJECT",
+       0,
+       "Reproject",
+       "Reproject attributes."},
+      {UNDISTORT_REPROJECT_VERTS | UNDISTORT_REPROJECT_CORNERS | UNDISTORT_RELAX_UVS,
+       "RELAX_UVS",
+       0,
+       "Relax UVs",
+       "Relax UVs, reproject other attributes."},
+      {0, nullptr, 0, nullptr, nullptr}};
+
   static const EnumPropertyItem brush_size_unit_items[] = {
       {0, "VIEW", 0, "View", "Measure brush size relative to the view"},
       {UNIFIED_PAINT_BRUSH_LOCK_SIZE,
@@ -3985,19 +4003,25 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
                            "Use Unified Radius",
                            "Instead of per-brush radius, the radius is shared across brushes");
 
+  prop = RNA_def_property(srna, "distort_correction_mode", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "distort_correction_mode");
+  RNA_def_property_enum_items(prop, distort_correction_items);
+  RNA_def_property_ui_text(
+      prop, "Distortion Correction", "How smooth tools should correct attribute distortion.");
+
   /* high-level flags to enable or disable unified paint settings */
   prop = RNA_def_property(srna, "use_unified_hard_edge_mode", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_HARD_EDGE_MODE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_FLAG_HARD_EDGE_MODE);
   RNA_def_property_ui_text(
       prop, "Use Unified Hard Edge Mode", "Use global setting for hard edge mode");
 
   prop = RNA_def_property(srna, "use_unified_hard_corner_pin", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_HARD_CORNER_PIN);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_HARD_CORNER_PIN);
   RNA_def_property_ui_text(
       prop, "Use Unified Hard Corner Pin", "Use global setting for hard corner pin");
 
   prop = RNA_def_property(srna, "hard_corner_pin", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, NULL, "hard_corner_pin");
+  RNA_def_property_float_sdna(prop, nullptr, "hard_corner_pin");
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop, "Use Unified Hard Corner Pin", "Use global setting for hard corner pin");
@@ -4005,12 +4029,12 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
   prop = RNA_def_property(srna, "use_unified_sharp_angle_limit", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_FLAG_SHARP_ANGLE_LIMIT);
   RNA_def_property_ui_text(
       prop, "Use Unified Sharp Angle Limit", "Use global setting for sharp angle limit");
 
   prop = RNA_def_property(srna, "sharp_angle_limit", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, NULL, "sharp_angle_limit");
+  RNA_def_property_float_sdna(prop, nullptr, "sharp_angle_limit");
   RNA_def_property_range(prop, 0.0f, M_PI);
   RNA_def_property_ui_text(prop, "Sharp Limit", "");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

@@ -739,7 +739,7 @@ struct SculptSession {
   int totuv;
 
   /* Reproject customdata during smooth. */
-  bool reproject_smooth;
+  eAttrCorrectMode distort_correction_mode;
 
   /* Undo/redo log for dynamic topology sculpting */
   BMLog *bm_log;
@@ -976,7 +976,7 @@ void BKE_sculptsession_update_attr_refs(struct Object *ob);
 
 int BKE_sculptsession_get_totvert(const struct SculptSession *ss);
 
-void BKE_sculptsession_reproject_smooth_set(struct Object *ob, bool value);
+void BKE_sculpt_distort_correction_set(struct Object *ob, eAttrCorrectMode value);
 void BKE_sculptsession_free_attribute_refs(struct Object *ob);
 
 /**

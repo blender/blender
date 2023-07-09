@@ -1840,12 +1840,12 @@ void BKE_sculpt_ensure_idmap(Object *ob)
   }
 }
 
-void BKE_sculptsession_reproject_smooth_set(Object *ob, bool value)
+void BKE_sculpt_distort_correction_set(Object *ob, eAttrCorrectMode value)
 {
-  ob->sculpt->reproject_smooth = value;
+  ob->sculpt->distort_correction_mode = value;
 
   if (ob->sculpt->pbvh) {
-    BKE_pbvh_reproject_smooth_set(ob->sculpt->pbvh, value);
+    BKE_pbvh_distort_correction_set(ob->sculpt->pbvh, value);
   }
 }
 
@@ -1909,7 +1909,7 @@ static void sculpt_update_object(
 
   ss->depsgraph = depsgraph;
 
-  ss->reproject_smooth = !(me->flag & ME_SCULPT_IGNORE_UVS);
+  ss->distort_correction_mode = eAttrCorrectMode(ups.distort_correction_mode);
 
   ss->deform_modifiers_active = sculpt_modifiers_active(scene, sd, ob);
 
@@ -2316,8 +2316,7 @@ static void sculpt_update_object(
     if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
       char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
       if (ss->last_paint_canvas_key == nullptr ||
-          !STREQ(paint_canvas_key, ss->last_paint_canvas_key))
-      {
+          !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
         MEM_SAFE_FREE(ss->last_paint_canvas_key);
         ss->last_paint_canvas_key = paint_canvas_key;
         BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
@@ -2332,8 +2331,7 @@ static void sculpt_update_object(
       if (U.experimental.use_sculpt_texture_paint && ss->pbvh) {
         char *paint_canvas_key = BKE_paint_canvas_key_get(&scene->toolsettings->paint_mode, ob);
         if (ss->last_paint_canvas_key == nullptr ||
-            !STREQ(paint_canvas_key, ss->last_paint_canvas_key))
-        {
+            !STREQ(paint_canvas_key, ss->last_paint_canvas_key)) {
           MEM_SAFE_FREE(ss->last_paint_canvas_key);
           ss->last_paint_canvas_key = paint_canvas_key;
           BKE_pbvh_mark_rebuild_pixels(ss->pbvh);
@@ -3589,8 +3587,7 @@ static SculptAttribute *sculpt_get_cached_layer(SculptSession *ss,
     SculptAttribute *attr = ss->temp_attributes + i;
 
     if (attr->used && STREQ(attr->name, name) && attr->proptype == proptype &&
-        attr->domain == domain)
-    {
+        attr->domain == domain) {
 
       return attr;
     }
@@ -4074,7 +4071,6 @@ SculptAttribute BKE_sculpt_find_attribute(Object *ob, const char *name)
 void BKE_sculpt_attribute_release_ref(Object *ob, SculptAttribute *attr)
 {
   SculptSession *ss = ob->sculpt;
-  eAttrDomain domain = attr->domain;
 
   BLI_assert(attr->used);
 
@@ -4493,8 +4489,11 @@ float calc_uv_snap_limit(BMLoop *l, int cd_uv)
 }
 
 /* Angle test. loop_is_corner calls this if the chart count test fails. */
-static bool loop_is_corner_angle(
-    BMLoop *l, int cd_offset, const float limit, const float angle_limit, const CustomData *ldata)
+static bool loop_is_corner_angle(BMLoop *l,
+                                 int cd_offset,
+                                 const float limit,
+                                 const float angle_limit,
+                                 const CustomData * /*ldata*/)
 {
   BMVert *v = l->v;
   BMEdge *e = v->e;
@@ -4503,9 +4502,10 @@ static bool loop_is_corner_angle(
 
   BMLoop *outer1 = nullptr, *outer2 = nullptr;
   float2 outer1_value;
-  int cd_pin = -1, cd_sel = -1;
 
 #ifdef TEST_UV_CORNER_CALC
+  int cd_pin = -1, cd_sel = -1;
+
   bool test_mode = false;
   // test_mode = l->v->head.hflag & BM_ELEM_SELECT;
 
@@ -4715,39 +4715,47 @@ bool loop_is_corner(BMLoop *l, int cd_uv, float limit, const CustomData *ldata)
   return ret;
 }
 
-template<typename T = float>
+namespace detail {
 static void corner_interp(CustomDataLayer *layer,
+                          BMVert *v,
                           BMLoop *l,
                           Span<BMLoop *> loops,
                           Span<float> ws,
                           int cd_offset,
-                          float factor)
+                          float factor,
+                          float2 &new_value)
 {
   float *ws2 = (float *)BLI_array_alloca(ws2, loops.size() + 1);
-  T sum = {};
+  float2 sum = {};
   float totsum = 0.0f;
 
-  T value = *BM_ELEM_CD_PTR<T *>(l, cd_offset);
+  float2 value = *BM_ELEM_CD_PTR<float2 *>(l, cd_offset);
 
-  float limit;
-  if (layer->type == CD_PROP_FLOAT2) {
-    /* Apparently 1/10th of average uv edge length is too small,
-     * muliply it to 1/2
-     */
-    limit = calc_uv_snap_limit(loops[0], cd_offset) * 4.0f;
-  }
-  else {
-    /* Do not restrict to islands for non-UVs */
-    limit = FLT_MAX;
-  }
+  float limit, limit_sqr;
 
+  limit = calc_uv_snap_limit(l, cd_offset);
+  limit_sqr = limit * limit;
+
+  /* Sum over uv verts surrounding l connected to the same chart. */
   for (int i : loops.index_range()) {
     BMLoop *l2 = loops[i];
-    BMLoop *l3 = l2->next->v == l->v ? l2->next : l2->prev;
-    T value3 = *BM_ELEM_CD_PTR<T *>(l3, cd_offset);
+    BMLoop *l3;
 
-    if (prop_eq(value, value3, limit)) {
-      T value2 = *BM_ELEM_CD_PTR<T *>(l2, cd_offset);
+    /* Find UV in l2's face that's owned by v. */
+    if (l2->v == v) {
+      l3 = l2;
+    }
+    else if (l2->next->v == v) {
+      l3 = l2->next;
+    }
+    else {
+      l3 = l2->prev;
+    }
+
+    float2 value3 = *BM_ELEM_CD_PTR<float2 *>(l3, cd_offset);
+
+    if (math::distance_squared(value, value3) <= limit_sqr) {
+      float2 value2 = *BM_ELEM_CD_PTR<float2 *>(l2, cd_offset);
       sum += value2 * ws[i];
       totsum += ws[i];
     }
@@ -4758,13 +4766,53 @@ static void corner_interp(CustomDataLayer *layer,
   }
 
   sum /= totsum;
-
-  *BM_ELEM_CD_PTR<T *>(l, cd_offset) = value + (sum - value) * factor;
+  new_value = value + (sum - value) * factor;
 }
 
 /* Interpolates loops surrounding a vertex, splitting any UV map by
  * island as appropriate and enforcing proper boundary conditions.
  */
+static void interp_face_corners_intern(PBVH *pbvh,
+                                       BMVert *v,
+                                       Span<BMLoop *> loops,
+                                       Span<float> ws,
+                                       float factor,
+                                       int cd_vert_boundary,
+                                       Span<BMLoop *> ls,
+                                       CustomDataLayer *layer)
+{
+  Vector<bool, 24> corners;
+  Vector<float2, 24> new_values;
+
+  /* Build (semantic) corner tags. */
+  for (BMLoop *l : ls) {
+    /* Do not calculate the corner state here, use stored corner flag. */
+    bool corner = false;
+
+    /* corner |= loop_is_corner(l, layer->offset); */
+    corner |= BM_ELEM_CD_GET_INT(v, cd_vert_boundary) & SCULPT_CORNER_UV;
+    corners.append(corner);
+  }
+
+  /* Interpolate loops. */
+  for (int i : ls.index_range()) {
+    BMLoop *l = ls[i];
+
+    if (!corners[i]) {
+      corner_interp(layer, v, l, loops, ws, layer->offset, factor, new_values[i]);
+    }
+  }
+
+  for (int i : ls.index_range()) {
+    BMLoop *l = ls[i];
+
+    if (!corners[i]) {
+      *BM_ELEM_CD_PTR<float2 *>(ls[i], layer->offset) = new_values[i];
+    }
+  }
+}
+}  // namespace detail
+
 void interp_face_corners(PBVH *pbvh,
                          PBVHVertRef vertex,
                          Span<BMLoop *> loops,
@@ -4776,15 +4824,13 @@ void interp_face_corners(PBVH *pbvh,
     return; /* Only for PBVH_BMESH. */
   }
 
-  eCustomDataMask mask = CD_MASK_PROP_FLOAT2;
-
   BMesh *bm = BKE_pbvh_get_bmesh(pbvh);
   BMVert *v = reinterpret_cast<BMVert *>(vertex.i);
   BMEdge *e = v->e;
   BMLoop *l = e->l;
   CustomData *cdata = &bm->ldata;
 
-  Vector<BMLoop *, 16> ls;
+  Vector<BMLoop *, 32> ls;
 
   /* Tag loops around vertex. */
   do {
@@ -4821,10 +4867,8 @@ void interp_face_corners(PBVH *pbvh,
   for (int layer_i : IndexRange(cdata->totlayer)) {
     CustomDataLayer *layer = cdata->layers + layer_i;
 
-    if ((layer->flag & CD_FLAG_ELEM_NOINTERP) || !(CD_TYPE_AS_MASK(layer->type) & mask)) {
-      continue;
-    }
-    if (layer->flag & CD_FLAG_TEMPORARY) {
+    if (layer->type != CD_PROP_FLOAT2 ||
+        (layer->flag & (CD_FLAG_ELEM_NOINTERP | CD_FLAG_TEMPORARY))) {
       continue;
     }
 
@@ -4832,46 +4876,11 @@ void interp_face_corners(PBVH *pbvh,
   }
 
   /* Interpolate. */
-  if (loops.size() > 1) {
-    Vector<bool, 24> corners;
-    VertLoopSnapper corner_snap = {Span<BMLoop *>(ls), Span<CustomDataLayer *>(layers)};
+  if (layers.size() > 0 && loops.size() > 1) {
+    // VertLoopSnapper corner_snap = {Span<BMLoop *>(ls), Span<CustomDataLayer *>(layers)};
 
     for (CustomDataLayer *layer : layers) {
-      corners.clear();
-
-      if (layer->type == CD_PROP_FLOAT2) {
-        for (BMLoop *l : ls) {
-          /* Do not calculate corner here, use the stored corner flag. */
-          bool corner = false;
-          // corner |= loop_is_corner(l, layer->offset);
-          corner |= BM_ELEM_CD_GET_INT(v, cd_vert_boundary) & SCULPT_CORNER_UV;
-
-          corners.append(corner);
-        }
-      }
-
-      for (int i : ls.index_range()) {
-        BMLoop *l = ls[i];
-
-        if (layer->type == CD_PROP_FLOAT2 && corners[i]) {
-          continue;
-        }
-
-        switch (layer->type) {
-          case CD_PROP_FLOAT:
-            corner_interp<float>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_FLOAT2:
-            corner_interp<float2>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_FLOAT3:
-            corner_interp<float3>(layer, l, loops, ws, layer->offset, factor);
-            break;
-          case CD_PROP_COLOR:
-            corner_interp<float4>(layer, l, loops, ws, layer->offset, factor);
-            break;
-        }
-      }
+      detail::interp_face_corners_intern(pbvh, v, loops, ws, factor, cd_vert_boundary, ls, layer);
     }
 
     /* Snap. */

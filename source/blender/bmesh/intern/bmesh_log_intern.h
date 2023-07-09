@@ -127,6 +127,8 @@ void BM_log_redo(BMesh *bm, BMLog *log, BMLogCallbacks *callbacks);
 /* Log a vertex before it is modified */
 void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v);
 
+void BM_log_vert_modified(BMesh *bm, BMLog *log, BMVert *v);
+
 /* Log a new vertex as added to the BMesh
  *
  * The new vertex gets a unique ID assigned. It is then added to a map

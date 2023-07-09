@@ -32,6 +32,14 @@ template<typename T> class DyntopoSet {
     iterator(DyntopoSet *set, int i) : set_(set), i_(i) {}
     iterator(const iterator &b) : set_(b.set_), i_(b.i_) {}
 
+    iterator &operator=(const iterator &b)
+    {
+      set_ = b.set_;
+      i_ = b.i_;
+
+      return *this;
+    }
+
     inline T *operator*()
     {
       return set_->index_to_elem_[i_];

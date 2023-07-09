@@ -256,6 +256,15 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
   SCULPT_undo_push_begin(ob, op);
   SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
 
+  SculptSession *ss = ob->sculpt;
+  BMesh *bm = ss->bm;
+  BMIter iter;
+  BMVert *v;
+
+  BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+    BM_log_vert_before_modified(bm, ss->bm_log, v);
+  }
+
   double time = PIL_check_seconds_timer();
   auto should_stop = [&time]() { return PIL_check_seconds_timer() - time > 1.0f; };
 
@@ -353,6 +362,15 @@ int sculpt_detail_flood_fill_invoke(bContext *C, wmOperator *op, const wmEvent *
 
     SCULPT_undo_push_begin(ob, op);
     SCULPT_undo_push_node(ob, nullptr, SCULPT_UNDO_COORDS);
+
+    SculptSession *ss = ob->sculpt;
+    BMesh *bm = ss->bm;
+    BMIter iter;
+    BMVert *v;
+
+    BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+      BM_log_vert_before_modified(bm, ss->bm_log, v);
+    }
 
     flood_fill_job.tool_settings = CTX_data_tool_settings(C);
     flood_fill_job.brush = BKE_paint_brush(&flood_fill_job.tool_settings->sculpt->paint);

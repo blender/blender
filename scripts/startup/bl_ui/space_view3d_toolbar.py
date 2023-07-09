@@ -1060,7 +1060,7 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         if bpy.app.debug_value == 889:
             col.prop(tool_settings, "show_origco")
 
-        col.prop(context.object.data, "sculpt_ignore_uvs")
+        col.prop(ups, "distort_correction_mode")
 
         col.label(text="Smooth Boundaries")
         col = layout.column(align=True)

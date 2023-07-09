@@ -1708,6 +1708,11 @@ void BM_log_vert_before_modified(BMesh *bm, BMLog *log, BMVert *v)
   log->modify_if_vert(bm, v);
 }
 
+void BM_log_vert_modified(BMesh *bm, BMLog *log, BMVert *v)
+{
+  log->modify_vert(bm, v);
+}
+
 BMLogEntry *BM_log_entry_check_customdata(BMesh *bm, BMLog *log)
 {
   BMLogEntry *entry = log->current_entry;

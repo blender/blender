@@ -674,6 +674,15 @@ typedef enum eBrushCurvesSculptDensityMode {
   BRUSH_CURVES_SCULPT_DENSITY_MODE_REMOVE = 2,
 } eBrushCurvesSculptDensityMode;
 
+/* How to correct distortion in smoothing tools.*/
+typedef enum eAttrCorrectMode {
+  UNDISTORT_NONE = 0,
+  UNDISTORT_REPROJECT_VERTS = (1 << 0), /* Reproject attributes. */
+  UNDISTORT_REPROJECT_CORNERS = (1 << 1),
+  UNDISTORT_RELAX_UVS = (1 << 2), /* Relax UVs, overrides REPROJECT_CORNERS (for UVs). */
+} eAttrCorrectMode;
+ENUM_OPERATORS(eAttrCorrectMode, UNDISTORT_RELAX_UVS);
+
 #define MAX_BRUSH_PIXEL_RADIUS 500
 
 #define DYNTOPO_DETAIL_RANGE 0.4f

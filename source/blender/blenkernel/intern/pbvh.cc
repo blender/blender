@@ -4627,18 +4627,12 @@ void update_vert_boundary_grids(PBVH *pbvh, int index)
 
 }  // namespace blender::bke::pbvh
 
-void BKE_pbvh_reproject_smooth_set(PBVH *pbvh, bool value)
+void BKE_pbvh_distort_correction_set(PBVH *pbvh, eAttrCorrectMode value)
 {
-  if (!!(pbvh->flags & PBVH_IGNORE_UVS) == !value) {
-    return;  // no change
-  }
+  /* Condition to update UV boundaries.*/
+  bool update = !pbvh->distort_correction_mode != !value;
 
-  if (!value) {
-    pbvh->flags |= PBVH_IGNORE_UVS;
-  }
-  else {
-    pbvh->flags &= ~PBVH_IGNORE_UVS;
-  }
+  pbvh->distort_correction_mode = value;
 
   pbvh_boundaries_flag_update(pbvh);
 }
