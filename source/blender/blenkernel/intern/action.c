@@ -1334,7 +1334,7 @@ void BKE_pose_remove_group_index(bPose *pose, const int index)
 
 /* ************** F-Curve Utilities for Actions ****************** */
 
-bool action_has_motion(const bAction *act)
+bool BKE_action_has_motion(const bAction *act)
 {
   FCurve *fcu;
 
@@ -1392,7 +1392,10 @@ bool BKE_action_has_single_frame(const bAction *act)
   return found_key;
 }
 
-void calc_action_range(const bAction *act, float *start, float *end, short incl_modifiers)
+void BKE_action_frame_range_calc(const bAction *act,
+                                 bool include_modifiers,
+                                 float *r_start,
+                                 float *r_end)
 {
   FCurve *fcu;
   float min = 999999999.0f, max = -999999999.0f;
@@ -1419,10 +1422,10 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
         foundvert = 1;
       }
 
-      /* if incl_modifiers is enabled, need to consider modifiers too
+      /* if include_modifiers is enabled, need to consider modifiers too
        * - only really care about the last modifier
        */
-      if ((incl_modifiers) && (fcu->modifiers.last)) {
+      if ((include_modifiers) && (fcu->modifiers.last)) {
         FModifier *fcm = fcu->modifiers.last;
 
         /* only use the maximum sensible limits of the modifiers if they are more extreme */
@@ -1470,23 +1473,23 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
       max += 1.0f;
     }
 
-    *start = max_ff(min, MINAFRAMEF);
-    *end = min_ff(max, MAXFRAMEF);
+    *r_start = max_ff(min, MINAFRAMEF);
+    *r_end = min_ff(max, MAXFRAMEF);
   }
   else {
-    *start = 0.0f;
-    *end = 1.0f;
+    *r_start = 0.0f;
+    *r_end = 1.0f;
   }
 }
 
-void BKE_action_get_frame_range(const bAction *act, float *r_start, float *r_end)
+void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end)
 {
   if (act && (act->flag & ACT_FRAME_RANGE)) {
     *r_start = act->frame_start;
     *r_end = act->frame_end;
   }
   else {
-    calc_action_range(act, r_start, r_end, false);
+    BKE_action_frame_range_calc(act, r_start, r_end, false);
   }
 
   /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */

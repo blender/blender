@@ -3237,7 +3237,8 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 
   /* Action range is calculated taking F-Modifiers into account
    * (which making new strips doesn't do due to the troublesome nature of that). */
-  calc_action_range(r_action_strip->act, &r_action_strip->actstart, &r_action_strip->actend, 1);
+  BKE_action_frame_range_calc(
+      r_action_strip->act, true, &r_action_strip->actstart, &r_action_strip->actend);
   r_action_strip->start = r_action_strip->actstart;
   r_action_strip->end = IS_EQF(r_action_strip->actstart, r_action_strip->actend) ?
                             (r_action_strip->actstart + 1.0f) :

@@ -242,7 +242,7 @@ static void rna_Action_active_pose_marker_index_range(
 
 static void rna_Action_frame_range_get(PointerRNA *ptr, float *r_values)
 {
-  BKE_action_get_frame_range((bAction *)ptr->owner_id, &r_values[0], &r_values[1]);
+  BKE_action_frame_range_get((bAction *)ptr->owner_id, &r_values[0], &r_values[1]);
 }
 
 static void rna_Action_frame_range_set(PointerRNA *ptr, const float *values)
@@ -258,7 +258,7 @@ static void rna_Action_frame_range_set(PointerRNA *ptr, const float *values)
 static void rna_Action_curve_frame_range_get(PointerRNA *ptr, float *values)
 { /* don't include modifiers because they too easily can have very large
    * ranges: MINAFRAMEF to MAXFRAMEF. */
-  calc_action_range((bAction *)ptr->owner_id, values, values + 1, false);
+  BKE_action_frame_range_calc((bAction *)ptr->owner_id, false, values, values + 1);
 }
 
 static void rna_Action_use_frame_range_set(PointerRNA *ptr, bool value)
@@ -268,7 +268,7 @@ static void rna_Action_use_frame_range_set(PointerRNA *ptr, bool value)
   if (value) {
     /* If the frame range is blank, initialize it by scanning F-Curves. */
     if ((data->frame_start == data->frame_end) && (data->frame_start == 0)) {
-      calc_action_range(data, &data->frame_start, &data->frame_end, false);
+      BKE_action_frame_range_calc(data, false, &data->frame_start, &data->frame_end);
     }
 
     data->flag |= ACT_FRAME_RANGE;
