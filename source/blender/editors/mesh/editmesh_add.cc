@@ -75,7 +75,7 @@ static void make_prim_finish(bContext *C,
    * to push this up to edges & faces. */
   EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);
 
-  /* only recalc editmode tessface if we are staying in editmode */
+  /* Only recalculate edit-mode tessellation if we are staying in edit-mode. */
   EDBMUpdate_Params params{};
   params.calc_looptri = !exit_editmode;
   params.calc_normals = false;

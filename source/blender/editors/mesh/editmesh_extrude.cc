@@ -354,7 +354,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 /** \name Extrude Operator
  * \{ */
 
-/* generic extern called extruder */
+/** Implement generic externally called extrude function. */
 static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 {
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");

@@ -151,10 +151,10 @@ ccl_device_inline void sample_uniform_cone_concentric(const float3 N,
      * hemisphere doesn't change the radius. For the latter, r_cone(rand) =
      * sin_from_cos(mix(cos_angle, 1, rand)).
      *
-     * So, to remap, we just invert r_disk (-> rand(r_disk) = r_disk^2) and insert it into r_cone:
-     * r_cone(r_disk) = r_cone(rand(r_disk)) = sin_from_cos(mix(cos_angle, 1, r_disk^2)). In
-     * practise, we need to replace `rand` with `1 - rand` to preserve the stratification, but
-     * since it's uniform, that's fine. */
+     * So, to remap, we just invert r_disk `(-> rand(r_disk) = r_disk^2)` and insert it into
+     * r_cone: `r_cone(r_disk) = r_cone(rand(r_disk)) = sin_from_cos(mix(cos_angle, 1, r_disk^2))`.
+     * In practice, we need to replace `rand` with `1 - rand` to preserve the stratification,
+     * but since it's uniform, that's fine. */
     float2 xy = concentric_sample_disk(rand);
     const float r2 = len_squared(xy);
 

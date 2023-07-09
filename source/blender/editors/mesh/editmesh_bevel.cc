@@ -374,8 +374,8 @@ static bool edbm_bevel_calc(wmOperator *op)
     BMO_op_exec(em->bm, &bmop);
 
     if (offset != 0.0f) {
-      /* not essential, but we may have some loose geometry that
-       * won't get bevel'd and better not leave it selected */
+      /* Not essential, but we may have some loose geometry that
+       * won't get beveled and better not leave it selected. */
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
       BMO_slot_buffer_hflag_enable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);

@@ -1054,7 +1054,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
           ebone->bbone_next = ebone_iter->bbone_next->temp.ebone;
         }
 
-        /* Lets try to fix any constraint subtargets that might have been duplicated. */
+        /* Lets try to fix any constraint sub-targets that might have been duplicated. */
         updateDuplicateSubtarget(ebone, arm->edbo, ob, false);
       }
     }

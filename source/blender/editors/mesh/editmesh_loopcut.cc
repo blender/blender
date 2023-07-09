@@ -195,7 +195,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
                          use_only_quads,
                          0);
 
-      /* when used in a macro the tessfaces will be recalculated anyway,
+      /* When used in a macro the tessellation will be recalculated anyway,
        * this is needed here because modifiers depend on updated tessellation, see #45920 */
       EDBMUpdate_Params params{};
       params.calc_looptri = true;

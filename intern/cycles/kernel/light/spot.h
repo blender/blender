@@ -27,7 +27,7 @@ ccl_device void spot_light_uv(const float3 ray,
                               ccl_private float *u,
                               ccl_private float *v)
 {
-  /* Ensures that the spot light projects the full image regarless of the spot angle. */
+  /* Ensures that the spot light projects the full image regardless of the spot angle. */
   const float factor = half_cot_half_spot_angle / ray.z;
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */

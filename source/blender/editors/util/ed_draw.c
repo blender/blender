@@ -372,7 +372,7 @@ static void slider_draw(const bContext *UNUSED(C), ARegion *region, void *arg)
 
 static void slider_update_factor(tSlider *slider, const wmEvent *event)
 {
-  /* Normalize so no matter the factor bounds, the mouse distance travelled from min to max is
+  /* Normalize so no matter the factor bounds, the mouse distance traveled from min to max is
    * constant. */
   const float slider_range = slider->factor_bounds[1] - slider->factor_bounds[0];
   const float factor_delta = (event->xy[0] - slider->last_cursor[0]) /

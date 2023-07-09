@@ -4003,11 +4003,11 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float 
   } \
   (void)0
 
-  /* another macro for the "embedded" nodetree cases
-   * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
-   *   (i.e. scene/material/texture->nodetree) which we need a special exception
-   *   for, otherwise they'd get skipped
-   * - 'ntp' stands for "node tree parent" = data-block where node tree stuff resides
+  /* Another macro for the "embedded" node-tree cases
+   * - This is like #EVAL_ANIM_IDS, but this handles the case "embedded node-trees"
+   *   (i.e. `scene/material/texture->nodetree`) which we need a special exception
+   *   for, otherwise they'd get skipped.
+   * - `ntp` stands for "node tree parent" = data-block where node tree stuff resides.
    */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
   for (id = first; id; id = id->next) { \

@@ -845,7 +845,7 @@ void node_type_storage(struct bNodeType *ntype,
  *
  * - nodetree:
  *   The actual bNodeTree data block.
- *   Check nodetree->idname or nodetree->typeinfo to use only specific types.
+ *   Check `nodetree->idname` or `nodetree->typeinfo` to use only specific types.
  *
  * - id:
  *   The owner of the bNodeTree data block.

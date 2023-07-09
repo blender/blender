@@ -3402,7 +3402,7 @@ static IDFilterEnumPropertyItem rna_enum_space_file_id_filter_categories[] = {
      "category_shading",
      ICON_MATERIAL_DATA,
      "Shading",
-     "Show materials, nodetrees, textures and Freestyle's linestyles"},
+     "Show materials, node-trees, textures and Freestyle's line-styles"},
     {FILTER_ID_IM | FILTER_ID_MC | FILTER_ID_MSK | FILTER_ID_SO,
      "category_image",
      ICON_IMAGE_DATA,

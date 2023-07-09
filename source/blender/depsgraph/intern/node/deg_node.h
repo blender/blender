@@ -103,7 +103,7 @@ enum class NodeType {
    * properly evaluated. Example of this is custom shapes for bones. */
   VISIBILITY,
 
-  /* **** Evaluation-Related Outer Types (with Subdata) **** */
+  /* **** Evaluation-Related Outer Types (with Sub-data) **** */
 
   /* Pose Component - Owner/Container of Bones Eval */
   EVAL_POSE,

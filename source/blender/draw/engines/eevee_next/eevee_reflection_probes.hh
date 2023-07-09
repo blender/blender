@@ -134,7 +134,7 @@ class ReflectionProbeModule {
 
   /**
    * Remove reflection probe data from the module.
-   * Ensures that data_buf is sequential and cubemaps are relinked to its corresponding data.
+   * Ensures that data_buf is sequential and cube-maps are relinked to its corresponding data.
    */
   void remove_reflection_probe_data(int reflection_probe_data_index);
 
