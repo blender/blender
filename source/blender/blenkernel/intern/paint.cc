@@ -4545,7 +4545,7 @@ static bool loop_is_corner_angle(BMLoop *l,
       BMLoop *other_uv_l2 = l2->v == v ? l2->next : l2;
       float2 other_uv_value2 = *BM_ELEM_CD_PTR<float2 *>(other_uv_l2, cd_offset);
 
-      if (!prop_eq(uv_value, uv_value2, limit)) {
+      if (math::distance_squared(uv_value, uv_value2) > limit * limit) {
         continue;
       }
 
@@ -4556,7 +4556,7 @@ static bool loop_is_corner_angle(BMLoop *l,
         BMLoop *other_uv_l3 = l3->v == v ? l3->next : l3;
         float2 other_uv_value3 = *BM_ELEM_CD_PTR<float2 *>(other_uv_l3, cd_offset);
 
-        if (!prop_eq(other_uv_value2, other_uv_value3, limit)) {
+        if (math::distance_squared(other_uv_value2, other_uv_value3) > limit * limit) {
 #ifdef TEST_UV_CORNER_CALC
           if (test_mode && cd_pin != -1) {
             // BM_ELEM_CD_SET_BOOL(other_uv_l2, cd_pin, true);
@@ -4568,7 +4568,7 @@ static bool loop_is_corner_angle(BMLoop *l,
           float2 uv_value3 = *BM_ELEM_CD_PTR<float2 *>(uv_l3, cd_offset);
 
           /* other_uv_value might be valid for one of the two arms, check. */
-          if (prop_eq(uv_value, uv_value3, limit)) {
+          if (math::distance_squared(uv_value, uv_value3) <= limit * limit) {
 #ifdef TEST_UV_CORNER_CALC
             if (test_mode) {
               printf("%s: case 1\n", __func__);
@@ -4598,7 +4598,9 @@ static bool loop_is_corner_angle(BMLoop *l,
           outer1 = other_uv_l2;
           outer1_value = other_uv_value2;
         }
-        else if (other_uv_l2 != outer2 && !prop_eq(outer1_value, other_uv_value2, limit)) {
+        else if (other_uv_l2 != outer2 &&
+                 math::distance_squared(outer1_value, other_uv_value2) > limit * limit)
+        {
           outer2 = other_uv_l2;
 
 #ifdef TEST_UV_CORNER_CALC

@@ -1346,8 +1346,6 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
     }
   }
 
-  // bool push_subentry = false;
-
   Vector<BMVert *> verts;
   for (int i = 0; i < count; i++) {
     for (BMEdge *e : tdata[i].edges) {
@@ -1358,10 +1356,8 @@ static void unified_edge_queue_create(EdgeQueueContext *eq_ctx,
       e->head.hflag &= ~EDGE_QUEUE_FLAG;
 
       if (e->l && e->l != e->l->radial_next->radial_next) {
-        /* Fix non-manifold "fins". */
-        if (destroy_nonmanifold_fins(pbvh, e)) {
-          // push_subentry = true;
-        }
+        /* Delete non-manifold "fins". */
+        destroy_nonmanifold_fins(pbvh, e);
 
         if (bm_elem_is_free((BMElem *)e, BM_EDGE)) {
           continue;
@@ -3772,11 +3768,11 @@ static bool reproject_bm_data(BMesh *bm,
   return true;
 }
 
-ATTR_NO_OPT void BKE_sculpt_reproject_cdata(SculptSession *ss,
-                                            PBVHVertRef vertex,
-                                            float startco[3],
-                                            float startno[3],
-                                            eAttrCorrectMode undistort_mode)
+void BKE_sculpt_reproject_cdata(SculptSession *ss,
+                                PBVHVertRef vertex,
+                                float startco[3],
+                                float startno[3],
+                                eAttrCorrectMode undistort_mode)
 {
   int boundary_flag = blender::bke::paint::vertex_attr_get<int>(vertex, ss->attrs.boundary_flags);
   if (boundary_flag & (SCULPT_BOUNDARY_UV)) {

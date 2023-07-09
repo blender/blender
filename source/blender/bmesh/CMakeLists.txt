@@ -171,6 +171,7 @@ set(SRC
   # public includes
   bmesh.h
   bmesh_tools.h
+  bmesh_varray.hh
 )
 
 set(LIB

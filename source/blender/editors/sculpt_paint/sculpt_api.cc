@@ -134,7 +134,7 @@ static bool sculpt_check_boundary_vertex_in_base_mesh(const SculptSession *ss, i
 
 eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
                                         const PBVHEdgeRef edge,
-                                        eSculptBoundary typemask)
+                                        eSculptBoundary boundary_types)
 {
   int oldflag = blender::bke::paint::edge_attr_get<int>(edge, ss->attrs.edge_boundary_flags);
   bool update = oldflag & (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV |
@@ -204,8 +204,8 @@ eSculptBoundary SCULPT_edge_is_boundary(const SculptSession *ss,
     }
   }
 
-  return eSculptBoundary(
-      blender::bke::paint::edge_attr_get<int>(edge, ss->attrs.edge_boundary_flags));
+  return boundary_types & eSculptBoundary(blender::bke::paint::edge_attr_get<int>(
+                              edge, ss->attrs.edge_boundary_flags));
 }
 
 void SCULPT_edge_get_verts(const SculptSession *ss,

@@ -118,43 +118,6 @@ void interp_face_corners(PBVH *pbvh,
 float calc_uv_snap_limit(BMLoop *l, int cd_uv);
 bool loop_is_corner(BMLoop *l, int cd_uv, float limit = 0.01, const CustomData *ldata = nullptr);
 
-/* NotForPR: TODO: find attribute API substitute for these prop_eq helper functions. */
-static bool prop_eq(float a, float b, float limit)
-{
-  return std::fabs(a - b) < limit;
-}
-static bool prop_eq(float2 a, float2 b, float limit)
-{
-  return blender::math::distance_squared(a, b) <= limit * limit;
-  //  return (a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) <= limit * limit;
-}
-static bool prop_eq(float3 a, float3 b, float limit)
-{
-  return prop_eq(a[0], b[0], limit) && prop_eq(a[1], b[1], limit) && prop_eq(a[2], b[2], limit);
-}
-static bool prop_eq(float4 a, float4 b, float limit)
-{
-  return prop_eq(a[0], b[0], limit) &&  //
-         prop_eq(a[1], b[1], limit) &&  //
-         prop_eq(a[2], b[2], limit) &&  //
-         prop_eq(a[3], b[3], limit);
-}
-
-static bool prop_eq_type(void *a, void *b, float limit, eCustomDataType type)
-{
-  switch (type) {
-    case CD_PROP_FLOAT:
-      return prop_eq(*static_cast<float *>(a), *static_cast<float *>(b), limit);
-    case CD_PROP_FLOAT2:
-      return prop_eq(*static_cast<float2 *>(a), *static_cast<float2 *>(b), limit);
-    case CD_PROP_FLOAT3:
-      return prop_eq(*static_cast<float3 *>(a), *static_cast<float3 *>(b), limit);
-    case CD_PROP_COLOR:
-      return prop_eq(*static_cast<float4 *>(a), *static_cast<float4 *>(b), limit);
-  }
-  return false;
-}
-
 /* Finds sets of loops with the same vertex data
  * prior to an operation, then re-snaps them afterwards.
  */
@@ -181,7 +144,7 @@ struct VertLoopSnapper {
     for (int i : layers.index_range()) {
       switch (layers[i]->type) {
         case CD_PROP_FLOAT:
-          begin<float>(i);
+          begin<VecBase<float, 1>>(i);
           break;
         case CD_PROP_FLOAT2:
           begin<float2>(i);
@@ -201,7 +164,7 @@ struct VertLoopSnapper {
     for (int i : layers.index_range()) {
       switch (layers[i]->type) {
         case CD_PROP_FLOAT:
-          do_snap<float>(i);
+          do_snap<VecBase<float, 1>>(i);
           break;
         case CD_PROP_FLOAT2:
           do_snap<float2>(i);
@@ -255,7 +218,7 @@ struct VertLoopSnapper {
         }
 
         T b = *BM_ELEM_CD_PTR<T *>(ls[j], layer->offset);
-        if (prop_eq(a, b, limit)) {
+        if (math::distance_squared(a, b) <= limit * limit) {
           snap_sets[j][layer_i] = set;
         }
       }

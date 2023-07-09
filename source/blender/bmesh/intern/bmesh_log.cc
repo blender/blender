@@ -221,7 +221,7 @@ struct BMLogFace : public BMLogElem<BMFace> {
   Vector<void *, 5> loop_customdata;
   // int material_index;
 
-  ATTR_NO_OPT void free(CustomData *domain, CustomData *loop_domain)
+  void free(CustomData *domain, CustomData *loop_domain)
   {
     BMLogElem<BMFace>::free(domain);
 
