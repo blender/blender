@@ -1503,7 +1503,10 @@ bool BKE_action_is_cyclic(const bAction *act)
   return act && (act->flag & ACT_FRAME_RANGE) && (act->flag & ACT_CYCLIC);
 }
 
-short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
+eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
+                                                           Object *ob,
+                                                           bPoseChannel *pchan,
+                                                           ListBase *curves)
 {
   PointerRNA ptr;
   FCurve *fcu;

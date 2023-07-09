@@ -40,8 +40,9 @@ struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
 /* Action API ----------------- */
 
-/* types of transforms applied to the given item
- * - these are the return flags for action_get_item_transforms()
+/**
+ * Types of transforms applied to the given item:
+ * - these are the return flags for #BKE_action_get_item_transform_flags()
  */
 typedef enum eAction_TransformFlags {
   /* location */
@@ -69,10 +70,10 @@ typedef enum eAction_TransformFlags {
  * - if 'curves' is provided, a list of links to these curves are also returned
  *   whose nodes WILL NEED FREEING.
  */
-short action_get_item_transforms(struct bAction *act,
-                                 struct Object *ob,
-                                 struct bPoseChannel *pchan,
-                                 ListBase *curves);
+eAction_TransformFlags BKE_action_get_item_transform_flags(struct bAction *act,
+                                                           struct Object *ob,
+                                                           struct bPoseChannel *pchan,
+                                                           ListBase *curves);
 
 /**
  * Calculate the extents of given action.
