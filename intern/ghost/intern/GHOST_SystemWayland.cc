@@ -6111,8 +6111,8 @@ static GHOST_TSuccess getCursorPositionClientRelative_impl(
     y = wl_fixed_to_int(win->wl_fixed_to_window(xy_wrap[1]));
   }
   else {
-    x = win->wl_fixed_to_window(seat_state_pointer->xy[0]);
-    y = win->wl_fixed_to_window(seat_state_pointer->xy[1]);
+    x = wl_fixed_to_int(win->wl_fixed_to_window(seat_state_pointer->xy[0]));
+    y = wl_fixed_to_int(win->wl_fixed_to_window(seat_state_pointer->xy[1]));
   }
 
   return GHOST_kSuccess;
