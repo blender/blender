@@ -35,6 +35,10 @@
 
 #include "mesh_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
 /**
  * helper to find edge for edge_rip,
  *
@@ -147,10 +151,14 @@ static float edbm_rip_edge_side_measure(
   return -score;
 }
 
-/* - Advanced selection handling 'ripsel' functions ----- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Selection Handling (advanced rip-select `ripsel` functions)
+ * \{ */
 
 /**
- * How rip selection works
+ * How rip selection works:
  *
  * Firstly - rip is basically edge split with side-selection & grab.
  * Things would be much more simple if we didn't have to worry about side selection
@@ -308,7 +316,11 @@ printf("%s: found contiguous edge loop of (%d)\n", __func__, uid_end - uid_start
   return eloop_pairs;
 }
 
-/* - De-Select the worst rip-edge side -------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Far-Side De-Select
+ * \{ */
 
 static BMEdge *edbm_ripsel_edge_uid_step(BMEdge *e_orig, BMVert **v_prev)
 {
@@ -366,9 +378,13 @@ static void edbm_ripsel_deselect_helper(BMesh *bm,
     }
   }
 }
-/* --- end 'ripsel' selection handling code --- */
 
-/* --- face-fill code --- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Face-Fill code
+ * \{ */
+
 /**
  * return an un-ordered array of loop pairs
  * use for rebuilding face-fill
@@ -496,7 +512,11 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
   }
 }
 
-/* --- end 'face-fill' code --- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Vertex Implementation
+ * \{ */
 
 /**
  * This is the main vert ripping function (rip when one vertex is selected)
@@ -857,6 +877,12 @@ static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obed
   return OPERATOR_FINISHED;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Edge Implementation
+ * \{ */
+
 /**
  * This is the main edge ripping function
  */
@@ -988,6 +1014,12 @@ static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obed
 
   return OPERATOR_FINISHED;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rip Operator
+ * \{ */
 
 /* based on mouse cursor position, it defines how is being ripped */
 static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -1122,3 +1154,5 @@ void MESH_OT_rip(wmOperatorType *ot)
   prop = RNA_def_boolean(ot->srna, "use_fill", false, "Fill", "Fill the ripped region");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MESH);
 }
+
+/** \} */
