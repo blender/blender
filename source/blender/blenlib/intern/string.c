@@ -122,6 +122,8 @@ size_t BLI_strncpy_rlen(char *__restrict dst, const char *__restrict src, const 
   return srclen;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name String Append
  * \{ */

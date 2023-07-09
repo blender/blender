@@ -818,7 +818,9 @@ void node_type_storage(struct bNodeType *ntype,
 
 /** \} */
 
-/* ************** COMMON NODES *************** */
+/* -------------------------------------------------------------------- */
+/** \name Common Node Types
+ * \{ */
 
 #define NODE_UNDEFINED -2 /* node type is not registered */
 #define NODE_CUSTOM -1    /* for dynamically registered custom types */

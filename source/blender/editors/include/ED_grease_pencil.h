@@ -41,6 +41,8 @@ void ED_keymap_grease_pencil(struct wmKeyConfig *keyconf);
  */
 eAttrDomain ED_grease_pencil_selection_domain_get(struct bContext *C);
 
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

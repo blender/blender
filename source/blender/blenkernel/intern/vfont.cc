@@ -749,8 +749,6 @@ typedef struct VFontCursor_Params {
   int r_string_offset;
 } VFontCursor_Params;
 
-/** \} */
-
 enum {
   VFONT_TO_CURVE_INIT = 0,
   VFONT_TO_CURVE_BISECT,

@@ -28,11 +28,11 @@
 
 #include "MEM_guardedalloc.h"
 
+namespace blender::bke {
+
 /* -------------------------------------------------------------------- */
 /** \name Geometry Component
  * \{ */
-
-namespace blender::bke {
 
 GeometryComponent::GeometryComponent(Type type) : type_(type) {}
 
@@ -717,6 +717,6 @@ bool object_has_geometry_set_instances(const Object &object)
   return false;
 }
 
-}  // namespace blender::bke
-
 /** \} */
+
+}  // namespace blender::bke

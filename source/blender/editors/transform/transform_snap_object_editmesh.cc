@@ -389,6 +389,8 @@ static bool raycastEditMesh(SnapCache_EditMesh *em_cache,
   return retval;
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
 /** \name Surface Snap Functions
  * \{ */
