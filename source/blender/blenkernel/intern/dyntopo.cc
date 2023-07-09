@@ -3710,7 +3710,7 @@ static bool reproject_bm_data(BMesh *bm,
 
   /* interpolate */
   if (f_src->len == 3) {
-    myinterp::tri_weights_v3_new<T>(tco, cos_2d[0], cos_2d[1], cos_2d[2], w);
+    myinterp::tri_weights_v3<T>(tco, cos_2d[0], cos_2d[1], cos_2d[2], w);
     T sum = 0.0;
 
     for (int i = 0; i < 3; i++) {
@@ -3831,12 +3831,10 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     } while ((l = l->radial_next) != e->l);
   } while ((e = BM_DISK_EDGE_NEXT(e, v)) != v->e);
 
-  int totloop = ls.size();
-
   /* Original (l->prev, l, l->next) projections for each loop ('l' remains unchanged). */
 
-  char *_blocks = static_cast<char *>(alloca(ldata->totsize * totloop));
-  void **blocks = static_cast<void **>(BLI_array_alloca(blocks, totloop));
+  char *_blocks = static_cast<char *>(alloca(ldata->totsize * ls.size()));
+  void **blocks = static_cast<void **>(BLI_array_alloca(blocks, ls.size()));
 
   const int max_vblocks = valence * 3;
 
@@ -3847,7 +3845,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     vblocks[i] = static_cast<void *>(_vblocks);
   }
 
-  for (int i = 0; i < totloop; i++, _blocks += ldata->totsize) {
+  for (int i = 0; i < ls.size(); i++, _blocks += ldata->totsize) {
     blocks[i] = static_cast<void *>(_blocks);
   }
 
@@ -3964,7 +3962,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
     normalize_v3(startno2);
 
     /* Build fake face with starting coordinates. */
-    for (int i = 0; i < totloop; i++) {
+    for (int i = 0; i < ls.size(); i++) {
       BMLoop *l = ls[i];
       float no[3] = {0.0f, 0.0f, 0.0f};
 
@@ -4078,7 +4076,7 @@ void BKE_sculpt_reproject_cdata(SculptSession *ss,
       *origco = origco_saved;
       *origno = origno_saved;
     }
-  }
 
-  snapper.snap();
+    snapper.snap();
+  }
 }
