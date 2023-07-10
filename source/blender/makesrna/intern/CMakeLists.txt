@@ -411,8 +411,8 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
-if(WITH_VULKAN_METAL)
-  add_definitions(-DWITH_VULKAN_METAL)
+if(WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
