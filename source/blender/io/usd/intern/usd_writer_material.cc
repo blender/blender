@@ -2037,17 +2037,13 @@ void create_usd_cycles_material(pxr::UsdStageRefPtr a_stage,
 
   localize(localtree, localtree);
 
-  usd_define_or_over<pxr::UsdGeomScope>(a_stage,
-                                        usd_material.GetPath().AppendChild(cyclestokens::cycles),
-                                        export_params.export_as_overs);
-
   store_cycles_nodes(a_stage,
                      localtree,
-                     usd_material.GetPath().AppendChild(cyclestokens::cycles),
+                     usd_material.GetPath(),
                      &output,
                      export_params);
   link_cycles_nodes(
-      a_stage, usd_material, localtree, usd_material.GetPath().AppendChild(cyclestokens::cycles));
+      a_stage, usd_material, localtree, usd_material.GetPath());
 
   ntreeFreeLocalTree(localtree);
   MEM_freeN(localtree);
@@ -2062,36 +2058,7 @@ void create_mdl_material(const USDExporterContext &usd_export_context,
     return;
   }
 
-  usd_define_or_over<pxr::UsdGeomScope>(usd_export_context.stage,
-                                        usd_material.GetPath().AppendChild(usdtokens::mdl),
-                                        usd_export_context.export_params.export_as_overs);
-
-  pxr::SdfPath shader_path =
-      usd_material.GetPath().AppendChild(usdtokens::mdl).AppendChild(usdtokens::Shader);
-
-  pxr::UsdShadeShader shader = (usd_export_context.export_params.export_as_overs) ?
-                                   pxr::UsdShadeShader(
-                                       usd_export_context.stage->OverridePrim(shader_path)) :
-                                   pxr::UsdShadeShader::Define(usd_export_context.stage,
-                                                               shader_path);
-
-  if (!shader) {
-    std::cout << "WARNING in create_mdl_material(): couldn't create mdl shader " << shader_path
-              << std::endl;
-    return;
-  }
-
-  pxr::UsdShadeOutput material_surface_output = usd_material.CreateSurfaceOutput(usdtokens::mdl);
-
-  if (!material_surface_output) {
-    std::cout
-        << "WARNING in create_mdl_material(): couldn't create material 'mdl:surface' output.\n";
-    return;
-  }
-
-  material_surface_output.ConnectToSource(shader.ConnectableAPI(), usdtokens::out);
-
-  umm_export_material(usd_export_context, material, shader, "MDL");
+  umm_export_material(usd_export_context, material, usd_material, "MDL");
 
 #endif
 }
@@ -2159,7 +2126,7 @@ static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &u
                                                      const int type)
 {
   pxr::SdfPath shader_path = material.GetPath().AppendChild(
-      pxr::TfToken(pxr::TfMakeValidIdentifier(name)));
+      pxr::TfToken("preview_" + pxr::TfMakeValidIdentifier(name)));
   pxr::UsdShadeShader shader = pxr::UsdShadeShader::Define(usd_export_context.stage, shader_path);
 
   switch (type) {
@@ -2409,6 +2376,34 @@ static void copy_single_file(Image *ima, const std::string &dest_dir, const bool
   }
 }
 
+/* Export the texture of every texture image node in the given
+ * node tree. */
+static void export_textures(const bNodeTree *ntree,
+                            const pxr::UsdStageRefPtr stage,
+                            const bool allow_overwrite)
+{
+  if (!ntree) {
+    return;
+  }
+
+  if (!stage) {
+    return;
+  }
+
+  ntree->ensure_topology_cache();
+
+  for (bNode *node = (bNode *)ntree->nodes.first; node; node = node->next) {
+    if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+      export_texture(node, stage, allow_overwrite);
+    }
+    else if (node->is_group()) {
+      if (const bNodeTree *sub_tree = reinterpret_cast<const bNodeTree *>(node->id)) {
+        export_textures(sub_tree, stage, allow_overwrite);
+      }
+    }
+  }
+}
+
 /* Export the given texture node's image to a 'textures' directory
  * next to given stage's root layer USD.
  * Based on ImagesExporter::export_UV_Image() */
@@ -2454,11 +2449,7 @@ void export_textures(const Material *material, const pxr::UsdStageRefPtr stage, 
     return;
   }
 
-  for (bNode *node = (bNode *)material->nodetree->nodes.first; node; node = node->next) {
-    if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
-      export_texture(node, stage, allow_overwrite);
-    }
-  }
+  export_textures(material->nodetree, stage, allow_overwrite);
 }
 
 

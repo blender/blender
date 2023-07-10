@@ -21,8 +21,6 @@
 
 #  include <pxr/usd/usdShade/material.h>
 
-#  include "Python.h"
-
 struct Material;
 struct USDImportParams;
 
@@ -32,15 +30,14 @@ struct USDExporterContext;
 
 bool umm_module_loaded();
 
-bool umm_import_mdl_material(const USDImportParams &params,
-                             Material *mtl,
-                             const pxr::UsdShadeMaterial &usd_material,
-                             bool verbose,
-                             bool *r_has_material);
+bool umm_import_material(const USDImportParams &import_params,
+                         Material *mtl,
+                         const pxr::UsdShadeMaterial &usd_material,
+                         const std::string &render_context);
 
 bool umm_export_material(const USDExporterContext &usd_export_context,
                          const Material *mtl,
-                         pxr::UsdShadeShader &usd_shader,
+                         const pxr::UsdShadeMaterial &usd_material,
                          const std::string &render_context);
 
 }  // namespace blender::io::usd

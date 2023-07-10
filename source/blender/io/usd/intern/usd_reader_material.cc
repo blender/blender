@@ -433,20 +433,18 @@ Material *USDMaterialReader::add_material(const pxr::UsdShadeMaterial &usd_mater
     import_usd_preview(mtl, usd_preview);
   }
   else if (params_.import_shaders_mode == USD_IMPORT_MDL) {
-    bool has_mdl = false;
     bool mdl_imported = false;
 #ifdef WITH_PYTHON
     /* Invoke UMM to convert to MDL. */
-    mdl_imported = umm_import_mdl_material(params_, mtl, usd_material, true /* Verbose */, &has_mdl);
+    mdl_imported = umm_import_material(params_, mtl, usd_material, "MDL");
     if (params_.import_textures_mode == USD_TEX_IMPORT_PACK) {
       /* Process the imported material to pack the textures.  */
       pack_imported_textures(mtl);
     }
 #endif
-    if (!(has_mdl && mdl_imported) && usd_preview) {
+    if (!mdl_imported && usd_preview) {
       /* The material has no MDL shader or we couldn't convert the MDL,
        * so fall back on importing UsdPreviewSuface. */
-
       WM_reportf(RPT_INFO, "Couldn't import MDL shader for material %s, importing USD Preview Surface shaders instead",
                  mtl_name.c_str());
       import_usd_preview(mtl, usd_preview);

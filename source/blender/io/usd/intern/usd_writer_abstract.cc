@@ -237,20 +237,28 @@ pxr::UsdShadeMaterial USDAbstractWriter::ensure_usd_material(const HierarchyCont
                      pxr::UsdShadeMaterial(usd_export_context_.stage->OverridePrim(usd_path)) :
                      pxr::UsdShadeMaterial::Define(usd_export_context_.stage, usd_path);
 
+  bool textures_exported = false;
+
   // TODO(bskinner) maybe always export viewport material as variant...
+  if (material->use_nodes && this->usd_export_context_.export_params.generate_mdl) {
+    create_mdl_material(this->usd_export_context_, material, usd_material);
+    if (this->usd_export_context_.export_params.export_textures) {
+      export_textures(material,
+                      this->usd_export_context_.stage,
+                      this->usd_export_context_.export_params.overwrite_textures);
+      textures_exported = true;
+    }
+  }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_cycles_shaders) {
     create_usd_cycles_material(this->usd_export_context_.stage,
                                material,
                                usd_material,
                                this->usd_export_context_.export_params);
-    if (this->usd_export_context_.export_params.export_textures) {
-      export_textures(material, this->usd_export_context_.stage, this->usd_export_context_.export_params.overwrite_textures);
-    }
-  }
-  if (material->use_nodes && this->usd_export_context_.export_params.generate_mdl) {
-    create_mdl_material(this->usd_export_context_, material, usd_material);
-    if (this->usd_export_context_.export_params.export_textures) {
-      export_textures(material, this->usd_export_context_.stage, this->usd_export_context_.export_params.overwrite_textures);
+    if (!textures_exported && this->usd_export_context_.export_params.export_textures) {
+      export_textures(material,
+                      this->usd_export_context_.stage,
+                      this->usd_export_context_.export_params.overwrite_textures);
+      textures_exported = true;
     }
   }
   if (material->use_nodes && this->usd_export_context_.export_params.generate_preview_surface) {
