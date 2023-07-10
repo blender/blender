@@ -450,12 +450,12 @@ MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 
 namespace blender::bke::mesh {
 
-static void lnor_space_define(CornerNormalSpace &lnor_space,
-                              const float lnor[3],
-                              float vec_ref[3],
-                              float vec_other[3],
-                              const Span<float3> edge_vectors)
+static CornerNormalSpace lnor_space_define(const float lnor[3],
+                                           float vec_ref[3],
+                                           float vec_other[3],
+                                           const Span<float3> edge_vectors)
 {
+  CornerNormalSpace lnor_space{};
   const float pi2 = float(M_PI) * 2.0f;
   float tvec[3], dtp;
   const float dtp_ref = dot_v3v3(vec_ref, lnor);
@@ -467,7 +467,7 @@ static void lnor_space_define(CornerNormalSpace &lnor_space,
     /* If vec_ref or vec_other are too much aligned with lnor, we can't build lnor space,
      * tag it as invalid and abort. */
     lnor_space.ref_alpha = lnor_space.ref_beta = 0.0f;
-    return;
+    return lnor_space;
   }
 
   lnor_space.vec_lnor = lnor;
@@ -514,6 +514,8 @@ static void lnor_space_define(CornerNormalSpace &lnor_space,
   else {
     lnor_space.ref_beta = pi2;
   }
+
+  return lnor_space;
 }
 
 }  // namespace blender::bke::mesh
@@ -525,8 +527,7 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space,
                            const blender::Span<blender::float3> edge_vectors)
 {
   using namespace blender::bke::mesh;
-  CornerNormalSpace space{};
-  lnor_space_define(space, lnor, vec_ref, vec_other, edge_vectors);
+  const CornerNormalSpace space = lnor_space_define(lnor, vec_ref, vec_other, edge_vectors);
   copy_v3_v3(lnor_space->vec_lnor, space.vec_lnor);
   copy_v3_v3(lnor_space->vec_ref, space.vec_ref);
   copy_v3_v3(lnor_space->vec_ortho, space.vec_ortho);
@@ -901,7 +902,7 @@ static void lnor_space_for_single_fan(LoopSplitTaskDataCommon *common_data,
     normalize_v3(vec_prev);
 
     CornerNormalSpace &lnor_space = lnors_spacearr->spaces[space_index];
-    lnor_space_define(lnor_space, loop_normals[ml_curr_index], vec_curr, vec_prev, {});
+    lnor_space = lnor_space_define(loop_normals[ml_curr_index], vec_curr, vec_prev, {});
     lnors_spacearr->corner_space_indices[ml_curr_index] = space_index;
 
     if (!clnors_data.is_empty()) {
@@ -1061,7 +1062,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data,
     }
 
     CornerNormalSpace &lnor_space = lnors_spacearr->spaces[space_index];
-    lnor_space_define(lnor_space, lnor, vec_org, vec_curr, *edge_vectors);
+    lnor_space = lnor_space_define(lnor, vec_org, vec_curr, *edge_vectors);
     lnors_spacearr->corner_space_indices.as_mutable_span().fill_indices(
         processed_corners.as_span(), space_index);
     edge_vectors->clear();
