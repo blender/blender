@@ -278,7 +278,9 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(Depsgraph *depsgraph,
         BLI_linklist_free((LinkNode *)datamasks, nullptr);
 
         me = BKE_mesh_wrapper_from_editmesh(em, &cd_mask_extra, me_input);
-        deformedVerts = editbmesh_vert_coords_alloc(em);
+        deformedVerts = static_cast<float(*)[3]>(
+            MEM_mallocN(sizeof(*deformedVerts) * verts_num, __func__));
+        BKE_mesh_wrapper_vert_coords_copy(me, deformedVerts, verts_num);
         defmats = static_cast<float(*)[3][3]>(
             MEM_mallocN(sizeof(*defmats) * verts_num, "defmats"));
 

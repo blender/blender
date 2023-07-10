@@ -1051,19 +1051,15 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
   }
 }
 
-float (*editbmesh_vert_coords_alloc(BMEditMesh *em))[3]
+static blender::Array<float3> editbmesh_vert_coords_alloc(const BMEditMesh *em)
 {
+  blender::Array<float3> cos(em->bm->totvert);
   BMIter iter;
   BMVert *eve;
-  float(*cos)[3];
   int i;
-
-  cos = (float(*)[3])MEM_malloc_arrayN(em->bm->totvert, sizeof(float[3]), "vertexcos");
-
   BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-    copy_v3_v3(cos[i], eve->co);
+    cos[i] = eve->co;
   }
-
   return cos;
 }
 
@@ -1131,19 +1127,20 @@ static void editbmesh_calc_modifier_final_normals_or_defer(
   editbmesh_calc_modifier_final_normals(mesh_final, final_datamask);
 }
 
-static float (*mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh))[3]
+static blender::MutableSpan<float3> mesh_wrapper_vert_coords_ensure_for_write(Mesh *mesh)
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
-      if (mesh->runtime->edit_data->vertexCos == nullptr) {
+      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
         mesh->runtime->edit_data->vertexCos = editbmesh_vert_coords_alloc(mesh->edit_mesh);
       }
       return mesh->runtime->edit_data->vertexCos;
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
-      return reinterpret_cast<float(*)[3]>(mesh->vert_positions_for_write().data());
+      return mesh->vert_positions_for_write();
   }
-  return nullptr;
+  BLI_assert_unreachable();
+  return {};
 }
 
 static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
@@ -1244,12 +1241,14 @@ static void editbmesh_calc_modifiers(Depsgraph *depsgraph,
 
     if (mti->type == eModifierTypeType_OnlyDeform) {
       if (mti->deformVertsEM) {
-        BKE_modifier_deform_vertsEM(md,
-                                    &mectx,
-                                    em_input,
-                                    mesh_final,
-                                    mesh_wrapper_vert_coords_ensure_for_write(mesh_final),
-                                    BKE_mesh_wrapper_vert_len(mesh_final));
+        BKE_modifier_deform_vertsEM(
+            md,
+            &mectx,
+            em_input,
+            mesh_final,
+            reinterpret_cast<float(*)[3]>(
+                mesh_wrapper_vert_coords_ensure_for_write(mesh_final).data()),
+            BKE_mesh_wrapper_vert_len(mesh_final));
         BKE_mesh_wrapper_tag_positions_changed(mesh_final);
       }
       else {

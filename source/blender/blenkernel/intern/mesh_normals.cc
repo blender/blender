@@ -362,8 +362,8 @@ void BKE_mesh_ensure_normals_for_display(Mesh *mesh)
       break;
     case ME_WRAPPER_TYPE_BMESH: {
       BMEditMesh *em = mesh->edit_mesh;
-      if (EditMeshData *emd = mesh->runtime->edit_data) {
-        if (emd->vertexCos) {
+      if (blender::bke::EditMeshData *emd = mesh->runtime->edit_data) {
+        if (!emd->vertexCos.is_empty()) {
           BKE_editmesh_cache_ensure_vert_normals(em, emd);
           BKE_editmesh_cache_ensure_poly_normals(em, emd);
         }
