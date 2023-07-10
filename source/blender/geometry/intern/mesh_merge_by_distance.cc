@@ -40,16 +40,10 @@ namespace blender::geometry {
 #define ELEM_MERGED int(-2)
 
 struct WeldEdge {
-  union {
-    int flag;
-    struct {
-      /* Indices relative to the original Mesh. */
-      int edge_dest;
-      int edge_orig;
-      int vert_a;
-      int vert_b;
-    };
-  };
+  /* Indices relative to the original Mesh. */
+  int edge_orig;
+  int vert_a;
+  int vert_b;
 };
 
 struct WeldLoop {
@@ -86,17 +80,11 @@ struct WeldPoly {
 };
 
 struct WeldMesh {
-  /* Group of vertices to be merged. */
-  Array<int> vert_group_map; /* Maps the vertex group offset from the target vert index. */
-  Array<int> vert_groups_offs;
-  Array<int> vert_groups_buffer;
+  Vector<int> double_verts;
+  Vector<int> double_edges;
 
   /* Group of edges to be merged. */
-  Array<int> edge_groups_offs;
-  Array<int> edge_groups_buffer;
-  /* From the original edge index, this indicates which group it is going to be merged. */
-  Array<int> edge_groups_map;
-  Array<int2> edge_groups_verts;
+  Array<int> edge_dest_map;
 
   /* References all polygons and loops that will be affected. */
   Vector<WeldLoop> wloop;
@@ -152,26 +140,23 @@ static bool weld_iter_loop_of_poly_begin(WeldLoopOfPolyIter &iter,
 
 static bool weld_iter_loop_of_poly_next(WeldLoopOfPolyIter &iter);
 
-static void weld_assert_edge_kill_len(Span<WeldEdge> wedge, const int supposed_kill_len)
+static void weld_assert_edge_kill_len(Span<int> edge_dest_map, const int expected_kill_len)
 {
   int kills = 0;
-  const WeldEdge *we = &wedge[0];
-  for (int i = wedge.size(); i--; we++) {
-    int edge_dest = we->edge_dest;
-    /* Magically includes collapsed edges. */
-    if (edge_dest != OUT_OF_CONTEXT) {
+  for (const int edge_orig : edge_dest_map.index_range()) {
+    if (!ELEM(edge_dest_map[edge_orig], edge_orig, OUT_OF_CONTEXT)) {
       kills++;
     }
   }
-  BLI_assert(kills == supposed_kill_len);
+  BLI_assert(kills == expected_kill_len);
 }
 
 static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
                                                const Span<int> corner_verts,
                                                const Span<int> corner_edges,
                                                const OffsetIndices<int> polys,
-                                               const int supposed_poly_kill_len,
-                                               const int supposed_loop_kill_len)
+                                               const int expected_poly_kill_len,
+                                               const int expected_loop_kill_len)
 {
   int poly_kills = 0;
   int loop_kills = corner_verts.size();
@@ -253,8 +238,8 @@ static void weld_assert_poly_and_loop_kill_len(WeldMesh *weld_mesh,
     }
   }
 
-  BLI_assert(poly_kills == supposed_poly_kill_len);
-  BLI_assert(loop_kills == supposed_loop_kill_len);
+  BLI_assert(poly_kills == expected_poly_kill_len);
+  BLI_assert(loop_kills == expected_loop_kill_len);
 }
 
 static void weld_assert_poly_no_vert_repetition(const WeldPoly &wp,
@@ -347,66 +332,6 @@ static Vector<int> weld_vert_ctx_alloc_and_setup(MutableSpan<int> vert_dest_map,
   return wvert;
 }
 
-/**
- * Create groups of vertices to merge.
- *
- * \return r_vert_groups_map: Map that points out the group of vertices that a vertex belongs to.
- * \return r_vert_groups_buffer: Buffer containing the indices of all vertices that merge.
- * \return r_vert_groups_offs: Array that indicates where each vertex group starts in the buffer.
- */
-static void weld_vert_groups_setup(Span<int> wvert,
-                                   Span<int> vert_dest_map,
-                                   const int vert_kill_len,
-                                   Array<int> &r_vert_groups_map,
-                                   Array<int> &r_vert_groups_buffer,
-                                   Array<int> &r_vert_groups_offs)
-{
-  r_vert_groups_map.reinitialize(vert_dest_map.size());
-  r_vert_groups_map.fill(OUT_OF_CONTEXT);
-
-  /* Add +1 to allow calculation of the length of the last group. */
-  const int vert_groups_len = wvert.size() - vert_kill_len;
-  r_vert_groups_offs.reinitialize(vert_groups_len + 1);
-  r_vert_groups_offs.fill(0);
-
-  int wgroups_len = 0;
-  for (int vert_orig : wvert) {
-    if (vert_dest_map[vert_orig] == vert_orig) {
-      /* Indicate the index of the vertex group */
-      r_vert_groups_map[vert_orig] = wgroups_len;
-      wgroups_len++;
-    }
-    else {
-      r_vert_groups_map[vert_orig] = ELEM_MERGED;
-    }
-  }
-
-  for (int vert_orig : wvert) {
-    int vert_dest = vert_dest_map[vert_orig];
-    int group_index = r_vert_groups_map[vert_dest];
-    r_vert_groups_offs[group_index]++;
-  }
-
-  int offs = 0;
-  for (const int i : IndexRange(vert_groups_len)) {
-    offs += r_vert_groups_offs[i];
-    r_vert_groups_offs[i] = offs;
-  }
-  r_vert_groups_offs[vert_groups_len] = offs;
-
-  BLI_assert(offs == wvert.size());
-
-  r_vert_groups_buffer.reinitialize(offs);
-
-  /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int i = wvert.size(); i--;) {
-    int vert_orig = wvert[i];
-    int vert_dest = vert_dest_map[vert_orig];
-    int group_index = r_vert_groups_map[vert_dest];
-    r_vert_groups_buffer[--r_vert_groups_offs[group_index]] = vert_orig;
-  }
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -417,16 +342,13 @@ static void weld_vert_groups_setup(Span<int> wvert,
  * Alloc Weld Edges.
  *
  * \return r_edge_dest_map: First step to create map of indices pointing edges that will be merged.
- * \return r_edge_ctx_map: Map of indices pointing original edges to weld context edges.
  */
 static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<int2> edges,
                                                                Span<int> vert_dest_map,
                                                                MutableSpan<int> r_edge_dest_map,
-                                                               MutableSpan<int> r_edge_ctx_map,
                                                                int *r_edge_collapsed_len)
 {
   /* Edge Context. */
-  int wedge_len = 0;
   int edge_collapsed_len = 0;
 
   Vector<WeldEdge> wedge;
@@ -438,27 +360,20 @@ static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<int2> edges,
     int v_dest_1 = vert_dest_map[v1];
     int v_dest_2 = vert_dest_map[v2];
     if ((v_dest_1 != OUT_OF_CONTEXT) || (v_dest_2 != OUT_OF_CONTEXT)) {
-      WeldEdge we{};
-      we.vert_a = (v_dest_1 != OUT_OF_CONTEXT) ? v_dest_1 : v1;
-      we.vert_b = (v_dest_2 != OUT_OF_CONTEXT) ? v_dest_2 : v2;
-      we.edge_dest = OUT_OF_CONTEXT;
-      we.edge_orig = i;
+      const int vert_a = (v_dest_1 != OUT_OF_CONTEXT) ? v_dest_1 : v1;
+      const int vert_b = (v_dest_2 != OUT_OF_CONTEXT) ? v_dest_2 : v2;
 
-      if (we.vert_a == we.vert_b) {
-        we.flag = ELEM_COLLAPSED;
+      if (vert_a == vert_b) {
         edge_collapsed_len++;
         r_edge_dest_map[i] = ELEM_COLLAPSED;
       }
       else {
+        wedge.append({i, vert_a, vert_b});
         r_edge_dest_map[i] = i;
       }
-
-      wedge.append(we);
-      r_edge_ctx_map[i] = wedge_len++;
     }
     else {
       r_edge_dest_map[i] = OUT_OF_CONTEXT;
-      r_edge_ctx_map[i] = OUT_OF_CONTEXT;
     }
   }
 
@@ -469,42 +384,35 @@ static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<int2> edges,
 /**
  * Configure Weld Edges.
  *
- * \param r_vlinks: An uninitialized buffer used to compute groups of WeldEdges attached to each
- *                  weld target vertex. It doesn't need to be passed as a parameter but this is
- *                  done to reduce allocations.
  * \return r_edge_dest_map: Map of indices pointing edges that will be merged.
  * \return r_wedge: Weld edges. `flag` and `edge_dest` members will be set here.
- * \return r_edge_kill_len: Number of edges to be destroyed by merging or collapsing.
+ * \return r_edge_double_kill_len: Number of edges to be destroyed by merging or collapsing.
  */
-static void weld_edge_find_doubles(int remain_edge_ctx_len,
+static void weld_edge_find_doubles(Span<WeldEdge> wedge,
                                    int mvert_num,
                                    MutableSpan<int> r_edge_dest_map,
-                                   MutableSpan<WeldEdge> r_wedge,
-                                   int *r_edge_kill_len)
+                                   int *r_edge_double_kill_len)
 {
-  if (remain_edge_ctx_len == 0) {
+  /* Setup Edge Overlap. */
+  int edge_double_kill_len = 0;
+
+  if (wedge.size() == 0) {
+    *r_edge_double_kill_len = edge_double_kill_len;
     return;
   }
-
-  /* Setup Edge Overlap. */
-  int edge_double_len = 0;
 
   /* Add +1 to allow calculation of the length of the last group. */
   Array<int> v_links(mvert_num + 1, 0);
 
-  for (WeldEdge &we : r_wedge) {
-    if (we.flag == ELEM_COLLAPSED) {
-      BLI_assert(r_edge_dest_map[we.edge_orig] == ELEM_COLLAPSED);
-      continue;
-    }
-
+  for (const WeldEdge &we : wedge) {
+    BLI_assert(r_edge_dest_map[we.edge_orig] != ELEM_COLLAPSED);
     BLI_assert(we.vert_a != we.vert_b);
     v_links[we.vert_a]++;
     v_links[we.vert_b]++;
   }
 
   int link_len = 0;
-  for (const int i : IndexRange(v_links.size() - 1)) {
+  for (const int i : IndexRange(mvert_num)) {
     link_len += v_links[i];
     v_links[i] = link_len;
   }
@@ -514,12 +422,9 @@ static void weld_edge_find_doubles(int remain_edge_ctx_len,
   Array<int> link_edge_buffer(link_len);
 
   /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int i = r_wedge.size(); i--;) {
-    const WeldEdge &we = r_wedge[i];
-    if (we.flag == ELEM_COLLAPSED) {
-      continue;
-    }
-
+  for (int i = wedge.size(); i--;) {
+    const WeldEdge &we = wedge[i];
+    BLI_assert(r_edge_dest_map[we.edge_orig] != ELEM_COLLAPSED);
     int dst_vert_a = we.vert_a;
     int dst_vert_b = we.vert_b;
 
@@ -527,11 +432,11 @@ static void weld_edge_find_doubles(int remain_edge_ctx_len,
     link_edge_buffer[--v_links[dst_vert_b]] = i;
   }
 
-  for (const int i : r_wedge.index_range()) {
-    const WeldEdge &we = r_wedge[i];
-    if (we.edge_dest != OUT_OF_CONTEXT) {
-      /* No need to retest edges.
-       * (Already includes collapsed edges). */
+  for (const int i : wedge.index_range()) {
+    const WeldEdge &we = wedge[i];
+    BLI_assert(r_edge_dest_map[we.edge_orig] != OUT_OF_CONTEXT);
+    if (r_edge_dest_map[we.edge_orig] != we.edge_orig) {
+      /* Already a duplicate. */
       continue;
     }
 
@@ -552,6 +457,7 @@ static void weld_edge_find_doubles(int remain_edge_ctx_len,
     int *edges_ctx_b = &link_edge_buffer[link_b];
     int edge_orig = we.edge_orig;
 
+    const int edge_double_len_prev = edge_double_kill_len;
     for (; edges_len_a--; edges_ctx_a++) {
       int e_ctx_a = *edges_ctx_a;
       if (e_ctx_a == i) {
@@ -566,104 +472,23 @@ static void weld_edge_find_doubles(int remain_edge_ctx_len,
       }
       int e_ctx_b = *edges_ctx_b;
       if (e_ctx_a == e_ctx_b) {
-        WeldEdge *we_b = &r_wedge[e_ctx_b];
-        BLI_assert(ELEM(we_b->vert_a, dst_vert_a, dst_vert_b));
-        BLI_assert(ELEM(we_b->vert_b, dst_vert_a, dst_vert_b));
-        BLI_assert(we_b->edge_dest == OUT_OF_CONTEXT);
-        BLI_assert(we_b->edge_orig != edge_orig);
-        r_edge_dest_map[we_b->edge_orig] = edge_orig;
-        we_b->edge_dest = edge_orig;
-        edge_double_len++;
+        const WeldEdge &we_b = wedge[e_ctx_b];
+        BLI_assert(ELEM(we_b.vert_a, dst_vert_a, dst_vert_b));
+        BLI_assert(ELEM(we_b.vert_b, dst_vert_a, dst_vert_b));
+        BLI_assert(we_b.edge_orig != edge_orig);
+        BLI_assert(r_edge_dest_map[we_b.edge_orig] == we_b.edge_orig);
+        r_edge_dest_map[we_b.edge_orig] = edge_orig;
+        edge_double_kill_len++;
       }
     }
-  }
-
-  *r_edge_kill_len += edge_double_len;
-
-#ifdef USE_WELD_DEBUG
-  weld_assert_edge_kill_len(r_wedge, *r_edge_kill_len);
-#endif
-}
-
-/**
- * Create groups of edges to merge.
- *
- * \return r_edge_groups_map: Map that points out the group of edges that an edge belongs to.
- * \return r_edge_groups_buffer: Buffer containing the indices of all edges that merge.
- * \return r_edge_groups_offs: Array that indicates where each edge group starts in the buffer.
- */
-static void weld_edge_groups_setup(const int edges_len,
-                                   const int edge_kill_len,
-                                   MutableSpan<WeldEdge> wedge,
-                                   Span<int> wedge_map,
-                                   MutableSpan<int> r_edge_groups_map,
-                                   Array<int> &r_edge_groups_buffer,
-                                   Array<int> &r_edge_groups_offs,
-                                   Array<int2> &r_edge_groups_verts)
-{
-  int wgroups_len = wedge.size() - edge_kill_len;
-
-  r_edge_groups_verts.reinitialize(wgroups_len);
-
-  wgroups_len = 0;
-  for (const int i : IndexRange(edges_len)) {
-    int edge_ctx = wedge_map[i];
-    if (edge_ctx != OUT_OF_CONTEXT) {
-      WeldEdge *we = &wedge[edge_ctx];
-      int edge_dest = we->edge_dest;
-      if (edge_dest != OUT_OF_CONTEXT) {
-        BLI_assert(edge_dest != we->edge_orig);
-        r_edge_groups_map[i] = ELEM_MERGED;
-      }
-      else {
-        we->edge_dest = we->edge_orig;
-        r_edge_groups_verts[wgroups_len] = {we->vert_a, we->vert_b};
-        r_edge_groups_map[i] = wgroups_len;
-        wgroups_len++;
-      }
-    }
-    else {
-      r_edge_groups_map[i] = OUT_OF_CONTEXT;
+    if (edge_double_len_prev == edge_double_kill_len) {
+      /* This edge would form a group with only one element. For better performance, mark these
+       * edges and avoid forming these groups. */
+      r_edge_dest_map[edge_orig] = OUT_OF_CONTEXT;
     }
   }
 
-  BLI_assert(wgroups_len == wedge.size() - edge_kill_len);
-
-  if (wgroups_len == 0) {
-    /* All edges in the context are collapsed. */
-    return;
-  }
-
-  /* Add +1 to allow calculation of the length of the last group. */
-  r_edge_groups_offs.reinitialize(wgroups_len + 1);
-  r_edge_groups_offs.fill(0);
-
-  for (const WeldEdge &we : wedge) {
-    if (we.flag == ELEM_COLLAPSED) {
-      continue;
-    }
-    int group_index = r_edge_groups_map[we.edge_dest];
-    r_edge_groups_offs[group_index]++;
-  }
-
-  int offs = 0;
-  for (const int i : IndexRange(wgroups_len)) {
-    offs += r_edge_groups_offs[i];
-    r_edge_groups_offs[i] = offs;
-  }
-  r_edge_groups_offs[wgroups_len] = offs;
-
-  r_edge_groups_buffer.reinitialize(offs);
-
-  /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
-  for (int i = wedge.size(); i--;) {
-    const WeldEdge &we = wedge[i];
-    if (we.flag == ELEM_COLLAPSED) {
-      continue;
-    }
-    int group_index = r_edge_groups_map[we.edge_dest];
-    r_edge_groups_buffer[--r_edge_groups_offs[group_index]] = we.edge_orig;
-  }
+  *r_edge_double_kill_len = edge_double_kill_len;
 }
 
 /** \} */
@@ -1017,7 +842,7 @@ static void weld_poly_split_recursive(Span<int> vert_dest_map,
 /**
  * Alloc Weld Polygons and Weld Loops.
  *
- * \param remain_edge_ctx_len: Context weld edges that won't be destroyed by merging or collapsing.
+ * \param remain_edge_ctx_len: Context weld edges that won't be destroyed by merging.
  * \param r_vlinks: An uninitialized buffer used to compute groups of WeldPolys attached to each
  *                  weld target vertex. It doesn't need to be passed as a parameter but this is
  *                  done to reduce allocations.
@@ -1376,7 +1201,7 @@ static void weld_poly_find_doubles(const Span<int> corner_verts,
 static void weld_mesh_context_create(const Mesh &mesh,
                                      MutableSpan<int> vert_dest_map,
                                      const int vert_kill_len,
-                                     const bool do_vert_group,
+                                     const bool get_doubles,
                                      WeldMesh *r_weld_mesh)
 {
   const Span<int2> edges = mesh.edges();
@@ -1387,19 +1212,22 @@ static void weld_mesh_context_create(const Mesh &mesh,
   Vector<int> wvert = weld_vert_ctx_alloc_and_setup(vert_dest_map, vert_kill_len);
   r_weld_mesh->vert_kill_len = vert_kill_len;
 
-  Array<int> edge_dest_map(edges.size());
-  Array<int> edge_ctx_map(edges.size());
-  Vector<WeldEdge> wedge = weld_edge_ctx_alloc_and_find_collapsed(
-      edges, vert_dest_map, edge_dest_map, edge_ctx_map, &r_weld_mesh->edge_kill_len);
+  r_weld_mesh->edge_dest_map.reinitialize(edges.size());
 
-  weld_edge_find_doubles(wedge.size() - r_weld_mesh->edge_kill_len,
-                         mesh.totvert,
-                         edge_dest_map,
-                         wedge,
-                         &r_weld_mesh->edge_kill_len);
+  int edge_collapsed_len, edge_double_kill_len;
+  Vector<WeldEdge> wedge = weld_edge_ctx_alloc_and_find_collapsed(
+      edges, vert_dest_map, r_weld_mesh->edge_dest_map, &edge_collapsed_len);
+
+  weld_edge_find_doubles(wedge, mesh.totvert, r_weld_mesh->edge_dest_map, &edge_double_kill_len);
+
+  r_weld_mesh->edge_kill_len = edge_collapsed_len + edge_double_kill_len;
+
+#ifdef USE_WELD_DEBUG
+  weld_assert_edge_kill_len(r_weld_mesh->edge_dest_map, r_weld_mesh->edge_kill_len);
+#endif
 
   weld_poly_loop_ctx_alloc(
-      polys, corner_verts, corner_edges, vert_dest_map, edge_dest_map, r_weld_mesh);
+      polys, corner_verts, corner_edges, vert_dest_map, r_weld_mesh->edge_dest_map, r_weld_mesh);
 
   weld_poly_loop_ctx_setup_collapsed_and_split(
 #ifdef USE_WELD_DEBUG
@@ -1408,7 +1236,7 @@ static void weld_mesh_context_create(const Mesh &mesh,
       polys,
 #endif
       vert_dest_map,
-      wedge.size() - r_weld_mesh->edge_kill_len,
+      wedge.size() - edge_double_kill_len,
       r_weld_mesh);
 
   weld_poly_find_doubles(corner_verts,
@@ -1419,25 +1247,15 @@ static void weld_mesh_context_create(const Mesh &mesh,
                          edges.size(),
                          r_weld_mesh);
 
-  if (do_vert_group) {
-    weld_vert_groups_setup(wvert,
-                           vert_dest_map,
-                           vert_kill_len,
-                           r_weld_mesh->vert_group_map,
-                           r_weld_mesh->vert_groups_buffer,
-                           r_weld_mesh->vert_groups_offs);
+  if (get_doubles) {
+    r_weld_mesh->double_verts = std::move(wvert);
+    r_weld_mesh->double_edges.reserve(wedge.size());
+    for (WeldEdge &we : wedge) {
+      if (r_weld_mesh->edge_dest_map[we.edge_orig] >= 0) {
+        r_weld_mesh->double_edges.append(we.edge_orig);
+      }
+    }
   }
-
-  weld_edge_groups_setup(edges.size(),
-                         r_weld_mesh->edge_kill_len,
-                         wedge,
-                         edge_ctx_map,
-                         edge_dest_map,
-                         r_weld_mesh->edge_groups_buffer,
-                         r_weld_mesh->edge_groups_offs,
-                         r_weld_mesh->edge_groups_verts);
-
-  r_weld_mesh->edge_groups_map = std::move(edge_dest_map);
 }
 
 /** \} */
@@ -1445,6 +1263,75 @@ static void weld_mesh_context_create(const Mesh &mesh,
 /* -------------------------------------------------------------------- */
 /** \name CustomData
  * \{ */
+
+/**
+ * \brief Create groups to merge.
+ *
+ * This function creates groups for merging elements based on the provided `dest_map`.
+ *
+ * \param dest_map: Map that defines the source and target elements. The source elements will be
+ *                  merged into the target. Each target corresponds to a group.
+ * \param double_elems: Affected elements in `dest_map` that will compose groups.
+ *                      Used for performance only.
+ *
+ * \return r_groups_map: Map that points out the group of elements that an element belongs to.
+ * \return r_groups_buffer: Buffer containing the indices of all elements that merge.
+ * \return r_groups_offs: Array that indicates where each element group starts in the buffer.
+ */
+static void merge_groups_create(Span<int> dest_map,
+                                Span<int> double_elems,
+                                Array<int> &r_groups_map,
+                                Array<int> &r_groups_buffer,
+                                Array<int> &r_groups_offs)
+{
+  r_groups_map.reinitialize(dest_map.size());
+  r_groups_map.fill(OUT_OF_CONTEXT);
+
+  int wgroups_len = 0;
+  for (const int elem_orig : double_elems) {
+    const int elem_dest = dest_map[elem_orig];
+    if (elem_dest == elem_orig) {
+      r_groups_map[elem_orig] = wgroups_len;
+      wgroups_len++;
+    }
+    else {
+      r_groups_map[elem_orig] = ELEM_MERGED;
+    }
+  }
+
+  if (wgroups_len == 0) {
+    /* All elems in the context are collapsed or do not form groups. */
+    return;
+  }
+
+  /* Add +1 to allow calculation of the length of the last group. */
+  r_groups_offs.reinitialize(wgroups_len + 1);
+  r_groups_offs.fill(0);
+
+  for (const int elem_orig : double_elems) {
+    const int elem_dest = dest_map[elem_orig];
+    const int group_index = r_groups_map[elem_dest];
+    r_groups_offs[group_index]++;
+  }
+
+  int offs = 0;
+  for (const int i : IndexRange(wgroups_len)) {
+    offs += r_groups_offs[i];
+    r_groups_offs[i] = offs;
+  }
+  r_groups_offs[wgroups_len] = offs;
+
+  r_groups_buffer.reinitialize(offs);
+  BLI_assert(r_groups_buffer.size() == double_elems.size());
+
+  /* Use a reverse for loop to ensure that indexes are assigned in ascending order. */
+  for (int i = double_elems.size(); i--;) {
+    const int elem_orig = double_elems[i];
+    const int elem_dest = dest_map[elem_orig];
+    const int group_index = r_groups_map[elem_dest];
+    r_groups_buffer[--r_groups_offs[group_index]] = elem_orig;
+  }
+}
 
 static void customdata_weld(
     const CustomData *source, CustomData *dest, const int *src_indices, int count, int dest_index)
@@ -1541,6 +1428,96 @@ static void customdata_weld(
   }
 }
 
+static void merge_customdata_all(const CustomData *source,
+                                 CustomData *dest,
+                                 Span<int> dest_map,
+                                 Span<int> double_elems,
+                                 const int dest_size,
+                                 const bool do_mix_data,
+                                 Array<int> &r_final_map)
+{
+  UNUSED_VARS_NDEBUG(dest_size);
+
+  const int source_size = dest_map.size();
+
+  MutableSpan<int> groups_map;
+  Array<int> groups_buffer, groups_offs;
+  if (do_mix_data) {
+    merge_groups_create(dest_map, double_elems, r_final_map, groups_buffer, groups_offs);
+
+    /**
+     * Be careful when setting values to this array as it uses the same buffer as #r_final_map.
+     * This map will be used to adjust the index of vertices and edges in the new edges and loops.
+     */
+    groups_map = r_final_map;
+  }
+  else {
+    r_final_map.reinitialize(source_size);
+  }
+
+  bool finalize_map = false;
+  int dest_index = 0;
+  for (int i = 0; i < source_size; i++) {
+    const int source_index = i;
+    int count = 0;
+    while (i < source_size && dest_map[i] == OUT_OF_CONTEXT) {
+      r_final_map[i] = dest_index + count;
+      count++;
+      i++;
+    }
+    if (count) {
+      CustomData_copy_data(source, dest, source_index, dest_index, count);
+      dest_index += count;
+    }
+    if (i == source_size) {
+      break;
+    }
+    if (dest_map[i] == i) {
+      if (do_mix_data) {
+        const int grp_index = groups_map[i];
+        const int grp_buffer_offs = groups_offs[grp_index];
+        const int grp_buffer_len = groups_offs[grp_index + 1] - grp_buffer_offs;
+        customdata_weld(source, dest, &groups_buffer[grp_buffer_offs], grp_buffer_len, dest_index);
+      }
+      else {
+        CustomData_copy_data(source, dest, i, dest_index, 1);
+      }
+      r_final_map[i] = dest_index;
+      dest_index++;
+    }
+    else if (dest_map[i] == ELEM_COLLAPSED) {
+      /* Any value will do. This field must not be accessed anymore. */
+      r_final_map[i] = 0;
+    }
+    else {
+      const int elem_dest = dest_map[i];
+      BLI_assert(elem_dest != OUT_OF_CONTEXT);
+      BLI_assert(dest_map[elem_dest] == elem_dest);
+      if (elem_dest < i) {
+        r_final_map[i] = r_final_map[elem_dest];
+        BLI_assert(r_final_map[i] < dest_size);
+      }
+      else {
+        /* Mark as negative to set at the end. */
+        r_final_map[i] = -elem_dest;
+        finalize_map = true;
+      }
+    }
+  }
+
+  if (finalize_map) {
+    for (int i : r_final_map.index_range()) {
+      if (r_final_map[i] < 0) {
+        r_final_map[i] = r_final_map[-r_final_map[i]];
+        BLI_assert(r_final_map[i] < dest_size);
+      }
+      BLI_assert(r_final_map[i] >= 0);
+    }
+  }
+
+  BLI_assert(dest_index == dest_size);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1550,7 +1527,7 @@ static void customdata_weld(
 static Mesh *create_merged_mesh(const Mesh &mesh,
                                 MutableSpan<int> vert_dest_map,
                                 const int removed_vertex_count,
-                                const bool do_mix_vert_data)
+                                const bool do_mix_data)
 {
 #ifdef USE_WELD_DEBUG_TIME
   SCOPED_TIMER(__func__);
@@ -1563,8 +1540,7 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
   const int totedge = mesh.totedge;
 
   WeldMesh weld_mesh;
-  weld_mesh_context_create(
-      mesh, vert_dest_map, removed_vertex_count, do_mix_vert_data, &weld_mesh);
+  weld_mesh_context_create(mesh, vert_dest_map, removed_vertex_count, do_mix_data, &weld_mesh);
 
   const int result_nverts = totvert - weld_mesh.vert_kill_len;
   const int result_nedges = totedge - weld_mesh.edge_kill_len;
@@ -1580,98 +1556,35 @@ static Mesh *create_merged_mesh(const Mesh &mesh,
 
   /* Vertices. */
 
-  MutableSpan<int> vert_final_map;
-  Array<int> vert_final_map_local;
-  if (!weld_mesh.vert_group_map.is_empty()) {
-    /* Be careful when setting values to this array as it uses the same buffer as #vert_group_map.
-     * This map will be used to adjust edges and loops to point to new vertex indices. */
-    vert_final_map = weld_mesh.vert_group_map;
-  }
-  else {
-    vert_final_map_local.reinitialize(totvert);
-    vert_final_map = vert_final_map_local;
-  }
+  Array<int> vert_final_map;
 
-  int dest_index = 0;
-  for (int i = 0; i < totvert; i++) {
-    int source_index = i;
-    int count = 0;
-    while (i < totvert && vert_dest_map[i] == OUT_OF_CONTEXT) {
-      vert_final_map[i] = dest_index + count;
-      count++;
-      i++;
-    }
-    if (count) {
-      CustomData_copy_data(&mesh.vdata, &result->vdata, source_index, dest_index, count);
-      dest_index += count;
-    }
-    if (i == totvert) {
-      break;
-    }
-    if (vert_dest_map[i] == i) {
-      if (do_mix_vert_data) {
-        int *group_offs = &weld_mesh.vert_groups_offs[weld_mesh.vert_group_map[i]];
-        int *src_indices = &weld_mesh.vert_groups_buffer[*group_offs];
-        int count = *(group_offs + 1) - *group_offs;
-        customdata_weld(&mesh.vdata, &result->vdata, src_indices, count, dest_index);
-      }
-      else {
-        CustomData_copy_data(&mesh.vdata, &result->vdata, i, dest_index, 1);
-      }
-      vert_final_map[i] = dest_index;
-      dest_index++;
-    }
-  }
-
-  BLI_assert(dest_index == result_nverts);
+  merge_customdata_all(&mesh.vdata,
+                       &result->vdata,
+                       vert_dest_map,
+                       weld_mesh.double_verts,
+                       result_nverts,
+                       do_mix_data,
+                       vert_final_map);
 
   /* Edges. */
 
-  /* Be careful when editing this array as it uses the same buffer as #WeldMesh::edge_groups_map.
-   * This map will be used to adjust edges and loops to point to new edge indices. */
-  MutableSpan<int> edge_final_map = weld_mesh.edge_groups_map;
+  Array<int> edge_final_map;
 
-  dest_index = 0;
-  for (int i = 0; i < totedge; i++) {
-    const int source_index = i;
-    int count = 0;
-    while (i < totedge && weld_mesh.edge_groups_map[i] == OUT_OF_CONTEXT) {
-      edge_final_map[i] = dest_index + count;
-      count++;
-      i++;
-    }
-    if (count) {
-      CustomData_copy_data(&mesh.edata, &result->edata, source_index, dest_index, count);
-      int2 *edge = &dst_edges[dest_index];
-      dest_index += count;
-      for (; count--; edge++) {
-        (*edge)[0] = vert_final_map[(*edge)[0]];
-        (*edge)[1] = vert_final_map[(*edge)[1]];
-      }
-    }
-    if (i == totedge) {
-      break;
-    }
-    if (weld_mesh.edge_groups_map[i] != ELEM_MERGED) {
-      const int wegpr_index = weld_mesh.edge_groups_map[i];
-      const int wegrp_offs = weld_mesh.edge_groups_offs[wegpr_index];
-      const int wegrp_len = weld_mesh.edge_groups_offs[wegpr_index + 1] - wegrp_offs;
-      int2 &wegrp_verts = weld_mesh.edge_groups_verts[wegpr_index];
-      customdata_weld(&mesh.edata,
-                      &result->edata,
-                      &weld_mesh.edge_groups_buffer[wegrp_offs],
-                      wegrp_len,
-                      dest_index);
-      int2 &edge = dst_edges[dest_index];
-      edge[0] = vert_final_map[wegrp_verts[0]];
-      edge[1] = vert_final_map[wegrp_verts[1]];
+  merge_customdata_all(&mesh.edata,
+                       &result->edata,
+                       weld_mesh.edge_dest_map,
+                       weld_mesh.double_edges,
+                       result_nedges,
+                       do_mix_data,
+                       edge_final_map);
 
-      edge_final_map[i] = dest_index;
-      dest_index++;
-    }
+  for (int2 &edge : dst_edges) {
+    edge[0] = vert_final_map[edge[0]];
+    edge[1] = vert_final_map[edge[1]];
+    BLI_assert(edge[0] != edge[1]);
+    BLI_assert(IN_RANGE_INCL(edge[0], 0, result_nverts - 1));
+    BLI_assert(IN_RANGE_INCL(edge[1], 0, result_nverts - 1));
   }
-
-  BLI_assert(dest_index == result_nedges);
 
   /* Polys/Loops. */
 
