@@ -79,15 +79,15 @@ void reflection_probes_eval(ClosureReflection reflection, vec3 P, vec3 V, inout 
   int closest_reflection_probe = reflection_probes_find_closest(P);
   vec4 light_color = vec4(0.0);
   if (closest_reflection_probe != -1) {
-    light_color = reflection_probe_eval(
-        reflection, P, V, reflection_probe_buf[closest_reflection_probe]);
+    ReflectionProbeData probe_data = reflection_probe_buf[closest_reflection_probe];
+    light_color = reflection_probe_eval(reflection, P, V, probe_data);
   }
 
   /* Mix world lighting. */
   if (light_color.a != 1.0) {
-    light_color.rgb = mix(reflection_probe_eval(reflection, P, V, reflection_probe_buf[0]).rgb,
-                          light_color.rgb,
-                          light_color.a);
+    ReflectionProbeData probe_data = reflection_probe_buf[0];
+    light_color.rgb = mix(
+        reflection_probe_eval(reflection, P, V, probe_data).rgb, light_color.rgb, light_color.a);
   }
 
   out_specular += light_color.rgb;

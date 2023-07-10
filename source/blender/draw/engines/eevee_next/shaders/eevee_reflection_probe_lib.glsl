@@ -13,5 +13,6 @@ vec4 reflection_probes_sample(vec3 L, float lod, ReflectionProbeData probe_data)
 
 vec3 reflection_probes_world_sample(vec3 L, float lod)
 {
-  return reflection_probes_sample(L, lod, reflection_probe_buf[0]).rgb;
+  ReflectionProbeData probe_data = reflection_probe_buf[0];
+  return reflection_probes_sample(L, lod, probe_data).rgb;
 }
