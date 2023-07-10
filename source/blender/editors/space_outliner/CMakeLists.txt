@@ -56,6 +56,7 @@ set(SRC
   tree/tree_element_bone.cc
   tree/tree_element_collection.cc
   tree/tree_element_driver.cc
+  tree/tree_element_edit_bone.cc
   tree/tree_element_gpencil_layer.cc
   tree/tree_element_id.cc
   tree/tree_element_id_armature.cc
@@ -86,6 +87,7 @@ set(SRC
   tree/tree_element_bone.hh
   tree/tree_element_collection.hh
   tree/tree_element_driver.hh
+  tree/tree_element_edit_bone.hh
   tree/tree_element_gpencil_layer.hh
   tree/tree_element_id.hh
   tree/tree_element_id_armature.hh

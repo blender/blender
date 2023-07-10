@@ -21,6 +21,7 @@
 #include "tree_element_bone.hh"
 #include "tree_element_collection.hh"
 #include "tree_element_driver.hh"
+#include "tree_element_edit_bone.hh"
 #include "tree_element_gpencil_layer.hh"
 #include "tree_element_id.hh"
 #include "tree_element_label.hh"
@@ -107,6 +108,11 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::createFromType(const i
       BoneElementCreateData *bone_data = static_cast<BoneElementCreateData *>(idv);
       return std::make_unique<TreeElementBone>(
           legacy_te, *bone_data->armature_id, *bone_data->bone);
+    }
+    case TSE_EBONE: {
+      EditBoneElementCreateData *ebone_data = static_cast<EditBoneElementCreateData *>(idv);
+      return std::make_unique<TreeElementEditBone>(
+          legacy_te, *ebone_data->armature_id, *ebone_data->ebone);
     }
     default:
       break;

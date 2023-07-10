@@ -292,6 +292,11 @@ struct BoneElementCreateData {
   Bone *bone;
 };
 
+struct EditBoneElementCreateData {
+  ID *armature_id;
+  EditBone *ebone;
+};
+
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);
 TreeTraversalAction outliner_collect_selected_objects(TreeElement *te, void *customdata);
 
