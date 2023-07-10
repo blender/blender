@@ -128,10 +128,14 @@ static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
   RenderView *rv = RE_RenderViewGetById(rr, 0);
-  if (rv->combined_buffer.data) {
+  ImBuf *ibuf = rv->ibuf;
+  if (!ibuf) {
+    return NULL;
+  }
+  if (ibuf->float_buffer.data) {
     return IFACE_("Composite");
   }
-  if (rv->byte_buffer.data) {
+  if (ibuf->byte_buffer.data) {
     return IFACE_("Sequence");
   }
   return NULL;

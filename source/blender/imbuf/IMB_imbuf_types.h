@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "BLI_implicit_sharing.h"
-
 #include "DNA_vec_types.h" /* for rcti */
 
 #include "BLI_sys_types.h"
+
+struct GPUTexture;
 
 #ifdef __cplusplus
 extern "C" {
@@ -172,17 +172,14 @@ typedef enum ImBufOwnership {
 
 /* Different storage specialization.
  *
- * Note on the implicit sharing
- * ----------------------------
+ * NOTE: Avoid direct assignments and allocations, use the buffer utilities from the IMB_imbuf.h
+ * instead.
  *
- * The buffer allows implicitly sharing data with other users of such data. In this case the
- * ownership is set to IB_DO_NOT_TAKE_OWNERSHIP. */
-/* TODO(sergey): Once everything is C++ replace with a template. */
+ * Accessing the data pointer directly is fine and is an expected way of accessing it. */
 
 typedef struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
-  const ImplicitSharingInfoHandle *implicit_sharing;
 
   struct ColorSpace *colorspace;
 } ImBufByteBuffer;
@@ -190,10 +187,19 @@ typedef struct ImBufByteBuffer {
 typedef struct ImBufFloatBuffer {
   float *data;
   ImBufOwnership ownership;
-  const ImplicitSharingInfoHandle *implicit_sharing;
 
   struct ColorSpace *colorspace;
 } ImBufFloatBuffer;
+
+typedef struct ImBufGPU {
+  /* Texture which corresponds to the state of the ImBug on the GPU.
+   *
+   * Allocation is supposed to happen outside of the ImBug module from a proper GPU context.
+   * De-referencing the ImBuf or its GPU texture can happen from any state. */
+  /* TODO(sergey): This should become a list of textures, to support having high-res ImBuf on GPU
+   * without hitting hardware limitations. */
+  struct GPUTexture *texture;
+} ImBufGPU;
 
 /** \} */
 
@@ -235,6 +241,9 @@ typedef struct ImBuf {
    * \note Formats that support higher more than 8 but channels load as floats.
    */
   ImBufFloatBuffer float_buffer;
+
+  /* Image buffer on the GPU. */
+  ImBufGPU gpu;
 
   /** Resolution in pixels per meter. Multiply by `0.0254` for DPI. */
   double ppm[2];

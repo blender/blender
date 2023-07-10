@@ -1577,18 +1577,18 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
       RE_AcquireResultImage(re, &rres, view_id);
 
-      if (rres.combined_buffer.data) {
+      if (rres.ibuf && rres.ibuf->float_buffer.data) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, 0);
-        IMB_assign_shared_float_buffer(
-            ibufs_arr[view_id], rres.combined_buffer.data, rres.combined_buffer.sharing_info);
+        IMB_assign_float_buffer(
+            ibufs_arr[view_id], rres.ibuf->float_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
 
         /* float buffers in the sequencer are not linear */
         seq_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }
-      else if (rres.byte_buffer.data) {
+      else if (rres.ibuf->byte_buffer.data) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
         memcpy(ibufs_arr[view_id]->byte_buffer.data,
-               rres.byte_buffer.data,
+               rres.ibuf->byte_buffer.data,
                4 * rres.rectx * rres.recty);
       }
 

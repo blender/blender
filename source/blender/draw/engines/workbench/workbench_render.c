@@ -24,6 +24,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "RE_pipeline.h"
 
 #include "workbench_private.h"
@@ -104,7 +106,7 @@ static void workbench_render_result_z(RenderLayer *rl, const char *viewname, con
 
   if ((view_layer->passflag & SCE_PASS_Z) != 0) {
     RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
-    float *rp_buffer_data = rp->buffer.data;
+    float *rp_buffer_data = rp->ibuf->float_buffer.data;
 
     GPU_framebuffer_bind(dfbl->default_fb);
     GPU_framebuffer_read_depth(dfbl->default_fb,
@@ -208,7 +210,7 @@ void workbench_render(void *ved, RenderEngine *engine, RenderLayer *render_layer
                              4,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->buffer.data);
+                             rp->ibuf->float_buffer.data);
 
   workbench_render_result_z(render_layer, viewname, rect);
 }
