@@ -132,9 +132,8 @@ struct CornerNormalSpaceArray {
   bool create_corners_by_space = false;
 };
 
-void lnor_space_custom_normal_to_data(const CornerNormalSpace *lnor_space,
-                                      const float custom_lnor[3],
-                                      short r_clnor_data[2]);
+short2 lnor_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
+                                        const float3 &custom_lnor);
 
 /**
  * Compute split normals, i.e. vertex normals associated with each poly (hence 'loop normals').
