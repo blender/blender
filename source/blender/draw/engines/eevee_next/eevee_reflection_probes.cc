@@ -83,7 +83,7 @@ int ReflectionProbeModule::needed_layers_get() const
   return max_layer + 1;
 }
 
-void ReflectionProbeModule::sync(const ReflectionProbe &probe)
+void ReflectionProbeModule::sync(ReflectionProbe &probe)
 {
   switch (probe.type) {
     case ReflectionProbe::Type::World: {
@@ -92,6 +92,7 @@ void ReflectionProbeModule::sync(const ReflectionProbe &probe)
     case ReflectionProbe::Type::Probe: {
       if (probe.do_render) {
         upload_dummy_texture(probe);
+        probe.do_render = false;
       }
       break;
     }
@@ -337,7 +338,6 @@ void ReflectionProbeModule::end_sync()
         break;
     }
     probe.do_update_data = false;
-    probe.do_render = false;
   }
 
   if (regenerate_mipmaps) {
@@ -403,6 +403,17 @@ void ReflectionProbeModule::recalc_lod_factors()
         0.5 * log(float(square_i(probes_tx_.width() >> probe_data.layer_subdivision))) / log(2.0);
     probe_data.lod_factor = lod_factor;
   }
+}
+bool ReflectionProbeModule::do_world_update_get() const
+{
+  const ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
+  return world_probe.do_render;
+}
+
+void ReflectionProbeModule::do_world_update_set(bool value)
+{
+  ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
+  world_probe.do_render = value;
 }
 
 /* -------------------------------------------------------------------- */
