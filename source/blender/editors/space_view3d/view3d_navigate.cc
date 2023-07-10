@@ -43,7 +43,7 @@
 
 #include "view3d_intern.h"
 
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* Prototypes. */
 static void viewops_data_init_context(bContext *C, ViewOpsData *vod);
@@ -278,7 +278,7 @@ int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event)
 
 void view3d_navigate_cancel_fn(bContext *C, wmOperator *op)
 {
-  viewops_data_free(C, (ViewOpsData *)op->customdata);
+  viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
   op->customdata = nullptr;
 }
 

@@ -18,7 +18,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Move (Pan) Operator
@@ -35,7 +35,7 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
       {VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
       {VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Move Modal");

@@ -49,26 +49,26 @@ set(SRC
   view3d_header.c
   view3d_iterators.cc
   view3d_navigate.cc
-  view3d_navigate_dolly.c
-  view3d_navigate_fly.c
-  view3d_navigate_move.c
-  view3d_navigate_ndof.c
-  view3d_navigate_roll.c
-  view3d_navigate_rotate.c
-  view3d_navigate_smoothview.c
-  view3d_navigate_walk.c
-  view3d_navigate_zoom.c
-  view3d_navigate_zoom_border.c
-  view3d_ops.c
+  view3d_navigate_dolly.cc
+  view3d_navigate_fly.cc
+  view3d_navigate_move.cc
+  view3d_navigate_ndof.cc
+  view3d_navigate_roll.cc
+  view3d_navigate_rotate.cc
+  view3d_navigate_smoothview.cc
+  view3d_navigate_walk.cc
+  view3d_navigate_zoom.cc
+  view3d_navigate_zoom_border.cc
+  view3d_ops.cc
   view3d_placement.c
   view3d_project.c
   view3d_select.cc
   view3d_snap.c
   view3d_utils.c
-  view3d_view.c
+  view3d_view.cc
 
   view3d_intern.h
-  view3d_navigate.h
+  view3d_navigate.hh
 )
 
 set(LIB

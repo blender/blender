@@ -8,7 +8,7 @@
  * Interactive walk navigation modal operator
  * (similar to walking around in a first person game).
  *
- * \note Similar logic to `view3d_navigate_fly.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_fly.cc` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_navigate - walk modal operator */
@@ -47,7 +47,7 @@
 #include "DEG_depsgraph.h"
 
 #include "view3d_intern.h" /* own include */
-#include "view3d_navigate.h"
+#include "view3d_navigate.hh"
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_WALK_DEBUG
@@ -167,7 +167,7 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
       {WALK_MODAL_AXIS_LOCK_Z, "AXIS_LOCK_Z", 0, "Z Axis Correction", "Z axis correction"},
 
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Walk Modal");
@@ -189,17 +189,16 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 /** \name Internal Walk Structs
  * \{ */
 
-typedef struct WalkTeleport {
+struct WalkTeleport {
   eWalkTeleportState state;
   float duration; /* from user preferences */
   float origin[3];
   float direction[3];
   double initial_time;
   eWalkMethod navigation_mode; /* teleport always set FREE mode on */
+};
 
-} WalkTeleport;
-
-typedef struct WalkInfo {
+struct WalkInfo {
   /* context stuff */
   RegionView3D *rv3d;
   View3D *v3d;
@@ -296,9 +295,8 @@ typedef struct WalkInfo {
 
   SnapObjectContext *snap_context;
 
-  struct View3DCameraControl *v3d_camera_control;
-
-} WalkInfo;
+  View3DCameraControl *v3d_camera_control;
+};
 
 /** \} */
 
@@ -313,10 +311,10 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm);
 static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm);
 static float getVelocityZeroTime(const float gravity, const float velocity);
 
-static void drawWalkPixel(const bContext *UNUSED(C), ARegion *region, void *arg)
+static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
 {
   /* draws an aim/cross in the center */
-  WalkInfo *walk = arg;
+  WalkInfo *walk = static_cast<WalkInfo *>(arg);
 
   const int outter_length = 24;
   const int inner_length = 14;
@@ -403,20 +401,20 @@ static bool walk_floor_distance_get(RegionView3D *rv3d,
   mul_v3_v3fl(dvec_tmp, dvec, walk->grid);
   add_v3_v3(ray_start, dvec_tmp);
 
-  ret = ED_transform_snap_object_project_ray(
-      walk->snap_context,
-      walk->depsgraph,
-      walk->v3d,
-      &(const struct SnapObjectParams){
-          .snap_target_select = SCE_SNAP_TARGET_ALL,
-          /* Avoid having to convert the edit-mesh to a regular mesh. */
-          .edit_mode_type = SNAP_GEOM_EDIT,
-      },
-      ray_start,
-      ray_normal,
-      r_distance,
-      r_location,
-      r_normal_dummy);
+  SnapObjectParams snap_params = {};
+  snap_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+  /* Avoid having to convert the edit-mesh to a regular mesh. */
+  snap_params.edit_mode_type = SNAP_GEOM_EDIT;
+
+  ret = ED_transform_snap_object_project_ray(walk->snap_context,
+                                             walk->depsgraph,
+                                             walk->v3d,
+                                             &snap_params,
+                                             ray_start,
+                                             ray_normal,
+                                             r_distance,
+                                             r_location,
+                                             r_normal_dummy);
 
   /* artificially scale the distance to the scene size */
   *r_distance /= walk->grid;
@@ -446,15 +444,16 @@ static bool walk_ray_cast(RegionView3D *rv3d,
 
   normalize_v3(ray_normal);
 
+  SnapObjectParams snap_params = {};
+  snap_params.snap_target_select = SCE_SNAP_TARGET_ALL;
+
   ret = ED_transform_snap_object_project_ray(walk->snap_context,
                                              walk->depsgraph,
                                              walk->v3d,
-                                             &(const struct SnapObjectParams){
-                                                 .snap_target_select = SCE_SNAP_TARGET_ALL,
-                                             },
+                                             &snap_params,
                                              ray_start,
                                              ray_normal,
-                                             NULL,
+                                             nullptr,
                                              r_location,
                                              r_normal);
 
@@ -496,7 +495,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 #endif
 
   /* sanity check: for rare but possible case (if lib-linking the camera fails) */
-  if ((walk->rv3d->persp == RV3D_CAMOB) && (walk->v3d->camera == NULL)) {
+  if ((walk->rv3d->persp == RV3D_CAMOB) && (walk->v3d->camera == nullptr)) {
     walk->rv3d->persp = RV3D_PERSP;
   }
 
@@ -575,7 +574,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   walk->timer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, 0.01f);
 
 #ifdef WITH_INPUT_NDOF
-  walk->ndof = NULL;
+  walk->ndof = nullptr;
 #endif
 
   walk->anim_playing = ED_screen_animation_playing(wm);
@@ -597,7 +596,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
   copy_v2_v2_int(walk->init_mval, mval);
   copy_v2_v2_int(walk->prev_mval, mval);
 
-  WM_cursor_grab_enable(win, 0, NULL, true);
+  WM_cursor_grab_enable(win, WM_CURSOR_WRAP_NONE, nullptr, true);
 
   return 1;
 }
@@ -646,7 +645,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   }
 #endif
 
-  WM_cursor_grab_disable(win, NULL);
+  WM_cursor_grab_disable(win, nullptr);
 
   if (walk->state == WALK_CONFIRM) {
     MEM_freeN(walk);
@@ -685,7 +684,8 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
     // puts("ndof motion detected in walk mode!");
     // static const char *tag_name = "3D mouse position";
 
-    const wmNDOFMotionData *incoming_ndof = event->customdata;
+    const wmNDOFMotionData *incoming_ndof = static_cast<const wmNDOFMotionData *>(
+        event->customdata);
     switch (incoming_ndof->progress) {
       case P_STARTING:
         /* start keeping track of 3D mouse position */
@@ -699,9 +699,9 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         putchar('.');
         fflush(stdout);
 #  endif
-        if (walk->ndof == NULL) {
+        if (walk->ndof == nullptr) {
           // walk->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
-          walk->ndof = MEM_dupallocN(incoming_ndof);
+          walk->ndof = static_cast<wmNDOFMotionData *>(MEM_dupallocN(incoming_ndof));
           // walk->ndof = malloc(sizeof(wmNDOFMotionData));
         }
         else {
@@ -716,7 +716,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
         if (walk->ndof) {
           MEM_freeN(walk->ndof);
           // free(walk->ndof);
-          walk->ndof = NULL;
+          walk->ndof = nullptr;
         }
 
         /* update the time else the view will jump when 2D mouse/timer resume */
@@ -806,7 +806,7 @@ static void walkEvent(WalkInfo *walk, const wmEvent *event)
           float t;
 
           /* delta time */
-          t = (float)(PIL_check_seconds_timer() - walk->teleport.initial_time);
+          t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
 
           /* Reduce the velocity, if JUMP wasn't hold for long enough. */
           t = min_ff(t, JUMP_TIME_MAX);
@@ -985,7 +985,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
       walk->redraw = 1;
 #endif
       time_current = PIL_check_seconds_timer();
-      time_redraw = (float)(time_current - walk->time_lastdraw);
+      time_redraw = float(time_current - walk->time_lastdraw);
 
       /* Clamp redraw time to avoid jitter in roll correction. */
       time_redraw_clamped = min_ff(0.05f, time_redraw);
@@ -1012,7 +1012,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           float y;
 
           /* relative offset */
-          y = (float)moffset[1];
+          y = float(moffset[1]);
 
           /* Speed factor. */
 #ifdef USE_TABLET_SUPPORT
@@ -1061,7 +1061,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
           }
 
           /* relative offset */
-          x = (float)moffset[0];
+          x = float(moffset[0]);
 
           /* Speed factor. */
 #ifdef USE_TABLET_SUPPORT
@@ -1232,7 +1232,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         float ray_distance, difference = -100.0f;
 
         /* delta time */
-        t = (float)(PIL_check_seconds_timer() - walk->teleport.initial_time);
+        t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
 
         /* keep moving if we were moving */
         copy_v2_v2(dvec, walk->teleport.direction);
@@ -1277,7 +1277,7 @@ static int walkApply(bContext *C, WalkInfo *walk, bool is_confirm)
         float cur_loc[3];
 
         /* linear interpolation */
-        t = (float)(PIL_check_seconds_timer() - walk->teleport.initial_time);
+        t = float(PIL_check_seconds_timer() - walk->teleport.initial_time);
         t /= walk->teleport.duration;
 
         /* clamp so we don't go past our limit */
@@ -1364,7 +1364,7 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  walk = MEM_callocN(sizeof(WalkInfo), "NavigationWalkOperation");
+  walk = MEM_cnew<WalkInfo>("NavigationWalkOperation");
 
   op->customdata = walk;
 
@@ -1382,18 +1382,18 @@ static int walk_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void walk_cancel(bContext *C, wmOperator *op)
 {
-  WalkInfo *walk = op->customdata;
+  WalkInfo *walk = static_cast<WalkInfo *>(op->customdata);
 
   walk->state = WALK_CANCEL;
   walkEnd(C, walk);
-  op->customdata = NULL;
+  op->customdata = nullptr;
 }
 
 static int walk_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int exit_code;
   bool do_draw = false;
-  WalkInfo *walk = op->customdata;
+  WalkInfo *walk = static_cast<WalkInfo *>(op->customdata);
   View3D *v3d = walk->v3d;
   RegionView3D *rv3d = walk->rv3d;
   Object *walk_object = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);

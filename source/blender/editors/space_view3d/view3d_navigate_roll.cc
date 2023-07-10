@@ -22,7 +22,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Roll Operator
@@ -40,7 +40,7 @@ static void view_roll_angle(ARegion *region,
                             float angle,
                             bool use_axis_view)
 {
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   float quat_mul[4];
 
   /* camera axis */
@@ -51,7 +51,7 @@ static void view_roll_angle(ARegion *region,
   /* avoid precision loss over time */
   normalize_qt(quat);
 
-  if (use_axis_view && RV3D_VIEW_IS_AXIS(rv3d->view) && (fabsf(angle) == (float)M_PI_2)) {
+  if (use_axis_view && RV3D_VIEW_IS_AXIS(rv3d->view) && (fabsf(angle) == float(M_PI_2))) {
     ED_view3d_quat_to_axis_view_and_reset_quat(quat, 0.01f, &rv3d->view, &rv3d->view_axis_roll);
   }
   else {
@@ -61,7 +61,8 @@ static void view_roll_angle(ARegion *region,
 
 static void viewroll_apply(ViewOpsData *vod, int x, int y)
 {
-  float angle = BLI_dial_angle(vod->init.dial, (const float[2]){x, y});
+  const float current_position[2] = {float(x), float(y)};
+  float angle = BLI_dial_angle(vod->init.dial, current_position);
 
   if (angle != 0.0f) {
     view_roll_angle(
@@ -84,7 +85,7 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
 
 static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ViewOpsData *vod = op->customdata;
+  ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
   short event_code = VIEW_PASS;
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
@@ -99,11 +100,11 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CANCEL;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
+        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_ROTATE:
-        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL, event);
+        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
     }
@@ -151,8 +152,8 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if ((ret & OPERATOR_RUNNING_MODAL) == 0) {
-    viewops_data_free(C, op->customdata);
-    op->customdata = NULL;
+    viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+    op->customdata = nullptr;
   }
 
   return ret;
@@ -167,7 +168,7 @@ static const EnumPropertyItem prop_view_roll_items[] = {
     {0, "ANGLE", 0, "Roll Angle", "Roll the view using an angle value"},
     {V3D_VIEW_STEPLEFT, "LEFT", 0, "Roll Left", "Roll the view around to the left"},
     {V3D_VIEW_STEPRIGHT, "RIGHT", 0, "Roll Right", "Roll the view around to the right"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static int viewroll_exec(bContext *C, wmOperator *op)
@@ -177,7 +178,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
   ARegion *region;
 
   if (op->customdata) {
-    ViewOpsData *vod = op->customdata;
+    ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
     region = vod->region;
     v3d = vod->v3d;
   }
@@ -185,7 +186,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
     ED_view3d_context_user_region(C, &v3d, &region);
   }
 
-  rv3d = region->regiondata;
+  rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
   if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
@@ -211,7 +212,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
     negate_v3(mousevec);
     view_roll_angle(region, quat_new, rv3d->viewquat, mousevec, angle, true);
 
-    const float *dyn_ofs_pt = NULL;
+    const float *dyn_ofs_pt = nullptr;
     float dyn_ofs[3];
     if (U.uiflag & USER_ORBIT_SELECTION) {
       if (view3d_orbit_calc_center(C, dyn_ofs)) {
@@ -220,25 +221,22 @@ static int viewroll_exec(bContext *C, wmOperator *op)
       }
     }
 
-    ED_view3d_smooth_view(C,
-                          v3d,
-                          region,
-                          smooth_viewtx,
-                          &(const V3D_SmoothParams){
-                              .quat = quat_new,
-                              .dyn_ofs = dyn_ofs_pt,
-                              /* Group as successive roll may run by holding a key. */
-                              .undo_str = op->type->name,
-                              .undo_grouped = true,
-                          });
+    V3D_SmoothParams sview_params = {};
+    sview_params.quat = quat_new;
+    sview_params.dyn_ofs = dyn_ofs_pt;
+    /* Group as successive roll may run by holding a key. */
+    sview_params.undo_str = op->type->name;
+    sview_params.undo_grouped = true;
 
-    viewops_data_free(C, op->customdata);
-    op->customdata = NULL;
+    ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview_params);
+
+    viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+    op->customdata = nullptr;
     return OPERATOR_FINISHED;
   }
 
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
+  viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+  op->customdata = nullptr;
   return OPERATOR_CANCELLED;
 }
 
@@ -253,10 +251,11 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     /* makes op->customdata */
-    vod = op->customdata = viewops_data_create(C, event, V3D_OP_MODE_VIEW_ROLL, false);
-    vod->init.dial = BLI_dial_init((const float[2]){BLI_rcti_cent_x(&vod->region->winrct),
-                                                    BLI_rcti_cent_y(&vod->region->winrct)},
-                                   FLT_EPSILON);
+    vod = viewops_data_create(C, event, V3D_OP_MODE_VIEW_ROLL, false);
+    const float start_position[2] = {float(BLI_rcti_cent_x(&vod->region->winrct)),
+                                     float(BLI_rcti_cent_y(&vod->region->winrct))};
+    vod->init.dial = BLI_dial_init(start_position, FLT_EPSILON);
+    op->customdata = vod;
 
     ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -268,8 +267,8 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       vod->init.event_xy[0] = vod->prev.event_xy[0] = event->xy[0];
       viewroll_apply(vod, event->prev_xy[0], event->prev_xy[1]);
 
-      viewops_data_free(C, op->customdata);
-      op->customdata = NULL;
+      viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+      op->customdata = nullptr;
       return OPERATOR_FINISHED;
     }
 

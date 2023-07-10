@@ -17,7 +17,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name NDOF Utility Functions
@@ -95,7 +95,7 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData *ndof,
                                  const bool has_translate,
                                  const bool has_zoom)
 {
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   float view_inv[4];
   float pan_vec[3];
 
@@ -159,8 +159,8 @@ static void view3d_ndof_orbit(const wmNDOFMotionData *ndof,
                               ViewOpsData *vod,
                               const bool apply_dyn_ofs)
 {
-  View3D *v3d = area->spacedata.first;
-  RegionView3D *rv3d = region->regiondata;
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   float view_inv[4];
 
@@ -431,7 +431,7 @@ int ndof_orbit_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
   RegionView3D *rv3d = vod->rv3d;
   char xform_flag = 0;
 
-  const wmNDOFMotionData *ndof = event->customdata;
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   /* off by default, until changed later this function */
   rv3d->rot_angle = 0.0f;
@@ -501,7 +501,7 @@ int ndof_orbit_zoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *ev
     return OPERATOR_CANCELLED;
   }
 
-  const wmNDOFMotionData *ndof = event->customdata;
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
     const int camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);
@@ -616,7 +616,7 @@ int ndof_pan_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  const wmNDOFMotionData *ndof = event->customdata;
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
     const int camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);

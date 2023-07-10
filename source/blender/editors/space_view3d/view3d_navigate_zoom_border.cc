@@ -23,7 +23,7 @@
 #include "RNA_access.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Border Zoom Operator
@@ -61,7 +61,7 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
   ED_view3d_dist_range_get(v3d, dist_range);
 
   ED_view3d_depth_override(
-      CTX_data_ensure_evaluated_depsgraph(C), region, v3d, NULL, V3D_DEPTH_NO_GPENCIL, NULL);
+      CTX_data_ensure_evaluated_depsgraph(C), region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
   {
     /* avoid allocating the whole depth buffer */
     ViewDepths depth_temp = {0};
@@ -77,17 +77,17 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
   /* Resize border to the same ratio as the window. */
   {
-    const float region_aspect = (float)region->winx / (float)region->winy;
-    if (((float)BLI_rcti_size_x(&rect) / (float)BLI_rcti_size_y(&rect)) < region_aspect) {
-      BLI_rcti_resize_x(&rect, (int)(BLI_rcti_size_y(&rect) * region_aspect));
+    const float region_aspect = float(region->winx) / float(region->winy);
+    if ((float(BLI_rcti_size_x(&rect)) / float(BLI_rcti_size_y(&rect))) < region_aspect) {
+      BLI_rcti_resize_x(&rect, int(BLI_rcti_size_y(&rect) * region_aspect));
     }
     else {
-      BLI_rcti_resize_y(&rect, (int)(BLI_rcti_size_x(&rect) / region_aspect));
+      BLI_rcti_resize_y(&rect, int(BLI_rcti_size_x(&rect) / region_aspect));
     }
   }
 
-  cent[0] = (((float)rect.xmin) + ((float)rect.xmax)) / 2;
-  cent[1] = (((float)rect.ymin) + ((float)rect.ymax)) / 2;
+  cent[0] = (float(rect.xmin) + float(rect.xmax)) / 2;
+  cent[1] = (float(rect.ymin) + float(rect.ymax)) / 2;
 
   if (rv3d->is_persp) {
     float p_corner[3];
@@ -172,16 +172,12 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
       ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
     }
   }
+  V3D_SmoothParams sview_params = {};
+  sview_params.ofs = new_ofs;
+  sview_params.dist = &new_dist;
+  sview_params.undo_str = op->type->name;
 
-  ED_view3d_smooth_view(C,
-                        v3d,
-                        region,
-                        smooth_viewtx,
-                        &(const V3D_SmoothParams){
-                            .ofs = new_ofs,
-                            .dist = &new_dist,
-                            .undo_str = op->type->name,
-                        });
+  ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview_params);
 
   if (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXVIEW) {
     view3d_boxview_sync(CTX_wm_area(C), region);

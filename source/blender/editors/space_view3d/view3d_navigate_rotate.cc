@@ -17,7 +17,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Rotate Operator
@@ -35,7 +35,7 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
       {VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
       {VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Rotate Modal");
@@ -72,7 +72,7 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
     for (y = -1; y < 2; y++) {
       for (z = -1; z < 2; z++) {
         if (x || y || z) {
-          float zaxis_test[3] = {x, y, z};
+          float zaxis_test[3] = {float(x), float(y), float(z)};
 
           normalize_v3(zaxis_test);
 
@@ -116,7 +116,7 @@ static void viewrotate_apply_snap(ViewOpsData *vod)
       float xaxis2[3] = {1, 0, 0};
       float quat_final_inv[4];
 
-      axis_angle_to_quat(quat_roll, zaxis_best, (float)j * DEG2RADF(45.0f));
+      axis_angle_to_quat(quat_roll, zaxis_best, float(j * DEG2RADF(45.0f)));
       normalize_qt(quat_roll);
 
       mul_qt_qtqt(quat_final, quat_snap, quat_roll);
@@ -181,7 +181,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
 
     sub_v3_v3v3(dvec, newvec, vod->init.trackvec);
 
-    angle = (len_v3(dvec) / (2.0f * V3D_OP_TRACKBALLSIZE)) * (float)M_PI;
+    angle = (len_v3(dvec) / (2.0f * V3D_OP_TRACKBALLSIZE)) * float(M_PI);
 
     /* Before applying the sensitivity this is rotating 1:1,
      * where the cursor would match the surface of a sphere in the view. */
@@ -248,7 +248,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
       if (dot_v3v3(xaxis, m_inv[0]) < 0) {
         negate_v3(xaxis);
       }
-      fac = angle_normalized_v3v3(zvec_global, m_inv[2]) / (float)M_PI;
+      fac = angle_normalized_v3v3(zvec_global, m_inv[2]) / float(M_PI);
       fac = fabsf(fac - 0.5f) * 2;
       fac = fac * fac;
       interp_v3_v3v3(xaxis, xaxis, m_inv[0], fac);

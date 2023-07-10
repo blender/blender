@@ -6,8 +6,7 @@
  * \ingroup spview3d
  */
 
-#include <math.h>
-#include <stdlib.h>
+#include <cmath>
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -35,7 +34,7 @@
 #include "ED_transform.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h"
+#include "view3d_navigate.hh"
 
 #ifdef WIN32
 #  include "BLI_math_base.h" /* M_PI */
@@ -119,7 +118,7 @@ static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  WM_event_add_notifier(C, NC_WINDOW, NULL);
+  WM_event_add_notifier(C, NC_WINDOW, nullptr);
   ED_outliner_select_sync_from_object_tag(C);
 
   BKE_reportf(op->reports, RPT_INFO, "%d object(s) pasted", num_pasted);

@@ -10,10 +10,6 @@
 
 #include "BLI_utildefines.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * Size of the sphere being dragged for trackball rotation within the view bounds.
  * also affects speed (smaller is faster).
@@ -31,9 +27,13 @@ struct View3D;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmKeyConfig;
+struct wmKeyMap;
 struct wmOperator;
+struct wmOperatorType;
+struct wmWindowManager;
 
-typedef enum eV3D_OpMode {
+enum eV3D_OpMode {
   V3D_OP_MODE_NONE = -1,
   V3D_OP_MODE_ZOOM = 0,
   V3D_OP_MODE_ROTATE,
@@ -47,7 +47,7 @@ typedef enum eV3D_OpMode {
   V3D_OP_MODE_NDOF_PAN,
   V3D_OP_MODE_NDOF_ALL,
 #endif
-} eV3D_OpMode;
+};
 #ifndef WITH_INPUT_NDOF
 #  define V3D_OP_MODE_LEN V3D_OP_MODE_DOLLY + 1
 #else
@@ -60,14 +60,15 @@ enum eV3D_OpPropFlag {
   V3D_OP_PROP_USE_ALL_REGIONS = (1 << 2),
   V3D_OP_PROP_USE_MOUSE_INIT = (1 << 3),
 };
+ENUM_OPERATORS(eV3D_OpPropFlag, V3D_OP_PROP_USE_MOUSE_INIT);
 
-typedef enum eV3D_OpEvent {
+enum eV3D_OpEvent {
   VIEW_PASS = 0,
   VIEW_APPLY,
   VIEW_CONFIRM,
   /** Only supported by some viewport operators. */
   VIEW_CANCEL,
-} eV3D_OpEvent;
+};
 
 /* NOTE: these defines are saved in keymap files, do not change values but just add new ones */
 enum {
@@ -80,7 +81,7 @@ enum {
   VIEWROT_MODAL_SWITCH_ROTATE = 6,
 };
 
-typedef enum eViewOpsFlag {
+enum eViewOpsFlag {
   VIEWOPS_FLAG_NONE = 0,
   /** When enabled, rotate around the selection. */
   VIEWOPS_FLAG_ORBIT_SELECT = (1 << 0),
@@ -96,22 +97,22 @@ typedef enum eViewOpsFlag {
   VIEWOPS_FLAG_USE_MOUSE_INIT = (1 << 3),
 
   VIEWOPS_FLAG_ZOOM_TO_MOUSE = (1 << 4),
-} eViewOpsFlag;
+};
 ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_ZOOM_TO_MOUSE);
 
 /** Generic View Operator Custom-Data */
-typedef struct ViewOpsData {
+struct ViewOpsData {
   /** Context pointers (assigned by #viewops_data_create). */
-  struct Main *bmain;
-  struct Scene *scene;
-  struct ScrArea *area;
-  struct ARegion *region;
-  struct View3D *v3d;
-  struct RegionView3D *rv3d;
-  struct Depsgraph *depsgraph;
+  Main *bmain;
+  Scene *scene;
+  ScrArea *area;
+  ARegion *region;
+  View3D *v3d;
+  RegionView3D *rv3d;
+  Depsgraph *depsgraph;
 
   /** Needed for continuous zoom. */
-  struct wmTimer *timer;
+  wmTimer *timer;
 
   /** Viewport state on initialization, don't change afterwards. */
   struct {
@@ -193,7 +194,7 @@ typedef struct ViewOpsData {
   /** Used for navigation on non view3d operators. */
   wmKeyMap *keymap;
   bool is_modal_event;
-} ViewOpsData;
+};
 
 /* view3d_navigate.cc */
 
@@ -202,18 +203,18 @@ typedef struct ViewOpsData {
  */
 const char *viewops_operator_idname_get(eV3D_OpMode nav_type);
 
-bool view3d_location_poll(struct bContext *C);
-bool view3d_rotation_poll(struct bContext *C);
-bool view3d_zoom_or_dolly_poll(struct bContext *C);
+bool view3d_location_poll(bContext *C);
+bool view3d_rotation_poll(bContext *C);
+bool view3d_zoom_or_dolly_poll(bContext *C);
 
 int view3d_navigate_invoke_impl(bContext *C,
                                 wmOperator *op,
                                 const wmEvent *event,
                                 const eV3D_OpMode nav_type);
 int view3d_navigate_modal_fn(bContext *C, wmOperator *op, const wmEvent *event);
-void view3d_navigate_cancel_fn(struct bContext *C, struct wmOperator *op);
+void view3d_navigate_cancel_fn(bContext *C, wmOperator *op);
 
-void calctrackballvec(const struct rcti *rect, const int event_xy[2], float r_dir[3]);
+void calctrackballvec(const rcti *rect, const int event_xy[2], float r_dir[3]);
 void viewmove_apply(ViewOpsData *vod, int x, int y);
 void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float ofs_old[3],
@@ -221,14 +222,14 @@ void view3d_orbit_apply_dyn_ofs(float r_ofs[3],
                                 const float viewquat_new[4],
                                 const float dyn_ofs[3]);
 void viewrotate_apply_dyn_ofs(ViewOpsData *vod, const float viewquat_new[4]);
-bool view3d_orbit_calc_center(struct bContext *C, float r_dyn_ofs[3]);
+bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3]);
 
-void view3d_operator_properties_common(struct wmOperatorType *ot, const enum eV3D_OpPropFlag flag);
+void view3d_operator_properties_common(wmOperatorType *ot, const eV3D_OpPropFlag flag);
 
 /**
  * Allocate and fill in context pointers for #ViewOpsData
  */
-void viewops_data_free(struct bContext *C, ViewOpsData *vod);
+void viewops_data_free(bContext *C, ViewOpsData *vod);
 
 /**
  * Allocate, fill in context pointers and calculate the values for #ViewOpsData
@@ -239,37 +240,37 @@ ViewOpsData *viewops_data_create(bContext *C,
                                  const bool use_cursor_init);
 void viewops_data_state_restore(ViewOpsData *vod);
 
-void VIEW3D_OT_view_all(struct wmOperatorType *ot);
-void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
-void VIEW3D_OT_view_center_cursor(struct wmOperatorType *ot);
-void VIEW3D_OT_view_center_pick(struct wmOperatorType *ot);
-void VIEW3D_OT_view_axis(struct wmOperatorType *ot);
-void VIEW3D_OT_view_camera(struct wmOperatorType *ot);
-void VIEW3D_OT_view_orbit(struct wmOperatorType *ot);
-void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
+void VIEW3D_OT_view_all(wmOperatorType *ot);
+void VIEW3D_OT_view_selected(wmOperatorType *ot);
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
+void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
+void VIEW3D_OT_view_axis(wmOperatorType *ot);
+void VIEW3D_OT_view_camera(wmOperatorType *ot);
+void VIEW3D_OT_view_orbit(wmOperatorType *ot);
+void VIEW3D_OT_view_pan(wmOperatorType *ot);
 
-/* view3d_navigate_dolly.c */
+/* view3d_navigate_dolly.cc */
 
-void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_dolly(struct wmOperatorType *ot);
+void viewdolly_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_dolly(wmOperatorType *ot);
 
-/* view3d_navigate_fly.c */
+/* view3d_navigate_fly.cc */
 
-void fly_modal_keymap(struct wmKeyConfig *keyconf);
-void view3d_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_fly(struct wmOperatorType *ot);
+void fly_modal_keymap(wmKeyConfig *keyconf);
+void view3d_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_fly(wmOperatorType *ot);
 
-/* view3d_navigate_move.c */
+/* view3d_navigate_move.cc */
 
 int viewmove_modal_impl(bContext *C,
                         ViewOpsData *vod,
                         const eV3D_OpEvent event_code,
                         const int xy[2]);
 int viewmove_invoke_impl(ViewOpsData *vod, const wmEvent *event);
-void viewmove_modal_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_move(struct wmOperatorType *ot);
+void viewmove_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_move(wmOperatorType *ot);
 
-/* view3d_navigate_ndof.c */
+/* view3d_navigate_ndof.cc */
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
@@ -282,41 +283,41 @@ int ndof_all_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
 /**
  * Called from both fly mode and walk mode,
  */
-void view3d_ndof_fly(const struct wmNDOFMotionData *ndof,
-                     struct View3D *v3d,
-                     struct RegionView3D *rv3d,
+void view3d_ndof_fly(const wmNDOFMotionData *ndof,
+                     View3D *v3d,
+                     RegionView3D *rv3d,
                      bool use_precision,
                      short protectflag,
                      bool *r_has_translate,
                      bool *r_has_rotate);
-void VIEW3D_OT_ndof_orbit(struct wmOperatorType *ot);
-void VIEW3D_OT_ndof_orbit_zoom(struct wmOperatorType *ot);
-void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
-void VIEW3D_OT_ndof_all(struct wmOperatorType *ot);
+void VIEW3D_OT_ndof_orbit(wmOperatorType *ot);
+void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot);
+void VIEW3D_OT_ndof_pan(wmOperatorType *ot);
+void VIEW3D_OT_ndof_all(wmOperatorType *ot);
 #endif /* WITH_INPUT_NDOF */
 
-/* view3d_navigate_roll.c */
+/* view3d_navigate_roll.cc */
 
-void VIEW3D_OT_view_roll(struct wmOperatorType *ot);
+void VIEW3D_OT_view_roll(wmOperatorType *ot);
 
-/* view3d_navigate_rotate.c */
+/* view3d_navigate_rotate.cc */
 
 int viewrotate_modal_impl(bContext *C,
                           ViewOpsData *vod,
                           const eV3D_OpEvent event_code,
                           const int xy[2]);
 int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event);
-void viewrotate_modal_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_rotate(struct wmOperatorType *ot);
+void viewrotate_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_rotate(wmOperatorType *ot);
 
-/* view3d_navigate_smoothview.c */
+/* view3d_navigate_smoothview.cc */
 
 /**
  * Parameters for setting the new 3D Viewport state.
  *
  * Each of the struct members may be NULL to signify they aren't to be adjusted.
  */
-typedef struct V3D_SmoothParams {
+struct V3D_SmoothParams {
   struct Object *camera_old, *camera;
   const float *ofs, *quat, *dist, *lens;
 
@@ -330,25 +331,22 @@ typedef struct V3D_SmoothParams {
    * which are likely to be activated by holding a key or from the mouse-wheel.
    */
   bool undo_grouped;
-} V3D_SmoothParams;
+};
 
 /**
  * The arguments are the desired situation.
  */
-void ED_view3d_smooth_view_ex(const struct Depsgraph *depsgraph,
-                              struct wmWindowManager *wm,
-                              struct wmWindow *win,
-                              struct ScrArea *area,
-                              struct View3D *v3d,
-                              struct ARegion *region,
+void ED_view3d_smooth_view_ex(const Depsgraph *depsgraph,
+                              wmWindowManager *wm,
+                              wmWindow *win,
+                              ScrArea *area,
+                              View3D *v3d,
+                              ARegion *region,
                               int smooth_viewtx,
                               const V3D_SmoothParams *sview);
 
-void ED_view3d_smooth_view(struct bContext *C,
-                           struct View3D *v3d,
-                           struct ARegion *region,
-                           int smooth_viewtx,
-                           const V3D_SmoothParams *sview);
+void ED_view3d_smooth_view(
+    bContext *C, View3D *v3d, ARegion *region, int smooth_viewtx, const V3D_SmoothParams *sview);
 
 /**
  * Call before multiple smooth-view operations begin to properly handle undo.
@@ -357,12 +355,12 @@ void ED_view3d_smooth_view(struct bContext *C,
  * or when calling #ED_view3d_smooth_view_ex.
  * Otherwise pass in #V3D_SmoothParams.undo_str so an undo step is pushed as needed.
  */
-void ED_view3d_smooth_view_undo_begin(struct bContext *C, const struct ScrArea *area);
+void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area);
 /**
  * Run after multiple smooth-view operations have run to push undo as needed.
  */
-void ED_view3d_smooth_view_undo_end(struct bContext *C,
-                                    const struct ScrArea *area,
+void ED_view3d_smooth_view_undo_end(bContext *C,
+                                    const ScrArea *area,
                                     const char *undo_str,
                                     bool undo_grouped);
 
@@ -370,31 +368,25 @@ void ED_view3d_smooth_view_undo_end(struct bContext *C,
  * Apply the smooth-view immediately, use when we need to start a new view operation.
  * (so we don't end up half-applying a view operation when pressing keys quickly).
  */
-void ED_view3d_smooth_view_force_finish(struct bContext *C,
-                                        struct View3D *v3d,
-                                        struct ARegion *region);
+void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region);
 
-void VIEW3D_OT_smoothview(struct wmOperatorType *ot);
+void VIEW3D_OT_smoothview(wmOperatorType *ot);
 
-/* view3d_navigate_walk.c */
+/* view3d_navigate_walk.cc */
 
-void walk_modal_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_walk(struct wmOperatorType *ot);
+void walk_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_walk(wmOperatorType *ot);
 
-/* view3d_navigate_zoom.c */
+/* view3d_navigate_zoom.cc */
 
 int viewzoom_modal_impl(bContext *C,
                         ViewOpsData *vod,
                         const eV3D_OpEvent event_code,
                         const int xy[2]);
 int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr);
-void viewzoom_modal_keymap(struct wmKeyConfig *keyconf);
-void VIEW3D_OT_zoom(struct wmOperatorType *ot);
+void viewzoom_modal_keymap(wmKeyConfig *keyconf);
+void VIEW3D_OT_zoom(wmOperatorType *ot);
 
-/* view3d_navigate_zoom_border.c */
+/* view3d_navigate_zoom_border.cc */
 
-void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
-
-#ifdef __cplusplus
-}
-#endif
+void VIEW3D_OT_zoom_border(wmOperatorType *ot);

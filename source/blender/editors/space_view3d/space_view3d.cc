@@ -88,7 +88,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "view3d_intern.h" /* own include */
-#include "view3d_navigate.h"
+#include "view3d_navigate.hh"
 
 /* ******************** manage regions ********************* */
 
@@ -1179,7 +1179,7 @@ static void view3d_main_region_listener(const wmRegionListenerParams *params)
           break;
         case ND_OB_ACTIVE:
         case ND_OB_SELECT:
-          ATTR_FALLTHROUGH;
+          [[fallthrough]];
         case ND_FRAME:
         case ND_TRANSFORM:
         case ND_OB_VISIBLE:
