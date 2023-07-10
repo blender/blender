@@ -1369,9 +1369,9 @@ void free_bvhtree_from_mesh(BVHTreeFromMesh *data)
 /** \name Point Cloud BVH Building
  * \{ */
 
-BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
-                                         const PointCloud *pointcloud,
-                                         const int tree_type)
+[[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
+                                                       const PointCloud *pointcloud,
+                                                       const int tree_type)
 {
   int tot_point = pointcloud->totpoint;
   BVHTree *tree = bvhtree_new_common(0.0f, tree_type, 6, tot_point, tot_point);
