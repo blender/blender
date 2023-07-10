@@ -69,6 +69,7 @@ static CLG_LogRef LOG = {"bke.mesh_convert"};
 
 static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispbase)
 {
+  using namespace blender;
   using namespace blender::bke;
   int a, b, ofs;
   const bool conv_polys = (
@@ -127,9 +128,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       "material_index", ATTR_DOMAIN_FACE);
   SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_face", ATTR_DOMAIN_FACE);
-
-  blender::float2 *mloopuv = static_cast<blender::float2 *>(CustomData_add_layer_named(
-      &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, DATA_("UVMap")));
+  SpanAttributeWriter<float2> uv_attribute = attributes.lookup_or_add_for_write_span<float2>(
+      DATA_("UVMap"), ATTR_DOMAIN_CORNER);
+  MutableSpan<float2> uv_map = uv_attribute.span;
 
   int dst_vert = 0;
   int dst_edge = 0;
@@ -203,11 +204,9 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
         poly_offsets[dst_poly] = dst_loop;
         material_indices.span[dst_poly] = dl->col;
 
-        if (mloopuv) {
-          for (int i = 0; i < 3; i++, mloopuv++) {
-            (*mloopuv)[0] = (corner_verts[dst_loop + i] - startvert) / float(dl->nr - 1);
-            (*mloopuv)[1] = 0.0f;
-          }
+        for (int i = 0; i < 3; i++) {
+          uv_map[dst_loop + i][0] = (corner_verts[dst_loop + i] - startvert) / float(dl->nr - 1);
+          uv_map[dst_loop + i][1] = 0.0f;
         }
 
         sharp_faces.span[dst_poly] = !is_smooth;
@@ -260,35 +259,33 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
           poly_offsets[dst_poly] = dst_loop;
           material_indices.span[dst_poly] = dl->col;
 
-          if (mloopuv) {
-            int orco_sizeu = dl->nr - 1;
-            int orco_sizev = dl->parts - 1;
+          int orco_sizeu = dl->nr - 1;
+          int orco_sizev = dl->parts - 1;
 
-            /* exception as handled in convertblender.c too */
-            if (dl->flag & DL_CYCL_U) {
-              orco_sizeu++;
-              if (dl->flag & DL_CYCL_V) {
-                orco_sizev++;
-              }
-            }
-            else if (dl->flag & DL_CYCL_V) {
+          /* exception as handled in convertblender.c too */
+          if (dl->flag & DL_CYCL_U) {
+            orco_sizeu++;
+            if (dl->flag & DL_CYCL_V) {
               orco_sizev++;
             }
+          }
+          else if (dl->flag & DL_CYCL_V) {
+            orco_sizev++;
+          }
 
-            for (int i = 0; i < 4; i++, mloopuv++) {
-              /* find uv based on vertex index into grid array */
-              int v = corner_verts[dst_loop + i] - startvert;
+          for (int i = 0; i < 4; i++) {
+            /* find uv based on vertex index into grid array */
+            int v = corner_verts[dst_loop + i] - startvert;
 
-              (*mloopuv)[0] = (v / dl->nr) / float(orco_sizev);
-              (*mloopuv)[1] = (v % dl->nr) / float(orco_sizeu);
+            uv_map[dst_loop + i][0] = (v / dl->nr) / float(orco_sizev);
+            uv_map[dst_loop + i][1] = (v % dl->nr) / float(orco_sizeu);
 
-              /* cyclic correction */
-              if (ELEM(i, 1, 2) && (*mloopuv)[0] == 0.0f) {
-                (*mloopuv)[0] = 1.0f;
-              }
-              if (ELEM(i, 0, 1) && (*mloopuv)[1] == 0.0f) {
-                (*mloopuv)[1] = 1.0f;
-              }
+            /* cyclic correction */
+            if (ELEM(i, 1, 2) && uv_map[dst_loop + i][0] == 0.0f) {
+              uv_map[dst_loop + i][0] = 1.0f;
+            }
+            if (ELEM(i, 0, 1) && uv_map[dst_loop + i][1] == 0.0f) {
+              uv_map[dst_loop + i][1] = 1.0f;
             }
           }
 
@@ -311,6 +308,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
 
   material_indices.finish();
   sharp_faces.finish();
+  uv_attribute.finish();
 
   return mesh;
 }
