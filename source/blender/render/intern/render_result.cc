@@ -877,7 +877,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
           else {
             BKE_reportf(nullptr,
                         RPT_WARNING,
-                        "reading render result: expected channel \"%s.%s\" or \"%s\" not found",
+                        "Reading render result: expected channel \"%s.%s\" or \"%s\" not found",
                         rl->name,
                         fullname,
                         fullname);
@@ -886,7 +886,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
         else {
           BKE_reportf(nullptr,
                       RPT_WARNING,
-                      "reading render result: expected channel \"%s.%s\" not found",
+                      "Reading render result: expected channel \"%s.%s\" not found",
                       rl->name,
                       fullname);
         }

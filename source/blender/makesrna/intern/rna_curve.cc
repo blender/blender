@@ -1305,7 +1305,7 @@ static void rna_def_font(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "is_select_smallcaps", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, nullptr, "editfont->select_char_info_flag", CU_CHINFO_SMALLCAPS);
-  RNA_def_property_ui_text(prop, "Selected Smallcaps", "Whether the selected text is small caps");
+  RNA_def_property_ui_text(prop, "Selected Small Caps", "Whether the selected text is small caps");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "has_selection", PROP_BOOLEAN, PROP_NONE);

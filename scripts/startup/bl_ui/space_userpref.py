@@ -643,8 +643,8 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
 
     def draw_centered(self, _context, layout):
         if _context.preferences.system.is_microsoft_store_install:
-            layout.label(text="Microsoft Store installation.")
-            layout.label(text="Use Windows 'Default Apps' to associate with blend files.")
+            layout.label(text="Microsoft Store installation")
+            layout.label(text="Use Windows 'Default Apps' to associate with blend files")
         else:
             layout.label(text="Open blend files with this Blender version")
             split = layout.split(factor=0.5)
