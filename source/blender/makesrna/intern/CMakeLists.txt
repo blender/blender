@@ -229,7 +229,6 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
-  ../../makesdna
   ../../modifiers
   ../../nodes
   ../../sequencer
@@ -243,10 +242,7 @@ set(INC
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
 
-  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/
 )
@@ -466,7 +462,7 @@ set(SRC
 )
 
 set(LIB
-  bf_dna
+  PRIVATE bf::dna
   bf_editor_space_api
 
   bf_editor_animation
@@ -490,5 +486,3 @@ set(LIB
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_blenkernel bf_dna)

@@ -12,7 +12,6 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../editors/include
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -93,6 +92,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_io_common
 
   ${ALEMBIC_LIBRARIES}

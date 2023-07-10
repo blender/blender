@@ -7,7 +7,6 @@ set(INC
   ../clog
   ../../source/blender/blenlib
   ../../source/blender/imbuf
-  ../../source/blender/makesdna
 )
 
 set(INC_SYS
@@ -75,6 +74,7 @@ set(SRC
 
 set(LIB
   ${Epoxy_LIBRARIES}
+  PRIVATE bf::dna
 )
 
 if(WITH_VULKAN_BACKEND)

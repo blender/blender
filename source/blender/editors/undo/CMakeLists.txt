@@ -9,7 +9,6 @@ set(INC
   ../../blenlib
   ../../blenloader
   ../../blentranslation
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -31,6 +30,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_editor_curve
   bf_editor_curves
   bf_editor_lattice

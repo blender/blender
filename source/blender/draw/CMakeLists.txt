@@ -19,7 +19,6 @@ set(INC
   ../gpu
   ../gpu/intern
   ../imbuf
-  ../makesdna
   ../makesrna
   ../nodes
   ../render
@@ -33,8 +32,6 @@ set(INC
   ../../../intern/guardedalloc
   ../../../intern/opensubdiv
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 
 set(SRC
@@ -359,6 +356,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_realtime_compositor
   bf_windowmanager
   PRIVATE bf::intern::atomic
@@ -890,8 +888,6 @@ endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_draw bf_dna)
 
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)

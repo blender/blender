@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../../../intern/clog
   ../../../../intern/guardedalloc
@@ -46,6 +45,7 @@ set(LIB
   ${Epoxy_LIBRARIES}
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::dna
 )
 
 if(WITH_PYTHON_MODULE)

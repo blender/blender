@@ -16,7 +16,6 @@ set(INC
   ../../functions
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../python
@@ -99,6 +98,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_editor_datafiles
 )
 

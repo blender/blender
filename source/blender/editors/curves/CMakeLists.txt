@@ -11,7 +11,6 @@ set(INC
   ../../functions
   ../../geometry
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -35,6 +34,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_TBB)

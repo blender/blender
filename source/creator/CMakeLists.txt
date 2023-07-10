@@ -13,13 +13,13 @@ set(INC
   ../blender/imbuf
   ../blender/io/usd
   ../blender/bmesh
-  ../blender/makesdna
   ../blender/makesrna
   ../blender/render
   ../blender/windowmanager
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_windowmanager
 )
 

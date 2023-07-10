@@ -12,7 +12,6 @@ set(INC
   ../bmesh
   ../depsgraph
   ../editors/include
-  ../makesdna
   ../makesrna
   ../render
   ../windowmanager
@@ -46,6 +45,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 

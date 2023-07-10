@@ -16,7 +16,6 @@ set(INC
   ../gpu
   ../gpu/intern
   ../imbuf
-  ../makesdna
   ../makesrna
   ../nodes
   ../sequencer
@@ -60,6 +59,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_realtime_compositor
   PRIVATE bf::intern::atomic
 )

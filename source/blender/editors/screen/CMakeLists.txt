@@ -13,7 +13,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -45,6 +44,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer
 )

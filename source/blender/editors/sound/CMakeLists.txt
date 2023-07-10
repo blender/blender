@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../depsgraph
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -29,6 +28,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_AUDASPACE)

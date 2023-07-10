@@ -8,7 +8,6 @@ set(INC
   ../../blenlib
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
@@ -32,6 +31,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 

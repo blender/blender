@@ -5,7 +5,6 @@
 set(INC
   .
   ../blenlib
-  ../makesdna
   ../../../intern/guardedalloc
 )
 
@@ -51,6 +50,7 @@ set(SRC
 
 set(LIB
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_TBB)

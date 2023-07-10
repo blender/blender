@@ -10,7 +10,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
@@ -33,6 +32,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 blender_add_lib(bf_editor_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

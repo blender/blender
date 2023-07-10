@@ -17,7 +17,6 @@ set(INC
   ../../io/stl
   ../../io/usd
   ../../io/wavefront_obj
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
@@ -54,6 +53,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_OPENCOLLADA)

@@ -14,7 +14,6 @@ set(INC
   ../../functions
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -129,6 +128,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_functions
   bf_intern_sky
   bf_nodes

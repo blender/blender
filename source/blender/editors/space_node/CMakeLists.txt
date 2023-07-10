@@ -17,7 +17,6 @@ set(INC
   ../../geometry
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../render
@@ -25,8 +24,6 @@ set(INC
   ../../../../intern/guardedalloc
   ../../../../extern/fmtlib/include
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -58,6 +55,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_editor_screen
   extern_fmtlib
 )

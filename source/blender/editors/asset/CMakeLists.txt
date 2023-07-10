@@ -10,7 +10,6 @@ set(INC
   ../../blenlib
   ../../blenloader
   ../../blentranslation
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -54,6 +53,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenloader
+  PRIVATE bf::dna
 )
 
 blender_add_lib(bf_editor_asset "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

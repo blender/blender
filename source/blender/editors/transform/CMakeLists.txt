@@ -12,7 +12,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../ikplugin
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../sequencer
@@ -122,6 +121,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   bf_bmesh
+  PRIVATE bf::dna
   bf_editor_mask
   bf_gpu
 )

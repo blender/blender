@@ -9,8 +9,6 @@ endif()
 set(INC
   .
   ..
-  # ../blenkernel  # don't add this back!
-  ../makesdna
   ../../../intern/eigen
   ../../../intern/guardedalloc
 )
@@ -390,6 +388,7 @@ set(SRC
 )
 
 set(LIB
+  PUBLIC bf::dna
   bf_intern_eigen
   bf_intern_guardedalloc
   extern_wcwidth

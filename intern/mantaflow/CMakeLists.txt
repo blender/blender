@@ -25,7 +25,6 @@ endif()
 set(INC
   extern
   intern/strings
-  ../../source/blender/makesdna
   ../../source/blender/blenlib
 )
 
@@ -74,6 +73,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   extern_mantaflow
 
   ${PYTHON_LINKFLAGS}

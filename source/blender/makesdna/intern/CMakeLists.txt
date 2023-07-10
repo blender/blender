@@ -5,11 +5,11 @@
 # message(STATUS "Configuring makesdna")
 
 set(INC
-  ..
+  PUBLIC ..
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
   ../../blenlib
   ../../imbuf
   ../../../../intern/guardedalloc
-  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set(INC_SYS
@@ -140,6 +140,8 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::dna ALIAS bf_dna)
+
 
 
 # -----------------------------------------------------------------------------

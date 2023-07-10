@@ -8,7 +8,6 @@ set(INC
   ../..
   ../../../blenkernel
   ../../../blenlib
-  ../../../makesdna
   ../../../../../intern/guardedalloc
   ../../../../../intern/utfconv
 )
@@ -28,6 +27,7 @@ set(SRC
 set(LIB
   ${OPENIMAGEIO_LIBRARIES}
   ${PUGIXML_LIBRARIES}
+  PRIVATE bf::dna
 )
 
 if(WITH_IMAGE_OPENEXR)

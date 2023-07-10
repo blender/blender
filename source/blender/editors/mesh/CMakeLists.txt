@@ -16,7 +16,6 @@ set(INC
   ../../geometry
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -66,6 +65,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_windowmanager
 )
 

@@ -8,7 +8,6 @@ set(INC
   ../../blenlib
   ../../bmesh
   ../../depsgraph
-  ../../makesdna
   ../../../../intern/guardedalloc
 )
 
@@ -41,6 +40,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_python_mathutils
 
   ${PYTHON_LINKFLAGS}

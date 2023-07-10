@@ -530,6 +530,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_python_mathutils
 
   ${PYTHON_LINKFLAGS}
@@ -543,7 +544,6 @@ set(INC
   ../blentranslation
   ../depsgraph
   ../imbuf
-  ../makesdna
   ../makesrna
   ../python
   ../python/intern

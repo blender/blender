@@ -27,7 +27,6 @@ set(INC
   ../../depsgraph
   ../../editors/include
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
@@ -117,6 +116,7 @@ set(LIB
   ${OPENCOLLADA_LIBRARIES}
   ${PCRE_LIBRARIES}
   ${XML2_LIBRARIES}
+  PRIVATE bf::dna
 )
 
 if(WITH_BUILDINFO)

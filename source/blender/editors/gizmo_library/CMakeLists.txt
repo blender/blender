@@ -10,7 +10,6 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -44,6 +43,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 

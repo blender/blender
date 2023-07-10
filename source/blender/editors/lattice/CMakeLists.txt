@@ -7,7 +7,6 @@ set(INC
   ../../blenkernel
   ../../blenlib
   ../../depsgraph
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -29,6 +28,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

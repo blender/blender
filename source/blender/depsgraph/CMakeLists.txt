@@ -9,7 +9,6 @@ set(INC
   ../bmesh
   ../draw
   ../functions
-  ../makesdna
   ../makesrna
   ../modifiers
   ../sequencer
@@ -155,6 +154,7 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::dna
   PRIVATE bf::intern::atomic
 )
 

@@ -12,7 +12,6 @@ set(INC
   ../../bmesh/intern
   ../../depsgraph
   ../../editors/include
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../windowmanager
@@ -39,6 +38,7 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::dna
   bf_io_common
 )
 

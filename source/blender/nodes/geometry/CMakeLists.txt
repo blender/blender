@@ -16,7 +16,6 @@ set(INC
   ../../geometry
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -202,6 +201,7 @@ set(SRC
 
 set(LIB
   bf_bmesh
+  PRIVATE bf::dna
   bf_functions
   bf_geometry
   bf_nodes

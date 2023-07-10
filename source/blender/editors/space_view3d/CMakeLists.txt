@@ -15,15 +15,12 @@ set(INC
   ../../draw
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
   ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -76,6 +73,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
@@ -96,7 +94,5 @@ endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_editor_space_view3d bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_editor_space_view3d bf_rna)

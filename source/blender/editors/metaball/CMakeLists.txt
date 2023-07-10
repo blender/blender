@@ -8,7 +8,6 @@ set(INC
   ../../blenlib
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -29,6 +28,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 blender_add_lib(bf_editor_metaball "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

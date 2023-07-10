@@ -21,7 +21,6 @@ set(INC
   ../bmesh
   ../draw
   ../imbuf
-  ../makesdna
   ../makesrna
 
   # For theme color access.
@@ -326,6 +325,7 @@ set(METAL_SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   ${Epoxy_LIBRARIES}
 )

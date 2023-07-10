@@ -9,7 +9,6 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -42,6 +41,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_MOD_FLUID)

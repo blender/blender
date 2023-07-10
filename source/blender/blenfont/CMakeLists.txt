@@ -9,7 +9,6 @@ set(INC
   ../blentranslation
   ../gpu
   ../imbuf
-  ../makesdna
   ../makesrna
   ../../../intern/guardedalloc
 )
@@ -34,6 +33,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_gpu
   bf_intern_guardedalloc
 

@@ -8,7 +8,6 @@ set(INC
   ../../source/blender/blenlib
   ../../source/blender/gpu
   ../../source/blender/gpu/intern
-  ../../source/blender/makesdna
 )
 
 set(INC_SYS
@@ -25,6 +24,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 if(WITH_OPENCOLORIO)

@@ -10,7 +10,6 @@ set(INC
   ../depsgraph
   ../functions
   ../imbuf
-  ../makesdna
   ../makesrna
   ../nodes
   ../../../intern/guardedalloc
@@ -35,6 +34,7 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::dna
 )
 
 if(WITH_OPENMP_STATIC)

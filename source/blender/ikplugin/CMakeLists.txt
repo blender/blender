@@ -8,7 +8,6 @@ set(INC
   .
   ../blenkernel
   ../blenlib
-  ../makesdna
   ../../../intern/guardedalloc
 )
 
@@ -24,6 +23,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
 )
 
 if(WITH_IK_SOLVER)

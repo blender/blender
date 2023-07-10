@@ -13,7 +13,6 @@ set(INC
   ../editors/include
   ../gpu
   ../imbuf
-  ../makesdna
   ../makesrna
   ../nodes
   ../render
@@ -23,8 +22,6 @@ set(INC
   ../../../intern/guardedalloc
   ../bmesh
 
-  # for writefile.c: dna_type_offsets.h
-  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -67,6 +64,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_BUILDINFO)
@@ -97,8 +95,6 @@ endif()
 
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# needed so writefile.c can use dna_type_offsets.h
-add_dependencies(bf_blenloader bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_blenloader bf_rna)
 

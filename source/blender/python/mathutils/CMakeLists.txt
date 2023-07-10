@@ -9,7 +9,6 @@ set(INC
   ../../bmesh
   ../../depsgraph
   ../../imbuf
-  ../../makesdna
   ../../../../intern/guardedalloc
 )
 
@@ -45,6 +44,7 @@ set(SRC
 
 set(LIB
   bf_blenlib
+  PRIVATE bf::dna
   bf_imbuf
   bf_python_ext
 

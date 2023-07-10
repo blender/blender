@@ -14,7 +14,6 @@ set(INC
   ../../functions
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -23,8 +22,6 @@ set(INC
   ../../compositor/realtime_compositor/cached_resources
   ../../../../intern/guardedalloc
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -132,6 +129,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_realtime_compositor
 )
 
@@ -166,7 +164,5 @@ if(WITH_UNITY_BUILD)
   set_target_properties(bf_nodes_composite PROPERTIES UNITY_BUILD_BATCH_SIZE 10)
 endif()
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_nodes_composite bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_nodes_composite bf_rna)

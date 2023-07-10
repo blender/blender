@@ -12,7 +12,6 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
@@ -61,6 +60,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_nodes
 )
 

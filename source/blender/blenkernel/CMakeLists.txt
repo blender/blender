@@ -17,7 +17,6 @@ set(INC
   ../gpu
   ../ikplugin
   ../imbuf
-  ../makesdna
   ../makesrna
   ../modifiers
   ../nodes
@@ -38,8 +37,6 @@ set(INC
   ../../../extern/curve_fit_nd
   ../../../extern/fmtlib/include
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -539,6 +536,7 @@ set(LIB
   bf_blentranslation
   bf_bmesh
   bf_depsgraph
+  PRIVATE bf::dna
   bf_draw
   bf_functions
   bf_gpencil_modifiers_legacy
@@ -819,8 +817,6 @@ endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_blenkernel bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_blenkernel bf_rna)
 

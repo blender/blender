@@ -11,7 +11,6 @@ set(INC
   ../../depsgraph
   ../../geometry
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/eigen
@@ -42,6 +41,7 @@ set(SRC
 
 set(LIB
   bf_bmesh
+  PRIVATE bf::dna
 )
 
 

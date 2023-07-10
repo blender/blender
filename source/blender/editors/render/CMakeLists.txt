@@ -13,7 +13,6 @@ set(INC
   ../../draw
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../render
@@ -37,6 +36,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_draw
 )
 

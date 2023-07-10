@@ -13,7 +13,6 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../imbuf/intern/oiio
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
@@ -123,6 +122,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api

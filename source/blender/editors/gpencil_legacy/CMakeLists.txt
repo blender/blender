@@ -11,7 +11,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/guardedalloc
@@ -62,6 +61,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_POTRACE)

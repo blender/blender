@@ -8,7 +8,6 @@ set(INC
   ../../blenlib
   ../../blentranslation
   ../../depsgraph
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -26,6 +25,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 

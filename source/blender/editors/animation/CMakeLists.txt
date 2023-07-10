@@ -9,7 +9,6 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
@@ -48,6 +47,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
 )
 
 if(WITH_PYTHON)

@@ -15,7 +15,6 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../modifiers
   ../../python
@@ -25,8 +24,6 @@ set(INC
   ../../../../intern/clog
   ../../../../intern/guardedalloc
 
-  # dna_type_offsets.h in BLO_read_write.h
-  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -68,6 +65,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
+  PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
   bf_render
@@ -87,6 +85,5 @@ endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-add_dependencies(bf_editor_object bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_editor_object bf_rna)

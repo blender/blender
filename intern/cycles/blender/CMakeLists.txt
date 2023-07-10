@@ -6,7 +6,6 @@ set(INC
   ..
   ../../guardedalloc
   ../../mikktspace
-  ../../../source/blender/makesdna
   ../../../source/blender/makesrna
   ../../../source/blender/blenkernel
   ../../../source/blender/blenlib
@@ -60,6 +59,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   cycles_bvh
   cycles_device
   cycles_graph

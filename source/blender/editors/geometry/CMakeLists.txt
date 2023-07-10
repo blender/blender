@@ -10,7 +10,6 @@ set(INC
   ../../blentranslation
   ../../depsgraph
   ../../functions
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../windowmanager
@@ -35,6 +34,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_depsgraph
+  PRIVATE bf::dna
   bf_editor_object
   bf_windowmanager
 )
