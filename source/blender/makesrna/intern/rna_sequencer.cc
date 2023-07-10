@@ -1476,6 +1476,7 @@ static Sequence *rna_SeqTimelineChannel_owner_get(Editing *ed, SeqTimelineChanne
     }
     if (BLI_findindex(&seq->channels, channel) != -1) {
       channel_owner = seq;
+      break;
     }
   }
 
