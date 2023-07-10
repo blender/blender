@@ -462,7 +462,6 @@ ccl_device bool light_sample_from_intersection(KernelGlobals kg,
   ls->object = isect->object;
   ls->prim = isect->prim;
   ls->lamp = lamp;
-  /* todo: missing texture coordinates */
   ls->t = isect->t;
   ls->P = ray_P + ray_D * ls->t;
   ls->D = ray_D;

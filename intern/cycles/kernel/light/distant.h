@@ -10,6 +10,27 @@
 
 CCL_NAMESPACE_BEGIN
 
+ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
+                                        const float3 D,
+                                        ccl_private float *u,
+                                        ccl_private float *v)
+{
+  /* Map direction (x, y, z) to disk [-0.5, 0.5]^2:
+   * r^2 = (1 - z) / (1 - cos(klight->distant.angle))
+   * u_ = 0.5 * x * r / sin_angle(D, -klight->co)
+   * v_ = 0.5 * y * r / sin_angle(D, -klight->co) */
+  const float fac = klight->distant.half_inv_sin_half_angle / len(D - klight->co);
+
+  /* Get u axis and v axis. */
+  const Transform itfm = klight->itfm;
+  const float u_ = dot(D, float4_to_float3(itfm.x)) * fac;
+  const float v_ = dot(D, float4_to_float3(itfm.y)) * fac;
+
+  /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
+  *u = v_ + 0.5f;
+  *v = -u_ - v_;
+}
+
 ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight,
                                             const float2 rand,
                                             ccl_private LightSample *ls)
@@ -23,6 +44,8 @@ ccl_device_inline bool distant_light_sample(const ccl_global KernelLight *klight
   ls->t = FLT_MAX;
 
   ls->eval_fac = klight->distant.eval_fac;
+
+  distant_light_uv(klight, ls->D, &ls->u, &ls->v);
 
   return true;
 }
@@ -92,9 +115,6 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
   ls->object = PRIM_NONE;
   ls->prim = PRIM_NONE;
   ls->lamp = lamp;
-  /* todo: missing texture coordinates */
-  ls->u = 0.0f;
-  ls->v = 0.0f;
   ls->t = FLT_MAX;
   ls->P = -ray_D;
   ls->Ng = -ray_D;
@@ -103,6 +123,8 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
 
   ls->pdf = klight->distant.pdf;
   ls->eval_fac = klight->distant.eval_fac;
+
+  distant_light_uv(klight, ray_D, &ls->u, &ls->v);
 
   return true;
 }
