@@ -444,10 +444,15 @@ endif()
 if(WITH_COMPILER_CCACHE)
   if(NOT CMAKE_GENERATOR STREQUAL "Xcode")
     find_program(CCACHE_PROGRAM ccache)
+    mark_as_advanced(CCACHE_PROGRAM)
     if(CCACHE_PROGRAM)
       # Makefiles and ninja
       set(CMAKE_C_COMPILER_LAUNCHER   "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
       set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+      mark_as_advanced(
+        CMAKE_C_COMPILER_LAUNCHER
+        CMAKE_CXX_COMPILER_LAUNCHER
+      )
     else()
       message(WARNING "Ccache NOT found, disabling WITH_COMPILER_CCACHE")
       set(WITH_COMPILER_CCACHE OFF)
