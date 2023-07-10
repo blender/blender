@@ -453,7 +453,7 @@ class SpellChecker:
         "quaternion", "quaternions",
         "quintic",
         "samplerate",
-        "sandboxed", 
+        "sandboxed",
         "sawtooth",
         "scrollback",
         "scrollbar",
