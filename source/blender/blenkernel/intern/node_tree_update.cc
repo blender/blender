@@ -25,7 +25,7 @@
 #include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_update.h"
 
-#include "MOD_nodes.h"
+#include "MOD_nodes.hh"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"

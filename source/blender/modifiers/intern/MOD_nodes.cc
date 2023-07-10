@@ -78,7 +78,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.hh"
-#include "MOD_nodes.h"
+#include "MOD_nodes.hh"
 #include "MOD_ui_common.hh"
 
 #include "ED_object.h"
