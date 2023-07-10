@@ -6,6 +6,7 @@
 #pragma once
 
 #include "BLI_span.hh"
+#include "BKE_attribute.hh"
 
 #include "usd.h"
 #include "usd_reader_geom.h"
@@ -84,7 +85,10 @@ class USDMeshReader : public USDGeomReader {
                                       pxr::GfMatrix4d *r_xform,
                                       const float time) const;
 
-  void read_custom_data(const ImportSettings *settings, Mesh *mesh, double motionSampleTime);
+  void read_custom_data(const ImportSettings *settings,
+                        Mesh *mesh,
+                        double motionSampleTime,
+                        bool new_mesh);
 
   void read_color_data_primvar(Mesh *mesh,
                                const pxr::UsdGeomPrimvar &primvar,
@@ -95,6 +99,11 @@ class USDMeshReader : public USDGeomReader {
   void read_generic_data_primvar(Mesh *mesh,
                                  const pxr::UsdGeomPrimvar &primvar,
                                  const double motionSampleTime);
+
+  template<typename USDT, typename BlenderT>
+  void copy_prim_array_to_blender_attribute(const Mesh *mesh, const pxr::UsdGeomPrimvar &primvar,
+                                                           const double motionSampleTime,
+                                                           MutableSpan<BlenderT> attribute);
 };
 
 }  // namespace blender::io::usd

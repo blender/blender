@@ -312,7 +312,8 @@ void USDGenericMeshWriter::copy_blender_buffer_to_prim2(const VArray<T> &buffer,
     T value = buffer.get(index);
     data.push_back({value.x, value.y});
   }
-  if (!attribute_pv.HasValue()) {
+
+  if (!attribute_pv.HasValue() && timecode != pxr::UsdTimeCode::Default()) {
     attribute_pv.Set(data, pxr::UsdTimeCode::Default());
   }
   attribute_pv.Set(data, timecode);
@@ -435,8 +436,6 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
                                          const bke::AttributeMetaData &meta_data,
                                          const char *active_set_name)
 {
-  static blender::StringRef default_active_name = "st";
-
   pxr::UsdTimeCode timecode = get_export_time_code();
   const pxr::UsdGeomPrimvarsAPI pvApi = pxr::UsdGeomPrimvarsAPI(usd_mesh);
 
@@ -452,11 +451,11 @@ void USDGenericMeshWriter::write_uv_data(const Mesh *mesh,
   pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
 
   pxr::UsdGeomPrimvar uv_pv = pvApi.CreatePrimvar(
-      primvar_name, pxr::SdfValueTypeNames->TexCoord2dArray, pxr::UsdGeomTokens->faceVarying);
+      primvar_name, pxr::SdfValueTypeNames->TexCoord2fArray, pxr::UsdGeomTokens->faceVarying);
 
   const VArray<float2> buffer = *mesh->attributes().lookup_or_default<float2>(
       attribute_id, meta_data.domain, {0.0f, 0.0f});
-  copy_blender_buffer_to_prim2<float2, pxr::GfVec2d>(buffer, timecode, uv_pv);
+  copy_blender_buffer_to_prim2<float2, pxr::GfVec2f>(buffer, timecode, uv_pv);
 }
 
 void USDGenericMeshWriter::write_color_data(const Mesh *mesh,
