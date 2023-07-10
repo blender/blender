@@ -3064,7 +3064,7 @@ static void do_vpaint_brush_blur_loops(bContext *C,
         }
 
         /* Use rgb^2 color averaging. */
-        Color *col = &;
+        Color *col = &color_final;
 
         color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
         color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
