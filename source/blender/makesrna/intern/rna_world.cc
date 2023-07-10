@@ -130,14 +130,6 @@ static void rna_def_lighting(BlenderRNA *brna)
   RNA_def_struct_ui_text(srna, "Lighting", "Lighting for a World data-block");
 
   /* ambient occlusion */
-  prop = RNA_def_property(srna, "use_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "mode", WO_AMB_OCC);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Ambient Occlusion",
-      "Use Ambient Occlusion to add shadowing based on distance between objects");
-  RNA_def_property_update(prop, 0, "rna_World_update");
-
   prop = RNA_def_property(srna, "ao_factor", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "aoenergy");
   RNA_def_property_range(prop, 0, INT_MAX);
