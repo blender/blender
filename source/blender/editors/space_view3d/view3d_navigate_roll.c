@@ -140,9 +140,7 @@ static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
       break;
     }
     case VIEW_CANCEL: {
-      /* Note this does not remove auto-keys on locked cameras. */
-      copy_qt_qt(vod->rv3d->viewquat, vod->init.quat);
-      ED_view3d_camera_lock_sync(vod->depsgraph, vod->v3d, vod->rv3d);
+      viewops_data_state_restore(vod);
       ret = OPERATOR_CANCELLED;
       break;
     }

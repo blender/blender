@@ -18,7 +18,7 @@
 
 Sequence *SEQ_select_active_get(Scene *scene)
 {
-  Editing *ed = SEQ_editing_get(scene);
+  const Editing *ed = SEQ_editing_get(scene);
 
   if (ed == NULL) {
     return NULL;

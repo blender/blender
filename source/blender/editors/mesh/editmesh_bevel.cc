@@ -338,7 +338,7 @@ static bool edbm_bevel_calc(wmOperator *op)
     Mesh *me = static_cast<Mesh *>(obedit->data);
 
     if (harden_normals && !(me->flag & ME_AUTOSMOOTH)) {
-      /* harden_normals only has a visible effect if autosmooth is on, so turn it on */
+      /* `harden_normals` only has a visible effect if auto-smooth is on, so turn it on. */
       me->flag |= ME_AUTOSMOOTH;
     }
 
@@ -374,8 +374,8 @@ static bool edbm_bevel_calc(wmOperator *op)
     BMO_op_exec(em->bm, &bmop);
 
     if (offset != 0.0f) {
-      /* not essential, but we may have some loose geometry that
-       * won't get bevel'd and better not leave it selected */
+      /* Not essential, but we may have some loose geometry that
+       * won't get beveled and better not leave it selected. */
       EDBM_flag_disable_all(em, BM_ELEM_SELECT);
       BMO_slot_buffer_hflag_enable(
           em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
@@ -446,7 +446,7 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 
   edbm_bevel_exit(C, op);
 
-  /* need to force redisplay or we may still view the modified result */
+  /* Need to force re-display or we may still view the modified result. */
   ED_region_tag_redraw(CTX_wm_region(C));
 }
 

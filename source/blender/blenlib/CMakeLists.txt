@@ -393,7 +393,7 @@ set(LIB
   bf_intern_eigen
   bf_intern_guardedalloc
   extern_wcwidth
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
   ${ZLIB_LIBRARIES}
   ${ZSTD_LIBRARIES}
 )

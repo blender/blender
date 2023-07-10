@@ -1098,7 +1098,7 @@ static char *get_rna_access(ID *id,
       propname = "eval_time";
       break;
 
-    /* XXX problematic blocktypes */
+    /* XXX problematic block-types. */
     case ID_SEQ: /* sequencer strip */
       /* SEQ_FAC1: */
       switch (adrcode) {

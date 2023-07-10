@@ -2199,8 +2199,8 @@ static void make_local_material_tag(Material *ma)
     ma->id.tag &= ~LIB_TAG_PRE_EXISTING;
     make_local_animdata_tag(BKE_animdata_from_id(&ma->id));
 
-    /* About nodetrees: root one is made local together with material,      * others we keep linked
-     * for now... */
+    /* About node-trees: root one is made local together with material,
+     * others we keep linked (for now). */
   }
 }
 

@@ -21,6 +21,7 @@
     .g = 1.0f, \
     .b = 1.0f, \
     .energy = 10.0f, \
+    .energy_deprecated = 10.0f, \
     .spotsize = DEG2RADF(45.0f), \
     .spotblend = 0.15f, \
     .mode = LA_SHADOW, \

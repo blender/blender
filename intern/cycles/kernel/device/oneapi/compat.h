@@ -188,13 +188,13 @@ using uchar = unsigned char;
 using sycl::half;
 
 /* math functions */
-ccl_device_forceinline float __uint_as_float(uint x)
+ccl_device_forceinline float __uint_as_float(unsigned int x)
 {
   return sycl::bit_cast<float>(x);
 }
-ccl_device_forceinline uint __float_as_uint(float x)
+ccl_device_forceinline unsigned int __float_as_uint(float x)
 {
-  return sycl::bit_cast<uint>(x);
+  return sycl::bit_cast<unsigned int>(x);
 }
 ccl_device_forceinline float __int_as_float(int x)
 {

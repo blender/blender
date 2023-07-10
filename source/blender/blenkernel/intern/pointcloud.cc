@@ -64,11 +64,8 @@ static void pointcloud_init_data(ID *id)
   MEMCPY_STRUCT_AFTER(pointcloud, DNA_struct_default_get(PointCloud), id);
 
   CustomData_reset(&pointcloud->pdata);
-  CustomData_add_layer_named(&pointcloud->pdata,
-                             CD_PROP_FLOAT3,
-                             CD_CONSTRUCT,
-                             pointcloud->totpoint,
-                             POINTCLOUD_ATTR_POSITION);
+  pointcloud->attributes_for_write().add<float3>(
+      "position", ATTR_DOMAIN_POINT, blender::bke::AttributeInitConstruct());
 
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 }

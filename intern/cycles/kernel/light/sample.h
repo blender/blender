@@ -381,7 +381,7 @@ ccl_device_forceinline void light_sample_update(KernelGlobals kg,
     point_light_mnee_sample_update(klight, ls, P, N, path_flag);
   }
   else if (ls->type == LIGHT_SPOT) {
-    spot_light_mnee_sample_update(klight, ls, P);
+    spot_light_mnee_sample_update(klight, ls, P, N, path_flag);
   }
   else if (ls->type == LIGHT_AREA) {
     area_light_mnee_sample_update(klight, ls, P);

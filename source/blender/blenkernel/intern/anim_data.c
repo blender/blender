@@ -1352,7 +1352,7 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
   } \
   (void)0
 
-  /* another version of this macro for nodetrees */
+  /* Another version of this macro for node-trees. */
 #define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
   for (id = first; id; id = id->next) { \
     AnimData *adt = BKE_animdata_from_id(id); \

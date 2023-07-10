@@ -2423,7 +2423,7 @@ static int constraint_add_exec(
       int scriptint = 0;
       /* popup a list of usable scripts */
       menustr = buildmenu_pyconstraints(bmain, nullptr, &scriptint);
-      /* XXX scriptint = pupmenu(menustr); */
+      // scriptint = pupmenu(menustr); /* XXX */
       MEM_freeN(menustr);
 
       /* only add constraint if a script was chosen */

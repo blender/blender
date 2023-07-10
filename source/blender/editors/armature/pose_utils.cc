@@ -56,7 +56,8 @@ static void fcurves_to_pchan_links_get(ListBase *pfLinks,
                                        bPoseChannel *pchan)
 {
   ListBase curves = {nullptr, nullptr};
-  int transFlags = action_get_item_transforms(act, ob, pchan, &curves);
+  const eAction_TransformFlags transFlags = BKE_action_get_item_transform_flags(
+      act, ob, pchan, &curves);
 
   pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE | POSE_BBONE_SHAPE);
 

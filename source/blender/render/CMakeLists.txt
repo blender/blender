@@ -61,7 +61,7 @@ set(SRC
 
 set(LIB
   bf_realtime_compositor
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WITH_PYTHON)

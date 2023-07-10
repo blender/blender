@@ -205,10 +205,8 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   }
 
   /* Create new edges. */
-  if (!CustomData_has_layer_named(&mesh->ldata, CD_PROP_INT32, ".corner_edge")) {
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_INT32, CD_CONSTRUCT, mesh->totloop, ".corner_edge");
-  }
+  MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  attributes.add<int>(".corner_edge", ATTR_DOMAIN_CORNER, AttributeInitConstruct());
   MutableSpan<int2> new_edges{
       static_cast<int2 *>(MEM_calloc_arrayN(new_totedge, sizeof(int2), __func__)), new_totedge};
   calc_edges::serialize_and_initialize_deduplicated_edges(edge_maps, new_edges);
@@ -221,9 +219,8 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool keep_existing_edges, const bool select
   /* Free old CustomData and assign new one. */
   CustomData_free(&mesh->edata, mesh->totedge);
   CustomData_reset(&mesh->edata);
-  CustomData_add_layer_named_with_data(
-      &mesh->edata, CD_PROP_INT32_2D, new_edges.data(), new_totedge, ".edge_verts", nullptr);
   mesh->totedge = new_totedge;
+  attributes.add<int2>(".edge_verts", ATTR_DOMAIN_EDGE, AttributeInitMoveArray(new_edges.data()));
 
   if (select_new_edges) {
     MutableAttributeAccessor attributes = mesh->attributes_for_write();

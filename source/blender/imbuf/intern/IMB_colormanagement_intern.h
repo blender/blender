@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#pragma once
-
 /** \file
  * \ingroup imbuf
  */
+
+#pragma once
 
 #include "BLI_sys_types.h"
 #include "DNA_listBase.h"

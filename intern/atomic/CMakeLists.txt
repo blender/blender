@@ -10,7 +10,9 @@ set(INC_SYS
 )
 
 add_library(bf_intern_atomic INTERFACE)
+
 target_include_directories(bf_intern_atomic INTERFACE .)
+add_library(bf::intern::atomic ALIAS bf_intern_atomic)
 
 # CMake 3.19+ allows one to populate the interface library with
 # source files to show in the IDE, for people on older CMake versions

@@ -326,7 +326,7 @@ set(METAL_SRC
 )
 
 set(LIB
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
   ${Epoxy_LIBRARIES}
 )
 

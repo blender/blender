@@ -151,7 +151,7 @@ static void seq_animation_duplicate(Scene *scene, Sequence *seq, ListBase *dst, 
     return;
   }
 
-  GSET_FOREACH_BEGIN (FCurve *, fcu, fcurves) {
+  GSET_FOREACH_BEGIN (const FCurve *, fcu, fcurves) {
     FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
     BLI_addtail(dst, fcu_cpy);
   }

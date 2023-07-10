@@ -97,7 +97,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   bf_blenlib
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WITH_TBB)

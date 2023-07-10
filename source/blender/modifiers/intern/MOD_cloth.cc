@@ -81,7 +81,6 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int verts_num)
 {
-  Mesh *mesh_src;
   ClothModifierData *clmd = (ClothModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 
@@ -92,15 +91,6 @@ static void deformVerts(ModifierData *md,
     if (!clmd->sim_parms || !clmd->coll_parms) {
       return;
     }
-  }
-
-  if (mesh == nullptr) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, nullptr, nullptr);
-  }
-  else {
-    /* Not possible to use get_mesh() in this case as we'll modify its vertices
-     * and get_mesh() would return 'mesh' directly. */
-    mesh_src = (Mesh *)BKE_id_copy_ex(nullptr, (ID *)mesh, nullptr, LIB_ID_COPY_LOCALIZE);
   }
 
   /* TODO(sergey): For now it actually duplicates logic from DerivedMesh.cc
@@ -114,22 +104,20 @@ static void deformVerts(ModifierData *md,
                                          clmd->sim_parms->shapekey_rest);
     if (kb && kb->data != nullptr) {
       float(*layerorco)[3];
-      if (!(layerorco = static_cast<float(*)[3]>(CustomData_get_layer_for_write(
-                &mesh_src->vdata, CD_CLOTH_ORCO, mesh_src->totvert))))
+      if (!(layerorco = static_cast<float(*)[3]>(
+                CustomData_get_layer_for_write(&mesh->vdata, CD_CLOTH_ORCO, mesh->totvert))))
       {
-        layerorco = static_cast<float(*)[3]>(CustomData_add_layer(
-            &mesh_src->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh_src->totvert));
+        layerorco = static_cast<float(*)[3]>(
+            CustomData_add_layer(&mesh->vdata, CD_CLOTH_ORCO, CD_SET_DEFAULT, mesh->totvert));
       }
 
       memcpy(layerorco, kb->data, sizeof(float[3]) * verts_num);
     }
   }
 
-  BKE_mesh_vert_coords_apply(mesh_src, vertexCos);
+  BKE_mesh_vert_coords_apply(mesh, vertexCos);
 
-  clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh_src, vertexCos);
-
-  BKE_id_free(nullptr, mesh_src);
+  clothModifier_do(clmd, ctx->depsgraph, scene, ctx->object, mesh, vertexCos);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)

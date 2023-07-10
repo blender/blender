@@ -161,10 +161,12 @@ static bool object_shape_key_mirror(
       /* half but found up odd value */
       const int pntsu_half = (lt->pntsu / 2) + (lt->pntsu % 2);
 
-      /* currently editmode isn't supported by mesh so
-       * ignore here for now too */
-
-      /* if (lt->editlatt) lt = lt->editlatt->latt; */
+      /* Currently edit-mode isn't supported by mesh so ignore here for now too. */
+#if 0
+      if (lt->editlatt) {
+        lt = lt->editlatt->latt;
+      }
+#endif
 
       for (w = 0; w < lt->pntsw; w++) {
         for (v = 0; v < lt->pntsv; v++) {

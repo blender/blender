@@ -842,7 +842,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
   if (rectx != expected_rectx || recty != expected_recty) {
     BKE_reportf(reports,
                 RPT_ERROR,
-                "reading render result: dimensions don't match, expected %dx%d",
+                "Reading render result: dimensions don't match, expected %dx%d",
                 expected_rectx,
                 expected_recty);
     IMB_exr_close(exrhandle);

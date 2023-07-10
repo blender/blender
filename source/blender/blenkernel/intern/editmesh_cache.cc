@@ -17,7 +17,7 @@
 #include "DNA_mesh_types.h"
 
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h" /* own include */
+#include "BKE_editmesh_cache.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Ensure Data (derived from coords)

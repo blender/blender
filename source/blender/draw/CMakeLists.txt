@@ -361,7 +361,7 @@ set(LIB
   bf_blenlib
   bf_realtime_compositor
   bf_windowmanager
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 set(GLSL_SRC

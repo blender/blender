@@ -47,7 +47,7 @@ set(INC
 set(INC_SYS
   ${ZLIB_INCLUDE_DIRS}
 
-  # For `vfontdata_freetype.c`.
+  # For `vfontdata_freetype.cc`.
   ${FREETYPE_INCLUDE_DIRS}
 )
 
@@ -306,8 +306,8 @@ set(SRC
   intern/type_conversions.cc
   intern/undo_system.cc
   intern/unit.c
-  intern/vfont.c
-  intern/vfontdata_freetype.c
+  intern/vfont.cc
+  intern/vfontdata_freetype.cc
   intern/viewer_path.cc
   intern/volume.cc
   intern/volume_render.cc
@@ -379,7 +379,7 @@ set(SRC
   BKE_editlattice.h
   BKE_editmesh.h
   BKE_editmesh_bvh.h
-  BKE_editmesh_cache.h
+  BKE_editmesh_cache.hh
   BKE_editmesh_tangent.h
   BKE_effect.h
   BKE_fcurve.h
@@ -557,7 +557,7 @@ set(LIB
   bf_shader_fx
   bf_simulation
   extern_fmtlib
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
   # For `vfontdata_freetype.c`.
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )

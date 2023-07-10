@@ -6925,18 +6925,6 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem domain_items[3] = {
-      {ATTR_DOMAIN_POINT, "POINT", 0, "Vertex", ""},
-      {ATTR_DOMAIN_CORNER, "CORNER", 0, "Face Corner", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem attribute_type_items[3] = {
-      {CD_PROP_COLOR, "COLOR", 0, "Color", ""},
-      {CD_PROP_BYTE_COLOR, "BYTE_COLOR", 0, "Byte Color", ""},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   /* identifiers */
   ot->name = "Add Paint Slot";
   ot->description = "Add a paint slot";
@@ -6997,14 +6985,14 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
   /* Color Attribute Properties */
   RNA_def_enum(ot->srna,
                "domain",
-               domain_items,
+               rna_enum_color_attribute_domain_items,
                ATTR_DOMAIN_POINT,
                "Domain",
                "Type of element that attribute is stored on");
 
   RNA_def_enum(ot->srna,
                "data_type",
-               attribute_type_items,
+               rna_enum_color_attribute_type_items,
                CD_PROP_COLOR,
                "Data Type",
                "Type of data stored in attribute");

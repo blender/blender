@@ -167,7 +167,8 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
       measure.bbox.grow(centroid - half_extentu + half_extentv);
       measure.bbox.grow(centroid - half_extentu - half_extentv);
 
-      strength *= 0.25f; /* eval_fac scaling in `area.h` */
+      /* Convert irradiance to radiance. */
+      strength *= M_1_PI_F;
     }
     else if (type == LIGHT_POINT) {
       measure.bcone.theta_o = M_PI_F;

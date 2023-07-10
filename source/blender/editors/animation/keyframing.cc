@@ -856,7 +856,7 @@ enum {
  * This helper function determines if visual-keyframing should be used when
  * inserting keyframes for the given channel. As visual-keyframing only works
  * on Object and Pose-Channel blocks, this should only get called for those
- * blocktypes, when using "standard" keying but 'Visual Keying' option in Auto-Keying
+ * block-types, when using "standard" keying but 'Visual Keying' option in Auto-Keying
  * settings is on.
  */
 static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)

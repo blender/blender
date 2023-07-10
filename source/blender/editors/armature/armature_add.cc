@@ -1054,9 +1054,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
           ebone->bbone_next = ebone_iter->bbone_next->temp.ebone;
         }
 
-        /* Lets try to fix any constraint subtargets that might
-         * have been duplicated
-         */
+        /* Lets try to fix any constraint sub-targets that might have been duplicated. */
         updateDuplicateSubtarget(ebone, arm->edbo, ob, false);
       }
     }
@@ -1315,9 +1313,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
         ebone->bbone_prev_flag = ebone_iter->bbone_prev_flag;
         ebone->bbone_next_flag = ebone_iter->bbone_next_flag;
 
-        /* Lets try to fix any constraint subtargets that might
-         * have been duplicated
-         */
+        /* Lets try to fix any constraint sub-targets that might have been duplicated. */
         updateDuplicateSubtarget(ebone, arm->edbo, obedit, true);
         /* Try to update constraint options so that they are mirrored as well
          * (need to supply bone_iter as well in case we are working with existing bones) */

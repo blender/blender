@@ -3,7 +3,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
-/**
+/** \file
+ * \ingroup imbuf
+ *
  * Some portions of this file are from the Chromium project and have been adapted
  * for Blender use when flipping DDS images to the OpenGL convention.
  */

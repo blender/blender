@@ -593,7 +593,7 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
 
   /* Remap self-references to new copied ID. */
   if (id == data->id_src) {
-    /* We cannot use self_id here, it is not *always* id_dst (thanks to $£!+@#&/? nodetrees). */
+    /* We cannot use self_id here, it is not *always* id_dst (thanks to confounded node-trees!). */
     id = *id_pointer = data->id_dst;
   }
 
@@ -713,15 +713,15 @@ ID *BKE_id_copy_for_duplicate(Main *bmain,
       ID_NEW_SET(key, key_new);
     }
 
-    /* NOTE: embedded data (root nodetrees and master collections) should never be referenced by
+    /* NOTE: embedded data (root node-trees and master collections) should never be referenced by
      * anything else, so we do not need to set their newid pointer and flag. */
 
     BKE_animdata_duplicate_id_action(bmain, id_new, duplicate_flags);
     if (key_new != NULL) {
       BKE_animdata_duplicate_id_action(bmain, key_new, duplicate_flags);
     }
-    /* Note that actions of embedded data (root nodetrees and master collections) are handled
-     * by `BKE_animdata_duplicate_id_action` as well. */
+    /* Note that actions of embedded data (root node-trees and master collections) are handled
+     * by #BKE_animdata_duplicate_id_action as well. */
   }
   return id->newid;
 }
@@ -1436,7 +1436,7 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int ori
 
     /* the duplicate should get a copy of the animdata */
     if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
-      /* Note that even though horrors like root nodetrees are not in bmain, the actions they use
+      /* Note that even though horrors like root node-trees are not in bmain, the actions they use
        * in their anim data *are* in bmain... super-mega-hooray. */
       BLI_assert((copy_data_flag & LIB_ID_COPY_ACTIONS) == 0 ||
                  (copy_data_flag & LIB_ID_CREATE_NO_MAIN) == 0);
@@ -1837,7 +1837,7 @@ void BKE_library_make_local(Main *bmain,
         BLI_linklist_prepend_arena(&todo_ids, id, linklist_mem);
         id->tag |= LIB_TAG_DOIT;
 
-        /* Tag those nasty non-ID nodetrees,
+        /* Tag those nasty non-ID node-trees,
          * but do not add them to todo list, making them local is handled by 'owner' ID.
          * This is needed for library_make_local_copying_check() to work OK at step 2. */
         if (ntree != NULL) {

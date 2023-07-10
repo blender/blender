@@ -40,8 +40,9 @@ struct bAction *BKE_action_add(struct Main *bmain, const char name[]);
 
 /* Action API ----------------- */
 
-/* types of transforms applied to the given item
- * - these are the return flags for action_get_item_transforms()
+/**
+ * Types of transforms applied to the given item:
+ * - these are the return flags for #BKE_action_get_item_transform_flags()
  */
 typedef enum eAction_TransformFlags {
   /* location */
@@ -69,24 +70,29 @@ typedef enum eAction_TransformFlags {
  * - if 'curves' is provided, a list of links to these curves are also returned
  *   whose nodes WILL NEED FREEING.
  */
-short action_get_item_transforms(struct bAction *act,
-                                 struct Object *ob,
-                                 struct bPoseChannel *pchan,
-                                 ListBase *curves);
+eAction_TransformFlags BKE_action_get_item_transform_flags(struct bAction *act,
+                                                           struct Object *ob,
+                                                           struct bPoseChannel *pchan,
+                                                           ListBase *curves);
 
 /**
  * Calculate the extents of given action.
  */
-void calc_action_range(const struct bAction *act, float *start, float *end, short incl_modifiers);
+void BKE_action_frame_range_calc(const struct bAction *act,
+                                 bool include_modifiers,
+                                 float *r_start,
+                                 float *r_end);
 
-/* Retrieve the intended playback frame range, using the manually set range if available,
- * or falling back to scanning F-Curves for their first & last frames otherwise. */
-void BKE_action_get_frame_range(const struct bAction *act, float *r_start, float *r_end);
+/**
+ * Retrieve the intended playback frame range, using the manually set range if available,
+ * or falling back to scanning F-Curves for their first & last frames otherwise.
+ */
+void BKE_action_frame_range_get(const struct bAction *act, float *r_start, float *r_end);
 
 /**
  * Check if the given action has any keyframes.
  */
-bool action_has_motion(const struct bAction *act);
+bool BKE_action_has_motion(const struct bAction *act);
 
 /**
  * Is the action configured as cyclic.

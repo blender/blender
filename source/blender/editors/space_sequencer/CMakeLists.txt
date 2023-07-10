@@ -55,7 +55,7 @@ set(SRC
 set(LIB
   bf_editor_interface
   bf_editor_util
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WITH_AUDASPACE)

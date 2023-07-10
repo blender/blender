@@ -271,8 +271,15 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVHNode *node,
 /**
  * For orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision.
+ *
+ * Note: the interval is not guaranteed to lie between ray_start and ray_end; this is
+ * not necessary for orthographic views and is impossible anyhow due to the necessity of
+ * projecting the far clipping plane into the local object space.  This works out to
+ * dividing view3d->clip_end by the object scale, which for small object and large
+ * clip_end's can easily lead to floating-point overflows.
+ *
  */
-void BKE_pbvh_raycast_project_ray_root(
+void BKE_pbvh_clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3]);
 
 void BKE_pbvh_find_nearest_to_ray(PBVH *pbvh,

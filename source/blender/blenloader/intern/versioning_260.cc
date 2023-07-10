@@ -1754,7 +1754,7 @@ if (!MAIN_VERSION_ATLEAST(bmain, 266, 3)) {
   {
     /* Fix for a very old issue:
      * Node names were nominally made unique in r24478 (2.50.8), but the do_versions check
-     * to update existing node names only applied to bmain->nodetree (i.e. group nodes).
+     * to update existing node names only applied to `bmain->nodetree` (i.e. group nodes).
      * Uniqueness is now required for proper preview mapping,
      * so do this now to ensure old files don't break.
      */

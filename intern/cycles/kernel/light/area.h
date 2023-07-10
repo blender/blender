@@ -290,7 +290,8 @@ ccl_device_inline bool area_light_eval(const ccl_global KernelLight *klight,
     ls->D = normalize_len(*light_P - ray_P, &ls->t);
   }
 
-  ls->eval_fac = 0.25f * invarea;
+  /* Convert radiant flux to radiance. */
+  ls->eval_fac = M_1_PI_F * invarea;
 
   if (klight->area.normalize_spread > 0) {
     /* Area Light spread angle attenuation */

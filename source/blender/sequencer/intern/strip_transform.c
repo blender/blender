@@ -613,7 +613,7 @@ void SEQ_transform_offset_after_frame(Scene *scene,
 
 bool SEQ_transform_is_locked(ListBase *channels, Sequence *seq)
 {
-  SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, seq->machine);
+  const SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, seq->machine);
   return seq->flag & SEQ_LOCK ||
          (SEQ_channel_is_locked(channel) && ((seq->flag & SEQ_IGNORE_CHANNEL_LOCK) == 0));
 }
@@ -636,7 +636,7 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
                                                       float r_origin[2])
 {
   float image_size[2];
-  StripElem *strip_elem = seq->strip->stripdata;
+  const StripElem *strip_elem = seq->strip->stripdata;
   if (strip_elem == NULL) {
     image_size[0] = scene->r.xsch;
     image_size[1] = scene->r.ysch;
@@ -663,7 +663,7 @@ static void seq_image_transform_quad_get_ex(const Scene *scene,
                                             float r_quad[4][2])
 {
   StripTransform *transform = seq->strip->transform;
-  StripCrop *crop = seq->strip->crop;
+  const StripCrop *crop = seq->strip->crop;
 
   int image_size[2] = {scene->r.xsch, scene->r.ysch};
   if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {

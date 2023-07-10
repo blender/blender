@@ -194,6 +194,20 @@ static float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a,
   return true;
 }
 
+static bool test_brush_angle_falloff(const Brush &brush,
+                                     const NormalAnglePrecalc &normal_angle_precalc,
+                                     const float angle_cos,
+                                     float *brush_strength)
+{
+  if (((brush.flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
+      ((brush.flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
+       view_angle_limits_apply_falloff(&normal_angle_precalc, angle_cos, brush_strength)))
+  {
+    return true;
+  }
+  return false;
+}
+
 static bool vwpaint_use_normal(const VPaint *vp)
 {
   return ((vp->paint.brush->flag & BRUSH_FRONTFACE) != 0) ||
@@ -1963,59 +1977,58 @@ static void do_wpaint_brush_blur_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-       * Otherwise, take the current vert. */
-      const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                      vd.vert_indices[vd.i];
-      const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-      /* If the vertex is selected */
-      if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
-        /* Get the average poly weight */
-        int total_hit_loops = 0;
-        float weight_final = 0.0f;
-        for (const int p_index : gmap->vert_to_poly[v_index]) {
-          const blender::IndexRange poly = ss->polys[p_index];
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
+     * Otherwise, take the current vert. */
+    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                    vd.vert_indices[vd.i];
+    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    /* If the vertex is selected */
+    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+      continue;
+    }
+    /* Get the average poly weight */
+    int total_hit_loops = 0;
+    float weight_final = 0.0f;
+    for (const int p_index : gmap->vert_to_poly[v_index]) {
+      const blender::IndexRange poly = ss->polys[p_index];
 
-          total_hit_loops += poly.size();
-          for (const int vert : ss->corner_verts.slice(poly)) {
-            weight_final += data->wpd->precomputed_weight[vert];
-          }
-        }
-
-        /* Apply the weight to the vertex. */
-        if (total_hit_loops != 0) {
-          float brush_strength = cache->bstrength;
-          const float angle_cos = (use_normal && vd.no) ?
-                                      dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                      1.0f;
-          if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-              ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-               view_angle_limits_apply_falloff(
-                   &data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
-          {
-            const float brush_fade = BKE_brush_curve_strength(
-                brush, sqrtf(test.dist), cache->radius);
-            const float final_alpha = brush_fade * brush_strength * grid_alpha *
-                                      brush_alpha_pressure;
-
-            if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
-              if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
-                ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
-              }
-              else {
-                continue;
-              }
-            }
-
-            weight_final /= total_hit_loops;
-            /* Only paint visible verts */
-            do_weight_paint_vertex(
-                data->vp, data->ob, data->wpi, v_index, final_alpha, weight_final);
-          }
-        }
+      total_hit_loops += poly.size();
+      for (const int vert : ss->corner_verts.slice(poly)) {
+        weight_final += data->wpd->precomputed_weight[vert];
       }
     }
+
+    /* Apply the weight to the vertex. */
+    if (total_hit_loops == 0) {
+      continue;
+    }
+
+    float brush_strength = cache->bstrength;
+    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                    1.0f;
+    if (!test_brush_angle_falloff(
+            *brush, data->wpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+      continue;
+    }
+
+    const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+    const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+
+    if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+      if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
+        ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
+      }
+      else {
+        continue;
+      }
+    }
+
+    weight_final /= total_hit_loops;
+    /* Only paint visible verts */
+    do_weight_paint_vertex(data->vp, data->ob, data->wpi, v_index, final_alpha, weight_final);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2033,6 +2046,10 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
   const Brush *brush = data->brush;
   const Scene *scene = CTX_data_scene(data->C);
   const StrokeCache *cache = ss->cache;
+  if (!cache->is_last_valid) {
+    return;
+  }
+
   float brush_size_pressure, brush_alpha_value, brush_alpha_pressure;
   get_brush_alpha_data(
       scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
@@ -2043,92 +2060,93 @@ static void do_wpaint_brush_smear_task_cb_ex(void *__restrict userdata,
 
   sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
   project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
+  if (normalize_v3(brush_dir) == 0.0f) {
+    return;
+  }
 
   const blender::bke::AttributeAccessor attributes = data->me->attributes();
   const blender::VArray<bool> select_vert = *attributes.lookup_or_default<bool>(
       ".select_vert", ATTR_DOMAIN_POINT, false);
 
-  if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
+  SculptBrushTest test;
+  SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+      ss, &test, data->brush->falloff_shape);
+  const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+      ss, data->brush->falloff_shape);
 
-    SculptBrushTest test;
-    SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-        ss, &test, data->brush->falloff_shape);
-    const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-        ss, data->brush->falloff_shape);
+  /* For each vertex */
+  PBVHVertexIter vd;
+  BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
+    /* Test to see if the vertex coordinates are within the spherical brush region. */
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
 
-    /* For each vertex */
-    PBVHVertexIter vd;
-    BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
-      /* Test to see if the vertex coordinates are within the spherical brush region. */
-      if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-         * Otherwise, take the current vert. */
-        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                        vd.vert_indices[vd.i];
-        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-        const float3 &mv_curr = ss->vert_positions[v_index];
+    /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
+     * Otherwise, take the current vert. */
+    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                    vd.vert_indices[vd.i];
+    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    const float3 &mv_curr = ss->vert_positions[v_index];
 
-        /* If the vertex is selected */
-        if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
-          float brush_strength = cache->bstrength;
-          const float angle_cos = (use_normal && vd.no) ?
-                                      dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                      1.0f;
-          if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-              ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-               view_angle_limits_apply_falloff(
-                   &data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
-          {
-            bool do_color = false;
-            /* Minimum dot product between brush direction and current
-             * to neighbor direction is 0.0, meaning orthogonal. */
-            float stroke_dot_max = 0.0f;
+    /* If the vertex is selected */
+    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+      continue;
+    }
 
-            /* Get the color of the loop in the opposite direction of the brush movement
-             * (this callback is specifically for smear.) */
-            float weight_final = 0.0;
-            for (const int p_index : gmap->vert_to_poly[v_index]) {
-              for (const int v_other_index : ss->corner_verts.slice(ss->polys[p_index])) {
-                if (v_other_index != v_index) {
-                  const float3 &mv_other = ss->vert_positions[v_other_index];
+    float brush_strength = cache->bstrength;
+    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                    1.0f;
+    if (!test_brush_angle_falloff(
+            *brush, data->wpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+      continue;
+    }
 
-                  /* Get the direction from the selected vert to the neighbor. */
-                  float other_dir[3];
-                  sub_v3_v3v3(other_dir, mv_curr, mv_other);
-                  project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
+    bool do_color = false;
+    /* Minimum dot product between brush direction and current
+     * to neighbor direction is 0.0, meaning orthogonal. */
+    float stroke_dot_max = 0.0f;
 
-                  normalize_v3(other_dir);
+    /* Get the color of the loop in the opposite direction of the brush movement
+     * (this callback is specifically for smear.) */
+    float weight_final = 0.0;
+    for (const int p_index : gmap->vert_to_poly[v_index]) {
+      for (const int v_other_index : ss->corner_verts.slice(ss->polys[p_index])) {
+        if (v_other_index == v_index) {
+          continue;
+        }
 
-                  const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+        /* Get the direction from the selected vert to the neighbor. */
+        float other_dir[3];
+        sub_v3_v3v3(other_dir, mv_curr, ss->vert_positions[v_other_index]);
+        project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
-                  if (stroke_dot > stroke_dot_max) {
-                    stroke_dot_max = stroke_dot;
-                    weight_final = data->wpd->precomputed_weight[v_other_index];
-                    do_color = true;
-                  }
-                }
-              }
-            }
-            /* Apply weight to vertex */
-            if (do_color) {
-              const float brush_fade = BKE_brush_curve_strength(
-                  brush, sqrtf(test.dist), cache->radius);
-              const float final_alpha = brush_fade * brush_strength * grid_alpha *
-                                        brush_alpha_pressure;
+        normalize_v3(other_dir);
 
-              if (final_alpha <= 0.0f) {
-                continue;
-              }
+        const float stroke_dot = dot_v3v3(other_dir, brush_dir);
 
-              do_weight_paint_vertex(
-                  data->vp, data->ob, data->wpi, v_index, final_alpha, float(weight_final));
-            }
-          }
+        if (stroke_dot > stroke_dot_max) {
+          stroke_dot_max = stroke_dot;
+          weight_final = data->wpd->precomputed_weight[v_other_index];
+          do_color = true;
         }
       }
+      /* Apply weight to vertex */
+      if (!do_color) {
+        continue;
+      }
+      const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+      const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
+
+      if (final_alpha <= 0.0f) {
+        continue;
+      }
+
+      do_weight_paint_vertex(
+          data->vp, data->ob, data->wpi, v_index, final_alpha, float(weight_final));
     }
-    BKE_pbvh_vertex_iter_end;
   }
+  BKE_pbvh_vertex_iter_end;
 }
 
 static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
@@ -2167,42 +2185,40 @@ static void do_wpaint_brush_draw_task_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      /* NOTE: grids are 1:1 with corners (aka loops).
-       * For multires, take the vert whose loop corresponds to the current grid.
-       * Otherwise, take the current vert. */
-      const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                      vd.vert_indices[vd.i];
-      const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
+    }
+    /* NOTE: grids are 1:1 with corners (aka loops).
+     * For multires, take the vert whose loop corresponds to the current grid.
+     * Otherwise, take the current vert. */
+    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                    vd.vert_indices[vd.i];
+    const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
-      /* If the vertex is selected */
-      if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
-        float brush_strength = cache->bstrength;
-        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                        1.0f;
-        if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-            ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-             view_angle_limits_apply_falloff(
-                 &data->wpd->normal_angle_precalc, angle_cos, &brush_strength)))
-        {
-          const float brush_fade = BKE_brush_curve_strength(
-              brush, sqrtf(test.dist), cache->radius);
-          const float final_alpha = brush_fade * brush_strength * grid_alpha *
-                                    brush_alpha_pressure;
+    /* If the vertex is selected */
+    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+      continue;
+    }
+    float brush_strength = cache->bstrength;
+    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                    1.0f;
+    if (!test_brush_angle_falloff(
+            *brush, data->wpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+      continue;
+    }
+    const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
+    const float final_alpha = brush_fade * brush_strength * grid_alpha * brush_alpha_pressure;
 
-          if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
-            if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
-              ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
-            }
-            else {
-              continue;
-            }
-          }
-
-          do_weight_paint_vertex(data->vp, data->ob, data->wpi, v_index, final_alpha, paintweight);
-        }
+    if ((brush->flag & BRUSH_ACCUMULATE) == 0) {
+      if (ss->mode.wpaint.alpha_weight[v_index] < final_alpha) {
+        ss->mode.wpaint.alpha_weight[v_index] = final_alpha;
+      }
+      else {
+        continue;
       }
     }
+
+    do_weight_paint_vertex(data->vp, data->ob, data->wpi, v_index, final_alpha, paintweight);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2239,23 +2255,28 @@ static void do_wpaint_brush_calc_average_weight_cb_ex(void *__restrict userdata,
   PBVHVertexIter vd;
   BKE_pbvh_vertex_iter_begin (ss->pbvh, data->nodes[n], vd, PBVH_ITER_UNIQUE) {
     /* Test to see if the vertex coordinates are within the spherical brush region. */
-    if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-      const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                                      1.0f;
-      if (angle_cos > 0.0 &&
-          BKE_brush_curve_strength(data->brush, sqrtf(test.dist), cache->radius) > 0.0)
-      {
-        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                        vd.vert_indices[vd.i];
-
-        /* If the vertex is selected. */
-        if (!(use_face_sel || use_vert_sel) || select_vert[v_index]) {
-          const MDeformVert *dv = &data->wpi->dvert[v_index];
-          accum->len += 1;
-          accum->value += wpaint_get_active_weight(dv, data->wpi);
-        }
-      }
+    if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+      continue;
     }
+
+    const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                    1.0f;
+    if (angle_cos <= 0.0f ||
+        BKE_brush_curve_strength(data->brush, sqrtf(test.dist), cache->radius) <= 0.0f)
+    {
+      continue;
+    }
+
+    const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                    vd.vert_indices[vd.i];
+    /* If the vertex is selected. */
+    if ((use_face_sel || use_vert_sel) && !select_vert[v_index]) {
+      continue;
+    }
+
+    const MDeformVert *dv = &data->wpi->dvert[v_index];
+    accum->len += 1;
+    accum->value += wpaint_get_active_weight(dv, data->wpi);
   }
   BKE_pbvh_vertex_iter_end;
 }
@@ -2889,12 +2910,11 @@ static bool vpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   VPaint *vp = ts->vpaint;
   Brush *brush = BKE_paint_brush(&vp->paint);
   Object *ob = CTX_data_active_object(C);
-  Mesh *me;
   SculptSession *ss = ob->sculpt;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* context checks could be a poll() */
-  me = BKE_mesh_from_object(ob);
+  Mesh *me = BKE_mesh_from_object(ob);
   if (me == nullptr || me->totpoly == 0) {
     return false;
   }
@@ -2992,93 +3012,89 @@ static void do_vpaint_brush_blur_loops(bContext *C,
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
-        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-           * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                          vd.vert_indices[vd.i];
-          const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
+         * Otherwise, take the current vert. */
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
+        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
-          /* If the vertex is selected for painting. */
-          if (!use_vert_sel || select_vert[v_index]) {
-            float brush_strength = cache->bstrength;
-            const float angle_cos = (use_normal && vd.no) ?
-                                        dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                        1.0f;
-            if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-                ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-                 view_angle_limits_apply_falloff(
-                     &vpd->normal_angle_precalc, angle_cos, &brush_strength)))
-            {
-              const float brush_fade = BKE_brush_curve_strength(
-                  brush, sqrtf(test.dist), cache->radius);
+        /* If the vertex is selected for painting. */
+        if (use_vert_sel && !select_vert[v_index]) {
+          continue;
+        }
 
-              /* Get the average poly color */
-              Color color_final(0, 0, 0, 0);
+        float brush_strength = cache->bstrength;
+        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                        1.0f;
+        if (!test_brush_angle_falloff(
+                *brush, vpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+          continue;
+        }
 
-              int total_hit_loops = 0;
-              Blend blend[4] = {0};
+        const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 
-              for (const int p_index : gmap->vert_to_poly[v_index]) {
-                if (!use_face_sel || select_poly[p_index]) {
-                  const blender::IndexRange poly = ss->polys[p_index];
-                  total_hit_loops += poly.size();
-                  for (const int corner : poly) {
-                    Color *col = lcol + corner;
+        /* Get the average poly color */
+        Color color_final(0, 0, 0, 0);
 
-                    /* Color is squared to compensate the `sqrt` color encoding. */
-                    blend[0] += (Blend)col->r * (Blend)col->r;
-                    blend[1] += (Blend)col->g * (Blend)col->g;
-                    blend[2] += (Blend)col->b * (Blend)col->b;
-                    blend[3] += (Blend)col->a * (Blend)col->a;
-                  }
-                }
-              }
+        int total_hit_loops = 0;
+        Blend blend[4] = {0};
 
-              if (total_hit_loops != 0) {
-                /* Use rgb^2 color averaging. */
-                Color *col = &color_final;
-
-                color_final.r = Traits::round(
-                    sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
-                color_final.g = Traits::round(
-                    sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
-                color_final.b = Traits::round(
-                    sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
-                color_final.a = Traits::round(
-                    sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
-
-                /* For each poly owning this vert,
-                 * paint each loop belonging to this vert. */
-                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
-                  const int p_index = gmap->vert_to_poly[v_index][j];
-                  const int l_index = gmap->vert_to_loop[v_index][j];
-                  BLI_assert(ss->corner_verts[l_index] == v_index);
-                  if (!use_face_sel || select_poly[p_index]) {
-                    Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
-
-                    if (previous_color != nullptr) {
-                      /* Get the previous loop color */
-                      if (isZero(previous_color[l_index])) {
-                        previous_color[l_index] = lcol[l_index];
-                      }
-                      color_orig = previous_color[l_index];
-                    }
-                    const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                              brush_alpha_pressure * grid_alpha;
-                    /* Mix the new color with the original
-                     * based on the brush strength and the curve. */
-                    lcol[l_index] = vpaint_blend<Color, Traits>(vp,
-                                                                lcol[l_index],
-                                                                color_orig,
-                                                                *col,
-                                                                final_alpha,
-                                                                Traits::range * brush_strength);
-                  }
-                }
-              }
-            }
+        for (const int p_index : gmap->vert_to_poly[v_index]) {
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
           }
+          const blender::IndexRange poly = ss->polys[p_index];
+          total_hit_loops += poly.size();
+          for (const int corner : poly) {
+            Color *col = lcol + corner;
+
+            /* Color is squared to compensate the `sqrt` color encoding. */
+            blend[0] += (Blend)col->r * (Blend)col->r;
+            blend[1] += (Blend)col->g * (Blend)col->g;
+            blend[2] += (Blend)col->b * (Blend)col->b;
+            blend[3] += (Blend)col->a * (Blend)col->a;
+          }
+        }
+
+        if (total_hit_loops == 0) {
+          continue;
+        }
+
+        /* Use rgb^2 color averaging. */
+        Color *col = &color_final;
+
+        color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
+        color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
+        color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
+        color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
+
+        /* For each poly owning this vert,
+         * paint each loop belonging to this vert. */
+        for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+          const int p_index = gmap->vert_to_poly[v_index][j];
+          const int l_index = gmap->vert_to_loop[v_index][j];
+          BLI_assert(ss->corner_verts[l_index] == v_index);
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
+          }
+          Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+          if (previous_color != nullptr) {
+            /* Get the previous loop color */
+            if (isZero(previous_color[l_index])) {
+              previous_color[l_index] = lcol[l_index];
+            }
+            color_orig = previous_color[l_index];
+          }
+          const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                    brush_alpha_pressure * grid_alpha;
+          /* Mix the new color with the original
+           * based on the brush strength and the curve. */
+          lcol[l_index] = vpaint_blend<Color, Traits>(
+              vp, lcol[l_index], color_orig, *col, final_alpha, Traits::range * brush_strength);
         }
       }
       BKE_pbvh_vertex_iter_end;
@@ -3135,90 +3151,84 @@ static void do_vpaint_brush_blur_verts(bContext *C,
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
-        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-           * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                          vd.vert_indices[vd.i];
-          const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
+         * Otherwise, take the current vert. */
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
+        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
-          /* If the vertex is selected for painting. */
-          if (!use_vert_sel || select_vert[v_index]) {
-            float brush_strength = cache->bstrength;
-            const float angle_cos = (use_normal && vd.no) ?
-                                        dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                        1.0f;
-            if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-                ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-                 view_angle_limits_apply_falloff(
-                     &vpd->normal_angle_precalc, angle_cos, &brush_strength)))
-            {
-              const float brush_fade = BKE_brush_curve_strength(
-                  brush, sqrtf(test.dist), cache->radius);
+        /* If the vertex is selected for painting. */
+        if (use_vert_sel && !select_vert[v_index]) {
+          continue;
+        }
 
-              /* Get the average poly color */
-              Color color_final(0, 0, 0, 0);
+        float brush_strength = cache->bstrength;
+        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                        1.0f;
+        if (!test_brush_angle_falloff(
+                *brush, vpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+          continue;
+        }
+        const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 
-              int total_hit_loops = 0;
-              Blend blend[4] = {0};
+        /* Get the average poly color */
+        Color color_final(0, 0, 0, 0);
 
-              for (const int p_index : gmap->vert_to_poly[v_index]) {
-                if (!use_face_sel || select_poly[p_index]) {
-                  const blender::IndexRange poly = ss->polys[p_index];
-                  total_hit_loops += poly.size();
-                  for (const int vert : ss->corner_verts.slice(poly)) {
-                    Color *col = lcol + vert;
+        int total_hit_loops = 0;
+        Blend blend[4] = {0};
 
-                    /* Color is squared to compensate the `sqrt` color encoding. */
-                    blend[0] += (Blend)col->r * (Blend)col->r;
-                    blend[1] += (Blend)col->g * (Blend)col->g;
-                    blend[2] += (Blend)col->b * (Blend)col->b;
-                    blend[3] += (Blend)col->a * (Blend)col->a;
-                  }
-                }
-              }
-
-              if (total_hit_loops != 0) {
-                /* Use rgb^2 color averaging. */
-                Color *col = &color_final;
-
-                color_final.r = Traits::round(
-                    sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
-                color_final.g = Traits::round(
-                    sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
-                color_final.b = Traits::round(
-                    sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
-                color_final.a = Traits::round(
-                    sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
-
-                /* For each poly owning this vert,
-                 * paint each loop belonging to this vert. */
-                for (const int p_index : gmap->vert_to_poly[v_index]) {
-                  if (!use_face_sel || select_poly[p_index]) {
-                    Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
-
-                    if (previous_color != nullptr) {
-                      /* Get the previous loop color */
-                      if (isZero(previous_color[v_index])) {
-                        previous_color[v_index] = lcol[v_index];
-                      }
-                      color_orig = previous_color[v_index];
-                    }
-                    const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                              brush_alpha_pressure * grid_alpha;
-                    /* Mix the new color with the original
-                     * based on the brush strength and the curve. */
-                    lcol[v_index] = vpaint_blend<Color, Traits>(vp,
-                                                                lcol[v_index],
-                                                                color_orig,
-                                                                *col,
-                                                                final_alpha,
-                                                                Traits::range * brush_strength);
-                  }
-                }
-              }
-            }
+        for (const int p_index : gmap->vert_to_poly[v_index]) {
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
           }
+          const blender::IndexRange poly = ss->polys[p_index];
+          total_hit_loops += poly.size();
+          for (const int vert : ss->corner_verts.slice(poly)) {
+            Color *col = lcol + vert;
+
+            /* Color is squared to compensate the `sqrt` color encoding. */
+            blend[0] += (Blend)col->r * (Blend)col->r;
+            blend[1] += (Blend)col->g * (Blend)col->g;
+            blend[2] += (Blend)col->b * (Blend)col->b;
+            blend[3] += (Blend)col->a * (Blend)col->a;
+          }
+        }
+
+        if (total_hit_loops == 0) {
+          continue;
+        }
+        /* Use rgb^2 color averaging. */
+        Color *col = &color_final;
+
+        color_final.r = Traits::round(sqrtf(Traits::divide_round(blend[0], total_hit_loops)));
+        color_final.g = Traits::round(sqrtf(Traits::divide_round(blend[1], total_hit_loops)));
+        color_final.b = Traits::round(sqrtf(Traits::divide_round(blend[2], total_hit_loops)));
+        color_final.a = Traits::round(sqrtf(Traits::divide_round(blend[3], total_hit_loops)));
+
+        /* For each poly owning this vert,
+         * paint each loop belonging to this vert. */
+        for (const int p_index : gmap->vert_to_poly[v_index]) {
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
+          }
+          Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+          if (previous_color != nullptr) {
+            /* Get the previous loop color */
+            if (isZero(previous_color[v_index])) {
+              previous_color[v_index] = lcol[v_index];
+            }
+            color_orig = previous_color[v_index];
+          }
+          const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                    brush_alpha_pressure * grid_alpha;
+          /* Mix the new color with the original
+           * based on the brush strength and the curve. */
+          lcol[v_index] = vpaint_blend<Color, Traits>(
+              vp, lcol[v_index], color_orig, *col, final_alpha, Traits::range * brush_strength);
         }
       }
       BKE_pbvh_vertex_iter_end;
@@ -3240,6 +3250,9 @@ static void do_vpaint_brush_smear(bContext *C,
 
   const SculptVertexPaintGeomMap *gmap = &ss->mode.vpaint.gmap;
   const StrokeCache *cache = ss->cache;
+  if (!cache->is_last_valid) {
+    return;
+  }
   const PBVHType pbvh_type = BKE_pbvh_type(ss->pbvh);
   const bool has_grids = (pbvh_type == PBVH_GRIDS);
 
@@ -3260,149 +3273,151 @@ static void do_vpaint_brush_smear(bContext *C,
 
       get_brush_alpha_data(
           scene, ss, brush, &brush_size_pressure, &brush_alpha_value, &brush_alpha_pressure);
-      float brush_dir[3];
       const bool use_normal = vwpaint_use_normal(vp);
       const bool use_vert_sel = (me->editflag &
                                  (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)) != 0;
       const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 
+      float brush_dir[3];
       sub_v3_v3v3(brush_dir, cache->location, cache->last_location);
       project_plane_v3_v3v3(brush_dir, brush_dir, cache->view_normal);
+      if (normalize_v3(brush_dir) == 0.0f) {
+        continue;
+      }
 
-      if (cache->is_last_valid && (normalize_v3(brush_dir) != 0.0f)) {
+      SculptBrushTest test;
+      SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
+          ss, &test, brush->falloff_shape);
+      const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
+          ss, brush->falloff_shape);
 
-        SculptBrushTest test;
-        SculptBrushTestFn sculpt_brush_test_sq_fn = SCULPT_brush_test_init_with_falloff_shape(
-            ss, &test, brush->falloff_shape);
-        const float *sculpt_normal_frontface = SCULPT_brush_frontface_normal_from_falloff_shape(
-            ss, brush->falloff_shape);
+      /* For each vertex */
+      PBVHVertexIter vd;
+      BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+        /* Test to see if the vertex coordinates are within the spherical brush region. */
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
+         * Otherwise, take the current vert. */
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
+        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        const float3 &mv_curr = &ss->vert_positions[v_index];
 
-        /* For each vertex */
-        PBVHVertexIter vd;
-        BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-          /* Test to see if the vertex coordinates are within the spherical brush region. */
-          if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-            /* For grid based pbvh, take the vert whose loop corresponds to the current grid.
-             * Otherwise, take the current vert. */
-            const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                            vd.vert_indices[vd.i];
-            const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-            const float3 &mv_curr = &ss->vert_positions[v_index];
+        /* if the vertex is selected for painting. */
+        if (use_vert_sel && !select_vert[v_index]) {
+          continue;
+        }
 
-            /* if the vertex is selected for painting. */
-            if (!use_vert_sel || select_vert[v_index]) {
-              /* Calculate the dot prod. between ray norm on surf and current vert
-               * (ie splash prevention factor), and only paint front facing verts. */
-              float brush_strength = cache->bstrength;
-              const float angle_cos = (use_normal && vd.no) ?
-                                          dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                          1.0f;
-              if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-                  ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-                   view_angle_limits_apply_falloff(
-                       &vpd->normal_angle_precalc, angle_cos, &brush_strength)))
-              {
-                const float brush_fade = BKE_brush_curve_strength(
-                    brush, sqrtf(test.dist), cache->radius);
+        /* Calculate the dot prod. between ray norm on surf and current vert
+         * (ie splash prevention factor), and only paint front facing verts. */
+        float brush_strength = cache->bstrength;
+        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                        1.0f;
+        if (!test_brush_angle_falloff(
+                *brush, vpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+          continue;
+        }
+        const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 
-                bool do_color = false;
-                /* Minimum dot product between brush direction and current
-                 * to neighbor direction is 0.0, meaning orthogonal. */
-                float stroke_dot_max = 0.0f;
+        bool do_color = false;
+        /* Minimum dot product between brush direction and current
+         * to neighbor direction is 0.0, meaning orthogonal. */
+        float stroke_dot_max = 0.0f;
 
-                /* Get the color of the loop in the opposite
-                 * direction of the brush movement */
-                Color color_final(0, 0, 0, 0);
+        /* Get the color of the loop in the opposite
+         * direction of the brush movement */
+        Color color_final(0, 0, 0, 0);
 
-                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
-                  const int p_index = gmap->vert_to_poly[v_index][j];
-                  const int l_index = gmap->vert_to_loop[v_index][j];
-                  BLI_assert(ss->corner_verts[l_index] == v_index);
-                  UNUSED_VARS_NDEBUG(l_index);
-                  if (!use_face_sel || select_poly[p_index]) {
-                    for (const int corner : ss->polys[p_index]) {
-                      const int v_other_index = ss->corner_verts[corner];
-                      if (v_other_index != v_index) {
-                        const float3 &mv_other = &ss->vert_positions[v_other_index];
+        for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+          const int p_index = gmap->vert_to_poly[v_index][j];
+          const int l_index = gmap->vert_to_loop[v_index][j];
+          BLI_assert(ss->corner_verts[l_index] == v_index);
+          UNUSED_VARS_NDEBUG(l_index);
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
+          }
+          for (const int corner : ss->polys[p_index]) {
+            const int v_other_index = ss->corner_verts[corner];
+            if (v_other_index == v_index) {
+              continue;
+            }
 
-                        /* Get the direction from the
-                         * selected vert to the neighbor. */
-                        float other_dir[3];
-                        sub_v3_v3v3(other_dir, mv_curr, mv_other);
-                        project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
+            /* Get the direction from the
+             * selected vert to the neighbor. */
+            float other_dir[3];
+            sub_v3_v3v3(other_dir, mv_curr, ss->vert_positions[v_other_index]);
+            project_plane_v3_v3v3(other_dir, other_dir, cache->view_normal);
 
-                        normalize_v3(other_dir);
+            normalize_v3(other_dir);
 
-                        const float stroke_dot = dot_v3v3(other_dir, brush_dir);
-                        int elem_index;
+            const float stroke_dot = dot_v3v3(other_dir, brush_dir);
+            int elem_index;
 
-                        if constexpr (domain == ATTR_DOMAIN_POINT) {
-                          elem_index = v_other_index;
-                        }
-                        else {
-                          elem_index = corner;
-                        }
+            if constexpr (domain == ATTR_DOMAIN_POINT) {
+              elem_index = v_other_index;
+            }
+            else {
+              elem_index = corner;
+            }
 
-                        if (stroke_dot > stroke_dot_max) {
-                          stroke_dot_max = stroke_dot;
-                          color_final = color_prev_smear[elem_index];
-                          do_color = true;
-                        }
-                      }
-                    }
-                  }
-                }
-
-                if (do_color) {
-                  const float final_alpha = Traits::range * brush_fade * brush_strength *
-                                            brush_alpha_pressure * grid_alpha;
-
-                  /* For each poly owning this vert,
-                   * paint each loop belonging to this vert. */
-                  for (const int j : gmap->vert_to_poly[v_index].index_range()) {
-                    const int p_index = gmap->vert_to_poly[v_index][j];
-
-                    int elem_index;
-                    if constexpr (domain == ATTR_DOMAIN_POINT) {
-                      elem_index = v_index;
-                    }
-                    else {
-                      const int l_index = gmap->vert_to_loop[v_index][j];
-                      elem_index = l_index;
-                      BLI_assert(ss->corner_verts[l_index] == v_index);
-                    }
-
-                    if (!use_face_sel || select_poly[p_index]) {
-                      /* Get the previous element color */
-                      Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
-
-                      if (color_prev != nullptr) {
-                        /* Get the previous element color */
-                        if (isZero(color_prev[elem_index])) {
-                          color_prev[elem_index] = lcol[elem_index];
-                        }
-                        color_orig = color_prev[elem_index];
-                      }
-                      /* Mix the new color with the original
-                       * based on the brush strength and the curve. */
-                      lcol[elem_index] = vpaint_blend<Color, Traits>(vp,
-                                                                     lcol[elem_index],
-                                                                     color_orig,
-                                                                     color_final,
-                                                                     final_alpha,
-                                                                     Traits::range *
-                                                                         brush_strength);
-
-                      color_curr[elem_index] = lcol[elem_index];
-                    }
-                  }
-                }
-              }
+            if (stroke_dot > stroke_dot_max) {
+              stroke_dot_max = stroke_dot;
+              color_final = color_prev_smear[elem_index];
+              do_color = true;
             }
           }
         }
-        BKE_pbvh_vertex_iter_end;
+
+        if (!do_color) {
+          continue;
+        }
+
+        const float final_alpha = Traits::range * brush_fade * brush_strength *
+                                  brush_alpha_pressure * grid_alpha;
+
+        /* For each poly owning this vert,
+         * paint each loop belonging to this vert. */
+        for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+          const int p_index = gmap->vert_to_poly[v_index][j];
+
+          int elem_index;
+          if constexpr (domain == ATTR_DOMAIN_POINT) {
+            elem_index = v_index;
+          }
+          else {
+            const int l_index = gmap->vert_to_loop[v_index][j];
+            elem_index = l_index;
+            BLI_assert(ss->corner_verts[l_index] == v_index);
+          }
+          if (use_face_sel && !select_poly[p_index]) {
+            continue;
+          }
+
+          /* Get the previous element color */
+          Color color_orig(0, 0, 0, 0); /* unused when array is nullptr */
+
+          if (color_prev != nullptr) {
+            /* Get the previous element color */
+            if (isZero(color_prev[elem_index])) {
+              color_prev[elem_index] = lcol[elem_index];
+            }
+            color_orig = color_prev[elem_index];
+          }
+          /* Mix the new color with the original
+           * based on the brush strength and the curve. */
+          lcol[elem_index] = vpaint_blend<Color, Traits>(vp,
+                                                         lcol[elem_index],
+                                                         color_orig,
+                                                         color_final,
+                                                         final_alpha,
+                                                         Traits::range * brush_strength);
+
+          color_curr[elem_index] = lcol[elem_index];
+        }
       }
+      BKE_pbvh_vertex_iter_end;
     }
   });
 }
@@ -3445,33 +3460,37 @@ static void calculate_average_color(VPaintData<Color, Traits, domain> *vpd,
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
-        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                          vd.vert_indices[vd.i];
-          if (BKE_brush_curve_strength(brush, 0.0, cache->radius) > 0.0) {
-            /* If the vertex is selected for painting. */
-            if (!use_vert_sel || select_vert[v_index]) {
-              accum2->len += gmap->vert_to_poly[v_index].size();
-              /* if a vertex is within the brush region, then add its color to the blend. */
-              for (int j = 0; j < gmap->vert_to_poly[v_index].size(); j++) {
-                int elem_index;
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        if (BKE_brush_curve_strength(brush, 0.0, cache->radius) <= 0.0f) {
+          continue;
+        }
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
+        /* If the vertex is selected for painting. */
+        if (use_vert_sel && !select_vert[v_index]) {
+          continue;
+        }
 
-                if constexpr (domain == ATTR_DOMAIN_CORNER) {
-                  elem_index = gmap->vert_to_loop[v_index][j];
-                }
-                else {
-                  elem_index = v_index;
-                }
+        accum2->len += gmap->vert_to_poly[v_index].size();
+        /* if a vertex is within the brush region, then add its color to the blend. */
+        for (int j = 0; j < gmap->vert_to_poly[v_index].size(); j++) {
+          int elem_index;
 
-                Color *col = lcol + elem_index;
-
-                /* Color is squared to compensate the `sqrt` color encoding. */
-                accum2->value[0] += col->r * col->r;
-                accum2->value[1] += col->g * col->g;
-                accum2->value[2] += col->b * col->b;
-              }
-            }
+          if constexpr (domain == ATTR_DOMAIN_CORNER) {
+            elem_index = gmap->vert_to_loop[v_index][j];
           }
+          else {
+            elem_index = v_index;
+          }
+
+          Color *col = lcol + elem_index;
+
+          /* Color is squared to compensate the `sqrt` color encoding. */
+          accum2->value[0] += col->r * col->r;
+          accum2->value[1] += col->g * col->g;
+          accum2->value[2] += col->b * col->b;
         }
       }
       BKE_pbvh_vertex_iter_end;
@@ -3565,92 +3584,92 @@ static void vpaint_do_draw(bContext *C,
       PBVHVertexIter vd;
       BKE_pbvh_vertex_iter_begin (ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
         /* Test to see if the vertex coordinates are within the spherical brush region. */
-        if (sculpt_brush_test_sq_fn(&test, vd.co)) {
-          /* NOTE: Grids are 1:1 with corners (aka loops).
-           * For grid based pbvh, take the vert whose loop corresponds to the current grid.
-           * Otherwise, take the current vert. */
-          const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
-                                          vd.vert_indices[vd.i];
-          const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
+        if (!sculpt_brush_test_sq_fn(&test, vd.co)) {
+          continue;
+        }
+        /* NOTE: Grids are 1:1 with corners (aka loops).
+         * For grid based pbvh, take the vert whose loop corresponds to the current grid.
+         * Otherwise, take the current vert. */
+        const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
+                                        vd.vert_indices[vd.i];
+        /* If the vertex is selected for painting. */
+        if (use_vert_sel && !select_vert[v_index]) {
+          continue;
+        }
 
-          /* If the vertex is selected for painting. */
-          if (!use_vert_sel || select_vert[v_index]) {
-            /* Calc the dot prod. between ray norm on surf and current vert
-             * (ie splash prevention factor), and only paint front facing verts. */
-            float brush_strength = cache->bstrength;
-            const float angle_cos = (use_normal && vd.no) ?
-                                        dot_v3v3(sculpt_normal_frontface, vd.no) :
-                                        1.0f;
-            if (((brush->flag & BRUSH_FRONTFACE) == 0 || (angle_cos > 0.0f)) &&
-                ((brush->flag & BRUSH_FRONTFACE_FALLOFF) == 0 ||
-                 view_angle_limits_apply_falloff(
-                     &vpd->normal_angle_precalc, angle_cos, &brush_strength)))
-            {
-              const float brush_fade = BKE_brush_curve_strength(
-                  brush, sqrtf(test.dist), cache->radius);
+        const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
 
-              Color color_final = paintcol;
+        /* Calc the dot prod. between ray norm on surf and current vert
+         * (ie splash prevention factor), and only paint front facing verts. */
+        float brush_strength = cache->bstrength;
+        const float angle_cos = (use_normal && vd.no) ? dot_v3v3(sculpt_normal_frontface, vd.no) :
+                                                        1.0f;
+        if (!test_brush_angle_falloff(
+                *brush, vpd->normal_angle_precalc, angle_cos, &brush_strength)) {
+          continue;
+        }
+        const float brush_fade = BKE_brush_curve_strength(brush, sqrtf(test.dist), cache->radius);
 
-              /* If we're painting with a texture, sample the texture color and alpha. */
-              float tex_alpha = 1.0;
-              if (vpd->is_texbrush) {
-                /* NOTE: we may want to paint alpha as vertex color alpha. */
-                tex_alpha = paint_and_tex_color_alpha<Color, Traits, domain>(
-                    vp, vpd, vpd->vertexcosnos[v_index].co, &color_final);
-              }
+        Color color_final = paintcol;
 
-              Color color_orig(0, 0, 0, 0);
+        /* If we're painting with a texture, sample the texture color and alpha. */
+        float tex_alpha = 1.0;
+        if (vpd->is_texbrush) {
+          /* NOTE: we may want to paint alpha as vertex color alpha. */
+          tex_alpha = paint_and_tex_color_alpha<Color, Traits, domain>(
+              vp, vpd, vpd->vertexcosnos[v_index].co, &color_final);
+        }
 
-              if constexpr (domain == ATTR_DOMAIN_POINT) {
-                int v_index = vd.index;
+        Color color_orig(0, 0, 0, 0);
 
-                if (previous_color != nullptr) {
-                  /* Get the previous loop color */
-                  if (isZero(previous_color[v_index])) {
-                    previous_color[v_index] = lcol[v_index];
-                  }
-                  color_orig = previous_color[v_index];
-                }
-                const float final_alpha = Traits::frange * brush_fade * brush_strength *
-                                          tex_alpha * brush_alpha_pressure * grid_alpha;
+        if constexpr (domain == ATTR_DOMAIN_POINT) {
+          int v_index = vd.index;
 
-                lcol[v_index] = vpaint_blend<Color, Traits>(vp,
-                                                            lcol[v_index],
-                                                            color_orig,
-                                                            color_final,
-                                                            final_alpha,
-                                                            Traits::range * brush_strength);
-              }
-              else {
-                /* For each poly owning this vert, paint each loop belonging to this vert. */
-                for (const int j : gmap->vert_to_poly[v_index].index_range()) {
-                  const int p_index = gmap->vert_to_poly[v_index][j];
-                  const int l_index = gmap->vert_to_loop[v_index][j];
-                  BLI_assert(ss->corner_verts[l_index] == v_index);
-                  if (!use_face_sel || select_poly[p_index]) {
-                    Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
-
-                    if (previous_color != nullptr) {
-                      /* Get the previous loop color */
-                      if (isZero(previous_color[l_index])) {
-                        previous_color[l_index] = lcol[l_index];
-                      }
-                      color_orig = previous_color[l_index];
-                    }
-                    const float final_alpha = Traits::frange * brush_fade * brush_strength *
-                                              tex_alpha * brush_alpha_pressure * grid_alpha;
-
-                    /* Mix the new color with the original based on final_alpha. */
-                    lcol[l_index] = vpaint_blend<Color, Traits>(vp,
-                                                                lcol[l_index],
-                                                                color_orig,
-                                                                color_final,
-                                                                final_alpha,
-                                                                Traits::range * brush_strength);
-                  }
-                }
-              }
+          if (previous_color != nullptr) {
+            /* Get the previous loop color */
+            if (isZero(previous_color[v_index])) {
+              previous_color[v_index] = lcol[v_index];
             }
+            color_orig = previous_color[v_index];
+          }
+          const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
+                                    brush_alpha_pressure * grid_alpha;
+
+          lcol[v_index] = vpaint_blend<Color, Traits>(vp,
+                                                      lcol[v_index],
+                                                      color_orig,
+                                                      color_final,
+                                                      final_alpha,
+                                                      Traits::range * brush_strength);
+        }
+        else {
+          /* For each poly owning this vert, paint each loop belonging to this vert. */
+          for (const int j : gmap->vert_to_poly[v_index].index_range()) {
+            const int p_index = gmap->vert_to_poly[v_index][j];
+            const int l_index = gmap->vert_to_loop[v_index][j];
+            BLI_assert(ss->corner_verts[l_index] == v_index);
+            if (use_face_sel && !select_poly[p_index]) {
+              continue;
+            }
+            Color color_orig = Color(0, 0, 0, 0); /* unused when array is nullptr */
+
+            if (previous_color != nullptr) {
+              /* Get the previous loop color */
+              if (isZero(previous_color[l_index])) {
+                previous_color[l_index] = lcol[l_index];
+              }
+              color_orig = previous_color[l_index];
+            }
+            const float final_alpha = Traits::frange * brush_fade * brush_strength * tex_alpha *
+                                      brush_alpha_pressure * grid_alpha;
+
+            /* Mix the new color with the original based on final_alpha. */
+            lcol[l_index] = vpaint_blend<Color, Traits>(vp,
+                                                        lcol[l_index],
+                                                        color_orig,
+                                                        color_final,
+                                                        final_alpha,
+                                                        Traits::range * brush_strength);
           }
         }
       }
@@ -3687,7 +3706,6 @@ static void vpaint_paint_leaves(bContext *C,
                                 Color *lcol,
                                 Span<PBVHNode *> nodes)
 {
-
   for (PBVHNode *node : nodes) {
     SCULPT_undo_push_node(ob, node, SCULPT_UNDO_COLOR);
   }

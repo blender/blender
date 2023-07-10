@@ -466,7 +466,7 @@ void BKE_idtype_id_foreach_cache(ID *id,
     type_info = BKE_idtype_get_info_from_id(&nodetree->id);
     if (type_info == NULL) {
       /* Very old .blend file seem to have empty names for their embedded node trees, see
-       * `blo_do_versions_250()`. Assume those are nodetrees then. */
+       * `blo_do_versions_250()`. Assume those are node-trees then. */
       type_info = BKE_idtype_get_info_from_idcode(ID_NT);
     }
     if (type_info->foreach_cache != NULL) {

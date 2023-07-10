@@ -148,6 +148,27 @@ class EEVEE_WORLD_PT_volume(WorldButtonsPanel, Panel):
             layout.label(text="No output node")
 
 
+class EEVEE_WORLD_PT_probe(WorldButtonsPanel, Panel):
+    bl_label = "Probe"
+    bl_translation_context = i18n_contexts.id_id
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
+
+    @classmethod
+    def poll(cls, context):
+        engine = context.engine
+        world = context.world
+        return world and (engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+
+        world = context.world
+
+        layout.use_property_split = True
+        layout.prop(world, "probe_resolution")
+
+
 class WORLD_PT_viewport_display(WorldButtonsPanel, Panel):
     bl_label = "Viewport Display"
     bl_options = {'DEFAULT_CLOSED'}
@@ -169,6 +190,7 @@ classes = (
     EEVEE_WORLD_PT_surface,
     EEVEE_WORLD_PT_volume,
     EEVEE_WORLD_PT_mist,
+    EEVEE_WORLD_PT_probe,
     WORLD_PT_viewport_display,
     WORLD_PT_custom_props,
 )

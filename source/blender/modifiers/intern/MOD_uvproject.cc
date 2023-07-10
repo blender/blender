@@ -22,6 +22,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_lib_query.h"
@@ -119,10 +120,8 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 
   /* Create a new layer if no UV Maps are available
    * (e.g. if a preceding modifier could not preserve it). */
-  if (!CustomData_has_layer(&mesh->ldata, CD_PROP_FLOAT2)) {
-    CustomData_add_layer_named(
-        &mesh->ldata, CD_PROP_FLOAT2, CD_SET_DEFAULT, mesh->totloop, umd->uvlayer_name);
-  }
+  mesh->attributes_for_write().add<float2>(
+      umd->uvlayer_name, ATTR_DOMAIN_CORNER, bke::AttributeInitDefaultValue());
 
   /* make sure we're using an existing layer */
   CustomData_validate_layer_name(&mesh->ldata, CD_PROP_FLOAT2, umd->uvlayer_name, uvname);

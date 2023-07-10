@@ -68,7 +68,7 @@ const char *nodeTypeAsString(NodeType type)
       return "OBJECT_FROM_LAYER";
     case NodeType::HIERARCHY:
       return "HIERARCHY";
-    /* **** Evaluation-Related Outer Types (with Subdata) **** */
+    /* **** Evaluation-Related Outer Types (with Sub-data) **** */
     case NodeType::EVAL_POSE:
       return "EVAL_POSE";
     case NodeType::BONE:

@@ -354,7 +354,7 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 /** \name Extrude Operator
  * \{ */
 
-/* generic extern called extruder */
+/** Implement generic externally called extrude function. */
 static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 {
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
@@ -862,7 +862,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
         EDBM_op_callf(
             vc.em, op, "rotate verts=%hv cent=%v matrix=%m3", BM_ELEM_SELECT, local_center, mat);
 
-        /* also project the source, for retopo workflow */
+        /* Also project the source, for retopology workflow. */
         if (use_proj) {
           EDBM_project_snap_verts(C, depsgraph, vc.region, vc.obedit, vc.em);
         }

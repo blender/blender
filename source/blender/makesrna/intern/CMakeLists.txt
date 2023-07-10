@@ -411,8 +411,8 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
-if(WITH_VULKAN_METAL)
-  add_definitions(-DWITH_VULKAN_METAL)
+if(WITH_METAL_BACKEND)
+  add_definitions(-DWITH_METAL_BACKEND)
 endif()
 
 if(WITH_VULKAN_BACKEND)
@@ -433,7 +433,7 @@ blender_target_include_dirs(makesrna ${INC})
 blender_target_include_dirs_sys(makesrna ${INC_SYS})
 
 target_link_libraries(makesrna PRIVATE bf_dna)
-target_link_libraries(makesrna PRIVATE bf_intern_atomic)
+target_link_libraries(makesrna PRIVATE bf::intern::atomic)
 target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
 
 if(WIN32 AND NOT UNIX)

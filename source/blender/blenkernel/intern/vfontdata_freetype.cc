@@ -209,7 +209,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, const VFont
 {
   FT_UInt glyph_index = FT_Get_Char_Index(face, charcode);
   if (FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok) {
-    return NULL;
+    return nullptr;
   }
 
   VChar *che = (VChar *)MEM_callocN(sizeof(VChar), "objfnt_char");
@@ -223,16 +223,16 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, const VFont
 
 static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *pf)
 {
-  FT_Face face = NULL;
-  FT_New_Memory_Face(library, pf->data, pf->size, 0, &face);
+  FT_Face face = nullptr;
+  FT_New_Memory_Face(library, static_cast<const FT_Byte *>(pf->data), pf->size, 0, &face);
   if (!face) {
-    return NULL;
+    return nullptr;
   }
 
   /* Font must contain vectors, not bitmaps. */
   if (!(face->face_flags & FT_FACE_FLAG_SCALABLE)) {
     FT_Done_Face(face);
-    return NULL;
+    return nullptr;
   }
 
   /* Select a character map. */
@@ -245,7 +245,7 @@ static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *
   }
   if (err) {
     FT_Done_Face(face);
-    return NULL;
+    return nullptr;
   }
 
   /* Test that we can load glyphs from this font. */
@@ -255,7 +255,7 @@ static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *
       FT_Load_Glyph(face, glyph_index, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP) != FT_Err_Ok)
   {
     FT_Done_Face(face);
-    return NULL;
+    return nullptr;
   }
 
   return face;
@@ -263,19 +263,19 @@ static FT_Face vfont_face_load_from_packed_file(FT_Library library, PackedFile *
 
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
-  FT_Library library = NULL;
+  FT_Library library = nullptr;
   if (FT_Init_FreeType(&library) != FT_Err_Ok) {
-    return NULL;
+    return nullptr;
   }
 
   FT_Face face = vfont_face_load_from_packed_file(library, pf);
   if (!face) {
     FT_Done_FreeType(library);
-    return NULL;
+    return nullptr;
   }
 
   /* allocate blender font */
-  VFontData *vfd = MEM_callocN(sizeof(*vfd), "FTVFontData");
+  VFontData *vfd = static_cast<VFontData *>(MEM_callocN(sizeof(*vfd), "FTVFontData"));
 
   /* Get the name. */
   if (face->family_name) {
@@ -290,7 +290,7 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
   if (complete_font) {
     /* We can get descender as well, but we simple store descender in relation to the ascender.
      * Also note that descender is stored as a negative number. */
-    vfd->ascender = (float)face->ascender / (face->ascender - face->descender);
+    vfd->ascender = float(face->ascender) / (face->ascender - face->descender);
   }
   else {
     vfd->ascender = 0.8f;
@@ -299,10 +299,10 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
   /* Adjust font size */
   if (face->bbox.yMax != face->bbox.yMin) {
-    vfd->scale = (float)(1.0 / (double)(face->bbox.yMax - face->bbox.yMin));
+    vfd->scale = float(1.0 / double(face->bbox.yMax - face->bbox.yMin));
 
     if (complete_font) {
-      vfd->em_height = (float)(face->ascender - face->descender) /
+      vfd->em_height = float(face->ascender - face->descender) /
                        (face->bbox.yMax - face->bbox.yMin);
     }
   }
@@ -332,16 +332,16 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
 static void *vfontdata_copy_characters_value_cb(const void *src)
 {
-  return BKE_vfontdata_char_copy(src);
+  return BKE_vfontdata_char_copy(static_cast<const VChar *>(src));
 }
 
-VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag))
+VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int /*flag*/)
 {
-  VFontData *vfont_dst = MEM_dupallocN(vfont_src);
+  VFontData *vfont_dst = static_cast<VFontData *>(MEM_dupallocN(vfont_src));
 
-  if (vfont_src->characters != NULL) {
+  if (vfont_src->characters != nullptr) {
     vfont_dst->characters = BLI_ghash_copy(
-        vfont_src->characters, NULL, vfontdata_copy_characters_value_cb);
+        vfont_src->characters, nullptr, vfontdata_copy_characters_value_cb);
   }
 
   return vfont_dst;
@@ -350,21 +350,21 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int UNUSED(flag)
 VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
 {
   if (!vfont) {
-    return NULL;
+    return nullptr;
   }
 
   /* Init Freetype */
-  FT_Library library = NULL;
+  FT_Library library = nullptr;
   FT_Error err = FT_Init_FreeType(&library);
   if (err) {
     /* XXX error("Failed to load the Freetype font library"); */
-    return NULL;
+    return nullptr;
   }
 
   FT_Face face = vfont_face_load_from_packed_file(library, vfont->temp_pf);
   if (!face) {
     FT_Done_FreeType(library);
-    return NULL;
+    return nullptr;
   }
 
   /* Load the character */
@@ -379,7 +379,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
 
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src)
 {
-  VChar *vchar_dst = MEM_dupallocN(vchar_src);
+  VChar *vchar_dst = static_cast<VChar *>(MEM_dupallocN(vchar_src));
 
   BLI_listbase_clear(&vchar_dst->nurbsbase);
   BKE_nurbList_duplicate(&vchar_dst->nurbsbase, &vchar_src->nurbsbase);

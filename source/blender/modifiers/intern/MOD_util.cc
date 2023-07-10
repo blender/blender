@@ -164,38 +164,6 @@ void MOD_previous_vcos_store(ModifierData *md, const float (*vert_coords)[3])
   /* lattice/mesh modifier too */
 }
 
-Mesh *MOD_deform_mesh_eval_get(Object *ob, BMEditMesh *em, Mesh *mesh, const float (*vertexCos)[3])
-{
-  if (mesh != nullptr) {
-    /* pass */
-  }
-  else if (ob->type == OB_MESH) {
-    if (em) {
-      mesh = BKE_mesh_wrapper_from_editmesh_with_coords(
-          em, nullptr, vertexCos, static_cast<const Mesh *>(ob->data));
-    }
-    else {
-      /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
-       * we really need a copy here. Maybe the CoW ob->data can be directly used. */
-      Mesh *mesh_prior_modifiers = BKE_object_get_pre_modified_mesh(ob);
-      mesh = (Mesh *)BKE_id_copy_ex(
-          nullptr, &mesh_prior_modifiers->id, nullptr, LIB_ID_COPY_LOCALIZE);
-      mesh->runtime->deformed_only = true;
-    }
-
-    if (em != nullptr) {
-      /* pass */
-    }
-    /* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
-     * we really need vertexCos here. */
-    else if (vertexCos) {
-      BKE_mesh_vert_coords_apply(mesh, vertexCos);
-    }
-  }
-
-  return mesh;
-}
-
 void MOD_get_vgroup(const Object *ob,
                     const Mesh *mesh,
                     const char *name,

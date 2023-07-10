@@ -120,7 +120,7 @@ enum class OperationCode {
   /* Bone. ---------------------------------------------------------------- */
   /* Bone local transforms - entry point */
   BONE_LOCAL,
-  /* Pose-space conversion (includes parent + restpose, */
+  /* Pose-space conversion (includes parent + rest-pose. */
   BONE_POSE_PARENT,
   /* Constraints */
   BONE_CONSTRAINTS,

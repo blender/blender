@@ -516,20 +516,31 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
     /* Get AABBs for each motion step */
     size_t center_step = (num_motion_steps - 1) / 2;
     for (size_t step = 0; step < num_motion_steps; ++step) {
-      /* The center step for motion vertices is not stored in the attribute */
-      if (step != center_step) {
-        size_t attr_offset = (step > center_step) ? step - 1 : step;
-        points = motion_keys->data_float3() + attr_offset * num_points;
+      if (step == center_step) {
+        /* The center step for motion vertices is not stored in the attribute */
+        for (size_t j = 0; j < num_points; ++j) {
+          const PointCloud::Point point = pointcloud->get_point(j);
+          BoundBox bounds = BoundBox::empty;
+          point.bounds_grow(points, radius, bounds);
+
+          const size_t index = step * num_points + j;
+          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
+          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+        }
       }
+      else {
+        size_t attr_offset = (step > center_step) ? step - 1 : step;
+        float4 *motion_points = motion_keys->data_float4() + attr_offset * num_points;
 
-      for (size_t j = 0; j < num_points; ++j) {
-        const PointCloud::Point point = pointcloud->get_point(j);
-        BoundBox bounds = BoundBox::empty;
-        point.bounds_grow(points, radius, bounds);
+        for (size_t j = 0; j < num_points; ++j) {
+          const PointCloud::Point point = pointcloud->get_point(j);
+          BoundBox bounds = BoundBox::empty;
+          point.bounds_grow(motion_points[j], bounds);
 
-        const size_t index = step * num_points + j;
-        aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
-        aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+          const size_t index = step * num_points + j;
+          aabb_data[index].min = (MTLPackedFloat3 &)bounds.min;
+          aabb_data[index].max = (MTLPackedFloat3 &)bounds.max;
+        }
       }
     }
 

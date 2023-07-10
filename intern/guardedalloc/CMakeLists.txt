@@ -35,7 +35,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WIN32 AND NOT UNIX)

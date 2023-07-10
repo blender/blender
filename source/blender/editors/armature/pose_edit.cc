@@ -236,8 +236,9 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
   return WM_operator_props_dialog_popup(C, op, 270);
 }
 
-/* For the object with pose/action: create path curves for selected bones
- * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
+/**
+ * For the object with pose/action: create path curves for selected bones
+ * This recalculates the WHOLE path within the `pchan->pathsf` and `pchan->pathef` range.
  */
 static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 {
@@ -272,7 +273,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
   TIMEIT_START(recalc_pose_paths);
 #endif
 
-  /* Calculate the bones that now have motionpaths. */
+  /* Calculate the bones that now have motion-paths. */
   /* TODO: only make for the selected bones? */
   ED_pose_recalculate_paths(C, scene, ob, POSE_PATH_CALC_RANGE_FULL);
 

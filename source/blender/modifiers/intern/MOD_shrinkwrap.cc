@@ -93,59 +93,13 @@ static void deformVerts(ModifierData *md,
 {
   ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  Mesh *mesh_src = nullptr;
-
-  if (ELEM(ctx->object->type, OB_MESH, OB_LATTICE) || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT))
-  {
-    /* mesh_src is needed for vgroups, but also used as ShrinkwrapCalcData.vert when projecting.
-     * Avoid time-consuming mesh conversion for curves when not projecting. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-  }
 
   const MDeformVert *dvert = nullptr;
   int defgrp_index = -1;
-  MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
+  MOD_get_vgroup(ctx->object, mesh, swmd->vgroup_name, &dvert, &defgrp_index);
 
   shrinkwrapModifier_deform(
-      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *editData,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  ShrinkwrapModifierData *swmd = (ShrinkwrapModifierData *)md;
-  Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-  Mesh *mesh_src = nullptr;
-
-  if ((swmd->vgroup_name[0] != '\0') || (swmd->shrinkType == MOD_SHRINKWRAP_PROJECT)) {
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, editData, mesh, nullptr);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  const MDeformVert *dvert = nullptr;
-  int defgrp_index = -1;
-  if (swmd->vgroup_name[0] != '\0') {
-    MOD_get_vgroup(ctx->object, mesh_src, swmd->vgroup_name, &dvert, &defgrp_index);
-  }
-
-  shrinkwrapModifier_deform(
-      swmd, ctx, scene, ctx->object, mesh_src, dvert, defgrp_index, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+      swmd, ctx, scene, ctx->object, mesh, dvert, defgrp_index, vertexCos, verts_num);
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -264,7 +218,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
+    /*deformVertsEM*/ nullptr,
     /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ nullptr,
     /*modifyGeometrySet*/ nullptr,

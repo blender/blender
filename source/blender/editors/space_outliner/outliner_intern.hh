@@ -18,6 +18,7 @@
 /* internal exports only */
 
 struct ARegion;
+struct Bone;
 struct EditBone;
 struct ID;
 struct ListBase;
@@ -284,6 +285,16 @@ bool outliner_requires_rebuild_on_select_or_active_change(
 
 struct IDsSelectedData {
   struct ListBase selected_array;
+};
+
+struct BoneElementCreateData {
+  ID *armature_id;
+  Bone *bone;
+};
+
+struct EditBoneElementCreateData {
+  ID *armature_id;
+  EditBone *ebone;
 };
 
 TreeTraversalAction outliner_collect_selected_collections(TreeElement *te, void *customdata);

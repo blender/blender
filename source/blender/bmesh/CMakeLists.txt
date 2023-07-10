@@ -172,7 +172,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   extern_rangetree
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 if(WITH_BULLET)

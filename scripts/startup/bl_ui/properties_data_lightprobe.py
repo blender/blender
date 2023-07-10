@@ -111,6 +111,10 @@ class DATA_PT_lightprobe_eevee_next(DataButtonsPanel, Panel):
             col.prop(probe, "grid_bake_samples")
             col.prop(probe, "surfel_density")
 
+        elif probe.type == 'CUBEMAP':
+            col = layout.column()
+            col.prop(probe, "resolution")
+
         elif probe.type == 'PLANAR':
             # Currently unsupported
             pass

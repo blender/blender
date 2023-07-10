@@ -722,7 +722,7 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
   if (ELEM(GS(id->name), ID_IM)) {
     /* Images which have a 'viewer' source (e.g. render results) should not be considered as
      * orphaned/unused data. */
-    Image *image = (Image *)id;
+    const Image *image = (Image *)id;
     if (image->source == IMA_SRC_VIEWER) {
       id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
       return false;

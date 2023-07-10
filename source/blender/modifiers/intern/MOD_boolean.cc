@@ -279,8 +279,8 @@ static void BMD_mesh_intersection(BMesh *bm,
 
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
-  /* main bmesh intersection setup */
-  /* create tessface & intersect */
+  /* Main BMesh intersection setup. */
+  /* Create tessellation & intersect. */
   const int looptris_tot = poly_to_tri_count(bm->totface, bm->totloop);
   BMLoop *(*looptris)[3] = (BMLoop * (*)[3])
       MEM_malloc_arrayN(looptris_tot, sizeof(*looptris), __func__);

@@ -44,7 +44,7 @@ ccl_device_inline bool point_light_sample(const ccl_global KernelLight *klight,
 
   ls->P = P + ls->D * ls->t;
 
-  ls->eval_fac = M_1_PI_F * 0.25f * klight->spot.invarea;
+  ls->eval_fac = klight->spot.eval_fac;
   if (r_sq == 0) {
     /* Use intensity instead of radiance for point light. */
     ls->eval_fac /= sqr(ls->t);
@@ -100,7 +100,7 @@ ccl_device_forceinline void point_light_mnee_sample_update(const ccl_global Kern
     ls->Ng = normalize(ls->P - klight->co);
   }
   else {
-    ls->eval_fac = M_1_PI_F * 0.25f * klight->spot.invarea;
+    ls->eval_fac = klight->spot.eval_fac;
 
     ls->Ng = -ls->D;
 
@@ -136,7 +136,7 @@ ccl_device_inline bool point_light_sample_from_intersection(
     const uint32_t path_flag,
     ccl_private LightSample *ccl_restrict ls)
 {
-  ls->eval_fac = M_1_PI_F * 0.25f * klight->spot.invarea;
+  ls->eval_fac = klight->spot.eval_fac;
 
   const float radius = klight->spot.radius;
 

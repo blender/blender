@@ -503,9 +503,10 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 
 /* -------------------------------------------------------------------- */
 /** \name Apply Visual Transform Operator
+ *
+ * Set the current pose as the rest-pose.
  * \{ */
 
-/* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);

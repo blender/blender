@@ -377,7 +377,7 @@ static int gpencil_analyze_strokes(tGPencilPointCache *src_array,
 
     for (i = 0; i < totpoints; i++) {
       sort_pt = &src_array[i];
-      /* avoid dups */
+      /* Avoid duplicates. */
       if (BLI_ghash_haskey(all_strokes, sort_pt->gps)) {
         continue;
       }

@@ -564,8 +564,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             world = bpy.data.worlds.new(name="World")
             scene.world = world
 
-        # Having AO enabled is nice for shadow catcher.
-        world.light_settings.use_ambient_occlusion = True
+        # Setup ambient occlusion parameters for convenience.
         world.light_settings.distance = 1.0
         if hasattr(scene, "cycles"):
             world.light_settings.ao_factor = 0.05

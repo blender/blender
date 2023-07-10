@@ -342,45 +342,7 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
-    /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-  }
-
-  warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  WarpModifierData *wmd = (WarpModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (wmd->defgrp_name[0] != '\0' || wmd->texture != nullptr) {
-    /* mesh_src is only needed for vgroups and textures. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  warpModifier_do(wmd, ctx, mesh_src, vertexCos, verts_num);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+  warpModifier_do(wmd, ctx, mesh, vertexCos, verts_num);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)
@@ -521,7 +483,7 @@ ModifierTypeInfo modifierType_Warp = {
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
+    /*deformVertsEM*/ nullptr,
     /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ nullptr,
     /*modifyGeometrySet*/ nullptr,

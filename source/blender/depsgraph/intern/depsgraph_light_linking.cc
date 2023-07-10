@@ -45,7 +45,7 @@ void eval_runtime_data(const ::Depsgraph *depsgraph, Object &object_eval)
 
 }  // namespace blender::deg::light_linking
 
-/* \} */
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Internal builder API
@@ -504,4 +504,4 @@ void Cache::eval_runtime_data(Object &object_eval) const
 
 }  // namespace blender::deg::light_linking
 
-/* \} */
+/** \} */

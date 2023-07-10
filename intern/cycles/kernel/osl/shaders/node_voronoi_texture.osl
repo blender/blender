@@ -53,6 +53,7 @@ shader node_voronoi_texture(
   coord *= Scale;
 
   if (feature == "distance_to_edge") {
+    params.max_distance = 0.5 + 0.5 * params.randomness;
     if (dimensions == "1D") {
       Distance = fractal_voronoi_distance_to_edge(params, w);
     }

@@ -154,7 +154,7 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  if (mesh != nullptr) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
@@ -206,8 +206,6 @@ static void deformMatrices(ModifierData *md,
                            int verts_num)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-
   BKE_armature_deform_coords_with_mesh(amd->object,
                                        ctx->object,
                                        vertexCos,
@@ -216,11 +214,7 @@ static void deformMatrices(ModifierData *md,
                                        amd->deformflag,
                                        nullptr,
                                        amd->defgrp_name,
-                                       mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+                                       mesh);
 }
 
 static void panel_draw(const bContext * /*C*/, Panel *panel)

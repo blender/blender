@@ -100,22 +100,11 @@ static void deformVerts(ModifierData *md,
                         int verts_num)
 {
   LatticeModifierData *lmd = (LatticeModifierData *)md;
-  Mesh *mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
 
   MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
-  BKE_lattice_deform_coords_with_mesh(lmd->object,
-                                      ctx->object,
-                                      vertexCos,
-                                      verts_num,
-                                      lmd->flag,
-                                      lmd->name,
-                                      lmd->strength,
-                                      mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+  BKE_lattice_deform_coords_with_mesh(
+      lmd->object, ctx->object, vertexCos, verts_num, lmd->flag, lmd->name, lmd->strength, mesh);
 }
 
 static void deformVertsEM(ModifierData *md,
@@ -125,7 +114,7 @@ static void deformVertsEM(ModifierData *md,
                           float (*vertexCos)[3],
                           int verts_num)
 {
-  if (mesh != nullptr) {
+  if (mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_MDATA) {
     deformVerts(md, ctx, mesh, vertexCos, verts_num);
     return;
   }
