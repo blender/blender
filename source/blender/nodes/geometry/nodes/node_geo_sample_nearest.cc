@@ -70,14 +70,19 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 static void get_closest_pointcloud_points(const PointCloud &pointcloud,
                                           const VArray<float3> &positions,
                                           const IndexMask mask,
-                                          const MutableSpan<int> r_indices,
-                                          const MutableSpan<float> r_distances_sq)
+                                          MutableSpan<int> r_indices,
+                                          MutableSpan<float> r_distances_sq)
 {
   BLI_assert(positions.size() >= r_indices.size());
   BLI_assert(pointcloud.totpoint > 0);
 
   BVHTreeFromPointCloud tree_data;
-  BKE_bvhtree_from_pointcloud_get(&tree_data, &pointcloud, 2);
+  const BVHTree *tree = BKE_bvhtree_from_pointcloud_get(&tree_data, &pointcloud, 2);
+  if (tree == nullptr) {
+    r_indices.fill(0);
+    r_distances_sq.fill(0.0f);
+    return;
+  }
 
   for (const int i : mask) {
     BVHTreeNearest nearest;

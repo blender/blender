@@ -96,8 +96,8 @@ static bool calculate_pointcloud_proximity(const VArray<float3> &positions,
                                            MutableSpan<float3> r_locations)
 {
   BVHTreeFromPointCloud bvh_data;
-  BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
-  if (bvh_data.tree == nullptr) {
+  const BVHTree *tree = BKE_bvhtree_from_pointcloud_get(&bvh_data, &pointcloud, 2);
+  if (tree == nullptr) {
     return false;
   }
 

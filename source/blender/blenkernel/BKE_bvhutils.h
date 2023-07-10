@@ -248,9 +248,11 @@ typedef struct BVHTreeFromPointCloud {
   const float (*coords)[3];
 } BVHTreeFromPointCloud;
 
-BVHTree *BKE_bvhtree_from_pointcloud_get(struct BVHTreeFromPointCloud *data,
-                                         const struct PointCloud *pointcloud,
-                                         int tree_type);
+#ifdef __cplusplus
+[[nodiscard]] BVHTree *BKE_bvhtree_from_pointcloud_get(BVHTreeFromPointCloud *data,
+                                                       const PointCloud *pointcloud,
+                                                       int tree_type);
+#endif
 
 void free_bvhtree_from_pointcloud(struct BVHTreeFromPointCloud *data);
 
