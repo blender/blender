@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -12318,10 +12318,6 @@ msgid "Cycles light settings"
 msgstr "Impostazioni luci Cycles"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Distanza decadimento - la luce ha metà dell'intensità originale a questa distanza"
-
-
 msgid "Specular Factor"
 msgstr "Fattore Speculare"
 
@@ -12383,14 +12379,6 @@ msgid "Directional area Light"
 msgstr "Luce area direzionale"
 
 
-msgid "Constant Coefficient"
-msgstr "Coefficiente Costante"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "Coefficiente distanza di attenuazione costante"
-
-
 msgid "Contact Shadow Distance"
 msgstr "Distanza Ombre di Contatto"
 
@@ -12399,76 +12387,12 @@ msgid "Contact Shadow Thickness"
 msgstr "Spessore Ombre di Contatto"
 
 
-msgid "Falloff Type"
-msgstr "Tipo Decadimento"
-
-
-msgid "Intensity Decay with distance"
-msgstr "Decadimento dell'intensità con la distanza"
-
-
-msgid "Inverse Linear"
-msgstr "Lineare Inverso"
-
-
-msgid "Inverse Square"
-msgstr "Quadratico Inverso"
-
-
-msgid "Inverse Coefficients"
-msgstr "Coefficienti Inversi"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Lin/Quadr Pesati"
-
-
-msgid "Linear Attenuation"
-msgstr "Attenuazione Lineare"
-
-
-msgid "Linear distance attenuation"
-msgstr "Attenuazione lineare con la distanza"
-
-
-msgid "Linear Coefficient"
-msgstr "Coefficiente Lineare"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "Coefficiente distanza di attenuazione lineare"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Attenuazione Quadratica"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Attenuazione quadratica con la distanza"
-
-
-msgid "Quadratic Coefficient"
-msgstr "Coefficiente Quadratico"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Coefficiente distanza di attenuazione quadratico"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Influenza Buffer Ombra"
 
 
 msgid "Shadow Buffer Clip Start"
 msgstr "Taglio Iniziale Buffer Ombra"
-
-
-msgid "Samples"
-msgstr "Campioni"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Dimensione Buffer Ombra"
 
 
 msgid "Shadow Color"
@@ -16088,6 +16012,10 @@ msgid "Format of multiview media"
 msgstr "Formato del media multivista"
 
 
+msgid "Multi-View"
+msgstr "Multi-Vista"
+
+
 msgid "Image Preview"
 msgstr "Anteprima Immagine"
 
@@ -18814,6 +18742,10 @@ msgstr "Spessore Max"
 
 msgid "Thickness Min"
 msgstr "Spessore Min"
+
+
+msgid "Samples"
+msgstr "Campioni"
 
 
 msgid "Number of samples to test per face"
@@ -37813,6 +37745,10 @@ msgid "Dynamic topology alters the mesh topology while sculpting"
 msgstr "La topologia dinamica altera la topologia della mesh mentre si scolpisce"
 
 
+msgid "Falloff Type"
+msgstr "Tipo Decadimento"
+
+
 msgid "Operator"
 msgstr "Operatore"
 
@@ -39586,6 +39522,10 @@ msgid "Align UVs on Y axis"
 msgstr "Allinea le UV sull'asse Y"
 
 
+msgid "Correct Aspect"
+msgstr "Aspetto Corretto"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Omogeneizza Scala Isole"
@@ -39610,10 +39550,6 @@ msgstr "Aggancia ai Limiti"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "Aggancia le coordinate UV ai limiti dopo la scucitura"
-
-
-msgid "Correct Aspect"
-msgstr "Aspetto Corretto"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -46280,10 +46216,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Sistema stereoscopico a camera singola. Aggiusta le impostazioni stereoscopiche nel pannello Camera"
 
 
-msgid "Multi-View"
-msgstr "Multi-Vista"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Sistema stereoscopico multi camera. Aggiusta le camere individualmente"
 
@@ -51051,14 +50983,6 @@ msgstr "Illuminazione per un blocco-dati Mondo"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Lunghezza dei raggi, definisce quanto sono lontane le altre facce che danno l'effetto di occlusione"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Usa Occlusione Ambientale"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Usa Occlusione Ambientale per aggiungere ombre in base alla distanza tra gli oggetti"
 
 
 msgid "World Mist"

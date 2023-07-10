@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -15004,52 +15004,8 @@ msgid "Power"
 msgstr "Power"
 
 
-msgid "Falloff Type"
-msgstr "Abfall-Typ"
-
-
-msgid "Inverse Linear"
-msgstr "Invers"
-
-
-msgid "Inverse Square"
-msgstr "Invers"
-
-
-msgid "Inverse Coefficients"
-msgstr "Invertiere Koeffizienten"
-
-
-msgid "Linear Attenuation"
-msgstr "Animation rendern"
-
-
-msgid "Linear Coefficient"
-msgstr "Linearer Koeffizient"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Quadratisch"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Quadratische Entfernungsdämpfung"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Quadratischer Abstandsdämpfungskoeffizient"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Schattenpuffer-Tendenz"
-
-
-msgid "Samples"
-msgstr "Abtastwerte"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Schattenpuffer Größe"
 
 
 msgid "Shadow Color"
@@ -18189,6 +18145,10 @@ msgid "When rendering animations, save JPG preview images in same directory"
 msgstr "Beim Rendern von Animationen JPG-Vorschaubilder im selben Verzeichnis speichern"
 
 
+msgid "Multi-View"
+msgstr "Mehrfachansicht"
+
+
 msgid "View Index"
 msgstr "Index anzeigen"
 
@@ -21137,6 +21097,10 @@ msgstr "Dicke maximal"
 
 msgid "Thickness Min"
 msgstr "Dicke minimal"
+
+
+msgid "Samples"
+msgstr "Abtastwerte"
 
 
 msgid "Number of samples to test per face"
@@ -38910,6 +38874,10 @@ msgid "Expand"
 msgstr "Erweitern"
 
 
+msgid "Falloff Type"
+msgstr "Abfall-Typ"
+
+
 msgid "Preserve Previous"
 msgstr "Bewahrung Vorherige"
 
@@ -47454,10 +47422,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Einzelnes Stereo-Kamera-System, passt die Stereo-Einstellungen im Kamerabedienfeld an"
 
 
-msgid "Multi-View"
-msgstr "Mehrfachansicht"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Multi-Kamera-System, passt die Kameras individuell an"
 
@@ -52681,14 +52645,6 @@ msgstr "Widget"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Strahlenlänge, definiert wie weit weg andere Flächen  den Verdeckungseffekt abgeben"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Ambient Occlusion verwenden"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Ambient Occlusion verwenden, um eine Abschattung auf Basis der Entfernung  zwischen Objekten hinzuzufügen"
 
 
 msgid "Use quadratic progression"

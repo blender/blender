@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -6438,10 +6438,6 @@ msgid "Light color"
 msgstr "Боја светлости"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Удаљеност опадања - светлост има половину своје вредности у овој тачки"
-
-
 msgid "Omnidirectional point light source"
 msgstr "Омни тачка као извор светлости"
 
@@ -6456,18 +6452,6 @@ msgstr "Усмерени купасти извор светлости"
 
 msgid "Directional area light source"
 msgstr "Усмерени површински извор светлости"
-
-
-msgid "Falloff Type"
-msgstr "Врста опадања"
-
-
-msgid "Samples"
-msgstr "Узорака"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Број узорака умекшане сенке"
 
 
 msgid "Rectangle"
@@ -9485,6 +9469,10 @@ msgstr "Мин. дебљина"
 
 msgid "Minimum for measuring thickness"
 msgstr "Најмања измерена дебљина"
+
+
+msgid "Samples"
+msgstr "Узорака"
 
 
 msgid "Number of samples to test per face"
@@ -18672,6 +18660,10 @@ msgstr "Вајање"
 
 msgid "Ignore Background Click"
 msgstr "Игнориши клик на позадину"
+
+
+msgid "Falloff Type"
+msgstr "Врста опадања"
 
 
 msgid "Operator"

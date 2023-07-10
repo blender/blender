@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2021-03-01 19:15+0000\n"
 "Last-Translator: lxlalexlxl <lxlalexlxl@ukr.net>\n"
 "Language-Team: Ukrainian (Ukraine) (http://www.transifex.com/lxlalexlxl/blender/language/uk_UA/)\n"
@@ -11403,10 +11403,6 @@ msgid "Show scenes"
 msgstr "Показ сцен"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "Показ матеріалів, дерев вузлів, текстур та стилів ліній Freestyle"
-
-
 msgid "Directory"
 msgstr "Тека"
 
@@ -20537,10 +20533,6 @@ msgid "Cycles light settings"
 msgstr "Устави освітлення Cycles"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Відстань спаду - інтенсивність світла у цій точці становить половину початкової"
-
-
 msgid "Node tree for node based lights"
 msgstr "Дерево вузлів для базованих на вузлах освітлювачів"
 
@@ -20618,14 +20610,6 @@ msgid "Directional area Light"
 msgstr "Направлений площинний Освітлювач"
 
 
-msgid "Constant Coefficient"
-msgstr "Постійний коефіцієнт"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "Постійний коефіцієнт згасання з відстанню"
-
-
 msgid "Contact Shadow Bias"
 msgstr "Відхил Тіні Контакту"
 
@@ -20654,66 +20638,6 @@ msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Енергія світла, емітована на всю область освітлювача у всіх напрямках"
 
 
-msgid "Custom light falloff curve"
-msgstr "Власна крива спаду освітлення"
-
-
-msgid "Falloff Type"
-msgstr "Тип спаду"
-
-
-msgid "Intensity Decay with distance"
-msgstr "Зменшення інтенсивності з відстанню"
-
-
-msgid "Inverse Linear"
-msgstr "Обернено пропорційно"
-
-
-msgid "Inverse Square"
-msgstr "Обернено до квадрату"
-
-
-msgid "Inverse Coefficients"
-msgstr "Обернути коефіцієнти"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Лін/квад виважено"
-
-
-msgid "Linear Attenuation"
-msgstr "Лінійне послаблення"
-
-
-msgid "Linear distance attenuation"
-msgstr "Лінійне послаблення з відстанню"
-
-
-msgid "Linear Coefficient"
-msgstr "Лінійний коефіцієнт"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "Лінійний коефіцієнт згасання з відстанню"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Квадратичне послаблення"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Квадратичне послаблення з відстанню"
-
-
-msgid "Quadratic Coefficient"
-msgstr "Квадратичний коефіцієнт"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Квадратичний коефіцієнт згасання з відстанню"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Похибка тіньового буфера"
 
@@ -20728,22 +20652,6 @@ msgstr "Початок відсікання для буфера тіні"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "Ближня межа відсікання для тіньового буфера, нижче від якої об'єкти не будуть генерувати тіні"
-
-
-msgid "Samples"
-msgstr "Вибірки"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Кількість вибірок буфера тіней"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Розмір буфера тіней"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "Роздільність тіньового буфера. Більші значення дають чіткіші тіні, але потребують більше пам'яті"
 
 
 msgid "Shadow Color"
@@ -26075,6 +25983,10 @@ msgid "Format of multiview media"
 msgstr "Формат багатовиглядних медіаданих"
 
 
+msgid "Multi-View"
+msgstr "Багато-вигляд"
+
+
 msgid "Image Preview"
 msgstr "Перегляд зображення"
 
@@ -30416,6 +30328,10 @@ msgstr "Мін. товщина"
 
 msgid "Minimum for measuring thickness"
 msgstr "Найменша вимірювана товщина"
+
+
+msgid "Samples"
+msgstr "Вибірки"
 
 
 msgid "Number of samples to test per face"
@@ -61400,6 +61316,10 @@ msgid "Edit Dyntopo Detail Size"
 msgstr "Редагувати Розмір Детальності Динтопо"
 
 
+msgid "Falloff Type"
+msgstr "Тип спаду"
+
+
 msgctxt "Operator"
 msgid "Face Set Box Gesture"
 msgstr "Набір Граней Коробки Жестом"
@@ -64789,6 +64709,10 @@ msgid "Align UVs on Y axis"
 msgstr "Вирівняти UV за віссю Y"
 
 
+msgid "Correct Aspect"
+msgstr "Виправити Пропорцію Боків"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Усереднити масштаб островів"
@@ -64813,10 +64737,6 @@ msgstr "Відсікати вздовж меж"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "Відсікати UV-координати вздовж меж після розгортання"
-
-
-msgid "Correct Aspect"
-msgstr "Виправити Пропорцію Боків"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -76139,10 +76059,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Система  одиничної стерео камери, наладнуйте дані параметри стерео на панелі камери"
 
 
-msgid "Multi-View"
-msgstr "Багато-вигляд"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Багатокамерна система, наладнуйте кожну камеру окремо"
 
@@ -86099,14 +86015,6 @@ msgstr "Світло для блока даних світу"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Довжина променів; визначає, на якій відстані грані дають ефект оклюзії"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Вжити загороду оточення (АО)"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Використати загороду оточення (АО), щоб додати відтінення залежно від відстані між об'єктами"
 
 
 msgid "World Mist"

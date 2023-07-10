@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -12276,10 +12276,6 @@ msgid "Show scenes"
 msgstr "Hiện các cảnh"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "Hiện vật liệu, cây giao điểm, chất liệu, và phong cách nét của Phong Cạch Tự Do"
-
-
 msgid "Directory"
 msgstr "Thư Mục"
 
@@ -22750,10 +22746,6 @@ msgid "Diffuse reflection multiplier"
 msgstr "Hệ số để nhân tán xạ phản xạ"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Khoảng cách giảm sáng - khoảng cách cường độ ánh sáng là phần nửa ban đầu tại điểm này"
-
-
 msgid "Node tree for node based lights"
 msgstr "Cây giao điểm cho đèn cơ sở giao điểm"
 
@@ -22839,14 +22831,6 @@ msgid "Directional area Light"
 msgstr "Đèn điện tích định hướng"
 
 
-msgid "Constant Coefficient"
-msgstr "Hệ Số Hằng Số"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "Hệ số hằng số cho sự giảm khoảng cách"
-
-
 msgid "Contact Shadow Bias"
 msgstr "Thành Kiến Bóng Tối Đụng"
 
@@ -22880,66 +22864,6 @@ msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "Năng lượng ánh sáng được trên toàn diện tích của đèn cho mỗi hướng"
 
 
-msgid "Custom light falloff curve"
-msgstr "Đường cong tùy chọn để giảm ánh sáng"
-
-
-msgid "Falloff Type"
-msgstr "Loại Sự Giảm"
-
-
-msgid "Intensity Decay with distance"
-msgstr "Sự Giảm Cường Độ tùy cách xa"
-
-
-msgid "Inverse Linear"
-msgstr "Nghịch Biến Bậc Một"
-
-
-msgid "Inverse Square"
-msgstr "Nghịch Biến Bậc Hai"
-
-
-msgid "Inverse Coefficients"
-msgstr "Hệ Số Đảo Nghịch"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Được Quyền Lượng Bậc Một/Hai"
-
-
-msgid "Linear Attenuation"
-msgstr "Sự Giảm Bậc Một"
-
-
-msgid "Linear distance attenuation"
-msgstr "Sự giảm tùy khoảng cách bậc một"
-
-
-msgid "Linear Coefficient"
-msgstr "Hệ Số Bậc Một"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "Hệ số bậc một cho sự giảm tùy khoảng cách"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Sự Giảm Bậc Hai"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Sự giảm tùy khoảng cách bậc hai"
-
-
-msgid "Quadratic Coefficient"
-msgstr "Hệ Số Bậc Hai"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Hệ số bậc hai cho sự giảm tùy khoảng cách"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Thành Kiến Đệm Bóng Tối"
 
@@ -22954,22 +22878,6 @@ msgstr "Đệm Bóng Tối Cắt Gần"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "Bản đồ bóng tối không thể thấy vật thể gần hơn này và không chế tạo bóng tối"
-
-
-msgid "Samples"
-msgstr "Mẫu Vật"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Số lượng mẫu vật cho đệm bóng tối"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Kích Cỡ Đệm Bóng Tối"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "Độ phân giải của đệm bóng tối, giá trị càng cao có bóng tối càng rõ nhưng sử dụng bộ nhớ càng nhiều hơn"
 
 
 msgid "Shadow Color"
@@ -28795,6 +28703,10 @@ msgid "Format of multiview media"
 msgstr "Định dạng của phương tiện đa màn"
 
 
+msgid "Multi-View"
+msgstr "Đa-Màn"
+
+
 msgid "Tile Number"
 msgstr "Số Ô"
 
@@ -33657,6 +33569,10 @@ msgstr "Cực Tiểu Bề Dày"
 
 msgid "Minimum for measuring thickness"
 msgstr "Cực tiểu cho đo bề dày"
+
+
+msgid "Samples"
+msgstr "Mẫu Vật"
 
 
 msgid "Number of samples to test per face"
@@ -69424,6 +69340,10 @@ msgid "Generic sculpt expand operator"
 msgstr "Thao tác mở rộng khắc tổng quát"
 
 
+msgid "Falloff Type"
+msgstr "Loại Sự Giảm"
+
+
 msgid "Initial falloff of the expand operation"
 msgstr "Dộ giảm của thao tác mở rộng"
 
@@ -73191,6 +73111,10 @@ msgid "Align UVs on Y axis"
 msgstr "Sắp xếp UV trên trục Y"
 
 
+msgid "Correct Aspect"
+msgstr "Sửa Tỉ Lệ Cạnh Ảnh"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Phóng To Đặo Trung Bình"
@@ -73223,10 +73147,6 @@ msgstr "Kẹp Lại Đến Ranh Giới"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "Kẹp lại tọa độ UV đến ranh giới sau gỡ ra"
-
-
-msgid "Correct Aspect"
-msgstr "Sửa Tỉ Lệ Cạnh Ảnh"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -86508,10 +86428,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Một hệ thống máy quay phim nhị kênh, chỉnh cài đặt nhị kênh trong bảng máy quay phim"
 
 
-msgid "Multi-View"
-msgstr "Đa-Màn"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Hệ thống máy quay phim, chỉnh các máy quay phim riêng"
 
@@ -97439,14 +97355,6 @@ msgstr "Ánh Sáng cho một cục dữ liệu Thế Giới"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Bề dài của tia, cho chỉ định cách xa cho mặt khác có hiệu ứng che khuất"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Dùng Che Khuất Bao Quanh"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Dùng Che Khuất Bao Quanh để kèm bóng tối tùy khoảng cách giữa vật thể"
 
 
 msgid "World Mist"

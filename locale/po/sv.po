@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -1001,10 +1001,6 @@ msgid "Compositing"
 msgstr "Komponering"
 
 
-msgid "Samples"
-msgstr "Samplar"
-
-
 msgid "Size Y"
 msgstr "Storlek Y"
 
@@ -1311,6 +1307,10 @@ msgstr "Skulptera"
 
 msgid "Root"
 msgstr "Rot"
+
+
+msgid "Samples"
+msgstr "Samplar"
 
 
 msgid "Active Clone"

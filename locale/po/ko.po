@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -17687,10 +17687,6 @@ msgid "Cycles light settings"
 msgstr "Cycles 라이트 설정"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "감소 거리 - 이 포인트에서 라이트은 원본 강도의 절반"
-
-
 msgid "Node tree for node based lights"
 msgstr "노드 기반 라이트에 대한 노드 트리"
 
@@ -17764,14 +17760,6 @@ msgid "Directional area Light"
 msgstr "지향성 영역 라이트"
 
 
-msgid "Constant Coefficient"
-msgstr "상수 계수"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "상수 거리 감쇠 계수"
-
-
 msgid "Contact Shadow Bias"
 msgstr "접촉 섀도우 성향"
 
@@ -17796,66 +17784,6 @@ msgid "Pixel thickness used to detect occlusion"
 msgstr "폐색을 감지하는 데 사용되는 픽셀 두께"
 
 
-msgid "Custom light falloff curve"
-msgstr "커스텀 라이트 감소 커브"
-
-
-msgid "Falloff Type"
-msgstr "감소 유형"
-
-
-msgid "Intensity Decay with distance"
-msgstr "거리와 강도 소멸"
-
-
-msgid "Inverse Linear"
-msgstr "선형을 반전"
-
-
-msgid "Inverse Square"
-msgstr "제곱 반전"
-
-
-msgid "Inverse Coefficients"
-msgstr "반전 계수"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "린/쿼드 웨이트됨"
-
-
-msgid "Linear Attenuation"
-msgstr "선형 감쇠"
-
-
-msgid "Linear distance attenuation"
-msgstr "선형 원거리 감쇠"
-
-
-msgid "Linear Coefficient"
-msgstr "선형 계수"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "선형 거리 감쇠 계수"
-
-
-msgid "Quadratic Attenuation"
-msgstr "이차 감쇠"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "이차 거리 감쇠"
-
-
-msgid "Quadratic Coefficient"
-msgstr "이차 계수"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "이차 거리 감쇠 계수"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "섀도우 버퍼 성향"
 
@@ -17870,22 +17798,6 @@ msgstr "섀도우 버퍼 클립 시작"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "섀도우맵 클립 시작, 그 아래에 오브젝트는 섀도우를 생성하지 않음"
-
-
-msgid "Samples"
-msgstr "샘플"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "섀도우 버퍼 샘플의 수"
-
-
-msgid "Shadow Buffer Size"
-msgstr "섀도우 버퍼 크기"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "섀도우 버퍼의 해상도, 값이 높을수록 선명한 섀도우를 제공하지만 더 많은 메모리를 사용합니다"
 
 
 msgid "Shadow Color"
@@ -22777,6 +22689,10 @@ msgid "Format of multiview media"
 msgstr "멀티뷰 미디어의 형식"
 
 
+msgid "Multi-View"
+msgstr "멀티 뷰"
+
+
 msgid "Image Preview"
 msgstr "이미지 미리보기"
 
@@ -26918,6 +26834,10 @@ msgstr "두께 최소"
 
 msgid "Minimum for measuring thickness"
 msgstr "두께 측정에 대한 최소치"
+
+
+msgid "Samples"
+msgstr "샘플"
 
 
 msgid "Number of samples to test per face"
@@ -53705,6 +53625,10 @@ msgid "Dynamic topology alters the mesh topology while sculpting"
 msgstr "스컬프트하는 동안 메쉬 토폴로지를 다이나믹 토폴로지로 변경"
 
 
+msgid "Falloff Type"
+msgstr "감소 유형"
+
+
 msgctxt "Operator"
 msgid "Mask Expand"
 msgstr "마스크 확장"
@@ -56330,6 +56254,10 @@ msgid "Align UVs on Y axis"
 msgstr "UV를 Y 축에 정렬"
 
 
+msgid "Correct Aspect"
+msgstr "보정 측면"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "평균 아일랜드 축적"
@@ -56354,10 +56282,6 @@ msgstr "경계에 클립"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "펼치기 이후 경계에 UV 좌표를 클립합니다"
-
-
-msgid "Correct Aspect"
-msgstr "보정 측면"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -66374,10 +66298,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "단일 스테레오 카메라 시스템, 카메라 패널의 스테레오 설정 조정"
 
 
-msgid "Multi-View"
-msgstr "멀티 뷰"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "다중 카메라 시스템, 카메라를 개별적으로 조정"
 
@@ -75008,14 +74928,6 @@ msgstr "월드 데이터 블록에 대한 라이트닝"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "광선의 길이, 떨어진 다른 면에 폐색 효과를 주는 정도를 정의"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "주변 폐색을 사용"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "오브젝트 사이의 거리에 따라 섀도우를 추가하는 주변 폐색을 사용"
 
 
 msgid "World Mist"
