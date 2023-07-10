@@ -280,7 +280,8 @@ int seq_get_shown_sequences(const Scene *scene,
       scene, channels, seqbase, timeline_frame, chanshown);
   const int strip_count = BLI_gset_len(collection->set);
 
-  if (strip_count > MAXSEQ) {
+  if (UNLIKELY(strip_count > MAXSEQ)) {
+    SEQ_collection_free(collection);
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return 0;
   }
