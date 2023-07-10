@@ -102,6 +102,8 @@
     .mtex = _DNA_DEFAULT_MTex, \
     .mask_mtex = _DNA_DEFAULT_MTex, \
     .falloff_shape = 0,\
+    .tip_scale_x = 1.0f,\
+    .tip_roundness = 1.0f,\
   }
 
 /** \} */

@@ -10,6 +10,7 @@
 
 #include "CLG_log.h"
 
+#include "DNA_brush_types.h"
 #include "DNA_light_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_modifier_types.h"
@@ -313,6 +314,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (light->type == LA_SPOT && light->nodetree) {
         version_replace_texcoord_normal_socket(light->nodetree);
       }
+    }
+  }
+
+  /* Fix brush->tip_scale_x which should never be zero. */
+  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+    if (brush->tip_scale_x == 0.0f) {
+      brush->tip_scale_x = 1.0f;
     }
   }
 

@@ -527,6 +527,8 @@ static void brush_defaults(Brush *brush)
   FROM_DEFAULT(mtex);
   FROM_DEFAULT(mask_mtex);
   FROM_DEFAULT(falloff_shape);
+  FROM_DEFAULT(tip_scale_x);
+  FROM_DEFAULT(tip_roundness);
 
 #undef FROM_DEFAULT
 #undef FROM_DEFAULT_PTR
@@ -1939,8 +1941,6 @@ void BKE_brush_sculpt_reset(Brush *br)
       br->spacing = 10;
       br->alpha = 1.0f;
       br->flow = 1.0f;
-      br->tip_scale_x = 1.0f;
-      br->tip_roundness = 1.0f;
       br->density = 1.0f;
       br->flag &= ~BRUSH_SPACE_ATTEN;
       zero_v3(br->rgb);
@@ -2660,7 +2660,7 @@ bool BKE_brush_has_cube_tip(const Brush *brush, ePaintMode paint_mode)
       }
 
       if (ELEM(brush->sculpt_tool, SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_PAINT) &&
-          brush->tip_roundness < 1.0f)
+          (brush->tip_roundness < 1.0f || brush->tip_scale_x != 1.0f))
       {
         return true;
       }

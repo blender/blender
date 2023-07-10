@@ -1332,8 +1332,11 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
   return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 
-/* Threshold to move before updating the brush rotation. */
-#define RAKE_THRESHHOLD 20
+/* Threshold to move before updating the brush rotation, reduces jitter. */
+static float paint_rake_rotation_spacing(UnifiedPaintSettings * /*ups*/, Brush *brush)
+{
+  return brush->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS ? 1.0f : 20.0f;
+}
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
 {
@@ -1361,16 +1364,25 @@ static const bool paint_rake_rotation_active(const Brush &brush, ePaintMode pain
 bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
                                    const float mouse_pos[2],
-                                   ePaintMode paint_mode)
+                                   ePaintMode paint_mode,
+                                   bool stroke_has_started)
 {
   bool ok = false;
   if (paint_rake_rotation_active(*brush, paint_mode)) {
-    const float r = RAKE_THRESHHOLD;
+    float r = paint_rake_rotation_spacing(ups, brush);
     float rotation;
+
+    /* Use a smaller limit if the stroke hasn't started
+     * to prevent excessive preroll.
+     */
+    if (!stroke_has_started) {
+      r = min_ff(r, 4.0f);
+    }
 
     float dpos[2];
     sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
 
+    /* Limit how often we update the angle to prevent jitter. */
     if (len_squared_v2(dpos) >= r * r) {
       rotation = atan2f(dpos[0], dpos[1]);
 
