@@ -3506,7 +3506,8 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_simulation_cache", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", OB_FLAG_USE_SIMULATION_CACHE);
   RNA_def_property_ui_text(
-      prop, "Use Simulation Cache", "Cache all frames during simulation nodes playback");
+      prop, "Use Simulation Cache", "Cache frames during simulation nodes playback");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   rna_def_object_visibility(srna);

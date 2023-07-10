@@ -232,20 +232,13 @@ void ModifierSimulationState::ensure_bake_loaded(const bNodeTree &ntree) const
   bake_loaded_ = true;
 }
 
-void ModifierSimulationCache::clear_prev_states()
-{
-  std::lock_guard lock(states_at_frames_mutex_);
-  std::unique_ptr<ModifierSimulationStateAtFrame> temp = std::move(states_at_frames_.last());
-  states_at_frames_.clear_and_shrink();
-  bdata_sharing_.reset();
-  states_at_frames_.append(std::move(temp));
-}
-
 void ModifierSimulationCache::reset()
 {
   std::lock_guard lock(states_at_frames_mutex_);
   states_at_frames_.clear();
   bdata_sharing_.reset();
+  this->realtime_cache.current_state.reset();
+  this->realtime_cache.prev_state.reset();
   this->cache_state = CacheState::Valid;
 }
 
