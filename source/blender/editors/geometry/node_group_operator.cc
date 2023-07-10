@@ -340,12 +340,6 @@ static asset::AssetItemTree &get_static_item_tree()
   return tree;
 }
 
-static bool all_loading_finished()
-{
-  AssetLibraryReference all_library_ref = asset_system::all_library_reference();
-  return ED_assetlist_is_loaded(&all_library_ref);
-}
-
 static asset::AssetItemTree build_catalog_tree(const bContext &C)
 {
   AssetFilterSettings type_filter{};
