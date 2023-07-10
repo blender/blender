@@ -75,6 +75,10 @@ const char *viewops_operator_idname_get(eV3D_OpMode nav_type)
       return "VIEW3D_OT_ndof_orbit";
     case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
       return "VIEW3D_OT_ndof_orbit_zoom";
+    case V3D_OP_MODE_NDOF_PAN:
+      return "VIEW3D_OT_ndof_pan";
+    case V3D_OP_MODE_NDOF_ALL:
+      return "VIEW3D_OT_ndof_all";
 #endif
     case V3D_OP_MODE_NONE:
       break;
@@ -186,9 +190,18 @@ static int view3d_navigation_invoke_generic(bContext *C,
       return viewrotate_invoke_impl(vod, event);
     case V3D_OP_MODE_MOVE:
       return viewmove_invoke_impl(vod, event);
-    case V3D_OP_MODE_VIEW_PAN: {
+    case V3D_OP_MODE_VIEW_PAN:
       return viewpan_invoke_impl(vod, ptr);
-    }
+#ifdef WITH_INPUT_NDOF
+    case V3D_OP_MODE_NDOF_ORBIT:
+      return ndof_orbit_invoke_impl(C, vod, event);
+    case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
+      return ndof_orbit_zoom_invoke_impl(C, vod, event);
+    case V3D_OP_MODE_NDOF_PAN:
+      return ndof_pan_invoke_impl(C, vod, event);
+    case V3D_OP_MODE_NDOF_ALL:
+      return ndof_all_invoke_impl(C, vod, event);
+#endif
     default:
       break;
   }
@@ -530,7 +543,7 @@ static void viewops_data_init_context(bContext *C, ViewOpsData *vod)
   vod->rv3d = static_cast<RegionView3D *>(vod->region->regiondata);
 }
 
-static void viewops_data_state_capture(ViewOpsData *vod)
+static void viewops_data_state_capture(ViewOpsData *vod, const bool calc_dist)
 {
   Depsgraph *depsgraph = vod->depsgraph;
   View3D *v3d = vod->v3d;
@@ -539,7 +552,7 @@ static void viewops_data_state_capture(ViewOpsData *vod)
   /* Set the view from the camera, if view locking is enabled.
    * we may want to make this optional but for now its needed always.
    * NOTE: This changes the value of `rv3d->dist`. */
-  ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
+  ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, calc_dist);
 
   copy_v3_v3(vod->init.ofs, rv3d->ofs);
   copy_v3_v3(vod->init.ofs_lock, rv3d->ofs_lock);
@@ -635,6 +648,7 @@ static void viewops_data_init_navigation(bContext *C,
   RegionView3D *rv3d = vod->rv3d;
 
   eViewOpsFlag viewops_flag = viewops_flag_from_prefs();
+  bool calc_rv3d_dist = true;
 
   if (use_cursor_init) {
     viewops_flag |= VIEWOPS_FLAG_USE_MOUSE_INIT;
@@ -653,7 +667,10 @@ static void viewops_data_init_navigation(bContext *C,
 #ifdef WITH_INPUT_NDOF
     case V3D_OP_MODE_NDOF_ORBIT:
     case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
+    case V3D_OP_MODE_NDOF_PAN:
+    case V3D_OP_MODE_NDOF_ALL:
       viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
+      calc_rv3d_dist = false;
       break;
 #endif
     default:
@@ -693,7 +710,7 @@ static void viewops_data_init_navigation(bContext *C,
     vod->use_dyn_ofs = false;
   }
 
-  viewops_data_state_capture(vod);
+  viewops_data_state_capture(vod, calc_rv3d_dist);
 
   if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
     if (ED_view3d_persp_ensure(depsgraph, vod->v3d, vod->region)) {
@@ -2074,6 +2091,8 @@ static int view3d_navigation_invoke(
 #ifdef WITH_INPUT_NDOF
     case V3D_OP_MODE_NDOF_ORBIT:
     case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
+    case V3D_OP_MODE_NDOF_PAN:
+    case V3D_OP_MODE_NDOF_ALL:
 #endif
     case V3D_OP_MODE_NONE:
       break;

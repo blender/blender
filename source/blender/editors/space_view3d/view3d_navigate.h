@@ -44,12 +44,14 @@ typedef enum eV3D_OpMode {
 #ifdef WITH_INPUT_NDOF
   V3D_OP_MODE_NDOF_ORBIT,
   V3D_OP_MODE_NDOF_ORBIT_ZOOM,
+  V3D_OP_MODE_NDOF_PAN,
+  V3D_OP_MODE_NDOF_ALL,
 #endif
 } eV3D_OpMode;
 #ifndef WITH_INPUT_NDOF
 #  define V3D_OP_MODE_LEN V3D_OP_MODE_DOLLY + 1
 #else
-#  define V3D_OP_MODE_LEN V3D_OP_MODE_NDOF_ORBIT_ZOOM + 1
+#  define V3D_OP_MODE_LEN V3D_OP_MODE_NDOF_ALL + 1
 #endif
 
 enum eV3D_OpPropFlag {
@@ -271,6 +273,11 @@ void VIEW3D_OT_move(struct wmOperatorType *ot);
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
+
+int ndof_orbit_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
+int ndof_orbit_zoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
+int ndof_pan_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
+int ndof_all_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event);
 
 /**
  * Called from both fly mode and walk mode,
