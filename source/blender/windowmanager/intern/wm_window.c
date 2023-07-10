@@ -1950,7 +1950,7 @@ void wm_window_delete_removed_timers(wmWindowManager *wm)
 void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
   /* Extra security check. */
-  if (BLI_findindex(&wm->timers, timer) < 0) {
+  if (BLI_findindex(&wm->timers, timer) == -1) {
     return;
   }
 
