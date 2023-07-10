@@ -29,7 +29,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../ikplugin
   ../../../../intern/iksolver/extern
   ../../bmesh
@@ -117,6 +116,7 @@ set(LIB
   ${PCRE_LIBRARIES}
   ${XML2_LIBRARIES}
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_BUILDINFO)

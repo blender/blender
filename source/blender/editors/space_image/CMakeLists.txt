@@ -18,7 +18,6 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -44,6 +43,7 @@ set(LIB
   bf_blenlib
   PRIVATE bf::dna
   bf_editor_uvedit
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_IMAGE_OPENJPEG)

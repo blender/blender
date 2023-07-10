@@ -9,7 +9,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -46,6 +45,7 @@ set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_PYTHON_MODULE)

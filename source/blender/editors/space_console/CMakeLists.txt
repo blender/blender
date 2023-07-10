@@ -11,7 +11,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
 
 )
 
@@ -30,6 +29,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_PYTHON)

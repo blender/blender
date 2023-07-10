@@ -20,7 +20,6 @@ set(INC
   ../../compositor/realtime_compositor
   ../../compositor/realtime_compositor/algorithms
   ../../compositor/realtime_compositor/cached_resources
-  ../../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -130,6 +129,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
 )
 

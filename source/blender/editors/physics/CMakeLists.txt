@@ -12,7 +12,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -42,6 +41,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_MOD_FLUID)

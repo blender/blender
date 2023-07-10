@@ -9,7 +9,6 @@ set(INC
   ../../editors/include
   ../../gpu
   ../../imbuf
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -63,6 +62,7 @@ set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_python_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

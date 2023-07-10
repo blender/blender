@@ -16,7 +16,6 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -47,6 +46,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer
+  PRIVATE bf::intern::guardedalloc
 )
 
 

@@ -16,7 +16,6 @@ set(INC
   ../render
   ../windowmanager
   ../../../intern/eigen
-  ../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -91,6 +90,7 @@ endif()
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_gpencil_modifiers_legacy "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

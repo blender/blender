@@ -30,7 +30,6 @@ set(INC
   ../render
   ../windowmanager
   ../../../extern/fmtlib/include
-  ../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -84,6 +83,7 @@ set(LIB
   bf_bmesh
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::intern::guardedalloc
   bf_nodes_composite
   bf_nodes_function
   bf_nodes_geometry

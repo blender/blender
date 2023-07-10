@@ -6,7 +6,6 @@ set(INC
   .
   ../../blenlib
   ../../imbuf
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -33,6 +32,7 @@ set(SRC
 set(LIB
   ${JPEG_LIBRARIES}
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_avi "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

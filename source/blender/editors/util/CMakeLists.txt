@@ -18,7 +18,6 @@ set(INC
   ../../sequencer
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -110,6 +109,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

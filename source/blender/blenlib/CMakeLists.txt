@@ -10,7 +10,6 @@ set(INC
   .
   ..
   ../../../intern/eigen
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -390,7 +389,7 @@ set(SRC
 set(LIB
   PUBLIC bf::dna
   bf_intern_eigen
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
   extern_wcwidth
   PRIVATE bf::intern::atomic
   ${ZLIB_LIBRARIES}

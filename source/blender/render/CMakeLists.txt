@@ -21,7 +21,6 @@ set(INC
   ../sequencer
   ../simulation
   ../windowmanager
-  ../../../intern/guardedalloc
   ../../../intern/mikktspace
   ../../../intern/mantaflow/extern
 )
@@ -60,6 +59,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::intern::atomic
 )

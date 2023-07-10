@@ -39,7 +39,6 @@ set(INC
 
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
 )
 
@@ -328,6 +327,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   ${Epoxy_LIBRARIES}
+  PRIVATE bf::intern::guardedalloc
 )
 
 # Select Backend source based on availability

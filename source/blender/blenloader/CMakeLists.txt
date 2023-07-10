@@ -19,7 +19,6 @@ set(INC
   ../sequencer
   ../windowmanager
   ../../../intern/clog
-  ../../../intern/guardedalloc
   ../bmesh
 
   # RNA_prototypes.h
@@ -65,6 +64,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_BUILDINFO)

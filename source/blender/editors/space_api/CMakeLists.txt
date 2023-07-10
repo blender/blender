@@ -11,7 +11,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -44,6 +43,7 @@ set(LIB
   bf_editor_space_topbar
   bf_editor_space_userpref
   bf_editor_space_view3d
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_editor_space_api "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -22,7 +22,6 @@ set(INC
   ../../shader_fx
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -68,6 +67,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
+  PRIVATE bf::intern::guardedalloc
   bf_render
   bf_windowmanager
 )

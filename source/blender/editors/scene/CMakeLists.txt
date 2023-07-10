@@ -11,7 +11,6 @@ set(INC
   ../../makesrna
   ../../sequencer
   ../../windowmanager
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -26,6 +25,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

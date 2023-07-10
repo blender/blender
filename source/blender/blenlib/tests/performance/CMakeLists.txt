@@ -6,7 +6,6 @@ set(INC
   .
   ..
   ../..
-  ../../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -15,7 +14,7 @@ set(INC_SYS
 set(LIB
   PRIVATE bf_blenlib
   PRIVATE bf::dna
-  PRIVATE bf_intern_guardedalloc
+  PRIVATE PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
 )
 

@@ -21,7 +21,6 @@ set(INC
   ../../nodes
   ../../render
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -57,6 +56,7 @@ set(LIB
   bf_blenlib
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::guardedalloc
   extern_fmtlib
 )
 

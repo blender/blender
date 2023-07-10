@@ -238,7 +238,6 @@ set(INC
   ../../render
   ../../../../intern/clog
   ../../../../intern/cycles/blender
-  ../../../../intern/guardedalloc
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
 
@@ -430,6 +429,7 @@ blender_target_include_dirs_sys(makesrna ${INC_SYS})
 
 target_link_libraries(makesrna PRIVATE bf_dna)
 target_link_libraries(makesrna PRIVATE bf::intern::atomic)
+target_link_libraries(makesrna PRIVATE bf::intern::guardedalloc)
 target_link_libraries(makesrna PRIVATE bf_dna_blenlib)
 
 if(WIN32 AND NOT UNIX)
@@ -482,6 +482,7 @@ set(LIB
   bf_editor_sound
   bf_editor_transform
   bf_editor_undo
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -56,7 +56,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../intern/utfconv
 )
 
@@ -131,6 +130,7 @@ set(LIB
   bf_blenlib
   PRIVATE bf::dna
   bf_imbuf
+  PRIVATE bf::intern::guardedalloc
   bf_io_common
 )
 

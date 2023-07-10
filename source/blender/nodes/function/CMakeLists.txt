@@ -13,7 +13,6 @@ set(INC
   ../../functions
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -49,6 +48,7 @@ set(SRC
 set(LIB
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_nodes_function "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

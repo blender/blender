@@ -15,7 +15,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   ../../../../intern/utfconv
 )
 
@@ -93,6 +92,7 @@ set(LIB
   bf_blenkernel
   bf_blenlib
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   bf_io_common
 
   ${ALEMBIC_LIBRARIES}

@@ -16,7 +16,6 @@ set(INC
   ../render
   ../windowmanager
   ../../../intern/clog
-  ../../../intern/guardedalloc
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -89,6 +88,7 @@ set(LIB
   bf_blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_AUDASPACE)

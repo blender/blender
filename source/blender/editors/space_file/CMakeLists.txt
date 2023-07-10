@@ -16,7 +16,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -48,6 +47,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   extern_fmtlib
   PRIVATE bf::intern::atomic
 )

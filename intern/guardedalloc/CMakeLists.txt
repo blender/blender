@@ -7,8 +7,7 @@ if(HAVE_MALLOC_STATS_H)
 endif()
 
 set(INC
-  .
-  ..
+  PUBLIC .
 )
 
 set(INC_SYS
@@ -55,6 +54,7 @@ if(WITH_MEM_JEMALLOC AND NOT ("${JEMALLOC_VERSION}" VERSION_LESS "5.0.0"))
 endif()
 
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::intern::guardedalloc ALIAS bf_intern_guardedalloc)
 
 # Override C++ alloc, optional.
 if(WITH_CXX_GUARDEDALLOC)

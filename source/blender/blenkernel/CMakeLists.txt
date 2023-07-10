@@ -26,7 +26,6 @@ set(INC
   ../simulation
   ../../../intern/eigen
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/iksolver/extern
   ../../../intern/clog
   ../../../intern/libmv
@@ -545,7 +544,7 @@ set(LIB
   bf_imbuf
   bf_intern_clog
   bf_intern_ghost
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
   bf_intern_libmv  # Uses stub when disabled.
   bf_intern_mikktspace
   bf_intern_opensubdiv  # Uses stub when disabled.

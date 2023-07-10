@@ -12,7 +12,6 @@ set(INC
   ../../render
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -29,6 +28,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_editor_metaball "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

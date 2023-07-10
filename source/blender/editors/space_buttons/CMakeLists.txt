@@ -11,7 +11,6 @@ set(INC
   ../../gpu
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../bmesh
 
   # RNA_prototypes.h
@@ -32,6 +31,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

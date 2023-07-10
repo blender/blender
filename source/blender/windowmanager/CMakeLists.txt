@@ -24,7 +24,6 @@ set(INC
   ../sequencer
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/memutil
   ../bmesh
 
@@ -101,6 +100,7 @@ set(SRC
 set(LIB
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::intern::guardedalloc
   bf_sequencer
 )
 
