@@ -1869,7 +1869,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   ImBuf *out = NULL;
 
   count = seq_get_shown_sequences(
-      context->scene, channels, seqbasep, timeline_frame, chanshown, (Sequence **)&seq_arr);
+      context->scene, channels, seqbasep, timeline_frame, chanshown, seq_arr);
 
   if (count == 0) {
     return NULL;
