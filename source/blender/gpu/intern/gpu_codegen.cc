@@ -323,7 +323,9 @@ class GPUCodegen {
   void set_unique_ids();
 
   void node_serialize(std::stringstream &eval_ss, const GPUNode *node);
-  char *graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link);
+  char *graph_serialize(eGPUNodeTag tree_tag,
+                        GPUNodeLink *output_link,
+                        const char *output_default = nullptr);
   char *graph_serialize(eGPUNodeTag tree_tag);
 
   static char *extract_c_str(std::stringstream &stream)
@@ -578,13 +580,16 @@ void GPUCodegen::node_serialize(std::stringstream &eval_ss, const GPUNode *node)
   nodes_total_++;
 }
 
-char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link)
+char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag,
+                                  GPUNodeLink *output_link,
+                                  const char *output_default)
 {
-  if (output_link == nullptr) {
+  if (output_link == nullptr && output_default == nullptr) {
     return nullptr;
   }
 
   std::stringstream eval_ss;
+  bool has_nodes = false;
   /* NOTE: The node order is already top to bottom (or left to right in node editor)
    * because of the evaluation order inside ntreeExecGPUNodes(). */
   LISTBASE_FOREACH (GPUNode *, node, &graph.nodes) {
@@ -592,8 +597,20 @@ char *GPUCodegen::graph_serialize(eGPUNodeTag tree_tag, GPUNodeLink *output_link
       continue;
     }
     node_serialize(eval_ss, node);
+    has_nodes = true;
   }
-  eval_ss << "return " << output_link->output << ";\n";
+
+  if (!has_nodes) {
+    return nullptr;
+  }
+
+  if (output_link) {
+    eval_ss << "return " << output_link->output << ";\n";
+  }
+  else {
+    /* Default output in case there are only AOVs. */
+    eval_ss << "return " << output_default << ";\n";
+  }
 
   char *eval_c_str = extract_c_str(eval_ss);
   BLI_hash_mm2a_add(&hm2a_, (uchar *)eval_c_str, eval_ss.str().size());
@@ -667,10 +684,12 @@ void GPUCodegen::generate_graphs()
 {
   set_unique_ids();
 
-  output.surface = graph_serialize(GPU_NODE_TAG_SURFACE | GPU_NODE_TAG_AOV, graph.outlink_surface);
-  output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume);
-  output.displacement = graph_serialize(GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement);
-  output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness);
+  output.surface = graph_serialize(
+      GPU_NODE_TAG_SURFACE | GPU_NODE_TAG_AOV, graph.outlink_surface, "CLOSURE_DEFAULT");
+  output.volume = graph_serialize(GPU_NODE_TAG_VOLUME, graph.outlink_volume, "CLOSURE_DEFAULT");
+  output.displacement = graph_serialize(
+      GPU_NODE_TAG_DISPLACEMENT, graph.outlink_displacement, nullptr);
+  output.thickness = graph_serialize(GPU_NODE_TAG_THICKNESS, graph.outlink_thickness, nullptr);
   if (!BLI_listbase_is_empty(&graph.outlink_compositor)) {
     output.composite = graph_serialize(GPU_NODE_TAG_COMPOSITOR);
   }
