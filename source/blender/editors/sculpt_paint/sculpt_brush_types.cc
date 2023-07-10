@@ -1117,8 +1117,6 @@ void SCULPT_do_clay_strips_brush(Sculpt *sd, Object *ob, Span<PBVHNode *> nodes)
 
   float temp[3];
   float mat[4][4];
-  float scale[4][4];
-  float tmat[4][4];
 
   SCULPT_calc_brush_plane(sd, ob, nodes, area_no_sp, area_co);
   SCULPT_tilt_apply_to_normal(area_no_sp, ss->cache, brush->tilt_strength_factor);
