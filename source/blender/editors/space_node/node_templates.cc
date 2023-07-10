@@ -892,6 +892,9 @@ static void ui_node_draw_input(
               split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
           break;
         }
+        case SOCK_CUSTOM:
+          input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);
+          break;
         default:
           add_dummy_decorator = true;
       }
