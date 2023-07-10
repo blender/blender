@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../bmesh
@@ -43,6 +42,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer

@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../blenlib
   ../../imbuf
 )
 
@@ -31,6 +30,7 @@ set(SRC
 
 set(LIB
   ${JPEG_LIBRARIES}
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )

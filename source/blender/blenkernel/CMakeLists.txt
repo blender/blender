@@ -6,7 +6,6 @@ set(INC
   .
   ../asset_system
   ../blenfont
-  ../blenlib
   ../blenloader
   ../blentranslation
   ../bmesh
@@ -530,7 +529,7 @@ set(SRC
 set(LIB
   bf_asset_system
   bf_blenfont
-  bf_blenlib
+  PRIVATE bf::blenlib
   bf_blenloader
   bf_blentranslation
   bf_bmesh

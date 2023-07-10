@@ -8,7 +8,6 @@ set(INC
   ../intern
   ../../editors/include
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -199,6 +198,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   bf_bmesh
   PRIVATE bf::dna
   bf_functions

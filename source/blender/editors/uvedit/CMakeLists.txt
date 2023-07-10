@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -39,6 +38,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   bf_bmesh
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

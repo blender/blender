@@ -6,7 +6,6 @@
 # Build msgfmt executable
 
 set(INC
-  ../../blenlib
 )
 
 set(SRC
@@ -14,7 +13,7 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf_blenlib
+  PRIVATE PRIVATE bf::blenlib
   PRIVATE bf::intern::guardedalloc
   ${ZLIB_LIBRARIES}
   ${PLATFORM_LINKLIBS})

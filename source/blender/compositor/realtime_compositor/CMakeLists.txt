@@ -7,7 +7,6 @@ set(INC
   algorithms
   cached_resources
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../draw
   ../../gpu
@@ -103,7 +102,7 @@ set(LIB
   bf_nodes
   bf_imbuf
   bf_render
-  bf_blenlib
+  PRIVATE bf::blenlib
   bf_blenkernel
 )
 

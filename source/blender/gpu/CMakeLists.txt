@@ -17,7 +17,6 @@ set(INC
   opengl
   vulkan
   ../blenkernel
-  ../blenlib
   ../bmesh
   ../draw
   ../imbuf
@@ -324,6 +323,7 @@ set(METAL_SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   ${Epoxy_LIBRARIES}

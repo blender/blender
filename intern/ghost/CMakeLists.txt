@@ -5,7 +5,6 @@
 set(INC
   .
   ../clog
-  ../../source/blender/blenlib
   ../../source/blender/imbuf
 )
 
@@ -74,6 +73,7 @@ set(SRC
 
 set(LIB
   ${Epoxy_LIBRARIES}
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
 )
 

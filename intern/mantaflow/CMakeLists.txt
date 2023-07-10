@@ -25,7 +25,6 @@ endif()
 set(INC
   extern
   intern/strings
-  ../../source/blender/blenlib
 )
 
 # Python is always required
@@ -72,6 +71,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   extern_mantaflow

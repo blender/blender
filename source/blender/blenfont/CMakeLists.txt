@@ -5,7 +5,6 @@
 set(INC
   .
   ../blenkernel
-  ../blenlib
   ../blentranslation
   ../gpu
   ../imbuf
@@ -32,6 +31,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_gpu
   PRIVATE bf::intern::guardedalloc

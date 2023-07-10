@@ -7,8 +7,7 @@ if(HAVE_EXECINFO_H)
 endif()
 
 set(INC
-  .
-  ..
+  PUBLIC .
   ../../../intern/eigen
 )
 
@@ -474,6 +473,7 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::blenlib ALIAS bf_blenlib)
 
 if(WITH_GTESTS)
   set(TEST_SRC
