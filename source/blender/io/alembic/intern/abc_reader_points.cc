@@ -52,14 +52,14 @@ bool AbcPointsReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPoints::matches(alembic_header)) {
-    *err_str = N_(
+    *err_str = TIP_(
         "Object type mismatch, Alembic object path pointed to Points when importing, but not any "
-        "more.");
+        "more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = N_("Object type mismatch, Alembic object path points to Points.");
+    *err_str = TIP_("Object type mismatch, Alembic object path points to Points");
     return false;
   }
 
@@ -123,7 +123,7 @@ Mesh *AbcPointsReader::read_mesh(Mesh *existing_mesh,
     sample = m_schema.getValue(sample_sel);
   }
   catch (Alembic::Util::Exception &ex) {
-    *err_str = "Error reading points sample; more detail on the console";
+    *err_str = TIP_("Error reading points sample; more detail on the console");
     printf("Alembic: error reading points sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
            m_schema.getName().c_str(),

@@ -669,14 +669,14 @@ bool AbcMeshReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::IPolyMesh::matches(alembic_header)) {
-    *err_str = N_(
+    *err_str = TIP_(
         "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not "
-        "any more.");
+        "any more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = N_("Object type mismatch, Alembic object path points to PolyMesh.");
+    *err_str = TIP_("Object type mismatch, Alembic object path points to PolyMesh");
     return false;
   }
 
@@ -759,7 +759,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   }
   catch (Alembic::Util::Exception &ex) {
     if (err_str != nullptr) {
-      *err_str = "Error reading mesh sample; more detail on the console";
+      *err_str = TIP_("Error reading mesh sample; more detail on the console");
     }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
@@ -779,7 +779,7 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
   /* This is the same test as in poly_to_tri_count(). */
   if (poly_count > 0 && loop_count < poly_count * 2) {
     if (err_str != nullptr) {
-      *err_str = "Invalid mesh; more detail on the console";
+      *err_str = TIP_("Invalid mesh; more detail on the console");
     }
     printf("Alembic: invalid mesh sample for '%s/%s' at time %f, less than 2 loops per face\n",
            m_iobject.getFullName().c_str(),
@@ -812,9 +812,9 @@ Mesh *AbcMeshReader::read_mesh(Mesh *existing_mesh,
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
-        *err_str =
-            "Topology has changed, perhaps by triangulating the"
-            " mesh. Only vertices will be read!";
+        *err_str = TIP_(
+            "Topology has changed, perhaps by triangulating the mesh. Only vertices will be "
+            "read!");
       }
     }
   }
@@ -1050,14 +1050,14 @@ bool AbcSubDReader::accepts_object_type(
     const char **err_str) const
 {
   if (!Alembic::AbcGeom::ISubD::matches(alembic_header)) {
-    *err_str = N_(
+    *err_str = TIP_(
         "Object type mismatch, Alembic object path pointed to SubD when importing, but not any "
-        "more.");
+        "more");
     return false;
   }
 
   if (ob->type != OB_MESH) {
-    *err_str = N_("Object type mismatch, Alembic object path points to SubD.");
+    *err_str = TIP_("Object type mismatch, Alembic object path points to SubD");
     return false;
   }
 
@@ -1115,7 +1115,7 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
   }
   catch (Alembic::Util::Exception &ex) {
     if (err_str != nullptr) {
-      *err_str = "Error reading mesh sample; more detail on the console";
+      *err_str = TIP_("Error reading mesh sample; more detail on the console");
     }
     printf("Alembic: error reading mesh sample for '%s/%s' at time %f: %s\n",
            m_iobject.getFullName().c_str(),
@@ -1152,9 +1152,9 @@ Mesh *AbcSubDReader::read_mesh(Mesh *existing_mesh,
       settings.read_flag = MOD_MESHSEQ_READ_VERT;
 
       if (err_str) {
-        *err_str =
-            "Topology has changed, perhaps by triangulating the"
-            " mesh. Only vertices will be read!";
+        *err_str = TIP_(
+            "Topology has changed, perhaps by triangulating the mesh. Only vertices will be "
+            "read!");
       }
     }
   }
