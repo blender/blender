@@ -322,45 +322,56 @@ void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_i
         const CPPType &type = get_simulation_item_cpp_type(item);
         const fn::ValueOrFieldCPPType &value_or_field_type =
             *fn::ValueOrFieldCPPType::get_from_self(type);
-        if (value_or_field_type.is_field(input_value)) {
-          /* Fields are evaluated and stored as attributes. */
-          if (!stored_geometries.is_empty()) {
-            /* Possible things to consider:
-             * - Store attributes on multiple/all geometries.
-             * - If the attribute is an anonymous attribute, just rename it for the simulation
-             *   state, without considering the domain. This would allow e.g. having the attribute
-             *   only on some parts of the geometry set.
-             */
-            GeometrySet &geometry = *stored_geometries.last();
-            const GField &field = *value_or_field_type.get_field_ptr(input_value);
-            const eAttrDomain domain = eAttrDomain(item.attribute_domain);
-            const std::string attribute_name = ".sim_" + std::to_string(item.identifier);
-            if (geometry.has_pointcloud()) {
-              PointCloudComponent &component =
-                  geometry.get_component_for_write<PointCloudComponent>();
-              bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_mesh()) {
-              MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
-              bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_curves()) {
-              CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
-              bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            if (geometry.has_instances()) {
-              InstancesComponent &component =
-                  geometry.get_component_for_write<InstancesComponent>();
-              bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
-            }
-            state_item = std::make_unique<bke::sim::AttributeSimulationStateItem>(attribute_name);
-          }
-        }
-        else {
+
+        if (!value_or_field_type.is_field(input_value)) {
           const void *value = value_or_field_type.get_value_ptr(input_value);
           state_item = std::make_unique<bke::sim::PrimitiveSimulationStateItem>(
               value_or_field_type.value, value);
+          break;
         }
+
+        const GField &field = *value_or_field_type.get_field_ptr(input_value);
+
+        if (!field.node().depends_on_input()) {
+          BUFFER_FOR_CPP_TYPE_VALUE(value_or_field_type.value, value);
+          fn::evaluate_constant_field(field, value);
+          state_item = std::make_unique<bke::sim::PrimitiveSimulationStateItem>(
+              value_or_field_type.value, value);
+          value_or_field_type.value.destruct(value);
+          break;
+        }
+
+        /* Fields are evaluated and stored as attributes only on geometry. */
+        if (stored_geometries.is_empty()) {
+          break;
+        }
+
+        /* Possible things to consider:
+         * - Store attributes on multiple/all geometries.
+         * - If the attribute is an anonymous attribute, just rename it for the simulation
+         *   state, without considering the domain. This would allow e.g. having the attribute
+         *   only on some parts of the geometry set.
+         */
+        GeometrySet &geometry = *stored_geometries.last();
+        const eAttrDomain domain = eAttrDomain(item.attribute_domain);
+        const std::string attribute_name = ".sim_" + std::to_string(item.identifier);
+        if (geometry.has_pointcloud()) {
+          PointCloudComponent &component = geometry.get_component_for_write<PointCloudComponent>();
+          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
+        }
+        if (geometry.has_mesh()) {
+          MeshComponent &component = geometry.get_component_for_write<MeshComponent>();
+          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
+        }
+        if (geometry.has_curves()) {
+          CurveComponent &component = geometry.get_component_for_write<CurveComponent>();
+          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
+        }
+        if (geometry.has_instances()) {
+          InstancesComponent &component = geometry.get_component_for_write<InstancesComponent>();
+          bke::try_capture_field_on_geometry(component, attribute_name, domain, field);
+        }
+        state_item = std::make_unique<bke::sim::AttributeSimulationStateItem>(attribute_name);
         break;
       }
       case SOCK_STRING: {
