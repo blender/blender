@@ -360,7 +360,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 #endif
   zero_v3(fly->dvec_prev);
 
-  fly->timer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, 0.01f);
+  fly->timer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, 0.01f);
 
   copy_v2_v2_int(fly->mval, event->mval);
 
@@ -441,7 +441,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
   win = CTX_wm_window(C);
   rv3d = fly->rv3d;
 
-  WM_event_remove_timer(CTX_wm_manager(C), win, fly->timer);
+  WM_event_timer_remove(CTX_wm_manager(C), win, fly->timer);
 
   ED_region_draw_cb_exit(fly->region->type, fly->draw_handle_pixel);
 

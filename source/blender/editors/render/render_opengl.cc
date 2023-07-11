@@ -914,7 +914,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
     scene->r.cfra = oglrender->cfrao;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
-    WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
+    WM_event_timer_remove(oglrender->wm, oglrender->win, oglrender->timer);
   }
 
   WM_cursor_modal_restore(oglrender->win);
@@ -1265,7 +1265,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   oglrender->win = CTX_wm_window(C);
 
   WM_event_add_modal_handler(C, op);
-  oglrender->timer = WM_event_add_timer(oglrender->wm, oglrender->win, TIMER, 0.01f);
+  oglrender->timer = WM_event_timer_add(oglrender->wm, oglrender->win, TIMER, 0.01f);
 
   return OPERATOR_RUNNING_MODAL;
 }

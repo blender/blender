@@ -2090,7 +2090,7 @@ static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
   wm_autosave_timer_end(wm);
 
   if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, nullptr, TIMERAUTOSAVE, timestep);
+    wm->autosavetimer = WM_event_timer_add(wm, nullptr, TIMERAUTOSAVE, timestep);
   }
 }
 
@@ -2102,7 +2102,7 @@ void wm_autosave_timer_begin(wmWindowManager *wm)
 void wm_autosave_timer_end(wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
-    WM_event_remove_timer(wm, nullptr, wm->autosavetimer);
+    WM_event_timer_remove(wm, nullptr, wm->autosavetimer);
     wm->autosavetimer = nullptr;
   }
 }

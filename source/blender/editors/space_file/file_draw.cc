@@ -980,13 +980,13 @@ void file_draw_list(const bContext *C, ARegion *region)
                                     !filelist_cache_previews_done(files);
       //          printf("%s: preview task: %d\n", __func__, previews_running);
       if (previews_running && !sfile->previews_timer) {
-        sfile->previews_timer = WM_event_add_timer_notifier(
+        sfile->previews_timer = WM_event_timer_add_notifier(
             wm, win, NC_SPACE | ND_SPACE_FILE_PREVIEW, 0.01);
       }
       if (!previews_running && sfile->previews_timer) {
         /* Preview is not running, no need to keep generating update events! */
         //              printf("%s: Inactive preview task, sleeping!\n", __func__);
-        WM_event_remove_timer_notifier(wm, win, sfile->previews_timer);
+        WM_event_timer_remove_notifier(wm, win, sfile->previews_timer);
         sfile->previews_timer = nullptr;
       }
     }

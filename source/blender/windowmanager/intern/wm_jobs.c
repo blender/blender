@@ -480,11 +480,11 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 
       /* restarted job has timer already */
       if (wm_job->wt && (wm_job->wt->timestep > timestep)) {
-        WM_event_remove_timer(wm, wm_job->win, wm_job->wt);
-        wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, timestep);
+        WM_event_timer_remove(wm, wm_job->win, wm_job->wt);
+        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, timestep);
       }
       if (wm_job->wt == NULL) {
-        wm_job->wt = WM_event_add_timer(wm, wm_job->win, TIMERJOBS, timestep);
+        wm_job->wt = WM_event_timer_add(wm, wm_job->win, TIMERJOBS, timestep);
       }
 
       wm_job->start_time = PIL_check_seconds_timer();
@@ -537,7 +537,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
   }
 
   if (wm_job->wt) {
-    WM_event_remove_timer(wm, wm_job->win, wm_job->wt);
+    WM_event_timer_remove(wm, wm_job->win, wm_job->wt);
   }
   if (wm_job->customdata) {
     wm_job->free(wm_job->customdata);
@@ -689,7 +689,7 @@ void wm_jobs_timer(wmWindowManager *wm, wmTimer *wt)
           WM_jobs_start(wm, wm_job);
         }
         else {
-          WM_event_remove_timer(wm, wm_job->win, wm_job->wt);
+          WM_event_timer_remove(wm, wm_job->win, wm_job->wt);
           wm_job->wt = NULL;
 
           /* remove wm_job */

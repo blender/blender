@@ -600,7 +600,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator * /*op*/, const
 
   /* clear the report display after timeout */
   if (float(reports->reporttimer->duration) > timeout) {
-    WM_event_remove_timer(wm, nullptr, reports->reporttimer);
+    WM_event_timer_remove(wm, nullptr, reports->reporttimer);
     reports->reporttimer = nullptr;
 
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_INFO, nullptr);

@@ -984,7 +984,7 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
   ups->stroke_active = false;
 
   if (stroke->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
   }
 
   if (stroke->rng) {
@@ -1518,7 +1518,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (stroke->stroke_started) {
       if (br->flag & BRUSH_AIRBRUSH) {
-        stroke->timer = WM_event_add_timer(
+        stroke->timer = WM_event_timer_add(
             CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
       }
 

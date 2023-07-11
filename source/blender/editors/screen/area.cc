@@ -2048,7 +2048,7 @@ static void area_offscreen_exit(wmWindowManager *wm, wmWindow *win, ScrArea *are
     MEM_SAFE_FREE(region->headerstr);
 
     if (region->regiontimer) {
-      WM_event_remove_timer(wm, win, region->regiontimer);
+      WM_event_timer_remove(wm, win, region->regiontimer);
       region->regiontimer = nullptr;
     }
 

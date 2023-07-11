@@ -571,7 +571,7 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op, const int 
 #endif
   zero_v3(walk->dvec_prev);
 
-  walk->timer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, 0.01f);
+  walk->timer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, 0.01f);
 
 #ifdef WITH_INPUT_NDOF
   walk->ndof = nullptr;
@@ -629,7 +629,7 @@ static int walkEnd(bContext *C, WalkInfo *walk)
   win = CTX_wm_window(C);
   rv3d = walk->rv3d;
 
-  WM_event_remove_timer(CTX_wm_manager(C), win, walk->timer);
+  WM_event_timer_remove(CTX_wm_manager(C), win, walk->timer);
 
   ED_region_draw_cb_exit(walk->region->type, walk->draw_handle_pixel);
 

@@ -1325,7 +1325,7 @@ void ED_fileselect_exit(wmWindowManager *wm, SpaceFile *sfile)
 
 void file_params_smoothscroll_timer_clear(wmWindowManager *wm, wmWindow *win, SpaceFile *sfile)
 {
-  WM_event_remove_timer(wm, win, sfile->smoothscroll_timer);
+  WM_event_timer_remove(wm, win, sfile->smoothscroll_timer);
   sfile->smoothscroll_timer = nullptr;
 }
 
@@ -1338,7 +1338,7 @@ void file_params_invoke_rename_postscroll(wmWindowManager *wm, wmWindow *win, Sp
   if (sfile->smoothscroll_timer != nullptr) {
     file_params_smoothscroll_timer_clear(wm, win, sfile);
   }
-  sfile->smoothscroll_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 1000.0);
+  sfile->smoothscroll_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 1000.0);
   sfile->scroll_offset = 0;
 }
 

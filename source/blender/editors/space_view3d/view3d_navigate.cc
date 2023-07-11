@@ -843,7 +843,7 @@ static void viewops_data_end_navigation(bContext *C, ViewOpsData *vod)
     vod->rv3d->rflag &= ~RV3D_NAVIGATING;
 
     if (vod->timer) {
-      WM_event_remove_timer(CTX_wm_manager(C), vod->timer->win, vod->timer);
+      WM_event_timer_remove(CTX_wm_manager(C), vod->timer->win, vod->timer);
     }
 
     MEM_SAFE_FREE(vod->init.dial);

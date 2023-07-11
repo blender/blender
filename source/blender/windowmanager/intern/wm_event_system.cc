@@ -497,7 +497,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
   CTX_wm_window_set(C, nullptr);
 }
 
-static void wm_event_execute_timers(bContext *C)
+static void wm_event_timers_execute(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   if (UNLIKELY(wm == nullptr)) {
@@ -518,7 +518,7 @@ void wm_event_do_notifiers(bContext *C)
   GPU_render_begin();
 
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see #80028. */
-  wm_event_execute_timers(C);
+  wm_event_timers_execute(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
@@ -889,10 +889,10 @@ void WM_report_banner_show()
   ReportList *wm_reports = &wm->reports;
 
   /* After adding reports to the global list, reset the report timer. */
-  WM_event_remove_timer(wm, nullptr, wm_reports->reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm_reports->reporttimer);
 
   /* Records time since last report was added. */
-  wm_reports->reporttimer = WM_event_add_timer(wm, win, TIMERREPORT, 0.05);
+  wm_reports->reporttimer = WM_event_timer_add(wm, win, TIMERREPORT, 0.05);
 
   ReportTimerInfo *rti = MEM_cnew<ReportTimerInfo>(__func__);
   wm_reports->reporttimer->customdata = rti;
@@ -902,7 +902,7 @@ void WM_report_banners_cancel(Main *bmain)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BKE_reports_clear(&wm->reports);
-  WM_event_remove_timer(wm, nullptr, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
 }
 
 #ifdef WITH_INPUT_NDOF

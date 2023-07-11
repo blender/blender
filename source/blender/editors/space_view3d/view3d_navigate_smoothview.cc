@@ -332,10 +332,10 @@ void ED_view3d_smooth_view_ex(
     }
     *rv3d->sms = sms;
     if (rv3d->smooth_timer) {
-      WM_event_remove_timer(wm, win, rv3d->smooth_timer);
+      WM_event_timer_remove(wm, win, rv3d->smooth_timer);
     }
     /* #TIMER1 is hard-coded in key-map. */
-    rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
+    rv3d->smooth_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 100.0);
   }
   else {
     /* Animation is disabled, apply immediately. */
@@ -454,7 +454,7 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
   MEM_freeN(rv3d->sms);
   rv3d->sms = nullptr;
 
-  WM_event_remove_timer(wm, win, rv3d->smooth_timer);
+  WM_event_timer_remove(wm, win, rv3d->smooth_timer);
   rv3d->smooth_timer = nullptr;
   rv3d->rflag &= ~RV3D_NAVIGATING;
 

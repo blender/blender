@@ -368,7 +368,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 static void wm_reports_free(wmWindowManager *wm)
 {
   BKE_reports_clear(&wm->reports);
-  WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, NULL, wm->reports.reporttimer);
 }
 
 void wm_operator_register(bContext *C, wmOperator *op)
@@ -631,7 +631,7 @@ void WM_main(bContext *C)
   while (1) {
 
     /* Get events from ghost, handle window events, add to window queues. */
-    wm_window_process_events(C);
+    wm_window_events_process(C);
 
     /* Per window, all events to the window, screen, area and region handlers. */
     wm_event_do_handlers(C);

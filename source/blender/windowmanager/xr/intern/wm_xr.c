@@ -131,7 +131,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
       wm_xr_session_actions_update(wm);
     }
 
-    /* wm_window_process_events() uses the return value to determine if it can put the main thread
+    /* wm_window_events_process() uses the return value to determine if it can put the main thread
      * to sleep for some milliseconds. We never want that to happen while the VR session runs on
      * the main thread. So always return true. */
     return true;
