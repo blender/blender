@@ -751,7 +751,7 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
       realtime_cache.prev_frame = realtime_cache.current_frame;
       realtime_cache.prev_state = std::move(realtime_cache.current_state);
       if (realtime_cache.prev_state) {
-        exec_data.prev_simulation_state = realtime_cache.prev_state.get();
+        exec_data.prev_simulation_state_mutable = realtime_cache.prev_state.get();
       }
 
       /* Create a new current state used to pass the data to the next frame. */

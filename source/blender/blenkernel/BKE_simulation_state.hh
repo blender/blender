@@ -122,6 +122,7 @@ class ModifierSimulationState {
   /** File path to folder containing baked data. */
   std::optional<std::string> bdata_dir_;
 
+  SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id);
   const SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id) const;
   SimulationZoneState &get_zone_state_for_write(const SimulationZoneID &zone_id);
   void ensure_bake_loaded(const bNodeTree &ntree) const;

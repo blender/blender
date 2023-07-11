@@ -72,37 +72,74 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
     const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(user_data, output_node_id_);
 
-    const bke::sim::SimulationZoneState *prev_zone_state =
-        modifier_data.prev_simulation_state == nullptr ?
-            nullptr :
-            modifier_data.prev_simulation_state->get_zone_state(zone_id);
-
-    std::optional<bke::sim::SimulationZoneState> initial_prev_zone_state;
-    if (prev_zone_state == nullptr) {
-      Array<void *> input_values(simulation_items_.size(), nullptr);
-      for (const int i : simulation_items_.index_range()) {
-        input_values[i] = params.try_get_input_data_ptr_or_request(i);
-      }
-      if (input_values.as_span().contains(nullptr)) {
-        /* Wait until all inputs are available. */
+    /* When caching is turned off and the old state doesn't need to persist, moving data
+     * from the last state instead of copying it can avoid copies of geometry data arrays. */
+    if (auto *state = modifier_data.prev_simulation_state_mutable) {
+      if (bke::sim::SimulationZoneState *zone = state->get_zone_state(zone_id)) {
+        this->output_simulation_state_move(params, user_data, *zone);
         return;
       }
-
-      initial_prev_zone_state.emplace();
-      values_to_simulation_state(simulation_items_, input_values, *initial_prev_zone_state);
-      prev_zone_state = &*initial_prev_zone_state;
     }
 
-    Array<void *> output_values(simulation_items_.size());
+    /* If there is a read-only state from the last frame, output that directly. */
+    if (const auto *state = modifier_data.prev_simulation_state) {
+      if (const bke::sim::SimulationZoneState *zone = state->get_zone_state(zone_id)) {
+        this->output_simulation_state_copy(params, user_data, *zone);
+        return;
+      }
+    }
+
+    /* When there is no previous state already, create the initial state. */
+    Array<void *> input_values(simulation_items_.size(), nullptr);
     for (const int i : simulation_items_.index_range()) {
-      output_values[i] = params.get_output_data_ptr(i + 1);
+      input_values[i] = params.try_get_input_data_ptr_or_request(i);
     }
-    simulation_state_to_values(simulation_items_,
-                               *prev_zone_state,
-                               *modifier_data.self_object,
-                               *user_data.compute_context,
-                               node_,
-                               output_values);
+    if (input_values.as_span().contains(nullptr)) {
+      /* Wait until all inputs are available. */
+      return;
+    }
+
+    /* Instead of outputing the initial values directly, convert them to a simulation state and
+     * then back. This ensures that the first frame behaves consistently with all other frames
+     * which are necessarily stored in the simulation cache. */
+    bke::sim::SimulationZoneState initial_zone_state;
+    move_values_to_simulation_state(simulation_items_, input_values, initial_zone_state);
+    this->output_simulation_state_move(params, user_data, initial_zone_state);
+  }
+
+  void output_simulation_state_copy(lf::Params &params,
+                                    const GeoNodesLFUserData &user_data,
+                                    const bke::sim::SimulationZoneState &state) const
+  {
+    Array<void *> outputs(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      outputs[i] = params.get_output_data_ptr(i + 1);
+    }
+    copy_simulation_state_to_values(simulation_items_,
+                                    state,
+                                    *user_data.modifier_data->self_object,
+                                    *user_data.compute_context,
+                                    node_,
+                                    outputs);
+    for (const int i : simulation_items_.index_range()) {
+      params.output_set(i + 1);
+    }
+  }
+
+  void output_simulation_state_move(lf::Params &params,
+                                    const GeoNodesLFUserData &user_data,
+                                    bke::sim::SimulationZoneState &state) const
+  {
+    Array<void *> outputs(simulation_items_.size());
+    for (const int i : simulation_items_.index_range()) {
+      outputs[i] = params.get_output_data_ptr(i + 1);
+    }
+    move_simulation_state_to_values(simulation_items_,
+                                    state,
+                                    *user_data.modifier_data->self_object,
+                                    *user_data.compute_context,
+                                    node_,
+                                    outputs);
     for (const int i : simulation_items_.index_range()) {
       params.output_set(i + 1);
     }

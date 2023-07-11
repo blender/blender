@@ -139,15 +139,21 @@ void socket_declarations_for_simulation_items(Span<NodeSimulationItem> items,
                                               NodeDeclaration &r_declaration);
 const CPPType &get_simulation_item_cpp_type(eNodeSocketDatatype socket_type);
 const CPPType &get_simulation_item_cpp_type(const NodeSimulationItem &item);
-void values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_items,
-                                const Span<void *> input_values,
-                                bke::sim::SimulationZoneState &r_zone_state);
-void simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
-                                const bke::sim::SimulationZoneState &zone_state,
-                                const Object &self_object,
-                                const ComputeContext &compute_context,
-                                const bNode &sim_output_node,
-                                Span<void *> r_output_values);
+void move_values_to_simulation_state(const Span<NodeSimulationItem> node_simulation_items,
+                                     const Span<void *> input_values,
+                                     bke::sim::SimulationZoneState &r_zone_state);
+void move_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+                                     bke::sim::SimulationZoneState &zone_state,
+                                     const Object &self_object,
+                                     const ComputeContext &compute_context,
+                                     const bNode &sim_output_node,
+                                     Span<void *> r_output_values);
+void copy_simulation_state_to_values(const Span<NodeSimulationItem> node_simulation_items,
+                                     const bke::sim::SimulationZoneState &zone_state,
+                                     const Object &self_object,
+                                     const ComputeContext &compute_context,
+                                     const bNode &sim_output_node,
+                                     Span<void *> r_output_values);
 
 void copy_with_checked_indices(const GVArray &src,
                                const VArray<int> &indices,

@@ -185,6 +185,15 @@ StatesAroundFrame ModifierSimulationCache::get_states_around_frame(const SubFram
   return states_around_frame;
 }
 
+SimulationZoneState *ModifierSimulationState::get_zone_state(const SimulationZoneID &zone_id)
+{
+  std::lock_guard lock{mutex_};
+  if (auto *ptr = zone_states_.lookup_ptr(zone_id)) {
+    return ptr->get();
+  }
+  return nullptr;
+}
+
 const SimulationZoneState *ModifierSimulationState::get_zone_state(
     const SimulationZoneID &zone_id) const
 {
