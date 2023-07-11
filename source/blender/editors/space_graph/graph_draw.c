@@ -1386,7 +1386,10 @@ void graph_draw_ghost_curves(bAnimContext *ac, SpaceGraph *sipo, ARegion *region
   immUniform1f("dash_width", 20.0f);
   immUniform1f("udash_factor", 0.5f);
 
-  const bool draw_extrapolation = (sipo->flag & SIPO_NO_DRAW_EXTRAPOLATION) == 0;
+  /* Don't draw extrapolation on sampled ghost curves because it doesn't
+   * match the curves they're ghosting anyway.
+   * See issue #109920 for details. */
+  const bool draw_extrapolation = false;
   /* the ghost curves are simply sampled F-Curves stored in sipo->runtime.ghost_curves */
   for (fcu = sipo->runtime.ghost_curves.first; fcu; fcu = fcu->next) {
     /* set whatever color the curve has set
