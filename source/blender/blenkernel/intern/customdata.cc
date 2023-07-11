@@ -410,8 +410,7 @@ static void layerCopyValue_normal(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD))
-  {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
     /* Above/below threshold modes are not supported here, fallback to nomix (just in case). */
     copy_v3_v3(no_dst, no_src);
   }
@@ -888,8 +887,7 @@ static void layerCopyValue_mloopcol(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD))
-  {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
     /* Modes that do a full copy or nothing. */
     if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
       /* TODO: Check for a real valid way to get 'factor' value of our dest color? */
@@ -1320,8 +1318,7 @@ static void layerCopyValue_propcol(const void *source,
   if (ELEM(mixmode,
            CDT_MIX_NOMIX,
            CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-           CDT_MIX_REPLACE_BELOW_THRESHOLD))
-  {
+           CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
     /* Modes that do a full copy or nothing. */
     if (ELEM(mixmode, CDT_MIX_REPLACE_ABOVE_THRESHOLD, CDT_MIX_REPLACE_BELOW_THRESHOLD)) {
       /* TODO: Check for a real valid way to get 'factor' value of our dest color? */
@@ -2775,6 +2772,10 @@ static void customData_update_offsets(CustomData *data)
   int max_alignment = 1;
 
   int offset = 0;
+#ifdef WITH_ASAN
+  offset += BM_ASAN_PAD;
+#endif
+
   for (const int align : aligns) {
     for (const int i : IndexRange(data->totlayer)) {
       CustomDataLayer *layer = data->layers + i;
@@ -2792,6 +2793,10 @@ static void customData_update_offsets(CustomData *data)
       }
 
       offset += size;
+#ifdef WITH_ASAN
+      offset += BM_ASAN_PAD;
+#endif
+
       max_alignment = max_ii(max_alignment, align);
     }
   }
