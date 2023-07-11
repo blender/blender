@@ -186,7 +186,7 @@ static void rna_RigidBodyWorld_objects_collection_update(Main *bmain,
                                                          PointerRNA *ptr)
 {
   RigidBodyWorld *rbw = (RigidBodyWorld *)ptr->data;
-  BKE_rigidbody_objects_collection_validate(scene, rbw);
+  BKE_rigidbody_objects_collection_validate(bmain, scene, rbw);
   rna_RigidBodyWorld_reset(bmain, scene, ptr);
 }
 
