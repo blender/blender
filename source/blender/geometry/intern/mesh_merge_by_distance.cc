@@ -389,8 +389,8 @@ static Vector<WeldEdge> weld_edge_ctx_alloc_and_find_collapsed(Span<int2> edges,
  * \param weld_edges: Candidate edges for merging (edges that don't collapse and that have at least
  *                    one weld vertex).
  *
- * \return r_edge_dest_map: Map of indices pointing the source edges to eacth targed.
- * \return r_edge_double_kill_len: Number of duplicate edges to be destroyed.
+ * \param r_edge_dest_map: Resulting map of indices pointing the source edges to each target.
+ * \param r_edge_double_kill_len: Resulting number of duplicate edges to be destroyed.
  */
 static void weld_edge_find_doubles(Span<WeldEdge> weld_edges,
                                    int mvert_num,

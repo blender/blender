@@ -1372,9 +1372,7 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
     float r = paint_rake_rotation_spacing(ups, brush);
     float rotation;
 
-    /* Use a smaller limit if the stroke hasn't started
-     * to prevent excessive preroll.
-     */
+    /* Use a smaller limit if the stroke hasn't started to prevent excessive pre-roll. */
     if (!stroke_has_started) {
       r = min_ff(r, 4.0f);
     }

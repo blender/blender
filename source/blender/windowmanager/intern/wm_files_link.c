@@ -224,7 +224,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
       filepath, libname, &group, &name);
 
   /* NOTE: Need to also check filepath, as typically libname is an empty string here (when trying
-   * to append from current file from the filebrowser e.g.). */
+   * to append from current file from the file-browser e.g.). */
   if (BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) == 0 ||
       BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0)
   {

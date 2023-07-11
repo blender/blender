@@ -25,7 +25,7 @@ static void test_quat_to_mat_to_quat(float w, float x, float y, float z)
   quat_to_mat3(matrix, norm_quat);
   mat3_normalized_to_quat(out_quat, matrix);
 
-  /* The expected result is flipped (each orientation corresponds to 2 quats) */
+  /* The expected result is flipped (each orientation corresponds to 2 quaternions). */
   if (w < 0) {
     mul_qt_fl(norm_quat, -1);
   }

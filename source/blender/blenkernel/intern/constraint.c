@@ -147,7 +147,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           cob->rotOrder = ob->rotmode;
         }
         else {
-          /* Quats/Axis-Angle, so Eulers should just use default order */
+          /* Quaternion/Axis-Angle, so Eulers should just use default order. */
           cob->rotOrder = EULER_ORDER_DEFAULT;
         }
         copy_m4_m4(cob->matrix, ob->object_to_world);
@@ -171,7 +171,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           cob->rotOrder = cob->pchan->rotmode;
         }
         else {
-          /* Quats, so eulers should just use default order */
+          /* Quaternion, so eulers should just use default order */
           cob->rotOrder = EULER_ORDER_DEFAULT;
         }
 

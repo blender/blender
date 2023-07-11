@@ -475,7 +475,7 @@ enum {
   WALK_CONFIRM = 2,
 };
 
-/* keep the previous speed until user changes userpreferences */
+/* Keep the previous speed until user changes preferences. */
 static float base_speed = -1.0f;
 static float userdef_speed = -1.0f;
 

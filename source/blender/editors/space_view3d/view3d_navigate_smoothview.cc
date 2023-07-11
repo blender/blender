@@ -300,8 +300,8 @@ void ED_view3d_smooth_view_ex(
 
     sms.time_allowed = double(smooth_viewtx / 1000.0);
 
-    /* If this is view rotation only we can decrease the time allowed by the angle between quats
-     * this means small rotations won't lag. */
+    /* If this is view rotation only we can decrease the time allowed by the angle between
+     * quaternions this means small rotations won't lag. */
     if (sview->quat && !sview->ofs && !sview->dist) {
       /* scale the time allowed by the rotation */
       /* 180deg == 1.0 */

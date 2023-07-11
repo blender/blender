@@ -2998,7 +2998,7 @@ void BKE_object_rot_to_mat3(const Object *ob, float mat[3][3], bool use_drot)
    * with the rotation matrix to yield the appropriate rotation
    */
 
-  /* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+  /* Rotations may either be quaternions, eulers (with various rotation orders), or axis-angle. */
   if (ob->rotmode > 0) {
     /* Euler rotations
      * (will cause gimbal lock, but this can be alleviated a bit with rotation orders). */
