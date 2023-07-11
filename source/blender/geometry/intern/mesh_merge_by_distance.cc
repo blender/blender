@@ -1319,9 +1319,14 @@ static void merge_groups_create(Span<int> dest_map,
     r_groups_offsets[group_index]++;
   }
 
-  const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(r_groups_offsets);
+  int offs = 0;
+  for (const int i : IndexRange(wgroups_len)) {
+    offs += r_groups_offsets[i];
+    r_groups_offsets[i] = offs;
+  }
+  r_groups_offsets[wgroups_len] = offs;
 
-  r_groups_buffer.reinitialize(offsets.total_size());
+  r_groups_buffer.reinitialize(offs);
   BLI_assert(r_groups_buffer.size() == double_elems.size());
 
   /* Use a reverse for loop to ensure that indices are assigned in ascending order. */
