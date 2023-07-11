@@ -228,6 +228,7 @@ class AbstractTreeViewItem : public AbstractViewItem, public TreeViewItemContain
 
   /**
    * Return whether the item can be collapsed. Used to disable collapsing for items with children.
+   * The default implementation returns true.
    */
   virtual bool supports_collapsing() const;
 

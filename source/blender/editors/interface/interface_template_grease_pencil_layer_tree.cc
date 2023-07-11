@@ -251,11 +251,6 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     build_layer_group_buttons(*sub);
   }
 
-  bool supports_collapsing() const override
-  {
-    return true;
-  }
-
   bool supports_renaming() const override
   {
     return true;
