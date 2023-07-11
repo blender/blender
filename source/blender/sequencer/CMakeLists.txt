@@ -7,20 +7,15 @@ set(INC
   intern
   ../blenfont
   ../blenkernel
-  ../blenlib
   ../blenloader
   ../blentranslation
   ../depsgraph
   ../imbuf
-  ../makesdna
   ../makesrna
   ../render
   ../windowmanager
   ../../../intern/clog
-  ../../../intern/guardedalloc
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -89,8 +84,10 @@ set(SRC
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_AUDASPACE)
@@ -108,7 +105,5 @@ endif()
 
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h.
-add_dependencies(bf_sequencer bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_sequencer bf_rna)

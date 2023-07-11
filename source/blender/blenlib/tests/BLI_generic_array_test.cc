@@ -125,4 +125,12 @@ TEST(generic_array, ReinitEmpty)
   EXPECT_EQ(array.as_span().typed<int>()[9], 7);
 }
 
+TEST(generic_array, AssignDefault)
+{
+  GArray<> array(CPPType::get<int32_t>(), int64_t(5));
+  array = {};
+  EXPECT_EQ(array.size(), 0);
+  EXPECT_EQ(array.data(), nullptr);
+}
+
 }  // namespace blender::tests

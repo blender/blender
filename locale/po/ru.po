@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -11924,10 +11924,6 @@ msgid "Show scenes"
 msgstr "Показать сцены"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "Показать материалы, системы нодов и стили линий Freestyle"
-
-
 msgid "Directory"
 msgstr "Папка"
 
@@ -20702,10 +20698,6 @@ msgid "Cycles light settings"
 msgstr "Настройки освещения в Cycles"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Расстояние полурассеивания - расстояние, на котором интенсивность освещения уменьшается в два раза"
-
-
 msgid "Node tree for node based lights"
 msgstr "Система нодов для источников света"
 
@@ -20779,14 +20771,6 @@ msgid "Directional area Light"
 msgstr "Направленный протяжённый источник света"
 
 
-msgid "Constant Coefficient"
-msgstr "Постоянный коэффициент"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "Постоянный коэффициент затухания на расстоянии"
-
-
 msgid "Contact Shadow Bias"
 msgstr "Погрешность контактных теней"
 
@@ -20816,66 +20800,6 @@ msgid "Power"
 msgstr "Мощность"
 
 
-msgid "Custom light falloff curve"
-msgstr "Особая кривая ослабления света"
-
-
-msgid "Falloff Type"
-msgstr "Тип спада"
-
-
-msgid "Intensity Decay with distance"
-msgstr "Характер зависимости интенсивности от расстояния"
-
-
-msgid "Inverse Linear"
-msgstr "Обратно-линейно"
-
-
-msgid "Inverse Square"
-msgstr "Обратно-квадратично"
-
-
-msgid "Inverse Coefficients"
-msgstr "Обратные коэффициенты"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Смесь лин./квад."
-
-
-msgid "Linear Attenuation"
-msgstr "Линейное затухание"
-
-
-msgid "Linear distance attenuation"
-msgstr "Линейное затухание от расстояния"
-
-
-msgid "Linear Coefficient"
-msgstr "Линейный коэффициент"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "Линейный коэффициент затухания на расстоянии"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Квадратичное затухание"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Квадратичное затухание от расстояния"
-
-
-msgid "Quadratic Coefficient"
-msgstr "Квадратичный коэффициент"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Квадратичный коэффициент затухания на расстоянии"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Погрешность теневого буфера"
 
@@ -20890,22 +20814,6 @@ msgstr "Начало отсечения для теневого буфера"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "Ближняя граница отсечения для теневого буфера, до которой расчёт теней не производится"
-
-
-msgid "Samples"
-msgstr "Сэмплы"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Количество сэмплов теневого буфера"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Размер теневого буфера"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "Разрешение теневого буфера. Чем выше — тем чётче тень, но требуется больше памяти"
 
 
 msgid "Shadow Color"
@@ -25919,6 +25827,10 @@ msgid "Format of multiview media"
 msgstr "Формат среды мультипросмотра"
 
 
+msgid "Multi-View"
+msgstr "Мультивид"
+
+
 msgid "Image Preview"
 msgstr "Предпросмотр изображения"
 
@@ -30217,6 +30129,10 @@ msgstr "Мин. толщина"
 
 msgid "Minimum for measuring thickness"
 msgstr "Минимум для измерения толщины"
+
+
+msgid "Samples"
+msgstr "Сэмплы"
 
 
 msgid "Number of samples to test per face"
@@ -57177,6 +57093,10 @@ msgid "Dynamic topology alters the mesh topology while sculpting"
 msgstr "Динамическая топология изменяет топологию сетки во время скульптинга"
 
 
+msgid "Falloff Type"
+msgstr "Тип спада"
+
+
 msgid "Grow Face Set"
 msgstr "Увеличить набор граней"
 
@@ -59845,6 +59765,10 @@ msgid "Align UVs on Y axis"
 msgstr "Выровнять UV по оси Y"
 
 
+msgid "Correct Aspect"
+msgstr "Коррекция соотн. сторон"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Усреднить масштаб островов"
@@ -59869,10 +59793,6 @@ msgstr "Отсекать по границам"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "Отсекать UV-координаты по границам после развёртки"
-
-
-msgid "Correct Aspect"
-msgstr "Коррекция соотн. сторон"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -69954,10 +69874,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Система из одной стереокамеры; настраивается в параметрах стерео панели камеры"
 
 
-msgid "Multi-View"
-msgstr "Мультивид"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Система с несколькими камерами и индивидуальной настройкой камер"
 
@@ -78774,14 +78690,6 @@ msgstr "Освещение для датаблока мира"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Длина лучей, определяет, на каком расстоянии друг от друга грани дают эффект окклюзии"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Использовать Ambient Occlusion"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Использовать Ambient Occlusion для добавления затенения на основе расстояния между объектами"
 
 
 msgid "World Mist"

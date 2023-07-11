@@ -368,7 +368,7 @@ void WM_operator_type_set(wmOperator *op, wmOperatorType *ot)
 static void wm_reports_free(wmWindowManager *wm)
 {
   BKE_reports_clear(&wm->reports);
-  WM_event_remove_timer(wm, NULL, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, NULL, wm->reports.reporttimer);
 }
 
 void wm_operator_register(bContext *C, wmOperator *op)
@@ -607,6 +607,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
   wm_reports_free(wm);
 
+  /* NOTE(@ideasman42): typically timers are associated with windows and timers will have been
+   * freed when the windows are removed. However timers can be created which don't have windows
+   * and in this case it's necessary to free them on exit, see: #109953. */
+  WM_event_timers_free_all(wm);
+
   if (wm->undo_stack) {
     BKE_undosys_stack_destroy(wm->undo_stack);
     wm->undo_stack = NULL;
@@ -626,7 +631,7 @@ void WM_main(bContext *C)
   while (1) {
 
     /* Get events from ghost, handle window events, add to window queues. */
-    wm_window_process_events(C);
+    wm_window_events_process(C);
 
     /* Per window, all events to the window, screen, area and region handlers. */
     wm_event_do_handlers(C);

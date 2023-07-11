@@ -201,6 +201,7 @@ wmDrag *WM_drag_data_create(
         WM_drag_add_local_ID(drag, static_cast<ID *>(poin), nullptr);
       }
       break;
+    case WM_DRAG_GREASE_PENCIL_LAYER:
     case WM_DRAG_ASSET:
     case WM_DRAG_ASSET_CATALOG:
       /* Move ownership of poin to wmDrag. */

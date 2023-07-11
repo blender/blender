@@ -8,7 +8,6 @@ set(INC
   ../../asset_system
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../bmesh
@@ -16,15 +15,11 @@ set(INC
   ../../draw
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../render
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -54,32 +49,35 @@ set(SRC
   view3d_header.c
   view3d_iterators.cc
   view3d_navigate.cc
-  view3d_navigate_dolly.c
-  view3d_navigate_fly.c
-  view3d_navigate_move.c
-  view3d_navigate_ndof.c
-  view3d_navigate_roll.c
-  view3d_navigate_rotate.c
-  view3d_navigate_smoothview.c
-  view3d_navigate_walk.c
-  view3d_navigate_zoom.c
-  view3d_navigate_zoom_border.c
-  view3d_ops.c
+  view3d_navigate_dolly.cc
+  view3d_navigate_fly.cc
+  view3d_navigate_move.cc
+  view3d_navigate_ndof.cc
+  view3d_navigate_roll.cc
+  view3d_navigate_rotate.cc
+  view3d_navigate_smoothview.cc
+  view3d_navigate_walk.cc
+  view3d_navigate_zoom.cc
+  view3d_navigate_zoom_border.cc
+  view3d_ops.cc
   view3d_placement.c
   view3d_project.c
   view3d_select.cc
   view3d_snap.c
   view3d_utils.c
-  view3d_view.c
+  view3d_view.cc
 
   view3d_intern.h
-  view3d_navigate.h
+  view3d_navigate.hh
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_PYTHON)
@@ -97,7 +95,5 @@ endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_editor_space_view3d bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_editor_space_view3d bf_rna)

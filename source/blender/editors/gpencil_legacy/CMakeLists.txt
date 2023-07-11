@@ -6,15 +6,12 @@ set(INC
   ../include
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../bmesh
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -61,7 +58,9 @@ set(SRC
 
 set(LIB
   bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_POTRACE)

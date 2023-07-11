@@ -5,11 +5,10 @@
 # message(STATUS "Configuring makesdna")
 
 set(INC
-  ..
+  PUBLIC ..
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
   ../../blenlib
   ../../imbuf
-  ../../../../intern/guardedalloc
-  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set(INC_SYS
@@ -17,6 +16,8 @@ set(INC_SYS
 )
 
 set(LIB
+  PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::guardedalloc
 )
 
 add_definitions(-DWITH_DNA_GHASH)
@@ -93,7 +94,7 @@ setup_platform_linker_flags(makesdna)
 setup_platform_linker_libs(makesdna)
 blender_target_include_dirs(makesdna ${INC})
 blender_target_include_dirs_sys(makesdna ${INC_SYS})
-target_link_libraries(makesdna PRIVATE bf::intern::atomic)
+target_link_libraries(makesdna ${LIB})
 
 if(WIN32 AND NOT UNIX)
   if(DEFINED PTHREADS_LIBRARIES)
@@ -140,6 +141,8 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::dna ALIAS bf_dna)
+
 
 
 # -----------------------------------------------------------------------------
@@ -147,7 +150,6 @@ blender_add_lib(bf_dna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 set(INC
   ..
   ../../blenlib
-  ../../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -161,6 +163,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::intern::atomic
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_dna_blenlib "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

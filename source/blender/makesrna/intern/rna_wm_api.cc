@@ -125,12 +125,12 @@ static bool rna_event_modal_handler_add(bContext *C, ReportList *reports, wmOper
 /* XXX, need a way for python to know event types, 0x0110 is hard coded */
 static wmTimer *rna_event_timer_add(wmWindowManager *wm, float time_step, wmWindow *win)
 {
-  return WM_event_add_timer(wm, win, 0x0110, time_step);
+  return WM_event_timer_add(wm, win, 0x0110, time_step);
 }
 
 static void rna_event_timer_remove(wmWindowManager *wm, wmTimer *timer)
 {
-  WM_event_remove_timer(wm, timer->win, timer);
+  WM_event_timer_remove(wm, timer->win, timer);
 }
 
 static wmGizmoGroupType *wm_gizmogrouptype_find_for_add_remove(ReportList *reports,

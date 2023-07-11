@@ -150,7 +150,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
   const int type = RNA_enum_get(op->ptr, "type");
   const float thresh = RNA_float_get(op->ptr, "threshold");
-  const float thresh_radians = thresh * (float)M_PI;
+  const float thresh_radians = thresh * float(M_PI);
   const int compare = RNA_enum_get(op->ptr, "compare");
 
   int tot_faces_selected_all = 0;

@@ -7,20 +7,15 @@ set(INC
   algorithms
   cached_resources
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../draw
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../render
   ../../gpu/intern
-  ../../../../intern/guardedalloc
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
 )
 
 set(INC_SYS
@@ -101,11 +96,13 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dna
   bf_gpu
+  PRIVATE bf::intern::guardedalloc
   bf_nodes
   bf_imbuf
   bf_render
-  bf_blenlib
+  PRIVATE bf::blenlib
   bf_blenkernel
 )
 
@@ -311,5 +308,3 @@ endif()
 
 blender_add_lib(bf_realtime_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h
-add_dependencies(bf_realtime_compositor bf_dna)

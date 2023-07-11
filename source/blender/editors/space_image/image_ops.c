@@ -537,7 +537,7 @@ static void image_view_zoom_init(bContext *C, wmOperator *op, const wmEvent *eve
 
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
-    vpd->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+    vpd->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
     vpd->timer_lastdraw = PIL_check_seconds_timer();
   }
 
@@ -558,7 +558,7 @@ static void image_view_zoom_exit(bContext *C, wmOperator *op, bool cancel)
   }
 
   if (vpd->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), vpd->timer->win, vpd->timer);
   }
 
   if (vpd->own_cursor) {

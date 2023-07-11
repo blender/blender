@@ -1976,8 +1976,8 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   bool ob_edit_mode = false;
 
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  const float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   int num_channels;
   const bool confirm = op->flag & OP_IS_INVOKE;
 
@@ -2198,8 +2198,8 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks)
 {
   Scene *scene = CTX_data_scene(C);
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   int num_channels;
   const bool confirm = op->flag & OP_IS_INVOKE;
 
@@ -2536,7 +2536,6 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   /* flags for inserting keyframes */
   flag = ANIM_get_keyframing_flags(scene, true);
 
-  /* try to insert keyframe using property retrieved from UI */
   if (!(but = UI_context_active_but_prop_get(C, &ptr, &prop, &index))) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -2704,13 +2703,12 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
   char *path;
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   bool changed = false;
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
-  /* try to insert keyframe using property retrieved from UI */
   if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -2819,7 +2817,6 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
-  /* try to insert keyframe using property retrieved from UI */
   if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);

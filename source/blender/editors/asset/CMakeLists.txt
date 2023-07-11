@@ -7,14 +7,11 @@ set(INC
   ../include
   ../../asset_system
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   # dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
@@ -62,7 +59,10 @@ set(SRC
 
 set(LIB
   bf_blenkernel
+  PRIVATE bf::blenlib
   bf_blenloader
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_editor_asset "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

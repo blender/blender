@@ -7,7 +7,7 @@
  *
  * Interactive fly navigation modal operator (flying around in space).
  *
- * \note Similar logic to `view3d_navigate_walk.c` changes here may apply there too.
+ * \note Similar logic to `view3d_navigate_walk.cc` changes here may apply there too.
  */
 
 /* defines VIEW3D_OT_fly modal operator */
@@ -47,7 +47,7 @@
 #include "DEG_depsgraph.h"
 
 #include "view3d_intern.h" /* own include */
-#include "view3d_navigate.h"
+#include "view3d_navigate.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Modal Key-map
@@ -119,7 +119,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
       {FLY_MODAL_FREELOOK_ENABLE, "FREELOOK_ENABLE", 0, "Rotation", ""},
       {FLY_MODAL_FREELOOK_DISABLE, "FREELOOK_DISABLE", 0, "Rotation (Off)", ""},
 
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Fly Modal");
@@ -141,7 +141,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 /** \name Internal Fly Structs
  * \{ */
 
-typedef struct FlyInfo {
+struct FlyInfo {
   /* context stuff */
   RegionView3D *rv3d;
   View3D *v3d;
@@ -204,9 +204,8 @@ typedef struct FlyInfo {
   /** Keep the previous value to smooth transitions (use lag). */
   float dvec_prev[3];
 
-  struct View3DCameraControl *v3d_camera_control;
-
-} FlyInfo;
+  View3DCameraControl *v3d_camera_control;
+};
 
 /** \} */
 
@@ -220,9 +219,9 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm);
 #endif /* WITH_INPUT_NDOF */
 static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm);
 
-static void drawFlyPixel(const bContext *UNUSED(C), ARegion *UNUSED(region), void *arg)
+static void drawFlyPixel(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
-  FlyInfo *fly = arg;
+  FlyInfo *fly = static_cast<FlyInfo *>(arg);
   rctf viewborder;
   int xoff, yoff;
   float x1, x2, y1, y2;
@@ -320,7 +319,7 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 #endif
 
   /* sanity check: for rare but possible case (if lib-linking the camera fails) */
-  if ((fly->rv3d->persp == RV3D_CAMOB) && (fly->v3d->camera == NULL)) {
+  if ((fly->rv3d->persp == RV3D_CAMOB) && (fly->v3d->camera == nullptr)) {
     fly->rv3d->persp = RV3D_PERSP;
   }
 
@@ -361,12 +360,12 @@ static bool initFlyInfo(bContext *C, FlyInfo *fly, wmOperator *op, const wmEvent
 #endif
   zero_v3(fly->dvec_prev);
 
-  fly->timer = WM_event_add_timer(CTX_wm_manager(C), win, TIMER, 0.01f);
+  fly->timer = WM_event_timer_add(CTX_wm_manager(C), win, TIMER, 0.01f);
 
   copy_v2_v2_int(fly->mval, event->mval);
 
 #ifdef WITH_INPUT_NDOF
-  fly->ndof = NULL;
+  fly->ndof = nullptr;
 #endif
 
   fly->time_lastdraw = fly->time_lastwheel = PIL_check_seconds_timer();
@@ -442,7 +441,7 @@ static int flyEnd(bContext *C, FlyInfo *fly)
   win = CTX_wm_window(C);
   rv3d = fly->rv3d;
 
-  WM_event_remove_timer(CTX_wm_manager(C), win, fly->timer);
+  WM_event_timer_remove(CTX_wm_manager(C), win, fly->timer);
 
   ED_region_draw_cb_exit(fly->region->type, fly->draw_handle_pixel);
 
@@ -479,7 +478,8 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
     // puts("ndof motion detected in fly mode!");
     // static const char *tag_name = "3D mouse position";
 
-    const wmNDOFMotionData *incoming_ndof = event->customdata;
+    const wmNDOFMotionData *incoming_ndof = static_cast<const wmNDOFMotionData *>(
+        event->customdata);
     switch (incoming_ndof->progress) {
       case P_STARTING:
         /* start keeping track of 3D mouse position */
@@ -493,9 +493,9 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         putchar('.');
         fflush(stdout);
 #  endif
-        if (fly->ndof == NULL) {
+        if (fly->ndof == nullptr) {
           // fly->ndof = MEM_mallocN(sizeof(wmNDOFMotionData), tag_name);
-          fly->ndof = MEM_dupallocN(incoming_ndof);
+          fly->ndof = static_cast<wmNDOFMotionData *>(MEM_dupallocN(incoming_ndof));
           // fly->ndof = malloc(sizeof(wmNDOFMotionData));
         }
         else {
@@ -510,7 +510,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         if (fly->ndof) {
           MEM_freeN(fly->ndof);
           // free(fly->ndof);
-          fly->ndof = NULL;
+          fly->ndof = nullptr;
         }
         /* update the time else the view will jump when 2D mouse/timer resume */
         fly->time_lastdraw = PIL_check_seconds_timer();
@@ -558,7 +558,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         }
 
         time_currwheel = PIL_check_seconds_timer();
-        time_wheel = (float)(time_currwheel - fly->time_lastwheel);
+        time_wheel = float(time_currwheel - fly->time_lastwheel);
         fly->time_lastwheel = time_currwheel;
         /* Mouse wheel delays range from (0.5 == slow) to (0.01 == fast) */
         /* 0-0.5 -> 0-5.0 */
@@ -583,7 +583,7 @@ static void flyEvent(FlyInfo *fly, const wmEvent *event)
         }
 
         time_currwheel = PIL_check_seconds_timer();
-        time_wheel = (float)(time_currwheel - fly->time_lastwheel);
+        time_wheel = float(time_currwheel - fly->time_lastwheel);
         fly->time_lastwheel = time_currwheel;
         /* 0-0.5 -> 0-5.0 */
         time_wheel = 1.0f + (10.0f - (20.0f * min_ff(time_wheel, 0.5f)));
@@ -832,7 +832,7 @@ static int flyApply(bContext *C, FlyInfo *fly, bool is_confirm)
       fly->redraw = 1;
 #endif
       time_current = PIL_check_seconds_timer();
-      time_redraw = (float)(time_current - fly->time_lastdraw);
+      time_redraw = float(time_current - fly->time_lastdraw);
 
       /* clamp redraw time to avoid jitter in roll correction */
       time_redraw_clamped = min_ff(0.05f, time_redraw);
@@ -1052,7 +1052,7 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  fly = MEM_callocN(sizeof(FlyInfo), "FlyOperation");
+  fly = MEM_cnew<FlyInfo>("FlyOperation");
 
   op->customdata = fly;
 
@@ -1070,18 +1070,18 @@ static int fly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 static void fly_cancel(bContext *C, wmOperator *op)
 {
-  FlyInfo *fly = op->customdata;
+  FlyInfo *fly = static_cast<FlyInfo *>(op->customdata);
 
   fly->state = FLY_CANCEL;
   flyEnd(C, fly);
-  op->customdata = NULL;
+  op->customdata = nullptr;
 }
 
 static int fly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int exit_code;
   bool do_draw = false;
-  FlyInfo *fly = op->customdata;
+  FlyInfo *fly = static_cast<FlyInfo *>(op->customdata);
   View3D *v3d = fly->v3d;
   RegionView3D *rv3d = fly->rv3d;
   Object *fly_object = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);

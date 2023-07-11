@@ -1042,7 +1042,6 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
   PropertyRNA *prop = nullptr;
   int index;
 
-  /* try to find driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
@@ -1099,7 +1098,6 @@ static int remove_driver_button_exec(bContext *C, wmOperator *op)
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
-  /* try to find driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (all) {
@@ -1153,7 +1151,6 @@ static int edit_driver_button_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = nullptr;
   int index;
 
-  /* try to find driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop) {
@@ -1188,7 +1185,6 @@ static int copy_driver_button_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int index;
 
-  /* try to create driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {
@@ -1232,7 +1228,6 @@ static int paste_driver_button_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int index;
 
-  /* try to create driver using property retrieved from UI */
   UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
   if (ptr.owner_id && ptr.data && prop && RNA_property_animateable(&ptr, prop)) {

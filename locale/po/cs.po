@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -7023,10 +7023,6 @@ msgid "Show scenes"
 msgstr "Ukázat scény"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "Zobrazit materiály, větvení uzlů, textury a Freestyle čáry"
-
-
 msgid "Directory"
 msgstr "Adresář"
 
@@ -10149,56 +10145,12 @@ msgid "Area Light"
 msgstr "Plošné Světlo"
 
 
-msgid "Constant Coefficient"
-msgstr "Konstantní Koeficient"
-
-
 msgid "Contact Shadow Distance"
 msgstr "Vzdálenost Stykového Stínu"
 
 
-msgid "Falloff Type"
-msgstr "Typ poklesu"
-
-
-msgid "Inverse Linear"
-msgstr "Prohodit"
-
-
-msgid "Inverse Square"
-msgstr "Opustit Editační mód"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Lineární"
-
-
-msgid "Linear Attenuation"
-msgstr "Rotace"
-
-
-msgid "Linear distance attenuation"
-msgstr "Opustit Editační mód"
-
-
-msgid "Quadratic Attenuation"
-msgstr "Rotace"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Vložit barvu z bufferu"
-
-
-msgid "Samples"
-msgstr "Vzorky"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Číslo, určující počet 'Spin' kroků"
-
-
-msgid "Shadow Buffer Size"
-msgstr "Velikost stínu"
 
 
 msgid "Shadow Color"
@@ -14690,6 +14642,10 @@ msgstr "Přidat barvu"
 
 msgid "Name of skin layer"
 msgstr "Nelze uložit soubor"
+
+
+msgid "Samples"
+msgstr "Vzorky"
 
 
 msgid "Intersect"
@@ -29336,6 +29292,10 @@ msgid "Expand"
 msgstr "Rozšířit"
 
 
+msgid "Falloff Type"
+msgstr "Typ poklesu"
+
+
 msgctxt "Operator"
 msgid "Face Sets Visibility"
 msgstr "Viditelnost Sady Ploch"
@@ -40116,10 +40076,6 @@ msgstr "Zobrazit výšku"
 
 msgid "Walk Speed"
 msgstr "Rychlost chůze"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Použít Okolní Okluzi"
 
 
 msgid "World Mist"

@@ -48,6 +48,8 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
+#include "MOD_nodes.hh"
+
 #include "BLO_read_write.h"
 
 static void simulation_init_data(ID *id)
@@ -196,7 +198,7 @@ void BKE_simulation_reset_scene(Scene *scene)
         continue;
       }
       NodesModifierData *nmd = (NodesModifierData *)md;
-      nmd->simulation_cache->ptr->reset();
+      nmd->runtime->simulation_cache.reset();
     }
   }
   FOREACH_SCENE_OBJECT_END;

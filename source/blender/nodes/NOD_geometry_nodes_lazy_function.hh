@@ -60,6 +60,12 @@ struct GeoNodesModifierData {
   float simulation_time_delta = 0.0f;
 
   /**
+   * The same as #prev_simulation_state, but the cached values can be moved from,
+   * to keep data managed by implicit sharing mutable.
+   */
+  bke::sim::ModifierSimulationState *prev_simulation_state_mutable = nullptr;
+
+  /**
    * Some nodes should be executed even when their output is not used (e.g. active viewer nodes and
    * the node groups they are contained in).
    */

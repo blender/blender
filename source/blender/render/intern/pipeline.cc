@@ -228,16 +228,16 @@ void RE_FreeRenderResult(RenderResult *rr)
   render_result_free(rr);
 }
 
-RenderBuffer *RE_RenderLayerGetPassBuffer(RenderLayer *rl, const char *name, const char *viewname)
+ImBuf *RE_RenderLayerGetPassImBuf(RenderLayer *rl, const char *name, const char *viewname)
 {
   RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
-  return rpass ? &rpass->buffer : nullptr;
+  return rpass ? rpass->ibuf : nullptr;
 }
 
 float *RE_RenderLayerGetPass(RenderLayer *rl, const char *name, const char *viewname)
 {
-  RenderPass *rpass = RE_pass_find_by_name(rl, name, viewname);
-  return rpass ? rpass->buffer.data : nullptr;
+  const ImBuf *ibuf = RE_RenderLayerGetPassImBuf(rl, name, viewname);
+  return ibuf ? ibuf->float_buffer.data : nullptr;
 }
 
 RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
@@ -381,7 +381,7 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
       render_result_views_shallowcopy(rr, re->result);
 
       RenderView *rv = static_cast<RenderView *>(rr->views.first);
-      rr->have_combined = (rv->combined_buffer.data != nullptr);
+      rr->have_combined = (rv->ibuf != nullptr);
 
       /* single layer */
       RenderLayer *rl = render_get_single_layer(re, re->result);
@@ -390,13 +390,9 @@ void RE_AcquireResultImageViews(Render *re, RenderResult *rr)
        * explicitly free it. So simply assign the buffers as a shallow copy here as well. */
 
       if (rl) {
-        if (rv->combined_buffer.data == nullptr) {
+        if (rv->ibuf == nullptr) {
           LISTBASE_FOREACH (RenderView *, rview, &rr->views) {
-            RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(
-                rl, RE_PASSNAME_COMBINED, rview->name);
-            if (buffer) {
-              rview->combined_buffer = *buffer;
-            }
+            rview->ibuf = RE_RenderLayerGetPassImBuf(rl, RE_PASSNAME_COMBINED, rview->name);
           }
         }
       }
@@ -435,24 +431,20 @@ void RE_AcquireResultImage(Render *re, RenderResult *rr, const int view_id)
 
       /* `scene.rd.actview` view. */
       rv = RE_RenderViewGetById(re->result, view_id);
-      rr->have_combined = (rv->combined_buffer.data != nullptr);
+      rr->have_combined = (rv->ibuf != nullptr);
 
       /* The render result uses shallow initialization, and the caller is not expected to
        * explicitly free it. So simply assign the buffers as a shallow copy here as well.
        *
        * The thread safety is ensured via the  re->resultmutex. */
-      rr->combined_buffer = rv->combined_buffer;
-      rr->byte_buffer = rv->byte_buffer;
+      rr->ibuf = rv->ibuf;
 
       /* active layer */
       rl = render_get_single_layer(re, re->result);
 
       if (rl) {
-        if (rv->combined_buffer.data == nullptr) {
-          RenderBuffer *buffer = RE_RenderLayerGetPassBuffer(rl, RE_PASSNAME_COMBINED, rv->name);
-          if (buffer) {
-            rr->combined_buffer = *buffer;
-          }
+        if (rv->ibuf == nullptr) {
+          rr->ibuf = RE_RenderLayerGetPassImBuf(rl, RE_PASSNAME_COMBINED, rv->name);
         }
       }
 
@@ -1311,8 +1303,8 @@ static void renderresult_stampinfo(Render *re)
     BKE_image_stamp_buf(re->scene,
                         ob_camera_eval,
                         (re->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
-                        rres.byte_buffer.data,
-                        rres.combined_buffer.data,
+                        rres.ibuf->byte_buffer.data,
+                        rres.ibuf->float_buffer.data,
                         rres.rectx,
                         rres.recty,
                         4);
@@ -2594,7 +2586,7 @@ void RE_layer_load_from_file(
         IMB_float_from_rect(ibuf);
       }
 
-      memcpy(rpass->buffer.data,
+      memcpy(rpass->ibuf->float_buffer.data,
              ibuf->float_buffer.data,
              sizeof(float[4]) * layer->rectx * layer->recty);
     }
@@ -2610,7 +2602,7 @@ void RE_layer_load_from_file(
         if (ibuf_clip) {
           IMB_rectcpy(ibuf_clip, ibuf, 0, 0, x, y, layer->rectx, layer->recty);
 
-          memcpy(rpass->buffer.data,
+          memcpy(rpass->ibuf->float_buffer.data,
                  ibuf_clip->float_buffer.data,
                  sizeof(float[4]) * layer->rectx * layer->recty);
           IMB_freeImBuf(ibuf_clip);
@@ -2737,9 +2729,7 @@ RenderPass *RE_create_gp_pass(RenderResult *rr, const char *layername, const cha
   /* Clear previous pass if exist or the new image will be over previous one. */
   RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
   if (rp) {
-    rp->buffer.sharing_info->remove_user_and_delete_if_last();
-    rp->buffer.sharing_info = nullptr;
-
+    IMB_freeImBuf(rp->ibuf);
     BLI_freelinkN(&rl->passes, rp);
   }
   /* create a totally new pass */

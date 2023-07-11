@@ -13,11 +13,6 @@
  * - free can be called from any thread
  */
 
-/* TODO: Create cmake option. */
-#if WITH_OPENGL
-#  define WITH_OPENGL_BACKEND 1
-#endif
-
 #include "BLI_assert.h"
 #include "BLI_utildefines.h"
 

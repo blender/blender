@@ -226,7 +226,7 @@ class Context : public realtime_compositor::Context {
           RenderPass *rpass = (RenderPass *)BLI_findstring(
               &rl->passes, pass_name, offsetof(RenderPass, name));
 
-          if (rpass && rpass->buffer.data) {
+          if (rpass && rpass->ibuf && rpass->ibuf->float_buffer.data) {
             input_texture = RE_pass_ensure_gpu_texture_cache(re, rpass);
 
             if (input_texture) {
@@ -283,7 +283,8 @@ class Context : public realtime_compositor::Context {
       float *output_buffer = (float *)GPU_texture_read(output_texture_, GPU_DATA_FLOAT, 0);
 
       if (output_buffer) {
-        RE_RenderBuffer_assign_data(&rv->combined_buffer, output_buffer);
+        ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+        IMB_assign_float_buffer(ibuf, output_buffer, IB_TAKE_OWNERSHIP);
       }
 
       /* TODO: z-buffer output. */

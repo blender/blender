@@ -147,6 +147,9 @@ void BKE_main_free(Main *mainvar)
   if (mainvar->name_map) {
     BKE_main_namemap_destroy(&mainvar->name_map);
   }
+  if (mainvar->name_map_global) {
+    BKE_main_namemap_destroy(&mainvar->name_map_global);
+  }
 
   BLI_spin_end((SpinLock *)mainvar->lock);
   MEM_freeN(mainvar->lock);

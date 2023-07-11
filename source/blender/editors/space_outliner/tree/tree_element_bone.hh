@@ -10,10 +10,14 @@
 
 #include "tree_element.hh"
 
+struct ID;
+struct Bone;
+
 namespace blender::ed::outliner {
 
 class TreeElementBone final : public AbstractTreeElement {
-  ID &armature_id_;
+  /* Not needed right now, avoid unused member variable warning. */
+  // ID &armature_id_;
   Bone &bone_;
 
  public:

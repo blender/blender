@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2022-03-21 19:03-0300\n"
 "Last-Translator: Leandro Paganelli <leandrobp@fastmail.com>\n"
 "Language-Team: Leandro Paganelli, Ivan Paulos Tomé, Dalai Felinto, Bruno Gonçalves Pirajá, Samuel Arataca, Daniel Tavares, Moraes Junior <ivan.paulos.tome@yandex.com>\n"
@@ -14405,10 +14405,6 @@ msgid "Cycles light settings"
 msgstr "Configurações de Luz do Cycles"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "Permite definir a distância para o decaimento. A iluminação terá a metade de sua intensidade original de energia neste ponto."
-
-
 msgid "Specular Factor"
 msgstr "Fator especular"
 
@@ -14458,70 +14454,6 @@ msgid "Directional area light source"
 msgstr "Fonte de luz com área direcional."
 
 
-msgid "Constant Coefficient"
-msgstr "Coeficiente constante"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "Coeficiente de atenuação constante para o decaimento conforme a distância."
-
-
-msgid "Falloff Type"
-msgstr "Tipo de decaimento"
-
-
-msgid "Intensity Decay with distance"
-msgstr "Controla o decaimento da intensidade conforme a distância."
-
-
-msgid "Inverse Linear"
-msgstr "Linear inverso"
-
-
-msgid "Inverse Square"
-msgstr "Inverso quadrático"
-
-
-msgid "Inverse Coefficients"
-msgstr "Coeficientes inversos"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "Influência linear e quadrática"
-
-
-msgid "Linear Attenuation"
-msgstr "Atenuação linear"
-
-
-msgid "Linear distance attenuation"
-msgstr "Atenuação linear para o decaimento conforme a distância."
-
-
-msgid "Linear Coefficient"
-msgstr "Coeficiente linear"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "Coeficiente de atenuação linear para o decaimento conforme a distância."
-
-
-msgid "Quadratic Attenuation"
-msgstr "Atenuação quadrática"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "Atenuação quadrática para o decaimento conforme a distância."
-
-
-msgid "Quadratic Coefficient"
-msgstr "Coeficiente quadrático"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "Coeficiente quadrático de atenuação para o decaimento conforme a distância."
-
-
 msgid "Shadow Buffer Bias"
 msgstr "Ajuste fino para sombras contingenciadas"
 
@@ -14532,22 +14464,6 @@ msgstr "Limite inicial das sombras contingenciadas"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "O limite inicial do mapa de sombras (distância), abaixo do qual os objetos não irão gerar sombras."
-
-
-msgid "Samples"
-msgstr "Amostras"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "Número de amostras de contingenciamento de sombras."
-
-
-msgid "Shadow Buffer Size"
-msgstr "Tamanho do contingenciador de sombras"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "A resolução do contingenciador de sombras, valores mais altos fornecem sombras realçadas mas usam mais memória."
 
 
 msgid "Shadow Color"
@@ -18652,6 +18568,10 @@ msgid "Format of multiview media"
 msgstr "Formato de mídia com múltiplas visualizações."
 
 
+msgid "Multi-View"
+msgstr "Múltipla visualização"
+
+
 msgid "Image Preview"
 msgstr "Visualização de imagem"
 
@@ -22631,6 +22551,10 @@ msgstr "Espessura mínima"
 
 msgid "Minimum for measuring thickness"
 msgstr "Mínimo para a medição da espessura."
+
+
+msgid "Samples"
+msgstr "Amostras"
 
 
 msgid "Number of samples to test per face"
@@ -47116,6 +47040,10 @@ msgid "Expand"
 msgstr "Expandir"
 
 
+msgid "Falloff Type"
+msgstr "Tipo de decaimento"
+
+
 msgid "Reposition Pivot"
 msgstr "Reposiciona Pivô"
 
@@ -49356,6 +49284,10 @@ msgid "Align UVs on Y axis"
 msgstr "Alinha as UVs no eixo Y."
 
 
+msgid "Correct Aspect"
+msgstr "Corrigir aspecto"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "Escalonar as ilhas por uma média"
@@ -49380,10 +49312,6 @@ msgstr "Cortar para os limites"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "Limita as coordenadas UV para as margens após o desdobramento."
-
-
-msgid "Correct Aspect"
-msgstr "Corrigir aspecto"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -57826,10 +57754,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "Sistema unificado para a câmera estéreo, ajuste as definições estéreo dentro dos painéis de câmera."
 
 
-msgid "Multi-View"
-msgstr "Múltipla visualização"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "Um sistema de múltiplas câmeras (múltipla visualização), que permite ajustar as câmeras individualmente."
 
@@ -64410,14 +64334,6 @@ msgstr "Iluminação para um bloco de dados de ambiente (mundo)"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "Comprimento dos raios, define com que distância as outras faces causam o efeito de oclusão."
-
-
-msgid "Use Ambient Occlusion"
-msgstr "Usar oclusão ambiente"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "Usa a oclusão ambiente para adicionar sombreamento com base na distância entre objetos."
 
 
 msgid "World Mist"

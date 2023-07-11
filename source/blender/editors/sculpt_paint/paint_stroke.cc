@@ -444,7 +444,7 @@ static bool paint_brush_update(bContext *C,
     }
     /* curve strokes do their own rake calculation */
     else if (!(brush->flag & BRUSH_CURVE)) {
-      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode)) {
+      if (!paint_calculate_rake_rotation(ups, brush, mouse_init, mode, stroke->rake_started)) {
         /* Not enough motion to define an angle. */
         if (!stroke->rake_started) {
           is_dry_run = true;
@@ -984,7 +984,7 @@ void paint_stroke_free(bContext *C, wmOperator * /*op*/, PaintStroke *stroke)
   ups->stroke_active = false;
 
   if (stroke->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), stroke->timer);
   }
 
   if (stroke->rng) {
@@ -1518,7 +1518,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
 
     if (stroke->stroke_started) {
       if (br->flag & BRUSH_AIRBRUSH) {
-        stroke->timer = WM_event_add_timer(
+        stroke->timer = WM_event_timer_add(
             CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
       }
 
@@ -1575,7 +1575,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event, PaintS
       {
         copy_v2_v2(stroke->ups->last_rake, stroke->last_mouse_position);
       }
-      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode);
+      paint_calculate_rake_rotation(stroke->ups, br, mouse, mode, true);
     }
   }
   else if (first_modal ||

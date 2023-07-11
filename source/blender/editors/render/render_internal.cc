@@ -204,16 +204,19 @@ static void image_buffer_rect_update(RenderJob *rj,
    */
   /* TODO(sergey): Need to check has_combined here? */
   if (iuser->pass == 0) {
-    RenderView *rv;
     const int view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
-    rv = RE_RenderViewGetById(rr, view_id);
+    const RenderView *rv = RE_RenderViewGetById(rr, view_id);
+
+    if (rv->ibuf == nullptr) {
+      return;
+    }
 
     /* find current float rect for display, first case is after composite... still weak */
-    if (rv->combined_buffer.data) {
-      rectf = rv->combined_buffer.data;
+    if (rv->ibuf->float_buffer.data) {
+      rectf = rv->ibuf->float_buffer.data;
     }
     else {
-      if (rv->byte_buffer.data) {
+      if (rv->ibuf->byte_buffer.data) {
         /* special case, currently only happens with sequencer rendering,
          * which updates the whole frame, so we can only mark display buffer
          * as invalid here (sergey)

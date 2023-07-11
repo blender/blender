@@ -548,7 +548,7 @@ static void ui_popup_block_remove(bContext *C, uiPopupBlockHandle *handle)
   }
 
   if (handle->scrolltimer) {
-    WM_event_remove_timer(wm, win, handle->scrolltimer);
+    WM_event_timer_remove(wm, win, handle->scrolltimer);
   }
 }
 

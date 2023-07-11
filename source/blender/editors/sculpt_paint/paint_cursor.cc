@@ -1870,7 +1870,7 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext *pcontext)
    * For line strokes, such interference is visible. */
   if (!pcontext->ups->stroke_active) {
     paint_calculate_rake_rotation(
-        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->mode);
+        pcontext->ups, pcontext->brush, pcontext->translation, pcontext->mode, true);
   }
 }
 

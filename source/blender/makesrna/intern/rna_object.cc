@@ -696,6 +696,41 @@ static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
   ED_object_parent(ob, ob->parent, value, ob->parsubstr);
 }
 
+static bool rna_Object_parent_type_override_apply(Main *bmain,
+                                                  PointerRNA *ptr_dst,
+                                                  PointerRNA *ptr_src,
+                                                  PointerRNA *ptr_storage,
+                                                  PropertyRNA *prop_dst,
+                                                  PropertyRNA *prop_src,
+                                                  PropertyRNA * /*prop_storage*/,
+                                                  const int len_dst,
+                                                  const int len_src,
+                                                  const int len_storage,
+                                                  PointerRNA * /*ptr_item_dst*/,
+                                                  PointerRNA * /*ptr_item_src*/,
+                                                  PointerRNA * /*ptr_item_storage*/,
+                                                  IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
+             "Unsupported RNA override operation on object parent pointer");
+  UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
+
+  /* We need a special handling here because setting parent resets invert parent matrix,
+   * which is evil in our case. */
+  Object *ob = (Object *)(ptr_dst->data);
+  const int parent_type_dst = RNA_property_int_get(ptr_dst, prop_dst);
+  const int parent_type_src = RNA_property_int_get(ptr_src, prop_src);
+
+  if (parent_type_dst == parent_type_src) {
+    return false;
+  }
+
+  ob->partype = parent_type_src;
+  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  return true;
+}
+
 static const EnumPropertyItem *rna_Object_parent_type_itemf(bContext * /*C*/,
                                                             PointerRNA *ptr,
                                                             PropertyRNA * /*prop*/,
@@ -744,6 +779,43 @@ static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
   Object *ob = static_cast<Object *>(ptr->data);
 
   ED_object_parent(ob, ob->parent, ob->partype, value);
+}
+
+static bool rna_Object_parent_bone_override_apply(Main *bmain,
+                                                  PointerRNA *ptr_dst,
+                                                  PointerRNA *ptr_src,
+                                                  PointerRNA *ptr_storage,
+                                                  PropertyRNA *prop_dst,
+                                                  PropertyRNA *prop_src,
+                                                  PropertyRNA * /*prop_storage*/,
+                                                  const int len_dst,
+                                                  const int len_src,
+                                                  const int len_storage,
+                                                  PointerRNA * /*ptr_item_dst*/,
+                                                  PointerRNA * /*ptr_item_src*/,
+                                                  PointerRNA * /*ptr_item_storage*/,
+                                                  IDOverrideLibraryPropertyOperation *opop)
+{
+  BLI_assert(len_dst == len_src && (!ptr_storage || len_dst == len_storage) && len_dst == 0);
+  BLI_assert(opop->operation == LIBOVERRIDE_OP_REPLACE &&
+             "Unsupported RNA override operation on object parent bone property");
+  UNUSED_VARS_NDEBUG(ptr_storage, len_dst, len_src, len_storage, opop);
+
+  /* We need a special handling here because setting parent resets invert parent matrix,
+   * which is evil in our case. */
+  Object *ob = (Object *)(ptr_dst->data);
+  char parent_bone_dst[MAX_ID_NAME - 2];
+  RNA_property_string_get(ptr_dst, prop_dst, parent_bone_dst);
+  char parent_bone_src[MAX_ID_NAME - 2];
+  RNA_property_string_get(ptr_src, prop_src, parent_bone_src);
+
+  if (STREQ(parent_bone_src, parent_bone_dst)) {
+    return false;
+  }
+
+  STRNCPY(ob->parsubstr, parent_bone_src);
+  RNA_property_update_main(bmain, nullptr, ptr_dst, prop_dst);
+  return true;
 }
 
 static const EnumPropertyItem *rna_Object_instance_type_itemf(bContext * /*C*/,
@@ -3026,6 +3098,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, parent_type_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, "rna_Object_parent_type_set", "rna_Object_parent_type_itemf");
+  RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Object_parent_type_override_apply");
   RNA_def_property_ui_text(prop, "Parent Type", "Type of parent relation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
 
@@ -3039,6 +3112,7 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "parent_bone", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "parsubstr");
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Object_parent_bone_set");
+  RNA_def_property_override_funcs(prop, nullptr, nullptr, "rna_Object_parent_bone_override_apply");
   RNA_def_property_ui_text(
       prop, "Parent Bone", "Name of parent bone in case of a bone parenting relation");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Object_dependency_update");
@@ -3506,7 +3580,8 @@ static void rna_def_object(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_simulation_cache", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", OB_FLAG_USE_SIMULATION_CACHE);
   RNA_def_property_ui_text(
-      prop, "Use Simulation Cache", "Cache all frames during simulation nodes playback");
+      prop, "Use Simulation Cache", "Cache frames during simulation nodes playback");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
   rna_def_object_visibility(srna);

@@ -870,7 +870,7 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
   ED_workspace_status_text(C, nullptr);
 
   if (ms->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), ms->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), ms->timer);
   }
 
   if (cancel) {
@@ -927,7 +927,7 @@ static int minimize_stretch_invoke(bContext *C, wmOperator *op, const wmEvent * 
 
   MinStretch *ms = static_cast<MinStretch *>(op->customdata);
   WM_event_add_modal_handler(C, op);
-  ms->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
+  ms->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.01f);
 
   return OPERATOR_RUNNING_MODAL;
 }

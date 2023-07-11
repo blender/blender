@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -12826,10 +12826,6 @@ msgid "Show scenes"
 msgstr "シーンを表示します"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "マテリアル、ノードツリー、テクスチャ、Freestyle ラインスタイルを表示します"
-
-
 msgid "Directory"
 msgstr "ディレクトリ"
 
@@ -22551,10 +22547,6 @@ msgid "Whether the selected text is italics"
 msgstr "選択中のテキストがイタリックかどうか"
 
 
-msgid "Selected Smallcaps"
-msgstr "選択部分が小文字"
-
-
 msgid "Whether the selected text is small caps"
 msgstr "選択中のテキストが小文字かどうか"
 
@@ -24256,10 +24248,6 @@ msgid "Diffuse reflection multiplier"
 msgstr "ディフューズ反射の乗数"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "減衰距離。この地点での照明の強さは元の半分になります"
-
-
 msgid "Node tree for node based lights"
 msgstr "ノードベースのライト用ノードツリー"
 
@@ -24345,14 +24333,6 @@ msgid "Directional area Light"
 msgstr "指向性の面光源"
 
 
-msgid "Constant Coefficient"
-msgstr "一定の係数"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "一定の距離減衰係数"
-
-
 msgid "Contact Shadow Bias"
 msgstr "コンタクトシャドウバイアス"
 
@@ -24386,66 +24366,6 @@ msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "ライトの全領域から全方向に放射する光のエネルギー"
 
 
-msgid "Custom light falloff curve"
-msgstr "カスタムライト減衰曲線"
-
-
-msgid "Falloff Type"
-msgstr "減衰タイプ"
-
-
-msgid "Intensity Decay with distance"
-msgstr "距離による明度の減少方法"
-
-
-msgid "Inverse Linear"
-msgstr "逆線形"
-
-
-msgid "Inverse Square"
-msgstr "逆二乗式"
-
-
-msgid "Inverse Coefficients"
-msgstr "逆係数"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "重み付き線形/二次式"
-
-
-msgid "Linear Attenuation"
-msgstr "線形減衰"
-
-
-msgid "Linear distance attenuation"
-msgstr "線形の距離減衰"
-
-
-msgid "Linear Coefficient"
-msgstr "線形係数"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "線形の距離減衰係数"
-
-
-msgid "Quadratic Attenuation"
-msgstr "二次式減衰"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "二次距離減衰"
-
-
-msgid "Quadratic Coefficient"
-msgstr "二次係数"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "二次の距離減衰係数"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "シャドウバッファーバイアス"
 
@@ -24460,22 +24380,6 @@ msgstr "シャドウバッファークリッピング開始"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "シャドウマップのクリップ始端。これより近くのオブジェクトには影が生成されません"
-
-
-msgid "Samples"
-msgstr "サンプル数"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "シャドウバッファーのサンプル数"
-
-
-msgid "Shadow Buffer Size"
-msgstr "シャドウバッファーの大きさ"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "シャドウバッファーの解像度。高い値で鮮明な影になりますが、より多くのメモリを使用します"
 
 
 msgid "Shadow Color"
@@ -30561,6 +30465,10 @@ msgid "Format of multiview media"
 msgstr "マルチビューメディアのフォーマット"
 
 
+msgid "Multi-View"
+msgstr "マルチビュー"
+
+
 msgid "Tile Number"
 msgstr "タイル数"
 
@@ -35559,6 +35467,10 @@ msgstr "最小厚さ"
 
 msgid "Minimum for measuring thickness"
 msgstr "計測する厚さの最小値"
+
+
+msgid "Samples"
+msgstr "サンプル数"
 
 
 msgid "Number of samples to test per face"
@@ -55279,14 +55191,6 @@ msgid "Force keeping channels for bones"
 msgstr "ボーンチャンネルを強制的に最適化"
 
 
-msgid "if all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
-msgstr ""
-"あるリグ内の全キーフレームが同一であった場合、アニメーションを\n"
-"強制的に最小限にします。無効時、ボーンの利用可能なチャンネルが\n"
-"空であっても、すべてエクスポートされます（最小アニメーションは\n"
-"キーフレーム２つ）"
-
-
 msgid "Force keeping channel for objects"
 msgstr "オブジェクトチャンネルを強制的に最適化"
 
@@ -73848,6 +73752,10 @@ msgid "Generic sculpt expand operator"
 msgstr "汎用のスカルプト拡大オペレーター"
 
 
+msgid "Falloff Type"
+msgstr "減衰タイプ"
+
+
 msgid "Initial falloff of the expand operation"
 msgstr "拡大操作の初期減衰"
 
@@ -77809,6 +77717,10 @@ msgid "Axis to align to"
 msgstr "揃える対象の軸"
 
 
+msgid "Correct Aspect"
+msgstr "アスペクト比の補正"
+
+
 msgid "Method to calculate rotation angle"
 msgstr "回転角度の計算に使用する方法"
 
@@ -77866,10 +77778,6 @@ msgstr "境界でクリッピング"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "展開後にUV座標を矩形に切り抜きます"
-
-
-msgid "Correct Aspect"
-msgstr "アスペクト比の補正"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -82444,13 +82352,6 @@ msgstr "同名のマテリアルがすでにあった場合、インポートす
 
 msgid "Path Mask"
 msgstr "パスマスク"
-
-
-msgid "Import only the primitive at the given path and its descendents.  Multiple paths may be specified in a list delimited by commas or semicolons"
-msgstr ""
-"指定のパスのプリミティブとその子のみインポートします\n"
-"コンマまたはセミコロンで区切ったリストで複数のパスが\n"
-"指定されている可能性があります"
 
 
 msgid "Read mesh color attributes"
@@ -92471,10 +92372,6 @@ msgstr "ステレオモード設定"
 
 msgid "Single stereo camera system, adjust the stereo settings in the camera panel"
 msgstr "単一のステレオカメラシステム。カメラパネルのステレオ設定で調整します"
-
-
-msgid "Multi-View"
-msgstr "マルチビュー"
 
 
 msgid "Multi camera system, adjust the cameras individually"
@@ -104129,16 +104026,6 @@ msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "遮蔽効果が発生する、光線と他の面との距離"
 
 
-msgid "Use Ambient Occlusion"
-msgstr "アンビエントオクルージョンを使用"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr ""
-"オブジェクト間の距離を元に影を追加する\n"
-"アンビエントオクルージョンを使用します"
-
-
 msgid "World Mist"
 msgstr "ワールドミスト"
 
@@ -107027,10 +106914,6 @@ msgstr "Apple Silicon と macOS %s 以降、"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "または AMD と macOS %s 以降が必要です"
-
-
-msgid "  - intel-level-zero-gpu version %s or newer"
-msgstr "　・intel-level-zero-gpu ver.%s 以降"
 
 
 msgid "Noise Threshold"
@@ -125139,62 +125022,6 @@ msgid "No active object or active object isn't a GPencil object"
 msgstr "アクティブオブジェクトなし、またはグリースペンシルオブジェクトではありません"
 
 
-msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Camera を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to Camera."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Camera を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Curves を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to Curves."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Curves を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは PolyMesh を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to PolyMesh."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは PolyMesh を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは SubD を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to SubD."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは SubD を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは NURBS を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to NURBS."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは NURBS を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to Points when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは Points を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to Points."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスは Points を指しています"
-
-
-msgid "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more."
-msgstr "オブジェクトタイプミスマッチ。インポート時 Alembic オブジェクトパスは XForm を指していましたが、今は違います"
-
-
-msgid "Object type mismatch, Alembic object path points to XForm."
-msgstr "オブジェクトタイプミスマッチ。Alembic オブジェクトパスが XForm を指しています"
-
-
 msgid "Could not open Alembic archive for reading, see console for detail"
 msgstr "Alembic アーカイブを開いて読み込みできません！（コンソールに詳細）"
 
@@ -129582,18 +129409,6 @@ msgstr "%s: 部分コピー「%s」の寸法が異常です"
 
 msgid "%s: failed to load '%s'"
 msgstr "%s:「%s」の読み込みに失敗しました"
-
-
-msgid "reading render result: dimensions don't match, expected %dx%d"
-msgstr "レンダーリザルト読込：寸法が合いません（予定：%d×%d）"
-
-
-msgid "reading render result: expected channel \"%s.%s\" or \"%s\" not found"
-msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」や「%s」が見つかりません"
-
-
-msgid "reading render result: expected channel \"%s.%s\" not found"
-msgstr "レンダーリザルト読込：必要なチャンネル「%s.%s」が見つかりません"
 
 
 msgctxt "Sequence"

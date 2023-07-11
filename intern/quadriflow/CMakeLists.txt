@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../guardedalloc
 )
 
 set(INC_SYS
@@ -19,6 +18,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::intern::guardedalloc
   extern_quadriflow
   ${BOOST_LIBRARIES}
 )

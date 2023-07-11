@@ -8,18 +8,15 @@ set(INC
   ../../asset_system
   ../../blenfont
   ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
   ../../gpu
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../sequencer
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -110,6 +107,9 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

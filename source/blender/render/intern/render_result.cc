@@ -54,8 +54,7 @@ static void render_result_views_free(RenderResult *rr)
     RenderView *rv = static_cast<RenderView *>(rr->views.first);
     BLI_remlink(&rr->views, rv);
 
-    RE_RenderByteBuffer_data_free(&rv->byte_buffer);
-    RE_RenderBuffer_data_free(&rv->combined_buffer);
+    IMB_freeImBuf(rv->ibuf);
 
     MEM_freeN(rv);
   }
@@ -75,7 +74,7 @@ void render_result_free(RenderResult *rr)
     while (rl->passes.first) {
       RenderPass *rpass = static_cast<RenderPass *>(rl->passes.first);
 
-      RE_RenderBuffer_data_free(&rpass->buffer);
+      IMB_freeImBuf(rpass->ibuf);
 
       BLI_freelinkN(&rl->passes, rpass);
     }
@@ -85,8 +84,7 @@ void render_result_free(RenderResult *rr)
 
   render_result_views_free(rr);
 
-  RE_RenderByteBuffer_data_free(&rr->byte_buffer);
-  RE_RenderBuffer_data_free(&rr->combined_buffer);
+  IMB_freeImBuf(rr->ibuf);
 
   if (rr->text) {
     MEM_freeN(rr->text);
@@ -119,10 +117,7 @@ void render_result_free_gpu_texture_caches(RenderResult *rr)
 {
   LISTBASE_FOREACH (RenderLayer *, rl, &rr->layers) {
     LISTBASE_FOREACH (RenderPass *, rpass, &rl->passes) {
-      if (rpass->buffer.gpu_texture) {
-        GPU_texture_free(rpass->buffer.gpu_texture);
-        rpass->buffer.gpu_texture = nullptr;
-      }
+      IMB_free_gpu_textures(rpass->ibuf);
     }
   }
 }
@@ -143,8 +138,7 @@ void render_result_views_shallowcopy(RenderResult *dst, RenderResult *src)
 
     STRNCPY(rv->name, rview->name);
 
-    rv->combined_buffer = rview->combined_buffer;
-    rv->byte_buffer = rview->byte_buffer;
+    rv->ibuf = rview->ibuf;
   }
 }
 
@@ -165,14 +159,19 @@ void render_result_views_shallowdelete(RenderResult *rr)
 
 static void render_layer_allocate_pass(RenderResult *rr, RenderPass *rp)
 {
-  if (rp->buffer.data != nullptr) {
+  if (rp->ibuf && rp->ibuf->float_buffer.data) {
     return;
   }
+
+  /* NOTE: In-lined manual allocation to support floating point buffers of an arbitrary number of
+   * channels. */
 
   const size_t rectsize = size_t(rr->rectx) * rr->recty * rp->channels;
   float *buffer_data = MEM_cnew_array<float>(rectsize, rp->name);
 
-  rp->buffer = RE_RenderBuffer_new(buffer_data);
+  rp->ibuf = IMB_allocImBuf(rr->rectx, rr->recty, 32, 0);
+  rp->ibuf->channels = rp->channels;
+  IMB_assign_float_buffer(rp->ibuf, buffer_data, IB_TAKE_OWNERSHIP);
 
   if (STREQ(rp->name, RE_PASSNAME_VECTOR)) {
     /* initialize to max speed */
@@ -415,15 +414,27 @@ void RE_create_render_pass(RenderResult *rr,
 
 void RE_pass_set_buffer_data(RenderPass *pass, float *data)
 {
-  RE_RenderBuffer_assign_data(&pass->buffer, data);
+  ImBuf *ibuf = RE_RenderPassEnsureImBuf(pass);
+
+  IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
 }
 
 GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
 {
-  if (rpass->buffer.gpu_texture) {
-    return rpass->buffer.gpu_texture;
+  ImBuf *ibuf = rpass->ibuf;
+
+  if (!ibuf) {
+    /* No existing GPU texture, but also no CPU side data to create it from. */
+    return nullptr;
   }
-  if (rpass->buffer.data == nullptr) {
+
+  if (ibuf->gpu.texture) {
+    /* Return existing GPU texture, regardless whether it also exists on CPU or not. */
+    return ibuf->gpu.texture;
+  }
+
+  if (ibuf->float_buffer.data == nullptr) {
+    /* No CPU side data to create the texture from. */
     return nullptr;
   }
 
@@ -431,20 +442,21 @@ GPUTexture *RE_pass_ensure_gpu_texture_cache(Render *re, RenderPass *rpass)
                                    (rpass->channels == 3) ? GPU_RGB16F :
                                                             GPU_RGBA16F;
 
-  rpass->buffer.gpu_texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
-                                                    rpass->rectx,
-                                                    rpass->recty,
-                                                    1,
-                                                    format,
-                                                    GPU_TEXTURE_USAGE_GENERAL,
-                                                    nullptr);
+  /* TODO(sergey): Use utility to assign the texture. */
+  ibuf->gpu.texture = GPU_texture_create_2d("RenderBuffer.gpu_texture",
+                                            rpass->rectx,
+                                            rpass->recty,
+                                            1,
+                                            format,
+                                            GPU_TEXTURE_USAGE_GENERAL,
+                                            nullptr);
 
-  if (rpass->buffer.gpu_texture) {
-    GPU_texture_update(rpass->buffer.gpu_texture, GPU_DATA_FLOAT, rpass->buffer.data);
+  if (ibuf->gpu.texture) {
+    GPU_texture_update(ibuf->gpu.texture, GPU_DATA_FLOAT, ibuf->float_buffer.data);
     re->result_has_gpu_texture_caches = true;
   }
 
-  return rpass->buffer.gpu_texture;
+  return ibuf->gpu.texture;
 }
 
 void RE_render_result_full_channel_name(char *fullname,
@@ -543,6 +555,8 @@ static void ml_addpass_cb(void *base,
   RenderPass *rpass = MEM_cnew<RenderPass>("loaded pass");
 
   BLI_addtail(&rl->passes, rpass);
+  rpass->rectx = rr->rectx;
+  rpass->recty = rr->recty;
   rpass->channels = totchan;
   rl->passflag |= passtype_from_name(name);
 
@@ -673,7 +687,7 @@ RenderResult *render_result_new_from_exr(
       rpass->recty = recty;
 
       if (rpass->channels >= 3) {
-        IMB_colormanagement_transform(rpass->buffer.data,
+        IMB_colormanagement_transform(rpass->ibuf->float_buffer.data,
                                       rpass->rectx,
                                       rpass->recty,
                                       rpass->channels,
@@ -753,7 +767,11 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
            rpass = rpass->next)
       {
         /* For save buffers, skip any passes that are only saved to disk. */
-        if (rpass->buffer.data == nullptr || rpassp->buffer.data == nullptr) {
+        if (rpass->ibuf == nullptr || rpassp->ibuf == nullptr) {
+          continue;
+        }
+        if (rpass->ibuf->float_buffer.data == nullptr ||
+            rpassp->ibuf->float_buffer.data == nullptr) {
           continue;
         }
         /* Render-result have all passes, render-part only the active view's passes. */
@@ -761,7 +779,11 @@ void render_result_merge(RenderResult *rr, RenderResult *rrpart)
           continue;
         }
 
-        do_merge_tile(rr, rrpart, rpass->buffer.data, rpassp->buffer.data, rpass->channels);
+        do_merge_tile(rr,
+                      rrpart,
+                      rpass->ibuf->float_buffer.data,
+                      rpassp->ibuf->float_buffer.data,
+                      rpass->channels);
 
         /* manually get next render pass */
         rpassp = rpassp->next;
@@ -865,19 +887,29 @@ bool render_result_exr_file_read_path(RenderResult *rr,
         RE_render_result_full_channel_name(
             fullname, nullptr, rpass->name, rpass->view, rpass->chan_id, a);
 
-        if (IMB_exr_set_channel(
-                exrhandle, rl->name, fullname, xstride, ystride, rpass->buffer.data + a)) {
+        if (IMB_exr_set_channel(exrhandle,
+                                rl->name,
+                                fullname,
+                                xstride,
+                                ystride,
+                                rpass->ibuf->float_buffer.data + a))
+        {
           found_channels = true;
         }
         else if (rl_single) {
-          if (IMB_exr_set_channel(
-                  exrhandle, nullptr, fullname, xstride, ystride, rpass->buffer.data + a)) {
+          if (IMB_exr_set_channel(exrhandle,
+                                  nullptr,
+                                  fullname,
+                                  xstride,
+                                  ystride,
+                                  rpass->ibuf->float_buffer.data + a))
+          {
             found_channels = true;
           }
           else {
             BKE_reportf(nullptr,
                         RPT_WARNING,
-                        "reading render result: expected channel \"%s.%s\" or \"%s\" not found",
+                        "Reading render result: expected channel \"%s.%s\" or \"%s\" not found",
                         rl->name,
                         fullname,
                         fullname);
@@ -886,7 +918,7 @@ bool render_result_exr_file_read_path(RenderResult *rr,
         else {
           BKE_reportf(nullptr,
                       RPT_WARNING,
-                      "reading render result: expected channel \"%s.%s\" not found",
+                      "Reading render result: expected channel \"%s.%s\" not found",
                       rl->name,
                       fullname);
         }
@@ -998,8 +1030,10 @@ ImBuf *RE_render_result_rect_to_ibuf(RenderResult *rr,
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
   /* if not exists, BKE_imbuf_write makes one */
-  IMB_assign_shared_byte_buffer(ibuf, rv->byte_buffer.data, rv->byte_buffer.sharing_info);
-  IMB_assign_shared_float_buffer(ibuf, rv->combined_buffer.data, rv->combined_buffer.sharing_info);
+  if (rv->ibuf) {
+    IMB_assign_byte_buffer(ibuf, rv->ibuf->byte_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
+    IMB_assign_float_buffer(ibuf, rv->ibuf->float_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
+  }
 
   /* float factor for random dither, imbuf takes care of it */
   ibuf->dither = dither;
@@ -1041,34 +1075,36 @@ void RE_render_result_rect_from_ibuf(RenderResult *rr, const ImBuf *ibuf, const 
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
+  ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+
   if (ibuf->float_buffer.data) {
     rr->have_combined = true;
 
-    if (!rv->combined_buffer.data) {
+    if (!rv_ibuf->float_buffer.data) {
       float *data = MEM_cnew_array<float>(4 * rr->rectx * rr->recty, "render_seq rectf");
-      RE_RenderBuffer_assign_data(&rv->combined_buffer, data);
+      IMB_assign_float_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
     }
 
-    memcpy(rv->combined_buffer.data,
+    memcpy(rv_ibuf->float_buffer.data,
            ibuf->float_buffer.data,
            sizeof(float[4]) * rr->rectx * rr->recty);
 
     /* TSK! Since sequence render doesn't free the *rr render result, the old rect32
      * can hang around when sequence render has rendered a 32 bits one before */
-    RE_RenderByteBuffer_data_free(&rv->byte_buffer);
+    imb_freerectImBuf(rv_ibuf);
   }
   else if (ibuf->byte_buffer.data) {
     rr->have_combined = true;
 
-    if (!rv->byte_buffer.data) {
+    if (!rv_ibuf->byte_buffer.data) {
       uint8_t *data = MEM_cnew_array<uint8_t>(4 * rr->rectx * rr->recty, "render_seq rect");
-      RE_RenderByteBuffer_assign_data(&rv->byte_buffer, data);
+      IMB_assign_byte_buffer(rv_ibuf, data, IB_TAKE_OWNERSHIP);
     }
 
-    memcpy(rv->byte_buffer.data, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
+    memcpy(rv_ibuf->byte_buffer.data, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
 
     /* Same things as above, old rectf can hang around from previous render. */
-    RE_RenderBuffer_data_free(&rv->combined_buffer);
+    imb_freerectfloatImBuf(rv_ibuf);
   }
 }
 
@@ -1076,15 +1112,20 @@ void render_result_rect_fill_zero(RenderResult *rr, const int view_id)
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
 
-  if (rv->combined_buffer.data) {
-    memset(rv->combined_buffer.data, 0, sizeof(float[4]) * rr->rectx * rr->recty);
-  }
-  else if (rv->byte_buffer.data) {
-    memset(rv->byte_buffer.data, 0, 4 * rr->rectx * rr->recty);
-  }
-  else {
+  ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+
+  if (!ibuf->float_buffer.data && !ibuf->byte_buffer.data) {
     uint8_t *data = MEM_cnew_array<uint8_t>(rr->rectx * rr->recty, "render_seq rect");
-    RE_RenderByteBuffer_assign_data(&rv->byte_buffer, data);
+    IMB_assign_byte_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
+    return;
+  }
+
+  if (ibuf->float_buffer.data) {
+    memset(ibuf->float_buffer.data, 0, sizeof(float[4]) * rr->rectx * rr->recty);
+  }
+
+  if (ibuf->byte_buffer.data) {
+    memset(ibuf->byte_buffer.data, 0, 4 * rr->rectx * rr->recty);
   }
 }
 
@@ -1097,13 +1138,14 @@ void render_result_rect_get_pixels(RenderResult *rr,
                                    const int view_id)
 {
   RenderView *rv = RE_RenderViewGetById(rr, view_id);
+  ImBuf *ibuf = rv ? rv->ibuf : nullptr;
 
-  if (rv && rv->byte_buffer.data) {
-    memcpy(rect, rv->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
+  if (ibuf->byte_buffer.data) {
+    memcpy(rect, ibuf->byte_buffer.data, sizeof(int) * rr->rectx * rr->recty);
   }
-  else if (rv && rv->combined_buffer.data) {
+  else if (ibuf->float_buffer.data) {
     IMB_display_buffer_transform_apply((uchar *)rect,
-                                       rv->combined_buffer.data,
+                                       ibuf->float_buffer.data,
                                        rr->rectx,
                                        rr->recty,
                                        4,
@@ -1130,13 +1172,17 @@ bool RE_HasCombinedLayer(const RenderResult *result)
     return false;
   }
 
-  return (rv->byte_buffer.data || rv->combined_buffer.data);
+  return (rv->ibuf);
 }
 
 bool RE_HasFloatPixels(const RenderResult *result)
 {
   LISTBASE_FOREACH (const RenderView *, rview, &result->views) {
-    if (rview->byte_buffer.data && !rview->combined_buffer.data) {
+    ImBuf *ibuf = rview->ibuf;
+    if (!ibuf) {
+      continue;
+    }
+    if (ibuf->byte_buffer.data && !ibuf->float_buffer.data) {
       return false;
     }
   }
@@ -1177,9 +1223,7 @@ static RenderPass *duplicate_render_pass(RenderPass *rpass)
   RenderPass *new_rpass = MEM_cnew<RenderPass>("new render pass", *rpass);
   new_rpass->next = new_rpass->prev = nullptr;
 
-  if (new_rpass->buffer.sharing_info != nullptr) {
-    new_rpass->buffer.sharing_info->add_user();
-  }
+  new_rpass->ibuf = IMB_dupImBuf(rpass->ibuf);
 
   return new_rpass;
 }
@@ -1201,19 +1245,7 @@ static RenderView *duplicate_render_view(RenderView *rview)
 {
   RenderView *new_rview = MEM_cnew<RenderView>("new render view", *rview);
 
-  /* Reset buffers, they are not supposed to be shallow-coped. */
-  new_rview->combined_buffer = {};
-  new_rview->byte_buffer = {};
-
-  if (rview->combined_buffer.data != nullptr) {
-    RE_RenderBuffer_assign_data(&new_rview->combined_buffer,
-                                static_cast<float *>(MEM_dupallocN(rview->combined_buffer.data)));
-  }
-
-  if (rview->byte_buffer.data != nullptr) {
-    RE_RenderByteBuffer_assign_data(
-        &new_rview->byte_buffer, static_cast<uint8_t *>(MEM_dupallocN(rview->byte_buffer.data)));
-  }
+  new_rview->ibuf = IMB_dupImBuf(rview->ibuf);
 
   return new_rview;
 }
@@ -1233,115 +1265,27 @@ RenderResult *RE_DuplicateRenderResult(RenderResult *rr)
     BLI_addtail(&new_rr->views, new_rview);
   }
 
-  /* Reset buffers, they are not supposed to be shallow-coped. */
-  new_rr->combined_buffer = {};
-  new_rr->byte_buffer = {};
-
-  if (rr->combined_buffer.data) {
-    RE_RenderBuffer_assign_data(&new_rr->combined_buffer,
-                                static_cast<float *>(MEM_dupallocN(rr->combined_buffer.data)));
-  }
-  if (rr->byte_buffer.data) {
-    RE_RenderByteBuffer_assign_data(&new_rr->byte_buffer,
-                                    static_cast<uint8_t *>(MEM_dupallocN(rr->byte_buffer.data)));
-  }
+  new_rr->ibuf = IMB_dupImBuf(rr->ibuf);
 
   new_rr->stamp_data = BKE_stamp_data_copy(new_rr->stamp_data);
   return new_rr;
 }
 
-/* --------------------------------------------------------------------
- * Render buffer.
- */
-
-template<class BufferType> static BufferType render_buffer_new(decltype(BufferType::data) data)
+ImBuf *RE_RenderPassEnsureImBuf(RenderPass *render_pass)
 {
-  BufferType buffer;
-
-  buffer.data = data;
-  buffer.sharing_info = blender::implicit_sharing::info_for_mem_free(data);
-  buffer.gpu_texture = nullptr;
-
-  return buffer;
-}
-
-template<class BufferType> static void render_buffer_data_free(BufferType *render_buffer)
-{
-  if (!render_buffer->sharing_info) {
-    MEM_SAFE_FREE(render_buffer->data);
-    return;
+  if (!render_pass->ibuf) {
+    render_pass->ibuf = IMB_allocImBuf(render_pass->rectx, render_pass->recty, 32, 0);
+    render_pass->ibuf->channels = render_pass->channels;
   }
 
-  blender::implicit_sharing::free_shared_data(&render_buffer->data, &render_buffer->sharing_info);
-
-  if (render_buffer->gpu_texture) {
-    GPU_texture_free(render_buffer->gpu_texture);
-    render_buffer->gpu_texture = nullptr;
-  }
+  return render_pass->ibuf;
 }
 
-template<class BufferType>
-static void render_buffer_assign_data(BufferType *render_buffer, decltype(BufferType::data) data)
+ImBuf *RE_RenderViewEnsureImBuf(const RenderResult *render_result, RenderView *render_view)
 {
-  render_buffer_data_free(render_buffer);
-
-  if (!data) {
-    render_buffer->data = nullptr;
-    render_buffer->sharing_info = nullptr;
-    return;
+  if (!render_view->ibuf) {
+    render_view->ibuf = IMB_allocImBuf(render_result->rectx, render_result->recty, 32, 0);
   }
 
-  render_buffer->data = data;
-  render_buffer->sharing_info = blender::implicit_sharing::info_for_mem_free(data);
-}
-
-template<class BufferType>
-static void render_buffer_assign_shared(BufferType *lhs, const BufferType *rhs)
-{
-  render_buffer_data_free(lhs);
-
-  if (rhs) {
-    blender::implicit_sharing::copy_shared_pointer(
-        rhs->data, rhs->sharing_info, &lhs->data, &lhs->sharing_info);
-  }
-}
-
-RenderBuffer RE_RenderBuffer_new(float *data)
-{
-  return render_buffer_new<RenderBuffer>(data);
-}
-
-void RE_RenderBuffer_assign_data(RenderBuffer *render_buffer, float *data)
-{
-  return render_buffer_assign_data(render_buffer, data);
-}
-
-void RE_RenderBuffer_assign_shared(RenderBuffer *lhs, const RenderBuffer *rhs)
-{
-  render_buffer_assign_shared(lhs, rhs);
-}
-
-void RE_RenderBuffer_data_free(RenderBuffer *render_buffer)
-{
-  render_buffer_data_free(render_buffer);
-}
-
-RenderByteBuffer RE_RenderByteBuffer_new(uint8_t *data)
-{
-  return render_buffer_new<RenderByteBuffer>(data);
-}
-
-void RE_RenderByteBuffer_assign_data(RenderByteBuffer *render_buffer, uint8_t *data)
-{
-  return render_buffer_assign_data(render_buffer, data);
-}
-
-void RE_RenderByteBuffer_assign_shared(RenderByteBuffer *lhs, const RenderByteBuffer *rhs)
-{
-  render_buffer_assign_shared(lhs, rhs);
-}
-
-void RE_RenderByteBuffer_data_free(RenderByteBuffer *render_buffer)
-{
-  render_buffer_data_free(render_buffer);
+  return render_view->ibuf;
 }

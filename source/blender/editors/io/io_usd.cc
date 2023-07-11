@@ -658,7 +658,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
                  nullptr,
                  0,
                  "Path Mask",
-                 "Import only the primitive at the given path and its descendents.  "
+                 "Import only the primitive at the given path and its descendants.  "
                  "Multiple paths may be specified in a list delimited by commas or semicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");

@@ -20,7 +20,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name View Dolly Operator
@@ -39,7 +39,7 @@ void viewdolly_modal_keymap(wmKeyConfig *keyconf)
       {VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
       {VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "View3D Dolly Modal");
@@ -71,7 +71,7 @@ static void view_dolly_to_vector_3d(ARegion *region,
                                     const float dvec[3],
                                     float dfac)
 {
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   madd_v3_v3v3fl(rv3d->ofs, orig_ofs, dvec, -(1.0f - dfac));
 }
 
@@ -112,7 +112,7 @@ static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_i
 
 static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ViewOpsData *vod = op->customdata;
+  ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
   short event_code = VIEW_PASS;
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
@@ -124,11 +124,11 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_MOVE:
-        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, NULL, event);
+        WM_operator_name_call(C, "VIEW3D_OT_move", WM_OP_INVOKE_DEFAULT, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
       case VIEWROT_MODAL_SWITCH_ROTATE:
-        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, NULL, event);
+        WM_operator_name_call(C, "VIEW3D_OT_rotate", WM_OP_INVOKE_DEFAULT, nullptr, event);
         event_code = VIEW_CONFIRM;
         break;
     }
@@ -178,7 +178,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
       ED_view3d_camera_lock_undo_push(op->type->name, vod->v3d, vod->rv3d, C);
     }
     viewops_data_free(C, vod);
-    op->customdata = NULL;
+    op->customdata = nullptr;
   }
 
   return ret;
@@ -195,7 +195,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   const int delta = RNA_int_get(op->ptr, "delta");
 
   if (op->customdata) {
-    ViewOpsData *vod = op->customdata;
+    ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
 
     area = vod->area;
     region = vod->region;
@@ -204,12 +204,12 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   else {
     area = CTX_wm_area(C);
     region = CTX_wm_region(C);
-    negate_v3_v3(mousevec, ((RegionView3D *)region->regiondata)->viewinv[2]);
+    negate_v3_v3(mousevec, static_cast<RegionView3D *>(region->regiondata)->viewinv[2]);
     normalize_v3(mousevec);
   }
 
-  v3d = area->spacedata.first;
-  rv3d = region->regiondata;
+  v3d = static_cast<View3D *>(area->spacedata.first);
+  rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
@@ -229,8 +229,8 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 
   ED_region_tag_redraw(region);
 
-  viewops_data_free(C, op->customdata);
-  op->customdata = NULL;
+  viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+  op->customdata = nullptr;
 
   return OPERATOR_FINISHED;
 }
@@ -246,7 +246,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
   const bool use_cursor_init = RNA_boolean_get(op->ptr, "use_cursor_init");
 
-  vod = op->customdata = viewops_data_create(C, event, V3D_OP_MODE_DOLLY, use_cursor_init);
+  vod = viewops_data_create(C, event, V3D_OP_MODE_DOLLY, use_cursor_init);
+  op->customdata = vod;
 
   ED_view3d_smooth_view_force_finish(C, vod->v3d, vod->region);
 
@@ -293,8 +294,8 @@ static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
       }
       viewdolly_apply(vod, event->prev_xy, (U.uiflag & USER_ZOOM_INVERT) == 0);
 
-      viewops_data_free(C, op->customdata);
-      op->customdata = NULL;
+      viewops_data_free(C, static_cast<ViewOpsData *>(op->customdata));
+      op->customdata = nullptr;
       return OPERATOR_FINISHED;
     }
 

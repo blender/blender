@@ -59,14 +59,14 @@ struct MeshRenderData {
   /** Edit Mesh */
   BMEditMesh *edit_bmesh;
   BMesh *bm;
-  EditMeshData *edit_data;
+  blender::bke::EditMeshData *edit_data;
 
   /* For deformed edit-mesh data. */
   /* Use for #ME_WRAPPER_TYPE_BMESH. */
-  const float (*bm_vert_coords)[3];
-  const float (*bm_vert_normals)[3];
-  const float (*bm_poly_normals)[3];
-  const float (*bm_poly_centers)[3];
+  blender::Span<blender::float3> bm_vert_coords;
+  blender::Span<blender::float3> bm_vert_normals;
+  blender::Span<blender::float3> bm_poly_normals;
+  blender::Span<blender::float3> bm_poly_centers;
 
   const int *v_origindex, *e_origindex, *p_origindex;
   int edge_crease_ofs;
@@ -207,34 +207,25 @@ BLI_INLINE BMVert *bm_original_vert_get(const MeshRenderData *mr, int idx)
 
 BLI_INLINE const float *bm_vert_co_get(const MeshRenderData *mr, const BMVert *eve)
 {
-  const float(*vert_coords)[3] = mr->bm_vert_coords;
-  if (vert_coords != nullptr) {
-    return vert_coords[BM_elem_index_get(eve)];
+  if (!mr->bm_vert_coords.is_empty()) {
+    return mr->bm_vert_coords[BM_elem_index_get(eve)];
   }
-
-  UNUSED_VARS(mr);
   return eve->co;
 }
 
 BLI_INLINE const float *bm_vert_no_get(const MeshRenderData *mr, const BMVert *eve)
 {
-  const float(*vert_normals)[3] = mr->bm_vert_normals;
-  if (vert_normals != nullptr) {
-    return vert_normals[BM_elem_index_get(eve)];
+  if (!mr->bm_vert_normals.is_empty()) {
+    return mr->bm_vert_normals[BM_elem_index_get(eve)];
   }
-
-  UNUSED_VARS(mr);
   return eve->no;
 }
 
 BLI_INLINE const float *bm_face_no_get(const MeshRenderData *mr, const BMFace *efa)
 {
-  const float(*poly_normals)[3] = mr->bm_poly_normals;
-  if (poly_normals != nullptr) {
-    return poly_normals[BM_elem_index_get(efa)];
+  if (!mr->bm_poly_normals.is_empty()) {
+    return mr->bm_poly_normals[BM_elem_index_get(efa)];
   }
-
-  UNUSED_VARS(mr);
   return efa->no;
 }
 

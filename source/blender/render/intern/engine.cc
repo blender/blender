@@ -43,6 +43,8 @@
 #  include "BPY_extern.h"
 #endif
 
+#include "IMB_imbuf_types.h"
+
 #include "RE_bake.h"
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -216,8 +218,8 @@ static RenderResult *render_result_from_bake(
   /* Fill render passes from bake pixel array, to be read by the render engine. */
   for (int ty = 0; ty < h; ty++) {
     size_t offset = ty * w * 4;
-    float *primitive = primitive_pass->buffer.data + offset;
-    float *differential = differential_pass->buffer.data + offset;
+    float *primitive = primitive_pass->ibuf->float_buffer.data + offset;
+    float *differential = differential_pass->ibuf->float_buffer.data + offset;
 
     size_t bake_offset = (y + ty) * image->width + x;
     const BakePixel *bake_pixel = pixels + bake_offset;
@@ -284,7 +286,7 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
     const size_t offset = ty * w;
     const size_t bake_offset = (y + ty) * image->width + x;
 
-    const float *pass_rect = rpass->buffer.data + offset * channels_num;
+    const float *pass_rect = rpass->ibuf->float_buffer.data + offset * channels_num;
     const BakePixel *bake_pixel = pixels + bake_offset;
     float *bake_result = result + bake_offset * channels_num;
 

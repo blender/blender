@@ -46,6 +46,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "eevee_private.h"
 
 /* -------------------------------------------------------------------- */
@@ -582,7 +584,7 @@ static void eevee_cryptomatte_extract_render_passes(
     const int pass_offset = pass * 2;
     SNPRINTF_RLEN(cryptomatte_pass_name, render_pass_name_format, pass);
     RenderPass *rp_object = RE_pass_find_by_name(rl, cryptomatte_pass_name, viewname);
-    float *rp_buffer_data = rp_object->buffer.data;
+    float *rp_buffer_data = rp_object->ibuf->float_buffer.data;
     for (int y = 0; y < rect_height; y++) {
       for (int x = 0; x < rect_width; x++) {
         const int accum_buffer_offset = (rect_offset_x + x +

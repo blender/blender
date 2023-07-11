@@ -99,7 +99,8 @@ class GArray {
   /**
    * Create an array by taking ownership of another array's data, clearing the data in the other.
    */
-  GArray(GArray &&other) : GArray(other.type(), other.data(), other.size(), other.allocator())
+  GArray(GArray &&other)
+      : type_(other.type_), data_(other.data_), size_(other.size_), allocator_(other.allocator_)
   {
     other.data_ = nullptr;
     other.size_ = 0;

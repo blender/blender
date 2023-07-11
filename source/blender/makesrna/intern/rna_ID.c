@@ -1739,6 +1739,11 @@ static void rna_def_ID_override_library_property_operation(BlenderRNA *brna)
        0,
        "Locked",
        "Prevents the user from modifying that override operation (NOT USED)"},
+      {LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE,
+       "IDPOINTER_MATCH_REFERENCE",
+       0,
+       "Match Reference",
+       "The ID pointer overridden by this operation is expected to match the reference hierarchy"},
       {0, NULL, 0, NULL, NULL},
   };
 

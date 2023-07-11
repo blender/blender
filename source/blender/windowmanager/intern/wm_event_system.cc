@@ -497,7 +497,7 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
   CTX_wm_window_set(C, nullptr);
 }
 
-static void wm_event_execute_timers(bContext *C)
+static void wm_event_timers_execute(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   if (UNLIKELY(wm == nullptr)) {
@@ -518,7 +518,7 @@ void wm_event_do_notifiers(bContext *C)
   GPU_render_begin();
 
   /* Run the timer before assigning `wm` in the unlikely case a timer loads a file, see #80028. */
-  wm_event_execute_timers(C);
+  wm_event_timers_execute(C);
 
   wmWindowManager *wm = CTX_wm_manager(C);
   if (wm == nullptr) {
@@ -882,16 +882,22 @@ static void wm_event_handler_ui_cancel(bContext *C)
  * Access to #wmWindowManager.reports
  * \{ */
 
-void WM_report_banner_show()
+void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
+  if (win == nullptr) {
+    win = wm->winactive;
+    if (win == nullptr) {
+      win = static_cast<wmWindow *>(wm->windows.first);
+    }
+  }
+
   ReportList *wm_reports = &wm->reports;
 
   /* After adding reports to the global list, reset the report timer. */
-  WM_event_remove_timer(wm, nullptr, wm_reports->reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm_reports->reporttimer);
 
   /* Records time since last report was added. */
-  wm_reports->reporttimer = WM_event_add_timer(wm, wm->winactive, TIMERREPORT, 0.05);
+  wm_reports->reporttimer = WM_event_timer_add(wm, win, TIMERREPORT, 0.05);
 
   ReportTimerInfo *rti = MEM_cnew<ReportTimerInfo>(__func__);
   wm_reports->reporttimer->customdata = rti;
@@ -901,7 +907,7 @@ void WM_report_banners_cancel(Main *bmain)
 {
   wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   BKE_reports_clear(&wm->reports);
-  WM_event_remove_timer(wm, nullptr, wm->reports.reporttimer);
+  WM_event_timer_remove(wm, nullptr, wm->reports.reporttimer);
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -920,7 +926,7 @@ static void wm_add_reports(ReportList *reports)
     /* Add reports to the global list, otherwise they are not seen. */
     BLI_movelisttolist(&wm->reports.list, &reports->list);
 
-    WM_report_banner_show();
+    WM_report_banner_show(wm, nullptr);
   }
 }
 
@@ -2811,7 +2817,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
           /* More hacks, since we meddle with reports, banner display doesn't happen automatic. */
-          WM_report_banner_show();
+          WM_report_banner_show(CTX_wm_manager(C), CTX_wm_window(C));
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);

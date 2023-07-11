@@ -93,6 +93,7 @@ const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 #  include "GPU_capabilities.h"
 #  include "GPU_shader.h"
 #  include "IMB_colormanagement.h"
+#  include "IMB_imbuf_types.h"
 
 #  include "DEG_depsgraph_query.h"
 
@@ -499,15 +500,30 @@ static int rna_RenderPass_rect_get_length(const PointerRNA *ptr,
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(
-      values, rpass->buffer.data, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  const size_t size_in_bytes = sizeof(float) * rpass->rectx * rpass->recty * rpass->channels;
+  const float *buffer = rpass->ibuf ? rpass->ibuf->float_buffer.data : nullptr;
+
+  if (!buffer) {
+    /* No float buffer to read from, initialize to all zeroes. */
+    memset(values, 0, size_in_bytes);
+    return;
+  }
+
+  memcpy(values, buffer, size_in_bytes);
 }
 
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
   RenderPass *rpass = (RenderPass *)ptr->data;
-  memcpy(
-      rpass->buffer.data, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
+  float *buffer = rpass->ibuf ? rpass->ibuf->float_buffer.data : nullptr;
+
+  if (!buffer) {
+    /* Only writing to an already existing buffer is supported. */
+    return;
+  }
+
+  const size_t size_in_bytes = sizeof(float) * rpass->rectx * rpass->recty * rpass->channels;
+  memcpy(buffer, values, size_in_bytes);
 }
 
 static RenderPass *rna_RenderPass_find_by_type(RenderLayer *rl, int passtype, const char *view)

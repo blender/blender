@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -12544,10 +12544,6 @@ msgid "Show scenes"
 msgstr "显示场景"
 
 
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "显示材质，节点树，纹理和Freestyle的线条样式"
-
-
 msgid "Directory"
 msgstr "文件夹"
 
@@ -23417,10 +23413,6 @@ msgid "Diffuse reflection multiplier"
 msgstr "漫射反射乘数"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "衰减距离 - 此点的光线强度较初始值减半"
-
-
 msgid "Node tree for node based lights"
 msgstr "基于节点灯光的节点树"
 
@@ -23506,14 +23498,6 @@ msgid "Directional area Light"
 msgstr "定向面光源"
 
 
-msgid "Constant Coefficient"
-msgstr "恒定系数"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "恒定距离衰减系数"
-
-
 msgid "Contact Shadow Bias"
 msgstr "接触阴影偏移"
 
@@ -23547,66 +23531,6 @@ msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "向四面八方发射至整个区域的光能"
 
 
-msgid "Custom light falloff curve"
-msgstr "自定义灯光衰减曲线"
-
-
-msgid "Falloff Type"
-msgstr "衰减类型"
-
-
-msgid "Intensity Decay with distance"
-msgstr "随距离的衰减强度"
-
-
-msgid "Inverse Linear"
-msgstr "反向线性"
-
-
-msgid "Inverse Square"
-msgstr "反向平方"
-
-
-msgid "Inverse Coefficients"
-msgstr "反向系数"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "线性 / 平方加权"
-
-
-msgid "Linear Attenuation"
-msgstr "线性衰减"
-
-
-msgid "Linear distance attenuation"
-msgstr "线性距离衰减"
-
-
-msgid "Linear Coefficient"
-msgstr "多项式系数"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "线性距离衰减"
-
-
-msgid "Quadratic Attenuation"
-msgstr "平方衰减"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "二次间隔衰减"
-
-
-msgid "Quadratic Coefficient"
-msgstr "二次系数"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "二次间隔衰减系数"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "阴影缓冲偏移"
 
@@ -23621,22 +23545,6 @@ msgstr "阴影缓冲区裁剪起始点"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "阴影映射区裁剪起始点, 越过此点的物体将不产生阴影"
-
-
-msgid "Samples"
-msgstr "采样"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "阴影缓冲采样次数"
-
-
-msgid "Shadow Buffer Size"
-msgstr "阴影缓冲尺寸"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "阴影缓冲精度, 值越高, 阴影越清晰, 但会消耗更多内存"
 
 
 msgid "Shadow Color"
@@ -29549,6 +29457,10 @@ msgid "Format of multiview media"
 msgstr "多视图媒体格式"
 
 
+msgid "Multi-View"
+msgstr "多视图"
+
+
 msgid "Tile Number"
 msgstr "分块号"
 
@@ -34483,6 +34395,10 @@ msgstr "最小厚度"
 
 msgid "Minimum for measuring thickness"
 msgstr "用于衡量宽度的最小值"
+
+
+msgid "Samples"
+msgstr "采样"
 
 
 msgid "Number of samples to test per face"
@@ -71452,6 +71368,10 @@ msgid "Generic sculpt expand operator"
 msgstr "通用雕刻扩展操作"
 
 
+msgid "Falloff Type"
+msgstr "衰减类型"
+
+
 msgid "Initial falloff of the expand operation"
 msgstr "初始化扩展操作的衰减"
 
@@ -75346,6 +75266,10 @@ msgid "Axis to align to"
 msgstr "要对齐的轴"
 
 
+msgid "Correct Aspect"
+msgstr "校正高宽比例"
+
+
 msgid "Method to calculate rotation angle"
 msgstr "旋转角度的计算方法"
 
@@ -75403,10 +75327,6 @@ msgstr "裁剪至边界框"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "展开后将 UV 裁剪至边界框"
-
-
-msgid "Correct Aspect"
-msgstr "校正高宽比例"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -89202,10 +89122,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "单立体声摄像机系统，调整摄像机面板中的立体声设置"
 
 
-msgid "Multi-View"
-msgstr "多视图"
-
-
 msgid "Multi camera system, adjust the cameras individually"
 msgstr "多摄像机系统，单独的调节摄像机"
 
@@ -100559,14 +100475,6 @@ msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "光线长度, 定义表面产生闭塞效果的距离"
 
 
-msgid "Use Ambient Occlusion"
-msgstr "使用环境光遮蔽 (AO)"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "基于物体的间距, 用 AO 添加阴影"
-
-
 msgid "World Mist"
 msgstr "世界迷雾"
 
@@ -103304,10 +103212,6 @@ msgstr "需要Apple Silicon 和 macOS %s 或更新版本"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "或者AMD搭配 macOS %s 或更新版本"
-
-
-msgid "  - intel-level-zero-gpu version %s or newer"
-msgstr "  - intel-level-zero-gpu 版本 %s 或更新版本"
 
 
 msgid "Noise Threshold"

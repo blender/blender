@@ -2,14 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
-# to more easily highlight code-paths in other libraries that need to be refactored,
-# bf_gpu is allowed to have opengl regardless of this option.
-
-if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND AND NOT WITH_HEADLESS)
-  add_definitions(-DWITH_OPENGL)
-endif()
-
 set(INC
   .
   intern
@@ -17,11 +9,9 @@ set(INC
   opengl
   vulkan
   ../blenkernel
-  ../blenlib
   ../bmesh
   ../draw
   ../imbuf
-  ../makesdna
   ../makesrna
 
   # For theme color access.
@@ -40,7 +30,6 @@ set(INC
 
   ../../../intern/clog
   ../../../intern/ghost
-  ../../../intern/guardedalloc
   ../../../intern/mantaflow/extern
 )
 
@@ -326,13 +315,18 @@ set(METAL_SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   ${Epoxy_LIBRARIES}
+  PRIVATE bf::intern::guardedalloc
 )
 
 # Select Backend source based on availability
-if(WITH_OPENGL)
+if(WITH_OPENGL_BACKEND)
   list(APPEND SRC ${OPENGL_SRC})
+
+  add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
 
 if(WITH_METAL_BACKEND)
@@ -824,6 +818,7 @@ if(WITH_GPU_BUILDTIME_SHADER_BUILDER)
     bf_blenlib
     bf_intern_ghost
     ${PLATFORM_LINKLIBS}
+    PRIVATE bf::intern::guardedalloc
   )
   target_include_directories(shader_builder PRIVATE ${INC} ${CMAKE_CURRENT_BINARY_DIR})
 

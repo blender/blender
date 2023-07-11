@@ -394,7 +394,7 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
     BMesh *bm = em->bm;
     BMFace *f;
 
-    if (mr->bm_vert_coords != nullptr) {
+    if (!mr->bm_vert_coords.is_empty()) {
       BKE_editmesh_cache_ensure_poly_normals(em, mr->edit_data);
 
       /* Most likely this is already valid, ensure just in case.
@@ -415,9 +415,13 @@ static void statvis_calc_distort(const MeshRenderData *mr, float *r_distort)
         do {
           const float *no_face;
           float no_corner[3];
-          if (mr->bm_vert_coords != nullptr) {
+          if (!mr->bm_vert_coords.is_empty()) {
             no_face = mr->bm_poly_normals[f_index];
-            BM_loop_calc_face_normal_safe_vcos(l_iter, no_face, mr->bm_vert_coords, no_corner);
+            BM_loop_calc_face_normal_safe_vcos(
+                l_iter,
+                no_face,
+                reinterpret_cast<const float(*)[3]>(mr->bm_vert_coords.data()),
+                no_corner);
           }
           else {
             no_face = f->no;

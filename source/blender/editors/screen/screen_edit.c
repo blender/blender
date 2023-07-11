@@ -808,7 +808,7 @@ void ED_region_exit(bContext *C, ARegion *region)
   MEM_SAFE_FREE(region->headerstr);
 
   if (region->regiontimer) {
-    WM_event_remove_timer(wm, win, region->regiontimer);
+    WM_event_timer_remove(wm, win, region->regiontimer);
     region->regiontimer = NULL;
   }
 
@@ -847,7 +847,7 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
   CTX_wm_window_set(C, window);
 
   if (screen->animtimer) {
-    WM_event_remove_timer(wm, window, screen->animtimer);
+    WM_event_timer_remove(wm, window, screen->animtimer);
 
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
     Scene *scene = WM_window_get_active_scene(prevwin);
@@ -1533,7 +1533,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
     LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
       UI_blocklist_free(C, region);
       if (region->regiontimer) {
-        WM_event_remove_timer(wm, NULL, region->regiontimer);
+        WM_event_timer_remove(wm, NULL, region->regiontimer);
         region->regiontimer = NULL;
       }
     }
@@ -1711,14 +1711,14 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
   bScreen *stopscreen = ED_screen_animation_playing(wm);
 
   if (stopscreen) {
-    WM_event_remove_timer(wm, win, stopscreen->animtimer);
+    WM_event_timer_remove(wm, win, stopscreen->animtimer);
     stopscreen->animtimer = NULL;
   }
 
   if (enable) {
     ScreenAnimData *sad = MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
 
-    screen->animtimer = WM_event_add_timer(wm, win, TIMER0, (1.0 / FPS));
+    screen->animtimer = WM_event_timer_add(wm, win, TIMER0, (1.0 / FPS));
 
     sad->region = CTX_wm_region(C);
     /* If start-frame is larger than current frame, we put current-frame on start-frame.

@@ -5,18 +5,13 @@
 set(INC
   ../include
   ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../gpu
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../bmesh
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../../makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -34,6 +29,9 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 

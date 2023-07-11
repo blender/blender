@@ -3257,7 +3257,7 @@ bool ui_but_string_set(bContext *C, uiBut *but, const char *str)
     double value;
 
     if (ui_but_string_eval_number(C, but, str, &value) == false) {
-      WM_report_banner_show();
+      WM_report_banner_show(CTX_wm_manager(C), CTX_wm_window(C));
       return false;
     }
 

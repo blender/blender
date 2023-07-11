@@ -66,7 +66,7 @@ void AbstractView::update_from_old(uiBlock &new_block)
 /** \name Default implementations of virtual functions
  * \{ */
 
-std::unique_ptr<AbstractViewDropTarget> AbstractView::create_drop_target()
+std::unique_ptr<DropTargetInterface> AbstractView::create_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;

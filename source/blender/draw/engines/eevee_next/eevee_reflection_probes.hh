@@ -92,8 +92,6 @@ class ReflectionProbeModule {
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
 
-  bool do_world_update_ = false;
-
   int3 dispatch_probe_pack_ = int3(0);
 
  public:
@@ -111,15 +109,13 @@ class ReflectionProbeModule {
     pass->bind_ssbo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
   }
 
-  void do_world_update_set(bool value)
-  {
-    do_world_update_ = value;
-  }
+  bool do_world_update_get() const;
+  void do_world_update_set(bool value);
 
   void debug_print() const;
 
  private:
-  void sync(const ReflectionProbe &cubemap);
+  void sync(ReflectionProbe &cubemap);
   ReflectionProbe &find_or_insert(ObjectHandle &ob_handle, int subdivision_level);
 
   /** Get the number of layers that is needed to store probes. */
@@ -145,11 +141,6 @@ class ReflectionProbeModule {
   ReflectionProbeData find_empty_reflection_probe_data(int subdivision_level) const;
 
   void upload_dummy_texture(const ReflectionProbe &probe);
-
-  bool do_world_update_get() const
-  {
-    return do_world_update_;
-  }
 
   void remap_to_octahedral_projection();
 

@@ -244,7 +244,7 @@ StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel()
     case LIBOVERRIDE_OP_ADD:
       return TIP_("Additive override");
     case LIBOVERRIDE_OP_SUBTRACT:
-      return TIP_("Substractive override");
+      return TIP_("Subtractive override");
     case LIBOVERRIDE_OP_MULTIPLY:
       return TIP_("Multiplicative override");
     default:

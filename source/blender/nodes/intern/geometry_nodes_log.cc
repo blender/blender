@@ -17,6 +17,8 @@
 
 #include "ED_viewer_path.hh"
 
+#include "MOD_nodes.hh"
+
 namespace blender::nodes::geo_eval_log {
 
 using bke::bNodeTreeZone;
@@ -582,8 +584,7 @@ Map<const bNodeTreeZone *, GeoTreeLog *> GeoModifierLog::get_tree_log_by_zone_fo
   if (!object_and_modifier) {
     return {};
   }
-  GeoModifierLog *modifier_log = static_cast<GeoModifierLog *>(
-      object_and_modifier->nmd->runtime_eval_log);
+  GeoModifierLog *modifier_log = object_and_modifier->nmd->runtime->eval_log.get();
   if (modifier_log == nullptr) {
     return {};
   }
@@ -617,11 +618,10 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   if (nmd == nullptr) {
     return nullptr;
   }
-  if (nmd->runtime_eval_log == nullptr) {
+  if (!nmd->runtime->eval_log) {
     return nullptr;
   }
-  nodes::geo_eval_log::GeoModifierLog *modifier_log =
-      static_cast<nodes::geo_eval_log::GeoModifierLog *>(nmd->runtime_eval_log);
+  nodes::geo_eval_log::GeoModifierLog *modifier_log = nmd->runtime->eval_log.get();
 
   ComputeContextBuilder compute_context_builder;
   compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);

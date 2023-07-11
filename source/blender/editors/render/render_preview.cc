@@ -668,7 +668,7 @@ static bool ed_preview_draw_rect(
     rv = nullptr;
   }
 
-  if (rv && rv->combined_buffer.data) {
+  if (rv && rv->ibuf) {
     if (abs(rres.rectx - newx) < 2 && abs(rres.recty - newy) < 2) {
       newrect->xmax = max_ii(newrect->xmax, rect->xmin + rres.rectx + offx);
       newrect->ymax = max_ii(newrect->ymax, rect->ymin + rres.recty);
@@ -677,13 +677,8 @@ static bool ed_preview_draw_rect(
         float fx = rect->xmin + offx;
         float fy = rect->ymin;
 
-        ImBuf *ibuf = IMB_allocImBuf(rres.rectx, rres.recty, 0, 0);
-        IMB_assign_float_buffer(ibuf, rv->combined_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
-
         ED_draw_imbuf(
-            ibuf, fx, fy, false, &scene->view_settings, &scene->display_settings, 1.0f, 1.0f);
-
-        IMB_freeImBuf(ibuf);
+            rv->ibuf, fx, fy, false, &scene->view_settings, &scene->display_settings, 1.0f, 1.0f);
 
         ok = true;
       }
@@ -1062,9 +1057,11 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   /* Create buffer in empty RenderView created in the init step. */
   RenderResult *rr = RE_AcquireResultWrite(re);
   RenderView *rv = (RenderView *)rr->views.first;
-  RE_RenderBuffer_assign_data(&rv->combined_buffer,
-                              static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
-                                                               "texture render result")));
+  ImBuf *rv_ibuf = RE_RenderViewEnsureImBuf(rr, rv);
+  IMB_assign_float_buffer(rv_ibuf,
+                          static_cast<float *>(MEM_callocN(sizeof(float[4]) * width * height,
+                                                           "texture render result")),
+                          IB_TAKE_OWNERSHIP);
   RE_ReleaseResult(re);
 
   /* Get texture image pool (if any) */
@@ -1072,7 +1069,7 @@ static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Rend
   BKE_texture_fetch_images_for_pool(tex, img_pool);
 
   /* Fill in image buffer. */
-  float *rect_float = rv->combined_buffer.data;
+  float *rect_float = rv_ibuf->float_buffer.data;
   float tex_coord[3] = {0.0f, 0.0f, 0.0f};
   bool color_manage = BKE_scene_check_color_management_enabled(sce);
 

@@ -22,7 +22,7 @@
 #include "ED_screen.h"
 
 #include "view3d_intern.h"
-#include "view3d_navigate.h" /* own include */
+#include "view3d_navigate.hh" /* own include */
 
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor);
@@ -44,7 +44,7 @@ static void view3d_smoothview_apply_with_interp(
 
 void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
 {
-  const View3D *v3d = area->spacedata.first;
+  const View3D *v3d = static_cast<const View3D *>(area->spacedata.first);
   Object *camera = v3d->camera;
   if (!camera) {
     return;
@@ -59,7 +59,7 @@ void ED_view3d_smooth_view_undo_begin(bContext *C, const ScrArea *area)
     if (region->regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = region->regiondata;
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       camera->id.tag |= LIB_TAG_DOIT;
       break;
@@ -72,7 +72,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
                                     const char *undo_str,
                                     const bool undo_grouped)
 {
-  View3D *v3d = area->spacedata.first;
+  View3D *v3d = static_cast<View3D *>(area->spacedata.first);
   Object *camera = v3d->camera;
   if (!camera) {
     return;
@@ -91,7 +91,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
    * so even in the case there is a quad-view with multiple camera views set, these will all
    * reference the same camera. In this case it doesn't matter which region is used.
    * If in the future multiple cameras are supported, this logic can be extended. */
-  const ARegion *region_camera = NULL;
+  const ARegion *region_camera = nullptr;
 
   /* An undo push should be performed. */
   bool is_interactive = false;
@@ -99,7 +99,7 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
     if (region->regiontype != RGN_TYPE_WINDOW) {
       continue;
     }
-    const RegionView3D *rv3d = region->regiondata;
+    const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
     if (ED_view3d_camera_lock_undo_test(v3d, rv3d, C)) {
       region_camera = region;
       if (rv3d->sms) {
@@ -108,11 +108,11 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
     }
   }
 
-  if (region_camera == NULL) {
+  if (region_camera == nullptr) {
     return;
   }
 
-  RegionView3D *rv3d = region_camera->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region_camera->regiondata);
 
   /* Fast forward, undo push, then rewind. */
   if (is_interactive) {
@@ -150,9 +150,9 @@ struct SmoothView3DState {
 
 struct SmoothView3DStore {
   /* Source. */
-  struct SmoothView3DState src; /* source */
-  struct SmoothView3DState dst; /* destination */
-  struct SmoothView3DState org; /* original */
+  SmoothView3DState src; /* source */
+  SmoothView3DState dst; /* destination */
+  SmoothView3DState org; /* original */
 
   bool to_camera;
 
@@ -166,7 +166,7 @@ struct SmoothView3DStore {
   double time_allowed;
 };
 
-static void view3d_smooth_view_state_backup(struct SmoothView3DState *sms_state,
+static void view3d_smooth_view_state_backup(SmoothView3DState *sms_state,
                                             const View3D *v3d,
                                             const RegionView3D *rv3d)
 {
@@ -176,7 +176,7 @@ static void view3d_smooth_view_state_backup(struct SmoothView3DState *sms_state,
   sms_state->lens = v3d->lens;
 }
 
-static void view3d_smooth_view_state_restore(const struct SmoothView3DState *sms_state,
+static void view3d_smooth_view_state_restore(const SmoothView3DState *sms_state,
                                              View3D *v3d,
                                              RegionView3D *rv3d)
 {
@@ -200,17 +200,17 @@ void ED_view3d_smooth_view_ex(
 {
   /* In this case use #ED_view3d_smooth_view_undo_begin & end functions
    * instead of passing in undo. */
-  BLI_assert_msg(sview->undo_str == NULL,
+  BLI_assert_msg(sview->undo_str == nullptr,
                  "Only the 'ED_view3d_smooth_view' version of this function handles undo!");
 
-  RegionView3D *rv3d = region->regiondata;
-  struct SmoothView3DStore sms = {{0}};
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  SmoothView3DStore sms = {{0}};
 
   /* initialize sms */
   view3d_smooth_view_state_backup(&sms.dst, v3d, rv3d);
   view3d_smooth_view_state_backup(&sms.src, v3d, rv3d);
   /* If smooth-view runs multiple times. */
-  if (rv3d->sms == NULL) {
+  if (rv3d->sms == nullptr) {
     view3d_smooth_view_state_backup(&sms.org, v3d, rv3d);
   }
   else {
@@ -228,7 +228,7 @@ void ED_view3d_smooth_view_ex(
    * camera to be moved or changed, so only when the camera is not being set should
    * we allow camera option locking to initialize the view settings from the camera.
    */
-  if (sview->camera == NULL && sview->camera_old == NULL) {
+  if (sview->camera == nullptr && sview->camera_old == nullptr) {
     ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
   }
 
@@ -247,8 +247,8 @@ void ED_view3d_smooth_view_ex(
   }
 
   if (sview->dyn_ofs) {
-    BLI_assert(sview->ofs == NULL);
-    BLI_assert(sview->quat != NULL);
+    BLI_assert(sview->ofs == nullptr);
+    BLI_assert(sview->quat != nullptr);
 
     copy_v3_v3(sms.dyn_ofs, sview->dyn_ofs);
     sms.use_dyn_ofs = true;
@@ -259,7 +259,7 @@ void ED_view3d_smooth_view_ex(
 
   if (sview->camera) {
     Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
-    if (sview->ofs != NULL) {
+    if (sview->ofs != nullptr) {
       sms.dst.dist = ED_view3d_offset_distance(
           ob_camera_eval->object_to_world, sview->ofs, VIEW3D_DIST_FALLBACK);
     }
@@ -284,7 +284,7 @@ void ED_view3d_smooth_view_ex(
     /* original values */
     if (sview->camera_old) {
       Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
-      if (sview->ofs != NULL) {
+      if (sview->ofs != nullptr) {
         sms.src.dist = ED_view3d_offset_distance(
             ob_camera_old_eval->object_to_world, sview->ofs, 0.0f);
       }
@@ -298,14 +298,14 @@ void ED_view3d_smooth_view_ex(
       rv3d->view = RV3D_VIEW_USER;
     }
 
-    sms.time_allowed = (double)smooth_viewtx / 1000.0;
+    sms.time_allowed = double(smooth_viewtx / 1000.0);
 
-    /* If this is view rotation only we can decrease the time allowed by the angle between quats
-     * this means small rotations won't lag. */
+    /* If this is view rotation only we can decrease the time allowed by the angle between
+     * quaternions this means small rotations won't lag. */
     if (sview->quat && !sview->ofs && !sview->dist) {
       /* scale the time allowed by the rotation */
       /* 180deg == 1.0 */
-      sms.time_allowed *= (double)fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat)) /
+      sms.time_allowed *= double(fabsf(angle_signed_normalized_qtqt(sms.dst.quat, sms.src.quat))) /
                           M_PI;
     }
 
@@ -313,10 +313,10 @@ void ED_view3d_smooth_view_ex(
     if (sms.to_camera) {
       /* use ortho if we move from an ortho view to an ortho camera */
       Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
-      rv3d->persp = (((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
-                      (((Camera *)ob_camera_eval->data)->type == CAM_ORTHO)) ?
-                         RV3D_ORTHO :
-                         RV3D_PERSP);
+      rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
+                     (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
+                        RV3D_ORTHO :
+                        RV3D_PERSP;
     }
 
     rv3d->rflag |= RV3D_NAVIGATING;
@@ -326,15 +326,16 @@ void ED_view3d_smooth_view_ex(
     view3d_smooth_view_state_restore(&sms.src, v3d, rv3d);
 
     /* keep track of running timer! */
-    if (rv3d->sms == NULL) {
-      rv3d->sms = MEM_mallocN(sizeof(struct SmoothView3DStore), "smoothview v3d");
+    if (rv3d->sms == nullptr) {
+      rv3d->sms = static_cast<SmoothView3DStore *>(
+          MEM_mallocN(sizeof(SmoothView3DStore), "smoothview v3d"));
     }
     *rv3d->sms = sms;
     if (rv3d->smooth_timer) {
-      WM_event_remove_timer(wm, win, rv3d->smooth_timer);
+      WM_event_timer_remove(wm, win, rv3d->smooth_timer);
     }
     /* #TIMER1 is hard-coded in key-map. */
-    rv3d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
+    rv3d->smooth_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 100.0);
   }
   else {
     /* Animation is disabled, apply immediately. */
@@ -377,10 +378,10 @@ void ED_view3d_smooth_view(bContext *C,
 
   /* #ED_view3d_smooth_view_ex asserts this is not set as it doesn't support undo. */
   V3D_SmoothParams sview_no_undo = *sview;
-  sview_no_undo.undo_str = NULL;
+  sview_no_undo.undo_str = nullptr;
   sview_no_undo.undo_grouped = false;
 
-  const bool do_undo = (sview->undo_str != NULL);
+  const bool do_undo = (sview->undo_str != nullptr);
   if (do_undo) {
     ED_view3d_smooth_view_undo_begin(C, area);
   }
@@ -398,7 +399,7 @@ void ED_view3d_smooth_view(bContext *C,
 static void view3d_smoothview_apply_with_interp(
     bContext *C, View3D *v3d, RegionView3D *rv3d, const bool use_autokey, const float factor)
 {
-  struct SmoothView3DStore *sms = rv3d->sms;
+  SmoothView3DStore *sms = rv3d->sms;
 
   interp_qt_qtqt(rv3d->viewquat, sms->src.quat, sms->dst.quat, factor);
 
@@ -427,7 +428,7 @@ static void view3d_smoothview_apply_with_interp(
 static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionView3D *rv3d)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  struct SmoothView3DStore *sms = rv3d->sms;
+  SmoothView3DStore *sms = rv3d->sms;
 
   wmWindow *win = CTX_wm_window(C);
 
@@ -451,10 +452,10 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
   }
 
   MEM_freeN(rv3d->sms);
-  rv3d->sms = NULL;
+  rv3d->sms = nullptr;
 
-  WM_event_remove_timer(wm, win, rv3d->smooth_timer);
-  rv3d->smooth_timer = NULL;
+  WM_event_timer_remove(wm, win, rv3d->smooth_timer);
+  rv3d->smooth_timer = nullptr;
   rv3d->rflag &= ~RV3D_NAVIGATING;
 
   /* Event handling won't know if a UI item has been moved under the pointer. */
@@ -473,12 +474,12 @@ static void view3d_smoothview_apply_and_finish(bContext *C, View3D *v3d, RegionV
 static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion *region)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
-  RegionView3D *rv3d = region->regiondata;
-  struct SmoothView3DStore *sms = rv3d->sms;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
+  SmoothView3DStore *sms = rv3d->sms;
   float factor;
 
   if (sms->time_allowed != 0.0) {
-    factor = (float)((rv3d->smooth_timer->duration) / sms->time_allowed);
+    factor = float(rv3d->smooth_timer->duration / sms->time_allowed);
   }
   else {
     factor = 1.0f;
@@ -500,14 +501,14 @@ static void view3d_smoothview_apply_from_timer(bContext *C, View3D *v3d, ARegion
   ED_region_tag_redraw(region);
 }
 
-static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
+static int view3d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   View3D *v3d = CTX_wm_view3d(C);
   ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   /* escape if not our timer */
-  if (rv3d->smooth_timer == NULL || rv3d->smooth_timer != event->customdata) {
+  if (rv3d->smooth_timer == nullptr || rv3d->smooth_timer != event->customdata) {
     return OPERATOR_PASS_THROUGH;
   }
 
@@ -518,7 +519,7 @@ static int view3d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region)
 {
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   if (rv3d && rv3d->sms) {
     view3d_smoothview_apply_and_finish(C, v3d, rv3d);
 
@@ -526,7 +527,7 @@ void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *regio
      * can use them without redrawing first */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = CTX_data_scene(C);
-    ED_view3d_update_viewmat(depsgraph, scene, v3d, region, NULL, NULL, NULL, false);
+    ED_view3d_update_viewmat(depsgraph, scene, v3d, region, nullptr, nullptr, nullptr, false);
   }
 }
 

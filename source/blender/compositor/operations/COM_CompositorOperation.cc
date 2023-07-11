@@ -59,8 +59,9 @@ void CompositorOperation::deinit_execution()
 
     if (rr) {
       RenderView *rv = RE_RenderViewGetByName(rr, view_name_);
+      ImBuf *ibuf = RE_RenderViewEnsureImBuf(rr, rv);
 
-      RE_RenderBuffer_assign_data(&rv->combined_buffer, output_buffer_);
+      IMB_assign_float_buffer(ibuf, output_buffer_, IB_TAKE_OWNERSHIP);
 
       rr->have_combined = true;
     }

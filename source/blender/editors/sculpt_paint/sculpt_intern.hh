@@ -1232,7 +1232,8 @@ bool SCULPT_brush_test_sphere_fast(const SculptBrushTest *test, const float co[3
 bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
-                            float roundness);
+                            const float roundness,
+                            const float tip_scale_x);
 bool SCULPT_brush_test_circle_sq(SculptBrushTest *test, const float co[3]);
 /**
  * Test AABB against sphere.
@@ -1257,7 +1258,12 @@ SculptBrushTestFn SCULPT_brush_test_init_with_falloff_shape(SculptSession *ss,
                                                             char falloff_shape);
 const float *SCULPT_brush_frontface_normal_from_falloff_shape(SculptSession *ss,
                                                               char falloff_shape);
-void SCULPT_cube_tip_init(Sculpt *sd, Object *ob, Brush *brush, float mat[4][4]);
+void SCULPT_cube_tip_init(Sculpt *sd,
+                          Object *ob,
+                          Brush *brush,
+                          float mat[4][4],
+                          const float *co = nullptr,  /* Custom brush center. */
+                          const float *no = nullptr); /* Custom brush normal. */
 
 /**
  * Return a multiplier for brush strength on a particular vertex.

@@ -44,7 +44,6 @@
 #include "../blenlib/BLI_sys_types.h"
 #include "../gpu/GPU_texture.h"
 
-#include "BLI_implicit_sharing.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
@@ -151,19 +150,6 @@ struct ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
                                   unsigned int w,
                                   unsigned int h,
                                   unsigned int channels);
-
-/**
- * Assign the content of the corresponding buffer using an implicitly shareable data pointer.
- *
- * \note Does not modify the topology (width, height, number of channels)
- * or the mipmaps in any way.
- */
-void IMB_assign_shared_byte_buffer(struct ImBuf *ibuf,
-                                   uint8_t *buffer_data,
-                                   const ImplicitSharingInfoHandle *implicit_sharing);
-void IMB_assign_shared_float_buffer(struct ImBuf *ibuf,
-                                    float *buffer_data,
-                                    const ImplicitSharingInfoHandle *implicit_sharing);
 
 /**
  * Assign the content of the corresponding buffer with the given data and ownership.
@@ -847,8 +833,12 @@ bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
-/** Free all pixel data (associated with image size). */
+/** Free all CPU pixel data (associated with image size). */
 void imb_freerectImbuf_all(struct ImBuf *ibuf);
+
+/* Free the GPU textures of the given image buffer, leaving the CPU buffers unchanged.
+ * The ibuf can be nullptr, in which case the function does nothing. */
+void IMB_free_gpu_textures(struct ImBuf *ibuf);
 
 /**
  * Threaded processors.

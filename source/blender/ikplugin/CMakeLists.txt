@@ -7,9 +7,6 @@ remove_extra_strict_flags()
 set(INC
   .
   ../blenkernel
-  ../blenlib
-  ../makesdna
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -24,6 +21,9 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
 )
 
 if(WITH_IK_SOLVER)

@@ -29,6 +29,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_string_utils.h"
 #include "BLI_vector_set.hh"
+#include "BLI_virtual_array.hh"
 
 #include "BLO_read_write.h"
 
@@ -250,6 +251,40 @@ IDTypeInfo IDType_ID_GP = {
 
 namespace blender::bke::greasepencil {
 
+static const std::string ATTR_OPACITY = "opacity";
+static const std::string ATTR_RADIUS = "radius";
+
+/* Curves attributes getters */
+static int domain_num(const CurvesGeometry &curves, const eAttrDomain domain)
+{
+  return domain == ATTR_DOMAIN_POINT ? curves.points_num() : curves.curves_num();
+}
+static CustomData &domain_custom_data(CurvesGeometry &curves, const eAttrDomain domain)
+{
+  return domain == ATTR_DOMAIN_POINT ? curves.point_data : curves.curve_data;
+}
+template<typename T>
+static MutableSpan<T> get_mutable_attribute(CurvesGeometry &curves,
+                                            const eAttrDomain domain,
+                                            const StringRefNull name,
+                                            const T default_value = T())
+{
+  const int num = domain_num(curves, domain);
+  const eCustomDataType type = cpp_type_to_custom_data_type(CPPType::get<T>());
+  CustomData &custom_data = domain_custom_data(curves, domain);
+
+  T *data = (T *)CustomData_get_layer_named_for_write(&custom_data, type, name.c_str(), num);
+  if (data != nullptr) {
+    return {data, num};
+  }
+  data = (T *)CustomData_add_layer_named(&custom_data, type, CD_SET_DEFAULT, num, name.c_str());
+  MutableSpan<T> span = {data, num};
+  if (num > 0 && span.first() != default_value) {
+    span.fill(default_value);
+  }
+  return span;
+}
+
 Drawing::Drawing()
 {
   this->base.type = GP_DRAWING;
@@ -342,6 +377,30 @@ const bke::CurvesGeometry &Drawing::strokes() const
 bke::CurvesGeometry &Drawing::strokes_for_write()
 {
   return this->geometry.wrap();
+}
+
+VArray<float> Drawing::radii() const
+{
+  return *this->strokes().attributes().lookup_or_default<float>(
+      ATTR_RADIUS, ATTR_DOMAIN_POINT, 0.01f);
+}
+
+MutableSpan<float> Drawing::radii_for_write()
+{
+  return get_mutable_attribute<float>(
+      this->geometry.wrap(), ATTR_DOMAIN_POINT, ATTR_RADIUS, 0.01f);
+}
+
+VArray<float> Drawing::opacities() const
+{
+  return *this->strokes().attributes().lookup_or_default<float>(
+      ATTR_OPACITY, ATTR_DOMAIN_POINT, 1.0f);
+}
+
+MutableSpan<float> Drawing::opacities_for_write()
+{
+  return get_mutable_attribute<float>(
+      this->geometry.wrap(), ATTR_DOMAIN_POINT, ATTR_OPACITY, 1.0f);
 }
 
 void Drawing::tag_positions_changed()

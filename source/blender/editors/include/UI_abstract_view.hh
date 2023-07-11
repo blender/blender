@@ -45,13 +45,7 @@ struct wmNotifier;
 namespace blender::ui {
 
 class AbstractViewItem;
-class AbstractViewItemDropTarget;
 class AbstractViewItemDragController;
-
-/**
- * The view drop target can share logic with the view item drop target for now, so just an alias.
- */
-using AbstractViewDropTarget = AbstractViewItemDropTarget;
 
 class AbstractView {
   friend class AbstractViewItem;
@@ -75,12 +69,12 @@ class AbstractView {
 
   /**
    * If a view wants to support dropping data into it, it has to return a drop target here.
-   * That is an object implementing #AbstractViewDropTarget.
+   * That is an object implementing #DropTargetInterface.
    *
    * \note This drop target may be requested for each event. The view doesn't keep the drop target
    *       around currently. So it cannot contain persistent state.
    */
-  virtual std::unique_ptr<AbstractViewDropTarget> create_drop_target();
+  virtual std::unique_ptr<DropTargetInterface> create_drop_target();
 
   /** Listen to a notifier, returning true if a redraw is needed. */
   virtual bool listen(const wmNotifier &) const;
@@ -142,7 +136,7 @@ class AbstractViewItem {
    * If this wasn't done, the behavior of items is undefined.
    */
   AbstractView *view_ = nullptr;
-  /** Every visible item gets a button of type #UI_BTYPE_VIEW_ITEM during the layout building. */
+  /** See #view_item_button() */
   uiButViewItem *view_item_but_ = nullptr;
   bool is_activatable_ = true;
   bool is_interactive_ = true;
@@ -183,12 +177,12 @@ class AbstractViewItem {
   virtual std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const;
   /**
    * If an item wants to support dropping data into it, it has to return a drop target here.
-   * That is an object implementing #AbstractViewItemDropTarget.
+   * That is an object implementing #DropTargetInterface.
    *
    * \note This drop target may be requested for each event. The view doesn't keep a drop target
    *       around currently. So it can not contain persistent state.
    */
-  virtual std::unique_ptr<AbstractViewItemDropTarget> create_drop_target();
+  virtual std::unique_ptr<DropTargetInterface> create_item_drop_target();
 
   /** Return the result of #is_filtered_visible(), but ensure the result is cached so it's only
    * queried once per redraw. */
@@ -196,6 +190,13 @@ class AbstractViewItem {
 
   /** Get the view this item is registered for using #AbstractView::register_item(). */
   AbstractView &get_view() const;
+
+  /**
+   * Get the view item button (button of type #UI_BTYPE_VIEW_ITEM) created for this item. Every
+   * visible item gets one during the layout building. Items that are not visible may not have one,
+   * so null is a valid return value.
+   */
+  uiButViewItem *view_item_button() const;
 
   /** Disable the interacting with this item, meaning the buttons drawn will be disabled and there
    * will be no mouse hover feedback for the view row. */
@@ -286,31 +287,7 @@ class AbstractViewItemDragController {
   template<class ViewType> inline ViewType &get_view() const;
 };
 
-/**
- * Class to define the behavior when dropping something onto/into a view item, plus the behavior
- * when dragging over this item. An item can return a drop target for itself via a custom
- * implementation of #AbstractViewItem::create_drop_target().
- */
-class AbstractViewItemDropTarget : public DropTargetInterface {
- protected:
-  AbstractView &view_;
-
- public:
-  AbstractViewItemDropTarget(AbstractView &view);
-
-  /** Request the view the item is registered for as type #ViewType. Throws a `std::bad_cast`
-   * exception if the view is not of the requested type. */
-  template<class ViewType> inline ViewType &get_view() const;
-};
-
 template<class ViewType> ViewType &AbstractViewItemDragController::get_view() const
-{
-  static_assert(std::is_base_of<AbstractView, ViewType>::value,
-                "Type must derive from and implement the ui::AbstractView interface");
-  return dynamic_cast<ViewType &>(view_);
-}
-
-template<class ViewType> ViewType &AbstractViewItemDropTarget::get_view() const
 {
   static_assert(std::is_base_of<AbstractView, ViewType>::value,
                 "Type must derive from and implement the ui::AbstractView interface");

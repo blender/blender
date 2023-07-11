@@ -14,11 +14,13 @@
 
 namespace blender::ed::outliner {
 
-TreeElementEditBone::TreeElementEditBone(TreeElement &legacy_te, ID &armature_id, EditBone &ebone)
-    : AbstractTreeElement(legacy_te), armature_id_(armature_id), ebone_(ebone)
+TreeElementEditBone::TreeElementEditBone(TreeElement &legacy_te,
+                                         ID & /*armature_id*/,
+                                         EditBone &ebone)
+    : AbstractTreeElement(legacy_te) /*, armature_id_(armature_id)*/, ebone_(ebone)
 {
-  legacy_te.directdata = &ebone;
-  legacy_te.name = ebone.name;
+  legacy_te.directdata = &ebone_;
+  legacy_te.name = ebone_.name;
 }
 
 }  // namespace blender::ed::outliner

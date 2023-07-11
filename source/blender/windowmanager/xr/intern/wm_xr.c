@@ -43,10 +43,12 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 {
   wmXrErrorHandlerData *handler_data = error->customdata;
   wmWindowManager *wm = handler_data->wm;
+  wmWindow *root_win = wm->xr.runtime ? wm->xr.runtime->session_root_win : NULL;
 
   BKE_reports_clear(&wm->reports);
   WM_report(RPT_ERROR, error->user_message);
-  WM_report_banner_show();
+  /* Rely on the fallback when `root_win` is NULL. */
+  WM_report_banner_show(wm, root_win);
 
   if (wm->xr.runtime) {
     /* Just play safe and destroy the entire runtime data, including context. */
@@ -131,7 +133,7 @@ bool wm_xr_events_handle(wmWindowManager *wm)
       wm_xr_session_actions_update(wm);
     }
 
-    /* wm_window_process_events() uses the return value to determine if it can put the main thread
+    /* wm_window_events_process() uses the return value to determine if it can put the main thread
      * to sleep for some milliseconds. We never want that to happen while the VR session runs on
      * the main thread. So always return true. */
     return true;

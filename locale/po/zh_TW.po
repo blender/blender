@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'44ee5b38ac1b')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-04 16:07:54\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2023-01-28 11:09+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <http://weblate.slat.org/projects/blender/blender/zh_Hant/>\n"
@@ -13657,10 +13657,6 @@ msgid "Light color"
 msgstr "光照色彩"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "衰落距離 - 位於此點時光照為原始強度的一半"
-
-
 msgid "Specular Factor"
 msgstr "高光係數"
 
@@ -13706,42 +13702,6 @@ msgid "Directional area light source"
 msgstr "定向區域光源"
 
 
-msgid "Falloff Type"
-msgstr "衰減類型"
-
-
-msgid "Intensity Decay with distance"
-msgstr "隨著距離減弱的強度"
-
-
-msgid "Inverse Linear"
-msgstr "反轉線性"
-
-
-msgid "Inverse Square"
-msgstr "反轉平方"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "線性/二次型權重"
-
-
-msgid "Linear Attenuation"
-msgstr "線性衰減"
-
-
-msgid "Linear distance attenuation"
-msgstr "線性距離衰減"
-
-
-msgid "Quadratic Attenuation"
-msgstr "二次型衰減"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "二次型距離衰減"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "陰影緩衝偏差"
 
@@ -13752,22 +13712,6 @@ msgstr "陰影緩衝剪輯開始"
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "陰影映射剪輯結束，沒到這裡物體不會生成陰影"
-
-
-msgid "Samples"
-msgstr "取樣"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "陰影緩衝取樣的數量"
-
-
-msgid "Shadow Buffer Size"
-msgstr "陰影緩衝大小"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "陰影緩衝的解析度，較高的值可有較鮮銳的陰影，但消耗較多記憶體"
 
 
 msgid "Shadow Color"
@@ -17555,6 +17499,10 @@ msgid "Format of multiview media"
 msgstr "多重視圖媒體的格式"
 
 
+msgid "Multi-View"
+msgstr "多重視圖"
+
+
 msgid "Image Preview"
 msgstr "影像預覽"
 
@@ -19532,6 +19480,10 @@ msgstr "厚度最小"
 
 msgid "Minimum for measuring thickness"
 msgstr "測量厚度的最小值"
+
+
+msgid "Samples"
+msgstr "取樣"
 
 
 msgid "Number of samples to test per face"
@@ -38917,6 +38869,10 @@ msgid "Dynamic topology alters the mesh topology while sculpting"
 msgstr "動態拓樸可在雕塑時修改網格拓樸"
 
 
+msgid "Falloff Type"
+msgstr "衰減類型"
+
+
 msgctxt "Operator"
 msgid "Face Sets Visibility"
 msgstr "面集可見性"
@@ -40947,6 +40903,10 @@ msgid "Align UVs on Y axis"
 msgstr "對齊 UV 至 Y 軸"
 
 
+msgid "Correct Aspect"
+msgstr "校正寬長比"
+
+
 msgctxt "Operator"
 msgid "Average Islands Scale"
 msgstr "平均島塊縮放"
@@ -40971,10 +40931,6 @@ msgstr "修剪至邊界"
 
 msgid "Clip UV coordinates to bounds after unwrapping"
 msgstr "拆解之後將 UV 座標軸修剪至邊界"
-
-
-msgid "Correct Aspect"
-msgstr "校正寬長比"
 
 
 msgid "Map UVs taking image aspect ratio into account"
@@ -47178,10 +47134,6 @@ msgid "Single stereo camera system, adjust the stereo settings in the camera pan
 msgstr "單一立體攝影機系統，請在攝影機面板中調整立體設定"
 
 
-msgid "Multi-View"
-msgstr "多重視圖"
-
-
 msgid "Render Slot"
 msgstr "算繪槽"
 
@@ -52730,14 +52682,6 @@ msgstr "元件"
 
 msgid "Length of rays, defines how far away other faces give occlusion effect"
 msgstr "光線長度，定義其他表面生成遮擋效果的距離有多遠"
-
-
-msgid "Use Ambient Occlusion"
-msgstr "使用周遭遮擋"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "使用周遭遮擋功能來根據物體間的距離添加陰影"
 
 
 msgid "World Mist"

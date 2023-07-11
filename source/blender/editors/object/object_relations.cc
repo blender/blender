@@ -100,7 +100,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "MOD_nodes.h"
+#include "MOD_nodes.hh"
 
 #include "object_intern.h"
 

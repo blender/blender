@@ -10,6 +10,9 @@
 
 #include "stdosl.h"
 
+// Constants
+#define FLT_MAX 3.402823466e+38  // max value
+
 // Declaration of built-in functions and closures, stdosl.h does not make
 // these available so we have to redefine them.
 #define BUILTIN [[int builtin = 1]]
