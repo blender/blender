@@ -67,6 +67,8 @@
 #include "RNA_prototypes.h"
 #include "RNA_types.h"
 
+#include "MOD_nodes.hh"
+
 using blender::Array;
 using blender::float2;
 using blender::float3;
@@ -1794,7 +1796,7 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
       continue;
     }
     NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(md_orig);
-    if (nmd_orig->runtime_eval_log == nullptr) {
+    if (!nmd_orig->runtime->eval_log) {
       continue;
     }
     if (const geo_log::ViewerNodeLog *viewer_log =

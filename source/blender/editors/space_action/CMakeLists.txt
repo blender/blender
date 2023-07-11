@@ -10,6 +10,7 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../makesrna
+  ../../modifiers
   ../../windowmanager
 
   # RNA_prototypes.h
