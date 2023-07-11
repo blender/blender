@@ -1121,7 +1121,7 @@ static PyObject *Buffer_repr(Buffer *self)
 /** \name OpenGL API Wrapping
  * \{ */
 
-#ifdef WITH_OPENGL
+#ifdef WITH_OPENGL_BACKEND
 #  define BGL_Wrap(funcname, ret, arg_list) \
     static PyObject *Method_##funcname(PyObject *UNUSED(self), PyObject *args) \
     { \
@@ -1485,7 +1485,7 @@ static void py_module_dict_add_method(PyObject *submodule,
 #  pragma GCC diagnostic ignored "-Waddress"
 #endif
 
-#ifdef WITH_OPENGL
+#ifdef WITH_OPENGL_BACKEND
 #  define PY_MOD_ADD_METHOD(func) \
     { \
       static PyMethodDef method_def = {"gl" #func, Method_##func, METH_VARARGS}; \

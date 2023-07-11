@@ -1756,7 +1756,10 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
       return GHOST_kDrawingContextTypeNone;
     case GPU_BACKEND_ANY:
     case GPU_BACKEND_OPENGL:
+#ifdef WITH_OPENGL_BACKEND
       return GHOST_kDrawingContextTypeOpenGL;
+#endif
+      BLI_assert_unreachable();
     case GPU_BACKEND_VULKAN:
 #ifdef WITH_VULKAN_BACKEND
       return GHOST_kDrawingContextTypeVulkan;

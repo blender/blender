@@ -2,14 +2,6 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# WITH_OPENGL limits the visibility of the opengl headers to just GPU and bg_gpu,
-# to more easily highlight code-paths in other libraries that need to be refactored,
-# bf_gpu is allowed to have opengl regardless of this option.
-
-if(NOT WITH_OPENGL AND NOT WITH_METAL_BACKEND AND NOT WITH_HEADLESS)
-  add_definitions(-DWITH_OPENGL)
-endif()
-
 set(INC
   .
   intern
@@ -331,8 +323,10 @@ set(LIB
 )
 
 # Select Backend source based on availability
-if(WITH_OPENGL)
+if(WITH_OPENGL_BACKEND)
   list(APPEND SRC ${OPENGL_SRC})
+
+  add_definitions(-DWITH_OPENGL_BACKEND)
 endif()
 
 if(WITH_METAL_BACKEND)

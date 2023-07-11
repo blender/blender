@@ -406,6 +406,10 @@ if(WITH_XR_OPENXR)
   add_definitions(-DWITH_XR_OPENXR)
 endif()
 
+if(WITH_OPENGL_BACKEND)
+  add_definitions(-DWITH_OPENGL_BACKEND)
+endif()
+
 if(WITH_METAL_BACKEND)
   add_definitions(-DWITH_METAL_BACKEND)
 endif()

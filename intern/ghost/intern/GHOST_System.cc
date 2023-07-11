@@ -403,7 +403,13 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   if (stereoVisual) {
     gpuSettings.flags |= GHOST_gpuStereoVisual;
   }
+#if defined(WITH_OPENGL_BACKEND)
   gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
+#elif defined(WITH_METAL_BACKEND)
+  gpuSettings.context_type = GHOST_kDrawingContextTypeMetal;
+#else
+#  error
+#endif
   /* NOTE: don't use #getCurrentDisplaySetting() because on X11 we may
    * be zoomed in and the desktop may be bigger than the viewport. */
   GHOST_ASSERT(m_displayManager,
