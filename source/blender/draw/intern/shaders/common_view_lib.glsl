@@ -262,7 +262,11 @@ vec3 point_world_to_view(vec3 p)
  * Offset is in viewspace, so positive values are closer to the camera. */
 float get_homogenous_z_offset(float vs_z, float hs_w, float vs_offset)
 {
-  if (ProjectionMatrix[3][3] == 0.0) {
+  if (vs_offset == 0.0) {
+    /* Don't calculate homogenous offset if viewspace offset is zero. */
+    return 0.0;
+  }
+  else if (ProjectionMatrix[3][3] == 0.0) {
     /* Clamp offset to half of Z to avoid floating point precision errors. */
     vs_offset = min(vs_offset, vs_z * -0.5);
     /* From "Projection Matrix Tricks" by Eric Lengyel:
