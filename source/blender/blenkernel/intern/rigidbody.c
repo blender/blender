@@ -1352,7 +1352,7 @@ RigidBodyCon *BKE_rigidbody_create_constraint(Scene *scene, Object *ob, short ty
   return rbc;
 }
 
-void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw)
+void BKE_rigidbody_objects_collection_validate(Main *bmain, Scene *scene, RigidBodyWorld *rbw)
 {
   if (rbw->group != NULL) {
     FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (rbw->group, object) {
@@ -1360,8 +1360,10 @@ void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw
         continue;
       }
       object->rigidbody_object = BKE_rigidbody_create_object(scene, object, RBO_TYPE_ACTIVE);
+      DEG_id_tag_update(&object->id, ID_RECALC_TRANSFORM);
     }
     FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
+    DEG_relations_tag_update(bmain);
   }
 }
 
@@ -2360,7 +2362,7 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
 void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime)
 {
 }
-void BKE_rigidbody_objects_collection_validate(Scene *scene, RigidBodyWorld *rbw)
+void BKE_rigidbody_objects_collection_validate(Main *bmain, Scene *scene, RigidBodyWorld *rbw)
 {
 }
 void BKE_rigidbody_constraints_collection_validate(Scene *scene, RigidBodyWorld *rbw)

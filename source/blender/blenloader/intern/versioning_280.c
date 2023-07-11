@@ -1543,7 +1543,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         continue;
       }
 
-      BKE_rigidbody_objects_collection_validate(scene, rbw);
+      BKE_rigidbody_objects_collection_validate(bmain, scene, rbw);
       BKE_rigidbody_constraints_collection_validate(scene, rbw);
     }
   }
