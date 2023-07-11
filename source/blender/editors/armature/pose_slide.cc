@@ -516,7 +516,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
             const bool is_array = RNA_property_array_check(prop);
             float tval;
             if (is_array) {
-              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
                 break; /* Out of range, skip. */
               }
               tval = RNA_property_float_get_index(&ptr, prop, fcu->array_index);
@@ -539,7 +539,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
             const bool is_array = RNA_property_array_check(prop);
             float tval;
             if (is_array) {
-              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
                 break; /* Out of range, skip. */
               }
               tval = RNA_property_int_get_index(&ptr, prop, fcu->array_index);
@@ -564,7 +564,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso,
             const bool is_array = RNA_property_array_check(prop);
             float tval;
             if (is_array) {
-              if (UNLIKELY((uint)fcu->array_index >= RNA_property_array_length(&ptr, prop))) {
+              if (UNLIKELY(uint(fcu->array_index) >= RNA_property_array_length(&ptr, prop))) {
                 break; /* Out of range, skip. */
               }
               tval = RNA_property_boolean_get_index(&ptr, prop, fcu->array_index);

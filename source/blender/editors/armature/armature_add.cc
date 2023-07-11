@@ -1696,7 +1696,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
   CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm) {
     for (i = cuts + 1; i > 1; i--) {
       /* compute cut ratio first */
-      float cutratio = 1.0f / (float)i;
+      float cutratio = 1.0f / float(i);
       float cutratioI = 1.0f - cutratio;
 
       float val1[3];

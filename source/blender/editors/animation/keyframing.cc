@@ -1976,8 +1976,8 @@ static int insert_key_exec(bContext *C, wmOperator *op)
   Object *obedit = CTX_data_edit_object(C);
   bool ob_edit_mode = false;
 
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  const float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   int num_channels;
   const bool confirm = op->flag & OP_IS_INVOKE;
 
@@ -2198,8 +2198,8 @@ static int delete_key_exec(bContext *C, wmOperator *op)
 static int delete_key_using_keying_set(bContext *C, wmOperator *op, KeyingSet *ks)
 {
   Scene *scene = CTX_data_scene(C);
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   int num_channels;
   const bool confirm = op->flag & OP_IS_INVOKE;
 
@@ -2704,8 +2704,8 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop = nullptr;
   Main *bmain = CTX_data_main(C);
   char *path;
-  float cfra = (float)
-                   scene->r.cfra; /* XXX for now, don't bother about all the yucky offset crap */
+  float cfra = float(
+      scene->r.cfra); /* XXX for now, don't bother about all the yucky offset crap */
   bool changed = false;
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");

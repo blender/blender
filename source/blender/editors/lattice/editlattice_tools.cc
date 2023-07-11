@@ -244,7 +244,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 
     if (isOdd) {
       BPoint *bp;
-      float avgInv = 1.0f / (float)totP;
+      float avgInv = 1.0f / float(totP);
       int i;
 
       /* midpoint calculation - assuming that u/v/w are axis-aligned */

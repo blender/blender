@@ -730,102 +730,102 @@ static void cast_primitive_type(const eSDNA_Type old_type,
       case SDNA_TYPE_CHAR: {
         const char value = *old_data;
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_UCHAR: {
-        const uchar value = *((uchar *)old_data);
+        const uchar value = *reinterpret_cast<const uchar *>(old_data);
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_SHORT: {
-        const short value = *((short *)old_data);
+        const short value = *reinterpret_cast<const short *>(old_data);
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_USHORT: {
-        const ushort value = *((ushort *)old_data);
+        const ushort value = *reinterpret_cast<const ushort *>(old_data);
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_INT: {
-        const int value = *((int *)old_data);
+        const int value = *reinterpret_cast<const int *>(old_data);
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_FLOAT: {
-        const float value = *((float *)old_data);
+        const float value = *reinterpret_cast<const float *>(old_data);
         /* `int64_t` range stored in a `uint64_t`. */
-        old_value_i = (uint64_t)(int64_t)value;
+        old_value_i = uint64_t(int64_t(value));
         old_value_f = value;
         break;
       }
       case SDNA_TYPE_DOUBLE: {
-        const double value = *((double *)old_data);
+        const double value = *reinterpret_cast<const double *>(old_data);
         /* `int64_t` range stored in a `uint64_t`. */
-        old_value_i = (uint64_t)(int64_t)value;
+        old_value_i = uint64_t(int64_t(value));
         old_value_f = value;
         break;
       }
       case SDNA_TYPE_INT64: {
-        const int64_t value = *((int64_t *)old_data);
-        old_value_i = (uint64_t)value;
-        old_value_f = (double)value;
+        const int64_t value = *reinterpret_cast<const int64_t *>(old_data);
+        old_value_i = uint64_t(value);
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_UINT64: {
-        const uint64_t value = *((uint64_t *)old_data);
+        const uint64_t value = *reinterpret_cast<const uint64_t *>(old_data);
         old_value_i = value;
-        old_value_f = (double)value;
+        old_value_f = double(value);
         break;
       }
       case SDNA_TYPE_INT8: {
-        const int8_t value = *((int8_t *)old_data);
-        old_value_i = (uint64_t)value;
-        old_value_f = (double)value;
+        const int8_t value = *reinterpret_cast<const int8_t *>(old_data);
+        old_value_i = uint64_t(value);
+        old_value_f = double(value);
       }
     }
 
     switch (new_type) {
       case SDNA_TYPE_CHAR:
-        *new_data = (char)old_value_i;
+        *new_data = char(old_value_i);
         break;
       case SDNA_TYPE_UCHAR:
-        *((uchar *)new_data) = (uchar)old_value_i;
+        *reinterpret_cast<uchar *>(new_data) = uchar(old_value_i);
         break;
       case SDNA_TYPE_SHORT:
-        *((short *)new_data) = (short)old_value_i;
+        *reinterpret_cast<short *>(new_data) = short(old_value_i);
         break;
       case SDNA_TYPE_USHORT:
-        *((ushort *)new_data) = (ushort)old_value_i;
+        *reinterpret_cast<ushort *>(new_data) = ushort(old_value_i);
         break;
       case SDNA_TYPE_INT:
-        *((int *)new_data) = (int)old_value_i;
+        *reinterpret_cast<int *>(new_data) = int(old_value_i);
         break;
       case SDNA_TYPE_FLOAT:
         if (old_type < 2) {
           old_value_f /= 255.0;
         }
-        *((float *)new_data) = old_value_f;
+        *reinterpret_cast<float *>(new_data) = old_value_f;
         break;
       case SDNA_TYPE_DOUBLE:
         if (old_type < 2) {
           old_value_f /= 255.0;
         }
-        *((double *)new_data) = old_value_f;
+        *reinterpret_cast<double *>(new_data) = old_value_f;
         break;
       case SDNA_TYPE_INT64:
-        *((int64_t *)new_data) = (int64_t)old_value_i;
+        *reinterpret_cast<int64_t *>(new_data) = int64_t(old_value_i);
         break;
       case SDNA_TYPE_UINT64:
-        *((uint64_t *)new_data) = old_value_i;
+        *reinterpret_cast<uint64_t *>(new_data) = old_value_i;
         break;
       case SDNA_TYPE_INT8:
-        *((int8_t *)new_data) = (int8_t)old_value_i;
+        *reinterpret_cast<int8_t *>(new_data) = int8_t(old_value_i);
         break;
     }
 
