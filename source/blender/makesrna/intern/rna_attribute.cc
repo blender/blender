@@ -270,49 +270,12 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
 {
   ID *id = ptr->owner_id;
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
-
-  int length = BKE_id_attribute_data_length(id, layer);
-  size_t struct_size;
-
-  switch (layer->type) {
-    case CD_PROP_FLOAT:
-      struct_size = sizeof(MFloatProperty);
-      break;
-    case CD_PROP_INT32:
-      struct_size = sizeof(MIntProperty);
-      break;
-    case CD_PROP_FLOAT3:
-      struct_size = sizeof(float[3]);
-      break;
-    case CD_PROP_COLOR:
-      struct_size = sizeof(MPropCol);
-      break;
-    case CD_PROP_BYTE_COLOR:
-      struct_size = sizeof(MLoopCol);
-      break;
-    case CD_PROP_STRING:
-      struct_size = sizeof(MStringProperty);
-      break;
-    case CD_PROP_BOOL:
-      struct_size = sizeof(MBoolProperty);
-      break;
-    case CD_PROP_FLOAT2:
-      struct_size = sizeof(float[2]);
-      break;
-    case CD_PROP_INT8:
-      struct_size = sizeof(int8_t);
-      break;
-    case CD_PROP_INT32_2D:
-      struct_size = sizeof(int[2]);
-      break;
-    case CD_PROP_QUATERNION:
-      struct_size = sizeof(float[4]);
-      break;
-    default:
-      struct_size = 0;
-      length = 0;
-      break;
+  if (!(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL)) {
+    iter->valid = false;
   }
+
+  const int length = BKE_id_attribute_data_length(id, layer);
+  const size_t struct_size = CustomData_get_elem_size(layer);
 
   rna_iterator_array_begin(iter, layer->data, struct_size, length, 0, nullptr);
 }
@@ -449,8 +412,8 @@ static int rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter, 
 
   /* Check valid domain here, too, keep in line with rna_AttributeGroup_color_length(). */
   ID *id = iter->parent.owner_id;
-  eAttrDomain domain = BKE_id_attribute_domain(id, layer);
-  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
+  const eAttrDomain domain = BKE_id_attribute_domain(id, layer);
+  if (!(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR)) {
     return 1;
   }
 
