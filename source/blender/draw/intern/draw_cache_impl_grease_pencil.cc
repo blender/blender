@@ -315,10 +315,8 @@ static void grease_pencil_geom_batch_ensure(GreasePencil &grease_pencil, int cfr
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
     const Span<float3> positions = curves.positions();
     const VArray<bool> cyclic = curves.cyclic();
-    const VArray<float> radii = *attributes.lookup_or_default<float>(
-        "radius", ATTR_DOMAIN_POINT, 1.0f);
-    const VArray<float> opacities = *attributes.lookup_or_default<float>(
-        "opacity", ATTR_DOMAIN_POINT, 1.0f);
+    const VArray<float> radii = drawing.radii();
+    const VArray<float> opacities = drawing.opacities();
     /* Assumes that if the ".selection" attribute does not exist, all points are selected. */
     const VArray<float> selection_float = *attributes.lookup_or_default<float>(
         ".selection", ATTR_DOMAIN_POINT, true);

@@ -91,7 +91,7 @@ void PaintOperation::on_stroke_done(const bContext &C)
 
   const Span<bke::greasepencil::StrokePoint> stroke_points =
       grease_pencil_eval.runtime->stroke_buffer();
-  CurvesGeometry &curves = drawing_orig.geometry.wrap();
+  CurvesGeometry &curves = drawing_orig.strokes_for_write();
 
   int num_old_curves = curves.curves_num();
   int num_old_points = curves.points_num();
@@ -107,16 +107,14 @@ void PaintOperation::on_stroke_done(const bContext &C)
   /* Set position, radius and opacity attribute. */
   bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
   MutableSpan<float3> positions = curves.positions_for_write();
-  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
-      "radius", ATTR_DOMAIN_POINT);
-  SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
-      "opacity", ATTR_DOMAIN_POINT);
+  MutableSpan<float> radii = drawing_orig.radii_for_write();
+  MutableSpan<float> opacities = drawing_orig.opacities_for_write();
   for (const int i : IndexRange(stroke_points.size())) {
     const bke::greasepencil::StrokePoint &point = stroke_points[i];
     const int point_i = new_points_range[i];
     positions[point_i] = point.position;
-    radii.span[point_i] = point.radius;
-    opacities.span[point_i] = point.opacity;
+    radii[point_i] = point.radius;
+    opacities[point_i] = point.opacity;
   }
 
   /* Set material index attribute. */
@@ -149,8 +147,6 @@ void PaintOperation::on_stroke_done(const bContext &C)
   grease_pencil_eval.runtime->stroke_cache.clear();
   drawing_orig.tag_positions_changed();
 
-  radii.finish();
-  opacities.finish();
   materials.finish();
 
   DEG_id_tag_update(&grease_pencil_orig.id, ID_RECALC_GEOMETRY);

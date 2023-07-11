@@ -14,6 +14,7 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_utility_mixins.hh"
+#include "BLI_virtual_array.hh"
 
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_grease_pencil_types.h"
@@ -76,6 +77,19 @@ class Drawing : public ::GreasePencilDrawing {
    */
   Span<uint3> triangles() const;
   void tag_positions_changed();
+
+  /**
+   * Radii of the points. Values are expected to be in blender units.
+   */
+  VArray<float> radii() const;
+  MutableSpan<float> radii_for_write();
+
+  /**
+   * Opacities for the points. Used by the render engine as an alpha value so they are expected to
+   * be between 0 and 1 inclusive.
+   */
+  VArray<float> opacities() const;
+  MutableSpan<float> opacities_for_write();
 };
 
 class LayerGroup;
