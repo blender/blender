@@ -1283,48 +1283,26 @@ static void weld_mesh_context_create(const Mesh &mesh,
  */
 static void merge_groups_create(Span<int> dest_map,
                                 Span<int> double_elems,
-                                Array<int> &r_groups_map,
-                                Array<int> &r_groups_buffer,
-                                Array<int> &r_groups_offsets)
+                                MutableSpan<int> r_groups_offsets,
+                                Array<int> &r_groups_buffer)
 {
-  r_groups_map.reinitialize(dest_map.size());
-  r_groups_map.fill(OUT_OF_CONTEXT);
-
-  int wgroups_len = 0;
-  for (const int elem_orig : double_elems) {
-    const int elem_dest = dest_map[elem_orig];
-    if (elem_dest == elem_orig) {
-      r_groups_map[elem_orig] = wgroups_len;
-      wgroups_len++;
-    }
-    else {
-      r_groups_map[elem_orig] = ELEM_MERGED;
-    }
-  }
-
-  if (wgroups_len == 0) {
-    /* All elems in the context are collapsed or do not form groups. */
-    return;
-  }
-
-  /* Add +1 to allow calculation of the length of the last group. */
-  r_groups_offsets = Array<int>(wgroups_len + 1, 0);
+  BLI_assert(r_groups_offsets.size() == dest_map.size() + 1);
+  r_groups_offsets.fill(0);
 
   /* TODO: Check using #array_utils::count_indices instead. At the moment it cannot be used
    * because `dest_map` has negative values and `double_elems` (which indicates only the indexes to
    * be read) is not used. */
   for (const int elem_orig : double_elems) {
     const int elem_dest = dest_map[elem_orig];
-    const int group_index = r_groups_map[elem_dest];
-    r_groups_offsets[group_index]++;
+    r_groups_offsets[elem_dest]++;
   }
 
   int offs = 0;
-  for (const int i : IndexRange(wgroups_len)) {
+  for (const int i : dest_map.index_range()) {
     offs += r_groups_offsets[i];
     r_groups_offsets[i] = offs;
   }
-  r_groups_offsets[wgroups_len] = offs;
+  r_groups_offsets.last() = offs;
 
   r_groups_buffer.reinitialize(offs);
   BLI_assert(r_groups_buffer.size() == double_elems.size());
@@ -1333,8 +1311,7 @@ static void merge_groups_create(Span<int> dest_map,
   for (int i = double_elems.size(); i--;) {
     const int elem_orig = double_elems[i];
     const int elem_dest = dest_map[elem_orig];
-    const int group_index = r_groups_map[elem_dest];
-    r_groups_buffer[--r_groups_offsets[group_index]] = elem_orig;
+    r_groups_buffer[--r_groups_offsets[elem_dest]] = elem_orig;
   }
 }
 
@@ -1460,16 +1437,14 @@ static void merge_customdata_all(const CustomData *source,
 
   const int source_size = dest_map.size();
 
-  MutableSpan<int> groups_map;
-  Array<int> groups_buffer, groups_offs_;
+  MutableSpan<int> groups_offs_;
+  Array<int> groups_buffer;
   if (do_mix_data) {
-    merge_groups_create(dest_map, double_elems, r_final_map, groups_buffer, groups_offs_);
+    r_final_map.reinitialize(source_size + 1);
 
-    /**
-     * Be careful when setting values to this array as it uses the same buffer as #r_final_map.
-     * This map will be used to adjust the index of vertices and edges in the new edges and loops.
-     */
-    groups_map = r_final_map;
+    /* Be careful when setting values to this array as it uses the same buffer as `r_final_map`. */
+    groups_offs_ = r_final_map;
+    merge_groups_create(dest_map, double_elems, groups_offs_, groups_buffer);
   }
   else {
     r_final_map.reinitialize(source_size);
@@ -1495,7 +1470,7 @@ static void merge_customdata_all(const CustomData *source,
     }
     if (dest_map[i] == i) {
       if (do_mix_data) {
-        const IndexRange grp_buffer_range = groups_offs[groups_map[i]];
+        const IndexRange grp_buffer_range = groups_offs[i];
         customdata_weld(source,
                         dest,
                         &groups_buffer[grp_buffer_range.start()],
