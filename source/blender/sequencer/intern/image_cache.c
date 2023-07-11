@@ -235,15 +235,15 @@ static void seq_cache_put_ex(Scene *scene, SeqCacheKey *key, ImBuf *ibuf)
     key->link_prev = cache->last_key;
   }
 
+  BLI_assert(!BLI_ghash_haskey(cache->hash, key));
+  BLI_ghash_insert(cache->hash, key, item);
+  IMB_refImBuf(ibuf);
+
   /* Store pointer to last cached key. */
   SeqCacheKey *temp_last_key = cache->last_key;
 
-  if (BLI_ghash_reinsert(cache->hash, key, item, seq_cache_keyfree, seq_cache_valfree)) {
-    IMB_refImBuf(ibuf);
-
-    if (!key->is_temp_cache || key->type != SEQ_CACHE_STORE_THUMBNAIL) {
-      cache->last_key = key;
-    }
+  if (!key->is_temp_cache || key->type != SEQ_CACHE_STORE_THUMBNAIL) {
+    cache->last_key = key;
   }
 
   /* Set last_key's reference to this key so we can look up chain backwards.
