@@ -47,7 +47,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -582,9 +581,6 @@ void DepsgraphRelationBuilder::build_id(ID *id)
       break;
     case ID_SCE:
       build_scene_parameters((Scene *)id);
-      break;
-    case ID_SIM:
-      build_simulation((Simulation *)id);
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
@@ -3145,31 +3141,6 @@ void DepsgraphRelationBuilder::build_sound(bSound *sound)
   const ComponentKey audio_key(&sound->id, NodeType::AUDIO);
 
   add_relation(parameters_key, audio_key, "Parameters -> Audio");
-}
-
-void DepsgraphRelationBuilder::build_simulation(Simulation *simulation)
-{
-  if (built_map_.checkIsBuiltAndTag(simulation)) {
-    return;
-  }
-
-  const BuilderStack::ScopedEntry stack_entry = stack_.trace(simulation->id);
-
-  build_idproperties(simulation->id.properties);
-  build_animdata(&simulation->id);
-  build_parameters(&simulation->id);
-
-  build_nodetree(simulation->nodetree);
-  build_nested_nodetree(&simulation->id, simulation->nodetree);
-
-  OperationKey simulation_eval_key(
-      &simulation->id, NodeType::SIMULATION, OperationCode::SIMULATION_EVAL);
-  TimeSourceKey time_src_key;
-  add_relation(time_src_key, simulation_eval_key, "TimeSrc -> Simulation");
-
-  OperationKey nodetree_key(
-      &simulation->nodetree->id, NodeType::PARAMETERS, OperationCode::PARAMETERS_EXIT);
-  add_relation(nodetree_key, simulation_eval_key, "NodeTree -> Simulation", 0);
 }
 
 using Seq_build_prop_cb_data = struct Seq_build_prop_cb_data {

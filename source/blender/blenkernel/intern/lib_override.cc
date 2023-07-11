@@ -276,9 +276,12 @@ static ID *lib_override_library_create_from(Main *bmain,
                                 LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
                                     lib_id_copy_flags);
 
-  /* Incase we could not get an override ID with the exact same name as its linked reference, ensure we at least get a uniquely named override ID over the whole current Main data, to reduce potential name collisions with other reference IDs.
+  /* Incase we could not get an override ID with the exact same name as its linked reference,
+   * ensure we at least get a uniquely named override ID over the whole current Main data, to
+   * reduce potential name collisions with other reference IDs.
    *
-   * While in normal cases this would not be an issue, when files start to get heavily broken and not sound, such conflicts can become a source of problems. */
+   * While in normal cases this would not be an issue, when files start to get heavily broken and
+   * not sound, such conflicts can become a source of problems. */
   if (!STREQ(local_id->name + 2, reference_id->name + 2)) {
     BLI_strncpy(local_id->name + 2, reference_id->name + 2, MAX_ID_NAME - 2);
     BKE_main_namemap_get_name(bmain, local_id, local_id->name + 2, true);

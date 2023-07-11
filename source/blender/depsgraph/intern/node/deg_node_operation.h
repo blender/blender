@@ -199,9 +199,6 @@ enum class OperationCode {
 
   /* Duplication/instancing system. --------------------------------------- */
   DUPLI,
-
-  /* Simulation. ---------------------------------------------------------- */
-  SIMULATION_EVAL,
 };
 const char *operationCodeAsString(OperationCode opcode);
 

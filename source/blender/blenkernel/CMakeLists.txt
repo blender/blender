@@ -264,7 +264,6 @@ set(SRC
   intern/screen.c
   intern/shader_fx.c
   intern/shrinkwrap.cc
-  intern/simulation.cc
   intern/simulation_state.cc
   intern/simulation_state_serialize.cc
   intern/softbody.c
@@ -471,7 +470,6 @@ set(SRC
   BKE_sequencer_offscreen.h
   BKE_shader_fx.h
   BKE_shrinkwrap.h
-  BKE_simulation.h
   BKE_simulation_state.hh
   BKE_simulation_state_serialize.hh
   BKE_softbody.h

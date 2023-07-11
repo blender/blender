@@ -49,7 +49,6 @@
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_blenlib.h"
@@ -2879,11 +2878,6 @@ static void image_walk_id_all_users(
       if (scene->nodetree && scene->use_nodes && !skip_nested_nodes) {
         image_walk_ntree_all_users(scene->nodetree, &scene->id, customdata, callback);
       }
-      break;
-    }
-    case ID_SIM: {
-      Simulation *simulation = (Simulation *)id;
-      image_walk_ntree_all_users(simulation->nodetree, &simulation->id, customdata, callback);
       break;
     }
     default:

@@ -410,8 +410,7 @@ static void deg_debug_graphviz_node(DotExportContext &ctx,
     case NodeType::GENERIC_DATABLOCK:
     case NodeType::VISIBILITY:
     case NodeType::NTREE_OUTPUT:
-    case NodeType::NTREE_GEOMETRY_PREPROCESS:
-    case NodeType::SIMULATION: {
+    case NodeType::NTREE_GEOMETRY_PREPROCESS: {
       ComponentNode *comp_node = (ComponentNode *)node;
       if (comp_node->operations.is_empty()) {
         deg_debug_graphviz_node_single(ctx, node, parent_cluster);

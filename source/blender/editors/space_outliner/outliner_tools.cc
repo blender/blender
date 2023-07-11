@@ -26,7 +26,6 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -165,7 +164,6 @@ static void get_element_operation_type(
       case ID_CV:
       case ID_PT:
       case ID_VO:
-      case ID_SIM:
       case ID_GP:
         is_standard_id = true;
         break;

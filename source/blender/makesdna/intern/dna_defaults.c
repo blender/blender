@@ -99,7 +99,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -130,7 +129,6 @@
 #include "DNA_particle_defaults.h"
 #include "DNA_pointcloud_defaults.h"
 #include "DNA_scene_defaults.h"
-#include "DNA_simulation_defaults.h"
 #include "DNA_space_defaults.h"
 #include "DNA_speaker_defaults.h"
 #include "DNA_texture_defaults.h"
@@ -212,9 +210,6 @@ SDNA_DEFAULT_DECL_STRUCT(PointCloud);
 /* DNA_scene_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(Scene);
 SDNA_DEFAULT_DECL_STRUCT(ToolSettings);
-
-/* DNA_simulation_defaults.h */
-SDNA_DEFAULT_DECL_STRUCT(Simulation);
 
 /* DNA_space_defaults.h */
 SDNA_DEFAULT_DECL_STRUCT(SpaceClip);
@@ -450,9 +445,6 @@ const void *DNA_default_table[SDNA_TYPE_MAX] = {
     SDNA_DEFAULT_DECL_EX(MeshStatVis, ToolSettings.statvis),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Settings, ToolSettings.gp_sculpt),
     SDNA_DEFAULT_DECL_EX(GP_Sculpt_Guide, ToolSettings.gp_sculpt.guide),
-
-    /* DNA_simulation_defaults.h */
-    SDNA_DEFAULT_DECL(Simulation),
 
     /* DNA_speaker_defaults.h */
     SDNA_DEFAULT_DECL(Speaker),

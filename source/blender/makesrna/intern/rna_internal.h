@@ -516,9 +516,6 @@ void RNA_def_main_lightprobes(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_hair_curves(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_pointclouds(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_volumes(BlenderRNA *brna, PropertyRNA *cprop);
-#ifdef WITH_SIMULATION_DATABLOCK
-void RNA_def_main_simulations(BlenderRNA *brna, PropertyRNA *cprop);
-#endif
 
 /* ID Properties */
 

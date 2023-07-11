@@ -63,7 +63,6 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
     {ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
     {ID_PT, "POINTCLOUD", ICON_POINTCLOUD_DATA, "Point Cloud", ""},
     {ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
-    {ID_SIM, "SIMULATION", ICON_PHYSICS, "Simulation", ""}, /* TODO: Use correct icon. */
     {ID_SO, "SOUND", ICON_SOUND, "Sound", ""},
     {ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
     {ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
@@ -191,11 +190,6 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
      "Point Clouds",
      "Show/hide Point Cloud data-blocks"},
     {FILTER_ID_SCE, "filter_scene", ICON_SCENE_DATA, "Scenes", "Show Scene data-blocks"},
-    {FILTER_ID_SIM,
-     "filter_simulation",
-     ICON_PHYSICS,
-     "Simulations",
-     "Show Simulation data-blocks"}, /* TODO: Use correct icon. */
     {FILTER_ID_SPK, "filter_speaker", ICON_SPEAKER, "Speakers", "Show Speaker data-blocks"},
     {FILTER_ID_SO, "filter_sound", ICON_SOUND, "Sounds", "Show Sound data-blocks"},
     {FILTER_ID_TE, "filter_texture", ICON_TEXTURE_DATA, "Textures", "Show Texture data-blocks"},
@@ -432,11 +426,6 @@ short RNA_type_to_ID_code(const StructRNA *type)
   if (base_type == &RNA_Screen) {
     return ID_SCR;
   }
-#  ifdef WITH_SIMULATION_DATABLOCK
-  if (base_type == &RNA_Simulation) {
-    return ID_SIM;
-  }
-#  endif
   if (base_type == &RNA_Sound) {
     return ID_SO;
   }
@@ -534,12 +523,6 @@ StructRNA *ID_code_to_RNA_type(short idcode)
       return &RNA_Scene;
     case ID_SCR:
       return &RNA_Screen;
-    case ID_SIM:
-#  ifdef WITH_SIMULATION_DATABLOCK
-      return &RNA_Simulation;
-#  else
-      return &RNA_ID;
-#  endif
     case ID_SO:
       return &RNA_Sound;
     case ID_SPK:

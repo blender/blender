@@ -1313,9 +1313,6 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 
   /* volumes */
   ANIMDATA_IDS_CB(bmain->volumes.first);
-
-  /* simulations */
-  ANIMDATA_IDS_CB(bmain->simulations.first);
 }
 
 void BKE_animdata_fix_paths_rename_all(ID *ref_id,
@@ -1442,9 +1439,6 @@ void BKE_animdata_fix_paths_rename_all_ex(Main *bmain,
 
   /* volumes */
   RENAMEFIX_ANIM_IDS(bmain->volumes.first);
-
-  /* simulations */
-  RENAMEFIX_ANIM_IDS(bmain->simulations.first);
 
   /* scenes */
   RENAMEFIX_ANIM_NODETREE_IDS(bmain->scenes.first, Scene);

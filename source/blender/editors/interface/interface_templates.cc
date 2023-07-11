@@ -1136,8 +1136,6 @@ static const char *template_id_browse_tip(const StructRNA *type)
         return N_("Browse Point Cloud Data to be linked");
       case ID_VO:
         return N_("Browse Volume Data to be linked");
-      case ID_SIM:
-        return N_("Browse Simulation to be linked");
       case ID_GP:
         return N_("Browse Grease Pencil Data to be linked");
 
@@ -1236,8 +1234,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_LIGHTPROBE,
                             BLT_I18NCONTEXT_ID_CURVES,
                             BLT_I18NCONTEXT_ID_POINTCLOUD,
-                            BLT_I18NCONTEXT_ID_VOLUME,
-                            BLT_I18NCONTEXT_ID_SIMULATION, );
+                            BLT_I18NCONTEXT_ID_VOLUME, );
   BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_PAINTCURVE, );
   /* NOTE: BLT_I18N_MSGID_MULTI_CTXT takes a maximum number of parameters,
    * check the definition to see if a new call must be added when the limit

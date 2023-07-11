@@ -55,7 +55,6 @@
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
-#include "BKE_simulation.h"
 #include "BKE_simulation_state.hh"
 #include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"

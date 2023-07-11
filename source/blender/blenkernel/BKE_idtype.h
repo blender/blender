@@ -277,7 +277,6 @@ extern IDTypeInfo IDType_ID_LP;
 extern IDTypeInfo IDType_ID_CV;
 extern IDTypeInfo IDType_ID_PT;
 extern IDTypeInfo IDType_ID_VO;
-extern IDTypeInfo IDType_ID_SIM;
 extern IDTypeInfo IDType_ID_GP;
 
 /** Empty shell mostly, but needed for read code. */

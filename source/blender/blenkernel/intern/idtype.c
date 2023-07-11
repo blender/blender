@@ -95,7 +95,6 @@ static void id_type_init(void)
   INIT_TYPE(ID_CV);
   INIT_TYPE(ID_PT);
   INIT_TYPE(ID_VO);
-  INIT_TYPE(ID_SIM);
   INIT_TYPE(ID_GP);
 
   /* Special naughty boy... */
@@ -248,7 +247,6 @@ uint64_t BKE_idtype_idcode_to_idfilter(const short idcode)
     CASE_IDFILTER(PT);
     CASE_IDFILTER(SCE);
     CASE_IDFILTER(SCR);
-    CASE_IDFILTER(SIM);
     CASE_IDFILTER(SO);
     CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
@@ -307,7 +305,6 @@ short BKE_idtype_idcode_from_idfilter(const uint64_t idfilter)
     CASE_IDFILTER(PT);
     CASE_IDFILTER(SCE);
     CASE_IDFILTER(SCR);
-    CASE_IDFILTER(SIM);
     CASE_IDFILTER(SO);
     CASE_IDFILTER(SPK);
     CASE_IDFILTER(TE);
@@ -364,7 +361,6 @@ int BKE_idtype_idcode_to_index(const short idcode)
     CASE_IDINDEX(LP);
     CASE_IDINDEX(SCE);
     CASE_IDINDEX(SCR);
-    CASE_IDINDEX(SIM);
     CASE_IDINDEX(SPK);
     CASE_IDINDEX(SO);
     CASE_IDINDEX(TE);
@@ -424,7 +420,6 @@ short BKE_idtype_idcode_from_index(const int index)
     CASE_IDCODE(LP);
     CASE_IDCODE(SCE);
     CASE_IDCODE(SCR);
-    CASE_IDCODE(SIM);
     CASE_IDCODE(SPK);
     CASE_IDCODE(SO);
     CASE_IDCODE(TE);

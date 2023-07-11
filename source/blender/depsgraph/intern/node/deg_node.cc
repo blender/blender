@@ -99,8 +99,6 @@ const char *nodeTypeAsString(NodeType type)
       return "GENERIC_DATABLOCK";
     case NodeType::VISIBILITY:
       return "VISIBILITY";
-    case NodeType::SIMULATION:
-      return "SIMULATION";
     case NodeType::NTREE_OUTPUT:
       return "NTREE_OUTPUT";
     case NodeType::NTREE_GEOMETRY_PREPROCESS:
@@ -162,7 +160,6 @@ eDepsSceneComponentType nodeTypeToSceneComponent(NodeType type)
     case NodeType::BONE:
     case NodeType::SHADING:
     case NodeType::CACHE:
-    case NodeType::SIMULATION:
     case NodeType::NTREE_OUTPUT:
     case NodeType::NTREE_GEOMETRY_PREPROCESS:
       return DEG_SCENE_COMP_PARAMETERS;
@@ -238,7 +235,6 @@ eDepsObjectComponentType nodeTypeToObjectComponent(NodeType type)
     case NodeType::BATCH_CACHE:
     case NodeType::DUPLI:
     case NodeType::SYNCHRONIZATION:
-    case NodeType::SIMULATION:
     case NodeType::NTREE_OUTPUT:
     case NodeType::NTREE_GEOMETRY_PREPROCESS:
     case NodeType::UNDEFINED:
