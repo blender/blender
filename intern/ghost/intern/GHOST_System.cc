@@ -407,6 +407,8 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window,
   gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
 #elif defined(WITH_METAL_BACKEND)
   gpuSettings.context_type = GHOST_kDrawingContextTypeMetal;
+#elif defined(WITH_VULKAN_BACKEND)
+  gpuSettings.context_type = GHOST_kDrawingContextTypeVulkan;
 #else
 #  error
 #endif
