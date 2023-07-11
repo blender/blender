@@ -87,6 +87,17 @@ struct FloatTraits {
   }
 };
 
+template<typename T> struct TraitsType {
+  using type = void;
+};
+template<> struct TraitsType<ColorPaint4f> {
+  using type = FloatTraits;
+};
+template<> struct TraitsType<ColorPaint4b> {
+  using type = ByteTraits;
+};
+template<typename T> using Traits = typename TraitsType<T>::type;
+
 static float get_luminance(ColorPaint4f c)
 {
   return IMB_colormanagement_get_luminance(&c.r);
