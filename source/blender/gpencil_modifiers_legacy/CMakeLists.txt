@@ -6,7 +6,6 @@ set(INC
   .
   intern
   ../blenfont
-  ../blenkernel
   ../blentranslation
   ../bmesh
   ../depsgraph
@@ -88,6 +87,7 @@ list(APPEND LIB
 endif()
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

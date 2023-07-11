@@ -6,7 +6,6 @@ set(INC
   ..
   ../../mikktspace
   ../../../source/blender/makesrna
-  ../../../source/blender/blenkernel
   ../../../source/blender/gpu
   ../../../source/blender/render
   ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
@@ -57,6 +56,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

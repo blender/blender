@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   ../asset_system
   ../blenfont
   ../blenloader
@@ -812,6 +812,7 @@ endif()
 # endif()
 
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::blenkernel ALIAS bf_blenkernel)
 
 # RNA_prototypes.h
 add_dependencies(bf_blenkernel bf_rna)

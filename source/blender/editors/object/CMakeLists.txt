@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenfont
-  ../../blenkernel
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -61,7 +60,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_mesh
