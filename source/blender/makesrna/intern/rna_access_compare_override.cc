@@ -1353,6 +1353,8 @@ static bool override_apply_property_check_skip(Main *bmain,
                                                IDOverrideLibraryProperty *op,
                                                const eRNAOverrideApplyFlag flag)
 {
+  UNUSED_VARS_NDEBUG(bmain, ptr_src, data_src, prop_src);
+
   if ((flag & RNA_OVERRIDE_APPLY_FLAG_IGNORE_ID_POINTERS) == 0) {
     return false;
   }
