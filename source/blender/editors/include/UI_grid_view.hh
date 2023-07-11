@@ -27,6 +27,7 @@ struct View2D;
 namespace blender::ui {
 
 class AbstractGridView;
+class GridViewItemDropTarget;
 
 /* ---------------------------------------------------------------------- */
 /** \name Grid-View Item Type
@@ -62,6 +63,9 @@ class AbstractGridViewItem : public AbstractViewItem {
    * usually depending on the data that the view represents.
    */
   virtual std::optional<bool> should_be_active() const;
+
+  virtual std::unique_ptr<DropTargetInterface> create_item_drop_target() final;
+  virtual std::unique_ptr<GridViewItemDropTarget> create_drop_target();
 
   /**
    * Activates this item, deactivates other items, and calls the
@@ -157,6 +161,29 @@ class AbstractGridView : public AbstractView {
 /** \} */
 
 /* ---------------------------------------------------------------------- */
+/** \name Drag & Drop
+ * \{ */
+
+/**
+ * Class to define the behavior when dropping something onto/into a view item, plus the behavior
+ * when dragging over this item. An item can return a drop target for itself via a custom
+ * implementation of #AbstractGridViewItem::create_drop_target().
+ */
+class GridViewItemDropTarget : public DropTargetInterface {
+ protected:
+  AbstractGridView &view_;
+
+ public:
+  GridViewItemDropTarget(AbstractGridView &view);
+
+  /** Request the view the item is registered for as type #ViewType. Throws a `std::bad_cast`
+   * exception if the view is not of the requested type. */
+  template<class ViewType> inline ViewType &get_view() const;
+};
+
+/** \} */
+
+/* ---------------------------------------------------------------------- */
 /** \name Grid-View Builder
  *
  *  TODO unify this with `TreeViewBuilder` and call view-specific functions via type erased view?
@@ -228,6 +255,13 @@ template<class ItemT, typename... Args> inline ItemT &AbstractGridView::add_item
                 "Type must derive from and implement the AbstractGridViewItem interface");
 
   return dynamic_cast<ItemT &>(add_item(std::make_unique<ItemT>(std::forward<Args>(args)...)));
+}
+
+template<class ViewType> ViewType &GridViewItemDropTarget::get_view() const
+{
+  static_assert(std::is_base_of<AbstractGridView, ViewType>::value,
+                "Type must derive from and implement the ui::AbstractGridView interface");
+  return dynamic_cast<ViewType &>(view_);
 }
 
 }  // namespace blender::ui

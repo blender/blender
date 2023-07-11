@@ -197,7 +197,7 @@ std::unique_ptr<AbstractViewItemDragController> AbstractViewItem::create_drag_co
   return nullptr;
 }
 
-std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target()
+std::unique_ptr<DropTargetInterface> AbstractViewItem::create_item_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
@@ -209,8 +209,6 @@ void AbstractViewItemDragController::on_drag_start()
 {
   /* Do nothing by default. */
 }
-
-AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view) {}
 
 /** \} */
 
@@ -225,6 +223,11 @@ AbstractView &AbstractViewItem::get_view() const
         "Invalid state, item must be registered through AbstractView::register_item()");
   }
   return *view_;
+}
+
+uiButViewItem *AbstractViewItem::view_item_button() const
+{
+  return view_item_but_;
 }
 
 void AbstractViewItem::disable_activatable()
@@ -258,7 +261,7 @@ bool AbstractViewItem::is_active() const
 std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle)
 {
   AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
-  return item.create_drop_target();
+  return item.create_item_drop_target();
 }
 
 /** \} */
