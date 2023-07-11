@@ -43,10 +43,12 @@ static void wm_xr_error_handler(const GHOST_XrError *error)
 {
   wmXrErrorHandlerData *handler_data = error->customdata;
   wmWindowManager *wm = handler_data->wm;
+  wmWindow *root_win = wm->xr.runtime ? wm->xr.runtime->session_root_win : NULL;
 
   BKE_reports_clear(&wm->reports);
   WM_report(RPT_ERROR, error->user_message);
-  WM_report_banner_show();
+  /* Rely on the fallback when `root_win` is NULL. */
+  WM_report_banner_show(wm, root_win);
 
   if (wm->xr.runtime) {
     /* Just play safe and destroy the entire runtime data, including context. */

@@ -882,10 +882,15 @@ static void wm_event_handler_ui_cancel(bContext *C)
  * Access to #wmWindowManager.reports
  * \{ */
 
-void WM_report_banner_show()
+void WM_report_banner_show(wmWindowManager *wm, wmWindow *win)
 {
-  wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
-  wmWindow *win = wm->winactive ? wm->winactive : static_cast<wmWindow *>(wm->windows.first);
+  if (win == nullptr) {
+    win = wm->winactive;
+    if (win == nullptr) {
+      win = static_cast<wmWindow *>(wm->windows.first);
+    }
+  }
+
   ReportList *wm_reports = &wm->reports;
 
   /* After adding reports to the global list, reset the report timer. */
@@ -921,7 +926,7 @@ static void wm_add_reports(ReportList *reports)
     /* Add reports to the global list, otherwise they are not seen. */
     BLI_movelisttolist(&wm->reports.list, &reports->list);
 
-    WM_report_banner_show();
+    WM_report_banner_show(wm, nullptr);
   }
 }
 
@@ -2812,7 +2817,7 @@ static eHandlerActionFlag wm_handler_fileselect_do(bContext *C,
           BLI_movelisttolist(&CTX_wm_reports(C)->list, &handler->op->reports->list);
 
           /* More hacks, since we meddle with reports, banner display doesn't happen automatic. */
-          WM_report_banner_show();
+          WM_report_banner_show(CTX_wm_manager(C), CTX_wm_window(C));
 
           CTX_wm_window_set(C, win_prev);
           CTX_wm_area_set(C, area_prev);

@@ -597,8 +597,9 @@ void WM_main_remap_editor_id_reference(const struct IDRemapper *mappings);
 /* reports */
 /**
  * Show the report in the info header.
+ * \param win: When NULL, a best-guess is used.
  */
-void WM_report_banner_show(void);
+void WM_report_banner_show(struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL(1);
 /**
  * Hide all currently displayed banners and abort their timer.
  */

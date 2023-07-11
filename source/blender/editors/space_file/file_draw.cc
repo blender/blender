@@ -615,7 +615,7 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
       errno = 0;
       if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
         WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
-        WM_report_banner_show();
+        WM_report_banner_show(wm, win);
       }
       else {
         /* If rename is successful, scroll to newly renamed entry. */
