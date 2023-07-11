@@ -19,8 +19,6 @@ void BKE_simulation_data_update(struct Depsgraph *depsgraph,
                                 struct Scene *scene,
                                 struct Simulation *simulation);
 
-void BKE_simulation_reset_scene(Scene *scene);
-
 #ifdef __cplusplus
 }
 #endif

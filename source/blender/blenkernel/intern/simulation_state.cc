@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_collection.h"
 #include "BKE_curves.hh"
 #include "BKE_simulation_state.hh"
 #include "BKE_simulation_state_serialize.hh"
 
-#include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -16,6 +16,8 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string_utils.h"
+
+#include "MOD_nodes.hh"
 
 namespace blender::bke::sim {
 
@@ -249,6 +251,20 @@ void ModifierSimulationCache::reset()
   this->realtime_cache.current_state.reset();
   this->realtime_cache.prev_state.reset();
   this->cache_state = CacheState::Valid;
+}
+
+void scene_simulation_states_reset(Scene &scene)
+{
+  FOREACH_SCENE_OBJECT_BEGIN (&scene, ob) {
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      nmd->runtime->simulation_cache.reset();
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
 }
 
 }  // namespace blender::bke::sim

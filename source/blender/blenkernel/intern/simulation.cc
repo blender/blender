@@ -190,16 +190,3 @@ void BKE_simulation_data_update(Depsgraph * /*depsgraph*/,
 {
 }
 
-void BKE_simulation_reset_scene(Scene *scene)
-{
-  FOREACH_SCENE_OBJECT_BEGIN (scene, ob) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type != eModifierType_Nodes) {
-        continue;
-      }
-      NodesModifierData *nmd = (NodesModifierData *)md;
-      nmd->runtime->simulation_cache.reset();
-    }
-  }
-  FOREACH_SCENE_OBJECT_END;
-}
