@@ -8,6 +8,11 @@ void main()
   vec3 world_pos = point_object_to_world(pos);
   gl_Position = point_world_to_ndc(world_pos);
 
+#ifdef GPU_METAL
+  /* Small bias to always be on top of the geom. */
+  gl_Position.z -= 5e-5;
+#endif
+
   bool is_select = (nor.w > 0.0);
   bool is_hidden = (nor.w < 0.0);
 
