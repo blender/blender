@@ -1890,8 +1890,14 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
             else if (!new_parent && !old_parent) {
               /* Between main windows that don't overlap. */
               RECT new_rect, old_rect, dest_rect;
-              ::GetWindowRect(hwnd, &new_rect);
-              ::GetWindowRect(old_hwnd, &old_rect);
+
+              /* The rects without the outside shadows and slightly inset. */
+              DwmGetWindowAttribute(hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &new_rect, sizeof(RECT));
+              ::InflateRect(&new_rect, -1, -1);
+              DwmGetWindowAttribute(
+                  old_hwnd, DWMWA_EXTENDED_FRAME_BOUNDS, &old_rect, sizeof(RECT));
+              ::InflateRect(&old_rect, -1, -1);
+
               if (!IntersectRect(&dest_rect, &new_rect, &old_rect)) {
                 ::SetFocus(hwnd);
               }
