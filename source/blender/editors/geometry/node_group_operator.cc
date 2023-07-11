@@ -75,8 +75,9 @@ static const bNodeTree *get_node_group(const bContext &C)
   if (!asset) {
     return nullptr;
   }
+  Main &bmain = *CTX_data_main(&C);
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      ED_asset_get_local_id_from_asset_or_append_and_reuse(CTX_data_main(&C), *asset, ID_NT));
+      asset::asset_local_id_ensure_imported(bmain, *asset));
   if (!node_group) {
     return nullptr;
   }
