@@ -12,6 +12,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
@@ -498,8 +499,8 @@ struct PBVHVertexIter {
   int gridsize;
 
   /* mesh */
-  float (*vert_positions)[3];
-  float (*vert_normals)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
+  blender::MutableSpan<blender::float3> vert_normals;
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
@@ -558,7 +559,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             } \
           } \
         } \
-        else if (vi.vert_positions) { \
+        else if (!vi.vert_positions.is_empty()) { \
           vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
           if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
             continue; \

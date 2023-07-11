@@ -3262,7 +3262,7 @@ static void do_vpaint_brush_smear(bContext *C,
         const int v_index = has_grids ? ss->corner_verts[vd.grid_indices[vd.g]] :
                                         vd.vert_indices[vd.i];
         const float grid_alpha = has_grids ? 1.0f / vd.gridsize : 1.0f;
-        const float3 &mv_curr = &ss->vert_positions[v_index];
+        const float3 &mv_curr = ss->vert_positions[v_index];
 
         /* if the vertex is selected for painting. */
         if (use_vert_sel && !select_vert[v_index]) {

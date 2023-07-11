@@ -11,6 +11,7 @@
 /* Needed for BKE_ccg.h. */
 #include "BLI_assert.h"
 #include "BLI_bitmap.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
 
@@ -34,13 +35,13 @@ struct PBVH_GPU_Args {
 
   BMesh *bm;
   const Mesh *me;
-  const float (*vert_positions)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
-  int mesh_verts_num, mesh_faces_num, mesh_grids_num;
+  int mesh_faces_num, mesh_grids_num;
   CustomData *vdata, *ldata, *pdata;
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
 
   const char *active_color;
   const char *render_color;

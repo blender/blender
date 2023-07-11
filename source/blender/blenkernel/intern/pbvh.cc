@@ -699,7 +699,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   memset((void *)args, 0, sizeof(*args));
 
   args->pbvh_type = pbvh->header.type;
-  args->mesh_verts_num = pbvh->totvert;
   args->mesh_grids_num = pbvh->totgrid;
   args->node = node;
 
@@ -857,7 +856,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   if (!pbvh->deformed) {
     /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */
-    pbvh->vert_positions = BKE_mesh_vert_positions_for_write(mesh);
+    pbvh->vert_positions = mesh->vert_positions_for_write();
   }
 
   pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
@@ -869,7 +868,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   mesh->vert_normals();
   mesh->poly_normals();
 
-  pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
+  pbvh->vert_normals = mesh->runtime->vert_normals;
   pbvh->poly_normals = mesh->runtime->poly_normals;
 
   pbvh->vdata = &mesh->vdata;
@@ -1095,14 +1094,6 @@ void BKE_pbvh_free(PBVH *pbvh)
     }
   }
 
-  if (pbvh->deformed) {
-    if (pbvh->vert_positions) {
-      /* if pbvh was deformed, new memory was allocated for verts/faces -- free it */
-
-      MEM_freeN((void *)pbvh->vert_positions);
-    }
-  }
-
   if (pbvh->looptri) {
     MEM_freeN((void *)pbvh->looptri);
   }
@@ -1119,7 +1110,7 @@ void BKE_pbvh_free(PBVH *pbvh)
 
   pbvh_pixels_free(pbvh);
 
-  MEM_freeN(pbvh);
+  MEM_delete(pbvh);
 }
 
 static void pbvh_iter_begin(PBVHIter *iter,
@@ -1387,8 +1378,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
 {
   using namespace blender;
   using namespace blender::bke;
-  const Span<float3> positions(reinterpret_cast<const float3 *>(pbvh->vert_positions),
-                               pbvh->totvert);
+  const Span<float3> positions = pbvh->vert_positions;
   const OffsetIndices polys = pbvh->polys;
   const Span<int> corner_verts(pbvh->corner_verts, pbvh->mesh->totloop);
 
@@ -1407,7 +1397,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
     return;
   }
 
-  MutableSpan<float3> vert_normals(reinterpret_cast<float3 *>(pbvh->vert_normals), pbvh->totvert);
+  MutableSpan<float3> vert_normals = pbvh->vert_normals;
   MutableSpan<float3> poly_normals = pbvh->poly_normals;
 
   VectorSet<int> verts_to_update;
@@ -2470,7 +2460,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     int *r_active_face_index,
                                     float *r_face_normal)
 {
-  const float(*positions)[3] = pbvh->vert_positions;
+  const Span<float3> positions = pbvh->vert_positions;
   const int *corner_verts = pbvh->corner_verts;
   const int *looptris = node->prim_indices;
   int looptris_num = node->totprim;
@@ -2819,7 +2809,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
                                            float *depth,
                                            float *dist_sq)
 {
-  const float(*positions)[3] = pbvh->vert_positions;
+  const Span<float3> positions = pbvh->vert_positions;
   const int *corner_verts = pbvh->corner_verts;
   const int *looptris = node->prim_indices;
   int i, looptris_num = node->totprim;
@@ -3182,10 +3172,10 @@ float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
 {
   float(*vertCos)[3] = nullptr;
 
-  if (pbvh->vert_positions) {
+  if (!pbvh->vert_positions.is_empty()) {
     vertCos = static_cast<float(*)[3]>(
         MEM_malloc_arrayN(pbvh->totvert, sizeof(float[3]), __func__));
-    memcpy(vertCos, pbvh->vert_positions, sizeof(float[3]) * pbvh->totvert);
+    memcpy(vertCos, pbvh->vert_positions.data(), sizeof(float[3]) * pbvh->totvert);
   }
 
   return vertCos;
@@ -3199,12 +3189,13 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
   }
 
   if (!pbvh->deformed) {
-    if (pbvh->vert_positions) {
+    if (!pbvh->vert_positions.is_empty()) {
       /* if pbvh is not already deformed, verts/faces points to the */
       /* original data and applying new coords to this arrays would lead to */
       /* unneeded deformation -- duplicate verts/faces to avoid this */
+      pbvh->vert_positions_deformed = blender::Array<float3>(pbvh->vert_positions.as_span());
+      pbvh->vert_positions = pbvh->vert_positions_deformed;
 
-      pbvh->vert_positions = static_cast<float(*)[3]>(MEM_dupallocN(pbvh->vert_positions));
       /* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh,
        * it's never some mesh data. */
 
@@ -3212,8 +3203,8 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
     }
   }
 
-  if (pbvh->vert_positions) {
-    float(*positions)[3] = pbvh->vert_positions;
+  if (!pbvh->vert_positions.is_empty()) {
+    MutableSpan<float3> positions = pbvh->vert_positions;
     /* copy new verts coords */
     for (int a = 0; a < pbvh->totvert; a++) {
       /* no need for float comparison here (memory is exactly equal or not) */
@@ -3301,7 +3292,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->grid = nullptr;
   vi->no = nullptr;
   vi->fno = nullptr;
-  vi->vert_positions = nullptr;
+  vi->vert_positions = {};
   vi->vertex.i = 0LL;
 
   BKE_pbvh_node_get_grids(pbvh, node, &grid_indices, &totgrid, nullptr, &gridsize, &grids);
@@ -3322,7 +3313,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   }
   vi->vert_indices = vert_indices;
   vi->vert_positions = pbvh->vert_positions;
-  vi->is_mesh = pbvh->vert_positions != nullptr;
+  vi->is_mesh = !pbvh->vert_positions.is_empty();
 
   if (pbvh->header.type == PBVH_BMESH) {
     BLI_gsetIterator_init(&vi->bm_unique_verts, node->bm_unique_verts);
@@ -3402,13 +3393,13 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
 float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3]
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return pbvh->vert_positions;
+  return reinterpret_cast<float(*)[3]>(pbvh->vert_positions.data());
 }
 
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return pbvh->vert_normals;
+  return reinterpret_cast<const float(*)[3]>(pbvh->vert_normals.data());
 }
 
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh)
