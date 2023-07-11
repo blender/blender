@@ -279,7 +279,6 @@ static int add_keyingset_button_exec(bContext *C, wmOperator *op)
   int index = 0, pflag = 0;
   const bool all = RNA_boolean_get(op->ptr, "all");
 
-  /* try to add to keyingset using property retrieved from UI */
   if (!UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
@@ -385,7 +384,6 @@ static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
   bool changed = false;
   int index = 0;
 
-  /* try to add to keyingset using property retrieved from UI */
   if (UI_context_active_but_prop_get(C, &ptr, &prop, &index)) {
     /* pass event on if no active button found */
     return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
