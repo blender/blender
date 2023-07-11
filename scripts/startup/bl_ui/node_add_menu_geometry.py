@@ -530,6 +530,7 @@ class NODE_MT_category_GEO_UTILITIES(Menu):
         layout.menu("NODE_MT_category_GEO_UTILITIES_ROTATION")
         layout.separator()
         node_add_menu.add_node_type(layout, "FunctionNodeRandomValue")
+        node_add_menu.add_repeat_zone(layout, label="Repeat Zone")
         node_add_menu.add_node_type(layout, "GeometryNodeSwitch")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 

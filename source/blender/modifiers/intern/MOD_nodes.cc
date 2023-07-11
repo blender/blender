@@ -474,6 +474,27 @@ static void find_side_effect_nodes_for_viewer_path(
         zone = next_zone;
         break;
       }
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
+        const bke::bNodeTreeZone *next_zone = tree_zones->get_zone_by_node(
+            typed_elem.repeat_output_node_id);
+        if (next_zone == nullptr) {
+          return;
+        }
+        if (next_zone->parent_zone != zone) {
+          return;
+        }
+        const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
+            next_zone, nullptr);
+        if (lf_zone_node == nullptr) {
+          return;
+        }
+        local_side_effect_nodes.add(compute_context_builder.hash(), lf_zone_node);
+        compute_context_builder.push<bke::RepeatZoneComputeContext>(*next_zone->output_node,
+                                                                    typed_elem.iteration);
+        zone = next_zone;
+        break;
+      }
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
         const auto &typed_elem = *reinterpret_cast<const GroupNodeViewerPathElem *>(elem);
         const bNode *node = group->node_by_id(typed_elem.node_id);

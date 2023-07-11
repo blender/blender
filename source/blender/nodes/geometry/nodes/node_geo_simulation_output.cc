@@ -777,11 +777,16 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     EvalData &eval_data = *static_cast<EvalData *>(context.storage);
     BLI_SCOPED_DEFER([&]() { eval_data.is_first_evaluation = false; });
 
-    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(user_data, node_.identifier);
+    const std::optional<bke::sim::SimulationZoneID> zone_id = get_simulation_zone_id(
+        user_data, node_.identifier);
+    if (!zone_id) {
+      params.set_default_remaining_outputs();
+      return;
+    }
 
     const bke::sim::SimulationZoneState *current_zone_state =
         modifier_data.current_simulation_state ?
-            modifier_data.current_simulation_state->get_zone_state(zone_id) :
+            modifier_data.current_simulation_state->get_zone_state(*zone_id) :
             nullptr;
     if (eval_data.is_first_evaluation && current_zone_state != nullptr) {
       /* Common case when data is cached already. */
@@ -792,7 +797,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     if (modifier_data.current_simulation_state_for_write == nullptr) {
       const bke::sim::SimulationZoneState *prev_zone_state =
           modifier_data.prev_simulation_state ?
-              modifier_data.prev_simulation_state->get_zone_state(zone_id) :
+              modifier_data.prev_simulation_state->get_zone_state(*zone_id) :
               nullptr;
       if (prev_zone_state == nullptr) {
         /* There is no previous simulation state and we also don't create a new one, so just
@@ -802,7 +807,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       }
       const bke::sim::SimulationZoneState *next_zone_state =
           modifier_data.next_simulation_state ?
-              modifier_data.next_simulation_state->get_zone_state(zone_id) :
+              modifier_data.next_simulation_state->get_zone_state(*zone_id) :
               nullptr;
       if (next_zone_state == nullptr) {
         /* Output the last cached simulation state. */
@@ -820,7 +825,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
     }
 
     bke::sim::SimulationZoneState &new_zone_state =
-        modifier_data.current_simulation_state_for_write->get_zone_state_for_write(zone_id);
+        modifier_data.current_simulation_state_for_write->get_zone_state_for_write(*zone_id);
     if (eval_data.is_first_evaluation) {
       new_zone_state.item_by_identifier.clear();
     }
@@ -906,8 +911,8 @@ std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
   return std::make_unique<file_ns::LazyFunctionForSimulationOutputNode>(node, own_lf_graph_info);
 }
 
-bke::sim::SimulationZoneID get_simulation_zone_id(const GeoNodesLFUserData &user_data,
-                                                  const int output_node_id)
+std::optional<bke::sim::SimulationZoneID> get_simulation_zone_id(
+    const GeoNodesLFUserData &user_data, const int output_node_id)
 {
   Vector<int> node_ids;
   for (const ComputeContext *context = user_data.compute_context; context != nullptr;
@@ -915,6 +920,10 @@ bke::sim::SimulationZoneID get_simulation_zone_id(const GeoNodesLFUserData &user
   {
     if (const auto *node_context = dynamic_cast<const bke::NodeGroupComputeContext *>(context)) {
       node_ids.append(node_context->node_id());
+    }
+    else if (dynamic_cast<const bke::RepeatZoneComputeContext *>(context) != nullptr) {
+      /* Simulation can't be used in a repeat zone. */
+      return std::nullopt;
     }
   }
   std::reverse(node_ids.begin(), node_ids.end());

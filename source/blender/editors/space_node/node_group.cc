@@ -147,16 +147,31 @@ static void remap_pairing(bNodeTree &dst_tree,
                           const Map<int32_t, int32_t> &identifier_map)
 {
   for (bNode *dst_node : nodes) {
-    if (dst_node->type == GEO_NODE_SIMULATION_INPUT) {
-      NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
-          dst_node->storage);
-      if (data->output_node_id == 0) {
-        continue;
-      }
+    switch (dst_node->type) {
+      case GEO_NODE_SIMULATION_INPUT: {
+        NodeGeometrySimulationInput *data = static_cast<NodeGeometrySimulationInput *>(
+            dst_node->storage);
+        if (data->output_node_id == 0) {
+          continue;
+        }
 
-      data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
-      if (data->output_node_id == 0) {
-        blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+        data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
+        if (data->output_node_id == 0) {
+          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+        }
+        break;
+      }
+      case GEO_NODE_REPEAT_INPUT: {
+        NodeGeometryRepeatInput *data = static_cast<NodeGeometryRepeatInput *>(dst_node->storage);
+        if (data->output_node_id == 0) {
+          continue;
+        }
+
+        data->output_node_id = identifier_map.lookup_default(data->output_node_id, 0);
+        if (data->output_node_id == 0) {
+          blender::nodes::update_node_declaration_and_sockets(dst_tree, *dst_node);
+        }
+        break;
       }
     }
   }
@@ -799,6 +814,31 @@ static bool node_group_make_test_selected(bNodeTree &ntree,
             "Can not add simulation output node '%s' to a group without its paired input '%s'",
             output_node->name,
             input_node->name);
+        return false;
+      }
+    }
+  }
+  for (bNode *input_node : ntree.nodes_by_type("GeometryNodeRepeatInput")) {
+    const NodeGeometryRepeatInput &input_data = *static_cast<const NodeGeometryRepeatInput *>(
+        input_node->storage);
+
+    if (bNode *output_node = ntree.node_by_id(input_data.output_node_id)) {
+      const bool input_selected = nodes_to_group.contains(input_node);
+      const bool output_selected = nodes_to_group.contains(output_node);
+      if (input_selected && !output_selected) {
+        BKE_reportf(&reports,
+                    RPT_WARNING,
+                    "Can not add repeat input node '%s' to a group without its paired output '%s'",
+                    input_node->name,
+                    output_node->name);
+        return false;
+      }
+      if (output_selected && !input_selected) {
+        BKE_reportf(&reports,
+                    RPT_WARNING,
+                    "Can not add repeat output node '%s' to a group without its paired input '%s'",
+                    output_node->name,
+                    input_node->name);
         return false;
       }
     }
