@@ -638,6 +638,9 @@ static void prepare_simulation_states_for_evaluation(const NodesModifierData &nm
                                                      const ModifierEvalContext &ctx,
                                                      nodes::GeoNodesModifierData &exec_data)
 {
+  if (!nmd.runtime->simulation_cache) {
+    return;
+  }
   const Main *bmain = DEG_get_bmain(ctx.depsgraph);
   const SubFrame current_frame = DEG_get_ctime(ctx.depsgraph);
   const Scene *scene = DEG_get_input_scene(ctx.depsgraph);
