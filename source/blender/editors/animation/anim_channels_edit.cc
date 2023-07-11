@@ -226,8 +226,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_DSHAIR:
       case ANIMTYPE_DSPOINTCLOUD:
       case ANIMTYPE_DSVOLUME:
-      case ANIMTYPE_NLAACTION:
-      case ANIMTYPE_DSSIMULATION: {
+      case ANIMTYPE_NLAACTION: {
         /* need to verify that this data is valid for now */
         if (ale->adt) {
           ACHANNEL_SET_FLAG(ale->adt, ACHANNEL_SETFLAG_CLEAR, ADT_UI_ACTIVE);
@@ -284,8 +283,7 @@ void ANIM_set_active_channel(bAnimContext *ac,
       case ANIMTYPE_DSHAIR:
       case ANIMTYPE_DSPOINTCLOUD:
       case ANIMTYPE_DSVOLUME:
-      case ANIMTYPE_NLAACTION:
-      case ANIMTYPE_DSSIMULATION: {
+      case ANIMTYPE_NLAACTION: {
         /* need to verify that this data is valid for now */
         if (ale && ale->adt) {
           ale->adt->flag |= ADT_UI_ACTIVE;
@@ -339,8 +337,7 @@ bool ANIM_is_active_channel(bAnimListElem *ale)
     case ANIMTYPE_DSHAIR:
     case ANIMTYPE_DSPOINTCLOUD:
     case ANIMTYPE_DSVOLUME:
-    case ANIMTYPE_NLAACTION:
-    case ANIMTYPE_DSSIMULATION: {
+    case ANIMTYPE_NLAACTION: {
       return ale->adt && (ale->adt->flag & ADT_UI_ACTIVE);
     }
     case ANIMTYPE_GROUP: {
@@ -471,8 +468,7 @@ return ACHANNEL_SETFLAG_CLEAR;
       case ANIMTYPE_DSHAIR:
       case ANIMTYPE_DSPOINTCLOUD:
       case ANIMTYPE_DSVOLUME:
-      case ANIMTYPE_NLAACTION:
-      case ANIMTYPE_DSSIMULATION: {
+      case ANIMTYPE_NLAACTION: {
         if ((ale->adt) && (ale->adt->flag & ADT_UI_SELECTED)) {
           return ACHANNEL_SETFLAG_CLEAR;
         }
@@ -587,8 +583,7 @@ ACHANNEL_SET_FLAG(ob, sel, ADT_UI_SELECTED);
       case ANIMTYPE_DSHAIR:
       case ANIMTYPE_DSPOINTCLOUD:
       case ANIMTYPE_DSVOLUME:
-      case ANIMTYPE_NLAACTION:
-      case ANIMTYPE_DSSIMULATION: {
+      case ANIMTYPE_NLAACTION: {
         /* need to verify that this data is valid for now */
         if (ale->adt) {
           ACHANNEL_SET_FLAG(ale->adt, sel, ADT_UI_SELECTED);
@@ -3761,7 +3756,6 @@ static int mouse_anim_channels(bContext *C,
     case ANIMTYPE_DSHAIR:
     case ANIMTYPE_DSPOINTCLOUD:
     case ANIMTYPE_DSVOLUME:
-    case ANIMTYPE_DSSIMULATION:
       notifierFlags |= click_select_channel_dummy(ac, ale, selectmode);
       break;
     case ANIMTYPE_GROUP:
