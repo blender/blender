@@ -1756,7 +1756,6 @@ static void sculpt_update_object(
 
     CustomDataLayer *layer;
     eAttrDomain domain;
-
     if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);

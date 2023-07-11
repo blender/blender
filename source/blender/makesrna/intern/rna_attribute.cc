@@ -496,9 +496,7 @@ PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *ite
 
 int rna_AttributeGroup_color_length(PointerRNA *ptr)
 {
-  return BKE_id_attributes_length(ptr->owner_id,
-                                  ATTR_DOMAIN_MASK_POINT | ATTR_DOMAIN_MASK_CORNER,
-                                  CD_MASK_PROP_COLOR | CD_MASK_PROP_BYTE_COLOR);
+  return BKE_id_attributes_length(ptr->owner_id, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 }
 
 int rna_AttributeGroup_length(PointerRNA *ptr)

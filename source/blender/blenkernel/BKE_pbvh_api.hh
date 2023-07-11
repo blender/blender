@@ -683,7 +683,7 @@ const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh);
 
 PBVHColorBufferNode *BKE_pbvh_node_color_buffer_get(PBVHNode *node);
 void BKE_pbvh_node_color_buffer_free(PBVH *pbvh);
-bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr);
+bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_domain);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. */
@@ -710,7 +710,7 @@ bool BKE_pbvh_is_drawing(const PBVH *pbvh);
 /* Do not call in PBVH_GRIDS mode */
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
-void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh);
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh);
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);

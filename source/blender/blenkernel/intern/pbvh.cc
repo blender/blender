@@ -1555,28 +1555,12 @@ static void pbvh_update_BB_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
   BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-bool BKE_pbvh_get_color_layer(const Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_attr)
+bool BKE_pbvh_get_color_layer(Mesh *me, CustomDataLayer **r_layer, eAttrDomain *r_domain)
 {
-  CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id, me->active_color_attribute);
-
-  if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
-    *r_layer = nullptr;
-    *r_attr = ATTR_DOMAIN_POINT;
-    return false;
-  }
-
-  eAttrDomain domain = BKE_id_attribute_domain(&me->id, layer);
-
-  if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
-    *r_layer = nullptr;
-    *r_attr = ATTR_DOMAIN_POINT;
-    return false;
-  }
-
-  *r_layer = layer;
-  *r_attr = domain;
-
-  return true;
+  *r_layer = BKE_id_attribute_search(
+      &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
+  *r_domain = *r_layer ? BKE_id_attribute_domain(&me->id, *r_layer) : ATTR_DOMAIN_POINT;
+  return *r_layer != nullptr;
 }
 
 static void pbvh_update_draw_buffer_cb(void *__restrict userdata,
@@ -3475,7 +3459,7 @@ void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop)
   }
 }
 
-void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh)
 {
   BKE_pbvh_get_color_layer(mesh, &pbvh->color_layer, &pbvh->color_domain);
 }
