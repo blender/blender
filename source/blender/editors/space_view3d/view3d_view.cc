@@ -892,8 +892,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
   }
 
   v3d->localvd = static_cast<View3D *>(MEM_mallocN(sizeof(View3D), "localview"));
-
-  memcpy(v3d->localvd, v3d, sizeof(View3D));
+  *v3d->localvd = blender::dna::shallow_copy(*v3d);
   v3d->local_view_uuid = local_view_bit;
 
   LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
