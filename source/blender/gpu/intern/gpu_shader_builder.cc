@@ -45,7 +45,7 @@ void ShaderBuilder::init()
 
   GHOST_GPUSettings gpuSettings = {0};
   switch (GPU_backend_type_selection_get()) {
-#ifdef WITH_METAL_BACKEND
+#ifdef WITH_OPENGL_BACKEND
     case GPU_BACKEND_OPENGL:
       gpuSettings.context_type = GHOST_kDrawingContextTypeOpenGL;
       break;
