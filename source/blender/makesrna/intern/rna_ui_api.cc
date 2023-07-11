@@ -738,13 +738,17 @@ static void rna_uiLayout_template_node_operator_asset_menu_items(uiLayout *layou
                                                                  bContext *C,
                                                                  const char *catalog_path)
 {
-  blender::ed::geometry::ui_template_node_operator_asset_menu_items(
-      *layout, *C, blender::StringRef(catalog_path));
+  if (U.experimental.use_node_group_operators) {
+    blender::ed::geometry::ui_template_node_operator_asset_menu_items(
+        *layout, *C, blender::StringRef(catalog_path));
+  }
 }
 
 static void rna_uiLayout_template_node_operator_root_items(uiLayout *layout, bContext *C)
 {
-  blender::ed::geometry::ui_template_node_operator_asset_root_items(*layout, *C);
+  if (U.experimental.use_node_group_operators) {
+    blender::ed::geometry::ui_template_node_operator_asset_root_items(*layout, *C);
+  }
 }
 
 static int rna_ui_get_rnaptr_icon(bContext *C, PointerRNA *ptr_icon)

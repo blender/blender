@@ -139,7 +139,8 @@ class NODE_HT_header(Header):
                 layout.prop(snode_id, "use_nodes")
 
         elif snode.tree_type == 'GeometryNodeTree':
-            layout.prop(snode, "geometry_nodes_type", text="")
+            if context.preferences.experimental.use_node_group_operators:
+                layout.prop(snode, "geometry_nodes_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
             layout.separator_spacer()
 
