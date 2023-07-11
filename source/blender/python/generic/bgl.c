@@ -40,6 +40,7 @@ static CLG_LogRef LOG = {"bgl"};
 /** \name Local utility defines for wrapping OpenGL
  * \{ */
 
+#ifdef WITH_OPENGL_BACKEND
 static void report_deprecated_call(const char *function_name)
 {
   /* Only report first 10 deprecated calls. BGL is typically used inside an handler that is
@@ -67,6 +68,7 @@ static void report_deprecated_call_to_user(void)
   G.opengl_deprecation_usage_detected = true;
   PyC_FileAndNum(&G.opengl_deprecation_usage_filename, &G.opengl_deprecation_usage_lineno);
 }
+#endif
 
 /** \} */
 
@@ -713,6 +715,7 @@ Buffer *BGL_MakeBuffer(int type, int ndimensions, int *dimensions, void *initbuf
   return buffer;
 }
 
+#ifdef WITH_OPENGL_BACKEND
 /* Custom converter function so we can support a buffer, an integer or NULL.
  * Many OpenGL API functions can accept both an actual pointer or an offset
  * into a buffer that is already bound. */
@@ -742,6 +745,7 @@ static int BGL_BufferOrOffsetConverter(PyObject *object, BufferOrOffset *buffer)
   PyErr_SetString(PyExc_TypeError, "expected a bgl.Buffer or None");
   return 0;
 }
+#endif
 
 #define MAX_DIMENSIONS 256
 static PyObject *Buffer_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)

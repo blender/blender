@@ -1760,6 +1760,7 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
       return GHOST_kDrawingContextTypeOpenGL;
 #endif
       BLI_assert_unreachable();
+      return GHOST_kDrawingContextTypeNone;
     case GPU_BACKEND_VULKAN:
 #ifdef WITH_VULKAN_BACKEND
       return GHOST_kDrawingContextTypeVulkan;
@@ -1769,10 +1770,9 @@ GHOST_TDrawingContextType wm_ghost_drawing_context_type(const eGPUBackendType gp
     case GPU_BACKEND_METAL:
 #ifdef WITH_METAL_BACKEND
       return GHOST_kDrawingContextTypeMetal;
-#else
+#endif
       BLI_assert_unreachable();
       return GHOST_kDrawingContextTypeNone;
-#endif
   }
 
   /* Avoid control reaches end of non-void function compilation warning, which could be promoted
