@@ -132,7 +132,7 @@ class LayerViewItemDragController : public AbstractViewItemDragController {
     return WM_DRAG_GREASE_PENCIL_LAYER;
   }
 
-  void *create_drag_data() const override
+  void *create_drag_data(bContext & /*C*/) const override
   {
     wmDragGreasePencilLayer *drag_data = MEM_new<wmDragGreasePencilLayer>(__func__);
     drag_data->layer = &dragged_layer_;
