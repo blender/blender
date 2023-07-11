@@ -607,6 +607,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 
   wm_reports_free(wm);
 
+  /* NOTE(@ideasman42): typically timers are associated with windows and timers will have been
+   * freed when the windows are removed. However timers can be created which don't have windows
+   * and in this case it's necessary to free them on exit, see: #109953. */
+  WM_event_timers_free_all(wm);
+
   if (wm->undo_stack) {
     BKE_undosys_stack_destroy(wm->undo_stack);
     wm->undo_stack = NULL;

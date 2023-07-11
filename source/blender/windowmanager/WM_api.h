@@ -623,6 +623,16 @@ struct wmTimer *WM_event_add_timer_notifier(struct wmWindowManager *wm,
                                             struct wmWindow *win,
                                             unsigned int type,
                                             double timestep);
+
+void WM_event_timer_free_data(struct wmTimer *timer);
+/**
+ * Free all timers immediately.
+ *
+ * \note This should only be used on-exit,
+ * in all other cases timers should be tagged for removal by #WM_event_remove_timer.
+ */
+void WM_event_timers_free_all(wmWindowManager *wm);
+
 /** Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
  * internally by the window manager code. */
 void WM_event_remove_timer(struct wmWindowManager *wm,

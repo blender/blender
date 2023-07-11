@@ -1947,6 +1947,25 @@ void wm_window_delete_removed_timers(wmWindowManager *wm)
   }
 }
 
+void WM_event_timer_free_data(wmTimer *timer)
+{
+  if (timer->customdata != NULL && (timer->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
+    MEM_freeN(timer->customdata);
+    timer->customdata = NULL;
+  }
+}
+
+void WM_event_timers_free_all(wmWindowManager *wm)
+{
+  BLI_assert_msg(BLI_listbase_is_empty(&wm->windows),
+                 "This should only be called when freeing the window-manager");
+  wmTimer *timer;
+  while ((timer = BLI_pophead(&wm->timers))) {
+    WM_event_timer_free_data(timer);
+    MEM_freeN(timer);
+  }
+}
+
 void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *timer)
 {
   /* Extra security check. */
@@ -1970,12 +1989,9 @@ void WM_event_remove_timer(wmWindowManager *wm, wmWindow *UNUSED(win), wmTimer *
     }
   }
 
-  /* Immediately free customdata if requested, so that invalid usages of that data after
+  /* Immediately free `customdata` if requested, so that invalid usages of that data after
    * calling `WM_event_remove_timer` can be easily spotted (through ASAN errors e.g.). */
-  if (timer->customdata != NULL && (timer->flags & WM_TIMER_NO_FREE_CUSTOM_DATA) == 0) {
-    MEM_freeN(timer->customdata);
-    timer->customdata = NULL;
-  }
+  WM_event_timer_free_data(timer);
 }
 
 void WM_event_remove_timer_notifier(wmWindowManager *wm, wmWindow *win, wmTimer *timer)
