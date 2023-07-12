@@ -66,34 +66,34 @@ struct NavigateGizmoInfo {
 
 static struct NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
     {
-        .opname = "VIEW3D_OT_move",
-        .gizmo = "GIZMO_GT_button_2d",
-        .icon = ICON_VIEW_PAN,
+        "VIEW3D_OT_move",
+        "GIZMO_GT_button_2d",
+        ICON_VIEW_PAN,
     },
     {
-        .opname = "VIEW3D_OT_rotate",
-        .gizmo = "VIEW3D_GT_navigate_rotate",
-        .icon = ICON_NONE,
+        "VIEW3D_OT_rotate",
+        "VIEW3D_GT_navigate_rotate",
+        ICON_NONE,
     },
     {
-        .opname = "VIEW3D_OT_zoom",
-        .gizmo = "GIZMO_GT_button_2d",
-        .icon = ICON_VIEW_ZOOM,
+        "VIEW3D_OT_zoom",
+        "GIZMO_GT_button_2d",
+        ICON_VIEW_ZOOM,
     },
     {
-        .opname = "VIEW3D_OT_view_persportho",
-        .gizmo = "GIZMO_GT_button_2d",
-        .icon = ICON_VIEW_PERSPECTIVE,
+        "VIEW3D_OT_view_persportho",
+        "GIZMO_GT_button_2d",
+        ICON_VIEW_PERSPECTIVE,
     },
     {
-        .opname = "VIEW3D_OT_view_persportho",
-        .gizmo = "GIZMO_GT_button_2d",
-        .icon = ICON_VIEW_ORTHO,
+        "VIEW3D_OT_view_persportho",
+        "GIZMO_GT_button_2d",
+        ICON_VIEW_ORTHO,
     },
     {
-        .opname = "VIEW3D_OT_view_camera",
-        .gizmo = "GIZMO_GT_button_2d",
-        .icon = ICON_VIEW_CAMERA,
+        "VIEW3D_OT_view_camera",
+        "GIZMO_GT_button_2d",
+        ICON_VIEW_CAMERA,
     },
 };
 
@@ -110,7 +110,7 @@ struct NavigateWidgetGroup {
   } state;
 };
 
-static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
   if ((((U.uiflag & USER_SHOW_GIZMO_NAVIGATE) == 0) &&
@@ -124,14 +124,15 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType *UNUSE
 
 static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__);
+  struct NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(
+      MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__));
 
   wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
   wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);
 
   for (int i = 0; i < GZ_INDEX_TOTAL; i++) {
     const struct NavigateGizmoInfo *info = &g_navigate_params[i];
-    navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, NULL);
+    navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, nullptr);
     wmGizmo *gz = navgroup->gz_array[i];
     gz->flag |= WM_GIZMO_MOVE_CURSOR | WM_GIZMO_DRAW_MODAL;
 
@@ -170,12 +171,12 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     }
 
     wmOperatorType *ot = WM_operatortype_find(info->opname, true);
-    WM_gizmo_operator_set(gz, 0, ot, NULL);
+    WM_gizmo_operator_set(gz, 0, ot, nullptr);
   }
 
   {
     wmGizmo *gz = navgroup->gz_array[GZ_INDEX_CAMERA];
-    WM_gizmo_operator_set(gz, 0, ot_view_camera, NULL);
+    WM_gizmo_operator_set(gz, 0, ot_view_camera, nullptr);
   }
 
   /* Click only buttons (not modal). */
@@ -210,7 +211,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
     };
 
     for (int part_index = 0; part_index < 6; part_index += 1) {
-      PointerRNA *ptr = WM_gizmo_operator_set(gz, part_index + 1, ot_view_axis, NULL);
+      PointerRNA *ptr = WM_gizmo_operator_set(gz, part_index + 1, ot_view_axis, nullptr);
       RNA_enum_set(ptr, "type", mapping[part_index]);
     }
 
@@ -225,9 +226,9 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = gzgroup->customdata;
+  struct NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(gzgroup->customdata);
   ARegion *region = CTX_wm_region(C);
-  const RegionView3D *rv3d = region->regiondata;
+  const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
 
   for (int i = 0; i < 3; i++) {
     copy_v3_v3(navgroup->gz_array[GZ_INDEX_ROTATE]->matrix_offset[i], rv3d->viewmat[i]);

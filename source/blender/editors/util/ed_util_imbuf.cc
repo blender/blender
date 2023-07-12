@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include "BKE_colortools.h"
@@ -159,15 +160,15 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
 
   float uv[2];
   UI_view2d_region_to_view(&region->v2d, event->mval[0], event->mval[1], &uv[0], &uv[1]);
-  int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, NULL);
+  int tile = BKE_image_get_tile_from_pos(sima->image, uv, uv, nullptr);
 
   void *lock;
   ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock, tile);
-  ImageSampleInfo *info = op->customdata;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   Scene *scene = CTX_data_scene(C);
   CurveMapping *curve_mapping = scene->view_settings.curve_mapping;
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     ED_space_image_release_buffer(sima, ibuf, lock);
     info->draw = false;
     return;
@@ -187,10 +188,10 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     info->draw = true;
     info->channels = ibuf->channels;
 
-    info->colp = NULL;
-    info->colfp = NULL;
-    info->zp = NULL;
-    info->zfp = NULL;
+    info->colp = nullptr;
+    info->colfp = nullptr;
+    info->zp = nullptr;
+    info->zfp = nullptr;
 
     info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? false : true;
 
@@ -235,16 +236,16 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
         int point = RNA_enum_get(op->ptr, "point");
 
         if (point == 1) {
-          BKE_curvemapping_set_black_white(curve_mapping, NULL, info->linearcol);
+          BKE_curvemapping_set_black_white(curve_mapping, nullptr, info->linearcol);
         }
         else if (point == 0) {
-          BKE_curvemapping_set_black_white(curve_mapping, info->linearcol, NULL);
+          BKE_curvemapping_set_black_white(curve_mapping, info->linearcol, nullptr);
         }
-        WM_event_add_notifier(C, NC_WINDOW, NULL);
+        WM_event_add_notifier(C, NC_WINDOW, nullptr);
       }
     }
 
-    /* XXX node curve integration. */
+/* XXX node curve integration. */
 #if 0
     {
       ScrArea *area, *cur = curarea;
@@ -256,7 +257,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
           scrarea_do_windraw(area);
         }
       }
-      node_curvemap_sample(NULL); /* clears global in node editor */
+      node_curvemap_sample(nullptr); /* clears global in node editor */
       curarea = cur;
     }
 #endif
@@ -276,11 +277,12 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
   Scene *scene = CTX_data_scene(C);
   SpaceSeq *sseq = (SpaceSeq *)CTX_wm_space_data(C);
   ARegion *region = CTX_wm_region(C);
-  ImBuf *ibuf = sequencer_ibuf_get(bmain, region, depsgraph, scene, sseq, scene->r.cfra, 0, NULL);
-  ImageSampleInfo *info = op->customdata;
+  ImBuf *ibuf = sequencer_ibuf_get(
+      bmain, region, depsgraph, scene, sseq, scene->r.cfra, 0, nullptr);
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   float fx, fy;
 
-  if (ibuf == NULL) {
+  if (ibuf == nullptr) {
     info->draw = 0;
     return;
   }
@@ -304,8 +306,8 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
     info->draw = 1;
     info->channels = ibuf->channels;
 
-    info->colp = NULL;
-    info->colfp = NULL;
+    info->colp = nullptr;
+    info->colfp = nullptr;
 
     if (ibuf->byte_buffer.data) {
       cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
@@ -355,7 +357,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 static void ed_imbuf_sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ScrArea *area = CTX_wm_area(C);
-  if (area == NULL) {
+  if (area == nullptr) {
     return;
   }
 
@@ -381,7 +383,7 @@ static void ed_imbuf_sample_apply(bContext *C, wmOperator *op, const wmEvent *ev
 
 void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 {
-  ImageSampleInfo *info = arg_info;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(arg_info);
   if (!info->draw) {
     return;
   }
@@ -416,10 +418,10 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 
       /* TODO(@ideasman42): lock to pixels. */
       rctf sample_rect_fl;
-      BLI_rctf_init_pt_radius(
-          &sample_rect_fl,
-          (float[2]){event->xy[0] - region->winrct.xmin, event->xy[1] - region->winrct.ymin},
-          (float)(info->sample_size / 2.0f) * sima->zoom);
+      BLI_rctf_init_pt_radius(&sample_rect_fl,
+                              blender::float2{float(event->xy[0] - region->winrct.xmin),
+                                              float(event->xy[1] - region->winrct.ymin)},
+                              (float)(info->sample_size / 2.0f) * sima->zoom);
 
       GPU_logic_op_xor_set(true);
 
@@ -439,7 +441,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
 
 void ED_imbuf_sample_exit(bContext *C, wmOperator *op)
 {
-  ImageSampleInfo *info = op->customdata;
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
 
   ED_region_draw_cb_exit(info->art, info->draw_handle);
   ED_area_tag_redraw(CTX_wm_area(C));
@@ -453,7 +455,7 @@ int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   if (area) {
     switch (area->spacetype) {
       case SPACE_IMAGE: {
-        SpaceImage *sima = area->spacedata.first;
+        SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
         if (region->regiontype == RGN_TYPE_WINDOW) {
           if (ED_space_image_show_cache_and_mval_over(sima, region, event->mval)) {
             return OPERATOR_PASS_THROUGH;
@@ -471,7 +473,8 @@ int ED_imbuf_sample_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
   }
 
-  ImageSampleInfo *info = MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo");
+  ImageSampleInfo *info = static_cast<ImageSampleInfo *>(
+      MEM_callocN(sizeof(ImageSampleInfo), "ImageSampleInfo"));
 
   info->art = region->type;
   info->draw_handle = ED_region_draw_cb_activate(
@@ -512,13 +515,13 @@ void ED_imbuf_sample_cancel(bContext *C, wmOperator *op)
 bool ED_imbuf_sample_poll(bContext *C)
 {
   ScrArea *area = CTX_wm_area(C);
-  if (area == NULL) {
+  if (area == nullptr) {
     return false;
   }
 
   switch (area->spacetype) {
     case SPACE_IMAGE: {
-      SpaceImage *sima = area->spacedata.first;
+      SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
       Object *obedit = CTX_data_edit_object(C);
       if (obedit) {
         /* Disable when UV editing so it doesn't swallow all click events
@@ -533,12 +536,12 @@ bool ED_imbuf_sample_poll(bContext *C)
       return true;
     }
     case SPACE_SEQ: {
-      SpaceSeq *sseq = area->spacedata.first;
+      SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
 
       if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
         return false;
       }
-      if (SEQ_editing_get(CTX_data_scene(C)) == NULL) {
+      if (SEQ_editing_get(CTX_data_scene(C)) == nullptr) {
         return false;
       }
       ARegion *region = CTX_wm_region(C);

@@ -17,6 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sort_utils.h"
 
 #include "BKE_context.h"
@@ -94,11 +95,10 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
   float matrix_screen[4][4];
   float matrix_unit[4][4];
   unit_m4(matrix_unit);
-  WM_gizmo_calc_matrix_final_params(gz,
-                                    &((struct WM_GizmoMatrixParams){
-                                        .matrix_offset = matrix_unit,
-                                    }),
-                                    matrix_screen);
+
+  WM_GizmoMatrixParams params{};
+  params.matrix_offset = matrix_unit;
+  WM_gizmo_calc_matrix_final_params(gz, &params, matrix_screen);
   GPU_matrix_push();
   GPU_matrix_mul(matrix_screen);
 
@@ -150,16 +150,13 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
     const float rad = WIDGET_RADIUS;
     GPU_matrix_push();
     GPU_matrix_scale_1f(1.0f / rad);
-    UI_draw_roundbox_4fv(
-        &(const rctf){
-            .xmin = -rad,
-            .xmax = rad,
-            .ymin = -rad,
-            .ymax = rad,
-        },
-        true,
-        rad,
-        gz->color_hi);
+
+    rctf rect{};
+    rect.xmin = -rad;
+    rect.xmax = rad;
+    rect.ymin = -rad;
+    rect.ymax = rad;
+    UI_draw_roundbox_4fv(&rect, true, rad, gz->color_hi);
     GPU_matrix_pop();
   }
 
@@ -227,7 +224,7 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       if (!is_pos) {
         if (is_aligned_front) {
           interp_v4_v4v4(
-              negative_color, (float[4]){1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
+              negative_color, blender::float4{1.0f, 1.0f, 1.0f, 1.0f}, axis_color[axis], 0.5f);
           negative_color[3] = MIN2(depth + 1, 1.0f);
           outline_color = negative_color;
         }
@@ -244,26 +241,20 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
       /* Size change from back to front: 0.92f - 1.08f. */
       float scale = ((depth + 1) * 0.08f) + 0.92f;
       const float rad = WIDGET_RADIUS * AXIS_HANDLE_SIZE * scale;
+      rctf rect{};
+      rect.xmin = -rad;
+      rect.xmax = rad;
+      rect.ymin = -rad;
+      rect.ymax = rad;
       UI_draw_roundbox_4fv_ex(
-          &(const rctf){
-              .xmin = -rad,
-              .xmax = rad,
-              .ymin = -rad,
-              .ymax = rad,
-          },
-          inner_color,
-          NULL,
-          0.0f,
-          outline_color,
-          AXIS_RING_WIDTH,
-          rad);
+          &rect, inner_color, nullptr, 0.0f, outline_color, AXIS_RING_WIDTH, rad);
       GPU_matrix_pop();
     }
 
     /* Axis XYZ Character. */
     if ((is_pos || is_highlight || (axis == axis_align)) && !is_aligned_back) {
       float axis_str_width, axis_string_height;
-      char axis_str[3] = {'X' + axis, 0, 0};
+      char axis_str[3] = {char('X' + axis), 0, 0};
       if (!is_pos) {
         axis_str[0] = '-';
         axis_str[1] = 'X' + axis;
@@ -302,9 +293,9 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
   GPU_matrix_pop();
 }
 
-static int gizmo_axis_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
+static int gizmo_axis_test_select(bContext * /*C*/, wmGizmo *gz, const int mval[2])
 {
-  float point_local[2] = {UNPACK2(mval)};
+  float point_local[2] = {float(mval[0]), float(mval[1])};
   sub_v2_v2(point_local, gz->matrix_basis[3]);
   mul_v2_fl(point_local, 1.0f / gz->scale_final);
 
@@ -355,7 +346,7 @@ static int gizmo_axis_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mv
   return -1;
 }
 
-static int gizmo_axis_cursor_get(wmGizmo *UNUSED(gz))
+static int gizmo_axis_cursor_get(wmGizmo * /*gz*/)
 {
   return WM_CURSOR_DEFAULT;
 }

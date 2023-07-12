@@ -58,7 +58,7 @@
 #define OVERSHOOT_RANGE_DELTA 0.2f
 #define SLIDER_UNIT_STRING_SIZE 64
 
-typedef struct tSlider {
+struct tSlider {
   Scene *scene;
   ScrArea *area;
 
@@ -105,8 +105,7 @@ typedef struct tSlider {
 
   /** Reduces factor delta from mouse movement. */
   bool precision;
-
-} tSlider;
+};
 
 static void draw_overshoot_triangle(const uint8_t color[4],
                                     const bool facing_right,
@@ -163,12 +162,11 @@ static void draw_ticks(const float start_factor,
 
     const float x = line_start[0] +
                     (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
-    const rctf tick_rect = {
-        .xmin = x - (line_width / 2),
-        .xmax = x + (line_width / 2),
-        .ymin = line_start[1] - (tick_height / 2),
-        .ymax = line_start[1] + (tick_height / 2),
-    };
+    rctf tick_rect{};
+    tick_rect.xmin = x - (line_width / 2);
+    tick_rect.xmax = x + (line_width / 2);
+    tick_rect.ymin = line_start[1] - (tick_height / 2);
+    tick_rect.ymax = line_start[1] + (tick_height / 2);
 
     if (tick_percentage < 0 || tick_percentage > 100) {
       UI_draw_roundbox_3ub_alpha(&tick_rect, true, 1, color_overshoot, 255);
@@ -197,27 +195,26 @@ static void draw_main_line(const rctf *main_line_rect,
     const float clamped_line_hundred_percent = clamp_f(
         line_zero_percent + SLIDE_PIXEL_DISTANCE, main_line_rect->xmin, main_line_rect->xmax);
 
-    const rctf left_overshoot_line_rect = {
-        .xmin = main_line_rect->xmin,
-        .xmax = clamped_line_zero_percent,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
-    const rctf right_overshoot_line_rect = {
-        .xmin = clamped_line_hundred_percent,
-        .xmax = main_line_rect->xmax,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
+    rctf left_overshoot_line_rect{};
+    left_overshoot_line_rect.xmin = main_line_rect->xmin;
+    left_overshoot_line_rect.xmax = clamped_line_zero_percent;
+    left_overshoot_line_rect.ymin = main_line_rect->ymin;
+    left_overshoot_line_rect.ymax = main_line_rect->ymax;
+
+    rctf right_overshoot_line_rect{};
+    right_overshoot_line_rect.xmin = clamped_line_hundred_percent;
+    right_overshoot_line_rect.xmax = main_line_rect->xmax;
+    right_overshoot_line_rect.ymin = main_line_rect->ymin;
+    right_overshoot_line_rect.ymax = main_line_rect->ymax;
+
     UI_draw_roundbox_3ub_alpha(&left_overshoot_line_rect, true, 0, color_overshoot, 255);
     UI_draw_roundbox_3ub_alpha(&right_overshoot_line_rect, true, 0, color_overshoot, 255);
 
-    const rctf non_overshoot_line_rect = {
-        .xmin = clamped_line_zero_percent,
-        .xmax = clamped_line_hundred_percent,
-        .ymin = main_line_rect->ymin,
-        .ymax = main_line_rect->ymax,
-    };
+    rctf non_overshoot_line_rect{};
+    non_overshoot_line_rect.xmin = clamped_line_zero_percent;
+    non_overshoot_line_rect.xmax = clamped_line_hundred_percent;
+    non_overshoot_line_rect.ymin = main_line_rect->ymin;
+    non_overshoot_line_rect.ymax = main_line_rect->ymax;
     UI_draw_roundbox_3ub_alpha(&non_overshoot_line_rect, true, 0, color_line, 255);
   }
   else {
@@ -239,21 +236,20 @@ static void draw_backdrop(const int fontid,
                        &string_pixel_size[0],
                        &string_pixel_size[1]);
   const float pad[2] = {(region_y_size - base_tick_height) / 2, 2.0f * U.pixelsize};
-  const rctf backdrop_rect = {
-      .xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0],
-      .xmax = main_line_rect->xmax + pad[0],
-      .ymin = pad[1],
-      .ymax = region_y_size - pad[1],
-  };
+  rctf backdrop_rect{};
+  backdrop_rect.xmin = main_line_rect->xmin - string_pixel_size[0] - pad[0];
+  backdrop_rect.xmax = main_line_rect->xmax + pad[0];
+  backdrop_rect.ymin = pad[1];
+  backdrop_rect.ymax = region_y_size - pad[1];
   UI_draw_roundbox_3ub_alpha(&backdrop_rect, true, 4.0f, color_bg, color_bg[3]);
 }
 
 /**
  * Draw an on screen Slider for a Pose Slide Operator.
  */
-static void slider_draw(const bContext *UNUSED(C), ARegion *region, void *arg)
+static void slider_draw(const bContext * /*C*/, ARegion *region, void *arg)
 {
-  tSlider *slider = arg;
+  tSlider *slider = static_cast<tSlider *>(arg);
 
   /* Only draw in region from which the Operator was started. */
   if (region != slider->region_header) {
@@ -289,12 +285,12 @@ static void slider_draw(const bContext *UNUSED(C), ARegion *region, void *arg)
   const float base_tick_height = 12.0 * U.pixelsize;
   const float line_y = region->winy / 2;
 
-  rctf main_line_rect = {
-      .xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2),
-      .xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2),
-      .ymin = line_y - line_width / 2,
-      .ymax = line_y + line_width / 2,
-  };
+  rctf main_line_rect{};
+  main_line_rect.xmin = (region->winx / 2) - (SLIDE_PIXEL_DISTANCE / 2);
+  main_line_rect.xmax = (region->winx / 2) + (SLIDE_PIXEL_DISTANCE / 2);
+  main_line_rect.ymin = line_y - line_width / 2;
+  main_line_rect.ymax = line_y + line_width / 2;
+
   float line_start_factor = 0;
   int handle_pos_x;
   if (slider->overshoot) {
@@ -336,12 +332,11 @@ static void slider_draw(const bContext *UNUSED(C), ARegion *region, void *arg)
   }
 
   /* Draw handle indicating current factor. */
-  const rctf handle_rect = {
-      .xmin = handle_pos_x - (line_width),
-      .xmax = handle_pos_x + (line_width),
-      .ymin = line_y - (base_tick_height / 2),
-      .ymax = line_y + (base_tick_height / 2),
-  };
+  rctf handle_rect{};
+  handle_rect.xmin = handle_pos_x - (line_width);
+  handle_rect.xmax = handle_pos_x + (line_width);
+  handle_rect.ymin = line_y - (base_tick_height / 2);
+  handle_rect.ymax = line_y + (base_tick_height / 2);
 
   UI_draw_roundbox_3ub_alpha(&handle_rect, true, 1, color_handle, 255);
 
@@ -401,7 +396,7 @@ static void slider_update_factor(tSlider *slider, const wmEvent *event)
 
 tSlider *ED_slider_create(bContext *C)
 {
-  tSlider *slider = MEM_callocN(sizeof(tSlider), "tSlider");
+  tSlider *slider = static_cast<tSlider *>(MEM_callocN(sizeof(tSlider), "tSlider"));
   slider->scene = CTX_data_scene(C);
   slider->area = CTX_wm_area(C);
   slider->region_header = CTX_wm_region(C);
@@ -531,8 +526,8 @@ void ED_slider_destroy(bContext *C, tSlider *slider)
   if (slider->draw_handle) {
     ED_region_draw_cb_exit(slider->region_header->type, slider->draw_handle);
   }
-  ED_area_status_text(slider->area, NULL);
-  ED_workspace_status_text(C, NULL);
+  ED_area_status_text(slider->area, nullptr);
+  ED_workspace_status_text(C, nullptr);
   MEM_freeN(slider);
 }
 
@@ -593,8 +588,8 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
   wmWindow *win = CTX_wm_window(C);
   const float *mval_src = (float *)arg_info;
   const float mval_dst[2] = {
-      win->eventstate->xy[0] - region->winrct.xmin,
-      win->eventstate->xy[1] - region->winrct.ymin,
+      float(win->eventstate->xy[0] - region->winrct.xmin),
+      float(win->eventstate->xy[1] - region->winrct.ymin),
   };
 
   const uint shdr_pos = GPU_vertformat_attr_add(
@@ -659,12 +654,12 @@ BLI_INLINE bool metadata_is_custom_drawable(const char *field)
   return !BKE_stamp_is_known_field(field);
 }
 
-typedef struct MetadataCustomDrawContext {
+struct MetadataCustomDrawContext {
   int fontid;
   int xmin, ymin;
   int vertical_offset;
   int current_y;
-} MetadataCustomDrawContext;
+};
 
 static void metadata_custom_draw_fields(const char *field, const char *value, void *ctx_v)
 {
@@ -772,11 +767,11 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
   }
 }
 
-typedef struct MetadataCustomCountContext {
+struct MetadataCustomCountContext {
   int count;
-} MetadataCustomCountContext;
+};
 
-static void metadata_custom_count_fields(const char *field, const char *UNUSED(value), void *ctx_v)
+static void metadata_custom_count_fields(const char *field, const char * /*value*/, void *ctx_v)
 {
   if (!metadata_is_custom_drawable(field)) {
     return;

@@ -18,7 +18,7 @@ set(INC_SYS
 )
 
 set(SRC
-  space_statusbar.c
+  space_statusbar.cc
 )
 
 set(LIB

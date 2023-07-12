@@ -159,9 +159,9 @@ void ED_select_pick_params_from_operator(PointerRNA *ptr, struct SelectPick_Para
 /** \name Operator Naming Callbacks
  * \{ */
 
-const char *ED_select_pick_get_name(wmOperatorType *UNUSED(ot), PointerRNA *ptr)
+const char *ED_select_pick_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
-  struct SelectPick_Params params = {0};
+  struct SelectPick_Params params = {eSelectOp(0)};
   ED_select_pick_params_from_operator(ptr, &params);
   switch (params.sel_op) {
     case SEL_OP_ADD:
@@ -179,10 +179,10 @@ const char *ED_select_pick_get_name(wmOperatorType *UNUSED(ot), PointerRNA *ptr)
   return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Select");
 }
 
-const char *ED_select_circle_get_name(wmOperatorType *UNUSED(ot), PointerRNA *ptr)
+const char *ED_select_circle_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
   /* Matches options in #WM_operator_properties_select_operation_simple */
-  const eSelectOp sel_op = RNA_enum_get(ptr, "mode");
+  const eSelectOp sel_op = eSelectOp(RNA_enum_get(ptr, "mode"));
   switch (sel_op) {
     case SEL_OP_ADD:
       return CTX_N_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Circle Select (Extend)");

@@ -50,9 +50,10 @@ static void gizmo_empty_image_prop_matrix_get(const wmGizmo *gz,
                                               wmGizmoProperty *gz_prop,
                                               void *value_p)
 {
-  float(*matrix)[4] = value_p;
+  float(*matrix)[4] = static_cast<float(*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
-  struct EmptyImageWidgetGroup *igzgroup = gz_prop->custom_func.user_data;
+  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+      gz_prop->custom_func.user_data);
   const Object *ob = igzgroup->state.ob;
 
   unit_m4(matrix);
@@ -72,9 +73,10 @@ static void gizmo_empty_image_prop_matrix_set(const wmGizmo *gz,
                                               wmGizmoProperty *gz_prop,
                                               const void *value_p)
 {
-  const float(*matrix)[4] = value_p;
+  const float(*matrix)[4] = static_cast<const float(*)[4]>(value_p);
   BLI_assert(gz_prop->type->array_length == 16);
-  struct EmptyImageWidgetGroup *igzgroup = gz_prop->custom_func.user_data;
+  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+      gz_prop->custom_func.user_data);
   Object *ob = igzgroup->state.ob;
 
   ob->empty_drawsize = matrix[0][0];
@@ -89,7 +91,7 @@ static void gizmo_empty_image_prop_matrix_set(const wmGizmo *gz,
   ob->ima_ofs[1] = (matrix[3][1] - (0.5f * dims[1])) / dims[1];
 }
 
-static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -116,11 +118,11 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
   return false;
 }
 
-static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_empty_image_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  struct EmptyImageWidgetGroup *igzgroup = MEM_mallocN(sizeof(struct EmptyImageWidgetGroup),
-                                                       __func__);
-  igzgroup->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, NULL);
+  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+      MEM_mallocN(sizeof(struct EmptyImageWidgetGroup), __func__));
+  igzgroup->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
   wmGizmo *gz = igzgroup->gizmo;
   RNA_enum_set(gz->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_SCALE);
 
@@ -134,7 +136,8 @@ static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGrou
 
 static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct EmptyImageWidgetGroup *igzgroup = gzgroup->customdata;
+  struct EmptyImageWidgetGroup *igzgroup = static_cast<EmptyImageWidgetGroup *>(
+      gzgroup->customdata);
   wmGizmo *gz = igzgroup->gizmo;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -151,11 +154,11 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
   igzgroup->state.ob = ob;
 
   /* Use dimensions for aspect. */
-  if (ob->data != NULL) {
-    const Image *image = ob->data;
+  if (ob->data != nullptr) {
+    const Image *image = static_cast<const Image *>(ob->data);
     ImageUser iuser = *ob->iuser;
     float size[2];
-    BKE_image_get_size_fl(ob->data, &iuser, size);
+    BKE_image_get_size_fl(static_cast<Image *>(ob->data), &iuser, size);
 
     /* Get the image aspect even if the buffer is invalid */
     if (image->aspx > image->aspy) {
@@ -174,14 +177,12 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzg
   }
   RNA_float_set_array(gz->ptr, "dimensions", igzgroup->state.dims);
 
-  WM_gizmo_target_property_def_func(gz,
-                                    "matrix",
-                                    &(const wmGizmoPropertyFnParams){
-                                        .value_get_fn = gizmo_empty_image_prop_matrix_get,
-                                        .value_set_fn = gizmo_empty_image_prop_matrix_set,
-                                        .range_get_fn = NULL,
-                                        .user_data = igzgroup,
-                                    });
+  wmGizmoPropertyFnParams params{};
+  params.value_get_fn = gizmo_empty_image_prop_matrix_get;
+  params.value_set_fn = gizmo_empty_image_prop_matrix_set;
+  params.range_get_fn = nullptr;
+  params.user_data = igzgroup;
+  WM_gizmo_target_property_def_func(gz, "matrix", &params);
 }
 
 void VIEW3D_GGT_empty_image(wmGizmoGroupType *gzgt)

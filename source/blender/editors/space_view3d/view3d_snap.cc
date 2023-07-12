@@ -51,7 +51,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
  * \{ */
 
 /** Snaps every individual object center to its nearest point on the grid. */
-static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
+static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
@@ -59,12 +59,12 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
-  TransVertStore tvs = {NULL};
+  TransVertStore tvs = {nullptr};
   TransVert *tv;
   float gridf, imat[3][3], bmat[3][3], vec[3];
   int a;
 
-  gridf = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
+  gridf = ED_view3d_grid_view_scale(scene, v3d, region, nullptr);
 
   if (OBEDIT_FROM_OBACT(obact)) {
     ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -117,11 +117,13 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
       Object *ob_eval = objects_eval[ob_index];
       Object *ob = DEG_get_original_object(ob_eval);
       bPoseChannel *pchan_eval;
-      bArmature *arm_eval = ob_eval->data;
+      bArmature *arm_eval = static_cast<bArmature *>(ob_eval->data);
 
       invert_m4_m4(ob_eval->world_to_object, ob_eval->object_to_world);
 
-      for (pchan_eval = ob_eval->pose->chanbase.first; pchan_eval; pchan_eval = pchan_eval->next) {
+      for (pchan_eval = static_cast<bPoseChannel *>(ob_eval->pose->chanbase.first); pchan_eval;
+           pchan_eval = pchan_eval->next)
+      {
         if (pchan_eval->bone->flag & BONE_SELECTED) {
           if (pchan_eval->bone->layer & arm_eval->layer) {
             if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
@@ -177,11 +179,11 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
                                               SCE_XFORM_SKIP_CHILDREN);
     const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
-    struct XFormObjectSkipChild_Container *xcs = NULL;
-    struct XFormObjectData_Container *xds = NULL;
+    struct XFormObjectSkipChild_Container *xcs = nullptr;
+    struct XFormObjectData_Container *xds = nullptr;
 
     /* Build object array. */
-    Object **objects_eval = NULL;
+    Object **objects_eval = nullptr;
     uint objects_eval_len;
     {
       BLI_array_declare(objects_eval);
@@ -195,7 +197,8 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     if (use_transform_skip_children) {
       ViewLayer *view_layer = CTX_data_view_layer(C);
 
-      Object **objects = MEM_malloc_arrayN(objects_eval_len, sizeof(*objects), __func__);
+      Object **objects = static_cast<Object **>(
+          MEM_malloc_arrayN(objects_eval_len, sizeof(*objects), __func__));
 
       for (int ob_index = 0; ob_index < objects_eval_len; ob_index++) {
         Object *ob_eval = objects_eval[ob_index];
@@ -224,7 +227,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 
       if (ob->parent) {
         float originmat[3][3];
-        BKE_object_where_is_calc_ex(depsgraph, scene, NULL, ob, originmat);
+        BKE_object_where_is_calc_ex(depsgraph, scene, nullptr, ob, originmat);
 
         invert_m3_m3(imat, originmat);
         mul_m3_v3(imat, vec);
@@ -263,7 +266,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -308,7 +311,7 @@ static bool snap_selected_to_location(bContext *C,
   Object *obedit = CTX_data_edit_object(C);
   Object *obact = CTX_data_active_object(C);
   View3D *v3d = CTX_wm_view3d(C);
-  TransVertStore tvs = {NULL};
+  TransVertStore tvs = {nullptr};
   TransVert *tv;
   float imat[3][3], bmat[3][3];
   float center_global[3];
@@ -385,13 +388,14 @@ static bool snap_selected_to_location(bContext *C,
     for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
       Object *ob = objects[ob_index];
       bPoseChannel *pchan;
-      bArmature *arm = ob->data;
+      bArmature *arm = static_cast<bArmature *>(ob->data);
       float snap_target_local[3];
 
       invert_m4_m4(ob->world_to_object, ob->object_to_world);
       mul_v3_m4v3(snap_target_local, ob->world_to_object, snap_target_global);
 
-      for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
+           pchan = pchan->next) {
         if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
@@ -405,7 +409,8 @@ static bool snap_selected_to_location(bContext *C,
         }
       }
 
-      for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
+           pchan = pchan->next) {
         if ((pchan->bone->flag & BONE_TRANSFORM) &&
             /* check that our parents not transformed (if we have one) */
             ((pchan->bone->parent &&
@@ -446,7 +451,8 @@ static bool snap_selected_to_location(bContext *C,
         }
       }
 
-      for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan;
+           pchan = pchan->next) {
         pchan->bone->flag &= ~BONE_TRANSFORM;
       }
 
@@ -462,13 +468,15 @@ static bool snap_selected_to_location(bContext *C,
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
     /* Reset flags. */
-    for (Object *ob = bmain->objects.first; ob; ob = ob->id.next) {
+    for (Object *ob = static_cast<Object *>(bmain->objects.first); ob;
+         ob = static_cast<Object *>(ob->id.next))
+    {
       ob->flag &= ~OB_DONE;
     }
 
     /* Build object array, tag objects we're transforming. */
     ViewLayer *view_layer = CTX_data_view_layer(C);
-    Object **objects = NULL;
+    Object **objects = nullptr;
     uint objects_len;
     {
       BLI_array_declare(objects);
@@ -486,8 +494,8 @@ static bool snap_selected_to_location(bContext *C,
     const bool use_transform_data_origin = use_toolsettings &&
                                            (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
-    struct XFormObjectSkipChild_Container *xcs = NULL;
-    struct XFormObjectData_Container *xds = NULL;
+    struct XFormObjectSkipChild_Container *xcs = nullptr;
+    struct XFormObjectData_Container *xds = nullptr;
 
     if (use_transform_skip_children) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
@@ -571,7 +579,7 @@ static bool snap_selected_to_location(bContext *C,
     }
   }
 
-  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+  WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, nullptr);
 
   return true;
 }
@@ -677,21 +685,21 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
  * \{ */
 
 /** Snaps the 3D cursor location to its nearest point on the grid. */
-static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_grid_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);
   float gridf, *curs;
 
-  gridf = ED_view3d_grid_view_scale(scene, v3d, region, NULL);
+  gridf = ED_view3d_grid_view_scale(scene, v3d, region, nullptr);
   curs = scene->cursor.location;
 
   curs[0] = gridf * floorf(0.5f + curs[0] / gridf);
   curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
   curs[2] = gridf * floorf(0.5f + curs[2] / gridf);
 
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL); /* hrm */
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr); /* hrm */
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
   return OPERATOR_FINISHED;
@@ -778,7 +786,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
   Object *obedit = CTX_data_edit_object(C);
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
-  TransVertStore tvs = {NULL};
+  TransVertStore tvs = {nullptr};
   TransVert *tv;
   float bmat[3][3], vec[3], min[3], max[3], centroid[3];
   int count = 0;
@@ -830,9 +838,11 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 
     if (obact && (obact->mode & OB_MODE_POSE)) {
       Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
-      bArmature *arm = obact_eval->data;
+      bArmature *arm = static_cast<bArmature *>(obact_eval->data);
       bPoseChannel *pchan;
-      for (pchan = obact_eval->pose->chanbase.first; pchan; pchan = pchan->next) {
+      for (pchan = static_cast<bPoseChannel *>(obact_eval->pose->chanbase.first); pchan;
+           pchan = pchan->next)
+      {
         if (arm->layer & pchan->bone->layer) {
           if (pchan->bone->flag & BONE_SELECTED) {
             copy_v3_v3(vec, pchan->pose_head);
@@ -878,12 +888,12 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
   return true;
 }
 
-static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_sel_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int pivot_point = scene->toolsettings->transform_pivot_point;
   if (snap_curs_to_sel_ex(C, pivot_point, scene->cursor.location)) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
     return OPERATOR_FINISHED;
@@ -921,18 +931,18 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL) {
+  if (ob == nullptr) {
     return false;
   }
   return ED_object_calc_active_center(ob, select_only, r_center);
 }
 
-static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_active_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
   if (snap_calc_active_center(C, false, scene->cursor.location)) {
-    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
     DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
     return OPERATOR_FINISHED;
@@ -962,7 +972,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
  * \{ */
 
 /** Snaps the 3D cursor location to the origin and clears cursor rotation. */
-static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
+static int snap_curs_to_center_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   float mat3[3][3];
@@ -973,7 +983,7 @@ static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 
   DEG_id_tag_update(&scene->id, ID_RECALC_COPY_ON_WRITE);
 
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -1000,7 +1010,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 
 bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 {
-  TransVertStore tvs = {NULL};
+  TransVertStore tvs = {nullptr};
   TransVert *tv;
   float centroid[3], vec[3], bmat[3][3];
 
@@ -1009,7 +1019,11 @@ bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
     float ob_min[3], ob_max[3];
     bool changed;
 
-    changed = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->object_to_world, SELECT);
+    changed = BKE_mball_minmax_ex(static_cast<const MetaBall *>(obedit->data),
+                                  ob_min,
+                                  ob_max,
+                                  obedit->object_to_world,
+                                  SELECT);
     if (changed) {
       minmax_v3v3_v3(r_min, r_max, ob_min);
       minmax_v3v3_v3(r_min, r_max, ob_max);

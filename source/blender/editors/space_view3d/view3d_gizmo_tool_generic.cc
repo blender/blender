@@ -31,8 +31,8 @@
 
 #include "view3d_intern.h" /* own include */
 
-static const char *handle_normal_id;
-static const char *handle_free_id;
+static const char *handle_normal_id = "VIEW3D_GGT_tool_generic_handle_normal";
+static const char *handle_free_id = "VIEW3D_GGT_tool_generic_handle_free";
 
 static const float handle_normal_radius_default = 100.0f;
 static const float handle_free_radius_default = 36.0f;
@@ -63,7 +63,7 @@ static bool WIDGETGROUP_tool_generic_poll(const bContext *C, wmGizmoGroupType *g
 static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgroup)
 {
 
-  wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, NULL);
+  wmGizmo *gz = WM_gizmo_new("GIZMO_GT_button_2d", gzgroup, nullptr);
   gz->flag |= WM_GIZMO_OPERATOR_TOOL_INIT;
 
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
@@ -114,14 +114,15 @@ static wmGizmo *tool_generic_create_gizmo(const bContext *C, wmGizmoGroup *gzgro
 
 static void WIDGETGROUP_tool_generic_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
+  wmGizmoWrapper *wwrapper = static_cast<wmGizmoWrapper *>(
+      MEM_mallocN(sizeof(wmGizmoWrapper), __func__));
   wwrapper->gizmo = tool_generic_create_gizmo(C, gzgroup);
   gzgroup->customdata = wwrapper;
 }
 
 static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = gzgroup->customdata;
+  wmGizmoWrapper *wwrapper = static_cast<wmGizmoWrapper *>(gzgroup->customdata);
   wmGizmo *gz = wwrapper->gizmo;
 
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -140,15 +141,12 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
       orientation = V3D_ORIENT_GLOBAL; /* dummy, use view. */
     }
 
-    RegionView3D *rv3d = CTX_wm_region_data(C);
+    RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
     struct TransformBounds tbounds;
-    const bool hide = ED_transform_calc_gizmo_stats(C,
-                                                    &(struct TransformCalcParams){
-                                                        .use_only_center = true,
-                                                        .orientation_index = orientation + 1,
-                                                    },
-                                                    &tbounds,
-                                                    rv3d) == 0;
+    TransformCalcParams params{};
+    params.use_only_center = true;
+    params.orientation_index = orientation + 1;
+    const bool hide = ED_transform_calc_gizmo_stats(C, &params, &tbounds, rv3d) == 0;
 
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, hide);
     if (hide) {
@@ -168,11 +166,10 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
 {
   ARegion *region = CTX_wm_region(C);
 
-  wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = region,
-      .user_data = gzgroup->parent_gzmap,
-      .notify = WM_gizmo_do_msg_notify_tag_refresh,
-  };
+  wmMsgSubscribeValue msg_sub_value_gz_tag_refresh{};
+  msg_sub_value_gz_tag_refresh.owner = region;
+  msg_sub_value_gz_tag_refresh.user_data = gzgroup->parent_gzmap;
+  msg_sub_value_gz_tag_refresh.notify = WM_gizmo_do_msg_notify_tag_refresh;
 
   {
     const PropertyRNA *props[] = {
@@ -189,9 +186,6 @@ static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
     }
   }
 }
-
-static const char *handle_normal_id = "VIEW3D_GGT_tool_generic_handle_normal";
-static const char *handle_free_id = "VIEW3D_GGT_tool_generic_handle_free";
 
 void VIEW3D_GGT_tool_generic_handle_normal(wmGizmoGroupType *gzgt)
 {

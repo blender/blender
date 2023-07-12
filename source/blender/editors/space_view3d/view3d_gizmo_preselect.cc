@@ -30,13 +30,14 @@ struct GizmoGroupPreSelElem {
   wmGizmo *gizmo;
 };
 
-static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_elem_3d", true);
-  struct GizmoGroupPreSelElem *ggd = MEM_callocN(sizeof(struct GizmoGroupPreSelElem), __func__);
+  struct GizmoGroupPreSelElem *ggd = static_cast<GizmoGroupPreSelElem *>(
+      MEM_callocN(sizeof(struct GizmoGroupPreSelElem), __func__));
   gzgroup->customdata = ggd;
 
-  wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, NULL);
+  wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, nullptr);
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
   UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 }
@@ -65,15 +66,15 @@ struct GizmoGroupPreSelEdgeRing {
   wmGizmo *gizmo;
 };
 
-static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext *UNUSED(C),
+static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext * /*C*/,
                                                       wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_edgering_3d", true);
-  struct GizmoGroupPreSelEdgeRing *ggd = MEM_callocN(sizeof(struct GizmoGroupPreSelEdgeRing),
-                                                     __func__);
+  struct GizmoGroupPreSelEdgeRing *ggd = static_cast<GizmoGroupPreSelEdgeRing *>(
+      MEM_callocN(sizeof(struct GizmoGroupPreSelEdgeRing), __func__));
   gzgroup->customdata = ggd;
 
-  wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, NULL);
+  wmGizmo *gz = ggd->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, nullptr);
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
   UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 }

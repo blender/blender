@@ -39,7 +39,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 #ifdef WITH_PYTHON
   if (BPY_run_filepath(C, filepath, op->reports)) {
     ARegion *region = CTX_wm_region(C);
-    if (region != NULL) {
+    if (region != nullptr) {
       ED_region_tag_redraw(region);
     }
     return OPERATOR_FINISHED;
@@ -65,7 +65,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
-  prop = RNA_def_string_file_path(ot->srna, "filepath", NULL, FILE_MAX, "Path", "");
+  prop = RNA_def_string_file_path(ot->srna, "filepath", nullptr, FILE_MAX, "Path", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
 }
 
@@ -77,11 +77,11 @@ static bool script_test_modal_operators(bContext *C)
 
   wm = CTX_wm_manager(C);
 
-  for (win = wm->windows.first; win; win = win->next) {
+  for (win = static_cast<wmWindow *>(wm->windows.first); win; win = win->next) {
     LISTBASE_FOREACH (wmEventHandler *, handler_base, &win->modalhandlers) {
       if (handler_base->type == WM_HANDLER_TYPE_OP) {
         wmEventHandler_Op *handler = (wmEventHandler_Op *)handler_base;
-        if (handler->op != NULL) {
+        if (handler->op != nullptr) {
           wmOperatorType *ot = handler->op->type;
           if (ot->rna_ext.srna) {
             return true;
@@ -115,8 +115,9 @@ static int script_reload_exec(bContext *C, wmOperator *op)
     /* Postpone when called from Python so this can be called from an operator
      * that might be re-registered, crashing Blender when we try to read from the
      * freed operator type which, see #80694. */
+    const char *imports[] = {"bpy", nullptr};
     BPY_run_string_exec(C,
-                        (const char *[]){"bpy", NULL},
+                        imports,
                         "def fn():\n"
                         "    bpy.utils.load_scripts(reload_scripts=True)\n"
                         "    return None\n"
@@ -124,8 +125,8 @@ static int script_reload_exec(bContext *C, wmOperator *op)
   }
   else {
     WM_cursor_wait(true);
-    BPY_run_string_eval(
-        C, (const char *[]){"bpy", NULL}, "bpy.utils.load_scripts(reload_scripts=True)");
+    const char *imports[] = {"bpy", nullptr};
+    BPY_run_string_eval(C, imports, "bpy.utils.load_scripts(reload_scripts=True)");
     WM_cursor_wait(false);
   }
 

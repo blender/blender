@@ -24,15 +24,15 @@ set(INC_SYS
 )
 
 set(SRC
-  ed_draw.c
-  ed_transverts.c
+  ed_draw.cc
+  ed_transverts.cc
   ed_util.cc
-  ed_util_imbuf.c
+  ed_util_imbuf.cc
   ed_util_ops.cc
   ed_viewer_path.cc
-  gizmo_utils.c
-  numinput.c
-  select_utils.c
+  gizmo_utils.cc
+  numinput.cc
+  select_utils.cc
 
   # general includes
   ../include/BIF_glutil.h

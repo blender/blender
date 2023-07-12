@@ -31,16 +31,16 @@
 
 /* ******************** default callbacks for statusbar space ******************** */
 
-static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *statusbar_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceStatusBar *sstatusbar;
 
-  sstatusbar = MEM_callocN(sizeof(*sstatusbar), "init statusbar");
+  sstatusbar = static_cast<SpaceStatusBar *>(MEM_callocN(sizeof(*sstatusbar), "init statusbar"));
   sstatusbar->spacetype = SPACE_STATUSBAR;
 
   /* header region */
-  region = MEM_callocN(sizeof(*region), "header for statusbar");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(*region), "header for statusbar"));
   BLI_addtail(&sstatusbar->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = RGN_ALIGN_NONE;
@@ -49,14 +49,14 @@ static SpaceLink *statusbar_create(const ScrArea *UNUSED(area), const Scene *UNU
 }
 
 /* Doesn't free the space-link itself. */
-static void statusbar_free(SpaceLink *UNUSED(sl)) {}
+static void statusbar_free(SpaceLink * /*sl*/) {}
 
 /* spacetype; init callback */
-static void statusbar_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void statusbar_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 {
-  SpaceStatusBar *sstatusbarn = MEM_dupallocN(sl);
+  SpaceStatusBar *sstatusbarn = static_cast<SpaceStatusBar *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
 
@@ -64,7 +64,7 @@ static SpaceLink *statusbar_duplicate(SpaceLink *sl)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void statusbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void statusbar_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   if (ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_RIGHT)) {
     region->flag |= RGN_FLAG_DYNAMIC_SIZE;
@@ -74,7 +74,7 @@ static void statusbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *r
 
 static void statusbar_operatortypes(void) {}
 
-static void statusbar_keymap(wmKeyConfig *UNUSED(keyconf)) {}
+static void statusbar_keymap(wmKeyConfig * /*keyconf*/) {}
 
 static void statusbar_header_region_listener(const wmRegionListenerParams *params)
 {
@@ -116,11 +116,10 @@ static void statusbar_header_region_message_subscribe(const wmRegionMessageSubsc
   struct wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
-  wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-      .owner = region,
-      .user_data = region,
-      .notify = ED_region_do_msg_notify_tag_redraw,
-  };
+  wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
+  msg_sub_value_region_tag_redraw.owner = region;
+  msg_sub_value_region_tag_redraw.user_data = region;
+  msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
   WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
   WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
@@ -133,7 +132,7 @@ static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 void ED_spacetype_statusbar(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(*st), "spacetype statusbar");
+  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(*st), "spacetype statusbar"));
   ARegionType *art;
 
   st->spaceid = SPACE_STATUSBAR;
@@ -148,7 +147,7 @@ void ED_spacetype_statusbar(void)
   st->blend_write = statusbar_space_blend_write;
 
   /* regions: header window */
-  art = MEM_callocN(sizeof(*art), "spacetype statusbar header region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(*art), "spacetype statusbar header region"));
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = 0.8f * HEADERY;
   art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */

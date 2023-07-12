@@ -36,23 +36,23 @@
 
 /* ******************** default callbacks for script space ***************** */
 
-static SpaceLink *script_create(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
+static SpaceLink *script_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
   ARegion *region;
   SpaceScript *sscript;
 
-  sscript = MEM_callocN(sizeof(SpaceScript), "initscript");
+  sscript = static_cast<SpaceScript *>(MEM_callocN(sizeof(SpaceScript), "initscript"));
   sscript->spacetype = SPACE_SCRIPT;
 
   /* header */
-  region = MEM_callocN(sizeof(ARegion), "header for script");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "header for script"));
 
   BLI_addtail(&sscript->regionbase, region);
   region->regiontype = RGN_TYPE_HEADER;
   region->alignment = (U.uiflag & USER_HEADER_BOTTOM) ? RGN_ALIGN_BOTTOM : RGN_ALIGN_TOP;
 
   /* main region */
-  region = MEM_callocN(sizeof(ARegion), "main region for script");
+  region = static_cast<ARegion *>(MEM_callocN(sizeof(ARegion), "main region for script"));
 
   BLI_addtail(&sscript->regionbase, region);
   region->regiontype = RGN_TYPE_WINDOW;
@@ -70,18 +70,18 @@ static void script_free(SpaceLink *sl)
 #ifdef WITH_PYTHON
   /* Free buttons references. */
   if (sscript->but_refs) {
-    sscript->but_refs = NULL;
+    sscript->but_refs = nullptr;
   }
 #endif
-  sscript->script = NULL;
+  sscript->script = nullptr;
 }
 
 /* spacetype; init callback */
-static void script_init(wmWindowManager *UNUSED(wm), ScrArea *UNUSED(area)) {}
+static void script_init(wmWindowManager * /*wm*/, ScrArea * /*area*/) {}
 
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {
-  SpaceScript *sscriptn = MEM_dupallocN(sl);
+  SpaceScript *sscriptn = static_cast<SpaceScript *>(MEM_dupallocN(sl));
 
   /* clear or remove stuff from old */
 
@@ -112,7 +112,7 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_ortho(v2d);
 
   /* data... */
-  // BPY_script_exec(C, "/root/blender-svn/blender25/test.py", NULL);
+  // BPY_script_exec(C, "/root/blender-svn/blender25/test.py", nullptr);
 
 #ifdef WITH_PYTHON
   if (sscript->script) {
@@ -129,7 +129,7 @@ static void script_main_region_draw(const bContext *C, ARegion *region)
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
-static void script_header_region_init(wmWindowManager *UNUSED(wm), ARegion *region)
+static void script_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
 {
   ED_region_header_init(region);
 }
@@ -139,7 +139,7 @@ static void script_header_region_draw(const bContext *C, ARegion *region)
   ED_region_header(C, region);
 }
 
-static void script_main_region_listener(const wmRegionListenerParams *UNUSED(params))
+static void script_main_region_listener(const wmRegionListenerParams * /*params*/)
 {
 /* XXX: Todo, need the ScriptSpace accessible to get the python script to run. */
 #if 0
@@ -150,7 +150,7 @@ static void script_main_region_listener(const wmRegionListenerParams *UNUSED(par
 static void script_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, SpaceLink *sl)
 {
   SpaceScript *scpt = (SpaceScript *)sl;
-  /*scpt->script = NULL; - 2.45 set to null, better re-run the script */
+  /*scpt->script = nullptr; - 2.45 set to null, better re-run the script */
   if (scpt->script) {
     BLO_read_id_address(reader, parent_id, &scpt->script);
     if (scpt->script) {
@@ -162,13 +162,13 @@ static void script_space_blend_read_lib(BlendLibReader *reader, ID *parent_id, S
 static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   SpaceScript *scr = (SpaceScript *)sl;
-  scr->but_refs = NULL;
+  scr->but_refs = nullptr;
   BLO_write_struct(writer, SpaceScript, sl);
 }
 
 void ED_spacetype_script(void)
 {
-  SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype script");
+  SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype script"));
   ARegionType *art;
 
   st->spaceid = SPACE_SCRIPT;
@@ -184,7 +184,7 @@ void ED_spacetype_script(void)
   st->blend_write = script_space_blend_write;
 
   /* regions: main window */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype script region"));
   art->regionid = RGN_TYPE_WINDOW;
   art->init = script_main_region_init;
   art->draw = script_main_region_draw;
@@ -195,7 +195,7 @@ void ED_spacetype_script(void)
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
+  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype script region"));
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;

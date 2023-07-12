@@ -33,7 +33,7 @@
 /** \name Force Field Gizmos
  * \{ */
 
-static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -57,13 +57,14 @@ static bool WIDGETGROUP_forcefield_poll(const bContext *C, wmGizmoGroupType *UNU
   return false;
 }
 
-static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_forcefield_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
   /* only wind effector for now */
-  wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
+  wmGizmoWrapper *wwrapper = static_cast<wmGizmoWrapper *>(
+      MEM_mallocN(sizeof(wmGizmoWrapper), __func__));
   gzgroup->customdata = wwrapper;
 
-  wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_arrow_3d", gzgroup, NULL);
+  wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_arrow_3d", gzgroup, nullptr);
   wmGizmo *gz = wwrapper->gizmo;
   RNA_enum_set(gz->ptr, "transform", ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
   ED_gizmo_arrow3d_set_ui_range(gz, -200.0f, 200.0f);
@@ -75,7 +76,7 @@ static void WIDGETGROUP_forcefield_setup(const bContext *UNUSED(C), wmGizmoGroup
 
 static void WIDGETGROUP_forcefield_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  wmGizmoWrapper *wwrapper = gzgroup->customdata;
+  wmGizmoWrapper *wwrapper = static_cast<wmGizmoWrapper *>(gzgroup->customdata);
   wmGizmo *gz = wwrapper->gizmo;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

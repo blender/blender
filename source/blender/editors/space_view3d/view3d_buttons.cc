@@ -69,32 +69,32 @@ enum {
 
 /* All must start w/ location */
 
-typedef struct {
+struct TransformMedian_Generic {
   float location[3];
-} TransformMedian_Generic;
+};
 
-typedef struct {
+struct TransformMedian_Mesh {
   float location[3], bv_weight, v_crease, be_weight, skin[2], e_crease;
-} TransformMedian_Mesh;
+};
 
-typedef struct {
+struct TransformMedian_Curve {
   float location[3], weight, b_weight, radius, tilt;
-} TransformMedian_Curve;
+};
 
-typedef struct {
+struct TransformMedian_Lattice {
   float location[3], weight;
-} TransformMedian_Lattice;
+};
 
-typedef union {
+union TransformMedian {
   TransformMedian_Generic generic;
   TransformMedian_Mesh mesh;
   TransformMedian_Curve curve;
   TransformMedian_Lattice lattice;
-} TransformMedian;
+};
 
 /* temporary struct for storing transform properties */
 
-typedef struct {
+struct TransformProperties {
   float ob_obmat_orig[4][4];
   float ob_dims_orig[3];
   float ob_scale_orig[3];
@@ -102,7 +102,7 @@ typedef struct {
   /* Floats only (treated as an array). */
   TransformMedian ve_median, median;
   bool tag_for_update;
-} TransformProperties;
+};
 
 #define TRANSFORM_MEDIAN_ARRAY_LEN (sizeof(TransformMedian) / sizeof(float))
 
@@ -112,7 +112,7 @@ static TransformProperties *v3d_transform_props_ensure(View3D *v3d);
 /** \name Edit Mesh Partial Updates
  * \{ */
 
-static void *editmesh_partial_update_begin_fn(bContext *UNUSED(C),
+static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
                                               const struct uiBlockInteraction_Params *params,
                                               void *arg1)
 {
@@ -120,10 +120,10 @@ static void *editmesh_partial_update_begin_fn(bContext *UNUSED(C),
   if (BLI_array_findindex(
           params->unique_retval_ids, params->unique_retval_ids_len, &retval_test) == -1)
   {
-    return NULL;
+    return nullptr;
   }
 
-  BMEditMesh *em = arg1;
+  BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
 
   int verts_mask_count = 0;
   BMIter iter;
@@ -139,40 +139,36 @@ static void *editmesh_partial_update_begin_fn(bContext *UNUSED(C),
     verts_mask_count += 1;
   }
 
+  BMPartialUpdate_Params update_params{};
+  update_params.do_tessellate = true;
+  update_params.do_normals = true;
   BMPartialUpdate *bmpinfo = BM_mesh_partial_create_from_verts_group_single(
-      em->bm,
-      &(BMPartialUpdate_Params){
-          .do_tessellate = true,
-          .do_normals = true,
-      },
-      verts_mask,
-      verts_mask_count);
+      em->bm, &update_params, verts_mask, verts_mask_count);
 
   MEM_freeN(verts_mask);
 
   return bmpinfo;
 }
 
-static void editmesh_partial_update_end_fn(bContext *UNUSED(C),
-                                           const struct uiBlockInteraction_Params *UNUSED(params),
-                                           void *UNUSED(arg1),
+static void editmesh_partial_update_end_fn(bContext * /*C*/,
+                                           const struct uiBlockInteraction_Params * /*params*/,
+                                           void * /*arg1*/,
                                            void *user_data)
 {
-  BMPartialUpdate *bmpinfo = user_data;
-  if (bmpinfo == NULL) {
+  BMPartialUpdate *bmpinfo = static_cast<BMPartialUpdate *>(user_data);
+  if (bmpinfo == nullptr) {
     return;
   }
   BM_mesh_partial_destroy(bmpinfo);
 }
 
-static void editmesh_partial_update_update_fn(
-    bContext *C,
-    const struct uiBlockInteraction_Params *UNUSED(params),
-    void *arg1,
-    void *user_data)
+static void editmesh_partial_update_update_fn(bContext *C,
+                                              const struct uiBlockInteraction_Params * /*params*/,
+                                              void *arg1,
+                                              void *user_data)
 {
-  BMPartialUpdate *bmpinfo = user_data;
-  if (bmpinfo == NULL) {
+  BMPartialUpdate *bmpinfo = static_cast<BMPartialUpdate *>(user_data);
+  if (bmpinfo == nullptr) {
     return;
   }
 
@@ -183,7 +179,7 @@ static void editmesh_partial_update_update_fn(
   }
   tfp->tag_for_update = false;
 
-  BMEditMesh *em = arg1;
+  BMEditMesh *em = static_cast<BMEditMesh *>(arg1);
 
   BKE_editmesh_looptri_and_normals_calc_with_partial(em, bmpinfo);
 }
@@ -276,17 +272,17 @@ static void apply_scale_factor_clamp(float *val,
 
 static TransformProperties *v3d_transform_props_ensure(View3D *v3d)
 {
-  if (v3d->runtime.properties_storage == NULL) {
+  if (v3d->runtime.properties_storage == nullptr) {
     v3d->runtime.properties_storage = MEM_callocN(sizeof(TransformProperties),
                                                   "TransformProperties");
   }
-  return v3d->runtime.properties_storage;
+  return static_cast<TransformProperties *>(v3d->runtime.properties_storage);
 }
 
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
-  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
+  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   TransformMedian median_basis, ve_median_basis;
   int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
@@ -299,7 +295,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
   if (ob->type == OB_MESH) {
     TransformMedian_Mesh *median = &median_basis.mesh;
-    Mesh *me = ob->data;
+    Mesh *me = static_cast<Mesh *>(ob->data);
     BMEditMesh *em = me->edit_mesh;
     BMesh *bm = em->bm;
     BMVert *eve;
@@ -333,7 +329,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
           }
 
           if (has_skinradius) {
-            MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
+            MVertSkin *vs = static_cast<MVertSkin *>(
+                BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset));
             add_v2_v2(median->skin, vs->radius); /* Third val not used currently. */
           }
         }
@@ -365,13 +362,13 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
     TransformMedian_Curve *median = &median_basis.curve;
-    Curve *cu = ob->data;
+    Curve *cu = static_cast<Curve *>(ob->data);
     BPoint *bp;
     BezTriple *bezt;
     int a;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-    StructRNA *seltype = NULL;
-    void *selp = NULL;
+    StructRNA *seltype = nullptr;
+    void *selp = nullptr;
 
     LISTBASE_FOREACH (Nurb *, nu, nurbs) {
       if (nu->type == CU_BEZIER) {
@@ -431,12 +428,12 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     }
   }
   else if (ob->type == OB_LATTICE) {
-    Lattice *lt = ob->data;
+    Lattice *lt = static_cast<Lattice *>(ob->data);
     TransformMedian_Lattice *median = &median_basis.lattice;
     BPoint *bp;
     int a;
-    StructRNA *seltype = NULL;
-    void *selp = NULL;
+    StructRNA *seltype = nullptr;
+    void *selp = nullptr;
 
     a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
     bp = lt->editlatt->latt->def;
@@ -468,7 +465,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
              130,
              200,
              20,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -537,7 +534,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     else {
       c = IFACE_("Median:");
     }
-    uiDefBut(block, UI_BTYPE_LABEL, 0, c, 0, yi -= buth, butw, buth, NULL, 0, 0, 0, 0, "");
+    uiDefBut(block, UI_BTYPE_LABEL, 0, c, 0, yi -= buth, butw, buth, nullptr, 0, 0, 0, 0, "");
 
     UI_block_align_begin(block);
 
@@ -658,7 +655,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  yi -= buth + but_margin,
                  butw,
                  buth,
-                 NULL,
+                 nullptr,
                  0.0,
                  0.0,
                  0,
@@ -744,7 +741,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                  yi -= buth + but_margin,
                  butw,
                  buth,
-                 NULL,
+                 nullptr,
                  0.0,
                  0.0,
                  0,
@@ -805,7 +802,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         1.0,
                         0,
                         0,
-                        NULL);
+                        nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
         but = uiDefButR(block,
@@ -823,7 +820,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         100.0,
                         0,
                         0,
-                        NULL);
+                        nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
         but = uiDefButR(block,
@@ -841,7 +838,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                         tilt_limit,
                         0,
                         0,
-                        NULL);
+                        nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
       }
@@ -916,7 +913,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
                   1.0,
                   0,
                   0,
-                  NULL);
+                  nullptr);
         UI_but_number_step_size_set(but, 1);
         UI_but_number_precision_set(but, 3);
       }
@@ -943,16 +940,15 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     UI_block_align_end(block);
 
     if (ob->type == OB_MESH) {
-      Mesh *me = ob->data;
+      Mesh *me = static_cast<Mesh *>(ob->data);
       BMEditMesh *em = me->edit_mesh;
-      if (em != NULL) {
-        UI_block_interaction_set(block,
-                                 &(uiBlockInteraction_CallbackData){
-                                     .begin_fn = editmesh_partial_update_begin_fn,
-                                     .end_fn = editmesh_partial_update_end_fn,
-                                     .update_fn = editmesh_partial_update_update_fn,
-                                     .arg1 = em,
-                                 });
+      if (em != nullptr) {
+        uiBlockInteraction_CallbackData callback_data{};
+        callback_data.begin_fn = editmesh_partial_update_begin_fn;
+        callback_data.end_fn = editmesh_partial_update_end_fn;
+        callback_data.update_fn = editmesh_partial_update_update_fn;
+        callback_data.arg1 = em;
+        UI_block_interaction_set(block, &callback_data);
       }
     }
   }
@@ -978,7 +974,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
          median_basis.mesh.e_crease))
     {
       const TransformMedian_Mesh *median = &median_basis.mesh, *ve_median = &ve_median_basis.mesh;
-      Mesh *me = ob->data;
+      Mesh *me = static_cast<Mesh *>(ob->data);
       BMEditMesh *em = me->edit_mesh;
       BMesh *bm = em->bm;
       BMIter iter;
@@ -1041,17 +1037,20 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
             }
 
             if (cd_vert_bweight_offset != -1) {
-              float *b_weight = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset);
+              float *b_weight = static_cast<float *>(
+                  BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset));
               apply_scale_factor_clamp(b_weight, tot, ve_median->bv_weight, scale_bv_weight);
             }
 
             if (cd_vert_crease_offset != -1) {
-              float *crease = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_crease_offset);
+              float *crease = static_cast<float *>(
+                  BM_ELEM_CD_GET_VOID_P(eve, cd_vert_crease_offset));
               apply_scale_factor_clamp(crease, tot, ve_median->v_crease, scale_v_crease);
             }
 
             if (cd_vert_skin_offset != -1) {
-              MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset);
+              MVertSkin *vs = static_cast<MVertSkin *>(
+                  BM_ELEM_CD_GET_VOID_P(eve, cd_vert_skin_offset));
 
               /* That one is not clamped to [0.0, 1.0]. */
               for (int i = 0; i < 2; i++) {
@@ -1098,12 +1097,14 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
         BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
           if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
             if (median->be_weight != 0.0f) {
-              float *b_weight = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset);
+              float *b_weight = static_cast<float *>(
+                  BM_ELEM_CD_GET_VOID_P(eed, cd_edge_bweight_offset));
               apply_scale_factor_clamp(b_weight, tot, ve_median->be_weight, scale_be_weight);
             }
 
             if (median->e_crease != 0.0f) {
-              float *crease = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset);
+              float *crease = static_cast<float *>(
+                  BM_ELEM_CD_GET_VOID_P(eed, cd_edge_crease_offset));
               apply_scale_factor_clamp(crease, tot, ve_median->e_crease, scale_e_crease);
             }
           }
@@ -1116,7 +1117,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     {
       const TransformMedian_Curve *median = &median_basis.curve,
                                   *ve_median = &ve_median_basis.curve;
-      Curve *cu = ob->data;
+      Curve *cu = static_cast<Curve *>(ob->data);
       BPoint *bp;
       BezTriple *bezt;
       int a;
@@ -1187,7 +1188,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
     else if ((ob->type == OB_LATTICE) && (apply_vcos || median_basis.lattice.weight)) {
       const TransformMedian_Lattice *median = &median_basis.lattice,
                                     *ve_median = &ve_median_basis.lattice;
-      Lattice *lt = ob->data;
+      Lattice *lt = static_cast<Lattice *>(ob->data);
       BPoint *bp;
       int a;
       const float scale_w = compute_scale_factor(ve_median->weight, median->weight);
@@ -1215,11 +1216,11 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 
 static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d, Object *ob)
 {
-  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : NULL;
+  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
 
   if (block) {
-    BLI_assert(C == NULL);
+    BLI_assert(C == nullptr);
     int yi = 200;
     const int butw = 200;
     const int buth = 20 * UI_SCALE_FAC;
@@ -1237,7 +1238,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
              yi -= buth,
              butw,
              buth,
-             NULL,
+             nullptr,
              0,
              0,
              0,
@@ -1247,7 +1248,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
     const float lim = FLT_MAX;
     for (int i = 0; i < 3; i++) {
       uiBut *but;
-      const char text[3] = {'X' + i, ':', '\0'};
+      const char text[3] = {char('X' + i), ':', '\0'};
       but = uiDefButF(block,
                       UI_BTYPE_NUM,
                       B_TRANSFORM_PANEL_DIMS,
@@ -1287,7 +1288,7 @@ static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d
 
 #define B_VGRP_PNL_EDIT_SINGLE 8 /* or greater */
 
-static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
+static void do_view3d_vgroup_buttons(bContext *C, void * /*arg*/, int event)
 {
   if (event < B_VGRP_PNL_EDIT_SINGLE) {
     /* not for me */
@@ -1299,11 +1300,11 @@ static void do_view3d_vgroup_buttons(bContext *C, void *UNUSED(arg), int event)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
   ED_vgroup_vert_active_mirror(ob, event - B_VGRP_PNL_EDIT_SINGLE);
-  DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 }
 
-static bool view3d_panel_vgroup_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool view3d_panel_vgroup_poll(const bContext *C, PanelType * /*pt*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1345,17 +1346,17 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
     uint i;
     int subset_count, vgroup_tot;
     const bool *vgroup_validmap;
-    eVGroupSelect subset_type = ts->vgroupsubset;
+    eVGroupSelect subset_type = eVGroupSelect(ts->vgroupsubset);
     int yco = 0;
     int lock_count = 0;
 
-    UI_block_func_handle_set(block, do_view3d_vgroup_buttons, NULL);
+    UI_block_func_handle_set(block, do_view3d_vgroup_buttons, nullptr);
 
     bcol = uiLayoutColumn(panel->layout, true);
     row = uiLayoutRow(bcol, true); /* The filter button row */
 
-    RNA_pointer_create(NULL, &RNA_ToolSettings, ts, &tools_ptr);
-    uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+    RNA_pointer_create(nullptr, &RNA_ToolSettings, ts, &tools_ptr);
+    uiItemR(row, &tools_ptr, "vertex_group_subset", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
 
     col = uiLayoutColumn(bcol, true);
 
@@ -1363,7 +1364,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         ob, subset_type, &vgroup_tot, &subset_count);
     const ListBase *defbase = BKE_object_defgroup_list(ob);
 
-    for (i = 0, dg = defbase->first; dg; i++, dg = dg->next) {
+    for (i = 0, dg = static_cast<bDeformGroup *>(defbase->first); dg; i++, dg = dg->next) {
       bool locked = (dg->flag & DG_LOCK_WEIGHT) != 0;
       if (vgroup_validmap[i]) {
         MDeformWeight *dw = BKE_defvert_find_index(dv, i);
@@ -1427,7 +1428,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
                       "OBJECT_OT_vertex_weight_paste",
                       "",
                       icon,
-                      NULL,
+                      nullptr,
                       WM_OP_INVOKE_DEFAULT,
                       0,
                       &op_ptr);
@@ -1439,7 +1440,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
                       "OBJECT_OT_vertex_weight_delete",
                       "",
                       icon,
-                      NULL,
+                      nullptr,
                       WM_OP_INVOKE_DEFAULT,
                       0,
                       &op_ptr);
@@ -1501,11 +1502,11 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
     Bone *bone;
 
     boneptr = RNA_pointer_get(ptr, "bone");
-    bone = boneptr.data;
+    bone = static_cast<Bone *>(boneptr.data);
     uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
   }
   colsub = uiLayoutColumn(split, true);
-  uiItemR(colsub, ptr, "location", 0, NULL, ICON_NONE);
+  uiItemR(colsub, ptr, "location", 0, nullptr, ICON_NONE);
   colsub = uiLayoutColumn(split, true);
   uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
   uiItemL(colsub, "", ICON_NONE);
@@ -1585,7 +1586,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 
   split = uiLayoutSplit(layout, 0.8f, false);
   colsub = uiLayoutColumn(split, true);
-  uiItemR(colsub, ptr, "scale", 0, NULL, ICON_NONE);
+  uiItemR(colsub, ptr, "scale", 0, nullptr, ICON_NONE);
   colsub = uiLayoutColumn(split, true);
   uiLayoutSetEmboss(colsub, UI_EMBOSS_NONE_OR_STATUS);
   uiItemL(colsub, "", ICON_NONE);
@@ -1622,7 +1623,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 
 static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
 {
-  bArmature *arm = ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
   EditBone *ebone;
   uiLayout *col;
   PointerRNA eboneptr;
@@ -1637,7 +1638,7 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
   RNA_pointer_create(&arm->id, &RNA_EditBone, ebone, &eboneptr);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &eboneptr, "head", 0, NULL, ICON_NONE);
+  uiItemR(col, &eboneptr, "head", 0, nullptr, ICON_NONE);
   if (ebone->parent && ebone->flag & BONE_CONNECTED) {
     PointerRNA parptr = RNA_pointer_get(&eboneptr, "parent");
     uiItemR(col, &parptr, "tail_radius", 0, IFACE_("Radius (Parent)"), ICON_NONE);
@@ -1646,18 +1647,18 @@ static void v3d_editarmature_buts(uiLayout *layout, Object *ob)
     uiItemR(col, &eboneptr, "head_radius", 0, IFACE_("Radius"), ICON_NONE);
   }
 
-  uiItemR(col, &eboneptr, "tail", 0, NULL, ICON_NONE);
+  uiItemR(col, &eboneptr, "tail", 0, nullptr, ICON_NONE);
   uiItemR(col, &eboneptr, "tail_radius", 0, IFACE_("Radius"), ICON_NONE);
 
-  uiItemR(col, &eboneptr, "roll", 0, NULL, ICON_NONE);
-  uiItemR(col, &eboneptr, "length", 0, NULL, ICON_NONE);
+  uiItemR(col, &eboneptr, "roll", 0, nullptr, ICON_NONE);
+  uiItemR(col, &eboneptr, "length", 0, nullptr, ICON_NONE);
   uiItemR(col, &eboneptr, "envelope_distance", 0, IFACE_("Envelope"), ICON_NONE);
 }
 
 static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
 {
   PointerRNA mbptr, ptr;
-  MetaBall *mball = ob->data;
+  MetaBall *mball = static_cast<MetaBall *>(ob->data);
   uiLayout *col;
 
   if (!mball || !(mball->lastelem)) {
@@ -1670,12 +1671,12 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
   RNA_pointer_create(&mball->id, &RNA_MetaElement, mball->lastelem, &ptr);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, &ptr, "co", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "co", 0, nullptr, ICON_NONE);
 
-  uiItemR(col, &ptr, "radius", 0, NULL, ICON_NONE);
-  uiItemR(col, &ptr, "stiffness", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "radius", 0, nullptr, ICON_NONE);
+  uiItemR(col, &ptr, "stiffness", 0, nullptr, ICON_NONE);
 
-  uiItemR(col, &ptr, "type", 0, NULL, ICON_NONE);
+  uiItemR(col, &ptr, "type", 0, nullptr, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   switch (RNA_enum_get(&ptr, "type")) {
@@ -1705,7 +1706,7 @@ static void v3d_editmetaball_buts(uiLayout *layout, Object *ob)
   }
 }
 
-static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event)
+static void do_view3d_region_buttons(bContext *C, void * /*index*/, int event)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1721,27 +1722,27 @@ static void do_view3d_region_buttons(bContext *C, void *UNUSED(index), int event
 
     case B_TRANSFORM_PANEL_MEDIAN:
       if (ob) {
-        v3d_editvertex_buts(NULL, v3d, ob, 1.0);
-        DEG_id_tag_update(ob->data, ID_RECALC_GEOMETRY);
+        v3d_editvertex_buts(nullptr, v3d, ob, 1.0);
+        DEG_id_tag_update(static_cast<ID *>(ob->data), ID_RECALC_GEOMETRY);
       }
       break;
     case B_TRANSFORM_PANEL_DIMS:
       if (ob) {
-        v3d_object_dimension_buts(C, NULL, v3d, ob);
+        v3d_object_dimension_buts(C, nullptr, v3d, ob);
       }
       break;
   }
 
   /* default for now */
-  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 }
 
-static bool view3d_panel_transform_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool view3d_panel_transform_poll(const bContext *C, PanelType * /*pt*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  return (BKE_view_layer_active_base_get(view_layer) != NULL);
+  return (BKE_view_layer_active_base_get(view_layer) != nullptr);
 }
 
 static void view3d_panel_transform(const bContext *C, Panel *panel)
@@ -1755,7 +1756,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
   uiLayout *col;
 
   block = uiLayoutGetBlock(panel->layout);
-  UI_block_func_handle_set(block, do_view3d_region_buttons, NULL);
+  UI_block_func_handle_set(block, do_view3d_region_buttons, nullptr);
 
   col = uiLayoutColumn(panel->layout, false);
 
@@ -1784,7 +1785,7 @@ static void view3d_panel_transform(const bContext *C, Panel *panel)
     if (OB_TYPE_SUPPORT_EDITMODE(ob->type) || ELEM(ob->type, OB_VOLUME, OB_CURVES, OB_POINTCLOUD))
     {
       View3D *v3d = CTX_wm_view3d(C);
-      v3d_object_dimension_buts(NULL, col, v3d, ob);
+      v3d_object_dimension_buts(nullptr, col, v3d, ob);
     }
   }
 }
@@ -1798,7 +1799,7 @@ void view3d_buttons_register(ARegionType *art)
 {
   PanelType *pt;
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel object");
+  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype view3d panel object"));
   STRNCPY(pt->idname, "VIEW3D_PT_transform");
   STRNCPY(pt->label, N_("Transform")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY(pt->category, "Item");
@@ -1807,7 +1808,7 @@ void view3d_buttons_register(ARegionType *art)
   pt->poll = view3d_panel_transform_poll;
   BLI_addtail(&art->paneltypes, pt);
 
-  pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup");
+  pt = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), "spacetype view3d panel vgroup"));
   STRNCPY(pt->idname, "VIEW3D_PT_vgroup");
   STRNCPY(pt->label, N_("Vertex Weights")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY(pt->category, "Item");
@@ -1818,7 +1819,7 @@ void view3d_buttons_register(ARegionType *art)
 
   MenuType *mt;
 
-  mt = MEM_callocN(sizeof(MenuType), "spacetype view3d menu collections");
+  mt = static_cast<MenuType *>(MEM_callocN(sizeof(MenuType), "spacetype view3d menu collections"));
   STRNCPY(mt->idname, "VIEW3D_MT_collection");
   STRNCPY(mt->label, N_("Collection"));
   STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
@@ -1829,7 +1830,7 @@ void view3d_buttons_register(ARegionType *art)
 static int view3d_object_mode_menu(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
-  if (ob == NULL) {
+  if (ob == nullptr) {
     BKE_report(op->reports, RPT_WARNING, "No active object found");
     return OPERATOR_CANCELLED;
   }

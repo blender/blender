@@ -43,16 +43,16 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   const int mode = tvs->mode;
   BLI_assert(ED_transverts_check_obedit(obedit) == true);
 
-  DEG_id_tag_update(obedit->data, ID_RECALC_GEOMETRY);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_GEOMETRY);
 
   if (obedit->type == OB_MESH) {
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BM_mesh_normals_update(em->bm);
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = obedit->data;
+    Curve *cu = static_cast<Curve *>(obedit->data);
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-    Nurb *nu = nurbs->first;
+    Nurb *nu = static_cast<Nurb *>(nurbs->first);
 
     while (nu) {
       /* keep handles' vectors unchanged */
@@ -108,13 +108,13 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = obedit->data;
+    bArmature *arm = static_cast<bArmature *>(obedit->data);
     EditBone *ebo;
     TransVert *tv = tvs->transverts;
     int a = 0;
 
     /* Ensure all bone tails are correctly adjusted */
-    for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
       /* adjust tip if both ends selected */
       if ((ebo->flag & BONE_ROOTSEL) && (ebo->flag & BONE_TIPSEL)) {
         if (tv) {
@@ -132,7 +132,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
 
     /* Ensure all bones are correctly adjusted */
-    for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
       if ((ebo->flag & BONE_CONNECTED) && ebo->parent) {
         /* If this bone has a parent tip that has been moved */
         if (ebo->parent->flag & BONE_TIPSEL) {
@@ -149,7 +149,7 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = obedit->data;
+    Lattice *lt = static_cast<Lattice *>(obedit->data);
 
     if (lt->editlatt->latt->flag & LT_OUTSIDE) {
       outside_lattice(lt->editlatt->latt);
@@ -157,11 +157,11 @@ void ED_transverts_update_obedit(TransVertStore *tvs, Object *obedit)
   }
 }
 
-static void set_mapped_co(void *vuserdata, int index, const float co[3], const float UNUSED(no[3]))
+static void set_mapped_co(void *vuserdata, int index, const float co[3], const float[3] /*no*/)
 {
-  void **userdata = vuserdata;
-  BMEditMesh *em = userdata[0];
-  TransVert *tv = userdata[1];
+  void **userdata = static_cast<void **>(vuserdata);
+  BMEditMesh *em = static_cast<BMEditMesh *>(userdata[0]);
+  TransVert *tv = static_cast<TransVert *>(userdata[1]);
   BMVert *eve = BM_vert_at_index(em->bm, index);
 
   if (BM_elem_index_get(eve) != TM_INDEX_SKIP) {
@@ -200,7 +200,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
-  TransVert *tv = NULL;
+  TransVert *tv = nullptr;
   MetaElem *ml;
   BMVert *eve;
   EditBone *ebo;
@@ -212,7 +212,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     BMEditMesh *em = BKE_editmesh_from_object((Object *)obedit);
     BMesh *bm = em->bm;
     BMIter iter;
-    void *userdata[2] = {em, NULL};
+    void *userdata[2] = {em, nullptr};
     // int proptrans = 0; /*UNUSED*/
 
     /* abuses vertex index all over, set, just set dirty here,
@@ -280,7 +280,8 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
 
     /* and now make transverts */
     if (tvs->transverts_tot) {
-      tv = tvs->transverts = MEM_callocN(tvs->transverts_tot * sizeof(TransVert), __func__);
+      tv = tvs->transverts = static_cast<TransVert *>(
+          MEM_callocN(tvs->transverts_tot * sizeof(TransVert), __func__));
 
       a = 0;
       BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
@@ -317,14 +318,15 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_ARMATURE) {
-    bArmature *arm = obedit->data;
+    bArmature *arm = static_cast<bArmature *>(obedit->data);
     int totmalloc = BLI_listbase_count(arm->edbo);
 
     totmalloc *= 2; /* probably overkill but bones can have 2 trans verts each */
 
-    tv = tvs->transverts = MEM_callocN(totmalloc * sizeof(TransVert), __func__);
+    tv = tvs->transverts = static_cast<TransVert *>(
+        MEM_callocN(totmalloc * sizeof(TransVert), __func__));
 
-    for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
+    for (ebo = static_cast<EditBone *>(arm->edbo->first); ebo; ebo = ebo->next) {
       if (ebo->layer & arm->layer) {
         const bool tipsel = (ebo->flag & BONE_TIPSEL) != 0;
         const bool rootsel = (ebo->flag & BONE_ROOTSEL) != 0;
@@ -363,11 +365,11 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Curve *cu = obedit->data;
+    Curve *cu = static_cast<Curve *>(obedit->data);
     int totmalloc = 0;
     ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
-    for (nu = nurbs->first; nu; nu = nu->next) {
+    for (nu = static_cast<Nurb *>(nurbs->first); nu; nu = nu->next) {
       if (nu->type == CU_BEZIER) {
         totmalloc += 3 * nu->pntsu;
       }
@@ -375,9 +377,10 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
         totmalloc += nu->pntsu * nu->pntsv;
       }
     }
-    tv = tvs->transverts = MEM_callocN(totmalloc * sizeof(TransVert), __func__);
+    tv = tvs->transverts = static_cast<TransVert *>(
+        MEM_callocN(totmalloc * sizeof(TransVert), __func__));
 
-    nu = nurbs->first;
+    nu = static_cast<Nurb *>(nurbs->first);
     while (nu) {
       if (nu->type == CU_BEZIER) {
         a = nu->pntsu;
@@ -452,12 +455,13 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_MBALL) {
-    MetaBall *mb = obedit->data;
+    MetaBall *mb = static_cast<MetaBall *>(obedit->data);
     int totmalloc = BLI_listbase_count(mb->editelems);
 
-    tv = tvs->transverts = MEM_callocN(totmalloc * sizeof(TransVert), __func__);
+    tv = tvs->transverts = static_cast<TransVert *>(
+        MEM_callocN(totmalloc * sizeof(TransVert), __func__));
 
-    ml = mb->editelems->first;
+    ml = static_cast<MetaElem *>(mb->editelems->first);
     while (ml) {
       if (ml->flag & SELECT) {
         tv->loc = &ml->x;
@@ -470,13 +474,13 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_LATTICE) {
-    Lattice *lt = obedit->data;
+    Lattice *lt = static_cast<Lattice *>(obedit->data);
 
     bp = lt->editlatt->latt->def;
 
     a = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 
-    tv = tvs->transverts = MEM_callocN(a * sizeof(TransVert), __func__);
+    tv = tvs->transverts = static_cast<TransVert *>(MEM_callocN(a * sizeof(TransVert), __func__));
 
     while (a--) {
       if (bp->f1 & SELECT) {
@@ -492,7 +496,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     }
   }
   else if (obedit->type == OB_CURVES) {
-    Curves *curves_id = obedit->data;
+    Curves *curves_id = static_cast<Curves *>(obedit->data);
     ED_curves_transverts_create(curves_id, tvs);
   }
 
@@ -500,7 +504,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
     /* Prevent memory leak. happens for curves/lattices due to
      * difficult condition of adding points to trans data. */
     MEM_freeN(tvs->transverts);
-    tvs->transverts = NULL;
+    tvs->transverts = nullptr;
   }
 
   tvs->mode = mode;

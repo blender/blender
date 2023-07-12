@@ -61,14 +61,12 @@ struct BoneSplineWidgetGroup {
   struct BoneSplineHandle handles[2];
 };
 
-static void gizmo_bbone_offset_get(const wmGizmo *UNUSED(gz),
-                                   wmGizmoProperty *gz_prop,
-                                   void *value_p)
+static void gizmo_bbone_offset_get(const wmGizmo * /*gz*/, wmGizmoProperty *gz_prop, void *value_p)
 {
-  struct BoneSplineHandle *bh = gz_prop->custom_func.user_data;
+  struct BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
 
-  float *value = value_p;
+  float *value = static_cast<float *>(value_p);
   BLI_assert(gz_prop->type->array_length == 3);
 
   if (bh->index == 0) {
@@ -84,14 +82,14 @@ static void gizmo_bbone_offset_get(const wmGizmo *UNUSED(gz),
   copy_v3_v3(value, bh->co);
 }
 
-static void gizmo_bbone_offset_set(const wmGizmo *UNUSED(gz),
+static void gizmo_bbone_offset_set(const wmGizmo * /*gz*/,
                                    wmGizmoProperty *gz_prop,
                                    const void *value_p)
 {
-  struct BoneSplineHandle *bh = gz_prop->custom_func.user_data;
+  struct BoneSplineHandle *bh = static_cast<BoneSplineHandle *>(gz_prop->custom_func.user_data);
   bPoseChannel *pchan = bh->pchan;
 
-  const float *value = value_p;
+  const float *value = static_cast<const float *>(value_p);
 
   BLI_assert(gz_prop->type->array_length == 3);
   copy_v3_v3(bh->co, value);
@@ -108,7 +106,7 @@ static void gizmo_bbone_offset_set(const wmGizmo *UNUSED(gz),
   }
 }
 
-static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
+static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
   if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)) {
@@ -122,7 +120,7 @@ static bool WIDGETGROUP_armature_spline_poll(const bContext *C, wmGizmoGroupType
   if (base && BASE_SELECTABLE(v3d, base)) {
     Object *ob = BKE_object_pose_armature_get(base->object);
     if (ob) {
-      const bArmature *arm = ob->data;
+      const bArmature *arm = static_cast<const bArmature *>(ob->data);
       if (arm->drawtype == ARM_B_BONE) {
         bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
         if (pchan && pchan->bone->segments > 1) {
@@ -144,14 +142,14 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
-  struct BoneSplineWidgetGroup *bspline_group = MEM_callocN(sizeof(struct BoneSplineWidgetGroup),
-                                                            __func__);
+  struct BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
+      MEM_callocN(sizeof(struct BoneSplineWidgetGroup), __func__));
   gzgroup->customdata = bspline_group;
 
   /* Handles */
   for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {
     wmGizmo *gz;
-    gz = bspline_group->handles[i].gizmo = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
+    gz = bspline_group->handles[i].gizmo = WM_gizmo_new_ptr(gzt_move, gzgroup, nullptr);
     RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
     RNA_enum_set(gz->ptr,
                  "draw_options",
@@ -180,7 +178,8 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     return;
   }
 
-  struct BoneSplineWidgetGroup *bspline_group = gzgroup->customdata;
+  struct BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
+      gzgroup->customdata);
   bPoseChannel *pchan = BKE_pose_channel_active_if_layer_visible(ob);
 
   /* Handles */
@@ -194,14 +193,12 @@ static void WIDGETGROUP_armature_spline_refresh(const bContext *C, wmGizmoGroup 
     copy_m4_m4(gz->matrix_space, mat);
 
     /* need to set property here for undo. TODO: would prefer to do this in _init. */
-    WM_gizmo_target_property_def_func(gz,
-                                      "offset",
-                                      &(const wmGizmoPropertyFnParams){
-                                          .value_get_fn = gizmo_bbone_offset_get,
-                                          .value_set_fn = gizmo_bbone_offset_set,
-                                          .range_get_fn = NULL,
-                                          .user_data = &bspline_group->handles[i],
-                                      });
+    wmGizmoPropertyFnParams params{};
+    params.value_get_fn = gizmo_bbone_offset_get;
+    params.value_set_fn = gizmo_bbone_offset_set;
+    params.range_get_fn = nullptr;
+    params.user_data = &bspline_group->handles[i];
+    WM_gizmo_target_property_def_func(gz, "offset", &params);
   }
 }
 

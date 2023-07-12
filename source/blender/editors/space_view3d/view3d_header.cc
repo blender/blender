@@ -43,7 +43,7 @@
 /** \name Toggle Matcap Flip Operator
  * \{ */
 
-static int toggle_matcap_flip(bContext *C, wmOperator *UNUSED(op))
+static int toggle_matcap_flip(bContext *C, wmOperator * /*op*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
 
@@ -95,7 +95,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ot,
                   "",
                   ICON_VERTEXSEL,
-                  NULL,
+                  nullptr,
                   WM_OP_INVOKE_DEFAULT,
                   (em->selectmode & SCE_SELECT_VERTEX) ? UI_ITEM_O_DEPRESS : 0,
                   &op_ptr);
@@ -104,7 +104,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ot,
                   "",
                   ICON_EDGESEL,
-                  NULL,
+                  nullptr,
                   WM_OP_INVOKE_DEFAULT,
                   (em->selectmode & SCE_SELECT_EDGE) ? UI_ITEM_O_DEPRESS : 0,
                   &op_ptr);
@@ -113,7 +113,7 @@ void uiTemplateEditModeSelection(uiLayout *layout, bContext *C)
                   ot,
                   "",
                   ICON_FACESEL,
-                  NULL,
+                  nullptr,
                   WM_OP_INVOKE_DEFAULT,
                   (em->selectmode & SCE_SELECT_FACE) ? UI_ITEM_O_DEPRESS : 0,
                   &op_ptr);
@@ -132,7 +132,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, bContext *C)
     /* masks aren't used for sculpt and particle painting */
     PointerRNA meshptr;
 
-    RNA_pointer_create(ob->data, &RNA_Mesh, ob->data, &meshptr);
+    RNA_pointer_create(static_cast<ID *>(ob->data), &RNA_Mesh, ob->data, &meshptr);
     if (ob->mode & OB_MODE_TEXTURE_PAINT) {
       uiItemR(layout, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
     }
@@ -161,7 +161,7 @@ void uiTemplateHeader3D_mode(uiLayout *layout, bContext *C)
                         OB_MODE_TEXTURE_PAINT));
 
   uiTemplateEditModeSelection(layout, C);
-  if ((obedit == NULL) && is_paint) {
+  if ((obedit == nullptr) && is_paint) {
     uiTemplatePaintModeSelection(layout, C);
   }
 }

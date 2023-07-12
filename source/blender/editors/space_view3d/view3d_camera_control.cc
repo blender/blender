@@ -40,7 +40,7 @@
 
 #include "view3d_intern.h" /* own include */
 
-typedef struct View3DCameraControl {
+struct View3DCameraControl {
 
   /* -------------------------------------------------------------------- */
   /* Context (assign these to vars before use) */
@@ -83,7 +83,7 @@ typedef struct View3DCameraControl {
 
   /* backup the objects transform */
   void *obtfm;
-} View3DCameraControl;
+};
 
 BLI_INLINE Object *view3d_cameracontrol_object(const View3DCameraControl *vctrl)
 {
@@ -98,7 +98,7 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
     return view3d_cameracontrol_object(vctrl);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
@@ -108,14 +108,14 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
 {
   View3DCameraControl *vctrl;
 
-  vctrl = MEM_callocN(sizeof(View3DCameraControl), __func__);
+  vctrl = static_cast<View3DCameraControl *>(MEM_callocN(sizeof(View3DCameraControl), __func__));
 
   /* Store context */
   vctrl->ctx_scene = scene;
   vctrl->ctx_v3d = v3d;
   vctrl->ctx_rv3d = rv3d;
 
-  vctrl->use_parent_root = v3d->camera != NULL &&
+  vctrl->use_parent_root = v3d->camera != nullptr &&
                            v3d->camera->transflag & OB_TRANSFORM_ADJUST_ROOT_PARENT_FOR_VIEW_LOCK;
 
   vctrl->persp_backup = rv3d->persp;
@@ -183,12 +183,12 @@ View3DCameraControl *ED_view3d_cameracontrol_acquire(Depsgraph *depsgraph,
  * \note This could be exposed as an API option, as we might not want the view
  * to be constrained by the thing it's controlling.
  */
-static bool object_apply_mat4_with_protect(Object *ob,
-                                           const float obmat[4][4],
-                                           const bool use_parent,
-                                           /* Only use when applying lock. */
-                                           RegionView3D *rv3d,
-                                           const float view_mat[4][4])
+static bool object_apply_mat4_with_protect(
+    Object *ob,
+    const float obmat[4][4],
+    const bool use_parent, /* Only use when applying lock. */
+    RegionView3D *rv3d,
+    const float view_mat[4][4])
 {
   const bool use_protect = (ob->protectflag != 0);
   bool view_changed = false;
@@ -224,8 +224,7 @@ static bool object_apply_mat4_with_protect(Object *ob,
   return view_changed;
 }
 
-void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl,
-                                    /* args for keyframing */
+void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl, /* args for keyframing */
                                     const bool use_autokey,
                                     struct bContext *C,
                                     const bool do_rotate,

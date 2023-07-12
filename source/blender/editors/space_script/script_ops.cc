@@ -21,7 +21,7 @@ void script_operatortypes(void)
   WM_operatortype_append(SCRIPT_OT_reload);
 }
 
-void script_keymap(wmKeyConfig *UNUSED(keyconf))
+void script_keymap(wmKeyConfig * /*keyconf*/)
 {
   /* Script space is deprecated, and doesn't need a keymap */
 }

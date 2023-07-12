@@ -53,13 +53,11 @@ enum {
 enum {
   /* (1 << 8) and below are reserved for public flags! */
   /** User has edited this value somehow. */
-  NUM_EDITED = (1 << 9),
-  /** Current expression for this value is invalid. */
+  NUM_EDITED = (1 << 9), /** Current expression for this value is invalid. */
   NUM_INVALID = (1 << 10),
 #ifdef USE_FAKE_EDIT
   /** Current expression's result has to be negated. */
-  NUM_NEGATE = (1 << 11),
-  /** Current expression's result has to be inverted. */
+  NUM_NEGATE = (1 << 11), /** Current expression's result has to be inverted. */
   NUM_INVERSE = (1 << 12),
 #endif
 };
@@ -273,10 +271,10 @@ bool user_string_to_number(bContext *C,
                            char **r_error)
 {
 #ifdef WITH_PYTHON
-  struct BPy_RunErrInfo err_info = {
-      .use_single_line_error = use_single_line_error,
-      .r_string = r_error,
-  };
+  BPy_RunErrInfo err_info{};
+  err_info.use_single_line_error = use_single_line_error;
+  err_info.r_string = r_error;
+
   double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
   if (BKE_unit_string_contains_unit(str, type)) {
     char str_unit_convert[256];
@@ -284,10 +282,10 @@ bool user_string_to_number(bContext *C,
     BKE_unit_replace_string(
         str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
 
-    return BPY_run_string_as_number(C, NULL, str_unit_convert, &err_info, r_value);
+    return BPY_run_string_as_number(C, nullptr, str_unit_convert, &err_info, r_value);
   }
 
-  int success = BPY_run_string_as_number(C, NULL, str, &err_info, r_value);
+  int success = BPY_run_string_as_number(C, nullptr, str, &err_info, r_value);
   *r_value = BKE_unit_apply_preferred_unit(unit, type, *r_value);
   *r_value /= unit_scale;
   return success;
@@ -312,7 +310,7 @@ static bool editstr_is_simple_numinput(const char ascii)
 
 bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 {
-  const char *utf8_buf = NULL;
+  const char *utf8_buf = nullptr;
   const char event_ascii = WM_event_utf8_to_ascii(event);
   char ascii[2] = {'\0', '\0'};
   bool updated = false;
@@ -397,7 +395,12 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
         if (event->modifier & KM_CTRL) {
           mode = STRCUR_JUMP_DELIM;
         }
-        BLI_str_cursor_step_utf8(n->str, strlen(n->str), &t_cur, dir, mode, true);
+        BLI_str_cursor_step_utf8(n->str,
+                                 strlen(n->str),
+                                 &t_cur,
+                                 eStrCursorJumpDirection(dir),
+                                 eStrCursorJumpType(mode),
+                                 true);
         if (t_cur != cur) {
           if (t_cur < cur) {
             SWAP(int, t_cur, cur);
@@ -423,7 +426,12 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       if (event->modifier & KM_CTRL) {
         mode = STRCUR_JUMP_DELIM;
       }
-      BLI_str_cursor_step_utf8(n->str, strlen(n->str), &cur, dir, mode, true);
+      BLI_str_cursor_step_utf8(n->str,
+                               strlen(n->str),
+                               &cur,
+                               eStrCursorJumpDirection(dir),
+                               eStrCursorJumpType(mode),
+                               true);
       if (cur != n->str_cur) {
         n->str_cur = cur;
         return true;
@@ -568,7 +576,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   if (n->str[0]) {
     const float val_prev = n->val[idx];
     Scene *sce = CTX_data_scene(C);
-    char *error = NULL;
+    char *error = nullptr;
 
     double val;
     int success = user_string_to_number(
