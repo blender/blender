@@ -197,8 +197,7 @@ bool sequencer_editing_initialized_and_active(bContext *C)
 bool sequencer_strip_poll(bContext *C)
 {
   Editing *ed;
-  return (((ed = SEQ_editing_get(CTX_data_scene(C))) != nullptr) &&
-          (ed->act_seq != nullptr));
+  return (((ed = SEQ_editing_get(CTX_data_scene(C))) != nullptr) && (ed->act_seq != nullptr));
 }
 #endif
 

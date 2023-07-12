@@ -201,14 +201,26 @@ void PlaneDistortWarpImageOperation::get_area_of_interest(const int input_idx,
     float deriv[2][2];
     MotionSample *sample_data = &samples_[sample];
     /* TODO(sergey): figure out proper way to do this. */
-    warp_coord(
-        output_area.xmin - 2, output_area.ymin - 2, sample_data->perspective_matrix, UVs[0], deriv);
-    warp_coord(
-        output_area.xmax + 2, output_area.ymin - 2, sample_data->perspective_matrix, UVs[1], deriv);
-    warp_coord(
-        output_area.xmax + 2, output_area.ymax + 2, sample_data->perspective_matrix, UVs[2], deriv);
-    warp_coord(
-        output_area.xmin - 2, output_area.ymax + 2, sample_data->perspective_matrix, UVs[3], deriv);
+    warp_coord(output_area.xmin - 2,
+               output_area.ymin - 2,
+               sample_data->perspective_matrix,
+               UVs[0],
+               deriv);
+    warp_coord(output_area.xmax + 2,
+               output_area.ymin - 2,
+               sample_data->perspective_matrix,
+               UVs[1],
+               deriv);
+    warp_coord(output_area.xmax + 2,
+               output_area.ymax + 2,
+               sample_data->perspective_matrix,
+               UVs[2],
+               deriv);
+    warp_coord(output_area.xmin - 2,
+               output_area.ymax + 2,
+               sample_data->perspective_matrix,
+               UVs[3],
+               deriv);
     for (int i = 0; i < 4; i++) {
       minmax_v2v2_v2(min, max, UVs[i]);
     }

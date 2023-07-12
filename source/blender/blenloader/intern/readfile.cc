@@ -3768,7 +3768,7 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 static BHead *find_bhead(FileData *fd, void *old)
 {
 #if 0
-  BHead* bhead;
+  BHead *bhead;
 #endif
   BHeadSort *bhs, bhs_s;
 

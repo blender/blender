@@ -3077,7 +3077,11 @@ void GRAPH_OT_fmodifier_copy(wmOperatorType *ot)
 
 /* Id-props */
 #if 0
-ot->prop = RNA_def_boolean(ot->srna, "all", 1, "All F-Modifiers", "Copy all the F-Modifiers, instead of just the active one");
+  ot->prop = RNA_def_boolean(ot->srna,
+                             "all",
+                             1,
+                             "All F-Modifiers",
+                             "Copy all the F-Modifiers, instead of just the active one");
 #endif
 }
 

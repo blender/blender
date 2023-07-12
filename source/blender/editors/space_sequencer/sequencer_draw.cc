@@ -1701,7 +1701,7 @@ void sequencer_draw_maskedit(const bContext *C, Scene *scene, ARegion *region, S
       float aspx = 1.0f, aspy = 1.0f;
       // ED_mask_get_size(C, &width, &height);
 
-      //Scene *scene = CTX_data_scene(C);
+      // Scene *scene = CTX_data_scene(C);
       BKE_render_resolution(&scene->r, false, &width, &height);
 
       ED_mask_draw_region(mask,

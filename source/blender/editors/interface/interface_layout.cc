@@ -1657,7 +1657,7 @@ void uiItemsFullEnumO(uiLayout *layout,
        */
 #if 0
       RNA_property_enum_items_gettexted_all(
-          static_cast<bContext*>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
+          static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
 #else
       RNA_property_enum_items_gettexted(
           static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);

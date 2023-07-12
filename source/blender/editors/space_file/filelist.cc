@@ -2323,9 +2323,9 @@ static void filelist_file_cache_block_release(FileList *filelist, const int size
   for (i = 0; i < size; i++, cursor++) {
     FileDirEntry *entry = cache->block_entries[cursor];
 #if 0
-      printf("%s: release cacheidx %d (%%p %%s)\n",
-             __func__,
-             cursor /*, cache->block_entries[cursor], cache->block_entries[cursor]->relpath*/);
+    printf("%s: release cacheidx %d (%%p %%s)\n",
+           __func__,
+           cursor /*, cache->block_entries[cursor], cache->block_entries[cursor]->relpath*/);
 #endif
     BLI_ghash_remove(cache->uids, POINTER_FROM_UINT(entry->uid), nullptr, nullptr);
     filelist_file_release_entry(filelist, entry);

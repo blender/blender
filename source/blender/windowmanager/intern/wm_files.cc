@@ -1132,7 +1132,8 @@ void wm_homefile_read_ex(bContext *C,
                          ReportList *reports,
                          wmFileReadPost_Params **r_params_file_read_post)
 {
-#if 0 /* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
+/* UNUSED, keep as this may be needed later & the comment below isn't self evident. */
+#if 0
   /* Context does not always have valid main pointer here. */
   Main *bmain = G_MAIN;
 #endif

@@ -137,15 +137,14 @@ static void workspace_change_update(WorkSpace *workspace_new,
   workspace_scene_pinning_update(workspace_new, workspace_old, C);
   /* needs to be done before changing mode! (to ensure right context) */
   UNUSED_VARS(wm);
-#if 0 
-Object *ob_act = CTX_data_active_object(C); 
-eObjectMode mode_old = workspace_old->object_mode; 
-eObjectMode mode_new = workspace_new->object_mode; 
+#if 0
+  Object *ob_act = CTX_data_active_object(C);
+  eObjectMode mode_old = workspace_old->object_mode;
+  eObjectMode mode_new = workspace_new->object_mode;
 
- 
-if (mode_old != mode_new) { 
-ED_object_mode_set(C, mode_new); 
-}
+  if (mode_old != mode_new) {
+    ED_object_mode_set(C, mode_new);
+  }
 #endif
 }
 

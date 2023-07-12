@@ -246,15 +246,15 @@ static void blendRead(BlendDataReader * /*reader*/, ModifierData *md)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
 #if 0
-      /* TODO: #CollisionModifier should use point-cache
-       * + have proper reset events before enabling this. */
-      collmd->x = newdataadr(fd, collmd->x);
-      collmd->xnew = newdataadr(fd, collmd->xnew);
-      collmd->mfaces = newdataadr(fd, collmd->mfaces);
+  /* TODO: #CollisionModifier should use point-cache
+   * + have proper reset events before enabling this. */
+  collmd->x = newdataadr(fd, collmd->x);
+  collmd->xnew = newdataadr(fd, collmd->xnew);
+  collmd->mfaces = newdataadr(fd, collmd->mfaces);
 
-      collmd->current_x = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_x");
-      collmd->current_xnew = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_xnew");
-      collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_v");
+  collmd->current_x = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_x");
+  collmd->current_xnew = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_xnew");
+  collmd->current_v = MEM_calloc_arrayN(collmd->mvert_num, sizeof(float[3]), "current_v");
 #endif
 
   collmd->x = nullptr;

@@ -734,7 +734,8 @@ TEST(map, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
     benchmark_random_ints<blender::Map<int, int>>("blender::Map          ", 1000000, 1);
-    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>("std::unordered_map", 1000000, 1);
+    benchmark_random_ints<blender::StdUnorderedMapWrapper<int, int>>(
+        "std::unordered_map", 1000000, 1);
   }
   std::cout << "\n";
   for (int i = 0; i < 3; i++) {

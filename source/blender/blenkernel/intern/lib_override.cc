@@ -2416,7 +2416,10 @@ static bool lib_override_library_resync(Main *bmain,
         do_delete = false;
         id_fake_user_set(id);
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
-        CLOG_INFO(&LOG_RESYNC, 2, "Old override %s is being kept around as it was user-edited", id->name);
+        CLOG_INFO(&LOG_RESYNC,
+                  2,
+                  "Old override %s is being kept around as it was user-edited",
+                  id->name);
       }
 #else
       else {
@@ -4862,7 +4865,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
     RNA_id_pointer_create(storage_id, &rnaptr_storage);
 
     if (!RNA_struct_override_store(
-            bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_library)) {
+            bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_library))
+    {
       BKE_id_free_ex(override_storage, storage_id, LIB_ID_FREE_NO_UI_USER, true);
       storage_id = nullptr;
     }

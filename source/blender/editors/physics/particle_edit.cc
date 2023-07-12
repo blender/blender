@@ -240,8 +240,8 @@ ParticleEditSettings *PE_settings(Scene *scene)
 static float pe_brush_size_get(const Scene * /*scene*/, ParticleBrushData *brush)
 {
 #if 0 /* TODO: Here we can enable unified brush size, needs more work. */
-UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
-float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
+  UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+  float size = (ups->flag & UNIFIED_PAINT_SIZE) ? ups->size : brush->size;
 #endif
 
   return brush->size;
@@ -588,10 +588,14 @@ static bool key_test_depth(const PEData *data, const float co[3], const int scre
 
 /* used to calculate here but all callers have  the screen_co already, so pass as arg */
 #if 0
-if (ED_view3d_project_int_global(data->vc.region, co, screen_co, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
-V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK) {
-return 0;
-}
+  if (ED_view3d_project_int_global(data->vc.region,
+                                   co,
+                                   screen_co,
+                                   V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN |
+                                       V3D_PROJ_TEST_CLIP_NEAR) != V3D_PROJ_RET_OK)
+  {
+    return 0;
+  }
 #endif
 
   /* check if screen_co is within bounds because brush_cut uses out of screen coords */
@@ -3986,8 +3990,8 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
 
         if (puff_volume) {
 #if 0
-/* this is simple but looks bad, adds annoying kinks */
-add_v3_v3(key->co, ofs);
+          /* this is simple but looks bad, adds annoying kinks */
+          add_v3_v3(key->co, ofs);
 #else
           /* Translate (not rotate) the rest of the hair if its not selected. */
           {

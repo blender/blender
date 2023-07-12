@@ -2134,7 +2134,7 @@ static void p_chart_simplify_compute(PChart *chart)
     if (edge->vert->u.heaplink != link) {
       edge->flag |= (PEDGE_COLLAPSE_EDGE | PEDGE_COLLAPSE_PAIR);
       edge->next->vert->u.heaplink = nullptr;
-     std::swap( edge, pair);
+      std::swap(edge, pair);
     }
     else {
       edge->flag |= PEDGE_COLLAPSE_EDGE;
@@ -2203,7 +2203,7 @@ static void p_chart_complexify(PChart *chart)
     pair = e->pair;
 
     if (edge->flag & PEDGE_COLLAPSE_PAIR) {
-     std::swap( edge, pair);
+      std::swap(edge, pair);
     }
 
     p_split_vertex(edge, pair);

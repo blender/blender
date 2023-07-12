@@ -185,23 +185,23 @@ static void gpencil_drawcall_flush(gpIterData &iter)
 #if 0 /* Incompatible with new draw manager. */
   if (iter.geom != nullptr) {
     geometry_call(iter.material->shading.sub_pass,
-                          iter.ob,
-                          iter.geom,
-                          iter.vfirst,
-                          iter.vcount,
-                          iter.instancing);
+                  iter.ob,
+                  iter.geom,
+                  iter.vfirst,
+                  iter.vcount,
+                  iter.instancing);
     geometry_call(iter.material->prepass.sub_pass,
-                          iter.ob,
-                          iter.geom,
-                          iter.vfirst,
-                          iter.vcount,
-                          iter.instancing);
+                  iter.ob,
+                  iter.geom,
+                  iter.vfirst,
+                  iter.vcount,
+                  iter.instancing);
     geometry_call(iter.material->shadow.sub_pass,
-                          iter.ob,
-                          iter.geom,
-                          iter.vfirst,
-                          iter.vcount,
-                          iter.instancing);
+                  iter.ob,
+                  iter.geom,
+                  iter.vfirst,
+                  iter.vcount,
+                  iter.instancing);
   }
 #endif
   iter.geom = nullptr;

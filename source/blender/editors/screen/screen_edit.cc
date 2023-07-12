@@ -1307,7 +1307,7 @@ void ED_screen_scene_change(bContext *C,
                             const bool refresh_toolsystem)
 {
 #if 0
-ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
+  ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
 #endif
 
   /* Switch scene. */

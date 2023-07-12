@@ -673,7 +673,8 @@ TEST(set, Benchmark)
   for (int i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
     benchmark_random_ints<blender::Set<int>>("blender::Set      ", 100000, factor);
-    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, factor);
+    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>(
+        "std::unordered_set", 100000, factor);
   }
 }
 

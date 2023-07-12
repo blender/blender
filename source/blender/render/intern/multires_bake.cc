@@ -1139,7 +1139,7 @@ static void create_ao_raytree(MultiresBakeRender *bkr, MAOBakeData *ao_data)
   RE_rayobject_done(raytree);
 }
 
-static void *init_ao_data(MultiresBakeRender *bkr, ImBuf */*ibuf*/)
+static void *init_ao_data(MultiresBakeRender *bkr, ImBuf * /*ibuf*/)
 {
   MAOBakeData *ao_data;
   DerivedMesh *lodm = bkr->lores_dm;
@@ -1233,7 +1233,7 @@ static int trace_ao_ray(MAOBakeData *ao_data, float ray_start[3], float ray_dire
 
 static void apply_ao_callback(DerivedMesh *lores_dm,
                               DerivedMesh *hires_dm,
-                              void */*thread_data*/,
+                              void * /*thread_data*/,
                               void *bake_data,
                               ImBuf *ibuf,
                               const int tri_index,
@@ -1244,7 +1244,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
                               const int y)
 {
   const MLoopTri *lt = lores_dm->getLoopTriArray(lores_dm) + tri_index;
-  float (*mloopuv)[2] = lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2);
+  float(*mloopuv)[2] = lores_dm->getLoopDataArray(lores_dm, CD_PROP_FLOAT2);
   MAOBakeData *ao_data = (MAOBakeData *)bake_data;
 
   int i, k, perm_ofs;
@@ -1299,8 +1299,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm,
     /* use N-Rooks to distribute our N ray samples across
      * a multi-dimensional domain (2D)
      */
-    const ushort I =
-        ao_data->permutation_table_1[(i + perm_ofs) % ao_data->number_of_rays];
+    const ushort I = ao_data->permutation_table_1[(i + perm_ofs) % ao_data->number_of_rays];
     const ushort J = ao_data->permutation_table_2[i];
 
     const float JitPh = (get_ao_random2(I + perm_ofs) & (MAX_NUMBER_OF_AO_RAYS - 1)) /
@@ -1513,7 +1512,15 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
             /* TODO: restore ambient occlusion baking support. */
 #if 0
           case RE_BAKE_AO:
-            do_multires_bake(bkr, ima, tile, ibuf, false, apply_ao_callback, init_ao_data, free_ao_data, result);
+            do_multires_bake(bkr,
+                             ima,
+                             tile,
+                             ibuf,
+                             false,
+                             apply_ao_callback,
+                             init_ao_data,
+                             free_ao_data,
+                             result);
             break;
 #endif
         }
