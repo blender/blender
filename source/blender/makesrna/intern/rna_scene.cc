@@ -685,7 +685,7 @@ static const EnumPropertyItem snap_to_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
+const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
     {GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
     {GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points"},
     {GP_SELECTMODE_SEGMENT,
