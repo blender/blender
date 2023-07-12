@@ -1331,6 +1331,7 @@ void RE_engine_gpu_context_destroy(RenderEngine *engine)
     engine->gpu_context = nullptr;
   }
   WM_opengl_context_dispose(engine->wm_gpu_context);
+  engine->wm_gpu_context = nullptr;
 
   DRW_opengl_context_activate(drw_state);
 }
