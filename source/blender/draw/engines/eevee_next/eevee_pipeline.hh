@@ -162,7 +162,7 @@ class DeferredLayer {
   PassSimple eval_light_ps_ = {"EvalLights"};
 
   /* Closures bits from the materials in this pass. */
-  eClosureBits closure_bits_;
+  eClosureBits closure_bits_ = CLOSURE_NONE;
 
   /**
    * Accumulation textures for all stages of lighting evaluation (Light, SSR, SSSS, SSGI ...).
