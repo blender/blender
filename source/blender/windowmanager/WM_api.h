@@ -68,6 +68,12 @@ typedef struct wmGizmoMap wmGizmoMap;
 typedef struct wmGizmoMapType wmGizmoMapType;
 typedef struct wmJob wmJob;
 
+#ifdef __cplusplus
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+#endif
+
 /* General API. */
 
 /**
@@ -592,8 +598,9 @@ void WM_main_remap_editor_id_reference(const struct IDRemapper *mappings);
 /* reports */
 /**
  * Show the report in the info header.
+ * \param win: When NULL, a best-guess is used.
  */
-void WM_report_banner_show(void);
+void WM_report_banner_show(struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL(1);
 /**
  * Hide all currently displayed banners and abort their timer.
  */
@@ -610,20 +617,30 @@ struct wmEvent *wm_event_add(struct wmWindow *win, const struct wmEvent *event_t
 void wm_event_init_from_window(struct wmWindow *win, struct wmEvent *event);
 
 /* at maximum, every timestep seconds it triggers event_type events */
-struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm,
+struct wmTimer *WM_event_timer_add(struct wmWindowManager *wm,
                                    struct wmWindow *win,
                                    int event_type,
                                    double timestep);
-struct wmTimer *WM_event_add_timer_notifier(struct wmWindowManager *wm,
+struct wmTimer *WM_event_timer_add_notifier(struct wmWindowManager *wm,
                                             struct wmWindow *win,
                                             unsigned int type,
                                             double timestep);
+
+void WM_event_timer_free_data(struct wmTimer *timer);
+/**
+ * Free all timers immediately.
+ *
+ * \note This should only be used on-exit,
+ * in all other cases timers should be tagged for removal by #WM_event_timer_remove.
+ */
+void WM_event_timers_free_all(wmWindowManager *wm);
+
 /** Mark the given `timer` to be removed, actual removal and deletion is deferred and handled
  * internally by the window manager code. */
-void WM_event_remove_timer(struct wmWindowManager *wm,
+void WM_event_timer_remove(struct wmWindowManager *wm,
                            struct wmWindow *win,
                            struct wmTimer *timer);
-void WM_event_remove_timer_notifier(struct wmWindowManager *wm,
+void WM_event_timer_remove_notifier(struct wmWindowManager *wm,
                                     struct wmWindow *win,
                                     struct wmTimer *timer);
 /**
@@ -1440,11 +1457,14 @@ struct ID *WM_drag_get_local_ID_from_event(const struct wmEvent *event, short id
  */
 bool WM_drag_is_ID_type(const struct wmDrag *drag, int idcode);
 
+#ifdef __cplusplus
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-wmDragAsset *WM_drag_create_asset_data(const struct AssetRepresentation *asset,
+wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
                                        int /* #eAssetImportMethod */ import_type);
+#endif
+
 struct wmDragAsset *WM_drag_get_asset_data(const struct wmDrag *drag, int idcode);
 struct AssetMetaData *WM_drag_get_asset_meta_data(const struct wmDrag *drag, int idcode);
 /**
@@ -1470,10 +1490,14 @@ void WM_drag_free_imported_drag_ID(struct Main *bmain,
 
 struct wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const struct wmDrag *drag);
 
+#ifdef __cplusplus
 /**
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
-void WM_drag_add_asset_list_item(wmDrag *drag, const struct AssetRepresentation *asset);
+void WM_drag_add_asset_list_item(wmDrag *drag,
+                                 const blender::asset_system::AssetRepresentation *asset);
+#endif
+
 const ListBase *WM_drag_asset_list_get(const wmDrag *drag);
 
 const char *WM_drag_get_item_name(struct wmDrag *drag);

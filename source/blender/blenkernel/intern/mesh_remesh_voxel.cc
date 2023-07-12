@@ -125,8 +125,7 @@ static Mesh *remesh_quadriflow(const Mesh *input_mesh,
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
 
-  poly_offsets.fill(4);
-  blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+  blender::offset_indices::fill_constant_group_size(4, 0, poly_offsets);
 
   mesh->vert_positions_for_write().copy_from(
       Span(reinterpret_cast<float3 *>(qrd.out_verts), qrd.out_totverts));
@@ -230,10 +229,11 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
   MutableSpan<int> poly_offsets = mesh->poly_offsets_for_write();
   MutableSpan<int> mesh_corner_verts = mesh->corner_verts_for_write();
 
+  const int triangle_loop_start = quads.size() * 4;
   if (!poly_offsets.is_empty()) {
-    poly_offsets.take_front(quads.size()).fill(4);
-    poly_offsets.drop_front(quads.size()).fill(3);
-    blender::offset_indices::accumulate_counts_to_offsets(poly_offsets);
+    blender::offset_indices::fill_constant_group_size(4, 0, poly_offsets.take_front(quads.size()));
+    blender::offset_indices::fill_constant_group_size(
+        3, triangle_loop_start, poly_offsets.drop_front(quads.size()));
   }
 
   for (const int i : vert_positions.index_range()) {
@@ -248,7 +248,6 @@ static Mesh *remesh_voxel_volume_to_mesh(const openvdb::FloatGrid::Ptr level_set
     mesh_corner_verts[loopstart + 3] = quads[i][1];
   }
 
-  const int triangle_loop_start = quads.size() * 4;
   for (const int i : IndexRange(tris.size())) {
     const int loopstart = triangle_loop_start + i * 3;
     mesh_corner_verts[loopstart] = tris[i][2];

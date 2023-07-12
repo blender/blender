@@ -1353,12 +1353,13 @@ typedef struct KernelSpotLight {
   packed_float3 scaled_axis_u;
   float radius;
   packed_float3 scaled_axis_v;
-  float invarea;
+  float eval_fac;
   packed_float3 dir;
   float cos_half_spot_angle;
+  float half_cot_half_spot_angle;
   float inv_len_z;
   float spot_smooth;
-  float pad[2];
+  float pad;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
@@ -1376,10 +1377,12 @@ typedef struct KernelAreaLight {
 } KernelAreaLight;
 
 typedef struct KernelDistantLight {
-  float radius;
-  float cosangle;
-  float invarea;
-  float pad;
+  float angle;
+  float one_minus_cosangle;
+  float half_inv_sin_half_angle;
+  float pdf;
+  float eval_fac;
+  float pad[3];
 } KernelDistantLight;
 
 typedef struct KernelLight {
@@ -1735,9 +1738,9 @@ enum KernelFeatureFlag : uint32_t {
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_BACKGROUND \
   (KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT | KERNEL_FEATURE_NODE_AOV)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW \
-  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_VOLUME | \
-   KERNEL_FEATURE_NODE_BUMP | KERNEL_FEATURE_NODE_BUMP_STATE | \
-   KERNEL_FEATURE_NODE_VORONOI_EXTRA | KERNEL_FEATURE_NODE_LIGHT_PATH)
+  (KERNEL_FEATURE_NODE_BSDF | KERNEL_FEATURE_NODE_EMISSION | KERNEL_FEATURE_NODE_BUMP | \
+   KERNEL_FEATURE_NODE_BUMP_STATE | KERNEL_FEATURE_NODE_VORONOI_EXTRA | \
+   KERNEL_FEATURE_NODE_LIGHT_PATH)
 #define KERNEL_FEATURE_NODE_MASK_SURFACE \
   (KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW | KERNEL_FEATURE_NODE_RAYTRACE | \
    KERNEL_FEATURE_NODE_AOV | KERNEL_FEATURE_NODE_LIGHT_PATH)

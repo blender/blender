@@ -2484,16 +2484,16 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
 
   int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
-  /* If there is not already a custom split normal layer then making one (with BM_lnorspace_update)
-   * will not respect the autosmooth angle between smooth faces. To get that to happen, we have
-   * to mark the sharpen the edges that are only sharp because of the angle test -- otherwise would
-   * be smooth. */
+  /* If there is not already a custom split normal layer then making one
+   * (with #BM_lnorspace_update) will not respect the auto-smooth angle between smooth faces.
+   * To get that to happen, we have to mark the sharpen the edges that are only sharp because
+   * of the angle test -- otherwise would be smooth. */
   if (cd_clnors_offset == -1) {
     BM_edges_sharp_from_angle_set(bm, bp->smoothresh);
     bevel_edges_sharp_boundary(bm, bp);
   }
 
-  /* Ensure that bm->lnor_spacearr has properly stored loop normals.
+  /* Ensure that `bm->lnor_spacearr` has properly stored loop normals.
    * Side effect: ensures loop indices. */
   BM_lnorspace_update(bm);
 

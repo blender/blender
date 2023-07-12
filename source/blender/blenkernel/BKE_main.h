@@ -225,7 +225,6 @@ typedef struct Main {
   ListBase hair_curves;
   ListBase pointclouds;
   ListBase volumes;
-  ListBase simulations;
 
   /**
    * Must be generated, used and freed by same code - never assume this is valid data unless you
@@ -239,6 +238,10 @@ typedef struct Main {
 
   /** Used for efficient calculations of unique names. */
   struct UniqueName_Map *name_map;
+
+  /* Used for efficient calculations of unique names. Covers all names in current Main, including
+   * linked data ones. */
+  struct UniqueName_Map *name_map_global;
 
   struct MainLock *lock;
 } Main;

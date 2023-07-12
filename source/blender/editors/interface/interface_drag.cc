@@ -30,7 +30,7 @@ void UI_but_drag_attach_image(uiBut *but, ImBuf *imb, const float scale)
 }
 
 void UI_but_drag_set_asset(uiBut *but,
-                           const AssetRepresentation *asset,
+                           const blender::asset_system::AssetRepresentation *asset,
                            int import_type,
                            int icon,
                            ImBuf *imb,

@@ -170,6 +170,13 @@ if(WIN32)
   )
 endif()
 
+
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.19")
+  # This changes the default value from Off to On, but will still allow people to manually change
+  # this setting through their CMakeCache.txt if they desire to do so.
+  set(CMAKE_OPTIMIZE_DEPENDENCIES ON CACHE INTERNAL "")
+endif()
+
 # -----------------------------------------------------------------------------
 # Declare Options
 
@@ -510,6 +517,7 @@ mark_as_advanced(WITH_CYCLES_LOGGING)
 mark_as_advanced(WITH_CYCLES_DEBUG_NAN)
 mark_as_advanced(WITH_CYCLES_NATIVE_ONLY)
 mark_as_advanced(WITH_CYCLES_PRECOMPUTE)
+mark_as_advanced(CYCLES_TEST_DEVICES)
 
 # NVIDIA CUDA & OptiX
 if(NOT APPLE)
@@ -632,17 +640,18 @@ if(UNIX AND NOT APPLE)
 endif()
 
 
-# OpenGL
-
-option(WITH_OPENGL "When off limits visibility of the opengl headers to just bf_gpu and gawain (temporary option for development purposes)" ON)
+# GPU Module
 option(WITH_GPU_BUILDTIME_SHADER_BUILDER "Shader builder is a developer option enabling linting on GLSL during compilation" OFF)
 option(WITH_RENDERDOC "Use Renderdoc API to capture frames" OFF)
 
 mark_as_advanced(
-  WITH_OPENGL
   WITH_GPU_BUILDTIME_SHADER_BUILDER
   WITH_RENDERDOC
 )
+
+# OpenGL
+option(WITH_OPENGL_BACKEND "Enable OpenGL support as graphic backend" ON)
+mark_as_advanced(WITH_OPENGL_BACKEND)
 
 # Vulkan
 option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)
@@ -653,7 +662,6 @@ mark_as_advanced(
 )
 
 # Metal
-
 if(APPLE)
   option(WITH_METAL_BACKEND "Use Metal for graphics instead of (or as well as) OpenGL on macOS." ON)
   mark_as_advanced(WITH_METAL_BACKEND)
@@ -1241,14 +1249,6 @@ if(WITH_OPENVDB)
   list(APPEND OPENVDB_LIBRARIES ${BOOST_LIBRARIES} ${TBB_LIBRARIES})
 endif()
 
-
-# -----------------------------------------------------------------------------
-# Configure OpenGL
-
-if(WITH_OPENGL)
-  add_definitions(-DWITH_OPENGL)
-endif()
-
 # -----------------------------------------------------------------------------
 # Configure Metal
 
@@ -1285,6 +1285,9 @@ if(WITH_OPENMP)
       add_definitions("${OpenMP_C_FLAGS}")
 
       find_library_static(OpenMP_LIBRARIES gomp ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES})
+      mark_as_advanced(
+        OpenMP_LIBRARIES
+      )
     endif()
   endif()
 
@@ -1583,8 +1586,9 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   # Apple Clang (tested on version 12) doesn't support this flag while LLVM Clang 11 does.
   add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_NO_SUGGEST_OVERRIDE    -Wno-suggest-override)
 
-  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
-  add_check_c_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF -Wundef)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNDEF_PREFIX -Wundef-prefix)
+  add_check_cxx_compiler_flag(CXX_WARNINGS CXX_WARN_UNUSED_PARAMETER -Wunused-parameter)
 
   # gives too many unfixable warnings
   # add_check_c_compiler_flag(C_WARNINGS C_WARN_UNUSED_MACROS      -Wunused-macros)
@@ -1631,7 +1635,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_BITWISE_INSTEAD_OF_LOGICAL -Wno-bitwise-instead-of-logical)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_IMPLICIT_CONST_INT_FLOAT_CONVERSION -Wno-implicit-const-int-float-conversion)
   add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEF -Wno-undef)
-  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEF -Wno-undef-prefix)
+  add_check_cxx_compiler_flag(CXX_REMOVE_STRICT_FLAGS CXX_WARN_NO_UNDEF_PREFIX -Wno-undef-prefix)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

@@ -116,7 +116,7 @@ const char *BKE_id_attributes_default_color_name(const struct ID *id);
 void BKE_id_attributes_active_color_set(struct ID *id, const char *name);
 void BKE_id_attributes_default_color_set(struct ID *id, const char *name);
 
-struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
+const struct CustomDataLayer *BKE_id_attributes_color_find(const struct ID *id, const char *name);
 
 bool BKE_id_attribute_calc_unique_name(struct ID *id, const char *name, char *outname);
 

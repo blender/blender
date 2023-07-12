@@ -5,17 +5,12 @@
 set(INC
   ../include
   ../../asset_system
-  ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../depsgraph
   ../../functions
-  ../../makesdna
   ../../makesrna
   ../../nodes
   ../../windowmanager
-  ../../../../intern/atomic
-  ../../../../intern/guardedalloc
   ../../bmesh
 
   # RNA_prototypes.h
@@ -34,9 +29,12 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
   bf_depsgraph
+  PRIVATE bf::dna
   bf_editor_object
+  PRIVATE bf::intern::guardedalloc
   bf_windowmanager
 )
 

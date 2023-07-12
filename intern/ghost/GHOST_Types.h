@@ -193,11 +193,13 @@ typedef enum { GHOST_kWindowOrderTop = 0, GHOST_kWindowOrderBottom } GHOST_TWind
 
 typedef enum {
   GHOST_kDrawingContextTypeNone = 0,
+#if defined(WITH_OPENGL_BACKEND)
   GHOST_kDrawingContextTypeOpenGL,
+#endif
 #ifdef WIN32
   GHOST_kDrawingContextTypeD3D,
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(WITH_METAL_BACKEND)
   GHOST_kDrawingContextTypeMetal,
 #endif
 #ifdef WITH_VULKAN_BACKEND

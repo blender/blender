@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -414,6 +414,10 @@ msgid "Filename"
 msgstr "Bestandsnaam"
 
 
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
+
+
 msgid "Images"
 msgstr "Afbeeldingen"
 
@@ -706,10 +710,6 @@ msgid "Object Path"
 msgstr "Object Pad"
 
 
-msgid "Path"
-msgstr "Pad"
-
-
 msgid "Opacity"
 msgstr "Ondoorzichtigheid"
 
@@ -792,6 +792,10 @@ msgstr "Succes"
 
 msgid "Invalid Input"
 msgstr "Ongeldige Invoer"
+
+
+msgid "Include"
+msgstr "Includeer"
 
 
 msgid "Collection Objects"
@@ -1127,14 +1131,6 @@ msgid "Factor"
 msgstr "Factor"
 
 
-msgid "Obstacle"
-msgstr "Obstakel"
-
-
-msgid "Force"
-msgstr "Kracht"
-
-
 msgid "Canvas Settings"
 msgstr "Canvas Instellingen"
 
@@ -1205,6 +1201,10 @@ msgstr "Gebruik Uitvoer"
 
 msgid "Smoothness"
 msgstr "Gladheid"
+
+
+msgid "Force"
+msgstr "Kracht"
 
 
 msgid "Group"
@@ -1331,18 +1331,6 @@ msgid "Frequency"
 msgstr "Frequentie"
 
 
-msgid "Kink"
-msgstr "Knik"
-
-
-msgid "Curl"
-msgstr "Krul"
-
-
-msgid "Wave"
-msgstr "Golf"
-
-
 msgid "Seed"
 msgstr "Zaad"
 
@@ -1367,6 +1355,10 @@ msgid "Strength of force field"
 msgstr "Kracht van het krachtveld"
 
 
+msgid "Curl"
+msgstr "Krul"
+
+
 msgid "Gradient"
 msgstr "Verloop"
 
@@ -1377,10 +1369,6 @@ msgstr "2D"
 
 msgid "Fonts"
 msgstr "Lettertypen"
-
-
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
 
 
 msgid "Particles Settings"
@@ -1481,6 +1469,10 @@ msgstr "Kracht Collectie"
 
 msgid "Fluid"
 msgstr "Vloeistof"
+
+
+msgid "Obstacle"
+msgstr "Obstakel"
 
 
 msgid "Nearest"
@@ -2077,10 +2069,6 @@ msgid "Disable Selection"
 msgstr "Selectie Uitschakelen"
 
 
-msgid "Include"
-msgstr "Includeer"
-
-
 msgid "Profile"
 msgstr "Profiel"
 
@@ -2099,6 +2087,10 @@ msgstr "Half"
 
 msgid "Fill Caps"
 msgstr "Vul Kap"
+
+
+msgid "Path"
+msgstr "Pad"
 
 
 msgid "Follow"
@@ -2202,14 +2194,6 @@ msgstr "Zon"
 msgctxt "Light"
 msgid "Area"
 msgstr "Gebied"
-
-
-msgid "Falloff Type"
-msgstr "Type Afvlakking"
-
-
-msgid "Inverse Square"
-msgstr "Inverse Wortel"
 
 
 msgid "Shadow Color"
@@ -2334,10 +2318,6 @@ msgstr "Stijheid"
 
 msgid "Hair Length"
 msgstr "Haarlengte"
-
-
-msgid "Spiral"
-msgstr "Spiraal"
 
 
 msgid "Mass"
@@ -2872,6 +2852,10 @@ msgstr "Bal"
 
 msgid "Data Transfer"
 msgstr "Gegevens Overdracht"
+
+
+msgid "Wave"
+msgstr "Golf"
 
 
 msgid "Soft Body"
@@ -4869,15 +4853,6 @@ msgid "Toggle Force Field"
 msgstr "Krachtveld Aan/Uit"
 
 
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "Voeg Vetkrijt Toe"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "Voeg een vetkrijt object toe in de scene"
-
-
 msgid "Monkey"
 msgstr "Aap"
 
@@ -4899,6 +4874,15 @@ msgstr "Object Gegevens"
 msgctxt "Operator"
 msgid "Copy Modifier"
 msgstr "Kopieer Aanpasser"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "Voeg Vetkrijt Toe"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "Voeg een vetkrijt object toe in de scene"
 
 
 msgctxt "Operator"
@@ -5158,11 +5142,6 @@ msgstr "Voeg Groep van Punten Toe"
 msgctxt "Operator"
 msgid "Assign to New Group"
 msgstr "Koppel aan Nieuwe Groep"
-
-
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "Kopieer Groep van Punten"
 
 
 msgid "Add Weights"
@@ -5755,6 +5734,10 @@ msgstr "Wijzig verzadiging"
 
 msgid "Change value"
 msgstr "Wijzig waarde"
+
+
+msgid "Falloff Type"
+msgstr "Type Afvlakking"
 
 
 msgid "Modify Active"
@@ -6461,6 +6444,10 @@ msgstr "Schalen"
 msgctxt "Operator"
 msgid "Draw"
 msgstr "Tekenen"
+
+
+msgid "Kink"
+msgstr "Knik"
 
 
 msgid "Force Field Settings"
@@ -7217,6 +7204,11 @@ msgstr "Lettertype"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Vetkrijt"
+
+
+msgctxt "WindowManager"
 msgid "Sculpt"
 msgstr "Beeldhouwen"
 
@@ -7264,11 +7256,6 @@ msgstr "Console"
 msgctxt "WindowManager"
 msgid "Clip"
 msgstr "Clip"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Vetkrijt"
 
 
 msgctxt "WindowManager"
@@ -8242,11 +8229,6 @@ msgstr "Toon Waarschuwing"
 
 
 msgctxt "Operator"
-msgid "Make Default"
-msgstr "Maak Standaard"
-
-
-msgctxt "Operator"
 msgid "Install..."
 msgstr "Installeer..."
 
@@ -9105,10 +9087,6 @@ msgstr "Alleen"
 
 msgid "Object Options"
 msgstr "Objectopties"
-
-
-msgid "No filename given"
-msgstr "Geen bestandsnaam gegeven"
 
 
 msgid "Armature Options"

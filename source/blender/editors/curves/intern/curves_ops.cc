@@ -890,7 +890,21 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
   for (Curves *curves_id : unique_curves) {
     CurvesGeometry &curves = curves_id->geometry.wrap();
-    select_random(curves, eAttrDomain(curves_id->selection_domain), uint32_t(seed), probability);
+    const eAttrDomain selection_domain = eAttrDomain(curves_id->selection_domain);
+
+    IndexMaskMemory memory;
+    const IndexMask random_elements = random_mask(
+        curves, selection_domain, seed, probability, memory);
+
+    const bool was_anything_selected = has_anything_selected(curves);
+    bke::GSpanAttributeWriter selection = ensure_selection_attribute(
+        curves, selection_domain, CD_PROP_BOOL);
+    if (!was_anything_selected) {
+      curves::fill_selection_true(selection.span);
+    }
+
+    curves::fill_selection_false(selection.span, random_elements);
+    selection.finish();
 
     /* Use #ID_RECALC_GEOMETRY instead of #ID_RECALC_SELECT because it is handled as a generic
      * attribute for now. */

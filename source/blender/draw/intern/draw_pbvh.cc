@@ -365,8 +365,7 @@ struct PBVHBatches {
         flat = sharp_faces && sharp_faces[poly_i];
         if (flat) {
           const float3 fno = blender::bke::mesh::poly_normal_calc(
-              {reinterpret_cast<const float3 *>(args->vert_positions), args->mesh_verts_num},
-              args->corner_verts.slice(args->polys[poly_i]));
+              args->vert_positions, args->corner_verts.slice(args->polys[poly_i]));
           normal_float_to_short_v3(no, fno);
         }
       }

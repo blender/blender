@@ -377,7 +377,7 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
   if (seq_meta != NULL) {
     return &seq_meta->seqbase;
   }
-  if (BLI_findindex(main_seqbase, seq) >= 0) {
+  if (BLI_findindex(main_seqbase, seq) != -1) {
     return main_seqbase;
   }
   return NULL;

@@ -487,7 +487,7 @@ void BLI_bilinear_interpolation_wrap_char(const uchar *buffer,
  * by Ned Greene and Paul S. Heckbert (1986)
  ***************************************************************************/
 
-/* Table of (exp(ar) - exp(a)) / (1 - exp(a)) for r in range [0, 1] and a = -2
+/* Table of `(exp(ar) - exp(a)) / (1 - exp(a))` for `r` in range [0, 1] and `a = -2`.
  * used instead of actual gaussian,
  * otherwise at high texture magnifications circular artifacts are visible. */
 #define EWA_MAXIDX 255
@@ -567,7 +567,7 @@ void BLI_ewa_imp2radangle(
       *b = sqrtf(F2 / d);
       *ecc = *a / *b;
     }
-    /* incr theta by 0.5*pi (angle of major axis) */
+    /* Increase theta by `0.5 * pi` (angle of major axis). */
     *th = 0.5f * (atan2f(B, AmC) + (float)M_PI);
   }
 }

@@ -341,7 +341,7 @@ static int action_pushdown_exec(bContext *C, wmOperator *op)
   if (adt) {
     /* Perform the push-down operation
      * - This will deal with all the AnimData-side user-counts. */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -398,7 +398,7 @@ static int action_stash_exec(bContext *C, wmOperator *op)
   /* Perform stashing operation */
   if (adt) {
     /* don't do anything if this action is empty... */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* action may not be suitable... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;
@@ -506,7 +506,7 @@ static int action_stash_create_exec(bContext *C, wmOperator *op)
   }
   else if (adt) {
     /* Perform stashing operation */
-    if (action_has_motion(adt->action) == 0) {
+    if (BKE_action_has_motion(adt->action) == 0) {
       /* don't do anything if this action is empty... */
       BKE_report(op->reports, RPT_WARNING, "Action must have at least one keyframe or F-Modifier");
       return OPERATOR_CANCELLED;

@@ -246,7 +246,6 @@ struct Mesh *editbmesh_get_eval_cage_from_orig(struct Depsgraph *depsgraph,
                                                struct Object *obedit,
                                                const struct CustomData_MeshMasks *dataMask);
 
-float (*editbmesh_vert_coords_alloc(struct BMEditMesh *em, int *r_vert_len))[3];
 bool editbmesh_modifier_is_enabled(const struct Scene *scene,
                                    const struct Object *ob,
                                    struct ModifierData *md,

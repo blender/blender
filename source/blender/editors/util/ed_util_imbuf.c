@@ -229,25 +229,6 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
       info->color_manage = true;
     }
 
-    if (ibuf->z_buffer.data) {
-      /* TODO: blend depth (not urgent). */
-      info->z = ibuf->z_buffer.data[y * ibuf->x + x];
-      info->zp = &info->z;
-      /* NOTE: Follows legacy code. Although it is unclear how z-buffer can be the same as a 4
-       * channel RGBA 8bpp buffer. */
-      if (ibuf->z_buffer.data == (int *)ibuf->byte_buffer.data) {
-        info->colp = NULL;
-      }
-    }
-    if (ibuf->float_z_buffer.data) {
-      /* TODO: blend depth (not urgent). */
-      info->zf = ibuf->float_z_buffer.data[y * ibuf->x + x];
-      info->zfp = &info->zf;
-      if (ibuf->float_z_buffer.data == ibuf->float_buffer.data) {
-        info->colfp = NULL;
-      }
-    }
-
     if (curve_mapping && ibuf->channels == 4) {
       /* we reuse this callback for set curves point operators */
       if (RNA_struct_find_property(op->ptr, "point")) {
@@ -415,9 +396,7 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
                      info->y,
                      info->colp,
                      info->colfp,
-                     info->linearcol,
-                     info->zp,
-                     info->zfp);
+                     info->linearcol);
 
   if (info->sample_size > 1) {
     ScrArea *area = CTX_wm_area(C);

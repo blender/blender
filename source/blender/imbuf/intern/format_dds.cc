@@ -3,7 +3,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later AND BSD-3-Clause */
 
-/**
+/** \file
+ * \ingroup imbuf
+ *
  * Some portions of this file are from the Chromium project and have been adapted
  * for Blender use when flipping DDS images to the OpenGL convention.
  */
@@ -15,6 +17,9 @@
 
 #include "IMB_filetype.h"
 #include "IMB_imbuf_types.h"
+
+#include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #ifdef __BIG_ENDIAN__
 #  include "BLI_endian_switch.h"
@@ -28,6 +33,19 @@ using std::unique_ptr;
 extern "C" {
 
 static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader);
+
+void imb_init_dds()
+{
+  /* To match historical behavior for DDS file loading, tell OpenImageIO
+   * to process BC5 compressed textures as normal maps. But only do so
+   * if the environment does not already contain a directive that might
+   * say otherwise. */
+  const char *bc5normal = "dds:bc5normal";
+  const char *oiio_env = BLI_getenv("OPENIMAGEIO_OPTIONS");
+  if (!oiio_env || !BLI_strcasestr(oiio_env, bc5normal)) {
+    OIIO::attribute(bc5normal, 1);
+  }
+}
 
 bool imb_is_a_dds(const uchar *buf, size_t size)
 {

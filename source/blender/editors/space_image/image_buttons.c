@@ -128,10 +128,14 @@ static bool ui_imageuser_slot_menu_step(bContext *C, int direction, void *image_
 static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
 {
   RenderView *rv = RE_RenderViewGetById(rr, 0);
-  if (rv->combined_buffer.data) {
+  ImBuf *ibuf = rv->ibuf;
+  if (!ibuf) {
+    return NULL;
+  }
+  if (ibuf->float_buffer.data) {
     return IFACE_("Composite");
   }
-  if (rv->byte_buffer.data) {
+  if (ibuf->byte_buffer.data) {
     return IFACE_("Sequence");
   }
   return NULL;
@@ -962,10 +966,7 @@ void uiTemplateImage(uiLayout *layout,
   UI_block_funcN_set(block, NULL, NULL, NULL);
 }
 
-void uiTemplateImageSettings(uiLayout *layout,
-                             PointerRNA *imfptr,
-                             bool color_management,
-                             bool show_z_buffer)
+void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_management)
 {
   ImageFormatData *imf = imfptr->data;
   ID *id = imfptr->owner_id;
@@ -1015,10 +1016,6 @@ void uiTemplateImageSettings(uiLayout *layout,
 
   if (ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
     uiItemR(col, imfptr, "exr_codec", 0, NULL, ICON_NONE);
-  }
-
-  if (BKE_imtype_supports_zbuf(imf->imtype) && show_z_buffer) {
-    uiItemR(col, imfptr, "use_zbuffer", 0, NULL, ICON_NONE);
   }
 
   if (is_render_out && ELEM(imf->imtype, R_IMF_IMTYPE_OPENEXR, R_IMF_IMTYPE_MULTILAYER)) {
@@ -1223,9 +1220,6 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
       else {
         ofs += BLI_strncpy_rlen(str + ofs, TIP_(" RGB byte"), len - ofs);
       }
-    }
-    if (ibuf->z_buffer.data || ibuf->float_z_buffer.data) {
-      ofs += BLI_strncpy_rlen(str + ofs, TIP_(" + Z"), len - ofs);
     }
 
     eGPUTextureFormat texture_format = IMB_gpu_get_texture_format(

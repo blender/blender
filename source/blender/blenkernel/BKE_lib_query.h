@@ -50,7 +50,7 @@ enum {
   IDWALK_CB_DIRECT_WEAK_LINK = (1 << 3),
 
   /**
-   * That ID is used as mere sub-data by its owner (only case currently: those root nodetrees in
+   * That ID is used as mere sub-data by its owner (only case currently: those root node-trees in
    * materials etc., and the Scene's master collections).
    * This means callback shall not *do* anything, only use this as informative data if it needs it.
    */

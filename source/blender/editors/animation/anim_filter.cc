@@ -52,7 +52,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_userdef_types.h"
@@ -797,18 +796,6 @@ static bAnimListElem *make_new_animlistelem(void *data,
         ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
         break;
       }
-      case ANIMTYPE_DSSIMULATION: {
-        Simulation *simulation = (Simulation *)data;
-        AnimData *adt = simulation->adt;
-
-        ale->flag = FILTER_SIMULATION_OBJD(simulation);
-
-        ale->key_data = (adt) ? adt->action : nullptr;
-        ale->datatype = ALE_ACT;
-
-        ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
-        break;
-      }
       case ANIMTYPE_DSSKEY: {
         Key *key = (Key *)data;
         AnimData *adt = key->adt;
@@ -1474,7 +1461,7 @@ static size_t animfilter_action(bAnimContext *ac,
 
   /* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
   if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
-    FCurve *firstfcu = (lastchan) ? (lastchan->next) : static_cast<FCurve *>((act->curves.first));
+    FCurve *firstfcu = (lastchan) ? (lastchan->next) : static_cast<FCurve *>(act->curves.first);
     items += animfilter_fcurves(
         anim_data, ads, firstfcu, ANIMTYPE_FCURVE, filter_mode, nullptr, owner_id, &act->id);
   }

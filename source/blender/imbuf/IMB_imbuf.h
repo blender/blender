@@ -44,7 +44,6 @@
 #include "../blenlib/BLI_sys_types.h"
 #include "../gpu/GPU_texture.h"
 
-#include "BLI_implicit_sharing.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
@@ -153,22 +152,6 @@ struct ImBuf *IMB_allocFromBuffer(const uint8_t *byte_buffer,
                                   unsigned int channels);
 
 /**
- * Assign the content of the corresponding buffer using an implicitly shareable data pointer.
- *
- * \note Does not modify the topology (width, height, number of channels)
- * or the mipmaps in any way.
- */
-void IMB_assign_shared_byte_buffer(struct ImBuf *ibuf,
-                                   uint8_t *buffer_data,
-                                   const ImplicitSharingInfoHandle *implicit_sharing);
-void IMB_assign_shared_float_buffer(struct ImBuf *ibuf,
-                                    float *buffer_data,
-                                    const ImplicitSharingInfoHandle *implicit_sharing);
-void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
-                                      float *buffer_data,
-                                      const ImplicitSharingInfoHandle *implicit_sharing);
-
-/**
  * Assign the content of the corresponding buffer with the given data and ownership.
  * The current content of the buffer is released corresponding to its ownership configuration.
  *
@@ -177,8 +160,6 @@ void IMB_assign_shared_float_z_buffer(struct ImBuf *ibuf,
  */
 void IMB_assign_byte_buffer(struct ImBuf *ibuf, uint8_t *buffer_data, ImBufOwnership ownership);
 void IMB_assign_float_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
-void IMB_assign_z_buffer(struct ImBuf *ibuf, int *buffer_data, ImBufOwnership ownership);
-void IMB_assign_float_z_buffer(struct ImBuf *ibuf, float *buffer_data, ImBufOwnership ownership);
 
 /**
  * Make corresponding buffers available for modification.
@@ -211,12 +192,6 @@ struct ImBuf *IMB_makeSingleUser(struct ImBuf *ibuf);
  * \attention Defined in allocimbuf.c
  */
 struct ImBuf *IMB_dupImBuf(const struct ImBuf *ibuf1);
-
-/**
- * \attention Defined in allocimbuf.c
- */
-bool addzbufImBuf(struct ImBuf *ibuf);
-bool addzbuffloatImBuf(struct ImBuf *ibuf);
 
 /**
  * Approximate size of ImBuf in memory
@@ -778,12 +753,6 @@ void IMB_premultiply_alpha(struct ImBuf *ibuf);
 void IMB_unpremultiply_alpha(struct ImBuf *ibuf);
 
 /**
- * \attention Defined in allocimbuf.c
- */
-void IMB_freezbufImBuf(struct ImBuf *ibuf);
-void IMB_freezbuffloatImBuf(struct ImBuf *ibuf);
-
-/**
  * \attention Defined in rectop.c
  */
 /**
@@ -864,8 +833,12 @@ bool imb_addrectfloatImBuf(struct ImBuf *ibuf, const unsigned int channels);
 void imb_freerectfloatImBuf(struct ImBuf *ibuf);
 void imb_freemipmapImBuf(struct ImBuf *ibuf);
 
-/** Free all pixel data (associated with image size). */
+/** Free all CPU pixel data (associated with image size). */
 void imb_freerectImbuf_all(struct ImBuf *ibuf);
+
+/* Free the GPU textures of the given image buffer, leaving the CPU buffers unchanged.
+ * The ibuf can be nullptr, in which case the function does nothing. */
+void IMB_free_gpu_textures(struct ImBuf *ibuf);
 
 /**
  * Threaded processors.

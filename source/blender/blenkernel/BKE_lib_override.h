@@ -529,6 +529,11 @@ void BKE_lib_override_library_main_update(struct Main *bmain);
  */
 bool BKE_lib_override_library_id_is_user_deletable(struct Main *bmain, struct ID *id);
 
+/**
+ * Debugging helper to show content of given liboverride data.
+ */
+void BKE_lib_override_debug_print(struct IDOverrideLibrary *override, const char *intro_txt);
+
 /* Storage (.blend file writing) part. */
 
 /* For now, we just use a temp main list. */

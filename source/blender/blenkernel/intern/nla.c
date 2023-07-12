@@ -481,7 +481,7 @@ NlaStrip *BKE_nlastrip_new(bAction *act)
   /* determine initial range
    * - strip length cannot be 0... ever...
    */
-  BKE_action_get_frame_range(strip->act, &strip->actstart, &strip->actend);
+  BKE_action_frame_range_get(strip->act, &strip->actstart, &strip->actend);
 
   strip->start = strip->actstart;
   strip->end = IS_EQF(strip->actstart, strip->actend) ? (strip->actstart + 1.0f) : strip->actend;
@@ -1580,7 +1580,7 @@ void BKE_nlastrip_recalculate_bounds_sync_action(NlaStrip *strip)
 
   prev_actstart = strip->actstart;
 
-  BKE_action_get_frame_range(strip->act, &strip->actstart, &strip->actend);
+  BKE_action_frame_range_get(strip->act, &strip->actstart, &strip->actend);
 
   /* Set start such that key's do not visually move, to preserve the overall animation result. */
   strip->start += (strip->actstart - prev_actstart) * strip->scale;
@@ -2113,7 +2113,7 @@ void BKE_nla_action_pushdown(AnimData *adt, const bool is_liboverride)
    * as that will cause us grief down the track
    */
   /* TODO: what about modifiers? */
-  if (action_has_motion(adt->action) == 0) {
+  if (BKE_action_has_motion(adt->action) == 0) {
     CLOG_ERROR(&LOG, "action has no data");
     return;
   }

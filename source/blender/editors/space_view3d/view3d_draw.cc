@@ -2562,7 +2562,8 @@ void ED_view3d_mats_rv3d_restore(RegionView3D *rv3d, RV3DMatrixStore *rv3dmat_pt
 void ED_scene_draw_fps(const Scene *scene, int xoffset, int *yoffset)
 {
   ScreenFrameRateInfo *fpsi = static_cast<ScreenFrameRateInfo *>(scene->fps_info);
-  char printable[16];
+  /* 8 4-bytes chars (complex writing systems like Devanagari in UTF8 encoding) */
+  char printable[32];
 
   if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime) {
     return;

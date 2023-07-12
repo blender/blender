@@ -1151,7 +1151,7 @@ void filelist_file_get_full_path(const FileList *filelist,
                                  char r_filepath[/*FILE_MAX_LIBEXTRA*/])
 {
   if (file->asset) {
-    const std::string asset_path = AS_asset_representation_full_path_get(file->asset);
+    const std::string asset_path = file->asset->get_identifier().full_path();
     BLI_strncpy(r_filepath, asset_path.c_str(), FILE_MAX_LIBEXTRA);
     return;
   }
@@ -2107,7 +2107,7 @@ static FileDirEntry *filelist_file_create_entry(FileList *filelist, const int in
     ret->redirection_path = BLI_strdup(entry->redirection_path);
   }
   ret->id = entry->local_data.id;
-  ret->asset = reinterpret_cast<::AssetRepresentation *>(entry->asset);
+  ret->asset = entry->asset;
   /* For some file types the preview is already available. */
   if (entry->local_data.preview_image &&
       BKE_previewimg_is_finished(entry->local_data.preview_image, ICON_SIZE_PREVIEW))

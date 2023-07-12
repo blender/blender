@@ -1113,9 +1113,10 @@ static void ntree_shader_pruned_unused(bNodeTree *ntree, bNode *output_node)
   }
 
   /* Avoid deleting the output node if it is the only node in the tree. */
-  output_node->runtime->tmp_flag = 1;
-
-  blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+  if (output_node) {
+    output_node->runtime->tmp_flag = 1;
+    blender::bke::nodeChainIterBackwards(ntree, output_node, ntree_branch_node_tag, nullptr, 0);
+  }
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->type == SH_NODE_OUTPUT_AOV) {
@@ -1149,10 +1150,12 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat)
   /* Tree is valid if it contains no undefined implicit socket type cast. */
   bool valid_tree = ntree_shader_implicit_closure_cast(localtree);
 
-  if (valid_tree && output != nullptr) {
+  if (valid_tree) {
     ntree_shader_pruned_unused(localtree, output);
-    ntree_shader_shader_to_rgba_branch(localtree, output);
-    ntree_shader_weight_tree_invert(localtree, output);
+    if (output != nullptr) {
+      ntree_shader_shader_to_rgba_branch(localtree, output);
+      ntree_shader_weight_tree_invert(localtree, output);
+    }
   }
 
   exec = ntreeShaderBeginExecTree(localtree);

@@ -341,10 +341,12 @@ struct uiButDecorator : public uiBut {
   int decorated_rnaindex = -1;
 };
 
-/** Derived struct for #UI_BTYPE_PROGRESS_BAR. */
-struct uiButProgressbar : public uiBut {
-  /* 0..1 range */
-  float progress = 0;
+/** Derived struct for #UI_BTYPE_PROGRESS. */
+struct uiButProgress : public uiBut {
+  /** Progress in  0..1 range */
+  float progress_factor = 0.0f;
+  /** The display style (bar, pie... etc). */
+  eButProgressType progress_type = UI_BUT_PROGRESS_TYPE_BAR;
 };
 
 struct uiButViewItem : public uiBut {
@@ -599,6 +601,12 @@ struct uiSafetyRct {
 /* interface.c */
 
 void ui_fontscale(float *points, float aspect);
+
+/** Project button or block (but==nullptr) to pixels in region-space. */
+void ui_but_to_pixelrect(rcti *rect,
+                         const ARegion *region,
+                         const uiBlock *block,
+                         const uiBut *but);
 
 void ui_block_to_region_fl(const ARegion *region, const uiBlock *block, float *r_x, float *r_y);
 void ui_block_to_window_fl(const ARegion *region, const uiBlock *block, float *x, float *y);
@@ -1461,11 +1469,16 @@ void ui_interface_tag_script_reload_queries();
 void ui_block_free_views(uiBlock *block);
 void ui_block_views_bounds_calc(const uiBlock *block);
 void ui_block_views_listen(const uiBlock *block, const wmRegionListenerParams *listener_params);
+void ui_block_views_draw_overlays(const ARegion *region, const uiBlock *block);
 uiViewHandle *ui_block_view_find_matching_in_old_block(const uiBlock *new_block,
                                                        const uiViewHandle *new_view);
 
 uiButViewItem *ui_block_view_find_matching_view_item_but_in_old_block(
     const uiBlock *new_block, const uiViewItemHandle *new_item_handle);
+
+/* abstract_view_item.cc */
+
+void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle);
 
 /* interface_templates.cc */
 

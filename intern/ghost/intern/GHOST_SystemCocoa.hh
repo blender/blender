@@ -237,7 +237,7 @@ class GHOST_SystemCocoa : public GHOST_System {
   /**
    * \see GHOST_ISystem
    */
-  bool setConsoleWindowState(GHOST_TConsoleWindowState action)
+  bool setConsoleWindowState(GHOST_TConsoleWindowState /*action*/)
   {
     return false;
   }

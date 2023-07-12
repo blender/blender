@@ -33,15 +33,15 @@ struct BMesh;
 struct PBVH_GPU_Args {
   int pbvh_type;
 
-  struct BMesh *bm;
-  const struct Mesh *me;
-  const float (*vert_positions)[3];
+  BMesh *bm;
+  const Mesh *me;
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
   int mesh_verts_num, mesh_faces_num, mesh_grids_num;
   struct CustomData *vdata, *ldata, *pdata;
-  const float (*vert_normals)[3];
+  blender::Span<blender::float3> vert_normals;
 
   const char *active_color;
   const char *render_color;

@@ -14,11 +14,12 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_vector.hh"
 
-#include "DNA_customdata_types.h"
 #include "DNA_brush_enums.h" /* for eAttrCorrectMode */
+#include "DNA_customdata_types.h"
 
 /* For embedding CCGKey in iterator. */
 #include "BKE_attribute.h"
@@ -347,8 +348,15 @@ bool BKE_pbvh_bmesh_node_raycast_detail(PBVH *pbvh,
 /**
  * For orthographic cameras, project the far away ray segment points to the root node so
  * we can have better precision.
+ *
+ * Note: the interval is not guaranteed to lie between ray_start and ray_end; this is
+ * not necessary for orthographic views and is impossible anyhow due to the necessity of
+ * projecting the far clipping plane into the local object space.  This works out to
+ * dividing view3d->clip_end by the object scale, which for small object and large
+ * clip_end's can easily lead to floating-point overflows.
+ *
  */
-void BKE_pbvh_raycast_project_ray_root(
+void BKE_pbvh_clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3]);
 
 void BKE_pbvh_find_nearest_to_ray(PBVH *pbvh,
@@ -560,8 +568,8 @@ struct PBVHVertexIter {
   int gridsize;
 
   /* mesh */
-  float (*vert_positions)[3];
-  float (*vert_normals)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
+  blender::MutableSpan<blender::float3> vert_normals;
   const bool *hide_vert;
   int totvert;
   const int *vert_indices;
@@ -624,7 +632,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
             } \
           } \
         } \
-        else if (vi.vert_positions) { \
+        else if (!vi.vert_positions.is_empty()) { \
           vi.visible = !(vi.hide_vert && vi.hide_vert[vi.vert_indices[vi.gx]]); \
           if (mode == PBVH_ITER_UNIQUE && !vi.visible) { \
             continue; \
@@ -759,10 +767,10 @@ const bool *BKE_pbvh_get_poly_hide(const PBVH *pbvh);
  * pbvh->header.bm will be returned, otherwise the
  * layer will be looked up inside of me.
  */
-bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
-                              const Mesh *me,
+bool BKE_pbvh_get_color_layer(PBVH *pbvh,
+                              Mesh *me,
                               CustomDataLayer **r_layer,
-                              eAttrDomain *r_attr);
+                              eAttrDomain *r_domain);
 
 /* Swaps colors at each element in indices (of domain pbvh->vcol_domain)
  * with values in colors. PBVH_FACES only.*/
@@ -789,7 +797,7 @@ bool BKE_pbvh_is_drawing(const PBVH *pbvh);
 /* Do not call in PBVH_GRIDS mode */
 void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop);
 
-void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh);
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh);
 
 void BKE_pbvh_vertex_color_set(PBVH *pbvh, PBVHVertRef vertex, const float color[4]);
 void BKE_pbvh_vertex_color_get(const PBVH *pbvh, PBVHVertRef vertex, float r_color[4]);
@@ -899,7 +907,6 @@ void update_sharp_vertex_bmesh(BMVert *v, int cd_boundary_flag, const float shar
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
-                                const float (*vert_positions)[3],
                                 const blender::int2 *medge,
                                 const int *corner_verts,
                                 const int *corner_edges,

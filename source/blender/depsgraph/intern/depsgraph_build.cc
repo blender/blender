@@ -21,7 +21,6 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_main.h"
@@ -121,16 +120,6 @@ void DEG_add_collection_geometry_customdata_mask(DepsNodeHandle *node_handle,
     }
   }
   FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-}
-
-void DEG_add_simulation_relation(DepsNodeHandle *node_handle,
-                                 Simulation *simulation,
-                                 const char *description)
-{
-  deg::OperationKey operation_key(
-      &simulation->id, deg::NodeType::SIMULATION, deg::OperationCode::SIMULATION_EVAL);
-  deg::DepsNodeHandle *deg_node_handle = get_node_handle(node_handle);
-  deg_node_handle->builder->add_node_handle_relation(operation_key, deg_node_handle, description);
 }
 
 void DEG_add_node_tree_output_relation(DepsNodeHandle *node_handle,

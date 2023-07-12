@@ -147,6 +147,9 @@ void BKE_main_free(Main *mainvar)
   if (mainvar->name_map) {
     BKE_main_namemap_destroy(&mainvar->name_map);
   }
+  if (mainvar->name_map_global) {
+    BKE_main_namemap_destroy(&mainvar->name_map_global);
+  }
 
   BLI_spin_end((SpinLock *)mainvar->lock);
   MEM_freeN(mainvar->lock);
@@ -594,8 +597,6 @@ ListBase *which_libbase(Main *bmain, short type)
       return &(bmain->pointclouds);
     case ID_VO:
       return &(bmain->volumes);
-    case ID_SIM:
-      return &(bmain->simulations);
   }
   return NULL;
 }
@@ -661,7 +662,6 @@ int set_listbasepointers(Main *bmain, ListBase *lb[/*INDEX_ID_MAX*/])
   lb[INDEX_ID_WS] = &(bmain->workspaces); /* before wm, so it's freed after it! */
   lb[INDEX_ID_WM] = &(bmain->wm);
   lb[INDEX_ID_MSK] = &(bmain->masks);
-  lb[INDEX_ID_SIM] = &(bmain->simulations);
 
   lb[INDEX_ID_NULL] = NULL;
 

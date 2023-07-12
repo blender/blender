@@ -46,7 +46,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "MOD_nodes.h"
+#include "MOD_nodes.hh"
 
 const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
     RNA_ENUM_ITEM_HEADING(N_("Modify"), nullptr),

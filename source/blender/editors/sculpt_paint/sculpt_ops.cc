@@ -308,13 +308,11 @@ static void sculpt_init_session(Main *bmain, Depsgraph *depsgraph, Scene *scene,
     BKE_sculptsession_free(ob);
   }
 
-  BKE_object_sculpt_data_create(ob);
+  ob->sculpt = MEM_new<SculptSession>(__func__);
   ob->sculpt->mode_type = OB_MODE_SCULPT;
+
   ob->sculpt->active_face.i = PBVH_REF_NONE;
   ob->sculpt->active_vertex.i = PBVH_REF_NONE;
-
-  CustomData_reset(&ob->sculpt->temp_vdata);
-  CustomData_reset(&ob->sculpt->temp_pdata);
 
   /* Trigger evaluation of modifier stack to ensure
    * multires modifier sets .runtime.ccg in

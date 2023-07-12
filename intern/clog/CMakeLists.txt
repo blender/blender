@@ -5,7 +5,6 @@
 set(INC
   .
   ../atomic
-  ../guardedalloc
 )
 
 set(INC_SYS
@@ -19,6 +18,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::intern::guardedalloc
 )
 
 # Disabled for makesdna/makesrna.

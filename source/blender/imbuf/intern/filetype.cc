@@ -162,7 +162,7 @@ const ImFileType IMB_FILE_TYPES[] = {
     },
 #endif
     {
-        /*init*/ nullptr,
+        /*init*/ imb_init_dds,
         /*exit*/ nullptr,
         /*is_a*/ imb_is_a_dds,
         /*load*/ imb_load_dds,

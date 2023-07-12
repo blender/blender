@@ -82,7 +82,7 @@
 #include "BKE_displist.h"
 #include "BKE_duplilist.h"
 #include "BKE_editmesh.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
@@ -577,7 +577,9 @@ static void object_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     arm = (bArmature *)ob->data;
   }
 
-  BKE_pose_blend_write(writer, ob->pose, arm);
+  if (ob->pose) {
+    BKE_pose_blend_write(writer, ob->pose, arm);
+  }
   BKE_constraint_blend_write(writer, &ob->constraints);
   animviz_motionpath_blend_write(writer, ob->mpath);
 
@@ -2958,7 +2960,6 @@ void BKE_object_obdata_size_init(Object *ob, const float size)
     }
     case OB_LAMP: {
       Light *lamp = (Light *)ob->data;
-      lamp->dist *= size;
       lamp->radius *= size;
       lamp->area_size *= size;
       lamp->area_sizey *= size;
@@ -2999,7 +3000,7 @@ void BKE_object_rot_to_mat3(const Object *ob, float mat[3][3], bool use_drot)
    * with the rotation matrix to yield the appropriate rotation
    */
 
-  /* rotations may either be quats, eulers (with various rotation orders), or axis-angle */
+  /* Rotations may either be quaternions, eulers (with various rotation orders), or axis-angle. */
   if (ob->rotmode > 0) {
     /* Euler rotations
      * (will cause gimbal lock, but this can be alleviated a bit with rotation orders). */
@@ -3330,7 +3331,8 @@ static void give_parvert(Object *par, int nr, float vec[3])
 #endif
         }
         if (nr < numVerts) {
-          if (me_eval && me_eval->runtime->edit_data && me_eval->runtime->edit_data->vertexCos) {
+          if (me_eval && me_eval->runtime->edit_data &&
+              !me_eval->runtime->edit_data->vertexCos.is_empty()) {
             add_v3_v3(vec, me_eval->runtime->edit_data->vertexCos[nr]);
           }
           else {

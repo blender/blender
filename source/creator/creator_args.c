@@ -1269,12 +1269,21 @@ static const char arg_handle_gpu_backend_set_doc[] =
     "\n"
     "\tForce to use a specific GPU backend. Valid options: "
 #  ifdef WITH_VULKAN_BACKEND
-    "'vulkan',  "
+    "'vulkan'"
+#    if defined(WITH_METAL_BACKEND) || defined(WITH_OPENGL_BACKEND)
+    ",  "
+#    endif
 #  endif
 #  ifdef WITH_METAL_BACKEND
-    "'metal',  "
+    "'metal'"
+#    if defined(WITH_OPENGL_BACKEND)
+    ",  "
+#    endif
 #  endif
-    "'opengl'.";
+#  ifdef WITH_OPENGL_BACKEND
+    "'opengl'"
+#  endif
+    ".";
 static int arg_handle_gpu_backend_set(int argc, const char **argv, void *UNUSED(data))
 {
   if (argc == 0) {
@@ -1287,9 +1296,14 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void *UNUSED(
   eGPUBackendType gpu_backend = GPU_BACKEND_NONE;
 
   /* NOLINTBEGIN: bugprone-assignment-in-if-condition */
-  if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "opengl"))) {
+  if (false) {
+    /* Just a dummy if to make the following ifdef blocks work. */
+  }
+#  ifdef WITH_OPENGL_BACKEND
+  else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "opengl"))) {
     gpu_backend = GPU_BACKEND_OPENGL;
   }
+#  endif
 #  ifdef WITH_VULKAN_BACKEND
   else if (STREQ(argv[1], (backends_supported[backends_supported_num++] = "vulkan"))) {
     gpu_backend = GPU_BACKEND_VULKAN;

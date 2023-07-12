@@ -367,7 +367,7 @@ void MTLStateManager::set_clip_distances(const int new_dist_len, const int old_d
   }
 }
 
-void MTLStateManager::set_logic_op(const bool enable)
+void MTLStateManager::set_logic_op(const bool /*enable*/)
 {
   /* NOTE(Metal): Logic Operations not directly supported. */
 }
@@ -402,7 +402,7 @@ void MTLStateManager::set_backface_culling(const eGPUFaceCullTest test)
   pipeline_state.dirty = true;
 }
 
-void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex vert)
+void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex /*vert*/)
 {
   /* NOTE(Metal): Provoking vertex is not a feature in the Metal API.
    * Shaders are handled on a case-by-case basis using a modified vertex shader.

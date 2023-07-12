@@ -265,9 +265,9 @@ typedef struct Mesh {
    * Array of vertices for every face corner,  stored in the ".corner_vert" integer attribute.
    * For example, the vertices in a face can be retrieved with the #slice method:
    * \code{.cc}
-   * const Span<int> poly_verts = corner_verts.slice(poly.loopstart, poly.totloop);
+   * const Span<int> poly_verts = corner_verts.slice(poly);
    * \endcode
-   * Such a span can often be passed as an argument in lieu of a polygon and the entire corner
+   * Such a span can often be passed as an argument in lieu of a polygon or the entire corner
    * verts array.
    */
   blender::Span<int> corner_verts() const;

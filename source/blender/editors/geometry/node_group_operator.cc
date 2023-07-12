@@ -69,19 +69,15 @@ namespace blender::ed::geometry {
 /** \name Operator
  * \{ */
 
-static const asset_system::AssetRepresentation *get_context_asset(const bContext &C)
-{
-  return reinterpret_cast<const asset_system::AssetRepresentation *>(CTX_wm_asset(&C));
-}
-
 static const bNodeTree *get_node_group(const bContext &C)
 {
-  const asset_system::AssetRepresentation *asset = get_context_asset(C);
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(&C);
   if (!asset) {
     return nullptr;
   }
+  Main &bmain = *CTX_data_main(&C);
   bNodeTree *node_group = reinterpret_cast<bNodeTree *>(
-      ED_asset_get_local_id_from_asset_or_append_and_reuse(CTX_data_main(&C), *asset, ID_NT));
+      asset::asset_local_id_ensure_imported(bmain, *asset));
   if (!node_group) {
     return nullptr;
   }
@@ -287,7 +283,7 @@ static char *run_node_group_get_description(bContext *C,
                                             wmOperatorType * /*ot*/,
                                             PointerRNA * /*ptr*/)
 {
-  const asset_system::AssetRepresentation *asset = get_context_asset(*C);
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
     return nullptr;
   }
@@ -300,7 +296,7 @@ static char *run_node_group_get_description(bContext *C,
 
 static bool run_node_group_poll(bContext *C)
 {
-  const asset_system::AssetRepresentation *asset = get_context_asset(*C);
+  const asset_system::AssetRepresentation *asset = CTX_wm_asset(C);
   if (!asset) {
     return false;
   }
@@ -343,12 +339,6 @@ static asset::AssetItemTree &get_static_item_tree()
 {
   static asset::AssetItemTree tree;
   return tree;
-}
-
-static bool all_loading_finished()
-{
-  AssetLibraryReference all_library_ref = asset_system::all_library_reference();
-  return ED_assetlist_is_loaded(&all_library_ref);
 }
 
 static asset::AssetItemTree build_catalog_tree(const bContext &C)
@@ -510,13 +500,8 @@ void ui_template_node_operator_asset_root_items(uiLayout &layout, bContext &C)
   }
   asset::AssetItemTree &tree = get_static_item_tree();
   tree = build_catalog_tree(C);
-
-  const bool loading_finished = all_loading_finished();
-  if (tree.catalogs.is_empty() && loading_finished) {
+  if (tree.catalogs.is_empty()) {
     return;
-  }
-  if (!loading_finished) {
-    uiItemL(&layout, IFACE_("Loading Asset Libraries"), ICON_INFO);
   }
 
   asset_system::AssetLibrary *all_library = ED_assetlist_library_get_once_available(

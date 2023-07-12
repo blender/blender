@@ -1988,7 +1988,7 @@ static void paint_cursor_update_rake_rotation(PaintCursorContext *pcontext)
     float zero[2] = {0.0f, 0.0f};
 
     paint_calculate_rake_rotation(
-        pcontext->ups, pcontext->brush, pcontext->translation, zero, pcontext->mode);
+        pcontext->ups, pcontext->brush, pcontext->translation, zero, pcontext->mode, true);
   }
 }
 

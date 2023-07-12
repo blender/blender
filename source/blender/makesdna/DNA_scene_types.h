@@ -506,7 +506,7 @@ enum {
 
 /** #ImageFormatData::flag */
 enum {
-  R_IMF_FLAG_ZBUF = 1 << 0,
+  // R_IMF_FLAG_ZBUF = 1 << 0, /* DEPRECATED, and cleared. */
   R_IMF_FLAG_PREVIEW_JPG = 1 << 1,
 };
 

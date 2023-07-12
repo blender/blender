@@ -330,7 +330,7 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 #if 0 /* XXX need a proper selector for all snap mode */
   if (BIF_snappingSupported(t->obedit) && (event->type == EVT_TABKEY) &&
       (event->modifier & KM_SHIFT)) {
-    /* toggle snap and reinit */
+    /* Toggle snap and reinitialize. */
     t->settings->snap_flag ^= SCE_SNAP;
     initSnapping(t, nullptr);
     status = TREDRAW_HARD;

@@ -327,6 +327,17 @@ void node_select_paired(bNodeTree &node_tree)
       }
     }
   }
+  for (bNode *input_node : node_tree.nodes_by_type("GeometryNodeRepeatInput")) {
+    const auto *storage = static_cast<const NodeGeometryRepeatInput *>(input_node->storage);
+    if (bNode *output_node = node_tree.node_by_id(storage->output_node_id)) {
+      if (input_node->flag & NODE_SELECT) {
+        output_node->flag |= NODE_SELECT;
+      }
+      if (output_node->flag & NODE_SELECT) {
+        input_node->flag |= NODE_SELECT;
+      }
+    }
+  }
 }
 
 VectorSet<bNode *> get_selected_nodes(bNodeTree &node_tree)

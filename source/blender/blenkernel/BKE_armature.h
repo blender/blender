@@ -571,7 +571,9 @@ void BKE_pchan_bbone_deform_segment_index(const struct bPoseChannel *pchan,
   ((void)0)
 /* context.visible_pose_bones */
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN(_ob, _pchan) \
-  for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan; _pchan = _pchan->next) { \
+  for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
+       _pchan = _pchan->next) \
+  { \
     if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone)) {
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
   } \

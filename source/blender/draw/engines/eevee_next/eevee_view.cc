@@ -215,6 +215,7 @@ void CaptureView::render()
     view.sync(view_m4, win_m4);
     inst_.pipelines.world.render(view);
   }
+  GPU_texture_update_mipmap_chain(inst_.reflection_probes.cubemap_tx_);
   inst_.reflection_probes.remap_to_octahedral_projection();
   GPU_debug_group_end();
 }

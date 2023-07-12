@@ -33,20 +33,17 @@ static int grease_pencil_layer_add_exec(bContext *C, wmOperator *op)
   char *new_layer_name = RNA_string_get_alloc(
       op->ptr, "new_layer_name", nullptr, 0, &new_layer_name_length);
 
-  grease_pencil.add_empty_drawings(1);
-  GreasePencilFrame frame{int(grease_pencil.drawings().size() - 1), 0, BEZT_KEYTYPE_KEYFRAME};
-
   if (grease_pencil.has_active_layer()) {
     LayerGroup &active_group = grease_pencil.get_active_layer()->parent_group();
     Layer &new_layer = grease_pencil.add_layer_after(
-        active_group, grease_pencil.get_active_layer_for_write(), new_layer_name);
+        active_group, &grease_pencil.get_active_layer_for_write()->as_node(), new_layer_name);
     grease_pencil.set_active_layer(&new_layer);
-    new_layer.insert_frame(scene->r.cfra, frame);
+    grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
   else {
     Layer &new_layer = grease_pencil.add_layer(new_layer_name);
     grease_pencil.set_active_layer(&new_layer);
-    new_layer.insert_frame(scene->r.cfra, frame);
+    grease_pencil.insert_blank_frame(new_layer, scene->r.cfra, 0, BEZT_KEYTYPE_KEYFRAME);
   }
 
   MEM_SAFE_FREE(new_layer_name);
@@ -136,19 +133,19 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
   }
 
   Layer *active_layer = grease_pencil.get_active_layer_for_write();
-  active_layer->parent_group().unlink_layer(active_layer);
+  active_layer->parent_group().unlink_node(&active_layer->as_node());
 
   switch (reorder_location) {
     case LAYER_REORDER_ABOVE: {
       /* Note: The layers are stored from bottom to top, so inserting above (visually), means
        * inserting the link after the target. */
-      target_layer->parent_group().add_layer_after(active_layer, target_layer);
+      target_layer->parent_group().add_layer_after(active_layer, &target_layer->as_node());
       break;
     }
     case LAYER_REORDER_BELOW: {
       /* Note: The layers are stored from bottom to top, so inserting below (visually), means
        * inserting the link before the target. */
-      target_layer->parent_group().add_layer_before(active_layer, target_layer);
+      target_layer->parent_group().add_layer_before(active_layer, &target_layer->as_node());
       break;
     }
     default:

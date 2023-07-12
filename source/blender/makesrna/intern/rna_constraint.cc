@@ -658,7 +658,7 @@ static void rna_ArmatureConstraint_target_remove(
   bArmatureConstraint *acon = static_cast<bArmatureConstraint *>(con->data);
   bConstraintTarget *tgt = static_cast<bConstraintTarget *>(target_ptr->data);
 
-  if (BLI_findindex(&acon->targets, tgt) < 0) {
+  if (BLI_findindex(&acon->targets, tgt) == -1) {
     BKE_report(reports, RPT_ERROR, "Target is not in the constraint target list");
     return;
   }

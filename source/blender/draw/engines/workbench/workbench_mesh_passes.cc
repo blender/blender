@@ -149,8 +149,7 @@ void OpaquePass::draw(Manager &manager,
                       View &view,
                       SceneResources &resources,
                       int2 resolution,
-                      ShadowPass *shadow_pass,
-                      bool accumulation_ps_is_empty)
+                      ShadowPass *shadow_pass)
 {
   if (is_empty()) {
     return;
@@ -189,8 +188,7 @@ void OpaquePass::draw(Manager &manager,
     manager.submit(gbuffer_ps_, view);
   }
 
-  bool needs_stencil_copy = shadow_pass && !gbuffer_in_front_ps_.is_empty() &&
-                            !accumulation_ps_is_empty;
+  bool needs_stencil_copy = shadow_pass && !gbuffer_in_front_ps_.is_empty();
 
   if (needs_stencil_copy) {
     shadow_depth_stencil_tx.ensure_2d(GPU_DEPTH24_STENCIL8,
@@ -201,17 +199,14 @@ void OpaquePass::draw(Manager &manager,
     GPU_texture_copy(shadow_depth_stencil_tx, resources.depth_tx);
 
     deferred_ps_stencil_tx = shadow_depth_stencil_tx.stencil_view();
-  }
-  else {
-    shadow_depth_stencil_tx.free();
 
-    deferred_ps_stencil_tx = resources.depth_tx.stencil_view();
-  }
-
-  if (shadow_pass && !gbuffer_in_front_ps_.is_empty()) {
     opaque_fb.ensure(GPU_ATTACHMENT_TEXTURE(deferred_ps_stencil_tx));
     opaque_fb.bind();
     GPU_framebuffer_clear_stencil(opaque_fb, 0);
+  }
+  else {
+    shadow_depth_stencil_tx.free();
+    deferred_ps_stencil_tx = resources.depth_tx.stencil_view();
   }
 
   if (shadow_pass) {

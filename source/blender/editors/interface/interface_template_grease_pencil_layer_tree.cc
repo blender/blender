@@ -18,9 +18,132 @@
 #include "RNA_access.h"
 #include "RNA_prototypes.h"
 
+#include <fmt/format.h>
+
 namespace blender::ui::greasepencil {
 
 using namespace blender::bke::greasepencil;
+
+class LayerTreeView : public AbstractTreeView {
+ public:
+  explicit LayerTreeView(GreasePencil &grease_pencil) : grease_pencil_(grease_pencil) {}
+
+  void build_tree() override;
+
+ private:
+  void build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &node);
+  GreasePencil &grease_pencil_;
+};
+
+class LayerNodeDropTarget : public TreeViewItemDropTarget {
+  TreeNode &drop_tree_node_;
+
+ public:
+  LayerNodeDropTarget(AbstractTreeView &view, TreeNode &drop_tree_node, DropBehavior behavior)
+      : TreeViewItemDropTarget(view, behavior), drop_tree_node_(drop_tree_node)
+  {
+  }
+
+  bool can_drop(const wmDrag &drag, const char ** /*r_disabled_hint*/) const override
+  {
+    return drag.type == WM_DRAG_GREASE_PENCIL_LAYER;
+  }
+
+  std::string drop_tooltip(const DragInfo &drag_info) const override
+  {
+    const wmDragGreasePencilLayer *drag_grease_pencil =
+        static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
+    Layer &drag_layer = drag_grease_pencil->layer->wrap();
+
+    std::string_view drag_name = drag_layer.name();
+    std::string_view drop_name = drop_tree_node_.name;
+
+    switch (drag_info.drop_location) {
+      case DropLocation::Into:
+        return fmt::format(TIP_("Move layer {} into {}"), drag_name, drop_name);
+      case DropLocation::Before:
+        return fmt::format(TIP_("Move layer {} above {}"), drag_name, drop_name);
+      case DropLocation::After:
+        return fmt::format(TIP_("Move layer {} below {}"), drag_name, drop_name);
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+
+    return "";
+  }
+
+  bool on_drop(struct bContext * /*C*/, const DragInfo &drag_info) const override
+  {
+    const wmDragGreasePencilLayer *drag_grease_pencil =
+        static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
+    Layer &drag_layer = drag_grease_pencil->layer->wrap();
+
+    LayerGroup &drag_parent = drag_layer.parent_group();
+    LayerGroup *drop_parent_group = drop_tree_node_.parent_group();
+    if (!drop_parent_group) {
+      /* Root node is not added to the tree view, so there should never be a drop target for this.
+       */
+      BLI_assert_unreachable();
+      return false;
+    }
+
+    switch (drag_info.drop_location) {
+      case DropLocation::Into: {
+        BLI_assert_msg(drop_tree_node_.is_group(),
+                       "Inserting should not be possible for layers, only for groups, because "
+                       "only groups use DropBehavior::Reorder_and_Insert");
+
+        LayerGroup &drop_group = drop_tree_node_.as_group_for_write();
+        drag_parent.unlink_node(&drag_layer.as_node());
+        drop_group.add_layer(&drag_layer);
+        return true;
+      }
+      case DropLocation::Before:
+        drag_parent.unlink_node(&drag_layer.as_node());
+        /* Draw order is inverted, so inserting before means inserting below. */
+        drop_parent_group->add_layer_after(&drag_layer, &drop_tree_node_);
+        return true;
+      case DropLocation::After:
+        drag_parent.unlink_node(&drag_layer.as_node());
+        /* Draw order is inverted, so inserting after means inserting above. */
+        drop_parent_group->add_layer_before(&drag_layer, &drop_tree_node_);
+        return true;
+    }
+
+    return false;
+  }
+};
+
+class LayerViewItemDragController : public AbstractViewItemDragController {
+  GreasePencil &grease_pencil_;
+  Layer &dragged_layer_;
+
+ public:
+  LayerViewItemDragController(LayerTreeView &tree_view, GreasePencil &grease_pencil, Layer &layer)
+      : AbstractViewItemDragController(tree_view),
+        grease_pencil_(grease_pencil),
+        dragged_layer_(layer)
+  {
+  }
+
+  eWM_DragDataType get_drag_type() const override
+  {
+    return WM_DRAG_GREASE_PENCIL_LAYER;
+  }
+
+  void *create_drag_data() const override
+  {
+    wmDragGreasePencilLayer *drag_data = MEM_new<wmDragGreasePencilLayer>(__func__);
+    drag_data->layer = &dragged_layer_;
+    return drag_data;
+  }
+
+  void on_drag_start() override
+  {
+    grease_pencil_.set_active_layer(&dragged_layer_);
+  }
+};
 
 class LayerViewItem : public AbstractTreeViewItem {
  public:
@@ -74,6 +197,18 @@ class LayerViewItem : public AbstractTreeViewItem {
     return layer_.name();
   }
 
+  std::unique_ptr<AbstractViewItemDragController> create_drag_controller() const override
+  {
+    return std::make_unique<LayerViewItemDragController>(
+        static_cast<LayerTreeView &>(get_tree_view()), grease_pencil_, layer_);
+  }
+
+  std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
+  {
+    return std::make_unique<LayerNodeDropTarget>(
+        get_tree_view(), layer_.as_node(), DropBehavior::Reorder);
+  }
+
  private:
   GreasePencil &grease_pencil_;
   Layer &layer_;
@@ -116,11 +251,6 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     build_layer_group_buttons(*sub);
   }
 
-  bool supports_collapsing() const override
-  {
-    return true;
-  }
-
   bool supports_renaming() const override
   {
     return true;
@@ -135,6 +265,12 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
   StringRef get_rename_string() const override
   {
     return group_.name();
+  }
+
+  std::unique_ptr<TreeViewItemDropTarget> create_drop_target() override
+  {
+    return std::make_unique<LayerNodeDropTarget>(
+        get_tree_view(), group_.as_node(), DropBehavior::ReorderAndInsert);
   }
 
  private:
@@ -158,17 +294,6 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     uiItemR(&row, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, nullptr, 0);
     uiItemR(&row, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, nullptr, 0);
   }
-};
-
-class LayerTreeView : public AbstractTreeView {
- public:
-  explicit LayerTreeView(GreasePencil &grease_pencil) : grease_pencil_(grease_pencil) {}
-
-  void build_tree() override;
-
- private:
-  void build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &node);
-  GreasePencil &grease_pencil_;
 };
 
 void LayerTreeView::build_tree_node_recursive(TreeViewOrItem &parent, TreeNode &node)

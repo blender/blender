@@ -126,6 +126,8 @@
     .falloff_shape = 0,\
     .hard_corner_pin = 1.0f,\
     .sharp_angle_limit = 0.38f,\
+    .tip_scale_x = 1.0f,\
+    .tip_roundness = 1.0f,\
   }
 /** \} */
 

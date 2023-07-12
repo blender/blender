@@ -105,6 +105,10 @@ struct bContextStore {
   bool used = false;
 };
 
+namespace blender::asset_system {
+class AssetRepresentation;
+}
+
 #endif
 
 /* for the context's rna mode enum
@@ -400,7 +404,9 @@ bool CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 const struct AssetLibraryReference *CTX_wm_asset_library_ref(const bContext *C);
 struct AssetHandle CTX_wm_asset_handle(const bContext *C, bool *r_is_valid);
 
-struct AssetRepresentation *CTX_wm_asset(const bContext *C);
+#ifdef __cplusplus
+class blender::asset_system::AssetRepresentation *CTX_wm_asset(const bContext *C);
+#endif
 
 bool CTX_wm_interface_locked(const bContext *C);
 

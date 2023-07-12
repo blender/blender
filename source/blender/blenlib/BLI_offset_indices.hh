@@ -140,6 +140,9 @@ template<typename T> struct GroupedSpan {
 OffsetIndices<int> accumulate_counts_to_offsets(MutableSpan<int> counts_to_offsets,
                                                 int start_offset = 0);
 
+/** Create offsets where every group has the same size. */
+void fill_constant_group_size(int size, int start_offset, MutableSpan<int> offsets);
+
 /** Copy the number of indices in every group in the mask to the corresponding index. */
 void copy_group_sizes(OffsetIndices<int> offsets, const IndexMask &mask, MutableSpan<int> sizes);
 

@@ -197,7 +197,7 @@ std::unique_ptr<AbstractViewItemDragController> AbstractViewItem::create_drag_co
   return nullptr;
 }
 
-std::unique_ptr<AbstractViewItemDropTarget> AbstractViewItem::create_drop_target()
+std::unique_ptr<DropTargetInterface> AbstractViewItem::create_item_drop_target()
 {
   /* There's no drop target (and hence no drop support) by default. */
   return nullptr;
@@ -209,8 +209,6 @@ void AbstractViewItemDragController::on_drag_start()
 {
   /* Do nothing by default. */
 }
-
-AbstractViewItemDropTarget::AbstractViewItemDropTarget(AbstractView &view) : view_(view) {}
 
 /** \} */
 
@@ -225,6 +223,11 @@ AbstractView &AbstractViewItem::get_view() const
         "Invalid state, item must be registered through AbstractView::register_item()");
   }
   return *view_;
+}
+
+uiButViewItem *AbstractViewItem::view_item_button() const
+{
+  return view_item_but_;
 }
 
 void AbstractViewItem::disable_activatable()
@@ -258,7 +261,7 @@ bool AbstractViewItem::is_active() const
 std::unique_ptr<DropTargetInterface> view_item_drop_target(uiViewItemHandle *item_handle)
 {
   AbstractViewItem &item = reinterpret_cast<AbstractViewItem &>(*item_handle);
-  return item.create_drop_target();
+  return item.create_item_drop_target();
 }
 
 /** \} */
@@ -284,6 +287,11 @@ class ViewItemAPIWrapper {
     }
     /* TODO should match the view as well. */
     return a.matches(b);
+  }
+
+  static void swap_button_pointers(AbstractViewItem &a, AbstractViewItem &b)
+  {
+    std::swap(a.view_item_but_, b.view_item_but_);
   }
 
   static bool can_rename(const AbstractViewItem &item)
@@ -333,6 +341,16 @@ bool UI_view_item_matches(const uiViewItemHandle *a_handle, const uiViewItemHand
   const AbstractViewItem &a = reinterpret_cast<const AbstractViewItem &>(*a_handle);
   const AbstractViewItem &b = reinterpret_cast<const AbstractViewItem &>(*b_handle);
   return ViewItemAPIWrapper::matches(a, b);
+}
+
+void ui_view_item_swap_button_pointers(uiViewItemHandle *a_handle, uiViewItemHandle *b_handle)
+{
+  if (!a_handle || !b_handle) {
+    return;
+  }
+  AbstractViewItem &a = reinterpret_cast<AbstractViewItem &>(*a_handle);
+  AbstractViewItem &b = reinterpret_cast<AbstractViewItem &>(*b_handle);
+  ViewItemAPIWrapper::swap_button_pointers(a, b);
 }
 
 bool UI_view_item_can_rename(const uiViewItemHandle *item_handle)

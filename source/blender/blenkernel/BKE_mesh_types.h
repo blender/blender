@@ -23,12 +23,14 @@
 #  include "DNA_meshdata_types.h"
 
 struct BVHCache;
-struct EditMeshData;
 struct Mesh;
 struct MLoopTri;
 struct ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
+namespace blender::bke {
+struct EditMeshData;
+}
 
 #endif
 

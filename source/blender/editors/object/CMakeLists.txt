@@ -5,8 +5,6 @@
 set(INC
   ../include
   ../../blenfont
-  ../../blenkernel
-  ../../blenlib
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -15,7 +13,6 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../modifiers
   ../../python
@@ -24,10 +21,7 @@ set(INC
   ../../windowmanager
   ../../../../intern/atomic
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
 
-  # dna_type_offsets.h in BLO_read_write.h
-  ${CMAKE_BINARY_DIR}/source/blender/makesdna/intern
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -40,37 +34,39 @@ set(SRC
   object_bake.cc
   object_bake_api.cc
   object_bake_simulation.cc
-  object_collection.c
-  object_constraint.c
-  object_data_transfer.c
+  object_collection.cc
+  object_constraint.cc
+  object_data_transfer.cc
   object_data_transform.cc
   object_edit.cc
-  object_gpencil_modifier.c
-  object_hook.c
+  object_gpencil_modifier.cc
+  object_hook.cc
   object_light_linking_ops.cc
   object_modes.cc
   object_modifier.cc
-  object_ops.c
-  object_random.c
-  object_relations.c
+  object_ops.cc
+  object_random.cc
+  object_relations.cc
   object_remesh.cc
-  object_select.c
-  object_shader_fx.c
-  object_shapekey.c
+  object_select.cc
+  object_shader_fx.cc
+  object_shapekey.cc
   object_transform.cc
-  object_utils.c
+  object_utils.cc
   object_vgroup.cc
-  object_volume.c
-  object_warp.c
+  object_volume.cc
+  object_warp.cc
 
   object_intern.h
 )
 
 set(LIB
-  bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_editor_mesh
   bf_editor_grease_pencil
+  PRIVATE bf::intern::guardedalloc
   bf_render
   bf_windowmanager
 )
@@ -88,6 +84,5 @@ endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-add_dependencies(bf_editor_object bf_dna)
 # RNA_prototypes.h
 add_dependencies(bf_editor_object bf_rna)

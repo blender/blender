@@ -147,7 +147,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           cob->rotOrder = ob->rotmode;
         }
         else {
-          /* Quats/Axis-Angle, so Eulers should just use default order */
+          /* Quaternion/Axis-Angle, so Eulers should just use default order. */
           cob->rotOrder = EULER_ORDER_DEFAULT;
         }
         copy_m4_m4(cob->matrix, ob->object_to_world);
@@ -171,7 +171,7 @@ bConstraintOb *BKE_constraints_make_evalob(
           cob->rotOrder = cob->pchan->rotmode;
         }
         else {
-          /* Quats, so eulers should just use default order */
+          /* Quaternion, so eulers should just use default order */
           cob->rotOrder = EULER_ORDER_DEFAULT;
         }
 
@@ -1439,7 +1439,7 @@ static int followpath_get_tars(bConstraint *con, ListBase *list)
     bFollowPathConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;
@@ -3787,7 +3787,7 @@ static int clampto_get_tars(bConstraint *con, ListBase *list)
     bClampToConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;
@@ -4609,7 +4609,7 @@ static int splineik_get_tars(bConstraint *con, ListBase *list)
     bSplineIKConstraint *data = con->data;
     bConstraintTarget *ct;
 
-    /* standard target-getting macro for single-target constraints without subtargets */
+    /* Standard target-getting macro for single-target constraints without sub-targets. */
     SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 
     return 1;

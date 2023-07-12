@@ -150,9 +150,8 @@ void SCULPT_face_normal_get(SculptSession *ss, PBVHFaceRef face, float no[3])
 
     case PBVH_FACES:
     case PBVH_GRIDS: {
-      no = blender::bke::mesh::poly_normal_calc(
-          {reinterpret_cast<float3 *>(ss->vert_positions), ss->totvert},
-          ss->corner_verts.slice(ss->polys[face.i]));
+      no = blender::bke::mesh::poly_normal_calc(ss->vert_positions,
+                                                ss->corner_verts.slice(ss->polys[face.i]));
       break;
     }
     default: /* Failed. */
@@ -434,7 +433,7 @@ float (*SCULPT_mesh_deformed_positions_get(SculptSession *ss))[3]
       if (ss->shapekey_active || ss->deform_modifiers_active) {
         return BKE_pbvh_get_vert_positions(ss->pbvh);
       }
-      return ss->vert_positions;
+      return reinterpret_cast<float(*)[3]>(ss->vert_positions.data());
     case PBVH_BMESH:
     case PBVH_GRIDS:
       return nullptr;
@@ -2147,6 +2146,7 @@ bool SCULPT_brush_test(SculptBrushTest *test, const float co[3])
                                     co,
                                     test->cube_matrix,
                                     test->tip_roundness,
+                                    test->tip_scale_x,
                                     test->falloff_shape != PAINT_FALLOFF_SHAPE_TUBE);
 
   test->dist *= test->dist;
@@ -2228,6 +2228,7 @@ bool SCULPT_brush_test_cube(SculptBrushTest *test,
                             const float co[3],
                             const float local[4][4],
                             const float roundness,
+                            const float /*tip_scale_x*/,
                             bool test_z)
 {
   float side = 1.0f;
@@ -3340,7 +3341,9 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
 static void calc_brush_local_mat(const float rotation,
                                  Object *ob,
                                  float local_mat[4][4],
-                                 float local_mat_inv[4][4])
+                                 float local_mat_inv[4][4],
+                                 const float *co,
+                                 const float *no)
 {
   const StrokeCache *cache = ob->sculpt->cache;
   float tmat[4][4];
@@ -3348,6 +3351,13 @@ static void calc_brush_local_mat(const float rotation,
   float scale[4][4];
   float angle, v[3];
   float up[3];
+
+  if (!co) {
+    co = cache->location;
+  }
+  if (!no) {
+    no = cache->sculpt_normal;
+  }
 
   /* Ensure `ob->world_to_object` is up to date. */
   invert_m4_m4(ob->world_to_object, ob->object_to_world);
@@ -3359,20 +3369,20 @@ static void calc_brush_local_mat(const float rotation,
   mat[3][3] = 1.0f;
 
   /* Get view's up vector in object-space. */
-  calc_local_y(cache->vc, cache->location, up);
+  calc_local_y(cache->vc, co, up);
 
   /* Calculate the X axis of the local matrix. */
-  cross_v3_v3v3(v, up, cache->sculpt_normal);
+  cross_v3_v3v3(v, up, no);
   /* Apply rotation (user angle, rake, etc.) to X axis. */
   angle = rotation - cache->special_rotation;
-  rotate_v3_v3v3fl(mat[0], v, cache->sculpt_normal, angle);
+  rotate_v3_v3v3fl(mat[0], v, no, angle);
 
   /* Get other axes. */
-  cross_v3_v3v3(mat[1], cache->sculpt_normal, mat[0]);
-  copy_v3_v3(mat[2], cache->sculpt_normal);
+  cross_v3_v3v3(mat[1], no, mat[0]);
+  copy_v3_v3(mat[2], no);
 
   /* Set location. */
-  copy_v3_v3(mat[3], cache->location);
+  copy_v3_v3(mat[3], co);
 
   /* Scale by brush radius. */
   float radius = cache->radius;
@@ -3425,7 +3435,8 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
   if (cache->mirror_symmetry_pass == 0 && cache->radial_symmetry_pass == 0) {
     const Brush *brush = BKE_paint_brush(&sd->paint);
     const MTex *mask_tex = BKE_brush_mask_texture_get(brush, OB_MODE_SCULPT);
-    calc_brush_local_mat(mask_tex->rot, ob, cache->brush_local_mat, cache->brush_local_mat_inv);
+    calc_brush_local_mat(
+        mask_tex->rot, ob, cache->brush_local_mat, cache->brush_local_mat_inv, nullptr, nullptr);
   }
 }
 
@@ -4948,13 +4959,12 @@ static const char *sculpt_tool_name(Sculpt *sd)
 /* Operator for applying a stroke (various attributes including mouse path)
  * using the current brush. */
 
-void SCULPT_cache_free(SculptSession * /*ss*/, struct Object * /*ob*/, StrokeCache *cache)
+void SCULPT_cache_free(StrokeCache *cache)
 {
   MEM_SAFE_FREE(cache->dial);
   MEM_SAFE_FREE(cache->prev_colors);
   MEM_SAFE_FREE(cache->prev_displacement);
   MEM_SAFE_FREE(cache->limit_surface_co);
-  MEM_SAFE_FREE(cache->prev_colors_vpaint);
 
   if (cache->pose_ik_chain) {
     SCULPT_pose_ik_chain_free(cache->pose_ik_chain);
@@ -4970,7 +4980,7 @@ void SCULPT_cache_free(SculptSession * /*ss*/, struct Object * /*ob*/, StrokeCac
     SCULPT_cloth_simulation_free(cache->cloth_sim);
   }
 
-  MEM_freeN(cache);
+  MEM_delete(cache);
 }
 
 /* Initialize mirror modifier clipping. */
@@ -5074,8 +5084,7 @@ static void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache
 static void sculpt_update_cache_invariants(
     bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mval[2])
 {
-  StrokeCache *cache = static_cast<StrokeCache *>(
-      MEM_callocN(sizeof(StrokeCache), "stroke cache"));
+  StrokeCache *cache = MEM_new<StrokeCache>(__func__);
   ToolSettings *tool_settings = CTX_data_tool_settings(C);
   UnifiedPaintSettings *ups = &tool_settings->unified_paint_settings;
   Brush *brush = BKE_paint_brush(&sd->paint);
@@ -5767,15 +5776,19 @@ float SCULPT_raycast_init(ViewContext *vc,
   sub_v3_v3v3(ray_normal, ray_end, ray_start);
   dist = normalize_v3(ray_normal);
 
-  if ((rv3d->is_persp == false) &&
-      /* If the ray is clipped, don't adjust its start/end. */
-      !RV3D_CLIPPING_ENABLED(v3d, rv3d))
-  {
-    BKE_pbvh_raycast_project_ray_root(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
+  /* If the ray is clipped, don't adjust its start/end. */
+  if ((rv3d->is_persp == false) && !RV3D_CLIPPING_ENABLED(v3d, rv3d)) {
+    /* Get the view origin without the addition
+     * of -ray_normal * clip_start that
+     * ED_view3d_win_to_segment_clipped gave us.
+     * This is necessary to avoid floating point overflow.
+     */
+    ED_view3d_win_to_origin(vc->region, mval, ray_start);
+    mul_m4_v3(obimat, ray_start);
 
-    /* rRecalculate the normal. */
-    sub_v3_v3v3(ray_normal, ray_end, ray_start);
-    dist = normalize_v3(ray_normal);
+    BKE_pbvh_clip_ray_ortho(ob->sculpt->pbvh, original, ray_start, ray_end, ray_normal);
+
+    dist = len_v3v3(ray_start, ray_end);
   }
 
   return dist;
@@ -6545,7 +6558,7 @@ static void sculpt_stroke_done(const bContext *C, PaintStroke * /*stroke*/)
     SCULPT_automasking_cache_free(ss, ob, ss->cache->automasking);
   }
 
-  SCULPT_cache_free(ss, ob, ss->cache);
+  SCULPT_cache_free(ss->cache);
   ss->cache = nullptr;
 
   sculpt_stroke_undo_end(C, brush);
@@ -6677,7 +6690,7 @@ static void sculpt_brush_stroke_cancel(bContext *C, wmOperator *op)
   paint_stroke_cancel(C, op, static_cast<PaintStroke *>(op->customdata));
 
   if (ss->cache) {
-    SCULPT_cache_free(ss, ob, ss->cache);
+    SCULPT_cache_free(ss->cache);
     ss->cache = nullptr;
   }
 
@@ -7123,7 +7136,8 @@ void SCULPT_topology_islands_ensure(Object *ob)
   ss->islands_valid = true;
 }
 
-void SCULPT_cube_tip_init(Sculpt * /*sd*/, Object *ob, Brush *brush, float mat[4][4])
+void SCULPT_cube_tip_init(
+    Sculpt * /*sd*/, Object *ob, Brush *brush, float mat[4][4], const float *co, const float *no)
 {
   SculptSession *ss = ob->sculpt;
   float scale[4][4];
@@ -7131,7 +7145,7 @@ void SCULPT_cube_tip_init(Sculpt * /*sd*/, Object *ob, Brush *brush, float mat[4
   float unused[4][4];
 
   zero_m4(mat);
-  calc_brush_local_mat(0.0, ob, unused, mat);
+  calc_brush_local_mat(0.0, ob, unused, mat, co, no);
 
   /* Note: we ignore the radius scaling done inside of calc_brush_local_mat to
    * duplicate prior behavior.

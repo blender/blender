@@ -346,6 +346,8 @@ typedef struct ThemeSpace {
   unsigned char nodeclass_geometry[4], nodeclass_attribute[4];
 
   unsigned char node_zone_simulation[4];
+  unsigned char node_zone_repeat[4];
+  unsigned char _pad9[4];
   unsigned char simulated_frames[4];
 
   /** For sequence editor. */
@@ -682,7 +684,8 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_node_panels;
   char use_rotation_socket;
-  char _pad[2];
+  char use_node_group_operators;
+  char _pad[1];
   /** `makesdna` does not allow empty structs. */
 } UserDef_Experimental;
 

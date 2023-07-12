@@ -1465,7 +1465,7 @@ static void playanim_window_open(const char *title, int posx, int posy, int size
 static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
 {
   int sizex, sizey;
-  /* int ofsx, ofsy; */ /* UNUSED */
+  // int ofsx, ofsy; /* UNUSED */
 
   if (ps->zoom + zoom_offset > 0.0f) {
     ps->zoom += zoom_offset;
@@ -1473,12 +1473,12 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
 
   // playanim_window_get_position(&ofsx, &ofsy);
   playanim_window_get_size(&sizex, &sizey);
-  /* ofsx += sizex / 2; */ /* UNUSED */
-  /* ofsy += sizey / 2; */ /* UNUSED */
+  // ofsx += sizex / 2; /* UNUSED */
+  // ofsy += sizey / 2; /* UNUSED */
   sizex = ps->zoom * ps->ibufx;
   sizey = ps->zoom * ps->ibufy;
-  /* ofsx -= sizex / 2; */ /* UNUSED */
-  /* ofsy -= sizey / 2; */ /* UNUSED */
+  // ofsx -= sizex / 2; /* UNUSED */
+  // ofsy -= sizey / 2; /* UNUSED */
   // window_set_position(g_WS.ghost_window, sizex, sizey);
   GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
 }

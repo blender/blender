@@ -230,12 +230,27 @@ TreeElementOverridesPropertyOperation::TreeElementOverridesPropertyOperation(
 
 StringRefNull TreeElementOverridesPropertyOperation::getOverrideOperationLabel() const
 {
-  if (ELEM(operation_->operation, LIBOVERRIDE_OP_INSERT_AFTER, LIBOVERRIDE_OP_INSERT_BEFORE)) {
-    return TIP_("Added through override");
+  switch (operation_->operation) {
+    case LIBOVERRIDE_OP_INSERT_AFTER:
+    case LIBOVERRIDE_OP_INSERT_BEFORE:
+      return TIP_("Added through override");
+    case LIBOVERRIDE_OP_REPLACE:
+      /* Returning nothing so that drawing code shows actual RNA button instead. */
+      return {};
+    /* Following cases are not expected in regular situation, but could be found in experimental
+     * files. */
+    case LIBOVERRIDE_OP_NOOP:
+      return TIP_("Protected from override");
+    case LIBOVERRIDE_OP_ADD:
+      return TIP_("Additive override");
+    case LIBOVERRIDE_OP_SUBTRACT:
+      return TIP_("Subtractive override");
+    case LIBOVERRIDE_OP_MULTIPLY:
+      return TIP_("Multiplicative override");
+    default:
+      BLI_assert_unreachable();
+      return {};
   }
-
-  BLI_assert_unreachable();
-  return {};
 }
 
 std::optional<BIFIconID> TreeElementOverridesPropertyOperation::getIcon() const

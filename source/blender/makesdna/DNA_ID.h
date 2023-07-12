@@ -682,7 +682,7 @@ typedef struct PreviewImage {
    (void *)((ID *)(_id))->newid)
 #define ID_NEW_REMAP(a) \
   if ((a) && (a)->id.newid) { \
-    (a) = (void *)(a)->id.newid; \
+    *(void **)&(a) = (a)->id.newid; \
   } \
   ((void)0)
 
@@ -1253,7 +1253,6 @@ typedef enum eID_Index {
 
   /* Simulation-related types. */
   INDEX_ID_CF,
-  INDEX_ID_SIM,
   INDEX_ID_PA,
 
   /* Shape Keys snow-flake, can be used by several obdata types. */

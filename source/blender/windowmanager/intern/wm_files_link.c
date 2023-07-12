@@ -220,16 +220,23 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
   BLI_path_join(filepath, sizeof(filepath), root, relname);
 
   /* test if we have a valid data */
-  if (!BKE_blendfile_library_path_explode(filepath, libname, &group, &name)) {
-    BKE_reportf(op->reports, RPT_ERROR, "'%s': not a library", filepath);
+  const bool is_librarypath_valid = BKE_blendfile_library_path_explode(
+      filepath, libname, &group, &name);
+
+  /* NOTE: Need to also check filepath, as typically libname is an empty string here (when trying
+   * to append from current file from the file-browser e.g.). */
+  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), filepath) == 0 ||
+      BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0)
+  {
+    BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
     return OPERATOR_CANCELLED;
   }
-  if (!group) {
+  if (!group || !name) {
     BKE_reportf(op->reports, RPT_ERROR, "'%s': nothing indicated", filepath);
     return OPERATOR_CANCELLED;
   }
-  if (BLI_path_cmp(BKE_main_blendfile_path(bmain), libname) == 0) {
-    BKE_reportf(op->reports, RPT_ERROR, "'%s': cannot use current file as library", filepath);
+  if (!is_librarypath_valid) {
+    BKE_reportf(op->reports, RPT_ERROR, "'%s': not a library", filepath);
     return OPERATOR_CANCELLED;
   }
 

@@ -475,8 +475,6 @@ uint64_t BKE_library_id_can_use_filter_id(const ID *owner_id, const bool include
       return FILTER_ID_MA;
     case ID_VO:
       return FILTER_ID_MA;
-    case ID_SIM:
-      return FILTER_ID_OB | FILTER_ID_IM;
     case ID_WM:
       return FILTER_ID_SCE | FILTER_ID_WS;
     case ID_IM:
@@ -722,7 +720,7 @@ static bool lib_query_unused_ids_tag_recurse(Main *bmain,
   if (ELEM(GS(id->name), ID_IM)) {
     /* Images which have a 'viewer' source (e.g. render results) should not be considered as
      * orphaned/unused data. */
-    Image *image = (Image *)id;
+    const Image *image = (Image *)id;
     if (image->source == IMA_SRC_VIEWER) {
       id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
       return false;

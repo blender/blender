@@ -990,12 +990,6 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
   }
   FOREACH_NODETREE_END;
 
-  LISTBASE_FOREACH (Light *, light, &bmain->lights) {
-    if (light->curfalloff) {
-      callback(light->curfalloff);
-    }
-  }
-
   LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
     if (brush->curve) {
       callback(brush->curve);
@@ -1440,7 +1434,7 @@ static void light_emission_node_to_energy(Light *light, float *energy, float col
 static void light_emission_unify(Light *light, const char *engine)
 {
   if (light->type != LA_SUN) {
-    light->energy *= 100.0f;
+    light->energy_deprecated *= 100.0f;
   }
 
   /* Attempt to extract constant energy and color from nodes. */
@@ -1451,16 +1445,16 @@ static void light_emission_unify(Light *light, const char *engine)
   if (STREQ(engine, "CYCLES")) {
     if (use_nodes) {
       /* Energy extracted from nodes */
-      light->energy = energy;
+      light->energy_deprecated = energy;
       copy_v3_v3(&light->r, color);
     }
     else {
       /* Default cycles multipliers if there are no nodes */
       if (light->type == LA_SUN) {
-        light->energy = 1.0f;
+        light->energy_deprecated = 1.0f;
       }
       else {
-        light->energy = 100.0f;
+        light->energy_deprecated = 100.0f;
       }
     }
   }
@@ -2748,7 +2742,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
         continue;
       }
 
-      BKE_rigidbody_objects_collection_validate(scene, rbw);
+      BKE_rigidbody_objects_collection_validate(bmain, scene, rbw);
       BKE_rigidbody_constraints_collection_validate(scene, rbw);
     }
   }

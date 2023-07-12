@@ -122,6 +122,7 @@ class ModifierSimulationState {
   /** File path to folder containing baked data. */
   std::optional<std::string> bdata_dir_;
 
+  SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id);
   const SimulationZoneState *get_zone_state(const SimulationZoneID &zone_id) const;
   SimulationZoneState &get_zone_state_for_write(const SimulationZoneID &zone_id);
   void ensure_bake_loaded(const bNodeTree &ntree) const;
@@ -150,6 +151,13 @@ struct StatesAroundFrame {
   const ModifierSimulationStateAtFrame *next = nullptr;
 };
 
+struct ModifierSimulationCacheRealtime {
+  std::unique_ptr<ModifierSimulationState> prev_state;
+  std::unique_ptr<ModifierSimulationState> current_state;
+  SubFrame prev_frame;
+  SubFrame current_frame;
+};
+
 class ModifierSimulationCache {
  private:
   mutable std::mutex states_at_frames_mutex_;
@@ -165,11 +173,13 @@ class ModifierSimulationCache {
 
   friend ModifierSimulationState;
 
- public:
-  CacheState cache_state_ = CacheState::Valid;
   bool failed_finding_bake_ = false;
 
-  float last_fps_ = 0.0f;
+ public:
+  CacheState cache_state = CacheState::Valid;
+
+  /** A non-persistent cache used only to pass simulation state data from one frame to the next. */
+  ModifierSimulationCacheRealtime realtime_cache;
 
   void try_discover_bake(StringRefNull absolute_bake_dir);
 
@@ -181,24 +191,16 @@ class ModifierSimulationCache {
 
   void invalidate()
   {
-    cache_state_ = CacheState::Invalid;
-  }
-
-  CacheState cache_state() const
-  {
-    return cache_state_;
+    this->cache_state = CacheState::Invalid;
   }
 
   void reset();
-  void clear_prev_states();
 };
 
 /**
- * Wrap simulation cache in `std::shared_ptr` so that it can be owned by evaluated modifier even if
- * the original modifier has been deleted.
+ * Reset all simulation caches in the scene, for use when some fundamental change made them
+ * impossible to reuse.
  */
-struct ModifierSimulationCachePtr {
-  std::shared_ptr<ModifierSimulationCache> ptr;
-};
+void scene_simulation_states_reset(Scene &scene);
 
 }  // namespace blender::bke::sim

@@ -175,7 +175,8 @@ static void rna_Material_active_paint_texture_index_update(bContext *C, PointerR
       Object *ob = CTX_data_active_object(C);
       if (ob != nullptr && ob->type == OB_MESH) {
         Mesh *mesh = static_cast<Mesh *>(ob->data);
-        CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id, slot->attribute_name);
+        const CustomDataLayer *layer = BKE_id_attributes_color_find(&mesh->id,
+                                                                    slot->attribute_name);
         if (layer != nullptr) {
           BKE_id_attributes_active_color_set(&mesh->id, layer->name);
         }

@@ -4,14 +4,10 @@
 
 set(INC
   .
-  ../blenkernel
-  ../blenlib
   ../blentranslation
   ../gpu
   ../imbuf
-  ../makesdna
   ../makesrna
-  ../../../intern/guardedalloc
 )
 
 set(INC_SYS
@@ -34,8 +30,11 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_gpu
-  bf_intern_guardedalloc
+  PRIVATE bf::intern::guardedalloc
 
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )

@@ -415,10 +415,7 @@ void BKE_camera_params_compute_viewplane(
 
   /* the window matrix is used for clipping, and not changed during OSA steps */
   /* using an offset of +0.5 here would give clip errors on edges */
-  viewplane.xmin *= pixsize;
-  viewplane.xmax *= pixsize;
-  viewplane.ymin *= pixsize;
-  viewplane.ymax *= pixsize;
+  BLI_rctf_mul(&viewplane, pixsize);
 
   /* Used for rendering (offset by near-clip with perspective views), passed to RE_SetPixelSize.
    * For viewport drawing 'RegionView3D.pixsize'. */

@@ -57,7 +57,7 @@ void WM_tooltip_timer_init_ex(
   }
   screen->tool_tip->area_from = area;
   screen->tool_tip->region_from = region;
-  screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, delay);
+  screen->tool_tip->timer = WM_event_timer_add(wm, win, TIMER, delay);
   screen->tool_tip->init = init;
 }
 
@@ -73,7 +73,7 @@ void WM_tooltip_timer_clear(bContext *C, wmWindow *win)
   bScreen *screen = WM_window_get_active_screen(win);
   if (screen->tool_tip != NULL) {
     if (screen->tool_tip->timer != NULL) {
-      WM_event_remove_timer(wm, win, screen->tool_tip->timer);
+      WM_event_timer_remove(wm, win, screen->tool_tip->timer);
       screen->tool_tip->timer = NULL;
     }
   }
@@ -123,7 +123,7 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
   if (pass_prev != screen->tool_tip->pass) {
     /* The pass changed, add timer for next pass. */
     wmWindowManager *wm = CTX_wm_manager(C);
-    screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, pass_delay);
+    screen->tool_tip->timer = WM_event_timer_add(wm, win, TIMER, pass_delay);
   }
   if (screen->tool_tip->region == NULL) {
     WM_tooltip_clear(C, win);

@@ -197,27 +197,30 @@ static void build_face_to_face_by_edge_map(const OffsetIndices<int> polys,
                                            Array<int> &r_offsets,
                                            Array<int> &r_indices)
 {
-  Array<int> edge_to_poly_offsets;
+  Array<int> edge_to_poly_offset_data;
   Array<int> edge_to_poly_indices;
   const GroupedSpan<int> edge_to_poly_map = bke::mesh::build_edge_to_poly_map(
-      polys, corner_edges, edges_num, edge_to_poly_offsets, edge_to_poly_indices);
+      polys, corner_edges, edges_num, edge_to_poly_offset_data, edge_to_poly_indices);
+  const OffsetIndices<int> edge_to_poly_offsets(edge_to_poly_offset_data);
 
   r_offsets = Array<int>(polys.size() + 1, 0);
-  for (const int poly_i : polys.index_range()) {
-    for (const int edge : corner_edges.slice(polys[poly_i])) {
-      for (const int neighbor : edge_to_poly_map[edge]) {
-        if (neighbor != poly_i) {
-          r_offsets[poly_i]++;
-        }
+  threading::parallel_for(polys.index_range(), 4096, [&](const IndexRange range) {
+    for (const int poly_i : range) {
+      for (const int edge : corner_edges.slice(polys[poly_i])) {
+        /* Subtract polygon itself from the number of polygons connected to the edge. */
+        r_offsets[poly_i] += edge_to_poly_offsets[edge].size() - 1;
       }
     }
-  }
-  const OffsetIndices offsets = offset_indices::accumulate_counts_to_offsets(r_offsets);
+  });
+  const OffsetIndices<int> offsets = offset_indices::accumulate_counts_to_offsets(r_offsets);
   r_indices.reinitialize(offsets.total_size());
 
   threading::parallel_for(polys.index_range(), 1024, [&](IndexRange range) {
     for (const int poly_i : range) {
       MutableSpan<int> neighbors = r_indices.as_mutable_span().slice(offsets[poly_i]);
+      if (neighbors.is_empty()) {
+        continue;
+      }
       int count = 0;
       for (const int edge : corner_edges.slice(polys[poly_i])) {
         for (const int neighbor : edge_to_poly_map[edge]) {

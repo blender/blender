@@ -3237,7 +3237,8 @@ static void animsys_create_action_track_strip(const AnimData *adt,
 
   /* Action range is calculated taking F-Modifiers into account
    * (which making new strips doesn't do due to the troublesome nature of that). */
-  calc_action_range(r_action_strip->act, &r_action_strip->actstart, &r_action_strip->actend, 1);
+  BKE_action_frame_range_calc(
+      r_action_strip->act, true, &r_action_strip->actstart, &r_action_strip->actend);
   r_action_strip->start = r_action_strip->actstart;
   r_action_strip->end = IS_EQF(r_action_strip->actstart, r_action_strip->actend) ?
                             (r_action_strip->actstart + 1.0f) :
@@ -4002,11 +4003,11 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float 
   } \
   (void)0
 
-  /* another macro for the "embedded" nodetree cases
-   * - this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees"
-   *   (i.e. scene/material/texture->nodetree) which we need a special exception
-   *   for, otherwise they'd get skipped
-   * - 'ntp' stands for "node tree parent" = data-block where node tree stuff resides
+  /* Another macro for the "embedded" node-tree cases
+   * - This is like #EVAL_ANIM_IDS, but this handles the case "embedded node-trees"
+   *   (i.e. `scene/material/texture->nodetree`) which we need a special exception
+   *   for, otherwise they'd get skipped.
+   * - `ntp` stands for "node tree parent" = data-block where node tree stuff resides.
    */
 #define EVAL_ANIM_NODETREE_IDS(first, NtId_Type, aflag) \
   for (id = first; id; id = id->next) { \
@@ -4101,9 +4102,6 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, float 
 
   /* volumes */
   EVAL_ANIM_IDS(main->volumes.first, ADT_RECALC_ANIM);
-
-  /* simulations */
-  EVAL_ANIM_IDS(main->simulations.first, ADT_RECALC_ANIM);
 
   /* objects */
   /* ADT_RECALC_ANIM doesn't need to be supplied here, since object AnimData gets

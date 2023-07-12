@@ -89,7 +89,7 @@ static inline BL::Mesh object_to_mesh(BL::BlendData & /*data*/,
 
   if (b_ob_info.is_real_object_data()) {
     if (mesh) {
-      /* Make a copy to split faces if we use autosmooth, otherwise not needed.
+      /* Make a copy to split faces if we use auto-smooth, otherwise not needed.
        * Also in edit mode do we need to make a copy, to ensure data layers like
        * UV are not empty. */
       if (mesh.is_editmode() ||

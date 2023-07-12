@@ -200,8 +200,6 @@ const char *operationCodeAsString(OperationCode opcode)
     /* instancing/duplication. */
     case OperationCode::DUPLI:
       return "DUPLI";
-    case OperationCode::SIMULATION_EVAL:
-      return "SIMULATION_EVAL";
   }
   BLI_assert_msg(0, "Unhandled operation code, should never happen.");
   return "UNKNOWN";

@@ -61,7 +61,13 @@ typedef struct World {
 
   /** Assorted settings. */
   short flag;
-  char _pad3[6];
+  char _pad3[2];
+
+  /** Eevee settings. */
+  /**
+   * Resolution of the world probe when baked to a texture. Contains `eLightProbeResolution`.
+   */
+  int probe_resolution;
 
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
@@ -91,7 +97,7 @@ enum {
   WO_MODE_UNUSED_3 = 1 << 3, /* cleared */
   WO_MODE_UNUSED_4 = 1 << 4, /* cleared */
   WO_MODE_UNUSED_5 = 1 << 5, /* cleared */
-  WO_AMB_OCC = 1 << 6,
+  WO_MODE_UNUSED_6 = 1 << 6, /* cleared */
   WO_MODE_UNUSED_7 = 1 << 7, /* cleared */
 };
 

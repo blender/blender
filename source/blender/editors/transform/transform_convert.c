@@ -1199,7 +1199,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
         float astart, aend;
 
         /* only push down if action is more than 1-2 frames long */
-        calc_action_range(adt->action, &astart, &aend, 1);
+        BKE_action_frame_range_calc(adt->action, true, &astart, &aend);
         if (aend > astart + 2.0f) {
           NlaStrip *strip = BKE_nlastack_add_strip(adt, adt->action, ID_IS_OVERRIDE_LIBRARY(id));
 

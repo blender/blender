@@ -239,6 +239,12 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_GENERIC_LABEL)) {
     id = nullptr;
   }
+  else if (type == TSE_BONE) {
+    id = static_cast<BoneElementCreateData *>(idv)->armature_id;
+  }
+  else if (type == TSE_EBONE) {
+    id = static_cast<EditBoneElementCreateData *>(idv)->armature_id;
+  }
 
   /* exceptions */
   if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
@@ -294,6 +300,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   else if (ELEM(type, TSE_ID_BASE, TSE_GENERIC_LABEL)) {
     /* pass */
   }
+  else if (ELEM(type, TSE_BONE, TSE_EBONE)) {
+    /* pass */
+  }
   else if (type == TSE_SOME_ID) {
     if (!te->abstract_element) {
       BLI_assert_msg(0, "Expected this ID type to be ported to new Outliner tree-element design");
@@ -329,7 +338,9 @@ TreeElement *outliner_add_element(SpaceOutliner *space_outliner,
   }
   else if (ELEM(type,
                 TSE_ANIM_DATA,
+                TSE_BONE,
                 TSE_DRIVER_BASE,
+                TSE_EBONE,
                 TSE_NLA,
                 TSE_NLA_ACTION,
                 TSE_NLA_TRACK,

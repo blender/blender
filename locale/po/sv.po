@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Arvid Rudling <arvid.r@gmail.com>\n"
 "Language-Team: \n"
@@ -115,6 +115,10 @@ msgstr "Egenskaper"
 
 msgid "Width"
 msgstr "Bredd"
+
+
+msgid "Quaternion"
+msgstr "Kvaternion"
 
 
 msgid "Edge"
@@ -317,10 +321,6 @@ msgid "Outline"
 msgstr "Kontur"
 
 
-msgid "Path"
-msgstr "Bana"
-
-
 msgid "Opacity"
 msgstr "Genomskinlighet"
 
@@ -489,10 +489,6 @@ msgid "Front"
 msgstr "Fram"
 
 
-msgid "Quaternion"
-msgstr "Kvaternion"
-
-
 msgid "Location"
 msgstr "Position"
 
@@ -565,10 +561,6 @@ msgid "Factor"
 msgstr "Faktor"
 
 
-msgid "Force"
-msgstr "Kraft"
-
-
 msgid "Velocity"
 msgstr "Hastighet"
 
@@ -595,6 +587,10 @@ msgstr "Vertex"
 
 msgid "Anti-Aliasing"
 msgstr "Antialias"
+
+
+msgid "Force"
+msgstr "Kraft"
 
 
 msgid "Turbulence"
@@ -671,10 +667,6 @@ msgstr "Form"
 
 msgid "Axis"
 msgstr "Axel"
-
-
-msgid "Kink"
-msgstr "Nyck"
 
 
 msgid "Seed"
@@ -913,6 +905,10 @@ msgid "Display Background Images"
 msgstr "Visa bakgrundsbilder"
 
 
+msgid "Path"
+msgstr "Bana"
+
+
 msgid "Font"
 msgstr "Typsnitt"
 
@@ -1003,10 +999,6 @@ msgstr "Film"
 
 msgid "Compositing"
 msgstr "Komponering"
-
-
-msgid "Samples"
-msgstr "Samplar"
 
 
 msgid "Size Y"
@@ -1317,6 +1309,10 @@ msgid "Root"
 msgstr "Rot"
 
 
+msgid "Samples"
+msgstr "Samplar"
+
+
 msgid "Active Clone"
 msgstr "Klona aktivt"
 
@@ -1415,6 +1411,10 @@ msgstr "Zooma"
 
 msgid "Shadow"
 msgstr "Skugga"
+
+
+msgid "Anisotropic"
+msgstr "Anisotropisk"
 
 
 msgid "Rotate"
@@ -2104,6 +2104,10 @@ msgid "Histogram"
 msgstr "Histogram"
 
 
+msgid "Kink"
+msgstr "Nyck"
+
+
 msgid "Physics"
 msgstr "Fysik"
 
@@ -2715,10 +2719,6 @@ msgstr "Gammal"
 
 msgid "IOR"
 msgstr "Brytningsindex"
-
-
-msgid "Anisotropic"
-msgstr "Anisotropisk"
 
 
 msgid "Transparency"

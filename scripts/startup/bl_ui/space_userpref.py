@@ -643,8 +643,8 @@ class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
 
     def draw_centered(self, _context, layout):
         if _context.preferences.system.is_microsoft_store_install:
-            layout.label(text="Microsoft Store installation.")
-            layout.label(text="Use Windows 'Default Apps' to associate with blend files.")
+            layout.label(text="Microsoft Store installation")
+            layout.label(text="Use Windows 'Default Apps' to associate with blend files")
         else:
             layout.label(text="Open blend files with this Blender version")
             split = layout.split(factor=0.5)
@@ -2419,6 +2419,7 @@ class USERPREF_PT_experimental_new_features(ExperimentalPanel, Panel):
                 ({"property": "use_new_volume_nodes"}, ("blender/blender/issues/103248", "#103248")),
                 ({"property": "use_node_panels"}, ("blender/blender/issues/105248", "#105248")),
                 ({"property": "use_rotation_socket"}, ("/blender/blender/issues/92967", "#92967")),
+                ({"property": "use_node_group_operators"}, ("/blender/blender/issues/101778", "#101778")),
             ),
         )
 

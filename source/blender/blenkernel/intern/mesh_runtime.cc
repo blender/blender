@@ -19,7 +19,7 @@
 #include "BLI_timeit.hh"
 
 #include "BKE_bvhutils.h"
-#include "BKE_editmesh_cache.h"
+#include "BKE_editmesh_cache.hh"
 #include "BKE_lib_id.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.h"
@@ -35,23 +35,6 @@ using blender::Span;
  * \{ */
 
 namespace blender::bke {
-
-static void edit_data_reset(EditMeshData &edit_data)
-{
-  MEM_SAFE_FREE(edit_data.polyCos);
-  MEM_SAFE_FREE(edit_data.polyNos);
-  MEM_SAFE_FREE(edit_data.vertexCos);
-  MEM_SAFE_FREE(edit_data.vertexNos);
-}
-
-static void free_edit_data(MeshRuntime &mesh_runtime)
-{
-  if (mesh_runtime.edit_data) {
-    edit_data_reset(*mesh_runtime.edit_data);
-    MEM_freeN(mesh_runtime.edit_data);
-    mesh_runtime.edit_data = nullptr;
-  }
-}
 
 static void free_mesh_eval(MeshRuntime &mesh_runtime)
 {
@@ -100,7 +83,6 @@ MeshRuntime::~MeshRuntime()
   free_mesh_eval(*this);
   free_subdiv_ccg(*this);
   free_bvh_cache(*this);
-  free_edit_data(*this);
   free_batch_cache(*this);
   if (this->shrinkwrap_data) {
     BKE_shrinkwrap_boundary_data_free(this->shrinkwrap_data);
@@ -266,15 +248,15 @@ bool BKE_mesh_runtime_ensure_edit_data(Mesh *mesh)
   if (mesh->runtime->edit_data != nullptr) {
     return false;
   }
-  mesh->runtime->edit_data = MEM_cnew<EditMeshData>(__func__);
+  mesh->runtime->edit_data = MEM_new<blender::bke::EditMeshData>(__func__);
   return true;
 }
 
 void BKE_mesh_runtime_reset_edit_data(Mesh *mesh)
 {
   using namespace blender::bke;
-  if (EditMeshData *edit_data = mesh->runtime->edit_data) {
-    edit_data_reset(*edit_data);
+  if (blender::bke::EditMeshData *edit_data = mesh->runtime->edit_data) {
+    *edit_data = {};
   }
 }
 
@@ -283,7 +265,8 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
   using namespace blender::bke;
   free_mesh_eval(*mesh->runtime);
   free_batch_cache(*mesh->runtime);
-  free_edit_data(*mesh->runtime);
+  MEM_delete(mesh->runtime->edit_data);
+  mesh->runtime->edit_data = nullptr;
   BKE_mesh_runtime_clear_geometry(mesh);
 }
 

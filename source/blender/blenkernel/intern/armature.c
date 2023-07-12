@@ -989,9 +989,10 @@ void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
 
     /* Transform previous point inside this bone space. */
     if (bone->bbone_prev_type == BBONE_HANDLE_RELATIVE) {
-      /* Use delta movement (from restpose), and apply this relative to the current bone's head. */
+      /* Use delta movement (from rest-pose),
+       * and apply this relative to the current bone's head. */
       if (rest) {
-        /* In restpose, arm_head == pose_head */
+        /* In rest-pose, arm_head == pose_head */
         zero_v3(param->prev_h);
         done = true;
       }
@@ -1043,9 +1044,10 @@ void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
 
     /* Transform next point inside this bone space. */
     if (bone->bbone_next_type == BBONE_HANDLE_RELATIVE) {
-      /* Use delta movement (from restpose), and apply this relative to the current bone's tail. */
+      /* Use delta movement (from rest-pose),
+       * and apply this relative to the current bone's tail. */
       if (rest) {
-        /* In restpose, arm_head == pose_head */
+        /* In rest-pose, arm_head == pose_head */
         copy_v3_fl3(param->next_h, 0.0f, param->length, 0.0);
         done = true;
       }
@@ -1091,12 +1093,12 @@ void BKE_pchan_bbone_spline_params_get(bPoseChannel *pchan,
    * - These properties allow users to hand-animate the
    *   bone curve/shape, without having to resort to using
    *   extra bones
-   * - The "bone" level offsets are for defining the restpose
+   * - The "bone" level offsets are for defining the rest-pose
    *   shape of the bone (e.g. for curved eyebrows for example).
    *   -> In the viewport, it's needed to define what the rest pose
    *      looks like
    *   -> For "rest == 0", we also still need to have it present
-   *      so that we can "cancel out" this restpose when it comes
+   *      so that we can "cancel out" this rest-pose when it comes
    *      time to deform some geometry, it won't cause double transforms.
    * - The "pchan" level offsets are the ones that animators actually
    *   end up animating

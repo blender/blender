@@ -1574,46 +1574,7 @@ static void deformVerts(ModifierData *md,
                         float (*vertexCos)[3],
                         int verts_num)
 {
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (smd->defgrp_name[0] != '\0') {
-    /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, nullptr, mesh, nullptr);
-  }
-
-  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
-}
-
-static void deformVertsEM(ModifierData *md,
-                          const ModifierEvalContext *ctx,
-                          BMEditMesh *em,
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int verts_num)
-{
-  SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-  Mesh *mesh_src = nullptr;
-
-  if (smd->defgrp_name[0] != '\0') {
-    /* Only need to use mesh_src when a vgroup is used. */
-    mesh_src = MOD_deform_mesh_eval_get(ctx->object, em, mesh, nullptr);
-  }
-
-  /* TODO(@ideasman42): use edit-mode data only (remove this line). */
-  if (mesh_src != nullptr) {
-    BKE_mesh_wrapper_ensure_mdata(mesh_src);
-  }
-
-  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh_src);
-
-  if (!ELEM(mesh_src, nullptr, mesh)) {
-    BKE_id_free(nullptr, mesh_src);
-  }
+  surfacedeformModifier_do(md, ctx, vertexCos, verts_num, ctx->object, mesh);
 }
 
 static bool isDisabled(const Scene * /*scene*/, ModifierData *md, bool /*useRenderParams*/)
@@ -1759,7 +1720,7 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
 
     /*deformVerts*/ deformVerts,
     /*deformMatrices*/ nullptr,
-    /*deformVertsEM*/ deformVertsEM,
+    /*deformVertsEM*/ nullptr,
     /*deformMatricesEM*/ nullptr,
     /*modifyMesh*/ nullptr,
     /*modifyGeometrySet*/ nullptr,

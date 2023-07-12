@@ -658,7 +658,7 @@ static void rna_def_strip_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_struct_sdna(srna, "NlaStrip");
   RNA_def_struct_ui_text(srna, "NLA-Strip F-Curves", "Collection of NLA strip F-Curves");
 
-  /* Strip.fcurves.find(...) */
+  /* `Strip.fcurves.find(...)`. */
   func = RNA_def_function(srna, "find", "rna_NlaStrip_fcurve_find");
   RNA_def_function_ui_description(
       func,
@@ -679,7 +679,7 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   StructRNA *srna;
   PropertyRNA *prop;
 
-  /* enum defs */
+  /* Enum definitions. */
   static const EnumPropertyItem prop_type_items[] = {
       {NLASTRIP_TYPE_CLIP, "CLIP", 0, "Action Clip", "NLA Strip references some Action"},
       {NLASTRIP_TYPE_TRANSITION,

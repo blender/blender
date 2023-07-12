@@ -1099,7 +1099,7 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
     vzd->v2d->flag &= ~V2D_IS_NAVIGATING;
 
     if (vzd->timer) {
-      WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
+      WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
     }
 
     MEM_freeN(op->customdata);
@@ -1224,7 +1224,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 
   if (U.viewzoom == USER_ZOOM_CONTINUE) {
     /* needs a timer to continue redrawing */
-    vzd->timer = WM_event_add_timer(CTX_wm_manager(C), window, TIMER, 0.01f);
+    vzd->timer = WM_event_timer_add(CTX_wm_manager(C), window, TIMER, 0.01f);
     vzd->timer_lastdraw = PIL_check_seconds_timer();
   }
 
@@ -1662,10 +1662,10 @@ void UI_view2d_smooth_view(const bContext *C,
       }
       *v2d->sms = sms;
       if (v2d->smooth_timer) {
-        WM_event_remove_timer(wm, win, v2d->smooth_timer);
+        WM_event_timer_remove(wm, win, v2d->smooth_timer);
       }
       /* TIMER1 is hard-coded in key-map. */
-      v2d->smooth_timer = WM_event_add_timer(wm, win, TIMER1, 1.0 / 100.0);
+      v2d->smooth_timer = WM_event_timer_add(wm, win, TIMER1, 1.0 / 100.0);
 
       ok = true;
     }
@@ -1709,7 +1709,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator * /*op*/, const wmEv
     MEM_freeN(v2d->sms);
     v2d->sms = nullptr;
 
-    WM_event_remove_timer(CTX_wm_manager(C), win, v2d->smooth_timer);
+    WM_event_timer_remove(CTX_wm_manager(C), win, v2d->smooth_timer);
     v2d->smooth_timer = nullptr;
 
     /* Event handling won't know if a UI item has been moved under the pointer. */

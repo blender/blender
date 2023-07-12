@@ -4622,9 +4622,6 @@ static RNAProcessItem PROCESS_ITEMS[] = {
     {"rna_screen.cc", NULL, RNA_def_screen},
     {"rna_sculpt_paint.cc", NULL, RNA_def_sculpt_paint},
     {"rna_sequencer.cc", "rna_sequencer_api.cc", RNA_def_sequencer},
-#ifdef WITH_SIMULATION_DATABLOCK
-    {"rna_simulation.cc", NULL, RNA_def_simulation},
-#endif
     {"rna_space.cc", "rna_space_api.cc", RNA_def_space},
     {"rna_speaker.cc", NULL, RNA_def_speaker},
     {"rna_test.c", NULL, RNA_def_test},
@@ -4704,6 +4701,12 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
    * ignore unused-parameter warnings which are hard to prevent */
 #if defined(__GNUC__) || defined(__clang__)
   fprintf(f, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"\n\n");
+#endif
+
+#if defined(__clang__)
+  /* TODO(@ideasman42): ideally this workaround would not be needed,
+   * could use some further investigation as these are intended to be declared.  */
+  fprintf(f, "#pragma GCC diagnostic ignored \"-Wmissing-variable-declarations\"\n\n");
 #endif
 
   fprintf(f, "/* Auto-generated Functions. */\n\n");

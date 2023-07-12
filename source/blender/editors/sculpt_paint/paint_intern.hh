@@ -136,8 +136,6 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot);
 void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot);
 void PAINT_OT_vertex_paint(wmOperatorType *ot);
 
-unsigned int vpaint_get_current_color(Scene *scene, VPaint *vp, bool secondary);
-
 /**
  * \note weight-paint has an equivalent function: #ED_wpaint_blend_tool
  */

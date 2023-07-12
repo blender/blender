@@ -25,7 +25,7 @@
 #include "BKE_node_tree_anonymous_attributes.hh"
 #include "BKE_node_tree_update.h"
 
-#include "MOD_nodes.h"
+#include "MOD_nodes.hh"
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
@@ -581,6 +581,15 @@ class NodeTreeMainUpdater {
     /* Check paired simulation zone nodes. */
     if (node.type == GEO_NODE_SIMULATION_INPUT) {
       const NodeGeometrySimulationInput *data = static_cast<const NodeGeometrySimulationInput *>(
+          node.storage);
+      if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
+        if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {
+          return true;
+        }
+      }
+    }
+    if (node.type == GEO_NODE_REPEAT_INPUT) {
+      const NodeGeometryRepeatInput *data = static_cast<const NodeGeometryRepeatInput *>(
           node.storage);
       if (const bNode *output_node = ntree.node_by_id(data->output_node_id)) {
         if (output_node->runtime->changed_flag & NTREE_CHANGED_NODE_PROPERTY) {

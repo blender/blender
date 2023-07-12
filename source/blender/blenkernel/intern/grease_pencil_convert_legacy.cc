@@ -40,7 +40,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
   }
 
   /* Resize the CurvesGeometry. */
-  CurvesGeometry &curves = r_drawing.geometry.wrap();
+  Drawing &drawing = r_drawing.wrap();
+  CurvesGeometry &curves = drawing.strokes_for_write();
   curves.resize(num_points, num_strokes);
   if (num_strokes > 0) {
     curves.offsets_for_write().copy_from(offsets);
@@ -53,10 +54,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
   /* Point Attributes. */
   MutableSpan<float3> positions = curves.positions_for_write();
-  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_span<float>(
-      "radius", ATTR_DOMAIN_POINT);
-  SpanAttributeWriter<float> opacities = attributes.lookup_or_add_for_write_span<float>(
-      "opacity", ATTR_DOMAIN_POINT);
+  MutableSpan<float> radii = drawing.radii_for_write();
+  MutableSpan<float> opacities = drawing.opacities_for_write();
   SpanAttributeWriter<float> delta_times = attributes.lookup_or_add_for_write_span<float>(
       "delta_time", ATTR_DOMAIN_POINT);
   SpanAttributeWriter<float> rotations = attributes.lookup_or_add_for_write_span<float>(
@@ -118,8 +117,8 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
 
     Span<bGPDspoint> stroke_points{gps->points, gps->totpoints};
     MutableSpan<float3> stroke_positions = positions.slice(stroke_points_range);
-    MutableSpan<float> stroke_radii = radii.span.slice(stroke_points_range);
-    MutableSpan<float> stroke_opacities = opacities.span.slice(stroke_points_range);
+    MutableSpan<float> stroke_radii = radii.slice(stroke_points_range);
+    MutableSpan<float> stroke_opacities = opacities.slice(stroke_points_range);
     MutableSpan<float> stroke_deltatimes = delta_times.span.slice(stroke_points_range);
     MutableSpan<float> stroke_rotations = rotations.span.slice(stroke_points_range);
     MutableSpan<ColorGeometry4f> stroke_vertex_colors = vertex_colors.span.slice(
@@ -153,8 +152,6 @@ void legacy_gpencil_frame_to_grease_pencil_drawing(const bGPDframe &gpf,
     }
   }
 
-  radii.finish();
-  opacities.finish();
   delta_times.finish();
   rotations.finish();
   vertex_colors.finish();
@@ -226,11 +223,11 @@ void legacy_gpencil_to_grease_pencil(Main &bmain, GreasePencil &grease_pencil, b
       /* Convert the frame to a drawing. */
       legacy_gpencil_frame_to_grease_pencil_drawing(*gpf, drawing);
 
-      GreasePencilFrame new_frame;
-      new_frame.drawing_index = i;
-      new_frame.type = gpf->key_type;
-      SET_FLAG_FROM_TEST(new_frame.flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
-      new_layer.insert_frame(gpf->framenum, std::move(new_frame));
+      /* Add the frame to the layer. */
+      if (GreasePencilFrame *new_frame = new_layer.add_frame(gpf->framenum, i)) {
+        new_frame->type = gpf->key_type;
+        SET_FLAG_FROM_TEST(new_frame->flag, (gpf->flag & GP_FRAME_SELECT), GP_FRAME_SELECTED);
+      }
       i++;
     }
 

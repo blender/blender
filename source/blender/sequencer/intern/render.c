@@ -280,7 +280,8 @@ int seq_get_shown_sequences(const Scene *scene,
       scene, channels, seqbase, timeline_frame, chanshown);
   const int strip_count = BLI_gset_len(collection->set);
 
-  if (strip_count > MAXSEQ) {
+  if (UNLIKELY(strip_count > MAXSEQ)) {
+    SEQ_collection_free(collection);
     BLI_assert_msg(0, "Too many strips, this shouldn't happen");
     return 0;
   }
@@ -1576,23 +1577,18 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context,
 
       RE_AcquireResultImage(re, &rres, view_id);
 
-      if (rres.combined_buffer.data) {
+      if (rres.ibuf && rres.ibuf->float_buffer.data) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, 0);
-        IMB_assign_shared_float_buffer(
-            ibufs_arr[view_id], rres.combined_buffer.data, rres.combined_buffer.sharing_info);
-
-        if (rres.z_buffer.data) {
-          IMB_assign_shared_float_z_buffer(
-              ibufs_arr[view_id], rres.z_buffer.data, rres.z_buffer.sharing_info);
-        }
+        IMB_assign_float_buffer(
+            ibufs_arr[view_id], rres.ibuf->float_buffer.data, IB_DO_NOT_TAKE_OWNERSHIP);
 
         /* float buffers in the sequencer are not linear */
         seq_imbuf_to_sequencer_space(context->scene, ibufs_arr[view_id], false);
       }
-      else if (rres.byte_buffer.data) {
+      else if (rres.ibuf->byte_buffer.data) {
         ibufs_arr[view_id] = IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect);
         memcpy(ibufs_arr[view_id]->byte_buffer.data,
-               rres.byte_buffer.data,
+               rres.ibuf->byte_buffer.data,
                4 * rres.rectx * rres.recty);
       }
 
@@ -1883,7 +1879,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
   ImBuf *out = NULL;
 
   count = seq_get_shown_sequences(
-      context->scene, channels, seqbasep, timeline_frame, chanshown, (Sequence **)&seq_arr);
+      context->scene, channels, seqbasep, timeline_frame, chanshown, seq_arr);
 
   if (count == 0) {
     return NULL;

@@ -247,7 +247,10 @@ void MTLStorageBuf::clear(uint32_t clear_value)
   }
 }
 
-void MTLStorageBuf::copy_sub(VertBuf *src_, uint dst_offset, uint src_offset, uint copy_size)
+void MTLStorageBuf::copy_sub(VertBuf * /*src_*/,
+                             uint /*dst_offset*/,
+                             uint /*src_offset*/,
+                             uint /*copy_size*/)
 {
   /* TODO(Metal): Support Copy sub operation. */
   MTL_LOG_WARNING("MTLStorageBuf::copy_sub not yet supported.");

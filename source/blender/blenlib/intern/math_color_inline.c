@@ -96,7 +96,7 @@ MALWAYS_INLINE __m128 _bli_math_rsqrt(__m128 in)
   return r;
 }
 
-/* Calculate powf(x, 1.0f / 2.4) */
+/* Calculate `powf(x, 1.0f / 2.4)`. */
 MALWAYS_INLINE __m128 _bli_math_fastpow512(const __m128 arg)
 {
   /* 5/12 is too small, so compute the 4th root of 20/12 instead.

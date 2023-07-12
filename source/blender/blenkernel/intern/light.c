@@ -47,9 +47,6 @@ static void light_init_data(ID *id)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
 
   MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
-
-  la->curfalloff = BKE_curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-  BKE_curvemapping_init(la->curfalloff);
 }
 
 /**
@@ -70,8 +67,6 @@ static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
   const bool is_localized = (flag & LIB_ID_CREATE_LOCAL) != 0;
   /* We always need allocation of our private ID data. */
   const int flag_private_id_data = flag & ~LIB_ID_CREATE_NO_ALLOCATE;
-
-  la_dst->curfalloff = BKE_curvemapping_copy(la_src->curfalloff);
 
   if (la_src->nodetree) {
     if (is_localized) {
@@ -95,8 +90,6 @@ static void light_copy_data(Main *bmain, ID *id_dst, const ID *id_src, const int
 static void light_free_data(ID *id)
 {
   Light *la = (Light *)id;
-
-  BKE_curvemapping_free(la->curfalloff);
 
   /* is no lib link block, but light extension */
   if (la->nodetree) {
@@ -124,16 +117,18 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 {
   Light *la = (Light *)id;
 
+  /* Forward compatibility for energy. */
+  la->energy_deprecated = la->energy;
+  if (la->type == LA_AREA) {
+    la->energy_deprecated /= M_PI_4;
+  }
+
   /* write LibData */
   BLO_write_id_struct(writer, Light, id_address, &la->id);
   BKE_id_blend_write(writer, &la->id);
 
   if (la->adt) {
     BKE_animdata_blend_write(writer, la->adt);
-  }
-
-  if (la->curfalloff) {
-    BKE_curvemapping_blend_write(writer, la->curfalloff);
   }
 
   /* Node-tree is integral part of lights, no libdata. */
@@ -155,11 +150,6 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
   Light *la = (Light *)id;
   BLO_read_data_address(reader, &la->adt);
   BKE_animdata_blend_read_data(reader, la->adt);
-
-  BLO_read_data_address(reader, &la->curfalloff);
-  if (la->curfalloff) {
-    BKE_curvemapping_blend_read(reader, la->curfalloff);
-  }
 
   BLO_read_data_address(reader, &la->preview);
   BKE_previewimg_blend_read(reader, la->preview);

@@ -1742,7 +1742,7 @@ static void project_line_gesture_apply_task_cb(void *__restrict userdata,
       continue;
     }
     add_v3_v3(vd.co, disp);
-    if (vd.vert_positions) {
+    if (vd.is_mesh) {
       BKE_pbvh_vert_tag_update_normal(sgcontext->ss->pbvh, vd.vertex);
     }
     any_updated = true;

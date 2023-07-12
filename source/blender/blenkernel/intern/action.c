@@ -108,7 +108,7 @@ static void action_copy_data(Main *UNUSED(bmain), ID *id_dst, const ID *id_src, 
   for (fcurve_src = action_src->curves.first; fcurve_src; fcurve_src = fcurve_src->next) {
     /* Duplicate F-Curve. */
 
-    /* XXX TODO: pass subdata flag?
+    /* XXX TODO: pass sub-data flag?
      * But surprisingly does not seem to be doing any ID reference-counting. */
     fcurve_dst = BKE_fcurve_copy(fcurve_src);
 
@@ -1334,7 +1334,7 @@ void BKE_pose_remove_group_index(bPose *pose, const int index)
 
 /* ************** F-Curve Utilities for Actions ****************** */
 
-bool action_has_motion(const bAction *act)
+bool BKE_action_has_motion(const bAction *act)
 {
   FCurve *fcu;
 
@@ -1392,7 +1392,10 @@ bool BKE_action_has_single_frame(const bAction *act)
   return found_key;
 }
 
-void calc_action_range(const bAction *act, float *start, float *end, short incl_modifiers)
+void BKE_action_frame_range_calc(const bAction *act,
+                                 bool include_modifiers,
+                                 float *r_start,
+                                 float *r_end)
 {
   FCurve *fcu;
   float min = 999999999.0f, max = -999999999.0f;
@@ -1419,10 +1422,10 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
         foundvert = 1;
       }
 
-      /* if incl_modifiers is enabled, need to consider modifiers too
+      /* if include_modifiers is enabled, need to consider modifiers too
        * - only really care about the last modifier
        */
-      if ((incl_modifiers) && (fcu->modifiers.last)) {
+      if ((include_modifiers) && (fcu->modifiers.last)) {
         FModifier *fcm = fcu->modifiers.last;
 
         /* only use the maximum sensible limits of the modifiers if they are more extreme */
@@ -1470,23 +1473,23 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
       max += 1.0f;
     }
 
-    *start = min;
-    *end = max;
+    *r_start = max_ff(min, MINAFRAMEF);
+    *r_end = min_ff(max, MAXFRAMEF);
   }
   else {
-    *start = 0.0f;
-    *end = 1.0f;
+    *r_start = 0.0f;
+    *r_end = 1.0f;
   }
 }
 
-void BKE_action_get_frame_range(const bAction *act, float *r_start, float *r_end)
+void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end)
 {
   if (act && (act->flag & ACT_FRAME_RANGE)) {
     *r_start = act->frame_start;
     *r_end = act->frame_end;
   }
   else {
-    calc_action_range(act, r_start, r_end, false);
+    BKE_action_frame_range_calc(act, false, r_start, r_end);
   }
 
   /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */
@@ -1500,7 +1503,10 @@ bool BKE_action_is_cyclic(const bAction *act)
   return act && (act->flag & ACT_FRAME_RANGE) && (act->flag & ACT_CYCLIC);
 }
 
-short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, ListBase *curves)
+eAction_TransformFlags BKE_action_get_item_transform_flags(bAction *act,
+                                                           Object *ob,
+                                                           bPoseChannel *pchan,
+                                                           ListBase *curves)
 {
   PointerRNA ptr;
   FCurve *fcu;
@@ -1833,12 +1839,9 @@ void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
 
 void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
-  /* Write each channel */
-  if (pose == NULL) {
-    return;
-  }
-
-  BLI_assert(arm != NULL);
+#ifndef __GNUC__
+  BLI_assert(pose != NULL && arm != NULL);
+#endif
 
   /* Write channels */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {

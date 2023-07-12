@@ -2,12 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BKE_collection.h"
 #include "BKE_curves.hh"
 #include "BKE_simulation_state.hh"
 #include "BKE_simulation_state_serialize.hh"
 
-#include "DNA_curves_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_pointcloud_types.h"
 
@@ -16,6 +16,8 @@
 #include "BLI_hash_md5.h"
 #include "BLI_path_util.h"
 #include "BLI_string_utils.h"
+
+#include "MOD_nodes.hh"
 
 namespace blender::bke::sim {
 
@@ -92,7 +94,7 @@ void ModifierSimulationCache::try_discover_bake(const StringRefNull absolute_bak
     }
 
     bdata_sharing_ = std::make_unique<BDataSharing>();
-    cache_state_ = CacheState::Baked;
+    this->cache_state = CacheState::Baked;
   }
 }
 
@@ -185,6 +187,15 @@ StatesAroundFrame ModifierSimulationCache::get_states_around_frame(const SubFram
   return states_around_frame;
 }
 
+SimulationZoneState *ModifierSimulationState::get_zone_state(const SimulationZoneID &zone_id)
+{
+  std::lock_guard lock{mutex_};
+  if (auto *ptr = zone_states_.lookup_ptr(zone_id)) {
+    return ptr->get();
+  }
+  return nullptr;
+}
+
 const SimulationZoneState *ModifierSimulationState::get_zone_state(
     const SimulationZoneID &zone_id) const
 {
@@ -232,21 +243,28 @@ void ModifierSimulationState::ensure_bake_loaded(const bNodeTree &ntree) const
   bake_loaded_ = true;
 }
 
-void ModifierSimulationCache::clear_prev_states()
-{
-  std::lock_guard lock(states_at_frames_mutex_);
-  std::unique_ptr<ModifierSimulationStateAtFrame> temp = std::move(states_at_frames_.last());
-  states_at_frames_.clear_and_shrink();
-  bdata_sharing_.reset();
-  states_at_frames_.append(std::move(temp));
-}
-
 void ModifierSimulationCache::reset()
 {
   std::lock_guard lock(states_at_frames_mutex_);
   states_at_frames_.clear();
   bdata_sharing_.reset();
-  cache_state_ = CacheState::Valid;
+  this->realtime_cache.current_state.reset();
+  this->realtime_cache.prev_state.reset();
+  this->cache_state = CacheState::Valid;
+}
+
+void scene_simulation_states_reset(Scene &scene)
+{
+  FOREACH_SCENE_OBJECT_BEGIN (&scene, ob) {
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type != eModifierType_Nodes) {
+        continue;
+      }
+      NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
+      nmd->runtime->simulation_cache.reset();
+    }
+  }
+  FOREACH_SCENE_OBJECT_END;
 }
 
 }  // namespace blender::bke::sim

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Tamar Mebonia <tammebonia@gmail.com>, 2023\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1221,6 +1221,10 @@ msgid "Smaller integer with a range from -128 to 127"
 msgstr "შედარებრით მცირე მთელი რიცხვი დიაპაზონით -128-დან 127-ის ჩათვლით"
 
 
+msgid "Quaternion"
+msgstr "კვატერნიონი"
+
+
 msgid "Domain"
 msgstr "სამოქმედო არეალი"
 
@@ -1933,6 +1937,10 @@ msgid "Vector font data-blocks"
 msgstr "ვექტორული შრიფტების მონაცემთა ბლოკები"
 
 
+msgid "Grease Pencil"
+msgstr "ცვილის ფანქარი"
+
+
 msgid "Hair Curves"
 msgstr "თმის წირები"
 
@@ -2115,6 +2123,10 @@ msgstr "ფორმების სოლები"
 
 msgid "Shape Key data-blocks"
 msgstr "ფორმების სოლების მონაცემთა ბლოკები"
+
+
+msgid "Simulations"
+msgstr "სიმულაციები"
 
 
 msgid "Sounds"
@@ -3295,16 +3307,8 @@ msgid "Bone Matrix"
 msgstr "ძვლის მატრიცა"
 
 
-msgid "3x3 bone matrix"
-msgstr "ძვლის 3x3 მატრიცა"
-
-
 msgid "Bone Armature-Relative Matrix"
 msgstr "ძვლის არმატურასთან შეფარდებული მატრიცა"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "ძვლის 4x4 მატრიცა არმატურასთან მიმართებაში"
 
 
 msgid "Parent"
@@ -4500,10 +4504,6 @@ msgid "Path of an object inside of an Alembic archive"
 msgstr "Alembic არქივში მყოფი ობიექტის მისამართი"
 
 
-msgid "Path"
-msgstr "ბილიკი"
-
-
 msgid "Object path"
 msgstr "ობიექტის მისამართი"
 
@@ -5501,6 +5501,14 @@ msgstr "კოლექციის შვილები"
 
 msgid "Collection of child collections"
 msgstr "შვილი კოლექციების კოლექცია"
+
+
+msgid "Include"
+msgstr "ჩათვლა"
+
+
+msgid "Exclude"
+msgstr "გამორიცხვა"
 
 
 msgid "Collection Objects"
@@ -8208,10 +8216,6 @@ msgid "Euler using the rotation order of the target"
 msgstr "ეილერი, რომელიც იყენებს სამიზნის ბრუნვების თანმიმდევრობას"
 
 
-msgid "Quaternion"
-msgstr "კვატერნიონი"
-
-
 msgid "Quaternion rotation"
 msgstr "კვატერნიონის ბრუნვა"
 
@@ -10072,26 +10076,6 @@ msgid "Multiplier for wave influence of this brush"
 msgstr "ამ ფუნჯის ტალღის ზეგავლენის მამრავლი"
 
 
-msgid "Wave Type"
-msgstr "ტალღის ტიპი"
-
-
-msgid "Depth Change"
-msgstr "სიღრმის ცვლილება"
-
-
-msgid "Obstacle"
-msgstr "დაბრკოლება"
-
-
-msgid "Force"
-msgstr "ძალა"
-
-
-msgid "Reflect Only"
-msgstr "მხოლოდ არეკლვა"
-
-
 msgid "Canvas Settings"
 msgstr "ტილოს პარამეტრები"
 
@@ -10360,10 +10344,6 @@ msgid "Anti-Aliasing"
 msgstr "ანტი-ალიასინგი"
 
 
-msgid "Use 5x multisampling to smooth paint edges"
-msgstr "გამოიყენე 5-ჯერადი მულტისემპლინგი საღებავის ნაპირების დასარბილებლად"
-
-
 msgid "Enable to make surface changes disappear over time"
 msgstr "ჩართე, რათა ზედაპირის ცვლილებები დროთა განმავლობაში გააქრო"
 
@@ -10614,6 +10594,10 @@ msgstr "წინაღობა"
 
 msgid "Drag effector weight"
 msgstr "წინაღობის ეფექტორის წონა"
+
+
+msgid "Force"
+msgstr "ძალა"
 
 
 msgid "Force effector weight"
@@ -11782,50 +11766,6 @@ msgid "Lower bound of envelope at this control-point"
 msgstr "გარსის ქვედა ზღვარი ამ საკონტროლო წერტილთან"
 
 
-msgid "Face Map"
-msgstr "წახნაგების რუკა"
-
-
-msgid "Group of faces, each face can only be part of one map"
-msgstr "წახნაგების ჯგუფი, თითოეული წახნაგი მხოლოდ ერთი რუკის ნაწილი შეიძლება, იყოს"
-
-
-msgid "Index number of the face map"
-msgstr "წახნაგების რუკის ინდექს რიცხვი"
-
-
-msgid "Face map name"
-msgstr "წახნაგების რუკის სახელი"
-
-
-msgid "Face map selection state (for tools to use)"
-msgstr "წახნაგების რუკის მონიშნულობა (გამოსაყენებელი ხელსაწყოებისთვის)"
-
-
-msgid "Face Maps"
-msgstr "წახნაგების რუკები"
-
-
-msgid "Collection of face maps"
-msgstr "წახნაგების რუკების კოლექცია"
-
-
-msgid "Active Face Map"
-msgstr "წახნაგების აქტიური რუკა"
-
-
-msgid "Face maps of the object"
-msgstr "ობიექტის წახნაგების რუკები"
-
-
-msgid "Active Face Map Index"
-msgstr "წახნაგების აქტიური რუკის ინდექსი"
-
-
-msgid "Active index in face map array"
-msgstr "აქტიური ინდექსი წახნაგების რუკათა მასივში"
-
-
 msgid "Field Settings"
 msgstr "ველის პარამეტრები"
 
@@ -11922,28 +11862,8 @@ msgid "Adjust the offset to the beginning/end"
 msgstr "გაუსწორე აცდენა დასაწყისს/დასასრულს"
 
 
-msgid "Kink"
-msgstr "დახვევა"
-
-
 msgid "Type of periodic offset on the curve"
 msgstr "პერიოდული აცდენის ტიპი მრუდზე"
-
-
-msgid "Braid"
-msgstr "ნაწნავი"
-
-
-msgid "Curl"
-msgstr "კულულა"
-
-
-msgid "Radial"
-msgstr "რადიალური"
-
-
-msgid "Wave"
-msgstr "ტალღოვანი"
 
 
 msgid "The distance from which particles are affected fully"
@@ -12084,6 +12004,10 @@ msgstr "ტექსტურის რეჟიმი"
 
 msgid "How the texture effect is calculated (RGB and Curl need a RGB texture, else Gradient will be used instead)"
 msgstr "როგორ გამოითვლება ტექსტურის ეფექტი (RGB-სა და კულულას სჭირდება RGB ტექსტურა, წინააღმდეგ შემთხვევაში მის ნაცვლად გამოიყენება გრადიენტი)"
+
+
+msgid "Curl"
+msgstr "კულულა"
 
 
 msgid "Gradient"
@@ -12298,10 +12222,6 @@ msgid "Show Font data-blocks"
 msgstr "აჩვენე შრიფტის მონაცემთა ბლოკები"
 
 
-msgid "Grease Pencil"
-msgstr "ცვილის ფანქარი"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "აჩვენე ცვილის ფანქრის მონაცემთა ბლოკები"
 
@@ -12368,10 +12288,6 @@ msgstr "აჩვენე/დამალე წერტილოვანი 
 
 msgid "Show Scene data-blocks"
 msgstr "აჩვენე სცენის მონაცემთა ბლოკები"
-
-
-msgid "Simulations"
-msgstr "სიმულაციები"
 
 
 msgid "Show Simulation data-blocks"
@@ -12541,10 +12457,6 @@ msgstr "აჩვენე ობიექტები და კოლექც
 
 msgid "Show scenes"
 msgstr "აჩვენე სცენები"
-
-
-msgid "Show materials, nodetrees, textures and Freestyle's linestyles"
-msgstr "აჩვენე მასალები, კვანძური ხეები, ტექსტურები და თავისუფალი სტილის ხაზსტილები"
 
 
 msgid "Directory"
@@ -13293,6 +13205,10 @@ msgstr "დენადი ნივთიერება"
 
 msgid "Highlight only the cells of type Fluid"
 msgstr "გამოყავი მხოლოდ დენადი ნივთიერების ტიპის უჯრედები"
+
+
+msgid "Obstacle"
+msgstr "დაბრკოლება"
 
 
 msgid "Highlight only the cells of type Obstacle"
@@ -15539,6 +15455,10 @@ msgid "Use single point to create rings"
 msgstr "გამოიყენე ერთი წერტილი რგოლების შესაქმნელად"
 
 
+msgid "Radial"
+msgstr "რადიალური"
+
+
 msgid "Use single point as direction"
 msgstr "გამოიყენე ერთი წერტილი მიმართულებად"
 
@@ -17159,8 +17079,8 @@ msgid "Step"
 msgstr "საფეხური"
 
 
-msgid "Number of frames before recalculate random values again"
-msgstr "კადრების რაოდენობა შემთხვევითი მნიშვნელობების ხელახალ გამოთვლამდე"
+msgid "Number of frames between randomization steps"
+msgstr "კადრების რიცხვი გაშემთხვევითების საფეხურთა შორის"
 
 
 msgid "Use Curvature"
@@ -17793,10 +17713,6 @@ msgstr "გაშემთხვევითება მხოლოდ სა�
 
 msgid "Noise Seed"
 msgstr "ხმაურის პირველსაწყისი"
-
-
-msgid "Number of frames between randomization steps"
-msgstr "კადრების რიცხვი გაშემთხვევითების საფეხურთა შორის"
 
 
 msgid "Use a custom curve to define noise effect along the strokes"
@@ -18533,6 +18449,10 @@ msgstr "აქტიური შრის ნიღბის ინდექს
 
 msgid "Active index in layer mask array"
 msgstr "აქტიური ინდექსი შრის ნიღბის მასივში"
+
+
+msgid "Active Grease Pencil layer"
+msgstr "ცვილის ფანქრის აქტიური შრე"
 
 
 msgid "Editor header containing UI elements"
@@ -21068,10 +20988,6 @@ msgid "How to use this collection in line art"
 msgstr "როგორ იქნას ეს კოლექცია გამოყენებული მოხაზულობაში"
 
 
-msgid "Include"
-msgstr "ჩათვლა"
-
-
 msgid "Generate feature lines for this collection"
 msgstr "ნაკვთური ხაზების წარმოქმნა ამ კოლექციისთვის"
 
@@ -21082,10 +20998,6 @@ msgstr "მხოლოდ დახშობა"
 
 msgid "Only use the collection to produce occlusion"
 msgstr "გამოიყენე კოლექცია მხოლოდ დახშობის წარმოსაქმნელად"
-
-
-msgid "Exclude"
-msgstr "გამორიცხვა"
 
 
 msgid "Don't use this collection in line art"
@@ -21438,6 +21350,10 @@ msgstr "წაწვრილების განაწილება"
 
 msgid "Map effect of the taper object to the beveled part of the curve"
 msgstr "გადაანაწილე წაწვრილების ობიექტის ეფექტი წირის დაცერობებულ ნაწილზე"
+
+
+msgid "Path"
+msgstr "ბილიკი"
 
 
 msgid "Enable the curve to become a translation path"
@@ -22644,6 +22560,10 @@ msgid "Offset amount when drawing in surface mode"
 msgstr "აცდენის რაოდენობა ზედაპირის რეჟიმში ხატვის დროს"
 
 
+msgid "Grease Pencil data-block"
+msgstr "ცვილის ფანქრის მონაცემთა ბლოკი"
+
+
 msgid "Image data-block referencing an external or packed image"
 msgstr "გამოსახულების მონაცემთა ბლოკი, რომელიც მიუთითებს გარე, ან ჩალაგებულ გამოსახულებაზე"
 
@@ -23257,10 +23177,6 @@ msgid "Diffuse reflection multiplier"
 msgstr "დიფუზიური ანარეკლის მამრავლი"
 
 
-msgid "Falloff distance - the light is at half the original intensity at this point"
-msgstr "მილევის მანძილი - ამ ადგილთან სინათლე თავისი თავდაპირველი ინტენსივობის ნახევარზეა"
-
-
 msgid "Node tree for node based lights"
 msgstr "კვანძური ხე კვანძებზე დაფუძნებული სინათლეებისთვის"
 
@@ -23346,14 +23262,6 @@ msgid "Directional area Light"
 msgstr "მიმართული არეალური სინათლე"
 
 
-msgid "Constant Coefficient"
-msgstr "მუდმივი კოეფიციენტი"
-
-
-msgid "Constant distance attenuation coefficient"
-msgstr "მუდმივი მანძილისმიერი შესუსტების კოეფიციენტი"
-
-
 msgid "Contact Shadow Bias"
 msgstr "კონტაქტური ჩრდილების მიკერძოება"
 
@@ -23387,66 +23295,6 @@ msgid "Light energy emitted over the entire area of the light in all directions"
 msgstr "სინათლის მთელი არეალიდან ყველა მიმართულებით გამოცემული შუქის ენერგია"
 
 
-msgid "Custom light falloff curve"
-msgstr "სინათლის მილევის მორგებული წირი"
-
-
-msgid "Falloff Type"
-msgstr "მილევის ტიპი"
-
-
-msgid "Intensity Decay with distance"
-msgstr "ინტენსივობის დავარდნა დაშორებასთან ერთად"
-
-
-msgid "Inverse Linear"
-msgstr "ინვერსიული წრფივი"
-
-
-msgid "Inverse Square"
-msgstr "ინვერსიული კვადრატი"
-
-
-msgid "Inverse Coefficients"
-msgstr "ინვერსიული კოეფიციენტები"
-
-
-msgid "Lin/Quad Weighted"
-msgstr "წრფ./კვადრ. შერეული"
-
-
-msgid "Linear Attenuation"
-msgstr "წრფივი შესუსტება"
-
-
-msgid "Linear distance attenuation"
-msgstr "წრფივი მანძილისმიერი შესუსტები"
-
-
-msgid "Linear Coefficient"
-msgstr "წრფივი კოეფიციენტი"
-
-
-msgid "Linear distance attenuation coefficient"
-msgstr "წრფივი მანძილისმიერი შესუსტების კოეფიციენტი"
-
-
-msgid "Quadratic Attenuation"
-msgstr "კვადრატული შესუსტება"
-
-
-msgid "Quadratic distance attenuation"
-msgstr "კვადრატული მანძილისმიერი შესუსტება"
-
-
-msgid "Quadratic Coefficient"
-msgstr "კვადრატული კოეფიციენტი"
-
-
-msgid "Quadratic distance attenuation coefficient"
-msgstr "კვადრატული მანძილისმიერი შესუსტების კოეფიციენტი"
-
-
 msgid "Shadow Buffer Bias"
 msgstr "ჩრდილის ბუფერის მიკერძოება"
 
@@ -23461,22 +23309,6 @@ msgstr "ჩრდილის ბუფერის ჩამოჭრის დ
 
 msgid "Shadow map clip start, below which objects will not generate shadows"
 msgstr "ჩრდილის რუკის ჩამოჭრის დასაწყისი, რომლის ქვემოთაც ობიექტები ჩრდილს არ წარმოქმნიან"
-
-
-msgid "Samples"
-msgstr "სემპლები"
-
-
-msgid "Number of shadow buffer samples"
-msgstr "რდილის ბუფერის სემპლების რიცხვი"
-
-
-msgid "Shadow Buffer Size"
-msgstr "ჩრდილის ბუფერის ზომა"
-
-
-msgid "Resolution of the shadow buffer, higher values give crisper shadows but use more memory"
-msgstr "ჩრდილის ბუფერის გარჩევადობა, უფრო მაღალი მნიშვნელობები უფრო მკვეთრ ჩრდილებს იძლევა, მაგრამ მეტ მეხსიერებას იყენებს"
 
 
 msgid "Shadow Color"
@@ -24095,52 +23927,12 @@ msgid "Maximum angle between face normals that will be considered as smooth (unu
 msgstr "მაქსიმალური დახრილობის კუთხე წახნაგის ნორმალებს შორის, რომელიც გლუვად ჩაითვლება (გამოუყენებელია, თუკი მორგებული გახლეჩილი ნორმალების მონაცემები ხელმისაწვდომია)"
 
 
-msgid "Edge Creases"
-msgstr "წიბოს ნაკეცები"
-
-
-msgid "Sharpness of the edges for subdivision"
-msgstr "წიბოების წამახულობა დაყოფისთვის"
-
-
 msgid "Edges"
 msgstr "წიბოები"
 
 
 msgid "Edges of the mesh"
 msgstr "მეშის წიბოები"
-
-
-msgid "Has Edge Bevel Weight"
-msgstr "აქვს წიბოს დაცერობების წონა"
-
-
-msgid "True if the mesh has an edge bevel weight layer"
-msgstr "ჭეშმარიტია, თუ მეშს აქვს წიბოს დაცერობების წონის შრე"
-
-
-msgid "Has Vertex Bevel Weight"
-msgstr "აქვს წვეროს დაცერობების წონა"
-
-
-msgid "True if the mesh has an vertex bevel weight layer"
-msgstr "ჭეშმარიტია, თუ მეშს აქვს წვეროს დაცერობების წონის შრე"
-
-
-msgid "Has Edge Crease"
-msgstr "აქვს წიბოს ნაკეცი"
-
-
-msgid "True if the mesh has an edge crease layer"
-msgstr "ჭეშმარიტია, თუ მეშს აქვს წიბოს ნაკეცის შრე"
-
-
-msgid "Has Vertex Crease"
-msgstr "აქვს წვეროს ნაკეცი"
-
-
-msgid "True if the mesh has an vertex crease layer"
-msgstr "ჭეშმარიტია, თუ მეშს აქვს წვეროს ნაკეცის შრე"
 
 
 msgid "Has Custom Normals"
@@ -24165,18 +23957,6 @@ msgstr "მარყუჟები"
 
 msgid "Loops of the mesh (polygon corners)"
 msgstr "მეშის მარყუჟები (მრავალკუთხედის კუთხეები)"
-
-
-msgid "Float Property Layers"
-msgstr "ათწილადი თვისებების შრეები"
-
-
-msgid "Int Property Layers"
-msgstr "მთელრიცხვიანი თვისებების შრეები"
-
-
-msgid "String Property Layers"
-msgstr "სტრიქონული თვისებების შრეები"
 
 
 msgid "Polygon Normals"
@@ -24229,14 +24009,6 @@ msgstr "ვოქსელების ზომა"
 
 msgid "Size of the voxel in object space used for volume evaluation. Lower values preserve finer details"
 msgstr "მოცულობის შეფასებისთვის გამოყენებული ვოქსელის ზომა ობიექტის სივრცეში. უფრო მცირე მნიშვნელობები უფრო წვრილმან დეტალებს ინარჩუნებენ."
-
-
-msgid "Sculpt Vertex Colors"
-msgstr "წვეროთა ფერების ძერწვა"
-
-
-msgid "Sculpt vertex color layers. Deprecated, use color attributes instead"
-msgstr "წვეროთა ფერების ძერწვის შრე. მოძველებულია, ამის მაგივრად ფერის ატრიბუტები გამოიყენე"
 
 
 msgid "Skin Vertices"
@@ -24409,14 +24181,6 @@ msgstr "წვეროს ფერები"
 
 msgid "Legacy vertex color layers. Deprecated, use color attributes instead"
 msgstr "წვეროთა ფერების ძველებური შრეები. მოძველებულია, ამის ნაცვლად გამოიყენე ფერის ატრიბუტი"
-
-
-msgid "Vertex Creases"
-msgstr "წვეროთა ნაკეცები"
-
-
-msgid "Sharpness of the vertices"
-msgstr "წვეროთა წამახულობა"
 
 
 msgid "Vertex Normals"
@@ -24595,10 +24359,6 @@ msgid "Grease Pencil Data"
 msgstr "ცვილის ფანქრის მონაცემები"
 
 
-msgid "Grease Pencil data-block"
-msgstr "ცვილის ფანქრის მონაცემთა ბლოკი"
-
-
 msgid "Inputs"
 msgstr "შემავლები"
 
@@ -24673,54 +24433,6 @@ msgstr "ნატეხის ზომა"
 
 msgid "Max size of a tile (smaller values gives better distribution of multiple threads, but more overhead)"
 msgstr "ფილის მაქსიმალური ზომა (რაც უფრო მცირეა მნიშვნელობები, მით უკეთესია მრავალ ნაკადთა დისტრიბუცია, მაგრამ იმატებს ოვერჰედი)"
-
-
-msgid "32x32"
-msgstr "32x32"
-
-
-msgid "Chunksize of 32x32"
-msgstr "ნაჭრის ზომა 32x32"
-
-
-msgid "64x64"
-msgstr "64x64"
-
-
-msgid "Chunksize of 64x64"
-msgstr "ნაჭრის ზომა 64x64"
-
-
-msgid "128x128"
-msgstr "128x128"
-
-
-msgid "Chunksize of 128x128"
-msgstr "ნაჭრის ზომა 128x128"
-
-
-msgid "256x256"
-msgstr "256x256"
-
-
-msgid "Chunksize of 256x256"
-msgstr "ნაჭრის ზომა 256x256"
-
-
-msgid "512x512"
-msgstr "512x512"
-
-
-msgid "Chunksize of 512x512"
-msgstr "ნაჭრის ზომა 512x512"
-
-
-msgid "1024x1024"
-msgstr "1024x1024"
-
-
-msgid "Chunksize of 1024x1024"
-msgstr "ნაჭრის ზომა 1024x1024"
 
 
 msgid "Edit Quality"
@@ -25087,20 +24799,8 @@ msgid "Origin offset distance"
 msgstr "ამოსავალი წერტილის აცდენის მანძილი"
 
 
-msgid "Empty Image Side"
-msgstr "ცარიელი გამოსახულების მხარე"
-
-
 msgid "Show front/back side"
 msgstr "წინა/უკანა მხრის ჩვენება"
-
-
-msgid "Both"
-msgstr "ორივე"
-
-
-msgid "Maps of faces of the object"
-msgstr "ობიექტის წახნაგების რუკები"
 
 
 msgid "Settings for using the object as a field in physics simulation"
@@ -25671,10 +25371,6 @@ msgid "Shape Key Edit Mode"
 msgstr "ფორმის სოლის რედაქტირების რეჟიმი"
 
 
-msgid "Apply shape keys in edit mode (for meshes only)"
-msgstr "გამოიყენე ფორმის სოლები რედაქტირების რეჟიმში (მხოლოდ მეშებისთვის)"
-
-
 msgid "Vertex Groups"
 msgstr "წვეროთა ჯგუფები"
 
@@ -25823,14 +25519,6 @@ msgid "Amount of particles left untouched by child path length"
 msgstr "შვილი ბილიკების სიგრძის მიერ ხელშეუხებელი ნაწილაკების რაოდენობა"
 
 
-msgid "Children Per Parent"
-msgstr "შვილთა რიცხვი თითო მშობელზე"
-
-
-msgid "Number of children per parent"
-msgstr "შვილთა რიცხვი თითო მშობელზე"
-
-
 msgid "Parting Factor"
 msgstr "გაყოფის კოეფიციენტი"
 
@@ -25853,6 +25541,14 @@ msgstr "გაყრის მინიმუმი"
 
 msgid "Minimum root to tip angle (tip distance/root distance for long hair)"
 msgstr "მინიმალური კუთხე ძირიდან წვერამდე (წვერის მანძილი/ძირის მანძილი გრძელი თმისთვის)"
+
+
+msgid "Children Per Parent"
+msgstr "შვილთა რიცხვი თითო მშობელზე"
+
+
+msgid "Number of children per parent"
+msgstr "შვილთა რიცხვი თითო მშობელზე"
 
 
 msgid "Child Radius"
@@ -26165,10 +25861,6 @@ msgstr "სოლების საფეხური"
 
 msgid "Type of periodic offset on the path"
 msgstr "ბილიკზე პერიოდული აცდენის ტიპი"
-
-
-msgid "Spiral"
-msgstr "სპირალი"
 
 
 msgid "Amplitude Clump"
@@ -28377,8 +28069,8 @@ msgid "YCC"
 msgstr "YCC"
 
 
-msgid "Z Buffer"
-msgstr "Z ბუფერი"
+msgid "Multi-View"
+msgstr "მრაავლ-ხედი"
 
 
 msgid "Tile Number"
@@ -29373,17 +29065,9 @@ msgid "Media Play/Pause"
 msgstr "მედიის დაკვრა/პაუზა"
 
 
-msgid ">/||"
-msgstr ">/||"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Media Stop"
 msgstr "მედიის გაჩერება"
-
-
-msgid "Stop"
-msgstr "Stop"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -29391,17 +29075,9 @@ msgid "Media First"
 msgstr "მედია პირველი"
 
 
-msgid "|<<"
-msgstr "|<<"
-
-
 msgctxt "UI_Events_KeyMaps"
 msgid "Media Last"
 msgstr "მედია ბოლო"
-
-
-msgid ">>|"
-msgstr ">>|"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -31515,18 +31191,6 @@ msgid "Edge in a Mesh data-block"
 msgstr "წიბო მეშის მონაცემთა ბლოკში"
 
 
-msgid "Bevel Weight"
-msgstr "ცერობის წონა"
-
-
-msgid "Weight used by the Bevel modifier"
-msgstr "ცერობის მოდიკატორის მიერ გამოყენებული წონა"
-
-
-msgid "Weight used by the Subdivision Surface modifier for creasing"
-msgstr "დაყოფილი ზედაპირის მოდიფიკატორის მიერ ნაკეცებისთვის გამოყენებული წონა"
-
-
 msgid "Index of this edge"
 msgstr "ამ წიბოს ინდექსი"
 
@@ -31563,52 +31227,12 @@ msgid "Vertex indices"
 msgstr "წვეროთა ინდექსები"
 
 
-msgid "Float Property"
-msgstr "ათწილადიანი თვისება"
-
-
-msgid "Mesh Edge Crease Layer"
-msgstr "მეშის წიბოების ნაკეცის შრე"
-
-
-msgid "Per-edge crease"
-msgstr "თითო წიბოს ნაკეცი"
-
-
 msgid "Mesh Edges"
 msgstr "მეშის წიბოები"
 
 
 msgid "Collection of mesh edges"
 msgstr "მეშის წიბოების კოლექცია"
-
-
-msgid "Int Property"
-msgstr "მთელ რიცხვიანი თვისება"
-
-
-msgid "Mesh Face Map Layer"
-msgstr "მეშის წახნაგების რუკის შრე"
-
-
-msgid "Per-face map index"
-msgstr "თითო წახნაგის რუკის ინდექსი"
-
-
-msgid "Name of face map layer"
-msgstr "წახნაგების რუკის შრის სახელი"
-
-
-msgid "Mesh Face Maps"
-msgstr "მეშის წახნაგების რუკები"
-
-
-msgid "Collection of mesh face maps"
-msgstr "მეშის წახნაგების რუკების კოლექცია"
-
-
-msgid "Active Face Map Layer"
-msgstr "აქტიური წახნაგების რუკის შრე"
 
 
 msgid "Mesh Loop"
@@ -31649,6 +31273,10 @@ msgstr "გახლიჩე ნორმალები"
 
 msgid "Root"
 msgstr "ფესვი"
+
+
+msgid "Samples"
+msgstr "სემპლები"
 
 
 msgid "Intersect"
@@ -31721,6 +31349,10 @@ msgstr "ბადე"
 
 msgid "Warp"
 msgstr "დაბრიცე"
+
+
+msgid "Wave"
+msgstr "ტალღოვანი"
 
 
 msgid "Soft Body"
@@ -31957,6 +31589,10 @@ msgstr "გაშემთხვევითება"
 
 msgid "Deform Axis"
 msgstr "დეფორმირების ღერძი"
+
+
+msgid "Bevel Weight"
+msgstr "ცერობის წონა"
 
 
 msgid "Freestyle"
@@ -32344,6 +31980,10 @@ msgid "Keying"
 msgstr "ჩასოლვა"
 
 
+msgid "Anisotropic"
+msgstr "ანიზოტროპული"
+
+
 msgid "Combined"
 msgstr "შეთავსებული"
 
@@ -32547,6 +32187,10 @@ msgstr "მიმართულება, რომლიდანაც მზ
 
 msgid "Sun Disc"
 msgstr "მზის დისკო"
+
+
+msgid "Wave Type"
+msgstr "ტალღის ტიპი"
 
 
 msgid "Default Value"
@@ -34179,10 +33823,6 @@ msgid "Active Layer"
 msgstr "აქტიური შრე"
 
 
-msgid "Active Grease Pencil layer"
-msgstr "ცვილის ფანქრის აქტიური შრე"
-
-
 msgctxt "Operator"
 msgid "Add New Layer"
 msgstr "დაამატე ახალი შრე"
@@ -34390,6 +34030,10 @@ msgstr "უკან დაახევინე"
 
 msgid "Send to Back"
 msgstr "გაუშვი ბოლოში"
+
+
+msgid "Both"
+msgstr "ორივე"
 
 
 msgid "Select section and cut"
@@ -35716,10 +35360,6 @@ msgid "Curve from Mesh or Text objects"
 msgstr "მრუდში მეშიდან, ან ტექსტური ობიექტიდან"
 
 
-msgid "Grease Pencil from Curve or Mesh objects"
-msgstr "ცვილის ფანქარში მრუდიდან, ან მეშის ობიექტიდან"
-
-
 msgid "Add an object data instance"
 msgstr "დაამატე ობიექტის მონაცემთა ინსტანცია"
 
@@ -35827,15 +35467,6 @@ msgid "Add an empty object to the scene"
 msgstr "დაამატე სცენას ცარიელი ობიექტი"
 
 
-msgctxt "Operator"
-msgid "Add Grease Pencil"
-msgstr "დაამატე ცვილის ფანქარი"
-
-
-msgid "Add a Grease Pencil object to the scene"
-msgstr "დაამატე ცვილის ფანქრის ობიექტი სცენაში"
-
-
 msgid "Monkey"
 msgstr "მაიმუნი"
 
@@ -35878,6 +35509,15 @@ msgstr "ამ grease pencil ობიექტისთვის გამო�
 
 msgid "Object Data"
 msgstr "ობიექტის მონაცემები"
+
+
+msgctxt "Operator"
+msgid "Add Grease Pencil"
+msgstr "დაამატე ცვილის ფანქარი"
+
+
+msgid "Add a Grease Pencil object to the scene"
+msgstr "დაამატე ცვილის ფანქრის ობიექტი სცენაში"
 
 
 msgctxt "Operator"
@@ -37606,6 +37246,10 @@ msgid "Expand"
 msgstr "გაფართოება"
 
 
+msgid "Falloff Type"
+msgstr "მილევის ტიპი"
+
+
 msgid "Add face set within the box as you move the brush"
 msgstr "ფუნჯის მოძრაობით გამოსახულ მართკუთხედში დაამატე წახნაგების ჯგუფი"
 
@@ -37842,6 +37486,10 @@ msgid "Find Next"
 msgstr "იპოვე მომდევნო"
 
 
+msgid "Column"
+msgstr "სვეტი"
+
+
 msgctxt "Operator"
 msgid "New Text"
 msgstr "ახალი ტექსტი"
@@ -37963,10 +37611,6 @@ msgstr "შეასწორე UV-ები"
 
 msgid "Correct UV coordinates when transforming"
 msgstr "გარდაქმნისას შეასწორე UV კოორდინატები"
-
-
-msgid "Snap to increments of grid"
-msgstr "მიაკარი ცხრილის ნამატებს"
 
 
 msgid "Snap to vertices"
@@ -39744,6 +39388,10 @@ msgid "Histogram"
 msgstr "ჰისტოგრამა"
 
 
+msgid "Kink"
+msgstr "დახვევა"
+
+
 msgid "Type 1"
 msgstr "ტიპი 1"
 
@@ -41047,10 +40695,6 @@ msgid "Render Single Layer"
 msgstr "დაარენდერე ერთი შრე"
 
 
-msgid "Multi-View"
-msgstr "მრაავლ-ხედი"
-
-
 msgid "Mesh Source"
 msgstr "მეშის წყარო"
 
@@ -42016,6 +41660,10 @@ msgid "Snap to grid"
 msgstr "მიაკარი ცხრილს"
 
 
+msgid "Snap to increments of grid"
+msgstr "მიაკარი ცხრილის ნამატებს"
+
+
 msgid "Mesh Statistics Visualization"
 msgstr "მეშის სტატისტიკის ვიზუალიზაცია"
 
@@ -42627,14 +42275,6 @@ msgid "Screen"
 msgstr "ეკრანი"
 
 
-msgid "Use Ambient Occlusion"
-msgstr "გამოიყენე გარემოსმიერი დახშობა"
-
-
-msgid "Use Ambient Occlusion to add shadowing based on distance between objects"
-msgstr "გამოიყენე გარემოსმიერი დახშობა და მოჩრდილვა ობიექტებს შორის მანძილის მიხედვით"
-
-
 msgid "Search"
 msgstr "ძიება"
 
@@ -42824,6 +42464,11 @@ msgstr "შრიფტი"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "ცვილის ფანქარი"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "პოზირება"
 
@@ -42896,11 +42541,6 @@ msgstr "ტექსტი"
 msgctxt "WindowManager"
 msgid "Console"
 msgstr "კონსოლი"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "ცვილის ფანქარი"
 
 
 msgid "Noise Threshold"
@@ -44741,11 +44381,6 @@ msgstr "დააიმპორტირე OpenVDB..."
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "ცვილის ფანქარი"
-
-
-msgctxt "Operator"
 msgid "Speaker"
 msgstr "ხმის წყარო"
 
@@ -45147,11 +44782,6 @@ msgstr "მკვეთრი წიბოების მიხედვით"
 
 
 msgctxt "Operator"
-msgid "By Face Maps"
-msgstr "წახნაგთა რუკების მიხედვით"
-
-
-msgctxt "Operator"
 msgid "Per Vertex"
 msgstr "თითო წვეროზე"
 
@@ -45263,16 +44893,6 @@ msgstr "ამოიყვანე წიბოები"
 msgctxt "Operator"
 msgid "Clear Sharp from Vertices"
 msgstr "წაშალე წვეროებიდან აღნიშნული სიმკვეთრე"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces"
-msgstr "ამოიყვანე წახნაგები"
-
-
-msgctxt "Operator"
-msgid "Extrude Faces Along Normals"
-msgstr "ამოიყვანე წახნაგები ნორმალების გასწვრივ"
 
 
 msgctxt "Operator"
@@ -45523,6 +45143,11 @@ msgstr "წერტილების ღრუბელი"
 
 
 msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "ცვილის ფანქარი"
+
+
+msgctxt "Operator"
 msgid "Armature"
 msgstr "არმატურა"
 
@@ -45665,6 +45290,16 @@ msgstr "წაშალე სიმკვეთრის აღნიშვნ�
 msgctxt "Operator"
 msgid "Mark Sharp from Vertices"
 msgstr "აღნიშნე მკვეთრად წვეროებისგან"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces"
+msgstr "ამოიყვანე წახნაგები"
+
+
+msgctxt "Operator"
+msgid "Extrude Faces Along Normals"
+msgstr "ამოიყვანე წახნაგები ნორმალების გასწვრივ"
 
 
 msgctxt "Operator"
@@ -46679,10 +46314,6 @@ msgid "Only"
 msgstr "მხოლოდ"
 
 
-msgid "No filename given"
-msgstr "ფაილის სახელი მითითებული არაა"
-
-
 msgid "Global Orientation"
 msgstr "გლობალური ორიენტაცია"
 
@@ -46980,10 +46611,6 @@ msgid "Stone (Crushed)"
 msgstr "ქვა (დამსხვრეული)"
 
 
-msgid "3D Local View"
-msgstr "3გ ლოკალური ხედი"
-
-
 msgid "Scene has no camera"
 msgstr "სცენას კამერა არ აქვს"
 
@@ -47138,10 +46765,6 @@ msgstr "კლასი"
 
 msgid "Fog Volume"
 msgstr "ნისლის მოცულობა"
-
-
-msgid "Column"
-msgstr "სვეტი"
 
 
 msgid "No Recent Files"
@@ -47357,16 +46980,16 @@ msgid "AO"
 msgstr "AO"
 
 
-msgid "Anisotropy"
-msgstr "ანიზოტროპია"
-
-
 msgid "BSDF"
 msgstr "BSDF"
 
 
 msgid "IOR"
 msgstr "IOR"
+
+
+msgid "Anisotropy"
+msgstr "ანიზოტროპია"
 
 
 msgid "Melanin"
@@ -47395,10 +47018,6 @@ msgstr "ზედაპირქვეშა IOR"
 
 msgid "Subsurface Anisotropy"
 msgstr "ზედაპირქვეშა ანიზოტროპია"
-
-
-msgid "Anisotropic"
-msgstr "ანიზოტროპული"
 
 
 msgid "Anisotropic Rotation"
@@ -47788,10 +47407,6 @@ msgstr "%s '%s': %s არ იკითხება"
 
 msgid "%s '%s' not found"
 msgstr "%s '%s' ნაპოვნი არაა"
-
-
-msgid "%d x %s: %.4f ms, average: %.8f ms"
-msgstr "%d x %s: %.4f მწ, საშუალოდ: %.8f მწ"
 
 
 msgctxt "WindowManager"

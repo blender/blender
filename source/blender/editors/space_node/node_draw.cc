@@ -23,6 +23,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_bounds.hh"
 #include "BLI_convexhull_2d.h"
 #include "BLI_map.hh"
 #include "BLI_set.hh"
@@ -927,7 +928,7 @@ static void create_inspection_string_for_field_info(const bNodeSocket &socket,
 
     for (const int i : input_tooltips.index_range()) {
       const blender::StringRef tooltip = input_tooltips[i];
-      ss << "\u2022 " << TIP_(tooltip.data());
+      ss << fmt::format(TIP_("\u2022 {}"), TIP_(tooltip.data()));
       if (i < input_tooltips.size() - 1) {
         ss << ".\n";
       }
@@ -1920,7 +1921,7 @@ static char *named_attribute_tooltip(bContext * /*C*/, void *argN, const char * 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
     const StringRefNull name = attribute.name;
     const geo_log::NamedAttributeUsage usage = attribute.usage;
-    ss << "  \u2022 \"" << name << "\": ";
+    ss << fmt::format(TIP_("  \u2022 \"{}\": "), std::string_view(name));
     Vector<std::string> usages;
     if ((usage & geo_log::NamedAttributeUsage::Read) != geo_log::NamedAttributeUsage::None) {
       usages.append(TIP_("read"));
@@ -2195,7 +2196,12 @@ static void node_draw_basis(const bContext &C,
   }
 
   /* Shadow. */
-  if (!ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
+  if (!ELEM(node.type,
+            GEO_NODE_SIMULATION_INPUT,
+            GEO_NODE_SIMULATION_OUTPUT,
+            GEO_NODE_REPEAT_INPUT,
+            GEO_NODE_REPEAT_OUTPUT))
+  {
     node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
   }
 
@@ -2473,6 +2479,10 @@ static void node_draw_basis(const bContext &C,
     }
     else if (ELEM(node.type, GEO_NODE_SIMULATION_INPUT, GEO_NODE_SIMULATION_OUTPUT)) {
       UI_GetThemeColor4fv(TH_NODE_ZONE_SIMULATION, color_outline);
+      color_outline[3] = 1.0f;
+    }
+    else if (ELEM(node.type, GEO_NODE_REPEAT_INPUT, GEO_NODE_REPEAT_OUTPUT)) {
+      UI_GetThemeColor4fv(TH_NODE_ZONE_REPEAT, color_outline);
       color_outline[3] = 1.0f;
     }
     else {
@@ -3177,6 +3187,8 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
 
   Array<Vector<float2>> bounds_by_zone(zones->zones.size());
   Array<bke::CurvesGeometry> fillet_curve_by_zone(zones->zones.size());
+  /* Bounding box area of zones is used to determine draw order. */
+  Array<float> bounding_box_area_by_zone(zones->zones.size());
 
   for (const int zone_i : zones->zones.index_range()) {
     const bNodeTreeZone &zone = *zones->zones[zone_i];
@@ -3184,6 +3196,11 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     find_bounds_by_zone_recursive(snode, zone, zones->zones, bounds_by_zone);
     const Span<float2> boundary_positions = bounds_by_zone[zone_i];
     const int boundary_positions_num = boundary_positions.size();
+
+    const Bounds<float2> bounding_box = *bounds::min_max(boundary_positions);
+    const float bounding_box_area = (bounding_box.max.x - bounding_box.min.x) *
+                                    (bounding_box.max.y - bounding_box.min.y);
+    bounding_box_area_by_zone[zone_i] = bounding_box_area;
 
     bke::CurvesGeometry boundary_curve(boundary_positions_num, 1);
     boundary_curve.cyclic_for_write().first() = true;
@@ -3209,21 +3226,38 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
   float line_width = 1.0f * scale;
   float viewport[4] = {};
   GPU_viewport_size_get_f(viewport);
-  float zone_color[4];
-  UI_GetThemeColor4fv(TH_NODE_ZONE_SIMULATION, zone_color);
+
+  const auto get_theme_id = [&](const int zone_i) {
+    const bNode *node = zones->zones[zone_i]->output_node;
+    if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+      return TH_NODE_ZONE_SIMULATION;
+    }
+    return TH_NODE_ZONE_REPEAT;
+  };
 
   const uint pos = GPU_vertformat_attr_add(
       immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
-  /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones. */
+  Vector<int> zone_draw_order;
   for (const int zone_i : zones->zones.index_range()) {
+    zone_draw_order.append(zone_i);
+  }
+  std::sort(zone_draw_order.begin(), zone_draw_order.end(), [&](const int a, const int b) {
+    /* Draw zones with smaller bounding box on top to make them visible. */
+    return bounding_box_area_by_zone[a] > bounding_box_area_by_zone[b];
+  });
+
+  /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones. */
+  for (const int zone_i : zone_draw_order) {
+    float zone_color[4];
+    UI_GetThemeColor4fv(get_theme_id(zone_i), zone_color);
     if (zone_color[3] == 0.0f) {
       break;
     }
     const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
     /* Draw the background. */
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformThemeColorBlend(TH_BACK, TH_NODE_ZONE_SIMULATION, zone_color[3]);
+    immUniformThemeColorBlend(TH_BACK, get_theme_id(zone_i), zone_color[3]);
 
     immBegin(GPU_PRIM_TRI_FAN, fillet_boundary_positions.size() + 1);
     for (const float3 &p : fillet_boundary_positions) {
@@ -3235,7 +3269,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     immUnbindProgram();
   }
 
-  for (const int zone_i : zones->zones.index_range()) {
+  for (const int zone_i : zone_draw_order) {
     const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
     /* Draw the contour lines. */
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
@@ -3243,7 +3277,7 @@ static void node_draw_zones(TreeDrawContext & /*tree_draw_ctx*/,
     immUniform2fv("viewportSize", &viewport[2]);
     immUniform1f("lineWidth", line_width * U.pixelsize);
 
-    immUniformThemeColorAlpha(TH_NODE_ZONE_SIMULATION, 1.0f);
+    immUniformThemeColorAlpha(get_theme_id(zone_i), 1.0f);
     immBegin(GPU_PRIM_LINE_STRIP, fillet_boundary_positions.size() + 1);
     for (const float3 &p : fillet_boundary_positions) {
       immVertex3fv(pos, p);

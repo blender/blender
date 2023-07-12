@@ -103,7 +103,7 @@ enum class NodeType {
    * properly evaluated. Example of this is custom shapes for bones. */
   VISIBILITY,
 
-  /* **** Evaluation-Related Outer Types (with Subdata) **** */
+  /* **** Evaluation-Related Outer Types (with Sub-data) **** */
 
   /* Pose Component - Owner/Container of Bones Eval */
   EVAL_POSE,
@@ -129,8 +129,6 @@ enum class NodeType {
   DUPLI,
   /* Synchronization back to original datablock. */
   SYNCHRONIZATION,
-  /* Simulation component. */
-  SIMULATION,
   /* Node tree output component. */
   NTREE_OUTPUT,
   /* Preprocessing for geometry node trees before they can be evaluated. */

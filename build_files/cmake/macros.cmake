@@ -33,6 +33,7 @@ function(list_assert_duplicates
 
   # message(STATUS "list data: ${list_id}")
 
+  list(REMOVE_ITEM list_id "PUBLIC" "PRIVATE" "INTERFACE")
   list(LENGTH list_id _len_before)
   list(REMOVE_DUPLICATES list_id)
   list(LENGTH list_id _len_after)
@@ -781,8 +782,12 @@ macro(remove_strict_flags)
   endif()
 
   if(MSVC)
-    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
-    remove_cc_flag(/w34189) # Restore warn C4189 (unused variable) back to w4
+    remove_cc_flag(
+      # Restore warn C4100 (unreferenced formal parameter) back to w4.
+      "/w34100"
+      # Restore warn C4189 (unused variable) back to w4.
+      "/w34189"
+    )
   endif()
 
 endmacro()
@@ -801,7 +806,10 @@ macro(remove_extra_strict_flags)
   endif()
 
   if(MSVC)
-    remove_cc_flag(/w34100) # Restore warn C4100 (unreferenced formal parameter) back to w4
+    remove_cc_flag(
+      # Restore warn C4100 (unreferenced formal parameter) back to w4.
+      "/w34100"
+    )
   endif()
 endmacro()
 

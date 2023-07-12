@@ -7,8 +7,6 @@ set(INC
   intern
 
   ../blenfont
-  ../blenkernel
-  ../blenlib
   ../blenloader
   ../blentranslation
   ../bmesh
@@ -19,7 +17,6 @@ set(INC
   ../gpu
   ../gpu/intern
   ../imbuf
-  ../makesdna
   ../makesrna
   ../nodes
   ../render
@@ -30,11 +27,8 @@ set(INC
   ../windowmanager
 
   ../../../intern/clog
-  ../../../intern/guardedalloc
   ../../../intern/opensubdiv
 
-  # dna_type_offsets.h
-  ${CMAKE_CURRENT_BINARY_DIR}/../makesdna/intern
 )
 
 set(SRC
@@ -357,11 +351,13 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   bf_windowmanager
-  PRIVATE bf_intern_atomic
+  PRIVATE bf::intern::atomic
 )
 
 set(GLSL_SRC
@@ -583,6 +579,7 @@ set(GLSL_SRC
   engines/workbench/shaders/workbench_material_lib.glsl
   engines/workbench/shaders/workbench_merge_infront_frag.glsl
   engines/workbench/shaders/workbench_next_merge_depth_frag.glsl
+  engines/workbench/shaders/workbench_overlay_depth_frag.glsl
   engines/workbench/shaders/workbench_prepass_frag.glsl
   engines/workbench/shaders/workbench_prepass_hair_vert.glsl
   engines/workbench/shaders/workbench_prepass_pointcloud_vert.glsl
@@ -889,8 +886,6 @@ endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# Needed so we can use dna_type_offsets.h for defaults initialization.
-add_dependencies(bf_draw bf_dna)
 
 if(WITH_GTESTS)
   if(WITH_OPENGL_DRAW_TESTS)

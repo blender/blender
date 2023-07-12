@@ -194,9 +194,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
       RenderView *rv_del = rv->next;
       BLI_remlink(&rr->views, rv_del);
 
-      RE_RenderBuffer_data_free(&rv_del->combined_buffer);
-      RE_RenderBuffer_data_free(&rv_del->z_buffer);
-      RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
+      IMB_freeImBuf(rv_del->ibuf);
 
       MEM_freeN(rv_del);
     }
@@ -220,9 +218,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
         BLI_remlink(&rr->views, rv_del);
 
-        RE_RenderBuffer_data_free(&rv_del->combined_buffer);
-        RE_RenderBuffer_data_free(&rv_del->z_buffer);
-        RE_RenderByteBuffer_data_free(&rv_del->byte_buffer);
+        IMB_freeImBuf(rv_del->ibuf);
 
         MEM_freeN(rv_del);
       }
@@ -606,7 +602,6 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
     case ID_CV:        /* Curves */
     case ID_PT:        /* PointCloud */
     case ID_VO:        /* Volume */
-    case ID_SIM:       /* Simulation */
       break;
 
       /* Blacklist: */
@@ -918,7 +913,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
     scene->r.cfra = oglrender->cfrao;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
-    WM_event_remove_timer(oglrender->wm, oglrender->win, oglrender->timer);
+    WM_event_timer_remove(oglrender->wm, oglrender->win, oglrender->timer);
   }
 
   WM_cursor_modal_restore(oglrender->win);
@@ -1269,7 +1264,7 @@ static int screen_opengl_render_invoke(bContext *C, wmOperator *op, const wmEven
   oglrender->win = CTX_wm_window(C);
 
   WM_event_add_modal_handler(C, op);
-  oglrender->timer = WM_event_add_timer(oglrender->wm, oglrender->win, TIMER, 0.01f);
+  oglrender->timer = WM_event_timer_add(oglrender->wm, oglrender->win, TIMER, 0.01f);
 
   return OPERATOR_RUNNING_MODAL;
 }

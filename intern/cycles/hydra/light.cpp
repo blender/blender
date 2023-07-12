@@ -94,6 +94,15 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
       strength *= value.Get<float>();
     }
 
+    if (_lightType == HdPrimTypeTokens->distantLight) {
+      /* Unclear why, but approximately matches Karma. */
+      strength *= 4.0f;
+    }
+    else {
+      /* Convert from intensity to radiant flux. */
+      strength *= M_PI;
+    }
+
     value = sceneDelegate->GetLightParamValue(id, HdLightTokens->normalize);
     _light->set_normalize(value.IsHolding<bool>() && value.UncheckedGet<bool>());
 
@@ -133,9 +142,15 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
       }
     }
     else if (_lightType == HdPrimTypeTokens->sphereLight) {
-      value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
-      if (!value.IsEmpty()) {
-        _light->set_size(value.Get<float>());
+      value = sceneDelegate->GetLightParamValue(id, TfToken("treatAsPoint"));
+      if (!value.IsEmpty() && value.Get<bool>()) {
+        _light->set_size(0.0f);
+      }
+      else {
+        value = sceneDelegate->GetLightParamValue(id, HdLightTokens->radius);
+        if (!value.IsEmpty()) {
+          _light->set_size(value.Get<float>());
+        }
       }
 
       bool shaping = false;

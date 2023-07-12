@@ -32,6 +32,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
+#include "BLT_translation.h"
+
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 #include "DEG_depsgraph_query.h"
@@ -479,7 +481,7 @@ static USDPrimReader *get_usd_reader(CacheReader *reader,
   pxr::UsdPrim iobject = usd_reader->prim();
 
   if (!iobject.IsValid()) {
-    *err_str = "Invalid object: verify object path";
+    *err_str = TIP_("Invalid object: verify object path");
     return nullptr;
   }
 

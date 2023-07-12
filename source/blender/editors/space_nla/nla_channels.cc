@@ -177,8 +177,7 @@ static int mouse_nla_channels(bContext *C, bAnimContext *ac, int channel_index, 
     case ANIMTYPE_PALETTE:
     case ANIMTYPE_DSHAIR:
     case ANIMTYPE_DSPOINTCLOUD:
-    case ANIMTYPE_DSVOLUME:
-    case ANIMTYPE_DSSIMULATION: {
+    case ANIMTYPE_DSVOLUME: {
       /* sanity checking... */
       if (ale->adt) {
         /* select/deselect */

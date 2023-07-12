@@ -53,6 +53,7 @@ class TextureMarginMap {
   Vector<uint32_t> pixel_data_;
   ZSpan zspan_;
   uint32_t value_to_store_;
+  bool write_mask_;
   char *mask_;
 
   OffsetIndices<int> polys_;
@@ -105,12 +106,13 @@ class TextureMarginMap {
     return pixel_data_[y * w_ + x];
   }
 
-  void rasterize_tri(float *v1, float *v2, float *v3, uint32_t value, char *mask)
+  void rasterize_tri(float *v1, float *v2, float *v3, uint32_t value, char *mask, bool writemask)
   {
     /* NOTE: This is not thread safe, because the value to be written by the rasterizer is
      * a class member. If this is ever made multi-threaded each thread needs to get its own. */
     value_to_store_ = value;
     mask_ = mask;
+    write_mask_ = writemask;
     zspan_scanconvert(
         &zspan_, this, &(v1[0]), &(v2[0]), &(v3[0]), TextureMarginMap::zscan_store_pixel);
   }
@@ -120,9 +122,23 @@ class TextureMarginMap {
   {
     /* NOTE: Not thread safe, see comment above. */
     TextureMarginMap *m = static_cast<TextureMarginMap *>(map);
-    m->set_pixel(x, y, m->value_to_store_);
     if (m->mask_) {
-      m->mask_[y * m->w_ + x] = 1;
+      if (m->write_mask_) {
+        /* if there is a mask and write_mask_ is true, write to the mask */
+        m->mask_[y * m->w_ + x] = 1;
+        m->set_pixel(x, y, m->value_to_store_);
+      }
+      else {
+        /* if there is a mask and write_mask_ is false, read the mask
+         * to decide if the map needs to be written
+         */
+        if (m->mask_[y * m->w_ + x] != 0) {
+          m->set_pixel(x, y, m->value_to_store_);
+        }
+      }
+    }
+    else {
+      m->set_pixel(x, y, m->value_to_store_);
     }
   }
 
@@ -518,7 +534,7 @@ static void generate_margin(ImBuf *ibuf,
     /* NOTE: we need the top bit for the dijkstra distance map. */
     BLI_assert(looptri_polys[i] < 0x80000000);
 
-    map.rasterize_tri(vec[0], vec[1], vec[2], looptri_polys[i], draw_new_mask ? mask : nullptr);
+    map.rasterize_tri(vec[0], vec[1], vec[2], looptri_polys[i], mask, draw_new_mask);
   }
 
   char *tmpmask = (char *)MEM_dupallocN(mask);

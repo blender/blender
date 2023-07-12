@@ -259,7 +259,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 
   if (!has_restmat) {
 
-    /* Have no restpose matrix stored, try old style <= Blender 2.78 */
+    /* Have no rest-pose matrix stored, try old style <= Blender 2.78. */
 
     bc_create_restpose_mat(this->export_settings, bone, bone_rest_mat, bone->arm_mat, true);
 

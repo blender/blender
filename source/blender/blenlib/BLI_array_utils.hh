@@ -146,7 +146,7 @@ inline void gather(const VArray<T> &src,
 }
 
 /**
- * Count the number of occurences of each index.
+ * Count the number of occurrences of each index.
  * \param indices: The indices to count.
  * \param counts: The number of occurrences of each index. Typically initialized to zero.
  * Must be large enough to contain the maximum index.

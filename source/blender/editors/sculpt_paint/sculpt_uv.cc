@@ -583,7 +583,7 @@ static void uv_sculpt_stroke_exit(bContext *C, wmOperator *op)
   }
   UvSculptData *data = static_cast<UvSculptData *>(op->customdata);
   if (data->timer) {
-    WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), data->timer);
+    WM_event_timer_remove(CTX_wm_manager(C), CTX_wm_window(C), data->timer);
   }
   BM_uv_element_map_free(data->elementMap);
   data->elementMap = nullptr;
@@ -916,7 +916,7 @@ static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *e
 
   uv_sculpt_stroke_apply(C, op, event, obedit);
 
-  data->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.001f);
+  data->timer = WM_event_timer_add(CTX_wm_manager(C), CTX_wm_window(C), TIMER, 0.001f);
 
   if (!data->timer) {
     uv_sculpt_stroke_exit(C, op);

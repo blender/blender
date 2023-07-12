@@ -18,15 +18,13 @@ if(WIN32)
   # Some files in extern are being included which brings up a bunch of
   # "unreferenced formal parameter" warnings.
   # So restore warn C4100 (unreferenced formal parameter) back to w4
-  remove_cc_flag(/w34100)
+  remove_cc_flag("/w34100")
 endif()
 
 
 set(INC
   extern
   intern/strings
-  ../../source/blender/makesdna
-  ../../source/blender/blenlib
 )
 
 # Python is always required
@@ -36,7 +34,6 @@ set(INC_SYS
   ../../extern/mantaflow/helper/util
   ../../extern/mantaflow/helper/pwrapper
   ../../extern/mantaflow/preprocessed
-  ../guardedalloc
   ${PYTHON_INCLUDE_DIRS}
   ${ZLIB_INCLUDE_DIRS}
 )
@@ -74,6 +71,9 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
   extern_mantaflow
 
   ${PYTHON_LINKFLAGS}

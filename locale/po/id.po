@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 3.6.0 Release Candidate (b'a07063e6a403')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-22 15:00:05\n"
+"POT-Creation-Date: 2023-07-10 12:34:48\n"
 "PO-Revision-Date: 2021-12-25 23:57-0800\n"
 "Last-Translator: Adriel Tristanputra <ultimexport@gmail.com>\n"
 "Language-Team: Indonesian <>\n"
@@ -1461,6 +1461,10 @@ msgid "Vector font data-blocks"
 msgstr "Font vektor data-blok"
 
 
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
 msgid "Images"
 msgstr "Gambar"
 
@@ -1623,6 +1627,10 @@ msgstr "Kunci Bentuk"
 
 msgid "Shape Key data-blocks"
 msgstr "Kunci Bentuk data-blok"
+
+
+msgid "Simulations"
+msgstr "Simulasi"
 
 
 msgid "Sounds"
@@ -2673,16 +2681,8 @@ msgid "Bone Matrix"
 msgstr "Matriks Tulang"
 
 
-msgid "3x3 bone matrix"
-msgstr "3x3 matriks tulang"
-
-
 msgid "Bone Armature-Relative Matrix"
 msgstr "Matriks Relatif-Armatur Tulang"
-
-
-msgid "4x4 bone matrix relative to armature"
-msgstr "4x4 relatif matriks tulang ke armatur"
 
 
 msgid "Parent"
@@ -3455,10 +3455,6 @@ msgstr "Jalur Objek"
 
 msgid "Path of an object inside of an Alembic archive"
 msgstr "Jalur suatu objek dalam suatu arsip Alembic"
-
-
-msgid "Path"
-msgstr "Jalur"
 
 
 msgid "Object path"
@@ -6718,14 +6714,6 @@ msgid "Replace Color"
 msgstr "Gantikan Warna"
 
 
-msgid "Wave Type"
-msgstr "Tipe"
-
-
-msgid "Force"
-msgstr "Gaya"
-
-
 msgid "Brush Collection"
 msgstr "Koleksi Cat"
 
@@ -6904,6 +6892,10 @@ msgstr "Menyeret"
 
 msgid "Drag effector weight"
 msgstr "Beban efektor seret"
+
+
+msgid "Force"
+msgstr "Gaya"
 
 
 msgid "Harmonic"
@@ -7266,28 +7258,12 @@ msgid "Step Size"
 msgstr "Ukuran Langkah"
 
 
-msgid "Face Map"
-msgstr "Peta Wajah"
-
-
-msgid "Face Maps"
-msgstr "Peta Wajah"
-
-
-msgid "Active index in face map array"
-msgstr "Indeks aktif di larik peta wajah"
-
-
 msgid "Shape"
 msgstr "Bentuk"
 
 
 msgid "Axis"
 msgstr "Axis"
-
-
-msgid "Radial"
-msgstr "Radial"
 
 
 msgid "Field originates from all of the vertices of the object"
@@ -7342,10 +7318,6 @@ msgid "Show Font data-blocks"
 msgstr "Tampilkan Font data-blok"
 
 
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
 msgid "Show Grease pencil data-blocks"
 msgstr "Tampilkan Pensil grease data-blok"
 
@@ -7392,10 +7364,6 @@ msgstr "Tampilkan/sembunyikan Awan Titik data-blok"
 
 msgid "Show Scene data-blocks"
 msgstr "Tampilkan Adegan data-blok"
-
-
-msgid "Simulations"
-msgstr "Simulasi"
 
 
 msgid "Show Simulation data-blocks"
@@ -8550,6 +8518,10 @@ msgid "Circular"
 msgstr "Bundar"
 
 
+msgid "Radial"
+msgstr "Radial"
+
+
 msgid "Parallel lines"
 msgstr "Garis paralel"
 
@@ -9463,6 +9435,10 @@ msgid "Map Taper"
 msgstr "Tipe"
 
 
+msgid "Path"
+msgstr "Jalur"
+
+
 msgid "Text Curve"
 msgstr "Tekstur"
 
@@ -9926,54 +9902,6 @@ msgstr "Keluaran pohon node"
 
 msgid "Texture nodes"
 msgstr "Node Tekstur"
-
-
-msgid "32x32"
-msgstr "32x32"
-
-
-msgid "Chunksize of 32x32"
-msgstr "Ukuran chunk 32x32"
-
-
-msgid "64x64"
-msgstr "64x64"
-
-
-msgid "Chunksize of 64x64"
-msgstr "Ukuran chunk 64x64"
-
-
-msgid "128x128"
-msgstr "128x128"
-
-
-msgid "Chunksize of 128x128"
-msgstr "Ukuran chunk 128x128"
-
-
-msgid "256x256"
-msgstr "256x256"
-
-
-msgid "Chunksize of 256x256"
-msgstr "Ukuran chunk 256x256"
-
-
-msgid "512x512"
-msgstr "512x512"
-
-
-msgid "Chunksize of 512x512"
-msgstr "Ukuran chunk 512x512"
-
-
-msgid "1024x1024"
-msgstr "1024x1024"
-
-
-msgid "Chunksize of 1024x1024"
-msgstr "Ukuran chunk 1024x1024"
 
 
 msgid "Edit Quality"
@@ -10681,14 +10609,6 @@ msgstr "Bioskop"
 
 msgid "YCC"
 msgstr "YCC"
-
-
-msgid "Z Buffer"
-msgstr "Buffer Z"
-
-
-msgid "Save the z-depth per pixel (32-bit unsigned integer z-buffer)"
-msgstr "Simpan z-kedalaman tiap pixel (z-buffer integer unsigned 32-bit)"
 
 
 msgid "Image Preview"
@@ -11966,14 +11886,6 @@ msgstr "Nilai masker cat floating-point"
 
 msgid "Polygon Normal"
 msgstr "Poligon Normal"
-
-
-msgid "User defined floating-point number value in a float properties layer"
-msgstr "Nilai angka floating-point yang didefinisikan pengguna di layer properti float"
-
-
-msgid "User defined layer of floating-point number values"
-msgstr "Layer nilai angka floating-point yang didefinisikan pengguna"
 
 
 msgid "Skin Vertex"
@@ -14435,6 +14347,10 @@ msgid "Wave Texture"
 msgstr "Tekstur"
 
 
+msgid "Wave Type"
+msgstr "Tipe"
+
+
 msgid "Length of A"
 msgstr "Panjang A"
 
@@ -15937,6 +15853,26 @@ msgid "Bake Sound to F-Curves"
 msgstr "Gambar Latar"
 
 
+msgid "Stroke Mode"
+msgstr "Mode Garis Luar"
+
+
+msgid "Action taken when a paint stroke is made"
+msgstr "Aksi diambil saat garis luar cat dibuat"
+
+
+msgid "Apply brush normally"
+msgstr "Terapkan kuas biasanya"
+
+
+msgid "Invert action of brush for duration of stroke"
+msgstr "Balikkan aksi kuas untuk durasi garis luar"
+
+
+msgid "Switch brush to smooth mode for duration of stroke"
+msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
+
+
 msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "Tekstur"
@@ -17083,10 +17019,6 @@ msgid "Add Constraint"
 msgstr "Tambah Pembatas"
 
 
-msgid "Grease Pencil from Curve or Mesh objects"
-msgstr "Pensil Grease dari Kurva atau objek Mesh"
-
-
 msgctxt "Operator"
 msgid "Add Object Data Instance"
 msgstr "Tambah Instansi Data Objek"
@@ -17552,11 +17484,6 @@ msgid "Assign to New Group"
 msgstr "Warna Standar"
 
 
-msgctxt "Operator"
-msgid "Copy Vertex Group"
-msgstr "Warna Standar"
-
-
 msgid "Make a copy of the active vertex group"
 msgstr "Warna Standar"
 
@@ -17872,26 +17799,6 @@ msgstr "Cat Gambar"
 
 msgid "Paint a stroke into the image"
 msgstr "Cat sebuah garis luar ke gambar"
-
-
-msgid "Stroke Mode"
-msgstr "Mode Garis Luar"
-
-
-msgid "Action taken when a paint stroke is made"
-msgstr "Aksi diambil saat garis luar cat dibuat"
-
-
-msgid "Apply brush normally"
-msgstr "Terapkan kuas biasanya"
-
-
-msgid "Invert action of brush for duration of stroke"
-msgstr "Balikkan aksi kuas untuk durasi garis luar"
-
-
-msgid "Switch brush to smooth mode for duration of stroke"
-msgstr "Gantikan kuas ke mode halus untuk durasi garis luar"
 
 
 msgctxt "Operator"
@@ -18464,18 +18371,6 @@ msgstr "Vertex Aktif"
 msgctxt "Operator"
 msgid "Sculpt UVs"
 msgstr "Modus Pahat"
-
-
-msgid "A -> B"
-msgstr "A -> B"
-
-
-msgid "B -> C"
-msgstr "B -> C"
-
-
-msgid "A -> C"
-msgstr "A -> C"
 
 
 msgctxt "Operator"
@@ -20700,10 +20595,6 @@ msgid "Automatic pixel size, depends on the user interface scale"
 msgstr "Ukuran pixel otomatis, tergantung skala antarmuka pengguna"
 
 
-msgid "1x"
-msgstr "1x"
-
-
 msgid "Display method used in the sequencer view"
 msgstr "Tampilkan metode yang digunakan di view sequencer"
 
@@ -21853,6 +21744,11 @@ msgstr "Font"
 
 
 msgctxt "WindowManager"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
+
+
+msgctxt "WindowManager"
 msgid "Pose"
 msgstr "Pose"
 
@@ -22010,11 +21906,6 @@ msgstr "Editor Grafik Klip"
 msgctxt "WindowManager"
 msgid "Clip Dopesheet Editor"
 msgstr "Editor Dopesheet Klip"
-
-
-msgctxt "WindowManager"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
 
 
 msgctxt "WindowManager"
@@ -24671,11 +24562,6 @@ msgstr "Kamera"
 
 
 msgctxt "Operator"
-msgid "Grease Pencil"
-msgstr "Pensil Grease"
-
-
-msgctxt "Operator"
 msgid "Speaker"
 msgstr "Tambah Gambar"
 
@@ -24851,6 +24737,11 @@ msgstr "Orientasi Transformasi"
 msgctxt "Operator"
 msgid "Non Manifold"
 msgstr "Seleksi"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil"
+msgstr "Pensil Grease"
 
 
 msgctxt "Operator"
@@ -25412,10 +25303,6 @@ msgid "Method Quads"
 msgstr "Metode Quads"
 
 
-msgid "No filename given"
-msgstr "Tidak ada namafile yang diberi"
-
-
 msgid "Unable to determine ABC sequence length"
 msgstr "Tidak dapat menentukan jarak sequence ABC"
 
@@ -25765,26 +25652,6 @@ msgid "Stone (Crushed)"
 msgstr "Batu (Hancur)"
 
 
-msgid "Frame:%d "
-msgstr "Frame:%d "
-
-
-msgid "| Last:%s "
-msgstr "| Terakhir:%s "
-
-
-msgid "Time:%s "
-msgstr "Waktu:%s "
-
-
-msgid "| Mem:%.2fM (Peak %.2fM) "
-msgstr "| Mem:%.2fM (Peak %.2fM) "
-
-
-msgid "| Mem:%.2fM, Peak: %.2fM "
-msgstr "| Mem:%.2fM, Peak: %.2fM "
-
-
 msgid "Scene has no camera"
 msgstr "Hapus"
 
@@ -25801,14 +25668,6 @@ msgid "Maximize Area"
 msgstr "Maksimalkan Area"
 
 
-msgid "Flip to Bottom"
-msgstr "Balik ke Bawah"
-
-
-msgid "Flip to Top"
-msgstr "Balik ke Atas"
-
-
 msgid "Show Header"
 msgstr "Tampilkan Header"
 
@@ -25823,6 +25682,14 @@ msgstr "Balik ke Kanan"
 
 msgid "Flip to Left"
 msgstr "Balik ke Kiri"
+
+
+msgid "Flip to Top"
+msgstr "Balik ke Atas"
+
+
+msgid "Flip to Bottom"
+msgstr "Balik ke Bawah"
 
 
 msgid "Blender Drivers Editor"
@@ -26261,10 +26128,6 @@ msgstr "tidak dapat memuat klip film"
 
 msgid "Index %d is invalid"
 msgstr "Indeks %d tidak valid"
-
-
-msgid "Face map not in mesh"
-msgstr "Map wajah tidak di mesh"
 
 
 msgid "Metaball '%s' does not contain spline given"

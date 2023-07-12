@@ -396,6 +396,8 @@ DefNode(GeometryNode, GEO_NODE_PROXIMITY, def_geo_proximity, "PROXIMITY", Proxim
 DefNode(GeometryNode, GEO_NODE_RAYCAST, def_geo_raycast, "RAYCAST", Raycast, "Raycast", "Cast rays from the context geometry onto a target geometry, and retrieve information from each hit point")
 DefNode(GeometryNode, GEO_NODE_REALIZE_INSTANCES, 0, "REALIZE_INSTANCES", RealizeInstances, "Realize Instances", "Convert instances into real geometry data")
 DefNode(GeometryNode, GEO_NODE_REMOVE_ATTRIBUTE, 0, "REMOVE_ATTRIBUTE", RemoveAttribute, "Remove Named Attribute", "Delete an attribute with a specified name from a geometry. Typically used to optimize performance")
+DefNode(GeometryNode, GEO_NODE_REPEAT_INPUT, def_geo_repeat_input, "REPEAT_INPUT", RepeatInput, "Repeat Input", "")
+DefNode(GeometryNode, GEO_NODE_REPEAT_OUTPUT, def_geo_repeat_output, "REPEAT_OUTPUT", RepeatOutput, "Repeat Output", "")
 DefNode(GeometryNode, GEO_NODE_REPLACE_MATERIAL, 0, "REPLACE_MATERIAL", ReplaceMaterial, "Replace Material", "Swap one material with another")
 DefNode(GeometryNode, GEO_NODE_RESAMPLE_CURVE, def_geo_curve_resample, "RESAMPLE_CURVE", ResampleCurve, "Resample Curve", "Generate a poly spline for each input spline")
 DefNode(GeometryNode, GEO_NODE_REVERSE_CURVE, 0, "REVERSE_CURVE", ReverseCurve, "Reverse Curve", "Change the direction of curves by swapping their start and end data")

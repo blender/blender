@@ -52,10 +52,9 @@ void TreeElementIDArmature::expand_edit_bones(SpaceOutliner &space_outiner) cons
 {
   int a = 0;
   LISTBASE_FOREACH_INDEX (EditBone *, ebone, arm_.edbo, a) {
+    EditBoneElementCreateData ebone_data = {&arm_.id, ebone};
     TreeElement *ten = outliner_add_element(
-        &space_outiner, &legacy_te_.subtree, &arm_.id, &legacy_te_, TSE_EBONE, a);
-    ten->directdata = ebone;
-    ten->name = ebone->name;
+        &space_outiner, &legacy_te_.subtree, &ebone_data, &legacy_te_, TSE_EBONE, a);
     ebone->temp.p = ten;
   }
   /* make hierarchy */
@@ -83,11 +82,11 @@ static void outliner_add_bone(SpaceOutliner *space_outliner,
                               TreeElement *parent,
                               int *a)
 {
-  TreeElement *te = outliner_add_element(space_outliner, lb, id, parent, TSE_BONE, *a);
+  BoneElementCreateData bone_data = {id, curBone};
+
+  TreeElement *te = outliner_add_element(space_outliner, lb, &bone_data, parent, TSE_BONE, *a);
 
   (*a)++;
-  te->name = curBone->name;
-  te->directdata = curBone;
 
   LISTBASE_FOREACH (Bone *, child_bone, &curBone->childbase) {
     outliner_add_bone(space_outliner, &te->subtree, id, child_bone, te, a);

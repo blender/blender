@@ -40,24 +40,20 @@ if(WIN32)
   # Some USD library headers trigger the "unreferenced formal parameter"
   # warning alert.
   # Silence them by restore warn C4100 back to w4
-  remove_cc_flag(/w34100)
+  remove_cc_flag("/w34100")
 endif()
 
 set(INC
   .
   ../common
-  ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
   ../../editors/include
   ../../imbuf
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
-  ../../../../intern/guardedalloc
   ../../../../intern/utfconv
 )
 
@@ -128,9 +124,11 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
-  bf_blenlib
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_imbuf
+  PRIVATE bf::intern::guardedalloc
   bf_io_common
 )
 

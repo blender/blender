@@ -54,6 +54,8 @@
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
 
+#include "BLT_translation.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -773,7 +775,7 @@ static AbcObjectReader *get_abc_reader(CacheReader *reader, Object *ob, const ch
   IObject iobject = abc_reader->iobject();
 
   if (!iobject.valid()) {
-    *err_str = "Invalid object: verify object path";
+    *err_str = TIP_("Invalid object: verify object path");
     return nullptr;
   }
 

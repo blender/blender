@@ -20,9 +20,9 @@ class Instance;
 /* -------------------------------------------------------------------- */
 /** \name Default World Node-Tree
  *
- * In order to support worlds without nodetree we reuse and configure a standalone nodetree that
+ * In order to support worlds without node-tree we reuse and configure a standalone node-tree that
  * we pass for shader generation. The GPUMaterial is still stored inside the World even if
- * it does not use a nodetree.
+ * it does not use a node-tree.
  * \{ */
 
 class DefaultWorldNodeTree {

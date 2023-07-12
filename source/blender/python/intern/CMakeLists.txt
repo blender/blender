@@ -4,8 +4,6 @@
 
 set(INC
   ..
-  ../../blenkernel
-  ../../blenlib
   ../../blenloader
   ../../blentranslation
   ../../depsgraph
@@ -13,11 +11,9 @@ set(INC
   ../../gpu
   ../../imbuf
   ../../imbuf/intern/oiio
-  ../../makesdna
   ../../makesrna
   ../../windowmanager
   ../../../../intern/clog
-  ../../../../intern/guardedalloc
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
   # RNA_prototypes.h
@@ -123,9 +119,13 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api
+  PRIVATE bf::intern::guardedalloc
   bf_python_gpu
 
   ${PYTHON_LINKFLAGS}

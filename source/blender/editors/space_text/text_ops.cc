@@ -3230,7 +3230,7 @@ static void text_cursor_timer_ensure(bContext *C, SetSelection *ssel)
     wmWindowManager *wm = CTX_wm_manager(C);
     wmWindow *win = CTX_wm_window(C);
 
-    ssel->timer = WM_event_add_timer(wm, win, TIMER, 0.02f);
+    ssel->timer = WM_event_timer_add(wm, win, TIMER, 0.02f);
   }
 }
 
@@ -3240,7 +3240,7 @@ static void text_cursor_timer_remove(bContext *C, SetSelection *ssel)
     wmWindowManager *wm = CTX_wm_manager(C);
     wmWindow *win = CTX_wm_window(C);
 
-    WM_event_remove_timer(wm, win, ssel->timer);
+    WM_event_timer_remove(wm, win, ssel->timer);
   }
   ssel->timer = nullptr;
 }

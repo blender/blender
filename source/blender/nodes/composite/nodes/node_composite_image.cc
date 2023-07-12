@@ -209,17 +209,6 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree,
                                  &prev_index);
 
   if (ima) {
-    if (!ima->rr) {
-      cmp_node_image_add_pass_output(ntree,
-                                     node,
-                                     RE_PASSNAME_Z,
-                                     RE_PASSNAME_Z,
-                                     -1,
-                                     SOCK_FLOAT,
-                                     false,
-                                     available_sockets,
-                                     &prev_index);
-    }
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
 }
@@ -725,7 +714,7 @@ static bool node_composit_poll_rlayers(const bNodeType * /*ntype*/,
   Scene *scene;
 
   /* XXX ugly: check if ntree is a local scene node tree.
-   * Render layers node can only be used in local scene->nodetree,
+   * Render layers node can only be used in local `scene->nodetree`,
    * since it directly links to the scene.
    */
   for (scene = (Scene *)G.main->scenes.first; scene; scene = (Scene *)scene->id.next) {

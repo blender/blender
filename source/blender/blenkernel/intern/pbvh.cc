@@ -858,7 +858,6 @@ static void pbvh_draw_args_init(PBVH *pbvh, PBVH_GPU_Args *args, PBVHNode *node)
   memset((void *)args, 0, sizeof(*args));
 
   args->pbvh_type = pbvh->header.type;
-  args->mesh_verts_num = pbvh->totvert;
   args->mesh_grids_num = pbvh->totgrid;
   args->node = node;
   args->origco = pbvh->origco;
@@ -1033,7 +1032,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   if (!pbvh->deformed) {
     /* Deformed positions not matching the original mesh are owned directly by the PBVH, and are
      * set separately by #BKE_pbvh_vert_coords_apply. */
-    pbvh->vert_positions = BKE_mesh_vert_positions_for_write(mesh);
+    pbvh->vert_positions = mesh->vert_positions_for_write();
   }
 
   pbvh->hide_poly = static_cast<bool *>(CustomData_get_layer_named_for_write(
@@ -1047,7 +1046,7 @@ void BKE_pbvh_update_mesh_pointers(PBVH *pbvh, Mesh *mesh)
   mesh->vert_normals();
   mesh->poly_normals();
 
-  pbvh->vert_normals = BKE_mesh_vert_normals_for_write(mesh);
+  pbvh->vert_normals = mesh->runtime->vert_normals;
   pbvh->poly_normals = mesh->runtime->poly_normals;
 
   pbvh->vdata = &mesh->vdata;
@@ -1296,16 +1295,6 @@ void BKE_pbvh_free(PBVH *pbvh)
     }
   }
 
-  if (pbvh->deformed) {
-    if (pbvh->vert_positions) {
-      /* if pbvh was deformed, new memory was allocated for verts/faces -- free it */
-
-      MEM_freeN((void *)pbvh->vert_positions);
-    }
-
-    pbvh->vert_positions = nullptr;
-  }
-
   if (pbvh->looptri) {
     MEM_freeN((void *)pbvh->looptri);
   }
@@ -1323,7 +1312,7 @@ void BKE_pbvh_free(PBVH *pbvh)
   pbvh->invalid = true;
   pbvh_pixels_free(pbvh);
 
-  MEM_delete<PBVH>(pbvh);
+  MEM_delete(pbvh);
 }
 
 static void pbvh_iter_begin(PBVHIter *iter,
@@ -1598,8 +1587,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
 {
   using namespace blender;
   using namespace blender::bke;
-  const Span<float3> positions(reinterpret_cast<const float3 *>(pbvh->vert_positions),
-                               pbvh->totvert);
+  const Span<float3> positions = pbvh->vert_positions;
   const OffsetIndices polys = pbvh->polys;
   const Span<int> corner_verts(pbvh->corner_verts, pbvh->mesh->totloop);
 
@@ -1618,7 +1606,7 @@ static void pbvh_faces_update_normals(PBVH *pbvh, Span<PBVHNode *> nodes)
     return;
   }
 
-  MutableSpan<float3> vert_normals(reinterpret_cast<float3 *>(pbvh->vert_normals), pbvh->totvert);
+  MutableSpan<float3> vert_normals = pbvh->vert_normals;
   MutableSpan<float3> poly_normals = pbvh->poly_normals;
 
   VectorSet<int> verts_to_update;
@@ -1774,16 +1762,17 @@ static void pbvh_update_BB_redraw(PBVH *pbvh, Span<PBVHNode *> nodes, int flag)
   BLI_task_parallel_range(0, nodes.size(), &data, pbvh_update_BB_redraw_task_cb, &settings);
 }
 
-bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
-                              const Mesh *me,
+bool BKE_pbvh_get_color_layer(PBVH *pbvh,
+                              Mesh *me,
                               CustomDataLayer **r_layer,
-                              eAttrDomain *r_attr)
+                              eAttrDomain *r_domain)
 {
-  CustomDataLayer *layer = BKE_id_attributes_color_find(&me->id, me->active_color_attribute);
+  CustomDataLayer *layer = BKE_id_attribute_search(
+      &me->id, me->active_color_attribute, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
 
   if (!layer || !ELEM(layer->type, CD_PROP_COLOR, CD_PROP_BYTE_COLOR)) {
     *r_layer = nullptr;
-    *r_attr = ATTR_DOMAIN_POINT;
+    *r_domain = ATTR_DOMAIN_POINT;
     return false;
   }
 
@@ -1791,7 +1780,7 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
 
   if (!ELEM(domain, ATTR_DOMAIN_POINT, ATTR_DOMAIN_CORNER)) {
     *r_layer = nullptr;
-    *r_attr = ATTR_DOMAIN_POINT;
+    *r_domain = ATTR_DOMAIN_POINT;
     return false;
   }
 
@@ -1806,7 +1795,7 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
     }
     else {
       *r_layer = nullptr;
-      *r_attr = ATTR_DOMAIN_POINT;
+      *r_domain = ATTR_DOMAIN_POINT;
 
       BLI_assert_unreachable();
       return false;
@@ -1818,7 +1807,7 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
       printf("%s: bmesh lacks color attribute %s\n", __func__, layer->name);
 
       *r_layer = nullptr;
-      *r_attr = ATTR_DOMAIN_POINT;
+      *r_domain = ATTR_DOMAIN_POINT;
       return false;
     }
 
@@ -1826,7 +1815,7 @@ bool BKE_pbvh_get_color_layer(const PBVH *pbvh,
   }
 
   *r_layer = layer;
-  *r_attr = domain;
+  *r_domain = domain;
 
   return true;
 }
@@ -2805,7 +2794,7 @@ static bool pbvh_faces_node_raycast(PBVH *pbvh,
                                     float *r_face_normal,
                                     int /*stroke_id*/)
 {
-  const float(*positions)[3] = pbvh->vert_positions;
+  const Span<float3> positions = pbvh->vert_positions;
   const int *corner_verts = pbvh->corner_verts;
   const int *looptris = node->prim_indices;
   int looptris_num = node->totprim;
@@ -3048,7 +3037,7 @@ bool BKE_pbvh_node_raycast(SculptSession *ss,
   return hit;
 }
 
-void BKE_pbvh_raycast_project_ray_root(
+void BKE_pbvh_clip_ray_ortho(
     PBVH *pbvh, bool original, float ray_start[3], float ray_end[3], float ray_normal[3])
 {
   if (pbvh->nodes) {
@@ -3066,28 +3055,66 @@ void BKE_pbvh_raycast_project_ray_root(
       BKE_pbvh_node_get_BB(pbvh->nodes, bb_min_root, bb_max_root);
     }
 
+    /* Calc rough clipping to avoid overflow later. See #109555. */
+    float mat[3][3];
+    axis_dominant_v3_to_m3(mat, ray_normal);
+    float a[3], b[3], min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {FLT_MIN, FLT_MIN, FLT_MIN};
+
+    /* Compute AABB bounds rotated along ray_normal.*/
+    copy_v3_v3(a, bb_min_root);
+    copy_v3_v3(b, bb_max_root);
+    mul_m3_v3(mat, a);
+    mul_m3_v3(mat, b);
+    minmax_v3v3_v3(min, max, a);
+    minmax_v3v3_v3(min, max, b);
+
+    float cent[3];
+
+    /* Find midpoint of aabb on ray. */
+    mid_v3_v3v3(cent, bb_min_root, bb_max_root);
+    float t = line_point_factor_v3(cent, ray_start, ray_end);
+    interp_v3_v3v3(cent, ray_start, ray_end, t);
+
+    /* Compute rough interval. */
+    float dist = max[2] - min[2];
+    madd_v3_v3v3fl(ray_start, cent, ray_normal, -dist);
+    madd_v3_v3v3fl(ray_end, cent, ray_normal, dist);
+
     /* Slightly offset min and max in case we have a zero width node
      * (due to a plane mesh for instance), or faces very close to the bounding box boundary. */
     mid_v3_v3v3(bb_center, bb_max_root, bb_min_root);
-    /* diff should be same for both min/max since it's calculated from center */
+    /* Diff should be same for both min/max since it's calculated from center. */
     sub_v3_v3v3(bb_diff, bb_max_root, bb_center);
-    /* handles case of zero width bb */
+    /* Handles case of zero width bb. */
     add_v3_v3(bb_diff, offset_vec);
     madd_v3_v3v3fl(bb_max_root, bb_center, bb_diff, offset);
     madd_v3_v3v3fl(bb_min_root, bb_center, bb_diff, -offset);
 
-    /* first project start ray */
+    /* Final projection of start ray. */
     isect_ray_aabb_v3_precalc(&ray, ray_start, ray_normal);
     if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_start)) {
       return;
     }
 
-    /* then the end ray */
+    /* Final projection of end ray. */
     mul_v3_v3fl(ray_normal_inv, ray_normal, -1.0);
     isect_ray_aabb_v3_precalc(&ray, ray_end, ray_normal_inv);
-    /* unlikely to fail exiting if entering succeeded, still keep this here */
+    /* Unlikely to fail exiting if entering succeeded, still keep this here. */
     if (!isect_ray_aabb_v3(&ray, bb_min_root, bb_max_root, &rootmin_end)) {
       return;
+    }
+
+    /*
+     * As a last-ditch effort to correct floating point overflow compute
+     * and add an epsilon if rootmin_start == rootmin_end.
+     */
+
+    float epsilon = (std::nextafter(rootmin_start, rootmin_start + 1000.0f) - rootmin_start) *
+                    5000.0f;
+
+    if (rootmin_start == rootmin_end) {
+      rootmin_start -= epsilon;
+      rootmin_end += epsilon;
     }
 
     madd_v3_v3v3fl(ray_start, ray_start, ray_normal, rootmin_start);
@@ -3148,7 +3175,7 @@ static bool pbvh_faces_node_nearest_to_ray(PBVH *pbvh,
                                            float *depth,
                                            float *dist_sq)
 {
-  const float(*positions)[3] = pbvh->vert_positions;
+  const Span<float3> positions = pbvh->vert_positions;
   const int *corner_verts = pbvh->corner_verts;
   const int *looptris = node->prim_indices;
   int i, looptris_num = node->totprim;
@@ -3513,9 +3540,10 @@ float (*BKE_pbvh_vert_coords_alloc(PBVH *pbvh))[3]
 {
   float(*vertCos)[3] = nullptr;
 
-  if (pbvh->vert_positions) {
-    vertCos = (float(*)[3])MEM_malloc_arrayN(pbvh->totvert, sizeof(float[3]), __func__);
-    memcpy(vertCos, pbvh->vert_positions, sizeof(float[3]) * pbvh->totvert);
+  if (!pbvh->vert_positions.is_empty()) {
+    vertCos = static_cast<float(*)[3]>(
+        MEM_malloc_arrayN(pbvh->totvert, sizeof(float[3]), __func__));
+    memcpy(vertCos, pbvh->vert_positions.data(), sizeof(float[3]) * pbvh->totvert);
   }
 
   return vertCos;
@@ -3529,12 +3557,13 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
   }
 
   if (!pbvh->deformed) {
-    if (pbvh->vert_positions) {
+    if (!pbvh->vert_positions.is_empty()) {
       /* if pbvh is not already deformed, verts/faces points to the */
       /* original data and applying new coords to this arrays would lead to */
       /* unneeded deformation -- duplicate verts/faces to avoid this */
+      pbvh->vert_positions_deformed = blender::Array<float3>(pbvh->vert_positions.as_span());
+      pbvh->vert_positions = pbvh->vert_positions_deformed;
 
-      pbvh->vert_positions = (float(*)[3])MEM_dupallocN(pbvh->vert_positions);
       /* No need to dupalloc pbvh->looptri, this one is 'totally owned' by pbvh,
        * it's never some mesh data. */
 
@@ -3542,8 +3571,8 @@ void BKE_pbvh_vert_coords_apply(PBVH *pbvh, const float (*vertCos)[3], const int
     }
   }
 
-  if (pbvh->vert_positions) {
-    float(*positions)[3] = pbvh->vert_positions;
+  if (!pbvh->vert_positions.is_empty()) {
+    MutableSpan<float3> positions = pbvh->vert_positions;
     /* copy new verts coords */
     for (int a = 0; a < pbvh->totvert; a++) {
       /* no need for float comparison here (memory is exactly equal or not) */
@@ -3612,7 +3641,7 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   vi->grid = nullptr;
   vi->no = nullptr;
   vi->fno = nullptr;
-  vi->vert_positions = nullptr;
+  vi->vert_positions = {};
   vi->vertex.i = 0LL;
   vi->index = 0;
 
@@ -3634,14 +3663,14 @@ void pbvh_vertex_iter_init(PBVH *pbvh, PBVHNode *node, PBVHVertexIter *vi, int m
   }
   vi->vert_indices = vert_indices;
   vi->vert_positions = pbvh->vert_positions;
-  vi->is_mesh = pbvh->vert_positions != nullptr;
+  vi->is_mesh = !pbvh->vert_positions.is_empty();
 
   if (pbvh->header.type == PBVH_BMESH) {
     if (mode == PBVH_ITER_ALL) {
       pbvh_bmesh_check_other_verts(node);
     }
 
-    vi->vert_positions = nullptr;
+    vi->vert_positions = {};
 
     vi->bi = 0;
     vi->bm_cur_set = 0;
@@ -3729,13 +3758,13 @@ void BKE_pbvh_parallel_range_settings(TaskParallelSettings *settings,
 float (*BKE_pbvh_get_vert_positions(const PBVH *pbvh))[3]
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return pbvh->vert_positions;
+  return reinterpret_cast<float(*)[3]>(pbvh->vert_positions.data());
 }
 
 const float (*BKE_pbvh_get_vert_normals(const PBVH *pbvh))[3]
 {
   BLI_assert(pbvh->header.type == PBVH_FACES);
-  return pbvh->vert_normals;
+  return reinterpret_cast<const float(*)[3]>(pbvh->vert_normals.data());
 }
 
 const bool *BKE_pbvh_get_vert_hide(const PBVH *pbvh)
@@ -4254,22 +4283,22 @@ void set_vert_boundary_map(PBVH *pbvh, BLI_bitmap *vert_boundary_map)
   pbvh->vert_boundary_map = vert_boundary_map;
 }
 
-void update_edge_boundary_grids(int edge,
-                                Span<blender::int2> edges,
-                                OffsetIndices<int> polys,
-                                int *edge_boundary_flags,
-                                const int *vert_boundary_flags,
-                                const int *face_sets,
-                                const bool *sharp_edge,
-                                const bool *seam_edge,
-                                const GroupedSpan<int> &pmap,
-                                const GroupedSpan<int> &epmap,
-                                const CustomData *ldata,
-                                SubdivCCG *subdiv_ccg,
-                                const CCGKey *key,
-                                float sharp_angle_limit,
-                                blender::Span<int> corner_verts,
-                                blender::Span<int> corner_edges)
+void update_edge_boundary_grids(int /*edge*/,
+                                Span<blender::int2> /*edges*/,
+                                OffsetIndices<int> /*polys*/,
+                                int * /*edge_boundary_flags*/,
+                                const int * /*vert_boundary_flags*/,
+                                const int * /*face_sets*/,
+                                const bool * /*sharp_edge*/,
+                                const bool * /*seam_edge*/,
+                                const GroupedSpan<int> & /*pmap*/,
+                                const GroupedSpan<int> & /*epmap*/,
+                                const CustomData * /*ldata*/,
+                                SubdivCCG * /*subdiv_ccg*/,
+                                const CCGKey * /*key*/,
+                                float /*sharp_angle_limit*/,
+                                blender::Span<int> /*corner_verts*/,
+                                blender::Span<int> /*corner_edges*/)
 {
   //
 }
@@ -4413,7 +4442,6 @@ void set_original(PBVH *pbvh, Span<float3> origco, Span<float3> origno)
 void update_vert_boundary_faces(int *boundary_flags,
                                 const int *face_sets,
                                 const bool *hide_poly,
-                                const float (*/*vert_positions*/)[3],
                                 const int2 * /*medge*/,
                                 const int *corner_verts,
                                 const int *corner_edges,
@@ -4631,10 +4659,11 @@ void BKE_pbvh_distort_correction_set(PBVH *pbvh, eAttrCorrectMode value)
 {
   /* Condition to update UV boundaries.*/
   bool update = !pbvh->distort_correction_mode != !value;
-
   pbvh->distort_correction_mode = value;
 
-  pbvh_boundaries_flag_update(pbvh);
+  if (update) {
+    pbvh_boundaries_flag_update(pbvh);
+  }
 }
 
 void BKE_pbvh_set_bmesh(PBVH *pbvh, BMesh *bm)
@@ -4672,7 +4701,7 @@ void BKE_pbvh_node_num_loops(PBVH *pbvh, PBVHNode *node, int *r_totloop)
   }
 }
 
-void BKE_pbvh_update_active_vcol(PBVH *pbvh, const Mesh *mesh)
+void BKE_pbvh_update_active_vcol(PBVH *pbvh, Mesh *mesh)
 {
   CustomDataLayer *last_layer = pbvh->color_layer;
 
@@ -5164,7 +5193,6 @@ bool check_vert_boundary(PBVH *pbvh, PBVHVertRef vertex)
         update_vert_boundary_faces(pbvh->boundary_flags,
                                    pbvh->face_sets,
                                    pbvh->hide_poly,
-                                   pbvh->vert_positions,
                                    nullptr,
                                    pbvh->corner_verts,
                                    pbvh->corner_edges,
@@ -5222,8 +5250,8 @@ bool check_edge_boundary(PBVH *pbvh, PBVHEdgeRef edge)
       }
       if (pbvh->edge_boundary_flags[edge.i] &
           (SCULPT_BOUNDARY_NEEDS_UPDATE | SCULPT_BOUNDARY_UPDATE_UV)) {
-        Span<float3> cos = {reinterpret_cast<float3 *>(pbvh->vert_positions), pbvh->totvert};
-        Span<float3> nos = {reinterpret_cast<float3 *>(pbvh->vert_normals), pbvh->totvert};
+        Span<float3> cos = pbvh->vert_positions;
+        Span<float3> nos = pbvh->vert_normals;
 
         update_edge_boundary_faces(edge.i,
                                    cos,

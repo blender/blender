@@ -606,29 +606,28 @@ void WM_file_autoexec_init(const char *filepath)
   }
 }
 
-void wm_file_read_report(bContext *C, Main *bmain)
+void wm_file_read_report(Main *bmain, wmWindow *win)
 {
-  ReportList *reports = nullptr;
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  ReportList *reports = &wm->reports;
+  bool found = false;
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->r.engine[0] &&
         BLI_findstring(&R_engines, scene->r.engine, offsetof(RenderEngineType, idname)) == nullptr)
     {
-      if (reports == nullptr) {
-        reports = CTX_wm_reports(C);
-      }
-
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Engine '%s' not available for scene '%s' (an add-on may need to be installed "
                   "or enabled)",
                   scene->r.engine,
                   scene->id.name + 2);
+      found = true;
     }
   }
 
-  if (reports) {
+  if (found) {
     if (!G.background) {
-      WM_report_banner_show();
+      WM_report_banner_show(wm, win);
     }
   }
 }
@@ -781,7 +780,7 @@ static void wm_file_read_post(bContext *C, const wmFileReadPost_Params *params)
   /* report any errors.
    * currently disabled if addons aren't yet loaded */
   if (addons_loaded) {
-    wm_file_read_report(C, bmain);
+    wm_file_read_report(bmain, static_cast<wmWindow *>(wm->windows.first));
   }
 
   if (use_data) {
@@ -1909,6 +1908,12 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
 
+  /* Process above may reset non-overridable properties that are indirectly edited (e.g. through
+   * animation or drivers). With system overrides IDs, this can now include transform of most
+   * objects in an asset. While this is the correct behavior in absolute, it gives (very) bad user
+   * experience, so just update again depsgraph after it. */
+  DEG_graph_tag_on_visible_update(CTX_data_depsgraph_pointer(C), true);
+
   /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
    * But we can crash if saving from a script, see #92704 & #97627.
    * Just checking `!G.background && BLI_thread_is_main()` is not sufficient to fix this.
@@ -2134,7 +2139,7 @@ static void wm_autosave_timer_begin_ex(wmWindowManager *wm, double timestep)
   wm_autosave_timer_end(wm);
 
   if (U.flag & USER_AUTOSAVE) {
-    wm->autosavetimer = WM_event_add_timer(wm, nullptr, TIMERAUTOSAVE, timestep);
+    wm->autosavetimer = WM_event_timer_add(wm, nullptr, TIMERAUTOSAVE, timestep);
   }
 }
 
@@ -2146,7 +2151,7 @@ void wm_autosave_timer_begin(wmWindowManager *wm)
 void wm_autosave_timer_end(wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
-    WM_event_remove_timer(wm, nullptr, wm->autosavetimer);
+    WM_event_timer_remove(wm, nullptr, wm->autosavetimer);
     wm->autosavetimer = nullptr;
   }
 }
@@ -3307,7 +3312,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  if (RNA_boolean_get(op->ptr, "incremental")) {
+  if ((is_save_as == false) && RNA_boolean_get(op->ptr, "incremental")) {
     char head[FILE_MAXFILE], tail[FILE_MAXFILE];
     ushort digits;
     int num = BLI_path_sequence_decode(filepath, head, sizeof(head), tail, sizeof(tail), &digits);
@@ -3783,6 +3788,7 @@ static void wm_block_file_close_discard(bContext *C, void *arg_block, void *arg_
 static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_data)
 {
   const Main *bmain = CTX_data_main(C);
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
   wmGenericCallback *callback = WM_generic_callback_steal((wmGenericCallback *)arg_data);
   bool execute_callback = true;
 
@@ -3794,7 +3800,7 @@ static void wm_block_file_close_save(bContext *C, void *arg_block, void *arg_dat
     if (ED_image_should_save_modified(bmain)) {
       ReportList *reports = CTX_wm_reports(C);
       ED_image_save_all_modified(C, reports);
-      WM_report_banner_show();
+      WM_report_banner_show(wm, win);
     }
     else {
       execute_callback = false;

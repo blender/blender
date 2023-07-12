@@ -218,7 +218,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
   /* image template */
   PointerRNA ptr;
   RNA_pointer_create(NULL, &RNA_ImageFormatSettings, &scd->im_format, &ptr);
-  uiTemplateImageSettings(layout, &ptr, false, true);
+  uiTemplateImageSettings(layout, &ptr, false);
 
   /* main draw call */
   uiDefAutoButsRNA(

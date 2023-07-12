@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup imbuf
+ */
+
 #include "oiio/openimageio_support.hh"
 
 #include "IMB_filetype.h"

@@ -1343,8 +1343,11 @@ float paint_grid_paint_mask(const GridPaintMask *gpm, uint level, uint x, uint y
   return gpm->data[(y * factor) * gridsize + (x * factor)];
 }
 
-/* Threshold to move before updating the brush rotation. */
-#define RAKE_THRESHHOLD 20
+/* Threshold to move before updating the brush rotation, reduces jitter. */
+static float paint_rake_rotation_spacing(UnifiedPaintSettings * /*ups*/, Brush *brush)
+{
+  return brush->sculpt_tool == SCULPT_TOOL_CLAY_STRIPS ? 1.0f : 20.0f;
+}
 
 void paint_update_brush_rake_rotation(UnifiedPaintSettings *ups, Brush *brush, float rotation)
 {
@@ -1373,11 +1376,11 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
                                    Brush *brush,
                                    const float mouse_pos[2],
                                    const float initial_mouse_pos[2],
-                                   ePaintMode paint_mode)
+                                   ePaintMode paint_mode,
+                                   bool stroke_has_started)
 {
   bool ok = false;
   if (paint_rake_rotation_active(*brush, paint_mode)) {
-    const float r = RAKE_THRESHHOLD;
     float rotation;
 
     if (brush->flag & BRUSH_DRAG_DOT) {
@@ -1393,9 +1396,17 @@ bool paint_calculate_rake_rotation(UnifiedPaintSettings *ups,
       }
     }
 
+    float r = paint_rake_rotation_spacing(ups, brush);
+
+    /* Use a smaller limit if the stroke hasn't started to prevent excessive pre-roll. */
+    if (!stroke_has_started) {
+      r = min_ff(r, 4.0f);
+    }
+
     float dpos[2];
     sub_v2_v2v2(dpos, ups->last_rake, mouse_pos);
 
+    /* Limit how often we update the angle to prevent jitter. */
     if (len_squared_v2(dpos) >= r * r) {
       rotation = atan2f(dpos[0], dpos[1]);
 
@@ -1684,9 +1695,6 @@ void BKE_sculptsession_free(Object *ob)
       ss->bm = nullptr;
     }
 
-    CustomData_free(&ss->temp_vdata, ss->temp_vdata_elems);
-    CustomData_free(&ss->temp_pdata, ss->temp_pdata_elems);
-
     sculptsession_free_pbvh(ob);
 
     if (ss->bm_log) {
@@ -1934,9 +1942,9 @@ static void sculpt_update_object(
     ss->totloops = me->totloop;
     ss->totedges = me->totedge;
 
-    /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
-     * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
+    /* These are assigned to the base mesh in Multires. This is needed because Face Sets
+     * operators and tools use the Face Sets data from the base mesh when Multires is active. */
+    ss->vert_positions = me->vert_positions_for_write();
     ss->polys = me->polys();
     ss->edges = me->edges();
     ss->corner_verts = me->corner_verts();
@@ -1948,7 +1956,8 @@ static void sculpt_update_object(
     ss->totfaces = me->totpoly;
     ss->totloops = me->totloop;
     ss->totedges = me->totedge;
-    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
+
+    ss->vert_positions = me->vert_positions_for_write();
 
     ss->sharp_edge = (bool *)CustomData_get_layer_named_for_write(
         &me->edata, CD_PROP_BOOL, "sharp_edge", me->totedge);
@@ -1974,9 +1983,6 @@ static void sculpt_update_object(
     CustomDataLayer *layer;
     eAttrDomain domain;
 
-    /* Do not pass ss->pbvh to BKE_pbvh_get_color_layer,
-     * if it does exist it might not be PBVH_GRIDS.
-     */
     if (BKE_pbvh_get_color_layer(nullptr, me, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);
@@ -2057,11 +2063,9 @@ static void sculpt_update_object(
   BKE_pbvh_update_active_vcol(pbvh, me);
 
   if (BKE_pbvh_type(pbvh) == PBVH_FACES) {
-    ss->vert_normals = BKE_pbvh_get_vert_normals(ss->pbvh);
     ss->poly_normals = blender::bke::pbvh::get_poly_normals(ss->pbvh);
   }
   else {
-    ss->vert_normals = nullptr;
     ss->poly_normals = {};
   }
 
@@ -2098,7 +2102,8 @@ static void sculpt_update_object(
       Mesh *me_eval_deform = ob_eval->runtime.mesh_deform_eval;
 
       /* If the fully evaluated mesh has the same topology as the deform-only version, use it.
-       * This matters because crazyspace evaluation is very restrictive and excludes even modifiers
+       * This matters because crazyspace evaluation is very restrictive and excludes even
+       * modifiers
        * that simply recompute vertex weights (which can even include Geometry Nodes). */
       if (me_eval_deform->totpoly == me_eval->totpoly &&
           me_eval_deform->totloop == me_eval->totloop &&
@@ -2791,12 +2796,6 @@ static PBVH *build_pbvh_from_ccg(Object *ob, SubdivCCG *subdiv_ccg)
                        subdiv_ccg);
 
   blender::bke::pbvh::sharp_limit_set(pbvh, ss->sharp_angle_limit);
-
-  CustomData_reset(&ob->sculpt->temp_vdata);
-  CustomData_reset(&ob->sculpt->temp_pdata);
-
-  ss->temp_vdata_elems = BKE_pbvh_get_grid_num_verts(pbvh);
-  ss->temp_pdata_elems = ss->totfaces;
 
   if (ss->pmap.is_empty()) {
     ss->pmap = blender::bke::mesh::build_vert_to_poly_map(base_mesh->polys(),
@@ -3946,7 +3945,8 @@ static void sculpt_attribute_update_refs(Object *ob)
 {
   SculptSession *ss = ob->sculpt;
 
-  /* Run twice, in case sculpt_attr_update had to recreate a layer and messed up #BMesh offsets. */
+  /* Run twice, in case sculpt_attr_update had to recreate a layer and messed up #BMesh offsets.
+   */
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < SCULPT_MAX_ATTRIBUTES; j++) {
       SculptAttribute *attr = ss->temp_attributes + j;

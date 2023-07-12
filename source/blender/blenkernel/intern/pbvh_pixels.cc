@@ -670,11 +670,10 @@ static bool update_pixels(PBVH *pbvh, Mesh *mesh, Image *image, ImageUser *image
   const AttributeAccessor attributes = mesh->attributes();
   const VArraySpan uv_map = *attributes.lookup<float2>(active_uv_name, ATTR_DOMAIN_CORNER);
 
-  uv_islands::MeshData mesh_data(
-      {pbvh->looptri, pbvh->totprim},
-      {pbvh->corner_verts, mesh->totloop},
-      uv_map,
-      {static_cast<blender::float3 *>(static_cast<void *>(pbvh->vert_positions)), pbvh->totvert});
+  uv_islands::MeshData mesh_data({pbvh->looptri, pbvh->totprim},
+                                 {pbvh->corner_verts, mesh->totloop},
+                                 uv_map,
+                                 pbvh->vert_positions);
   uv_islands::UVIslands islands(mesh_data);
 
   uv_islands::UVIslandsMask uv_masks;

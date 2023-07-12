@@ -68,7 +68,7 @@ typedef struct LogImageFile {
   float referenceWhite;
   float gamma;
 
-  /* io stuff */
+  /* IO stuff. */
   FILE *file;
   unsigned char *memBuffer;
   uintptr_t memBufferSize;

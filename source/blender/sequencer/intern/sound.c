@@ -139,7 +139,7 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
 
 float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
 {
-  Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
+  const Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
   if (meta_parent != NULL) {
     return seq->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }

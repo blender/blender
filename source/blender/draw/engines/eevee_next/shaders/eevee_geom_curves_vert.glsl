@@ -41,9 +41,9 @@ void main()
   velocity_local_pos_get(pos, vert_idx, prv, nxt);
   /* FIXME(fclem): Evaluating before displacement avoid displacement being treated as motion but
    * ignores motion from animated displacement. Supporting animated displacement motion vectors
-   * would require evaluating the nodetree multiple time with different nodetree UBOs evaluated at
-   * different times, but also with different attributes (maybe we could assume static attribute at
-   * least). */
+   * would require evaluating the node-tree multiple time with different node-tree UBOs evaluated
+   * at different times, but also with different attributes (maybe we could assume static attribute
+   * at least). */
   velocity_vertex(prv, pos, nxt, motion.prev, motion.next);
 #endif
 

@@ -1029,31 +1029,31 @@ void BKE_curveprofile_evaluate_length_portion(const CurveProfile *profile,
 
   /* Find the last point along the path with a lower length portion than the input. */
   int i = 0;
-  float length_travelled = 0.0f;
-  while (length_travelled < requested_length) {
+  float length_traveled = 0.0f;
+  while (length_traveled < requested_length) {
     /* Check if we reached the last point before the final one. */
     if (i == BKE_curveprofile_table_size(profile) - 2) {
       break;
     }
     float new_length = curveprofile_distance_to_next_table_point(profile, i);
-    if (length_travelled + new_length >= requested_length) {
+    if (length_traveled + new_length >= requested_length) {
       break;
     }
-    length_travelled += new_length;
+    length_traveled += new_length;
     i++;
   }
 
   /* Now travel the remaining distance of length portion down the path to the next point and
    * find the location where we stop. */
   float distance_to_next_point = curveprofile_distance_to_next_table_point(profile, i);
-  float lerp_factor = (requested_length - length_travelled) / distance_to_next_point;
+  float lerp_factor = (requested_length - length_traveled) / distance_to_next_point;
 
 #ifdef DEBUG_CURVEPROFILE_EVALUATE
   printf("CURVEPROFILE EVALUATE\n");
   printf("  length portion input: %f\n", double(length_portion));
   printf("  requested path length: %f\n", double(requested_length));
   printf("  distance to next point: %f\n", double(distance_to_next_point));
-  printf("  length travelled: %f\n", double(length_travelled));
+  printf("  length traveled: %f\n", double(length_traveled));
   printf("  lerp-factor: %f\n", double(lerp_factor));
   printf("  ith point (%f, %f)\n", double(profile->path[i].x), double(profile->path[i].y));
   printf("  next point(%f, %f)\n", double(profile->path[i + 1].x), double(profile->path[i + 1].y));

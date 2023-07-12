@@ -27,7 +27,12 @@
 #define CULLING_TILE_GROUP_SIZE 256
 
 /* Reflection Probes. */
+#define REFLECTION_PROBES_MAX 256
 #define REFLECTION_PROBE_GROUP_SIZE 16
+/* Number of additional pixels on the border of an octahedral map to reserve for fixing seams.
+ * Border size requires depends on the max number of mipmap levels. */
+#define REFLECTION_PROBE_MIPMAP_LEVELS 5
+#define REFLECTION_PROBE_BORDER_SIZE float(1 << (REFLECTION_PROBE_MIPMAP_LEVELS - 1))
 
 /**
  * IMPORTANT: Some data packing are tweaked for these values.
@@ -133,6 +138,9 @@
 #define HIZ_BUF_SLOT 3
 #define IRRADIANCE_GRID_BUF_SLOT 4
 #define AO_BUF_SLOT 5
+/* SLOT 6 is used by render shaders (Film, DoF and Motion Blur). Need to check if it should be
+ * assigned a different slot. */
+#define REFLECTION_PROBE_BUF_SLOT 7
 /* Only during pre-pass. */
 #define VELOCITY_CAMERA_PREV_BUF 3
 #define VELOCITY_CAMERA_CURR_BUF 4

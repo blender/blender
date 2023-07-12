@@ -10,7 +10,6 @@
 
 #include <cstring>
 
-#include "AS_asset_representation.h"
 #include "AS_asset_representation.hh"
 
 #include "DNA_asset_types.h"
@@ -202,6 +201,7 @@ wmDrag *WM_drag_data_create(
         WM_drag_add_local_ID(drag, static_cast<ID *>(poin), nullptr);
       }
       break;
+    case WM_DRAG_GREASE_PENCIL_LAYER:
     case WM_DRAG_ASSET:
     case WM_DRAG_ASSET_CATALOG:
       /* Move ownership of poin to wmDrag. */
@@ -569,7 +569,8 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode)
   return WM_drag_get_local_ID(drag, idcode) || WM_drag_get_asset_data(drag, idcode);
 }
 
-wmDragAsset *WM_drag_create_asset_data(const AssetRepresentation *asset, int import_type)
+wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
+                                       int import_type)
 {
   wmDragAsset *asset_drag = MEM_new<wmDragAsset>(__func__);
 
@@ -591,7 +592,7 @@ wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode)
   }
 
   wmDragAsset *asset_drag = static_cast<wmDragAsset *>(drag->poin);
-  ID_Type asset_idcode = AS_asset_representation_id_type_get(asset_drag->asset);
+  ID_Type asset_idcode = asset_drag->asset->get_id_type();
   return ELEM(idcode, 0, asset_idcode) ? asset_drag : nullptr;
 }
 
@@ -599,7 +600,7 @@ AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode)
 {
   wmDragAsset *drag_asset = WM_drag_get_asset_data(drag, idcode);
   if (drag_asset) {
-    return AS_asset_representation_metadata_get(drag_asset->asset);
+    return &drag_asset->asset->get_metadata();
   }
 
   ID *local_id = WM_drag_get_local_ID(drag, idcode);
@@ -617,10 +618,10 @@ ID *WM_drag_asset_id_import(wmDragAsset *asset_drag, const int flag_extra)
   eFileSel_Params_Flag flag = static_cast<eFileSel_Params_Flag>(flag_extra) |
                               FILE_ACTIVE_COLLECTION;
 
-  const char *name = AS_asset_representation_name_get(asset_drag->asset);
-  const std::string blend_path = AS_asset_representation_full_library_path_get(asset_drag->asset);
-  const ID_Type idtype = AS_asset_representation_id_type_get(asset_drag->asset);
-  const bool use_relative_path = AS_asset_representation_use_relative_path_get(asset_drag->asset);
+  const char *name = asset_drag->asset->get_name().c_str();
+  const std::string blend_path = asset_drag->asset->get_identifier().full_library_path();
+  const ID_Type idtype = asset_drag->asset->get_id_type();
+  const bool use_relative_path = asset_drag->asset->get_use_relative_path();
 
   /* FIXME: Link/Append should happens in the operator called at the end of drop process, not from
    * here. */
@@ -707,7 +708,7 @@ void WM_drag_free_imported_drag_ID(Main *bmain, wmDrag *drag, wmDropBox *drop)
     return;
   }
 
-  ID_Type asset_id_type = AS_asset_representation_id_type_get(asset_drag->asset);
+  ID_Type asset_id_type = asset_drag->asset->get_id_type();
   /* Try to find the imported ID. For this to work either a "session_uuid" or "name" property must
    * have been defined (see #WM_operator_properties_id_lookup()). */
   ID *id = WM_operator_properties_id_lookup_from_name_or_session_uuid(
@@ -730,7 +731,8 @@ wmDragAssetCatalog *WM_drag_get_asset_catalog_data(const wmDrag *drag)
   return static_cast<wmDragAssetCatalog *>(drag->poin);
 }
 
-void WM_drag_add_asset_list_item(wmDrag *drag, const AssetRepresentation *asset)
+void WM_drag_add_asset_list_item(wmDrag *drag,
+                                 const blender::asset_system::AssetRepresentation *asset)
 {
   BLI_assert(drag->type == WM_DRAG_ASSET_LIST);
 
@@ -738,7 +740,7 @@ void WM_drag_add_asset_list_item(wmDrag *drag, const AssetRepresentation *asset)
 
   /* Add to list. */
   wmDragAssetListItem *drag_asset = MEM_cnew<wmDragAssetListItem>(__func__);
-  ID *local_id = AS_asset_representation_local_id_get(asset);
+  ID *local_id = asset->local_id();
   if (local_id) {
     drag_asset->is_external = false;
     drag_asset->asset_data.local_id = local_id;
@@ -841,7 +843,7 @@ const char *WM_drag_get_item_name(wmDrag *drag)
     }
     case WM_DRAG_ASSET: {
       const wmDragAsset *asset_drag = WM_drag_get_asset_data(drag, 0);
-      return AS_asset_representation_name_get(asset_drag->asset);
+      return asset_drag->asset->get_name().c_str();
     }
     case WM_DRAG_PATH: {
       const wmDragPath *path_drag_data = static_cast<const wmDragPath *>(drag->poin);

@@ -774,39 +774,38 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
   if (shader->reference_count()) {
     CompilerState state(graph);
-    if (clin->link) {
-      bool generate = false;
 
-      switch (type) {
-        case SHADER_TYPE_SURFACE: /* generate surface shader */
-          generate = true;
+    switch (type) {
+      case SHADER_TYPE_SURFACE: /* generate surface shader */
+        find_aov_nodes_and_dependencies(state.aov_nodes, graph, &state);
+        if (clin->link || state.aov_nodes.size() > 0) {
           shader->has_surface = true;
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_SURFACE;
-          break;
-        case SHADER_TYPE_VOLUME: /* generate volume shader */
-          generate = true;
+        }
+        break;
+      case SHADER_TYPE_VOLUME: /* generate volume shader */
+        if (clin->link) {
           shader->has_volume = true;
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_VOLUME;
-          break;
-        case SHADER_TYPE_DISPLACEMENT: /* generate displacement shader */
-          generate = true;
+        }
+        break;
+      case SHADER_TYPE_DISPLACEMENT: /* generate displacement shader */
+        if (clin->link) {
           shader->has_displacement = true;
           state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_DISPLACEMENT;
-          break;
-        case SHADER_TYPE_BUMP: /* generate bump shader */
-          generate = true;
-          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_BUMP;
-          break;
-        default:
-          break;
-      }
-
-      if (generate) {
-        if (type == SHADER_TYPE_SURFACE) {
-          find_aov_nodes_and_dependencies(state.aov_nodes, graph, &state);
         }
-        generate_multi_closure(clin->link->parent, clin->link->parent, &state);
-      }
+        break;
+      case SHADER_TYPE_BUMP: /* generate bump shader */
+        if (clin->link) {
+          state.node_feature_mask = KERNEL_FEATURE_NODE_MASK_BUMP;
+        }
+        break;
+      default:
+        break;
+    }
+
+    if (clin->link) {
+      generate_multi_closure(clin->link->parent, clin->link->parent, &state);
     }
 
     /* compile output node */

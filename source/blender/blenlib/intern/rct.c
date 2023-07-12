@@ -572,6 +572,21 @@ void BLI_rctf_translate(rctf *rect, float x, float y)
   rect->ymax += y;
 }
 
+void BLI_rcti_mul(rcti *rect, const int factor)
+{
+  rect->xmin *= factor;
+  rect->ymin *= factor;
+  rect->xmax *= factor;
+  rect->ymax *= factor;
+}
+void BLI_rctf_mul(rctf *rect, const float factor)
+{
+  rect->xmin *= factor;
+  rect->ymin *= factor;
+  rect->xmax *= factor;
+  rect->ymax *= factor;
+}
+
 void BLI_rcti_recenter(rcti *rect, int x, int y)
 {
   const int dx = x - BLI_rcti_cent_x(rect);

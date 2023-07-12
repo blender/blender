@@ -28,7 +28,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 
@@ -676,6 +675,14 @@ void ntreeBlendWrite(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_string(writer, item.name);
       }
     }
+    if (node->type == GEO_NODE_REPEAT_OUTPUT) {
+      const NodeGeometryRepeatOutput &storage = *static_cast<const NodeGeometryRepeatOutput *>(
+          node->storage);
+      BLO_write_struct_array(writer, NodeRepeatItem, storage.items_num, storage.items);
+      for (const NodeRepeatItem &item : Span(storage.items, storage.items_num)) {
+        BLO_write_string(writer, item.name);
+      }
+    }
   }
 
   LISTBASE_FOREACH (bNodeLink *, link, &ntree->links) {
@@ -868,6 +875,15 @@ void ntreeBlendReadData(BlendDataReader *reader, ID *owner_id, bNodeTree *ntree)
               node->storage);
           BLO_read_data_address(reader, &storage.items);
           for (const NodeSimulationItem &item : Span(storage.items, storage.items_num)) {
+            BLO_read_data_address(reader, &item.name);
+          }
+          break;
+        }
+        case GEO_NODE_REPEAT_OUTPUT: {
+          NodeGeometryRepeatOutput &storage = *static_cast<NodeGeometryRepeatOutput *>(
+              node->storage);
+          BLO_read_data_address(reader, &storage.items);
+          for (const NodeRepeatItem &item : Span(storage.items, storage.items_num)) {
             BLO_read_data_address(reader, &item.name);
           }
           break;
@@ -3594,8 +3610,6 @@ bNodeTree **BKE_ntree_ptr_from_id(ID *id)
       return &reinterpret_cast<Scene *>(id)->nodetree;
     case ID_LS:
       return &reinterpret_cast<FreestyleLineStyle *>(id)->nodetree;
-    case ID_SIM:
-      return &reinterpret_cast<Simulation *>(id)->nodetree;
     default:
       return nullptr;
   }
@@ -4726,7 +4740,6 @@ void BKE_node_tree_iter_init(NodeTreeIterStore *ntreeiter, Main *bmain)
   ntreeiter->light = (Light *)bmain->lights.first;
   ntreeiter->world = (World *)bmain->worlds.first;
   ntreeiter->linestyle = (FreestyleLineStyle *)bmain->linestyles.first;
-  ntreeiter->simulation = (Simulation *)bmain->simulations.first;
 }
 bool BKE_node_tree_iter_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetree, ID **r_id)
 {
@@ -4765,11 +4778,6 @@ bool BKE_node_tree_iter_step(NodeTreeIterStore *ntreeiter, bNodeTree **r_nodetre
     *r_nodetree = reinterpret_cast<bNodeTree *>(ntreeiter->linestyle->nodetree);
     *r_id = &ntreeiter->linestyle->id;
     ntreeiter->linestyle = reinterpret_cast<FreestyleLineStyle *>(ntreeiter->linestyle->id.next);
-  }
-  else if (ntreeiter->simulation) {
-    *r_nodetree = reinterpret_cast<bNodeTree *>(ntreeiter->simulation->nodetree);
-    *r_id = &ntreeiter->simulation->id;
-    ntreeiter->simulation = reinterpret_cast<Simulation *>(ntreeiter->simulation->id.next);
   }
   else {
     return false;

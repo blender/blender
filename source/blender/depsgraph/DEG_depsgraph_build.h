@@ -24,7 +24,6 @@ struct ID;
 struct Main;
 struct Object;
 struct Scene;
-struct Simulation;
 struct bNodeTree;
 
 #include "BLI_sys_types.h"
@@ -135,9 +134,6 @@ void DEG_add_collection_geometry_relation(struct DepsNodeHandle *node_handle,
 void DEG_add_collection_geometry_customdata_mask(struct DepsNodeHandle *node_handle,
                                                  struct Collection *collection,
                                                  const struct CustomData_MeshMasks *masks);
-void DEG_add_simulation_relation(struct DepsNodeHandle *node_handle,
-                                 struct Simulation *simulation,
-                                 const char *description);
 void DEG_add_node_tree_output_relation(struct DepsNodeHandle *node_handle,
                                        struct bNodeTree *node_tree,
                                        const char *description);

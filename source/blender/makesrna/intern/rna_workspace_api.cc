@@ -122,7 +122,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
   PropertyRNA *parm;
   FunctionRNA *func;
 
-  static EnumPropertyItem options_items[] = {
+  static const EnumPropertyItem options_items[] = {
       {TOOLREF_FLAG_FALLBACK_KEYMAP, "KEYMAP_FALLBACK", 0, "Fallback", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };

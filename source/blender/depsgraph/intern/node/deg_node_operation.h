@@ -120,7 +120,7 @@ enum class OperationCode {
   /* Bone. ---------------------------------------------------------------- */
   /* Bone local transforms - entry point */
   BONE_LOCAL,
-  /* Pose-space conversion (includes parent + restpose, */
+  /* Pose-space conversion (includes parent + rest-pose. */
   BONE_POSE_PARENT,
   /* Constraints */
   BONE_CONSTRAINTS,
@@ -199,9 +199,6 @@ enum class OperationCode {
 
   /* Duplication/instancing system. --------------------------------------- */
   DUPLI,
-
-  /* Simulation. ---------------------------------------------------------- */
-  SIMULATION_EVAL,
 };
 const char *operationCodeAsString(OperationCode opcode);
 

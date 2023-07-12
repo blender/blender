@@ -178,9 +178,8 @@ float Light::shape_radiance_get(const ::Light *la)
       if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
         area *= M_PI / 4.0f;
       }
-      /* NOTE: The 4 factor is from Cycles definition of power. */
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return 1.0f / (4.0f * area);
+      /* Convert radiant flux to radiance. */
+      return float(M_1_PI) / area;
     }
     case LA_SPOT:
     case LA_LOCAL: {
@@ -191,14 +190,9 @@ float Light::shape_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* Disk area. */
-      float area = float(M_PI) * square_f(_radius);
-      /* Make illumination power closer to cycles for bigger radii. Cycles uses a cos^3 term that
-       * we cannot reproduce so we account for that by scaling the light power. This function is
-       * the result of a rough manual fitting. */
-      float sun_scaling = 1.0f + square_f(_radius) / 2.0f;
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return sun_scaling / area;
+      float inv_sin_sq = 1.0f + 1.0f / square_f(_radius);
+      /* Convert irradiance to radiance. */
+      return float(M_1_PI) * inv_sin_sq;
     }
   }
 }
@@ -214,9 +208,7 @@ float Light::point_radiance_get(const ::Light *la)
       float tmp = M_PI_2 / (M_PI_2 + sqrtf(area));
       /* Lerp between 1.0 and the limit (1 / pi). */
       float mrp_scaling = tmp + (1.0f - tmp) * M_1_PI;
-      /* NOTE: The 4 factor is from Cycles definition of power. */
-      /* NOTE: Missing a factor of PI here to match Cycles. */
-      return mrp_scaling / 4.0f;
+      return float(M_1_PI) * mrp_scaling;
     }
     case LA_SPOT:
     case LA_LOCAL: {
@@ -226,7 +218,6 @@ float Light::point_radiance_get(const ::Light *la)
     }
     default:
     case LA_SUN: {
-      /* NOTE: Missing a factor of PI here to match Cycles. */
       return 1.0f;
     }
   }

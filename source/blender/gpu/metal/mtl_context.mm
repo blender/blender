@@ -385,7 +385,7 @@ void MTLContext::end_frame()
   is_inside_frame_ = false;
 }
 
-void MTLContext::check_error(const char *info)
+void MTLContext::check_error(const char * /*info*/)
 {
   /* TODO(Metal): Implement. */
 }
@@ -1093,7 +1093,7 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
 /* Bind UBOs and SSBOs to an active render command encoder using the rendering state of the
  * current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLRenderCommandEncoder> rec,
+    id<MTLRenderCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLRenderPipelineStateInstance *pipeline_state_instance)
 {
@@ -1338,7 +1338,7 @@ bool MTLContext::ensure_buffer_bindings(
 /* Variant for compute. Bind UBOs and SSBOs to an active compute command encoder using the
  * rendering state of the current context -> Active shader, Bound UBOs). */
 bool MTLContext::ensure_buffer_bindings(
-    id<MTLComputeCommandEncoder> rec,
+    id<MTLComputeCommandEncoder> /*rec*/,
     const MTLShaderInterface *shader_interface,
     const MTLComputePipelineStateInstance &pipeline_state_instance)
 {
@@ -1516,6 +1516,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLRenderPassState &rps = this->main_command_buffer.get_render_pass_state();
@@ -1752,6 +1753,7 @@ void MTLContext::ensure_texture_bindings(
 {
   BLI_assert(shader_interface != nil);
   BLI_assert(rec != nil);
+  UNUSED_VARS_NDEBUG(rec);
 
   /* Fetch Render Pass state. */
   MTLComputeState &cs = this->main_command_buffer.get_compute_state();
@@ -2597,7 +2599,7 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
 
   /* Increment free pool reference and decrement upon command buffer completion. */
   cmd_free_buffer_list->increment_reference();
-  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> cb) {
+  [cmdbuf addCompletedHandler:^(id<MTLCommandBuffer> /*cb*/) {
     /* Flag freed buffers associated with this CMD buffer as ready to be freed. */
     cmd_free_buffer_list->decrement_reference();
     [cmd_buffer_ref release];

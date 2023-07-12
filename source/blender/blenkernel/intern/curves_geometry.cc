@@ -60,8 +60,8 @@ CurvesGeometry::CurvesGeometry(const int point_num, const int curve_num)
   CustomData_reset(&this->point_data);
   CustomData_reset(&this->curve_data);
 
-  CustomData_add_layer_named(
-      &this->point_data, CD_PROP_FLOAT3, CD_CONSTRUCT, this->point_num, ATTR_POSITION.c_str());
+  this->attributes_for_write().add<float3>(
+      "position", ATTR_DOMAIN_POINT, AttributeInitConstruct());
 
   this->runtime = MEM_new<CurvesGeometryRuntime>(__func__);
 

@@ -258,7 +258,8 @@ bool paint_calculate_rake_rotation(struct UnifiedPaintSettings *ups,
                                    struct Brush *brush,
                                    const float mouse_pos[2],
                                    const float initial_mouse_pos[2],
-                                   ePaintMode paint_mode);
+                                   ePaintMode paint_mode,
+                                   bool stroke_has_started);
 void paint_update_brush_rake_rotation(struct UnifiedPaintSettings *ups,
                                       struct Brush *brush,
                                       float rotation);
@@ -662,10 +663,8 @@ struct SculptSession {
   /* Depsgraph for the Cloth Brush solver to get the colliders. */
   struct Depsgraph *depsgraph;
 
-  CustomData temp_vdata, temp_pdata;
-  int temp_vdata_elems, temp_pdata_elems;
-
-  float (*vert_positions)[3];
+  /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::Span<blender::int2> edges;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
@@ -890,7 +889,6 @@ struct SculptSession {
   /* Used to derive initial tip rotation. */
   float last_grab_delta[3];
 
-  const float (*vert_normals)[3];
   blender::Span<blender::float3> poly_normals;
 
   int last_automasking_settings_hash;

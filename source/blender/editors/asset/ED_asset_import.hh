@@ -10,11 +10,19 @@
 
 #include "DNA_ID_enums.h"
 
+struct ID;
 struct Main;
 
 namespace blender::asset_system {
 class AssetRepresentation;
 }
 
-struct ID *ED_asset_get_local_id_from_asset_or_append_and_reuse(
-    Main *bmain, const blender::asset_system::AssetRepresentation &asset, ID_Type idtype);
+namespace blender::ed::asset {
+
+/**
+ * If the asset already has a corresponding local #ID, return it. Otherwise, link or append the
+ * asset's data-block, using "Append & Reuse" if the method is unspecified.
+ */
+ID *asset_local_id_ensure_imported(Main &bmain, const asset_system::AssetRepresentation &asset);
+
+}  // namespace blender::ed::asset

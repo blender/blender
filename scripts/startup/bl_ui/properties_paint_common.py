@@ -700,6 +700,9 @@ def brush_settings(layout, context, brush, popover=False):
             row = layout.row()
             row.prop(brush, "tip_roundness")
 
+            row = layout.row()
+            row.prop(brush, "tip_scale_x")
+
         elif sculpt_tool == 'ELASTIC_DEFORM':
             layout.separator()
             layout.prop(brush, "elastic_deform_type")

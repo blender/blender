@@ -415,12 +415,6 @@ struct ImageSampleInfo {
   float colf[4];
   float linearcol[4];
 
-  int z;
-  float zf;
-
-  int *zp;
-  float *zfp;
-
   int draw;
   int color_manage;
 };
@@ -440,9 +434,7 @@ static void sample_draw(const bContext *C, ARegion *region, void *arg_info)
                        info->y,
                        info->col,
                        info->colf,
-                       info->linearcol,
-                       info->zp,
-                       info->zfp);
+                       info->linearcol);
   }
 }
 
@@ -575,9 +567,6 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
     info->draw = 1;
     info->channels = ibuf->channels;
 
-    info->zp = nullptr;
-    info->zfp = nullptr;
-
     if (ibuf->byte_buffer.data) {
       cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
 
@@ -606,15 +595,6 @@ static void sample_apply(bContext *C, wmOperator *op, const wmEvent *event)
       info->colf[3] = fp[3];
 
       info->color_manage = true;
-    }
-
-    if (ibuf->z_buffer.data) {
-      info->z = ibuf->z_buffer.data[y * ibuf->x + x];
-      info->zp = &info->z;
-    }
-    if (ibuf->float_z_buffer.data) {
-      info->zf = ibuf->float_z_buffer.data[y * ibuf->x + x];
-      info->zfp = &info->zf;
     }
 
     ED_node_sample_set(info->colf);

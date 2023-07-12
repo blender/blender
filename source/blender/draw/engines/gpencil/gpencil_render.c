@@ -17,6 +17,8 @@
 
 #include "RE_pipeline.h"
 
+#include "IMB_imbuf_types.h"
+
 #include "gpencil_engine.h"
 
 void GPENCIL_render_init(GPENCIL_Data *vedata,
@@ -50,8 +52,8 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   RenderPass *rpass_z_src = RE_pass_find_by_name(render_layer, RE_PASSNAME_Z, viewname);
   RenderPass *rpass_col_src = RE_pass_find_by_name(render_layer, RE_PASSNAME_COMBINED, viewname);
 
-  float *pix_z = (rpass_z_src) ? rpass_z_src->buffer.data : NULL;
-  float *pix_col = (rpass_col_src) ? rpass_col_src->buffer.data : NULL;
+  float *pix_z = (rpass_z_src) ? rpass_z_src->ibuf->float_buffer.data : NULL;
+  float *pix_col = (rpass_col_src) ? rpass_col_src->ibuf->float_buffer.data : NULL;
 
   if (!pix_z || !pix_col) {
     RE_engine_set_error_message(engine,
@@ -161,7 +163,7 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
 
   if ((view_layer->passflag & SCE_PASS_Z) != 0) {
     RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
-    float *ro_buffer_data = rp->buffer.data;
+    float *ro_buffer_data = rp->ibuf->float_buffer.data;
 
     GPU_framebuffer_read_depth(vedata->fbl->render_fb,
                                rect->xmin,
@@ -223,7 +225,7 @@ static void GPENCIL_render_result_combined(RenderLayer *rl,
                              4,
                              0,
                              GPU_DATA_FLOAT,
-                             rp->buffer.data);
+                             rp->ibuf->float_buffer.data);
 }
 
 void GPENCIL_render_to_image(void *ved,
