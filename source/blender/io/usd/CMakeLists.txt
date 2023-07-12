@@ -152,6 +152,10 @@ endif()
 
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+if(COMMAND target_precompile_headers)
+  target_precompile_headers(bf_usd PRIVATE intern/usd_precomp.h)
+endif()
+
 if(WITH_GTESTS)
   set(TEST_SRC
     tests/usd_curves_test.cc
