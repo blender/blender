@@ -1253,7 +1253,9 @@ void LightManager::device_update_lights(Device *device, DeviceScene *dscene, Sce
       klights[light_index].distant.eval_fac = (light->normalize && angle > 0) ?
                                                   M_1_PI_F / sqr(sinf(angle)) :
                                                   1.0f;
-      klights[light_index].distant.half_inv_sin_half_angle = 0.5f / sinf(0.5f * angle);
+      klights[light_index].distant.half_inv_sin_half_angle = (angle == 0.0f) ?
+                                                                 0.0f :
+                                                                 0.5f / sinf(0.5f * angle);
     }
     else if (light->light_type == LIGHT_BACKGROUND) {
       uint visibility = scene->background->get_visibility();
