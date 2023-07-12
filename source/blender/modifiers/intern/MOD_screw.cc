@@ -179,7 +179,8 @@ static Mesh *mesh_remove_doubles_on_axis(Mesh *result,
      * Therefore the duplicate polygon test can be skipped. */
     result = geometry::mesh_merge_verts(*tmp,
                                         MutableSpan<int>{full_doubles_map, result->totvert},
-                                        int(tot_doubles * (step_tot - 1)));
+                                        int(tot_doubles * (step_tot - 1)),
+                                        false);
 
     BKE_id_free(nullptr, tmp);
     MEM_freeN(full_doubles_map);
