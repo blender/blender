@@ -261,7 +261,7 @@ void scene_simulation_states_reset(Scene &scene)
         continue;
       }
       NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
-      nmd->runtime->simulation_cache.reset();
+      nmd->runtime->simulation_cache->reset();
     }
   }
   FOREACH_SCENE_OBJECT_END;
