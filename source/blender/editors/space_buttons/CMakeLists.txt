@@ -19,10 +19,10 @@ set(INC_SYS
 )
 
 set(SRC
-  buttons_context.c
-  buttons_ops.c
+  buttons_context.cc
+  buttons_ops.cc
   buttons_texture.cc
-  space_buttons.c
+  space_buttons.cc
 
   buttons_intern.h
 )

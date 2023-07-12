@@ -154,6 +154,8 @@ typedef enum eSpaceInfo_RptMask {
 
 /** Properties Editor. */
 typedef struct SpaceProperties {
+  DNA_DEFINE_CXX_METHODS(SpaceProperties)
+
   SpaceLink *next, *prev;
   /** Storage of regions for inactive spaces. */
   ListBase regionbase;

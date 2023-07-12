@@ -271,11 +271,12 @@ ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
        area_name = ED_screen_areas_iter_next(screen, area_name))
 #define ED_screen_verts_iter(win, screen, vert_name) \
   for (ScrVert *vert_name = (win)->global_areas.vertbase.first ? \
-                                (win)->global_areas.vertbase.first : \
-                                (screen)->vertbase.first; \
+                                (ScrVert *)(win)->global_areas.vertbase.first : \
+                                (ScrVert *)(screen)->vertbase.first; \
        vert_name != NULL; \
-       vert_name = (vert_name == (win)->global_areas.vertbase.last) ? (screen)->vertbase.first : \
-                                                                      vert_name->next)
+       vert_name = (vert_name == (win)->global_areas.vertbase.last) ? \
+                       (ScrVert *)(screen)->vertbase.first : \
+                       vert_name->next)
 
 /* screens */
 

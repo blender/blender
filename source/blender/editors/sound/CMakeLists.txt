@@ -17,7 +17,7 @@ set(INC_SYS
 )
 
 set(SRC
-  sound_ops.c
+  sound_ops.cc
 
   sound_intern.h
 )
