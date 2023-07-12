@@ -1844,7 +1844,9 @@ void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
     return;
   }
 
+#ifndef __GNUC__ /* Ensured by the function attribute. */
   BLI_assert(arm != NULL);
+#endif
 
   /* Write channels */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {
