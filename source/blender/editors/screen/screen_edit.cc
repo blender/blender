@@ -1415,7 +1415,7 @@ void ED_screen_full_restore(bContext *C, ScrArea *area)
   wmWindow *win = CTX_wm_window(C);
   SpaceLink *sl = static_cast<SpaceLink *>(area->spacedata.first);
   bScreen *screen = CTX_wm_screen(C);
-  short state = (screen ? screen->state : SCREENMAXIMIZED);
+  short state = (screen ? screen->state : short(SCREENMAXIMIZED));
 
   /* If full-screen area has a temporary space (such as a file browser or full-screen render
    * overlaid on top of an existing setup) then return to the previous space. */

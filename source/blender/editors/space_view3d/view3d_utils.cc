@@ -493,7 +493,7 @@ bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *re
     if (rv3d->persp == RV3D_CAMOB) {
       /* If autopersp and previous view was an axis one,
        * switch back to PERSP mode, else reuse previous mode. */
-      char persp = (autopersp && RV3D_VIEW_IS_AXIS(rv3d->lview)) ? RV3D_PERSP : rv3d->lpersp;
+      char persp = (autopersp && RV3D_VIEW_IS_AXIS(rv3d->lview)) ? char(RV3D_PERSP) : rv3d->lpersp;
       ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, persp);
     }
     else if (autopersp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
