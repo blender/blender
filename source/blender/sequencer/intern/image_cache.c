@@ -635,9 +635,7 @@ void SEQ_cache_cleanup(Scene *scene)
 
     BLI_ghashIterator_step(&gh_iter);
 
-    if (key->link_next || key->link_prev) {
-      seq_cache_relink_keys(key->link_next, key->link_prev);
-    }
+    /* NOTE: no need to call #seq_cache_relink_keys as all keys are removed. */
     BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
   }
   cache->last_key = NULL;
