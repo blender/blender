@@ -2188,8 +2188,8 @@ static void node_draw_basis(const bContext &C,
                             bNodeInstanceKey key)
 {
   const float iconbutw = NODE_HEADER_ICON_SIZE;
-  bNodeInstanceHash *previews =
-      static_cast<bNodeInstanceHash *>(CTX_data_pointer_get(&C, "node_previews").data);
+  bNodeInstanceHash *previews = static_cast<bNodeInstanceHash *>(
+      CTX_data_pointer_get(&C, "node_previews").data);
 
   /* Skip if out of view. */
   rctf rect_with_preview = node.runtime->totr;
