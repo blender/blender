@@ -103,7 +103,7 @@ enum uiWidgetTypeEnum {
   UI_WTYPE_BOX,
   UI_WTYPE_SCROLL,
   UI_WTYPE_LISTITEM,
-  UI_WTYPE_PROGRESSBAR,
+  UI_WTYPE_PROGRESS,
   UI_WTYPE_NODESOCKET,
   UI_WTYPE_VIEW_ITEM,
 };
@@ -3604,14 +3604,14 @@ static void widget_scroll(uiBut *but,
   UI_draw_widget_scroll(wcol, rect, &rect1, (state->but_flag & UI_SELECT) ? UI_SCROLL_PRESSED : 0);
 }
 
-static void widget_progressbar(uiBut *but,
-                               uiWidgetColors *wcol,
-                               rcti *rect,
-                               const uiWidgetStateInfo * /*state*/,
-                               int roundboxalign,
-                               const float zoom)
+static void widget_progress_indicator(uiBut *but,
+                                      uiWidgetColors *wcol,
+                                      rcti *rect,
+                                      const uiWidgetStateInfo * /*state*/,
+                                      int roundboxalign,
+                                      const float zoom)
 {
-  uiButProgressbar *but_progressbar = (uiButProgressbar *)but;
+  uiButProgress *but_progress = (uiButProgress *)but;
   rcti rect_prog = *rect, rect_bar = *rect;
 
   uiWidgetBase wtb, wtb_bar;
@@ -3619,7 +3619,7 @@ static void widget_progressbar(uiBut *but,
   widget_init(&wtb_bar);
 
   /* round corners */
-  const float value = but_progressbar->progress;
+  const float value = but_progress->progress_factor;
   const float ofs = widget_radius_from_zoom(zoom, wcol);
   float w = value * BLI_rcti_size_x(&rect_prog);
 
@@ -4556,9 +4556,9 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
       wt.draw = widget_list_itembut;
       break;
 
-    case UI_WTYPE_PROGRESSBAR:
+    case UI_WTYPE_PROGRESS:
       wt.wcol_theme = &btheme->tui.wcol_progress;
-      wt.custom = widget_progressbar;
+      wt.custom = widget_progress_indicator;
       break;
 
     case UI_WTYPE_VIEW_ITEM:
@@ -4896,8 +4896,8 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
         ui_draw_but_CURVEPROFILE(region, but, &tui->wcol_regular, rect);
         break;
 
-      case UI_BTYPE_PROGRESS_BAR:
-        wt = widget_type(UI_WTYPE_PROGRESSBAR);
+      case UI_BTYPE_PROGRESS:
+        wt = widget_type(UI_WTYPE_PROGRESS);
         fstyle = &style->widgetlabel;
         break;
 

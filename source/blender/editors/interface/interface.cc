@@ -899,10 +899,10 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   }
 
   switch (oldbut->type) {
-    case UI_BTYPE_PROGRESS_BAR: {
-      uiButProgressbar *progress_oldbut = (uiButProgressbar *)oldbut;
-      uiButProgressbar *progress_but = (uiButProgressbar *)but;
-      progress_oldbut->progress = progress_but->progress;
+    case UI_BTYPE_PROGRESS: {
+      uiButProgress *progress_oldbut = (uiButProgress *)oldbut;
+      uiButProgress *progress_but = (uiButProgress *)but;
+      progress_oldbut->progress_factor = progress_but->progress_factor;
       break;
     }
     case UI_BTYPE_VIEW_ITEM: {
@@ -4018,8 +4018,8 @@ static uiBut *ui_but_new(const eButType type)
     case UI_BTYPE_SEARCH_MENU:
       but = MEM_new<uiButSearch>("uiButSearch");
       break;
-    case UI_BTYPE_PROGRESS_BAR:
-      but = MEM_new<uiButProgressbar>("uiButProgressbar");
+    case UI_BTYPE_PROGRESS:
+      but = MEM_new<uiButProgress>("uiButProgress");
       break;
     case UI_BTYPE_HSVCUBE:
       but = MEM_new<uiButHSVCube>("uiButHSVCube");
