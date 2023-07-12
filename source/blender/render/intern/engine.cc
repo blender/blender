@@ -1327,6 +1327,7 @@ void RE_engine_gpu_context_destroy(RenderEngine *engine)
     engine->blender_gpu_context = nullptr;
   }
   WM_system_gpu_context_dispose(engine->wm_blender_gpu_context);
+  engine->wm_blender_gpu_context = nullptr;
 
   DRW_gpu_context_activate(drw_state);
 }
