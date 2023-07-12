@@ -76,7 +76,7 @@ static GHOST_TButton convertButton(int button)
  * \param recvChar: the character ignoring modifiers (except for shift)
  * \return Ghost key code
  */
-static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
+static GHOST_TKey convertKey(int rawCode, unichar recvChar)
 {
   // printf("\nrecvchar %c 0x%x",recvChar,recvChar);
   switch (rawCode) {
@@ -237,7 +237,10 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
       return GHOST_kKeyUpPage;
     case kVK_PageDown:
       return GHOST_kKeyDownPage;
-#if 0 /* TODO: why are these commented? */
+#if 0
+    /* These constants with "ANSI" in the name are labeled according to the key position on an
+     * ANSI-standard US keyboard. Therefore they may not match the physical key label on other
+     * keyboard layouts. */
     case kVK_ANSI_Minus:        return GHOST_kKeyMinus;
     case kVK_ANSI_Equal:        return GHOST_kKeyEqual;
     case kVK_ANSI_Comma:        return GHOST_kKeyComma;
@@ -283,10 +286,10 @@ static GHOST_TKey convertKey(int rawCode, unichar recvChar, UInt16 keyAction)
 
           UCKeyTranslate((UCKeyboardLayout *)CFDataGetBytePtr(uchrHandle),
                          rawCode,
-                         keyAction,
+                         kUCKeyActionDown,
                          0,
                          LMGetKbdType(),
-                         kUCKeyTranslateNoDeadKeysBit,
+                         kUCKeyTranslateNoDeadKeysMask,
                          &deadKeyState,
                          1,
                          &actualStrLength,
@@ -1829,18 +1832,13 @@ GHOST_TSuccess GHOST_SystemCocoa::handleKeyEvent(void *eventPtr)
 
     case NSEventTypeKeyDown:
     case NSEventTypeKeyUp:
+      /* Returns an empty string for dead keys. */
       charsIgnoringModifiers = [event charactersIgnoringModifiers];
       if ([charsIgnoringModifiers length] > 0) {
-        keyCode = convertKey([event keyCode],
-                             [charsIgnoringModifiers characterAtIndex:0],
-                             [event type] == NSEventTypeKeyDown ? kUCKeyActionDown :
-                                                                  kUCKeyActionUp);
+        keyCode = convertKey([event keyCode], [charsIgnoringModifiers characterAtIndex:0]);
       }
       else {
-        keyCode = convertKey([event keyCode],
-                             0,
-                             [event type] == NSEventTypeKeyDown ? kUCKeyActionDown :
-                                                                  kUCKeyActionUp);
+        keyCode = convertKey([event keyCode], 0);
       }
 
       characters = [event characters];
