@@ -1489,7 +1489,7 @@ void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end
     *r_end = act->frame_end;
   }
   else {
-    BKE_action_frame_range_calc(act, r_start, r_end, false);
+    BKE_action_frame_range_calc(act, false, r_start, r_end);
   }
 
   /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */
