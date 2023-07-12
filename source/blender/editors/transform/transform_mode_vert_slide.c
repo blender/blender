@@ -664,7 +664,7 @@ void initVertSlide_ex(TransInfo *t, bool use_even, bool flipped, bool use_clamp)
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
 
-  t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
+  t->flag |= T_NO_CONSTRAINT;
 }
 
 void initVertSlide(TransInfo *t)

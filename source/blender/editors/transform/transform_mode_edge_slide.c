@@ -1542,7 +1542,7 @@ void initEdgeSlide_ex(
   t->num.unit_sys = t->scene->unit.system;
   t->num.unit_type[0] = B_UNIT_NONE;
 
-  t->flag |= T_NO_CONSTRAINT | T_NO_PROJECT;
+  t->flag |= T_NO_CONSTRAINT;
 }
 
 void initEdgeSlide(TransInfo *t)
