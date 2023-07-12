@@ -472,7 +472,6 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       bsdf_transparent_setup(sd, weight, path_flag);
       break;
     }
-    case CLOSURE_BSDF_REFLECTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_ID:
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
@@ -521,10 +520,9 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
       }
 
       /* setup bsdf */
-      if (type == CLOSURE_BSDF_REFLECTION_ID)
-        sd->flag |= bsdf_reflection_setup(bsdf);
-      else if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_ID)
+      if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_ID) {
         sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
+      }
       else if (type == CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID) {
         sd->flag |= bsdf_ashikhmin_shirley_setup(bsdf);
       }
@@ -539,7 +537,6 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
 
       break;
     }
-    case CLOSURE_BSDF_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID: {
 #ifdef __CAUSTICS_TRICKS__
@@ -558,29 +555,21 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
         /* setup bsdf */
-        if (type == CLOSURE_BSDF_REFRACTION_ID) {
-          bsdf->alpha_x = 0.0f;
-          bsdf->alpha_y = 0.0f;
-          bsdf->ior = eta;
+        float roughness = sqr(param1);
+        bsdf->alpha_x = roughness;
+        bsdf->alpha_y = roughness;
+        bsdf->ior = eta;
 
-          sd->flag |= bsdf_refraction_setup(bsdf);
+        if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID) {
+          sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
         }
         else {
-          float roughness = sqr(param1);
-          bsdf->alpha_x = roughness;
-          bsdf->alpha_y = roughness;
-          bsdf->ior = eta;
-
-          if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID)
-            sd->flag |= bsdf_microfacet_beckmann_refraction_setup(bsdf);
-          else
-            sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
+          sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
         }
       }
 
       break;
     }
-    case CLOSURE_BSDF_SHARP_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID: {
@@ -602,28 +591,20 @@ ccl_device_noinline int svm_node_closure_bsdf(KernelGlobals kg,
         eta = (sd->flag & SD_BACKFACING) ? 1.0f / eta : eta;
 
         /* setup bsdf */
-        if (type == CLOSURE_BSDF_SHARP_GLASS_ID) {
-          bsdf->alpha_x = 0.0f;
-          bsdf->alpha_y = 0.0f;
-          bsdf->ior = eta;
+        float roughness = sqr(param1);
+        bsdf->alpha_x = roughness;
+        bsdf->alpha_y = roughness;
+        bsdf->ior = eta;
 
-          sd->flag |= bsdf_sharp_glass_setup(bsdf);
+        if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID) {
+          sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
         }
         else {
-          float roughness = sqr(param1);
-          bsdf->alpha_x = roughness;
-          bsdf->alpha_y = roughness;
-          bsdf->ior = eta;
-
-          if (type == CLOSURE_BSDF_MICROFACET_BECKMANN_GLASS_ID)
-            sd->flag |= bsdf_microfacet_beckmann_glass_setup(bsdf);
-          else {
-            sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
-            if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID) {
-              kernel_assert(stack_valid(data_node.z));
-              const Spectrum color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
-              bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
-            }
+          sd->flag |= bsdf_microfacet_ggx_glass_setup(bsdf);
+          if (type == CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_ID) {
+            kernel_assert(stack_valid(data_node.z));
+            const Spectrum color = rgb_to_spectrum(stack_load_float3(stack, data_node.z));
+            bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, color);
           }
         }
       }

@@ -113,7 +113,6 @@ class Shader : public Node {
   bool has_surface_spatial_varying;
   bool has_volume_spatial_varying;
   bool has_volume_attribute_dependency;
-  bool has_integrator_dependency;
 
   float3 emission_estimate;
   EmissionSampling emission_sampling;
@@ -168,7 +167,6 @@ class ShaderManager {
   enum : uint32_t {
     SHADER_ADDED = (1 << 0),
     SHADER_MODIFIED = (1 << 2),
-    INTEGRATOR_MODIFIED = (1 << 3),
 
     /* tag everything in the manager for an update */
     UPDATE_ALL = ~0u,

@@ -359,7 +359,7 @@ void ShaderGraph::simplify(Scene *scene)
   }
 }
 
-void ShaderGraph::finalize(Scene *scene, bool do_bump, bool do_simplify, bool bump_in_object_space)
+void ShaderGraph::finalize(Scene *scene, bool do_bump, bool bump_in_object_space)
 {
   /* before compiling, the shader graph may undergo a number of modifications.
    * currently we set default geometry shader inputs, and create automatic bump
@@ -383,9 +383,6 @@ void ShaderGraph::finalize(Scene *scene, bool do_bump, bool do_simplify, bool bu
       transform_multi_closure(volume_in->link->parent, NULL, true);
 
     finalized = true;
-  }
-  else if (do_simplify) {
-    simplify_settings(scene);
   }
 }
 
