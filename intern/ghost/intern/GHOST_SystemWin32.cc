@@ -1201,15 +1201,10 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
   bool is_repeat = false;
   bool is_repeated_modifier = false;
   if (key_down) {
-    if (system->m_keycode_last_repeat_key == vk) {
+    if (HIBYTE(::GetKeyState(vk)) != 0) {
+      /* This thread's message queue shows this key as already down. */
       is_repeat = true;
       is_repeated_modifier = GHOST_KEY_MODIFIER_CHECK(key);
-    }
-    system->m_keycode_last_repeat_key = vk;
-  }
-  else {
-    if (system->m_keycode_last_repeat_key == vk) {
-      system->m_keycode_last_repeat_key = 0;
     }
   }
 
@@ -1986,7 +1981,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
            * so the window is activated immediately. */
 
           system->m_wheelDeltaAccum = 0;
-          system->m_keycode_last_repeat_key = 0;
           event = processWindowEvent(
               LOWORD(wParam) ? GHOST_kEventWindowActivate : GHOST_kEventWindowDeactivate, window);
           /* WARNING: Let DefWindowProc handle WM_ACTIVATE, otherwise WM_MOUSEWHEEL
