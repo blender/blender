@@ -458,24 +458,27 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(int32_t x, int32_t y)
 
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
-  bool down = HIBYTE(::GetKeyState(VK_LSHIFT)) != 0;
+  /* `GetAsyncKeyState` returns the current interrupt-level state of the hardware, which is needed
+   * when passing key states to a newly-activated window - #40059. Alterative `GetKeyState` only
+   * returns the state as processed by the thread's message queue.   */
+  bool down = HIBYTE(::GetAsyncKeyState(VK_LSHIFT)) != 0;
   keys.set(GHOST_kModifierKeyLeftShift, down);
-  down = HIBYTE(::GetKeyState(VK_RSHIFT)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_RSHIFT)) != 0;
   keys.set(GHOST_kModifierKeyRightShift, down);
 
-  down = HIBYTE(::GetKeyState(VK_LMENU)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_LMENU)) != 0;
   keys.set(GHOST_kModifierKeyLeftAlt, down);
-  down = HIBYTE(::GetKeyState(VK_RMENU)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_RMENU)) != 0;
   keys.set(GHOST_kModifierKeyRightAlt, down);
 
-  down = HIBYTE(::GetKeyState(VK_LCONTROL)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_LCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyLeftControl, down);
-  down = HIBYTE(::GetKeyState(VK_RCONTROL)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_RCONTROL)) != 0;
   keys.set(GHOST_kModifierKeyRightControl, down);
 
-  down = HIBYTE(::GetKeyState(VK_LWIN)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_LWIN)) != 0;
   keys.set(GHOST_kModifierKeyLeftOS, down);
-  down = HIBYTE(::GetKeyState(VK_RWIN)) != 0;
+  down = HIBYTE(::GetAsyncKeyState(VK_RWIN)) != 0;
   keys.set(GHOST_kModifierKeyRightOS, down);
 
   return GHOST_kSuccess;

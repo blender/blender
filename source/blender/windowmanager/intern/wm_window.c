@@ -1258,24 +1258,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_pt
         break;
       }
       case GHOST_kEventWindowActivate: {
-
-#ifdef WIN32
-        /* NOTE(@ideasman42): Alt-Tab on Windows-10 (22H2) can deactivate the window,
-         * then (in rare cases - approx 1 in 20) immediately call `WM_ACTIVATE` on the window
-         * (which isn't active) and doesn't receive modifier release events.
-         * This looks like a bug in MS-Windows, searching online other apps
-         * have run into similar issues although it's not clear exactly which.
-         *
-         * - Therefor activation must always clear modifiers
-         *   or Alt-Tab can occasionally get stuck, see: #105381.
-         * - Unfortunately modifiers that are held before
-         *   the window is active are ignored, see: #40059.
-         */
-        wm_window_update_eventstate_modifiers_clear(wm, win);
-#else
         /* Ensure the event state matches modifiers (window was inactive). */
         wm_window_update_eventstate_modifiers(wm, win);
-#endif
 
         /* Entering window, update mouse position (without sending an event). */
         wm_window_update_eventstate(win);
