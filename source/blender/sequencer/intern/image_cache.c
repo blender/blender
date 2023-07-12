@@ -272,13 +272,15 @@ static ImBuf *seq_cache_get_ex(SeqCache *cache, SeqCacheKey *key)
   return NULL;
 }
 
-static void seq_cache_relink_keys(SeqCacheKey *link_next, SeqCacheKey *link_prev)
+static void seq_cache_relink_keys(SeqCacheKey *key)
 {
-  if (link_next) {
-    link_next->link_prev = link_prev;
+  if (key->link_next) {
+    BLI_assert(key == key->link_next->link_prev);
+    key->link_next->link_prev = key->link_prev;
   }
-  if (link_prev) {
-    link_prev->link_next = link_next;
+  if (key->link_prev) {
+    BLI_assert(key == key->link_prev->link_next);
+    key->link_prev->link_next = key->link_next;
   }
 }
 
@@ -366,9 +368,7 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
       break;
     }
 
-    if (base->link_next || base->link_prev) {
-      seq_cache_relink_keys(base->link_next, base->link_prev);
-    }
+    seq_cache_relink_keys(base);
     BLI_ghash_remove(cache->hash, base, seq_cache_keyfree, seq_cache_valfree);
     BLI_assert(base != cache->last_key);
     base = prev;
@@ -387,9 +387,7 @@ static void seq_cache_recycle_linked(Scene *scene, SeqCacheKey *base)
       break;
     }
 
-    if (base->link_next || base->link_prev) {
-      seq_cache_relink_keys(base->link_next, base->link_prev);
-    }
+    seq_cache_relink_keys(base);
     BLI_ghash_remove(cache->hash, base, seq_cache_keyfree, seq_cache_valfree);
     BLI_assert(base != cache->last_key);
     base = next;
@@ -579,9 +577,7 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame)
           timeline_frame > SEQ_time_right_handle_frame_get(scene, key->seq) ||
           timeline_frame < SEQ_time_left_handle_frame_get(scene, key->seq))
       {
-        if (key->link_next || key->link_prev) {
-          seq_cache_relink_keys(key->link_next, key->link_prev);
-        }
+        seq_cache_relink_keys(key);
         BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
         BLI_assert(key != cache->last_key);
       }
@@ -683,20 +679,14 @@ void seq_cache_cleanup_sequence(Scene *scene,
     if (key->type & invalidate_composite && key->timeline_frame >= range_start &&
         key->timeline_frame <= range_end)
     {
-      if (key->link_next || key->link_prev) {
-        seq_cache_relink_keys(key->link_next, key->link_prev);
-      }
-
+      seq_cache_relink_keys(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
     else if (key->type & invalidate_source && key->seq == seq &&
              key->timeline_frame >= SEQ_time_left_handle_frame_get(scene, seq_changed) &&
              key->timeline_frame <= SEQ_time_right_handle_frame_get(scene, seq_changed))
     {
-      if (key->link_next || key->link_prev) {
-        seq_cache_relink_keys(key->link_next, key->link_prev);
-      }
-
+      seq_cache_relink_keys(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
     }
   }
@@ -739,9 +729,7 @@ void seq_cache_thumbnail_cleanup(Scene *scene, rctf *view_area_safe)
          key->timeline_frame < view_area_safe->xmin || key->seq->machine > view_area_safe->ymax ||
          key->seq->machine < view_area_safe->ymin))
     {
-      if (key->link_next || key->link_prev) {
-        seq_cache_relink_keys(key->link_next, key->link_prev);
-      }
+      seq_cache_relink_keys(key);
       BLI_ghash_remove(cache->hash, key, seq_cache_keyfree, seq_cache_valfree);
       cache->thumbnail_count--;
     }
