@@ -685,6 +685,17 @@ static const EnumPropertyItem snap_to_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
+    {GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
+    {GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points"},
+    {GP_SELECTMODE_SEGMENT,
+     "SEGMENT",
+     ICON_GP_SELECT_BETWEEN_STROKES,
+     "Segment",
+     "Select all stroke points between other strokes"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_string_utils.h"
@@ -3039,21 +3050,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem gpencil_selectmode_items[] = {
-      {GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
-      {GP_SELECTMODE_STROKE,
-       "STROKE",
-       ICON_GP_SELECT_STROKES,
-       "Stroke",
-       "Select all stroke points"},
-      {GP_SELECTMODE_SEGMENT,
-       "SEGMENT",
-       ICON_GP_SELECT_BETWEEN_STROKES,
-       "Segment",
-       "Select all stroke points between other strokes"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem annotation_stroke_placement_view2d_items[] = {
       {GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR,
        "IMAGE",
@@ -3642,7 +3638,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   /* Grease Pencil - Select mode Edit */
   prop = RNA_def_property(srna, "gpencil_selectmode_edit", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "gpencil_selectmode_edit");
-  RNA_def_property_enum_items(prop, gpencil_selectmode_items);
+  RNA_def_property_enum_items(prop, rna_enum_grease_pencil_selectmode_items);
   RNA_def_property_ui_text(prop, "Select Mode", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
