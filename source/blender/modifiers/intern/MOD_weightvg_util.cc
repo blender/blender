@@ -296,7 +296,7 @@ void weightvg_update_vg(MDeformVert *dvert,
 
     /* If the vertex is in this vgroup, remove it if needed, or just update it. */
     if (dw != nullptr) {
-      if (do_rem && w < rem_thresh) {
+      if (do_rem && w <= rem_thresh) {
         BKE_defvert_remove_group(dv, dw);
       }
       else {
@@ -304,7 +304,7 @@ void weightvg_update_vg(MDeformVert *dvert,
       }
     }
     /* Else, add it if needed! */
-    else if (do_add && w > add_thresh) {
+    else if (do_add && w >= add_thresh) {
       BKE_defvert_add_index_notest(dv, defgrp_idx, w);
     }
   }

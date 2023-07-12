@@ -8,6 +8,8 @@
 
 #define DNA_DEPRECATED_ALLOW
 
+#include <cmath>
+
 #include "CLG_log.h"
 
 #include "DNA_brush_types.h"
@@ -130,6 +132,24 @@ static void version_geometry_nodes_add_realize_instance_nodes(bNodeTree *ntree)
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
     if (STREQ(node->idname, "GeometryNodeMeshBoolean")) {
       add_realize_instances_before_socket(ntree, node, nodeFindSocket(node, SOCK_IN, "Mesh 2"));
+    }
+  }
+}
+
+/* Version VertexWeightEdit modifier to make existing weights exclusive of the threshold. */
+static void version_vertex_weight_edit_preserve_threshold_exclusivity(Main *bmain)
+{
+  LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
+    if (ob->type != OB_MESH) {
+      continue;
+    }
+
+    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
+      if (md->type == eModifierType_WeightVGEdit) {
+        WeightVGEditModifierData *wmd = reinterpret_cast<WeightVGEditModifierData *>(md);
+        wmd->add_threshold = nexttoward(wmd->add_threshold, 2.0);
+        wmd->rem_threshold = nexttoward(wmd->rem_threshold, -1.0);
+      }
     }
   }
 }
@@ -335,6 +355,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
+  }
+
+  if (!MAIN_VERSION_ATLEAST(bmain, 400, 11)) {
+    version_vertex_weight_edit_preserve_threshold_exclusivity(bmain);
   }
 
   /**
