@@ -1773,12 +1773,12 @@ struct wmOperatorType *UI_but_extra_operator_icon_optype_get(struct uiButExtraOp
 struct PointerRNA *UI_but_extra_operator_icon_opptr_get(struct uiButExtraOpIcon *extra_icon);
 
 /**
- * A decent size for a button (typically #UI_BTYPE_PREVIEW_TILE) to display a nicely readable
- * preview with label in.
+ * Get the scaled size for a preview button (typically #UI_BTyPE_PREVIEW_TILE) based on \a
+ * unscaled_size plus padding.
  */
-int UI_preview_tile_size_x(void);
-int UI_preview_tile_size_y(void);
-int UI_preview_tile_size_y_no_label(void);
+int UI_preview_tile_size_x(const int unscaled_size CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y(const int unscaled_size CPP_ARG_DEFAULT(96));
+int UI_preview_tile_size_y_no_label(const int unscaled_size CPP_ARG_DEFAULT(96));
 
 /* Autocomplete
  *

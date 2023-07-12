@@ -23,6 +23,8 @@ class AssetCatalogPath;
 
 namespace blender::ed::asset::shelf {
 
+constexpr short DEFAULT_TILE_SIZE = 64;
+
 void build_asset_view(uiLayout &layout,
                       const AssetLibraryReference &library_ref,
                       const AssetShelf &shelf,

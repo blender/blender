@@ -766,8 +766,9 @@ typedef struct AssetShelfSettings {
   /** For filtering assets displayed in the asset view. */
   char search_string[64];
 
+  short preview_size;
   short display_flag; /* #AssetShelfSettings_DisplayFlag */
-  char _pad1[6];
+  char _pad1[4];
 
 #ifdef __cplusplus
   /* Zero initializes. */

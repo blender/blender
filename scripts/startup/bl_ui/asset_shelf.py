@@ -17,6 +17,7 @@ class ASSETSHELF_PT_display(Panel):
         shelf = context.asset_shelf
 
         layout.prop(shelf, "show_names", text="Names")
+        layout.prop(shelf, "preview_size")
 
     @classmethod
     def poll(cls, context):

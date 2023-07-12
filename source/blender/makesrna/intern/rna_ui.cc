@@ -2160,6 +2160,12 @@ static void rna_def_asset_shelf(BlenderRNA *brna)
       "Show the asset name together with the preview. Otherwise only the preview will be visible");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
 
+  prop = RNA_def_property(srna, "preview_size", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "settings.preview_size");
+  RNA_def_property_range(prop, 32, 256);
+  RNA_def_property_ui_text(prop, "Preview Size", "Size of the asset preview thumbnails in pixels");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_ASSET_SHELF, NULL);
+
   prop = RNA_def_property(srna, "search_filter", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, NULL, "settings.search_string");
   RNA_def_property_ui_text(prop, "Display Filter", "Filter assets by name");

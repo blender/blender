@@ -245,8 +245,10 @@ void build_asset_view(uiLayout &layout,
     return;
   }
 
-  const float tile_width = ED_asset_shelf_default_tile_width();
-  const float tile_height = ED_asset_shelf_default_tile_height();
+  const float tile_width = ED_asset_shelf_tile_width(shelf.settings);
+  const float tile_height = ED_asset_shelf_tile_height(shelf.settings);
+  BLI_assert(tile_width != 0);
+  BLI_assert(tile_height != 0);
 
   std::unique_ptr asset_view = std::make_unique<AssetView>(library_ref, shelf);
   asset_view->set_catalog_filter(catalog_filter_from_shelf_settings(shelf.settings, *library));

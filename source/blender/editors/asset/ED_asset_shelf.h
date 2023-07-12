@@ -12,6 +12,7 @@ extern "C" {
 
 struct ARegion;
 struct ARegionType;
+struct AssetShelfSettings;
 struct bContext;
 struct bContextDataResult;
 struct BlendDataReader;
@@ -47,7 +48,8 @@ void ED_asset_shelf_settings_region_init(struct wmWindowManager *wm, struct AReg
 void ED_asset_shelf_settings_region(const struct bContext *C, struct ARegion *region);
 void ED_asset_shelf_settings_region_listen(const struct wmRegionListenerParams *params);
 int ED_asset_shelf_settings_region_size(void);
-void ED_asset_shelf_settings_regiontype_register(struct ARegionType *region_type, const int space_type);
+void ED_asset_shelf_settings_regiontype_register(struct ARegionType *region_type,
+                                                 const int space_type);
 
 /** \} */
 
@@ -74,8 +76,8 @@ void ED_asset_shelf_hook_blend_read_data(struct BlendDataReader *reader,
 
 /* -------------------------------------------------------------------- */
 
-int ED_asset_shelf_default_tile_width(void);
-int ED_asset_shelf_default_tile_height(void);
+int ED_asset_shelf_tile_width(const struct AssetShelfSettings &settings);
+int ED_asset_shelf_tile_height(const struct AssetShelfSettings &settings);
 
 /**
  * Creates an `"asset_shelf"` context member, pointing to the active shelf in \a #shelf_hook.
