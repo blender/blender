@@ -706,7 +706,7 @@ void WM_OT_usd_export(wmOperatorType *ot)
                  "as the parent of all exported data");
   RNA_def_string(ot->srna,
                  "material_prim_path",
-                 "/root/Materials",
+                 "/root/materials",
                  FILE_MAX,
                  "Material Prim Path",
                  "This specifies where all generated USD Shade Materials and Shaders get placed");
