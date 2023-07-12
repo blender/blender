@@ -299,7 +299,9 @@ int ED_asset_shelf_tile_width(const AssetShelfSettings &settings)
 
 int ED_asset_shelf_tile_height(const AssetShelfSettings &settings)
 {
-  return UI_preview_tile_size_y(settings.preview_size);
+  return (settings.display_flag & ASSETSHELF_SHOW_NAMES) ?
+             UI_preview_tile_size_y(settings.preview_size) :
+             UI_preview_tile_size_y_no_label(settings.preview_size);
 }
 
 static int asset_shelf_default_tile_height()
