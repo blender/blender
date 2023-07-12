@@ -1333,6 +1333,12 @@ def edit_class_from_id(name: str) -> Type[EditGenerator]:
     return result  # type: ignore
 
 
+def edit_docstring_from_id(name: str) -> str:
+    from textwrap import dedent
+    result = getattr(edit_generators, name).__doc__
+    return dedent(result or '').strip('\n') + '\n'
+
+
 # -----------------------------------------------------------------------------
 # Accept / Reject Edits
 
@@ -1602,10 +1608,11 @@ def create_parser(edits_all: Sequence[str]) -> argparse.ArgumentParser:
     # Create docstring for edits.
     edits_all_docs = []
     for edit in edits_all:
+        # `%` -> `%%` is needed for `--help` not to interpret these as formatting arguments.
         edits_all_docs.append(
             "  %s\n%s" % (
                 edit,
-                indent(dedent(getattr(edit_generators, edit).__doc__ or '').strip('\n') + '\n', '    '),
+                indent(edit_docstring_from_id(edit).replace("%", "%%"), '    '),
             )
         )
 
