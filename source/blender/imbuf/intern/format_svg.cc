@@ -35,14 +35,14 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
     return nullptr;
   }
 
-	int w = int(image->width);
+  int w = int(image->width);
   int h = int(image->height);
 
   /* Return full size of the image. */
   *r_width = size_t(w);
   *r_height = size_t(h);
 
-	NSVGrasterizer *rast = nsvgCreateRasterizer();
+  NSVGrasterizer *rast = nsvgCreateRasterizer();
   if (rast == nullptr) {
     nsvgDelete(image);
     return nullptr;
