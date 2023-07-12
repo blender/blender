@@ -112,6 +112,9 @@ static PyObject *bpy_utils_previews_load(PyObject *UNUSED(self), PyObject *args)
   else if (STREQ(path_type_s, "FONT")) {
     path_type = THB_SOURCE_FONT;
   }
+  else if (STREQ(path_type_s, "OBJECT_IO")) {
+    path_type = THB_SOURCE_OBJECT_IO;
+  }
   else {
     PyErr_Format(PyExc_ValueError,
                  "load: invalid '%s' filetype, only [" STR_SOURCE_TYPES

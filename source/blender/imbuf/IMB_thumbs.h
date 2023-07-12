@@ -31,6 +31,7 @@ typedef enum ThumbSource {
   THB_SOURCE_MOVIE,
   THB_SOURCE_BLEND,
   THB_SOURCE_FONT,
+  THB_SOURCE_OBJECT_IO,
 } ThumbSource;
 
 /**

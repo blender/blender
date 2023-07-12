@@ -199,6 +199,22 @@ const ImFileType IMB_FILE_TYPES[] = {
         /*default_save_role*/ COLOR_ROLE_DEFAULT_BYTE,
     },
 #endif
+    {
+        /* Only implementing thumbnailing for SVG file type to support specialized importers.
+         * General file loading, if wanted, would require a better library and would have to
+         * support features like user-specified resolution. */
+
+        /*init*/ nullptr,
+        /*exit*/ nullptr,
+        /*is_a*/ nullptr,
+        /*load*/ nullptr,
+        /*load_filepath*/ nullptr,
+        /*load_filepath_thumbnail*/ imb_load_filepath_thumbnail_svg,
+        /*save*/ nullptr,
+        /*flag*/ 0,
+        /*filetype*/ IMB_FTYPE_NONE,
+        /*default_save_role*/ COLOR_ROLE_DEFAULT_BYTE,
+    },
     {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, 0, 0, 0},
 };
 

@@ -30,6 +30,7 @@ set(SRC
   intern/format_hdr.cc
   intern/format_png.cc
   intern/format_psd.cc
+  intern/format_svg.cc
   intern/format_targa.cc
   intern/format_tiff.cc
   intern/imageprocess.cc
@@ -80,6 +81,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio
+  PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
 )
