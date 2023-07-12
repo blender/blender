@@ -56,6 +56,7 @@ static void grease_pencil_init_data(ID *id)
 
   new (&grease_pencil->root_group) greasepencil::LayerGroup();
   grease_pencil->active_layer = nullptr;
+  grease_pencil->flag |= GREASE_PENCIL_ANIM_CHANNEL_EXPANDED;
 }
 
 static void grease_pencil_copy_data(Main * /*bmain*/,
