@@ -259,8 +259,6 @@ class bNodeRuntime : NonCopyable, NonMovable {
   short preview_xsize, preview_ysize = 0;
   /** Entire bound-box (world-space). */
   rctf totr{};
-  /** Optional preview area. */
-  rctf prvr{};
 
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag = 0;
