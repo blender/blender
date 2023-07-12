@@ -30,16 +30,24 @@ AssetShelfSettings::AssetShelfSettings()
 
 AssetShelfSettings::AssetShelfSettings(const AssetShelfSettings &other)
 {
+  operator=(other);
+}
+
+AssetShelfSettings &AssetShelfSettings::operator=(const AssetShelfSettings &other)
+{
   /* Start with a shallow copy. */
   memcpy(this, &other, sizeof(AssetShelfSettings));
 
+  next = prev = nullptr;
+
+  active_catalog_path = BLI_strdup(other.active_catalog_path);
   BLI_listbase_clear(&enabled_catalog_paths);
 
   LISTBASE_FOREACH (LinkData *, catalog_path_item, &other.enabled_catalog_paths) {
-    LinkData *new_path_item = static_cast<LinkData *>(MEM_dupallocN(catalog_path_item));
-    new_path_item->data = BLI_strdup((char *)catalog_path_item->data);
+    LinkData *new_path_item = BLI_genericNodeN(BLI_strdup((char *)catalog_path_item->data));
     BLI_addtail(&enabled_catalog_paths, new_path_item);
   }
+  return *this;
 }
 
 AssetShelfSettings::~AssetShelfSettings()

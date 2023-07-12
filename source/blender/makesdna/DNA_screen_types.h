@@ -775,6 +775,7 @@ typedef struct AssetShelfSettings {
   AssetShelfSettings();
   /* Proper deep copy. */
   AssetShelfSettings(const AssetShelfSettings &other);
+  AssetShelfSettings &operator=(const AssetShelfSettings &other);
   ~AssetShelfSettings();
 #endif
 } AssetShelfSettings;
