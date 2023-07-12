@@ -223,7 +223,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
   const int axis_z = (plane_axis + 2) % 3;
 
   int i;
-  const float resolution_div = (float)1.0f / (float)resolution;
+  const float resolution_div = float(1.0f) / float(resolution);
   i = 0;
   for (int x = 0; x < resolution; x++) {
     const float x_fl = (x * resolution_div) - 0.5f;
@@ -578,7 +578,7 @@ static void v3d_cursor_snap_context_ensure(Scene *scene)
   }
 }
 
-static bool v3d_cursor_snap_calc_plane(void)
+static bool v3d_cursor_snap_calc_plane()
 {
   /* If any of the states require the plane, calculate the `plane_omat`. */
   LISTBASE_FOREACH (SnapStateIntern *, state, &g_data_intern.state_intern) {
@@ -909,7 +909,7 @@ static void v3d_cursor_snap_draw_fn(bContext *C, int x, int y, void * /*customda
 
 /** \} */
 
-V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get(void)
+V3DSnapCursorState *ED_view3d_cursor_snap_state_active_get()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (BLI_listbase_is_empty(&data_intern->state_intern)) {
@@ -938,7 +938,7 @@ void ED_view3d_cursor_snap_state_active_set(V3DSnapCursorState *state)
   BLI_addtail(&g_data_intern.state_intern, state_intern);
 }
 
-static void v3d_cursor_snap_activate(void)
+static void v3d_cursor_snap_activate()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
 
@@ -965,7 +965,7 @@ static void v3d_cursor_snap_activate(void)
   }
 }
 
-static void v3d_cursor_snap_free(void)
+static void v3d_cursor_snap_free()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (data_intern->handle) {
@@ -994,7 +994,7 @@ void ED_view3d_cursor_snap_state_default_set(V3DSnapCursorState *state)
   g_data_intern.state_default.poll_data = nullptr;
 }
 
-V3DSnapCursorState *ED_view3d_cursor_snap_state_create(void)
+V3DSnapCursorState *ED_view3d_cursor_snap_state_create()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   if (!data_intern->handle) {
@@ -1061,7 +1061,7 @@ void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
   }
 }
 
-V3DSnapCursorData *ED_view3d_cursor_snap_data_get(void)
+V3DSnapCursorData *ED_view3d_cursor_snap_data_get()
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   return &data_intern->snap_data;

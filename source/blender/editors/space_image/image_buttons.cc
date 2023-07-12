@@ -90,7 +90,7 @@ static void ui_imageuser_slot_menu(bContext * /*C*/, uiLayout *layout, void *ima
               UI_UNIT_X * 5,
               UI_UNIT_X,
               &image->render_slot,
-              (float)slot_id,
+              float(slot_id),
               0.0,
               0,
               -1,
@@ -130,7 +130,7 @@ static const char *ui_imageuser_layer_fake_name(RenderResult *rr)
   RenderView *rv = RE_RenderViewGetById(rr, 0);
   ImBuf *ibuf = rv->ibuf;
   if (!ibuf) {
-    return NULL;
+    return nullptr;
   }
   if (ibuf->float_buffer.data) {
     return IFACE_("Composite");
@@ -202,7 +202,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
               UI_UNIT_X * 5,
               UI_UNIT_X,
               &iuser->layer,
-              (float)nr,
+              float(nr),
               0.0,
               0,
               -1,
@@ -278,7 +278,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
               UI_UNIT_X * 5,
               UI_UNIT_X,
               &iuser->pass,
-              (float)nr,
+              float(nr),
               0.0,
               0,
               -1,
@@ -357,7 +357,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
               UI_UNIT_X * 5,
               UI_UNIT_X,
               &iuser->view,
-              (float)nr,
+              float(nr),
               0.0,
               0,
               -1,
@@ -407,7 +407,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
               UI_UNIT_X * 5,
               UI_UNIT_X,
               &iuser->view,
-              (float)nr,
+              float(nr),
               0.0,
               0,
               -1,

@@ -245,7 +245,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
         int src_y = subpart_y * offset_y;
         int src_x = subpart_x * offset_x;
 
-#define DATA(_y, _x) ((char *)rect + stride * ((size_t)(_y)*img_w + (_x)))
+#define DATA(_y, _x) ((char *)rect + stride * (size_t(_y) * img_w + (_x)))
         {
           void *data = DATA(src_y, src_x);
           GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0);
@@ -277,16 +277,16 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
       uint pos = state->pos, texco = state->texco;
 
       immBegin(GPU_PRIM_TRI_FAN, 4);
-      immAttr2f(texco, left / (float)tex_w, bottom / (float)tex_h);
+      immAttr2f(texco, left / float(tex_w), bottom / float(tex_h));
       immVertex2f(pos, rast_x + offset_left * xzoom, rast_y + offset_bot * yzoom);
 
-      immAttr2f(texco, right / (float)tex_w, bottom / (float)tex_h);
+      immAttr2f(texco, right / float(tex_w), bottom / float(tex_h));
       immVertex2f(pos, rast_x + right * xzoom * scaleX, rast_y + offset_bot * yzoom);
 
-      immAttr2f(texco, right / (float)tex_w, top / (float)tex_h);
+      immAttr2f(texco, right / float(tex_w), top / float(tex_h));
       immVertex2f(pos, rast_x + right * xzoom * scaleX, rast_y + top * yzoom * scaleY);
 
-      immAttr2f(texco, left / (float)tex_w, top / (float)tex_h);
+      immAttr2f(texco, left / float(tex_w), top / float(tex_h));
       immVertex2f(pos, rast_x + offset_left * xzoom, rast_y + top * yzoom * scaleY);
       immEnd();
 

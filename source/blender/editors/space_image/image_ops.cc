@@ -298,15 +298,15 @@ static void image_view_all(SpaceImage *sima, ARegion *region, wmOperator *op)
   if (fit_view) {
     const int margin = 5; /* margin from border */
 
-    zoomx = (float)width / (w + 2 * margin);
-    zoomy = (float)height / (h + 2 * margin);
+    zoomx = float(width) / (w + 2 * margin);
+    zoomy = float(height) / (h + 2 * margin);
 
     sima_zoom_set(sima, region, min_ff(zoomx, zoomy), nullptr, false);
   }
   else {
     if ((w >= width || h >= height) && (width > 0 && height > 0)) {
-      zoomx = (float)width / w;
-      zoomy = (float)height / h;
+      zoomx = float(width) / w;
+      zoomy = float(height) / h;
 
       /* find the zoom value that will fit the image in the image space */
       sima_zoom_set(sima, region, 1.0f / power_of_2(1.0f / min_ff(zoomx, zoomy)), nullptr, false);

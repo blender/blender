@@ -121,7 +121,7 @@ static eV3DProjStatus ed_view3d_project__internal(const ARegion *region,
   mul_m4_v4(perspmat, vec4);
   const float w = fabsf(vec4[3]);
 
-  if ((flag & V3D_PROJ_TEST_CLIP_ZERO) && (w <= (float)BL_ZERO_CLIP)) {
+  if ((flag & V3D_PROJ_TEST_CLIP_ZERO) && (w <= float(BL_ZERO_CLIP))) {
     return V3D_PROJ_RET_CLIP_ZERO;
   }
 

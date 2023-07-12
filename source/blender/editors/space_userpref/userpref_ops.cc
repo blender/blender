@@ -349,7 +349,7 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
 
 /** \} */
 
-void ED_operatortypes_userpref(void)
+void ED_operatortypes_userpref()
 {
   WM_operatortype_append(PREFERENCES_OT_reset_default_theme);
 

@@ -293,8 +293,8 @@ void ED_space_image_get_uv_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy
   ED_space_image_get_aspect(sima, r_aspx, r_aspy);
   ED_space_image_get_size(sima, &w, &h);
 
-  *r_aspx *= (float)w;
-  *r_aspy *= (float)h;
+  *r_aspx *= float(w);
+  *r_aspy *= float(h);
 
   if (*r_aspx < *r_aspy) {
     *r_aspy = *r_aspy / *r_aspx;
@@ -314,8 +314,8 @@ void ED_image_get_uv_aspect(Image *ima, ImageUser *iuser, float *r_aspx, float *
     BKE_image_get_aspect(ima, r_aspx, r_aspy);
     BKE_image_get_size(ima, iuser, &w, &h);
 
-    *r_aspx *= (float)w;
-    *r_aspy *= (float)h;
+    *r_aspx *= float(w);
+    *r_aspy *= float(h);
   }
   else {
     *r_aspx = 1.0f;
@@ -377,8 +377,8 @@ void ED_image_point_pos__reverse(SpaceImage *sima,
   ED_space_image_get_size(sima, &width, &height);
   ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
 
-  r_co[0] = (co[0] * width * zoomx) + (float)sx;
-  r_co[1] = (co[1] * height * zoomy) + (float)sy;
+  r_co[0] = (co[0] * width * zoomx) + float(sx);
+  r_co[1] = (co[1] * height * zoomy) + float(sy);
 }
 
 bool ED_image_slot_cycle(Image *image, int direction)

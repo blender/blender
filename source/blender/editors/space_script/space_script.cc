@@ -166,7 +166,7 @@ static void script_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceScript, sl);
 }
 
-void ED_spacetype_script(void)
+void ED_spacetype_script()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype script"));
   ARegionType *art;

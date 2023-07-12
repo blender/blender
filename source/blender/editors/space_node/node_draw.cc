@@ -1370,7 +1370,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 
   GPU_blend(GPU_BLEND_NONE);
 
-  float black[4] = {0.f, 0.f, 0.f, 1.f};
+  float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   const float outline_width = 1.0f;
   draw_rect.xmin -= outline_width;

@@ -262,7 +262,7 @@ static void fluid_bake_sequence(FluidJob *job)
 
   /* Loop through selected frames. */
   for (; frame <= fds->cache_frame_end; frame++) {
-    const float progress = (frame - fds->cache_frame_start) / (float)frames;
+    const float progress = (frame - fds->cache_frame_start) / float(frames);
 
     /* Keep track of pause frame - needed to init future loop. */
     (*pause_frame) = frame;

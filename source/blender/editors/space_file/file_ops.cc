@@ -2019,7 +2019,7 @@ static bool file_os_operations_menu_poll(const bContext *C_const, MenuType * /*m
   return false;
 }
 
-void file_external_operations_menu_register(void)
+void file_external_operations_menu_register()
 {
   MenuType *mt;
 
@@ -3277,7 +3277,7 @@ void FILE_OT_edit_directory_path(wmOperatorType *ot)
 /** \name Macro Operators
  * \{ */
 
-void ED_operatormacros_file(void)
+void ED_operatormacros_file()
 {
   //  wmOperatorType *ot;
   //  wmOperatorTypeMacro *otmacro;

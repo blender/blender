@@ -1127,7 +1127,7 @@ static void screen_global_area_refresh(wmWindow *win,
   }
 }
 
-static int screen_global_header_size(void)
+static int screen_global_header_size()
 {
   return (int)ceilf(ED_area_headersize() / UI_SCALE_FAC);
 }
@@ -1649,7 +1649,7 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
                          y,
                          sizex,
                          sizey,
-                         (int)space_type,
+                         int(space_type),
                          false,
                          dialog,
                          true,
@@ -1668,7 +1668,7 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
         ((SpaceLink *)area->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
       }
       else {
-        area = ED_screen_full_newspace(C, ctx_area, (int)space_type);
+        area = ED_screen_full_newspace(C, ctx_area, int(space_type));
         ((SpaceLink *)area->spacedata.first)->link_flag |= SPACE_FLAG_TYPE_TEMPORARY;
       }
       break;

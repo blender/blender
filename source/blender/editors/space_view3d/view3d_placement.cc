@@ -503,7 +503,7 @@ static void draw_circle_in_quad(const float v1[3],
   float(*coords)[3] = static_cast<float(*)[3]>(
       MEM_mallocN(sizeof(float[3]) * (resolution + 1), __func__));
   for (int i = 0; i <= resolution; i++) {
-    float theta = ((2.0f * M_PI) * ((float)i / (float)resolution)) + 0.01f;
+    float theta = ((2.0f * M_PI) * (float(i) / float(resolution))) + 0.01f;
     float x = cosf(theta);
     float y = sinf(theta);
     const float pt[2] = {x, y};

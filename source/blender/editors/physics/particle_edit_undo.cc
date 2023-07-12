@@ -233,11 +233,8 @@ static bool particle_undosys_step_encode(bContext *C, struct Main * /*bmain*/, U
   return true;
 }
 
-static void particle_undosys_step_decode(bContext *C,
-                                         struct Main * /*bmain*/,
-                                         UndoStep *us_p,
-                                         const eUndoStepDir /*dir*/,
-                                         bool /*is_final*/)
+static void particle_undosys_step_decode(
+    bContext *C, Main * /*bmain*/, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 

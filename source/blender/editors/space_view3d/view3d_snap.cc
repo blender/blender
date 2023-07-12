@@ -882,7 +882,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     mid_v3_v3v3(r_cursor, min, max);
   }
   else {
-    mul_v3_fl(centroid, 1.0f / (float)count);
+    mul_v3_fl(centroid, 1.0f / float(count));
     copy_v3_v3(r_cursor, centroid);
   }
   return true;

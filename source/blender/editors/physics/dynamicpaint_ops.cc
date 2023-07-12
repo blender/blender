@@ -366,7 +366,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   /* Set frame to start point (also initializes modifier data). */
   frame = surface->start_frame;
   orig_frame = input_scene->r.cfra;
-  input_scene->r.cfra = (int)frame;
+  input_scene->r.cfra = int(frame);
   ED_update_for_newframe(job->bmain, job->depsgraph);
 
   /* Init surface */
@@ -378,7 +378,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
   /* Loop through selected frames */
   for (frame = surface->start_frame; frame <= surface->end_frame; frame++) {
     /* The first 10% are for createUVSurface... */
-    const float progress = 0.1f + 0.9f * (frame - surface->start_frame) / (float)frames;
+    const float progress = 0.1f + 0.9f * (frame - surface->start_frame) / float(frames);
     surface->current_frame = frame;
 
     /* If user requested stop, quit baking */
@@ -392,7 +392,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
     *(job->progress) = progress;
 
     /* calculate a frame */
-    input_scene->r.cfra = (int)frame;
+    input_scene->r.cfra = int(frame);
     ED_update_for_newframe(job->bmain, job->depsgraph);
     if (!dynamicPaint_calculateFrame(surface, job->depsgraph, scene, cObject, frame)) {
       job->success = 0;

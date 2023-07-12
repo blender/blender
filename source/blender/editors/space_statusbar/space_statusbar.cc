@@ -130,7 +130,7 @@ static void statusbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceStatusBar, sl);
 }
 
-void ED_spacetype_statusbar(void)
+void ED_spacetype_statusbar()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(*st), "spacetype statusbar"));
   ARegionType *art;

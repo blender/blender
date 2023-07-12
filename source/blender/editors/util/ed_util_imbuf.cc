@@ -122,7 +122,7 @@ static void image_sample_rect_color_ubyte(const ImBuf *ibuf,
       col_tot += 1;
     }
   }
-  mul_v4_fl(r_col_linear, 1.0 / (float)col_tot);
+  mul_v4_fl(r_col_linear, 1.0 / float(col_tot));
 
   r_col[0] = MIN2(col_accum_ub[0] / col_tot, 255);
   r_col[1] = MIN2(col_accum_ub[1] / col_tot, 255);
@@ -143,7 +143,7 @@ static void image_sample_rect_color_float(ImBuf *ibuf, const rcti *rect, float r
       col_tot += 1;
     }
   }
-  mul_v4_fl(r_col, 1.0 / (float)col_tot);
+  mul_v4_fl(r_col, 1.0 / float(col_tot));
 }
 
 /** \} */
@@ -299,7 +299,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
   if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
     const float *fp;
     uchar *cp;
-    int x = (int)fx, y = (int)fy;
+    int x = int(fx), y = int(fy);
 
     info->x = x;
     info->y = y;

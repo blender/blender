@@ -16,7 +16,7 @@
 
 /***************************** particles ***********************************/
 
-static void operatortypes_particle(void)
+static void operatortypes_particle()
 {
   WM_operatortype_append(PARTICLE_OT_select_all);
   WM_operatortype_append(PARTICLE_OT_select_roots);
@@ -90,7 +90,7 @@ static void keymap_particle(wmKeyConfig *keyconf)
 
 /******************************* boids *************************************/
 
-static void operatortypes_boids(void)
+static void operatortypes_boids()
 {
   WM_operatortype_append(BOID_OT_rule_add);
   WM_operatortype_append(BOID_OT_rule_del);
@@ -105,7 +105,7 @@ static void operatortypes_boids(void)
 
 /********************************* fluid ***********************************/
 
-static void operatortypes_fluid(void)
+static void operatortypes_fluid()
 {
   WM_operatortype_append(FLUID_OT_bake_all);
   WM_operatortype_append(FLUID_OT_free_all);
@@ -124,7 +124,7 @@ static void operatortypes_fluid(void)
 
 /**************************** point cache **********************************/
 
-static void operatortypes_pointcache(void)
+static void operatortypes_pointcache()
 {
   WM_operatortype_append(PTCACHE_OT_bake_all);
   WM_operatortype_append(PTCACHE_OT_free_bake_all);
@@ -137,7 +137,7 @@ static void operatortypes_pointcache(void)
 
 /********************************* dynamic paint ***********************************/
 
-static void operatortypes_dynamicpaint(void)
+static void operatortypes_dynamicpaint()
 {
   WM_operatortype_append(DPAINT_OT_bake);
   WM_operatortype_append(DPAINT_OT_surface_slot_add);
@@ -148,7 +148,7 @@ static void operatortypes_dynamicpaint(void)
 
 /****************************** general ************************************/
 
-void ED_operatortypes_physics(void)
+void ED_operatortypes_physics()
 {
   operatortypes_particle();
   operatortypes_boids();

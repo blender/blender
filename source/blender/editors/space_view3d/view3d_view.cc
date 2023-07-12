@@ -463,12 +463,12 @@ void view3d_viewmatrix_set(Depsgraph *depsgraph,
 /** \name OpenGL Select Utilities
  * \{ */
 
-void view3d_opengl_select_cache_begin(void)
+void view3d_opengl_select_cache_begin()
 {
   GPU_select_cache_begin();
 }
 
-void view3d_opengl_select_cache_end(void)
+void view3d_opengl_select_cache_end()
 {
   GPU_select_cache_end();
 }

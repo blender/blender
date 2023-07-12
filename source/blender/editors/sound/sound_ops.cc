@@ -878,7 +878,7 @@ static void SOUND_OT_unpack(wmOperatorType *ot)
 
 /* ******************************************************* */
 
-void ED_operatortypes_sound(void)
+void ED_operatortypes_sound()
 {
   WM_operatortype_append(SOUND_OT_open);
   WM_operatortype_append(SOUND_OT_open_mono);

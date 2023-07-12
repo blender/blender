@@ -158,8 +158,8 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
   int screen_size_y_prev = (max[1] - min[1]) + 1;
 
   if (screen_size_x_prev != screen_size_x || screen_size_y_prev != screen_size_y) {
-    const float facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
-    const float facy = ((float)screen_size_y - 1) / ((float)screen_size_y_prev - 1);
+    const float facx = (float(screen_size_x) - 1) / (float(screen_size_x_prev) - 1);
+    const float facy = (float(screen_size_y) - 1) / (float(screen_size_y_prev) - 1);
 
     /* make sure it fits! */
     LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {

@@ -208,7 +208,7 @@ static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
   }
 }
 
-static void recent_files_menu_register(void)
+static void recent_files_menu_register()
 {
   MenuType *mt;
 
@@ -267,7 +267,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
   }
 }
 
-static void undo_history_menu_register(void)
+static void undo_history_menu_register()
 {
   MenuType *mt;
 
@@ -284,7 +284,7 @@ static void topbar_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceTopBar, sl);
 }
 
-void ED_spacetype_topbar(void)
+void ED_spacetype_topbar()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype topbar"));
   ARegionType *art;

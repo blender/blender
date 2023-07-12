@@ -591,7 +591,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
     }
 
     if (success) {
-      n->val[idx] = (float)val;
+      n->val[idx] = float(val);
       n->val_flag[idx] &= ~NUM_INVALID;
     }
     else {
@@ -613,7 +613,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
       if (!n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
         val = DEG2RAD(val);
       }
-      n->val[idx] = (float)val;
+      n->val[idx] = float(val);
     }
 #endif
 

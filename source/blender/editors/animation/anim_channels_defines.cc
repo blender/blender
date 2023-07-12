@@ -3601,7 +3601,7 @@ static bAnimChannelType ACF_GPL = {
 
     /*name*/ acf_gpl_name,
     /*name_prop*/ acf_gpl_name_prop,
-    /*icon*/ NULL,
+    /*icon*/ nullptr,
 
     /*has_setting*/ acf_gpl_setting_valid,
     /*setting_flag*/ acf_gpl_setting_flag,

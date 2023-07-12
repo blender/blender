@@ -110,7 +110,7 @@ static void drawscredge_area_draw(
     int sizex, int sizey, short x1, short y1, short x2, short y2, float edge_thickness)
 {
   rctf rect;
-  BLI_rctf_init(&rect, (float)x1, (float)x2, (float)y1, (float)y2);
+  BLI_rctf_init(&rect, float(x1), float(x2), float(y1), float(y2));
 
   /* right border area */
   if (x2 >= sizex - 1) {

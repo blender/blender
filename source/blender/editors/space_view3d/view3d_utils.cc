@@ -1772,7 +1772,7 @@ bool ED_view3d_depth_read_cached_normal(const ARegion *region,
 
       float depth_fl = 1.0f;
       ED_view3d_depth_read_cached(depths, mval_ofs, 0, &depth_fl);
-      const double depth = (double)depth_fl;
+      const double depth = double(depth_fl);
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject_v3(region, mval_ofs, depth, coords[i])) {
           depths_valid[i] = true;

@@ -183,7 +183,7 @@ static void userpref_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   BLO_write_struct(writer, SpaceUserPref, sl);
 }
 
-void ED_spacetype_userpref(void)
+void ED_spacetype_userpref()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype userpref"));
   ARegionType *art;

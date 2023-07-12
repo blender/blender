@@ -1311,7 +1311,7 @@ static inline void register_context_function(const char *member, context_callbac
       ed_screen_context_functions, (void *)member, reinterpret_cast<void *>(function));
 }
 
-static void ensure_ed_screen_context_functions(void)
+static void ensure_ed_screen_context_functions()
 {
   if (ed_screen_context_functions != nullptr) {
     return;

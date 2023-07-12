@@ -589,7 +589,7 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   UI_view2d_scrollers_draw(v2d, &view_rect);
 }
 
-static void file_operatortypes(void)
+static void file_operatortypes()
 {
   WM_operatortype_append(FILE_OT_select);
   WM_operatortype_append(FILE_OT_select_walk);
@@ -794,7 +794,7 @@ static void filepath_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 }
 
 /* region dropbox definition */
-static void file_dropboxes(void)
+static void file_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Window", SPACE_EMPTY, RGN_TYPE_WINDOW);
 
@@ -940,7 +940,7 @@ static int /*eContextResult*/ file_context(const bContext *C,
   return CTX_RESULT_MEMBER_NOT_FOUND;
 }
 
-static void file_id_remap(ScrArea *area, SpaceLink *sl, const struct IDRemapper * /*mappings*/)
+static void file_id_remap(ScrArea *area, SpaceLink *sl, const IDRemapper * /*mappings*/)
 {
   SpaceFile *sfile = (SpaceFile *)sl;
 
@@ -997,7 +997,7 @@ static void file_space_blend_write(BlendWriter *writer, SpaceLink *sl)
   }
 }
 
-void ED_spacetype_file(void)
+void ED_spacetype_file()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype file"));
   ARegionType *art;
@@ -1095,7 +1095,7 @@ void ED_spacetype_file(void)
   BKE_spacetype_register(st);
 }
 
-void ED_file_init(void)
+void ED_file_init()
 {
   ED_file_read_bookmarks();
 
@@ -1106,7 +1106,7 @@ void ED_file_init(void)
   IMB_thumb_makedirs();
 }
 
-void ED_file_exit(void)
+void ED_file_exit()
 {
   fsmenu_free();
 
@@ -1115,7 +1115,7 @@ void ED_file_exit(void)
   }
 }
 
-void ED_file_read_bookmarks(void)
+void ED_file_read_bookmarks()
 {
   const char *const cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
 

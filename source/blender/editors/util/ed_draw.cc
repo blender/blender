@@ -161,7 +161,7 @@ static void draw_ticks(const float start_factor,
     }
 
     const float x = line_start[0] +
-                    (((float)tick_percentage / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
+                    ((float(tick_percentage) / 100) - start_factor) * SLIDE_PIXEL_DISTANCE;
     rctf tick_rect{};
     tick_rect.xmin = x - (line_width / 2);
     tick_rect.xmax = x + (line_width / 2);

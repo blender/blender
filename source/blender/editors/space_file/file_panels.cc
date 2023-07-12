@@ -161,7 +161,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
                   "filename",
                   0,
                   0.0f,
-                  (float)FILE_MAXFILE,
+                  float(FILE_MAXFILE),
                   0,
                   0,
                   TIP_(overwrite_alert ? N_("File name, overwrite existing") : N_("File name")));

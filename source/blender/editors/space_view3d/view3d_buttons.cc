@@ -151,7 +151,7 @@ static void *editmesh_partial_update_begin_fn(bContext * /*C*/,
 }
 
 static void editmesh_partial_update_end_fn(bContext * /*C*/,
-                                           const struct uiBlockInteraction_Params * /*params*/,
+                                           const uiBlockInteraction_Params * /*params*/,
                                            void * /*arg1*/,
                                            void *user_data)
 {
@@ -163,7 +163,7 @@ static void editmesh_partial_update_end_fn(bContext * /*C*/,
 }
 
 static void editmesh_partial_update_update_fn(bContext *C,
-                                              const struct uiBlockInteraction_Params * /*params*/,
+                                              const uiBlockInteraction_Params * /*params*/,
                                               void *arg1,
                                               void *user_data)
 {
@@ -475,7 +475,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   }
 
   /* Location, X/Y/Z */
-  mul_v3_fl(median_basis.generic.location, 1.0f / (float)tot);
+  mul_v3_fl(median_basis.generic.location, 1.0f / float(tot));
   if (v3d->flag & V3D_GLOBAL_STATS) {
     mul_m4_v3(ob->object_to_world, median_basis.generic.location);
   }
@@ -483,30 +483,30 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
   if (has_meshdata) {
     TransformMedian_Mesh *median = &median_basis.mesh;
     if (totedgedata) {
-      median->e_crease /= (float)totedgedata;
-      median->be_weight /= (float)totedgedata;
+      median->e_crease /= float(totedgedata);
+      median->be_weight /= float(totedgedata);
     }
     if (tot) {
-      median->bv_weight /= (float)tot;
-      median->v_crease /= (float)tot;
+      median->bv_weight /= float(tot);
+      median->v_crease /= float(tot);
       if (has_skinradius) {
-        median->skin[0] /= (float)tot;
-        median->skin[1] /= (float)tot;
+        median->skin[0] /= float(tot);
+        median->skin[1] /= float(tot);
       }
     }
   }
   else if (totcurvedata) {
     TransformMedian_Curve *median = &median_basis.curve;
     if (totcurvebweight) {
-      median->b_weight /= (float)totcurvebweight;
+      median->b_weight /= float(totcurvebweight);
     }
-    median->weight /= (float)totcurvedata;
-    median->radius /= (float)totcurvedata;
-    median->tilt /= (float)totcurvedata;
+    median->weight /= float(totcurvedata);
+    median->radius /= float(totcurvedata);
+    median->tilt /= float(totcurvedata);
   }
   else if (totlattdata) {
     TransformMedian_Lattice *median = &median_basis.lattice;
-    median->weight /= (float)totlattdata;
+    median->weight /= float(totlattdata);
   }
 
   if (block) { /* buttons */

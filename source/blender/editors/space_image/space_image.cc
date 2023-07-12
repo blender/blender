@@ -189,7 +189,7 @@ static SpaceLink *image_duplicate(SpaceLink *sl)
   return (SpaceLink *)simagen;
 }
 
-static void image_operatortypes(void)
+static void image_operatortypes()
 {
   WM_operatortype_append(IMAGE_OT_view_all);
   WM_operatortype_append(IMAGE_OT_view_pan);
@@ -273,7 +273,7 @@ static void image_drop_copy(bContext * /*C*/, wmDrag *drag, wmDropBox *drop)
 }
 
 /* area+region dropbox definition */
-static void image_dropboxes(void)
+static void image_dropboxes()
 {
   ListBase *lb = WM_dropboxmap_find("Image", SPACE_IMAGE, 0);
 
@@ -526,7 +526,7 @@ static void IMAGE_GGT_navigate(wmGizmoGroupType *gzgt)
   VIEW2D_GGT_navigate_impl(gzgt, "IMAGE_GGT_navigate");
 }
 
-static void image_widgets(void)
+static void image_widgets()
 {
   const wmGizmoMapType_Params params{SPACE_IMAGE, RGN_TYPE_WINDOW};
   wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&params);
@@ -582,12 +582,12 @@ static void image_main_region_set_view2d(SpaceImage *sima, ARegion *region)
   y1 -= sima->zoom * sima->yof;
 
   /* relative display right */
-  region->v2d.cur.xmin = ((region->winrct.xmin - (float)x1) / sima->zoom);
-  region->v2d.cur.xmax = region->v2d.cur.xmin + ((float)winx / sima->zoom);
+  region->v2d.cur.xmin = ((region->winrct.xmin - float(x1)) / sima->zoom);
+  region->v2d.cur.xmax = region->v2d.cur.xmin + (float(winx) / sima->zoom);
 
   /* relative display left */
-  region->v2d.cur.ymin = ((region->winrct.ymin - (float)y1) / sima->zoom);
-  region->v2d.cur.ymax = region->v2d.cur.ymin + ((float)winy / sima->zoom);
+  region->v2d.cur.ymin = ((region->winrct.ymin - float(y1)) / sima->zoom);
+  region->v2d.cur.ymax = region->v2d.cur.ymin + (float(winy) / sima->zoom);
 
   /* normalize 0.0..1.0 */
   region->v2d.cur.xmin /= w;
@@ -1078,7 +1078,7 @@ static void image_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 /**************************** spacetype *****************************/
 
-void ED_spacetype_image(void)
+void ED_spacetype_image()
 {
   SpaceType *st = static_cast<SpaceType *>(MEM_callocN(sizeof(SpaceType), "spacetype image"));
   ARegionType *art;
@@ -1132,7 +1132,7 @@ void ED_spacetype_image(void)
   /* regions: tool(bar) */
   art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype image region"));
   art->regionid = RGN_TYPE_TOOLS;
-  art->prefsizex = (int)UI_TOOLBAR_WIDTH;
+  art->prefsizex = int(UI_TOOLBAR_WIDTH);
   art->prefsizey = 50; /* XXX */
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
   art->listener = image_tools_region_listener;

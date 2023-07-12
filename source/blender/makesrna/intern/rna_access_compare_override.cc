@@ -1212,7 +1212,7 @@ static void rna_property_override_collection_subitem_lookup(
     CLOG_INFO(&LOG,
               2,
               "Failed to find destination sub-item '%s' (%d) of '%s' in new override data '%s'",
-              opop->subitem_reference_name != NULL ? opop->subitem_reference_name : "",
+              opop->subitem_reference_name != nullptr ? opop->subitem_reference_name : "",
               opop->subitem_reference_index,
               op->rna_path,
               ptr_dst->owner_id->name);
@@ -1224,7 +1224,7 @@ static void rna_property_override_collection_subitem_lookup(
     CLOG_INFO(&LOG,
               2,
               "Failed to find source sub-item '%s' (%d) of '%s' in old override data '%s'",
-              opop->subitem_local_name != NULL ? opop->subitem_local_name : "",
+              opop->subitem_local_name != nullptr ? opop->subitem_local_name : "",
               opop->subitem_local_index,
               op->rna_path,
               ptr_src->owner_id->name);

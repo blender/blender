@@ -523,7 +523,7 @@ static rctf initialize_box_select_coords(const bAnimContext *ac, const rctf *rec
   return rectf;
 }
 
-static int initialize_animdata_selection_filter(void)
+static int initialize_animdata_selection_filter()
 {
   int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FCURVESONLY |
                 ANIMFILTER_NODUPLIS);

@@ -125,7 +125,7 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
 static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
   struct NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(
-      MEM_callocN(sizeof(struct NavigateWidgetGroup), __func__));
+      MEM_callocN(sizeof(NavigateWidgetGroup), __func__));
 
   wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
   wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);

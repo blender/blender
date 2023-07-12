@@ -4729,7 +4729,7 @@ static int screen_animation_step_invoke(bContext *C, wmOperator * /*op*/, const 
       }
       else {
         /* Extract the delta frame fractions that will be skipped when converting to int. */
-        sad->lagging_frame_count = delta_frames - (int)delta_frames;
+        sad->lagging_frame_count = delta_frames - int(delta_frames);
       }
 
       const int step = delta_frames;
@@ -5514,7 +5514,7 @@ static int region_blend_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
   }
 
   /* end timer? */
-  if (rgi->region->regiontimer->duration > (double)TIMEOUT) {
+  if (rgi->region->regiontimer->duration > double(TIMEOUT)) {
     region_blend_end(C, rgi->region, false);
     return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
   }
@@ -5767,7 +5767,7 @@ static void SCREEN_OT_workspace_cycle(wmOperatorType *ot)
 /** \name Assigning Operator Types
  * \{ */
 
-void ED_operatortypes_screen(void)
+void ED_operatortypes_screen()
 {
   /* Generic UI stuff. */
   WM_operatortype_append(SCREEN_OT_actionzone);

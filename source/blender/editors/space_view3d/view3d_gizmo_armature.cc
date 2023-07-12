@@ -143,7 +143,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
   struct BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
-      MEM_callocN(sizeof(struct BoneSplineWidgetGroup), __func__));
+      MEM_callocN(sizeof(BoneSplineWidgetGroup), __func__));
   gzgroup->customdata = bspline_group;
 
   /* Handles */

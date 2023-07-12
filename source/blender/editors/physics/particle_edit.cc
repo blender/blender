@@ -2776,7 +2776,7 @@ static void rekey_particle(PEData *data, int pa_index)
 
   /* interpolate new keys from old ones */
   for (k = 1, key++; k < data->totrekey - 1; k++, key++) {
-    state.time = (float)k / (float)(data->totrekey - 1);
+    state.time = float(k) / (float)(data->totrekey - 1);
     psys_get_particle_on_path(&sim, pa_index, &state, 0);
     copy_v3_v3(key->co, state.co);
     key->time = sta + k * dval;
@@ -2878,7 +2878,7 @@ static void rekey_particle_to_time(
 
   /* interpolate new keys from old ones (roots stay the same) */
   for (k = 1, key++; k < pa->totkey; k++, key++) {
-    state.time = path_time * (float)k / (float)(pa->totkey - 1);
+    state.time = path_time * float(k) / (float)(pa->totkey - 1);
     psys_get_particle_on_path(&sim, pa_index, &state, 0);
     copy_v3_v3(key->co, state.co);
   }
@@ -3407,7 +3407,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void * /*customdata*/)
     GPU_line_smooth(true);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    imm_draw_circle_wire_2d(pos, (float)x, (float)y, pe_brush_size_get(scene, brush), 40);
+    imm_draw_circle_wire_2d(pos, float(x), float(y), pe_brush_size_get(scene, brush), 40);
 
     GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
@@ -3838,7 +3838,7 @@ static void brush_cut(PEData *data, int pa_index)
 
           if (cut_time < 1.0f) {
             cut_time += (float)(k - 1);
-            cut_time /= (float)keys;
+            cut_time /= float(keys);
             cut = 1;
             break;
           }
@@ -4685,7 +4685,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         for (k = 0, hkey = pa->hair; k < pset->totaddkey; k++, hkey++) {
           madd_v3_v3v3fl(hkey->co, pa->state.co, pa->state.vel, k * framestep * timestep);
           hkey->time += k * framestep;
-          hkey->weight = 1.0f - (float)k / (float)(pset->totaddkey - 1);
+          hkey->weight = 1.0f - float(k) / (float)(pset->totaddkey - 1);
         }
       }
       for (k = 0, hkey = pa->hair; k < pset->totaddkey; k++, hkey++) {
@@ -4817,8 +4817,8 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
     dmax = max_ff(fabsf(dx), fabsf(dy));
     tot_steps = dmax / (0.2f * pe_brush_size_get(scene, brush)) + 1;
 
-    dx /= (float)tot_steps;
-    dy /= (float)tot_steps;
+    dx /= float(tot_steps);
+    dy /= float(tot_steps);
 
     for (step = 1; step <= tot_steps; step++) {
       mval[0] = bedit->lastmouse[0] + step * dx;
@@ -5212,7 +5212,7 @@ static void shape_cut(PEData *data, int pa_index)
                            &data->shape_bvh);
       if (hit.index >= 0) {
         if (hit.dist < len_shape) {
-          cut_time = ((hit.dist / len_shape) + (float)k) / (float)totkeys;
+          cut_time = ((hit.dist / len_shape) + float(k)) / float(totkeys);
           cut = true;
           break;
         }
