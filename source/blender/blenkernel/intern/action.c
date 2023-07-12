@@ -1839,13 +1839,8 @@ void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
 
 void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
-  /* Write each channel */
-  if (pose == NULL) {
-    return;
-  }
-
-#ifndef __GNUC__ /* Ensured by the function attribute. */
-  BLI_assert(arm != NULL);
+#ifndef __GNUC__
+  BLI_assert(pose != NULL && arm != NULL);
 #endif
 
   /* Write channels */
