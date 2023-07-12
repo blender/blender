@@ -3604,14 +3604,12 @@ static void widget_scroll(uiBut *but,
   UI_draw_widget_scroll(wcol, rect, &rect1, (state->but_flag & UI_SELECT) ? UI_SCROLL_PRESSED : 0);
 }
 
-static void widget_progress_indicator(uiBut *but,
-                                      uiWidgetColors *wcol,
-                                      rcti *rect,
-                                      const uiWidgetStateInfo * /*state*/,
-                                      int roundboxalign,
-                                      const float zoom)
+static void widget_progress_type_bar(uiButProgress *but_progress,
+                                     uiWidgetColors *wcol,
+                                     rcti *rect,
+                                     int roundboxalign,
+                                     const float zoom)
 {
-  uiButProgress *but_progress = (uiButProgress *)but;
   rcti rect_prog = *rect, rect_bar = *rect;
 
   uiWidgetBase wtb, wtb_bar;
@@ -3619,9 +3617,9 @@ static void widget_progress_indicator(uiBut *but,
   widget_init(&wtb_bar);
 
   /* round corners */
-  const float value = but_progress->progress_factor;
+  const float factor = but_progress->progress_factor;
   const float ofs = widget_radius_from_zoom(zoom, wcol);
-  float w = value * BLI_rcti_size_x(&rect_prog);
+  float w = factor * BLI_rcti_size_x(&rect_prog);
 
   /* Ensure minimum size. */
   w = MAX2(w, ofs);
@@ -3637,6 +3635,67 @@ static void widget_progress_indicator(uiBut *but,
   /* "slider" bar color */
   copy_v3_v3_uchar(wcol->inner, wcol->item);
   widgetbase_draw(&wtb_bar, wcol);
+}
+
+/**
+ * Used for both ring & pie types.
+ */
+static void widget_progress_type_circle(uiButProgress *but_progress,
+                                        uiWidgetColors *wcol,
+                                        rcti *rect,
+                                        const float ring_width)
+{
+  const float outer_rad = (rect->ymax - rect->ymin) / 2.0f;
+  const float inner_rad = outer_rad * ring_width;
+  const float x = rect->xmin + outer_rad;
+  const float y = rect->ymin + outer_rad;
+  const float start = 0.0f;
+  const float end = but_progress->progress_factor * 360.0f;
+  GPUVertFormat *format = immVertexFormat();
+  const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  immUniformColor3ubvAlpha(wcol->item, 255 / UI_PIXEL_AA_JITTER * 2);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  for (int i = 0; i < UI_PIXEL_AA_JITTER; i++) {
+    imm_draw_disk_partial_fill_2d(pos,
+                                  x + ui_pixel_jitter[i][0],
+                                  y + ui_pixel_jitter[i][1],
+                                  inner_rad,
+                                  outer_rad,
+                                  48,
+                                  start,
+                                  end);
+  }
+  immUnbindProgram();
+
+  if (but_progress->drawstr[0]) {
+    rect->xmin += UI_UNIT_X;
+  }
+}
+
+static void widget_progress_indicator(uiBut *but,
+                                      uiWidgetColors *wcol,
+                                      rcti *rect,
+                                      const uiWidgetStateInfo * /*state*/,
+                                      int roundboxalign,
+                                      const float zoom)
+{
+  uiButProgress *but_progress = static_cast<uiButProgress *>(but);
+  switch (but_progress->progress_type) {
+    case UI_BUT_PROGRESS_TYPE_BAR: {
+      widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
+      break;
+    }
+    case UI_BUT_PROGRESS_TYPE_PIE: {
+      widget_progress_type_circle(but_progress, wcol, rect, 0.6f);
+      break;
+    }
+    case UI_BUT_PROGRESS_TYPE_RING: {
+      widget_progress_type_circle(but_progress, wcol, rect, 0.0f);
+      break;
+    }
+  }
 }
 
 static void widget_view_item(uiWidgetColors *wcol,

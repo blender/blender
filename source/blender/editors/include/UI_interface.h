@@ -1450,6 +1450,12 @@ enum {
   UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
 };
 
+enum eButProgressType {
+  UI_BUT_PROGRESS_TYPE_BAR = 0,
+  UI_BUT_PROGRESS_TYPE_RING = 1,
+  UI_BUT_PROGRESS_TYPE_PIE = 2,
+};
+
 /***************************** ID Utilities *******************************/
 
 int UI_icon_from_id(const struct ID *id);
@@ -2881,6 +2887,11 @@ void uiItemS(uiLayout *layout);
 void uiItemS_ex(uiLayout *layout, float factor);
 /** Flexible spacing. */
 void uiItemSpacer(uiLayout *layout);
+
+void uiItemProgressIndicator(uiLayout *layout,
+                             const char *text,
+                             float factor,
+                             enum eButProgressType progress_type);
 
 /* popover */
 void uiItemPopoverPanel_ptr(
