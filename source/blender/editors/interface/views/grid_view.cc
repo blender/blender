@@ -472,7 +472,7 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
   uiBut *but = uiDefBut(block,
                         UI_BTYPE_PREVIEW_TILE,
                         0,
-                        label.c_str(),
+                        hide_label_ ? "" : label.c_str(),
                         0,
                         0,
                         style.tile_width,
@@ -487,6 +487,8 @@ void PreviewGridItem::build_grid_tile(uiLayout &layout) const
                   preview_icon_id,
                   /* NOLINTNEXTLINE: bugprone-suspicious-enum-usage */
                   UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+  UI_but_drawflag_enable(but, UI_BUT_FORCE_TOOLTIP_LABEL);
+  UI_but_func_tooltip_label_set(but, [this](const uiBut * /*but*/) { return label; });
   but->emboss = UI_EMBOSS_NONE;
 }
 
@@ -498,6 +500,11 @@ void PreviewGridItem::set_on_activate_fn(ActivateFn fn)
 void PreviewGridItem::set_is_active_fn(IsActiveFn fn)
 {
   is_active_fn_ = fn;
+}
+
+void PreviewGridItem::hide_label()
+{
+  hide_label_ = true;
 }
 
 void PreviewGridItem::on_activate()

@@ -856,7 +856,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
 
   /* flags from the buttons we want to refresh, may want to add more here... */
   const int flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
-  const int drawflag_copy = 0; /* None currently. */
+  const int drawflag_copy = UI_BUT_FORCE_TOOLTIP_LABEL;
 
   /* still stuff needs to be copied */
   oldbut->rect = but->rect;
@@ -878,6 +878,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
   std::swap(oldbut->tip_func, but->tip_func);
   std::swap(oldbut->tip_arg, but->tip_arg);
   std::swap(oldbut->tip_arg_free, but->tip_arg_free);
+  std::swap(oldbut->tip_label_func, but->tip_label_func);
 
   oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
   oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
@@ -6076,6 +6077,11 @@ void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func)
   but->menu_step_func = func;
 }
 
+void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func)
+{
+  but->tip_label_func = func;
+}
+
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg)
 {
   but->tip_func = func;
@@ -6576,6 +6582,17 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
   while ((si = (uiStringInfo *)va_arg(args, void *))) {
     uiStringInfoType type = si->type;
     char *tmp = nullptr;
+
+    if (type == BUT_GET_TIP_LABEL) {
+      if (but->tip_label_func) {
+        const std::string tooltip_label = but->tip_label_func(but);
+        tmp = BLI_strdupn(tooltip_label.c_str(), tooltip_label.size());
+      }
+      /* Fallback to the regular label. */
+      else {
+        type = BUT_GET_LABEL;
+      }
+    }
 
     if (type == BUT_GET_LABEL) {
       if (but->str && but->str[0]) {

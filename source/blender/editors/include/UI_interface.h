@@ -8,6 +8,11 @@
 
 #pragma once
 
+#ifdef __cplusplus
+#  include <functional>
+#  include <string>
+#endif
+
 #include "BLI_compiler_attrs.h"
 #include "BLI_string_utf8_symbols.h"
 #include "BLI_sys_types.h" /* size_t */
@@ -289,8 +294,11 @@ enum {
   UI_BUT_TEXT_RIGHT = 1 << 3,
   /** Prevent the button to show any tooltip. */
   UI_BUT_NO_TOOLTIP = 1 << 4,
+  /** Always show a tooltip label (the short tooltip that appears faster than the full one and only
+   * shows the label) even the label may already be visible. */
+  UI_BUT_FORCE_TOOLTIP_LABEL = 1 << 5,
   /** Do not add the usual horizontal padding for text drawing. */
-  UI_BUT_NO_TEXT_PADDING = 1 << 5,
+  UI_BUT_NO_TEXT_PADDING = 1 << 6,
 
   /* Button align flag, for drawing groups together.
    * Used in 'uiBlock.flag', take care! */
@@ -1386,6 +1394,8 @@ typedef enum uiStringInfoType {
   BUT_GET_RNASTRUCT_IDENTIFIER,
   BUT_GET_RNAENUM_IDENTIFIER,
   BUT_GET_LABEL,
+  /** Sometimes the button doesn't have a label itself, but provides one for the tooltip. */
+  BUT_GET_TIP_LABEL,
   BUT_GET_RNA_LABEL,
   BUT_GET_RNAENUM_LABEL,
   BUT_GET_RNA_LABEL_CONTEXT, /* Context specified in CTX_XXX_ macros are just unreachable! */
@@ -1739,6 +1749,10 @@ void UI_but_func_drawextra_set(
     void *arg2);
 
 void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func);
+
+#ifdef __cplusplus
+void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
+#endif
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
 /**

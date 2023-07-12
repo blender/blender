@@ -120,10 +120,13 @@ void AssetView::build_items()
     const bool show_names = (shelf_.settings.display_flag & ASSETSHELF_SHOW_NAMES);
 
     const StringRef identifier = asset->get_identifier().library_relative_identifier();
-    const StringRef name = show_names ? asset->get_name() : "";
     const int preview_id = ED_asset_handle_get_preview_icon_id(&asset_handle);
 
-    AssetViewItem &item = add_item<AssetViewItem>(asset_handle, identifier, name, preview_id);
+    AssetViewItem &item = add_item<AssetViewItem>(
+        asset_handle, identifier, asset->get_name(), preview_id);
+    if (!show_names) {
+      item.hide_label();
+    }
     if (shelf_.type->flag & ASSET_SHELF_TYPE_NO_ASSET_DRAG) {
       item.disable_asset_drag();
     }

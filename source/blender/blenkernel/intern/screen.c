@@ -736,7 +736,7 @@ void BKE_area_region_free(SpaceType *st, ARegion *region)
       art->free(region);
     }
 
-    if (region->regiondata) {
+    if (region->regiondata && !(region->flag & RGN_FLAG_TEMP_REGIONDATA)) {
       printf("regiondata free error\n");
     }
   }

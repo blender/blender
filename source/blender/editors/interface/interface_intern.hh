@@ -219,6 +219,7 @@ struct uiBut {
   uiButToolTipFunc tip_func = nullptr;
   void *tip_arg = nullptr;
   uiFreeArgFunc tip_arg_free = nullptr;
+  std::function<std::string(const uiBut *)> tip_label_func;
 
   /** info on why button is disabled, displayed in tooltip */
   const char *disabled_info = nullptr;
