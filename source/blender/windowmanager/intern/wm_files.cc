@@ -1906,12 +1906,6 @@ static bool wm_file_write(bContext *C,
   /* Enforce full override check/generation on file save. */
   BKE_lib_override_library_main_operations_create(bmain, true, nullptr);
 
-  /* Process above may reset non-overridable properties that are indirectly edited (e.g. through
-   * animation or drivers). With system overrides IDs, this can now include transform of most
-   * objects in an asset. While this is the correct behavior in absolute, it gives (very) bad user
-   * experience, so just update again depsgraph after it. */
-  DEG_graph_tag_on_visible_update(CTX_data_depsgraph_pointer(C), true);
-
   /* NOTE: Ideally we would call `WM_redraw_windows` here to remove any open menus.
    * But we can crash if saving from a script, see #92704 & #97627.
    * Just checking `!G.background && BLI_thread_is_main()` is not sufficient to fix this.
