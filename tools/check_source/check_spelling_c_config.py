@@ -156,6 +156,7 @@ dict_custom = {
     "interferences",
     "interocular",
     "interpolator",
+    "invariance",
     "invariant",
     "invariants",
     "invisibilities",

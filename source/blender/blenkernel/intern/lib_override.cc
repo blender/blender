@@ -276,7 +276,7 @@ static ID *lib_override_library_create_from(Main *bmain,
                                 LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
                                     lib_id_copy_flags);
 
-  /* Incase we could not get an override ID with the exact same name as its linked reference,
+  /* In case we could not get an override ID with the exact same name as its linked reference,
    * ensure we at least get a uniquely named override ID over the whole current Main data, to
    * reduce potential name collisions with other reference IDs.
    *

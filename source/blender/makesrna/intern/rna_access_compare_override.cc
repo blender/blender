@@ -1035,7 +1035,7 @@ static void rna_property_override_collection_subitem_name_index_lookup(
     return;
   }
 
-  /* If name lookup failed, `r_ptr_item_name` is invalidated, so if index lookup was sucessful it
+  /* If name lookup failed, `r_ptr_item_name` is invalidated, so if index lookup was successful it
    * will be the only valid return value. */
 }
 

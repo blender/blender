@@ -104,7 +104,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       return;
     }
 
-    /* Instead of outputing the initial values directly, convert them to a simulation state and
+    /* Instead of outputting the initial values directly, convert them to a simulation state and
      * then back. This ensures that the first frame behaves consistently with all other frames
      * which are necessarily stored in the simulation cache. */
     bke::sim::SimulationZoneState initial_zone_state;
