@@ -322,7 +322,7 @@ void LayerTreeView::build_tree()
 {
   using namespace blender::bke::greasepencil;
   LISTBASE_FOREACH_BACKWARD (
-      GreasePencilLayerTreeNode *, node, &this->grease_pencil_.root_group.children)
+      GreasePencilLayerTreeNode *, node, &this->grease_pencil_.root_group_ptr->children)
   {
     this->build_tree_node_recursive(*this, node->wrap());
   }

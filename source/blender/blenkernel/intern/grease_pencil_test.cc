@@ -39,7 +39,7 @@ TEST(greasepencil, create_grease_pencil_id)
 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
   EXPECT_EQ(grease_pencil.drawings().size(), 0);
-  EXPECT_EQ(grease_pencil.root_group.wrap().num_nodes_total(), 0);
+  EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 0);
 }
 
 /* --------------------------------------------------------------------------------------------- */
@@ -63,8 +63,8 @@ TEST(greasepencil, remove_drawing)
       grease_pencil.drawings_for_write()[1]);
   drawing->geometry.wrap().resize(0, 10);
 
-  Layer &layer1 = grease_pencil.root_group.wrap().add_layer("Layer1");
-  Layer &layer2 = grease_pencil.root_group.wrap().add_layer("Layer2");
+  Layer &layer1 = grease_pencil.root_group().add_layer("Layer1");
+  Layer &layer2 = grease_pencil.root_group().add_layer("Layer2");
 
   layer1.add_frame(0, 0);
   layer1.add_frame(10, 1);

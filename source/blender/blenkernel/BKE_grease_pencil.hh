@@ -523,6 +523,15 @@ inline const blender::bke::greasepencil::LayerGroup &GreasePencilLayerTreeGroup:
   return *reinterpret_cast<const blender::bke::greasepencil::LayerGroup *>(this);
 }
 
+inline const blender::bke::greasepencil::LayerGroup &GreasePencil::root_group() const
+{
+  return this->root_group_ptr->wrap();
+}
+inline blender::bke::greasepencil::LayerGroup &GreasePencil::root_group()
+{
+  return this->root_group_ptr->wrap();
+}
+
 inline bool GreasePencil::has_active_layer() const
 {
   return (this->active_layer != nullptr);
