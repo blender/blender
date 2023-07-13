@@ -185,7 +185,8 @@ namespace {
 enum eUMMNotification {
   UMM_NOTIFICATION_NONE = 0,
   UMM_NOTIFICATION_SUCCESS,
-  UMM_NOTIFICATION_FAILURE
+  UMM_NOTIFICATION_FAILURE,
+  UMM_NOTIFICATION_BYPASS
 };
 
 }  // anonymous namespace
@@ -241,6 +242,12 @@ static eUMMNotification report_notification(const python::dict &result_dict)
   if (notification_str == "success") {
     /* We don't report success, do nothing. */
     return UMM_NOTIFICATION_SUCCESS;
+  }
+
+  if (notification_str == "bypass") {
+    /* This is a no-op, where no conversion was required.
+     * For now, we don't report this. */
+    return UMM_NOTIFICATION_BYPASS;
   }
 
   if (result_dict.has_key("message")) {
