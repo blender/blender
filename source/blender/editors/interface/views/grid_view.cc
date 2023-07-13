@@ -289,7 +289,6 @@ BuildOnlyVisibleButtonsHelper::BuildOnlyVisibleButtonsHelper(const View2D &v2d,
 IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
 {
   int first_idx_in_view = 0;
-  int max_items_in_view = 0;
 
   const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
   if (!IS_EQF(scroll_ofs_y, 0)) {
@@ -298,9 +297,9 @@ IndexRange BuildOnlyVisibleButtonsHelper::get_visible_range() const
     first_idx_in_view = scrolled_away_rows * cols_per_row_;
   }
 
-  const float view_height = BLI_rctf_size_y(&v2d_.cur);
-  const int count_rows_in_view = std::max(round_fl_to_int(view_height / style_.tile_height), 1);
-  max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
+  const int view_height = BLI_rcti_size_y(&v2d_.mask);
+  const int count_rows_in_view = std::max(view_height / style_.tile_height, 1);
+  const int max_items_in_view = (count_rows_in_view + 1) * cols_per_row_;
 
   BLI_assert(max_items_in_view > 0);
   return IndexRange(first_idx_in_view, max_items_in_view);
@@ -313,13 +312,12 @@ bool BuildOnlyVisibleButtonsHelper::is_item_visible(const int item_idx) const
 
 void BuildOnlyVisibleButtonsHelper::fill_layout_before_visible(uiBlock &block) const
 {
-  const float scroll_ofs_y = abs(v2d_.cur.ymax - v2d_.tot.ymax);
-
-  if (IS_EQF(scroll_ofs_y, 0)) {
+  const int first_idx_in_view = visible_items_range_.first();
+  if (first_idx_in_view < 1) {
     return;
   }
-
-  const int scrolled_away_rows = int(scroll_ofs_y) / style_.tile_height;
+  const int tot_tiles_before_visible = first_idx_in_view;
+  const int scrolled_away_rows = tot_tiles_before_visible / cols_per_row_;
   add_spacer_button(block, scrolled_away_rows);
 }
 

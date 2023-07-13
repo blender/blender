@@ -84,7 +84,7 @@ typedef struct EXTERNAL_Data {
 static struct {
   /* Depth Pre Pass */
   GPUShader *depth_sh;
-} e_data = {NULL}; /* Engine data */
+} e_data = {nullptr}; /* Engine data */
 
 typedef struct EXTERNAL_PrivateData {
   DRWShadingGroup *depth_shgrp;
@@ -110,7 +110,7 @@ static void external_engine_init(void *vedata)
 
   if (!stl->g_data) {
     /* Alloc transient pointers */
-    stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+    stl->g_data = MEM_cnew<EXTERNAL_PrivateData>(__func__);
     stl->g_data->need_depth = true;
   }
 
@@ -149,7 +149,8 @@ static void external_cache_init(void *vedata)
   const View3D *v3d = draw_ctx->v3d;
 
   {
-    DRW_texture_ensure_fullscreen_2d(&txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, 0);
+    DRW_texture_ensure_fullscreen_2d(
+        &txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, DRWTextureFlag(0));
 
     GPU_framebuffer_ensure_config(&fbl->depth_buffer_fb,
                                   {
@@ -164,12 +165,12 @@ static void external_cache_init(void *vedata)
     stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
   }
 
-  if (v3d != NULL) {
+  if (v3d != nullptr) {
     /* Do not draw depth pass when overlays are turned off. */
     stl->g_data->need_depth = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
   }
-  else if (draw_ctx->space_data != NULL) {
-    const eSpace_Type space_type = draw_ctx->space_data->spacetype;
+  else if (draw_ctx->space_data != nullptr) {
+    const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
     if (space_type == SPACE_IMAGE) {
       external_cache_image_add(stl->g_data->depth_shgrp);
 
@@ -184,8 +185,8 @@ static void external_cache_populate(void *vedata, Object *ob)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
 
-  if (draw_ctx->space_data != NULL) {
-    const eSpace_Type space_type = draw_ctx->space_data->spacetype;
+  if (draw_ctx->space_data != nullptr) {
+    const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
     if (space_type == SPACE_IMAGE) {
       return;
     }
@@ -203,7 +204,7 @@ static void external_cache_populate(void *vedata, Object *ob)
     return;
   }
 
-  if (ob->type == OB_MESH && ob->modifiers.first != NULL) {
+  if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
     LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
       if (md->type != eModifierType_ParticleSystem) {
         continue;
@@ -216,8 +217,8 @@ static void external_cache_populate(void *vedata, Object *ob)
       const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
       if (draw_as == PART_DRAW_PATH) {
-        GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
-        DRW_shgroup_call(stl->g_data->depth_shgrp, hairs, NULL);
+        GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
+        DRW_shgroup_call(stl->g_data->depth_shgrp, hairs, nullptr);
       }
     }
   }
@@ -228,7 +229,7 @@ static void external_cache_populate(void *vedata, Object *ob)
   }
 }
 
-static void external_cache_finish(void *UNUSED(vedata)) {}
+static void external_cache_finish(void * /*vedata*/) {}
 
 static void external_draw_scene_do_v3d(void *vedata)
 {
@@ -270,7 +271,7 @@ static void external_draw_scene_do_v3d(void *vedata)
   GPU_matrix_pop_projection();
 
   /* Set render info. */
-  EXTERNAL_Data *data = vedata;
+  EXTERNAL_Data *data = static_cast<EXTERNAL_Data *>(vedata);
   if (rv3d->render_engine->text[0] != '\0') {
     STRNCPY(data->info, rv3d->render_engine->text);
   }
@@ -286,7 +287,7 @@ static void external_draw_scene_do_v3d(void *vedata)
  * need to switch from normalized space to pixel space, and "un-apply" offset. */
 static void external_image_space_matrix_set(const RenderEngine *engine)
 {
-  BLI_assert(engine != NULL);
+  BLI_assert(engine != nullptr);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const DRWView *view = DRW_view_get_active();
@@ -325,7 +326,7 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
   }
 }
 
-static void external_draw_scene_do_image(void *UNUSED(vedata))
+static void external_draw_scene_do_image(void * /*vedata*/)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   Scene *scene = draw_ctx->scene;
@@ -333,8 +334,8 @@ static void external_draw_scene_do_image(void *UNUSED(vedata))
   RenderEngine *engine = RE_engine_get(re);
 
   /* Is tested before enabling the drawing engine. */
-  BLI_assert(re != NULL);
-  BLI_assert(engine != NULL);
+  BLI_assert(re != nullptr);
+  BLI_assert(engine != nullptr);
 
   DRW_state_reset_ex(DRW_STATE_WRITE_COLOR);
 
@@ -359,8 +360,8 @@ static void external_draw_scene_do_image(void *UNUSED(vedata))
   GPU_debug_group_begin("External Engine");
 
   const RenderEngineType *engine_type = engine->type;
-  BLI_assert(engine_type != NULL);
-  BLI_assert(engine_type->draw != NULL);
+  BLI_assert(engine_type != nullptr);
+  BLI_assert(engine_type->draw != nullptr);
 
   engine_type->draw(engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
@@ -379,16 +380,16 @@ static void external_draw_scene_do(void *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  if (draw_ctx->v3d != NULL) {
+  if (draw_ctx->v3d != nullptr) {
     external_draw_scene_do_v3d(vedata);
     return;
   }
 
-  if (draw_ctx->space_data == NULL) {
+  if (draw_ctx->space_data == nullptr) {
     return;
   }
 
-  const eSpace_Type space_type = draw_ctx->space_data->spacetype;
+  const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
   if (space_type == SPACE_IMAGE) {
     external_draw_scene_do_image(vedata);
     return;
@@ -403,7 +404,7 @@ static void external_draw_scene(void *vedata)
   EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
   const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-  /* Will be NULL during OpenGL render.
+  /* Will be nullptr during OpenGL render.
    * OpenGL render is used for quick preview (thumbnails or sequencer preview)
    * where using the rendering engine to preview doesn't make so much sense. */
   if (draw_ctx->evil_C) {
@@ -426,7 +427,7 @@ static void external_draw_scene(void *vedata)
   GPU_framebuffer_blit(fbl->depth_buffer_fb, 0, dfbl->depth_only_fb, 0, GPU_DEPTH_BIT);
 }
 
-static void external_engine_free(void)
+static void external_engine_free()
 {
   DRW_SHADER_FREE_SAFE(e_data.depth_sh);
 }
@@ -434,63 +435,63 @@ static void external_engine_free(void)
 static const DrawEngineDataSize external_data_size = DRW_VIEWPORT_DATA_SIZE(EXTERNAL_Data);
 
 DrawEngineType draw_engine_external_type = {
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
     N_("External"),
     &external_data_size,
     &external_engine_init,
     &external_engine_free,
-    /*instance_free*/ NULL,
+    /*instance_free*/ nullptr,
     &external_cache_init,
     &external_cache_populate,
     &external_cache_finish,
     &external_draw_scene,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 
 /* NOTE: currently unused,
  * we should not register unless we want to see this when debugging the view. */
 
 RenderEngineType DRW_engine_viewport_external_type = {
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
     EXTERNAL_ENGINE,
     N_("External"),
     RE_INTERNAL | RE_USE_STEREO_VIEWPORT,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
     &draw_engine_external_type,
-    {NULL, NULL, NULL},
+    {nullptr, nullptr, nullptr},
 };
 
-bool DRW_engine_external_acquire_for_image_editor(void)
+bool DRW_engine_external_acquire_for_image_editor()
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
   const SpaceLink *space_data = draw_ctx->space_data;
   Scene *scene = draw_ctx->scene;
 
-  if (space_data == NULL) {
+  if (space_data == nullptr) {
     return false;
   }
 
-  const eSpace_Type space_type = draw_ctx->space_data->spacetype;
+  const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
   if (space_type != SPACE_IMAGE) {
     return false;
   }
 
   SpaceImage *space_image = (SpaceImage *)space_data;
   const Image *image = ED_space_image(space_image);
-  if (image == NULL || image->type != IMA_TYPE_R_RESULT) {
+  if (image == nullptr || image->type != IMA_TYPE_R_RESULT) {
     return false;
   }
 
@@ -501,7 +502,7 @@ bool DRW_engine_external_acquire_for_image_editor(void)
   /* Render is allocated on main thread, so it is safe to access it from here. */
   Render *re = RE_GetSceneRender(scene);
 
-  if (re == NULL) {
+  if (re == nullptr) {
     return false;
   }
 
