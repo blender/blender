@@ -66,6 +66,36 @@ namespace blender::bke::dyntopo {
 
 using namespace blender::bke::sculpt;
 
+/* Executes a simple pointer swap;
+ * if an element ID attribute exists (cd_id_offset is not -1)
+ * it will unswap IDs. CD_TOOLFLAGS layer is also unswapped
+ * if it exists.
+ */
+static void bmesh_swap_data_simple(CustomData *data, void **block1, void **block2, int cd_id)
+{
+  std::swap(*block1, *block2);
+
+  int cd_toolflags = data->typemap[CD_TOOLFLAGS];
+  cd_toolflags = cd_toolflags != -1 ? data->layers[cd_toolflags].offset : -1;
+
+  /* Unswap toolflags and/or element IDs if they exist */
+  if (*block1 && *block2) {
+    if (cd_toolflags != -1) {
+      MToolFlags *flags1 = static_cast<MToolFlags *>(POINTER_OFFSET(*block1, cd_toolflags));
+      MToolFlags *flags2 = static_cast<MToolFlags *>(POINTER_OFFSET(*block2, cd_toolflags));
+
+      std::swap(*flags1, *flags2);
+    }
+
+    if (cd_id != -1) {
+      int *id1 = static_cast<int *>(POINTER_OFFSET(*block1, cd_id));
+      int *id2 = static_cast<int *>(POINTER_OFFSET(*block2, cd_id));
+
+      std::swap(*id1, *id2);
+    }
+  }
+}
+
 static void edge_queue_create_local(EdgeQueueContext *eq_ctx,
                                     PBVH *pbvh,
                                     PBVHTopologyUpdateMode local_mode);
@@ -1913,10 +1943,10 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
       f2 = pbvh_bmesh_face_create(pbvh, n, vs, nullptr, example, true, false);
       BM_idmap_check_assign(pbvh->bm_idmap, reinterpret_cast<BMElem *>(f2));
 
-      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
-                                        &f2->l_first->prev->head.data,
-                                        &ls[3]->head.data,
-                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                             &f2->l_first->prev->head.data,
+                             &ls[3]->head.data,
+                             pbvh->bm_idmap->cd_id_off[BM_LOOP]);
       CustomData_bmesh_copy_data(&pbvh->header.bm->ldata,
                                  &pbvh->header.bm->ldata,
                                  ls[0]->head.data,
@@ -1934,18 +1964,18 @@ static bool cleanup_valence_3_4(EdgeQueueContext *ectx, PBVH *pbvh)
     }
 
     if (f1) {
-      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
-                                        &f1->l_first->head.data,
-                                        &ls[0]->head.data,
-                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
-      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
-                                        &f1->l_first->next->head.data,
-                                        &ls[1]->head.data,
-                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
-      CustomData_bmesh_swap_data_simple(&pbvh->header.bm->ldata,
-                                        &f1->l_first->prev->head.data,
-                                        &ls[2]->head.data,
-                                        pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                             &f1->l_first->head.data,
+                             &ls[0]->head.data,
+                             pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                             &f1->l_first->next->head.data,
+                             &ls[1]->head.data,
+                             pbvh->bm_idmap->cd_id_off[BM_LOOP]);
+      bmesh_swap_data_simple(&pbvh->header.bm->ldata,
+                             &f1->l_first->prev->head.data,
+                             &ls[2]->head.data,
+                             pbvh->bm_idmap->cd_id_off[BM_LOOP]);
 
       BM_log_face_added(pbvh->header.bm, pbvh->bm_log, f1);
       validate_face(pbvh, f1, CHECK_FACE_MANIFOLD);

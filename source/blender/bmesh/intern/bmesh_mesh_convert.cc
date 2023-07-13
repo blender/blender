@@ -170,7 +170,9 @@ static NoCopyLayerVector unmark_temp_cdlayers(CustomData *domains[4])
       }
     }
 
-    CustomData_unmark_temporary_nocopy(data);
+    for (CustomDataLayer &layer : nocopy_list) {
+      layer.flag &= ~CD_FLAG_NOCOPY;
+    }
   }
 
   return nocopy_list;

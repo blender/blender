@@ -2289,13 +2289,7 @@ void CustomData_regen_active_refs(CustomData *data)
     int n = layer - base;
 
     if (n < 0) {
-      printf("error!\n");
-      for (int j = 0; j < data->totlayer; j++) {
-        printf("%s", i == j ? "->" : "  ");
-        printf("%d : \"%s\"\n",
-               data->layers[i].type,
-               data->layers[i].name ? data->layers[i].name : "");
-      }
+      BLI_assert_unreachable();
     }
     if (layer->active) {
       base->active = n;
@@ -2400,10 +2394,6 @@ static bool customdata_merge_internal(const CustomData *source,
     const CustomDataLayer &src_layer = source->layers[i];
     const eCustomDataType type = eCustomDataType(src_layer.type);
     const int src_layer_flag = src_layer.flag;
-
-    if (src_layer.flag & CD_FLAG_NOCOPY) {
-      continue;
-    }
 
     if (type != last_type) {
       current_type_layer_count = 0;
@@ -3479,40 +3469,17 @@ int CustomData_number_of_anonymous_layers(const CustomData *data, const eCustomD
   return number;
 }
 
-int CustomData_number_of_layers_typemask(const CustomData *data,
-                                         eCustomDataMask mask,
-                                         bool skip_temporary)
+int CustomData_number_of_layers_typemask(const CustomData *data, eCustomDataMask mask)
 {
   int number = 0;
 
   for (int i = 0; i < data->totlayer; i++) {
-    bool ok = mask & CD_TYPE_AS_MASK(data->layers[i].type);
-    ok = ok && (!skip_temporary || !(data->layers[i].flag & (int)CD_FLAG_TEMPORARY));
-
-    if (ok) {
+    if (mask & CD_TYPE_AS_MASK(data->layers[i].type)) {
       number++;
     }
   }
 
   return number;
-}
-
-void CustomData_unmark_temporary_nocopy(CustomData *data)
-{
-  for (int i = 0; i < data->totlayer; i++) {
-    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
-      data->layers[i].flag &= ~CD_FLAG_NOCOPY;
-    }
-  }
-}
-
-void CustomData_mark_temporary_nocopy(CustomData *data)
-{
-  for (int i = 0; i < data->totlayer; i++) {
-    if (data->layers[i].flag & CD_FLAG_TEMPORARY) {
-      data->layers[i].flag |= CD_FLAG_NOCOPY;
-    }
-  }
 }
 
 void CustomData_free_temporary(CustomData *data, const int totelem)
@@ -4044,7 +4011,7 @@ bool CustomData_bmesh_merge_layout(const CustomData *source,
                                    const char htype)
 {
 
-  if (CustomData_number_of_layers_typemask(source, mask, false) == 0) {
+  if (CustomData_number_of_layers_typemask(source, mask) == 0) {
     return false;
   }
 
@@ -4220,7 +4187,7 @@ void CustomData_bmesh_free_block_data_exclude_by_type(CustomData *data,
   }
 }
 
-void CustomData_data_set_default_value(const eCustomDataType type, void *elem)
+void CustomData_data_set_default_value(eCustomDataType type, void *elem)
 {
   const LayerTypeInfo *typeInfo = layerType_getInfo(type);
   if (typeInfo->set_default_value) {
@@ -4246,31 +4213,6 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
 
   for (int i = 0; i < data->totlayer; i++) {
     CustomData_bmesh_set_default_n(data, block, i);
-  }
-}
-
-void CustomData_bmesh_swap_data_simple(CustomData *data, void **block1, void **block2, int cd_id)
-{
-  std::swap(*block1, *block2);
-
-  int cd_toolflags = data->typemap[CD_TOOLFLAGS];
-  cd_toolflags = cd_toolflags != -1 ? data->layers[cd_toolflags].offset : -1;
-
-  /* Unswap toolflags and/or element IDs if they exist */
-  if (*block1 && *block2) {
-    if (cd_toolflags != -1) {
-      MToolFlags *flags1 = static_cast<MToolFlags *>(POINTER_OFFSET(*block1, cd_toolflags));
-      MToolFlags *flags2 = static_cast<MToolFlags *>(POINTER_OFFSET(*block2, cd_toolflags));
-
-      std::swap(*flags1, *flags2);
-    }
-
-    if (cd_id != -1) {
-      int *id1 = static_cast<int *>(POINTER_OFFSET(*block1, cd_id));
-      int *id2 = static_cast<int *>(POINTER_OFFSET(*block2, cd_id));
-
-      std::swap(*id1, *id2);
-    }
   }
 }
 
@@ -4382,7 +4324,7 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
   }
 
   /* The old code broke if the ordering differed between two customdata sets.
-   * Led to disappearing face sets.
+   * Led to disappearing face sets. See PR #108683.
    */
   blender::Set<CustomDataLayer *> donelayers;
 

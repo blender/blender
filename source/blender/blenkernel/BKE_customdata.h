@@ -135,7 +135,7 @@ bool CustomData_has_referenced(const struct CustomData *data);
  * implemented for `mloopuv/mloopcol`, for now.
  */
 void CustomData_data_copy_value(eCustomDataType type, const void *source, void *dest);
-void CustomData_data_set_default_value(const eCustomDataType type, void *elem);
+void CustomData_data_set_default_value(eCustomDataType type, void *elem);
 
 /**
  * Mixes the "value" (e.g. `mloopuv` UV or `mloopcol` colors) from one block into
@@ -332,9 +332,7 @@ bool CustomData_has_layer_named(const struct CustomData *data,
  */
 int CustomData_number_of_layers(const struct CustomData *data, eCustomDataType type);
 int CustomData_number_of_anonymous_layers(const struct CustomData *data, eCustomDataType type);
-int CustomData_number_of_layers_typemask(const struct CustomData *data,
-                                         eCustomDataMask mask,
-                                         bool skip_temporary);
+int CustomData_number_of_layers_typemask(const struct CustomData *data, eCustomDataMask mask);
 
 /**
  * Set the #CD_FLAG_NOCOPY flag in custom data layers where the mask is
@@ -373,21 +371,11 @@ void CustomData_bmesh_swap_data(struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
                                 void **dest_block);
-/* Executes a simple pointer swap;
- * if an element ID attribute exists (cd_id_offset is not -1)
- * it will unswap IDs. CD_TOOLFLAGS layer is also unswapped
- * if it exists.
- */
-void CustomData_bmesh_swap_data_simple(CustomData *data,
-                                       void **block1,
-                                       void **block2,
-                                       int cd_id_offset);
 
 void CustomData_copy_elements(eCustomDataType type,
                               void *src_data_ofs,
                               void *dst_data_ofs,
                               int count);
-
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest,
                                 void *src_block,
@@ -838,9 +826,6 @@ void CustomData_blend_write(BlendWriter *writer,
 #endif
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
-
-void CustomData_unmark_temporary_nocopy(struct CustomData *data);
-void CustomData_mark_temporary_nocopy(struct CustomData *data);
 
 void CustomData_regen_active_refs(CustomData *data);
 
