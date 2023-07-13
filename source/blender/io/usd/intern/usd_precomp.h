@@ -1,3 +1,7 @@
+/* SPDX-FileCopyrightText: 2023 Ray Molenkamp
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include <pxr/pxr.h>
 #include <pxr/usd/sdf/layer.h>
 #include <pxr/usd/usd/object.h>
