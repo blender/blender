@@ -22,6 +22,7 @@
 #include "BLI_system.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_defaults.h"
 #include "DNA_camera_types.h"
 #include "DNA_curveprofile_types.h"
 #include "DNA_gpencil_legacy_types.h"
@@ -348,7 +349,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   if (ts->sculpt) {
-    ts->sculpt->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
+    *ts->sculpt = *DNA_struct_default_get(Sculpt);
   }
 
   /* Correct default startup UVs. */

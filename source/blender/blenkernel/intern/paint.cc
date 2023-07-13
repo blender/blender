@@ -12,6 +12,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_brush_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -1131,13 +1132,10 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   }
   else if ((Sculpt **)r_paint == &ts->sculpt) {
     Sculpt *data = MEM_cnew<Sculpt>(__func__);
+
+    *data = *DNA_struct_default_get(Sculpt);
+
     paint = &data->paint;
-
-    /* Turn on X plane mirror symmetry by default. */
-    paint->symmetry_flags |= PAINT_SYMM_X;
-
-    /* Make sure at least dyntopo subdivision is enabled. */
-    data->flags |= SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_cnew<GpPaint>(__func__);
@@ -2115,23 +2113,6 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   BKE_paint_ensure(scene->toolsettings, (Paint **)&scene->toolsettings->sculpt);
 
   Sculpt *sd = scene->toolsettings->sculpt;
-  if (!sd->detail_size) {
-    sd->detail_size = 12;
-  }
-  if (!sd->detail_percent) {
-    sd->detail_percent = 25;
-  }
-  if (sd->constant_detail == 0.0f) {
-    sd->constant_detail = 3.0f;
-  }
-
-  if (!sd->automasking_start_normal_limit) {
-    sd->automasking_start_normal_limit = 20.0f / 180.0f * M_PI;
-    sd->automasking_start_normal_falloff = 0.25f;
-
-    sd->automasking_view_normal_limit = 90.0f / 180.0f * M_PI;
-    sd->automasking_view_normal_falloff = 0.25f;
-  }
 
   /* Set sane default tiling offsets. */
   if (!sd->paint.tile_offset[0]) {
@@ -2143,6 +2124,7 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
   if (!sd->paint.tile_offset[2]) {
     sd->paint.tile_offset[2] = 1.0f;
   }
+
   if (!sd->automasking_cavity_curve || !sd->automasking_cavity_curve_op) {
     BKE_sculpt_check_cavity_curves(sd);
   }
