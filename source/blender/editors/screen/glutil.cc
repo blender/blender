@@ -136,7 +136,7 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
                                             int img_h,
                                             eGPUTextureFormat gpu_format,
                                             bool use_filter,
-                                            void *rect,
+                                            const void *rect,
                                             float scaleX,
                                             float scaleY,
                                             float clip_min_x,
@@ -245,28 +245,28 @@ void immDrawPixelsTexTiled_scaling_clipping(IMMDrawPixelsTexState *state,
         int src_y = subpart_y * offset_y;
         int src_x = subpart_x * offset_x;
 
-#define DATA(_y, _x) ((char *)rect + stride * (size_t(_y) * img_w + (_x)))
+#define DATA(_y, _x) (static_cast<const char *>(rect) + stride * (size_t(_y) * img_w + (_x)))
         {
-          void *data = DATA(src_y, src_x);
+          const void *data = DATA(src_y, src_x);
           GPU_texture_update_sub(tex, gpu_data, data, 0, 0, 0, subpart_w, subpart_h, 0);
         }
         /* Add an extra border of pixels so linear interpolation looks ok
          * at edges of full image. */
         if (subpart_w < tex_w) {
-          void *data = DATA(src_y, src_x + subpart_w - 1);
+          const void *data = DATA(src_y, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, 0};
           const int extent[2] = {1, subpart_h};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
         }
         if (subpart_h < tex_h) {
-          void *data = DATA(src_y + subpart_h - 1, src_x);
+          const void *data = DATA(src_y + subpart_h - 1, src_x);
           const int offset[2] = {0, subpart_h};
           const int extent[2] = {subpart_w, 1};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
         }
 
         if (subpart_w < tex_w && subpart_h < tex_h) {
-          void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
+          const void *data = DATA(src_y + subpart_h - 1, src_x + subpart_w - 1);
           const int offset[2] = {subpart_w, subpart_h};
           const int extent[2] = {1, 1};
           GPU_texture_update_sub(tex, gpu_data, data, UNPACK2(offset), 0, UNPACK2(extent), 0);
@@ -320,7 +320,7 @@ void immDrawPixelsTexTiled_scaling(IMMDrawPixelsTexState *state,
                                    int img_h,
                                    eGPUTextureFormat gpu_format,
                                    bool use_filter,
-                                   void *rect,
+                                   const void *rect,
                                    float scaleX,
                                    float scaleY,
                                    float xzoom,
@@ -353,7 +353,7 @@ void immDrawPixelsTexTiled(IMMDrawPixelsTexState *state,
                            int img_h,
                            eGPUTextureFormat gpu_format,
                            bool use_filter,
-                           void *rect,
+                           const void *rect,
                            float xzoom,
                            float yzoom,
                            const float color[4])
@@ -384,7 +384,7 @@ void immDrawPixelsTexTiled_clipping(IMMDrawPixelsTexState *state,
                                     int img_h,
                                     eGPUTextureFormat gpu_format,
                                     bool use_filter,
-                                    void *rect,
+                                    const void *rect,
                                     float clip_min_x,
                                     float clip_min_y,
                                     float clip_max_x,
