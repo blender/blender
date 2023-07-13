@@ -35,7 +35,7 @@ static char LocalAverageDepthF0D___doc__[] =
     "\n"
     "   Returns the average depth around the\n"
     "   :class:`freestyle.types.Interface0D` pointed by the\n"
-    "   Interface0DIterator.  The result is obtained by querying the depth\n"
+    "   Interface0DIterator. The result is obtained by querying the depth\n"
     "   buffer on a window around that point.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"

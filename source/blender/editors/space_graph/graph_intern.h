@@ -15,6 +15,10 @@ struct bAnimContext;
 struct bAnimListElem;
 struct bContext;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* internal exports only */
 
 /* ***************************************** */
@@ -117,6 +121,7 @@ void GRAPH_OT_breakdown(struct wmOperatorType *ot);
 void GRAPH_OT_ease(struct wmOperatorType *ot);
 void GRAPH_OT_decimate(struct wmOperatorType *ot);
 void GRAPH_OT_blend_to_default(struct wmOperatorType *ot);
+void GRAPH_OT_butterworth_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_gaussian_smooth(struct wmOperatorType *ot);
 void GRAPH_OT_sample(struct wmOperatorType *ot);
 void GRAPH_OT_bake(struct wmOperatorType *ot);
@@ -231,3 +236,7 @@ bool graphop_selected_fcurve_poll(struct bContext *C);
 
 void graphedit_keymap(struct wmKeyConfig *keyconf);
 void graphedit_operatortypes(void);
+
+#ifdef __cplusplus
+}
+#endif

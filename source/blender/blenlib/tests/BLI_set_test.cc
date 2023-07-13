@@ -663,6 +663,87 @@ BLI_NOINLINE void benchmark_random_ints(StringRef name, int amount, int factor)
   std::cout << "Count: " << count << "\n";
 }
 
+/**
+ * A wrapper for std::unordered_set with the API of blender::Set. This can be used for
+ * benchmarking.
+ */
+template<typename Key> class StdUnorderedSetWrapper {
+ private:
+  using SetType = std::unordered_set<Key, blender::DefaultHash<Key>>;
+  SetType set_;
+
+ public:
+  int64_t size() const
+  {
+    return int64_t(set_.size());
+  }
+
+  bool is_empty() const
+  {
+    return set_.empty();
+  }
+
+  void reserve(int64_t n)
+  {
+    set_.reserve(n);
+  }
+
+  void add_new(const Key &key)
+  {
+    set_.insert(key);
+  }
+  void add_new(Key &&key)
+  {
+    set_.insert(std::move(key));
+  }
+
+  bool add(const Key &key)
+  {
+    return set_.insert(key).second;
+  }
+  bool add(Key &&key)
+  {
+    return set_.insert(std::move(key)).second;
+  }
+
+  void add_multiple(Span<Key> keys)
+  {
+    for (const Key &key : keys) {
+      set_.insert(key);
+    }
+  }
+
+  bool contains(const Key &key) const
+  {
+    return set_.find(key) != set_.end();
+  }
+
+  bool remove(const Key &key)
+  {
+    return bool(set_.erase(key));
+  }
+
+  void remove_contained(const Key &key)
+  {
+    return set_.erase(key);
+  }
+
+  void clear()
+  {
+    set_.clear();
+  }
+
+  typename SetType::iterator begin() const
+  {
+    return set_.begin();
+  }
+
+  typename SetType::iterator end() const
+  {
+    return set_.end();
+  }
+};
+
 TEST(set, Benchmark)
 {
   for (int i = 0; i < 3; i++) {
@@ -673,7 +754,8 @@ TEST(set, Benchmark)
   for (int i = 0; i < 3; i++) {
     uint32_t factor = (3 << 10);
     benchmark_random_ints<blender::Set<int>>("blender::Set      ", 100000, factor);
-    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>("std::unordered_set", 100000, factor);
+    benchmark_random_ints<blender::StdUnorderedSetWrapper<int>>(
+        "std::unordered_set", 100000, factor);
   }
 }
 

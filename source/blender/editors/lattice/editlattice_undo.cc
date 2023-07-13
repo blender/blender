@@ -146,11 +146,11 @@ static void undolatt_free_data(UndoLattice *ult)
 #if 0
 static int validate_undoLatt(void *data, void *edata)
 {
-UndoLattice *ult = (UndoLattice *)data;
-EditLatt *editlatt = (EditLatt *)edata;
+  UndoLattice *ult = (UndoLattice *)data;
+  EditLatt *editlatt = (EditLatt *)edata;
 
-return (ult->pntsu == editlatt->latt->pntsu && ult->pntsv == editlatt->latt->pntsv &&
-ult->pntsw == editlatt->latt->pntsw);
+  return (ult->pntsu == editlatt->latt->pntsu && ult->pntsv == editlatt->latt->pntsv &&
+          ult->pntsw == editlatt->latt->pntsw);
 }
 #endif
 

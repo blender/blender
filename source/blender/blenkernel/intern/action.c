@@ -1489,7 +1489,7 @@ void BKE_action_frame_range_get(const bAction *act, float *r_start, float *r_end
     *r_end = act->frame_end;
   }
   else {
-    BKE_action_frame_range_calc(act, r_start, r_end, false);
+    BKE_action_frame_range_calc(act, false, r_start, r_end);
   }
 
   /* Ensure that action is at least 1 frame long (for NLA strips to have a valid length). */
@@ -1839,12 +1839,9 @@ void BKE_pose_check_uuids_unique_and_report(const bPose *pose)
 
 void BKE_pose_blend_write(BlendWriter *writer, bPose *pose, bArmature *arm)
 {
-  /* Write each channel */
-  if (pose == NULL) {
-    return;
-  }
-
-  BLI_assert(arm != NULL);
+#ifndef __GNUC__
+  BLI_assert(pose != NULL && arm != NULL);
+#endif
 
   /* Write channels */
   LISTBASE_FOREACH (bPoseChannel *, chan, &pose->chanbase) {

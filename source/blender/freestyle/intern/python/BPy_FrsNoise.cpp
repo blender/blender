@@ -46,7 +46,7 @@ PyDoc_STRVAR(FrsNoise_doc,
              "\n"
              ".. method:: __init__(seed = -1)\n"
              "\n"
-             "   Builds a Noise object.  Seed is an optional argument.  The seed value is used\n"
+             "   Builds a Noise object. Seed is an optional argument. The seed value is used\n"
              "   as a seed for random number generation if it is equal to or greater than zero;\n"
              "   otherwise, time is used as a seed.\n"
              "\n"

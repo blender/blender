@@ -129,8 +129,6 @@ enum class NodeType {
   DUPLI,
   /* Synchronization back to original datablock. */
   SYNCHRONIZATION,
-  /* Simulation component. */
-  SIMULATION,
   /* Node tree output component. */
   NTREE_OUTPUT,
   /* Preprocessing for geometry node trees before they can be evaluated. */

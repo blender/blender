@@ -8,7 +8,6 @@ set(INC
   gizmo/intern
   ../asset_system
   ../blenfont
-  ../blenkernel
   ../blenloader
   ../blentranslation
   ../compositor
@@ -97,6 +96,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_screen

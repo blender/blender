@@ -45,7 +45,6 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_sound_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_texture_types.h"
@@ -88,7 +87,6 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_shader_fx.h"
-#include "BKE_simulation.h"
 #include "BKE_simulation_state.hh"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
@@ -637,9 +635,6 @@ void DepsgraphNodeBuilder::build_id(ID *id)
       break;
     case ID_SCE:
       build_scene_parameters((Scene *)id);
-      break;
-    case ID_SIM:
-      build_simulation((Simulation *)id);
       break;
     case ID_PA:
       build_particle_settings((ParticleSettings *)id);
@@ -2146,28 +2141,6 @@ void DepsgraphNodeBuilder::build_sound(bSound *sound)
   build_idproperties(sound->id.properties);
   build_animdata(&sound->id);
   build_parameters(&sound->id);
-}
-
-void DepsgraphNodeBuilder::build_simulation(Simulation *simulation)
-{
-  if (built_map_.checkIsBuiltAndTag(simulation)) {
-    return;
-  }
-  add_id_node(&simulation->id);
-  build_idproperties(simulation->id.properties);
-  build_animdata(&simulation->id);
-  build_parameters(&simulation->id);
-  build_nodetree(simulation->nodetree);
-
-  Simulation *simulation_cow = get_cow_datablock(simulation);
-  Scene *scene_cow = get_cow_datablock(scene_);
-
-  add_operation_node(&simulation->id,
-                     NodeType::SIMULATION,
-                     OperationCode::SIMULATION_EVAL,
-                     [scene_cow, simulation_cow](::Depsgraph *depsgraph) {
-                       BKE_simulation_data_update(depsgraph, scene_cow, simulation_cow);
-                     });
 }
 
 void DepsgraphNodeBuilder::build_vfont(VFont *vfont)

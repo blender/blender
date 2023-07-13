@@ -3031,9 +3031,9 @@ bool id_frame_has_keyframe(ID *id, float frame)
     case ID_OB: /* object */
       return object_frame_has_keyframe((Object *)id, frame);
 #if 0
-/* XXX TODO... for now, just use 'normal' behavior */
-case ID_SCE: /* scene */
-break;
+    /* XXX TODO... for now, just use 'normal' behavior */
+    case ID_SCE: /* scene */
+      break;
 #endif
     default: /* 'normal type' */
     {

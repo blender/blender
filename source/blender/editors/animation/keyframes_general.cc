@@ -387,6 +387,197 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
     BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
   }
 }
+
+/* ---------------- */
+
+ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
+{
+  ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
+      MEM_callocN(sizeof(ButterworthCoefficients), "Butterworth Coefficients"));
+  bw_coeff->filter_order = filter_order;
+  bw_coeff->d1 = static_cast<double *>(
+      MEM_callocN(sizeof(double) * filter_order, "coeff filtered"));
+  bw_coeff->d2 = static_cast<double *>(
+      MEM_callocN(sizeof(double) * filter_order, "coeff samples"));
+  bw_coeff->A = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "Butterworth A"));
+  return bw_coeff;
+}
+
+void ED_anim_free_butterworth_coefficients(ButterworthCoefficients *bw_coeff)
+{
+  MEM_freeN(bw_coeff->d1);
+  MEM_freeN(bw_coeff->d2);
+  MEM_freeN(bw_coeff->A);
+  MEM_freeN(bw_coeff);
+}
+
+void ED_anim_calculate_butterworth_coefficients(const float cutoff_frequency,
+                                                const float sampling_frequency,
+                                                ButterworthCoefficients *bw_coeff)
+{
+  double s = (double)sampling_frequency;
+  const double a = tan(M_PI * cutoff_frequency / s);
+  const double a2 = a * a;
+  double r;
+  for (int i = 0; i < bw_coeff->filter_order; ++i) {
+    r = sin(M_PI * (2.0 * i + 1.0) / (4.0 * bw_coeff->filter_order));
+    s = a2 + 2.0 * a * r + 1.0;
+    bw_coeff->A[i] = a2 / s;
+    bw_coeff->d1[i] = 2.0 * (1 - a2) / s;
+    bw_coeff->d2[i] = -(a2 - 2.0 * a * r + 1.0) / s;
+  }
+}
+
+static double butterworth_filter_value(
+    double x, double *w0, double *w1, double *w2, ButterworthCoefficients *bw_coeff)
+{
+  for (int i = 0; i < bw_coeff->filter_order; i++) {
+    w0[i] = bw_coeff->d1[i] * w1[i] + bw_coeff->d2[i] * w2[i] + x;
+    x = bw_coeff->A[i] * (w0[i] + 2.0 * w1[i] + w2[i]);
+    w2[i] = w1[i];
+    w1[i] = w0[i];
+  }
+  return x;
+}
+
+static float butterworth_calculate_blend_value(float *samples,
+                                               float *filtered_values,
+                                               const int start_index,
+                                               const int end_index,
+                                               const int sample_index,
+                                               const int blend_in_out)
+{
+  if (start_index == end_index || blend_in_out == 0) {
+    return samples[start_index];
+  }
+
+  const float blend_in_y_samples = samples[start_index];
+  const float blend_out_y_samples = samples[end_index];
+
+  const float blend_in_y_filtered = filtered_values[start_index + blend_in_out];
+  const float blend_out_y_filtered = filtered_values[end_index - blend_in_out];
+
+  const float slope_in_samples = samples[start_index] - samples[start_index - 1];
+  const float slope_out_samples = samples[end_index] - samples[end_index + 1];
+  const float slope_in_filtered = filtered_values[start_index + blend_in_out - 1] -
+                                  filtered_values[start_index + blend_in_out];
+  const float slope_out_filtered = filtered_values[end_index - blend_in_out] -
+                                   filtered_values[end_index - blend_in_out - 1];
+
+  if (sample_index - start_index <= blend_in_out) {
+    const int blend_index = sample_index - start_index;
+    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_value = interpf(blend_in_y_filtered +
+                                          slope_in_filtered * (blend_in_out - blend_index),
+                                      blend_in_y_samples + slope_in_samples * blend_index,
+                                      blend_in_out_factor);
+    return blend_value;
+  }
+  if (end_index - sample_index <= blend_in_out) {
+    const int blend_index = end_index - sample_index;
+    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_value = interpf(blend_out_y_filtered +
+                                          slope_out_filtered * (blend_in_out - blend_index),
+                                      blend_out_y_samples + slope_out_samples * blend_index,
+                                      blend_in_out_factor);
+    return blend_value;
+  }
+  return 0;
+}
+
+/**
+ * \param samples are expected to start at the first frame of the segment with a buffer of size
+ * segment->filter_order at the left.
+ */
+void butterworth_smooth_fcurve_segment(FCurve *fcu,
+                                       FCurveSegment *segment,
+                                       float *samples,
+                                       const int sample_count,
+                                       const float factor,
+                                       const int blend_in_out,
+                                       const int sample_rate,
+                                       ButterworthCoefficients *bw_coeff)
+{
+  const int filter_order = bw_coeff->filter_order;
+
+  float *filtered_values = static_cast<float *>(
+      MEM_callocN(sizeof(float) * sample_count, "Butterworth Filtered FCurve Values"));
+
+  double *w0 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w0"));
+  double *w1 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w1"));
+  double *w2 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w2"));
+
+  /* The values need to be offset so the first sample starts at 0. This avoids oscillations at the
+   * start and end of the curve. */
+  const float fwd_offset = samples[0];
+
+  for (int i = 0; i < sample_count; i++) {
+    const double x = (double)(samples[i] - fwd_offset);
+    const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
+    filtered_values[i] = (float)(filtered_value) + fwd_offset;
+  }
+
+  for (int i = 0; i < filter_order; i++) {
+    w0[i] = 0.0;
+    w1[i] = 0.0;
+    w2[i] = 0.0;
+  }
+
+  const float bwd_offset = filtered_values[sample_count - 1];
+
+  /* Run the filter backwards as well to remove phase offset. */
+  for (int i = sample_count - 1; i >= 0; i--) {
+    const double x = (double)(filtered_values[i] - bwd_offset);
+    const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
+    filtered_values[i] = (float)(filtered_value) + bwd_offset;
+  }
+
+  const int segment_end_index = segment->start_index + segment->length;
+  BezTriple left_bezt = fcu->bezt[segment->start_index];
+  BezTriple right_bezt = fcu->bezt[segment_end_index - 1];
+
+  const int samples_start_index = filter_order * sample_rate;
+  const int samples_end_index = (int)(right_bezt.vec[1][0] - left_bezt.vec[1][0] + filter_order) *
+                                sample_rate;
+
+  const int blend_in_out_clamped = min_ii(blend_in_out,
+                                          (samples_end_index - samples_start_index) / 2);
+
+  for (int i = segment->start_index; i < segment_end_index; i++) {
+    float blend_in_out_factor;
+    if (blend_in_out_clamped == 0) {
+      blend_in_out_factor = 1;
+    }
+    else if (i < segment->start_index + segment->length / 2) {
+      blend_in_out_factor = min_ff((float)(i - segment->start_index) / blend_in_out_clamped, 1.0f);
+    }
+    else {
+      blend_in_out_factor = min_ff((float)(segment_end_index - i - 1) / blend_in_out_clamped,
+                                   1.0f);
+    }
+
+    const float x_delta = fcu->bezt[i].vec[1][0] - left_bezt.vec[1][0] + filter_order;
+    const int filter_index = (int)(x_delta * sample_rate);
+    const float blend_value = butterworth_calculate_blend_value(samples,
+                                                                filtered_values,
+                                                                samples_start_index,
+                                                                samples_end_index,
+                                                                filter_index,
+                                                                blend_in_out_clamped);
+
+    const float blended_value = interpf(
+        filtered_values[filter_index], blend_value, blend_in_out_factor);
+    const float key_y_value = interpf(blended_value, samples[filter_index], factor);
+
+    BKE_fcurve_keyframe_move_value_with_handles(&fcu->bezt[i], key_y_value);
+  }
+
+  MEM_freeN(filtered_values);
+  MEM_freeN(w0);
+  MEM_freeN(w1);
+  MEM_freeN(w2);
+}
+
 /* ---------------- */
 
 void ED_ANIM_get_1d_gauss_kernel(const float sigma, const int kernel_size, double *r_kernel)
@@ -741,11 +932,13 @@ struct TempFrameValCache {
 
 void sample_fcurve_segment(FCurve *fcu,
                            const float start_frame,
+                           const int sample_rate,
                            float *samples,
                            const int sample_count)
 {
   for (int i = 0; i < sample_count; i++) {
-    samples[i] = evaluate_fcurve(fcu, start_frame + i);
+    const float evaluation_time = start_frame + ((float)i / sample_rate);
+    samples[i] = evaluate_fcurve(fcu, evaluation_time);
   }
 }
 

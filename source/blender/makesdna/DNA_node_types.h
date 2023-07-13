@@ -16,6 +16,7 @@
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
 #  include <BLI_vector.hh>
+#  include <string>
 
 namespace blender {
 template<typename T> class Span;
@@ -1744,6 +1745,44 @@ typedef struct NodeGeometrySimulationOutput {
   blender::IndexRange items_range() const;
 #endif
 } NodeGeometrySimulationOutput;
+
+typedef struct NodeRepeatItem {
+  char *name;
+  /** #eNodeSocketDatatype. */
+  short socket_type;
+  char _pad[2];
+  /**
+   * Generated unique identifier for sockets which stays the same even when the item order or
+   * names change.
+   */
+  int identifier;
+
+#ifdef __cplusplus
+  static bool supports_type(eNodeSocketDatatype type);
+  std::string identifier_str() const;
+#endif
+} NodeRepeatItem;
+
+typedef struct NodeGeometryRepeatInput {
+  /** bNode.identifier of the corresponding output node. */
+  int32_t output_node_id;
+} NodeGeometryRepeatInput;
+
+typedef struct NodeGeometryRepeatOutput {
+  NodeRepeatItem *items;
+  int items_num;
+  int active_index;
+  /** Identifier to give to the next repeat item. */
+  int next_identifier;
+  char _pad[4];
+
+#ifdef __cplusplus
+  blender::Span<NodeRepeatItem> items_span() const;
+  blender::MutableSpan<NodeRepeatItem> items_span();
+  NodeRepeatItem *add_item(const char *name, eNodeSocketDatatype type);
+  void set_item_name(NodeRepeatItem &item, const char *name);
+#endif
+} NodeGeometryRepeatOutput;
 
 typedef struct NodeGeometryDistributePointsInVolume {
   /** #GeometryNodePointDistributeVolumeMode. */

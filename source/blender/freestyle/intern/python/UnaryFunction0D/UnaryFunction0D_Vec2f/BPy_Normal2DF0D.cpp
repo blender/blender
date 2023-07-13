@@ -32,7 +32,7 @@ static char Normal2DF0D___doc__[] =
     "\n"
     "   Returns a two-dimensional vector giving the normalized 2D normal to\n"
     "   the 1D element to which the :class:`freestyle.types.Interface0D`\n"
-    "   pointed by the Interface0DIterator belongs.  The normal is evaluated\n"
+    "   pointed by the Interface0DIterator belongs. The normal is evaluated\n"
     "   at the pointed Interface0D.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"

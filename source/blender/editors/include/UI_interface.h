@@ -412,7 +412,7 @@ typedef enum {
   UI_BTYPE_HISTOGRAM = 48 << 9,
   UI_BTYPE_WAVEFORM = 49 << 9,
   UI_BTYPE_VECTORSCOPE = 50 << 9,
-  UI_BTYPE_PROGRESS_BAR = 51 << 9,
+  UI_BTYPE_PROGRESS = 51 << 9,
   UI_BTYPE_NODE_SOCKET = 53 << 9,
   UI_BTYPE_SEPR = 54 << 9,
   UI_BTYPE_SEPR_LINE = 55 << 9,
@@ -1460,6 +1460,12 @@ enum {
   UI_TEMPLATE_ID_FILTER_AVAILABLE = 1,
 };
 
+enum eButProgressType {
+  UI_BUT_PROGRESS_TYPE_BAR = 0,
+  UI_BUT_PROGRESS_TYPE_RING = 1,
+  UI_BUT_PROGRESS_TYPE_PIE = 2,
+};
+
 /***************************** ID Utilities *******************************/
 
 int UI_icon_from_id(const struct ID *id);
@@ -1822,7 +1828,7 @@ void UI_but_drag_set_id(uiBut *but, struct ID *id);
  *
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  */
-void UI_but_drag_attach_image(uiBut *but, struct ImBuf *imb, float scale);
+void UI_but_drag_attach_image(uiBut *but, const struct ImBuf *imb, float scale);
 
 #ifdef __cplusplus
 /**
@@ -1833,7 +1839,7 @@ void UI_but_drag_set_asset(uiBut *but,
                            const blender::asset_system::AssetRepresentation *asset,
                            int import_type, /* eAssetImportType */
                            int icon,
-                           struct ImBuf *imb,
+                           const struct ImBuf *imb,
                            float scale);
 #endif
 
@@ -1853,7 +1859,8 @@ void UI_but_drag_set_value(uiBut *but);
  * Sets #UI_BUT_DRAG_FULL_BUT so the full button can be dragged.
  * \param path: The path to drag. The passed string may be destructed, button keeps a copy.
  */
-void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale);
+void UI_but_drag_set_image(
+    uiBut *but, const char *path, int icon, const struct ImBuf *imb, float scale);
 
 /* Panels
  *
@@ -2895,6 +2902,11 @@ void uiItemS(uiLayout *layout);
 void uiItemS_ex(uiLayout *layout, float factor);
 /** Flexible spacing. */
 void uiItemSpacer(uiLayout *layout);
+
+void uiItemProgressIndicator(uiLayout *layout,
+                             const char *text,
+                             float factor,
+                             enum eButProgressType progress_type);
 
 /* popover */
 void uiItemPopoverPanel_ptr(

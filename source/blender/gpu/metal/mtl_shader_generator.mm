@@ -2614,7 +2614,7 @@ std::string MSLGeneratorInterface::generate_msl_vertex_out_struct(ShaderStage sh
   bool first_attr_is_position = false;
   if (this->uses_gl_Position) {
 
-    /* If Invariance is available, utilise this to consistently mitigate depth fighting artifacts
+    /* If invariance is available, utilize this to consistently mitigate depth fighting artifacts
      * by ensuring that vertex position is consistently calculated between subsequent passes
      * with maximum precision. */
     out << "\tfloat4 _default_position_ [[position]]";

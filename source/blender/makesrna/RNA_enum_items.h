@@ -115,6 +115,8 @@ DEF_ENUM(rna_enum_brush_gpencil_weight_types_items)
 DEF_ENUM(rna_enum_brush_curves_sculpt_tool_items)
 DEF_ENUM(rna_enum_brush_image_tool_items)
 
+DEF_ENUM(rna_enum_grease_pencil_selectmode_items)
+
 DEF_ENUM(rna_enum_axis_xy_items)
 DEF_ENUM(rna_enum_axis_xyz_items)
 

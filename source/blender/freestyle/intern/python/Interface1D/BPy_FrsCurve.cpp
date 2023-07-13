@@ -26,8 +26,8 @@ using namespace Freestyle;
 PyDoc_STRVAR(FrsCurve_doc,
              "Class hierarchy: :class:`Interface1D` > :class:`Curve`\n"
              "\n"
-             "Base class for curves made of CurvePoints.  :class:`SVertex` is the\n"
-             "type of the initial curve vertices.  A :class:`Chain` is a\n"
+             "Base class for curves made of CurvePoints. :class:`SVertex` is the\n"
+             "type of the initial curve vertices. A :class:`Chain` is a\n"
              "specialization of a Curve.\n"
              "\n"
              ".. method:: __init__()\n"

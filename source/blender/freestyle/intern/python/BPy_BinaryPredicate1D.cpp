@@ -75,10 +75,10 @@ int BinaryPredicate1D_Init(PyObject *module)
 
 static char BinaryPredicate1D___doc__[] =
     "Base class for binary predicates working on :class:`Interface1D`\n"
-    "objects.  A BinaryPredicate1D is typically an ordering relation\n"
-    "between two Interface1D objects.  The predicate evaluates a relation\n"
+    "objects. A BinaryPredicate1D is typically an ordering relation\n"
+    "between two Interface1D objects. The predicate evaluates a relation\n"
     "between the two Interface1D instances and returns a boolean value (true\n"
-    "or false).  It is used by invoking the __call__() method.\n"
+    "or false). It is used by invoking the __call__() method.\n"
     "\n"
     ".. method:: __init__()\n"
     "\n"

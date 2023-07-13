@@ -132,6 +132,8 @@ void register_node_type_geo_proximity();
 void register_node_type_geo_raycast();
 void register_node_type_geo_realize_instances();
 void register_node_type_geo_remove_attribute();
+void register_node_type_geo_repeat_input();
+void register_node_type_geo_repeat_output();
 void register_node_type_geo_rotate_instances();
 void register_node_type_geo_sample_index();
 void register_node_type_geo_sample_nearest_surface();

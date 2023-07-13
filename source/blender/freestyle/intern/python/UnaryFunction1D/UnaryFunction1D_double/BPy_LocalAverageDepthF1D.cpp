@@ -39,7 +39,7 @@ static char LocalAverageDepthF1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns the average depth evaluated for an Interface1D.  The average\n"
+    "   Returns the average depth evaluated for an Interface1D. The average\n"
     "   depth is evaluated for a set of points along the Interface1D (using\n"
     "   the :class:`freestyle.functions.LocalAverageDepthF0D` functor) with a\n"
     "   user-defined sampling and then integrated into a single value using a\n"

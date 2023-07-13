@@ -34,6 +34,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_layer_types.h"
@@ -52,7 +53,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_space_types.h"
 #include "DNA_speaker_types.h"
 #include "DNA_userdef_types.h"
@@ -74,6 +74,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_fcurve_driver.h"
 #include "BKE_global.h"
+#include "BKE_grease_pencil.hh"
 #include "BKE_key.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
@@ -797,18 +798,6 @@ static bAnimListElem *make_new_animlistelem(void *data,
         ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
         break;
       }
-      case ANIMTYPE_DSSIMULATION: {
-        Simulation *simulation = (Simulation *)data;
-        AnimData *adt = simulation->adt;
-
-        ale->flag = FILTER_SIMULATION_OBJD(simulation);
-
-        ale->key_data = (adt) ? adt->action : nullptr;
-        ale->datatype = ALE_ACT;
-
-        ale->adt = BKE_animdata_from_id(static_cast<ID *>(data));
-        break;
-      }
       case ANIMTYPE_DSSKEY: {
         Key *key = (Key *)data;
         AnimData *adt = key->adt;
@@ -972,6 +961,15 @@ static bAnimListElem *make_new_animlistelem(void *data,
 
         ale->key_data = nullptr;
         ale->datatype = ALE_GPFRAME;
+        break;
+      }
+      case ANIMTYPE_GREASE_PENCIL_LAYER: {
+        GreasePencilLayer *layer = (GreasePencilLayer *)data;
+
+        ale->flag = layer->base.flag;
+
+        ale->key_data = nullptr;
+        ale->datatype = ALE_GREASE_PENCIL_CELS;
         break;
       }
       case ANIMTYPE_MASKLAYER: {
@@ -1785,11 +1783,39 @@ static size_t animdata_filter_gpencil_layers_data(ListBase *anim_data,
   return items;
 }
 
+static size_t animdata_filter_grease_pencil_data(ListBase *anim_data,
+                                                 bDopeSheet * /*ads*/,
+                                                 GreasePencil *grease_pencil,
+                                                 int filter_mode)
+{
+  using namespace blender;
+
+  size_t items = 0;
+
+  /* Add data block container */
+  ANIMCHANNEL_NEW_CHANNEL(grease_pencil, ANIMTYPE_GREASE_PENCIL_DATABLOCK, grease_pencil, nullptr);
+
+  Span<bke::greasepencil::Layer *> layers = grease_pencil->layers_for_write();
+
+  BEGIN_ANIMFILTER_SUBCHANNELS (grease_pencil->flag &GREASE_PENCIL_ANIM_CHANNEL_EXPANDED) {
+    for (int64_t layer_index = layers.size() - 1; layer_index >= 0; layer_index--) {
+      bke::greasepencil::Layer *layer = layers[layer_index];
+
+      /* Add layer channel */
+      ANIMCHANNEL_NEW_CHANNEL(
+          static_cast<void *>(layer), ANIMTYPE_GREASE_PENCIL_LAYER, grease_pencil, nullptr);
+    }
+  }
+  END_ANIMFILTER_SUBCHANNELS;
+
+  return items;
+}
+
 /* Helper for Grease Pencil - Grease Pencil data-block - GP Frames. */
-static size_t animdata_filter_gpencil_data(ListBase *anim_data,
-                                           bDopeSheet *ads,
-                                           bGPdata *gpd,
-                                           int filter_mode)
+static size_t animdata_filter_gpencil_legacy_data(ListBase *anim_data,
+                                                  bDopeSheet *ads,
+                                                  bGPdata *gpd,
+                                                  int filter_mode)
 {
   size_t items = 0;
 
@@ -1831,15 +1857,64 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data,
   return items;
 }
 
+static size_t animdata_filter_grease_pencil(bAnimContext *ac, ListBase *anim_data, int filter_mode)
+{
+  size_t items = 0;
+  Scene *scene = ac->scene;
+  ViewLayer *view_layer = (ViewLayer *)ac->view_layer;
+  bDopeSheet *ads = ac->ads;
+
+  BKE_view_layer_synced_ensure(scene, view_layer);
+  LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
+    if (!base->object || (base->object->type != OB_GREASE_PENCIL)) {
+      continue;
+    }
+    Object *ob = base->object;
+
+    if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
+      /* Layer visibility - we check both object and base,
+       * since these may not be in sync yet. */
+      if ((base->flag & BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT) == 0 ||
+          (base->flag & BASE_ENABLED_AND_VISIBLE_IN_DEFAULT_VIEWPORT) == 0)
+      {
+        continue;
+      }
+
+      /* Outliner restrict-flag */
+      if (ob->visibility_flag & OB_HIDE_VIEWPORT) {
+        continue;
+      }
+    }
+
+    /* Check selection and object type filters */
+    if ((ads->filterflag & ADS_FILTER_ONLYSEL) && !(base->flag & BASE_SELECTED)) {
+      /* Only selected should be shown */
+      continue;
+    }
+
+    if (ads->filter_grp != nullptr) {
+      if (BKE_collection_has_object_recursive(ads->filter_grp, ob) == 0) {
+        continue;
+      }
+    }
+
+    items += animdata_filter_grease_pencil_data(
+        anim_data, ads, static_cast<GreasePencil *>(ob->data), filter_mode);
+  }
+
+  /* Return the number of items added to the list */
+  return items;
+}
+
 /**
  * Grab all Grease Pencil data-blocks in file.
  *
  * TODO: should this be amalgamated with the dope-sheet filtering code?
  */
-static size_t animdata_filter_gpencil(bAnimContext *ac,
-                                      ListBase *anim_data,
-                                      void * /*data*/,
-                                      int filter_mode)
+static size_t animdata_filter_gpencil_legacy(bAnimContext *ac,
+                                             ListBase *anim_data,
+                                             void * /*data*/,
+                                             int filter_mode)
 {
   bDopeSheet *ads = ac->ads;
   size_t items = 0;
@@ -1852,7 +1927,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
   {
     LISTBASE_FOREACH (bGPdata *, gpd, &ac->bmain->gpencils) {
       if (gpd->flag & GP_DATA_ANNOTATIONS) {
-        items += animdata_filter_gpencil_data(anim_data, ads, gpd, filter_mode);
+        items += animdata_filter_gpencil_legacy_data(anim_data, ads, gpd, filter_mode);
       }
     }
   }
@@ -1905,7 +1980,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac,
 
       /* finally, include this object's grease pencil data-block. */
       /* XXX: Should we store these under expanders per item? */
-      items += animdata_filter_gpencil_data(
+      items += animdata_filter_gpencil_legacy_data(
           anim_data, ads, static_cast<bGPdata *>(ob->data), filter_mode);
     }
   }
@@ -3503,7 +3578,12 @@ size_t ANIM_animdata_filter(bAnimContext *ac,
       /* Modes for Specialty Data Types (i.e. not keyframes) */
       case ANIMCONT_GPENCIL: {
         if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items)) {
-          items = animdata_filter_gpencil(ac, anim_data, data, filter_mode);
+          if (U.experimental.use_grease_pencil_version3) {
+            items = animdata_filter_grease_pencil(ac, anim_data, filter_mode);
+          }
+          else {
+            items = animdata_filter_gpencil_legacy(ac, anim_data, data, filter_mode);
+          }
         }
         break;
       }

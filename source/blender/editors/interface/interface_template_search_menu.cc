@@ -511,7 +511,7 @@ static MenuSearch_Data *menu_items_from_ui_create(
     PropertyRNA *prop_ui_type = nullptr;
     {
       /* This must be a valid pointer, with only it's type checked. */
-      ScrArea area_dummy = {nullptr};
+      ScrArea area_dummy{};
       /* Anything besides #SPACE_EMPTY is fine,
        * as this value is only included in the enum when set. */
       area_dummy.spacetype = SPACE_TOPBAR;

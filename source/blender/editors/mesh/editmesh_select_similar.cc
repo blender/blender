@@ -766,7 +766,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
       case SIMEDGE_CREASE: {
         has_custom_data_layer = CustomData_has_layer_named(
             &bm->edata, CD_PROP_FLOAT, "crease_edge");
-        ATTR_FALLTHROUGH;
+        if (!has_custom_data_layer) {
+          /* Proceed only if we have to select all the edges that have custom data value of 0.0f.
+           * In this case we will just select all the edges.
+           * Otherwise continue the for loop. */
+          if (!ED_select_similar_compare_float_tree(tree_1d, 0.0f, thresh, eSimilarCmp(compare))) {
+            continue;
+          }
+        }
+        break;
       }
       case SIMEDGE_BEVEL: {
         has_custom_data_layer = CustomData_has_layer_named(
@@ -779,6 +787,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
             continue;
           }
         }
+        break;
       }
     }
 

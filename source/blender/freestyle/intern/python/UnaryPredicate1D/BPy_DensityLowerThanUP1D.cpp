@@ -27,7 +27,7 @@ static char DensityLowerThanUP1D___doc__[] =
     "\n"
     "   Builds a DensityLowerThanUP1D object.\n"
     "\n"
-    "   :arg threshold: The value of the threshold density.  Any Interface1D\n"
+    "   :arg threshold: The value of the threshold density. Any Interface1D\n"
     "      having a density lower than this threshold will match.\n"
     "   :type threshold: float\n"
     "   :arg sigma: The sigma value defining the density evaluation window\n"

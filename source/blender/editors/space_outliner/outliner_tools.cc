@@ -26,7 +26,6 @@
 #include "DNA_pointcloud_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_simulation_types.h"
 #include "DNA_volume_types.h"
 #include "DNA_world_types.h"
 
@@ -165,7 +164,6 @@ static void get_element_operation_type(
       case ID_CV:
       case ID_PT:
       case ID_VO:
-      case ID_SIM:
       case ID_GP:
         is_standard_id = true;
         break;
@@ -687,20 +685,22 @@ static const EnumPropertyItem prop_scene_op_types[] = {
 
 static bool outliner_do_scene_operation(
     bContext *C,
+    SpaceOutliner *space_outliner,
     eOutliner_PropSceneOps event,
-    ListBase *lb,
     bool (*operation_fn)(bContext *, eOutliner_PropSceneOps, TreeElement *, TreeStoreElem *))
 {
   bool success = false;
 
-  LISTBASE_FOREACH (TreeElement *, te, lb) {
+  tree_iterator::all_open(*space_outliner, [&](TreeElement *te) {
     TreeStoreElem *tselem = TREESTORE(te);
     if (tselem->flag & TSE_SELECTED) {
-      if (operation_fn(C, event, te, tselem)) {
-        success = true;
+      if ((tselem->type == TSE_SOME_ID) && (te->idcode == ID_SCE)) {
+        if (operation_fn(C, event, te, tselem)) {
+          success = true;
+        }
       }
     }
-  }
+  });
 
   return success;
 }
@@ -729,7 +729,7 @@ static int outliner_scene_operation_exec(bContext *C, wmOperator *op)
   SpaceOutliner *space_outliner = CTX_wm_space_outliner(C);
   const eOutliner_PropSceneOps event = (eOutliner_PropSceneOps)RNA_enum_get(op->ptr, "type");
 
-  if (outliner_do_scene_operation(C, event, &space_outliner->tree, scene_fn) == false) {
+  if (outliner_do_scene_operation(C, space_outliner, event, scene_fn) == false) {
     return OPERATOR_CANCELLED;
   }
 

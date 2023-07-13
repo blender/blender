@@ -316,8 +316,7 @@ typedef struct GreasePencilLayerTreeGroup {
  * Flag for the grease pencil data-block. #GreasePencil.flag
  */
 typedef enum GreasePencilFlag {
-  /* TODO */
-  GreasePencilFlag_TODO
+  GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
 } GreasePencilFlag;
 
 /**

@@ -1136,8 +1136,6 @@ static const char *template_id_browse_tip(const StructRNA *type)
         return N_("Browse Point Cloud Data to be linked");
       case ID_VO:
         return N_("Browse Volume Data to be linked");
-      case ID_SIM:
-        return N_("Browse Simulation to be linked");
       case ID_GP:
         return N_("Browse Grease Pencil Data to be linked");
 
@@ -1236,8 +1234,7 @@ static uiBut *template_id_def_new_but(uiBlock *block,
                             BLT_I18NCONTEXT_ID_LIGHTPROBE,
                             BLT_I18NCONTEXT_ID_CURVES,
                             BLT_I18NCONTEXT_ID_POINTCLOUD,
-                            BLT_I18NCONTEXT_ID_VOLUME,
-                            BLT_I18NCONTEXT_ID_SIMULATION, );
+                            BLT_I18NCONTEXT_ID_VOLUME, );
   BLT_I18N_MSGID_MULTI_CTXT("New", BLT_I18NCONTEXT_ID_PAINTCURVE, );
   /* NOTE: BLT_I18N_MSGID_MULTI_CTXT takes a maximum number of parameters,
    * check the definition to see if a new call must be added when the limit
@@ -6305,23 +6302,23 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
           MEM_mallocN(sizeof(*tip_arg), __func__));
       tip_arg->wm = wm;
       tip_arg->owner = owner;
-      uiButProgressbar *but_progress = (uiButProgressbar *)uiDefIconTextBut(block,
-                                                                            UI_BTYPE_PROGRESS_BAR,
-                                                                            0,
-                                                                            0,
-                                                                            text,
-                                                                            UI_UNIT_X,
-                                                                            0,
-                                                                            UI_UNIT_X * 6.0f,
-                                                                            UI_UNIT_Y,
-                                                                            nullptr,
-                                                                            0.0f,
-                                                                            0.0f,
-                                                                            0.0f,
-                                                                            0,
-                                                                            nullptr);
+      uiButProgress *but_progress = (uiButProgress *)uiDefIconTextBut(block,
+                                                                      UI_BTYPE_PROGRESS,
+                                                                      0,
+                                                                      0,
+                                                                      text,
+                                                                      UI_UNIT_X,
+                                                                      0,
+                                                                      UI_UNIT_X * 6.0f,
+                                                                      UI_UNIT_Y,
+                                                                      nullptr,
+                                                                      0.0f,
+                                                                      0.0f,
+                                                                      0.0f,
+                                                                      0,
+                                                                      nullptr);
 
-      but_progress->progress = progress;
+      but_progress->progress_factor = progress;
       UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg, MEM_freeN);
     }
 

@@ -1737,7 +1737,7 @@ static void sculpt_update_object(
 
     /* These are assigned to the base mesh in Multires. This is needed because Face Sets operators
      * and tools use the Face Sets data from the base mesh when Multires is active. */
-    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
+    ss->vert_positions = me->vert_positions_for_write();
     ss->polys = me->polys();
     ss->corner_verts = me->corner_verts();
   }
@@ -1745,7 +1745,7 @@ static void sculpt_update_object(
     ss->totvert = me->totvert;
     ss->totpoly = me->totpoly;
     ss->totfaces = me->totpoly;
-    ss->vert_positions = BKE_mesh_vert_positions_for_write(me);
+    ss->vert_positions = me->vert_positions_for_write();
     ss->polys = me->polys();
     ss->corner_verts = me->corner_verts();
     ss->multires.active = false;
@@ -1756,7 +1756,6 @@ static void sculpt_update_object(
 
     CustomDataLayer *layer;
     eAttrDomain domain;
-
     if (BKE_pbvh_get_color_layer(me, &layer, &domain)) {
       if (layer->type == CD_PROP_COLOR) {
         ss->vcol = static_cast<MPropCol *>(layer->data);

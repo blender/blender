@@ -55,7 +55,6 @@
 #include "BKE_object.h"
 #include "BKE_pointcloud.h"
 #include "BKE_screen.h"
-#include "BKE_simulation.h"
 #include "BKE_simulation_state.hh"
 #include "BKE_simulation_state_serialize.hh"
 #include "BKE_workspace.h"
@@ -472,6 +471,27 @@ static void find_side_effect_nodes_for_viewer_path(
         }
         local_side_effect_nodes.add(compute_context_builder.hash(), lf_zone_node);
         compute_context_builder.push<bke::SimulationZoneComputeContext>(*next_zone->output_node);
+        zone = next_zone;
+        break;
+      }
+      case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+        const auto &typed_elem = *reinterpret_cast<const RepeatZoneViewerPathElem *>(elem);
+        const bke::bNodeTreeZone *next_zone = tree_zones->get_zone_by_node(
+            typed_elem.repeat_output_node_id);
+        if (next_zone == nullptr) {
+          return;
+        }
+        if (next_zone->parent_zone != zone) {
+          return;
+        }
+        const lf::FunctionNode *lf_zone_node = lf_graph_info->mapping.zone_node_map.lookup_default(
+            next_zone, nullptr);
+        if (lf_zone_node == nullptr) {
+          return;
+        }
+        local_side_effect_nodes.add(compute_context_builder.hash(), lf_zone_node);
+        compute_context_builder.push<bke::RepeatZoneComputeContext>(*next_zone->output_node,
+                                                                    typed_elem.iteration);
         zone = next_zone;
         break;
       }

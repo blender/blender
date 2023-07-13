@@ -44,7 +44,7 @@ static char GetSteerableViewMapDensityF1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns the density of the ViewMap for a given Interface1D.  The\n"
+    "   Returns the density of the ViewMap for a given Interface1D. The\n"
     "   density of each :class:`freestyle.types.FEdge` is evaluated in the\n"
     "   proper steerable :class:`freestyle.types.ViewMap` depending on its\n"
     "   orientation.\n"

@@ -10,8 +10,7 @@
 
 namespace blender::ed::sculpt_paint {
 
-struct StrokeExtension {
-  bool is_first;
+struct InputSample {
   float2 mouse_position;
   float pressure;
 };
@@ -19,7 +18,8 @@ struct StrokeExtension {
 class GreasePencilStrokeOperation {
  public:
   virtual ~GreasePencilStrokeOperation() = default;
-  virtual void on_stroke_extended(const bContext &C, const StrokeExtension &stroke_extension) = 0;
+  virtual void on_stroke_begin(const bContext &C, const InputSample &start_sample) = 0;
+  virtual void on_stroke_extended(const bContext &C, const InputSample &extension_sample) = 0;
   virtual void on_stroke_done(const bContext &C) = 0;
 };
 

@@ -291,8 +291,8 @@ static PyObject *StrokeAttribute_has_attribute_vec3(BPy_StrokeAttribute *self,
 PyDoc_STRVAR(StrokeAttribute_set_attribute_real_doc,
              ".. method:: set_attribute_real(name, value)\n"
              "\n"
-             "   Adds a user-defined attribute of float type.  If there is no\n"
-             "   attribute of the given name, it is added.  Otherwise, the new value\n"
+             "   Adds a user-defined attribute of float type. If there is no\n"
+             "   attribute of the given name, it is added. Otherwise, the new value\n"
              "   replaces the old one.\n"
              "\n"
              "   :arg name: The name of the attribute.\n"
@@ -318,8 +318,8 @@ static PyObject *StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self,
 PyDoc_STRVAR(StrokeAttribute_set_attribute_vec2_doc,
              ".. method:: set_attribute_vec2(name, value)\n"
              "\n"
-             "   Adds a user-defined attribute of two-dimensional vector type.  If\n"
-             "   there is no attribute of the given name, it is added.  Otherwise,\n"
+             "   Adds a user-defined attribute of two-dimensional vector type. If\n"
+             "   there is no attribute of the given name, it is added. Otherwise,\n"
              "   the new value replaces the old one.\n"
              "\n"
              "   :arg name: The name of the attribute.\n"
@@ -618,7 +618,7 @@ static int StrokeAttribute_thickness_set(BPy_StrokeAttribute *self,
 }
 
 PyDoc_STRVAR(StrokeAttribute_visible_doc,
-             "The visibility flag.  True if the StrokeVertex is visible.\n"
+             "The visibility flag. True if the StrokeVertex is visible.\n"
              "\n"
              ":type: bool");
 

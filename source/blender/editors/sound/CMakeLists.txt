@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../depsgraph
   ../../makesrna
   ../../sequencer
@@ -18,13 +17,13 @@ set(INC_SYS
 )
 
 set(SRC
-  sound_ops.c
+  sound_ops.cc
 
   sound_intern.h
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

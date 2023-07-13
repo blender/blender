@@ -868,26 +868,10 @@ void BKE_id_attributes_default_color_set(ID *id, const char *name)
   }
 }
 
-CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
+const CustomDataLayer *BKE_id_attributes_color_find(const ID *id, const char *name)
 {
-  if (CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_POINT)) {
-    return layer;
-  }
-  if (CustomDataLayer *layer = BKE_id_attribute_find(id, name, CD_PROP_COLOR, ATTR_DOMAIN_CORNER))
-  {
-    return layer;
-  }
-  if (CustomDataLayer *layer = BKE_id_attribute_find(
-          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_POINT))
-  {
-    return layer;
-  }
-  if (CustomDataLayer *layer = BKE_id_attribute_find(
-          id, name, CD_PROP_BYTE_COLOR, ATTR_DOMAIN_CORNER))
-  {
-    return layer;
-  }
-  return nullptr;
+  return BKE_id_attribute_search(
+      const_cast<ID *>(id), name, CD_MASK_COLOR_ALL, ATTR_DOMAIN_MASK_COLOR);
 }
 
 const char *BKE_uv_map_vert_select_name_get(const char *uv_map_name, char *buffer)

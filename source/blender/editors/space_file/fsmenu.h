@@ -17,6 +17,10 @@ enum FSMenuInsert;
 struct FSMenu;
 struct FSMenuEntry;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Inserts a new fsmenu entry with the given \a path.
  * Duplicate entries are not added.
@@ -63,3 +67,7 @@ void fsmenu_refresh_bookmarks_status(struct wmWindowManager *wm, struct FSMenu *
 int fsmenu_get_active_indices(struct FSMenu *fsmenu,
                               enum FSMenuCategory category,
                               const char *dir);
+
+#ifdef __cplusplus
+}
+#endif

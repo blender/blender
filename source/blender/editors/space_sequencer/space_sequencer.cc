@@ -963,10 +963,10 @@ static void sequencer_space_blend_read_data(BlendDataReader * /*reader*/, SpaceL
    * simple return nullptr here (sergey)
    */
 #if 0
-    if (sseq->gpd) {
-      sseq->gpd = newdataadr(fd, sseq->gpd);
-      BKE_gpencil_blend_read_data(fd, sseq->gpd);
-    }
+  if (sseq->gpd) {
+    sseq->gpd = newdataadr(fd, sseq->gpd);
+    BKE_gpencil_blend_read_data(fd, sseq->gpd);
+  }
 #endif
   sseq->scopes.reference_ibuf = nullptr;
   sseq->scopes.zebra_ibuf = nullptr;

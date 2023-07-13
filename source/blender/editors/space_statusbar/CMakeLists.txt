@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../gpu
@@ -19,11 +18,11 @@ set(INC_SYS
 )
 
 set(SRC
-  space_statusbar.c
+  space_statusbar.cc
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

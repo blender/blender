@@ -200,10 +200,6 @@ class ShaderNode : public Node {
   {
     return false;
   }
-  virtual bool has_integrator_dependency()
-  {
-    return false;
-  }
   virtual bool has_volume_support()
   {
     return false;
@@ -315,10 +311,7 @@ class ShaderGraph : public NodeOwner {
   void remove_proxy_nodes();
   void compute_displacement_hash();
   void simplify(Scene *scene);
-  void finalize(Scene *scene,
-                bool do_bump = false,
-                bool do_simplify = false,
-                bool bump_in_object_space = false);
+  void finalize(Scene *scene, bool do_bump = false, bool bump_in_object_space = false);
 
   int get_num_closures();
 

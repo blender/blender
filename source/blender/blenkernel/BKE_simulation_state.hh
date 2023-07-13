@@ -197,4 +197,10 @@ class ModifierSimulationCache {
   void reset();
 };
 
+/**
+ * Reset all simulation caches in the scene, for use when some fundamental change made them
+ * impossible to reuse.
+ */
+void scene_simulation_states_reset(Scene &scene);
+
 }  // namespace blender::bke::sim

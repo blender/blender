@@ -26,7 +26,6 @@
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_simulation_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_endian_switch.h"

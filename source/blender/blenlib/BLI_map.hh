@@ -50,12 +50,9 @@
  *   memory usage of the map.
  * - The method names don't follow the std::unordered_map names in many cases. Searching for such
  *   names in this file will usually let you discover the new name.
- * - There is a StdUnorderedMapWrapper class, that wraps std::unordered_map and gives it the same
- *   interface as blender::Map. This is useful for benchmarking.
  */
 
 #include <optional>
-#include <unordered_map>
 
 #include "BLI_array.hh"
 #include "BLI_hash.hh"
@@ -1286,72 +1283,5 @@ template<typename Key,
          typename Slot = typename DefaultMapSlot<Key, Value>::type>
 using RawMap =
     Map<Key, Value, InlineBufferCapacity, ProbingStrategy, Hash, IsEqual, Slot, RawAllocator>;
-
-/**
- * A wrapper for std::unordered_map with the API of blender::Map. This can be used for
- * benchmarking.
- */
-template<typename Key, typename Value> class StdUnorderedMapWrapper {
- private:
-  using MapType = std::unordered_map<Key, Value, blender::DefaultHash<Key>>;
-  MapType map_;
-
- public:
-  int64_t size() const
-  {
-    return int64_t(map_.size());
-  }
-
-  bool is_empty() const
-  {
-    return map_.empty();
-  }
-
-  void reserve(int64_t n)
-  {
-    map_.reserve(n);
-  }
-
-  template<typename ForwardKey, typename... ForwardValue>
-  void add_new(ForwardKey &&key, ForwardValue &&...value)
-  {
-    map_.insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)});
-  }
-
-  template<typename ForwardKey, typename... ForwardValue>
-  bool add(ForwardKey &&key, ForwardValue &&...value)
-  {
-    return map_
-        .insert({std::forward<ForwardKey>(key), Value(std::forward<ForwardValue>(value)...)})
-        .second;
-  }
-
-  bool contains(const Key &key) const
-  {
-    return map_.find(key) != map_.end();
-  }
-
-  bool remove(const Key &key)
-  {
-    return bool(map_.erase(key));
-  }
-
-  Value &lookup(const Key &key)
-  {
-    return map_.find(key)->second;
-  }
-
-  const Value &lookup(const Key &key) const
-  {
-    return map_.find(key)->second;
-  }
-
-  void clear()
-  {
-    map_.clear();
-  }
-
-  void print_stats(StringRef /*name*/ = "") const {}
-};
 
 }  // namespace blender

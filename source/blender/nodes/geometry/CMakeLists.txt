@@ -7,7 +7,6 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../blenkernel
   ../../blentranslation
   ../../bmesh
   ../../depsgraph
@@ -149,6 +148,8 @@ set(SRC
   nodes/node_geo_raycast.cc
   nodes/node_geo_realize_instances.cc
   nodes/node_geo_remove_attribute.cc
+  nodes/node_geo_repeat_input.cc
+  nodes/node_geo_repeat_output.cc
   nodes/node_geo_rotate_instances.cc
   nodes/node_geo_sample_index.cc
   nodes/node_geo_sample_nearest.cc
@@ -198,6 +199,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_bmesh
   PRIVATE bf::dna

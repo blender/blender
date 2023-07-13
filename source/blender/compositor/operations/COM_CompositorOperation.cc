@@ -8,6 +8,8 @@
 #include "BKE_image.h"
 #include "BKE_scene.h"
 
+#include "IMB_imbuf.h"
+
 #include "RE_pipeline.h"
 
 namespace blender::compositor {

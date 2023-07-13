@@ -1253,7 +1253,6 @@ typedef enum eID_Index {
 
   /* Simulation-related types. */
   INDEX_ID_CF,
-  INDEX_ID_SIM,
   INDEX_ID_PA,
 
   /* Shape Keys snow-flake, can be used by several obdata types. */

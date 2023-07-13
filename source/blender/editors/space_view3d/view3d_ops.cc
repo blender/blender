@@ -155,7 +155,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 /** \name Registration
  * \{ */
 
-void view3d_operatortypes(void)
+void view3d_operatortypes()
 {
   WM_operatortype_append(VIEW3D_OT_rotate);
   WM_operatortype_append(VIEW3D_OT_move);

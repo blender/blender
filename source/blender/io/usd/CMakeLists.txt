@@ -46,7 +46,6 @@ endif()
 set(INC
   .
   ../common
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../bmesh
@@ -125,7 +124,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_imbuf
@@ -152,6 +151,10 @@ if(WITH_OPENVDB)
 endif()
 
 blender_add_lib(bf_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+if(COMMAND target_precompile_headers)
+  target_precompile_headers(bf_usd PRIVATE intern/usd_precomp.h)
+endif()
 
 if(WITH_GTESTS)
   set(TEST_SRC

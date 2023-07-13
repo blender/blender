@@ -398,6 +398,8 @@ void DeferredLayer::begin_sync()
     gbuffer_single_sided_ps_ = &gbuffer_ps_.sub("SingleSided");
     gbuffer_single_sided_ps_->state_set(state | DRW_STATE_CULL_BACK);
   }
+
+  closure_bits_ = CLOSURE_NONE;
 }
 
 void DeferredLayer::end_sync()

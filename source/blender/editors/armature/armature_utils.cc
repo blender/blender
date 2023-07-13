@@ -639,11 +639,11 @@ static void armature_finalize_restpose(ListBase *bonelist, ListBase *editbonelis
         mul_m3_m3m3(difmat, imat, postmat);
 
 #if 0
-printf("Bone %s\n", curBone->name);
-print_m4("premat", premat);
-print_m4("postmat", postmat);
-print_m4("difmat", difmat);
-printf("Roll = %f\n", RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
+        printf("Bone %s\n", curBone->name);
+        print_m4("premat", premat);
+        print_m4("postmat", postmat);
+        print_m4("difmat", difmat);
+        printf("Roll = %f\n", RAD2DEGF(-atan2(difmat[2][0], difmat[2][2])));
 #endif
 
         curBone->roll = -atan2f(difmat[2][0], difmat[2][2]);

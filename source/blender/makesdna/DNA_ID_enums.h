@@ -83,7 +83,6 @@ typedef enum ID_Type {
   ID_CV = MAKE_ID2('C', 'V'),        /* Curves */
   ID_PT = MAKE_ID2('P', 'T'),        /* PointCloud */
   ID_VO = MAKE_ID2('V', 'O'),        /* Volume */
-  ID_SIM = MAKE_ID2('S', 'I'),       /* Simulation (geometry node groups) */
   ID_GP = MAKE_ID2('G', 'P'),        /* Grease Pencil */
 } ID_Type;
 

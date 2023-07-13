@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../blenkernel
   ../blenloader
   ../gpu
   ../makesrna
@@ -31,6 +30,7 @@ set(SRC
   intern/format_hdr.cc
   intern/format_png.cc
   intern/format_psd.cc
+  intern/format_svg.cc
   intern/format_targa.cc
   intern/format_tiff.cc
   intern/imageprocess.cc
@@ -73,7 +73,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_blenloader
   PRIVATE bf::dna
@@ -81,6 +81,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio
+  PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
 )

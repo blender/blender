@@ -78,7 +78,7 @@ static int SVertex_init(BPy_SVertex *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(SVertex_add_normal_doc,
              ".. method:: add_normal(normal)\n"
              "\n"
-             "   Adds a normal to the SVertex's set of normals.  If the same normal\n"
+             "   Adds a normal to the SVertex's set of normals. If the same normal\n"
              "   is already in the set, nothing changes.\n"
              "\n"
              "   :arg normal: A three-dimensional vector.\n"
@@ -331,8 +331,8 @@ static int SVertex_id_set(BPy_SVertex *self, PyObject *value, void * /*closure*/
 }
 
 PyDoc_STRVAR(SVertex_normals_doc,
-             "The normals for this Vertex as a list.  In a sharp surface, an SVertex\n"
-             "has exactly one normal.  In a smooth surface, an SVertex can have any\n"
+             "The normals for this Vertex as a list. In a sharp surface, an SVertex\n"
+             "has exactly one normal. In a smooth surface, an SVertex can have any\n"
              "number of normals.\n"
              "\n"
              ":type: list of :class:`mathutils.Vector` objects");

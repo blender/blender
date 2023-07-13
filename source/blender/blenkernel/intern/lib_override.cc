@@ -49,6 +49,7 @@
 #include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -276,9 +277,12 @@ static ID *lib_override_library_create_from(Main *bmain,
                                 LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
                                     lib_id_copy_flags);
 
-  /* Incase we could not get an override ID with the exact same name as its linked reference, ensure we at least get a uniquely named override ID over the whole current Main data, to reduce potential name collisions with other reference IDs.
+  /* In case we could not get an override ID with the exact same name as its linked reference,
+   * ensure we at least get a uniquely named override ID over the whole current Main data, to
+   * reduce potential name collisions with other reference IDs.
    *
-   * While in normal cases this would not be an issue, when files start to get heavily broken and not sound, such conflicts can become a source of problems. */
+   * While in normal cases this would not be an issue, when files start to get heavily broken and
+   * not sound, such conflicts can become a source of problems. */
   if (!STREQ(local_id->name + 2, reference_id->name + 2)) {
     BLI_strncpy(local_id->name + 2, reference_id->name + 2, MAX_ID_NAME - 2);
     BKE_main_namemap_get_name(bmain, local_id, local_id->name + 2, true);
@@ -1614,8 +1618,14 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   return best_root_id_candidate;
 }
 
-static void lib_override_root_hierarchy_set(Main *bmain, ID *id_root, ID *id, ID *id_from)
+static void lib_override_root_hierarchy_set(
+    Main *bmain, ID *id_root, ID *id, ID *id_from, blender::Set<ID *> &processed_ids)
 {
+  if (processed_ids.contains(id)) {
+    /* This ID has already been checked as having a valid hierarchy root, do not attempt to replace
+     * it with another one just because it is also used by another liboverride hierarchy. */
+    return;
+  }
   if (ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
     if (id->override_library->hierarchy_root == id_root) {
       /* Already set, nothing else to do here, sub-hierarchy is also assumed to be properly set
@@ -1685,6 +1695,15 @@ static void lib_override_root_hierarchy_set(Main *bmain, ID *id_root, ID *id, ID
       }
     }
 
+    CLOG_INFO(&LOG,
+              3,
+              "Modifying library override hierarchy of ID '%s'.\n"
+              "\tFrom old root '%s' to new root '%s'.",
+              id->name,
+              id->override_library->hierarchy_root ? id->override_library->hierarchy_root->name :
+                                                     "<NONE>",
+              id_root->name);
+
     id->override_library->hierarchy_root = id_root;
   }
 
@@ -1709,7 +1728,7 @@ static void lib_override_root_hierarchy_set(Main *bmain, ID *id_root, ID *id, ID
     }
 
     /* Recursively process the sub-hierarchy. */
-    lib_override_root_hierarchy_set(bmain, id_root, to_id, id);
+    lib_override_root_hierarchy_set(bmain, id_root, to_id, id, processed_ids);
   }
 }
 
@@ -1718,9 +1737,11 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
   ID *id;
 
   BKE_main_relations_create(bmain, 0);
+  blender::Set<ID *> processed_ids;
 
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
     if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+      processed_ids.add(id);
       continue;
     }
     if (id->override_library->hierarchy_root != nullptr) {
@@ -1738,6 +1759,8 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
         id->override_library->hierarchy_root = nullptr;
       }
       else {
+        /* This ID is considered as having a valid hierarchy root. */
+        processed_ids.add(id);
         continue;
       }
     }
@@ -1748,16 +1771,20 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
     ID *id_root = lib_override_root_find(bmain, id, best_level, &best_level);
 
     if (!ELEM(id_root->override_library->hierarchy_root, id_root, nullptr)) {
+      /* FIXME This is probably never actually reached with current code? Check above for non-null
+       * hierarchy root pointer either skip the rest of the loop, or reset it to nullptr. */
       CLOG_WARN(&LOG,
-                "Potential inconsistency in library override hierarchy of ID '%s', detected as "
-                "part of the hierarchy of '%s', which has a different root '%s'",
+                "Potential inconsistency in library override hierarchy of ID '%s' (current root "
+                "%s), detected as part of the hierarchy of '%s' (current root '%s')",
                 id->name,
+                id->override_library->hierarchy_root->name,
                 id_root->name,
                 id_root->override_library->hierarchy_root->name);
+      processed_ids.add(id);
       continue;
     }
 
-    lib_override_root_hierarchy_set(bmain, id_root, id, nullptr);
+    lib_override_root_hierarchy_set(bmain, id_root, id, nullptr, processed_ids);
 
     BLI_assert(id->override_library->hierarchy_root != nullptr);
   }
@@ -2413,7 +2440,10 @@ static bool lib_override_library_resync(Main *bmain,
         do_delete = false;
         id_fake_user_set(id);
         id->flag |= LIB_LIB_OVERRIDE_RESYNC_LEFTOVER;
-        CLOG_INFO(&LOG_RESYNC, 2, "Old override %s is being kept around as it was user-edited", id->name);
+        CLOG_INFO(&LOG_RESYNC,
+                  2,
+                  "Old override %s is being kept around as it was user-edited",
+                  id->name);
       }
 #else
       else {
@@ -4859,7 +4889,8 @@ ID *BKE_lib_override_library_operations_store_start(Main *bmain,
     RNA_id_pointer_create(storage_id, &rnaptr_storage);
 
     if (!RNA_struct_override_store(
-            bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_library)) {
+            bmain, &rnaptr_final, &rnaptr_reference, &rnaptr_storage, local->override_library))
+    {
       BKE_id_free_ex(override_storage, storage_id, LIB_ID_FREE_NO_UI_USER, true);
       storage_id = nullptr;
     }

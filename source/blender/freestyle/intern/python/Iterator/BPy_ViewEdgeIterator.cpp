@@ -38,7 +38,7 @@ PyDoc_STRVAR(ViewEdgeIterator_doc,
              "   :arg begin: The ViewEdge from where to start the iteration.\n"
              "   :type begin: :class:`ViewEdge` or None\n"
              "   :arg orientation: If true, we'll look for the next ViewEdge among\n"
-             "      the ViewEdges that surround the ending ViewVertex of begin.  If\n"
+             "      the ViewEdges that surround the ending ViewVertex of begin. If\n"
              "      false, we'll search over the ViewEdges surrounding the ending\n"
              "      ViewVertex of begin.\n"
              "   :type orientation: bool\n"
@@ -150,7 +150,7 @@ static int ViewEdgeIterator_current_edge_set(BPy_ViewEdgeIterator *self,
 PyDoc_STRVAR(ViewEdgeIterator_orientation_doc,
              "The orientation of the pointed ViewEdge in the iteration.\n"
              "If true, the iterator looks for the next ViewEdge among those ViewEdges\n"
-             "that surround the ending ViewVertex of the \"begin\" ViewEdge.  If false,\n"
+             "that surround the ending ViewVertex of the \"begin\" ViewEdge. If false,\n"
              "the iterator searches over the ViewEdges surrounding the ending ViewVertex\n"
              "of the \"begin\" ViewEdge.\n"
              "\n"

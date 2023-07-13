@@ -2397,8 +2397,6 @@ static const char *dataname(short id_code)
       return "Data from PT";
     case ID_VO:
       return "Data from VO";
-    case ID_SIM:
-      return "Data from SIM";
     case ID_GP:
       return "Data from GP";
   }
@@ -3770,7 +3768,7 @@ static BHead *find_previous_lib(FileData *fd, BHead *bhead)
 static BHead *find_bhead(FileData *fd, void *old)
 {
 #if 0
-  BHead* bhead;
+  BHead *bhead;
 #endif
   BHeadSort *bhs, bhs_s;
 

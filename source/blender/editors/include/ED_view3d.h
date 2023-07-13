@@ -305,6 +305,7 @@ typedef enum {
   V3D_SNAPCURSOR_SNAP_EDIT_GEOM_FINAL = 1 << 3,
   V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE = 1 << 4,
 } eV3DSnapCursor;
+ENUM_OPERATORS(eV3DSnapCursor, V3D_SNAPCURSOR_SNAP_EDIT_GEOM_CAGE)
 
 typedef struct V3DSnapCursorData {
   eSnapMode snap_elem;

@@ -1657,7 +1657,7 @@ void uiItemsFullEnumO(uiLayout *layout,
        */
 #if 0
       RNA_property_enum_items_gettexted_all(
-          static_cast<bContext*>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
+          static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
 #else
       RNA_property_enum_items_gettexted(
           static_cast<bContext *>(block->evil_C), &ptr, prop, &item_array, &totitem, &free);
@@ -3473,6 +3473,51 @@ void uiItemS_ex(uiLayout *layout, float factor)
 void uiItemS(uiLayout *layout)
 {
   uiItemS_ex(layout, 1.0f);
+}
+
+void uiItemProgressIndicator(uiLayout *layout,
+                             const char *text,
+                             const float factor,
+                             const eButProgressType progress_type)
+{
+  const bool has_text = text && text[0];
+  uiBlock *block = layout->root->block;
+  short width;
+
+  if (progress_type == UI_BUT_PROGRESS_TYPE_BAR) {
+    width = UI_UNIT_X * 5;
+  }
+  else if (has_text) {
+    width = UI_UNIT_X * 8;
+  }
+  else {
+    width = UI_UNIT_X;
+  }
+
+  UI_block_layout_set_current(block, layout);
+  uiBut *but = uiDefBut(block,
+                        UI_BTYPE_PROGRESS,
+                        0,
+                        (text) ? text : "",
+                        0,
+                        0,
+                        width,
+                        short(UI_UNIT_Y),
+                        nullptr,
+                        0.0,
+                        0.0,
+                        0,
+                        0,
+                        "");
+
+  if (has_text && ELEM(progress_type, UI_BUT_PROGRESS_TYPE_RING, UI_BUT_PROGRESS_TYPE_PIE)) {
+    /* For progress bar, centered is okay, left aligned for ring/pie. */
+    but->drawflag |= UI_BUT_TEXT_LEFT;
+  }
+
+  uiButProgress *progress_bar = static_cast<uiButProgress *>(but);
+  progress_bar->progress_type = eButProgressType(progress_type);
+  progress_bar->progress_factor = factor;
 }
 
 void uiItemSpacer(uiLayout *layout)

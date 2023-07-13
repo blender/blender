@@ -72,6 +72,12 @@ def add_simulation_zone(layout, label):
     return props
 
 
+def add_repeat_zone(layout, label):
+    props = layout.operator("node.add_repeat_zone", text=label)
+    props.use_transform = True
+    return props
+
+
 classes = (
 )
 

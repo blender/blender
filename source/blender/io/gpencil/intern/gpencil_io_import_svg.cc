@@ -23,10 +23,6 @@
 #include "gpencil_io.h"
 #include "gpencil_io_import_svg.hh"
 
-/* Custom flags for NanoSVG. */
-#define NANOSVG_ALL_COLOR_KEYWORDS
-#define NANOSVG_IMPLEMENTATION
-
 #include "nanosvg.h"
 
 using blender::MutableSpan;

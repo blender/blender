@@ -261,7 +261,7 @@ struct uiBut {
   eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
-  ImBuf *imb = nullptr;
+  const ImBuf *imb = nullptr;
   float imb_scale = 0;
 
   /** Active button data (set when the user is hovering or interacting with a button). */
@@ -342,10 +342,12 @@ struct uiButDecorator : public uiBut {
   int decorated_rnaindex = -1;
 };
 
-/** Derived struct for #UI_BTYPE_PROGRESS_BAR. */
-struct uiButProgressbar : public uiBut {
-  /* 0..1 range */
-  float progress = 0;
+/** Derived struct for #UI_BTYPE_PROGRESS. */
+struct uiButProgress : public uiBut {
+  /** Progress in  0..1 range */
+  float progress_factor = 0.0f;
+  /** The display style (bar, pie... etc). */
+  eButProgressType progress_type = UI_BUT_PROGRESS_TYPE_BAR;
 };
 
 struct uiButViewItem : public uiBut {

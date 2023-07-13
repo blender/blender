@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blenloader
   ../../makesrna
   ../../windowmanager
@@ -16,17 +15,17 @@ set(INC_SYS
 )
 
 set(SRC
-  space_userpref.c
-  userpref_ops.c
+  space_userpref.cc
+  userpref_ops.cc
 
   userpref_intern.h
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
 )
 
 blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

@@ -21,7 +21,6 @@ unset(OPENCOLLADA_ANIMATION_CLIP CACHE)
 
 set(INC
   .
-  ../../blenkernel
   ../../blentranslation
   ../../depsgraph
   ../../editors/include
@@ -114,6 +113,7 @@ set(LIB
   ${OPENCOLLADA_LIBRARIES}
   ${PCRE_LIBRARIES}
   ${XML2_LIBRARIES}
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

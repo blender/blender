@@ -132,7 +132,7 @@ static void gizmo_mesh_placement_update_from_op(GizmoPlacementGroup *ggd)
   UNUSED_VARS(op);
 /* For now don't read back from the operator. */
 #if 0
-RNA_property_float_get_array(op->ptr, ggd->data.prop_matrix, &ggd->cage->matrix_offset[0][0]);
+  RNA_property_float_get_array(op->ptr, ggd->data.prop_matrix, &ggd->cage->matrix_offset[0][0]);
 #endif
 }
 

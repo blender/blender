@@ -18,6 +18,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_gpencil_legacy_types.h"
+#include "DNA_grease_pencil_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -381,6 +382,7 @@ enum eAnimKeylistDrawListElemType {
   ANIM_KEYLIST_FCURVE,
   ANIM_KEYLIST_ACTION,
   ANIM_KEYLIST_AGROUP,
+  ANIM_KEYLIST_GREASE_PENCIL_CELS,
   ANIM_KEYLIST_GP_LAYER,
   ANIM_KEYLIST_MASK_LAYER,
 };
@@ -404,6 +406,7 @@ struct AnimKeylistDrawListElem {
   bAction *act;
   bActionGroup *agrp;
   bGPDlayer *gpl;
+  GreasePencilLayer *grease_pencil_layer;
   MaskLayer *masklay;
 };
 
@@ -432,6 +435,11 @@ static void ED_keylist_draw_list_elem_build_keylist(AnimKeylistDrawListElem *ele
     }
     case ANIM_KEYLIST_AGROUP: {
       agroup_to_keylist(elem->adt, elem->agrp, elem->keylist, elem->saction_flag);
+      break;
+    }
+    case ANIM_KEYLIST_GREASE_PENCIL_CELS: {
+      grease_pencil_cels_to_keylist(
+          elem->adt, elem->grease_pencil_layer, elem->keylist, elem->saction_flag);
       break;
     }
     case ANIM_KEYLIST_GP_LAYER: {
@@ -696,6 +704,18 @@ void draw_action_channel(AnimKeylistDrawList *draw_list,
   draw_elem->adt = adt;
   draw_elem->act = act;
   draw_elem->channel_locked = locked;
+}
+
+void draw_grease_pencil_cels_channel(AnimKeylistDrawList *draw_list,
+                                     bDopeSheet * /*ads*/,
+                                     GreasePencilLayer *layer,
+                                     const float ypos,
+                                     const float yscale_fac,
+                                     int saction_flag)
+{
+  AnimKeylistDrawListElem *draw_elem = ed_keylist_draw_list_add_elem(
+      draw_list, ANIM_KEYLIST_GREASE_PENCIL_CELS, ypos, yscale_fac, eSAction_Flag(saction_flag));
+  draw_elem->grease_pencil_layer = layer;
 }
 
 void draw_gpl_channel(AnimKeylistDrawList *draw_list,

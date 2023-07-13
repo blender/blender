@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../gpu
@@ -20,15 +19,16 @@ set(INC_SYS
 )
 
 set(SRC
-  buttons_context.c
-  buttons_ops.c
+  buttons_context.cc
+  buttons_ops.cc
   buttons_texture.cc
-  space_buttons.c
+  space_buttons.cc
 
   buttons_intern.h
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

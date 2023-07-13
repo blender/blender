@@ -2518,6 +2518,11 @@ static PointerRNA rna_SpaceNode_overlay_get(PointerRNA *ptr)
   return rna_pointer_inherit_refine(ptr, &RNA_SpaceNodeOverlay, ptr->data);
 }
 
+static bool rna_SpaceNode_supports_previews(PointerRNA *ptr)
+{
+  return ED_node_supports_preview(static_cast<SpaceNode *>(ptr->data));
+}
+
 static char *rna_SpaceNodeOverlay_path(const PointerRNA * /*ptr*/)
 {
   return BLI_strdup("overlay");
@@ -3342,7 +3347,7 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
 static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
 {
   ViewerPathElem *elem = static_cast<ViewerPathElem *>(ptr->data);
-  switch (elem->type) {
+  switch (ViewerPathElemType(elem->type)) {
     case VIEWER_PATH_ELEM_TYPE_ID:
       return &RNA_IDViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_MODIFIER:
@@ -3353,6 +3358,8 @@ static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
       return &RNA_SimulationZoneViewerPathElem;
     case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE:
       return &RNA_ViewerNodeViewerPathElem;
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
+      return &RNA_RepeatZoneViewerPathElem;
   }
   BLI_assert_unreachable();
   return nullptr;
@@ -7423,6 +7430,13 @@ static void rna_def_space_node_overlay(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Show Named Attributes", "Show when nodes are using named attributes");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
+
+  prop = RNA_def_property(srna, "show_previews", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SN_OVERLAY_SHOW_PREVIEWS);
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_ui_text(
+      prop, "Show Node Previews", "Display each node's preview if node is toggled");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE, nullptr);
 }
 
 static void rna_def_space_node(BlenderRNA *brna)
@@ -7641,6 +7655,10 @@ static void rna_def_space_node(BlenderRNA *brna)
   RNA_def_property_pointer_funcs(prop, "rna_SpaceNode_overlay_get", nullptr, nullptr, nullptr);
   RNA_def_property_ui_text(
       prop, "Overlay Settings", "Settings for display of overlays in the Node Editor");
+
+  prop = RNA_def_property(srna, "supports_preview", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_SpaceNode_supports_previews", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   rna_def_space_node_overlay(brna);
   RNA_api_space_node(srna);
@@ -8100,6 +8118,7 @@ static const EnumPropertyItem viewer_path_elem_type_items[] = {
     {VIEWER_PATH_ELEM_TYPE_GROUP_NODE, "GROUP_NODE", ICON_NONE, "Group Node", ""},
     {VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE, "SIMULATION_ZONE", ICON_NONE, "Simulation Zone", ""},
     {VIEWER_PATH_ELEM_TYPE_VIEWER_NODE, "VIEWER_NODE", ICON_NONE, "Viewer Node", ""},
+    {VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE, "REPEAT_ZONE", ICON_NONE, "Repeat", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -8167,6 +8186,17 @@ static void rna_def_simulation_zone_viewer_path_elem(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Simulation Output Node ID", "");
 }
 
+static void rna_def_repeat_zone_viewer_path_elem(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "RepeatZoneViewerPathElem", "ViewerPathElem");
+
+  prop = RNA_def_property(srna, "repeat_output_node_id", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Repeat Output Node ID", "");
+}
+
 static void rna_def_viewer_node_viewer_path_elem(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8188,6 +8218,7 @@ static void rna_def_viewer_path(BlenderRNA *brna)
   rna_def_modifier_viewer_path_elem(brna);
   rna_def_group_node_viewer_path_elem(brna);
   rna_def_simulation_zone_viewer_path_elem(brna);
+  rna_def_repeat_zone_viewer_path_elem(brna);
   rna_def_viewer_node_viewer_path_elem(brna);
 
   srna = RNA_def_struct(brna, "ViewerPath", nullptr);

@@ -966,6 +966,7 @@ BLI_STATIC_ASSERT_ALIGN(HiZData, 16)
  * \{ */
 
 enum eClosureBits : uint32_t {
+  CLOSURE_NONE = 0u,
   /** NOTE: These are used as stencil bits. So we are limited to 8bits. */
   CLOSURE_DIFFUSE = (1u << 0u),
   CLOSURE_SSS = (1u << 1u),

@@ -56,6 +56,10 @@
 
 #include "clip_intern.h" /* own include */
 
+/* -------------------------------------------------------------------- */
+/** \name Local Utilities
+ * \{ */
+
 static void init_preview_region(const Scene *scene,
                                 const ScrArea *area,
                                 const SpaceClip *sc,
@@ -145,7 +149,11 @@ static void clip_area_sync_frame_from_scene(ScrArea *area, const Scene *scene)
   BKE_movieclip_user_set_frame(&space_clip->user, scene->r.cfra);
 }
 
-/* ******************** default callbacks for clip space ***************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Default Callbacks for Clip Space
+ * \{ */
 
 static SpaceLink *clip_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 {
@@ -585,7 +593,11 @@ static void clip_gizmos()
   WM_gizmogrouptype_append_and_link(gzmap_type, CLIP_GGT_navigate);
 }
 
-/********************* main region ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Region
+ * \{ */
 
 /* sets up the fields of the View2D from zoom and offset */
 static void movieclip_main_area_set_view2d(const bContext *C, ARegion *region)
@@ -793,7 +805,11 @@ static void clip_main_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-/****************** preview region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Preview Region
+ * \{ */
 
 static bool clip_preview_region_poll(const RegionPollParams *params)
 {
@@ -924,7 +940,11 @@ static void clip_preview_region_draw(const bContext *C, ARegion *region)
 
 static void clip_preview_region_listener(const wmRegionListenerParams * /*params*/) {}
 
-/****************** channels region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Channels Region
+ * \{ */
 
 static bool clip_channels_region_poll(const RegionPollParams *params)
 {
@@ -969,7 +989,11 @@ static void clip_channels_region_draw(const bContext *C, ARegion *region)
 
 static void clip_channels_region_listener(const wmRegionListenerParams * /*params*/) {}
 
-/****************** header region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Header Region
+ * \{ */
 
 /* add handlers, stuff you only do once or on area/region changes */
 static void clip_header_region_init(wmWindowManager * /*wm*/, ARegion *region)
@@ -1004,7 +1028,11 @@ static void clip_header_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-/****************** tools region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tools Region
+ * \{ */
 
 static bool clip_tools_region_poll(const RegionPollParams *params)
 {
@@ -1028,7 +1056,11 @@ static void clip_tools_region_draw(const bContext *C, ARegion *region)
   ED_region_panels(C, region);
 }
 
-/****************** tool properties region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Tool Properties Region
+ * \{ */
 
 static void clip_props_region_listener(const wmRegionListenerParams *params)
 {
@@ -1060,7 +1092,11 @@ static void clip_props_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-/****************** properties region ******************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Properties Region
+ * \{ */
 
 static bool clip_properties_region_poll(const RegionPollParams *params)
 {
@@ -1108,7 +1144,11 @@ static void clip_properties_region_listener(const wmRegionListenerParams *params
   }
 }
 
-/********************* registration ********************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name IO Callbacks
+ * \{ */
 
 static void clip_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
@@ -1142,6 +1182,12 @@ static void clip_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 {
   BLO_write_struct(writer, SpaceClip, sl);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void ED_spacetype_clip()
 {
@@ -1244,3 +1290,5 @@ void ED_spacetype_clip()
   art = ED_area_type_hud(st->spaceid);
   BLI_addhead(&st->regiontypes, art);
 }
+
+/** \} */

@@ -24,6 +24,7 @@ struct bActionGroup;
 struct bAnimContext;
 struct bDopeSheet;
 struct bGPDlayer;
+struct GreasePencilLayer;
 
 /* draw simple diamond-shape keyframe */
 /* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_SHAPE,
@@ -91,6 +92,15 @@ void draw_summary_channel(struct AnimKeylistDrawList *draw_list,
                           float ypos,
                           float yscale_fac,
                           int saction_flag);
+
+/* Grease Pencil cels channels */
+void draw_grease_pencil_cels_channel(struct AnimKeylistDrawList *draw_list,
+                                     struct bDopeSheet *ads,
+                                     struct GreasePencilLayer *layer,
+                                     float ypos,
+                                     float yscale_fac,
+                                     int saction_flag);
+
 /* Grease Pencil Layer */
 void draw_gpl_channel(struct AnimKeylistDrawList *draw_list,
                       struct bDopeSheet *ads,

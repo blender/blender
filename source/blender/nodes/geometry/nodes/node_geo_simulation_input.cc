@@ -70,12 +70,17 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       params.set_output(0, fn::ValueOrField<float>(delta_time));
     }
 
-    const bke::sim::SimulationZoneID zone_id = get_simulation_zone_id(user_data, output_node_id_);
+    const std::optional<bke::sim::SimulationZoneID> zone_id = get_simulation_zone_id(
+        user_data, output_node_id_);
+    if (!zone_id) {
+      params.set_default_remaining_outputs();
+      return;
+    }
 
     /* When caching is turned off and the old state doesn't need to persist, moving data
      * from the last state instead of copying it can avoid copies of geometry data arrays. */
     if (auto *state = modifier_data.prev_simulation_state_mutable) {
-      if (bke::sim::SimulationZoneState *zone = state->get_zone_state(zone_id)) {
+      if (bke::sim::SimulationZoneState *zone = state->get_zone_state(*zone_id)) {
         this->output_simulation_state_move(params, user_data, *zone);
         return;
       }
@@ -83,7 +88,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
     /* If there is a read-only state from the last frame, output that directly. */
     if (const auto *state = modifier_data.prev_simulation_state) {
-      if (const bke::sim::SimulationZoneState *zone = state->get_zone_state(zone_id)) {
+      if (const bke::sim::SimulationZoneState *zone = state->get_zone_state(*zone_id)) {
         this->output_simulation_state_copy(params, user_data, *zone);
         return;
       }
@@ -99,7 +104,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
       return;
     }
 
-    /* Instead of outputing the initial values directly, convert them to a simulation state and
+    /* Instead of outputting the initial values directly, convert them to a simulation state and
      * then back. This ensures that the first frame behaves consistently with all other frames
      * which are necessarily stored in the simulation cache. */
     bke::sim::SimulationZoneState initial_zone_state;

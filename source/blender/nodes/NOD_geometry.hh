@@ -24,6 +24,9 @@ bNode *NOD_geometry_simulation_input_get_paired_output(bNodeTree *node_tree,
 bool NOD_geometry_simulation_input_pair_with_output(const bNodeTree *node_tree,
                                                     bNode *simulation_input_node,
                                                     const bNode *simulation_output_node);
+bool NOD_geometry_repeat_input_pair_with_output(const bNodeTree *node_tree,
+                                                bNode *repeat_input_node,
+                                                const bNode *repeat_output_node);
 
 /** \} */
 

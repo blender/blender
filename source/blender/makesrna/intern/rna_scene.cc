@@ -685,6 +685,17 @@ static const EnumPropertyItem snap_to_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_grease_pencil_selectmode_items[] = {
+    {GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
+    {GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points"},
+    {GP_SELECTMODE_SEGMENT,
+     "SEGMENT",
+     ICON_GP_SELECT_BETWEEN_STROKES,
+     "Segment",
+     "Select all stroke points between other strokes"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 #ifdef RNA_RUNTIME
 
 #  include "BLI_string_utils.h"
@@ -720,7 +731,7 @@ static const EnumPropertyItem snap_to_items[] = {
 #  include "BKE_pointcache.h"
 #  include "BKE_scene.h"
 #  include "BKE_screen.h"
-#  include "BKE_simulation.h"
+#  include "BKE_simulation_state.hh"
 #  include "BKE_unit.h"
 
 #  include "NOD_composite.h"
@@ -945,7 +956,7 @@ static void rna_Scene_fps_update(Main *bmain, Scene * /*active_scene*/, PointerR
    * so this we take care about here. */
   SEQ_sound_update_length(bmain, scene);
   /* Reset simulation states because new frame interval doesn't apply anymore. */
-  BKE_simulation_reset_scene(scene);
+  blender::bke::sim::scene_simulation_states_reset(*scene);
 }
 
 static void rna_Scene_listener_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
@@ -3039,21 +3050,6 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem gpencil_selectmode_items[] = {
-      {GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
-      {GP_SELECTMODE_STROKE,
-       "STROKE",
-       ICON_GP_SELECT_STROKES,
-       "Stroke",
-       "Select all stroke points"},
-      {GP_SELECTMODE_SEGMENT,
-       "SEGMENT",
-       ICON_GP_SELECT_BETWEEN_STROKES,
-       "Segment",
-       "Select all stroke points between other strokes"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem annotation_stroke_placement_view2d_items[] = {
       {GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR,
        "IMAGE",
@@ -3642,7 +3638,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   /* Grease Pencil - Select mode Edit */
   prop = RNA_def_property(srna, "gpencil_selectmode_edit", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "gpencil_selectmode_edit");
-  RNA_def_property_enum_items(prop, gpencil_selectmode_items);
+  RNA_def_property_enum_items(prop, rna_enum_grease_pencil_selectmode_items);
   RNA_def_property_ui_text(prop, "Select Mode", "");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

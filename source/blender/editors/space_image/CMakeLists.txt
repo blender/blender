@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenfont
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../bmesh
@@ -26,19 +25,19 @@ set(INC_SYS
 )
 
 set(SRC
-  image_buttons.c
-  image_draw.c
-  image_edit.c
-  image_ops.c
-  image_sequence.c
+  image_buttons.cc
+  image_draw.cc
+  image_edit.cc
+  image_ops.cc
+  image_sequence.cc
   image_undo.cc
-  space_image.c
+  space_image.cc
 
   image_intern.h
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   bf_editor_uvedit

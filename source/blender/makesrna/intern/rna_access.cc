@@ -286,8 +286,7 @@ IDProperty *rna_idproperty_find(PointerRNA *ptr, const char *name)
     /* Not sure why that happens sometimes, with nested properties... */
     /* Seems to be actually array prop, name is usually "0"... To be sorted out later. */
 #if 0
-      printf(
-          "Got unexpected IDProp container when trying to retrieve %s: %d\n", name, group->type);
+    printf("Got unexpected IDProp container when trying to retrieve %s: %d\n", name, group->type);
 #endif
   }
 

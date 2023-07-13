@@ -329,9 +329,9 @@ void BuildOnlyVisibleButtonsHelper::fill_layout_after_visible(uiBlock &block) co
   const int last_visible_idx = visible_items_range_.last();
 
   if (last_item_idx > last_visible_idx) {
-    const int remaining_rows = (cols_per_row_ > 0) ?
-                                   (last_item_idx - last_visible_idx) / cols_per_row_ :
-                                   0;
+    const int remaining_rows = (cols_per_row_ > 0) ? ceilf((last_item_idx - last_visible_idx) /
+                                                           float(cols_per_row_)) :
+                                                     0;
     BuildOnlyVisibleButtonsHelper::add_spacer_button(block, remaining_rows);
   }
 }

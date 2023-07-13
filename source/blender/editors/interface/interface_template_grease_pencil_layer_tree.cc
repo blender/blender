@@ -88,6 +88,10 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
       return false;
     }
 
+    if (&drop_tree_node_ == &drag_layer.as_node()) {
+      return false;
+    }
+
     switch (drag_info.drop_location) {
       case DropLocation::Into: {
         BLI_assert_msg(drop_tree_node_.is_group(),

@@ -12,6 +12,7 @@
 #include "BLI_compiler_compat.h"
 #ifdef __cplusplus
 #  include "BLI_array.hh"
+#  include "BLI_math_vector_types.hh"
 #  include "BLI_offset_indices.hh"
 #endif
 #include "BLI_utildefines.h"
@@ -594,7 +595,7 @@ typedef struct SculptSession {
   struct Depsgraph *depsgraph;
 
   /* These are always assigned to base mesh data when using PBVH_FACES and PBVH_GRIDS. */
-  float (*vert_positions)[3];
+  blender::MutableSpan<blender::float3> vert_positions;
   blender::OffsetIndices<int> polys;
   blender::Span<int> corner_verts;
 

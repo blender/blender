@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blentranslation
   ../../depsgraph
   ../../gpu
@@ -20,24 +19,24 @@ set(INC_SYS
 )
 
 set(SRC
-  dynamicpaint_ops.c
-  particle_boids.c
-  particle_edit.c
-  particle_edit_undo.c
-  particle_object.c
-  physics_fluid.c
-  physics_ops.c
-  physics_pointcache.c
-  rigidbody_constraint.c
-  rigidbody_object.c
-  rigidbody_world.c
+  dynamicpaint_ops.cc
+  particle_boids.cc
+  particle_edit.cc
+  particle_edit_undo.cc
+  particle_object.cc
+  physics_fluid.cc
+  physics_ops.cc
+  physics_pointcache.cc
+  rigidbody_constraint.cc
+  rigidbody_object.cc
+  rigidbody_world.cc
 
   particle_edit_utildefines.h
   physics_intern.h
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

@@ -70,7 +70,6 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sequence_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_session_uuid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_shader_fx_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_simulation_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sound_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_types.h
@@ -119,7 +118,6 @@ set(SRC_DNA_DEFAULTS_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_particle_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_pointcloud_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_scene_defaults.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_simulation_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_defaults.h

@@ -288,7 +288,7 @@ static void wm_drop_ui_context_free(bContextStore **context_store)
   *context_store = nullptr;
 }
 
-void WM_event_drag_image(wmDrag *drag, ImBuf *imb, float scale)
+void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale)
 {
   drag->imb = imb;
   drag->imbuf_scale = scale;

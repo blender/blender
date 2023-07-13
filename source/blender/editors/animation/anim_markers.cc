@@ -1748,7 +1748,11 @@ static void MARKER_OT_rename(wmOperatorType *ot)
                             "Name",
                             "New name for marker");
 #if 0
-RNA_def_boolean(ot->srna, "ensure_unique", 0, "Ensure Unique", "Ensure that new name is unique within collection of markers");
+  RNA_def_boolean(ot->srna,
+                  "ensure_unique",
+                  0,
+                  "Ensure Unique",
+                  "Ensure that new name is unique within collection of markers");
 #endif
 }
 

@@ -34,7 +34,7 @@ namespace blender::ed::sculpt_paint {
 static bool start_brush_operation(bContext &C,
                                   wmOperator & /*op*/,
                                   PaintStroke *paint_stroke,
-                                  const StrokeExtension & /*stroke_start*/)
+                                  const InputSample &start_sample)
 {
   // const BrushStrokeMode mode = static_cast<BrushStrokeMode>(RNA_enum_get(op.ptr, "mode"));
 
@@ -51,6 +51,7 @@ static bool start_brush_operation(bContext &C,
 
   if (operation) {
     paint_stroke_set_mode_data(paint_stroke, operation);
+    operation->on_stroke_begin(C, start_sample);
     return true;
   }
   return false;
@@ -71,12 +72,11 @@ static bool stroke_test_start(bContext *C, wmOperator *op, const float mouse[2])
 {
   PaintStroke *paint_stroke = static_cast<PaintStroke *>(op->customdata);
 
-  StrokeExtension stroke_extension;
-  stroke_extension.mouse_position = float2(mouse);
-  stroke_extension.pressure = 0.0f;
-  stroke_extension.is_first = true;
+  InputSample start_sample;
+  start_sample.mouse_position = float2(mouse);
+  start_sample.pressure = 0.0f;
 
-  if (!start_brush_operation(*C, *op, paint_stroke, stroke_extension)) {
+  if (!start_brush_operation(*C, *op, paint_stroke, start_sample)) {
     return false;
   }
 
@@ -91,13 +91,12 @@ static void stroke_update_step(bContext *C,
   GreasePencilStrokeOperation *operation = static_cast<GreasePencilStrokeOperation *>(
       paint_stroke_mode_data(stroke));
 
-  StrokeExtension stroke_extension;
-  RNA_float_get_array(stroke_element, "mouse", stroke_extension.mouse_position);
-  stroke_extension.pressure = RNA_float_get(stroke_element, "pressure");
-  stroke_extension.is_first = false;
+  InputSample extension_sample;
+  RNA_float_get_array(stroke_element, "mouse", extension_sample.mouse_position);
+  extension_sample.pressure = RNA_float_get(stroke_element, "pressure");
 
   if (operation) {
-    operation->on_stroke_extended(*C, stroke_extension);
+    operation->on_stroke_extended(*C, extension_sample);
   }
 }
 

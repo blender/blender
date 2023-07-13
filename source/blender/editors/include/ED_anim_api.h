@@ -224,12 +224,14 @@ typedef enum eAnim_ChannelType {
   ANIMTYPE_DSHAIR,
   ANIMTYPE_DSPOINTCLOUD,
   ANIMTYPE_DSVOLUME,
-  ANIMTYPE_DSSIMULATION,
 
   ANIMTYPE_SHAPEKEY,
 
   ANIMTYPE_GPDATABLOCK,
   ANIMTYPE_GPLAYER,
+
+  ANIMTYPE_GREASE_PENCIL_DATABLOCK,
+  ANIMTYPE_GREASE_PENCIL_LAYER,
 
   ANIMTYPE_MASKDATABLOCK,
   ANIMTYPE_MASKLAYER,
@@ -245,11 +247,12 @@ typedef enum eAnim_ChannelType {
 
 /* types of keyframe data in bAnimListElem */
 typedef enum eAnim_KeyType {
-  ALE_NONE = 0, /* no keyframe data */
-  ALE_FCURVE,   /* F-Curve */
-  ALE_GPFRAME,  /* Grease Pencil Frames */
-  ALE_MASKLAY,  /* Mask */
-  ALE_NLASTRIP, /* NLA Strips */
+  ALE_NONE = 0,           /* no keyframe data */
+  ALE_FCURVE,             /* F-Curve */
+  ALE_GPFRAME,            /* Grease Pencil Frames (Legacy) */
+  ALE_GREASE_PENCIL_CELS, /* Grease Pencil Cels */
+  ALE_MASKLAY,            /* Mask */
+  ALE_NLASTRIP,           /* NLA Strips */
 
   ALE_ALL,   /* All channels summary */
   ALE_SCE,   /* Scene summary */
@@ -372,8 +375,6 @@ ENUM_OPERATORS(eAnimFilter_Flags, ANIMFILTER_TMP_IGNORE_ONLYSEL);
 #define FILTER_CURVES_OBJD(ha) (CHECK_TYPE_INLINE(ha, Curves *), ((ha->flag & HA_DS_EXPAND)))
 #define FILTER_POINTS_OBJD(pt) (CHECK_TYPE_INLINE(pt, PointCloud *), ((pt->flag & PT_DS_EXPAND)))
 #define FILTER_VOLUME_OBJD(vo) (CHECK_TYPE_INLINE(vo, Volume *), ((vo->flag & VO_DS_EXPAND)))
-#define FILTER_SIMULATION_OBJD(sim) \
-  (CHECK_TYPE_INLINE(sim, Simulation *), ((sim->flag & SIM_DS_EXPAND)))
 /* Variable use expanders */
 #define FILTER_NTREE_DATA(ntree) \
   (CHECK_TYPE_INLINE(ntree, bNodeTree *), (((ntree)->flag & NTREE_DS_EXPAND)))

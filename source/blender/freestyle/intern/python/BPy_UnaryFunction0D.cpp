@@ -58,12 +58,12 @@ int UnaryFunction0D_Init(PyObject *module)
 
 static char UnaryFunction0D___doc__[] =
     "Base class for Unary Functions (functors) working on\n"
-    ":class:`Interface0DIterator`.  A unary function will be used by\n"
-    "invoking __call__() on an Interface0DIterator.  In Python, several\n"
+    ":class:`Interface0DIterator`. A unary function will be used by\n"
+    "invoking __call__() on an Interface0DIterator. In Python, several\n"
     "different subclasses of UnaryFunction0D are used depending on the\n"
-    "types of functors' return values.  For example, you would inherit from\n"
+    "types of functors' return values. For example, you would inherit from\n"
     "a :class:`UnaryFunction0DDouble` if you wish to define a function that\n"
-    "returns a double value.  Available UnaryFunction0D subclasses are:\n"
+    "returns a double value. Available UnaryFunction0D subclasses are:\n"
     "\n"
     "* :class:`UnaryFunction0DDouble`\n"
     "* :class:`UnaryFunction0DEdgeNature`\n"

@@ -2499,9 +2499,6 @@ static BIFIconID tree_element_get_icon_from_id(const ID *id)
       return ICON_SEQUENCE;
     case ID_PC:
       return ICON_CURVE_BEZCURVE;
-    case ID_SIM:
-      /* TODO: Use correct icon. */
-      return ICON_PHYSICS;
     default:
       return ICON_NONE;
   }
