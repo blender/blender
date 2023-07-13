@@ -827,6 +827,7 @@ void CustomData_blend_write(BlendWriter *writer,
 
 void CustomData_blend_read(struct BlendDataReader *reader, struct CustomData *data, int count);
 
+size_t CustomData_get_elem_size(const struct CustomDataLayer *layer);
 void CustomData_regen_active_refs(CustomData *data);
 
 #ifndef NDEBUG
