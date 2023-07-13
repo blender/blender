@@ -163,15 +163,12 @@ static NoCopyLayerVector unmark_temp_cdlayers(CustomData *domains[4])
   for (int i = 0; i < 4; i++) {
     CustomData *data = domains[i];
 
-    for (const CustomDataLayer &layer :
-         blender::Span<CustomDataLayer>(data->layers, data->totlayer)) {
+    for (CustomDataLayer &layer :
+         blender::MutableSpan<CustomDataLayer>(data->layers, data->totlayer)) {
       if ((layer.flag & CD_FLAG_TEMPORARY) && (layer.flag & CD_FLAG_NOCOPY)) {
+        layer.flag &= ~CD_FLAG_NOCOPY;
         nocopy_list.append(std::make_pair(layer, int(1 << i)));
       }
-    }
-
-    for (CustomDataLayer &layer : nocopy_list) {
-      layer.flag &= ~CD_FLAG_NOCOPY;
     }
   }
 
@@ -430,7 +427,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
   }
 
   if (tot_shape_keys) {
-    if (is_new || params->create_shapekey_layers) {
+    if (is_new) {
       /* Check if we need to generate unique ids for the shape-keys.
        * This also exists in the file reading code, but is here for a sanity check. */
       if (!me->key->uidgen) {
@@ -448,7 +445,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
 
     if (actkey && actkey->totelem == me->totvert) {
       keyco = params->use_shapekey ? static_cast<float(*)[3]>(actkey->data) : nullptr;
-      if (is_new || params->create_shapekey_layers) {
+      if (is_new) {
         bm->shapenr = params->active_shapekey;
       }
     }
@@ -501,20 +498,13 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     CustomData_bmesh_init_pool(&bm->pdata, me->totpoly, BM_FACE);
   }
 
-  int *cd_shape_key_offset = static_cast<int *>(
-      tot_shape_keys ? MEM_mallocN(sizeof(int) * tot_shape_keys, "cd_shape_key_offset") : nullptr);
-
   /* Only copy these values over if the source mesh is flagged to be using them.
    * Even if `bm` has these layers, they may have been added from another mesh, when `!is_new`. */
-  -1;
+  const int cd_shape_key_offset = tot_shape_keys ? CustomData_get_offset(&bm->vdata, CD_SHAPEKEY) :
+                                                   -1;
   const int cd_shape_keyindex_offset = is_new && (tot_shape_keys || params->add_key_index) ?
                                            CustomData_get_offset(&bm->vdata, CD_SHAPE_KEYINDEX) :
                                            -1;
-
-  for (int i = 0; i < tot_shape_keys; i++) {
-    int idx = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
-    cd_shape_key_offset[i] = bm->vdata.layers[idx].offset;
-  }
 
   const bool *select_vert = (const bool *)CustomData_get_layer_named(
       &me->vdata, CD_PROP_BOOL, ".select_vert");
@@ -565,11 +555,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     }
 
     /* Set shape-key data. */
-    if (tot_shape_keys) {
-      for (int j = 0; j < tot_shape_keys; j++) {
-        float3 *co_dest = BM_ELEM_CD_PTR<float3 *>(v, cd_shape_key_offset[j]);
-        copy_v3_v3(*co_dest, shape_key_table[j][i]);
-      }
+    float(*co_dst)[3] = (float(*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+    for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
+      copy_v3_v3(*co_dst, shape_key_table[j][i]);
     }
   }
   if (is_new) {

@@ -4890,7 +4890,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
       me->flag &= ~(ME_FLAG_UNUSED_0 | ME_FLAG_UNUSED_1 | ME_FLAG_UNUSED_3 | ME_FLAG_UNUSED_4 |
-                    ME_REMESH_REPROJECT_VERTEX_COLORS);
+                    ME_FLAG_UNUSED_6 | ME_FLAG_UNUSED_7 | ME_REMESH_REPROJECT_VERTEX_COLORS);
     }
 
     LISTBASE_FOREACH (Material *, mat, &bmain->materials) {
@@ -5877,6 +5877,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       ToolSettings *ts = scene->toolsettings;
       UnifiedPaintSettings *ups = &ts->unified_paint_settings;
+      ups->flag &= ~(UNIFIED_PAINT_FLAG_UNUSED_0 | UNIFIED_PAINT_FLAG_UNUSED_1);
     }
 
     /* Set the default render pass in the viewport to Combined. */

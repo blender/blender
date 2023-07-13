@@ -1400,7 +1400,7 @@ typedef struct UnifiedPaintSettings {
   float hard_corner_pin;
   float sharp_angle_limit;
   char _pad[2];
-  
+
   char distort_correction_mode; /* eAttrCorrectMode bit mask. */
   char hard_edge_mode DNA_DEPRECATED;
   int smooth_boundary_flag;
@@ -1426,6 +1426,8 @@ typedef enum {
   UNIFIED_PAINT_ALPHA = (1 << 1),
   /** Only used if unified size is enabled, mirrors the brush flag #BRUSH_LOCK_SIZE. */
   UNIFIED_PAINT_BRUSH_LOCK_SIZE = (1 << 2),
+  UNIFIED_PAINT_FLAG_UNUSED_0 = (1 << 3),
+  UNIFIED_PAINT_FLAG_UNUSED_1 = (1 << 4),
   UNIFIED_PAINT_WEIGHT = (1 << 5),
   UNIFIED_PAINT_COLOR = (1 << 6),
   UNIFIED_PAINT_HARD_CORNER_PIN = (1 << 7),

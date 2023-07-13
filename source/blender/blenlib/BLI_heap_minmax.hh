@@ -1,3 +1,6 @@
+/* SPDX-FileCopyrightText: 2023 Blender Foundation
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #pragma once
 
@@ -67,121 +70,6 @@ template<typename Value, typename NodeType> class HeapValueIter {
 template<typename Value = void *,
          int64_t InlineBufferCapacity = default_inline_buffer_capacity(sizeof(Value))>
 
-#if 0
-class MinMaxHeap {
-  struct MinMaxHeapNode {
-    Value value;
-    float weight;
-
-    int child1 = -1, child2 = -1, parent = -1;
-  };
-
- public:
-  MinMaxHeap(int reserved = 0) {}
-  MinMaxHeapNode *insert(float weight, Value value)
-  {
-    nodes.resize(nodes.size() + 1);
-    MinMaxHeapNode *node = &nodes.last();
-
-    node->weight = weight;
-    node->value = value;
-
-    return node;
-  }
-
-  MinMaxHeapNode *max()
-  {
-    MinMaxHeapNode *max_node = nullptr;
-    float max = FLT_MIN;
-
-    for (MinMaxHeapNode &node : nodes) {
-      if (node.weight > max) {
-        max_node = &node;
-        max = node.weight;
-      }
-    }
-
-    return max_node;
-  }
-  MinMaxHeapNode *min()
-  {
-    MinMaxHeapNode *min_node = nullptr;
-    float min = FLT_MAX;
-
-    for (MinMaxHeapNode &node : nodes) {
-      if (node.weight < min) {
-        min_node = &node;
-        min = node.weight;
-      }
-    }
-
-    return min_node;
-  }
-
-  float min_weight()
-  {
-    return min()->weight;
-  }
-
-  float max_weight()
-  {
-    return max()->weight;
-  }
-
-  void pop_node(MinMaxHeapNode *node)
-  {
-    int i = node - nodes.data();
-
-    nodes[i] = nodes[nodes.size() - 1];
-    nodes.pop_last();
-  }
-
-  Value pop_min(float *r_w = nullptr)
-  {
-    MinMaxHeapNode *node = min();
-    if (r_w) {
-      *r_w = node->weight;
-    }
-
-    Value ret = node->value;
-    pop_node(node);
-
-    return ret;
-  }
-
-  Value pop_max(float *r_w = nullptr)
-  {
-    MinMaxHeapNode *node = max();
-    if (r_w) {
-      *r_w = node->weight;
-    }
-
-    Value ret = node->value;
-    pop_node(node);
-
-    return ret;
-  }
-
-  int len()
-  {
-    return nodes.size();
-  }
-
-  bool empty()
-  {
-    return nodes.size() == 0;
-  }
-
-  HeapValueIter<Value, MinMaxHeapNode> values()
-  {
-    return HeapValueIter<Value, MinMaxHeapNode>(nodes);
-  }
-
- private:
-  Vector<MinMaxHeapNode> nodes;
-};
-
-#else
 class MinMaxHeap {
   struct MinMaxHeapNode {
     Value value;
@@ -277,11 +165,11 @@ class MinMaxHeap {
 
     MinMaxHeapNode *ret = heap_push_up(node);
 
-#  ifdef BLI_MINMAX_HEAP_VALIDATE
+#ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
       printf("invalid heap!\n");
     }
-#  endif
+#endif
 
     return ret;
   }
@@ -327,11 +215,11 @@ class MinMaxHeap {
       return nodes.pop_last().value;
     }
 
-#  ifdef BLI_MINMAX_HEAP_VALIDATE
+#ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
       printf("invalid heap!\n");
     }
-#  endif
+#endif
 
     Value ret = nodes[0].value;
     MinMaxHeapNode last = heap_pop_last();
@@ -341,11 +229,11 @@ class MinMaxHeap {
 
     heap_push_down(&nodes[0]);
 
-#  ifdef BLI_MINMAX_HEAP_VALIDATE
+#ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
       printf("invalid heap!\n");
     }
-#  endif
+#endif
 
     return ret;
   }
@@ -361,11 +249,11 @@ class MinMaxHeap {
 
     MinMaxHeapNode &node = max();
 
-#  ifdef BLI_MINMAX_HEAP_VALIDATE
+#ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
       printf("invalid heap!\n");
     }
-#  endif
+#endif
 
     Value ret = node.value;
     if (r_w) {
@@ -379,11 +267,11 @@ class MinMaxHeap {
 
     heap_push_down(&node);
 
-#  ifdef BLI_MINMAX_HEAP_VALIDATE
+#ifdef BLI_MINMAX_HEAP_VALIDATE
     if (!is_valid()) {
       printf("invalid heap!\n");
     }
-#  endif
+#endif
 
     return ret;
   }
@@ -715,5 +603,4 @@ class MinMaxHeap {
 
   Vector<MinMaxHeapNode, InlineBufferCapacity> nodes;
 };
-#endif
 }  // namespace blender

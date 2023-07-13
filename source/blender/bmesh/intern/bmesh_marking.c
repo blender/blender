@@ -157,14 +157,10 @@ static bool bm_vert_is_edge_select_any_other(const BMVert *v, const BMEdge *e_fi
   int i = 0;
 
   /* start by stepping over the current edge */
-  while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first && i++ < 1000) {
+  while ((e_iter = bmesh_disk_edge_next(e_iter, v)) != e_first) {
     if (BM_elem_flag_test(e_iter, BM_ELEM_SELECT)) {
       return true;
     }
-  }
-
-  if (i >= 1000) {
-    fprintf(stderr, "bmesh mesh error in %s\n", __func__);
   }
 
   return false;

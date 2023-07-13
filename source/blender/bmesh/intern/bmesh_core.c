@@ -402,7 +402,7 @@ BMFace *BM_face_copy(
  *
  * \note Caller needs to handle customdata.
  */
-static BMFace *bm_face_create__internal(BMesh *bm)
+BLI_INLINE BMFace *bm_face_create__internal(BMesh *bm)
 {
   BMFace *f;
 
