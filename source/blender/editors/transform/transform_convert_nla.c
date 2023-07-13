@@ -248,7 +248,7 @@ static bool transdata_get_track_shuffle_offset(ListBase *trans_datas, int *r_tra
 
 static void nlatrack_truncate_temporary_tracks(bAnimContext *ac)
 {
-  short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
+  short filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FCURVESONLY);
   ListBase anim_data = {NULL, NULL};
   ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
