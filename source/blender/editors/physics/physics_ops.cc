@@ -14,7 +14,9 @@
 
 #include "physics_intern.h" /* own include */
 
-/***************************** particles ***********************************/
+/* -------------------------------------------------------------------- */
+/** \name Particles
+ * \{ */
 
 static void operatortypes_particle()
 {
@@ -88,7 +90,11 @@ static void keymap_particle(wmKeyConfig *keyconf)
   keymap->poll = PE_poll;
 }
 
-/******************************* boids *************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Boids
+ * \{ */
 
 static void operatortypes_boids()
 {
@@ -103,7 +109,11 @@ static void operatortypes_boids()
   WM_operatortype_append(BOID_OT_state_move_down);
 }
 
-/********************************* fluid ***********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Fluid
+ * \{ */
 
 static void operatortypes_fluid()
 {
@@ -122,7 +132,11 @@ static void operatortypes_fluid()
   WM_operatortype_append(FLUID_OT_pause_bake);
 }
 
-/**************************** point cache **********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cache
+ * \{ */
 
 static void operatortypes_pointcache()
 {
@@ -135,7 +149,11 @@ static void operatortypes_pointcache()
   WM_operatortype_append(PTCACHE_OT_remove);
 }
 
-/********************************* dynamic paint ***********************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dynamic Paint
+ * \{ */
 
 static void operatortypes_dynamicpaint()
 {
@@ -146,7 +164,11 @@ static void operatortypes_dynamicpaint()
   WM_operatortype_append(DPAINT_OT_output_toggle);
 }
 
-/****************************** general ************************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Registration
+ * \{ */
 
 void ED_operatortypes_physics()
 {
@@ -161,3 +183,5 @@ void ED_keymap_physics(wmKeyConfig *keyconf)
 {
   keymap_particle(keyconf);
 }
+
+/** \} */

@@ -52,7 +52,7 @@ IMMDrawPixelsTexState immDrawPixelsTexSetup(int builtin);
  *
  * If color is NULL then use white by default
  *
- * Unless <em>state->do_shader_unbind<em> is explicitly set to `false`, the shader is unbound when
+ * Unless `state->do_shader_unbind` is explicitly set to `false`, the shader is unbound when
  * finished.
  */
 void immDrawPixelsTexScaledFullSize(const IMMDrawPixelsTexState *state,
