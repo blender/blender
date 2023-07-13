@@ -20,6 +20,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 
 #include "BLI_assert.h"
@@ -359,6 +360,45 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_ATLEAST(bmain, 400, 11)) {
     version_vertex_weight_edit_preserve_threshold_exclusivity(bmain);
+  }
+
+  bool have_automasking_normals = DNA_struct_elem_find(
+      fd->filesdna, "Sculpt", "float", "automasking_start_normal_limit");
+  bool have_detail_percent = DNA_struct_elem_find(
+      fd->filesdna, "Sculpt", "float", "detail_percent");
+  bool have_constant_detail = DNA_struct_elem_find(
+      fd->filesdna, "Sculpt", "float", "constant_detail");
+  bool have_detail_size = DNA_struct_elem_find(fd->filesdna, "Sculpt", "float", "detail_size");
+
+  if (!have_automasking_normals || !have_detail_percent || !have_constant_detail ||
+      !have_detail_size)
+  {
+    const Sculpt *defaults = DNA_struct_default_get(Sculpt);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt) {
+        continue;
+      }
+
+      Sculpt *sd = scene->toolsettings->sculpt;
+
+      if (!have_automasking_normals) {
+        sd->automasking_start_normal_limit = defaults->automasking_start_normal_limit;
+        sd->automasking_start_normal_falloff = defaults->automasking_start_normal_falloff;
+
+        sd->automasking_view_normal_limit = defaults->automasking_view_normal_limit;
+        sd->automasking_view_normal_falloff = defaults->automasking_view_normal_limit;
+      }
+      if (!have_detail_percent) {
+        sd->detail_percent = defaults->detail_percent;
+      }
+      if (!have_constant_detail) {
+        sd->constant_detail = defaults->constant_detail;
+      }
+      if (!have_detail_size) {
+        sd->detail_size = defaults->detail_size;
+      }
+    }
   }
 
   /**
