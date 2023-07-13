@@ -24,8 +24,8 @@
 #include "RNA_access.h"
 
 /* local module include */
-#include "transform.h"
-#include "transform_gizmo.h"
+#include "transform.hh"
+#include "transform_gizmo.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Scale Cage Gizmo

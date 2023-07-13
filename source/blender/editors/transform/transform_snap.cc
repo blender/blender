@@ -48,10 +48,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "transform.h"
-#include "transform_convert.h"
-#include "transform_mode.h"
-#include "transform_snap.h"
+#include "transform.hh"
+#include "transform_convert.hh"
+#include "transform_mode.hh"
+#include "transform_snap.hh"
 
 /* use half of flt-max so we can scale up without an exception */
 
