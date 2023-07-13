@@ -4744,6 +4744,9 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
   if (!ale_setting) {
     return;
   }
+  if (ale_setting->type == ANIMTYPE_GREASE_PENCIL_LAYER) {
+    WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+  }
 
   if (ale_setting->type == ANIMTYPE_GPLAYER) {
     /* draw cache updates for settings that affect the visible strokes */
