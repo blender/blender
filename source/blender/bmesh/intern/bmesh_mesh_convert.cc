@@ -698,8 +698,6 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     restore_cd_copy_flags(mesh_domains, nocopy_layers);
     restore_cd_copy_flags(bmesh_domains, nocopy_layers);
   }
-
-  MEM_SAFE_FREE(cd_shape_key_offset);
 }
 
 /**
