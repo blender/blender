@@ -665,9 +665,11 @@ static void viewops_data_init_navigation(bContext *C,
       viewops_flag |= VIEWOPS_FLAG_PERSP_ENSURE;
       break;
 #ifdef WITH_INPUT_NDOF
+    case V3D_OP_MODE_NDOF_PAN:
+      viewops_flag &= ~VIEWOPS_FLAG_ORBIT_SELECT;
+      [[fallthrough]];
     case V3D_OP_MODE_NDOF_ORBIT:
     case V3D_OP_MODE_NDOF_ORBIT_ZOOM:
-    case V3D_OP_MODE_NDOF_PAN:
     case V3D_OP_MODE_NDOF_ALL:
       viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
       calc_rv3d_dist = false;

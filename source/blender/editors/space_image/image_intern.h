@@ -16,6 +16,10 @@ struct bContext;
 struct bNodeTree;
 struct wmOperatorType;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* space_image.c */
 
 extern const char *image_context_dir[]; /* doc access */
@@ -96,3 +100,7 @@ void IMAGE_OT_tile_fill(struct wmOperatorType *ot);
  */
 struct ImageUser *ntree_get_active_iuser(struct bNodeTree *ntree);
 void image_buttons_register(struct ARegionType *art);
+
+#ifdef __cplusplus
+}
+#endif

@@ -391,8 +391,9 @@
     .dyntopo = _DNA_DEFAULT_DynTopoSettings,\
     .paint = {\
       .symmetry_flags = PAINT_SYMMETRY_FEATHER,\
+      .tile_offset = {1.0f, 1.0f, 1.0f},\
     }\
-  }\
+  }
 /* clang-format off */
 
 /** \} */

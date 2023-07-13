@@ -18,8 +18,8 @@
 
 #include "ED_sculpt.h"
 
-#include "transform.h"
-#include "transform_convert.h"
+#include "transform.hh"
+#include "transform_convert.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Sculpt Transform Creation

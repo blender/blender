@@ -2490,6 +2490,7 @@ class SEQUENCER_PT_view_safe_areas_center_cut(SequencerButtonsPanel_Output, Pane
 
         col = layout.column()
         col.prop(safe_data, "title_center", slider=True)
+        col.prop(safe_data, "action_center", slider=True)
 
 
 class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):

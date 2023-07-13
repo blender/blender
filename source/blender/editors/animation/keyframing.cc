@@ -41,6 +41,7 @@
 #include "BKE_global.h"
 #include "BKE_idtype.h"
 #include "BKE_key.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_nla.h"
@@ -1493,6 +1494,11 @@ int insert_keyframe(Main *bmain,
   /* validate pointer first - exit if failure */
   if (id == nullptr) {
     BKE_reportf(reports, RPT_ERROR, "No ID block to insert keyframe in (path = %s)", rna_path);
+    return 0;
+  }
+
+  if (!BKE_id_is_editable(bmain, id)) {
+    BKE_reportf(reports, RPT_ERROR, "'%s' on %s is not editable", rna_path, id->name + 2);
     return 0;
   }
 
@@ -3031,9 +3037,9 @@ bool id_frame_has_keyframe(ID *id, float frame)
     case ID_OB: /* object */
       return object_frame_has_keyframe((Object *)id, frame);
 #if 0
-/* XXX TODO... for now, just use 'normal' behavior */
-case ID_SCE: /* scene */
-break;
+    /* XXX TODO... for now, just use 'normal' behavior */
+    case ID_SCE: /* scene */
+      break;
 #endif
     default: /* 'normal type' */
     {

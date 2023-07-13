@@ -33,6 +33,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_fcurve.h"
+#include "BKE_grease_pencil.hh"
 
 #include "ED_anim_api.h"
 #include "ED_keyframes_keylist.h"
@@ -53,6 +54,13 @@ BLI_INLINE bool is_cfra_lt(const float a, const float b)
 }
 
 /* --------------- */
+
+/* Animation data of Grease Pencil cels,
+   which are drawings positioned in time. */
+struct GreasePencilCel {
+  int frame_number;
+  GreasePencilFrame frame;
+};
 
 struct AnimKeylist {
   /* Number of ActKeyColumn's in the keylist. */
@@ -498,6 +506,47 @@ static void nupdate_ak_bezt(ActKeyColumn *ak, void *data)
     else if (new_extreme != KEYFRAME_EXTREME_FLAT) {
       ak->extreme_type |= (new_extreme | KEYFRAME_EXTREME_MIXED);
     }
+  }
+}
+
+/* ......... */
+/* New node callback used for building ActKeyColumns from GPencil frames */
+static ActKeyColumn *nalloc_ak_cel(void *data)
+{
+  ActKeyColumn *ak = static_cast<ActKeyColumn *>(
+      MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnCel"));
+  GreasePencilCel &cel = *static_cast<GreasePencilCel *>(data);
+
+  /* Store settings based on state of BezTriple */
+  ak->cfra = cel.frame_number;
+  ak->sel = (cel.frame.flag & SELECT) != 0;
+  ak->key_type = cel.frame.type;
+
+  /* Count keyframes in this column */
+  ak->totkey = 1;
+  /* Set as visible block. */
+  ak->totblock = 1;
+  ak->block.sel = ak->sel;
+
+  return ak;
+}
+
+/* Node updater callback used for building ActKeyColumns from GPencil frames */
+static void nupdate_ak_cel(ActKeyColumn *ak, void *data)
+{
+  GreasePencilCel &cel = *static_cast<GreasePencilCel *>(data);
+
+  /* Update selection status */
+  if (cel.frame.flag & GP_FRAME_SELECTED) {
+    ak->sel = SELECT;
+  }
+
+  /* Count keyframes in this column */
+  ak->totkey++;
+
+  /* Update keytype status */
+  if (cel.frame.type == BEZT_KEYTYPE_KEYFRAME) {
+    ak->key_type = BEZT_KEYTYPE_KEYFRAME;
   }
 }
 
@@ -1107,6 +1156,24 @@ void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, AnimKeylist *keylist, con
         }
       }
     }
+  }
+}
+
+void grease_pencil_cels_to_keylist(AnimData * /*adt*/,
+                                   GreasePencilLayer *gpl,
+                                   AnimKeylist *keylist,
+                                   int /*saction_flag*/)
+{
+  using namespace blender::bke::greasepencil;
+  const Layer &layer = gpl->wrap();
+  for (auto item : layer.frames().items()) {
+    GreasePencilCel cel{};
+    cel.frame_number = item.key;
+    cel.frame = item.value;
+
+    float cfra = float(item.key);
+    ED_keylist_add_or_update_column(
+        keylist, cfra, nalloc_ak_cel, nupdate_ak_cel, static_cast<void *>(&cel));
   }
 }
 

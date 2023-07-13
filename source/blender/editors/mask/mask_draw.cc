@@ -705,7 +705,7 @@ void ED_mask_draw_region(
 
   if (draw_flag & MASK_DRAWFLAG_OVERLAY) {
     float buf_col[4] = {1.0f, 0.0f, 0.0f, 0.0f};
-    float *buffer = mask_rasterize(mask_eval, width, height);
+    const float *buffer = mask_rasterize(mask_eval, width, height);
 
     if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
       /* More blending types could be supported in the future. */
@@ -740,7 +740,7 @@ void ED_mask_draw_region(
       GPU_blend(GPU_BLEND_NONE);
     }
 
-    MEM_freeN(buffer);
+    MEM_freeN((void *)buffer);
   }
 
   /* apply transformation so mask editing tools will assume drawing from the

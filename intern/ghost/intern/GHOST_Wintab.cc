@@ -90,7 +90,9 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
   /* Wintab provides no way to determine the maximum queue size aside from checking if attempts
    * to change the queue size are successful. */
   const int maxQueue = 500;
-  int queueSize = queueSizeGet(hctx.get());
+  /* < 0 should realistically never happen, but given we cast to size_t later on better safe than
+   * sorry. */
+  int queueSize = max(0, queueSizeGet(hctx.get()));
 
   while (queueSize < maxQueue) {
     int testSize = min(queueSize + 16, maxQueue);
@@ -136,7 +138,7 @@ GHOST_Wintab *GHOST_Wintab::loadWintab(HWND hwnd)
                           std::move(hctx),
                           tablet,
                           system,
-                          queueSize);
+                          size_t(queueSize));
 }
 
 void GHOST_Wintab::modifyContext(LOGCONTEXT &lc)
@@ -179,7 +181,7 @@ GHOST_Wintab::GHOST_Wintab(unique_hmodule handle,
                            unique_hctx hctx,
                            Coord tablet,
                            Coord system,
-                           int queueSize)
+                           size_t queueSize)
     : m_handle{std::move(handle)},
       m_fpInfo{info},
       m_fpGet{get},

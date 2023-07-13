@@ -1,7 +1,9 @@
 Project: NanoSVG
 URL: https://github.com/memononen/nanosvg
 License: zlib
-Upstream version: 3cdd4a9d7886
-Local modifications: Added some functionality to manage grease pencil layers
+Upstream SHA: 9da543e8329fdd81b64eb48742d8ccb09377aed1
+GPG key ID: 4AEE18F83AFDEB23
+Last Commit: "Merge pull request #236 from sezero/signed-char"
+Last Commit Date: December 4, 2022
 
-Added a fix to SVG import arc and float errors (https://developer.blender.org/rB11dc674c78b49fc4e0b7c134c375b6c8b8eacbcc)
+Local modifications: Added some functionality to manage grease pencil layers

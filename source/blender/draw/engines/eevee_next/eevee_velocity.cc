@@ -318,12 +318,12 @@ void VelocityModule::end_sync()
 bool VelocityModule::object_has_velocity(const Object *ob)
 {
 #if 0
-    RigidBodyOb *rbo = ob->rigidbody_object;
-    /* Active rigidbody objects only, as only those are affected by sim. */
-    const bool has_rigidbody = (rbo && (rbo->type == RBO_TYPE_ACTIVE));
-    /* For now we assume dupli objects are moving. */
-    const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
-    const bool object_moves = is_dupli || has_rigidbody || BKE_object_moves_in_time(ob, true);
+  RigidBodyOb *rbo = ob->rigidbody_object;
+  /* Active rigidbody objects only, as only those are affected by sim. */
+  const bool has_rigidbody = (rbo && (rbo->type == RBO_TYPE_ACTIVE));
+  /* For now we assume dupli objects are moving. */
+  const bool is_dupli = (ob->base_flag & BASE_FROM_DUPLI) != 0;
+  const bool object_moves = is_dupli || has_rigidbody || BKE_object_moves_in_time(ob, true);
 #else
   UNUSED_VARS(ob);
   /* BKE_object_moves_in_time does not work in some cases.

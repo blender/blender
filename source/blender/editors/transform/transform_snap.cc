@@ -48,10 +48,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "transform.h"
-#include "transform_convert.h"
-#include "transform_mode.h"
-#include "transform_snap.h"
+#include "transform.hh"
+#include "transform_convert.hh"
+#include "transform_mode.hh"
+#include "transform_snap.hh"
 
 /* use half of flt-max so we can scale up without an exception */
 
@@ -86,7 +86,9 @@ int BIF_snappingSupported(Object *obedit)
   int status = 0;
 
   /* only support object mesh, armature, curves */
-  if (obedit == nullptr || ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL)) {
+  if (obedit == nullptr ||
+      ELEM(obedit->type, OB_MESH, OB_ARMATURE, OB_CURVES_LEGACY, OB_LATTICE, OB_MBALL))
+  {
     status = 1;
   }
 
@@ -329,7 +331,8 @@ eRedrawFlag handleSnapping(TransInfo *t, const wmEvent *event)
 
 #if 0 /* XXX need a proper selector for all snap mode */
   if (BIF_snappingSupported(t->obedit) && (event->type == EVT_TABKEY) &&
-      (event->modifier & KM_SHIFT)) {
+      (event->modifier & KM_SHIFT))
+  {
     /* Toggle snap and reinitialize. */
     t->settings->snap_flag ^= SCE_SNAP;
     initSnapping(t, nullptr);

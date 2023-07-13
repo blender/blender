@@ -455,21 +455,21 @@ static void ui_template_list_collect_items(PointerRNA *list_ptr,
         activei_mapping_pending = false;
       }
 #if 0 /* For now, do not alter active element, even if it will be hidden... */
-          else if (activei < i) {
-            /* We do not want an active but invisible item!
-             * Only exception is when all items are filtered out...
-             */
-            if (prev_order_idx >= 0) {
-              activei = prev_order_idx;
-              RNA_property_int_set(active_dataptr, activeprop, prev_i);
-            }
-            else {
-              activei = new_order_idx;
-              RNA_property_int_set(active_dataptr, activeprop, i);
-            }
-          }
-          prev_i = i;
-          prev_ii = new_order_idx;
+      else if (activei < i) {
+        /* We do not want an active but invisible item!
+         * Only exception is when all items are filtered out...
+         */
+        if (prev_order_idx >= 0) {
+          activei = prev_order_idx;
+          RNA_property_int_set(active_dataptr, activeprop, prev_i);
+        }
+        else {
+          activei = new_order_idx;
+          RNA_property_int_set(active_dataptr, activeprop, i);
+        }
+      }
+      prev_i = i;
+      prev_ii = new_order_idx;
 #endif
     }
     i++;

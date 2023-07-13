@@ -752,8 +752,18 @@ class VIEW3D_HT_header(Header):
             # Select mode for Editing
             if object_mode == 'EDIT':
                 row = layout.row(align=True)
-                row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='POINT')
-                row.prop_enum(tool_settings, "gpencil_selectmode_edit", text="", value='STROKE')
+                row.operator(
+                    "grease_pencil.set_selection_mode",
+                    text="",
+                    icon="GP_SELECT_POINTS",
+                    depress=(tool_settings.gpencil_selectmode_edit == 'POINT'),
+                ).mode = 'POINT'
+                row.operator(
+                    "grease_pencil.set_selection_mode",
+                    text="",
+                    icon="GP_SELECT_STROKES",
+                    depress=(tool_settings.gpencil_selectmode_edit == 'STROKE'),
+                ).mode = 'STROKE'
 
         # Grease Pencil (legacy)
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:

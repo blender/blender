@@ -23,18 +23,18 @@ set(INC_SYS
 
 set(SRC
   area.cc
-  area_query.c
-  area_utils.c
-  glutil.c
-  screen_context.c
-  screen_draw.c
-  screen_edit.c
-  screen_geometry.c
-  screen_ops.c
-  screen_user_menu.c
-  screendump.c
-  workspace_edit.c
-  workspace_layout_edit.c
+  area_query.cc
+  area_utils.cc
+  glutil.cc
+  screen_context.cc
+  screen_draw.cc
+  screen_edit.cc
+  screen_geometry.cc
+  screen_ops.cc
+  screen_user_menu.cc
+  screendump.cc
+  workspace_edit.cc
+  workspace_layout_edit.cc
   workspace_listen.cc
 
   screen_intern.h

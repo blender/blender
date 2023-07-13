@@ -316,8 +316,7 @@ typedef struct GreasePencilLayerTreeGroup {
  * Flag for the grease pencil data-block. #GreasePencil.flag
  */
 typedef enum GreasePencilFlag {
-  /* TODO */
-  GreasePencilFlag_TODO
+  GREASE_PENCIL_ANIM_CHANNEL_EXPANDED = (1 << 0),
 } GreasePencilFlag;
 
 /**
@@ -401,7 +400,7 @@ typedef struct GreasePencil {
   char _pad[4];
 
   /* Root group of the layer tree. */
-  GreasePencilLayerTreeGroup root_group;
+  GreasePencilLayerTreeGroup *root_group_ptr;
 
   /**
    * Pointer to the active layer. Can be NULL.
@@ -436,6 +435,10 @@ typedef struct GreasePencil {
   /* Layer tree read/write functions. */
   void read_layer_tree(BlendDataReader *reader);
   void write_layer_tree(BlendWriter *writer);
+
+  /* Root group. */
+  const blender::bke::greasepencil::LayerGroup &root_group() const;
+  blender::bke::greasepencil::LayerGroup &root_group();
 
   /* Drawings read/write access. */
   blender::Span<GreasePencilDrawingBase *> drawings() const;

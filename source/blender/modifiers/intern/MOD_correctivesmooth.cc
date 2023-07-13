@@ -462,7 +462,8 @@ static void calc_tangent_spaces(const Mesh *mesh,
 
       /* re-use the previous value */
 #if 0
-      sub_v3_v3v3(v_dir_prev, vertexCos[corner_verts[prev_corner]], vertexCos[corner_verts[curr_corner]]);
+      sub_v3_v3v3(
+          v_dir_prev, vertexCos[corner_verts[prev_corner]], vertexCos[corner_verts[curr_corner]]);
       normalize_v3(v_dir_prev);
 #endif
       sub_v3_v3v3(

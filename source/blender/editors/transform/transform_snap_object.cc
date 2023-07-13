@@ -1437,7 +1437,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(SnapObjectContext *sctx,
 }
 
 #ifdef DEBUG_SNAP_TIME
-void ED_transform_snap_object_time_average_print(void)
+void ED_transform_snap_object_time_average_print()
 {
   std::cout << "Average snapping time: ";
   std::cout << std::fixed << duration_.count() / 1.0e6 << " ms";

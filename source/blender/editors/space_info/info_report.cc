@@ -103,7 +103,8 @@ static int report_replay_exec(bContext *C, wmOperator * /*op*/)
 
   for (report = reports->list.last; report; report = report->prev) {
     if ((report->type & report_mask) && (report->type & RPT_OPERATOR_ALL | RPT_PROPERTY_ALL) &&
-        (report->flag & SELECT)) {
+        (report->flag & SELECT))
+    {
       console_history_add_str(sc, report->message, 0);
       WM_operator_name_call(C, "CONSOLE_OT_execute", WM_OP_EXEC_DEFAULT, NULL, NULL);
 

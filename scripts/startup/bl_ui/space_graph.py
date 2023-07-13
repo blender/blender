@@ -309,6 +309,7 @@ class GRAPH_MT_key_smoothing(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         layout.operator("graph.gaussian_smooth", text="Smooth (Gaussian)")
         layout.operator("graph.smooth", text="Smooth (Legacy)")
+        layout.operator("graph.butterworth_smooth")
 
 
 class GRAPH_MT_key(Menu):

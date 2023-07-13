@@ -43,7 +43,7 @@ static char SpatialNoiseShader___doc__[] =
     "\n"
     ".. method:: shade(stroke)\n"
     "\n"
-    "   Spatial Noise stroke shader.  Moves the vertices to make the stroke\n"
+    "   Spatial Noise stroke shader. Moves the vertices to make the stroke\n"
     "   more noisy.\n"
     "\n"
     "   :arg stroke: A Stroke object.\n"

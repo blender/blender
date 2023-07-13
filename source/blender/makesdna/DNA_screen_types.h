@@ -363,6 +363,8 @@ typedef struct ScrArea_Runtime {
 } ScrArea_Runtime;
 
 typedef struct ScrArea {
+  DNA_DEFINE_CXX_METHODS(ScrArea)
+
   struct ScrArea *next, *prev;
 
   /** Ordered (bottom-left, top-left, top-right, bottom-right). */

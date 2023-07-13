@@ -174,6 +174,9 @@ const float (*BKE_mesh_wrapper_vert_coords(const Mesh *mesh))[3]
 {
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
+      if (mesh->runtime->edit_data->vertexCos.is_empty()) {
+        return nullptr;
+      }
       return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->vertexCos.data());
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:
@@ -187,6 +190,9 @@ const float (*BKE_mesh_wrapper_poly_normals(Mesh *mesh))[3]
   switch (mesh->runtime->wrapper_type) {
     case ME_WRAPPER_TYPE_BMESH:
       BKE_editmesh_cache_ensure_poly_normals(mesh->edit_mesh, mesh->runtime->edit_data);
+      if (mesh->runtime->edit_data->polyNos.is_empty()) {
+        return nullptr;
+      }
       return reinterpret_cast<const float(*)[3]>(mesh->runtime->edit_data->polyNos.data());
     case ME_WRAPPER_TYPE_MDATA:
     case ME_WRAPPER_TYPE_SUBD:

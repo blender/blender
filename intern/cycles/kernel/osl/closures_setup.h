@@ -142,8 +142,9 @@ ccl_device void osl_closure_reflection_setup(KernelGlobals kg,
   }
 
   bsdf->N = ensure_valid_specular_reflection(sd->Ng, sd->wi, closure->N);
+  bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
-  sd->flag |= bsdf_reflection_setup(bsdf);
+  sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
 }
 
 ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
@@ -164,8 +165,9 @@ ccl_device void osl_closure_refraction_setup(KernelGlobals kg,
 
   bsdf->N = ensure_valid_specular_reflection(sd->Ng, sd->wi, closure->N);
   bsdf->ior = closure->ior;
+  bsdf->alpha_x = bsdf->alpha_y = 0.0f;
 
-  sd->flag |= bsdf_refraction_setup(bsdf);
+  sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
 }
 
 ccl_device void osl_closure_transparent_setup(KernelGlobals kg,
@@ -395,18 +397,6 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
     }
     else {
       sd->flag |= bsdf_microfacet_beckmann_setup(bsdf);
-    }
-  }
-  /* Sharp */
-  else if (closure->distribution == make_string("sharp", 1870681295563127462ull)) {
-    if (closure->refract == 1) {
-      sd->flag |= bsdf_refraction_setup(bsdf);
-    }
-    else if (closure->refract == 2) {
-      sd->flag |= bsdf_sharp_glass_setup(bsdf);
-    }
-    else {
-      sd->flag |= bsdf_reflection_setup(bsdf);
     }
   }
   /* Ashikhmin-Shirley */

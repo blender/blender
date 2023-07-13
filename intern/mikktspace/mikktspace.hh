@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <unordered_map>
 
 #ifdef WITH_TBB
 #  include <tbb/parallel_for.h>

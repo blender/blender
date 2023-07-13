@@ -32,7 +32,7 @@ static char VertexOrientation2DF0D___doc__[] =
     "\n"
     "   Returns a two-dimensional vector giving the 2D oriented tangent to the\n"
     "   1D element to which the :class:`freestyle.types.Interface0D` pointed\n"
-    "   by the Interface0DIterator belongs.  The 2D oriented tangent is\n"
+    "   by the Interface0DIterator belongs. The 2D oriented tangent is\n"
     "   evaluated at the pointed Interface0D.\n"
     "\n"
     "   :arg it: An Interface0DIterator object.\n"

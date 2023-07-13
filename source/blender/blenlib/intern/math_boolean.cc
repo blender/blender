@@ -159,7 +159,7 @@ static RobustInitCaller init_caller;
  * thus forcing them to be stored to memory and rounded off.  This isn't
  * a great solution, though, as it slows the arithmetic down.
  *
- * To try this out, write "#define INEXACT volatile" below.  Normally,
+ * To try this out, write "#define INEXACT volatile" below. Normally,
  * however, INEXACT should be defined to be nothing.  ("#define INEXACT".)
  */
 

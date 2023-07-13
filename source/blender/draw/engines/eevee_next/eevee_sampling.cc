@@ -81,7 +81,7 @@ void Sampling::end_sync()
       sample_ = viewport_sample_;
     }
     else if (interactive_mode_) {
-      int interactive_sample_count = min_ii(interactive_sample_max_, sample_count_);
+      int interactive_sample_count = interactive_sample_max_;
 
       if (viewport_sample_ < interactive_sample_count) {
         /* Loop over the same starting samples. */
@@ -98,12 +98,13 @@ void Sampling::end_sync()
 void Sampling::step()
 {
   {
+    uint64_t sample_filter = sample_ % interactive_sample_aa_;
     /* TODO(fclem) we could use some persistent states to speedup the computation. */
     double2 r, offset = {0, 0};
     /* Using 2,3 primes as per UE4 Temporal AA presentation.
      * http://advances.realtimerendering.com/s2014/epic/TemporalAA.pptx (slide 14) */
     uint2 primes = {2, 3};
-    BLI_halton_2d(primes, offset, sample_ + 1, r);
+    BLI_halton_2d(primes, offset, sample_filter + 1, r);
     /* WORKAROUND: We offset the distribution to make the first sample (0,0). This way, we are
      * assured that at least one of the samples inside the TAA rotation will match the one from the
      * draw manager. This makes sure overlays are correctly composited in static scene. */

@@ -237,7 +237,7 @@ class GHOST_Wintab {
                unique_hctx hctx,
                Coord tablet,
                Coord system,
-               int queueSize);
+               size_t queueSize);
 
   /**
    * Convert Wintab system mapped (mouse) buttons into Ghost button mask.

@@ -324,15 +324,6 @@ void Integrator::tag_update(Scene *scene, uint32_t flag)
     tag_ao_bounces_modified();
   }
 
-  if (filter_glossy_is_modified()) {
-    foreach (Shader *shader, scene->shaders) {
-      if (shader->has_integrator_dependency) {
-        scene->shader_manager->tag_update(scene, ShaderManager::INTEGRATOR_MODIFIED);
-        break;
-      }
-    }
-  }
-
   if (motion_blur_is_modified()) {
     scene->object_manager->tag_update(scene, ObjectManager::MOTION_BLUR_MODIFIED);
     scene->camera->tag_modified();

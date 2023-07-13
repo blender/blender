@@ -419,9 +419,9 @@ static eAnimChannels_SetFlag anim_channels_selection_flag_for_toggle(const ListB
         break;
       case ANIMTYPE_OBJECT:
 #if 0 /* for now, do not take object selection into account, since it gets too annoying */
-if (ale->flag & SELECT) {
-return ACHANNEL_SETFLAG_CLEAR;
-}
+        if (ale->flag & SELECT) {
+          return ACHANNEL_SETFLAG_CLEAR;
+        }
 #endif
         break;
       case ANIMTYPE_GROUP:
@@ -515,15 +515,15 @@ static void anim_channels_select_set(bAnimContext *ac,
       }
       case ANIMTYPE_OBJECT: {
 #if 0 /* for now, do not take object selection into account, since it gets too annoying */
-Base *base = (Base *)ale->data;
-Object *ob = base->object;
+        Base *base = (Base *)ale->data;
+        Object *ob = base->object;
 
-ACHANNEL_SET_FLAG(base, sel, SELECT);
-ACHANNEL_SET_FLAG(ob, sel, SELECT);
+        ACHANNEL_SET_FLAG(base, sel, SELECT);
+        ACHANNEL_SET_FLAG(ob, sel, SELECT);
 
-if (ob->adt) {
-ACHANNEL_SET_FLAG(ob, sel, ADT_UI_SELECTED);
-}
+        if (ob->adt) {
+          ACHANNEL_SET_FLAG(ob, sel, ADT_UI_SELECTED);
+        }
 #endif
         break;
       }

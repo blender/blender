@@ -18,7 +18,7 @@ set(INC_SYS
 )
 
 set(SRC
-  space_topbar.c
+  space_topbar.cc
 )
 
 set(LIB

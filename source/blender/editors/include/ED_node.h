@@ -93,6 +93,7 @@ bool ED_node_is_compositor(struct SpaceNode *snode);
 bool ED_node_is_shader(struct SpaceNode *snode);
 bool ED_node_is_texture(struct SpaceNode *snode);
 bool ED_node_is_geometry(struct SpaceNode *snode);
+bool ED_node_supports_preview(struct SpaceNode *snode);
 
 /**
  * Assumes nothing being done in ntree yet, sets the default in/out node.

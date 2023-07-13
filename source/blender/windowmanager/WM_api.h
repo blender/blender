@@ -1418,7 +1418,7 @@ wmDrag *WM_drag_data_create(struct bContext *C,
  * Invoke dragging using the given \a drag data.
  */
 void WM_event_start_prepared_drag(struct bContext *C, wmDrag *drag);
-void WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale);
+void WM_event_drag_image(struct wmDrag *, const struct ImBuf *, float scale);
 void WM_drag_free(struct wmDrag *drag);
 void WM_drag_data_free(eWM_DragDataType dragtype, void *poin);
 void WM_drag_free_list(struct ListBase *lb);

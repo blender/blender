@@ -45,7 +45,7 @@ PyDoc_STRVAR(Integrator_integrate_doc,
              "   :arg integration_type: The integration method used to compute a\n"
              "      single value from a set of values.\n"
              "   :type integration_type: :class:`IntegrationType`\n"
-             "   :return: The single value obtained for the 1D element.  The return\n"
+             "   :return: The single value obtained for the 1D element. The return\n"
              "      value type is float if func is of the :class:`UnaryFunction0DDouble`\n"
              "      or :class:`UnaryFunction0DFloat` type, and int if func is of the\n"
              "      :class:`UnaryFunction0DUnsigned` type.\n"

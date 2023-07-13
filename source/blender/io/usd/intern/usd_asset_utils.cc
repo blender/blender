@@ -112,7 +112,7 @@ static std::string copy_udim_asset_to_directory(const char *src_path,
    * of a directory using the USD resolver, we must take a brute force approach.  We iterate
    * over the allowed range of tile indices and copy any tiles that exist.  The USDPreviewSurface
    * specification stipulates "a maximum of ten tiles in the U direction" and that
-   * "the tiles must be within the range [1001, 1099]".  See
+   * "the tiles must be within the range [1001, 1099]". See
    * https://graphics.pixar.com/usd/release/spec_usdpreviewsurface.html#texture-reader
    */
   for (int i = UDIM_START_TILE; i < UDIM_END_TILE; ++i) {
@@ -269,9 +269,9 @@ std::string import_asset(const char *src,
     if (!basepath || basepath[0] == '\0') {
       WM_reportf(RPT_ERROR,
                  "%s: import directory is relative "
-                 "but the blend file path is empty.  "
+                 "but the blend file path is empty. "
                  "Please save the blend file before importing the USD "
-                 "or provide an absolute import directory path.  "
+                 "or provide an absolute import directory path. "
                  "Can't import %s",
                  __func__,
                  src);

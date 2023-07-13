@@ -23,7 +23,7 @@ static char ContourUP1D___doc__[] =
     "\n"
     ".. method:: __call__(inter)\n"
     "\n"
-    "   Returns true if the Interface1D is a contour.  An Interface1D is a\n"
+    "   Returns true if the Interface1D is a contour. An Interface1D is a\n"
     "   contour if it is bordered by a different shape on each of its sides.\n"
     "\n"
     "   :arg inter: An Interface1D object.\n"

@@ -190,9 +190,7 @@ static void printstruct(SDNA *sdna, short strnr)
 
   for (int b = 0; b < struct_info->members_len; b++) {
     SDNA_StructMember *struct_member = &struct_info->members[b];
-    printf("   %s %s\n",
-           sdna->types[struct_member->type],
-           sdna->names[struct_member->name]);
+    printf("   %s %s\n", sdna->types[struct_member->type], sdna->names[struct_member->name]);
   }
 }
 #endif

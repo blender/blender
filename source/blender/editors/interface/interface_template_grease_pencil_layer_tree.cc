@@ -88,6 +88,10 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
       return false;
     }
 
+    if (&drop_tree_node_ == &drag_layer.as_node()) {
+      return false;
+    }
+
     switch (drag_info.drop_location) {
       case DropLocation::Into: {
         BLI_assert_msg(drop_tree_node_.is_group(),
@@ -318,7 +322,7 @@ void LayerTreeView::build_tree()
 {
   using namespace blender::bke::greasepencil;
   LISTBASE_FOREACH_BACKWARD (
-      GreasePencilLayerTreeNode *, node, &this->grease_pencil_.root_group.children)
+      GreasePencilLayerTreeNode *, node, &this->grease_pencil_.root_group_ptr->children)
   {
     this->build_tree_node_recursive(*this, node->wrap());
   }

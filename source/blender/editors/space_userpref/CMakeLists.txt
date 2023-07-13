@@ -15,8 +15,8 @@ set(INC_SYS
 )
 
 set(SRC
-  space_userpref.c
-  userpref_ops.c
+  space_userpref.cc
+  userpref_ops.cc
 
   userpref_intern.h
 )
@@ -29,4 +29,3 @@ set(LIB
 )
 
 blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

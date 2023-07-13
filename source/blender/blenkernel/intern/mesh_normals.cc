@@ -1188,11 +1188,11 @@ static void loop_split_generator(LoopSplitTaskDataCommon *common_data,
 
 #if 0
       printf("Checking loop %d / edge %u / vert %u (sharp edge: %d, skiploop: %d)",
-                   ml_curr_index,
-                   corner_edges[ml_curr_index],
-                   corner_verts[ml_curr_index],
-                   IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_curr_index]]),
-                   skip_loops[ml_curr_index]);
+             ml_curr_index,
+             corner_edges[ml_curr_index],
+             corner_verts[ml_curr_index],
+             IS_EDGE_SHARP(edge_to_loops[corner_edges[ml_curr_index]]),
+             skip_loops[ml_curr_index]);
 #endif
 
       /* A smooth edge, we have to check for cyclic smooth fan case.

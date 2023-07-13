@@ -1151,12 +1151,10 @@ bool BKE_paint_ensure(ToolSettings *ts, Paint **r_paint)
   }
   else if ((Sculpt **)r_paint == &ts->sculpt) {
     Sculpt *data = MEM_cnew<Sculpt>(__func__);
+
     *data = *DNA_struct_default_get(Sculpt);
 
     paint = &data->paint;
-
-    /* Turn on X plane mirror symmetry by default */
-    paint->symmetry_flags |= PAINT_SYMM_X;
   }
   else if ((GpPaint **)r_paint == &ts->gp_paint) {
     GpPaint *data = MEM_cnew<GpPaint>(__func__);

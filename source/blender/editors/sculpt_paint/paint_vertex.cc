@@ -3701,6 +3701,7 @@ static void vpaint_paint_leaves(bContext *C,
   switch ((eBrushVertexPaintTool)brush->vertexpaint_tool) {
     case VPAINT_TOOL_AVERAGE:
       calculate_average_color(vpd, ob, me, brush, attribute, nodes);
+      vpaint_do_draw(C, sd, vp, vpd, ob, me, nodes, attribute);
       break;
     case VPAINT_TOOL_DRAW:
       vpaint_do_draw(C, sd, vp, vpd, ob, me, nodes, attribute);

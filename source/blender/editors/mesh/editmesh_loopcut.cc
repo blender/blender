@@ -641,7 +641,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
  *
  * If numeric input changes we'll need to add this back see: D2973 */
 #if 0
-if (!has_numinput)
+        if (!has_numinput)
 #endif
         {
           lcd->vc.mval[0] = event->mval[0];
@@ -706,19 +706,19 @@ if (!has_numinput)
 
 void MESH_OT_edgering_select(wmOperatorType *ot)
 {
-/* description */
-ot->name = "Edge Ring Select";
-ot->idname = "MESH_OT_edgering_select";
-ot->description = "Select an edge ring";
+  /* description */
+  ot->name = "Edge Ring Select";
+  ot->idname = "MESH_OT_edgering_select";
+  ot->description = "Select an edge ring";
 
-/* callbacks */
-ot->invoke = ringsel_invoke;
-ot->poll = ED_operator_editmesh_region_view3d;
+  /* callbacks */
+  ot->invoke = ringsel_invoke;
+  ot->poll = ED_operator_editmesh_region_view3d;
 
-/* flags */
-ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
+  RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the selection");
 }
 
 #endif

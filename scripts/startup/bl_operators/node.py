@@ -188,6 +188,7 @@ class NodeAddZoneOperator(NodeAddOperator):
 
         return {'FINISHED'}
 
+
 class NODE_OT_add_simulation_zone(NodeAddZoneOperator, Operator):
     """Add simulation zone input and output nodes to the active tree"""
     bl_idname = "node.add_simulation_zone"
@@ -206,7 +207,6 @@ class NODE_OT_add_repeat_zone(NodeAddZoneOperator, Operator):
 
     input_node_type = "GeometryNodeRepeatInput"
     output_node_type = "GeometryNodeRepeatOutput"
-
 
 
 class NODE_OT_collapse_hide_unused_toggle(Operator):

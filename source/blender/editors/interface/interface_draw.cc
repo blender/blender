@@ -2074,7 +2074,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
     GPU_scissor(rect.xmin, rect.ymin, scissor[2], scissor[3]);
 
     if (width > 0 && height > 0) {
-      ImBuf *drawibuf = scopes->track_preview;
+      const ImBuf *drawibuf = scopes->track_preview;
       float col_sel[4], col_outline[4];
 
       if (scopes->use_track_mask) {

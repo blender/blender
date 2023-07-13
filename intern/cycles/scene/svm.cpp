@@ -442,10 +442,6 @@ void SVMCompiler::generate_node(ShaderNode *node, ShaderNodeSet &done)
     if (node->has_attribute_dependency())
       current_shader->has_volume_attribute_dependency = true;
   }
-
-  if (node->has_integrator_dependency()) {
-    current_shader->has_integrator_dependency = true;
-  }
 }
 
 void SVMCompiler::generate_svm_nodes(const ShaderNodeSet &nodes, CompilerState *state)
@@ -858,10 +854,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
   /* finalize */
   {
     scoped_timer timer((summary != NULL) ? &summary->time_finalize : NULL);
-    shader->graph->finalize(scene,
-                            has_bump,
-                            shader->has_integrator_dependency,
-                            shader->get_displacement_method() == DISPLACE_BOTH);
+    shader->graph->finalize(scene, has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
   }
 
   current_shader = shader;
@@ -877,7 +870,6 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
   shader->has_surface_spatial_varying = false;
   shader->has_volume_spatial_varying = false;
   shader->has_volume_attribute_dependency = false;
-  shader->has_integrator_dependency = false;
 
   /* generate bump shader */
   if (has_bump) {

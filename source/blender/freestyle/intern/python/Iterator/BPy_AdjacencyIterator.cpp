@@ -26,7 +26,7 @@ PyDoc_STRVAR(
     "Class hierarchy: :class:`Iterator` > :class:`AdjacencyIterator`\n"
     "\n"
     "Class for representing adjacency iterators used in the chaining\n"
-    "process.  An AdjacencyIterator is created in the increment() and\n"
+    "process. An AdjacencyIterator is created in the increment() and\n"
     "decrement() methods of a :class:`ChainingIterator` and passed to the\n"
     "traverse() method of the ChainingIterator.\n"
     "\n"

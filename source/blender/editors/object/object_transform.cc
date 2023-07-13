@@ -1525,8 +1525,8 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 
       if (ID_REAL_USERS(arm) > 1) {
 #if 0
-          BKE_report(op->reports, RPT_ERROR, "Cannot apply to a multi user armature");
-          return;
+        BKE_report(op->reports, RPT_ERROR, "Cannot apply to a multi user armature");
+        return;
 #endif
         tot_multiuser_arm_error++;
       }

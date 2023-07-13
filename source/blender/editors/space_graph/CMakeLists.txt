@@ -19,15 +19,15 @@ set(INC_SYS
 )
 
 set(SRC
-  graph_buttons.c
-  graph_draw.c
-  graph_edit.c
-  graph_ops.c
-  graph_select.c
-  graph_slider_ops.c
-  graph_utils.c
-  graph_view.c
-  space_graph.c
+  graph_buttons.cc
+  graph_draw.cc
+  graph_edit.cc
+  graph_ops.cc
+  graph_select.cc
+  graph_slider_ops.cc
+  graph_utils.cc
+  graph_view.cc
+  space_graph.cc
 
   graph_intern.h
 )

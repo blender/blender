@@ -231,7 +231,7 @@ void BKE_vfont_builtin_register(const void *mem, int size)
   builtin_font_size = size;
 }
 
-static PackedFile *get_builtin_packedfile(void)
+static PackedFile *get_builtin_packedfile()
 {
   if (!builtin_font_data) {
     CLOG_ERROR(&LOG, "Internal error, builtin font not loaded");
@@ -410,7 +410,7 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
   }
 }
 
-VFont *BKE_vfont_builtin_get(void)
+VFont *BKE_vfont_builtin_get()
 {
   LISTBASE_FOREACH (VFont *, vfont, &G_MAIN->fonts) {
     if (BKE_vfont_is_builtin(vfont)) {
@@ -2053,7 +2053,7 @@ static struct {
   size_t len_utf8;
 } g_vfont_clipboard = {nullptr};
 
-void BKE_vfont_clipboard_free(void)
+void BKE_vfont_clipboard_free()
 {
   MEM_SAFE_FREE(g_vfont_clipboard.text_buffer);
   MEM_SAFE_FREE(g_vfont_clipboard.info_buffer);

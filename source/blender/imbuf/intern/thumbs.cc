@@ -362,7 +362,8 @@ static ImBuf *thumb_create_ex(const char *file_path,
       }
     }
     else {
-      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
+      if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT, THB_SOURCE_OBJECT_IO))
+      {
         /* only load if we didn't give an image */
         if (img == nullptr) {
           switch (source) {
@@ -375,6 +376,12 @@ static ImBuf *thumb_create_ex(const char *file_path,
             case THB_SOURCE_FONT:
               img = IMB_thumb_load_font(file_path, tsize, tsize);
               break;
+            case THB_SOURCE_OBJECT_IO: {
+              if (BLI_path_extension_check(file_path, ".svg")) {
+                img = IMB_thumb_load_image(file_path, tsize, nullptr);
+              }
+              break;
+            }
             default:
               BLI_assert_unreachable(); /* This should never happen */
           }
