@@ -29,7 +29,7 @@ static char BezierCurveShader___doc__[] =
     "\n"
     "   Builds a BezierCurveShader object.\n"
     "\n"
-    "   :arg error: The error we're allowing for the approximation.  This\n"
+    "   :arg error: The error we're allowing for the approximation. This\n"
     "     error is the max distance allowed between the new curve and the\n"
     "     original geometry.\n"
     "   :type error: float\n"

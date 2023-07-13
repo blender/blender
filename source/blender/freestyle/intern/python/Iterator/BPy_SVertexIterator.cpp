@@ -27,7 +27,7 @@ PyDoc_STRVAR(
     "Class hierarchy: :class:`Iterator` > :class:`SVertexIterator`\n"
     "\n"
     "Class representing an iterator over :class:`SVertex` of a\n"
-    ":class:`ViewEdge`.  An instance of an SVertexIterator can be obtained\n"
+    ":class:`ViewEdge`. An instance of an SVertexIterator can be obtained\n"
     "from a ViewEdge by calling verticesBegin() or verticesEnd().\n"
     "\n"
     ".. method:: __init__()\n"

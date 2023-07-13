@@ -658,7 +658,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
                  nullptr,
                  0,
                  "Path Mask",
-                 "Import only the primitive at the given path and its descendants.  "
+                 "Import only the primitive at the given path and its descendants. "
                  "Multiple paths may be specified in a list delimited by commas or semicolons");
 
   RNA_def_boolean(ot->srna, "import_guide", false, "Guide", "Import guide geometry");
@@ -671,7 +671,7 @@ void WM_OT_usd_import(wmOperatorType *ot)
                   "import_all_materials",
                   false,
                   "Import All Materials",
-                  "Also import materials that are not used by any geometry.  "
+                  "Also import materials that are not used by any geometry. "
                   "Note that when this option is false, materials referenced "
                   "by geometry will still be imported");
 

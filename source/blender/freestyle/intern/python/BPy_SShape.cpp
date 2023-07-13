@@ -44,7 +44,7 @@ int SShape_Init(PyObject *module)
 
 PyDoc_STRVAR(
     SShape_doc,
-    "Class to define a feature shape.  It is the gathering of feature\n"
+    "Class to define a feature shape. It is the gathering of feature\n"
     "elements from an identified input shape.\n"
     "\n"
     ".. method:: __init__()\n"
@@ -109,7 +109,7 @@ static PyObject *SShape_add_edge(BPy_SShape *self, PyObject *args, PyObject *kwd
 PyDoc_STRVAR(SShape_add_vertex_doc,
              ".. method:: add_vertex(vertex)\n"
              "\n"
-             "   Adds an SVertex to the list of SVertex of this Shape.  The SShape\n"
+             "   Adds an SVertex to the list of SVertex of this Shape. The SShape\n"
              "   attribute of the SVertex is also set to this SShape.\n"
              "\n"
              "   :arg vertex: An SVertex object.\n"

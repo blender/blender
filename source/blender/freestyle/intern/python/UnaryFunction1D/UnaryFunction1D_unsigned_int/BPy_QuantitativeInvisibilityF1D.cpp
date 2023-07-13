@@ -38,7 +38,7 @@ static char QuantitativeInvisibilityF1D___doc__[] =
     "\n"
     "   Returns the Quantitative Invisibility of an Interface1D element. If\n"
     "   the Interface1D is a :class:`freestyle.types.ViewEdge`, then there is\n"
-    "   no ambiguity concerning the result.  But, if the Interface1D results\n"
+    "   no ambiguity concerning the result. But, if the Interface1D results\n"
     "   of a chaining (chain, stroke), then it might be made of several 1D\n"
     "   elements of different Quantitative Invisibilities.\n"
     "\n"

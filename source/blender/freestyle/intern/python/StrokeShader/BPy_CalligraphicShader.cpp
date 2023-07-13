@@ -39,7 +39,7 @@ static char CalligraphicShader___doc__[] =
     "   :type orientation: :class:`mathutils.Vector`\n"
     "   :arg clamp: If true, the strokes are drawn in black when the stroke\n"
     "      direction is between -90 and 90 degrees with respect to the main\n"
-    "      direction and drawn in white otherwise.  If false, the strokes\n"
+    "      direction and drawn in white otherwise. If false, the strokes\n"
     "      are always drawn in black.\n"
     "   :type clamp: bool\n"
     "\n"

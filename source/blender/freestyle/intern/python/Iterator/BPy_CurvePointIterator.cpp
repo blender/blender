@@ -24,8 +24,8 @@ using namespace Freestyle;
 PyDoc_STRVAR(CurvePointIterator_doc,
              "Class hierarchy: :class:`Iterator` > :class:`CurvePointIterator`\n"
              "\n"
-             "Class representing an iterator on a curve.  Allows an iterating\n"
-             "outside initial vertices.  A CurvePoint is instantiated and returned\n"
+             "Class representing an iterator on a curve. Allows an iterating\n"
+             "outside initial vertices. A CurvePoint is instantiated and returned\n"
              "through the .object attribute.\n"
              "\n"
              ".. method:: __init__()\n"

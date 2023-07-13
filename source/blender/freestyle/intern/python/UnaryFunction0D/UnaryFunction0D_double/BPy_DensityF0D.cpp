@@ -29,7 +29,7 @@ static char DensityF0D___doc__[] =
     "   Builds a DensityF0D object.\n"
     "\n"
     "   :arg sigma: The gaussian sigma value indicating the X value for\n"
-    "      which the gaussian function is 0.5.  It leads to the window size\n"
+    "      which the gaussian function is 0.5. It leads to the window size\n"
     "      value (the larger, the smoother).\n"
     "   :type sigma: float\n"
     "\n"

@@ -53,10 +53,10 @@ int UnaryPredicate0D_Init(PyObject *module)
 
 static char UnaryPredicate0D___doc__[] =
     "Base class for unary predicates that work on\n"
-    ":class:`Interface0DIterator`.  A UnaryPredicate0D is a functor that\n"
+    ":class:`Interface0DIterator`. A UnaryPredicate0D is a functor that\n"
     "evaluates a condition on an Interface0DIterator and returns true or\n"
-    "false depending on whether this condition is satisfied or not.  The\n"
-    "UnaryPredicate0D is used by invoking its __call__() method.  Any\n"
+    "false depending on whether this condition is satisfied or not. The\n"
+    "UnaryPredicate0D is used by invoking its __call__() method. Any\n"
     "inherited class must overload the __call__() method.\n"
     "\n"
     ".. method:: __init__()\n"

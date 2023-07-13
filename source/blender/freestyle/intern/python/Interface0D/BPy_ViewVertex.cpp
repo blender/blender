@@ -25,9 +25,9 @@ using namespace Freestyle;
 PyDoc_STRVAR(ViewVertex_doc,
              "Class hierarchy: :class:`Interface0D` > :class:`ViewVertex`\n"
              "\n"
-             "Class to define a view vertex.  A view vertex is a feature vertex\n"
+             "Class to define a view vertex. A view vertex is a feature vertex\n"
              "corresponding to a point of the image graph, where the characteristics\n"
-             "of an edge (e.g., nature and visibility) might change.  A\n"
+             "of an edge (e.g., nature and visibility) might change. A\n"
              ":class:`ViewVertex` can be of two kinds: A :class:`TVertex` when it\n"
              "corresponds to the intersection between two ViewEdges or a\n"
              ":class:`NonTVertex` when it corresponds to a vertex of the initial\n"

@@ -39,10 +39,10 @@ int BinaryPredicate0D_Init(PyObject *module)
 
 static char BinaryPredicate0D___doc__[] =
     "Base class for binary predicates working on :class:`Interface0D`\n"
-    "objects.  A BinaryPredicate0D is typically an ordering relation\n"
-    "between two Interface0D objects.  The predicate evaluates a relation\n"
+    "objects. A BinaryPredicate0D is typically an ordering relation\n"
+    "between two Interface0D objects. The predicate evaluates a relation\n"
     "between the two Interface0D instances and returns a boolean value (true\n"
-    "or false).  It is used by invoking the __call__() method.\n"
+    "or false). It is used by invoking the __call__() method.\n"
     "\n"
     ".. method:: __init__()\n"
     "\n"
@@ -50,7 +50,7 @@ static char BinaryPredicate0D___doc__[] =
     "\n"
     ".. method:: __call__(inter1, inter2)\n"
     "\n"
-    "   Must be overload by inherited classes.  It evaluates a relation\n"
+    "   Must be overload by inherited classes. It evaluates a relation\n"
     "   between two Interface0D objects.\n"
     "\n"
     "   :arg inter1: The first Interface0D object.\n"

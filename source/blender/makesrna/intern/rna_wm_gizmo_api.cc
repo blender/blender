@@ -212,7 +212,7 @@ void RNA_api_gizmo(StructRNA *srna)
               -1,
               -1,
               INT_MAX,
-              "ID to use when gizmo is selectable.  Use -1 when not selecting",
+              "ID to use when gizmo is selectable. Use -1 when not selecting",
               "",
               -1,
               INT_MAX);
@@ -230,7 +230,7 @@ void RNA_api_gizmo(StructRNA *srna)
               -1,
               -1,
               INT_MAX,
-              "ID to use when gizmo is selectable.  Use -1 when not selecting",
+              "ID to use when gizmo is selectable. Use -1 when not selecting",
               "",
               -1,
               INT_MAX);
@@ -247,7 +247,7 @@ void RNA_api_gizmo(StructRNA *srna)
               -1,
               -1,
               INT_MAX,
-              "ID to use when gizmo is selectable.  Use -1 when not selecting",
+              "ID to use when gizmo is selectable. Use -1 when not selecting",
               "",
               -1,
               INT_MAX);

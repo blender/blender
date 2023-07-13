@@ -25,12 +25,12 @@
  * - `geom`
  *
  * The basic rules are, for single-type geometry slots, use the plural of the
- * type name (e.g. edges).  for double-type slots, use the two type names plus
- * "in" (e.g. `edge_face.in`).  for three-type slots, use geom.
+ * type name (e.g. edges). for double-type slots, use the two type names plus
+ * "in" (e.g. `edge_face.in`). for three-type slots, use geom.
  *
  * for output slots, for single-type geometry slots, use the type name plus "out",
  * (e.g. `verts.out`), for double-type slots, use the two type names plus "out",
- * (e.g. `vert_faces.out`), for three-type slots, use geom.  note that you can also
+ * (e.g. `vert_faces.out`), for three-type slots, use geom. note that you can also
  * use more esoteric names (e.g. `geom_skirt.out`) so long as the comment next to the
  * slot definition tells you what types of elements are in it.
  */
@@ -63,7 +63,7 @@
  *
  * so the first line is the "title" of the bmop.
  * subsequent line blocks separated by blank lines
- * are paragraphs.  individual descriptions of slots
+ * are paragraphs. individual descriptions of slots
  * are extracted from comments next to them.
  *
  * eg:
@@ -232,7 +232,7 @@ static BMOpDefine bmo_region_extend_def = {
 /*
  * Edge Rotate.
  *
- * Rotates edges topologically.  Also known as "spin edge" to some people.
+ * Rotates edges topologically. Also known as "spin edge" to some people.
  * Simple example: `[/] becomes [|] then [\]`.
  */
 static BMOpDefine bmo_rotate_edges_def = {
@@ -317,8 +317,8 @@ static BMOpDefine bmo_bisect_edges_def = {
 /*
  * Mirror.
  *
- * Mirrors geometry along an axis.  The resulting geometry is welded on using
- * merge_dist.  Pairs of original/mirrored vertices are welded using the merge_dist
+ * Mirrors geometry along an axis. The resulting geometry is welded on using
+ * merge_dist. Pairs of original/mirrored vertices are welded using the merge_dist
  * parameter (which defines the minimum distance for welding to happen).
  */
 static BMOpDefine bmo_mirror_def = {
@@ -326,7 +326,7 @@ static BMOpDefine bmo_mirror_def = {
   /* slots_in */
   {{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},     /* input geometry */
    {"matrix",          BMO_OP_SLOT_MAT},   /* matrix defining the mirror transformation */
-   {"merge_dist",      BMO_OP_SLOT_FLT},   /* maximum distance for merging.  does no merging if 0. */
+   {"merge_dist",      BMO_OP_SLOT_FLT},   /* maximum distance for merging. does no merging if 0. */
    {"axis",            BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_axis_xyz},   /* the axis to use. */
    {"mirror_u",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the u axis */
    {"mirror_v",        BMO_OP_SLOT_BOOL},  /* mirror UVs across the v axis */
@@ -485,7 +485,7 @@ static BMOpDefine bmo_collapse_uvs_def = {
  * Weld Verts.
  *
  * Welds verts together (kind-of like remove doubles, merge, etc, all of which
- * use or will use this bmop).  You pass in mappings from vertices to the vertices
+ * use or will use this bmop). You pass in mappings from vertices to the vertices
  * they weld with.
  */
 static BMOpDefine bmo_weld_verts_def = {
@@ -557,9 +557,9 @@ static BMOpDefine bmo_join_triangles_def = {
  *
  * This is basically F-key, it creates
  * new faces from vertices, makes stuff from edge nets,
- * makes wire edges, etc.  It also dissolves faces.
+ * makes wire edges, etc. It also dissolves faces.
  *
- * Three verts become a triangle, four become a quad.  Two
+ * Three verts become a triangle, four become a quad. Two
  * become a wire edge.
  */
 static BMOpDefine bmo_contextual_create_def = {
@@ -617,7 +617,7 @@ static BMOpDefine bmo_grid_fill_def = {
   "grid_fill",
   /* slots_in */
   {{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
-  /* restricts edges to groups.  maps edges to integer */
+  /* restricts edges to groups. maps edges to integer */
    {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
    {"use_smooth",     BMO_OP_SLOT_BOOL},     /* smooth state to use */
    {"use_interp_simple", BMO_OP_SLOT_BOOL},  /* use simple interpolation */
@@ -688,7 +688,7 @@ static BMOpDefine bmo_edgeloop_fill_def = {
   "edgeloop_fill",
   /* slots_in */
   {{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* input edges */
-  /* restricts edges to groups.  maps edges to integer */
+  /* restricts edges to groups. maps edges to integer */
    {"mat_nr",         BMO_OP_SLOT_INT},      /* material to use */
    {"use_smooth",        BMO_OP_SLOT_BOOL},  /* smooth state to use */
    {{'\0'}},
@@ -732,7 +732,7 @@ static BMOpDefine bmo_edgenet_fill_def = {
  * Edge-net Prepare.
  *
  * Identifies several useful edge loop cases and modifies them so
- * they'll become a face when edgenet_fill is called.  The cases covered are:
+ * they'll become a face when edgenet_fill is called. The cases covered are:
  *
  * - One single loop; an edge is added to connect the ends
  * - Two loops; two edges are added to connect the endpoints (based on the
@@ -814,7 +814,7 @@ static BMOpDefine bmo_scale_def = {
 /*
  * Transform.
  *
- * Transforms a set of vertices by a matrix.  Multiplies
+ * Transforms a set of vertices by a matrix. Multiplies
  * the vertex coordinates with the matrix.
  */
 static BMOpDefine bmo_transform_def = {
@@ -834,7 +834,7 @@ static BMOpDefine bmo_transform_def = {
 /*
  * Object Load BMesh.
  *
- * Loads a bmesh into an object/mesh.  This is a "private"
+ * Loads a bmesh into an object/mesh. This is a "private"
  * bmop.
  */
 static BMOpDefine bmo_object_load_bmesh_def = {
@@ -853,7 +853,7 @@ static BMOpDefine bmo_object_load_bmesh_def = {
 /*
  * BMesh to Mesh.
  *
- * Converts a bmesh to a Mesh.  This is reserved for exiting editmode.
+ * Converts a bmesh to a Mesh. This is reserved for exiting editmode.
  */
 static BMOpDefine bmo_bmesh_to_mesh_def = {
   "bmesh_to_mesh",
@@ -871,7 +871,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 /*
  * Mesh to BMesh.
  *
- * Load the contents of a mesh into the bmesh.  this bmop is private, it's
+ * Load the contents of a mesh into the bmesh. this bmop is private, it's
  * reserved exclusively for entering editmode.
  */
 static BMOpDefine bmo_mesh_to_bmesh_def = {

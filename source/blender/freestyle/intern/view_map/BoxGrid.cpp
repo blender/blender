@@ -176,7 +176,7 @@ void BoxGrid::distributePolygons(OccluderSource &source)
     ++nFaces;
   }
   if (G.debug & G_DEBUG_FREESTYLE) {
-    cout << "Distributed " << nFaces << " occluders.  Retained " << nKeptFaces << "." << endl;
+    cout << "Distributed " << nFaces << " occluders. Retained " << nKeptFaces << "." << endl;
   }
 }
 
