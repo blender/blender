@@ -349,7 +349,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
   }
 
   if (ts->sculpt) {
-    ts->sculpt->paint.symmetry_flags |= PAINT_SYMMETRY_FEATHER;
+    *ts->sculpt = *DNA_struct_default_get(Sculpt);
   }
 
   /* Correct default startup UVs. */

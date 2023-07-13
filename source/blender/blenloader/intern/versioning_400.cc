@@ -337,6 +337,24 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!DNA_struct_elem_find(fd->filesdna, "Sculpt", "float", "automasking_start_normal_limit")) {
+    const Sculpt *defaults = DNA_struct_default_get(Sculpt);
+
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      if (!scene->toolsettings || !scene->toolsettings->sculpt) {
+        continue;
+      }
+
+      Sculpt *sd = scene->toolsettings->sculpt;
+
+      sd->automasking_start_normal_limit = defaults->automasking_start_normal_limit;
+      sd->automasking_start_normal_falloff = defaults->automasking_start_normal_falloff;
+
+      sd->automasking_view_normal_limit = defaults->automasking_view_normal_limit;
+      sd->automasking_view_normal_falloff = defaults->automasking_view_normal_limit;
+    }
+  }
+
   /**
    * Versioning code until next subversion bump goes here.
    *

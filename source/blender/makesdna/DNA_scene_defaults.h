@@ -389,6 +389,9 @@
     .automasking_view_normal_falloff = 0.25f, \
     .flags   = SCULPT_DYNTOPO_ENABLED,\
     .dyntopo = _DNA_DEFAULT_DynTopoSettings,\
+    .paint = {\
+      .symmetry_flags = PAINT_SYMMETRY_FEATHER,\
+    }\
   }\
 /* clang-format off */
 
