@@ -2114,6 +2114,30 @@ void BKE_sculpt_toolsettings_data_ensure(Scene *scene)
 
   Sculpt *sd = scene->toolsettings->sculpt;
 
+  const Sculpt *defaults = DNA_struct_default_get(Sculpt);
+
+  /* We have file versioning code here for historical
+   * reasons.  Don't add more checks here, do it properly
+   * in blenloader.
+   */
+  if (sd->automasking_start_normal_limit == 0.0f) {
+    sd->automasking_start_normal_limit = defaults->automasking_start_normal_limit;
+    sd->automasking_start_normal_falloff = defaults->automasking_start_normal_falloff;
+
+    sd->automasking_view_normal_limit = defaults->automasking_view_normal_limit;
+    sd->automasking_view_normal_falloff = defaults->automasking_view_normal_limit;
+  }
+
+  if (sd->detail_percent == 0.0f) {
+    sd->detail_percent = defaults->detail_percent;
+  }
+  if (sd->constant_detail == 0.0f) {
+    sd->constant_detail = defaults->constant_detail;
+  }
+  if (sd->detail_size == 0.0f) {
+    sd->detail_size = defaults->detail_size;
+  }
+
   /* Set sane default tiling offsets. */
   if (!sd->paint.tile_offset[0]) {
     sd->paint.tile_offset[0] = 1.0f;
