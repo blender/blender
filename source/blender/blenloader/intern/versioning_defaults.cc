@@ -24,6 +24,7 @@
 
 #include "DNA_camera_types.h"
 #include "DNA_curveprofile_types.h"
+#include "DNA_defaults.h"
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_light_types.h"
 #include "DNA_mask_types.h"
@@ -781,7 +782,6 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
       brush->sculpt_tool = SCULPT_TOOL_DISPLACEMENT_SMEAR;
     }
 
-    /* Use the same tool icon color in the brush cursor */
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->ob_mode & OB_MODE_SCULPT) {
         BLI_assert(brush->sculpt_tool != 0);

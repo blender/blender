@@ -4782,15 +4782,17 @@ static void interp_face_corners_intern(PBVH *pbvh,
                                        CustomDataLayer *layer)
 {
   Vector<bool, 24> corners;
-  Vector<float2, 24> new_values;
+  Array<float2, 24> new_values(ls.size());
 
   /* Build (semantic) corner tags. */
   for (BMLoop *l : ls) {
-    /* Do not calculate the corner state here, use stored corner flag. */
-    bool corner = false;
+    /* Do not calculate the corner state here, use stored corner flag.
+     *
+     * The corner would normally be calculated like so:
+     *     corner = loop_is_corner(l, layer->offset);
+     */
+    bool corner = BM_ELEM_CD_GET_INT(v, cd_vert_boundary) & SCULPT_CORNER_UV;
 
-    /* corner |= loop_is_corner(l, layer->offset); */
-    corner |= BM_ELEM_CD_GET_INT(v, cd_vert_boundary) & SCULPT_CORNER_UV;
     corners.append(corner);
   }
 
