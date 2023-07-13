@@ -21,10 +21,9 @@ namespace blender::io::usd {
 
 USDLightWriter::USDLightWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
-bool USDLightWriter::is_supported(const HierarchyContext *context) const
+bool USDLightWriter::is_supported(const HierarchyContext * /*context*/) const
 {
-  Light *light = static_cast<Light *>(context->object->data);
-  return ELEM(light->type, LA_AREA, LA_LOCAL, LA_SUN, LA_SPOT);
+  return true;
 }
 
 void USDLightWriter::do_write(HierarchyContext &context)
@@ -34,51 +33,42 @@ void USDLightWriter::do_write(HierarchyContext &context)
   pxr::UsdTimeCode timecode = get_export_time_code();
 
   Light *light = static_cast<Light *>(context.object->data);
-#if PXR_VERSION >= 2111
   pxr::UsdLuxLightAPI usd_light_api;
-#else
-  pxr::UsdLuxLight usd_light_api;
-
-#endif
 
   switch (light->type) {
-    case LA_AREA:
+    case LA_AREA: {
       switch (light->area_shape) {
-        case LA_AREA_DISK:
-        case LA_AREA_ELLIPSE: { /* An ellipse light will deteriorate into a disk light. */
-          pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
-          disk_light.CreateRadiusAttr().Set(light->area_size, timecode);
-#if PXR_VERSION >= 2111
-          usd_light_api = disk_light.LightAPI();
-#else
-          usd_light_api = disk_light;
-#endif
-          break;
-        }
         case LA_AREA_RECT: {
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           rect_light.CreateWidthAttr().Set(light->area_size, timecode);
           rect_light.CreateHeightAttr().Set(light->area_sizey, timecode);
-#if PXR_VERSION >= 2111
           usd_light_api = rect_light.LightAPI();
-#else
-          usd_light_api = rect_light;
-#endif
           break;
         }
         case LA_AREA_SQUARE: {
           pxr::UsdLuxRectLight rect_light = pxr::UsdLuxRectLight::Define(stage, usd_path);
           rect_light.CreateWidthAttr().Set(light->area_size, timecode);
           rect_light.CreateHeightAttr().Set(light->area_size, timecode);
-#if PXR_VERSION >= 2111
           usd_light_api = rect_light.LightAPI();
-#else
-          usd_light_api = rect_light;
-#endif
+          break;
+        }
+        case LA_AREA_DISK: {
+          pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
+          disk_light.CreateRadiusAttr().Set(light->area_size / 2.0f, timecode);
+          usd_light_api = disk_light.LightAPI();
+          break;
+        }
+        case LA_AREA_ELLIPSE: {
+          /* An ellipse light deteriorates into a disk light. */
+          pxr::UsdLuxDiskLight disk_light = pxr::UsdLuxDiskLight::Define(stage, usd_path);
+          disk_light.CreateRadiusAttr().Set((light->area_size + light->area_sizey) / 4.0f,
+                                            timecode);
+          usd_light_api = disk_light.LightAPI();
           break;
         }
       }
       break;
+    }
     case LA_LOCAL:
     case LA_SPOT: {
       pxr::UsdLuxSphereLight sphere_light = pxr::UsdLuxSphereLight::Define(stage, usd_path);
@@ -95,39 +85,34 @@ void USDLightWriter::do_write(HierarchyContext &context)
         }
       }
 
-#if PXR_VERSION >= 2111
       usd_light_api = sphere_light.LightAPI();
-#else
-      usd_light_api = sphere_light;
-#endif
       break;
     }
     case LA_SUN: {
       pxr::UsdLuxDistantLight distant_light = pxr::UsdLuxDistantLight::Define(stage, usd_path);
-      /* TODO(makowalski): set angle attribute here. */
-#if PXR_VERSION >= 2111
+      distant_light.CreateAngleAttr().Set(RAD2DEGF(light->sun_angle / 2.0f), timecode);
       usd_light_api = distant_light.LightAPI();
-#else
-      usd_light_api = distant_light;
-#endif
       break;
     }
     default:
-      BLI_assert_msg(0, "is_supported() returned true for unsupported light type");
+      BLI_assert_unreachable();
+      break;
   }
 
-  float usd_intensity;
+  float intensity;
   if (light->type == LA_SUN) {
     /* Unclear why, but approximately matches Karma. */
-    usd_intensity = light->energy / 4.0f;
+    intensity = light->energy / 4.0f;
   }
   else {
     /* Convert from radiant flux to intensity. */
-    usd_intensity = light->energy / M_PI;
+    intensity = light->energy / M_PI;
   }
 
-  usd_light_api.CreateIntensityAttr().Set(usd_intensity, timecode);
+  usd_light_api.CreateIntensityAttr().Set(intensity, timecode);
+  usd_light_api.CreateExposureAttr().Set(0.0f, timecode);
   usd_light_api.CreateColorAttr().Set(pxr::GfVec3f(light->r, light->g, light->b), timecode);
+  usd_light_api.CreateDiffuseAttr().Set(light->diff_fac, timecode);
   usd_light_api.CreateSpecularAttr().Set(light->spec_fac, timecode);
   usd_light_api.CreateNormalizeAttr().Set(true, timecode);
 }
