@@ -224,14 +224,14 @@ void USDLightReader::read_object_data(Main *bmain, const double motionSampleTime
         if (pxr::UsdAttribute cone_angle_attr = shaping_api.GetShapingConeAngleAttr()) {
           float cone_angle = 0.0f;
           if (cone_angle_attr.Get(&cone_angle, motionSampleTime)) {
-            float spot_size = cone_angle * (float(M_PI) / 180.0f) * 2.0f;
-
-            if (spot_size <= 180) {
-              blight->spotsize = spot_size;
+            /* Blender spot size is twice the USD cone angle in radians. */
+            if (cone_angle <= 90.0f) {
+              blight->spotsize = cone_angle * (float(M_PI) / 180.0f) * 2.0f;
             }
             else {
-              /* The spot size is greater the 180 degrees, which Blender doesn't support so we
-               * make this a sphere light instead. */
+              /* The cone angle is greater than 90 degrees, which translates to a
+               * spotsize greater than M_PI (2 * 90 degrees converted to radians).
+               * Blender's maximum spotsize is M_PI, so we make this a point light instead. */
               blight->type = LA_LOCAL;
               break;
             }
