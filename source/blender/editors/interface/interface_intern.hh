@@ -260,7 +260,7 @@ struct uiBut {
   eWM_DragDataType dragtype = WM_DRAG_ID;
   short dragflag = 0;
   void *dragpoin = nullptr;
-  ImBuf *imb = nullptr;
+  const ImBuf *imb = nullptr;
   float imb_scale = 0;
 
   /** Active button data (set when the user is hovering or interacting with a button). */

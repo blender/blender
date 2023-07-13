@@ -141,7 +141,7 @@ static void file_but_enable_drag(uiBut *but,
                                  const SpaceFile *sfile,
                                  const FileDirEntry *file,
                                  const char *path,
-                                 ImBuf *preview_image,
+                                 const ImBuf *preview_image,
                                  int icon,
                                  float scale)
 {
@@ -304,7 +304,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       const FileDirEntry *file,
                                       const char *path,
                                       const rcti *tile_draw_rect,
-                                      ImBuf *preview_image,
+                                      const ImBuf *preview_image,
                                       const int icon,
                                       const float scale)
 {
@@ -342,7 +342,7 @@ static void file_draw_preview(const FileList *files,
                               const FileDirEntry *file,
                               const rcti *tile_draw_rect,
                               const float icon_aspect,
-                              ImBuf *imb,
+                              const ImBuf *imb,
                               const int icon,
                               FileLayout *layout,
                               const bool is_icon,
@@ -918,7 +918,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   FileList *files = sfile->files;
   FileDirEntry *file;
-  ImBuf *imb;
   uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
   int numfiles;
   int numfiles_layout;
@@ -1035,7 +1034,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     if (FILE_IMGDISPLAY == params->display) {
       const int icon = filelist_geticon(files, i, false);
       is_icon = 0;
-      imb = filelist_getimage(files, i);
+      const ImBuf *imb = filelist_getimage(files, i);
       if (!imb) {
         imb = filelist_geticon_image(files, i);
         is_icon = 1;
