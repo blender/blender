@@ -404,9 +404,9 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
      * At the moment it's simplest to assume all original meshes use the key-block and meshes
      * that are evaluated (through the modifier stack for example) use custom-data layers.
      */
-    BLI_assert(!CustomData_has_layer(&mesh_vdata, CD_SHAPEKEY));
+    BLI_assert(!CustomData_has_layer(&me->vdata, CD_SHAPEKEY));
   }
-  if (is_new == false && CustomData_has_layer(&bm->vdata, CD_SHAPEKEY)) {
+  if (is_new == false) {
     tot_shape_keys = min_ii(tot_shape_keys, CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY));
   }
   const float(**shape_key_table)[3] = tot_shape_keys ? (const float(**)[3])BLI_array_alloca(
@@ -461,14 +461,7 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
         int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
         bm->vdata.layers[j].uid = block->uid;
       }
-      else {
-        BM_data_layer_add_named(bm, &bm->vdata, CD_SHAPEKEY, block->name);
-      }
-
-      int j = CustomData_get_layer_index_n(&bm->vdata, CD_SHAPEKEY, i);
-
-      bm->vdata.layers[j].uid = block->uid;
-      shape_key_table[i] = (const float(*)[3])block->data;
+      shape_key_table[i] = static_cast<const float(*)[3]>(block->data);
     }
   }
 
@@ -555,9 +548,11 @@ void BM_mesh_bm_from_me(BMesh *bm, const Mesh *me, const BMeshFromMeshParams *pa
     }
 
     /* Set shape-key data. */
-    float(*co_dst)[3] = (float(*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
-    for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
-      copy_v3_v3(*co_dst, shape_key_table[j][i]);
+    if (tot_shape_keys) {
+      float(*co_dst)[3] = (float(*)[3])BM_ELEM_CD_GET_VOID_P(v, cd_shape_key_offset);
+      for (int j = 0; j < tot_shape_keys; j++, co_dst++) {
+        copy_v3_v3(*co_dst, shape_key_table[j][i]);
+      }
     }
   }
   if (is_new) {

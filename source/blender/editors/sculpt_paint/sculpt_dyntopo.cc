@@ -162,7 +162,6 @@ void SCULPT_dynamic_topology_enable_ex(Main *bmain,
 
     BMeshFromMeshParams params = {};
     params.use_shapekey = true;
-    params.create_shapekey_layers = true;
     params.active_shapekey = ob->shapenr;
 
     BM_mesh_bm_from_me(ss->bm, me, &params);

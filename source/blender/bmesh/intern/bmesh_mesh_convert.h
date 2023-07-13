@@ -29,9 +29,6 @@ struct Main;
 struct Mesh;
 
 struct BMeshFromMeshParams {
-  /* automatically create shapekey layers */
-  uint create_shapekey_layers;
-
   bool calc_face_normal;
   bool calc_vert_normal;
 
@@ -42,8 +39,7 @@ struct BMeshFromMeshParams {
   /* define the active shape key (index + 1) */
   int active_shapekey;
   struct CustomData_MeshMasks cd_mask_extra;
-  uint copy_temp_cdlayers : 1;
-  uint ignore_id_layers : 1;
+  uint copy_temp_cdlayers;
 };
 
 struct Object;
@@ -79,7 +75,7 @@ struct BMeshToMeshParams {
    */
   bool active_shapekey_to_mvert;
   struct CustomData_MeshMasks cd_mask_extra;
-  uint copy_temp_cdlayers : 1;
+  uint copy_temp_cdlayers;
 };
 
 void BM_enter_multires_space(struct Object *ob, struct BMesh *bm, int space);

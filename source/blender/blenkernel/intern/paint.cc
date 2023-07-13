@@ -2917,8 +2917,6 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
       params.calc_face_normal = true;
       params.use_shapekey = true;
       params.active_shapekey = ob->shapenr;
-      params.create_shapekey_layers = true;
-      params.ignore_id_layers = false;
       params.copy_temp_cdlayers = true;
 
       BM_mesh_bm_from_me(bm, mesh_orig, &params);
