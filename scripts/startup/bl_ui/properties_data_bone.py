@@ -140,6 +140,8 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         topcol = layout.column()
         topcol.active = bone.bbone_segments > 1
 
+        topcol.prop(bone, "bbone_mapping_mode", text="Vertex Mapping")
+
         col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveinx", text="Curve In X")
         col.prop(bbone, "bbone_curveinz", text="Z")
