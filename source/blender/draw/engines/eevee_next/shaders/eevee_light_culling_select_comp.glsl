@@ -48,6 +48,8 @@ void main()
       sphere.center = light._position;
       sphere.radius = light.influence_radius_max;
       break;
+    default:
+      break;
   }
 
   /* TODO(fclem): HiZ culling? Could be quite beneficial given the nature of the 2.5D culling. */

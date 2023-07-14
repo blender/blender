@@ -326,8 +326,8 @@ struct AOVsInfoData {
   uint4 hash_value[AOV_MAX];
   uint4 hash_color[AOV_MAX];
   /* Length of used data. */
-  uint color_len;
-  uint value_len;
+  int color_len;
+  int value_len;
   /** Id of the AOV to be displayed (from the start of the AOV array). -1 for combined. */
   int display_id;
   /** True if the AOV to be displayed is from the value accumulation buffer. */

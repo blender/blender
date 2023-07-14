@@ -23,7 +23,7 @@ void mask_visibility_bit(uint view_id)
 
 void main()
 {
-  if (gl_GlobalInvocationID.x >= resource_len) {
+  if (int(gl_GlobalInvocationID.x) >= resource_len) {
     return;
   }
 

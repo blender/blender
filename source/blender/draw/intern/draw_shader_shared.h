@@ -81,7 +81,7 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 /** This should be already defined at shaderCreateInfo level. */
 // #  define DRW_VIEW_LEN 64
 /** Global that needs to be set correctly in each shader stage. */
-uint drw_view_id = 0;
+int drw_view_id = 0;
 /**
  * In order to reduce the memory requirements, the view id is merged with resource id to avoid
  * doubling the memory required only for view indexing.
