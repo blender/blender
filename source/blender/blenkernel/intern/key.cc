@@ -2598,3 +2598,46 @@ bool BKE_keyblock_is_basis(const Key *key, const int index)
 
   return false;
 }
+
+bool *BKE_keyblock_get_dependent_keys(const Key *key, const int index)
+{
+  if (key->type != KEY_RELATIVE) {
+    return nullptr;
+  }
+
+  const int count = BLI_listbase_count(&key->block);
+
+  if (index < 0 || index >= count) {
+    return nullptr;
+  }
+
+  /* Seed the table with the specified key. */
+  bool *marked = static_cast<bool *>(MEM_callocN(sizeof(bool) * count, __func__));
+
+  marked[index] = true;
+
+  /* Iterative breadth-first search through the key list. This method minimizes
+   * the number of scans through the list and is failsafe vs reference cycles. */
+  bool updated, found = false;
+  int i;
+
+  do {
+    updated = false;
+
+    LISTBASE_FOREACH_INDEX (const KeyBlock *, kb, &key->block, i) {
+      if (!marked[i] && kb->relative >= 0 && kb->relative < count && marked[kb->relative]) {
+        marked[i] = true;
+        updated = found = true;
+      }
+    }
+  } while (updated);
+
+  if (!found) {
+    MEM_freeN(marked);
+    return nullptr;
+  }
+
+  /* After the search is complete, exclude the original key. */
+  marked[index] = false;
+  return marked;
+}

@@ -182,6 +182,12 @@ bool BKE_keyblock_move(struct Object *ob, int org_index, int new_index);
  */
 bool BKE_keyblock_is_basis(const struct Key *key, int index);
 
+/**
+ * Returns a newly allocated array containing true for every key that has this one as basis.
+ * If none are found, returns null.
+ */
+bool *BKE_keyblock_get_dependent_keys(const struct Key *key, int index);
+
 /* -------------------------------------------------------------------- */
 /** \name Key-Block Data Access
  * \{ */

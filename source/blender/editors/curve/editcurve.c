@@ -631,7 +631,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
     return;
   }
 
-  int a, i;
+  int a, i, currkey_i;
   EditNurb *editnurb = cu->editnurb;
   KeyBlock *actkey = BLI_findlink(&cu->key->block, editnurb->shapenr - 1);
   BezTriple *bezt, *oldbezt;
@@ -640,11 +640,14 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
   int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
 
   float(*ofs)[3] = NULL;
+  bool *dependent = NULL;
   float *oldkey, *newkey, *ofp;
 
   /* editing the base key should update others */
   if (cu->key->type == KEY_RELATIVE) {
-    if (BKE_keyblock_is_basis(cu->key, editnurb->shapenr - 1)) { /* active key is a base */
+    dependent = BKE_keyblock_get_dependent_keys(cu->key, editnurb->shapenr - 1);
+
+    if (dependent) { /* active key is a base */
       int totvec = 0;
 
       /* Calculate needed memory to store offset */
@@ -702,9 +705,8 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
     }
   }
 
-  LISTBASE_FOREACH (KeyBlock *, currkey, &cu->key->block) {
-    const bool apply_offset = (ofs && (currkey != actkey) &&
-                               (editnurb->shapenr - 1 == currkey->relative));
+  LISTBASE_FOREACH_INDEX (KeyBlock *, currkey, &cu->key->block, currkey_i) {
+    const bool apply_offset = (ofs && (currkey != actkey) && dependent[currkey_i]);
 
     float *fp = newkey = MEM_callocN(cu->key->elemsize * totvert, "currkey->data");
     ofp = oldkey = currkey->data;
@@ -866,9 +868,8 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
     currkey->data = newkey;
   }
 
-  if (ofs) {
-    MEM_freeN(ofs);
-  }
+  MEM_SAFE_FREE(ofs);
+  MEM_SAFE_FREE(dependent);
 }
 
 /** \} */
