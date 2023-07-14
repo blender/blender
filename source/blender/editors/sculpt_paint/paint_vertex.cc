@@ -602,7 +602,7 @@ void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache)
   }
 }
 /** \} */
-}  // namespace blender::editors::vwpaint
+}  // namespace blender::ed::sculpt_paint::vwpaint
 
 bool vertex_paint_mode_poll(bContext *C)
 {
