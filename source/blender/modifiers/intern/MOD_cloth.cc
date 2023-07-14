@@ -100,8 +100,8 @@ static void deform_verts(ModifierData *md,
    * Also hopefully new cloth system will arrive soon..
    */
   if (mesh == nullptr && clmd->sim_parms->shapekey_rest) {
-    KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ctx->object),
-                                         clmd->sim_parms->shapekey_rest);
+    KeyBlock *kb = BKE_keyblock_find_by_index(BKE_key_from_object(ctx->object),
+                                              clmd->sim_parms->shapekey_rest);
     if (kb && kb->data != nullptr) {
       float(*layerorco)[3];
       if (!(layerorco = static_cast<float(*)[3]>(

@@ -1897,12 +1897,7 @@ KeyBlock *BKE_keyblock_from_object(Object *ob)
 {
   Key *key = BKE_key_from_object(ob);
 
-  if (key) {
-    KeyBlock *kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
-    return kb;
-  }
-
-  return nullptr;
+  return BKE_keyblock_find_by_index(key, ob->shapenr - 1);
 }
 
 KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
@@ -1916,21 +1911,13 @@ KeyBlock *BKE_keyblock_from_object_reference(Object *ob)
   return nullptr;
 }
 
-KeyBlock *BKE_keyblock_from_key(Key *key, int index)
+KeyBlock *BKE_keyblock_find_by_index(Key *key, int index)
 {
-  if (key) {
-    KeyBlock *kb = static_cast<KeyBlock *>(key->block.first);
-
-    for (int i = 1; i < key->totkey; i++) {
-      kb = kb->next;
-
-      if (index == i) {
-        return kb;
-      }
-    }
+  if (!key) {
+    return nullptr;
   }
 
-  return nullptr;
+  return static_cast<KeyBlock *>(BLI_findlink(&key->block, index));
 }
 
 KeyBlock *BKE_keyblock_find_name(Key *key, const char name[])
