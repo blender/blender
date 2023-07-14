@@ -300,6 +300,10 @@ bke::CurvesGeometry subdivide_curves(
     const VArray<int> &cuts,
     const bke::AnonymousAttributePropagationInfo &propagation_info)
 {
+  if (src_curves.points_num() == 0) {
+    return src_curves;
+  }
+
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   /* Cyclic is accessed a lot, it's probably worth it to make sure it's a span. */
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
