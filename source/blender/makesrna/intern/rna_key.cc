@@ -764,7 +764,7 @@ static int rna_ShapeKeyPoint_get_index(Key *key, KeyBlock *kb, float *point)
   char *start = (char *)kb->data;
   char *pt = (char *)point;
 
-  return (int)(pt - start) / key->elemsize;
+  return int(pt - start) / key->elemsize;
 }
 
 static char *rna_ShapeKeyPoint_path(const PointerRNA *ptr)

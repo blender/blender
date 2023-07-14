@@ -363,7 +363,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
   pose_frame_range_from_object_get(pso, ob, &prev_frame, &next_frame);
 
   const float factor = ED_slider_factor_get(pso->slider);
-  const float current_frame = (float)pso->current_frame;
+  const float current_frame = float(pso->current_frame);
 
   /* Calculate the relative weights of the endpoints. */
   if (pso->mode == POSESLIDE_BREAKDOWN) {
@@ -377,8 +377,8 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
      * - they then get normalized so that they only sum up to 1
      */
 
-    next_weight = current_frame - (float)pso->prev_frame;
-    prev_weight = (float)pso->next_frame - current_frame;
+    next_weight = current_frame - float(pso->prev_frame);
+    prev_weight = float(pso->next_frame) - current_frame;
 
     const float total_weight = next_weight + prev_weight;
     next_weight = (next_weight / total_weight);
@@ -620,7 +620,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
   path = BLI_sprintfN("%s.%s", pfl->pchan_path, "rotation_quaternion");
 
   /* Get the current frame number. */
-  const float current_frame = (float)pso->current_frame;
+  const float current_frame = float(pso->current_frame);
   const float factor = ED_slider_factor_get(pso->slider);
 
   /* Using this path, find each matching F-Curve for the variables we're interested in. */
@@ -677,7 +677,7 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 
         /* Compute breakdown based on actual frame range. */
         const float interp_factor = (current_frame - pso->prev_frame) /
-                                    (float)(pso->next_frame - pso->prev_frame);
+                                    float(pso->next_frame - pso->prev_frame);
 
         interp_qt_qtqt(quat_breakdown, quat_prev, quat_next, interp_factor);
 
@@ -911,7 +911,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 static void pose_slide_autoKeyframe(bContext *C, tPoseSlideOp *pso)
 {
   /* Wrapper around the generic call. */
-  poseAnim_mapping_autoKeyframe(C, pso->scene, &pso->pfLinks, (float)pso->current_frame);
+  poseAnim_mapping_autoKeyframe(C, pso->scene, &pso->pfLinks, float(pso->current_frame));
 }
 
 /**
@@ -1052,7 +1052,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  float current_frame = (float)pso->current_frame;
+  float current_frame = float(pso->current_frame);
 
   /* Firstly, check if the current frame is a keyframe. */
   const ActKeyColumn *ak = ED_keylist_find_exact(pso->keylist, current_frame);

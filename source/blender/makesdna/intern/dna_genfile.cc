@@ -113,7 +113,7 @@
 
 #ifdef __BIG_ENDIAN__
 /* Big Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
+#  define MAKE_ID(a, b, c, d) (int(a) << 24 | int(b) << 16 | (c) << 8 | (d))
 #else
 /* Little Endian */
 #  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
@@ -174,7 +174,7 @@ int DNA_elem_size_nr(const SDNA *sdna, short type, short name)
   }
   else if (sdna->types_size[type]) {
     /* has the name an extra length? (array) */
-    len = (int)sdna->types_size[type] * sdna->names_array_len[name];
+    len = int(sdna->types_size[type]) * sdna->names_array_len[name];
   }
 
   return len;
@@ -1408,9 +1408,9 @@ static void init_reconstruct_step_for_member(const SDNA *oldsdna,
       printf(
           "cast element, old type: %d ('%s'), new type: %d ('%s'), old offset: %d, new offset: "
           "%d, length: %d",
-          (int)step->data.cast_primitive.old_type,
+          int(step->data.cast_primitive.old_type),
           oldsdna->types[step->data.cast_primitive.old_type],
-          (int)step->data.cast_primitive.new_type,
+          int(step->data.cast_primitive.new_type),
           newsdna->types[step->data.cast_primitive.new_type],
           step->data.cast_primitive.old_offset,
           step->data.cast_primitive.new_offset,

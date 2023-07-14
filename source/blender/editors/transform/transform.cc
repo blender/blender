@@ -223,8 +223,8 @@ void projectIntViewEx(TransInfo *t, const float vec[3], int adr[2], const eV3DPr
     if (t->region->regiontype == RGN_TYPE_WINDOW) {
       if (ED_view3d_project_int_global(t->region, vec, adr, flag) != V3D_PROJ_RET_OK) {
         /* this is what was done in 2.64, perhaps we can be smarter? */
-        adr[0] = (int)2140000000.0f;
-        adr[1] = (int)2140000000.0f;
+        adr[0] = int(2140000000.0f);
+        adr[1] = int(2140000000.0f);
       }
     }
   }

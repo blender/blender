@@ -190,8 +190,8 @@ static void rna_progress_update(wmWindowManager *wm, float value)
     /* Map to cursor_time range [0,9999] */
     wmWindow *win = wm->winactive;
     if (win) {
-      int val = (int)(10000 * (value - wm_progress_state.min) /
-                      (wm_progress_state.max - wm_progress_state.min));
+      int val = int(10000 * (value - wm_progress_state.min) /
+                    (wm_progress_state.max - wm_progress_state.min));
       WM_cursor_time(win, val);
     }
   }

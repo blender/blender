@@ -863,7 +863,7 @@ static EdgeSlideData *createEdgeSlideVerts_double_side(TransInfo *t, TransDataCo
 
   // EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-  BLI_assert(STACK_SIZE(sv_array) == (uint)sv_tot);
+  BLI_assert(STACK_SIZE(sv_array) == uint(sv_tot));
 
   sld->sv = sv_array;
   sld->totsv = sv_tot;

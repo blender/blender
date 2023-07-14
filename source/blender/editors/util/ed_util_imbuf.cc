@@ -115,10 +115,10 @@ static void image_sample_rect_color_ubyte(const ImBuf *ibuf,
       uchar col_temp_ub[4];
       image_sample_pixel_color_ubyte(ibuf, coord, col_temp_ub, col_temp_fl);
       add_v4_v4(r_col_linear, col_temp_fl);
-      col_accum_ub[0] += (uint)col_temp_ub[0];
-      col_accum_ub[1] += (uint)col_temp_ub[1];
-      col_accum_ub[2] += (uint)col_temp_ub[2];
-      col_accum_ub[3] += (uint)col_temp_ub[3];
+      col_accum_ub[0] += uint(col_temp_ub[0]);
+      col_accum_ub[1] += uint(col_temp_ub[1]);
+      col_accum_ub[2] += uint(col_temp_ub[2]);
+      col_accum_ub[3] += uint(col_temp_ub[3]);
       col_tot += 1;
     }
   }
@@ -175,7 +175,7 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   if (uv[0] >= 0.0f && uv[1] >= 0.0f && uv[0] < 1.0f && uv[1] < 1.0f) {
-    int x = (int)(uv[0] * ibuf->x), y = (int)(uv[1] * ibuf->y);
+    int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);
@@ -291,10 +291,10 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 
   fx /= scene->r.xasp / scene->r.yasp;
 
-  fx += (float)scene->r.xsch / 2.0f;
-  fy += (float)scene->r.ysch / 2.0f;
-  fx *= (float)ibuf->x / (float)scene->r.xsch;
-  fy *= (float)ibuf->y / (float)scene->r.ysch;
+  fx += float(scene->r.xsch) / 2.0f;
+  fy += float(scene->r.ysch) / 2.0f;
+  fx *= float(ibuf->x) / float(scene->r.xsch);
+  fy *= float(ibuf->y) / float(scene->r.ysch);
 
   if (fx >= 0.0f && fy >= 0.0f && fx < ibuf->x && fy < ibuf->y) {
     const float *fp;
@@ -318,10 +318,10 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
       info->col[3] = cp[3];
       info->colp = info->col;
 
-      info->colf[0] = (float)cp[0] / 255.0f;
-      info->colf[1] = (float)cp[1] / 255.0f;
-      info->colf[2] = (float)cp[2] / 255.0f;
-      info->colf[3] = (float)cp[3] / 255.0f;
+      info->colf[0] = float(cp[0]) / 255.0f;
+      info->colf[1] = float(cp[1]) / 255.0f;
+      info->colf[2] = float(cp[2]) / 255.0f;
+      info->colf[3] = float(cp[3]) / 255.0f;
       info->colfp = info->colf;
 
       copy_v4_v4(info->linearcol, info->colf);
@@ -421,16 +421,13 @@ void ED_imbuf_sample_draw(const bContext *C, ARegion *region, void *arg_info)
       BLI_rctf_init_pt_radius(&sample_rect_fl,
                               blender::float2{float(event->xy[0] - region->winrct.xmin),
                                               float(event->xy[1] - region->winrct.ymin)},
-                              (float)(info->sample_size / 2.0f) * sima->zoom);
+                              float(info->sample_size / 2.0f) * sima->zoom);
 
       GPU_logic_op_xor_set(true);
 
       GPU_line_width(1.0f);
-      imm_draw_box_wire_2d(pos,
-                           (float)sample_rect_fl.xmin,
-                           (float)sample_rect_fl.ymin,
-                           (float)sample_rect_fl.xmax,
-                           (float)sample_rect_fl.ymax);
+      imm_draw_box_wire_2d(
+          pos, sample_rect_fl.xmin, sample_rect_fl.ymin, sample_rect_fl.xmax, sample_rect_fl.ymax);
 
       GPU_logic_op_xor_set(false);
 

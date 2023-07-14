@@ -46,7 +46,7 @@
 
 static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subframe)
 {
-  double cfra = (double)frame + (double)subframe;
+  double cfra = double(frame) + double(subframe);
 
   CLAMP(cfra, MINAFRAME, MAXFRAME);
   BKE_scene_frame_set(scene, cfra);

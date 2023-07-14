@@ -1440,7 +1440,7 @@ static void draw_selected_name(
     }
   }
 
-  BLI_assert(i < (int)ARRAY_SIZE(info_array));
+  BLI_assert(i < int(ARRAY_SIZE(info_array)));
   char info[300];
   BLI_string_join_array(info, sizeof(info), info_array, i);
 

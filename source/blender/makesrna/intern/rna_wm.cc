@@ -1184,7 +1184,7 @@ static StructRNA *rna_wmKeyConfigPref_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_kpt_rt.idname));
+                int(sizeof(dummy_kpt_rt.idname)));
     return nullptr;
   }
 

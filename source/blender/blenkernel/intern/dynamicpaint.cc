@@ -782,8 +782,8 @@ static void surfaceGenerateGrid(DynamicPaintSurface *surface)
     volume = td[0] * td[1] * td[2];
 
     /* determine final grid size by trying to fit average 10.000 points per grid cell */
-    dim_factor = (float)pow(double(volume) / (double(sData->total_points) / 10000.0),
-                            1.0 / double(axis));
+    dim_factor = float(
+        pow(double(volume) / (double(sData->total_points) / 10000.0), 1.0 / double(axis)));
 
     /* define final grid size using dim_factor, use min 3 for active axes */
     for (i = 0; i < 3; i++) {
@@ -3184,7 +3184,7 @@ int dynamicPaint_createUVSurface(Scene *scene,
       /* green color shows pixel face index hash */
       if (uvPoint->tri_index != -1) {
         pPoint->color[0] = 1.0f;
-        pPoint->color[1] = (float)(uvPoint->tri_index % 255) / 256.0f;
+        pPoint->color[1] = float(uvPoint->tri_index % 255) / 256.0f;
       }
     }
 #endif
@@ -5186,7 +5186,7 @@ static int dynamicPaint_prepareEffectStep(Depsgraph *depsgraph,
 
       /* calculate average values (single thread) */
       for (int index = 0; index < sData->total_points; index++) {
-        average_force += (double)(*force)[index * 4 + 3];
+        average_force += double((*force)[index * 4 + 3]);
       }
       average_force /= sData->total_points;
     }
@@ -5765,8 +5765,8 @@ static void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescal
   average_dist *= double(wave_scale) / sData->adj_data->total_targets;
 
   /* determine number of required steps */
-  steps = (int)ceil(double(WAVE_TIME_FAC * timescale * surface->wave_timescale) /
-                    (average_dist / double(wave_speed) / 3));
+  steps = int(ceil(double(WAVE_TIME_FAC * timescale * surface->wave_timescale) /
+                   (average_dist / double(wave_speed) / 3)));
   CLAMP(steps, 1, 20);
   timescale /= steps;
 

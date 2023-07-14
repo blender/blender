@@ -80,10 +80,10 @@ static FileSelection find_file_mouse_rect(SpaceFile *sfile,
   v2d->cur.ymax += sfile->layout->offset_top;
 
   BLI_rcti_init(&rect_view,
-                (int)(v2d->tot.xmin + rect_view_fl.xmin),
-                (int)(v2d->tot.xmin + rect_view_fl.xmax),
-                (int)(v2d->tot.ymax - rect_view_fl.ymin),
-                (int)(v2d->tot.ymax - rect_view_fl.ymax));
+                int(v2d->tot.xmin + rect_view_fl.xmin),
+                int(v2d->tot.xmin + rect_view_fl.xmax),
+                int(v2d->tot.ymax - rect_view_fl.ymin),
+                int(v2d->tot.ymax - rect_view_fl.ymax));
 
   sel = ED_fileselect_layout_offset_rect(sfile->layout, &rect_view);
 
@@ -427,13 +427,13 @@ static int file_box_select_find_last_selected(SpaceFile *sfile,
       (layout->flag & FILE_LAYOUT_VER && bounds_first.ymin != bounds_last.ymin))
   {
     /* use vertical distance */
-    const int my_loc = (int)mouseco_view[1];
+    const int my_loc = int(mouseco_view[1]);
     dist_first = BLI_rcti_length_y(&bounds_first, my_loc);
     dist_last = BLI_rcti_length_y(&bounds_last, my_loc);
   }
   else {
     /* use horizontal distance */
-    const int mx_loc = (int)mouseco_view[0];
+    const int mx_loc = int(mouseco_view[0]);
     dist_first = BLI_rcti_length_x(&bounds_first, mx_loc);
     dist_last = BLI_rcti_length_x(&bounds_last, mx_loc);
   }
@@ -1433,7 +1433,7 @@ int file_highlight_set(SpaceFile *sfile, ARegion *region, int mx, int my)
     UI_view2d_region_to_view(v2d, mx, my, &fx, &fy);
 
     highlight_file = ED_fileselect_layout_offset(
-        sfile->layout, (int)(v2d->tot.xmin + fx), (int)(v2d->tot.ymax - fy));
+        sfile->layout, int(v2d->tot.xmin + fx), int(v2d->tot.ymax - fy));
 
     if ((highlight_file >= 0) && (highlight_file < numfiles)) {
       params->highlight_file = highlight_file;
@@ -2414,7 +2414,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator * /*op*/, const wmEv
 
   const int numfiles_layout = ED_fileselect_layout_numfiles(sfile->layout, region);
   const int first_visible_item = ED_fileselect_layout_offset(
-      sfile->layout, (int)region->v2d.cur.xmin, (int)-region->v2d.cur.ymax);
+      sfile->layout, int(region->v2d.cur.xmin), int(-region->v2d.cur.ymax));
   const int last_visible_item = first_visible_item + numfiles_layout + 1;
 
   /* NOTE: the special case for vertical layout is because filename is at the bottom of items then,

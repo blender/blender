@@ -883,7 +883,7 @@ static AZone *area_actionzone_refresh_xy(ScrArea *area, const int xy[2], const b
               az->alpha = 1.0f;
             }
             else if (mouse_sq < fadeout_sq) {
-              az->alpha = 1.0f - (float)(mouse_sq - fadein_sq) / (float)(fadeout_sq - fadein_sq);
+              az->alpha = 1.0f - float(mouse_sq - fadein_sq) / float(fadeout_sq - fadein_sq);
             }
             else {
               az->alpha = 0.0f;
@@ -1767,7 +1767,7 @@ static int area_snap_calc_location(const bScreen *screen,
   BLI_assert(snap_type != SNAP_NONE);
   int m_cursor_final = -1;
   const int m_cursor = origval + delta;
-  const int m_span = (float)(bigger + smaller);
+  const int m_span = float(bigger + smaller);
   const int m_min = origval - smaller;
   // const int axis_max = axis_min + m_span;
 
@@ -2328,8 +2328,8 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     /* The factor will be close to 1.0f when near the top-left and the bottom-right corners. */
-    const float factor_v = (float)(event->xy[1] - sad->sa1->v1->vec.y) / (float)sad->sa1->winy;
-    const float factor_h = (float)(event->xy[0] - sad->sa1->v1->vec.x) / (float)sad->sa1->winx;
+    const float factor_v = float(event->xy[1] - sad->sa1->v1->vec.y) / float(sad->sa1->winy);
+    const float factor_h = float(event->xy[0] - sad->sa1->v1->vec.x) / float(sad->sa1->winx);
     const bool is_left = factor_v < 0.5f;
     const bool is_bottom = factor_h < 0.5f;
     const bool is_right = !is_left;
@@ -2367,11 +2367,11 @@ static int area_split_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     dir_axis = eScreenAxis(RNA_property_enum_get(op->ptr, prop_dir));
     if (dir_axis == SCREEN_AXIS_H) {
       RNA_property_float_set(
-          op->ptr, prop_factor, (float)(event->xy[0] - area->v1->vec.x) / (float)area->winx);
+          op->ptr, prop_factor, float(event->xy[0] - area->v1->vec.x) / float(area->winx));
     }
     else {
       RNA_property_float_set(
-          op->ptr, prop_factor, (float)(event->xy[1] - area->v1->vec.y) / (float)area->winy);
+          op->ptr, prop_factor, float(event->xy[1] - area->v1->vec.y) / float(area->winy));
     }
 
     if (!area_split_init(C, op)) {
@@ -2585,7 +2585,7 @@ static int area_split_modal(bContext *C, wmOperator *op, const wmEvent *event)
       CTX_wm_screen(C)->do_draw = true;
     }
 
-    float fac = (float)(sd->delta + sd->origval - sd->origmin) / sd->origsize;
+    float fac = float(sd->delta + sd->origval - sd->origmin) / sd->origsize;
     RNA_float_set(op->ptr, "factor", fac);
   }
 
@@ -5418,7 +5418,7 @@ float ED_region_blend_alpha(ARegion *region)
     RegionAlphaInfo *rgi = static_cast<RegionAlphaInfo *>(region->regiontimer->customdata);
     float alpha;
 
-    alpha = (float)region->regiontimer->duration / TIMEOUT;
+    alpha = float(region->regiontimer->duration) / TIMEOUT;
     /* makes sure the blend out works 100% - without area redraws */
     if (rgi->hidden) {
       alpha = 0.9f - TIMESTEP - alpha;

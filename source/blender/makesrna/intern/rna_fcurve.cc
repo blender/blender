@@ -1080,7 +1080,7 @@ static void rna_FKeyframe_points_remove(
     ID *id, FCurve *fcu, Main *bmain, ReportList *reports, PointerRNA *bezt_ptr, bool do_fast)
 {
   BezTriple *bezt = static_cast<BezTriple *>(bezt_ptr->data);
-  int index = (int)(bezt - fcu->bezt);
+  int index = int(bezt - fcu->bezt);
   if (index < 0 || index >= fcu->totvert) {
     BKE_report(reports, RPT_ERROR, "Keyframe not in F-Curve");
     return;
@@ -1173,7 +1173,7 @@ static void rna_FModifierEnvelope_points_remove(
   FCM_EnvelopeData *cp = static_cast<FCM_EnvelopeData *>(point->data);
   FMod_Envelope *env = (FMod_Envelope *)fmod->data;
 
-  int index = (int)(cp - env->data);
+  int index = int(cp - env->data);
 
   /* test point is in range */
   if (index < 0 || index >= env->totvert) {

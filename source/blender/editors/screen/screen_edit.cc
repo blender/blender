@@ -508,8 +508,8 @@ static ScrArea *screen_area_trim(
   }
 
   /* Measurement with ScrVerts because winx and winy might not be correct at this time. */
-  float fac = abs(size) / (float)(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
-                                             ((*area)->v3->vec.y - (*area)->v1->vec.y));
+  float fac = abs(size) / float(vertical ? ((*area)->v3->vec.x - (*area)->v1->vec.x) :
+                                           ((*area)->v3->vec.y - (*area)->v1->vec.y));
   fac = (reverse == vertical) ? 1.0f - fac : fac;
   ScrArea *newsa = area_split(
       CTX_wm_window(C), screen, *area, vertical ? SCREEN_AXIS_V : SCREEN_AXIS_H, fac, true);
@@ -581,7 +581,7 @@ bool screen_area_close(bContext *C, bScreen *screen, ScrArea *area)
       const int ar_length = vertical ? (neighbor->v3->vec.x - neighbor->v1->vec.x) :
                                        (neighbor->v3->vec.y - neighbor->v1->vec.y);
       /* Calculate the ratio of the lengths of the shared edges. */
-      float alignment = MIN2(area_length, ar_length) / (float)MAX2(area_length, ar_length);
+      float alignment = MIN2(area_length, ar_length) / float(MAX2(area_length, ar_length));
       if (alignment > best_alignment) {
         best_alignment = alignment;
         sa2 = neighbor;
@@ -1129,7 +1129,7 @@ static void screen_global_area_refresh(wmWindow *win,
 
 static int screen_global_header_size()
 {
-  return (int)ceilf(ED_area_headersize() / UI_SCALE_FAC);
+  return int(ceilf(ED_area_headersize() / UI_SCALE_FAC));
 }
 
 static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)

@@ -781,7 +781,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
       float nor[3] = {0.0, 0.0, 0.0};
 
       /* 2D normal calc */
-      const float mval_f[2] = {(float)event->mval[0], (float)event->mval[1]};
+      const float mval_f[2] = {float(event->mval[0]), float(event->mval[1])};
 
       /* check for edges that are half selected, use for rotation */
       bool done = false;

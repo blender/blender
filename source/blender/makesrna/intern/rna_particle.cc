@@ -451,7 +451,7 @@ static void rna_ParticleSystem_co_hair(
 
   if (particle_no < totpart && particlesystem->pathcache) {
     cache = particlesystem->pathcache[particle_no];
-    max_k = (int)cache->segments;
+    max_k = int(cache->segments);
   }
   else if (particle_no < totpart + totchild && particlesystem->childcache) {
     cache = particlesystem->childcache[particle_no - totpart];
@@ -460,7 +460,7 @@ static void rna_ParticleSystem_co_hair(
       max_k = 0;
     }
     else {
-      max_k = (int)cache->segments;
+      max_k = int(cache->segments);
     }
   }
   else {
@@ -707,9 +707,9 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem,
       MCol mcol;
 
       psys_interpolate_mcol(&mc[num * 4], mface->v4, *fuv, &mcol);
-      r_mcol[0] = (float)mcol.b / 255.0f;
-      r_mcol[1] = (float)mcol.g / 255.0f;
-      r_mcol[2] = (float)mcol.r / 255.0f;
+      r_mcol[0] = float(mcol.b) / 255.0f;
+      r_mcol[1] = float(mcol.g) / 255.0f;
+      r_mcol[2] = float(mcol.r) / 255.0f;
     }
   }
 }

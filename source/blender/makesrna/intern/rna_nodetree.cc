@@ -1161,7 +1161,7 @@ static StructRNA *rna_NodeTree_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_nt.idname));
+                int(sizeof(dummy_nt.idname)));
     return nullptr;
   }
 
@@ -2008,7 +2008,7 @@ static bNodeType *rna_Node_register_base(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_nt.idname));
+                int(sizeof(dummy_nt.idname)));
     return nullptr;
   }
 
@@ -2845,7 +2845,7 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
                 RPT_ERROR,
                 "Registering node socket class: '%s' is too long, maximum length is %d",
                 identifier,
-                (int)sizeof(dummy_st.idname));
+                int(sizeof(dummy_st.idname)));
     return nullptr;
   }
 
@@ -4420,7 +4420,7 @@ static NodeSimulationItem *rna_NodeGeometrySimulationOutput_items_new(
 {
   NodeGeometrySimulationOutput *sim = static_cast<NodeGeometrySimulationOutput *>(node->storage);
   NodeSimulationItem *item = NOD_geometry_simulation_output_add_item(
-      sim, (short)socket_type, name);
+      sim, short(socket_type), name);
 
   if (item == nullptr) {
     BKE_report(reports, RPT_ERROR, "Unable to create socket");

@@ -827,7 +827,7 @@ static int convert_include(const char *filepath)
                   /* We've got a name. slen needs
                    * correction for function
                    * pointers! */
-                  int slen = (int)strlen(md1);
+                  int slen = int(strlen(md1));
                   if (md1[slen - 1] == ';') {
                     md1[slen - 1] = 0;
 
@@ -973,7 +973,7 @@ static int calculate_struct_sizes(int firststruct, FILE *file_verify, const char
         for (int b = 0; b < structpoin[1]; b++, sp += 2) {
           int type = sp[0];
           const char *cp = names[sp[1]];
-          int namelen = (int)strlen(cp);
+          int namelen = int(strlen(cp));
 
           /* Write size verification to file. */
           {

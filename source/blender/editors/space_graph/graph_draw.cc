@@ -868,7 +868,7 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
     return max_bez_resolution;
   }
 
-  const int resolution = (int)(5.0f * len_v2v2(bezt->vec[1], prevbezt->vec[1]));
+  const int resolution = int(5.0f * len_v2v2(bezt->vec[1], prevbezt->vec[1]));
 
   /* NOTE: higher values will crash */
   /* TODO: view scale should factor into this someday too... */

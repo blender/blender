@@ -6314,7 +6314,7 @@ void RNA_parameter_dynamic_length_set(ParameterList *parms, PropertyRNA *parm, i
 int RNA_parameter_dynamic_length_get_data(ParameterList * /*parms*/, PropertyRNA *parm, void *data)
 {
   if (parm->flag & PROP_DYNAMIC) {
-    return (int)((ParameterDynAlloc *)data)->array_tot;
+    return int(((ParameterDynAlloc *)data)->array_tot);
   }
   return 0;
 }

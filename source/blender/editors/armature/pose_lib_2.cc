@@ -151,7 +151,7 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
   }
 
   /* Perform actual auto-keying. */
-  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
+  ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
   BLI_freelistN(&dsources);
 
   /* send notifiers for this */

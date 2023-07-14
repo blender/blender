@@ -490,9 +490,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       orient_type_set = V3D_ORIENT_CUSTOM_MATRIX;
     }
 
-    orient_types[O_DEFAULT] = (short)orient_type_default;
-    orient_types[O_SCENE] = (short)orient_type_scene;
-    orient_types[O_SET] = (short)orient_type_set;
+    orient_types[O_DEFAULT] = short(orient_type_default);
+    orient_types[O_SCENE] = short(orient_type_scene);
+    orient_types[O_SET] = short(orient_type_set);
 
     for (int i = 0; i < 3; i++) {
       /* For efficiency, avoid calculating the same orientation twice. */
@@ -1293,7 +1293,7 @@ void calculatePropRatio(TransInfo *t)
             case PROP_RANDOM:
               if (t->rng == nullptr) {
                 /* Lazy initialization. */
-                uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+                uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
                 t->rng = BLI_rng_new(rng_seed);
               }
               td->factor = BLI_rng_get_float(t->rng) * dist;

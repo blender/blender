@@ -461,7 +461,7 @@ static StructRNA *rna_Gizmo_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(temp_buffers.idname));
+                int(sizeof(temp_buffers.idname)));
     return nullptr;
   }
 
@@ -846,7 +846,7 @@ static StructRNA *rna_GizmoGroup_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(temp_buffers.idname));
+                int(sizeof(temp_buffers.idname)));
     return nullptr;
   }
 

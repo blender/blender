@@ -582,13 +582,13 @@ static void fmod_envelope_addpoint_cb(bContext *C, void *fcm_dv, void * /*arg*/)
   /* init template data */
   fed.min = -1.0f;
   fed.max = 1.0f;
-  fed.time = (float)scene->r.cfra; /* XXX make this int for ease of use? */
+  fed.time = float(scene->r.cfra); /* XXX make this int for ease of use? */
   fed.f1 = fed.f2 = 0;
 
   /* check that no data exists for the current frame... */
   if (env->data) {
     bool exists;
-    int i = BKE_fcm_envelope_find_index(env->data, (float)(scene->r.cfra), env->totvert, &exists);
+    int i = BKE_fcm_envelope_find_index(env->data, float(scene->r.cfra), env->totvert, &exists);
 
     /* binarysearch_...() will set exists by default to 0,
      * so if it is non-zero, that means that the point exists already */

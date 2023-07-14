@@ -101,8 +101,8 @@ static SpaceLink *graph_create(const ScrArea * /*area*/, const Scene *scene)
   region->regiontype = RGN_TYPE_WINDOW;
 
   region->v2d.tot.xmin = 0.0f;
-  region->v2d.tot.ymin = (float)scene->r.sfra - 10.0f;
-  region->v2d.tot.xmax = (float)scene->r.efra;
+  region->v2d.tot.ymin = float(scene->r.sfra) - 10.0f;
+  region->v2d.tot.xmax = float(scene->r.efra);
   region->v2d.tot.ymax = 10.0f;
 
   region->v2d.cur = region->v2d.tot;

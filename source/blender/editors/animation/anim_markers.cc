@@ -104,7 +104,7 @@ int ED_markers_post_apply_transform(
     ListBase *markers, Scene *scene, int mode, float value, char side)
 {
   TimeMarker *marker;
-  float cfra = (float)scene->r.cfra;
+  float cfra = float(scene->r.cfra);
   int changed_tot = 0;
 
   /* sanity check - no markers, or locked markers */
@@ -129,7 +129,7 @@ int ED_markers_post_apply_transform(
         }
         case TFM_TIME_SCALE: {
           /* rescale the distance between the marker and the current frame */
-          marker->frame = cfra + round_fl_to_int((float)(marker->frame - cfra) * value);
+          marker->frame = cfra + round_fl_to_int(float(marker->frame - cfra) * value);
           changed_tot++;
           break;
         }
@@ -149,7 +149,7 @@ TimeMarker *ED_markers_find_nearest_marker(ListBase *markers, float x)
 
   if (markers) {
     for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
-      dist = fabsf((float)marker->frame - x);
+      dist = fabsf(float(marker->frame) - x);
 
       if (dist < min_dist) {
         min_dist = dist;
@@ -185,10 +185,10 @@ void ED_markers_get_minmax(ListBase *markers, short sel, float *r_first, float *
   for (marker = static_cast<TimeMarker *>(markers->first); marker; marker = marker->next) {
     if (!sel || (marker->flag & SELECT)) {
       if (marker->frame < min) {
-        min = (float)marker->frame;
+        min = float(marker->frame);
       }
       if (marker->frame > max) {
-        max = (float)marker->frame;
+        max = float(marker->frame);
       }
     }
   }
@@ -1021,7 +1021,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 
   /* Modal numinput active, try to handle numeric inputs first... */
   if (event->val == KM_PRESS && has_numinput && handleNumInput(C, &mm->num, event)) {
-    float value = (float)RNA_int_get(op->ptr, "frames");
+    float value = float(RNA_int_get(op->ptr, "frames"));
 
     applyNumInput(&mm->num, &value);
     if (use_time) {
@@ -1068,7 +1068,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
             float fac;
 
             mm->evtx = event->xy[0];
-            fac = ((float)(event->xy[0] - mm->firstx) * dx);
+            fac = (float(event->xy[0] - mm->firstx) * dx);
 
             apply_keyb_grid((event->modifier & KM_SHIFT) != 0,
                             (event->modifier & KM_CTRL) != 0,
@@ -1087,7 +1087,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
     }
 
     if (!handled && event->val == KM_PRESS && handleNumInput(C, &mm->num, event)) {
-      float value = (float)RNA_int_get(op->ptr, "frames");
+      float value = float(RNA_int_get(op->ptr, "frames"));
 
       applyNumInput(&mm->num, &value);
       if (use_time) {

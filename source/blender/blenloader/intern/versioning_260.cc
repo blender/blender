@@ -163,10 +163,10 @@ static void do_versions_image_settings_2_60(Scene *sce)
   ImageFormatData *imf = &sce->r.im_format;
 
   /* we know no data loss happens here, the old values were in char range */
-  imf->imtype = (char)rd->imtype;
-  imf->planes = (char)rd->planes;
-  imf->compress = (char)rd->quality;
-  imf->quality = (char)rd->quality;
+  imf->imtype = char(rd->imtype);
+  imf->planes = char(rd->planes);
+  imf->compress = char(rd->quality);
+  imf->quality = char(rd->quality);
 
   /* default, was stored in multiple places, may override later */
   imf->depth = R_IMF_CHAN_DEPTH_8;
@@ -1348,8 +1348,8 @@ if (!MAIN_VERSION_ATLEAST(bmain, 263, 17)) {
           if (node->storage == nullptr) {
             NodeMask *data = MEM_cnew<NodeMask>(__func__);
             /* move settings into own struct */
-            data->size_x = (int)node->custom3;
-            data->size_y = (int)node->custom4;
+            data->size_x = int(node->custom3);
+            data->size_y = int(node->custom4);
             node->custom3 = 0.5f; /* default shutter */
             node->storage = data;
           }

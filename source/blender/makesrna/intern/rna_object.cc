@@ -1221,7 +1221,7 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 
   /* use API Method for conversions... */
   BKE_rotMode_change_values(
-      ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, (short)value);
+      ob->quat, ob->rot, ob->rotAxis, &ob->rotAngle, ob->rotmode, short(value));
 
   /* finally, set the new rotation type */
   ob->rotmode = value;
@@ -1323,7 +1323,7 @@ static int rna_Object_rotation_4d_editable(PointerRNA *ptr, int index)
 static int rna_MaterialSlot_index(const PointerRNA *ptr)
 {
   /* There is an offset, so that `ptr->data` is not null and unique across IDs. */
-  return (uintptr_t)ptr->data - (uintptr_t)ptr->owner_id;
+  return uintptr_t(ptr->data) - uintptr_t(ptr->owner_id);
 }
 
 static int rna_MaterialSlot_index_get(PointerRNA *ptr)
@@ -1496,7 +1496,7 @@ static PointerRNA rna_Object_material_slots_get(CollectionPropertyIterator *iter
   RNA_pointer_create(id,
                      &RNA_MaterialSlot,
                      /* Add offset, so that `ptr->data` is not null and unique across IDs. */
-                     (void *)(iter->internal.count.item + (uintptr_t)id),
+                     (void *)(iter->internal.count.item + uintptr_t(id)),
                      &ptr);
   return ptr;
 }

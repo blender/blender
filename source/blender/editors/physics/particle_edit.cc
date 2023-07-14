@@ -545,7 +545,7 @@ static void PE_free_shape_tree(PEData *data)
 
 static void PE_create_random_generator(PEData *data)
 {
-  uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
+  uint rng_seed = uint(PIL_check_seconds_timer_i() & UINT_MAX);
   rng_seed ^= POINTER_AS_UINT(data->ob);
   rng_seed ^= POINTER_AS_UINT(data->edit);
   data->rng = BLI_rng_new(rng_seed);
@@ -1363,7 +1363,7 @@ static void iterate_lengths_iter(void *__restrict iter_data_v,
   for (int j = 1; j < point->totkey; j++) {
     PTCacheEditKey *key;
     int k;
-    float mul = 1.0f / (float)point->totkey;
+    float mul = 1.0f / float(point->totkey);
     if (pset->flag & PE_LOCK_FIRST) {
       key = point->keys + 1;
       k = 1;
@@ -2772,11 +2772,11 @@ static void rekey_particle(PEData *data, int pa_index)
 
   sta = key->time = okey->time;
   end = (key + data->totrekey - 1)->time = (okey + pa->totkey - 1)->time;
-  dval = (end - sta) / (float)(data->totrekey - 1);
+  dval = (end - sta) / float(data->totrekey - 1);
 
   /* interpolate new keys from old ones */
   for (k = 1, key++; k < data->totrekey - 1; k++, key++) {
-    state.time = float(k) / (float)(data->totrekey - 1);
+    state.time = float(k) / float(data->totrekey - 1);
     psys_get_particle_on_path(&sim, pa_index, &state, 0);
     copy_v3_v3(key->co, state.co);
     key->time = sta + k * dval;
@@ -2815,7 +2815,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 
   PE_set_data(C, &data);
 
-  data.dval = 1.0f / (float)(data.totrekey - 1);
+  data.dval = 1.0f / float(data.totrekey - 1);
   data.totrekey = RNA_int_get(op->ptr, "keys_number");
 
   foreach_selected_point(&data, rekey_particle);
@@ -2878,7 +2878,7 @@ static void rekey_particle_to_time(
 
   /* interpolate new keys from old ones (roots stay the same) */
   for (k = 1, key++; k < pa->totkey; k++, key++) {
-    state.time = path_time * float(k) / (float)(pa->totkey - 1);
+    state.time = path_time * float(k) / float(pa->totkey - 1);
     psys_get_particle_on_path(&sim, pa_index, &state, 0);
     copy_v3_v3(key->co, state.co);
   }
@@ -3746,7 +3746,7 @@ static void brush_comb(PEData *data,
     return;
   }
 
-  fac = (float)pow((double)(1.0f - mouse_distance / data->rad), (double)data->combfac);
+  fac = float(pow(double(1.0f - mouse_distance / data->rad), double(data->combfac)));
 
   copy_v3_v3(cvec, data->dvec);
   mul_mat3_m4_v3(imat, cvec);
@@ -3765,7 +3765,7 @@ static void brush_cut(PEData *data, int pa_index)
   ParticleCacheKey *key = edit->pathcache[pa_index];
   float rad2, cut_time = 1.0;
   float x0, x1, v0, v1, o0, o1, xo0, xo1, d, dv;
-  int k, cut, keys = (int)pow(2.0, (double)pset->draw_step);
+  int k, cut, keys = int(pow(2.0, double(pset->draw_step)));
   int screen_co[2];
 
   BLI_assert(data->rng != nullptr);
@@ -3789,11 +3789,11 @@ static void brush_cut(PEData *data, int pa_index)
 
   cut = 0;
 
-  x0 = (float)screen_co[0];
-  x1 = (float)screen_co[1];
+  x0 = float(screen_co[0]);
+  x1 = float(screen_co[1]);
 
-  o0 = (float)data->mval[0];
-  o1 = (float)data->mval[1];
+  o0 = float(data->mval[0]);
+  o1 = float(data->mval[1]);
 
   xo0 = x0 - o0;
   xo1 = x1 - o1;
@@ -3811,16 +3811,16 @@ static void brush_cut(PEData *data, int pa_index)
            V3D_PROJ_RET_OK) ||
           key_test_depth(data, key->co, screen_co) == 0)
       {
-        x0 = (float)screen_co[0];
-        x1 = (float)screen_co[1];
+        x0 = float(screen_co[0]);
+        x1 = float(screen_co[1]);
 
         xo0 = x0 - o0;
         xo1 = x1 - o1;
         continue;
       }
 
-      v0 = (float)screen_co[0] - x0;
-      v1 = (float)screen_co[1] - x1;
+      v0 = float(screen_co[0]) - x0;
+      v1 = float(screen_co[1]) - x1;
 
       dv = v0 * v0 + v1 * v1;
 
@@ -3837,7 +3837,7 @@ static void brush_cut(PEData *data, int pa_index)
           cut_time /= dv;
 
           if (cut_time < 1.0f) {
-            cut_time += (float)(k - 1);
+            cut_time += float(k - 1);
             cut_time /= float(keys);
             cut = 1;
             break;
@@ -3845,8 +3845,8 @@ static void brush_cut(PEData *data, int pa_index)
         }
       }
 
-      x0 = (float)screen_co[0];
-      x1 = (float)screen_co[1];
+      x0 = float(screen_co[0]);
+      x1 = float(screen_co[1]);
 
       xo0 = x0 - o0;
       xo1 = x1 - o1;
@@ -3948,7 +3948,7 @@ static void brush_puff(PEData *data, int point_index, float mouse_distance)
         normalize_v3(onor_prev);
       }
 
-      fac = (float)pow((double)(1.0f - mouse_distance / data->rad), (double)data->pufffac);
+      fac = float(pow(double(1.0f - mouse_distance / data->rad), double(data->pufffac)));
       fac *= 0.025f;
       if (data->invert) {
         fac = -fac;
@@ -4601,7 +4601,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         point->flag |= PEP_TAG; /* signal for duplicate */
       }
 
-      framestep = pa->lifetime / (float)(pset->totaddkey - 1);
+      framestep = pa->lifetime / float(pset->totaddkey - 1);
 
       if (tree) {
         ParticleData *ppa;
@@ -4627,7 +4627,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         maxd = ptn[maxw - 1].dist;
 
         for (w = 0; w < maxw; w++) {
-          weight[w] = (float)pow(2.0, (double)(-6.0f * ptn[w].dist / maxd));
+          weight[w] = float(pow(2.0, double(-6.0f * ptn[w].dist / maxd)));
           totw += weight[w];
         }
         for (; w < 3; w++) {
@@ -4685,7 +4685,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
         for (k = 0, hkey = pa->hair; k < pset->totaddkey; k++, hkey++) {
           madd_v3_v3v3fl(hkey->co, pa->state.co, pa->state.vel, k * framestep * timestep);
           hkey->time += k * framestep;
-          hkey->weight = 1.0f - float(k) / (float)(pset->totaddkey - 1);
+          hkey->weight = 1.0f - float(k) / float(pset->totaddkey - 1);
         }
       }
       for (k = 0, hkey = pa->hair; k < pset->totaddkey; k++, hkey++) {
@@ -4812,7 +4812,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
     data.context = C; /* TODO(mai): why isn't this set in bedit->data? */
 
     view3d_operator_needs_opengl(C);
-    selected = (short)count_selected_keys(scene, edit);
+    selected = short(count_selected_keys(scene, edit));
 
     dmax = max_ff(fabsf(dx), fabsf(dy));
     tot_steps = dmax / (0.2f * pe_brush_size_get(scene, brush)) + 1;
@@ -4941,7 +4941,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
           foreach_mouse_hit_key(&data, brush_smooth_get, selected);
 
           if (data.tot) {
-            mul_v3_fl(data.vec, 1.0f / (float)data.tot);
+            mul_v3_fl(data.vec, 1.0f / float(data.tot));
             foreach_mouse_hit_key(&data, brush_smooth_do, selected);
           }
 
@@ -5359,7 +5359,7 @@ void PE_create_particle_edit(
       psys_copy_particles(psys, psys_eval);
     }
 
-    totpoint = psys ? psys->totpart : (int)((PTCacheMem *)cache->mem_cache.first)->totpoint;
+    totpoint = psys ? psys->totpart : int(((PTCacheMem *)cache->mem_cache.first)->totpoint);
 
     edit = static_cast<PTCacheEdit *>(MEM_callocN(sizeof(PTCacheEdit), "PE_create_particle_edit"));
     edit->points = static_cast<PTCacheEditPoint *>(
@@ -5432,7 +5432,7 @@ void PE_create_particle_edit(
           key->co = static_cast<float *>(cur[BPHYS_DATA_LOCATION]);
           key->vel = static_cast<float *>(cur[BPHYS_DATA_VELOCITY]);
           key->rot = static_cast<float *>(cur[BPHYS_DATA_ROTATION]);
-          key->ftime = (float)pm->frame;
+          key->ftime = float(pm->frame);
           key->time = &key->ftime;
           BKE_ptcache_mem_pointers_incr(cur);
 

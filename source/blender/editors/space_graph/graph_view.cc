@@ -139,10 +139,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     }
     else {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
       if (ymin) {
         *ymin = -5;
@@ -159,10 +159,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     /* Set default range. */
     if (ac->scene) {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
     }
     else {
@@ -470,8 +470,8 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
   /* Ghost curves are snapshots of the visible portions of the curves,
    * so set range to be the visible range. */
   v2d = &ac.region->v2d;
-  start = (int)v2d->cur.xmin;
-  end = (int)v2d->cur.xmax;
+  start = int(v2d->cur.xmin);
+  end = int(v2d->cur.xmax);
 
   /* Bake selected curves into a ghost curve. */
   create_ghost_curves(&ac, start, end);

@@ -98,7 +98,7 @@ static TransCustomDataMesh *tc_mesh_customdata_ensure(TransDataContainer *tc)
   BLI_assert(tc->custom.type.data == nullptr ||
              tc->custom.type.free_cb == tc_mesh_customdata_free_fn);
   if (tc->custom.type.data == nullptr) {
-    tc->custom.type.data = MEM_callocN(sizeof(struct TransCustomDataMesh), __func__);
+    tc->custom.type.data = MEM_callocN(sizeof(TransCustomDataMesh), __func__);
     tc->custom.type.free_cb = tc_mesh_customdata_free_fn;
     tcmd = static_cast<TransCustomDataMesh *>(tc->custom.type.data);
     tcmd->partial_update_state_prev.for_looptri = PARTIAL_NONE;

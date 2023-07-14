@@ -851,7 +851,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 #if 0
       printf("%s: exact %d %d (%d)\n",
              __func__,
-             (int)ctime,
+             int(ctime),
              BLI_listbase_count(&masklay->splines_shapes),
              masklay_shape_a->frame);
 #endif
@@ -862,7 +862,7 @@ void BKE_mask_layer_evaluate_animation(MaskLayer *masklay, const float ctime)
 #if 0
       printf("%s: tween %d %d (%d %d)\n",
              __func__,
-             (int)ctime,
+             int(ctime),
              BLI_listbase_count(&masklay->splines_shapes),
              masklay_shape_a->frame,
              masklay_shape_b->frame);

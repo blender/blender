@@ -54,7 +54,7 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
   Scene *scene = CTX_data_scene(C);
 
   const float time = scene->r.cfra + scene->r.subframe;
-  const float x = (float)(time * scene->r.framelen);
+  const float x = float(time * scene->r.framelen);
 
   GPU_line_width((flag & DRAWCFRA_WIDE) ? 3.0 : 2.0);
 
@@ -95,8 +95,8 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
     /* only draw two separate 'curtains' if there's no overlap between them */
     if (PSFRA < PEFRA + end_frame_width) {
-      immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)PSFRA, v2d->cur.ymax);
-      immRectf(pos, (float)(PEFRA + end_frame_width), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+      immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(PSFRA), v2d->cur.ymax);
+      immRectf(pos, float(PEFRA + end_frame_width), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
     }
     else {
       immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -123,8 +123,8 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
   immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
 
   if (scene->r.sfra < scene->r.efra) {
-    immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)scene->r.sfra, v2d->cur.ymax);
-    immRectf(pos, (float)scene->r.efra, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+    immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(scene->r.sfra), v2d->cur.ymax);
+    immRectf(pos, float(scene->r.efra), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
   }
   else {
     immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
@@ -137,11 +137,11 @@ void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 
   immBegin(GPU_PRIM_LINES, 4);
 
-  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymin);
-  immVertex2f(pos, (float)scene->r.sfra, v2d->cur.ymax);
+  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymin);
+  immVertex2f(pos, float(scene->r.sfra), v2d->cur.ymax);
 
-  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymin);
-  immVertex2f(pos, (float)scene->r.efra, v2d->cur.ymax);
+  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymin);
+  immVertex2f(pos, float(scene->r.efra), v2d->cur.ymax);
 
   immEnd();
   immUnbindProgram();
@@ -259,7 +259,7 @@ static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
   AnimData *adt = (AnimData *)ked->data;
-  short only_keys = (short)ked->i1;
+  short only_keys = short(ked->i1);
 
   /* adjust BezTriple handles only if allowed to */
   if (only_keys == 0) {
@@ -278,7 +278,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
   AnimData *adt = (AnimData *)ked->data;
-  short only_keys = (short)ked->i1;
+  short only_keys = short(ked->i1);
 
   /* adjust BezTriple handles only if allowed to */
   if (only_keys == 0) {
@@ -356,7 +356,7 @@ static void fcurve_scene_coord_range_get(Scene *scene,
             fcu->bezt, scene->r.pefra + 1, fcu->totvert, &replace);
       }
       else if (fcu->fpt) {
-        const int unclamped_start = (int)(scene->r.psfra - fcu->fpt[0].vec[0]);
+        const int unclamped_start = int(scene->r.psfra - fcu->fpt[0].vec[0]);
         start = max_ii(unclamped_start, 0);
         end = min_ii(unclamped_start + (scene->r.pefra - scene->r.psfra) + 1, fcu->totvert);
       }
@@ -390,7 +390,7 @@ static void fcurve_scene_coord_range_get(Scene *scene,
           else {
             const int resol = fcu->driver ?
                                   32 :
-                                  min_ii((int)(5.0f * len_v2v2(bezt->vec[1], prev_bezt->vec[1])),
+                                  min_ii(int(5.0f * len_v2v2(bezt->vec[1], prev_bezt->vec[1])),
                                          32);
             if (resol < 2) {
               max_coord = max_ff(max_coord, prev_bezt->vec[1][1]);
@@ -572,7 +572,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   bool donenext = false, doneprev = false;
   int nextcount = 0, prevcount = 0;
 
-  cfranext = cfraprev = (float)(scene->r.cfra);
+  cfranext = cfraprev = float(scene->r.cfra);
 
   /* seed up dummy dopesheet context with flags to perform necessary filtering */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -601,7 +601,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
     aknext = ED_keylist_find_next(keylist, cfranext);
 
     if (aknext) {
-      if (scene->r.cfra == (int)aknext->cfra) {
+      if (scene->r.cfra == int(aknext->cfra)) {
         /* make this the new starting point for the search and ignore */
         cfranext = aknext->cfra;
       }
@@ -619,7 +619,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
     akprev = ED_keylist_find_prev(keylist, cfraprev);
 
     if (akprev) {
-      if (scene->r.cfra == (int)akprev->cfra) {
+      if (scene->r.cfra == int(akprev->cfra)) {
         /* make this the new starting point for the search */
       }
       else {

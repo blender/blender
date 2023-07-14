@@ -100,7 +100,7 @@ void color3ubv_from_seq(const Scene *curscene,
   Editing *ed = SEQ_editing_get(curscene);
   ListBase *channels = SEQ_channels_displayed_get(ed);
 
-  if (show_strip_color_tag && (uint)seq->color_tag < SEQUENCE_COLOR_TOT &&
+  if (show_strip_color_tag && uint(seq->color_tag) < SEQUENCE_COLOR_TOT &&
       seq->color_tag != SEQUENCE_COLOR_NONE)
   {
     bTheme *btheme = UI_GetTheme();

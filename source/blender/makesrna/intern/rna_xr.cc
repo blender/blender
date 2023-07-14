@@ -782,7 +782,7 @@ static bool rna_XrSessionState_action_create(bContext *C,
       }
     }
 
-    haptic_duration_msec = (int64_t)(ami->haptic_duration * 1000.0f);
+    haptic_duration_msec = int64_t(ami->haptic_duration * 1000.0f);
   }
 
   return WM_xr_action_create(&wm->xr,
@@ -891,7 +891,7 @@ void rna_XrSessionState_action_state_get(bContext *C,
   if (WM_xr_action_state_get(&wm->xr, action_set_name, action_name, user_path, &state)) {
     switch (state.type) {
       case XR_BOOLEAN_INPUT:
-        r_state[0] = (float)state.state_boolean;
+        r_state[0] = float(state.state_boolean);
         r_state[1] = 0.0f;
         return;
       case XR_FLOAT_INPUT:
@@ -923,7 +923,7 @@ bool rna_XrSessionState_haptic_action_apply(bContext *C,
 {
 #  ifdef WITH_XR_OPENXR
   wmWindowManager *wm = CTX_wm_manager(C);
-  int64_t duration_msec = (int64_t)(duration * 1000.0f);
+  int64_t duration_msec = int64_t(duration * 1000.0f);
   return WM_xr_haptic_action_apply(&wm->xr,
                                    action_set_name,
                                    action_name,
@@ -1128,7 +1128,7 @@ static void rna_XrSessionState_active_actionmap_set(PointerRNA *ptr, int value)
 {
 #  ifdef WITH_XR_OPENXR
   wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
-  WM_xr_actionmap_active_index_set(xr->runtime, (short)value);
+  WM_xr_actionmap_active_index_set(xr->runtime, short(value));
 #  else
   UNUSED_VARS(ptr, value);
 #  endif
@@ -1149,7 +1149,7 @@ static void rna_XrSessionState_selected_actionmap_set(PointerRNA *ptr, int value
 {
 #  ifdef WITH_XR_OPENXR
   wmXrData *xr = rna_XrSession_wm_xr_data_get(ptr);
-  WM_xr_actionmap_selected_index_set(xr->runtime, (short)value);
+  WM_xr_actionmap_selected_index_set(xr->runtime, short(value));
 #  else
   UNUSED_VARS(ptr, value);
 #  endif

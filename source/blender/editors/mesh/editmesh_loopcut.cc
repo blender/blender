@@ -381,8 +381,8 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
     uint base_index;
     uint e_index;
   } exec_data{};
-  exec_data.base_index = (uint)RNA_int_get(op->ptr, "object_index");
-  exec_data.e_index = (uint)RNA_int_get(op->ptr, "edge_index");
+  exec_data.base_index = uint(RNA_int_get(op->ptr, "object_index"));
+  exec_data.e_index = uint(RNA_int_get(op->ptr, "edge_index"));
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -646,7 +646,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
         {
           lcd->vc.mval[0] = event->mval[0];
           lcd->vc.mval[1] = event->mval[1];
-          loopcut_mouse_move(lcd, (int)lcd->cuts);
+          loopcut_mouse_move(lcd, int(lcd->cuts));
 
           ED_region_tag_redraw(lcd->region);
           handled = true;
@@ -668,8 +668,8 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
     /* allow zero so you can backspace and type in a value
      * otherwise 1 as minimum would make more sense */
     lcd->cuts = clamp_f(cuts, 0, SUBD_CUTS_MAX);
-    RNA_int_set(op->ptr, "number_cuts", (int)lcd->cuts);
-    ringsel_find_edge(lcd, (int)lcd->cuts);
+    RNA_int_set(op->ptr, "number_cuts", int(lcd->cuts));
+    ringsel_find_edge(lcd, int(lcd->cuts));
     show_cuts = true;
     ED_region_tag_redraw(lcd->region);
   }
@@ -689,7 +689,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
       outputNumInput(&lcd->num, str_rep, &sce->unit);
     }
     else {
-      BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", (int)lcd->cuts);
+      BLI_snprintf(str_rep, NUM_STR_REP_LEN, "%d", int(lcd->cuts));
       BLI_snprintf(str_rep + NUM_STR_REP_LEN, NUM_STR_REP_LEN, "%.2f", smoothness);
     }
     SNPRINTF(

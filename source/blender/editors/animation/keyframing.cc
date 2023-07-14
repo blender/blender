@@ -800,7 +800,7 @@ static float *setting_get_rna_values(
         tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(*tmp_bool), __func__));
         RNA_property_boolean_get_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
-          values[i] = (float)tmp_bool[i];
+          values[i] = float(tmp_bool[i]);
         }
         MEM_freeN(tmp_bool);
         break;
@@ -808,7 +808,7 @@ static float *setting_get_rna_values(
         tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(*tmp_int), __func__));
         RNA_property_int_get_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
-          values[i] = (float)tmp_int[i];
+          values[i] = float(tmp_int[i]);
         }
         MEM_freeN(tmp_int);
         break;
@@ -824,16 +824,16 @@ static float *setting_get_rna_values(
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
-        *values = (float)RNA_property_boolean_get(ptr, prop);
+        *values = float(RNA_property_boolean_get(ptr, prop));
         break;
       case PROP_INT:
-        *values = (float)RNA_property_int_get(ptr, prop);
+        *values = float(RNA_property_int_get(ptr, prop));
         break;
       case PROP_FLOAT:
         *values = RNA_property_float_get(ptr, prop);
         break;
       case PROP_ENUM:
-        *values = (float)RNA_property_enum_get(ptr, prop);
+        *values = float(RNA_property_enum_get(ptr, prop));
         break;
       default:
         *values = 0.0f;
@@ -2382,7 +2382,7 @@ void ANIM_OT_keyframe_clear_v3d(wmOperatorType *ot)
 static int delete_key_v3d_without_keying_set(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  float cfra = (float)scene->r.cfra;
+  float cfra = float(scene->r.cfra);
 
   int selected_objects_len = 0;
   int selected_objects_success_len = 0;
@@ -2533,7 +2533,7 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
   char *path;
   uiBut *but;
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      CTX_data_depsgraph_pointer(C), (float)scene->r.cfra);
+      CTX_data_depsgraph_pointer(C), float(scene->r.cfra));
   bool changed = false;
   int index;
   const bool all = RNA_boolean_get(op->ptr, "all");
@@ -2884,7 +2884,7 @@ void ANIM_OT_keyframe_clear_button(wmOperatorType *ot)
 
 bool autokeyframe_cfra_can_key(const Scene *scene, ID *id)
 {
-  float cfra = (float)scene->r.cfra; /* XXX for now, this will do */
+  float cfra = float(scene->r.cfra); /* XXX for now, this will do */
 
   /* only filter if auto-key mode requires this */
   if (IS_AUTOKEY_ON(scene) == 0) {
@@ -3071,7 +3071,7 @@ bool ED_autokeyframe_object(bContext *C, Scene *scene, Object *ob, KeyingSet *ks
      * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, nullptr, nullptr);
-    ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
+    ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
     BLI_freelistN(&dsources);
 
     return true;
@@ -3091,7 +3091,7 @@ bool ED_autokeyframe_pchan(
      * 3) Free the extra info.
      */
     ANIM_relative_keyingset_add_source(&dsources, &ob->id, &RNA_PoseBone, pchan);
-    ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, (float)scene->r.cfra);
+    ANIM_apply_keyingset(C, &dsources, nullptr, ks, MODIFYKEY_MODE_INSERT, float(scene->r.cfra));
     BLI_freelistN(&dsources);
 
     return true;
