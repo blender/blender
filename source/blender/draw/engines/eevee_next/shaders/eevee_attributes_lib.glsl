@@ -60,6 +60,56 @@ vec3 attr_load_uv(vec3 attr)
 
 /** \} */
 
+#elif defined(MAT_GEOM_POINT_CLOUD)
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cloud
+ *
+ * Point Cloud objects loads attributes from buffers through sampler buffers.
+ * \{ */
+
+#  pragma BLENDER_REQUIRE(common_pointcloud_lib.glsl)
+
+#  ifdef OBINFO_LIB
+vec3 attr_load_orco(vec4 orco)
+{
+  vec3 P = pointcloud_get_pos();
+  vec3 lP = transform_point(ModelMatrixInverse, P);
+  return OrcoTexCoFactors[0].xyz + lP * OrcoTexCoFactors[1].xyz;
+}
+#  endif
+
+vec4 attr_load_tangent(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec3 attr_load_uv(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec3(cd_buf);
+}
+vec4 attr_load_color(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec4 attr_load_vec4(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec4(cd_buf);
+}
+vec3 attr_load_vec3(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec3(cd_buf);
+}
+vec2 attr_load_vec2(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_vec2(cd_buf);
+}
+float attr_load_float(samplerBuffer cd_buf)
+{
+  return pointcloud_get_customdata_float(cd_buf);
+}
+
+/** \} */
+
 #elif defined(MAT_GEOM_GPENCIL)
 
 /* -------------------------------------------------------------------- */

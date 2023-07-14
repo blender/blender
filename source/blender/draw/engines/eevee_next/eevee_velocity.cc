@@ -17,6 +17,8 @@
 #include "DEG_depsgraph_query.h"
 #include "DNA_rigidbody_types.h"
 
+#include "draw_cache_impl.h"
+
 #include "eevee_instance.hh"
 // #include "eevee_renderpasses.hh"
 #include "eevee_shader.hh"
@@ -128,6 +130,9 @@ bool VelocityModule::step_object_sync(Object *ob,
       switch (ob->type) {
         case OB_CURVES:
           data.pos_buf = DRW_curves_pos_buffer_get(ob);
+          break;
+        case OB_POINTCLOUD:
+          data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob);
           break;
         default:
           data.pos_buf = DRW_cache_object_pos_vertbuf_get(ob);

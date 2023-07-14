@@ -18,6 +18,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
+#include "draw_common.hh"
+
 #include "eevee_instance.hh"
 
 namespace blender::eevee {
@@ -150,6 +152,49 @@ void SyncModule::sync_mesh(Object *ob,
 
   inst_.shadows.sync_object(ob_handle, res_handle, is_shadow_caster, is_alpha_blend);
   inst_.cryptomatte.sync_object(ob, res_handle);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cloud
+ * \{ */
+
+void SyncModule::sync_point_cloud(Object *ob,
+                                  ObjectHandle &ob_handle,
+                                  ResourceHandle res_handle,
+                                  const ObjectRef &ob_ref)
+{
+  int material_slot = 1;
+
+  bool has_motion = inst_.velocity.step_object_sync(
+      ob, ob_handle.object_key, res_handle, ob_handle.recalc);
+
+  Material &material = inst_.materials.material_get(
+      ob, has_motion, material_slot - 1, MAT_GEOM_POINT_CLOUD);
+
+  auto drawcall_add = [&](MaterialPass &matpass) {
+    if (matpass.sub_pass == nullptr) {
+      return;
+    }
+    PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
+    GPUBatch *geometry = point_cloud_sub_pass_setup(object_pass, ob, matpass.gpumat);
+    object_pass.draw(geometry, res_handle);
+  };
+
+  drawcall_add(material.shading);
+  drawcall_add(material.prepass);
+  drawcall_add(material.shadow);
+
+  inst_.cryptomatte.sync_object(ob, res_handle);
+  GPUMaterial *gpu_material =
+      inst_.materials.material_array_get(ob, has_motion).gpu_materials[material_slot - 1];
+  ::Material *mat = GPU_material_get_material(gpu_material);
+  inst_.cryptomatte.sync_material(mat);
+
+  bool is_caster = material.shadow.sub_pass != nullptr;
+  bool is_alpha_blend = material.is_alpha_blend_transparent;
+  inst_.shadows.sync_object(ob_handle, res_handle, is_caster, is_alpha_blend);
 }
 
 /** \} */

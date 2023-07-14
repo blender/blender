@@ -38,6 +38,25 @@ GPU_SHADER_CREATE_INFO(eevee_geom_mesh)
     .vertex_source("eevee_geom_mesh_vert.glsl")
     .additional_info("draw_modelmat_new", "draw_resource_id_varying", "draw_view");
 
+GPU_SHADER_INTERFACE_INFO(eevee_surf_point_cloud_iface, "point_cloud_interp")
+    .smooth(Type::FLOAT, "radius")
+    .smooth(Type::VEC3, "position")
+    .flat(Type::INT, "id");
+
+GPU_SHADER_CREATE_INFO(eevee_geom_point_cloud)
+    .additional_info("eevee_shared")
+    .define("MAT_GEOM_POINT_CLOUD")
+    .vertex_source("eevee_geom_point_cloud_vert.glsl")
+    .vertex_out(eevee_surf_point_cloud_iface)
+    /* TODO(Miguel Pozo): Remove once we get rid of old EEVEE. */
+    .define("pointRadius", "point_cloud_interp.radius")
+    .define("pointPosition", "point_cloud_interp.position")
+    .define("pointID", "point_cloud_interp.id")
+    .additional_info("draw_pointcloud_new",
+                     "draw_modelmat_new",
+                     "draw_resource_id_varying",
+                     "draw_view");
+
 GPU_SHADER_CREATE_INFO(eevee_geom_gpencil)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_GPENCIL")
@@ -223,7 +242,8 @@ GPU_SHADER_CREATE_INFO(eevee_material_stub)
     EEVEE_MAT_FINAL_VARIATION(prefix##_world, "eevee_geom_world", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_gpencil, "eevee_geom_gpencil", __VA_ARGS__) \
     EEVEE_MAT_FINAL_VARIATION(prefix##_curves, "eevee_geom_curves", __VA_ARGS__) \
-    EEVEE_MAT_FINAL_VARIATION(prefix##_mesh, "eevee_geom_mesh", __VA_ARGS__)
+    EEVEE_MAT_FINAL_VARIATION(prefix##_mesh, "eevee_geom_mesh", __VA_ARGS__) \
+    EEVEE_MAT_FINAL_VARIATION(prefix##_point_cloud, "eevee_geom_point_cloud", __VA_ARGS__)
 
 #  define EEVEE_MAT_PIPE_VARIATIONS(name, ...) \
     EEVEE_MAT_GEOM_VARIATIONS(name##_world, "eevee_surf_world", __VA_ARGS__) \

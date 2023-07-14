@@ -152,6 +152,8 @@ void DRW_curves_batch_cache_create_requested(struct Object *ob);
 
 int DRW_pointcloud_material_count_get(struct PointCloud *pointcloud);
 
+struct GPUVertBuf *DRW_pointcloud_position_and_radius_buffer_get(struct Object *ob);
+
 struct GPUVertBuf **DRW_pointcloud_evaluated_attribute(struct PointCloud *pointcloud,
                                                        const char *name);
 struct GPUBatch *DRW_pointcloud_batch_cache_get_dots(struct Object *ob);

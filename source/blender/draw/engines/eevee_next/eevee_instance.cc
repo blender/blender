@@ -175,7 +175,7 @@ void Instance::scene_sync()
 void Instance::object_sync(Object *ob)
 {
   const bool is_renderable_type = ELEM(
-      ob->type, OB_CURVES, OB_GPENCIL_LEGACY, OB_MESH, OB_LAMP, OB_LIGHTPROBE);
+      ob->type, OB_CURVES, OB_GPENCIL_LEGACY, OB_MESH, OB_POINTCLOUD, OB_LAMP, OB_LIGHTPROBE);
   const int ob_visibility = DRW_object_visibility_in_active_context(ob);
   const bool partsys_is_visible = (ob_visibility & OB_VISIBLE_PARTICLES) != 0 &&
                                   (ob->type == OB_MESH);
@@ -208,6 +208,8 @@ void Instance::object_sync(Object *ob)
       case OB_MESH:
         sync.sync_mesh(ob, ob_handle, res_handle, ob_ref);
         break;
+      case OB_POINTCLOUD:
+        sync.sync_point_cloud(ob, ob_handle, res_handle, ob_ref);
       case OB_VOLUME:
         break;
       case OB_CURVES:

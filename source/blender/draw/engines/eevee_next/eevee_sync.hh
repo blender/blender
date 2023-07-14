@@ -164,6 +164,10 @@ class SyncModule {
                  ObjectHandle &ob_handle,
                  ResourceHandle res_handle,
                  const ObjectRef &ob_ref);
+  void sync_point_cloud(Object *ob,
+                        ObjectHandle &ob_handle,
+                        ResourceHandle res_handle,
+                        const ObjectRef &ob_ref);
   void sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandle res_handle);
   void sync_curves(Object *ob,
                    ObjectHandle &ob_handle,
