@@ -273,6 +273,17 @@ void Instance::render_sync()
   // DRW_hair_update();
 }
 
+bool Instance::do_probe_sync() const
+{
+  if (materials.queued_shaders_count > 0) {
+    return false;
+  }
+  if (!reflection_probes.update_probes_this_sample_) {
+    return false;
+  }
+  return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -297,7 +308,9 @@ void Instance::render_sample()
 
   sampling.step();
 
-  capture_view.render();
+  capture_view.render_world();
+  capture_view.render_probes();
+
   main_view.render();
 
   motion_blur.step();
@@ -379,6 +392,12 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderLayer *render_layer, const char *view_name)
 {
+  /* TODO(jbakker): should we check on the subtype as well? Now it also populates even when there
+   * are other light probes in the scene. */
+  if (DEG_id_type_any_exists(this->depsgraph, ID_LP)) {
+    reflection_probes.update_probes_next_sample_ = true;
+  }
+
   while (!sampling.finished()) {
     this->render_sample();
 
@@ -523,7 +542,7 @@ void Instance::light_bake_irradiance(
     render_sync();
     manager->end_sync();
 
-    capture_view.render();
+    capture_view.render_world();
 
     irradiance_cache.bake.surfels_create(probe);
     irradiance_cache.bake.surfels_lights_eval();

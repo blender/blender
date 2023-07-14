@@ -90,6 +90,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_film_cryptomatte_post";
     case DEFERRED_LIGHT:
       return "eevee_deferred_light";
+    case DEFERRED_LIGHT_DIFFUSE_ONLY:
+      return "eevee_deferred_light_diffuse";
     case HIZ_DEBUG:
       return "eevee_hiz_debug";
     case HIZ_UPDATE:

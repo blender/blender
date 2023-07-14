@@ -19,6 +19,7 @@ GPU_SHADER_CREATE_INFO(eevee_reflection_probe_data)
 /* Sample cubemap and remap into an octahedral texture. */
 GPU_SHADER_CREATE_INFO(eevee_reflection_probe_remap)
     .local_group_size(REFLECTION_PROBE_GROUP_SIZE, REFLECTION_PROBE_GROUP_SIZE)
+    .push_constant(Type::INT, "reflection_probe_index")
     .storage_buf(REFLECTION_PROBE_BUF_SLOT,
                  Qualifier::READ,
                  "ReflectionProbeData",

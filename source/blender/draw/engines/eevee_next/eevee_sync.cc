@@ -122,6 +122,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
+  bool do_probe_sync = inst_.do_probe_sync();
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -132,6 +133,10 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
     geometry_call(material.capture.sub_pass, geom, res_handle);
+    if (do_probe_sync) {
+      geometry_call(material.probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.probe_shading.sub_pass, geom, res_handle);
+    }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
