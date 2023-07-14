@@ -1095,6 +1095,14 @@ float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 {
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
+
+/* Sample at uv position but with scale and bias so that uv space bounds lie on texel centers. */
+float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
+{
+  /* Scale and bias coordinates, for correct filtered lookup. */
+  uv = uv * ((UTIL_TEX_SIZE - 1.0) / UTIL_TEX_SIZE) + (0.5 / UTIL_TEX_SIZE);
+  return textureLod(util_tx, float3(uv, layer), 0.0);
+}
 #endif
 
 /** \} */

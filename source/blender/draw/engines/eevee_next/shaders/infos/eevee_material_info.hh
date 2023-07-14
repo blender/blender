@@ -20,6 +20,7 @@ GPU_SHADER_CREATE_INFO(eevee_sampling_data)
     .storage_buf(SAMPLING_BUF_SLOT, Qualifier::READ, "SamplingData", "sampling_buf");
 
 GPU_SHADER_CREATE_INFO(eevee_utility_texture)
+    .define("EEVEE_UTILITY_TX")
     .sampler(RBUFS_UTILITY_TEX_SLOT, ImageType::FLOAT_2D_ARRAY, "utility_tx");
 
 GPU_SHADER_CREATE_INFO(eevee_camera).uniform_buf(CAMERA_BUF_SLOT, "CameraData", "camera_buf");
