@@ -1706,7 +1706,7 @@ enum KernelFeatureFlag : uint32_t {
   KERNEL_FEATURE_TRANSPARENT = (1U << 19U),
 
   /* Use shadow catcher. */
-  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 29U),
+  KERNEL_FEATURE_SHADOW_CATCHER = (1U << 20U),
 
   /* Light render passes. */
   KERNEL_FEATURE_LIGHT_PASSES = (1U << 21U),
