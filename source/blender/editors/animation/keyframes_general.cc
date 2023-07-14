@@ -390,6 +390,11 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
 
 /* ---------------- */
 
+struct ButterworthCoefficients {
+  double *A, *d1, *d2;
+  int filter_order;
+};
+
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
   ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
