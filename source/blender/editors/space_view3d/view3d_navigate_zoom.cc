@@ -347,10 +347,10 @@ static void viewzoom_apply(ViewOpsData *vod,
   }
 }
 
-int viewzoom_modal_impl(bContext *C,
-                        ViewOpsData *vod,
-                        const eV3D_OpEvent event_code,
-                        const int xy[2])
+static int viewzoom_modal_impl(bContext *C,
+                               ViewOpsData *vod,
+                               const eV3D_OpEvent event_code,
+                               const int xy[2])
 {
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
@@ -466,7 +466,10 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, PointerRNA *ptr)
+static int viewzoom_invoke_impl(bContext *C,
+                                ViewOpsData *vod,
+                                const wmEvent *event,
+                                PointerRNA *ptr)
 {
   int xy[2];
 
@@ -522,7 +525,7 @@ int viewzoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event, Po
 /* viewdolly_invoke() copied this function, changes here may apply there */
 static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_ZOOM);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_zoom);
 }
 
 void VIEW3D_OT_zoom(wmOperatorType *ot)
@@ -530,7 +533,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Zoom View";
   ot->description = "Zoom in/out in the view";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_ZOOM);
+  ot->idname = ViewOpsType_zoom.idname;
 
   /* api callbacks */
   ot->invoke = viewzoom_invoke;
@@ -548,3 +551,12 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_zoom = {
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT |
+              VIEWOPS_FLAG_ZOOM_TO_MOUSE),
+    /*idname*/ "VIEW3D_OT_zoom",
+    /*poll_fn*/ view3d_zoom_or_dolly_poll,
+    /*init_fn*/ viewzoom_invoke_impl,
+    /*apply_fn*/ viewzoom_modal_impl,
+};

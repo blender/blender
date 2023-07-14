@@ -66,7 +66,10 @@ static const EnumPropertyItem prop_view_pan_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-int viewpan_invoke_impl(ViewOpsData *vod, PointerRNA *ptr)
+static int viewpan_invoke_impl(bContext * /*C*/,
+                               ViewOpsData *vod,
+                               const wmEvent * /*event*/,
+                               PointerRNA *ptr)
 {
   int x = 0, y = 0;
   int pandir = RNA_enum_get(ptr, "type");
@@ -91,7 +94,7 @@ int viewpan_invoke_impl(ViewOpsData *vod, PointerRNA *ptr)
 
 static int viewpan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_VIEW_PAN);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_pan);
 }
 
 void VIEW3D_OT_view_pan(wmOperatorType *ot)
@@ -99,7 +102,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Pan View Direction";
   ot->description = "Pan the view in a given direction";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_VIEW_PAN);
+  ot->idname = ViewOpsType_pan.idname;
 
   /* api callbacks */
   ot->invoke = viewpan_invoke;
@@ -114,3 +117,11 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_pan = {
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT),
+    /*idname*/ "VIEW3D_OT_view_pan",
+    /*poll_fn*/ view3d_location_poll,
+    /*init_fn*/ viewpan_invoke_impl,
+    /*apply_fn*/ nullptr,
+};

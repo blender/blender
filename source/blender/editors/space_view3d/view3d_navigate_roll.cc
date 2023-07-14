@@ -251,7 +251,7 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   }
   else {
     /* makes op->customdata */
-    vod = viewops_data_create(C, event, V3D_OP_MODE_VIEW_ROLL, false);
+    vod = viewops_data_create(C, event, &ViewOpsType_roll, false);
     const float start_position[2] = {float(BLI_rcti_cent_x(&vod->region->winrct)),
                                      float(BLI_rcti_cent_y(&vod->region->winrct))};
     vod->init.dial = BLI_dial_init(start_position, FLT_EPSILON);
@@ -286,7 +286,7 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
   /* identifiers */
   ot->name = "View Roll";
   ot->description = "Roll the view";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_VIEW_ROLL);
+  ot->idname = ViewOpsType_roll.idname;
 
   /* api callbacks */
   ot->invoke = viewroll_invoke;
@@ -312,3 +312,11 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_roll = {
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT),
+    /*idname*/ "VIEW3D_OT_view_roll",
+    /*init_fn*/ nullptr,
+    /*apply_fn*/ nullptr,
+    /*cancel_fn*/ nullptr,
+};

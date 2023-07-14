@@ -51,10 +51,10 @@ void viewmove_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_move");
 }
 
-int viewmove_modal_impl(bContext *C,
-                        ViewOpsData *vod,
-                        const eV3D_OpEvent event_code,
-                        const int xy[2])
+static int viewmove_modal_impl(bContext *C,
+                               ViewOpsData *vod,
+                               const eV3D_OpEvent event_code,
+                               const int xy[2])
 {
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
@@ -88,7 +88,10 @@ int viewmove_modal_impl(bContext *C,
   return ret;
 }
 
-int viewmove_invoke_impl(ViewOpsData *vod, const wmEvent *event)
+static int viewmove_invoke_impl(bContext * /*C*/,
+                                ViewOpsData *vod,
+                                const wmEvent *event,
+                                PointerRNA * /*ptr*/)
 {
   eV3D_OpEvent event_code = event->type == MOUSEPAN ? VIEW_CONFIRM : VIEW_PASS;
 
@@ -105,7 +108,7 @@ int viewmove_invoke_impl(ViewOpsData *vod, const wmEvent *event)
 
 static int viewmove_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_MOVE);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_move);
 }
 
 void VIEW3D_OT_move(wmOperatorType *ot)
@@ -113,7 +116,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Pan View";
   ot->description = "Move the view";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_MOVE);
+  ot->idname = ViewOpsType_move.idname;
 
   /* api callbacks */
   ot->invoke = viewmove_invoke;
@@ -129,3 +132,11 @@ void VIEW3D_OT_move(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_move = {
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT),
+    /*idname*/ "VIEW3D_OT_move",
+    /*poll_fn*/ view3d_location_poll,
+    /*init_fn*/ viewmove_invoke_impl,
+    /*apply_fn*/ viewmove_modal_impl,
+};

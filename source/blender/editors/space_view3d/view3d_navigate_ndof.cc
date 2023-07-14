@@ -420,7 +420,10 @@ static int view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod, const wmNDOFMotionD
 /** \name NDOF Orbit/Translate Operator
  * \{ */
 
-int ndof_orbit_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
+static int ndof_orbit_invoke_impl(bContext *C,
+                                  ViewOpsData *vod,
+                                  const wmEvent *event,
+                                  PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -471,7 +474,7 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_NDOF_ORBIT);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_ndof_orbit);
 }
 
 void VIEW3D_OT_ndof_orbit(wmOperatorType *ot)
@@ -479,7 +482,7 @@ void VIEW3D_OT_ndof_orbit(wmOperatorType *ot)
   /* identifiers */
   ot->name = "NDOF Orbit View";
   ot->description = "Orbit the view using the 3D mouse";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_NDOF_ORBIT);
+  ot->idname = ViewOpsType_ndof_orbit.idname;
 
   /* api callbacks */
   ot->invoke = ndof_orbit_invoke;
@@ -495,7 +498,10 @@ void VIEW3D_OT_ndof_orbit(wmOperatorType *ot)
 /** \name NDOF Orbit/Zoom Operator
  * \{ */
 
-int ndof_orbit_zoom_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
+static int ndof_orbit_zoom_invoke_impl(bContext *C,
+                                       ViewOpsData *vod,
+                                       const wmEvent *event,
+                                       PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -586,7 +592,7 @@ static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *ev
     return OPERATOR_CANCELLED;
   }
 
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_NDOF_ORBIT_ZOOM);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_ndof_orbit_zoom);
 }
 
 void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot)
@@ -594,7 +600,7 @@ void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot)
   /* identifiers */
   ot->name = "NDOF Orbit View with Zoom";
   ot->description = "Orbit and zoom the view using the 3D mouse";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_NDOF_ORBIT_ZOOM);
+  ot->idname = ViewOpsType_ndof_orbit_zoom.idname;
 
   /* api callbacks */
   ot->invoke = ndof_orbit_zoom_invoke;
@@ -610,7 +616,10 @@ void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot)
 /** \name NDOF Pan/Zoom Operator
  * \{ */
 
-int ndof_pan_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
+static int ndof_pan_invoke_impl(bContext *C,
+                                ViewOpsData *vod,
+                                const wmEvent *event,
+                                PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -668,7 +677,7 @@ static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_NDOF_PAN);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_ndof_pan);
 }
 
 void VIEW3D_OT_ndof_pan(wmOperatorType *ot)
@@ -676,7 +685,7 @@ void VIEW3D_OT_ndof_pan(wmOperatorType *ot)
   /* identifiers */
   ot->name = "NDOF Pan View";
   ot->description = "Pan the view with the 3D mouse";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_NDOF_PAN);
+  ot->idname = ViewOpsType_ndof_pan.idname;
 
   /* api callbacks */
   ot->invoke = ndof_pan_invoke;
@@ -695,7 +704,10 @@ void VIEW3D_OT_ndof_pan(wmOperatorType *ot)
 /**
  * wraps #ndof_orbit_zoom but never restrict to orbit.
  */
-int ndof_all_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
+static int ndof_all_invoke_impl(bContext *C,
+                                ViewOpsData *vod,
+                                const wmEvent *event,
+                                PointerRNA * /*ptr*/)
 {
   /* weak!, but it works */
   const int ndof_flag = U.ndof_flag;
@@ -703,7 +715,7 @@ int ndof_all_invoke_impl(bContext *C, ViewOpsData *vod, const wmEvent *event)
 
   U.ndof_flag &= ~NDOF_MODE_ORBIT;
 
-  ret = ndof_orbit_zoom_invoke_impl(C, vod, event);
+  ret = ndof_orbit_zoom_invoke_impl(C, vod, event, nullptr);
 
   U.ndof_flag = ndof_flag;
 
@@ -716,7 +728,7 @@ static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_NDOF_ALL);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_ndof_all);
 }
 
 void VIEW3D_OT_ndof_all(wmOperatorType *ot)
@@ -724,7 +736,7 @@ void VIEW3D_OT_ndof_all(wmOperatorType *ot)
   /* identifiers */
   ot->name = "NDOF Transform View";
   ot->description = "Pan and rotate the view with the 3D mouse";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_NDOF_ALL);
+  ot->idname = ViewOpsType_ndof_all.idname;
 
   /* api callbacks */
   ot->invoke = ndof_all_invoke;
@@ -737,3 +749,35 @@ void VIEW3D_OT_ndof_all(wmOperatorType *ot)
 #endif /* WITH_INPUT_NDOF */
 
 /** \} */
+
+const ViewOpsType ViewOpsType_ndof_orbit = {
+    /*flag*/ VIEWOPS_FLAG_ORBIT_SELECT,
+    /*idname*/ "VIEW3D_OT_ndof_orbit",
+    /*poll_fn*/ nullptr,
+    /*init_fn*/ ndof_orbit_invoke_impl,
+    /*apply_fn*/ nullptr,
+};
+
+const ViewOpsType ViewOpsType_ndof_orbit_zoom = {
+    /*flag*/ VIEWOPS_FLAG_ORBIT_SELECT,
+    /*idname*/ "VIEW3D_OT_ndof_orbit_zoom",
+    /*poll_fn*/ nullptr,
+    /*init_fn*/ ndof_orbit_zoom_invoke_impl,
+    /*apply_fn*/ nullptr,
+};
+
+const ViewOpsType ViewOpsType_ndof_pan = {
+    /*flag*/ VIEWOPS_FLAG_NONE,
+    /*idname*/ "VIEW3D_OT_ndof_pan",
+    /*poll_fn*/ nullptr,
+    /*init_fn*/ ndof_pan_invoke_impl,
+    /*apply_fn*/ nullptr,
+};
+
+const ViewOpsType ViewOpsType_ndof_all = {
+    /*flag*/ VIEWOPS_FLAG_ORBIT_SELECT,
+    /*idname*/ "VIEW3D_OT_ndof_all",
+    /*poll_fn*/ nullptr,
+    /*init_fn*/ ndof_all_invoke_impl,
+    /*apply_fn*/ nullptr,
+};

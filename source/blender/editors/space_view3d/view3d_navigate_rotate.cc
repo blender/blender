@@ -295,10 +295,10 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
   ED_region_tag_redraw(vod->region);
 }
 
-int viewrotate_modal_impl(bContext *C,
-                          ViewOpsData *vod,
-                          const eV3D_OpEvent event_code,
-                          const int xy[2])
+static int viewrotate_modal_impl(bContext *C,
+                                 ViewOpsData *vod,
+                                 const eV3D_OpEvent event_code,
+                                 const int xy[2])
 {
   bool use_autokey = false;
   int ret = OPERATOR_RUNNING_MODAL;
@@ -332,7 +332,10 @@ int viewrotate_modal_impl(bContext *C,
   return ret;
 }
 
-int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event)
+static int viewrotate_invoke_impl(bContext * /*C*/,
+                                  ViewOpsData *vod,
+                                  const wmEvent *event,
+                                  PointerRNA * /*ptr*/)
 {
   if (vod->use_dyn_ofs && (vod->rv3d->is_persp == false)) {
     vod->use_dyn_ofs_ortho_correction = true;
@@ -362,7 +365,7 @@ int viewrotate_invoke_impl(ViewOpsData *vod, const wmEvent *event)
 
 static int viewrotate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  return view3d_navigate_invoke_impl(C, op, event, V3D_OP_MODE_ROTATE);
+  return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_rotate);
 }
 
 void VIEW3D_OT_rotate(wmOperatorType *ot)
@@ -370,7 +373,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   /* identifiers */
   ot->name = "Rotate View";
   ot->description = "Rotate the view";
-  ot->idname = viewops_operator_idname_get(V3D_OP_MODE_ROTATE);
+  ot->idname = ViewOpsType_rotate.idname;
 
   /* api callbacks */
   ot->invoke = viewrotate_invoke;
@@ -385,3 +388,12 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_rotate = {
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT |
+              VIEWOPS_FLAG_PERSP_ENSURE | VIEWOPS_FLAG_ORBIT_SELECT),
+    /*idname*/ "VIEW3D_OT_rotate",
+    /*poll_fn*/ view3d_rotation_poll,
+    /*init_fn*/ viewrotate_invoke_impl,
+    /*apply_fn*/ viewrotate_modal_impl,
+};
