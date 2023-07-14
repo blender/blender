@@ -1427,15 +1427,20 @@ static float gpencil_sculpt_rotation_eval_get(tGP_BrushEditData *gso,
     }
   }
 
-  if (pt_eval->runtime.idx_orig != 0) {
-    pt_orig_prev = &gps_orig->points[pt_eval->runtime.idx_orig - 1];
+  if (pt_eval->runtime.pt_orig == NULL) {
+    pt_orig_prev = pt_prev_eval;
   }
   else {
-    if (gps_orig->totpoints > 1) {
-      pt_orig_prev = &gps_orig->points[pt_eval->runtime.idx_orig + 1];
+    if (pt_eval->runtime.idx_orig != 0) {
+      pt_orig_prev = &gps_orig->points[pt_eval->runtime.idx_orig - 1];
     }
     else {
-      return 0.0f;
+      if (gps_orig->totpoints > 1) {
+        pt_orig_prev = &gps_orig->points[pt_eval->runtime.idx_orig + 1];
+      }
+      else {
+        return 0.0f;
+      }
     }
   }
 
@@ -1462,7 +1467,6 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
   GP_SpaceConversion *gsc = &gso->gsc;
   rcti *rect = &gso->brush_rect;
   Brush *brush = gso->brush;
-  char tool = gso->brush->gpencil_sculpt_tool;
   const int radius = (brush->flag & GP_BRUSH_USE_PRESSURE) ? gso->brush->size * gso->pressure :
                                                              gso->brush->size;
   const bool is_masking = GPENCIL_ANY_SCULPT_MASK(gso->mask);
@@ -1541,8 +1545,7 @@ static bool gpencil_sculpt_brush_do_stroke(tGP_BrushEditData *gso,
 
           /* To each point individually... */
           pt = &gps->points[i];
-          if ((i != gps->totpoints - 2) && (pt->runtime.pt_orig == NULL) &&
-              (tool != GPSCULPT_TOOL_GRAB)) {
+          if ((i != gps->totpoints - 2) && (pt->runtime.pt_orig == NULL)) {
             continue;
           }
           pt_active = (pt->runtime.pt_orig) ? pt->runtime.pt_orig : pt;
