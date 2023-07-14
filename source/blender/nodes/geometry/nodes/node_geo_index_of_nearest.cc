@@ -106,9 +106,11 @@ class IndexOfNearestFieldInput final : public bke::GeometryFieldInput {
 
     if (mask.size() == domain_size) {
       lookup_indices_by_group_id = all_indices_by_group_id;
+      result.reinitialize(domain_size);
     }
     else {
-      IndexMask::from_groups<int>(mask, mask_memory, get_group_index, all_indices_by_group_id);
+      IndexMask::from_groups<int>(mask, mask_memory, get_group_index, lookup_indices_by_group_id);
+      result.reinitialize(mask.min_array_size());
     }
 
     /* The grain size should be larger as each tree gets smaller. */
