@@ -19,6 +19,7 @@
 #include "BKE_context.hh"
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
+#include "BKE_key.h"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_report.h"
@@ -1109,6 +1110,13 @@ void ED_mesh_report_mirror_ex(wmOperator *op, int totmirr, int totfail, char sel
 void ED_mesh_report_mirror(wmOperator *op, int totmirr, int totfail)
 {
   ED_mesh_report_mirror_ex(op, totmirr, totfail, SCE_SELECT_VERTEX);
+}
+
+KeyBlock *ED_mesh_get_edit_shape_key(const Mesh *me)
+{
+  BLI_assert(me->edit_mesh && me->edit_mesh->bm);
+
+  return BKE_keyblock_find_by_index(me->key, me->edit_mesh->bm->shapenr - 1);
 }
 
 Mesh *ED_mesh_context(bContext *C)

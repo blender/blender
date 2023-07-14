@@ -36,6 +36,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_sculpt.hh"
+
 #include "sculpt_intern.hh"
 
 #include "RNA_access.hh"
@@ -1537,6 +1539,10 @@ static int sculpt_cloth_filter_invoke(bContext *C, wmOperator *op, const wmEvent
 
   /* Needs mask data to be available as it is used when solving the constraints. */
   BKE_sculpt_update_object_for_edit(depsgraph, ob, false);
+
+  if (ED_sculpt_report_if_shape_key_is_locked(ob, op->reports)) {
+    return OPERATOR_CANCELLED;
+  }
 
   SCULPT_stroke_id_next(ob);
 

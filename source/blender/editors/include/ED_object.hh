@@ -63,6 +63,29 @@ Object **ED_object_array_in_mode_or_selected(bContext *C,
                                              void *filter_user_data,
                                              uint *r_objects_len);
 
+/* `object_shapekey.cc` */
+
+/**
+ * Checks if the currently active Edit Mode on the object is targeting a locked shape key,
+ * and produces an error message if so (unless \a reports is null).
+ * \return true if the shape key was locked.
+ */
+bool ED_object_edit_report_if_shape_key_is_locked(const Object *obedit, ReportList *reports);
+
+/**
+ * Checks if the active shape key of the object is locked, and produces an error message
+ * if so (unless \a reports is null).
+ * \return true if the shape key was locked.
+ */
+bool ED_object_report_if_active_shape_key_is_locked(Object *ob, ReportList *reports);
+
+/**
+ * Checks if any of the shape keys of the object are locked, and produces an error message if so
+ * (unless \a reports is null).
+ * \return true if a shape key was locked.
+ */
+bool ED_object_report_if_any_shape_key_is_locked(Object *ob, ReportList *reports);
+
 /* `object_utils.cc` */
 
 bool ED_object_calc_active_center_for_editmode(Object *obedit,

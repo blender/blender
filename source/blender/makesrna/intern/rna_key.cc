@@ -953,6 +953,13 @@ static void rna_def_keyblock(BlenderRNA *brna)
   RNA_def_property_ui_icon(prop, ICON_CHECKBOX_HLT, -1);
   RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
+  prop = RNA_def_property(srna, "lock_shape", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, NULL, "flag", KEYBLOCK_LOCKED_SHAPE);
+  RNA_def_property_ui_text(
+      prop, "Lock Shape", "Protect the shape key from accidental sculpting and editing");
+  RNA_def_property_ui_icon(prop, ICON_UNLOCKED, 1);
+  RNA_def_property_update(prop, 0, "rna_Key_update_data");
+
   prop = RNA_def_property(srna, "slider_min", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "slidermin");
   RNA_def_property_range(prop, -10.0f, 10.0f);

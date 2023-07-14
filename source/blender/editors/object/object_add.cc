@@ -4228,7 +4228,7 @@ static int object_transform_to_mouse_exec(bContext *C, wmOperator *op)
        *
        * The caller is responsible for ensuring the selection state gives useful results.
        * Link/append does this using #FILE_AUTOSELECT. */
-      ED_view3d_snap_selected_to_location(C, cursor, V3D_AROUND_ACTIVE);
+      ED_view3d_snap_selected_to_location(C, op, cursor, V3D_AROUND_ACTIVE);
     }
   }
 

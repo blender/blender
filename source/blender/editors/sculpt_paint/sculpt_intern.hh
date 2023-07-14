@@ -1859,6 +1859,12 @@ inline bool SCULPT_tool_is_mask(int tool)
   return ELEM(tool, SCULPT_TOOL_MASK);
 }
 
+BLI_INLINE bool SCULPT_tool_is_attribute_only(int tool)
+{
+  return SCULPT_tool_is_paint(tool) || SCULPT_tool_is_mask(tool) ||
+         ELEM(tool, SCULPT_TOOL_DRAW_FACE_SETS);
+}
+
 void SCULPT_stroke_id_ensure(Object *ob);
 void SCULPT_stroke_id_next(Object *ob);
 

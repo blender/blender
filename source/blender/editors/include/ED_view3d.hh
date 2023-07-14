@@ -53,6 +53,7 @@ struct rcti;
 struct wmEvent;
 struct wmGizmo;
 struct wmKeyMapItem;
+struct wmOperator;
 struct wmWindow;
 struct wmWindowManager;
 
@@ -288,6 +289,7 @@ ENUM_OPERATORS(eV3DProjTest, V3D_PROJ_TEST_CLIP_CONTENT);
 /* `view3d_snap.cc` */
 
 bool ED_view3d_snap_selected_to_location(bContext *C,
+                                         wmOperator *op,
                                          const float snap_target_global[3],
                                          int pivot_point);
 

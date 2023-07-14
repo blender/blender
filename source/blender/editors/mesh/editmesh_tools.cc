@@ -1804,12 +1804,21 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
   const int repeat = RNA_int_get(op->ptr, "repeat");
   const float fac = RNA_float_get(op->ptr, "factor");
 
+  int totobjects = 0;
+
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *obedit = objects[ob_index];
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
     if (em->bm->totfacesel == 0) {
       continue;
     }
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      continue;
+    }
+
+    totobjects++;
 
     if (!EDBM_op_callf(
             em, op, "planar_faces faces=%hf iterations=%i factor=%f", BM_ELEM_SELECT, repeat, fac))
@@ -1825,7 +1834,7 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  return totobjects ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_face_make_planar(wmOperatorType *ot)
@@ -2691,6 +2700,7 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  int tot_selected = 0, tot_locked = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
@@ -2705,6 +2715,13 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      tot_locked++;
+      continue;
+    }
+
+    tot_selected++;
 
     /* mirror before smooth */
     if (((Mesh *)obedit->data)->symmetry & ME_SYMMETRY_X) {
@@ -2768,7 +2785,11 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  return OPERATOR_FINISHED;
+  if (tot_selected == 0 && !tot_locked) {
+    BKE_report(op->reports, RPT_WARNING, "No selected vertex");
+  }
+
+  return tot_selected ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_vertices_smooth(wmOperatorType *ot)
@@ -2808,7 +2829,7 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
-  int tot_unselected = 0;
+  int tot_selected = 0, tot_locked = 0;
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -2834,9 +2855,15 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
     bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
     if (em->bm->totvertsel == 0) {
-      tot_unselected++;
       continue;
     }
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      tot_locked++;
+      continue;
+    }
+
+    tot_selected++;
 
     /* Mirror before smooth. */
     if (((Mesh *)obedit->data)->symmetry & ME_SYMMETRY_X) {
@@ -2879,12 +2906,11 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  if (tot_unselected == objects_len) {
+  if (tot_selected == 0 && !tot_locked) {
     BKE_report(op->reports, RPT_WARNING, "No selected vertex");
-    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_FINISHED;
+  return tot_selected ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
@@ -3746,6 +3772,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int tot_shapekeys = 0;
   int tot_selected_verts_objects = 0;
+  int tot_locked = 0;
 
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
@@ -3758,6 +3785,13 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
+
+    /* Check for locked shape keys. */
+    if (ED_object_report_if_any_shape_key_is_locked(obedit, op->reports)) {
+      tot_locked++;
+      continue;
+    }
+
     tot_selected_verts_objects++;
 
     const bool use_symmetry = (mesh->symmetry & ME_SYMMETRY_X) != 0;
@@ -3785,7 +3819,9 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
   MEM_freeN(objects);
 
   if (tot_selected_verts_objects == 0) {
-    BKE_report(op->reports, RPT_ERROR, "No selected vertex");
+    if (!tot_locked) {
+        BKE_report(op->reports, RPT_ERROR, "No selected vertex");
+    }
     return OPERATOR_CANCELLED;
   }
   if (tot_shapekeys == 0) {
@@ -3853,7 +3889,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     kb_ref = static_cast<KeyBlock *>(BLI_findlink(&key_ref->block, shape_ref));
   }
 
-  int tot_selected_verts_objects = 0;
+  int tot_selected_verts_objects = 0, tot_locked = 0;
   uint objects_len = 0;
   Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C), &objects_len);
@@ -3868,6 +3904,12 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      tot_locked++;
+      continue;
+    }
+
     tot_selected_verts_objects++;
 
     if (!key) {
@@ -3924,12 +3966,11 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
   }
   MEM_freeN(objects);
 
-  if (tot_selected_verts_objects == 0) {
+  if (tot_selected_verts_objects == 0 && !tot_locked) {
     BKE_report(op->reports, RPT_ERROR, "No selected vertex");
-    return OPERATOR_CANCELLED;
   }
 
-  return OPERATOR_FINISHED;
+  return tot_selected_verts_objects ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static const EnumPropertyItem *shape_itemf(bContext *C,
@@ -8010,7 +8051,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
   const int axis_dir = RNA_enum_get(op->ptr, "direction");
 
   /* Vertices stats (total over all selected objects). */
-  int totvertfound = 0, totvertmirr = 0, totvertfail = 0;
+  int totvertfound = 0, totvertmirr = 0, totvertfail = 0, totobjects = 0;
 
   /* Axis. */
   int axis = axis_dir % 3;
@@ -8030,6 +8071,12 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
     if (em->bm->totvertsel == 0) {
       continue;
     }
+
+    if (ED_object_edit_report_if_shape_key_is_locked(obedit, op->reports)) {
+      continue;
+    }
+
+    totobjects++;
 
     /* Only allocate memory after checking whether to skip object. */
     int *index = static_cast<int *>(MEM_mallocN(bm->totvert * sizeof(*index), __func__));
@@ -8116,7 +8163,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
                 totvertmirr,
                 totvertfail);
   }
-  else {
+  else if (totobjects) {
     BKE_reportf(op->reports,
                 RPT_INFO,
                 "%d already symmetrical, %d pairs mirrored",
@@ -8124,7 +8171,7 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
                 totvertmirr);
   }
 
-  return OPERATOR_FINISHED;
+  return totobjects ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_symmetry_snap(wmOperatorType *ot)

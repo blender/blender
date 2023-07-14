@@ -24,6 +24,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_object.hh"
 #include "ED_transverts.hh"
 
 #include "object_intern.h"
@@ -103,6 +104,10 @@ static int object_rand_verts_exec(bContext *C, wmOperator *op)
 
       if (normal_factor != 0.0f) {
         mode |= TX_VERT_USE_NORMAL;
+      }
+
+      if (ED_object_edit_report_if_shape_key_is_locked(ob_iter, op->reports)) {
+        continue;
       }
 
       ED_transverts_create_from_obedit(&tvs, ob_iter, mode);

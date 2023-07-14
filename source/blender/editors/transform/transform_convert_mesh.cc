@@ -27,6 +27,7 @@
 #include "BKE_scene.h"
 
 #include "ED_mesh.hh"
+#include "ED_object.hh"
 
 #include "DEG_depsgraph_query.hh"
 
@@ -1500,6 +1501,11 @@ static void createTransEditVerts(bContext * /*C*/, TransInfo *t)
     TransIslandData island_data = {nullptr};
     TransMirrorData mirror_data = {nullptr};
     TransMeshDataCrazySpace crazyspace_data = {};
+
+    /* Avoid editing locked shapes. */
+    if (t->mode != TFM_DUMMY && ED_object_edit_report_if_shape_key_is_locked(tc->obedit, t->reports)) {
+      continue;
+    }
 
     /**
      * Quick check if we can transform.
