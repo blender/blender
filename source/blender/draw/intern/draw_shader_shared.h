@@ -81,7 +81,7 @@ typedef enum eObjectInfoFlag eObjectInfoFlag;
 /** This should be already defined at shaderCreateInfo level. */
 // #  define DRW_VIEW_LEN 64
 /** Global that needs to be set correctly in each shader stage. */
-int drw_view_id = 0;
+uint drw_view_id = 0;
 /**
  * In order to reduce the memory requirements, the view id is merged with resource id to avoid
  * doubling the memory required only for view indexing.
@@ -95,7 +95,7 @@ int drw_view_id = 0;
      (DRW_VIEW_LEN > 2)  ? 2 : \
                            1)
 #  define DRW_VIEW_MASK ~(0xFFFFFFFFu << DRW_VIEW_SHIFT)
-#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (drw_ResourceID & DRW_VIEW_MASK)
+#  define DRW_VIEW_FROM_RESOURCE_ID drw_view_id = (uint(drw_ResourceID) & DRW_VIEW_MASK)
 #endif
 
 struct FrustumCorners {

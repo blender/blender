@@ -38,7 +38,7 @@ void main()
     Sphere inscribed_sphere = shape_sphere(bounds.bounding_sphere.xyz,
                                            bounds._inner_sphere_radius);
 
-    for (drw_view_id = 0; drw_view_id < view_len; drw_view_id++) {
+    for (drw_view_id = 0u; drw_view_id < uint(view_len); drw_view_id++) {
       if (drw_view_culling.bound_sphere.w == -1.0) {
         /* View disabled. */
         mask_visibility_bit(drw_view_id);
