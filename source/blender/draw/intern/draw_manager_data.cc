@@ -1807,9 +1807,9 @@ void DRW_shgroup_add_material_resources(DRWShadingGroup *grp, GPUMaterial *mater
       GPUTexture *gputex;
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
       if (tex->tiled_mapping_name[0]) {
-        gputex = BKE_image_get_gpu_tiles(tex->ima, iuser, nullptr);
+        gputex = BKE_image_get_gpu_tiles(tex->ima, iuser);
         drw_shgroup_material_texture(grp, gputex, tex->sampler_name, tex->sampler_state);
-        gputex = BKE_image_get_gpu_tilemap(tex->ima, iuser, nullptr);
+        gputex = BKE_image_get_gpu_tilemap(tex->ima, iuser);
         drw_shgroup_material_texture(grp, gputex, tex->tiled_mapping_name, tex->sampler_state);
       }
       else {

@@ -533,12 +533,8 @@ void BKE_image_ensure_gpu_texture(struct Image *image, struct ImageUser *iuser);
 struct GPUTexture *BKE_image_get_gpu_texture(struct Image *image,
                                              struct ImageUser *iuser,
                                              struct ImBuf *ibuf);
-struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image,
-                                           struct ImageUser *iuser,
-                                           struct ImBuf *ibuf);
-struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image,
-                                             struct ImageUser *iuser,
-                                             struct ImBuf *ibuf);
+struct GPUTexture *BKE_image_get_gpu_tiles(struct Image *image, struct ImageUser *iuser);
+struct GPUTexture *BKE_image_get_gpu_tilemap(struct Image *image, struct ImageUser *iuser);
 /**
  * Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied.
  */
