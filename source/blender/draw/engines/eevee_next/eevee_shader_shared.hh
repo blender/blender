@@ -101,6 +101,7 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_RAYTRACE_X = 18u,
   SAMPLING_AO_U = 19u,
   SAMPLING_AO_V = 20u,
+  SAMPLING_CURVES_U = 21u,
 };
 
 /**

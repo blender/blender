@@ -127,6 +127,8 @@ void Sampling::step()
     /* TODO de-correlate. */
     data_.dimensions[SAMPLING_AO_U] = r[0];
     data_.dimensions[SAMPLING_AO_V] = r[1];
+    /* TODO de-correlate. */
+    data_.dimensions[SAMPLING_CURVES_U] = r[0];
   }
   {
     /* Using leaped Halton sequence so we can reused the same primes as lens. */

@@ -67,10 +67,11 @@ GPU_SHADER_CREATE_INFO(eevee_geom_curves)
     .additional_info("eevee_shared")
     .define("MAT_GEOM_CURVES")
     .vertex_source("eevee_geom_curves_vert.glsl")
-    .additional_info("draw_hair",
-                     "draw_curves_infos",
+    .additional_info("draw_modelmat_new",
                      "draw_resource_id_varying",
-                     "draw_resource_id_new");
+                     "draw_view",
+                     "draw_hair_new",
+                     "draw_curves_infos");
 
 GPU_SHADER_CREATE_INFO(eevee_geom_world)
     .additional_info("eevee_shared")

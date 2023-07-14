@@ -2,6 +2,7 @@
 #pragma BLENDER_REQUIRE(common_math_lib.glsl)
 #pragma BLENDER_REQUIRE(gpu_shader_codegen_lib.glsl)
 #pragma BLENDER_REQUIRE(eevee_nodetree_lib.glsl)
+#pragma BLENDER_REQUIRE(eevee_sampling_lib.glsl)
 
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
 vec3 barycentric_distances_get()
@@ -39,6 +40,18 @@ void init_globals_curves()
 {
   /* Shade as a cylinder. */
   float cos_theta = interp.curves_time_width / interp.curves_thickness;
+#if defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_CURVES)
+  if (hairThicknessRes == 1) {
+    /* Random cosine normal distribution on the hair surface. */
+    float noise = utility_tx_fetch(utility_tx, gl_FragCoord.xy, UTIL_BLUE_NOISE_LAYER).x;
+#  ifdef EEVEE_SAMPLING_DATA
+    /* Needs to check for SAMPLING_DATA,
+     * otherwise Surfel and World (?!?!) shader validation fails. */
+    noise = fract(noise + sampling_rng_1D_get(SAMPLING_CURVES_U));
+#  endif
+    cos_theta = noise * 2.0 - 1.0;
+  }
+#endif
   float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
   g_data.N = g_data.Ni = normalize(interp.N * sin_theta + interp.curves_binormal * cos_theta);
 
