@@ -1394,6 +1394,8 @@ static int uv_pin_exec(bContext *C, wmOperator *op)
 
 static void UV_OT_pin(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* identifiers */
   ot->name = "Pin";
   ot->description =
@@ -1406,13 +1408,15 @@ static void UV_OT_pin(wmOperatorType *ot)
   ot->poll = ED_operator_uvedit;
 
   /* properties */
-  RNA_def_boolean(
+  prop = RNA_def_boolean(
       ot->srna, "clear", false, "Clear", "Clear pinning for the selection instead of setting it");
-  RNA_def_boolean(ot->srna,
-                  "invert",
-                  false,
-                  "Invert",
-                  "Invert pinning for the selection instead of setting it");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+  prop = RNA_def_boolean(ot->srna,
+                         "invert",
+                         false,
+                         "Invert",
+                         "Invert pinning for the selection instead of setting it");
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */
