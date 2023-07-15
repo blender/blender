@@ -1453,7 +1453,6 @@ enum {
 enum eButProgressType {
   UI_BUT_PROGRESS_TYPE_BAR = 0,
   UI_BUT_PROGRESS_TYPE_RING = 1,
-  UI_BUT_PROGRESS_TYPE_PIE = 2,
 };
 
 /***************************** ID Utilities *******************************/

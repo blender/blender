@@ -3640,11 +3640,11 @@ static void widget_progress_type_bar(uiButProgress *but_progress,
 /**
  * Used for both ring & pie types.
  */
-static void widget_progress_type_circle(uiButProgress *but_progress,
-                                        uiWidgetColors *wcol,
-                                        rcti *rect,
-                                        const float ring_width)
+static void widget_progress_type_ring(uiButProgress *but_progress,
+                                      uiWidgetColors *wcol,
+                                      rcti *rect)
 {
+  const float ring_width = 0.6; /* 0.0 would be a pie. */
   const float outer_rad = (rect->ymax - rect->ymin) / 2.0f;
   const float inner_rad = outer_rad * ring_width;
   const float x = rect->xmin + outer_rad;
@@ -3687,12 +3687,8 @@ static void widget_progress_indicator(uiBut *but,
       widget_progress_type_bar(but_progress, wcol, rect, roundboxalign, zoom);
       break;
     }
-    case UI_BUT_PROGRESS_TYPE_PIE: {
-      widget_progress_type_circle(but_progress, wcol, rect, 0.6f);
-      break;
-    }
     case UI_BUT_PROGRESS_TYPE_RING: {
-      widget_progress_type_circle(but_progress, wcol, rect, 0.0f);
+      widget_progress_type_ring(but_progress, wcol, rect);
       break;
     }
   }
