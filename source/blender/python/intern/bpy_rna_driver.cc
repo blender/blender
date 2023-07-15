@@ -27,45 +27,41 @@ PyObject *pyrna_driver_get_variable_value(const AnimationEvalContext *anim_eval_
                                           DriverVar *dvar,
                                           DriverTarget *dtar)
 {
-  PyObject *driver_arg = nullptr;
   PointerRNA ptr;
   PropertyRNA *prop = nullptr;
   int index;
 
-  if (driver_get_variable_property(anim_eval_context, driver, dvar, dtar, &ptr, &prop, &index)) {
-    if (prop) {
-      if (index != -1) {
-        if (index < RNA_property_array_length(&ptr, prop) && index >= 0) {
-          /* object, property & index */
-          driver_arg = pyrna_array_index(&ptr, prop, index);
-        }
-        else {
-          /* out of range, pass */
-        }
-      }
-      else {
-        /* object & property */
-        const PropertyType type = RNA_property_type(prop);
-        if (type == PROP_ENUM) {
-          /* Note that enum's are converted to strings by default,
-           * we want to avoid that, see: #52213 */
-          driver_arg = PyLong_FromLong(RNA_property_enum_get(&ptr, prop));
-        }
-        else {
-          driver_arg = pyrna_prop_to_py(&ptr, prop);
-        }
-      }
-    }
-    else {
+  switch (driver_get_variable_property(
+      anim_eval_context, driver, dvar, dtar, true, &ptr, &prop, &index))
+  {
+    case DRIVER_VAR_PROPERTY_SUCCESS:
       /* object only */
-      driver_arg = pyrna_struct_CreatePyObject(&ptr);
-    }
-  }
-  else {
-    /* can't resolve path, pass */
+      if (!prop) {
+        return pyrna_struct_CreatePyObject(&ptr);
+      }
+
+      /* object, property & index */
+      if (index >= 0) {
+        return pyrna_array_index(&ptr, prop, index);
+      }
+
+      /* object & property (enum) */
+      if (RNA_property_type(prop) == PROP_ENUM) {
+        /* Note that enum's are converted to strings by default,
+         * we want to avoid that, see: #52213 */
+        return PyLong_FromLong(RNA_property_enum_get(&ptr, prop));
+      }
+
+      /* object & property */
+      return pyrna_prop_to_py(&ptr, prop);
+
+    case DRIVER_VAR_PROPERTY_INVALID:
+    case DRIVER_VAR_PROPERTY_INVALID_INDEX:
+      /* can't resolve path, pass */
+      return nullptr;
   }
 
-  return driver_arg;
+  return nullptr;
 }
 
 PyObject *pyrna_driver_self_from_anim_rna(PathResolvedRNA *anim_rna)

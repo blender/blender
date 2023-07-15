@@ -253,13 +253,15 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
   return value;
 }
 
-bool driver_get_variable_property(const AnimationEvalContext *anim_eval_context,
-                                  ChannelDriver *driver,
-                                  DriverVar *dvar,
-                                  DriverTarget *dtar,
-                                  PointerRNA *r_ptr,
-                                  PropertyRNA **r_prop,
-                                  int *r_index)
+eDriverVariablePropertyResult driver_get_variable_property(
+    const AnimationEvalContext *anim_eval_context,
+    ChannelDriver *driver,
+    DriverVar *dvar,
+    DriverTarget *dtar,
+    const bool allow_no_index,
+    PointerRNA *r_ptr,
+    PropertyRNA **r_prop,
+    int *r_index)
 {
   PointerRNA ptr;
   PropertyRNA *prop;
@@ -267,7 +269,7 @@ bool driver_get_variable_property(const AnimationEvalContext *anim_eval_context,
 
   /* Sanity check. */
   if (ELEM(nullptr, driver, dtar)) {
-    return false;
+    return DRIVER_VAR_PROPERTY_INVALID;
   }
 
   /* Get RNA-pointer for the data-block given in target. */
@@ -281,7 +283,7 @@ bool driver_get_variable_property(const AnimationEvalContext *anim_eval_context,
 
     driver->flag |= DRIVER_FLAG_INVALID;
     dtar->flag |= DTAR_FLAG_INVALID;
-    return false;
+    return DRIVER_VAR_PROPERTY_INVALID;
   }
 
   /* Get property to read from, and get value as appropriate. */
@@ -307,16 +309,34 @@ bool driver_get_variable_property(const AnimationEvalContext *anim_eval_context,
 
     driver->flag |= DRIVER_FLAG_INVALID;
     dtar->flag |= DTAR_FLAG_INVALID;
-    return false;
+    return DRIVER_VAR_PROPERTY_INVALID;
   }
 
   *r_ptr = ptr;
   *r_prop = prop;
   *r_index = index;
 
+  /* Verify the array index and apply fallback if appropriate. */
+  if (prop && RNA_property_array_check(prop)) {
+    if ((index < 0 && !allow_no_index) || index >= RNA_property_array_length(&ptr, prop)) {
+      /* Out of bounds. */
+      if (G.debug & G_DEBUG) {
+        CLOG_ERROR(&LOG,
+                   "Driver Evaluation Error: array index is out of bounds for %s -> %s (%d)",
+                   ptr.owner_id->name,
+                   dtar->rna_path,
+                   index);
+      }
+
+      driver->flag |= DRIVER_FLAG_INVALID;
+      dtar->flag |= DTAR_FLAG_INVALID;
+      return DRIVER_VAR_PROPERTY_INVALID_INDEX;
+    }
+  }
+
   /* If we're still here, we should be ok. */
   dtar->flag &= ~DTAR_FLAG_INVALID;
-  return true;
+  return DRIVER_VAR_PROPERTY_SUCCESS;
 }
 
 static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)

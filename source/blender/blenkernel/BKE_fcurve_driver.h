@@ -134,16 +134,29 @@ struct DriverVar *driver_add_new_variable(struct ChannelDriver *driver);
 float driver_get_variable_value(const struct AnimationEvalContext *anim_eval_context,
                                 struct ChannelDriver *driver,
                                 struct DriverVar *dvar);
+
+typedef enum eDriverVariablePropertyResult {
+  /** The property reference has been succesfully resolved and can be accessed. */
+  DRIVER_VAR_PROPERTY_SUCCESS,
+  /** The target property could not be resolved. */
+  DRIVER_VAR_PROPERTY_INVALID,
+  /** The property was resolved (output parameters are set),
+   *  but the array index is out of bounds. */
+  DRIVER_VAR_PROPERTY_INVALID_INDEX
+} eDriverVariablePropertyResult;
+
 /**
  * Same as 'dtar_get_prop_val'. but get the RNA property.
  */
-bool driver_get_variable_property(const struct AnimationEvalContext *anim_eval_context,
-                                  struct ChannelDriver *driver,
-                                  struct DriverVar *dvar,
-                                  struct DriverTarget *dtar,
-                                  struct PointerRNA *r_ptr,
-                                  struct PropertyRNA **r_prop,
-                                  int *r_index);
+eDriverVariablePropertyResult driver_get_variable_property(
+    const struct AnimationEvalContext *anim_eval_context,
+    struct ChannelDriver *driver,
+    struct DriverVar *dvar,
+    struct DriverTarget *dtar,
+    bool allow_no_index,
+    struct PointerRNA *r_ptr,
+    struct PropertyRNA **r_prop,
+    int *r_index);
 
 /**
  * Check if the expression in the driver conforms to the simple subset.
