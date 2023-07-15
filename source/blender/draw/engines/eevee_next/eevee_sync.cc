@@ -163,7 +163,7 @@ void SyncModule::sync_mesh(Object *ob,
 void SyncModule::sync_point_cloud(Object *ob,
                                   ObjectHandle &ob_handle,
                                   ResourceHandle res_handle,
-                                  const ObjectRef &ob_ref)
+                                  const ObjectRef & /*ob_ref*/)
 {
   int material_slot = 1;
 
