@@ -148,6 +148,27 @@ bool DepsgraphBuilder::check_pchan_has_bbone_segments(const Object *object, cons
   return check_pchan_has_bbone_segments(object, pchan);
 }
 
+const char *DepsgraphBuilder::get_rna_path_relative_to_scene_camera(const Scene *scene,
+                                                                    const PointerRNA &target_prop,
+                                                                    const char *rna_path)
+{
+  if (rna_path == nullptr || target_prop.data != scene || target_prop.type != &RNA_Scene ||
+      !BLI_str_startswith(rna_path, "camera"))
+  {
+    return nullptr;
+  }
+
+  /* Return the part of the path relative to the camera. */
+  switch (rna_path[6]) {
+    case '.':
+      return rna_path + 7;
+    case '[':
+      return rna_path + 6;
+    default:
+      return nullptr;
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -164,6 +164,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_idproperties(IDProperty *id_property);
 
   virtual void build_scene_render(Scene *scene, ViewLayer *view_layer);
+  virtual void build_scene_camera(Scene *scene);
   virtual void build_scene_parameters(Scene *scene);
   virtual void build_scene_compositor(Scene *scene);
 
@@ -223,6 +224,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_driver(ID *id, FCurve *fcurve, int driver_index);
 
   virtual void build_driver_variables(ID *id, FCurve *fcurve);
+  virtual void build_driver_scene_camera_variable(Scene *scene, const char *camera_path);
 
   /* Build operations of a property value from which is read by a driver target.
    *
