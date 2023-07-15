@@ -691,7 +691,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
     printf("%s: set screen\n", __func__);
   }
   screen->do_refresh = false;
-  /* prevent multiwin errors */
+  /* Prevent multi-window errors. */
   screen->winid = win->winid;
 
   screen->context = reinterpret_cast<void *>(ed_screen_context);

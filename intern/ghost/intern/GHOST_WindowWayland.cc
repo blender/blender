@@ -1139,7 +1139,7 @@ static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 #  endif
 }
 
-/* NOTE: cannot be `const` because of the LIBDECOR API.  */
+/* NOTE: cannot be `const` because of the LIBDECOR API. */
 static libdecor_frame_interface libdecor_frame_iface = {
     frame_handle_configure,
     frame_handle_close,

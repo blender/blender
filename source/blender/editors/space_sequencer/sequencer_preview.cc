@@ -208,7 +208,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
       return;
     }
   }
-  else { /* There's no existig preview job. */
+  else { /* There's no existing preview job. */
     pj = MEM_cnew<PreviewJob>("preview rebuild job");
 
     pj->mutex = BLI_mutex_alloc();

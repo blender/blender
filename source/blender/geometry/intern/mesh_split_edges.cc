@@ -392,7 +392,7 @@ void split_edges(Mesh &mesh,
   MutableSpan<int> corner_verts = mesh.corner_verts_for_write();
 
   /* Calculate vertex fans by reordering the vertex to edge maps. Fans are the the ordered
-   * groups of consecutive edges between consecutive faces looping around a vertex.  */
+   * groups of consecutive edges between consecutive faces looping around a vertex. */
   Array<Vector<int>> vertex_fan_sizes(mesh.totvert);
   threading::parallel_for(IndexRange(mesh.totvert), 512, [&](IndexRange range) {
     for (const int vert : range) {

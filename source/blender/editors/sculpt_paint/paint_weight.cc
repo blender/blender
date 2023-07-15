@@ -176,7 +176,9 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev,
   return dv_prev;
 }
 
-/* vpaint has 'vpaint_blend' */
+/**
+ * VPaint has 'vpaint_blend'
+ */
 static float wpaint_blend(const VPaint *wp,
                           float weight,
                           const float alpha,

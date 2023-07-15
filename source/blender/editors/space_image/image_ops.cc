@@ -1901,7 +1901,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     RNA_boolean_set(op->ptr, "save_as_render", isd->opts.save_as_render);
   }
 
-  /* Show multiview save options only if image has multiviews. */
+  /* Show multi-view save options only if image has multi-views. */
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
   RNA_property_boolean_set(op->ptr, prop, BKE_image_is_multiview(image));

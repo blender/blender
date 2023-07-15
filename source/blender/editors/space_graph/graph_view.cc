@@ -227,7 +227,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_previewrange_exec;
-  /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier. */
+  /* XXX: unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -307,7 +307,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_viewall_exec;
-  /* XXX: Unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */

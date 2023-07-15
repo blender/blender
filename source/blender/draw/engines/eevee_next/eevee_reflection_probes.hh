@@ -106,9 +106,9 @@ class ReflectionProbeModule {
   int3 dispatch_probe_pack_ = int3(0);
 
   /**
-   * Texture containing a cubemap where the probe should be rendering to.
+   * Texture containing a cube-map where the probe should be rendering to.
    *
-   * NOTE: TextureFromPool doesn't support cubemaps.
+   * NOTE: TextureFromPool doesn't support cube-maps.
    */
   Texture cubemap_tx_ = {"Probe.Cubemap"};
   int reflection_probe_index_ = 0;

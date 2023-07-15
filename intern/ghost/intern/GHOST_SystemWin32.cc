@@ -465,8 +465,8 @@ GHOST_TSuccess GHOST_SystemWin32::setCursorPosition(int32_t x, int32_t y)
 GHOST_TSuccess GHOST_SystemWin32::getModifierKeys(GHOST_ModifierKeys &keys) const
 {
   /* `GetAsyncKeyState` returns the current interrupt-level state of the hardware, which is needed
-   * when passing key states to a newly-activated window - #40059. Alterative `GetKeyState` only
-   * returns the state as processed by the thread's message queue.   */
+   * when passing key states to a newly-activated window - #40059. Alternative `GetKeyState` only
+   * returns the state as processed by the thread's message queue. */
   bool down = HIBYTE(::GetAsyncKeyState(VK_LSHIFT)) != 0;
   keys.set(GHOST_kModifierKeyLeftShift, down);
   down = HIBYTE(::GetAsyncKeyState(VK_RSHIFT)) != 0;

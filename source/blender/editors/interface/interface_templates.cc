@@ -6759,8 +6759,7 @@ void uiTemplateNodeSocket(uiLayout *layout, bContext * /*C*/, float color[4])
 
   /* XXX using explicit socket colors is not quite ideal.
    * Eventually it should be possible to use theme colors for this purpose,
-   * but this requires a better design for extendable color palettes in user prefs.
-   */
+   * but this requires a better design for extendable color palettes in user preferences. */
   uiBut *but = uiDefBut(
       block, UI_BTYPE_NODE_SOCKET, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, nullptr, 0, 0, 0, 0, "");
   rgba_float_to_uchar(but->col, color);

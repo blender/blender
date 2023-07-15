@@ -67,7 +67,7 @@ void MTLIndexBuf::read(uint32_t *data) const
     MTLContext *ctx = MTLContext::get();
     BLI_assert(ctx);
 
-    /* Ensure data is flushed for host caches.  */
+    /* Ensure data is flushed for host caches. */
     id<MTLBuffer> source_buffer = ibo_->get_metal_buffer();
     if (source_buffer.storageMode == MTLStorageModeManaged) {
       id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();

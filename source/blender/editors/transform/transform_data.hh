@@ -145,38 +145,44 @@ enum {
   TD_NOTCONNECTED = 1 << 2,
   /** Used for scaling of #MetaElem.rad */
   TD_SINGLESIZE = 1 << 3,
-  /** Scale relative to individual element center */
+  /** Scale relative to individual element center. */
   TD_INDIVIDUAL_SCALE = 1 << 4,
   TD_NOCENTER = 1 << 5,
   /** #TransData.ext abused for particle key timing. */
   TD_NO_EXT = 1 << 6,
-  /** don't transform this data */
+  /** Don't transform this data. */
   TD_SKIP = 1 << 7,
-  /** if this is a bez triple, we need to restore the handles,
-   * if this is set #TransData.hdata needs freeing */
+  /**
+   * If this is a bezier triple, we need to restore the handles,
+   * if this is set #TransData.hdata needs freeing.
+   */
   TD_BEZTRIPLE = 1 << 8,
   /** when this is set, don't apply translation changes to this element */
   TD_NO_LOC = 1 << 9,
   /** For Graph Editor auto-snap, indicates that point should not undergo auto-snapping. */
   TD_NOTIMESNAP = 1 << 10,
-  /** For Graph Editor - curves that can only have int-values
-   * need their keyframes tagged with this. */
+  /**
+   * For Graph Editor - curves that can only have int-values
+   * need their keyframes tagged with this.
+   */
   TD_INTVALUES = 1 << 11,
 #define TD_MIRROR_AXIS_SHIFT 12
-  /** For editmode mirror. */
+  /** For edit-mode mirror. */
   TD_MIRROR_X = 1 << 12,
   TD_MIRROR_Y = 1 << 13,
   TD_MIRROR_Z = 1 << 14,
 #define TD_MIRROR_EDGE_AXIS_SHIFT 12
-  /** For editmode mirror, clamp axis to 0 */
+  /** For edit-mode mirror, clamp axis to 0. */
   TD_MIRROR_EDGE_X = 1 << 12,
   TD_MIRROR_EDGE_Y = 1 << 13,
   TD_MIRROR_EDGE_Z = 1 << 14,
-  /** For fcurve handles, move them along with their keyframes */
+  /** For F-curve handles, move them along with their keyframes. */
   TD_MOVEHANDLE1 = 1 << 15,
   TD_MOVEHANDLE2 = 1 << 16,
-  /** Exceptional case with pose bone rotating when a parent bone has 'Local Location'
-   * option enabled and rotating also transforms it. */
+  /**
+   * Exceptional case with pose bone rotating when a parent bone has 'Local Location'
+   * option enabled and rotating also transforms it.
+   */
   TD_PBONE_LOCAL_MTX_P = 1 << 17,
   /** Same as above but for a child bone. */
   TD_PBONE_LOCAL_MTX_C = 1 << 18,

@@ -2387,7 +2387,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator * /*op*/, const wmEv
 
   /* if we are not editing, we are done */
   if (edit_idx == -1) {
-    /* Do not invalidate timer if filerename is still pending,
+    /* Do not invalidate timer if file-rename is still pending,
      * we might still be building the filelist and yet have to find edited entry. */
     if (params->rename_flag == 0) {
       file_params_smoothscroll_timer_clear(wm, win, sfile);

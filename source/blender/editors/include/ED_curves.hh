@@ -90,7 +90,7 @@ IndexMask end_points(const bke::CurvesGeometry &curves,
  * Return a mask of random points or curves.
  *
  * \param random_seed: The seed for the \a RandomNumberGenerator.
- * \param probability: Determins how likely a point/curve will be chosen. If set to 0.0, nothing
+ * \param probability: Determines how likely a point/curve will be chosen. If set to 0.0, nothing
  * will be in the mask, if set to 1.0 everything will be in the mask.
  */
 IndexMask random_mask(const bke::CurvesGeometry &curves,

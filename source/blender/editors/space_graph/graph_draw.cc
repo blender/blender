@@ -1140,7 +1140,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
        * by sampling it at various small-intervals over the visible region
        */
       if (adt) {
-        /** We have to do this mapping dance since the keyframes were remapped but the Fmodifier
+        /* We have to do this mapping dance since the keyframes were remapped but the F-modifier
          * evaluations are not.
          *
          * So we undo the keyframe remapping and instead remap the evaluation time when drawing the

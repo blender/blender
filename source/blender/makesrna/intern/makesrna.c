@@ -1441,7 +1441,7 @@ static char *rna_def_property_set_func(
           }
           else {
             rna_clamp_value_range(f, prop);
-            /* C++ may require casting to an enum type.  */
+            /* C++ may require casting to an enum type. */
             fprintf(f, "#ifdef __cplusplus\n");
             fprintf(f,
                     /* If #rna_clamp_value() adds an expression like `CLAMPIS(...)`
@@ -4705,7 +4705,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
 #if defined(__clang__)
   /* TODO(@ideasman42): ideally this workaround would not be needed,
-   * could use some further investigation as these are intended to be declared.  */
+   * could use some further investigation as these are intended to be declared. */
   fprintf(f, "#pragma GCC diagnostic ignored \"-Wmissing-variable-declarations\"\n\n");
 #endif
 

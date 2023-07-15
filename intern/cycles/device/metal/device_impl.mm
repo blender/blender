@@ -120,7 +120,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   }
 
   if (device_vendor == METAL_GPU_APPLE) {
-    /* Set kernel_specialization_level based on user prefs. */
+    /* Set kernel_specialization_level based on user preferences. */
     switch (info.kernel_optimization_level) {
       case KERNEL_OPTIMIZATION_LEVEL_OFF:
         kernel_specialization_level = PSO_GENERIC;
