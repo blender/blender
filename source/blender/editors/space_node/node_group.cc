@@ -460,10 +460,10 @@ static bool node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     nodeRemoveNode(bmain, ntree, node, false);
   }
 
+  update_nested_node_refs_after_ungroup(*ntree, *ngroup, *gnode, node_identifier_map);
+
   /* delete the group instance and dereference group tree */
   nodeRemoveNode(bmain, ntree, gnode, true);
-
-  update_nested_node_refs_after_ungroup(*ntree, *ngroup, *gnode, node_identifier_map);
 
   return true;
 }
@@ -928,7 +928,7 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     const Map<int32_t, int32_t> &node_identifier_map)
 {
   /* Update nested node references in the parent and child node tree. */
-  RandomNumberGenerator rng(int(PIL_check_seconds_timer() * 1000000.0));
+  RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
   Vector<bNestedNodeRef> new_nested_node_refs;
   /* Keep all nested node references that were in the group before. */
   for (const bNestedNodeRef &state_id : group.nested_node_refs_span()) {
@@ -967,6 +967,7 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
       MEM_malloc_arrayN(new_nested_node_refs.size(), sizeof(bNestedNodeRef), __func__));
   uninitialized_copy_n(
       new_nested_node_refs.data(), new_nested_node_refs.size(), group.nested_node_refs);
+  group.nested_node_refs_num = new_nested_node_refs.size();
 }
 
 static void node_group_make_insert_selected(const bContext &C,
