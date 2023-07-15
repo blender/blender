@@ -931,36 +931,36 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
   RandomNumberGenerator rng(PIL_check_seconds_timer_i() & UINT_MAX);
   Vector<bNestedNodeRef> new_nested_node_refs;
   /* Keep all nested node references that were in the group before. */
-  for (const bNestedNodeRef &state_id : group.nested_node_refs_span()) {
-    new_nested_node_refs.append(state_id);
+  for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
+    new_nested_node_refs.append(ref);
   }
   Set<int32_t> used_nested_node_ref_ids;
   for (const bNestedNodeRef &ref : group.nested_node_refs_span()) {
     used_nested_node_ref_ids.add(ref.id);
   }
   Map<bNestedNodePath, int32_t> new_id_by_old_path;
-  for (bNestedNodeRef &state_id : ntree.nested_node_refs_span()) {
-    const int32_t new_node_id = node_identifier_map.lookup_default(state_id.path.node_id, -1);
+  for (bNestedNodeRef &ref : ntree.nested_node_refs_span()) {
+    const int32_t new_node_id = node_identifier_map.lookup_default(ref.path.node_id, -1);
     if (new_node_id == -1) {
       /* The node was not moved between node groups. */
       continue;
     }
-    bNestedNodeRef new_state_id = state_id;
-    new_state_id.path.node_id = new_node_id;
+    bNestedNodeRef new_ref = ref;
+    new_ref.path.node_id = new_node_id;
     /* Find new unique identifier for the nested node ref. */
     while (true) {
       const int32_t new_id = rng.get_int32(INT32_MAX);
       if (used_nested_node_ref_ids.add(new_id)) {
-        new_state_id.id = new_id;
+        new_ref.id = new_id;
         break;
       }
     }
-    new_id_by_old_path.add_new(state_id.path, new_state_id.id);
-    new_nested_node_refs.append(new_state_id);
+    new_id_by_old_path.add_new(ref.path, new_ref.id);
+    new_nested_node_refs.append(new_ref);
     /* Updated the nested node ref in the parent so that it points to the same node that is now
      * inside of a nested group. */
-    state_id.path.node_id = gnode.identifier;
-    state_id.path.id_in_node = new_state_id.id;
+    ref.path.node_id = gnode.identifier;
+    ref.path.id_in_node = new_ref.id;
   }
   MEM_SAFE_FREE(group.nested_node_refs);
   group.nested_node_refs = static_cast<bNestedNodeRef *>(
