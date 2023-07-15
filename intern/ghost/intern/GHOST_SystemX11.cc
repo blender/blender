@@ -403,16 +403,6 @@ static GHOST_Context *create_glx_context(Display *display,
 
 GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
-  /* During development:
-   *   try 4.x compatibility profile
-   *   try 3.3 compatibility profile
-   *   fall back to 3.0 if needed
-   *
-   * Final Blender 2.8:
-   *   try 4.x core profile
-   *   try 3.3 core profile
-   *   no fall-backs. */
-
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
   GHOST_Context *context = nullptr;
 
@@ -431,28 +421,20 @@ GHOST_IContext *GHOST_SystemX11::createOffscreenContext(GHOST_GPUSettings gpuSet
 
 #ifdef USE_EGL
   /* Try to initialize an EGL context. */
-  for (int minor = 5; minor >= 0; --minor) {
+  for (int minor = 6; minor >= 3; --minor) {
     context = create_egl_context(this, m_display, debug_context, 4, minor);
     if (context != nullptr) {
       return context;
     }
   }
-  context = create_egl_context(this, m_display, debug_context, 3, 3);
-  if (context != nullptr) {
-    return context;
-  }
 
   /* EGL initialization failed, try to fallback to a GLX context. */
 #endif
-  for (int minor = 5; minor >= 0; --minor) {
+  for (int minor = 6; minor >= 3; --minor) {
     context = create_glx_context(m_display, debug_context, 4, minor);
     if (context != nullptr) {
       return context;
     }
-  }
-  context = create_glx_context(m_display, debug_context, 3, 3);
-  if (context != nullptr) {
-    return context;
   }
 
   return nullptr;

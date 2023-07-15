@@ -1256,38 +1256,20 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
 
 #ifdef WITH_OPENGL_BACKEND
   if (type == GHOST_kDrawingContextTypeOpenGL) {
-
-    /* During development:
-     * - Try 4.x compatibility profile.
-     * - Try 3.3 compatibility profile.
-     * - Fall back to 3.0 if needed.
-     *
-     * Final Blender 2.8:
-     * - Try 4.x core profile
-     * - Try 3.3 core profile
-     * - No fall-backs. */
-
     GHOST_Context *context;
 
 #  ifdef USE_EGL
     /* Try to initialize an EGL context. */
-    for (int minor = 5; minor >= 0; --minor) {
+    for (int minor = 6; minor >= 3; --minor) {
       context = create_egl_context(
           this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 4, minor);
       if (context != nullptr) {
         return context;
       }
     }
-
-    context = create_egl_context(
-        this->m_system, m_window, m_display, m_wantStereoVisual, m_is_debug_context, 3, 3);
-    if (context != nullptr) {
-      return context;
-    }
-
     /* EGL initialization failed, try to fallback to a GLX context. */
 #  endif
-    for (int minor = 5; minor >= 0; --minor) {
+    for (int minor = 6; minor >= 3; --minor) {
       context = create_glx_context(m_window,
                                    m_display,
                                    (GLXFBConfig)m_fbconfig,
@@ -1298,16 +1280,6 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
       if (context != nullptr) {
         return context;
       }
-    }
-    context = create_glx_context(m_window,
-                                 m_display,
-                                 (GLXFBConfig)m_fbconfig,
-                                 m_wantStereoVisual,
-                                 m_is_debug_context,
-                                 3,
-                                 3);
-    if (context != nullptr) {
-      return context;
     }
 
     /* Ugly, but we get crashes unless a whole bunch of systems are patched. */

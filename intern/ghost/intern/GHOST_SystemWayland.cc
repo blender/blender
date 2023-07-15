@@ -6250,7 +6250,7 @@ static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
   /* Caller must lock `system->server_mutex`. */
   GHOST_Context *context;
 
-  for (int minor = 6; minor >= 0; --minor) {
+  for (int minor = 6; minor >= 3; --minor) {
     context = new GHOST_ContextEGL(system,
                                    false,
                                    EGLNativeWindowType(egl_window),
@@ -6267,22 +6267,6 @@ static GHOST_Context *createOffscreenContext_impl(GHOST_SystemWayland *system,
     }
     delete context;
   }
-
-  context = new GHOST_ContextEGL(system,
-                                 false,
-                                 EGLNativeWindowType(egl_window),
-                                 EGLNativeDisplayType(wl_display),
-                                 EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                 3,
-                                 3,
-                                 GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                 GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                 EGL_OPENGL_API);
-
-  if (context->initializeDrawingContext()) {
-    return context;
-  }
-  delete context;
   return nullptr;
 }
 

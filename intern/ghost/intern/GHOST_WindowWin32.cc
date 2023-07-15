@@ -595,11 +595,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
   if (type == GHOST_kDrawingContextTypeOpenGL) {
     GHOST_Context *context;
 
-    /* - AMD and Intel give us exactly this version
-     * - NVIDIA gives at least this version <-- desired behavior
-     * So we ask for 4.5, 4.4 ... 3.3 in descending order
-     * to get the best version on the user's system. */
-    for (int minor = 5; minor >= 0; --minor) {
+    for (int minor = 6; minor >= 3; --minor) {
       context = new GHOST_ContextWGL(m_wantStereoVisual,
                                      m_wantAlphaBackground,
                                      m_hWnd,
@@ -615,23 +611,9 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
       }
       else {
         delete context;
+        context = nullptr;
       }
     }
-    context = new GHOST_ContextWGL(m_wantStereoVisual,
-                                   m_wantAlphaBackground,
-                                   m_hWnd,
-                                   m_hDC,
-                                   WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                   3,
-                                   3,
-                                   (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                   GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-
-    if (context && !context->initializeDrawingContext()) {
-      delete context;
-      context = nullptr;
-    }
-
     return context;
   }
   else if (type == GHOST_kDrawingContextTypeD3D) {

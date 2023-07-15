@@ -299,7 +299,7 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuS
   HDC prev_hdc = wglGetCurrentDC();
   HGLRC prev_context = wglGetCurrentContext();
 
-  for (int minor = 5; minor >= 0; --minor) {
+  for (int minor = 6; minor >= 3; --minor) {
     context = new GHOST_ContextWGL(false,
                                    true,
                                    wnd,
@@ -311,29 +311,13 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuS
                                    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
 
     if (context->initializeDrawingContext()) {
-      goto finished;
+      wglMakeCurrent(prev_hdc, prev_context);
+      return context;
     }
     else {
       delete context;
+      context = nullptr;
     }
-  }
-
-  context = new GHOST_ContextWGL(false,
-                                 true,
-                                 wnd,
-                                 mHDC,
-                                 WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                 3,
-                                 3,
-                                 (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                 GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
-
-  if (context->initializeDrawingContext()) {
-    goto finished;
-  }
-  else {
-    delete context;
-    return NULL;
   }
 
 finished:
