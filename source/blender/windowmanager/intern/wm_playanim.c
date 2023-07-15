@@ -138,6 +138,34 @@ static bool buffer_from_filepath(const char *filepath, void **r_mem, size_t *r_s
 
 /** \} */
 
+/** Use a flag to store held modifiers & mouse buttons. */
+typedef enum eWS_Qual {
+  WS_QUAL_LSHIFT = (1 << 0),
+  WS_QUAL_RSHIFT = (1 << 1),
+  WS_QUAL_SHIFT = (WS_QUAL_LSHIFT | WS_QUAL_RSHIFT),
+  WS_QUAL_LALT = (1 << 2),
+  WS_QUAL_RALT = (1 << 3),
+  WS_QUAL_ALT = (WS_QUAL_LALT | WS_QUAL_RALT),
+  WS_QUAL_LCTRL = (1 << 4),
+  WS_QUAL_RCTRL = (1 << 5),
+  WS_QUAL_CTRL = (WS_QUAL_LCTRL | WS_QUAL_RCTRL),
+  WS_QUAL_LMOUSE = (1 << 16),
+  WS_QUAL_MMOUSE = (1 << 17),
+  WS_QUAL_RMOUSE = (1 << 18),
+  WS_QUAL_MOUSE = (WS_QUAL_LMOUSE | WS_QUAL_MMOUSE | WS_QUAL_RMOUSE),
+} eWS_Qual;
+
+typedef struct GhostData {
+  GHOST_SystemHandle system;
+  GHOST_WindowHandle window;
+
+  /** Not GHOST, but low level GPU context. */
+  GPUContext *gpu_context;
+
+  /** Held keys. */
+  eWS_Qual qual;
+} GhostData;
+
 /**
  * The minimal context necessary for displaying an image.
  * Used while displaying images both on load and while playing.
@@ -213,6 +241,8 @@ typedef struct PlayState {
   bool need_frame_update;
   /** The current frame calculated by scrubbing the mouse cursor. */
   int frame_cursor_x;
+
+  GhostData ghost_data;
 } PlayState;
 
 /* for debugging */
@@ -232,35 +262,9 @@ static void print_ps(PlayState *ps)
 }
 #endif
 
-/* global for window and events */
-typedef enum eWS_Qual {
-  WS_QUAL_LSHIFT = (1 << 0),
-  WS_QUAL_RSHIFT = (1 << 1),
-  WS_QUAL_SHIFT = (WS_QUAL_LSHIFT | WS_QUAL_RSHIFT),
-  WS_QUAL_LALT = (1 << 2),
-  WS_QUAL_RALT = (1 << 3),
-  WS_QUAL_ALT = (WS_QUAL_LALT | WS_QUAL_RALT),
-  WS_QUAL_LCTRL = (1 << 4),
-  WS_QUAL_RCTRL = (1 << 5),
-  WS_QUAL_CTRL = (WS_QUAL_LCTRL | WS_QUAL_RCTRL),
-  WS_QUAL_LMOUSE = (1 << 16),
-  WS_QUAL_MMOUSE = (1 << 17),
-  WS_QUAL_RMOUSE = (1 << 18),
-  WS_QUAL_MOUSE = (WS_QUAL_LMOUSE | WS_QUAL_MMOUSE | WS_QUAL_RMOUSE),
-} eWS_Qual;
-
-static struct WindowStateGlobal {
-  GHOST_SystemHandle ghost_system;
-  void *ghost_window;
-  GPUContext *blender_gpu_context;
-
-  /* events */
-  eWS_Qual qual;
-} g_WS = {NULL};
-
-static void playanim_window_get_size(int *r_width, int *r_height)
+static void playanim_window_get_size(GHOST_WindowHandle ghost_window, int *r_width, int *r_height)
 {
-  GHOST_RectangleHandle bounds = GHOST_GetClientBounds(g_WS.ghost_window);
+  GHOST_RectangleHandle bounds = GHOST_GetClientBounds(ghost_window);
   *r_width = GHOST_GetWidthRectangle(bounds);
   *r_height = GHOST_GetHeightRectangle(bounds);
   GHOST_DisposeRectangle(bounds);
@@ -274,30 +278,30 @@ static void playanim_gl_matrix(void)
 }
 
 /* implementation */
-static void playanim_event_qual_update(void)
+static void playanim_event_qual_update(GhostData *ghost_data)
 {
   bool val;
 
   /* Shift */
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftShift, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_LSHIFT);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftShift, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LSHIFT);
 
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightShift, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_RSHIFT);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightShift, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RSHIFT);
 
   /* Control */
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftControl, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_LCTRL);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftControl, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LCTRL);
 
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightControl, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_RCTRL);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightControl, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RCTRL);
 
   /* Alt */
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyLeftAlt, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_LALT);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyLeftAlt, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_LALT);
 
-  GHOST_GetModifierKeyState(g_WS.ghost_system, GHOST_kModifierKeyRightAlt, &val);
-  SET_FLAG_FROM_TEST(g_WS.qual, val, WS_QUAL_RALT);
+  GHOST_GetModifierKeyState(ghost_data->system, GHOST_kModifierKeyRightAlt, &val);
+  SET_FLAG_FROM_TEST(ghost_data->qual, val, WS_QUAL_RALT);
 }
 
 typedef struct PlayAnimPict {
@@ -608,7 +612,8 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
  * \param draw_flip: X/Y flipping (ignored when null).
  * \param indicator_factor: Display a vertical indicator (ignored when -1).
  */
-static void playanim_toscreen_ex(const PlayDisplayContext *display_ctx,
+static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
+                                 const PlayDisplayContext *display_ctx,
                                  const PlayAnimPict *picture,
                                  ImBuf *ibuf,
                                  /* Run-time drawing arguments (not used on-load). */
@@ -618,7 +623,7 @@ static void playanim_toscreen_ex(const PlayDisplayContext *display_ctx,
                                  const bool draw_flip[2],
                                  const float indicator_factor)
 {
-  GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
+  GHOST_ActivateWindowDrawingContext(ghost_window);
 
   GPU_clear_color(0.1f, 0.1f, 0.1f, 0.0f);
 
@@ -667,7 +672,7 @@ static void playanim_toscreen_ex(const PlayDisplayContext *display_ctx,
       SNPRINTF(label, "%s | <failed to load buffer>", picture->filepath);
     }
 
-    playanim_window_get_size(&sizex, &sizey);
+    playanim_window_get_size(ghost_window, &sizex, &sizey);
     fsizex_inv = 1.0f / sizex;
     fsizey_inv = 1.0f / sizey;
 
@@ -702,10 +707,11 @@ static void playanim_toscreen_ex(const PlayDisplayContext *display_ctx,
     GPU_matrix_pop_projection();
   }
 
-  GHOST_SwapWindowBuffers(g_WS.ghost_window);
+  GHOST_SwapWindowBuffers(ghost_window);
 }
 
-static void playanim_toscreen_on_load(const PlayDisplayContext *display_ctx,
+static void playanim_toscreen_on_load(GHOST_WindowHandle ghost_window,
+                                      const PlayDisplayContext *display_ctx,
                                       const PlayAnimPict *picture,
                                       ImBuf *ibuf)
 {
@@ -716,7 +722,7 @@ static void playanim_toscreen_on_load(const PlayDisplayContext *display_ctx,
   const bool *draw_flip = NULL;
 
   playanim_toscreen_ex(
-      display_ctx, picture, ibuf, fstep, font_id, zoom, draw_flip, indicator_factor);
+      ghost_window, display_ctx, picture, ibuf, fstep, font_id, zoom, draw_flip, indicator_factor);
 }
 
 static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf *ibuf)
@@ -728,7 +734,7 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
   }
 
   int fontid = -1;
-  if ((g_WS.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) ||
+  if ((ps->ghost_data.qual & (WS_QUAL_SHIFT | WS_QUAL_LMOUSE)) ||
       /* Always inform the user of an error, this should be an exceptional case. */
       (ibuf == NULL))
   {
@@ -736,7 +742,8 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
   }
 
   BLI_assert(ps->loading == false);
-  playanim_toscreen_ex(&ps->display_ctx,
+  playanim_toscreen_ex(ps->ghost_data.window,
+                       &ps->display_ctx,
                        picture,
                        ibuf,
                        fontid,
@@ -746,7 +753,8 @@ static void playanim_toscreen(PlayState *ps, const PlayAnimPict *picture, ImBuf 
                        indicator_factor);
 }
 
-static void build_pict_list_from_anim(const PlayDisplayContext *display_ctx,
+static void build_pict_list_from_anim(GhostData *ghost_data,
+                                      const PlayDisplayContext *display_ctx,
                                       const char *filepath_first)
 {
   /* OCIO_TODO: support different input color space */
@@ -758,7 +766,7 @@ static void build_pict_list_from_anim(const PlayDisplayContext *display_ctx,
 
   ImBuf *ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
   if (ibuf) {
-    playanim_toscreen_on_load(display_ctx, NULL, ibuf);
+    playanim_toscreen_on_load(ghost_data->window, display_ctx, NULL, ibuf);
     IMB_freeImBuf(ibuf);
   }
 
@@ -772,7 +780,8 @@ static void build_pict_list_from_anim(const PlayDisplayContext *display_ctx,
   }
 }
 
-static void build_pict_list_from_image_sequence(const PlayDisplayContext *display_ctx,
+static void build_pict_list_from_image_sequence(GhostData *ghost_data,
+                                                const PlayDisplayContext *display_ctx,
                                                 const char *filepath_first,
                                                 const int totframes,
                                                 const int fstep,
@@ -834,7 +843,7 @@ static void build_pict_list_from_image_sequence(const PlayDisplayContext *displa
 
       if (ibuf) {
         if (display_imbuf) {
-          playanim_toscreen_on_load(display_ctx, picture, ibuf);
+          playanim_toscreen_on_load(ghost_data->window, display_ctx, picture, ibuf);
         }
 #ifdef USE_FRAME_CACHE_LIMIT
         if (fill_cache) {
@@ -864,8 +873,8 @@ static void build_pict_list_from_image_sequence(const PlayDisplayContext *displa
                              fp_decoded.digits,
                              fp_framenr);
 
-    while (GHOST_ProcessEvents(g_WS.ghost_system, false)) {
-      GHOST_DispatchEvents(g_WS.ghost_system);
+    while (GHOST_ProcessEvents(ghost_data->system, false)) {
+      GHOST_DispatchEvents(ghost_data->system);
       if (*loading_p == false) {
         break;
       }
@@ -873,7 +882,8 @@ static void build_pict_list_from_image_sequence(const PlayDisplayContext *displa
   }
 }
 
-static void build_pict_list(const PlayDisplayContext *display_ctx,
+static void build_pict_list(struct GhostData *ghost_data,
+                            const PlayDisplayContext *display_ctx,
                             const char *filepath_first,
                             const int totframes,
                             const int fstep,
@@ -881,10 +891,11 @@ static void build_pict_list(const PlayDisplayContext *display_ctx,
 {
   *loading_p = true;
   if (IMB_isanim(filepath_first)) {
-    build_pict_list_from_anim(display_ctx, filepath_first);
+    build_pict_list_from_anim(ghost_data, display_ctx, filepath_first);
   }
   else {
-    build_pict_list_from_image_sequence(display_ctx, filepath_first, totframes, fstep, loading_p);
+    build_pict_list_from_image_sequence(
+        ghost_data, display_ctx, filepath_first, totframes, fstep, loading_p);
   }
   *loading_p = false;
 }
@@ -920,7 +931,7 @@ static void change_frame(PlayState *ps)
     return;
   }
 
-  playanim_window_get_size(&sizex, &sizey);
+  playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   i_last = ((PlayAnimPict *)picsbase.last)->frame;
   i = (i_last * ps->frame_cursor_x) / sizex;
   CLAMP(i, 0, i_last);
@@ -973,10 +984,12 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
   const GHOST_TEventType type = GHOST_GetEventType(evt);
   /* Convert ghost event into value keyboard or mouse. */
   const int val = ELEM(type, GHOST_kEventKeyDown, GHOST_kEventButtonDown);
+  GHOST_SystemHandle ghost_system = ps->ghost_data.system;
+  GHOST_WindowHandle ghost_window = ps->ghost_data.window;
 
   // print_ps(ps);
 
-  playanim_event_qual_update();
+  playanim_event_qual_update(&ps->ghost_data);
 
   /* first check if we're busy loading files */
   if (ps->loading) {
@@ -1034,7 +1047,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           break;
         case GHOST_kKeyF: {
           if (val) {
-            int axis = (g_WS.qual & WS_QUAL_SHIFT) ? 1 : 0;
+            int axis = (ps->ghost_data.qual & WS_QUAL_SHIFT) ? 1 : 0;
             ps->draw_flip[axis] = !ps->draw_flip[axis];
           }
           break;
@@ -1062,7 +1075,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           break;
         case GHOST_kKey4:
         case GHOST_kKeyNumpad4:
-          if (g_WS.qual & WS_QUAL_SHIFT) {
+          if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
             swaptime = ps->fstep / 24.0;
             update_sound_fps();
           }
@@ -1110,7 +1123,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           if (val) {
             ps->sstep = true;
             ps->wait2 = false;
-            if (g_WS.qual & WS_QUAL_SHIFT) {
+            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
               ps->picture = picsbase.first;
               ps->next_frame = 0;
             }
@@ -1122,7 +1135,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         case GHOST_kKeyDownArrow:
           if (val) {
             ps->wait2 = false;
-            if (g_WS.qual & WS_QUAL_SHIFT) {
+            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
               ps->next_frame = ps->direction = -1;
             }
             else {
@@ -1135,7 +1148,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           if (val) {
             ps->sstep = true;
             ps->wait2 = false;
-            if (g_WS.qual & WS_QUAL_SHIFT) {
+            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
               ps->picture = picsbase.last;
               ps->next_frame = 0;
             }
@@ -1147,7 +1160,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         case GHOST_kKeyUpArrow:
           if (val) {
             ps->wait2 = false;
-            if (g_WS.qual & WS_QUAL_SHIFT) {
+            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
               ps->next_frame = ps->direction = 1;
             }
             else {
@@ -1160,7 +1173,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
         case GHOST_kKeySlash:
         case GHOST_kKeyNumpadSlash:
           if (val) {
-            if (g_WS.qual & WS_QUAL_SHIFT) {
+            if (ps->ghost_data.qual & WS_QUAL_SHIFT) {
               if (ps->picture && ps->picture->ibuf) {
                 printf(" Name: %s | Speed: %.2f frames/s\n",
                        ps->picture->ibuf->filepath,
@@ -1273,7 +1286,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           if (val == 0) {
             break;
           }
-          if (g_WS.qual & WS_QUAL_CTRL) {
+          if (ps->ghost_data.qual & WS_QUAL_CTRL) {
             playanim_window_zoom(ps, 0.1f);
           }
           else {
@@ -1289,7 +1302,7 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
           if (val == 0) {
             break;
           }
-          if (g_WS.qual & WS_QUAL_CTRL) {
+          if (ps->ghost_data.qual & WS_QUAL_CTRL) {
             playanim_window_zoom(ps, -0.1f);
           }
           else {
@@ -1313,46 +1326,46 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
       GHOST_TEventButtonData *bd = GHOST_GetEventData(evt);
       int cx, cy, sizex, sizey, inside_window;
 
-      GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
-      playanim_window_get_size(&sizex, &sizey);
+      GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
+      playanim_window_get_size(ghost_window, &sizex, &sizey);
 
       inside_window = (cx >= 0 && cx < sizex && cy >= 0 && cy <= sizey);
 
       if (bd->button == GHOST_kButtonMaskLeft) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            g_WS.qual |= WS_QUAL_LMOUSE;
+            ps->ghost_data.qual |= WS_QUAL_LMOUSE;
             tag_change_frame(ps, cx);
           }
         }
         else {
-          g_WS.qual &= ~WS_QUAL_LMOUSE;
+          ps->ghost_data.qual &= ~WS_QUAL_LMOUSE;
         }
       }
       else if (bd->button == GHOST_kButtonMaskMiddle) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            g_WS.qual |= WS_QUAL_MMOUSE;
+            ps->ghost_data.qual |= WS_QUAL_MMOUSE;
           }
         }
         else {
-          g_WS.qual &= ~WS_QUAL_MMOUSE;
+          ps->ghost_data.qual &= ~WS_QUAL_MMOUSE;
         }
       }
       else if (bd->button == GHOST_kButtonMaskRight) {
         if (type == GHOST_kEventButtonDown) {
           if (inside_window) {
-            g_WS.qual |= WS_QUAL_RMOUSE;
+            ps->ghost_data.qual |= WS_QUAL_RMOUSE;
           }
         }
         else {
-          g_WS.qual &= ~WS_QUAL_RMOUSE;
+          ps->ghost_data.qual &= ~WS_QUAL_RMOUSE;
         }
       }
       break;
     }
     case GHOST_kEventCursorMove: {
-      if (g_WS.qual & WS_QUAL_LMOUSE) {
+      if (ps->ghost_data.qual & WS_QUAL_LMOUSE) {
         GHOST_TEventCursorData *cd = GHOST_GetEventData(evt);
         int cx, cy;
 
@@ -1362,8 +1375,8 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
          * however the API currently doesn't support this. */
         {
           int x_test, y_test;
-          GHOST_GetCursorPosition(g_WS.ghost_system, g_WS.ghost_window, &cx, &cy);
-          GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &x_test, &y_test);
+          GHOST_GetCursorPosition(ghost_system, ghost_window, &cx, &cy);
+          GHOST_ScreenToClient(ghost_window, cd->x, cd->y, &x_test, &y_test);
 
           if (cx != x_test || cy != y_test) {
             /* we're not the last event... skipping */
@@ -1377,15 +1390,15 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
     }
     case GHOST_kEventWindowActivate:
     case GHOST_kEventWindowDeactivate: {
-      g_WS.qual &= ~WS_QUAL_MOUSE;
+      ps->ghost_data.qual &= ~WS_QUAL_MOUSE;
       break;
     }
     case GHOST_kEventWindowSize:
     case GHOST_kEventWindowMove: {
       float zoomx, zoomy;
 
-      playanim_window_get_size(&ps->display_ctx.size[0], &ps->display_ctx.size[1]);
-      GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
+      playanim_window_get_size(ghost_window, &ps->display_ctx.size[0], &ps->display_ctx.size[1]);
+      GHOST_ActivateWindowDrawingContext(ghost_window);
 
       zoomx = (float)ps->display_ctx.size[0] / ps->ibufx;
       zoomy = (float)ps->display_ctx.size[1] / ps->ibufy;
@@ -1438,28 +1451,29 @@ static bool ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
   return true;
 }
 
-static void playanim_window_open(const char *title, int posx, int posy, int sizex, int sizey)
+static GHOST_WindowHandle playanim_window_open(
+    GHOST_SystemHandle ghost_system, const char *title, int posx, int posy, int sizex, int sizey)
 {
   GHOST_GPUSettings gpusettings = {0};
   const eGPUBackendType gpu_backend = GPU_backend_type_selection_get();
   gpusettings.context_type = wm_ghost_drawing_context_type(gpu_backend);
   uint32_t scr_w, scr_h;
 
-  GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &scr_w, &scr_h);
+  GHOST_GetMainDisplayDimensions(ghost_system, &scr_w, &scr_h);
 
   posy = (scr_h - posy - sizey);
 
-  g_WS.ghost_window = GHOST_CreateWindow(g_WS.ghost_system,
-                                         NULL,
-                                         title,
-                                         posx,
-                                         posy,
-                                         sizex,
-                                         sizey,
-                                         /* Could optionally start full-screen. */
-                                         GHOST_kWindowStateNormal,
-                                         false,
-                                         gpusettings);
+  return GHOST_CreateWindow(ghost_system,
+                            NULL,
+                            title,
+                            posx,
+                            posy,
+                            sizex,
+                            sizey,
+                            /* Could optionally start full-screen. */
+                            GHOST_kWindowStateNormal,
+                            false,
+                            gpusettings);
 }
 
 static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
@@ -1472,20 +1486,20 @@ static void playanim_window_zoom(PlayState *ps, const float zoom_offset)
   }
 
   // playanim_window_get_position(&ofsx, &ofsy);
-  playanim_window_get_size(&sizex, &sizey);
+  playanim_window_get_size(ps->ghost_data.window, &sizex, &sizey);
   // ofsx += sizex / 2; /* UNUSED */
   // ofsy += sizey / 2; /* UNUSED */
   sizex = ps->zoom * ps->ibufx;
   sizey = ps->zoom * ps->ibufy;
   // ofsx -= sizex / 2; /* UNUSED */
   // ofsy -= sizey / 2; /* UNUSED */
-  // window_set_position(g_WS.ghost_window, sizex, sizey);
-  GHOST_SetClientSize(g_WS.ghost_window, sizex, sizey);
+  // window_set_position(ps->ghost_data.window, sizex, sizey);
+  GHOST_SetClientSize(ps->ghost_data.window, sizex, sizey);
 }
 
 static bool playanim_window_font_scale_from_dpi(PlayState *ps)
 {
-  const float scale = (GHOST_GetDPIHint(g_WS.ghost_window) / 96.0f);
+  const float scale = (GHOST_GetDPIHint(ps->ghost_data.window) / 96.0f);
   const float font_size_base = 11.0f; /* Font size un-scaled. */
   const int font_size = (int)(font_size_base * scale) + 0.5f;
   if (ps->font_size != font_size) {
@@ -1649,31 +1663,31 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
   }
 
   {
-
     GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, &ps);
 
     GHOST_SetBacktraceHandler((GHOST_TBacktraceFn)BLI_system_backtrace);
 
-    g_WS.ghost_system = GHOST_CreateSystem();
+    ps.ghost_data.system = GHOST_CreateSystem();
 
-    if (UNLIKELY(g_WS.ghost_system == NULL)) {
+    if (UNLIKELY(ps.ghost_data.system == NULL)) {
       /* GHOST will have reported the back-ends that failed to load. */
       CLOG_WARN(&LOG, "GHOST: unable to initialize, exiting!");
       /* This will leak memory, it's preferable to crashing. */
       exit(EXIT_FAILURE);
     }
 
-    GHOST_AddEventConsumer(g_WS.ghost_system, consumer);
+    GHOST_AddEventConsumer(ps.ghost_data.system, consumer);
 
-    playanim_window_open("Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
+    ps.ghost_data.window = playanim_window_open(
+        ps.ghost_data.system, "Blender Animation Player", start_x, start_y, ibuf->x, ibuf->y);
   }
 
-  GHOST_GetMainDisplayDimensions(g_WS.ghost_system, &maxwinx, &maxwiny);
+  GHOST_GetMainDisplayDimensions(ps.ghost_data.system, &maxwinx, &maxwiny);
 
-  // GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
+  // GHOST_ActivateWindowDrawingContext(ps.ghost_data.window);
 
-  /* initialize OpenGL immediate mode */
-  g_WS.blender_gpu_context = GPU_context_create(g_WS.ghost_window, NULL);
+  /* Initialize OpenGL immediate mode. */
+  ps.ghost_data.gpu_context = GPU_context_create(ps.ghost_data.window, NULL);
   GPU_init();
 
   /* initialize the font */
@@ -1700,13 +1714,13 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   {
     int window_size[2];
-    playanim_window_get_size(&window_size[0], &window_size[1]);
+    playanim_window_get_size(ps.ghost_data.window, &window_size[0], &window_size[1]);
     GPU_viewport(0, 0, window_size[0], window_size[1]);
     GPU_scissor(0, 0, window_size[0], window_size[1]);
     playanim_gl_matrix();
   }
 
-  GHOST_SwapWindowBuffers(g_WS.ghost_window);
+  GHOST_SwapWindowBuffers(ps.ghost_data.window);
 
   if (sfra == -1 || efra == -1) {
     /* one of the frames was invalid, just use all images */
@@ -1714,7 +1728,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
     efra = MAXFRAME;
   }
 
-  build_pict_list(&ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
+  build_pict_list(
+      &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
 
 #ifdef WITH_AUDASPACE
   source = AUD_Sound_file(filepath);
@@ -1735,7 +1750,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   for (i = 2; i < argc; i++) {
     STRNCPY(filepath, argv[i]);
-    build_pict_list(&ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
+    build_pict_list(
+        &ps.ghost_data, &ps.display_ctx, filepath, (efra - sfra) + 1, ps.fstep, &ps.loading);
   }
 
   IMB_freeImBuf(ibuf);
@@ -1813,7 +1829,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
         /* why only windows? (from 2.4x) - campbell */
 #ifdef _WIN32
-        GHOST_SetTitle(g_WS.ghost_window, ps.picture->filepath);
+        GHOST_SetTitle(ps.ghost_data.window, ps.picture->filepath);
 #endif
 
         while (pupdate_time()) {
@@ -1834,8 +1850,8 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
       ps.next_frame = ps.direction;
 
-      while ((has_event = GHOST_ProcessEvents(g_WS.ghost_system, false))) {
-        GHOST_DispatchEvents(g_WS.ghost_system);
+      while ((has_event = GHOST_ProcessEvents(ps.ghost_data.system, false))) {
+        GHOST_DispatchEvents(ps.ghost_data.system);
       }
       if (ps.go == false) {
         break;
@@ -1939,14 +1955,14 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
   BLF_exit();
 
-  if (g_WS.blender_gpu_context) {
-    GPU_context_active_set(g_WS.blender_gpu_context);
+  if (ps.ghost_data.gpu_context) {
+    GPU_context_active_set(ps.ghost_data.gpu_context);
     GPU_exit();
-    GPU_context_discard(g_WS.blender_gpu_context);
-    g_WS.blender_gpu_context = NULL;
+    GPU_context_discard(ps.ghost_data.gpu_context);
+    ps.ghost_data.gpu_context = NULL;
   }
 
-  GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
+  GHOST_DisposeWindow(ps.ghost_data.system, ps.ghost_data.window);
 
   /* early exit, IMB and BKE should be exited only in end */
   if (ps.dropped_file[0]) {
