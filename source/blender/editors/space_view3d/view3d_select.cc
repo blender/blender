@@ -73,7 +73,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_gpencil_legacy.h"
 #include "ED_grease_pencil.h"
 #include "ED_lattice.h"

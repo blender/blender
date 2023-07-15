@@ -10,7 +10,7 @@
 
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 
 namespace blender::ed::curves {
 

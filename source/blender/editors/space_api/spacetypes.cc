@@ -29,7 +29,7 @@
 #include "ED_asset.h"
 #include "ED_clip.h"
 #include "ED_curve.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_curves_sculpt.h"
 #include "ED_fileselect.h"
 #include "ED_geometry.h"

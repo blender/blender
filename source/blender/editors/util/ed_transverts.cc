@@ -32,7 +32,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 
 #include "ED_transverts.h" /* own include */
 
@@ -497,7 +497,7 @@ void ED_transverts_create_from_obedit(TransVertStore *tvs, const Object *obedit,
   }
   else if (obedit->type == OB_CURVES) {
     Curves *curves_id = static_cast<Curves *>(obedit->data);
-    ED_curves_transverts_create(curves_id, tvs);
+    blender::ed::curves::transverts_from_curves_positions_create(curves_id->geometry.wrap(), tvs);
   }
 
   if (!tvs->transverts_tot && tvs->transverts) {

@@ -35,7 +35,7 @@
 #include "WM_message.h"
 
 #include "ED_armature.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil_legacy.h"

@@ -15,7 +15,7 @@
 
 #include "BLT_translation.h"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_node.h"
 #include "ED_object.h"
 

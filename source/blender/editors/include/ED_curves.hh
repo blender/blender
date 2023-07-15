@@ -8,6 +8,16 @@
 
 #pragma once
 
+#include "BKE_attribute.hh"
+#include "BKE_crazyspace.hh"
+#include "BKE_curves.hh"
+
+#include "BLI_index_mask.hh"
+#include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
+
+#include "ED_select_utils.h"
+
 struct bContext;
 struct Curves;
 struct UndoType;
@@ -15,53 +25,24 @@ struct SelectPick_Params;
 struct ViewContext;
 struct rcti;
 struct TransVertStore;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct wmKeyConfig;
 
 /* -------------------------------------------------------------------- */
 /** \name C Wrappers
  * \{ */
 
-void ED_operatortypes_curves(void);
-void ED_curves_undosys_type(struct UndoType *ut);
-void ED_keymap_curves(struct wmKeyConfig *keyconf);
+void ED_operatortypes_curves();
+void ED_curves_undosys_type(UndoType *ut);
+void ED_keymap_curves(wmKeyConfig *keyconf);
 
 /**
  * Return an owning pointer to an array of point normals the same size as the number of control
  * points. The normals depend on the normal mode for each curve and the "tilt" attribute and may be
  * calculated for the evaluated points and sampled back to the control points.
  */
-float (*ED_curves_point_normals_array_create(const struct Curves *curves_id))[3];
-
-/**
- * Wrapper for `transverts_from_curves_positions_create`.
- */
-void ED_curves_transverts_create(struct Curves *curves_id, struct TransVertStore *tvs);
-
-/**
- * C wrapper for #CurvesGeometry::offsets_for_write().
- */
-int *ED_curves_offsets_for_write(struct Curves *curves_id);
+float (*ED_curves_point_normals_array_create(const Curves *curves_id))[3];
 
 /** \} */
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
-#  include "BKE_attribute.hh"
-#  include "BKE_crazyspace.hh"
-#  include "BKE_curves.hh"
-
-#  include "BLI_index_mask.hh"
-#  include "BLI_vector.hh"
-#  include "BLI_vector_set.hh"
-
-#  include "ED_select_utils.h"
 
 namespace blender::ed::curves {
 
@@ -261,4 +242,3 @@ bool remove_selection(bke::CurvesGeometry &curves, eAttrDomain selection_domain)
 /** \} */
 
 }  // namespace blender::ed::curves
-#endif
