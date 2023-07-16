@@ -491,8 +491,8 @@ static float butterworth_calculate_blend_value(float *samples,
 }
 
 /**
- * \param samples are expected to start at the first frame of the segment with a buffer of size
- * segment->filter_order at the left.
+ * \param samples: Are expected to start at the first frame of the segment with a buffer of size
+ * `segment->filter_order` at the left.
  */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,

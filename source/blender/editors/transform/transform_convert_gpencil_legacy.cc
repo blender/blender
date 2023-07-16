@@ -480,7 +480,7 @@ static void createTransGPencil_strokes(bContext *C,
   unit_m3(smtx);
   unit_m3(mtx);
 
-  /* Second Pass: Build transdata array. */
+  /* Second Pass: Build transform-data array. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     /* only editable and visible layers are considered */
     if (BKE_gpencil_layer_is_editable(gpl) && (gpl->actframe != nullptr)) {
@@ -491,7 +491,7 @@ static void createTransGPencil_strokes(bContext *C,
 
       bGPDframe *init_gpf = static_cast<bGPDframe *>((is_multiedit) ? gpl->frames.first :
                                                                       gpl->actframe);
-      /* Init multiframe falloff options. */
+      /* Initialize multi-frame falloff options. */
       int f_init = 0;
       int f_end = 0;
 

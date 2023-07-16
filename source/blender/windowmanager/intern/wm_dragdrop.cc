@@ -436,7 +436,7 @@ static void wm_drop_update_active(bContext *C, wmDrag *drag, const wmEvent *even
   const int winsize_x = WM_window_pixels_x(win);
   const int winsize_y = WM_window_pixels_y(win);
 
-  /* for multiwin drags, we only do this if mouse inside */
+  /* For multi-window drags, we only do this if mouse inside. */
   if (event->xy[0] < 0 || event->xy[1] < 0 || event->xy[0] > winsize_x || event->xy[1] > winsize_y)
   {
     return;

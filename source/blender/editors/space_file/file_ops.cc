@@ -2437,7 +2437,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator * /*op*/, const wmEv
   const float max_curr_scroll = is_horizontal ? region->v2d.cur.xmax : -region->v2d.cur.ymin;
 
   /* Check if we have reached our final scroll position. */
-  /* Filelist has to be ready, otherwise it makes no sense to stop scrolling yet. */
+  /* File-list has to be ready, otherwise it makes no sense to stop scrolling yet. */
   const bool is_ready = filelist_is_ready(sfile->files);
   /* Edited item must be in the 'middle' of shown area (kind of approximated).
    * Note that we have to do the check in 'block space', not in 'item space' here. */

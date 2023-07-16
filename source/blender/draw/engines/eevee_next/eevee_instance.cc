@@ -445,7 +445,7 @@ void Instance::draw_viewport(DefaultFramebufferList *dfbl)
   render_sample();
   velocity.step_swap();
 
-  /* Do not request redraw during viewport animation to lock the framerate to the animation
+  /* Do not request redraw during viewport animation to lock the frame-rate to the animation
    * playback rate. This is in order to preserve motion blur aspect and also to avoid TAA reset
    * that can show flickering. */
   if (!sampling.finished_viewport() && !DRW_state_is_playback()) {

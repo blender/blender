@@ -537,7 +537,7 @@ struct TransInfo {
   /** proportional falloff text. */
   char proptext[20];
   /**
-   * Spaces using non 1:1 aspect, (uv's, f-curve, movie-clip... etc)
+   * Spaces using non 1:1 aspect, (UV's, F-curve, movie-clip... etc).
    * use for conversion and snapping.
    */
   float aspect[3];

@@ -688,7 +688,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
       switch (wmn->data) {
         case ND_TRANSFORM:
           buttons_area_redraw(area, BCONTEXT_OBJECT);
-          buttons_area_redraw(area, BCONTEXT_DATA); /* autotexpace flag */
+          buttons_area_redraw(area, BCONTEXT_DATA); /* Auto-texture-space flag. */
           break;
         case ND_POSE:
         case ND_BONE_ACTIVE:

@@ -1144,9 +1144,8 @@ RigidBodyWorld *BKE_rigidbody_create_world(Scene *scene)
 
   rbw->time_scale = 1.0f;
 
-  /* Most high quality Bullet example files has an internal framerate of 240hz.
-   * The blender default scene has a frame rate of 24, so take 10 substeps (24fps * 10).
-   */
+  /* Most high quality Bullet example files has an internal frame-rate of 240hz.
+   * The blender default scene has a frame rate of 24, so take 10 sub-steps (24fps * 10). */
   rbw->substeps_per_frame = 10;
   rbw->num_solver_iterations = 10; /* 10 is bullet default */
 

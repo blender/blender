@@ -6,7 +6,7 @@
  * \ingroup avi
  *
  * This is external code. Sets some compression related options
- * (width, height quality, framerate).
+ * (width, height quality, frame-rate).
  */
 
 #include "AVI_avi.h"
@@ -29,7 +29,7 @@ AviError AVI_set_compress_option(
   (void)stream; /* unused */
 
   if (movie->header->TotalFrames != 0) {
-    /* Can't change params after we have already started writing frames. */
+    /* Can't change parameters after we have already started writing frames. */
     return AVI_ERROR_OPTION;
   }
 

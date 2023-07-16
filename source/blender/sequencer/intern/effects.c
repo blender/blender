@@ -2570,7 +2570,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
                                   SEQ_time_left_handle_frame_get(scene, seq);
 
   if ((seq->seq1 == NULL) || (effect_strip_length < 1)) {
-    return; /* Make coverity happy and check for (CID 598) input strip... */
+    return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
   FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
