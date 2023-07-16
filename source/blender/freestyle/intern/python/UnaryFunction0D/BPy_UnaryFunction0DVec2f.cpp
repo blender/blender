@@ -118,7 +118,7 @@ static PyObject *UnaryFunction0DVec2f___call__(BPy_UnaryFunction0DVec2f *self,
 /*-----------------------BPy_UnaryFunction0DVec2f type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DVec2f_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DVec2f",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DVec2f),
     /*tp_itemsize*/ 0,

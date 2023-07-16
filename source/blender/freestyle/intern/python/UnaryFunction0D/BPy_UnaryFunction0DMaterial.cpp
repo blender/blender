@@ -112,7 +112,7 @@ static PyObject *UnaryFunction0DMaterial___call__(BPy_UnaryFunction0DMaterial *s
 /*-----------------------BPy_UnaryFunction0DMaterial type definition ----------------------------*/
 
 PyTypeObject UnaryFunction0DMaterial_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DMaterial",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DMaterial),
     /*tp_itemsize*/ 0,

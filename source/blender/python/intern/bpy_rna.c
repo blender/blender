@@ -6610,7 +6610,7 @@ static PyObject *pyrna_func_doc_get(BPy_FunctionRNA *self, void *UNUSED(closure)
 }
 
 PyTypeObject pyrna_struct_meta_idprop_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_struct_meta_idprop",
     /* NOTE: would be `sizeof(PyTypeObject)`,
      * but sub-types of Type must be #PyHeapTypeObject's. */
@@ -6670,7 +6670,7 @@ PyTypeObject pyrna_struct_meta_idprop_Type = {
 /*-----------------------BPy_StructRNA method def------------------------------*/
 
 PyTypeObject pyrna_struct_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_struct",
     /*tp_basicsize*/ sizeof(BPy_StructRNA),
     /*tp_itemsize*/ 0,
@@ -6737,7 +6737,7 @@ PyTypeObject pyrna_struct_Type = {
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
 
 PyTypeObject pyrna_prop_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop",
     /*tp_basicsize*/ sizeof(BPy_PropertyRNA),
     /*tp_itemsize*/ 0,
@@ -6793,7 +6793,7 @@ PyTypeObject pyrna_prop_Type = {
 };
 
 PyTypeObject pyrna_prop_array_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop_array",
     /*tp_basicsize*/ sizeof(BPy_PropertyArrayRNA),
     /*tp_itemsize*/ 0,
@@ -6849,7 +6849,7 @@ PyTypeObject pyrna_prop_array_Type = {
 };
 
 PyTypeObject pyrna_prop_collection_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop_collection",
     /*tp_basicsize*/ sizeof(BPy_PropertyRNA),
     /*tp_itemsize*/ 0,
@@ -6906,7 +6906,7 @@ PyTypeObject pyrna_prop_collection_Type = {
 
 /* only for add/remove/move methods */
 static PyTypeObject pyrna_prop_collection_idprop_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop_collection_idprop",
     /*tp_basicsize*/ sizeof(BPy_PropertyRNA),
     /*tp_itemsize*/ 0,
@@ -6964,7 +6964,7 @@ static PyTypeObject pyrna_prop_collection_idprop_Type = {
 /*-----------------------BPy_PropertyRNA method def------------------------------*/
 
 PyTypeObject pyrna_func_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_func",
     /*tp_basicsize*/ sizeof(BPy_FunctionRNA),
     /*tp_itemsize*/ 0,
@@ -7032,7 +7032,7 @@ static void pyrna_prop_collection_iter_dealloc(BPy_PropertyCollectionIterRNA *se
 static PyObject *pyrna_prop_collection_iter_next(BPy_PropertyCollectionIterRNA *self);
 
 static PyTypeObject pyrna_prop_collection_iter_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_prop_collection_iter",
     /*tp_basicsize*/ sizeof(BPy_PropertyCollectionIterRNA),
     /*tp_itemsize*/ 0,
@@ -7793,7 +7793,7 @@ static PyMethodDef bpy_types_module_methods[] = {
 
 PyDoc_STRVAR(bpy_types_module_doc, "Access to internal Blender types");
 static PyModuleDef bpy_types_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.types",
     /*m_doc*/ bpy_types_module_doc,
     /*m_size*/ sizeof(struct BPy_TypesModule_State),

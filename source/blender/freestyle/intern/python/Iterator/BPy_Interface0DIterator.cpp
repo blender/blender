@@ -197,7 +197,7 @@ static PyGetSetDef BPy_Interface0DIterator_getseters[] = {
 /*-----------------------BPy_Interface0DIterator type definition ------------------------------*/
 
 PyTypeObject Interface0DIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Interface0DIterator",
     /*tp_basicsize*/ sizeof(BPy_Interface0DIterator),
     /*tp_itemsize*/ 0,

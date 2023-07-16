@@ -177,7 +177,7 @@ static PyGetSetDef BPy_FrsCurve_getseters[] = {
 /*-----------------------BPy_FrsCurve type definition ------------------------------*/
 
 PyTypeObject FrsCurve_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Curve",
     /*tp_basicsize*/ sizeof(BPy_FrsCurve),
     /*tp_itemsize*/ 0,

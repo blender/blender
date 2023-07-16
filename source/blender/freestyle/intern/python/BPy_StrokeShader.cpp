@@ -268,7 +268,7 @@ static PyGetSetDef BPy_StrokeShader_getseters[] = {
 /*-----------------------BPy_StrokeShader type definition ------------------------------*/
 
 PyTypeObject StrokeShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "StrokeShader",
     /*tp_basicsize*/ sizeof(BPy_StrokeShader),
     /*tp_itemsize*/ 0,

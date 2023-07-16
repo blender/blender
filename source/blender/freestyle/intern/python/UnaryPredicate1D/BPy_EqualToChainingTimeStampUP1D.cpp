@@ -58,7 +58,7 @@ static int EqualToChainingTimeStampUP1D___init__(BPy_EqualToChainingTimeStampUP1
 /*-----------------------BPy_EqualToChainingTimeStampUP1D type definition -----------------------*/
 
 PyTypeObject EqualToChainingTimeStampUP1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "EqualToChainingTimeStampUP1D",
     /*tp_basicsize*/ sizeof(BPy_EqualToChainingTimeStampUP1D),
     /*tp_itemsize*/ 0,

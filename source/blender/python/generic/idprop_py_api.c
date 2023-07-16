@@ -1637,7 +1637,7 @@ static PyMappingMethods BPy_IDGroup_Mapping = {
 };
 
 PyTypeObject BPy_IDGroup_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /* For printing, in format `<module>.<name>`. */
     /*tp_name*/ "IDPropertyGroup",
     /*tp_basicsize*/ sizeof(BPy_IDProperty),
@@ -2064,7 +2064,7 @@ static PyBufferProcs BPy_IDArray_Buffer = {
  * \{ */
 
 PyTypeObject BPy_IDArray_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /* For printing, in format `<module>.<name>`. */
     /*tp_name*/ "IDPropertyArray",
     /*tp_basicsize*/ sizeof(BPy_IDArray),
@@ -2182,7 +2182,7 @@ static PyObject *BPy_IDGroup_ViewItems_CreatePyObject(BPy_IDProperty *group)
  * \{ */
 
 static PyModuleDef IDProp_types_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "idprop.types",
     /*m_doc*/ NULL,
     /*m_size*/ 0,
@@ -2231,7 +2231,7 @@ static PyMethodDef IDProp_methods[] = {
 PyDoc_STRVAR(IDProp_module_doc,
              "This module provides access id property types (currently mainly for docs).");
 static PyModuleDef IDProp_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "idprop",
     /*m_doc*/ IDProp_module_doc,
     /*m_size*/ 0,

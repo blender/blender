@@ -109,7 +109,7 @@ static PyObject *UnaryFunction0DId___call__(BPy_UnaryFunction0DId *self,
 /*-----------------------BPy_UnaryFunction0DId type definition ------------------------------*/
 
 PyTypeObject UnaryFunction0DId_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction0DId",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction0DId),
     /*tp_itemsize*/ 0,

@@ -76,7 +76,7 @@ static int CalligraphicShader___init__(BPy_CalligraphicShader *self,
 /*-----------------------BPy_CalligraphicShader type definition ------------------------------*/
 
 PyTypeObject CalligraphicShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "CalligraphicShader",
     /*tp_basicsize*/ sizeof(BPy_CalligraphicShader),
     /*tp_itemsize*/ 0,

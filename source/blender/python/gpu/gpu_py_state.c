@@ -511,7 +511,7 @@ static PyMethodDef pygpu_state__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_state__tp_doc, "This module provides access to the gpu state.");
 static PyModuleDef pygpu_state_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.state",
     /*m_doc*/ pygpu_state__tp_doc,
     /*m_size*/ 0,

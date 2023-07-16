@@ -58,7 +58,7 @@ static int Curvature2DAngleF0D___init__(BPy_Curvature2DAngleF0D *self,
 /*-----------------------BPy_Curvature2DAngleF0D type definition ------------------------------*/
 
 PyTypeObject Curvature2DAngleF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Curvature2DAngleF0D",
     /*tp_basicsize*/ sizeof(BPy_Curvature2DAngleF0D),
     /*tp_itemsize*/ 0,

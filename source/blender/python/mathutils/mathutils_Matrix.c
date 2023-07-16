@@ -3337,7 +3337,7 @@ PyDoc_STRVAR(
     "   :arg rows: Sequence of rows. When omitted, a 4x4 identity matrix is constructed.\n"
     "   :type rows: 2d number sequence\n");
 PyTypeObject matrix_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "Matrix",
     /*tp_basicsize*/ sizeof(MatrixObject),
     /*tp_itemsize*/ 0,
@@ -3781,7 +3781,7 @@ static PyMappingMethods MatrixAccess_AsMapping = {
  * \{ */
 
 PyTypeObject matrix_access_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "MatrixAccess",
     /*tp_basicsize*/ sizeof(MatrixAccessObject),
     /*tp_itemsize*/ 0,

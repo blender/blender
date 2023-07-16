@@ -355,7 +355,7 @@ static Py_hash_t py_imbuf_hash(Py_ImBuf *self)
 }
 
 PyTypeObject Py_ImBuf_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "ImBuf",
     /*tp_basicsize*/ sizeof(Py_ImBuf),
     /*tp_itemsize*/ 0,
@@ -564,7 +564,7 @@ PyDoc_STRVAR(IMB_doc,
              "It provides access to image buffers outside of Blender's\n"
              ":class:`bpy.types.Image` data-block context.\n");
 static PyModuleDef IMB_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf",
     /*m_doc*/ IMB_doc,
     /*m_size*/ 0,
@@ -608,7 +608,7 @@ PyDoc_STRVAR(IMB_types_doc,
              "   ID type to store and manipulate image data at runtime.\n");
 
 static PyModuleDef IMB_types_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "imbuf.types",
     /*m_doc*/ IMB_types_doc,
     /*m_size*/ 0,

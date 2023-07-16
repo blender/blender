@@ -437,7 +437,7 @@ static PyMethodDef bpy_ops_methods[] = {
 };
 
 static PyModuleDef bpy_ops_module = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "_bpy.ops",
     /*m_doc*/ NULL,
     /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */

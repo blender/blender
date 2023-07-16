@@ -23,7 +23,7 @@ extern const char *imb_ext_audio[];
 
 /*----------------------------MODULE INIT-------------------------*/
 static PyModuleDef _bpy_path_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "_bpy_path",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

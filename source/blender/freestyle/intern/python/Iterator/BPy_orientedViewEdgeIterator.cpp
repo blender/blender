@@ -131,7 +131,7 @@ static PyGetSetDef BPy_orientedViewEdgeIterator_getseters[] = {
 /*-----------------------BPy_orientedViewEdgeIterator type definition ---------------------------*/
 
 PyTypeObject orientedViewEdgeIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "orientedViewEdgeIterator",
     /*tp_basicsize*/ sizeof(BPy_orientedViewEdgeIterator),
     /*tp_itemsize*/ 0,

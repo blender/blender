@@ -158,7 +158,7 @@ static PyGetSetDef BPy_Id_getseters[] = {
 /*-----------------------BPy_Id type definition ------------------------------*/
 
 PyTypeObject Id_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Id",
     /*tp_basicsize*/ sizeof(BPy_Id),
     /*tp_itemsize*/ 0,

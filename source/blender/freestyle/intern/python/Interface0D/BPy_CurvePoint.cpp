@@ -263,7 +263,7 @@ PyTypeObject CurvePoint_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)CurvePoint_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

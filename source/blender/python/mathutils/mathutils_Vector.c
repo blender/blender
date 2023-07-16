@@ -3208,7 +3208,7 @@ PyDoc_STRVAR(vector_doc,
              "   :arg seq: Components of the vector, must be a sequence of at least two\n"
              "   :type seq: sequence of numbers\n");
 PyTypeObject vector_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "Vector",
     /*tp_basicsize*/ sizeof(VectorObject),
     /*tp_itemsize*/ 0,

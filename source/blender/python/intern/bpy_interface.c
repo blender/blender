@@ -780,7 +780,7 @@ extern int main_python_enter(int argc, const char **argv);
 extern void main_python_exit(void);
 
 static struct PyModuleDef bpy_proxy_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

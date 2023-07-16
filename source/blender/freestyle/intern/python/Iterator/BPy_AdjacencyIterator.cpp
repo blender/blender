@@ -173,7 +173,7 @@ static PyGetSetDef BPy_AdjacencyIterator_getseters[] = {
 /*-----------------------BPy_AdjacencyIterator type definition ------------------------------*/
 
 PyTypeObject AdjacencyIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "AdjacencyIterator",
     /*tp_basicsize*/ sizeof(BPy_AdjacencyIterator),
     /*tp_itemsize*/ 0,

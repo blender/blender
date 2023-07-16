@@ -490,7 +490,7 @@ static PySequenceMethods BPy_Stroke_as_sequence = {
 };
 
 PyTypeObject Stroke_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Stroke",
     /*tp_basicsize*/ sizeof(BPy_Stroke),
     /*tp_itemsize*/ 0,

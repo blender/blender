@@ -1099,7 +1099,7 @@ static PyMethodDef M_Noise_methods[] = {
 };
 
 static PyModuleDef M_Noise_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.noise",
     /*m_doc*/ M_Noise_doc,
     /*m_size*/ 0,

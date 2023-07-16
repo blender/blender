@@ -85,7 +85,7 @@ static int IncreasingColorShader___init__(BPy_IncreasingColorShader *self,
 /*-----------------------BPy_IncreasingColorShader type definition ------------------------------*/
 
 PyTypeObject IncreasingColorShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "IncreasingColorShader",
     /*tp_basicsize*/ sizeof(BPy_IncreasingColorShader),
     /*tp_itemsize*/ 0,
