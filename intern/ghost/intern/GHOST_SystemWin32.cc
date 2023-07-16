@@ -7,7 +7,6 @@
  */
 
 #include "GHOST_SystemWin32.hh"
-#include "GHOST_ContextD3D.hh"
 #include "GHOST_EventDragnDrop.hh"
 #include "GHOST_EventTrackpad.hh"
 
@@ -40,7 +39,10 @@
 #include "GHOST_WindowManager.hh"
 #include "GHOST_WindowWin32.hh"
 
-#include "GHOST_ContextWGL.hh"
+#include "GHOST_ContextD3D.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextWGL.hh"
+#endif
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
 #endif
@@ -268,61 +270,64 @@ GHOST_IContext *GHOST_SystemWin32::createOffscreenContext(GHOST_GPUSettings gpuS
 {
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
 
-  GHOST_Context *context = nullptr;
-
+  switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
-  /* Vulkan does not need a window. */
-  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
-    context = new GHOST_ContextVK(false, (HWND)0, 1, 2, debug_context);
-
-    if (!context->initializeDrawingContext()) {
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(false, (HWND)0, 1, 2, debug_context);
+      if (context->initializeDrawingContext()) {
+        return nullptr;
+      }
       delete context;
       return nullptr;
     }
-    return context;
-  }
 #endif
 
-  HWND wnd = CreateWindowA("STATIC",
-                           "BlenderGLEW",
-                           WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                           0,
-                           0,
-                           64,
-                           64,
-                           NULL,
-                           NULL,
-                           GetModuleHandle(NULL),
-                           NULL);
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
 
-  HDC mHDC = GetDC(wnd);
-  HDC prev_hdc = wglGetCurrentDC();
-  HGLRC prev_context = wglGetCurrentContext();
+      /* OpenGL needs a dummy window to create a context on windows. */
+      HWND wnd = CreateWindowA("STATIC",
+                               "BlenderGLEW",
+                               WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                               0,
+                               0,
+                               64,
+                               64,
+                               NULL,
+                               NULL,
+                               GetModuleHandle(NULL),
+                               NULL);
 
-  for (int minor = 6; minor >= 3; --minor) {
-    context = new GHOST_ContextWGL(false,
-                                   true,
-                                   wnd,
-                                   mHDC,
-                                   WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                   4,
-                                   minor,
-                                   (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                   GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+      HDC mHDC = GetDC(wnd);
+      HDC prev_hdc = wglGetCurrentDC();
+      HGLRC prev_context = wglGetCurrentContext();
 
-    if (context->initializeDrawingContext()) {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextWGL(
+            false,
+            true,
+            wnd,
+            mHDC,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            4,
+            minor,
+            (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+            GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+        if (context->initializeDrawingContext()) {
+          wglMakeCurrent(prev_hdc, prev_context);
+          return context;
+        }
+        delete context;
+      }
       wglMakeCurrent(prev_hdc, prev_context);
-      return context;
+      return nullptr;
     }
-    else {
-      delete context;
-      context = nullptr;
-    }
+#endif
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-
-finished:
-  wglMakeCurrent(prev_hdc, prev_context);
-  return context;
 }
 
 /**
@@ -344,8 +349,6 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
  */
 GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
 {
-  GHOST_ContextD3D *context;
-
   HWND wnd = CreateWindowA("STATIC",
                            "Blender XR",
                            WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
@@ -358,13 +361,12 @@ GHOST_ContextD3D *GHOST_SystemWin32::createOffscreenContextD3D()
                            GetModuleHandle(NULL),
                            NULL);
 
-  context = new GHOST_ContextD3D(false, wnd);
-  if (context->initializeDrawingContext() == GHOST_kFailure) {
-    delete context;
-    context = nullptr;
+  GHOST_ContextD3D *context = new GHOST_ContextD3D(false, wnd);
+  if (context->initializeDrawingContext()) {
+    return context;
   }
-
-  return context;
+  delete context;
+  return nullptr;
 }
 
 GHOST_TSuccess GHOST_SystemWin32::disposeContextD3D(GHOST_ContextD3D *context)

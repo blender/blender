@@ -23,7 +23,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.hh"
+#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
+#  include "GHOST_ContextCGL.hh"
+#endif
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -761,25 +763,42 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
+  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
+
+  switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
-  if (gpuSettings.context_type == GHOST_kDrawingContextTypeVulkan) {
-    const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
-    GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
-    if (!context->initializeDrawingContext()) {
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-      return NULL;
+      return nullptr;
     }
-    return context;
-  }
+#endif
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL:
+#endif
+#ifdef WITH_METAL_BACKEND
+    case GHOST_kDrawingContextTypeMetal:
+#endif
+#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
+    {
+      /* TODO(fclem): Remove OpenGL support and rename context to ContextMTL */
+      GHOST_Context *context = new GHOST_ContextCGL(
+          false, NULL, NULL, NULL, gpuSettings.context_type);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
+      return nullptr;
+    }
 #endif
 
-  GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, NULL, gpuSettings.context_type);
-  if (context->initializeDrawingContext())
-    return context;
-  else
-    delete context;
-
-  return NULL;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
+  }
 }
 
 /**

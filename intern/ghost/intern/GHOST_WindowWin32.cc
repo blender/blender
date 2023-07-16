@@ -15,7 +15,9 @@
 #include "utf_winfunc.h"
 #include "utfconv.h"
 
-#include "GHOST_ContextWGL.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextWGL.hh"
+#endif
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
 #endif
@@ -592,56 +594,55 @@ GHOST_TSuccess GHOST_WindowWin32::invalidate()
 
 GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType type)
 {
-  if (type == GHOST_kDrawingContextTypeOpenGL) {
-    GHOST_Context *context;
+  switch (type) {
+#ifdef WITH_VULKAN_BACKEND
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 2, m_debug_context);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
+      return nullptr;
+    }
+#endif
 
-    for (int minor = 6; minor >= 3; --minor) {
-      context = new GHOST_ContextWGL(m_wantStereoVisual,
-                                     m_wantAlphaBackground,
-                                     m_hWnd,
-                                     m_hDC,
-                                     WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-                                     4,
-                                     minor,
-                                     (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
-                                     GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextWGL(
+            m_wantStereoVisual,
+            m_wantAlphaBackground,
+            m_hWnd,
+            m_hDC,
+            WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            4,
+            minor,
+            (m_debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+            GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      return nullptr;
+    }
+#endif
+
+    case GHOST_kDrawingContextTypeD3D: {
+      GHOST_Context *context = new GHOST_ContextD3D(false, m_hWnd);
 
       if (context->initializeDrawingContext()) {
         return context;
       }
-      else {
-        delete context;
-        context = nullptr;
-      }
-    }
-    return context;
-  }
-  else if (type == GHOST_kDrawingContextTypeD3D) {
-    GHOST_Context *context;
-
-    context = new GHOST_ContextD3D(false, m_hWnd);
-    if (!context->initializeDrawingContext()) {
       delete context;
-      context = nullptr;
+      return nullptr;
     }
 
-    return context;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-
-#ifdef WITH_VULKAN_BACKEND
-  else if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(false, m_hWnd, 1, 2, m_debug_context);
-
-    if (context->initializeDrawingContext()) {
-      return context;
-    }
-    else {
-      delete context;
-    }
-  }
-#endif
-
-  return NULL;
 }
 
 void GHOST_WindowWin32::lostMouseCapture()
