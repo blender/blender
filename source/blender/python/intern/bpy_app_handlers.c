@@ -154,13 +154,11 @@ static PyObject *bpy_app_handlers_persistent_new(PyTypeObject *UNUSED(type),
 
 /** Dummy type because decorators can't be a #PyCFunction. */
 static PyTypeObject BPyPersistent_Type = {
-    /*ob_base*/ PyVarObject_HEAD_INIT(
 #if defined(_MSC_VER)
-        NULL,
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
 #else
-        &PyType_Type,
+    /*ob_base*/ PyVarObject_HEAD_INIT(&PyType_Type, 0)
 #endif
-        0)
     /*tp_name*/ "persistent",
     /*tp_basicsize*/ 0,
     /*tp_itemsize*/ 0,
