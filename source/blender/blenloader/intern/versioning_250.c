@@ -198,9 +198,9 @@ static void area_add_window_regions(ScrArea *area, SpaceLink *sl, ListBase *lb)
         break;
       case SPACE_SEQ: {
         ARegion *region_main = NULL;
-        LISTBASE_FOREACH (ARegion *, region, lb) {
-          if (region->regiontype == RGN_TYPE_WINDOW) {
-            region_main = region;
+        LISTBASE_FOREACH (ARegion *, region_iter, lb) {
+          if (region_iter->regiontype == RGN_TYPE_WINDOW) {
+            region_main = region_iter;
             break;
           }
         }
@@ -1967,8 +1967,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       /* add regions */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = area->spacedata.first;
-        if (sl->spacetype == SPACE_IMAGE) {
+        SpaceLink *sl_first = area->spacedata.first;
+        if (sl_first->spacetype == SPACE_IMAGE) {
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
               View2D *v2d = &region->v2d;
@@ -2010,8 +2010,8 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       /* add regions */
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
-        SpaceLink *sl = area->spacedata.first;
-        if (sl->spacetype == SPACE_SEQ) {
+        SpaceLink *sl_first = area->spacedata.first;
+        if (sl_first->spacetype == SPACE_SEQ) {
           LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
             if (region->regiontype == RGN_TYPE_WINDOW) {
               if (region->v2d.min[1] == 4.0f) {
