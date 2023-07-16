@@ -14,6 +14,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
+#include "BLI_string_utf8_symbols.h"
 #include "BLI_sys_types.h"
 
 #include "DNA_scene_types.h"
@@ -282,7 +283,7 @@ static   bUnitCollection buNaturalTimeCollection = {buNaturalTimeDef, 3, 0, UNIT
 
 
 static   bUnitDef buNaturalRotDef[] = {
-  {"degree",    "degrees",     "°",  "d",   "Degrees",    "DEGREES",    M_PI / 180.0,             0.0,  B_UNIT_DEF_NONE | B_UNIT_DEF_NO_SPACE},
+  {"degree",    "degrees",     BLI_STR_UTF8_DEGREE_SIGN,  "d",   "Degrees",    "DEGREES",    M_PI / 180.0,             0.0,  B_UNIT_DEF_NONE | B_UNIT_DEF_NO_SPACE},
   /* arcminutes/arcseconds are used in Astronomy/Navigation areas... */
   {"arcminute", "arcminutes",  "'",  NULL,  "Arcminutes", "ARCMINUTES", (M_PI / 180.0) / 60.0,    0.0,  B_UNIT_DEF_SUPPRESS | B_UNIT_DEF_NO_SPACE},
   {"arcsecond", "arcseconds",  "\"", NULL,  "Arcseconds", "ARCSECONDS", (M_PI / 180.0) / 3600.0,  0.0,  B_UNIT_DEF_SUPPRESS | B_UNIT_DEF_NO_SPACE},
@@ -321,14 +322,14 @@ static   bUnitCollection buPowerCollection = {buPowerDef, 3, 0, UNIT_COLLECTION_
 /* Temperature */
 static   bUnitDef buMetricTempDef[] = {
   {"kelvin",  "kelvin",  "K",  NULL, "Kelvin",  "KELVIN",  1.0f, 0.0,    B_UNIT_DEF_NONE}, /* Base unit. */
-  {"celsius", "celsius", "°C", "C",  "Celsius", "CELSIUS", 1.0f, 273.15, B_UNIT_DEF_NONE},
+  {"celsius", "celsius", BLI_STR_UTF8_DEGREE_SIGN "C", "C",  "Celsius", "CELSIUS", 1.0f, 273.15, B_UNIT_DEF_NONE},
   NULL_UNIT,
 };
 static   bUnitCollection buMetricTempCollection = {buMetricTempDef, 0, 0, UNIT_COLLECTION_LENGTH(buMetricTempDef)};
 
 static   bUnitDef buImperialTempDef[] = {
   {"kelvin",     "kelvin",     "K",  NULL, "Kelvin",     "KELVIN",     1.0f,      0.0,    B_UNIT_DEF_NONE}, /* Base unit. */
-  {"fahrenheit", "fahrenheit", "°F", "F",  "Fahrenheit", "FAHRENHEIT", UN_SC_FAH, 459.67, B_UNIT_DEF_NONE},
+  {"fahrenheit", "fahrenheit", BLI_STR_UTF8_DEGREE_SIGN "F", "F",  "Fahrenheit", "FAHRENHEIT", UN_SC_FAH, 459.67, B_UNIT_DEF_NONE},
   NULL_UNIT,
 };
 static   bUnitCollection buImperialTempCollection = {

@@ -19,6 +19,7 @@
 #include "BKE_layer.h"
 
 #include "BLI_math.h"
+#include "BLI_string_utf8_symbols.h"
 
 #include "BLT_translation.h"
 
@@ -1488,7 +1489,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Angle",
                            "Direction of the stroke at which brush gives maximal thickness "
-                           "(0° for horizontal)");
+                           "(0" BLI_STR_UTF8_DEGREE_SIGN " for horizontal)");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, nullptr);
 

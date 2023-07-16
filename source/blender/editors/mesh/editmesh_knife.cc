@@ -640,7 +640,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   UnitSettings *unit = &kcd->scene->unit;
   if (unit->system == USER_UNIT_NONE) {
-    SNPRINTF(numstr, "%.*f°", angle_precision, RAD2DEGF(angle));
+    SNPRINTF(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, angle_precision, RAD2DEGF(angle));
   }
   else {
     BKE_unit_value_as_string(

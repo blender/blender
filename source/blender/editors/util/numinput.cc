@@ -162,7 +162,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
       BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
     }
     /* We might have cut some multi-bytes utf8 chars
-     * (e.g. trailing '°' of degrees values can become only 'A')... */
+     * (e.g. trailing degrees symbol values can become only 'A'). */
     BLI_str_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
   }
 }

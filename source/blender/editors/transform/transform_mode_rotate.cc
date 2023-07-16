@@ -106,7 +106,7 @@ static void transdata_elem_rotate(const TransInfo *t,
     angle_final = angle * td->factor;
   }
 
-  /* Rotation is very likely to be above 180°, we need to do rotation by steps.
+  /* Rotation is very likely to be above 180 degrees we need to do rotation by steps.
    * Note that this is only needed when doing 'absolute' rotation
    * (i.e. from initial rotation again, typically when using numinput).
    * regular incremental rotation (from mouse/widget/...) will be called often enough,
@@ -225,8 +225,8 @@ static void applyRotationValue(TransInfo *t,
                                const bool is_large_rotation)
 {
   const float angle_sign = angle < 0.0f ? -1.0f : 1.0f;
-  /* We cannot use something too close to 180°, or 'continuous' rotation may fail
-   * due to computing error... */
+  /* We cannot use something too close to 180 degrees, or 'continuous' rotation may fail
+   * due to computing error. */
   const float angle_step = angle_sign * float(0.9 * M_PI);
 
   if (is_large_rotation) {

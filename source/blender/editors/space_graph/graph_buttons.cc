@@ -1268,7 +1268,10 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
                 DTAR_TRANSCHAN_ROTW) &&
            dvar->targets[0].rotation_mode != DTAR_ROTMODE_QUATERNION))
       {
-        SNPRINTF(valBuf, "%.3f (%4.1f°)", dvar->curval, RAD2DEGF(dvar->curval));
+        SNPRINTF(valBuf,
+                 "%.3f (%4.1f" BLI_STR_UTF8_DEGREE_SIGN ")",
+                 dvar->curval,
+                 RAD2DEGF(dvar->curval));
       }
       else {
         SNPRINTF(valBuf, "%.3f", dvar->curval);

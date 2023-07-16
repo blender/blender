@@ -50,13 +50,13 @@ static void applyTilt(TransInfo *t, const int[2] /*mval*/)
 
     outputNumInput(&(t->num), c, &t->scene->unit);
 
-    SNPRINTF(str, TIP_("Tilt: %s° %s"), &c[0], t->proptext);
+    SNPRINTF(str, TIP_("Tilt: %s" BLI_STR_UTF8_DEGREE_SIGN " %s"), &c[0], t->proptext);
 
     /* XXX For some reason, this seems needed for this op, else RNA prop is not updated... :/ */
     t->values_final[0] = final;
   }
   else {
-    SNPRINTF(str, TIP_("Tilt: %.2f° %s"), RAD2DEGF(final), t->proptext);
+    SNPRINTF(str, TIP_("Tilt: %.2f" BLI_STR_UTF8_DEGREE_SIGN " %s"), RAD2DEGF(final), t->proptext);
   }
 
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {

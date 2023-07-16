@@ -48,7 +48,7 @@ MotionLine compute_motion_line(ivec2 tile, vec2 motion)
 
   MotionLine line;
   line.origin = vec2(tile);
-  /* Rotate 90° Counter-Clockwise. */
+  /* Rotate 90 degrees counter-clockwise. */
   line.normal = vec2(-dir.y, dir.x);
   return line;
 }

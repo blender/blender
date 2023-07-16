@@ -170,7 +170,7 @@ int dominant_axis(vec3 a);
 vec3 orthogonal(vec3 v);
 /**
  * Calculates a perpendicular vector to \a v.
- * \note Returned vector is always rotated 90° counter clock wise.
+ * \note Returned vector is always rotated 90 degrees counter clock wise.
  */
 vec2 orthogonal(vec2 v);
 

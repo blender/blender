@@ -156,7 +156,7 @@ void main()
 
     switch (light.type) {
       case LIGHT_SPOT:
-        /* Only for < ~170° Cone due to plane extraction precision. */
+        /* Only for < ~170 degree Cone due to plane extraction precision. */
         if (light.spot_tan < 10.0) {
           Pyramid pyramid = shape_pyramid_non_oblique(
               vP,

@@ -283,7 +283,7 @@ BLI_INLINE int32_t pack_rotation_aspect_hardness(float rot, float asp, float har
     packed |= 1 << 8;
   }
   /* Rotation uses 9 bits */
-  /* Rotation are in [-90°..90°] range, so we can encode the sign of the angle + the cosine
+  /* Rotation are in [-90..90 degree] range, so we can encode the sign of the angle + the cosine
    * because the cosine will always be positive. */
   packed |= int32_t(unit_float_to_uchar_clamp(cosf(rot))) << 9;
   /* Store sine sign in 9th bit. */

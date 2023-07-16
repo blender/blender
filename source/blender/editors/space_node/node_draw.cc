@@ -852,7 +852,8 @@ static void create_inspection_string_for_generic_value(const bNodeSocket &socket
   else if (socket_type.is<math::Quaternion>()) {
     const math::Quaternion &rotation = *static_cast<math::Quaternion *>(socket_value);
     const math::EulerXYZ euler = math::to_euler(rotation);
-    ss << fmt::format(TIP_("({}°, {}°, {}°) (Rotation)"),
+    ss << fmt::format(TIP_("({}" BLI_STR_UTF8_DEGREE_SIGN ", {}" BLI_STR_UTF8_DEGREE_SIGN
+                           ", {}" BLI_STR_UTF8_DEGREE_SIGN ") (Rotation)"),
                       euler.x().degree(),
                       euler.y().degree(),
                       euler.z().degree());
