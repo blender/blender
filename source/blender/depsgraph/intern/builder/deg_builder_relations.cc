@@ -1970,8 +1970,10 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
          *
          * The not-so-obvious part is that we don't do such relation for the context properties.
          * They are resolved at the graph build time and do not change at runtime (#107081).
+         * Thus scene has to be excluded as a special case; this is OK because changes to
+         * scene.camera not caused by animation should actually force a dependency graph rebuild.
          */
-        if (target_id != variable_exit_key.ptr.owner_id && dvar->type != DVAR_TYPE_CONTEXT_PROP) {
+        if (target_id != variable_exit_key.ptr.owner_id && GS(target_id->name) != ID_SCE) {
           if (deg_copy_on_write_is_needed(GS(target_id->name))) {
             ComponentKey target_id_key(target_id, NodeType::COPY_ON_WRITE);
             add_relation(target_id_key, driver_key, "Target ID -> Driver");
