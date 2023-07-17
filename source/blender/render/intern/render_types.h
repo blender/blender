@@ -30,9 +30,9 @@ struct ReportList;
 extern "C" {
 #endif
 
-typedef struct HighlightedTile {
+struct HighlightedTile {
   rcti rect;
-} HighlightedTile;
+};
 
 /* controls state of render, everything that's read-only during render stage */
 struct Render {
