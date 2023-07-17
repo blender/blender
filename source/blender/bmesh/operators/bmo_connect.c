@@ -200,7 +200,7 @@ void bmo_connect_verts_exec(BMesh *bm, BMOperator *op)
   }
 
   /* connect faces */
-  while ((f = BLI_LINKSTACK_POP(faces))) {
+  while ((f = (BMFace *)BLI_LINKSTACK_POP(faces))) {
     if (bm_face_connect_verts(bm, f, check_degenerate) == -1) {
       BMO_error_raise(bm, op, BMO_ERROR_FATAL, "Could not connect vertices");
     }

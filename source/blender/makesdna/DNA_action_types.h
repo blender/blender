@@ -213,6 +213,8 @@ typedef struct bPoseChannel_Runtime {
  * with respect to the rest-position of #bArmature bones.
  */
 typedef struct bPoseChannel {
+  DNA_DEFINE_CXX_METHODS(bPoseChannel)
+
   struct bPoseChannel *next, *prev;
 
   /** User-Defined Properties on this PoseChannel. */

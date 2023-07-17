@@ -8,6 +8,10 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Definitions which defines internal behavior of CCGSubSurf.
  */
@@ -47,7 +51,7 @@ typedef struct _EHash {
 
 typedef void (*EHEntryFreeFP)(EHEntry *, void *);
 
-#define EHASH_alloc(eh, nb) ((eh)->allocatorIFC.alloc((eh)->allocator, nb))
+#define EHASH_alloc(eh, nb) (EHEntry **)((eh)->allocatorIFC.alloc((eh)->allocator, nb))
 #define EHASH_free(eh, ptr) ((eh)->allocatorIFC.free((eh)->allocator, ptr))
 #define EHASH_hash(eh, item) (((uintptr_t)(item)) % ((unsigned int)(eh)->curSize))
 
@@ -195,9 +199,9 @@ struct CCGSubSurf {
   ((ss)->allocatorIFC.realloc((ss)->allocator, ptr, nb, ob))
 #define CCGSUBSURF_free(ss, ptr) ((ss)->allocatorIFC.free((ss)->allocator, ptr))
 
-#define VERT_getCo(v, lvl) ccg_vert_getCo(v, lvl, vertDataSize)
+#define VERT_getCo(v, lvl) (float *)ccg_vert_getCo(v, lvl, vertDataSize)
 #define VERT_getNo(v, lvl) ccg_vert_getNo(v, lvl, vertDataSize, normalDataOffset)
-#define EDGE_getCo(e, lvl, x) ccg_edge_getCo(e, lvl, x, vertDataSize)
+#define EDGE_getCo(e, lvl, x) (float *)ccg_edge_getCo(e, lvl, x, vertDataSize)
 #define EDGE_getNo(e, lvl, x) ccg_edge_getNo(e, lvl, x, vertDataSize, normalDataOffset)
 #define FACE_getIFNo(f, lvl, S, x, y) \
   ccg_face_getIFNo(f, lvl, S, x, y, subdivLevels, vertDataSize, normalDataOffset)
@@ -207,8 +211,10 @@ struct CCGSubSurf {
 #endif
 #define FACE_getIENo(f, lvl, S, x) \
   ccg_face_getIENo(f, lvl, S, x, subdivLevels, vertDataSize, normalDataOffset)
-#define FACE_getIECo(f, lvl, S, x) ccg_face_getIECo(f, lvl, S, x, subdivLevels, vertDataSize)
-#define FACE_getIFCo(f, lvl, S, x, y) ccg_face_getIFCo(f, lvl, S, x, y, subdivLevels, vertDataSize)
+#define FACE_getIECo(f, lvl, S, x) \
+  (float *)ccg_face_getIECo(f, lvl, S, x, subdivLevels, vertDataSize)
+#define FACE_getIFCo(f, lvl, S, x, y) \
+  (float *)ccg_face_getIFCo(f, lvl, S, x, y, subdivLevels, vertDataSize)
 
 #define NormZero(av) \
   { \
@@ -270,6 +276,10 @@ void ccgSubSurf_converter_free(struct OpenSubdiv_Converter *converter);
 
 #ifdef DUMP_RESULT_GRIDS
 void ccgSubSurf__dumpCoords(CCGSubSurf *ss);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #include "CCGSubSurf_inline.h"

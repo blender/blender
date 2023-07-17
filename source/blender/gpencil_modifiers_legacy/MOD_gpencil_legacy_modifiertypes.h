@@ -10,6 +10,10 @@
 
 #include "BKE_gpencil_modifier_legacy.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ****************** Type structures for all modifiers ****************** */
 
 extern GpencilModifierTypeInfo modifierType_Gpencil_None;
@@ -43,3 +47,7 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Envelope;
 /* MOD_gpencil_legacy_util.c */
 
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);
+
+#ifdef __cplusplus
+}
+#endif

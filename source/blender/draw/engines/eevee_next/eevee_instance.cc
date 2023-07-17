@@ -207,7 +207,7 @@ void Instance::object_sync(Object *ob)
           continue;
         }
 
-        ObjectHandle _ob_handle = {0};
+        ObjectHandle _ob_handle{};
         _ob_handle.object_key = ObjectKey(ob_handle.object_key.ob, sub_key++);
         _ob_handle.recalc = particle_sys->recalc;
         ResourceHandle _res_handle = manager->resource_handle(float4x4(ob->object_to_world));

@@ -215,7 +215,7 @@ static void bmo_recalc_face_normals_array(BMesh *bm,
   BLI_LINKSTACK_PUSH(fstack, faces[f_start_index]);
   BMO_face_flag_enable(bm, faces[f_start_index], FACE_TEMP);
 
-  while ((f = BLI_LINKSTACK_POP(fstack))) {
+  while ((f = (BMFace *)BLI_LINKSTACK_POP(fstack))) {
     const bool flip_state = BMO_face_flag_test_bool(bm, f, FACE_FLIP);
     BMLoop *l_iter, *l_first;
 

@@ -21,6 +21,7 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -246,6 +247,7 @@ typedef enum IDRemapperApplyOptions {
 
   ID_REMAP_APPLY_DEFAULT = 0,
 } IDRemapperApplyOptions;
+ENUM_OPERATORS(IDRemapperApplyOptions, ID_REMAP_APPLY_UNMAP_WHEN_REMAPPING_TO_SELF)
 
 typedef void (*IDRemapperIterFunction)(struct ID *old_id, struct ID *new_id, void *user_data);
 
