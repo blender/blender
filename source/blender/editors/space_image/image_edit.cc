@@ -280,10 +280,10 @@ void ED_space_image_get_zoom(SpaceImage *sima,
 
   ED_space_image_get_size(sima, &width, &height);
 
-  *r_zoomx = (float)(BLI_rcti_size_x(&region->winrct) + 1) /
-             (float)(BLI_rctf_size_x(&region->v2d.cur) * width);
-  *r_zoomy = (float)(BLI_rcti_size_y(&region->winrct) + 1) /
-             (float)(BLI_rctf_size_y(&region->v2d.cur) * height);
+  *r_zoomx = float(BLI_rcti_size_x(&region->winrct) + 1) /
+             float(BLI_rctf_size_x(&region->v2d.cur) * width);
+  *r_zoomy = float(BLI_rcti_size_y(&region->winrct) + 1) /
+             float(BLI_rctf_size_y(&region->v2d.cur) * height);
 }
 
 void ED_space_image_get_uv_aspect(SpaceImage *sima, float *r_aspx, float *r_aspy)

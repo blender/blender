@@ -187,8 +187,8 @@ static int view3d_center_camera_exec(bContext *C, wmOperator * /*op*/)
   ED_view3d_calc_camera_border_size(scene, depsgraph, region, v3d, rv3d, size);
 
   /* 4px is just a little room from the edge of the area */
-  xfac = (float)region->winx / (float)(size[0] + 4);
-  yfac = (float)region->winy / (float)(size[1] + 4);
+  xfac = float(region->winx) / float(size[0] + 4);
+  yfac = float(region->winy) / float(size[1] + 4);
 
   rv3d->camzoom = BKE_screen_view3d_zoom_from_fac(min_ff(xfac, yfac));
   CLAMP(rv3d->camzoom, RV3D_CAMZOOM_MIN, RV3D_CAMZOOM_MAX);
@@ -278,10 +278,10 @@ static int render_border_exec(bContext *C, wmOperator *op)
     vb.ymax = region->winy;
   }
 
-  border.xmin = ((float)rect.xmin - vb.xmin) / BLI_rctf_size_x(&vb);
-  border.ymin = ((float)rect.ymin - vb.ymin) / BLI_rctf_size_y(&vb);
-  border.xmax = ((float)rect.xmax - vb.xmin) / BLI_rctf_size_x(&vb);
-  border.ymax = ((float)rect.ymax - vb.ymin) / BLI_rctf_size_y(&vb);
+  border.xmin = (float(rect.xmin) - vb.xmin) / BLI_rctf_size_x(&vb);
+  border.ymin = (float(rect.ymin) - vb.ymin) / BLI_rctf_size_y(&vb);
+  border.xmax = (float(rect.xmax) - vb.xmin) / BLI_rctf_size_x(&vb);
+  border.ymax = (float(rect.ymax) - vb.ymin) / BLI_rctf_size_y(&vb);
 
   /* actually set border */
   CLAMP(border.xmin, 0.0f, 1.0f);

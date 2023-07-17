@@ -295,7 +295,7 @@ static bool rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 static bool paint_contains_brush_slot(const Paint *paint, const PaintToolSlot *tslot, int *r_index)
 {
   if ((tslot >= paint->tool_slots) && (tslot < (paint->tool_slots + paint->tool_slots_len))) {
-    *r_index = (int)(tslot - paint->tool_slots);
+    *r_index = int(tslot - paint->tool_slots);
     return true;
   }
   return false;

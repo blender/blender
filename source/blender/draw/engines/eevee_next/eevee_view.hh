@@ -155,7 +155,8 @@ class CaptureView {
 
  public:
   CaptureView(Instance &inst) : inst_(inst) {}
-  void render();
+  void render_world();
+  void render_probes();
 };
 
 /** \} */

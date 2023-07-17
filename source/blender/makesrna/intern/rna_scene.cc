@@ -990,7 +990,7 @@ static const char *rna_Scene_statistics_string_get(Scene *scene,
 static void rna_Scene_framelen_update(Main * /*bmain*/, Scene * /*active_scene*/, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->owner_id;
-  scene->r.framelen = (float)scene->r.framapto / (float)scene->r.images;
+  scene->r.framelen = float(scene->r.framapto) / float(scene->r.images);
 }
 
 static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
@@ -1005,7 +1005,7 @@ static void rna_Scene_frame_current_set(PointerRNA *ptr, int value)
 static float rna_Scene_frame_float_get(PointerRNA *ptr)
 {
   Scene *data = (Scene *)ptr->data;
-  return (float)data->r.cfra + data->r.subframe;
+  return float(data->r.cfra) + data->r.subframe;
 }
 
 static void rna_Scene_frame_float_set(PointerRNA *ptr, float value)
@@ -1013,7 +1013,7 @@ static void rna_Scene_frame_float_set(PointerRNA *ptr, float value)
   Scene *data = (Scene *)ptr->data;
   /* if negative frames aren't allowed, then we can't use them */
   FRAMENUMBER_MIN_CLAMP(value);
-  data->r.cfra = (int)value;
+  data->r.cfra = int(value);
   data->r.subframe = value - data->r.cfra;
 }
 
@@ -1021,7 +1021,7 @@ static float rna_Scene_frame_current_final_get(PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
 
-  return BKE_scene_frame_to_ctime(scene, (float)scene->r.cfra);
+  return BKE_scene_frame_to_ctime(scene, float(scene->r.cfra));
 }
 
 static void rna_Scene_start_frame_set(PointerRNA *ptr, int value)
@@ -2136,7 +2136,7 @@ static void rna_View3DCursor_rotation_mode_set(PointerRNA *ptr, int value)
                             cursor->rotation_axis,
                             &cursor->rotation_angle,
                             cursor->rotation_mode,
-                            (short)value);
+                            short(value));
 
   /* finally, set the new rotation type */
   cursor->rotation_mode = value;

@@ -48,63 +48,63 @@ set(INC_SYS
 
 set(SRC
   ${CMAKE_SOURCE_DIR}/release/datafiles/userdef/userdef_default.c
-  intern/CCGSubSurf.c
-  intern/CCGSubSurf_legacy.c
-  intern/CCGSubSurf_util.c
+  intern/CCGSubSurf.cc
+  intern/CCGSubSurf_legacy.cc
+  intern/CCGSubSurf_util.cc
   intern/DerivedMesh.cc
-  intern/action.c
+  intern/action.cc
   intern/action_bones.cc
-  intern/action_mirror.c
-  intern/addon.c
-  intern/anim_data.c
-  intern/anim_path.c
-  intern/anim_sys.c
-  intern/anim_visualization.c
+  intern/action_mirror.cc
+  intern/addon.cc
+  intern/anim_data.cc
+  intern/anim_path.cc
+  intern/anim_sys.cc
+  intern/anim_visualization.cc
   intern/anonymous_attribute_id.cc
-  intern/appdir.c
-  intern/armature.c
-  intern/armature_deform.c
+  intern/appdir.cc
+  intern/armature.cc
+  intern/armature_deform.cc
   intern/armature_pose.cc
   intern/armature_selection.cc
-  intern/armature_update.c
+  intern/armature_update.cc
   intern/asset.cc
   intern/asset_weak_reference.cc
   intern/attribute.cc
   intern/attribute_access.cc
   intern/attribute_math.cc
-  intern/autoexec.c
-  intern/blender.c
-  intern/blender_copybuffer.c
+  intern/autoexec.cc
+  intern/blender.cc
+  intern/blender_copybuffer.cc
   intern/blender_undo.cc
-  intern/blender_user_menu.c
+  intern/blender_user_menu.cc
   intern/blendfile.cc
-  intern/blendfile_link_append.c
-  intern/boids.c
-  intern/bpath.c
+  intern/blendfile_link_append.cc
+  intern/boids.cc
+  intern/bpath.cc
   intern/brush.cc
   intern/bvhutils.cc
-  intern/cachefile.c
-  intern/callbacks.c
-  intern/camera.c
+  intern/cachefile.cc
+  intern/callbacks.cc
+  intern/camera.cc
   intern/cdderivedmesh.cc
   intern/cloth.cc
-  intern/collection.c
+  intern/collection.cc
   intern/collision.cc
-  intern/colorband.c
-  intern/colortools.c
+  intern/colorband.cc
+  intern/colortools.cc
   intern/compute_contexts.cc
-  intern/constraint.c
+  intern/constraint.cc
   intern/context.cc
   intern/cpp_types.cc
   intern/crazyspace.cc
   intern/cryptomatte.cc
   intern/curve.cc
-  intern/curve_bevel.c
+  intern/curve_bevel.cc
   intern/curve_bezier.cc
   intern/curve_catmull_rom.cc
-  intern/curve_convert.c
-  intern/curve_decimate.c
-  intern/curve_deform.c
+  intern/curve_convert.cc
+  intern/curve_decimate.cc
+  intern/curve_deform.cc
   intern/curve_legacy_convert.cc
   intern/curve_nurbs.cc
   intern/curve_poly.cc
@@ -114,23 +114,23 @@ set(SRC
   intern/curves_geometry.cc
   intern/curves_utils.cc
   intern/customdata.cc
-  intern/customdata_file.c
+  intern/customdata_file.cc
   intern/data_transfer.cc
   intern/deform.cc
   intern/displist.cc
   intern/dynamicpaint.cc
-  intern/editlattice.c
+  intern/editlattice.cc
   intern/editmesh.cc
-  intern/editmesh_bvh.c
+  intern/editmesh_bvh.cc
   intern/editmesh_cache.cc
   intern/editmesh_tangent.cc
-  intern/effect.c
-  intern/fcurve.c
-  intern/fcurve_cache.c
-  intern/fcurve_driver.c
+  intern/effect.cc
+  intern/fcurve.cc
+  intern/fcurve_cache.cc
+  intern/fcurve_driver.cc
   intern/fluid.cc
-  intern/fmodifier.c
-  intern/freestyle.c
+  intern/fmodifier.cc
+  intern/freestyle.cc
   intern/geometry_component_curves.cc
   intern/geometry_component_edit_data.cc
   intern/geometry_component_instances.cc
@@ -140,50 +140,50 @@ set(SRC
   intern/geometry_fields.cc
   intern/geometry_set.cc
   intern/geometry_set_instances.cc
-  intern/gpencil_curve_legacy.c
+  intern/gpencil_curve_legacy.cc
   intern/gpencil_geom_legacy.cc
-  intern/gpencil_legacy.c
-  intern/gpencil_modifier_legacy.c
-  intern/gpencil_update_cache_legacy.c
+  intern/gpencil_legacy.cc
+  intern/gpencil_modifier_legacy.cc
+  intern/gpencil_update_cache_legacy.cc
   intern/grease_pencil.cc
   intern/grease_pencil_convert_legacy.cc
   intern/icons.cc
-  intern/icons_rasterize.c
-  intern/idprop.c
+  intern/icons_rasterize.cc
+  intern/idprop.cc
   intern/idprop_create.cc
   intern/idprop_serialize.cc
-  intern/idprop_utils.c
-  intern/idtype.c
+  intern/idprop_utils.cc
+  intern/idtype.cc
   intern/image.cc
   intern/image_format.cc
-  intern/image_gen.c
+  intern/image_gen.cc
   intern/image_gpu.cc
   intern/image_partial_update.cc
   intern/image_save.cc
   intern/instances.cc
-  intern/ipo.c
-  intern/kelvinlet.c
+  intern/ipo.cc
+  intern/kelvinlet.cc
   intern/key.cc
-  intern/keyconfig.c
-  intern/lattice.c
-  intern/lattice_deform.c
+  intern/keyconfig.cc
+  intern/lattice.cc
+  intern/lattice_deform.cc
   intern/layer.cc
-  intern/layer_utils.c
-  intern/lib_id.c
-  intern/lib_id_delete.c
-  intern/lib_id_eval.c
+  intern/layer_utils.cc
+  intern/lib_id.cc
+  intern/lib_id_delete.cc
+  intern/lib_id_eval.cc
   intern/lib_id_remapper.cc
   intern/lib_override.cc
-  intern/lib_override_proxy_conversion.c
-  intern/lib_query.c
-  intern/lib_remap.c
-  intern/library.c
-  intern/light.c
+  intern/lib_override_proxy_conversion.cc
+  intern/lib_query.cc
+  intern/lib_remap.cc
+  intern/library.cc
+  intern/light.cc
   intern/light_linking.cc
   intern/lightprobe.cc
   intern/linestyle.cc
-  intern/main.c
-  intern/main_idmap.c
+  intern/main.cc
+  intern/main_idmap.cc
   intern/main_namemap.cc
   intern/mask.cc
   intern/mask_evaluate.cc
@@ -213,7 +213,7 @@ set(SRC
   intern/mesh_validate.cc
   intern/mesh_wrapper.cc
   intern/modifier.cc
-  intern/movieclip.c
+  intern/movieclip.cc
   intern/multires.cc
   intern/multires_reshape.cc
   intern/multires_reshape_apply_base.cc
@@ -225,7 +225,7 @@ set(SRC
   intern/multires_subdiv.cc
   intern/multires_unsubdivide.cc
   intern/multires_versioning.cc
-  intern/nla.c
+  intern/nla.cc
   intern/node.cc
   intern/node_runtime.cc
   intern/node_tree_anonymous_attributes.cc
@@ -234,42 +234,42 @@ set(SRC
   intern/node_tree_update.cc
   intern/node_tree_zones.cc
   intern/object.cc
-  intern/object_deform.c
+  intern/object_deform.cc
   intern/object_dupli.cc
   intern/object_update.cc
-  intern/ocean.c
-  intern/ocean_spectrum.c
+  intern/ocean.cc
+  intern/ocean_spectrum.cc
   intern/outliner_treehash.cc
-  intern/packedFile.c
+  intern/packedFile.cc
   intern/paint.cc
   intern/paint_canvas.cc
-  intern/paint_toolslots.c
+  intern/paint_toolslots.cc
   intern/particle.cc
-  intern/particle_child.c
-  intern/particle_distribute.c
-  intern/particle_system.c
+  intern/particle_child.cc
+  intern/particle_distribute.cc
+  intern/particle_system.cc
   intern/pbvh.cc
   intern/pbvh_bmesh.cc
   intern/pbvh_colors.cc
   intern/pbvh_pixels.cc
   intern/pbvh_pixels_copy.cc
   intern/pbvh_uv_islands.cc
-  intern/pointcache.c
+  intern/pointcache.cc
   intern/pointcloud.cc
   intern/pose_backup.cc
-  intern/preferences.c
-  intern/report.c
-  intern/rigidbody.c
+  intern/preferences.cc
+  intern/report.cc
+  intern/rigidbody.cc
   intern/scene.cc
-  intern/screen.c
-  intern/shader_fx.c
+  intern/screen.cc
+  intern/shader_fx.cc
   intern/shrinkwrap.cc
   intern/simulation_state.cc
   intern/simulation_state_serialize.cc
   intern/softbody.c
-  intern/sound.c
-  intern/speaker.c
-  intern/studiolight.c
+  intern/sound.cc
+  intern/speaker.cc
+  intern/studiolight.cc
   intern/subdiv.cc
   intern/subdiv_ccg.cc
   intern/subdiv_ccg_mask.cc
@@ -286,8 +286,8 @@ set(SRC
   intern/subdiv_stats.cc
   intern/subdiv_topology.cc
   intern/subsurf_ccg.cc
-  intern/text.c
-  intern/text_suggestions.c
+  intern/text.cc
+  intern/text_suggestions.cc
   intern/texture.cc
   intern/tracking.cc
   intern/tracking_auto.cc
@@ -299,7 +299,7 @@ set(SRC
   intern/tracking_util.cc
   intern/type_conversions.cc
   intern/undo_system.cc
-  intern/unit.c
+  intern/unit.cc
   intern/vfont.cc
   intern/vfontdata_freetype.cc
   intern/viewer_path.cc
@@ -307,8 +307,8 @@ set(SRC
   intern/volume_render.cc
   intern/volume_to_mesh.cc
   intern/workspace.cc
-  intern/world.c
-  intern/writeavi.c
+  intern/world.cc
+  intern/writeavi.cc
 
   BKE_DerivedMesh.h
   BKE_action.h

@@ -510,7 +510,7 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
   else {
     BKE_unit_value_as_string(numstr,
                              sizeof(numstr),
-                             (double)(cut_len * unit->scale_length),
+                             double(cut_len * unit->scale_length),
                              distance_precision,
                              B_UNIT_LENGTH,
                              unit,
@@ -640,7 +640,7 @@ static void knifetool_draw_angle(const KnifeTool_OpData *kcd,
 
   UnitSettings *unit = &kcd->scene->unit;
   if (unit->system == USER_UNIT_NONE) {
-    SNPRINTF(numstr, "%.*f°", angle_precision, RAD2DEGF(angle));
+    SNPRINTF(numstr, "%.*f" BLI_STR_UTF8_DEGREE_SIGN, angle_precision, RAD2DEGF(angle));
   }
   else {
     BKE_unit_value_as_string(
@@ -3141,7 +3141,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
     {
       float p[3], p_cage[3];
 
-      uint ob_index = (uint)(uintptr_t)BLI_smallhash_lookup(&fobs, uintptr_t(f));
+      uint ob_index = uint(uintptr_t(BLI_smallhash_lookup(&fobs, uintptr_t(f))));
       ob = kcd->objects[ob_index];
 
       if (use_hit_prev &&
@@ -3255,8 +3255,8 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd,
        * Apply the mouse coordinates to a copy of the view-context
        * since we don't want to rely on this being set elsewhere. */
       ViewContext vc = kcd->vc;
-      vc.mval[0] = (int)kcd->curr.mval[0];
-      vc.mval[1] = (int)kcd->curr.mval[1];
+      vc.mval[0] = int(kcd->curr.mval[0]);
+      vc.mval[1] = int(kcd->curr.mval[1]);
 
       f = EDBM_face_find_nearest(&vc, &dist);
 
@@ -3342,8 +3342,8 @@ static float knife_snap_size(KnifeTool_OpData *kcd, float maxsize)
   int density = 0;
 
   if (!kcd->curr.is_space) {
-    density = (float)knife_sample_screen_density_from_closest_face(
-        kcd, maxsize * 2.0f, kcd->curr.ob, kcd->curr.ob_index, kcd->curr.bmface, kcd->curr.cage);
+    density = float(knife_sample_screen_density_from_closest_face(
+        kcd, maxsize * 2.0f, kcd->curr.ob, kcd->curr.ob_index, kcd->curr.bmface, kcd->curr.cage));
   }
 
   return density ? min_ff(maxsize / (float(density) * 0.5f), maxsize) : maxsize;
@@ -4980,7 +4980,7 @@ static bool edbm_mesh_knife_point_isect(LinkNode *polys, const float cent_ss[2])
   while (p) {
     const float(*mval_fl)[2] = static_cast<const float(*)[2]>(p->link);
     const int mval_tot = MEM_allocN_len(mval_fl) / sizeof(*mval_fl);
-    isect += (int)isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false);
+    isect += int(isect_point_poly_v2(cent_ss, mval_fl, mval_tot - 1, false));
     p = p->next;
   }
 

@@ -1035,7 +1035,7 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
       segment_link->segment = segment;
       BezTriple left_bezt = fcu->bezt[segment->start_index];
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
-      const int sample_count = (int)(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
+      const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
       float *samples = static_cast<float *>(
           MEM_callocN(sizeof(float) * sample_count, "Smooth FCurve Op Samples"));
@@ -1137,7 +1137,7 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
     LISTBASE_FOREACH (FCurveSegment *, segment, &segments) {
       BezTriple left_bezt = fcu->bezt[segment->start_index];
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
-      const int sample_count = (int)(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
+      const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
       float *samples = static_cast<float *>(
           MEM_callocN(sizeof(float) * sample_count, "Smooth FCurve Op Samples"));
@@ -1243,7 +1243,7 @@ static int btw_calculate_sample_count(BezTriple *right_bezt,
 {
   /* Adding a constant 60 frames to combat the issue that the phase delay is shifting data out of
    * the sample count range. This becomes an issue when running the filter backwards. */
-  const int sample_count = ((int)(right_bezt->vec[1][0] - left_bezt->vec[1][0]) + 1 +
+  const int sample_count = (int(right_bezt->vec[1][0] - left_bezt->vec[1][0]) + 1 +
                             (filter_order * 2)) *
                                samples_per_frame +
                            60;
@@ -1320,7 +1320,7 @@ static void btw_smooth_modal_update(bContext *C, wmOperator *op)
 
   tBtwOperatorData *operator_data = (tBtwOperatorData *)gso->operator_data;
 
-  const float frame_rate = (float)(ac.scene->r.frs_sec) / ac.scene->r.frs_sec_base;
+  const float frame_rate = float(ac.scene->r.frs_sec) / ac.scene->r.frs_sec_base;
   const int samples_per_frame = RNA_int_get(op->ptr, "samples_per_frame");
   const float sampling_frequency = frame_rate * samples_per_frame;
 
@@ -1367,7 +1367,7 @@ static int btw_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   btw_smooth_allocate_operator_data(gso, filter_order, samples_per_frame);
   gso->free_operator_data = btw_smooth_free_operator_data;
 
-  const float frame_rate = (float)(gso->scene->r.frs_sec) / gso->scene->r.frs_sec_base;
+  const float frame_rate = float(gso->scene->r.frs_sec) / gso->scene->r.frs_sec_base;
   const float sampling_frequency = frame_rate * samples_per_frame;
   ED_slider_factor_bounds_set(gso->slider, 0, sampling_frequency / 2);
   ED_slider_factor_set(gso->slider, RNA_float_get(op->ptr, "cutoff_frequency"));
@@ -1392,7 +1392,7 @@ static void btw_smooth_graph_keys(bAnimContext *ac,
 
   ButterworthCoefficients *bw_coeff = ED_anim_allocate_butterworth_coefficients(filter_order);
 
-  const float frame_rate = (float)(ac->scene->r.frs_sec) / ac->scene->r.frs_sec_base;
+  const float frame_rate = float(ac->scene->r.frs_sec) / ac->scene->r.frs_sec_base;
   const float sampling_frequency = frame_rate * samples_per_frame;
   /* Clamp cutoff frequency to Nyquist Frequency. */
   cutoff_frequency = min_ff(cutoff_frequency, sampling_frequency / 2);

@@ -139,10 +139,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     }
     else {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
       if (ymin) {
         *ymin = -5;
@@ -159,10 +159,10 @@ void get_graph_keyframe_extents(bAnimContext *ac,
     /* Set default range. */
     if (ac->scene) {
       if (xmin) {
-        *xmin = (float)PSFRA;
+        *xmin = float(PSFRA);
       }
       if (xmax) {
-        *xmax = (float)PEFRA;
+        *xmax = float(PEFRA);
       }
     }
     else {
@@ -227,7 +227,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_previewrange_exec;
-  /* XXX: unchecked poll to get fsamples working too, but makes modifier damage trickier. */
+  /* XXX: unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -307,7 +307,7 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_viewall_exec;
-  /* XXX: Unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -330,7 +330,7 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 
   /* API callbacks */
   ot->exec = graphkeys_view_selected_exec;
-  /* XXX: Unchecked poll to get fsamples working too, but makes modifier damage trickier... */
+  /* XXX: Unchecked poll to get F-samples working too, but makes modifier damage trickier. */
   ot->poll = ED_operator_graphedit_active;
 
   /* Flags */
@@ -470,8 +470,8 @@ static int graphkeys_create_ghostcurves_exec(bContext *C, wmOperator * /*op*/)
   /* Ghost curves are snapshots of the visible portions of the curves,
    * so set range to be the visible range. */
   v2d = &ac.region->v2d;
-  start = (int)v2d->cur.xmin;
-  end = (int)v2d->cur.xmax;
+  start = int(v2d->cur.xmin);
+  end = int(v2d->cur.xmax);
 
   /* Bake selected curves into a ghost curve. */
   create_ghost_curves(&ac, start, end);

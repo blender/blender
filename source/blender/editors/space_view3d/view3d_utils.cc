@@ -636,7 +636,7 @@ bool ED_view3d_camera_autokey(
     const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
   if (autokeyframe_cfra_can_key(scene, id_key)) {
-    const float cfra = (float)scene->r.cfra;
+    const float cfra = float(scene->r.cfra);
     ListBase dsources = {nullptr, nullptr};
 
     /* add data-source override for the camera object */
@@ -1126,8 +1126,8 @@ bool ED_view3d_autodist(Depsgraph *depsgraph,
   } while ((depth_ok == false) && (i < ARRAY_SIZE(margin_arr)));
 
   if (depth_ok) {
-    float centx = (float)mval[0] + 0.5f;
-    float centy = (float)mval[1] + 0.5f;
+    float centx = float(mval[0]) + 0.5f;
+    float centy = float(mval[1]) + 0.5f;
 
     if (ED_view3d_unproject_v3(region, centx, centy, depth_close, mouse_worldloc)) {
       return true;
@@ -1160,8 +1160,8 @@ bool ED_view3d_autodist_simple(ARegion *region,
     return false;
   }
 
-  float centx = (float)mval[0] + 0.5f;
-  float centy = (float)mval[1] + 0.5f;
+  float centx = float(mval[0]) + 0.5f;
+  float centy = float(mval[1]) + 0.5f;
   return ED_view3d_unproject_v3(region, centx, centy, depth, mouse_worldloc);
 }
 
@@ -1813,8 +1813,8 @@ bool ED_view3d_depth_unproject_v3(const ARegion *region,
                                   const double depth,
                                   float r_location_world[3])
 {
-  float centx = (float)mval[0] + 0.5f;
-  float centy = (float)mval[1] + 0.5f;
+  float centx = float(mval[0]) + 0.5f;
+  float centy = float(mval[1]) + 0.5f;
   return ED_view3d_unproject_v3(region, centx, centy, depth, r_location_world);
 }
 

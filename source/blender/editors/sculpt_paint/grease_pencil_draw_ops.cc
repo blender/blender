@@ -11,6 +11,8 @@
 #include "DNA_grease_pencil_types.h"
 
 #include "ED_grease_pencil.h"
+#include "ED_image.h"
+#include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
@@ -169,10 +171,12 @@ static void GREASE_PENCIL_OT_brush_stroke(wmOperatorType *ot)
 /** \name Toggle Draw Mode
  * \{ */
 
-static bool grease_pencil_poll(bContext *C)
+static bool grease_pencil_mode_poll_view3d(bContext *C)
 {
-  Object *object = CTX_data_active_object(C);
-  if (object == nullptr || object->type != OB_GREASE_PENCIL) {
+  if (!ed::greasepencil::grease_pencil_painting_poll(C)) {
+    return false;
+  }
+  if (CTX_wm_region_view3d(C) == nullptr) {
     return false;
   }
   return true;
@@ -190,8 +194,7 @@ static void grease_pencil_draw_mode_enter(bContext *C)
   ob->mode = OB_MODE_PAINT_GREASE_PENCIL;
 
   /* TODO: Setup cursor color. BKE_paint_init() could be used, but creates an additional brush. */
-  /* TODO: Call ED_paint_cursor_start(...) */
-
+  ED_paint_cursor_start(&grease_pencil_paint->paint, grease_pencil_mode_poll_view3d);
   paint_init_pivot(ob, scene);
 
   /* Necessary to change the object mode on the evaluated object. */
@@ -242,7 +245,7 @@ static void GREASE_PENCIL_OT_draw_mode_toggle(wmOperatorType *ot)
   ot->description = "Enter/Exit draw mode for grease pencil";
 
   ot->exec = grease_pencil_draw_mode_toggle_exec;
-  ot->poll = grease_pencil_poll;
+  ot->poll = ed::greasepencil::active_grease_pencil_poll;
 
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }

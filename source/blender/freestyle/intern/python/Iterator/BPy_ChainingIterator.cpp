@@ -243,7 +243,7 @@ static PyGetSetDef BPy_ChainingIterator_getseters[] = {
 /*-----------------------BPy_ChainingIterator type definition ------------------------------*/
 
 PyTypeObject ChainingIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ChainingIterator",
     /*tp_basicsize*/ sizeof(BPy_ChainingIterator),
     /*tp_itemsize*/ 0,

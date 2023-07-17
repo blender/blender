@@ -18,6 +18,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"
 #include "BLI_color.hh"
 #include "BLI_endian_switch.h"
@@ -61,6 +62,7 @@
 /* only for customdata_data_transfer_interp_normal_normals */
 #include "data_transfer_intern.h"
 
+using blender::BitVector;
 using blender::float2;
 using blender::ImplicitSharingInfo;
 using blender::IndexRange;
@@ -3909,16 +3911,17 @@ void CustomData_bmesh_set_default(CustomData *data, void **block)
   }
 }
 
+static bool customdata_layer_copy_check(const CustomDataLayer &source, const CustomDataLayer &dest)
+{
+  return source.type == dest.type && STREQ(source.name, dest.name);
+}
+
 void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
                                                 CustomData *dest,
                                                 void *src_block,
                                                 void **dest_block,
                                                 const eCustomDataMask mask_exclude)
 {
-  /* Note that having a version of this function without a 'mask_exclude'
-   * would cause too much duplicate code, so add a check instead. */
-  const bool no_mask = (mask_exclude == 0);
-
   if (*dest_block == nullptr) {
     CustomData_bmesh_alloc_block(dest, dest_block);
     if (*dest_block) {
@@ -3926,51 +3929,41 @@ void CustomData_bmesh_copy_data_exclude_by_type(const CustomData *source,
     }
   }
 
-  /* copies a layer at a time */
-  int dest_i = 0;
-  for (int src_i = 0; src_i < source->totlayer; src_i++) {
+  BitVector<> copied_layers(dest->totlayer);
 
-    /* find the first dest layer with type >= the source type
-     * (this should work because layers are ordered by type)
-     */
-    while (dest_i < dest->totlayer && dest->layers[dest_i].type < source->layers[src_i].type) {
-      CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-      dest_i++;
+  for (int layer_src_i : IndexRange(source->totlayer)) {
+    const CustomDataLayer &layer_src = source->layers[layer_src_i];
+
+    if (CD_TYPE_AS_MASK(layer_src.type) & mask_exclude) {
+      continue;
     }
 
-    /* if there are no more dest layers, we're done */
-    if (dest_i >= dest->totlayer) {
-      return;
-    }
+    for (int layer_dst_i : IndexRange(dest->totlayer)) {
+      CustomDataLayer &layer_dst = dest->layers[layer_dst_i];
 
-    /* if we found a matching layer, copy the data */
-    if (dest->layers[dest_i].type == source->layers[src_i].type &&
-        STREQ(dest->layers[dest_i].name, source->layers[src_i].name))
-    {
-      if (no_mask || ((CD_TYPE_AS_MASK(dest->layers[dest_i].type) & mask_exclude) == 0)) {
-        const void *src_data = POINTER_OFFSET(src_block, source->layers[src_i].offset);
-        void *dest_data = POINTER_OFFSET(*dest_block, dest->layers[dest_i].offset);
-        const LayerTypeInfo *typeInfo = layerType_getInfo(
-            eCustomDataType(source->layers[src_i].type));
-        if (typeInfo->copy) {
-          typeInfo->copy(src_data, dest_data, 1);
-        }
-        else {
-          memcpy(dest_data, src_data, typeInfo->size);
-        }
+      if (!customdata_layer_copy_check(layer_src, layer_dst)) {
+        continue;
       }
 
-      /* if there are multiple source & dest layers of the same type,
-       * we don't want to copy all source layers to the same dest, so
-       * increment dest_i
-       */
-      dest_i++;
+      copied_layers[layer_dst_i].set(true);
+
+      const void *src_data = POINTER_OFFSET(src_block, layer_src.offset);
+      void *dest_data = POINTER_OFFSET(*dest_block, layer_dst.offset);
+      const LayerTypeInfo *typeInfo = layerType_getInfo(eCustomDataType(layer_src.type));
+      if (typeInfo->copy) {
+        typeInfo->copy(src_data, dest_data, 1);
+      }
+      else {
+        memcpy(dest_data, src_data, typeInfo->size);
+      }
     }
   }
 
-  while (dest_i < dest->totlayer) {
-    CustomData_bmesh_set_default_n(dest, dest_block, dest_i);
-    dest_i++;
+  /* Initialize dest layers that weren't in source. */
+  for (int layer_dst_i : IndexRange(dest->totlayer)) {
+    if (!copied_layers[layer_dst_i]) {
+      CustomData_bmesh_set_default_n(dest, dest_block, layer_dst_i);
+    }
   }
 }
 

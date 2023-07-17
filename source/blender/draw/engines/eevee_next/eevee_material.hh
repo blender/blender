@@ -39,6 +39,7 @@ enum eMaterialPipeline {
 
 enum eMaterialGeometry {
   MAT_GEOM_MESH = 0,
+  MAT_GEOM_POINT_CLOUD,
   MAT_GEOM_CURVES,
   MAT_GEOM_GPENCIL,
   MAT_GEOM_VOLUME,
@@ -102,6 +103,8 @@ static inline eMaterialGeometry to_material_geometry(const Object *ob)
       return MAT_GEOM_VOLUME;
     case OB_GPENCIL_LEGACY:
       return MAT_GEOM_GPENCIL;
+    case OB_POINTCLOUD:
+      return MAT_GEOM_POINT_CLOUD;
     default:
       return MAT_GEOM_MESH;
   }
@@ -149,12 +152,14 @@ struct ShaderKey {
   ShaderKey(GPUMaterial *gpumat,
             eMaterialGeometry geometry,
             eMaterialPipeline pipeline,
-            char blend_flags)
+            char blend_flags,
+            bool probe_capture)
   {
     shader = GPU_material_get_shader(gpumat);
     options = blend_flags;
     options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
+    options = (options << 1u) | uint64_t(probe_capture);
   }
 
   uint64_t hash() const
@@ -214,7 +219,7 @@ struct MaterialPass {
 
 struct Material {
   bool is_alpha_blend_transparent;
-  MaterialPass shadow, shading, prepass, capture;
+  MaterialPass shadow, shading, prepass, capture, probe_prepass, probe_shading;
 };
 
 struct MaterialArray {
@@ -268,7 +273,8 @@ class MaterialModule {
   MaterialPass material_pass_get(Object *ob,
                                  ::Material *blender_mat,
                                  eMaterialPipeline pipeline_type,
-                                 eMaterialGeometry geometry_type);
+                                 eMaterialGeometry geometry_type,
+                                 bool probe_capture = false);
 };
 
 /** \} */

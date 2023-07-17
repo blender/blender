@@ -29,15 +29,15 @@ typedef struct ScreenAnimData {
 
 /** #ScreenAnimData.flag */
 enum {
-  /* user-setting - frame range is played backwards */
+  /** User-setting - frame range is played backwards. */
   ANIMPLAY_FLAG_REVERSE = (1 << 0),
-  /* temporary - playback just jumped to the start/end */
+  /** Temporary - playback just jumped to the start/end. */
   ANIMPLAY_FLAG_JUMPED = (1 << 1),
-  /* drop frames as needed to maintain framerate */
+  /** Drop frames as needed to maintain frame-rate. */
   ANIMPLAY_FLAG_SYNC = (1 << 2),
-  /* don't drop frames (and ignore SCE_FRAME_DROP flag) */
+  /** Don't drop frames (and ignore #SCE_FRAME_DROP flag). */
   ANIMPLAY_FLAG_NO_SYNC = (1 << 3),
-  /* use nextfra at next timer update */
+  /** Use #ScreenAnimData::nextfra at next timer update. */
   ANIMPLAY_FLAG_USE_NEXT_FRAME = (1 << 4),
 };
 
@@ -45,8 +45,8 @@ enum {
 
 #define REDRAW_FRAME_AVERAGE 8
 
-/* for playback framerate info
- * stored during runtime as scene->fps_info
+/**
+ * For playback frame-rate info stored during runtime as `scene->fps_info`.
  */
 typedef struct ScreenFrameRateInfo {
   double redrawtime;

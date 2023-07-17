@@ -157,7 +157,7 @@ PyDoc_STRVAR(BPy_BM_doc,
              "\n"
              ".. include:: include__bmesh.rst\n");
 static PyModuleDef BPy_BM_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh",
     /*m_doc*/ BPy_BM_doc,
     /*m_size*/ 0,

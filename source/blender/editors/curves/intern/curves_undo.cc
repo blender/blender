@@ -18,7 +18,7 @@
 
 #include "DEG_depsgraph.h"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_undo.h"
 
 #include "MEM_guardedalloc.h"

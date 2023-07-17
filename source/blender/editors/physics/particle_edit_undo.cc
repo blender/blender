@@ -160,7 +160,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
       LOOP_POINTS {
         LOOP_KEYS {
-          if ((int)key->ftime == (int)pm->frame) {
+          if (int(key->ftime) == int(pm->frame)) {
             key->co = static_cast<float *>(cur[BPHYS_DATA_LOCATION]);
             key->vel = static_cast<float *>(cur[BPHYS_DATA_VELOCITY]);
             key->rot = static_cast<float *>(cur[BPHYS_DATA_ROTATION]);

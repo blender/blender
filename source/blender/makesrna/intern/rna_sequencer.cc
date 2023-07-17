@@ -274,7 +274,7 @@ static int rna_SequenceEditor_elements_length(PointerRNA *ptr)
 
   /* The problem with seq->strip->len and seq->len is that it's discounted from the offset
    * (hard cut trim). */
-  return (int)olen;
+  return int(olen);
 }
 
 static void rna_Sequence_elements_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -931,7 +931,7 @@ static void rna_Sequence_pan_range(
 
   *min = -FLT_MAX;
   *max = FLT_MAX;
-  *softmax = 1 + (int)(scene->r.ffcodecdata.audio_channels > 2);
+  *softmax = 1 + int(scene->r.ffcodecdata.audio_channels > 2);
   *softmin = -*softmax;
 }
 

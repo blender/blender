@@ -62,26 +62,32 @@ struct View3DCameraControl {
   /* -------------------------------------------------------------------- */
   /* initial values */
 
-  /* root most parent */
+  /** Root most parent. */
   Object *root_parent;
 
-  /* backup values */
-  float dist_backup;
-  /* backup the views distance since we use a zero dist for fly mode */
-  float ofs_backup[3];
-  /* backup the views offset in case the user cancels flying in non camera mode */
+  /* Backup values. */
 
-  /* backup the views quat in case the user cancels flying in non camera mode. */
+  /** Backup the views distance since we use a zero dist for fly mode. */
+  float dist_backup;
+  /** Backup the views offset in case the user cancels flying in non camera mode. */
+  float ofs_backup[3];
+
+  /** Backup the views quaternion in case the user cancels flying in non camera mode. */
   float rot_backup[4];
-  /* remember if we're ortho or not, only used for restoring the view if it was a ortho view */
+  /**
+   * Remember if we're orthographic or not,
+   * only used for restoring the view if it was a orthographic view.
+   */
   char persp_backup;
 
-  /* are we flying an ortho camera in perspective view,
-   * which was originally in ortho view?
-   * could probably figure it out but better be explicit */
+  /**
+   * True when flying an orthographic camera in perspective view,
+   * which was originally in orthographic view.
+   * This could be detected available data but better be explicit.
+   */
   bool is_ortho_cam;
 
-  /* backup the objects transform */
+  /** Backup the objects transform. */
   void *obtfm;
 };
 

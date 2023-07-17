@@ -59,7 +59,7 @@ static int ReadCompleteViewMapPixelF0D___init__(BPy_ReadCompleteViewMapPixelF0D 
 /*-----------------------BPy_ReadCompleteViewMapPixelF0D type definition ------------------------*/
 
 PyTypeObject ReadCompleteViewMapPixelF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ReadCompleteViewMapPixelF0D",
     /*tp_basicsize*/ sizeof(BPy_ReadCompleteViewMapPixelF0D),
     /*tp_itemsize*/ 0,

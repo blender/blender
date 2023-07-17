@@ -230,7 +230,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
    * so the base color is simply one of the three primary colors
    */
   grouping = (4 - (tot % 2));
-  hsv[0] = HSV_BANDWIDTH * (float)(cur % grouping);
+  hsv[0] = HSV_BANDWIDTH * float(cur % grouping);
 
   /* 'Value' (i.e. darkness) needs to vary so that larger sets of three will be
    * 'darker' (i.e. smaller value), so that they don't look that similar to previous ones.

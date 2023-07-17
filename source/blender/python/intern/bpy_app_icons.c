@@ -164,7 +164,7 @@ static PyMethodDef M_AppIcons_methods[] = {
 };
 
 static PyModuleDef M_AppIcons_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.app.icons",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

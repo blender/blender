@@ -123,7 +123,7 @@ static PyGetSetDef BPy_CurvePointIterator_getseters[] = {
 /*-----------------------BPy_CurvePointIterator type definition ------------------------------*/
 
 PyTypeObject CurvePointIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "CurvePointIterator",
     /*tp_basicsize*/ sizeof(BPy_CurvePointIterator),
     /*tp_itemsize*/ 0,

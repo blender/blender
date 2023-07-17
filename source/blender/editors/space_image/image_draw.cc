@@ -280,7 +280,7 @@ void ED_image_draw_info(Scene *scene,
       col[0] = col[1] = col[2] = fp[0];
     }
     else if (cp) {
-      col[0] = col[1] = col[2] = (float)cp[0] / 255.0f;
+      col[0] = col[1] = col[2] = float(cp[0]) / 255.0f;
     }
     else {
       col[0] = col[1] = col[2] = 0.0f;
@@ -382,10 +382,10 @@ void ED_image_draw_info(Scene *scene,
     }
     else if (cp) {
       rgb_to_hsv(
-          (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, (float)cp[0] / 255.0f, &hue, &sat, &val);
-      rgb_to_yuv((float)cp[0] / 255.0f,
-                 (float)cp[0] / 255.0f,
-                 (float)cp[0] / 255.0f,
+          float(cp[0]) / 255.0f, float(cp[0]) / 255.0f, float(cp[0]) / 255.0f, &hue, &sat, &val);
+      rgb_to_yuv(float(cp[0]) / 255.0f,
+                 float(cp[0]) / 255.0f,
+                 float(cp[0]) / 255.0f,
                  &lum,
                  &u,
                  &v,
@@ -560,8 +560,8 @@ void draw_image_cache(const bContext *C, ARegion *region)
 float ED_space_image_zoom_level(const View2D *v2d, const int grid_dimension)
 {
   /* UV-space length per pixel */
-  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / (float)(v2d->mask.xmax - v2d->mask.xmin);
-  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / (float)(v2d->mask.ymax - v2d->mask.ymin);
+  float xzoom = (v2d->cur.xmax - v2d->cur.xmin) / float(v2d->mask.xmax - v2d->mask.xmin);
+  float yzoom = (v2d->cur.ymax - v2d->cur.ymin) / float(v2d->mask.ymax - v2d->mask.ymin);
 
   /* Zoom_factor for UV/Image editor is calculated based on:
    * - Default grid size on startup, which is 256x256 pixels

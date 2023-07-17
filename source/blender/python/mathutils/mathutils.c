@@ -772,7 +772,7 @@ static PyMethodDef M_Mathutils_methods[] = {
 };
 
 static PyModuleDef M_Mathutils_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils",
     /*m_doc*/ M_Mathutils_doc,
     /*m_size*/ 0,

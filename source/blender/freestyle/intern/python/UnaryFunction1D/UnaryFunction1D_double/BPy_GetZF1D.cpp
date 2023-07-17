@@ -60,7 +60,7 @@ static int GetZF1D___init__(BPy_GetZF1D *self, PyObject *args, PyObject *kwds)
 /*-----------------------BPy_GetZF1D type definition ------------------------------*/
 
 PyTypeObject GetZF1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "GetZF1D",
     /*tp_basicsize*/ sizeof(BPy_GetZF1D),
     /*tp_itemsize*/ 0,

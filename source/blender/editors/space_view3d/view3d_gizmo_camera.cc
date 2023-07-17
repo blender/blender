@@ -161,8 +161,8 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
   }
 
   /* TODO: make focal length/ortho ob_scale_inv widget optional. */
-  const float aspx = (float)scene->r.xsch * scene->r.xasp;
-  const float aspy = (float)scene->r.ysch * scene->r.yasp;
+  const float aspx = float(scene->r.xsch) * scene->r.xasp;
+  const float aspy = float(scene->r.ysch) * scene->r.yasp;
   const bool is_ortho = (ca->type == CAM_ORTHO);
   const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
   /* Important to use camera value, not calculated fit since 'AUTO' uses width always. */

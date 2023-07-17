@@ -374,6 +374,21 @@
     .plane_axis = 2,\
   }
 
+#define _DNA_DEFAULT_Sculpt \
+  { \
+    .detail_size = 12,\
+    .detail_percent = 25,\
+    .constant_detail = 3.0f,\
+    .automasking_start_normal_limit = 0.34906585f, /* 20 / 180 * pi. */ \
+    .automasking_start_normal_falloff = 0.25f, \
+    .automasking_view_normal_limit = 1.570796, /* 0.5 * pi. */ \
+    .automasking_view_normal_falloff = 0.25f, \
+    .flags = SCULPT_DYNTOPO_SUBDIVIDE | SCULPT_DYNTOPO_COLLAPSE,\
+    .paint = {\
+      .symmetry_flags = PAINT_SYMMETRY_FEATHER,\
+      .tile_offset = {1.0f, 1.0f, 1.0f},\
+    }\
+  }
 /* clang-format off */
 
 /** \} */

@@ -353,7 +353,7 @@ static void gpencil_vfx_shadow(ShadowShaderFxData *fx, Object *ob, gpIterVfxData
     }
     /* This is applied after rotation. Counter the rotation to keep aligned with global axis. */
     rotate_v2_v2fl(wave_dir, dir, fx->rotation);
-    /* Rotate 90°. */
+    /* Rotate 90 degrees. */
     copy_v2_v2(wave_ofs, wave_dir);
     SWAP(float, wave_ofs[0], wave_ofs[1]);
     wave_ofs[1] *= -1.0f;
@@ -509,7 +509,7 @@ static void gpencil_vfx_wave(WaveShaderFxData *fx, Object *ob, gpIterVfxData *it
     /* Vertical */
     copy_v2_fl2(wave_dir, 0.0f, 1.0f);
   }
-  /* Rotate 90°. */
+  /* Rotate 90 degrees. */
   copy_v2_v2(wave_ofs, wave_dir);
   SWAP(float, wave_ofs[0], wave_ofs[1]);
   wave_ofs[1] *= -1.0f;

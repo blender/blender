@@ -44,7 +44,7 @@ static int TrueUP1D___init__(BPy_TrueUP1D *self, PyObject *args, PyObject *kwds)
 /*-----------------------BPy_TrueUP1D type definition ------------------------------*/
 
 PyTypeObject TrueUP1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "TrueUP1D",
     /*tp_basicsize*/ sizeof(BPy_TrueUP1D),
     /*tp_itemsize*/ 0,

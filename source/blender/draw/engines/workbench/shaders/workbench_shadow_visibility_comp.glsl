@@ -69,7 +69,7 @@ bool intersects_near_plane(IsectBox box)
 
 void main()
 {
-  if (gl_GlobalInvocationID.x >= resource_len) {
+  if (int(gl_GlobalInvocationID.x) >= resource_len) {
     return;
   }
 

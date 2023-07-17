@@ -896,7 +896,7 @@ template<typename T> static std::optional<T> deserialize_int(const io::serialize
     return std::nullopt;
   }
   const int64_t value = io_int->value();
-  if (value < std::numeric_limits<T>::min()) {
+  if (value < std::numeric_limits<T>::lowest()) {
     return std::nullopt;
   }
   if (value > std::numeric_limits<T>::max()) {

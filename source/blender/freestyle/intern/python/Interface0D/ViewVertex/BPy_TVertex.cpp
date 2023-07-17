@@ -206,7 +206,8 @@ static PyGetSetDef BPy_TVertex_getseters[] = {
 /*-----------------------BPy_TVertex type definition ------------------------------*/
 
 PyTypeObject TVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "TVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "TVertex",
     /*tp_basicsize*/ sizeof(BPy_TVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -242,7 +243,7 @@ PyTypeObject TVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)TVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

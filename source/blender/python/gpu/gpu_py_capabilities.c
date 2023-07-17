@@ -303,7 +303,7 @@ static PyMethodDef pygpu_capabilities__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_capabilities__tp_doc, "This module provides access to the GPU capabilities.");
 static PyModuleDef pygpu_capabilities_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.capabilities",
     /*m_doc*/ pygpu_capabilities__tp_doc,
     /*m_size*/ 0,

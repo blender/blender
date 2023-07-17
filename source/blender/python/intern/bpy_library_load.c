@@ -90,7 +90,7 @@ static void bpy_lib_dealloc(BPy_Library *self)
 }
 
 static PyTypeObject bpy_lib_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_lib",
     /*tp_basicsize*/ sizeof(BPy_Library),
     /*tp_itemsize*/ 0,

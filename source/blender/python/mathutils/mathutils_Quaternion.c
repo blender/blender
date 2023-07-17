@@ -1694,7 +1694,7 @@ PyDoc_STRVAR(quaternion_doc,
              "\n"
              "      .. seealso:: :meth:`to_axis_angle`\n");
 PyTypeObject quaternion_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "Quaternion",
     /*tp_basicsize*/ sizeof(QuaternionObject),
     /*tp_itemsize*/ 0,

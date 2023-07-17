@@ -56,7 +56,7 @@ static int ColorNoiseShader___init__(BPy_ColorNoiseShader *self, PyObject *args,
 /*-----------------------BPy_ColorNoiseShader type definition ------------------------------*/
 
 PyTypeObject ColorNoiseShader_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ColorNoiseShader",
     /*tp_basicsize*/ sizeof(BPy_ColorNoiseShader),
     /*tp_itemsize*/ 0,

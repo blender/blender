@@ -203,7 +203,7 @@ static void draw_keylist_ui_data_init(DrawKeylistUIData *ctx,
   ctx->smaller_size = 0.35f * ctx->icon_size;
   ctx->ipo_size = 0.1f * ctx->icon_size;
   ctx->gpencil_size = ctx->smaller_size * 0.8f;
-  ctx->screenspace_margin = (0.35f * (float)UI_UNIT_X) / UI_view2d_scale_get_x(v2d);
+  ctx->screenspace_margin = (0.35f * float(UI_UNIT_X)) / UI_view2d_scale_get_x(v2d);
 
   ctx->show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
 
@@ -249,7 +249,7 @@ static void draw_keylist_block_gpencil(const DrawKeylistUIData *ctx,
   box.ymax = ypos + ctx->gpencil_size;
 
   UI_draw_roundbox_4fv(
-      &box, true, 0.25f * (float)UI_UNIT_X, (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
+      &box, true, 0.25f * float(UI_UNIT_X), (ab->block.sel) ? ctx->sel_mhcol : ctx->unsel_mhcol);
 }
 
 static void draw_keylist_block_moving_hold(const DrawKeylistUIData *ctx,

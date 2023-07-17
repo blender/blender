@@ -15,6 +15,7 @@ extern "C" {
 #endif
 
 struct BezTriple;
+struct ButterworthCoefficients;
 struct FCurve;
 struct Scene;
 struct bAnimContext;
@@ -436,12 +437,7 @@ void breakdown_fcurve_segment(struct FCurve *fcu, struct FCurveSegment *segment,
  */
 void ED_ANIM_get_1d_gauss_kernel(const float sigma, int kernel_size, double *r_kernel);
 
-typedef struct ButterworthCoefficients {
-  double *A, *d1, *d2;
-  int filter_order;
-} ButterworthCoefficients;
-
-ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order);
+struct ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order);
 void ED_anim_free_butterworth_coefficients(struct ButterworthCoefficients *bw_coeff);
 void ED_anim_calculate_butterworth_coefficients(float cutoff,
                                                 float sampling_frequency,
@@ -472,7 +468,9 @@ void blend_to_default_fcurve(struct PointerRNA *id_ptr, struct FCurve *fcu, floa
  */
 void smooth_fcurve(struct FCurve *fcu);
 void sample_fcurve(struct FCurve *fcu);
-/** \param sample_rate indicates how many samples per frame should be generated. */
+/**
+ * \param sample_rate: indicates how many samples per frame should be generated.
+ */
 void sample_fcurve_segment(
     struct FCurve *fcu, float start_frame, int sample_rate, float *r_samples, int sample_count);
 

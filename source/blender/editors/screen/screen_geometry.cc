@@ -150,7 +150,7 @@ static bool screen_geom_vertices_scale_pass(const wmWindow *win,
   float max[2] = {0.0f, 0.0f};
 
   LISTBASE_FOREACH (ScrVert *, sv, &screen->vertbase) {
-    const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
+    const float fv[2] = {float(sv->vec.x), float(sv->vec.y)};
     minmax_v2v2_v2(min, max, fv);
   }
 

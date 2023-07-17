@@ -404,20 +404,71 @@ PyDoc_STRVAR(
     "   :arg elem: An optional index buffer.\n"
     "   :type elem: :class:`gpu.types.GPUIndexBuf`\n");
 PyTypeObject BPyGPUBatch_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = "GPUBatch",
-    .tp_basicsize = sizeof(BPyGPUBatch),
-    .tp_dealloc = (destructor)pygpu_batch__tp_dealloc,
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "GPUBatch",
+    /*tp_basicsize*/ sizeof(BPyGPUBatch),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)pygpu_batch__tp_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ NULL,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL,
+    /*tp_as_mapping*/ NULL,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ NULL,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
 #ifdef USE_GPU_PY_REFERENCES
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-    .tp_doc = pygpu_batch__tp_doc,
-    .tp_traverse = (traverseproc)pygpu_batch__tp_traverse,
-    .tp_clear = (inquiry)pygpu_batch__tp_clear,
-    .tp_is_gc = (inquiry)pygpu_batch__tp_is_gc,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
 #else
-    .tp_flags = Py_TPFLAGS_DEFAULT,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
 #endif
-    .tp_methods = pygpu_batch__tp_methods,
-    .tp_new = pygpu_batch__tp_new,
+    /*tp_doc*/ pygpu_batch__tp_doc,
+#ifdef USE_GPU_PY_REFERENCES
+    /*tp_traverse*/ (traverseproc)pygpu_batch__tp_traverse,
+#else
+    /*tp_traverse*/ NULL,
+#endif
+#ifdef USE_GPU_PY_REFERENCES
+    /*tp_clear*/ (inquiry)pygpu_batch__tp_clear,
+#else
+    /*tp_clear*/ NULL,
+#endif
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ pygpu_batch__tp_methods,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ NULL,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ pygpu_batch__tp_new,
+    /*tp_free*/ NULL,
+#ifdef USE_GPU_PY_REFERENCES
+    /*tp_is_gc*/ (inquiry)pygpu_batch__tp_is_gc,
+#else
+    /*tp_is_gc*/ NULL,
+#endif
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 /** \} */

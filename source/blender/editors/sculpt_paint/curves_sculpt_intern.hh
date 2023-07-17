@@ -16,7 +16,7 @@
 #include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_curves_sculpt.h"
 
 struct ARegion;

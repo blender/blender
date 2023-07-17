@@ -74,7 +74,7 @@ void Film::init_aovs()
 
   for (ViewLayerAOV *aov : aovs) {
     bool is_value = (aov->type == AOV_TYPE_VALUE);
-    uint &index = is_value ? aovs_info.value_len : aovs_info.color_len;
+    int &index = is_value ? aovs_info.value_len : aovs_info.color_len;
     uint &hash = is_value ? aovs_info.hash_value[index].x : aovs_info.hash_color[index].x;
     hash = BLI_hash_string(aov->name);
     index++;

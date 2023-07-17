@@ -58,7 +58,7 @@ static int VertexOrientation2DF0D___init__(BPy_VertexOrientation2DF0D *self,
 /*-----------------------BPy_VertexOrientation2DF0D type definition -----------------------------*/
 
 PyTypeObject VertexOrientation2DF0D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "VertexOrientation2DF0D",
     /*tp_basicsize*/ sizeof(BPy_VertexOrientation2DF0D),
     /*tp_itemsize*/ 0,

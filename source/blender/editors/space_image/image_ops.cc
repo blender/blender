@@ -634,10 +634,10 @@ static void image_zoom_apply(ViewZoomData *vpd,
 
   if (viewzoom != USER_ZOOM_SCALE) {
     if (U.uiflag & USER_ZOOM_HORIZ) {
-      delta = (float)(x - vpd->origx);
+      delta = float(x - vpd->origx);
     }
     else {
-      delta = (float)(y - vpd->origy);
+      delta = float(y - vpd->origy);
     }
   }
   else {
@@ -652,7 +652,7 @@ static void image_zoom_apply(ViewZoomData *vpd,
 
   if (viewzoom == USER_ZOOM_CONTINUE) {
     double time = PIL_check_seconds_timer();
-    float time_step = (float)(time - vpd->timer_lastdraw);
+    float time_step = float(time - vpd->timer_lastdraw);
     float zfac;
     zfac = 1.0f + ((delta / 20.0f) * time_step);
     vpd->timer_lastdraw = time;
@@ -1141,8 +1141,8 @@ static int image_view_zoom_ratio_exec(bContext *C, wmOperator *op)
   sima_zoom_set(sima, region, RNA_float_get(op->ptr, "ratio"), nullptr, false);
 
   /* ensure pixel exact locations for draw */
-  sima->xof = (int)sima->xof;
-  sima->yof = (int)sima->yof;
+  sima->xof = int(sima->xof);
+  sima->yof = int(sima->yof);
 
   ED_region_tag_redraw(region);
 
@@ -1901,7 +1901,7 @@ static ImageSaveData *image_save_as_init(bContext *C, wmOperator *op)
     RNA_boolean_set(op->ptr, "save_as_render", isd->opts.save_as_render);
   }
 
-  /* Show multiview save options only if image has multiviews. */
+  /* Show multi-view save options only if image has multi-views. */
   PropertyRNA *prop;
   prop = RNA_struct_find_property(op->ptr, "show_multiview");
   RNA_property_boolean_set(op->ptr, prop, BKE_image_is_multiview(image));
@@ -3382,7 +3382,7 @@ bool ED_space_image_color_sample(
   if (uv[0] >= 0.0f && uv[1] >= 0.0f && uv[0] < 1.0f && uv[1] < 1.0f) {
     const float *fp;
     uchar *cp;
-    int x = (int)(uv[0] * ibuf->x), y = (int)(uv[1] * ibuf->y);
+    int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
     CLAMP(x, 0, ibuf->x - 1);
     CLAMP(y, 0, ibuf->y - 1);

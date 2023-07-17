@@ -281,21 +281,55 @@ PyDoc_STRVAR(bpy_prop_deferred_doc,
              "   This is not part of the stable API and may change between releases.");
 
 PyTypeObject bpy_prop_deferred_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-
-        .tp_name = "_PropertyDeferred",
-    .tp_basicsize = sizeof(BPy_PropDeferred),
-    .tp_dealloc = (destructor)bpy_prop_deferred_dealloc,
-    .tp_repr = (reprfunc)bpy_prop_deferred_repr,
-    .tp_call = (ternaryfunc)bpy_prop_deferred_call,
-
-    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-
-    .tp_doc = bpy_prop_deferred_doc,
-    .tp_traverse = (traverseproc)bpy_prop_deferred_traverse,
-    .tp_clear = (inquiry)bpy_prop_deferred_clear,
-
-    .tp_getset = bpy_prop_deferred_getset,
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "_PropertyDeferred",
+    /*tp_basicsize*/ sizeof(BPy_PropDeferred),
+    /*tp_itemsize*/ 0,
+    /*tp_dealloc*/ (destructor)bpy_prop_deferred_dealloc,
+    /*tp_vectorcall_offset*/ 0,
+    /*tp_getattr*/ NULL,
+    /*tp_setattr*/ NULL,
+    /*tp_as_async*/ NULL,
+    /*tp_repr*/ (reprfunc)bpy_prop_deferred_repr,
+    /*tp_as_number*/ NULL,
+    /*tp_as_sequence*/ NULL,
+    /*tp_as_mapping*/ NULL,
+    /*tp_hash*/ NULL,
+    /*tp_call*/ (ternaryfunc)bpy_prop_deferred_call,
+    /*tp_str*/ NULL,
+    /*tp_getattro*/ NULL,
+    /*tp_setattro*/ NULL,
+    /*tp_as_buffer*/ NULL,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
+    /*tp_doc*/ bpy_prop_deferred_doc,
+    /*tp_traverse*/ (traverseproc)bpy_prop_deferred_traverse,
+    /*tp_clear*/ (inquiry)bpy_prop_deferred_clear,
+    /*tp_richcompare*/ NULL,
+    /*tp_weaklistoffset*/ 0,
+    /*tp_iter*/ NULL,
+    /*tp_iternext*/ NULL,
+    /*tp_methods*/ NULL,
+    /*tp_members*/ NULL,
+    /*tp_getset*/ bpy_prop_deferred_getset,
+    /*tp_base*/ NULL,
+    /*tp_dict*/ NULL,
+    /*tp_descr_get*/ NULL,
+    /*tp_descr_set*/ NULL,
+    /*tp_dictoffset*/ 0,
+    /*tp_init*/ NULL,
+    /*tp_alloc*/ NULL,
+    /*tp_new*/ NULL,
+    /*tp_free*/ NULL,
+    /*tp_is_gc*/ NULL,
+    /*tp_bases*/ NULL,
+    /*tp_mro*/ NULL,
+    /*tp_cache*/ NULL,
+    /*tp_subclasses*/ NULL,
+    /*tp_weaklist*/ NULL,
+    /*tp_del*/ NULL,
+    /*tp_version_tag*/ 0,
+    /*tp_finalize*/ NULL,
+    /*tp_vectorcall*/ NULL,
 };
 
 static PyObject *bpy_prop_deferred_data_CreatePyObject(PyObject *fn, PyObject *kw)
@@ -4703,7 +4737,7 @@ PyDoc_STRVAR(
     ".. note:: All parameters to these functions must be passed as keywords.\n");
 
 static PyModuleDef props_module = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy.props",
     /*m_doc*/ props_module_doc,
     /*m_size*/ -1, /* multiple "initialization" just copies the module dict. */

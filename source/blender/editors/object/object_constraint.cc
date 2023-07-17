@@ -1131,7 +1131,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
      *         1    0       <-- coefficients array indices
      */
     float A = standardRange / float(len);
-    float B = (float)(-sfra) * A;
+    float B = float(-sfra) * A;
 
     gen->coefficients[1] = A;
     gen->coefficients[0] = B;

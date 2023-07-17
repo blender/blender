@@ -226,7 +226,7 @@ static PyGetSetDef BPy_ViewEdgeIterator_getseters[] = {
 /*-----------------------BPy_ViewEdgeIterator type definition ------------------------------*/
 
 PyTypeObject ViewEdgeIterator_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "ViewEdgeIterator",
     /*tp_basicsize*/ sizeof(BPy_ViewEdgeIterator),
     /*tp_itemsize*/ 0,

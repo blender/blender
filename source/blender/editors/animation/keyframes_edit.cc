@@ -818,7 +818,7 @@ void bezt_remap_times(KeyframeEditData *ked, BezTriple *bezt)
 static short snap_bezier_nearest(KeyframeEditData * /*ked*/, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    bezt->vec[1][0] = (float)floorf(bezt->vec[1][0] + 0.5f);
+    bezt->vec[1][0] = float(floorf(bezt->vec[1][0] + 0.5f));
   }
   return 0;
 }
@@ -827,10 +827,10 @@ static short snap_bezier_nearest(KeyframeEditData * /*ked*/, BezTriple *bezt)
 static short snap_bezier_nearestsec(KeyframeEditData *ked, BezTriple *bezt)
 {
   const Scene *scene = ked->scene;
-  const float secf = (float)FPS;
+  const float secf = float(FPS);
 
   if (bezt->f2 & SELECT) {
-    bezt->vec[1][0] = (floorf(bezt->vec[1][0] / secf + 0.5f) * secf);
+    bezt->vec[1][0] = float(floorf(bezt->vec[1][0] / secf + 0.5f)) * secf;
   }
   return 0;
 }
@@ -840,7 +840,7 @@ static short snap_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
 {
   const Scene *scene = ked->scene;
   if (bezt->f2 & SELECT) {
-    bezt->vec[1][0] = (float)scene->r.cfra;
+    bezt->vec[1][0] = float(scene->r.cfra);
   }
   return 0;
 }
@@ -849,7 +849,7 @@ static short snap_bezier_cframe(KeyframeEditData *ked, BezTriple *bezt)
 static short snap_bezier_nearmarker(KeyframeEditData *ked, BezTriple *bezt)
 {
   if (bezt->f2 & SELECT) {
-    bezt->vec[1][0] = (float)ED_markers_find_nearest_marker_time(&ked->list, bezt->vec[1][0]);
+    bezt->vec[1][0] = float(ED_markers_find_nearest_marker_time(&ked->list, bezt->vec[1][0]));
   }
   return 0;
 }

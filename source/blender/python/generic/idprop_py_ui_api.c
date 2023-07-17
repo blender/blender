@@ -781,7 +781,7 @@ static Py_hash_t BPy_IDPropertyUIManager_hash(BPy_IDPropertyUIManager *self)
 }
 
 PyTypeObject BPy_IDPropertyUIManager_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /* For printing, in format `<module>.<name>`. */
     /*tp_name*/ "IDPropertyUIManager",
     /*tp_basicsize*/ sizeof(BPy_IDPropertyUIManager),

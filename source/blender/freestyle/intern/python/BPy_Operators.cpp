@@ -765,7 +765,7 @@ static PyMethodDef BPy_Operators_methods[] = {
 /*-----------------------BPy_Operators type definition ------------------------------*/
 
 PyTypeObject Operators_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Operators",
     /*tp_basicsize*/ sizeof(BPy_Operators),
     /*tp_itemsize*/ 0,

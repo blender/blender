@@ -15,7 +15,10 @@
 #include "BKE_object.h"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.h"
+#include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
+
+#include "draw_cache_impl.h"
 
 #include "eevee_instance.hh"
 // #include "eevee_renderpasses.hh"
@@ -85,7 +88,9 @@ void VelocityModule::step_camera_sync()
 bool VelocityModule::step_object_sync(Object *ob,
                                       ObjectKey &object_key,
                                       ResourceHandle resource_handle,
-                                      int /*IDRecalcFlag*/ recalc)
+                                      int /*IDRecalcFlag*/ recalc,
+                                      ModifierData *modifier_data /*= nullptr*/,
+                                      ParticleSystem *particle_sys /*= nullptr*/)
 {
   bool has_motion = object_has_velocity(ob) || (recalc & ID_RECALC_TRANSFORM);
   /* NOTE: Fragile. This will only work with 1 frame of lag since we can't record every geometry
@@ -105,7 +110,7 @@ bool VelocityModule::step_object_sync(Object *ob,
   VelocityObjectData &vel = velocity_map.lookup_or_add_default(object_key);
   vel.obj.ofs[step_] = object_steps_usage[step_]++;
   vel.obj.resource_id = resource_handle.resource_index();
-  vel.id = (ID *)ob->data;
+  vel.id = particle_sys ? &particle_sys->part->id : &ob->id;
   object_steps[step_]->get_or_resize(vel.obj.ofs[step_]) = float4x4_view(ob->object_to_world);
   if (step_ == STEP_CURRENT) {
     /* Replace invalid steps. Can happen if object was hidden in one of those steps. */
@@ -125,9 +130,16 @@ bool VelocityModule::step_object_sync(Object *ob,
   if (has_deform) {
     auto add_cb = [&]() {
       VelocityGeometryData data;
+      if (particle_sys) {
+        data.pos_buf = DRW_hair_pos_buffer_get(ob, particle_sys, modifier_data);
+        return data;
+      }
       switch (ob->type) {
         case OB_CURVES:
           data.pos_buf = DRW_curves_pos_buffer_get(ob);
+          break;
+        case OB_POINTCLOUD:
+          data.pos_buf = DRW_pointcloud_position_and_radius_buffer_get(ob);
           break;
         default:
           data.pos_buf = DRW_cache_object_pos_vertbuf_get(ob);
@@ -173,7 +185,9 @@ bool VelocityModule::step_object_sync(Object *ob,
   }
 
   /* TODO(@fclem): Reset sampling here? Should ultimately be covered by depsgraph update tags. */
-  inst_.sampling.reset();
+  /* NOTE(Miguel Pozo): Disable, since is_deform is always true for objects with particle
+   * modifiers, and this causes the renderer to get stuck at sample 1. */
+  // inst_.sampling.reset();
 
   return true;
 }

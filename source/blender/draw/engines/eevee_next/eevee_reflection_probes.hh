@@ -22,9 +22,10 @@ class Instance;
 struct ObjectHandle;
 struct WorldHandle;
 class CaptureView;
+struct ReflectionProbeUpdateInfo;
 
 /* -------------------------------------------------------------------- */
-/** \name Reflection Probes
+/** \name Reflection Probe
  * \{ */
 
 struct ReflectionProbe {
@@ -32,7 +33,8 @@ struct ReflectionProbe {
 
   Type type = Type::Unused;
 
-  /* Probe data needs to be updated. */
+  /* Probe data needs to be updated.
+   * TODO: Remove this flag? */
   bool do_update_data = false;
   /* Should the area in the probes_tx_ be updated? */
   bool do_render = false;
@@ -51,6 +53,11 @@ struct ReflectionProbe {
   int index = -1;
 
   /**
+   * Far and near clipping distances for rendering
+   */
+  float2 clipping_distances;
+
+  /**
    * Check if the probe needs to be updated during this sample.
    */
   bool needs_update() const
@@ -66,6 +73,12 @@ struct ReflectionProbe {
     return false;
   }
 };
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reflection Probe Module
+ * \{ */
 
 class ReflectionProbeModule {
  private:
@@ -85,14 +98,23 @@ class ReflectionProbeModule {
   ReflectionProbeDataBuf data_buf_;
   Map<uint64_t, ReflectionProbe> probes_;
 
-  /** Texture containing a cubemap used as input for updating #probes_tx_. */
-  Texture cubemap_tx_ = {"Probe.Cubemap"};
   /** Probes texture stored in octahedral mapping. */
   Texture probes_tx_ = {"Probes"};
 
   PassSimple remap_ps_ = {"Probe.CubemapToOctahedral"};
 
   int3 dispatch_probe_pack_ = int3(0);
+
+  /**
+   * Texture containing a cube-map where the probe should be rendering to.
+   *
+   * NOTE: TextureFromPool doesn't support cube-maps.
+   */
+  Texture cubemap_tx_ = {"Probe.Cubemap"};
+  int reflection_probe_index_ = 0;
+
+  bool update_probes_next_sample_ = false;
+  bool update_probes_this_sample_ = false;
 
  public:
   ReflectionProbeModule(Instance &instance) : instance_(instance) {}
@@ -106,7 +128,7 @@ class ReflectionProbeModule {
   template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
     pass->bind_texture(REFLECTION_PROBE_TEX_SLOT, probes_tx_);
-    pass->bind_ssbo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
+    pass->bind_ubo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
   }
 
   bool do_world_update_get() const;
@@ -115,7 +137,6 @@ class ReflectionProbeModule {
   void debug_print() const;
 
  private:
-  void sync(ReflectionProbe &cubemap);
   ReflectionProbe &find_or_insert(ObjectHandle &ob_handle, int subdivision_level);
 
   /** Get the number of layers that is needed to store probes. */
@@ -140,16 +161,41 @@ class ReflectionProbeModule {
    */
   ReflectionProbeData find_empty_reflection_probe_data(int subdivision_level) const;
 
-  void upload_dummy_texture(const ReflectionProbe &probe);
-
-  void remap_to_octahedral_projection();
+  /**
+   * Pop the next reflection probe that requires to be updated.
+   */
+  std::optional<ReflectionProbeUpdateInfo> update_info_pop(ReflectionProbe::Type probe_type);
+  void remap_to_octahedral_projection(uint64_t object_key);
+  void update_probes_texture_mipmaps();
 
   /* Capture View requires access to the cube-maps texture for frame-buffer configuration. */
   friend class CaptureView;
+  /* Instance requires access to #update_probes_this_sample_ */
+  friend class Instance;
 };
 
 std::ostream &operator<<(std::ostream &os, const ReflectionProbeModule &module);
 std::ostream &operator<<(std::ostream &os, const ReflectionProbeData &probe_data);
 std::ostream &operator<<(std::ostream &os, const ReflectionProbe &probe);
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reflection Probe Update Info
+ * \{ */
+
+struct ReflectionProbeUpdateInfo {
+  float3 probe_pos;
+  ReflectionProbe::Type probe_type;
+  /**
+   * Resolution of the cubemap to be rendered.
+   */
+  int resolution;
+
+  float2 clipping_distances;
+  uint64_t object_key;
+};
+
+/** \} */
 
 }  // namespace blender::eevee

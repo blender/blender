@@ -390,6 +390,11 @@ void blend_to_default_fcurve(PointerRNA *id_ptr, FCurve *fcu, const float factor
 
 /* ---------------- */
 
+struct ButterworthCoefficients {
+  double *A, *d1, *d2;
+  int filter_order;
+};
+
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
   ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
@@ -415,7 +420,7 @@ void ED_anim_calculate_butterworth_coefficients(const float cutoff_frequency,
                                                 const float sampling_frequency,
                                                 ButterworthCoefficients *bw_coeff)
 {
-  double s = (double)sampling_frequency;
+  double s = double(sampling_frequency);
   const double a = tan(M_PI * cutoff_frequency / s);
   const double a2 = a * a;
   double r;
@@ -466,7 +471,7 @@ static float butterworth_calculate_blend_value(float *samples,
 
   if (sample_index - start_index <= blend_in_out) {
     const int blend_index = sample_index - start_index;
-    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_in_out_factor = clamp_f(float(blend_index) / blend_in_out, 0.0f, 1.0f);
     const float blend_value = interpf(blend_in_y_filtered +
                                           slope_in_filtered * (blend_in_out - blend_index),
                                       blend_in_y_samples + slope_in_samples * blend_index,
@@ -475,7 +480,7 @@ static float butterworth_calculate_blend_value(float *samples,
   }
   if (end_index - sample_index <= blend_in_out) {
     const int blend_index = end_index - sample_index;
-    const float blend_in_out_factor = clamp_f((float)blend_index / blend_in_out, 0.0f, 1.0f);
+    const float blend_in_out_factor = clamp_f(float(blend_index) / blend_in_out, 0.0f, 1.0f);
     const float blend_value = interpf(blend_out_y_filtered +
                                           slope_out_filtered * (blend_in_out - blend_index),
                                       blend_out_y_samples + slope_out_samples * blend_index,
@@ -486,8 +491,8 @@ static float butterworth_calculate_blend_value(float *samples,
 }
 
 /**
- * \param samples are expected to start at the first frame of the segment with a buffer of size
- * segment->filter_order at the left.
+ * \param samples: Are expected to start at the first frame of the segment with a buffer of size
+ * `segment->filter_order` at the left.
  */
 void butterworth_smooth_fcurve_segment(FCurve *fcu,
                                        FCurveSegment *segment,
@@ -512,9 +517,9 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
   const float fwd_offset = samples[0];
 
   for (int i = 0; i < sample_count; i++) {
-    const double x = (double)(samples[i] - fwd_offset);
+    const double x = double(samples[i] - fwd_offset);
     const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
-    filtered_values[i] = (float)(filtered_value) + fwd_offset;
+    filtered_values[i] = float(filtered_value) + fwd_offset;
   }
 
   for (int i = 0; i < filter_order; i++) {
@@ -527,9 +532,9 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
 
   /* Run the filter backwards as well to remove phase offset. */
   for (int i = sample_count - 1; i >= 0; i--) {
-    const double x = (double)(filtered_values[i] - bwd_offset);
+    const double x = double(filtered_values[i] - bwd_offset);
     const double filtered_value = butterworth_filter_value(x, w0, w1, w2, bw_coeff);
-    filtered_values[i] = (float)(filtered_value) + bwd_offset;
+    filtered_values[i] = float(filtered_value) + bwd_offset;
   }
 
   const int segment_end_index = segment->start_index + segment->length;
@@ -537,7 +542,7 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
   BezTriple right_bezt = fcu->bezt[segment_end_index - 1];
 
   const int samples_start_index = filter_order * sample_rate;
-  const int samples_end_index = (int)(right_bezt.vec[1][0] - left_bezt.vec[1][0] + filter_order) *
+  const int samples_end_index = int(right_bezt.vec[1][0] - left_bezt.vec[1][0] + filter_order) *
                                 sample_rate;
 
   const int blend_in_out_clamped = min_ii(blend_in_out,
@@ -549,15 +554,16 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
       blend_in_out_factor = 1;
     }
     else if (i < segment->start_index + segment->length / 2) {
-      blend_in_out_factor = min_ff((float)(i - segment->start_index) / blend_in_out_clamped, 1.0f);
+      blend_in_out_factor = min_ff(float(i - segment->start_index) / blend_in_out_clamped, 1.0f);
     }
     else {
-      blend_in_out_factor = min_ff((float)(segment_end_index - i - 1) / blend_in_out_clamped,
-                                   1.0f);
+      blend_in_out_factor = min_ff(float(segment_end_index - i - 1) / blend_in_out_clamped, 1.0f);
     }
 
     const float x_delta = fcu->bezt[i].vec[1][0] - left_bezt.vec[1][0] + filter_order;
-    const int filter_index = (int)(x_delta * sample_rate);
+    /* Using round() instead of casting to int. Casting would introduce a stepping issue when the
+     * x-value is just below a full frame. */
+    const int filter_index = round(x_delta * sample_rate);
     const float blend_value = butterworth_calculate_blend_value(samples,
                                                                 filtered_values,
                                                                 samples_start_index,
@@ -614,9 +620,11 @@ void smooth_fcurve_segment(FCurve *fcu,
                            double *kernel)
 {
   const int segment_end_index = segment->start_index + segment->length;
-  const int segment_start_x = fcu->bezt[segment->start_index].vec[1][0];
+  const float segment_start_x = fcu->bezt[segment->start_index].vec[1][0];
   for (int i = segment->start_index; i < segment_end_index; i++) {
-    const int sample_index = (int)(fcu->bezt[i].vec[1][0] - segment_start_x) + kernel_size;
+    /* Using round() instead of (int). The latter would create stepping on x-values that are just
+     * below a full frame. */
+    const int sample_index = round(fcu->bezt[i].vec[1][0] - segment_start_x) + kernel_size;
     /* Apply the kernel. */
     double filter_result = samples[sample_index] * kernel[0];
     for (int j = 1; j <= kernel_size; j++) {
@@ -937,7 +945,7 @@ void sample_fcurve_segment(FCurve *fcu,
                            const int sample_count)
 {
   for (int i = 0; i < sample_count; i++) {
-    const float evaluation_time = start_frame + ((float)i / sample_rate);
+    const float evaluation_time = start_frame + (float(i) / sample_rate);
     samples[i] = evaluate_fcurve(fcu, evaluation_time);
   }
 }
@@ -977,8 +985,8 @@ void sample_fcurve(FCurve *fcu)
          * keyframes while sampling will affect the outcome...
          * - only start sampling+adding from index=1, so that we don't overwrite original keyframe
          */
-        range = (int)ceil(end->vec[1][0] - start->vec[1][0]);
-        sfra = (int)floor(start->vec[1][0]);
+        range = int(ceil(end->vec[1][0] - start->vec[1][0]));
+        sfra = int(floor(start->vec[1][0]));
 
         if (range) {
           value_cache = static_cast<TempFrameValCache *>(
@@ -986,7 +994,7 @@ void sample_fcurve(FCurve *fcu)
 
           /* sample values */
           for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
-            fp->frame = (float)(sfra + n);
+            fp->frame = float(sfra + n);
             fp->val = evaluate_fcurve(fcu, fp->frame);
           }
 
@@ -1587,13 +1595,13 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   /* methods of offset */
   switch (offset_mode) {
     case KEYFRAME_PASTE_OFFSET_CFRA_START:
-      offset[0] = (float)(scene->r.cfra - animcopy_firstframe);
+      offset[0] = float(scene->r.cfra - animcopy_firstframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_END:
-      offset[0] = (float)(scene->r.cfra - animcopy_lastframe);
+      offset[0] = float(scene->r.cfra - animcopy_lastframe);
       break;
     case KEYFRAME_PASTE_OFFSET_CFRA_RELATIVE:
-      offset[0] = (float)(scene->r.cfra - animcopy_cfra);
+      offset[0] = float(scene->r.cfra - animcopy_cfra);
       break;
     case KEYFRAME_PASTE_OFFSET_NONE:
       offset[0] = 0.0f;

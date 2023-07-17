@@ -1123,7 +1123,7 @@ PyDoc_STRVAR(
     "   :arg rgb: (r, g, b) color values\n"
     "   :type rgb: 3d vector\n");
 PyTypeObject color_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "Color",
     /*tp_basicsize*/ sizeof(ColorObject),
     /*tp_itemsize*/ 0,

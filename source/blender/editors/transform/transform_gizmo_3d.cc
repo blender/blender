@@ -35,7 +35,7 @@
 #include "WM_message.h"
 
 #include "ED_armature.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 #include "ED_gpencil_legacy.h"
@@ -49,10 +49,10 @@
 #include "RNA_define.h"
 
 /* local module include */
-#include "transform.h"
-#include "transform_convert.h"
-#include "transform_gizmo.h"
-#include "transform_snap.h"
+#include "transform.hh"
+#include "transform_convert.hh"
+#include "transform_gizmo.hh"
+#include "transform_snap.hh"
 
 static wmGizmoGroupType *g_GGT_xform_gizmo = nullptr;
 static wmGizmoGroupType *g_GGT_xform_gizmo_context = nullptr;

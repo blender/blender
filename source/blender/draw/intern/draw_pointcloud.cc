@@ -98,6 +98,8 @@ void DRW_pointcloud_free()
 }
 
 #include "draw_common.hh"
+/* For drw_curves_get_attribute_sampler_name. */
+#include "draw_curves_private.hh"
 namespace blender::draw {
 
 template<typename PassT>
@@ -119,14 +121,20 @@ GPUBatch *point_cloud_sub_pass_setup_implementation(PassT &sub_ps,
   sub_ps.bind_texture("ptcloud_pos_rad_tx", pos_rad_buf);
 
   if (gpu_material != nullptr) {
-    /* Only single material supported for now. */
-    GPUBatch **geom = pointcloud_surface_shaded_get(&pointcloud, &gpu_material, 1);
-    return geom[0];
+    ListBase gpu_attrs = GPU_material_attributes(gpu_material);
+    LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
+      GPUVertBuf **attribute_buf = DRW_pointcloud_evaluated_attribute(&pointcloud, gpu_attr->name);
+      if (attribute_buf) {
+        char sampler_name[32];
+        /** NOTE: Reusing curve attribute function. */
+        drw_curves_get_attribute_sampler_name(gpu_attr->name, sampler_name);
+        sub_ps.bind_texture(sampler_name, attribute_buf);
+      }
+    }
   }
-  else {
-    GPUBatch *geom = pointcloud_surface_get(&pointcloud);
-    return geom;
-  }
+
+  GPUBatch *geom = pointcloud_surface_get(&pointcloud);
+  return geom;
 }
 
 GPUBatch *point_cloud_sub_pass_setup(PassMain::Sub &sub_ps,

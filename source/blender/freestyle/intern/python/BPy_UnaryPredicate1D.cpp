@@ -211,7 +211,7 @@ static PyGetSetDef BPy_UnaryPredicate1D_getseters[] = {
 /*-----------------------BPy_UnaryPredicate1D type definition ------------------------------*/
 
 PyTypeObject UnaryPredicate1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryPredicate1D",
     /*tp_basicsize*/ sizeof(BPy_UnaryPredicate1D),
     /*tp_itemsize*/ 0,

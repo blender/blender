@@ -287,8 +287,8 @@ static bool snap_mask_layer_cframe(MaskLayerShape *mask_layer_shape, Scene *scen
 static bool snap_mask_layer_nearmarker(MaskLayerShape *mask_layer_shape, Scene *scene)
 {
   if (mask_layer_shape->flag & MASK_SHAPE_SELECT) {
-    mask_layer_shape->frame = (int)ED_markers_find_nearest_marker_time(
-        &scene->markers, float(mask_layer_shape->frame));
+    mask_layer_shape->frame = int(
+        ED_markers_find_nearest_marker_time(&scene->markers, float(mask_layer_shape->frame)));
   }
   return false;
 }

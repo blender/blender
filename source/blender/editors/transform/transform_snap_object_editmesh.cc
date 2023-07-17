@@ -32,7 +32,7 @@ struct SnapCache_EditMesh : public SnapObjectContext::SnapCache {
   BVHTree *bvhtree[3];
   bool cached[3];
 
-  struct BMEditMesh *em;
+  BMEditMesh *em;
 
   /** Default callbacks to BVH nearest and ray-cast used only for triangles. */
   BVHTree_NearestPointCallback nearest_callback;

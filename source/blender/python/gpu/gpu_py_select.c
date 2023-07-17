@@ -60,7 +60,7 @@ static PyMethodDef pygpu_select__tp_methods[] = {
 
 PyDoc_STRVAR(pygpu_select__tp_doc, "This module provides access to selection.");
 static PyModuleDef pygpu_select_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.select",
     /*m_doc*/ pygpu_select__tp_doc,
     /*m_size*/ 0,

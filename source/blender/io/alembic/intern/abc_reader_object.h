@@ -82,7 +82,7 @@ class AbcObjectReader {
   /* XXX - TODO(kevindietrich) : this references stack memory... */
   ImportSettings *m_settings;
   /* This is initialized from the ImportSettings above on construction. It will need to be removed
-   * once we fix the stack memory reference situation.  */
+   * once we fix the stack memory reference situation. */
   bool m_is_reading_a_file_sequence = false;
 
   chrono_t m_min_time;

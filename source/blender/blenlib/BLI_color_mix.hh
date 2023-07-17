@@ -98,12 +98,12 @@ template<> struct TraitsType<ColorPaint4b> {
 };
 template<typename T> using Traits = typename TraitsType<T>::type;
 
-static float get_luminance(ColorPaint4f c)
+static inline float get_luminance(ColorPaint4f c)
 {
   return IMB_colormanagement_get_luminance(&c.r);
 }
 
-static int get_luminance(ColorPaint4b c)
+static inline int get_luminance(ColorPaint4b c)
 {
   return IMB_colormanagement_get_luminance_byte(&c.r);
 }

@@ -49,7 +49,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
   const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
   const bool dupli = RNA_boolean_get(op->ptr, "dupli");
   const bool use_auto_merge = (RNA_boolean_get(op->ptr, "use_auto_merge") && (dupli == false) &&
-                               (steps >= 3) && fabsf(fabsf(angle) - (float)(M_PI * 2)) <= 1e-6f);
+                               (steps >= 3) && fabsf(fabsf(angle) - float(M_PI * 2)) <= 1e-6f);
 
   if (is_zero_v3(axis)) {
     BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");

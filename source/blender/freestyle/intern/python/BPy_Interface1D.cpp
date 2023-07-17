@@ -325,7 +325,7 @@ static PyGetSetDef BPy_Interface1D_getseters[] = {
 /*-----------------------BPy_Interface1D type definition ------------------------------*/
 
 PyTypeObject Interface1D_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "Interface1D",
     /*tp_basicsize*/ sizeof(BPy_Interface1D),
     /*tp_itemsize*/ 0,

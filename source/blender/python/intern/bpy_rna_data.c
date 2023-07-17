@@ -63,7 +63,7 @@ static void bpy_rna_data_context_dealloc(BPy_DataContext *self)
   PyObject_GC_Del(self);
 }
 static PyTypeObject bpy_rna_data_context_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy_rna_data_context",
     /*tp_basicsize*/ sizeof(BPy_DataContext),
     /*tp_itemsize*/ 0,

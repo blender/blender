@@ -21,95 +21,95 @@ set(INC_SYS
 )
 
 set(SRC
-  transform.c
-  transform_constraints.c
-  transform_convert.c
-  transform_convert_action.c
-  transform_convert_armature.c
-  transform_convert_cursor.c
-  transform_convert_curve.c
+  transform.cc
+  transform_constraints.cc
+  transform_convert.cc
+  transform_convert_action.cc
+  transform_convert_armature.cc
+  transform_convert_cursor.cc
+  transform_convert_curve.cc
   transform_convert_curves.cc
-  transform_convert_gpencil_legacy.c
-  transform_convert_graph.c
-  transform_convert_lattice.c
-  transform_convert_mask.c
-  transform_convert_mball.c
-  transform_convert_mesh.c
-  transform_convert_mesh_edge.c
-  transform_convert_mesh_skin.c
-  transform_convert_mesh_uv.c
-  transform_convert_mesh_vert_cdata.c
-  transform_convert_nla.c
+  transform_convert_gpencil_legacy.cc
+  transform_convert_graph.cc
+  transform_convert_lattice.cc
+  transform_convert_mask.cc
+  transform_convert_mball.cc
+  transform_convert_mesh.cc
+  transform_convert_mesh_edge.cc
+  transform_convert_mesh_skin.cc
+  transform_convert_mesh_uv.cc
+  transform_convert_mesh_vert_cdata.cc
+  transform_convert_nla.cc
   transform_convert_node.cc
-  transform_convert_object.c
-  transform_convert_object_texspace.c
-  transform_convert_paintcurve.c
-  transform_convert_particle.c
+  transform_convert_object.cc
+  transform_convert_object_texspace.cc
+  transform_convert_paintcurve.cc
+  transform_convert_particle.cc
   transform_convert_sculpt.cc
-  transform_convert_sequencer.c
-  transform_convert_sequencer_image.c
-  transform_convert_tracking.c
-  transform_convert_tracking_curves.c
-  transform_draw_cursors.c
-  transform_generics.c
-  transform_gizmo_2d.c
+  transform_convert_sequencer.cc
+  transform_convert_sequencer_image.cc
+  transform_convert_tracking.cc
+  transform_convert_tracking_curves.cc
+  transform_draw_cursors.cc
+  transform_generics.cc
+  transform_gizmo_2d.cc
   transform_gizmo_3d.cc
   transform_gizmo_3d_cage.cc
   transform_gizmo_3d_shear.cc
-  transform_gizmo_extrude_3d.c
-  transform_input.c
-  transform_mode.c
-  transform_mode_align.c
-  transform_mode_baketime.c
-  transform_mode_bbone_resize.c
-  transform_mode_bend.c
-  transform_mode_boneenvelope.c
-  transform_mode_boneroll.c
-  transform_mode_curveshrinkfatten.c
-  transform_mode_customdata.c
-  transform_mode_edge_rotate_normal.c
-  transform_mode_edge_seq_slide.c
-  transform_mode_edge_slide.c
-  transform_mode_gpopacity.c
-  transform_mode_gpshrinkfatten.c
-  transform_mode_maskshrinkfatten.c
-  transform_mode_mirror.c
-  transform_mode_push_pull.c
-  transform_mode_resize.c
-  transform_mode_rotate.c
-  transform_mode_shear.c
-  transform_mode_shrink_fatten.c
-  transform_mode_skin_resize.c
-  transform_mode_snapsource.c
-  transform_mode_tilt.c
-  transform_mode_timescale.c
-  transform_mode_timeslide.c
-  transform_mode_timetranslate.c
-  transform_mode_tosphere.c
-  transform_mode_trackball.c
-  transform_mode_translate.c
-  transform_mode_vert_slide.c
-  transform_ops.c
-  transform_orientations.c
+  transform_gizmo_extrude_3d.cc
+  transform_input.cc
+  transform_mode.cc
+  transform_mode_align.cc
+  transform_mode_baketime.cc
+  transform_mode_bbone_resize.cc
+  transform_mode_bend.cc
+  transform_mode_boneenvelope.cc
+  transform_mode_boneroll.cc
+  transform_mode_curveshrinkfatten.cc
+  transform_mode_customdata.cc
+  transform_mode_edge_rotate_normal.cc
+  transform_mode_edge_seq_slide.cc
+  transform_mode_edge_slide.cc
+  transform_mode_gpopacity.cc
+  transform_mode_gpshrinkfatten.cc
+  transform_mode_maskshrinkfatten.cc
+  transform_mode_mirror.cc
+  transform_mode_push_pull.cc
+  transform_mode_resize.cc
+  transform_mode_rotate.cc
+  transform_mode_shear.cc
+  transform_mode_shrink_fatten.cc
+  transform_mode_skin_resize.cc
+  transform_mode_snapsource.cc
+  transform_mode_tilt.cc
+  transform_mode_timescale.cc
+  transform_mode_timeslide.cc
+  transform_mode_timetranslate.cc
+  transform_mode_tosphere.cc
+  transform_mode_trackball.cc
+  transform_mode_translate.cc
+  transform_mode_vert_slide.cc
+  transform_ops.cc
+  transform_orientations.cc
   transform_snap.cc
-  transform_snap_animation.c
+  transform_snap_animation.cc
   transform_snap_object.cc
   transform_snap_object_armature.cc
   transform_snap_object_camera.cc
   transform_snap_object_curve.cc
   transform_snap_object_editmesh.cc
   transform_snap_object_mesh.cc
-  transform_snap_sequencer.c
+  transform_snap_sequencer.cc
 
-  transform.h
-  transform_constraints.h
-  transform_convert.h
-  transform_data.h
-  transform_draw_cursors.h
-  transform_gizmo.h
-  transform_mode.h
-  transform_orientations.h
-  transform_snap.h
+  transform.hh
+  transform_constraints.hh
+  transform_convert.hh
+  transform_data.hh
+  transform_draw_cursors.hh
+  transform_gizmo.hh
+  transform_mode.hh
+  transform_orientations.hh
+  transform_snap.hh
   transform_snap_object.hh
 )
 

@@ -883,7 +883,7 @@ static StructRNA *rna_AddonPref_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_apt.idname));
+                int(sizeof(dummy_apt.idname)));
     return nullptr;
   }
 

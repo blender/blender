@@ -14,7 +14,7 @@ extern "C" {
 
 typedef struct BLI_Buffer {
   void *data;
-  const size_t elem_size;
+  size_t elem_size;
   size_t count, alloc_count;
   int flag;
 } BLI_Buffer;
@@ -105,7 +105,7 @@ void _bli_buffer_free(BLI_Buffer *buffer);
  */
 #define BLI_buffer_field_init(name_, type_) \
   { \
-    memset(name_, 0, sizeof(*name_)); \
+    memset((void *)name_, 0, sizeof(*name_)); \
     *(size_t *)&((name_)->elem_size) = sizeof(type_); \
   } \
   (void)0

@@ -868,7 +868,7 @@ static int calculate_bezt_draw_resolution(BezTriple *bezt,
     return max_bez_resolution;
   }
 
-  const int resolution = (int)(5.0f * len_v2v2(bezt->vec[1], prevbezt->vec[1]));
+  const int resolution = int(5.0f * len_v2v2(bezt->vec[1], prevbezt->vec[1]));
 
   /* NOTE: higher values will crash */
   /* TODO: view scale should factor into this someday too... */
@@ -1140,7 +1140,7 @@ static void draw_fcurve(bAnimContext *ac, SpaceGraph *sipo, ARegion *region, bAn
        * by sampling it at various small-intervals over the visible region
        */
       if (adt) {
-        /** We have to do this mapping dance since the keyframes were remapped but the Fmodifier
+        /* We have to do this mapping dance since the keyframes were remapped but the F-modifier
          * evaluations are not.
          *
          * So we undo the keyframe remapping and instead remap the evaluation time when drawing the

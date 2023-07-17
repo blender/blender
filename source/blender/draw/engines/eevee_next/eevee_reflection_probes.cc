@@ -5,13 +5,6 @@
 #include "eevee_reflection_probes.hh"
 #include "eevee_instance.hh"
 
-/* Generate dummy light probe texture.
- *
- * Baking of Light probes aren't implemented yet. For testing purposes this can be enabled to
- * generate a dummy texture.
- */
-#define GENERATE_DUMMY_LIGHT_PROBE_TEXTURE false
-
 namespace blender::eevee {
 
 void ReflectionProbeModule::init()
@@ -36,29 +29,29 @@ void ReflectionProbeModule::init()
     world_probe.do_update_data = true;
     world_probe.do_render = true;
     world_probe.index = 0;
+    world_probe.clipping_distances = float2(1.0f, 10.0f);
     probes_.add(world_object_key_, world_probe);
 
     probes_tx_.ensure_2d_array(GPU_RGBA16F,
                                int2(max_resolution_),
                                init_num_probes_,
-                               GPU_TEXTURE_USAGE_SHADER_WRITE,
+                               GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ,
                                nullptr,
-                               REFLECTION_PROBE_MIPMAP_LEVELS);
+                               9999);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
 
-    /* Cube-map is half of the resolution of the octahedral map. */
-    cubemap_tx_.ensure_cube(
-        GPU_RGBA16F, max_resolution_ / 2, GPU_TEXTURE_USAGE_ATTACHMENT, nullptr, 9999);
-    GPU_texture_mipmap_mode(cubemap_tx_, true, true);
+    recalc_lod_factors();
+    data_buf_.push_update();
   }
 
   {
     PassSimple &pass = remap_ps_;
     pass.init();
     pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_REMAP));
-    pass.bind_texture("cubemap_tx", cubemap_tx_);
-    pass.bind_image("octahedral_img", probes_tx_);
-    pass.bind_ssbo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
+    pass.bind_texture("cubemap_tx", &cubemap_tx_);
+    pass.bind_image("octahedral_img", &probes_tx_);
+    pass.bind_ubo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
+    pass.push_constant("reflection_probe_index", &reflection_probe_index_);
     pass.dispatch(&dispatch_probe_pack_);
   }
 }
@@ -69,37 +62,22 @@ void ReflectionProbeModule::begin_sync()
       reflection_probe.is_probe_used = false;
     }
   }
+
+  update_probes_this_sample_ = false;
+  if (update_probes_next_sample_) {
+    update_probes_this_sample_ = true;
+    instance_.sampling.reset();
+  }
 }
 
 int ReflectionProbeModule::needed_layers_get() const
 {
-  const int max_probe_data_index = reflection_probe_data_index_max();
   int max_layer = 0;
-  for (const ReflectionProbeData &data :
-       Span<ReflectionProbeData>(data_buf_.data(), max_probe_data_index + 1))
-  {
-    max_layer = max_ii(max_layer, data.layer);
+  for (const ReflectionProbe &probe : probes_.values()) {
+    const ReflectionProbeData &probe_data = data_buf_[probe.index];
+    max_layer = max_ii(max_layer, probe_data.layer);
   }
   return max_layer + 1;
-}
-
-void ReflectionProbeModule::sync(ReflectionProbe &probe)
-{
-  switch (probe.type) {
-    case ReflectionProbe::Type::World: {
-      break;
-    }
-    case ReflectionProbe::Type::Probe: {
-      if (probe.do_render) {
-        upload_dummy_texture(probe);
-        probe.do_render = false;
-      }
-      break;
-    }
-    case ReflectionProbe::Type::Unused: {
-      break;
-    }
-  }
 }
 
 static int layer_subdivision_for(const int max_resolution,
@@ -119,7 +97,6 @@ void ReflectionProbeModule::sync_world(::World *world, WorldHandle & /*ob_handle
 
 void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
 {
-#if GENERATE_DUMMY_LIGHT_PROBE_TEXTURE
   const ::LightProbe *light_probe = (::LightProbe *)ob->data;
   if (light_probe->type != LIGHTPROBE_TYPE_CUBE) {
     return;
@@ -128,15 +105,27 @@ void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
   int subdivision = layer_subdivision_for(
       max_resolution_, static_cast<eLightProbeResolution>(light_probe->resolution));
   ReflectionProbe &probe = find_or_insert(ob_handle, subdivision);
-  probe.do_update_data |= is_dirty;
+  probe.do_render |= is_dirty;
   probe.is_probe_used = true;
 
+  /* Only update data when rerendering the probes to reduce flickering. */
+  if (!instance_.do_probe_sync()) {
+    update_probes_next_sample_ = true;
+    return;
+  }
+
+  probe.do_update_data |= is_dirty;
+  probe.clipping_distances = float2(light_probe->clipsta, light_probe->clipend);
+
   ReflectionProbeData &probe_data = data_buf_[probe.index];
+  if (probe_data.layer_subdivision != subdivision) {
+    ReflectionProbeData new_probe_data = find_empty_reflection_probe_data(subdivision);
+    probe_data.layer = new_probe_data.layer;
+    probe_data.layer_subdivision = new_probe_data.layer_subdivision;
+    probe_data.area_index = new_probe_data.area_index;
+  }
+
   probe_data.pos = float3(float4x4(ob->object_to_world) * float4(0.0, 0.0, 0.0, 1.0));
-  probe_data.layer_subdivision = subdivision;
-#else
-  UNUSED_VARS(ob, ob_handle);
-#endif
 }
 
 ReflectionProbe &ReflectionProbeModule::find_or_insert(ObjectHandle &ob_handle,
@@ -290,62 +279,32 @@ void ReflectionProbeModule::end_sync()
 {
   remove_unused_probes();
 
+  const bool probe_sync_done = instance_.do_probe_sync();
+  if (!probe_sync_done) {
+    return;
+  }
+
   int number_layers_needed = needed_layers_get();
   int current_layers = probes_tx_.depth();
   bool resize_layers = current_layers < number_layers_needed;
+
   if (resize_layers) {
-    /* TODO: Create new texture and copy previous texture so we don't need to rerender all the
-     * probes.*/
     probes_tx_.ensure_2d_array(GPU_RGBA16F,
                                int2(max_resolution_),
                                number_layers_needed,
-                               GPU_TEXTURE_USAGE_SHADER_WRITE,
+                               GPU_TEXTURE_USAGE_SHADER_WRITE | GPU_TEXTURE_USAGE_SHADER_READ,
                                nullptr,
-                               REFLECTION_PROBE_MIPMAP_LEVELS);
+                               9999);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
+
+    for (ReflectionProbe &probe : probes_.values()) {
+      probe.do_update_data = true;
+      probe.do_render = true;
+    }
   }
 
   recalc_lod_factors();
   data_buf_.push_update();
-
-  /* Regenerate mipmaps when a probe texture is updated. It can be postponed when the world probe
-   * is also updated. In this case it would happen as part of the WorldProbePipeline. */
-  bool regenerate_mipmaps = false;
-  bool regenerate_mipmaps_postponed = false;
-
-  for (ReflectionProbe &probe : probes_.values()) {
-    if (resize_layers) {
-      probe.do_update_data = true;
-      probe.do_render = true;
-    }
-
-    if (!probe.needs_update()) {
-      continue;
-    }
-    sync(probe);
-
-    switch (probe.type) {
-      case ReflectionProbe::Type::World:
-        regenerate_mipmaps_postponed = true;
-        break;
-
-      case ReflectionProbe::Type::Probe:
-        regenerate_mipmaps = probe.do_render;
-        break;
-
-      case ReflectionProbe::Type::Unused:
-        BLI_assert_unreachable();
-        break;
-    }
-    probe.do_update_data = false;
-  }
-
-  if (regenerate_mipmaps) {
-    GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    if (!regenerate_mipmaps_postponed) {
-      GPU_texture_update_mipmap_chain(probes_tx_);
-    }
-  }
 }
 
 void ReflectionProbeModule::remove_unused_probes()
@@ -470,57 +429,73 @@ std::ostream &operator<<(std::ostream &os, const ReflectionProbe &probe)
   return os;
 }
 
-void ReflectionProbeModule::upload_dummy_texture(const ReflectionProbe &probe)
-{
-  const ReflectionProbeData &probe_data = data_buf_[probe.index];
-  const int resolution = max_resolution_ >> probe_data.layer_subdivision;
-  float4 *data = static_cast<float4 *>(
-      MEM_mallocN(sizeof(float4) * resolution * resolution, __func__));
-
-  /* Generate dummy checker pattern. */
-  int index = 0;
-  const int BLOCK_SIZE = max_ii(1024 >> probe_data.layer_subdivision, 1);
-  for (int y : IndexRange(resolution)) {
-    for (int x : IndexRange(resolution)) {
-      int tx = (x / BLOCK_SIZE) & 1;
-      int ty = (y / BLOCK_SIZE) & 1;
-      bool solid = (tx + ty) & 1;
-      if (solid) {
-        data[index] = float4((probe.index & 1) == 0 ? 0.0f : 1.0f,
-                             (probe.index & 2) == 0 ? 0.0f : 1.0f,
-                             (probe.index & 4) == 0 ? 0.0f : 1.0f,
-                             1.0f);
-      }
-      else {
-        data[index] = float4(0.0f);
-      }
-
-      index++;
-    }
-  }
-
-  /* Upload the checker pattern. */
-  int probes_per_dimension = 1 << probe_data.layer_subdivision;
-  int2 probe_area_pos(probe_data.area_index % probes_per_dimension,
-                      probe_data.area_index / probes_per_dimension);
-  int2 pos = probe_area_pos * int2(max_resolution_ / probes_per_dimension);
-  GPU_texture_update_sub(
-      probes_tx_, GPU_DATA_FLOAT, data, UNPACK2(pos), probe_data.layer, resolution, resolution, 1);
-
-  MEM_freeN(data);
-}
-
 /** \} */
 
-void ReflectionProbeModule::remap_to_octahedral_projection()
+std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
+    const ReflectionProbe::Type probe_type)
 {
-  const ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
-  const ReflectionProbeData &probe_data = data_buf_[world_probe.index];
+  const bool do_probe_sync = instance_.do_probe_sync();
+  const int max_shift = int(log2(max_resolution_));
+  for (const Map<uint64_t, ReflectionProbe>::Item &item : probes_.items()) {
+    if (!item.value.do_render) {
+      continue;
+    }
+    if (probe_type == ReflectionProbe::Type::World && item.value.type != probe_type) {
+      return std::nullopt;
+    }
+    if (probe_type == ReflectionProbe::Type::Probe && item.value.type != probe_type) {
+      continue;
+    }
+    /* Do not update this probe during this sample. */
+    if (item.value.type == ReflectionProbe::Type::Probe && !do_probe_sync) {
+      continue;
+    }
+    probes_.lookup(item.key).do_render = false;
+
+    ReflectionProbeData &probe_data = data_buf_[item.value.index];
+    ReflectionProbeUpdateInfo info = {};
+    info.probe_type = item.value.type;
+    info.object_key = item.key;
+    info.resolution = 1 << (max_shift - probe_data.layer_subdivision - 1);
+    info.clipping_distances = item.value.clipping_distances;
+    info.probe_pos = probe_data.pos;
+
+    if (cubemap_tx_.ensure_cube(GPU_RGBA16F,
+                                info.resolution,
+                                GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ))
+    {
+      GPU_texture_mipmap_mode(cubemap_tx_, false, true);
+    }
+
+    return info;
+  }
+
+  /* Check reset probe updating as we completed rendering all Probes. */
+  if (probe_type == ReflectionProbe::Type::Probe && update_probes_this_sample_ &&
+      update_probes_next_sample_)
+  {
+    update_probes_next_sample_ = false;
+  }
+
+  return std::nullopt;
+}
+
+void ReflectionProbeModule::remap_to_octahedral_projection(uint64_t object_key)
+{
+  const ReflectionProbe &probe = probes_.lookup(object_key);
+  const ReflectionProbeData &probe_data = data_buf_[probe.index];
+
+  /* Update shader parameters that change per dispatch. */
+  reflection_probe_index_ = probe.index;
   dispatch_probe_pack_ = int3(int2(ceil_division(max_resolution_ >> probe_data.layer_subdivision,
                                                  REFLECTION_PROBE_GROUP_SIZE)),
                               1);
+
   instance_.manager->submit(remap_ps_);
-  /* TODO: Performance - Should only update the area that has changed. */
+}
+
+void ReflectionProbeModule::update_probes_texture_mipmaps()
+{
   GPU_texture_update_mipmap_chain(probes_tx_);
 }
 

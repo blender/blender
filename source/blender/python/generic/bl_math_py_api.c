@@ -130,7 +130,7 @@ static PyMethodDef M_bl_math_methods[] = {
 };
 
 static PyModuleDef M_bl_math_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bl_math",
     /*m_doc*/ M_bl_math_doc,
     /*m_size*/ 0,

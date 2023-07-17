@@ -167,7 +167,7 @@ PyDoc_STRVAR(
     "This object contains basic static methods to handle cached (non-ID) previews in Blender\n"
     "(low-level API, not exposed to final users).");
 static PyModuleDef bpy_utils_previews_module = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bpy._utils_previews",
     /*m_doc*/ bpy_utils_previews_doc,
     /*m_size*/ 0,

@@ -350,7 +350,7 @@ void MTLVertBuf::read(void *data) const
 
   if (usage_ != GPU_USAGE_DEVICE_ONLY) {
 
-    /* Ensure data is flushed for host caches.  */
+    /* Ensure data is flushed for host caches. */
     id<MTLBuffer> source_buffer = vbo_->get_metal_buffer();
     if (source_buffer.storageMode == MTLStorageModeManaged) {
       id<MTLBlitCommandEncoder> enc = ctx->main_command_buffer.ensure_begin_blit_encoder();

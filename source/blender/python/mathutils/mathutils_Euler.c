@@ -788,7 +788,7 @@ PyDoc_STRVAR(
     "   :arg order: Optional order of the angles, a permutation of ``XYZ``.\n"
     "   :type order: str\n");
 PyTypeObject euler_Type = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "Euler",
     /*tp_basicsize*/ sizeof(EulerObject),
     /*tp_itemsize*/ 0,

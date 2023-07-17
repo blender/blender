@@ -1250,7 +1250,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
       ce = static_cast<CfraElem *>(MEM_callocN(sizeof(CfraElem), "cfraElem"));
       BLI_addtail(&ked.list, ce);
 
-      ce->cfra = (float)scene->r.cfra;
+      ce->cfra = float(scene->r.cfra);
       break;
 
     case GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN: /* list of selected markers */
@@ -1567,10 +1567,10 @@ static void graphkeys_select_leftright(bAnimContext *ac, short leftright, short 
 
   if (leftright == GRAPHKEYS_LRSEL_LEFT) {
     ked.f1 = MINAFRAMEF;
-    ked.f2 = (float)(scene->r.cfra + 0.1f);
+    ked.f2 = float(scene->r.cfra + 0.1f);
   }
   else {
-    ked.f1 = (float)(scene->r.cfra - 0.1f);
+    ked.f1 = float(scene->r.cfra - 0.1f);
     ked.f2 = MAXFRAMEF;
   }
 

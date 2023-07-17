@@ -10,9 +10,8 @@
 
 #include <stdlib.h>
 
-/* glibc 2.8+ */
-#if defined(__GLIBC__) && (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 8))
-#  define BLI_qsort_r qsort_r
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 /** Quick sort (re-entrant). */
@@ -23,3 +22,7 @@ void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
     __attribute__((nonnull(1, 5)))
 #endif
     ;
+
+#ifdef __cplusplus
+}
+#endif

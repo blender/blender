@@ -12,7 +12,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"

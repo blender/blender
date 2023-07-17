@@ -22,6 +22,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "DNA_defaults.h"
 #include "DNA_genfile.h"
 
 #include "BLI_assert.h"

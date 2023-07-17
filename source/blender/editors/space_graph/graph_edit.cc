@@ -164,10 +164,10 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         x = sipo->cursorTime;
       }
       else if (adt) {
-        x = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
+        x = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
       }
       else {
-        x = (float)scene->r.cfra;
+        x = float(scene->r.cfra);
       }
 
       /* Normalize units of cursor's value. */
@@ -187,7 +187,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
   }
   else {
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-        ac->depsgraph, (float)scene->r.cfra);
+        ac->depsgraph, float(scene->r.cfra));
     for (ale = static_cast<bAnimListElem *>(anim_data.first); ale; ale = ale->next) {
       FCurve *fcu = (FCurve *)ale->key_data;
 
@@ -220,12 +220,12 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
         AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
         /* Adjust current frame for NLA-mapping. */
-        float cfra = (float)scene->r.cfra;
+        float cfra = float(scene->r.cfra);
         if ((sipo) && (sipo->mode == SIPO_MODE_DRIVERS)) {
           cfra = sipo->cursorTime;
         }
         else if (adt) {
-          cfra = BKE_nla_tweakedit_remap(adt, (float)scene->r.cfra, NLATIME_CONVERT_UNMAP);
+          cfra = BKE_nla_tweakedit_remap(adt, float(scene->r.cfra), NLATIME_CONVERT_UNMAP);
         }
 
         const float curval = evaluate_fcurve_only_curve(fcu, cfra);
@@ -2726,7 +2726,7 @@ static void mirror_graph_keys(bAnimContext *ac, short mode)
 
     /* Store marker's time (if available). */
     if (marker) {
-      ked.f1 = (float)marker->frame;
+      ked.f1 = float(marker->frame);
     }
     else {
       return;

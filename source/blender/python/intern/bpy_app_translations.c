@@ -781,7 +781,7 @@ PyDoc_STRVAR(app_translations_doc,
              "to feature translations for its own UI messages.\n"
              "\n");
 static PyTypeObject BlenderAppTranslationsType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bpy.app._translations_type",
     /*tp_basicsize*/ sizeof(BlenderAppTranslations),
     /*tp_itemsize*/ 0,

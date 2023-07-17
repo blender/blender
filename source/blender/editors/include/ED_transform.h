@@ -25,7 +25,7 @@ void transform_operatortypes(void);
 /* ******************** Macros & Prototypes *********************** */
 
 /* MODE AND NUMINPUT FLAGS */
-typedef enum {
+enum eTfmMode {
   TFM_INIT = -1,
   TFM_DUMMY,
   TFM_TRANSLATION,
@@ -63,7 +63,7 @@ typedef enum {
   TFM_BONE_ENVELOPE_DIST,
   TFM_NORMAL_ROTATION,
   TFM_GPENCIL_OPACITY,
-} eTfmMode;
+};
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)

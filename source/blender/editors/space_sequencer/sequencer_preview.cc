@@ -127,7 +127,7 @@ static void preview_startjob(void *data, bool *stop, bool *do_update, float *pro
 
     while (BLI_listbase_is_empty(&pj->previews) && pj->processed != pj->total) {
 
-      float current_progress = (pj->total > 0) ? (float)pj->processed / (float)pj->total : 1.0f;
+      float current_progress = (pj->total > 0) ? float(pj->processed) / float(pj->total) : 1.0f;
 
       if (current_progress != *progress) {
         *progress = current_progress;
@@ -208,7 +208,7 @@ void sequencer_preview_add_sound(const bContext *C, Sequence *seq)
       return;
     }
   }
-  else { /* There's no existig preview job. */
+  else { /* There's no existing preview job. */
     pj = MEM_cnew<PreviewJob>("preview rebuild job");
 
     pj->mutex = BLI_mutex_alloc();

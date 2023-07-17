@@ -397,8 +397,10 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             angle = angle_normalized_v3v3(no_a, no_b);
 
-            numstr_len = SNPRINTF_RLEN(
-                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(numstr,
+                                       "%.3f%s",
+                                       (is_rad) ? angle : RAD2DEGF(angle),
+                                       (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
 
             DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, -edge_tex_sep, txt_flag, col);
           }
@@ -531,8 +533,10 @@ void DRW_text_edit_mesh_measure_stats(ARegion *region,
 
             float angle = angle_v3v3v3(v1, v2, v3);
 
-            numstr_len = SNPRINTF_RLEN(
-                numstr, "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle), (is_rad) ? "r" : "°");
+            numstr_len = SNPRINTF_RLEN(numstr,
+                                       "%.3f%s",
+                                       (is_rad) ? angle : RAD2DEGF(angle),
+                                       (is_rad) ? "r" : BLI_STR_UTF8_DEGREE_SIGN);
             interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
             mul_m4_v3(ob->object_to_world, fvec);
             DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);

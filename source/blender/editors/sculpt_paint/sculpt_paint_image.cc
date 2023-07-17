@@ -356,9 +356,9 @@ static void do_paint_pixels(void *__restrict userdata,
 #ifdef DEBUG_PIXEL_NODES
   uint hash = BLI_hash_int(POINTER_AS_UINT(node));
 
-  brush_color[0] = (float)(hash & 255) / 255.0f;
-  brush_color[1] = (float)((hash >> 8) & 255) / 255.0f;
-  brush_color[2] = (float)((hash >> 16) & 255) / 255.0f;
+  brush_color[0] = float(hash & 255) / 255.0f;
+  brush_color[1] = float((hash >> 8) & 255) / 255.0f;
+  brush_color[2] = float((hash >> 16) & 255) / 255.0f;
 #else
   copy_v3_v3(brush_color,
              ss->cache->invert ? BKE_brush_secondary_color_get(ss->scene, brush) :

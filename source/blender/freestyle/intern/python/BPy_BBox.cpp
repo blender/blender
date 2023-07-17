@@ -67,7 +67,7 @@ static PyObject *BBox_repr(BPy_BBox *self)
 /*-----------------------BPy_BBox type definition ------------------------------*/
 
 PyTypeObject BBox_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "BBox",
     /*tp_basicsize*/ sizeof(BPy_BBox),
     /*tp_itemsize*/ 0,

@@ -29,7 +29,7 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 #include "ED_spreadsheet.h"
 
 #include "NOD_geometry_nodes_lazy_function.hh"

@@ -3855,7 +3855,7 @@ bool BKE_object_boundbox_calc_from_evaluated_geometry(Object *ob)
   }
   else if (const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob)) {
     Bounds<float3> mesh_bounds{float3(std::numeric_limits<float>::max()),
-                               float3(std::numeric_limits<float>::min())};
+                               float3(std::numeric_limits<float>::lowest())};
     if (BKE_mesh_wrapper_minmax(mesh_eval, mesh_bounds.min, mesh_bounds.max)) {
       bounds = bounds::merge(bounds, {mesh_bounds});
     }

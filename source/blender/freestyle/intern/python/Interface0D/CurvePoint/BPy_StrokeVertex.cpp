@@ -348,7 +348,8 @@ static PyGetSetDef BPy_StrokeVertex_getseters[] = {
 /*-----------------------BPy_StrokeVertex type definition ------------------------------*/
 
 PyTypeObject StrokeVertex_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(nullptr, 0) "StrokeVertex",
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
+    /*tp_name*/ "StrokeVertex",
     /*tp_basicsize*/ sizeof(BPy_StrokeVertex),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ nullptr,
@@ -384,7 +385,7 @@ PyTypeObject StrokeVertex_Type = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ (initproc)StrokeVertex_init,
     /*tp_alloc*/ nullptr,
-    nullptr, /*tp_new*/
+    /*tp_new*/ nullptr,
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////

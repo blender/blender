@@ -2851,7 +2851,7 @@ static void rna_FileBrowser_FileSelectEntry_name_get(PointerRNA *ptr, char *valu
 static int rna_FileBrowser_FileSelectEntry_name_length(PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return (int)strlen(entry->name);
+  return int(strlen(entry->name));
 }
 
 static void rna_FileBrowser_FileSelectEntry_relative_path_get(PointerRNA *ptr, char *value)
@@ -2863,7 +2863,7 @@ static void rna_FileBrowser_FileSelectEntry_relative_path_get(PointerRNA *ptr, c
 static int rna_FileBrowser_FileSelectEntry_relative_path_length(PointerRNA *ptr)
 {
   const FileDirEntry *entry = static_cast<const FileDirEntry *>(ptr->data);
-  return (int)strlen(entry->relpath);
+  return int(strlen(entry->relpath));
 }
 
 static const EnumPropertyItem *rna_FileBrowser_FileSelectEntry_id_type_itemf(
@@ -2938,7 +2938,7 @@ static int rna_FileBrowser_FSMenuEntry_path_length(PointerRNA *ptr)
 {
   char *path = ED_fsmenu_entry_get_path(static_cast<FSMenuEntry *>(ptr->data));
 
-  return (int)(path ? strlen(path) : 0);
+  return int(path ? strlen(path) : 0);
 }
 
 static void rna_FileBrowser_FSMenuEntry_path_set(PointerRNA *ptr, const char *value)
@@ -2957,7 +2957,7 @@ static void rna_FileBrowser_FSMenuEntry_name_get(PointerRNA *ptr, char *value)
 
 static int rna_FileBrowser_FSMenuEntry_name_length(PointerRNA *ptr)
 {
-  return (int)strlen(ED_fsmenu_entry_get_name(static_cast<FSMenuEntry *>(ptr->data)));
+  return int(strlen(ED_fsmenu_entry_get_name(static_cast<FSMenuEntry *>(ptr->data))));
 }
 
 static void rna_FileBrowser_FSMenuEntry_name_set(PointerRNA *ptr, const char *value)

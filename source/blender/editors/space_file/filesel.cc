@@ -712,7 +712,7 @@ void ED_fileselect_params_to_userdef(SpaceFile *sfile,
     sfile_udata_new->temp_win_sizey = temp_win_size[1];
   }
 
-  /* Tag prefs as dirty if something has changed. */
+  /* Tag preferences as dirty if something has changed. */
   if (memcmp(sfile_udata_new, &sfile_udata_old, sizeof(sfile_udata_old)) != 0) {
     U.runtime.is_dirty = true;
   }

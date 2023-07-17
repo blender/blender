@@ -3746,7 +3746,7 @@ void BPy_BM_init_types(void)
  * ********************* */
 
 static PyModuleDef BPy_BM_types_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.types",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

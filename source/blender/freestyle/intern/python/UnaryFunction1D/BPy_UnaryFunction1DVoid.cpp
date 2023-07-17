@@ -171,7 +171,7 @@ static PyGetSetDef BPy_UnaryFunction1DVoid_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DVoid type definition ------------------------------*/
 
 PyTypeObject UnaryFunction1DVoid_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1DVoid",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DVoid),
     /*tp_itemsize*/ 0,

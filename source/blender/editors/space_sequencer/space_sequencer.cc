@@ -263,8 +263,8 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
        * 'full window' views before, though... Better than nothing. */
       if (!(region_preview->v2d.flag & V2D_IS_INIT)) {
         region_preview->v2d.cur = region_preview->v2d.tot;
-        region_main->sizey = (int)(height - region_preview->sizey);
-        region_preview->sizey = (int)(height - region_main->sizey);
+        region_main->sizey = int(height - region_preview->sizey);
+        region_preview->sizey = int(height - region_main->sizey);
         view_changed = true;
       }
       if (region_preview->alignment != RGN_ALIGN_TOP) {
@@ -276,7 +276,7 @@ static void sequencer_refresh(const bContext *C, ScrArea *area)
           region_preview->sizey + region_main->sizey > height)
       {
         region_preview->sizey = roundf(height * 0.4f);
-        region_main->sizey = (int)(height - region_preview->sizey);
+        region_main->sizey = int(height - region_preview->sizey);
         view_changed = true;
       }
       break;

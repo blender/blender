@@ -21,7 +21,7 @@
  * \{ */
 
 static PyModuleDef pygpu_types_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "gpu.types",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

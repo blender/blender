@@ -97,11 +97,11 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
                         j;
 
     /* Use scale_length if needed! */
-    const float fac = (float)BKE_scene_unit_scale(unit_settings, n->unit_type[j], 1.0);
+    const float fac = float(BKE_scene_unit_scale(unit_settings, n->unit_type[j], 1.0));
 
     if (n->val_flag[i] & NUM_EDITED) {
       /* Get the best precision, allows us to draw '10.0001' as '10' instead! */
-      prec = UI_calc_float_precision(prec, (double)n->val[i]);
+      prec = UI_calc_float_precision(prec, double(n->val[i]));
       if (i == n->idx) {
         const char *heading_exp = "", *trailing_exp = "";
         char before_cursor[NUM_STR_REP_LEN];
@@ -124,7 +124,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
         else {
           BKE_unit_value_as_string_adaptive(val,
                                             sizeof(val),
-                                            (double)(n->val[i] * fac),
+                                            double(n->val[i] * fac),
                                             prec,
                                             n->unit_sys,
                                             n->unit_type[i],
@@ -152,7 +152,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
         else {
           char tstr[NUM_STR_REP_LEN];
           BKE_unit_value_as_string_adaptive(
-              tstr, ln, (double)n->val[i], prec, n->unit_sys, n->unit_type[i], true, false);
+              tstr, ln, double(n->val[i]), prec, n->unit_sys, n->unit_type[i], true, false);
           BLI_snprintf(&str[j * ln], ln, "%s%s%s", cur, tstr, cur);
         }
       }
@@ -162,7 +162,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
       BLI_snprintf(&str[j * ln], ln, "%sNONE%s", cur, cur);
     }
     /* We might have cut some multi-bytes utf8 chars
-     * (e.g. trailing '°' of degrees values can become only 'A')... */
+     * (e.g. trailing degrees symbol values can become only 'A'). */
     BLI_str_utf8_invalid_strip(&str[j * ln], strlen(&str[j * ln]));
   }
 }
@@ -237,7 +237,7 @@ static void value_to_editstr(NumInput *n, int idx)
   const int prec = 6; /* editing, higher precision needed. */
   n->str_cur = BKE_unit_value_as_string_adaptive(n->str,
                                                  NUM_STR_REP_LEN,
-                                                 (double)n->val[idx],
+                                                 double(n->val[idx]),
                                                  prec,
                                                  n->unit_sys,
                                                  n->unit_type[idx],

@@ -161,7 +161,7 @@ static PyGetSetDef BPy_UnaryFunction1DEdgeNature_getseters[] = {
 /*-----------------------BPy_UnaryFunction1DEdgeNature type definition --------------------------*/
 
 PyTypeObject UnaryFunction1DEdgeNature_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "UnaryFunction1DEdgeNature",
     /*tp_basicsize*/ sizeof(BPy_UnaryFunction1DEdgeNature),
     /*tp_itemsize*/ 0,

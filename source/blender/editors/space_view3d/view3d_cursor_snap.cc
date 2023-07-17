@@ -236,7 +236,7 @@ static void v3d_cursor_plane_draw_grid(const int resolution,
       i += 1;
     }
   }
-  BLI_assert(i == (int)coords_len);
+  BLI_assert(i == int(coords_len));
   immBeginAtMost(GPU_PRIM_LINES, coords_len * 4);
   i = 0;
   for (int x = 0; x < resolution_min; x++) {

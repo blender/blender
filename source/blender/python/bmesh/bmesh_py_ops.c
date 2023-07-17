@@ -147,7 +147,8 @@ static PyGetSetDef bpy_bmesh_op_getseters[] = {
  * ===== */
 
 static PyTypeObject bmesh_op_Type = {
-    /*tp_name*/ PyVarObject_HEAD_INIT(NULL, 0) "BMeshOpFunc",
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
+    /*tp_name*/ "BMeshOpFunc",
     /*tp_basicsize*/ sizeof(BPy_BMeshOpFunc),
     /*tp_itemsize*/ 0,
     /*tp_dealloc*/ NULL,
@@ -235,7 +236,7 @@ static PyMethodDef BPy_BM_ops_methods[] = {
 
 PyDoc_STRVAR(BPy_BM_ops_doc, "Access to BMesh operators");
 static PyModuleDef BPy_BM_ops_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bmesh.ops",
     /*m_doc*/ BPy_BM_ops_doc,
     /*m_size*/ 0,

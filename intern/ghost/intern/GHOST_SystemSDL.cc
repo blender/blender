@@ -127,22 +127,34 @@ uint8_t GHOST_SystemSDL::getNumDisplays() const
   return SDL_GetNumVideoDisplays();
 }
 
-GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/)
+GHOST_IContext *GHOST_SystemSDL::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
-  GHOST_Context *context = new GHOST_ContextSDL(false,
-                                                nullptr,
-                                                0, /* Profile bit. */
-                                                3,
-                                                3,
-                                                GHOST_OPENGL_SDL_CONTEXT_FLAGS,
-                                                GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
+  switch (gpuSettings.context_type) {
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextSDL(
+            false,
+            nullptr,
+            0, /* Profile bit. */
+            4,
+            minor,
+            GHOST_OPENGL_SDL_CONTEXT_FLAGS,
+            GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
-  if (context->initializeDrawingContext()) {
-    return context;
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
+        delete context;
+      }
+      return nullptr;
+    }
+#endif
+
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-  delete context;
-
-  return nullptr;
 }
 
 GHOST_TSuccess GHOST_SystemSDL::disposeContext(GHOST_IContext *context)

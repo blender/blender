@@ -12,12 +12,12 @@
 
 #include "BKE_curves.hh"
 
-#include "ED_curves.h"
+#include "ED_curves.hh"
 
 #include "MEM_guardedalloc.h"
 
-#include "transform.h"
-#include "transform_convert.h"
+#include "transform.hh"
+#include "transform_convert.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Curve/Surfaces Transform Creation

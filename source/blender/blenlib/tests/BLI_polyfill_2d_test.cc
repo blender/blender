@@ -44,7 +44,7 @@ using ePolyFill2DTestFlag = enum ePolyFill2DTestFlag {
 /* -------------------------------------------------------------------- */
 /* test utility functions */
 
-#define TRI_ERROR_VALUE (uint) - 1
+#define TRI_ERROR_VALUE uint(-1)
 
 static void test_valid_polyfill_prepare(uint tris[][3], uint tris_num)
 {

@@ -101,6 +101,7 @@ enum eSamplingDimension : uint32_t {
   SAMPLING_RAYTRACE_X = 18u,
   SAMPLING_AO_U = 19u,
   SAMPLING_AO_V = 20u,
+  SAMPLING_CURVES_U = 21u,
 };
 
 /**
@@ -326,8 +327,8 @@ struct AOVsInfoData {
   uint4 hash_value[AOV_MAX];
   uint4 hash_color[AOV_MAX];
   /* Length of used data. */
-  uint color_len;
-  uint value_len;
+  int color_len;
+  int value_len;
   /** Id of the AOV to be displayed (from the start of the AOV array). -1 for combined. */
   int display_id;
   /** True if the AOV to be displayed is from the value accumulation buffer. */
@@ -1092,6 +1093,14 @@ float4 utility_tx_fetch(sampler2DArray util_tx, float2 texel, float layer)
 /* Sample at uv position. Filtered & Wrapping enabled. */
 float4 utility_tx_sample(sampler2DArray util_tx, float2 uv, float layer)
 {
+  return textureLod(util_tx, float3(uv, layer), 0.0);
+}
+
+/* Sample at uv position but with scale and bias so that uv space bounds lie on texel centers. */
+float4 utility_tx_sample_lut(sampler2DArray util_tx, float2 uv, float layer)
+{
+  /* Scale and bias coordinates, for correct filtered lookup. */
+  uv = uv * ((UTIL_TEX_SIZE - 1.0) / UTIL_TEX_SIZE) + (0.5 / UTIL_TEX_SIZE);
   return textureLod(util_tx, float3(uv, layer), 0.0);
 }
 #endif

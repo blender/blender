@@ -59,6 +59,7 @@ set(SRC
   paint_vertex_proj.cc
   paint_vertex_weight_ops.cc
   paint_vertex_weight_utils.cc
+  paint_weight.cc
   sculpt.cc
   sculpt_automasking.cc
   sculpt_boundary.cc

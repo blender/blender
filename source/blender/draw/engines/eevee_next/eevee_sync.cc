@@ -18,6 +18,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
+#include "draw_common.hh"
+
 #include "eevee_instance.hh"
 
 namespace blender::eevee {
@@ -122,6 +124,7 @@ void SyncModule::sync_mesh(Object *ob,
 
   bool is_shadow_caster = false;
   bool is_alpha_blend = false;
+  bool do_probe_sync = inst_.do_probe_sync();
   for (auto i : material_array.gpu_materials.index_range()) {
     GPUBatch *geom = mat_geom[i];
     if (geom == nullptr) {
@@ -132,6 +135,10 @@ void SyncModule::sync_mesh(Object *ob,
     geometry_call(material.prepass.sub_pass, geom, res_handle);
     geometry_call(material.shadow.sub_pass, geom, res_handle);
     geometry_call(material.capture.sub_pass, geom, res_handle);
+    if (do_probe_sync) {
+      geometry_call(material.probe_prepass.sub_pass, geom, res_handle);
+      geometry_call(material.probe_shading.sub_pass, geom, res_handle);
+    }
 
     is_shadow_caster = is_shadow_caster || material.shadow.sub_pass != nullptr;
     is_alpha_blend = is_alpha_blend || material.is_alpha_blend_transparent;
@@ -145,6 +152,49 @@ void SyncModule::sync_mesh(Object *ob,
 
   inst_.shadows.sync_object(ob_handle, res_handle, is_shadow_caster, is_alpha_blend);
   inst_.cryptomatte.sync_object(ob, res_handle);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Point Cloud
+ * \{ */
+
+void SyncModule::sync_point_cloud(Object *ob,
+                                  ObjectHandle &ob_handle,
+                                  ResourceHandle res_handle,
+                                  const ObjectRef & /*ob_ref*/)
+{
+  int material_slot = 1;
+
+  bool has_motion = inst_.velocity.step_object_sync(
+      ob, ob_handle.object_key, res_handle, ob_handle.recalc);
+
+  Material &material = inst_.materials.material_get(
+      ob, has_motion, material_slot - 1, MAT_GEOM_POINT_CLOUD);
+
+  auto drawcall_add = [&](MaterialPass &matpass) {
+    if (matpass.sub_pass == nullptr) {
+      return;
+    }
+    PassMain::Sub &object_pass = matpass.sub_pass->sub("Point Cloud Sub Pass");
+    GPUBatch *geometry = point_cloud_sub_pass_setup(object_pass, ob, matpass.gpumat);
+    object_pass.draw(geometry, res_handle);
+  };
+
+  drawcall_add(material.shading);
+  drawcall_add(material.prepass);
+  drawcall_add(material.shadow);
+
+  inst_.cryptomatte.sync_object(ob, res_handle);
+  GPUMaterial *gpu_material =
+      inst_.materials.material_array_get(ob, has_motion).gpu_materials[material_slot - 1];
+  ::Material *mat = GPU_material_get_material(gpu_material);
+  inst_.cryptomatte.sync_material(mat);
+
+  bool is_caster = material.shadow.sub_pass != nullptr;
+  bool is_alpha_blend = material.is_alpha_blend_transparent;
+  inst_.shadows.sync_object(ob_handle, res_handle, is_caster, is_alpha_blend);
 }
 
 /** \} */
@@ -293,61 +343,47 @@ void SyncModule::sync_gpencil(Object *ob, ObjectHandle &ob_handle, ResourceHandl
 /** \name Hair
  * \{ */
 
-static void shgroup_curves_call(MaterialPass &matpass,
-                                Object *ob,
-                                ParticleSystem *part_sys = nullptr,
-                                ModifierData *modifier_data = nullptr)
-{
-  UNUSED_VARS(ob, modifier_data);
-  if (matpass.sub_pass == nullptr) {
-    return;
-  }
-  if (part_sys != nullptr) {
-    // DRW_shgroup_hair_create_sub(ob, part_sys, modifier_data, matpass.sub_pass, matpass.gpumat);
-  }
-  else {
-    // DRW_shgroup_curves_create_sub(ob, matpass.sub_pass, matpass.gpumat);
-  }
-}
-
 void SyncModule::sync_curves(Object *ob,
                              ObjectHandle &ob_handle,
                              ResourceHandle res_handle,
-                             ModifierData *modifier_data)
+                             ModifierData *modifier_data,
+                             ParticleSystem *particle_sys)
 {
-  UNUSED_VARS(res_handle);
   int mat_nr = CURVES_MATERIAL_NR;
-
-  ParticleSystem *part_sys = nullptr;
-  if (modifier_data != nullptr) {
-    part_sys = reinterpret_cast<ParticleSystemModifierData *>(modifier_data)->psys;
-    if (!DRW_object_is_visible_psys_in_active_context(ob, part_sys)) {
-      return;
-    }
-    ParticleSettings *part_settings = part_sys->part;
-    const int draw_as = (part_settings->draw_as == PART_DRAW_REND) ? part_settings->ren_as :
-                                                                     part_settings->draw_as;
-    if (draw_as != PART_DRAW_PATH) {
-      return;
-    }
-    mat_nr = part_settings->omat;
+  if (particle_sys != nullptr) {
+    mat_nr = particle_sys->part->omat;
   }
 
-  bool has_motion = inst_.velocity.step_object_sync(ob, ob_handle.object_key, ob_handle.recalc);
+  bool has_motion = inst_.velocity.step_object_sync(
+      ob, ob_handle.object_key, res_handle, ob_handle.recalc, modifier_data, particle_sys);
   Material &material = inst_.materials.material_get(ob, has_motion, mat_nr - 1, MAT_GEOM_CURVES);
 
-  shgroup_curves_call(material.shading, ob, part_sys, modifier_data);
-  shgroup_curves_call(material.prepass, ob, part_sys, modifier_data);
-  shgroup_curves_call(material.shadow, ob, part_sys, modifier_data);
+  auto drawcall_add = [&](MaterialPass &matpass) {
+    if (matpass.sub_pass == nullptr) {
+      return;
+    }
+    if (particle_sys != nullptr) {
+      PassMain::Sub &sub_pass = matpass.sub_pass->sub("Hair SubPass");
+      GPUBatch *geometry = hair_sub_pass_setup(
+          sub_pass, inst_.scene, ob, particle_sys, modifier_data, matpass.gpumat);
+      sub_pass.draw(geometry, res_handle);
+    }
+    else {
+      PassMain::Sub &sub_pass = matpass.sub_pass->sub("Curves SubPass");
+      GPUBatch *geometry = curves_sub_pass_setup(sub_pass, inst_.scene, ob, matpass.gpumat);
+      sub_pass.draw(geometry, res_handle);
+    }
+  };
+
+  drawcall_add(material.shading);
+  drawcall_add(material.prepass);
+  drawcall_add(material.shadow);
 
   inst_.cryptomatte.sync_object(ob, res_handle);
   GPUMaterial *gpu_material =
       inst_.materials.material_array_get(ob, has_motion).gpu_materials[mat_nr - 1];
   ::Material *mat = GPU_material_get_material(gpu_material);
   inst_.cryptomatte.sync_material(mat);
-
-  /* TODO(fclem) Hair velocity. */
-  // shading_passes.velocity.gpencil_add(ob, ob_handle);
 
   bool is_caster = material.shadow.sub_pass != nullptr;
   bool is_alpha_blend = material.is_alpha_blend_transparent;

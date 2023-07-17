@@ -14,8 +14,10 @@
 
 #include "GHOST_Event.hh"
 
-#include "GHOST_ContextEGL.hh"
 #include "GHOST_ContextNone.hh"
+#ifdef WITH_OPENGL_BACKEND
+#  include "GHOST_ContextEGL.hh"
+#endif
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
 #endif
@@ -1139,7 +1141,7 @@ static void frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 #  endif
 }
 
-/* NOTE: cannot be `const` because of the LIBDECOR API.  */
+/* NOTE: cannot be `const` because of the LIBDECOR API. */
 static libdecor_frame_interface libdecor_frame_iface = {
     frame_handle_configure,
     frame_handle_close,
@@ -1749,62 +1751,58 @@ void GHOST_WindowWayland::setOpaque() const
 
 GHOST_Context *GHOST_WindowWayland::newDrawingContext(GHOST_TDrawingContextType type)
 {
-  GHOST_Context *context;
   switch (type) {
-    case GHOST_kDrawingContextTypeNone:
-      context = new GHOST_ContextNone(m_wantStereoVisual);
-      break;
+    case GHOST_kDrawingContextTypeNone: {
+      GHOST_Context *context = new GHOST_ContextNone(m_wantStereoVisual);
+      return context;
+    }
 
 #ifdef WITH_VULKAN_BACKEND
-    case GHOST_kDrawingContextTypeVulkan:
-      context = new GHOST_ContextVK(m_wantStereoVisual,
-                                    GHOST_kVulkanPlatformWayland,
-                                    0,
-                                    NULL,
-                                    window_->wl_surface,
-                                    system_->wl_display(),
-                                    1,
-                                    2,
-                                    true);
-      break;
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual,
+                                                   GHOST_kVulkanPlatformWayland,
+                                                   0,
+                                                   NULL,
+                                                   window_->wl_surface,
+                                                   system_->wl_display(),
+                                                   1,
+                                                   2,
+                                                   true);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
+      delete context;
+      return nullptr;
+    }
 #endif
 
-    case GHOST_kDrawingContextTypeOpenGL:
-      for (int minor = 6; minor >= 0; --minor) {
-        context = new GHOST_ContextEGL(system_,
-                                       m_wantStereoVisual,
-                                       EGLNativeWindowType(window_->egl_window),
-                                       EGLNativeDisplayType(system_->wl_display()),
-                                       EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                       4,
-                                       minor,
-                                       GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                       GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                       EGL_OPENGL_API);
+#ifdef WITH_OPENGL_BACKEND
+    case GHOST_kDrawingContextTypeOpenGL: {
+      for (int minor = 6; minor >= 3; --minor) {
+        GHOST_Context *context = new GHOST_ContextEGL(system_,
+                                                      m_wantStereoVisual,
+                                                      EGLNativeWindowType(window_->egl_window),
+                                                      EGLNativeDisplayType(system_->wl_display()),
+                                                      EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                                      4,
+                                                      minor,
+                                                      GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                                      GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                                      EGL_OPENGL_API);
 
         if (context->initializeDrawingContext()) {
           return context;
         }
         delete context;
       }
-      context = new GHOST_ContextEGL(system_,
-                                     m_wantStereoVisual,
-                                     EGLNativeWindowType(window_->egl_window),
-                                     EGLNativeDisplayType(system_->wl_display()),
-                                     EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                     3,
-                                     3,
-                                     GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                     GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                     EGL_OPENGL_API);
-  }
+      return nullptr;
+    }
+#endif
 
-  if (context->initializeDrawingContext()) {
-    return context;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
   }
-
-  delete context;
-  return nullptr;
 }
 
 /** \} */

@@ -625,7 +625,7 @@ static PyGetSetDef Buffer_getseters[] = {
 };
 
 PyTypeObject BGL_bufferType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(NULL, 0)
     /*tp_name*/ "bgl.Buffer",
     /*tp_basicsize*/ sizeof(Buffer),
     /*tp_itemsize*/ 0,
@@ -1443,7 +1443,7 @@ BGL_Wrap(TexImage3DMultisample,
  * \{ */
 
 static PyModuleDef BGL_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "bgl",
     /*m_doc*/ NULL,
     /*m_size*/ 0,

@@ -52,7 +52,7 @@ static int rna_Point_index_get_const(const PointerRNA *ptr)
   const PointCloud *pointcloud = rna_pointcloud(ptr);
   const float(*co)[3] = static_cast<const float(*)[3]>(ptr->data);
   const float(*positions)[3] = get_pointcloud_positions_const(pointcloud);
-  return (int)(co - positions);
+  return int(co - positions);
 }
 
 static int rna_Point_index_get(PointerRNA *ptr)

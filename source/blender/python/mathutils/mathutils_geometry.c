@@ -1828,7 +1828,7 @@ static PyMethodDef M_Geometry_methods[] = {
 };
 
 static PyModuleDef M_Geometry_module_def = {
-    PyModuleDef_HEAD_INIT,
+    /*m_base*/ PyModuleDef_HEAD_INIT,
     /*m_name*/ "mathutils.geometry",
     /*m_doc*/ M_Geometry_doc,
     /*m_size*/ 0,

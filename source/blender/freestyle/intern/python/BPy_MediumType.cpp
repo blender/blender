@@ -31,7 +31,7 @@ PyDoc_STRVAR(MediumType_doc,
              "* Stroke.OPAQUE_MEDIUM: To simulate an opaque medium (oil, spray...).");
 
 PyTypeObject MediumType_Type = {
-    PyVarObject_HEAD_INIT(nullptr, 0)
+    /*ob_base*/ PyVarObject_HEAD_INIT(nullptr, 0)
     /*tp_name*/ "MediumType",
     /*tp_basicsize*/ sizeof(PyLongObject),
     /*tp_itemsize*/ 0,

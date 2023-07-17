@@ -147,6 +147,11 @@ class Instance {
   void object_sync(Object *ob);
   void end_sync();
 
+  /**
+   * Return true when probe pipeline is used during this sample.
+   */
+  bool do_probe_sync() const;
+
   /* Render. */
 
   void render_sync();

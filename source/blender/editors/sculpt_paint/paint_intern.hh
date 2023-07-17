@@ -517,3 +517,54 @@ void paint_init_pivot(Object *ob, Scene *scene);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
+
+namespace blender::ed::sculpt_paint::vwpaint {
+struct NormalAnglePrecalc {
+  bool do_mask_normal;
+  /* what angle to mask at */
+  float angle;
+  /* cos(angle), faster to compare */
+  float angle__cos;
+  float angle_inner;
+  float angle_inner__cos;
+  /* difference between angle and angle_inner, for easy access */
+  float angle_range;
+};
+
+void view_angle_limits_init(NormalAnglePrecalc *a, float angle, bool do_mask_normal);
+float view_angle_limits_apply_falloff(const NormalAnglePrecalc *a, float angle_cos, float *mask_p);
+bool test_brush_angle_falloff(const Brush &brush,
+                              const NormalAnglePrecalc &normal_angle_precalc,
+                              const float angle_cos,
+                              float *brush_strength);
+bool use_normal(const VPaint *vp);
+
+bool brush_use_accumulate_ex(const Brush *brush, const int ob_mode);
+bool brush_use_accumulate(const VPaint *vp);
+
+void get_brush_alpha_data(const Scene *scene,
+                          const SculptSession *ss,
+                          const Brush *brush,
+                          float *r_brush_size_pressure,
+                          float *r_brush_alpha_value,
+                          float *r_brush_alpha_pressure);
+
+void init_stroke(Depsgraph *depsgraph, Object *ob);
+void init_session_data(const ToolSettings *ts, Object *ob);
+void init_session(Depsgraph *depsgraph, Scene *scene, Object *ob, eObjectMode object_mode);
+
+Vector<PBVHNode *> pbvh_gather_generic(Object *ob, VPaint *wp, Sculpt *sd, Brush *brush);
+
+void mode_enter_generic(
+    Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *ob, const eObjectMode mode_flag);
+void mode_exit_generic(Object *ob, const eObjectMode mode_flag);
+bool mode_toggle_poll_test(bContext *C);
+
+void smooth_brush_toggle_off(const bContext *C, Paint *paint, StrokeCache *cache);
+void smooth_brush_toggle_on(const bContext *C, Paint *paint, StrokeCache *cache);
+
+void update_cache_variants(bContext *C, VPaint *vp, Object *ob, PointerRNA *ptr);
+void update_cache_invariants(
+    bContext *C, VPaint *vp, SculptSession *ss, wmOperator *op, const float mval[2]);
+void last_stroke_update(Scene *scene, const float location[3]);
+}  // namespace blender::ed::sculpt_paint::vwpaint

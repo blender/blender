@@ -350,7 +350,7 @@ static StructRNA *rna_RenderEngine_register(Main *bmain,
                 "%s '%s' is too long, maximum length is %d",
                 error_prefix,
                 identifier,
-                (int)sizeof(dummy_et.idname));
+                int(sizeof(dummy_et.idname)));
     return nullptr;
   }
 
