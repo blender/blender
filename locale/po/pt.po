@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2017-09-08 21:24-0300\n"
 "Last-Translator: Ivan Paulos Tomé <greylica@gmail.com>\n"
 "Language-Team: Ivan Paulos Tomé, Inês Almeida, João Brandão (ULISBOA), Paulo Martins <ivan.paulos.tome@yandex.com>\n"
@@ -23564,10 +23564,6 @@ msgid "Add Threshold"
 msgstr "Ajuste de adição"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Limite inferior dos pesos, abaixo do qual os vértices serão adicionados ao grupo de vértices."
-
-
 msgid "Default Weight"
 msgstr "Padronização de pesos"
 
@@ -23657,10 +23653,6 @@ msgstr "Nome do grupo de mascaramento de vértices."
 
 msgid "Remove Threshold"
 msgstr "Ajuste de remoção"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Limite máximo de pesos para que os vértices sejam removidos do grupo de vértices."
 
 
 msgid "Group Add"
@@ -34259,6 +34251,11 @@ msgstr "Alterna o pincel para o modo suave através da duração do traço."
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Modo de seleção"
+
+
+msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "Definir ponto de curvas"
 
@@ -36892,11 +36889,6 @@ msgstr "Seleciona os itens de malha em localizações espelhadas."
 
 msgid "Extend the existing selection"
 msgstr "Estende a seleção existente"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Modo de seleção"
 
 
 msgid "Change selection mode"
@@ -46938,10 +46930,6 @@ msgstr "Recarrega o histórico e os favoritos."
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Recarregar o ficheiro inicial"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Abre o ficheiro padrão (não guarda o ficheiro atual)."
 
 
 msgid "Path to an alternative start-up file"
@@ -63945,6 +63933,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Detectada a falta de %s%s%s%s !"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "O modificador usado não suporta localizações deformadas."
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Sem grupo de vértices ativos para pintura, abortando."
+
+
 msgid "Active group is locked, aborting"
 msgstr "Grupo ativo está travado, abortando."
 
@@ -63955,14 +63951,6 @@ msgstr "O grupo de espelhamento está bloqueado, abortando."
 
 msgid "Multipaint group is locked, aborting"
 msgstr "O grupo de múltipla pintura está bloqueado, abortando."
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "O modificador usado não suporta localizações deformadas."
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "Sem grupo de vértices ativos para pintura, abortando."
 
 
 msgid "Warning!"
@@ -65327,14 +65315,6 @@ msgid " or Alt) Even Thickness %s"
 msgstr " ou Alt) Espessura uniforme %s"
 
 
-msgid "Tilt: %s° %s"
-msgstr "Inclinação: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Inclinação: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "Escala X: %s"
 
@@ -66483,16 +66463,16 @@ msgid "Nothing indicated"
 msgstr "Sem indicação de dados."
 
 
-msgid "'%s': not a library"
-msgstr "'%s': não é uma biblioteca"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': não é possível usar o ficheiro atual como biblioteca"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': nada indicado"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': não é possível usar o ficheiro atual como biblioteca"
+msgid "'%s': not a library"
+msgstr "'%s': não é uma biblioteca"
 
 
 msgid "'%s' is not a valid library filepath"

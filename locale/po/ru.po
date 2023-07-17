@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2018-01-03 14:47+0000\n"
 "Last-Translator: Lockal <lockalsash@gmail.com>, 2023\n"
 "Language-Team: Russian (https://app.transifex.com/translateblender/teams/82039/ru/)\n"
@@ -2004,10 +2004,6 @@ msgstr "Ключи формы"
 
 msgid "Shape Key data-blocks"
 msgstr "Датаблоки ключей формы"
-
-
-msgid "Simulations"
-msgstr "Симуляции"
 
 
 msgid "Sounds"
@@ -9230,11 +9226,6 @@ msgstr "Сцена"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "Симуляция"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "Звук"
 
@@ -11758,10 +11749,6 @@ msgstr "Показать/скрыть датаблоки облаков точе
 
 msgid "Show Scene data-blocks"
 msgstr "Показать датаблоки сцен"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "Показать датаблоки симуляций"
 
 
 msgid "Show Sound data-blocks"
@@ -33122,10 +33109,6 @@ msgid "Add Threshold"
 msgstr "Порог добавления"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Нижняя граница веса вершин, добавляемых в группу вершин"
-
-
 msgid "Default Weight"
 msgstr "Вес по умолчанию"
 
@@ -33219,10 +33202,6 @@ msgstr "Нормализовать веса"
 
 msgid "Remove Threshold"
 msgstr "Порог удаления"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Верхняя граница веса вершин, удаляемых из группы вершин"
 
 
 msgid "Group Add"
@@ -46191,6 +46170,23 @@ msgstr "Переключить кисть в режим сглаживания �
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Режим выделения"
+
+
+msgid "Select only points"
+msgstr "Выделять только точки"
+
+
+msgid "Select all stroke points"
+msgstr "Выделять все точки штрихов"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "Выделить все точки штриха между другими штрихами"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Добавить рендер слот"
 
@@ -49722,11 +49718,6 @@ msgstr "Выделить элементы меша, соответствующи
 
 msgid "Extend the existing selection"
 msgstr "Расширить существующее выделение"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Режим выделения"
 
 
 msgid "Change selection mode"
@@ -62452,10 +62443,6 @@ msgstr "Перезагрузить историю и закладки"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Перезагрузить начальный файл"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Открыть файл по умолчанию (без сохранения текущего файла)"
 
 
 msgid "Path to an alternative start-up file"
@@ -77026,18 +77013,6 @@ msgid "Settings for stroke sculpting tools and brushes"
 msgstr "Свойства инструмента скульптинга штрихов Grease Pencil"
 
 
-msgid "Select only points"
-msgstr "Выделять только точки"
-
-
-msgid "Select all stroke points"
-msgstr "Выделять все точки штрихов"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "Выделить все точки штриха между другими штрихами"
-
-
 msgid "Stroke Placement (3D View)"
 msgstr "Расположение штрихов (3D-вид)"
 
@@ -87201,11 +87176,6 @@ msgid "New"
 msgstr "Создать"
 
 
-msgctxt "Simulation"
-msgid "New"
-msgstr "Создать"
-
-
 msgid "%d items"
 msgstr "%d элем."
 
@@ -88717,6 +88687,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Недостающие элементы: %s%s%s%s!"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "Использованный модификатор не поддерживает деформированные положения"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Нет активной группы вершин для рисования, операция прервана"
+
+
 msgid "Active group is locked, aborting"
 msgstr "Активная группа заблокирована, операция прервана"
 
@@ -88727,14 +88705,6 @@ msgstr "Симметричная группа заблокирована, отм
 
 msgid "Multipaint group is locked, aborting"
 msgstr "Группа мультирисования заблокирована, операция прервана"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "Использованный модификатор не поддерживает деформированные положения"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "Нет активной группы вершин для рисования, операция прервана"
 
 
 msgid "Click on the mesh to set the detail"
@@ -90535,14 +90505,6 @@ msgid " or Alt) Even Thickness %s"
 msgstr " или Alt) равномерная толщина %s"
 
 
-msgid "Tilt: %s° %s"
-msgstr "Наклон: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Наклон: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "Масштаб по X: %s"
 
@@ -92176,16 +92138,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "Невозможно связать датаблок «%s» типа «%s"
 
 
-msgid "'%s': not a library"
-msgstr "«%s»: не библиотека"
+msgid "'%s': cannot use current file as library"
+msgstr "«%s»: невозможно использовать файл как библиотеку"
 
 
 msgid "'%s': nothing indicated"
 msgstr "«%s»: ничего не указано"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "«%s»: невозможно использовать файл как библиотеку"
+msgid "'%s': not a library"
+msgstr "«%s»: не библиотека"
 
 
 msgid "'%s' is not a valid library filepath"

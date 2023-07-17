@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2022-01-21 16:08+0100\n"
 "Last-Translator: MT\n"
 "Language-Team: blend-it <https://developer.blender.org/T42765>\n"
@@ -6412,11 +6412,6 @@ msgstr "Particella"
 msgctxt "ID"
 msgid "Scene"
 msgstr "Scena"
-
-
-msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulazione"
 
 
 msgctxt "ID"
@@ -21141,10 +21136,6 @@ msgid "Add Threshold"
 msgstr "Aggiunge Soglia"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Limite inferiore per il peso del vertice che deve essere aggiunto al gruppo"
-
-
 msgid "Default Weight"
 msgstr "Peso Predefinito"
 
@@ -21234,10 +21225,6 @@ msgstr "Nome del gruppo di vertici di mascheramento"
 
 msgid "Remove Threshold"
 msgstr "Rimuovi Soglia"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Limite superiore per il peso del vertice che deve essere rimosso dal gruppo"
 
 
 msgid "Group Add"
@@ -29844,6 +29831,11 @@ msgstr "Dispone il pennello nel modo morbido per la durata del tratto"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Modo Selezione"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Aggiungi Slot Render"
 
@@ -32227,11 +32219,6 @@ msgstr "Seleziona gli elementi della mesh nelle posizioni specchiate"
 
 msgid "Extend the existing selection"
 msgstr "Espande la selezione esistente"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Modo Selezione"
 
 
 msgid "Change selection mode"
@@ -41303,10 +41290,6 @@ msgstr "Ricarica la cronologia ed i segnalibri"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Ricarica il File di Avvio"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Apre il file predefinito (non salva il file corrente)"
 
 
 msgid "Path to an alternative start-up file"
@@ -56216,11 +56199,6 @@ msgid "New"
 msgstr "Nuovo"
 
 
-msgctxt "Simulation"
-msgid "New"
-msgstr "Nuova"
-
-
 msgid "%d items"
 msgstr "%d elementi"
 
@@ -58324,14 +58302,6 @@ msgid " or Alt) Even Thickness %s"
 msgstr " o Alt) Spessore Uniforme %s"
 
 
-msgid "Tilt: %s° %s"
-msgstr "Inclinazione: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Inclinazione: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "ScalaX: %s"
 
@@ -59420,16 +59390,16 @@ msgid "Nothing indicated"
 msgstr "Nessuna selezione"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': non è una libreria"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': impossibile usare il file corrente come libreria"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': nulla indicato"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': impossibile usare il file corrente come libreria"
+msgid "'%s': not a library"
+msgstr "'%s': non è una libreria"
 
 
 msgid "'%s' is not a valid library filepath"

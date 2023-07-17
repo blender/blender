@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2022-08-19 12:33+0700\n"
 "Last-Translator: HỒ NHỰT CHÂU <su_huynh@yahoo.com>\n"
 "Language-Team: Tỉnh An Giang, Đình Bình Phú\n"
@@ -2060,10 +2060,6 @@ msgstr "Hình Dạng Mẫu"
 
 msgid "Shape Key data-blocks"
 msgstr "Các cục dữ liệu Hình Dạng Mẫu"
-
-
-msgid "Simulations"
-msgstr "Mô Phỏng"
 
 
 msgid "Sounds"
@@ -9530,11 +9526,6 @@ msgstr "Cảnh"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "Mô Phỏng"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "Âm Thanh"
 
@@ -12110,10 +12101,6 @@ msgstr "Hiện/ẳn các cục dữ liệu Mây Điểm"
 
 msgid "Show Scene data-blocks"
 msgstr "Hiện các cục dữ liệu Cảnh"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "Hiện các cục dữ liệu Mô Phỏng"
 
 
 msgid "Show Sound data-blocks"
@@ -37362,10 +37349,6 @@ msgid "Add Threshold"
 msgstr "Ngưỡng Nhập"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Ngưỡng cực tiểu cho quyền lượng của nhóm được nhập vào nhóm đỉnh"
-
-
 msgid "Default Weight"
 msgstr "Quyền Lượng Mặc Định"
 
@@ -37487,10 +37470,6 @@ msgstr "Đơn vị hóa quyền lượng kết qủa (nếu không, kẹp lại 
 
 msgid "Remove Threshold"
 msgstr "Ngưỡng Xóa"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Ngưỡng cực đại cho quyền lượng của nhóm được xóa khỏi nhóm đỉnh"
 
 
 msgid "Group Add"
@@ -56040,6 +56019,23 @@ msgstr "Trao đổi sang chế độ mịn cho giai đoạn nét"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Chế Độ Chọn"
+
+
+msgid "Select only points"
+msgstr "Chỉ chọn điểm"
+
+
+msgid "Select all stroke points"
+msgstr "Chọn hết điểm nét"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "Chọn hết điểm nét giữa các nét khác"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Thêm Khe Kết Xuất"
 
@@ -60063,11 +60059,6 @@ msgstr "Chọn các đỉnh, cạnh, hay mặt tại vị trí gương"
 
 msgid "Extend the existing selection"
 msgstr "Mở rộng các đỉnh, cạnh, hay mặt được chọn"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Chế Độ Chọn"
 
 
 msgid "Change selection mode"
@@ -76661,10 +76652,6 @@ msgstr "Nhập lại lịch sử và dấu sách"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Nhập Lại Tập Tin Khởi Động"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Mở tập tin mặc định (sẽ không lưu tập tin hiện tại)"
 
 
 msgid "Path to an alternative start-up file"
@@ -94965,18 +94952,6 @@ msgid "Settings for stroke sculpting tools and brushes"
 msgstr "Cài đặt cho dụng cụ nét khắc và nét bút"
 
 
-msgid "Select only points"
-msgstr "Chỉ chọn điểm"
-
-
-msgid "Select all stroke points"
-msgstr "Chọn hết điểm nét"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "Chọn hết điểm nét giữa các nét khác"
-
-
 msgid "Stroke Placement (3D View)"
 msgstr "Nơi Vẽ Nét (Màn chiếu 3D)"
 
@@ -108316,164 +108291,12 @@ msgid "Original Mode"
 msgstr "Chế Độ Ban Đầu"
 
 
-msgid "Kilometers"
-msgstr "Cây Số"
-
-
-msgid "100 Meters"
-msgstr "100 Mét"
-
-
-msgid "10 Meters"
-msgstr "10 Mét"
-
-
-msgid "Meters"
-msgstr "Mét"
-
-
-msgid "10 Centimeters"
-msgstr "10 Xăng Ti Mét"
-
-
-msgid "Centimeters"
-msgstr "Xăng Ti Mét"
-
-
 msgid "Micrometers"
 msgstr "Micrô Mét"
 
 
-msgid "Miles"
-msgstr "Dậm Anh"
-
-
-msgid "Furlongs"
-msgstr "Furlong"
-
-
-msgid "Chains"
-msgstr "Chuỗi"
-
-
-msgid "Yards"
-msgstr "Yard"
-
-
 msgid "Thou"
 msgstr "Thou"
-
-
-msgid "Square Kilometers"
-msgstr "Cây Số Vuông"
-
-
-msgid "Square Hectometers"
-msgstr "Hécta"
-
-
-msgid "Square Dekameters"
-msgstr "Đe Ca Mét Vuông"
-
-
-msgid "Square Meters"
-msgstr "Mét Vuông"
-
-
-msgid "Square Decimeters"
-msgstr "Đề Xi Mét Vuông"
-
-
-msgid "Square Centimeters"
-msgstr "Xăng Ti Mét Vuông"
-
-
-msgid "Square Micrometers"
-msgstr "Micrô Mét Vuông"
-
-
-msgid "Square Miles"
-msgstr "Dậm Anh Vuông"
-
-
-msgid "Square Furlongs"
-msgstr "Furlong Vuông"
-
-
-msgid "Square Chains"
-msgstr "Chuỗi Vuông"
-
-
-msgid "Square Yards"
-msgstr "Yard Vuông"
-
-
-msgid "Square Feet"
-msgstr "Foot VuôngInch Vuông"
-
-
-msgid "Square Inches"
-msgstr "Inch Vuông"
-
-
-msgid "Square Thou"
-msgstr "Thou Vuông"
-
-
-msgid "Cubic Kilometers"
-msgstr "Cây Số Khối"
-
-
-msgid "Cubic Hectometers"
-msgstr "Héctô Mét Khối"
-
-
-msgid "Cubic Dekameters"
-msgstr "Đê Ca Mét Mét Khối"
-
-
-msgid "Cubic Meters"
-msgstr "Mét Khối"
-
-
-msgid "Cubic Decimeters"
-msgstr "Lít"
-
-
-msgid "Cubic Centimeters"
-msgstr "Mili Lít"
-
-
-msgid "Cubic Micrometers"
-msgstr "Micrô Mét Khối"
-
-
-msgid "Cubic Miles"
-msgstr "Dậm Anh Khối"
-
-
-msgid "Cubic Furlongs"
-msgstr "Furlong Khối"
-
-
-msgid "Cubic Chains"
-msgstr "Chuỗi Khối"
-
-
-msgid "Cubic Yards"
-msgstr "Yard Khối"
-
-
-msgid "Cubic Feet"
-msgstr "Foot Khối"
-
-
-msgid "Cubic Inches"
-msgstr "Inch Khối"
-
-
-msgid "Cubic Thou"
-msgstr "Thou Khối"
 
 
 msgid "Tonnes"
@@ -108484,70 +108307,6 @@ msgid "100 Kilograms"
 msgstr "Tạ"
 
 
-msgid "Kilograms"
-msgstr "Kilô Gam"
-
-
-msgid "Hectograms"
-msgstr "Héctô Gam"
-
-
-msgid "10 Grams"
-msgstr "10 Gam"
-
-
-msgid "Grams"
-msgstr "Gam"
-
-
-msgid "Milligrams"
-msgstr "Mili Gam"
-
-
-msgid "Centum weights"
-msgstr "Khối lượng trăm"
-
-
-msgid "Stones"
-msgstr "Đá"
-
-
-msgid "Pounds"
-msgstr "Pound"
-
-
-msgid "Ounces"
-msgstr "Ounce"
-
-
-msgid "Meters per second"
-msgstr "Mét/giây"
-
-
-msgid "Kilometers per hour"
-msgstr "Cây số/giờ"
-
-
-msgid "Feet per second"
-msgstr "Foot/giây"
-
-
-msgid "Miles per hour"
-msgstr "Dậm anh/giờ"
-
-
-msgid "Meters per second squared"
-msgstr "Mét/giây bình"
-
-
-msgid "Feet per second squared"
-msgstr "Foot/giây bình"
-
-
-msgid "Days"
-msgstr "Ngày"
-
-
 msgid "Hours"
 msgstr "Tiếng Đồng Hồ"
 
@@ -108556,52 +108315,8 @@ msgid "Minutes"
 msgstr "Phút"
 
 
-msgid "Milliseconds"
-msgstr "Mili Giây"
-
-
 msgid "Microseconds"
 msgstr "Micrô Giây"
-
-
-msgid "Gigawatts"
-msgstr "Giga Oát"
-
-
-msgid "Megawatts"
-msgstr "Mega Oát"
-
-
-msgid "Kilowatts"
-msgstr "Kilô Oát"
-
-
-msgid "Watts"
-msgstr "Oát"
-
-
-msgid "Milliwatts"
-msgstr "Mili Oát"
-
-
-msgid "Microwatts"
-msgstr "Micrô Oát"
-
-
-msgid "Nanowatts"
-msgstr "Nanô Oát"
-
-
-msgid "Kelvin"
-msgstr "Kelvin"
-
-
-msgid "Celsius"
-msgstr "Celsius"
-
-
-msgid "Fahrenheit"
-msgstr "Fahrenheit"
 
 
 msgid "Could not load volume for writing"
@@ -110797,10 +110512,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "Trình duyệt Dữ Liệu Thể Tích cho được liên kết"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "Trình duyệt Mô Phỏng cho liên kết"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "Trình duyệt Bút Sáp cho liên kết"
 
@@ -110930,11 +110641,6 @@ msgstr "Mới"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "Mới"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "Mới"
 
@@ -111920,10 +111626,6 @@ msgstr "Chưa chọn sưu tập nào"
 
 msgid "Unexpected error, collection not found"
 msgstr "Lỗi lầm bất ngờ. không tìm được sưu tập"
-
-
-msgid "Cannot add objects to a library override collection"
-msgstr "Không thể thêm vật thể vào một sưu tập đồ vượt quyền cho thư viện"
 
 
 msgid "No objects selected"
@@ -113035,6 +112737,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Phát hiện thiếu %s%s%s%s!"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "Bộ điều chỉnh đang dùng không hỗ trợ vị trí bị méo hóa"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Không có nhóm đỉnh hoạt động để sơn, đang hủy"
+
+
 msgid "Active group is locked, aborting"
 msgstr "Nhóm hoạt động bị khóa, đang hủy"
 
@@ -113045,14 +112755,6 @@ msgstr "Nhóm gương bị khóa, đang hủy"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "Nhóm đa sơn bị khóa, đang hủy"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "Bộ điều chỉnh đang dùng không hỗ trợ vị trí bị méo hóa"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "Không có nhóm đỉnh hoạt động để sơn, đang hủy"
 
 
 msgid "Not supported in dynamic topology mode"
@@ -115653,14 +115355,6 @@ msgstr "Thu Nhỏ/Phình Ra: "
 
 msgid " or Alt) Even Thickness %s"
 msgstr " hay Alt) Bề Dày Đều %s"
-
-
-msgid "Tilt: %s° %s"
-msgstr "Nghiêng: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Nghiêng: %.2f° %s"
 
 
 msgid "ScaleX: %s"
@@ -119480,16 +119174,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "Không thể liên kết cục dữ liệu '%s' loại '%s'"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': không phải là thư viện"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': không thể dùng tập tin hiện tại để làm thư viện"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': không chỉ định gì cả"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': không thể dùng tập tin hiện tại để làm thư viện"
+msgid "'%s': not a library"
+msgstr "'%s': không phải là thư viện"
 
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"

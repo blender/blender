@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
-"PO-Revision-Date: 2023-07-07 08:28+0200\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
+"PO-Revision-Date: 2023-07-12 07:54+0200\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Jozef Matta\n"
 "Language: sk_SK\n"
@@ -2219,14 +2219,6 @@ msgid "Shape Key data-blocks"
 msgstr "Bloky údajov kľúčového tvaru"
 
 
-msgid "Simulations"
-msgstr "Simulácia"
-
-
-msgid "Simulation data-blocks"
-msgstr "Bloky údajov simulácie"
-
-
 msgid "Sounds"
 msgstr "Zvuky"
 
@@ -2537,14 +2529,6 @@ msgstr "Hlavné obrazovky"
 
 msgid "Collection of screens"
 msgstr "Kolekcia obrazoviek"
-
-
-msgid "Main Simulations"
-msgstr "Hlavná simulácia"
-
-
-msgid "Collection of simulations"
-msgstr "Kolekcia simulácií"
 
 
 msgid "Main Sounds"
@@ -10003,11 +9987,6 @@ msgstr "Scéna"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulácia"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "Zvuk"
 
@@ -12694,10 +12673,6 @@ msgid "Show Scene data-blocks"
 msgstr "Zobrazí blok údajov scény"
 
 
-msgid "Show Simulation data-blocks"
-msgstr "Zobrazí blok údajov simulácie"
-
-
 msgid "Show Sound data-blocks"
 msgstr "Zobrazí blok údajov zvuku"
 
@@ -12861,6 +12836,10 @@ msgstr "Zobrazí objekty a kolekcie"
 
 msgid "Show scenes"
 msgstr "Zobrazí scény"
+
+
+msgid "Show materials, node-trees, textures and Freestyle's line-styles"
+msgstr "Zobrazí materiály, stromy ulov, textúry a typy čiar Voľný štýl"
 
 
 msgid "Directory"
@@ -22458,6 +22437,10 @@ msgid "Whether the selected text is italics"
 msgstr "Určuje, či je vybraný text kurzíva"
 
 
+msgid "Selected Small Caps"
+msgstr "Vybrané malé písmo"
+
+
 msgid "Whether the selected text is small caps"
 msgstr "Určuje, či je vybraný text malé písmo"
 
@@ -24537,6 +24520,10 @@ msgid "Type of parallax volume"
 msgstr "Typ objemu paralaxy"
 
 
+msgid "Resolution when baked to a texture"
+msgstr "Rozlíšenie pri zapečení na textúru"
+
+
 msgid "Show the clipping distances in the 3D view"
 msgstr "Zobrazenie orezania vzdialeností v 3D zobrazení"
 
@@ -25515,7 +25502,7 @@ msgstr "Maximálna veľkosť políčka (menšie hodnoty dávajú lepšiu viacvl�
 
 
 msgid "32×32"
-msgstr "32×32\v\v"
+msgstr "32×32"
 
 
 msgid "Chunksize of 32×32"
@@ -26552,10 +26539,6 @@ msgstr "Zobrazí kľúčový tvar v režime editácie (len pre povrchové siete)
 
 msgid "Use Simulation Cache"
 msgstr "Použiť simulačný zásobník"
-
-
-msgid "Cache all frames during simulation nodes playback"
-msgstr "Zásobník všetkých snímok počas prehrávania uzlov simulácie"
 
 
 msgid "Vertex Groups"
@@ -28292,14 +28275,6 @@ msgstr "Editory tabuliek"
 
 msgid "Top-Left 3D Editor"
 msgstr "3D editor hore-vľavo"
-
-
-msgid "Simulation data-block"
-msgstr "Blok údajov simulácie"
-
-
-msgid "Node tree defining the simulation"
-msgstr "Strom uzlov definujúcich simuláciu"
 
 
 msgid "Sound data-block referencing an external or packed sound file"
@@ -30461,6 +30436,10 @@ msgstr "Formát viacnásobného zobrazenia média"
 
 msgid "Multi-View"
 msgstr "Viacnásobné zobrazenie"
+
+
+msgid "Single file with all the views"
+msgstr "Jeden súbor so všetkými pohľadmi"
 
 
 msgid "Tile Number"
@@ -39435,10 +39414,6 @@ msgid "Add Threshold"
 msgstr "Pridať prah"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Dolná hranica pre váhu vrcholov, od ktorej sú pridávané do skupiny vrcholov"
-
-
 msgid "Default Weight"
 msgstr "Pôvodná váha"
 
@@ -39560,10 +39535,6 @@ msgstr "Normalizujte výsledné váhy (inak sú upnuté iba v rozmedzí 0,0 až 
 
 msgid "Remove Threshold"
 msgstr "Odstrániť prah"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Horná hranica pre váhu vrcholu, od ktorej sú odstránené zo skupiny vrcholov"
 
 
 msgid "Group Add"
@@ -45679,6 +45650,18 @@ msgid "Delete an attribute with a specified name from a geometry. Typically used
 msgstr "Odstráni atribút so zadaným názvom z geometrie. Zvyčajne sa používa na optimalizáciu výkonu"
 
 
+msgid "Paired Output"
+msgstr "Spárovaný výstup"
+
+
+msgid "Active Item Index"
+msgstr "Index aktívnej položky"
+
+
+msgid "Index of the active item"
+msgstr "Index aktívnej položky"
+
+
 msgid "Replace Material"
 msgstr "Nahradiť materiál"
 
@@ -46023,24 +46006,12 @@ msgid "Simulation Input"
 msgstr "Vstup simulácie"
 
 
-msgid "Paired Output"
-msgstr "Spárovaný výstup"
-
-
 msgid "Simulation output node that this input node is paired with"
 msgstr "Uzol výstupu simulácie, s ktorým je tento vstupný uzol spárovaný"
 
 
 msgid "Simulation Output"
 msgstr "Výstup simulácie"
-
-
-msgid "Active Item Index"
-msgstr "Index aktívnej položky"
-
-
-msgid "Index of the active item"
-msgstr "Index aktívnej položky"
 
 
 msgid "Spline Length"
@@ -55163,6 +55134,10 @@ msgid "Force keeping channels for bones"
 msgstr "Kanály na udržiavanie pevnosti kostí"
 
 
+msgid "If all keyframes are identical in a rig, force keeping the minimal animation. When off, all possible channels for the bones will be exported, even if empty (minimal animation, 2 keyframes)"
+msgstr "Ak sú všetky kľúčové snímky vo výbave identické, vynútite si zachovanie minimálnej animácie. Ak je vypnuté, budú exportované všetky možné kanály pre kosti, aj keď sú prázdne (minimálna animácia, 2 kľúčové snímky)"
+
+
 msgid "Force keeping channel for objects"
 msgstr "Kanál vynúteného zachovania pre objekty"
 
@@ -59744,6 +59719,23 @@ msgstr "Vyberie náhodné body z aktuálneho výberu ťahov"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Režim výberu"
+
+
+msgid "Select only points"
+msgstr "Vybrať iba body"
+
+
+msgid "Select all stroke points"
+msgstr "Vyberie všetky body ťahu"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "Vyberie všetky body ťahu medzi inými ťahmi"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Pridať zásuvku prekreslenia"
 
@@ -63909,11 +63901,6 @@ msgid "Extend the existing selection"
 msgstr "Rozšíriť existujúci výber"
 
 
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Režim výberu"
-
-
 msgid "Change selection mode"
 msgstr "Zmena režimu výberu"
 
@@ -65116,6 +65103,10 @@ msgid "Add an object info node to the current node editor"
 msgstr "Pridá informačný uzol objektu do aktuálneho editora uzlov"
 
 
+msgid "Offset of nodes from the cursor when added"
+msgstr "Posuv uzlov od kurzora pri pridávaní"
+
+
 msgctxt "Operator"
 msgid "Add Reroute"
 msgstr "Pridať presmerovanie"
@@ -65145,10 +65136,6 @@ msgstr "Pridať oblasť simulácie"
 
 msgid "Add simulation zone input and output nodes to the active tree"
 msgstr "Pridá vstupy a výstupy zóny simulácie do aktívneho stromu"
-
-
-msgid "Offset of nodes from the cursor when added"
-msgstr "Posuv uzlov od kurzora pri pridávaní"
 
 
 msgctxt "Operator"
@@ -78013,6 +78000,10 @@ msgid "Correct Aspect"
 msgstr "Správny pomer"
 
 
+msgid "Take image aspect ratio into account"
+msgstr "Zohľadní pomer strán obrazu"
+
+
 msgid "Method to calculate rotation angle"
 msgstr "Metóda výpočtu uhla rotácie"
 
@@ -81939,10 +81930,6 @@ msgid "Reload Start-Up File"
 msgstr "Znova načítať spúšťací súbor"
 
 
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Otvorí predvolený súbor (neuloží aktuálny súbor)"
-
-
 msgid "Path to an alternative start-up file"
 msgstr "Cesta k alternatívnemu spúšťaciemu súboru"
 
@@ -82487,10 +82474,6 @@ msgstr "Pridá všetky importované objekty do novej kolekcie"
 
 msgid "Import All Materials"
 msgstr "Importovať všetky materiály"
-
-
-msgid "Also import materials that are not used by any geometry.  Note that when this option is false, materials referenced by geometry will still be imported"
-msgstr "Importujte aj materiály, ktoré nie sú použité žiadnou geometriou. Upozorňujeme, že ak je táto možnosť NEPRAVDA, materiály odkazované geometriou, sa budú stále importovať"
 
 
 msgid "Import guide geometry"
@@ -83906,6 +83889,11 @@ msgstr "Vytvoriť aktívum pózy"
 
 msgid "Filters"
 msgstr "Filtre"
+
+
+msgctxt "ID"
+msgid "Probe"
+msgstr "Snímač"
 
 
 msgid "Bake Animation"
@@ -92768,6 +92756,10 @@ msgid "Active index in render view array"
 msgstr "Aktívny index v poli zobrazenia prekreslenia"
 
 
+msgid "Color of the corresponding socket type in the node editor"
+msgstr "Farba príslušného typu zásuvky v editore uzlov"
+
+
 msgid "Retiming Handle"
 msgstr "Manipulátor opätovného časovania"
 
@@ -96246,10 +96238,6 @@ msgstr "Položka simulácie"
 
 msgid "Attribute domain where the attribute is stored in the simulation state"
 msgstr "Doména atribútu, v ktorej je atribút uložený v stave simulácie"
-
-
-msgid "Color of the corresponding socket type in the node editor"
-msgstr "Farba príslušného typu zásuvky v editore uzlov"
 
 
 msgid "Soft body simulation settings for an object"
@@ -101719,18 +101707,6 @@ msgstr "Tvarovanie pastelkou"
 
 msgid "Settings for stroke sculpting tools and brushes"
 msgstr "Nastavenia nástrojov a štetcov tvarovania pre ťah"
-
-
-msgid "Select only points"
-msgstr "Vybrať iba body"
-
-
-msgid "Select all stroke points"
-msgstr "Vyberie všetky body ťahu"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "Vyberie všetky body ťahu medzi inými ťahmi"
 
 
 msgid "Stroke Placement (3D View)"
@@ -107289,6 +107265,10 @@ msgid "Requires Intel GPU with Xe-HPG architecture and"
 msgstr "Vyžaduje GPU Intel s architektúrou Xe-HPG a"
 
 
+msgid "  - intel-level-zero-gpu or intel-compute-runtime version"
+msgstr "  - intel-level-zero-gpu alebo intel-compute-runtime verzia"
+
+
 msgid "  - oneAPI Level-Zero Loader"
 msgstr "  - zavádzač oneAPI Level-Zero"
 
@@ -107311,6 +107291,10 @@ msgstr "Vyžaduje sa čip Apple Silicon so systémom macOS %s alebo novším"
 
 msgid "or AMD with macOS %s or newer"
 msgstr "alebo AMD so systémom macOS %s alebo novším"
+
+
+msgid "    %s or newer"
+msgstr "    %s alebo novšie"
 
 
 msgid "Noise Threshold"
@@ -108704,6 +108688,10 @@ msgstr "Nie sú vybrané žiadne sekvencie"
 
 msgid "Current frame not within strip framerange"
 msgstr "Aktuálna snímka sa nenachádza v rozsahu pásov"
+
+
+msgid "Provide text editor argument format in File Paths/Applications Preferences, see input field tool-tip for more information"
+msgstr "Poskytuje formát argumentov textového editora v Nastaveniach ciest k súborom/aplikáciám, viac informácií nájdete v nápovede k vstupnému poľu"
 
 
 msgid "Text Editor Args Format must contain $filepath"
@@ -113801,6 +113789,14 @@ msgid "Requires a restart of Blender to take effect"
 msgstr "Pre nadobudnutie účinku vyžaduje reštart Blenderu"
 
 
+msgid "Microsoft Store installation"
+msgstr "Inštalácia obchodu Microsoft Store"
+
+
+msgid "Use Windows 'Default Apps' to associate with blend files"
+msgstr "Na asociáciu blend súbrov použite \"predvolené aplikácie\" systému Windows"
+
+
 msgid "Open blend files with this Blender version"
 msgstr "Otvorí blend súbory touto verziou Blenderu"
 
@@ -116816,48 +116812,8 @@ msgid "Original Mode"
 msgstr "Pôvodný režim"
 
 
-msgid "Kilometers"
-msgstr "Kilometre"
-
-
-msgid "100 Meters"
-msgstr "100 metrov"
-
-
-msgid "10 Meters"
-msgstr "10 metrov"
-
-
-msgid "Meters"
-msgstr "Metre"
-
-
-msgid "10 Centimeters"
-msgstr "10 centimetrov"
-
-
-msgid "Centimeters"
-msgstr "Centimetre"
-
-
 msgid "Micrometers"
 msgstr "Mikrometre"
-
-
-msgid "Miles"
-msgstr "Míle"
-
-
-msgid "Furlongs"
-msgstr "Brázdy"
-
-
-msgid "Chains"
-msgstr "Reťaze"
-
-
-msgid "Yards"
-msgstr "Yardy"
 
 
 msgid "Feet"
@@ -116872,196 +116828,12 @@ msgid "Thou"
 msgstr "Thou"
 
 
-msgid "Square Kilometers"
-msgstr "Kilometre štvorcové"
-
-
-msgid "Square Hectometers"
-msgstr "Hektometre štvorcové"
-
-
-msgid "Square Dekameters"
-msgstr "Dekametre štvorcové"
-
-
-msgid "Square Meters"
-msgstr "Metre štvorcové"
-
-
-msgid "Square Decimeters"
-msgstr "Decimetre štvorcové"
-
-
-msgid "Square Centimeters"
-msgstr "Centimetre štvorcové"
-
-
-msgid "Square Millimeters"
-msgstr "Milimetre štvorcové"
-
-
-msgid "Square Micrometers"
-msgstr "Mikrometre štvorcové"
-
-
-msgid "Square Miles"
-msgstr "Míle štvorcové"
-
-
-msgid "Square Furlongs"
-msgstr "Brázdy štvorcové"
-
-
-msgid "Square Chains"
-msgstr "Reťaze štvorcové"
-
-
-msgid "Square Yards"
-msgstr "Yardy štvorcové"
-
-
-msgid "Square Feet"
-msgstr "Stopy štvorcové"
-
-
-msgid "Square Inches"
-msgstr "Palce štvorcové"
-
-
-msgid "Square Thou"
-msgstr "Thou štvorcové"
-
-
-msgid "Cubic Kilometers"
-msgstr "Kilometre kubické"
-
-
-msgid "Cubic Hectometers"
-msgstr "Hektometre kubické"
-
-
-msgid "Cubic Dekameters"
-msgstr "Dekametre kubické"
-
-
-msgid "Cubic Meters"
-msgstr "Metre kubické"
-
-
-msgid "Cubic Decimeters"
-msgstr "Decimetre kubické"
-
-
-msgid "Cubic Centimeters"
-msgstr "Centimetre kubické"
-
-
-msgid "Cubic Millimeters"
-msgstr "Milimetre kubické"
-
-
-msgid "Cubic Micrometers"
-msgstr "Mikrometre kubické"
-
-
-msgid "Cubic Miles"
-msgstr "Míle kubické"
-
-
-msgid "Cubic Furlongs"
-msgstr "Brázdy kubické"
-
-
-msgid "Cubic Chains"
-msgstr "Reťaze kubické"
-
-
-msgid "Cubic Yards"
-msgstr "Yardy kubické"
-
-
-msgid "Cubic Feet"
-msgstr "Stopy kubické"
-
-
-msgid "Cubic Inches"
-msgstr "Palce kubické"
-
-
-msgid "Cubic Thou"
-msgstr "Thou kubické"
-
-
 msgid "Tonnes"
 msgstr "Tony"
 
 
 msgid "100 Kilograms"
 msgstr "100 kilogramov"
-
-
-msgid "Kilograms"
-msgstr "Kilogramy"
-
-
-msgid "Hectograms"
-msgstr "Hektogramy"
-
-
-msgid "10 Grams"
-msgstr "10 gramov"
-
-
-msgid "Grams"
-msgstr "Gramy"
-
-
-msgid "Milligrams"
-msgstr "Miligramy"
-
-
-msgid "Centum weights"
-msgstr "Váhové centy"
-
-
-msgid "Stones"
-msgstr "Kamene"
-
-
-msgid "Pounds"
-msgstr "Libry"
-
-
-msgid "Ounces"
-msgstr "Uncie"
-
-
-msgid "Meters per second"
-msgstr "Metre za sekundu"
-
-
-msgid "Kilometers per hour"
-msgstr "Kilometre za hodinu"
-
-
-msgid "Feet per second"
-msgstr "Stopy za sekundu"
-
-
-msgid "Miles per hour"
-msgstr "Míle za hodinu"
-
-
-msgid "Meters per second squared"
-msgstr "Metre za sekundu na druhú"
-
-
-msgid "Feet per second squared"
-msgstr "Stopy za sekundu na druhú"
-
-
-msgid "Days"
-msgstr "Dni"
 
 
 msgid "Hours"
@@ -117072,60 +116844,8 @@ msgid "Minutes"
 msgstr "Minúty"
 
 
-msgid "Milliseconds"
-msgstr "Milisekundy"
-
-
 msgid "Microseconds"
 msgstr "Mikrosekundy"
-
-
-msgid "Arcminutes"
-msgstr "Oblúkové minúty"
-
-
-msgid "Arcseconds"
-msgstr "Oblúkové sekundy"
-
-
-msgid "Gigawatts"
-msgstr "Gigawatty"
-
-
-msgid "Megawatts"
-msgstr "Megawatty"
-
-
-msgid "Kilowatts"
-msgstr "Kilowatty"
-
-
-msgid "Watts"
-msgstr "Watty"
-
-
-msgid "Milliwatts"
-msgstr "Miliwatty"
-
-
-msgid "Microwatts"
-msgstr "Mikrowatty"
-
-
-msgid "Nanowatts"
-msgstr "Nanovatty"
-
-
-msgid "Kelvin"
-msgstr "Stupne Kelvina"
-
-
-msgid "Celsius"
-msgstr "Stupne Celzia"
-
-
-msgid "Fahrenheit"
-msgstr "Stupne Fahrenheita"
 
 
 msgid "Could not load volume for writing"
@@ -118379,10 +118099,6 @@ msgid "Operation is not allowed in edit mode"
 msgstr "Operácia v režime editácie nie je povolená"
 
 
-msgid "Loading Asset Libraries"
-msgstr "Načítavanie knižnice aktív"
-
-
 msgid "Cannot evaluate node group"
 msgstr "Skupina uzlov nemožno vyhodnotiť"
 
@@ -119617,10 +119333,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "Prehľadávať údaje objemov na prepojenie"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "Prehľadávať simuláciu na prepojenie"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "Prehľadávať údaje pastelky na prepojenie"
 
@@ -119764,11 +119476,6 @@ msgstr "Nový"
 msgctxt "Volume"
 msgid "New"
 msgstr "Nový"
-
-
-msgctxt "Simulation"
-msgid "New"
-msgstr "Nová"
 
 
 msgctxt "PaintCurve"
@@ -120811,10 +120518,6 @@ msgid "Unexpected error, collection not found"
 msgstr "Neočakávaná chyba, kolekcia sa nenašla"
 
 
-msgid "Cannot add objects to a library override collection"
-msgstr "Nemožno pridať objekty do kolekcie prepisov knižnice"
-
-
 msgid "No objects selected"
 msgstr "Neboli vybrané žiadne objekty"
 
@@ -121744,7 +121447,7 @@ msgstr "Lokálne 3D zobrazenie "
 
 
 msgid "3D View "
-msgstr "3D zobrazenie"
+msgstr "3D zobrazenie "
 
 
 msgid "Frame:"
@@ -122168,6 +121871,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "Bol zistený chýbajúci %s%s%s%s!"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "Použitý modifikátor nepodporuje deformované polohy"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "Žiadna aktívna skupina vrcholov pre maľovanie, prerušené"
+
+
 msgid "Active group is locked, aborting"
 msgstr "Aktívna skupina je zamknutá, prerušené"
 
@@ -122178,14 +121889,6 @@ msgstr "Zrkadlová skupina je zamknutá, prerušené"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "Skupina viacnásobnej maľby je zamknutá, prerušené"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "Použitý modifikátor nepodporuje deformované polohy"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "Žiadna aktívna skupina vrcholov pre maľovanie, prerušené"
 
 
 msgid "Not supported in dynamic topology mode"
@@ -123385,6 +123088,10 @@ msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "Modifikátor nemožno pridať do (%s : %s) (podrobnosti nájdete na konzole)"
 
 
+msgid "Loading Asset Libraries"
+msgstr "Načítavanie knižnice aktív"
+
+
 msgid "The internal clipboard is empty"
 msgstr "Interná schránka je prázdna"
 
@@ -124155,7 +123862,11 @@ msgstr "Chránené proti prepisu"
 
 
 msgid "Additive override"
-msgstr "Prídavný prepis"
+msgstr "Pripočítateľný prepis"
+
+
+msgid "Subtractive override"
+msgstr "Odpočítateľný prepis"
 
 
 msgid "Multiplicative override"
@@ -125170,14 +124881,6 @@ msgid "'Shrink/Fatten' meshes is only supported in edit mode"
 msgstr "'Zmrštiť/Rozšíriť' povrchové siete je podporované len v režime editácie"
 
 
-msgid "Tilt: %s° %s"
-msgstr "Náklon: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Náklon: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "Mierka X: %s"
 
@@ -125689,6 +125392,86 @@ msgid "No active object or active object isn't a GPencil object"
 msgstr "Žiadny aktívny objekt ani aktívny objekt nie je objektom Pastelky"
 
 
+msgid "Object type mismatch, Alembic object path pointed to Camera when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na Kameru, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to Camera"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazuje na Kameru"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Curves when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na Krivky, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to Curves"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazuje na Krivky"
+
+
+msgid "Error reading curve sample; more detail on the console"
+msgstr "Chyba pri čítaní snímky krivky; podrobnejšie informácie na konzole"
+
+
+msgid "Object type mismatch, Alembic object path pointed to PolyMesh when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazovala na Mnohouholníkovú povrchovú sieť pri importe, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to PolyMesh"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazuje na Mnohouholníkovú povrchovú sieť"
+
+
+msgid "Error reading mesh sample; more detail on the console"
+msgstr "Chyba pri čítaní snímky povrchovej vzorky siete; podrobnejšie informácie na konzole"
+
+
+msgid "Invalid mesh; more detail on the console"
+msgstr "Neplatná povrchová sieť; viac informácií na konzole"
+
+
+msgid "Topology has changed, perhaps by triangulating the mesh. Only vertices will be read!"
+msgstr "Topológia sa zmenila, možno trianguláciou povrchovej siete. Budú sa čítať iba vrcholy!"
+
+
+msgid "Object type mismatch, Alembic object path pointed to SubD when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na Delenie, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to SubD"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazuje na Delenie"
+
+
+msgid "Object type mismatch, Alembic object path pointed to NURBS when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta objektu Alembic pri importe ukazovala na NURBS, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to NURBS"
+msgstr "Nesúlad typu objektu, cesta objektu Alembic pri importe ukazovala na NURBS"
+
+
+msgid "Object type mismatch, Alembic object path pointed to Points when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazovala na Body pri importe, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to Points"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic ukazovala na Body"
+
+
+msgid "Error reading points sample; more detail on the console"
+msgstr "Chyba pri čítaní snímky bodov; podrobnejšie informácie na konzole"
+
+
+msgid "Object type mismatch, Alembic object path pointed to XForm when importing, but not any more"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na XForm, teraz už nie"
+
+
+msgid "Object type mismatch, Alembic object path points to XForm"
+msgstr "Nesúlad typu objektu, cesta k objektu Alembic pri importe ukazovala na XForm"
+
+
+msgid "Invalid object: verify object path"
+msgstr "Neplatný objekt: overiť cestu k objektu"
+
+
 msgid "Could not open Alembic archive for reading, see console for detail"
 msgstr "Nepodarilo sa otvoriť archív Alembic na čítanie! Podrobnosti nájdete v časti konzola"
 
@@ -125763,10 +125546,6 @@ msgstr "%s: Nepodarilo sa uzavrieť cieľové aktívum %s"
 
 msgid "%s: Texture import directory path empty, couldn't import %s"
 msgstr "%s: Cesta priečinka importu textúr je prázdna, nepodarilo sa importovať %s"
-
-
-msgid "%s: import directory is relative but the blend file path is empty.  Please save the blend file before importing the USD or provide an absolute import directory path.  Can't import %s"
-msgstr "%s: Importovať priečinok je relatívne, ale cesta k zmiešanému súboru je prázdna.  Pred importom USD uložte blend súbor alebo zadajte absolútnu cestu k priečinku importu.  Nemožno importovať %s"
 
 
 msgid "%s: Couldn't create texture import directory %s"
@@ -127352,6 +127131,46 @@ msgstr "Premapovanie času"
 
 msgid "Axis Mapping"
 msgstr "Mapovanie osí"
+
+
+msgid "Missing header"
+msgstr "Chýbajúce záhlavie"
+
+
+msgid "Vertex count mismatch"
+msgstr "Nesúlad počtu vrcholov"
+
+
+msgid "Invalid frame total"
+msgstr "Neplatný celkový počet snímok"
+
+
+msgid "Timestamp read failed"
+msgstr "Čítanie časovej pečiatky zlyhalo"
+
+
+msgid "Header seek failed"
+msgstr "Vyhľadávanie hlavičky zlyhalo"
+
+
+msgid "Failed to seek frame"
+msgstr "Nepodarilo sa vyhľadať snímku"
+
+
+msgid "Failed to read frame"
+msgstr "Nepodarilo sa načítať snímku"
+
+
+msgid "Vertex coordinate read failed"
+msgstr "Zlyhalo čítanie súradníc vrcholov"
+
+
+msgid "Unknown error opening file"
+msgstr "Neznáma chyba pri otváraní súboru"
+
+
+msgid "Invalid header"
+msgstr "Neplatné záhlavie"
 
 
 msgid "MeshDeform"
@@ -130149,6 +129968,18 @@ msgid "%s: failed to load '%s'"
 msgstr "%s: nepodarilo sa načítať '%s'"
 
 
+msgid "Reading render result: dimensions don't match, expected %dx%d"
+msgstr "Čítanie výsledku prekresľovania: rozmery sa nezhodujú, očakávané %dx%d"
+
+
+msgid "Reading render result: expected channel \"%s.%s\" or \"%s\" not found"
+msgstr "Čítanie výsledku prekresľovania: očakávaný kanál \"%s.%s\" alebo \"%s\" nebol nájdený"
+
+
+msgid "Reading render result: expected channel \"%s.%s\" not found"
+msgstr "Reading render result: expected channel \"%s.%s\" not found"
+
+
 msgctxt "Sequence"
 msgid "Color Balance"
 msgstr "Vyvážiť farbu"
@@ -130419,16 +130250,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "Neprepojený blok údajov '%s' typu '%s'"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': nie je knižnica"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': aktuálny súbor nemožno použiť ako knižnicu"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': nič nie je uvedené"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': aktuálny súbor nemožno použiť ako knižnicu"
+msgid "'%s': not a library"
+msgstr "'%s': nie je knižnica"
 
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"

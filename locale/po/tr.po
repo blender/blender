@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2023-07-02 21:35+0300\n"
 "Last-Translator: Emir SARI <emir_sari@icloud.com>\n"
 "Language-Team: Turkish <kde-l10n-tr@kde.org>\n"
@@ -2201,10 +2201,6 @@ msgstr "Şekil Anahtarları"
 
 msgid "Shape Key data-blocks"
 msgstr "Şekil Anahtarı veri blokları"
-
-
-msgid "Simulations"
-msgstr "Benzetimler"
 
 
 msgid "Sounds"
@@ -8246,10 +8242,6 @@ msgid "Reload Start-Up File"
 msgstr "Başlangıç Dosyasını Yeniden Yükle"
 
 
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Öntanımlı dosyayı aç (geçerli dosyayı kaydetmez)"
-
-
 msgid "Factory Startup"
 msgstr "Fabrika Başlangıcı"
 
@@ -10532,11 +10524,6 @@ msgstr "Yeni"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "Yeni"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "Yeni"
 

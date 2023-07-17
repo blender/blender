@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Tabačan <tabycz@gmail.com>\n"
 "Language-Team: Taby <tabycz@gmail.com>\n"
@@ -1576,10 +1576,6 @@ msgstr "Obrazovky"
 
 msgid "Shape Keys"
 msgstr "Tvarové klávesy"
-
-
-msgid "Simulations"
-msgstr "Simulace"
 
 
 msgid "Sounds"
@@ -5650,11 +5646,6 @@ msgstr "Bodový Mrak"
 msgctxt "ID"
 msgid "Scene"
 msgstr "Scéna"
-
-
-msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulace"
 
 
 msgctxt "ID"
@@ -23095,6 +23086,11 @@ msgstr "Režim tahu"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Seskupený objekt"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Přidat Slot pro Vykreslení"
 
@@ -24940,11 +24936,6 @@ msgstr "Odstranit aktuální skript link"
 
 msgid "Extend the existing selection"
 msgstr "Přidá existující výběr"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Seskupený objekt"
 
 
 msgid "Change selection mode"
@@ -32021,10 +32012,6 @@ msgstr "Načíst Tovární Předvolby"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Znovu načíst Spouštěcí Soubor"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Otevře výchozí soubor (neuloží současný soubor)"
 
 
 msgctxt "Operator"
@@ -45078,10 +45065,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "Procházet Data Objemu k připojení"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "Procházet Simulacik připojení"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "Procházet Data Skicovací Tužky k připojení"
 
@@ -45206,11 +45189,6 @@ msgstr "Nový"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "Nový"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "Nový"
 
@@ -45987,12 +45965,12 @@ msgid "No active camera set"
 msgstr "Přidat primitivum"
 
 
-msgid "Active group is locked, aborting"
-msgstr "Skupina pro akce je zamčena"
-
-
 msgid "No active vertex group for painting, aborting"
 msgstr "Odstranit skupinu vertexů"
+
+
+msgid "Active group is locked, aborting"
+msgstr "Skupina pro akce je zamčena"
 
 
 msgid "Warning!"
