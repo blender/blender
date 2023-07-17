@@ -1032,6 +1032,16 @@ static void shape_preset_trias_from_rect_checkmark(uiWidgetTrias *tria, const rc
   tria->index = g_shape_preset_checkmark_face;
 }
 
+static void shape_preset_trias_from_rect_dash(uiWidgetTrias *tria, const rcti *rect)
+{
+  tria->type = ROUNDBOX_TRIA_DASH;
+
+  /* Center position and size. */
+  tria->center[0] = rect->xmin + 0.5f * BLI_rcti_size_y(rect);
+  tria->center[1] = rect->ymin + 0.5f * BLI_rcti_size_y(rect);
+  tria->size = 0.5f * BLI_rcti_size_y(rect);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1872,6 +1882,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
   const char *drawstr = but->drawstr;
   const char *drawstr_right = nullptr;
   bool use_right_only = false;
+  const char *indeterminate_str = UI_VALUE_INDETERMINATE_CHAR;
 
 #ifdef WITH_INPUT_IME
   const wmIMEData *ime_data;
@@ -1925,6 +1936,20 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         drawstr = but->editstr;
       }
     }
+  }
+
+  /* If not editing and indeterminate, show dash.*/
+  if (but->drawflag & UI_BUT_INDETERMINATE && !but->editstr &&
+      ELEM(but->type,
+           UI_BTYPE_MENU,
+           UI_BTYPE_NUM,
+           UI_BTYPE_NUM_SLIDER,
+           UI_BTYPE_TEXT,
+           UI_BTYPE_SEARCH_MENU))
+  {
+    drawstr = indeterminate_str;
+    drawstr_left_len = strlen(drawstr);
+    align = UI_STYLE_TEXT_CENTER;
   }
 
   /* text button selection, cursor, composite underline */
@@ -3771,7 +3796,7 @@ static void widget_numslider(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 
   /* Draw slider part only when not in text editing. */
-  if (!state->is_text_input) {
+  if (!state->is_text_input && !(but->drawflag & UI_BUT_INDETERMINATE)) {
     int roundboxalign_slider = roundboxalign;
 
     uchar outline[3];
@@ -3897,6 +3922,10 @@ static void widget_swatch(uiBut *but,
   round_box_edges(&wtb, roundboxalign, rect, rad);
 
   ui_but_v3_get(but, col);
+
+  if (but->drawflag & UI_BUT_INDETERMINATE) {
+    col[0] = col[1] = col[2] = col[3] = 0.5f;
+  }
 
   if ((state->but_flag & (UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN |
                           UI_BUT_OVERRIDDEN | UI_BUT_REDALERT)) ||
@@ -4206,11 +4235,19 @@ static void widget_optionbut(uiWidgetColors *wcol,
   /* Keep one edge in place. */
   BLI_rcti_translate(&recttemp, text_before_widget ? delta : -delta, 0);
 
+  if (state->but_drawflag & UI_BUT_INDETERMINATE) {
+    /* The same muted background color regardless of state. */
+    color_blend_v4_v4v4(wcol->inner, wcol->inner, wcol->inner_sel, 0.75f);
+  }
+
   const float rad = widget_radius_from_rcti(&recttemp, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 
   /* decoration */
-  if (state->but_flag & UI_SELECT) {
+  if (state->but_drawflag & UI_BUT_INDETERMINATE) {
+    shape_preset_trias_from_rect_dash(&wtb.tria1, &recttemp);
+  }
+  else if (state->but_flag & UI_SELECT) {
     shape_preset_trias_from_rect_checkmark(&wtb.tria1, &recttemp);
   }
 
@@ -5026,6 +5063,10 @@ void ui_draw_but(const bContext *C, ARegion *region, uiStyle *style, uiBut *but,
 #endif
   if (but->block->flag & UI_BLOCK_NO_DRAW_OVERRIDDEN_STATE) {
     state.but_flag &= ~UI_BUT_OVERRIDDEN;
+  }
+
+  if (state.but_drawflag & UI_BUT_INDETERMINATE) {
+    state.but_flag &= ~UI_SELECT;
   }
 
   const float zoom = 1.0f / but->block->aspect;
