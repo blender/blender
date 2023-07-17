@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <forward_list>
 
 #include "DNA_anim_types.h"
 #include "DNA_collection_types.h"
@@ -127,8 +128,8 @@
 
 /* here we store all renders */
 static struct {
-  ListBase renderlist;
-} RenderGlobal = {{nullptr, nullptr}};
+  std::forward_list<Render *> render_list;
+} RenderGlobal;
 
 /** \} */
 
@@ -297,7 +298,7 @@ static bool render_scene_has_layers_to_render(Scene *scene, ViewLayer *single_la
 Render *RE_GetRender(const char *name)
 {
   /* search for existing renders */
-  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+  for (Render *re : RenderGlobal.render_list) {
     if (STREQLEN(re->name, name, RE_MAXNAME)) {
       return re;
     }
@@ -497,7 +498,7 @@ Render *RE_NewRender(const char *name)
 
     /* new render data struct */
     re = MEM_cnew<Render>("new render");
-    BLI_addtail(&RenderGlobal.renderlist, re);
+    RenderGlobal.render_list.push_front(re);
     STRNCPY(re->name, name);
     BLI_rw_mutex_init(&re->resultmutex);
     BLI_mutex_init(&re->engine_draw_mutex);
@@ -585,14 +586,14 @@ void RE_FreeRender(Render *re)
   render_result_free(re->result);
   render_result_free(re->pushedresult);
 
-  BLI_remlink(&RenderGlobal.renderlist, re);
+  RenderGlobal.render_list.remove(re);
   MEM_freeN(re);
 }
 
 void RE_FreeAllRender()
 {
-  while (RenderGlobal.renderlist.first) {
-    RE_FreeRender(static_cast<Render *>(RenderGlobal.renderlist.first));
+  while (!RenderGlobal.render_list.empty()) {
+    RE_FreeRender(static_cast<Render *>(RenderGlobal.render_list.front()));
   }
 
 #ifdef WITH_FREESTYLE
@@ -603,7 +604,7 @@ void RE_FreeAllRender()
 
 void RE_FreeAllRenderResults()
 {
-  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+  for (Render *re : RenderGlobal.render_list) {
     render_result_free(re->result);
     render_result_free(re->pushedresult);
 
@@ -615,7 +616,7 @@ void RE_FreeAllRenderResults()
 
 void RE_FreeAllPersistentData()
 {
-  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+  for (Render *re : RenderGlobal.render_list) {
     if (re->engine != nullptr) {
       BLI_assert(!(re->engine->flag & RE_ENGINE_RENDERING));
       RE_engine_free(re->engine);
@@ -644,7 +645,7 @@ static void re_gpu_texture_caches_free(Render *re)
 
 void RE_FreeGPUTextureCaches()
 {
-  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+  for (Render *re : RenderGlobal.render_list) {
     re_gpu_texture_caches_free(re);
   }
 }
@@ -655,7 +656,7 @@ void RE_FreeUnusedGPUResources()
 
   wmWindowManager *wm = static_cast<wmWindowManager *>(G_MAIN->wm.first);
 
-  LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+  for (Render *re : RenderGlobal.render_list) {
     bool do_free = true;
 
     LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
@@ -728,7 +729,7 @@ void RE_FreePersistentData(const Scene *scene)
     }
   }
   else {
-    LISTBASE_FOREACH (Render *, re, &RenderGlobal.renderlist) {
+    for (Render *re : RenderGlobal.render_list) {
       re_free_persistent_data(re);
     }
   }
