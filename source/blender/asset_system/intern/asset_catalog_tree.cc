@@ -76,11 +76,6 @@ void AssetCatalogTreeItem::foreach_child(const ItemIterFn callback)
   }
 }
 
-void AssetCatalogTreeItem::foreach_item(ItemIterFn callback)
-{
-  foreach_item_recursive(children_, callback);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void AssetCatalogTree::insert_item(const AssetCatalog &catalog)
