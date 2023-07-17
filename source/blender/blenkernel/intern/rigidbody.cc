@@ -58,6 +58,14 @@
 static CLG_LogRef LOG = {"bke.rigidbody"};
 #endif
 
+#ifndef WITH_BULLET
+/* #RBI_api.h is not included, some types still need to be declared. */
+struct rbCollisionShape;
+struct rbConstraint;
+struct rbDynamicsWorld;
+struct rbRigidBody;
+#endif
+
 /* ************************************** */
 /* Memory Management */
 
