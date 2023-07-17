@@ -50,7 +50,7 @@ void ReflectionProbeModule::init()
     pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_REMAP));
     pass.bind_texture("cubemap_tx", &cubemap_tx_);
     pass.bind_image("octahedral_img", &probes_tx_);
-    pass.bind_ssbo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
+    pass.bind_ubo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
     pass.push_constant("reflection_probe_index", &reflection_probe_index_);
     pass.dispatch(&dispatch_probe_pack_);
   }
