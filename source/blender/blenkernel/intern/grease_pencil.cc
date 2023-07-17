@@ -299,7 +299,7 @@ Drawing::Drawing(const Drawing &other)
   this->base.type = GP_DRAWING;
   this->base.flag = other.base.flag;
 
-  new (&this->geometry) bke::CurvesGeometry(other.geometry.wrap());
+  new (&this->geometry) bke::CurvesGeometry(other.strokes());
   /* Initialize runtime data. */
   this->runtime = MEM_new<bke::greasepencil::DrawingRuntime>(__func__);
 
@@ -308,7 +308,7 @@ Drawing::Drawing(const Drawing &other)
 
 Drawing::~Drawing()
 {
-  this->geometry.wrap().~CurvesGeometry();
+  this->strokes().~CurvesGeometry();
   MEM_delete(this->runtime);
   this->runtime = nullptr;
 }
@@ -318,7 +318,7 @@ Span<uint3> Drawing::triangles() const
   this->runtime->triangles_cache.ensure([&](Vector<uint3> &r_data) {
     MemArena *pf_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
-    const CurvesGeometry &curves = this->geometry.wrap();
+    const CurvesGeometry &curves = this->strokes();
     const Span<float3> positions = curves.positions();
     const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
@@ -387,7 +387,7 @@ VArray<float> Drawing::radii() const
 MutableSpan<float> Drawing::radii_for_write()
 {
   return get_mutable_attribute<float>(
-      this->geometry.wrap(), ATTR_DOMAIN_POINT, ATTR_RADIUS, 0.01f);
+      this->strokes_for_write(), ATTR_DOMAIN_POINT, ATTR_RADIUS, 0.01f);
 }
 
 VArray<float> Drawing::opacities() const
@@ -399,12 +399,12 @@ VArray<float> Drawing::opacities() const
 MutableSpan<float> Drawing::opacities_for_write()
 {
   return get_mutable_attribute<float>(
-      this->geometry.wrap(), ATTR_DOMAIN_POINT, ATTR_OPACITY, 1.0f);
+      this->strokes_for_write(), ATTR_DOMAIN_POINT, ATTR_OPACITY, 1.0f);
 }
 
 void Drawing::tag_positions_changed()
 {
-  this->geometry.wrap().tag_positions_changed();
+  this->strokes_for_write().tag_positions_changed();
   this->runtime->triangles_cache.tag_dirty();
 }
 
@@ -1392,7 +1392,7 @@ std::optional<blender::Bounds<blender::float3>> GreasePencil::bounds_min_max() c
     switch (drawing_base->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        const bke::CurvesGeometry &curves = drawing->geometry.wrap();
+        const bke::CurvesGeometry &curves = drawing->wrap().strokes();
         bounds = bounds::merge(bounds, curves.bounds_min_max());
         break;
       }
@@ -1647,7 +1647,7 @@ void GreasePencil::read_drawing_array(BlendDataReader *reader)
     switch (drawing_base->type) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        drawing->geometry.wrap().blend_read(*reader);
+        drawing->wrap().strokes_for_write().blend_read(*reader);
         /* Initialize runtime data. */
         drawing->runtime = MEM_new<blender::bke::greasepencil::DrawingRuntime>(__func__);
         break;
@@ -1671,7 +1671,7 @@ void GreasePencil::write_drawing_array(BlendWriter *writer)
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
         BLO_write_struct(writer, GreasePencilDrawing, drawing);
-        drawing->geometry.wrap().blend_write(*writer, this->id);
+        drawing->wrap().strokes_for_write().blend_write(*writer, this->id);
         break;
       }
       case GP_DRAWING_REFERENCE: {
