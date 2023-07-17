@@ -789,7 +789,6 @@ bool BKE_node_instance_hash_tag_key(bNodeInstanceHash *hash, bNodeInstanceKey ke
 void BKE_node_instance_hash_remove_untagged(bNodeInstanceHash *hash,
                                             bNodeInstanceValueFP valfreefp);
 
-void BKE_node_preview_clear_tree(struct bNodeTree *ntree);
 /** \} */
 
 /* -------------------------------------------------------------------- */
