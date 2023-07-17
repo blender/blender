@@ -1221,12 +1221,27 @@ RenderEngine *RE_engine_get(const Render *re)
 
 bool RE_engine_draw_acquire(Render *re)
 {
-  BLI_mutex_lock(&re->engine_draw_mutex);
-
   RenderEngine *engine = re->engine;
 
-  if (engine == nullptr || engine->type->draw == nullptr ||
-      (engine->flag & RE_ENGINE_CAN_DRAW) == 0) {
+  if (!engine) {
+    /* \No engine-side drawing if the engine does not exist. */
+    return false;
+  }
+
+  if (!engine->type->draw) {
+    /* Required callbacks are not implemented on the engine side. */
+    return false;
+  }
+
+  /* Lock before checking the flag, to avoid possible conflicts with the render thread. */
+  BLI_mutex_lock(&re->engine_draw_mutex);
+
+  if ((engine->flag & RE_ENGINE_CAN_DRAW) == 0) {
+    /* The rendering is not started yet, or has finished.
+     *
+     * In the former case there will nothing to be drawn, so can simply use RenderResult drawing
+     * pipeline. In the latter case the engine has destroyed its display-only resources (textures,
+     * graphics interops, etc..) so need to use use the RenderResult drawing pipeline. */
     BLI_mutex_unlock(&re->engine_draw_mutex);
     return false;
   }
