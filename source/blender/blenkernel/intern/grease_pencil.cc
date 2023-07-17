@@ -408,6 +408,11 @@ void Drawing::tag_positions_changed()
   this->runtime->triangles_cache.tag_dirty();
 }
 
+void Drawing::tag_topology_changed()
+{
+  this->tag_positions_changed();
+}
+
 TreeNode::TreeNode()
 {
   this->next = this->prev = nullptr;
