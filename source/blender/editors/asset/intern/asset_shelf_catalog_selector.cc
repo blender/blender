@@ -98,6 +98,22 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
       return catalog_path_enabled_ != 0;
     }
 
+    bool has_enabled_in_subtree()
+    {
+      bool has_enabled = false;
+
+      foreach_item_recursive(
+          [&has_enabled](const ui::AbstractTreeViewItem &abstract_item) {
+            const Item &item = dynamic_cast<const Item &>(abstract_item);
+            if (item.is_catalog_path_enabled()) {
+              has_enabled = true;
+            }
+          },
+          IterOptions::SkipFiltered);
+
+      return has_enabled;
+    }
+
     asset_system::AssetCatalogPath catalog_path() const
     {
       return catalog_item_.catalog_path();
@@ -137,6 +153,9 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
         tree.update_shelf_settings_from_enabled_catalogs();
         send_redraw_notifier(C);
       });
+      if (!is_catalog_path_enabled() && has_enabled_in_subtree()) {
+        UI_but_drawflag_enable(toggle_but, UI_BUT_INDETERMINATE);
+      }
       UI_but_flag_disable(toggle_but, UI_BUT_UNDO);
     }
   };
