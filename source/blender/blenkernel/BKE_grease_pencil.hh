@@ -77,6 +77,7 @@ class Drawing : public ::GreasePencilDrawing {
    */
   Span<uint3> triangles() const;
   void tag_positions_changed();
+  void tag_topology_changed();
 
   /**
    * Radii of the points. Values are expected to be in blender units.

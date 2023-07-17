@@ -53,6 +53,8 @@ void eevee_shader_material_create_info_amend(GPUMaterial *gpumat,
 
   info.auto_resource_location(true);
 
+  info.define("UNI_ATTR(a)", "a");
+
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_SUBSURFACE)) {
     info.define("USE_SSS");
   }

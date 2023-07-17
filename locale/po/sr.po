@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -14974,6 +14974,11 @@ msgstr "Генериши мек шум (мекан прелаз)"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Мод изабора"
+
+
+msgctxt "Operator"
 msgid "Set Curves Point"
 msgstr "Тачке базиерове криве"
 
@@ -16166,11 +16171,6 @@ msgstr "Изабери ставке меша на позицији у оглед
 
 msgid "Extend the existing selection"
 msgstr "Прошири текући избор"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Мод изабора"
 
 
 msgid "Change selection mode"
@@ -20440,10 +20440,6 @@ msgstr "Користи друго"
 
 msgid "Zoom Path"
 msgstr "Умањи поглед"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Отвара подразумевану датотеку (не уписује тернутну датотеку)"
 
 
 msgctxt "Operator"

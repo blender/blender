@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2016-10-13 03:05+0900\n"
 "Last-Translator: \n"
 "Language-Team: Japanese Translation Team (https://sites.google.com/site/blugjp/blender-translators)\n"
@@ -2213,10 +2213,6 @@ msgstr "シェイプキー"
 
 msgid "Shape Key data-blocks"
 msgstr "シェイプキーデータブロック"
-
-
-msgid "Simulations"
-msgstr "シミュレーション"
 
 
 msgid "Sounds"
@@ -10024,11 +10020,6 @@ msgstr "シーン"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "シミュレーション"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "サウンド"
 
@@ -12653,10 +12644,6 @@ msgstr "ポイントクラウドデータブロックを表示/隠します"
 
 msgid "Show Scene data-blocks"
 msgstr "シーンデータブロックを表示します"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "シミュレーションデータブロックを表示します"
 
 
 msgid "Show Sound data-blocks"
@@ -26557,10 +26544,6 @@ msgid "Use Simulation Cache"
 msgstr "シミュレーションキャッシュを使用"
 
 
-msgid "Cache all frames during simulation nodes playback"
-msgstr "シミュレーションノードの再生期間中に全フレームをキャッシュします"
-
-
 msgid "Vertex Groups"
 msgstr "頂点グループ"
 
@@ -39458,10 +39441,6 @@ msgid "Add Threshold"
 msgstr "しきい値を追加"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "頂点グループに追加する頂点のウェイトの下限値"
-
-
 msgid "Default Weight"
 msgstr "デフォルトウェイト"
 
@@ -39585,10 +39564,6 @@ msgstr ""
 
 msgid "Remove Threshold"
 msgstr "削除しきい値"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "頂点グループから削除する頂点ウェイトの上限です"
 
 
 msgid "Group Add"
@@ -45681,6 +45656,18 @@ msgid "Delete an attribute with a specified name from a geometry. Typically used
 msgstr "指定の名前の属性をジオメトリから削除します。通常パフォーマンスの最適化に使用します"
 
 
+msgid "Paired Output"
+msgstr "ペアの出力"
+
+
+msgid "Active Item Index"
+msgstr "アクティブアイテムインデックス"
+
+
+msgid "Index of the active item"
+msgstr "アクティブアイテムのインデックス"
+
+
 msgid "Replace Material"
 msgstr "マテリアル置換"
 
@@ -46030,24 +46017,12 @@ msgid "Simulation Input"
 msgstr "シミュレーション入力"
 
 
-msgid "Paired Output"
-msgstr "ペアの出力"
-
-
 msgid "Simulation output node that this input node is paired with"
 msgstr "この入力ノードとペアになるシミュレーション出力ノード"
 
 
 msgid "Simulation Output"
 msgstr "シミュレーション出力"
-
-
-msgid "Active Item Index"
-msgstr "アクティブアイテムインデックス"
-
-
-msgid "Index of the active item"
-msgstr "アクティブアイテムのインデックス"
 
 
 msgid "Spline Length"
@@ -59660,6 +59635,23 @@ msgstr "ストローク中にブラシをスムーズモードに切り替えま
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "選択モード"
+
+
+msgid "Select only points"
+msgstr "ポイントのみ選択します"
+
+
+msgid "Select all stroke points"
+msgstr "すべてのストロークポイントを選択します"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "他のストロークとの間のすべてのストロークポイントを選択します"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "レンダースロットを追加"
 
@@ -63853,11 +63845,6 @@ msgid "Extend the existing selection"
 msgstr "既存の選択に追加で選択します"
 
 
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "選択モード"
-
-
 msgid "Change selection mode"
 msgstr "選択モードを変更します"
 
@@ -65062,6 +65049,10 @@ msgid "Add an object info node to the current node editor"
 msgstr "現在のノードエディターにオブジェクト情報ノードを追加します"
 
 
+msgid "Offset of nodes from the cursor when added"
+msgstr "追加時のカーソルからのノードへのオフセット"
+
+
 msgctxt "Operator"
 msgid "Add Reroute"
 msgstr "リルートを追加"
@@ -65091,10 +65082,6 @@ msgstr "シミュレーションゾーンを追加"
 
 msgid "Add simulation zone input and output nodes to the active tree"
 msgstr "シミュレーションゾーンの入出力ノードをアクティブツリーに追加します"
-
-
-msgid "Offset of nodes from the cursor when added"
-msgstr "追加時のカーソルからのノードへのオフセット"
 
 
 msgctxt "Operator"
@@ -81678,10 +81665,6 @@ msgid "Reload Start-Up File"
 msgstr "スタートアップファイルの再読み込み"
 
 
-msgid "Open the default file (doesn't save the current file)"
-msgstr "デフォルトのファイルを開く(現在のファイルは保存されません)"
-
-
 msgid "Path to an alternative start-up file"
 msgstr "代わりのスタートアップファイルのパス"
 
@@ -82232,10 +82215,6 @@ msgstr "インポートした全オブジェクトを新規コレクションに
 
 msgid "Import All Materials"
 msgstr "全マテリアルをインポート"
-
-
-msgid "Also import materials that are not used by any geometry.  Note that when this option is false, materials referenced by geometry will still be imported"
-msgstr "どのジオメトリにも使用されていないマテリアルもインポートします。このオプションが OFF の場合も、ジオメトリが参照するマテリアルはインポートされます"
 
 
 msgid "Import guide geometry"
@@ -92418,6 +92397,10 @@ msgid "Active index in render view array"
 msgstr "レンダービュー配列中のアクティブインデックス"
 
 
+msgid "Color of the corresponding socket type in the node editor"
+msgstr "ノードエディター内でソケットタイプに対応する色"
+
+
 msgid "Constraint influencing Objects inside Rigid Body Simulation"
 msgstr "リジッドボディシミュレーション内部でオブジェクトにコンストレイントが影響します"
 
@@ -95877,10 +95860,6 @@ msgstr "シミュレーションアイテム"
 
 msgid "Attribute domain where the attribute is stored in the simulation state"
 msgstr "属性がシミュレーション状態に格納される属性ドメイン"
-
-
-msgid "Color of the corresponding socket type in the node editor"
-msgstr "ノードエディター内でソケットタイプに対応する色"
 
 
 msgid "Soft body simulation settings for an object"
@@ -101343,18 +101322,6 @@ msgstr "グリースペンシルスカルプト"
 
 msgid "Settings for stroke sculpting tools and brushes"
 msgstr "ストロークスカルプトツールとブラシ用の設定"
-
-
-msgid "Select only points"
-msgstr "ポイントのみ選択します"
-
-
-msgid "Select all stroke points"
-msgstr "すべてのストロークポイントを選択します"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "他のストロークとの間のすべてのストロークポイントを選択します"
 
 
 msgid "Stroke Placement (3D View)"
@@ -116289,48 +116256,8 @@ msgid "Original Mode"
 msgstr "オリジナルモード"
 
 
-msgid "Kilometers"
-msgstr "キロメートル"
-
-
-msgid "100 Meters"
-msgstr "100メートル"
-
-
-msgid "10 Meters"
-msgstr "10メートル"
-
-
-msgid "Meters"
-msgstr "メートル"
-
-
-msgid "10 Centimeters"
-msgstr "10センチメートル"
-
-
-msgid "Centimeters"
-msgstr "センチメートル"
-
-
 msgid "Micrometers"
 msgstr "マイクロメートル"
-
-
-msgid "Miles"
-msgstr "マイル"
-
-
-msgid "Furlongs"
-msgstr "ハロン"
-
-
-msgid "Chains"
-msgstr "チェーン"
-
-
-msgid "Yards"
-msgstr "ヤード"
 
 
 msgid "Feet"
@@ -116345,196 +116272,12 @@ msgid "Thou"
 msgstr "サウ"
 
 
-msgid "Square Kilometers"
-msgstr "平方キロメートル"
-
-
-msgid "Square Hectometers"
-msgstr "平方ヘクトメートル"
-
-
-msgid "Square Dekameters"
-msgstr "平方デカメートル"
-
-
-msgid "Square Meters"
-msgstr "平方メートル"
-
-
-msgid "Square Decimeters"
-msgstr "平方デシメートル"
-
-
-msgid "Square Centimeters"
-msgstr "平方センチメートル"
-
-
-msgid "Square Millimeters"
-msgstr "平方ミリメートル"
-
-
-msgid "Square Micrometers"
-msgstr "平方マイクロメートル"
-
-
-msgid "Square Miles"
-msgstr "平方マイル"
-
-
-msgid "Square Furlongs"
-msgstr "平方ハロン"
-
-
-msgid "Square Chains"
-msgstr "平方チェーン"
-
-
-msgid "Square Yards"
-msgstr "平方ヤード"
-
-
-msgid "Square Feet"
-msgstr "平方フィート"
-
-
-msgid "Square Inches"
-msgstr "平方インチ"
-
-
-msgid "Square Thou"
-msgstr "平方サウ"
-
-
-msgid "Cubic Kilometers"
-msgstr "立方キロメートル"
-
-
-msgid "Cubic Hectometers"
-msgstr "立方ヘクトメートル"
-
-
-msgid "Cubic Dekameters"
-msgstr "立方デカメートル"
-
-
-msgid "Cubic Meters"
-msgstr "立方メートル"
-
-
-msgid "Cubic Decimeters"
-msgstr "立方デシメートル"
-
-
-msgid "Cubic Centimeters"
-msgstr "立方センチメートル"
-
-
-msgid "Cubic Millimeters"
-msgstr "立方ミリメートル"
-
-
-msgid "Cubic Micrometers"
-msgstr "立方マイクロメートル"
-
-
-msgid "Cubic Miles"
-msgstr "立方マイル"
-
-
-msgid "Cubic Furlongs"
-msgstr "立方ハロン"
-
-
-msgid "Cubic Chains"
-msgstr "立方チェーン"
-
-
-msgid "Cubic Yards"
-msgstr "立方ヤード"
-
-
-msgid "Cubic Feet"
-msgstr "立方フィート"
-
-
-msgid "Cubic Inches"
-msgstr "立方インチ"
-
-
-msgid "Cubic Thou"
-msgstr "立方サウ"
-
-
 msgid "Tonnes"
 msgstr "トン"
 
 
 msgid "100 Kilograms"
 msgstr "100キログラム"
-
-
-msgid "Kilograms"
-msgstr "キログラム"
-
-
-msgid "Hectograms"
-msgstr "ヘクトグラム"
-
-
-msgid "10 Grams"
-msgstr "10グラム"
-
-
-msgid "Grams"
-msgstr "グラム"
-
-
-msgid "Milligrams"
-msgstr "ミリグラム"
-
-
-msgid "Centum weights"
-msgstr "ハンドレッドウェイト"
-
-
-msgid "Stones"
-msgstr "ストーン"
-
-
-msgid "Pounds"
-msgstr "ポンド"
-
-
-msgid "Ounces"
-msgstr "オンス"
-
-
-msgid "Meters per second"
-msgstr "メートル毎秒"
-
-
-msgid "Kilometers per hour"
-msgstr "キロメートル毎時"
-
-
-msgid "Feet per second"
-msgstr "フィート毎秒"
-
-
-msgid "Miles per hour"
-msgstr "マイル毎時"
-
-
-msgid "Meters per second squared"
-msgstr "メートル毎秒毎秒"
-
-
-msgid "Feet per second squared"
-msgstr "フィート毎秒毎秒"
-
-
-msgid "Days"
-msgstr "日"
 
 
 msgid "Hours"
@@ -116545,60 +116288,8 @@ msgid "Minutes"
 msgstr "分"
 
 
-msgid "Milliseconds"
-msgstr "ミリ秒"
-
-
 msgid "Microseconds"
 msgstr "マイクロ秒"
-
-
-msgid "Arcminutes"
-msgstr "分（'）"
-
-
-msgid "Arcseconds"
-msgstr "秒（''）"
-
-
-msgid "Gigawatts"
-msgstr "ギガワット"
-
-
-msgid "Megawatts"
-msgstr "メガワット"
-
-
-msgid "Kilowatts"
-msgstr "キロワット"
-
-
-msgid "Watts"
-msgstr "ワット"
-
-
-msgid "Milliwatts"
-msgstr "ミリワット"
-
-
-msgid "Microwatts"
-msgstr "マイクロワット"
-
-
-msgid "Nanowatts"
-msgstr "ナノワット"
-
-
-msgid "Kelvin"
-msgstr "ケルビン"
-
-
-msgid "Celsius"
-msgstr "℃"
-
-
-msgid "Fahrenheit"
-msgstr "華氏"
 
 
 msgid "Could not load volume for writing"
@@ -117848,10 +117539,6 @@ msgid "Operation is not allowed in edit mode"
 msgstr "編集モード時は実行できません"
 
 
-msgid "Loading Asset Libraries"
-msgstr "アセットライブラリ読み込み"
-
-
 msgid "Cannot evaluate node group"
 msgstr "ノードグループが評価できません"
 
@@ -119048,10 +118735,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "リンクするボリュームデータを閲覧"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "リンクするシミュレーションを閲覧"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "リンクするグリースペンシルを閲覧"
 
@@ -119193,11 +118876,6 @@ msgstr "新規"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "新規"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "新規"
 
@@ -120242,10 +119920,6 @@ msgstr "コレクションが未選択です"
 
 msgid "Unexpected error, collection not found"
 msgstr "予期せぬエラー、コレクションが見つかりません"
-
-
-msgid "Cannot add objects to a library override collection"
-msgstr "ライブラリオーバーライドコレクションにはオブジェクトを追加できません"
 
 
 msgid "No objects selected"
@@ -121579,6 +121253,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "欠けている%s%s%s%sを見つけました！"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "使用中のモディファイアーは変形された位置には対応していません"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "ペイントするアクティブ頂点グループがありません。中止します"
+
+
 msgid "Active group is locked, aborting"
 msgstr "アクショングループがロックされているため中止します"
 
@@ -121589,14 +121271,6 @@ msgstr "ミラーグループがロックされているため中止します"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "マルチペイントグループがロックされているため中止します"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "使用中のモディファイアーは変形された位置には対応していません"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "ペイントするアクティブ頂点グループがありません。中止します"
 
 
 msgid "Not supported in dynamic topology mode"
@@ -122788,6 +122462,10 @@ msgstr "「%s」と「%s」の片方または両方が新しい場所に対応�
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "モディファイアーが(%s : %s)に追加できませんでした（コンソールに詳細）"
+
+
+msgid "Loading Asset Libraries"
+msgstr "アセットライブラリ読み込み"
 
 
 msgid "The internal clipboard is empty"
@@ -124507,14 +124185,6 @@ msgid " or Alt) Even Thickness %s"
 msgstr "またはAlt）均一な厚さ %s"
 
 
-msgid "Tilt: %s° %s"
-msgstr "傾き：%s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "傾き：%.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "拡大縮小X: %s"
 
@@ -125096,10 +124766,6 @@ msgstr "%s: 相手のアセット「%s」がクローズできません"
 
 msgid "%s: Texture import directory path empty, couldn't import %s"
 msgstr "%s: テクスチャインポートディレクトリパスが空で「%s」がインポートできません"
-
-
-msgid "%s: import directory is relative but the blend file path is empty.  Please save the blend file before importing the USD or provide an absolute import directory path.  Can't import %s"
-msgstr "%s: インポートディレクトリが相対パスですが、blend ファイルのパスが空です。USD インポート前に blend ファイルを保存するか、インポートディレクトリを絶対パスにしてください。「%s」がインポートできません"
 
 
 msgid "%s: Couldn't create texture import directory %s"
@@ -129677,16 +129343,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "データブロック「%s」（タイプ「%s」）をリンクできません"
 
 
-msgid "'%s': not a library"
-msgstr "「%s」: ライブラリではありません"
+msgid "'%s': cannot use current file as library"
+msgstr "「%s」: 現在のファイルはライブラリとして使用できません"
 
 
 msgid "'%s': nothing indicated"
 msgstr "「%s」: 何も表示していません"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "「%s」: 現在のファイルはライブラリとして使用できません"
+msgid "'%s': not a library"
+msgstr "「%s」: ライブラリではありません"
 
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Martin Reininger <martinreininger@gmx.net>\n"
 "Language-Team: German translation team\n"
@@ -1872,10 +1872,6 @@ msgstr "Formschlüssel"
 
 msgid "Shape Key data-blocks"
 msgstr "Formschlüssel-Datenblöcke"
-
-
-msgid "Simulations"
-msgstr "Simulationen"
 
 
 msgid "Sounds"
@@ -7970,11 +7966,6 @@ msgstr "Szene"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulation"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "Klang"
 
@@ -9726,10 +9717,6 @@ msgstr "Punkt Wolken-Datenblöcke anzeigen/verstecken"
 
 msgid "Show Scene data-blocks"
 msgstr "Szenen-Datenblöcke anzeigen"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "Simulations-Datenblöcke anzeigen"
 
 
 msgid "Show Sound data-blocks"
@@ -22754,10 +22741,6 @@ msgid "UV Layer name"
 msgstr "Ebenenname"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "Untere Begrenzung für eine Punkt-Gewichtung, die zur VGruppe hinzugefügt wird"
-
-
 msgid "Default Weight"
 msgstr "Standardgewicht"
 
@@ -22843,10 +22826,6 @@ msgstr "Gewichte normalisieren"
 
 msgid "Remove Threshold"
 msgstr "Schwellenwert entfernen"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "Obere Begrenzung für eine Punkt-Gewichtung, die von der VGruppe entfernt wird"
 
 
 msgid "Group Add"
@@ -32222,6 +32201,19 @@ msgstr "Strichmodus"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "Modus auswählen"
+
+
+msgid "Select only points"
+msgstr "Nur Punkte auswählbar"
+
+
+msgid "Select all stroke points"
+msgstr "Alle Strichpunkte selektieren"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "Renderslot hinzufügen"
 
@@ -34248,11 +34240,6 @@ msgstr "Auswahl von Knoten, Kanten oder Flächen an der Begrenzung jeder ausgew�
 
 msgid "Extend the existing selection"
 msgstr "Bestehende Auswahl erweitern"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "Modus auswählen"
 
 
 msgid "Change selection mode"
@@ -41975,10 +41962,6 @@ msgstr "Verlaufsdatei neu laden"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "Start-Datei neu laden"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Standard-Datei öffnen (aktuelle Datei wird nicht gespeichert)"
 
 
 msgid "Load user interface setup from the .blend file"
@@ -51730,14 +51713,6 @@ msgid "Grease Pencil Sculpt"
 msgstr "Wachsstift Modellierung"
 
 
-msgid "Select only points"
-msgstr "Nur Punkte auswählbar"
-
-
-msgid "Select all stroke points"
-msgstr "Alle Strichpunkte selektieren"
-
-
 msgid "All Points"
 msgstr "Alle Punkte"
 
@@ -59750,80 +59725,8 @@ msgid "Original Mode"
 msgstr "Original Modus"
 
 
-msgid "Kilometers"
-msgstr "Kilometer"
-
-
-msgid "Meters"
-msgstr "Meter"
-
-
-msgid "Centimeters"
-msgstr "Zentimeter"
-
-
-msgid "Miles"
-msgstr "Miles"
-
-
-msgid "Chains"
-msgstr "Ketten"
-
-
 msgid "Tonnes"
 msgstr "Tonnen"
-
-
-msgid "Kilograms"
-msgstr "Kilogramm"
-
-
-msgid "Grams"
-msgstr "Gramm"
-
-
-msgid "Milligrams"
-msgstr "Milligramm"
-
-
-msgid "Stones"
-msgstr "Steine"
-
-
-msgid "Pounds"
-msgstr "Pfund"
-
-
-msgid "Ounces"
-msgstr "Unzen"
-
-
-msgid "Meters per second"
-msgstr "Meter pro Sekunde"
-
-
-msgid "Kilometers per hour"
-msgstr "Kilometer pro Stunde"
-
-
-msgid "Feet per second"
-msgstr "Fuß pro Sekunde"
-
-
-msgid "Miles per hour"
-msgstr "Meilen pro Stunde"
-
-
-msgid "Meters per second squared"
-msgstr "Meter pro Quadratsekunde"
-
-
-msgid "Feet per second squared"
-msgstr "Fuß pro Quadratsekunde"
-
-
-msgid "Days"
-msgstr "Tage"
 
 
 msgid "Hours"
@@ -59834,52 +59737,8 @@ msgid "Minutes"
 msgstr "Minuten"
 
 
-msgid "Milliseconds"
-msgstr "Millisekunden"
-
-
 msgid "Microseconds"
 msgstr "Mikrosekunden"
-
-
-msgid "Gigawatts"
-msgstr "Gigawatt"
-
-
-msgid "Megawatts"
-msgstr "Megawatt"
-
-
-msgid "Kilowatts"
-msgstr "Kilowatt"
-
-
-msgid "Watts"
-msgstr "Watt"
-
-
-msgid "Milliwatts"
-msgstr "Milliwatt"
-
-
-msgid "Microwatts"
-msgstr "Mikrowatt"
-
-
-msgid "Nanowatts"
-msgstr "Nanowatt"
-
-
-msgid "Kelvin"
-msgstr "Kelvin"
-
-
-msgid "Celsius"
-msgstr "Celsius"
-
-
-msgid "Fahrenheit"
-msgstr "Fahrenheit"
 
 
 msgid "Could not load volume for writing"
@@ -60910,10 +60769,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "Durchsuche Volumendaten zum Verknüpfen"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "Durchsuche Simulation zum Verknüpfen"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "Durchsuche Wachsstift Daten zum Verknüpfen"
 
@@ -61043,11 +60898,6 @@ msgstr "Neu"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "Neu"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "Neu"
 
@@ -63228,14 +63078,6 @@ msgid "Shear: %.3f %s (Press X or Y to set shear axis)"
 msgstr "Schere: %.3f %s (Drücke X oder Y um die Schneidachse zu setzten)"
 
 
-msgid "Tilt: %s° %s"
-msgstr "Neigung: %s %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "Neigung: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "SkalierungX: %s"
 
@@ -64619,16 +64461,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "Datenblock '%s' vom Typ '%s' konnte nicht verlinkt werden"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': ist keine Bibliothek"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': die aktuelle Datei kann nicht als Bibliothek verwendet werden"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': nichts is angegeben"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': die aktuelle Datei kann nicht als Bibliothek verwendet werden"
+msgid "'%s': not a library"
+msgstr "'%s': ist keine Bibliothek"
 
 
 msgid "'%s' is not a valid library filepath"

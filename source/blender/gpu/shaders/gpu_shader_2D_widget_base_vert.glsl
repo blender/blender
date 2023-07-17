@@ -137,7 +137,7 @@ vec2 do_tria()
     outRectSize = vec2(0.74, 0.14);
     outRoundCorners = vec4(0.01);
   }
-  else {
+  else if (triaType == 5.0) {
     /* ROUNDBOX_TRIA_HOLD_ACTION_ARROW */
     /* We use a single triangle to cut the round rect in half. The edge will not be Antialiased. */
     pos = tria2 ? vec2(0.0) : arrow_pos[min(vidx, 2)];              /* Only keep 1 triangle. */
@@ -147,6 +147,14 @@ vec2 do_tria()
     uvInterp = arrow_uvs[vidx];
     uvInterp -= vec2(0.05, 0.05); /* Translate */
     outRectSize = vec2(0.75);
+    outRoundCorners = vec4(0.01);
+  }
+  else if (triaType == 6.0) {
+    /* ROUNDBOX_TRIA_DASH */
+    pos = point_pos[vidx];
+    uvInterp = point_uvs[vidx];
+    uvInterp -= vec2(0.2, 0.45); /* Translate */ 
+    outRectSize = vec2(0.6, 0.1);
     outRoundCorners = vec4(0.01);
   }
 

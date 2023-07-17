@@ -717,7 +717,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
   }
 
   /* Apply all remaining constructive and deforming modifiers. */
-  bool have_non_onlydeform_modifiers_appled = false;
+  bool have_non_onlydeform_modifiers_applied = false;
   for (; md; md = md->next, md_datamask = md_datamask->next) {
     const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md->type);
 
@@ -730,7 +730,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
     }
 
     if ((mti->flags & eModifierTypeFlag_RequiresOriginalData) &&
-        have_non_onlydeform_modifiers_appled) {
+        have_non_onlydeform_modifiers_applied) {
       BKE_modifier_set_error(ob, md, "Modifier requires original data, bad stack position");
       continue;
     }
@@ -796,7 +796,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
     else {
       bool check_for_needs_mapping = false;
       if (mesh_final != nullptr) {
-        if (have_non_onlydeform_modifiers_appled == false) {
+        if (have_non_onlydeform_modifiers_applied == false) {
           /* If we only deformed, we won't have initialized #CD_ORIGINDEX.
            * as this is the only part of the function that initializes mapping. */
           check_for_needs_mapping = true;
@@ -808,7 +808,7 @@ static void mesh_calc_modifiers(Depsgraph *depsgraph,
         check_for_needs_mapping = true;
       }
 
-      have_non_onlydeform_modifiers_appled = true;
+      have_non_onlydeform_modifiers_applied = true;
 
       /* determine which data layers are needed by following modifiers */
       CustomData_MeshMasks nextmask = md_datamask->next ? md_datamask->next->mask : final_datamask;

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2020-01-04 05:04+0900\n"
 "Last-Translator: Geuntak Jeong <beroberos@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/lxlalexlxl/blender/language/ko/)\n"
@@ -29999,10 +29999,6 @@ msgid "Add Threshold"
 msgstr "추가 임계 값"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "버텍스 그룹에 추가 될 버텍스의 웨이트에 대한 하한"
-
-
 msgid "Default Weight"
 msgstr "기본 웨이트"
 
@@ -30092,10 +30088,6 @@ msgstr "버텍스 그룹 이름을 마스킹"
 
 msgid "Remove Threshold"
 msgstr "제거 임계 값"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "버텍스 그룹에서 제거될 버텍스의 웨이트에 대한 상한"
 
 
 msgid "Group Add"
@@ -42792,6 +42784,23 @@ msgstr "스트로크의 지속에 대해 스무스 모드로 브러시를 전환
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "선택 모드"
+
+
+msgid "Select only points"
+msgstr "포인트 만 선택"
+
+
+msgid "Select all stroke points"
+msgstr "모든 스트로크 포인트를 선택"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "각 스트로크 사이의 모든 스트로크 포인트 선택"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "렌더 슬롯을 추가"
 
@@ -46385,11 +46394,6 @@ msgstr "미러된 위치에서 메쉬 항목을 선택"
 
 msgid "Extend the existing selection"
 msgstr "기존의 선택을 확장"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "선택 모드"
 
 
 msgid "Change selection mode"
@@ -58909,10 +58913,6 @@ msgstr "기록 및 북마크를 다시 불러오기"
 msgctxt "Operator"
 msgid "Reload Start-Up File"
 msgstr "스타트업 파일을 다시 불러오기"
-
-
-msgid "Open the default file (doesn't save the current file)"
-msgstr "기본 파일을 열기 (현재 파일을 저장하지 않음)"
 
 
 msgid "Path to an alternative start-up file"
@@ -73349,18 +73349,6 @@ msgid "Settings for stroke sculpting tools and brushes"
 msgstr "스트로크 도구 및 브러시에 대한 설정"
 
 
-msgid "Select only points"
-msgstr "포인트 만 선택"
-
-
-msgid "Select all stroke points"
-msgstr "모든 스트로크 포인트를 선택"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "각 스트로크 사이의 모든 스트로크 포인트 선택"
-
-
 msgid "Stroke Placement (3D View)"
 msgstr "스트로크 배치 (3D 뷰)"
 
@@ -84365,6 +84353,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "누락된 %s%s%s%s 감지됨!"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "사용된 모디파이어는 변형된 위치를 지원하지 않음"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "페인팅을 위한 활성 버텍스 그룹이 없음, 중단하기"
+
+
 msgid "Active group is locked, aborting"
 msgstr "활성 그룹은 잠김, 중단"
 
@@ -84375,14 +84371,6 @@ msgstr "미러 그룹은 잠김, 중단"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "다중 페인트 그룹이 잠김, 중단"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "사용된 모디파이어는 변형된 위치를 지원하지 않음"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "페인팅을 위한 활성 버텍스 그룹이 없음, 중단하기"
 
 
 msgid "Click on the mesh to set the detail"
@@ -86135,14 +86123,6 @@ msgid " or Alt) Even Thickness %s"
 msgstr " 또는 Alt) 균일한 두께 %s"
 
 
-msgid "Tilt: %s° %s"
-msgstr "기울기: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "기울기: %.2f° %s"
-
-
 msgid "ScaleX: %s"
 msgstr "축적X: %s"
 
@@ -87627,16 +87607,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "'%s' 을 연결할 수 없습니다. '%s'유형의 데이터 블록"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': 라이브러리가 아닙니다"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': 라이브러리로 현재 파일을 사용 할 수 없습니다"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': 아무것도 표시하지 않음"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': 라이브러리로 현재 파일을 사용 할 수 없습니다"
+msgid "'%s': not a library"
+msgstr "'%s': 라이브러리가 아닙니다"
 
 
 msgid "'%s' is not a valid library filepath"

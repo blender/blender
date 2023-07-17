@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: 2021-12-05 20:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
@@ -1062,11 +1062,6 @@ msgstr "Deeltje"
 msgctxt "ID"
 msgid "Scene"
 msgstr "Scene"
-
-
-msgctxt "ID"
-msgid "Simulation"
-msgstr "Simulatie"
 
 
 msgctxt "ID"
@@ -6248,10 +6243,6 @@ msgid "Reload Start-Up File"
 msgstr "Herlaad Opstart Bestand"
 
 
-msgid "Open the default file (doesn't save the current file)"
-msgstr "Open Opstart Bestand (huidige bestand wordt niet opgelsagen)"
-
-
 msgctxt "Operator"
 msgid "Load Preferences"
 msgstr "Laad Instellingen"
@@ -9068,11 +9059,6 @@ msgstr "Nieuw"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "Nieuw"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "Nieuw"
 

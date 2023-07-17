@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.0.0 Alpha (b'2f5245b4340a')\n"
+"Project-Id-Version: Blender 4.0.0 Alpha (b'5aff5bc0e72b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-07-10 12:34:48\n"
+"POT-Creation-Date: 2023-07-17 12:39:59\n"
 "PO-Revision-Date: \n"
 "Last-Translator: DeathBlood\n"
 "Language-Team: \n"
@@ -2151,10 +2151,6 @@ msgstr "形态键"
 
 msgid "Shape Key data-blocks"
 msgstr "形态键数据块"
-
-
-msgid "Simulations"
-msgstr "模拟"
 
 
 msgid "Sounds"
@@ -9781,11 +9777,6 @@ msgstr "场景"
 
 
 msgctxt "ID"
-msgid "Simulation"
-msgstr "模拟"
-
-
-msgctxt "ID"
 msgid "Sound"
 msgstr "声音"
 
@@ -12373,10 +12364,6 @@ msgstr "显示/隐藏点云数据块"
 
 msgid "Show Scene data-blocks"
 msgstr "显示场景数据块"
-
-
-msgid "Show Simulation data-blocks"
-msgstr "显示模拟数据块"
 
 
 msgid "Show Sound data-blocks"
@@ -38304,10 +38291,6 @@ msgid "Add Threshold"
 msgstr "添加阈值"
 
 
-msgid "Lower bound for a vertex's weight to be added to the vgroup"
-msgstr "要添加到顶点组的顶点的权重下限"
-
-
 msgid "Default Weight"
 msgstr "默认权重"
 
@@ -38429,10 +38412,6 @@ msgstr "规格化生成的权重(即将其钳制在 [0.0， 1.0] 范围内)"
 
 msgid "Remove Threshold"
 msgstr "移除阈值"
-
-
-msgid "Upper bound for a vertex's weight to be removed from the vgroup"
-msgstr "从顶点组移除的顶点的权重值上限"
 
 
 msgid "Group Add"
@@ -57700,6 +57679,23 @@ msgstr "在画笔持续时间内将笔刷切换到平滑模式"
 
 
 msgctxt "Operator"
+msgid "Select Mode"
+msgstr "选择模式"
+
+
+msgid "Select only points"
+msgstr "仅选择点"
+
+
+msgid "Select all stroke points"
+msgstr "选择全部笔画控制点"
+
+
+msgid "Select all stroke points between other strokes"
+msgstr "选择其他笔画之间的所有笔画点"
+
+
+msgctxt "Operator"
 msgid "Add Render Slot"
 msgstr "添加渲染槽"
 
@@ -61800,11 +61796,6 @@ msgstr "选择镜像方向的对应网格元素"
 
 msgid "Extend the existing selection"
 msgstr "并入当前的选择集合"
-
-
-msgctxt "Operator"
-msgid "Select Mode"
-msgstr "选择模式"
 
 
 msgid "Change selection mode"
@@ -78972,10 +78963,6 @@ msgid "Reload Start-Up File"
 msgstr "重新加载启动文件"
 
 
-msgid "Open the default file (doesn't save the current file)"
-msgstr "打开默认文件(不保存当前文件)"
-
-
 msgid "Path to an alternative start-up file"
 msgstr "替代启动文件的路径"
 
@@ -79504,10 +79491,6 @@ msgstr "将全部物体添加到新集合"
 
 msgid "Import All Materials"
 msgstr "导入所有材质"
-
-
-msgid "Also import materials that are not used by any geometry.  Note that when this option is false, materials referenced by geometry will still be imported"
-msgstr "同时导入任何几何体未使用的材质。 请注意，当此选项为假时，仍会导入几何体引用的材料"
 
 
 msgid "Import guide geometry"
@@ -97955,18 +97938,6 @@ msgid "Settings for stroke sculpting tools and brushes"
 msgstr "用于笔画雕刻工具及笔刷的设置"
 
 
-msgid "Select only points"
-msgstr "仅选择点"
-
-
-msgid "Select all stroke points"
-msgstr "选择全部笔画控制点"
-
-
-msgid "Select all stroke points between other strokes"
-msgstr "选择其他笔画之间的所有笔画点"
-
-
 msgid "Stroke Placement (3D View)"
 msgstr "笔画放置(3D视图)"
 
@@ -112184,48 +112155,8 @@ msgid "Original Mode"
 msgstr "原始模式"
 
 
-msgid "Kilometers"
-msgstr "千米"
-
-
-msgid "100 Meters"
-msgstr "100 米"
-
-
-msgid "10 Meters"
-msgstr "10 米"
-
-
-msgid "Meters"
-msgstr "米"
-
-
-msgid "10 Centimeters"
-msgstr "10 厘米"
-
-
-msgid "Centimeters"
-msgstr "厘米"
-
-
 msgid "Micrometers"
 msgstr "微米"
-
-
-msgid "Miles"
-msgstr "英里"
-
-
-msgid "Furlongs"
-msgstr "弗隆"
-
-
-msgid "Chains"
-msgstr "链"
-
-
-msgid "Yards"
-msgstr "码"
 
 
 msgid "Feet"
@@ -112240,196 +112171,12 @@ msgid "Thou"
 msgstr "毫英寸"
 
 
-msgid "Square Kilometers"
-msgstr "平方公里"
-
-
-msgid "Square Hectometers"
-msgstr "公顷"
-
-
-msgid "Square Dekameters"
-msgstr "公亩"
-
-
-msgid "Square Meters"
-msgstr "平方米"
-
-
-msgid "Square Decimeters"
-msgstr "平方分米"
-
-
-msgid "Square Centimeters"
-msgstr "平方厘米"
-
-
-msgid "Square Millimeters"
-msgstr "平方毫米"
-
-
-msgid "Square Micrometers"
-msgstr "平方微米"
-
-
-msgid "Square Miles"
-msgstr "平方英里"
-
-
-msgid "Square Furlongs"
-msgstr "平方弗隆"
-
-
-msgid "Square Chains"
-msgstr "平方链"
-
-
-msgid "Square Yards"
-msgstr "平方码"
-
-
-msgid "Square Feet"
-msgstr "平方英尺"
-
-
-msgid "Square Inches"
-msgstr "平方英寸"
-
-
-msgid "Square Thou"
-msgstr "平方毫英寸"
-
-
-msgid "Cubic Kilometers"
-msgstr "立方千米"
-
-
-msgid "Cubic Hectometers"
-msgstr "立方百米"
-
-
-msgid "Cubic Dekameters"
-msgstr "立方十米"
-
-
-msgid "Cubic Meters"
-msgstr "立方米"
-
-
-msgid "Cubic Decimeters"
-msgstr "立方分米"
-
-
-msgid "Cubic Centimeters"
-msgstr "立方厘米"
-
-
-msgid "Cubic Millimeters"
-msgstr "立方毫米"
-
-
-msgid "Cubic Micrometers"
-msgstr "立方微米"
-
-
-msgid "Cubic Miles"
-msgstr "立方英里"
-
-
-msgid "Cubic Furlongs"
-msgstr "立方弗隆"
-
-
-msgid "Cubic Chains"
-msgstr "立方链"
-
-
-msgid "Cubic Yards"
-msgstr "立方码"
-
-
-msgid "Cubic Feet"
-msgstr "立方英尺"
-
-
-msgid "Cubic Inches"
-msgstr "立方英寸"
-
-
-msgid "Cubic Thou"
-msgstr "立方毫英寸"
-
-
 msgid "Tonnes"
 msgstr "吨"
 
 
 msgid "100 Kilograms"
 msgstr "100千克"
-
-
-msgid "Kilograms"
-msgstr "千克"
-
-
-msgid "Hectograms"
-msgstr "百克"
-
-
-msgid "10 Grams"
-msgstr "10克"
-
-
-msgid "Grams"
-msgstr "克"
-
-
-msgid "Milligrams"
-msgstr "毫克"
-
-
-msgid "Centum weights"
-msgstr "英担"
-
-
-msgid "Stones"
-msgstr "英石"
-
-
-msgid "Pounds"
-msgstr "英镑"
-
-
-msgid "Ounces"
-msgstr "盎司"
-
-
-msgid "Meters per second"
-msgstr "米/秒"
-
-
-msgid "Kilometers per hour"
-msgstr "公里/小时"
-
-
-msgid "Feet per second"
-msgstr "英尺/秒"
-
-
-msgid "Miles per hour"
-msgstr "英里/小时"
-
-
-msgid "Meters per second squared"
-msgstr "m/s²"
-
-
-msgid "Feet per second squared"
-msgstr "英尺/s²"
-
-
-msgid "Days"
-msgstr "天"
 
 
 msgid "Hours"
@@ -112440,60 +112187,8 @@ msgid "Minutes"
 msgstr "分钟"
 
 
-msgid "Milliseconds"
-msgstr "毫秒"
-
-
 msgid "Microseconds"
 msgstr "微秒"
-
-
-msgid "Arcminutes"
-msgstr "弧分"
-
-
-msgid "Arcseconds"
-msgstr "弧秒"
-
-
-msgid "Gigawatts"
-msgstr "吉瓦"
-
-
-msgid "Megawatts"
-msgstr "兆瓦"
-
-
-msgid "Kilowatts"
-msgstr "千瓦"
-
-
-msgid "Watts"
-msgstr "瓦特"
-
-
-msgid "Milliwatts"
-msgstr "毫瓦"
-
-
-msgid "Microwatts"
-msgstr "微瓦"
-
-
-msgid "Nanowatts"
-msgstr "纳瓦"
-
-
-msgid "Kelvin"
-msgstr "开"
-
-
-msgid "Celsius"
-msgstr "摄氏度"
-
-
-msgid "Fahrenheit"
-msgstr "华氏"
 
 
 msgid "Could not load volume for writing"
@@ -113673,10 +113368,6 @@ msgid "Operation is not allowed in edit mode"
 msgstr "禁止从编辑模式使用该操作"
 
 
-msgid "Loading Asset Libraries"
-msgstr "加载资产库"
-
-
 msgid "Cannot evaluate node group"
 msgstr "无法解算节点组"
 
@@ -114797,10 +114488,6 @@ msgid "Browse Volume Data to be linked"
 msgstr "浏览要关联的体积数据"
 
 
-msgid "Browse Simulation to be linked"
-msgstr "浏览要关联的模拟"
-
-
 msgid "Browse Grease Pencil Data to be linked"
 msgstr "浏览要关联的蜡笔"
 
@@ -114930,11 +114617,6 @@ msgstr "新建"
 
 
 msgctxt "Volume"
-msgid "New"
-msgstr "新建"
-
-
-msgctxt "Simulation"
 msgid "New"
 msgstr "新建"
 
@@ -115944,10 +115626,6 @@ msgstr "无选中集合"
 
 msgid "Unexpected error, collection not found"
 msgstr "意外错误，无法找到集合"
-
-
-msgid "Cannot add objects to a library override collection"
-msgstr "无法向库重写集合添加物体"
 
 
 msgid "No objects selected"
@@ -117135,6 +116813,14 @@ msgid "Missing%s%s%s%s detected!"
 msgstr "检测到 %s%s%s%s 缺失!"
 
 
+msgid "The modifier used does not support deformed locations"
+msgstr "使用的修改器不支持外形位置"
+
+
+msgid "No active vertex group for painting, aborting"
+msgstr "没有用于绘画的激活顶点组, 操作终止"
+
+
 msgid "Active group is locked, aborting"
 msgstr "活动组被锁定, 操作终止"
 
@@ -117145,14 +116831,6 @@ msgstr "镜像组被锁定, 操作终止"
 
 msgid "Multipaint group is locked, aborting"
 msgstr "多精度绘制组被锁定, 操作终止"
-
-
-msgid "The modifier used does not support deformed locations"
-msgstr "使用的修改器不支持外形位置"
-
-
-msgid "No active vertex group for painting, aborting"
-msgstr "没有用于绘画的激活顶点组, 操作终止"
 
 
 msgid "Not supported in dynamic topology mode"
@@ -118254,6 +117932,10 @@ msgstr "在 '%s' 与 '%s' 之间无法通过相互匹配来进行交换"
 
 msgid "Modifier could not be added to (%s : %s) (see console for details)"
 msgstr "修改器无法被添加至 (%s : %s)(请参考控制台的打印信息)"
+
+
+msgid "Loading Asset Libraries"
+msgstr "加载资产库"
 
 
 msgid "Some nodes references could not be restored, will be left empty"
@@ -119871,14 +119553,6 @@ msgstr "法向缩放: "
 
 msgid " or Alt) Even Thickness %s"
 msgstr " 或 Alt) 均匀厚度 %s"
-
-
-msgid "Tilt: %s° %s"
-msgstr "倾斜: %s° %s"
-
-
-msgid "Tilt: %.2f° %s"
-msgstr "倾斜: %.2f° %s"
 
 
 msgid "ScaleX: %s"
@@ -124374,16 +124048,16 @@ msgid "Can't link data-block '%s' of type '%s'"
 msgstr "无法连接类型为 '%s'的数据块 '%s'"
 
 
-msgid "'%s': not a library"
-msgstr "'%s': 不是一个库"
+msgid "'%s': cannot use current file as library"
+msgstr "'%s': 无法使用当前文件作为库文件"
 
 
 msgid "'%s': nothing indicated"
 msgstr "'%s': 没有指示"
 
 
-msgid "'%s': cannot use current file as library"
-msgstr "'%s': 无法使用当前文件作为库文件"
+msgid "'%s': not a library"
+msgstr "'%s': 不是一个库"
 
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
