@@ -159,7 +159,7 @@ struct ShaderKey {
     options = blend_flags;
     options = (options << 6u) | shader_uuid_from_material_type(pipeline, geometry);
     options = (options << 16u) | shader_closure_bits_from_flag(gpumat);
-    options = (options << 1u) | probe_capture;
+    options = (options << 1u) | uint64_t(probe_capture);
   }
 
   uint64_t hash() const
