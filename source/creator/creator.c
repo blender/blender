@@ -270,7 +270,6 @@ void gmp_blender_init_allocator()
  * - run #WM_main() event loop,
  *   or exit immediately when running in background-mode.
  */
-
 int main(int argc,
 #ifdef USE_WIN32_UNICODE_ARGS
          const char **UNUSED(argv_c)
@@ -324,7 +323,7 @@ int main(int argc,
     LocalFree(argv_16);
 
     /* free on early-exit */
-    app_init_data.argv = (const char **)argv;
+    app_init_data.argv = argv;
     app_init_data.argv_num = argv_num;
   }
 #  endif /* USE_WIN32_UNICODE_ARGS */

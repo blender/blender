@@ -187,11 +187,9 @@ void node_gpu_stack_from_data(GPUNodeStack *gs, int type, bNodeStack *ns)
 
 void node_data_from_gpu_stack(bNodeStack *ns, GPUNodeStack *gs)
 {
-  if (ns) {
-    copy_v4_v4(ns->vec, gs->vec);
-    ns->data = gs->link;
-    ns->sockettype = gs->sockettype;
-  }
+  copy_v4_v4(ns->vec, gs->vec);
+  ns->data = gs->link;
+  ns->sockettype = gs->sockettype;
 }
 
 static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeStack **ns)
