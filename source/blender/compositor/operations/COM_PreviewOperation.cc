@@ -43,8 +43,7 @@ void PreviewOperation::init_execution()
   output_image_ = preview_->ibuf;
 
   if (this->get_width() == uint(preview_->ibuf->x) &&
-      this->get_height() == uint(preview_->ibuf->y))
-  {
+      this->get_height() == uint(preview_->ibuf->y)) {
     return;
   }
   const uint size[2] = {get_width(), get_height()};
