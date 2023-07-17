@@ -94,12 +94,15 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
   switch (nm->space) {
     case SHD_SPACE_TANGENT:
       GPU_material_flag_set(mat, GPU_MATFLAG_OBJECT_INFO);
+      /* We return directly from the node_normal_map as strength
+       * has already been applied for the tangent case */
       GPU_link(mat,
                "node_normal_map",
                GPU_attribute(mat, CD_TANGENT, nm->uv_map),
+               strength,
                newnormal,
-               &newnormal);
-      break;
+               &out[0].link);
+      return true;
     case SHD_SPACE_OBJECT:
     case SHD_SPACE_BLENDER_OBJECT:
       GPU_link(mat, "normal_transform_object_to_world", newnormal, &newnormal);
@@ -110,6 +113,7 @@ static int gpu_shader_normal_map(GPUMaterial *mat,
       break;
   }
 
+  /* Final step - mix and apply strength for all other than tangent space. */
   GPU_link(mat, "node_normal_map_mix", strength, newnormal, &out[0].link);
 
   return true;
