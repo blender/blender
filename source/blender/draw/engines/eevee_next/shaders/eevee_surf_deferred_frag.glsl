@@ -68,8 +68,11 @@ void main()
   ivec2 out_texel = ivec2(gl_FragCoord.xy);
 #ifdef MAT_RENDER_PASS_SUPPORT /* Needed because node_tree isn't present in test shaders. */
   /* Some render pass can be written during the gbuffer pass. Light passes are written later. */
-  vec4 cryptomatte_output = vec4(cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
-  imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
+  if (imageSize(rp_cryptomatte_img).x > 1) {
+    vec4 cryptomatte_output = vec4(
+        cryptomatte_object_buf[resource_id], node_tree.crypto_hash, 0.0);
+    imageStore(rp_cryptomatte_img, out_texel, cryptomatte_output);
+  }
   output_renderpass_color(rp_buf.normal_id, vec4(out_normal, 1.0));
   output_renderpass_color(rp_buf.diffuse_color_id, vec4(g_diffuse_data.color, 1.0));
   output_renderpass_color(rp_buf.specular_color_id, vec4(specular_color, 1.0));
