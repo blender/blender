@@ -328,7 +328,8 @@ static void do_item_rename(ARegion *region,
                 TSE_R_LAYER_BASE,
                 TSE_SCENE_COLLECTION_BASE,
                 TSE_VIEW_COLLECTION_BASE,
-                TSE_LIBRARY_OVERRIDE_BASE))
+                TSE_LIBRARY_OVERRIDE_BASE,
+                TSE_GENERIC_LABEL))
   {
     BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
   }
