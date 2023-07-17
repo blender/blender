@@ -42,7 +42,7 @@ struct Render {
 
   /* state settings */
   short flag;
-  bool ok, result_ok;
+  bool ok;
 
   /* result of rendering */
   RenderResult *result;
