@@ -1601,7 +1601,7 @@ void BKE_ocean_simulate(struct Ocean * /*o*/, float /*t*/, float /*scale*/, floa
 
 struct Ocean *BKE_ocean_add(void)
 {
-  Ocean *oc = MEM_callocN(sizeof(Ocean), "ocean sim data");
+  Ocean *oc = static_cast<Ocean *>(MEM_callocN(sizeof(Ocean), "ocean sim data"));
 
   return oc;
 }
@@ -1673,7 +1673,7 @@ OceanCache *BKE_ocean_init_cache(const char * /*bakepath*/,
                                  float /*foam_fade*/,
                                  int /*resolution*/)
 {
-  OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
+  OceanCache *och = static_cast<OceanCache *>(MEM_callocN(sizeof(OceanCache), "ocean cache data"));
 
   return och;
 }
