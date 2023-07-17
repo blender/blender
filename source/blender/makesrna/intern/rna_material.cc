@@ -96,10 +96,6 @@ static void rna_Material_update_previews(Main * /*bmain*/, Scene * /*scene*/, Po
 {
   Material *ma = (Material *)ptr->owner_id;
 
-  if (ma->nodetree) {
-    BKE_node_preview_clear_tree(ma->nodetree);
-  }
-
   WM_main_add_notifier(NC_MATERIAL | ND_SHADING_PREVIEW, ma);
 }
 
