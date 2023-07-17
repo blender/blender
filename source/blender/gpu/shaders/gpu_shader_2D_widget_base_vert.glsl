@@ -153,7 +153,7 @@ vec2 do_tria()
     /* ROUNDBOX_TRIA_DASH */
     pos = point_pos[vidx];
     uvInterp = point_uvs[vidx];
-    uvInterp -= vec2(0.2, 0.45); /* Translate */ 
+    uvInterp -= vec2(0.2, 0.45); /* Translate */
     outRectSize = vec2(0.6, 0.1);
     outRoundCorners = vec4(0.01);
   }
