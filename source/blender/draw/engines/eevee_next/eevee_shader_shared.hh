@@ -1033,8 +1033,10 @@ struct ReflectionProbeData {
   /**
    * Position of the light probe in world space.
    * World probe uses origin.
+   *
+   * 4th component is not used.
    */
-  packed_float3 pos;
+  float4 pos;
 
   /** On which layer of the texture array is this reflection probe stored. */
   int layer;
@@ -1056,8 +1058,6 @@ struct ReflectionProbeData {
    * LOD factor for mipmap selection.
    */
   float lod_factor;
-
-  int _pad[1];
 };
 BLI_STATIC_ASSERT_ALIGN(ReflectionProbeData, 16)
 
