@@ -258,21 +258,21 @@ static void basic_engine_free(void)
 static const DrawEngineDataSize basic_data_size = DRW_VIEWPORT_DATA_SIZE(BASIC_Data);
 
 DrawEngineType draw_engine_basic_type = {
-    NULL,
-    NULL,
-    N_("Basic"),
-    &basic_data_size,
-    NULL,
-    &basic_engine_free,
-    /*instance_free*/ NULL,
-    &basic_cache_init,
-    &basic_cache_populate,
-    &basic_cache_finish,
-    &basic_draw_scene,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*next*/ NULL,
+    /*prev*/ NULL,
+    /*idname*/ N_("Basic"),
+    /*vedata_size*/ &basic_data_size,
+    /*engine_init*/ NULL,
+    /*engine_free*/ &basic_engine_free,
+    /*instance_free*/ /*instance_free*/ NULL,
+    /*cache_init*/ &basic_cache_init,
+    /*cache_populate*/ &basic_cache_populate,
+    /*cache_finish*/ &basic_cache_finish,
+    /*draw_scene*/ &basic_draw_scene,
+    /*view_update*/ NULL,
+    /*id_update*/ NULL,
+    /*render_to_image*/ NULL,
+    /*store_metadata*/ NULL,
 };
 
 #undef BASIC_ENGINE

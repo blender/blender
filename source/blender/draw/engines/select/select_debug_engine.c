@@ -100,21 +100,21 @@ static const DrawEngineDataSize select_debug_data_size = DRW_VIEWPORT_DATA_SIZE(
     SELECTIDDEBUG_Data);
 
 DrawEngineType draw_engine_debug_select_type = {
-    NULL,
-    NULL,
-    N_("Select ID Debug"),
-    &select_debug_data_size,
-    &select_debug_engine_init,
-    &select_debug_engine_free,
-    /*instance_free*/ NULL,
-    NULL,
-    NULL,
-    NULL,
-    &select_debug_draw_scene,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
+    /*next*/ NULL,
+    /*prev*/ NULL,
+    /*idname*/ N_("Select ID Debug"),
+    /*vedata_size*/ &select_debug_data_size,
+    /*engine_init*/ &select_debug_engine_init,
+    /*engine_free*/ &select_debug_engine_free,
+    /*instance_free*/ /*instance_free*/ NULL,
+    /*cache_init*/ NULL,
+    /*cache_populate*/ NULL,
+    /*cache_finish*/ NULL,
+    /*draw_scene*/ &select_debug_draw_scene,
+    /*view_update*/ NULL,
+    /*id_update*/ NULL,
+    /*render_to_image*/ NULL,
+    /*store_metadata*/ NULL,
 };
 
 /** \} */
