@@ -871,7 +871,7 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
       if ((ct->tar->type == OB_ARMATURE) && (ct->subtarget[0])) { \
         bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget); \
         ct->type = CONSTRAINT_OBTYPE_BONE; \
-        ct->rotOrder = (pchan) ? (pchan->rotmode) : EULER_ORDER_DEFAULT; \
+        ct->rotOrder = (pchan) ? (pchan->rotmode) : int(EULER_ORDER_DEFAULT); \
       } \
       else if (OB_TYPE_SUPPORT_VGROUP(ct->tar->type) && (ct->subtarget[0])) { \
         ct->type = CONSTRAINT_OBTYPE_VERT; \

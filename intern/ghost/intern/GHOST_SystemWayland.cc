@@ -6250,7 +6250,10 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_server_guard{*server_mutex};
 #endif
+
+#ifdef WITH_VULKAN_BACKEND
   const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
+#endif
 
   switch (gpuSettings.context_type) {
 
@@ -6280,7 +6283,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
       }
       return nullptr;
     }
-#endif
+#endif /* WITH_VULKAN_BACKEND */
 
 #ifdef WITH_OPENGL_BACKEND
     case GHOST_kDrawingContextTypeOpenGL: {
@@ -6318,7 +6321,7 @@ GHOST_IContext *GHOST_SystemWayland::createOffscreenContext(GHOST_GPUSettings gp
       }
       return nullptr;
     }
-#endif
+#endif /* WITH_OPENGL_BACKEND */
 
     default:
       /* Unsupported backend. */
