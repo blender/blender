@@ -59,6 +59,7 @@ Static Source Code Checking
 
    * check_cppcheck:        Run blender source through cppcheck (C & C++).
    * check_clang_array:     Run blender source through clang array checking script (C & C++).
+   * check_struct_comments: Check struct member comments are correct (C & C++).
    * check_deprecated:      Check if there is any deprecated code to remove.
    * check_descriptions:    Check for duplicate/invalid descriptions.
    * check_licenses:        Check license headers follow the SPDX license specification,
@@ -467,6 +468,13 @@ check_cppcheck: .FORCE
 	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_cppcheck.py" 2> \
 	    "$(BLENDER_DIR)/check_cppcheck.txt"
 	@echo "written: check_cppcheck.txt"
+
+check_struct_comments: .FORCE
+	@$(CMAKE_CONFIG)
+	@cd "$(BUILD_DIR)" ; \
+	$(PYTHON) \
+	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang.py" \
+	    --checks=struct_comments --match=".*"
 
 check_clang_array: .FORCE
 	@$(CMAKE_CONFIG)
