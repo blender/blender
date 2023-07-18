@@ -5520,6 +5520,7 @@ class VIEW3D_MT_edit_greasepencil(Menu):
     def draw(self, _context):
         pass
 
+
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
     bl_label = "Stroke"
 
