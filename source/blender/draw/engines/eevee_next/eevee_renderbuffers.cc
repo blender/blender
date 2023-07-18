@@ -75,16 +75,24 @@ void RenderBuffers::acquire(int2 extent)
 
   /* Only RG16F when only doing only reprojection or motion blur. */
   eGPUTextureFormat vector_format = do_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
+  eGPUTextureUsage usage_attachment_read_write = GPU_TEXTURE_USAGE_ATTACHMENT |
+                                                 GPU_TEXTURE_USAGE_SHADER_READ |
+                                                 GPU_TEXTURE_USAGE_SHADER_WRITE;
   /* TODO(fclem): Make vector pass allocation optional if no TAA or motion blur is needed. */
-  vector_tx.acquire(extent, vector_format);
+  vector_tx.acquire(
+      extent, vector_format, usage_attachment_read_write | GPU_TEXTURE_USAGE_MIP_SWIZZLE_VIEW);
 
   int color_len = data.color_len + data.aovs.color_len;
   int value_len = data.value_len + data.aovs.value_len;
 
-  rp_color_tx.ensure_2d_array(
-      color_format, (color_len > 0) ? extent : int2(1), math::max(1, color_len));
-  rp_value_tx.ensure_2d_array(
-      float_format, (value_len > 0) ? extent : int2(1), math::max(1, value_len));
+  rp_color_tx.ensure_2d_array(color_format,
+                              (color_len > 0) ? extent : int2(1),
+                              math::max(1, color_len),
+                              usage_attachment_read_write);
+  rp_value_tx.ensure_2d_array(float_format,
+                              (value_len > 0) ? extent : int2(1),
+                              math::max(1, value_len),
+                              usage_attachment_read_write);
 
   eGPUTextureFormat cryptomatte_format = GPU_R32F;
   const int cryptomatte_layer_len = inst_.film.cryptomatte_layer_max_get();
@@ -98,7 +106,8 @@ void RenderBuffers::acquire(int2 extent)
       pass_extent(static_cast<eViewLayerEEVEEPassType>(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
                                                        EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
                                                        EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL)),
-      cryptomatte_format);
+      cryptomatte_format,
+      GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE);
 }
 
 void RenderBuffers::release()
