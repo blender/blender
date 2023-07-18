@@ -256,9 +256,7 @@ static bool library_foreach_ID_link(Main *bmain,
   } \
   ((void)0)
 
-  for (; id != nullptr; id = (flag & IDWALK_RECURSE) ?
-                                 static_cast<ID *>(BLI_LINKSTACK_POP(data.ids_todo)) :
-                                 nullptr)
+  for (; id != nullptr; id = (flag & IDWALK_RECURSE) ? BLI_LINKSTACK_POP(data.ids_todo) : nullptr)
   {
     data.self_id = id;
     /* Note that we may call this functions sometime directly on an embedded ID, without any
