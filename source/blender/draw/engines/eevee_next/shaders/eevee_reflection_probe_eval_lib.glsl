@@ -8,7 +8,7 @@ vec4 reflection_probe_eval(ClosureReflection reflection,
                            ReflectionProbeData probe_data)
 {
   ivec3 texture_size = textureSize(reflectionProbes, 0);
-  float lod_cube_max = min(log(float(texture_size.x)) - float(probe_data.layer_subdivision) + 1.0,
+  float lod_cube_max = min(log2(float(texture_size.x)) - float(probe_data.layer_subdivision) + 1.0,
                            float(REFLECTION_PROBE_MIPMAP_LEVELS));
 
   /* Pow2f to distributed across lod more evenly */
