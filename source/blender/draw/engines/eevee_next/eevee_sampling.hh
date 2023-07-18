@@ -89,19 +89,25 @@ class Sampling {
     pass->bind_ssbo(SAMPLING_BUF_SLOT, &data_);
   }
 
-  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated. */
+  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated.
+   * WARNING: Don't use during init or sync,
+   * results are only valid during render, after step() has been called. */
   float rng_get(eSamplingDimension dimension) const
   {
     return data_.dimensions[dimension];
   }
 
-  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated. */
+  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated.
+   * WARNING: Don't use during init or sync,
+   * results are only valid during render, after step() has been called. */
   float2 rng_2d_get(eSamplingDimension starting_dimension) const
   {
     return *reinterpret_cast<const float2 *>(&data_.dimensions[starting_dimension]);
   }
 
-  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated. */
+  /* Returns a pseudo random number in [0..1] range. Each dimension are de-correlated.
+   * WARNING: Don't use during init or sync,
+   * results are only valid during render, after step() has been called. */
   float3 rng_3d_get(eSamplingDimension starting_dimension) const
   {
     return *reinterpret_cast<const float3 *>(&data_.dimensions[starting_dimension]);
