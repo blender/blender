@@ -174,6 +174,7 @@ void RNA_def_meta(struct BlenderRNA *brna);
 void RNA_def_modifier(struct BlenderRNA *brna);
 void RNA_def_nla(struct BlenderRNA *brna);
 void RNA_def_nodetree(struct BlenderRNA *brna);
+void RNA_def_node_socket_subtypes(struct BlenderRNA *brna);
 void RNA_def_object(struct BlenderRNA *brna);
 void RNA_def_object_force(struct BlenderRNA *brna);
 void RNA_def_packedfile(struct BlenderRNA *brna);
