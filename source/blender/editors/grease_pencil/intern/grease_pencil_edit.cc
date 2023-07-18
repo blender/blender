@@ -183,12 +183,12 @@ static void gaussian_blur_1D(const Span<T> src,
           if (!smooth_ends && (before < 0)) {
             w_before *= -before / float(index);
           }
-          before = std::max(before, 0L);
+          before = math::max(before, int64_t(0));
 
           if (!smooth_ends && (after > last_pt)) {
             w_after *= (after - (total_points - 1)) / float(total_points - 1 - index);
           }
-          after = std::min(after, last_pt);
+          after = math::min(after, last_pt);
         }
 
         /* Add the neighboring values. */
