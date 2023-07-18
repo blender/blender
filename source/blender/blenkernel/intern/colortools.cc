@@ -337,7 +337,7 @@ void BKE_curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope
       break;
     case CURVE_PRESET_MID9: {
       for (int i = 0; i < cuma->totpoint; i++) {
-        cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
+        cuma->curve[i].x = i / (float(cuma->totpoint) - 1);
         cuma->curve[i].y = 0.5;
       }
       break;
@@ -750,7 +750,7 @@ static void curvemap_make_table(const CurveMapping *cumap, CurveMap *cuma)
       MEM_callocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "dist table"));
 
   for (int a = 0; a <= CM_TABLE; a++) {
-    float cur_x = cuma->mintable + range * (float)a;
+    float cur_x = cuma->mintable + range * float(a);
     cmp[a].x = cur_x;
 
     /* Get the first point with x coordinate larger than cur_x. */
@@ -962,7 +962,7 @@ float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, fl
 {
   /* index in table */
   float fi = (value - cuma->mintable) * cuma->range;
-  int i = (int)fi;
+  int i = int(fi);
 
   /* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
   if (fi < 0.0f || fi > CM_TABLE) {
@@ -976,7 +976,7 @@ float BKE_curvemap_evaluateF(const CurveMapping *cumap, const CurveMap *cuma, fl
     return cuma->table[CM_TABLE].y;
   }
 
-  fi = fi - (float)i;
+  fi = fi - float(i);
   return (1.0f - fi) * cuma->table[i].y + (fi)*cuma->table[i + 1].y;
 }
 
@@ -1113,9 +1113,9 @@ void BKE_curvemapping_evaluate_premulRGB(const CurveMapping *cumap,
 {
   float vecin[3], vecout[3];
 
-  vecin[0] = (float)vecin_byte[0] / 255.0f;
-  vecin[1] = (float)vecin_byte[1] / 255.0f;
-  vecin[2] = (float)vecin_byte[2] / 255.0f;
+  vecin[0] = float(vecin_byte[0]) / 255.0f;
+  vecin[1] = float(vecin_byte[1]) / 255.0f;
+  vecin[2] = float(vecin_byte[2]) / 255.0f;
 
   BKE_curvemapping_evaluate_premulRGBF(cumap, vecout, vecin);
 
@@ -1325,7 +1325,7 @@ void BKE_curvemapping_blend_read(BlendDataReader *reader, CurveMapping *cumap)
 
 BLI_INLINE int get_bin_float(float f)
 {
-  int bin = (int)((f * 255.0f) + 0.5f); /* 0.5 to prevent quantization differences */
+  int bin = int((f * 255.0f) + 0.5f); /* 0.5 to prevent quantization differences */
 
   /* NOTE: clamp integer instead of float to avoid problems with NaN. */
   CLAMP(bin, 0, 255);
@@ -1401,8 +1401,8 @@ void BKE_histogram_update_sample_line(Histogram *hist,
   }
 
   for (i = 0; i < 256; i++) {
-    x = (int)(0.5f + x1 + (float)i * (x2 - x1) / 255.0f);
-    y = (int)(0.5f + y1 + (float)i * (y2 - y1) / 255.0f);
+    x = int(0.5f + x1 + float(i) * (x2 - x1) / 255.0f);
+    y = int(0.5f + y1 + float(i) * (y2 - y1) / 255.0f);
 
     if (x < 0 || y < 0 || x >= ibuf->x || y >= ibuf->y) {
       hist->data_luma[i] = hist->data_r[i] = hist->data_g[i] = hist->data_b[i] = hist->data_a[i] =
@@ -1443,11 +1443,11 @@ void BKE_histogram_update_sample_line(Histogram *hist,
       }
       else if (ibuf->byte_buffer.data) {
         cp = ibuf->byte_buffer.data + 4 * (y * ibuf->x + x);
-        hist->data_luma[i] = (float)IMB_colormanagement_get_luminance_byte(cp) / 255.0f;
-        hist->data_r[i] = (float)cp[0] / 255.0f;
-        hist->data_g[i] = (float)cp[1] / 255.0f;
-        hist->data_b[i] = (float)cp[2] / 255.0f;
-        hist->data_a[i] = (float)cp[3] / 255.0f;
+        hist->data_luma[i] = float(IMB_colormanagement_get_luminance_byte(cp)) / 255.0f;
+        hist->data_r[i] = float(cp[0]) / 255.0f;
+        hist->data_g[i] = float(cp[1]) / 255.0f;
+        hist->data_b[i] = float(cp[2]) / 255.0f;
+        hist->data_a[i] = float(cp[3]) / 255.0f;
       }
     }
   }
@@ -1505,10 +1505,10 @@ static void scopes_update_cb(void *__restrict userdata,
   const bool is_float = (ibuf->float_buffer.data != nullptr);
 
   if (is_float) {
-    rf = ibuf->float_buffer.data + ((size_t)y) * ibuf->x * ibuf->channels;
+    rf = ibuf->float_buffer.data + (size_t(y)) * ibuf->x * ibuf->channels;
   }
   else {
-    rc = display_buffer + ((size_t)y) * ibuf->x * ibuf->channels;
+    rc = display_buffer + (size_t(y)) * ibuf->x * ibuf->channels;
   }
 
   for (int x = 0; x < ibuf->x; x++) {
@@ -1564,7 +1564,7 @@ static void scopes_update_cb(void *__restrict userdata,
 
     /* save sample if needed */
     if (do_sample_line) {
-      const float fx = (float)x / (float)ibuf->x;
+      const float fx = float(x) / float(ibuf->x);
       const int idx = 2 * (ibuf->x * savedlines + x);
       save_sample_line(scopes, idx, fx, rgba, ycc);
     }
@@ -1748,11 +1748,11 @@ void BKE_scopes_update(Scopes *scopes,
       na = data_chunk.bin_a[a];
     }
   }
-  divl = nl ? 1.0 / (double)nl : 1.0;
-  diva = na ? 1.0 / (double)na : 1.0;
-  divr = nr ? 1.0 / (double)nr : 1.0;
-  divg = ng ? 1.0 / (double)ng : 1.0;
-  divb = nb ? 1.0 / (double)nb : 1.0;
+  divl = nl ? 1.0 / double(nl) : 1.0;
+  diva = na ? 1.0 / double(na) : 1.0;
+  divr = nr ? 1.0 / double(nr) : 1.0;
+  divg = ng ? 1.0 / double(ng) : 1.0;
+  divb = nb ? 1.0 / double(nb) : 1.0;
 
   for (a = 0; a < 256; a++) {
     scopes->hist.data_luma[a] = data_chunk.bin_lum[a] * divl;

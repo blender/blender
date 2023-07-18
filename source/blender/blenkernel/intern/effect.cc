@@ -81,7 +81,7 @@ PartDeflect *BKE_partdeflect_new(int type)
   pd->pdef_sbift = 0.2f;
   pd->pdef_sboft = 0.02f;
   pd->pdef_cfrict = 5.0f;
-  pd->seed = ((uint)ceil(PIL_check_seconds_timer()) + 1) % 128;
+  pd->seed = (uint(ceil(PIL_check_seconds_timer())) + 1) % 128;
   pd->f_strength = 1.0f;
   pd->f_damp = 1.0f;
 
@@ -137,7 +137,7 @@ void BKE_partdeflect_free(PartDeflect *pd)
 static void precalculate_effector(Depsgraph *depsgraph, EffectorCache *eff)
 {
   float ctime = DEG_get_ctime(depsgraph);
-  uint cfra = (uint)(ctime >= 0 ? ctime : -ctime);
+  uint cfra = uint(ctime >= 0 ? ctime : -ctime);
   if (!eff->pd->rng) {
     eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
   }
@@ -430,7 +430,7 @@ void pd_point_from_loc(Scene *scene, float *loc, float *vel, int index, Effected
   point->index = index;
   point->size = 0.0f;
 
-  point->vel_to_sec = (float)scene->r.frs_sec;
+  point->vel_to_sec = float(scene->r.frs_sec);
   point->vel_to_frame = 1.0f;
 
   point->flag = 0;
@@ -445,7 +445,7 @@ void pd_point_from_soft(Scene *scene, float *loc, float *vel, int index, Effecte
   point->index = index;
   point->size = 0.0f;
 
-  point->vel_to_sec = (float)scene->r.frs_sec;
+  point->vel_to_sec = float(scene->r.frs_sec);
   point->vel_to_frame = 1.0f;
 
   point->flag = PE_WIND_AS_SPEED;
@@ -547,9 +547,9 @@ static float wind_func(RNG *rng, float strength)
   float sign = 0;
 
   /* Dividing by 2 is not giving equal sign distribution. */
-  sign = ((float)random > 64.0f) ? 1.0f : -1.0f;
+  sign = (float(random) > 64.0f) ? 1.0f : -1.0f;
 
-  ret = sign * ((float)random / force) * strength / 128.0f;
+  ret = sign * (float(random) / force) * strength / 128.0f;
 
   return ret;
 }
@@ -573,7 +573,7 @@ static float falloff_func(
     mindist = 0.0;
   }
 
-  return pow((double)(1.0f + fac - mindist), (double)(-power));
+  return pow(double(1.0f + fac - mindist), double(-power));
 }
 
 static float falloff_func_dist(PartDeflect *pd, float fac)
@@ -855,7 +855,7 @@ static void get_effector_tot(
       int totpart = eff->psys->totpart;
       int amount = eff->psys->part->effector_amount;
 
-      *step = (totpart > amount) ? (int)ceil((float)totpart / (float)amount) : 1;
+      *step = (totpart > amount) ? int(ceil(float(totpart) / float(amount))) : 1;
     }
   }
   else {
@@ -1241,7 +1241,7 @@ SimDebugData *_sim_debug_data = nullptr;
 
 uint BKE_sim_debug_data_hash(int i)
 {
-  return BLI_ghashutil_uinthash((uint)i);
+  return BLI_ghashutil_uinthash(uint(i));
 }
 
 uint BKE_sim_debug_data_hash_combine(uint kx, uint ky)
@@ -1312,12 +1312,12 @@ void BKE_sim_debug_data_set_enabled(bool enable)
   }
 }
 
-bool BKE_sim_debug_data_get_enabled(void)
+bool BKE_sim_debug_data_get_enabled()
 {
   return _sim_debug_data != nullptr;
 }
 
-void BKE_sim_debug_data_free(void)
+void BKE_sim_debug_data_free()
 {
   if (_sim_debug_data) {
     if (_sim_debug_data->gh) {
@@ -1402,7 +1402,7 @@ void BKE_sim_debug_data_remove_element(uint hash)
   BLI_ghash_remove(_sim_debug_data->gh, &dummy, nullptr, debug_element_free);
 }
 
-void BKE_sim_debug_data_clear(void)
+void BKE_sim_debug_data_clear()
 {
   if (!_sim_debug_data) {
     return;
@@ -1414,7 +1414,7 @@ void BKE_sim_debug_data_clear(void)
 
 void BKE_sim_debug_data_clear_category(const char *category)
 {
-  int category_hash = (int)BLI_ghashutil_strhash_p(category);
+  int category_hash = int(BLI_ghashutil_strhash_p(category));
 
   if (!_sim_debug_data) {
     return;

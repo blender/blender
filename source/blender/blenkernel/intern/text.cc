@@ -216,7 +216,7 @@ static void text_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_data_address(reader, &ln->line);
     ln->format = nullptr;
 
-    if (ln->len != (int)strlen(ln->line)) {
+    if (ln->len != int(strlen(ln->line))) {
       printf("Error loading text, line lengths differ\n");
       ln->len = strlen(ln->line);
     }
@@ -1116,8 +1116,8 @@ void txt_move_to(Text *text, uint line, uint ch, const bool sel)
       break;
     }
   }
-  if (ch > (uint)((*linep)->len)) {
-    ch = (uint)((*linep)->len);
+  if (ch > uint((*linep)->len)) {
+    ch = uint((*linep)->len);
   }
   *charp = ch;
 
@@ -1634,7 +1634,7 @@ int txt_find_string(Text *text, const char *findstr, int wrap, int match_case)
 
   if (s) {
     int newl = txt_get_span(static_cast<TextLine *>(text->lines.first), tl);
-    int newc = (int)(s - tl->line);
+    int newc = int(s - tl->line);
     txt_move_to(text, newl, newc, 0);
     txt_move_to(text, newl, newc + strlen(findstr), 1);
     return 1;
@@ -2357,12 +2357,12 @@ bool text_check_identifier_nodigit(const char ch)
 #ifndef WITH_PYTHON
 int text_check_identifier_unicode(const uint ch)
 {
-  return (ch < 255 && text_check_identifier((uint)ch));
+  return (ch < 255 && text_check_identifier(uint(ch)));
 }
 
 int text_check_identifier_nodigit_unicode(const uint ch)
 {
-  return (ch < 255 && text_check_identifier_nodigit((char)ch));
+  return (ch < 255 && text_check_identifier_nodigit(char(ch)));
 }
 #endif /* WITH_PYTHON */
 

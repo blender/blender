@@ -354,7 +354,7 @@ void BKE_sound_force_device(const char *device)
   force_device = device;
 }
 
-void BKE_sound_init_once(void)
+void BKE_sound_init_once()
 {
   AUD_initOnce();
   atexit(BKE_sound_exit_once);
@@ -362,7 +362,7 @@ void BKE_sound_init_once(void)
 
 static AUD_Device *sound_device = nullptr;
 
-void *BKE_sound_get_device(void)
+void *BKE_sound_get_device()
 {
   return sound_device;
 }
@@ -432,13 +432,13 @@ void BKE_sound_init_main(Main *bmain)
 #  endif
 }
 
-void BKE_sound_exit(void)
+void BKE_sound_exit()
 {
   AUD_exit(sound_device);
   sound_device = nullptr;
 }
 
-void BKE_sound_exit_once(void)
+void BKE_sound_exit_once()
 {
   AUD_exit(sound_device);
   sound_device = nullptr;
@@ -679,12 +679,12 @@ void BKE_sound_destroy_scene(Scene *scene)
   }
 }
 
-void BKE_sound_lock(void)
+void BKE_sound_lock()
 {
   AUD_Device_lock(sound_device);
 }
 
-void BKE_sound_unlock(void)
+void BKE_sound_unlock()
 {
   AUD_Device_unlock(sound_device);
 }
@@ -902,7 +902,7 @@ static double get_cur_time(Scene *scene)
   /* We divide by the current framelen to take into account time remapping.
    * Otherwise we will get the wrong starting time which will break A/V sync.
    * See #74111 for further details. */
-  return FRA2TIME((scene->r.cfra + scene->r.subframe) / (double)scene->r.framelen);
+  return FRA2TIME((scene->r.cfra + scene->r.subframe) / double(scene->r.framelen));
 }
 
 void BKE_sound_play_scene(Scene *scene)
@@ -1155,7 +1155,7 @@ static void sound_update_base(Scene *scene, Object *object, void *new_set)
 
       if (AUD_removeSet(scene->speaker_handles, strip->speaker_handle)) {
         if (speaker->sound) {
-          AUD_SequenceEntry_move(strip->speaker_handle, (double)strip->start / FPS, FLT_MAX, 0);
+          AUD_SequenceEntry_move(strip->speaker_handle, double(strip->start) / FPS, FLT_MAX, 0);
         }
         else {
           AUD_Sequence_remove(scene->sound_scene, strip->speaker_handle);
@@ -1166,7 +1166,7 @@ static void sound_update_base(Scene *scene, Object *object, void *new_set)
         if (speaker->sound) {
           strip->speaker_handle = AUD_Sequence_add(scene->sound_scene,
                                                    speaker->sound->playback_handle,
-                                                   (double)strip->start / FPS,
+                                                   double(strip->start) / FPS,
                                                    FLT_MAX,
                                                    0);
           AUD_SequenceEntry_setRelative(strip->speaker_handle, 0);
@@ -1255,7 +1255,7 @@ float BKE_sound_get_length(Main *bmain, bSound *sound)
   return info.length;
 }
 
-char **BKE_sound_get_device_names(void)
+char **BKE_sound_get_device_names()
 {
   if (audio_device_names == nullptr) {
     audio_device_names = AUD_getDeviceNames();
@@ -1428,7 +1428,7 @@ float BKE_sound_get_length(struct Main * /*bmain*/, bSound * /*sound*/)
 {
   return 0;
 }
-char **BKE_sound_get_device_names(void)
+char **BKE_sound_get_device_names()
 {
   static char *names[1] = {nullptr};
   return names;

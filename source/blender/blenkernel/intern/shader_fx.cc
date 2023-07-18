@@ -55,7 +55,7 @@ bool BKE_shaderfx_has_gpencil(const Object *ob)
   return false;
 }
 
-void BKE_shaderfx_init(void)
+void BKE_shaderfx_init()
 {
   /* Initialize shaders */
   shaderfx_type_init(shader_fx_types); /* FX_shader_util.c */

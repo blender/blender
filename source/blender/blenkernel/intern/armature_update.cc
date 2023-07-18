@@ -107,7 +107,7 @@ static void splineik_init_tree_from_pchan(Scene * /*scene*/,
 
   /* Perform binding step if required. */
   if ((ik_data->flag & CONSTRAINT_SPLINEIK_BOUND) == 0) {
-    float segmentLen = (1.0f / (float)segcount);
+    float segmentLen = (1.0f / float(segcount));
 
     /* Setup new empty array for the points list. */
     if (ik_data->points) {
@@ -656,7 +656,7 @@ static void splineik_evaluate_bone(
 
               float range = bulge_max - 1.0f;
               float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-              float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / (float)M_PI_2;
+              float soft = 1.0f + range * atanf((bulge - 1.0f) * scale) / float(M_PI_2);
 
               bulge = interpf(soft, hard, ik_data->bulge_smooth);
             }
@@ -668,7 +668,7 @@ static void splineik_evaluate_bone(
 
               float range = 1.0f - bulge_min;
               float scale = (range > 0.0f) ? 1.0f / range : 0.0f;
-              float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / (float)M_PI_2;
+              float soft = 1.0f - range * atanf((1.0f - bulge) * scale) / float(M_PI_2);
 
               bulge = interpf(soft, hard, ik_data->bulge_smooth);
             }

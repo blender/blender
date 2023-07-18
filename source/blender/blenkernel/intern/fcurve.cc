@@ -52,7 +52,7 @@ static CLG_LogRef LOG = {"bke.fcurve"};
 /** \name F-Curve Data Create
  * \{ */
 
-FCurve *BKE_fcurve_create(void)
+FCurve *BKE_fcurve_create()
 {
   FCurve *fcu = static_cast<FCurve *>(MEM_callocN(sizeof(FCurve), __func__));
   return fcu;
@@ -822,9 +822,9 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
     const FCurve *fcu = fcurve_array[fcurve_index];
     for (int i = 0; i < fcu->totvert; i++) {
       const BezTriple *bezt = &fcu->bezt[i];
-      const double value = round((double)bezt->vec[1][0] / interval_db);
+      const double value = round(double(bezt->vec[1][0]) / interval_db);
       BLI_assert(value > INT_MIN && value < INT_MAX);
-      BLI_gset_add(frames_unique, POINTER_FROM_INT((int)value));
+      BLI_gset_add(frames_unique, POINTER_FROM_INT(int(value)));
     }
   }
 
@@ -835,7 +835,7 @@ float *BKE_fcurves_calc_keyed_frames_ex(FCurve **fcurve_array,
   int i = 0;
   GSET_ITER_INDEX (gs_iter, frames_unique, i) {
     const int value = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
-    frames[i] = (double)value * interval_db;
+    frames[i] = double(value) * interval_db;
   }
   BLI_gset_free(frames_unique, nullptr);
 
@@ -875,7 +875,7 @@ void BKE_fcurve_active_keyframe_set(FCurve *fcu, const BezTriple *active_bezt)
   /* The active keyframe should always be selected. */
   BLI_assert_msg(BEZT_ISSEL_ANY(active_bezt), "active keyframe must be selected");
 
-  fcu->active_keyframe_index = (int)offset;
+  fcu->active_keyframe_index = int(offset);
 }
 
 int BKE_fcurve_active_keyframe_index(const FCurve *fcu)
@@ -1082,8 +1082,8 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
 
   /* Use the sampling callback at 1-frame intervals from start to end frames. */
   for (int cfra = start; cfra <= end; cfra++, fpt++) {
-    fpt->vec[0] = (float)cfra;
-    fpt->vec[1] = sample_cb(fcu, data, (float)cfra);
+    fpt->vec[0] = float(cfra);
+    fpt->vec[1] = sample_cb(fcu, data, float(cfra));
   }
 
   /* Free any existing sample/keyframe data on curve. */
@@ -1139,7 +1139,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   int sample_points = fcu->totvert;
 
   BezTriple *bezt = fcu->bezt = static_cast<BezTriple *>(
-      MEM_callocN(sizeof(*fcu->bezt) * (size_t)keyframes_to_insert, __func__));
+      MEM_callocN(sizeof(*fcu->bezt) * size_t(keyframes_to_insert), __func__));
   fcu->totvert = keyframes_to_insert;
 
   /* Get first sample point to 'copy' as keyframe. */
@@ -1153,7 +1153,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   /* Add leading dummy flat points if needed. */
   for (; keyframes_to_insert && (fpt->vec[0] > start); cur_pos++, bezt++, keyframes_to_insert--) {
     init_unbaked_bezt_data(bezt);
-    bezt->vec[1][0] = (float)cur_pos;
+    bezt->vec[1][0] = float(cur_pos);
     bezt->vec[1][1] = fpt->vec[1];
   }
 
@@ -1168,7 +1168,7 @@ void fcurve_samples_to_keyframes(FCurve *fcu, const int start, const int end)
   /* Add trailing dummy flat points if needed. */
   for (fpt--; keyframes_to_insert; cur_pos++, bezt++, keyframes_to_insert--) {
     init_unbaked_bezt_data(bezt);
-    bezt->vec[1][0] = (float)cur_pos;
+    bezt->vec[1][0] = float(cur_pos);
     bezt->vec[1][1] = fpt->vec[1];
   }
 
@@ -1499,9 +1499,9 @@ static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
 
     if (d > 0.0) {
       t = sqrt(d);
-      o[0] = (float)(sqrt3d(-q + t) + sqrt3d(-q - t) - a);
+      o[0] = float(sqrt3d(-q + t) + sqrt3d(-q - t) - a);
 
-      if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
         return 1;
       }
       return 0;
@@ -1509,14 +1509,14 @@ static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
 
     if (d == 0.0) {
       t = sqrt3d(-q);
-      o[0] = (float)(2 * t - a);
+      o[0] = float(2 * t - a);
 
-      if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
         nr++;
       }
-      o[nr] = (float)(-t - a);
+      o[nr] = float(-t - a);
 
-      if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+      if ((o[nr] >= float(SMALL)) && (o[nr] <= 1.000001f)) {
         return nr + 1;
       }
       return nr;
@@ -1526,19 +1526,19 @@ static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
     t = sqrt(-p);
     p = cos(phi / 3);
     q = sqrt(3 - 3 * p * p);
-    o[0] = (float)(2 * t * p - a);
+    o[0] = float(2 * t * p - a);
 
-    if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+    if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
       nr++;
     }
-    o[nr] = (float)(-t * (p + q) - a);
+    o[nr] = float(-t * (p + q) - a);
 
-    if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+    if ((o[nr] >= float(SMALL)) && (o[nr] <= 1.000001f)) {
       nr++;
     }
-    o[nr] = (float)(-t * (p - q) - a);
+    o[nr] = float(-t * (p - q) - a);
 
-    if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+    if ((o[nr] >= float(SMALL)) && (o[nr] <= 1.000001f)) {
       return nr + 1;
     }
     return nr;
@@ -1553,22 +1553,22 @@ static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
 
     if (p > 0) {
       p = sqrt(p);
-      o[0] = (float)((-b - p) / (2 * a));
+      o[0] = float((-b - p) / (2 * a));
 
-      if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
         nr++;
       }
-      o[nr] = (float)((-b + p) / (2 * a));
+      o[nr] = float((-b + p) / (2 * a));
 
-      if ((o[nr] >= (float)SMALL) && (o[nr] <= 1.000001f)) {
+      if ((o[nr] >= float(SMALL)) && (o[nr] <= 1.000001f)) {
         return nr + 1;
       }
       return nr;
     }
 
     if (p == 0) {
-      o[0] = (float)(-b / (2 * a));
-      if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+      o[0] = float(-b / (2 * a));
+      if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
         return 1;
       }
     }
@@ -1577,9 +1577,9 @@ static int solve_cubic(double c0, double c1, double c2, double c3, float *o)
   }
 
   if (b != 0.0) {
-    o[0] = (float)(-c / b);
+    o[0] = float(-c / b);
 
-    if ((o[0] >= (float)SMALL) && (o[0] <= 1.000001f)) {
+    if ((o[0] >= float(SMALL)) && (o[0] <= 1.000001f)) {
       return 1;
     }
     return 0;
@@ -1843,7 +1843,7 @@ void BKE_fcurve_merge_duplicate_keys(FCurve *fcu, const int sel_flag, const bool
 
   /* Compute the average values for each retained keyframe */
   LISTBASE_FOREACH (tRetainedKeyframe *, rk, &retained_keys) {
-    rk->val = rk->val / (float)rk->tot_count;
+    rk->val = rk->val / float(rk->tot_count);
   }
 
   /* 2) Delete all keyframes duplicating the "retained keys" found above
@@ -2303,7 +2303,7 @@ static float fcurve_eval_samples(const FCurve *fcu, const FPoint *fpts, float ev
     float t = fabsf(evaltime - floorf(evaltime));
 
     /* Find the one on the right frame (assume that these are spaced on 1-frame intervals). */
-    const FPoint *fpt = prevfpt + ((int)evaltime - (int)prevfpt->vec[0]);
+    const FPoint *fpt = prevfpt + (int(evaltime) - int(prevfpt->vec[0]));
 
     /* If not exactly on the frame, perform linear interpolation with the next one. */
     if (t != 0.0f && t < 1.0f) {

@@ -121,11 +121,11 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   /* determine major axis */
   axis = axis_dominant_v3_single(delta);
 
-  d = delta[axis] / (float)res;
+  d = delta[axis] / float(res);
 
   size[axis] = res;
-  size[(axis + 1) % 3] = (int)ceil(delta[(axis + 1) % 3] / d);
-  size[(axis + 2) % 3] = (int)ceil(delta[(axis + 2) % 3] / d);
+  size[(axis + 1) % 3] = int(ceil(delta[(axis + 1) % 3] / d));
+  size[(axis + 2) % 3] = int(ceil(delta[(axis + 2) % 3] / d));
 
   /* float errors grrr. */
   size[(axis + 1) % 3] = MIN2(size[(axis + 1) % 3], res);
@@ -143,9 +143,9 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
   for (i = 0, p = 0, pa = psys->particles; i < res; i++) {
     for (j = 0; j < res; j++) {
       for (k = 0; k < res; k++, p++, pa++) {
-        pa->fuv[0] = min[0] + (float)i * d;
-        pa->fuv[1] = min[1] + (float)j * d;
-        pa->fuv[2] = min[2] + (float)k * d;
+        pa->fuv[0] = min[0] + float(i) * d;
+        pa->fuv[1] = min[1] + float(j) * d;
+        pa->fuv[2] = min[2] + float(k) * d;
         pa->flag |= PARS_UNEXIST;
         pa->hair_index = 0; /* abused in volume calculation */
       }
@@ -167,8 +167,8 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
       vec[0] /= delta[0];
       vec[1] /= delta[1];
       vec[2] /= delta[2];
-      pa[((int)(vec[0] * (size[0] - 1)) * res + (int)(vec[1] * (size[1] - 1))) * res +
-         (int)(vec[2] * (size[2] - 1))]
+      pa[(int(vec[0] * (size[0] - 1)) * res + int(vec[1] * (size[1] - 1))) * res +
+         int(vec[2] * (size[2] - 1))]
           .flag &= ~PARS_UNEXIST;
     }
   }
@@ -228,14 +228,14 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
             bool intersects_tri = isect_ray_tri_watertight_v3(
                 co1, &isect_precalc, v1, v2, v3, &lambda, nullptr);
             if (intersects_tri) {
-              pa1 = (pa + (int)(lambda * size[a]) * a0mul);
+              pa1 = (pa + int(lambda * size[a]) * a0mul);
             }
 
             if (mface->v4 && (!intersects_tri || from == PART_FROM_VOLUME)) {
               copy_v3_v3(v4, positions[mface->v4]);
 
               if (isect_ray_tri_watertight_v3(co1, &isect_precalc, v1, v3, v4, &lambda, nullptr)) {
-                pa2 = (pa + (int)(lambda * size[a]) * a0mul);
+                pa2 = (pa + int(lambda * size[a]) * a0mul);
               }
             }
 
@@ -328,14 +328,14 @@ static void hammersley_create(float *out, int n, int seed, float amount)
   double ofs[2], t;
 
   rng = BLI_rng_new(31415926 + n + seed);
-  ofs[0] = BLI_rng_get_double(rng) + (double)amount;
-  ofs[1] = BLI_rng_get_double(rng) + (double)amount;
+  ofs[0] = BLI_rng_get_double(rng) + double(amount);
+  ofs[1] = BLI_rng_get_double(rng) + double(amount);
   BLI_rng_free(rng);
 
   for (int k = 0; k < n; k++) {
     BLI_hammersley_1d(k, &t);
 
-    out[2 * k + 0] = fmod((double)k / (double)n + ofs[0], 1.0);
+    out[2 * k + 0] = fmod(double(k) / double(n) + ofs[0], 1.0);
     out[2 * k + 1] = fmod(t + ofs[1], 1.0);
   }
 }
@@ -351,9 +351,9 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
     return;
   }
 
-  rad1 = (float)(1.0f / sqrtf((float)num));
-  rad2 = (float)(1.0f / ((float)num));
-  rad3 = (float)sqrtf((float)num) / ((float)num);
+  rad1 = float(1.0f / sqrtf(float(num)));
+  rad2 = float(1.0f / (float(num)));
+  rad3 = float(sqrtf(float(num)) / (float(num)));
 
   rng = BLI_rng_new(31415926 + num + seed2);
   x = 0;
@@ -363,11 +363,11 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
     jit[i] = x + amount * rad1 * (0.5f - BLI_rng_get_float(rng));
     jit[i + 1] = i / (2.0f * num) + amount * rad1 * (0.5f - BLI_rng_get_float(rng));
 
-    jit[i] -= (float)floor(jit[i]);
-    jit[i + 1] -= (float)floor(jit[i + 1]);
+    jit[i] -= float(floor(jit[i]));
+    jit[i + 1] -= float(floor(jit[i + 1]));
 
     x += rad3;
-    x -= (float)floor(x);
+    x -= float(floor(x));
   }
 
   jit2 = static_cast<float *>(MEM_mallocN(12 + sizeof(float[2]) * num, "initjit"));
@@ -545,10 +545,10 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
         }
       }
       else {
-        float offset = fmod(ctx->jitoff[i] + (float)p, (float)ctx->jitlevel);
+        float offset = fmod(ctx->jitoff[i] + float(p), float(ctx->jitlevel));
         if (!isnan(offset)) {
           psys_uv_to_w(
-              ctx->jit[2 * (int)offset], ctx->jit[2 * (int)offset + 1], mface->v4, pa->fuv);
+              ctx->jit[2 * int(offset)], ctx->jit[2 * int(offset) + 1], mface->v4, pa->fuv);
         }
       }
       break;
@@ -597,10 +597,10 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
         }
       }
       else {
-        float offset = fmod(ctx->jitoff[i] + (float)p, (float)ctx->jitlevel);
+        float offset = fmod(ctx->jitoff[i] + float(p), float(ctx->jitlevel));
         if (!isnan(offset)) {
           psys_uv_to_w(
-              ctx->jit[2 * (int)offset], ctx->jit[2 * (int)offset + 1], mface->v4, pa->fuv);
+              ctx->jit[2 * int(offset)], ctx->jit[2 * int(offset) + 1], mface->v4, pa->fuv);
         }
       }
       break;
@@ -734,7 +734,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
     /* the weights here could be done better */
     for (w = 0; w < maxw; w++) {
       parent[w] = ptn[w].index;
-      pweight[w] = (float)pow(2.0, (double)(-6.0f * ptn[w].dist / maxd));
+      pweight[w] = float(pow(2.0, double(-6.0f * ptn[w].dist / maxd)));
     }
     for (; w < 10; w++) {
       parent[w] = -1;
@@ -1100,7 +1100,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
     maxweight /= totarea;
   }
   else {
-    float min = 1.0f / (float)MIN2(totelem, totpart);
+    float min = 1.0f / float(MIN2(totelem, totpart));
     for (i = 0; i < totelem; i++) {
       element_weight[i] = min;
     }
@@ -1207,7 +1207,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
   else {
     double step, pos;
 
-    step = (totpart < 2) ? 0.5 : 1.0 / (double)totpart;
+    step = (totpart < 2) ? 0.5 : 1.0 / double(totpart);
     /* This is to address tricky issues with vertex-emitting when user tries
      * (and expects) exact 1-1 vert/part distribution (see #47983 and its two example files).
      * It allows us to consider pos as 'midpoint between v and v+1'
@@ -1215,11 +1215,11 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx,
      * and avoid stumbling over float impression in element_sum.
      * NOTE: moved face and volume distribution to this as well (instead of starting at zero),
      * for the same reasons, see #52682. */
-    pos = (totpart < totmapped) ? 0.5 / (double)totmapped :
+    pos = (totpart < totmapped) ? 0.5 / double(totmapped) :
                                   step * 0.5; /* We choose the smaller step. */
 
     for (i = 0, p = 0; p < totpart; p++, pos += step) {
-      for (; (i < totmapped - 1) && (pos > (double)element_sum[i]); i++) {
+      for (; (i < totmapped - 1) && (pos > double(element_sum[i])); i++) {
         /* pass */
       }
 

@@ -73,7 +73,7 @@ static void colorband_init_from_table_rgba_simple(ColorBand *coba,
   BLI_assert(array_len < MAXCOLORBAND);
   int stops = min_ii(MAXCOLORBAND, array_len);
   if (stops) {
-    const float step_size = 1.0f / (float)max_ii(stops - 1, 1);
+    const float step_size = 1.0f / float(max_ii(stops - 1, 1));
     int i_curr = -1;
     for (int i_step = 0; i_step < stops; i_step++) {
       if ((i_curr != -1) && compare_v4v4(&coba->data[i_curr].r, array[i_step], eps)) {
@@ -151,7 +151,7 @@ static float filter_gauss(float x)
   const float gaussfac = 1.6f;
   const float two_gaussfac2 = 2.0f * gaussfac * gaussfac;
   x *= 3.0f * gaussfac;
-  return 1.0f / sqrtf((float)M_PI * two_gaussfac2) * expf(-x * x / two_gaussfac2);
+  return 1.0f / sqrtf(float(M_PI) * two_gaussfac2) * expf(-x * x / two_gaussfac2);
 }
 
 static void colorband_init_from_table_rgba_resample(ColorBand *coba,
@@ -166,7 +166,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
   int carr_len = array_len;
   c = carr;
   {
-    const float step_size = 1.0f / (float)(array_len - 1);
+    const float step_size = 1.0f / float(array_len - 1);
     for (int i = 0; i < array_len; i++, c++) {
       copy_v4_v4(carr[i].rgba, array[i]);
       c->next = c + 1;
@@ -242,10 +242,10 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
         copy_v4_v4(rgba, c->rgba);
 
         if (steps_prev) {
-          const float step_size = 1.0 / (float)(steps_prev + 1);
+          const float step_size = 1.0 / float(steps_prev + 1);
           int j = steps_prev;
           for (struct ColorResampleElem *c_other = c - 1; c_other != c->prev; c_other--, j--) {
-            const float step_pos = (float)j * step_size;
+            const float step_pos = float(j) * step_size;
             BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
             const float f = filter_gauss(step_pos);
             madd_v4_v4fl(rgba, c_other->rgba, f);
@@ -253,10 +253,10 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
           }
         }
         if (steps_next) {
-          const float step_size = 1.0 / (float)(steps_next + 1);
+          const float step_size = 1.0 / float(steps_next + 1);
           int j = steps_next;
           for (struct ColorResampleElem *c_other = c + 1; c_other != c->next; c_other++, j--) {
-            const float step_pos = (float)j * step_size;
+            const float step_pos = float(j) * step_size;
             BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
             const float f = filter_gauss(step_pos);
             madd_v4_v4fl(rgba, c_other->rgba, f);
@@ -565,7 +565,7 @@ void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int
   *array = static_cast<float *>(MEM_callocN(sizeof(float) * (*size) * 4, "ColorBand"));
 
   for (a = 0; a < *size; a++) {
-    BKE_colorband_evaluate(coba, (float)a / (float)CM_TABLE, &(*array)[a * 4]);
+    BKE_colorband_evaluate(coba, float(a) / float(CM_TABLE), &(*array)[a * 4]);
   }
 }
 

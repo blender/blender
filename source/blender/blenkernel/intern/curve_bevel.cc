@@ -50,10 +50,10 @@ static void bevel_quarter_fill(const Curve *curve,
 {
   if (curve->bevel_mode == CU_BEV_MODE_ROUND) {
     float angle = 0.0f;
-    const float dangle = (float)M_PI_2 / (curve->bevresol + 1);
+    const float dangle = float(M_PI_2) / (curve->bevresol + 1);
     for (int i = 0; i < curve->bevresol + 1; i++) {
-      quarter_coords_x[i] = (float)(cosf(angle) * (curve->bevel_radius));
-      quarter_coords_y[i] = (float)(sinf(angle) * (curve->bevel_radius));
+      quarter_coords_x[i] = float(cosf(angle) * (curve->bevel_radius));
+      quarter_coords_y[i] = float(sinf(angle) * (curve->bevel_radius));
       angle += dangle;
     }
   }
@@ -67,8 +67,8 @@ static void bevel_quarter_fill(const Curve *curve,
     quarter_coords_x[0] = curve->bevel_radius;
     quarter_coords_y[0] = 0.0f;
     for (int i = 1; i < curve->bevresol + 1; i++) {
-      quarter_coords_x[i] = (float)(curve->bevel_profile->segments[i].x * (curve->bevel_radius));
-      quarter_coords_y[i] = (float)(curve->bevel_profile->segments[i].y * (curve->bevel_radius));
+      quarter_coords_x[i] = float(curve->bevel_profile->segments[i].x * (curve->bevel_radius));
+      quarter_coords_y[i] = float(curve->bevel_profile->segments[i].y * (curve->bevel_radius));
     }
   }
 }
@@ -196,7 +196,7 @@ static void curve_bevel_make_full_circle(const Curve *cu, ListBase *disp)
   dl->nr = nr;
 
   float *fp = dl->verts;
-  const float dangle = (2.0f * (float)M_PI / (nr));
+  const float dangle = (2.0f * float(M_PI) / (nr));
   float angle = -(nr - 1) * dangle;
 
   for (int i = 0; i < nr; i++) {

@@ -213,10 +213,10 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
 
     switch (RNA_property_type(value_prop)) {
       case PROP_BOOLEAN:
-        value = (float)RNA_property_boolean_get_index(&value_ptr, value_prop, index);
+        value = float(RNA_property_boolean_get_index(&value_ptr, value_prop, index));
         break;
       case PROP_INT:
-        value = (float)RNA_property_int_get_index(&value_ptr, value_prop, index);
+        value = float(RNA_property_int_get_index(&value_ptr, value_prop, index));
         break;
       case PROP_FLOAT:
         value = RNA_property_float_get_index(&value_ptr, value_prop, index);
@@ -229,16 +229,16 @@ static float dtar_get_prop_val(const AnimationEvalContext *anim_eval_context,
     /* Not an array. */
     switch (RNA_property_type(value_prop)) {
       case PROP_BOOLEAN:
-        value = (float)RNA_property_boolean_get(&value_ptr, value_prop);
+        value = float(RNA_property_boolean_get(&value_ptr, value_prop));
         break;
       case PROP_INT:
-        value = (float)RNA_property_int_get(&value_ptr, value_prop);
+        value = float(RNA_property_int_get(&value_ptr, value_prop));
         break;
       case PROP_FLOAT:
         value = RNA_property_float_get(&value_ptr, value_prop);
         break;
       case PROP_ENUM:
-        value = (float)RNA_property_enum_get(&value_ptr, value_prop);
+        value = float(RNA_property_enum_get(&value_ptr, value_prop));
         break;
       default:
         break;
@@ -411,7 +411,7 @@ static float dvar_eval_rotDiff(const AnimationEvalContext * /*anim_eval_context*
   angle = 2.0f * saacos(quat[0]);
   angle = fabsf(angle);
 
-  return (angle > (float)M_PI) ? (float)((2.0f * (float)M_PI) - angle) : (float)(angle);
+  return (angle > float(M_PI)) ? float((2.0f * float(M_PI)) - angle) : float(angle);
 }
 
 /**
@@ -1094,7 +1094,7 @@ static bool driver_evaluate_simple_expr(const AnimationEvalContext *anim_eval_co
   switch (status) {
     case EXPR_PYLIKE_SUCCESS:
       if (isfinite(result_val)) {
-        *result = (float)result_val;
+        *result = float(result_val);
       }
       return true;
 
@@ -1271,7 +1271,7 @@ static void evaluate_driver_sum(const AnimationEvalContext *anim_eval_context,
 
   /* Perform operations on the total if appropriate. */
   if (driver->type == DRIVER_TYPE_AVERAGE) {
-    driver->curval = tot ? (value / (float)tot) : 0.0f;
+    driver->curval = tot ? (value / float(tot)) : 0.0f;
   }
   else {
     driver->curval = value;

@@ -86,7 +86,7 @@ static bool is_appdir_init = false;
 #  define ASSERT_IS_INIT() ((void)0)
 #endif
 
-void BKE_appdir_init(void)
+void BKE_appdir_init()
 {
 #ifndef NDEBUG
   BLI_assert(is_appdir_init == false);
@@ -94,7 +94,7 @@ void BKE_appdir_init(void)
 #endif
 }
 
-void BKE_appdir_exit(void)
+void BKE_appdir_exit()
 {
 #ifndef NDEBUG
   BLI_assert(is_appdir_init == true);
@@ -125,7 +125,7 @@ static char *blender_version_decimal(const int version)
 /** \name Default Directories
  * \{ */
 
-const char *BKE_appdir_folder_default(void)
+const char *BKE_appdir_folder_default()
 {
 #ifndef WIN32
   return BLI_getenv("HOME");
@@ -140,7 +140,7 @@ const char *BKE_appdir_folder_default(void)
 #endif /* WIN32 */
 }
 
-const char *BKE_appdir_folder_root(void)
+const char *BKE_appdir_folder_root()
 {
 #ifndef WIN32
   return "/";
@@ -151,7 +151,7 @@ const char *BKE_appdir_folder_root(void)
 #endif
 }
 
-const char *BKE_appdir_folder_default_or_root(void)
+const char *BKE_appdir_folder_default_or_root()
 {
   const char *path = BKE_appdir_folder_default();
   if (path == nullptr) {
@@ -160,7 +160,7 @@ const char *BKE_appdir_folder_default_or_root(void)
   return path;
 }
 
-const char *BKE_appdir_folder_home(void)
+const char *BKE_appdir_folder_home()
 {
 #ifdef WIN32
   return BLI_getenv("userprofile");
@@ -405,7 +405,7 @@ static bool get_path_local(char *targetpath,
       targetpath, targetpath_maxncpy, folder_name, subfolder_name, version, check_is_dir);
 }
 
-bool BKE_appdir_app_is_portable_install(void)
+bool BKE_appdir_app_is_portable_install()
 {
   /* Detect portable install by the existence of `config` folder. */
   char dirpath[FILE_MAX];
@@ -844,7 +844,7 @@ static void where_am_i(char *program_filepath,
       if (!BLI_exists(program_filepath)) {
         CLOG_ERROR(&LOG,
                    "path can't be found: \"%.*s\"",
-                   (int)program_filepath_maxncpy,
+                   int(program_filepath_maxncpy),
                    program_filepath);
         MessageBox(nullptr,
                    "path contains invalid characters or is too long (see console)",
@@ -914,7 +914,7 @@ void BKE_appdir_program_path_init(const char *argv0)
 #endif
 }
 
-const char *BKE_appdir_program_path(void)
+const char *BKE_appdir_program_path()
 {
 #ifndef WITH_PYTHON_MODULE /* Default's to empty when building as a Python module. */
   BLI_assert(g_app.program_filepath[0]);
@@ -922,7 +922,7 @@ const char *BKE_appdir_program_path(void)
   return g_app.program_filepath;
 }
 
-const char *BKE_appdir_program_dir(void)
+const char *BKE_appdir_program_dir()
 {
   BLI_assert(g_app.program_dirname[0]);
   return g_app.program_dirname;
@@ -1016,7 +1016,7 @@ static const int app_template_directory_id[2] = {
     BLENDER_SYSTEM_SCRIPTS,
 };
 
-bool BKE_appdir_app_template_any(void)
+bool BKE_appdir_app_template_any()
 {
   char temp_dir[FILE_MAX];
   for (int i = 0; i < ARRAY_SIZE(app_template_directory_id); i++) {
@@ -1177,17 +1177,17 @@ void BKE_tempdir_init(const char *userdir)
       g_app.temp_dirname_session, sizeof(g_app.temp_dirname_session), g_app.temp_dirname_base);
 }
 
-const char *BKE_tempdir_session(void)
+const char *BKE_tempdir_session()
 {
   return g_app.temp_dirname_session[0] ? g_app.temp_dirname_session : BKE_tempdir_base();
 }
 
-const char *BKE_tempdir_base(void)
+const char *BKE_tempdir_base()
 {
   return g_app.temp_dirname_base;
 }
 
-void BKE_tempdir_session_purge(void)
+void BKE_tempdir_session_purge()
 {
   if (g_app.temp_dirname_session[0] && BLI_is_dir(g_app.temp_dirname_session)) {
     BLI_delete(g_app.temp_dirname_session, true, true);

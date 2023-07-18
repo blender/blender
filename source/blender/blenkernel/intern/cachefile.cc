@@ -163,12 +163,12 @@ IDTypeInfo IDType_ID_CF = {
 /* TODO: make this per cache file to avoid global locks. */
 static SpinLock spin;
 
-void BKE_cachefiles_init(void)
+void BKE_cachefiles_init()
 {
   BLI_spin_init(&spin);
 }
 
-void BKE_cachefiles_exit(void)
+void BKE_cachefiles_exit()
 {
   BLI_spin_end(&spin);
 }
@@ -401,8 +401,8 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
   if (cache_file->is_sequence && BLI_path_frame_get(r_filepath, &fframe, &frame_len)) {
     Scene *scene = DEG_get_evaluated_scene(depsgraph);
     const float ctime = BKE_scene_ctime_get(scene);
-    const double fps = (((double)scene->r.frs_sec) / (double)scene->r.frs_sec_base);
-    const int frame = (int)BKE_cachefile_time_offset(cache_file, (double)ctime, fps);
+    const double fps = double(scene->r.frs_sec) / double(scene->r.frs_sec_base);
+    const int frame = int(BKE_cachefile_time_offset(cache_file, double(ctime), fps));
 
     char ext[32];
     BLI_path_frame_strip(r_filepath, ext, sizeof(ext));
@@ -418,8 +418,8 @@ bool BKE_cachefile_filepath_get(const Main *bmain,
 
 double BKE_cachefile_time_offset(const CacheFile *cache_file, const double time, const double fps)
 {
-  const double time_offset = (double)cache_file->frame_offset / fps;
-  const double frame = (cache_file->override_frame ? (double)cache_file->frame : time);
+  const double time_offset = double(cache_file->frame_offset) / fps;
+  const double frame = (cache_file->override_frame ? double(cache_file->frame) : time);
   return cache_file->is_sequence ? frame : frame / fps - time_offset;
 }
 
@@ -454,7 +454,7 @@ CacheFileLayer *BKE_cachefile_add_layer(CacheFile *cache_file, const char filepa
 
   BLI_addtail(&cache_file->layers, layer);
 
-  cache_file->active_layer = (char)(num_layers + 1);
+  cache_file->active_layer = char(num_layers + 1);
 
   return layer;
 }

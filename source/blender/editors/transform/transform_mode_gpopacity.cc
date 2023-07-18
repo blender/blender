@@ -61,7 +61,7 @@ static void applyGPOpacity(TransInfo *t, const int[2] /*mval*/)
   FOREACH_TRANS_DATA_CONTAINER (t, tc) {
     TransData *td = tc->data;
     bGPdata *gpd = static_cast<bGPdata *>(td->ob->data);
-    const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd);
+    const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd));
     /* Only recalculate data when in curve edit mode. */
     if (is_curve_edit) {
       recalc = true;

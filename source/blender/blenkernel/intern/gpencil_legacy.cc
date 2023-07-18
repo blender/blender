@@ -1938,13 +1938,13 @@ float BKE_gpencil_multiframe_falloff_calc(
 
   /* frames to the right of the active frame */
   if (gpf->framenum < actnum) {
-    fnum = (float)(gpf->framenum - f_init) / (actnum - f_init);
+    fnum = float(gpf->framenum - f_init) / (actnum - f_init);
     fnum *= 0.5f;
     value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum);
   }
   /* frames to the left of the active frame */
   else if (gpf->framenum > actnum) {
-    fnum = (float)(gpf->framenum - actnum) / (f_end - actnum);
+    fnum = float(gpf->framenum - actnum) / (f_end - actnum);
     fnum *= 0.5f;
     value = BKE_curvemapping_evaluateF(cur_falloff, 0, fnum + 0.5f);
   }
@@ -1988,7 +1988,7 @@ bool BKE_gpencil_material_index_used(bGPdata *gpd, int index)
 
 void BKE_gpencil_material_remap(bGPdata *gpd, const uint *remap, uint remap_len)
 {
-  const short remap_len_short = (short)remap_len;
+  const short remap_len_short = short(remap_len);
 
 #define MAT_NR_REMAP(n) \
   if (n < remap_len_short) { \
@@ -2877,7 +2877,7 @@ int BKE_gpencil_material_find_index_by_name_prefix(Object *ob, const char *name_
 
 void BKE_gpencil_frame_selected_hash(bGPdata *gpd, GHash *r_list)
 {
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   bGPDlayer *gpl = BKE_gpencil_layer_active_get(gpd);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl_iter, &gpd->layers) {

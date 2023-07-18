@@ -779,7 +779,7 @@ static float studiolight_spherical_harmonics_lambda_get(float *sh, float max_lap
   table_b[0] = 0.0f;
   int index = 1;
   for (int level = 1; level < STUDIOLIGHT_SH_BANDS; level++) {
-    table_l[level] = (float)(square_i(level) * square_i(level + 1));
+    table_l[level] = float(square_i(level) * square_i(level + 1));
 
     float b = 0.0f;
     for (int m = -1; m <= level; m++) {
@@ -1263,7 +1263,7 @@ static uint alpha_circle_mask(float u, float v, float inner_edge, float outer_ed
   const float co[2] = {u - 0.5f, v - 0.5f};
   float dist = len_v2(co);
   float alpha = 1.0f + (inner_edge - dist) / (outer_edge - inner_edge);
-  uint mask = (uint)floorf(255.0f * min_ff(max_ff(alpha, 0.0f), 1.0f));
+  uint mask = uint(floorf(255.0f * min_ff(max_ff(alpha, 0.0f), 1.0f)));
   return mask << 24;
 }
 
@@ -1429,7 +1429,7 @@ void BKE_studiolight_default(SolidLight lights[4], float light_ambient[3])
   lights[3].vec[2] = -0.542269f;
 }
 
-void BKE_studiolight_init(void)
+void BKE_studiolight_init()
 {
   /* Add default studio light */
   StudioLight *sl = studiolight_create(
@@ -1470,7 +1470,7 @@ void BKE_studiolight_init(void)
   BKE_studiolight_default(sl->light, sl->light_ambient);
 }
 
-void BKE_studiolight_free(void)
+void BKE_studiolight_free()
 {
   StudioLight *sl;
   while ((sl = static_cast<StudioLight *>(BLI_pophead(&studiolights)))) {
@@ -1530,7 +1530,7 @@ StudioLight *BKE_studiolight_findindex(int index, int flag)
   return BKE_studiolight_find_default(flag);
 }
 
-ListBase *BKE_studiolight_listbase(void)
+ListBase *BKE_studiolight_listbase()
 {
   return &studiolights;
 }
@@ -1634,7 +1634,7 @@ StudioLight *BKE_studiolight_create(const char *filepath,
   return sl;
 }
 
-StudioLight *BKE_studiolight_studio_edit_get(void)
+StudioLight *BKE_studiolight_studio_edit_get()
 {
   static StudioLight sl = {0};
   sl.flag = STUDIOLIGHT_TYPE_STUDIO | STUDIOLIGHT_SPECULAR_HIGHLIGHT_PASS;
@@ -1645,7 +1645,7 @@ StudioLight *BKE_studiolight_studio_edit_get(void)
   return &sl;
 }
 
-void BKE_studiolight_refresh(void)
+void BKE_studiolight_refresh()
 {
   BKE_studiolight_free();
   BKE_studiolight_init();

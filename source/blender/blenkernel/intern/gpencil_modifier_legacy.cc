@@ -314,7 +314,7 @@ int BKE_gpencil_time_modifier_cfra(Depsgraph *depsgraph,
 void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
 {
   DEG_debug_print_eval(depsgraph, __func__, gpd->id.name, gpd);
-  int ctime = (int)DEG_get_ctime(depsgraph);
+  int ctime = int(DEG_get_ctime(depsgraph));
 
   /* update active frame */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
@@ -334,7 +334,7 @@ void BKE_gpencil_frame_active_set(Depsgraph *depsgraph, bGPdata *gpd)
   }
 }
 
-void BKE_gpencil_modifier_init(void)
+void BKE_gpencil_modifier_init()
 {
   /* Initialize modifier types */
   gpencil_modifier_type_init(modifier_gpencil_types); /* MOD_gpencil_legacy_util.c */
@@ -609,9 +609,9 @@ GpencilModifierData *BKE_gpencil_modifiers_findby_name(Object *ob, const char *n
  */
 static int gpencil_remap_time_get(Depsgraph *depsgraph, Scene *scene, Object *ob, bGPDlayer *gpl)
 {
-  const bool is_render = (bool)(DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+  const bool is_render = bool(DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
   const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
-  int cfra_eval = (int)DEG_get_ctime(depsgraph);
+  int cfra_eval = int(DEG_get_ctime(depsgraph));
 
   int remap_cfra = cfra_eval;
   if (time_remap) {
@@ -764,11 +764,11 @@ void BKE_gpencil_prepare_eval_data(Depsgraph *depsgraph, Scene *scene, Object *o
     ob->data = gpd_eval;
   }
 
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_orig);
-  const bool is_curve_edit = (bool)GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_orig);
-  const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
-                                   (ob_orig->greasepencil_modifiers.first != nullptr) &&
-                                   !GPENCIL_SIMPLIFY_MODIF(scene));
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_orig));
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd_orig));
+  const bool do_modifiers = bool((!is_multiedit) && (!is_curve_edit) &&
+                                 (ob_orig->greasepencil_modifiers.first != nullptr) &&
+                                 !GPENCIL_SIMPLIFY_MODIF(scene));
   if ((!do_modifiers) && (!do_parent) && (!do_transform)) {
     BLI_assert(ob->data != nullptr);
     return;
@@ -793,12 +793,12 @@ void BKE_gpencil_modifiers_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
-  const bool is_render = (bool)(DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-  const bool is_curve_edit = (bool)(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) && !is_render);
-  const bool is_multiedit = (bool)(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !is_render);
-  const bool do_modifiers = (bool)((!is_multiedit) && (!is_curve_edit) &&
-                                   (ob->greasepencil_modifiers.first != nullptr) &&
-                                   !GPENCIL_SIMPLIFY_MODIF(scene));
+  const bool is_render = bool(DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+  const bool is_curve_edit = bool(GPENCIL_CURVE_EDIT_SESSIONS_ON(gpd) && !is_render);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd) && !is_render);
+  const bool do_modifiers = bool((!is_multiedit) && (!is_curve_edit) &&
+                                 (ob->greasepencil_modifiers.first != nullptr) &&
+                                 !GPENCIL_SIMPLIFY_MODIF(scene));
   if (!do_modifiers) {
     return;
   }

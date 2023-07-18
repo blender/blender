@@ -69,7 +69,7 @@ static void idp_str_append_escape(struct ReprState *state,
         state->str_append_fn(state->user_data, str + i_prev, i - i_prev);
       }
       char buf[5];
-      uint len = (uint)SNPRINTF_RLEN(buf, "\\x%02x", c);
+      uint len = uint(SNPRINTF_RLEN(buf, "\\x%02x", c));
       BLI_assert(len == 4);
       state->str_append_fn(state->user_data, buf, len);
       i_prev = i + 1;
@@ -85,18 +85,18 @@ static void idp_str_append_escape(struct ReprState *state,
 static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *prop)
 {
 /* NOTE: 'strlen' will be calculated at compile time for literals. */
-#define STR_APPEND_STR(str) state->str_append_fn(state->user_data, str, (uint)strlen(str))
+#define STR_APPEND_STR(str) state->str_append_fn(state->user_data, str, uint(strlen(str)))
 
-#define STR_APPEND_STR_QUOTE(str) idp_str_append_escape(state, str, (uint)strlen(str), true)
+#define STR_APPEND_STR_QUOTE(str) idp_str_append_escape(state, str, uint(strlen(str)), true)
 #define STR_APPEND_STR_LEN_QUOTE(str, str_len) idp_str_append_escape(state, str, str_len, true)
 
 #define STR_APPEND_FMT(format, ...) \
   state->str_append_fn( \
-      state->user_data, state->buf, (uint)SNPRINTF_RLEN(state->buf, format, __VA_ARGS__))
+      state->user_data, state->buf, uint(SNPRINTF_RLEN(state->buf, format, __VA_ARGS__)))
 
   switch (prop->type) {
     case IDP_STRING: {
-      STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), (uint)MAX2(0, prop->len - 1));
+      STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), uint(MAX2(0, prop->len - 1)));
       break;
     }
     case IDP_INT: {
@@ -104,7 +104,7 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
       break;
     }
     case IDP_FLOAT: {
-      STR_APPEND_FMT("%g", (double)IDP_Float(prop));
+      STR_APPEND_FMT("%g", double(IDP_Float(prop)));
       break;
     }
     case IDP_DOUBLE: {
@@ -138,7 +138,7 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
             if (v != prop->data.pointer) {
               STR_APPEND_STR(", ");
             }
-            STR_APPEND_FMT("%g", (double)*v);
+            STR_APPEND_FMT("%g", double(*v));
           }
           break;
         case IDP_DOUBLE:
@@ -235,7 +235,7 @@ void IDP_repr_fn(const IDProperty *prop,
 
 static void repr_str(void *user_data, const char *str, uint len)
 {
-  BLI_dynstr_nappend(static_cast<DynStr *>(user_data), str, (int)len);
+  BLI_dynstr_nappend(static_cast<DynStr *>(user_data), str, int(len));
 }
 
 char *IDP_reprN(const IDProperty *prop, uint *r_len)
@@ -244,7 +244,7 @@ char *IDP_reprN(const IDProperty *prop, uint *r_len)
   IDP_repr_fn(prop, repr_str, ds);
   char *cstring = BLI_dynstr_get_cstring(ds);
   if (r_len != nullptr) {
-    *r_len = (uint)BLI_dynstr_get_len(ds);
+    *r_len = uint(BLI_dynstr_get_len(ds));
   }
   BLI_dynstr_free(ds);
   return cstring;

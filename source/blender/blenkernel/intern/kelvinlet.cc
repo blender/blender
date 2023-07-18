@@ -14,7 +14,7 @@
 void BKE_kelvinlet_init_params(
     KelvinletParams *params, float radius, float force, float shear_modulus, float poisson_ratio)
 {
-  params->a = 1.0f / (4.0f * (float)M_PI * shear_modulus);
+  params->a = 1.0f / (4.0f * float(M_PI) * shear_modulus);
   params->b = params->a / (4.0f * (1.0f - poisson_ratio));
   params->c = 2 * (3.0f * params->a - 2.0f * params->b);
 

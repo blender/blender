@@ -180,7 +180,7 @@ static void gpencil_add_new_points(bGPDstroke *gps,
 {
   BLI_assert(totpoints > 0);
 
-  const float step = 1.0f / ((float)totpoints - 1.0f);
+  const float step = 1.0f / (float(totpoints) - 1.0f);
   float factor = 0.0f;
   for (int i = 0; i < totpoints; i++) {
     bGPDspoint *pt = &gps->points[i + init];
@@ -379,7 +379,7 @@ static void gpencil_convert_spline(Main *bmain,
         int inext = (s + 1) % nu->pntsu;
         BezTriple *prevbezt = &nu->bezt[s];
         BezTriple *bezt = &nu->bezt[inext];
-        bool last = (bool)(s == segments - 1);
+        bool last = bool(s == segments - 1);
 
         float *coord_array = static_cast<float *>(
             MEM_callocN(sizeof(float[3]) * resolu, __func__));
@@ -566,7 +566,7 @@ static bGPDcurve *gpencil_stroke_editcurve_generate_edgecases(bGPDstroke *gps,
     for (int j = 0; j < 3; j++) {
       copy_v3_v3(tmp_vec, &pt->x);
       /* Move handles along the x-axis away from the control point */
-      tmp_vec[0] += (float)(j - 1) * offset;
+      tmp_vec[0] += float(j - 1) * offset;
       copy_v3_v3(bezt->vec[j], tmp_vec);
     }
 
@@ -600,7 +600,7 @@ static bGPDcurve *gpencil_stroke_editcurve_generate_edgecases(bGPDstroke *gps,
       float tmp_vec[3];
       for (int j = 0; j < 3; j++) {
         copy_v3_v3(tmp_vec, dir);
-        normalize_v3_length(tmp_vec, (float)(j - 1) * offset);
+        normalize_v3_length(tmp_vec, float(j - 1) * offset);
         add_v3_v3v3(bezt->vec[j], &pt->x, tmp_vec);
       }
 
@@ -853,7 +853,7 @@ static void gpencil_interpolate_fl_from_to(
   /* smooth interpolation */
   float *r = point_offset;
   for (int i = 0; i <= it; i++) {
-    float fac = (float)i / (float)it;
+    float fac = float(i) / float(it);
     fac = 3.0f * fac * fac - 2.0f * fac * fac * fac; /* Smooth. */
     *r = interpf(to, from, fac);
     r = static_cast<float *>(POINTER_OFFSET(r, stride));
@@ -866,7 +866,7 @@ static void gpencil_interpolate_v4_from_to(
   /* smooth interpolation */
   float *r = point_offset;
   for (int i = 0; i <= it; i++) {
-    float fac = (float)i / (float)it;
+    float fac = float(i) / float(it);
     fac = 3.0f * fac * fac - 2.0f * fac * fac * fac; /* Smooth. */
     interp_v4_v4v4(r, from, to, fac);
     r = static_cast<float *>(POINTER_OFFSET(r, stride));
@@ -898,7 +898,7 @@ static void gpencil_calculate_stroke_points_curve_segment(
         cpt_next->bezt.vec[0][axis],
         cpt_next->bezt.vec[1][axis],
         static_cast<float *>(POINTER_OFFSET(points_offset, sizeof(float) * axis)),
-        (int)resolu,
+        int(resolu),
         stride);
   }
 
@@ -942,7 +942,7 @@ static float *gpencil_stroke_points_from_editcurve_adaptive_resolu(
     bGPDcurve_point *cpt = &curve_point_array[i];
     bGPDcurve_point *cpt_next = &curve_point_array[i + 1];
     float arclen = gpencil_approximate_curve_segment_arclength(cpt, cpt_next);
-    int segment_resolu = (int)floorf(arclen * resolution);
+    int segment_resolu = int(floorf(arclen * resolution));
     CLAMP_MIN(segment_resolu, 1);
 
     segment_point_lengths[i] = segment_resolu;
@@ -953,7 +953,7 @@ static float *gpencil_stroke_points_from_editcurve_adaptive_resolu(
     bGPDcurve_point *cpt = &curve_point_array[cpt_last];
     bGPDcurve_point *cpt_next = &curve_point_array[0];
     float arclen = gpencil_approximate_curve_segment_arclength(cpt, cpt_next);
-    int segment_resolu = (int)floorf(arclen * resolution);
+    int segment_resolu = int(floorf(arclen * resolution));
     CLAMP_MIN(segment_resolu, 1);
 
     segment_point_lengths[cpt_last] = segment_resolu;
@@ -1331,7 +1331,7 @@ void BKE_gpencil_editcurve_subdivide(bGPDstroke *gps, const int cuts)
 
 void BKE_gpencil_strokes_selected_update_editcurve(bGPdata *gpd)
 {
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   /* For all selected strokes, update edit curve. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     if (!BKE_gpencil_layer_is_editable(gpl)) {
@@ -1371,7 +1371,7 @@ void BKE_gpencil_strokes_selected_update_editcurve(bGPdata *gpd)
 
 void BKE_gpencil_strokes_selected_sync_selection_editcurve(bGPdata *gpd)
 {
-  const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+  const bool is_multiedit = bool(GPENCIL_MULTIEDIT_SESSIONS_ON(gpd));
   /* Sync selection for all strokes with editcurve. */
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
     if (!BKE_gpencil_layer_is_editable(gpl)) {

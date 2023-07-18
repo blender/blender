@@ -399,10 +399,10 @@ void BKE_camera_params_compute_viewplane(
 
   /* compute view plane:
    * Fully centered, Z-buffer fills in jittered between `-.5` and `+.5`. */
-  viewplane.xmin = -0.5f * (float)winx;
-  viewplane.ymin = -0.5f * params->ycor * (float)winy;
-  viewplane.xmax = 0.5f * (float)winx;
-  viewplane.ymax = 0.5f * params->ycor * (float)winy;
+  viewplane.xmin = -0.5f * float(winx);
+  viewplane.ymin = -0.5f * params->ycor * float(winy);
+  viewplane.xmax = 0.5f * float(winx);
+  viewplane.ymax = 0.5f * params->ycor * float(winy);
 
   /* lens shift and offset */
   dx = params->shiftx * viewfac + winx * params->offsetx;
@@ -470,8 +470,8 @@ void BKE_camera_view_frame_ex(const Scene *scene,
 
   /* aspect correction */
   if (scene) {
-    float aspx = (float)scene->r.xsch * scene->r.xasp;
-    float aspy = (float)scene->r.ysch * scene->r.yasp;
+    float aspx = float(scene->r.xsch) * scene->r.xasp;
+    float aspy = float(scene->r.ysch) * scene->r.yasp;
     int sensor_fit = BKE_camera_sensor_fit(camera->sensor_fit, aspx, aspy);
 
     if (sensor_fit == CAMERA_SENSOR_FIT_HOR) {

@@ -38,7 +38,7 @@ static void psys_path_iter_get(ParticlePathIterator *iter,
 
   iter->key = keys + index;
   iter->index = index;
-  iter->time = (float)index / (float)(totkeys - 1);
+  iter->time = float(index) / float(totkeys - 1);
 
   if (parent) {
     iter->parent_key = parent + index;
@@ -80,15 +80,15 @@ static void do_kink_spiral_deform(ParticleKey *state,
      * and goes up to the Golden Spiral for 1.0
      * https://en.wikipedia.org/wiki/Golden_spiral
      */
-    const float b = shape * (1.0f + sqrtf(5.0f)) / (float)M_PI * 0.25f;
+    const float b = shape * (1.0f + sqrtf(5.0f)) / float(M_PI) * 0.25f;
     /* angle of the spiral against the curve (rotated opposite to make a smooth transition) */
-    const float start_angle = ((b != 0.0f) ? atanf(1.0f / b) : (float)-M_PI_2) +
-                              (b > 0.0f ? -(float)M_PI_2 : (float)M_PI_2);
+    const float start_angle = ((b != 0.0f) ? atanf(1.0f / b) : float(-M_PI_2)) +
+                              (b > 0.0f ? -float(M_PI_2) : float(M_PI_2));
 
     float spiral_axis[3], rot[3][3];
     float vec[3];
 
-    float theta = freq * time * 2.0f * (float)M_PI;
+    float theta = freq * time * 2.0f * float(M_PI);
     float radius = amplitude * expf(b * theta);
 
     /* a bit more intuitive than using negative frequency for this */
@@ -127,7 +127,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
                            float *r_max_length)
 {
   ParticleSettings *part = ctx->sim.psys->part;
-  const int seed = ctx->sim.psys->child_seed + (int)(cpa - ctx->sim.psys->child);
+  const int seed = ctx->sim.psys->child_seed + int(cpa - ctx->sim.psys->child);
   const int totkeys = ctx->segments + 1;
   const int extrakeys = ctx->extra_segments;
 
@@ -160,14 +160,14 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
   zero_v3(spiral_start);
 
   for (k = 0, key = keys; k < totkeys - 1; k++, key++) {
-    if ((float)(k + 1) >= cut_time) {
-      float fac = cut_time - (float)k;
+    if (float(k + 1) >= cut_time) {
+      float fac = cut_time - float(k);
       ParticleCacheKey *par = parent_keys + k;
 
       start_index = k + 1;
       end_index = start_index + extrakeys;
 
-      spiral_start_time = ((float)k + fac) / (float)(totkeys - 1);
+      spiral_start_time = (float(k) + fac) / float(totkeys - 1);
       interp_v3_v3v3(spiral_start, key->co, (key + 1)->co, fac);
 
       interp_v3_v3v3(spiral_par_co, par->co, (par + 1)->co, fac);
@@ -202,13 +202,13 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
       sub_v3_v3v3(dir, (key + 1)->co, key->co);
       normalize_v3(dir);
 
-      par_time = (float)k / (float)(totkeys - 1);
+      par_time = float(k) / float(totkeys - 1);
       par_co = parent_keys[k].co;
       par_vel = parent_keys[k].vel;
       par_rot = parent_keys[k].rot;
     }
     else {
-      float spiral_time = (float)(k - start_index) / (float)(extrakeys - 1);
+      float spiral_time = float(k - start_index) / float(extrakeys - 1);
       float kink[3], tmp[3];
 
       /* use same time value for every point on the spiral */
@@ -223,7 +223,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx,
 
       if (kink_axis_random > 0.0f) {
         float a = kink_axis_random * (psys_frand(ctx->sim.psys, 7112 + seed) * 2.0f - 1.0f) *
-                  (float)M_PI;
+                  float(M_PI);
         float rot[3][3];
 
         axis_angle_normalized_to_mat3(rot, dir, a);
@@ -339,7 +339,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx,
   }
 
   {
-    const float step_length = 1.0f / (float)(totkeys - 1);
+    const float step_length = 1.0f / float(totkeys - 1);
     float cur_length = 0.0f;
 
     if (max_length <= 0.0f) {
@@ -405,19 +405,19 @@ void do_kink(ParticleKey *state,
 
   if (shape != 0.0f && !ELEM(type, PART_KINK_BRAID)) {
     if (shape < 0.0f) {
-      time = (float)pow(time, 1.0f + shape);
+      time = float(pow(time, 1.0f + shape));
     }
     else {
-      time = (float)pow(time, 1.0f / (1.0f - shape));
+      time = float(pow(time, 1.0f / (1.0f - shape)));
     }
   }
 
-  t = time * freq * (float)M_PI;
+  t = time * freq * float(M_PI);
 
   if (smooth_start) {
     dt = fabsf(t);
     /* smooth the beginning of kink */
-    CLAMP(dt, 0.0f, (float)M_PI);
+    CLAMP(dt, 0.0f, float(M_PI));
     dt = sinf(dt / 2.0f);
   }
 
@@ -505,18 +505,18 @@ void do_kink(ParticleKey *state,
         mul_v3_fl(z_vec, amplitude / 2.0f * sinf(2.0f * t));
       }
       else if (inp_z > 0.0f) {
-        mul_v3_v3fl(state_co, z_vec, sinf((float)M_PI / 3.0f));
+        mul_v3_v3fl(state_co, z_vec, sinf(float(M_PI) / 3.0f));
         madd_v3_v3fl(state_co, y_vec, -0.5f);
 
-        mul_v3_fl(y_vec, -amplitude * cosf(t + (float)M_PI / 3.0f));
-        mul_v3_fl(z_vec, amplitude / 2.0f * cosf(2.0f * t + (float)M_PI / 6.0f));
+        mul_v3_fl(y_vec, -amplitude * cosf(t + float(M_PI) / 3.0f));
+        mul_v3_fl(z_vec, amplitude / 2.0f * cosf(2.0f * t + float(M_PI) / 6.0f));
       }
       else {
-        mul_v3_v3fl(state_co, z_vec, -sinf((float)M_PI / 3.0f));
+        mul_v3_v3fl(state_co, z_vec, -sinf(float(M_PI) / 3.0f));
         madd_v3_v3fl(state_co, y_vec, -0.5f);
 
-        mul_v3_fl(y_vec, amplitude * -sinf(t + (float)M_PI / 6.0f));
-        mul_v3_fl(z_vec, amplitude / 2.0f * -sinf(2.0f * t + (float)M_PI / 3.0f));
+        mul_v3_fl(y_vec, amplitude * -sinf(t + float(M_PI) / 6.0f));
+        mul_v3_fl(z_vec, amplitude / 2.0f * -sinf(2.0f * t + float(M_PI) / 3.0f));
       }
 
       mul_v3_fl(state_co, amplitude);
@@ -530,11 +530,11 @@ void do_kink(ParticleKey *state,
       add_v3_v3(state_co, z_vec);
       add_v3_v3(state_co, par_vec);
 
-      shape = 2.0f * (float)M_PI * (1.0f + shape);
+      shape = 2.0f * float(M_PI) * (1.0f + shape);
 
       if (t < shape) {
         shape = t / shape;
-        shape = (float)sqrt((double)shape);
+        shape = float(sqrt(double(shape)));
         interp_v3_v3v3(result, result, state_co, shape);
       }
       else {
@@ -581,10 +581,10 @@ static float do_clump_level(float result[3],
     }
 
     if (clumpfac < 0.0f) { /* clump roots instead of tips */
-      clump = -clumpfac * pa_clump * (float)pow(1.0 - (double)time, (double)cpow);
+      clump = -clumpfac * pa_clump * float(pow(1.0 - double(time), double(cpow)));
     }
     else {
-      clump = clumpfac * pa_clump * (float)pow((double)time, (double)cpow);
+      clump = clumpfac * pa_clump * float(pow(double(time), double(cpow)));
     }
 
     interp_v3_v3v3(result, co, par_co, clump);
@@ -636,7 +636,7 @@ static void do_rough(const float loc[3],
   float rco[3];
 
   if (thres != 0.0f) {
-    if (fabsf((float)(-1.5f + loc[0] + loc[1] + loc[2])) < 1.5f * thres) {
+    if (fabsf(float(-1.5f + loc[0] + loc[1] + loc[2])) < 1.5f * thres) {
       return;
     }
   }
@@ -658,7 +658,7 @@ static void do_rough_end(
   float rough[2];
   float roughfac;
 
-  roughfac = fac * (float)pow((double)t, shape);
+  roughfac = fac * float(pow(double(t), shape));
   copy_v2_v2(rough, loc);
   rough[0] = -1.0f + 2.0f * rough[0];
   rough[1] = -1.0f + 2.0f * rough[1];

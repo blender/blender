@@ -33,8 +33,8 @@ uint BKE_idtype_cache_key_hash(const void *key_v)
 {
   const IDCacheKey *key = static_cast<const IDCacheKey *>(key_v);
   size_t hash = BLI_ghashutil_uinthash(key->id_session_uuid);
-  hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash((uint)key->offset_in_ID));
-  return (uint)hash;
+  hash = BLI_ghashutil_combine_hash(hash, BLI_ghashutil_uinthash(uint(key->offset_in_ID)));
+  return uint(hash);
 }
 
 bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
@@ -47,7 +47,7 @@ bool BKE_idtype_cache_key_cmp(const void *key_a_v, const void *key_b_v)
 
 static IDTypeInfo *id_types[INDEX_ID_MAX] = {nullptr};
 
-static void id_type_init(void)
+static void id_type_init()
 {
 #define INIT_TYPE(_id_code) \
   { \
@@ -104,7 +104,7 @@ static void id_type_init(void)
 #undef INIT_TYPE
 }
 
-void BKE_idtype_init(void)
+void BKE_idtype_init()
 {
   /* Initialize data-block types. */
   id_type_init();

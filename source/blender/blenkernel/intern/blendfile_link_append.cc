@@ -183,7 +183,7 @@ static BlendHandle *link_append_context_library_blohandle_ensure(
   if (blo_handle == nullptr) {
     if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
       blo_handle = BLO_blendhandle_from_memory(lapp_context->blendfile_mem,
-                                               (int)lapp_context->blendfile_memsize,
+                                               int(lapp_context->blendfile_memsize),
                                                &lib_context->bf_reports);
     }
     else {
@@ -254,7 +254,7 @@ void BKE_blendfile_link_append_context_embedded_blendfile_set(
                  "Please explicitly clear reference to an embedded blender memfile before "
                  "setting a new one");
   lapp_context->blendfile_mem = blendfile_mem;
-  lapp_context->blendfile_memsize = (size_t)blendfile_memsize;
+  lapp_context->blendfile_memsize = size_t(blendfile_memsize);
 }
 
 void BKE_blendfile_link_append_context_embedded_blendfile_clear(

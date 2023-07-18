@@ -466,8 +466,8 @@ static bool rule_flock(BoidRule * /*rule*/,
       add_v3_v3(vec, bbd->sim->psys->particles[ptn[n].index].prev_state.vel);
     }
 
-    mul_v3_fl(loc, 1.0f / ((float)neighbors - 1.0f));
-    mul_v3_fl(vec, 1.0f / ((float)neighbors - 1.0f));
+    mul_v3_fl(loc, 1.0f / (float(neighbors) - 1.0f));
+    mul_v3_fl(vec, 1.0f / (float(neighbors) - 1.0f));
 
     sub_v3_v3(loc, pa->prev_state.co);
     sub_v3_v3(vec, pa->prev_state.vel);
@@ -812,7 +812,7 @@ static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *
   if (ELEM(bpa->data.mode, eBoidMode_OnLand, eBoidMode_Climbing)) {
     val->max_speed = boids->land_max_speed * bpa->data.health / boids->health;
     val->max_acc = boids->land_max_acc * val->max_speed;
-    val->max_ave = boids->land_max_ave * (float)M_PI * bpa->data.health / boids->health;
+    val->max_ave = boids->land_max_ave * float(M_PI) * bpa->data.health / boids->health;
     val->min_speed = 0.0f; /* no minimum speed on land */
     val->personal_space = boids->land_personal_space;
     val->jump_speed = boids->land_jump_speed * bpa->data.health / boids->health;
@@ -820,7 +820,7 @@ static void set_boid_values(BoidValues *val, BoidSettings *boids, ParticleData *
   else {
     val->max_speed = boids->air_max_speed * bpa->data.health / boids->health;
     val->max_acc = boids->air_max_acc * val->max_speed;
-    val->max_ave = boids->air_max_ave * (float)M_PI * bpa->data.health / boids->health;
+    val->max_ave = boids->air_max_ave * float(M_PI) * bpa->data.health / boids->health;
     val->min_speed = boids->air_min_speed * boids->air_max_speed;
     val->personal_space = boids->air_personal_space;
     val->jump_speed = 0.0f; /* no jumping in air */
@@ -1085,8 +1085,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
   bbd->wanted_speed = 0.0f;
 
   /* create random seed for every particle & frame */
-  rand = (int)(psys_frand(psys, psys->seed + p) * 1000);
-  rand = (int)(psys_frand(psys, (int)bbd->cfra + rand) * 1000);
+  rand = int(psys_frand(psys, psys->seed + p) * 1000);
+  rand = int(psys_frand(psys, int(bbd->cfra) + rand) * 1000);
 
   set_boid_values(&val, bbd->part->boids, pa);
 
@@ -1123,8 +1123,8 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
       }
 
       if (n > 1) {
-        mul_v3_fl(wanted_co, 1.0f / (float)n);
-        wanted_speed /= (float)n;
+        mul_v3_fl(wanted_co, 1.0f / float(n));
+        wanted_speed /= float(n);
       }
 
       copy_v3_v3(bbd->wanted_co, wanted_co);

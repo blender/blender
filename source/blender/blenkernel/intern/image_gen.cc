@@ -61,7 +61,7 @@ static void image_buf_fill_color_thread_do(void *data_v, int scanline)
 {
   FillColorThreadData *data = (FillColorThreadData *)data_v;
   const int num_scanlines = 1;
-  size_t offset = ((size_t)scanline) * data->width * 4;
+  size_t offset = (size_t(scanline)) * data->width * 4;
   uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
   float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
   image_buf_fill_color_slice(rect, rect_float, data->width, num_scanlines, data->color);
@@ -70,7 +70,7 @@ static void image_buf_fill_color_thread_do(void *data_v, int scanline)
 void BKE_image_buf_fill_color(
     uchar *rect, float *rect_float, int width, int height, const float color[4])
 {
-  if (((size_t)width) * height < 64 * 64) {
+  if ((size_t(width)) * height < 64 * 64) {
     image_buf_fill_color_slice(rect, rect_float, width, height, color);
   }
   else {
@@ -158,9 +158,9 @@ static void image_buf_fill_checker_slice(
           hsv_to_rgb_v(hsv, rgb);
 
           if (rect) {
-            rect[0] = (char)(rgb[0] * 255.0f);
-            rect[1] = (char)(rgb[1] * 255.0f);
-            rect[2] = (char)(rgb[2] * 255.0f);
+            rect[0] = char(rgb[0] * 255.0f);
+            rect[1] = char(rgb[1] * 255.0f);
+            rect[2] = char(rgb[2] * 255.0f);
             rect[3] = 255;
           }
 
@@ -190,7 +190,7 @@ struct FillCheckerThreadData {
 static void image_buf_fill_checker_thread_do(void *data_v, int scanline)
 {
   FillCheckerThreadData *data = (FillCheckerThreadData *)data_v;
-  size_t offset = ((size_t)scanline) * data->width * 4;
+  size_t offset = (size_t(scanline)) * data->width * 4;
   const int num_scanlines = 1;
   uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
   float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
@@ -199,7 +199,7 @@ static void image_buf_fill_checker_thread_do(void *data_v, int scanline)
 
 void BKE_image_buf_fill_checker(uchar *rect, float *rect_float, int width, int height)
 {
-  if (((size_t)width) * height < 64 * 64) {
+  if ((size_t(width)) * height < 64 * 64) {
     image_buf_fill_checker_slice(rect, rect_float, width, height, 0);
   }
   else {
@@ -215,7 +215,7 @@ void BKE_image_buf_fill_checker(uchar *rect, float *rect_float, int width, int h
 
 #define BLEND_FLOAT(real, add) (real + add <= 1.0f) ? (real + add) : 1.0f
 #define BLEND_CHAR(real, add) \
-  ((real + (char)(add * 255.0f)) <= 255) ? (real + (char)(add * 255.0f)) : 255
+  ((real + char(add * 255.0f)) <= 255) ? (real + char(add * 255.0f)) : 255
 
 static void checker_board_color_fill(
     uchar *rect, float *rect_float, int width, int height, int offset, int total_height)
@@ -235,13 +235,13 @@ static void checker_board_color_fill(
     hsv[2] = 0.1 + (y * (0.4 / total_height));
 
     for (x = 0; x < width; x++) {
-      hsv[0] = (float)((double)(x / hue_step) * 1.0 / width * hue_step);
+      hsv[0] = float(double(x / hue_step) * 1.0 / width * hue_step);
       hsv_to_rgb_v(hsv, rgb);
 
       if (rect) {
-        rect[0] = (char)(rgb[0] * 255.0f);
-        rect[1] = (char)(rgb[1] * 255.0f);
-        rect[2] = (char)(rgb[2] * 255.0f);
+        rect[0] = char(rgb[0] * 255.0f);
+        rect[1] = char(rgb[1] * 255.0f);
+        rect[2] = char(rgb[2] * 255.0f);
         rect[3] = 255;
 
         rect += 4;
@@ -270,9 +270,9 @@ static void checker_board_color_tint(
       if (((y / size) % 2 == 1 && (x / size) % 2 == 1) ||
           ((y / size) % 2 == 0 && (x / size) % 2 == 0)) {
         if (rect) {
-          rect[0] = (char)BLEND_CHAR(rect[0], blend);
-          rect[1] = (char)BLEND_CHAR(rect[1], blend);
-          rect[2] = (char)BLEND_CHAR(rect[2], blend);
+          rect[0] = char(BLEND_CHAR(rect[0], blend));
+          rect[1] = char(BLEND_CHAR(rect[1], blend));
+          rect[2] = char(BLEND_CHAR(rect[2], blend));
           rect[3] = 255;
 
           rect += 4;
@@ -288,9 +288,9 @@ static void checker_board_color_tint(
       }
       else {
         if (rect) {
-          rect[0] = (char)BLEND_CHAR(rect[0], blend_half);
-          rect[1] = (char)BLEND_CHAR(rect[1], blend_half);
-          rect[2] = (char)BLEND_CHAR(rect[2], blend_half);
+          rect[0] = char(BLEND_CHAR(rect[0], blend_half));
+          rect[1] = char(BLEND_CHAR(rect[1], blend_half));
+          rect[2] = char(BLEND_CHAR(rect[2], blend_half));
           rect[3] = 255;
 
           rect += 4;
@@ -445,7 +445,7 @@ static void checker_board_color_prepare_thread_do(void *data_v, int scanline)
 
 void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width, int height)
 {
-  if (((size_t)width) * height < 64 * 64) {
+  if ((size_t(width)) * height < 64 * 64) {
     checker_board_color_prepare_slice(rect, rect_float, width, height, 0, height);
   }
   else {

@@ -84,7 +84,7 @@ struct CDataFile {
 
 /********************************* Create/Free *******************************/
 
-static int cdf_endian(void)
+static int cdf_endian()
 {
   if (ENDIAN_ORDER == L_ENDIAN) {
     return CDF_ENDIAN_LITTLE;

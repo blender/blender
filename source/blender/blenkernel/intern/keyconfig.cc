@@ -92,13 +92,13 @@ void BKE_keyconfig_pref_type_remove(const wmKeyConfigPrefType_Runtime *kpt_rt)
   BLI_ghash_remove(global_keyconfigpreftype_hash, kpt_rt->idname, nullptr, MEM_freeN);
 }
 
-void BKE_keyconfig_pref_type_init(void)
+void BKE_keyconfig_pref_type_init()
 {
   BLI_assert(global_keyconfigpreftype_hash == nullptr);
   global_keyconfigpreftype_hash = BLI_ghash_str_new(__func__);
 }
 
-void BKE_keyconfig_pref_type_free(void)
+void BKE_keyconfig_pref_type_free()
 {
   BLI_ghash_free(global_keyconfigpreftype_hash, nullptr, MEM_freeN);
   global_keyconfigpreftype_hash = nullptr;
