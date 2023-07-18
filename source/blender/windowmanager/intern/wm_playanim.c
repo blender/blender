@@ -529,6 +529,7 @@ static void *ocio_transform_ibuf(const PlayDisplayContext *display_ctx,
 
 static void draw_display_buffer(const PlayDisplayContext *display_ctx,
                                 ImBuf *ibuf,
+                                const rctf *canvas,
                                 const bool draw_flip[2])
 {
   void *display_buffer;
@@ -562,31 +563,27 @@ static void draw_display_buffer(const PlayDisplayContext *display_ctx,
   immBegin(GPU_PRIM_TRI_FAN, 4);
 
   rctf preview;
-  rctf canvas;
-
-  BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
   BLI_rctf_init(&preview, 0.0f, 1.0f, 0.0f, 1.0f);
-
   if (draw_flip) {
     if (draw_flip[0]) {
-      SWAP(float, canvas.xmin, canvas.xmax);
+      SWAP(float, preview.xmin, preview.xmax);
     }
     if (draw_flip[1]) {
-      SWAP(float, canvas.ymin, canvas.ymax);
+      SWAP(float, preview.ymin, preview.ymax);
     }
   }
 
-  immAttr2f(texCoord, canvas.xmin, canvas.ymin);
-  immVertex2f(pos, preview.xmin, preview.ymin);
+  immAttr2f(texCoord, preview.xmin, preview.ymin);
+  immVertex2f(pos, canvas->xmin, canvas->ymin);
 
-  immAttr2f(texCoord, canvas.xmin, canvas.ymax);
-  immVertex2f(pos, preview.xmin, preview.ymax);
+  immAttr2f(texCoord, preview.xmin, preview.ymax);
+  immVertex2f(pos, canvas->xmin, canvas->ymax);
 
-  immAttr2f(texCoord, canvas.xmax, canvas.ymax);
-  immVertex2f(pos, preview.xmax, preview.ymax);
+  immAttr2f(texCoord, preview.xmax, preview.ymax);
+  immVertex2f(pos, canvas->xmax, canvas->ymax);
 
-  immAttr2f(texCoord, canvas.xmax, canvas.ymin);
-  immVertex2f(pos, preview.xmax, preview.ymin);
+  immAttr2f(texCoord, preview.xmax, preview.ymin);
+  immVertex2f(pos, canvas->xmax, canvas->ymin);
 
   immEnd();
 
@@ -653,8 +650,10 @@ static void playanim_toscreen_ex(GHOST_WindowHandle ghost_window,
                                  (const float[4]){0.20, 0.20, 0.20, 1.0},
                                  8);
     }
+    rctf canvas;
+    BLI_rctf_init(&canvas, offs_x, offs_x + span_x, offs_y, offs_y + span_y);
 
-    draw_display_buffer(display_ctx, ibuf, draw_flip);
+    draw_display_buffer(display_ctx, ibuf, &canvas, draw_flip);
 
     GPU_blend(GPU_BLEND_NONE);
   }
