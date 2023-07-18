@@ -1980,20 +1980,19 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
                                                     const bNode &node)
 {
   Vector<NodeExtraInfoRow> rows;
-  if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS)) {
+  if (!(snode.edittree->type == NTREE_GEOMETRY)) {
+    /* Currently geometry nodes are the only nodes to have extra infos per nodes. */
     return rows;
   }
 
-  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES &&
-      snode.edittree->type == NTREE_GEOMETRY)
-  {
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_NAMED_ATTRIBUTES) {
     if (std::optional<NodeExtraInfoRow> row = node_get_accessed_attributes_row(tree_draw_ctx,
                                                                                node)) {
       rows.append(std::move(*row));
     }
   }
 
-  if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS && snode.edittree->type == NTREE_GEOMETRY &&
+  if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
        ELEM(node.type, NODE_FRAME, NODE_GROUP_OUTPUT)))
   {
@@ -2008,26 +2007,24 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(TreeDrawContext &tree_draw_c
     }
   }
 
-  if (snode.edittree->type == NTREE_GEOMETRY) {
-    geo_log::GeoTreeLog *tree_log = [&]() -> geo_log::GeoTreeLog * {
-      const bNodeTreeZones *tree_zones = node.owner_tree().zones();
-      if (!tree_zones) {
-        return nullptr;
-      }
-      const bNodeTreeZone *zone = tree_zones->get_zone_by_node(node.identifier);
-      return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
-    }();
+  geo_log::GeoTreeLog *tree_log = [&]() -> geo_log::GeoTreeLog * {
+    const bNodeTreeZones *tree_zones = node.owner_tree().zones();
+    if (!tree_zones) {
+      return nullptr;
+    }
+    const bNodeTreeZone *zone = tree_zones->get_zone_by_node(node.identifier);
+    return tree_draw_ctx.geo_log_by_zone.lookup_default(zone, nullptr);
+  }();
 
-    if (tree_log) {
-      tree_log->ensure_debug_messages();
-      const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier);
-      if (node_log != nullptr) {
-        for (const StringRef message : node_log->debug_messages) {
-          NodeExtraInfoRow row;
-          row.text = message;
-          row.icon = ICON_INFO;
-          rows.append(std::move(row));
-        }
+  if (tree_log) {
+    tree_log->ensure_debug_messages();
+    const geo_log::GeoNodeLog *node_log = tree_log->nodes.lookup_ptr(node.identifier);
+    if (node_log != nullptr) {
+      for (const StringRef message : node_log->debug_messages) {
+        NodeExtraInfoRow row;
+        row.text = message;
+        row.icon = ICON_INFO;
+        rows.append(std::move(row));
       }
     }
   }
@@ -2100,6 +2097,9 @@ static void node_draw_extra_info_panel(const Scene *scene,
                                        ImBuf *preview,
                                        uiBlock &block)
 {
+  if (!(snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS)) {
+    return;
+  }
   Vector<NodeExtraInfoRow> extra_info_rows = node_get_extra_info(tree_draw_ctx, snode, node);
   if (extra_info_rows.size() == 0 && !preview) {
     return;
