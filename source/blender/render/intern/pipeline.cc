@@ -497,13 +497,9 @@ Render *RE_NewRender(const char *name)
   if (re == nullptr) {
 
     /* new render data struct */
-    re = MEM_cnew<Render>("new render");
+    re = MEM_new<Render>("new render");
     RenderGlobal.render_list.push_front(re);
     STRNCPY(re->name, name);
-    BLI_rw_mutex_init(&re->resultmutex);
-    BLI_mutex_init(&re->engine_draw_mutex);
-    BLI_mutex_init(&re->highlighted_tiles_mutex);
-    BLI_mutex_init(&re->gpu_compositor_mutex);
   }
 
   RE_InitRenderCB(re);
@@ -587,7 +583,8 @@ void RE_FreeRender(Render *re)
   render_result_free(re->pushedresult);
 
   RenderGlobal.render_list.remove(re);
-  MEM_freeN(re);
+
+  MEM_delete(re);
 }
 
 void RE_FreeAllRender()
