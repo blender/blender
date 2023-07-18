@@ -148,7 +148,7 @@ void bmo_connect_verts_nonplanar_exec(BMesh *bm, BMOperator *op)
     }
   }
 
-  while ((f = (BMFace *)BLI_LINKSTACK_POP(fstack))) {
+  while ((f = BLI_LINKSTACK_POP(fstack))) {
     BMFace *f_pair[2];
     if (bm_face_split_by_angle(bm, f, f_pair, angle_limit_cos)) {
       int j;

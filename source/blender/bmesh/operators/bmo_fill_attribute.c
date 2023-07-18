@@ -100,7 +100,7 @@ static uint bmesh_face_attribute_fill(BMesh *bm, const bool use_normals, const b
   }
 
   while (BLI_LINKSTACK_SIZE(loop_queue_prev)) {
-    while ((l = (BMLoop *)BLI_LINKSTACK_POP(loop_queue_prev))) {
+    while ((l = BLI_LINKSTACK_POP(loop_queue_prev))) {
       /* check we're still un-assigned */
       if (BM_elem_flag_test(l->f, BM_ELEM_TAG)) {
         BMLoop *l_iter;

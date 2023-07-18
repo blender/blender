@@ -1072,7 +1072,7 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
   do {
     BMEdge *e;
 
-    while ((e = static_cast<BMEdge *>(BLI_LINKSTACK_POP(queue)))) {
+    while ((e = BLI_LINKSTACK_POP(queue))) {
       BMVert *v1 = e->v1;
       BMVert *v2 = e->v2;
       int i1 = BM_elem_index_get(v1);

@@ -1096,7 +1096,7 @@ static BMEdge *bm_face_region_pivot_edge_find(BMFace **faces_region,
 
   while (BLI_LINKSTACK_SIZE(vert_queue_prev)) {
     BMVert *v;
-    while ((v = (BMVert *)BLI_LINKSTACK_POP(vert_queue_prev))) {
+    while ((v = BLI_LINKSTACK_POP(vert_queue_prev))) {
       BMIter eiter;
       BMEdge *e;
       BLI_assert(BLI_ghash_haskey(gh, v));
