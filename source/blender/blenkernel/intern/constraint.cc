@@ -1123,7 +1123,7 @@ static bConstraintTypeInfo CTI_CHILDOF = {
     /*new_data*/ childof_new_data,
     /*get_constraint_targets*/ childof_get_tars,
     /*flush_constraint_targets*/ childof_flush_tars,
-    /* get a target matrix */ default_get_tarmat,
+    /*get_target_matrix*/ default_get_tarmat,
     /*evaluate_constraint*/ childof_evaluate,
 };
 
@@ -1414,7 +1414,7 @@ static bConstraintTypeInfo CTI_KINEMATIC = {
     /*get_constraint_targets*/ kinematic_get_tars,
     /*flush_constraint_targets*/ kinematic_flush_tars,
     /*get_target_matrix*/ kinematic_get_tarmat,
-    /* evaluate - solved as separate loop */ nullptr,
+    /*evaluate_constraint*/ nullptr,
 };
 
 /* -------- Follow-Path Constraint ---------- */
@@ -3431,7 +3431,7 @@ static bConstraintTypeInfo CTI_DISTLIMIT = {
     /*new_data*/ distlimit_new_data,
     /*get_constraint_targets*/ distlimit_get_tars,
     /*flush_constraint_targets*/ distlimit_flush_tars,
-    /* get a target matrix */ default_get_tarmat,
+    /*get_target_matrix*/ default_get_tarmat,
     /*evaluate_constraint*/ distlimit_evaluate,
 };
 
@@ -4165,7 +4165,7 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
     /*new_data*/ transform_new_data,
     /*get_constraint_targets*/ transform_get_tars,
     /*flush_constraint_targets*/ transform_flush_tars,
-    /* get a target matrix */ default_get_tarmat,
+    /*get_target_matrix*/ default_get_tarmat,
     /*evaluate_constraint*/ transform_evaluate,
 };
 
@@ -4397,7 +4397,7 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
     /*new_data*/ shrinkwrap_new_data,
     /*get_constraint_targets*/ shrinkwrap_get_tars,
     /*flush_constraint_targets*/ shrinkwrap_flush_tars,
-    /* get a target matrix */ shrinkwrap_get_tarmat,
+    /*get_target_matrix*/ shrinkwrap_get_tarmat,
     /*evaluate_constraint*/ shrinkwrap_evaluate,
 };
 
@@ -4658,7 +4658,7 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
     /*get_constraint_targets*/ splineik_get_tars,
     /*flush_constraint_targets*/ splineik_flush_tars,
     /*get_target_matrix*/ splineik_get_tarmat,
-    /* evaluate - solved as separate loop */ nullptr,
+    /*evaluate_constraint*/ nullptr,
 };
 
 /* ----------- Pivot ------------- */

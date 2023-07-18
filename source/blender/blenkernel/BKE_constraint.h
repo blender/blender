@@ -116,7 +116,10 @@ typedef struct bConstraintTypeInfo {
                             struct bConstraintOb *cob,
                             struct bConstraintTarget *ct,
                             float ctime);
-  /** evaluate the constraint for the given time */
+  /**
+   * Evaluate the constraint for the given time.
+   * solved as separate loop.
+   */
   void (*evaluate_constraint)(struct bConstraint *con,
                               struct bConstraintOb *cob,
                               struct ListBase *targets);
