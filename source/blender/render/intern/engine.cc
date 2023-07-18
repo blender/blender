@@ -1219,6 +1219,11 @@ RenderEngine *RE_engine_get(const Render *re)
   return re->engine;
 }
 
+RenderEngine *RE_view_engine_get(const ViewRender *view_render)
+{
+  return view_render->engine;
+}
+
 bool RE_engine_draw_acquire(Render *re)
 {
   RenderEngine *engine = re->engine;

@@ -160,6 +160,9 @@ struct Scene;
 struct Render *RE_NewSceneRender(const struct Scene *scene);
 struct Render *RE_GetSceneRender(const struct Scene *scene);
 
+struct RenderEngineType;
+struct ViewRender *RE_NewViewRender(struct RenderEngineType *engine_type);
+
 /* Assign default dummy callbacks. */
 
 /**
@@ -174,6 +177,7 @@ void RE_InitRenderCB(struct Render *re);
  * Only call this while you know it will remove the link too.
  */
 void RE_FreeRender(struct Render *re);
+void RE_FreeViewRender(struct ViewRender *view_render);
 /**
  * Only called on exit.
  */

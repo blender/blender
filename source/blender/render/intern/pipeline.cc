@@ -507,6 +507,13 @@ Render *RE_NewRender(const char *name)
   return re;
 }
 
+ViewRender *RE_NewViewRender(RenderEngineType *engine_type)
+{
+  ViewRender *view_render = MEM_new<ViewRender>("new view render");
+  view_render->engine = RE_engine_create(engine_type);
+  return view_render;
+}
+
 /* MAX_ID_NAME + sizeof(Library->name) + space + null-terminator. */
 #define MAX_SCENE_RENDER_NAME (MAX_ID_NAME + 1024 + 2)
 
@@ -558,6 +565,11 @@ void RE_FreeRender(Render *re)
   RenderGlobal.render_list.remove(re);
 
   MEM_delete(re);
+}
+
+void RE_FreeViewRender(ViewRender *view_render)
+{
+  MEM_delete(view_render);
 }
 
 void RE_FreeAllRender()

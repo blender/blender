@@ -72,7 +72,7 @@ void ED_render_view3d_update(Depsgraph *depsgraph,
 
     View3D *v3d = static_cast<View3D *>(area->spacedata.first);
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
-    RenderEngine *engine = rv3d->render_engine;
+    RenderEngine *engine = rv3d->view_render ? RE_view_engine_get(rv3d->view_render) : nullptr;
 
     /* call update if the scene changed, or if the render engine
      * tagged itself for update (e.g. because it was busy at the

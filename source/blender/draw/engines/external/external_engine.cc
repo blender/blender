@@ -244,16 +244,20 @@ static void external_draw_scene_do_v3d(void *vedata)
   GPU_apply_state();
 
   /* Create render engine. */
-  if (!rv3d->render_engine) {
+  RenderEngine *render_engine = nullptr;
+  if (!rv3d->view_render) {
     RenderEngineType *engine_type = draw_ctx->engine_type;
 
     if (!(engine_type->view_update && engine_type->view_draw)) {
       return;
     }
 
-    RenderEngine *engine = RE_engine_create(engine_type);
-    engine_type->view_update(engine, draw_ctx->evil_C, draw_ctx->depsgraph);
-    rv3d->render_engine = engine;
+    rv3d->view_render = RE_NewViewRender(engine_type);
+    render_engine = RE_view_engine_get(rv3d->view_render);
+    engine_type->view_update(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+  }
+  else {
+    render_engine = RE_view_engine_get(rv3d->view_render);
   }
 
   /* Rendered draw. */
@@ -262,8 +266,8 @@ static void external_draw_scene_do_v3d(void *vedata)
   ED_region_pixelspace(region);
 
   /* Render result draw. */
-  const RenderEngineType *type = rv3d->render_engine->type;
-  type->view_draw(rv3d->render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
+  const RenderEngineType *type = render_engine->type;
+  type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
   GPU_bgl_end();
 
@@ -272,8 +276,8 @@ static void external_draw_scene_do_v3d(void *vedata)
 
   /* Set render info. */
   EXTERNAL_Data *data = static_cast<EXTERNAL_Data *>(vedata);
-  if (rv3d->render_engine->text[0] != '\0') {
-    STRNCPY(data->info, rv3d->render_engine->text);
+  if (render_engine->text[0] != '\0') {
+    STRNCPY(data->info, render_engine->text);
   }
   else {
     data->info[0] = '\0';

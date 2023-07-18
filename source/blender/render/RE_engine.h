@@ -32,6 +32,7 @@ struct RenderResult;
 struct ReportList;
 struct Scene;
 struct ViewLayer;
+struct ViewRender;
 struct bNode;
 struct bNodeTree;
 
@@ -242,6 +243,7 @@ void RE_engine_register_pass(struct RenderEngine *engine,
 bool RE_engine_use_persistent_data(struct RenderEngine *engine);
 
 struct RenderEngine *RE_engine_get(const struct Render *re);
+struct RenderEngine *RE_view_engine_get(const struct ViewRender *view_render);
 
 /* Acquire render engine for drawing via its `draw()` callback.
  *
