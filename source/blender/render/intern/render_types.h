@@ -36,7 +36,7 @@ struct HighlightedTile {
 
 struct BaseRender {
   BaseRender() = default;
-  virtual ~BaseRender() = default;
+  virtual ~BaseRender();
 
   /* Result of rendering */
   RenderResult *result = nullptr;
@@ -58,7 +58,7 @@ struct Render : public BaseRender {
   /* NOTE: Currently unused, provision for the future.
    * Add these now to allow the guarded memory allocator to catch C-specific function calls. */
   Render() = default;
-  virtual ~Render() = default;
+  virtual ~Render();
 
   char name[RE_MAXNAME] = "";
   int slot = 0;

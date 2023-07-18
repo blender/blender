@@ -34,6 +34,7 @@ set(SRC
   intern/multires_bake.cc
   intern/pipeline.cc
   intern/render_result.cc
+  intern/render_types.cc
   intern/texture_image.c
   intern/texture_margin.cc
   intern/texture_pointdensity.c

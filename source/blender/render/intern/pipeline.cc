@@ -555,33 +555,6 @@ void RE_InitRenderCB(Render *re)
 
 void RE_FreeRender(Render *re)
 {
-  if (re->engine) {
-    RE_engine_free(re->engine);
-  }
-
-  RE_compositor_free(*re);
-
-  RE_blender_gpu_context_free(re);
-  RE_system_gpu_context_free(re);
-
-  BLI_rw_mutex_end(&re->resultmutex);
-  BLI_mutex_end(&re->engine_draw_mutex);
-  BLI_mutex_end(&re->highlighted_tiles_mutex);
-  BLI_mutex_end(&re->gpu_compositor_mutex);
-
-  BKE_curvemapping_free_data(&re->r.mblur_shutter_curve);
-
-  if (re->highlighted_tiles != nullptr) {
-    BLI_gset_free(re->highlighted_tiles, MEM_freeN);
-  }
-
-  /* main dbase can already be invalid now, some database-free code checks it */
-  re->main = nullptr;
-  re->scene = nullptr;
-
-  render_result_free(re->result);
-  render_result_free(re->pushedresult);
-
   RenderGlobal.render_list.remove(re);
 
   MEM_delete(re);
