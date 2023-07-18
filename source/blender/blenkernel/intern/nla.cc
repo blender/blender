@@ -337,7 +337,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
 
 /* Adding ------------------------------------------- */
 
-NlaTrack *BKE_nlatrack_new(void)
+NlaTrack *BKE_nlatrack_new()
 {
   /* allocate new track */
   NlaTrack *nlt = static_cast<NlaTrack *>(MEM_callocN(sizeof(NlaTrack), "NlaTrack"));
@@ -541,7 +541,7 @@ NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
   if (speaker->sound) {
     SoundInfo info;
     if (BKE_sound_info_get(bmain, speaker->sound, &info)) {
-      strip->end = (float)ceil((double)info.length * FPS);
+      strip->end = float(ceil(double(info.length) * FPS));
     }
   }
   else
@@ -636,7 +636,7 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
       return (strip->end + (strip->actstart * scale - cframe)) / scale;
     }
     /* if (mode == NLATIME_CONVERT_EVAL) */
-    if (IS_EQF((float)cframe, strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
+    if (IS_EQF(float(cframe), strip->end) && IS_EQF(strip->repeat, floorf(strip->repeat))) {
       /* This case prevents the motion snapping back to the first frame at the end of the strip
        * by catching the case where repeats is a whole number, which means that the end of the
        * strip could also be interpreted as the end of the start of a repeat. */

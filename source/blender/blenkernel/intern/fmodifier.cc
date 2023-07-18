@@ -211,7 +211,7 @@ static void fcm_generator_evaluate(
 
       /* For each coefficient pair,
        * solve for that bracket before accumulating in value by multiplying. */
-      for (cp = data->coefficients, i = 0; (cp) && (i < (uint)data->poly_order); cp += 2, i++) {
+      for (cp = data->coefficients, i = 0; (cp) && (i < uint(data->poly_order)); cp += 2, i++) {
         value *= (cp[0] * evaltime + cp[1]);
       }
 
@@ -348,7 +348,7 @@ static void fcm_fn_generator_evaluate(
 
   /* execute function callback to set value if appropriate */
   if (fn) {
-    float value = (float)(data->amplitude * (float)fn(arg) + data->value_offset);
+    float value = float(data->amplitude * float(fn(arg)) + data->value_offset);
 
     if (data->flag & FCM_GENERATOR_ADDITIVE) {
       *cvalue += value;
@@ -692,7 +692,7 @@ static float fcm_cycles_time(
     }
 
     /* calculate the 'number' of the cycle */
-    const float cycle = ((float)side * (evaltime - ofs) / cycdx);
+    const float cycle = (float(side) * (evaltime - ofs) / cycdx);
 
     /* calculate the time inside the cycle */
     const float cyct = fmod(evaltime - ofs, cycdx);
@@ -713,10 +713,10 @@ static float fcm_cycles_time(
     /* check if 'cyclic extrapolation', and thus calculate y-offset for this cycle */
     if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
       if (side < 0) {
-        cycyofs = (float)floor((evaltime - ofs) / cycdx);
+        cycyofs = float(floor((evaltime - ofs) / cycdx));
       }
       else {
-        cycyofs = (float)ceil((evaltime - ofs) / cycdx);
+        cycyofs = float(ceil((evaltime - ofs) / cycdx));
       }
       cycyofs *= cycdy;
     }
@@ -725,12 +725,12 @@ static float fcm_cycles_time(
     if (cyct == 0.0f) {
       evaltime = (side == 1 ? lastkey[0] : prevkey[0]);
 
-      if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)cycle % 2)) {
+      if ((mode == FCM_EXTRAPOLATE_MIRROR) && (int(cycle) % 2)) {
         evaltime = (side == 1 ? prevkey[0] : lastkey[0]);
       }
     }
     /* calculate where in the cycle we are (overwrite evaltime to reflect this) */
-    else if ((mode == FCM_EXTRAPOLATE_MIRROR) && ((int)(cycle + 1) % 2)) {
+    else if ((mode == FCM_EXTRAPOLATE_MIRROR) && (int(cycle + 1) % 2)) {
       /* When 'mirror' option is used and cycle number is odd, this cycle is played in reverse
        * - for 'before' extrapolation, we need to flip in a different way, otherwise values past
        *   then end of the curve get referenced
@@ -986,12 +986,12 @@ static float fcm_stepped_time(
    * after the start offset has been discarded
    * - i.e. round down
    */
-  snapblock = (int)((evaltime - data->offset) / data->step_size);
+  snapblock = int((evaltime - data->offset) / data->step_size);
 
   /* reapply the offset, and multiple the snapblock by the size of the steps to get
    * the new time to evaluate at
    */
-  return ((float)snapblock * data->step_size) + data->offset;
+  return (float(snapblock) * data->step_size) + data->offset;
 }
 
 static FModifierTypeInfo FMI_STEPPED = {
@@ -1024,7 +1024,7 @@ static FModifierTypeInfo *fmodifiersTypeInfo[FMODIFIER_NUM_TYPES];
 static short FMI_INIT = 1; /* when non-zero, the list needs to be updated */
 
 /** This function only gets called when #FMI_INIT is non-zero. */
-static void fmods_init_typeinfo(void)
+static void fmods_init_typeinfo()
 {
   fmodifiersTypeInfo[0] = nullptr;           /* 'Null' F-Curve Modifier */
   fmodifiersTypeInfo[1] = &FMI_GENERATOR;    /* Generator F-Curve Modifier */

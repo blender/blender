@@ -642,7 +642,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
   struct PathStore *path_store = static_cast<PathStore *>(
-      MEM_mallocN(sizeof(struct PathStore) + path_size, __func__));
+      MEM_mallocN(sizeof(PathStore) + path_size, __func__));
 
   char *filepath = path_store->filepath;
 

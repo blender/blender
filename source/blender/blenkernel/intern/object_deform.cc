@@ -474,7 +474,7 @@ void BKE_object_defgroup_index_map_apply(MDeformVert *dvert,
     int totweight = dv->totweight;
     for (int j = 0; j < totweight; j++) {
       int def_nr = dv->dw[j].def_nr;
-      if ((uint)def_nr < (uint)map_len && map[def_nr] != -1) {
+      if (uint(def_nr) < uint(map_len) && map[def_nr] != -1) {
         dv->dw[j].def_nr = map[def_nr];
       }
       else {

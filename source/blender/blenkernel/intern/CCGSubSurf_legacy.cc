@@ -856,7 +856,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
         }
       }
 
-      VertDataMulN(q, (float)1 / sharpCount, ss);
+      VertDataMulN(q, float(1) / sharpCount, ss);
 
       if (sharpCount != 2 || allSharp) {
         /* q = q + (co - q) * avgSharpness */
@@ -956,7 +956,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
         VertDataMulN(r, 1.0f / (2.0f + numFaces), ss);
 
         VertDataCopy(nCo, co, ss);
-        VertDataMulN(nCo, (float)numFaces, ss);
+        VertDataMulN(nCo, float(numFaces), ss);
         VertDataAdd(nCo, q, ss);
         VertDataAdd(nCo, r, ss);
         VertDataMulN(nCo, 1.0f / (2 + numFaces), ss);
@@ -1202,7 +1202,7 @@ void ccgSubSurf__sync_legacy(CCGSubSurf *ss)
         }
       }
 
-      VertDataMulN(static_cast<float *>(q), (float)1 / sharpCount, ss);
+      VertDataMulN(static_cast<float *>(q), float(1) / sharpCount, ss);
 
       if (sharpCount != 2 || allSharp) {
         /* q = q + (co - q) * avgSharpness */

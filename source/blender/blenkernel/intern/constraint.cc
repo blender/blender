@@ -922,7 +922,7 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
       if (no_copy == 0) { \
         datatar = ct->tar; \
         STRNCPY(datasubtarget, ct->subtarget); \
-        con->tarspace = (char)ct->space; \
+        con->tarspace = char(ct->space); \
       } \
 \
       BLI_freelinkN(list, ct); \
@@ -943,7 +943,7 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
       bConstraintTarget *ctn = ct->next; \
       if (no_copy == 0) { \
         datatar = ct->tar; \
-        con->tarspace = (char)ct->space; \
+        con->tarspace = char(ct->space); \
       } \
 \
       BLI_freelinkN(list, ct); \
@@ -1245,7 +1245,7 @@ static void vectomat(const float vec[3],
 
   if (axis != upflag) {
     right_index = 3 - axis - upflag;
-    neg = (float)basis_cross(axis, upflag);
+    neg = float(basis_cross(axis, upflag));
 
     /* account for up direction, track direction */
     m[right_index][0] = neg * right[0];
@@ -1290,7 +1290,7 @@ static void trackto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
      * for backwards compatibility it seems. */
     sub_v3_v3v3(vec, cob->matrix[3], ct->matrix[3]);
     vectomat(
-        vec, ct->matrix[2], (short)data->reserved1, (short)data->reserved2, data->flags, totmat);
+        vec, ct->matrix[2], short(data->reserved1), short(data->reserved2), data->flags, totmat);
 
     mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
   }
@@ -2865,7 +2865,7 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
         axis = data->type - 20;
       }
 
-      BLI_assert((uint)axis < 3);
+      BLI_assert(uint(axis) < 3);
 
       /* Target defines the animation */
       s = (vec[axis] - data->min) / (data->max - data->min);
@@ -3391,8 +3391,7 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
       else if (data->flag & LIMITDIST_USESOFT) {
         /* FIXME: there's a problem with "jumping" when this kicks in */
         if (dist >= (data->dist - data->soft)) {
-          sfac = (float)(data->soft * (1.0f - expf(-(dist - data->dist) / data->soft)) +
-                         data->dist);
+          sfac = float(data->soft * (1.0f - expf(-(dist - data->dist) / data->soft)) + data->dist);
           if (dist != 0.0f) {
             sfac /= dist;
           }
@@ -3542,7 +3541,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
         float range = bulge_max - 1.0f;
         float scale_fac = (range > 0.0f) ? 1.0f / range : 0.0f;
-        float soft = 1.0f + range * atanf((bulge - 1.0f) * scale_fac) / (float)M_PI_2;
+        float soft = 1.0f + range * atanf((bulge - 1.0f) * scale_fac) / float(M_PI_2);
 
         bulge = interpf(soft, hard, data->bulge_smooth);
       }
@@ -3554,7 +3553,7 @@ static void stretchto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
         float range = 1.0f - bulge_min;
         float scale_fac = (range > 0.0f) ? 1.0f / range : 0.0f;
-        float soft = 1.0f - range * atanf((1.0f - bulge) * scale_fac) / (float)M_PI_2;
+        float soft = 1.0f - range * atanf((1.0f - bulge) * scale_fac) / float(M_PI_2);
 
         bulge = interpf(soft, hard, data->bulge_smooth);
       }
@@ -3899,7 +3898,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
           else if (ownLoc[clamp_axis] > curveMax[clamp_axis]) {
             /* bounding-box range is after */
             offset = curveMax[clamp_axis] +
-                     (int)((ownLoc[clamp_axis] - curveMax[clamp_axis]) / len) * len;
+                     int((ownLoc[clamp_axis] - curveMax[clamp_axis]) / len) * len;
 
             /* Now, we calculate as per normal,
              * except using offset instead of curveMax[clamp_axis]. */
@@ -4093,7 +4092,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         to_min = data->to_min_scale;
         to_max = data->to_max_scale;
         for (int i = 0; i < 3; i++) {
-          newsize[i] = to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
+          newsize[i] = to_min[i] + (sval[int(data->map[i])] * (to_max[i] - to_min[i]));
         }
         switch (data->mix_mode_scale) {
           case TRANS_MIXSCALE_MULTIPLY:
@@ -4109,7 +4108,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         to_min = data->to_min_rot;
         to_max = data->to_max_rot;
         for (int i = 0; i < 3; i++) {
-          neweul[i] = to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i]));
+          neweul[i] = to_min[i] + (sval[int(data->map[i])] * (to_max[i] - to_min[i]));
         }
         switch (data->mix_mode_rot) {
           case TRANS_MIXROT_REPLACE:
@@ -4136,7 +4135,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
         to_min = data->to_min;
         to_max = data->to_max;
         for (int i = 0; i < 3; i++) {
-          newloc[i] = (to_min[i] + (sval[(int)data->map[i]] * (to_max[i] - to_min[i])));
+          newloc[i] = (to_min[i] + (sval[int(data->map[i])] * (to_max[i] - to_min[i])));
         }
         switch (data->mix_mode_loc) {
           case TRANS_MIXLOC_REPLACE:
@@ -5009,14 +5008,14 @@ static void followtrack_fit_frame(FollowTrackContext *context,
   if ((asp_src > asp_dst) == (context->frame_method == FOLLOWTRACK_FRAME_CROP)) {
     /* fit X */
     float div = asp_src / asp_dst;
-    float cent = (float)clip_width / 2.0f;
+    float cent = float(clip_width) / 2.0f;
 
     marker_position[0] = (((marker_position[0] * clip_width - cent) * div) + cent) / clip_width;
   }
   else {
     /* fit Y */
     float div = asp_dst / asp_src;
-    float cent = (float)clip_height / 2.0f;
+    float cent = float(clip_height) / 2.0f;
 
     marker_position[1] = (((marker_position[1] * clip_height - cent) * div) + cent) / clip_height;
   }
@@ -5376,7 +5375,7 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
   }
 
   const float frame = DEG_get_ctime(cob->depsgraph);
-  const double time = BKE_cachefile_time_offset(cache_file, (double)frame, FPS);
+  const double time = BKE_cachefile_time_offset(cache_file, double(frame), FPS);
 
   if (!data->reader || !STREQ(data->reader_object_path, data->object_path)) {
     STRNCPY(data->reader_object_path, data->object_path);
@@ -5457,7 +5456,7 @@ static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES];
 static short CTI_INIT = 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when CTI_INIT is non-zero */
-static void constraints_init_typeinfo(void)
+static void constraints_init_typeinfo()
 {
   constraintsTypeInfo[0] = nullptr;                    /* 'Null' Constraint */
   constraintsTypeInfo[1] = &CTI_CHILDOF;               /* ChildOf Constraint */

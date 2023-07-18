@@ -448,7 +448,7 @@ static void spacetype_free(SpaceType *st)
   BLI_freelistN(&st->asset_shelf_types);
 }
 
-void BKE_spacetypes_free(void)
+void BKE_spacetypes_free()
 {
   LISTBASE_FOREACH (SpaceType *, st, &spacetypes) {
     spacetype_free(st);
@@ -490,7 +490,7 @@ ARegionType *BKE_regiontype_from_id(const SpaceType *st, int regionid)
   return nullptr;
 }
 
-const ListBase *BKE_spacetypes_list(void)
+const ListBase *BKE_spacetypes_list()
 {
   return &spacetypes;
 }
@@ -677,9 +677,9 @@ void BKE_spacedata_id_unref(ScrArea *area, SpaceLink *sl, ID *id)
 /**
  * Avoid bad-level calls to #WM_gizmomap_tag_refresh.
  */
-static void (*region_refresh_tag_gizmomap_callback)(struct wmGizmoMap *) = nullptr;
+static void (*region_refresh_tag_gizmomap_callback)(wmGizmoMap *) = nullptr;
 
-void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *))
+void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(wmGizmoMap *))
 {
   region_refresh_tag_gizmomap_callback = callback;
 }
@@ -702,9 +702,9 @@ void BKE_screen_gizmo_tag_refresh(bScreen *screen)
 /**
  * Avoid bad-level calls to #WM_gizmomap_delete.
  */
-static void (*region_free_gizmomap_callback)(struct wmGizmoMap *) = nullptr;
+static void (*region_free_gizmomap_callback)(wmGizmoMap *) = nullptr;
 
-void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *))
+void BKE_region_callback_free_gizmomap_set(void (*callback)(wmGizmoMap *))
 {
   region_free_gizmomap_callback = callback;
 }
@@ -1137,12 +1137,12 @@ ARegion *BKE_screen_find_main_region_at_xy(bScreen *screen, const int space_type
 
 float BKE_screen_view3d_zoom_to_fac(float camzoom)
 {
-  return powf(((float)M_SQRT2 + camzoom / 50.0f), 2.0f) / 4.0f;
+  return powf((float(M_SQRT2) + camzoom / 50.0f), 2.0f) / 4.0f;
 }
 
 float BKE_screen_view3d_zoom_from_fac(float zoomfac)
 {
-  return ((sqrtf(4.0f * zoomfac) - (float)M_SQRT2) * 50.0f);
+  return ((sqrtf(4.0f * zoomfac) - float(M_SQRT2)) * 50.0f);
 }
 
 bool BKE_screen_is_fullscreen_area(const bScreen *screen)
@@ -1377,8 +1377,8 @@ void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
 
       rv3d = static_cast<RegionView3D *>(
           region->regiondata = MEM_callocN(sizeof(RegionView3D), "region v3d patch"));
-      rv3d->persp = (char)v3d->persp;
-      rv3d->view = (char)v3d->view;
+      rv3d->persp = char(v3d->persp);
+      rv3d->view = char(v3d->view);
       rv3d->dist = v3d->dist;
       copy_v3_v3(rv3d->ofs, v3d->ofs);
       copy_qt_qt(rv3d->viewquat, v3d->viewquat);

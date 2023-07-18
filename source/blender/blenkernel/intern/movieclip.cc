@@ -1058,8 +1058,8 @@ static void real_ibuf_size(
         break;
 
       case MCLIP_PROXY_RENDER_SIZE_75:
-        *width = ((float)*width) * 4.0f / 3.0f;
-        *height = ((float)*height) * 4.0f / 3.0f;
+        *width = float(*width) * 4.0f / 3.0f;
+        *height = float(*height) * 4.0f / 3.0f;
         break;
     }
   }
@@ -1561,8 +1561,8 @@ void BKE_movieclip_get_size_fl(MovieClip *clip, const MovieClipUser *user, float
   int width, height;
   BKE_movieclip_get_size(clip, user, &width, &height);
 
-  size[0] = (float)width;
-  size[1] = (float)height;
+  size[0] = float(width);
+  size[1] = float(height);
 }
 
 int BKE_movieclip_get_duration(MovieClip *clip)
@@ -1586,7 +1586,7 @@ float BKE_movieclip_get_fps(MovieClip *clip)
   short frs_sec;
   float frs_sec_base;
   if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
-    return (float)frs_sec / frs_sec_base;
+    return float(frs_sec) / frs_sec_base;
   }
   return 0.0f;
 }
@@ -1802,10 +1802,10 @@ static void movieclip_build_proxy_ibuf(
   scaleibuf = IMB_dupImBuf(ibuf);
 
   if (threaded) {
-    IMB_scaleImBuf_threaded(scaleibuf, (short)rectx, (short)recty);
+    IMB_scaleImBuf_threaded(scaleibuf, short(rectx), short(recty));
   }
   else {
-    IMB_scaleImBuf(scaleibuf, (short)rectx, (short)recty);
+    IMB_scaleImBuf(scaleibuf, short(rectx), short(recty));
   }
 
   quality = clip->proxy.quality;
@@ -1910,12 +1910,12 @@ bool BKE_movieclip_proxy_enabled(MovieClip *clip)
 
 float BKE_movieclip_remap_scene_to_clip_frame(const MovieClip *clip, const float framenr)
 {
-  return framenr - (float)clip->start_frame + 1.0f;
+  return framenr - float(clip->start_frame) + 1.0f;
 }
 
 float BKE_movieclip_remap_clip_to_scene_frame(const MovieClip *clip, const float framenr)
 {
-  return framenr + (float)clip->start_frame - 1.0f;
+  return framenr + float(clip->start_frame) - 1.0f;
 }
 
 void BKE_movieclip_filepath_for_frame(MovieClip *clip, const MovieClipUser *user, char *filepath)

@@ -198,7 +198,7 @@ static void _stdAllocator_free(CCGAllocatorHDL /*a*/, void *ptr)
   MEM_freeN(ptr);
 }
 
-CCGAllocatorIFC *ccg_getStandardAllocatorIFC(void)
+CCGAllocatorIFC *ccg_getStandardAllocatorIFC()
 {
   static CCGAllocatorIFC ifc;
 

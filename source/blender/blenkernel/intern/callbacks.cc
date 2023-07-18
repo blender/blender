@@ -111,12 +111,12 @@ void BKE_callback_remove(bCallbackFuncStore *funcstore, eCbEvent evt)
   }
 }
 
-void BKE_callback_global_init(void)
+void BKE_callback_global_init()
 {
   callbacks_initialized = true;
 }
 
-void BKE_callback_global_finalize(void)
+void BKE_callback_global_finalize()
 {
   for (int evt_i = 0; evt_i < BKE_CB_EVT_TOT; evt_i++) {
     const eCbEvent evt = eCbEvent(evt_i);

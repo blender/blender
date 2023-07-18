@@ -816,7 +816,7 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
   while ((remaining_str = const_cast<char *>(find_next_negative(str, remaining_str))) != nullptr) {
     int remaining_str_maxncpy;
     /* Exit early in the unlikely situation that we've run out of length to add the parentheses. */
-    remaining_str_maxncpy = str_maxncpy - (int)(remaining_str - str);
+    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
     if (remaining_str_maxncpy <= 2) {
       return changed;
     }
@@ -829,7 +829,7 @@ static bool unit_distribute_negatives(char *str, const int str_maxncpy)
 
     /* Add the ')' before the next operation or at the end. */
     remaining_str = find_next_op(str, remaining_str + 1, remaining_str_maxncpy);
-    remaining_str_maxncpy = str_maxncpy - (int)(remaining_str - str);
+    remaining_str_maxncpy = str_maxncpy - int(remaining_str - str);
     memmove(remaining_str + 1, remaining_str, remaining_str_maxncpy - 2);
     *remaining_str = ')';
 
@@ -889,7 +889,7 @@ static int unit_scale_str(char *str,
     return 0;
   }
 
-  int found_ofs = (int)(str_found - str);
+  int found_ofs = int(str_found - str);
 
   int len = strlen(str);
 
@@ -1153,7 +1153,7 @@ void BKE_unit_name_to_alt(char *str, int str_maxncpy, const char *orig_str, int 
       const bool case_sensitive = (unit->flag & B_UNIT_DEF_CASE_SENSITIVE) != 0;
       const char *found = unit_find_str(orig_str, unit->name_short, case_sensitive);
       if (found) {
-        int offset = (int)(found - orig_str);
+        int offset = int(found - orig_str);
         int len_name = 0;
 
         /* Copy everything before the unit. */
@@ -1245,19 +1245,19 @@ int BKE_unit_base_of_type_get(int system, int type)
 const char *BKE_unit_name_get(const void *usys_pt, int index)
 {
   const bUnitCollection *usys = static_cast<const bUnitCollection *>(usys_pt);
-  BLI_assert((uint)index < (uint)usys->length);
+  BLI_assert(uint(index) < uint(usys->length));
   return usys->units[index].name;
 }
 const char *BKE_unit_display_name_get(const void *usys_pt, int index)
 {
   const bUnitCollection *usys = static_cast<const bUnitCollection *>(usys_pt);
-  BLI_assert((uint)index < (uint)usys->length);
+  BLI_assert(uint(index) < uint(usys->length));
   return usys->units[index].name_display;
 }
 const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 {
   const bUnitCollection *usys = static_cast<const bUnitCollection *>(usys_pt);
-  BLI_assert((uint)index < (uint)usys->length);
+  BLI_assert(uint(index) < uint(usys->length));
   const bUnitDef *unit = &usys->units[index];
   if (unit->identifier == nullptr) {
     BLI_assert_msg(0, "identifier for this unit is not specified yet");
@@ -1268,13 +1268,13 @@ const char *BKE_unit_identifier_get(const void *usys_pt, int index)
 double BKE_unit_scalar_get(const void *usys_pt, int index)
 {
   const bUnitCollection *usys = static_cast<const bUnitCollection *>(usys_pt);
-  BLI_assert((uint)index < (uint)usys->length);
+  BLI_assert(uint(index) < uint(usys->length));
   return usys->units[index].scalar;
 }
 
 bool BKE_unit_is_suppressed(const void *usys_pt, int index)
 {
   const bUnitCollection *usys = static_cast<const bUnitCollection *>(usys_pt);
-  BLI_assert((uint)index < (uint)usys->length);
+  BLI_assert(uint(index) < uint(usys->length));
   return (usys->units[index].flag & B_UNIT_DEF_SUPPRESS) != 0;
 }

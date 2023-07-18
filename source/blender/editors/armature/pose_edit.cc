@@ -993,7 +993,7 @@ void ARMATURE_OT_bone_layers(wmOperatorType *ot)
 static int hide_pose_bone_fn(Object *ob, Bone *bone, void *ptr)
 {
   bArmature *arm = static_cast<bArmature *>(ob->data);
-  const bool hide_select = (bool)POINTER_AS_INT(ptr);
+  const bool hide_select = bool(POINTER_AS_INT(ptr));
   int count = 0;
   if (arm->layer & bone->layer) {
     if (((bone->flag & BONE_SELECTED) != 0) == hide_select) {

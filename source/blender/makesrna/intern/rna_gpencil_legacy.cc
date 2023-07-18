@@ -1214,7 +1214,7 @@ static void rna_GpencilCurvePoint_BezTriple_ctrlpoint_select_set(PointerRNA *ptr
 static bool rna_GpencilCurvePoint_BezTriple_hide_get(PointerRNA *ptr)
 {
   bGPDcurve_point *cpt = (bGPDcurve_point *)ptr->data;
-  return (bool)cpt->bezt.hide;
+  return bool(cpt->bezt.hide);
 }
 
 static void rna_GpencilCurvePoint_BezTriple_hide_set(PointerRNA *ptr, const bool value)

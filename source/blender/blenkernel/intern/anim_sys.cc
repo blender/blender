@@ -424,39 +424,39 @@ bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value)
     case PROP_BOOLEAN: {
       if (array_index != -1) {
         const int orig_value_coerce = RNA_property_boolean_get_index(ptr, prop, array_index);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       else {
         const int orig_value_coerce = RNA_property_boolean_get(ptr, prop);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       break;
     }
     case PROP_INT: {
       if (array_index != -1) {
         const int orig_value_coerce = RNA_property_int_get_index(ptr, prop, array_index);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       else {
         const int orig_value_coerce = RNA_property_int_get(ptr, prop);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       break;
     }
     case PROP_FLOAT: {
       if (array_index != -1) {
         const float orig_value_coerce = RNA_property_float_get_index(ptr, prop, array_index);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       else {
         const float orig_value_coerce = RNA_property_float_get(ptr, prop);
-        orig_value = (float)orig_value_coerce;
+        orig_value = float(orig_value_coerce);
       }
       break;
     }
     case PROP_ENUM: {
       const int orig_value_coerce = RNA_property_enum_get(ptr, prop);
-      orig_value = (float)orig_value_coerce;
+      orig_value = float(orig_value_coerce);
       break;
     }
     default: /* nothing can be done here... so it is unsuccessful? */
@@ -501,7 +501,7 @@ bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
       break;
     }
     case PROP_INT: {
-      int value_coerce = (int)value;
+      int value_coerce = int(value);
       RNA_property_int_clamp(ptr, prop, &value_coerce);
       if (array_index != -1) {
         RNA_property_int_set_index(ptr, prop, array_index, value_coerce);
@@ -523,7 +523,7 @@ bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
       break;
     }
     case PROP_ENUM: {
-      const int value_coerce = (int)value;
+      const int value_coerce = int(value);
       RNA_property_enum_set(ptr, prop, value_coerce);
       break;
     }
@@ -1400,7 +1400,7 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
         tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(*tmp_bool), __func__));
         RNA_property_boolean_get_default_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
-          r_values[i] = (float)tmp_bool[i];
+          r_values[i] = float(tmp_bool[i]);
         }
         MEM_freeN(tmp_bool);
         break;
@@ -1408,7 +1408,7 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
         tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(*tmp_int), __func__));
         RNA_property_int_get_default_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
-          r_values[i] = (float)tmp_int[i];
+          r_values[i] = float(tmp_int[i]);
         }
         MEM_freeN(tmp_int);
         break;
@@ -1424,16 +1424,16 @@ static void nlaevalchan_get_default_values(NlaEvalChannel *nec, float *r_values)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN:
-        *r_values = (float)RNA_property_boolean_get_default(ptr, prop);
+        *r_values = float(RNA_property_boolean_get_default(ptr, prop));
         break;
       case PROP_INT:
-        *r_values = (float)RNA_property_int_get_default(ptr, prop);
+        *r_values = float(RNA_property_int_get_default(ptr, prop));
         break;
       case PROP_FLOAT:
         *r_values = RNA_property_float_get_default(ptr, prop);
         break;
       case PROP_ENUM:
-        *r_values = (float)RNA_property_enum_get_default(ptr, prop);
+        *r_values = float(RNA_property_enum_get_default(ptr, prop));
         break;
       default:
         *r_values = 0.0f;

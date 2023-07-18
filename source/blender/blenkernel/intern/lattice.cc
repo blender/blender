@@ -417,13 +417,13 @@ void outside_lattice(Lattice *lt)
     bp = lt->def;
 
     if (lt->pntsu > 1) {
-      du = 1.0f / ((float)lt->pntsu - 1);
+      du = 1.0f / float(lt->pntsu - 1);
     }
     if (lt->pntsv > 1) {
-      dv = 1.0f / ((float)lt->pntsv - 1);
+      dv = 1.0f / float(lt->pntsv - 1);
     }
     if (lt->pntsw > 1) {
-      dw = 1.0f / ((float)lt->pntsw - 1);
+      dw = 1.0f / float(lt->pntsw - 1);
     }
 
     for (w = 0; w < lt->pntsw; w++) {
@@ -617,7 +617,7 @@ void BKE_lattice_center_median(Lattice *lt, float cent[3])
     add_v3_v3(cent, lt->def[i].vec);
   }
 
-  mul_v3_fl(cent, 1.0f / (float)numVerts);
+  mul_v3_fl(cent, 1.0f / float(numVerts));
 }
 
 static void boundbox_lattice(Object *ob)

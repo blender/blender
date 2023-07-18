@@ -278,7 +278,7 @@ uint BKE_curve_decimate_bezt_array(BezTriple *bezt_array,
       knots_len_decimated--;
     }
     else {
-      bezt_array[i].f2 &= (char)~flag_set;
+      bezt_array[i].f2 &= char(~flag_set);
       if (is_cyclic || i != 0) {
         uint i_prev = (i != 0) ? i - 1 : bezt_array_last;
         if (knots[i_prev].is_removed) {
@@ -314,7 +314,7 @@ void BKE_curve_decimate_nurb(Nurb *nu,
   const char flag_test = BEZT_FLAG_TEMP_TAG;
 
   const uint pntsu_dst = BKE_curve_decimate_bezt_array(nu->bezt,
-                                                       (uint)nu->pntsu,
+                                                       uint(nu->pntsu),
                                                        resolu,
                                                        (nu->flagu & CU_NURB_CYCLIC) != 0,
                                                        SELECT,
@@ -322,7 +322,7 @@ void BKE_curve_decimate_nurb(Nurb *nu,
                                                        error_sq_max,
                                                        error_target_len);
 
-  if (pntsu_dst == (uint)nu->pntsu) {
+  if (pntsu_dst == uint(nu->pntsu)) {
     return;
   }
 

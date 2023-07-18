@@ -221,7 +221,7 @@ ID *BKE_main_idmap_lookup_name(struct IDNameLib_Map *id_map,
   if (type_map->map == nullptr) {
     if (id_map->type_maps_keys_pool == nullptr) {
       id_map->type_maps_keys_pool = BLI_mempool_create(
-          sizeof(struct IDNameLib_Key), 1024, 1024, BLI_MEMPOOL_NOP);
+          sizeof(IDNameLib_Key), 1024, 1024, BLI_MEMPOOL_NOP);
     }
 
     GHash *map = type_map->map = BLI_ghash_new(idkey_hash, idkey_cmp, __func__);

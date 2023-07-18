@@ -30,7 +30,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-Main *BKE_main_new(void)
+Main *BKE_main_new()
 {
   Main *bmain = static_cast<Main *>(MEM_callocN(sizeof(Main), "new main"));
   bmain->lock = static_cast<MainLock *>(MEM_mallocN(sizeof(SpinLock), "main lock"));
@@ -492,7 +492,7 @@ ImBuf *BKE_main_thumbnail_to_imbuf(Main *bmain, BlendThumbnail *data)
 
   if (data) {
     img = IMB_allocFromBuffer(
-        (const uint8_t *)data->rect, nullptr, (uint)data->width, (uint)data->height, 4);
+        (const uint8_t *)data->rect, nullptr, uint(data->width), uint(data->height), 4);
   }
 
   return img;
@@ -513,7 +513,7 @@ const char *BKE_main_blendfile_path(const Main *bmain)
   return bmain->filepath;
 }
 
-const char *BKE_main_blendfile_path_from_global(void)
+const char *BKE_main_blendfile_path_from_global()
 {
   return BKE_main_blendfile_path(G_MAIN);
 }

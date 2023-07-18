@@ -657,17 +657,17 @@ void BKE_rigidbody_calc_volume(Object *ob, float *r_vol)
       break;
 
     case RB_SHAPE_SPHERE:
-      volume = 4.0f / 3.0f * (float)M_PI * radius * radius * radius;
+      volume = 4.0f / 3.0f * float(M_PI) * radius * radius * radius;
       break;
 
     /* for now, assume that capsule is close enough to a cylinder... */
     case RB_SHAPE_CAPSULE:
     case RB_SHAPE_CYLINDER:
-      volume = (float)M_PI * radius * radius * height;
+      volume = float(M_PI) * radius * radius * height;
       break;
 
     case RB_SHAPE_CONE:
-      volume = (float)M_PI / 3.0f * radius * radius * height;
+      volume = float(M_PI) / 3.0f * radius * radius * height;
       break;
 
     case RB_SHAPE_CONVEXH:
@@ -2285,7 +2285,7 @@ void BKE_rigidbody_rebuild_world(Depsgraph *depsgraph, Scene *scene, float ctime
     if (cache->flag & PTCACHE_OUTDATED) {
       BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
       rigidbody_update_simulation(depsgraph, scene, rbw, true);
-      BKE_ptcache_validate(cache, (int)ctime);
+      BKE_ptcache_validate(cache, int(ctime));
       cache->last_exact = 0;
       cache->flag &= ~PTCACHE_REDO_NEEDED;
     }
@@ -2325,7 +2325,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
   bool can_simulate = (ctime == rbw->ltime + 1) && !(cache->flag & PTCACHE_BAKED);
 
   if (BKE_ptcache_read(&pid, ctime, can_simulate) == PTCACHE_READ_EXACT) {
-    BKE_ptcache_validate(cache, (int)ctime);
+    BKE_ptcache_validate(cache, int(ctime));
     rbw->ltime = ctime;
     return;
   }
@@ -2345,7 +2345,7 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
 
     const float frame_diff = ctime - rbw->ltime;
     /* calculate how much time elapsed since last step in seconds */
-    const float timestep = 1.0f / (float)FPS * frame_diff * rbw->time_scale;
+    const float timestep = 1.0f / float(FPS) * frame_diff * rbw->time_scale;
 
     const float substep = timestep / rbw->substeps_per_frame;
 
@@ -2369,8 +2369,8 @@ void BKE_rigidbody_do_simulation(Depsgraph *depsgraph, Scene *scene, float ctime
     rigidbody_update_simulation_post_step(depsgraph, rbw);
 
     /* write cache for current frame */
-    BKE_ptcache_validate(cache, (int)ctime);
-    BKE_ptcache_write(&pid, (uint)ctime);
+    BKE_ptcache_validate(cache, int(ctime));
+    BKE_ptcache_write(&pid, uint(ctime));
 
     rbw->ltime = ctime;
   }

@@ -105,7 +105,7 @@ struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
   }
 
   struct FCurvePathCache *fcache = static_cast<FCurvePathCache *>(
-      MEM_callocN(sizeof(struct FCurvePathCache), __func__));
+      MEM_callocN(sizeof(FCurvePathCache), __func__));
   fcache->fcurve_array = fcurve_array;
   fcache->fcurve_array_len = fcurve_array_len;
   fcache->span_table = span_table;
@@ -164,7 +164,7 @@ int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
   const uint len = span->len;
   for (int i = 0; i < len; i++) {
     /* As these are sorted, early exit. */
-    if ((uint)fcurve[i]->array_index > (uint)fcurve_result_len) {
+    if (uint(fcurve[i]->array_index) > uint(fcurve_result_len)) {
       break;
     }
     fcurve_result[fcurve[i]->array_index] = fcurve[i];
