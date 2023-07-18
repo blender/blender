@@ -144,6 +144,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   PropertyRNA *prop;
   PointerRNA ob_ptr;
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, &ob_ptr);
+  MirrorModifierData *mmd = (MirrorModifierData *)ptr->data;
+  bool has_bisect = (mmd->flag &
+                     (MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_X | MOD_MIR_BISECT_AXIS_X));
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
@@ -162,6 +165,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   prop = RNA_struct_find_property(ptr, "use_bisect_flip_axis");
   row = uiLayoutRowWithHeading(col, true, IFACE_("Flip"));
+  uiLayoutSetActive(row, has_bisect);
   uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
@@ -178,11 +182,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_merge"));
   uiItemR(sub, ptr, "merge_threshold", 0, "", ICON_NONE);
 
-  bool is_bisect_set[3];
-  RNA_boolean_get_array(ptr, "use_bisect_axis", is_bisect_set);
-
   sub = uiLayoutRow(col, true);
-  uiLayoutSetActive(sub, is_bisect_set[0] || is_bisect_set[1] || is_bisect_set[2]);
+  uiLayoutSetActive(sub, has_bisect);
   uiItemR(sub, ptr, "bisect_threshold", 0, IFACE_("Bisect Distance"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
