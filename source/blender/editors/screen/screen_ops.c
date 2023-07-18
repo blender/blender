@@ -4883,6 +4883,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
     /* Triggers redraw of sequencer preview so that it does not show to fps anymore after stopping
      * playback. */
     WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SEQUENCER, scene);
+    WM_event_add_notifier(C, NC_SPACE | ND_SPACE_SPREADSHEET, scene);
   }
   else {
     BKE_callback_exec_id_depsgraph(
