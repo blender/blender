@@ -39,6 +39,7 @@ void ReflectionProbeModule::init()
                                nullptr,
                                9999);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
+    probes_tx_.clear(float4(0.0f));
 
     recalc_lod_factors();
     data_buf_.push_update();
@@ -91,8 +92,16 @@ void ReflectionProbeModule::sync_world(::World *world, WorldHandle & /*ob_handle
 {
   const ReflectionProbe &probe = probes_.lookup(world_object_key_);
   ReflectionProbeData &probe_data = data_buf_[probe.index];
-  probe_data.layer_subdivision = layer_subdivision_for(
+  int requested_layer_subdivision = layer_subdivision_for(
       max_resolution_, static_cast<eLightProbeResolution>(world->probe_resolution));
+  if (requested_layer_subdivision != probe_data.layer_subdivision) {
+    ReflectionProbeData new_probe_data = find_empty_reflection_probe_data(
+        requested_layer_subdivision);
+    probe_data.layer = new_probe_data.layer;
+    probe_data.layer_subdivision = new_probe_data.layer_subdivision;
+    probe_data.area_index = new_probe_data.area_index;
+    do_world_update_set(true);
+  }
 }
 
 void ReflectionProbeModule::sync_object(Object *ob, ObjectHandle &ob_handle)
@@ -279,8 +288,9 @@ void ReflectionProbeModule::end_sync()
 {
   remove_unused_probes();
 
-  const bool probe_sync_done = instance_.do_probe_sync();
-  if (!probe_sync_done) {
+  const bool do_update = instance_.do_probe_sync() ||
+                         (has_only_world_probe() && do_world_update_get());
+  if (!do_update) {
     return;
   }
 
@@ -296,6 +306,7 @@ void ReflectionProbeModule::end_sync()
                                nullptr,
                                9999);
     GPU_texture_mipmap_mode(probes_tx_, true, true);
+    probes_tx_.clear(float4(0.0f));
 
     for (ReflectionProbe &probe : probes_.values()) {
       probe.do_update_data = true;
@@ -373,6 +384,11 @@ void ReflectionProbeModule::do_world_update_set(bool value)
 {
   ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
   world_probe.do_render = value;
+}
+
+bool ReflectionProbeModule::has_only_world_probe() const
+{
+  return probes_.size() == 1;
 }
 
 /* -------------------------------------------------------------------- */
