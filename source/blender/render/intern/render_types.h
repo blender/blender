@@ -34,8 +34,27 @@ struct HighlightedTile {
   rcti rect;
 };
 
-/* controls state of render, everything that's read-only during render stage */
-struct Render {
+struct BaseRender {
+  BaseRender() = default;
+  virtual ~BaseRender() = default;
+
+  /* Result of rendering */
+  RenderResult *result = nullptr;
+
+  /* Read/write mutex, all internal code that writes to the `result` must use a
+   * write lock, all external code must use a read lock. Internal code is assumed
+   * to not conflict with writes, so no lock used for that. */
+  ThreadRWMutex resultmutex = BLI_RWLOCK_INITIALIZER;
+
+  /* Render engine. */
+  struct RenderEngine *engine = nullptr;
+
+  /* Guard for drawing render result using engine's `draw()` callback. */
+  ThreadMutex engine_draw_mutex = BLI_MUTEX_INITIALIZER;
+};
+
+/* Controls state of render, everything that's read-only during render stage */
+struct Render : public BaseRender {
   /* NOTE: Currently unused, provision for the future.
    * Add these now to allow the guarded memory allocator to catch C-specific function calls. */
   Render() = default;
@@ -48,21 +67,12 @@ struct Render {
   short flag = 0;
   bool ok = false;
 
-  /* result of rendering */
-  RenderResult *result = nullptr;
   /* if render with single-layer option, other rendered layers are stored here */
   RenderResult *pushedresult = nullptr;
   /** A list of #RenderResults, for full-samples. */
   ListBase fullresult = {nullptr, nullptr};
-  /* read/write mutex, all internal code that writes to re->result must use a
-   * write lock, all external code must use a read lock. internal code is assumed
-   * to not conflict with writes, so no lock used for that */
-  ThreadRWMutex resultmutex = BLI_RWLOCK_INITIALIZER;
   /* True if result has GPU textures, to quickly skip cache clear. */
   bool result_has_gpu_texture_caches = false;
-
-  /* Guard for drawing render result using engine's `draw()` callback. */
-  ThreadMutex engine_draw_mutex = BLI_MUTEX_INITIALIZER;
 
   /** Window size, display rect, viewplane.
    * \note Buffer width and height with percentage applied
@@ -90,9 +100,6 @@ struct Render {
 
   ThreadMutex highlighted_tiles_mutex = BLI_MUTEX_INITIALIZER;
   struct GSet *highlighted_tiles = nullptr;
-
-  /* render engine */
-  struct RenderEngine *engine = nullptr;
 
   /* NOTE: This is a minimal dependency graph and evaluated scene which is enough to access view
    * layer visibility and use for postprocessing (compositor and sequencer). */
