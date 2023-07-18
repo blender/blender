@@ -410,7 +410,7 @@ bool BKE_colorband_evaluate(const ColorBand *coba, float in, float out[4])
   /* NOTE: when ipotype >= COLBAND_INTERP_B_SPLINE,
    * we cannot do early-out with a constant color before first color stop and after last one,
    * because interpolation starts before and ends after those... */
-  ipotype = (coba->color_mode == COLBAND_BLEND_RGB) ? coba->ipotype : COLBAND_INTERP_LINEAR;
+  ipotype = (coba->color_mode == COLBAND_BLEND_RGB) ? coba->ipotype : int(COLBAND_INTERP_LINEAR);
 
   if (coba->tot == 1) {
     out[0] = cbd1->r;
