@@ -119,7 +119,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
 /** \} */
 
 const ViewOpsType ViewOpsType_pan = {
-    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT),
+    /*flag*/ (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_USE_MOUSE_INIT | VIEWOPS_FLAG_INIT_ZFAC),
     /*idname*/ "VIEW3D_OT_view_pan",
     /*poll_fn*/ view3d_location_poll,
     /*init_fn*/ viewpan_invoke_impl,

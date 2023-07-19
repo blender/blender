@@ -302,7 +302,14 @@ void ViewOpsData::init_navigation(bContext *C,
     }
   }
 
+  if (viewops_flag & VIEWOPS_FLAG_INIT_ZFAC) {
+    float tvec[3];
+    negate_v3_v3(tvec, rv3d->ofs);
+    this->init.zfac = ED_view3d_calc_zfac(rv3d, tvec);
+  }
+
   this->init.persp_with_auto_persp_applied = rv3d->persp;
+
   if (event) {
     this->init.event_type = event->type;
     copy_v2_v2_int(this->init.event_xy, event->xy);
@@ -328,12 +335,6 @@ void ViewOpsData::init_navigation(bContext *C,
       /* For rotation with trackball rotation. */
       calctrackballvec(&region->winrct, event_xy_offset, this->init.trackvec);
     }
-  }
-
-  {
-    float tvec[3];
-    negate_v3_v3(tvec, rv3d->ofs);
-    this->init.zfac = ED_view3d_calc_zfac(rv3d, tvec);
   }
 
   copy_qt_qt(this->curr.viewquat, rv3d->viewquat);
