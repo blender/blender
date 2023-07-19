@@ -16,17 +16,44 @@
 
 namespace blender::realtime_compositor {
 
-Result::Result(ResultType type, TexturePool &texture_pool)
-    : type_(type), texture_pool_(&texture_pool)
+Result::Result(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
+    : type_(type), precision_(precision), texture_pool_(&texture_pool)
 {
 }
 
-Result Result::Temporary(ResultType type, TexturePool &texture_pool)
+Result Result::Temporary(ResultType type, TexturePool &texture_pool, ResultPrecision precision)
 {
-  Result result = Result(type, texture_pool);
+  Result result = Result(type, texture_pool, precision);
   result.set_initial_reference_count(1);
   result.reset();
   return result;
+}
+
+eGPUTextureFormat Result::get_texture_format() const
+{
+  switch (precision_) {
+    case ResultPrecision::Half:
+      switch (type_) {
+        case ResultType::Float:
+          return GPU_R16F;
+        case ResultType::Vector:
+        case ResultType::Color:
+          return GPU_RGBA16F;
+      }
+      break;
+    case ResultPrecision::Full:
+      switch (type_) {
+        case ResultType::Float:
+          return GPU_R32F;
+        case ResultType::Vector:
+        case ResultType::Color:
+          return GPU_RGBA32F;
+      }
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return GPU_RGBA32F;
 }
 
 void Result::allocate_texture(Domain domain)
@@ -40,17 +67,7 @@ void Result::allocate_texture(Domain domain)
   }
 
   is_single_value_ = false;
-  switch (type_) {
-    case ResultType::Float:
-      texture_ = texture_pool_->acquire_float(domain.size);
-      break;
-    case ResultType::Vector:
-      texture_ = texture_pool_->acquire_vector(domain.size);
-      break;
-    case ResultType::Color:
-      texture_ = texture_pool_->acquire_color(domain.size);
-      break;
-  }
+  texture_ = texture_pool_->acquire(domain.size, get_texture_format());
   domain_ = domain;
 }
 
@@ -59,17 +76,7 @@ void Result::allocate_single_value()
   is_single_value_ = true;
   /* Single values are stored in 1x1 textures as well as the single value members. */
   const int2 texture_size{1, 1};
-  switch (type_) {
-    case ResultType::Float:
-      texture_ = texture_pool_->acquire_float(texture_size);
-      break;
-    case ResultType::Vector:
-      texture_ = texture_pool_->acquire_vector(texture_size);
-      break;
-    case ResultType::Color:
-      texture_ = texture_pool_->acquire_color(texture_size);
-      break;
-  }
+  texture_ = texture_pool_->acquire(texture_size, get_texture_format());
   domain_ = Domain::identity();
 }
 

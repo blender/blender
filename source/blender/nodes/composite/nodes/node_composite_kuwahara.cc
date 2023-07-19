@@ -6,12 +6,15 @@
  * \ingroup cmpnodes
  */
 
-#include "COM_node_operation.hh"
-
 #include "RNA_access.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "COM_node_operation.hh"
+#include "COM_utilities.hh"
+
+#include "COM_algorithm_summed_area_table.hh"
 
 #include "node_composite_util.hh"
 
@@ -63,6 +66,84 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
   void execute() override
   {
+    if (get_input("Image").is_single_value()) {
+      get_input("Image").pass_through(get_result("Image"));
+      return;
+    }
+
+    if (node_storage(bnode()).variation == CMP_NODE_KUWAHARA_ANISOTROPIC) {
+      execute_anisotropic();
+    }
+    else {
+      execute_classic();
+    }
+  }
+
+  void execute_classic()
+  {
+    /* For high radii, we accelerate the filter using a summed area table, making the filter
+     * execute in constant time as opposed to the trivial quadratic complexity. */
+    if (node_storage(bnode()).size > 5) {
+      execute_classic_summed_area_table();
+      return;
+    }
+
+    GPUShader *shader = shader_manager().get("compositor_kuwahara_classic");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "radius", node_storage(bnode()).size);
+
+    const Result &input_image = get_input("Image");
+    input_image.bind_as_texture(shader, "input_tx");
+
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    input_image.unbind_as_texture();
+    output_image.unbind_as_image();
+    GPU_shader_unbind();
+  }
+
+  void execute_classic_summed_area_table()
+  {
+    Result table = Result::Temporary(ResultType::Color, texture_pool(), ResultPrecision::Full);
+    summed_area_table(context(), get_input("Image"), table);
+
+    Result squared_table = Result::Temporary(
+        ResultType::Color, texture_pool(), ResultPrecision::Full);
+    summed_area_table(
+        context(), get_input("Image"), squared_table, SummedAreaTableOperation::Square);
+
+    GPUShader *shader = shader_manager().get("compositor_kuwahara_classic_summed_area_table");
+    GPU_shader_bind(shader);
+
+    GPU_shader_uniform_1i(shader, "radius", node_storage(bnode()).size);
+
+    table.bind_as_texture(shader, "table_tx");
+    squared_table.bind_as_texture(shader, "squared_table_tx");
+
+    const Domain domain = compute_domain();
+    Result &output_image = get_result("Image");
+    output_image.allocate_texture(domain);
+    output_image.bind_as_image(shader, "output_img");
+
+    compute_dispatch_threads_at_least(shader, domain.size);
+
+    table.unbind_as_texture();
+    squared_table.unbind_as_texture();
+    output_image.unbind_as_image();
+    GPU_shader_unbind();
+
+    table.release();
+    squared_table.release();
+  }
+
+  void execute_anisotropic()
+  {
     get_input("Image").pass_through(get_result("Image"));
     context().set_info_message("Viewport compositor setup not fully supported");
   }
@@ -88,8 +169,6 @@ void register_node_type_cmp_kuwahara()
   node_type_storage(
       &ntype, "NodeKuwaharaData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
-      "Node not supported in the Viewport compositor");
 
   nodeRegisterType(&ntype);
 }
