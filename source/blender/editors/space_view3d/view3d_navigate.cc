@@ -180,6 +180,46 @@ void ViewOpsData::state_restore()
   ED_view3d_camera_lock_sync(this->depsgraph, this->v3d, this->rv3d);
 }
 
+static eViewOpsFlag navigate_pivot_get(bContext *C,
+                                       Depsgraph *depsgraph,
+                                       ARegion *region,
+                                       View3D *v3d,
+                                       const wmEvent *event,
+                                       eViewOpsFlag viewops_flag,
+                                       float r_pivot[3])
+{
+  if ((viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) && view3d_orbit_calc_center(C, r_pivot)) {
+    return VIEWOPS_FLAG_ORBIT_SELECT;
+  }
+
+  wmWindow *win = CTX_wm_window(C);
+
+  if (!(viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE)) {
+    ED_view3d_autodist_last_clear(win);
+
+    /* Uses the `lastofs` in #view3d_orbit_calc_center. */
+    BLI_assert(viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT);
+    return VIEWOPS_FLAG_ORBIT_SELECT;
+  }
+
+  const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
+
+  if (use_depth_last) {
+    ED_view3d_autodist_last_get(win, r_pivot);
+  }
+  else {
+    float fallback_depth_pt[3];
+    negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
+
+    const bool is_set = ED_view3d_autodist(
+        depsgraph, region, v3d, event->mval, r_pivot, true, fallback_depth_pt);
+
+    ED_view3d_autodist_last_set(win, event, r_pivot, is_set);
+  }
+
+  return VIEWOPS_FLAG_DEPTH_NAVIGATE;
+}
+
 void ViewOpsData::init_navigation(bContext *C,
                                   const wmEvent *event,
                                   const eV3D_OpMode nav_type,
@@ -228,40 +268,6 @@ void ViewOpsData::init_navigation(bContext *C,
 
   this->state_backup();
 
-  if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    wmWindow *win = CTX_wm_window(C);
-    const bool use_depth_last = ED_view3d_autodist_last_check(win, event);
-
-    if (use_depth_last) {
-      this->use_dyn_ofs = ED_view3d_autodist_last_get(win, this->dyn_ofs);
-    }
-    else {
-      float fallback_depth_pt[3];
-
-      negate_v3_v3(fallback_depth_pt, rv3d->ofs);
-
-      this->use_dyn_ofs = ED_view3d_autodist(
-          depsgraph, region, v3d, event->mval, this->dyn_ofs, true, fallback_depth_pt);
-
-      ED_view3d_autodist_last_set(win, event, this->dyn_ofs, this->use_dyn_ofs);
-    }
-  }
-  else {
-    wmWindow *win = CTX_wm_window(C);
-    ED_view3d_autodist_last_clear(win);
-
-    this->use_dyn_ofs = false;
-  }
-
-  if (viewops_flag & VIEWOPS_FLAG_ORBIT_SELECT) {
-    float ofs[3];
-    if (view3d_orbit_calc_center(C, ofs) || (this->use_dyn_ofs == false)) {
-      this->use_dyn_ofs = true;
-      negate_v3_v3(this->dyn_ofs, ofs);
-      viewops_flag &= ~VIEWOPS_FLAG_DEPTH_NAVIGATE;
-    }
-  }
-
   if (viewops_flag & VIEWOPS_FLAG_PERSP_ENSURE) {
     if (ED_view3d_persp_ensure(depsgraph, this->v3d, this->region)) {
       /* If we're switching from camera view to the perspective one,
@@ -270,9 +276,19 @@ void ViewOpsData::init_navigation(bContext *C,
     }
   }
 
-  /* After #VIEWOPS_FLAG_PERSP_ENSURE. */
-  if (viewops_flag & VIEWOPS_FLAG_DEPTH_NAVIGATE) {
-    if (this->use_dyn_ofs) {
+  if (viewops_flag & (VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT)) {
+    float pivot_new[3];
+    eViewOpsFlag pivot_type = navigate_pivot_get(
+        C, depsgraph, region, v3d, event, viewops_flag, pivot_new);
+    viewops_flag &= ~(VIEWOPS_FLAG_DEPTH_NAVIGATE | VIEWOPS_FLAG_ORBIT_SELECT);
+    viewops_flag |= pivot_type;
+
+    negate_v3_v3(this->dyn_ofs, pivot_new);
+    this->use_dyn_ofs = true;
+
+    if (nav_type != V3D_OP_MODE_ROTATE) {
+      /* Calculate new #RegionView3D::ofs and #RegionView3D::dist. */
+
       if (rv3d->is_persp) {
         float my_origin[3]; /* Original #RegionView3D.ofs. */
         float my_pivot[3];  /* View pivot. */
@@ -293,23 +309,20 @@ void ViewOpsData::init_navigation(bContext *C,
         copy_m3_m4(mat, rv3d->viewinv);
 
         mul_m3_v3(mat, upvec);
-        sub_v3_v3v3(my_pivot, rv3d->ofs, upvec);
-        negate_v3(my_pivot); /* ofs is flipped */
+        add_v3_v3v3(my_pivot, my_origin, upvec);
 
         /* find a new ofs value that is along the view axis
          * (rather than the mouse location) */
-        closest_to_line_v3(dvec, this->dyn_ofs, my_pivot, my_origin);
-        rv3d->dist = len_v3v3(my_pivot, dvec);
+        closest_to_line_v3(dvec, pivot_new, my_pivot, my_origin);
 
         negate_v3_v3(rv3d->ofs, dvec);
+        rv3d->dist = len_v3v3(my_pivot, dvec);
       }
       else {
         const float mval_region_mid[2] = {float(region->winx) / 2.0f, float(region->winy) / 2.0f};
-
-        ED_view3d_win_to_3d(v3d, region, this->dyn_ofs, mval_region_mid, rv3d->ofs);
+        ED_view3d_win_to_3d(v3d, region, pivot_new, mval_region_mid, rv3d->ofs);
         negate_v3(rv3d->ofs);
       }
-      negate_v3(this->dyn_ofs);
 
       /* XXX: The initial state captured by #ViewOpsData::state_backup is being modified here.
        * This causes the state when canceling a navigation operation to not be fully restored. */
