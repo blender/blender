@@ -303,29 +303,31 @@ void ViewOpsData::init_navigation(bContext *C,
   }
 
   this->init.persp_with_auto_persp_applied = rv3d->persp;
-  this->init.event_type = event->type;
-  copy_v2_v2_int(this->init.event_xy, event->xy);
-  copy_v2_v2_int(this->prev.event_xy, event->xy);
+  if (event) {
+    this->init.event_type = event->type;
+    copy_v2_v2_int(this->init.event_xy, event->xy);
+    copy_v2_v2_int(this->prev.event_xy, event->xy);
 
-  if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
-    zero_v2_int(this->init.event_xy_offset);
-  }
-  else {
-    /* Simulate the event starting in the middle of the region. */
-    this->init.event_xy_offset[0] = BLI_rcti_cent_x(&this->region->winrct) - event->xy[0];
-    this->init.event_xy_offset[1] = BLI_rcti_cent_y(&this->region->winrct) - event->xy[1];
-  }
+    if (viewops_flag & VIEWOPS_FLAG_USE_MOUSE_INIT) {
+      zero_v2_int(this->init.event_xy_offset);
+    }
+    else {
+      /* Simulate the event starting in the middle of the region. */
+      this->init.event_xy_offset[0] = BLI_rcti_cent_x(&this->region->winrct) - event->xy[0];
+      this->init.event_xy_offset[1] = BLI_rcti_cent_y(&this->region->winrct) - event->xy[1];
+    }
 
-  /* For dolly */
-  const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
-  ED_view3d_win_to_vector(region, mval, this->init.mousevec);
+    /* For dolly */
+    const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
+    ED_view3d_win_to_vector(region, mval, this->init.mousevec);
 
-  {
-    int event_xy_offset[2];
-    add_v2_v2v2_int(event_xy_offset, event->xy, this->init.event_xy_offset);
+    {
+      int event_xy_offset[2];
+      add_v2_v2v2_int(event_xy_offset, event->xy, this->init.event_xy_offset);
 
-    /* For rotation with trackball rotation. */
-    calctrackballvec(&region->winrct, event_xy_offset, this->init.trackvec);
+      /* For rotation with trackball rotation. */
+      calctrackballvec(&region->winrct, event_xy_offset, this->init.trackvec);
+    }
   }
 
   {
@@ -928,6 +930,7 @@ static const ViewOpsType *view3d_navigation_type_from_idname(const char *idname)
       &ViewOpsType_rotate,
       &ViewOpsType_move,
       &ViewOpsType_pan,
+//    &ViewOpsType_orbit,
 //    &ViewOpsType_roll,
 //    &ViewOpsType_dolly,
 #ifdef WITH_INPUT_NDOF

@@ -386,6 +386,8 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
 
 void VIEW3D_OT_view_orbit(wmOperatorType *ot);
 
+extern const ViewOpsType ViewOpsType_orbit;
+
 /* view3d_navigate_view_pan.cc */
 
 void VIEW3D_OT_view_pan(wmOperatorType *ot);

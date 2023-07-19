@@ -68,106 +68,93 @@ static const EnumPropertyItem prop_view_orbit_items[] = {
 
 static int vieworbit_exec(bContext *C, wmOperator *op)
 {
-  View3D *v3d;
-  ARegion *region;
-  RegionView3D *rv3d;
-  int orbitdir;
-  char view_opposite;
-  PropertyRNA *prop_angle = RNA_struct_find_property(op->ptr, "angle");
-  float angle = RNA_property_is_set(op->ptr, prop_angle) ?
-                    RNA_property_float_get(op->ptr, prop_angle) :
-                    DEG2RADF(U.pad_rot_angle);
+  float angle;
+  {
+    PropertyRNA *prop_angle = RNA_struct_find_property(op->ptr, "angle");
+    angle = RNA_property_is_set(op->ptr, prop_angle) ?
+                RNA_property_float_get(op->ptr, prop_angle) :
+                DEG2RADF(U.pad_rot_angle);
+  }
 
-  /* no nullptr check is needed, poll checks */
-  v3d = CTX_wm_view3d(C);
-  region = CTX_wm_region(C);
-  rv3d = static_cast<RegionView3D *>(region->regiondata);
+  ViewOpsData vod = {};
+  vod.init_context(C);
+
+  ED_view3d_smooth_view_force_finish(C, vod.v3d, vod.region);
 
   /* support for switching to the opposite view (even when in locked views) */
-  view_opposite = (fabsf(angle) == float(M_PI)) ? ED_view3d_axis_view_opposite(rv3d->view) :
-                                                  char(RV3D_VIEW_USER);
-  orbitdir = RNA_enum_get(op->ptr, "type");
+  char view_opposite = (fabsf(angle) == float(M_PI)) ?
+                           ED_view3d_axis_view_opposite(vod.rv3d->view) :
+                           char(RV3D_VIEW_USER);
 
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
+  if ((RV3D_LOCK_FLAGS(vod.rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
     /* no nullptr check is needed, poll checks */
-    ED_view3d_context_user_region(C, &v3d, &region);
-    rv3d = static_cast<RegionView3D *>(region->regiondata);
+    ED_view3d_context_user_region(C, &vod.v3d, &vod.region);
+    vod.rv3d = static_cast<RegionView3D *>(vod.region->regiondata);
   }
 
-  ED_view3d_smooth_view_force_finish(C, v3d, region);
+  if ((RV3D_LOCK_FLAGS(vod.rv3d) & RV3D_LOCK_ROTATION) && (view_opposite == RV3D_VIEW_USER)) {
+    return OPERATOR_CANCELLED;
+  }
 
-  if ((RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION) == 0 || (view_opposite != RV3D_VIEW_USER)) {
-    const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
-    if ((rv3d->persp != RV3D_CAMOB) || is_camera_lock) {
-      if (is_camera_lock) {
-        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        ED_view3d_camera_lock_init(depsgraph, v3d, rv3d);
-      }
-      int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-      float quat_mul[4];
-      float quat_new[4];
+  const bool is_camera_lock = ED_view3d_camera_lock_check(vod.v3d, vod.rv3d);
+  if (vod.rv3d->persp == RV3D_CAMOB && !is_camera_lock) {
+    return OPERATOR_CANCELLED;
+  }
 
-      if (view_opposite == RV3D_VIEW_USER) {
-        const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-        ED_view3d_persp_ensure(depsgraph, v3d, region);
-      }
+  vod.init_navigation(C, nullptr, &ViewOpsType_orbit, false);
 
-      if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
-        if (orbitdir == V3D_VIEW_STEPRIGHT) {
-          angle = -angle;
-        }
+  int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+  float quat_mul[4];
+  float quat_new[4];
 
-        /* z-axis */
-        axis_angle_to_quat_single(quat_mul, 'Z', angle);
-      }
-      else {
-
-        if (orbitdir == V3D_VIEW_STEPDOWN) {
-          angle = -angle;
-        }
-
-        /* horizontal axis */
-        axis_angle_to_quat(quat_mul, rv3d->viewinv[0], angle);
-      }
-
-      mul_qt_qtqt(quat_new, rv3d->viewquat, quat_mul);
-
-      /* avoid precision loss over time */
-      normalize_qt(quat_new);
-
-      if (view_opposite != RV3D_VIEW_USER) {
-        rv3d->view = view_opposite;
-        /* avoid float in-precision, just get a new orientation */
-        ED_view3d_quat_from_axis_view(view_opposite, rv3d->view_axis_roll, quat_new);
-      }
-      else {
-        rv3d->view = RV3D_VIEW_USER;
-      }
-
-      float dyn_ofs[3], *dyn_ofs_pt = nullptr;
-
-      if (U.uiflag & USER_ORBIT_SELECTION) {
-        if (view3d_orbit_calc_center(C, dyn_ofs)) {
-          negate_v3(dyn_ofs);
-          dyn_ofs_pt = dyn_ofs;
-        }
-      }
-
-      V3D_SmoothParams sview = {nullptr};
-      sview.quat = quat_new;
-      sview.dyn_ofs = dyn_ofs_pt;
-      sview.lens = &v3d->lens;
-      /* Group as successive orbit may run by holding a key. */
-      sview.undo_str = op->type->name;
-      sview.undo_grouped = true;
-
-      ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);
-
-      return OPERATOR_FINISHED;
+  int orbitdir = RNA_enum_get(op->ptr, "type");
+  if (ELEM(orbitdir, V3D_VIEW_STEPLEFT, V3D_VIEW_STEPRIGHT)) {
+    if (orbitdir == V3D_VIEW_STEPRIGHT) {
+      angle = -angle;
     }
+
+    /* z-axis */
+    axis_angle_to_quat_single(quat_mul, 'Z', angle);
+  }
+  else {
+    if (orbitdir == V3D_VIEW_STEPDOWN) {
+      angle = -angle;
+    }
+
+    /* horizontal axis */
+    axis_angle_to_quat(quat_mul, vod.rv3d->viewinv[0], angle);
   }
 
-  return OPERATOR_CANCELLED;
+  mul_qt_qtqt(quat_new, vod.curr.viewquat, quat_mul);
+
+  /* avoid precision loss over time */
+  normalize_qt(quat_new);
+
+  if (view_opposite != RV3D_VIEW_USER) {
+    vod.rv3d->view = view_opposite;
+    /* avoid float in-precision, just get a new orientation */
+    ED_view3d_quat_from_axis_view(view_opposite, vod.rv3d->view_axis_roll, quat_new);
+  }
+  else {
+    vod.rv3d->view = RV3D_VIEW_USER;
+  }
+
+  V3D_SmoothParams sview = {nullptr};
+  sview.quat = quat_new;
+  sview.lens = &vod.v3d->lens;
+  /* Group as successive orbit may run by holding a key. */
+  sview.undo_str = op->type->name;
+  sview.undo_grouped = true;
+
+  if (vod.use_dyn_ofs) {
+    sview.dyn_ofs = vod.dyn_ofs;
+  }
+
+  ED_view3d_smooth_view(C, vod.v3d, vod.region, smooth_viewtx, &sview);
+
+  vod.end_navigation(C);
+
+  return OPERATOR_FINISHED;
 }
 
 void VIEW3D_OT_view_orbit(wmOperatorType *ot)
@@ -177,7 +164,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
   /* identifiers */
   ot->name = "View Orbit";
   ot->description = "Orbit the view";
-  ot->idname = "VIEW3D_OT_view_orbit";
+  ot->idname = ViewOpsType_orbit.idname;
 
   /* api callbacks */
   ot->exec = vieworbit_exec;
@@ -195,3 +182,11 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
 }
 
 /** \} */
+
+const ViewOpsType ViewOpsType_orbit = {
+    /*flag*/ (VIEWOPS_FLAG_PERSP_ENSURE | VIEWOPS_FLAG_ORBIT_SELECT),
+    /*idname*/ "VIEW3D_OT_view_orbit",
+    /*poll_fn*/ nullptr,
+    /*init_fn*/ nullptr,
+    /*apply_fn*/ nullptr,
+};
