@@ -14,8 +14,10 @@
 #include "usd_hierarchy_iterator.h"
 #include "usd_writer_curves.h"
 
-#include "BKE_curve_legacy_convert.hh"
+#include "DNA_curve_types.h"
+
 #include "BKE_curves.hh"
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_lib_id.h"
 #include "BKE_material.h"
 
@@ -69,16 +71,15 @@ pxr::UsdGeomCurves USDCurvesWriter::DefineUsdGeomBasisCurves(pxr::VtValue curve_
   return curves;
 }
 
-static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtArray<float> &widths)
+static void populate_curve_widths(const bke::CurvesGeometry &geometry, pxr::VtArray<float> &widths, const float multiplier)
 {
   const bke::AttributeAccessor curve_attributes = geometry.attributes();
   const bke::AttributeReader<float> radii = curve_attributes.lookup<float>("radius",
                                                                            ATTR_DOMAIN_POINT);
-
   widths.resize(radii.varray.size());
 
   for (const int i : radii.varray.index_range()) {
-    widths[i] = radii.varray[i] * 2.0f;
+    widths[i] = radii.varray[i] * 2.0f * multiplier;
   }
 }
 
@@ -158,7 +159,8 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
                                  pxr::VtArray<float> &widths,
                                  pxr::TfToken &interpolation,
                                  const bool is_cyclic,
-                                 const bool is_cubic)
+                                 const bool is_cubic,
+                                 const float multiplier)
 {
   const int num_curves = geometry.curve_num;
   const Span<float3> positions = geometry.positions();
@@ -168,7 +170,7 @@ static void populate_curve_props(const bke::CurvesGeometry &geometry,
   populate_curve_verts(
       geometry, positions, verts, control_point_counts, segments, is_cyclic, is_cubic);
 
-  populate_curve_widths(geometry, widths);
+  populate_curve_widths(geometry, widths, multiplier);
   interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
 }
 
@@ -246,7 +248,8 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
                                             pxr::VtIntArray &control_point_counts,
                                             pxr::VtArray<float> &widths,
                                             pxr::TfToken &interpolation,
-                                            const bool is_cyclic)
+                                            const bool is_cyclic,
+                                            const float multiplier)
 {
 
   const int num_curves = geometry.curve_num;
@@ -261,7 +264,7 @@ static void populate_curve_props_for_bezier(const bke::CurvesGeometry &geometry,
   populate_curve_verts_for_bezier(
       geometry, positions, handles_l, handles_r, verts, control_point_counts, segments, is_cyclic);
 
-  populate_curve_widths(geometry, widths);
+  populate_curve_widths(geometry, widths, multiplier);
   interpolation = get_curve_width_interpolation(widths, segments, control_point_counts, is_cyclic);
 }
 
@@ -272,7 +275,8 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
                                            pxr::VtArray<double> &knots,
                                            pxr::VtArray<int> &orders,
                                            pxr::TfToken &interpolation,
-                                           const bool is_cyclic)
+                                           const bool is_cyclic,
+                                           const float bevel_radius)
 {
   /* Order and range, when representing a batched NurbsCurve should be authored one value per
    * curve. */
@@ -325,7 +329,7 @@ static void populate_curve_props_for_nurbs(const bke::CurvesGeometry &geometry,
     }
   }
 
-  populate_curve_widths(geometry, widths);
+  populate_curve_widths(geometry, widths, bevel_radius);
   interpolation = pxr::UsdGeomTokens->vertex;
 }
 
@@ -368,6 +372,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
 {
   Curves *curves;
   std::unique_ptr<Curves, std::function<void(Curves *)>> converted_curves;
+  float bevel_radius = 1.0f;
 
   switch (context.object->type) {
     case OB_CURVES_LEGACY: {
@@ -375,6 +380,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       converted_curves = std::unique_ptr<Curves, std::function<void(Curves *)>>(
           bke::curve_legacy_to_curves(*legacy_curve), [](Curves *c) { BKE_id_free(nullptr, c); });
       curves = converted_curves.get();
+      bevel_radius = legacy_curve->bevel_radius;
       break;
     }
     case OB_CURVES:
@@ -454,21 +460,21 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
       usd_curves = DefineUsdGeomBasisCurves(pxr::VtValue(), is_cyclic, false);
 
       populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, false);
+          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, false, bevel_radius);
       break;
     case CURVE_TYPE_CATMULL_ROM:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->catmullRom), is_cyclic, true);
 
       populate_curve_props(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, true);
+          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, true, bevel_radius);
       break;
     case CURVE_TYPE_BEZIER:
       usd_curves = DefineUsdGeomBasisCurves(
           pxr::VtValue(pxr::UsdGeomTokens->bezier), is_cyclic, true);
 
       populate_curve_props_for_bezier(
-          geometry, verts, control_point_counts, widths, interpolation, is_cyclic);
+          geometry, verts, control_point_counts, widths, interpolation, is_cyclic, bevel_radius);
       break;
     case CURVE_TYPE_NURBS: {
       pxr::VtArray<double> knots;
@@ -479,7 +485,7 @@ void USDCurvesWriter::do_write(HierarchyContext &context)
                                                    usd_export_context_.usd_path);
 
       populate_curve_props_for_nurbs(
-          geometry, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic);
+          geometry, verts, control_point_counts, widths, knots, orders, interpolation, is_cyclic, bevel_radius);
 
       set_writer_attributes_for_nurbs(usd_curves, knots, orders, timecode);
 
