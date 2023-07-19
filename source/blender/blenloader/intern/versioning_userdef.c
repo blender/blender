@@ -845,6 +845,13 @@ void blo_do_versions_userdef(UserDef *userdef)
    */
   {
     /* Keep this block, even when empty. */
+
+#ifdef __APPLE__
+    /* Drop OpenGL support on MAC devices as they don't support OpenGL 4.3. */
+    if (userdef->gpu_backend == GPU_BACKEND_OPENGL) {
+      userdef->gpu_backend = GPU_BACKEND_METAL;
+    }
+#endif
   }
 
   LISTBASE_FOREACH (bTheme *, btheme, &userdef->themes) {
