@@ -249,14 +249,15 @@ ViewOpsData *viewops_data_create(bContext *C,
                                  const wmEvent *event,
                                  const eV3D_OpMode nav_type,
                                  const bool use_cursor_init);
-void VIEW3D_OT_view_all(wmOperatorType *ot);
-void VIEW3D_OT_view_selected(wmOperatorType *ot);
-void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
-void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
-void VIEW3D_OT_view_axis(wmOperatorType *ot);
-void VIEW3D_OT_view_camera(wmOperatorType *ot);
-void VIEW3D_OT_view_orbit(wmOperatorType *ot);
-void VIEW3D_OT_view_pan(wmOperatorType *ot);
+void axis_set_view(bContext *C,
+                   View3D *v3d,
+                   ARegion *region,
+                   const float quat_[4],
+                   char view,
+                   char view_axis_roll,
+                   int perspo,
+                   const float *align_to_quat,
+                   const int smooth_viewtx);
 
 /* view3d_navigate_dolly.cc */
 
@@ -380,6 +381,36 @@ void ED_view3d_smooth_view_undo_end(bContext *C,
 void ED_view3d_smooth_view_force_finish(bContext *C, View3D *v3d, ARegion *region);
 
 void VIEW3D_OT_smoothview(wmOperatorType *ot);
+
+/* view3d_navigate_view_all.cc */
+
+void VIEW3D_OT_view_all(wmOperatorType *ot);
+void VIEW3D_OT_view_selected(wmOperatorType *ot);
+
+/* view3d_navigate_view_axis.cc */
+
+void VIEW3D_OT_view_axis(wmOperatorType *ot);
+
+/* view3d_navigate_view_camera.cc */
+
+void VIEW3D_OT_view_camera(wmOperatorType *ot);
+
+/* view3d_navigate_view_center_cursor.cc */
+
+void VIEW3D_OT_view_center_cursor(wmOperatorType *ot);
+
+/* view3d_navigate_view_center_pick.cc */
+
+void VIEW3D_OT_view_center_pick(wmOperatorType *ot);
+
+/* view3d_navigate_view_orbit.cc */
+
+void VIEW3D_OT_view_orbit(wmOperatorType *ot);
+
+/* view3d_navigate_view_pan.cc */
+
+int viewpan_invoke_impl(ViewOpsData *vod, PointerRNA *ptr);
+void VIEW3D_OT_view_pan(wmOperatorType *ot);
 
 /* view3d_navigate_walk.cc */
 

@@ -49,6 +49,13 @@ set(SRC
   view3d_navigate_roll.cc
   view3d_navigate_rotate.cc
   view3d_navigate_smoothview.cc
+  view3d_navigate_view_all.cc
+  view3d_navigate_view_axis.cc
+  view3d_navigate_view_camera.cc
+  view3d_navigate_view_center_cursor.cc
+  view3d_navigate_view_center_pick.cc
+  view3d_navigate_view_orbit.cc
+  view3d_navigate_view_pan.cc
   view3d_navigate_walk.cc
   view3d_navigate_zoom.cc
   view3d_navigate_zoom_border.cc
