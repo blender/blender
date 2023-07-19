@@ -10157,13 +10157,13 @@ static void ui_region_auto_open_clear(ARegion *region)
 static bool ui_menu_pass_event_to_parent_if_nonactive(uiPopupBlockHandle *menu,
                                                       const uiBut *but,
                                                       const int level,
+                                                      const bool is_parent_menu,
                                                       const int retval)
 {
-
   /* NOTE(@ideasman42): For `menu->popup` (not a nested tree of menus), don't pass events parents.
    * This is needed because enum popups (for example) aren't created with an active button.
    * Otherwise opening a popup & pressing the accelerator key would fail, see: #107838. */
-  if ((level != 0) && (but == nullptr) && (menu->popup == false)) {
+  if ((level != 0) && (but == nullptr) && (is_parent_menu || menu->popup == false)) {
     menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
     (void)retval; /* so release builds with strict flags are happy as well */
     BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
@@ -10381,7 +10381,8 @@ static int ui_handle_menu_event(bContext *C,
         case EVT_RIGHTARROWKEY:
           if (event->val == KM_PRESS && (block->flag & UI_BLOCK_LOOP)) {
 
-            if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
+            if (ui_menu_pass_event_to_parent_if_nonactive(
+                    menu, but, level, is_parent_menu, retval)) {
               break;
             }
 
@@ -10482,7 +10483,8 @@ static int ui_handle_menu_event(bContext *C,
                 scrolltype = ui_block_flipped ? MENU_SCROLL_DOWN : MENU_SCROLL_UP;
               }
 
-              if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
+              if (ui_menu_pass_event_to_parent_if_nonactive(
+                      menu, but, level, is_parent_menu, retval)) {
                 break;
               }
 
@@ -10593,7 +10595,8 @@ static int ui_handle_menu_event(bContext *C,
           if ((block->flag & UI_BLOCK_NUMSELECT) && event->val == KM_PRESS) {
             int count;
 
-            if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
+            if (ui_menu_pass_event_to_parent_if_nonactive(
+                    menu, but, level, is_parent_menu, retval)) {
               break;
             }
 
@@ -10690,7 +10693,8 @@ static int ui_handle_menu_event(bContext *C,
                * activating an item when the key is held. */
               (event->flag & WM_EVENT_IS_REPEAT) == 0)
           {
-            if (ui_menu_pass_event_to_parent_if_nonactive(menu, but, level, retval)) {
+            if (ui_menu_pass_event_to_parent_if_nonactive(
+                    menu, but, level, is_parent_menu, retval)) {
               break;
             }
 
