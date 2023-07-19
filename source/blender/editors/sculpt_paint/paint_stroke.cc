@@ -266,7 +266,6 @@ static bool paint_tool_require_inbetween_mouse_events(Brush *brush, ePaintMode m
                SCULPT_TOOL_GRAB,
                SCULPT_TOOL_ROTATE,
                SCULPT_TOOL_THUMB,
-               SCULPT_TOOL_SNAKE_HOOK,
                SCULPT_TOOL_ELASTIC_DEFORM,
                SCULPT_TOOL_CLOTH,
                SCULPT_TOOL_BOUNDARY,
@@ -1084,7 +1083,7 @@ bool paint_supports_dynamic_size(Brush *br, ePaintMode mode)
 
   switch (mode) {
     case PAINT_MODE_SCULPT:
-      if (sculpt_is_grab_tool(br)) {
+      if (sculpt_is_grab_tool(br) && br->sculpt_tool != SCULPT_TOOL_SNAKE_HOOK) {
         return false;
       }
       break;
