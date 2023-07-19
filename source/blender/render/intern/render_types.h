@@ -26,10 +26,6 @@ struct Object;
 struct RenderEngine;
 struct ReportList;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct HighlightedTile {
   rcti rect;
 };
@@ -153,7 +149,3 @@ struct Render : public BaseRender {
 
 /** #R.flag */
 #define R_ANIMATION 1
-
-#ifdef __cplusplus
-}
-#endif
