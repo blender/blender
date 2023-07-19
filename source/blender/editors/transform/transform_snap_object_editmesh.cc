@@ -18,6 +18,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "ED_transform_snap_object_context.h"
+#include "ED_view3d.h"
 
 #include "transform_snap_object.hh"
 
@@ -613,7 +614,11 @@ static eSnapMode snapEditMesh(SnapCache_EditMesh *em_cache,
     }
   }
 
-  nearest2d.clip_planes_enable(sctx);
+  /* #XRAY_ENABLED can return false even with the XRAY flag enabled, this happens because the
+   * alpha is 1.0 in this case. But even with the alpha being 1.0, the edit mesh is still not
+   * occluded. */
+  const bool skip_occlusion_plane = XRAY_FLAG_ENABLED(sctx->runtime.v3d);
+  nearest2d.clip_planes_enable(sctx, skip_occlusion_plane);
 
   BVHTreeNearest nearest{};
   nearest.index = -1;
