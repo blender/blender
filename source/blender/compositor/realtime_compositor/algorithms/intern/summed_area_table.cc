@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -38,6 +39,9 @@ static const char *get_compute_incomplete_prologues_shader(SummedAreaTableOperat
     case SummedAreaTableOperation::Square:
       return "compositor_summed_area_table_compute_incomplete_prologues_square";
   }
+
+  BLI_assert_unreachable();
+  return "";
 }
 
 /* Computes the horizontal and vertical incomplete prologues from the given input using equations
