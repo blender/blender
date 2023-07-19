@@ -159,6 +159,9 @@ static const char *get_compute_complete_blocks_shader(SummedAreaTableOperation o
     case SummedAreaTableOperation::Square:
       return "compositor_summed_area_table_compute_complete_blocks_square";
   }
+
+  BLI_assert_unreachable();
+  return "";
 }
 
 /* Computes the final summed area table blocks from the complete X and Y prologues using equation
