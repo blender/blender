@@ -151,8 +151,16 @@ class SwitchViewOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input(context().get_view_name());
     Result &result = get_result("Image");
+
+    /* A context that is not multi view, pass the first input through as a fallback. */
+    if (context().get_view_name().is_empty()) {
+      Result &input = get_input(node().input(0)->identifier);
+      input.pass_through(result);
+      return;
+    }
+
+    Result &input = get_input(context().get_view_name());
     input.pass_through(result);
   }
 };
