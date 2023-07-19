@@ -35,7 +35,8 @@ struct PickUserData {
   BezTriple *bezt;
   Nurb *nurb;
   float dist;
-  int hpoint, select;
+  int hpoint;
+  uint8_t select;
   float mval_fl[2];
   bool is_changed;
 };
@@ -92,7 +93,7 @@ static void ED_curve_pick_vert__do_closest(void *userData,
 }
 
 bool ED_curve_pick_vert_ex(ViewContext *vc,
-                           short sel,
+                           const bool select,
                            const int dist_px,
                            Nurb **r_nurb,
                            BezTriple **r_bezt,
@@ -100,14 +101,11 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
                            short *r_handle,
                            Base **r_base)
 {
-  /* (sel == 1): selected gets a disadvantage */
-  /* in nurb and bezt or bp the nearest is written */
-  /* return 0 1 2: handlepunt */
   PickUserData data{};
 
   data.dist = dist_px;
   data.hpoint = 0;
-  data.select = sel;
+  data.select = select ? SELECT : 0;
   data.mval_fl[0] = vc->mval[0];
   data.mval_fl[1] = vc->mval[1];
 
