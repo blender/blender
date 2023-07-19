@@ -847,6 +847,20 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
   }
 }
 
+void UI_view2d_curRect_clamp_y(struct View2D *v2d)
+{
+  const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
+
+  if (BLI_rctf_size_y(&v2d->cur) > BLI_rctf_size_y(&v2d->tot)) {
+    v2d->cur.ymin = -cur_height_y;
+    v2d->cur.ymax = 0;
+  }
+  else if (v2d->cur.ymin < v2d->tot.ymin) {
+    v2d->cur.ymin = v2d->tot.ymin;
+    v2d->cur.ymax = v2d->cur.ymin + cur_height_y;
+  }
+}
+
 /* ------------------ */
 
 bool UI_view2d_area_supports_sync(ScrArea *area)

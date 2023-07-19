@@ -171,6 +171,12 @@ void UI_view2d_mask_from_win(const struct View2D *v2d, struct rcti *r_mask);
 
 void UI_view2d_zoom_cache_reset(void);
 
+/**
+ * Clamp view2d area to what's visible, preventing
+ * scrolling vertically to infinity.
+ */
+void UI_view2d_curRect_clamp_y(struct View2D *v2d);
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -405,21 +405,6 @@ static void saction_channel_region_message_subscribe(const wmRegionMessageSubscr
   }
 }
 
-static void action_clamp_scroll(ARegion *region)
-{
-  View2D *v2d = &region->v2d;
-  const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
-
-  if (BLI_rctf_size_y(&v2d->cur) > BLI_rctf_size_y(&v2d->tot)) {
-    v2d->cur.ymin = -cur_height_y;
-    v2d->cur.ymax = 0;
-  }
-  else if (v2d->cur.ymin < v2d->tot.ymin) {
-    v2d->cur.ymin = v2d->tot.ymin;
-    v2d->cur.ymax = v2d->cur.ymin + cur_height_y;
-  }
-}
-
 static void action_main_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -880,9 +865,8 @@ static void action_space_blend_write(BlendWriter *writer, SpaceLink *sl)
 
 static void action_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
 {
-  /* V2D_KEEPTOT_STRICT cannot be used to clamp scrolling
-   * because it also clamps the x-axis to 0. */
-  action_clamp_scroll(region);
+  View2D *v2d = &region->v2d;
+  UI_view2d_curRect_clamp_y(v2d);
 }
 
 void ED_spacetype_action()

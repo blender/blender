@@ -436,6 +436,12 @@ static void nla_main_region_message_subscribe(const wmRegionMessageSubscribePara
   }
 }
 
+static void nla_main_region_view2d_changed(const bContext * /*C*/, ARegion *region)
+{
+  View2D *v2d = &region->v2d;
+  UI_view2d_curRect_clamp_y(v2d);
+}
+
 static void nla_channel_region_listener(const wmRegionListenerParams *params)
 {
   ARegion *region = params->region;
@@ -619,6 +625,7 @@ void ED_spacetype_nla()
   art->draw_overlay = nla_main_region_draw_overlay;
   art->listener = nla_main_region_listener;
   art->message_subscribe = nla_main_region_message_subscribe;
+  art->on_view2d_changed = nla_main_region_view2d_changed;
   art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
   BLI_addhead(&st->regiontypes, art);
