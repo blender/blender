@@ -106,7 +106,7 @@ Nurb *ED_curve_add_nurbs_primitive(
   static int xzproj = 0; /* this function calls itself... */
   ListBase *editnurb = object_editcurve_get(obedit);
   RegionView3D *rv3d = ED_view3d_context_rv3d(C);
-  Nurb *nu = NULL;
+  Nurb *nu = nullptr;
   BezTriple *bezt;
   BPoint *bp;
   Curve *cu = (Curve *)obedit->data;
@@ -204,7 +204,7 @@ Nurb *ED_curve_add_nurbs_primitive(
         }
 
         if (cutype == CU_NURBS) {
-          nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
+          nu->knotsu = nullptr; /* nurbs_knot_calc_u allocates */
           BKE_nurb_knot_calc_u(nu);
         }
       }
@@ -240,7 +240,7 @@ Nurb *ED_curve_add_nurbs_primitive(
       }
 
       if (cutype == CU_NURBS) {
-        nu->knotsu = NULL; /* nurbs_knot_calc_u allocates */
+        nu->knotsu = nullptr; /* nurbs_knot_calc_u allocates */
         BKE_nurb_knot_calc_u(nu);
       }
 
@@ -417,13 +417,13 @@ Nurb *ED_curve_add_nurbs_primitive(
         BLI_addtail(editnurb, nu); /* temporal for spin */
 
         if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
-          ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
+          ed_editnurb_spin(umat, nullptr, obedit, tmp_vec, tmp_cent);
         }
         else if (U.flag & USER_ADD_VIEWALIGNED) {
-          ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
+          ed_editnurb_spin(viewmat, nullptr, obedit, zvec, mat[3]);
         }
         else {
-          ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
+          ed_editnurb_spin(umat, nullptr, obedit, tmp_vec, mat[3]);
         }
 
         BKE_nurb_knot_calc_v(nu);
@@ -452,13 +452,13 @@ Nurb *ED_curve_add_nurbs_primitive(
 
         /* same as above */
         if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0) {
-          ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
+          ed_editnurb_spin(umat, nullptr, obedit, tmp_vec, tmp_cent);
         }
         else if (U.flag & USER_ADD_VIEWALIGNED) {
-          ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
+          ed_editnurb_spin(viewmat, nullptr, obedit, zvec, mat[3]);
         }
         else {
-          ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
+          ed_editnurb_spin(umat, nullptr, obedit, tmp_vec, mat[3]);
         }
 
         BLI_remlink(editnurb, nu);
@@ -474,10 +474,10 @@ Nurb *ED_curve_add_nurbs_primitive(
 
     default: /* should never happen */
       BLI_assert_msg(0, "invalid nurbs type");
-      return NULL;
+      return nullptr;
   }
 
-  BLI_assert(nu != NULL);
+  BLI_assert(nu != nullptr);
 
   if (nu) { /* should always be set */
     nu->flag |= CU_SMOOTH;
@@ -510,13 +510,13 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
   WM_operator_view3d_unit_defaults(C, op);
 
   if (!ED_object_add_generic_get_opts(
-          C, op, 'Z', loc, rot, NULL, &enter_editmode, &local_view_bits, NULL))
+          C, op, 'Z', loc, rot, nullptr, &enter_editmode, &local_view_bits, nullptr))
   {
     return OPERATOR_CANCELLED;
   }
 
   if (!isSurf) { /* adding curve */
-    if (obedit == NULL || obedit->type != OB_CURVES_LEGACY) {
+    if (obedit == nullptr || obedit->type != OB_CURVES_LEGACY) {
       const char *name = get_curve_defname(type);
       Curve *cu;
 
@@ -534,7 +534,7 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
     }
   }
   else { /* adding surface */
-    if (obedit == NULL || obedit->type != OB_SURF) {
+    if (obedit == nullptr || obedit->type != OB_SURF) {
       const char *name = get_surf_defname(type);
       obedit = ED_object_add_type(C, OB_SURF, name, loc, rot, true, local_view_bits);
       newob = true;

@@ -30,6 +30,16 @@
 /** \name Cursor Picking API
  * \{ */
 
+struct PickUserData {
+  BPoint *bp;
+  BezTriple *bezt;
+  Nurb *nurb;
+  float dist;
+  int hpoint, select;
+  float mval_fl[2];
+  bool is_changed;
+};
+
 static void ED_curve_pick_vert__do_closest(void *userData,
                                            Nurb *nu,
                                            BPoint *bp,
@@ -38,15 +48,7 @@ static void ED_curve_pick_vert__do_closest(void *userData,
                                            bool handles_visible,
                                            const float screen_co[2])
 {
-  struct {
-    BPoint *bp;
-    BezTriple *bezt;
-    Nurb *nurb;
-    float dist;
-    int hpoint, select;
-    float mval_fl[2];
-    bool is_changed;
-  } *data = userData;
+  PickUserData *data = static_cast<PickUserData *>(userData);
 
   uint8_t flag;
   float dist_test;
@@ -101,15 +103,7 @@ bool ED_curve_pick_vert_ex(ViewContext *vc,
   /* (sel == 1): selected gets a disadvantage */
   /* in nurb and bezt or bp the nearest is written */
   /* return 0 1 2: handlepunt */
-  struct {
-    BPoint *bp;
-    BezTriple *bezt;
-    Nurb *nurb;
-    float dist;
-    int hpoint, select;
-    float mval_fl[2];
-    bool is_changed;
-  } data = {NULL};
+  PickUserData data{};
 
   data.dist = dist_px;
   data.hpoint = 0;
@@ -173,9 +167,9 @@ void ED_curve_nurb_vert_selected_find(
   BPoint *bp1;
   int a;
 
-  *r_nu = NULL;
-  *r_bezt = NULL;
-  *r_bp = NULL;
+  *r_nu = nullptr;
+  *r_bezt = nullptr;
+  *r_bp = nullptr;
 
   LISTBASE_FOREACH (Nurb *, nu1, editnurb) {
     if (nu1->type == CU_BEZIER) {
@@ -183,16 +177,16 @@ void ED_curve_nurb_vert_selected_find(
       a = nu1->pntsu;
       while (a--) {
         if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt1)) {
-          if (!ELEM(*r_nu, NULL, nu1)) {
-            *r_nu = NULL;
-            *r_bp = NULL;
-            *r_bezt = NULL;
+          if (!ELEM(*r_nu, nullptr, nu1)) {
+            *r_nu = nullptr;
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
             return;
           }
 
           if (*r_bezt || *r_bp) {
-            *r_bp = NULL;
-            *r_bezt = NULL;
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
           }
           else {
             *r_bezt = bezt1;
@@ -207,16 +201,16 @@ void ED_curve_nurb_vert_selected_find(
       a = nu1->pntsu * nu1->pntsv;
       while (a--) {
         if (bp1->f1 & SELECT) {
-          if (!ELEM(*r_nu, NULL, nu1)) {
-            *r_bp = NULL;
-            *r_bezt = NULL;
-            *r_nu = NULL;
+          if (!ELEM(*r_nu, nullptr, nu1)) {
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
+            *r_nu = nullptr;
             return;
           }
 
           if (*r_bezt || *r_bp) {
-            *r_bp = NULL;
-            *r_bezt = NULL;
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
           }
           else {
             *r_bp = bp1;
@@ -231,8 +225,8 @@ void ED_curve_nurb_vert_selected_find(
 
 bool ED_curve_active_center(Curve *cu, float center[3])
 {
-  Nurb *nu = NULL;
-  void *vert = NULL;
+  Nurb *nu = nullptr;
+  void *vert = nullptr;
 
   if (!BKE_curve_nurb_vert_active_get(cu, &nu, &vert)) {
     return false;

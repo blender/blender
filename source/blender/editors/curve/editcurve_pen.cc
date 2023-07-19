@@ -56,7 +56,7 @@
 /**
  * Data structure to keep track of details about the cut location
  */
-typedef struct CutData {
+struct CutData {
   /* Index of the last #BezTriple or BPoint before the cut. */
   int bezt_index, bp_index;
   /* Nurb to which the cut belongs to. */
@@ -71,21 +71,21 @@ typedef struct CutData {
   float prev_loc[3], cut_loc[3], next_loc[3];
   /* Mouse location in floats. */
   float mval[2];
-} CutData;
+};
 
 /**
  * Data required for segment altering functionality.
  */
-typedef struct MoveSegmentData {
+struct MoveSegmentData {
   /* Nurb being altered. */
   Nurb *nu;
   /* Index of the #BezTriple before the segment. */
   int bezt_index;
   /* Fraction along the segment at which mouse was pressed. */
   float t;
-} MoveSegmentData;
+};
 
-typedef struct CurvePenData {
+struct CurvePenData {
   MoveSegmentData *msd;
   /* Whether the mouse is clicking and dragging. */
   bool dragging;
@@ -119,30 +119,30 @@ typedef struct CurvePenData {
   Nurb *nu;
   BezTriple *bezt;
   BPoint *bp;
-} CurvePenData;
+};
 
 static const EnumPropertyItem prop_handle_types[] = {
     {HD_AUTO, "AUTO", 0, "Auto", ""},
     {HD_VECT, "VECTOR", 0, "Vector", ""},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
-typedef enum eClose_opt {
+enum eClose_opt {
   OFF = 0,
   ON_PRESS = 1,
   ON_CLICK = 2,
-} eClose_opt;
+};
 
 static const EnumPropertyItem prop_close_spline_method[] = {
     {OFF, "OFF", 0, "None", ""},
     {ON_PRESS, "ON_PRESS", 0, "On Press", "Move handles after closing the spline"},
     {ON_CLICK, "ON_CLICK", 0, "On Click", "Spline closes on release if not dragged"},
-    {0, NULL, 0, NULL, NULL},
+    {0, nullptr, 0, nullptr, nullptr},
 };
 
 static void update_location_for_2d_curve(const ViewContext *vc, float location[3])
 {
-  Curve *cu = vc->obedit->data;
+  Curve *cu = static_cast<Curve *>(vc->obedit->data);
   if (CU_IS_2D(cu)) {
     const float eps = 1e-6f;
 
@@ -198,7 +198,7 @@ static void screenspace_to_worldspace_int(const ViewContext *vc,
                                           const float depth[3],
                                           float r_pos_3d[3])
 {
-  const float pos_2d_fl[2] = {UNPACK2(pos_2d)};
+  const float pos_2d_fl[2] = {float(pos_2d[0]), float(pos_2d[1])};
   screenspace_to_worldspace(vc, pos_2d_fl, depth, r_pos_3d);
 }
 
@@ -207,7 +207,7 @@ static bool worldspace_to_screenspace(const ViewContext *vc,
                                       float r_pos_2d[2])
 {
   return ED_view3d_project_float_object(
-             vc->region, pos_3d, r_pos_2d, V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) ==
+             vc->region, pos_3d, r_pos_2d, V3D_PROJ_TEST_CLIP_BB | V3D_PROJ_TEST_CLIP_WIN) ==
          V3D_PROJ_RET_OK;
 }
 
@@ -371,8 +371,8 @@ static void move_all_selected_points(const ViewContext *vc,
                                      ListBase *nurbs,
                                      const bool bezt_only)
 {
-  const float mval[2] = {UNPACK2(event->xy)};
-  const float prev_mval[2] = {UNPACK2(event->prev_xy)};
+  const float mval[2] = {float(event->xy[0]), float(event->xy[1])};
+  const float prev_mval[2] = {float(event->prev_xy[0]), float(event->prev_xy[1])};
   float disp_2d[2];
   sub_v2_v2v2(disp_2d, mval, prev_mval);
 
@@ -438,7 +438,7 @@ static void delete_nurb(Curve *cu, Nurb *nu)
   ListBase *nurbs = &editnurb->nurbs;
   const int nu_index = get_nurb_index(nurbs, nu);
   if (cu->actnu == nu_index) {
-    BKE_curve_nurb_vert_active_set(cu, NULL, NULL);
+    BKE_curve_nurb_vert_active_set(cu, nullptr, nullptr);
   }
 
   BLI_remlink(nurbs, nu);
@@ -475,18 +475,18 @@ static bool get_closest_vertex_to_point_in_nurbs(const ViewContext *vc,
                                                  BPoint **r_bp,
                                                  int *r_bezt_idx)
 {
-  *r_nu = NULL;
-  *r_bezt = NULL;
-  *r_bp = NULL;
+  *r_nu = nullptr;
+  *r_bezt = nullptr;
+  *r_bp = nullptr;
 
   float min_dist_bezt = FLT_MAX;
   int closest_handle = 0;
-  BezTriple *closest_bezt = NULL;
-  Nurb *closest_bezt_nu = NULL;
+  BezTriple *closest_bezt = nullptr;
+  Nurb *closest_bezt_nu = nullptr;
 
   float min_dist_bp = FLT_MAX;
-  BPoint *closest_bp = NULL;
-  Nurb *closest_bp_nu = NULL;
+  BPoint *closest_bp = nullptr;
+  Nurb *closest_bp_nu = nullptr;
 
   LISTBASE_FOREACH (Nurb *, nu, nurbs) {
     if (nu->type == CU_BEZIER) {
@@ -756,7 +756,7 @@ static void update_cut_data_for_nurb(
 
   if (nu->type == CU_BEZIER) {
     for (int i = 0; i < end; i++) {
-      float *points = MEM_mallocN(sizeof(float[3]) * (resolu + 1), __func__);
+      float *points = static_cast<float *>(MEM_mallocN(sizeof(float[3]) * (resolu + 1), __func__));
 
       const BezTriple *bezt1 = nu->bezt + i;
       const BezTriple *bezt2 = nu->bezt + (i + 1) % nu->pntsu;
@@ -832,22 +832,23 @@ static bool update_cut_data_for_all_nurbs(const ViewContext *vc,
 
 static CutData init_cut_data(const wmEvent *event)
 {
-  CutData cd = {.bezt_index = 0,
-                .bp_index = 0,
-                .min_dist = FLT_MAX,
-                .parameter = 0.5f,
-                .has_prev = false,
-                .has_next = false,
-                .mval[0] = event->mval[0],
-                .mval[1] = event->mval[1]};
+  CutData cd{};
+  cd.bezt_index = 0;
+  cd.bp_index = 0;
+  cd.min_dist = FLT_MAX;
+  cd.parameter = 0.5f;
+  cd.has_prev = false;
+  cd.has_next = false;
+  cd.mval[0] = event->mval[0];
+  cd.mval[1] = event->mval[1];
   return cd;
 }
 
 static bool insert_point_to_segment(const ViewContext *vc, const wmEvent *event)
 {
-  Curve *cu = vc->obedit->data;
+  Curve *cu = static_cast<Curve *>(vc->obedit->data);
   CutData cd = init_cut_data(event);
-  const float mval[2] = {UNPACK2(event->mval)};
+  const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
   const bool near_spline = update_cut_data_for_all_nurbs(
       vc, BKE_curve_editNurbs_get(cu), mval, threshold_dist_px, &cd);
@@ -891,9 +892,9 @@ static void get_first_selected_point(
   BPoint *bp;
   int a;
 
-  *r_nu = NULL;
-  *r_bezt = NULL;
-  *r_bp = NULL;
+  *r_nu = nullptr;
+  *r_bezt = nullptr;
+  *r_bp = nullptr;
 
   LISTBASE_FOREACH (Nurb *, nu, nurbs) {
     if (nu->type == CU_BEZIER) {
@@ -902,8 +903,8 @@ static void get_first_selected_point(
       while (a--) {
         if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
           if (*r_bezt || *r_bp) {
-            *r_bp = NULL;
-            *r_bezt = NULL;
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
             return;
           }
           *r_bezt = bezt;
@@ -918,8 +919,8 @@ static void get_first_selected_point(
       while (a--) {
         if (bp->f1 & SELECT) {
           if (*r_bezt || *r_bp) {
-            *r_bp = NULL;
-            *r_bezt = NULL;
+            *r_bp = nullptr;
+            *r_bezt = nullptr;
             return;
           }
           *r_bp = bp;
@@ -1078,7 +1079,7 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
                                                   const wmEvent *event,
                                                   const int extrude_handle)
 {
-  Curve *cu = vc->obedit->data;
+  Curve *cu = static_cast<Curve *>(vc->obedit->data);
   ListBase *nurbs = BKE_curve_editNurbs_get(cu);
   float center[3] = {0.0f, 0.0f, 0.0f};
   deselect_all_center_vertices(nurbs);
@@ -1104,9 +1105,9 @@ static void extrude_points_from_selected_vertices(const ViewContext *vc,
     extrude_vertices_from_selected_endpoints(editnurb, nurbs, cu, disp_3d);
   }
   else {
-    Nurb *old_last_nu = editnurb->nurbs.last;
+    Nurb *old_last_nu = static_cast<Nurb *>(editnurb->nurbs.last);
     ed_editcurve_addvert(cu, editnurb, vc->v3d, location);
-    Nurb *new_last_nu = editnurb->nurbs.last;
+    Nurb *new_last_nu = static_cast<Nurb *>(editnurb->nurbs.last);
 
     if (old_last_nu != new_last_nu) {
       BKE_curve_nurb_vert_active_set(cu,
@@ -1134,18 +1135,19 @@ static bool is_spline_nearby(ViewContext *vc,
                              const wmEvent *event,
                              const float sel_dist)
 {
-  Curve *cu = vc->obedit->data;
+  Curve *cu = static_cast<Curve *>(vc->obedit->data);
   ListBase *nurbs = BKE_curve_editNurbs_get(cu);
   CutData cd = init_cut_data(event);
 
-  const float mval[2] = {UNPACK2(event->mval)};
+  const float mval[2] = {float(event->mval[0]), float(event->mval[1])};
   const bool nearby = update_cut_data_for_all_nurbs(vc, nurbs, mval, sel_dist, &cd);
 
   if (nearby) {
     if (cd.nurb && (cd.nurb->type == CU_BEZIER) && RNA_boolean_get(op->ptr, "move_segment")) {
       MoveSegmentData *seg_data;
       CurvePenData *cpd = (CurvePenData *)(op->customdata);
-      cpd->msd = seg_data = MEM_callocN(sizeof(MoveSegmentData), __func__);
+      cpd->msd = seg_data = static_cast<MoveSegmentData *>(
+          MEM_callocN(sizeof(MoveSegmentData), __func__));
       seg_data->bezt_index = cd.bezt_index;
       seg_data->nu = cd.nurb;
       seg_data->t = cd.parameter;
@@ -1275,17 +1277,17 @@ static void toggle_sel_bezt_free_align_handles(ListBase *nurbs)
  */
 static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
 {
-  BezTriple *bezt = NULL;
-  BPoint *bp = NULL;
-  Nurb *nu = NULL;
+  BezTriple *bezt = nullptr;
+  BPoint *bp = nullptr;
+  Nurb *nu = nullptr;
   int temp = 0;
-  Curve *cu = vc->obedit->data;
+  Curve *cu = static_cast<Curve *>(vc->obedit->data);
   EditNurb *editnurb = cu->editnurb;
   ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-  const float mouse_point[2] = {UNPACK2(event->mval)};
+  const float mouse_point[2] = {float(event->mval[0]), float(event->mval[1])};
 
   get_closest_vertex_to_point_in_nurbs(vc, nurbs, mouse_point, &nu, &bezt, &bp, &temp);
-  const bool found_point = nu != NULL;
+  const bool found_point = nu != nullptr;
 
   bool deleted = false;
   if (found_point) {
@@ -1296,7 +1298,7 @@ static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
         BezTriple *prev_bezt = BKE_nurb_bezt_get_prev(nu, bezt);
         if (next_bezt && prev_bezt) {
           const int bez_index = BKE_curve_nurb_vert_index_get(nu, bezt);
-          const uint span_step[2] = {bez_index, bez_index};
+          const uint span_step[2] = {uint(bez_index), uint(bez_index)};
           ed_dissolve_bez_segment(prev_bezt, next_bezt, nu, cu, 1, span_step);
         }
         delete_bezt_from_nurb(bezt, nu, editnurb);
@@ -1307,7 +1309,7 @@ static bool delete_point_under_mouse(ViewContext *vc, const wmEvent *event)
 
       if (nu->pntsu == 0) {
         delete_nurb(cu, nu);
-        nu = NULL;
+        nu = nullptr;
       }
       deleted = true;
       cu->actvert = CU_ACT_NONE;
@@ -1354,7 +1356,7 @@ static void move_adjacent_handle(ViewContext *vc, const wmEvent *event, ListBase
 
     int displacement[2];
     sub_v2_v2v2_int(displacement, event->xy, event->prev_xy);
-    const float disp_fl[2] = {UNPACK2(displacement)};
+    const float disp_fl[2] = {float(displacement[0]), float(displacement[1])};
     move_bezt_handle_or_vertex_by_displacement(
         vc, adj_bezt, bezt_idx, disp_fl, 0.0f, false, false);
     BKE_nurb_handles_calc(nu);
@@ -1379,12 +1381,12 @@ static bool make_cyclic_if_endpoints(ViewContext *vc,
       return false;
     }
 
-    Nurb *nu = NULL;
-    BezTriple *bezt = NULL;
-    BPoint *bp = NULL;
-    Curve *cu = vc->obedit->data;
+    Nurb *nu = nullptr;
+    BezTriple *bezt = nullptr;
+    BPoint *bp = nullptr;
+    Curve *cu = static_cast<Curve *>(vc->obedit->data);
     int bezt_idx;
-    const float mval_fl[2] = {UNPACK2(vc->mval)};
+    const float mval_fl[2] = {float(vc->mval[0]), float(vc->mval[1])};
 
     get_closest_vertex_to_point_in_nurbs(
         vc, &(cu->editnurb->nurbs), mval_fl, &nu, &bezt, &bp, &bezt_idx);
@@ -1530,14 +1532,14 @@ wmKeyMap *curve_pen_modal_keymap(wmKeyConfig *keyconf)
        0,
        "Lock Angle",
        "Move the handle along its current angle"},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Curve Pen Modal Map");
 
   /* This function is called for each space-type, only needs to add map once. */
   if (keymap && keymap->modal_items) {
-    return NULL;
+    return nullptr;
   }
 
   keymap = WM_modalkeymap_ensure(keyconf, "Curve Pen Modal Map", modal_items);
@@ -1554,23 +1556,22 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   Object *obedit = CTX_data_edit_object(C);
 
   ED_view3d_viewcontext_init(C, &vc, depsgraph);
-  Curve *cu = vc.obedit->data;
+  Curve *cu = static_cast<Curve *>(vc.obedit->data);
   ListBase *nurbs = &cu->editnurb->nurbs;
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
 
-  BezTriple *bezt = NULL;
-  BPoint *bp = NULL;
-  Nurb *nu = NULL;
+  BezTriple *bezt = nullptr;
+  BPoint *bp = nullptr;
+  Nurb *nu = nullptr;
 
-  const struct SelectPick_Params params = {
-      .sel_op = SEL_OP_SET,
-      .deselect_all = false,
-  };
+  SelectPick_Params params{};
+  params.sel_op = SEL_OP_SET;
+  params.deselect_all = false;
 
   int ret = OPERATOR_RUNNING_MODAL;
 
   /* Distance threshold for mouse clicks to affect the spline or its points */
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
 
   const bool extrude_point = RNA_boolean_get(op->ptr, "extrude_point");
   const bool delete_point = RNA_boolean_get(op->ptr, "delete_point");
@@ -1585,8 +1586,9 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   const int extrude_handle = RNA_enum_get(op->ptr, "extrude_handle");
 
   CurvePenData *cpd;
-  if (op->customdata == NULL) {
-    op->customdata = cpd = MEM_callocN(sizeof(CurvePenData), __func__);
+  if (op->customdata == nullptr) {
+    op->customdata = cpd = static_cast<CurvePenData *>(
+        MEM_callocN(sizeof(CurvePenData), __func__));
   }
   else {
     cpd = (CurvePenData *)(op->customdata);
@@ -1594,7 +1596,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
   }
 
   if (event->type == EVT_MODAL_MAP) {
-    if (cpd->msd == NULL) {
+    if (cpd->msd == nullptr) {
       if (event->val == PEN_MODAL_FREE_ALIGN_TOGGLE) {
         toggle_sel_bezt_free_align_handles(nurbs);
         cpd->link_handles = false;
@@ -1636,7 +1638,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
     }
 
     if (cpd->dragging) {
-      if (cpd->spline_nearby && move_seg && cpd->msd != NULL) {
+      if (cpd->spline_nearby && move_seg && cpd->msd != nullptr) {
         MoveSegmentData *seg_data = cpd->msd;
         move_segment(&vc, seg_data, event);
         cpd->acted = true;
@@ -1722,7 +1724,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
         }
       }
 
-      if (cpd->msd != NULL) {
+      if (cpd->msd != nullptr) {
         MEM_freeN(cpd->msd);
       }
       MEM_freeN(cpd);
@@ -1732,7 +1734,7 @@ static int curve_pen_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
   WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-  DEG_id_tag_update(obedit->data, 0);
+  DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
 
   return ret;
 }
@@ -1741,18 +1743,18 @@ static int curve_pen_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewContext vc;
   ED_view3d_viewcontext_init(C, &vc, CTX_data_ensure_evaluated_depsgraph(C));
-  Curve *cu = vc.obedit->data;
+  Curve *cu = static_cast<Curve *>(vc.obedit->data);
   ListBase *nurbs = &cu->editnurb->nurbs;
 
-  BezTriple *bezt = NULL;
-  BPoint *bp = NULL;
-  Nurb *nu = NULL;
+  BezTriple *bezt = nullptr;
+  BPoint *bp = nullptr;
+  Nurb *nu = nullptr;
 
   CurvePenData *cpd;
-  op->customdata = cpd = MEM_callocN(sizeof(CurvePenData), __func__);
+  op->customdata = cpd = static_cast<CurvePenData *>(MEM_callocN(sizeof(CurvePenData), __func__));
 
   /* Distance threshold for mouse clicks to affect the spline or its points */
-  const float mval_fl[2] = {UNPACK2(event->mval)};
+  const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   const float threshold_dist_px = ED_view3d_select_dist_px() * SEL_DIST_FACTOR;
 
   const bool extrude_point = RNA_boolean_get(op->ptr, "extrude_point");
