@@ -534,7 +534,6 @@ static eViewOpsFlag viewops_flag_from_prefs()
 static void viewops_data_init_context(bContext *C, ViewOpsData *vod)
 {
   /* Store data. */
-  vod->bmain = CTX_data_main(C);
   vod->depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   vod->scene = CTX_data_scene(C);
   vod->area = CTX_wm_area(C);

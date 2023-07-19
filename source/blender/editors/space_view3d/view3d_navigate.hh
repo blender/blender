@@ -19,7 +19,6 @@
 struct ARegion;
 struct Depsgraph;
 struct Dial;
-struct Main;
 struct RegionView3D;
 struct Scene;
 struct ScrArea;
@@ -103,7 +102,6 @@ ENUM_OPERATORS(eViewOpsFlag, VIEWOPS_FLAG_ZOOM_TO_MOUSE);
 /** Generic View Operator Custom-Data */
 struct ViewOpsData {
   /** Context pointers (assigned by #viewops_data_create). */
-  Main *bmain;
   Scene *scene;
   ScrArea *area;
   ARegion *region;
