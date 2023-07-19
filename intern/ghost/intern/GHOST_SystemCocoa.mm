@@ -23,7 +23,7 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
+#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
 #  include "GHOST_ContextCGL.hh"
 #endif
 
@@ -763,11 +763,10 @@ GHOST_IWindow *GHOST_SystemCocoa::createWindow(const char *title,
  */
 GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuSettings)
 {
-  const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
-
   switch (gpuSettings.context_type) {
 #ifdef WITH_VULKAN_BACKEND
     case GHOST_kDrawingContextTypeVulkan: {
+      const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
       GHOST_Context *context = new GHOST_ContextVK(false, NULL, 1, 2, debug_context);
       if (context->initializeDrawingContext()) {
         return context;
