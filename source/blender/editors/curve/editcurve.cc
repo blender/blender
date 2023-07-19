@@ -658,7 +658,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
       LISTBASE_FOREACH (Nurb *, nu, &editnurb->nurbs) {
 
         if (nu->bezt) {
-          /* Three vects to store handles and one for tilt. */
+          /* Three vectors to store handles and one for tilt. */
           totvec += nu->pntsu * 4;
         }
         else {

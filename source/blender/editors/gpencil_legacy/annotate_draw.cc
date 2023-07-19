@@ -705,12 +705,11 @@ static void annotation_draw_data_layers(
      */
     if (ED_gpencil_session_active() && (gpl->flag & GP_LAYER_ACTIVE) &&
         (gpf->flag & GP_FRAME_PAINT)) {
-      /* Buffer stroke needs to be drawn with a different linestyle
+      /* Buffer stroke needs to be drawn with a different line-style
        * to help differentiate them from normal strokes.
        *
-       * It should also be noted that sbuffer contains temporary point types
-       * i.e. tGPspoints NOT bGPDspoints
-       */
+       * It should also be noted that #bGPdata_Runtime::sbuffer contains temporary point types
+       * i.e. #tGPspoints NOT #bGPDspoints. */
       annotation_draw_stroke_buffer(gpd, lthick, dflag, ink);
     }
   }

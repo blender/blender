@@ -2617,7 +2617,7 @@ bool *BKE_keyblock_get_dependent_keys(const Key *key, const int index)
   marked[index] = true;
 
   /* Iterative breadth-first search through the key list. This method minimizes
-   * the number of scans through the list and is failsafe vs reference cycles. */
+   * the number of scans through the list and is fail-safe vs reference cycles. */
   bool updated, found = false;
   int i;
 

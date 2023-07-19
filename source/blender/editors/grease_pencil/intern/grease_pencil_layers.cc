@@ -137,13 +137,13 @@ static int grease_pencil_layer_reorder_exec(bContext *C, wmOperator *op)
 
   switch (reorder_location) {
     case LAYER_REORDER_ABOVE: {
-      /* Note: The layers are stored from bottom to top, so inserting above (visually), means
+      /* NOTE: The layers are stored from bottom to top, so inserting above (visually), means
        * inserting the link after the target. */
       target_layer->parent_group().add_layer_after(active_layer, &target_layer->as_node());
       break;
     }
     case LAYER_REORDER_BELOW: {
-      /* Note: The layers are stored from bottom to top, so inserting below (visually), means
+      /* NOTE: The layers are stored from bottom to top, so inserting below (visually), means
        * inserting the link before the target. */
       target_layer->parent_group().add_layer_before(active_layer, &target_layer->as_node());
       break;

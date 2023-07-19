@@ -1058,12 +1058,12 @@ static int ffmpeg_seek_by_byte(AVFormatContext *pFormatCtx)
 
 static int64_t ffmpeg_get_seek_pts(anim *anim, int64_t pts_to_search)
 {
-  /* FFmpeg seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
-   * offset and sometimes ffmpeg fails to take this into account when seeking.
+  /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
+   * offset and sometimes FFMPEG fails to take this into account when seeking.
    * Therefore we need to seek backwards a certain offset to make sure the frame we want is in
-   * front of us. It is not possible to determine the exact needed offset, this value is determined
-   * experimentally. Note: Too big offset can impact performance. Current 3 frame offset has no
-   * measurable impact.
+   * front of us. It is not possible to determine the exact needed offset,
+   * this value is determined experimentally.
+   * NOTE: Too big offset can impact performance. Current 3 frame offset has no measurable impact.
    */
   int64_t seek_pts = pts_to_search - (ffmpeg_steps_per_frame_get(anim) * 3);
 

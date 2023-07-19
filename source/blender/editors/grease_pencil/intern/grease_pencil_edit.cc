@@ -105,24 +105,24 @@ static void gaussian_blur_1D(const Span<T> src,
 {
   /* 1D Gaussian-like smoothing function.
    *
-   * Note : This is the algorithm used by BKE_gpencil_stroke_smooth_point (legacy),
-   *        but generalized and written in C++.
+   * NOTE: This is the algorithm used by #BKE_gpencil_stroke_smooth_point (legacy),
+   *       but generalized and written in C++.
    *
    * This function uses a binomial kernel, which is the discrete version of gaussian blur.
    * The weight for a value at the relative index is:
-   * w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n
+   * `w = nCr(n, j + n/2) / 2^n = (n/1 * (n-1)/2 * ... * (n-j-n/2)/(j+n/2)) / 2^n`.
    * All weights together sum up to 1.
    * This is equivalent to doing multiple iterations of averaging neighbors,
-   * where n = iterations * 2 and -n/2 <= j <= n/2
+   * where: `n = iterations * 2 and -n/2 <= j <= n/2`.
    *
-   * Now the problem is that nCr(n, j + n/2) is very hard to compute for n > 500, since even
-   * double precision isn't sufficient. A very good robust approximation for n > 20 is
-   * nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)
+   * Now the problem is that `nCr(n, j + n/2)` is very hard to compute for `n > 500`, since even
+   * double precision isn't sufficient. A very good robust approximation for `n > 20` is:
+   * `nCr(n, j + n/2) / 2^n = sqrt(2/(pi*n)) * exp(-2*j*j/n)`.
    *
    * `keep_shape` is a new option to stop the points from severely deforming.
    * It uses different partially negative weights.
-   * w = 2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))
-   *   ~ 2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))
+   * `w = 2 * (nCr(n, j + n/2) / 2^n) - (nCr(3*n, j + n) / 2^(3*n))`
+   * `  ~ 2 * sqrt(2/(pi*n)) * exp(-2*j*j/n) - sqrt(2/(pi*3*n)) * exp(-2*j*j/(3*n))`
    * All weights still sum up to 1.
    * Note that these weights only work because the averaging is done in relative coordinates.
    */

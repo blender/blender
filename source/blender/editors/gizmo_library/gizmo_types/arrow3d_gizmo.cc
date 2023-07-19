@@ -336,7 +336,7 @@ static int gizmo_arrow_modal(bContext *C,
   float offset[3];
   float facdir = 1.0f;
 
-  /* (src, dst) */
+  /* A pair: (source, destination). */
   struct {
     blender::float2 mval;
     float ray_origin[3], ray_direction[3];

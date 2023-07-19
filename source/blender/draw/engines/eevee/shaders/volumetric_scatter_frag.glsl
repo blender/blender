@@ -51,7 +51,7 @@ void main()
 #endif
 
   /* Temporal supersampling */
-  /* Note : this uses the cell non-jittered position (texel center). */
+  /* NOTE: this uses the cell non-jittered position (texel center). */
   vec3 curr_ndc = volume_to_ndc(vec3(gl_FragCoord.xy, float(volumetric_geom_iface.slice) + 0.5) *
                                 volInvTexSize.xyz);
   vec3 wpos = get_world_space_from_depth(curr_ndc.xy, curr_ndc.z);
