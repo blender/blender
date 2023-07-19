@@ -55,7 +55,7 @@
 
 /* ----- General Defines ------ */
 /* flags for sflag */
-typedef enum eDrawStrokeFlags {
+enum eDrawStrokeFlags {
   /** don't draw status info */
   GP_DRAWDATA_NOSTATUS = (1 << 0),
   /** only draw 3d-strokes */
@@ -70,7 +70,7 @@ typedef enum eDrawStrokeFlags {
   GP_DRAWDATA_NO_XRAY = (1 << 5),
   /** no onionskins should be drawn (for animation playback) */
   GP_DRAWDATA_NO_ONIONS = (1 << 6),
-} eDrawStrokeFlags;
+};
 
 /* ----- Tool Buffer Drawing ------ */
 
@@ -119,15 +119,15 @@ static void annotation_draw_stroke_buffer(bGPdata *gps,
                                           short dflag,
                                           const float ink[4])
 {
-  bGPdata_Runtime runtime = gps->runtime;
-  const tGPspoint *points = runtime.sbuffer;
+  bGPdata_Runtime runtime = blender::dna::shallow_copy(gps->runtime);
+  const tGPspoint *points = static_cast<const tGPspoint *>(runtime.sbuffer);
   int totpoints = runtime.sbuffer_used;
   short sflag = runtime.sbuffer_sflag;
 
   int draw_points = 0;
 
   /* error checking */
-  if ((points == NULL) || (totpoints <= 0)) {
+  if ((points == nullptr) || (totpoints <= 0)) {
     return;
   }
 
@@ -515,7 +515,7 @@ static bool annotation_can_draw_stroke(const bGPDstroke *gps, const int dflag)
   }
 
   /* skip stroke if it doesn't have any valid data */
-  if ((gps->points == NULL) || (gps->totpoints < 1)) {
+  if ((gps->points == nullptr) || (gps->totpoints < 1)) {
     return false;
   }
 
@@ -680,7 +680,7 @@ static void annotation_draw_data_layers(
 
     /* get frame to draw */
     bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV);
-    if (gpf == NULL) {
+    if (gpf == nullptr) {
       continue;
     }
 
@@ -752,16 +752,16 @@ static void annotation_draw_data_all(Scene *scene,
                                      int dflag,
                                      const eSpace_Type space_type)
 {
-  bGPdata *gpd_source = NULL;
+  bGPdata *gpd_source = nullptr;
 
   if (scene) {
     if (space_type == SPACE_VIEW3D) {
-      gpd_source = (scene->gpd ? scene->gpd : NULL);
+      gpd_source = (scene->gpd ? scene->gpd : nullptr);
     }
     else if (space_type == SPACE_CLIP && scene->clip) {
       /* currently drawing only gpencil data from either clip or track,
        * but not both - XXX fix logic behind */
-      gpd_source = (scene->clip->gpd ? scene->clip->gpd : NULL);
+      gpd_source = (scene->clip->gpd ? scene->clip->gpd : nullptr);
     }
 
     if (gpd_source) {
@@ -771,7 +771,7 @@ static void annotation_draw_data_all(Scene *scene,
 
   /* scene/clip data has already been drawn, only object/track data is drawn here
    * if gpd_source == gpd, we don't have any object/track data and we can skip */
-  if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
+  if (gpd_source == nullptr || (gpd_source && gpd_source != gpd)) {
     annotation_draw_data(gpd, offsx, offsy, winx, winy, cfra, dflag);
   }
 }
@@ -789,7 +789,7 @@ void ED_annotation_draw_2dimage(const bContext *C)
   int dflag = GP_DRAWDATA_NOSTATUS;
 
   bGPdata *gpd = ED_annotation_data_get_active(C);
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -844,7 +844,7 @@ void ED_annotation_draw_2dimage(const bContext *C)
 
   /* draw it! */
   annotation_draw_data_all(
-      scene, gpd, offsx, offsy, sizex, sizey, scene->r.cfra, dflag, area->spacetype);
+      scene, gpd, offsx, offsy, sizex, sizey, scene->r.cfra, dflag, eSpace_Type(area->spacetype));
 }
 
 void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
@@ -856,11 +856,11 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
   int dflag = 0;
 
   /* check that we have grease-pencil stuff to draw */
-  if (area == NULL) {
+  if (area == nullptr) {
     return;
   }
   bGPdata *gpd = ED_annotation_data_get_active(C);
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -879,22 +879,29 @@ void ED_annotation_draw_view2d(const bContext *C, bool onlyv2d)
     dflag |= GP_DRAWDATA_NO_ONIONS;
   }
 
-  annotation_draw_data_all(
-      scene, gpd, 0, 0, region->winx, region->winy, scene->r.cfra, dflag, area->spacetype);
+  annotation_draw_data_all(scene,
+                           gpd,
+                           0,
+                           0,
+                           region->winx,
+                           region->winy,
+                           scene->r.cfra,
+                           dflag,
+                           eSpace_Type(area->spacetype));
 }
 
 void ED_annotation_draw_view3d(
     Scene *scene, struct Depsgraph *depsgraph, View3D *v3d, ARegion *region, bool only3d)
 {
   int dflag = 0;
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   int offsx, offsy, winx, winy;
 
   /* check that we have grease-pencil stuff to draw */
   /* XXX: Hardcoded reference here may get out of sync if we change how we fetch annotation data
    */
   bGPdata *gpd = scene->gpd;
-  if (gpd == NULL) {
+  if (gpd == nullptr) {
     return;
   }
 
@@ -932,7 +939,7 @@ void ED_annotation_draw_view3d(
 
   /* draw it! */
   annotation_draw_data_all(
-      scene, gpd, offsx, offsy, winx, winy, scene->r.cfra, dflag, v3d->spacetype);
+      scene, gpd, offsx, offsy, winx, winy, scene->r.cfra, dflag, eSpace_Type(v3d->spacetype));
 }
 
 void ED_annotation_draw_ex(
@@ -940,7 +947,7 @@ void ED_annotation_draw_ex(
 {
   int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
 
-  annotation_draw_data_all(scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
+  annotation_draw_data_all(scene, gpd, 0, 0, winx, winy, cfra, dflag, eSpace_Type(spacetype));
 }
 
 /* ************************************************** */

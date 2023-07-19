@@ -18,6 +18,7 @@
 #include "BLI_dial_2d.h"
 #include "BLI_math.h"
 #include "BLI_math_base_safe.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
@@ -151,12 +152,12 @@ static void cage2d_draw_box_interaction(const float color[4],
 
   switch (highlighted) {
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X: {
-      rctf r = {
-          .xmin = -size[0],
-          .xmax = -size[0] + margin[0],
-          .ymin = -size[1] + margin[1],
-          .ymax = size[1] - margin[1],
-      };
+      rctf r;
+      r.xmin = -size[0];
+      r.xmax = -size[0] + margin[0];
+      r.ymin = -size[1] + margin[1];
+      r.ymax = size[1] - margin[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
       ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymax);
       verts_len = 2;
@@ -172,12 +173,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X: {
-      rctf r = {
-          .xmin = size[0] - margin[0],
-          .xmax = size[0],
-          .ymin = -size[1] + margin[1],
-          .ymax = size[1] - margin[1],
-      };
+      rctf r;
+      r.xmin = size[0] - margin[0];
+      r.xmax = size[0];
+      r.ymin = -size[1] + margin[1];
+      r.ymax = size[1] - margin[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymin);
       ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
       verts_len = 2;
@@ -193,12 +194,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y: {
-      rctf r = {
-          .xmin = -size[0] + margin[0],
-          .xmax = size[0] - margin[0],
-          .ymin = -size[1],
-          .ymax = -size[1] + margin[1],
-      };
+      rctf r;
+      r.xmin = -size[0] + margin[0];
+      r.xmax = size[0] - margin[0];
+      r.ymin = -size[1];
+      r.ymax = -size[1] + margin[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
       ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymin);
       verts_len = 2;
@@ -214,12 +215,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y: {
-      rctf r = {
-          .xmin = -size[0] + margin[0],
-          .xmax = size[0] - margin[0],
-          .ymin = size[1] - margin[1],
-          .ymax = size[1],
-      };
+      rctf r;
+      r.xmin = -size[0] + margin[0];
+      r.xmax = size[0] - margin[0];
+      r.ymin = size[1] - margin[1];
+      r.ymax = size[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymax);
       ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
       verts_len = 2;
@@ -235,12 +236,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y: {
-      rctf r = {
-          .xmin = -size[0],
-          .xmax = -size[0] + margin[0],
-          .ymin = -size[1],
-          .ymax = -size[1] + margin[1],
-      };
+      rctf r;
+      r.xmin = -size[0];
+      r.xmax = -size[0] + margin[0];
+      r.ymin = -size[1];
+      r.ymax = -size[1] + margin[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymin);
       ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymax);
       ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymax);
@@ -256,12 +257,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y: {
-      rctf r = {
-          .xmin = -size[0],
-          .xmax = -size[0] + margin[0],
-          .ymin = size[1] - margin[1],
-          .ymax = size[1],
-      };
+      rctf r;
+      r.xmin = -size[0];
+      r.xmax = -size[0] + margin[0];
+      r.ymin = size[1] - margin[1];
+      r.ymax = size[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmax, r.ymax);
       ARRAY_SET_ITEMS(verts[1], r.xmax, r.ymin);
       ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymin);
@@ -277,12 +278,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y: {
-      rctf r = {
-          .xmin = size[0] - margin[0],
-          .xmax = size[0],
-          .ymin = -size[1],
-          .ymax = -size[1] + margin[1],
-      };
+      rctf r;
+      r.xmin = size[0] - margin[0];
+      r.xmax = size[0];
+      r.ymin = -size[1];
+      r.ymax = -size[1] + margin[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymin);
       ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymax);
       ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
@@ -298,12 +299,12 @@ static void cage2d_draw_box_interaction(const float color[4],
       break;
     }
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y: {
-      rctf r = {
-          .xmin = size[0] - margin[0],
-          .xmax = size[0],
-          .ymin = size[1] - margin[1],
-          .ymax = size[1],
-      };
+      rctf r;
+      r.xmin = size[0] - margin[0];
+      r.xmax = size[0];
+      r.ymin = size[1] - margin[1];
+      r.ymax = size[1];
+
       ARRAY_SET_ITEMS(verts[0], r.xmin, r.ymax);
       ARRAY_SET_ITEMS(verts[1], r.xmin, r.ymin);
       ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymin);
@@ -320,12 +321,11 @@ static void cage2d_draw_box_interaction(const float color[4],
     }
     case ED_GIZMO_CAGE2D_PART_ROTATE: {
       const float rotate_pt[2] = {0.0f, size[1] + margin[1]};
-      const rctf r_rotate = {
-          .xmin = rotate_pt[0] - margin[0] / 2.0f,
-          .xmax = rotate_pt[0] + margin[0] / 2.0f,
-          .ymin = rotate_pt[1] - margin[1] / 2.0f,
-          .ymax = rotate_pt[1] + margin[1] / 2.0f,
-      };
+      rctf r_rotate{};
+      r_rotate.xmin = rotate_pt[0] - margin[0] / 2.0f;
+      r_rotate.xmax = rotate_pt[0] + margin[0] / 2.0f;
+      r_rotate.ymin = rotate_pt[1] - margin[1] / 2.0f;
+      r_rotate.ymax = rotate_pt[1] + margin[1] / 2.0f;
 
       ARRAY_SET_ITEMS(verts[0], r_rotate.xmin, r_rotate.ymin);
       ARRAY_SET_ITEMS(verts[1], r_rotate.xmin, r_rotate.ymax);
@@ -382,10 +382,9 @@ static void cage2d_draw_box_interaction(const float color[4],
   GPUVertFormat *format = immVertexFormat();
   struct {
     uint pos, col;
-  } attr_id = {
-      .pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT),
-      .col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
-  };
+  } attr_id{};
+  attr_id.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  attr_id.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(is_solid ? GPU_SHADER_3D_FLAT_COLOR : GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   {
@@ -687,7 +686,7 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
+    immUniformColor4f(1, 1, 1, 0.5f);
     float s = 0.5f;
     immRectf(pos, -s, -s, s, s);
     immUnbindProgram();
@@ -740,12 +739,12 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
     }
   }
   else {
-    const rctf r = {
-        .xmin = -size_real[0],
-        .ymin = -size_real[1],
-        .xmax = size_real[0],
-        .ymax = size_real[1],
-    };
+    rctf r;
+    r.xmin = -size_real[0];
+    r.ymin = -size_real[1];
+    r.xmax = size_real[0];
+    r.ymax = size_real[1];
+
     if (draw_style == ED_GIZMO_CAGE2D_STYLE_BOX) {
       float color[4], black[3] = {0, 0, 0};
       gizmo_color_get(gz, highlight, color);
@@ -822,12 +821,12 @@ static void gizmo_cage2d_draw_intern(wmGizmo *gz,
 /**
  * For when we want to draw 2d cage in 3d views.
  */
-static void gizmo_cage2d_draw_select(const bContext *UNUSED(C), wmGizmo *gz, int select_id)
+static void gizmo_cage2d_draw_select(const bContext * /*C*/, wmGizmo *gz, int select_id)
 {
   gizmo_cage2d_draw_intern(gz, true, false, select_id);
 }
 
-static void gizmo_cage2d_draw(const bContext *UNUSED(C), wmGizmo *gz)
+static void gizmo_cage2d_draw(const bContext * /*C*/, wmGizmo *gz)
 {
   const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
   gizmo_cage2d_draw_intern(gz, false, is_highlight, -1);
@@ -851,7 +850,7 @@ static int gizmo_cage2d_get_cursor(wmGizmo *gz)
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y:
       return WM_CURSOR_NSEW_SCROLL;
 
-      /* TODO: diagonal cursor. */
+    /* TODO: diagonal cursor. */
     case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y:
     case ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y:
       return WM_CURSOR_NSEW_SCROLL;
@@ -872,8 +871,9 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   RNA_float_get_array(gz->ptr, "dimensions", dims);
   const float size_real[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
-  if (gizmo_window_project_2d(C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) ==
-      false) {
+  if (gizmo_window_project_2d(C, gz, blender::float2(blender::int2(mval)), 2, true, point_local) ==
+      false)
+  {
     return -1;
   }
 
@@ -908,30 +908,29 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 
   /* if gizmo does not have a scale intersection, don't do it */
   if (transform_flag & (ED_GIZMO_CAGE_XFORM_FLAG_SCALE | ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM)) {
-    const rctf r_xmin = {
-        .xmin = -size[0],
-        .ymin = -size[1],
-        .xmax = -size[0] + margin[0],
-        .ymax = size[1],
-    };
-    const rctf r_xmax = {
-        .xmin = size[0] - margin[0],
-        .ymin = -size[1],
-        .xmax = size[0],
-        .ymax = size[1],
-    };
-    const rctf r_ymin = {
-        .xmin = -size[0],
-        .ymin = -size[1],
-        .xmax = size[0],
-        .ymax = -size[1] + margin[1],
-    };
-    const rctf r_ymax = {
-        .xmin = -size[0],
-        .ymin = size[1] - margin[1],
-        .xmax = size[0],
-        .ymax = size[1],
-    };
+    rctf r_xmin{};
+    r_xmin.xmin = -size[0];
+    r_xmin.ymin = -size[1];
+    r_xmin.xmax = -size[0] + margin[0];
+    r_xmin.ymax = size[1];
+
+    rctf r_xmax{};
+    r_xmax.xmin = size[0] - margin[0];
+    r_xmax.ymin = -size[1];
+    r_xmax.xmax = size[0];
+    r_xmax.ymax = size[1];
+
+    rctf r_ymin{};
+    r_ymin.xmin = -size[0];
+    r_ymin.ymin = -size[1];
+    r_ymin.xmax = size[0];
+    r_ymin.ymax = -size[1] + margin[1];
+
+    rctf r_ymax{};
+    r_ymax.xmin = -size[0];
+    r_ymax.ymin = size[1] - margin[1];
+    r_ymax.xmax = size[0];
+    r_ymax.ymax = size[1];
 
     if (BLI_rctf_isect_pt_v(&r_xmin, point_local)) {
       if (BLI_rctf_isect_pt_v(&r_ymin, point_local)) {
@@ -966,12 +965,11 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
      * |   |
      * +---+ */
     const float r_rotate_pt[2] = {0.0f, size_real[1] + (margin[1] * GIZMO_MARGIN_OFFSET_SCALE)};
-    const rctf r_rotate = {
-        .xmin = r_rotate_pt[0] - margin[0] / 2.0f,
-        .xmax = r_rotate_pt[0] + margin[0] / 2.0f,
-        .ymin = r_rotate_pt[1] - margin[1] / 2.0f,
-        .ymax = r_rotate_pt[1] + margin[1] / 2.0f,
-    };
+    rctf r_rotate{};
+    r_rotate.xmin = r_rotate_pt[0] - margin[0] / 2.0f;
+    r_rotate.xmax = r_rotate_pt[0] + margin[0] / 2.0f;
+    r_rotate.ymin = r_rotate_pt[1] - margin[1] / 2.0f;
+    r_rotate.ymax = r_rotate_pt[1] + margin[1] / 2.0f;
 
     if (BLI_rctf_isect_pt_v(&r_rotate, point_local)) {
       return ED_GIZMO_CAGE2D_PART_ROTATE;
@@ -981,17 +979,17 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   return -1;
 }
 
-typedef struct RectTransformInteraction {
+struct RectTransformInteraction {
   float orig_mouse[2];
   float orig_matrix_offset[4][4];
   float orig_matrix_final_no_offset[4][4];
   Dial *dial;
   bool use_temp_uniform;
-} RectTransformInteraction;
+};
 
 static int gizmo_cage2d_transform_flag_get(const wmGizmo *gz)
 {
-  RectTransformInteraction *data = gz->interaction_data;
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
   int transform_flag = RNA_enum_get(gz->ptr, "transform");
   if (data) {
     if (data->use_temp_uniform) {
@@ -1008,14 +1006,14 @@ static void gizmo_cage2d_setup(wmGizmo *gz)
 
 static int gizmo_cage2d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
-  RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction),
-                                               "cage_interaction");
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(
+      MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction"));
 
   copy_m4_m4(data->orig_matrix_offset, gz->matrix_offset);
   WM_gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset);
 
   if (gizmo_window_project_2d(
-          C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
+          C, gz, blender::float2(blender::int2(event->mval)), 2, false, data->orig_mouse) == 0)
   {
     zero_v2(data->orig_mouse);
   }
@@ -1084,9 +1082,9 @@ static void gizmo_pivot_from_scale_part(int part, float r_pt[2])
 static int gizmo_cage2d_modal(bContext *C,
                               wmGizmo *gz,
                               const wmEvent *event,
-                              eWM_GizmoFlagTweak UNUSED(tweak_flag))
+                              eWM_GizmoFlagTweak /*tweak_flag*/)
 {
-  RectTransformInteraction *data = gz->interaction_data;
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
   int transform_flag = RNA_enum_get(gz->ptr, "transform");
   if ((transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM) == 0) {
     /* WARNING: Checking the events modifier only makes sense as long as `tweak_flag`
@@ -1119,7 +1117,7 @@ static int gizmo_cage2d_modal(bContext *C,
     /* The mouse coords are projected into the matrix so we don't need to worry about axis
      * alignment. */
     bool ok = gizmo_window_project_2d(
-        C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, point_local);
+        C, gz, blender::float2(blender::int2(event->mval)), 2, false, point_local);
     copy_m4_m4(gz->matrix_offset, matrix_back);
     if (!ok) {
       return OPERATOR_RUNNING_MODAL;
@@ -1129,7 +1127,7 @@ static int gizmo_cage2d_modal(bContext *C,
   wmGizmoProperty *gz_prop;
 
   gz_prop = WM_gizmo_target_property_find(gz, "matrix");
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
   }
 
@@ -1144,12 +1142,11 @@ static int gizmo_cage2d_modal(bContext *C,
   else if (gz->highlight_part == ED_GIZMO_CAGE2D_PART_ROTATE) {
 
 #define MUL_V2_V3_M4_FINAL(test_co, mouse_co) \
-  mul_v3_m4v3( \
-      test_co, data->orig_matrix_final_no_offset, ((const float[3]){UNPACK2(mouse_co), 0.0}))
+  mul_v3_m4v3(test_co, data->orig_matrix_final_no_offset, blender::float3{UNPACK2(mouse_co), 0.0})
 
     float test_co[3];
 
-    if (data->dial == NULL) {
+    if (data->dial == nullptr) {
       MUL_V2_V3_M4_FINAL(test_co, data->orig_matrix_offset[3]);
 
       data->dial = BLI_dial_init(test_co, FLT_EPSILON);
@@ -1259,11 +1256,11 @@ static int gizmo_cage2d_modal(bContext *C,
     mul_v3_fl(matrix_scale[0], scale[0]);
     mul_v3_fl(matrix_scale[1], scale[1]);
 
-    transform_pivot_set_m4(matrix_scale, (const float[3]){UNPACK2(pivot), 0.0f});
+    transform_pivot_set_m4(matrix_scale, blender::float3(UNPACK2(pivot), 0.0f));
     mul_m4_m4_post(gz->matrix_offset, matrix_scale);
   }
 
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &gz->matrix_offset[0][0]);
   }
 
@@ -1291,7 +1288,7 @@ static void gizmo_cage2d_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 
 static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
-  RectTransformInteraction *data = gz->interaction_data;
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
 
   MEM_SAFE_FREE(data->dial);
 
@@ -1303,7 +1300,7 @@ static void gizmo_cage2d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   /* reset properties */
   gz_prop = WM_gizmo_target_property_find(gz, "matrix");
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &data->orig_matrix_offset[0][0]);
   }
 
@@ -1337,18 +1334,18 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
       {ED_GIZMO_CAGE2D_STYLE_BOX, "BOX", 0, "Box", ""},
       {ED_GIZMO_CAGE2D_STYLE_BOX_TRANSFORM, "BOX_TRANSFORM", 0, "Box Transform", ""},
       {ED_GIZMO_CAGE2D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_transform[] = {
       {ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_ROTATE, "ROTATE", 0, "Rotate", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static float unit_v2[2] = {1.0f, 1.0f};
   RNA_def_float_vector(

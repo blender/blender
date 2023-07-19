@@ -18,6 +18,7 @@
  */
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "DNA_view3d_types.h"
@@ -54,15 +55,15 @@
 /* Margin to add when selecting the arrow. */
 #define ARROW_SELECT_THRESHOLD_PX (5)
 
-typedef struct ArrowGizmo3D {
+struct ArrowGizmo3D {
   wmGizmo gizmo;
   GizmoCommonData data;
-} ArrowGizmo3D;
+};
 
-typedef struct ArrowGizmoInteraction {
+struct ArrowGizmoInteraction {
   GizmoInteraction inter;
   float init_arrow_length;
-} ArrowGizmoInteraction;
+};
 
 /* -------------------------------------------------------------------- */
 
@@ -236,27 +237,28 @@ static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool
   GPU_matrix_pop();
 
   if (gz->interaction_data) {
-    ArrowGizmoInteraction *arrow_inter = gz->interaction_data;
+    ArrowGizmoInteraction *arrow_inter = static_cast<ArrowGizmoInteraction *>(
+        gz->interaction_data);
 
     GPU_matrix_push();
     GPU_matrix_mul(arrow_inter->inter.init_matrix_final);
 
     GPU_blend(GPU_BLEND_ALPHA);
     arrow_draw_geom(
-        arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
+        arrow, select, blender::float4{0.5f, 0.5f, 0.5f, 0.5f}, arrow_inter->init_arrow_length);
     GPU_blend(GPU_BLEND_NONE);
 
     GPU_matrix_pop();
   }
 }
 
-static void gizmo_arrow_draw_select(const bContext *UNUSED(C), wmGizmo *gz, int select_id)
+static void gizmo_arrow_draw_select(const bContext * /*C*/, wmGizmo *gz, int select_id)
 {
   GPU_select_load_id(select_id);
   arrow_draw_intern((ArrowGizmo3D *)gz, true, false);
 }
 
-static void gizmo_arrow_draw(const bContext *UNUSED(C), wmGizmo *gz)
+static void gizmo_arrow_draw(const bContext * /*C*/, wmGizmo *gz)
 {
   arrow_draw_intern((ArrowGizmo3D *)gz, false, (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0);
 }
@@ -264,7 +266,7 @@ static void gizmo_arrow_draw(const bContext *UNUSED(C), wmGizmo *gz)
 /**
  * Selection for 2D views.
  */
-static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
+static int gizmo_arrow_test_select(bContext * /*C*/, wmGizmo *gz, const int mval[2])
 {
   /* This following values are based on manual inspection of `verts[]` defined in
    * geom_arrow_gizmo.c */
@@ -293,7 +295,7 @@ static int gizmo_arrow_test_select(bContext *UNUSED(C), wmGizmo *gz, const int m
   const float stem_width = ARROW_SELECT_THRESHOLD_PX * scale_final * stem_geo_x;
   float select_threshold_base = gz->line_width * U.pixelsize;
 
-  const float mval_fl[2] = {UNPACK2(mval)};
+  const float mval_fl[2] = {float(mval[0]), float(mval[1])};
 
   /* Distance to arrow head. */
   if (len_squared_v2v2(mval_fl, arrow_end) < square_f(select_threshold_base + head_width)) {
@@ -327,22 +329,22 @@ static int gizmo_arrow_modal(bContext *C,
     return OPERATOR_RUNNING_MODAL;
   }
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = gz->interaction_data;
+  GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
   ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   float offset[3];
   float facdir = 1.0f;
 
   /* (src, dst) */
   struct {
-    float mval[2];
+    blender::float2 mval;
     float ray_origin[3], ray_direction[3];
     float location[3];
-  } proj[2] = {
-      {.mval = {UNPACK2(inter->init_mval)}},
-      {.mval = {UNPACK2(event->mval)}},
-  };
+  } proj[2]{};
+
+  proj[0].mval = {UNPACK2(inter->init_mval)};
+  proj[1].mval = {float(event->mval[0]), float(event->mval[1])};
 
   float arrow_co[3];
   float arrow_no[3];
@@ -422,10 +424,11 @@ static void gizmo_arrow_setup(wmGizmo *gz)
   arrow->data.range_fac = 1.0f;
 }
 
-static int gizmo_arrow_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+static int gizmo_arrow_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent *event)
 {
   ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
-  GizmoInteraction *inter = MEM_callocN(sizeof(ArrowGizmoInteraction), __func__);
+  GizmoInteraction *inter = static_cast<GizmoInteraction *>(
+      MEM_callocN(sizeof(ArrowGizmoInteraction), __func__));
   wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 
   /* Some gizmos don't use properties. */
@@ -465,7 +468,7 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
   const bool is_prop_valid = WM_gizmo_target_property_is_valid(gz_prop);
 
   if (cancel) {
-    GizmoInteraction *inter = gz->interaction_data;
+    GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
     if (is_prop_valid) {
       gizmo_property_value_reset(C, gz, inter, gz_prop);
     }
@@ -542,17 +545,17 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
       {ED_GIZMO_ARROW_STYLE_BOX, "BOX", 0, "Box", ""},
       {ED_GIZMO_ARROW_STYLE_CONE, "CONE", 0, "Cone", ""},
       {ED_GIZMO_ARROW_STYLE_PLANE, "PLANE", 0, "Plane", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_draw_options_items[] = {
       {ED_GIZMO_ARROW_DRAW_FLAG_STEM, "STEM", 0, "Stem", ""},
       {ED_GIZMO_ARROW_DRAW_FLAG_ORIGIN, "ORIGIN", 0, "Origin", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_transform_items[] = {
       {ED_GIZMO_ARROW_XFORM_FLAG_INVERTED, "INVERT", 0, "Inverted", ""},
       {ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED, "CONSTRAIN", 0, "Constrained", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   RNA_def_enum(gzt->srna,
@@ -572,7 +575,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   RNA_def_float(
       gzt->srna, "length", 1.0f, -FLT_MAX, FLT_MAX, "Arrow Line Length", "", -FLT_MAX, FLT_MAX);
   RNA_def_float_vector(
-      gzt->srna, "aspect", 2, NULL, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
+      gzt->srna, "aspect", 2, nullptr, 0, FLT_MAX, "Aspect", "Cone/box style only", 0.0f, FLT_MAX);
 
   WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
 }

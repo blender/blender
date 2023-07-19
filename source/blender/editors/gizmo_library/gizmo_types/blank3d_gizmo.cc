@@ -19,21 +19,17 @@
 
 /* own includes */
 
-static void gizmo_blank_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
+static void gizmo_blank_draw(const bContext * /*C*/, wmGizmo * /*gz*/)
 {
   /* pass */
 }
 
-static int gizmo_blank_invoke(bContext *UNUSED(C),
-                              wmGizmo *UNUSED(gz),
-                              const wmEvent *UNUSED(event))
+static int gizmo_blank_invoke(bContext * /*C*/, wmGizmo * /*gz*/, const wmEvent * /*event*/)
 {
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int gizmo_blank_test_select(bContext *UNUSED(C),
-                                   wmGizmo *UNUSED(gz),
-                                   const int UNUSED(mval[2]))
+static int gizmo_blank_test_select(bContext * /*C*/, wmGizmo * /*gz*/, const int[2] /*mval*/)
 {
   return 0;
 }

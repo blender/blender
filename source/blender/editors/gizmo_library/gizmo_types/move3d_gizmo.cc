@@ -19,6 +19,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 
@@ -46,11 +47,11 @@
 #define MVAL_MAX_PX_DIST 12.0f
 #define RING_2D_RESOLUTION 32
 
-typedef struct MoveGizmo3D {
+struct MoveGizmo3D {
   wmGizmo gizmo;
   /* Added to 'matrix_basis' when calculating the matrix. */
   float prop_co[3];
-} MoveGizmo3D;
+};
 
 static void gizmo_move_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
 {
@@ -65,7 +66,7 @@ static int gizmo_move_modal(bContext *C,
                             const wmEvent *event,
                             eWM_GizmoFlagTweak tweak_flag);
 
-typedef struct MoveInteraction {
+struct MoveInteraction {
   struct {
     float mval[2];
     /* Only for when using properties. */
@@ -78,8 +79,7 @@ typedef struct MoveInteraction {
 
   /* We could have other snap contexts, for now only support 3D view. */
   SnapObjectContext *snap_context_v3d;
-
-} MoveInteraction;
+};
 
 /* -------------------------------------------------------------------- */
 
@@ -148,13 +148,13 @@ static void move3d_get_translate(const wmGizmo *gz,
                                  const ARegion *region,
                                  float co_delta[3])
 {
-  MoveInteraction *inter = gz->interaction_data;
+  MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
   const float xy_delta[2] = {
       event->mval[0] - inter->init.mval[0],
       event->mval[1] - inter->init.mval[1],
   };
 
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   float co_ref[3];
   mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init.prop_co);
   const float zfac = ED_view3d_calc_zfac(rv3d, co_ref);
@@ -172,7 +172,7 @@ static void move3d_draw_intern(const bContext *C,
                                const bool select,
                                const bool highlight)
 {
-  MoveInteraction *inter = gz->interaction_data;
+  MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
   const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
   const bool align_view = (draw_options & ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW) != 0;
   float color[4];
@@ -209,7 +209,7 @@ static void move3d_draw_intern(const bContext *C,
     }
 
     GPU_blend(GPU_BLEND_ALPHA);
-    move_geom_draw(gz, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
+    move_geom_draw(gz, blender::float4(0.5f, 0.5f, 0.5f, 0.5f), select, draw_options);
     GPU_blend(GPU_BLEND_NONE);
     GPU_matrix_pop();
   }
@@ -238,7 +238,7 @@ static int gizmo_move_modal(bContext *C,
                             const wmEvent *event,
                             eWM_GizmoFlagTweak tweak_flag)
 {
-  MoveInteraction *inter = gz->interaction_data;
+  MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
   if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
     return OPERATOR_RUNNING_MODAL;
   }
@@ -253,7 +253,8 @@ static int gizmo_move_modal(bContext *C,
     float mval_proj_init[2], mval_proj_curr[2];
     if ((gizmo_window_project_2d(C, gz, inter->init.mval, 2, false, mval_proj_init) == false) ||
         (gizmo_window_project_2d(
-             C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
+             C, gz, blender::float2(blender::int2(event->mval)), 2, false, mval_proj_curr) ==
+         false))
     {
       return OPERATOR_RUNNING_MODAL;
     }
@@ -273,25 +274,25 @@ static int gizmo_move_modal(bContext *C,
   if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
     if (inter->snap_context_v3d) {
       float dist_px = MVAL_MAX_PX_DIST * U.pixelsize;
-      const float mval_fl[2] = {UNPACK2(event->mval)};
+      const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
       float co[3];
+      SnapObjectParams params{};
+      params.snap_target_select = SCE_SNAP_TARGET_ALL;
+      params.edit_mode_type = SNAP_GEOM_EDIT;
+      params.use_occlusion_test = true;
       if (ED_transform_snap_object_project_view3d(
               inter->snap_context_v3d,
               CTX_data_ensure_evaluated_depsgraph(C),
               region,
               CTX_wm_view3d(C),
               (SCE_SNAP_TO_VERTEX | SCE_SNAP_TO_EDGE | SCE_SNAP_TO_FACE),
-              &(const struct SnapObjectParams){
-                  .snap_target_select = SCE_SNAP_TARGET_ALL,
-                  .edit_mode_type = SNAP_GEOM_EDIT,
-                  .use_occlusion_test = true,
-              },
-              NULL,
+              &params,
+              nullptr,
               mval_fl,
-              NULL,
+              nullptr,
               &dist_px,
               co,
-              NULL))
+              nullptr))
       {
         float matrix_space_inv[4][4];
         invert_m4_m4(matrix_space_inv, gz->matrix_space);
@@ -318,9 +319,9 @@ static int gizmo_move_modal(bContext *C,
 
 static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
-  MoveInteraction *inter = gz->interaction_data;
+  MoveInteraction *inter = static_cast<MoveInteraction *>(gz->interaction_data);
   bool use_reset_value = false;
-  const float *reset_value = NULL;
+  const float *reset_value = nullptr;
   if (cancel) {
     /* Set the property for the operator and call its modal function. */
     wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
@@ -339,7 +340,7 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   if (inter->snap_context_v3d) {
     ED_transform_snap_object_context_destroy(inter->snap_context_v3d);
-    inter->snap_context_v3d = NULL;
+    inter->snap_context_v3d = nullptr;
   }
 
   if (!cancel) {
@@ -354,7 +355,8 @@ static int gizmo_move_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
   const bool use_snap = RNA_boolean_get(gz->ptr, "use_snap");
 
-  MoveInteraction *inter = MEM_callocN(sizeof(MoveInteraction), __func__);
+  MoveInteraction *inter = static_cast<MoveInteraction *>(
+      MEM_callocN(sizeof(MoveInteraction), __func__));
   inter->init.mval[0] = event->mval[0];
   inter->init.mval[1] = event->mval[1];
 
@@ -393,8 +395,9 @@ static int gizmo_move_test_select(bContext *C, wmGizmo *gz, const int mval[2])
 {
   float point_local[2];
 
-  if (gizmo_window_project_2d(C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) ==
-      false) {
+  if (gizmo_window_project_2d(C, gz, blender::float2(blender::int2(mval)), 2, true, point_local) ==
+      false)
+  {
     return -1;
   }
 
@@ -419,7 +422,7 @@ static void gizmo_move_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
   }
 }
 
-static int gizmo_move_cursor_get(wmGizmo *UNUSED(gz))
+static int gizmo_move_cursor_get(wmGizmo * /*gz*/)
 {
   return WM_CURSOR_NSEW_SCROLL;
 }
@@ -450,13 +453,13 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_MOVE_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
       {ED_GIZMO_MOVE_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_MOVE_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
       {ED_GIZMO_MOVE_DRAW_FLAG_FILL_SELECT, "FILL_SELECT", 0, "Use fill for selection test", ""},
       {ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   RNA_def_enum(

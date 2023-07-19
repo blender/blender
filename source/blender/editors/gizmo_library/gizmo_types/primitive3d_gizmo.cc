@@ -46,59 +46,59 @@ static float verts_plane[4][3] = {
     {-1, 1, 0},
 };
 
-typedef struct PrimitiveGizmo3D {
+struct PrimitiveGizmo3D {
   wmGizmo gizmo;
 
   int draw_style;
   float arc_inner_factor;
   bool draw_inner;
-} PrimitiveGizmo3D;
+};
 
 /* -------------------------------------------------------------------- */
 /** \name RNA callbacks */
 
 static PrimitiveGizmo3D *gizmo_primitive_rna_find_operator(PointerRNA *ptr)
 {
-  return (PrimitiveGizmo3D *)gizmo_find_from_properties(ptr->data, SPACE_TYPE_ANY, RGN_TYPE_ANY);
+  return (PrimitiveGizmo3D *)gizmo_find_from_properties(
+      static_cast<const IDProperty *>(ptr->data), SPACE_TYPE_ANY, RGN_TYPE_ANY);
 }
 
-static int gizmo_primitive_rna__draw_style_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
+static int gizmo_primitive_rna__draw_style_get_fn(PointerRNA *ptr, PropertyRNA * /*prop*/)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->draw_style;
 }
 
 static void gizmo_primitive_rna__draw_style_set_fn(PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop),
+                                                   PropertyRNA * /*prop*/,
                                                    int value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   gz_prim->draw_style = value;
 }
 
-static float gizmo_primitive_rna__arc_inner_factor_get_fn(PointerRNA *ptr,
-                                                          PropertyRNA *UNUSED(prop))
+static float gizmo_primitive_rna__arc_inner_factor_get_fn(PointerRNA *ptr, PropertyRNA * /*prop*/)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->arc_inner_factor;
 }
 
 static void gizmo_primitive_rna__arc_inner_factor_set_fn(PointerRNA *ptr,
-                                                         PropertyRNA *UNUSED(prop),
+                                                         PropertyRNA * /*prop*/,
                                                          float value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   gz_prim->arc_inner_factor = value;
 }
 
-static bool gizmo_primitive_rna__draw_inner_get_fn(PointerRNA *ptr, PropertyRNA *UNUSED(prop))
+static bool gizmo_primitive_rna__draw_inner_get_fn(PointerRNA *ptr, PropertyRNA * /*prop*/)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
   return gz_prim->draw_inner;
 }
 
 static void gizmo_primitive_rna__draw_inner_set_fn(PointerRNA *ptr,
-                                                   PropertyRNA *UNUSED(prop),
+                                                   PropertyRNA * /*prop*/,
                                                    bool value)
 {
   PrimitiveGizmo3D *gz_prim = gizmo_primitive_rna_find_operator(ptr);
@@ -193,7 +193,7 @@ static void gizmo_primitive_draw_intern(wmGizmo *gz, const bool select, const bo
   GPU_matrix_pop();
 
   if (gz->interaction_data) {
-    GizmoInteraction *inter = gz->interaction_data;
+    GizmoInteraction *inter = static_cast<GizmoInteraction *>(gz->interaction_data);
 
     copy_v4_fl(color_inner, 0.5f);
     copy_v3_fl(color_outer, 0.5f);
@@ -210,13 +210,13 @@ static void gizmo_primitive_draw_intern(wmGizmo *gz, const bool select, const bo
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void gizmo_primitive_draw_select(const bContext *UNUSED(C), wmGizmo *gz, int select_id)
+static void gizmo_primitive_draw_select(const bContext * /*C*/, wmGizmo *gz, int select_id)
 {
   GPU_select_load_id(select_id);
   gizmo_primitive_draw_intern(gz, true, false);
 }
 
-static void gizmo_primitive_draw(const bContext *UNUSED(C), wmGizmo *gz)
+static void gizmo_primitive_draw(const bContext * /*C*/, wmGizmo *gz)
 {
   gizmo_primitive_draw_intern(gz, false, (gz->state & WM_GIZMO_STATE_HIGHLIGHT));
 }
@@ -232,9 +232,10 @@ static void gizmo_primitive_setup(wmGizmo *gz)
   gz_prim->draw_inner = true;
 }
 
-static int gizmo_primitive_invoke(bContext *UNUSED(C), wmGizmo *gz, const wmEvent *UNUSED(event))
+static int gizmo_primitive_invoke(bContext * /*C*/, wmGizmo *gz, const wmEvent * /*event*/)
 {
-  GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
+  GizmoInteraction *inter = static_cast<GizmoInteraction *>(
+      MEM_callocN(sizeof(GizmoInteraction), __func__));
 
   WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
 
@@ -264,7 +265,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
       {ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
       {ED_GIZMO_PRIMITIVE_STYLE_ANNULUS, "ANNULUS", 0, "Annulus", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
 
   PropertyRNA *prop;
@@ -274,15 +275,17 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
                       ED_GIZMO_PRIMITIVE_STYLE_PLANE,
                       "Draw Style",
                       "");
-  RNA_def_property_enum_funcs_runtime(
-      prop, gizmo_primitive_rna__draw_style_get_fn, gizmo_primitive_rna__draw_style_set_fn, NULL);
+  RNA_def_property_enum_funcs_runtime(prop,
+                                      gizmo_primitive_rna__draw_style_get_fn,
+                                      gizmo_primitive_rna__draw_style_set_fn,
+                                      nullptr);
 
   prop = RNA_def_float_factor(
       gzt->srna, "arc_inner_factor", 0.0f, 0.0f, FLT_MAX, "Arc Inner Factor", "", 0.0f, 1.0f);
   RNA_def_property_float_funcs_runtime(prop,
                                        gizmo_primitive_rna__arc_inner_factor_get_fn,
                                        gizmo_primitive_rna__arc_inner_factor_set_fn,
-                                       NULL);
+                                       nullptr);
 
   prop = RNA_def_boolean(gzt->srna, "draw_inner", true, "Draw Inner", "");
   RNA_def_property_boolean_funcs_runtime(

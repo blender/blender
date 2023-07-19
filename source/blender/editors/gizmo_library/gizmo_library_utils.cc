@@ -109,10 +109,10 @@ void gizmo_property_data_update(wmGizmo *gz,
                                 const bool constrained,
                                 const bool inverted)
 {
-  if (gz_prop->custom_func.value_get_fn != NULL) {
+  if (gz_prop->custom_func.value_get_fn != nullptr) {
     /* Pass. */
   }
-  else if (gz_prop->prop != NULL) {
+  else if (gz_prop->prop != nullptr) {
     /* Pass. */
   }
   else {
@@ -169,7 +169,7 @@ bool gizmo_window_project_2d(
   float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
-    struct WM_GizmoMatrixParams params = {NULL};
+    struct WM_GizmoMatrixParams params = {nullptr};
     if (use_offset == false) {
       unit_m4(mat_identity);
       params.matrix_offset = mat_identity;
@@ -214,7 +214,7 @@ bool gizmo_window_project_3d(
   float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
-    struct WM_GizmoMatrixParams params = {NULL};
+    struct WM_GizmoMatrixParams params = {nullptr};
     if (use_offset == false) {
       unit_m4(mat_identity);
       params.matrix_offset = mat_identity;
@@ -255,13 +255,15 @@ wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
                                     const int spacetype,
                                     const int regionid)
 {
-  for (bScreen *screen = G_MAIN->screens.first; screen; screen = screen->id.next) {
+  for (bScreen *screen = static_cast<bScreen *>(G_MAIN->screens.first); screen;
+       screen = static_cast<bScreen *>(screen->id.next))
+  {
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       if (!ELEM(spacetype, SPACE_TYPE_ANY, area->spacetype)) {
         continue;
       }
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        if (region->gizmo_map == NULL) {
+        if (region->gizmo_map == nullptr) {
           continue;
         }
         if (!ELEM(regionid, RGN_TYPE_ANY, region->regiontype)) {
@@ -278,7 +280,7 @@ wmGizmo *gizmo_find_from_properties(const IDProperty *properties,
       }
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
