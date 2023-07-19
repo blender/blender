@@ -10166,7 +10166,11 @@ static bool ui_menu_pass_event_to_parent_if_nonactive(uiPopupBlockHandle *menu,
                                                       const int level,
                                                       const int retval)
 {
-  if ((level != 0) && (but == nullptr)) {
+
+  /* NOTE(@ideasman42): For `menu->popup` (not a nested tree of menus), don't pass events parents.
+   * This is needed because enum popups (for example) aren't created with an active button.
+   * Otherwise opening a popup & pressing the accelerator key would fail, see: #107838. */
+  if ((level != 0) && (but == nullptr) && (menu->popup == false)) {
     menu->menuretval = UI_RETURN_OUT | UI_RETURN_OUT_PARENT;
     (void)retval; /* so release builds with strict flags are happy as well */
     BLI_assert(retval == WM_UI_HANDLER_CONTINUE);
