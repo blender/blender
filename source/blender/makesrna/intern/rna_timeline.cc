@@ -19,7 +19,11 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_idprop.h"
+#  include "BKE_scene.h"
+#  include "BKE_screen.h"
 #  include "WM_api.h"
+
+#  include "DEG_depsgraph_build.h"
 
 static IDProperty **rna_TimelineMarker_idprops(PointerRNA *ptr)
 {
@@ -31,6 +35,20 @@ static void rna_TimelineMarker_update(Main * /*bmain*/, Scene * /*scene*/, Point
 {
   WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
   WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
+}
+
+static void rna_TimelineMarker_camera_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
+{
+  wmWindowManager *wm = static_cast<wmWindowManager *>(bmain->wm.first);
+  Scene *scene = (Scene *)ptr->owner_id;
+
+  BKE_scene_camera_switch_update(scene);
+  WM_windows_scene_data_sync(&wm->windows, scene);
+  DEG_relations_tag_update(bmain);
+
+  WM_main_add_notifier(NC_SCENE | ND_MARKERS, nullptr);
+  WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, nullptr);
+  WM_main_add_notifier(NC_SCENE | NA_EDITED, scene); /* so we get view3d redraws */
 }
 
 #else
@@ -66,6 +84,7 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Camera", "Camera that becomes active on this frame");
+  RNA_def_property_update(prop, 0, "rna_TimelineMarker_camera_update");
 #  endif
 }
 

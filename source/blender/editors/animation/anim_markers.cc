@@ -55,6 +55,7 @@
 #include "ED_util.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Marker API
@@ -1870,6 +1871,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
   /* camera may have changes */
   BKE_scene_camera_switch_update(scene);
   BKE_screen_view3d_scene_sync(screen, scene);
+  DEG_relations_tag_update(CTX_data_main(C));
 
   WM_event_add_notifier(C, NC_SCENE | ND_MARKERS, nullptr);
   WM_event_add_notifier(C, NC_ANIMATION | ND_MARKERS, nullptr);
