@@ -216,10 +216,13 @@ bool ED_curve_pick_vert(struct ViewContext *vc,
                         short *r_handle,
                         struct Base **r_base);
 /**
+ * Pick the nearest `r_nurb` and `r_bezt` or `r_bp`.
+ * \param select: selected vertices have a disadvantage.
  * \param sel_dist_mul: A multiplier on the default select distance.
+ * \param r_handle: For bezier triples, set the handle index [0, 1, 2].
  */
 bool ED_curve_pick_vert_ex(struct ViewContext *vc,
-                           short sel,
+                           bool select,
                            int dist_px,
                            struct Nurb **r_nurb,
                            struct BezTriple **r_bezt,

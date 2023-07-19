@@ -271,9 +271,9 @@ static const ushort indices[] = {
 };
 
 GizmoGeomInfo wm_gizmo_geom_data_dial = {
-    .nverts = 192,
-    .ntris = 384,
-    .verts = verts,
-    .normals = normals,
-    .indices = indices,
+    /*nverts*/ 192,
+    /*ntris*/ 384,
+    /*verts*/ verts,
+    /*normals*/ normals,
+    /*indices*/ indices,
 };

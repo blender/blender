@@ -245,19 +245,23 @@ bool RE_engine_use_persistent_data(struct RenderEngine *engine);
 struct RenderEngine *RE_engine_get(const struct Render *re);
 struct RenderEngine *RE_view_engine_get(const struct ViewRender *view_render);
 
-/* Acquire render engine for drawing via its `draw()` callback.
+/**
+ * Acquire render engine for drawing via its `draw()` callback.
  *
  * If drawing is not possible false is returned. If drawing is possible then the engine is
  * "acquired" so that it can not be freed by the render pipeline.
  *
  * Drawing is possible if the engine has the `draw()` callback and it is in its `render()`
- * callback. */
+ * callback.
+ */
 bool RE_engine_draw_acquire(struct Render *re);
 void RE_engine_draw_release(struct Render *re);
 
-/* GPU context for engine to create and update GPU resources in its own thread,
+/**
+ * GPU context for engine to create and update GPU resources in its own thread,
  * without blocking the main thread. Used by Cycles' display driver to create
- * display textures. */
+ * display textures.
+ */
 bool RE_engine_gpu_context_create(struct RenderEngine *engine);
 void RE_engine_gpu_context_destroy(struct RenderEngine *engine);
 

@@ -24,3 +24,57 @@ index 7c2f43d..106b1d5 100644
    DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
    ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
    TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
+diff --git a/kernels/rthwif/rtbuild/rtbuild.cpp b/kernels/rthwif/rtbuild/rtbuild.cpp
+index 6d439f939..367b1ce7b 100644
+--- a/kernels/rthwif/rtbuild/rtbuild.cpp
++++ b/kernels/rthwif/rtbuild/rtbuild.cpp
+@@ -10,7 +10,7 @@ namespace embree
+ {
+   using namespace embree::isa;
+ 
+-  static std::unique_ptr<tbb::task_arena> g_arena;
++  static tbb::task_arena g_arena(tbb::this_task_arena::max_concurrency(),tbb::this_task_arena::max_concurrency());
+   
+   typedef enum _ze_raytracing_accel_format_internal_t {
+     ZE_RTAS_DEVICE_FORMAT_EXP_INVALID = 0,      // invalid acceleration structure format
+@@ -210,13 +210,10 @@ namespace embree
+   
+   RTHWIF_API void zeRTASInitExp()
+   {
+-    uint32_t numThreads = tbb::this_task_arena::max_concurrency();
+-    g_arena.reset(new tbb::task_arena(numThreads,numThreads));
+   }
+   
+   RTHWIF_API void zeRTASExitExp()
+   {
+-    g_arena.reset();
+   }
+ 
+   typedef struct _zet_base_desc_t
+@@ -740,7 +737,7 @@ namespace embree
+       //if (op->hBuilder != hBuilder)
+       //  return ZE_RESULT_ERROR_INVALID_ARGUMENT;
+       
+-      g_arena->execute([&](){ op->group.run([=](){
++      g_arena.execute([&](){ op->group.run([=](){
+          op->errorCode = zeRTASBuilderBuildExpInternal(args,
+                                                        pScratchBuffer, scratchBufferSizeBytes,
+                                                        pRtasBuffer, rtasBufferSizeBytes,
+@@ -753,7 +750,7 @@ namespace embree
+     else
+     {
+       ze_result_t errorCode = ZE_RESULT_SUCCESS;
+-      g_arena->execute([&](){ errorCode = zeRTASBuilderBuildExpInternal(args,
++      g_arena.execute([&](){ errorCode = zeRTASBuilderBuildExpInternal(args,
+                                                                         pScratchBuffer, scratchBufferSizeBytes,
+                                                                         pRtasBuffer, rtasBufferSizeBytes,
+                                                                         pBuildUserPtr, pBounds, pRtasBufferSizeBytes);
+@@ -801,7 +798,7 @@ namespace embree
+     VALIDATE(hParallelOperation);
+     
+     ze_rtas_parallel_operation_t* op = (ze_rtas_parallel_operation_t*) hParallelOperation;
+-    g_arena->execute([&](){ op->group.wait(); });
++    g_arena.execute([&](){ op->group.wait(); });
+     return op->errorCode;
+   }
+ }

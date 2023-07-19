@@ -96,7 +96,7 @@ typedef enum eGPUBlend {
   /** Order independent transparency.
    * NOTE: Cannot be used as is. Needs special setup (frame-buffer, shader ...). */
   GPU_BLEND_OIT,
-  /** Special blend to add color under and multiply dst color by src alpha. */
+  /** Special blend to add color under and multiply DST color by SRC alpha. */
   GPU_BLEND_BACKGROUND,
   /** Custom blend parameters using dual source blending : SRC0 + SRC1 * DST
    * NOTE: Can only be used with _ONE_ Draw Buffer and shader needs to be specialized. */

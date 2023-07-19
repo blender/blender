@@ -4285,11 +4285,10 @@ void CustomData_blend_write_prepare(CustomData &data,
   data.totlayer = layers_to_write.size();
   data.maxlayer = data.totlayer;
 
-  /* Note: data->layers may be null, this happens when adding
-   * a legacy MPoly struct to a mesh with no other face attributes.
+  /* NOTE: `data->layers` may be null, this happens when adding
+   * a legacy #MPoly struct to a mesh with no other face attributes.
    * This leaves us with no unique ID for DNA to identify the old
-   * data with when loading the file.
-   */
+   * data with when loading the file. */
   if (!data.layers && layers_to_write.size() > 0) {
     /* We just need an address that's unique. */
     data.layers = reinterpret_cast<CustomDataLayer *>(&data.layers);

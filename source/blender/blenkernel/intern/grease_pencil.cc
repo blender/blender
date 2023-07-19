@@ -504,6 +504,8 @@ Layer::Layer()
   this->frames_storage.values = nullptr;
   this->frames_storage.flag = 0;
 
+  this->opacity = 1.0f;
+
   BLI_listbase_clear(&this->masks);
 
   this->runtime = MEM_new<LayerRuntime>(__func__);

@@ -17,6 +17,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 
@@ -51,13 +52,13 @@
 /** \name Internal Types
  * \{ */
 
-typedef struct ButtonGizmo2D {
+struct ButtonGizmo2D {
   wmGizmo gizmo;
   bool is_init;
   /* Use an icon or shape */
   int icon;
   GPUBatch *shape_batch[2];
-} ButtonGizmo2D;
+};
 
 /** \} */
 
@@ -141,13 +142,13 @@ static void button2d_draw_intern(const bContext *C,
     else {
       prop = RNA_struct_find_property(gz->ptr, "shape");
       const uint polys_len = RNA_property_string_length(gz->ptr, prop);
-      /* We shouldn't need the +1, but a NULL char is set. */
-      char *polys = MEM_mallocN(polys_len + 1, __func__);
+      /* We shouldn't need the +1, but a nullptr char is set. */
+      char *polys = static_cast<char *>(MEM_mallocN(polys_len + 1, __func__));
       RNA_property_string_get(gz->ptr, prop, polys);
       button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded(
-          (uchar *)polys, polys_len, NULL);
+          (uchar *)polys, polys_len, nullptr);
       button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded(
-          (uchar *)polys, polys_len, NULL);
+          (uchar *)polys, polys_len, nullptr);
       MEM_freeN(polys);
     }
   }
@@ -207,7 +208,7 @@ static void button2d_draw_intern(const bContext *C,
       button2d_geom_draw_backdrop(gz, color, fill_alpha, select, screen_scale);
     }
 
-    if (button->shape_batch[0] != NULL) {
+    if (button->shape_batch[0] != nullptr) {
       GPU_line_smooth(true);
       GPU_polygon_smooth(false);
       for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
@@ -299,13 +300,14 @@ static int gizmo_button2d_test_select(bContext *C, wmGizmo *gz, const int mval[2
 
   if (0) {
     /* correct, but unnecessarily slow. */
-    if (gizmo_window_project_2d(C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) ==
-        false) {
+    if (gizmo_window_project_2d(
+            C, gz, blender::float2{blender::int2(mval)}, 2, true, point_local) == false)
+    {
       return -1;
     }
   }
   else {
-    copy_v2_v2(point_local, (float[2]){UNPACK2(mval)});
+    copy_v2_v2(point_local, blender::float2{blender::int2(mval)});
     sub_v2_v2(point_local, gz->matrix_basis[3]);
     mul_v2_fl(point_local, 1.0f / gz->scale_final);
   }
@@ -330,7 +332,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
 {
   ScrArea *area = CTX_wm_area(C);
   float rad = CIRCLE_RESOLUTION_3D * UI_SCALE_FAC / 2.0f;
-  const float *co = NULL;
+  const float *co = nullptr;
   float matrix_final[4][4];
   float co_proj[3];
   WM_gizmo_calc_matrix_final(gz, matrix_final);
@@ -341,7 +343,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
         V3D_PROJ_RET_OK)
     {
       float matrix_final_no_offset[4][4];
-      const RegionView3D *rv3d = region->regiondata;
+      const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
       WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
       const float factor = ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_final_no_offset[3]) /
                            ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_final[3]);
@@ -358,7 +360,7 @@ static bool gizmo_button2d_bounds(bContext *C, wmGizmo *gz, rcti *r_bounding_box
     co = matrix_final[3];
   }
 
-  if (co != NULL) {
+  if (co != nullptr) {
     r_bounding_box->xmin = co[0] + area->totrct.xmin - rad;
     r_bounding_box->ymin = co[1] + area->totrct.ymin - rad;
     r_bounding_box->xmax = r_bounding_box->xmin + rad;
@@ -403,7 +405,7 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
       {ED_GIZMO_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
       {ED_GIZMO_BUTTON_SHOW_BACKDROP, "BACKDROP", 0, "Backdrop", ""},
       {ED_GIZMO_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   PropertyRNA *prop;
 

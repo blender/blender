@@ -16,6 +16,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_math_vector_types.hh"
 
 #include "BKE_context.h"
 
@@ -46,7 +47,7 @@ static void gizmo_calc_matrix_final_no_offset(const wmGizmo *gz,
                                               bool use_space)
 {
   float mat_identity[4][4];
-  struct WM_GizmoMatrixParams params = {NULL};
+  struct WM_GizmoMatrixParams params = {nullptr};
   unit_m4(mat_identity);
   if (use_space == false) {
     params.matrix_basis = mat_identity;
@@ -134,7 +135,7 @@ static void cage3d_draw_box_corners(const float r[3],
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  imm_draw_cube_wire_3d(pos, (float[3]){0}, r);
+  imm_draw_cube_wire_3d(pos, blender::float3(0.0f), r);
 
   immUnbindProgram();
 }
@@ -215,7 +216,7 @@ static void cage3d_draw_circle_wire(const float r[3],
   immUniform2fv("viewportSize", &viewport[2]);
   immUniform1f("lineWidth", line_width * U.pixelsize);
 
-  imm_draw_cube_wire_3d(pos, (const float[3]){0}, r);
+  imm_draw_cube_wire_3d(pos, blender::float3(0.0f), r);
 
 #if 0
   if (transform_flag & ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE) {
@@ -301,7 +302,7 @@ static void gizmo_cage3d_draw_intern(
     GPU_blend(GPU_BLEND_ALPHA);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
+    immUniformColor4f(1, 1, 1, 0.5f);
     float s = 0.5f;
     immRectf(pos, -s, -s, s, s);
     immUnbindProgram();
@@ -309,7 +310,7 @@ static void gizmo_cage3d_draw_intern(
   }
 
   if (select) {
-    /* Expand for hot-spot. */
+/* Expand for hot-spot. */
 #if 0
     const float size[3] = {
         size_real[0] + margin[0] / 2,
@@ -341,12 +342,11 @@ static void gizmo_cage3d_draw_intern(
   }
   else {
 #if 0
-    const rctf _r = {
-        .xmin = -size_real[0],
-        .ymin = -size_real[1],
-        .xmax = size_real[0],
-        .ymax = size_real[1],
-    };
+    rctf _r {}
+    _r.xmin = -size_real[0];
+    _r.ymin = -size_real[1];
+    _r.xmax = size_real[0];
+    _r.ymax = size_real[1];
 #endif
     if (draw_style == ED_GIZMO_CAGE3D_STYLE_BOX) {
       float color[4], black[3] = {0, 0, 0};
@@ -408,14 +408,14 @@ static void gizmo_cage3d_draw_intern(
 static void gizmo_cage3d_draw_select(const bContext *C, wmGizmo *gz, int select_id)
 {
   ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   gizmo_cage3d_draw_intern(rv3d, gz, true, false, select_id);
 }
 
 static void gizmo_cage3d_draw(const bContext *C, wmGizmo *gz)
 {
   ARegion *region = CTX_wm_region(C);
-  RegionView3D *rv3d = region->regiondata;
+  RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
   gizmo_cage3d_draw_intern(rv3d, gz, false, is_highlight, -1);
 }
@@ -429,11 +429,11 @@ static int gizmo_cage3d_get_cursor(wmGizmo *gz)
   return WM_CURSOR_DEFAULT;
 }
 
-typedef struct RectTransformInteraction {
+struct RectTransformInteraction {
   float orig_mouse[3];
   float orig_matrix_offset[4][4];
   float orig_matrix_final_no_offset[4][4];
-} RectTransformInteraction;
+};
 
 static void gizmo_cage3d_setup(wmGizmo *gz)
 {
@@ -443,14 +443,14 @@ static void gizmo_cage3d_setup(wmGizmo *gz)
 
 static int gizmo_cage3d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 {
-  RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction),
-                                               "cage_interaction");
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(
+      MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction"));
 
   copy_m4_m4(data->orig_matrix_offset, gz->matrix_offset);
   gizmo_calc_matrix_final_no_offset(gz, data->orig_matrix_final_no_offset, true);
 
   if (gizmo_window_project_3d(
-          C, gz, (const float[2]){UNPACK2(event->mval)}, false, data->orig_mouse) == 0)
+          C, gz, blender::float2(blender::int2(event->mval)), false, data->orig_mouse) == 0)
   {
     zero_v3(data->orig_mouse);
   }
@@ -463,7 +463,7 @@ static int gizmo_cage3d_invoke(bContext *C, wmGizmo *gz, const wmEvent *event)
 static int gizmo_cage3d_modal(bContext *C,
                               wmGizmo *gz,
                               const wmEvent *event,
-                              eWM_GizmoFlagTweak UNUSED(tweak_flag))
+                              eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   if (event->type != MOUSEMOVE) {
     return OPERATOR_RUNNING_MODAL;
@@ -476,7 +476,7 @@ static int gizmo_cage3d_modal(bContext *C,
    * - The cursor offset are multiplied by 'dims'.
    * - Matrix translation is also multiplied by 'dims'.
    */
-  RectTransformInteraction *data = gz->interaction_data;
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
   float point_local[3];
 
   float dims[3];
@@ -488,7 +488,7 @@ static int gizmo_cage3d_modal(bContext *C,
     copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);
 
     bool ok = gizmo_window_project_3d(
-        C, gz, (const float[2]){UNPACK2(event->mval)}, false, point_local);
+        C, gz, blender::float2(blender::int2(event->mval)), false, point_local);
     copy_m4_m4(gz->matrix_offset, matrix_back);
     if (!ok) {
       return OPERATOR_RUNNING_MODAL;
@@ -499,7 +499,7 @@ static int gizmo_cage3d_modal(bContext *C,
   wmGizmoProperty *gz_prop;
 
   gz_prop = WM_gizmo_target_property_find(gz, "matrix");
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
   }
 
@@ -573,12 +573,11 @@ static int gizmo_cage3d_modal(bContext *C,
     mul_v3_fl(matrix_scale[2], scale[2]);
 
     transform_pivot_set_m4(
-        matrix_scale,
-        (const float[3]){pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]});
+        matrix_scale, blender::float3(pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]));
     mul_m4_m4m4(gz->matrix_offset, data->orig_matrix_offset, matrix_scale);
   }
 
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &gz->matrix_offset[0][0]);
   }
 
@@ -606,7 +605,7 @@ static void gizmo_cage3d_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 
 static void gizmo_cage3d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
-  RectTransformInteraction *data = gz->interaction_data;
+  RectTransformInteraction *data = static_cast<RectTransformInteraction *>(gz->interaction_data);
 
   if (!cancel) {
     return;
@@ -616,7 +615,7 @@ static void gizmo_cage3d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 
   /* reset properties */
   gz_prop = WM_gizmo_target_property_find(gz, "matrix");
-  if (gz_prop->type != NULL) {
+  if (gz_prop->type != nullptr) {
     WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &data->orig_matrix_offset[0][0]);
   }
 
@@ -648,17 +647,17 @@ static void GIZMO_GT_cage_3d(wmGizmoType *gzt)
   static EnumPropertyItem rna_enum_draw_style[] = {
       {ED_GIZMO_CAGE3D_STYLE_BOX, "BOX", 0, "Box", ""},
       {ED_GIZMO_CAGE3D_STYLE_CIRCLE, "CIRCLE", 0, "Circle", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_transform[] = {
       {ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE, "TRANSLATE", 0, "Move", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE, "SCALE", 0, "Scale", ""},
       {ED_GIZMO_CAGE_XFORM_FLAG_SCALE_UNIFORM, "SCALE_UNIFORM", 0, "Scale Uniform", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static EnumPropertyItem rna_enum_draw_options[] = {
       {ED_GIZMO_CAGE_DRAW_FLAG_XFORM_CENTER_HANDLE, "XFORM_CENTER_HANDLE", 0, "Center Handle", ""},
-      {0, NULL, 0, NULL, NULL},
+      {0, nullptr, 0, nullptr, nullptr},
   };
   static float unit_v3[3] = {1.0f, 1.0f, 1.0f};
   RNA_def_float_vector(

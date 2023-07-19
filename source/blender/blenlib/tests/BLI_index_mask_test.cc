@@ -64,6 +64,42 @@ TEST(index_mask, FromSize)
   }
 }
 
+TEST(index_mask, FromUnion)
+{
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {2, 20000, 20001};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_union = IndexMask::from_union(mask_a, mask_b, memory);
+
+    EXPECT_EQ(mask_union.size(), 4);
+    EXPECT_EQ(mask_union[0], 1);
+    EXPECT_EQ(mask_union[1], 2);
+    EXPECT_EQ(mask_union[2], 20000);
+    EXPECT_EQ(mask_union[3], 20001);
+  }
+  {
+    IndexMaskMemory memory;
+    Array<int> data_a = {1, 2, 3};
+    IndexMask mask_a = IndexMask::from_indices<int>(data_a, memory);
+    Array<int> data_b = {20000, 20001, 20002};
+    IndexMask mask_b = IndexMask::from_indices<int>(data_b, memory);
+
+    IndexMask mask_union = IndexMask::from_union(mask_a, mask_b, memory);
+
+    EXPECT_EQ(mask_union.size(), 6);
+    EXPECT_EQ(mask_union[0], 1);
+    EXPECT_EQ(mask_union[1], 2);
+    EXPECT_EQ(mask_union[2], 3);
+    EXPECT_EQ(mask_union[3], 20000);
+    EXPECT_EQ(mask_union[4], 20001);
+    EXPECT_EQ(mask_union[5], 20002);
+  }
+}
+
 TEST(index_mask, DefaultConstructor)
 {
   IndexMask mask;

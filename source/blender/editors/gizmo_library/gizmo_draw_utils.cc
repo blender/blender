@@ -30,7 +30,7 @@
 #include "gizmo_library_intern.h"
 
 void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
-                                const bool UNUSED(select),
+                                const bool /*select*/,
                                 const float color[4])
 {
   /* TODO: store the Batches inside the GizmoGeomInfo and updated it when geom changes
@@ -62,8 +62,8 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
 
   GPU_batch_uniform_4fv(batch, "color", color);
 
-  /* We may want to re-visit this, for now disable
-   * since it causes issues leaving the GL state modified. */
+/* We may want to re-visit this, for now disable
+ * since it causes issues leaving the GL state modified. */
 #if 0
   GPU_face_culling(GPU_CULL_BACK);
   GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
@@ -108,7 +108,7 @@ void wm_gizmo_vec_draw(
     immEnd();
   }
   else {
-    immBegin(primitive_type, vert_count);
+    immBegin(GPUPrimType(primitive_type), vert_count);
     for (int i = 0; i < vert_count; i++) {
       immVertex3fv(pos, verts[i]);
     }

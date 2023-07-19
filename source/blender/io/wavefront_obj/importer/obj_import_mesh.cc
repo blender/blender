@@ -221,7 +221,7 @@ void MeshFromGeometry::create_polys_loops(Mesh *mesh, bool use_vertex_groups)
       /* Setup vertex group data, if needed. */
       if (!dverts.is_empty()) {
         const int group_index = curr_face.vertex_group_index;
-        /* Note: face might not belong to any group */
+        /* NOTE: face might not belong to any group. */
         if (group_index >= 0 || 1) {
           MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[corner_verts[tot_loop_idx]],
                                                        group_index);

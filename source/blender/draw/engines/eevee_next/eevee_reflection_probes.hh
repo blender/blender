@@ -129,8 +129,8 @@ class ReflectionProbeModule {
 
   template<typename T> void bind_resources(draw::detail::PassBase<T> *pass)
   {
-    pass->bind_texture(REFLECTION_PROBE_TEX_SLOT, probes_tx_);
-    pass->bind_ubo(REFLECTION_PROBE_BUF_SLOT, data_buf_);
+    pass->bind_texture(REFLECTION_PROBE_TEX_SLOT, &probes_tx_);
+    pass->bind_ubo(REFLECTION_PROBE_BUF_SLOT, &data_buf_);
   }
 
   bool do_world_update_get() const;

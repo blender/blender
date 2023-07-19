@@ -400,7 +400,7 @@ static void tree_element_material_activate(bContext *C,
 {
   /* we search for the object parent */
   Object *ob = (Object *)outliner_search_back(te, ID_OB);
-  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {
@@ -1040,7 +1040,7 @@ static eOLDrawState tree_element_active_material_get(const Scene *scene,
 {
   /* we search for the object parent */
   const Object *ob = (const Object *)outliner_search_back((TreeElement *)te, ID_OB);
-  /* Note : ob->matbits can be nullptr when a local object points to a library mesh. */
+  /* NOTE: `ob->matbits` can be nullptr when a local object points to a library mesh. */
   BKE_view_layer_synced_ensure(scene, view_layer);
   if (ob == nullptr || ob != BKE_view_layer_active_object_get(view_layer) ||
       ob->matbits == nullptr) {

@@ -206,8 +206,9 @@ void GHOST_ContextCGL::metalInit()
   @autoreleasepool {
     id<MTLDevice> device = m_metalLayer.device;
 
-    /* Create a command queue for blit/present operation. Note: All context should share a single
-     * command queue to ensure correct ordering of work submitted from multiple contexts. */
+    /* Create a command queue for blit/present operation.
+     * NOTE: All context should share a single command queue
+     * to ensure correct ordering of work submitted from multiple contexts. */
     if (s_sharedMetalCommandQueue == nil) {
       s_sharedMetalCommandQueue = (MTLCommandQueue *)[device
           newCommandQueueWithMaxCommandBufferCount:GHOST_ContextCGL::max_command_buffer_count];

@@ -30,6 +30,7 @@
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 
+#include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
 #include "BKE_main.h"
 #include "BKE_mesh_legacy_convert.h"
@@ -404,6 +405,13 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       const int R_IMF_FLAG_ZBUF_LEGACY = 1 << 0;
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         scene->r.im_format.flag &= ~R_IMF_FLAG_ZBUF_LEGACY;
+      }
+    }
+
+    /* Reset the layer opacity for all layers to 1. */
+    LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+      for (blender::bke::greasepencil::Layer *layer : grease_pencil->layers_for_write()) {
+        layer->opacity = 1.0f;
       }
     }
   }
