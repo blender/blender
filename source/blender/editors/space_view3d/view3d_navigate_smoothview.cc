@@ -279,7 +279,7 @@ void ED_view3d_smooth_view_ex(
   }
 
   /* Skip smooth viewing for external render engine draw. */
-  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->render_engine)) {
+  if (smooth_viewtx && !(v3d->shading.type == OB_RENDER && rv3d->view_render)) {
 
     /* original values */
     if (sview->camera_old) {
