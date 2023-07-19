@@ -73,8 +73,9 @@ void Instance::init(const int2 &output_res,
   shadows.init();
   motion_blur.init();
   main_view.init();
-  irradiance_cache.init();
+  /* Irradiance Cache needs reflection probes to be initialized. */
   reflection_probes.init();
+  irradiance_cache.init();
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -103,8 +104,9 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   depth_of_field.init();
   shadows.init();
   main_view.init();
-  irradiance_cache.init();
+  /* Irradiance Cache needs reflection probes to be initialized. */
   reflection_probes.init();
+  irradiance_cache.init();
 }
 
 void Instance::set_time(float time)

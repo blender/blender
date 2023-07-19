@@ -69,6 +69,8 @@ void IrradianceCache::init()
       /* Clear the pool to avoid any interpolation to undefined values. */
       irradiance_atlas_tx_.clear(float4(0.0f));
     }
+
+    inst_.reflection_probes.do_world_update_irradiance_set(true);
   }
 
   if (irradiance_atlas_tx_.is_valid() == false) {
