@@ -13,7 +13,9 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#include "GHOST_ContextCGL.hh"
+#ifdef WITH_METAL_BACKEND
+#  include "GHOST_ContextCGL.hh"
+#endif
 
 #ifdef WITH_VULKAN_BACKEND
 #  include "GHOST_ContextVK.hh"
@@ -816,37 +818,34 @@ GHOST_TSuccess GHOST_WindowCocoa::setOrder(GHOST_TWindowOrder order)
 
 GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType type)
 {
+  switch (type) {
 #ifdef WITH_VULKAN_BACKEND
-  if (type == GHOST_kDrawingContextTypeVulkan) {
-    GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
-
-    if (!context->initializeDrawingContext()) {
+    case GHOST_kDrawingContextTypeVulkan: {
+      GHOST_Context *context = new GHOST_ContextVK(m_wantStereoVisual, m_metalLayer, 1, 2, true);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-      return NULL;
+      return nullptr;
     }
-
-    return context;
-  }
 #endif
 
-  if (true
-#if defined(WITH_OPENGL_BACKEND)
-      || type == GHOST_kDrawingContextTypeOpenGL
-#elif defined(WITH_METAL_BACKEND)
-      || type == GHOST_kDrawingContextTypeMetal
-#endif
-  )
-  {
-    GHOST_Context *context = new GHOST_ContextCGL(
-        m_wantStereoVisual, m_metalView, m_metalLayer, m_openGLView, type);
-
-    if (context->initializeDrawingContext())
-      return context;
-    else
+#ifdef WITH_METAL_BACKEND
+    case GHOST_kDrawingContextTypeMetal: {
+      GHOST_Context *context = new GHOST_ContextCGL(
+          m_wantStereoVisual, m_metalView, m_metalLayer, false);
+      if (context->initializeDrawingContext()) {
+        return context;
+      }
       delete context;
-  }
+      return nullptr;
+    }
+#endif
 
-  return NULL;
+    default:
+      /* Unsupported backend. */
+      return nullptr;
+  }
 }
 
 #pragma mark invalidate

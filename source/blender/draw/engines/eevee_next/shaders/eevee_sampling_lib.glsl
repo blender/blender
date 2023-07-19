@@ -102,6 +102,14 @@ vec3 sample_cylinder(vec2 rand)
   return vec3(theta, cos_phi, sin_phi);
 }
 
+vec3 sample_sphere(vec2 rand)
+{
+  float omega = rand.y * 2.0 * M_PI;
+  float cos_theta = rand.x * 2.0 - 1.0;
+  float sin_theta = safe_sqrt(1.0 - cos_theta * cos_theta);
+  return vec3(sin_theta * vec2(cos(omega), sin(omega)), cos_theta);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

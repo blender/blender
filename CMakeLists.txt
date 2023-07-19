@@ -650,8 +650,12 @@ mark_as_advanced(
 )
 
 # OpenGL
-option(WITH_OPENGL_BACKEND "Enable OpenGL support as graphic backend" ON)
-mark_as_advanced(WITH_OPENGL_BACKEND)
+if(NOT APPLE)
+  option(WITH_OPENGL_BACKEND "Enable OpenGL support as graphic backend" ON)
+  mark_as_advanced(WITH_OPENGL_BACKEND)
+else()
+  set(WITH_OPENGL_BACKEND OFF)
+endif()
 
 # Vulkan
 option(WITH_VULKAN_BACKEND "Enable Vulkan as graphics backend (only for development)" OFF)

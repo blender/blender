@@ -55,6 +55,16 @@ void ReflectionProbeModule::init()
     pass.push_constant("reflection_probe_index", &reflection_probe_index_);
     pass.dispatch(&dispatch_probe_pack_);
   }
+
+  {
+    PassSimple &pass = update_irradiance_ps_;
+    pass.init();
+    pass.shader_set(instance_.shaders.static_shader_get(REFLECTION_PROBE_UPDATE_IRRADIANCE));
+    pass.push_constant("reflection_probe_index", &reflection_probe_index_);
+    pass.bind_image("irradiance_atlas_img", &instance_.irradiance_cache.irradiance_atlas_tx_);
+    bind_resources(&pass);
+    pass.dispatch(int2(1, 1));
+  }
 }
 void ReflectionProbeModule::begin_sync()
 {
@@ -384,6 +394,13 @@ void ReflectionProbeModule::do_world_update_set(bool value)
 {
   ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
   world_probe.do_render = value;
+  world_probe.do_world_irradiance_update = value;
+}
+
+void ReflectionProbeModule::do_world_update_irradiance_set(bool value)
+{
+  ReflectionProbe &world_probe = probes_.lookup(world_object_key_);
+  world_probe.do_world_irradiance_update = value;
 }
 
 bool ReflectionProbeModule::has_only_world_probe() const
@@ -453,7 +470,7 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
   const bool do_probe_sync = instance_.do_probe_sync();
   const int max_shift = int(log2(max_resolution_));
   for (const Map<uint64_t, ReflectionProbe>::Item &item : probes_.items()) {
-    if (!item.value.do_render) {
+    if (!item.value.do_render && !item.value.do_world_irradiance_update) {
       continue;
     }
     if (probe_type == ReflectionProbe::Type::World && item.value.type != probe_type) {
@@ -466,7 +483,6 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
     if (item.value.type == ReflectionProbe::Type::Probe && !do_probe_sync) {
       continue;
     }
-    probes_.lookup(item.key).do_render = false;
 
     ReflectionProbeData &probe_data = data_buf_[item.value.index];
     ReflectionProbeUpdateInfo info = {};
@@ -475,6 +491,12 @@ std::optional<ReflectionProbeUpdateInfo> ReflectionProbeModule::update_info_pop(
     info.resolution = 1 << (max_shift - probe_data.layer_subdivision - 1);
     info.clipping_distances = item.value.clipping_distances;
     info.probe_pos = float3(probe_data.pos);
+    info.do_render = item.value.do_render;
+    info.do_world_irradiance_update = item.value.do_world_irradiance_update;
+
+    ReflectionProbe &probe = probes_.lookup(item.key);
+    probe.do_render = false;
+    probe.do_world_irradiance_update = false;
 
     if (cubemap_tx_.ensure_cube(GPU_RGBA16F,
                                 info.resolution,
@@ -508,6 +530,16 @@ void ReflectionProbeModule::remap_to_octahedral_projection(uint64_t object_key)
                               1);
 
   instance_.manager->submit(remap_ps_);
+}
+
+void ReflectionProbeModule::update_world_irradiance()
+{
+  const ReflectionProbe &probe = probes_.lookup(world_object_key_);
+
+  /* Update shader parameters that change per dispatch. */
+  reflection_probe_index_ = probe.index;
+
+  instance_.manager->submit(update_irradiance_ps_);
 }
 
 void ReflectionProbeModule::update_probes_texture_mipmaps()

@@ -160,6 +160,8 @@ const char *ShaderModule::static_shader_create_info_name_get(eShaderType shader_
       return "eevee_lightprobe_irradiance_load";
     case REFLECTION_PROBE_REMAP:
       return "eevee_reflection_probe_remap";
+    case REFLECTION_PROBE_UPDATE_IRRADIANCE:
+      return "eevee_reflection_probe_update_irradiance";
     case SHADOW_CLIPMAP_CLEAR:
       return "eevee_shadow_clipmap_clear";
     case SHADOW_DEBUG:

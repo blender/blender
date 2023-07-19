@@ -57,22 +57,6 @@ GPUTexture *TexturePool::acquire(int2 size, eGPUTextureFormat format)
   return allocate_texture(size, format);
 }
 
-GPUTexture *TexturePool::acquire_color(int2 size)
-{
-  return acquire(size, GPU_RGBA16F);
-}
-
-GPUTexture *TexturePool::acquire_vector(int2 size)
-{
-  /* Vectors are 4D, and are thus stored in RGBA textures. */
-  return acquire(size, GPU_RGBA16F);
-}
-
-GPUTexture *TexturePool::acquire_float(int2 size)
-{
-  return acquire(size, GPU_R16F);
-}
-
 void TexturePool::release(GPUTexture *texture)
 {
   textures_.lookup(TexturePoolKey(texture)).append(texture);

@@ -21,6 +21,7 @@ class Instance;
 class CapturePipeline;
 class ShadowModule;
 class Camera;
+class ReflectionProbeModule;
 
 /**
  * Baking related pass and data. Not used at runtime.
@@ -181,6 +182,8 @@ class IrradianceCache {
  private:
   void debug_pass_draw(View &view, GPUFrameBuffer *view_fb);
   void display_pass_draw(View &view, GPUFrameBuffer *view_fb);
+
+  friend class ReflectionProbeModule;
 };
 
 }  // namespace blender::eevee

@@ -23,7 +23,7 @@
 #  pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
+#ifdef WITH_METAL_BACKEND
 #  include "GHOST_ContextCGL.hh"
 #endif
 
@@ -776,17 +776,11 @@ GHOST_IContext *GHOST_SystemCocoa::createOffscreenContext(GHOST_GPUSettings gpuS
       return nullptr;
     }
 #endif
-#ifdef WITH_OPENGL_BACKEND
-    case GHOST_kDrawingContextTypeOpenGL:
-#endif
+
 #ifdef WITH_METAL_BACKEND
-    case GHOST_kDrawingContextTypeMetal:
-#endif
-#if defined(WITH_OPENGL_BACKEND) || defined(WITH_METAL_BACKEND)
-    {
+    case GHOST_kDrawingContextTypeMetal: {
       /* TODO(fclem): Remove OpenGL support and rename context to ContextMTL */
-      GHOST_Context *context = new GHOST_ContextCGL(
-          false, NULL, NULL, NULL, gpuSettings.context_type);
+      GHOST_Context *context = new GHOST_ContextCGL(false, NULL, NULL, debug_context);
       if (context->initializeDrawingContext()) {
         return context;
       }

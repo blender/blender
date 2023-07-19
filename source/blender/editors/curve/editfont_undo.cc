@@ -52,7 +52,7 @@ static CLG_LogRef LOG = {"ed.undo.font"};
 /** \name Undo Conversion
  * \{ */
 
-typedef struct UndoFont {
+struct UndoFont {
   char32_t *textbuf;
   CharInfo *textbufinfo;
 
@@ -66,7 +66,7 @@ typedef struct UndoFont {
 #endif
 
   size_t undo_size;
-} UndoFont;
+};
 
 #ifdef USE_ARRAY_STORE
 
@@ -81,7 +81,7 @@ static struct {
   /* We could have the undo API pass in the previous state, for now store a local list */
   ListBase local_links;
 
-} uf_arraystore = {{NULL}};
+} uf_arraystore = {{nullptr}};
 
 /**
  * \param create: When false, only free the arrays.
@@ -92,9 +92,9 @@ static void uf_arraystore_compact_ex(UndoFont *uf, const UndoFont *uf_ref, bool 
 {
 #  define STATE_COMPACT(uf, id, len) \
     if ((uf)->id) { \
-      BLI_assert(create == ((uf)->store.id == NULL)); \
+      BLI_assert(create == ((uf)->store.id == nullptr)); \
       if (create) { \
-        BArrayState *state_reference = uf_ref ? uf_ref->store.id : NULL; \
+        BArrayState *state_reference = uf_ref ? uf_ref->store.id : nullptr; \
         const size_t stride = sizeof(*(uf)->id); \
         BArrayStore *bs = BLI_array_store_at_size_ensure( \
             &uf_arraystore.bs_stride, stride, ARRAY_CHUNK_SIZE); \
@@ -103,7 +103,7 @@ static void uf_arraystore_compact_ex(UndoFont *uf, const UndoFont *uf_ref, bool 
       } \
       /* keep uf->len for validation */ \
       MEM_freeN((uf)->id); \
-      (uf)->id = NULL; \
+      (uf)->id = nullptr; \
     } \
     ((void)0)
 
@@ -163,7 +163,7 @@ static void uf_arraystore_compact_with_info(UndoFont *um, const UndoFont *uf_ref
  */
 static void uf_arraystore_expand_clear(UndoFont *um)
 {
-  uf_arraystore_compact_ex(um, NULL, false);
+  uf_arraystore_compact_ex(um, nullptr, false);
 }
 
 static void uf_arraystore_expand(UndoFont *uf)
@@ -173,7 +173,7 @@ static void uf_arraystore_expand(UndoFont *uf)
       const size_t stride = sizeof(*(uf)->id); \
       BArrayState *state = (uf)->store.id; \
       size_t state_len; \
-      (uf)->id = BLI_array_store_state_data_get_alloc(state, &state_len); \
+      *(void **)&(uf)->id = BLI_array_store_state_data_get_alloc(state, &state_len); \
       BLI_assert((len) == (state_len / stride)); \
       UNUSED_VARS_NDEBUG(stride); \
     } \
@@ -193,7 +193,7 @@ static void uf_arraystore_free(UndoFont *uf)
       BArrayStore *bs = BLI_array_store_at_size_get(&uf_arraystore.bs_stride, stride); \
       BArrayState *state = (uf)->store.id; \
       BLI_array_store_state_remove(bs, state); \
-      (uf)->store.id = NULL; \
+      (uf)->store.id = nullptr; \
     } \
     ((void)0)
 
@@ -257,11 +257,11 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 
   BLI_assert(sizeof(*uf->textbuf) == sizeof(*ef->textbuf));
   final_size = sizeof(*uf->textbuf) * (ef->len + 1);
-  uf->textbuf = MEM_mallocN(final_size, __func__);
+  uf->textbuf = static_cast<char32_t *>(MEM_mallocN(final_size, __func__));
   memcpy(uf->textbuf, ef->textbuf, final_size);
 
   final_size = sizeof(CharInfo) * (ef->len + 1);
-  uf->textbufinfo = MEM_mallocN(final_size, __func__);
+  uf->textbufinfo = static_cast<CharInfo *>(MEM_mallocN(final_size, __func__));
   memcpy(uf->textbufinfo, ef->textbufinfo, final_size);
 
   uf->pos = ef->pos;
@@ -271,9 +271,9 @@ static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 
 #ifdef USE_ARRAY_STORE
   {
-    const UndoFont *uf_ref = uf_arraystore.local_links.last ?
-                                 ((LinkData *)uf_arraystore.local_links.last)->data :
-                                 NULL;
+    const UndoFont *uf_ref = static_cast<const UndoFont *>(
+        uf_arraystore.local_links.last ? ((LinkData *)uf_arraystore.local_links.last)->data :
+                                         nullptr);
 
     /* Add ourselves. */
     BLI_addtail(&uf_arraystore.local_links, BLI_genericNodeN(uf));
@@ -293,7 +293,8 @@ static void undofont_free_data(UndoFont *uf)
 {
 #ifdef USE_ARRAY_STORE
   {
-    LinkData *link = BLI_findptr(&uf_arraystore.local_links, uf, offsetof(LinkData, data));
+    LinkData *link = static_cast<LinkData *>(
+        BLI_findptr(&uf_arraystore.local_links, uf, offsetof(LinkData, data)));
     BLI_remlink(&uf_arraystore.local_links, link);
     MEM_freeN(link);
   }
@@ -315,13 +316,13 @@ static Object *editfont_object_from_context(bContext *C)
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *obedit = BKE_view_layer_edit_object_get(view_layer);
   if (obedit && obedit->type == OB_FONT) {
-    Curve *cu = obedit->data;
+    Curve *cu = static_cast<Curve *>(obedit->data);
     EditFont *ef = cu->editfont;
-    if (ef != NULL) {
+    if (ef != nullptr) {
       return obedit;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -330,23 +331,23 @@ static Object *editfont_object_from_context(bContext *C)
 /** \name Implements ED Undo System
  * \{ */
 
-typedef struct FontUndoStep {
+struct FontUndoStep {
   UndoStep step;
   /* NOTE: will split out into list for multi-object-editmode. */
   UndoRefID_Object obedit_ref;
   UndoFont data;
-} FontUndoStep;
+};
 
 static bool font_undosys_poll(bContext *C)
 {
-  return editfont_object_from_context(C) != NULL;
+  return editfont_object_from_context(C) != nullptr;
 }
 
 static bool font_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
 {
   FontUndoStep *us = (FontUndoStep *)us_p;
   us->obedit_ref.ptr = editfont_object_from_context(C);
-  Curve *cu = us->obedit_ref.ptr->data;
+  Curve *cu = static_cast<Curve *>(us->obedit_ref.ptr->data);
   undofont_from_editfont(&us->data, cu);
   us->step.data_size = us->data.undo_size;
   cu->editfont->needs_flush_to_id = 1;
@@ -355,11 +356,8 @@ static bool font_undosys_step_encode(bContext *C, Main *bmain, UndoStep *us_p)
   return true;
 }
 
-static void font_undosys_step_decode(bContext *C,
-                                     Main *bmain,
-                                     UndoStep *us_p,
-                                     const eUndoStepDir UNUSED(dir),
-                                     bool UNUSED(is_final))
+static void font_undosys_step_decode(
+    bContext *C, Main *bmain, UndoStep *us_p, const eUndoStepDir /*dir*/, bool /*is_final*/)
 {
 
   FontUndoStep *us = (FontUndoStep *)us_p;
@@ -368,7 +366,7 @@ static void font_undosys_step_decode(bContext *C,
   /* Pass in an array of 1 (typically used for multi-object edit-mode). */
   ED_undo_object_editmode_restore_helper(C, &obedit, 1, sizeof(Object *));
 
-  Curve *cu = obedit->data;
+  Curve *cu = static_cast<Curve *>(obedit->data);
   undofont_to_editfont(&us->data, cu);
   DEG_id_tag_update(&cu->id, ID_RECALC_GEOMETRY);
 
@@ -379,7 +377,7 @@ static void font_undosys_step_decode(bContext *C,
 
   cu->editfont->needs_flush_to_id = 1;
   bmain->is_memfile_undo_flush_needed = true;
-  WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+  WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
 }
 
 static void font_undosys_step_free(UndoStep *us_p)

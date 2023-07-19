@@ -206,24 +206,31 @@ void CaptureView::render_world()
   View view = {"Capture.View"};
   GPU_debug_group_begin("World.Capture");
 
-  for (int face : IndexRange(6)) {
-    float4x4 view_m4 = cubeface_mat(face);
-    float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
-                                                    update_info->clipping_distances.x,
-                                                    -update_info->clipping_distances.x,
-                                                    update_info->clipping_distances.x,
-                                                    update_info->clipping_distances.x,
-                                                    update_info->clipping_distances.y);
-    view.sync(view_m4, win_m4);
+  if (update_info->do_render) {
+    for (int face : IndexRange(6)) {
+      float4x4 view_m4 = cubeface_mat(face);
+      float4x4 win_m4 = math::projection::perspective(-update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      -update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.x,
+                                                      update_info->clipping_distances.y);
+      view.sync(view_m4, win_m4);
 
-    capture_fb_.ensure(GPU_ATTACHMENT_NONE,
-                       GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
-    GPU_framebuffer_bind(capture_fb_);
-    inst_.pipelines.world.render(view);
+      capture_fb_.ensure(
+          GPU_ATTACHMENT_NONE,
+          GPU_ATTACHMENT_TEXTURE_CUBEFACE(inst_.reflection_probes.cubemap_tx_, face));
+      GPU_framebuffer_bind(capture_fb_);
+      inst_.pipelines.world.render(view);
+    }
+
+    inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
+    inst_.reflection_probes.update_probes_texture_mipmaps();
   }
 
-  inst_.reflection_probes.remap_to_octahedral_projection(update_info->object_key);
-  inst_.reflection_probes.update_probes_texture_mipmaps();
+  if (update_info->do_world_irradiance_update) {
+    inst_.reflection_probes.update_world_irradiance();
+  }
 
   GPU_debug_group_end();
 }
