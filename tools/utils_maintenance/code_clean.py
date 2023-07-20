@@ -33,8 +33,6 @@ from typing import (
 # List of (source_file, all_arguments)
 ProcessedCommands = List[Tuple[str, str]]
 
-USE_MULTIPROCESS = True
-
 VERBOSE = False
 
 # Print the output of the compiler (_very_ noisy, only useful for troubleshooting compiler issues).
@@ -1472,8 +1470,11 @@ def run_edits_on_directory(
         build_dir: str,
         regex_list: List[re.Pattern[str]],
         edits_to_apply: Sequence[str],
-        skip_test: bool = False,
+        skip_test: bool,
+        jobs: int,
 ) -> int:
+    import multiprocessing
+
     # currently only supports ninja or makefiles
     build_file_ninja = os.path.join(build_dir, "build.ninja")
     build_file_make = os.path.join(build_dir, "Makefile")
@@ -1489,6 +1490,9 @@ def run_edits_on_directory(
             (build_file_ninja, build_file_make)
         )
         return 1
+
+    if jobs <= 0:
+        jobs = multiprocessing.cpu_count() * 2
 
     if args is None:
         # Error will have been reported.
@@ -1566,7 +1570,7 @@ def run_edits_on_directory(
         shared_edit_data = edit_generator_class.setup()
 
         try:
-            if USE_MULTIPROCESS:
+            if jobs > 1:
                 args_expanded = [(
                     c,
                     output_from_build_args(build_args, build_cwd),
@@ -1576,10 +1580,8 @@ def run_edits_on_directory(
                     skip_test,
                     shared_edit_data,
                 ) for (c, build_args, build_cwd) in args_with_cwd]
-                import multiprocessing
-                job_total = multiprocessing.cpu_count()
-                pool = multiprocessing.Pool(processes=job_total * 2)
-                pool.starmap(wash_source_with_edits, args_expanded)
+                pool = multiprocessing.Pool(processes=jobs)
+                pool.starmap(wash_source_with_edit_list, args_expanded)
                 del args_expanded
             else:
                 # now we have commands
@@ -1603,7 +1605,7 @@ def run_edits_on_directory(
 
 
 def create_parser(edits_all: Sequence[str]) -> argparse.ArgumentParser:
-    from textwrap import indent, dedent
+    from textwrap import indent
 
     # Create docstring for edits.
     edits_all_docs = []
@@ -1651,6 +1653,17 @@ def create_parser(edits_all: Sequence[str]) -> argparse.ArgumentParser:
         ),
         required=False,
     )
+    parser.add_argument(
+        "--jobs",
+        dest="jobs",
+        type=int,
+        default=0,
+        help=(
+            "The number of processes to use. "
+            "Defaults to zero which detects the available cores, 1 is single threaded (useful for debugging)."
+        ),
+        required=False,
+    )
 
     return parser
 
@@ -1683,7 +1696,13 @@ def main() -> int:
             ))
             return 1
 
-    return run_edits_on_directory(build_dir, regex_list, edits_all_from_args, args.skip_test)
+    return run_edits_on_directory(
+        build_dir,
+        regex_list,
+        edits_all_from_args,
+        args.skip_test,
+        args.jobs,
+    )
 
 
 if __name__ == "__main__":

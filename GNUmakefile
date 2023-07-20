@@ -474,7 +474,7 @@ check_struct_comments: .FORCE
 	@cd "$(BUILD_DIR)" ; \
 	$(PYTHON) \
 	    "$(BLENDER_DIR)/build_files/cmake/cmake_static_check_clang.py" \
-	    --checks=struct_comments --match=".*"
+	    --checks=struct_comments --match=".*" --jobs=$(NPROCS)
 
 check_clang_array: .FORCE
 	@$(CMAKE_CONFIG)

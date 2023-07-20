@@ -47,9 +47,6 @@ ClangSourceLocation = Any
 
 USE_VERBOSE = os.environ.get("VERBOSE", None) is not None
 
-# Turn off for debugging.
-USE_MULTIPROCESS = True
-
 CLANG_BIND_DIR = os.environ.get("CLANG_BIND_DIR")
 CLANG_LIB_DIR = os.environ.get("CLANG_LIB_DIR")
 
@@ -440,6 +437,7 @@ def source_info_filter(
 def run_checks_on_project(
         check_ids: Sequence[str],
         regex_list: Sequence[re.Pattern[str]],
+        jobs: int,
 ) -> None:
     source_info = project_source_info.build_info(ignore_prefix_list=CHECKER_IGNORE_PREFIX)
     source_defines = project_source_info.build_defines_as_args()
@@ -464,9 +462,11 @@ def run_checks_on_project(
 
     import multiprocessing
 
-    if USE_MULTIPROCESS:
-        job_total = multiprocessing.cpu_count() + 1
-        with multiprocessing.Pool(processes=job_total) as pool:
+    if jobs <= 0:
+        jobs = multiprocessing.cpu_count() * 2
+
+    if jobs > 1:
+        with multiprocessing.Pool(processes=jobs) as pool:
             # No `istarmap`, use an intermediate function.
             for result in pool.imap(check_source_file_for_imap, all_args):
                 if result:
@@ -515,6 +515,17 @@ def create_parser(checkers_all: Sequence[str]) -> argparse.ArgumentParser:
             "Multiple checkers may be passed at once (comma separated, no spaces)."),
         required=True,
     )
+    parser.add_argument(
+        "--jobs",
+        dest="jobs",
+        type=int,
+        default=0,
+        help=(
+            "The number of processes to use. "
+            "Defaults to zero which detects the available cores, 1 is single threaded (useful for debugging)."
+        ),
+        required=False,
+    )
 
     return parser
 
@@ -536,7 +547,12 @@ def main() -> int:
             print("Error in expression: \"{:s}\"\n  {!r}".format(expr, ex))
             return 1
 
-    run_checks_on_project(args.checks.split(','), regex_list)
+    run_checks_on_project(
+        args.checks.split(','),
+        regex_list,
+        args.jobs,
+    )
+
     return 0
 
 
