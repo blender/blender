@@ -610,10 +610,8 @@ bool RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
   return BKE_camera_multiview_spherical_stereo(re ? &re->r : nullptr, camera) ? true : false;
 }
 
-const rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_free)
+const rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles)
 {
-  *r_needs_free = false;
-
   blender::render::TilesHighlight *tiles_highlight = re->get_tile_highlight();
   if (!tiles_highlight) {
     *r_total_tiles = 0;

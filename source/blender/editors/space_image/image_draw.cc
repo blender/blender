@@ -85,8 +85,7 @@ static void draw_render_info(
 
   if (re) {
     int total_tiles;
-    bool need_free_tiles;
-    const rcti *tiles = RE_engine_get_current_tiles(re, &total_tiles, &need_free_tiles);
+    const rcti *tiles = RE_engine_get_current_tiles(re, &total_tiles);
 
     if (total_tiles) {
       /* find window pixel coordinates of origin */
@@ -110,10 +109,6 @@ static void draw_render_info(
       }
 
       immUnbindProgram();
-
-      if (need_free_tiles) {
-        MEM_freeN(const_cast<rcti *>(tiles));
-      }
 
       GPU_matrix_pop();
     }
