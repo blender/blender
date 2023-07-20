@@ -6,10 +6,12 @@
  * \ingroup edgreasepencil
  */
 
+#include "BLI_array_utils.hh"
 #include "BLI_index_mask.hh"
 #include "BLI_index_range.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
+#include "BLI_stack.hh"
 
 #include "BKE_context.h"
 #include "BKE_grease_pencil.hh"
@@ -103,7 +105,8 @@ static void gaussian_blur_1D(const Span<T> src,
                              const bool is_cyclic,
                              MutableSpan<T> dst)
 {
-  /* 1D Gaussian-like smoothing function.
+  /**
+   * 1D Gaussian-like smoothing function.
    *
    * NOTE: This is the algorithm used by #BKE_gpencil_stroke_smooth_point (legacy),
    *       but generalized and written in C++.
@@ -391,12 +394,165 @@ static void GREASE_PENCIL_OT_stroke_smooth(wmOperatorType *ot)
   RNA_def_boolean(ot->srna, "smooth_opacity", false, "Opacity", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Simplify Stroke Operator.
+ * \{ */
+
+/**
+ * An implementation of the Ramer-Douglas-Peucker algorithm.
+ *
+ * \param epsilon: The threshold distance from the coord between two points for when a point
+ * in-between needs to be kept.
+ * \param points_to_delete: Writes true to the indecies for which the points should be removed.
+ */
+void ramer_douglas_peucker_simplify(const Span<float3> src,
+                                    const float epsilon,
+                                    MutableSpan<bool> points_to_delete)
+{
+  BLI_assert(src.size() == points_to_delete.size());
+
+  /* Mark all points to not be removed. */
+  points_to_delete.fill(false);
+
+  Stack<IndexRange> stack;
+  stack.push(src.index_range());
+  while (!stack.is_empty()) {
+    const IndexRange range = stack.pop();
+    const Span<float3> slice = src.slice(range);
+
+    float max_dist = -1.0f;
+    int max_index = -1;
+    for (const int64_t index : slice.index_range().drop_front(1).drop_back(1)) {
+      const float dist = dist_to_line_v3(slice[index], slice.first(), slice.last());
+      if (dist > max_dist) {
+        max_dist = dist;
+        max_index = index;
+      }
+    }
+
+    if (max_dist > epsilon) {
+      /* Found point outside the epsilon-sized tube. Repeat the search on the left & right side. */
+      stack.push(IndexRange(range.first(), max_index + 1));
+      stack.push(IndexRange(range.first() + max_index, range.size() - max_index));
+    }
+    else {
+      /* Points in `range` are inside the epsilon-sized tube. Mark them to be deleted. */
+      points_to_delete.slice(range.drop_front(1).drop_back(1)).fill(true);
+    }
+  }
+}
+
+static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
+{
+  using namespace blender;
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const float epsilon = RNA_float_get(op->ptr, "factor");
+
+  bool changed = false;
+  grease_pencil.foreach_editable_drawing(
+      scene->r.cfra, [&](int /*drawing_index*/, bke::greasepencil::Drawing &drawing) {
+        bke::CurvesGeometry &curves = drawing.strokes_for_write();
+        if (curves.points_num() == 0) {
+          return;
+        }
+
+        if (!ed::curves::has_anything_selected(curves)) {
+          return;
+        }
+
+        const Span<float3> positions = curves.positions();
+        const VArray<bool> cyclic = curves.cyclic();
+        const OffsetIndices points_by_curve = curves.points_by_curve();
+        const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
+            ".selection", ATTR_DOMAIN_POINT, true);
+
+        Array<bool> points_to_delete(curves.points_num());
+        selection.materialize(points_to_delete);
+
+        threading::parallel_for(curves.curves_range(), 128, [&](const IndexRange range) {
+          for (const int curve_i : range) {
+            const IndexRange points = points_by_curve[curve_i];
+            const Span<bool> curve_selection = points_to_delete.as_span().slice(points);
+            if (!curve_selection.contains(true)) {
+              continue;
+            }
+
+            const bool is_last_segment_selected = (curve_selection.first() &&
+                                                   curve_selection.last());
+
+            const Vector<IndexRange> selection_ranges = array_utils::find_all_ranges(
+                curve_selection, true);
+            threading::parallel_for(
+                selection_ranges.index_range(), 16, [&](const IndexRange range_of_ranges) {
+                  for (const IndexRange range : selection_ranges.as_span().slice(range_of_ranges))
+                  {
+                    ramer_douglas_peucker_simplify(
+                        positions.slice(range.shift(points.start())),
+                        epsilon,
+                        points_to_delete.as_mutable_span().slice(range.shift(points.start())));
+                  }
+                });
+
+            /* For cyclic curves, simplify the last segment. */
+            if (cyclic[curve_i] && curves.points_num() > 2 && is_last_segment_selected) {
+              const float dist = dist_to_line_v3(
+                  positions[points.last()], positions[points.last(1)], positions[points.first()]);
+              if (dist <= epsilon) {
+                points_to_delete[points.last()] = true;
+              }
+            }
+          }
+        });
+
+        if (points_to_delete.as_span().contains(true)) {
+          IndexMaskMemory memory;
+          curves.remove_points(IndexMask::from_bools(points_to_delete, memory));
+          drawing.tag_topology_changed();
+          changed = true;
+        }
+      });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+  return OPERATOR_FINISHED;
+}
+
+static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
+{
+  PropertyRNA *prop;
+
+  /* Identifiers. */
+  ot->name = "Simplify Stroke";
+  ot->idname = "GREASE_PENCIL_OT_stroke_simplify";
+  ot->description = "Simplify selected strokes";
+
+  /* Callbacks. */
+  ot->exec = grease_pencil_stroke_simplify_exec;
+  ot->poll = editable_grease_pencil_point_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  /* Simplify parameters. */
+  prop = RNA_def_float(ot->srna, "factor", 0.001f, 0.0f, 100.0f, "Factor", "", 0.0f, 100.0f);
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_smooth);
+  WM_operatortype_append(GREASE_PENCIL_OT_stroke_simplify);
 }
 
 void ED_keymap_grease_pencil(wmKeyConfig *keyconf)

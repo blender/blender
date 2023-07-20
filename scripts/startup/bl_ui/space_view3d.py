@@ -5526,7 +5526,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator("grease_pencil.stroke_smooth")
-        pass
+        layout.operator("grease_pencil.stroke_simplify")
 
 
 class VIEW3D_MT_edit_curves(Menu):
