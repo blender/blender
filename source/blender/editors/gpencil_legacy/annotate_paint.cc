@@ -263,8 +263,8 @@ static void annotation_get_3d_reference(tGPsdata *p, float vec[3])
 /* check if the current mouse position is suitable for adding a new point */
 static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], const float pmval[2])
 {
-  int dx = (int)fabsf(mval[0] - pmval[0]);
-  int dy = (int)fabsf(mval[1] - pmval[1]);
+  int dx = int(fabsf(mval[0] - pmval[0]));
+  int dy = int(fabsf(mval[1] - pmval[1]));
 
   /* if buffer is empty, just let this go through (i.e. so that dots will work) */
   if (p->gpd->runtime.sbuffer_used == 0) {
@@ -366,8 +366,8 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
   /* 2d - relative to screen (viewport area) */
   else {
     if (p->subrect == nullptr) { /* normal 3D view */
-      out[0] = (float)(mval[0]) / (float)(p->region->winx) * 100;
-      out[1] = (float)(mval[1]) / (float)(p->region->winy) * 100;
+      out[0] = float(mval[0]) / float(p->region->winx) * 100;
+      out[1] = float(mval[1]) / float(p->region->winy) * 100;
     }
     else { /* camera view, use subrect */
       out[0] = ((mval[0] - p->subrect->xmin) / BLI_rctf_size_x(p->subrect)) * 100;
@@ -535,7 +535,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
-      pt->time = (float)(curtime - p->inittime);
+      pt->time = float(curtime - p->inittime);
 
       /* increment buffer size */
       gpd->runtime.sbuffer_used++;
@@ -551,7 +551,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
       /* Pressure values are unreliable, so ignore for now, see #44932. */
       pt->pressure = 1.0f;
       pt->strength = 1.0f;
-      pt->time = (float)(curtime - p->inittime);
+      pt->time = float(curtime - p->inittime);
 
       /* now the buffer has 2 points (and shouldn't be allowed to get any larger) */
       gpd->runtime.sbuffer_used = 2;
@@ -605,7 +605,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     pt->strength = 1.0f;
 
     /* point time */
-    pt->time = (float)(curtime - p->inittime);
+    pt->time = float(curtime - p->inittime);
 
     /* increment counters */
     gpd->runtime.sbuffer_used++;
@@ -630,7 +630,7 @@ static short annotation_stroke_addpoint(tGPsdata *p,
     /* Pressure values are unreliable, so ignore for now, see #44932. */
     pt->pressure = 1.0f;
     pt->strength = 1.0f;
-    pt->time = (float)(curtime - p->inittime);
+    pt->time = float(curtime - p->inittime);
 
     /* if there's stroke for this poly line session add (or replace last) point
      * to stroke. This allows to draw lines more interactively (see new segment
@@ -1099,7 +1099,7 @@ static bool annotation_stroke_eraser_is_occluded(tGPsdata *p,
 
     float p_depth;
     if (ED_view3d_depth_read_cached(p->depths, mval_i, 0, &p_depth)) {
-      ED_view3d_depth_unproject_v3(p->region, mval_i, (double)p_depth, mval_3d);
+      ED_view3d_depth_unproject_v3(p->region, mval_i, double(p_depth), mval_3d);
 
       const float depth_mval = ED_view3d_calc_depth_for_comparison(rv3d, mval_3d);
       const float depth_pt = ED_view3d_calc_depth_for_comparison(rv3d, &pt->x);
@@ -2093,8 +2093,8 @@ static void annotation_draw_apply_event(
     p->mval[1] -= y;
   }
   else {
-    p->mval[0] = (float)event->mval[0] - x;
-    p->mval[1] = (float)event->mval[1] - y;
+    p->mval[0] = float(event->mval[0]) - x;
+    p->mval[1] = float(event->mval[1]) - y;
   }
 
   /* Key to toggle stabilization. */
@@ -2115,8 +2115,8 @@ static void annotation_draw_apply_event(
   /* verify key status for straight lines */
   else if (event->modifier & (KM_CTRL | KM_ALT)) {
     if (p->straight[0] == 0) {
-      int dx = abs((int)(p->mval[0] - p->mvalo[0]));
-      int dy = abs((int)(p->mval[1] - p->mvalo[1]));
+      int dx = abs(int(p->mval[0] - p->mvalo[0]));
+      int dy = abs(int(p->mval[1] - p->mvalo[1]));
       if ((dx > 0) || (dy > 0)) {
         /* check mouse direction to replace the other coordinate with previous values */
         if (dx >= dy) {
@@ -2245,10 +2245,10 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
 
     /* get relevant data for this point from stroke */
     RNA_float_get_array(&itemptr, "mouse", mousef);
-    p->mval[0] = (int)mousef[0];
-    p->mval[1] = (int)mousef[1];
+    p->mval[0] = int(mousef[0]);
+    p->mval[1] = int(mousef[1]);
     p->pressure = RNA_float_get(&itemptr, "pressure");
-    p->curtime = (double)RNA_float_get(&itemptr, "time") + p->inittime;
+    p->curtime = double(RNA_float_get(&itemptr, "time")) + p->inittime;
 
     if (RNA_boolean_get(&itemptr, "is_start")) {
       /* if first-run flag isn't set already (i.e. not true first stroke),
@@ -2432,8 +2432,8 @@ static void annotation_add_missing_events(bContext *C,
   float factor = 10.0f;
 
   copy_v2_v2(a, p->mvalo);
-  b[0] = (float)event->mval[0] + 1.0f;
-  b[1] = (float)event->mval[1] + 1.0f;
+  b[0] = float(event->mval[0]) + 1.0f;
+  b[1] = float(event->mval[1]) + 1.0f;
 
   /* get distance in pixels */
   float dist = len_v2v2(a, b);
@@ -2446,7 +2446,7 @@ static void annotation_add_missing_events(bContext *C,
     annotation_draw_apply_event(op, event, depsgraph, pt[0], pt[1]);
   }
   else if (dist >= factor) {
-    int slices = 2 + (int)((dist - 1.0) / factor);
+    int slices = 2 + int((dist - 1.0) / factor);
     float n = 1.0f / slices;
     for (int i = 1; i < slices; i++) {
       interp_v2_v2v2(pt, a, b, n * i);

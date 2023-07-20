@@ -566,7 +566,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   Object *ob = CTX_data_active_object(C);
   Mask *mask = CTX_data_edit_mask(C);
   bDopeSheet ads = {nullptr};
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
   const ActKeyColumn *aknext, *akprev;
   float cfranext, cfraprev;
   bool donenext = false, doneprev = false;

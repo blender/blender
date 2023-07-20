@@ -855,7 +855,7 @@ static bool gpencil_weightpaint_brush_poll(bContext *C)
   }
 
   bGPdata *gpd = ED_gpencil_data_get_active(C);
-  if ((gpd == NULL) || (!GPENCIL_WEIGHT_MODE(gpd))) {
+  if ((gpd == NULL) || !GPENCIL_WEIGHT_MODE(gpd)) {
     return false;
   }
 
@@ -1021,8 +1021,8 @@ static void gpencil_weightpaint_select_stroke(tGP_BrushWeightpaintData *gso,
         if (gpencil_stroke_inside_circle(gso->mouse, radius_wide, pc1[0], pc1[1], pc2[0], pc2[1]))
         {
           if (widen_brush) {
-            within_brush = (gpencil_stroke_inside_circle(
-                gso->mouse, radius_brush, pc1[0], pc1[1], pc2[0], pc2[1]));
+            within_brush = gpencil_stroke_inside_circle(
+                gso->mouse, radius_brush, pc1[0], pc1[1], pc2[0], pc2[1]);
           }
 
           /* To each point individually... */

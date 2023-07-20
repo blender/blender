@@ -53,7 +53,7 @@ static void single_axis_convert(int src_axis,
 /**
  * Use for all geometry.
  */
-static void ed_gizmo_draw_preset_geometry(const struct wmGizmo *gz,
+static void ed_gizmo_draw_preset_geometry(const wmGizmo *gz,
                                           const float mat[4][4],
                                           int select_id,
                                           const GizmoGeomInfo *info)
@@ -78,22 +78,19 @@ static void ed_gizmo_draw_preset_geometry(const struct wmGizmo *gz,
   }
 }
 
-void ED_gizmo_draw_preset_box(const struct wmGizmo *gz, float mat[4][4], int select_id)
+void ED_gizmo_draw_preset_box(const wmGizmo *gz, float mat[4][4], int select_id)
 {
   ed_gizmo_draw_preset_geometry(gz, mat, select_id, &wm_gizmo_geom_data_cube);
 }
 
-void ED_gizmo_draw_preset_arrow(const struct wmGizmo *gz, float mat[4][4], int axis, int select_id)
+void ED_gizmo_draw_preset_arrow(const wmGizmo *gz, float mat[4][4], int axis, int select_id)
 {
   float mat_rotate[4][4];
   single_axis_convert(OB_POSZ, mat, axis, mat_rotate);
   ed_gizmo_draw_preset_geometry(gz, mat_rotate, select_id, &wm_gizmo_geom_data_arrow);
 }
 
-void ED_gizmo_draw_preset_circle(const struct wmGizmo *gz,
-                                 float mat[4][4],
-                                 int axis,
-                                 int select_id)
+void ED_gizmo_draw_preset_circle(const wmGizmo *gz, float mat[4][4], int axis, int select_id)
 {
   float mat_rotate[4][4];
   single_axis_convert(OB_POSZ, mat, axis, mat_rotate);

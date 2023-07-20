@@ -46,7 +46,7 @@ static Object *make_prim_init(bContext *C,
                               ushort local_view_bits,
                               MakePrimitiveData *r_creation_data)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *obedit = CTX_data_edit_object(C);
 

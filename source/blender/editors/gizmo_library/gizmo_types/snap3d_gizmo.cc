@@ -372,7 +372,7 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
       prop, gizmo_snap_rna_snap_elem_index_get_fn, nullptr, nullptr);
 }
 
-void ED_gizmotypes_snap_3d(void)
+void ED_gizmotypes_snap_3d()
 {
   WM_gizmotype_append(GIZMO_GT_snap_3d);
 }

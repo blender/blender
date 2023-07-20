@@ -384,7 +384,7 @@ void ED_armature_bone_rename(Main *bmain,
  * \{ */
 
 struct BoneFlipNameData {
-  struct BoneFlipNameData *next, *prev;
+  BoneFlipNameData *next, *prev;
   char *name;
   char name_flip[MAXBONENAME];
 };

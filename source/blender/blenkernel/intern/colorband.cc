@@ -106,7 +106,7 @@ static void colorband_init_from_table_rgba_simple(ColorBand *coba,
  * Used for calculating which samples of a color-band to remove (when simplifying).
  */
 struct ColorResampleElem {
-  struct ColorResampleElem *next, *prev;
+  ColorResampleElem *next, *prev;
   HeapNode *node;
   float rgba[4];
   float pos;
@@ -115,7 +115,7 @@ struct ColorResampleElem {
 /**
  * Measure the 'area' of each channel and combine to use as a cost for this samples removal.
  */
-static float color_sample_remove_cost(const struct ColorResampleElem *c)
+static float color_sample_remove_cost(const ColorResampleElem *c)
 {
   if (c->next == nullptr || c->prev == nullptr) {
     return -1.0f;
@@ -161,7 +161,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
 {
   BLI_assert(array_len >= 2);
   const float eps_2x = ((1.0f / 255.0f) + 1e-6f);
-  struct ColorResampleElem *c,
+  ColorResampleElem *c,
       *carr = static_cast<ColorResampleElem *>(MEM_mallocN(sizeof(*carr) * array_len, __func__));
   int carr_len = array_len;
   c = carr;
@@ -194,7 +194,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
          ((carr_len >= MAXCOLORBAND) || (BLI_heap_top_value(heap) <= eps_2x)))
   {
     c = static_cast<ColorResampleElem *>(BLI_heap_pop_min(heap));
-    struct ColorResampleElem *c_next = c->next, *c_prev = c->prev;
+    ColorResampleElem *c_next = c->next, *c_prev = c->prev;
     c_prev->next = c_next;
     c_next->prev = c_prev;
     /* Clear data (not essential, avoid confusion). */
@@ -203,7 +203,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
 
     /* Update adjacent */
     for (int i = 0; i < 2; i++) {
-      struct ColorResampleElem *c_other = i ? c_next : c_prev;
+      ColorResampleElem *c_other = i ? c_next : c_prev;
       if (c_other->node != nullptr) {
         const float cost = color_sample_remove_cost(c_other);
         if (cost != -1.0) {
@@ -244,7 +244,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
         if (steps_prev) {
           const float step_size = 1.0 / float(steps_prev + 1);
           int j = steps_prev;
-          for (struct ColorResampleElem *c_other = c - 1; c_other != c->prev; c_other--, j--) {
+          for (ColorResampleElem *c_other = c - 1; c_other != c->prev; c_other--, j--) {
             const float step_pos = float(j) * step_size;
             BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
             const float f = filter_gauss(step_pos);
@@ -255,7 +255,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
         if (steps_next) {
           const float step_size = 1.0 / float(steps_next + 1);
           int j = steps_next;
-          for (struct ColorResampleElem *c_other = c + 1; c_other != c->next; c_other++, j--) {
+          for (ColorResampleElem *c_other = c + 1; c_other != c->next; c_other++, j--) {
             const float step_pos = float(j) * step_size;
             BLI_assert(step_pos > 0.0f && step_pos < 1.0f);
             const float f = filter_gauss(step_pos);

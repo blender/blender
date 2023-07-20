@@ -33,7 +33,7 @@ struct GizmoGroupPreSelElem {
 static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_elem_3d", true);
-  struct GizmoGroupPreSelElem *ggd = static_cast<GizmoGroupPreSelElem *>(
+  GizmoGroupPreSelElem *ggd = static_cast<GizmoGroupPreSelElem *>(
       MEM_callocN(sizeof(GizmoGroupPreSelElem), __func__));
   gzgroup->customdata = ggd;
 
@@ -70,7 +70,7 @@ static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext * /*C*/,
                                                       wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_edgering_3d", true);
-  struct GizmoGroupPreSelEdgeRing *ggd = static_cast<GizmoGroupPreSelEdgeRing *>(
+  GizmoGroupPreSelEdgeRing *ggd = static_cast<GizmoGroupPreSelEdgeRing *>(
       MEM_callocN(sizeof(GizmoGroupPreSelEdgeRing), __func__));
   gzgroup->customdata = ggd;
 

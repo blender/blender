@@ -131,7 +131,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const struct SelectPick_Params *params)
+                                       const SelectPick_Params *params)
 {
   bool found = false;
   bool changed = false;
@@ -255,9 +255,9 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               ViewLayer *view_layer,
                                               View3D *v3d,
                                               Base *base,
-                                              const struct GPUSelectResult *buffer,
+                                              const GPUSelectResult *buffer,
                                               const short hits,
-                                              const struct SelectPick_Params *params,
+                                              const SelectPick_Params *params,
                                               bool do_nearest)
 {
   Object *ob = base->object;

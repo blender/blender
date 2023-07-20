@@ -136,7 +136,7 @@ struct tPoseSlideOp {
   /** links between posechannels and f-curves for all the pose objects. */
   ListBase pfLinks;
   /** binary tree for quicker searching for keyframes (when applicable) */
-  struct AnimKeylist *keylist;
+  AnimKeylist *keylist;
 
   /** current frame number - global time */
   int current_frame;
@@ -159,7 +159,7 @@ struct tPoseSlideOp {
   /** Axis-limits for transforms. */
   ePoseSlide_AxisLock axislock;
 
-  struct tSlider *slider;
+  tSlider *slider;
 
   /** Numeric input. */
   NumInput num;
@@ -1802,7 +1802,7 @@ enum ePosePropagate_Termination {
 /* --------------------------------- */
 
 struct FrameLink {
-  struct FrameLink *next, *prev;
+  FrameLink *next, *prev;
   float frame;
 };
 
@@ -1874,7 +1874,7 @@ static void get_keyed_frames_in_range(ListBase *pflinks,
                                       const float end_frame,
                                       ListBase /*FrameLink*/ *target_frames)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;
@@ -1897,7 +1897,7 @@ static void get_keyed_frames_in_range(ListBase *pflinks,
 
 static void get_selected_frames(ListBase *pflinks, ListBase /*FrameLink*/ *target_frames)
 {
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (tPChanFCurveLink *, pfl, pflinks) {
     LISTBASE_FOREACH (LinkData *, ld, &pfl->fcurves) {
       FCurve *fcu = (FCurve *)ld->data;

@@ -1076,7 +1076,7 @@ Object *MeshImporter::create_mesh_object(
 
   /* name Object */
   const std::string &id = node->getName().empty() ? node->getOriginalId() : node->getName();
-  const char *name = (id.length()) ? id.c_str() : nullptr;
+  const char *name = id.length() ? id.c_str() : nullptr;
 
   /* add object */
   Object *ob = bc_add_object(m_bmain, scene, view_layer, OB_MESH, name);

@@ -160,9 +160,7 @@ static FreestyleLineSet *alloc_lineset()
   return (FreestyleLineSet *)MEM_callocN(sizeof(FreestyleLineSet), "Freestyle line set");
 }
 
-FreestyleLineSet *BKE_freestyle_lineset_add(struct Main *bmain,
-                                            FreestyleConfig *config,
-                                            const char *name)
+FreestyleLineSet *BKE_freestyle_lineset_add(Main *bmain, FreestyleConfig *config, const char *name)
 {
   int lineset_index = BLI_listbase_count(&config->linesets);
 

@@ -122,20 +122,20 @@ struct EditMesh_PreSelEdgeRing {
   int verts_len;
 };
 
-struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create()
+EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create()
 {
-  struct EditMesh_PreSelEdgeRing *psel = static_cast<EditMesh_PreSelEdgeRing *>(
+  EditMesh_PreSelEdgeRing *psel = static_cast<EditMesh_PreSelEdgeRing *>(
       MEM_callocN(sizeof(*psel), __func__));
   return psel;
 }
 
-void EDBM_preselect_edgering_destroy(struct EditMesh_PreSelEdgeRing *psel)
+void EDBM_preselect_edgering_destroy(EditMesh_PreSelEdgeRing *psel)
 {
   EDBM_preselect_edgering_clear(psel);
   MEM_freeN(psel);
 }
 
-void EDBM_preselect_edgering_clear(struct EditMesh_PreSelEdgeRing *psel)
+void EDBM_preselect_edgering_clear(EditMesh_PreSelEdgeRing *psel)
 {
   MEM_SAFE_FREE(psel->edges);
   psel->edges_len = 0;
@@ -144,7 +144,7 @@ void EDBM_preselect_edgering_clear(struct EditMesh_PreSelEdgeRing *psel)
   psel->verts_len = 0;
 }
 
-void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const float matrix[4][4])
+void EDBM_preselect_edgering_draw(EditMesh_PreSelEdgeRing *psel, const float matrix[4][4])
 {
   if ((psel->edges_len == 0) && (psel->verts_len == 0)) {
     return;
@@ -205,12 +205,11 @@ void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const fl
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static void view3d_preselect_mesh_edgering_update_verts_from_edge(
-    struct EditMesh_PreSelEdgeRing *psel,
-    BMesh * /*bm*/,
-    BMEdge *eed_start,
-    int previewlines,
-    const float (*coords)[3])
+static void view3d_preselect_mesh_edgering_update_verts_from_edge(EditMesh_PreSelEdgeRing *psel,
+                                                                  BMesh * /*bm*/,
+                                                                  BMEdge *eed_start,
+                                                                  int previewlines,
+                                                                  const float (*coords)[3])
 {
   float v_cos[2][3];
   float(*verts)[3];
@@ -230,12 +229,11 @@ static void view3d_preselect_mesh_edgering_update_verts_from_edge(
   psel->verts_len = previewlines;
 }
 
-static void view3d_preselect_mesh_edgering_update_edges_from_edge(
-    struct EditMesh_PreSelEdgeRing *psel,
-    BMesh *bm,
-    BMEdge *eed_start,
-    int previewlines,
-    const float (*coords)[3])
+static void view3d_preselect_mesh_edgering_update_edges_from_edge(EditMesh_PreSelEdgeRing *psel,
+                                                                  BMesh *bm,
+                                                                  BMEdge *eed_start,
+                                                                  int previewlines,
+                                                                  const float (*coords)[3])
 {
   BMWalker walker;
   BMEdge *eed, *eed_last;
@@ -339,7 +337,7 @@ static void view3d_preselect_mesh_edgering_update_edges_from_edge(
   psel->edges_len = tot;
 }
 
-void EDBM_preselect_edgering_update_from_edge(struct EditMesh_PreSelEdgeRing *psel,
+void EDBM_preselect_edgering_update_from_edge(EditMesh_PreSelEdgeRing *psel,
                                               BMesh *bm,
                                               BMEdge *eed_start,
                                               int previewlines,

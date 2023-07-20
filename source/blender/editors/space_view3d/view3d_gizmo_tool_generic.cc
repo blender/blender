@@ -142,7 +142,7 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
     }
 
     RegionView3D *rv3d = static_cast<RegionView3D *>(CTX_wm_region_data(C));
-    struct TransformBounds tbounds;
+    TransformBounds tbounds;
     TransformCalcParams params{};
     params.use_only_center = true;
     params.orientation_index = orientation + 1;
@@ -162,7 +162,7 @@ static void WIDGETGROUP_tool_generic_refresh(const bContext *C, wmGizmoGroup *gz
 
 static void WIDGETGROUP_gizmo_message_subscribe(const bContext *C,
                                                 wmGizmoGroup *gzgroup,
-                                                struct wmMsgBus *mbus)
+                                                wmMsgBus *mbus)
 {
   ARegion *region = CTX_wm_region(C);
 

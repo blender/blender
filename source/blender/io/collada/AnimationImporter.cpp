@@ -1101,19 +1101,19 @@ void AnimationImporter::translate_Animations(
           FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
 
       if ((animType->light & LIGHT_COLOR) != 0) {
-        const COLLADAFW::Color *col = &(light->getColor());
+        const COLLADAFW::Color *col = &light->getColor();
         const COLLADAFW::UniqueId &listid = col->getAnimationList();
 
         Assign_color_animations(listid, AnimCurves, "color");
       }
       if ((animType->light & LIGHT_FOA) != 0) {
-        const COLLADAFW::AnimatableFloat *foa = &(light->getFallOffAngle());
+        const COLLADAFW::AnimatableFloat *foa = &light->getFallOffAngle();
         const COLLADAFW::UniqueId &listid = foa->getAnimationList();
 
         Assign_float_animations(listid, AnimCurves, "spot_size");
       }
       if ((animType->light & LIGHT_FOE) != 0) {
-        const COLLADAFW::AnimatableFloat *foe = &(light->getFallOffExponent());
+        const COLLADAFW::AnimatableFloat *foe = &light->getFallOffExponent();
         const COLLADAFW::UniqueId &listid = foe->getAnimationList();
 
         Assign_float_animations(listid, AnimCurves, "spot_blend");
@@ -1139,39 +1139,39 @@ void AnimationImporter::translate_Animations(
           FW_object_map[nodeCameras[i]->getInstanciatedObjectId()];
 
       if ((animType->camera & CAMERA_XFOV) != 0) {
-        const COLLADAFW::AnimatableFloat *xfov = &(camera->getXFov());
+        const COLLADAFW::AnimatableFloat *xfov = &camera->getXFov();
         const COLLADAFW::UniqueId &listid = xfov->getAnimationList();
         double aspect = get_aspect_ratio(camera);
         Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_XFOV);
       }
 
       else if ((animType->camera & CAMERA_YFOV) != 0) {
-        const COLLADAFW::AnimatableFloat *yfov = &(camera->getYFov());
+        const COLLADAFW::AnimatableFloat *yfov = &camera->getYFov();
         const COLLADAFW::UniqueId &listid = yfov->getAnimationList();
         double aspect = get_aspect_ratio(camera);
         Assign_lens_animations(listid, AnimCurves, aspect, cam, "lens", CAMERA_YFOV);
       }
 
       else if ((animType->camera & CAMERA_XMAG) != 0) {
-        const COLLADAFW::AnimatableFloat *xmag = &(camera->getXMag());
+        const COLLADAFW::AnimatableFloat *xmag = &camera->getXMag();
         const COLLADAFW::UniqueId &listid = xmag->getAnimationList();
         Assign_float_animations(listid, AnimCurves, "ortho_scale");
       }
 
       else if ((animType->camera & CAMERA_YMAG) != 0) {
-        const COLLADAFW::AnimatableFloat *ymag = &(camera->getYMag());
+        const COLLADAFW::AnimatableFloat *ymag = &camera->getYMag();
         const COLLADAFW::UniqueId &listid = ymag->getAnimationList();
         Assign_float_animations(listid, AnimCurves, "ortho_scale");
       }
 
       if ((animType->camera & CAMERA_ZFAR) != 0) {
-        const COLLADAFW::AnimatableFloat *zfar = &(camera->getFarClippingPlane());
+        const COLLADAFW::AnimatableFloat *zfar = &camera->getFarClippingPlane();
         const COLLADAFW::UniqueId &listid = zfar->getAnimationList();
         Assign_float_animations(listid, AnimCurves, "clip_end");
       }
 
       if ((animType->camera & CAMERA_ZNEAR) != 0) {
-        const COLLADAFW::AnimatableFloat *znear = &(camera->getNearClippingPlane());
+        const COLLADAFW::AnimatableFloat *znear = &camera->getNearClippingPlane();
         const COLLADAFW::UniqueId &listid = znear->getAnimationList();
         Assign_float_animations(listid, AnimCurves, "clip_start");
       }
@@ -1205,25 +1205,25 @@ void AnimationImporter::translate_Animations(
           const COLLADAFW::CommonEffectPointerArray &commonEffects = ef->getCommonEffects();
           COLLADAFW::EffectCommon *efc = commonEffects[0];
           if ((animType->material & MATERIAL_SHININESS) != 0) {
-            const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
+            const COLLADAFW::FloatOrParam *shin = &efc->getShininess();
             const COLLADAFW::UniqueId &listid = shin->getAnimationList();
             Assign_float_animations(listid, &AnimCurves, "specular_hardness");
           }
 
           if ((animType->material & MATERIAL_IOR) != 0) {
-            const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
+            const COLLADAFW::FloatOrParam *ior = &efc->getIndexOfRefraction();
             const COLLADAFW::UniqueId &listid = ior->getAnimationList();
             Assign_float_animations(listid, &AnimCurves, "raytrace_transparency.ior");
           }
 
           if ((animType->material & MATERIAL_SPEC_COLOR) != 0) {
-            const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
+            const COLLADAFW::ColorOrTexture *cot = &efc->getSpecular();
             const COLLADAFW::UniqueId &listid = cot->getColor().getAnimationList();
             Assign_color_animations(listid, &AnimCurves, "specular_color");
           }
 
           if ((animType->material & MATERIAL_DIFF_COLOR) != 0) {
-            const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
+            const COLLADAFW::ColorOrTexture *cot = &efc->getDiffuse();
             const COLLADAFW::UniqueId &listid = cot->getColor().getAnimationList();
             Assign_color_animations(listid, &AnimCurves, "diffuse_color");
           }
@@ -1402,9 +1402,9 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
   for (uint i = 0; i < nodeLights.getCount(); i++) {
     const COLLADAFW::Light *light = (COLLADAFW::Light *)
         FW_object_map[nodeLights[i]->getInstanciatedObjectId()];
-    types->light = setAnimType(&(light->getColor()), (types->light), LIGHT_COLOR);
-    types->light = setAnimType(&(light->getFallOffAngle()), (types->light), LIGHT_FOA);
-    types->light = setAnimType(&(light->getFallOffExponent()), (types->light), LIGHT_FOE);
+    types->light = setAnimType(&light->getColor(), (types->light), LIGHT_COLOR);
+    types->light = setAnimType(&light->getFallOffAngle(), (types->light), LIGHT_FOA);
+    types->light = setAnimType(&light->getFallOffExponent(), (types->light), LIGHT_FOE);
 
     if (types->light != 0) {
       break;
@@ -1426,17 +1426,17 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
     const COLLADAFW::Animatable *mag;
     const COLLADAFW::UniqueId listid = camera->getYMag().getAnimationList();
     if (animlist_map.find(listid) != animlist_map.end()) {
-      mag = &(camera->getYMag());
+      mag = &camera->getYMag();
       addition = (is_perspective_type) ? CAMERA_YFOV : CAMERA_YMAG;
     }
     else {
-      mag = &(camera->getXMag());
+      mag = &camera->getXMag();
       addition = (is_perspective_type) ? CAMERA_XFOV : CAMERA_XMAG;
     }
     types->camera = setAnimType(mag, (types->camera), addition);
 
-    types->camera = setAnimType(&(camera->getFarClippingPlane()), (types->camera), CAMERA_ZFAR);
-    types->camera = setAnimType(&(camera->getNearClippingPlane()), (types->camera), CAMERA_ZNEAR);
+    types->camera = setAnimType(&camera->getFarClippingPlane(), (types->camera), CAMERA_ZFAR);
+    types->camera = setAnimType(&camera->getNearClippingPlane(), (types->camera), CAMERA_ZNEAR);
 
     if (types->camera != 0) {
       break;
@@ -1454,16 +1454,16 @@ AnimationImporter::AnimMix *AnimationImporter::get_animation_type(
         if (!commonEffects.empty()) {
           COLLADAFW::EffectCommon *efc = commonEffects[0];
           types->material = setAnimType(
-              &(efc->getShininess()), (types->material), MATERIAL_SHININESS);
+              &efc->getShininess(), (types->material), MATERIAL_SHININESS);
           types->material = setAnimType(
-              &(efc->getSpecular().getColor()), (types->material), MATERIAL_SPEC_COLOR);
+              &efc->getSpecular().getColor(), (types->material), MATERIAL_SPEC_COLOR);
           types->material = setAnimType(
-              &(efc->getDiffuse().getColor()), (types->material), MATERIAL_DIFF_COLOR);
+              &efc->getDiffuse().getColor(), (types->material), MATERIAL_DIFF_COLOR);
 #if 0
           types->material = setAnimType(&(efc->get()), (types->material), MATERIAL_TRANSPARENCY);
 #endif
           types->material = setAnimType(
-              &(efc->getIndexOfRefraction()), (types->material), MATERIAL_IOR);
+              &efc->getIndexOfRefraction(), (types->material), MATERIAL_IOR);
         }
       }
     }

@@ -61,7 +61,7 @@ static void image_buf_fill_color_thread_do(void *data_v, int scanline)
 {
   FillColorThreadData *data = (FillColorThreadData *)data_v;
   const int num_scanlines = 1;
-  size_t offset = (size_t(scanline)) * data->width * 4;
+  size_t offset = size_t(scanline) * data->width * 4;
   uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
   float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
   image_buf_fill_color_slice(rect, rect_float, data->width, num_scanlines, data->color);
@@ -70,7 +70,7 @@ static void image_buf_fill_color_thread_do(void *data_v, int scanline)
 void BKE_image_buf_fill_color(
     uchar *rect, float *rect_float, int width, int height, const float color[4])
 {
-  if ((size_t(width)) * height < 64 * 64) {
+  if (size_t(width) * height < 64 * 64) {
     image_buf_fill_color_slice(rect, rect_float, width, height, color);
   }
   else {
@@ -190,7 +190,7 @@ struct FillCheckerThreadData {
 static void image_buf_fill_checker_thread_do(void *data_v, int scanline)
 {
   FillCheckerThreadData *data = (FillCheckerThreadData *)data_v;
-  size_t offset = (size_t(scanline)) * data->width * 4;
+  size_t offset = size_t(scanline) * data->width * 4;
   const int num_scanlines = 1;
   uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
   float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
@@ -199,7 +199,7 @@ static void image_buf_fill_checker_thread_do(void *data_v, int scanline)
 
 void BKE_image_buf_fill_checker(uchar *rect, float *rect_float, int width, int height)
 {
-  if ((size_t(width)) * height < 64 * 64) {
+  if (size_t(width) * height < 64 * 64) {
     image_buf_fill_checker_slice(rect, rect_float, width, height, 0);
   }
   else {
@@ -436,7 +436,7 @@ static void checker_board_color_prepare_thread_do(void *data_v, int scanline)
 {
   FillCheckerColorThreadData *data = (FillCheckerColorThreadData *)data_v;
   const int num_scanlines = 1;
-  size_t offset = ((size_t)data->width) * scanline * 4;
+  size_t offset = (size_t(data->width)) * scanline * 4;
   uchar *rect = (data->rect != nullptr) ? (data->rect + offset) : nullptr;
   float *rect_float = (data->rect_float != nullptr) ? (data->rect_float + offset) : nullptr;
   checker_board_color_prepare_slice(
@@ -445,7 +445,7 @@ static void checker_board_color_prepare_thread_do(void *data_v, int scanline)
 
 void BKE_image_buf_fill_checker_color(uchar *rect, float *rect_float, int width, int height)
 {
-  if ((size_t(width)) * height < 64 * 64) {
+  if (size_t(width) * height < 64 * 64) {
     checker_board_color_prepare_slice(rect, rect_float, width, height, 0, height);
   }
   else {

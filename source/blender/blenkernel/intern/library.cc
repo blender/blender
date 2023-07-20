@@ -74,7 +74,7 @@ static void library_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static void library_blend_read_data(struct BlendDataReader * /*reader*/, ID *id)
+static void library_blend_read_data(BlendDataReader * /*reader*/, ID *id)
 {
   Library *lib = (Library *)id;
   lib->runtime.name_map = nullptr;

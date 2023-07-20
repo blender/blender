@@ -1823,7 +1823,7 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
   plane_from_point_normal_v3(plane, obedit->object_to_world[3], obedit->object_to_world[2]);
 
   /* Convert Mouse location in region to 3D location in world space. */
-  float mal_fl[2] = {(float)event->mval[0], (float)event->mval[1]};
+  float mal_fl[2] = {float(event->mval[0]), float(event->mval[1])};
   float mouse_loc[3];
   ED_view3d_win_to_3d_on_plane(CTX_wm_region(C), plane, mal_fl, true, mouse_loc);
 
@@ -2386,7 +2386,7 @@ bool ED_curve_editfont_select_pick(
     bContext *C,
     const int mval[2],
     /* NOTE: `params->deselect_all` is ignored as only one text-box is active at once. */
-    const struct SelectPick_Params *params)
+    const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);

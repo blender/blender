@@ -1356,7 +1356,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
 /** \name Select Every Nth Number of Point Operator
  * \{ */
 
-static void select_nth_bezt(Nurb *nu, BezTriple *bezt, const struct CheckerIntervalParams *params)
+static void select_nth_bezt(Nurb *nu, BezTriple *bezt, const CheckerIntervalParams *params)
 {
   int a, start;
 
@@ -1374,7 +1374,7 @@ static void select_nth_bezt(Nurb *nu, BezTriple *bezt, const struct CheckerInter
   }
 }
 
-static void select_nth_bp(Nurb *nu, BPoint *bp, const struct CheckerIntervalParams *params)
+static void select_nth_bp(Nurb *nu, BPoint *bp, const CheckerIntervalParams *params)
 {
   int a, startrow, startpnt;
   int row, pnt;
@@ -1403,7 +1403,7 @@ static void select_nth_bp(Nurb *nu, BPoint *bp, const struct CheckerIntervalPara
   }
 }
 
-static bool ed_curve_select_nth(Curve *cu, const struct CheckerIntervalParams *params)
+static bool ed_curve_select_nth(Curve *cu, const CheckerIntervalParams *params)
 {
   Nurb *nu = nullptr;
   void *vert = nullptr;
@@ -1430,7 +1430,7 @@ static int select_nth_exec(bContext *C, wmOperator *op)
   View3D *v3d = CTX_wm_view3d(C);
   bool changed = false;
 
-  struct CheckerIntervalParams op_params;
+  CheckerIntervalParams op_params;
   WM_operator_properties_checker_interval_from_op(op, &op_params);
 
   uint objects_len = 0;
@@ -1612,7 +1612,7 @@ static bool curve_nurb_select_similar_type(Object *ob,
                                            const float thresh,
                                            const int compare)
 {
-  const float thresh_cos = cosf(thresh * (float)M_PI_2);
+  const float thresh_cos = cosf(thresh * float(M_PI_2));
   bool changed = false;
 
   if (nu->type == CU_BEZIER) {

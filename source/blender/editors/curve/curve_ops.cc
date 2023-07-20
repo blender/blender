@@ -24,7 +24,7 @@
 
 /************************* registration ****************************/
 
-void ED_operatortypes_curve(void)
+void ED_operatortypes_curve()
 {
   WM_operatortype_append(FONT_OT_text_insert);
   WM_operatortype_append(FONT_OT_line_break);
@@ -122,7 +122,7 @@ void ED_operatortypes_curve(void)
   WM_operatortype_append(CURVE_OT_match_texture_space);
 }
 
-void ED_operatormacros_curve(void)
+void ED_operatormacros_curve()
 {
   wmOperatorType *ot;
   wmOperatorTypeMacro *otmacro;

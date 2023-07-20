@@ -810,7 +810,7 @@ struct ParentingContext {
   bool keep_transform;
 };
 
-static bool parent_set_nonvertex_parent(bContext *C, struct ParentingContext *parenting_context)
+static bool parent_set_nonvertex_parent(bContext *C, ParentingContext *parenting_context)
 {
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     if (ob == parenting_context->par) {
@@ -838,7 +838,7 @@ static bool parent_set_nonvertex_parent(bContext *C, struct ParentingContext *pa
 }
 
 static bool parent_set_vertex_parent_with_kdtree(bContext *C,
-                                                 struct ParentingContext *parenting_context,
+                                                 ParentingContext *parenting_context,
                                                  KDTree_3d *tree)
 {
   int vert_par[3] = {0, 0, 0};
@@ -868,7 +868,7 @@ static bool parent_set_vertex_parent_with_kdtree(bContext *C,
   return true;
 }
 
-static bool parent_set_vertex_parent(bContext *C, struct ParentingContext *parenting_context)
+static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_context)
 {
   KDTree_3d *tree = nullptr;
   int tree_tot;

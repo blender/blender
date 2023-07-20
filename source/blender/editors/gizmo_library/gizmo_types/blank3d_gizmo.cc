@@ -51,7 +51,7 @@ static void GIZMO_GT_blank_3d(wmGizmoType *gzt)
   gzt->struct_size = sizeof(wmGizmo);
 }
 
-void ED_gizmotypes_blank_3d(void)
+void ED_gizmotypes_blank_3d()
 {
   WM_gizmotype_append(GIZMO_GT_blank_3d);
 }

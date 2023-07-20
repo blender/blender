@@ -578,7 +578,7 @@ void ED_slider_mode_set(tSlider *slider, SliderMode mode)
 
 void ED_slider_unit_set(tSlider *slider, const char *unit)
 {
-  BLI_strncpy(slider->unit_string, unit, SLIDER_UNIT_STRING_SIZE);
+  STRNCPY(slider->unit_string, unit);
 }
 
 /** \} */
@@ -724,7 +724,7 @@ static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const
       else if (i == 3) {
         int len = SNPRINTF_RLEN(temp_str, "%s: ", meta_data_list[i + 1]);
         if (metadata_is_valid(ibuf, temp_str, i + 1, len)) {
-          struct ResultBLF info;
+          ResultBLF info;
           BLF_enable(fontid, BLF_WORD_WRAP);
           BLF_wordwrap(fontid, ibuf->x - (margin * 2));
           BLF_position(fontid, xmin, ymax - vertical_offset - ofs_y, 0.0f);
@@ -795,7 +795,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
       if (metadata_is_valid(ibuf, str, i, 0)) {
         if (i == 4) {
           struct {
-            struct ResultBLF info;
+            ResultBLF info;
             rcti rect;
           } wrap;
 

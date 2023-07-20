@@ -232,7 +232,7 @@ static bool object_apply_mat4_with_protect(
 
 void ED_view3d_cameracontrol_update(View3DCameraControl *vctrl, /* args for keyframing */
                                     const bool use_autokey,
-                                    struct bContext *C,
+                                    bContext *C,
                                     const bool do_rotate,
                                     const bool do_translate)
 {

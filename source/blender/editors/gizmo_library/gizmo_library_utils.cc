@@ -169,7 +169,7 @@ bool gizmo_window_project_2d(
   float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
-    struct WM_GizmoMatrixParams params = {nullptr};
+    WM_GizmoMatrixParams params = {nullptr};
     if (use_offset == false) {
       unit_m4(mat_identity);
       params.matrix_offset = mat_identity;
@@ -214,7 +214,7 @@ bool gizmo_window_project_3d(
   float mat[4][4], imat[4][4];
   {
     float mat_identity[4][4];
-    struct WM_GizmoMatrixParams params = {nullptr};
+    WM_GizmoMatrixParams params = {nullptr};
     if (use_offset == false) {
       unit_m4(mat_identity);
       params.matrix_offset = mat_identity;

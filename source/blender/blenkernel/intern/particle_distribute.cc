@@ -212,7 +212,7 @@ static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
           co2[a] += delta[a] + 0.001f * d;
           co1[a] -= 0.001f * d;
 
-          struct IsectRayPrecalc isect_precalc;
+          IsectRayPrecalc isect_precalc;
           float ray_direction[3];
           sub_v3_v3v3(ray_direction, co2, co1);
           isect_ray_tri_watertight_v3_precalc(&isect_precalc, ray_direction);
@@ -352,8 +352,8 @@ static void init_mv_jit(float *jit, int num, int seed2, float amount)
   }
 
   rad1 = float(1.0f / sqrtf(float(num)));
-  rad2 = float(1.0f / (float(num)));
-  rad3 = float(sqrtf(float(num)) / (float(num)));
+  rad2 = float(1.0f / float(num));
+  rad3 = float(sqrtf(float(num)) / float(num));
 
   rng = BLI_rng_new(31415926 + num + seed2);
   x = 0;

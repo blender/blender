@@ -145,7 +145,7 @@ static void keymap_diff_item_free(wmKeyMapDiffItem *kmdi)
 }
 
 void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
-                                      const struct wmKeyConfigFilterItemParams *params,
+                                      const wmKeyConfigFilterItemParams *params,
                                       bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
                                       void *user_data)
 {
@@ -195,7 +195,7 @@ void BKE_keyconfig_keymap_filter_item(wmKeyMap *keymap,
 }
 
 void BKE_keyconfig_pref_filter_items(UserDef *userdef,
-                                     const struct wmKeyConfigFilterItemParams *params,
+                                     const wmKeyConfigFilterItemParams *params,
                                      bool (*filter_fn)(wmKeyMapItem *kmi, void *user_data),
                                      void *user_data)
 {

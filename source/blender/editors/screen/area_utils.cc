@@ -31,7 +31,7 @@
 
 void ED_region_generic_tools_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};

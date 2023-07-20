@@ -1711,7 +1711,7 @@ static int image_match_len_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+  anim *anim = ((ImageAnim *)ima->anims.first)->anim;
   if (!anim) {
     return OPERATOR_CANCELLED;
   }
@@ -2225,7 +2225,7 @@ static int image_save_sequence_exec(bContext *C, wmOperator *op)
   ImBuf *ibuf, *first_ibuf = nullptr;
   int tot = 0;
   char di[FILE_MAX];
-  struct MovieCacheIter *iter;
+  MovieCacheIter *iter;
 
   if (image == nullptr) {
     return OPERATOR_CANCELLED;
@@ -3003,7 +3003,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   if (ibuf->float_buffer.data) {
 
     float *fp = ibuf->float_buffer.data;
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, fp += 4) {
+    for (i = (size_t(ibuf->x)) * ibuf->y; i > 0; i--, fp += 4) {
       if (r) {
         fp[0] = 1.0f - fp[0];
       }
@@ -3025,7 +3025,7 @@ static int image_invert_exec(bContext *C, wmOperator *op)
   else if (ibuf->byte_buffer.data) {
 
     uchar *cp = ibuf->byte_buffer.data;
-    for (i = ((size_t)ibuf->x) * ibuf->y; i > 0; i--, cp += 4) {
+    for (i = (size_t(ibuf->x)) * ibuf->y; i > 0; i--, cp += 4) {
       if (r) {
         cp[0] = 255 - cp[0];
       }

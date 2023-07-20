@@ -317,7 +317,7 @@ void IrradianceCache::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
     display_grids_ps_.framebuffer_set(&view_fb);
     debug_surfels_ps_.shader_set(inst_.shaders.static_shader_get(DEBUG_SURFELS));
     debug_surfels_ps_.push_constant("surfel_radius", 1.5f / 4.0f);
-    debug_surfels_ps_.push_constant("debug_mode", static_cast<int>(inst_.debug_mode));
+    debug_surfels_ps_.push_constant("debug_mode", int(inst_.debug_mode));
 
     debug_surfels_buf_.resize(cache->surfels_len);
     /* TODO(fclem): Cleanup: Could have a function in draw::StorageArrayBuffer that takes an input
@@ -534,7 +534,7 @@ void IrradianceBake::surfels_create(const Object &probe_object)
   capture_info_buf_.irradiance_grid_size = grid_resolution;
   capture_info_buf_.irradiance_grid_local_to_world = grid_local_to_world;
   capture_info_buf_.irradiance_grid_world_to_local_rotation = float4x4(
-      (invert(normalize(float3x3(grid_local_to_world)))));
+      invert(normalize(float3x3(grid_local_to_world))));
 
   eGPUTextureUsage texture_usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
                                    GPU_TEXTURE_USAGE_HOST_READ | GPU_TEXTURE_USAGE_ATTACHMENT;

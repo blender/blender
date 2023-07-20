@@ -48,7 +48,7 @@
 
 /* temp info for caching handle vertices close */
 struct tNearestVertInfo {
-  struct tNearestVertInfo *next, *prev;
+  tNearestVertInfo *next, *prev;
 
   FCurve *fcu; /* F-Curve that keyframe comes from */
 

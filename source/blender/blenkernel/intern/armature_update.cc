@@ -34,7 +34,7 @@
 
 /* Temporary evaluation tree data used for Spline IK */
 struct tSplineIK_Tree {
-  struct tSplineIK_Tree *next, *prev;
+  tSplineIK_Tree *next, *prev;
 
   int type; /* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
 

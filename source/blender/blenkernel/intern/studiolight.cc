@@ -1213,7 +1213,7 @@ static void studiolight_add_files_from_datafolder(const int folder_id,
     return;
   }
 
-  struct direntry *dirs;
+  direntry *dirs;
   const uint dirs_num = BLI_filelist_dir_contents(folder, &dirs);
   int i;
   for (i = 0; i < dirs_num; i++) {

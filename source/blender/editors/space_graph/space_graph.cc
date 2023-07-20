@@ -488,7 +488,7 @@ static void graph_region_listener(const wmRegionListenerParams *params)
 
 static void graph_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   Scene *scene = params->scene;
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
@@ -803,7 +803,7 @@ static void graph_refresh(const bContext *C, ScrArea *area)
   graph_refresh_fcurve_colors(C);
 }
 
-static void graph_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDRemapper *mappings)
+static void graph_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceGraph *sgraph = (SpaceGraph *)slink;
   if (!sgraph->ads) {

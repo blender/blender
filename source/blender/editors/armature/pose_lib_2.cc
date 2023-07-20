@@ -72,7 +72,7 @@ struct PoseBlendData {
    * cause interesting effects. */
   float blend_factor;
   bool is_flipped;
-  struct PoseBackup *pose_backup;
+  PoseBackup *pose_backup;
 
   Object *ob;           /* Object to work on. */
   bAction *act;         /* Pose to blend into the current pose. */
@@ -81,7 +81,7 @@ struct PoseBlendData {
   Scene *scene;  /* For auto-keying. */
   ScrArea *area; /* For drawing status text. */
 
-  struct tSlider *slider; /* Slider UI and event handling. */
+  tSlider *slider; /* Slider UI and event handling. */
 
   /** Info-text to print in header. */
   char headerstr[UI_MAX_DRAW_STR];

@@ -26,10 +26,7 @@ static bool callbacks_initialized = false;
                  "Callbacks should be initialized with BKE_callback_global_init() before using " \
                  "the callback system.")
 
-void BKE_callback_exec(struct Main *bmain,
-                       PointerRNA **pointers,
-                       const int num_pointers,
-                       eCbEvent evt)
+void BKE_callback_exec(Main *bmain, PointerRNA **pointers, const int num_pointers, eCbEvent evt)
 {
   ASSERT_CALLBACKS_INITIALIZED();
 
@@ -40,12 +37,12 @@ void BKE_callback_exec(struct Main *bmain,
   }
 }
 
-void BKE_callback_exec_null(struct Main *bmain, eCbEvent evt)
+void BKE_callback_exec_null(Main *bmain, eCbEvent evt)
 {
   BKE_callback_exec(bmain, nullptr, 0, evt);
 }
 
-void BKE_callback_exec_id(struct Main *bmain, struct ID *id, eCbEvent evt)
+void BKE_callback_exec_id(Main *bmain, ID *id, eCbEvent evt)
 {
   PointerRNA id_ptr;
   RNA_id_pointer_create(id, &id_ptr);
@@ -55,10 +52,7 @@ void BKE_callback_exec_id(struct Main *bmain, struct ID *id, eCbEvent evt)
   BKE_callback_exec(bmain, pointers, 1, evt);
 }
 
-void BKE_callback_exec_id_depsgraph(struct Main *bmain,
-                                    struct ID *id,
-                                    struct Depsgraph *depsgraph,
-                                    eCbEvent evt)
+void BKE_callback_exec_id_depsgraph(Main *bmain, ID *id, Depsgraph *depsgraph, eCbEvent evt)
 {
   PointerRNA id_ptr;
   RNA_id_pointer_create(id, &id_ptr);
@@ -71,7 +65,7 @@ void BKE_callback_exec_id_depsgraph(struct Main *bmain,
   BKE_callback_exec(bmain, pointers, 2, evt);
 }
 
-void BKE_callback_exec_string(struct Main *bmain, eCbEvent evt, const char *str)
+void BKE_callback_exec_string(Main *bmain, eCbEvent evt, const char *str)
 {
   PointerRNA str_ptr;
   PrimitiveStringRNA data = {nullptr};

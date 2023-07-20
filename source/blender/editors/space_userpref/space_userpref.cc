@@ -129,7 +129,7 @@ static void userpref_main_region_layout(const bContext *C, ARegion *region)
   ED_region_panels_layout_ex(C, region, &region->type->paneltypes, contexts, nullptr);
 }
 
-static void userpref_operatortypes(void) {}
+static void userpref_operatortypes() {}
 
 static void userpref_keymap(wmKeyConfig * /*keyconf*/) {}
 

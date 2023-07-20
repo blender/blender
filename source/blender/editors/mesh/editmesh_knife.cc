@@ -114,7 +114,7 @@ struct KnifeVert {
 };
 
 struct Ref {
-  struct Ref *next, *prev;
+  Ref *next, *prev;
   void *ref;
 };
 
@@ -3063,8 +3063,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
   {
 
     /* If we intersect any of the vertices, don't attempt to intersect the edge. */
-    if (BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v1) ||
-        BLI_smallhash_lookup(&kfvs, (intptr_t)kfe->v2))
+    if (BLI_smallhash_lookup(&kfvs, intptr_t(kfe->v1)) ||
+        BLI_smallhash_lookup(&kfvs, intptr_t(kfe->v2)))
     {
       continue;
     }

@@ -994,7 +994,7 @@ static const EnumPropertyItem prop_animchannel_rearrange_types[] = {
 
 /* Island definition - just a listbase container */
 struct tReorderChannelIsland {
-  struct tReorderChannelIsland *next, *prev;
+  tReorderChannelIsland *next, *prev;
 
   ListBase channels; /* channels within this region with the same state */
   int flag;          /* eReorderIslandFlag */

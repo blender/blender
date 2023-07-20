@@ -1766,7 +1766,7 @@ void GRAPH_OT_handle_type(wmOperatorType *ot)
 
 /* Set of three euler-rotation F-Curves. */
 struct tEulerFilter {
-  struct tEulerFilter *next, *prev;
+  tEulerFilter *next, *prev;
 
   /** ID-block which owns the channels */
   ID *id;

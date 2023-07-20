@@ -179,8 +179,8 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator * /*op*/)
                                               SCE_XFORM_SKIP_CHILDREN);
     const bool use_transform_data_origin = (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
-    struct XFormObjectSkipChild_Container *xcs = nullptr;
-    struct XFormObjectData_Container *xds = nullptr;
+    XFormObjectSkipChild_Container *xcs = nullptr;
+    XFormObjectData_Container *xds = nullptr;
 
     /* Build object array. */
     Object **objects_eval = nullptr;
@@ -494,8 +494,8 @@ static bool snap_selected_to_location(bContext *C,
     const bool use_transform_data_origin = use_toolsettings &&
                                            (scene->toolsettings->transform_flag &
                                             SCE_XFORM_DATA_ORIGIN);
-    struct XFormObjectSkipChild_Container *xcs = nullptr;
-    struct XFormObjectData_Container *xds = nullptr;
+    XFormObjectSkipChild_Container *xcs = nullptr;
+    XFormObjectData_Container *xds = nullptr;
 
     if (use_transform_skip_children) {
       BKE_scene_graph_evaluated_ensure(depsgraph, bmain);

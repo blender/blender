@@ -148,7 +148,7 @@ static void gaussian_blur_1D(const Span<T> src,
   const int64_t last_pt = total_points - 1;
 
   auto is_end_and_fixed = [smooth_ends, is_cyclic, last_pt](int index) {
-    return !smooth_ends && !is_cyclic && ((index == 0) || (index == last_pt));
+    return !smooth_ends && !is_cyclic && (ELEM(index, 0, last_pt));
   };
 
   /* Initialize at zero. */
@@ -393,7 +393,7 @@ static void GREASE_PENCIL_OT_stroke_smooth(wmOperatorType *ot)
 
 }  // namespace blender::ed::greasepencil
 
-void ED_operatortypes_grease_pencil_edit(void)
+void ED_operatortypes_grease_pencil_edit()
 {
   using namespace blender::ed::greasepencil;
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_smooth);

@@ -177,7 +177,7 @@ class LightBake {
             }
           });
 
-      if ((G.is_break == true) || ((stop != nullptr && *stop == true))) {
+      if ((G.is_break == true) || (stop != nullptr && *stop == true)) {
         break;
       }
     }

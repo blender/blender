@@ -545,7 +545,7 @@ void ARMATURE_OT_roll_clear(wmOperatorType *ot)
 
 /* temporary data-structure for merge/fill bones */
 struct EditBonePoint {
-  struct EditBonePoint *next, *prev;
+  EditBonePoint *next, *prev;
 
   EditBone *head_owner; /* EditBone which uses this point as a 'head' point */
   EditBone *tail_owner; /* EditBone which uses this point as a 'tail' point */

@@ -68,7 +68,7 @@ static void clear_sound_waveform_loading_tag(bSound *sound)
   BLI_spin_unlock(spinlock);
 }
 
-static void free_read_sound_waveform_task(struct TaskPool *__restrict task_pool, void *data)
+static void free_read_sound_waveform_task(TaskPool *__restrict task_pool, void *data)
 {
   UNUSED_VARS(task_pool);
 
@@ -86,8 +86,7 @@ static void free_read_sound_waveform_task(struct TaskPool *__restrict task_pool,
   MEM_freeN(task);
 }
 
-static void execute_read_sound_waveform_task(struct TaskPool *__restrict task_pool,
-                                             void *task_data)
+static void execute_read_sound_waveform_task(TaskPool *__restrict task_pool, void *task_data)
 {
   ReadSoundWaveformTask *task = static_cast<ReadSoundWaveformTask *>(task_data);
 
@@ -100,7 +99,7 @@ static void execute_read_sound_waveform_task(struct TaskPool *__restrict task_po
   BKE_sound_read_waveform(audio_job->bmain, audio_job->sound, task->stop);
 }
 
-static void push_preview_job_audio_task(struct TaskPool *__restrict task_pool,
+static void push_preview_job_audio_task(TaskPool *__restrict task_pool,
                                         PreviewJob *pj,
                                         PreviewJobAudio *previewjb,
                                         bool *stop)

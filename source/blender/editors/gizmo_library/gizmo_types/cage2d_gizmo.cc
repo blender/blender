@@ -1367,7 +1367,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   WM_gizmotype_target_property_def(gzt, "matrix", PROP_FLOAT, 16);
 }
 
-void ED_gizmotypes_cage_2d(void)
+void ED_gizmotypes_cage_2d()
 {
   WM_gizmotype_append(GIZMO_GT_cage_2d);
 }

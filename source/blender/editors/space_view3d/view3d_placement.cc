@@ -356,7 +356,7 @@ static void draw_line_bounds(const BoundBox *bounds, const float color[4])
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static bool calc_bbox(struct InteractivePlaceData *ipd, BoundBox *bounds)
+static bool calc_bbox(InteractivePlaceData *ipd, BoundBox *bounds)
 {
   memset(bounds, 0x0, sizeof(*bounds));
 
@@ -528,7 +528,7 @@ static void draw_circle_in_quad(const float v1[3],
  * \{ */
 
 static void draw_primitive_view_impl(const bContext *C,
-                                     struct InteractivePlaceData *ipd,
+                                     InteractivePlaceData *ipd,
                                      const float color[4],
                                      int flatten_axis)
 {
@@ -631,7 +631,7 @@ static void draw_primitive_view_impl(const bContext *C,
 
 static void draw_primitive_view(const bContext *C, ARegion * /*region*/, void *arg)
 {
-  struct InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(arg);
+  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(arg);
   float color[4];
   UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, color);
 
@@ -716,7 +716,7 @@ static void view3d_interactive_add_begin(bContext *C, wmOperator *op, const wmEv
       ePlace_Aspect(RNA_enum_get(op->ptr, "plane_aspect_depth")),
   };
 
-  struct InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
+  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
 
   ipd->launch_event = WM_userdef_event_type_from_keymap_type(event->type);
 
@@ -879,7 +879,7 @@ static int view3d_interactive_add_invoke(bContext *C, wmOperator *op, const wmEv
 {
   const bool wait_for_input = RNA_boolean_get(op->ptr, "wait_for_input");
 
-  struct InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(
+  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(
       MEM_callocN(sizeof(*ipd), __func__));
   op->customdata = ipd;
 
@@ -908,7 +908,7 @@ static void view3d_interactive_add_exit(bContext *C, wmOperator *op)
 {
   UNUSED_VARS(C);
 
-  struct InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
+  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
   ED_view3d_cursor_snap_state_free(ipd->snap_state);
 
   if (ipd->region != nullptr) {
@@ -964,7 +964,7 @@ static int view3d_interactive_add_modal(bContext *C, wmOperator *op, const wmEve
 {
   UNUSED_VARS(C, op);
 
-  struct InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
+  InteractivePlaceData *ipd = static_cast<InteractivePlaceData *>(op->customdata);
 
   ARegion *region = ipd->region;
   bool do_redraw = false;

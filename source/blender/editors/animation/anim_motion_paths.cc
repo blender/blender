@@ -39,11 +39,11 @@ static CLG_LogRef LOG = {"ed.anim.motion_paths"};
 
 /* Motion path needing to be baked (mpt) */
 struct MPathTarget {
-  struct MPathTarget *next, *prev;
+  MPathTarget *next, *prev;
 
   bMotionPath *mpath; /* motion path in question */
 
-  struct AnimKeylist *keylist; /* temp, to know where the keyframes are */
+  AnimKeylist *keylist; /* temp, to know where the keyframes are */
 
   /* Original (Source Objects) */
   Object *ob;          /* source object */
@@ -224,9 +224,7 @@ static void motionpath_get_global_framerange(ListBase *targets, int *r_sfra, int
 }
 
 /* TODO(jbakker): Remove complexity, keylists are ordered. */
-static int motionpath_get_prev_keyframe(MPathTarget *mpt,
-                                        struct AnimKeylist *keylist,
-                                        int current_frame)
+static int motionpath_get_prev_keyframe(MPathTarget *mpt, AnimKeylist *keylist, int current_frame)
 {
   if (current_frame <= mpt->mpath->start_frame) {
     return mpt->mpath->start_frame;
@@ -242,16 +240,14 @@ static int motionpath_get_prev_keyframe(MPathTarget *mpt,
 }
 
 static int motionpath_get_prev_prev_keyframe(MPathTarget *mpt,
-                                             struct AnimKeylist *keylist,
+                                             AnimKeylist *keylist,
                                              int current_frame)
 {
   int frame = motionpath_get_prev_keyframe(mpt, keylist, current_frame);
   return motionpath_get_prev_keyframe(mpt, keylist, frame);
 }
 
-static int motionpath_get_next_keyframe(MPathTarget *mpt,
-                                        struct AnimKeylist *keylist,
-                                        int current_frame)
+static int motionpath_get_next_keyframe(MPathTarget *mpt, AnimKeylist *keylist, int current_frame)
 {
   if (current_frame >= mpt->mpath->end_frame) {
     return mpt->mpath->end_frame;
@@ -267,7 +263,7 @@ static int motionpath_get_next_keyframe(MPathTarget *mpt,
 }
 
 static int motionpath_get_next_next_keyframe(MPathTarget *mpt,
-                                             struct AnimKeylist *keylist,
+                                             AnimKeylist *keylist,
                                              int current_frame)
 {
   int frame = motionpath_get_next_keyframe(mpt, keylist, current_frame);
@@ -316,7 +312,7 @@ static void motionpath_calculate_update_range(MPathTarget *mpt,
    * Could be optimized further by storing some flags about which channels has been modified so
    * we ignore all others (which can potentially make an update range unnecessary wide). */
   for (FCurve *fcu = static_cast<FCurve *>(fcurve_list->first); fcu != nullptr; fcu = fcu->next) {
-    struct AnimKeylist *keylist = ED_keylist_create();
+    AnimKeylist *keylist = ED_keylist_create();
     fcurve_to_keylist(adt, fcu, keylist, 0);
     ED_keylist_prepare_for_direct_access(keylist);
 
@@ -365,7 +361,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
     return;
   }
 
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
   LISTBASE_FOREACH (FCurve *, fcu, &ob->adt->action->curves) {
     fcurve_to_keylist(ob->adt, fcu, keylist, 0);
   }

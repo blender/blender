@@ -562,7 +562,7 @@ static void buttons_header_region_draw(const bContext *C, ARegion *region)
 
 static void buttons_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ScrArea *area = params->area;
   ARegion *region = params->region;
   SpaceProperties *sbuts = static_cast<SpaceProperties *>(area->spacedata.first);
@@ -614,7 +614,7 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *regio
 static void buttons_navigation_bar_region_message_subscribe(
     const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};
@@ -853,9 +853,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
   }
 }
 
-static void buttons_id_remap(ScrArea * /*area*/,
-                             SpaceLink *slink,
-                             const struct IDRemapper *mappings)
+static void buttons_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceProperties *sbuts = (SpaceProperties *)slink;
 

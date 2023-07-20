@@ -825,7 +825,7 @@ static void recalcData_nla(TransInfo *t)
  * \{ */
 
 struct IDGroupedTransData {
-  struct IDGroupedTransData *next, *prev;
+  IDGroupedTransData *next, *prev;
 
   ID *id;
   ListBase trans_datas;

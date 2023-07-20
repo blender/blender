@@ -119,10 +119,10 @@ static void sort_trans_data_dist_container(const TransInfo *t, TransDataContaine
 
   if (i < tc->data_len) {
     if (t->flag & T_PROP_CONNECTED) {
-      qsort(start, (size_t)tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
+      qsort(start, size_t(tc->data_len) - i, sizeof(TransData), trans_data_compare_dist);
     }
     else {
-      qsort(start, (size_t)tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
+      qsort(start, size_t(tc->data_len) - i, sizeof(TransData), trans_data_compare_rdist);
     }
   }
 }

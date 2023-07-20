@@ -575,7 +575,7 @@ float *BoneExtended::get_tail()
 
 inline bool isInteger(const std::string &s)
 {
-  if (s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) {
+  if (s.empty() || (!isdigit(s[0]) && (s[0] != '-') && (s[0] != '+'))) {
     return false;
   }
 

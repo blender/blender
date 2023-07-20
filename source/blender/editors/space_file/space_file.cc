@@ -201,7 +201,7 @@ static void file_refresh(const bContext *C, ScrArea *area)
   SpaceFile *sfile = CTX_wm_space_file(C);
   FileSelectParams *params = ED_fileselect_ensure_active_params(sfile);
   FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
 
   fileselect_refresh_params(sfile);
   folder_history_list_ensure_for_active_browse_mode(sfile);
@@ -461,7 +461,7 @@ static void file_main_region_listener(const wmRegionListenerParams *listener_par
 
 static void file_main_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   bScreen *screen = params->screen;
   ScrArea *area = params->area;
   ARegion *region = params->region;

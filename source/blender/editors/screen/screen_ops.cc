@@ -687,8 +687,7 @@ bool ED_operator_editmball(bContext *C)
 
 bool ED_operator_camera_poll(bContext *C)
 {
-  struct Camera *cam = static_cast<Camera *>(
-      CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data);
+  Camera *cam = static_cast<Camera *>(CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data);
   return (cam != nullptr && !ID_IS_LINKED(cam));
 }
 
@@ -3137,7 +3136,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   const float cfra = BKE_scene_frame_get(scene);
 
   /* Initialize binary-tree-list for getting keyframes. */
-  struct AnimKeylist *keylist = ED_keylist_create();
+  AnimKeylist *keylist = ED_keylist_create();
 
   /* Speed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
@@ -4531,7 +4530,7 @@ static bool match_region_with_redraws(const ScrArea *area,
         }
         break;
       case SPACE_SPREADSHEET:
-        if ((redraws & TIME_SPREADSHEETS)) {
+        if (redraws & TIME_SPREADSHEETS) {
           return true;
         }
         break;

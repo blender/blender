@@ -2600,7 +2600,7 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, uint cfra)
 
   /* mode is same as fopen's modes */
   DIR *dir;
-  struct dirent *de;
+  dirent *de;
   char path[MAX_PTCACHE_PATH];
   char filepath[MAX_PTCACHE_FILE];
   char path_full[MAX_PTCACHE_FILE];
@@ -2830,7 +2830,7 @@ void BKE_ptcache_id_time(
     if (pid->cache->flag & PTCACHE_DISK_CACHE) {
       /* mode is same as fopen's modes */
       DIR *dir;
-      struct dirent *de;
+      dirent *de;
       char path[MAX_PTCACHE_PATH];
       char filepath[MAX_PTCACHE_FILE];
       char ext[MAX_PTCACHE_FILE];
@@ -3157,11 +3157,11 @@ static void ptcache_dt_to_str(char *str, size_t str_maxncpy, double dtime)
                    int(dtime) % 60);
     }
     else {
-      BLI_snprintf(str, str_maxncpy, "%im %is", int(dtime / 60) % 60, (int(dtime)) % 60);
+      BLI_snprintf(str, str_maxncpy, "%im %is", int(dtime / 60) % 60, int(dtime) % 60);
     }
   }
   else {
-    BLI_snprintf(str, str_maxncpy, "%is", (int(dtime)) % 60);
+    BLI_snprintf(str, str_maxncpy, "%is", int(dtime) % 60);
   }
 }
 
@@ -3169,7 +3169,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
 {
   Scene *scene = baker->scene;
   ViewLayer *view_layer = baker->view_layer;
-  struct Depsgraph *depsgraph = baker->depsgraph;
+  Depsgraph *depsgraph = baker->depsgraph;
   Scene *sce_iter; /* SETLOOPER macro only */
   Base *base;
   ListBase pidlist;
@@ -3512,7 +3512,7 @@ void BKE_ptcache_disk_cache_rename(PTCacheID *pid, const char *name_src, const c
   int len; /* store the length of the string */
   /* mode is same as fopen's modes */
   DIR *dir;
-  struct dirent *de;
+  dirent *de;
   char path[MAX_PTCACHE_PATH];
   char old_filepath[MAX_PTCACHE_FILE];
   char new_path_full[MAX_PTCACHE_FILE];
@@ -3574,7 +3574,7 @@ void BKE_ptcache_load_external(PTCacheID *pid)
 
   /* mode is same as fopen's modes */
   DIR *dir;
-  struct dirent *de;
+  dirent *de;
   char path[MAX_PTCACHE_PATH];
   char filepath[MAX_PTCACHE_FILE];
   char ext[MAX_PTCACHE_PATH];

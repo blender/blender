@@ -482,7 +482,7 @@ void BKE_gpencil_modifier_copydata_generic(const GpencilModifierData *md_src,
   const char *md_src_data = ((const char *)md_src) + data_size;
   char *md_dst_data = ((char *)md_dst) + data_size;
   BLI_assert(data_size <= (size_t)mti->struct_size);
-  memcpy(md_dst_data, md_src_data, (size_t)mti->struct_size - data_size);
+  memcpy(md_dst_data, md_src_data, size_t(mti->struct_size) - data_size);
 }
 
 static void gpencil_modifier_copy_data_id_us_cb(void * /*userData*/,

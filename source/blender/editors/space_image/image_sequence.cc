@@ -29,7 +29,7 @@
 #include "ED_image.h"
 
 struct ImageFrame {
-  struct ImageFrame *next, *prev;
+  ImageFrame *next, *prev;
   int framenr;
 };
 

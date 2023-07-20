@@ -99,7 +99,7 @@
 #define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 6)
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
-void UI_template_fix_linking(void) {}
+void UI_template_fix_linking() {}
 
 /* -------------------------------------------------------------------- */
 /** \name Header Template

@@ -73,7 +73,7 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
     return "";
   }
 
-  bool on_drop(struct bContext * /*C*/, const DragInfo &drag_info) const override
+  bool on_drop(bContext * /*C*/, const DragInfo &drag_info) const override
   {
     const wmDragGreasePencilLayer *drag_grease_pencil =
         static_cast<const wmDragGreasePencilLayer *>(drag_info.drag_data.poin);
