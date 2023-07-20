@@ -340,7 +340,8 @@ enum {
   TIMERREPORT = 0x0116,   /* Timer event, reports (278). */
   TIMERREGION = 0x0117,   /* Timer event, region slide in/out (279). */
   TIMERNOTIFIER = 0x0118, /* Timer event, notifier sender (280). */
-  TIMERF = 0x011F,        /* Last timer (287). */
+/* Timer max (287). */
+#define _TIMER_MAX 0x011F
 
   /* Actionzones, tweak, gestures: 0x500x, 0x501x */
   /* Keep in sync with IS_EVENT_ACTIONZONE(...). */
@@ -373,7 +374,7 @@ enum {
  * \{ */
 
 /** Test whether the event is timer event. */
-#define ISTIMER(event_type) ((event_type) >= TIMER && (event_type) <= TIMERF)
+#define ISTIMER(event_type) ((event_type) >= TIMER && (event_type) <= _TIMER_MAX)
 
 /** Test whether the event is a key on the keyboard (including modifier keys). */
 #define ISKEYBOARD(event_type) \
