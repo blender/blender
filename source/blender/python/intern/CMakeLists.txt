@@ -12,7 +12,6 @@ set(INC
   ../../imbuf
   ../../imbuf/intern/oiio
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
@@ -130,6 +129,7 @@ set(LIB
 
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::windowmanager
 )
 
 # only to check if buildinfo is available

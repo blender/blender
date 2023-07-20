@@ -13,7 +13,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../sequencer
-  ../../windowmanager
 
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -54,6 +53,7 @@ set(LIB
   bf_editor_util
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_AUDASPACE)

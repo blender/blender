@@ -18,7 +18,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../render
-  ../../windowmanager
   ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -55,6 +54,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

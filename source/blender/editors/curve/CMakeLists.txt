@@ -8,7 +8,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/clog
   ../../../../extern/curve_fit_nd
   # RNA_prototypes.h
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
   extern_curve_fit_nd
 )
 

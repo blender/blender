@@ -14,7 +14,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../intern/clog
 
   # RNA_prototypes.h
@@ -42,6 +41,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_uvedit
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_IMAGE_OPENJPEG)

@@ -15,7 +15,6 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../windowmanager
   ../../../intern/clog
   ../bmesh
 
@@ -63,6 +62,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_BUILDINFO)

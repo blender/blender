@@ -12,7 +12,6 @@ set(INC
   ../blender/bmesh
   ../blender/makesrna
   ../blender/render
-  ../blender/windowmanager
 )
 
 set(LIB
@@ -20,7 +19,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 if(HAVE_FEENABLEEXCEPT)

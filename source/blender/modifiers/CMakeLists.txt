@@ -16,7 +16,6 @@ set(INC
   ../makesrna
   ../nodes
   ../render
-  ../windowmanager
   ../../../intern/eigen
 
   # RNA_prototypes.h
@@ -110,6 +109,7 @@ set(LIB
   PRIVATE bf::blenlib
   PUBLIC bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_ALEMBIC)

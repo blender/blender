@@ -12,7 +12,6 @@ set(INC
   ../../depsgraph
   ../../geometry
   ../../makesrna
-  ../../windowmanager
 )
 
 set(INC_SYS
@@ -56,6 +55,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

@@ -15,7 +15,6 @@ if(WITH_COMPOSITOR_CPU)
     ../imbuf
     ../makesrna
     ../nodes
-    ../windowmanager
     ../nodes/composite
     ../nodes/intern
     ../render
@@ -597,6 +596,7 @@ if(WITH_COMPOSITOR_CPU)
     PRIVATE bf::blenlib
     PRIVATE bf::dna
     PRIVATE bf::intern::guardedalloc
+    PRIVATE bf::windowmanager
     extern_clew
     PRIVATE bf::intern::atomic
   )

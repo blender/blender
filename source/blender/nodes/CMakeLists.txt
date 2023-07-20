@@ -27,7 +27,6 @@ set(INC
   ../makesrna
   ../modifiers
   ../render
-  ../windowmanager
   ../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -90,6 +89,7 @@ set(LIB
   bf_nodes_geometry
   bf_nodes_shader
   bf_nodes_texture
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

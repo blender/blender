@@ -18,7 +18,6 @@ set(INC
   ../nodes
   ../sequencer
   ../simulation
-  ../windowmanager
   ../../../intern/mikktspace
   ../../../intern/mantaflow/extern
 )
@@ -63,6 +62,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_realtime_compositor
   PRIVATE bf::intern::atomic
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

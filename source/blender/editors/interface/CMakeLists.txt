@@ -18,7 +18,6 @@ set(INC
   ../../nodes
   ../../python
   ../../render
-  ../../windowmanager
   ../../../../intern/ghost
   ../../../../extern/fmtlib/include
   ../../bmesh
@@ -99,6 +98,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_datafiles
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_INTERNATIONAL)

@@ -9,7 +9,6 @@ set(INC
   ../../blentranslation
   ../../gpu
   ../../makesrna
-  ../../windowmanager
 
 )
 
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 

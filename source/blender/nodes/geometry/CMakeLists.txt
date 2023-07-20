@@ -16,7 +16,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../extern/fmtlib/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -207,6 +206,7 @@ set(LIB
   bf_geometry
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

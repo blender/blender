@@ -11,7 +11,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../sequencer
-  ../../windowmanager
   ../../../../intern/clog
 
   # RNA_prototypes.h
@@ -111,6 +110,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_undo
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 

@@ -11,7 +11,6 @@ set(INC
   ../../editors/include
   ../../makesdna
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv 
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::intern::guardedalloc
   bf_io_common
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PUGIXML)

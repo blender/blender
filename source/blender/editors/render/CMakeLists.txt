@@ -15,7 +15,6 @@ set(INC
   ../../nodes
   ../../render
   ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_HEADLESS)

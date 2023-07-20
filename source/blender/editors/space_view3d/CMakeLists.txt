@@ -15,7 +15,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../intern/mantaflow/extern
 
   # RNA_prototypes.h
@@ -77,6 +76,7 @@ set(LIB
   bf_editor_lattice
   bf_editor_mesh
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

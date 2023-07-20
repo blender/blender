@@ -7,7 +7,6 @@ set(INC
   ../../depsgraph
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../intern/clog
 )
 
@@ -29,6 +28,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

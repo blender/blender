@@ -12,7 +12,6 @@ set(INC
   ../imbuf
   ../makesrna
   ../render
-  ../windowmanager
   ../../../intern/clog
 
   # RNA_prototypes.h
@@ -87,6 +86,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_AUDASPACE)

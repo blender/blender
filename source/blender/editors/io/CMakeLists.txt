@@ -16,7 +16,6 @@ set(INC
   ../../io/usd
   ../../io/wavefront_obj
   ../../makesrna
-  ../../windowmanager
 )
 
 set(INC_SYS
@@ -52,6 +51,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENCOLLADA)

@@ -3,9 +3,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
-  gizmo
-  gizmo/intern
+  PUBLIC .
+  PUBLIC gizmo
+  PRIVATE gizmo/intern
   ../asset_system
   ../blenfont
   ../blenloader
@@ -205,6 +205,7 @@ if(WITH_XR_OPENXR)
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::windowmanager ALIAS bf_windowmanager)
 
 # RNA_prototypes.h
 add_dependencies(bf_windowmanager bf_rna)

@@ -18,7 +18,6 @@ set(INC
   ../../python
   ../../render
   ../../shader_fx
-  ../../windowmanager
   ../../../../intern/clog
 
   # RNA_prototypes.h
@@ -67,7 +66,7 @@ set(LIB
   bf_editor_grease_pencil
   PRIVATE bf::intern::guardedalloc
   bf_render
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 

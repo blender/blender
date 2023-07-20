@@ -26,7 +26,6 @@ set(INC
   ../../editors/include
   ../../imbuf
   ../../makesrna
-  ../../windowmanager
   ../../ikplugin
   ../../../../intern/iksolver/extern
   ../../bmesh
@@ -117,6 +116,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_BUILDINFO)

@@ -10,7 +10,6 @@ set(INC
   ../../functions
   ../../makesrna
   ../../nodes
-  ../../windowmanager
   ../../bmesh
 
   # RNA_prototypes.h
@@ -35,7 +34,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_object
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

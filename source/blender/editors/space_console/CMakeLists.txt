@@ -8,7 +8,6 @@ set(INC
   ../../blenloader
   ../../gpu
   ../../makesrna
-  ../../windowmanager
 
 )
 
@@ -28,6 +27,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

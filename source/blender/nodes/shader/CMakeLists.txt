@@ -14,7 +14,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../intern/sky/include
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -132,6 +131,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_intern_sky
   bf_nodes
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_FREESTYLE)

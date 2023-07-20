@@ -13,7 +13,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.h
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -122,6 +121,7 @@ set(LIB
   bf_editor_mask
   bf_gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 

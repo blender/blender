@@ -13,7 +13,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../../../extern/fmtlib/include
 
   # RNA_prototypes.h
@@ -47,6 +46,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
   extern_fmtlib
   PRIVATE bf::intern::atomic
 )

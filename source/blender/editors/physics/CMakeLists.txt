@@ -8,7 +8,6 @@ set(INC
   ../../depsgraph
   ../../gpu
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/clog
   ../../../../intern/mantaflow/extern
   # RNA_prototypes.h
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_MOD_FLUID)
