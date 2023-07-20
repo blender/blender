@@ -303,45 +303,6 @@ static void render_result_to_bake(RenderEngine *engine, RenderResult *rr)
 
 /* Render Results */
 
-static HighlightedTile highlighted_tile_from_result_get(Render * /*re*/, RenderResult *result)
-{
-  HighlightedTile tile;
-  tile.rect = result->tilerect;
-
-  return tile;
-}
-
-static void engine_tile_highlight_set(RenderEngine *engine,
-                                      const HighlightedTile *tile,
-                                      bool highlight)
-{
-  if ((engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
-    return;
-  }
-
-  Render *re = engine->re;
-
-  BLI_mutex_lock(&re->highlighted_tiles_mutex);
-
-  if (re->highlighted_tiles == nullptr) {
-    re->highlighted_tiles = BLI_gset_new(
-        BLI_ghashutil_inthash_v4_p, BLI_ghashutil_inthash_v4_cmp, "highlighted tiles");
-  }
-
-  if (highlight) {
-    HighlightedTile **tile_in_set;
-    if (!BLI_gset_ensure_p_ex(re->highlighted_tiles, tile, (void ***)&tile_in_set)) {
-      *tile_in_set = MEM_cnew<HighlightedTile>(__func__);
-      **tile_in_set = *tile;
-    }
-  }
-  else {
-    BLI_gset_remove(re->highlighted_tiles, tile, MEM_freeN);
-  }
-
-  BLI_mutex_unlock(&re->highlighted_tiles_mutex);
-}
-
 RenderResult *RE_engine_begin_result(
     RenderEngine *engine, int x, int y, int w, int h, const char *layername, const char *viewname)
 {
@@ -457,9 +418,16 @@ void RE_engine_end_result(
   }
 
   if (re->engine && (re->engine->flag & RE_ENGINE_HIGHLIGHT_TILES)) {
-    const HighlightedTile tile = highlighted_tile_from_result_get(re, result);
+    blender::render::TilesHighlight *tile_highlight = re->get_tile_highlight();
 
-    engine_tile_highlight_set(engine, &tile, highlight);
+    if (tile_highlight) {
+      if (highlight) {
+        tile_highlight->highlight_tile_for_result(result);
+      }
+      else {
+        tile_highlight->unhighlight_tile_for_result(result);
+      }
+    }
   }
 
   if (!cancel || merge_results) {
@@ -644,50 +612,18 @@ bool RE_engine_get_spherical_stereo(RenderEngine *engine, Object *camera)
 
 const rcti *RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_free)
 {
-  static rcti tiles_static[BLENDER_MAX_THREADS];
-  const int allocation_step = BLENDER_MAX_THREADS;
-  int total_tiles = 0;
-  rcti *tiles = tiles_static;
-  int allocation_size = BLENDER_MAX_THREADS;
-
-  BLI_mutex_lock(&re->highlighted_tiles_mutex);
-
   *r_needs_free = false;
 
-  if (re->highlighted_tiles == nullptr) {
+  blender::render::TilesHighlight *tiles_highlight = re->get_tile_highlight();
+  if (!tiles_highlight) {
     *r_total_tiles = 0;
-    BLI_mutex_unlock(&re->highlighted_tiles_mutex);
     return nullptr;
-  }
+  };
 
-  GSET_FOREACH_BEGIN (HighlightedTile *, tile, re->highlighted_tiles) {
-    if (total_tiles >= allocation_size) {
-      /* Just in case we're using crazy network rendering with more
-       * workers than BLENDER_MAX_THREADS.
-       */
-      allocation_size += allocation_step;
-      if (tiles == tiles_static) {
-        /* Can not realloc yet, tiles are pointing to a
-         * stack memory.
-         */
-        tiles = MEM_cnew_array<rcti>(allocation_size, "current engine tiles");
-      }
-      else {
-        tiles = static_cast<rcti *>(MEM_reallocN(tiles, allocation_size * sizeof(rcti)));
-      }
-      *r_needs_free = true;
-    }
-    tiles[total_tiles] = tile->rect;
+  blender::Span<rcti> highlighted_tiles = tiles_highlight->get_all_highlighted_tiles();
 
-    total_tiles++;
-  }
-  GSET_FOREACH_END();
-
-  BLI_mutex_unlock(&re->highlighted_tiles_mutex);
-
-  *r_total_tiles = total_tiles;
-
-  return tiles;
+  *r_total_tiles = highlighted_tiles.size();
+  return highlighted_tiles.data();
 }
 
 RenderData *RE_engine_get_render_data(Render *re)
@@ -1262,27 +1198,51 @@ void RE_engine_draw_release(Render *re)
 void RE_engine_tile_highlight_set(
     RenderEngine *engine, int x, int y, int width, int height, bool highlight)
 {
-  HighlightedTile tile;
-  BLI_rcti_init(&tile.rect, x, x + width, y, y + height);
+  if (!engine->re) {
+    /* No render on the engine, so nowhere to store the highlighted tiles information. */
+    return;
+  }
+  if ((engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
+    /* Engine reported it does not support tiles highlight, but attempted to set the highlight.
+     * Technically it is a logic error, but there is no good way to inform an external engine about
+     * it. */
+    return;
+  }
 
-  engine_tile_highlight_set(engine, &tile, highlight);
+  blender::render::TilesHighlight *tile_highlight = engine->re->get_tile_highlight();
+  if (!tile_highlight) {
+    /* The renderer itself does not support tiles highlight. */
+    return;
+  }
+
+  if (highlight) {
+    tile_highlight->highlight_tile(x, y, width, height);
+  }
+  else {
+    tile_highlight->unhighlight_tile(x, y, width, height);
+  }
 }
 
 void RE_engine_tile_highlight_clear_all(RenderEngine *engine)
 {
+  if (!engine->re) {
+    /* No render on the engine, so nowhere to store the highlighted tiles information. */
+    return;
+  }
   if ((engine->flag & RE_ENGINE_HIGHLIGHT_TILES) == 0) {
+    /* Engine reported it does not support tiles highlight, but attempted to set the highlight.
+     * Technically it is a logic error, but there is no good way to inform an external engine about
+     * it. */
     return;
   }
 
-  Render *re = engine->re;
-
-  BLI_mutex_lock(&re->highlighted_tiles_mutex);
-
-  if (re->highlighted_tiles != nullptr) {
-    BLI_gset_clear(re->highlighted_tiles, MEM_freeN);
+  blender::render::TilesHighlight *tile_highlight = engine->re->get_tile_highlight();
+  if (!tile_highlight) {
+    /* The renderer itself does not support tiles highlight. */
+    return;
   }
 
-  BLI_mutex_unlock(&re->highlighted_tiles_mutex);
+  tile_highlight->clear();
 }
 
 /* -------------------------------------------------------------------- */
