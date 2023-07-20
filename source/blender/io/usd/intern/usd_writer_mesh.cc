@@ -363,6 +363,11 @@ void USDGenericMeshWriter::write_generic_data(const Mesh *mesh,
                                               const bke::AttributeIDRef &attribute_id,
                                               const bke::AttributeMetaData &meta_data)
 {
+  /* Skipping some Blender-specific attributes that have no conversion */
+  if (ELEM(attribute_id.name(), "crease_edge")) {
+    return;
+  }
+
   pxr::UsdTimeCode timecode = get_export_time_code();
   const std::string name = attribute_id.name();
   pxr::TfToken primvar_name(pxr::TfMakeValidIdentifier(name));
