@@ -1337,6 +1337,27 @@ def edit_docstring_from_id(name: str) -> str:
     return dedent(result or '').strip('\n') + '\n'
 
 
+def edit_group_compatible(edits: Sequence[str]) -> Sequence[Sequence[str]]:
+    """
+    Group compatible edits, so it's possible for a single process to iterate on many edits for a single file.
+    """
+    edits_grouped = []
+
+    edit_generator_class_prev = None
+    for edit in edits:
+        edit_generator_class = edit_class_from_id(edit)
+        if edit_generator_class_prev is None or (
+                edit_generator_class.setup != edit_generator_class_prev.setup and
+                edit_generator_class.teardown != edit_generator_class_prev.teardown
+        ):
+            # Create a new group.
+            edits_grouped.append([edit])
+        else:
+            edits_grouped[-1].append(edit)
+        edit_generator_class_prev = edit_generator_class
+    return edits_grouped
+
+
 # -----------------------------------------------------------------------------
 # Accept / Reject Edits
 
@@ -1358,14 +1379,14 @@ def apply_edit(data: str, text_to_replace: str, start: int, end: int, *, verbose
     return data
 
 
-def wash_source_with_edits(
+def wash_source_with_edit(
         source: str,
         output: str,
         build_args: Sequence[str],
         build_cwd: Optional[str],
-        edit_to_apply: str,
         skip_test: bool,
         shared_edit_data: Any,
+        edit_to_apply: str,
 ) -> None:
     # build_args = build_args + " -Werror=duplicate-decl-specifier"
     with open(source, 'r', encoding='utf-8') as fh:
@@ -1461,6 +1482,19 @@ def wash_source_with_edits(
                 # It is interesting to know how many passes run when debugging.
                 # print("Passes for: ", source, len(data_states))
                 pass
+
+
+def wash_source_with_edit_list(
+        source: str,
+        output: str,
+        build_args: Sequence[str],
+        build_cwd: Optional[str],
+        skip_test: bool,
+        shared_edit_data: Any,
+        edit_list: Sequence[str],
+) -> None:
+    for edit_to_apply in edit_list:
+        wash_source_with_edit(source, output, build_args, build_cwd, skip_test, shared_edit_data, edit_to_apply)
 
 
 # -----------------------------------------------------------------------------
@@ -1563,9 +1597,17 @@ def run_edits_on_directory(
         print(" ", c)
     del args_orig_len
 
-    for i, edit_to_apply in enumerate(edits_to_apply):
-        print("Applying edit:", edit_to_apply, "({:d} of {:d})".format(i + 1, len(edits_to_apply)))
-        edit_generator_class = edit_class_from_id(edit_to_apply)
+    if jobs > 1:
+        # Group edits to avoid one file holding up the queue before other edits can be worked on.
+        # Custom setup/tear-down functions still block though.
+        edits_to_apply_grouped = edit_group_compatible(edits_to_apply)
+    else:
+        # No significant advantage in grouping, split each into a group of one for simpler debugging/execution.
+        edits_to_apply_grouped = [[edit] for edit in edits_to_apply]
+
+    for i, edits_group in enumerate(edits_to_apply_grouped):
+        print("Applying edit:", edits_group, "({:d} of {:d})".format(i + 1, len(edits_to_apply_grouped)))
+        edit_generator_class = edit_class_from_id(edits_group[0])
 
         shared_edit_data = edit_generator_class.setup()
 
@@ -1576,9 +1618,9 @@ def run_edits_on_directory(
                     output_from_build_args(build_args, build_cwd),
                     build_args,
                     build_cwd,
-                    edit_to_apply,
                     skip_test,
                     shared_edit_data,
+                    edits_group,
                 ) for (c, build_args, build_cwd) in args_with_cwd]
                 pool = multiprocessing.Pool(processes=jobs)
                 pool.starmap(wash_source_with_edit_list, args_expanded)
@@ -1586,14 +1628,14 @@ def run_edits_on_directory(
             else:
                 # now we have commands
                 for c, build_args, build_cwd in args_with_cwd:
-                    wash_source_with_edits(
+                    wash_source_with_edit_list(
                         c,
                         output_from_build_args(build_args, build_cwd),
                         build_args,
                         build_cwd,
-                        edit_to_apply,
                         skip_test,
                         shared_edit_data,
+                        edits_group,
                     )
         except Exception as ex:
             raise ex
