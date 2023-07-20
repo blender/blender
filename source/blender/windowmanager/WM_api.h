@@ -336,6 +336,10 @@ typedef enum eWindowAlignment {
  * \param dialog: whether this should be made as a dialog-style window
  * \param temp: whether this is considered a short-lived window
  * \param alignment: how this window is positioned relative to its parent
+ * \param area_setup_fn: An optional callback which can be used to initialize the area
+ * before it's initialized. When set, `space_type` should be #SPACE_EMTPY,
+ * so the setup function can take a blank area and initialize it.
+ * \param area_setup_user_data: User data argument passed to `area_setup_fn`.
  * \return the window or NULL in case of failure.
  */
 struct wmWindow *WM_window_open(struct bContext *C,
@@ -345,7 +349,11 @@ struct wmWindow *WM_window_open(struct bContext *C,
                                 bool toplevel,
                                 bool dialog,
                                 bool temp,
-                                eWindowAlignment alignment) ATTR_NONNULL(1, 2, 3);
+                                eWindowAlignment alignment,
+                                void (*area_setup_fn)(bScreen *screen,
+                                                      ScrArea *area,
+                                                      void *user_data),
+                                void *area_setup_user_data) ATTR_NONNULL(1, 2, 3);
 
 void WM_window_set_dpi(const wmWindow *win);
 

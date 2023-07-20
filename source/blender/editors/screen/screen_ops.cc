@@ -1428,6 +1428,13 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
  * Create new window from area.
  * \{ */
 
+/** Callback for #WM_window_open to setup the area's data. */
+static void area_dupli_fn(bScreen * /*screen*/, ScrArea *area, void *user_data)
+{
+  ScrArea *area_src = static_cast<ScrArea *>(user_data);
+  ED_area_data_copy(area, area_src, true);
+};
+
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1449,15 +1456,19 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   };
 
   /* Create new window. No need to set space_type since it will be copied over. */
-  wmWindow *newwin = WM_window_open(
-      C, "Blender", &window_rect, SPACE_EMPTY, false, false, false, WIN_ALIGN_ABSOLUTE);
+  wmWindow *newwin = WM_window_open(C,
+                                    "Blender",
+                                    &window_rect,
+                                    SPACE_EMPTY,
+                                    false,
+                                    false,
+                                    false,
+                                    WIN_ALIGN_ABSOLUTE,
+                                    /* Initialize area from callback. */
+                                    area_dupli_fn,
+                                    (void *)area);
 
   if (newwin) {
-    /* copy area to new screen */
-    bScreen *newsc = WM_window_get_active_screen(newwin);
-    ED_area_data_copy((ScrArea *)newsc->areabase.first, area, true);
-    ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
-
     /* screen, areas init */
     WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
@@ -5161,7 +5172,9 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     /* The header only contains the editor switcher and looks empty.
      * So hiding in the temp window makes sense. */
@@ -5238,7 +5251,9 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     ED_drivers_editor_init(C, CTX_wm_area(C));
 
@@ -5319,7 +5334,9 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     return OPERATOR_FINISHED;
   }
