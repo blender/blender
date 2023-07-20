@@ -619,7 +619,8 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Sequence *seq, const boo
 
       seq->len = IMB_anim_get_duration(
           sanim->anim,
-          IMB_Timecode_Type(seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN));
+          IMB_Timecode_Type(seq->strip->proxy ? IMB_Timecode_Type(seq->strip->proxy->tc) :
+                                                IMB_TC_RECORD_RUN));
 
       seq->len -= seq->anim_startofs;
       seq->len -= seq->anim_endofs;

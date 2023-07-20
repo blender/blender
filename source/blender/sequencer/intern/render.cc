@@ -1076,7 +1076,8 @@ static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Sequence *seq)
   if (!use_timecodes) {
     return IMB_TC_NONE;
   }
-  return IMB_Timecode_Type(seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_NONE);
+  return IMB_Timecode_Type(seq->strip->proxy ? IMB_Timecode_Type(seq->strip->proxy->tc) :
+                                               IMB_TC_NONE);
 }
 
 /**
