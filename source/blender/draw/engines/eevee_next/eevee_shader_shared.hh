@@ -922,6 +922,11 @@ struct IrradianceGridData {
   packed_int3 grid_size;
   /** Index in brick descriptor list of the first brick of this grid. */
   int brick_offset;
+  /** Biases to apply to the shading point in order to sample a valid probe. */
+  float normal_bias;
+  float view_bias;
+  float facing_bias;
+  int _pad1;
 };
 BLI_STATIC_ASSERT_ALIGN(IrradianceGridData, 16)
 
