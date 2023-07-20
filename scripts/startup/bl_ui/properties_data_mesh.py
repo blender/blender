@@ -548,7 +548,8 @@ class DATA_PT_mesh_attributes(MeshButtonsPanel, Panel):
         if not colliding_names:
             return
 
-        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)), icon='ERROR')
+        layout.label(text=tip_("Name collisions: ") + ", ".join(set(colliding_names)),
+                     icon='ERROR', translate=False)
 
 
 class ColorAttributesListBase():
