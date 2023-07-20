@@ -330,7 +330,8 @@ typedef enum eWindowAlignment {
 } eWindowAlignment;
 
 /**
- * \param space_type: SPACE_VIEW3D, SPACE_INFO, ... (eSpace_Type)
+ * \param rect: Position & size of the window.
+ * \param space_type: #SPACE_VIEW3D, #SPACE_INFO, ... (#eSpace_Type).
  * \param toplevel: Not a child owned by other windows. A peer of main window.
  * \param dialog: whether this should be made as a dialog-style window
  * \param temp: whether this is considered a short-lived window
@@ -339,15 +340,12 @@ typedef enum eWindowAlignment {
  */
 struct wmWindow *WM_window_open(struct bContext *C,
                                 const char *title,
-                                int x,
-                                int y,
-                                int sizex,
-                                int sizey,
+                                const struct rcti *rect_unscaled,
                                 int space_type,
                                 bool toplevel,
                                 bool dialog,
                                 bool temp,
-                                eWindowAlignment alignment);
+                                eWindowAlignment alignment) ATTR_NONNULL(1, 2, 3);
 
 void WM_window_set_dpi(const wmWindow *win);
 

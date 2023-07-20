@@ -875,10 +875,7 @@ static bool wm_window_update_size_position(wmWindow *win)
 
 wmWindow *WM_window_open(bContext *C,
                          const char *title,
-                         int x,
-                         int y,
-                         int sizex,
-                         int sizey,
+                         const rcti *rect_unscaled,
                          int space_type,
                          bool toplevel,
                          bool dialog,
@@ -890,6 +887,10 @@ wmWindow *WM_window_open(bContext *C,
   wmWindow *win_prev = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  int x = rect_unscaled->xmin;
+  int y = rect_unscaled->ymin;
+  int sizex = BLI_rcti_size_x(rect_unscaled);
+  int sizey = BLI_rcti_size_y(rect_unscaled);
   rcti rect;
 
   const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
@@ -1033,13 +1034,16 @@ int wm_window_new_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
+  const rcti window_rect = {
+      /*xmin*/ 0,
+      /*xmax*/ win_src->sizex * 0.95f,
+      /*ymin*/ 0,
+      /*ymax*/ win_src->sizey * 0.9f,
+  };
 
   bool ok = (WM_window_open(C,
                             IFACE_("Blender"),
-                            0,
-                            0,
-                            win_src->sizex * 0.95f,
-                            win_src->sizey * 0.9f,
+                            &window_rect,
                             area->spacetype,
                             false,
                             false,
