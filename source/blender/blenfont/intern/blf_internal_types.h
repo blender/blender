@@ -11,6 +11,10 @@
 #include "GPU_texture.h"
 #include "GPU_vertex_buffer.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
 /** Maximum variation axes per font. */
@@ -342,3 +346,7 @@ typedef struct FontBLF {
   /** Mutex lock for glyph cache. */
   ThreadMutex glyph_cache_mutex;
 } FontBLF;
+
+#ifdef __cplusplus
+}
+#endif

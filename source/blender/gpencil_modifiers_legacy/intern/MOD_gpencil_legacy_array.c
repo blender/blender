@@ -10,6 +10,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_hash.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -114,10 +115,8 @@ static void BKE_gpencil_instance_modifier_instance_tfm(Object *ob,
     zero_v3(r_mat[3]);
   }
 }
-static bool gpencil_data_selected_minmax(ArrayGpencilModifierData *mmd,
-                                         Object *ob,
-                                         float r_min[3],
-                                         float r_max[3])
+static bool gpencil_data_selected_minmax(
+    ArrayGpencilModifierData *mmd, Object *ob, float r_min[3], float r_max[3], const int cfra)
 {
   bGPdata *gpd = (bGPdata *)ob->data;
   bool changed = false;
@@ -129,7 +128,7 @@ static bool gpencil_data_selected_minmax(ArrayGpencilModifierData *mmd,
   }
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    bGPDframe *gpf = gpl->actframe;
+    bGPDframe *gpf = BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV);
 
     if (gpf != NULL) {
       LISTBASE_FOREACH (bGPDstroke *, gps, &gpf->strokes) {
@@ -158,7 +157,9 @@ static bool gpencil_data_selected_minmax(ArrayGpencilModifierData *mmd,
 static void generate_geometry(GpencilModifierData *md,
                               Depsgraph *depsgraph,
                               Scene *scene,
-                              Object *ob)
+                              Object *ob,
+                              const bool apply,
+                              int cfra)
 {
   ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
   ListBase stroke_cache = {NULL, NULL};
@@ -166,12 +167,14 @@ static void generate_geometry(GpencilModifierData *md,
   bGPdata *gpd = (bGPdata *)ob->data;
   bool found = false;
 
+  const int active_cfra = (apply) ? cfra : scene->r.cfra;
+
   /* Get bound-box for relative offset. */
   float size[3] = {0.0f, 0.0f, 0.0f};
   if (mmd->flag & GP_ARRAY_USE_RELATIVE) {
     float min[3];
     float max[3];
-    if (gpencil_data_selected_minmax(mmd, ob, min, max)) {
+    if (gpencil_data_selected_minmax(mmd, ob, min, max, active_cfra)) {
       sub_v3_v3v3(size, max, min);
       /* Need a minimum size (for flat drawings). */
       CLAMP3_MIN(size, 0.01f);
@@ -184,7 +187,8 @@ static void generate_geometry(GpencilModifierData *md,
   seed += BLI_hash_string(md->name);
 
   LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
-    bGPDframe *gpf = BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
+    bGPDframe *gpf = (apply) ? BKE_gpencil_layer_frame_get(gpl, cfra, GP_GETFRAME_USE_PREV) :
+                               BKE_gpencil_frame_retime_get(depsgraph, scene, ob, gpl);
     if (gpf == NULL) {
       continue;
     }
@@ -325,7 +329,30 @@ static void bakeModifier(Main *UNUSED(bmain),
                          Object *ob)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  generate_geometry(md, depsgraph, scene, ob);
+  bGPdata *gpd = ob->data;
+
+  /* Get list of frames. */
+  GHash *keyframe_list = BLI_ghash_int_new(__func__);
+  LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
+    LISTBASE_FOREACH (bGPDframe *, gpf, &gpl->frames) {
+      if (!BLI_ghash_haskey(keyframe_list, POINTER_FROM_INT(gpf->framenum))) {
+        BLI_ghash_insert(
+            keyframe_list, POINTER_FROM_INT(gpf->framenum), POINTER_FROM_INT(gpf->framenum));
+      }
+    }
+  }
+
+  /* Loop all frames and apply. */
+  GHashIterator gh_iter;
+  GHASH_ITER (gh_iter, keyframe_list) {
+    int cfra = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+    generate_geometry(md, depsgraph, scene, ob, true, cfra);
+  }
+
+  /* Free temp hash table. */
+  if (keyframe_list != NULL) {
+    BLI_ghash_free(keyframe_list, NULL, NULL);
+  }
 }
 
 /* -------------------------------- */
@@ -334,7 +361,7 @@ static void bakeModifier(Main *UNUSED(bmain),
 static void generateStrokes(GpencilModifierData *md, Depsgraph *depsgraph, Object *ob)
 {
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
-  generate_geometry(md, depsgraph, scene, ob);
+  generate_geometry(md, depsgraph, scene, ob, false, 0);
 }
 
 static void updateDepsgraph(GpencilModifierData *md,

@@ -448,6 +448,8 @@ static Curves *try_load_curves(const DictionaryValue &io_geometry,
     return cancel();
   }
 
+  curves.update_curve_types();
+
   return curves_id;
 }
 

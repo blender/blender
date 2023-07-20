@@ -2,10 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "COM_KuwaharaClassicOperation.h"
-
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
+
 #include "IMB_colormanagement.h"
+
+#include "COM_KuwaharaClassicOperation.h"
 
 namespace blender::compositor {
 
@@ -33,10 +35,9 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
                                                      float y,
                                                      PixelSampler sampler)
 {
-  Vector<float3> mean(4, float3(0.0f));
-  float sum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float var[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  int cnt[4] = {0, 0, 0, 0};
+  float3 mean_of_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+  float3 mean_of_squared_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+  int quadrant_pixel_count[] = {0, 0, 0, 0};
 
   /* Split surroundings of pixel into 4 overlapping regions. */
   for (int dy = -kernel_size_; dy <= kernel_size_; dy++) {
@@ -50,60 +51,55 @@ void KuwaharaClassicOperation::execute_pixel_sampled(float output[4],
         image_reader_->read_sampled(color, xx, yy, sampler);
         const float3 v = color.xyz();
 
-        const float lum = IMB_colormanagement_get_luminance(color);
-
-        if (dx <= 0 && dy <= 0) {
-          mean[0] += v;
-          sum[0] += lum;
-          var[0] += lum * lum;
-          cnt[0]++;
-        }
-
-        if (dx >= 0 && dy <= 0) {
-          mean[1] += v;
-          sum[1] += lum;
-          var[1] += lum * lum;
-          cnt[1]++;
+        if (dx >= 0 && dy >= 0) {
+          const int quadrant_index = 0;
+          mean_of_color[quadrant_index] += v;
+          mean_of_squared_color[quadrant_index] += v * v;
+          quadrant_pixel_count[quadrant_index]++;
         }
 
         if (dx <= 0 && dy >= 0) {
-          mean[2] += v;
-          sum[2] += lum;
-          var[2] += lum * lum;
-          cnt[2]++;
+          const int quadrant_index = 1;
+          mean_of_color[quadrant_index] += v;
+          mean_of_squared_color[quadrant_index] += v * v;
+          quadrant_pixel_count[quadrant_index]++;
         }
 
-        if (dx >= 0 && dy >= 0) {
-          mean[3] += v;
-          sum[3] += lum;
-          var[3] += lum * lum;
-          cnt[3]++;
+        if (dx <= 0 && dy <= 0) {
+          const int quadrant_index = 2;
+          mean_of_color[quadrant_index] += v;
+          mean_of_squared_color[quadrant_index] += v * v;
+          quadrant_pixel_count[quadrant_index]++;
+        }
+
+        if (dx >= 0 && dy <= 0) {
+          const int quadrant_index = 3;
+          mean_of_color[quadrant_index] += v;
+          mean_of_squared_color[quadrant_index] += v * v;
+          quadrant_pixel_count[quadrant_index]++;
         }
       }
     }
-  }
-
-  /* Compute region variances. */
-  for (int i = 0; i < 4; i++) {
-    mean[i] = cnt[i] != 0 ? mean[i] / cnt[i] : float3{0.0f, 0.0f, 0.0f};
-    sum[i] = cnt[i] != 0 ? sum[i] / cnt[i] : 0.0f;
-    var[i] = cnt[i] != 0 ? var[i] / cnt[i] : 0.0f;
-    const float temp = sum[i] * sum[i];
-    var[i] = var[i] > temp ? sqrt(var[i] - temp) : 0.0f;
   }
 
   /* Choose the region with lowest variance. */
   float min_var = FLT_MAX;
   int min_index = 0;
   for (int i = 0; i < 4; i++) {
-    if (var[i] < min_var) {
-      min_var = var[i];
+    mean_of_color[i] /= quadrant_pixel_count[i];
+    mean_of_squared_color[i] /= quadrant_pixel_count[i];
+    float3 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
+
+    float variance = math::dot(color_variance, float3(1.0f));
+    if (variance < min_var) {
+      min_var = variance;
       min_index = i;
     }
   }
-  output[0] = mean[min_index].x;
-  output[1] = mean[min_index].y;
-  output[2] = mean[min_index].z;
+
+  output[0] = mean_of_color[min_index].x;
+  output[1] = mean_of_color[min_index].y;
+  output[2] = mean_of_color[min_index].z;
 
   /* No changes for alpha channel. */
   float tmp[4];
@@ -131,10 +127,9 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
     const int x = it.x;
     const int y = it.y;
 
-    Vector<float3> mean(4, float3(0.0f));
-    float sum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    float var[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-    int cnt[4] = {0, 0, 0, 0};
+    float3 mean_of_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+    float3 mean_of_squared_color[] = {float3(0.0f), float3(0.0f), float3(0.0f), float3(0.0f)};
+    int quadrant_pixel_count[] = {0, 0, 0, 0};
 
     /* Split surroundings of pixel into 4 overlapping regions. */
     for (int dy = -kernel_size_; dy <= kernel_size_; dy++) {
@@ -148,60 +143,55 @@ void KuwaharaClassicOperation::update_memory_buffer_partial(MemoryBuffer *output
           image->read_elem(xx, yy, &color.x);
           const float3 v = color.xyz();
 
-          const float lum = IMB_colormanagement_get_luminance(color);
-
-          if (dx <= 0 && dy <= 0) {
-            mean[0] += v;
-            sum[0] += lum;
-            var[0] += lum * lum;
-            cnt[0]++;
-          }
-
-          if (dx >= 0 && dy <= 0) {
-            mean[1] += v;
-            sum[1] += lum;
-            var[1] += lum * lum;
-            cnt[1]++;
+          if (dx >= 0 && dy >= 0) {
+            const int quadrant_index = 0;
+            mean_of_color[quadrant_index] += v;
+            mean_of_squared_color[quadrant_index] += v * v;
+            quadrant_pixel_count[quadrant_index]++;
           }
 
           if (dx <= 0 && dy >= 0) {
-            mean[2] += v;
-            sum[2] += lum;
-            var[2] += lum * lum;
-            cnt[2]++;
+            const int quadrant_index = 1;
+            mean_of_color[quadrant_index] += v;
+            mean_of_squared_color[quadrant_index] += v * v;
+            quadrant_pixel_count[quadrant_index]++;
           }
 
-          if (dx >= 0 && dy >= 0) {
-            mean[3] += v;
-            sum[3] += lum;
-            var[3] += lum * lum;
-            cnt[3]++;
+          if (dx <= 0 && dy <= 0) {
+            const int quadrant_index = 2;
+            mean_of_color[quadrant_index] += v;
+            mean_of_squared_color[quadrant_index] += v * v;
+            quadrant_pixel_count[quadrant_index]++;
+          }
+
+          if (dx >= 0 && dy <= 0) {
+            const int quadrant_index = 3;
+            mean_of_color[quadrant_index] += v;
+            mean_of_squared_color[quadrant_index] += v * v;
+            quadrant_pixel_count[quadrant_index]++;
           }
         }
       }
-    }
-
-    /* Compute region variances. */
-    for (int i = 0; i < 4; i++) {
-      mean[i] = cnt[i] != 0 ? mean[i] / cnt[i] : float3{0.0f, 0.0f, 0.0f};
-      sum[i] = cnt[i] != 0 ? sum[i] / cnt[i] : 0.0f;
-      var[i] = cnt[i] != 0 ? var[i] / cnt[i] : 0.0f;
-      const float temp = sum[i] * sum[i];
-      var[i] = var[i] > temp ? sqrt(var[i] - temp) : 0.0f;
     }
 
     /* Choose the region with lowest variance. */
     float min_var = FLT_MAX;
     int min_index = 0;
     for (int i = 0; i < 4; i++) {
-      if (var[i] < min_var) {
-        min_var = var[i];
+      mean_of_color[i] /= quadrant_pixel_count[i];
+      mean_of_squared_color[i] /= quadrant_pixel_count[i];
+      float3 color_variance = mean_of_squared_color[i] - mean_of_color[i] * mean_of_color[i];
+
+      float variance = math::dot(color_variance, float3(1.0f));
+      if (variance < min_var) {
+        min_var = variance;
         min_index = i;
       }
     }
-    it.out[0] = mean[min_index].x;
-    it.out[1] = mean[min_index].y;
-    it.out[2] = mean[min_index].z;
+
+    it.out[0] = mean_of_color[min_index].x;
+    it.out[1] = mean_of_color[min_index].y;
+    it.out[2] = mean_of_color[min_index].z;
 
     /* No changes for alpha channel. */
     it.out[3] = image->get_value(x, y, 3);

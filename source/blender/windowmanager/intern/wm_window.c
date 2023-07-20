@@ -875,21 +875,24 @@ static bool wm_window_update_size_position(wmWindow *win)
 
 wmWindow *WM_window_open(bContext *C,
                          const char *title,
-                         int x,
-                         int y,
-                         int sizex,
-                         int sizey,
+                         const rcti *rect_unscaled,
                          int space_type,
                          bool toplevel,
                          bool dialog,
                          bool temp,
-                         eWindowAlignment alignment)
+                         eWindowAlignment alignment,
+                         void (*area_setup_fn)(bScreen *screen, ScrArea *area, void *user_data),
+                         void *area_setup_user_data)
 {
   Main *bmain = CTX_data_main(C);
   wmWindowManager *wm = CTX_wm_manager(C);
   wmWindow *win_prev = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
+  int x = rect_unscaled->xmin;
+  int y = rect_unscaled->ymin;
+  int sizex = BLI_rcti_size_x(rect_unscaled);
+  int sizey = BLI_rcti_size_y(rect_unscaled);
   rcti rect;
 
   const float native_pixel_size = GHOST_GetNativePixelSize(win_prev->ghostwin);
@@ -983,8 +986,21 @@ wmWindow *WM_window_open(bContext *C,
    * to avoid having to take into account a partially-created window.
    */
 
-  /* ensure it shows the right spacetype editor */
-  if (space_type != SPACE_EMPTY) {
+  if (area_setup_fn) {
+    /* When the caller is setting up the area, it should always be empty
+     * because it's expected the callback sets the type. */
+    BLI_assert(space_type == SPACE_EMPTY);
+    /* NOTE(@ideasman42): passing in a callback to setup the `area` is admittedly awkward.
+     * This is done so #ED_screen_refresh has a valid area to initialize,
+     * otherwise it will attempt to make the empty area usable via #ED_area_init.
+     * While refreshing the window could be postponed this makes the state of the
+     * window less predictable to the caller. */
+    ScrArea *area = screen->areabase.first;
+    area_setup_fn(screen, area, area_setup_user_data);
+    CTX_wm_area_set(C, area);
+  }
+  else if (space_type != SPACE_EMPTY) {
+    /* Ensure it shows the right space-type editor. */
     ScrArea *area = screen->areabase.first;
     CTX_wm_area_set(C, area);
     ED_area_newspace(C, area, space_type, false);
@@ -1033,18 +1049,23 @@ int wm_window_new_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win_src = CTX_wm_window(C);
   ScrArea *area = BKE_screen_find_big_area(CTX_wm_screen(C), SPACE_TYPE_ANY, 0);
+  const rcti window_rect = {
+      /*xmin*/ 0,
+      /*xmax*/ win_src->sizex * 0.95f,
+      /*ymin*/ 0,
+      /*ymax*/ win_src->sizey * 0.9f,
+  };
 
   bool ok = (WM_window_open(C,
                             IFACE_("Blender"),
-                            0,
-                            0,
-                            win_src->sizex * 0.95f,
-                            win_src->sizey * 0.9f,
+                            &window_rect,
                             area->spacetype,
                             false,
                             false,
                             false,
-                            WIN_ALIGN_PARENT_CENTER) != NULL);
+                            WIN_ALIGN_PARENT_CENTER,
+                            NULL,
+                            NULL) != NULL);
 
   if (!ok) {
     BKE_report(op->reports, RPT_ERROR, "Failed to create window");

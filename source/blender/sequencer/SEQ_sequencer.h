@@ -8,11 +8,11 @@
  * \ingroup sequencer
  */
 
+#include "DNA_scene_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_scene_types.h"
 
 struct BlendDataReader;
 struct BlendExpander;
@@ -129,6 +129,7 @@ void SEQ_eval_sequences(struct Depsgraph *depsgraph,
 typedef enum eSequenceLookupTag {
   SEQ_LOOKUP_TAG_INVALID = (1 << 0),
 } eSequenceLookupTag;
+ENUM_OPERATORS(eSequenceLookupTag, SEQ_LOOKUP_TAG_INVALID)
 
 /**
  * Find a sequence with a given name.

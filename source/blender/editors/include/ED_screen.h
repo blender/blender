@@ -365,18 +365,14 @@ struct ScrArea *ED_screen_state_toggle(struct bContext *C,
  * as defined by \a display_type.
  *
  * \param title: Title to set for the window, if a window is spawned.
- * \param x, y: Position of the window, if a window is spawned.
- * \param sizex, sizey: Dimensions of the window, if a window is spawned.
+ * \param rect_unscaled: Position & size of the window, if a window is spawned.
  */
 ScrArea *ED_screen_temp_space_open(struct bContext *C,
                                    const char *title,
-                                   int x,
-                                   int y,
-                                   int sizex,
-                                   int sizey,
+                                   const struct rcti *rect_unscaled,
                                    eSpace_Type space_type,
                                    int display_type,
-                                   bool dialog);
+                                   bool dialog) ATTR_NONNULL(1, 2, 3);
 void ED_screens_header_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 void ED_screens_footer_tools_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);
 void ED_screens_region_flip_menu_create(struct bContext *C, struct uiLayout *layout, void *arg);

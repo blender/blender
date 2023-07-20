@@ -104,8 +104,7 @@ enum ePoseSlide_Modes {
   POSESLIDE_RELAX,
   /** Slide between the endpoint poses, finding a 'soft' spot. */
   POSESLIDE_BREAKDOWN,
-  POSESLIDE_PUSH_REST,
-  POSESLIDE_RELAX_REST,
+  POSESLIDE_BLEND_REST,
   POSESLIDE_BLEND,
 };
 
@@ -428,8 +427,7 @@ static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, Object *ob, flo
       break;
     }
     /* Those are handled in pose_slide_rest_pose_apply. */
-    case POSESLIDE_PUSH_REST:
-    case POSESLIDE_RELAX_REST: {
+    case POSESLIDE_BLEND_REST: {
       break;
     }
   }
@@ -735,13 +733,7 @@ static void pose_slide_rest_pose_apply_vec3(tPoseSlideOp *pso, float vec[3], flo
         ((lock & PS_LOCK_Z) && (idx == 2)))
     {
       float diff_val = default_value - vec[idx];
-      if (pso->mode == POSESLIDE_RELAX_REST) {
-        vec[idx] += factor * diff_val;
-      }
-      else {
-        /* Push */
-        vec[idx] -= factor * diff_val;
-      }
+      vec[idx] += factor * diff_val;
     }
   }
 }
@@ -758,13 +750,7 @@ static void pose_slide_rest_pose_apply_other_rot(tPoseSlideOp *pso, float vec[4]
   const float factor = ED_slider_factor_get(pso->slider);
   for (int idx = 0; idx < 4; idx++) {
     float diff_val = default_values[idx] - vec[idx];
-    if (pso->mode == POSESLIDE_RELAX_REST) {
-      vec[idx] += factor * diff_val;
-    }
-    else {
-      /* Push */
-      vec[idx] -= factor * diff_val;
-    }
+    vec[idx] += factor * diff_val;
   }
 }
 
@@ -1093,7 +1079,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
 
   /* Initial apply for operator. */
   /* TODO: need to calculate factor for initial round too. */
-  if (!ELEM(pso->mode, POSESLIDE_PUSH_REST, POSESLIDE_RELAX_REST)) {
+  if (!ELEM(pso->mode, POSESLIDE_BLEND_REST)) {
     pose_slide_apply(C, pso);
   }
   else {
@@ -1346,7 +1332,7 @@ static int pose_slide_modal(bContext *C, wmOperator *op, const wmEvent *event)
     pose_slide_reset(pso);
 
     /* Apply. */
-    if (!ELEM(pso->mode, POSESLIDE_PUSH_REST, POSESLIDE_RELAX_REST)) {
+    if (!ELEM(pso->mode, POSESLIDE_BLEND_REST)) {
       pose_slide_apply(C, pso);
     }
     else {
@@ -1373,7 +1359,7 @@ static void pose_slide_cancel(bContext *C, wmOperator *op)
 static int pose_slide_exec_common(bContext *C, wmOperator *op, tPoseSlideOp *pso)
 {
   /* Settings should have been set up ok for applying, so just apply! */
-  if (!ELEM(pso->mode, POSESLIDE_PUSH_REST, POSESLIDE_RELAX_REST)) {
+  if (!ELEM(pso->mode, POSESLIDE_BLEND_REST)) {
     pose_slide_apply(C, pso);
   }
   else {
@@ -1561,15 +1547,19 @@ void POSE_OT_relax(wmOperatorType *ot)
 
 /* ........................ */
 /**
- * Operator `invoke()` - for 'push from rest pose' mode.
+ * Operator `invoke()` - for 'blend with rest pose' mode.
  */
-static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int pose_slide_blend_rest_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Initialize data. */
-  if (pose_slide_init(C, op, POSESLIDE_PUSH_REST) == 0) {
+  if (pose_slide_init(C, op, POSESLIDE_BLEND_REST) == 0) {
     pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
+
+  tPoseSlideOp *pso = static_cast<tPoseSlideOp *>(op->customdata);
+  ED_slider_factor_set(pso->slider, 0);
+  ED_slider_factor_bounds_set(pso->slider, -1, 1);
 
   /* do common setup work */
   return pose_slide_invoke_common(C, op, event);
@@ -1578,12 +1568,12 @@ static int pose_slide_push_rest_invoke(bContext *C, wmOperator *op, const wmEven
 /**
  * Operator `exec()` - for push.
  */
-static int pose_slide_push_rest_exec(bContext *C, wmOperator *op)
+static int pose_slide_blend_rest_exec(bContext *C, wmOperator *op)
 {
   tPoseSlideOp *pso;
 
   /* Initialize data (from RNA-props). */
-  if (pose_slide_init(C, op, POSESLIDE_PUSH_REST) == 0) {
+  if (pose_slide_init(C, op, POSESLIDE_BLEND_REST) == 0) {
     pose_slide_exit(C, op);
     return OPERATOR_CANCELLED;
   }
@@ -1594,73 +1584,16 @@ static int pose_slide_push_rest_exec(bContext *C, wmOperator *op)
   return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_push_rest(wmOperatorType *ot)
+void POSE_OT_blend_with_rest(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Push Pose from Rest Pose";
-  ot->idname = "POSE_OT_push_rest";
-  ot->description = "Push the current pose further away from the rest pose";
+  ot->name = "Blend Pose with Rest Pose";
+  ot->idname = "POSE_OT_blend_with_rest";
+  ot->description = "Make the current pose more similar to, or further away from, the rest pose";
 
   /* callbacks */
-  ot->exec = pose_slide_push_rest_exec;
-  ot->invoke = pose_slide_push_rest_invoke;
-  ot->modal = pose_slide_modal;
-  ot->cancel = pose_slide_cancel;
-  ot->poll = ED_operator_posemode;
-
-  /* flags */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR_X;
-
-  /* Properties */
-  pose_slide_opdef_properties(ot);
-}
-
-/* ........................ */
-
-/**
- * Operator `invoke()` - for 'relax' mode.
- */
-static int pose_slide_relax_rest_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-  /* Initialize data. */
-  if (pose_slide_init(C, op, POSESLIDE_RELAX_REST) == 0) {
-    pose_slide_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-
-  /* Do common setup work. */
-  return pose_slide_invoke_common(C, op, event);
-}
-
-/**
- * Operator `exec()` - for relax.
- */
-static int pose_slide_relax_rest_exec(bContext *C, wmOperator *op)
-{
-  tPoseSlideOp *pso;
-
-  /* Initialize data (from RNA-props). */
-  if (pose_slide_init(C, op, POSESLIDE_RELAX_REST) == 0) {
-    pose_slide_exit(C, op);
-    return OPERATOR_CANCELLED;
-  }
-
-  pso = static_cast<tPoseSlideOp *>(op->customdata);
-
-  /* Do common exec work. */
-  return pose_slide_exec_common(C, op, pso);
-}
-
-void POSE_OT_relax_rest(wmOperatorType *ot)
-{
-  /* identifiers */
-  ot->name = "Relax Pose to Rest Pose";
-  ot->idname = "POSE_OT_relax_rest";
-  ot->description = "Make the current pose more similar to the rest pose";
-
-  /* callbacks */
-  ot->exec = pose_slide_relax_rest_exec;
-  ot->invoke = pose_slide_relax_rest_invoke;
+  ot->exec = pose_slide_blend_rest_exec;
+  ot->invoke = pose_slide_blend_rest_invoke;
   ot->modal = pose_slide_modal;
   ot->cancel = pose_slide_cancel;
   ot->poll = ED_operator_posemode;

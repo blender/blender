@@ -16,10 +16,6 @@ struct Scene;
 struct SeqRenderData;
 struct Sequence;
 
-#ifdef __cplusplus
-}
-#endif
-
 /**
  * Start or resume prefetching.
  */

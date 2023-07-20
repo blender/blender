@@ -450,11 +450,11 @@ struct ListBase *which_libbase(struct Main *bmain, short type);
  */
 int set_listbasepointers(struct Main *main, struct ListBase *lb[]);
 
-#define MAIN_VERSION_ATLEAST(main, ver, subver) \
+#define MAIN_VERSION_FILE_ATLEAST(main, ver, subver) \
   ((main)->versionfile > (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile >= (subver)))
 
-#define MAIN_VERSION_OLDER(main, ver, subver) \
+#define MAIN_VERSION_FILE_OLDER(main, ver, subver) \
   ((main)->versionfile < (ver) || \
    ((main)->versionfile == (ver) && (main)->subversionfile < (subver)))
 

@@ -1633,10 +1633,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *area, const
 
 ScrArea *ED_screen_temp_space_open(bContext *C,
                                    const char *title,
-                                   int x,
-                                   int y,
-                                   int sizex,
-                                   int sizey,
+                                   const rcti *rect_unscaled,
                                    eSpace_Type space_type,
                                    int display_type,
                                    bool dialog)
@@ -1647,15 +1644,14 @@ ScrArea *ED_screen_temp_space_open(bContext *C,
     case USER_TEMP_SPACE_DISPLAY_WINDOW:
       if (WM_window_open(C,
                          title,
-                         x,
-                         y,
-                         sizex,
-                         sizey,
+                         rect_unscaled,
                          int(space_type),
                          false,
                          dialog,
                          true,
-                         WIN_ALIGN_LOCATION_CENTER))
+                         WIN_ALIGN_LOCATION_CENTER,
+                         nullptr,
+                         nullptr))
       {
         area = CTX_wm_area(C);
       }

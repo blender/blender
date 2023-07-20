@@ -15,14 +15,14 @@ set(INC_SYS
 )
 
 set(SRC
-  intern/blf.c
-  intern/blf_default.c
-  intern/blf_dir.c
-  intern/blf_font.c
-  intern/blf_font_default.c
-  intern/blf_glyph.c
-  intern/blf_thumbs.c
-  intern/blf_util.c
+  intern/blf.cc
+  intern/blf_default.cc
+  intern/blf_dir.cc
+  intern/blf_font.cc
+  intern/blf_font_default.cc
+  intern/blf_glyph.cc
+  intern/blf_thumbs.cc
+  intern/blf_util.cc
 
   BLF_api.h
   intern/blf_internal.h

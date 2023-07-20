@@ -772,7 +772,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 1)) {
 #if 0
     ListBase pidlist;
 #endif
@@ -825,7 +825,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 2)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       if (ob->flag & 8192) { /* OB_POSEMODE = 8192. */
         ob->mode |= OB_MODE_POSE;
@@ -833,7 +833,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 4)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 4)) {
     bool do_gravity = false;
 
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
@@ -921,7 +921,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 6)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 6)) {
     /* New variables for axis-angle rotations and/or quaternion rotations were added,
      * and need proper initialization */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
@@ -939,7 +939,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 7)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 7)) {
     Key *key;
     const float *data;
     int a, tot;
@@ -1006,7 +1006,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 8)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 8)) {
     {
       Scene *sce = bmain->scenes.first;
       while (sce) {
@@ -1100,7 +1100,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 9)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 9)) {
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
       if (!sce->toolsettings->particle.selectmode) {
         sce->toolsettings->particle.selectmode = SCE_SELECT_PATH;
@@ -1126,7 +1126,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 10)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 10)) {
     /* properly initialize hair clothsim data on old files */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -1171,7 +1171,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 11)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 11)) {
     {
       /* fix for new view type in sequencer */
       LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -1212,7 +1212,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 12)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 12)) {
     /* anim viz changes */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       /* initialize object defaults */
@@ -1271,7 +1271,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 13)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 13)) {
     /* NOTE: if you do more conversion, be sure to do it outside of this and
      * increase subversion again, otherwise it will not be correct */
     /* convert degrees to radians for internal use */
@@ -1293,7 +1293,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 14)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 14)) {
     /* fix for bad View2D extents for Animation Editors */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1320,7 +1320,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 250, 17)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 250, 17)) {
     /* initialize to sane default so toggling on border shows something */
     LISTBASE_FOREACH (Scene *, sce, &bmain->scenes) {
       if (sce->r.border.xmin == 0.0f && sce->r.border.ymin == 0.0f && sce->r.border.xmax == 0.0f &&
@@ -1397,7 +1397,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 252, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 252, 1)) {
     LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
       if (brush->curve) {
         brush->curve->preset = CURVE_PRESET_SMOOTH;
@@ -1449,13 +1449,13 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   /* old-track -> constraints (this time we're really doing it!) */
-  if (!MAIN_VERSION_ATLEAST(bmain, 252, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 252, 2)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       blo_do_version_old_trackto_to_constraints(ob);
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 252, 5)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 252, 5)) {
     /* Image editor scopes */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
@@ -1631,7 +1631,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
       }
 
       /* New Settings */
-      if (!MAIN_VERSION_ATLEAST(bmain, 252, 5)) {
+      if (!MAIN_VERSION_FILE_ATLEAST(bmain, 252, 5)) {
         brush->flag |= BRUSH_SPACE_ATTEN; /* Explicitly enable adaptive space. */
 
         /* spacing was originally in pixels, convert it to percentage for new version
@@ -1671,7 +1671,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 253, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 253, 1)) {
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
         if (md->type == eModifierType_Fluid) {
@@ -1709,7 +1709,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 255, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 255, 1)) {
     LISTBASE_FOREACH (Brush *, br, &bmain->brushes) {
       if (br->ob_mode == 0) {
         br->ob_mode = OB_MODE_ALL_PAINT;
@@ -1751,7 +1751,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 255, 3)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 255, 3)) {
     /* ocean res is now squared, reset old ones - will be massive */
     LISTBASE_FOREACH (Object *, ob, &bmain->objects) {
       LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
@@ -1796,7 +1796,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 256, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 1)) {
     /* fix for bones that didn't have arm_roll before */
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
       LISTBASE_FOREACH (Bone *, bone, &arm->bonebase) {
@@ -1816,7 +1816,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 256, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 2)) {
     /* node sockets are not exposed automatically any more,
      * this mimics the old behavior by adding all unlinked sockets to groups.
      */
@@ -1897,7 +1897,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 256, 3)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 3)) {
     /* redraws flag in SpaceTime has been moved to Screen level */
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
       if (screen->redraws_flag == 0) {
@@ -1936,7 +1936,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
   }
 
   if (0) {
-    if (!MAIN_VERSION_ATLEAST(bmain, 256, 6)) {
+    if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 6)) {
       LISTBASE_FOREACH (Mesh *, me, &bmain->meshes) {
         /* Vertex normal calculation from legacy 'MFace' has been removed.
          * update after calculating polygons in file reading code instead. */
@@ -1944,7 +1944,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 256, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 2)) {
     /* update blur area sizes from 0..1 range to 0..100 percentage */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
@@ -1959,7 +1959,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 258, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 258, 1)) {
     /* screen view2d settings were not properly initialized #27164.
      * v2d->scroll caused the bug but best reset other values too
      * which are in old blend files only.
@@ -1998,7 +1998,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 259, 1)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 259, 1)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       scene->r.ffcodecdata.audio_channels = 2;
       scene->audio.volume = 1.0f;
@@ -2069,7 +2069,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 259, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 259, 2)) {
     {
       /* Convert default socket values from bNodeStack */
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
@@ -2095,7 +2095,7 @@ void blo_do_versions_250(FileData *fd, Library *UNUSED(lib), Main *bmain)
     }
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 259, 4)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 259, 4)) {
     {
       /* Adaptive time step for particle systems */
       LISTBASE_FOREACH (ParticleSettings *, part, &bmain->particles) {
@@ -2141,7 +2141,7 @@ static void lib_node_do_versions_group_indices(bNode *gnode)
 
 void do_versions_after_linking_250(Main *bmain)
 {
-  if (!MAIN_VERSION_ATLEAST(bmain, 256, 2)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 256, 2)) {
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       /* updates external links for all group nodes in a tree */
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
@@ -2156,7 +2156,7 @@ void do_versions_after_linking_250(Main *bmain)
     FOREACH_NODETREE_END;
   }
 
-  if (!MAIN_VERSION_ATLEAST(bmain, 258, 0)) {
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 258, 0)) {
     /* Some very old (original comments claim pre-2.57) versioning that was wrongly done in
      * lib-linking code... Putting it here just to be sure (this is also checked at runtime anyway
      * by `action_idcode_patch_check`). */

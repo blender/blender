@@ -34,6 +34,20 @@ extern "C" {
 BlenderRNA *RNA_create(void);
 void RNA_define_free(BlenderRNA *brna);
 void RNA_free(BlenderRNA *brna);
+
+/**
+ * Tell the RNA maker to check whether the property exists in the matching DNA structure,
+ *
+ * When in DNA, RNA generates automatically the accessors code. Otherwise, you
+ * have to give it explicit getters/setters/etc. By default, the RNA maker will
+ * error if it cannot find the corresponding DNA properties; this is what can be
+ * turned off with this function.
+ *
+ * This is used to generate RNA structs that do not (directly) match any DNA
+ * data, passing `false` as parameter at the beginning of the struct definition,
+ * and then calling it again at the end with `true` to restore default 'check
+ * DNA' behavior.
+ */
 void RNA_define_verify_sdna(bool verify);
 void RNA_define_animate_sdna(bool animate);
 void RNA_define_fallback_property_update(int noteflag, const char *updatefunc);

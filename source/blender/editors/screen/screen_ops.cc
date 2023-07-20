@@ -1428,6 +1428,13 @@ static void SCREEN_OT_area_swap(wmOperatorType *ot)
  * Create new window from area.
  * \{ */
 
+/** Callback for #WM_window_open to setup the area's data. */
+static void area_dupli_fn(bScreen * /*screen*/, ScrArea *area, void *user_data)
+{
+  ScrArea *area_src = static_cast<ScrArea *>(user_data);
+  ED_area_data_copy(area, area_src, true);
+};
+
 /* operator callback */
 static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -1441,25 +1448,27 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     area = sad->sa1;
   }
 
+  const rcti window_rect = {
+      /*xmin*/ area->totrct.xmin,
+      /*xmax*/ area->totrct.xmin + area->winx,
+      /*ymin*/ area->totrct.ymin,
+      /*ymax*/ area->totrct.ymin + area->winy,
+  };
+
   /* Create new window. No need to set space_type since it will be copied over. */
   wmWindow *newwin = WM_window_open(C,
                                     "Blender",
-                                    area->totrct.xmin,
-                                    area->totrct.ymin,
-                                    area->winx,
-                                    area->winy,
+                                    &window_rect,
                                     SPACE_EMPTY,
                                     false,
                                     false,
                                     false,
-                                    WIN_ALIGN_ABSOLUTE);
+                                    WIN_ALIGN_ABSOLUTE,
+                                    /* Initialize area from callback. */
+                                    area_dupli_fn,
+                                    (void *)area);
 
   if (newwin) {
-    /* copy area to new screen */
-    bScreen *newsc = WM_window_get_active_screen(newwin);
-    ED_area_data_copy((ScrArea *)newsc->areabase.first, area, true);
-    ED_area_tag_redraw((ScrArea *)newsc->areabase.first);
-
     /* screen, areas init */
     WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, nullptr);
   }
@@ -5154,18 +5163,24 @@ static int userpref_show_exec(bContext *C, wmOperator *op)
     RNA_property_update(C, &pref_ptr, active_section_prop);
   }
 
+  const rcti window_rect = {
+      /*xmin*/ event->xy[0],
+      /*xmax*/ event->xy[0] + sizex,
+      /*ymin*/ event->xy[1],
+      /*ymax*/ event->xy[1] + sizey,
+  };
+
   /* changes context! */
   if (WM_window_open(C,
                      IFACE_("Blender Preferences"),
-                     event->xy[0],
-                     event->xy[1],
-                     sizex,
-                     sizey,
+                     &window_rect,
                      SPACE_USERPREF,
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     /* The header only contains the editor switcher and looks empty.
      * So hiding in the temp window makes sense. */
@@ -5227,18 +5242,24 @@ static int drivers_editor_show_exec(bContext *C, wmOperator *op)
   PropertyRNA *prop;
   uiBut *but = UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
+  const rcti window_rect = {
+      /*xmin*/ event->xy[0],
+      /*xmax*/ event->xy[0] + sizex,
+      /*ymin*/ event->xy[1],
+      /*ymax*/ event->xy[1] + sizey,
+  };
+
   /* changes context! */
   if (WM_window_open(C,
                      IFACE_("Blender Drivers Editor"),
-                     event->xy[0],
-                     event->xy[1],
-                     sizex,
-                     sizey,
+                     &window_rect,
                      SPACE_GRAPH,
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     ED_drivers_editor_init(C, CTX_wm_area(C));
 
@@ -5298,22 +5319,30 @@ static int info_log_show_exec(bContext *C, wmOperator *op)
   wmWindow *win_cur = CTX_wm_window(C);
   /* Use eventstate, not event from _invoke, so this can be called through exec(). */
   const wmEvent *event = win_cur->eventstate;
+  const int shift_y = 480;
+  const int mx = event->xy[0];
+  const int my = event->xy[1] + shift_y;
   int sizex = 900 * UI_SCALE_FAC;
   int sizey = 580 * UI_SCALE_FAC;
-  int shift_y = 480;
+
+  const rcti window_rect = {
+      /*xmin*/ mx,
+      /*xmax*/ mx + sizex,
+      /*ymin*/ my,
+      /*ymax*/ my + sizey,
+  };
 
   /* changes context! */
   if (WM_window_open(C,
                      IFACE_("Blender Info Log"),
-                     event->xy[0],
-                     event->xy[1] + shift_y,
-                     sizex,
-                     sizey,
+                     &window_rect,
                      SPACE_INFO,
                      false,
                      false,
                      true,
-                     WIN_ALIGN_LOCATION_CENTER) != nullptr)
+                     WIN_ALIGN_LOCATION_CENTER,
+                     nullptr,
+                     nullptr) != nullptr)
   {
     return OPERATOR_FINISHED;
   }
