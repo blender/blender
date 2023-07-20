@@ -59,14 +59,14 @@ static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
 /* DEFINITIONS */
 typedef float lfVector[3];
-typedef struct fmatrix3x3 {
+struct fmatrix3x3 {
   float m[3][3]; /* 3x3 matrix */
   uint c, r;     /* column and row number */
   // int pinned; /* is this vertex allowed to move? */
   float n1, n2, n3; /* three normal vectors for collision constrains */
   uint vcount;      /* vertex count */
   uint scount;      /* spring count */
-} fmatrix3x3;
+};
 
 ///////////////////////////
 /* float[3] vector */
@@ -128,7 +128,7 @@ DO_INLINE lfVector *create_lfvector(uint verts)
 /* delete long vector */
 DO_INLINE void del_lfvector(float (*fLongVector)[3])
 {
-  if (fLongVector != NULL) {
+  if (fLongVector != nullptr) {
     MEM_freeN(fLongVector);
     // cloth_aligned_free(&MEMORY_BASE, fLongVector);
   }
@@ -543,7 +543,7 @@ DO_INLINE fmatrix3x3 *create_bfmatrix(uint verts, uint springs)
 /* delete big matrix */
 DO_INLINE void del_bfmatrix(fmatrix3x3 *matrix)
 {
-  if (matrix != NULL) {
+  if (matrix != nullptr) {
     MEM_freeN(matrix);
   }
 }
@@ -630,7 +630,7 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS(
 /* simulator start */
 ///////////////////////////////////////////////////////////////////
 
-typedef struct Implicit_Data {
+struct Implicit_Data {
   /* inputs */
   fmatrix3x3 *bigI;        /* identity (constant) */
   fmatrix3x3 *tfm;         /* local coordinate transform */
@@ -651,7 +651,7 @@ typedef struct Implicit_Data {
   lfVector *z;          /* target velocity in constrained directions */
   fmatrix3x3 *S;        /* filtering matrix for constraints */
   fmatrix3x3 *P, *Pinv; /* pre-conditioning matrix */
-} Implicit_Data;
+};
 
 Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings)
 {
@@ -940,7 +940,7 @@ static int cg_filtered_pre(lfVector *dv,
 {
   uint numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit = 100;
   float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-  float conjgrad_epsilon = 0.0001;  /* 0.2 is dt for steps=5 */
+  float conjgrad_epsilon = 0.0001; /* 0.2 is dt for steps=5 */
   lfVector *r = create_lfvector(numverts);
   lfVector *p = create_lfvector(numverts);
   lfVector *s = create_lfvector(numverts);
@@ -1575,8 +1575,8 @@ static void edge_wind_vertex(const float dir[3],
                              float radius,
                              const float wind[3],
                              float f[3],
-                             float UNUSED(dfdx[3][3]),
-                             float UNUSED(dfdv[3][3]))
+                             float[3][3] /*dfdx*/,
+                             float[3][3] /*dfdv*/)
 {
   const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
   float cos_alpha, sin_alpha, cross_section;
@@ -1615,7 +1615,7 @@ void SIM_mass_spring_force_edge_wind(
 
 void SIM_mass_spring_force_vertex_wind(Implicit_Data *data,
                                        int v,
-                                       float UNUSED(radius),
+                                       float /*radius*/,
                                        const float (*winvec)[3])
 {
   const float density = 0.01f; /* XXX arbitrary value, corresponds to effect of air density */
@@ -2206,10 +2206,10 @@ bool SIM_mass_spring_force_spring_bending_hair(Implicit_Data *data,
   add_m3_m3m3(data->dFdV[block_jk].m, data->dFdV[block_jk].m, dfk_dvj);
   add_m3_m3m3(data->dFdV[block_ik].m, data->dFdV[block_ik].m, dfk_dvi);
 
-  /* XXX analytical calculation of derivatives below is incorrect.
-   * This proved to be difficult, but for now just using the finite difference method for
-   * estimating the jacobians should be sufficient.
-   */
+/* XXX analytical calculation of derivatives below is incorrect.
+ * This proved to be difficult, but for now just using the finite difference method for
+ * estimating the jacobians should be sufficient.
+ */
 #  if 0
   float edge_ij[3], dir_ij[3], grad_dir_ij[3][3];
   float edge_jk[3], dir_jk[3], grad_dir_jk[3][3];

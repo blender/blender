@@ -33,9 +33,9 @@
 /* allocates PoseTree, and links that to root bone/channel */
 /* NOTE: detecting the IK chain is duplicate code...
  * in drawarmature.c and in transform_conversions.c */
-static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
+static void initialize_posetree(Object * /*ob*/, bPoseChannel *pchan_tip)
 {
-  bPoseChannel *curchan, *pchan_root = NULL, *chanlist[256], **oldchan;
+  bPoseChannel *curchan, *pchan_root = nullptr, *chanlist[256], **oldchan;
   PoseTree *tree;
   PoseTarget *target;
   bConstraint *con;
@@ -43,13 +43,13 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
   int a, t, segcount = 0, size, newsize, *oldparent, parent;
 
   /* find IK constraint, and validate it */
-  for (con = pchan_tip->constraints.first; con; con = con->next) {
+  for (con = static_cast<bConstraint *>(pchan_tip->constraints.first); con; con = con->next) {
     if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
       data = (bKinematicConstraint *)con->data;
       if (data->flag & CONSTRAINT_IK_AUTO) {
         break;
       }
-      if (data->tar == NULL) {
+      if (data->tar == nullptr) {
         continue;
       }
       if (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0) {
@@ -60,7 +60,7 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
       }
     }
   }
-  if (con == NULL) {
+  if (con == nullptr) {
     return;
   }
 
@@ -88,8 +88,8 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
   /* setup the chain data */
 
   /* we make tree-IK, unless all existing targets are in this chain */
-  for (tree = pchan_root->iktree.first; tree; tree = tree->next) {
-    for (target = tree->targets.first; target; target = target->next) {
+  for (tree = static_cast<PoseTree *>(pchan_root->iktree.first); tree; tree = tree->next) {
+    for (target = static_cast<PoseTarget *>(tree->targets.first); target; target = target->next) {
       curchan = tree->pchan[target->tip];
       if (curchan->flag & POSE_CHAIN) {
         curchan->flag &= ~POSE_CHAIN;
@@ -104,13 +104,13 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
   }
 
   /* create a target */
-  target = MEM_callocN(sizeof(PoseTarget), "posetarget");
+  target = static_cast<PoseTarget *>(MEM_callocN(sizeof(PoseTarget), "posetarget"));
   target->con = con;
   pchan_tip->flag &= ~POSE_CHAIN;
 
-  if (tree == NULL) {
+  if (tree == nullptr) {
     /* make new tree */
-    tree = MEM_callocN(sizeof(PoseTree), "posetree");
+    tree = static_cast<PoseTree *>(MEM_callocN(sizeof(PoseTree), "posetree"));
 
     tree->type = CONSTRAINT_TYPE_KINEMATIC;
 
@@ -118,8 +118,9 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
     tree->totchannel = segcount;
     tree->stretch = (data->flag & CONSTRAINT_IK_STRETCH);
 
-    tree->pchan = MEM_callocN(segcount * sizeof(void *), "ik tree pchan");
-    tree->parent = MEM_callocN(segcount * sizeof(int), "ik tree parent");
+    tree->pchan = static_cast<bPoseChannel **>(
+        MEM_callocN(segcount * sizeof(void *), "ik tree pchan"));
+    tree->parent = static_cast<int *>(MEM_callocN(segcount * sizeof(int), "ik tree parent"));
     for (a = 0; a < segcount; a++) {
       tree->pchan[a] = chanlist[segcount - a - 1];
       tree->parent[a] = a - 1;
@@ -170,8 +171,9 @@ static void initialize_posetree(Object *UNUSED(ob), bPoseChannel *pchan_tip)
       oldchan = tree->pchan;
       oldparent = tree->parent;
 
-      tree->pchan = MEM_callocN(newsize * sizeof(void *), "ik tree pchan");
-      tree->parent = MEM_callocN(newsize * sizeof(int), "ik tree parent");
+      tree->pchan = static_cast<bPoseChannel **>(
+          MEM_callocN(newsize * sizeof(void *), "ik tree pchan"));
+      tree->parent = static_cast<int *>(MEM_callocN(newsize * sizeof(int), "ik tree parent"));
       memcpy(tree->pchan, oldchan, sizeof(void *) * tree->totchannel);
       memcpy(tree->parent, oldparent, sizeof(int) * tree->totchannel);
       MEM_freeN(oldchan);
@@ -273,21 +275,21 @@ static void execute_posetree(struct Depsgraph *depsgraph,
   float goal[4][4], goalinv[4][4];
   float irest_basis[3][3], full_basis[3][3];
   float end_pose[4][4], world_pose[4][4];
-  float basis[3][3], rest_basis[3][3], start[3], *ikstretch = NULL;
+  float basis[3][3], rest_basis[3][3], start[3], *ikstretch = nullptr;
   float resultinf = 0.0f;
   int a, flag, hasstretch = 0, resultblend = 0;
   bPoseChannel *pchan;
   IK_Segment *seg, *parent, **iktree, *iktarget;
   IK_Solver *solver;
   PoseTarget *target;
-  bKinematicConstraint *data, *poleangledata = NULL;
+  bKinematicConstraint *data, *poleangledata = nullptr;
   Bone *bone;
 
   if (tree->totchannel == 0) {
     return;
   }
 
-  iktree = MEM_mallocN(sizeof(void *) * tree->totchannel, "ik tree");
+  iktree = static_cast<IK_Segment **>(MEM_mallocN(sizeof(void *) * tree->totchannel, "ik tree"));
 
   for (a = 0; a < tree->totchannel; a++) {
     float length;
@@ -315,7 +317,7 @@ static void execute_posetree(struct Depsgraph *depsgraph,
 
     /* find parent */
     if (a == 0) {
-      parent = NULL;
+      parent = nullptr;
     }
     else {
       parent = iktree[tree->parent[a]];
@@ -410,7 +412,7 @@ static void execute_posetree(struct Depsgraph *depsgraph,
   mul_m4_m4m4(imat, ob->object_to_world, rootmat);
   invert_m4_m4(goalinv, imat);
 
-  for (target = tree->targets.first; target; target = target->next) {
+  for (target = static_cast<PoseTarget *>(tree->targets.first); target; target = target->next) {
     float polepos[3];
     int poleconstrain = 0;
 
@@ -506,9 +508,10 @@ static void execute_posetree(struct Depsgraph *depsgraph,
   IK_FreeSolver(solver);
 
   /* gather basis changes */
-  tree->basis_change = MEM_mallocN(sizeof(float[3][3]) * tree->totchannel, "ik basis change");
+  tree->basis_change = static_cast<float(*)[3][3]>(
+      MEM_mallocN(sizeof(float[3][3]) * tree->totchannel, "ik basis change"));
   if (hasstretch) {
-    ikstretch = MEM_mallocN(sizeof(float) * tree->totchannel, "ik stretch");
+    ikstretch = static_cast<float *>(MEM_mallocN(sizeof(float) * tree->totchannel, "ik stretch"));
   }
 
   for (a = 0; a < tree->totchannel; a++) {
@@ -572,14 +575,14 @@ static void free_posetree(PoseTree *tree)
 /* ------------------------------
  * Plugin API for legacy iksolver */
 
-void iksolver_initialize_tree(struct Depsgraph *UNUSED(depsgraph),
-                              struct Scene *UNUSED(scene),
+void iksolver_initialize_tree(struct Depsgraph * /*depsgraph*/,
+                              struct Scene * /*scene*/,
                               Object *ob,
-                              float UNUSED(ctime))
+                              float /*ctime*/)
 {
   bPoseChannel *pchan;
 
-  for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+  for (pchan = static_cast<bPoseChannel *>(ob->pose->chanbase.first); pchan; pchan = pchan->next) {
     if (pchan->constflag & PCHAN_HAS_IK) { /* flag is set on editing constraints */
       initialize_posetree(ob, pchan);      /* will attach it to root! */
     }
@@ -594,7 +597,7 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
                            float ctime)
 {
   while (pchan_root->iktree.first) {
-    PoseTree *tree = pchan_root->iktree.first;
+    PoseTree *tree = static_cast<PoseTree *>(pchan_root->iktree.first);
     int a;
 
     /* stop on the first tree that isn't a standard IK chain */
@@ -632,7 +635,7 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph,
   }
 }
 
-void iksolver_release_tree(struct Scene *UNUSED(scene), Object *ob, float UNUSED(ctime))
+void iksolver_release_tree(struct Scene * /*scene*/, Object *ob, float /*ctime*/)
 {
   iksolver_clear_data(ob->pose);
 }
@@ -645,7 +648,7 @@ void iksolver_clear_data(bPose *pose)
     }
 
     while (pchan->iktree.first) {
-      PoseTree *tree = pchan->iktree.first;
+      PoseTree *tree = static_cast<PoseTree *>(pchan->iktree.first);
 
       /* stop on the first tree that isn't a standard IK chain */
       if (tree->type != CONSTRAINT_TYPE_KINEMATIC) {
