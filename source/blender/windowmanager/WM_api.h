@@ -174,6 +174,7 @@ typedef enum eWM_CapabilitiesFlag {
   /** Ability to copy/paste system clipboard images. */
   WM_CAPABILITY_CLIPBOARD_IMAGES = (1 << 4),
 } eWM_CapabilitiesFlag;
+ENUM_OPERATORS(eWM_CapabilitiesFlag, WM_CAPABILITY_CLIPBOARD_IMAGES)
 
 eWM_CapabilitiesFlag WM_capabilities_flag(void);
 

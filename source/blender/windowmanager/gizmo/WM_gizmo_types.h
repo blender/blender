@@ -42,6 +42,7 @@ typedef enum eWM_GizmoFlagState {
   WM_GIZMO_STATE_MODAL = (1 << 1),
   WM_GIZMO_STATE_SELECT = (1 << 2),
 } eWM_GizmoFlagState;
+ENUM_OPERATORS(eWM_GizmoFlagState, WM_GIZMO_STATE_SELECT)
 
 /**
  * #wmGizmo.flag
@@ -161,6 +162,7 @@ typedef enum eWM_GizmoFlagGroupInitFlag {
   WM_GIZMOGROUP_INIT_SETUP = (1 << 0),
   WM_GIZMOGROUP_INIT_REFRESH = (1 << 1),
 } eWM_GizmoFlagGroupInitFlag;
+ENUM_OPERATORS(eWM_GizmoFlagGroupInitFlag, WM_GIZMOGROUP_INIT_REFRESH)
 
 /**
  * #wmGizmoMapType.type_update_flag
@@ -175,6 +177,7 @@ typedef enum eWM_GizmoFlagMapTypeUpdateFlag {
    * So we need to keep track of keymap initialization separately. */
   WM_GIZMOMAPTYPE_KEYMAP_INIT = (1 << 2),
 } eWM_GizmoFlagMapTypeUpdateFlag;
+ENUM_OPERATORS(eWM_GizmoFlagMapTypeUpdateFlag, WM_GIZMOMAPTYPE_KEYMAP_INIT)
 
 /* -------------------------------------------------------------------- */
 /* wmGizmo */

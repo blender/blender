@@ -10,6 +10,10 @@
 
 #include "../wm_message_bus.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct wmMsgBus {
   struct GSet *messages_gset[WM_MSG_TYPE_NUM];
   /** Messages in order of being added. */
@@ -37,3 +41,7 @@ BLI_INLINE wmMsg *wm_msg_subscribe_value_msg_cast_mut(wmMsgSubscribeKey *key)
 {
   return &((wmMsgSubscribeKey_Generic *)key)->msg;
 }
+
+#ifdef __cplusplus
+}
+#endif
