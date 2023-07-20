@@ -467,7 +467,7 @@ static int grease_pencil_stroke_simplify_exec(bContext *C, wmOperator *op)
 
         const Span<float3> positions = curves.positions();
         const VArray<bool> cyclic = curves.cyclic();
-        const OffsetIndices points_by_curve = curves.points_by_curve();
+        const OffsetIndices<int> points_by_curve = curves.points_by_curve();
         const VArray<bool> selection = *curves.attributes().lookup_or_default<bool>(
             ".selection", ATTR_DOMAIN_POINT, true);
 
