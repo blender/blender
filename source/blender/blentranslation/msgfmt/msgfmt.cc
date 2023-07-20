@@ -31,32 +31,32 @@
 
 /* Stupid stub necessary because some BLI files includes winstuff.h, which uses G a bit... */
 #ifdef WIN32
-typedef struct Global {
+struct Global {
   void *dummy;
-} Global;
+};
 
 Global G;
 #endif
 
-/* We cannot use NULL char until ultimate step, would give nightmare to our C string processing...
- * Using one of the UTF-8 invalid bytes (as per our BLI string_utf8.c) */
+/* We cannot use NULL char until ultimate step, would give nightmare to our C string
+ * processing... Using one of the UTF-8 invalid bytes (as per our BLI string_utf8.c) */
 #define NULLSEP_STR "\xff"
 #define NULLSEP_CHR '\xff'
 
-typedef enum {
+enum eSectionType {
   SECTION_NONE = 0,
   SECTION_CTX = 1,
   SECTION_ID = 2,
   SECTION_STR = 3,
-} eSectionType;
+};
 
-typedef struct Message {
+struct Message {
   DynStr *ctxt;
   DynStr *id;
   DynStr *str;
 
   bool is_fuzzy;
-} Message;
+};
 
 static char *trim(char *str)
 {
@@ -131,11 +131,11 @@ static char **get_keys_sorted(GHash *messages, const uint32_t num_keys)
 {
   GHashIterator iter;
 
-  char **keys = MEM_mallocN(sizeof(*keys) * num_keys, __func__);
+  char **keys = static_cast<char **>(MEM_mallocN(sizeof(*keys) * num_keys, __func__));
   char **k = keys;
 
   GHASH_ITER (iter, messages) {
-    *k = BLI_ghashIterator_getKey(&iter);
+    *k = static_cast<char *>(BLI_ghashIterator_getKey(&iter));
     k++;
   }
 
@@ -155,7 +155,7 @@ BLI_INLINE size_t uint32_to_bytes(const int value, char *bytes)
 
 BLI_INLINE size_t msg_to_bytes(char *msg, char *bytes, uint32_t size)
 {
-  /* Note that we also perform replacing of our NULLSEP placeholder by real NULL char... */
+  /* Note that we also perform replacing of our NULLSEP placeholder by real nullptr char... */
   size_t i;
   for (i = 0; i < size; i++, msg++, bytes++) {
     *bytes = (*msg == NULLSEP_CHR) ? '\0' : *msg;
@@ -174,19 +174,19 @@ static char *generate(GHash *messages, size_t *r_output_size)
 
   /* Get list of sorted keys. */
   char **keys = get_keys_sorted(messages, num_keys);
-  char **vals = MEM_mallocN(sizeof(*vals) * num_keys, __func__);
+  char **vals = static_cast<char **>(MEM_mallocN(sizeof(*vals) * num_keys, __func__));
   uint32_t tot_keys_len = 0;
   uint32_t tot_vals_len = 0;
 
-  Offset *offsets = MEM_mallocN(sizeof(*offsets) * num_keys, __func__);
+  Offset *offsets = static_cast<Offset *>(MEM_mallocN(sizeof(*offsets) * num_keys, __func__));
 
   for (int i = 0; i < num_keys; i++) {
     Offset *off = &offsets[i];
 
-    vals[i] = BLI_ghash_lookup(messages, keys[i]);
+    vals[i] = static_cast<char *>(BLI_ghash_lookup(messages, keys[i]));
 
     /* For each string, we need size and file offset.
-     * Each string is NULL terminated; the NULL does not count into the size. */
+     * Each string is nullptr terminated; the nullptr does not count into the size. */
     off->key_offset = tot_keys_len;
     off->key_len = (uint32_t)strlen(keys[i]);
     tot_keys_len += off->key_len + 1;
@@ -207,7 +207,7 @@ static char *generate(GHash *messages, size_t *r_output_size)
 
   /* Final buffer representing the binary MO file. */
   *r_output_size = valstart + tot_vals_len;
-  char *output = MEM_mallocN(*r_output_size, __func__);
+  char *output = static_cast<char *>(MEM_mallocN(*r_output_size, __func__));
   char *h = output;
   char *ik = output + idx_keystart;
   char *iv = output + idx_valstart;
@@ -258,8 +258,10 @@ static void add(GHash *messages, MemArena *memarena, const Message *msg)
   const size_t msgkey_len = msgid_len + ((msgctxt_len == 0) ? 0 : msgctxt_len + 1);
 
   if (!msg->is_fuzzy && msgstr_len != 0) {
-    char *msgkey = BLI_memarena_alloc(memarena, sizeof(*msgkey) * (msgkey_len + 1));
-    char *msgstr = BLI_memarena_alloc(memarena, sizeof(*msgstr) * (msgstr_len + 1));
+    char *msgkey = static_cast<char *>(
+        BLI_memarena_alloc(memarena, sizeof(*msgkey) * (msgkey_len + 1)));
+    char *msgstr = static_cast<char *>(
+        BLI_memarena_alloc(memarena, sizeof(*msgstr) * (msgstr_len + 1)));
 
     if (msgctxt_len != 0) {
       BLI_dynstr_get_cstring_ex(msg->ctxt, msgkey);
@@ -303,19 +305,18 @@ static int make(const char *input_file_name, const char *output_file_name)
   eSectionType section = SECTION_NONE;
   bool is_plural = false;
 
-  Message msg = {
-      .ctxt = BLI_dynstr_new_memarena(),
-      .id = BLI_dynstr_new_memarena(),
-      .str = BLI_dynstr_new_memarena(),
-      .is_fuzzy = false,
-  };
+  Message msg{};
+  msg.ctxt = BLI_dynstr_new_memarena();
+  msg.id = BLI_dynstr_new_memarena();
+  msg.str = BLI_dynstr_new_memarena();
+  msg.is_fuzzy = false;
 
   LinkNode *input_file_lines = BLI_file_read_as_lines(input_file_name);
   LinkNode *ifl = input_file_lines;
 
   /* Parse the catalog. */
   for (int lno = 1; ifl; ifl = ifl->next, lno++) {
-    char *l = ifl->link;
+    char *l = static_cast<char *>(ifl->link);
     const bool is_comment = (l[0] == '#');
     /* If we get a comment line after a msgstr, this is a new entry. */
     if (is_comment) {
@@ -325,7 +326,7 @@ static int make(const char *input_file_name, const char *output_file_name)
         section = SECTION_NONE;
       }
       /* Record a fuzzy mark. */
-      if (l[1] == ',' && strstr(l, "fuzzy") != NULL) {
+      if (l[1] == ',' && strstr(l, "fuzzy") != nullptr) {
         msg.is_fuzzy = true;
       }
       /* Skip comments */
@@ -374,7 +375,7 @@ static int make(const char *input_file_name, const char *output_file_name)
           printf("plural without msgid_plural on %s:%d\n", input_file_name, lno);
           return EXIT_FAILURE;
         }
-        if ((l = strchr(l, ']')) == NULL) {
+        if ((l = strchr(l, ']')) == nullptr) {
           printf("Syntax error on %s:%d\n", input_file_name, lno);
           return EXIT_FAILURE;
         }
@@ -433,7 +434,7 @@ static int make(const char *input_file_name, const char *output_file_name)
   fclose(fp);
 
   MEM_freeN(output);
-  BLI_ghash_free(messages, NULL, NULL);
+  BLI_ghash_free(messages, nullptr, nullptr);
   BLI_memarena_free(msgs_memarena);
 
   return EXIT_SUCCESS;

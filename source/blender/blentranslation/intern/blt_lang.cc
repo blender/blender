@@ -41,9 +41,9 @@
 #  include "boost_locale_wrapper.h"
 
 /* Locale options. */
-static const char **locales = NULL;
+static const char **locales = nullptr;
 static int num_locales = 0;
-static EnumPropertyItem *locales_menu = NULL;
+static EnumPropertyItem *locales_menu = nullptr;
 static int num_locales_menu = 0;
 
 static void free_locales(void)
@@ -57,7 +57,7 @@ static void free_locales(void)
     }
 
     MEM_freeN((void *)locales);
-    locales = NULL;
+    locales = nullptr;
   }
   MEM_SAFE_FREE(locales_menu);
   num_locales = num_locales_menu = 0;
@@ -67,7 +67,7 @@ static void fill_locales(void)
 {
   const char *const languages_path = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
   char languages[FILE_MAX];
-  LinkNode *lines = NULL, *line;
+  LinkNode *lines = nullptr, *line;
   char *str;
   int idx = 0;
 
@@ -97,12 +97,13 @@ static void fill_locales(void)
   num_locales_menu++; /* The "closing" void item... */
 
   /* And now, build locales and locale_menu! */
-  locales_menu = MEM_callocN(num_locales_menu * sizeof(EnumPropertyItem), __func__);
+  locales_menu = static_cast<EnumPropertyItem *>(
+      MEM_callocN(num_locales_menu * sizeof(EnumPropertyItem), __func__));
   line = lines;
   /* Do not allocate locales with zero-sized mem,
-   * as LOCALE macro uses NULL locales as invalid marker! */
+   * as LOCALE macro uses nullptr locales as invalid marker! */
   if (num_locales > 0) {
-    locales = MEM_callocN(num_locales * sizeof(char *), __func__);
+    locales = static_cast<const char **>(MEM_callocN(num_locales * sizeof(char *), __func__));
     while (line) {
       int id;
       char *loc, *sep1, *sep2, *sep3;
@@ -160,7 +161,7 @@ static void fill_locales(void)
   }
 
   /* Add closing item to menu! */
-  locales_menu[idx].identifier = NULL;
+  locales_menu[idx].identifier = nullptr;
   locales_menu[idx].value = locales_menu[idx].icon = 0;
   locales_menu[idx].name = locales_menu[idx].description = "";
 
@@ -173,7 +174,7 @@ EnumPropertyItem *BLT_lang_RNA_enum_properties(void)
 #ifdef WITH_INTERNATIONAL
   return locales_menu;
 #else
-  return NULL;
+  return nullptr;
 #endif
 }
 
@@ -183,7 +184,7 @@ void BLT_lang_init(void)
   const char *const messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
 #endif
 
-  /* Make sure LANG is correct and wouldn't cause #std::runtime_error. */
+/* Make sure LANG is correct and wouldn't cause #std::runtime_error. */
 #ifndef _WIN32
   /* TODO(sergey): This code only ensures LANG is set properly, so later when
    * Cycles will try to use file system API from boost there will be no runtime
@@ -197,11 +198,11 @@ void BLT_lang_init(void)
    * Would also be good to find nicer way to check if LANG is correct.
    */
   const char *lang = BLI_getenv("LANG");
-  if (lang != NULL) {
-    char *old_locale = setlocale(LC_ALL, NULL);
+  if (lang != nullptr) {
+    char *old_locale = setlocale(LC_ALL, nullptr);
     /* Make a copy so subsequent #setlocale() doesn't interfere. */
     old_locale = BLI_strdup(old_locale);
-    if (setlocale(LC_ALL, lang) == NULL) {
+    if (setlocale(LC_ALL, lang) == nullptr) {
       setenv("LANG", "C", 1);
       printf("Warning: Falling back to the standard locale (\"C\")\n");
     }
@@ -241,12 +242,12 @@ void BLT_lang_set(const char *str)
 #ifdef WITH_INTERNATIONAL
   int ulang = ULANGUAGE;
   const char *short_locale = str ? str : LOCALE(ulang);
-  const char *short_locale_utf8 = NULL;
+  const char *short_locale_utf8 = nullptr;
 
   /* We want to avoid locales like '.UTF-8'! */
   if (short_locale[0]) {
     /* Hooray! Encoding needs to be placed *before* variant! */
-    char *variant = strchr(short_locale, '@');
+    const char *variant = strchr(short_locale, '@');
     if (variant) {
       char *locale = BLI_strdupn(short_locale, variant - short_locale);
       short_locale_utf8 = BLI_sprintfN("%s.UTF-8%s", locale, variant);
@@ -293,7 +294,8 @@ void BLT_lang_locale_explode(const char *locale,
                              char **language_country,
                              char **language_variant)
 {
-  char *m1, *m2, *_t = NULL;
+  const char *m1, *m2;
+  char *_t = nullptr;
 
   m1 = strchr(locale, '_');
   m2 = strchr(locale, '@');
@@ -314,7 +316,7 @@ void BLT_lang_locale_explode(const char *locale,
       *country = m2 ? BLI_strdupn(m1 + 1, m2 - (m1 + 1)) : BLI_strdup(m1 + 1);
     }
     else {
-      *country = NULL;
+      *country = nullptr;
     }
   }
   if (variant) {
@@ -322,7 +324,7 @@ void BLT_lang_locale_explode(const char *locale,
       *variant = BLI_strdup(m2 + 1);
     }
     else {
-      *variant = NULL;
+      *variant = nullptr;
     }
   }
   if (language_country) {
@@ -330,7 +332,7 @@ void BLT_lang_locale_explode(const char *locale,
       *language_country = m2 ? BLI_strdupn(locale, m2 - locale) : BLI_strdup(locale);
     }
     else {
-      *language_country = NULL;
+      *language_country = nullptr;
     }
   }
   if (language_variant) {
@@ -338,7 +340,7 @@ void BLT_lang_locale_explode(const char *locale,
       *language_variant = m1 ? BLI_strdupcat(_t, m2) : BLI_strdup(locale);
     }
     else {
-      *language_variant = NULL;
+      *language_variant = nullptr;
     }
   }
   if (_t && !language) {
