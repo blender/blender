@@ -221,8 +221,7 @@ void POSELIB_OT_blend_pose_asset(struct wmOperatorType *ot);
 
 void POSE_OT_push(struct wmOperatorType *ot);
 void POSE_OT_relax(struct wmOperatorType *ot);
-void POSE_OT_push_rest(struct wmOperatorType *ot);
-void POSE_OT_relax_rest(struct wmOperatorType *ot);
+void POSE_OT_blend_with_rest(struct wmOperatorType *ot);
 void POSE_OT_breakdown(struct wmOperatorType *ot);
 void POSE_OT_blend_to_neighbors(struct wmOperatorType *ot);
 
