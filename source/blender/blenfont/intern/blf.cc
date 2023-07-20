@@ -44,7 +44,7 @@
   } \
   ((void)0)
 
-FontBLF *global_font[BLF_MAX_FONT] = {NULL};
+FontBLF *global_font[BLF_MAX_FONT] = {nullptr};
 
 /* XXX: should these be made into global_font_'s too? */
 
@@ -56,13 +56,13 @@ static FontBLF *blf_get(int fontid)
   if (fontid >= 0 && fontid < BLF_MAX_FONT) {
     return global_font[fontid];
   }
-  return NULL;
+  return nullptr;
 }
 
 int BLF_init(void)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
-    global_font[i] = NULL;
+    global_font[i] = nullptr;
   }
 
   return blf_font_init();
@@ -74,7 +74,7 @@ void BLF_exit(void)
     FontBLF *font = global_font[i];
     if (font) {
       blf_font_free(font);
-      global_font[i] = NULL;
+      global_font[i] = nullptr;
     }
   }
 
@@ -93,14 +93,14 @@ void BLF_cache_clear(void)
 
 bool blf_font_id_is_valid(int fontid)
 {
-  return blf_get(fontid) != NULL;
+  return blf_get(fontid) != nullptr;
 }
 
 static int blf_search_by_mem_name(const char *mem_name)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     const FontBLF *font = global_font[i];
-    if (font == NULL || font->mem_name == NULL) {
+    if (font == nullptr || font->mem_name == nullptr) {
       continue;
     }
     if (font && STREQ(font->mem_name, mem_name)) {
@@ -247,7 +247,7 @@ void BLF_unload(const char *filepath)
 {
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *font = global_font[i];
-    if (font == NULL || font->filepath == NULL) {
+    if (font == nullptr || font->filepath == nullptr) {
       continue;
     }
 
@@ -257,7 +257,7 @@ void BLF_unload(const char *filepath)
 
       if (font->reference_count == 0) {
         blf_font_free(font);
-        global_font[i] = NULL;
+        global_font[i] = nullptr;
       }
     }
   }
@@ -272,7 +272,7 @@ void BLF_unload_id(int fontid)
 
     if (font->reference_count == 0) {
       blf_font_free(font);
-      global_font[fontid] = NULL;
+      global_font[fontid] = nullptr;
     }
   }
 }
@@ -283,7 +283,7 @@ void BLF_unload_all(void)
     FontBLF *font = global_font[i];
     if (font) {
       blf_font_free(font);
-      global_font[i] = NULL;
+      global_font[i] = nullptr;
     }
   }
   blf_mono_font = -1;
@@ -567,7 +567,7 @@ void BLF_draw(int fontid, const char *str, const size_t str_len)
   /* Avoid bgl usage to corrupt BLF drawing. */
   GPU_bgl_end();
 
-  BLF_draw_ex(fontid, str, str_len, NULL);
+  BLF_draw_ex(fontid, str, str_len, nullptr);
 }
 
 int BLF_draw_mono(int fontid, const char *str, const size_t str_len, int cwidth)
@@ -692,7 +692,7 @@ void BLF_boundbox_ex(
 
 void BLF_boundbox(int fontid, const char *str, const size_t str_len, rcti *r_box)
 {
-  BLF_boundbox_ex(fontid, str, str_len, r_box, NULL);
+  BLF_boundbox_ex(fontid, str, str_len, r_box, nullptr);
 }
 
 void BLF_width_and_height(
@@ -701,7 +701,7 @@ void BLF_width_and_height(
   FontBLF *font = blf_get(fontid);
 
   if (font) {
-    blf_font_width_and_height(font, str, str_len, r_width, r_height, NULL);
+    blf_font_width_and_height(font, str, str_len, r_width, r_height, nullptr);
   }
   else {
     *r_width = *r_height = 0.0f;
@@ -723,7 +723,7 @@ float BLF_width_ex(int fontid, const char *str, const size_t str_len, struct Res
 
 float BLF_width(int fontid, const char *str, const size_t str_len)
 {
-  return BLF_width_ex(fontid, str, str_len, NULL);
+  return BLF_width_ex(fontid, str, str_len, nullptr);
 }
 
 float BLF_fixed_width(int fontid)
@@ -752,7 +752,7 @@ float BLF_height_ex(int fontid, const char *str, const size_t str_len, struct Re
 
 float BLF_height(int fontid, const char *str, const size_t str_len)
 {
-  return BLF_height_ex(fontid, str, str_len, NULL);
+  return BLF_height_ex(fontid, str, str_len, nullptr);
 }
 
 int BLF_height_max(int fontid)
@@ -909,7 +909,7 @@ void BLF_draw_buffer_ex(int fontid,
 }
 void BLF_draw_buffer(int fontid, const char *str, const size_t str_len)
 {
-  BLF_draw_buffer_ex(fontid, str, str_len, NULL);
+  BLF_draw_buffer_ex(fontid, str, str_len, nullptr);
 }
 
 char *BLF_display_name_from_file(const char *filepath)
@@ -917,7 +917,7 @@ char *BLF_display_name_from_file(const char *filepath)
   /* While listing font directories this function can be called simultaneously from a greater
    * number of threads than we want the FreeType cache to keep open at a time. Therefore open
    * with own FT_Library object and use FreeType calls directly to avoid any contention. */
-  char *name = NULL;
+  char *name = nullptr;
   FT_Library ft_library;
   if (FT_Init_FreeType(&ft_library) == FT_Err_Ok) {
     FT_Face face;
@@ -949,7 +949,7 @@ void BLF_state_print(int fontid)
     printf("  flag:     %d\n", font->flags);
   }
   else {
-    printf("fontid %d (NULL)\n", fontid);
+    printf("fontid %d (nullptr)\n", fontid);
   }
   fflush(stdout);
 }

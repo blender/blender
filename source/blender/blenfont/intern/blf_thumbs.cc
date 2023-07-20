@@ -34,14 +34,14 @@
 
 #include "BLI_strict_flags.h"
 
-/* Maximum length of text sample in char32_t, including NULL terminator. */
+/* Maximum length of text sample in char32_t, including nullptr terminator. */
 #define BLF_SAMPLE_LEN 5
 
-typedef struct UnicodeSample {
+struct UnicodeSample {
   char32_t sample[BLF_SAMPLE_LEN];
-  int field;     /* ‘OS/2’ table ulUnicodeRangeX field (1-4). */
-  FT_ULong mask; /* ‘OS/2’ table ulUnicodeRangeX bit mask. */
-} UnicodeSample;
+  int field;     /* 'OS/2' table ulUnicodeRangeX field (1-4). */
+  FT_ULong mask; /* 'OS/2' table ulUnicodeRangeX bit mask. */
+};
 
 /* The seemingly arbitrary order that follows is to help quickly find the most-likely designed
  * intent of the font. Many feature-specific fonts contain Latin, Greek, & Coptic characters so
@@ -304,10 +304,10 @@ static const char32_t *blf_get_sample_text(FT_Face face)
   return sample;
 }
 
-bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int UNUSED(channels))
+bool BLF_thumb_preview(const char *filename, uchar *buf, int w, int h, int /*channels*/)
 {
   /* Use own FT_Library and direct FreeType calls as this is called from multiple threads. */
-  FT_Library ft_lib = NULL;
+  FT_Library ft_lib = nullptr;
   if (FT_Init_FreeType(&ft_lib) != FT_Err_Ok) {
     return false;
   }

@@ -37,7 +37,7 @@ char *blf_dir_metrics_search(const char *filepath)
   if (s) {
     if (BLI_strnlen(s, 4) < 4) {
       MEM_freeN(mfile);
-      return NULL;
+      return nullptr;
     }
     s++;
     s[0] = 'a';
@@ -57,5 +57,5 @@ char *blf_dir_metrics_search(const char *filepath)
     }
   }
   MEM_freeN(mfile);
-  return NULL;
+  return nullptr;
 }

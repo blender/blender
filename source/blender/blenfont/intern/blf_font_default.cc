@@ -24,7 +24,7 @@
 static int blf_load_font_default(const char *filename, const bool unique)
 {
   const char *dir = BKE_appdir_folder_id(BLENDER_DATAFILES, BLF_DATAFILES_FONTS_DIR);
-  if (dir == NULL) {
+  if (dir == nullptr) {
     fprintf(stderr,
             "%s: 'fonts' data path not found for '%s', will not be able to display text\n",
             __func__,
@@ -74,7 +74,8 @@ static void blf_load_datafiles_dir(void)
 
     const char *filepath = file_list[i].path;
     if (!BLI_path_extension_check_n(
-            filepath, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", NULL)) {
+            filepath, ".ttf", ".ttc", ".otf", ".otc", ".woff", ".woff2", nullptr))
+    {
       continue;
     }
     if (BLF_is_loaded(filepath)) {

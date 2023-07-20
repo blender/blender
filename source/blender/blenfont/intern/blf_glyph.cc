@@ -77,15 +77,15 @@ static GlyphCacheBLF *blf_glyph_cache_find(const FontBLF *font, const float size
     }
     gc = gc->next;
   }
-  return NULL;
+  return nullptr;
 }
 
 static GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 {
   GlyphCacheBLF *gc = (GlyphCacheBLF *)MEM_callocN(sizeof(GlyphCacheBLF), "blf_glyph_cache_new");
 
-  gc->next = NULL;
-  gc->prev = NULL;
+  gc->next = nullptr;
+  gc->prev = nullptr;
   gc->size = font->size;
   gc->bold = ((font->flags & BLF_BOLD) != 0);
   gc->italic = ((font->flags & BLF_ITALIC) != 0);
@@ -141,7 +141,7 @@ static void blf_glyph_cache_free(GlyphCacheBLF *gc)
 {
   GlyphBLF *g;
   for (uint i = 0; i < ARRAY_SIZE(gc->bucket); i++) {
-    while ((g = BLI_pophead(&gc->bucket[i]))) {
+    while ((g = static_cast<GlyphBLF *>(BLI_pophead(&gc->bucket[i])))) {
       blf_glyph_free(g);
     }
   }
@@ -160,7 +160,7 @@ void blf_glyph_cache_clear(FontBLF *font)
 
   BLI_mutex_lock(&font->glyph_cache_mutex);
 
-  while ((gc = BLI_pophead(&font->cache))) {
+  while ((gc = static_cast<GlyphCacheBLF *>(BLI_pophead(&font->cache)))) {
     blf_glyph_cache_free(gc);
   }
 
@@ -170,7 +170,7 @@ void blf_glyph_cache_clear(FontBLF *font)
 /**
  * Try to find a glyph in cache.
  *
- * \return NULL if not found.
+ * \return nullptr if not found.
  */
 static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc, uint charcode)
 {
@@ -178,14 +178,14 @@ static GlyphBLF *blf_glyph_cache_find_glyph(const GlyphCacheBLF *gc, uint charco
     return gc->glyph_ascii_table[charcode];
   }
 
-  GlyphBLF *g = gc->bucket[blf_hash(charcode)].first;
+  GlyphBLF *g = static_cast<GlyphBLF *>(gc->bucket[blf_hash(charcode)].first);
   while (g) {
     if (g->c == charcode) {
       return g;
     }
     g = g->next;
   }
-  return NULL;
+  return nullptr;
 }
 
 #ifdef BLF_GAMMA_CORRECT_GLYPHS
@@ -268,7 +268,7 @@ static GlyphBLF *blf_glyph_cache_add_glyph(
       }
 #endif /* BLF_GAMMA_CORRECT_GLYPHS */
     }
-    g->bitmap = MEM_mallocN((size_t)buffer_size, "glyph bitmap");
+    g->bitmap = static_cast<unsigned char *>(MEM_mallocN((size_t)buffer_size, "glyph bitmap"));
     memcpy(g->bitmap, glyph->bitmap.buffer, (size_t)buffer_size);
   }
 
@@ -570,10 +570,10 @@ static const struct UnicodeBlock *blf_charcode_to_unicode_block(const uint charc
   /* Binary search for other blocks. */
 
   int min = 0;
-  int max = ARRAY_SIZE(unicode_blocks) - 1;
+  int max = int(ARRAY_SIZE(unicode_blocks)) - 1;
 
   if (charcode < unicode_blocks[0].first || charcode > unicode_blocks[max].last) {
-    return NULL;
+    return nullptr;
   }
 
   while (max >= min) {
@@ -589,7 +589,7 @@ static const struct UnicodeBlock *blf_charcode_to_unicode_block(const uint charc
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 static int blf_charcode_to_coverage_bit(uint charcode)
@@ -671,7 +671,7 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
   }
 
   /* Last look in anything else. Also check if we have a last-resort font. */
-  FontBLF *last_resort = NULL;
+  FontBLF *last_resort = nullptr;
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
     if (!f || f == *font || !(f->flags & BLF_DEFAULT)) {
@@ -743,7 +743,7 @@ static FT_GlyphSlot blf_glyph_load(FontBLF *font, FT_UInt glyph_index)
   if (FT_Load_Glyph(font->face, glyph_index, load_flags) == FT_Err_Ok) {
     return font->face->glyph;
   }
-  return NULL;
+  return nullptr;
 }
 
 /** \} */
@@ -761,7 +761,7 @@ static bool blf_glyph_render_bitmap(FontBLF *font, FT_GlyphSlot glyph)
                                                            FT_RENDER_MODE_NORMAL;
 
   /* Render the glyph curves to a bitmap. */
-  FT_Error err = FT_Render_Glyph(glyph, render_mode);
+  FT_Error err = FT_Render_Glyph(glyph, FT_Render_Mode(render_mode));
   if (err != FT_Err_Ok) {
     return false;
   }
@@ -805,7 +805,7 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
 {
   *r_axis_index = -1;
   if (!variations) {
-    return NULL;
+    return nullptr;
   }
   for (int i = 0; i < (int)variations->num_axis; i++) {
     if (variations->axis[i].tag == tag) {
@@ -814,7 +814,7 @@ static const FT_Var_Axis *blf_var_axis_by_tag(const FT_MM_Var *variations,
       break;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 /**
@@ -1052,7 +1052,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
 
   FT_GlyphSlot glyph = blf_glyph_load(glyph_font, glyph_index);
   if (!glyph) {
-    return NULL;
+    return nullptr;
   }
 
   if ((settings_font->flags & BLF_MONOSPACED) && (settings_font != glyph_font)) {
@@ -1077,7 +1077,7 @@ static FT_GlyphSlot blf_glyph_render(FontBLF *settings_font,
   if (blf_glyph_render_bitmap(glyph_font, glyph)) {
     return glyph;
   }
-  return NULL;
+  return nullptr;
 }
 
 GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode)
@@ -1092,7 +1092,7 @@ GlyphBLF *blf_glyph_ensure(FontBLF *font, GlyphCacheBLF *gc, const uint charcode
   FT_UInt glyph_index = blf_glyph_index_from_charcode(&font_with_glyph, charcode);
 
   if (!blf_ensure_face(font_with_glyph)) {
-    return NULL;
+    return nullptr;
   }
 
   FT_GlyphSlot glyph = blf_glyph_render(
@@ -1161,13 +1161,13 @@ static void blf_texture_draw(const uchar color[4],
 {
   /* Only one vertex per glyph, geometry shader expand it into a quad. */
   /* TODO: Get rid of Geom Shader because it's not optimal AT ALL for the GPU. */
-  copy_v4_fl4(GPU_vertbuf_raw_step(&g_batch.pos_step),
+  copy_v4_fl4(static_cast<float *>(GPU_vertbuf_raw_step(&g_batch.pos_step)),
               (float)(x1 + g_batch.ofs[0]),
               (float)(y1 + g_batch.ofs[1]),
               (float)(x2 + g_batch.ofs[0]),
               (float)(y2 + g_batch.ofs[1]));
-  copy_v4_v4_uchar(GPU_vertbuf_raw_step(&g_batch.col_step), color);
-  copy_v2_v2_int(GPU_vertbuf_raw_step(&g_batch.glyph_size_step), glyph_size);
+  copy_v4_v4_uchar(static_cast<unsigned char *>(GPU_vertbuf_raw_step(&g_batch.col_step)), color);
+  copy_v2_v2_int(static_cast<int *>(GPU_vertbuf_raw_step(&g_batch.glyph_size_step)), glyph_size);
   *((int *)GPU_vertbuf_raw_step(&g_batch.offset_step)) = offset;
 
   g_batch.glyph_len++;
@@ -1215,7 +1215,7 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
     return;
   }
 
-  if (g->glyph_cache == NULL) {
+  if (g->glyph_cache == nullptr) {
     if (font->tex_size_max == -1) {
       font->tex_size_max = GPU_max_texture_size();
     }
@@ -1230,14 +1230,15 @@ void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, const int x, 
       int h = bitmap_len / w + 1;
 
       gc->bitmap_len_alloc = w * h;
-      gc->bitmap_result = MEM_reallocN(gc->bitmap_result, (size_t)gc->bitmap_len_alloc);
+      gc->bitmap_result = static_cast<char *>(
+          MEM_reallocN(gc->bitmap_result, (size_t)gc->bitmap_len_alloc));
 
       /* Keep in sync with the texture. */
       if (gc->texture) {
         GPU_texture_free(gc->texture);
       }
       gc->texture = GPU_texture_create_2d(
-          __func__, w, h, 1, GPU_R8, GPU_TEXTURE_USAGE_SHADER_READ, NULL);
+          __func__, w, h, 1, GPU_R8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
 
       gc->bitmap_len_landed = 0;
     }
