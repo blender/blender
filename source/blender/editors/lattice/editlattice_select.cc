@@ -574,7 +574,7 @@ struct NearestLatticeVert_UserData {
 
 static void findnearestLattvert__doClosest(void *user_data, BPoint *bp, const float screen_co[2])
 {
-  struct NearestLatticeVert_UserData *data = static_cast<NearestLatticeVert_UserData *>(user_data);
+  NearestLatticeVert_UserData *data = static_cast<NearestLatticeVert_UserData *>(user_data);
   float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
   if ((bp->f1 & SELECT) && data->select) {
@@ -590,7 +590,7 @@ static void findnearestLattvert__doClosest(void *user_data, BPoint *bp, const fl
 
 static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
 {
-  struct NearestLatticeVert_UserData data = {nullptr};
+  NearestLatticeVert_UserData data = {nullptr};
 
   data.dist = ED_view3d_select_dist_px();
   data.select = select;
@@ -617,7 +617,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
   return data.bp;
 }
 
-bool ED_lattice_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
+bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;

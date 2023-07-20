@@ -317,7 +317,7 @@ float ED_view3d_calc_depth_for_comparison(const RegionView3D *rv3d, const float 
   return -dot_v3v3(rv3d->viewinv[2], co);
 }
 
-static void view3d_win_to_ray_segment(const struct Depsgraph *depsgraph,
+static void view3d_win_to_ray_segment(const Depsgraph *depsgraph,
                                       const ARegion *region,
                                       const View3D *v3d,
                                       const float mval[2],
@@ -365,7 +365,7 @@ bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float 
   return true;
 }
 
-bool ED_view3d_win_to_ray_clipped_ex(struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_ray_clipped_ex(Depsgraph *depsgraph,
                                      const ARegion *region,
                                      const View3D *v3d,
                                      const float mval[2],
@@ -388,7 +388,7 @@ bool ED_view3d_win_to_ray_clipped_ex(struct Depsgraph *depsgraph,
   return true;
 }
 
-bool ED_view3d_win_to_ray_clipped(struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_ray_clipped(Depsgraph *depsgraph,
                                   const ARegion *region,
                                   const View3D *v3d,
                                   const float mval[2],
@@ -664,7 +664,7 @@ void ED_view3d_win_to_vector(const ARegion *region, const float mval[2], float r
   normalize_v3(r_out);
 }
 
-bool ED_view3d_win_to_segment_clipped(const struct Depsgraph *depsgraph,
+bool ED_view3d_win_to_segment_clipped(const Depsgraph *depsgraph,
                                       const ARegion *region,
                                       const View3D *v3d,
                                       const float mval[2],

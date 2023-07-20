@@ -196,7 +196,7 @@ static void sound_update_animation_flags(Scene *scene);
 
 static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 {
-  struct FCurve *fcu;
+  FCurve *fcu;
   Scene *scene = (Scene *)user_data;
   bool driven;
 
@@ -236,7 +236,7 @@ static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
 
 static void sound_update_animation_flags(Scene *scene)
 {
-  struct FCurve *fcu;
+  FCurve *fcu;
   bool driven;
 
   if (scene->id.tag & LIB_TAG_DOIT) {
@@ -358,7 +358,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 
   BLI_path_abs(filepath, BKE_main_blendfile_path(bmain));
 
-  const double fps = ((double(scene_eval->r.frs_sec)) / double(scene_eval->r.frs_sec_base));
+  const double fps = (double(scene_eval->r.frs_sec) / double(scene_eval->r.frs_sec_base));
   const int start_frame = scene_eval->r.sfra;
   const int end_frame = scene_eval->r.efra;
 

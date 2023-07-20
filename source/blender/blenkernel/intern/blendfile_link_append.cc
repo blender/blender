@@ -1715,7 +1715,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
         }
 
         item = BKE_blendfile_link_append_context_item_add(lapp_context, id->name + 2, idcode, id);
-        BLI_bitmap_set_all(item->libraries, true, (size_t)lapp_context->num_libraries);
+        BLI_bitmap_set_all(item->libraries, true, size_t(lapp_context->num_libraries));
 
         CLOG_INFO(&LOG, 4, "Datablock to seek for: %s", id->name);
       }

@@ -847,7 +847,7 @@ bool IDP_EqualsProperties_ex(const IDProperty *prop1,
       if (prop1->len == prop2->len && prop1->subtype == prop2->subtype) {
         return (memcmp(IDP_Array(prop1),
                        IDP_Array(prop2),
-                       idp_size_table[int(prop1->subtype)] * (size_t)prop1->len) == 0);
+                       idp_size_table[int(prop1->subtype)] * size_t(prop1->len)) == 0);
       }
       return false;
     case IDP_GROUP: {
@@ -922,7 +922,7 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
         prop->subtype = val->array.type;
         if (val->array.len) {
           prop->data.pointer = MEM_callocN(
-              idp_size_table[val->array.type] * (size_t)val->array.len, "id property array");
+              idp_size_table[val->array.type] * size_t(val->array.len), "id property array");
         }
         prop->len = prop->totallen = val->array.len;
         break;
@@ -943,9 +943,9 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
           prop->len = 0;
         }
         else {
-          prop->data.pointer = MEM_mallocN((size_t)val->string.len, "id property string 2");
+          prop->data.pointer = MEM_mallocN(size_t(val->string.len), "id property string 2");
           prop->len = prop->totallen = val->string.len;
-          memcpy(prop->data.pointer, st, (size_t)val->string.len);
+          memcpy(prop->data.pointer, st, size_t(val->string.len));
         }
         prop->subtype = IDP_STRING_SUB_BYTE;
       }
@@ -959,8 +959,8 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
         }
         else {
           BLI_assert(int(val->string.len) <= int(strlen(st)) + 1);
-          prop->data.pointer = MEM_mallocN((size_t)val->string.len, "id property string 3");
-          memcpy(prop->data.pointer, st, (size_t)val->string.len - 1);
+          prop->data.pointer = MEM_mallocN(size_t(val->string.len), "id property string 3");
+          memcpy(prop->data.pointer, st, size_t(val->string.len) - 1);
           IDP_String(prop)[val->string.len - 1] = '\0';
           prop->len = prop->totallen = val->string.len;
         }
@@ -1262,7 +1262,7 @@ static void IDP_WriteIDPArray(const IDProperty *prop, BlendWriter *writer)
 static void IDP_WriteString(const IDProperty *prop, BlendWriter *writer)
 {
   /* Remember to set #IDProperty.totallen to len in the linking code! */
-  BLO_write_raw(writer, (size_t)prop->len, prop->data.pointer);
+  BLO_write_raw(writer, size_t(prop->len), prop->data.pointer);
 }
 
 static void IDP_WriteGroup(const IDProperty *prop, BlendWriter *writer)

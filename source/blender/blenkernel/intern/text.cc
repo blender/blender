@@ -294,7 +294,7 @@ Text *BKE_text_add(Main *bmain, const char *name)
 int txt_extended_ascii_as_utf8(char **str)
 {
   ptrdiff_t bad_char, i = 0;
-  const ptrdiff_t length = (ptrdiff_t)strlen(*str);
+  const ptrdiff_t length = ptrdiff_t(strlen(*str));
   int added = 0;
 
   while ((*str)[i]) {

@@ -32,7 +32,7 @@ struct UserRasterInfo {
 
 static void tri_fill_flat(int x, int x_end, int y, void *user_data)
 {
-  struct UserRasterInfo *data = static_cast<UserRasterInfo *>(user_data);
+  UserRasterInfo *data = static_cast<UserRasterInfo *>(user_data);
   uint *p = &data->rect[(y * data->rect_size[1]) + x];
   uint col = data->color[0];
   while (x++ != x_end) {
@@ -42,7 +42,7 @@ static void tri_fill_flat(int x, int x_end, int y, void *user_data)
 
 static void tri_fill_smooth(int x, int x_end, int y, void *user_data)
 {
-  struct UserRasterInfo *data = static_cast<UserRasterInfo *>(user_data);
+  UserRasterInfo *data = static_cast<UserRasterInfo *>(user_data);
   uint *p = &data->rect[(y * data->rect_size[1]) + x];
   float pt_step_fl[2] = {float(x), float(y)};
   while (x++ != x_end) {
@@ -69,7 +69,7 @@ static void tri_fill_smooth(int x, int x_end, int y, void *user_data)
   }
 }
 
-ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, const uint size_y)
+ImBuf *BKE_icon_geom_rasterize(const Icon_Geom *geom, const uint size_x, const uint size_y)
 {
   const int coords_len = geom->coords_len;
 
@@ -82,7 +82,7 @@ ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, 
 
   ImBuf *ibuf = IMB_allocImBuf(uint(rect_size[0]), uint(rect_size[1]), 32, IB_rect);
 
-  struct UserRasterInfo data;
+  UserRasterInfo data;
 
   data.rect_size[0] = rect_size[0];
   data.rect_size[1] = rect_size[1];
@@ -126,7 +126,7 @@ ImBuf *BKE_icon_geom_rasterize(const struct Icon_Geom *geom, const uint size_x, 
   return ibuf;
 }
 
-void BKE_icon_geom_invert_lightness(struct Icon_Geom *geom)
+void BKE_icon_geom_invert_lightness(Icon_Geom *geom)
 {
   const int length = 3 * geom->coords_len;
 

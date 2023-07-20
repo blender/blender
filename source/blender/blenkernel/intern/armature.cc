@@ -1393,7 +1393,7 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
   const float log_scale_out_len = logf(param->scale_out[1]);
 
   for (int i = 0; i < param->segments; i++) {
-    const float fac = (float(i)) / (param->segments - 1);
+    const float fac = float(i) / (param->segments - 1);
     segment_scales[i] = expf(interpf(log_scale_out_len, log_scale_in_len, fac));
   }
 
@@ -1429,7 +1429,7 @@ int BKE_pchan_bbone_spline_compute(BBoneSplineParameters *param,
     for (int a = 1; a < param->segments; a++) {
       evaluate_cubic_bezier(bezt_controls, bezt_points[a], cur, axis);
 
-      float fac = (float(a)) / param->segments;
+      float fac = float(a) / param->segments;
       float roll = interpf(roll2, roll1, fac);
       float scalex = interpf(param->scale_out[0], param->scale_in[0], fac);
       float scalez = interpf(param->scale_out[2], param->scale_in[2], fac);

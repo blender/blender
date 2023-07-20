@@ -272,12 +272,12 @@ static int path_normalize_impl(char *path, bool check_blend_relative_prefix)
     /* Step over directories, always starting out on the character after the slash. */
     char *start = start_base;
     char *start_temp;
-    while (((start_temp = strstr(start, SEP_STR ".." SEP_STR)) ||
-            /* Check if the string ends with `/..` & assign when found, else NULL. */
-            (start_temp = ((start <= &path[path_len - 3]) &&
-                           STREQ(&path[path_len - 3], SEP_STR "..")) ?
-                              &path[path_len - 3] :
-                              NULL)))
+    while ((start_temp = strstr(start, SEP_STR ".." SEP_STR)) ||
+           /* Check if the string ends with `/..` & assign when found, else NULL. */
+           (start_temp = ((start <= &path[path_len - 3]) &&
+                          STREQ(&path[path_len - 3], SEP_STR "..")) ?
+                             &path[path_len - 3] :
+                             NULL))
     {
       start = start_temp + 1; /* Skip the `/`. */
       BLI_assert(start_base != start);

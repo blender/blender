@@ -589,8 +589,7 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
   ID **id_pointer = cb_data->id_pointer;
   ID *id = *id_pointer;
   const int cb_flag = cb_data->cb_flag;
-  struct IDCopyLibManagementData *data = static_cast<IDCopyLibManagementData *>(
-      cb_data->user_data);
+  IDCopyLibManagementData *data = static_cast<IDCopyLibManagementData *>(cb_data->user_data);
 
   /* Remap self-references to new copied ID. */
   if (id == data->id_src) {
@@ -794,14 +793,14 @@ static void id_swap(Main *bmain,
                     ID *id_b,
                     const bool do_full_id,
                     const bool do_self_remap,
-                    struct IDRemapper *input_remapper_id_a,
-                    struct IDRemapper *input_remapper_id_b,
+                    IDRemapper *input_remapper_id_a,
+                    IDRemapper *input_remapper_id_b,
                     const int self_remap_flags)
 {
   BLI_assert(GS(id_a->name) == GS(id_b->name));
 
-  struct IDRemapper *remapper_id_a = input_remapper_id_a;
-  struct IDRemapper *remapper_id_b = input_remapper_id_b;
+  IDRemapper *remapper_id_a = input_remapper_id_a;
+  IDRemapper *remapper_id_b = input_remapper_id_b;
   if (do_self_remap) {
     if (remapper_id_a == nullptr) {
       remapper_id_a = BKE_id_remapper_create();
@@ -887,8 +886,8 @@ static void id_swap(Main *bmain,
 static void id_embedded_swap(ID **embedded_id_a,
                              ID **embedded_id_b,
                              const bool do_full_id,
-                             struct IDRemapper *remapper_id_a,
-                             struct IDRemapper *remapper_id_b)
+                             IDRemapper *remapper_id_a,
+                             IDRemapper *remapper_id_b)
 {
   if (embedded_id_a != nullptr && *embedded_id_a != nullptr) {
     BLI_assert(embedded_id_b != nullptr);

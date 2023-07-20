@@ -443,7 +443,7 @@ static bool seq_update_effectdata_cb(Sequence *seq, void * /*user_data*/)
   }
 
   if (seq->effectdata == nullptr) {
-    struct SeqEffectHandle effect_handle = SEQ_effect_handle_get(seq);
+    SeqEffectHandle effect_handle = SEQ_effect_handle_get(seq);
     effect_handle.init(seq);
   }
 

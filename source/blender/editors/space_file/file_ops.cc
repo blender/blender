@@ -224,7 +224,7 @@ static FileSelect file_select_do(bContext *C, int selected_idx, bool do_diropen)
 /**
  * \warning Loops over all files so better use cautiously.
  */
-static bool file_is_any_selected(struct FileList *files)
+static bool file_is_any_selected(FileList *files)
 {
   const int numfiles = filelist_files_ensure(files);
   int i;
@@ -239,7 +239,7 @@ static bool file_is_any_selected(struct FileList *files)
   return false;
 }
 
-static FileSelection file_current_selection_range_get(struct FileList *files)
+static FileSelection file_current_selection_range_get(FileList *files)
 {
   const int numfiles = filelist_files_ensure(files);
   FileSelection selection = {-1, -1};
@@ -377,7 +377,7 @@ static FileSelect file_select(
 /**
  * Local utility to write #BLENDER_BOOKMARK_FILE, reporting an error on failure.
  */
-static bool fsmenu_write_file_and_refresh_or_report_error(struct FSMenu *fsmenu,
+static bool fsmenu_write_file_and_refresh_or_report_error(FSMenu *fsmenu,
                                                           ScrArea *area,
                                                           ReportList *reports)
 {
@@ -721,7 +721,7 @@ static bool file_walk_select_selection_set(bContext *C,
                                            const bool fill)
 {
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
-  struct FileList *files = sfile->files;
+  FileList *files = sfile->files;
   const int last_sel = params->active_file; /* store old value */
   int active = active_old; /* could use active_old instead, just for readability */
   bool deselect = false;
@@ -836,7 +836,7 @@ static bool file_walk_select_do(bContext *C,
 {
   wmWindow *win = CTX_wm_window(C);
   ARegion *region = CTX_wm_region(C);
-  struct FileList *files = sfile->files;
+  FileList *files = sfile->files;
   const int numfiles = filelist_files_ensure(files);
   const bool has_selection = file_is_any_selected(files);
   const int active_old = params->active_file;
@@ -1143,7 +1143,7 @@ static int bookmark_add_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
   FileSelectParams *params = ED_fileselect_get_active_params(sfile);
 
   if (params->dir[0] != '\0') {
@@ -1178,7 +1178,7 @@ static int bookmark_delete_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
   int nentries = ED_fsmenu_get_nentries(fsmenu, FS_CATEGORY_BOOKMARKS);
 
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "index");
@@ -1220,7 +1220,7 @@ void FILE_OT_bookmark_delete(wmOperatorType *ot)
 static int bookmark_cleanup_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
   FSMenuEntry *fsme_next, *fsme = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
   int index;
   bool changed = false;
@@ -1277,7 +1277,7 @@ static int bookmark_move_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
   FSMenuEntry *fsmentry = ED_fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS);
   const FSMenuEntry *fsmentry_org = fsmentry;
 
@@ -1371,7 +1371,7 @@ void FILE_OT_bookmark_move(wmOperatorType *ot)
 static int reset_recent_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
 
   while (ED_fsmenu_get_entry(fsmenu, FS_CATEGORY_RECENT, 0) != nullptr) {
     fsmenu_remove_entry(fsmenu, FS_CATEGORY_RECENT, 0);
@@ -2081,7 +2081,7 @@ static bool file_execute(bContext *C, SpaceFile *sfile)
   /* Opening file, sends events now, so things get handled on window-queue level. */
   else if (sfile->op) {
     ScrArea *area = CTX_wm_area(C);
-    struct FSMenu *fsmenu = ED_fsmenu_get();
+    FSMenu *fsmenu = ED_fsmenu_get();
     wmOperator *op = sfile->op;
     char filepath[FILE_MAX];
 
@@ -2197,7 +2197,7 @@ static int file_refresh_exec(bContext *C, wmOperator * /*unused*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   SpaceFile *sfile = CTX_wm_space_file(C);
-  struct FSMenu *fsmenu = ED_fsmenu_get();
+  FSMenu *fsmenu = ED_fsmenu_get();
 
   ED_fileselect_clear(wm, sfile);
 
@@ -3138,7 +3138,7 @@ static bool file_delete_poll(bContext *C)
   return false;
 }
 
-static bool file_delete_single(const struct FileList *files,
+static bool file_delete_single(const FileList *files,
                                FileDirEntry *file,
                                const char **r_error_message)
 {

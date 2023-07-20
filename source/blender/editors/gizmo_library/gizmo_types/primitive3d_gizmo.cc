@@ -292,7 +292,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
       prop, gizmo_primitive_rna__draw_inner_get_fn, gizmo_primitive_rna__draw_inner_set_fn);
 }
 
-void ED_gizmotypes_primitive_3d(void)
+void ED_gizmotypes_primitive_3d()
 {
   WM_gizmotype_append(GIZMO_GT_primitive_3d);
 }

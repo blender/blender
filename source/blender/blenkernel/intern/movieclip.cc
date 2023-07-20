@@ -682,7 +682,7 @@ static void movieclip_calc_length(MovieClip *clip)
 
 typedef struct MovieClipCache {
   /* regular movie cache */
-  struct MovieCache *moviecache;
+  MovieCache *moviecache;
 
   /* cached postprocessed shot */
   struct {
@@ -868,7 +868,7 @@ static bool put_imbuf_cache(
   MovieClipImBufCacheKey key;
 
   if (clip->cache == nullptr) {
-    struct MovieCache *moviecache;
+    MovieCache *moviecache;
 
     // char cache_name[64];
     // SNPRINTF(cache_name, "movie %s", clip->id.name);
@@ -1065,9 +1065,7 @@ static void real_ibuf_size(
   }
 }
 
-static ImBuf *get_undistorted_ibuf(MovieClip *clip,
-                                   struct MovieDistortion *distortion,
-                                   ImBuf *ibuf)
+static ImBuf *get_undistorted_ibuf(MovieClip *clip, MovieDistortion *distortion, ImBuf *ibuf)
 {
   ImBuf *undistibuf;
 
@@ -1834,7 +1832,7 @@ static void movieclip_build_proxy_ibuf(
 
 void BKE_movieclip_build_proxy_frame(MovieClip *clip,
                                      int clip_flag,
-                                     struct MovieDistortion *distortion,
+                                     MovieDistortion *distortion,
                                      int cfra,
                                      int *build_sizes,
                                      int build_count,
@@ -1875,7 +1873,7 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip,
 
 void BKE_movieclip_build_proxy_frame_for_ibuf(MovieClip *clip,
                                               ImBuf *ibuf,
-                                              struct MovieDistortion *distortion,
+                                              MovieDistortion *distortion,
                                               int cfra,
                                               int *build_sizes,
                                               int build_count,

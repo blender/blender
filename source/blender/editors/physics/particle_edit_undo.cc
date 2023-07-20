@@ -220,7 +220,7 @@ static bool particle_undosys_poll(bContext *C)
   return (edit != nullptr);
 }
 
-static bool particle_undosys_step_encode(bContext *C, struct Main * /*bmain*/, UndoStep *us_p)
+static bool particle_undosys_step_encode(bContext *C, Main * /*bmain*/, UndoStep *us_p)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ParticleUndoStep *us = (ParticleUndoStep *)us_p;

@@ -302,7 +302,7 @@ static bool missing_files_find__recursive(const char *search_directory,
     *r_filesize = 0; /* The directory opened fine. */
   }
 
-  for (struct dirent *de = readdir(dir); de != nullptr; de = readdir(dir)) {
+  for (dirent *de = readdir(dir); de != nullptr; de = readdir(dir)) {
     if (FILENAME_IS_CURRPAR(de->d_name)) {
       continue;
     }
@@ -627,7 +627,7 @@ void BKE_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *re
  * \{ */
 
 struct PathStore {
-  struct PathStore *next, *prev;
+  PathStore *next, *prev;
   /** Over allocate. */
   char filepath[0];
 };
@@ -641,7 +641,7 @@ static bool bpath_list_append(BPathForeachPathData *bpath_data,
   size_t path_size = strlen(path_src) + 1;
 
   /* NOTE: the PathStore and its string are allocated together in a single alloc. */
-  struct PathStore *path_store = static_cast<PathStore *>(
+  PathStore *path_store = static_cast<PathStore *>(
       MEM_mallocN(sizeof(PathStore) + path_size, __func__));
 
   char *filepath = path_store->filepath;
@@ -662,7 +662,7 @@ static bool bpath_list_restore(BPathForeachPathData *bpath_data,
    * If this happens, there is a bug in caller code. */
   BLI_assert(!BLI_listbase_is_empty(path_list));
 
-  struct PathStore *path_store = static_cast<PathStore *>(path_list->first);
+  PathStore *path_store = static_cast<PathStore *>(path_list->first);
   const char *filepath = path_store->filepath;
   bool is_path_changed = false;
 

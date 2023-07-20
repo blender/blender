@@ -470,7 +470,7 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
   WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 3);
 }
 
-void ED_gizmotypes_move_3d(void)
+void ED_gizmotypes_move_3d()
 {
   WM_gizmotype_append(GIZMO_GT_move_3d);
 }

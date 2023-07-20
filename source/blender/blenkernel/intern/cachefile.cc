@@ -174,7 +174,7 @@ void BKE_cachefiles_exit()
 }
 
 void BKE_cachefile_reader_open(CacheFile *cache_file,
-                               struct CacheReader **reader,
+                               CacheReader **reader,
                                Object *object,
                                const char *object_path)
 {
@@ -223,7 +223,7 @@ void BKE_cachefile_reader_open(CacheFile *cache_file,
 #endif
 }
 
-void BKE_cachefile_reader_free(CacheFile *cache_file, struct CacheReader **reader)
+void BKE_cachefile_reader_free(CacheFile *cache_file, CacheReader **reader)
 {
 #if defined(WITH_ALEMBIC) || defined(WITH_USD)
   /* Multiple modifiers and constraints can call this function concurrently, and
@@ -271,7 +271,7 @@ static void cachefile_handle_free(CacheFile *cache_file)
   if (cache_file->handle_readers) {
     GSetIterator gs_iter;
     GSET_ITER (gs_iter, cache_file->handle_readers) {
-      struct CacheReader **reader = static_cast<CacheReader **>(BLI_gsetIterator_getKey(&gs_iter));
+      CacheReader **reader = static_cast<CacheReader **>(BLI_gsetIterator_getKey(&gs_iter));
       if (*reader != nullptr) {
         switch (cache_file->type) {
           case CACHEFILE_TYPE_ALEMBIC:

@@ -810,7 +810,7 @@ static bool vfont_to_curve(Object *ob,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           struct CharTrans **r_chartransdata)
+                           CharTrans **r_chartransdata)
 {
   EditFont *ef = cu->editfont;
   EditFontSelBox *selboxes = nullptr;
@@ -821,7 +821,7 @@ static bool vfont_to_curve(Object *ob,
   bool use_textbox;
   VChar *che;
   CharTrans *chartransdata = nullptr, *ct;
-  struct TempLineInfo *lineinfo;
+  TempLineInfo *lineinfo;
   float xof, yof, xtrax, linedist;
   float twidth = 0, maxlen = 0;
   int i, slen, j;
@@ -1215,7 +1215,7 @@ static bool vfont_to_curve(Object *ob,
     ct = chartransdata;
 
     if (cu->spacemode == CU_ALIGN_X_RIGHT) {
-      struct TempLineInfo *li;
+      TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
         li->x_min = (li->x_max - li->x_min) + xof_scale;
@@ -1227,7 +1227,7 @@ static bool vfont_to_curve(Object *ob,
       }
     }
     else if (cu->spacemode == CU_ALIGN_X_MIDDLE) {
-      struct TempLineInfo *li;
+      TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
         li->x_min = ((li->x_max - li->x_min) + xof_scale) / 2.0f;
@@ -1239,7 +1239,7 @@ static bool vfont_to_curve(Object *ob,
       }
     }
     else if ((cu->spacemode == CU_ALIGN_X_FLUSH) && use_textbox) {
-      struct TempLineInfo *li;
+      TempLineInfo *li;
 
       for (i = 0, li = lineinfo; i < lnr; i++, li++) {
         li->x_min = ((li->x_max - li->x_min) + xof_scale);
@@ -1270,7 +1270,7 @@ static bool vfont_to_curve(Object *ob,
 
         if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
           if (mem[i] == ' ') {
-            struct TempLineInfo *li;
+            TempLineInfo *li;
 
             li = &lineinfo[ct->linenr];
             curofs += ((li->x_max - li->x_min) + xof_scale) / float(li->wspace_nr);
@@ -1291,7 +1291,7 @@ static bool vfont_to_curve(Object *ob,
       /* We need to loop all the text-boxes even the "full" ones.
        * This way they all get the same vertical padding. */
       for (int tb_index = 0; tb_index < cu->totbox; tb_index++) {
-        struct CharTrans *ct_first, *ct_last;
+        CharTrans *ct_first, *ct_last;
         const int i_textbox = i_textbox_array[tb_index];
         const int i_textbox_next = i_textbox_array[tb_index + 1];
         const bool is_last_filled_textbox = ELEM(i_textbox_next, 0, slen + 1);
@@ -1379,8 +1379,8 @@ static bool vfont_to_curve(Object *ob,
       const int char_beg = char_beg_next;
       const int char_end = tb_bounds->char_index_last;
 
-      struct TempLineInfo *line_beg = &lineinfo[chartransdata[char_beg].linenr];
-      struct TempLineInfo *line_end = &lineinfo[chartransdata[char_end].linenr];
+      TempLineInfo *line_beg = &lineinfo[chartransdata[char_beg].linenr];
+      TempLineInfo *line_end = &lineinfo[chartransdata[char_end].linenr];
 
       int char_idx_offset = char_beg;
 
@@ -1390,9 +1390,9 @@ static bool vfont_to_curve(Object *ob,
       bounds->ymax = chartransdata[char_beg].yof;
       bounds->ymin = chartransdata[char_end].yof;
 
-      for (struct TempLineInfo *line = line_beg; line <= line_end; line++) {
-        const struct CharTrans *first_char_line = &chartransdata[char_idx_offset];
-        const struct CharTrans *last_char_line = &chartransdata[char_idx_offset + line->char_nr];
+      for (TempLineInfo *line = line_beg; line <= line_end; line++) {
+        const CharTrans *first_char_line = &chartransdata[char_idx_offset];
+        const CharTrans *last_char_line = &chartransdata[char_idx_offset + line->char_nr];
 
         bounds->xmin = min_ff(bounds->xmin, first_char_line->xof);
         bounds->xmax = max_ff(bounds->xmax, last_char_line->xof);
@@ -1980,7 +1980,7 @@ bool BKE_vfont_to_curve_ex(Object *ob,
                            const char32_t **r_text,
                            int *r_text_len,
                            bool *r_text_free,
-                           struct CharTrans **r_chartransdata)
+                           CharTrans **r_chartransdata)
 {
   VFontToCurveIter data = {};
   data.iteraction = cu->totbox * FONT_TO_CURVE_SCALE_ITERATIONS;
@@ -2074,7 +2074,7 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
     return;
   }
 
-  info = static_cast<struct CharInfo *>(MEM_malloc_arrayN(len, sizeof(CharInfo), __func__));
+  info = static_cast<CharInfo *>(MEM_malloc_arrayN(len, sizeof(CharInfo), __func__));
   if (info == nullptr) {
     MEM_freeN(text);
     return;

@@ -850,7 +850,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   return found;
 }
 
-bool ED_mball_select_pick(bContext *C, const int mval[2], const struct SelectPick_Params *params)
+bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
   Base *base = nullptr;
   MetaElem *ml = nullptr;

@@ -66,7 +66,7 @@ struct tGraphSliderOp {
   /** The original bezt curve data (used for restoring fcurves). */
   ListBase bezt_arr_list;
 
-  struct tSlider *slider;
+  tSlider *slider;
 
   /* Each operator has a specific update function. */
   void (*modal_update)(bContext *, wmOperator *);
@@ -1001,7 +1001,7 @@ struct tGaussOperatorData {
 
 /* Store data to smooth an FCurve segment. */
 struct tFCurveSegmentLink {
-  struct tFCurveSegmentLink *next, *prev;
+  tFCurveSegmentLink *next, *prev;
   FCurve *fcu;
   FCurveSegment *segment;
   float *samples; /* Array of y-values of the FCurve segment. */

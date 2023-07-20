@@ -77,10 +77,10 @@ struct FCurve_KeyCache {
 /**
  * Assign `fkc` path, using a `path` lookup for a single value.
  */
-static void action_flip_pchan_cache_fcurve_assign_value(struct FCurve_KeyCache *fkc,
+static void action_flip_pchan_cache_fcurve_assign_value(FCurve_KeyCache *fkc,
                                                         int index,
                                                         const char *path,
-                                                        struct FCurvePathCache *fcache)
+                                                        FCurvePathCache *fcache)
 {
   FCurve *fcu = BKE_fcurve_pathcache_find(fcache, path, index);
   if (fcu && fcu->bezt) {
@@ -91,10 +91,10 @@ static void action_flip_pchan_cache_fcurve_assign_value(struct FCurve_KeyCache *
 /**
  * Assign #FCurve_KeyCache.fcurve path, using a `path` lookup for an array.
  */
-static void action_flip_pchan_cache_fcurve_assign_array(struct FCurve_KeyCache *fkc,
+static void action_flip_pchan_cache_fcurve_assign_array(FCurve_KeyCache *fkc,
                                                         int fkc_len,
                                                         const char *path,
-                                                        struct FCurvePathCache *fcache)
+                                                        FCurvePathCache *fcache)
 {
   FCurve **fcurves = static_cast<FCurve **>(alloca(sizeof(*fcurves) * fkc_len));
   if (BKE_fcurve_pathcache_find_array(fcache, path, fcurves, fkc_len)) {
@@ -113,7 +113,7 @@ static void action_flip_pchan_cache_fcurve_assign_array(struct FCurve_KeyCache *
  * note that each frame is rounded to the nearest int.
  * \param keyed_frames_len: The length of the `keyed_frames` array.
  */
-static void action_flip_pchan_cache_init(struct FCurve_KeyCache *fkc,
+static void action_flip_pchan_cache_init(FCurve_KeyCache *fkc,
                                          const float *keyed_frames,
                                          int keyed_frames_len)
 {
@@ -160,9 +160,7 @@ static void action_flip_pchan_cache_init(struct FCurve_KeyCache *fkc,
 
 /**
  */
-static void action_flip_pchan(Object *ob_arm,
-                              const bPoseChannel *pchan,
-                              struct FCurvePathCache *fcache)
+static void action_flip_pchan(Object *ob_arm, const bPoseChannel *pchan, FCurvePathCache *fcache)
 {
   /* Begin F-Curve pose channel value extraction. */
   /* Use a fixed buffer size as it's known this can only be at most:
@@ -190,7 +188,7 @@ static void action_flip_pchan(Object *ob_arm,
    * work well if the rotation happened to swap X/Y alignment, leave this for now.
    */
   struct {
-    struct FCurve_KeyCache loc[3], eul[3], quat[4], rotAxis[3], rotAngle, size[3], rotmode;
+    FCurve_KeyCache loc[3], eul[3], quat[4], rotAxis[3], rotAngle, size[3], rotmode;
   } fkc_pchan = {{{nullptr}}};
 
 #define FCURVE_ASSIGN_VALUE(id, path_test_suffix, index) \
@@ -219,7 +217,7 @@ static void action_flip_pchan(Object *ob_arm,
   int fcurve_array_len = 0;
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    struct FCurve_KeyCache *fkc = (struct FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
     if (fkc->fcurve != nullptr) {
       fcurve_array[fcurve_array_len++] = fkc->fcurve;
     }
@@ -237,7 +235,7 @@ static void action_flip_pchan(Object *ob_arm,
 
   /* Initialize the pose channel curve cache from the F-Curve. */
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    struct FCurve_KeyCache *fkc = (struct FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
     if (fkc->fcurve == nullptr) {
       continue;
     }
@@ -372,7 +370,7 @@ static void action_flip_pchan(Object *ob_arm,
   MEM_freeN((void *)keyed_frames);
 
   for (int chan = 0; chan < FCURVE_CHANNEL_LEN; chan++) {
-    struct FCurve_KeyCache *fkc = (struct FCurve_KeyCache *)(&fkc_pchan) + chan;
+    FCurve_KeyCache *fkc = (FCurve_KeyCache *)(&fkc_pchan) + chan;
     if (fkc->fcurve_eval) {
       MEM_freeN(fkc->fcurve_eval);
     }
@@ -409,7 +407,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
     }
 
     char name[MAXBONENAME];
-    const size_t name_esc_len = (size_t)(name_esc_end - name_esc);
+    const size_t name_esc_len = size_t(name_esc_end - name_esc);
     const size_t name_len = BLI_str_unescape(name, name_esc, name_esc_len);
 
     /* While unlikely, data paths could be constructed that have longer names than
@@ -450,7 +448,7 @@ static void action_flip_pchan_rna_paths(bAction *act)
 
 void BKE_action_flip_with_pose(bAction *act, Object *ob_arm)
 {
-  struct FCurvePathCache *fcache = BKE_fcurve_pathcache_create(&act->curves);
+  FCurvePathCache *fcache = BKE_fcurve_pathcache_create(&act->curves);
   int i;
   LISTBASE_FOREACH_INDEX (bPoseChannel *, pchan, &ob_arm->pose->chanbase, i) {
     action_flip_pchan(ob_arm, pchan, fcache);

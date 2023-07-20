@@ -990,7 +990,7 @@ static void image_header_region_listener(const wmRegionListenerParams *params)
   }
 }
 
-static void image_id_remap(ScrArea * /*area*/, SpaceLink *slink, const struct IDRemapper *mappings)
+static void image_id_remap(ScrArea * /*area*/, SpaceLink *slink, const IDRemapper *mappings)
 {
   SpaceImage *simg = (SpaceImage *)slink;
 

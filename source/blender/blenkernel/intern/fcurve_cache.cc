@@ -38,7 +38,7 @@ struct FCurvePathCache {
   FCurve **fcurve_array;
   uint fcurve_array_len;
   /** Storage for values of `span_from_rna_path`. */
-  struct FCurvePathCache_Span *span_table;
+  FCurvePathCache_Span *span_table;
   /** Map `FCurve.rna_path` to elements in #FCurvePathCache.span_table */
   GHash *span_from_rna_path;
 };
@@ -63,7 +63,7 @@ static int fcurve_cmp_for_cache(const void *fcu_a_p, const void *fcu_b_p)
   return 0;
 }
 
-struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
+FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
 {
   const uint fcurve_array_len = BLI_listbase_count(list);
   FCurve **fcurve_array = static_cast<FCurve **>(
@@ -77,7 +77,7 @@ struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
   /* Allow for the case no F-Curves share an RNA-path, otherwise this is over-allocated.
    * Although in practice it's likely to only be 3-4x as large as is needed
    * (with transform channels for e.g.). */
-  struct FCurvePathCache_Span *span_table = static_cast<FCurvePathCache_Span *>(
+  FCurvePathCache_Span *span_table = static_cast<FCurvePathCache_Span *>(
       MEM_mallocN(sizeof(*span_table) * fcurve_array_len, __func__));
 
   /* May over reserve, harmless. */
@@ -97,14 +97,14 @@ struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
       }
     }
 
-    struct FCurvePathCache_Span *span = &span_table[span_index++];
+    FCurvePathCache_Span *span = &span_table[span_index++];
     span->index = i;
     span->len = i_end - i;
     BLI_ghash_insert(span_from_rna_path, fcurve_array[i]->rna_path, span);
     i = i_end;
   }
 
-  struct FCurvePathCache *fcache = static_cast<FCurvePathCache *>(
+  FCurvePathCache *fcache = static_cast<FCurvePathCache *>(
       MEM_callocN(sizeof(FCurvePathCache), __func__));
   fcache->fcurve_array = fcurve_array;
   fcache->fcurve_array_len = fcurve_array_len;
@@ -114,7 +114,7 @@ struct FCurvePathCache *BKE_fcurve_pathcache_create(ListBase *list)
   return fcache;
 }
 
-void BKE_fcurve_pathcache_destroy(struct FCurvePathCache *fcache)
+void BKE_fcurve_pathcache_destroy(FCurvePathCache *fcache)
 {
   MEM_freeN(fcache->fcurve_array);
   MEM_freeN(fcache->span_table);
@@ -122,11 +122,11 @@ void BKE_fcurve_pathcache_destroy(struct FCurvePathCache *fcache)
   MEM_freeN(fcache);
 }
 
-FCurve *BKE_fcurve_pathcache_find(struct FCurvePathCache *fcache,
+FCurve *BKE_fcurve_pathcache_find(FCurvePathCache *fcache,
                                   const char *rna_path,
                                   const int array_index)
 {
-  const struct FCurvePathCache_Span *span = static_cast<const FCurvePathCache_Span *>(
+  const FCurvePathCache_Span *span = static_cast<const FCurvePathCache_Span *>(
       BLI_ghash_lookup(fcache->span_from_rna_path, rna_path));
   if (span == nullptr) {
     return nullptr;
@@ -146,14 +146,14 @@ FCurve *BKE_fcurve_pathcache_find(struct FCurvePathCache *fcache,
   return nullptr;
 }
 
-int BKE_fcurve_pathcache_find_array(struct FCurvePathCache *fcache,
+int BKE_fcurve_pathcache_find_array(FCurvePathCache *fcache,
                                     const char *rna_path,
                                     FCurve **fcurve_result,
                                     int fcurve_result_len)
 {
   memset(fcurve_result, 0x0, sizeof(*fcurve_result) * fcurve_result_len);
 
-  const struct FCurvePathCache_Span *span = static_cast<const FCurvePathCache_Span *>(
+  const FCurvePathCache_Span *span = static_cast<const FCurvePathCache_Span *>(
       BLI_ghash_lookup(fcache->span_from_rna_path, rna_path));
   if (span == nullptr) {
     return 0;

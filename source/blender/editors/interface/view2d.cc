@@ -847,7 +847,7 @@ void UI_view2d_curRect_changed(const bContext *C, View2D *v2d)
   }
 }
 
-void UI_view2d_curRect_clamp_y(struct View2D *v2d)
+void UI_view2d_curRect_clamp_y(View2D *v2d)
 {
   const float cur_height_y = BLI_rctf_size_y(&v2d->cur);
 
@@ -1976,7 +1976,7 @@ void UI_view2d_offset(View2D *v2d, float xfac, float yfac)
   UI_view2d_curRect_validate(v2d);
 }
 
-void UI_view2d_offset_y_snap_to_closest_page(struct View2D *v2d)
+void UI_view2d_offset_y_snap_to_closest_page(View2D *v2d)
 {
   const float cur_size_y = BLI_rctf_size_y(&v2d->cur);
   const float page_size_y = view2d_page_size_y(*v2d);

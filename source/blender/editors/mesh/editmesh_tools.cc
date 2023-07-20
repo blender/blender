@@ -3716,7 +3716,7 @@ static bool shape_propagate(BMEditMesh *em, bool use_symmetry)
 
   BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
     if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-      BMVert *mirr = use_symmetry ? EDBM_verts_mirror_get(em, eve) : NULL;
+      BMVert *mirr = use_symmetry ? EDBM_verts_mirror_get(em, eve) : nullptr;
 
       if (!mirr || !BM_elem_flag_test(mirr, BM_ELEM_SELECT) ||
           BM_elem_flag_test(mirr, BM_ELEM_HIDDEN)) {

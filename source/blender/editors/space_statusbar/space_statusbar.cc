@@ -72,7 +72,7 @@ static void statusbar_header_region_init(wmWindowManager * /*wm*/, ARegion *regi
   ED_region_header_init(region);
 }
 
-static void statusbar_operatortypes(void) {}
+static void statusbar_operatortypes() {}
 
 static void statusbar_keymap(wmKeyConfig * /*keyconf*/) {}
 
@@ -113,7 +113,7 @@ static void statusbar_header_region_listener(const wmRegionListenerParams *param
 
 static void statusbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   ARegion *region = params->region;
 
   wmMsgSubscribeValue msg_sub_value_region_tag_redraw{};

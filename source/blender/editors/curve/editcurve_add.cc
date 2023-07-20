@@ -340,9 +340,9 @@ Nurb *ED_curve_add_nurbs_primitive(
         for (a = 0; a < 4; a++) {
           for (b = 0; b < 4; b++) {
             bp->f1 = SELECT;
-            fac = (float)a - 1.5f;
+            fac = float(a) - 1.5f;
             bp->vec[0] += fac * grid;
-            fac = (float)b - 1.5f;
+            fac = float(b) - 1.5f;
             bp->vec[1] += fac * grid;
             if (ELEM(a, 1, 2) && ELEM(b, 1, 2)) {
               bp->vec[2] += grid;
@@ -494,7 +494,7 @@ Nurb *ED_curve_add_nurbs_primitive(
 
 static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 {
-  struct Main *bmain = CTX_data_main(C);
+  Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);

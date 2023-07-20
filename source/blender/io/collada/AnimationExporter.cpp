@@ -393,8 +393,8 @@ void AnimationExporter::export_collada_curve_animation(
   fprintf(
       stdout, "Export animation curve %s (%d control points)\n", id.c_str(), int(frames.size()));
   openAnimation(id, name);
-  BC_animation_source_type source_type = (curve.is_rotation_curve()) ? BC_SOURCE_TYPE_ANGLE :
-                                                                       BC_SOURCE_TYPE_VALUE;
+  BC_animation_source_type source_type = curve.is_rotation_curve() ? BC_SOURCE_TYPE_ANGLE :
+                                                                     BC_SOURCE_TYPE_VALUE;
 
   std::string input_id = collada_source_from_values(
       BC_SOURCE_TYPE_TIMEFRAME, COLLADASW::InputSemantic::INPUT, frames, id, axis);
@@ -647,7 +647,7 @@ std::string AnimationExporter::collada_source_from_values(
 
   BCMatrixSampleMap::iterator it;
   /* could be made configurable */
-  int precision = (this->export_settings.get_limit_precision()) ? 6 : -1;
+  int precision = this->export_settings.get_limit_precision() ? 6 : -1;
   for (it = samples.begin(); it != samples.end(); it++) {
     BCMatrix sample = BCMatrix(*it->second);
     BCMatrix global_transform = this->export_settings.get_global_transform();

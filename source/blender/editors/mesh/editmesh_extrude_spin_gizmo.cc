@@ -414,7 +414,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 
 static void gizmo_mesh_spin_init_message_subscribe(const bContext *C,
                                                    wmGizmoGroup *gzgroup,
-                                                   struct wmMsgBus *mbus)
+                                                   wmMsgBus *mbus)
 {
   GizmoGroupData_SpinInit *ggd = static_cast<GizmoGroupData_SpinInit *>(gzgroup->customdata);
   Scene *scene = CTX_data_scene(C);

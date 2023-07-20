@@ -379,7 +379,7 @@ void GeometryExporter::create_mesh_primitive_list(short material_index,
           COLLADASW::InputSemantic::TEXCOORD,
           makeUrl(makeTexcoordSourceId(geom_id, i, this->export_settings.get_active_uv_only())),
           2, /* this is only until we have optimized UV sets */
-          (this->export_settings.get_active_uv_only()) ? 0 : i /* set (0,1,2,...) */
+          this->export_settings.get_active_uv_only() ? 0 : i /* set (0,1,2,...) */
       );
       til.push_back(texcoord_input);
     }

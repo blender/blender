@@ -881,7 +881,7 @@ static void build_pict_list_from_image_sequence(GhostData *ghost_data,
   }
 }
 
-static void build_pict_list(struct GhostData *ghost_data,
+static void build_pict_list(GhostData *ghost_data,
                             const PlayDisplayContext *display_ctx,
                             const char *filepath_first,
                             const int totframes,

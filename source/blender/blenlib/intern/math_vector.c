@@ -1000,7 +1000,7 @@ double len_squared_vn(const float *array, const int size)
   const float *array_pt = array + (size - 1);
   int i = size;
   while (i--) {
-    d += sqr_db((double)(*(array_pt--)));
+    d += sqr_db((double)*(array_pt--));
   }
   return d;
 }

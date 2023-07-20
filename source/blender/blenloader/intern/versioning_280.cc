@@ -1390,7 +1390,7 @@ static void light_emission_node_to_energy(Light *light, float *energy, float col
 
   /* If nodetree has animation or drivers, don't try to convert. */
   bNodeTree *ntree = light->nodetree;
-  if (ntree == NULL || ntree->adt) {
+  if (ntree == nullptr || ntree->adt) {
     return;
   }
 

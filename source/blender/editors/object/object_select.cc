@@ -102,7 +102,7 @@ void ED_object_base_active_refresh(Main *bmain, Scene *scene, ViewLayer *view_la
 {
   WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
   DEG_id_tag_update(&scene->id, ID_RECALC_SELECT);
-  struct wmMsgBus *mbus = ((wmWindowManager *)bmain->wm.first)->message_bus;
+  wmMsgBus *mbus = ((wmWindowManager *)bmain->wm.first)->message_bus;
   if (mbus != nullptr) {
     WM_msg_publish_rna_prop(mbus, &scene->id, view_layer, LayerObjects, active);
   }

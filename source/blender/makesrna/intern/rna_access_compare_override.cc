@@ -1019,7 +1019,7 @@ static void rna_property_override_collection_subitem_name_index_lookup(
       if (item_name != nullptr) {
         PropertyRNA *nameprop = r_ptr_item_index->type->nameproperty;
         char name[256], *nameptr;
-        int keylen = static_cast<int>(strlen(item_name));
+        int keylen = int(strlen(item_name));
         int namelen;
 
         nameptr = RNA_property_string_get_alloc(
@@ -1483,7 +1483,7 @@ void RNA_struct_override_apply(Main *bmain,
       if ((flag & RNA_OVERRIDE_APPLY_FLAG_SKIP_RESYNC_CHECK) == 0 &&
           (ptr_dst->owner_id->tag & LIB_TAG_LIBOVERRIDE_NEED_RESYNC) == 0)
       {
-        if (op->rna_prop_type == PROP_POINTER && op->operations.first != NULL &&
+        if (op->rna_prop_type == PROP_POINTER && op->operations.first != nullptr &&
             (((IDOverrideLibraryPropertyOperation *)op->operations.first)->flag &
              LIBOVERRIDE_OP_FLAG_IDPOINTER_MATCH_REFERENCE) != 0)
         {

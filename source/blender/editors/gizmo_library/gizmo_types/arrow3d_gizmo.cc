@@ -580,7 +580,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
 }
 
-void ED_gizmotypes_arrow_3d(void)
+void ED_gizmotypes_arrow_3d()
 {
   WM_gizmotype_append(GIZMO_GT_arrow_3d);
 }

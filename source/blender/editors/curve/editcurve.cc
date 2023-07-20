@@ -1378,7 +1378,7 @@ static int separate_exec(bContext *C, wmOperator *op)
     /* 2. Duplicate the object and data. */
 
     /* Take into account user preferences for duplicating actions. */
-    const eDupli_ID_Flags dupflag = eDupli_ID_Flags((U.dupflag & USER_DUP_ACT));
+    const eDupli_ID_Flags dupflag = eDupli_ID_Flags(U.dupflag & USER_DUP_ACT);
 
     newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, dupflag);
     DEG_relations_tag_update(bmain);
@@ -2998,9 +2998,9 @@ static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, cons
             }
 
             /* Now Blend between the points */
-            range = (float)(end_sel - start_sel) + 2.0f;
+            range = float(end_sel - start_sel) + 2.0f;
             for (bezt = &nu->bezt[start_sel], a = start_sel; a <= end_sel; a++, bezt++) {
-              fac = (float)(1 + a - start_sel) / range;
+              fac = float(1 + a - start_sel) / range;
               BEZT_VALUE(bezt) = start_rad * (1.0f - fac) + end_rad * fac;
             }
           }
@@ -3079,9 +3079,9 @@ static void curve_smooth_value(ListBase *editnurb, const int bezt_offsetof, cons
             }
 
             /* Now Blend between the points */
-            range = (float)(end_sel - start_sel) + 2.0f;
+            range = float(end_sel - start_sel) + 2.0f;
             for (bp = &nu->bp[start_sel], a = start_sel; a <= end_sel; a++, bp++) {
-              fac = (float)(1 + a - start_sel) / range;
+              fac = float(1 + a - start_sel) / range;
               BP_VALUE(bp) = start_rad * (1.0f - fac) + end_rad * fac;
             }
           }
@@ -3569,7 +3569,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           if ((bp->f1 & SELECT) && (nextbp->f1 & SELECT)) {
             // printf("*** subdivideNurb: insert 'linear' point\n");
             for (int i = 0; i < number_cuts; i++) {
-              factor = (float)(i + 1) / (number_cuts + 1);
+              factor = float(i + 1) / (number_cuts + 1);
 
               memcpy(bpn, nextbp, sizeof(BPoint));
               interp_v4_v4v4(bpn->vec, bp->vec, nextbp->vec, factor);
@@ -3671,7 +3671,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
             if (b < nu->pntsu - 1) {
               prevbp = bp - 1;
               for (int i = 0; i < number_cuts; i++) {
-                factor = (float)(i + 1) / (number_cuts + 1);
+                factor = float(i + 1) / (number_cuts + 1);
                 *bpn = *bp;
                 interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
                 bpn++;
@@ -3689,7 +3689,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
           for (b = 0; b < (number_cuts + 1) * nu->pntsu - number_cuts; b++) {
             BPoint *tmp = bpn;
             for (int i = 0; i < number_cuts; i++) {
-              factor = (float)(i + 1) / (number_cuts + 1);
+              factor = float(i + 1) / (number_cuts + 1);
               *tmp = *bp;
               interp_v4_v4v4(tmp->vec, prevbp->vec, bp->vec, factor);
               tmp += countu;
@@ -3731,7 +3731,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
             }
             if ((a < nu->pntsv - 1) && vsel[a] == nu->pntsu && vsel[a + 1] == nu->pntsu) {
               for (int i = 0; i < number_cuts; i++) {
-                factor = (float)(i + 1) / (number_cuts + 1);
+                factor = float(i + 1) / (number_cuts + 1);
                 prevbp = bp - nu->pntsu;
                 for (b = 0; b < nu->pntsu; b++) {
                   /*
@@ -3787,7 +3787,7 @@ static void subdividenurb(Object *obedit, View3D *v3d, int number_cuts)
                    * some symmetry here...
                    */
                   for (int i = 0; i < number_cuts; i++) {
-                    factor = (float)(i + 1) / (number_cuts + 1);
+                    factor = float(i + 1) / (number_cuts + 1);
                     prevbp = bp - 1;
                     *bpn = *prevbp;
                     interp_v4_v4v4(bpn->vec, prevbp->vec, bp->vec, factor);
@@ -4171,7 +4171,7 @@ static bool is_u_selected(Nurb *nu, int u)
 }
 
 struct NurbSort {
-  struct NurbSort *next, *prev;
+  NurbSort *next, *prev;
   Nurb *nu;
   float vec[3];
 };
@@ -4197,7 +4197,7 @@ static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb, ListBase *
         add_v3_v3(nus->vec, bp->vec);
         bp++;
       }
-      mul_v3_fl(nus->vec, 1.0f / (float)nu->pntsu);
+      mul_v3_fl(nus->vec, 1.0f / float(nu->pntsu));
     }
   }
 
@@ -4785,7 +4785,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const int dist_px,
                                    const bool vert_without_handles,
-                                   const struct SelectPick_Params *params)
+                                   const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc;
@@ -5033,8 +5033,8 @@ bool ed_editnurb_spin(
   mul_m3_m3m3(scalemat1, imat, tmat);
 
   unit_m3(scalemat2);
-  scalemat2[0][0] /= (float)M_SQRT2;
-  scalemat2[1][1] /= (float)M_SQRT2;
+  scalemat2[0][0] /= float(M_SQRT2);
+  scalemat2[1][1] /= float(M_SQRT2);
 
   mul_m3_m3m3(tmat, persmat, bmat);
   mul_m3_m3m3(cmat, scalemat2, tmat);
@@ -5477,7 +5477,7 @@ int ed_editcurve_addvert(Curve *cu, EditNurb *editnurb, View3D *v3d, const float
     float ofs[3];
     int i;
 
-    mul_v3_fl(center, 1.0f / (float)verts_len);
+    mul_v3_fl(center, 1.0f / float(verts_len));
     sub_v3_v3v3(ofs, location_init, center);
 
     if (CU_IS_2D(cu)) {

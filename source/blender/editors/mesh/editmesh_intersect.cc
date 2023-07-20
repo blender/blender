@@ -87,7 +87,7 @@ static int bm_face_isect_pair_swap(BMFace *f, void * /*user_data*/)
 /**
  * Use for intersect and boolean.
  */
-static void edbm_intersect_select(BMEditMesh *em, struct Mesh *me, bool do_select)
+static void edbm_intersect_select(BMEditMesh *em, Mesh *me, bool do_select)
 {
   if (do_select) {
     BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
@@ -605,7 +605,7 @@ static void ghash_insert_face_edge_link(GHash *gh,
                                         MemArena *mem_arena)
 {
   void **ls_base_p;
-  struct LinkBase *ls_base;
+  LinkBase *ls_base;
   LinkNode *ls;
 
   if (!BLI_ghash_ensure_p(gh, f_key, &ls_base_p)) {
@@ -1016,8 +1016,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
 
         GHASH_ITER (gh_iter, face_edge_map) {
           BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          struct LinkBase *e_ls_base = static_cast<LinkBase *>(
-              BLI_ghashIterator_getValue(&gh_iter));
+          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
           LinkNode *e_link = e_ls_base->list;
 
           do {
@@ -1060,8 +1059,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator * /*op*/)
 
         GHASH_ITER (gh_iter, face_edge_map) {
           BMFace *f = static_cast<BMFace *>(BLI_ghashIterator_getKey(&gh_iter));
-          struct LinkBase *e_ls_base = static_cast<LinkBase *>(
-              BLI_ghashIterator_getValue(&gh_iter));
+          LinkBase *e_ls_base = static_cast<LinkBase *>(BLI_ghashIterator_getValue(&gh_iter));
 
           bm_face_split_by_edges_island_connect(
               bm, f, e_ls_base->list, e_ls_base->list_len, mem_arena_edgenet);

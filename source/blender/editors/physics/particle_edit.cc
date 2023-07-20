@@ -1838,7 +1838,7 @@ static void nearest_key_fn(PEData *data, int point_index, int key_index, bool /*
   PTCacheEditPoint *point = edit->points + point_index;
   PTCacheEditKey *key = point->keys + key_index;
 
-  struct NearestParticleData *user_data = static_cast<NearestParticleData *>(data->user_data);
+  NearestParticleData *user_data = static_cast<NearestParticleData *>(data->user_data);
   user_data->point = point;
   user_data->key = key;
   data->is_changed = true;
@@ -1849,7 +1849,7 @@ static bool pe_nearest_point_and_key(bContext *C,
                                      PTCacheEditPoint **r_point,
                                      PTCacheEditKey **r_key)
 {
-  struct NearestParticleData user_data = {nullptr};
+  NearestParticleData user_data = {nullptr};
 
   PEData data;
   PE_set_view3d_data(C, &data);
@@ -1866,7 +1866,7 @@ static bool pe_nearest_point_and_key(bContext *C,
   return found;
 }
 
-bool PE_mouse_particles(bContext *C, const int mval[2], const struct SelectPick_Params *params)
+bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params *params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -5542,7 +5542,7 @@ void ED_object_particle_edit_mode_exit(bContext *C)
 
 static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
-  struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+  wmMsgBus *mbus = CTX_wm_message_bus(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
   const int mode_flag = OB_MODE_PARTICLE_EDIT;

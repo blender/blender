@@ -962,11 +962,8 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
 /** \name Select Cursor Pick API
  * \{ */
 
-bool ED_armature_edit_select_pick_bone(bContext *C,
-                                       Base *basact,
-                                       EditBone *ebone,
-                                       const int selmask,
-                                       const struct SelectPick_Params *params)
+bool ED_armature_edit_select_pick_bone(
+    bContext *C, Base *basact, EditBone *ebone, const int selmask, const SelectPick_Params *params)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1138,9 +1135,7 @@ bool ED_armature_edit_select_pick_bone(bContext *C,
   return changed || found;
 }
 
-bool ED_armature_edit_select_pick(bContext *C,
-                                  const int mval[2],
-                                  const struct SelectPick_Params *params)
+bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
 
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

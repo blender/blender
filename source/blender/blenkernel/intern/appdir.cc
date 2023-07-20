@@ -1076,7 +1076,7 @@ void BKE_appdir_app_templates(ListBase *templates)
       continue;
     }
 
-    struct direntry *dirs;
+    direntry *dirs;
     const uint dir_num = BLI_filelist_dir_contents(subdir, &dirs);
     for (int f = 0; f < dir_num; f++) {
       if (!FILENAME_IS_CURRPAR(dirs[f].relname) && S_ISDIR(dirs[f].type)) {

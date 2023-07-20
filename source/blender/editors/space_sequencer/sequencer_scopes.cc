@@ -492,16 +492,16 @@ static ImBuf *make_histogram_view_from_ibuf_byte(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[0][x])) / nr, 0);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[0][x])) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[0][x]) / nr, 0);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[0][x]) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[1][x])) / ng, 1);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[1][x])) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[1][x]) / ng, 1);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[1][x]) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x * 2 + 1, (float(bins[2][x])) / nb, 2);
-      draw_histogram_bar(rval, x * 2 + 2, (float(bins[2][x])) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 1, float(bins[2][x]) / nb, 2);
+      draw_histogram_bar(rval, x * 2 + 2, float(bins[2][x]) / nb, 2);
     }
   }
 
@@ -576,13 +576,13 @@ static ImBuf *make_histogram_view_from_ibuf_float(ImBuf *ibuf)
 
   for (x = 0; x < HIS_STEPS; x++) {
     if (nr) {
-      draw_histogram_bar(rval, x + 1, (float(bins[0][x])) / nr, 0);
+      draw_histogram_bar(rval, x + 1, float(bins[0][x]) / nr, 0);
     }
     if (ng) {
-      draw_histogram_bar(rval, x + 1, (float(bins[1][x])) / ng, 1);
+      draw_histogram_bar(rval, x + 1, float(bins[1][x]) / ng, 1);
     }
     if (nb) {
-      draw_histogram_bar(rval, x + 1, (float(bins[2][x])) / nb, 2);
+      draw_histogram_bar(rval, x + 1, float(bins[2][x]) / nb, 2);
     }
   }
 

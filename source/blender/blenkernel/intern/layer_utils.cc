@@ -27,11 +27,10 @@
 /** \name Selected Object Array
  * \{ */
 
-Object **BKE_view_layer_array_selected_objects_params(
-    ViewLayer *view_layer,
-    const View3D *v3d,
-    uint *r_len,
-    const struct ObjectsInViewLayerParams *params)
+Object **BKE_view_layer_array_selected_objects_params(ViewLayer *view_layer,
+                                                      const View3D *v3d,
+                                                      uint *r_len,
+                                                      const ObjectsInViewLayerParams *params)
 {
   if (params->no_dup_data) {
     FOREACH_SELECTED_OBJECT_BEGIN (view_layer, v3d, ob_iter) {
@@ -90,7 +89,7 @@ Base **BKE_view_layer_array_from_bases_in_mode_params(const Scene *scene,
                                                       ViewLayer *view_layer,
                                                       const View3D *v3d,
                                                       uint *r_len,
-                                                      const struct ObjectsInModeParams *params)
+                                                      const ObjectsInModeParams *params)
 {
   if (params->no_dup_data) {
     FOREACH_BASE_IN_MODE_BEGIN (scene, view_layer, v3d, -1, params->object_mode, base_iter) {
@@ -141,7 +140,7 @@ Object **BKE_view_layer_array_from_objects_in_mode_params(const Scene *scene,
                                                           ViewLayer *view_layer,
                                                           const View3D *v3d,
                                                           uint *r_len,
-                                                          const struct ObjectsInModeParams *params)
+                                                          const ObjectsInModeParams *params)
 {
   Base **base_array = BKE_view_layer_array_from_bases_in_mode_params(
       scene, view_layer, v3d, r_len, params);
@@ -158,7 +157,7 @@ Object **BKE_view_layer_array_from_objects_in_edit_mode(const Scene *scene,
                                                         const View3D *v3d,
                                                         uint *r_len)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = OB_MODE_EDIT;
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, r_len, &params);
 }
@@ -168,7 +167,7 @@ Base **BKE_view_layer_array_from_bases_in_edit_mode(const Scene *scene,
                                                     const View3D *v3d,
                                                     uint *r_len)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = OB_MODE_EDIT;
   return BKE_view_layer_array_from_bases_in_mode_params(scene, view_layer, v3d, r_len, &params);
 }
@@ -178,7 +177,7 @@ Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data(const Scene 
                                                                     const View3D *v3d,
                                                                     uint *r_len)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = OB_MODE_EDIT;
   params.no_dup_data = true;
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, r_len, &params);
@@ -189,7 +188,7 @@ Base **BKE_view_layer_array_from_bases_in_edit_mode_unique_data(const Scene *sce
                                                                 const View3D *v3d,
                                                                 uint *r_len)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = OB_MODE_EDIT;
   params.no_dup_data = true;
   return BKE_view_layer_array_from_bases_in_mode_params(scene, view_layer, v3d, r_len, &params);
@@ -200,7 +199,7 @@ Object **BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(con
                                                                              const View3D *v3d,
                                                                              uint *r_len)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = OB_MODE_EDIT;
   params.no_dup_data = true;
   params.filter_fn = BKE_view_layer_filter_edit_mesh_has_uvs;
@@ -213,7 +212,7 @@ Object **BKE_view_layer_array_from_objects_in_mode_unique_data(const Scene *scen
                                                                uint *r_len,
                                                                const eObjectMode mode)
 {
-  struct ObjectsInModeParams params = {0};
+  ObjectsInModeParams params = {0};
   params.object_mode = mode;
   params.no_dup_data = true;
   return BKE_view_layer_array_from_objects_in_mode_params(scene, view_layer, v3d, r_len, &params);

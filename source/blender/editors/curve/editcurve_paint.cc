@@ -120,7 +120,7 @@ struct CurveDrawData {
 
     float location_world_valid[3];
 
-    const struct StrokeElem *selem;
+    const StrokeElem *selem;
   } prev;
 
   ViewContext vc;
@@ -133,21 +133,18 @@ struct CurveDrawData {
   void *draw_handle_view;
 };
 
-static float stroke_elem_radius_from_pressure(const struct CurveDrawData *cdd,
-                                              const float pressure)
+static float stroke_elem_radius_from_pressure(const CurveDrawData *cdd, const float pressure)
 {
   const Curve *cu = static_cast<const Curve *>(cdd->vc.obedit->data);
   return ((pressure * cdd->radius.range) + cdd->radius.min) * cu->bevel_radius;
 }
 
-static float stroke_elem_radius(const struct CurveDrawData *cdd, const struct StrokeElem *selem)
+static float stroke_elem_radius(const CurveDrawData *cdd, const StrokeElem *selem)
 {
   return stroke_elem_radius_from_pressure(cdd, selem->pressure);
 }
 
-static void stroke_elem_pressure_set(const struct CurveDrawData *cdd,
-                                     struct StrokeElem *selem,
-                                     float pressure)
+static void stroke_elem_pressure_set(const CurveDrawData *cdd, StrokeElem *selem, float pressure)
 {
   if ((cdd->project.surface_offset != 0.0f) && !cdd->project.use_surface_offset_absolute &&
       !is_zero_v3(selem->normal_local))
@@ -160,9 +157,9 @@ static void stroke_elem_pressure_set(const struct CurveDrawData *cdd,
   selem->pressure = pressure;
 }
 
-static void stroke_elem_interp(struct StrokeElem *selem_out,
-                               const struct StrokeElem *selem_a,
-                               const struct StrokeElem *selem_b,
+static void stroke_elem_interp(StrokeElem *selem_out,
+                               const StrokeElem *selem_a,
+                               const StrokeElem *selem_b,
                                float t)
 {
   interp_v2_v2v2(selem_out->mval, selem_a->mval, selem_b->mval, t);
@@ -174,7 +171,7 @@ static void stroke_elem_interp(struct StrokeElem *selem_out,
 /**
  * Sets the depth from #StrokeElem.mval
  */
-static bool stroke_elem_project(const struct CurveDrawData *cdd,
+static bool stroke_elem_project(const CurveDrawData *cdd,
                                 const int mval_i[2],
                                 const float mval_fl[2],
                                 float surface_offset,
@@ -199,10 +196,10 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
   }
   else {
     const ViewDepths *depths = cdd->depths;
-    if (depths && ((uint)mval_i[0] < depths->w) && ((uint)mval_i[1] < depths->h)) {
+    if (depths && (uint(mval_i[0]) < depths->w) && (uint(mval_i[1]) < depths->h)) {
       float depth_fl = 1.0f;
       ED_view3d_depth_read_cached(depths, mval_i, 0, &depth_fl);
-      const double depth = (double)depth_fl;
+      const double depth = double(depth_fl);
       if ((depth > depths->depth_range[0]) && (depth < depths->depth_range[1])) {
         if (ED_view3d_depth_unproject_v3(region, mval_i, depth, r_location_world)) {
           is_location_world_set = true;
@@ -234,7 +231,7 @@ static bool stroke_elem_project(const struct CurveDrawData *cdd,
   return is_location_world_set;
 }
 
-static bool stroke_elem_project_fallback(const struct CurveDrawData *cdd,
+static bool stroke_elem_project_fallback(const CurveDrawData *cdd,
                                          const int mval_i[2],
                                          const float mval_fl[2],
                                          const float surface_offset,
@@ -269,9 +266,9 @@ static bool stroke_elem_project_fallback(const struct CurveDrawData *cdd,
 /**
  * \note #StrokeElem.mval & #StrokeElem.pressure must be set first.
  */
-static bool stroke_elem_project_fallback_elem(const struct CurveDrawData *cdd,
+static bool stroke_elem_project_fallback_elem(const CurveDrawData *cdd,
                                               const float location_fallback_depth[3],
-                                              struct StrokeElem *selem)
+                                              StrokeElem *selem)
 {
   const int mval_i[2] = {int(selem->mval[0]), int(selem->mval[1])};
   const float radius = stroke_elem_radius(cdd, selem);
@@ -293,7 +290,7 @@ static bool stroke_elem_project_fallback_elem(const struct CurveDrawData *cdd,
 /** \name Operator/Stroke Conversion
  * \{ */
 
-static void curve_draw_stroke_to_operator_elem(wmOperator *op, const struct StrokeElem *selem)
+static void curve_draw_stroke_to_operator_elem(wmOperator *op, const StrokeElem *selem)
 {
   PointerRNA itemptr;
   RNA_collection_add(op->ptr, "stroke", &itemptr);
@@ -305,9 +302,9 @@ static void curve_draw_stroke_to_operator_elem(wmOperator *op, const struct Stro
 
 static void curve_draw_stroke_from_operator_elem(wmOperator *op, PointerRNA *itemptr)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
-  struct StrokeElem *selem = static_cast<StrokeElem *>(BLI_mempool_calloc(cdd->stroke_elem_pool));
+  StrokeElem *selem = static_cast<StrokeElem *>(BLI_mempool_calloc(cdd->stroke_elem_pool));
 
   RNA_float_get_array(itemptr, "mouse", selem->mval);
   RNA_float_get_array(itemptr, "location", selem->location_world);
@@ -317,10 +314,10 @@ static void curve_draw_stroke_from_operator_elem(wmOperator *op, PointerRNA *ite
 
 static void curve_draw_stroke_to_operator(wmOperator *op)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   BLI_mempool_iter iter;
-  const struct StrokeElem *selem;
+  const StrokeElem *selem;
 
   BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
   for (selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)); selem;
@@ -347,7 +344,7 @@ static void curve_draw_stroke_from_operator(wmOperator *op)
 static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, void *arg)
 {
   wmOperator *op = static_cast<wmOperator *>(arg);
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   const int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
@@ -360,7 +357,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
   if (cu->bevel_radius > 0.0f) {
     BLI_mempool_iter iter;
-    const struct StrokeElem *selem;
+    const StrokeElem *selem;
 
     const float location_zero[3] = {0};
     const float *location_prev = location_zero;
@@ -403,7 +400,7 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
     {
       BLI_mempool_iter iter;
-      const struct StrokeElem *selem;
+      const StrokeElem *selem;
       int i;
       BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
       for (selem = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter)), i = 0; selem;
@@ -453,12 +450,12 @@ static void curve_draw_stroke_3d(const bContext * /*C*/, ARegion * /*region*/, v
 
 static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   Object *obedit = cdd->vc.obedit;
 
   invert_m4_m4(obedit->world_to_object, obedit->object_to_world);
 
-  struct StrokeElem *selem = static_cast<StrokeElem *>(BLI_mempool_calloc(cdd->stroke_elem_pool));
+  StrokeElem *selem = static_cast<StrokeElem *>(BLI_mempool_calloc(cdd->stroke_elem_pool));
 
   ARRAY_SET_ITEMS(selem->mval, event->mval[0], event->mval[1]);
 
@@ -478,14 +475,14 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
   copy_v2_v2(cdd->prev.mval, selem->mval);
 
   if (cdd->sample.use_substeps && cdd->prev.selem) {
-    const struct StrokeElem selem_target = *selem;
-    struct StrokeElem *selem_new_last = selem;
+    const StrokeElem selem_target = *selem;
+    StrokeElem *selem_new_last = selem;
     if (len_sq >= square_f(STROKE_SAMPLE_DIST_MAX_PX)) {
-      int n = (int)ceil(sqrt((double)len_sq)) / STROKE_SAMPLE_DIST_MAX_PX;
+      int n = int(ceil(sqrt(double(len_sq)))) / STROKE_SAMPLE_DIST_MAX_PX;
 
       for (int i = 1; i < n; i++) {
-        struct StrokeElem *selem_new = selem_new_last;
-        stroke_elem_interp(selem_new, cdd->prev.selem, &selem_target, (float)i / n);
+        StrokeElem *selem_new = selem_new_last;
+        stroke_elem_interp(selem_new, cdd->prev.selem, &selem_target, float(i) / n);
 
         const bool is_depth_found_substep = stroke_elem_project_fallback_elem(
             cdd, cdd->prev.location_world_valid, selem_new);
@@ -509,7 +506,7 @@ static void curve_draw_event_add(wmOperator *op, const wmEvent *event)
 
 static void curve_draw_event_add_first(wmOperator *op, const wmEvent *event)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
 
   /* add first point */
@@ -572,7 +569,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 {
   BLI_assert(op->customdata == nullptr);
 
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(MEM_callocN(sizeof(*cdd), __func__));
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(MEM_callocN(sizeof(*cdd), __func__));
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   if (is_invoke) {
@@ -612,15 +609,14 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
   cdd->project.use_surface_offset_absolute = (cps->flag &
                                               CURVE_PAINT_FLAG_DEPTH_STROKE_OFFSET_ABS) != 0;
 
-  cdd->stroke_elem_pool = BLI_mempool_create(
-      sizeof(struct StrokeElem), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
+  cdd->stroke_elem_pool = BLI_mempool_create(sizeof(StrokeElem), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
 
   return true;
 }
 
 static void curve_draw_exit(wmOperator *op)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   if (cdd) {
     if (cdd->draw_handle_view) {
       ED_region_draw_cb_exit(cdd->vc.region->type, cdd->draw_handle_view);
@@ -644,7 +640,7 @@ static void curve_draw_exit(wmOperator *op)
  */
 static void curve_draw_exec_precalc(wmOperator *op)
 {
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
   const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
   PropertyRNA *prop;
 
@@ -656,7 +652,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
   prop = RNA_struct_find_property(op->ptr, "corner_angle");
   if (!RNA_property_is_set(op->ptr, prop)) {
     const float corner_angle = (cps->flag & CURVE_PAINT_FLAG_CORNERS_DETECT) ? cps->corner_angle :
-                                                                               (float)M_PI;
+                                                                               float(M_PI);
     RNA_property_float_set(op->ptr, prop, corner_angle);
   }
 
@@ -665,7 +661,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 
     /* Error isn't set so we'll have to calculate it from the pixel values. */
     BLI_mempool_iter iter;
-    const struct StrokeElem *selem, *selem_prev;
+    const StrokeElem *selem, *selem_prev;
 
     float len_3d = 0.0f, len_2d = 0.0f;
     float scale_px; /* pixel to local space scale */
@@ -691,7 +687,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 
     if (BLI_mempool_len(cdd->stroke_elem_pool) > 2) {
       BLI_mempool_iter iter;
-      const struct StrokeElem *selem, *selem_first, *selem_last;
+      const StrokeElem *selem, *selem_first, *selem_last;
 
       BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
       selem_first = selem_last = static_cast<const StrokeElem *>(BLI_mempool_iterstep(&iter));
@@ -716,10 +712,10 @@ static void curve_draw_exec_precalc(wmOperator *op)
     const int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
     BLI_mempool_iter iter;
-    struct StrokeElem *selem, *selem_prev;
+    StrokeElem *selem, *selem_prev;
 
     float *lengths = static_cast<float *>(MEM_mallocN(sizeof(float) * stroke_len, __func__));
-    struct StrokeElem **selem_array = static_cast<StrokeElem **>(
+    StrokeElem **selem_array = static_cast<StrokeElem **>(
         MEM_mallocN(sizeof(*selem_array) * stroke_len, __func__));
     lengths[0] = 0.0f;
 
@@ -770,7 +766,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
     }
   }
 
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
   Object *obedit = cdd->vc.obedit;
@@ -830,7 +826,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 
     {
       BLI_mempool_iter iter;
-      const struct StrokeElem *selem;
+      const StrokeElem *selem;
       float *co = coords;
 
       BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
@@ -853,7 +849,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
     uint *corners = nullptr;
     uint corners_len = 0;
 
-    if ((fit_method == CURVE_PAINT_FIT_METHOD_SPLIT) && (corner_angle < (float)M_PI)) {
+    if ((fit_method == CURVE_PAINT_FIT_METHOD_SPLIT) && (corner_angle < float(M_PI))) {
       /* this could be configurable... */
       const float corner_radius_min = error_threshold / 8;
       const float corner_radius_max = error_threshold * 2;
@@ -1007,7 +1003,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
   }
   else { /* CU_POLY */
     BLI_mempool_iter iter;
-    const struct StrokeElem *selem;
+    const StrokeElem *selem;
 
     nu->pntsu = stroke_len;
     nu->pntsv = 1;
@@ -1069,7 +1065,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     return OPERATOR_CANCELLED;
   }
 
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
 
@@ -1161,7 +1157,7 @@ static void curve_draw_cancel(bContext * /*C*/, wmOperator *op)
 static int curve_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   int ret = OPERATOR_RUNNING_MODAL;
-  struct CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
+  CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   UNUSED_VARS(C, op);
 

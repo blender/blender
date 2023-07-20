@@ -363,7 +363,7 @@ static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wm
     if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
       wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_add_bounds", false);
       if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
-        struct Main *bmain = CTX_data_main(C);
+        Main *bmain = CTX_data_main(C);
         WM_gizmo_group_type_reinit_ptr(bmain, gzgt);
       }
     }

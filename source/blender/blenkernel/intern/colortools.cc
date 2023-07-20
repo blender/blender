@@ -1385,7 +1385,7 @@ void BKE_histogram_update_sample_line(Histogram *hist,
   int y1 = roundf(hist->co[0][1] * ibuf->y);
   int y2 = roundf(hist->co[1][1] * ibuf->y);
 
-  struct ColormanageProcessor *cm_processor = nullptr;
+  ColormanageProcessor *cm_processor = nullptr;
 
   hist->channels = 3;
   hist->x_resolution = 256;
@@ -1461,7 +1461,7 @@ void BKE_histogram_update_sample_line(Histogram *hist,
 struct ScopesUpdateData {
   Scopes *scopes;
   const ImBuf *ibuf;
-  struct ColormanageProcessor *cm_processor;
+  ColormanageProcessor *cm_processor;
   const uchar *display_buffer;
   int ycc_mode;
 };
@@ -1483,7 +1483,7 @@ static void scopes_update_cb(void *__restrict userdata,
 
   Scopes *scopes = data->scopes;
   const ImBuf *ibuf = data->ibuf;
-  struct ColormanageProcessor *cm_processor = data->cm_processor;
+  ColormanageProcessor *cm_processor = data->cm_processor;
   const uchar *display_buffer = data->display_buffer;
   const int ycc_mode = data->ycc_mode;
 
@@ -1505,10 +1505,10 @@ static void scopes_update_cb(void *__restrict userdata,
   const bool is_float = (ibuf->float_buffer.data != nullptr);
 
   if (is_float) {
-    rf = ibuf->float_buffer.data + (size_t(y)) * ibuf->x * ibuf->channels;
+    rf = ibuf->float_buffer.data + size_t(y) * ibuf->x * ibuf->channels;
   }
   else {
-    rc = display_buffer + (size_t(y)) * ibuf->x * ibuf->channels;
+    rc = display_buffer + size_t(y) * ibuf->x * ibuf->channels;
   }
 
   for (int x = 0; x < ibuf->x; x++) {
@@ -1624,7 +1624,7 @@ void BKE_scopes_update(Scopes *scopes,
   const uchar *display_buffer = nullptr;
   int ycc_mode = -1;
   void *cache_handle = nullptr;
-  struct ColormanageProcessor *cm_processor = nullptr;
+  ColormanageProcessor *cm_processor = nullptr;
 
   if (ibuf->byte_buffer.data == nullptr && ibuf->float_buffer.data == nullptr) {
     return;

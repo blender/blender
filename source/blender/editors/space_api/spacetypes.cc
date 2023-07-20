@@ -220,7 +220,7 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 /* ********************** Custom Draw Call API ***************** */
 
 struct RegionDrawCB {
-  struct RegionDrawCB *next, *prev;
+  RegionDrawCB *next, *prev;
 
   void (*draw)(const bContext *, ARegion *, void *);
   void *customdata;

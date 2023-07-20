@@ -343,7 +343,7 @@ PyObject *pyrna_struct_keyframe_insert(BPy_StructRNA *self, PyObject *args, PyOb
    * be executed from this function call, as this only happens when `options` has
    * `INSERTKEY_DRIVER`, which is not exposed to Python. */
   bContext *C = BPY_context_get();
-  struct Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
                                                                                     cfra);
 

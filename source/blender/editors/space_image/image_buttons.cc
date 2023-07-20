@@ -148,9 +148,9 @@ struct ImageUI_Data {
   int rpass_index;
 };
 
-static struct ImageUI_Data *ui_imageuser_data_copy(const struct ImageUI_Data *rnd_pt_src)
+static ImageUI_Data *ui_imageuser_data_copy(const ImageUI_Data *rnd_pt_src)
 {
-  struct ImageUI_Data *rnd_pt_dst = static_cast<ImageUI_Data *>(
+  ImageUI_Data *rnd_pt_dst = static_cast<ImageUI_Data *>(
       MEM_mallocN(sizeof(*rnd_pt_src), __func__));
   memcpy(rnd_pt_dst, rnd_pt_src, sizeof(*rnd_pt_src));
   return rnd_pt_dst;
@@ -158,7 +158,7 @@ static struct ImageUI_Data *ui_imageuser_data_copy(const struct ImageUI_Data *rn
 
 static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
@@ -230,7 +230,7 @@ static void ui_imageuser_layer_menu(bContext * /*C*/, uiLayout *layout, void *rn
 
 static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
@@ -309,7 +309,7 @@ static void ui_imageuser_pass_menu(bContext * /*C*/, uiLayout *layout, void *rnd
 /**************************** view menus *****************************/
 static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
@@ -369,7 +369,7 @@ static void ui_imageuser_view_menu_rr(bContext * /*C*/, uiLayout *layout, void *
 
 static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout, void *rnd_pt)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
@@ -418,7 +418,7 @@ static void ui_imageuser_view_menu_multiview(bContext * /*C*/, uiLayout *layout,
 /* 5 layer button callbacks... */
 static void image_multi_cb(bContext *C, void *rnd_pt, void *rr_v)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   ImageUser *iuser = rnd_data->iuser;
 
   BKE_image_multilayer_index(static_cast<RenderResult *>(rr_v), iuser);
@@ -428,7 +428,7 @@ static void image_multi_cb(bContext *C, void *rnd_pt, void *rr_v)
 static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_pt)
 {
   Scene *scene = CTX_data_scene(C);
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   RenderResult *rr;
@@ -474,7 +474,7 @@ static bool ui_imageuser_layer_menu_step(bContext *C, int direction, void *rnd_p
 static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt)
 {
   Scene *scene = CTX_data_scene(C);
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   Image *image = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
   RenderResult *rr;
@@ -552,7 +552,7 @@ static bool ui_imageuser_pass_menu_step(bContext *C, int direction, void *rnd_pt
 /* 5 view button callbacks... */
 static void image_multiview_cb(bContext *C, void *rnd_pt, void * /*arg_v*/)
 {
-  struct ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
+  ImageUI_Data *rnd_data = static_cast<ImageUI_Data *>(rnd_pt);
   Image *ima = rnd_data->image;
   ImageUser *iuser = rnd_data->iuser;
 
@@ -567,7 +567,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
                                        int w,
                                        const short *render_slot)
 {
-  struct ImageUI_Data rnd_pt_local, *rnd_pt = nullptr;
+  ImageUI_Data rnd_pt_local, *rnd_pt = nullptr;
   uiBlock *block = uiLayoutGetBlock(layout);
   uiBut *but;
   RenderLayer *rl = nullptr;
@@ -642,7 +642,7 @@ static void uiblock_layer_pass_buttons(uiLayout *layout,
     }
 
     /* pass */
-    rpass = static_cast<RenderPass *>((rl ? BLI_findlink(&rl->passes, iuser->pass) : nullptr));
+    rpass = static_cast<RenderPass *>(rl ? BLI_findlink(&rl->passes, iuser->pass) : nullptr);
 
     if (rl && RE_passes_have_name(rl)) {
       display_name = rpass ? rpass->name : "";
@@ -1244,7 +1244,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     int duration = 0;
 
     if (ima->source == IMA_SRC_MOVIE && BKE_image_has_anim(ima)) {
-      struct anim *anim = ((ImageAnim *)ima->anims.first)->anim;
+      anim *anim = ((ImageAnim *)ima->anims.first)->anim;
       if (anim) {
         duration = IMB_anim_get_duration(anim, IMB_TC_RECORD_RUN);
       }

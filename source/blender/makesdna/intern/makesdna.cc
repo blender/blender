@@ -798,7 +798,7 @@ static int convert_include(const char *filepath)
               }
 
               /* we've got a type! */
-              if (STREQ(md1, "long") || STREQ(md1, "ulong")) {
+              if (STR_ELEM(md1, "long", "ulong")) {
                 /* Forbid using long/ulong because those can be either 32 or 64 bit. */
                 fprintf(stderr,
                         "File '%s' contains use of \"%s\" in DNA struct which is not allowed\n",
@@ -1425,7 +1425,7 @@ static int make_structDNA(const char *base_directory,
     /* calc datablock size */
     const short *sp = structs[structs_len - 1];
     sp += 2 + 2 * (sp[1]);
-    len = (intptr_t)((char *)sp - (char *)structs[0]);
+    len = intptr_t((char *)sp - (char *)structs[0]);
     len = (len + 3) & ~3;
 
     dna_write(file, structs[0], len);

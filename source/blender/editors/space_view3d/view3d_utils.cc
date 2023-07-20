@@ -311,7 +311,7 @@ struct PointsInPlanesMinMax_UserData {
 static void points_in_planes_minmax_fn(
     const float co[3], int /*i*/, int /*j*/, int /*k*/, void *user_data_p)
 {
-  struct PointsInPlanesMinMax_UserData *user_data = static_cast<PointsInPlanesMinMax_UserData *>(
+  PointsInPlanesMinMax_UserData *user_data = static_cast<PointsInPlanesMinMax_UserData *>(
       user_data_p);
   minmax_v3v3_v3(user_data->min, user_data->max, co);
 }
@@ -342,7 +342,7 @@ bool ED_view3d_clipping_clamp_minmax(const RegionView3D *rv3d, float min[3], flo
   }
 
   /* Calculate points intersecting all planes (effectively intersecting two bounding boxes). */
-  struct PointsInPlanesMinMax_UserData user_data;
+  PointsInPlanesMinMax_UserData user_data;
   INIT_MINMAX(user_data.min, user_data.max);
 
   const float eps_coplanar = 1e-4f;
@@ -1605,7 +1605,7 @@ void ED_view3d_to_object(const Depsgraph *depsgraph,
   BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);
 }
 
-static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
+static bool view3d_camera_to_view_selected_impl(Main *bmain,
                                                 Depsgraph *depsgraph,
                                                 const Scene *scene,
                                                 Object *camera_ob,
@@ -1649,7 +1649,7 @@ static bool view3d_camera_to_view_selected_impl(struct Main *bmain,
   return false;
 }
 
-bool ED_view3d_camera_to_view_selected(struct Main *bmain,
+bool ED_view3d_camera_to_view_selected(Main *bmain,
                                        Depsgraph *depsgraph,
                                        const Scene *scene,
                                        Object *camera_ob)
@@ -1657,7 +1657,7 @@ bool ED_view3d_camera_to_view_selected(struct Main *bmain,
   return view3d_camera_to_view_selected_impl(bmain, depsgraph, scene, camera_ob, nullptr, nullptr);
 }
 
-bool ED_view3d_camera_to_view_selected_with_set_clipping(struct Main *bmain,
+bool ED_view3d_camera_to_view_selected_with_set_clipping(Main *bmain,
                                                          Depsgraph *depsgraph,
                                                          const Scene *scene,
                                                          Object *camera_ob)
@@ -1696,7 +1696,7 @@ struct ReadData {
 
 static bool depth_read_test_fn(const void *value, void *userdata)
 {
-  struct ReadData *data = static_cast<ReadData *>(userdata);
+  ReadData *data = static_cast<ReadData *>(userdata);
   float depth = *(float *)value;
   if (depth < data->r_depth) {
     data->r_depth = depth;
@@ -1733,7 +1733,7 @@ bool ED_view3d_depth_read_cached(const ViewDepths *vd,
     int pixel_count = (min_ii(x + margin + 1, shape[1]) - max_ii(x - margin, 0)) *
                       (min_ii(y + margin + 1, shape[0]) - max_ii(y - margin, 0));
 
-    struct ReadData data;
+    ReadData data;
     data.count = 0;
     data.count_max = pixel_count;
     data.r_depth = 1.0f;

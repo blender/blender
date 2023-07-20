@@ -76,7 +76,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
   GPU_viewport_size_get_f(viewport);
 
   const float max_pixel_error = 0.25f;
-  int nsegments = (int)ceilf(M_PI / acosf(1.0f - max_pixel_error / screen_scale));
+  int nsegments = int(ceilf(M_PI / acosf(1.0f - max_pixel_error / screen_scale)));
   nsegments = max_ff(nsegments, 8);
   nsegments = min_ff(nsegments, 1000);
 
@@ -431,7 +431,7 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
                 1.0f);
 }
 
-void ED_gizmotypes_button_2d(void)
+void ED_gizmotypes_button_2d()
 {
   WM_gizmotype_append(GIZMO_GT_button_2d);
 }

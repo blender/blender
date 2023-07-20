@@ -64,7 +64,7 @@ struct NavigateGizmoInfo {
   uint icon;
 };
 
-static struct NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
+static NavigateGizmoInfo g_navigate_params[GZ_INDEX_TOTAL] = {
     {
         "VIEW3D_OT_move",
         "GIZMO_GT_button_2d",
@@ -124,14 +124,14 @@ static bool WIDGETGROUP_navigate_poll(const bContext *C, wmGizmoGroupType * /*gz
 
 static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(
+  NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(
       MEM_callocN(sizeof(NavigateWidgetGroup), __func__));
 
   wmOperatorType *ot_view_axis = WM_operatortype_find("VIEW3D_OT_view_axis", true);
   wmOperatorType *ot_view_camera = WM_operatortype_find("VIEW3D_OT_view_camera", true);
 
   for (int i = 0; i < GZ_INDEX_TOTAL; i++) {
-    const struct NavigateGizmoInfo *info = &g_navigate_params[i];
+    const NavigateGizmoInfo *info = &g_navigate_params[i];
     navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, nullptr);
     wmGizmo *gz = navgroup->gz_array[i];
     gz->flag |= WM_GIZMO_MOVE_CURSOR | WM_GIZMO_DRAW_MODAL;
@@ -226,7 +226,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-  struct NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(gzgroup->customdata);
+  NavigateWidgetGroup *navgroup = static_cast<NavigateWidgetGroup *>(gzgroup->customdata);
   ARegion *region = CTX_wm_region(C);
   const RegionView3D *rv3d = static_cast<const RegionView3D *>(region->regiondata);
 

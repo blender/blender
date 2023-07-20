@@ -147,7 +147,7 @@ eSelectOp ED_select_op_from_operator(PointerRNA *ptr)
   return SEL_OP_SET;
 }
 
-void ED_select_pick_params_from_operator(PointerRNA *ptr, struct SelectPick_Params *params)
+void ED_select_pick_params_from_operator(PointerRNA *ptr, SelectPick_Params *params)
 {
   memset(params, 0x0, sizeof(*params));
   params->sel_op = ED_select_op_from_operator(ptr);
@@ -161,7 +161,7 @@ void ED_select_pick_params_from_operator(PointerRNA *ptr, struct SelectPick_Para
 
 const char *ED_select_pick_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
 {
-  struct SelectPick_Params params = {eSelectOp(0)};
+  SelectPick_Params params = {eSelectOp(0)};
   ED_select_pick_params_from_operator(ptr, &params);
   switch (params.sel_op) {
     case SEL_OP_ADD:

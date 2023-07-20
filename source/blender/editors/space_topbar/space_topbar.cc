@@ -95,7 +95,7 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void topbar_operatortypes(void) {}
+static void topbar_operatortypes() {}
 
 static void topbar_keymap(wmKeyConfig * /*keyconf*/) {}
 
@@ -173,7 +173,7 @@ static void topbar_header_listener(const wmRegionListenerParams *params)
 
 static void topbar_header_region_message_subscribe(const wmRegionMessageSubscribeParams *params)
 {
-  struct wmMsgBus *mbus = params->message_bus;
+  wmMsgBus *mbus = params->message_bus;
   WorkSpace *workspace = params->workspace;
   ARegion *region = params->region;
 

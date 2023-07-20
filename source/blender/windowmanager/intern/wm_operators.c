@@ -3014,7 +3014,7 @@ static int radial_control_modal(bContext *C, wmOperator *op, const wmEvent *even
                          WM_RADIAL_CONTROL_DISPLAY_WIDTH) *
                         100.0f;
             if (snap) {
-              new_value = ((int)(new_value + 2.5f)) / 5 * 5;
+              new_value = (int)(new_value + 2.5f) / 5 * 5;
             }
             break;
           case PROP_FACTOR:

@@ -33,7 +33,7 @@ const EnumPropertyItem rna_enum_unpack_method_items[] = {
 static void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
 {
   PackedFile *pf = (PackedFile *)ptr->data;
-  memcpy(value, pf->data, (size_t)pf->size);
+  memcpy(value, pf->data, size_t(pf->size));
   value[pf->size] = '\0';
 }
 

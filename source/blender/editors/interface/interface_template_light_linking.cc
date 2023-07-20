@@ -66,7 +66,7 @@ class CollectionDropTarget : public DropTargetInterface {
     return TIP_("Add to light linking collection");
   }
 
-  bool on_drop(struct bContext *C, const DragInfo &drag) const override
+  bool on_drop(bContext *C, const DragInfo &drag) const override
   {
     Main *bmain = CTX_data_main(C);
     Scene *scene = CTX_data_scene(C);
@@ -229,9 +229,7 @@ class CollectionView : public AbstractTreeView {
 
 namespace ui = blender::ui;
 
-void uiTemplateLightLinkingCollection(struct uiLayout *layout,
-                                      struct PointerRNA *ptr,
-                                      const char *propname)
+void uiTemplateLightLinkingCollection(uiLayout *layout, PointerRNA *ptr, const char *propname)
 {
   if (!ptr->data) {
     return;

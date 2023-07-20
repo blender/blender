@@ -907,7 +907,7 @@ bool ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
  * - do not allow this to be accessed from outside for now
  */
 struct tRKS_DSource {
-  struct tRKS_DSource *next, *prev;
+  tRKS_DSource *next, *prev;
   PointerRNA ptr; /* the whole point of this exercise! */
 };
 

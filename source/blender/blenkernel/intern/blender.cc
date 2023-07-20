@@ -399,7 +399,7 @@ void BKE_blender_userdef_app_template_data_set_and_free(UserDef *userdef)
  * \{ */
 
 static struct AtExitData {
-  struct AtExitData *next;
+  AtExitData *next;
 
   void (*func)(void *user_data);
   void *user_data;
@@ -407,7 +407,7 @@ static struct AtExitData {
 
 void BKE_blender_atexit_register(void (*func)(void *user_data), void *user_data)
 {
-  struct AtExitData *ae = static_cast<AtExitData *>(malloc(sizeof(*ae)));
+  AtExitData *ae = static_cast<AtExitData *>(malloc(sizeof(*ae)));
   ae->next = g_atexit;
   ae->func = func;
   ae->user_data = user_data;
@@ -416,8 +416,8 @@ void BKE_blender_atexit_register(void (*func)(void *user_data), void *user_data)
 
 void BKE_blender_atexit_unregister(void (*func)(void *user_data), const void *user_data)
 {
-  struct AtExitData *ae = g_atexit;
-  struct AtExitData **ae_p = &g_atexit;
+  AtExitData *ae = g_atexit;
+  AtExitData **ae_p = &g_atexit;
 
   while (ae) {
     if ((ae->func == func) && (ae->user_data == user_data)) {
@@ -432,7 +432,7 @@ void BKE_blender_atexit_unregister(void (*func)(void *user_data), const void *us
 
 void BKE_blender_atexit()
 {
-  struct AtExitData *ae = g_atexit, *ae_next;
+  AtExitData *ae = g_atexit, *ae_next;
   while (ae) {
     ae_next = ae->next;
 

@@ -1772,7 +1772,7 @@ void BKE_fcurve_delete_keys_all(FCurve *fcu)
 
 /* Time + Average value */
 struct tRetainedKeyframe {
-  struct tRetainedKeyframe *next, *prev;
+  tRetainedKeyframe *next, *prev;
   float frame; /* frame to cluster around */
   float val;   /* average value */
 
