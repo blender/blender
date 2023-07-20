@@ -9,7 +9,6 @@ set(INC
   intern
   ../common
   ../../bmesh
-  ../../depsgraph
   ../../geometry
   ../../makesrna
 )
@@ -52,6 +51,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_io_common

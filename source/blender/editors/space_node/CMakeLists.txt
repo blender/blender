@@ -9,7 +9,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../compositor
-  ../../depsgraph
   ../../draw
   ../../functions
   ../../geometry
@@ -51,6 +50,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc

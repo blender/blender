@@ -7,7 +7,6 @@ set(INC
   ../../blenfont
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../gpu
   ../../ikplugin
   ../../makesrna
@@ -117,6 +116,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mask
   bf_gpu

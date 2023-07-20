@@ -9,7 +9,6 @@ set(INC
   ../blenloader
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../draw
   ../functions
   ../gpencil_modifiers_legacy
@@ -531,7 +530,7 @@ set(LIB
   bf_blenloader
   bf_blentranslation
   bf_bmesh
-  bf_depsgraph
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
   bf_functions

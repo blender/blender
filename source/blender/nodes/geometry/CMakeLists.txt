@@ -9,7 +9,6 @@ set(INC
   ../../editors/include
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../functions
   ../../geometry
   ../../gpu
@@ -201,6 +200,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_bmesh
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
   bf_geometry

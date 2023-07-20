@@ -8,7 +8,6 @@ set(INC
   ../blenfont
   ../blentranslation
   ../bmesh
-  ../depsgraph
   ../editors/include
   ../makesrna
   ../render
@@ -43,6 +42,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

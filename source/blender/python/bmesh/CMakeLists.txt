@@ -5,7 +5,6 @@
 set(INC
   .
   ../../bmesh
-  ../../depsgraph
 )
 
 set(INC_SYS
@@ -37,6 +36,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_python_mathutils

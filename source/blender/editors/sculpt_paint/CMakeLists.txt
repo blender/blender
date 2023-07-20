@@ -7,7 +7,6 @@ set(INC
   ../uvedit
   ../../blentranslation
   ../../bmesh
-  ../../depsgraph
   ../../draw
   ../../functions
   ../../geometry
@@ -94,6 +93,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
