@@ -39,19 +39,19 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row;
   uiLayout *layout = panel->layout;
   int toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "use_flip_x", toggles_flag, NULL, ICON_NONE);
-  uiItemR(row, ptr, "use_flip_y", toggles_flag, NULL, ICON_NONE);
+  uiItemR(row, ptr, "use_flip_x", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_flip_y", toggles_flag, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -66,15 +66,15 @@ ShaderFxTypeInfo shaderfx_Type_Flip = {
     /*structName*/ "FlipShaderFxData",
     /*structSize*/ sizeof(FlipShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };

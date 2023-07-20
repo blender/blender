@@ -40,17 +40,17 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
 
   if (ELEM(mode, eShaderFxColorizeMode_Custom, eShaderFxColorizeMode_Duotone)) {
     const char *text = (mode == eShaderFxColorizeMode_Duotone) ? IFACE_("Low Color") :
@@ -58,10 +58,10 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
     uiItemR(layout, ptr, "low_color", 0, text, ICON_NONE);
   }
   if (mode == eShaderFxColorizeMode_Duotone) {
-    uiItemR(layout, ptr, "high_color", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "high_color", 0, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "factor", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "factor", 0, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -76,15 +76,15 @@ ShaderFxTypeInfo shaderfx_Type_Colorize = {
     /*structName*/ "ColorizeShaderFxData",
     /*structSize*/ sizeof(ColorizeShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };

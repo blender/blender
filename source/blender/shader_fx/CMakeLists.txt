@@ -24,18 +24,18 @@ set(INC_SYS
 
 set(SRC
   intern/FX_shader_util.h
-  intern/FX_ui_common.c
+  intern/FX_ui_common.cc
 
-  intern/FX_shader_blur.c
-  intern/FX_shader_colorize.c
-  intern/FX_shader_flip.c
-  intern/FX_shader_glow.c
-  intern/FX_shader_pixel.c
-  intern/FX_shader_rim.c
-  intern/FX_shader_shadow.c
-  intern/FX_shader_swirl.c
-  intern/FX_shader_util.c
-  intern/FX_shader_wave.c
+  intern/FX_shader_blur.cc
+  intern/FX_shader_colorize.cc
+  intern/FX_shader_flip.cc
+  intern/FX_shader_glow.cc
+  intern/FX_shader_pixel.cc
+  intern/FX_shader_rim.cc
+  intern/FX_shader_shadow.cc
+  intern/FX_shader_swirl.cc
+  intern/FX_shader_util.cc
+  intern/FX_shader_wave.cc
 
   intern/FX_ui_common.h
   FX_shader_types.h

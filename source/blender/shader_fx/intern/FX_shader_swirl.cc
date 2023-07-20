@@ -50,13 +50,13 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
 static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
   SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
-  if (fxd->object != NULL) {
+  if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
   }
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Swirl ShaderFx");
 }
 
-static bool isDisabled(ShaderFxData *fx, int UNUSED(userRenderParams))
+static bool isDisabled(ShaderFxData *fx, int /*userRenderParams*/)
 {
   SwirlShaderFxData *fxd = (SwirlShaderFxData *)fx;
 
@@ -70,17 +70,17 @@ static void foreachIDLink(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *u
   walk(userData, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "radius", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "object", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "radius", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "angle", 0, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -95,15 +95,15 @@ ShaderFxTypeInfo shaderfx_Type_Swirl = {
     /*structName*/ "SwirlShaderFxData",
     /*structSize*/ sizeof(SwirlShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
+    /*dependsOnTime*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
     /*panelRegister*/ panelRegister,
 };

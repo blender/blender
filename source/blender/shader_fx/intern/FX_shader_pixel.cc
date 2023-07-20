@@ -37,12 +37,12 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -52,7 +52,7 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Size X"), ICON_NONE);
   uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "use_antialiasing", 0, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -67,15 +67,15 @@ ShaderFxTypeInfo shaderfx_Type_Pixel = {
     /*structName*/ "PixelShaderFxData",
     /*structSize*/ sizeof(PixelShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };

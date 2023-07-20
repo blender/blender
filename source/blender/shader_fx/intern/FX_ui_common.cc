@@ -53,14 +53,14 @@ static void shaderfx_reorder(bContext *C, Panel *panel, int new_index)
   WM_operator_properties_create_ptr(&props_ptr, ot);
   RNA_string_set(&props_ptr, "shaderfx", fx->name);
   RNA_int_set(&props_ptr, "index", new_index);
-  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, NULL);
+  WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr, nullptr);
   WM_operator_properties_free(&props_ptr);
 }
 
 /**
  * Get the expand flag from the active effect to use for the panel.
  */
-static short get_shaderfx_expand_flag(const bContext *UNUSED(C), Panel *panel)
+static short get_shaderfx_expand_flag(const bContext * /*C*/, Panel *panel)
 {
   PointerRNA *fx_ptr = UI_panel_custom_data_get(panel);
   ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
@@ -70,7 +70,7 @@ static short get_shaderfx_expand_flag(const bContext *UNUSED(C), Panel *panel)
 /**
  * Save the expand flag for the panel and sub-panels to the effect.
  */
-static void set_shaderfx_expand_flag(const bContext *UNUSED(C), Panel *panel, short expand_flag)
+static void set_shaderfx_expand_flag(const bContext * /*C*/, Panel *panel, short expand_flag)
 {
   PointerRNA *fx_ptr = UI_panel_custom_data_get(panel);
   ShaderFxData *fx = (ShaderFxData *)fx_ptr->data;
@@ -85,7 +85,7 @@ static void set_shaderfx_expand_flag(const bContext *UNUSED(C), Panel *panel, sh
 
 void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
-  ShaderFxData *fx = ptr->data;
+  ShaderFxData *fx = static_cast<ShaderFxData *>(ptr->data);
   if (fx->error) {
     uiLayout *row = uiLayoutRow(layout, false);
     uiItemL(row, TIP_(fx->error), ICON_ERROR);
@@ -97,7 +97,7 @@ PointerRNA *shaderfx_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
   PointerRNA *ptr = UI_panel_custom_data_get(panel);
   BLI_assert(RNA_struct_is_a(ptr->type, &RNA_ShaderFx));
 
-  if (r_ob_ptr != NULL) {
+  if (r_ob_ptr != nullptr) {
     RNA_pointer_create(ptr->owner_id, &RNA_Object, ptr->owner_id, r_ob_ptr);
   }
 
@@ -136,7 +136,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to First"),
               ICON_TRIA_UP,
-              NULL,
+              nullptr,
               WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
@@ -151,7 +151,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to Last"),
               ICON_TRIA_DOWN,
-              NULL,
+              nullptr,
               WM_OP_INVOKE_DEFAULT,
               0,
               &op_ptr);
@@ -161,16 +161,16 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   }
 }
 
-static void shaderfx_panel_header(const bContext *UNUSED(C), Panel *panel)
+static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
   bool narrow_panel = (panel->sizex < UI_UNIT_X * 7 && panel->sizex != 0);
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
   Object *ob = (Object *)ptr->owner_id;
   ShaderFxData *fx = (ShaderFxData *)ptr->data;
 
-  const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(fx->type);
+  const ShaderFxTypeInfo *fxti = BKE_shaderfx_get_info(ShaderFxType(fx->type));
 
   UI_block_lock_set(uiLayoutGetBlock(layout), (ob && ID_IS_LINKED(ob)), ERROR_LIBDATA_MESSAGE);
 
@@ -213,16 +213,16 @@ static void shaderfx_panel_header(const bContext *UNUSED(C), Panel *panel)
 /** \name ShaderFx Registration Helpers
  * \{ */
 
-static bool shaderfx_ui_poll(const bContext *C, PanelType *UNUSED(pt))
+static bool shaderfx_ui_poll(const bContext *C, PanelType * /*pt*/)
 {
   Object *ob = ED_object_active_context(C);
 
-  return (ob != NULL) && (ob->type == OB_GPENCIL_LEGACY);
+  return (ob != nullptr) && (ob->type == OB_GPENCIL_LEGACY);
 }
 
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)
 {
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
 
   BKE_shaderfxType_panel_id(type, panel_type->idname);
   STRNCPY(panel_type->label, "");
@@ -252,7 +252,7 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw,
                                       PanelType *parent)
 {
-  PanelType *panel_type = MEM_callocN(sizeof(PanelType), __func__);
+  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
 
   SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);
   STRNCPY(panel_type->label, label);
@@ -264,7 +264,7 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
   panel_type->poll = shaderfx_ui_poll;
   panel_type->flag = PANEL_TYPE_DEFAULT_CLOSED;
 
-  BLI_assert(parent != NULL);
+  BLI_assert(parent != nullptr);
   STRNCPY(panel_type->parent_id, parent->idname);
   panel_type->parent = parent;
   BLI_addtail(&parent->children, BLI_genericNodeN(panel_type));

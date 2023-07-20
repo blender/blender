@@ -46,33 +46,33 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   int mode = RNA_enum_get(ptr, "mode");
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "mode", 0, nullptr, ICON_NONE);
 
-  uiItemR(layout, ptr, "threshold", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "threshold", 0, nullptr, ICON_NONE);
   if (mode == eShaderFxGlowMode_Color) {
-    uiItemR(layout, ptr, "select_color", 0, NULL, ICON_NONE);
+    uiItemR(layout, ptr, "select_color", 0, nullptr, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "glow_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "glow_color", 0, nullptr, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "blend_mode", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "opacity", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "size", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "use_glow_under", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "blend_mode", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "opacity", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "size", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_glow_under", 0, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -87,15 +87,15 @@ ShaderFxTypeInfo shaderfx_Type_Glow = {
     /*structName*/ "GlowShaderFxData",
     /*structSize*/ sizeof(GlowShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };

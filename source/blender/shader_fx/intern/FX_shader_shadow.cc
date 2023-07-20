@@ -50,7 +50,7 @@ static void initData(ShaderFxData *md)
   ARRAY_SET_ITEMS(gpfx->blur, 5, 5);
   gpfx->samples = 2;
 
-  gpfx->object = NULL;
+  gpfx->object = nullptr;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
@@ -61,13 +61,13 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
 static void updateDepsgraph(ShaderFxData *fx, const ModifierUpdateDepsgraphContext *ctx)
 {
   ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
-  if (fxd->object != NULL) {
+  if (fxd->object != nullptr) {
     DEG_add_object_relation(ctx->node, fxd->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
   }
   DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shadow ShaderFx");
 }
 
-static bool isDisabled(ShaderFxData *fx, int UNUSED(userRenderParams))
+static bool isDisabled(ShaderFxData *fx, int /*userRenderParams*/)
 {
   ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 
@@ -81,16 +81,16 @@ static void foreachIDLink(ShaderFxData *fx, Object *ob, IDWalkFunc walk, void *u
   walk(userData, ob, (ID **)&fxd->object, IDWALK_CB_NOP);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *row, *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "shadow_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "shadow_color", 0, nullptr, ICON_NONE);
 
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = uiLayoutColumn(layout, true);
@@ -98,8 +98,8 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Offset X"), ICON_NONE);
   uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "scale", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "scale", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", 0, nullptr, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Object Pivot"));
   uiItemR(row, ptr, "use_object", 0, "", ICON_NONE);
@@ -108,12 +108,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   shaderfx_panel_end(layout, ptr);
 }
 
-static void blur_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -123,38 +123,38 @@ static void blur_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
   uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, nullptr, ICON_NONE);
 }
 
-static void wave_header_draw(const bContext *UNUSED(C), Panel *panel)
+static void wave_header_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiItemR(layout, ptr, "use_wave", 0, IFACE_("Wave Effect"), ICON_NONE);
 }
 
-static void wave_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void wave_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_wave"));
 
-  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "amplitude", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "period", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "phase", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "amplitude", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "period", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "phase", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = shaderfx_panel_register(region_type, eShaderFxType_Shadow, panel_draw);
-  shaderfx_subpanel_register(region_type, "blur", "Blur", NULL, blur_panel_draw, panel_type);
+  shaderfx_subpanel_register(region_type, "blur", "Blur", nullptr, blur_panel_draw, panel_type);
   shaderfx_subpanel_register(
       region_type, "wave", "", wave_header_draw, wave_panel_draw, panel_type);
 }
@@ -164,15 +164,15 @@ ShaderFxTypeInfo shaderfx_Type_Shadow = {
     /*structName*/ "ShadowShaderFxData",
     /*structSize*/ sizeof(ShadowShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
+    /*freeData*/ nullptr,
     /*isDisabled*/ isDisabled,
     /*updateDepsgraph*/ updateDepsgraph,
-    /*dependsOnTime*/ NULL,
+    /*dependsOnTime*/ nullptr,
     /*foreachIDLink*/ foreachIDLink,
     /*panelRegister*/ panelRegister,
 };

@@ -43,17 +43,17 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "rim_color", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "mask_color", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "rim_color", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mask_color", 0, nullptr, ICON_NONE);
   uiItemR(layout, ptr, "mode", 0, IFACE_("Blend Mode"), ICON_NONE);
 
   /* Add the X, Y labels manually because offset is a #PROP_PIXEL. */
@@ -65,12 +65,12 @@ static void panel_draw(const bContext *UNUSED(C), Panel *panel)
   shaderfx_panel_end(layout, ptr);
 }
 
-static void blur_panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void blur_panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *col;
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -80,13 +80,13 @@ static void blur_panel_draw(const bContext *UNUSED(C), Panel *panel)
   uiItemFullR(col, ptr, prop, 0, 0, 0, IFACE_("Blur X"), ICON_NONE);
   uiItemFullR(col, ptr, prop, 1, 0, 0, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "samples", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "samples", 0, nullptr, ICON_NONE);
 }
 
 static void panelRegister(ARegionType *region_type)
 {
   PanelType *panel_type = shaderfx_panel_register(region_type, eShaderFxType_Rim, panel_draw);
-  shaderfx_subpanel_register(region_type, "blur", "Blur", NULL, blur_panel_draw, panel_type);
+  shaderfx_subpanel_register(region_type, "blur", "Blur", nullptr, blur_panel_draw, panel_type);
 }
 
 ShaderFxTypeInfo shaderfx_Type_Rim = {
@@ -94,15 +94,15 @@ ShaderFxTypeInfo shaderfx_Type_Rim = {
     /*structName*/ "RimShaderFxData",
     /*structSize*/ sizeof(RimShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };

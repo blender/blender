@@ -42,18 +42,18 @@ static void copyData(const ShaderFxData *md, ShaderFxData *target)
   BKE_shaderfx_copydata_generic(md, target);
 }
 
-static void panel_draw(const bContext *UNUSED(C), Panel *panel)
+static void panel_draw(const bContext * /*C*/, Panel *panel)
 {
   uiLayout *layout = panel->layout;
 
-  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, NULL);
+  PointerRNA *ptr = shaderfx_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "amplitude", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "period", 0, NULL, ICON_NONE);
-  uiItemR(layout, ptr, "phase", 0, NULL, ICON_NONE);
+  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "amplitude", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "period", 0, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "phase", 0, nullptr, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }
@@ -68,15 +68,15 @@ ShaderFxTypeInfo shaderfx_Type_Wave = {
     /*structName*/ "WaveShaderFxData",
     /*structSize*/ sizeof(WaveShaderFxData),
     /*type*/ eShaderFxType_GpencilType,
-    /*flags*/ 0,
+    /*flags*/ ShaderFxTypeFlag(0),
 
     /*copyData*/ copyData,
 
     /*initData*/ initData,
-    /*freeData*/ NULL,
-    /*isDisabled*/ NULL,
-    /*updateDepsgraph*/ NULL,
-    /*dependsOnTime*/ NULL,
-    /*foreachIDLink*/ NULL,
+    /*freeData*/ nullptr,
+    /*isDisabled*/ nullptr,
+    /*updateDepsgraph*/ nullptr,
+    /*dependsOnTime*/ nullptr,
+    /*foreachIDLink*/ nullptr,
     /*panelRegister*/ panelRegister,
 };
